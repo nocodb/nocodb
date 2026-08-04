@@ -1,6 +1,8 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
+import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { computeLtarNewRowState } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -9,9 +11,16 @@ interface Prop {
   items: number
   /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
   parentBreadcrumbs?: string[]
+  /** Grid interface: allow expanding a linked record (follows viz inline-edit toggle) */
+  allowRecordExpand?: boolean
+  /** Grid interface: allow the "+ New record" button (follows viz add-record toggle) */
+  allowNewRecord?: boolean
 }
 
-const props = defineProps<Prop>()
+const props = withDefaults(defineProps<Prop>(), {
+  allowRecordExpand: true,
+  allowNewRecord: true,
+})
 
 const emit = defineEmits(['update:modelValue', 'attachRecord', 'escape'])
 
@@ -48,6 +57,8 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const filterQueryRef = ref<HTMLInputElement>()
 
+const scrollContainerRef = ref<HTMLElement>()
+
 const { isDataReadOnly } = useRoles()
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -62,7 +73,6 @@ const {
   relatedTableDisplayValueProp,
   displayValueTypeAndFormatProp,
   unlink,
-  isChildrenListLoading,
   isChildrenListLinked,
   isChildrenLoading,
   relatedTableMeta,
@@ -78,13 +88,103 @@ const {
   rowId,
   relatedTableDisplayValueColumn,
   externalBaseUserRoles,
+  // Chunked cache
+  CHUNK_SIZE: _CHUNK_SIZE,
+  ROW_HEIGHT,
+  childrenCachedRows,
+  childrenCachedTotalRows,
+  childrenCachedLinkedState,
+  childrenCachedLoadingState,
+  fetchChildrenChunk,
+  clearChildrenCache,
+  resetChildrenCache,
+  shouldDefer,
+  isSingleTargetRelation,
+  pendingLinkRows,
+  removePendingLink,
+  isPendingUnlink,
+  canReorder,
+  reorderLink,
+  getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
+// Buffered (unsaved) links to show ABOVE the persisted virtual list. Only for an
+// existing row edited in the expanded form (deferred mode) and multi-target
+// relations — grid inline (shouldDefer=false) and new rows (rendered via the
+// normal list) are unaffected; single-target uses the row mirror + count.
+const showPendingLinks = computed(
+  () => shouldDefer.value && !isNew.value && !isSingleTargetRelation.value && pendingLinkRows.value.length > 0,
+)
+
 const { showRecordPlanLimitExceededModal } = useEeConfig()
+
+// ── Per-link drag-to-reorder (v2 mm on Postgres) ──────────────────────────────
+// Only for editable, non-form, non-public, persisted rows, when the whole set is
+// small enough to load and render as a plain (non-virtualized) draggable list.
+// Larger sets keep the windowed, non-draggable rendering.
+const REORDER_MAX = 50
+
+const reorderEnabled = computed(
+  () =>
+    canReorder.value &&
+    !readOnly.value &&
+    !isPublic.value &&
+    !isForm.value &&
+    !isNew.value &&
+    !childrenListPagination.query &&
+    childrenListCount.value > 1 &&
+    childrenListCount.value <= REORDER_MAX,
+)
+
+// Local, mutable copy of the linked rows that vuedraggable reorders in place.
+const reorderRows = ref<Record<string, any>[]>([])
+
+const syncReorderRows = () => {
+  reorderRows.value = [...(childrenList.value?.list ?? [])]
+}
+
+// When reorder becomes active, make sure the FULL set (up to REORDER_MAX) is
+// loaded into a single page, then mirror it into the draggable list.
+watch(
+  reorderEnabled,
+  async (enabled) => {
+    if (!enabled) return
+    if ((childrenList.value?.list?.length ?? 0) < childrenListCount.value) {
+      await loadChildrenList(true, undefined, REORDER_MAX)
+    }
+    syncReorderRows()
+  },
+  { immediate: true },
+)
+
+// Keep the draggable list in sync when the underlying list changes (e.g. after a
+// reorder reload or an unlink) — but only while not mid-list-load.
+watch(childrenList, () => {
+  if (reorderEnabled.value) syncReorderRows()
+})
+
+const onReorderEnd = async (evt: { oldIndex?: number; newIndex?: number }) => {
+  const { oldIndex, newIndex } = evt
+  if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return
+
+  // vuedraggable has already reordered `reorderRows` in place: the moved row is at
+  // newIndex, and the row it must sit BEFORE is the next one (or null = to end).
+  const movedRow = reorderRows.value[newIndex]
+  const beforeRow = reorderRows.value[newIndex + 1] ?? null
+  if (!movedRow) return
+
+  try {
+    await reorderLink(movedRow, beforeRow)
+  } catch (e) {
+    // On failure, resync from the (unchanged) source of truth.
+    message.error(await extractSdkResponseErrorMsg(e))
+    syncReorderRows()
+  }
+}
 
 watch(
   [vModel, isForm],
@@ -104,9 +204,17 @@ watch(
 
 const unlinkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
-    await removeLTARRef(row, injectedColumn?.value as ColumnType)
+    // The virtual list hands over a decorated COPY ({...row, _index, ...}) —
+    // removeLTARRef locates the staged entry by deep comparison, which the
+    // copy defeats (reactive unwrapping skews the compare). The list entry at
+    // _index IS the staged buffer object, so pass THAT — identity match.
+    const original = childrenList.value?.list?.[row._index ?? id] ?? row
+    await removeLTARRef(original, injectedColumn?.value as ColumnType)
+    // New-row list renders the staged buffer — refresh the snapshot like the
+    // add paths do, or the unlinked record keeps showing.
+    loadChildrenList(false, state.value)
   } else {
-    await unlink(row, {}, false, id)
+    await unlink(row, {}, id)
   }
 }
 
@@ -114,7 +222,7 @@ const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     await addLTARRef(row, injectedColumn?.value as ColumnType)
   } else {
-    await link(row, {}, false, id)
+    await link(row, {}, id)
   }
 }
 
@@ -122,42 +230,15 @@ const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref({})
 
-/** populate initial state for a new row which is parent/child of current record */
-const newRowState = computed(() => {
-  if (isNew.value) return {}
-  const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
-  const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
-    // Links as for the case of 'mm' we need the 'Links' column
-    if (!isLinksOrLTAR(col)) return false
-    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
-    if (colOpt1?.fk_related_model_id !== meta.value.id) return false
-
-    if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
-        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
-        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
-      )
-    } else {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
-      )
-    }
-  })
-  if (!colInRelatedTable) return {}
-  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
-  if (!relatedTableColOpt) return {}
-
-  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO) {
-    return {
-      [colInRelatedTable.title as string]: row?.value?.row,
-    }
-  } else {
-    return {
-      [colInRelatedTable.title as string]: row?.value && [row.value.row],
-    }
-  }
-})
+const newRowState = computed(() =>
+  computeLtarNewRowState(
+    injectedColumn?.value as ColumnType,
+    relatedTableMeta?.value,
+    meta.value?.id,
+    row?.value?.row,
+    isNew.value,
+  ),
+)
 
 const colTitle = computed(() => injectedColumn.value?.title || '')
 
@@ -338,29 +419,11 @@ watch([filterQueryRef, isDataExist], () => {
   }
 })
 
-const linkedShortcuts = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    vModel.value = false
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    try {
-      e.target?.nextElementSibling?.focus()
-    } catch (e) {}
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    try {
-      e.target?.previousElementSibling?.focus()
-    } catch (e) {}
-  } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
-    try {
-      filterQueryRef.value?.focus()
-    } catch (e) {}
-  }
-}
-
 onMounted(() => {
   loadRelatedTableMeta()
-  window.addEventListener('keydown', linkedShortcuts)
+
+  // Load initial chunk for virtual scroll
+  fetchChildrenChunk(0)
 
   // Don't focus input on open dropdown in mobile mode
   if (isMobileMode.value) return
@@ -369,38 +432,109 @@ onMounted(() => {
   }, 100)
 })
 
-const childrenListRef = ref<HTMLDivElement>()
+const ROW_VIRTUAL_MARGIN = 5
 
-watch(childrenListPagination, () => {
-  childrenListRef.value?.scrollTo({ top: 0, behavior: 'smooth' })
+const rowSlice = reactive({ start: 0, end: 0 })
+
+const calculateSlices = () => {
+  if (childrenCachedTotalRows.value === 0) return
+
+  const container = scrollContainerRef.value
+  const scrollTop = container?.scrollTop ?? 0
+  // Fall back to a sensible viewport height when the scroll container isn't measured yet
+  // (e.g. first open with buffered pending links, before the DOM flush binds the ref).
+  // Without this the persisted list would compute an empty slice and only render after a
+  // scroll / reopen, hiding already-linked records on first open. (#14058 review)
+  const clientHeight = container?.clientHeight || 12 * ROW_HEIGHT
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT))
+  const visibleCount = Math.max(1, Math.ceil(clientHeight / ROW_HEIGHT))
+  const endIndex = Math.min(startIndex + visibleCount, childrenCachedTotalRows.value)
+
+  rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  rowSlice.end = Math.min(childrenCachedTotalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
+}
+
+// Recompute the virtual slice whenever the total OR the set of cached rows changes, AND once
+// immediately on mount. `immediate` matters because the list remounts on returning from the
+// link-records modal while the chunk cache is still populated — so there's no total/size change
+// to react to, and a change-only watch would leave rowSlice at {0,0} until the user scrolls,
+// hiding the already-linked persisted rows. `flush: 'post'` runs the callback after the DOM
+// updates so the scroll container is mounted and measured when calculateSlices reads it
+// (#14058 review).
+watch([childrenCachedTotalRows, () => childrenCachedRows.value.size], () => calculateSlices(), {
+  flush: 'post',
+  immediate: true,
+})
+
+const updateVisibleChunks = () => {
+  if (childrenCachedTotalRows.value === 0 && childrenCachedRows.value.size === 0) return
+
+  const firstChunk = Math.floor(rowSlice.start / _CHUNK_SIZE)
+  const lastChunk = Math.floor(Math.max(0, rowSlice.end - 1) / _CHUNK_SIZE)
+
+  for (let c = firstChunk; c <= lastChunk; c++) {
+    fetchChildrenChunk(c)
+  }
+
+  const bufferStart = Math.max(0, rowSlice.start - 20)
+  const bufferEnd = Math.min(childrenCachedTotalRows.value, rowSlice.end + 20)
+  clearChildrenCache(bufferStart, bufferEnd)
+}
+
+// Debounce chunk fetching — short delay for normal scroll responsiveness,
+// maxWait ensures chunks load within 100ms even during continuous scrolling
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 50, { maxWait: 100 })
+
+const onListScroll = () => {
+  calculateSlices()
+  debouncedUpdateVisibleChunks()
+}
+
+const visibleRows = computed(() => {
+  const { start, end } = rowSlice
+  return Array.from({ length: Math.max(0, end - start) }, (_, i) => {
+    const idx = start + i
+    const row = childrenCachedRows.value.get(idx)
+    let isLinked = childrenCachedLinkedState.value.get(idx) ?? true
+    const isLoading = childrenCachedLoadingState.value.get(idx) ?? false
+    if (!row) return { _placeholder: true, _index: idx, _isLinked: true, _isLoading: false }
+    // A persisted row buffered for unlink (deferred) must render as unlinked
+    // even after the cache reseeds on reopen / far-chunk load.
+    if (shouldDefer.value && !isNew.value && isPendingUnlink(row)) isLinked = false
+    return { ...row, _index: idx, _isLinked: isLinked, _isLoading: isLoading }
+  })
 })
 
 onUnmounted(() => {
   resetChildrenListOffsetCount()
+  resetChildrenCache()
   childrenListPagination.query = ''
-  window.removeEventListener('keydown', linkedShortcuts)
 })
 
 const onFilterChange = () => {
   childrenListPagination.page = 1
+  resetChildrenCache()
   // reset offset count when filter changes
   resetChildrenListOffsetCount()
 }
 
 const isSearchInputFocused = ref(false)
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    if (!childrenListPagination.query) emit('escape')
-    filterQueryRef.value?.blur()
-  } else if (e.key === 'Enter') {
+const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
+  scrollContainerRef,
+  filterQueryRef,
+  itemTestId: 'nc-child-list-item',
+  expandedFormDlg,
+  closeModal: () => {
+    vModel.value = false
+  },
+  getQuery: () => childrenListPagination.query,
+  onEscapeEmptyQuery: () => emit('escape'),
+  onEnterWithQuery: () => {
     const list = childrenList.value?.list ?? state.value?.[colTitle.value]
-
-    if (childrenListPagination.query && ncIsArray(list) && list.length) {
-      linkOrUnLink(list[0], '0')
-    }
-  }
-}
+    if (ncIsArray(list) && list.length) linkOrUnLink(list[0], '0')
+  },
+})
 </script>
 
 <template>
@@ -448,53 +582,137 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :table-title="meta?.title"
         />
       </div>
-      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin">
-        <div v-if="isDataExist || isChildrenLoading">
-          <div class="cursor-pointer">
-            <template v-if="isChildrenLoading">
+      <div ref="scrollContainerRef" class="flex-1 overflow-auto nc-scrollbar-thin" @scroll="onListScroll">
+        <div v-if="isDataExist || isChildrenLoading || childrenCachedTotalRows > 0 || showPendingLinks">
+          <template v-if="isChildrenLoading && childrenCachedRows.size === 0">
+            <div
+              v-for="(_x, i) in Array.from({ length: skeletonCount })"
+              :key="i"
+              class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
+            >
+              <div class="flex items-center">
+                <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
+              </div>
+              <div class="flex flex-col gap-2 flex-grow justify-center">
+                <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
+                <div class="flex flex-row gap-6 w-10/12">
+                  <a-skeleton-input
+                    v-for="idx of [1, 2, 3]"
+                    :key="idx"
+                    active
+                    class="!h-3 !w-24 !rounded-md overflow-hidden"
+                    size="small"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+          <!-- Drag-to-reorder branch (v2 mm on PG, small/loaded set): a plain,
+               non-virtualized draggable list so the whole set can be arranged. -->
+          <template v-else-if="reorderEnabled">
+            <Draggable
+              v-model="reorderRows"
+              :item-key="(r) => getRelatedTableRowId(r)"
+              handle=".nc-ltar-reorder-handle"
+              ghost-class="nc-ltar-reorder-ghost"
+              :animation="150"
+              @end="onReorderEnd"
+            >
+              <template #item="{ element, index }">
+                <div
+                  class="flex flex-row items-center border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
+                  data-testid="nc-child-list-reorder-item"
+                >
+                  <div
+                    class="nc-ltar-reorder-handle flex-none flex items-center pl-2 cursor-move text-nc-content-gray-muted hover:text-nc-content-gray"
+                    data-testid="nc-child-list-reorder-handle"
+                  >
+                    <GeneralIcon icon="ncDrag" class="!h-4 !w-4" />
+                  </div>
+                  <LazyVirtualCellComponentsListItem
+                    class="flex-1 min-w-0"
+                    :attachment="attachmentCol"
+                    :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+                    :fields="fields"
+                    :display-value-column="relatedTableDisplayValueColumn"
+                    :is-linked="true"
+                    :is-loading="false"
+                    :related-table-display-value-prop="relatedTableDisplayValueProp"
+                    :row="element"
+                    :allow-expand="allowRecordExpand"
+                    data-testid="nc-child-list-item"
+                    @link-or-unlink="unlinkRow(element, index)"
+                    @expand="onClick(element)"
+                    @close="vModel = false"
+                  />
+                </div>
+              </template>
+            </Draggable>
+          </template>
+          <template v-else>
+            <!-- Unsaved (buffered) links — shown above the persisted list until save -->
+            <LazyVirtualCellComponentsListItem
+              v-for="(pItem, pi) in showPendingLinks ? pendingLinkRows : []"
+              :key="`pending-${pi}`"
+              :attachment="attachmentCol"
+              :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+              :fields="fields"
+              :display-value-column="relatedTableDisplayValueColumn"
+              :is-linked="true"
+              :is-loading="false"
+              :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :row="pItem"
+              :allow-expand="allowRecordExpand"
+              data-testid="nc-child-list-item-pending"
+              @link-or-unlink="removePendingLink(pItem)"
+              @expand="onClick(pItem)"
+              @close="vModel = false"
+              @keydown.space.prevent.stop="() => removePendingLink(pItem)"
+              @keydown.enter.prevent.stop="() => removePendingLink(pItem)"
+            />
+
+            <!-- Top spacer for virtual scroll -->
+            <div :style="{ height: `${rowSlice.start * ROW_HEIGHT}px` }" />
+
+            <template v-for="item in visibleRows" :key="item._index">
+              <!-- Skeleton placeholder for unloaded rows -->
               <div
-                v-for="(_x, i) in Array.from({ length: skeletonCount })"
-                :key="i"
-                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
+                v-if="item._placeholder"
+                :style="{ height: `${ROW_HEIGHT}px` }"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium"
               >
                 <div class="flex items-center">
                   <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
                   <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
-                  <div class="flex flex-row gap-6 w-10/12">
-                    <a-skeleton-input
-                      v-for="idx of [1, 2, 3]"
-                      :key="idx"
-                      active
-                      class="!h-3 !w-24 !rounded-md overflow-hidden"
-                      size="small"
-                    />
-                  </div>
                 </div>
               </div>
-            </template>
-            <template v-else>
+              <!-- Actual ListItem for loaded rows -->
               <LazyVirtualCellComponentsListItem
-                v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
-                :key="id"
+                v-else
                 :attachment="attachmentCol"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                 :fields="fields"
                 :display-value-column="relatedTableDisplayValueColumn"
-                :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
-                :is-loading="isChildrenListLoading[Number.parseInt(id)]"
-                :is-selected="!!(isSearchInputFocused && childrenListPagination.query && Number.parseInt(id) === 0)"
+                :is-linked="item._isLinked"
+                :is-loading="item._isLoading"
+                :is-selected="!!(isSearchInputFocused && childrenListPagination.query && item._index === 0)"
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
-                :row="refRow"
+                :row="item"
+                :allow-expand="allowRecordExpand"
                 data-testid="nc-child-list-item"
-                @link-or-unlink="linkOrUnLink(refRow, id)"
-                @expand="onClick(refRow)"
-                @keydown.space.prevent.stop="() => linkOrUnLink(refRow, id)"
-                @keydown.enter.prevent.stop="() => linkOrUnLink(refRow, id)"
+                @link-or-unlink="linkOrUnLink(item, String(item._index))"
+                @expand="onClick(item)"
+                @close="vModel = false"
+                @keydown.space.prevent.stop="() => linkOrUnLink(item, String(item._index))"
+                @keydown.enter.prevent.stop="() => linkOrUnLink(item, String(item._index))"
               />
             </template>
-          </div>
+
+            <!-- Bottom spacer for virtual scroll -->
+            <div :style="{ height: `${Math.max(0, childrenCachedTotalRows - rowSlice.end) * ROW_HEIGHT}px` }" />
+          </template>
         </div>
         <div v-else class="h-full flex flex-col gap-2 my-auto items-center justify-center text-nc-content-gray-muted text-center">
           <img
@@ -525,6 +743,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
         <div class="flex items-center gap-2">
           <PermissionsTooltip
             v-if="
+              allowNewRecord &&
+              isLinkedTableAccessible &&
               !isPublic &&
               !isDataReadOnly &&
               !isTemplateMode &&
@@ -543,6 +763,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 size="small"
                 class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
                 type="secondary"
+                data-testid="nc-child-list-button-new-record"
                 :disabled="!isAllowed"
                 @click="addNewRecord"
               >
@@ -571,16 +792,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </div>
           </NcButton>
         </div>
-        <template v-if="!isNew && childrenList?.pageInfo && +childrenList.pageInfo.totalRows! > childrenListPagination.size">
-          <div class="flex justify-center items-center">
-            <NcPagination
-              v-model:current="childrenListPagination.page"
-              v-model:page-size="childrenListPagination.size"
-              :total="+childrenList.pageInfo.totalRows!"
-              mode="simple"
-            />
-          </div>
-        </template>
+        <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
+          {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
+        </div>
       </div>
     </div>
 
@@ -600,7 +814,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 new: true,
               },
         }"
-        :state="newRowState"
+        :state="isNewRecord ? newRowState : {}"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
         skip-reload

@@ -2,6 +2,7 @@ import { Knex, knex } from 'knex';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
 import { CTEGenerator } from './cte-generator';
+import { buildPgLikeRaw } from './conditionV1/pgLikeRaw';
 import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
@@ -471,11 +472,10 @@ const appendWhereCondition = function (
                 const operator = opMapping[matches[3]];
                 const target = matches[4];
                 if (matches[3] == 'like' && clientType === 'pg') {
-                  // handle uuid case
+                  // handle uuid case — `target` (user input) is bound as a `?`
+                  // parameter; only the fixed `operator` is interpolated.
                   knexRef[`${key}`](
-                    knexRef?.client.raw(`??::TEXT ${operator} '${target}'`, [
-                      column,
-                    ]),
+                    buildPgLikeRaw(knexRef?.client, column, operator, target),
                   );
                 } else {
                   knexRef[`${key}`](column, operator, target);
@@ -550,6 +550,7 @@ declare module 'knex' {
 
       concat<TRecord, TResult>(
         cn: string | any,
+        orderBy?: string | any,
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       conditionGraph<TRecord, TResult>(condition: {
@@ -587,11 +588,22 @@ knex.QueryBuilder.extend(
 /**
  * Append concat to knex query builder
  */
-knex.QueryBuilder.extend('concat', function (cn: any) {
-  switch (this?.client?.config?.client) {
+knex.QueryBuilder.extend('concat', function (cn: any, orderBy?: any) {
+  const clientName =
+    typeof this?.client?.config?.client === 'string'
+      ? this.client.config.client
+      : this?.client?.driverName ?? this?.client?.dialect;
+  switch (clientName) {
     case 'pg':
+      // `orderBy` (opt-in) is only wired for per-link ordering on PG; every
+      // existing caller passes no orderBy and gets the exact prior SQL.
       this.select(
-        this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
+        orderBy
+          ? this.client.raw(
+              `STRING_AGG(??::character varying , ',' ORDER BY ??)`,
+              [cn, orderBy],
+            )
+          : this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
       );
       break;
     case 'mysql':
@@ -600,6 +612,26 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
       break;
     case 'sqlite3':
       this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
+      break;
+    case 'mssql':
+      // STRING_AGG (SQL Server 2017+); cast so non-text lookup values
+      // aggregate. RTRIM strips trailing-space padding T-SQL preserves on
+      // fixed-length char/nchar columns (no-op for varchar/numeric).
+      this.select(
+        this.client.raw(`STRING_AGG(RTRIM(CAST(?? AS NVARCHAR(MAX))), ',')`, [
+          cn,
+        ]),
+      );
+      break;
+    case 'oracledb':
+      // LISTAGG requires a WITHIN GROUP clause; ORDER BY NULL keeps the
+      // subquery's input order. TO_CHAR so non-text lookup values aggregate.
+      this.select(
+        this.client.raw(
+          `LISTAGG(TO_CHAR(??), ',') WITHIN GROUP (ORDER BY NULL)`,
+          [cn],
+        ),
+      );
       break;
   }
   return this;
@@ -1046,12 +1078,23 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
   return qb;
 }
 
+interface ExtDbConfig {
+  dbMux?: string;
+  sourceId?: string;
+  client?: string;
+  upgrader?: boolean;
+  source?: { upgraderQueries?: string[] };
+  [key: string]: any;
+}
+
 type CustomKnex = Knex & {
   attachToTransaction?: (fn: () => void) => void;
   ops?: (() => void)[];
   _cteGenerator?: CTEGenerator;
   cteGenerator?: (context?: NcContext) => CTEGenerator;
   applyCte?: (qb: Knex.QueryInterface) => void;
+  extDb?: ExtDbConfig;
+  isExternal?: boolean;
 };
 
 type CustomTransaction = Knex.Transaction & {
@@ -1063,7 +1106,7 @@ type CustomTransaction = Knex.Transaction & {
 
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
-  extDb?: any,
+  extDb?: ExtDbConfig,
 ): CustomKnex {
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
@@ -1258,6 +1301,40 @@ function CustomKnex(
 
           _nested: { enumerable: true, writable: true, value: 0 },
           _aborted: { enumerable: true, writable: true, value: false },
+
+          // Mirror the parent connection's CTE helpers onto the transaction.
+          // Callers that pass `dbDriver: baseModel.dbDriver` propagate the trx
+          // as the inner BaseModel's `_dbDriver`, so `this.knex.applyCte(qb)`
+          // resolves to these. Without them, link writes (v3 dataUpdate ->
+          // updateLTARCols -> mmList -> execAndParse) crashed with
+          // "applyCte is not a function". Delegate to `kn._cteGenerator`
+          // so queued blocks are applied against the same generator.
+          cteGenerator: {
+            enumerable: true,
+            value: (context?: NcContext) => {
+              if (!kn._cteGenerator && context) {
+                kn._cteGenerator = new CTEGenerator({ context, knex: kn });
+              }
+              return kn._cteGenerator;
+            },
+          },
+          applyCte: {
+            enumerable: true,
+            value: (qb: Knex.QueryInterface) => {
+              if (kn._cteGenerator) {
+                kn._cteGenerator.applyCte(qb);
+                kn._cteGenerator.clear();
+              }
+            },
+          },
+          clearCte: {
+            enumerable: true,
+            value: () => {
+              if (kn._cteGenerator) {
+                kn._cteGenerator.clear();
+              }
+            },
+          },
         });
 
         return trx;
@@ -1604,3 +1681,4 @@ const parseConditionv2 = (_obj: Filter | FilterType, qb: Knex.QueryBuilder) => {
 
 export default CustomKnex;
 export { Knex, CustomKnex as XKnex };
+export type { ExtDbConfig };

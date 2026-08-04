@@ -42,7 +42,7 @@ const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
-const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations } = useEeConfig()
+const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations, showEEFeatures } = useEeConfig()
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
@@ -136,14 +136,25 @@ const isDataReflectionEnabled = computed(() => {
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
-    const isOssOnly = isEeUI ? !i?.isOssOnly : true
+    // OSS-only integrations (e.g. SQLite) are available only on free, self-hosted deployments
+    // (CE + unlicensed On-Prem) — hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is
+    // true exactly for that free non-cloud case. Gate on it — NOT isEeUI — since the self-hosted
+    // one-docker image is an EE build (isEeUI === true) regardless of license.
+    const isOssOnlyAllowed = isEEFeatureBlocked.value || !i?.isOssOnly
 
     if (!isDataReflectionEnabled.value && i.sub_type === SyncDataType.NOCODB) return false
 
     if (i.hidden) return false
 
+    // EE-only data sources (e.g. MSSQL, Oracle) are hidden in CE; in EE they're gated by their paid add-on.
+    // EE-only sources (MSSQL, Oracle) are hidden in CE and in community mode.
+    if (!showEEFeatures.value && i.isEeOnly) return false
+
     return (
-      isOssOnly && filterIntegration(i) && i.type === category && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnlyAllowed &&
+      filterIntegration(i) &&
+      i.type === category &&
+      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }
@@ -239,7 +250,7 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
   }
 
   if (category === IntegrationCategoryType.AI && blockAiIntegrations.value) {
-    showUpgradeToUseAiIntegrations({})
+    showUpgradeToUseAiIntegrations({ triggerSource: 'integrations-ai-integrations' })
     return
   }
 
@@ -319,7 +330,7 @@ watch(activeViewTab, (value) => {
             <GeneralIcon icon="arrowLeft" />
           </NcButton>
           <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5" />
-          <div class="flex-1 text-base font-weight-700">New Connection</div>
+          <div class="flex-1 text-base font-weight-700">{{ $t('labels.newConnection') }}</div>
           <div class="flex items-center gap-3">
             <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
               <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />

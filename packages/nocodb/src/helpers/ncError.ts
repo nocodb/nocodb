@@ -53,8 +53,24 @@ export class NcError {
     return NcError._.widgetNotFound(id, args);
   }
 
+  static trashNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.trashNotFound(id, args);
+  }
+
+  static parentInTrash(parentType: string, args?: NcErrorArgs): never {
+    return NcError._.parentInTrash(parentType, args);
+  }
+
   static dashboardNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.dashboardNotFound(id, args);
+  }
+
+  static interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfaceNotFound(id, args);
+  }
+
+  static interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfacePageNotFound(id, args);
   }
 
   static chatSessionNotFound(id: string, args?: NcErrorArgs): never {
@@ -87,6 +103,10 @@ export class NcError {
 
   static viewNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.viewNotFound(id, args);
+  }
+
+  static filterNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.filterNotFound(id, args);
   }
 
   static hookNotFound(id: string, args?: NcErrorArgs): never {
@@ -205,6 +225,10 @@ export class NcError {
 
   static integrationNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.integrationNotFound(id, args);
+  }
+
+  static syncConfigNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.syncConfigNotFound(id, args);
   }
 
   static cannotCalculateIntermediateOrderError(): never {

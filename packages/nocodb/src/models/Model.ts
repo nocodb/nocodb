@@ -29,6 +29,7 @@ import Column from '~/models/Column';
 import { extractProps } from '~/helpers/extractProps';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NcError } from '~/helpers/catchError';
+import { getReplay } from '~/helpers/replayScope';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -47,26 +48,39 @@ import {
 } from '~/utils/modelUtils';
 import { Source } from '~/models';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { clearSingleQueryCacheForReferencingModels } from '~/helpers/singleQueryCacheInvalidator';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { isEE } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
+import {
+  modelOrViewNotDeletedXcCondition,
+  modelOrViewXcCondition,
+} from '~/utils/trashUtils';
 
 const logger = new Logger('Model');
 
-const modelOrViewXcCondition = {
-  _or: [
-    {
-      type: {
-        eq: ModelTypes.TABLE,
-      },
-    },
-    {
-      type: {
-        eq: ModelTypes.VIEW,
-      },
-    },
-  ],
-};
+/**
+ * Build a JSON-/hash-safe clone: drop functions, replace promises with a
+ * placeholder, and break cycles. Used as a fallback when `object-hash` chokes
+ * on a transient lazily-loaded promise sitting on a cached column instance.
+ */
+function sanitizeForHash(value: any, seen = new WeakSet()): any {
+  if (value === null || typeof value !== 'object') {
+    return typeof value === 'function' ? undefined : value;
+  }
+  if (typeof (value as any).then === 'function') return '[promise]';
+  if (seen.has(value)) return '[circular]';
+  seen.add(value);
+  if (Array.isArray(value)) return value.map((v) => sanitizeForHash(v, seen));
+  if (value instanceof Map) {
+    return [...value.entries()].map(([k, v]) => [k, sanitizeForHash(v, seen)]);
+  }
+  if (value instanceof Set)
+    return [...value].map((v) => sanitizeForHash(v, seen));
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(value)) out[k] = sanitizeForHash(v, seen);
+  return out;
+}
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -101,7 +115,6 @@ export default class Model implements TableType {
 
   date_dependency?: DateDependencyType | null;
 
-  trash_cleanup_due_at?: string | null;
   trash_disabled?: boolean | null;
   trash_retention_days?: number | null;
 
@@ -134,12 +147,14 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
     defaultViewId = undefined,
     updateColumns = true,
+    includeDeleted = false,
   ): Promise<Column[]> {
     const columns = await Column.list(
       context,
       {
         fk_model_id: this.id,
         fk_default_view_id: defaultViewId,
+        includeDeleted,
       },
       ncMeta,
     );
@@ -162,7 +177,15 @@ export default class Model implements TableType {
   ): Promise<string> {
     const columns = await this.getColumns(context, ncMeta, undefined, false);
 
-    return (this.columnsHash = hash(columns));
+    try {
+      return (this.columnsHash = hash(columns));
+    } catch {
+      // A column can transiently carry a lazily-loaded Promise (e.g. a relation
+      // mid-load on a shared cached instance); object-hash throws on promises.
+      // Hash a sanitized projection instead so meta operations never crash on a
+      // transient cache state.
+      return (this.columnsHash = hash(sanitizeForHash(columns)));
+    }
   }
 
   // get columns cached under the instance or fetch from db/redis cache
@@ -296,10 +319,12 @@ export default class Model implements TableType {
       ncMeta,
     );
 
+    const sandboxDefaultViewId = getReplay('sandboxDefaultViewId');
     await View.insertMetaOnly(
       context,
       {
         view: {
+          ...(sandboxDefaultViewId ? { id: sandboxDefaultViewId } : {}),
           fk_model_id: id,
           title: model.title || model.table_name,
           type: ViewTypes.GRID,
@@ -352,9 +377,11 @@ export default class Model implements TableType {
     {
       base_id,
       source_id,
+      includeDeleted,
     }: {
       base_id: string;
       source_id?: string;
+      includeDeleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
@@ -401,6 +428,11 @@ export default class Model implements TableType {
         );
       }
     }
+
+    if (!includeDeleted) {
+      modelList = modelList.filter((m) => !m.deleted);
+    }
+
     modelList.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
@@ -410,50 +442,13 @@ export default class Model implements TableType {
     return modelList.map((m) => this.castType(m));
   }
 
-  public static async listWithInfo(
-    context: NcContext,
-    {
-      base_id,
-      db_alias,
-    }: {
-      base_id: string;
-      db_alias: string;
-    },
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model[]> {
-    const cachedList = await NocoCache.getList(context, CacheScope.MODEL, [
-      base_id,
-      db_alias,
-    ]);
-    let { list: modelList } = cachedList;
-    const { isNoneList } = cachedList;
-    if (!isNoneList && !modelList.length) {
-      modelList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.MODELS,
-        {
-          xcCondition: modelOrViewXcCondition,
-        },
-      );
-
-      // parse meta of each model
-      for (const model of modelList) {
-        model.meta = parseMetaProp(model);
-      }
-
-      await NocoCache.setList(context, CacheScope.MODEL, [base_id], modelList);
-    }
-
-    return modelList.map((m) => this.castType(m));
-  }
-
   @NcCache({
-    key: (args) => args[1],
+    key: (args) => `${args[1]}:${args[2] ? 'd' : ''}`,
   })
   public static async get(
     context: NcContext,
     id: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
     let modelData =
@@ -482,6 +477,11 @@ export default class Model implements TableType {
         );
       }
     }
+
+    if (modelData?.deleted && !includeDeleted) {
+      return null;
+    }
+
     return this.castType(modelData);
   }
 
@@ -490,7 +490,7 @@ export default class Model implements TableType {
       `${
         args[1].id ||
         `${args[1].base_id}:${args[1].source_id}:${args[1].table_name}`
-      }`,
+      }:${args[1].includeDeleted ? 'd' : ''}`,
   })
   public static async getByIdOrName(
     context: NcContext,
@@ -499,14 +499,16 @@ export default class Model implements TableType {
           base_id: string;
           source_id: string;
           table_name: string;
+          includeDeleted?: boolean;
         }
       | {
           id?: string;
+          includeDeleted?: boolean;
         },
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
     if ('id' in args && args?.id) {
-      return this.get(context, args.id, ncMeta);
+      return this.get(context, args.id, args.includeDeleted, ncMeta);
     }
 
     const k = 'id' in args ? args?.id : args;
@@ -524,7 +526,9 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         k,
         undefined,
-        modelOrViewXcCondition,
+        args.includeDeleted
+          ? modelOrViewXcCondition
+          : modelOrViewNotDeletedXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -569,20 +573,7 @@ export default class Model implements TableType {
           table_name,
         },
         undefined,
-        {
-          _or: [
-            {
-              type: {
-                eq: ModelTypes.TABLE,
-              },
-            },
-            {
-              type: {
-                eq: ModelTypes.VIEW,
-              },
-            },
-          ],
-        },
+        modelOrViewNotDeletedXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -643,7 +634,8 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
-    const model = args?.model || (await this.get(context, args.id, ncMeta));
+    const model =
+      args?.model || (await this.get(context, args.id, false, ncMeta));
 
     if (!model) {
       NcError.get(context).tableNotFound(args.id);
@@ -668,7 +660,7 @@ export default class Model implements TableType {
 
     if (source?.isMeta(true, 1)) {
       schema = source.getConfig()?.schema;
-    } else if (source?.type === 'pg') {
+    } else if (source?.type === 'pg' || source?.type === 'mssql') {
       schema = source.getConfig()?.searchPath?.[0];
     }
 
@@ -681,6 +673,25 @@ export default class Model implements TableType {
       schema,
       queryQueue: args.queryQueue,
     });
+  }
+
+  static async softDelete(
+    context: NcContext,
+    modelId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { deleted },
+      modelId,
+    );
+    await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
+      deleted,
+    });
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {});
   }
 
   async delete(
@@ -869,6 +880,7 @@ export default class Model implements TableType {
       isMySQL: false,
       isSqlite: false,
       isPg: false,
+      isMssql: false,
     },
     knex,
     columns?: Column[],
@@ -887,7 +899,8 @@ export default class Model implements TableType {
           col.uidt === UITypes.DateTime &&
           dayjs(val).isValid()
         ) {
-          const { isMySQL, isSqlite, isPg } = clientMeta;
+          const { isMySQL, isSqlite, isPg, isMssql, isOracle } =
+            clientMeta as any;
           if (
             val.indexOf('-') < 0 &&
             val.indexOf('+') < 0 &&
@@ -897,7 +910,31 @@ export default class Model implements TableType {
             // then append +00:00 to make it as UTC
             val += '+00:00';
           }
-          if (isMySQL) {
+          if (isOracle) {
+            // Oracle parses string binds with the session NLS formats pinned at
+            // connection time ('YYYY-MM-DD HH24:MI:SS[.FF]'), which carry no
+            // offset token — the generic offset-bearing shape below
+            // ('…ssZ') raises ORA-01830/ORA-01861. Emit the UTC wall-clock
+            // offset-less. DATE has second precision (a fractional part raises
+            // ORA-01830); TIMESTAMP* accepts `.SSS` via the FF token, so keep
+            // sub-second data there. Mirrors BaseModelSqlv2.formatDate /
+            // DateTimeOracleHandler.parseUserInput.
+            const dt = (col.dt || '').toLowerCase();
+            val = dayjs(val)
+              .utc()
+              .format(
+                dt === 'date'
+                  ? 'YYYY-MM-DD HH:mm:ss'
+                  : 'YYYY-MM-DD HH:mm:ss.SSS',
+              );
+          } else if (isMssql) {
+            // T-SQL `datetime`/`datetime2` reject the `+00:00` offset
+            // suffix that the other dialects accept. NocoDB stores UTC
+            // wall-clock without TZ on mssql — strip the offset after
+            // computing the UTC instant (matches
+            // `DateTimeMssqlHandler.parseUserInput`).
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+          } else if (isMySQL) {
             // first convert the value to utc
             // from UI
             // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
@@ -976,7 +1013,7 @@ export default class Model implements TableType {
       NcError.badRequest("Missing 'table_name' property in body");
     }
 
-    const oldModel = await this.get(context, tableId, ncMeta);
+    const oldModel = await this.get(context, tableId, false, ncMeta);
 
     // set meta
     const res = await ncMeta.metaUpdate(
@@ -1010,25 +1047,12 @@ export default class Model implements TableType {
     // clear all the cached query under this model
     await View.clearSingleQueryCache(context, tableId, null, ncMeta);
 
-    // clear all the cached query under related models
-    for (const col of await this.get(context, tableId).then((t) =>
-      t.getColumns(context),
-    )) {
-      if (!isLinksOrLTAR(col)) continue;
-
-      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-        ncMeta,
-      );
-
-      if (colOptions.fk_related_model_id === tableId) continue;
-
-      await View.clearSingleQueryCache(
-        context,
-        colOptions.fk_related_model_id,
-        null,
-        ncMeta,
-      );
+    // A physical table rename invalidates the compiled single-query SQL of every
+    // model that embeds this table's name — directly via a Link/LTAR, OR via a
+    // transitive Lookup/Rollup chain. Only walk that graph when the physical
+    // name actually changed; a title-only rename leaves the SQL untouched.
+    if (oldModel.table_name !== table_name) {
+      await clearSingleQueryCacheForReferencingModels(context, tableId, ncMeta);
     }
 
     return res;
@@ -1233,7 +1257,7 @@ export default class Model implements TableType {
             null,
             {
               _and: [
-                modelOrViewXcCondition,
+                modelOrViewNotDeletedXcCondition,
                 {
                   _or: [
                     {
@@ -1259,7 +1283,7 @@ export default class Model implements TableType {
             null,
             {
               _and: [
-                modelOrViewXcCondition,
+                modelOrViewNotDeletedXcCondition,
                 {
                   _or: [
                     {
@@ -1306,16 +1330,8 @@ export default class Model implements TableType {
       null,
       {
         _and: [
-          {
-            ...modelOrViewXcCondition,
-            ...(exclude_id
-              ? {
-                  id: {
-                    neq: exclude_id,
-                  },
-                }
-              : {}),
-          },
+          modelOrViewNotDeletedXcCondition,
+          ...(exclude_id ? [{ id: { neq: exclude_id } }] : []),
         ],
       },
     ));
@@ -1341,16 +1357,8 @@ export default class Model implements TableType {
       null,
       {
         _and: [
-          {
-            ...modelOrViewXcCondition,
-            ...(exclude_id
-              ? {
-                  id: {
-                    neq: exclude_id,
-                  },
-                }
-              : {}),
-          },
+          modelOrViewNotDeletedXcCondition,
+          ...(exclude_id ? [{ id: { neq: exclude_id } }] : []),
         ],
       },
     ));
@@ -1371,22 +1379,22 @@ export default class Model implements TableType {
     );
   }
 
-  static async updateTrashCleanupDueAt(
+  static async updateSynced(
     context: NcContext,
     modelId: string,
-    dueAt: string | null,
+    synced: boolean,
     ncMeta = Noco.ncMeta,
   ) {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,
-      { trash_cleanup_due_at: dueAt },
+      { synced },
       modelId,
     );
 
     await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
-      trash_cleanup_due_at: dueAt,
+      synced,
     });
   }
 

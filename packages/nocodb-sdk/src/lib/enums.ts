@@ -55,6 +55,13 @@ export enum TeamUserRoles {
   OWNER = 'owner',
 }
 
+export enum InterfaceRoles {
+  EDITOR = 'interface-editor',
+  COMMENTER = 'interface-commenter',
+  VIEWER = 'interface-viewer',
+  NO_ACCESS = 'interface-no-access',
+}
+
 export enum AppEvents {
   PROJECT_CREATE = 'base.create',
   PROJECT_INVITE = 'base.invite',
@@ -103,6 +110,11 @@ export enum AppEvents {
   ORG_DOMAIN_UPDATE = 'org.domain.update',
   ORG_DOMAIN_DELETE = 'org.domain.delete',
   ORG_DOMAIN_VERIFY = 'org.domain.verify',
+
+  WHITE_LABEL_UPDATE = 'white.label.update',
+
+  ADDON_GRANTED = 'addon.granted',
+  ADDON_REVOKED = 'addon.revoked',
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
@@ -237,6 +249,7 @@ export enum AppEvents {
   INTEGRATION_UPDATE = 'integration.update',
 
   ROW_USER_MENTION = 'row.user.mention',
+  ROW_LMT_TOUCHED = 'row.lmt.touched',
   CALENDAR_CREATE = 'calendar.create',
   TIMELINE_CREATE = 'timeline.create',
   FORM_DUPLICATE = 'form.duplicate',
@@ -244,6 +257,9 @@ export enum AppEvents {
   TIMELINE_UPDATE = 'timeline.update',
   CALENDAR_DELETE = 'calendar.delete',
   TIMELINE_DELETE = 'timeline.delete',
+  GANTT_CREATE = 'gantt.create',
+  GANTT_UPDATE = 'gantt.update',
+  GANTT_DELETE = 'gantt.delete',
   FORM_DELETE = 'form.delete',
 
   SOURCE_CREATE = 'source.create',
@@ -283,6 +299,7 @@ export enum AppEvents {
   SNAPSHOT_CREATE = 'snapshot.create',
   SNAPSHOT_DELETE = 'snapshot.delete',
   SNAPSHOT_RESTORE = 'snapshot.restore',
+  SNAPSHOT_SCHEDULE_UPDATE = 'snapshot.schedule.update',
 
   DATA_EXPORT = 'data.export',
   DATA_IMPORT = 'data.import',
@@ -305,10 +322,38 @@ export enum AppEvents {
   DASHBOARD_DUPLICATE_COMPLETE = 'dashboard.duplicate.complete',
   DASHBOARD_DUPLICATE_FAIL = 'dashboard.duplicate.fail',
 
+  TABLE_SYNC_CREATE = 'tableSync.create',
+  TABLE_SYNC_UPDATE = 'tableSync.update',
+  TABLE_SYNC_DELETE = 'tableSync.delete',
+  TABLE_SYNC_FREEZE = 'tableSync.freeze',
+  TABLE_SYNC_RESUME = 'tableSync.resume',
+  TABLE_SYNC_RESYNC = 'tableSync.resync',
+
   WIDGET_CREATE = 'widget.create',
   WIDGET_UPDATE = 'widget.update',
   WIDGET_DELETE = 'widget.delete',
   WIDGET_DUPLICATE = 'widget.duplicate',
+
+  INTERFACE_CREATE = 'interface.create',
+  INTERFACE_UPDATE = 'interface.update',
+  INTERFACE_DELETE = 'interface.delete',
+  INTERFACE_DUPLICATE = 'interface.duplicate',
+  INTERFACE_PUBLISH = 'interface.publish',
+
+  INTERFACE_PAGE_CREATE = 'interface.page.create',
+  INTERFACE_PAGE_UPDATE = 'interface.page.update',
+  INTERFACE_PAGE_DELETE = 'interface.page.delete',
+  INTERFACE_PAGE_DUPLICATE = 'interface.page.duplicate',
+
+  SHARED_INTERFACE_PAGE_CREATE = 'shared.interface.page.create',
+  SHARED_INTERFACE_PAGE_UPDATE = 'shared.interface.page.update',
+  SHARED_INTERFACE_PAGE_DELETE = 'shared.interface.page.delete',
+
+  INTERFACE_DATA_EXPORT = 'interface.data.export',
+
+  INTERFACE_USER_INVITE = 'interface.user.invite',
+  INTERFACE_USER_UPDATE = 'interface.user.update',
+  INTERFACE_USER_DELETE = 'interface.user.delete',
 
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',
@@ -320,10 +365,17 @@ export enum AppEvents {
   WORKFLOW_DUPLICATE = 'workflow.duplicate',
   WORKFLOW_EXECUTE = 'workflow.execute',
 
+  BOOKMARK_CREATE = 'bookmark.create',
+  BOOKMARK_DELETE = 'bookmark.delete',
+  BOOKMARK_MOVE = 'bookmark.move',
+  BOOKMARK_GROUP_CREATE = 'bookmark.group.create',
+  BOOKMARK_GROUP_DELETE = 'bookmark.group.delete',
+
   SANDBOX_CREATE = 'sandbox.create',
   SANDBOX_DELETE = 'sandbox.delete',
   SANDBOX_DISCARD = 'sandbox.discard',
   SANDBOX_MERGE = 'sandbox.merge',
+  SANDBOX_MERGE_FAILED = 'sandbox.merge_failed',
 
   RECORD_TEMPLATE_CREATE = 'record.template.create',
   RECORD_TEMPLATE_UPDATE = 'record.template.update',
@@ -350,6 +402,11 @@ export enum AppEvents {
   DOCUMENT_UPDATE = 'document.update',
   DOCUMENT_DELETE = 'document.delete',
   DOCUMENT_USER_MENTION = 'document.user.mention',
+  DOCUMENT_REVISION_RESTORE = 'document.revision.restore',
+
+  DOCUMENT_PUBLIC_SHARE_CREATE = 'document.public_share.create',
+  DOCUMENT_PUBLIC_SHARE_UPDATE = 'document.public_share.update',
+  DOCUMENT_PUBLIC_SHARE_DELETE = 'document.public_share.delete',
 
   DOCUMENT_COMMENT_CREATE = 'document.comment.create',
   DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
@@ -361,6 +418,22 @@ export enum AppEvents {
   RECORDS_SOFT_DELETE = 'records.soft.delete',
   RECORDS_RESTORE = 'records.restore',
   RECORDS_PERMANENT_DELETE = 'records.permanent.delete',
+
+  RESOURCE_RESTORE = 'resource.restore',
+  RESOURCE_PERMANENT_DELETE = 'resource.permanent_delete',
+
+  BASE_VARIABLE_CREATE = 'baseVariable.create',
+  BASE_VARIABLE_UPDATE = 'baseVariable.update',
+  BASE_VARIABLE_DELETE = 'baseVariable.delete',
+
+  MANAGED_APP_CREATE = 'managedApp.create',
+  MANAGED_APP_UPDATE = 'managedApp.update',
+  MANAGED_APP_DELETE = 'managedApp.delete',
+  MANAGED_APP_PUBLISH = 'managedApp.publish',
+  MANAGED_APP_INSTALL = 'managedApp.install',
+  MANAGED_APP_UPDATE_START = 'managedApp.update.start',
+  MANAGED_APP_UPDATE_COMPLETE = 'managedApp.update.complete',
+  MANAGED_APP_UPDATE_FAIL = 'managedApp.update.fail',
 }
 
 export enum ClickhouseTables {
@@ -527,6 +600,29 @@ export const OrderedProjectRoles = [
   ProjectRoles.NO_ACCESS,
 ];
 
+export const InterfaceRolesToProjectRoles = {
+  [InterfaceRoles.EDITOR]: ProjectRoles.EDITOR,
+  [InterfaceRoles.COMMENTER]: ProjectRoles.COMMENTER,
+  [InterfaceRoles.VIEWER]: ProjectRoles.VIEWER,
+  [InterfaceRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
+};
+
+// Base roles below creator map onto interface roles for base-role-derived
+// interface access; owner/creator are builders and are handled separately.
+export const ProjectRolesToInterfaceRoles = {
+  [ProjectRoles.EDITOR]: InterfaceRoles.EDITOR,
+  [ProjectRoles.COMMENTER]: InterfaceRoles.COMMENTER,
+  [ProjectRoles.VIEWER]: InterfaceRoles.VIEWER,
+  [ProjectRoles.NO_ACCESS]: InterfaceRoles.NO_ACCESS,
+};
+
+export const OrderedInterfaceRoles = [
+  InterfaceRoles.EDITOR,
+  InterfaceRoles.COMMENTER,
+  InterfaceRoles.VIEWER,
+  InterfaceRoles.NO_ACCESS,
+];
+
 export enum APIContext {
   VIEW_COLUMNS = 'fields',
   FILTERS = 'filters',
@@ -543,6 +639,8 @@ export enum ClientType {
   PG = 'pg',
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
+  MSSQL = 'mssql',
+  ORACLE = 'oracledb',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }
@@ -642,11 +740,32 @@ export enum ViewLockType {
   Collaborative = 'collaborative',
 }
 
+// Calendar event-display themes — how each event/record is drawn in the grid.
+// Persisted per calendar view in `meta.event_display_theme`. `BORDERED` is the
+// default (and the only look prior to this feature).
+export enum CalendarEventTheme {
+  // Bordered chip: border + faint background tint + left colour bar (default).
+  BORDERED = 'bordered',
+  // Borderless row: colour dot + time + title on a transparent background.
+  DOT = 'dot',
+  // Whole chip filled with the event accent colour, contrast (white) text.
+  SOLID = 'solid',
+  // No border/fill — just a thicker left colour bar + text.
+  MINIMAL = 'minimal',
+  // Plain text with the time rendered as a small colour pill/badge.
+  PILL = 'pill',
+}
+
+export const CALENDAR_EVENT_THEMES = Object.values(CalendarEventTheme);
+
+export const DEFAULT_CALENDAR_EVENT_THEME = CalendarEventTheme.BORDERED;
+
 export enum PublicAttachmentScope {
   WORKSPACEPICS = 'workspacePics',
   PROFILEPICS = 'profilePics',
   ORGANIZATIONPICS = 'organizationPics',
   OAUTHCLIENTS = 'oauthClients',
+  WHITELABEL = 'whiteLabel',
 }
 
 export enum IconType {
@@ -666,12 +785,21 @@ export enum HookOperationCode {
   update = 1 << 1, // 2
   delete = 1 << 2, // 4
   trigger = 1 << 3, // 8
+  // Comment-source operations (event = 'comment') reuse the insert/update/delete
+  // bits above for add/edit/delete (same semantics as records, fields and
+  // views). resolve/reopen have no record equivalent, so they get their own bits.
+  resolved = 1 << 4, // 16
+  reopened = 1 << 5, // 32
 }
 
 export enum WebhookActions {
   INSERT = 'insert',
   UPDATE = 'update',
   DELETE = 'delete',
+  // Comment-source actions without a record equivalent. Comment add/edit/delete
+  // reuse INSERT/UPDATE/DELETE above.
+  RESOLVED = 'resolved',
+  REOPENED = 'reopened',
 }
 
 export enum WebhookEvents {
@@ -680,6 +808,7 @@ export enum WebhookEvents {
   MANUAL = 'manual',
   VIEW = 'view',
   FIELD = 'field',
+  COMMENT = 'comment',
 }
 
 export enum ViewSettingOverrideOptions {
@@ -697,6 +826,13 @@ export enum MetaEventType {
   COLUMN_ADDED = 'COLUMN_ADDED',
   COLUMN_UPDATED = 'COLUMN_UPDATED',
   COLUMN_DELETED = 'COLUMN_DELETED',
+  HOOK_DELETED = 'HOOK_DELETED',
+  FILTER_CREATED = 'FILTER_CREATED',
+  FILTER_UPDATED = 'FILTER_UPDATED',
+  FILTER_DELETED = 'FILTER_DELETED',
+  VIEW_UPDATED = 'VIEW_UPDATED',
+  VIEW_DELETED = 'VIEW_DELETED',
+  TABLE_DELETED = 'TABLE_DELETED',
 }
 
 export enum MetaEntityType {
@@ -717,3 +853,19 @@ export enum MapProvider {
 
 /** Default org ID for on-prem deployments */
 export const NC_DEFAULT_ORG_ID = 'org_default';
+
+export enum OperationSource {
+  AT_IMPORT = 'at_import',
+  HOOKS = 'hooks',
+  EXTERNAL_DBS = 'external_dbs',
+  ATTACHMENTS = 'attachments',
+  SSO = 'sso',
+  MIGRATION = 'migration',
+  WORKFLOW = 'workflow',
+  PLUGINS = 'plugins',
+  SYNC = 'sync',
+  // Editor-accessible "fetch via URL" data import (axiosRequestMake).
+  // Kept separate from HOOKS so the webhook SSRF bypass (NC_ALLOW_LOCAL_HOOKS)
+  // does not also loosen the lower-privilege data-import path.
+  DATA_IMPORT = 'data_import',
+}

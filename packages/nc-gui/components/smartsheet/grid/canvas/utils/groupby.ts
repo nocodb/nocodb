@@ -393,7 +393,9 @@ export function isGroupExpanded(groups: Map<number, CanvasGroup>, groupPath: num
   return !!group?.isExpanded
 }
 
-export function getDefaultGroupData(group?: CanvasGroup) {
+// Accepts anything carrying `nestedIn` (canvas `CanvasGroup` or the
+// `Group` shape used by Gantt/Timeline) — only the group path is read here.
+export function getDefaultGroupData(group?: Pick<CanvasGroup, 'nestedIn'>) {
   if (!group) return {}
   return group.nestedIn.reduce((acc, curr) => {
     if (

@@ -23,7 +23,7 @@ export class SortsV3Service {
     SortCreateV3Type | SortUpdateV3Type,
     SortType
   >({
-    allowed: ['id', 'field_id', 'direction'],
+    allowed: ['id', 'field_id', 'direction', 'enabled'],
     mappings: {
       field_id: 'fk_column_id',
     },
@@ -51,7 +51,19 @@ export class SortsV3Service {
       NcError.notFound('Sort not found');
     }
 
-    await this.sortsService.sortDelete(context, param, ncMeta);
+    // Pass only the keys the v2 sortDelete consumes. `viewId` isn't used there
+    // (the sort is resolved by id) and isn't in the strict sortDelete command
+    // schema, so leaking it would pollute / silently drop the sandbox changelog
+    // entry on a sandbox base.
+    await this.sortsService.sortDelete(
+      context,
+      {
+        sortId: param.sortId,
+        req: param.req,
+        viewWebhookManager: param.viewWebhookManager,
+      },
+      ncMeta,
+    );
     return {};
   }
 
@@ -85,13 +97,30 @@ export class SortsV3Service {
       NcError.notFound('Sort not found');
     }
 
+    if (param.sort.field_id) {
+      const column = await Column.get(
+        context,
+        { colId: param.sort.field_id },
+        ncMeta,
+      );
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in sort: ${column.colOptions.error}`,
+        );
+      }
+    }
+
     const updateObj = this.revBuilder().build(param.sort);
+    // Build the v2 payload explicitly rather than spreading `...param`: `viewId`
+    // (and any other V3-only key) isn't consumed by sortUpdate and isn't in the
+    // strict sortUpdate command schema, so spreading it would pollute / silently
+    // drop the sandbox changelog entry on a sandbox base.
     await this.sortsService.sortUpdate(
       context,
       {
-        ...param,
         sortId: sort.id,
         sort: updateObj as SortReqType,
+        req: param.req,
         viewWebhookManager: param.viewWebhookManager,
       },
       ncMeta,
@@ -106,6 +135,7 @@ export class SortsV3Service {
       sort: SortCreateV3Type;
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
+      fkLevelId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -116,10 +146,14 @@ export class SortsV3Service {
       context,
     );
 
-    // check for existing filter with same field
+    // check for existing sort with same field. For list views the same table
+    // can appear at multiple levels, so scope the check to the level when
+    // `fkLevelId` is set — a column may be sorted once per level.
     const sorts = await Sort.list(context, { viewId: param.viewId }, ncMeta);
     const existingSort = sorts.find(
-      (s) => s.fk_column_id === param.sort.field_id,
+      (s) =>
+        s.fk_column_id === param.sort.field_id &&
+        (param.fkLevelId ? s.fk_level_id === param.fkLevelId : true),
     );
     if (existingSort) {
       NcError.get(context).invalidRequestBody(
@@ -138,11 +172,22 @@ export class SortsV3Service {
       NcError.get(context).notFound('Column not found');
     }
 
+    if (column.colOptions?.error) {
+      NcError.get(context).badRequest(
+        `Cannot use column '${column.title}' in sort: ${column.colOptions.error}`,
+      );
+    }
+
+    const builtSort = this.revBuilder().build(param.sort) as SortReqType;
+    if (param.fkLevelId) {
+      (builtSort as any).fk_level_id = param.fkLevelId;
+    }
     const sort = await this.sortsService.sortCreate(
       context,
       {
-        ...param,
-        sort: this.revBuilder().build(param.sort) as SortReqType,
+        viewId: param.viewId,
+        sort: builtSort,
+        req: param.req,
         viewWebhookManager: param.viewWebhookManager,
       },
       ncMeta,
@@ -158,5 +203,17 @@ export class SortsV3Service {
     return sortBuilder().build(
       await Sort.list(context, { viewId: param.viewId }, ncMeta),
     ) as SortType[];
+  }
+
+  /** Sorts scoped to a single list level (`fk_level_id`). */
+  async sortListByLevel(
+    context: NcContext,
+    param: { viewId: string; levelId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const sorts = (
+      await Sort.list(context, { viewId: param.viewId }, ncMeta)
+    ).filter((s) => (s as any).fk_level_id === param.levelId);
+    return sortBuilder().build(sorts) as SortType[];
   }
 }

@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import {
   getViewAndModelByAliasOrId,
   validateV1V2DataPayloadLimit,
 } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 type BulkOperation =
   | 'bulkInsert'
@@ -44,6 +46,7 @@ export class BulkDataAliasService {
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
+  @TraceCommand(OperationName.recordBulkInsert)
   async bulkDataInsert(
     context: NcContext,
     param: PathParams & {
@@ -55,6 +58,8 @@ export class BulkDataAliasService {
       raw?: boolean;
       allowSystemColumn?: boolean;
       undo?: boolean;
+      skipPermissionCheck?: boolean;
+      onInsertedPks?: (pks: (string | number)[]) => void;
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -71,12 +76,15 @@ export class BulkDataAliasService {
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
           undo: param.undo,
+          skipPermissionCheck: param.skipPermissionCheck,
+          onInsertedPks: param.onInsertedPks,
         },
       ],
     });
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
+  @TraceCommand(OperationName.recordBulkUpdate)
   async bulkDataUpdate(
     context: NcContext,
     param: PathParams & {
@@ -99,6 +107,7 @@ export class BulkDataAliasService {
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
           apiVersion: param.apiVersion,
+          typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         },
       ],
     });
@@ -113,6 +122,7 @@ export class BulkDataAliasService {
       query: any;
       internalFlags?: {
         skipHooks?: boolean;
+        allowSystemColumn?: boolean;
       };
     },
   ) {
@@ -122,16 +132,24 @@ export class BulkDataAliasService {
       options: [
         param.query,
         param.body,
-        { cookie: param.cookie, skip_hooks: param.internalFlags?.skipHooks },
+        {
+          cookie: param.cookie,
+          skip_hooks: param.internalFlags?.skipHooks,
+          allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        },
       ],
     });
   }
 
+  @TraceCommand(OperationName.recordBulkDelete)
   async bulkDataDelete(
     context: NcContext,
     param: PathParams & {
       body: any;
       cookie: NcRequest;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+      };
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -139,7 +157,13 @@ export class BulkDataAliasService {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDelete',
-      options: [param.body, { cookie: param.cookie }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        },
+      ],
     });
   }
 
@@ -164,6 +188,7 @@ export class BulkDataAliasService {
     });
   }
 
+  @TraceCommand(OperationName.recordBulkUpsert)
   async bulkDataUpsert(
     context: NcContext,
     param: PathParams & {
@@ -177,7 +202,14 @@ export class BulkDataAliasService {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpsert',
-      options: [param.body, { cookie: param.cookie, undo: param.undo }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          undo: param.undo,
+          typecast: (param.cookie?.query?.typecast ?? '') === 'true',
+        },
+      ],
     });
   }
 }

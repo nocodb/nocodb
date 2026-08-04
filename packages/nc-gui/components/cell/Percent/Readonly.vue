@@ -104,6 +104,7 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
         :percentage="percentValueNumber"
         :is-show-number="isExpandedFormOpen"
         :precision="percentMeta.precision"
+        :shape="percentMeta.shape"
       >
         <template v-if="showInput" #default>
           <input
@@ -128,6 +129,18 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
   >
     <div v-if="progressPercent !== null" class="px-2">
       <a-progress
+        v-if="percentMeta.shape === 'circle'"
+        type="circle"
+        :percent="progressPercent"
+        :width="18"
+        :stroke-width="12"
+        status="normal"
+        stroke-color="var(--nc-content-brand)"
+        trail-color="var(--nc-bg-brand-inverted)"
+        :show-info="false"
+      />
+      <a-progress
+        v-else
         :percent="progressPercent"
         size="small"
         status="normal"

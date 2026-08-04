@@ -9,6 +9,7 @@ import {
   isOrderCol,
   isServiceUser,
   isVirtualCol,
+  MetaEventType,
   ModelTypes,
   NcBaseError,
   ProjectRoles,
@@ -20,14 +21,17 @@ import type {
   ColumnType,
   NcApiVersion,
   NormalColumnRequestType,
+  OperationSource,
   TableReqType,
   TableType,
   UserType,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { LinkToAnotherRecordColumn, User, View } from '~/models';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { LinkToAnotherRecordColumn, User } from '~/models';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { ColumnsService } from '~/services/columns.service';
+import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import {
   hasDefaultTableVisibility,
@@ -36,8 +40,16 @@ import {
   repopulateCreateTableSystemColumns,
 } from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
-import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
+import {
+  Base,
+  Column,
+  Model,
+  ModelRoleVisibility,
+  Permission,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
@@ -50,6 +62,8 @@ import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
+import { OperationName } from '~/command-registry/op-names';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 
 @Injectable()
 export class TablesService {
@@ -59,6 +73,8 @@ export class TablesService {
     protected readonly metaDiffService: MetaDiffsService,
     protected readonly appHooksService: AppHooksService,
     protected readonly columnsService: ColumnsService,
+    protected readonly linkPlaceholderService: LinkPlaceholderService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {}
 
   async tableUpdate(
@@ -212,6 +228,12 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
+    } else if (sqlClientType === 'mssql') {
+      // T-SQL identifiers map to sysname (nvarchar(128)).
+      tableNameLengthLimit = 128;
+    } else if (sqlClientType === 'oracledb') {
+      // Oracle 12.2+ identifiers cap at 128 bytes.
+      tableNameLengthLimit = 128;
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
@@ -259,6 +281,7 @@ export class TablesService {
     return true;
   }
 
+  @TraceCommand(OperationName.tableReorder)
   async reorderTable(
     context: NcContext,
     param: { tableId: string; order: any; req: NcRequest },
@@ -300,119 +323,185 @@ export class TablesService {
     context: NcContext,
     param: {
       tableId: string;
-      user: User;
       forceDeleteRelations?: boolean;
       forceDeleteSyncs?: boolean;
-      req?: any;
+      skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
+      req: NcRequest;
     },
+    ncMetaParam?: MetaService,
   ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const table = await Model.getByIdOrName(context, { id: param.tableId });
+    const ncMeta = ncMetaParam ?? Noco.ncMeta;
+    // Source of truth for the actor — every caller passes `req`.
+    const user = param.req?.user as User;
 
-    if (table?.synced && !param.forceDeleteSyncs) {
-      NcError.get(context).invalidRequestBody(
-        'Synced tables cannot be deleted',
-      );
-    }
-
-    await table.getColumns(context);
-
-    if (table.mm) {
-      const columns = await table.getColumns(context);
-
-      // get table names of the relation which uses the current table as junction table
-      const tables = await Promise.all(
-        columns
-          .filter((c) => isLinksOrLTAR(c))
-          .map((c) => c.colOptions.getRelatedTable()),
-      );
-
-      // get relation column names
-      const relColumns = await Promise.all(
-        tables.map((t) => {
-          return t
-            .getColumns({
-              ...context,
-              base_id: t.base_id,
-              workspace_id: t.fk_workspace_id,
-            })
-            .then((cols) => {
-              return cols.find((c) => {
-                return (
-                  isLinksOrLTAR(c) &&
-                  (c.colOptions as LinkToAnotherRecordColumn).type ===
-                    RelationTypes.MANY_TO_MANY &&
-                  (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
-                    table.id
-                );
-              });
-            });
-        }),
-      );
-
-      NcError.get(context).invalidRequestBody(
-        `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
-      );
-    } else if (!param.forceDeleteRelations) {
-      // if table is using in custom relation as junction table then delete all the relation
-      const relations = await Noco.ncMeta.metaList2(
-        table.fk_workspace_id,
-        table.base_id,
-        MetaTable.COL_RELATIONS,
-        {
-          condition: {
-            fk_mm_model_id: table.id,
-          },
-        },
-      );
-
-      if (relations.length) {
-        const relCol = await Column.get(context, {
-          colId: relations[0].fk_column_id,
-        });
-        const relTable = await Model.get(context, relCol.fk_model_id);
-        NcError.tableAssociatedWithLink(table.id, {
-          customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
-        });
-      }
-    }
-
-    const base = await Base.getWithInfo(context, table.base_id);
-    const source = base.sources.find((b) => b.id === table.source_id);
-
-    const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
-
-    const deleteRelations = source.isMeta() || param.forceDeleteRelations;
-
-    if (relationColumns?.length && !deleteRelations) {
-      const referredTables = await Promise.all(
-        relationColumns.map(async (c) =>
-          c
-            .getColOptions<LinkToAnotherRecordColumn>(context)
-            .then((opt) => opt.getRelatedTable(context))
-            .then((t) => t?.title),
-        ),
-      );
-      NcError.get(context).invalidRequestBody(
-        `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
-          ', ',
-        )}. Delete LinkToAnotherRecord columns and try again.`,
-      );
-    }
-
-    // TODO: replace this with the one that's generated by table webhook manager
-    // currently this one is to prevent webhook to trigger when delete table
-    const columnWebhookManager = (
-      await new ColumnWebhookManagerBuilder(context).withModelId(table.id)
-    ).forDelete();
-
-    // start a transaction
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
     let result;
+    let placeholderRefTables: Map<string, Model>;
+    let table: Model;
     try {
+      table = await Model.getByIdOrName(context, { id: param.tableId }, ncMeta);
+
+      if (!table) {
+        NcError.get(context).tableNotFound(param.tableId);
+      }
+
+      if (table.synced && !param.forceDeleteSyncs) {
+        NcError.get(context).invalidRequestBody(
+          'Synced tables cannot be deleted',
+        );
+      }
+
+      await table.getColumns(context, ncMeta, undefined, true, true);
+
+      if (table.mm && !param.forceDeleteSyncs) {
+        const columns = await table.getColumns(
+          context,
+          ncMeta,
+          undefined,
+          true,
+          true,
+        );
+
+        // get table names of the relation which uses the current table as junction table
+        const tables = await Promise.all(
+          columns
+            .filter((c) => isLinksOrLTAR(c))
+            .map((c) => c.colOptions.getRelatedTable()),
+        );
+
+        // get relation column names
+        const relColumns = await Promise.all(
+          tables.map((t) => {
+            return t
+              .getColumns({
+                ...context,
+                base_id: t.base_id,
+                workspace_id: t.fk_workspace_id,
+              })
+              .then((cols) => {
+                return cols.find((c) => {
+                  return (
+                    isLinksOrLTAR(c) &&
+                    (c.colOptions as LinkToAnotherRecordColumn).type ===
+                      RelationTypes.MANY_TO_MANY &&
+                    (c.colOptions as LinkToAnotherRecordColumn)
+                      .fk_mm_model_id === table.id
+                  );
+                });
+              });
+          }),
+        );
+
+        NcError.get(context).invalidRequestBody(
+          `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
+        );
+      } else if (!param.forceDeleteRelations) {
+        // if table is using in custom relation as junction table then delete all the relation
+        const relations = await ncMeta.metaList2(
+          table.fk_workspace_id,
+          table.base_id,
+          MetaTable.COL_RELATIONS,
+          {
+            condition: {
+              fk_mm_model_id: table.id,
+            },
+          },
+        );
+
+        if (relations.length) {
+          const relCol = await Column.get(
+            context,
+            {
+              colId: relations[0].fk_column_id,
+            },
+            ncMeta,
+          );
+          const relTable = await Model.get(
+            context,
+            relCol.fk_model_id,
+            false,
+            ncMeta,
+          );
+          NcError.tableAssociatedWithLink(table.id, {
+            customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
+          });
+        }
+      }
+
+      const base = await Base.getWithInfo(context, table.base_id, true, ncMeta);
+      const source = base.sources.find((b) => b.id === table.source_id);
+
+      const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
+
+      const deleteRelations = source.isMeta() || param.forceDeleteRelations;
+
+      if (relationColumns?.length && !deleteRelations) {
+        const referredTables = await Promise.all(
+          relationColumns.map(async (c) =>
+            c
+              .getColOptions<LinkToAnotherRecordColumn>(context, ncMeta)
+              .then((opt) => opt.getRelatedTable(context, ncMeta))
+              .then((t) => t?.title),
+          ),
+        );
+        NcError.get(context).invalidRequestBody(
+          `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
+            ', ',
+          )}. Delete LinkToAnotherRecord columns and try again.`,
+        );
+      }
+
+      // TODO: replace this with the one that's generated by table webhook manager
+      // currently this one is to prevent webhook to trigger when delete table
+      const columnWebhookManager = (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          table.id,
+        )
+      ).forDelete();
+
+      placeholderRefTables = new Map<string, Model>();
+
+      if (!param.skipLinkPlaceholder) {
+        for (const c of relationColumns) {
+          if (c.system && !table.mm) continue;
+          try {
+            const reverseCol =
+              await this.linkPlaceholderService.findReverseLinkColumn(
+                context,
+                c.id,
+                ncMeta,
+              );
+            // Skip self-ref: opposite column lives on the same table being deleted
+            if (!reverseCol || reverseCol.fk_model_id === table.id) continue;
+            const placeholderResult =
+              await this.linkPlaceholderService.createPlaceholderForReverse(
+                context,
+                reverseCol,
+                undefined,
+                ncMeta,
+              );
+            if (placeholderResult) {
+              const refTable = await Model.getWithInfo(
+                context,
+                { id: placeholderResult.table_id },
+                ncMeta,
+              );
+              if (refTable)
+                placeholderRefTables.set(placeholderResult.table_id, refTable);
+            }
+          } catch (e) {
+            this.logger.error(
+              `Failed to create link placeholder for reverse of ${c.id}: ${e.message}`,
+              e.stack,
+            );
+          }
+        }
+      }
+
       // delete all relations
       for (const c of relationColumns) {
         // skip if column is hasmany relation to mm table
@@ -430,8 +519,8 @@ export class TablesService {
           {
             req: param.req,
             columnId: c.id,
-            user: param.user,
             forceDeleteSystem: true,
+            skipLinkPlaceholder: true,
             columnWebhookManager,
           },
           ncMeta,
@@ -455,21 +544,31 @@ export class TablesService {
       }
 
       result = await table.delete(context, ncMeta);
-      await ncMeta.commit();
     } catch (e) {
-      await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error('Error deleting table', e);
-      NcError.get(context).tableError('Bad Request');
+      this.logger.error(
+        `Error deleting table ${table.id}: ${e.message}`,
+        e.stack,
+      );
+      NcError.get(context).tableError(e.message || 'Bad Request');
     }
 
     if (result) {
       this.appHooksService.emit(AppEvents.TABLE_DELETE, {
         table,
-        user: param.user,
+        user,
         req: param.req,
         context,
       });
+
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.TABLE_DELETED,
+          oldEntity: table,
+        },
+        ncMeta,
+      );
 
       NocoSocket.broadcastEvent(
         context,
@@ -482,6 +581,32 @@ export class TablesService {
         },
         context.socket_id,
       );
+
+      for (const [refTableId, refTable] of placeholderRefTables) {
+        if (refTableId === table.id) continue;
+        try {
+          const refContext: NcContext = {
+            ...context,
+            workspace_id: refTable.fk_workspace_id,
+            base_id: refTable.base_id,
+          };
+          await refTable.getColumns(refContext, ncMeta);
+          NocoSocket.broadcastEvent(refContext, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_delete',
+              payload: {
+                table: refTable,
+              },
+            },
+          });
+        } catch (e) {
+          this.logger.error(
+            `Failed to broadcast placeholder column_delete for table ${refTable.id}: ${e.message}`,
+            e.stack,
+          );
+        }
+      }
     }
 
     return result;
@@ -517,8 +642,19 @@ export class TablesService {
       }
     }
 
-    if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
+    if (
+      isServiceUser(param.user, [
+        ServiceUserType.WORKFLOW_USER,
+        ServiceUserType.SYNC_USER,
+      ])
+    ) {
       await table.getViews(context);
+      // Mask the bcrypt password hash before returning to the caller.
+      if (table.views?.length) {
+        table.views = table.views.map((v) =>
+          View.maskPasswordForResponse(v),
+        ) as View[];
+      }
     } else {
       // todo: optimise
       const viewList = <View[]>(
@@ -568,6 +704,9 @@ export class TablesService {
 
       const views = await model.getViews(context);
       for (const view of views) {
+        // Mask the bcrypt password hash — the owner UI never needs the
+        // stored value; it sees a sentinel and renders a masked state.
+        const safeView = View.maskPasswordForResponse(view);
         obj[view.id] = {
           ptn: model.table_name,
           _ptn: model.title,
@@ -575,7 +714,7 @@ export class TablesService {
           tn: view.title,
           _tn: view.title,
           table_meta: model.meta,
-          ...view,
+          ...safeView,
           disabled: { ...defaultDisabled },
         };
       }
@@ -684,8 +823,10 @@ export class TablesService {
       user: User | UserType;
       req: NcRequest;
       synced?: boolean;
+      mm?: boolean;
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
+      operationSource?: OperationSource;
     },
   ) {
     // before validating add title for columns if only column name is present
@@ -713,6 +854,7 @@ export class TablesService {
     } = {
       ...param.table,
       ...(param.synced ? { synced: true } : {}),
+      ...(param.mm ? { mm: true } : {}),
     };
 
     if (context.schema_locked) {
@@ -732,6 +874,7 @@ export class TablesService {
         columns: tableCreatePayLoad.columns,
         clientType: source.type,
         isMeta: !!source.isMeta(),
+        operationSource: param.operationSource,
       });
     }
 
@@ -815,6 +958,29 @@ export class TablesService {
       });
     }
 
+    // Soft-deleted tables keep their physical DB tables until permanent delete.
+    // If a trashed row shares the requested table_name, the CREATE TABLE DDL
+    // will collide — uniquify the new name to dodge that. Live collisions have
+    // already been rejected above.
+    const trashedModels = await Model.list(context, {
+      base_id: base.id,
+      source_id: source.id,
+      includeDeleted: true,
+    });
+    const trashedTableNames = new Set(
+      trashedModels.filter((m) => m.deleted).map((m) => m.table_name),
+    );
+    if (trashedTableNames.has(tableCreatePayLoad.table_name)) {
+      const baseName = tableCreatePayLoad.table_name;
+      let i = 1;
+      let candidate = `${baseName}_${i}`;
+      while (trashedTableNames.has(candidate)) {
+        i++;
+        candidate = `${baseName}_${i}`;
+      }
+      tableCreatePayLoad.table_name = candidate;
+    }
+
     if (!tableCreatePayLoad.title) {
       tableCreatePayLoad.title = getTableNameAlias(
         tableCreatePayLoad.table_name,
@@ -833,6 +999,12 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
+    } else if (sqlClientType === 'mssql') {
+      // T-SQL identifiers map to sysname (nvarchar(128)).
+      tableNameLengthLimit = 128;
+    } else if (sqlClientType === 'oracledb') {
+      // Oracle 12.2+ identifiers cap at 128 bytes.
+      tableNameLengthLimit = 128;
     }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
@@ -949,6 +1121,7 @@ export class TablesService {
           {
             is_meta: !!source.is_meta,
             is_local: !!source.is_local,
+            type: source.type,
           },
           cdfValue as unknown as string,
         );
@@ -1033,6 +1206,34 @@ export class TablesService {
     } catch (e) {
       this.logger.error(
         `Something went wrong while creating index for nc_order`,
+        e,
+      );
+    }
+
+    try {
+      // create __nc_deleted index column
+      const metaDeletedColumn = tableCreatePayLoad.columns.find(
+        (c) => c.uidt === UITypes.Deleted,
+      );
+
+      if (metaDeletedColumn) {
+        const dbDriver = await NcConnectionMgrv2.get(source);
+
+        const baseModel = await Model.getBaseModelSQL(context, {
+          model: result,
+          source,
+          dbDriver,
+        });
+
+        await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
+          `${tableCreatePayLoad.table_name}_deleted_idx`,
+          baseModel.getTnPath(tableCreatePayLoad.table_name),
+          metaDeletedColumn.column_name,
+        ]);
+      }
+    } catch (e) {
+      this.logger.error(
+        `Something went wrong while creating index for __nc_deleted`,
         e,
       );
     }

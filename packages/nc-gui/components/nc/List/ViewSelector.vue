@@ -8,11 +8,17 @@ interface Props {
   value?: string
   forceLayout?: 'vertical' | 'horizontal'
   filterView?: (view: ViewType) => boolean
+  itemFlags?: (view: ViewType) => { disabled?: boolean; tooltip?: string }
   ignoreLoading?: boolean
   forceFetchViews?: boolean
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
+  allowClear?: boolean
+  /** Pre-fetched views — skips the store fetch entirely. For tables the
+   *  current user can't list via their own ACL / aren't in the tables store
+   *  (e.g. a sync's source base read through a share-view-authorized call). */
+  views?: ViewType[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,6 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   disableLabel: false,
   autoSelect: false,
   disabled: false,
+  allowClear: false,
 })
 
 const emit = defineEmits<{
@@ -38,48 +45,56 @@ const modelValue = useVModel(props, 'value', emit)
 const isOpenViewSelectDropdown = ref(false)
 
 const handleValueUpdate = (value: any) => {
-  const stringValue = String(value)
-  modelValue.value = stringValue
+  if (value === null || value === undefined || value === '') {
+    modelValue.value = undefined
+    return
+  }
+  modelValue.value = String(value)
 }
 
 const viewList = computedAsync(async () => {
-  if (!props.tableId) return []
+  let viewsList: ViewType[]
 
-  try {
-    const effectiveBaseId = props.baseId || activeProjectId.value
-    if (!effectiveBaseId) {
-      console.error('[ViewSelector] baseId is required but was not provided')
+  if (props.views) {
+    viewsList = props.views
+  } else {
+    if (!props.tableId) return []
+
+    try {
+      const effectiveBaseId = props.baseId || activeProjectId.value
+      if (!effectiveBaseId) {
+        console.error('[ViewSelector] baseId is required but was not provided')
+        return []
+      }
+
+      await viewsStore.loadViews({
+        tableId: props.tableId,
+        baseId: effectiveBaseId,
+        ignoreLoading: props.ignoreLoading,
+        force: props.forceFetchViews,
+      })
+    } catch (e) {
+      console.error(e)
       return []
     }
 
-    await viewsStore.loadViews({
-      tableId: props.tableId,
-      baseId: effectiveBaseId,
-      ignoreLoading: props.ignoreLoading,
-      force: props.forceFetchViews,
-    })
-  } catch (e) {
-    console.error(e)
-    return []
+    // Use composite key (baseId:tableId) to get views
+    const effectiveBaseId = props.baseId || activeProjectId.value
+    const key = `${effectiveBaseId}:${props.tableId}`
+
+    viewsList = viewsByTable.value.get(key) || []
   }
-
-  // Use composite key (baseId:tableId) to get views
-  const effectiveBaseId = props.baseId || activeProjectId.value
-  const key = `${effectiveBaseId}:${props.tableId}`
-
-  let viewsList: ViewType[] = viewsByTable.value.get(key) || []
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)
   }
   return viewsList.map((view) => {
-    const ncItemTooltip = ''
-
+    const flags = props.itemFlags?.(view) ?? {}
     return {
       label: view.title || view.id,
       value: view.id,
-      ncItemDisabled: false,
-      ncItemTooltip,
+      ncItemDisabled: !!flags.disabled,
+      ncItemTooltip: flags.tooltip ?? '',
       ...view,
     }
   })
@@ -156,7 +171,7 @@ defineExpose({
       </div>
     </template>
     <NcListDropdown v-model:is-open="isOpenViewSelectDropdown" :disabled="disabled" :has-error="!!selectedView?.ncItemDisabled">
-      <div class="flex-1 flex items-center gap-2 min-w-0">
+      <div class="flex-1 flex group items-center gap-2 min-w-0">
         <div v-if="selectedView" class="min-w-5 flex items-center justify-center">
           <NcIconView :view="selectedView" class="text-nc-content-gray-muted" />
         </div>
@@ -175,6 +190,14 @@ defineExpose({
             {{ selectedView?.label || 'Select view' }}
           </template>
         </NcTooltip>
+
+        <GeneralIcon
+          v-if="selectedView && allowClear"
+          v-e="['c:view-selector:clear']"
+          class="hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
+          icon="ncXCircle"
+          @click.stop="handleValueUpdate(null)"
+        />
 
         <GeneralIcon
           icon="ncChevronDown"

@@ -1,9 +1,11 @@
 import { NotificationType, UserType } from '~/lib/Api';
 import { ChatEventAction } from '~/lib/chat';
 import type {
+  ChatAttachmentType,
   ChatContentBlock,
   ChatMessageType,
   ChatSessionType,
+  ChatToolProgress,
 } from '~/lib/chat';
 
 export enum EventType {
@@ -22,10 +24,29 @@ export enum EventType {
   TEAM_EVENT = 'event-team',
   WORKFLOW_EVENT = 'event-workflow',
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
+  INTERFACE_EVENT = 'event-interface',
   PRESENCE_EVENT = 'event-presence',
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
+  DOCUMENT_SYNC_EVENT = 'event-document-sync',
+  SMART_TEXT_EVENT = 'event-smart-text',
+}
+
+/** Client→server socket events for collaborative doc editing (binary Yjs frames). */
+export const DocCollabClientEvents = {
+  SYNC: 'document:sync',
+  UPDATE: 'document:update',
+  AWARENESS: 'document:awareness',
+} as const;
+
+/** Room key for a doc's collaborative sync channel. */
+export function getDocSyncRoom(
+  workspaceId: string,
+  baseId: string,
+  docId: string
+): string {
+  return `${EventType.DOCUMENT_SYNC_EVENT}:${workspaceId}:${baseId}:${docId}`;
 }
 
 export interface BaseSocketPayload {
@@ -53,9 +74,11 @@ export interface ConnectionErrorPayload extends BaseSocketPayload {
 
 export interface DataPayload extends BaseSocketPayload {
   id: string;
-  action: 'add' | 'update' | 'delete' | 'reorder';
+  action: 'add' | 'update' | 'delete' | 'reorder' | 'bulk';
   payload: Record<string, any>;
   before?: string;
+  matchedViewIds?: string[];
+  rows?: DataPayload[];
 }
 
 export interface CommentPayload extends BaseSocketPayload {
@@ -68,6 +91,19 @@ export interface DocumentCommentPayload extends BaseSocketPayload {
   id: string; // docId
   action: 'add' | 'update' | 'delete' | 'resolve';
   payload: Record<string, any>;
+  /** Absolute, post-mutation comment count for the doc. Self-correcting on the
+   *  client (delta is the fallback when absent). Set on add/delete. */
+  count?: number;
+}
+
+export interface SmartTextPayload extends BaseSocketPayload {
+  tableId: string;
+  columnId: string;
+  rowId: string;
+  action: 'update';
+  pm: Record<string, any> | null;
+  md: string | null;
+  mdHash: string | null;
 }
 
 export interface MetaPayload<T = any> extends BaseSocketPayload {
@@ -86,10 +122,14 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'view_create'
     | 'view_update'
     | 'view_delete'
+    | 'view_restore'
     | 'permission_update'
     | 'filter_create'
     | 'filter_update'
     | 'filter_delete'
+    | 'hook_create'
+    | 'hook_update'
+    | 'hook_delete'
     | 'sort_create'
     | 'sort_update'
     | 'sort_delete'
@@ -99,10 +139,23 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'extension_update'
     | 'extension_create'
     | 'extension_delete'
+    | 'extension_restore'
     | 'rls_policy_update'
     | 'document_permission_update'
     | 'date_dependency_update'
-    | 'date_dependency_delete';
+    | 'date_dependency_delete'
+    | 'view_section_create'
+    | 'view_section_update'
+    | 'view_section_delete'
+    | 'record_template_create'
+    | 'record_template_update'
+    | 'record_template_delete'
+    | 'table_sync_create'
+    | 'table_sync_update'
+    | 'table_sync_delete'
+    | 'app_sync_create'
+    | 'app_sync_update'
+    | 'app_sync_delete';
   payload: T;
   baseId?: string;
 }
@@ -216,6 +269,8 @@ export interface ChatEventPayload extends BaseSocketPayload {
   toolCallId?: string;
   name?: string;
   args?: any;
+  // action: 'tool-progress' — live step update from a long-running tool
+  progress?: ChatToolProgress;
   // action: 'tool-result'
   output?: any;
   isError?: boolean;
@@ -224,6 +279,8 @@ export interface ChatEventPayload extends BaseSocketPayload {
   messageId?: string;
   /** Final ordered content blocks — single source of truth for the persisted message. */
   parts?: ChatContentBlock[];
+  /** Files the assistant generated this turn (sandbox output → storage). */
+  createdFiles?: ChatAttachmentType[];
   /** Braintrust span ID — used for thumbs up/down feedback submission. */
   btSpanId?: string | null;
   /** Follow-up suggestions generated after the assistant response */
@@ -252,7 +309,8 @@ export type SocketEventPayload =
   | DocumentCommentPayload
   | NotificationPayload
   | PresencePayload
-  | ChatEventPayload;
+  | ChatEventPayload
+  | SmartTextPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -266,6 +324,7 @@ export type SocketEventPayloadMap = {
   [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
+  [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;
 };
 

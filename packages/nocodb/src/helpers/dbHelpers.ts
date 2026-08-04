@@ -4,6 +4,8 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isDeletedCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
+  isNumericCol,
   isOrderCol,
   isSystemColumn,
   isVirtualCol,
@@ -98,6 +100,12 @@ export function _wherePk(
     ids = (id + '').split('___').map((val) => val.replaceAll('\\_', '_'));
   }
 
+  // Reject incomplete composite ids up-front — otherwise knex builds a
+  // WHERE with `undefined` bindings and throws a generic 500.
+  if (!skipPkValidation && (ids as unknown[]).length < primaryKeys.length) {
+    NcError.invalidPrimaryKey(id, primaryKeys.map((pk) => pk.title).join(','));
+  }
+
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {
       // if column is bytea, then we need to encode the id to hex based on format
@@ -148,6 +156,13 @@ export function _wherePk(
   return where;
 }
 
+/** Split a composite-pk joined string (`"val1___val2"`) into the
+ *  per-column values, un-escaping `\_` → `_` to match the inverse of
+ *  `getCompositePkValue`. */
+export function splitCompositePkString(id: string): string[] {
+  return id.split('___').map((part) => part.replaceAll('\\_', '_'));
+}
+
 export function getCompositePkValue(
   primaryKeys: Column[],
   row,
@@ -180,6 +195,28 @@ export function getCompositePkValue(
     primaryKeys[0] &&
     (row[primaryKeys[0][pkIdOrTitleKey]] ?? row[primaryKeys[0].column_name])
   );
+}
+
+/**
+ * knex's oracledb dialect hardcodes the type of any value captured via a
+ * `RETURNING ... INTO` clause to `oracledb.STRING` (see the dialect's
+ * `prepBindings` — "Returning helper always use ROWID as string"). So a NUMBER
+ * pk captured from an INSERT comes back as e.g. `"401"` instead of `401`, while
+ * pg/mysql hand back native numbers. There is no driver/knex config knob for
+ * this (`fetchAsString`/`fetchTypeHandler` only affect SELECT fetches, not DML
+ * out-binds), so coerce numeric pk columns back to JS numbers at the capture
+ * site to keep the inserted-record shape consistent across dialects.
+ */
+export function coerceOracleReturnedPk(value: any, column: Column): any {
+  if (
+    typeof value === 'string' &&
+    value !== '' &&
+    isNumericCol(column) &&
+    !Number.isNaN(Number(value))
+  ) {
+    return Number(value);
+  }
+  return value;
 }
 
 export function getOppositeRelationType(
@@ -292,16 +329,20 @@ export function isDataAuditEnabled() {
   return process.env.NC_DISABLE_AUDIT !== 'true';
 }
 
+// Collaborative (Yjs) realtime editing of docs is enabled by default; set
+// NC_DOCS_REALTIME=false to disable and fall back to debounced REST saves.
+export function isDocsRealtimeEnabled() {
+  return process.env.NC_DOCS_REALTIME !== 'false';
+}
+
 export function getRelatedLinksColumn(
   column: Column<LinkToAnotherRecordColumn>,
   relatedModel: Model,
 ) {
   return relatedModel.columns.find((c: Column) => {
-    if (
-      column.colOptions?.type === RelationTypes.MANY_TO_MANY ||
-      column.colOptions?.type === RelationTypes.ONE_TO_MANY ||
-      column.colOptions?.type === RelationTypes.MANY_TO_ONE
-    ) {
+    // Junction-based relations (V1 mm + every V2 link) match by swapping
+    // fk_mm_parent_column_id and fk_mm_child_column_id between the two sides.
+    if (isMMOrMMLike(column)) {
       return (
         column.colOptions.fk_mm_child_column_id ===
           c.colOptions?.fk_mm_parent_column_id &&
@@ -344,11 +385,21 @@ export function checkColumnRequired(
   column: Column<any>,
   fields: string[],
   extractPkAndPv?: boolean,
+  fk_display_value_column_id?: string | null,
 ) {
   // if primary key or foreign key included in fields, it's required
   if (column.pk || column.uidt === UITypes.ForeignKey) return true;
 
   if (extractPkAndPv && column.pv) return true;
+
+  // keep the LTAR's custom display value column whenever we're extracting
+  // pk/pv-only rows — treat it as if it were pv for downstream rendering
+  if (
+    extractPkAndPv &&
+    fk_display_value_column_id &&
+    column.id === fk_display_value_column_id
+  )
+    return true;
 
   // check fields defined and if not, then select all
   // if defined check if it is in the fields
@@ -415,6 +466,18 @@ export async function getColumnName(
 export function getAs(column: Column) {
   return column.asId || column.id;
 }
+
+/**
+ * Cache-key builder for display-value lookups.
+ * Composite-key ids contain `_` and may collide once mapped to a single
+ * string; callers are responsible for using `set()` carefully so the first
+ * value isn't silently overwritten.
+ */
+export const displayValueMapKey = (props: {
+  model: Model;
+  id: any;
+  displayColumn?: Column;
+}): string => `${props.model.id}:${props.id}:${props.displayColumn?.id ?? ''}`;
 
 export function replaceDynamicFieldWithValue(
   _row: any,
@@ -539,8 +602,11 @@ export async function getAliasedSoftDeleteFilter(
   if (!source.isMeta()) return null;
 
   const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
+  const notDeletedSql = boolSqlLiteral(baseModel, false);
   return function () {
-    this.whereNull(qualifiedName).orWhereRaw(`?? = false`, [qualifiedName]);
+    this.whereNull(qualifiedName).orWhereRaw(`?? = ${notDeletedSql}`, [
+      qualifiedName,
+    ]);
   };
 }
 
@@ -551,6 +617,7 @@ export function shouldSkipField(
   column,
   extractPkAndPv,
   pkAndPvOnly = false,
+  fk_display_value_column_id?: string | null,
 ) {
   // skip row meta column
   if (column.uidt === UITypes.Meta) return true;
@@ -581,8 +648,15 @@ export function shouldSkipField(
       }
     }
 
-    // skip all other columns if pkAndPvOnly passed as true
-    if (pkAndPvOnly && !column.pk && !column.pv) return true;
+    // skip all other columns if pkAndPvOnly passed as true,
+    // but always keep the LTAR's custom display value column when requested
+    if (
+      pkAndPvOnly &&
+      !column.pk &&
+      !column.pv &&
+      column.id !== fk_display_value_column_id
+    )
+      return true;
 
     return false;
   }
@@ -596,28 +670,29 @@ export async function getQueriedColumns(
     view,
     extractPkAndPv,
     pkAndPvOnly,
+    fk_display_value_column_id,
   }: {
     model?: Model;
     view?: View;
     fieldsSet?: Set<string>;
     extractPkAndPv?: boolean;
     pkAndPvOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   },
   ncMeta?: MetaService,
 ) {
   let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
   const _columns = await model.getColumns(context, ncMeta);
-  if (fieldsSet?.size) {
-    viewOrTableColumns = _columns;
-  } else {
-    const viewColumns = view?.id && (await View.getColumns(context, view.id));
 
-    // const columns = _columns ?? (await baseModel.model.getColumns(baseModel.context));
-    // for (const column of columns) {
-    viewOrTableColumns =
-      viewColumns.map((viewColumn) =>
+  const viewColumns = view?.id && (await View.getColumns(context, view.id));
+  if (viewColumns) {
+    viewOrTableColumns = viewColumns
+      .map((viewColumn) =>
         _columns.find((col) => col.id === viewColumn.fk_column_id),
-      ) || _columns;
+      )
+      .filter(Boolean);
+  } else {
+    viewOrTableColumns = _columns;
   }
   return viewOrTableColumns.filter(
     (viewOrTableColumn) =>
@@ -628,6 +703,7 @@ export async function getQueriedColumns(
         viewOrTableColumn,
         extractPkAndPv || pkAndPvOnly,
         pkAndPvOnly,
+        fk_display_value_column_id,
       ),
   );
 }
@@ -842,6 +918,120 @@ export function generateRecursiveCTE(_params: {
   return false;
 }
 
+/**
+ * Anything these helpers can detect the underlying knex dialect from:
+ *   - a `BaseModelSqlv2` ({@link IBaseModelSqlV2}) — answers via `.isMssql` /
+ *     `.isOracle`, or its `.dbDriver`;
+ *   - a raw knex object — instance ({@link CustomKnex}), query builder, or
+ *     transaction — read via `.client.config.client`.
+ */
+export type DialectAware =
+  | IBaseModelSqlV2
+  | CustomKnex
+  | Knex.QueryBuilder
+  | Knex.Transaction;
+
+/**
+ * Detect whether a {@link DialectAware} resolves to mssql / oracle.
+ *
+ * `BaseModelSqlv2`-like objects answer directly via `.isMssql` / `.isOracle`.
+ * For a raw Knex / QueryBuilder we read `config.client` — but that is NOT
+ * always the dialect string: `CustomKnex` swaps it for a custom Client
+ * *class* (MssqlClient / OracledbClient / …) before `knex()` is called, and
+ * those classes pin `prototype.dialect`/`prototype.driverName` back to the
+ * dialect name. Mirror `clientType()`'s resolution (CustomKnex.ts) so
+ * detection survives the swap regardless of whether a model or a knex is
+ * passed — otherwise these helpers silently fall back to the PG/MySQL branch
+ * and emit `… = true` (→ "Invalid column name 'true'") on mssql/oracle.
+ */
+function detectBoolDialect(knexOrModel: DialectAware): {
+  isMssql: boolean;
+  isOracle: boolean;
+} {
+  const m = knexOrModel as Partial<{
+    isMssql: boolean;
+    isOracle: boolean;
+    dbDriver: { client?: any };
+    client: any;
+  }>;
+
+  if (typeof m.isMssql === 'boolean' || typeof m.isOracle === 'boolean') {
+    return { isMssql: !!m.isMssql, isOracle: !!m.isOracle };
+  }
+
+  // knex instance / QueryBuilder / transaction: resolve from the Client. A
+  // bare QueryBuilder's `client.config.client` doesn't always surface the
+  // dialect string, so fall back to the Client instance's own `driverName` /
+  // `dialect` (set on every knex Client, incl. the custom OracledbClient) —
+  // otherwise mssql/oracle silently get the JS boolean `true`/`false`, which
+  // they reject (`Invalid column name 'true'`).
+  const clientInstance = m.client ?? m.dbDriver?.client;
+  const rawClient = clientInstance?.config?.client;
+  const clientProto = (
+    rawClient as { prototype?: { dialect?: string; driverName?: string } }
+  )?.prototype;
+  const clientName =
+    (typeof rawClient === 'string'
+      ? rawClient
+      : clientProto?.dialect ?? clientProto?.driverName) ??
+    clientInstance?.driverName ??
+    clientInstance?.dialect;
+  return {
+    isMssql: clientName === 'mssql',
+    isOracle: clientName === 'oracledb',
+  };
+}
+
+/**
+ * Returns the dialect-correct value for a `bit`/`boolean` column
+ * comparison or write — used by every soft-delete (`__nc_deleted`)
+ * code path.
+ *
+ * MSSQL `bit` columns can't compare against or accept the bare T-SQL
+ * identifiers `true` / `false` that knex inlines for JS booleans
+ * ("Invalid column name 'true'" / `'false'`). Use 1/0 instead.
+ *
+ * PG `boolean` columns reject `boolean = integer` — pg needs the real
+ * boolean literal. MySQL `tinyint(1)` and SQLite numeric-bool tolerate
+ * both; we keep them on `true`/`false` for consistency.
+ *
+ * Oracle stores booleans as `NUMBER(1)` (no SQL BOOLEAN before 23ai) and
+ * node-oracledb can't bind a JS boolean against a NUMBER column — use 1/0
+ * like mssql.
+ */
+export function deletedColValue(
+  knexOrModel: DialectAware,
+  isDeleted: boolean,
+): boolean | number {
+  const { isMssql, isOracle } = detectBoolDialect(knexOrModel);
+  return isMssql || isOracle ? (isDeleted ? 1 : 0) : isDeleted;
+}
+
+/**
+ * Dialect-aware SQL literal text for a boolean. Use this when the value must
+ * be inlined into a `whereRaw` / `orWhereRaw` / `raw` string (i.e. it MUST
+ * NOT become a `?` binding placeholder, otherwise it collides with other
+ * `?` placeholders in the same fragment — see the comment on
+ * `getAliasedSoftDeleteFilter` for the rollup/formula failure mode).
+ *
+ *  - MSSQL: `bit` has no boolean literal — use `0` / `1`.
+ *  - Oracle: booleans live in `NUMBER(1)` and `TRUE`/`FALSE` literals only
+ *    exist from 23ai — use `0` / `1`.
+ *  - PG / MySQL / SQLite: `false` / `true` works.
+ *
+ * Primary user is the soft-delete (`__nc_deleted`) family of queries, but
+ * any code path inlining a bool into a `raw` template can use this — e.g.
+ * `COALESCE(??, ${boolSqlLiteral(baseModel, false)})` on Checkbox.
+ */
+export function boolSqlLiteral(
+  knexOrModel: DialectAware,
+  value: boolean,
+): string {
+  const { isMssql, isOracle } = detectBoolDialect(knexOrModel);
+  if (isMssql || isOracle) return value ? '1' : '0';
+  return value ? 'true' : 'false';
+}
+
 export const dataWrapper = (data: any) => {
   return {
     getByColumnNameTitleOrId: (column: {
@@ -950,7 +1140,8 @@ export function getArrayAggExpression(
   columnName: string,
   alias: string,
 ): Knex.Raw {
-  const client = knexConnection.client.config.client;
+  const client =
+    knexConnection.clientType?.() ?? knexConnection.client.config.client;
 
   // Note: columnName and alias are controlled by our code, so it's safe to use directly
   const exprMap: Record<string, string> = {

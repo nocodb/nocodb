@@ -11,10 +11,20 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
+  UITypes,
+  groupFormColumnsByRow,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { useSharedFormDraft } from './useSharedFormDraft'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 
 dayjs.extend(utc)
@@ -33,7 +43,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { sharedView } = storeToRefs(useViewsStore())
 
-  const { blockAddNewRecord, showRecordPlanLimitExceededModal, showEEFeatures } = useEeConfig()
+  const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
 
   provide(SharedViewPasswordInj, password)
 
@@ -51,7 +61,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedViewMeta = ref<SharedViewMeta>({})
 
   const isFormExpired = computed(() => {
-    if (!showEEFeatures.value) return false
+    if (!isEeUI) return false
 
     const expiresAt = (sharedFormView.value as any)?.expires_at
 
@@ -61,7 +71,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   })
 
   const isFormNotStarted = computed(() => {
-    if (!showEEFeatures.value) return false
+    if (!isEeUI) return false
 
     const startsAt = (sharedFormView.value as any)?.starts_at
 
@@ -97,6 +107,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { t } = useI18n()
 
+  const { productName } = useBranding()
+
   const route = useRoute()
 
   const formState = ref<Record<string, any>>({})
@@ -115,9 +127,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       : true,
   )
 
-  const isValidRedirectUrl = computed(
-    () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
-  )
+  // Guards the "redirect on submit" sink (`window.location.href = redirectUrl`).
+  // `isSafeRedirectUrl` rejects control-char scheme smuggling and
+  // allows only http(s)/relative targets — see utils/redirectUrl.ts.
+  const isValidRedirectUrl = computed(() => isSafeRedirectUrl(sharedFormView.value?.redirect_url))
 
   const backgroundAndTextColor = computed(() => {
     const result = {
@@ -147,12 +160,52 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
+  const sharedViewUuid = computed(() => sharedView.value?.uuid)
+
+  const isDraftSaveEnabled = computed(() => {
+    const v = sharedFormView.value?.save_draft_to_browser as unknown
+    return v !== 0 && v !== false
+  })
+
+  const validUserIds = computed(() => {
+    const baseId = meta.value?.base_id
+    if (!baseId) return new Set<string>()
+    const users = basesUser.value.get(baseId) ?? []
+    return new Set(users.map((u: any) => u?.id).filter((id: any) => typeof id === 'string')) as Set<string>
+  })
+
+  // Values that should be treated as "untouched" — column defaults + URL prefill.
+  // Anything in formState matching this is not persisted as a draft and won't trigger restore.
+  const draftBaselineState = computed(() => ({
+    ...preFilledDefaultValueformState.value,
+    ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
+  }))
+
+  const {
+    wasRestored: draftWasRestored,
+    restoredAt: draftRestoredAt,
+    restore: restoreDraft,
+    discard: discardDraft,
+    dismissBanner: dismissDraftBanner,
+  } = useSharedFormDraft({
+    sharedViewUuid,
+    columns,
+    formState,
+    submitted,
+    isEnabled: isDraftSaveEnabled,
+    baselineState: draftBaselineState,
+    validUserIds,
+  })
+
   const localColumns = computed<(ColumnType & Record<string, any>)[]>(() => {
     return (columns.value || [])?.filter((c) => supportedFields(c))
   })
 
+  // Condition sources = rendered form columns + resolvable Lookup columns (see
+  // buildFormConditionSourceColumns), so "Show on conditions" can be driven by a
+  // value pulled through a link the form filler selects.
   const localColumnsMapByFkColumnId = computed(() => {
-    return localColumns.value.reduce((acc, c) => {
+    return buildFormConditionSourceColumns(localColumns.value, meta.value?.columns).reduce((acc, c) => {
       acc[c.fk_column_id] = c
 
       return acc
@@ -185,10 +238,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }) || [],
   )
 
+  const rows = computed(() => groupFormColumnsByRow(formColumns.value))
+
   function supportedFields(col: ColumnType) {
-    return (
-      !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && !isAI(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
-    )
+    return !isSystemColumn(col) && !isFormViewHiddenCol(col) && !isAI(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
   }
 
   const loadSharedView = async () => {
@@ -215,7 +268,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       loadAllviewFilters(Array.isArray(viewMeta?.filter?.children) ? viewMeta?.filter?.children : [])
 
       const _sharedViewMeta = (viewMeta as any).meta
-      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
+      sharedViewMeta.value = (isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta) ?? {}
 
       await setMeta(viewMeta.model)
 
@@ -282,6 +335,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             readonly: !isAddingEmptyRowPermitted.value ? true : c?.readonly ?? false,
             read_only: !isAddingEmptyRowPermitted.value ? true : c?.read_only ?? false,
             order: fieldById[c.id].order || c.order,
+            row_id: fieldById[c.id].row_id ?? null,
             visible: true,
             meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
             description: fieldById[c.id].description,
@@ -293,6 +347,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           }
         })
         .sort((a: ColumnType, b: ColumnType) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
+      // Restore any saved draft BEFORE handlePreFillForm so URL prefill correctly overrides drafted values for prefilled fields.
+      restoreDraft()
 
       await handlePreFillForm()
 
@@ -472,6 +529,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (col.uidt === UITypes.Attachment) {
           if (col.title && data[col.title]) {
             attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
+
+            // The local files are uploaded separately as multipart parts above. The base64 `data`
+            // preview (and the `File` object) is only needed client-side to render the thumbnail and
+            // is never read by the server. Keeping it would serialize every image into the single
+            // JSON `data` field, which blows past the request field-size limit and fails the
+            // submission with "Field value too long" once a few images are attached. Strip it so only
+            // lightweight metadata (e.g. url-based attachments) remains in the JSON payload.
+            data[col.title] = data[col.title].map(({ file: _file, data: _data, ...rest }: Record<string, any>) => rest)
           }
         }
       }
@@ -890,7 +955,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   watch(
     () => sharedFormView.value?.heading,
     () => {
-      useTitle(`${sharedFormView.value?.heading ?? 'NocoDB'}`)
+      useTitle(`${sharedFormView.value?.heading ?? productName.value}`)
     },
     {
       flush: 'post',
@@ -924,6 +989,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     meta,
     validators,
     formColumns,
+    rows,
     formState,
     notFound,
     password,
@@ -949,6 +1015,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isFormNotStarted,
     formStartsAt,
     backgroundAndTextColor,
+    draftWasRestored,
+    draftRestoredAt,
+    discardDraft,
+    dismissDraftBanner,
+    isDraftSaveEnabled,
   }
 }, 'shared-form-view-store')
 

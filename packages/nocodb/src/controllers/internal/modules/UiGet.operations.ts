@@ -44,6 +44,7 @@ export class UiGetOperations
   operations = [
     'nestedDataList' as const,
     'tableGet' as const,
+    'refTableGet' as const,
     'columnsHash' as const,
     'viewList' as const,
     'viewColumnList' as const,
@@ -51,6 +52,7 @@ export class UiGetOperations
     'filterList' as const,
     'filterChildrenList' as const,
     'sortList' as const,
+    'lookupSortList' as const,
     'hookList' as const,
     'hookLogList' as const,
     'hookFilterList' as const,
@@ -103,6 +105,19 @@ export class UiGetOperations
           tableId: req.query.tableId,
           user: req.user,
         });
+      // Partial meta (pk + display value only) of a table reached through a
+      // link column — used when the caller can't read the related table
+      // directly. Base-scoped so the link column resolves against its own
+      // base; `getRelContext` then hops to the related base for cross-base
+      // links. The related table rides on `refTableId`, NOT `tableId`:
+      // extract-ids resolves a `tableId` against the request base, which
+      // 404s for a cross-base related table.
+      case 'refTableGet':
+        return await this.columnsService.getLinkColumnRefTable(context, {
+          columnId: req.query.columnId as string,
+          tableId: req.query.refTableId as string,
+          user: req.user,
+        });
       case 'columnsHash':
         return await this.columnsService.columnsHash(
           context,
@@ -122,10 +137,9 @@ export class UiGetOperations
           }),
         );
       case 'viewRowColorInfo':
-        return (await this.viewRowColorService.getByViewId({
-          context,
+        return await this.viewRowColorService.getByViewId(context, {
           fk_view_id: req.query.viewId as string,
-        })) as any;
+        });
       case 'filterList':
         return new PagedResponseImpl(
           await this.filtersService.filterList(context, {
@@ -143,6 +157,12 @@ export class UiGetOperations
         return new PagedResponseImpl(
           await this.sortsService.sortList(context, {
             viewId: req.query.viewId as string,
+          }),
+        );
+      case 'lookupSortList':
+        return new PagedResponseImpl(
+          await this.sortsService.lookupSortList(context, {
+            columnId: req.query.columnId as string,
           }),
         );
       case 'hookList':

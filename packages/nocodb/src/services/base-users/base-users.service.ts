@@ -30,6 +30,7 @@ import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { MailEvent } from '~/interface/Mail';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class BaseUsersService {
@@ -96,7 +97,7 @@ export class BaseUsersService {
     const emails = (param.baseUser.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     // check for invalid emails
@@ -110,7 +111,6 @@ export class BaseUsersService {
       );
     }
 
-    const invite_token = uuidv4();
     const error = [];
 
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
@@ -124,6 +124,7 @@ export class BaseUsersService {
     }
 
     for (const email of emails) {
+      const invite_token = uuidv4();
       // add user to base if user already exist (canonical lookup handles alias variants)
       const user = await User.getByCanonicalEmail(email, ncMeta);
 
@@ -356,7 +357,7 @@ export class BaseUsersService {
         msg: 'The user has been invited successfully',
       };
     } else {
-      return { invite_token, emails, error };
+      return { msg: 'success', emails, error };
     }
   }
 

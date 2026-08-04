@@ -24,13 +24,15 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
-  placeholder: 'Enter value',
+  placeholder: undefined,
   variables: () => [],
   groupedVariables: () => [],
   readOnly: false,
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
 
 const vModel = computed({
   get: () => props.modelValue ?? '',
@@ -120,7 +122,7 @@ const editor = useEditor({
     }),
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
-      placeholder: props.placeholder,
+      placeholder: props.placeholder ?? t('placeholder.variableValue'),
     }),
     WorkflowExpression.configure({
       suggestion: {

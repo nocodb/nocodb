@@ -43,6 +43,13 @@ export const useInfiniteGroups = (
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
+  /**
+   * Present when mounted inside an interface page — group header/count loads
+   * are routed through the adapter (interface-scoped ops) instead of the
+   * view / shared-view endpoints, and group aggregations are skipped.
+   */
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
 
   const columnsById = computed(() => {
@@ -73,7 +80,18 @@ export const useInfiniteGroups = (
 
   const cachedGroups = ref<Map<number, CanvasGroup>>(new Map())
   const totalGroups = ref(0)
-  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+  const chunkStates = ref<Array<'loading' | 'loaded' | 'failed' | undefined>>([])
+
+  // Canvas-level retry cap: stop re-triggering the same chunk after this many
+  // consecutive failures. Each canvas attempt internally retries the API call
+  // GROUPBY_MAX_RETRIES + 1 times — so total backend hits is bounded by
+  // CANVAS_MAX_CHUNK_FETCH_ATTEMPTS * (GROUPBY_MAX_RETRIES + 1).
+  const CANVAS_MAX_CHUNK_FETCH_ATTEMPTS = 3
+  const GROUPBY_MAX_RETRIES = 3
+  const GROUPBY_RETRY_DELAY_MS = 50
+  const chunkFailureCounts = new Map<string, number>()
+  const getChunkKey = (chunkId: number, parentGroup?: CanvasGroup) =>
+    `${parentGroup ? generateGroupPath(parentGroup) : 'root'}:${chunkId}`
 
   const getGroupChunkIndex = (offset: number) => Math.floor(offset / GROUP_CHUNK_SIZE)
 
@@ -94,50 +112,88 @@ export const useInfiniteGroups = (
 
   const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup, force = false) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
+    const chunkKey = getChunkKey(chunkId, parentGroup)
 
-    if (targetChunkStates[chunkId] === 'loading' || (targetChunkStates[chunkId] === 'loaded' && !force)) return
+    if (
+      targetChunkStates[chunkId] === 'loading' ||
+      (targetChunkStates[chunkId] === 'loaded' && !force) ||
+      (targetChunkStates[chunkId] === 'failed' && !force)
+    )
+      return
+
+    // User-initiated re-fetch (force=true) — clear the failure counter so
+    // we get a fresh CANVAS_MAX_CHUNK_FETCH_ATTEMPTS budget.
+    if (force) chunkFailureCounts.delete(chunkKey)
 
     targetChunkStates[chunkId] = 'loading'
     const offset = chunkId * GROUP_CHUNK_SIZE
     const level = parentGroup ? findGroupLevel(parentGroup) : 0
     const groupCol = groupByColumns.value[level]
 
-    if (!groupCol || !view.value?.id || !base.value?.id) return
+    // Interface pages fetch through the adapter (page/viz-scoped, incl. public
+    // share) — it carries its own context, so `base.value.id` (unset on the
+    // anonymous public route) must not gate the group-chunk load there.
+    if (!groupCol || !view.value?.id || (!interfaceDataApi && !base.value?.id)) return
 
     try {
       const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
 
       const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where.value)
 
-      const response = isPublic.value
-        ? await $api.public.dataGroupBy(
-            sharedView.value!.uuid!,
-            {
-              offset,
-              limit: GROUP_CHUNK_SIZE,
-              where: effectiveWhere,
-              sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
-              column_name: groupCol.column.title,
-              subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
-              sortArrJson: JSON.stringify(sorts.value),
-              filterArrJson: JSON.stringify([...(nestedFilters.value ?? []), ...nestedGrpWhereArr]),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
-              },
-            },
-          )
-        : await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-            offset,
-            limit: GROUP_CHUNK_SIZE,
-            where: effectiveWhere,
-            sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
-            column_name: groupCol.column.title,
-            sortArrJson: JSON.stringify(sorts.value),
-            filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...nestedGrpWhereArr]),
-            subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
-          })
+      let response: Awaited<ReturnType<typeof $api.dbViewRow.groupBy>> | undefined
+      for (let attempt = 0; attempt <= GROUPBY_MAX_RETRIES; attempt++) {
+        try {
+          response = interfaceDataApi
+            ? await interfaceDataApi.fetchGroupBy({
+                offset,
+                limit: GROUP_CHUNK_SIZE,
+                where: effectiveWhere,
+                sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}`,
+                column_name: groupCol.column.title!,
+                subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+                sortsArr: sorts.value,
+                filtersArr: nestedFilters.value ?? [],
+                // group-nesting predicate — must ride apart from `filtersArr`
+                // (the server gates that on the Filter action; nesting always
+                // applies)
+                nestedFiltersArr: nestedGrpWhereArr,
+              })
+            : isPublic.value
+            ? await $api.public.dataGroupBy(
+                sharedView.value!.uuid!,
+                {
+                  offset,
+                  limit: GROUP_CHUNK_SIZE,
+                  where: effectiveWhere,
+                  sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
+                  column_name: groupCol.column.title,
+                  subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+                  sortArrJson: JSON.stringify(sorts.value),
+                  filterArrJson: JSON.stringify([...(nestedFilters.value ?? []), ...nestedGrpWhereArr]),
+                },
+                {
+                  headers: {
+                    'xc-password': sharedViewPassword.value,
+                  },
+                },
+              )
+            : await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+                offset,
+                limit: GROUP_CHUNK_SIZE,
+                where: effectiveWhere,
+                sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
+                column_name: groupCol.column.title,
+                sortArrJson: JSON.stringify(sorts.value),
+                filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...nestedGrpWhereArr]),
+                subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+              })
+          break
+        } catch (err) {
+          if (attempt === GROUPBY_MAX_RETRIES) throw err
+          await new Promise((resolve) => setTimeout(resolve, GROUPBY_RETRY_DELAY_MS))
+        }
+      }
+      if (!response) throw new Error('groupBy: empty response after retries')
 
       const groups: CanvasGroup[] = []
       for (const item of response.list) {
@@ -268,7 +324,7 @@ export const useInfiniteGroups = (
 
         const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
-        group.isExpanded = groupKeysManager.hasKey(view.value.id!, nestedKey) || isExpanded
+        group.isExpanded = groupKeysManager.hasKey(base.value?.id, view.value.id!, nestedKey) || isExpanded
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
@@ -283,7 +339,12 @@ export const useInfiniteGroups = (
         groups.push(group)
       }
 
-      if (groups.length && !appInfo.value.disableGroupByAggregation) {
+      // Interface pages route group aggregations through the adapter's bulk op.
+      if (
+        groups.length &&
+        !appInfo.value.disableGroupByAggregation &&
+        (!interfaceDataApi || interfaceDataApi.fetchBulkAggregate)
+      ) {
         const aggregationAliasMapper = new AliasMapper()
 
         const aggregation = Object.values(gridViewCols.value)
@@ -301,7 +362,14 @@ export const useInfiniteGroups = (
         let aggResponse = {}
 
         if (aggregation.length) {
-          aggResponse = !isPublic.value
+          aggResponse = interfaceDataApi
+            ? await interfaceDataApi.fetchBulkAggregate!({
+                aggregation,
+                where: where?.value,
+                filtersArr: nestedFilters.value,
+                bulkFilterList: aggregationParams,
+              })
+            : !isPublic.value
             ? await $api.internal.postOperation(
                 (meta.value as any)!.fk_workspace_id!,
                 meta.value!.base_id!,
@@ -354,7 +422,9 @@ export const useInfiniteGroups = (
       }
     } catch (error) {
       console.error(`Error fetching group chunk at level ${level}:`, error)
-      targetChunkStates[chunkId] = undefined
+      const nextCount = (chunkFailureCounts.get(chunkKey) ?? 0) + 1
+      chunkFailureCounts.set(chunkKey, nextCount)
+      targetChunkStates[chunkId] = nextCount >= CANVAS_MAX_CHUNK_FETCH_ATTEMPTS ? 'failed' : undefined
     }
   }
 
@@ -477,6 +547,10 @@ export const useInfiniteGroups = (
     if (startIndex === Number.NEGATIVE_INFINITY && endIndex === Number.POSITIVE_INFINITY) {
       cachedGroups.value = new Map()
       chunkStates.value = []
+      // Reload-style full reset: any chunk we wipe must also have its failure
+      // count reset, otherwise the canvas retry cap fires on the first
+      // failure of the next fetch.
+      chunkFailureCounts.clear()
       return
     }
 
@@ -490,6 +564,20 @@ export const useInfiniteGroups = (
     for (let i = safeStartIndex; i <= safeEndIndex; i++) {
       const group = targetGroups.get(i)
       if (group) newGroups.set(i, group)
+    }
+
+    // Drop failure counters for chunks we're about to reset so future
+    // re-fetches start with a fresh CANVAS_MAX_CHUNK_FETCH_ATTEMPTS budget.
+    const keptFirstChunk = getGroupChunkIndex(safeStartIndex)
+    const keptLastChunk = getGroupChunkIndex(safeEndIndex)
+    const keyPrefix = parentGroup ? `${generateGroupPath(parentGroup)}:` : 'root:'
+    for (const key of chunkFailureCounts.keys()) {
+      if (!key.startsWith(keyPrefix)) continue
+      const chunkId = Number(key.slice(keyPrefix.length))
+      if (Number.isNaN(chunkId)) continue
+      if (chunkId < keptFirstChunk || chunkId > keptLastChunk) {
+        chunkFailureCounts.delete(key)
+      }
     }
 
     if (parentGroup) {
@@ -515,7 +603,18 @@ export const useInfiniteGroups = (
 
         const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
 
-        totalGroups.value = isPublic.value
+        totalGroups.value = interfaceDataApi
+          ? // no dedicated count op — the group-by op's `pageInfo.totalRows` is
+            // the exact `groupByCount` result, so a limit-1 fetch doubles as one
+            (
+              await interfaceDataApi.fetchGroupBy({
+                limit: 1,
+                where: effectiveWhere,
+                column_name: groupCol.column.title!,
+                filtersArr: nestedFilters.value ?? [],
+              })
+            ).pageInfo.totalRows ?? 0
+          : isPublic.value
           ? await $api.public.dataGroupByCount(
               sharedView.value!.uuid!,
               {
@@ -541,7 +640,19 @@ export const useInfiniteGroups = (
         const groupFilterArr = buildNestedFilterArr(group) ?? []
         const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
 
-        group.groupCount = isPublic.value
+        group.groupCount = interfaceDataApi
+          ? (
+              await interfaceDataApi.fetchGroupBy({
+                limit: 1,
+                where: effectiveWhere,
+                column_name: groupCol.column.title!,
+                filtersArr: nestedFilters.value ?? [],
+                // nesting predicate — apart from `filtersArr` (Filter-action
+                // gated); nesting always applies
+                nestedFiltersArr: groupFilterArr,
+              })
+            ).pageInfo.totalRows ?? 0
+          : isPublic.value
           ? await $api.public.dataGroupByCount(
               sharedView.value!.uuid!,
               {
@@ -562,7 +673,10 @@ export const useInfiniteGroups = (
             })
       }
     } catch (e: any) {
-      if (showToastMessage) {
+      // Interface page deleted mid-flight — see useInfiniteData.syncCount.
+      const isStaleInterfacePage = !!interfaceDataApi && e?.response?.status === 404
+
+      if (showToastMessage && !isStaleInterfacePage) {
         const errorMessage = await extractSdkResponseErrorMsg(e)
         message.error(`Failed to sync count: ${errorMessage}`)
       }
@@ -580,7 +694,8 @@ export const useInfiniteGroups = (
       aggregation?: string
     }>,
   ) {
-    if (appInfo.value.disableGroupByAggregation) return
+    // Interface pages route through the adapter's bulk op when available.
+    if (appInfo.value.disableGroupByAggregation || (interfaceDataApi && !interfaceDataApi.fetchBulkAggregate)) return
 
     const BATCH_SIZE = 100
     const aggregationAliasMapper = new AliasMapper()
@@ -626,7 +741,14 @@ export const useInfiniteGroups = (
       }))
 
       try {
-        const aggResponse = !isPublic.value
+        const aggResponse = interfaceDataApi
+          ? await interfaceDataApi.fetchBulkAggregate!({
+              aggregation: aggregation as Array<{ field: string; type: string }>,
+              where: where?.value,
+              filtersArr: nestedFilters.value,
+              bulkFilterList: aggregationParams,
+            })
+          : !isPublic.value
           ? await $api.internal.postOperation(
               (meta.value as any)!.fk_workspace_id!,
               meta.value!.base_id!,
@@ -681,7 +803,7 @@ export const useInfiniteGroups = (
     const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
     if (!view.value?.id) return
-    groupKeysManager.toggleKey(view.value.id, nestedKey, group.isExpanded)
+    groupKeysManager.toggleKey(base.value?.id, view.value.id, nestedKey, group.isExpanded)
   }
 
   const toggleExpandAll = async (path: number[], expand: boolean) => {
@@ -709,7 +831,7 @@ export const useInfiniteGroups = (
     targetGroups.forEach((group) => {
       const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
       group.isExpanded = expand
-      groupKeysManager.toggleKey(view.value.id!, nestedKey, expand)
+      groupKeysManager.toggleKey(base.value?.id, view.value.id!, nestedKey, expand)
     })
 
     callbacks?.syncVisibleData()

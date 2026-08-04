@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { type AuditType, PlanLimitTypes } from 'nocodb-sdk'
+import { type AuditType, PlanLimitTypes, type TableType } from 'nocodb-sdk'
 
-const { user, appInfo } = useGlobal()
+const { user } = useGlobal()
+
+const { t } = useI18n()
 
 const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, hasMoreAudits } =
   useExpandedFormStoreOrThrow()
@@ -10,27 +12,24 @@ const { getPlanLimit } = useWorkspace()
 
 const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
-const isCeRetentionLimited = computed(() => !appInfo.value?.ee)
-
-const isOnPremUnlicensed = computed(() => appInfo.value?.isOnPrem && !appInfo.value?.ee)
-
 function showAuditUpgradeModal() {
   handleUpgradePlan({
-    limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+    limitOrFeature: PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION,
+    triggerSource: 'record-audit',
   })
 }
 
 const auditRetentionLimit = computed(() => {
-  const retention = getPlanLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION)
+  const retention = getPlanLimit(PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION)
 
   if (retention === 14) {
-    return '2 weeks'
+    return t('labels.audit.retention.twoWeeks')
   } else if (retention === 60) {
-    return '2 months'
+    return t('labels.audit.retention.twoMonths')
   } else if (retention === 180) {
-    return '6 months'
+    return t('labels.audit.retention.sixMonths')
   } else if (retention === 365) {
-    return '1 year'
+    return t('labels.audit.retention.oneYear')
   }
 
   return null
@@ -45,7 +44,7 @@ watch(primaryKey, () => {
 function scrollToLastAudit() {
   auditsWrapperEl.value?.scrollBy({
     top: 50000,
-    behavior: 'smooth',
+    behavior: 'instant',
   })
 }
 
@@ -55,13 +54,13 @@ const createdByAudit = (
   },
 ) => {
   if (comment.user === user.value?.email) {
-    return 'You'
+    return t('general.you')
   } else if (comment.created_display_name_short?.trim()) {
-    return comment.created_display_name_short || 'Shared source'
+    return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.user) {
     return comment.user
   } else {
-    return 'Shared source'
+    return t('labels.sharedSource')
   }
 }
 
@@ -97,6 +96,8 @@ watch(
 
 const meta = inject(MetaInj, ref())
 
+const isSyncedTable = computed(() => !!(meta.value as TableType | undefined)?.synced)
+
 function safeJsonParse(json: string) {
   try {
     return JSON.parse(json)
@@ -104,6 +105,26 @@ function safeJsonParse(json: string) {
     return {}
   }
 }
+
+// Op types whose audit detail is a per-field change set (DATA_UPDATE family).
+const UPDATE_OP_TYPES = ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE']
+
+// On synced tables, an update that touched ONLY sync bookkeeping fields
+// (RemoteSyncedAt, SyncRunId, …) is pure sync noise — drop the whole entry so
+// the revision history only surfaces real data changes. Mixed entries still
+// render; AuditMiniItem hides their sync-system rows individually.
+const visibleAudits = computed(() => {
+  if (!isSyncedTable.value) return consolidatedAudits.value
+
+  return consolidatedAudits.value.filter((audit) => {
+    if (!UPDATE_OP_TYPES.includes(audit?.op_type)) return true
+
+    const changedKeys = Object.keys(safeJsonParse(audit.details as string)?.data ?? {})
+    if (!changedKeys.length) return true
+
+    return changedKeys.some((key) => !isSyncSystemColumnTitle(key))
+  })
+})
 
 function getLinkColumnType(audit: AuditType) {
   const details = safeJsonParse(audit.details as string)
@@ -131,57 +152,32 @@ function isV0Audit(audit: AuditType) {
     </div>
 
     <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin pb-1">
-      <template v-if="consolidatedAudits.length === 0">
+      <template v-if="visibleAudits.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
           <div class="text-center text-3xl text-nc-content-gray-subtle2">
             <MdiHistory />
           </div>
-          <div class="font-bold text-center my-1 text-nc-content-gray-subtle2">See changes to this record</div>
-          <div v-if="auditRetentionLimit" class="text-center text-nc-content-gray-subtle2">
-            Your current plan provides <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
-          </div>
-          <div v-else-if="isCeRetentionLimited" class="text-center text-nc-content-gray-subtle2">
-            Only the last <span class="font-bold">30 days</span> of revision history is available.
-          </div>
+          <div class="font-bold text-center my-1 text-nc-content-gray-subtle2">{{ $t('msg.info.seeChangesToRecord') }}</div>
+          <i18n-t
+            v-if="auditRetentionLimit"
+            keypath="msg.info.planRevisionHistory"
+            tag="div"
+            class="text-center text-nc-content-gray-subtle2"
+          >
+            <template #limit>
+              <span class="font-bold">{{ auditRetentionLimit }}</span>
+            </template>
+          </i18n-t>
         </div>
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-if="isOnPremUnlicensed" class="flex flex-col items-center gap-2 my-2 mx-3">
-          <div class="text-center text-nc-content-gray-subtle2 text-xs">
-            {{ $t('upgrade.ceAuditRetentionNotice') }}
-          </div>
-          <NcButton v-e="['c:audit:retention:upgrade']" type="secondary" size="xs" @click="showAuditUpgradeModal">
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
-              {{ $t('general.upgrade') }}
-            </div>
-          </NcButton>
-        </div>
-        <div v-else-if="isCeRetentionLimited" class="flex flex-col items-center gap-2 my-2 mx-3">
-          <div class="text-center text-nc-content-gray-subtle2 text-xs">
-            {{ $t('upgrade.ceAuditRetentionNotice') }}
-          </div>
-          <a
-            v-e="['c:audit:retention:upgrade']"
-            href="https://app.nocodb.com/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=audit_retention"
-            target="_blank"
-            rel="noopener"
-            class="!no-underline"
-          >
-            <NcButton type="secondary" size="xs">
-              <div class="flex items-center gap-1">
-                <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
-                {{ $t('general.upgrade') }}
-              </div>
-            </NcButton>
-          </a>
-        </div>
-        <div v-else-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
-          <div class="text-center text-nc-content-gray-subtle2 text-xs">
-            You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history. Upgrade to view the full
-            history.
-          </div>
+        <div v-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
+          <i18n-t keypath="msg.info.revisionHistoryUpgrade" tag="div" class="text-center text-nc-content-gray-subtle2 text-xs">
+            <template #limit>
+              <span class="font-bold">{{ auditRetentionLimit }}</span>
+            </template>
+          </i18n-t>
           <NcButton
             v-if="isPaymentEnabled"
             v-e="['c:audit:retention:upgrade']"
@@ -196,9 +192,9 @@ function isV0Audit(audit: AuditType) {
           </NcButton>
         </div>
         <div v-if="hasMoreAudits" class="p-3 text-center">
-          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
+          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> {{ $t('general.loadEarlier') }} </NcButton>
         </div>
-        <div v-for="audit of consolidatedAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
+        <div v-for="audit of visibleAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
           <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-nc-bg-gray-light">
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">
@@ -236,7 +232,7 @@ function isV0Audit(audit: AuditType) {
               </div>
             </div>
             <template v-else-if="['DATA_INSERT', 'DATA_BULK_INSERT'].includes(audit?.op_type)">
-              <div class="pl-9">created the record.</div>
+              <div class="pl-9">{{ $t('activity.createdRecord') }}</div>
               <div
                 v-if="safeJsonParse(audit.details)?.data && Object.keys(safeJsonParse(audit.details)?.column_meta || {}).length"
                 class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y"
@@ -294,10 +290,10 @@ function isV0Audit(audit: AuditType) {
               </div>
             </template>
             <template v-else-if="['DATA_SOFT_DELETE', 'DATA_BULK_SOFT_DELETE'].includes(audit?.op_type)">
-              <div class="pl-9">moved the record to trash.</div>
+              <div class="pl-9">{{ $t('activity.movedRecordToTrash') }}</div>
             </template>
             <template v-else-if="['DATA_RESTORE', 'DATA_BULK_RESTORE'].includes(audit?.op_type)">
-              <div class="pl-9">restored the record from trash.</div>
+              <div class="pl-9">{{ $t('activity.restoredRecordFromTrash') }}</div>
             </template>
           </div>
         </div>

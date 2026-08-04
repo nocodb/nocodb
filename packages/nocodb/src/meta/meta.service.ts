@@ -13,6 +13,7 @@ import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
+import Noco from '~/Noco';
 import {
   BaseRelatedMetaTables,
   MetaTable,
@@ -41,12 +42,25 @@ export class MetaService {
     config: NcConfig,
     @Optional() trx = null,
     @Optional() nested = 0,
+    @Optional() sharedKnex: knex.Knex | null = null,
   ) {
     this._config = config;
-    this._knex = XKnex({
-      ...this._config.meta.db,
-      useNullAsDefault: true,
-    });
+    // CRITICAL: when running as a transaction wrapper (`startTransaction`
+    // constructs a new MetaService bound to an existing trx), we must NOT
+    // call XKnex() again — that would build a fresh pg pool whose min
+    // connections are held forever (the wrapper never uses _knex; trx is
+    // already bound to the originating pool). Each leaked pool holds
+    // `pool.min` pg connections until `pool.destroy()`, and nobody has a
+    // reference to destroy it. Reuse the originating knex when one is
+    // passed in; only build a new pool for the root MetaService.
+    if (sharedKnex) {
+      this._knex = sharedKnex;
+    } else {
+      this._knex = XKnex({
+        ...this._config.meta.db,
+        useNullAsDefault: true,
+      });
+    }
     this.trx = trx;
     this.nested = nested;
   }
@@ -69,6 +83,59 @@ export class MetaService {
 
   public get knex(): any {
     return this.knexConnection;
+  }
+
+  /**
+   * Guardrail against mixing a meta-DB transaction with a satellite table.
+   *
+   * A transaction started on the meta service is bound to the meta connection
+   * pool. Satellite tables (NC_AUDIT_DB / NC_CHAT_DB / NC_DOCS_DB /
+   * NC_OP_LOG_DB) live on a separate connection once their env var is set, so
+   * they can never take part in a meta-DB transaction. Forwarding the meta
+   * transaction to a satellite table silently "works" in single-DB deployments
+   * (where the satellite falls back to the meta DB) but writes to the wrong DB
+   * — or fails outright — once a satellite DB is configured. Fail loudly here
+   * rather than ship that latent, deployment-dependent bug.
+   *
+   * Only fires when (a) a transaction is active on this service, (b) the target
+   * is a satellite table, and (c) that satellite has its own connection whose
+   * pool differs from this service's pool. A satellite service operating on its
+   * own connection, and single-DB deployments (no separate satellite), are
+   * unaffected. Note: this only covers the metaXxx query path — raw
+   * `knexConnection(table)` access bypasses it.
+   */
+  protected assertSatelliteNotInMetaTrx(target: string) {
+    if (!this.trx) return;
+
+    const satelliteKnex = this.satelliteKnexForTable(target);
+    if (satelliteKnex && satelliteKnex !== this.knexInstance) {
+      NcError.metaError({
+        message: `Cannot access satellite table "${target}" inside a meta transaction: it lives on a separate connection (NC_AUDIT_DB / NC_CHAT_DB / NC_DOCS_DB / NC_OP_LOG_DB) and cannot share the meta-DB transaction. Use the dedicated satellite service (Noco.ncAudit / ncChatMessages / ncDocsContent / ncOperationLogs) without forwarding the transaction.`,
+        sql: '',
+      });
+    }
+  }
+
+  /**
+   * Returns the dedicated knex pool for a satellite table when that satellite
+   * runs on its own connection, else undefined. Canonical list of satellite
+   * tables — keep in sync with the satellite services wired in
+   * Noco.prepare*Service().
+   */
+  private satelliteKnexForTable(target: string): Knex | undefined {
+    switch (target) {
+      case MetaTable.AUDIT:
+        return Noco._ncAudit?.knexInstance;
+      case MetaTable.CHAT_MESSAGES:
+        return Noco._ncChatMessages?.knexInstance;
+      case MetaTable.DOC_CONTENT:
+      case MetaTable.DOC_REVISIONS:
+        return Noco._ncDocsContent?.knexInstance;
+      case MetaTable.OPERATION_LOGS:
+        return Noco._ncOperationLogs?.knexInstance;
+      default:
+        return undefined;
+    }
   }
 
   /***
@@ -107,6 +174,8 @@ export class MetaService {
       [MetaTable.TIMELINE_VIEW]: 'tv',
       [MetaTable.TIMELINE_VIEW_COLUMNS]: 'tvc',
       [MetaTable.TIMELINE_VIEW_RANGE]: 'tvr',
+      [MetaTable.GANTT_VIEW]: 'gtv',
+      [MetaTable.GANTT_VIEW_COLUMNS]: 'gtvc',
       [MetaTable.USERS]: 'us',
       [MetaTable.ORGS_OLD]: 'org',
       [MetaTable.TEAMS]: 'tm',
@@ -115,6 +184,7 @@ export class MetaService {
       [MetaTable.HOOK_LOGS]: 'hkl',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.EXTENSIONS]: 'ext',
+      [MetaTable.BASE_VARIABLES]: 'bv',
       [MetaTable.COMMENTS]: 'com',
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
@@ -124,11 +194,17 @@ export class MetaService {
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
+      [MetaTable.SNAPSHOT_SCHEDULE]: 'snsc',
       [MetaTable.SYNC_CONFIGS]: 'sync',
+      [MetaTable.TABLE_SYNCS]: 'tss',
+      [MetaTable.TABLE_SYNC_MAPPINGS]: 'tsm',
+      [MetaTable.TABLE_SYNC_COLUMN_MAPPINGS]: 'tscm',
       [MetaTable.PERMISSIONS]: 'perm',
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
+      [MetaTable.INTERFACES]: 'itf',
+      [MetaTable.INTERFACE_PAGES]: 'pag',
       [MetaTable.WORKSPACE]: 'w',
       [MetaTable.LIST_VIEW]: 'lv',
       [MetaTable.LIST_VIEW_COLUMNS]: 'lvc',
@@ -143,6 +219,7 @@ export class MetaService {
       [MetaTable.MANAGED_APP_VERSIONS]: 'mav',
       [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
       [MetaTable.SANDBOXES]: 'sb',
+      [MetaTable.SANDBOX_CHANGELOG]: 'scl',
       [MetaTable.SCIM_CONFIG]: 'scfg',
       [MetaTable.RLS_POLICIES]: 'rlp',
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
@@ -153,6 +230,11 @@ export class MetaService {
       [MetaTable.DOCS]: 'doc',
       [MetaTable.DATE_DEPENDENCY]: 'dd',
       [MetaTable.API_TOKEN_SCOPES]: 'ats',
+      [MetaTable.TRASH]: 'tr',
+      [MetaTable.BOOKMARK_GROUPS]: 'bmg',
+      [MetaTable.BOOKMARKS]: 'bmk',
+      [MetaTable.MAIL_SENDS]: 'ms',
+      [MetaTable.OPERATION_LOGS]: 'opl',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -254,6 +336,8 @@ export class MetaService {
     insertObj.created_at = at;
     insertObj.updated_at = at;
 
+    this.assertSatelliteNotInMetaTrx(target);
+
     const qb = this.knexConnection(target).insert(insertObj);
 
     this.logHelper(workspace_id, base_id, target, qb);
@@ -334,6 +418,8 @@ export class MetaService {
       insertObj.push(tempObj);
     }
 
+    this.assertSatelliteNotInMetaTrx(target);
+
     const BATCH_SIZE =
       this.knexConnection.client.config.client === 'sqlite3' ? 200 : 10000;
     for (let i = 0; i < insertObj.length; i += BATCH_SIZE) {
@@ -365,6 +451,8 @@ export class MetaService {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
     }
+
+    this.assertSatelliteNotInMetaTrx(target);
 
     const query = this.knexConnection(target);
 
@@ -445,6 +533,8 @@ export class MetaService {
     xcCondition?: Condition,
     force = false,
   ): Promise<void> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -536,6 +626,8 @@ export class MetaService {
     fields?: string[],
     xcCondition?: Condition,
   ): Promise<any> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (xcCondition) {
@@ -639,6 +731,8 @@ export class MetaService {
       orderBy?: { [key: string]: 'asc' | 'desc' };
     },
   ): Promise<any[]> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -725,6 +819,8 @@ export class MetaService {
       aggField?: string;
     },
   ): Promise<number> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
@@ -798,6 +894,8 @@ export class MetaService {
     force = false,
     allowCreatedAt = false,
   ): Promise<any> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -873,6 +971,8 @@ export class MetaService {
     condition: { [key: string]: any },
     xcCondition?: Condition,
   ): Promise<number> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (condition) {
@@ -889,7 +989,19 @@ export class MetaService {
   }
 
   protected async logHelper(workspace_id, base_id, target, q) {
-    const qStr = q.toQuery();
+    // logHelper is invoked fire-and-forget by metaGet2/metaList2/etc., so any
+    // throw here becomes an unhandledRejection that crashes the process under
+    // --unhandled-rejections=throw. q.toQuery() throws on undefined bindings,
+    // which can happen when an upstream caller passes a malformed condition
+    // (e.g. {table_name: undefined}). The actual query execution will surface
+    // the same error through the normal request error handler — diagnostic
+    // logging must never crash the process.
+    let qStr: string;
+    try {
+      qStr = q.toQuery();
+    } catch {
+      return;
+    }
 
     if (
       (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) ||
@@ -938,12 +1050,19 @@ export class MetaService {
       ? this.connection
       : await this.connection.transaction();
 
-    // todo: tobe done
-    return new MetaService(
+    // Instantiate via this.constructor so subclasses (e.g. EE MetaService)
+    // returned from startTransaction keep their overridden methods.
+    // Hard-coding `new MetaService(...)` here would always return a CE
+    // instance even when called on an EE/EE-Cloud subclass.
+    // Pass the existing _knex through so the wrapper does not spin up a
+    // brand-new pg pool that would leak `pool.min` connections per trx.
+    const Ctor = this.constructor as typeof MetaService;
+    return new Ctor(
       this.config,
       trx,
       // we need to keep track of the nested transaction level
       this.connection.isTransaction ? this.nested + 1 : 0,
+      this._knex,
     );
   }
 

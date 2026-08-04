@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk'
-
 defineProps<{
   showFullScreenToggle?: boolean
 }>()
@@ -11,12 +9,10 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline, meta } =
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline } =
   useSmartsheetStoreOrThrow()
 
-const hasDeletedField = computed(() => {
-  return !!(meta.value as TableType)?.columns?.some((c) => c.uidt === UITypes.Deleted)
-})
+const { numberOfHiddenFields } = useViewColumnsOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -43,17 +39,8 @@ const { width } = useElementSize(containerRef)
 const router = useRouter()
 
 const disableToolbar = computed(
-  () =>
-    router.currentRoute.value.query?.disableToolbar === 'true' ||
-    (isCalendar.value && isMobileMode.value) ||
-    isTimeline.value ||
-    isForm.value,
+  () => router.currentRoute.value.query?.disableToolbar === 'true' || isTimeline.value || isForm.value,
 )
-
-const isTab = computed(() => {
-  if (!isCalendar.value) return false
-  return width.value > 1200
-})
 
 /** EE only: Check if any filters are pinned to the toolbar.
  *  Hidden for restricted editors in collaborative/locked views — they cannot modify filters.
@@ -80,6 +67,19 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 const isSearchExpanded = ref(false)
 
 const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpanded.value)
+
+// Active-filter count for the mobile "more" menu — derived from the shared `allFilters` store ref
+// (same source the pinned-filter check uses); counts persisted, non-group filter conditions.
+const calendarFilterCount = computed(() => allFilters.value.filter((f) => f.id && !f.is_group).length)
+
+// Mobile: the calendar config controls are kept mounted but sr-only; open one by clicking its
+// (drawer) trigger button. Deferred a tick so the "more" menu closes first.
+function triggerToolbarControl(selector: string) {
+  const btn = containerRef.value?.querySelector<HTMLElement>(selector)
+  if (btn) {
+    setTimeout(() => btn.click(), 50)
+  }
+}
 </script>
 
 <template>
@@ -105,9 +105,9 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         }"
         class="flex items-center gap-3 empty:hidden"
       >
-        <template v-if="isCalendar && !isMobileMode">
+        <template v-if="isCalendar">
           <LazySmartsheetToolbarCalendarHeader />
-          <LazySmartsheetToolbarCalendarToday />
+          <LazySmartsheetToolbarCalendarToday v-if="!isMobileMode" />
           <LazySmartsheetToolbarCalendarNextPrev />
         </template>
 
@@ -150,8 +150,6 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         </template>
       </div>
 
-      <SmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
-
       <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed && !isMobileMode" />
 
       <template v-if="!isCalendar">
@@ -180,15 +178,101 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         :class="isMobileSearchActive ? 'flex-1 min-w-0' : 'shrink'"
       />
 
-      <LazySmartsheetToolbarRecordTrash
-        v-if="isEeUI && !isPublic && !isSharedBase && !isMobileMode && !isForm && hasDeletedField && isUIAllowed('dataEdit')"
-      />
-
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 
-      <SmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+      <SmartsheetToolbarCalendarMode v-if="isCalendar" :tab="false" />
 
-      <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed" />
+      <SmartsheetToolbarCalendarRecordHeight v-if="isCalendar && !isMobileMode" />
+
+      <SmartsheetToolbarCalendarEventTheme
+        v-if="isCalendar && !isMobileMode && !isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures"
+      />
+
+      <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed && !isMobileMode" />
+
+      <!-- Mobile: the calendar config controls stay mounted but visually hidden; the "more" menu
+           opens each one by triggering its (drawer) button. Row color is intentionally left off. -->
+      <div v-if="isCalendar && isMobileMode" class="sr-only">
+        <SmartsheetToolbarColumnFilterMenu v-if="isViewOperationsAllowed" />
+        <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
+        <SmartsheetToolbarCalendarRecordHeight />
+        <SmartsheetToolbarCalendarEventTheme v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures" />
+        <SmartsheetToolbarCalendarRange v-if="isViewOperationsAllowed" />
+      </div>
+
+      <NcDropdown v-if="isCalendar && isMobileMode" :trigger="['click']" overlay-class-name="nc-dropdown-calendar-mobile-more">
+        <NcButton
+          class="nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
+          size="small"
+          type="secondary"
+          data-testid="nc-calendar-mobile-more-btn"
+        >
+          <GeneralIcon icon="threeDotVertical" class="!h-4 !w-4" />
+        </NcButton>
+        <template #overlay>
+          <NcMenu class="!min-w-44" variant="small">
+            <NcMenuItem
+              v-if="isViewOperationsAllowed"
+              data-testid="nc-calendar-more-filter"
+              inner-class="w-full"
+              @click="triggerToolbarControl('.nc-filter-menu-btn')"
+            >
+              <div class="flex items-center gap-2 w-full">
+                <GeneralIcon icon="filter" class="!h-4 !w-4 text-nc-content-gray-subtle" />
+                {{ $t('activity.filter') }}
+                <span v-if="calendarFilterCount" class="ml-auto nc-toolbar-btn-chip bg-nc-bg-brand text-nc-content-brand">
+                  {{ calendarFilterCount }}
+                </span>
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              data-testid="nc-calendar-more-fields"
+              inner-class="w-full"
+              @click="triggerToolbarControl('.nc-fields-menu-btn')"
+            >
+              <div class="flex items-center gap-2 w-full">
+                <GeneralIcon icon="fields" class="!h-4 !w-4 text-nc-content-gray-subtle" />
+                {{ $t('objects.fields') }}
+                <span v-if="numberOfHiddenFields" class="ml-auto nc-toolbar-btn-chip bg-nc-bg-brand text-nc-content-brand">
+                  {{ numberOfHiddenFields }}
+                </span>
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              data-testid="nc-calendar-more-record-height"
+              @click="triggerToolbarControl('[data-testid=nc-calendar-record-height]')"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="rowHeight" class="!h-4 !w-4 text-nc-content-gray-subtle" />
+                {{ $t('objects.rowHeight') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures"
+              data-testid="nc-calendar-more-event-theme"
+              inner-class="w-full"
+              @click="triggerToolbarControl('[data-testid=nc-calendar-event-theme]')"
+            >
+              <div class="flex items-center gap-2 w-full">
+                <GeneralIcon icon="palette" class="!h-4 !w-4 text-nc-content-gray-subtle" />
+                {{ $t('activity.eventTheme') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="isViewOperationsAllowed"
+              data-testid="nc-calendar-more-settings"
+              @click="triggerToolbarControl('[data-testid=nc-calendar-range-btn]')"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="settings" class="!h-4 !w-4 text-nc-content-gray-subtle" />
+                {{ $t('activity.settings') }}
+              </div>
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+
+      <SmartsheetToolbarCalendarToggleSideBar v-if="isCalendar && isMobileMode" />
 
       <template v-if="isCalendar && !isMobileMode">
         <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures" />

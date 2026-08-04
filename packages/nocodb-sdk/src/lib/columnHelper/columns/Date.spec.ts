@@ -42,6 +42,19 @@ describe('Date', () => {
       });
       expect(result).toEqual(['2025-01-04', '2025-01-05', '2025-01-06']);
     });
+    it('will populate incremental 1 day for a Jalali date column without corruption', () => {
+      // Gregorian 2026-07-14/15/16 are displayed as Jalali 1405/04/23/24/25.
+      // Before the Jalali-aware parse the display strings were misread as
+      // Gregorian year 1405 and the fill produced garbage (e.g. 784/...).
+      const highlightedData = ['1405/04/23', '1405/04/24', '1405/04/25'];
+      const column = { meta: { date_format: 'jYYYY/jMM/jDD' } };
+      const result = new DateHelper().populateFillHandle({
+        column: column as any,
+        highlightedData,
+        numberOfRows: 6,
+      });
+      expect(result).toEqual(['1405/04/26', '1405/04/27', '1405/04/28']);
+    });
     it('will populate with incremental 2 days', () => {
       const highlightedData = ['2025-01-25', '2025-01-27', '2025-01-29'];
       const column = { meta: { date_format: 'YYYY-MM-DD' } };

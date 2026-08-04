@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 interface Props {
   checked?: boolean
+  indeterminate?: boolean
   size?: 'small' | 'default' | 'large'
   disabled?: boolean
   theme?: 'default' | 'ai'
@@ -10,6 +11,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   size: 'default',
   disabled: false,
+  indeterminate: false,
   theme: 'default',
   readonly: false,
 })
@@ -29,6 +31,7 @@ const onChange = (e: Event) => {
     class="nc-checkbox"
     :class="`theme-${props.theme}`"
     :disabled="props.disabled"
+    :indeterminate="props.indeterminate"
     :readonly="props.readonly"
     @change="onChange"
   >

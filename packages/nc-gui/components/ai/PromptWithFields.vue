@@ -213,13 +213,18 @@ function loadMentionFieldTagTooltip() {
     const deletedTooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-deleted-tooltip')
 
     if (!tooltip || (el.scrollWidth <= el.clientWidth && !deletedTooltip?.value)) return
+
+    // Build content as a styled element with text-only content so a user-controlled
+    // field name can't inject HTML (XSS). Class is kept on the element to preserve styling.
+    const content = document.createElement('div')
+    content.className = 'tooltip nc-ai-prompt-with-fields-tooltip'
+    content.textContent = deletedTooltip?.value ? deletedTooltip.value : tooltip.value
+
     // Show tooltip only on truncate
     const instance = tippy(el, {
-      content: `<div class="tooltip nc-ai-prompt-with-fields-tooltip">${
-        deletedTooltip?.value ? deletedTooltip.value : tooltip.value
-      }</div>`,
+      content,
       placement: 'top',
-      allowHTML: true,
+      allowHTML: false,
       arrow: true,
       animation: 'fade',
       duration: 0,

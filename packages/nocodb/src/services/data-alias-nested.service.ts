@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, isLinkV2 } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   getColumnByIdOrName,
   getViewAndModelByAliasOrId,
 } from '~/helpers/dataHelpers';
+import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
 import { Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class DataAliasNestedService {
@@ -22,6 +25,13 @@ export class DataAliasNestedService {
       rowId: string;
     },
   ) {
+    // NOTE: view-hidden columns stay queryable here and in the sibling
+    // nested-link methods below — field visibility is the column-level ACL,
+    // not view `show`, so we do NOT strip where/sort just because a column is
+    // hidden in the view (see the DESIGN NOTE in public-datas.service.ts).
+    // The `restrictNestedLinkQueryForColumn` calls below are a SEPARATE
+    // boundary: they gate on cross-base / no-visibility-access related tables,
+    // not on view `show`.
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
 
     if (!model) NcError.tableNotFound(param.tableName);
@@ -39,6 +49,11 @@ export class DataAliasNestedService {
 
     if (!column || !isLinksOrLTAR(column))
       NcError.badRequest('Column is not LTAR');
+
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables). Mutates
+    // `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const data = await baseModel.mmList(
       {
@@ -81,6 +96,14 @@ export class DataAliasNestedService {
       source,
     });
     const column = await getColumnByIdOrName(context, param.columnName, model);
+
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The excluded (link-picker) fetch is
+    // `pkAndPvOnly`-restricted, so an unsanitized predicate on a non-exposed
+    // column is the same one-bit oracle over the *unlinked* rows. Mutates
+    // `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const data = await baseModel.getMmChildrenExcludedList(
       {
@@ -127,6 +150,14 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The excluded (link-picker) fetch is
+    // `pkAndPvOnly`-restricted, so an unsanitized predicate on a non-exposed
+    // column is the same one-bit oracle over the *unlinked* rows. Mutates
+    // `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
     const data = await baseModel.getHmChildrenExcludedList(
       {
         colId: column.id,
@@ -171,6 +202,14 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The excluded (link-picker) fetch is
+    // `pkAndPvOnly`-restricted, so an unsanitized predicate on a non-exposed
+    // column is the same one-bit oracle over the *unlinked* rows. Mutates
+    // `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
     const data = await baseModel.getBtChildrenExcludedList(
       {
         colId: column.id,
@@ -213,6 +252,14 @@ export class DataAliasNestedService {
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
+
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The excluded (link-picker) fetch is
+    // `pkAndPvOnly`-restricted, so an unsanitized predicate on a non-exposed
+    // column is the same one-bit oracle over the *unlinked* rows. Mutates
+    // `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     let data;
     let count;
@@ -283,6 +330,11 @@ export class DataAliasNestedService {
 
     if (!isLinksOrLTAR(column)) NcError.badRequest('Column is not LTAR');
 
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables). Mutates
+    // `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
     const data = await baseModel.hmList(
       {
         colId: column.id,
@@ -305,6 +357,7 @@ export class DataAliasNestedService {
     } as any);
   }
 
+  @TraceCommand(OperationName.recordLinkRemove)
   async relationDataRemove(
     context: NcContext,
     param: PathParams & {
@@ -339,6 +392,7 @@ export class DataAliasNestedService {
   }
 
   // todo: Give proper error message when reference row is already related and handle duplicate ref row id in hm
+  @TraceCommand(OperationName.recordLinkAdd)
   async relationDataAdd(
     context: NcContext,
     param: PathParams & {

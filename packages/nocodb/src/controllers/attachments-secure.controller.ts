@@ -16,27 +16,28 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { PublicAttachmentScope } from 'nocodb-sdk';
+import contentDisposition from 'content-disposition';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
-import { Column, PresignedUrl } from '~/models';
+import { PresignedUrl } from '~/models';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { DataTableService } from '~/services/data-table.service';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { NcError } from '~/helpers/catchError';
-import { ATTACHMENT_ROOTS, localFileExists } from '~/helpers/attachmentHelpers';
+import {
+  ATTACHMENT_ROOTS,
+  isPreviewAllowed,
+  localFileExists,
+} from '~/helpers/attachmentHelpers';
+import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 
 @Controller()
 export class AttachmentsSecureController {
-  constructor(
-    private readonly attachmentsService: AttachmentsService,
-    private readonly dataTableService: DataTableService,
-  ) {}
+  constructor(private readonly attachmentsService: AttachmentsService) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
@@ -74,6 +75,27 @@ export class AttachmentsSecureController {
     return attachments;
   }
 
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Post(['/api/v1/db/data-import/upload'])
+  @HttpCode(200)
+  @UseInterceptors(
+    UploadAllowedInterceptor,
+    AnyFilesInterceptor({
+      limits: {
+        fileSize: NC_DATA_IMPORT_FILE_SIZE,
+      },
+    }),
+  )
+  async dataImportUpload(
+    @UploadedFiles() files: Array<FileType>,
+    @Req() req: NcRequest & { user: { id: string } },
+  ) {
+    return await this.attachmentsService.upload({
+      files,
+      req,
+    });
+  }
+
   @Get('/dltemp/:param(*)')
   async fileReadv3(@Param('param') param: string, @Res() res: Response) {
     try {
@@ -83,15 +105,18 @@ export class AttachmentsSecureController {
 
       const fpath = queryHelper[0];
 
+      // Key names must match what PresignedUrl.getSignedUrl serialises.
       let queryResponseContentType = null;
       let queryResponseContentDisposition = null;
+      let queryResponseContentEncoding = null;
 
       if (queryHelper.length > 1) {
         const query = new URLSearchParams(queryHelper[1]);
-        queryResponseContentType = query.get('response-content-type');
+        queryResponseContentType = query.get('ResponseContentType');
         queryResponseContentDisposition = query.get(
-          'response-content-disposition',
+          'ResponseContentDisposition',
         );
+        queryResponseContentEncoding = query.get('ResponseContentEncoding');
       }
 
       const targetParam = param.split('/')[2];
@@ -106,12 +131,39 @@ export class AttachmentsSecureController {
         return res.status(404).send('File not found');
       }
 
+      // For non-previewable types force a download regardless of the
+      // cached response headers.
+      const previewable = isPreviewAllowed({
+        mimetype: file.type,
+        path: file.path,
+      });
+
+      if (!previewable) {
+        res.setHeader(
+          'Content-Disposition',
+          contentDisposition(path.basename(file.path), { type: 'attachment' }),
+        );
+        res.setHeader('Content-Type', 'application/octet-stream');
+        return res.sendFile(file.path);
+      }
+
       if (queryResponseContentType) {
         res.setHeader('Content-Type', queryResponseContentType);
+
+        if (queryResponseContentEncoding) {
+          res.setHeader(
+            'Content-Type',
+            `${queryResponseContentType}; charset=${queryResponseContentEncoding}`,
+          );
+        }
       }
 
       if (queryResponseContentDisposition) {
         res.setHeader('Content-Disposition', queryResponseContentDisposition);
+      }
+
+      if (queryResponseContentEncoding) {
+        res.setHeader('Content-Encoding', queryResponseContentEncoding);
       }
 
       res.sendFile(file.path);
@@ -130,30 +182,10 @@ export class AttachmentsSecureController {
     @Param('rowId') rowId: string,
     @Query('urlOrPath') urlOrPath: string,
   ) {
-    const column = await Column.get(context, {
-      colId: columnId,
-    });
-
-    if (!column) {
-      NcError.fieldNotFound(columnId);
-    }
-
-    const record = await this.dataTableService.dataRead(context, {
-      baseId: context.base_id,
+    return this.attachmentsService.downloadAttachment(context, {
       modelId,
+      columnId,
       rowId,
-      query: {
-        fields: column.title,
-      },
-    });
-
-    if (!record) {
-      NcError.recordNotFound(rowId);
-    }
-
-    return this.attachmentsService.getAttachmentFromRecord({
-      record,
-      column,
       urlOrPath,
     });
   }

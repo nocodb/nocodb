@@ -61,12 +61,21 @@ export default class UserRefreshToken {
   }
 
   // todo: caching
+  /**
+   * Rotate a refresh token as an atomic compare-and-swap. Returns the number of
+   * rows affected: 1 if this caller won the rotation, 0 if the old token was
+   * already rotated/revoked (concurrent reuse / replay). Callers MUST reject on
+   * a 0 result rather than minting a second valid token.
+   */
   static async updateOldToken(
     oldToken: string,
     newToken: string,
     ncMeta = Noco.ncMeta,
-  ) {
-    return await ncMeta.metaUpdate(
+  ): Promise<number> {
+    // `metaUpdate` keys the UPDATE on `{ token: oldToken }` and returns the
+    // rows-affected count, so the compare-and-swap is at the SQL level. Prefer
+    // it over raw knex for the scope checks and `updated_at` stamping.
+    const affected = await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
@@ -78,6 +87,8 @@ export default class UserRefreshToken {
         token: oldToken,
       },
     );
+
+    return Number(affected) || 0;
   }
 
   static async deleteToken(token: string, ncMeta = Noco.ncMeta) {

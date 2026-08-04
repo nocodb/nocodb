@@ -174,9 +174,16 @@ const rolePermissions = {
       // Extensions
       extensionUpdate: true,
 
+      // Undo / redo — editor is the min role since undo/redo only reverts
+      // mutations, and editors are the lowest role allowed to mutate.
+      // Inherited by CREATOR + OWNER via the role-scope cascade below.
+      undo: true,
+      redo: true,
+
       // Documents — editors can update and reorder, but NOT create/delete
       documentUpdate: true,
       documentReorder: true,
+      documentRevisionRestore: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -211,6 +218,8 @@ const rolePermissions = {
       // Documents — read-only for viewers
       documentList: true,
       documentGet: true,
+      documentRevisionList: true,
+      documentRevisionGet: true,
 
       // Document Comments — read-only for viewers
       documentCommentList: true,

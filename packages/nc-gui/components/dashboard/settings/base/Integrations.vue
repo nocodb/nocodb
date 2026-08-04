@@ -36,7 +36,7 @@ const {
   availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
@@ -105,7 +105,11 @@ const integrationsMap = computed(() => {
         (i) =>
           i.type === cat.value &&
           i.isAvailable &&
-          (isEeUI ? !i.isOssOnly : true) &&
+          // OSS-only (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem)
+          (isEEFeatureBlocked.value || !i.isOssOnly) &&
+          // EE-only (e.g. MSSQL, Oracle) hidden in CE and in community mode; in a
+          // normal EE build gated by their paid add-on.
+          (showEEFeatures.value || !i.isEeOnly) &&
           i.sub_type !== SyncDataType.NOCODB &&
           // AUTH category: only show integrations available for sync auth
           (cat.value !== IntegrationCategoryType.AUTH ||
@@ -147,7 +151,7 @@ const collaboratorsMap = computed<Map<string, any>>(() => {
 const getUserName = (userId: string) => {
   const user = collaboratorsMap.value.get(userId)
   if (!user) return userId
-  return user.display_name || user.email?.split('@')[0] || userId
+  return extractUserDisplayNameOrEmail(user) || userId
 }
 
 const linkedColumns = computed<NcTableColumnProps[]>(

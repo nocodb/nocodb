@@ -6,6 +6,8 @@ import mysql from '~/db/functionMappings/mysql';
 import pg from '~/db/functionMappings/pg';
 import sqlite from '~/db/functionMappings/sqlite';
 import databricks from '~/db/functionMappings/databricks';
+import mssql from '~/db/functionMappings/mssql';
+import oracle from '~/db/functionMappings/oracle';
 
 export interface MapFnArgs {
   pt: any;
@@ -36,6 +38,12 @@ const mapFunctionName = async (args: MapFnArgs): Promise<any> => {
       break;
     case 'databricks':
       val = databricks[name] || name;
+      break;
+    case 'mssql':
+      val = mssql[name] || name;
+      break;
+    case 'oracledb':
+      val = oracle[name] || name;
       break;
   }
 

@@ -12,13 +12,16 @@ import {
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
-import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
   callExpressionBuilder,
 } from './parsed-tree-builder';
+import {
+  formulaOutputsRawJson,
+  getFormulaOutputMaxLength,
+  wrapFormulaWithMaxLength,
+} from './formula-query-builder.helpers';
 import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
@@ -30,6 +33,7 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
@@ -41,6 +45,13 @@ import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
 const logger = new Logger('FormulaQueryBuilderv2');
+
+// Sentinel thrown by the dry-run short-circuit below. It is internal control
+// flow, not a real formula error, so callers (e.g. select-object.ts) must not
+// log it — logging it per record/column is the noise that overwhelms the
+// instance when an external source is unreachable.
+export const FORMULA_DRY_RUN_SKIPPED_MESSAGE =
+  'Skipping formula dry-run: a previous validation already failed';
 
 async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const {
@@ -225,6 +236,23 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   .wrap('(', ')'),
               };
             };
+          } else if (
+            knex.clientType() === 'oracledb' &&
+            (refCol.dt ?? '').toLowerCase().includes('time zone')
+          ) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                // Oracle TIMESTAMP WITH [LOCAL] TIME ZONE: normalize to a plain
+                // UTC timestamp so date formulas (DATEADD, …) operate on the UTC
+                // instant — mirroring the read path and pg/mysql. Referencing the
+                // column raw makes the formula compute on the stored
+                // wall-clock+offset, so the result renders an offset off in the
+                // browser timezone.
+                builder: knex
+                  .raw(`SYS_EXTRACT_UTC(??)`, [refCol.column_name])
+                  .wrap('(', ')'),
+              };
+            };
           } else {
             aliasToColumn[col.id] = () =>
               Promise.resolve({ builder: refCol.column_name });
@@ -251,17 +279,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const columnName = await getColumnName(context, col, columns);
 
             // create nested replace statement for each user
-            if (knex.clientType() === 'pg') {
-              finalStatement = `(${replaceDelimitedWithKeyValuePg({
-                knex,
-                needleColumn: columnName,
-                stack: baseUsers.map((user) => ({
-                  key: user.id,
-                  value: `${user.email}`,
-                })),
-              })})`;
-            } else if (knex.clientType() === 'sqlite3') {
-              finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+            if (knex.clientType() === 'pg' || knex.clientType() === 'sqlite3') {
+              finalStatement = `(${DBQueryClient.get(
+                knex.clientType() as ClientType,
+              ).replaceDelimitedWithKeyValue({
                 knex,
                 needleColumn: columnName,
                 stack: baseUsers.map((user) => ({
@@ -307,6 +328,14 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 builder: knex.raw(`json_extract(??, '$.value')`, [
+                  col.column_name,
+                ]),
+              };
+            };
+          } else if (knex.clientType() === 'mssql') {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
                   col.column_name,
                 ]),
               };
@@ -380,6 +409,29 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         prevBinaryOp,
       });
     } else if (pt.type === 'Literal') {
+      // MSSQL: inline string literals as `N'...'` rather than binding `?`.
+      //   1. Unicode — a bound string inlines as varchar via `.toQuery()`;
+      //      `N'...'` keeps it nvarchar.
+      //   2. The single-query (dbQueryClient) path composes this builder into a
+      //      larger query and resolves it with one final `.toQuery()`; a bound
+      //      `?` placeholder gets consumed/shifted by that outer compilation.
+      // Escape any `?` IN THE VALUE itself (e.g. `CONCAT(x, '?')`) to `\?` so
+      // the outer `.toQuery()` treats it as a literal, not a binding
+      // placeholder. Without this the stray `?` shifts every later binding —
+      // e.g. a pk value lands in the `TOP (…)` clause as `TOP ('1')`, which
+      // SQL Server rejects with error 1060. The final `.toQuery()` unescapes
+      // `\?` back to a literal `?`. (Lookup-of-formula re-escapes after its own
+      // `toQuery()`, so the net escaping stays single — see mssql.ts.)
+      if (knex.clientType() === 'mssql' && typeof pt.value === 'string') {
+        return {
+          builder: knex.raw(
+            `N'${pt.value.replace(/'/g, "''").replace(/\?/g, '\\?')}'`,
+          ),
+        };
+      }
+      if (knex.clientType() === 'mssql' && typeof pt.value === 'boolean') {
+        return { builder: knex.raw(pt.value ? '1' : '0') };
+      }
       return { builder: knex.raw(`?`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
       const { builder } =
@@ -438,7 +490,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     }
   };
   const builder = (await fn(tree)).builder;
-  return { builder };
+  return { builder, parsedTree: tree };
 }
 
 export default async function formulaQueryBuilderv2({
@@ -525,20 +577,42 @@ export default async function formulaQueryBuilderv2({
       TelemetryHandlerService.sendPriorityError(context, {
         trigger: 'formulaQueryBuilder',
         error_type: 'FORMULA_TOO_LONG_ERROR',
-        message: `Formula length too long for ${columnInfo.title}${columnInfo.id}`,
+        message: `Generated query too long for ${columnInfo.title}${columnInfo.id}`,
       });
       NcError.get(context).formulaError(
-        `Formula length too long for ${columnInfo.title}`,
+        `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.`,
       );
     }
+
+    // Cap the rendered length of string-typed formula output at the database
+    // level. Formula functions can produce arbitrarily large strings at
+    // execution time (the query text itself stays short), which can crash the
+    // Node process with ERR_STRING_TOO_LONG when the driver materializes the
+    // value. Wrapping the final expression in a SUBSTR enforces an upper limit
+    // per cell across all database platforms. Applied only at the outermost
+    // formula (nested formula references go through `_formulaQueryBuilder`
+    // directly), and only for string output to avoid altering numeric/date
+    // typing. JSON-producing formulas (e.g. JSON_EXTRACT) are skipped — they
+    // come back as jsonb whose representation a text cast would corrupt, and
+    // they can't grow unbounded since they only read already-stored JSON.
+    if (
+      qb?.parsedTree?.dataType === FormulaDataTypes.STRING &&
+      qb.builder &&
+      !formulaOutputsRawJson(qb.parsedTree)
+    ) {
+      qb.builder = wrapFormulaWithMaxLength({
+        knex,
+        builder: qb.builder,
+        maxLength: getFormulaOutputMaxLength(),
+      });
+    }
+
     if (!validateFormula) return qb;
 
     // Short-circuit if a previous dry-run already failed for this base model,
     // to avoid amplifying requests to an overwhelmed external source
     if (baseModelSqlv2.formulaDryRunFailed) {
-      throw new Error(
-        'Skipping formula dry-run: a previous validation already failed',
-      );
+      throw new Error(FORMULA_DRY_RUN_SKIPPED_MESSAGE);
     }
 
     // dry run qb.builder to see if it will break the grid view or not
@@ -575,11 +649,21 @@ export default async function formulaQueryBuilderv2({
     // Check if this is a transient error (connection/timeout issue)
     const isTransient = isTransientError(e);
 
+    // The dry-run short-circuit above re-throws a sentinel error only because an
+    // earlier transient failure set `formulaDryRunFailed` (the flag's sole write
+    // site is guarded by `isTransient`), and no real validation runs once it's
+    // set. That sentinel is not a real formula error, so it must never be
+    // persisted as the column's `error` — doing so poisons every later read with
+    // ERR_FORMULA and never self-heals.
+    const skipMarkingColumn =
+      isTransient || !!baseModelSqlv2.formulaDryRunFailed;
+
     // Mark formula error if formula validation is invoked
     // or if a circular reference error occurs and a column is provided
-    // BUT skip marking for transient errors
+    // BUT skip marking for transient errors (and the transient-induced
+    // dry-run short-circuit, see skipMarkingColumn above)
     if (
-      !isTransient &&
+      !skipMarkingColumn &&
       (validateFormula ||
         (column?.id &&
           e instanceof NcBaseErrorv2 &&

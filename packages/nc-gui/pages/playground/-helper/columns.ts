@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, SeparatorType, UITypes } from 'nocodb-sdk'
 
 const defaultColumnModelId = 'mtWA9ZXvsuh'
 const table2ColumnModelId = 'mehpRLA42Cz'
@@ -28,7 +28,7 @@ export const defaultColumns: ColumnType[] = [
     title: 'Number',
     dt: 'bigint',
     dtx: 'specificType',
-    meta: { isLocaleString: false },
+    meta: { separator: SeparatorType.NonePeriod },
     system: false,
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,

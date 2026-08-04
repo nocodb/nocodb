@@ -1,5 +1,5 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parseIntValue, serializeIntValue } from '..';
+import { parseIntValue, SeparatorType, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -10,14 +10,14 @@ import { ncIsNaN } from '~/lib/is';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
-    isLocaleString: false,
+    separator: SeparatorType.NonePeriod,
   };
 
   serializeValue(
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    value = serializeIntValue(value);
+    value = serializeIntValue(value, params);
 
     if (value === null) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {

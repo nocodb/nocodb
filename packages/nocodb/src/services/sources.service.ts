@@ -9,10 +9,10 @@ import type { BaseReqType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
-import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -50,6 +50,12 @@ export class SourcesService {
     }
 
     const baseBody = param.source;
+
+    validateAndNormalizeSqliteConfig(
+      baseBody?.config,
+      baseBody?.type ?? oldSource?.type,
+    );
+
     const source = await Source.update(context, param.sourceId, {
       ...baseBody,
       type: baseBody.config?.client,
@@ -166,6 +172,13 @@ export class SourcesService {
   }> {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
+    // Unlike baseUpdate, this path never validated the filename — a source could
+    // point at NocoDB's own metadata database (noco.db / nc_data.db).
+    validateAndNormalizeSqliteConfig(
+      param.source.config,
+      (param.source.config as any)?.client ?? param.source.type,
+    );
+
     // type | base | baseId
     const baseBody = param.source;
     baseBody.alias = baseBody.alias?.trim();
@@ -179,6 +192,13 @@ export class SourcesService {
     // if missing integration id, create a new private integration
     // and map the id to the source
     if (!(baseBody as any).fk_integration_id) {
+      // This branch creates the Integration model directly, bypassing
+      // integrationCreate and its guards — mirror the enterprise SQLite block.
+      if (baseBody.config?.client === 'sqlite3' && Noco.isEE()) {
+        NcError.get(context).badRequest(
+          'SQLite connections are only available on the free self-hosted edition',
+        );
+      }
       integration = await Integration.createIntegration({
         title: baseBody.alias,
         type: IntegrationsType.Database,
@@ -243,8 +263,6 @@ export class SourcesService {
         logger: param.logger,
         user: param.req.user,
       });
-
-      await populateRollupColumnAndHideLTAR(context, source, base);
 
       this.appHooksService.emit(AppEvents.APIS_CREATED, {
         info,

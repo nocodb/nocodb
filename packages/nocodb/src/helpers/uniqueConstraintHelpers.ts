@@ -1,5 +1,6 @@
 import {
   isUniqueConstraintSupportedType,
+  SqlUiFactory,
   UITypes,
   UNIQUE_CONSTRAINT_SUPPORTED_TYPES,
 } from 'nocodb-sdk';
@@ -24,7 +25,7 @@ export function validateUniqueConstraint(
   uidt: UITypes,
   meta?: any,
   unique?: boolean,
-  source?: Pick<Source, 'is_local' | 'is_meta'>,
+  source?: Pick<Source, 'is_local' | 'is_meta' | 'type'>,
   cdf?: string,
 ): void {
   if (!unique) return; // No validation needed if not setting unique
@@ -34,6 +35,16 @@ export function validateUniqueConstraint(
     NcError.get(context).badRequest(
       'Unique constraint is only supported for NC-DB (not external databases)',
     );
+  }
+
+  if (source?.type) {
+    const sqlUi = SqlUiFactory.create({ client: source.type });
+    if (sqlUi.isUniqueSupportedField?.(uidt) === false) {
+      const fieldTypeName = UITypes[uidt] || uidt;
+      NcError.get(context).badRequest(
+        `Unique constraint is not supported for field type '${fieldTypeName}' on this database`,
+      );
+    }
   }
 
   // Check if field type supports unique constraint

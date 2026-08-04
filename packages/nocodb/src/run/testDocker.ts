@@ -18,7 +18,8 @@ server.disable('etag');
 server.disable('x-powered-by');
 server.use(
   cors({
-    exposedHeaders: 'xc-db-response',
+    exposedHeaders:
+      'xc-db-response, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Policy, Retry-After',
   }),
 );
 
@@ -26,6 +27,8 @@ server.set('view engine', 'ejs');
 
 process.env[`DEBUG`] = 'xc*';
 process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
+process.env[`NC_ALLOW_LOCAL_EXTERNAL_DBS`] = 'true';
+process.env[`NC_ALLOW_LOCAL_DATA_IMPORT`] = 'true';
 
 (async () => {
   if (process.env.NC_WORKER_CONTAINER === 'true') {

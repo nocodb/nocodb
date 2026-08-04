@@ -23,8 +23,6 @@ const baseStore = useBase()
 
 const { loadTables } = baseStore
 
-const { addUndo, defineProjectScope } = useUndoRedo()
-
 const inputEl = ref<HTMLTextAreaElement>()
 
 const loading = ref(false)
@@ -67,7 +65,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const updateDescription = async (undo = false) => {
+const updateDescription = async () => {
   if (!tableMeta) return
 
   if (formState.description) {
@@ -84,7 +82,6 @@ const updateDescription = async (undo = false) => {
         tableId: tableMeta.id as string,
       },
       {
-        base_id: tableMeta.base_id,
         description: formState.description,
       },
     )
@@ -92,26 +89,6 @@ const updateDescription = async (undo = false) => {
     dialogShow.value = false
 
     await loadProjectTables(tableMeta.base_id!, true)
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (t: string) => {
-            formState.description = t
-            updateDescription(true, true)
-          },
-          args: [formState.description],
-        },
-        undo: {
-          fn: (t: string) => {
-            formState.description = t
-            updateDescription(true, true)
-          },
-          args: [tableMeta.description],
-        },
-        scope: defineProjectScope({ model: tableMeta }),
-      })
-    }
 
     await loadTables()
 

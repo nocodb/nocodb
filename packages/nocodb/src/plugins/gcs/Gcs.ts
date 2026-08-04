@@ -3,9 +3,10 @@ import { promisify } from 'util';
 import { Readable } from 'stream';
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
@@ -158,8 +159,7 @@ export default class Gcs implements IStorageAdapterV2 {
   ): Promise<{ url: string; data: any }> {
     try {
       const response = await axios.get(url, {
-        httpAgent: useAgent(url),
-        httpsAgent: useAgent(url),
+        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
         responseType: buffer ? 'arraybuffer' : 'stream',
         maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       });

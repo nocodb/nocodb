@@ -13,7 +13,7 @@ const { loadCollaborators } = workspaceStore
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams, blockTeamsManagement, isEEFeatureBlocked } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams, blockTeamsManagement } = useEeConfig()
 
 const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
 
@@ -38,9 +38,7 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'teams',
       icon: 'ncBuilding',
       label: t('general.teams'),
-      upgradeBadge: isEEFeatureBlocked.value
-        ? { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, blocked: blockTeamsManagement.value }
-        : undefined, // Only show badge in On-prem without license
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, blocked: blockTeamsManagement.value },
       hidden: !wsTabVisibility.value.teams,
     },
     {
@@ -59,9 +57,7 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'audits',
       icon: 'audit',
       label: t('title.audits'),
-      upgradeBadge: isEEFeatureBlocked.value
-        ? { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE, blocked: !isWsAuditEnabled.value }
-        : undefined, // Only show badge in On-prem without license
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE, blocked: !isWsAuditEnabled.value },
       hidden: !wsTabVisibility.value.audits,
     },
     {
@@ -84,11 +80,13 @@ const activeTab = computed({
         title: t('upgrade.upgradeToAccessWsAudit'),
         content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+        triggerSource: 'ws-tabs-audit',
       })
       return
     }
 
-    if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+    if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-tabs-teams' }))
+      return
 
     if (['collaborators', 'teams'].includes(tabKey) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({}, activeWorkspaceId.value)
@@ -116,7 +114,7 @@ const activeTab = computed({
             :feature="item.upgradeBadge.feature"
             :feature-enabled-callback="() => !item.upgradeBadge!.blocked"
             remove-click
-            show-as-lock
+            icon-only
           />
         </div>
       </template>

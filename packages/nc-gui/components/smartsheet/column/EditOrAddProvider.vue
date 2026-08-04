@@ -11,6 +11,7 @@ interface Props {
   fromTableExplorer?: boolean
   isColumnValid?: (value: Partial<ColumnType>) => boolean
   disableTitleFocus?: boolean
+  interfaceNote?: boolean
 }
 
 const props = defineProps<Props>()
@@ -23,8 +24,7 @@ const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid,
 
 const { isSaving } = useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
 
-const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen, triggerPostSaveOrUpdateCbk } =
-  useColumnCreateStoreOrThrow()
+const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen } = useColumnCreateStoreOrThrow()
 
 /**
  * Determines whether the root dropdown should remain open.
@@ -41,7 +41,6 @@ const shouldKeepModalOpen = (): boolean => {
 
 defineExpose({
   shouldKeepModalOpen,
-  triggerPostSaveOrUpdateCbk,
 })
 </script>
 
@@ -52,6 +51,7 @@ defineExpose({
     :edit-description="editDescription"
     :from-table-explorer="props.fromTableExplorer || false"
     :disable-title-focus="disableTitleFocus"
+    :interface-note="props.interfaceNote"
     @submit="emit('submit', $event)"
     @cancel="emit('cancel')"
     @mounted="emit('mounted')"

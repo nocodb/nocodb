@@ -276,7 +276,7 @@ const tabIndex = computed(() => {
             :tabindex="tabIndex"
             class="nc-text-area-rich-link-option-input flex-1 !mx-0.5 !px-1.5 !py-0.5 !rounded-md z-10"
             :bordered="false"
-            placeholder="Enter a link"
+            :placeholder="$t('placeholder.enterALink')"
             @change="onChange"
             @press-enter="onInputBoxEnter"
             @keydown="handleInputBoxKeyDown"

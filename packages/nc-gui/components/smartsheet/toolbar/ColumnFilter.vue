@@ -3,6 +3,10 @@ import {
   type ColumnType,
   type FilterType,
   ViewSettingOverrideOptions,
+  getRlsPlaceholdersForColumn,
+  hasRlsPlaceholder,
+  isColumnInError,
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isHiddenCol,
   isSystemColumn,
@@ -25,6 +29,13 @@ interface Props {
   showDynamicCondition?: boolean
   widget?: boolean
   workflow?: boolean
+  /**
+   * Render the `dynamic-filter` slot in place of the value input, so the parent
+   * supplies the value (RLS `{currentUser.*}` placeholders, workflow variables).
+   * Unlike `workflow`, this only affects the value input — it does not change
+   * which columns are filterable or how filters are loaded.
+   */
+  dynamicValue?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
   rootMeta?: any
@@ -58,6 +69,7 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
   link: false,
   workflow: false,
+  dynamicValue: false,
   showDynamicCondition: true,
   linkColId: undefined,
   buttonColId: undefined,
@@ -110,6 +122,7 @@ const {
   buttonColId,
   isButton,
   workflow,
+  dynamicValue,
   parentColId,
   visibilityError,
   disableAddNewFilter,
@@ -120,9 +133,9 @@ const nested = computed(() => nestedLevel.value > 0)
 
 const { t } = useI18n()
 
-const { appInfo, isMobileMode } = useGlobal()
+const { getFilterOpLabel } = useFilterOperationLabel()
 
-const { clone } = useUndoRedo()
+const { appInfo, isMobileMode } = useGlobal()
 
 const logicalOps = [
   { value: 'and', text: t('general.and') },
@@ -143,7 +156,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter, showEEFeatures } =
   useEeConfig()
@@ -166,10 +179,20 @@ const {
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const isListConfigured = computed(
-  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
+  // A list view is level-scoped as soon as it has >= 1 level — the backend always
+  // scopes filters per fk_level_id (even the single root level). The previous `> 1`
+  // gate left single-level lists (and filters created before a 2nd level was added)
+  // with no fk_level_id, so the backend silently dropped them.
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) >= 1,
 )
 
-const levelId = computed(() => (isList.value && isListConfigured.value ? listViewStore?.selectedLevelId.value : undefined))
+const levelId = computed(() =>
+  isList.value && isListConfigured.value
+    ? // Fall back to selectedLevel.id (defaults to levels[0]) while selectedLevelId is
+      // still initializing, so a freshly-created filter is never left untagged.
+      listViewStore?.selectedLevelId.value ?? listViewStore?.selectedLevel.value?.id
+    : undefined,
+)
 
 const { getMetaByKey } = useMetas()
 
@@ -190,18 +213,32 @@ const { showSystemFields } =
   widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
 const fieldsToFilter = computed(() =>
-  columns.value.filter((c) => {
-    if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
+  deepClone(columns.value)
+    .filter((c) => {
+      // "Created by" / "Last modified by" are the natural subject of a row-level
+      // policy, but they are system columns, so the generic branch below would
+      // hide them (RLS pins showSystemFields to false — there is no view to
+      // read the toggle from).
+      const isRlsAllowedSystemCol = !!rlsPolicyId?.value && (isCreatedOrLastModifiedByCol(c) || isCreatedOrLastModifiedTimeCol(c))
 
-    if (!link.value && !webHook.value && !workflow.value && isSystemColumn(c)) {
-      if (isHiddenCol(c, meta.value)) return false
-      if (!showSystemFields.value) return false
-    }
+      if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
-    const customFilter = props.filterOption ? props.filterOption(c) : true
+      if (!link.value && !webHook.value && !workflow.value && isSystemColumn(c) && !isRlsAllowedSystemCol) {
+        if (isHiddenCol(c, meta.value)) return false
+        if (!showSystemFields.value) return false
+      }
 
-    return !excludedFilterColUidt.includes(c.uidt as UITypes) && customFilter
-  }),
+      const customFilter = props.filterOption ? props.filterOption(c) : true
+
+      return !excludedFilterColUidt.includes(c.uidt as UITypes) && customFilter
+    })
+    .map((c) => {
+      if (isColumnInError(c)) {
+        c.ncItemDisabled = true
+        c.ncItemTooltip = t('tooltip.filteringNotSupportedForFieldsWithErrors')
+      }
+      return c
+    }),
 )
 
 const {
@@ -276,13 +313,32 @@ const isFilterUpdated = computed(() => {
   return _isFilterUpdated.value || localNestedFilters.value.some((filter) => filter?.isFilterUpdated)
 })
 
+// Interface pages: the "view" is synthetic — pin/reorder persist view state
+// that does not exist there, so both affordances are hidden.
+const isInterfacePage = !!inject(InterfacePageDataInj, undefined)
+
+// Interface filter editors flag rows whose stored column id no longer resolves
+// (a deleted field/table) so the builder shows a greyed "orphan" cue instead of
+// a blank picker. Off (default) everywhere else — grid-view filters unaffected.
+const markOrphanFilter = inject(MarkOrphanFilterInj, ref(false))
+
 const isReorderEnabled = computed(() => {
-  return appInfo.value.ee && isViewFilter.value && !isMobileMode.value
+  return appInfo.value.ee && isViewFilter.value && !isMobileMode.value && !isInterfacePage
 })
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
   return btLookupTypesMap.value[filter.fk_column_id] || columns.value.find((col: ColumnType) => col.id === filter.fk_column_id)
+}
+
+/**
+ * An interface config filter row whose stored `fk_column_id` no longer resolves
+ * to a live column — the field (or its table) was deleted, leaving a stale id in
+ * the tree. Only flagged when `markOrphanFilter` is provided (interface editors);
+ * a draft row without a column, or any grid-view filter, is never flagged.
+ */
+const isFilterFieldOrphaned = (filter: Filter) => {
+  return markOrphanFilter.value && !filter.is_group && !!filter.fk_column_id && !getColumn(filter)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -434,9 +490,14 @@ if (isEeUI) {
         const localFilter = filters.value.find((f) => f.id === storeFilter.id)
         if (!localFilter) continue
 
-        // Sync value, enabled, and meta if they differ
+        // Sync value, comparison_sub_op, enabled, and meta if they differ.
+        // comparison_sub_op is included so date-filter changes made via the
+        // pinned filter sub-op picker propagate back to the main filter menu.
         if (localFilter.value !== storeFilter.value) {
           localFilter.value = storeFilter.value
+        }
+        if (localFilter.comparison_sub_op !== storeFilter.comparison_sub_op) {
+          localFilter.comparison_sub_op = storeFilter.comparison_sub_op
         }
         if (localFilter.enabled !== storeFilter.enabled) {
           localFilter.enabled = storeFilter.enabled
@@ -506,9 +567,11 @@ const selectFilterField = (filter: Filter, index: number) => {
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find((compOp) =>
-    isComparisonOpAllowed(filter, compOp),
-  )?.value as FilterType['comparison_op']
+  filter.comparison_op = getDefaultComparisonOp(
+    comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format),
+    (compOp) => isComparisonOpAllowed(filter, compOp),
+    types.value[col.id] as UITypes,
+  ) as FilterType['comparison_op']
 
   if (isDateType(types.value[col.id] as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
@@ -570,7 +633,11 @@ const scrollDownIfNeeded = () => {
  */
 const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
-  await _addFilter(false, draft)
+  // `_addFilter` (useViewFilters) takes the draft as its single argument. Passing a
+  // leading `false` here made the draft the (ignored) 2nd arg, so the multi-level
+  // list view's `fk_level_id` was dropped — the filter was counted but never shown
+  // under its level tab nor applied. (Filter groups already pass the draft correctly.)
+  await _addFilter(draft)
 
   if (filter && !isCopyFilter) {
     selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
@@ -601,7 +668,7 @@ const addFilterGroup = async (filter?: Partial<FilterType>) => {
 }
 
 const copyFilter = (filter: Filter, isGroup = false) => {
-  const filterToCopy = clone(filter)
+  const filterToCopy = deepClone(filter)
 
   // EE only: Strip pinned state from copied filter (pinned filters are EE feature)
   if (isEeUI && filterToCopy.meta) {
@@ -642,6 +709,23 @@ const eventBusHandler = async (event) => {
     })
   }
 }
+
+// `dynamic` is not a column on nc_filter_exp, so a saved placeholder comes back
+// with the flag cleared and would render as raw `{currentUser.x}` text. The value
+// is self-describing, so re-derive the flag from it instead.
+watch(
+  filters,
+  (loadedFilters) => {
+    if (!dynamicValue.value || !loadedFilters?.length) return
+
+    for (const filter of loadedFilters) {
+      if (!filter.dynamic && hasRlsPlaceholder(filter.value)) {
+        filter.dynamic = true
+      }
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   eventBus?.on?.(eventBusHandler)
@@ -724,14 +808,32 @@ const isLogicalOpChangeAllowed = computed(() => {
 
 // when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
 const onLogicalOpUpdate = async (filter: Filter, index: number) => {
-  if (index === 1 && visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
-    await Promise.all(
-      visibleFilters.value.slice(2).map(async (siblingFilter, i) => {
-        siblingFilter.logical_op = filter.logical_op
-        await saveOrUpdate(siblingFilter, i + 2, false, false, true)
-      }),
-    )
+  const isCascade =
+    index === 1 && visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)
+
+  if (isCascade) {
+    const newOp = filter.logical_op as 'and' | 'or' | 'not'
+    const targets = [filter, ...visibleFilters.value.slice(2)] as Filter[]
+
+    // Mirror the new op into the in-memory filters array so the UI shows
+    // the cascade immediately without waiting for the realtime echo.
+    for (const t of targets) t.logical_op = newOp
+
+    // Single atomic API call → one changelog entry. Filter rows already
+    // at `newOp` are server-side no-ops and don't enter the inverse map.
+    const filtersBody = targets.filter((t) => t.id).map((t) => ({ filterId: t.id as string, logical_op: newOp }))
+
+    if (filtersBody.length) {
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        { operation: 'filterBulkLogicalOpUpdate' },
+        { filters: filtersBody },
+      )
+    }
+    return
   }
+
   await saveOrUpdate(filter, index)
 }
 
@@ -755,7 +857,7 @@ const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
 
 const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
   if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
+    showUpgradeToUseToggleFilter({ triggerSource: 'toolbar-toggle-filter' })
     return
   }
   onEnabledChange(filter, index)
@@ -767,7 +869,17 @@ const pinnedFilterCount = computed(() => {
   return visibleFilters.value.filter((f) => !f.is_group && parseProp(f.meta)?.pinned === true).length
 })
 
-const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy]
+const PINNABLE_TYPES = [
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.User,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+]
 
 const isPinnableType = (filter: ColumnFilterType): boolean => {
   const col = getColumn(filter)
@@ -927,6 +1039,13 @@ watch(
 async function resetDynamicField(filter: any, i) {
   filter.dynamic = false
   filter.fk_value_col_id = null
+
+  // `dynamic` is not persisted — in slot mode it is re-derived from the value on
+  // reload, so leaving a placeholder behind would flip the row straight back.
+  if (dynamicValue.value && hasRlsPlaceholder(filter.value)) {
+    filter.value = null
+  }
+
   await saveOrUpdate(filter, i)
 }
 
@@ -992,8 +1111,29 @@ const dynamicColumns = (filter: FilterType) => {
   })
 }
 
+/**
+ * In slot mode the parent owns the value, so the toggle is only meaningful when
+ * that parent actually has something to offer for this column + operator —
+ * otherwise the user flips to "dynamic" and lands on an empty dropdown.
+ */
+function hasDynamicValueOptions(filter: FilterType) {
+  if (!dynamicValue.value) return true
+
+  return (
+    showFilterInput(filter) &&
+    getRlsPlaceholdersForColumn({
+      uidt: getColumn(filter)?.uidt as UITypes | undefined,
+      comparisonOp: filter.comparison_op,
+    }).length > 0
+  )
+}
+
 const changeToDynamic = async (filter, i) => {
-  filter.dynamic = isDynamicFilterAllowed(filter) && showFilterInput(filter)
+  // `isDynamicFilterAllowed` exists for field-to-field comparison — it enforces
+  // abstract-type compatibility and excludes the `anyof` family. In slot mode
+  // the parent supplies the value, so the only requirement is that the row has
+  // a value input to replace.
+  filter.dynamic = dynamicValue.value ? showFilterInput(filter) : isDynamicFilterAllowed(filter) && showFilterInput(filter)
   await saveOrUpdate(filter, i)
 }
 
@@ -1179,6 +1319,7 @@ defineExpose({
                   :is-button="isButton"
                   :widget-id="widgetId"
                   :workflow="workflow"
+                  :dynamic-value="dynamicValue"
                   :widget="widget"
                   :parent-col-id="parentColId"
                   :filter-option="filterOption"
@@ -1189,6 +1330,11 @@ defineExpose({
                   :is-temp-filters="isTempFilters"
                   :hide-checkbox="hideCheckbox"
                 >
+                  <!-- forward so filters inside a nested group get the same value input -->
+                  <template #dynamic-filter="slotProps">
+                    <slot name="dynamic-filter" v-bind="slotProps" />
+                  </template>
+
                   <template #start>
                     <NcCheckbox
                       v-if="appInfo.ee && !hideCheckbox"
@@ -1207,7 +1353,7 @@ defineExpose({
                         v-e="['c:filter:logical-op:select']"
                         :dropdown-match-select-width="false"
                         class="min-w-18 capitalize"
-                        placeholder="Group op"
+                        :placeholder="$t('placeholder.groupOp')"
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
                         :disabled="(i > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly"
                         :class="{
@@ -1350,8 +1496,19 @@ defineExpose({
                   {{ $t('title.fieldInaccessible') }}
                 </NcTooltip>
 
+                <NcTooltip
+                  v-if="isFilterFieldOrphaned(filter)"
+                  class="xs:col-span-9 flex-1 flex items-center gap-2 px-2 !text-nc-content-gray-muted cursor-default"
+                >
+                  <template #title>{{ $t('msg.info.interfaceFilterFieldOrphaned') }}</template>
+                  <span class="flex items-center gap-2 min-w-0" data-testid="nc-filter-orphan-field">
+                    <GeneralIcon icon="alertTriangle" class="flex-none opacity-70" />
+                    <span class="truncate">{{ $t('labels.multiField.deletedField') }}</span>
+                  </span>
+                </NcTooltip>
+
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
-                  v-if="!isFormFieldInaccessible(filter)"
+                  v-if="!isFormFieldInaccessible(filter) && !isFilterFieldOrphaned(filter)"
                   :key="`${i}_6`"
                   v-model="filter.fk_column_id"
                   :class="{
@@ -1368,7 +1525,7 @@ defineExpose({
                 />
 
                 <NcSelect
-                  v-if="!isFormFieldInaccessible(filter)"
+                  v-if="!isFormFieldInaccessible(filter) && !isFilterFieldOrphaned(filter)"
                   v-model:value="filter.comparison_op"
                   v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
@@ -1390,7 +1547,7 @@ defineExpose({
                   >
                     <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">
-                        <div class="truncate flex-1">{{ compOp.text }}</div>
+                        <div class="truncate flex-1">{{ getFilterOpLabel(compOp.i18nKey, compOp.text) }}</div>
                         <component
                           :is="iconMap.check"
                           v-if="filter.comparison_op === compOp.value"
@@ -1405,12 +1562,18 @@ defineExpose({
 
               <NcWrap :wrap="!!isMobileMode" class="grid grid-cols-12 gap-x-0 flex-1 min-h-8 nc-filter-wrapper">
                 <div
-                  v-if="!isFormFieldInaccessible(filter) && ['blank', 'notblank'].includes(filter.comparison_op)"
+                  v-if="
+                    !isFormFieldInaccessible(filter) &&
+                    !isFilterFieldOrphaned(filter) &&
+                    ['blank', 'notblank'].includes(filter.comparison_op)
+                  "
                   class="xs:col-span-3 sm:(flex flex-grow)"
                 ></div>
 
                 <NcSelect
-                  v-else-if="!isFormFieldInaccessible(filter) && isDateType(types[filter.fk_column_id])"
+                  v-else-if="
+                    !isFormFieldInaccessible(filter) && !isFilterFieldOrphaned(filter) && isDateType(types[filter.fk_column_id])
+                  "
                   v-model:value="filter.comparison_sub_op"
                   v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
@@ -1434,8 +1597,8 @@ defineExpose({
                     <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
                       <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
                         <NcTooltip show-on-truncate-only class="truncate flex-1">
-                          <template #title>{{ compSubOp.text }}</template>
-                          {{ compSubOp.text }}
+                          <template #title>{{ getFilterOpLabel(compSubOp.i18nKey, compSubOp.text) }}</template>
+                          {{ getFilterOpLabel(compSubOp.i18nKey, compSubOp.text) }}
                         </NcTooltip>
                         <component
                           :is="iconMap.check"
@@ -1448,6 +1611,7 @@ defineExpose({
                   </template>
                 </NcSelect>
                 <div
+                  v-if="!isFilterFieldOrphaned(filter)"
                   class="flex items-center flex-grow min-w-0 empty:!hidden"
                   :class="{
                     'xs:(col-span-6)':
@@ -1472,7 +1636,7 @@ defineExpose({
                       @change="saveOrUpdate(filter, getFilterIndex(filter))"
                     />
                   </div>
-                  <template v-else-if="workflow && filter.dynamic">
+                  <template v-else-if="(workflow || dynamicValue) && filter.dynamic">
                     <slot
                       name="dynamic-filter"
                       :filter="filter"
@@ -1504,7 +1668,7 @@ defineExpose({
 
                     <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
                   </template>
-                  <template v-if="workflow && showDynamicCondition">
+                  <template v-if="(workflow || dynamicValue) && showDynamicCondition && hasDynamicValueOptions(filter)">
                     <NcDropdown
                       class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
                       :trigger="['click']"
@@ -1525,14 +1689,18 @@ defineExpose({
                               @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-3">
+                                  {{ $t('labels.staticCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="!filter.dynamic && !filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnStaticValue') }}
+                              </div>
                             </div>
                             <div
                               v-e="['c:filter:dynamic-filter']"
@@ -1540,14 +1708,18 @@ defineExpose({
                               @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">
+                                  {{ $t('labels.dynamicCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="filter.dynamic || filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnDynamicValue') }}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1576,14 +1748,18 @@ defineExpose({
                               @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-3">
+                                  {{ $t('labels.staticCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="!filter.dynamic && !filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnStaticValue') }}
+                              </div>
                             </div>
                             <div
                               v-e="['c:filter:dynamic-filter']"
@@ -1596,14 +1772,18 @@ defineExpose({
                               @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">
+                                  {{ $t('labels.dynamicCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="filter.dynamic || filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnDynamicValue') }}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1653,7 +1833,8 @@ defineExpose({
                     !webHook &&
                     !link &&
                     !widget &&
-                    !isList
+                    !isList &&
+                    !isInterfacePage
                   "
                 >
                   <template #title>
@@ -1667,7 +1848,9 @@ defineExpose({
                     :disabled="!canPinFilter(filter) || isLockedView"
                     class="nc-filter-item-pin-btn self-center"
                     @click.stop="
-                      blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))
+                      blockPinnedFilter
+                        ? showUpgradeToUsePinnedFilter({ triggerSource: 'toolbar-pinned-filter' })
+                        : togglePinFilter(filter, getFilterIndex(filter))
                     "
                   >
                     <GeneralIcon

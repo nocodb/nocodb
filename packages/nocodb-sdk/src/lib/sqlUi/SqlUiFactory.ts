@@ -4,6 +4,8 @@ import UITypes from '../UITypes';
 import { MysqlUi } from './MysqlUi';
 import { PgUi } from './PgUi';
 import { SqliteUi } from './SqliteUi';
+import { MssqlUi } from './MssqlUi';
+import { OracleUi } from './OracleUi';
 import { SnowflakeUi } from './SnowflakeUi';
 import { DatabricksUi } from './DatabricksUi';
 import { SqlUi } from './SqlUI.types';
@@ -35,6 +37,14 @@ export class SqlUiFactory {
       // if (connectionConfig.meta.dbtype === "yugabyte")
       //   return Yugabyte;
       return new PgUi();
+    }
+
+    if (connectionConfig.client === 'mssql') {
+      return new MssqlUi();
+    }
+
+    if (connectionConfig.client === 'oracledb') {
+      return new OracleUi();
     }
 
     if (connectionConfig.client === 'snowflake') {

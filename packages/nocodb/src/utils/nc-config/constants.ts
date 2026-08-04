@@ -4,6 +4,7 @@ export const driverClientMapping = {
   postgres: 'pg',
   postgresql: 'pg',
   sqlite: 'sqlite3',
+  oracle: 'oracledb',
 };
 
 export const defaultClientPortMapping = {
@@ -11,6 +12,8 @@ export const defaultClientPortMapping = {
   mysql2: 3306,
   postgres: 5432,
   pg: 5432,
+  mssql: 1433,
+  oracledb: 1521,
 };
 
 export const defaultConnectionConfig: any = {
@@ -78,6 +81,8 @@ export enum DriverClient {
   MYSQL_LEGACY = 'mysql',
   PG = 'pg',
   SQLITE = 'sqlite3',
+  MSSQL = 'mssql',
+  ORACLE = 'oracledb',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }
@@ -98,6 +103,9 @@ export const NC_DISABLE_GROUP_BY_LIMIT =
 export const NC_DISABLE_GROUP_BY_AGG =
   process.env.NC_DISABLE_GROUP_BY_AGG === 'true' || false;
 
+export const NC_DISABLE_UNDO_REDO =
+  process.env.NC_DISABLE_UNDO_REDO === 'true' || false;
+
 const DEFAULT_THUMBNAIL_MAX_SIZE = 3 * 1024 * 1024;
 
 export const getThumbnailMaxSize = () => {
@@ -109,4 +117,22 @@ export const getThumbnailMaxSize = () => {
     }
   }
   return DEFAULT_THUMBNAIL_MAX_SIZE;
+};
+
+// Cap on the request/response body size (bytes) for outgoing webhooks. Without
+// it, axios buffers the entire response into a native Buffer (default
+// maxContentLength is -1 = unlimited); a flood of webhook jobs each holding an
+// unbounded body OOM-killed the worker (std::bad_alloc). 10 MB is generous for
+// typical acknowledgement responses; operators can raise NC_WEBHOOK_MAX_BODY_SIZE.
+const DEFAULT_WEBHOOK_MAX_BODY_SIZE = 10 * 1024 * 1024;
+
+export const getWebhookMaxBodySize = () => {
+  const envValue = process.env.NC_WEBHOOK_MAX_BODY_SIZE;
+  if (envValue) {
+    const parsed = parseInt(envValue, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return DEFAULT_WEBHOOK_MAX_BODY_SIZE;
 };

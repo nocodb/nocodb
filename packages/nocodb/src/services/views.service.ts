@@ -4,6 +4,7 @@ import {
   EventType,
   extractRolesObj,
   getFirstNonPersonalView,
+  MetaEventType,
   ProjectRoles,
   ViewLockType,
   ViewTypes,
@@ -14,8 +15,9 @@ import type {
   ViewType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
@@ -27,13 +29,17 @@ import {
   User,
   View,
 } from '~/models';
+import DateDependency from '~/models/DateDependency';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import NocoSocket from '~/socket/NocoSocket';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -65,6 +71,9 @@ async function xcVisibilityMetaGet(
 
     const views = await model.getViews(context);
     for (const view of views) {
+      // Mask the bcrypt password hash — the owner UI never needs the stored
+      // value; it sees a sentinel and renders a masked state.
+      const safeView = View.maskPasswordForResponse(view);
       obj[view.id] = {
         ptn: model.table_name,
         _ptn: model.title,
@@ -72,7 +81,7 @@ async function xcVisibilityMetaGet(
         tn: view.title,
         _tn: view.title,
         table_meta: model.meta,
-        ...view,
+        ...safeView,
         disabled: { ...defaultDisabled },
       };
     }
@@ -92,7 +101,10 @@ async function xcVisibilityMetaGet(
 
 @Injectable()
 export class ViewsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(
+    protected appHooksService: AppHooksService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
 
   async viewList(
     context: NcContext,
@@ -162,9 +174,6 @@ export class ViewsService {
     param: {
       viewId: string;
       view: ViewUpdateReqType;
-      // `base_roles` is attached by extract-ids.middleware when the caller
-      // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
-      user: UserType & { base_roles?: Record<string, boolean> | string };
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
@@ -178,7 +187,14 @@ export class ViewsService {
       NcError.get(context).schemaLocked();
     }
 
-    const oldView = await View.get(context, param.viewId, ncMeta);
+    // The caller's `req.user` is the source of truth — populated from auth
+    // for HTTP traffic and from `makeReplayReq` for sandbox replay / undo
+    // dispatch. `extract-ids.middleware` attaches `base_roles` to it.
+    const user = param.req?.user as
+      | (UserType & { base_roles?: Record<string, boolean> | string })
+      | undefined;
+
+    const oldView = await View.get(context, param.viewId, false, ncMeta);
 
     if (!oldView) {
       NcError.get(context).viewNotFound(param.viewId);
@@ -220,7 +236,7 @@ export class ViewsService {
     // `base_roles` may be a string or an object depending on auth path
     // (see BaseModelSqlv2.ts and extract-ids.middleware.ts for precedent).
     // Normalize via extractRolesObj before indexing.
-    const userBaseRoles = extractRolesObj(param.user?.base_roles);
+    const userBaseRoles = extractRolesObj(user?.base_roles);
     const isCreatorPlus = !!(
       userBaseRoles?.[ProjectRoles.OWNER] ||
       userBaseRoles?.[ProjectRoles.CREATOR]
@@ -264,11 +280,47 @@ export class ViewsService {
         !isCreatorPlus &&
         oldView.lock_type === ViewLockType.Personal &&
         oldView.owned_by &&
-        oldView.owned_by !== param.user.id
+        oldView.owned_by !== user?.id
       ) {
         NcError.get(context).forbidden(
           'Only the view owner or creator can modify this personal view',
         );
+      }
+    }
+
+    let autoShareView = false;
+
+    if (param.view.allow_sync !== undefined) {
+      if (oldView.type !== ViewTypes.GRID) {
+        NcError.get(context).badRequest(
+          'Allow sync can only be enabled on grid views',
+        );
+      }
+      if (
+        oldView.lock_type === ViewLockType.Personal &&
+        oldView.owned_by &&
+        oldView.owned_by !== user?.id
+      ) {
+        NcError.get(context).forbidden(
+          'Only the view owner can change allow sync on a personal view',
+        );
+      }
+
+      if (param.view.allow_sync) {
+        const model = await Model.get(
+          context,
+          oldView.fk_model_id,
+          false,
+          ncMeta,
+        );
+        if (model?.synced) {
+          NcError.get(context).badRequest(
+            'Allow sync cannot be enabled on a synced table',
+          );
+        }
+        if (!oldView.uuid) {
+          autoShareView = true;
+        }
       }
     }
 
@@ -290,7 +342,12 @@ export class ViewsService {
       await assertPersonalViewAllowed(context, param.view.lock_type);
       // Prevent changing the last collaborative grid view to personal
       if (oldView.type === ViewTypes.GRID) {
-        const views = await View.list(context, oldView.fk_model_id, ncMeta);
+        const views = await View.list(
+          context,
+          oldView.fk_model_id,
+          false,
+          ncMeta,
+        );
         const otherNonPersonalGridView = getFirstNonPersonalView(
           views.filter((v) => v.id !== oldView.id),
           { includeViewType: ViewTypes.GRID },
@@ -303,8 +360,8 @@ export class ViewsService {
         }
       }
 
-      const isViewCreator = !!(createdBy && createdBy === param.user.id);
-      const isExistingOwner = !!(ownedBy && ownedBy === param.user.id);
+      const isViewCreator = !!(createdBy && createdBy === user?.id);
+      const isExistingOwner = !!(ownedBy && ownedBy === user?.id);
 
       if (!isViewCreator && !isExistingOwner && !isCreatorPlus && !isEditor) {
         NcError.get(context).forbidden(
@@ -313,9 +370,9 @@ export class ViewsService {
       }
 
       includeCreatedByAndUpdateBy = true;
-      ownedBy = param.user.id;
+      ownedBy = user?.id;
       if (!createdBy) {
-        createdBy = param.user.id;
+        createdBy = user?.id;
       }
     }
 
@@ -338,7 +395,7 @@ export class ViewsService {
     // both assigning a brand-new personal view to someone else and re-assigning
     // an existing personal view. Editors can never transfer to another user;
     // their only path is self-assignment via the Personal conversion block,
-    // which sets ownedBy = param.user.id and naturally skips this block.
+    // which sets ownedBy = user.id and naturally skips this block.
     if (ownedBy && param.view.owned_by && ownedBy !== param.view.owned_by) {
       if (!isCreatorPlus) {
         NcError.get(context).forbidden(
@@ -376,6 +433,17 @@ export class ViewsService {
       ncMeta,
     );
 
+    if (autoShareView) {
+      await View.share(context, param.viewId, ncMeta);
+      const sharedView = await View.get(context, param.viewId, false, ncMeta);
+      this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
+        user: param.req.user,
+        view: (sharedView ?? { ...oldView, allow_sync: true }) as ViewType,
+        req: param.req,
+        context,
+      });
+    }
+
     let owner = param.req.user;
 
     if (ownedBy && ownedBy !== param.req.user?.id) {
@@ -386,23 +454,39 @@ export class ViewsService {
     // owned_by/created_by with the final values resolved by this service
     // (may differ from param.view when claiming/reverting personal views).
     // ViewType declares owned_by as `IdType | undefined`, coerce nulls.
-    const viewForEvent = {
+    // Mask password so AppHooks listeners (audit logs, webhooks, sandbox
+    // changelog) never see the stored bcrypt hash.
+    const viewForEvent = View.maskPasswordForResponse({
       ...oldView,
       ...param.view,
       owned_by: ownedBy ?? undefined,
       created_by: createdBy ?? undefined,
-    } as ViewType;
+    }) as ViewType;
+    const oldViewForEvent = View.maskPasswordForResponse(oldView);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: viewForEvent,
-      oldView,
-      user: param.user,
+      oldView: oldViewForEvent,
+      user: param.req.user,
       req: param.req,
       context,
       owner,
     });
 
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.VIEW_UPDATED,
+        oldEntity: oldViewForEvent,
+        newEntity: viewForEvent,
+      },
+      ncMeta,
+    );
+
     await result.getView(context, ncMeta);
+
+    // Strip the stored bcrypt password hash from every outbound payload.
+    const safeResult = View.maskPasswordForResponse(result);
 
     NocoSocket.broadcastEvent(
       context,
@@ -410,7 +494,7 @@ export class ViewsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: result,
+          payload: safeResult,
         },
       },
       context.socket_id,
@@ -420,16 +504,14 @@ export class ViewsService {
       (await viewWebhookManager.withNewViewId(oldView.id)).emit();
     }
 
-    return result;
+    return safeResult;
   }
 
   async viewDelete(
     context: NcContext,
     param: {
       viewId: string;
-      // `base_roles` is attached by extract-ids.middleware when the caller
-      // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
-      user: UserType & { base_roles?: Record<string, boolean> | string };
+      skipTrash?: boolean;
       req: NcRequest;
     },
     ncMeta = Noco.ncMeta,
@@ -438,7 +520,14 @@ export class ViewsService {
       NcError.get(context).schemaLocked();
     }
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    // The caller's `req.user` is the source of truth — populated from auth
+    // for HTTP traffic and from `makeReplayReq` for sandbox replay / undo
+    // dispatch. `extract-ids.middleware` attaches `base_roles` to it.
+    const user = param.req?.user as
+      | (UserType & { base_roles?: Record<string, boolean> | string })
+      | undefined;
+
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
@@ -446,7 +535,7 @@ export class ViewsService {
 
     // Only creators or owners can delete a locked view. Editors inherit
     // viewDelete via ACL but are blocked here to keep locked views frozen.
-    const userBaseRoles = extractRolesObj(param.user?.base_roles);
+    const userBaseRoles = extractRolesObj(user?.base_roles);
     const isCreatorPlus = !!(
       userBaseRoles?.[ProjectRoles.OWNER] ||
       userBaseRoles?.[ProjectRoles.CREATOR]
@@ -463,14 +552,14 @@ export class ViewsService {
       !isCreatorPlus &&
       view.lock_type === ViewLockType.Personal &&
       view.owned_by &&
-      view.owned_by !== param.user.id
+      view.owned_by !== user?.id
     ) {
       NcError.get(context).forbidden(
         'Only the view owner or creator can delete this personal view',
       );
     }
 
-    const views = await View.list(context, view.fk_model_id, ncMeta);
+    const views = await View.list(context, view.fk_model_id, false, ncMeta);
 
     // Check if this is the last collaborative grid view
     // Use helper to find if there's at least one other non-personal grid view
@@ -498,6 +587,24 @@ export class ViewsService {
       ).withViewId(view.id)
     ).forDelete();
 
+    // For Gantt views, capture the per-view DateDependency rule BEFORE
+    // View.delete's cascade drops it. View.delete removes the rule via a
+    // direct ncMeta.metaDelete (no event), so without this snapshot the
+    // audit trail would have no record of the rule that was removed
+    // alongside the view — a compliance auditor reconstructing "what
+    // date-dependency rules existed on table T at time Y" would lose the
+    // dropped rule's config.
+    let deletedGanttRule: Awaited<
+      ReturnType<typeof DateDependency.getByGanttViewId>
+    > | null = null;
+    if (view.type === ViewTypes.GANTT) {
+      deletedGanttRule = await DateDependency.getByGanttViewId(
+        context,
+        view.id,
+        ncMeta,
+      );
+    }
+
     await View.delete(context, param.viewId, ncMeta);
 
     let deleteEvent = AppEvents.GRID_DELETE;
@@ -515,6 +622,10 @@ export class ViewsService {
       deleteEvent = AppEvents.MAP_DELETE;
     } else if (view.type === ViewTypes.LIST) {
       deleteEvent = AppEvents.LIST_DELETE;
+    } else if (view.type === ViewTypes.TIMELINE) {
+      deleteEvent = AppEvents.TIMELINE_DELETE;
+    } else if (view.type === ViewTypes.GANTT) {
+      deleteEvent = AppEvents.GANTT_DELETE;
     }
 
     let owner = param.req.user;
@@ -525,11 +636,41 @@ export class ViewsService {
 
     this.appHooksService.emit(deleteEvent, {
       view,
-      user: param.user,
+      user,
       owner,
       req: param.req,
       context,
     });
+
+    // Emit DATE_DEPENDENCY_DELETE after the view-delete event so the audit
+    // ordering reads as "the view went away, and its per-view rule went
+    // with it." Skipped when the rule didn't exist — Gantt views without
+    // a configured rule fall back to the table-level default which is
+    // untouched by the cascade. ganttView surfaces in the audit message so
+    // the trail distinguishes "rule for view Y dropped" from a default-rule
+    // delete (which goes through date-dependency.service.ts).
+    if (deletedGanttRule) {
+      const model = await Model.get(context, view.fk_model_id, false, ncMeta);
+      this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_DELETE, {
+        context,
+        req: param.req,
+        table: {
+          id: model?.id,
+          title: model?.title,
+          base_id: model?.base_id,
+        },
+        ganttView: { id: view.id, title: view.title },
+      });
+    }
+
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.VIEW_DELETED,
+        oldEntity: view,
+      },
+      ncMeta,
+    );
 
     NocoSocket.broadcastEvent(
       context,
@@ -626,7 +767,13 @@ export class ViewsService {
       context,
     });
 
-    return result;
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.VIEW_UPDATED,
+      oldEntity: View.maskPasswordForResponse(view),
+      newEntity: View.maskPasswordForResponse(result),
+    });
+
+    return View.maskPasswordForResponse(result);
   }
 
   async shareViewDelete(
@@ -645,6 +792,10 @@ export class ViewsService {
 
     await View.sharedViewDelete(context, param.viewId);
 
+    if (view.allow_sync) {
+      await View.update(context, param.viewId, { allow_sync: false }, false);
+    }
+
     this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {
       user: param.user,
       view,
@@ -652,22 +803,34 @@ export class ViewsService {
       context,
     });
 
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.VIEW_UPDATED,
+      oldEntity: View.maskPasswordForResponse(view),
+      newEntity: View.maskPasswordForResponse({
+        ...view,
+        uuid: null,
+        allow_sync: false,
+      }),
+    });
+
     return true;
   }
 
+  @TraceCommand(OperationName.showAllColumns)
   async showAllColumns(
     context: NcContext,
     param: {
       viewId: string;
       ignoreIds?: string[];
       levelId?: string;
+      req?: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (
@@ -709,19 +872,21 @@ export class ViewsService {
     return true;
   }
 
+  @TraceCommand(OperationName.hideAllColumns)
   async hideAllColumns(
     context: NcContext,
     param: {
       viewId: string;
       ignoreIds?: string[];
       levelId?: string;
+      req?: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (
@@ -766,5 +931,65 @@ export class ViewsService {
 
   async shareViewList(context: NcContext, param: { tableId: string }) {
     return await View.shareViewList(context, param.tableId);
+  }
+
+  @TraceCommand(OperationName.viewColumnsBulkSetVisibility)
+  async viewColumnsBulkSetVisibility(
+    context: NcContext,
+    param: {
+      viewId: string;
+      // Map of view-column id (NOT underlying column id) → desired show flag.
+      columnVisibility: Record<string, boolean>;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const view = await View.get(context, param.viewId, false, ncMeta);
+    if (!view) {
+      NcError.get(context).viewNotFound(param.viewId);
+    }
+
+    const viewWebhookManager: ViewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
+
+    for (const [viewColumnId, show] of Object.entries(
+      param.columnVisibility ?? {},
+    )) {
+      await View.updateColumn(
+        context,
+        param.viewId,
+        viewColumnId,
+        { show: !!show },
+        ncMeta,
+      );
+    }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_refresh',
+          payload: { fk_view_id: param.viewId },
+        },
+      },
+      context.socket_id,
+    );
+
+    if (!param.viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+
+    return true;
   }
 }

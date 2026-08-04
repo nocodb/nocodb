@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { roundUpToPrecision } from 'nocodb-sdk'
+import {
+  SeparatorType,
+  formatNumberWithSeparator,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  roundUpToPrecision,
+} from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -34,19 +40,26 @@ const meta = computed(() => {
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
+const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
+
 const displayValue = computed(() => {
   if (_vModel.value === null) return null
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (meta.value.isLocaleString) {
-    return Number(roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)).toLocaleString(undefined, {
-      minimumFractionDigits: meta.value.precision ?? 1,
-      maximumFractionDigits: meta.value.precision ?? 1,
+  const separator = resolveColumnSeparator(meta.value)
+  const precision = meta.value.precision ?? 1
+  const numValue = Number(roundUpToPrecision(Number(_vModel.value), precision))
+
+  if (separator === SeparatorType.Locale) {
+    return numValue.toLocaleString(undefined, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
     })
   }
 
-  return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)
+  const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator)
+  return formatNumberWithSeparator(numValue, thousandSeparator, decimalSeparator, precision)
 })
 
 const vModel = computed({
@@ -90,6 +103,22 @@ const onKeyDown = (e: any) => {
   }
 }
 
+const onPaste = (e: ClipboardEvent) => {
+  const value = e.clipboardData?.getData('text/plain')
+  if (!value) return
+
+  const storedData = getCurrentCopiedCellClipboardData(value)
+  if (storedData) {
+    const clipboardItem = storedData.dbCellValueArr?.[0]?.[0]
+    if (clipboardItem !== undefined && clipboardItem !== null && !isNaN(Number(clipboardItem))) {
+      e.preventDefault()
+      e.stopPropagation()
+      vModel.value = Number(clipboardItem)
+    }
+  }
+  // Fall through to browser native paste for external clipboard
+}
+
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 </script>
@@ -106,6 +135,7 @@ const focus: VNodeRef = (el) =>
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
+    @paste="onPaste"
     @keydown.down.stop="onKeyDown"
     @keydown.left.stop
     @keydown.right.stop

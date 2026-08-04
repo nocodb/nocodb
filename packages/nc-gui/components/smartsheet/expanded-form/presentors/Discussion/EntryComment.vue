@@ -9,6 +9,8 @@ const props = defineProps<{
 
 const { user } = useGlobal()
 
+const { t } = useI18n()
+
 const { copy } = useCopy()
 
 const { dashboardUrl } = useDashboard()
@@ -22,6 +24,17 @@ const activeView = inject(ActiveViewInj, ref())
 /* stores */
 
 const { loadComments, resolveComment, updateComment, deleteComment, primaryKey } = useRowCommentsOrThrow()
+
+const {
+  isCommentAttachmentsEnabled,
+  pendingAttachments: editAttachments,
+  isUploading: isEditAttachmentUploading,
+  openFilePicker: openEditFilePicker,
+  handlePaste: handleEditAttachmentPaste,
+  handleDrop: handleEditAttachmentDrop,
+  removeAttachment: removeEditAttachment,
+  clearAttachments: clearEditAttachments,
+} = useCommentAttachments()
 
 const { isUIAllowed } = useRoles()
 
@@ -37,24 +50,24 @@ const createdBy = (
   },
 ) => {
   if (comment.created_by === user.value?.id) {
-    return 'You'
+    return t('general.you')
   } else if (comment.created_display_name_short?.trim()) {
-    return comment.created_display_name_short || 'Shared source'
+    return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.created_by_email) {
-    return comment.created_by_email
+    return formatUserNameFromEmail(comment.created_by_email)
   } else {
-    return 'Shared source'
+    return t('labels.sharedSource')
   }
 }
 
 const isCreatedByYou = computed(() => {
-  return createdBy(props.comment) === 'You'
+  return createdBy(props.comment) === t('general.you')
 })
 
 const editedAt = (comment: CommentType) => {
   if (comment.updated_at !== comment.created_at && comment.updated_at) {
     const str = timeAgo(comment.updated_at).replace(' ', '_')
-    return `[(edited)](a~~~###~~~Edited_${str}) `
+    return `[${t('activity.edited')}](a~~~###~~~Edited_${str}) `
   }
   return ''
 }
@@ -68,6 +81,7 @@ function editComment(comment: CommentType) {
   editCommentValue.value = {
     ...comment,
   }
+  editAttachments.value = [...(comment.attachments ?? [])]
   isEditing.value = true
 }
 
@@ -76,6 +90,7 @@ function onCancel(e: KeyboardEvent) {
   e.preventDefault()
   e.stopPropagation()
   editCommentValue.value = undefined
+  clearEditAttachments()
   loadComments()
   isEditing.value = false
   editCommentValue.value = undefined
@@ -92,9 +107,16 @@ const value = computed({
 })
 
 async function onEditComment() {
-  if (!isEditing.value || !editCommentValue.value?.comment) return
+  if (!isEditing.value) return
 
-  while (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n')) {
+  if (isEditAttachmentUploading.value) return
+
+  if (!editCommentValue.value?.comment && !editAttachments.value.length) return
+
+  while (
+    editCommentValue.value?.comment &&
+    (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n'))
+  ) {
     if (editCommentValue.value.comment.endsWith('<br />')) {
       editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -6)
     } else {
@@ -107,11 +129,14 @@ async function onEditComment() {
   const tempCom = {
     ...editCommentValue.value,
   }
+  const tempAttachments = [...editAttachments.value]
 
   isEditing.value = false
   editCommentValue.value = undefined
+  clearEditAttachments()
   await updateComment(tempCom.id!, {
     comment: tempCom.comment,
+    attachments: tempAttachments,
   })
   loadComments()
 }
@@ -119,6 +144,7 @@ async function onEditComment() {
 function onCommentBlur() {
   isEditing.value = false
   editCommentValue.value = undefined
+  clearEditAttachments()
 }
 
 async function copyComment(comment: CommentType) {
@@ -144,7 +170,7 @@ async function copyComment(comment: CommentType) {
           meta: props.comment.created_by_meta,
         }"
         size="base"
-        class="w-[36px] h-[36px] !aspect-square !text-small"
+        class="w-[28px] h-[28px] !aspect-square !text-small"
       />
     </div>
     <div
@@ -155,13 +181,13 @@ async function copyComment(comment: CommentType) {
       }"
     >
       <div
-        class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-1 border-b rounded-t-lg text-nc-content-gray min-h-[37px]"
+        class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-0.5 border-b rounded-t-lg text-nc-content-gray min-h-[28px]"
         :class="{
           '!bg-nc-bg-brand border-nc-brand-200/70 dark:(!bg-[#151b23] !border-[#388bfd4b])': isCreatedByYou,
           'border-nc-border-gray-medium': !isCreatedByYou,
         }"
       >
-        <span class="font-medium text-sm" :class="{ 'text-nc-content-brand-disabled': isCreatedByYou }">
+        <span class="font-medium text-xs" :class="{ 'text-nc-content-brand-disabled': isCreatedByYou }">
           {{ createdBy(props.comment) }}
         </span>
         <span class="text-xs text-nc-content-gray-muted">
@@ -179,14 +205,14 @@ async function copyComment(comment: CommentType) {
             class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           >
             <NcButton
-              class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium"
+              class="!w-6 !h-6 !bg-transparent !hover:bg-nc-bg-gray-medium"
               size="xsmall"
               type="text"
               @click="editComment(props.comment)"
             >
-              <GeneralIcon class="text-md" icon="pencil" />
+              <GeneralIcon class="!w-3.5 !h-3.5" icon="pencil" />
             </NcButton>
-            <template #title>Click to edit</template>
+            <template #title>{{ $t('tooltip.clickToEdit') }}</template>
           </NcTooltip>
 
           <NcDropdown
@@ -195,15 +221,15 @@ async function copyComment(comment: CommentType) {
             overlay-class-name="!min-w-[160px]"
             placement="bottomRight"
           >
-            <NcButton class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium" size="xsmall" type="text">
-              <GeneralIcon class="text-md" icon="threeDotVertical" />
+            <NcButton class="!w-6 !h-6 !bg-transparent !hover:bg-nc-bg-gray-medium" size="xsmall" type="text">
+              <GeneralIcon class="!w-3.5 !h-3.5" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
               <NcMenu variant="small">
                 <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(props.comment)">
                   <div class="flex gap-2 items-center">
                     <component :is="iconMap.copy" class="cursor-pointer" />
-                    {{ $t('general.copy') }} URL
+                    {{ $t('general.copy') }} {{ $t('datatype.URL') }}
                   </div>
                 </NcMenuItem>
                 <template v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
@@ -224,50 +250,88 @@ async function copyComment(comment: CommentType) {
             class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           >
             <NcButton
-              class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium"
+              class="!w-6 !h-6 !bg-transparent !hover:bg-nc-bg-gray-medium"
               size="xsmall"
               type="text"
               @click="resolveComment(props.comment.id)"
             >
-              <GeneralIcon class="text-md" icon="checkCircle" />
+              <GeneralIcon class="!w-3.5 !h-3.5" icon="checkCircle" />
             </NcButton>
-            <template #title>Click to resolve</template>
+            <template #title>{{ $t('activity.clickToResolve') }}</template>
           </NcTooltip>
           <NcTooltip v-else-if="props.comment.resolved_by">
-            <template #title>{{ `Resolved by ${props.comment.resolved_display_name_short}` }}</template>
+            <template #title>{{ $t('tooltip.resolvedBy', { name: props.comment.resolved_display_name_short }) }}</template>
             <NcButton
-              class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
+              class="!h-6 !w-6 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
               size="xsmall"
               type="text"
               @click="resolveComment(props.comment.id!)"
             >
-              <GeneralIcon class="text-md rounded-full bg-nc-fill-green-dark text-white" icon="checkFill" />
+              <GeneralIcon class="!w-3.5 !h-3.5 rounded-full bg-nc-fill-green-dark text-white" icon="checkFill" />
             </NcButton>
           </NcTooltip>
         </div>
       </div>
-      <SmartsheetExpandedFormRichComment
+      <div
         v-if="props.comment.id === editCommentValue?.id && hasEditPermission"
-        v-model:value="value"
-        autofocus
-        autofocus-to-end
-        :hide-options="false"
-        class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
-        data-testid="expanded-form-comment-input"
-        sync-value-change
-        @save="onEditComment"
-        @keydown.esc="onCancel"
-        @blur="onCommentBlur"
-        @keydown.enter.exact.prevent="onEditComment"
-      />
-      <SmartsheetExpandedFormRichComment
-        v-else
-        :key="`${props.comment.id}-${props.comment.comment}`"
-        :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-        class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
-        read-only
-        sync-value-change
-      />
+        @paste="isCommentAttachmentsEnabled ? handleEditAttachmentPaste($event) : undefined"
+        @dragover.prevent
+        @drop="isCommentAttachmentsEnabled ? handleEditAttachmentDrop($event) : undefined"
+      >
+        <SmartsheetExpandedFormRichComment
+          v-model:value="value"
+          autofocus
+          autofocus-to-end
+          :hide-options="false"
+          :extra-save-enabled="editAttachments.length > 0"
+          class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+          data-testid="expanded-form-comment-input"
+          sync-value-change
+          @save="onEditComment"
+          @keydown.esc="onCancel"
+          @blur="onCommentBlur"
+          @keydown.enter.exact.prevent="onEditComment"
+        >
+          <template v-if="editAttachments.length" #attachments>
+            <SmartsheetExpandedFormCommentAttachments
+              :attachments="editAttachments"
+              :comment-id="editCommentValue?.id"
+              editable
+              class="px-1 pt-1"
+              @remove="removeEditAttachment"
+            />
+          </template>
+          <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
+            <NcButton
+              v-e="['c:comment:attach-file']"
+              type="text"
+              size="xsmall"
+              class="nc-comment-attach-btn !h-7 !w-7"
+              :loading="isEditAttachmentUploading"
+              :disabled="isEditAttachmentUploading"
+              data-testid="nc-comment-attach-btn"
+              @click="openEditFilePicker"
+            >
+              <GeneralIcon v-if="!isEditAttachmentUploading" icon="ncPaperclip" class="text-md" />
+            </NcButton>
+          </template>
+        </SmartsheetExpandedFormRichComment>
+      </div>
+      <template v-else>
+        <SmartsheetExpandedFormRichComment
+          :key="`${props.comment.id}-${props.comment.comment}`"
+          :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
+          class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
+          read-only
+          sync-value-change
+        />
+        <SmartsheetExpandedFormCommentAttachments
+          v-if="props.comment.attachments?.length"
+          :attachments="props.comment.attachments"
+          :comment-id="props.comment.id"
+          class="px-4 pb-3"
+        />
+      </template>
     </div>
   </div>
 </template>

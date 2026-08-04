@@ -1,18 +1,25 @@
-import { parseProp, RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, parseProp, RelationTypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { Logger } from '@nestjs/common';
-import type { NcContext } from 'nocodb-sdk';
+import type { ClientType, NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type {
   FilterOperationResult,
   FilterOptions,
   IFieldHandler,
+  SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
-import type { Filter } from '~/models';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
+import {
+  applyLookupFilterWindowLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
+import { Filter } from '~/models';
+import Sort from '~/models/Sort';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import {
   getAlias,
   negatedMapping,
@@ -22,8 +29,32 @@ import { Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
+  /**
+   * Sort by the looked-up display value. `generateLookupSelectQuery`
+   * resolves the lookup chain to a single SQL expression (potentially with
+   * GROUP_CONCAT for HM/MM lookups). Used by both Lookup and LTAR — LTAR's
+   * handler delegates to this method.
+   */
+  override async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions,
+  ): Promise<void> {
+    const { alias, nulls, baseModel: baseModelSqlv2, context } = options;
+    const model = await column.getModel(context);
+    const selectQb = await generateLookupSelectQuery({
+      baseModelSqlv2,
+      column,
+      alias,
+      model,
+    });
+    qb.orderBy(selectQb?.builder, direction, nulls);
+  }
+
   /**
    * Applies a filter condition for lookup columns based on the relation type.
    * It constructs a subquery to find related records that match the filter criteria
@@ -49,10 +80,80 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
     } = options;
 
     const context = baseModelSqlv2.context;
+    const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
     let rootApply = undefined;
 
     const colOptions = await column.getColOptions<LookupColumn>(context);
+
+    // Skip filter when colOptions is missing (orphaned lookup) or carries
+    // a parse error — emitting an empty clause keeps the query valid.
+    if (!colOptions || colOptions.error) {
+      return {
+        clause: (_qb) => {},
+        rootApply: undefined,
+      };
+    }
+
     const relationColumn = await colOptions.getRelationColumn(context);
+    if (!relationColumn) {
+      return {
+        clause: (_qb) => {},
+        rootApply: undefined,
+      };
+    }
+
+    // Collection semantics for allof/nallof:
+    // A lookup exposes a set of values from all related rows. allof [A,B] means
+    // the combined set must contain A AND B — not that a single row has both.
+    // Split into individual anyof/nanyof sub-filters and combine accordingly.
+    if (filter.comparison_op === 'allof' || filter.comparison_op === 'nallof') {
+      const values = String(filter.value ?? '')
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
+
+      if (values.length > 0) {
+        const subOp = filter.comparison_op === 'allof' ? 'anyof' : 'nanyof';
+        const subResults = await Promise.all(
+          values.map((val) =>
+            this.filter(
+              knex,
+              new Filter({ ...filter, value: val, comparison_op: subOp }),
+              column,
+              options,
+            ),
+          ),
+        );
+
+        return {
+          rootApply: (qb) => {
+            for (const r of subResults) r?.rootApply?.(qb);
+          },
+          clause:
+            filter.comparison_op === 'allof'
+              ? (qbP) => {
+                  // AND: every value must appear in the collection
+                  for (const r of subResults) r?.clause?.(qbP);
+                }
+              : (qbP) => {
+                  // OR of negations: not all values appear in the collection
+                  if (subResults.length === 1) {
+                    subResults[0]?.clause?.(qbP);
+                  } else {
+                    qbP.where((innerQb) => {
+                      subResults[0]?.clause?.(innerQb);
+                      for (let i = 1; i < subResults.length; i++) {
+                        innerQb.orWhere((orQb) => {
+                          subResults[i]?.clause?.(orQb);
+                        });
+                      }
+                    });
+                  }
+                },
+        };
+      }
+    }
+
     const relationColumnOptions =
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
     // const relationModel = await relationColumn.getModel();
@@ -91,6 +192,13 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           : RelationTypes.HAS_MANY;
       }
 
+      // V2 links are all junction-table-based (MM-like), regardless of
+      // their stored type (om, oo, etc.). Treat them as MANY_TO_MANY so
+      // the filter subquery uses the junction table correctly.
+      if (isMMOrMMLike(relationColumn)) {
+        relationType = RelationTypes.MANY_TO_MANY;
+      }
+
       if (relationType === RelationTypes.HAS_MANY) {
         const useRecursiveEvaluation = parseProp(
           column.meta,
@@ -103,7 +211,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
             lookupColumn: column,
             tableAlias: alias,
           });
-          qb = knex(knex.raw(`?? as ??`, [alias, alias])).where(
+          qb = knex(dbQueryClient.tableAlias(knex, alias, alias)).where(
             `${alias}.root_id`,
             '<>',
             knex.raw('??.??', [alias, 'id']),
@@ -112,10 +220,11 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.distinct().select(`${alias}.root_id`);
         } else {
           qb = knex(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               childBaseModel.getTnPath(childModel.table_name),
               alias,
-            ]),
+            ),
           );
 
           qb.select(`${alias}.${childColumn.column_name}`);
@@ -156,6 +265,30 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.where(hmSoftDeleteFilter);
         }
 
+        // Per-lookup Limit (PG, single-level): a filter matches only within the
+        // limited+sorted set. `qb` is a global child-row set with the comparison
+        // already applied, so rank the BASE related rows per parent (window) and
+        // keep only the top-N — then "contains X" matches only when X is visible.
+        // Outer-level limit — the root config's top-N applied to the FIRST
+        // relation's rows per parent. Applies to single-level lookups AND the
+        // outer level of nested ones; the per-level limits for deeper BT/HM
+        // levels are applied inside nestedConditionJoin (matching the display /
+        // formula builders, so all three consumers show the same set).
+        if (baseModelSqlv2.isPg) {
+          const cfg = await loadLookupSortAndLimit(context, column);
+          if (cfg.hasConfig && cfg.limitVal > 0) {
+            await applyLookupFilterWindowLimit({
+              qb,
+              alias,
+              fkColumnName: childColumn.column_name,
+              refBaseModel: childBaseModel,
+              sorts: cfg.sorts,
+              limitVal: cfg.limitVal,
+              takeLast: cfg.takeLast,
+            });
+          }
+        }
+
         return {
           rootApply: (qb) => {
             rootApply?.(qb);
@@ -181,7 +314,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
             lookupColumn: column,
             tableAlias: alias,
           });
-          qb = knex(knex.raw(`?? as ??`, [alias, alias])).where(
+          qb = knex(dbQueryClient.tableAlias(knex, alias, alias)).where(
             `${alias}.root_id`,
             '<>',
             knex.raw('??.??', [alias, 'id']),
@@ -190,10 +323,11 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.distinct().select(`${alias}.root_id`);
         } else {
           qb = knex(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               parentBaseModel.getTnPath(parentModel.table_name),
               alias,
-            ]),
+            ),
           );
           qb.select(`${alias}.${parentColumn.column_name}`);
           qb.whereNotNull(`${alias}.${parentColumn.column_name}`);
@@ -233,6 +367,9 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.where(btSoftDeleteFilter);
         }
 
+        // BELONGS_TO resolves to a single related row → a lookup limit is a
+        // no-op here; nothing to restrict.
+
         return {
           rootApply: (qb) => {
             rootApply?.(qb);
@@ -265,18 +402,20 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         const childAlias = `__nc${aliasCount.count++}`;
 
         qb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             mmBaseModel.getTnPath(mmModel.table_name),
             alias,
-          ]),
+          ),
         )
           .select(`${alias}.${mmChildColumn.column_name}`)
           .whereNotNull(`${alias}.${mmChildColumn.column_name}`)
           .join(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               parentBaseModel.getTnPath(parentModel.table_name),
               childAlias,
-            ]),
+            ),
             `${alias}.${mmParentColumn.column_name}`,
             `${childAlias}.${parentColumn.column_name}`,
           );
@@ -298,13 +437,20 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         });
         conditionJoinResult.clause(qb);
 
+        // Link conditions on the lookup filter the RELATED records, so they must
+        // resolve against the related table (`parentBaseModel`) at its alias in
+        // this subquery (`childAlias`) — the same pair `nestedConditionJoin` uses
+        // above. Passing `childBaseModel`/`alias` (the filtered base table and the
+        // junction alias) emitted `<junction_alias>.<related_column>`, a column
+        // that does not exist on the junction table -> Postgres 42703. The HM/BT
+        // branches already pass the matched (model, alias) pair.
         await extractLinkRelFiltersAndApply({
           context,
           column: column,
-          table: childBaseModel.model,
-          baseModel: childBaseModel,
+          table: parentBaseModel.model,
+          baseModel: parentBaseModel,
           qb,
-          alias,
+          alias: childAlias,
         });
 
         const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
@@ -313,6 +459,96 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         );
         if (mmSoftDeleteFilter) {
           qb.where(mmSoftDeleteFilter);
+        }
+
+        // Per-lookup Limit (PG, single-level): rank the junction⋈related rows
+        // per filtered row (PARTITION BY the junction's child FK) by the sort key
+        // (a related-table column) and keep only the top-N, then AND that
+        // (childFk, parentFk) set onto qb — so a filter matches only within the
+        // visible top-N. Each junction row is identified by its FK pair (no
+        // assumption about a single junction PK).
+        // Outer-level limit — the root config's top-N applied to the FIRST
+        // relation's rows per parent. Applies to single-level lookups AND the
+        // outer level of nested ones; the per-level limits for deeper BT/HM
+        // levels are applied inside nestedConditionJoin (matching the display /
+        // formula builders, so all three consumers show the same set).
+        if (baseModelSqlv2.isPg) {
+          const cfg = await loadLookupSortAndLimit(context, column);
+          if (cfg.hasConfig && cfg.limitVal > 0) {
+            const wj = `__nc_mmw_j`;
+            const wr = `__nc_mmw_r`;
+            const rcols = await parentModel.getColumns(parentContext);
+            const eff = cfg.takeLast
+              ? cfg.sorts.map(
+                  (s) =>
+                    new Sort({
+                      ...s,
+                      direction: s.direction === 'desc' ? 'asc' : 'desc',
+                    }),
+                )
+              : cfg.sorts;
+            const bits: string[] = [];
+            const binds: string[] = [];
+            for (const s of eff) {
+              const col = rcols.find((c: any) => c.id === s.fk_column_id);
+              if (col?.column_name) {
+                bits.push(`??.?? ${s.direction === 'desc' ? 'desc' : 'asc'}`);
+                binds.push(wr, col.column_name);
+              }
+            }
+            // Always end with the junction child FK (= related pk, flipped for
+            // last-N) as the deterministic tiebreaker so the rank boundary is
+            // stable and matches the display/formula consumers even when the
+            // sort key ties; also the sole order when no scalar sort is set.
+            bits.push(`??.?? ${cfg.takeLast ? 'desc' : 'asc'}`);
+            binds.push(wj, mmChildColumn.column_name);
+            const win = knex(
+              dbQueryClient.tableAlias(
+                knex,
+                mmBaseModel.getTnPath(mmModel.table_name),
+                wj,
+              ),
+            )
+              .join(
+                dbQueryClient.tableAlias(
+                  knex,
+                  parentBaseModel.getTnPath(parentModel.table_name),
+                  wr,
+                ),
+                `${wj}.${mmParentColumn.column_name}`,
+                `${wr}.${parentColumn.column_name}`,
+              )
+              .select(
+                knex.raw('??.?? as __nc_c', [wj, mmChildColumn.column_name]),
+              )
+              .select(
+                knex.raw('??.?? as __nc_p', [wj, mmParentColumn.column_name]),
+              )
+              .select(
+                knex.raw(
+                  `ROW_NUMBER() OVER (PARTITION BY ??.?? ORDER BY ${bits.join(
+                    ', ',
+                  )}) as __nc_rn`,
+                  [wj, mmChildColumn.column_name, ...binds],
+                ),
+              );
+            const winSoftDelete = await getAliasedSoftDeleteFilter(
+              parentBaseModel,
+              wr,
+            );
+            if (winSoftDelete) win.where(winSoftDelete);
+            const ranked = knex
+              .select('__nc_c', '__nc_p')
+              .from(win.as('__nc_mmw_sub'))
+              .where('__nc_rn', '<=', cfg.limitVal);
+            qb.whereIn(
+              [
+                `${alias}.${mmChildColumn.column_name}`,
+                `${alias}.${mmParentColumn.column_name}`,
+              ],
+              ranked,
+            );
+          }
         }
 
         return {

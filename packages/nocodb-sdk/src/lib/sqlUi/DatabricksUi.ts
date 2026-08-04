@@ -551,6 +551,41 @@ export class DatabricksUi implements SqlUi {
     return 'string';
   }
 
+  // Introspection UIType for meta-sync — exact port of the removed
+  // ModelXcMetaDatabricks.getUIDataType (which mapped raw dt directly, not via
+  // an abstract type). Distinct from getUIType (column-creation default).
+  static getMetaUIDataType(col): any {
+    const dt = col.dt.toLowerCase();
+    switch (dt) {
+      case 'bigint':
+      case 'tinyint':
+      case 'int':
+      case 'smallint':
+        return UITypes.Number;
+      case 'decimal':
+      case 'double':
+      case 'float':
+        return UITypes.Decimal;
+      case 'boolean':
+        return UITypes.Checkbox;
+      case 'timestamp':
+      case 'timestamp_ntz':
+        return UITypes.DateTime;
+
+      case 'date':
+        return UITypes.Date;
+
+      case 'string':
+        return UITypes.LongText;
+
+      case 'interval':
+      case 'void':
+      case 'binary':
+      default:
+        return UITypes.SpecificDBType;
+    }
+  }
+
   static getUIType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
@@ -848,6 +883,8 @@ export class DatabricksUi implements SqlUi {
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',
+      // DATETIME_FORMAT is only implemented for PG, MySQL and SQLite.
+      'DATETIME_FORMAT',
       'DAY',
       'MONTH',
       'HOUR',
@@ -855,6 +892,10 @@ export class DatabricksUi implements SqlUi {
       'ARRAYUNIQUE',
       'ARRAYSLICE',
       'ARRAYCOMPACT',
+      // Checksum functions are only mapped for PostgreSQL and MySQL.
+      'MD5',
+      'SHA256',
+      'SHA512',
     ];
   }
 
@@ -948,6 +989,9 @@ export class DatabricksUi implements SqlUi {
   }
   getUIType(col: ColumnType): string {
     return DatabricksUi.getUIType(col);
+  }
+  getMetaUIDataType(col: ColumnType): UITypes {
+    return DatabricksUi.getMetaUIDataType(col);
   }
   getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
     return DatabricksUi.getDataTypeForUiType(col);

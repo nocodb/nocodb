@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { ColumnHelper, type ProgressBarShape, UITypes, progressBarShapes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -21,6 +21,11 @@ setAdditionalValidations({
 })
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
+
+const progressShapeLabels: Record<ProgressBarShape, string> = {
+  bar: t('labels.progressShapeBar'),
+  circle: t('labels.progressShapeCircle'),
+}
 
 // set default value
 vModel.value.meta = {
@@ -76,5 +81,34 @@ const disableConfiguration = computed(
         <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.displayAsProgress') }}</div>
       </NcSwitch>
     </div>
+  </a-form-item>
+
+  <a-form-item v-if="vModel.meta?.is_progress" :label="$t('labels.progressBarShape')">
+    <a-select
+      v-model:value="vModel.meta.shape"
+      :disabled="disableConfiguration"
+      data-testid="nc-percent-progress-shape"
+      dropdown-class-name="nc-dropdown-percent-progress-shape"
+    >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+      </template>
+      <a-select-option
+        v-for="shape of progressBarShapes"
+        :key="shape"
+        :value="shape"
+        :data-testid="`nc-percent-progress-shape-${shape}`"
+      >
+        <div class="flex gap-2 w-full justify-between items-center">
+          {{ progressShapeLabels[shape] }}
+          <component
+            :is="iconMap.check"
+            v-if="vModel.meta.shape === shape"
+            id="nc-selected-item-icon"
+            class="text-nc-content-brand w-4 h-4"
+          />
+        </div>
+      </a-select-option>
+    </a-select>
   </a-form-item>
 </template>

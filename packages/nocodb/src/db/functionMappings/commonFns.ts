@@ -1,8 +1,31 @@
-import { FormulaDataTypes } from 'nocodb-sdk';
+import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
+import { DEFAULT_DATETIME_FORMAT } from '~/db/datetime-format';
+
+// Reads the (optional) format argument of DATETIME_FORMAT. The format must be a
+// constant string literal so it can be translated to a SQL pattern at build
+// time; a missing argument falls back to the default format.
+export function extractDatetimeFormat(pt: MapFnArgs['pt']): string {
+  const formatArg = pt?.arguments?.[1];
+
+  if (!formatArg) {
+    return DEFAULT_DATETIME_FORMAT;
+  }
+
+  if (
+    formatArg.type !== JSEPNode.LITERAL ||
+    typeof formatArg.value !== 'string'
+  ) {
+    NcError.badRequest(
+      'Second parameter of DATETIME_FORMAT must be a constant text format',
+    );
+  }
+
+  return formatArg.value;
+}
 
 export const ALLOWED_DATEADD_UNITS = new Set([
   'day',
@@ -31,6 +54,33 @@ export function safeDateAddUnitSQL(knex: Knex, unitBuilder: any): Knex.Raw {
   return knex.raw(`CASE LOWER(?) ${branches} ELSE 'day' END`, [unitBuilder]);
 }
 
+function logicalScalarSql(knex: MapFnArgs['knex'], predicates: string): string {
+  return ['mssql', 'oracledb'].includes(knex.clientType())
+    ? `CASE WHEN (${predicates}) THEN 1 ELSE 0 END`
+    : `(${predicates})`;
+}
+
+// Oracle: CONCAT / REPEAT lower a string to CLOB while literals and most scalar
+// string ops stay VARCHAR2. A CASE (IF / SWITCH) can't mix the two in its result
+// branches — ORA-00932 ("expression is of data type CLOB, which is incompatible
+// with expected data type CHAR"), since Oracle infers the CASE type from the
+// first branch and CLOB can't implicitly narrow to VARCHAR2. When at least one
+// branch is already a CLOB, wrap the other (VARCHAR2/NUMBER) branches in TO_CLOB
+// so every branch shares the CLOB type (TO_CLOB is identity on a CLOB). A CASE
+// with no CLOB branch is left untouched, so its result stays a plain VARCHAR2 —
+// keeping formula filters / sorts comparable.
+function unifyOracleClobCaseBranches(
+  knex: MapFnArgs['knex'],
+  branches: Array<Knex.Raw | undefined>,
+): Array<Knex.Raw | undefined> {
+  const producesClob = (b: Knex.Raw | undefined) =>
+    b != null && /\bto_clob\s*\(/i.test(b.toString());
+  if (!branches.some(producesClob)) return branches;
+  return branches.map((b) =>
+    b == null || producesClob(b) ? b : knex.raw('TO_CLOB(?)', [b]),
+  );
+}
+
 async function treatArgAsConditionalExp(
   args: MapFnArgs,
   argument = args.pt?.arguments?.[0],
@@ -51,17 +101,47 @@ async function treatArgAsConditionalExp(
       bindings = { condArg };
       break;
     case FormulaDataTypes.STRING:
-      condStr = `(:condArg) IS NOT NULL AND (:condArg) != ''`;
+      // Oracle treats '' as NULL — the != '' arm is never true there (and
+      // is illegal on CLOBs), so IS NOT NULL alone is the equivalent check.
+      condStr =
+        args.knex.clientType() === 'oracledb'
+          ? `(:condArg) IS NOT NULL`
+          : `(:condArg) IS NOT NULL AND (:condArg) != ''`;
       bindings = { condArg };
       break;
-    case FormulaDataTypes.BOOLEAN:
-      condStr = `(:condArg) IS NOT NULL AND (:condArg) != false`;
+    case FormulaDataTypes.BOOLEAN: {
+      // T-SQL and Oracle have no `false` literal; use 0 (matches bit /
+      // number(1) columns and the 1/0 CASE materialization).
+      const falseLit = ['mssql', 'oracledb'].includes(args.knex.clientType())
+        ? '0'
+        : 'false';
+      condStr = `(:condArg) IS NOT NULL AND (:condArg) != ${falseLit}`;
       bindings = { condArg };
       break;
+    }
     case FormulaDataTypes.DATE:
       condStr = `(:condArg) IS NOT NULL`;
       bindings = { condArg };
       break;
+    case FormulaDataTypes.COND_EXP: {
+      // A comparison expression (`x > 0`, `a = b`, …). On MSSQL the binary
+      // builder materializes a top-level comparison into a `1/0` int (T-SQL
+      // has no boolean type), so it can't be used bare as a `CASE WHEN <int>`
+      // predicate — "An expression of non-boolean type ... near 'THEN'".
+      // Coerce it back to a boolean predicate with `<> 0`. Logical combos
+      // (AND/OR) stay native boolean predicates and pg/sqlite keep the bare
+      // comparison, both already valid in a CASE WHEN — so leave those as-is.
+      const isComparison =
+        argument?.type === 'BinaryExpression' &&
+        ['==', '=', '<', '>', '<=', '>=', '!='].includes(
+          (argument as { operator?: string }).operator,
+        );
+      if (args.knex.clientType() === 'mssql' && isComparison) {
+        condStr = `(:condArg) <> 0`;
+        bindings = { condArg };
+      }
+      break;
+    }
   }
 
   if (condStr) {
@@ -115,13 +195,14 @@ export default {
     }
 
     // helper: resolve an AST argument and wrap with a DB-specific text cast.
-    // PG: (?)::text, MySQL: CAST(? AS CHAR), SQLite: passthrough.
+    // PG: (?)::text, MySQL: CAST(? AS CHAR), MSSQL: CAST(? AS NVARCHAR(MAX)),
+    // SQLite: passthrough.
     // Returns { builder } (not a bare Raw) to avoid async-function thenable
     // unwrapping — knex.Raw implements .then() which would execute the SQL.
     const castToString = async (arg: any) => {
       const { builder } = await args.fn(arg);
       const client = args.knex.clientType();
-      if (client === 'pg' || client === 'postgre') {
+      if (client === 'pg' || client === 'postgres') {
         return { builder: args.knex.raw(`(?)::text`, [builder]) };
       } else if (
         client === 'mysql' ||
@@ -129,6 +210,14 @@ export default {
         client === 'maridb'
       ) {
         return { builder: args.knex.raw(`CAST(? AS CHAR)`, [builder]) };
+      } else if (client === 'mssql') {
+        return {
+          builder: args.knex.raw(`CAST(? AS NVARCHAR(MAX))`, [builder]),
+        };
+      } else if (client === 'oracledb') {
+        return {
+          builder: args.knex.raw(`TO_CHAR(?)`, [builder]),
+        };
       }
       return { builder };
     };
@@ -263,6 +352,15 @@ export default {
       elseArg = (await args.fn(args.pt.arguments[2])).builder;
     }
 
+    // Oracle: keep the THEN / ELSE result branches type-consistent so a CLOB
+    // branch (e.g. CONCAT) and a VARCHAR2 literal don't collide in the CASE.
+    if (args.knex.clientType() === 'oracledb') {
+      [thenArg, elseArg] = unifyOracleClobCaseBranches(args.knex, [
+        thenArg,
+        elseArg,
+      ]);
+    }
+
     const queries: Knex.Raw[] = [];
     queries.push(args.knex.raw(`\n\tWHEN ? THEN ?`, [cond, thenArg]));
 
@@ -296,7 +394,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})`,
+        logicalScalarSql(args.knex, predicates),
         parsedArguments.map((k) => k.builder),
       ),
     };
@@ -315,7 +413,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})`,
+        logicalScalarSql(args.knex, predicates),
         parsedArguments.map((k) => k.builder),
       ),
     };

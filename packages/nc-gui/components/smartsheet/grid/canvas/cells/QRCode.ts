@@ -1,20 +1,20 @@
-import { isBoxHovered, renderMultiLineText } from '../utils/canvas'
+import { NC_ERROR_SENTINEL } from 'nocodb-sdk'
+import { isBoxHovered, renderCellError, renderMultiLineText } from '../utils/canvas'
 
 export const QRCodeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore }) => {
+  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore, getColor, textAlign }) => {
     const { renderAsTag } = tag
+    // The left-anchor opt-in aligns with the header/text cells, which use the
+    // standard cell padding — capture it before the QR-specific 4px override.
+    const cellPadding = padding ?? 10
     padding = 4
-    if (!value || value === 'ERR!') {
-      if (value === 'ERR!') {
-        renderMultiLineText(ctx, {
-          x: x + padding,
-          y,
-          text: 'ERR!',
-          maxWidth: width - padding * 2,
-          fontFamily: '500 13px Inter',
-          fillStyle: '#e65100',
-          height,
-        })
+    if (parseProp(column.colOptions)?.error) {
+      renderCellError(ctx, { x, y, width, height, padding, getColor })
+      return
+    }
+    if (!value || value === NC_ERROR_SENTINEL) {
+      if (value === NC_ERROR_SENTINEL) {
+        renderCellError(ctx, { x, y, width, height, padding, getColor })
       }
       return
     }
@@ -29,7 +29,7 @@ export const QRCodeCellRenderer: CellRenderer = {
         text: 'Too many characters for a QR Code',
         maxWidth: width - padding * 2,
         fontFamily: '500 13px Inter',
-        fillStyle: '#e65100',
+        fillStyle: getColor(themeV4Colors.orange['700']),
         height,
       })
       return
@@ -53,7 +53,9 @@ export const QRCodeCellRenderer: CellRenderer = {
     })
 
     if (qrCanvas) {
-      const xPos = renderAsTag ? x + padding : x + (width - size) / 2
+      // `textAlign: 'left'` is an opt-in left anchor (interface list pages),
+      // sitting at the standard cell padding so it lines up with the header.
+      const xPos = renderAsTag ? x + padding : textAlign === 'left' ? x + cellPadding : x + (width - size) / 2
       const yPos = y + (height - size) / 2
       imageLoader.renderQRCode(ctx, qrCanvas, xPos, yPos, size)
 

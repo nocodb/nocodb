@@ -2,6 +2,7 @@ import moment from 'moment';
 import {
   AuditV1OperationTypes,
   generateUniqueCopyName,
+  OperationSource,
   SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
@@ -761,6 +762,7 @@ export class AtImportProcessor {
           table: tables[idx],
           user: syncDB.user,
           req,
+          operationSource: OperationSource.AT_IMPORT,
         });
         recordPerfStats(_perfStart, 'dbTable.create');
 
@@ -816,7 +818,6 @@ export class AtImportProcessor {
         await this.viewsService.viewUpdate(context, {
           viewId: view.list[0].id,
           view: { title: aTbl_grid.name },
-          user: syncDB.user,
           req,
         });
         recordPerfStats(_perfStart, 'dbView.update');
@@ -914,6 +915,7 @@ export class AtImportProcessor {
                 },
                 req,
                 user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1140,6 +1142,7 @@ export class AtImportProcessor {
               },
               req,
               user: syncDB.user,
+              operationSource: OperationSource.AT_IMPORT,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1226,6 +1229,7 @@ export class AtImportProcessor {
               clientIp: '',
             } as any,
             user: syncDB.user,
+            operationSource: OperationSource.AT_IMPORT,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1390,6 +1394,7 @@ export class AtImportProcessor {
                 },
                 req,
                 user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1457,6 +1462,7 @@ export class AtImportProcessor {
           },
           req,
           user: syncDB.user,
+          operationSource: OperationSource.AT_IMPORT,
         });
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -2584,8 +2590,8 @@ export class AtImportProcessor {
         for (const table of tables) {
           await this.tablesService.tableDelete(context, {
             tableId: table.id,
-            user: syncDB.user,
             forceDeleteRelations: true,
+            req,
           });
         }
       }
@@ -2798,8 +2804,8 @@ export class AtImportProcessor {
       for (const table of ncSchema.tables) {
         await this.tablesService.tableDelete(context, {
           tableId: table.id,
-          user: syncDB.user,
           forceDeleteRelations: true,
+          req,
         });
       }
       if (e.message) {

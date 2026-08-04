@@ -6,7 +6,7 @@ const props = defineProps<{
   records: Row[]
 }>()
 
-const emit = defineEmits(['expandRecord', 'newRecord'])
+const emit = defineEmits(['expandRecord', 'newRecord', 'recordContextMenu'])
 
 const container = ref<null | HTMLElement>(null)
 
@@ -15,6 +15,12 @@ const { width: containerWidth } = useElementSize(container)
 const meta = inject(MetaInj, ref())
 
 const { isUIAllowed } = useRoles()
+
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — spanning-event drag/resize must honor it like the sibling field views.
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
 
 const records = toRef(props, 'records')
 
@@ -45,11 +51,20 @@ const {
   activeCalendarView,
   updateFormat,
   timezoneDayjs,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
 } = useCalendarViewStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
-  return activeCalendarView.value === 'week' ? (viewMetaProperties.value?.hide_weekend ? 5 : 7) : 1
+  if (activeCalendarView.value === 'week') return viewMetaProperties.value?.hide_weekend ? 5 : 7
+  // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns.
+  if (isDayAnchoredMode.value) return dayAnchoredSpan.value
+  return 1
 })
+
+// True only when weekends are actually hidden (week mode + hide_weekend); a day-anchored
+// 5-day custom window also yields maxVisibleDays === 5 but is NOT weekend-hidden.
+const isWeekendHidden = computed(() => !isDayAnchoredMode.value && maxVisibleDays.value === 5)
 
 // This function is used to find the first suitable row for a record
 // It takes the recordsInDay object, the start day index and the span of the record in days
@@ -90,10 +105,9 @@ const isInRange = (date: dayjs.Dayjs) => {
   if (activeCalendarView.value === 'day') {
     return date.isSame(selectedDate.value, 'day')
   } else {
-    const rangeEndDate =
-      maxVisibleDays.value === 5
-        ? timezoneDayjs.dayjsTz(selectedDateRange.value.end).subtract(2, 'day')
-        : timezoneDayjs.dayjsTz(selectedDateRange.value.end)
+    const rangeEndDate = isWeekendHidden.value
+      ? timezoneDayjs.dayjsTz(selectedDateRange.value.end).subtract(2, 'day')
+      : timezoneDayjs.dayjsTz(selectedDateRange.value.end)
 
     return (
       date &&
@@ -282,7 +296,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 
 // This function is used to calculate the new start and end date of a record when resizing
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
+  if (!canEditCalendarData.value || !container.value || !resizeRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
 
@@ -368,7 +382,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value) return
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -377,7 +392,7 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!container.value || !dragRecord.value) return
   calculateNewRow(event, false)
 }
@@ -386,7 +401,7 @@ const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
   const { updateProperty, newRow } = calculateNewRow(event)
@@ -413,6 +428,8 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
@@ -424,7 +441,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   isDragging.value = false
 
   dragTimeout.value = setTimeout(() => {
-    if (!isUIAllowed('dataEdit')) return
+    if (!canEditCalendarData.value) return
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
@@ -485,7 +502,7 @@ defineExpose({
       }"
       class="text-xs top-0 text-right z-50 !sticky h-full left-0 text-nc-content-gray"
     >
-      All day
+      {{ $t('labels.allDay') }}
 
       <NcButton size="xsmall" class="mt-2" type="text" @click="isExpanded = !isExpanded">
         <GeneralIcon v-if="!isExpanded" class="w-4 h-4 text-nc-content-gray" icon="maximize" />
@@ -525,6 +542,7 @@ defineExpose({
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id"
             @mousedown.stop="dragStart($event, record)"
+            @contextmenu="emit('recordContextMenu', $event, record)"
           >
             <LazySmartsheetRow :row="record">
               <LazySmartsheetCalendarRecordCard
@@ -546,6 +564,9 @@ defineExpose({
                     :italic="!!fieldStyles[field.id]?.italic"
                     :underline="!!fieldStyles[field.id]?.underline"
                   />
+                </template>
+                <template #tooltip>
+                  <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
                 </template>
               </LazySmartsheetCalendarRecordCard>
             </LazySmartsheetRow>

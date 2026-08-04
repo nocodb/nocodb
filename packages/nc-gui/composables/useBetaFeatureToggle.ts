@@ -1,15 +1,6 @@
-import rfdc from 'rfdc'
+import { getI18n } from '~/plugins/a.i18n'
 
-const deepClone = rfdc()
 const FEATURES = [
-  {
-    id: 'sandbox',
-    title: 'Sandbox',
-    description: 'Allow users to create sandbox environments for testing schema changes before merging.',
-    enabled: false,
-    isEngineering: true,
-    isAdvanced: true,
-  },
   {
     id: 'managed_apps',
     title: 'Managed Apps',
@@ -51,7 +42,9 @@ const FEATURES = [
   },
   {
     id: 'integrations',
-    title: 'Integrations',
+    get title() {
+      return getI18n().global.t('general.integrations')
+    },
     description: 'Enable dynamic integrations.',
     enabled: true,
     version: 2,
@@ -69,7 +62,7 @@ const FEATURES = [
   {
     id: 'sync_beta_feature',
     title: 'Advanced Sync Features',
-    description: 'Enable sync beta features like custom sync, multi source sync, etc.',
+    description: 'Enable sync beta features like multi source sync, etc.',
     enabled: false,
     version: 1,
     isEngineering: true,
@@ -95,9 +88,9 @@ const FEATURES = [
     id: 'attachment_carousel_comments',
     title: 'Comments in attachment carousel',
     description: 'Enable comments in attachment carousel.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 2,
+    isEngineering: false,
   },
   {
     id: 'cross_base_link',
@@ -106,6 +99,9 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEE: true,
+    // Licensed-only: hidden on self-hosted free (CE / unlicensed on-prem),
+    // available on licensed on-prem and cloud.
+    isLicensed: true,
   },
   {
     id: 'custom_link',
@@ -114,6 +110,9 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEE: true,
+    // Licensed-only: hidden on self-hosted free (CE / unlicensed on-prem),
+    // available on licensed on-prem and cloud.
+    isLicensed: true,
   },
   {
     id: 'view_actions',
@@ -135,7 +134,9 @@ const FEATURES = [
   },
   {
     id: 'templates',
-    title: 'Templates',
+    get title() {
+      return getI18n().global.t('general.templates')
+    },
     description: 'Enable templates feature to browse and use templates.',
     enabled: true,
     version: 3,
@@ -185,6 +186,14 @@ const FEATURES = [
     version: 1,
     isEngineering: true,
     isEE: true,
+  },
+  {
+    id: 'expanded_record_panel',
+    title: 'Expanded record side panel',
+    description: 'Open expanded records in a resizable side panel beside the grid instead of a centered modal.',
+    enabled: false,
+    version: 3,
+    isEngineering: false,
   },
 ] as const
 
@@ -262,11 +271,18 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
   const isFeatureEnabled = (id: BetaFeatureId) => {
     // useEeConfig is called inside this function (not at the top level of the composable), to avoid a recursive call
-    const { showEEFeatures } = useEeConfig()
+    const { showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
     const feature = featureMap.value[id]
 
-    if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+    if (feature && 'isEE' in feature && feature.isEE && !showEEFeatures.value) {
+      return false
+    }
+
+    // Licensed-only features are unavailable on self-hosted free (CE / unlicensed
+    // on-prem). `isEEFeatureBlocked` is true exactly there; false on licensed
+    // on-prem and cloud.
+    if (feature && 'isLicensed' in feature && feature.isLicensed && isEEFeatureBlocked.value) {
       return false
     }
 

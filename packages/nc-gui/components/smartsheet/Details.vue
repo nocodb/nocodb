@@ -42,7 +42,10 @@ const openedSubTab = computed({
     return openedViewsTab.value
   },
   set(val) {
-    if (val === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+    if (
+      val === 'permissions' &&
+      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'table-details-table-field-permissions' })
+    ) {
       return
     }
 

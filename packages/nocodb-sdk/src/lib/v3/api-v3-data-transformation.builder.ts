@@ -5,6 +5,10 @@ import UITypes, {
   ratingIconList,
 } from '~/lib/UITypes';
 import { LongTextAiMetaProp, VIEW_GRID_DEFAULT_WIDTH } from '~/lib/globals';
+import {
+  resolveColumnSeparator,
+  SeparatorType,
+} from '~/lib/columnHelper/utils';
 import type {
   ColumnType,
   FieldV3Type,
@@ -379,6 +383,10 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
     metaProps: ['meta'],
     mappings: {
       is12hrFormat: '12hr_format',
+      separator: 'separator',
+      // legacy V2 boolean — mapped into `options.locale_string` so the read
+      // path below can fold it into the canonical `separator`. It is then
+      // dropped, so V3 responses never expose `locale_string`.
       isLocaleString: 'locale_string',
       richMode: 'rich_text',
       [LongTextAiMetaProp]: 'generate_text_using_ai',
@@ -514,6 +522,21 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
       options = { ...rest, relation_type: type };
     }
 
+    // Number/Decimal/Rollup: fold the legacy `isLocaleString` boolean (mapped
+    // above into `options.locale_string`) into the canonical `separator` enum,
+    // then drop it so V3 responses only expose `separator`.
+    if (
+      data.type === UITypes.Number ||
+      data.type === UITypes.Decimal ||
+      data.type === UITypes.Rollup
+    ) {
+      options.separator = resolveColumnSeparator({
+        separator: options.separator,
+        isLocaleString: options.locale_string,
+      });
+      delete options.locale_string;
+    }
+
     // exclude rollup function if Links
     if (data.type === UITypes.Links && options && options.rollup_function) {
       options.rollup_function = undefined;
@@ -611,7 +634,10 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
     metaProps: ['options', 'meta'],
     mappings: {
       '12hr_format': 'is12hrFormat',
+      // legacy V3 field — preserved so older clients sending locale_string
+      // still resolve via resolveColumnSeparator on read
       locale_string: 'isLocaleString',
+      separator: 'separator',
       rich_text: 'richMode',
       display_timezone: 'isDisplayTimezone',
 
@@ -704,6 +730,26 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       data.cdf = Array.isArray(data.cdf) ? data.cdf.join(',') : data.cdf;
     }
 
+    // Number/Decimal/Rollup: normalize legacy `locale_string` boolean into the
+    // canonical `separator` enum so column meta has a single source of truth.
+    // `separator` wins when both are present. `isLocaleString` is mapped from
+    // V3's `locale_string` by metaTransform; we drop it once folded.
+    if (
+      data.uidt === UITypes.Number ||
+      data.uidt === UITypes.Decimal ||
+      data.uidt === UITypes.Rollup
+    ) {
+      const hasSeparator =
+        typeof meta.separator === 'string' &&
+        (Object.values(SeparatorType) as string[]).includes(meta.separator);
+      if (!hasSeparator && typeof meta.isLocaleString === 'boolean') {
+        meta.separator = meta.isLocaleString
+          ? SeparatorType.CommaPeriod
+          : SeparatorType.NonePeriod;
+      }
+      delete meta.isLocaleString;
+    }
+
     let additionalPayloadData = {};
 
     if (columnsWithOptions.includes(data.uidt) && data.meta) {
@@ -721,7 +767,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
 });
 
 export const sortBuilder = builderGenerator<SortType>({
-  allowed: ['id', 'fk_column_id', 'direction'],
+  allowed: ['id', 'fk_column_id', 'direction', 'enabled'],
   mappings: {
     fk_column_id: 'field_id',
   },

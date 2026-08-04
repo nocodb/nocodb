@@ -7,6 +7,14 @@ export const useTheme = createSharedComposable(() => {
   const selectedTheme = ref<ThemeMode>('system')
   const systemPreference = ref<'light' | 'dark'>('light')
 
+  /**
+   * Surface-scoped override: a published interface can pin its own
+   * appearance (meta.theme.mode) — the interface shell sets this while
+   * mounted and clears it on leave. Wins over the user's selection so the
+   * whole document (including body-portaled popups) follows the app.
+   */
+  const forcedTheme = ref<'light' | 'dark' | null>(null)
+
   const router = useRouter()
   const route = router.currentRoute
 
@@ -22,6 +30,9 @@ export const useTheme = createSharedComposable(() => {
   const isDark = computed(() => {
     if (!isThemeEnabled.value) {
       return false
+    }
+    if (forcedTheme.value) {
+      return forcedTheme.value === 'dark'
     }
     if (selectedTheme.value === 'system') {
       return systemPreference.value === 'dark'
@@ -280,6 +291,7 @@ export const useTheme = createSharedComposable(() => {
 
   return {
     selectedTheme,
+    forcedTheme,
     isDark,
     setTheme,
     toggleTheme,

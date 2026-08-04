@@ -6,6 +6,7 @@ import {
   type SourceType,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { setExternalDbSsrfEnforcement } from '@noco-local-integrations/core';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type {
@@ -24,6 +25,7 @@ import {
 import {
   decryptPropIfRequired,
   encryptPropIfRequired,
+  isCloud,
   isEncryptionRequired,
   partialExtract,
 } from '~/utils';
@@ -32,6 +34,7 @@ import { IntegrationStore, Source } from '~/models';
 import Integrations from '~/integrations';
 
 const logger = new Logger('Integration');
+
 export default class Integration implements IntegrationType {
   public static availableIntegrations: IntegrationEntry[] = Integrations;
 
@@ -55,7 +58,13 @@ export default class Integration implements IntegrationType {
     Object.assign(this, integration);
   }
 
-  public static async init() {}
+  public static async init() {
+    // Force SSRF enforcement on cloud regardless of env-var bypasses. Done here
+    // at bootstrap rather than at module load: `isCloud` comes from a barrel
+    // (`~/utils`) that sits in a circular import with this model, so reading it
+    // at module-evaluation time throws a temporal-dead-zone ReferenceError.
+    setExternalDbSsrfEnforcement(isCloud);
+  }
 
   protected static castType(integration: Integration): Integration {
     return integration && new Integration(integration);
@@ -119,6 +128,7 @@ export default class Integration implements IntegrationType {
           workspace_id: insertObj.fk_workspace_id,
         },
         insertObj.type,
+        undefined,
         ncMeta,
       );
 
@@ -240,6 +250,7 @@ export default class Integration implements IntegrationType {
         workspace_id: context.workspace_id,
       },
       integration.type,
+      undefined,
       ncMeta,
     );
 
@@ -554,6 +565,10 @@ export default class Integration implements IntegrationType {
   static async getCategoryDefault(
     context: Omit<NcContext, 'base_id'>,
     type: string,
+    // Accepted for signature parity with the EE override, which uses
+    // `preferGlobal` to prefer a global integration. CE has no global
+    // integrations, so the option is ignored here.
+    _opts: { preferGlobal?: boolean } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
     const integrationData = await ncMeta.metaGet2(
@@ -605,6 +620,12 @@ export default class Integration implements IntegrationType {
     }
 
     return new integrationWrapper.wrapper(config.config, {}) as T;
+  }
+
+  static getManifestForConfig(config: Partial<IntegrationType>) {
+    return Integration.availableIntegrations.find(
+      (el) => el.type === config.type && el.sub_type === config.sub_type,
+    )?.manifest;
   }
 
   public wrapper: IntegrationWrapper;

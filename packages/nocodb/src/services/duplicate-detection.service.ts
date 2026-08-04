@@ -60,6 +60,12 @@ export class DuplicateDetectionService {
       if (schema) {
         tableName = `${schema}.${tableName}`;
       }
+    } else if (source.type === 'mssql') {
+      const schema =
+        source.getConfig()?.schema ||
+        source.getConfig()?.searchPath?.[0] ||
+        'dbo';
+      tableName = `${schema}.${tableName}`;
     } else if (source.type === 'snowflake') {
       // For Snowflake, include database and schema
       const config = source.getConfig()?.connection || source.getConfig();
@@ -190,6 +196,12 @@ export class DuplicateDetectionService {
       if (schema) {
         tableName = `${schema}.${tableName}`;
       }
+    } else if (source.type === 'mssql') {
+      const schema =
+        source.getConfig()?.schema ||
+        source.getConfig()?.searchPath?.[0] ||
+        'dbo';
+      tableName = `${schema}.${tableName}`;
     } else if (source.type === 'snowflake') {
       // For Snowflake, include database and schema
       const config = source.getConfig()?.connection || source.getConfig();
@@ -275,6 +287,12 @@ export class DuplicateDetectionService {
       if (schema) {
         tableName = `${schema}.${tableName}`;
       }
+    } else if (source.type === 'mssql') {
+      const schema =
+        source.getConfig()?.schema ||
+        source.getConfig()?.searchPath?.[0] ||
+        'dbo';
+      tableName = `${schema}.${tableName}`;
     } else if (source.type === 'snowflake') {
       // For Snowflake, include database and schema
       const config = source.getConfig()?.connection || source.getConfig();

@@ -1,8 +1,10 @@
 import {
   type ColumnType,
   type LinkToAnotherRecordType,
+  NC_ERROR_SENTINEL,
   type RollupType,
   UITypes,
+  getEffectiveDisplayColumn,
   getMetaWithCompositeKey,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
@@ -11,13 +13,17 @@ import {
   isIntegerUiType,
 } from 'nocodb-sdk'
 
-import rfdc from 'rfdc'
 import { getRelatedBaseId } from '../utils/cell'
+import { renderCellError } from '../utils/canvas'
 
-const clone = rfdc()
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, metas, meta, renderCell } = props
+    const { column, value, metas, meta, renderCell, x, y, padding = 10, getColor } = props
+
+    if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
+      renderCellError(ctx, { x: x ?? 0, y: y ?? 0, width: props.width ?? 0, height: props.height, padding, getColor })
+      return
+    }
 
     // If it is empty text then no need to render
     if (!metas || !isValidValue(value)) return
@@ -37,7 +43,9 @@ export const RollupCellRenderer: CellRenderer = {
     const relatedBaseId = getRelatedBaseId(relatedColObj, meta?.base_id || '')
     const relatedTableMeta = getMetaWithCompositeKey(metas, relatedBaseId, relatedColOptions.fk_related_model_id)
 
-    const childColumn = clone((relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id))
+    const childColumn = deepClone(
+      (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id),
+    )
 
     if (!childColumn) return
 
@@ -50,13 +58,12 @@ export const RollupCellRenderer: CellRenderer = {
       if (colMeta?.display_type) {
         isFormulaWithDisplayType = true
         const displayColumnMeta = parseProp(colMeta.display_column_meta)
+        const effectiveCol = getEffectiveDisplayColumn(colMeta, childColumn)
 
         renderProps = {
           ...props,
           column: {
-            ...childColumn,
-            uidt: colMeta?.display_type,
-            ...displayColumnMeta,
+            ...effectiveCol,
             meta: {
               ...parseProp(displayColumnMeta?.meta),
               ...getRollupColumnMeta(column?.meta, colMeta?.display_type, colOptions?.rollup_function),

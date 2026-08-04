@@ -1,6 +1,7 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 import type { IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 
@@ -10,12 +11,15 @@ enum IntegrationsPageMode {
   EDIT,
 }
 
-const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE' | 'OpenAI', ClientType | SyncDataType> = {
-  PostgreSQL: ClientType.PG,
-  MySQL: ClientType.MYSQL,
-  SQLITE: ClientType.SQLITE,
-  OpenAI: SyncDataType.OPENAI,
-}
+const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE' | 'SQLServer' | 'Oracle' | 'OpenAI', ClientType | SyncDataType> =
+  {
+    PostgreSQL: ClientType.PG,
+    MySQL: ClientType.MYSQL,
+    SQLITE: ClientType.SQLITE,
+    SQLServer: ClientType.MSSQL,
+    Oracle: ClientType.ORACLE,
+    OpenAI: SyncDataType.OPENAI,
+  }
 
 type IntegrationsSubType = (typeof integrationType)[keyof typeof integrationType]
 
@@ -52,6 +56,26 @@ function getStaticInitializor(type: IntegrationsSubType) {
         title: 'SQLite',
         logo: h(GeneralBaseLogo, {
           'source-type': 'sqlite3',
+          'class': 'logo',
+        }),
+      }
+    case integrationType.SQLServer:
+      return {
+        ...genericValues,
+        type: integrationType.SQLServer,
+        title: getI18n().global.t('objects.syncData.mssql'),
+        logo: h(GeneralBaseLogo, {
+          'source-type': 'mssql',
+          'class': 'logo',
+        }),
+      }
+    case integrationType.Oracle:
+      return {
+        ...genericValues,
+        type: integrationType.Oracle,
+        title: 'Oracle',
+        logo: h(GeneralBaseLogo, {
+          'source-type': 'oracledb',
           'class': 'logo',
         }),
       }

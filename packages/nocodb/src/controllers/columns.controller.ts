@@ -76,7 +76,6 @@ export class ColumnsController {
     return await this.columnsService.columnDelete(context, {
       columnId,
       req,
-      user: req.user,
     });
   }
 
@@ -137,6 +136,11 @@ export class ColumnsController {
     },
     @Req() req: NcRequest,
   ) {
-    return await this.columnsService.columnBulk(context, tableId, body, req);
+    return await this.columnsService.columnsBulk(context, {
+      tableId,
+      hash: body.hash,
+      ops: body.ops,
+      req,
+    });
   }
 }

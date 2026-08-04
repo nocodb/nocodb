@@ -25,6 +25,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
+import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
@@ -661,8 +662,10 @@ export class DataV3Service {
           ),
         ];
 
-    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const insertPayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (transformedBody.length > insertPayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(insertPayloadLimit);
     }
 
     const result = await this.dataTableService.dataInsert(context, {
@@ -676,23 +679,6 @@ export class DataV3Service {
       return { records: [] };
     }
 
-    const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey.id in obj || primaryKey.title in obj;
-    };
-
-    // Extract inserted record IDs
-    const insertedIds = Array.isArray(result)
-      ? result
-          .map((record) => record[primaryKey.id] ?? record[primaryKey.title])
-          .filter((id) => id != null)
-      : hasPrimaryKey(result)
-      ? [result[primaryKey.id] ?? result[primaryKey.title]]
-      : [];
-
-    if (insertedIds.length === 0) {
-      return { records: [] };
-    }
-
     // Fetch full records using baseModel.chunkList() for better performance
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -701,32 +687,55 @@ export class DataV3Service {
       source,
     });
 
-    // Convert IDs to strings for chunkList
-    const idsAsStrings = insertedIds.map((id) => String(id));
+    // extractPksValues reads baseModel.model.primaryKeys, which is null until
+    // columns are loaded. The fresh model from getBaseModelSQL isn't hydrated in
+    // CE, so load columns before the first extractPksValues call below (the
+    // sibling nestedLink path does the same).
+    await baseModel.model.getColumns(baseModel.context);
+
+    // Extract inserted record PK values via extractPksValues (NOT the single
+    // primaryKey) so composite-PK tables get the full `___`-joined string. This
+    // keeps the chunkList lookup and the recordMap keys consistent — keying by
+    // only `id` would never match the composite map keys built below.
+    const insertedPks = (Array.isArray(result) ? result : [result])
+      .map((record) => baseModel.extractPksValues(record, true))
+      .filter((pk) => pk != null && pk !== 'N/A');
+
+    if (insertedPks.length === 0) {
+      return { records: [] };
+    }
 
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // Fetch all records in bulk
+    // Fetch all records in bulk.
+    // ignoreRls: the caller just created these rows and must get them back as the
+    // creation confirmation, even when the new row falls outside the caller's own
+    // RLS policy (e.g. an "Assigned To = me" policy and an unset Assigned-To on
+    // insert). This mirrors every other post-write read-back in BaseModelSqlv2
+    // (single insert / bulkInsert). Without it, a caller subject to RLS — which,
+    // since the owner-exemption removal, now includes base owners — gets an empty
+    // `records: []` and the insert looks like it silently failed.
     const fullRecords = await baseModel.chunkList({
-      pks: idsAsStrings,
+      pks: insertedPks.map((pk) => String(pk)),
       apiVersion: NcApiVersion.V3,
+      ignoreRls: true,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },
     });
 
-    // Create a map for quick lookup by ID
+    // Create a map for quick lookup by PK
     const recordMap = new Map();
     for (const record of fullRecords) {
       const recordId = baseModel.extractPksValues(record, true);
       recordMap.set(String(recordId), record);
     }
 
-    // Maintain the original order of insertedIds
+    // Maintain the original order of inserted records
     const orderedRecords = [];
-    for (const id of insertedIds) {
-      const record = recordMap.get(String(id));
+    for (const pk of insertedPks) {
+      const record = recordMap.get(String(pk));
       if (record) {
         orderedRecords.push(record);
       }
@@ -1034,8 +1043,10 @@ export class DataV3Service {
         ];
     profiler.log(`transformLTARFieldsToInternal done`);
 
-    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const updatePayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (transformedBody.length > updatePayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(updatePayloadLimit);
     }
 
     await this.dataTableService.dataUpdate(context, {
@@ -1069,7 +1080,13 @@ export class DataV3Service {
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // Fetch all records in bulk
+    // Fetch all records in bulk.
+    // NOTE: deliberately RLS-applied here (unlike the insert read-back). updatedIds
+    // are the client-supplied ids, not the post-RLS actually-updated set, so an
+    // ignoreRls read-back could echo back a row the caller referenced but cannot
+    // see. Keeping RLS on means a row edited out of the caller's own policy is
+    // omitted from the response, but that is the safe trade-off for an endpoint
+    // whose whole purpose here is not to leak RLS-restricted rows.
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
       apiVersion: context.api_version,
@@ -1129,6 +1146,21 @@ export class DataV3Service {
       ? param.body
       : [param.body]
     ).entries()) {
+      // Reject non-object records before any property access. Without this,
+      // a client sending `[ "{'Name': 'x'}" ]` (a Python repr or any other
+      // stringified payload) makes it all the way to BaseModelSqlv2.bulkInsert,
+      // where `'Id' in d` throws `Cannot use 'in' operator to search for 'Id'
+      // in {'Name': 'x'}` — the V8 in-error format shows the primitive's value,
+      // which is what surfaced in prod. Same shielding for `null` / arrays.
+      if (!row || typeof row !== 'object' || Array.isArray(row)) {
+        NcError.get(context).invalidRequestBody(
+          `Record at index ${index} must be a JSON object${
+            param.validateAdditionalProp ? ` with a 'fields' property` : ''
+          }; got ${
+            row === null ? 'null' : Array.isArray(row) ? 'array' : typeof row
+          }`,
+        );
+      }
       if (param.validateId) {
         if (!row.id) {
           NcError.get(context).invalidRequestBody(
@@ -1137,6 +1169,25 @@ export class DataV3Service {
         }
       }
       if (param.validateAdditionalProp) {
+        // `fields` must be an object — a string here would be returned as-is
+        // by transformLTARFieldsToInternal and reach bulkInsert as a primitive,
+        // producing the same 'Id' in <string> crash. null and arrays are also
+        // invalid envelopes.
+        if (
+          !row.fields ||
+          typeof row.fields !== 'object' ||
+          Array.isArray(row.fields)
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Property 'fields' on index ${index} must be a JSON object; got ${
+              row.fields === null
+                ? 'null'
+                : Array.isArray(row.fields)
+                ? 'array'
+                : typeof row.fields
+            }`,
+          );
+        }
         const otherProps = Object.keys(row).filter(
           (prop) => !['id', 'fields'].includes(prop),
         );
@@ -1252,12 +1303,15 @@ export class DataV3Service {
           };
     }
 
-    const pagedResponse = new PagedResponseV3Impl(response, {
-      context,
-      tableId: param.modelId,
-      baseUrl: param.req.ncSiteUrl,
-      queryParams: param.query,
-    });
+    const pagedResponse = new PagedResponseV3Impl(
+      response as PagedResponseImpl<Record<string, any>>,
+      {
+        context,
+        tableId: param.modelId,
+        baseUrl: param.req.ncSiteUrl,
+        queryParams: param.query,
+      },
+    );
 
     // Extract requested fields from query parameters for nested data
     const requestedFields = this.getRequestedFields(param.query);

@@ -2,14 +2,16 @@ import process from 'process';
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
-import { getCircularReplacer, ViewTypes } from 'nocodb-sdk';
+import { getCircularReplacer, OperationSource, ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
-import { useAgent } from 'request-filtering-agent';
 import dayjs from 'dayjs';
 import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
+import { getFilteredAgents } from '~/utils/ssrf';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
+  NC_DATA_IMPORT_FILE_SIZE,
+  NC_GRID_MAX_SELECTION_LIMIT,
   NC_MAX_ATTACHMENTS_ALLOWED,
   NC_MAX_TEXT_LENGTH,
 } from '~/constants';
@@ -22,6 +24,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
+import { NC_DISABLE_UNDO_REDO } from '~/utils/nc-config/constants';
 import { packageVersion } from '~/utils/packageVersion';
 import {
   defaultGroupByLimitConfig,
@@ -179,8 +182,10 @@ export class UtilsService {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
-      httpAgent: useAgent(apiMeta.url),
-      httpsAgent: useAgent(apiMeta.url),
+      ...getFilteredAgents({
+        url: apiMeta.url,
+        source: OperationSource.DATA_IMPORT,
+      }),
     };
     const data = await axios(_req);
     return data?.data;
@@ -194,19 +199,21 @@ export class UtilsService {
     const {
       apiMeta: { url },
     } = param.body;
-    const isExcelImport = /.*\.(xls|xlsx|xlsm|ods|ots)/;
-    const isCSVImport = /.*\.(csv)/;
-    const ipBlockList =
-      /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g;
-    if (
-      ipBlockList.test(url) ||
-      (!isCSVImport.test(url) && !isExcelImport.test(url))
-    ) {
+    // Test the extension against the URL's pathname only, so callers can't
+    // smuggle a non-spreadsheet target by appending `?.csv` to the query
+    // string. `useAgent` in _axiosRequestMake handles SSRF at the socket.
+    let pathname: string;
+    try {
+      pathname = new URL(url).pathname;
+    } catch {
       return {};
     }
-    if (isCSVImport || isExcelImport) {
-      param.body.apiMeta.responseType = 'arraybuffer';
+    const isExcelImport = /\.(xls|xlsx|xlsm|ods|ots)$/i;
+    const isCSVImport = /\.(csv)$/i;
+    if (!isCSVImport.test(pathname) && !isExcelImport.test(pathname)) {
+      return {};
     }
+    param.body.apiMeta.responseType = 'arraybuffer';
     return await this._axiosRequestMake({
       body: param.body,
     });
@@ -332,11 +339,19 @@ export class UtilsService {
                     },
                   );
                 })(),
-                // webhooks count
+                // webhooks count (excluding trashed)
                 Noco.ncMeta.metaCount(
                   base.fk_workspace_id,
                   base.id,
                   MetaTable.HOOKS,
+                  {
+                    xcCondition: {
+                      _or: [
+                        { deleted: { eq: false } },
+                        { deleted: { eq: null } },
+                      ],
+                    },
+                  },
                 ),
                 // filters count
                 Noco.ncMeta.metaCount(
@@ -465,11 +480,14 @@ export class UtilsService {
           ? process.env.NC_SENTRY_DSN
           : null,
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
+      undoRedoEnabled: !NC_DISABLE_UNDO_REDO,
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
       ncMaxTextLength: NC_MAX_TEXT_LENGTH,
+      ncDataImportFileSize: NC_DATA_IMPORT_FILE_SIZE,
+      ncGridMaxSelectionLimit: NC_GRID_MAX_SELECTION_LIMIT,
       isCloud: isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,
@@ -481,6 +499,7 @@ export class UtilsService {
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
       inviteOnlySignup: settings.invite_only_signup,
       restrictWorkspaceCreation: settings.restrict_workspace_creation,
+      allowEmailSigninWithSso: settings.allow_email_signin_with_sso,
       samlProviderName,
       samlAuthEnabled,
       giftUrl,

@@ -352,6 +352,69 @@ export default class Source implements SourceType {
     return config;
   }
 
+  // MSSQL's tedious driver strictly requires typed connection options:
+  //   port — must be a number (jdbcToXcConfig / UI form pass strings).
+  //   encrypt — strict boolean check (`typeof === 'boolean'`); string
+  //     "true" silently treated as falsy (or ignored on the secure path).
+  //   trustServerCertificate — strict boolean; tedious THROWS TypeError
+  //     for non-boolean.
+  //
+  // Persisted form values are strings (other dialects tolerate them).
+  // getConfig() is the one method every connection path funnels through —
+  // CE + EE getConnectionConfig and getSourceConfig all call it — so
+  // normalize here, guarded to mssql only.
+  protected normalizeMssqlConfig(config: any): any {
+    if (config?.client !== 'mssql') return config;
+    const conn = config.connection;
+    if (!conn || typeof conn !== 'object') return config;
+
+    // Numeric options
+    const numericKeys = ['port', 'connectTimeout', 'requestTimeout'];
+    const coerceNum = (target: any, k: string) => {
+      if (typeof target[k] === 'string' && target[k].trim() !== '') {
+        const n = Number(target[k]);
+        if (Number.isFinite(n)) target[k] = n;
+      }
+    };
+    for (const k of numericKeys) {
+      coerceNum(conn, k);
+      if (conn.options) coerceNum(conn.options, k);
+    }
+
+    // Boolean options — tedious does a strict typeof check (and throws
+    // for non-boolean `trustServerCertificate`). Coerce the canonical
+    // 'true'/'false' strings; leave anything else (e.g. encrypt='strict'
+    // — a third valid value) alone for tedious to validate.
+    const booleanKeys = [
+      'encrypt',
+      'trustServerCertificate',
+      'enableArithAbort',
+      'readOnlyIntent',
+      'abortTransactionOnError',
+    ];
+    const coerceBool = (target: any, k: string) => {
+      if (typeof target[k] !== 'string') return;
+      const v = target[k].trim().toLowerCase();
+      if (v === 'true') target[k] = true;
+      else if (v === 'false') target[k] = false;
+    };
+    for (const k of booleanKeys) {
+      coerceBool(conn, k);
+      if (conn.options) coerceBool(conn.options, k);
+    }
+
+    // tedious negotiates a 4 KB TDS packet by default, so large result sets
+    // fragment into many small packets. Request a bigger packet (SQL Server
+    // negotiates down if it can't honor it) so grid pages transfer in fewer
+    // round-trips. Only set a default — never override an explicit value.
+    conn.options = conn.options ?? {};
+    if (conn.options.packetSize == null && conn.packetSize == null) {
+      conn.options.packetSize = 16384;
+    }
+
+    return config;
+  }
+
   public getConfig(skipIntegrationConfig = false): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
@@ -367,11 +430,11 @@ export default class Source implements SourceType {
     });
 
     if (skipIntegrationConfig) {
-      return config;
+      return this.normalizeMssqlConfig(config);
     }
 
     if (!this.integration_config) {
-      return config;
+      return this.normalizeMssqlConfig(config);
     }
 
     const integrationConfig = decryptPropIfRequired({
@@ -398,7 +461,7 @@ export default class Source implements SourceType {
       mergedConfig = { ...mergedConfig, searchPath: undefined };
     }
 
-    return mergedConfig;
+    return this.normalizeMssqlConfig(mergedConfig);
   }
 
   public getSourceConfig(): any {
@@ -436,6 +499,7 @@ export default class Source implements SourceType {
       {
         source_id: this.id,
         base_id: this.base_id,
+        includeDeleted: true,
       },
       ncMeta,
     );
@@ -449,7 +513,13 @@ export default class Source implements SourceType {
     };
 
     for (const model of models) {
-      for (const col of await model.getColumns(context, ncMeta)) {
+      for (const col of await model.getColumns(
+        context,
+        ncMeta,
+        undefined,
+        true,
+        true,
+      )) {
         let colOptionTableName = null;
         let cacheScopeName = null;
         switch (col.uidt) {
@@ -635,7 +705,7 @@ export default class Source implements SourceType {
     // get models
     const models = await Model.list(
       context,
-      { source_id: sourceId, base_id: context.base_id },
+      { source_id: sourceId, base_id: context.base_id, includeDeleted: true },
       ncMeta,
     );
 

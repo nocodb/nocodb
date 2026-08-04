@@ -77,11 +77,56 @@ export class NcErrorBase {
     });
   }
 
+  trashNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TRASH_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  parentInTrash(parentType: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PARENT_IN_TRASH, {
+      params: parentType,
+      ...args,
+    });
+  }
+
   dashboardNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_DASHBOARD_NOT_FOUND, {
       params: id,
       ...args,
     });
+  }
+
+  interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_INTERFACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  /**
+   * Write op attempted while previewing an interface as another USER — the
+   * dedicated type lets the UI tell "you are previewing" apart from a real
+   * permission denial.
+   */
+  interfacePreviewWriteBlocked(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED,
+      {
+        ...args,
+      }
+    );
   }
 
   chatSessionNotFound(id: string, args?: NcErrorArgs): never {
@@ -176,6 +221,13 @@ export class NcErrorBase {
     });
   }
 
+  filterNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_FILTER_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   hookNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_HOOK_NOT_FOUND, {
       params: id,
@@ -213,15 +265,19 @@ export class NcErrorBase {
       | {
           field: string;
           onSection?: string;
-        },
+        }
+      | null
+      | undefined,
     args?: NcErrorArgs
   ): never {
     let message = '';
     if (typeof param === 'string') {
       message = `'${param}'`;
-    } else {
+    } else if (param && typeof param === 'object') {
       const onSection = param.onSection ? ` on ${param.onSection}` : '';
-      message = `'${param.field}'${onSection}`;
+      message = `'${param.field ?? 'unknown'}'${onSection}`;
+    } else {
+      message = `'unknown'`;
     }
     throw this.errorCodex.generateError(NcErrorType.ERR_FIELD_NOT_FOUND, {
       params: message,
@@ -337,6 +393,15 @@ export class NcErrorBase {
     );
   }
 
+  invalidSharedInterfacePagePassword(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID,
+      {
+        ...args,
+      }
+    );
+  }
+
   invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_INVALID_ATTACHMENT_JSON,
@@ -429,6 +494,13 @@ export class NcErrorBase {
 
   integrationNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_INTEGRATION_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
+  syncConfigNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND, {
       params: id,
       ...(args || {}),
     });
@@ -1003,6 +1075,13 @@ export class NcErrorBase {
     });
   }
 
+  tableSyncNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TABLE_SYNC_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   tableTrashNotSupported(tableTitle: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED,
@@ -1035,7 +1114,7 @@ export class NcErrorBase {
       {
         params: limit.toString(),
         ...args,
-      },
+      }
     );
   }
 
@@ -1055,6 +1134,30 @@ export class NcErrorBase {
 
   licenseSuspended(args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_SUSPENDED, {
+      ...args,
+    });
+  }
+
+  sandboxBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SANDBOX_BLOCKED, {
+      params: message || '',
+      ...args,
+    });
+  }
+
+  sandboxProductionBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED,
+      {
+        params: message || '',
+        ...args,
+      }
+    );
+  }
+
+  snapshotBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SNAPSHOT_BLOCKED, {
+      params: message || '',
       ...args,
     });
   }

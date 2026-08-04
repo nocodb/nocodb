@@ -13,7 +13,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const { isMobileMode, getResponsiveValue } = useGlobal()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -64,21 +64,29 @@ const isAddingColumnAllowed = computed(
   () => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value && !isMobileMode.value,
 )
 
-const { addUndo, defineViewScope } = useUndoRedo()
+const addFieldReason = computed(() =>
+  !readOnly.value && !isSqlView.value && !isMobileMode.value ? sandboxRestrictionReason('fieldAdd') : null,
+)
 
 const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
+// Coalesce bursts of FIELD_RELOAD into one viewColumnList fetch — a single
+// column CUD can emit FIELD_RELOAD from the save site, the useColumnCreateStore
+// path, and the realtime socket. Without this, each emit reissues the same
+// `viewColumnList` call. See nocodb#6778.
+const loadViewColumnsDebounced = useDebounceFn(loadViewColumns, 50)
+
 const eventBusHandler = async (event: SmartsheetStoreEvents, payload?: any) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     try {
-      await loadViewColumns()
+      await loadViewColumnsDebounced()
     } finally {
       payload?.callback?.()
     }
   } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
-    loadViewColumns()
+    loadViewColumnsDebounced()
   }
 }
 
@@ -117,44 +125,10 @@ const localFilteredFieldList = computed(() => {
   return list
 })
 
-const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   try {
     // todo : sync with server
     if (!fields.value) return
-
-    if (!undo) {
-      addUndo({
-        undo: {
-          fn: () => {
-            if (!fields.value) return
-            const temp = fields.value[_event.moved.newIndex]
-            fields.value[_event.moved.newIndex] = fields.value[_event.moved.oldIndex]
-            fields.value[_event.moved.oldIndex] = temp
-            onMove(
-              {
-                moved: {
-                  newIndex: _event.moved.oldIndex,
-                  oldIndex: _event.moved.newIndex,
-                },
-              },
-              true,
-            )
-          },
-          args: [],
-        },
-        redo: {
-          fn: () => {
-            if (!fields.value) return
-            const temp = fields.value[_event.moved.oldIndex]
-            fields.value[_event.moved.oldIndex] = fields.value[_event.moved.newIndex]
-            fields.value[_event.moved.newIndex] = temp
-            onMove(_event, true)
-          },
-          args: [],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-    }
 
     if (fields.value.length < 2) return
 
@@ -227,18 +201,6 @@ const coverImageColumnId = computed({
   },
   set: async (val) => {
     if (val !== coverImageColumnId.value) {
-      addUndo({
-        undo: {
-          fn: await updateCoverImage,
-          args: [coverImageColumnId.value],
-        },
-        redo: {
-          fn: await updateCoverImage,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updateCoverImage(val)
     }
   },
@@ -286,18 +248,6 @@ const coverImageObjectFit = computed({
     if (val !== coverImageObjectFit.value) {
       coverImageObjectFitDropdown.value.isSaving = val
 
-      addUndo({
-        undo: {
-          fn: updateCoverImageObjectFit,
-          args: [coverImageObjectFit.value],
-        },
-        redo: {
-          fn: updateCoverImageObjectFit,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updateCoverImageObjectFit(val)
     }
     coverImageObjectFitDropdown.value.isSaving = null
@@ -314,41 +264,11 @@ const getSelectedLevelId = () => {
 
 const onShowAll = async () => {
   const levelId = getSelectedLevelId()
-  addUndo({
-    undo: {
-      fn: async () => {
-        await hideAll(undefined, levelId)
-      },
-      args: [],
-    },
-    redo: {
-      fn: async () => {
-        await showAll(undefined, levelId)
-      },
-      args: [],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
   await showAll(undefined, levelId)
 }
 
 const onHideAll = async () => {
   const levelId = getSelectedLevelId()
-  addUndo({
-    undo: {
-      fn: async () => {
-        await showAll(undefined, levelId)
-      },
-      args: [],
-    },
-    redo: {
-      fn: async () => {
-        await hideAll(undefined, levelId)
-      },
-      args: [],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
   await hideAll(undefined, levelId)
 }
 
@@ -415,21 +335,6 @@ const showSystemField = computed({
     return showSystemFields.value
   },
   set: (val) => {
-    addUndo({
-      undo: {
-        fn: (v: boolean) => {
-          showSystemFields.value = !v
-        },
-        args: [val],
-      },
-      redo: {
-        fn: (v: boolean) => {
-          showSystemFields.value = v
-        },
-        args: [val],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
     showSystemFields.value = val
   },
 })
@@ -545,18 +450,6 @@ const prefixColumnId = computed({
   },
   set: async (val) => {
     if (val !== prefixColumnId.value) {
-      addUndo({
-        undo: {
-          fn: updatePrefixColumn,
-          args: [prefixColumnId.value],
-        },
-        redo: {
-          fn: updatePrefixColumn,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updatePrefixColumn(val)
     }
   },
@@ -599,6 +492,8 @@ const showAddLookupDropdown = (field: Field) => {
   return !!(isAddingColumnAllowed.value && !isLocalMode.value && isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id]))
 }
 
+const { confirmHide } = useHideRequiredFieldConfirm()
+
 function conditionalToggleFieldVisibility(field: Field) {
   if (showAddLookupDropdown(field) || isFieldsMenuReadOnly.value) {
     return
@@ -609,14 +504,36 @@ function conditionalToggleFieldVisibility(field: Field) {
     return
   }
 
-  field.show = !field.show
-  toggleFieldVisibility(field.show, field)
+  // Hiding a required NOT-NULL-no-default column would silently break
+  // inline row create (#13838) — warn the user. Showing a hidden field
+  // is always safe; only gate the hide direction.
+  const turningOff = field.show
+  if (turningOff) {
+    const column = meta.value?.columnsById?.[field.fk_column_id!] as ColumnType | undefined
+    confirmHide(column, () => {
+      field.show = false
+      toggleFieldVisibility(false, field)
+    })
+    return
+  }
+
+  field.show = true
+  toggleFieldVisibility(true, field)
 }
 
 function handleFieldVisibilityClick(field: Field) {
   if (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!])) {
-    field.show = !field.show
-    toggleFieldVisibility(field.show, field)
+    const turningOff = field.show
+    if (turningOff) {
+      const column = meta.value?.columnsById?.[field.fk_column_id!] as ColumnType | undefined
+      confirmHide(column, () => {
+        field.show = false
+        toggleFieldVisibility(false, field)
+      })
+      return
+    }
+    field.show = true
+    toggleFieldVisibility(true, field)
   }
 }
 
@@ -899,7 +816,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"
                 class="!w-[164px] flex-none"
-                alt="No search results found"
+                :alt="$t('title.noSearchResultsFound')"
               />
 
               {{ $t('title.noResultsMatchedYourSearch') }}
@@ -994,7 +911,11 @@ const onAddColumnDropdownVisibilityChange = () => {
                         </div>
 
                         <div
-                          v-if="activeView.type === ViewTypes.CALENDAR || activeView.type === ViewTypes.TIMELINE"
+                          v-if="
+                            activeView.type === ViewTypes.CALENDAR ||
+                            activeView.type === ViewTypes.TIMELINE ||
+                            activeView.type === ViewTypes.GANTT
+                          "
                           class="flex mr-2"
                         >
                           <NcButton
@@ -1053,6 +974,22 @@ const onAddColumnDropdownVisibilityChange = () => {
                           </NcButton>
                         </div>
 
+                        <NcTooltip
+                          v-if="!field.show && isHideBlockingRequired(meta?.columnsById?.[field.fk_column_id!])"
+                          placement="left"
+                          class="flex items-center mr-1.5"
+                        >
+                          <template #title>
+                            {{ $t('msg.warning.hideRequiredField.hiddenBadge') }}
+                          </template>
+                          <GeneralIcon
+                            icon="alertTriangleSolid"
+                            class="!w-3.5 !h-3.5 text-nc-content-yellow-dark"
+                            data-testid="nc-field-hidden-required-warning"
+                            @click.stop
+                          />
+                        </NcTooltip>
+
                         <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
                           <NcSwitch
                             :checked="field.show"
@@ -1087,9 +1024,9 @@ const onAddColumnDropdownVisibilityChange = () => {
             <span> {{ $t('title.systemFields') }} </span>
           </NcButton>
           <NcDropdown
-            v-if="isAddingColumnAllowed"
+            v-if="isAddingColumnAllowed || !!addFieldReason"
             v-model:visible="addColumnDropdown"
-            :trigger="['click']"
+            :trigger="addFieldReason ? [] : ['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none !rounded-2xl"
             placement="right"
             :align="{
@@ -1097,10 +1034,19 @@ const onAddColumnDropdownVisibilityChange = () => {
             }"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
-            <NcButton text-color="primary" class="nc-fields-add-new-field !font-normal !px-2" size="xs" type="text">
-              <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
-              <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
-            </NcButton>
+            <NcTooltip :disabled="!addFieldReason">
+              <template #title>{{ addFieldReason ? $t(addFieldReason) : '' }}</template>
+              <NcButton
+                text-color="primary"
+                class="nc-fields-add-new-field !font-normal !px-2"
+                size="xs"
+                type="text"
+                :disabled="!!addFieldReason"
+              >
+                <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
+                <span>{{ $t('general.new') }} {{ $t('objects.field') }}</span>
+              </NcButton>
+            </NcTooltip>
             <template #overlay>
               <div class="nc-edit-or-add-provider-wrapper">
                 <LazySmartsheetColumnEditOrAddProvider
@@ -1122,7 +1068,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           :show-unlock-button="isLocked"
           @on-open="open = false"
         >
-          <template v-if="!isLocked" #title> You don’t have permission to edit this view. </template>
+          <template v-if="!isLocked" #title> {{ $t('msg.info.noPermissionToEditView') }} </template>
         </GeneralLockedViewFooter>
       </div>
     </template>

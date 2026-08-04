@@ -29,6 +29,8 @@ export enum MetaTable {
   TIMELINE_VIEW = 'nc_timeline_view_v2',
   TIMELINE_VIEW_COLUMNS = 'nc_timeline_view_columns_v2',
   TIMELINE_VIEW_RANGE = 'nc_timeline_view_range_v2',
+  GANTT_VIEW = 'nc_gantt_view_v2',
+  GANTT_VIEW_COLUMNS = 'nc_gantt_view_columns_v2',
   GRID_VIEW = 'nc_grid_view_v2',
   GRID_VIEW_COLUMNS = 'nc_grid_view_columns_v2',
   KANBAN_VIEW = 'nc_kanban_view_v2',
@@ -46,6 +48,9 @@ export enum MetaTable {
   PROJECT_USERS = 'nc_base_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
   API_TOKENS = 'nc_api_tokens',
+  BOOKMARK_GROUPS = 'nc_bookmark_groups',
+  BOOKMARKS = 'nc_bookmarks',
+  MAIL_SENDS = 'nc_mail_sends',
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
   MAP_VIEW = 'nc_map_view_v2',
@@ -58,6 +63,7 @@ export enum MetaTable {
   NOTIFICATION = 'notification',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
   EXTENSIONS = 'nc_extensions',
+  BASE_VARIABLES = 'nc_base_variables',
   COMMENTS = 'nc_comments',
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
@@ -68,11 +74,15 @@ export enum MetaTable {
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
   SNAPSHOT = 'nc_snapshots',
+  SNAPSHOT_SCHEDULE = 'nc_snapshot_schedules',
   ROW_COLOR_CONDITIONS = 'nc_row_color_conditions',
   DATA_REFLECTION = 'nc_data_reflection',
   CUSTOM_URLS = 'nc_custom_urls_v2',
   SYNC_CONFIGS = 'nc_sync_configs',
   SYNC_MAPPINGS = 'nc_sync_mappings',
+  TABLE_SYNCS = 'nc_table_syncs',
+  TABLE_SYNC_MAPPINGS = 'nc_table_sync_mappings',
+  TABLE_SYNC_COLUMN_MAPPINGS = 'nc_table_sync_column_mappings',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
   DB_SERVERS = 'nc_db_servers',
@@ -84,6 +94,8 @@ export enum MetaTable {
   PRINCIPAL_ASSIGNMENTS = 'nc_principal_assignments',
   DASHBOARDS = 'nc_dashboards_v2',
   WIDGETS = 'nc_widgets_v2',
+  INTERFACES = 'nc_interfaces',
+  INTERFACE_PAGES = 'nc_interface_pages',
   OAUTH_CLIENTS = 'nc_oauth_clients',
   OAUTH_AUTHORIZATION_CODES = 'nc_oauth_authorization_codes',
   OAUTH_TOKENS = 'nc_oauth_tokens',
@@ -106,6 +118,8 @@ export enum MetaTable {
   ORG_USERS = 'nc_org_users',
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
+  ADDONS = 'nc_addons',
+  SUBSCRIPTION_ADDONS = 'nc_subscription_addons',
   AUTOMATIONS = 'nc_automations',
   AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
@@ -120,6 +134,8 @@ export enum MetaTable {
   MANAGED_APP_DEPLOYMENT_LOGS = 'nc_managed_app_deployment_logs',
   AUTOMATION_SUBSCRIBERS = 'nc_automation_subscribers',
   SANDBOXES = 'nc_sandboxes_v2',
+  SANDBOX_CHANGELOG = 'nc_sandbox_changelog',
+  OPERATION_LOGS = 'nc_operation_logs',
   SCIM_CONFIG = 'nc_scim_config',
   RECORD_TEMPLATES = 'nc_record_templates',
   RLS_POLICIES = 'nc_rls_policies',
@@ -130,7 +146,9 @@ export enum MetaTable {
   /** @deprecated Documents now live in nc_models_v2 (type='document'). Kept for legacy data cleanup. */
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
+  DOC_REVISIONS = 'nc_doc_revisions_v2',
   API_TOKEN_SCOPES = 'nc_api_token_scopes',
+  TRASH = 'nc_trash',
 }
 
 export const BaseRelatedMetaTables = [
@@ -140,6 +158,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.TIMELINE_VIEW_COLUMNS,
   MetaTable.TIMELINE_VIEW_RANGE,
   MetaTable.TIMELINE_VIEW,
+  MetaTable.GANTT_VIEW_COLUMNS,
+  MetaTable.GANTT_VIEW,
   MetaTable.COL_BARCODE,
   MetaTable.COL_BUTTON,
   MetaTable.COL_FORMULA,
@@ -186,14 +206,20 @@ export const BaseRelatedMetaTables = [
   MetaTable.SYNC_LOGS,
   MetaTable.SYNC_MAPPINGS,
   MetaTable.SYNC_SOURCE,
+  MetaTable.TABLE_SYNCS,
+  MetaTable.TABLE_SYNC_MAPPINGS,
+  MetaTable.TABLE_SYNC_COLUMN_MAPPINGS,
   MetaTable.VIEWS,
   MetaTable.WIDGETS,
+  MetaTable.BASE_VARIABLES,
   MetaTable.MODEL_STAT,
   MetaTable.AUTOMATIONS,
   MetaTable.AUTOMATION_EXECUTIONS,
   MetaTable.DEPENDENCY_TRACKER,
   MetaTable.DOCS,
   MetaTable.DOC_CONTENT,
+  MetaTable.DOC_REVISIONS,
+  MetaTable.TRASH,
 ];
 
 export enum MetaTableOldV2 {
@@ -236,6 +262,9 @@ export const orderedMetaTables = [
   MetaTable.ORGS_OLD,
 
   // User-related
+  MetaTable.MAIL_SENDS,
+  MetaTable.BOOKMARKS,
+  MetaTable.BOOKMARK_GROUPS,
   MetaTable.API_TOKEN_SCOPES,
   MetaTable.API_TOKENS,
   MetaTable.PROJECT_USERS,
@@ -272,6 +301,8 @@ export const orderedMetaTables = [
   MetaTable.TIMELINE_VIEW_COLUMNS,
   MetaTable.TIMELINE_VIEW_RANGE,
   MetaTable.TIMELINE_VIEW,
+  MetaTable.GANTT_VIEW_COLUMNS,
+  MetaTable.GANTT_VIEW,
   MetaTable.GRID_VIEW_COLUMNS,
   MetaTable.GRID_VIEW,
   MetaTable.GALLERY_VIEW_COLUMNS,
@@ -304,12 +335,15 @@ export const orderedMetaTables = [
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
 
+  MetaTable.TRASH,
+
   // Model-related
   MetaTable.RECORD_TEMPLATES,
   MetaTable.DEPENDENCY_TRACKER,
   MetaTable.MODEL_STAT,
   MetaTable.CUSTOM_URLS,
   MetaTable.MCP_TOKENS,
+  MetaTable.DOC_REVISIONS,
   MetaTable.DOCS,
   MetaTable.DOC_CONTENT,
   MetaTable.MODELS,
@@ -327,6 +361,9 @@ export const orderedMetaTables = [
   MetaTable.SYNC_SOURCE,
   MetaTable.SYNC_CONFIGS,
   MetaTable.SYNC_MAPPINGS,
+  MetaTable.TABLE_SYNCS,
+  MetaTable.TABLE_SYNC_MAPPINGS,
+  MetaTable.TABLE_SYNC_COLUMN_MAPPINGS,
 
   // Integrations / Sources / Project
   MetaTable.INTEGRATIONS_STORE,
@@ -341,7 +378,9 @@ export const orderedMetaTables = [
   MetaTable.AUTOMATIONS,
 
   // Payment
+  MetaTable.SUBSCRIPTION_ADDONS,
   MetaTable.SUBSCRIPTIONS,
+  MetaTable.ADDONS,
   MetaTable.PLANS,
 
   // Installations / Sandboxes / Apps
@@ -352,15 +391,18 @@ export const orderedMetaTables = [
   MetaTable.SANDBOX_VERSIONS_OLD,
   MetaTable.SANDBOXES_OLD,
   MetaTable.SANDBOXES,
+  MetaTable.SANDBOX_CHANGELOG,
   MetaTable.INSTALLATIONS,
   MetaTable.GCP_MARKETPLACE_ACCOUNTS,
   MetaTable.GCP_MARKETPLACE_ENTITLEMENTS,
 
   // Misc standalone
   MetaTable.EXTENSIONS,
+  MetaTable.BASE_VARIABLES,
   MetaTable.JOBS,
   MetaTable.FILE_REFERENCES,
   MetaTable.SNAPSHOT,
+  MetaTable.SNAPSHOT_SCHEDULE,
   MetaTable.USAGE_STATS,
   MetaTable.DB_SERVERS,
   MetaTable.DB_MUX,
@@ -433,6 +475,8 @@ export enum CacheScope {
   TIMELINE_VIEW = 'timelineView',
   TIMELINE_VIEW_COLUMN = 'timelineViewColumn',
   TIMELINE_VIEW_RANGE = 'timelineViewRange',
+  GANTT_VIEW = 'ganttView',
+  GANTT_VIEW_COLUMN = 'ganttViewColumn',
   MAP_VIEW = 'mapView',
   MAP_VIEW_COLUMN = 'mapViewColumn',
   KANBAN_VIEW_COLUMN = 'kanbanViewColumn',
@@ -451,10 +495,20 @@ export enum CacheScope {
   BASE_USER = 'baseUser',
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
+  BOOKMARK_GROUP = 'bookmarkGroup',
+  BOOKMARK = 'bookmark',
   INSTANCE_META = 'instanceMeta',
   USER_BASE = 'userBase',
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
-  SINGLE_QUERY = 'singleQuery',
+  // Versioned suffix invalidates all previously cached single-query entries
+  // when the cache shape changes — bumping it forces a fresh cache key
+  // namespace so stale entries from older deployments are ignored automatically.
+  // _v3: v2 entries written without the parentKeys back-link may be orphaned
+  // (unreachable by clearSingleQueryCache); never read them again — they stop
+  // getting TTL-refreshed and expire on their own.
+  // _v4: lookup-of-LTAR payloads now include the custom display value column —
+  // queries compiled before that fix would keep serving pk+pv-only JSON.
+  SINGLE_QUERY = 'singleQuery_v4',
   JOBS = 'nc_jobs',
   JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',
@@ -464,16 +518,21 @@ export enum CacheScope {
   VIEW_ALIAS = 'viewAlias',
   SSO_CLIENT = 'ssoClient',
   EXTENSION = 'uiExtension',
+  BASE_VARIABLE = 'baseVariable',
   INTEGRATION = 'integration',
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
   SNAPSHOT = 'snapshot',
+  SNAPSHOT_SCHEDULE = 'snapshotSchedule',
   DATA_REFLECTION = 'dataReflection',
   CUSTOM_URLS = 'customUrls',
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'syncConfigs',
   SYNC_MAPPINGS = 'syncMappings',
+  TABLE_SYNC = 'tableSync',
+  TABLE_SYNC_MAPPING = 'tableSyncMapping',
+  TABLE_SYNC_COLUMN_MAPPING = 'tableSyncColumnMapping',
   USAGE_STATS = 'usageStats',
   RESOURCE_STATS = 'resourceStats',
   STORAGE_STATS = 'storageStats',
@@ -486,6 +545,8 @@ export enum CacheScope {
   PRINCIPAL_ASSIGNMENT = 'principalAssignment',
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
+  INTERFACE = 'interface',
+  INTERFACE_PAGE = 'interfacePage',
   OAUTH_CLIENT = 'oAuthClient',
   OAUTH_AUTH_CODE = 'oAuthAuthCode',
   OAUTH_TOKEN = 'oAuthToken',
@@ -493,6 +554,9 @@ export enum CacheScope {
   WORKFLOW = 'nc_workflow',
   WORKFLOW_EXECUTION = 'nc_workflow_execution',
   PRESENCE = 'presence',
+  DOC_LIVE = 'docLive',
+  DOC_BOOTSTRAP = 'docBootstrap',
+  DOC_PERSIST_LOCK = 'docPersistLock',
   WORKFLOW_WEBHOOK_TEST_LISTENER = 'nc_workflow_webhook_test_listener',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATION = 'installation',
@@ -505,6 +569,8 @@ export enum CacheScope {
   MANAGED_APP_VERSION = 'managedAppVersion',
   MANAGED_APP_DEPLOYMENT_LOG = 'managedAppDeploymentLog',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
+  ADDONS = 'addons',
+  SUBSCRIPTION_ADDONS = 'subscriptionAddons',
   AUTOMATION_SUBSCRIBER = 'automationSubscriber',
   SANDBOX = 'sandbox',
   SCIM_CONFIG = 'scimConfig',
@@ -515,6 +581,7 @@ export enum CacheScope {
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',
+  TRASH = 'trash',
 }
 
 export enum CacheGetType {
@@ -570,7 +637,13 @@ export const RootScopeTables = {
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
+    MetaTable.OAUTH_CLIENTS,
+    MetaTable.OAUTH_AUTHORIZATION_CODES,
+    MetaTable.OAUTH_TOKENS,
     MetaTable.TEAMS,
+    MetaTable.BOOKMARK_GROUPS,
+    MetaTable.BOOKMARKS,
+    MetaTable.MAIL_SENDS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,
@@ -620,6 +693,8 @@ export enum ResourceType {
   WORKSPACE = 'workspace',
   BASE = 'base',
   TEAM = 'team',
+  INTERFACE = 'interface',
+  INTERFACE_PAGE = 'interfacePage',
 }
 
 export enum PrincipalType {

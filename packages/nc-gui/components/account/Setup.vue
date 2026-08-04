@@ -107,7 +107,7 @@ onMounted(async () => {
               @click.stop
             >
               <div class="flex gap-2 items-center">
-                Go to docs
+                {{ $t('activity.goToDocs') }}
                 <GeneralIcon icon="ncExternalLink" />
               </div>
             </NcButton>

@@ -270,6 +270,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       showUserPlanLimitExceededModal({
         details,
         role: roles,
+        triggerSource: 'project-members',
       })
     } else {
       message.error(errorInfo.message)
@@ -649,6 +650,7 @@ onBeforeUnmount(() => {
                     isInviteTeamDlg = true
                     isInviteModalVisible = true
                   },
+                  triggerSource: 'project-teams',
                 })
               "
             >
@@ -721,9 +723,9 @@ onBeforeUnmount(() => {
                 <div class="flex gap-3">
                   <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
-                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                      {{ extractUserDisplayNameOrEmail(record) }}
                     </template>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                    {{ extractUserDisplayNameOrEmail(record) }}
                   </NcTooltip>
                 </div>
                 <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>

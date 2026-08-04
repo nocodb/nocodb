@@ -17,9 +17,13 @@ const props = withDefaults(
     autofocusToEnd?: boolean
     placeholder?: string
     renderAsText?: boolean
+    // Keep the send button enabled even when the editor is empty (e.g. a
+    // comment that only carries attachments).
+    extraSaveEnabled?: boolean
   }>(),
   {
     hideOptions: true,
+    extraSaveEnabled: false,
   },
 )
 
@@ -309,16 +313,27 @@ defineExpose({
         :class="{
           'p-1': !props.readOnly,
           'px-[0.25rem]': props.readOnly,
+          'min-h-[2.5rem]': !hideOptions,
         }"
         class="nc-rich-text-content flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-rich-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
-      <div v-if="!hideOptions" class="flex justify-between pt-1 rich-text-bottom-bar items-center">
-        <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
+      <div
+        v-if="$slots.attachments"
+        class="nc-comment-attachments-wrap flex-none max-h-[124px] overflow-y-auto nc-scrollbar-thin"
+      >
+        <slot name="attachments" />
+      </div>
+
+      <div v-if="!hideOptions" class="flex flex-none justify-between pt-1 rich-text-bottom-bar items-center">
+        <div class="flex items-center gap-1">
+          <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
+          <slot name="bottom-bar-start" />
+        </div>
         <NcButton
           v-e="['a:row-expand:comment:save']"
-          :disabled="!vModel?.length"
+          :disabled="!vModel?.length && !extraSaveEnabled"
           class="!disabled:bg-nc-bg-gray-light nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"
           @click="saveComment"
@@ -377,7 +392,7 @@ defineExpose({
 
     .ProseMirror {
       @apply flex-grow !border-0 rounded-lg;
-      caret-color: #3366ff;
+      caret-color: var(--nc-brand-accent);
     }
 
     p {

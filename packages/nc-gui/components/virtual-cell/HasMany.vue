@@ -62,11 +62,19 @@ const hasEditPermission = computed(() => {
   return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
+// Interface grid/list viz provide 'simple' — one compact combined list replaces
+// both the linked and the search-to-link classic surfaces.
+const { isSimpleLinkRecordList, isSimpleLinkRecordListReadonly } = useLinkRecordDropdownVariant(hasEditPermission)
+
 const localCellValue = computed<any[]>(() => {
+  // A to-many LTAR cell value can be a count (number) rather than the records
+  // array — e.g. in grid/list responses. Always return an array so consumers
+  // like `cells` (which calls `.reduce`) can't hit "reduce is not a function".
   if (cellValue?.value) {
-    return cellValue?.value ?? []
+    return ncIsArray(cellValue.value) ? cellValue.value : []
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string] ?? []
+    const stateValue = state?.value?.[column?.value.title as string]
+    return ncIsArray(stateValue) ? stateValue : []
   }
   return []
 })
@@ -202,7 +210,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+  <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen" :variant="isSimpleLinkRecordList ? 'simple' : 'classic'">
     <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-6.5 relative">
       <div
         class="chips flex items-center img-container flex-1 hm-items min-w-0 overflow-y-auto overflow-x-hidden"
@@ -232,7 +240,7 @@ onUnmounted(() => {
         @click.stop
       >
         <NcButton
-          v-if="hasEditPermission"
+          v-if="hasEditPermission && !isSimpleLinkRecordList"
           size="xsmall"
           type="secondary"
           class="nc-action-icon nc-has-many-plus-icon !h-5 !w-5 !min-w-5"
@@ -240,7 +248,14 @@ onUnmounted(() => {
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus !h-3 !w-3" />
         </NcButton>
-        <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm" class="flex">
+        <!-- Simple picker context: plain select-style chevron, no button chrome -->
+        <GeneralIcon
+          v-if="isSimpleLinkRecordList"
+          icon="chevronDown"
+          class="nc-action-icon nc-has-many-maximize-icon select-none !text-md text-nc-content-gray-muted cursor-pointer"
+          @click.stop="openChildList"
+        />
+        <NcTooltip v-else :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm" class="flex">
           <NcButton
             size="xsmall"
             type="secondary"
@@ -253,8 +268,16 @@ onUnmounted(() => {
       </div>
     </div>
     <template #overlay>
+      <LazyVirtualCellComponentsLinkRecordSimpleList
+        v-if="isSimpleLinkRecordList && (childListDlg || listItemsDlg)"
+        :model-value="childListDlg || listItemsDlg"
+        :column="hasManyColumn"
+        :readonly="isSimpleLinkRecordListReadonly"
+        @update:model-value="isOpen = $event"
+        @escape="isOpen = false"
+      />
       <LazyVirtualCellComponentsUnLinkedItems
-        v-if="listItemsDlg"
+        v-if="!isSimpleLinkRecordList && listItemsDlg"
         v-model="listItemsDlg"
         :column="hasManyColumn"
         :hide-back-btn="hideBackBtn"
@@ -264,7 +287,7 @@ onUnmounted(() => {
       />
 
       <LazyVirtualCellComponentsLinkedItems
-        v-if="childListDlg"
+        v-if="!isSimpleLinkRecordList && childListDlg"
         v-model="childListDlg"
         :cell-value="localCellValue"
         :column="hasManyColumn"

@@ -27,6 +27,10 @@ const { templates: allTemplates, selectedTemplate, setSelectedTemplate } = useRe
 
 const { blockRecordTemplates, showUpgradeToUseRecordTemplates, showEEFeatures } = useEeConfig()
 
+// Interface pages surface record creation only — template management is
+// builder/data-tab chrome.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
 /**
  * Filter the base-level template list to only show enabled templates
  * for the current table. The shared `allTemplates` contains templates
@@ -52,7 +56,7 @@ const handleUseTemplate = async (tmpl: any) => {
       getMeta,
     })
 
-    message.toast('Record created from template')
+    message.toast(t('msg.recordCreatedFromTemplate'))
     reloadViewDataHook?.trigger()
   } catch (e: any) {
     console.error(e)
@@ -97,10 +101,10 @@ const templatesList = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div :class="{ 'nc-interface-compact-add-record-menu': !!interfacePageDataApi }">
     <!-- Manage Templates -->
     <NcList
-      v-if="showEEFeatures"
+      v-if="showEEFeatures && !interfacePageDataApi"
       value=""
       :list="[
         {
@@ -114,7 +118,7 @@ const templatesList = computed(() => {
       reset-hover-effect-on-mouse-leave
       @change="
         () => {
-          if (showUpgradeToUseRecordTemplates()) return
+          if (showUpgradeToUseRecordTemplates({ triggerSource: 'grid-record-templates' })) return
 
           onOpenTemplateManager?.()
         }
@@ -144,7 +148,7 @@ const templatesList = computed(() => {
         :list="templatesList"
         variant="small"
         class="!pt-1"
-        :item-height="30"
+        :item-height="interfacePageDataApi ? 38 : 30"
         :search-input-placeholder="$t('placeholder.searchRecordTemplates')"
         reset-hover-effect-on-mouse-leave
         @change="
@@ -167,7 +171,7 @@ const templatesList = computed(() => {
       :list="defaultOptions"
       variant="small"
       class="!h-auto !pt-1"
-      :item-height="30"
+      :item-height="interfacePageDataApi ? 38 : 30"
       reset-hover-effect-on-mouse-leave
       @change="
         (option) => {
@@ -185,5 +189,23 @@ const templatesList = computed(() => {
 <style scoped lang="scss">
 :deep(.nc-menu-item-inner) {
   @apply w-full;
+}
+
+.nc-interface-compact-add-record-menu {
+  // Hug the widest item (label + selected checkmark) instead of NcList's
+  // fixed w-64 panel width.
+  @apply w-max min-w-40;
+
+  :deep(.nc-list-root) {
+    @apply w-full;
+  }
+
+  :deep(.nc-list-item) {
+    @apply text-[13px];
+
+    svg {
+      @apply w-3.5 h-3.5;
+    }
+  }
 }
 </style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LinksVersion } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 
 interface Props {
@@ -22,7 +23,7 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
 
@@ -33,6 +34,12 @@ const colOptions = computed(() => props.column?.colOptions as LinkToAnotherRecor
 // Links columns (showing count) need a Rollup + new LTAR on conversion
 // LinkToAnotherRecord (LTAR v1) columns upgrade in-place — no rollup
 const isLinksColumn = computed(() => (props.column ? isLink(props.column) : false))
+
+// V1 link columns (FK-based hm/bt, whether stored as Links or LTAR uidt) upgrade
+// by creating a physical junction table and dropping the legacy FK column. On an
+// external data source that's real DDL against the user's DB, so warn clearly.
+// V2 columns (mm / om / mo) only get a meta-level Rollup + LTAR split — no DDL.
+const willAlterExternalSchema = computed(() => isExternalSource.value && colOptions.value?.version !== LinksVersion.V2)
 
 async function handleConvert() {
   if (!props.column?.id || !meta.value) return
@@ -94,7 +101,11 @@ async function handleConvert() {
       </div>
 
       <div class="text-nc-content-gray text-sm flex flex-col gap-2 mb-3">
-        <template v-if="isLinksColumn">
+        <template v-if="willAlterExternalSchema">
+          <!-- V1 link on an external source: upgrade creates a junction table and drops the FK column in the user's DB -->
+          <p>{{ $t('msg.info.convertLinkV1ExternalDescription') }}</p>
+        </template>
+        <template v-else-if="isLinksColumn">
           <!-- Links column (v1 or v2): becomes Rollup + new LTAR is created -->
           <p>{{ $t('msg.info.convertLinkV2Description') }}</p>
         </template>
@@ -104,9 +115,20 @@ async function handleConvert() {
         </template>
       </div>
 
-      <div class="flex items-center gap-2 mb-3 bg-orange-50 rounded-lg px-3 py-2">
-        <GeneralIcon icon="alertTriangle" class="flex-none h-5 w-5 text-orange-500" />
-        <i18n-t keypath="msg.info.convertLinkV2Warning" tag="span" class="text-sm text-nc-content-gray">
+      <div
+        class="flex items-center gap-2 mb-3 rounded-lg px-3 py-2"
+        :class="willAlterExternalSchema ? 'bg-nc-red-50 dark:bg-nc-red-20' : 'bg-nc-orange-50 dark:bg-nc-orange-20'"
+      >
+        <GeneralIcon
+          icon="alertTriangle"
+          class="flex-none h-5 w-5"
+          :class="willAlterExternalSchema ? 'text-red-500' : 'text-orange-500'"
+        />
+        <i18n-t
+          :keypath="willAlterExternalSchema ? 'msg.info.convertLinkExternalSchemaWarning' : 'msg.info.convertLinkV2Warning'"
+          tag="span"
+          class="text-sm text-nc-content-gray"
+        >
           <template #learnMore>
             <a
               href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/link-to-another-record#upgrade-from-links-v1"
@@ -124,7 +146,13 @@ async function handleConvert() {
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton size="small" type="primary" :loading="isConverting" data-testid="nc-convert-link-v2-btn" @click="handleConvert">
+        <NcButton
+          size="small"
+          :type="willAlterExternalSchema ? 'danger' : 'primary'"
+          :loading="isConverting"
+          data-testid="nc-convert-link-v2-btn"
+          @click="handleConvert"
+        >
           {{ $t('general.upgrade') }}
           <template #loading> {{ $t('general.saving') }}... </template>
         </NcButton>

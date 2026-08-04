@@ -4,6 +4,8 @@ declare module 'express-serve-static-core' {
   interface Request {
     context: NcContext;
     ncWorkspaceId?: string;
+    // @Acl scope of the matched route; gates the default-workspace fallback
+    ncAclScope?: string;
     ncBaseId?: string;
     user: UserType & {
       base_roles?: Record<string, boolean>;

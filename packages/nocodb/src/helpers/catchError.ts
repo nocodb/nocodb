@@ -28,12 +28,14 @@ export function extractDBError(
   context?: NcContext & {
     clientType?: ClientType;
   },
-): {
-  message: string;
-  error: string;
-  details?: any;
-  code?: string;
-  httpStatus: number;
-} | void {
+):
+  | {
+      message: string;
+      error: string;
+      details?: any;
+      code?: string;
+      httpStatus: number;
+    }
+  | undefined {
   return DBErrorExtractor.get().extractDbError(error, context);
 }

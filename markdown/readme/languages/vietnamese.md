@@ -63,7 +63,7 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 Auto-upstall thực hiện các việc sau : 🕊
 - 🐳 Tự động cài đặt các phần mềm cần thiết như docker, docker-compose.
-- 🚀 Tự động cài đặt NocoDB với PostgreSQL, Redis, Minio, Traefik gateway sử dụng Docker Compose. 🐘 🗄️ 🌐
+- 🚀 Tự động cài đặt NocoDB với PostgreSQL, Redis, Traefik gateway sử dụng Docker Compose. 🐘 🗄️ 🌐
 - 🔄 Tự động cập nhật NocoDB đến phiên bản mới nhất khi bạn chạy lại lệnh.
 - 🔒 Tự động cài đặt SSL và làm mới. Việc này cần có domain hoặc subdomain khi cài đặt.
 > File cài đặt install.nocodb.com/noco.sh có thể được tìm thấy ở [github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh)

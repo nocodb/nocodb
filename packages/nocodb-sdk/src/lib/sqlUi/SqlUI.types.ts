@@ -52,10 +52,24 @@ export interface SqlUi {
 
   getUIType(col: ColumnType): string;
 
+  // UIType for an introspected DB column during meta-sync (legacy
+  // ModelXcMeta.getUIDataType behaviour). Distinct from getUIType — see
+  // metaUiDataType.ts.
+  getMetaUIDataType(col: ColumnType): UITypes;
+
   getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType): any;
   getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[];
 
   getUnsupportedFnList(): string[];
+  /**
+   * Whether this dialect supports a NocoDB UNIQUE constraint on the given
+   * field type. Optional — when absent, unique is allowed for every type in
+   * UNIQUE_CONSTRAINT_SUPPORTED_TYPES (pg/mysql/sqlite).
+   * MSSQL returns false for the `nvarchar(MAX)`-backed text types
+   * (SingleLineText/Email/PhoneNumber/URL — can't be a UNIQUE/index key) but
+   * true for the fixed-size numeric/date/uuid types.
+   */
+  isUniqueSupportedField?(uidt: UITypes): boolean;
   getCurrentDateDefault(_col: Partial<ColumnType>): string | any;
   isEqual(dataType1: string, dataType2: string): boolean;
   adjustLengthAndScale(

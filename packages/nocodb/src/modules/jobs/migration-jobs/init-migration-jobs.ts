@@ -20,6 +20,9 @@ import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
 import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
 import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-jobs/nc_job_011_normalize_soft_delete_sqlite';
+import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
+import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
+import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -80,6 +83,21 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.NormalizeSoftDeleteSqliteMigration,
       service: this.normalizeSoftDeleteSqliteMigration,
     },
+    {
+      version: '12',
+      job: MigrationJobTypes.RecordTrashBackfill,
+      service: this.recordTrashBackfillMigration,
+    },
+    {
+      version: '13',
+      job: MigrationJobTypes.CleanupOrphanCrossBaseLinks,
+      service: this.cleanupOrphanCrossBaseLinksMigration,
+    },
+    {
+      version: '14',
+      job: MigrationJobTypes.CleanupOrphanViewColumns,
+      service: this.cleanupOrphanViewColumnsMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -98,6 +116,9 @@ export class InitMigrationJobs {
     private readonly auditMigration: AuditMigration,
     private readonly softDeleteColumnMigration: SoftDeleteColumnMigration,
     private readonly normalizeSoftDeleteSqliteMigration: NormalizeSoftDeleteSqliteMigration,
+    private readonly recordTrashBackfillMigration: RecordTrashBackfillMigration,
+    private readonly cleanupOrphanCrossBaseLinksMigration: CleanupOrphanCrossBaseLinksMigration,
+    private readonly cleanupOrphanViewColumnsMigration: CleanupOrphanViewColumnsMigration,
   ) {}
 
   log = (...msgs: string[]) => {

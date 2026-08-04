@@ -10,9 +10,6 @@ export const useColumnDrag = ({
   gridWrapper: Ref<HTMLElement | undefined>
 }) => {
   const { eventBus, isDefaultView, meta } = useSmartsheetStoreOrThrow()
-  const { addUndo, defineViewScope } = useUndoRedo()
-
-  const { activeView } = storeToRefs(useViewsStore())
 
   const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
   const { leftSidebarWidth } = storeToRefs(useSidebarStore())
@@ -58,7 +55,6 @@ export const useColumnDrag = ({
     if (nextToViewCol === null && lastViewCol === null) return
 
     const newOrder = nextToViewCol ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2 : lastViewCol.order! + 1
-    const oldOrder = toBeReorderedViewCol.order
 
     toBeReorderedViewCol.order = newOrder
 
@@ -66,39 +62,7 @@ export const useColumnDrag = ({
       updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
     }
 
-    addUndo({
-      undo: {
-        fn: async () => {
-          if (!fields.value) return
-
-          toBeReorderedViewCol.order = oldOrder
-          if (isDefaultView.value) {
-            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
-          }
-          await updateGridViewColumn(colId, { order: oldOrder } as any)
-
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-        },
-        args: [],
-      },
-      redo: {
-        fn: async () => {
-          if (!fields.value) return
-
-          toBeReorderedViewCol.order = newOrder
-          if (isDefaultView.value) {
-            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
-          }
-          await updateGridViewColumn(colId, { order: newOrder } as any)
-
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-        },
-        args: [],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
-
-    await updateGridViewColumn(colId, { order: newOrder } as any, true)
+    await updateGridViewColumn(colId, { order: newOrder } as any)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   }

@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'docker-compose/1_Auto_Upstall/noco.sh'
+      - 'docker-compose/1_Auto_Upstall/tests/**'
+      - 'docker-compose/examples/**'
       - '.github/workflows/bats-test.yml'
   workflow_dispatch:
 
@@ -33,18 +35,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install BATS
+      - name: Install BATS + deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats expect
-
-      - name: Get working directory
-        run: |
-          WORKING_DIR="$(pwd)/docker-compose/1_Auto_Upstall/tests"
-          echo "WORKING_DIR=$WORKING_DIR" >> $GITHUB_ENV
+          sudo apt-get install -y bats expect jq
 
       - name: Run BATS test
         run: bats ${{ matrix.test }}
-        env:
-          WORKING_DIR: ${{ env.WORKING_DIR }}
-          SKIP_TARE_DOWN: true

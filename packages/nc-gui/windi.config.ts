@@ -159,7 +159,10 @@ export default defineConfig({
         accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',
       },
       borderColor: {
-        primary: 'rgba(51, 102, 255, 1)',
+        // Use the --color-primary var (like textColor/backgroundColor/ringColor)
+        // so `border-primary` follows the white-label brand. Defaults to the same
+        // 51,102,255 blue, so the default render is unchanged.
+        primary: 'rgba(var(--color-primary), var(--tw-border-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-border-opacity))',
         error: 'var(--ant-error-color)',
       },

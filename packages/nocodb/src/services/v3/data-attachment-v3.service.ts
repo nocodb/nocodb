@@ -3,9 +3,13 @@ import { PassThrough } from 'stream';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
-import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
+import {
+  AuditV1OperationTypes,
+  EventType,
+  ncIsNull,
+  OperationSource,
+} from 'nocodb-sdk';
 import slash from 'slash';
-import { useAgent } from 'request-filtering-agent';
 import { getBase64FileSize } from 'src/helpers/stringHelpers';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
@@ -13,6 +17,7 @@ import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
+import { getFilteredAgents } from '~/utils/ssrf';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,
@@ -28,6 +33,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { Audit, FileReference, PresignedUrl } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { SizeLimitedStream } from '~/services/v3/attachment-size-limited-stream';
 import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { RootScopes } from '~/utils/globals';
@@ -85,7 +91,25 @@ export class DataAttachmentV3Service {
             },
           );
 
-          // update fileSize, url due to fileName, fileSize etc
+          // Step 1: Create FileReference without workspace info and mark as deleted
+          await FileReference.insert(
+            {
+              ...baseModel.context,
+              workspace_id: RootScopes.ROOT,
+              base_id: RootScopes.ROOT,
+            },
+            {
+              storage: downloadedAttachment.storageName,
+              // currently a placeholder
+              // it will be replaced after upload success
+              file_url: downloadedAttachment.url ?? downloadedAttachment.path,
+              file_size: downloadedAttachment.fileSize,
+              fk_user_id: req?.user?.id ?? 'anonymous',
+              is_external: !(await baseModel.getSource()).isMeta(),
+              deleted: true,
+            },
+          );
+          // Step 2: update fileSize, url due to fileName, fileSize etc
           await FileReference.updateById(context, attachment.id, {
             file_url: downloadedAttachment.url ?? downloadedAttachment.path,
             file_size: downloadedAttachment.fileSize,
@@ -194,6 +218,16 @@ export class DataAttachmentV3Service {
     const { context, modelId, columnId, recordId, scope, attachment, req } =
       param;
 
+    if (
+      !attachment?.contentType ||
+      !attachment?.file ||
+      !attachment?.filename
+    ) {
+      NcError.get(context).invalidRequestBody(
+        `Field contentType, file and filename is required`,
+      );
+    }
+
     // Calculate file size from base64 value
     const fileSize = getBase64FileSize(attachment.file);
 
@@ -271,8 +305,26 @@ export class DataAttachmentV3Service {
         new PassThrough().end(attachment.file, 'base64'),
       );
 
+      // Step 1: Create FileReference without workspace info and mark as deleted
+      await FileReference.insert(
+        {
+          ...context,
+          workspace_id: RootScopes.ROOT,
+          base_id: RootScopes.ROOT,
+        },
+        {
+          storage: storageAdapter.name,
+          file_url:
+            resultAttachmentUrl ?? path.join('download', filePath, filename),
+          file_size: fileSize,
+          fk_user_id: context?.user?.id ?? 'anonymous',
+          is_external: !(await baseModel.getSource()).isMeta(),
+          deleted: true,
+        },
+      );
+
+      // Step 2: Create FileReference with workspace info and deleted: false
       const attachmentId = await FileReference.insert(context, {
-        storage: storageAdapter.name,
         file_url:
           resultAttachmentUrl ?? path.join('download', filePath, filename),
         file_size: fileSize,
@@ -281,7 +333,10 @@ export class DataAttachmentV3Service {
         fk_model_id: modelId,
         fk_column_id: column.id,
         is_external: !(await baseModel.getSource()).isMeta(),
+        deleted: false,
       });
+
+      // Use the second (workspace-aware) FileReference ID as attachment value
 
       const processedAttachment = {
         id: attachmentId, // Generate a new ID for the attachment
@@ -385,23 +440,28 @@ export class DataAttachmentV3Service {
       responseType: 'stream',
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
-      httpAgent: useAgent(url),
-      httpsAgent: useAgent(url),
+      ...getFilteredAgents({ url, source: OperationSource.ATTACHMENTS }),
     });
 
-    // Extract file information from response headers
+    // Extract file information from response headers (axios >=1.14 widens
+    // AxiosHeaderValue to string | number | boolean | string[] — content-* are
+    // always a single string in HTTP responses, so coerce to string.)
     const contentType =
-      response.headers['content-type'] || 'application/octet-stream';
-    const contentLength = response.headers['content-length'];
-    const contentDisposition = response.headers['content-disposition'];
+      (response.headers['content-type'] as string) ||
+      'application/octet-stream';
+    const contentDisposition = response.headers['content-disposition'] as
+      | string
+      | undefined;
 
-    const passthrough = new PassThrough(); // Track size via the PassThrough stream
-    let totalBytes = 0;
-    if (!contentLength) {
-      passthrough.on('data', (chunk) => {
-        totalBytes += chunk.length;
-      });
-    }
+    // Enforce the size limit mid-transfer. axios maxContentLength above is only
+    // honoured when the response declares a Content-Length, so a chunked or
+    // length-less (or lying) response would otherwise stream an oversized file
+    // straight to storage. The limiter aborts the stream once the cap is passed.
+    const sizeLimiter = new SizeLimitedStream(NC_ATTACHMENT_FIELD_SIZE);
+    sizeLimiter.on('error', () => {
+      // tear down the underlying download so it does not keep buffering
+      response.data.destroy();
+    });
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
     const mimeType = contentType.split(';')[0].trim();
@@ -433,9 +493,13 @@ export class DataAttachmentV3Service {
       : filePath;
     const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
       filePathConstructed.storageDest,
-      response.data.pipe(passthrough),
+      response.data.pipe(sizeLimiter),
     );
-    const fileSize = contentLength ? Number(contentLength) : totalBytes;
+    // sizeLimiter.bytesProcessed is the exact number of bytes streamed into
+    // storage by the time fileCreateByStream resolves. Prefer it over the
+    // Content-Length header, which can be absent (chunked), understated, or
+    // outright wrong — the very conditions this limiter exists to guard against.
+    const fileSize = sizeLimiter.bytesProcessed;
 
     return {
       storageName: storageAdapter.name,

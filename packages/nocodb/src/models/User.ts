@@ -24,7 +24,7 @@ import {
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
-import { normalizeEmail } from '~/utils/emailUtils';
+import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User implements UserType {
@@ -97,7 +97,7 @@ export default class User implements UserType {
     }
 
     if (insertObj.email) {
-      insertObj.email = insertObj.email.toLowerCase();
+      insertObj.email = sanitizeEmail(insertObj.email).toLowerCase();
       insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
@@ -147,7 +147,7 @@ export default class User implements UserType {
     ]);
 
     if (updateObj.email) {
-      updateObj.email = updateObj.email.toLowerCase();
+      updateObj.email = sanitizeEmail(updateObj.email).toLowerCase();
       updateObj.canonical_email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
@@ -190,7 +190,7 @@ export default class User implements UserType {
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {
-    const email = _email?.toLowerCase();
+    const email = sanitizeEmail(_email)?.toLowerCase();
     let user =
       email &&
       (await NocoCache.get(
@@ -198,15 +198,27 @@ export default class User implements UserType {
         `${CacheScope.USER}:${email}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!user) {
-      user = await ncMeta.metaGet2(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.USERS,
-        {
-          email,
-        },
-      );
+
+    // A cached soft-deleted row must not short-circuit the live lookup. The old
+    // code cached deleted rows under this key (the set ran before the is_deleted
+    // check), and cloud Redis isn't flushed on deploy — so treat a cached
+    // soft-deleted hit as a miss and re-query (the query below excludes
+    // soft-deleted rows and re-caches a live one, healing the poisoned entry).
+    if (user && user.is_deleted) user = null;
+
+    if (!user && email) {
+      // Resolve to a LIVE row, never a soft-deleted one. A bare metaGet2 returns
+      // a single arbitrary matching row without filtering is_deleted; if a
+      // soft-deleted duplicate sorts first, this method would return null even
+      // when live rows exist — making callers treat the user as new and mint
+      // endless duplicate accounts. Filter is_deleted in the query itself.
+      user = await ncMeta
+        .knex(MetaTable.USERS)
+        .where({ email })
+        .where(function () {
+          this.where('is_deleted', false).orWhereNull('is_deleted');
+        })
+        .first();
 
       if (user) {
         user.meta = parseMetaProp(user);
@@ -239,15 +251,22 @@ export default class User implements UserType {
         `${CacheScope.USER}:canonical:${canonical}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!user) {
-      user = await ncMeta.metaGet2(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.USERS,
-        {
-          canonical_email: canonical,
-        },
-      );
+
+    // A cached soft-deleted row must not short-circuit the live lookup — see
+    // getByEmail. Treat a cached soft-deleted hit as a miss and re-query.
+    if (user && user.is_deleted) user = null;
+
+    if (!user && canonical) {
+      // Resolve to a LIVE row, never a soft-deleted one — see getByEmail. A
+      // soft-deleted duplicate that sorts ahead of live rows would otherwise make
+      // this return null and cause callers to create endless duplicate accounts.
+      user = await ncMeta
+        .knex(MetaTable.USERS)
+        .where({ canonical_email: canonical })
+        .where(function () {
+          this.where('is_deleted', false).orWhereNull('is_deleted');
+        })
+        .first();
 
       if (user) {
         user.meta = parseMetaProp(user);

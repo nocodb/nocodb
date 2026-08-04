@@ -2,17 +2,24 @@ import {
   RelationTypes,
   UITypes,
   dateFormats,
+  getEffectiveDisplayColumn,
+  getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isAIPromptCol,
+  isBtLikeV2Junction,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isIntegerUiType,
+  isLinkV2,
+  isLinksOrLTAR,
   isSystemColumn,
   isValidValue,
   isVirtualCol,
+  ncIsArray,
+  ncIsNumber,
   resolveCurrentUserToken,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
@@ -88,6 +95,65 @@ export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {
   return -1
 }
 
+/**
+ * Compute the pre-fill state for a new record opened from a LTAR "New record"
+ * button (LinkedItems or UnLinkedItems panel).
+ *
+ * Finds the back-reference column in the related table and seeds it with the
+ * parent row so the junction row is written on save.
+ *
+ * @param ltarColumn   The LTAR column the panel belongs to (injectedColumn)
+ * @param relatedMeta  Metadata of the related table (relatedTableMeta)
+ * @param currentTableId  ID of the current (parent) table (meta.id)
+ * @param rowData      The raw data object of the current row (row.value.row)
+ * @param isNewRow     Whether the current row itself is a new, unsaved row
+ */
+export function computeLtarNewRowState(
+  ltarColumn: ColumnType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  currentTableId: string | null | undefined,
+  rowData: Record<string, any> | null | undefined,
+  isNewRow: boolean,
+): Record<string, any> {
+  if (isNewRow || !ltarColumn || !relatedMeta?.columns || !currentTableId) return {}
+
+  const colOpt = ltarColumn.colOptions as LinkToAnotherRecordType
+  if (!colOpt) return {}
+
+  const colInRelatedTable = relatedMeta.columns.find((col) => {
+    if (!isLinksOrLTAR(col)) return false
+    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
+    if (colOpt1?.fk_related_model_id !== currentTableId) return false
+
+    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
+    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
+    const isJunctionShape =
+      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
+      (isLinkV2(ltarColumn) && isLinkV2(col))
+
+    if (isJunctionShape) {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
+      )
+    }
+
+    return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
+  })
+
+  if (!colInRelatedTable) return {}
+  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
+  if (!relatedTableColOpt) return {}
+
+  // V1 BT and V2 single-record junction relations (MO, OO) hold one record.
+  const isSingleRecord = relatedTableColOpt.type === RelationTypes.BELONGS_TO || isBtLikeV2Junction(colInRelatedTable)
+
+  return {
+    [colInRelatedTable.title as string]: isSingleRecord ? rowData : rowData && [rowData],
+  }
+}
+
 // a function to populate insert object and verify if all required fields are present
 export async function populateInsertObject({
   getMeta,
@@ -95,7 +161,6 @@ export async function populateInsertObject({
   meta,
   ltarState,
   throwError,
-  undo = false,
   allowNullFieldIds = [],
 }: {
   meta: TableType
@@ -103,11 +168,18 @@ export async function populateInsertObject({
   getMeta: (baseId: string, tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
   row: Record<string, any>
   throwError?: boolean
-  undo?: boolean
   allowNullFieldIds?: string[]
 }) {
   const missingRequiredColumns = new Set()
-  const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
+
+  // `meta` can be transiently undefined (e.g. table meta cleared during
+  // navigation/teardown while a deferred save fires) — bail gracefully instead
+  // of throwing `Cannot read properties of undefined (reading 'columns')`.
+  if (!meta?.columns) {
+    return { missingRequiredColumns, insertObj: {} }
+  }
+
+  const insertObj = await meta.columns.reduce(async (_o: Promise<any>, col) => {
     const o = await _o
 
     // if column is BT relation then check if foreign key is not_null(required)
@@ -133,7 +205,7 @@ export async function populateInsertObject({
       missingRequiredColumns.add(col.title)
     }
 
-    if ((!col.ai || undo) && (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))) {
+    if (!col.ai && (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))) {
       o[col.title as string] = row?.[col.title as string]
     }
 
@@ -145,6 +217,81 @@ export async function populateInsertObject({
   }
 
   return { missingRequiredColumns, insertObj }
+}
+
+// Relation types whose linked record can belong to only ONE parent record.
+// Copying such a link onto a duplicated record REASSIGNS the linked record to the
+// copy and silently detaches it from the original — a data-integrity hazard.
+//  - has-many / one-to-many: the related rows carry the FK pointing here, so
+//    copying moves those rows onto the duplicate.
+//  - one-to-one: a single record on each side, so copying steals it.
+// belongs-to / many-to-one own their own FK (the parent keeps its other children)
+// and many-to-many is additive, so those relationships copy safely.
+const SINGLE_PARENT_RELATION_TYPES: RelationTypes[] = [
+  RelationTypes.HAS_MANY,
+  RelationTypes.ONE_TO_ONE,
+  RelationTypes.ONE_TO_MANY,
+]
+
+export const isSingleParentLinkColumn = (col: ColumnType) => {
+  if (!isLinksOrLTAR(col)) return false
+  const type = (col.colOptions as LinkToAnotherRecordType | undefined)?.type as RelationTypes | undefined
+  return !!type && SINGLE_PARENT_RELATION_TYPES.includes(type)
+}
+
+const hasLinkValue = (val: any) => {
+  if (ncIsNumber(val)) return val > 0
+
+  if (ncIsArray(val)) return val.length > 0
+
+  return val !== null && val !== undefined && val !== ''
+}
+
+// The single-parent link columns (see `isSingleParentLinkColumn`) that actually
+// hold a link in `row` — i.e. the links `getDuplicateRowData` drops *because of
+// the link rule*. Callers use this to tell the user which relationships the copy
+// can't share.
+//
+export const getSkippedDuplicateLinks = (row: Record<string, any> = {}, columns: ColumnType[] = []) => {
+  return columns.filter(
+    (col) => !isSystemColumn(col) && isSingleParentLinkColumn(col) && hasLinkValue(row?.[col.title as string]),
+  )
+}
+
+// Build the row payload for duplicating an existing record. Clones the source
+// values but drops:
+//  - the client-side identity markers (`ncRecordId`/`ncRecordHash`)
+//  - system columns (auto pk, raw foreign keys, created/updated by/at, order)
+//  - single-parent links (has-many / one-to-one / one-to-many) — copying them
+//    would reassign the linked record to the copy and detach it from the
+//    original (see `isSingleParentLinkColumn`). Shareable links (belongs-to /
+//    many-to-one / many-to-many) are kept so those relationships are duplicated.
+//
+// `keepSingleParentLinks` opts into carrying those links over anyway, accepting
+// that the linked records move to the copy — the user picks this explicitly in
+// the duplicate-links modal (see `prepareDuplicateRowData`).
+//
+// System columns are auto-managed and must never be carried into the insert. In
+// particular a self-referencing LTAR keeps a raw FK column (e.g. `Sheet11_id`)
+// in the cached row after an in-place link edit; re-inserting it verbatim trips
+// a unique-constraint violation (a freshly fetched row doesn't carry it).
+export const getDuplicateRowData = (
+  row: Record<string, any> = {},
+  columns: ColumnType[] = [],
+  { keepSingleParentLinks = false }: { keepSingleParentLinks?: boolean } = {},
+) => {
+  const clonedRow = { ...row }
+
+  delete clonedRow.ncRecordId
+  delete clonedRow.ncRecordHash
+
+  for (const col of columns) {
+    if (col.title && (isSystemColumn(col) || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))) {
+      delete clonedRow[col.title]
+    }
+  }
+
+  return clonedRow
 }
 
 // a function to get default values of row
@@ -284,7 +431,10 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
 
   const columnMeta = parseProp(col.meta)
   const dateFormat = columnMeta?.date_format ?? dateFormats[0]
-  const timeFormat = columnMeta?.time_format ?? timeFormats[0]
+  const baseTimeFormat = columnMeta?.time_format ?? timeFormats[0]
+  // Honour the field's 12h/24h Time format setting — without this the value
+  // always renders in 24h (HH:mm) regardless of the field config.
+  const timeFormat = columnMeta?.is12hrFormat ? `${baseTimeFormat.replace('HH', 'hh')} A` : baseTimeFormat
   const dateTimeFormat = `${dateFormat} ${timeFormat}`
   const timezone = isEeUI && columnMeta?.timezone ? getTimeZoneFromName(columnMeta?.timezone) : undefined
   const { timezonize } = withTimezone(timezone?.name)
@@ -362,7 +512,7 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
     return idsOrMails
       .map((idOrMail) => {
         const user = baseUsers.find((u) => u.id === idOrMail || u.email === idOrMail)
-        return user ? user.display_name || user.email : idOrMail.id
+        return user ? extractUserDisplayNameOrEmail(user) : idOrMail.id
       })
       .join(', ')
   } else {
@@ -370,11 +520,11 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
       return modelValue
         .map((idOrMail) => {
           const user = baseUsers.find((u) => u.id === idOrMail.id || u.email === idOrMail.email)
-          return user ? user.display_name || user.email : idOrMail.id
+          return user ? extractUserDisplayNameOrEmail(user) : idOrMail.id
         })
         .join(', ')
     } else {
-      return modelValue ? modelValue.display_name || modelValue.email : ''
+      return modelValue ? extractUserDisplayNameOrEmail(modelValue) : ''
     }
   }
 }
@@ -455,7 +605,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
-    ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
+    ? (meta?.value ?? meta)?.columns?.find((c) => c && c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
 
   // Use fk_related_base_id for cross-base relationships
@@ -465,8 +615,14 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
       metas?.[relationColumnOptions.fk_related_model_id as string]
     : null
 
+  // Priority:
+  //   1. Lookup column's explicit target (fk_lookup_column_id)
+  //   2. LTAR's custom display value override (fk_display_value_column_id)
+  //   3. Related table's PV (default)
+  const customDisplayColId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
   const childColumn = relatedTableMeta?.columns.find(
-    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
+    (c: ColumnType) =>
+      c && c.id === (colOptions?.fk_lookup_column_id ?? customDisplayColId ?? relatedTableMeta?.columns.find((c) => c?.pv)?.id),
   ) as ColumnType | undefined
 
   // When the value is a record object (from Lookup of LTAR), extract the child column's
@@ -480,11 +636,23 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
     return v
   }
 
+  // The child column belongs to the related table, so resolution must continue
+  // against that table's meta — not the current table's. Without this, a nested
+  // lookup (Lookup → Lookup) re-enters getLookupValue with the wrong `meta`, the
+  // nested relation column isn't found, and the value renders empty (arrays) or
+  // as "[object Object]" (scalar objects). Falls back to the current meta when
+  // the related meta isn't loaded (childColumn would then be undefined anyway).
+  const childMeta = relatedTableMeta ?? meta
+
+  // Apply the lookup column's own formatting override (meta.display_type) on top of
+  // the resolved child column so number/date lookups honour the configured format.
+  const effectiveChildColumn = childColumn ? getEffectiveLookupColumn(col?.meta, childColumn) : childColumn
+
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: childColumn! })
+        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: effectiveChildColumn!, meta: childMeta })
       })
       .join(', ')
   }
@@ -499,7 +667,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   }
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: childColumn })
+  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: effectiveChildColumn, meta: childMeta })
 }
 
 export function getLookupColumnType(
@@ -570,11 +738,15 @@ export const parsePlainCellValue = (
   if (isYear(col, abstractType)) {
     return getYearValue(value)
   }
-  if (isDateTime(col, abstractType)) {
-    return getDateTimeValue(value, params)
-  }
+  // Check Time before DateTime: a lookup formatting override builds an effective
+  // column with uidt=Time but inherits the source's `datetime` abstract type, so
+  // isDateTime (which matches on abstractType) would otherwise win and render the
+  // full datetime instead of just the time. uidt is authoritative here.
   if (isTime(col, abstractType)) {
     return getTimeValue(value, col)
+  }
+  if (isDateTime(col, abstractType)) {
+    return getDateTimeValue(value, params)
   }
   if (isDuration(col)) {
     return getDurationValue(value, col)
@@ -612,6 +784,11 @@ export const parsePlainCellValue = (
   if (isRollup(col)) {
     return getRollupValue(value, params)
   }
+  // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
+  // uidt=Links → count cell; everything else LTAR/Lookup → linked-row display value(s).
+  if (isBtLikeV2Junction(col)) {
+    return getLookupValue(value, params)
+  }
   if (isLink(col)) {
     return getLinksValue(value, params)
   }
@@ -630,12 +807,7 @@ export const parsePlainCellValue = (
 
   if (isFormula(col)) {
     if (col?.meta?.display_type) {
-      const childColumn = {
-        uidt: col?.meta?.display_type,
-        ...col?.meta?.display_column_meta,
-      }
-
-      return parsePlainCellValue(value, { ...params, col: childColumn })
+      return parsePlainCellValue(value, { ...params, col: getEffectiveDisplayColumn(col?.meta) })
     } else {
       const url = replaceUrlsWithLink(value, true)
 

@@ -61,7 +61,13 @@ const tempSelectedOptState = ref<string>()
 const isFocusing = ref(false)
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
+  () =>
+    !isPublic.value &&
+    !disableOptionCreation &&
+    isUIAllowed('fieldEdit') &&
+    !isMetaReadOnly.value &&
+    !isForm.value &&
+    !column.value?.readonly,
 )
 
 const options = computed(() => {
@@ -71,7 +77,7 @@ const options = computed(() => {
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
     if (op.value) {
-      acc[op.value.trim()] = op
+      acc[ncIsString(op.value) ? op.value.trim() : `${op.value}`] = op
     }
     return acc
   }, {} as Record<string, (typeof options.value)[number]>)

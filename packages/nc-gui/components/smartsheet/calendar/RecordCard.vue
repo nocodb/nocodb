@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { CalendarEventTheme } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
 interface Props {
@@ -10,6 +11,19 @@ interface Props {
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
   dragging?: boolean
+  // When true the card fills its container height and stacks visible fields over
+  // multiple lines (week view) instead of clamping to a single truncated line.
+  multiline?: boolean
+  // Multiline cards hide fields behind "+N more"; when the parent signals there
+  // are hidden fields, show the tooltip on hover (column layout never trips the
+  // truncate detector, so there's nothing else to gate on).
+  hasHiddenFields?: boolean
+  // Optional label image (an attachment object) — renders as a small square
+  // thumbnail flush to the card's right edge (interface "Label image").
+  labelAttachment?: Record<string, any> | null
+  // Interfaces split chip labels from the tooltip fields — the tooltip is a
+  // deliberate hover surface there, not a truncation fallback.
+  forceTooltip?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,57 +33,93 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'small',
   position: 'rounded',
   dragging: false,
+  multiline: false,
+  hasHiddenFields: false,
 })
 
 const emit = defineEmits(['resizeStart'])
 
-const rowColorInfo = computed(() => {
-  return extractRowBackgroundColorStyle(props.record as Row)
+const { eventDisplayTheme } = useCalendarViewStoreOrThrow()
+
+// Interface calendars don't show a hover tooltip on records — the chip is the
+// whole surface there (record details live behind the click-into action).
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+const slots = useSlots()
+
+// Pill's colour lives in its time pill; the all-day / spanning rows pass no #time
+// slot, so a pill card would show no colour at all there. Fall back to bordered in
+// that case (same as the sidebar) — every timed surface passes #time and keeps pill.
+const effectiveTheme = computed(() =>
+  eventDisplayTheme.value === CalendarEventTheme.PILL && !slots.time ? CalendarEventTheme.BORDERED : eventDisplayTheme.value,
+)
+
+// Resolved colours for this event (rowMeta hex, or neutral gray default).
+const colors = computed(() => getCalendarEventColors(props.record))
+
+// Exposed to scoped CSS as custom properties so each theme can style itself
+// from the per-record colours (scoped CSS can't take dynamic values directly).
+const themeVars = computed(() => ({
+  '--cal-accent': colors.value.accent,
+  '--cal-tint': colors.value.tint,
+  '--cal-border': colors.value.border,
+  '--cal-on-accent': colors.value.onAccent,
+}))
+
+const isBordered = computed(() => effectiveTheme.value === CalendarEventTheme.BORDERED)
+const isDot = computed(() => effectiveTheme.value === CalendarEventTheme.DOT)
+const isPill = computed(() => effectiveTheme.value === CalendarEventTheme.PILL)
+const isMinimal = computed(() => effectiveTheme.value === CalendarEventTheme.MINIMAL)
+
+// Flat themes render a single dense text line; they stack shorter than the
+// bordered / solid chips. Height here is kept in sync with `perRecordHeightPx`
+// in MonthView (22px flat vs 28px chip).
+const isFlat = computed(() =>
+  [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(effectiveTheme.value),
+)
+
+// The left colour bar belongs to the minimal theme only (bordered shows just its
+// border + tint), and only on the card's leading edge (rounded / leftRounded
+// positions of a spanning event).
+const showLeftBar = computed(() => isMinimal.value && (props.position === 'leftRounded' || props.position === 'rounded'))
+
+// Only the bordered theme carries the drop shadow; the flat themes stay flush.
+const cardShadow = computed(() => {
+  if (!isBordered.value) return undefined
+  return props.hover || props.dragging
+    ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+    : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)'
 })
 </script>
 
 <template>
   <div
-    :class="{
-      'h-7': size === 'small',
-      'h-full': size === 'auto',
-      'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded',
-      'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded',
-      'rounded-[4px] ml-0.8 mr-1': position === 'rounded',
-      'rounded-none !border-x-0': position === 'none',
-      'bg-nc-maroon-50': props.color === 'maroon',
-      'bg-nc-blue-50': props.color === 'blue',
-      'bg-nc-green-50': props.color === 'green',
-      'bg-nc-yellow-50': props.color === 'yellow',
-      'bg-nc-pink-50': props.color === 'pink',
-      'bg-nc-purple-50': props.color === 'purple',
-      'bg-nc-bg-default border-nc-border-gray-dark': color === 'gray',
-      '!bg-nc-bg-gray-light': hover || dragging,
-    }"
+    :class="[
+      `nc-cal-card nc-cal-card--${effectiveTheme}`,
+      {
+        'h-7': size === 'small' && !isFlat,
+        'h-[22px]': size === 'small' && isFlat,
+        'h-full': size === 'auto',
+        'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded' && !multiline,
+        'rounded-l-lg !border-r-0 ml-1': position === 'leftRounded' && multiline,
+        'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded' && !multiline,
+        'rounded-r-lg !border-l-0 mr-1': position === 'rightRounded' && multiline,
+        'rounded-[4px] ml-0.8 mr-1': position === 'rounded' && !multiline,
+        'rounded-lg ml-0.8 mr-1': position === 'rounded' && multiline,
+        'rounded-none !border-x-0': position === 'none',
+        'nc-cal-card--hover': hover || dragging,
+        'nc-cal-card--uncolored': !colors.hasColor,
+        'items-start': multiline,
+        'items-center': !multiline,
+      },
+    ]"
     :style="{
-      boxShadow:
-        hover || dragging
-          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
-
-      ...rowColorInfo.rowBgColor,
+      ...themeVars,
+      boxShadow: cardShadow,
     }"
-    class="relative transition-all border-1 flex-none flex items-center gap-2 group overflow-hidden"
   >
-    <div
-      v-if="position === 'leftRounded' || position === 'rounded'"
-      :class="{
-        'bg-nc-maroon-500': props.color === 'maroon',
-        'bg-nc-blue-500': props.color === 'blue',
-        'bg-nc-green-500': props.color === 'green',
-        'bg-nc-yellow-500': props.color === 'yellow',
-        'bg-nc-pink-500': props.color === 'pink',
-        'bg-nc-purple-500': props.color === 'purple',
-        'bg-nc-gray-900': color === 'gray',
-      }"
-      class="w-1 min-h-6.5"
-      :style="rowColorInfo.rowLeftBorderColor"
-    ></div>
+    <!-- Minimal makes the bar its defining mark, so it runs the full card height (flush). -->
+    <div v-if="showLeftBar" class="nc-cal-leftbar self-stretch -my-px -ml-px"></div>
 
     <div
       v-if="(position === 'leftRounded' || position === 'rounded') && resize"
@@ -77,31 +127,87 @@ const rowColorInfo = computed(() => {
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
 
-    <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
-      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
-      <slot name="time" />
-      <div
-        :class="{
-          'pr-8.5': position === 'leftRounded',
-        }"
-        class="flex mb-0.5 overflow-x-hidden w-full truncate flex-col gap-1"
+    <div
+      class="overflow-hidden gap-2 flex w-full"
+      :class="[multiline ? 'items-start py-1' : 'items-center justify-center', { 'pr-6': labelAttachment }]"
+    >
+      <!-- Centre the dot on the first line, not the whole card: wrap it in a box
+           that matches the first line's line-height (leading-5 → h-5) and centre
+           the dot inside. Single-line relies on the row's own items-center, so the
+           matched height only kicks in for the multiline (items-start) layout. -->
+      <span
+        v-if="(position === 'leftRounded' || position === 'rounded') && isDot"
+        class="flex items-center flex-none ml-1.5"
+        :class="{ 'h-4.5': multiline }"
       >
+        <span class="nc-cal-dot"></span>
+      </span>
+      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
+      <span v-if="isPill && $slots.time" class="nc-cal-time-pill">
+        <slot name="time" />
+      </span>
+      <slot v-else name="time" />
+      <div
+        :class="[{ 'pr-8.5': position === 'leftRounded' }, multiline ? 'overflow-hidden' : 'mb-0.5 overflow-x-hidden truncate']"
+        class="flex w-full flex-col gap-1"
+      >
+        <!-- Multiline (all-day week): stacked fields; tooltip reveals the full
+             labeled record, only when a field line is actually clipped. The
+             inner .nc-calendar-card-fields div is kept so its scoped no-bullet
+             styling applies (the body must render exactly as before). -->
         <NcTooltip
-          :disabled="selected || dragging"
-          :class="{
-            ' text-ellipsis': ['leftRounded', 'rightRounded', 'rounded'].includes(position),
-          }"
-          class="break-word whitespace-nowrap overflow-hidden pr-1"
-          show-on-truncate-only
+          v-if="multiline"
+          wrap-child="div"
+          hide-on-click
+          disable-in-mobile
+          :disabled="selected || dragging || !!interfacePageDataApi || (!hasHiddenFields && !forceTooltip)"
+          overlay-class-name="nc-record-fields-tooltip"
+          class="w-full overflow-hidden"
+        >
+          <template #title>
+            <slot name="tooltip">
+              <slot />
+            </slot>
+          </template>
+          <div class="nc-calendar-card-fields flex flex-col gap-0.5 w-full overflow-hidden">
+            <slot />
+          </div>
+        </NcTooltip>
+        <!-- Single-line: prod behaviour — tooltip only when the text is clipped. -->
+        <NcTooltip
+          v-else
+          hide-on-click
+          disable-in-mobile
+          :disabled="selected || dragging || !!interfacePageDataApi"
+          overlay-class-name="nc-record-fields-tooltip"
+          :show-on-truncate-only="!forceTooltip"
           wrap-child="span"
+          class="break-word whitespace-nowrap overflow-hidden pr-1"
+          :class="{ 'text-ellipsis': ['leftRounded', 'rightRounded', 'rounded'].includes(position) }"
         >
           <slot class="text-sm text-nowrap text-nc-content-gray leading-7" />
           <template #title>
-            <slot />
+            <slot name="tooltip">
+              <slot />
+            </slot>
           </template>
         </NcTooltip>
       </div>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute mb-0.6 z-10 right-5"> ... </span>
+    </div>
+
+    <!-- Rounded inset tile — anchored 2px off the card's right edge so the
+         inset matches the vertical one regardless of the theme's own padding
+         (the thumbnail's root is h-full/w-full, so the size lives on this box). -->
+    <div
+      v-if="labelAttachment"
+      class="nc-cal-card-image absolute right-0.5 top-0 bottom-0 my-auto w-5 h-5 rounded overflow-hidden"
+    >
+      <LazyCellAttachmentPreviewThumbnail
+        :attachment="labelAttachment"
+        thumbnail="tiny"
+        image-class="!h-full !w-full object-cover"
+      />
     </div>
 
     <div
@@ -117,10 +223,117 @@ const rowColorInfo = computed(() => {
   cursor: ew-resize;
 }
 
+.nc-cal-card {
+  @apply relative transition-all flex-none flex gap-2 group overflow-hidden;
+}
+
+// Left colour bar (minimal theme).
+.nc-cal-leftbar {
+  @apply w-1 flex-none;
+  background: var(--cal-accent);
+}
+
+// Colour dot (dot theme).
+.nc-cal-dot {
+  @apply w-2 h-2 rounded-full flex-none;
+  background: var(--cal-accent);
+}
+
+// Time badge (pill theme).
+.nc-cal-time-pill {
+  @apply inline-flex items-center px-1.5 rounded-full flex-none leading-4;
+  background: var(--cal-accent);
+
+  :deep(*) {
+    color: var(--cal-on-accent) !important;
+  }
+}
+
+// --- Themes -----------------------------------------------------------------
+
+.nc-cal-card--bordered {
+  // No left colour bar on this theme — a small inset keeps the text off the border.
+  @apply border-1 pl-1;
+  // Derive the fill + border from the accent so the chip stays visibly distinct
+  // from the bar-only Minimal theme in BOTH light and dark (the row-colouring
+  // tint resolves to near-black in dark mode and would read as transparent).
+  background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
+
+  // Colour applied: deepen the accent tint on hover instead of washing it out
+  // with neutral gray (which dropped the event colour entirely).
+  &.nc-cal-card--hover {
+    background: color-mix(in srgb, var(--cal-accent) 24%, transparent);
+  }
+}
+
+// Uncoloured events keep the classic white card (not the gray accent wash) so the
+// default look matches the pre-theme calendar; hover still goes light-gray.
+.nc-cal-card--bordered.nc-cal-card--uncolored {
+  background: var(--nc-bg-default);
+  border-color: var(--nc-border-gray-dark);
+
+  &.nc-cal-card--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
+}
+
+.nc-cal-card--solid {
+  @apply px-2;
+  background: var(--cal-accent);
+
+  // Force every text/icon inside onto the readable on-accent colour, including
+  // the multiline "+N more" line (a div, so not covered by the selectors above).
+  :deep(.plain-cell),
+  :deep(.plain-cell .bold),
+  :deep(.nc-calendar-card-more),
+  :deep(span) {
+    color: var(--cal-on-accent) !important;
+  }
+
+  &.nc-cal-card--hover {
+    @apply brightness-95;
+  }
+}
+
+// Pill / dot text starts at the cell edge otherwise — give a small left inset
+// so the time badge / dot doesn't hug the day-cell border.
+.nc-cal-card--pill,
+.nc-cal-card--dot {
+  @apply pl-1;
+}
+
+.nc-cal-card--dot,
+.nc-cal-card--minimal,
+.nc-cal-card--pill {
+  @apply bg-transparent;
+
+  &.nc-cal-card--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
+}
+
 .plain-cell {
   line-height: 18px;
   .bold {
     @apply !text-nc-content-gray font-bold;
   }
+}
+
+// In multiline mode each visible field is its own clean truncated line.
+// Drop the inline "•" separators (meant for the single-line layout), give the
+// lead field gentle emphasis and mute the rest — reads as a record card, not a
+// run-on of values.
+.nc-calendar-card-fields :deep(.plain-cell) {
+  @apply truncate w-full leading-5 text-bodySm text-nc-content-gray-subtle;
+
+  &::before {
+    content: '' !important;
+    padding: 0 !important;
+  }
+}
+
+.nc-calendar-card-fields :deep(.plain-cell:first-child) {
+  @apply text-nc-content-gray font-semibold;
 }
 </style>

@@ -7,6 +7,7 @@ export enum ChartTypes {
   PIE = 'pie',
   DONUT = 'donut',
   SCATTER = 'scatter',
+  TREEMAP = 'treemap',
 }
 
 interface BaseChartConfig {
@@ -38,7 +39,14 @@ interface PieChartAppearanceConfig {
   showCountInLegend: boolean;
   showPercentageOnChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
   customColorSchema: {
     color: string;
     label: string;
@@ -90,7 +98,14 @@ export interface BarChartAppearanceConfig {
   showCountInLegend: boolean;
   showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
 }
 
 export interface BarChartConfig extends BaseChartConfig {
@@ -108,7 +123,14 @@ export interface LineChartAppearanceConfig {
   showCountInLegend: boolean;
   showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
 }
 
 export interface LineChartConfig extends BaseChartConfig {
@@ -124,7 +146,14 @@ export interface ScatterPlotAppearanceConfig {
   showCountInLegend: boolean;
   showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
 }
 
 export interface ScatterPlotConfig extends BaseChartConfig {
@@ -133,6 +162,32 @@ export interface ScatterPlotConfig extends BaseChartConfig {
   data: BarChartDataConfig;
   permissions: ChartPermissionConfig;
   appearance: ScatterPlotAppearanceConfig;
+}
+
+/**
+ * Flat treemap — tile per category, area ∝ value. Same data shape as the
+ * circular charts (category + count/summary value), so it shares their
+ * query pipeline; tiles wear a single-hue ramp, so no legend/percentage knobs.
+ */
+export interface TreemapChartAppearanceConfig {
+  size: 'small' | 'medium' | 'large';
+  showValueInChart: boolean;
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
+}
+
+export interface TreemapChartConfig extends BaseChartConfig {
+  chartType: ChartTypes.TREEMAP;
+  dataSource?: WidgetDataSourceTypes;
+  data: PieChartDataConfig;
+  permissions: ChartPermissionConfig;
+  appearance: TreemapChartAppearanceConfig;
 }
 
 export type ChartWidgetConfig<T extends ChartTypes = ChartTypes> =
@@ -146,4 +201,6 @@ export type ChartWidgetConfig<T extends ChartTypes = ChartTypes> =
     ? LineChartConfig
     : T extends ChartTypes.SCATTER
     ? ScatterPlotConfig
+    : T extends ChartTypes.TREEMAP
+    ? TreemapChartConfig
     : never;

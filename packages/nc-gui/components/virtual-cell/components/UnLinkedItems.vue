@@ -1,22 +1,23 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import {
-  PermissionEntity,
-  PermissionKey,
-  RelationTypes,
-  isBtLikeV2Junction,
-  isDateOrDateTimeCol,
-  isLinksOrLTAR,
-} from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isBtLikeV2Junction, isDateOrDateTimeCol } from 'nocodb-sdk'
+import { computeLtarNewRowState } from '~/utils/dataUtils'
 import InboxIcon from '~icons/nc-icons/inbox'
 
-const props = defineProps<{
-  modelValue: boolean
-  column: any
-  hideBackBtn?: boolean
-  /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
-  parentBreadcrumbs?: string[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean
+    column: any
+    hideBackBtn?: boolean
+    /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
+    parentBreadcrumbs?: string[]
+    /** Grid interface: allow the "+ New record" button (follows viz add-record toggle) */
+    allowNewRecord?: boolean
+  }>(),
+  {
+    allowNewRecord: true,
+  },
+)
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord', 'escape'])
 
@@ -32,6 +33,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const filterQueryRef = ref<HTMLInputElement>()
 
+const scrollContainerRef = ref<HTMLElement>()
+
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
@@ -43,7 +46,6 @@ const {
   isChildrenExcludedListLinked,
   childrenExcludedOffsetCount,
   childrenListOffsetCount,
-  isChildrenExcludedListLoading,
   isChildrenExcludedLoading,
   childrenListCount,
   loadChildrenExcludedList,
@@ -65,6 +67,21 @@ const {
   rowId,
   externalBaseUserRoles,
   isLinkedTableAccessible,
+  // Chunked cache
+  CHUNK_SIZE,
+  ROW_HEIGHT,
+  excludedCachedRows,
+  excludedTotalRows,
+  excludedLinkedState,
+  excludedLoadingState,
+  fetchExcludedChunk,
+  clearExcludedCache,
+  resetExcludedCache,
+  shouldDefer,
+  isPendingLink,
+  isPendingUnlink,
+  pendingUnlinkRows,
+  getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -94,8 +111,6 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
-const injectedRow = inject(RowInj)!
-
 const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
 })
@@ -104,22 +119,38 @@ const isSingleTargetLink = computed(() => {
   return isBtLikeV2Junction(injectedColumn!.value) || relation.value === 'oo' || relation.value === 'bt'
 })
 
+/**
+ * The NEW-row staged buffer, always as an array. A single-target link (oo / bt)
+ * stores a BARE OBJECT in `rowState`, multi-target stores an array, and `?? []`
+ * only guards null/undefined — reading it as an array unconditionally threw
+ * "staged.map is not a function" on one-to-one fields, crashing the picker.
+ */
+function stagedRows(): Record<string, any>[] {
+  const colTitle = injectedColumn?.value?.title
+  const raw = colTitle ? rowState.value?.[colTitle] : undefined
+
+  return Array.isArray(raw) ? raw : raw ? [raw] : []
+}
+
+/**
+ * Pk-set of the NEW-row staged links — drives the picker's link markers (the
+ * per-index flags don't survive list reloads/reopens) and resolves a picker
+ * row (a fresh server fetch) back to its staged buffer object for unlink.
+ */
+const stagedLinkIds = computed(() => {
+  if (!isNew.value) return new Set<string>()
+
+  return new Set(stagedRows().map((r) => String(getRelatedTableRowId(r))))
+})
+
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
+    // addLTARRef buffers the link AND mirrors the buffer into row.row (the
+    // parent cell's display + submit source) — a second manual append here
+    // rendered every staged link twice.
     await addLTARRef(row, injectedColumn?.value as ColumnType)
 
-    // Update the cell value directly on the row so the parent template re-renders
-    const colTitle = injectedColumn?.value?.title
-    if (colTitle && injectedRow.value) {
-      if (isSingleTargetLink.value) {
-        injectedRow.value.row[colTitle] = row
-      } else {
-        if (!Array.isArray(injectedRow.value.row[colTitle])) {
-          injectedRow.value.row[colTitle] = []
-        }
-        injectedRow.value.row[colTitle] = [...(injectedRow.value.row[colTitle] || []), row]
-      }
-    }
+    excludedLinkedState.value.set(id, true)
 
     if (isSingleTargetLink.value) {
       isChildrenExcludedListLinked.value.forEach((isLinked, idx) => {
@@ -138,19 +169,38 @@ const linkRow = async (row: Record<string, any>, id: number) => {
 
     $e('a:links:link')
   } else {
-    await link(row, {}, false, id)
+    await link(row, {}, id)
   }
 }
 
 const unlinkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
-    removeLTARRef(row, injectedColumn?.value as ColumnType)
+    // The picker row is a fresh server fetch — removeLTARRef locates the
+    // staged entry by comparison, so resolve it back to the BUFFER object by
+    // pk (identity match, immune to compare quirks).
+    const target = stagedRows().find((r) => String(getRelatedTableRowId(r)) === String(getRelatedTableRowId(row))) ?? row
+
+    await removeLTARRef(target, injectedColumn?.value as ColumnType)
     isChildrenExcludedListLinked.value[id] = false
+    excludedLinkedState.value.set(id, false)
     saveRow!()
     $e('a:links:unlink')
   } else {
-    await unlink(row, {}, false, id)
+    await unlink(row, {}, id)
   }
+}
+
+// Records the user removed (deferred unlink, not yet saved). They're still linked server-side
+// so the excluded list omits them — surface them at the top of the picker so they stay
+// re-linkable. Multi-target only; single-target re-links by picking from the full list.
+const showPendingUnlinks = computed(
+  () => shouldDefer.value && !isNew.value && !isSingleTargetLink.value && pendingUnlinkRows.value.length > 0,
+)
+
+// Re-link a deferred-unlinked record: link() reconciles the queue (cancels the pending unlink),
+// which drops it from pendingUnlinkRows and restores it in the child list.
+const relinkRow = async (row: Record<string, any>) => {
+  await link(row, {}, -1)
 }
 
 /** reload list on modal open */
@@ -180,42 +230,15 @@ const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref({})
 
-/** populate initial state for a new row which is parent/child of current record */
-const newRowState = computed(() => {
-  if (isNew.value) return {}
-  const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
-  const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
-    // Links as for the case of 'mm' we need the 'Links' column
-    if (!isLinksOrLTAR(col)) return false
-    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
-    if (colOpt1?.fk_related_model_id !== meta.value.id) return false
-
-    if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
-        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
-        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
-      )
-    } else {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
-      )
-    }
-  })
-  if (!colInRelatedTable) return {}
-  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
-  if (!relatedTableColOpt) return {}
-
-  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO || relatedTableColOpt.type === RelationTypes.ONE_TO_ONE) {
-    return {
-      [colInRelatedTable.title as string]: row?.value?.row,
-    }
-  } else {
-    return {
-      [colInRelatedTable.title as string]: row?.value && [row.value.row],
-    }
-  }
-})
+const newRowState = computed(() =>
+  computeLtarNewRowState(
+    injectedColumn?.value as ColumnType,
+    relatedTableMeta?.value,
+    meta.value?.id,
+    row?.value?.row,
+    isNew.value,
+  ),
+)
 
 const totalItemsToShow = computed(() => {
   if (isForm.value || isNew.value) {
@@ -258,7 +281,12 @@ watch(filterQueryRef, () => {
 
 const onClick = (refRow: any, id: string) => {
   if (isSharedBase.value) return
-  if (isChildrenExcludedListLinked.value[Number.parseInt(id)]) {
+  // New rows route by the staged buffer — the per-index flags don't survive
+  // list reloads/reopens, and the click must match the rendered − marker.
+  const linked = isNew.value
+    ? stagedLinkIds.value.has(String(getRelatedTableRowId(refRow)))
+    : isChildrenExcludedListLinked.value[Number.parseInt(id)]
+  if (linked) {
     unlinkRow(refRow, Number.parseInt(id))
   } else {
     linkRow(refRow, Number.parseInt(id))
@@ -344,35 +372,81 @@ const onDeletedRecord = async () => {
   loadChildrenExcludedList(rowState.value, true)
 }
 
-const linkedShortcuts = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    vModel.value = false
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    try {
-      e.target?.nextElementSibling?.focus()
-    } catch (e) {}
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    try {
-      e.target?.previousElementSibling?.focus()
-    } catch (e) {}
-  } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
-    try {
-      filterQueryRef.value?.focus()
-    } catch (e) {}
-  }
+const ROW_VIRTUAL_MARGIN = 5
+
+const rowSlice = reactive({ start: 0, end: 0 })
+
+const calculateSlices = () => {
+  const container = scrollContainerRef.value
+  if (!container || excludedTotalRows.value === 0) return
+
+  const scrollTop = container.scrollTop
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT))
+  const visibleCount = Math.ceil(container.clientHeight / ROW_HEIGHT)
+  const endIndex = Math.min(startIndex + visibleCount, excludedTotalRows.value)
+
+  rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  rowSlice.end = Math.min(excludedTotalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
 }
 
-const childrenExcludedListRef = ref<HTMLDivElement>()
+// Recalculate slices when totalRows changes (e.g., after first chunk load)
+watch(excludedTotalRows, () => {
+  calculateSlices()
+})
 
-watch(childrenExcludedListPagination, () => {
-  childrenExcludedListRef.value?.scrollTo({ top: 0, behavior: 'smooth' })
+const updateVisibleChunks = () => {
+  if (excludedTotalRows.value === 0 && excludedCachedRows.value.size === 0) return
+
+  const firstChunk = Math.floor(rowSlice.start / CHUNK_SIZE)
+  const lastChunk = Math.floor(Math.max(0, rowSlice.end - 1) / CHUNK_SIZE)
+
+  for (let c = firstChunk; c <= lastChunk; c++) {
+    fetchExcludedChunk(c)
+  }
+
+  // Evict chunks outside buffer
+  const bufferStart = Math.max(0, rowSlice.start - 20)
+  const bufferEnd = Math.min(excludedTotalRows.value, rowSlice.end + 20)
+  clearExcludedCache(bufferStart, bufferEnd)
+}
+
+// Debounce chunk fetching — short delay for normal scroll responsiveness,
+// maxWait ensures chunks load within 100ms even during continuous scrolling
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 50, { maxWait: 100 })
+
+const onListScroll = () => {
+  calculateSlices()
+  debouncedUpdateVisibleChunks()
+}
+
+const visibleRows = computed(() => {
+  const { start, end } = rowSlice
+  return Array.from({ length: Math.max(0, end - start) }, (_, i) => {
+    const idx = start + i
+    const row = excludedCachedRows.value.get(idx)
+    let isLinked = excludedLinkedState.value.get(idx) ?? false
+    const isLoading = excludedLoadingState.value.get(idx) ?? false
+    if (!row) return { _placeholder: true, _index: idx, _isLinked: false, _isLoading: false }
+    // Reflect buffered (deferred, unsaved) link/unlink so the picker's link
+    // markers don't revert to the persisted state when the modal is reopened.
+    if (shouldDefer.value && !isNew.value) {
+      if (isPendingLink(row)) isLinked = true
+      else if (isPendingUnlink(row)) isLinked = false
+    }
+    // New rows: the staged buffer is the whole truth — a linked record flips
+    // its + to − so it stays unlinkable from the picker.
+    if (isNew.value) {
+      isLinked = stagedLinkIds.value.has(String(getRelatedTableRowId(row)))
+    }
+    return { ...row, _index: idx, _isLinked: isLinked, _isLoading: isLoading }
+  })
 })
 
 onMounted(() => {
-  window.addEventListener('keydown', linkedShortcuts)
   loadRelatedTableMeta()
+
+  // Load initial chunk
+  fetchExcludedChunk(0)
 
   // Don't focus input on open dropdown in mobile mode
   if (isMobileMode.value) return
@@ -383,31 +457,34 @@ onMounted(() => {
 
 onUnmounted(() => {
   resetChildrenExcludedOffsetCount()
+  resetExcludedCache()
   childrenExcludedListPagination.query = ''
-  window.removeEventListener('keydown', linkedShortcuts)
 })
 
 const onFilterChange = () => {
   childrenExcludedListPagination.page = 1
   resetChildrenExcludedOffsetCount()
+  resetExcludedCache()
+  // Fetch first chunk with new query (watcher handles API call via debounce)
 }
 
 const isSearchInputFocused = ref(false)
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    if (!childrenExcludedListPagination.query) emit('escape')
-    filterQueryRef.value?.blur()
-  } else if (e.key === 'Enter') {
-    if (
-      childrenExcludedListPagination.query &&
-      ncIsArray(childrenExcludedList.value?.list) &&
-      childrenExcludedList.value?.list.length
-    ) {
-      onClick(childrenExcludedList.value?.list[0], '0')
-    }
-  }
-}
+const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
+  scrollContainerRef,
+  filterQueryRef,
+  itemTestId: 'nc-excluded-list-item',
+  expandedFormDlg,
+  closeModal: () => {
+    vModel.value = false
+  },
+  getQuery: () => childrenExcludedListPagination.query,
+  onEscapeEmptyQuery: () => emit('escape'),
+  onEnterWithQuery: () => {
+    const list = childrenExcludedList.value?.list
+    if (ncIsArray(list) && list.length) onClick(list[0], '0')
+  },
+})
 </script>
 
 <template>
@@ -465,62 +542,110 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :table-title="meta?.title"
         />
       </div>
-      <div class="flex-1 overflow-auto nc-scrollbar-thin">
-        <template v-if="childrenExcludedList?.pageInfo?.totalRows">
-          <div ref="childrenExcludedListRef">
-            <template v-if="isChildrenExcludedLoading">
+      <div ref="scrollContainerRef" class="flex-1 overflow-auto nc-scrollbar-thin" @scroll="onListScroll">
+        <!-- Removed (unsaved) records — shown at the top so they can be re-linked until save -->
+        <LazyVirtualCellComponentsListItem
+          v-for="(uItem, ui) in showPendingUnlinks ? pendingUnlinkRows : []"
+          :key="`pending-unlink-${ui}`"
+          :attachment="attachmentCol"
+          :display-value-column="relatedTableDisplayValueColumn"
+          :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+          :fields="fields"
+          :is-linked="false"
+          :is-loading="false"
+          :related-table-display-value-prop="relatedTableDisplayValueProp"
+          :row="uItem"
+          data-testid="nc-excluded-list-item-pending-unlink"
+          @link-or-unlink="relinkRow(uItem)"
+          @expand="
+            () => {
+              if (!isLinkedTableAccessible) return
+              expandedFormRow = uItem
+              expandedFormDlg = true
+            }
+          "
+          @close="vModel = false"
+          @keydown.space.prevent.stop="() => relinkRow(uItem)"
+          @keydown.enter.prevent.stop="() => relinkRow(uItem)"
+        />
+
+        <template v-if="excludedTotalRows > 0 || isChildrenExcludedLoading">
+          <template v-if="isChildrenExcludedLoading && excludedCachedRows.size === 0">
+            <div
+              v-for="(_x, i) in Array.from({ length: 10 })"
+              :key="i"
+              class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:c"
+            >
+              <div class="flex items-center">
+                <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
+              </div>
+              <div class="flex flex-col gap-2 flex-grow justify-center">
+                <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
+                <div class="flex flex-row gap-6 w-10/12">
+                  <a-skeleton-input
+                    v-for="idx of [1, 2, 3]"
+                    :key="idx"
+                    active
+                    class="!h-3 !w-24 !rounded-md overflow-hidden"
+                    size="small"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <!-- Top spacer for virtual scroll -->
+            <div :style="{ height: `${rowSlice.start * ROW_HEIGHT}px` }" />
+
+            <template v-for="item in visibleRows" :key="item._index">
+              <!-- Skeleton placeholder for unloaded rows -->
               <div
-                v-for="(_x, i) in Array.from({ length: 10 })"
-                :key="i"
-                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:c"
+                v-if="item._placeholder"
+                :style="{ height: `${ROW_HEIGHT}px` }"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium"
               >
                 <div class="flex items-center">
                   <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
                   <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
-                  <div class="flex flex-row gap-6 w-10/12">
-                    <a-skeleton-input
-                      v-for="idx of [1, 2, 3]"
-                      :key="idx"
-                      active
-                      class="!h-3 !w-24 !rounded-md overflow-hidden"
-                      size="small"
-                    />
-                  </div>
                 </div>
               </div>
-            </template>
-            <template v-else>
+              <!-- Actual ListItem for loaded rows -->
               <LazyVirtualCellComponentsListItem
-                v-for="(refRow, id) in childrenExcludedList?.list ?? []"
-                :key="id"
+                v-else
                 :attachment="attachmentCol"
                 :display-value-column="relatedTableDisplayValueColumn"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                 :fields="fields"
-                :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
-                :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
-                :is-selected="!!(isSearchInputFocused && childrenExcludedListPagination.query && Number.parseInt(id) === 0)"
+                :is-linked="item._isLinked"
+                :is-loading="item._isLoading"
+                :is-selected="!!(isSearchInputFocused && childrenExcludedListPagination.query && item._index === 0)"
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
-                :row="refRow"
+                :row="item"
                 data-testid="nc-excluded-list-item"
-                @link-or-unlink="onClick(refRow, id)"
+                @link-or-unlink="onClick(item, String(item._index))"
                 @expand="
                   () => {
-                    // Don't allow expanding if linked table is not accessible
                     if (!isLinkedTableAccessible) return
-                    expandedFormRow = refRow
+                    expandedFormRow = item
                     expandedFormDlg = true
                   }
                 "
-                @keydown.space.prevent.stop="() => onClick(refRow, id)"
-                @keydown.enter.prevent.stop="() => onClick(refRow, id)"
+                @close="vModel = false"
+                @keydown.space.prevent.stop="() => onClick(item, String(item._index))"
+                @keydown.enter.prevent.stop="() => onClick(item, String(item._index))"
               />
             </template>
-          </div>
+
+            <!-- Bottom spacer for virtual scroll -->
+            <div :style="{ height: `${Math.max(0, excludedTotalRows - rowSlice.end) * ROW_HEIGHT}px` }" />
+          </template>
         </template>
-        <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-nc-content-gray-muted">
+        <div
+          v-else-if="!showPendingUnlinks"
+          class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-nc-content-gray-muted"
+        >
           <InboxIcon class="w-16 h-16 mx-auto" />
 
           <p v-if="childrenExcludedListPagination.query" class="mb-0">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
@@ -530,6 +655,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
           <div class="flex">
             <PermissionsTooltip
               v-if="
+                allowNewRecord &&
+                isLinkedTableAccessible &&
                 !isPublic &&
                 !isDataReadOnly &&
                 !isTemplateMode &&
@@ -561,6 +688,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
         <div class="flex">
           <PermissionsTooltip
             v-if="
+              allowNewRecord &&
+              isLinkedTableAccessible &&
               !isPublic &&
               !isDataReadOnly &&
               !isTemplateMode &&
@@ -586,29 +715,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </template>
           </PermissionsTooltip>
         </div>
-        <template
-          v-if="
-            childrenExcludedList?.pageInfo && +childrenExcludedList?.pageInfo?.totalRows > childrenExcludedListPagination.size
-          "
-        >
-          <div v-if="isMobileMode" class="flex items-center">
-            <NcPagination
-              v-model:current="childrenExcludedListPagination.page"
-              v-model:page-size="childrenExcludedListPagination.size"
-              :total="+childrenExcludedList?.pageInfo?.totalRows"
-              entity-name="links-excluded-list"
-            />
-          </div>
-          <div v-else class="flex items-center">
-            <NcPagination
-              v-model:current="childrenExcludedListPagination.page"
-              v-model:page-size="childrenExcludedListPagination.size"
-              :total="+childrenExcludedList?.pageInfo?.totalRows"
-              entity-name="links-excluded-list"
-              mode="simple"
-            />
-          </div>
-        </template>
+        <div v-if="excludedTotalRows > 0" class="text-nc-content-gray-muted text-small">
+          {{ excludedTotalRows }} {{ excludedTotalRows === 1 ? 'record' : 'records' }}
+        </div>
       </div>
     </div>
     <Suspense>
@@ -635,7 +744,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               },
         }"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
-        :state="newRowState"
+        :state="isNewRecord ? newRowState : {}"
         :blueprint-mode="isBlueprintMode"
         :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         use-meta-fields

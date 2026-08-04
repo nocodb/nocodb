@@ -39,15 +39,12 @@ export class ExtensionsController {
   @Acl('extensionCreate')
   async extensionCreate(
     @TenantContext() context: NcContext,
-    @Param('baseId') baseId: string,
+    @Param('baseId') _baseId: string,
     @Body() body: Partial<ExtensionReqType>,
     @Req() req: NcRequest,
   ) {
     return await this.extensionsService.extensionCreate(context, {
-      extension: {
-        ...body,
-        base_id: baseId,
-      },
+      extension: body,
       req,
     });
   }

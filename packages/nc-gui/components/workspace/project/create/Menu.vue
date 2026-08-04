@@ -48,7 +48,7 @@ onMounted(() => {
       v-e="['c:base:create:scratch']"
       :variant="variant"
       icon="plus"
-      label="From Scratch"
+      :label="$t('title.fromScratch')"
       subtext="Start with an empty base"
       @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)"
     />

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import rfdc from 'rfdc'
-import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
+import { PlanLimitTypes, RelationTypes, UITypes, isColumnInError, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
-const clone = rfdc()
+const { t } = useI18n()
 const { eventBus, isList } = useSmartsheetStoreOrThrow()
+
+const { blockToggleSort, showUpgradeToUseToggleSort } = useEeConfig()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const isListConfigured = computed(
@@ -35,13 +35,19 @@ const showCreateSort = ref(false)
 
 const { appInfo, isMobileMode } = useGlobal()
 
+const { $e } = useNuxtApp()
+
 const { getPlanLimit } = useWorkspace()
 
 const isCalendar = inject(IsCalendarInj, ref(false))
 
 const { isUserViewOwner } = useViewsStore()
 
-const isRestrictedEditor = computed(() => !isPublic.value && (isLocked.value || !canSyncSort.value))
+const { isSharedBase } = storeToRefs(useBase())
+
+// Shared bases never set IsPublicInj (isPublic stays false) but allow local-only
+// sort edits like shared views — they must not be treated as restricted editors.
+const isRestrictedEditor = computed(() => !isPublic.value && !isSharedBase.value && (isLocked.value || !canSyncSort.value))
 
 // True when user is viewing a personal view they don't own
 const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))
@@ -88,24 +94,18 @@ const levelTableColumns = computed(() => {
 })
 
 const columns = computed(() =>
-  clone(levelTableColumns.value).map((c) => {
-    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
+  deepClone(levelTableColumns.value).map((c) => {
+    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt) || isColumnInError(c)
 
     if (isDisabled) {
       c.ncItemDisabled = true
-      c.ncItemTooltip = `Sorting is not supported for ${UITypesName[c.uidt]} field`
+      c.ncItemTooltip = isColumnInError(c)
+        ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
+        : t('tooltip.sortingNotSupportedForField', { type: UITypesName[c.uidt] })
     }
 
     return c
   }),
-)
-
-const columnByID = computed(() =>
-  columns.value.reduce((obj, col) => {
-    obj[col.id!] = col
-
-    return obj
-  }, {} as Record<string, ColumnType>),
 )
 
 const availableColumns = computed(() => {
@@ -133,16 +133,12 @@ const availableColumns = computed(() => {
     .filter((c) => !(displayedSorts.value ?? []).find((s) => s.fk_column_id === c.id))
 })
 
-const getColumnUidtByID = (key?: string) => {
-  return sortGetColumnUidtByID(key, columnByID.value)
-}
-
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
 const addSort = (column: ColumnType) => {
-  _addSort(true, column)
+  _addSort(column)
 
   const createdSort = sorts.value[sorts.value.length - 1]
 
@@ -162,6 +158,60 @@ watch(open, () => {
 })
 
 const getSortIndex = (sort: any) => sorts.value.findIndex((s) => s === sort)
+
+function onToggleSortEnabled(sort: any) {
+  if (blockToggleSort.value) {
+    showUpgradeToUseToggleSort({ triggerSource: 'toolbar-toggle-sort' })
+    return
+  }
+  sort.enabled = sort.enabled === false
+  $e('a:sort:toggle-enabled', { enabled: sort.enabled })
+  saveOrUpdate(sort, getSortIndex(sort))
+}
+
+// Reorder sorts via drag-drop. Reposition ONLY the moved sort with a fractional
+// `order` between its new neighbours (the column is a float) — mirrors table
+// reorder. One sort changes → one sortUpdate → a single undo reverts the whole
+// drag. Renumbering every row 1..N instead would fire N updates → N undo steps.
+async function onSortMove(event: { moved?: { newIndex: number; oldIndex: number } }) {
+  if (!event?.moved) return
+
+  const { newIndex, oldIndex } = event.moved
+  if (newIndex === oldIndex) return
+
+  // Reorder the displayed (possibly level-filtered) subset
+  const reordered = [...displayedSorts.value]
+  const [moved] = reordered.splice(oldIndex, 1)
+  if (!moved) return
+  reordered.splice(newIndex, 0, moved)
+
+  // Place the moved sort between its new neighbours without touching the rest.
+  const prevOrder = reordered[newIndex - 1]?.order
+  const nextOrder = reordered[newIndex + 1]?.order
+  if (prevOrder != null && nextOrder != null) {
+    moved.order = (prevOrder + nextOrder) / 2
+  } else if (prevOrder != null) {
+    moved.order = prevOrder + 1
+  } else if (nextOrder != null) {
+    moved.order = nextOrder / 2
+  } else {
+    moved.order = 1
+  }
+
+  // Reflect the new order in the store array so the list re-renders immediately.
+  // For level-filtered list views, splice the reordered subset back into the
+  // slots occupied by the active level, leaving other levels untouched.
+  if (isList.value && isListConfigured.value && listViewStore?.selectedLevelId.value) {
+    const queue = [...reordered]
+    sorts.value = sorts.value.map((s) => (s.fk_level_id === listViewStore!.selectedLevelId.value ? queue.shift()! : s))
+  } else {
+    sorts.value = reordered
+  }
+
+  $e('a:sort:reorder')
+
+  await saveOrUpdate(moved, getSortIndex(moved))
+}
 
 watch(
   () => view?.value?.id,
@@ -245,124 +295,23 @@ watch(
           data-testid="nc-sorts-menu"
         >
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
-            <template v-if="!isRestrictedEditor">
-              <div
-                v-for="sort of displayedSorts"
-                :key="sort.id || sort.fk_column_id"
-                class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center"
-              >
-                <SmartsheetToolbarFieldListAutoCompleteDropdown
-                  v-model="sort.fk_column_id"
-                  class="flex caption nc-sort-field-select !w-44 flex-grow"
-                  :columns="columns"
-                  is-sort
-                  :meta="meta"
-                  :disabled="false"
-                  @click.stop
-                  @update:model-value="saveOrUpdate(sort, getSortIndex(sort))"
-                />
-
-                <NcSelect
-                  v-model:value="sort.direction"
-                  class="flex flex-grow-1 w-full nc-sort-dir-select"
-                  :label="$t('labels.operation')"
-                  dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
-                  :disabled="false"
-                  @click.stop
-                  @select="saveOrUpdate(sort, getSortIndex(sort))"
-                >
-                  <a-select-option
-                    v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
-                    :key="j"
-                    v-e="['c:sort:operation:select']"
-                    :value="option.value"
-                  >
-                    <div class="w-full flex items-center justify-between gap-2">
-                      <div class="truncate flex-1">{{ option.text }}</div>
-                      <component
-                        :is="iconMap.check"
-                        v-if="sort.direction === option.value"
-                        id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
-                      />
-                    </div>
-                  </a-select-option>
-                </NcSelect>
-
-                <NcTooltip placement="top" title="Remove" class="flex-none">
-                  <NcButton
-                    v-e="['c:sort:delete']"
-                    size="small"
-                    type="secondary"
-                    :shadow="false"
-                    :disabled="false"
-                    class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
-                    @click.stop="deleteSort(sort, getSortIndex(sort))"
-                  >
-                    <component :is="iconMap.deleteListItem" />
-                  </NcButton>
-                </NcTooltip>
-              </div>
-            </template>
-            <template v-else>
-              <!-- Restricted editors (locked / non-owned personal) see the
-                   saved sorts as read-only — the temp/local sort path is
-                   intentionally gone now that editors have direct write
-                   access on collab + own personal views. -->
-              <!-- Existing Sorts (Read Only) -->
-              <div
-                v-for="(sort, i) of displayedExistingSorts"
-                :key="`existing-${i}`"
-                class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center opacity-70"
-              >
-                <SmartsheetToolbarFieldListAutoCompleteDropdown
-                  :model-value="sort.fk_column_id"
-                  class="flex caption nc-sort-field-select !w-44 flex-grow"
-                  :columns="meta.columns || columns"
-                  is-sort
-                  :meta="meta"
-                  disabled
-                  show-all-columns
-                />
-
-                <NcSelect
-                  :value="sort.direction"
-                  class="flex flex-grow-1 w-full nc-sort-dir-select"
-                  :label="$t('labels.operation')"
-                  dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
-                  :disabled="true"
-                >
-                  <a-select-option
-                    v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
-                    :key="j"
-                    :value="option.value"
-                  >
-                    <div class="w-full flex items-center justify-between gap-2">
-                      <div class="truncate flex-1">{{ option.text }}</div>
-                      <component
-                        :is="iconMap.check"
-                        v-if="sort.direction === option.value"
-                        id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
-                      />
-                    </div>
-                  </a-select-option>
-                </NcSelect>
-
-                <NcTooltip placement="top" title="Remove" class="flex-none">
-                  <NcButton
-                    v-e="['c:sort:delete']"
-                    size="small"
-                    type="secondary"
-                    :shadow="false"
-                    :disabled="true"
-                    class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
-                  >
-                    <component :is="iconMap.deleteListItem" />
-                  </NcButton>
-                </NcTooltip>
-              </div>
-            </template>
+            <!-- Shared, presentational sort rows. Restricted editors (locked /
+                 non-owned personal) get the saved sorts read-only; the temp/local
+                 sort path is intentionally gone now that editors have direct write
+                 access on collab + own personal views. -->
+            <SmartsheetSortList
+              :sorts="isRestrictedEditor ? displayedExistingSorts : displayedSorts"
+              :columns="columns"
+              :meta="meta"
+              :read-only="isRestrictedEditor"
+              :draggable="appInfo.ee && !isPublic"
+              :show-enable-toggle="appInfo.ee && !isPublic"
+              :disabled="isLocked"
+              @save-or-update="saveOrUpdate($event, getSortIndex($event))"
+              @delete="deleteSort($event, getSortIndex($event))"
+              @toggle-enabled="onToggleSortEnabled($event)"
+              @move="onSortMove($event)"
+            />
           </div>
 
           <div v-if="!isRestrictedEditor" class="flex items-center justify-between empty:hidden pr-4 mt-1 mb-2">
@@ -481,6 +430,13 @@ watch(
 :deep(.nc-sort-dir-select) {
   .ant-select-selector {
     @apply !rounded-none !border-nc-border-gray-medium !shadow-none;
+  }
+}
+
+.nc-sort-disabled-row {
+  .nc-sort-field-select,
+  .nc-sort-dir-select {
+    @apply opacity-40 pointer-events-none;
   }
 }
 </style>

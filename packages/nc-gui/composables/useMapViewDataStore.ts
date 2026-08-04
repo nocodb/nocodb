@@ -26,11 +26,15 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const formattedData = ref<Row[]>([])
 
+    const { t } = useI18n()
+
     const { api } = useApi()
 
     const { base } = storeToRefs(useBase())
 
     const { $api } = useNuxtApp()
+
+    const { internalGet } = useInternalBatch()
 
     const { isUIAllowed } = useRoles()
 
@@ -65,7 +69,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
       mapMetaData.value = isPublic.value
         ? (sharedView.value?.view as MapType)
-        : await $api.internal.getOperation(viewMeta.value.fk_workspace_id!, viewMeta.value.base_id!, {
+        : await internalGet(viewMeta.value.fk_workspace_id!, viewMeta.value.base_id!, {
             operation: 'mapViewGet',
             mapViewId: viewMeta.value.id,
           })
@@ -114,6 +118,12 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       const row = currentRow.row
       if (currentRow.rowMeta) currentRow.rowMeta.saving = true
       try {
+        // Table meta can be transiently undefined (e.g. cleared during navigation/teardown
+        // while a deferred save fires) — bail gracefully instead of firing a doomed create.
+        if (!(metaValue as TableType)?.columns) {
+          return
+        }
+
         const { missingRequiredColumns, insertObj } = await populateInsertObject({
           meta: metaValue as TableType,
           ltarState,
@@ -121,7 +131,28 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
           row,
         })
 
-        if (missingRequiredColumns.size) return
+        if (missingRequiredColumns.size) {
+          const missingFields = [...missingRequiredColumns].filter((f): f is string => typeof f === 'string')
+          if (currentRow.rowMeta) {
+            currentRow.rowMeta.saveError = {
+              reason: 'missingRequired',
+              missingFields,
+            }
+          }
+          // Map view has no inline ⚠️ marker (the canvas-only saveError
+          // glyph lives in useCanvasRender), so the toast is the only
+          // user-visible feedback. This path is one-shot per submit; if
+          // it ever gets wired into a retry loop, de-dup against the
+          // previous saveError to avoid the spam useInfiniteData was
+          // refactored around.
+          const fieldList = missingFields.join(', ')
+          message.error(
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: fieldList })
+              : t('msg.error.requiredFieldsMissing', { fields: fieldList }),
+          )
+          return
+        }
 
         const insertedData = await $api.dbViewRow.create(
           NOCO,

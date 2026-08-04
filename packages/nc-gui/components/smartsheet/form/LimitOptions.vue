@@ -234,10 +234,10 @@ const showOrHideAll = (showAll: boolean) => {
           :key="element.id"
           class="w-full h-10 px-2 py-1.5 flex flex-row items-center gap-3 border-b-1 last:border-none border-nc-border-gray-medium"
           :class="[
-            `nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`,
+            `nc-form-field-${toSafeClassName(column.title)}-limit-option-${toSafeClassName(element.title)}`,
             `${element.show ? 'hover:bg-nc-bg-gray-extralight' : 'bg-nc-bg-gray-light'}`,
           ]"
-          :data-testid="`nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`"
+          :data-testid="`nc-form-field-${toSafeClassName(column.title)}-limit-option-${toSafeClassName(element.title)}`"
         >
           <component
             :is="iconMap.drag"
@@ -281,7 +281,7 @@ const showOrHideAll = (showAll: boolean) => {
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
-                  {{ element.display_name?.trim() || element?.email }}
+                  {{ extractUserDisplayNameOrEmail(element) }}
                 </template>
                 <span
                   class="text-ellipsis overflow-hidden"
@@ -291,7 +291,7 @@ const showOrHideAll = (showAll: boolean) => {
                     display: 'inline',
                   }"
                 >
-                  {{ element.display_name?.trim() || element?.email }}
+                  {{ extractUserDisplayNameOrEmail(element) }}
                 </span>
               </NcTooltip>
             </span>
@@ -342,7 +342,7 @@ const showOrHideAll = (showAll: boolean) => {
         #footer
       >
         <div class="px-0.5 py-2 text-nc-content-gray-muted text-center">
-          {{ $t('title.noOptionsFound') }} with title `{{ searchQuery }}`
+          {{ $t('msg.info.noOptionsFoundWithTitle', { searchQuery }) }}
         </div>
       </template>
     </Draggable>

@@ -20,8 +20,12 @@ export const OPERATION_SCOPES = {
   oAuthClientRegenerateSecret: 'org',
   checkDependency: 'base',
 
+  // Attachment Operations
+  attachmentDownload: 'base',
+
   // UI Get Operations
   tableGet: 'base',
+  refTableGet: 'base',
   columnsHash: 'base',
   viewList: 'base',
   viewColumnList: 'base',
@@ -29,6 +33,7 @@ export const OPERATION_SCOPES = {
   filterList: 'base',
   filterChildrenList: 'base',
   sortList: 'base',
+  lookupSortList: 'base',
   hookList: 'base',
   hookRead: 'base',
   hookLogList: 'base',
@@ -62,8 +67,10 @@ export const OPERATION_SCOPES = {
   showAllColumns: 'base',
   hideAllColumns: 'base',
   viewColumnUpdate: 'base',
+  viewColumnsBulkSetVisibility: 'base',
   gridColumnUpdate: 'base',
   timelineColumnUpdate: 'base',
+  ganttColumnUpdate: 'base',
   listColumnUpdate: 'base',
   viewColumnCreate: 'base',
   viewRowColorConditionAdd: 'base',
@@ -74,9 +81,11 @@ export const OPERATION_SCOPES = {
   filterCreate: 'base',
   filterUpdate: 'base',
   filterDelete: 'base',
+  filterBulkLogicalOpUpdate: 'base',
   sortCreate: 'base',
   sortUpdate: 'base',
   sortDelete: 'base',
+  lookupSortCreate: 'base',
   hookCreate: 'base',
   hookUpdate: 'base',
   hookDelete: 'base',
@@ -91,14 +100,17 @@ export const OPERATION_SCOPES = {
   mapViewCreate: 'base',
   calendarViewCreate: 'base',
   timelineViewCreate: 'base',
+  ganttViewCreate: 'base',
   gridViewUpdate: 'base',
   formViewUpdate: 'base',
   formColumnUpdate: 'base',
+  formColumnBulkUpdate: 'base',
   galleryViewUpdate: 'base',
   kanbanViewUpdate: 'base',
   mapViewUpdate: 'base',
   calendarViewUpdate: 'base',
   timelineViewUpdate: 'base',
+  ganttViewUpdate: 'base',
   widgetFilterCreate: 'base',
   linkFilterCreate: 'base',
   rowColorConditionsFilterCreate: 'base',
@@ -107,6 +119,7 @@ export const OPERATION_SCOPES = {
   nestedDataList: 'base',
   nestedDataLink: 'base',
   nestedDataUnlink: 'base',
+  nestedDataReorder: 'base',
   nestedDataListCopyPasteOrDeleteAll: 'base',
   nestedDataBulkCopyPasteOrDeleteAll: 'base',
   nestedDataBulkLinkByDisplayValue: 'base',
@@ -125,6 +138,7 @@ export const OPERATION_SCOPES = {
   dataUpdate: 'base',
   dataDelete: 'base',
   dataDeleteAll: 'base',
+  dataMove: 'base',
   bulkDataDeleteAll: 'base',
 
   // AT Import
@@ -157,12 +171,20 @@ export const OPERATION_SCOPES = {
   managedAppDeployments: 'base',
   managedAppVersionDeployments: 'base',
   managedAppDeploymentLogs: 'base',
+  managedAppManualUpdate: 'base',
 
   // List View
   listViewDataList: 'base',
   listViewDataCount: 'base',
   listViewCreate: 'base',
   listViewUpdate: 'base',
+
+  // Data Import
+  dataImportPreview: 'base',
+  dataImportFile: 'base',
+
+  // Web Bookmark (doc editor)
+  webBookmarkFetch: 'base',
 
   // LTAR V2 conversion
   convertLinkToV2: 'base',
@@ -179,4 +201,11 @@ export const OPERATION_SCOPES = {
   // Workspace integration link management
   integrationLinkedBaseList: 'workspace',
   integrationUpdateLinkedBases: 'workspace',
+
+  // Generic batch envelope — bundles multiple internal-API operations into
+  // a single request. Each sub-op re-enters checkAcl with its own operation
+  // name, so authorization is enforced per sub-op rather than at the
+  // envelope level. The envelope itself is base-scoped so it inherits the
+  // same workspace/base context resolution as the sub-ops it carries.
+  batch: 'base',
 } as const;

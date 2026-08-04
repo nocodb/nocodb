@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseType, TableType } from 'nocodb-sdk'
+import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import TableNode from './Node.vue'
 
@@ -21,7 +21,17 @@ const emits = defineEmits(['createTable'])
 const base = toRef(props, 'base')
 const sourceIndex = toRef(props, 'sourceIndex')
 
-const source = computed(() => base.value?.sources?.[sourceIndex.value])
+const source = computed(
+  () =>
+    base.value?.sources?.[sourceIndex.value] as SourceType & {
+      meta?: Record<string, any>
+    },
+)
+
+// Rendered per-source — expose it to descendant menus (e.g. ViewActionMenu's data-readonly
+// upload check via useRoles). The sidebar sits outside Smartsheet.vue, which is where
+// ActiveSourceInj is otherwise provided.
+provide(ActiveSourceInj, source)
 
 const { isMobileMode } = useGlobal()
 

@@ -54,10 +54,6 @@ const key = ref(0)
 
 const wrapper = ref()
 
-const { dashboardUrl } = useDashboard()
-
-const { copy } = useCopy()
-
 const { appInfo, isMobileMode } = useGlobal()
 
 const { t } = useI18n()
@@ -75,16 +71,12 @@ watch(
   },
 )
 
-const route = useRoute()
-
 const router = useRouter()
 
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
 
 const isUnsavedDuplicatedRecordExist = ref(false)
-
-const isRecordLinkCopied = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -98,8 +90,6 @@ const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
-
 const { withLoading } = useLoadingTrigger()
 
 // override cell click hook to avoid unexpected behavior at form fields
@@ -108,6 +98,11 @@ provide(CellClickHookInj, undefined)
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+// Shared bases never set IsPublicInj (isPublic stays false). Discussion mode
+// interleaves comments + audits, and audit is blocked in shared bases — so it
+// must be treated like a public view here.
+const { isSharedBase } = storeToRefs(useBase())
 
 provide(MetaInj, activeMeta)
 
@@ -133,8 +128,6 @@ provide(CanvasSelectCellInj, undefined)
 
 const isLoading = ref(true)
 
-const isSaving = ref(false)
-
 // Template mode: editable template name in the header
 const editableTemplateName = ref(props.templateName || '')
 
@@ -157,15 +150,18 @@ const expandedFormStore = useProvideExpandedFormStore(
 const {
   commentsDrawer,
   changedColumns,
-  deleteRowById,
+  hasLtarChanges,
+  pendingLtarOps,
   displayValue,
   state: rowState,
   isNew,
+  isSaving,
   loadRow: _loadRow,
   primaryKey,
   row: _row,
   comments,
   save: _save,
+  formatSaveError,
   loadComments,
   loadAudits,
   clearColumns,
@@ -209,10 +205,15 @@ const onTemplateTableChange = async (tableId: string) => {
   }
 }
 
-const activeViewMode = ref(
+const persistedViewMode =
   !isPublic.value && appInfo.value.ee && !isNew.value && !isMobileMode.value
     ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD
-    : ExpandedFormMode.FIELD,
+    : ExpandedFormMode.FIELD
+
+// Discussion mode is hidden in shared bases (it interleaves blocked audit) —
+// fall back to Fields there, but keep other modes like Attachment.
+const activeViewMode = ref(
+  isSharedBase.value && persistedViewMode === ExpandedFormMode.DISCUSSION ? ExpandedFormMode.FIELD : persistedViewMode,
 )
 
 watch(activeViewMode, async (v) => {
@@ -259,8 +260,6 @@ onBeforeUnmount(() => {
   reloadViewDataTrigger.off(reloadViewDataListener)
 })
 
-const duplicatingRowInProgress = ref(false)
-
 const { isSqlView } = useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
 // Mobile: toggle between Fields and Discussion (Comments/Activity) view
@@ -275,6 +274,7 @@ const showMobileDiscussionToggle = computed(() => {
     commentsDrawer.value &&
     isUIAllowed('commentList', baseRoles.value) &&
     !isPublic.value &&
+    !isSharedBase.value &&
     !isSqlView.value
   )
 })
@@ -297,11 +297,13 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
 })
 
-// check if the row is new and has some changes on LTAR/Links
-// this is to enable save if there are changes on LTAR/Links
-const isLTARChanged = computed(() => {
-  return isNew.value && row.value?.rowMeta?.ltarState && Object.keys(row.value?.rowMeta?.ltarState).length > 0
-})
+// Enable save when there are buffered LTAR/Links changes — for both new rows
+// (links persisted on create) and existing rows edited in the form (#14013).
+const isLTARChanged = computed(() => hasLtarChanges.value)
+
+// Buffered, not-yet-saved changes — regular fields or relational (LTAR/Links) fields.
+// Drives the close/next/prev "unsaved changes" guards.
+const hasUnsavedChanges = computed(() => changedColumns.value.size > 0 || isLTARChanged.value)
 
 const isSaveRecordBtnDisabled = computed(() => {
   // In template mode, disable if duplicate name
@@ -316,7 +318,7 @@ const onClose = (force = false) => {
     isExpanded.value = false
   } else if (!isUIAllowed('dataEdit', baseRoles.value)) {
     isExpanded.value = false
-  } else if (changedColumns.value.size > 0) {
+  } else if (hasUnsavedChanges.value) {
     isCloseModalOpen.value = true
   } else {
     if (_row.value?.rowMeta?.new) emits('cancel')
@@ -324,27 +326,17 @@ const onClose = (force = false) => {
   }
 }
 
-const onDuplicateRow = () => {
-  if (showRecordPlanLimitExceededModal()) return
-
-  duplicatingRowInProgress.value = true
+// MoreOptionsMenu fires this when the user clicks Duplicate. The menu handles the row
+// rewrite itself; we only need to flip the unsaved-form flags so save() takes the
+// duplicate-aware path on next save.
+const onDuplicateStart = () => {
   isUnsavedFormExist.value = true
   isUnsavedDuplicatedRecordExist.value = true
-  const oldRow = { ..._row.value.row }
-  delete oldRow.ncRecordId
-  const newRow = Object.assign(
-    {},
-    {
-      row: oldRow,
-      oldRow: {},
-      rowMeta: { new: true },
-    },
-  )
-  setTimeout(async () => {
-    _row.value = newRow
-    duplicatingRowInProgress.value = false
-    message.toast(t('msg.success.rowDuplicatedWithoutSavedYet'))
-  }, 500)
+  // If the user was sitting on Attachments / Discussion when they hit Duplicate,
+  // the duplicated row is invisible (those tabs don't expose the form) and only
+  // the Save button is reachable. Force them back to Fields so they can edit
+  // before saving.
+  activeViewMode.value = ExpandedFormMode.FIELD
 }
 
 const save = async () => {
@@ -354,12 +346,12 @@ const save = async () => {
     // Template mode: emit row data without creating a real record
     if (props.templateMode) {
       if (!editableTemplateName.value.trim()) {
-        message.toast('Template name is required')
+        message.toast(t('msg.error.templateNameRequired'))
         isSaving.value = false
         return
       }
       if (isDuplicateTemplateName.value) {
-        message.toast('A template with this name already exists')
+        message.toast(t('msg.error.templateNameExistsSimple'))
         isSaving.value = false
         return
       }
@@ -400,13 +392,9 @@ const save = async () => {
     }
 
     if (isNew.value) {
-      await _save(rowState.value, undefined, {
-        kanbanClbk,
-      })
+      await _save(rowState.value, { kanbanClbk })
     } else {
-      await _save(undefined, undefined, {
-        kanbanClbk,
-      })
+      await _save(undefined, { kanbanClbk })
       await _loadRow()
     }
 
@@ -419,7 +407,7 @@ const save = async () => {
 
     // Close expanded form if row is hidden by RLS policy
     if (_row.value?.row?.__nc_rls_hidden) {
-      message.info('Record saved successfully but is hidden due to your access permissions.')
+      message.info(t('msg.info.recordSavedButHidden'))
       isExpanded.value = false
     } else if (props.closeAfterSave) {
       isExpanded.value = false
@@ -438,11 +426,7 @@ const save = async () => {
 
     emits('createdRecord', _row.value.row)
   } catch (e: any) {
-    if (isNew.value) {
-      message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
-    } else {
-      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-    }
+    message.error(await formatSaveError(e))
   }
 
   isSaving.value = false
@@ -451,6 +435,16 @@ const save = async () => {
 const isPreventChangeModalOpen = ref(false)
 const isCloseModalOpen = ref(false)
 const interruptedDirectionToGo = ref<'next' | 'prev' | undefined>(undefined)
+
+// Drop buffered link/unlink changes so they don't leak to the next record or a re-open.
+const clearLtarBuffers = () => {
+  // New-row buffered links live on rowMeta; existing-row deferred edits live in the
+  // pendingLtarOps queue (#14058). Drop both so a discarded edit can't leak.
+  if (_row.value?.rowMeta) {
+    _row.value.rowMeta.ltarState = {}
+  }
+  pendingLtarOps.value = []
+}
 
 const discardPreventModal = () => {
   // when user click on next or previous button
@@ -467,10 +461,11 @@ const discardPreventModal = () => {
   }
   // clearing all new modifed change on close
   clearColumns()
+  clearLtarBuffers()
 }
 
 const onNext = async () => {
-  if (changedColumns.value.size > 0) {
+  if (hasUnsavedChanges.value) {
     isPreventChangeModalOpen.value = true
     interruptedDirectionToGo.value = 'next'
     return
@@ -479,26 +474,12 @@ const onNext = async () => {
 }
 
 const onPrev = async () => {
-  if (changedColumns.value.size > 0) {
+  if (hasUnsavedChanges.value) {
     isPreventChangeModalOpen.value = true
     interruptedDirectionToGo.value = 'prev'
     return
   }
   loadingEmit('prev')
-}
-
-const copyRecordUrl = async () => {
-  const url = `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
-    props.view ? `/${props.view.id}` : ''
-  }?rowId=${primaryKey.value}${route.query?.path ? `&path=${route.query?.path}` : ''}`
-
-  await copy(encodeURI(url))
-
-  isRecordLinkCopied.value = true
-
-  await ncDelay(5000)
-
-  isRecordLinkCopied.value = false
 }
 
 const saveChanges = async () => {
@@ -541,6 +522,7 @@ if (isKanban.value) {
         changedColumns.value.add(k)
       }
     }
+    triggerRef(changedColumns)
   }
 }
 provide(IsExpandedFormOpenInj, isExpanded)
@@ -553,7 +535,6 @@ const triggerRowLoad = async (rowId?: string) => {
 const cellWrapperEl = ref()
 
 onMounted(async () => {
-  isRecordLinkCopied.value = false
   isLoading.value = true
 
   const focusFirstCell = !isExpandedFormCommentMode.value
@@ -656,11 +637,7 @@ useActiveKeydownListener(
           reloadHook?.trigger(null)
         }
       } catch (e: any) {
-        if (isNew.value) {
-          message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
-        } else {
-          message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-        }
+        message.error(await formatSaveError(e))
       }
       // on alt + n create new record
     } else if (e.code === 'KeyN') {
@@ -683,7 +660,7 @@ useActiveKeydownListener(
         })
       } else if (isNew.value) {
         Modal.confirm({
-          title: 'Do you want to save the record?',
+          title: t('msg.doYouWantToSaveTheRecord'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),
           onOk: async () => {
@@ -707,23 +684,11 @@ useActiveKeydownListener(
   { immediate: true, isGridCell: false },
 )
 
-const showDeleteRowModal = ref(false)
-
-const onDeleteRowClick = () => {
-  showDeleteRowModal.value = true
-}
-
-const onConfirmDeleteRowClick = async () => {
-  await deleteRowById(primaryKey.value || undefined)
-
+// MoreOptionsMenu handles the delete confirm + API + view reload itself; we just
+// emit deletedRecord and force-close the modal afterward.
+const onAfterDelete = () => {
   emits('deletedRecord')
-  showDeleteRowModal.value = false
   onClose(true)
-
-  await reloadViewDataTrigger.trigger({
-    shouldShowLoading: false,
-    skipLoadingRowId: primaryKey.value || undefined,
-  })
 }
 
 watch(rowId, async (nRow) => {
@@ -734,6 +699,15 @@ watch(rowId, async (nRow) => {
 const preventModalStatus = computed({
   get: () => isCloseModalOpen.value || isPreventChangeModalOpen.value,
   set: (v) => {
+    // Dismiss (X / Escape / overlay) — cancel whichever action triggered the
+    // prompt and stay on the current dirty row. Reset both sources and the
+    // pending navigation direction so a later prompt doesn't reuse stale state.
+    if (!v) {
+      isCloseModalOpen.value = false
+      isPreventChangeModalOpen.value = false
+      interruptedDirectionToGo.value = undefined
+      return
+    }
     isCloseModalOpen.value = v
   },
 })
@@ -746,7 +720,7 @@ const onIsExpandedUpdate = (v: boolean) => {
 
   if (isDropdownOpen) return
 
-  if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
+  if (changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value) {
     isExpanded.value = v
     if (isKanban.value) {
       emits('cancel')
@@ -874,39 +848,6 @@ function onTouchEnd() {
   }
 }
 
-const showSendRecordModal = ref(false)
-
-const visibleMoreOptions = computed(() => {
-  // In template/blueprint mode, hide all extra options
-  if (props.templateMode || props.blueprintMode) {
-    return {
-      reloadRecord: false,
-      copyRecordUrl: false,
-      sendRecord: false,
-      duplicateRecord: false,
-      deleteRecord: false,
-      showDeleteDivider: false,
-      showMoreOptionsMenu: false,
-      allHiddenExceptCopyRecordUrl: true,
-    }
-  }
-  const result = {
-    reloadRecord: !isEeUI,
-    copyRecordUrl: !isNew.value && !!rowId.value,
-    sendRecord: appInfo.value.ee && !isNew.value && !!rowId.value && !isPublic.value,
-    duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
-    deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
-  }
-  const hasItemsAboveDelete = Object.entries(result).some(([key, value]) => key !== 'deleteRecord' && value)
-
-  return {
-    ...result,
-    showDeleteDivider: result.deleteRecord && hasItemsAboveDelete,
-    showMoreOptionsMenu: hasItemsAboveDelete || result.deleteRecord,
-    allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
-  }
-})
-
 defineExpose({
   stopLoading,
 })
@@ -938,7 +879,7 @@ export default {
     v-bind="modalProps"
     @update:visible="onIsExpandedUpdate"
   >
-    <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
+    <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col" data-testid="nc-expanded-form-modal">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
         <div
           class="flex-none h-full flex items-center justify-center cursor-pointer"
@@ -960,6 +901,7 @@ export default {
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
+                data-testid="nc-expanded-form-prev"
                 type="text"
                 size="xsmall"
                 @click="onPrev"
@@ -972,6 +914,7 @@ export default {
               <NcButton
                 :disabled="isLastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
+                data-testid="nc-expanded-form-next"
                 type="text"
                 size="xsmall"
                 @click="onNext"
@@ -1012,10 +955,10 @@ export default {
                 v-model="editableTemplateName"
                 class="bg-transparent border-none outline-none font-bold text-xl w-full placeholder-gray-300"
                 :class="isDuplicateTemplateName ? 'text-red-500' : 'text-nc-content-gray'"
-                placeholder="Enter template name..."
+                :placeholder="$t('placeholder.enterTemplateName')"
               />
               <span v-if="isDuplicateTemplateName" class="text-red-500 text-[11px] pl-0.5">
-                A template with this name already exists
+                {{ $t('msg.error.templateNameExistsSimple') }}
               </span>
             </div>
             <div v-else-if="row.rowMeta?.new || props.newRecordHeader" class="flex flex-col truncate overflow-hidden">
@@ -1085,157 +1028,16 @@ export default {
               </NcButton>
             </template>
           </PermissionsTooltip>
-          <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode" class="!<lg:hidden">
-            <template #title> {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }} </template>
-            <NcButton
-              :disabled="isLoading"
-              class="text-nc-content-inverted-secondary !h-7 !w-7"
-              type="text"
-              size="xsmall"
-              @click="copyRecordUrl()"
-            >
-              <div
-                v-e="['c:row-expand:copy-url']"
-                data-testid="nc-expanded-form-copy-url"
-                class="flex items-center relative h-4 w-4"
-              >
-                <Transition name="icon-fade" :duration="200">
-                  <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
-                  <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
-                </Transition>
-              </div>
-            </NcButton>
-          </NcTooltip>
-          <NcDropdown
-            v-if="visibleMoreOptions.showMoreOptionsMenu"
-            placement="bottomRight"
-            :class="{
-              '!lg:hidden': visibleMoreOptions.allHiddenExceptCopyRecordUrl,
-            }"
-          >
-            <NcButton
-              :type="isMobileMode ? 'secondary' : 'text'"
-              size="xsmall"
-              class="nc-expand-form-more-actions !w-7 !h-7"
-              :class="{
-                '!lg:hidden': visibleMoreOptions.allHiddenExceptCopyRecordUrl,
-              }"
-              :disabled="isLoading"
-            >
-              <GeneralIcon
-                icon="threeDotVertical"
-                class="text-md"
-                :class="isLoading ? 'text-nc-content-brand-hover' : 'text-nc-content-inverted-secondary'"
-              />
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem v-if="visibleMoreOptions.reloadRecord" @click="_loadRow()">
-                  <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
-                    <component :is="iconMap.reload" class="cursor-pointer" />
-                    {{ $t('general.reload') }} {{ $t('objects.record') }}
-                  </div>
-                </NcMenuItem>
-                <NcMenuItem
-                  v-if="visibleMoreOptions.copyRecordUrl"
-                  type="secondary"
-                  class="!lg:hidden"
-                  :disabled="isLoading"
-                  @click="copyRecordUrl()"
-                >
-                  <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
-                    <component :is="iconMap.copy" class="cursor-pointer" />
-                    {{ $t('labels.copyRecordURL') }}
-                  </div>
-                </NcMenuItem>
-                <NcMenuItem v-if="visibleMoreOptions.sendRecord" :disabled="isLoading" @click="showSendRecordModal = true">
-                  <div
-                    v-e="['c:row-expand:send-record']"
-                    data-testid="nc-expanded-form-send-record"
-                    class="flex gap-2 items-center"
-                  >
-                    <GeneralIcon icon="mail" class="cursor-pointer" />
-                    {{ $t('activity.sendRecord') }}
-                  </div>
-                </NcMenuItem>
-                <NcTooltip v-if="visibleMoreOptions.duplicateRecord && meta?.synced" placement="left">
-                  <template #title>
-                    {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}
-                  </template>
-                  <NcMenuItem disabled>
-                    <div class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
-                      <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
-                      <span class="-ml-0.25">
-                        {{ $t('labels.duplicateRecord') }}
-                      </span>
-                    </div>
-                  </NcMenuItem>
-                </NcTooltip>
-                <PermissionsTooltip
-                  v-else-if="visibleMoreOptions.duplicateRecord"
-                  :entity="PermissionEntity.TABLE"
-                  :entity-id="meta?.id"
-                  :permission="PermissionKey.TABLE_RECORD_ADD"
-                  placement="right"
-                >
-                  <template #default="{ isAllowed }">
-                    <NcMenuItem :disabled="!isAllowed" @click="!isNew ? onDuplicateRow() : () => {}">
-                      <div
-                        v-e="['c:row-expand:duplicate']"
-                        class="flex gap-2 items-center"
-                        data-testid="nc-expanded-form-duplicate"
-                      >
-                        <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
-                        <span class="-ml-0.25">
-                          {{ $t('labels.duplicateRecord') }}
-                        </span>
-                      </div>
-                    </NcMenuItem>
-                  </template>
-                </PermissionsTooltip>
-                <NcDivider v-if="visibleMoreOptions.showDeleteDivider" />
-                <NcTooltip v-if="visibleMoreOptions.deleteRecord && meta?.synced" placement="left">
-                  <template #title>
-                    {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
-                  </template>
-                  <NcMenuItem danger disabled>
-                    <div class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
-                      <GeneralIcon icon="delete" class="cursor-pointer nc-delete-row" />
-                      <span class="-ml-0.25">
-                        {{
-                          $t('general.deleteEntity', {
-                            entity: $t('objects.record').toLowerCase(),
-                          })
-                        }}
-                      </span>
-                    </div>
-                  </NcMenuItem>
-                </NcTooltip>
-                <PermissionsTooltip
-                  v-else-if="visibleMoreOptions.deleteRecord"
-                  :entity="PermissionEntity.TABLE"
-                  :entity-id="meta?.id"
-                  :permission="PermissionKey.TABLE_RECORD_DELETE"
-                  placement="right"
-                >
-                  <template #default="{ isAllowed }">
-                    <NcMenuItem danger :disabled="!isAllowed" @click="!isNew && onDeleteRowClick()">
-                      <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
-                        <GeneralIcon icon="delete" class="cursor-pointer nc-delete-row" />
-                        <span class="-ml-0.25">
-                          {{
-                            $t('general.deleteEntity', {
-                              entity: $t('objects.record').toLowerCase(),
-                            })
-                          }}
-                        </span>
-                      </div>
-                    </NcMenuItem>
-                  </template>
-                </PermissionsTooltip>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+          <SmartsheetExpandedFormMoreOptionsMenu
+            :is-loading="isLoading"
+            :template-mode="props.templateMode"
+            :blueprint-mode="props.blueprintMode"
+            :view="props.view"
+            :row-id="rowId"
+            @duplicate-start="onDuplicateStart"
+            @after-delete="onAfterDelete"
+            @request-close="onClose(true)"
+          />
 
           <NcButton
             v-if="!isMobileMode"
@@ -1249,7 +1051,7 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
+      <div ref="wrapper" class="flex-grow w-full min-h-0">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <div v-if="isMobileMode && mobileDiscussionMode && showMobileDiscussionToggle" class="h-full">
             <SmartsheetExpandedFormSidebar />
@@ -1280,8 +1082,6 @@ export default {
             :is-loading="isLoading"
             :is-saving="isSaving"
             :new-record-submit-btn-text="newRecordSubmitBtnText"
-            @copy-record-url="copyRecordUrl()"
-            @delete-row="onDeleteRowClick()"
             @save="save()"
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"
@@ -1297,50 +1097,17 @@ export default {
         class="nc-expanded-form-template-notice flex items-center justify-center gap-2 px-4 py-1.5 border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-nc-content-gray-muted text-[11px] flex-shrink-0"
       >
         <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5" />
-        <span v-if="templateMode">You are editing a record template. Changes here define default values for new records.</span>
-        <span v-else>You are editing a sub-record. A new record will be created and linked each time the template is used.</span>
+        <span v-if="templateMode">{{ $t('msg.info.editingRecordTemplate') }}</span>
+        <span v-else>{{ $t('msg.info.editingSubRecord') }}</span>
       </div>
     </div>
   </component>
 
-  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="onConfirmDeleteRowClick">
-    <template #entity-preview>
-      <span>
-        <div
-          class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary"
-        >
-          <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
-            <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
-          </div>
-        </div>
-      </span>
-    </template>
-  </GeneralDeleteModal>
-
-  <!-- Prevent unsaved change modal -->
-  <NcModal v-model:visible="preventModalStatus" size="small">
-    <div class="">
-      <div class="flex flex-row items-center gap-x-2 text-base font-bold">
-        {{ $t('tooltip.saveChanges') }}
-      </div>
-      <div class="flex font-medium mt-2">
-        {{ $t('activity.doYouWantToSaveTheChanges') }}
-      </div>
-      <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
-
-        <NcButton key="submit" type="primary" size="small" :loading="isSaving" @click="saveChanges">
-          {{ $t('tooltip.saveChanges') }}
-        </NcButton>
-      </div>
-    </div>
-  </NcModal>
-  <DlgSendRecordEmail
-    v-if="visibleMoreOptions.sendRecord && primaryKey"
-    v-model="showSendRecordModal"
-    :meta="meta"
-    :view="view"
-    :row-id="primaryKey"
+  <SmartsheetExpandedFormDiscardChangesModal
+    v-model="preventModalStatus"
+    :loading="isSaving"
+    @discard="discardPreventModal"
+    @save-and-continue="saveChanges"
   />
 </template>
 
@@ -1366,20 +1133,28 @@ export default {
 }
 
 .nc-expanded-cell-header {
-  @apply w-full text-nc-content-gray-muted !font-weight-500 !text-sm xs:(text-nc-content-gray-subtle2 mb-2 !text-small) pr-3;
+  @apply w-full text-nc-content-gray-muted !font-weight-500 xs:(text-nc-content-gray-subtle2 mb-2 !text-small) pr-3;
+  font-size: 13px !important;
 
   svg.nc-cell-icon,
   svg.nc-virtual-cell-icon {
     @apply !w-3.5 !h-3.5;
   }
+
+  .nc-cell-name-wrapper,
+  .nc-cell-name-wrapper span,
+  .nc-cell-name-wrapper .truncate {
+    font-size: 13px !important;
+  }
 }
 
 .nc-expanded-cell-header > :nth-child(2) {
-  @apply !text-sm xs:!text-small;
+  font-size: 13px !important;
 }
 
 .nc-expanded-cell-header > :first-child {
-  @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
+  font-size: 13px !important;
+  @apply pl-2 xs:(pl-0 -ml-0.5);
 }
 
 .nc-expanded-cell-header:not(.nc-cell-expanded-form-header) > :first-child {
@@ -1388,5 +1163,15 @@ export default {
 
 .nc-drawer-expanded-form .nc-modal {
   @apply !p-0;
+}
+
+.nc-drawer-expanded-form .nc-data-cell .nc-cell .nc-cell-field,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell .nc-cell-field-link,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell input,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell textarea,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell select,
+.nc-drawer-expanded-form .nc-data-cell .nc-virtual-cell .nc-cell-field,
+.nc-drawer-expanded-form .nc-data-cell .nc-virtual-cell input {
+  font-size: 13px !important;
 }
 </style>

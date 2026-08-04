@@ -98,6 +98,8 @@ export class ThumbnailGeneratorProcessor {
     let relativePath;
 
     if (attachment.path) {
+      // For scoped uploads, `attachment.path` already starts with the scope
+      // (after `download/`) — see attachments.service. Don't re-prefix.
       relativePath = path.join(
         'nc',
         scope ? '' : 'uploads',

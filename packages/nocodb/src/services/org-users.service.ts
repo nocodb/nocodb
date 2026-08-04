@@ -32,6 +32,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class OrgUsersService {
@@ -238,7 +239,7 @@ export class OrgUsersService {
     const emails = (param.user.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     // check for invalid emails
@@ -251,10 +252,10 @@ export class OrgUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const invite_token = uuidv4();
     const error = [];
 
     for (const email of emails) {
+      const invite_token = uuidv4();
       // add user to base if user already exist
       let user = await User.getByCanonicalEmail(email);
 
@@ -333,7 +334,7 @@ export class OrgUsersService {
         msg: 'success',
       };
     } else {
-      return { invite_token, emails, error };
+      return { msg: 'success', emails, error };
     }
   }
 

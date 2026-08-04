@@ -22,6 +22,52 @@ import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { isReplay } from '~/helpers/replayScope';
+
+/**
+ * Link flat filter rows into root filters with their `children` populated.
+ *
+ * No depth cap on purpose. A cap would silently drop the conditions below it,
+ * and for RLS a dropped condition is not a narrower filter — an unpopulated
+ * `children` makes `getChildren()` fall through and reload the raw rows from
+ * cache, undoing any substitution already applied to them. Truncating here
+ * fails *open*.
+ *
+ * It also isn't needed: every row has exactly one `fk_parent_id` and the walk
+ * starts only at rows that have none, so each row is reached at most once, via
+ * its single parent. Rows in a `fk_parent_id` cycle have no root in their
+ * component and are therefore never reached at all — the traversal can't
+ * revisit a node, let alone loop.
+ *
+ * Exported for tests; `rootFilterTreeByRlsPolicy` is the real entry point.
+ */
+export function linkFilterRowsIntoTree<
+  T extends { id?: string; fk_parent_id?: string; children?: T[] },
+>(rows: T[]): T[] {
+  const roots: T[] = [];
+  const childrenByParent = new Map<string, T[]>();
+
+  for (const row of rows ?? []) {
+    if (!row.fk_parent_id) {
+      roots.push(row);
+      continue;
+    }
+    const siblings = childrenByParent.get(row.fk_parent_id) ?? [];
+    siblings.push(row);
+    childrenByParent.set(row.fk_parent_id, siblings);
+  }
+
+  const attachChildren = (row: T) => {
+    const children = row.id && childrenByParent.get(row.id);
+    if (!children?.length) return;
+    row.children = children;
+    for (const child of children) attachChildren(child);
+  };
+
+  for (const root of roots) attachChildren(root);
+
+  return roots;
+}
 
 export default class Filter implements FilterType {
   id: string;
@@ -39,6 +85,11 @@ export default class Filter implements FilterType {
   fk_value_col_id?: string;
   fk_rls_policy_id?: string;
   fk_button_col_id?: string;
+
+  // Set by replaceDynamicFieldWithValue (EE) when fk_value_col_id points to a
+  // cross-table column. Carries the source/parent row PK so conditionV2 can
+  // build an EXISTS subquery filtered to that specific row.
+  _crossTableRowId?: string;
 
   comparison_op?: (typeof COMPARISON_OPS)[number];
   comparison_sub_op?: (typeof COMPARISON_SUB_OPS)[number];
@@ -77,7 +128,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
     return this.fk_view_id
-      ? (await View.get(context, this.fk_view_id, ncMeta)).getModel(
+      ? (await View.get(context, this.fk_view_id, false, ncMeta)).getModel(
           context,
           ncMeta,
         )
@@ -129,16 +180,19 @@ export default class Filter implements FilterType {
       'fk_rls_policy_id',
       'fk_button_col_id',
     ].find((k) => filter[k]);
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
-      [referencedModelColName]: filter[referencedModelColName],
-    });
+    const replayKeepOrder = isReplay() && filter.order != null;
+    if (!replayKeepOrder) {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
+        [referencedModelColName]: filter[referencedModelColName],
+      });
+    }
 
     if (!filter.source_id) {
       let model: { base_id?: string; source_id?: string };
       if (filter.fk_view_id && !filter.fk_parent_column_id) {
-        model = await View.get(context, filter.fk_view_id, ncMeta);
+        model = await View.get(context, filter.fk_view_id, false, ncMeta);
       } else if (filter.fk_hook_id) {
-        model = await Hook.get(context, filter.fk_hook_id, ncMeta);
+        model = await Hook.get(context, filter.fk_hook_id, false, ncMeta);
       } else if (filter.fk_link_col_id) {
         model = await Column.get(
           context,
@@ -170,7 +224,7 @@ export default class Filter implements FilterType {
           ncMeta,
         );
         if (level?.fk_model_id) {
-          model = await Model.get(context, level.fk_model_id, ncMeta);
+          model = await Model.get(context, level.fk_model_id, false, ncMeta);
         }
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
@@ -370,14 +424,18 @@ export default class Filter implements FilterType {
     {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
-        const view = await View.get(context, filter.fk_view_id, ncMeta);
+        const view = await View.get(context, filter.fk_view_id, false, ncMeta);
 
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [view],
-          ncMeta,
-        );
+        // View may be missing if it was deleted concurrently or the filter
+        // is orphaned — skip cache invalidation rather than throwing.
+        if (view) {
+          await View.clearSingleQueryCache(
+            context,
+            view.fk_model_id,
+            [view],
+            ncMeta,
+          );
+        }
       }
     }
 
@@ -396,6 +454,10 @@ export default class Filter implements FilterType {
       'comparison_sub_op',
       'value',
       'fk_parent_id',
+      // Allow re-tagging a filter to a list-view level. Needed so the GUI can heal
+      // legacy filters that were saved with fk_level_id = null (counted but never
+      // applied) by assigning them to the level that owns their column.
+      'fk_level_id',
       'is_group',
       'logical_op',
       'fk_value_col_id',
@@ -403,10 +465,6 @@ export default class Filter implements FilterType {
       'order',
       'enabled',
     ]);
-
-    if (typeof updateObj.value === 'string') {
-      updateObj.value = updateObj.value.slice(0, 255);
-    }
 
     if (!updateObj.meta) {
       updateObj.meta = {};
@@ -433,14 +491,16 @@ export default class Filter implements FilterType {
     {
       const filter = await this.get(context, id, ncMeta);
       // if not a view filter then no need to delete
-      if (filter.fk_view_id) {
-        const view = await View.get(context, filter.fk_view_id, ncMeta);
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [{ id: filter.fk_view_id }],
-          ncMeta,
-        );
+      if (filter?.fk_view_id) {
+        const view = await View.get(context, filter.fk_view_id, false, ncMeta);
+        if (view) {
+          await View.clearSingleQueryCache(
+            context,
+            view.fk_model_id,
+            [{ id: filter.fk_view_id }],
+            ncMeta,
+          );
+        }
       }
     }
 
@@ -475,14 +535,16 @@ export default class Filter implements FilterType {
     {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
-        const view = await View.get(context, filter.fk_view_id, ncMeta);
+        const view = await View.get(context, filter.fk_view_id, false, ncMeta);
 
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [{ id: filter.fk_view_id }],
-          ncMeta,
-        );
+        if (view) {
+          await View.clearSingleQueryCache(
+            context,
+            view.fk_model_id,
+            [{ id: filter.fk_view_id }],
+            ncMeta,
+          );
+        }
       }
     }
   }
@@ -795,13 +857,15 @@ export default class Filter implements FilterType {
 
     // on update delete any optimised single query cache
     {
-      const view = await View.get(context, viewId, ncMeta);
-      await View.clearSingleQueryCache(
-        context,
-        view.fk_model_id,
-        [view],
-        ncMeta,
-      );
+      const view = await View.get(context, viewId, false, ncMeta);
+      if (view) {
+        await View.clearSingleQueryCache(
+          context,
+          view.fk_model_id,
+          [view],
+          ncMeta,
+        );
+      }
     }
   }
 
@@ -1054,7 +1118,8 @@ export default class Filter implements FilterType {
       ?.map((f) => this.castType(f));
   }
 
-  static async rootFilterListByRlsPolicy(
+  /** Every filter row of an RLS policy, roots and nested children alike. */
+  protected static async filterObjsByRlsPolicy(
     context: NcContext,
     { rlsPolicyId }: { rlsPolicyId: string },
     ncMeta = Noco.ncMeta,
@@ -1086,9 +1151,53 @@ export default class Filter implements FilterType {
         filterObjs,
       );
     }
+    return filterObjs;
+  }
+
+  static async rootFilterListByRlsPolicy(
+    context: NcContext,
+    { rlsPolicyId }: { rlsPolicyId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const filterObjs = await this.filterObjsByRlsPolicy(
+      context,
+      { rlsPolicyId },
+      ncMeta,
+    );
     return filterObjs
       ?.filter((f) => !f.fk_parent_id)
       ?.map((f) => this.castType(f));
+  }
+
+  /**
+   * The same policy's filters, but as root filters with their `children`
+   * already populated in memory.
+   *
+   * RLS enforcement must use this, not `rootFilterListByRlsPolicy`. That one
+   * returns root rows with `children` unset, so `getChildren` reloads them
+   * straight from the cache *after* `resolveRlsDynamicValues` has run — a
+   * placeholder nested inside a filter group would never be substituted and
+   * would reach SQL as literal `{currentUser.x}` text. Under a negated
+   * operator that literal inverts into a match-everything clause.
+   *
+   * Resolving the whole tree up front also makes `getChildren` a no-op: it
+   * short-circuits on an already-set `children`, so the substituted children
+   * are the ones that get compiled.
+   */
+  static async rootFilterTreeByRlsPolicy(
+    context: NcContext,
+    { rlsPolicyId }: { rlsPolicyId: string },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Filter[]> {
+    const filterObjs = await this.filterObjsByRlsPolicy(
+      context,
+      { rlsPolicyId },
+      ncMeta,
+    );
+
+    return linkFilterRowsIntoTree(
+      (filterObjs ?? []).map((f) => this.castType(f)),
+    );
   }
 
   static async rootFilterListByParentColumn(
@@ -1382,9 +1491,13 @@ export default class Filter implements FilterType {
         };
 
     if (this.fk_view_id) {
-      parentData = { view: await View.get(context, this.fk_view_id, ncMeta) };
+      parentData = {
+        view: await View.get(context, this.fk_view_id, false, ncMeta),
+      };
     } else if (this.fk_hook_id) {
-      parentData = { hook: await Hook.get(context, this.fk_hook_id, ncMeta) };
+      parentData = {
+        hook: await Hook.get(context, this.fk_hook_id, false, ncMeta),
+      };
     } else if (this.fk_link_col_id) {
       parentData = {
         linkColumn: await Column.get(

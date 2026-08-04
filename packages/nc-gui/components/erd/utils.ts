@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, LinksVersion } from 'nocodb-sdk'
+import { LinksVersion, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
@@ -103,6 +103,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         if (type === RelationTypes.MANY_TO_ONE) continue
 
         // db may store version as string "2" or number 2
+        // eslint-disable-next-line eqeqeq
         const isV2 = colOptions.version == LinksVersion.V2
         // junction-backed relation (v1 MM + any v2 link): mirror has swapped fk_child/fk_parent
         const isJunction = isV2 || type === RelationTypes.MANY_TO_MANY
@@ -124,8 +125,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           }
           // v1 direct-FK — mirror keeps the same fk_child / fk_parent values
           return (
-            co.fk_child_column_id === colOptions.fk_child_column_id &&
-            co.fk_parent_column_id === colOptions.fk_parent_column_id
+            co.fk_child_column_id === colOptions.fk_child_column_id && co.fk_parent_column_id === colOptions.fk_parent_column_id
           )
         })
 

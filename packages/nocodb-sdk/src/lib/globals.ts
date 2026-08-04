@@ -1,5 +1,10 @@
 import { ColumnType, FilterType } from './Api';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import {
+  InterfaceRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from './enums';
 import { OnPremPlanTitles, PlanTitles } from './payment';
 
 export const enumColors = {
@@ -42,6 +47,7 @@ export enum ViewTypes {
   CALENDAR = 6,
   LIST = 7,
   TIMELINE = 8,
+  GANTT = 9,
 }
 
 export const viewTypeAlias: Record<ViewTypes, string> = {
@@ -53,6 +59,7 @@ export const viewTypeAlias: Record<ViewTypes, string> = {
   [ViewTypes.CALENDAR]: 'calendar',
   [ViewTypes.LIST]: 'list',
   [ViewTypes.TIMELINE]: 'timeline',
+  [ViewTypes.GANTT]: 'gantt',
 };
 
 export const viewTypeToStringMap: Record<ViewTypes, string> = {
@@ -103,6 +110,7 @@ export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
   JSON = 'json',
+  ICS = 'ics',
 }
 
 export enum PluginCategory {
@@ -167,6 +175,8 @@ export enum NcDataErrorCodes {
   NC_ERR_MM_MODEL_NOT_FOUND = 'NC_ERR_MM_MODEL_NOT_FOUND',
 }
 
+export const NC_ERROR_SENTINEL = '_____NC_ERROR_____';
+
 export enum NcErrorType {
   ERR_AUTHENTICATION_REQUIRED = 'ERR_AUTHENTICATION_REQUIRED',
   ERR_FORBIDDEN = 'ERR_FORBIDDEN',
@@ -177,6 +187,7 @@ export enum NcErrorType {
   ERR_TABLE_NOT_FOUND = 'ERR_TABLE_NOT_FOUND',
   ERR_VIEW_NOT_FOUND = 'ERR_VIEW_NOT_FOUND',
   ERR_FIELD_NOT_FOUND = 'ERR_FIELD_NOT_FOUND',
+  ERR_FILTER_NOT_FOUND = 'ERR_FILTER_NOT_FOUND',
   ERR_RECORD_NOT_FOUND = 'ERR_RECORD_NOT_FOUND',
   ERR_TABLE_TRASH_NOT_SUPPORTED = 'ERR_TABLE_TRASH_NOT_SUPPORTED',
   ERR_RECORD_RESTORE_CONFLICT = 'ERR_RECORD_RESTORE_CONFLICT',
@@ -221,14 +232,21 @@ export enum NcErrorType {
   ERR_BASE_COLLABORATION = 'ERR_BASE_COLLABORATION',
   ERR_ORG_USER = 'ERR_ORG_USER',
   ERR_SYNC_TABLE_OPERATION_PROHIBITED = 'ERR_SYNC_TABLE_OPERATION_PROHIBITED',
+  ERR_SYNC_CONFIG_NOT_FOUND = 'ERR_SYNC_CONFIG_NOT_FOUND',
   ERR_INVALID_REQUEST_BODY = 'ERR_INVALID_REQUEST_BODY',
+  ERR_TRASH_NOT_FOUND = 'ERR_TRASH_NOT_FOUND',
+  ERR_PARENT_IN_TRASH = 'ERR_PARENT_IN_TRASH',
   ERR_DASHBOARD_NOT_FOUND = 'ERR_DASHBOARD_NOT_FOUND',
+  ERR_INTERFACE_NOT_FOUND = 'ERR_INTERFACE_NOT_FOUND',
+  ERR_INTERFACE_PAGE_NOT_FOUND = 'ERR_INTERFACE_PAGE_NOT_FOUND',
+  ERR_INTERFACE_PREVIEW_WRITE_BLOCKED = 'ERR_INTERFACE_PREVIEW_WRITE_BLOCKED',
   ERR_WORKFLOW_NOT_FOUND = 'ERR_WORKFLOW_NOT_FOUND',
   ERR_WIDGET_NOT_FOUND = 'ERR_WIDGET_NOT_FOUND',
   ERR_CHAT_SESSION_NOT_FOUND = 'ERR_CHAT_SESSION_NOT_FOUND',
   ERR_CHAT_MESSAGE_NOT_FOUND = 'ERR_CHAT_MESSAGE_NOT_FOUND',
   ERR_VIEW_SECTION_NOT_FOUND = 'ERR_VIEW_SECTION_NOT_FOUND',
   ERR_SHARED_DASHBOARD_PASSWORD_INVALID = 'ERR_SHARED_DASHBOARD_PASSWORD_INVALID',
+  ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID = 'ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID',
   ERR_DUPLICATE_IN_ALIAS = 'ERR_DUPLICATE_IN_ALIAS',
   ERR_OUT_OF_SYNC = 'ERR_OUT_OF_SYNC',
   ERR_FILTER_VERIFICATION_FAILED = 'ERR_FILTER_VERIFICATION_FAILED',
@@ -265,6 +283,7 @@ export enum NcErrorType {
   ERR_EXTENSION_NOT_FOUND = 'ERR_EXTENSION_NOT_FOUND',
   ERR_SCRIPT_NOT_FOUND = 'ERR_SCRIPT_NOT_FOUND',
   ERR_RLS_POLICY_NOT_FOUND = 'ERR_RLS_POLICY_NOT_FOUND',
+  ERR_TABLE_SYNC_NOT_FOUND = 'ERR_TABLE_SYNC_NOT_FOUND',
   FIELD_UNIQUE_CONSTRAINT_VIOLATION = 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
   ERR_METHOD_NOT_ALLOWED = 'ERR_METHOD_NOT_ALLOWED',
 
@@ -287,6 +306,13 @@ export enum NcErrorType {
   // System configuration errors
   ERR_SYSTEM_MISCONFIGURED = 'ERR_SYSTEM_MISCONFIGURED',
   ERR_TOO_MANY_REQUESTS = 'ERR_TOO_MANY_REQUESTS',
+
+  // Sandbox errors
+  ERR_SANDBOX_BLOCKED = 'ERR_SANDBOX_BLOCKED',
+  ERR_SANDBOX_PRODUCTION_BLOCKED = 'ERR_SANDBOX_PRODUCTION_BLOCKED',
+
+  // Snapshot errors
+  ERR_SNAPSHOT_BLOCKED = 'ERR_SNAPSHOT_BLOCKED',
 }
 
 export enum ROW_COLORING_MODE {
@@ -300,6 +326,8 @@ export enum COLORING_TYPE {
 }
 
 export const LongTextAiMetaProp = 'ai';
+export const LongTextRichModeMetaProp = 'richMode';
+export const LongTextSmartModeMetaProp = 'smartMode';
 
 export const NO_SCOPE = 'nc';
 
@@ -312,6 +340,9 @@ export const NON_SEAT_ROLES = [
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,
   ProjectRoles.COMMENTER,
+  InterfaceRoles.NO_ACCESS,
+  InterfaceRoles.VIEWER,
+  InterfaceRoles.COMMENTER,
 ];
 
 export const DURATION_TYPE_MAP = {
@@ -361,6 +392,11 @@ export type RowColoringInfoFilter = {
 export type RowColoringInfo = {
   fk_model_id: string;
   fk_view_id: string;
+  /**
+   * Background tint strength when colouring is set as background.
+   * Absent = 'light' (the historical tint).
+   */
+  background_intensity?: 'light' | 'medium' | 'bold';
 } & (RowColoringInfoSelect | RowColoringInfoFilter);
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
@@ -405,6 +441,8 @@ export enum DependencyTableType {
   Widget = 'widget',
   Workflow = 'workflow',
   DateDependency = 'date_dependency',
+  Bookmark = 'bookmark',
+  InterfacePage = 'interface_page',
 }
 
 export enum BaseVersion {
@@ -433,4 +471,15 @@ export enum DeploymentStatus {
 export enum DeploymentType {
   INSTALL = 'install',
   UPDATE = 'update',
+}
+
+export enum BaseVariableInheritance {
+  FIXED = 'fixed',
+  EDITABLE = 'editable',
+  REQUIRED = 'required',
+}
+
+export enum BaseVariableValueType {
+  TEXT = 'text',
+  SECRET = 'secret',
 }

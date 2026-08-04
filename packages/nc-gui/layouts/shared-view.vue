@@ -9,6 +9,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { sharedView, allowCSVDownload } = useSharedView()
 
+const { productName, logoUrl, logoDarkUrl, isWhiteLabelled, config } = useBranding()
+
 const { isFullScreen } = storeToRefs(useSidebarStore())
 
 const { activePlanTitle } = useEeConfig()
@@ -55,7 +57,7 @@ onMounted(() => {
   if (sharedView.value?.title) {
     document.title = `${sharedView.value.title}`
   } else {
-    document.title = 'NocoDB'
+    document.title = productName.value
   }
 })
 </script>
@@ -78,12 +80,17 @@ export default {
           <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
             <a
               class="transition-all duration-200 cursor-pointer transform hover:scale-105"
-              href="https://github.com/nocodb/nocodb"
-              target="_blank"
+              :href="isWhiteLabelled ? config?.email?.footerUrl || undefined : 'https://github.com/nocodb/nocodb'"
+              :target="isWhiteLabelled && !config?.email?.footerUrl ? undefined : '_blank'"
               rel="noopener noreferrer"
             >
-              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
-              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+              <template v-if="isWhiteLabelled && (isDark ? logoDarkUrl : logoUrl)">
+                <img :src="(isDark ? logoDarkUrl : logoUrl) ?? ''" :alt="productName" class="h-7 max-w-[120px] object-contain" />
+              </template>
+              <template v-else-if="!isWhiteLabelled">
+                <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
+                <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+              </template>
             </a>
 
             <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">

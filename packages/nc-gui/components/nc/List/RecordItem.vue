@@ -297,7 +297,7 @@ const columnsToRender = computed(() => {
 
   &:focus-visible {
     @apply border-nc-border-brand;
-    box-shadow: 0 0 0 1px #3366ff;
+    box-shadow: 0 0 0 1px var(--nc-brand-accent);
   }
   &:hover {
     .nc-text-area-expand-btn {

@@ -14,6 +14,8 @@ import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { isPrivateIntegrationForbidden } from '~/helpers/integrationAccess';
 
 @Injectable()
 export class IntegrationsService {
@@ -58,6 +60,12 @@ export class IntegrationsService {
 
     const integrationBody = param.integration;
     integrationBody.title = integrationBody.title?.trim();
+
+    validateAndNormalizeSqliteConfig(
+      integrationBody?.config,
+      integrationBody?.sub_type ?? oldIntegration?.sub_type,
+    );
+
     const integration = await Integration.updateIntegration(
       context,
       param.integrationId,
@@ -288,12 +296,38 @@ export class IntegrationsService {
         );
       }
 
+      // A private integration's decrypted config may only be cloned by its
+      // owner.
+      if (
+        isPrivateIntegrationForbidden(
+          integrationBody.is_private,
+          integrationBody.created_by,
+          param.req.user?.id,
+        )
+      ) {
+        NcError.get(context).integrationNotFound(
+          param.integration.copy_from_id,
+        );
+      }
+
       integrationBody.config = await integrationBody.getConnectionConfig();
     } else {
       integrationBody = param.integration;
     }
     param.logger?.('Creating the integration');
     integrationBody.title = integrationBody.title?.trim();
+    // SQLite connections are only offered on the free self-hosted edition
+    // (CE + unlicensed On-Prem). Block on licensed On-Prem and Cloud, where
+    // Noco.isEE() is true — mirrors the frontend isEEFeatureBlocked gating.
+    if (integrationBody.sub_type === 'sqlite3' && Noco.isEE()) {
+      NcError.get(context).badRequest(
+        'SQLite connections are only available on the free self-hosted edition',
+      );
+    }
+    validateAndNormalizeSqliteConfig(
+      integrationBody.config,
+      integrationBody.sub_type,
+    );
     // for SQLite check for existing integration which refers to the same file
     if (integrationBody.sub_type === 'sqlite3') {
       // get all integrations of type sqlite3

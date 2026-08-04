@@ -16,6 +16,33 @@ const { viewport } = useVueFlow()
 
 const table = computed(() => data.table)
 
+// Distinct case variants of a physical identifier (as-is + lowercase), so the
+// `nc-erd-table-node-*` test/automation hooks resolve regardless of how the
+// underlying DB cases identifiers:
+//   - Oracle uppercases external table/column names (e.g. COUNTRY) — the
+//     lowercase variant (`country`) matches the convention the tests use.
+//   - NocoDB-created tables keep their title case (e.g. `Test`) — the as-is
+//     variant keeps those hooks working.
+// pg/mysql/mssql already store lowercase physical names, so both variants
+// coincide there (the Set dedupes the harmless duplicate).
+function caseVariants(raw?: string): string[] {
+  if (!raw) return []
+  return [...new Set([raw, raw.toLowerCase()])]
+}
+
+// Build `nc-erd-table-node-<table>` classes (one per table-name case variant).
+function tableNodeClasses(rawTable?: string): string[] {
+  return caseVariants(rawTable).map((t) => `nc-erd-table-node-${t}`)
+}
+
+// Build `nc-erd-table-node-<table>-column-<col>` classes across every
+// table-name × column-name case-variant combination.
+function columnNodeClasses(rawTable?: string, rawCol?: string): string[] {
+  if (!rawTable || !rawCol) return []
+  const cols = caseVariants(rawCol)
+  return [...new Set(caseVariants(rawTable).flatMap((t) => cols.map((c) => `nc-erd-table-node-${t}-column-${c}`)))]
+}
+
 const isZooming = refAutoReset(false, 200)
 
 provide(MetaInj, table)
@@ -51,10 +78,7 @@ watch(
     <div
       v-if="table"
       class="relative h-full max-w-76 flex flex-col justify-center bg-nc-bg-default min-w-16 min-h-8 rounded-lg nc-erd-table-node"
-      :class="[
-        `nc-erd-table-node-${table.table_name}`,
-        showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '',
-      ]"
+      :class="[...tableNodeClasses(table.table_name), showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '']"
       @click="$e('c:erd:node-click')"
     >
       <div
@@ -77,7 +101,7 @@ watch(
           v-for="col in data.pkAndFkColumns"
           :key="col.title"
           class="w-full h-full min-w-32 py-2 px-1"
-          :class="`nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
+          :class="columnNodeClasses(table.table_name, col.column_name)"
         >
           <LazySmartsheetHeaderCell v-if="col" class="nc-erd-table-node-column" :column="col" :hide-menu="true" />
         </div>
@@ -90,7 +114,7 @@ watch(
             <div
               v-if="isLinksOrLTAR(col)"
               class="flex w-full"
-              :class="`nc-erd-table-node-${table.table_name}-column-${col.title?.toLowerCase()?.replace(' ', '_')}`"
+              :class="columnNodeClasses(table.table_name, col.title?.replace(' ', '_'))"
             >
               <Handle
                 :id="`s-${col.id}-${table.id}`"
@@ -115,14 +139,16 @@ watch(
               v-else-if="isVirtualCol(col)"
               :column="col"
               :hide-menu="true"
-              :class="`nc-erd-table-node-column nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
+              class="nc-erd-table-node-column"
+              :class="[...columnNodeClasses(table.table_name, col.column_name)]"
             />
 
             <LazySmartsheetHeaderCell
               v-else
               :column="col"
               :hide-menu="true"
-              :class="`nc-erd-table-node-column nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
+              class="nc-erd-table-node-column"
+              :class="[...columnNodeClasses(table.table_name, col.column_name)]"
             />
           </div>
         </div>

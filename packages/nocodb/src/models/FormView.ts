@@ -11,6 +11,7 @@ import { PresignedUrl } from '~/models';
 import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
 import { extractProps } from '~/helpers/extractProps';
+import { isSafeRedirectUrl } from '~/helpers/isSafeRedirectUrl';
 import { NcError } from '~/helpers/catchError';
 import { isEE } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
@@ -117,10 +118,24 @@ export default class FormView implements FormViewType {
       'logo_url',
       'submit_another_form',
       'show_blank_form',
+      'save_draft_to_browser',
       'starts_at',
       'expires_at',
       'meta',
     ]);
+
+    // Reject unsafe redirect targets at the write path — defense-in-depth for
+    // the shared-form redirect XSS. See isSafeRedirectUrl.
+    if (
+      typeof insertObj.redirect_url === 'string' &&
+      insertObj.redirect_url.trim() &&
+      !isSafeRedirectUrl(insertObj.redirect_url)
+    ) {
+      NcError.get(context).badRequest(
+        'Invalid redirect_url: only http(s) or relative URLs are allowed',
+      );
+    }
+
     if (insertObj.meta) {
       insertObj.meta = serializeJSON(insertObj.meta);
     }
@@ -135,7 +150,7 @@ export default class FormView implements FormViewType {
       );
     }
 
-    const viewRef = await View.get(context, view.fk_view_id, ncMeta);
+    const viewRef = await View.get(context, view.fk_view_id, false, ncMeta);
 
     if (!view.source_id) {
       insertObj.source_id = viewRef.source_id;
@@ -168,10 +183,23 @@ export default class FormView implements FormViewType {
       'logo_url',
       'submit_another_form',
       'show_blank_form',
+      'save_draft_to_browser',
       'starts_at',
       'expires_at',
       'meta',
     ]);
+
+    // Reject unsafe redirect targets at the write path — defense-in-depth for
+    // the shared-form redirect XSS. See isSafeRedirectUrl.
+    if (
+      typeof updateObj.redirect_url === 'string' &&
+      updateObj.redirect_url.trim() &&
+      !isSafeRedirectUrl(updateObj.redirect_url)
+    ) {
+      NcError.get(context).badRequest(
+        'Invalid redirect_url: only http(s) or relative URLs are allowed',
+      );
+    }
 
     if (updateObj?.logo_url) {
       updateObj.logo_url = this.serializeAttachmentJSON(updateObj.logo_url);

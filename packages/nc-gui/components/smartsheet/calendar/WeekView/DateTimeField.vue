@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import type { Row } from '~/lib/types'
 
-const emits = defineEmits(['expandRecord', 'newRecord'])
+const emits = defineEmits(['expandRecord', 'newRecord', 'recordContextMenu'])
 
 const {
   selectedDateRange,
@@ -14,12 +14,30 @@ const {
   viewMetaProperties,
   selectedTime,
   updateRowProperty,
-  sideBarFilterOption,
-  showSideMenu,
   updateFormat,
   timezoneDayjs,
   isSyncedFromColumn,
+  isAddDeleteInlineEnabled,
+  activeCalendarView,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
 } = useCalendarViewStoreOrThrow()
+
+// Interface editor: an hour cell / dblclick selects the calendar element (opens
+// `Page › Calendar`) instead of selecting the hour or adding a record. Null in
+// the published view and outside interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
+// Range (date) columns are already conveyed by the block's time + position, so
+// they're excluded from the card body — keeps it a clean title line by default.
+const rangeFieldIds = computed(() => {
+  const ids = new Set<string>()
+  for (const r of calendarRange.value || []) {
+    if (r.fk_from_col?.id) ids.add(r.fk_from_col.id)
+    if (r.fk_to_col?.id) ids.add(r.fk_to_col.id)
+  }
+  return ids
+})
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
@@ -34,6 +52,13 @@ const { width: containerWidth } = useElementSize(container)
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
+
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — event drag/resize must honor it like grid cells do. Plain data-app
+// trees never provide it (fallback false → behavior unchanged).
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
 
 const meta = inject(MetaInj, ref())
 
@@ -52,19 +77,92 @@ const fieldStyles = computed(() => {
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
+// Number of title lines that fit in a time-grid card of this height. >= 2
+// switches the card body to multi-line wrap (the title wraps and is clamped with
+// a trailing ellipsis); 1 keeps the single-line + tooltip layout for short
+// cards. Card height (px) is precomputed into rowMeta.style.height during the
+// layout pass below — ~28px is reserved for the time row + padding, lines 18px.
+const CARD_WRAP_LINE_HEIGHT = 18
+const CARD_WRAP_RESERVED = 28
+
+// Airtable-style minimum sliver width: in a dense day column we render at most
+// floor(columnWidth / this) overlapping cards so they stay visible bars instead of
+// degrading to hairlines; the rest are covered by the "View all N events" overlay.
+// ~13px ≈ Airtable (≈8 bars in a 7-column week, ≈15 in the wider 3-day columns).
+const WEEK_MIN_SLIVER_WIDTH = 13
+
+function cardClampLines(record: Row): number {
+  const height = Number.parseFloat(`${record.rowMeta?.style?.height ?? ''}`)
+  if (Number.isNaN(height)) return 1
+  return Math.max(1, Math.floor((height - CARD_WRAP_RESERVED) / CARD_WRAP_LINE_HEIGHT))
+}
+
 const getDayIndex = (date: dayjs.Dayjs) => {
-  let dayIndex = date.day() - 1
-  if (dayIndex === -1) {
-    dayIndex = 6
-  }
-  return dayIndex
+  // Column index relative to the first visible day. Equivalent to `date.day() - 1`
+  // for the Monday-aligned week modes, but also correct for the day-anchored 3-day
+  // window (which can start on any weekday).
+  const start = timezoneDayjs.timezonize(selectedDateRange.value.start).startOf('day')
+  return timezoneDayjs.timezonize(date).startOf('day').diff(start, 'day')
 }
 
 const maxVisibleDays = computed(() => {
+  // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns
+  // (weekends always included). Week mode honours hide_weekend → 5 columns.
+  if (isDayAnchoredMode.value) return dayAnchoredSpan.value
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
+// True only when weekends are actually hidden (week mode + hide_weekend). A day-anchored
+// 5-day custom window also yields maxVisibleDays === 5 but is NOT weekend-hidden.
+const isWeekendHidden = computed(() => !isDayAnchoredMode.value && maxVisibleDays.value === 5)
+
+// --- Collapsed-weekend column model -----------------------------------------
+// When collapse_weekend is on (week mode → 7 columns), Sat & Sun render in
+// narrower columns. Day columns are positioned px-based, so expose per-column
+// width/offset helpers; when not collapsed they return the uniform values.
+const WEEKEND_COLLAPSE_RATIO = 0.5
+
+const isWeekendCollapsed = computed(() => !!viewMetaProperties.value?.collapse_weekend && maxVisibleDays.value === 7)
+
+const columnWeights = computed<number[]>(() => {
+  const start = timezoneDayjs.timezonize(selectedDateRange.value.start).startOf('day')
+  return Array.from({ length: maxVisibleDays.value }, (_, i) => {
+    const dow = start.add(i, 'day').day()
+    return isWeekendCollapsed.value && (dow === 0 || dow === 6) ? WEEKEND_COLLAPSE_RATIO : 1
+  })
+})
+
+const totalColumnWeight = computed(() => columnWeights.value.reduce((sum, w) => sum + w, 0))
+
+const columnWidthPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return containerWidth.value / maxVisibleDays.value
+  return (containerWidth.value * columnWeights.value[index]) / totalColumnWeight.value
+}
+
+const columnOffsetPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return index * (containerWidth.value / maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < index; i++) offset += columnWidthPx(i)
+  return offset
+}
+
+const columnFromX = (x: number) => {
+  if (!isWeekendCollapsed.value) return Math.floor((x / containerWidth.value) * maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < maxVisibleDays.value; i++) {
+    offset += columnWidthPx(i)
+    if (x < offset) return i
+  }
+  return maxVisibleDays.value - 1
+}
+
+const columnWidthPct = (index: number) => `${(columnWeights.value[index] / totalColumnWeight.value) * 100}%`
+
 const currTime = ref(timezoneDayjs.dayjsTz())
+
+// The hour axis and current-time indicator follow the primary range field's
+// Time format setting (12h vs 24h) rather than being hard-wired to 12h.
+const is12hrAxis = computed(() => is12hrTimeColumn(calendarRange.value?.[0]?.fk_from_col))
 
 const overlayStyle = computed(() => {
   if (!containerWidth.value)
@@ -73,13 +171,14 @@ const overlayStyle = computed(() => {
       left: 0,
     }
 
-  const left = (containerWidth.value / maxVisibleDays.value) * getDayIndex(currTime.value)
+  const dayIndex = getDayIndex(currTime.value)
+  const left = columnOffsetPx(dayIndex)
   const minutes = currTime.value.hour() * 60 + currTime.value.minute()
 
   const top = (52 / 60) * minutes - 12
 
   return {
-    width: `${containerWidth.value / maxVisibleDays.value}px`,
+    width: `${columnWidthPx(dayIndex)}px`,
     top: `${top}px`,
     left: `${left}px`,
   }
@@ -180,92 +279,6 @@ const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => ({
   dayIndex: getDayIndex(from),
 })
 
-const hasSlotForRecord = (
-  columnArray: Row[],
-  dates: {
-    fromDate: dayjs.Dayjs
-    toDate: dayjs.Dayjs
-  },
-) => {
-  const { fromDate, toDate } = dates
-
-  if (!fromDate || !toDate) return false
-
-  for (const column of columnArray) {
-    const columnFromCol = column.rowMeta.range?.fk_from_col
-    const columnToCol = column.rowMeta.range?.fk_to_col
-
-    if (!columnFromCol) return false
-
-    const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
-      startDate: timezoneDayjs.timezonize(column.row[columnFromCol.title!]),
-      endDate:
-        columnToCol && dayjs(column.row[columnToCol.title!])?.isValid()
-          ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
-          : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day'),
-      scheduleEnd: timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day'),
-    })
-
-    if (
-      fromDate.isBetween(columnFromDate, columnToDate, null, '[]') ||
-      toDate.isBetween(columnFromDate, columnToDate, null, '[]')
-    ) {
-      return false
-    }
-  }
-  return true
-}
-
-const getMaxOverlaps = ({
-  row,
-  columnArray,
-  graph,
-}: {
-  row: Row
-  columnArray: Array<Array<Array<Row>>>
-  graph: Map<string, Set<string>>
-}) => {
-  const id = row.rowMeta.id as string
-
-  const visited: Set<string> = new Set()
-
-  const dayIndex = row.rowMeta.dayIndex
-  const overlapIndex = columnArray[dayIndex].findIndex((column) => column.findIndex((r) => r.rowMeta.id === id) !== -1) + 1
-  const dfs = (id: string): number => {
-    visited.add(id)
-    let maxOverlaps = 1
-    const neighbors = graph.get(id)
-    if (neighbors) {
-      for (const neighbor of neighbors) {
-        if (maxOverlaps >= columnArray[dayIndex].length) return maxOverlaps
-        if (!visited.has(neighbor)) {
-          maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray[dayIndex].length)
-        }
-      }
-    }
-
-    return maxOverlaps
-  }
-
-  let maxOverlaps = 1
-  if (graph.has(id)) {
-    dfs(id)
-  }
-  const overlapIterations: Array<number> = []
-
-  columnArray[dayIndex]
-    .flat()
-    .filter((record) => visited.has(record.rowMeta.id!))
-    .forEach((record) => {
-      overlapIterations.push(record.rowMeta.overLapIteration!)
-    })
-
-  maxOverlaps = overlapIterations?.length > 0 ? Math.max(...overlapIterations) : 1
-
-  return { maxOverlaps, dayIndex, overlapIndex }
-}
-
 const resizeInProgress = ref(false)
 
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
@@ -282,47 +295,24 @@ const dragRecord = ref<Row | null>(null)
 
 const recordsAcrossAllRange = computed<{
   records: Array<Row>
-  gridTimeMap: Map<
-    number,
-    Map<
-      number,
-      {
-        count: number
-        id: string[]
-        overflowRecords: Row[]
-      }
-    >
-  >
   spanningRecords: Row[]
+  denseBands: Array<{ dayIndex: number; top: number; height: number; count: number; maxOverlaps: number; maxHeight: number }>
 }>(() => {
   if (!formattedData.value || !calendarRange.value || !container.value || !scrollContainer.value)
     return {
       records: [],
-      gridTimeMap: new Map(),
       spanningRecords: [],
+      denseBands: [],
     }
-  const perWidth = containerWidth.value / maxVisibleDays.value
   const perHeight = 52
 
   const scheduleStart = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
   let scheduleEnd = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day')
 
-  if (maxVisibleDays.value === 5) {
+  if (isWeekendHidden.value) {
     scheduleEnd = scheduleEnd.subtract(2, 'day')
   }
 
-  const columnArray: Array<Array<Array<Row>>> = [[[]]]
-  const gridTimeMap = new Map<
-    number,
-    Map<
-      number,
-      {
-        count: number
-        id: string[]
-        overflowRecords: Row[]
-      }
-    >
-  >()
   const recordsToDisplay: Array<Row> = []
   const recordSpanningDays: Array<Row> = []
 
@@ -450,11 +440,18 @@ const recordsAcrossAllRange = computed<{
       return timezoneDayjs.timezonize(a.row[fromColA.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromColB.title!])) ? -1 : 1
     })
 
+    // Assign overlap columns per day via a sweep-line (O(N log N)): sort by start, pack each record
+    // into the lowest free column (overLapIteration); a gap closes an overlap cluster; every record
+    // in a connected cluster gets the SAME denominator (numberOfOverlaps = the cluster's column
+    // count). Integer-only — replaces the previous per-minute gridTimeMap + dayjs O(N^2) column scan
+    // + id-pair graph + DFS, which froze the tab on dense days.
+    const intervalsByDay = new Map<number, Array<{ record: Row; from: number; to: number }>>()
     for (const record of recordsToDisplay) {
       const fromCol = record.rowMeta.range?.fk_from_col
       const toCol = record.rowMeta.range?.fk_to_col
 
       if (!fromCol) continue
+
       const { startDate, endDate } = calculateNewDates({
         startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
         endDate:
@@ -466,194 +463,154 @@ const recordsAcrossAllRange = computed<{
       })
 
       const gridTimes = getGridTimeSlots(startDate, endDate)
-
       const dayIndex = record.rowMeta.dayIndex ?? gridTimes.dayIndex
 
-      for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
-        if (!gridTimeMap.has(dayIndex)) {
-          gridTimeMap.set(
-            dayIndex,
-            new Map<
-              number,
-              {
-                count: number
-                id: string[]
-                overflowRecords: Row[]
-              }
-            >(),
-          )
-        }
-
-        if (!gridTimeMap.get(dayIndex)?.has(gridCounter)) {
-          gridTimeMap.set(
-            dayIndex,
-            (gridTimeMap.get(dayIndex) ?? new Map()).set(gridCounter, { count: 0, id: [], overflowRecords: [] }),
-          )
-        }
-
-        const idArray = gridTimeMap.get(dayIndex)!.get(gridCounter)!.id
-        idArray.push(record.rowMeta.id!)
-        const count = gridTimeMap.get(dayIndex)!.get(gridCounter)!.count + 1
-
-        gridTimeMap.set(
-          dayIndex,
-          (gridTimeMap.get(dayIndex) ?? new Map()).set(gridCounter, {
-            count,
-            id: idArray,
-            overflowRecords: gridTimeMap.get(dayIndex)!.get(gridCounter)!.overflowRecords,
-          }),
-        )
-      }
-
-      let foundAColumn = false
-
-      if (!columnArray[dayIndex]) {
-        columnArray[dayIndex] = []
-      }
-
-      for (const column in columnArray[dayIndex]) {
-        if (hasSlotForRecord(columnArray[dayIndex][column], { fromDate: startDate, toDate: endDate })) {
-          columnArray[dayIndex][column].push(record)
-          foundAColumn = true
-          break
-        }
-      }
-
-      if (!foundAColumn) {
-        columnArray[dayIndex].push([record])
-      }
+      if (!intervalsByDay.has(dayIndex)) intervalsByDay.set(dayIndex, [])
+      intervalsByDay.get(dayIndex)!.push({ record, from: gridTimes.from, to: gridTimes.to })
     }
 
-    const graph: Map<number, Map<string, Set<string>>> = new Map()
+    for (const dayIntervals of intervalsByDay.values()) {
+      dayIntervals.sort((a, b) => a.from - b.from || a.to - b.to)
 
-    for (const dayIndex of gridTimeMap.keys()) {
-      if (!graph.has(dayIndex)) {
-        graph.set(dayIndex, new Map())
+      const columnsEnd: number[] = [] // columnsEnd[i] = last occupied slot of column i in the current cluster
+      let clusterEnd = -Infinity
+      let clusterMembers: Row[] = []
+
+      const flushCluster = () => {
+        const denom = columnsEnd.length || 1
+        for (const rec of clusterMembers) rec.rowMeta.numberOfOverlaps = denom
       }
-      for (const [_gridTime, { id: ids }] of gridTimeMap.get(dayIndex)) {
-        for (const id1 of ids) {
-          if (!graph.get(dayIndex).has(id1)) {
-            graph.get(dayIndex).set(id1, new Set())
-          }
-          for (const id2 of ids) {
-            if (id1 !== id2) {
-              if (!graph.get(dayIndex).get(id1).has(id2)) {
-                graph.get(dayIndex).get(id1).add(id2)
-              }
-            }
+
+      for (const { record, from, to } of dayIntervals) {
+        // A gap (this record starts after every open column has ended) closes the current cluster.
+        if (from > clusterEnd) {
+          flushCluster()
+          columnsEnd.length = 0
+          clusterMembers = []
+          clusterEnd = -Infinity
+        }
+
+        // Reuse the lowest-indexed column that has freed up; otherwise open a new one.
+        let col = -1
+        for (let i = 0; i < columnsEnd.length; i++) {
+          if (columnsEnd[i] < from) {
+            col = i
+            break
           }
         }
+        if (col === -1) {
+          col = columnsEnd.length
+          columnsEnd.push(to)
+        } else {
+          columnsEnd[col] = to
+        }
+
+        record.rowMeta.overLapIteration = col + 1
+        clusterMembers.push(record)
+        clusterEnd = Math.max(clusterEnd, to)
       }
+      flushCluster()
     }
 
-    for (const dayIndex in columnArray) {
-      for (const columnIndex in columnArray[dayIndex]) {
-        for (const record of columnArray[dayIndex][columnIndex]) {
-          record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
-        }
-      }
-    }
     for (const record of recordsToDisplay) {
-      const {
-        maxOverlaps,
-        overlapIndex,
-        dayIndex: tDayIndex,
-      } = getMaxOverlaps({
-        row: record,
-        columnArray,
-        graph: graph.get(record.rowMeta.dayIndex!) ?? new Map(),
-      })
-
-      const dayIndex = record.rowMeta.dayIndex ?? tDayIndex
+      const maxOverlaps = record.rowMeta.numberOfOverlaps ?? 1
+      const overlapIndex = record.rowMeta.overLapIteration ?? 1
+      const dayIndex = record.rowMeta.dayIndex ?? 0
 
       let display = 'block'
 
-      if (maxVisibleDays.value === 5) {
+      if (isWeekendHidden.value) {
         if (dayIndex === 5 || dayIndex === 6) {
           display = 'none'
         }
       }
 
-      record.rowMeta.numberOfOverlaps = maxOverlaps
-
       let width = 0
       let left = 100
+      let capHidden = false
 
-      const majorLeft = dayIndex * perWidth
+      const dayWidth = columnWidthPx(dayIndex)
+      const majorLeft = columnOffsetPx(dayIndex)
 
       const isRecordDraggingOrResizeState =
         record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
 
       if (!isRecordDraggingOrResizeState) {
-        if (record.rowMeta.overLapIteration! > 3) {
-          display = 'none'
-          // Add overflowing record to gridTimeMap
-          const fromCol = record.rowMeta.range?.fk_from_col
-          const toCol = record.rowMeta.range?.fk_to_col
-
-          if (fromCol) {
-            const { startDate, endDate } = calculateNewDates({
-              startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-              endDate:
-                toCol && dayjs(record.row[toCol.title!])?.isValid()
-                  ? timezoneDayjs.timezonize(record.row[toCol.title!])
-                  : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-              scheduleStart,
-              scheduleEnd,
-            })
-
-            const gridTimes = getGridTimeSlots(startDate, endDate)
-
-            for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
-              if (gridTimeMap.has(dayIndex) && gridTimeMap.get(dayIndex)?.has(gridCounter)) {
-                const currentSlot = gridTimeMap.get(dayIndex)!.get(gridCounter)!
-                if (!currentSlot.overflowRecords.some((r) => r.rowMeta.id === record.rowMeta.id)) {
-                  currentSlot.overflowRecords.push(record)
-                  gridTimeMap.get(dayIndex)!.set(gridCounter, currentSlot)
-                }
-              }
-            }
-          }
-        } else {
-          // Calculate the available width for each day
-          const availableWidth = perWidth - 3 // Account for padding/margins
-
-          // Calculate the width of each record based on the number of overlaps (up to 3)
-          // Ensure minimum width of 72px
-          width = Math.max(availableWidth / Math.min(maxOverlaps, 3), 72)
-
-          // Calculate the spacing between records
-          const spacing = (availableWidth - width * Math.min(maxOverlaps, 3)) / Math.max(Math.min(maxOverlaps, 3) - 1, 1)
-
-          // Calculate the left position based on the day index and overlap index
-          // This ensures uniform distribution of records within the day container
-          left = majorLeft + 1.5 + (overlapIndex - 1) * (width + spacing)
-
-          // Safety check to ensure the record stays within its day container
-          if (left + width > majorLeft + perWidth) {
-            // Adjust the width if needed to fit within the container
-            width = Math.max(majorLeft + perWidth - left - 1.5, 72)
-          }
-        }
+        // Shrink overlapping records to fit the day column (Airtable-style slivers), but never
+        // below a readable min width: render at most floor(availableWidth / WEEK_MIN_SLIVER_WIDTH)
+        // equal columns. Records packed beyond that cap are not drawn (capHidden) — the dense
+        // cluster's "View all N events in day view" overlay (which still counts them) covers them,
+        // so a 40-deep cluster shows ~8-15 bars instead of 40 hairlines.
+        const availableWidth = dayWidth - 3
+        const visibleColumns = Math.max(1, Math.min(maxOverlaps, Math.floor(availableWidth / WEEK_MIN_SLIVER_WIDTH)))
+        width = availableWidth / visibleColumns
+        left = majorLeft + 1.5 + (overlapIndex - 1) * width
+        if (overlapIndex > visibleColumns) capHidden = true
       } else {
         left = majorLeft + 1.5
-        width = perWidth - 3
+        width = dayWidth - 3
       }
+
+      record.rowMeta.capHidden = capHidden
 
       record.rowMeta.style = {
         ...record.rowMeta.style,
         left: `${left}px`,
         width: `${width}px`,
-        minWidth: '72px',
         display,
       }
     }
   })
 
+  // Dense "bands": within each day, group records that overlap in time into clusters and
+  // capture each cluster's bounding box (its full start→end extent), size, busiest overlap,
+  // and tallest card. The template overlays a band ONLY when its cards look empty/too small
+  // to read — too thin (high overlap) OR too short (brief duration) — so readable cards in
+  // the same day stay visible and interactive.
+  interface Band {
+    top: number
+    bottom: number
+    count: number
+    maxOverlaps: number
+    maxHeight: number
+  }
+  const denseBands: Array<Band & { dayIndex: number; height: number }> = []
+  const recordsByDay = new Map<number, Row[]>()
+  for (const record of recordsToDisplay) {
+    if (record.rowMeta.style?.display === 'none') continue
+    const dayIndex = record.rowMeta.dayIndex
+    if (dayIndex == null) continue
+    if (!recordsByDay.has(dayIndex)) recordsByDay.set(dayIndex, [])
+    recordsByDay.get(dayIndex)!.push(record)
+  }
+  for (const [dayIndex, dayRecords] of recordsByDay) {
+    dayRecords.sort((a, b) => parseFloat(`${a.rowMeta.style?.top ?? 0}`) - parseFloat(`${b.rowMeta.style?.top ?? 0}`))
+    let band: Band | null = null
+    const pushBand = (b: Band | null) => {
+      if (b) denseBands.push({ ...b, dayIndex, height: b.bottom - b.top })
+    }
+    for (const record of dayRecords) {
+      const top = parseFloat(`${record.rowMeta.style?.top ?? 0}`)
+      const recHeight = parseFloat(`${record.rowMeta.style?.height ?? 0}`)
+      const bottom = top + recHeight
+      const overlaps = record.rowMeta.numberOfOverlaps ?? 1
+      if (band && top < band.bottom) {
+        band.bottom = Math.max(band.bottom, bottom)
+        band.count += 1
+        band.maxOverlaps = Math.max(band.maxOverlaps, overlaps)
+        band.maxHeight = Math.max(band.maxHeight, recHeight)
+      } else {
+        pushBand(band)
+        band = { top, bottom, count: 1, maxOverlaps: overlaps, maxHeight: recHeight }
+      }
+    }
+    pushBand(band)
+  }
+
   return {
     records: recordsToDisplay,
-    gridTimeMap,
     spanningRecords: recordSpanningDays,
+    denseBands,
   }
 })
 
@@ -662,7 +619,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value || !scrollContainer.value) return
+  if (!canEditCalendarData.value || !container.value || !resizeRecord.value || !scrollContainer.value) return
   if (resizeRecord.value.rowMeta.range?.is_readonly) return
 
   const { width, left, top, bottom } = container.value.getBoundingClientRect()
@@ -687,7 +644,7 @@ const onResize = (event: MouseEvent) => {
   const ogStartDate = timezoneDayjs.timezonize(resizeRecord.value.row[fromCol.title])
   const ogEndDate = timezoneDayjs.timezonize(resizeRecord.value.row[toCol.title])
 
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const day = columnFromX(percentX * containerWidth.value)
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
   const baseDate = timezoneDayjs.timezonize(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
@@ -747,7 +704,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value) return
 
   if (record.rowMeta.range?.is_readonly) return
 
@@ -781,7 +739,7 @@ const calculateNewRow = (
 
   if (!fromCol) return { newRow: null, updatedProperty: [] }
 
-  const day = Math.max(0, Math.min(6, Math.floor(percentX * maxVisibleDays.value)))
+  const day = Math.max(0, Math.min(maxVisibleDays.value - 1, columnFromX(percentX * containerWidth.value)))
   const hour = Math.max(0, Math.min(23, Math.floor(percentY * 24)))
 
   const minutes = Math.round(((percentY * 24 * 60) % 60) / 15) * 15
@@ -854,7 +812,7 @@ const calculateNewRow = (
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !scrollContainer.value || !dragRecord.value) return
+  if (!canEditCalendarData.value || !scrollContainer.value || !dragRecord.value) return
 
   const containerRect = scrollContainer.value.getBoundingClientRect()
   const scrollBottomThreshold = 20
@@ -869,7 +827,7 @@ const onDrag = (event: MouseEvent) => {
 }
 
 const stopDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !isDragging.value || !container.value || !dragRecord.value) return
+  if (!canEditCalendarData.value || !isDragging.value || !container.value || !dragRecord.value) return
 
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
@@ -889,26 +847,31 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (resizeInProgress.value || isSyncedFromColumn.value) return
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
+  if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
   isDragging.value = false
 
-  dragTimeout.value = setTimeout(() => {
-    if (!isUIAllowed('dataEdit')) return
-    if (record.rowMeta.range?.is_readonly) return
+  // Drag-to-reschedule is gated to editable, non-synced ranges; click-to-expand
+  // (onMouseUp below) must work regardless so synced records can be opened.
+  const canDrag = canEditCalendarData.value && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
-    isDragging.value = true
-    while (!target.classList.contains('draggable-record')) {
-      target = target.parentElement as HTMLElement
-    }
+  if (canDrag) {
+    dragTimeout.value = setTimeout(() => {
+      isDragging.value = true
+      while (!target.classList.contains('draggable-record')) {
+        target = target.parentElement as HTMLElement
+      }
 
-    isDragging.value = true
-    dragRecord.value = record
+      isDragging.value = true
+      dragRecord.value = record
 
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
-  }, 200)
+      document.addEventListener('mousemove', onDrag)
+      document.addEventListener('mouseup', stopDrag)
+    }, 200)
+  }
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value!)
@@ -922,7 +885,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value) return
+  if (!canEditCalendarData.value || !container.value) return
   event.preventDefault()
 
   const data = event.dataTransfer?.getData('text/plain')
@@ -949,46 +912,55 @@ const dropEvent = (event: DragEvent) => {
   }
 }
 
-const viewMore = (hour: dayjs.Dayjs) => {
-  sideBarFilterOption.value = 'selectedHours'
-  selectedTime.value = hour
-  showSideMenu.value = true
+// A cluster ("band") gets the Airtable-style "view all in day view" overlay (over just that
+// cluster — readable cards elsewhere in the day stay clear) when its cards look empty/too
+// small to read: either too THIN (busiest overlap shrinks card width below a readable px)
+// or too SHORT (even its tallest card is briefer than a readable height).
+const WEEK_READABLE_CARD_WIDTH = 36
+const WEEK_READABLE_CARD_HEIGHT = 36
+const isDenseBand = (band: { dayIndex: number; maxOverlaps: number; maxHeight: number }) => {
+  const tooThin = band.maxOverlaps >= 2 && (columnWidthPx(band.dayIndex) - 3) / band.maxOverlaps < WEEK_READABLE_CARD_WIDTH
+  // A lone card (maxOverlaps < 2) is never "dense" — only flag too-short when records actually
+  // overlap, so a single short event stays readable/interactive instead of being covered by the overlay.
+  const tooShort = band.maxOverlaps >= 2 && band.maxHeight > 0 && band.maxHeight < WEEK_READABLE_CARD_HEIGHT
+  return tooThin || tooShort
 }
 
-const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap)
-    return {
-      isOverflow: false,
-      overflowCount: 0,
-      overflowRecords: [],
-    }
-  const { gridTimeMap } = recordsAcrossAllRange.value
-  const dayIndex = getDayIndex(hour)
+// Below the readable width a sliver can't fit even a single letter or an ellipsis, so
+// (Airtable-style) we render it as a blank colored block and skip the title/time
+// entirely — these cards sit under the dense-cluster overlay, which reveals
+// "view all events in day view" on hover.
+const isCardTooThinToRender = (record: Row) => {
+  const width = Number.parseFloat(`${record.rowMeta?.style?.width ?? ''}`)
+  return !Number.isNaN(width) && width < WEEK_READABLE_CARD_WIDTH
+}
 
-  const startMinute = hour.hour() * 60 + hour.minute()
-  const endMinute = hour.hour() * 60 + hour.minute() + 59
-  const dayMap = gridTimeMap.get(dayIndex)
+// Clicking a dense-cluster overlay opens that day in the (readable) day view.
+const openDayView = (date: dayjs.Dayjs) => {
+  selectedDate.value = date
+  activeCalendarView.value = 'day'
+  $e('c:calendar:week:open-day-view')
+}
 
-  const uniqueRecords: Row[] = []
-  const uniqueRecordIds = new Set<string>()
+const openDayViewForColumn = (dayIndex: number) => {
+  const date = datesHours.value[dayIndex]?.[0]
+  if (date) openDayView(date)
+}
 
-  for (let minute = startMinute; minute <= endMinute; minute++) {
-    const records = dayMap?.get(minute)?.overflowRecords ?? []
-    for (const rec of records) {
-      if (!uniqueRecordIds.has(rec.rowMeta?.id)) {
-        uniqueRecords.push(rec)
-        uniqueRecordIds.add(rec.rowMeta?.id)
-      }
-    }
-  }
-
-  return { isOverflow: uniqueRecords?.length, overflowCount: uniqueRecords?.length, overflowRecords: uniqueRecords }
+// Single-click an hour cell — selects the hour, or (interface editor) selects the
+// calendar element.
+const selectHour = (hour: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  selectedDate.value = hour
+  selectedTime.value = hour
+  dragRecord.value = null
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
-  const fromCol = calendarRange.value[0].fk_from_col
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
+  const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
     row: {
@@ -1011,6 +983,10 @@ watch(
 
 const expandRecord = (record: Row) => {
   emits('expandRecord', record)
+}
+
+function onRecordContextMenu(event: MouseEvent, record: Row) {
+  emits('recordContextMenu', event, record)
 }
 
 const spanningRecordsContainer = ref<HTMLElement | null>(null)
@@ -1051,21 +1027,20 @@ watch(
           class="text-nc-content-inverted-primary bg-nc-content-brand rounded-md leading-3.5 font-bold text-xs pointer-events-auto p-0.5 cursor-pointer"
           @click="addRecord(timezoneDayjs.dayjsTz())"
         >
-          {{ currTime.format('hh:mm A') }}
+          {{ currTime.format(is12hrAxis ? 'hh:mm A' : 'HH:mm') }}
         </span>
         <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand"></div>
       </div>
     </div>
     <div class="flex sticky h-6 z-4 top-0 pl-16 bg-nc-bg-gray-extralight w-full">
       <div
-        v-for="date in datesHours"
+        v-for="(date, index) in datesHours"
         :key="date[0].toISOString()"
         :class="{
           'text-nc-content-brand': date[0].isSame(timezoneDayjs.dayjsTz(), 'date'),
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
         }"
-        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extralight"
+        :style="{ width: columnWidthPct(index) }"
+        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extralight"
       >
         {{ timezoneDayjs.dayjsTz(date[0]).format('DD ddd') }}
       </div>
@@ -1083,7 +1058,7 @@ watch(
         :key="index"
         class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-nc-content-gray-muted py-1"
       >
-        {{ hour.format('hh a') }}
+        {{ hour.format(is12hrAxis ? 'hh a' : 'HH:00') }}
       </div>
     </div>
     <div
@@ -1094,6 +1069,7 @@ watch(
         ref="spanningRecordsContainer"
         :records="recordsAcrossAllRange.spanningRecords"
         @expand-record="expandRecord"
+        @record-context-menu="onRecordContextMenu"
       />
     </div>
     <div
@@ -1108,10 +1084,7 @@ watch(
       <div
         v-for="(date, index) in datesHours"
         :key="index"
-        :class="{
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
-        }"
+        :style="{ width: columnWidthPct(index) }"
         class="h-full mt-5.95"
         data-testid="nc-calendar-week-day"
       >
@@ -1128,62 +1101,8 @@ watch(
           class="text-center relative transition h-13 text-sm text-nc-content-gray-muted w-full py-1 border-transparent border-1 border-x-nc-border-gray-light border-t-nc-border-gray-light border-l-nc-border-gray-light"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
-          @click="
-            () => {
-              selectedDate = hour
-              selectedTime = hour
-              dragRecord = null
-            }
-          "
-        >
-          <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow" :trigger="['click']">
-            <NcButton
-              v-e="`['c:calendar:week-view-more']`"
-              class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-nc-content-gray-muted"
-              size="xxsmall"
-              type="secondary"
-              @click="viewMore(hour)"
-            >
-              <span class="text-xs">
-                +
-                {{ isOverflowAcrossHourRange(hour).overflowCount }}
-                more
-              </span>
-            </NcButton>
-            <template #overlay>
-              <div class="bg-nc-bg-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
-                <LazySmartsheetCalendarSideRecordCard
-                  v-for="record in isOverflowAcrossHourRange(hour).overflowRecords"
-                  :key="record?.rowMeta?.id"
-                  :draggable="false"
-                  class="w-64"
-                  :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
-                  :invalid="false"
-                  :row="record"
-                  :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
-                  data-testid="nc-sidebar-record-card"
-                  @click="expandRecord(record)"
-                >
-                  <template v-if="!isRowEmpty(record, displayField)">
-                    <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
-                  </template>
-                  <template v-else-if="fields?.length">
-                    <template v-for="field in fields" :key="field.id">
-                      <LazySmartsheetPlainCell
-                        v-if="!isRowEmpty(record, field!)"
-                        v-model="record.row[field!.title!]"
-                        :column="field"
-                      />
-                    </template>
-                  </template>
-                  <template v-else>
-                    <span class="text-nc-content-gray-muted"> - </span>
-                  </template>
-                </LazySmartsheetCalendarSideRecordCard>
-              </div>
-            </template>
-          </NcDropdown>
-        </div>
+          @click="selectHour(hour)"
+        ></div>
       </div>
 
       <div
@@ -1192,7 +1111,7 @@ watch(
       >
         <template v-for="record in recordsAcrossAllRange.records" :key="record.rowMeta.id">
           <div
-            v-if="record.rowMeta.style?.display !== 'none'"
+            v-if="record.rowMeta.style?.display !== 'none' && !record.rowMeta.capHidden"
             :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
             :data-unique-id="record.rowMeta!.id"
             :style="{
@@ -1204,12 +1123,9 @@ watch(
                   ? 1
                   : 0.3,
             }"
-            :class="{
-              'w-1/5': maxVisibleDays === 5,
-              'w-1/7': maxVisibleDays === 7,
-            }"
             class="absolute transition draggable-record group cursor-pointer pointer-events-auto"
             @mousedown.stop="dragStart($event, record)"
+            @contextmenu="onRecordContextMenu($event, record)"
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id"
             @dragover.prevent
@@ -1219,29 +1135,67 @@ watch(
                 :hover="hoverRecord === record.rowMeta.id"
                 :position="record.rowMeta!.position"
                 :dragging="record.rowMeta.id === dragRecord?.rowMeta?.id || resizeRecord?.rowMeta.id === record.rowMeta.id"
-                :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+                :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
                 :record="record"
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
+                :clamp-lines="cardClampLines(record)"
+                :blank="isCardTooThinToRender(record)"
                 @resize-start="onResizeStart"
               >
-                <template v-for="(field, id) in fields" :key="id">
-                  <LazySmartsheetPlainCell
-                    v-if="!isRowEmpty(record, field!)"
-                    v-model="record.row[field!.title!]"
-                    class="text-xs"
-                    :column="field"
-                    :bold="!!fieldStyles[field.id]?.bold"
-                    :italic="!!fieldStyles[field.id]?.italic"
-                    :underline="!!fieldStyles[field.id]?.underline"
-                  />
+                <template v-if="!isCardTooThinToRender(record)">
+                  <template v-for="(field, id) in fields" :key="id">
+                    <LazySmartsheetPlainCell
+                      v-if="!isRowEmpty(record, field!) && !rangeFieldIds.has(field!.id)"
+                      v-model="record.row[field!.title!]"
+                      class="text-xs"
+                      :column="field"
+                      :bold="!!fieldStyles[field.id]?.bold"
+                      :italic="!!fieldStyles[field.id]?.italic"
+                      :underline="!!fieldStyles[field.id]?.underline"
+                    />
+                  </template>
+                </template>
+                <template #tooltip>
+                  <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
                 </template>
                 <template #time>
-                  <div class="text-xs font-medium text-nc-content-gray-disabled">
-                    {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
-                  </div>
+                  <span v-if="!isCardTooThinToRender(record)" class="text-xs font-medium text-nc-content-gray-disabled">
+                    {{
+                      timezoneDayjs
+                        .timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!])
+                        .format(is12hrTimeColumn(record.rowMeta.range?.fk_from_col) ? 'h:mm a' : 'HH:mm')
+                    }}
+                  </span>
                 </template>
               </LazySmartsheetCalendarVRecordCard>
             </LazySmartsheetRow>
+          </div>
+        </template>
+      </div>
+
+      <!-- Dense-cluster overlay (Airtable-style): only the time band where cards shrink to
+           unreadable slivers gets an overlay. Hovering it highlights that band and reveals a
+           "View all N events in day view" pill (N = cluster size); clicking opens that day in
+           the readable day view. Readable cards elsewhere in the day are left untouched. -->
+      <div class="absolute inset-0 z-3 overflow-hidden !mt-5.95 pointer-events-none">
+        <template v-for="(band, bandIndex) in recordsAcrossAllRange.denseBands" :key="`dense-${bandIndex}`">
+          <div
+            v-if="isDenseBand(band)"
+            :style="{
+              left: `${columnOffsetPx(band.dayIndex)}px`,
+              width: `${columnWidthPx(band.dayIndex)}px`,
+              top: `${band.top}px`,
+              height: `${band.height}px`,
+            }"
+            class="nc-dense-day-overlay group absolute pointer-events-auto cursor-pointer flex items-center justify-center transition-colors"
+            data-testid="nc-calendar-week-dense-overlay"
+            @click="openDayViewForColumn(band.dayIndex)"
+          >
+            <span
+              class="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-gray-800 text-white text-xs font-semibold leading-4 rounded-md px-2 py-1 shadow-md text-center max-w-[92%] whitespace-normal"
+            >
+              {{ $t('tooltip.viewAllEventsInDayView', { count: band.count }) }}
+            </span>
           </div>
         </template>
       </div>
@@ -1250,6 +1204,12 @@ watch(
 </template>
 
 <style lang="scss" scoped>
+// Subtle highlight when hovering a dense day's "view all in day view" overlay; the thin
+// slivers underneath stay faintly visible.
+.nc-dense-day-overlay:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
 .prevent-select {
   -webkit-user-select: none;
   -ms-user-select: none;

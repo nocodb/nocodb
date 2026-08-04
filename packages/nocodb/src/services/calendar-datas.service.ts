@@ -6,6 +6,7 @@ import type { NcContext } from '~/interface/config';
 import { CalendarRange, Column, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
+import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
 
 @Injectable()
 export class CalendarDatasService {
@@ -95,7 +96,9 @@ export class CalendarDatasService {
       prev_date: string;
     },
   ) {
-    const { sharedViewUuid, password, query = {} } = param;
+    const { sharedViewUuid, password } = param;
+    // Strip response-shape keys before forwarding an anonymous caller's query.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
@@ -129,7 +132,9 @@ export class CalendarDatasService {
       prev_date: string;
     },
   ) {
-    const { sharedViewUuid, password, query = {} } = param;
+    const { sharedViewUuid, password } = param;
+    // Strip response-shape keys before forwarding an anonymous caller's query.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
@@ -248,6 +253,7 @@ export class CalendarDatasService {
     context: NcContext,
     {
       viewId,
+      from_date,
       next_date,
       prev_date,
       isDate,
@@ -273,7 +279,10 @@ export class CalendarDatasService {
     if (isDate) {
       const regex = /^\d{4}-\d{2}-\d{2}/;
       next_date = next_date.match(regex)?.[0] || next_date;
-      prev_date = prev_date.match(regex)?.[0] || prev_date;
+      // Date-only columns lose the time portion when stripped, so `>= prev_date`
+      // would include the entire day BEFORE the visible range. Use the stripped
+      // from_date (first day of the range) as the inclusive lower bound instead.
+      prev_date = from_date.match(regex)?.[0] || from_date;
     }
 
     calendarRange?.ranges.forEach((range: CalendarRange) => {

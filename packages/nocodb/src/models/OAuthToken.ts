@@ -10,6 +10,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
+import { buildRevokeIfActiveUpdate } from '~/models/oauth-token.queries';
 
 export default class OAuthToken {
   id: string;
@@ -166,6 +167,38 @@ export default class OAuthToken {
       'root',
       `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
       updateData,
+    );
+
+    return true;
+  }
+
+  /**
+   * Atomically revoke a token only if it is currently active. Returns true only
+   * if this caller won the compare-and-swap (the token was active and is now
+   * revoked); false if it was already revoked or does not exist. Used to make
+   * refresh-token rotation single-use under concurrency (GHSA-353r).
+   */
+  static async revokeIfActive(id: string, ncMeta = Noco.ncMeta) {
+    const token = await this.get(id, ncMeta);
+    if (!token) {
+      return false;
+    }
+
+    const updated = await buildRevokeIfActiveUpdate(
+      ncMeta.knex,
+      MetaTable.OAUTH_TOKENS,
+      id,
+    );
+
+    if (!updated) {
+      return false;
+    }
+
+    // Update cache by access token
+    await NocoCache.update(
+      'root',
+      `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
+      { is_revoked: true },
     );
 
     return true;

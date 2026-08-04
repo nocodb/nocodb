@@ -42,7 +42,11 @@ Handlebars.registerHelper('json', function (context, pretty = false) {
 
 const logger = new Logger('webhookHelpers');
 
-export function parseBody(template: string, data: any): string {
+export function parseBody(
+  template: string,
+  data: any,
+  vars?: Record<string, string>,
+): string {
   if (!template) {
     return template;
   }
@@ -51,6 +55,7 @@ export function parseBody(template: string, data: any): string {
     return Handlebars.compile(template, { noEscape: true })({
       data,
       event: data,
+      vars: vars || {},
     });
   } catch (e) {
     // if parsing fails then return the original template
@@ -540,6 +545,20 @@ export function transformDataForMailRendering(
     } catch (error) {
       logger.error(`Error processing column ${col.title}:`, error);
       serializedValue = data[col.title]?.toString() || '';
+    }
+
+    // Guarantee a string reaches the email template — a non-string value here
+    // (e.g. an object that slipped through a parser) would throw
+    // "Objects are not valid as a React child" and fail the whole email.
+    if (
+      serializedValue !== null &&
+      serializedValue !== undefined &&
+      typeof serializedValue !== 'string'
+    ) {
+      serializedValue =
+        typeof serializedValue === 'object'
+          ? JSON.stringify(serializedValue)
+          : String(serializedValue);
     }
 
     transformedData.push({

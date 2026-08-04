@@ -1,23 +1,35 @@
 import RowColorCondition from 'src/models/RowColorCondition';
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  comparisonOpList,
+  EventType,
+  MetaEventType,
+} from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import type { MetaService } from '~/meta/meta.service';
+import { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
-import { Filter, Hook, View } from '~/models';
+import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class FiltersService {
   protected readonly logger = new Logger(FiltersService.name);
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
 
   async hookFilterCreate(
     context: NcContext,
@@ -55,20 +67,17 @@ export class FiltersService {
   }
 
   async buttonFilterCreate(
-    context: NcContext,
-    param: {
+    _context: NcContext,
+    _param: {
       filter: FilterReqType;
       buttonColId: any;
       user: UserType;
       req: NcRequest;
     },
-  ) {
-    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
-
-    return await Filter.insert(context, {
-      ...param.filter,
-      fk_button_col_id: param.buttonColId,
-    });
+  ): Promise<any> {
+    // placeholder method — button visibility conditions are an EE-only feature
+    // (Business+ / licensed). EE overrides this with the real implementation.
+    return null;
   }
 
   async buttonFilterList(context: NcContext, param: { buttonColId: string }) {
@@ -89,14 +98,14 @@ export class FiltersService {
     const filter = await Filter.get(context, param.filterId);
 
     if (!filter) {
-      NcError.badRequest('Filter not found');
+      NcError.get(context).filterNotFound(param.filterId);
     }
 
     const parentData = await filter.extractRelatedParentMetas(context);
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -113,6 +122,7 @@ export class FiltersService {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       viewWebhookManager = (
@@ -131,6 +141,13 @@ export class FiltersService {
       context,
       ...parentData,
     });
+
+    if (filter.fk_view_id) {
+      await this.metaDependencyEventHandler.handleEvent(context, {
+        eventType: MetaEventType.FILTER_DELETED,
+        oldEntity: filter,
+      });
+    }
 
     NocoSocket.broadcastEvent(
       context,
@@ -163,6 +180,17 @@ export class FiltersService {
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
+    if (param.filter.fk_column_id) {
+      const column = await Column.get(context, {
+        colId: param.filter.fk_column_id,
+      });
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
+        );
+      }
+    }
+
     const view = await View.get(context, param.viewId);
 
     const viewWebhookManager: ViewWebhookManager = (
@@ -183,6 +211,11 @@ export class FiltersService {
       view,
       req: param.req,
       context,
+    });
+
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.FILTER_CREATED,
+      newEntity: filter,
     });
 
     NocoSocket.broadcastEvent(
@@ -217,11 +250,28 @@ export class FiltersService {
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
+    if (param.filter.fk_column_id) {
+      const column = await Column.get(
+        context,
+        { colId: param.filter.fk_column_id },
+        ncMeta,
+      );
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
+        );
+      }
+    }
+
     const filter = await Filter.get(context, param.filterId, ncMeta);
+
+    if (!filter) {
+      NcError.get(context).filterNotFound(param.filterId);
+    }
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -238,6 +288,7 @@ export class FiltersService {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       viewWebhookManager = (
@@ -249,9 +300,6 @@ export class FiltersService {
       ).forUpdate();
     }
 
-    if (!filter) {
-      NcError.badRequest('Filter not found');
-    }
     // todo: type correction
     const res = await Filter.update(
       context,
@@ -270,13 +318,25 @@ export class FiltersService {
       context,
     });
 
+    if (filter.fk_view_id) {
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.FILTER_UPDATED,
+          oldEntity: filter,
+          newEntity: { ...filter, ...param.filter },
+        },
+        ncMeta,
+      );
+    }
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'filter_update',
-          payload: filter,
+          payload: { ...filter, ...param.filter },
         },
       },
       context.socket_id,
@@ -288,6 +348,120 @@ export class FiltersService {
       ).emit();
     }
     return res;
+  }
+
+  @TraceCommand(OperationName.filterBulkLogicalOpUpdate)
+  async filterBulkLogicalOpUpdate(
+    context: NcContext,
+    param: {
+      filters: Array<{
+        filterId: string;
+        logical_op: 'and' | 'or' | 'not';
+      }>;
+      req: NcRequest;
+    },
+    ncMeta?: MetaService,
+  ) {
+    if (!param.filters?.length) return [];
+
+    const loaded: Array<{ before: Filter; logical_op: 'and' | 'or' | 'not' }> =
+      [];
+    for (const { filterId, logical_op } of param.filters) {
+      const before = await Filter.get(context, filterId, ncMeta);
+      if (!before) NcError.get(context).badRequest('Filter not found');
+      loaded.push({ before, logical_op });
+    }
+
+    const firstViewId = loaded[0].before.fk_view_id;
+    if (!firstViewId) {
+      NcError.get(context).badRequest(
+        'Bulk logical_op update only supports view-scoped filters',
+      );
+    }
+    const firstParentId = loaded[0].before.fk_parent_id ?? null;
+    for (const { before } of loaded) {
+      if (before.fk_view_id !== firstViewId) {
+        NcError.get(context).badRequest(
+          'All filters must belong to the same view',
+        );
+      }
+      if ((before.fk_parent_id ?? null) !== firstParentId) {
+        NcError.get(context).badRequest(
+          'All filters must share the same parent (be siblings)',
+        );
+      }
+    }
+
+    // One shared webhook manager — single firing covers the whole bulk
+    // action. Audit (`AppEvents.FILTER_UPDATE`) and realtime
+    // `filter_update` still fire per row so listeners and other tabs see
+    // each change individually.
+    const view = await View.get(context, firstViewId, false, ncMeta);
+    const sharedViewWebhookManager: ViewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(firstViewId)
+    ).forUpdate();
+
+    const updated: Filter[] = [];
+    for (const { before, logical_op } of loaded) {
+      if (before.logical_op === logical_op) continue;
+
+      const res = await Filter.update(
+        context,
+        before.id,
+        { logical_op } as Filter,
+        ncMeta,
+      );
+      const after = await Filter.get(context, before.id, ncMeta);
+
+      const parentData = await before.extractRelatedParentMetas(
+        context,
+        ncMeta,
+      );
+
+      this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
+        filter: { ...before, logical_op },
+        oldFilter: before,
+        req: param.req,
+        ...parentData,
+        context,
+      });
+
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.FILTER_UPDATED,
+          oldEntity: before,
+          newEntity: { ...before, logical_op },
+        },
+        ncMeta,
+      );
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'filter_update',
+            payload: after,
+          },
+        },
+        context.socket_id,
+      );
+
+      updated.push(res);
+    }
+
+    (
+      await sharedViewWebhookManager.withNewViewId(
+        sharedViewWebhookManager.getViewId(),
+      )
+    ).emit();
+
+    return updated;
   }
 
   async filterChildrenList(context: NcContext, param: { filterId: string }) {

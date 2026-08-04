@@ -7,6 +7,8 @@ import 'splitpanes/dist/splitpanes.css'
 import {
   type AttachmentResType,
   type ColumnType,
+  FORM_ROW_FULL_WIDTH_UI_TYPES,
+  FORM_ROW_MAX_FIELDS,
   type LinkToAnotherRecordType,
   PermissionEntity,
   PermissionKey,
@@ -22,6 +24,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
+import { estimateRowHeightPx } from './form/formRowEstimate'
 import type { ImageCropperConfig } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -54,6 +57,8 @@ const { getMeta, getMetaByKey } = useMetas()
 
 const { isDark } = useTheme()
 
+const { isWhiteLabelled } = useBranding()
+
 const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -84,7 +89,8 @@ const {
   isRequired,
   updateView,
   updateColMeta,
-  validateInfos,
+  bulkUpdateColumns,
+  rows,
   validate,
   clearValidate,
   fieldMappings,
@@ -93,6 +99,11 @@ const {
   allViewFilters,
   checkFieldVisibility,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
+
+// Recompute conditional field visibility once per change (debounced). Previously
+// this ran once-per-field as a validation side-effect, which triggered an O(n²)
+// validators/rules rebuild storm on every keystroke.
+const checkFieldVisibilityDebounced = useDebounceFn(() => checkFieldVisibility(), 100)
 
 const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
@@ -109,6 +120,7 @@ const reloadEventHookHandler = withLoading(async (params) => {
   } else {
     await Promise.all([loadFormView(), loadReleatedMetas()])
     setFormData()
+    resetRowRenderCache()
   }
 })
 
@@ -129,7 +141,7 @@ onBeforeUnmount(() => {
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 
-const { state, row } = useProvideSmartsheetRowStore(
+const { state } = useProvideSmartsheetRowStore(
   ref({
     row: formState.value,
     oldRow: {},
@@ -137,7 +149,8 @@ const { state, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures } = useEeConfig()
+const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures, blockFormGridLayout } =
+  useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -153,8 +166,6 @@ const dropdownStates = ref({
   showAddColumn: false,
 })
 const drag = ref(false)
-
-const emailMe = ref(false)
 
 const submitted = ref(false)
 
@@ -352,6 +363,12 @@ async function submitForm() {
 
   isFormSubmitting.value = true
 
+  // Ensure conditional visibility reflects the latest form values before we strip
+  // hidden-field data and run required-field validation — both are gated on
+  // `col.visible`. The live recompute is debounced, so force a fresh awaited pass
+  // here to keep submit deterministic regardless of debounce timing.
+  await checkFieldVisibility()
+
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
       formState.value[col.title] = null
@@ -444,7 +461,7 @@ function onMoveCallback(event: any) {
 }
 
 async function onMove(event: any, isVisibleFormFields = false) {
-  if (isLocked.value || !isEditable) return
+  if (isLocked.value || !isEditable || !view.value) return
 
   let { newIndex, element } = event.moved
 
@@ -478,7 +495,7 @@ async function onMove(event: any, isVisibleFormFields = false) {
     view.value!.fk_workspace_id!,
     view.value!.base_id!,
     { operation: 'formColumnUpdate', formColumnId: element.id },
-    element,
+    pickFormColumnUpdateBody(element as Record<string, any>),
   )
 
   fields.value[fieldIndex] = element as any
@@ -495,8 +512,390 @@ async function onMove(event: any, isVisibleFormFields = false) {
   $e('a:form-view:reorder')
 }
 
-async function showOrHideColumn(column: Record<string, any>, show: boolean, isFormSettings = false) {
+// ─── Grid layout (multi-field rows) ────────────────────────────────────
+
+function makeRowId() {
+  return `fr_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`
+}
+
+function isFullWidthField(col: Record<string, any>) {
+  return col?.uidt != null && (FORM_ROW_FULL_WIDTH_UI_TYPES as readonly string[]).includes(col.uidt)
+}
+
+const rowsWithKey = computed(() =>
+  (rows.value as any[][]).map((fields: any[], idx: number) => ({
+    _key: fields[0]?.row_id || `_solo_${fields[0]?.id || idx}`,
+    row_id: (fields[0]?.row_id ?? null) as string | null,
+    fields,
+  })),
+)
+
+// ── Lazy-render off-screen field rows (replaces `content-visibility`, which churned
+// add/remove-from-layout ~1100x on every activation). Each grid row keeps a lightweight,
+// sized placeholder until it scrolls near the viewport, so off-screen heavy cells aren't
+// mounted/restyled. The row WRAPPER stays in the DOM so drag-drop targets + ordering are
+// unaffected; during an active drag (`drag`) every row renders fully, and the active row
+// always renders so its editor never unmounts mid-edit.
+const renderedRowKeys = reactive(new Set<string>())
+
+// Real rendered height (px) per row, captured the moment a row scrolls out of view —
+// reused as the collapsed placeholder's min-height so re-collapsing a tall row (filled
+// long text, long option lists, error states) doesn't snap back to a rough estimate and
+// shift the scroll position. Falls back to `estimateRowHeightPx` until a row has been
+// measured once. Plain Map (not reactive): it's read only when `isRowRendered` flips to
+// false — which the reactive `renderedRowKeys` already triggers — and it's always written
+// just before that flip, so the placeholder binding sees the fresh value.
+const rowHeightCache = new Map<string, number>()
+
+let rowVisibilityObserver: IntersectionObserver | null = null
+
+// Pre-render margin (px) above/below the viewport: rows within this band of the scroller are
+// rendered ahead of time so fast scrolling never reveals a blank placeholder. Shared by the
+// IntersectionObserver's `rootMargin` and the synchronous `isRowElementNearViewport` seed so
+// the two always agree on what "near the viewport" means.
+const ROW_PRERENDER_MARGIN_PX = 900
+
+function ensureRowObserver(el: HTMLElement) {
+  if (rowVisibilityObserver) return
+  const root = el.closest('.nc-form-preview-scroller') as HTMLElement | null
+  rowVisibilityObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const key = (entry.target as HTMLElement).dataset.rowKey
+        if (!key) continue
+        if (entry.isIntersecting) {
+          renderedRowKeys.add(key)
+        } else {
+          // Only cache on a genuine rendered→collapsed transition: the row's content is
+          // still mounted at this instant, so the rect is its real height. (The initial
+          // off-screen callback fires before the row was ever rendered, where the rect is
+          // just the placeholder estimate — skip those so we never cache an estimate.)
+          if (renderedRowKeys.has(key) && entry.boundingClientRect.height > 0) {
+            rowHeightCache.set(key, entry.boundingClientRect.height)
+          }
+          renderedRowKeys.delete(key)
+        }
+      }
+    },
+    // Pre-render a generous margin above/below so fast scrolling never reveals blanks.
+    { root, rootMargin: `${ROW_PRERENDER_MARGIN_PX}px 0px`, threshold: 0 },
+  )
+}
+
+// Synchronous first-paint check: is this row inside (or within the pre-render margin of) the
+// scroller's viewport right now? Forces a layout read, so it's reliable inside the directive's
+// `mounted` hook.
+function isRowElementNearViewport(el: HTMLElement) {
+  const root = el.closest('.nc-form-preview-scroller') as HTMLElement | null
+  const rect = el.getBoundingClientRect()
+  const top = root ? root.getBoundingClientRect().top : 0
+  const bottom = root ? root.getBoundingClientRect().bottom : window.innerHeight || document.documentElement.clientHeight
+  return rect.bottom >= top - ROW_PRERENDER_MARGIN_PX && rect.top <= bottom + ROW_PRERENDER_MARGIN_PX
+}
+
+const vObserveRow = {
+  mounted(el: HTMLElement) {
+    ensureRowObserver(el)
+    rowVisibilityObserver?.observe(el)
+
+    // Seed on-screen rows synchronously instead of waiting for the async IntersectionObserver
+    // callback. The observer fires on a later task and can be coalesced/delayed (notably in
+    // headless CI), which left freshly re-laid-out on-screen rows (e.g. right after
+    // removeAllFields or a layout re-key) stuck as placeholders — their heavy cells never
+    // mounted until a scroll nudged the observer. Off-screen rows fail this check and stay
+    // placeholders, so the perf win is preserved; the observer still handles later scrolling.
+    const key = el.dataset.rowKey
+    if (key && !renderedRowKeys.has(key) && isRowElementNearViewport(el)) {
+      renderedRowKeys.add(key)
+    }
+  },
+  beforeUnmount(el: HTMLElement) {
+    rowVisibilityObserver?.unobserve(el)
+    const key = el.dataset.rowKey
+    if (key) renderedRowKeys.delete(key)
+  },
+}
+
+// Disconnect the shared observer when the component scope is torn down — cleaner across
+// HMR and remounts than leaving it for GC.
+onScopeDispose(() => {
+  rowVisibilityObserver?.disconnect()
+  rowVisibilityObserver = null
+})
+
+// Intentionally does NOT read `activeRow` — doing so made the whole Form render effect
+// re-run (and re-walk every preview row) on each field switch. The active field's row is
+// on-screen when clicked (sidebar activation scrolls it in via handleAutoScrollFormField),
+// so the IntersectionObserver/synchronous seed already keeps it rendered.
+function isRowRendered(formRow: { _key: string; fields: any[] }) {
+  return drag.value || renderedRowKeys.has(formRow._key)
+}
+
+// Collapsed-row placeholder height: the last real measured height when we have it, else a
+// rough type-based estimate (used the first time a row is rendered, before measurement).
+function rowPlaceholderHeightPx(formRow: { _key: string; fields: any[] }) {
+  return rowHeightCache.get(formRow._key) ?? estimateRowHeightPx(formRow.fields)
+}
+
+// Drop measured heights on a full reload: the layout can change while a `row_id` (= `_key`)
+// persists, so a cached height would otherwise be applied as a stale off-screen placeholder
+// until that row is next scrolled into view and re-measured.
+//
+// Do NOT clear `renderedRowKeys` here. A reused on-screen row node (same `_key`, e.g. the
+// lone required field left after hiding all others) does not re-fire the directive's
+// `mounted` hook, so it would never be re-seeded, and the IntersectionObserver does not
+// re-fire for a row whose intersection didn't change — leaving visible rows stuck as blank
+// placeholders. Stale keys for rows that went away are harmless (they match no row); newly
+// mounted rows are seeded by the directive; scroll in/out is handled by the observer.
+function resetRowRenderCache() {
+  rowHeightCache.clear()
+}
+
+// Serializes drag-drop re-layouts: blocks new drags while a bulk update
+// is in flight so rapid consecutive moves can't race each other and
+// ship inconsistent projected states to the server.
+const gridUpdatePending = ref(false)
+
+function snapshotGridState() {
+  return localColumns.value.map((c: any) => ({
+    id: c.id,
+    order: c.order,
+    row_id: c.row_id ?? null,
+  }))
+}
+
+function restoreGridState(snap: Array<{ id: string; order: number; row_id: string | null }>) {
+  for (const s of snap) {
+    const lc = localColumns.value.find((c: any) => c.id === s.id) as any
+    if (lc) {
+      lc.order = s.order
+      lc.row_id = s.row_id
+    }
+    const fc = fields.value?.find((f: any) => f?.id === s.id) as any
+    if (fc) {
+      fc.order = s.order
+      fc.row_id = s.row_id
+    }
+  }
+}
+
+/**
+ * Reject drops that would violate grid-layout invariants we cannot recover
+ * from — full-width fields must stay alone. Capacity overflow (dropping a
+ * 6th field into a 5-field row) is NOT rejected here; `onFieldMove` catches
+ * it and silently splits the incoming field into a fresh row below.
+ */
+function onFieldMoveCallback(event: any, targetRow: Record<string, any>[]) {
+  if (gridUpdatePending.value) return false
+
+  const dragged = event.draggedContext?.element
+  if (!dragged) return true
+
+  if (event.from === event.to) return true
+
+  // vuedraggable's `:move` fires on the source Draggable, so the closure's
+  // `targetRow` is the SOURCE row's fields. Use event.relatedContext.list to
+  // read the actual destination row's fields.
+  const destFields: any[] = event.relatedContext?.list ?? targetRow
+
+  if (isFullWidthField(dragged) && destFields.length >= 1) return false
+
+  if (destFields.some((f) => isFullWidthField(f))) return false
+
+  return true
+}
+
+async function onFieldMove(event: any, targetRowKey: string) {
   if (isLocked.value || !isEditable) return
+
+  // We only handle @change events that affect THIS row as a destination:
+  //  • `added`  — a field was moved INTO this row from another
+  //  • `moved`  — a field was reordered WITHIN this row
+  // `removed` fires on the source row — ignore it; the destination row's
+  // event will reassign all affected fields in one write.
+  const destEvent = event.added || event.moved
+  if (!destEvent) return
+
+  const movedId = destEvent.element?.id
+  const newIndexInRow = destEvent.newIndex
+  if (!movedId || typeof newIndexInRow !== 'number') return
+
+  const targetIdx = rowsWithKey.value.findIndex((r) => r._key === targetRowKey)
+  if (targetIdx === -1) return
+
+  // Work on shallow clones so row_id reassignment below doesn't mutate
+  // localColumns before we can diff against it.
+  const workingRows: any[][] = (rows.value as any[][]).map((r: any[]) => r.map((c: any) => ({ ...c })))
+
+  let movedFieldCopy: any = null
+  for (const r of workingRows) {
+    const i = r.findIndex((c: any) => c.id === movedId)
+    if (i >= 0) {
+      movedFieldCopy = r.splice(i, 1)[0]
+      break
+    }
+  }
+  if (!movedFieldCopy) return
+
+  // Capacity overflow: if the target row is already full, don't force the
+  // drop into it — split the incoming field into a new row right below.
+  const targetOverflow = workingRows[targetIdx].length >= FORM_ROW_MAX_FIELDS
+  if (targetOverflow) {
+    workingRows.splice(targetIdx + 1, 0, [movedFieldCopy])
+  } else {
+    workingRows[targetIdx].splice(newIndexInRow, 0, movedFieldCopy)
+  }
+
+  const pruned: any[][] = workingRows.filter((r: any[]) => r.length > 0)
+
+  // Assign row_ids: multi-field rows share one id; solo rows get null
+  // (they may carry a stale row_id from their previous shared row).
+  // Reject the move if it would land any full-width field (LongText,
+  // Attachment, JSON) in a multi-field row — the backend rejects this with
+  // 'Field type X must occupy its own row', and onFieldMoveCallback may not
+  // catch it if the source uidt isn't on the form-column object.
+  for (const r of pruned) {
+    if (r.length >= 2 && r.some((c: any) => isFullWidthField(c))) {
+      return
+    }
+  }
+
+  for (const r of pruned) {
+    if (r.length >= 2) {
+      const existing = r.find((c: any) => c.row_id)?.row_id
+      const rowId = existing || makeRowId()
+      for (const c of r) c.row_id = rowId
+    } else if (r.length === 1) {
+      r[0].row_id = null
+    }
+  }
+
+  // Snapshot BEFORE the diff/apply loop — the loop mutates localColumns
+  // and fields in place, so capturing after would record the post-mutation
+  // state and make restoreGridState() a no-op on rollback.
+  const snapshot = snapshotGridState()
+
+  // Diff projected state against current localColumns, then apply.
+  const flat = pruned.flat() as any[]
+  const updates: Array<{ id: string; row_id?: string | null; order?: number }> = []
+  for (let i = 0; i < flat.length; i++) {
+    const newCol = flat[i]
+    const newOrder = i + 1
+    const original = localColumns.value.find((c: any) => c.id === newCol.id) as any
+    if (!original) continue
+    const orderChanged = (original.order ?? null) !== newOrder
+    const rowIdChanged = (original.row_id ?? null) !== (newCol.row_id ?? null)
+    if (orderChanged || rowIdChanged) {
+      updates.push({ id: newCol.id, row_id: newCol.row_id ?? null, order: newOrder })
+      original.order = newOrder
+      original.row_id = newCol.row_id ?? null
+      const fc = fields.value?.find((f: any) => f?.id === newCol.id) as any
+      if (fc) {
+        fc.order = newOrder
+        fc.row_id = newCol.row_id ?? null
+      }
+    }
+  }
+
+  if (!updates.length) return
+
+  gridUpdatePending.value = true
+  try {
+    await bulkUpdateColumns(updates)
+  } catch (e: any) {
+    restoreGridState(snapshot)
+    message.error(await extractSdkResponseErrorMsg(e))
+    return
+  } finally {
+    gridUpdatePending.value = false
+  }
+  checkFieldVisibility()
+
+  const finalRow = pruned.find((r: any[]) => r.some((c: any) => c.id === movedId))
+  $e('a:form-view:grid:field-move', { fieldCount: finalRow?.length ?? 1 })
+}
+
+function onFieldMoveToNewRowCallback(event: any) {
+  if (gridUpdatePending.value) return false
+  const dragged = event.draggedContext?.element
+  if (!dragged) return false
+  // Always allowed — incoming field gets its own fresh row
+  return true
+}
+
+async function onFieldMoveToNewRow(event: any, beforeRowKey?: string) {
+  if (isLocked.value || !isEditable) return
+  const added = event.added
+  if (!added?.element) return
+
+  const fieldId = added.element.id
+  const movedField = localColumns.value.find((c: any) => c.id === fieldId) as any
+  if (!movedField) return
+
+  // Resolve the anchor BEFORE removing the field — index math has to account
+  // for the source row collapsing if it had only the dragged field.
+  const beforeIdxOriginal = typeof beforeRowKey === 'string' ? rowsWithKey.value.findIndex((r) => r._key === beforeRowKey) : -1
+  const sourceIdx = rowsWithKey.value.findIndex((r) => r.fields.some((f: any) => f.id === fieldId))
+  const sourceCollapses = sourceIdx >= 0 && rowsWithKey.value[sourceIdx].fields.length === 1
+
+  // Rebuild rows: pull field out of its source row, splice as a new solo row
+  // at the anchor position (or append if no anchor).
+  const next: any[][] = (rows.value as any[][]).map((r: any[]) => [...r])
+  for (const r of next) {
+    const i = r.findIndex((c: any) => c.id === fieldId)
+    if (i >= 0) r.splice(i, 1)
+  }
+  const pruned: any[][] = next.filter((r: any[]) => r.length > 0)
+
+  if (beforeIdxOriginal === -1) {
+    pruned.push([{ ...movedField, row_id: null } as any])
+  } else {
+    let insertIdx = beforeIdxOriginal
+    if (sourceCollapses && sourceIdx < beforeIdxOriginal) insertIdx -= 1
+    insertIdx = Math.max(0, Math.min(insertIdx, pruned.length))
+    pruned.splice(insertIdx, 0, [{ ...movedField, row_id: null } as any])
+  }
+
+  // Snapshot BEFORE the diff/apply loop (loop mutates localColumns/fields).
+  const snapshot = snapshotGridState()
+
+  const flat = pruned.flat() as any[]
+  const updates: Array<{ id: string; row_id?: string | null; order?: number }> = []
+  for (let i = 0; i < flat.length; i++) {
+    const col = flat[i]
+    const newOrder = i + 1
+    const prev = localColumns.value.find((c: any) => c.id === col.id) as any
+    if (!prev) continue
+    if ((prev.order ?? null) !== newOrder || (prev.row_id ?? null) !== (col.row_id ?? null)) {
+      updates.push({ id: col.id, row_id: col.row_id ?? null, order: newOrder })
+      prev.order = newOrder
+      prev.row_id = col.row_id ?? null
+      const fc = fields.value?.find((f: any) => f?.id === col.id) as any
+      if (fc) {
+        fc.order = newOrder
+        fc.row_id = col.row_id ?? null
+      }
+    }
+  }
+
+  if (!updates.length) return
+
+  gridUpdatePending.value = true
+  try {
+    await bulkUpdateColumns(updates)
+  } catch (e: any) {
+    restoreGridState(snapshot)
+    message.error(await extractSdkResponseErrorMsg(e))
+    return
+  } finally {
+    gridUpdatePending.value = false
+  }
+  checkFieldVisibility()
+  $e('a:form-view:grid:new-row')
+}
+
+async function showOrHideColumn(column: Record<string, any>, show: boolean, isFormSettings = false) {
+  if (isLocked.value || !isEditable || !view.value) return
 
   if (shouldSkipColumn(column)) {
     // Required field can't be moved
@@ -511,7 +910,7 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isFo
       view.value!.fk_workspace_id!,
       view.value!.base_id!,
       { operation: 'formColumnUpdate', formColumnId: column.id },
-      column,
+      pickFormColumnUpdateBody(column as Record<string, any>),
     )
 
     fields.value[fieldIndex] = column as any
@@ -557,19 +956,6 @@ async function handleAddOrRemoveAllColumns<T>(value: T) {
   }
 }
 
-async function checkSMTPStatus() {
-  if (emailMe.value && !isEeUI) {
-    const emailPluginActive = await $api.plugin.status('smtp')
-    if (!emailPluginActive) {
-      emailMe.value = false
-      // Please activate SMTP plugin in App store for enabling email notification
-      message.info(t('msg.toast.formEmailSMTP'))
-      return false
-    }
-  }
-  return true
-}
-
 function setFormData() {
   const col = formColumnData?.value || []
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
@@ -580,6 +966,7 @@ function setFormData() {
     ...formViewData.value,
     submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
+    save_draft_to_browser: !!(formViewData.value?.save_draft_to_browser ?? 1),
     meta: {
       hide_branding: false,
       background_color: '#F9F9FA',
@@ -588,35 +975,12 @@ function setFormData() {
     },
   }
 
-  // email me
-  let data: Record<string, boolean> = {}
-  try {
-    data = JSON.parse(formViewData.value?.email || '') || {}
-  } catch (e) {}
-
-  emailMe.value = data[user.value?.email as string]
-
   localColumns.value = col
     .filter((f) => !isFormViewHiddenCol(f) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
   checkFieldVisibility()
-}
-
-async function updateEmail() {
-  try {
-    if (!(await checkSMTPStatus())) return
-
-    const data = formViewData.value?.email ? JSON.parse(formViewData.value?.email) : {}
-    data[user.value?.email as string] = emailMe.value
-    formViewData.value!.email = JSON.stringify(data)
-  } catch (e) {}
-}
-
-function onEmailChange() {
-  updateEmail()
-  updateView()
 }
 
 function resetFormFieldState() {
@@ -764,12 +1128,23 @@ const updateFieldTitle = (value: string) => {
 
 const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
   const field = document.querySelector(
-    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(title?.replaceAll(' ', ''))}`,
+    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(toSafeClassName(title))}`,
   )
 
   if (field) {
     setTimeout(() => {
-      field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (!field.isConnected) return
+
+      // Only scroll when the field is actually off-screen. A smooth scroll-to-center
+      // animates across many rows, and each row the scroll reveals gets rendered/
+      // restyled per frame — re-centering an already-visible field on every activation
+      // caused a ~350ms style-recalc storm (56 recalcs of ~2.5k elements).
+      const rect = field.getBoundingClientRect()
+      const viewportH = window.innerHeight || document.documentElement.clientHeight
+      const fullyVisible = rect.top >= 0 && rect.bottom <= viewportH
+      if (fullyVisible) return
+
+      field.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 50)
   }
 }
@@ -832,19 +1207,21 @@ watch(view, (nextView, oldView) => {
 
 watch(
   [formState, state],
-  async () => {
+  () => {
     for (const virtualField in state.value) {
       formState.value[virtualField] = state.value[virtualField]
     }
     updatePreFillFormSearchParams()
 
-    try {
-      await validate(
-        Object.keys(formState.value)
-          .map((title) => fieldMappings.value[title])
-          .filter((v) => v !== undefined),
-      )
-    } catch {}
+    // Conditional field visibility recomputes once (debounced) per value change.
+    checkFieldVisibilityDebounced()
+
+    // Validation is handled sectionally by ant-design-vue's built-in model
+    // watcher (debounced via the useForm `debounce` option) — it diffs the model
+    // and validates only the changed field. We intentionally don't validate the
+    // whole form here: that was redundant with ant's auto-validation and
+    // re-rendered every touched field's error state on each keystroke, forcing a
+    // full-form reflow. Submit still runs an explicit awaited validate().
   },
   {
     deep: true,
@@ -921,7 +1298,13 @@ useEventListener(
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(
-        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn',
+        // `[data-testid="nc-form-fields"]` (a preview field cell, both grid + single-column
+        // layouts) and `[class*="nc-form-field-item-"]` (a sidebar field-list row) are field
+        // selections — the field's own click handler will switch `activeRow`. Deselecting here
+        // first would set `activeRow = ''`, unmounting the config panel + its rich-text editor,
+        // which then remount on the click — destroying/recreating the ProseMirror editor on
+        // every field switch (the dominant ~400ms field-switch cost).
+        '.nc-form-right-panel, [data-testid="nc-form-fields"], [class*="nc-form-field-item-"], [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn, .nc-form-field-hide',
       )
     ) {
       return
@@ -947,6 +1330,8 @@ const handleOnClick = (e: MouseEvent) => {
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => formViewData?.value?.success_msg),
   computed(() => formState.value),
+  localColumns,
+  meta,
 )
 </script>
 
@@ -1059,7 +1444,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           <SmartsheetFormLayout :is-sidebar-visible="isSidebarVisible">
             <template #preview>
               <div
-                class="w-full h-full overflow-auto nc-scrollbar-thin p-6"
+                class="nc-form-preview-scroller w-full h-full overflow-auto nc-scrollbar-thin p-6"
                 :style="{
                   background: parseProp(formViewData?.meta)?.background_color
                     ? getDarkModeCompatibleBgColor({
@@ -1117,7 +1502,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     />
                     <div class="absolute bottom-0 right-0 hidden group-hover:block">
                       <div class="flex items-center space-x-1 m-2">
-                        <NcTooltip :disabled="(isEeUI && showEEFeatures) || isLocked">
+                        <NcTooltip :disabled="showEEFeatures || isLocked">
                           <template #title>
                             <div class="text-center">
                               {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -1240,7 +1625,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="items-center space-x-1 flex-nowrap m-3"
                               :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
                             >
-                              <NcTooltip :disabled="(isEeUI && showEEFeatures) || isLocked">
+                              <NcTooltip :disabled="showEEFeatures || isLocked">
                                 <template #title>
                                   <div class="text-center">
                                     {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -1262,7 +1647,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       <div class="flex gap-2 items-center">
                                         <component :is="iconMap.upload" class="w-4 h-4" />
                                         <span>
-                                          {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span
+                                          {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }}
+                                          {{ $t('general.logo') }}</span
                                         >
                                         <PaymentUpgradeBadge
                                           v-if="!isLocked && showEEFeatures"
@@ -1309,9 +1695,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                           class="border-transparent px-4 lg:px-6"
                           :class="[
                             {
-                              'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight':
+                              'overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight':
                                 isEditable,
                             },
+                            isEditable && (blockFormGridLayout ? 'rounded-2xl' : 'rounded-xl'),
                             {
                               'mb-4 py-0 lg:py-0': !isEditable,
                             },
@@ -1331,7 +1718,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             <NcAutoSizeTextarea
                               v-model:model-value="formViewData.heading"
                               class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !bg-transparent !text-nc-content-gray-emphasis"
-                              placeholder="Form Title"
+                              :placeholder="$t('title.formTitle')"
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
@@ -1351,9 +1738,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                           class="border-transparent px-4 lg:px-6 empty:hidden"
                           :class="[
                             {
-                              'rounded-2xl border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight':
-                                isEditable,
+                              'border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight': isEditable,
                             },
+                            isEditable && (blockFormGridLayout ? 'rounded-2xl' : 'rounded-xl'),
                             {
                               'mb-4 py-0 lg:py-0': !isEditable,
                             },
@@ -1394,7 +1781,97 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </div>
                       </div>
 
+                      <!-- EE: multi-column grid layout (gated by plan feature) -->
+                      <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
+                        <template v-for="formRow in rowsWithKey" :key="formRow._key">
+                          <!--
+                            Inter-row drop zone: lets the user extract a field
+                            from a row and drop it as a new solo row at this
+                            position. Without it the only way to make a solo
+                            row is to drop at the very end.
+                          -->
+                          <Draggable
+                            v-if="isEditable && !isLocked"
+                            :model-value="[]"
+                            item-key="id"
+                            group="form-inputs"
+                            class="nc-form-row-gap min-h-0"
+                            :move="onFieldMoveToNewRowCallback"
+                            @change="onFieldMoveToNewRow($event, formRow._key)"
+                          >
+                            <template #item>
+                              <div />
+                            </template>
+                          </Draggable>
+                          <div
+                            v-observe-row
+                            :data-row-key="formRow._key"
+                            class="nc-form-row flex items-stretch gap-1 min-w-0"
+                            :style="isRowRendered(formRow) ? undefined : { minHeight: `${rowPlaceholderHeightPx(formRow)}px` }"
+                          >
+                            <Draggable
+                              v-if="isRowRendered(formRow)"
+                              :model-value="formRow.fields"
+                              item-key="id"
+                              draggable=".item"
+                              handle=".nc-form-field-drag-handler"
+                              group="form-inputs"
+                              ghost-class="nc-form-field-ghost"
+                              class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
+                              :move="(ev: any) => onFieldMoveCallback(ev, formRow.fields)"
+                              :disabled="isLocked || !isEditable || gridUpdatePending"
+                              @start="drag = true"
+                              @end="drag = false"
+                              @change="onFieldMove($event, formRow._key)"
+                            >
+                              <template #item="{ element }">
+                                <SmartsheetFormGridField
+                                  v-if="!isLocked || (isLocked && element?.visible)"
+                                  :key="element.id"
+                                  :field="element"
+                                  :is-editable="isEditable"
+                                  :is-locked="isLocked"
+                                  @activate="onFormItemClick(element)"
+                                  @hide="showOrHideColumn(element, false, false)"
+                                  @update-meta="updateColMeta(element)"
+                                />
+                              </template>
+                            </Draggable>
+                          </div>
+                        </template>
+
+                        <div
+                          v-if="!visibleColumns.length && isEditable"
+                          class="mt-4 border-dashed border-2 border-nc-border-gray-extradark py-3 text-nc-content-gray-disabled text-center"
+                        >
+                          {{ $t('title.selectFieldsFromRightPannelToAddHere') }}
+                        </div>
+                        <div v-if="isEditable && !isLocked && visibleColumns.length" class="relative mt-2">
+                          <Draggable
+                            :model-value="[]"
+                            item-key="id"
+                            group="form-inputs"
+                            class="nc-form-new-row-zone min-h-2 rounded-md border border-dashed border-nc-border-gray-medium"
+                            :move="onFieldMoveToNewRowCallback"
+                            @change="onFieldMoveToNewRow($event)"
+                          >
+                            <template #item>
+                              <div />
+                            </template>
+                            <template #footer>
+                              <span
+                                class="pointer-events-none text-nc-content-gray-muted absolute -bottom-4 w-full text-center text-xs"
+                              >
+                                {{ $t('title.dropHereToStartNewRow') }}
+                              </span>
+                            </template>
+                          </Draggable>
+                        </div>
+                      </div>
+
+                      <!-- CE: single-column stacked layout -->
                       <Draggable
+                        v-else
                         ref="draggableRef"
                         v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
                         :model-value="visibleColumns"
@@ -1414,7 +1891,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             :key="element.id"
                             class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-4 lg:p-6"
                             :class="[
-                              `nc-form-drag-${element.title.replaceAll(' ', '')}`,
+                              `nc-form-drag-${toSafeClassName(element.title)}`,
                               {
                                 'rounded-2xl border-2 my-1': isEditable,
                               },
@@ -1485,7 +1962,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 class="relative h-3.5 w-3.5 flex cursor-pointer"
                                 placement="topLeft"
                               >
-                                <template #title> Conditionally visible field </template>
+                                <template #title> {{ $t('tooltip.conditionallyVisibleField') }} </template>
                                 <Transition name="icon-fade" :duration="500">
                                   <GeneralIcon
                                     v-if="element?.visible"
@@ -1523,46 +2000,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @update:value="updateColMeta(element)"
                             />
 
-                            <!-- Field Body  -->
-
-                            <div class="nc-form-field-body">
-                              <div class="mt-2">
-                                <a-form-item
-                                  v-if="fieldMappings[element.title]"
-                                  :name="fieldMappings[element.title]"
-                                  class="!my-0 nc-input-required-error nc-form-input-item"
-                                  v-bind="validateInfos[fieldMappings[element.title]]"
-                                >
-                                  <LazySmartsheetDivDataCell class="relative" @click.stop>
-                                    <LazySmartsheetVirtualCell
-                                      v-if="isVirtualCol(element)"
-                                      v-model="formState[element.title]"
-                                      :row="row"
-                                      class="nc-input"
-                                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                    />
-                                    <LazySmartsheetCell
-                                      v-else
-                                      v-model="formState[element.title]"
-                                      class="nc-input truncate"
-                                      :class="[
-                                        `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                        { 'layout-list': element.meta.isList },
-                                      ]"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                      :edit-enabled="true"
-                                    />
-                                  </LazySmartsheetDivDataCell>
-                                </a-form-item>
-
-                                <div>
-                                  <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
-                                </div>
-                              </div>
-                            </div>
+                            <SmartsheetFormFieldBody :field="element" />
                           </div>
                         </template>
 
@@ -1600,7 +2038,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                     <div v-if="!parseProp(formViewData?.meta).hide_branding" class="px-8 lg:px-12">
                       <a-divider class="!my-8" />
-                      <!-- Nocodb Branding  -->
+                      <!-- NocoDB Branding  -->
                       <div class="inline-block">
                         <GeneralFormBranding @click.stop />
                       </div>
@@ -1619,7 +2057,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 }"
               >
                 <!-- Form Field settings -->
-                <div v-if="activeField && activeColumn" :key="activeField?.id" class="nc-form-field-right-panel">
+                <div v-if="activeField && activeColumn" class="nc-form-field-right-panel">
                   <!-- Field header -->
                   <div class="px-4 pt-4 pb-2 flex items-center border-b border-nc-border-gray-medium font-medium">
                     <div
@@ -1714,11 +2152,21 @@ const { message: templatedMessage } = useTemplatedMessage(
                       @change="updateColMeta(activeField)"
                     />
 
+                    <!--
+                      Stable key + sync-value-change so this editor PERSISTS across field
+                      switches instead of being torn down and recreated each time. Building a
+                      Tiptap/ProseMirror EditorView (createView + createNodeViews + DOMObserver)
+                      was ~200ms per switch and the dominant cause of the field-switch lag. Now
+                      switching a field just pushes the new description into the existing editor;
+                      sync-value-change skips while focused so the caret never jumps mid-edit.
+                    -->
                     <LazyCellRichText
+                      key="nc-form-help-text-editor"
                       :value="activeField.description"
                       :placeholder="$t('msg.info.formHelpText')"
                       class="form-meta-input nc-form-input-help-text"
                       is-form-field
+                      sync-value-change
                       :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
                       hide-mention
                       data-testid="nc-form-input-help-text"
@@ -1850,92 +2298,16 @@ const { message: templatedMessage } = useTemplatedMessage(
                             @end="drag = false"
                           >
                             <template #item="{ element: field }">
-                              <div
+                              <SmartsheetFormSidebarFieldItem
                                 v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase())"
                                 :key="field.id"
-                                class="w-full px-2 flex flex-row items-center border-b-1 last:border-none border-nc-border-gray-medium"
-                                :class="[
-                                  `nc-form-field-item-${field.title.replaceAll(' ', '')}`,
-                                  `${activeRow === field.id ? 'bg-nc-bg-brand font-medium' : 'hover:bg-nc-bg-gray-extralight'}`,
-                                ]"
-                                :data-testid="`nc-form-field-item-${field.title}`"
-                              >
-                                <div class="py-1.5 flex items-center">
-                                  <component
-                                    :is="iconMap.drag"
-                                    class="flex-none cursor-move !h-4 !w-4 text-nc-content-gray-subtle2 mr-1"
-                                  />
-                                </div>
-                                <div
-                                  class="flex-1 flex items-center justify-between cursor-pointer max-w-[calc(100%_-_20px)] py-1.5"
-                                >
-                                  <div
-                                    class="flex-1 flex items-center cursor-pointer max-w-[calc(100%_-_40px)]"
-                                    @click.prevent="onFormItemClick(field, true)"
-                                  >
-                                    <SmartsheetHeaderIcon :column="field" color="text-nc-content-gray-subtle" />
-
-                                    <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_28px)]">
-                                      <div class="w-full flex items-center">
-                                        <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">
-                                          <NcTooltip class="truncate text-sm" :disabled="drag" show-on-truncate-only>
-                                            <template #title>
-                                              <div class="text-center">
-                                                {{ field.title }}
-                                              </div>
-                                            </template>
-                                            <span data-testid="nc-field-title"> {{ field.title }} </span>
-                                          </NcTooltip>
-                                        </div>
-                                        <div
-                                          v-if="field.label?.trim() && field.title !== field.label?.trim()"
-                                          class="truncate inline-flex text-xs font-normal text-nc-content-inverted-secondary"
-                                        >
-                                          <span>&nbsp;(</span>
-                                          <NcTooltip class="truncate" :disabled="drag" show-on-truncate-only>
-                                            <template #title>
-                                              <div class="text-center">
-                                                {{ field.label }}
-                                              </div>
-                                            </template>
-                                            <span data-testid="nc-field-title ">{{ field.label?.trim() }}</span>
-                                          </NcTooltip>
-                                          <span>)</span>
-                                        </div>
-
-                                        <span
-                                          v-if="isRequired(field, field.required)"
-                                          class="text-nc-content-red-medium text-sm align-top"
-                                        >
-                                          &nbsp;*
-                                        </span>
-                                        <div class="flex items-center">
-                                          <LazySmartsheetFormFieldConfigError :column="field" mode="list" />
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <NcTooltip
-                                    :disabled="!field.required || isLocked || !isEditable"
-                                    class="flex"
-                                    placement="topRight"
-                                  >
-                                    <template #title> $t('tooltip.youCantHideARequiredField')</template>
-                                    <a-switch
-                                      :checked="!!field.show"
-                                      :disabled="field.required || isLocked || !isEditable"
-                                      class="flex-none nc-switch"
-                                      size="small"
-                                      @change="
-                                        (value) => {
-                                          showOrHideColumn(field, value, true)
-                                        }
-                                      "
-                                    />
-                                  </NcTooltip>
-                                </div>
-                              </div>
+                                :field="field"
+                                :is-editable="isEditable"
+                                :is-locked="isLocked"
+                                :drag="drag"
+                                @activate="onFormItemClick(field, true)"
+                                @toggle-show="(value) => showOrHideColumn(field, value, true)"
+                              />
                             </template>
                             <template
                               v-if="
@@ -1944,7 +2316,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               #footer
                             >
                               <div class="px-0.5 py-2 text-nc-content-gray-muted text-center">
-                                {{ $t('title.noFieldsFound') }} with title `{{ searchQuery }}`
+                                {{ $t('title.noFieldsFound') }} {{ $t('labels.withTitle') }} `{{ searchQuery }}`
                               </div>
                             </template>
                           </Draggable>
@@ -1988,7 +2360,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 <!-- Hide NocoDB Branding -->
 
                                 <span class="flex items-center gap-3">
-                                  {{ $t('labels.hideNocodbBranding') }}
+                                  {{ isWhiteLabelled ? $t('labels.hideBranding') : $t('labels.hideNocodbBranding') }}
 
                                   <LazyPaymentUpgradeBadge
                                     v-if="showEEFeatures"
@@ -2002,7 +2374,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 </span>
 
                                 <a-switch
-                                  v-if="isEeUI && showEEFeatures"
+                                  v-if="showEEFeatures"
                                   v-e="[`a:form-view:hide-branding`]"
                                   :checked="parseProp(formViewData.meta)?.hide_branding"
                                   size="small"
@@ -2064,7 +2436,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     />
                                   </span>
                                   <a-switch
-                                    v-if="isEeUI && showEEFeatures"
+                                    v-if="showEEFeatures"
                                     v-e="[`a:form-view:custom-submit-label`]"
                                     :checked="parseProp(formViewData.meta)?.custom_submit_enabled"
                                     size="small"
@@ -2154,7 +2526,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     />
                                   </span>
                                   <a-switch
-                                    v-if="showEEFeatures"
+                                    v-if="isEeUI"
                                     v-e="[`a:form-view:redirect-url`]"
                                     :checked="isOpenRedirectUrl"
                                     size="small"
@@ -2188,20 +2560,20 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   v-model:value="formViewData.redirect_url"
                                   type="text"
                                   class="!h-8 !px-3 !py-1 !rounded-lg"
-                                  placeholder="Paste redirect URL here"
+                                  :placeholder="$t('placeholder.pasteRedirectUrlHere')"
                                   data-testid="nc-form-redirect-url-input"
                                   @input="handleUpdateRedirectUrl"
                                 ></a-input>
                               </a-form-item>
                               <div class="text-small leading-[18px] text-nc-content-gray-disabled pl-3">
-                                Use {record_id} to get ID of the newly created record.
+                                {{ $t('msg.info.useRecordIdInRedirectUrl') }}
                                 <a
                                   href="https://nocodb.com/docs/product-docs/views/view-types/form#redirect-url"
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   class="!no-underline !hover:underline"
                                 >
-                                  Learn more
+                                  {{ $t('msg.learnMore') }}
                                 </a>
                               </div>
                             </div>
@@ -2234,22 +2606,41 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 @change="updateView"
                               />
                             </div>
+
+                            <div class="flex items-center justify-between gap-3">
+                              <!-- Save draft in browser -->
+                              <div class="flex items-center">
+                                {{ $t('msg.info.saveDraftToBrowser') }}
+                                <NcTooltip>
+                                  <template #title>
+                                    {{ $t('tooltip.saveDraftToBrowser') }}
+                                  </template>
+                                  <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
+                                </NcTooltip>
+                              </div>
+                              <a-switch
+                                v-model:checked="formViewData.save_draft_to_browser"
+                                v-e="[`a:form-view:save-draft-to-browser`]"
+                                size="small"
+                                class="nc-form-checkbox-save-draft-to-browser"
+                                data-testid="nc-form-checkbox-save-draft-to-browser"
+                                :disabled="isLocked || !isEditable"
+                                @change="updateView"
+                              />
+                            </div>
                           </template>
 
                           <div class="flex items-center justify-between gap-3">
-                            <!-- Email me at <email> -->
-                            <span>
-                              {{ $t('msg.info.emailForm') }}
-                              <span class="text-bold text-nc-content-gray-subtle2 underline">{{ user?.email }}</span>
-                            </span>
-                            <a-switch
-                              v-model:checked="emailMe"
-                              v-e="[`a:form-view:email-me`]"
-                              size="small"
-                              class="nc-form-checkbox-send-email"
-                              data-testid="nc-form-checkbox-send-email"
+                            <!-- Email responses to selected base collaborators -->
+                            <span>{{ $t('labels.emailResponses') }}</span>
+                            <SmartsheetFormEmailResponses
+                              v-if="formViewData"
+                              :model-value="formViewData.email"
+                              :base-id="base?.id"
                               :disabled="isLocked || !isEditable"
-                              @change="onEmailChange"
+                              class="nc-form-email-responses"
+                              @update:model-value="(val) => (formViewData!.email = val)"
+                              @change="updateView"
                             />
                           </div>
                         </div>
@@ -2260,7 +2651,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             {{ $t('msg.info.formDisplayMessage') }}
                             <NcTooltip>
                               <template #title>
-                                Use column name/title for templated field instead of field label. For example: "Hello {Title}!"
+                                {{ $t('tooltip.formDisplayMessageTemplating') }}
                               </template>
                               <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
                             </NcTooltip>
@@ -2323,117 +2714,15 @@ const { message: templatedMessage } = useTemplatedMessage(
   }
 }
 
-.nc-input {
-  @apply appearance-none w-full;
-  &:not(.layout-list) {
-    &:not(:has(.form-attachment-cell.nc-has-attachments)) {
-      @apply !bg-nc-bg-default rounded-lg border-solid border-1 border-nc-border-gray-medium !focus-within:border-nc-border-brand;
-    }
-  }
-  &.layout-list {
-    @apply h-auto !p-0;
-  }
-
-  &.nc-cell-geodata {
-    @apply !py-1;
-  }
-  &.nc-cell-currency {
-    @apply !py-0 !pl-0 flex items-stretch;
-  }
-
-  &:not(.nc-cell-datetime) {
-    :deep(input) {
-      &:not(.ant-select-selection-search-input) {
-        @apply !px-1;
-      }
-    }
-  }
-
-  &.nc-cell-longtext {
-    @apply p-0 h-auto;
-  }
-  &.nc-cell:not(.nc-cell-longtext) {
-    @apply p-2;
-  }
-
-  :deep(&.nc-cell:not(.nc-cell-longtext)) {
-    &.nc-cell-phonenumber,
-    &.nc-cell-email,
-    &.nc-cell-url {
-      .nc-cell-field.nc-cell-link-preview {
-        @apply px-3;
-      }
-    }
-  }
-  &.nc-virtual-cell {
-    @apply px-2 py-1 min-h-10;
-  }
-
-  &.nc-cell-json {
-    @apply min-h-[38px] h-auto;
-    & > div {
-      @apply w-full;
-    }
-  }
-
-  :deep(.ant-picker) {
-    @apply !py-0;
-  }
-  :deep(input.nc-cell-field) {
-    @apply !py-0;
-  }
-}
-
 .nc-form-input-label {
   @apply !px-4 !py-2 font-semibold text-nc-content-gray !rounded-lg !text-sm;
 }
 
-.nc-form-help-text,
-.nc-input-required-error {
+// Field description help text — also styled in the extracted FieldBody/GridField
+// components; this copy covers the CE single-column path's inline help text.
+.nc-form-help-text {
   max-width: 100%;
   white-space: pre-line;
-  :deep(.ant-form-item-explain-error) {
-    &:first-child {
-      @apply mt-2;
-    }
-  }
-}
-.nc-input-required-error {
-  &:focus-within {
-    :deep(.ant-form-item-explain-error) {
-      @apply text-nc-content-gray-disabled;
-    }
-  }
-}
-:deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
-  border: none !important;
-}
-:deep(.ant-form-item-has-success .ant-select:not(.ant-select-disabled) .ant-select-selector) {
-  border: none !important;
-}
-
-:deep(.nc-cell-attachment) {
-  @apply p-0;
-
-  .nc-attachment-cell {
-    @apply px-4 min-h-[75px] w-full h-full;
-
-    .nc-attachment {
-      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
-    }
-
-    .nc-attachment-cell-dropzone {
-      @apply rounded bg-nc-bg-gray-extradark/75;
-    }
-  }
-}
-
-.nc-form-input-item .nc-data-cell {
-  @apply !border-none rounded-none;
-
-  &:focus-within {
-    @apply !border-none;
-  }
 }
 
 .nc-form-input-enable-scanner-form-item {
@@ -2457,9 +2746,6 @@ const { message: templatedMessage } = useTemplatedMessage(
   @apply !text-nc-content-inverted-primary;
 }
 
-:deep(.nc-form-field-body .nc-cell) {
-  @apply my-0;
-}
 .nc-form-field-ghost {
   @apply bg-nc-bg-gray-extralight;
 }

@@ -17,7 +17,14 @@ const { navigateToView, onOpenViewCreateModal, showUpgradeToUseListView } = view
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView } = useEeConfig()
+const {
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseGanttView,
+  blockListView,
+  blockTimelineView,
+  blockGanttView,
+} = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -138,7 +145,7 @@ async function onOpenModal({
         :list="views"
         option-value-key="id"
         option-label-key="title"
-        search-input-placeholder="Search views"
+        :search-input-placeholder="$t('placeholder.searchViews')"
         class="min-w-63.5 !w-auto"
         :filter-option="filterOption"
         variant="medium"
@@ -240,11 +247,7 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
-                <a-menu-item
-                  v-if="isEeUI && showEEFeatures"
-                  data-testid="topbar-view-create-map"
-                  @click="onOpenModal({ type: ViewTypes.MAP })"
-                >
+                <a-menu-item v-if="isEeUI" data-testid="topbar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
@@ -263,6 +266,7 @@ async function onOpenModal({
                       isPgSource &&
                         showUpgradeToUseListView({
                           successCallback: () => onOpenModal({ type: ViewTypes.LIST }),
+                          triggerSource: 'viewlist-list',
                         })
                     "
                   >
@@ -282,9 +286,14 @@ async function onOpenModal({
                   </a-menu-item>
                 </NcTooltip>
                 <a-menu-item
-                  v-if="isEeUI && showEEFeatures"
+                  v-if="showEEFeatures"
                   data-testid="topbar-view-create-timeline"
-                  @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+                  @click="
+                    showUpgradeToUseTimelineView({
+                      successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }),
+                      triggerSource: 'viewlist-timeline',
+                    })
+                  "
                 >
                   <div class="nc-viewlist-submenu-popup-item justify-between">
                     <div class="flex items-center gap-2">
@@ -300,10 +309,37 @@ async function onOpenModal({
                     />
                   </div>
                 </a-menu-item>
+                <a-menu-item
+                  v-if="showEEFeatures"
+                  data-testid="topbar-view-create-gantt"
+                  @click="
+                    showUpgradeToUseGanttView({
+                      successCallback: () => onOpenModal({ type: ViewTypes.GANTT }),
+                      triggerSource: 'viewlist-gantt',
+                    })
+                  "
+                >
+                  <div class="nc-viewlist-submenu-popup-item justify-between">
+                    <div class="flex items-center gap-2">
+                      <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
+                      {{ $t('objects.viewType.gantt') }}
+                    </div>
+                    <PaymentUpgradeBadge
+                      v-if="blockGanttView"
+                      :feature="PlanFeatureTypes.FEATURE_GANTT_VIEW"
+                      :plan-title="PlanTitles.BUSINESS"
+                      remove-click
+                      show-as-lock
+                    />
+                  </div>
+                </a-menu-item>
 
                 <template v-if="isAiFeaturesEnabled">
                   <NcDivider />
-                  <NcTooltip :title="`Auto suggest views for ${activeTable?.title || 'the current table'}`" placement="right">
+                  <NcTooltip
+                    :title="$t('tooltip.autoSuggestViewsFor', { tableName: activeTable?.title || $t('labels.theCurrentTable') })"
+                    placement="right"
+                  >
                     <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
                       <div class="nc-viewlist-submenu-popup-item">
                         <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />

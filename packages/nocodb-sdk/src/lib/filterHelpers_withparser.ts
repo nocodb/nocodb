@@ -29,6 +29,7 @@ export {
 export interface FilterTypeWithMeta extends FilterType {
   meta?: {
     timezone?: string;
+    ltarSubField?: string;
   };
 }
 
@@ -231,7 +232,41 @@ function mapFilterClauseSubType(
     errors?: FilterParseError[];
   }
 ): { filter?: FilterType; errors?: FilterParseError[] } {
-  const aliasCol = aliasColObjMap[filter.field];
+  // Support dot-notation for LTAR sub-field filtering: "@(author.Id, eq, 5)"
+  // splits into base column "author" + sub-field "Id" so related records can be
+  // filtered by their id instead of the display value.
+  let resolvedField = filter.field;
+  let ltarSubField: string | undefined;
+  // `filter.field` can be null (e.g. a field token that parses to null) — guard
+  // before dereferencing, mirroring the `alias?.includes('.')` check on the old
+  // parser path. Falls through to the regular "field not found" error below.
+  //
+  // Skip the split when the full field is itself a real column, so a literal
+  // column whose title contains a dot is not shadowed by an LTAR base match.
+  const dotIdx = aliasColObjMap[filter.field]
+    ? -1
+    : filter.field?.indexOf('.') ?? -1;
+  if (dotIdx !== -1) {
+    const baseField = filter.field.substring(0, dotIdx);
+    const subField = filter.field.substring(dotIdx + 1);
+    const baseCol = aliasColObjMap[baseField];
+    // Only the related record's id (case-insensitive) is supported as a
+    // sub-field — the backend resolves it to the related table's primary key.
+    // Any other sub-field falls through to the "field not found" error below
+    // rather than silently filtering by the display value.
+    if (
+      baseCol &&
+      [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
+        baseCol.uidt as UITypes
+      ) &&
+      subField.toLowerCase() === 'id'
+    ) {
+      resolvedField = baseField;
+      ltarSubField = subField;
+    }
+  }
+
+  const aliasCol = aliasColObjMap[resolvedField];
   if (!aliasCol) {
     if (throwErrorIfInvalid) {
       throw new InvalidFilterError({
@@ -244,13 +279,14 @@ function mapFilterClauseSubType(
       return { errors };
     }
   }
-  const result: FilterType = {
+  const result: FilterTypeWithMeta = {
     fk_column_id: aliasCol.id,
     is_group: false,
     logical_op: filter.logical_op as any,
     comparison_op: filter.comparison_op as any,
     comparison_sub_op: undefined,
     value: filter.value,
+    ...(ltarSubField && { meta: { ltarSubField } }),
   };
   return handleDataTypes(context, {
     filterType: result,

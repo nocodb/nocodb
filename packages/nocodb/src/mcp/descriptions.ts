@@ -48,6 +48,12 @@ DATE/TIME FILTERING (for Date, DateTime, CreatedTime, LastModifiedTime fields):
 
   Date fields require a sub-operator. Syntax: (field,operator,sub_operator) or (field,operator,sub_operator,value)
 
+  CRITICAL: To filter by a specific calendar date you MUST use the "exactDate" sub-operator and put the
+  date in the value slot — NEVER place a YYYY-MM-DD date directly after the operator.
+    CORRECT:   (due_date,eq,exactDate,2026-06-01)    WRONG: (due_date,eq,2026-06-01)
+    CORRECT:   (due_date,gt,exactDate,2026-06-01)    WRONG: (due_date,gt,2026-06-01)
+  A bare date with no sub-operator is read as the sub-operator and rejected ("'2026-06-01' is not supported").
+
   isWithin - Check if date falls within a time range:
     Sub-operators (no value): pastWeek, pastMonth, pastYear, nextWeek, nextMonth, nextYear
     Sub-operators (value = days): pastNumberOfDays, nextNumberOfDays

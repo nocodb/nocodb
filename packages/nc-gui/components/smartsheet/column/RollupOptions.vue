@@ -10,6 +10,7 @@ import {
   getAvailableRollupForColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  resolveColumnSeparator,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -29,7 +30,6 @@ const {
   isEdit,
   disableSubmitBtn,
   updateFieldName,
-  setPostSaveOrUpdateCbk,
 } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -136,15 +136,16 @@ onMounted(() => {
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
   }
-
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
 })
 
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 
 const getNextColumnId = () => {
   const usedLookupColumnIds = (meta.value?.columns || [])
@@ -254,6 +255,11 @@ vModel.value.meta = {
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
+// Backward compat: resolve isLocaleString to separator if separator is not yet set
+if (!vModel.value.meta.separator) {
+  vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+}
+
 const enableFormattingOptions = computed(() => {
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
 
@@ -319,7 +325,7 @@ const handleScrollIntoView = () => {
       >
         <a-select
           v-model:value="vModel.fk_relation_column_id"
-          placeholder="-select-"
+          :placeholder="$t('placeholder.select')"
           dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
           @change="onRelationColChange"
         >
@@ -364,7 +370,7 @@ const handleScrollIntoView = () => {
         <a-select
           v-model:value="vModel.fk_rollup_column_id"
           name="fk_rollup_column_id"
-          placeholder="-select-"
+          :placeholder="$t('placeholder.select')"
           :disabled="!vModel.fk_relation_column_id"
           show-search
           :filter-option="antSelectFilterOption"
@@ -400,7 +406,7 @@ const handleScrollIntoView = () => {
       <a-select
         v-model:value="vModel.rollup_function"
         :disabled="!vModel.fk_relation_column_id"
-        placeholder="-select-"
+        :placeholder="$t('placeholder.select')"
         dropdown-class-name="nc-dropdown-rollup-function"
         class="!mt-0.5"
         @change="onRollupFunctionChange"
@@ -443,15 +449,13 @@ const handleScrollIntoView = () => {
         </a-select-option>
       </a-select>
     </a-form-item>
-    <a-form-item v-if="enableFormattingOptions">
-      <div class="flex items-center gap-1">
-        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
-        </NcSwitch>
-      </div>
-    </a-form-item>
+    <SmartsheetColumnSeparatorSelect
+      v-if="enableFormattingOptions"
+      v-model:value="vModel.meta.separator"
+      dropdown-class-name="nc-dropdown-rollup-separator-format"
+    />
 
-    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
+    <div v-if="showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">
@@ -505,7 +509,7 @@ const handleScrollIntoView = () => {
   <div v-else>
     <a-alert type="warning" show-icon>
       <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
-      <template #message> Alert </template>
+      <template #message> {{ $t('objects.ncMessage.warning') }} </template>
       <template #description>
         {{
           $t('msg.linkColumnClearNotSupportedYet', {

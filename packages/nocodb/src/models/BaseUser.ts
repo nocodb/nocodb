@@ -1,4 +1,8 @@
-import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  NOCO_SERVICE_USERS,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type User from '~/models/User';
@@ -229,7 +233,6 @@ export default class BaseUser {
       strict_in_record = false,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       include_ws_deleted = true,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       include_internal_user = false,
       user_ids,
     }: {
@@ -317,6 +320,25 @@ export default class BaseUser {
           ['base_id', 'id'],
         );
       }
+    }
+
+    // Mirror the EE override (src/ee/models/BaseUser.ts): append service users
+    // (ANONYMOUS_USER, SYSTEM_USER, AUTOMATION_USER, …) when the caller opts
+    // in. These IDs are SDK-defined constants that never live in nc_users /
+    // nc_workspace_user, so without this any caller validating a value against
+    // the returned list — e.g. the User/CreatedBy/LastModifiedBy field
+    // validator in `BaseModelSqlv2` — would 422 on system-stamped actors like
+    // `usranonymous` from public shared-form submissions.
+    //
+    // Marked `deleted: true` so they don't appear in user-pickers / member
+    // lists that filter `!deleted`, but they DO satisfy reference lookups by id.
+    if (include_internal_user) {
+      baseUsers.push(
+        ...Object.values(NOCO_SERVICE_USERS).map((u: any) => ({
+          ...u,
+          deleted: true,
+        })),
+      );
     }
 
     if (user_ids) {
@@ -480,7 +502,13 @@ export default class BaseUser {
 
   static async getProjectsList(
     userId: string,
-    params: any,
+    params: {
+      workspaceId?: string;
+      starred?: boolean;
+      shared?: boolean;
+      recent?: boolean;
+      type?: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseType[]> {
     const workspaceId = params.workspaceId;

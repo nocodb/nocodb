@@ -138,7 +138,7 @@ Accedi al Pannello di Controllo visitando: [http://localhost:8080/dashboard](htt
 
 # Impostazione in produzione
 
-NOCODB richiede un database per memorizzare i metadati delle viste dei fogli di calcolo e dei database esterni. I parametri di connessione per questo database possono essere specificati nella variabile di ambiente NC_DB.
+NocoDB richiede un database per memorizzare i metadati delle viste dei fogli di calcolo e dei database esterni. I parametri di connessione per questo database possono essere specificati nella variabile di ambiente NC_DB.
 
 ## Docker
 

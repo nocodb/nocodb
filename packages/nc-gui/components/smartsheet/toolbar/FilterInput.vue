@@ -223,7 +223,7 @@ const isSingleOrMultiSelect = computed(() => {
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
       :disabled="filter.readOnly || props.disabled"
-      placeholder="Enter a value"
+      :placeholder="$t('placeholder.enterAValue')"
       :column="column"
       class="flex !rounded-lg"
       :class="{

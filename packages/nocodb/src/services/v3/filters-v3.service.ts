@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import type {
+  FilterCreateUpdateV3Type,
   FilterCreateV3Type,
   FilterGroupV3Type,
   FilterReqType,
@@ -14,12 +15,13 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Filter, Hook, View } from '~/models';
+import { Column, Filter, Hook, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { FiltersService } from '~/services/filters.service';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.helper';
 import {
   filterBuilder,
   filterRevBuilder,
@@ -28,71 +30,6 @@ import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
-}
-
-export function addDummyRootAndNest(filters: any[]): any {
-  // If empty, return undefined
-  if (filters.length === 0) {
-    return undefined;
-  }
-
-  // Create a map of filters by parent_id for easy lookup
-  const filterMap = new Map<string | null, any[]>();
-  filters.forEach((filter) => {
-    const parentId = filter.parent_id || null;
-    if (!filterMap.has(parentId)) {
-      filterMap.set(parentId, []);
-    }
-    filterMap.get(parentId)!.push(filter);
-  });
-
-  // Helper function to determine group_operator for a group
-  const getGroupOperatorFromFirstChild = (
-    groupId: string | null,
-  ): 'AND' | 'OR' | null => {
-    const children = filterMap.get(groupId) || [];
-    return children.length > 0 && children[0].logical_op
-      ? // if the second child is a logical operator, return it or fallback to the first child
-        // since in the current implementation, the first child logical op doesn't matter and it always and
-        (children[1] || children[0]).logical_op?.toUpperCase()
-      : null;
-  };
-
-  // Build a nested structure recursively
-  const buildNestedStructure = (parentId: string | null): any[] => {
-    const children = filterMap.get(parentId) || [];
-    return children.map((child) => {
-      const isGroup = !!child.is_group;
-      const groupOperator = isGroup
-        ? getGroupOperatorFromFirstChild(child.id)
-        : undefined;
-      const currentItem = {
-        ...child,
-        parent_id: undefined, // Root-level items have no parent_id
-        group_operator: isGroup ? groupOperator : undefined, // Only groups get updated group_operator
-        logical_op: undefined, // Remove logical_op from filters
-        filters: isGroup ? buildNestedStructure(child.id) : undefined, // Recursively nest children for groups
-        is_group: undefined,
-      };
-
-      if (!isGroup) {
-        delete currentItem.logical_op; // Remove logical_op from non-groups
-      }
-
-      return currentItem;
-    });
-  };
-
-  // Build the nested structure starting from the dummy root
-  const nestedFilters = buildNestedStructure(null);
-
-  // Add the dummy root group
-  return {
-    id: 'root',
-    group_operator:
-      nestedFilters.length > 0 ? getGroupOperatorFromFirstChild(null) : null,
-    filters: nestedFilters,
-  };
 }
 
 @Injectable()
@@ -163,6 +100,7 @@ export class FiltersV3Service {
     viewId,
     viewWebhookManager,
     insertedFilters,
+    fkLevelId,
     ncMeta = Noco.ncMeta,
   }: {
     context: any;
@@ -171,13 +109,15 @@ export class FiltersV3Service {
       | { hookId: string }
       | { linkColumnId: string }
       | { rowColorConditionId: string };
-    groupOrFilter: FilterCreateV3Type;
+    groupOrFilter: FilterCreateV3Type | FilterCreateUpdateV3Type;
     parentId?: string | null;
     logicalOp?: 'AND' | 'OR' | null;
     isRoot?: boolean;
     viewId: string;
     viewWebhookManager?: ViewWebhookManager;
     insertedFilters?: Filter[];
+    /** List views only — scopes every inserted filter/group to a level. */
+    fkLevelId?: string;
     ncMeta?: MetaService;
   }): Promise<void> {
     validatePayload(
@@ -193,9 +133,19 @@ export class FiltersV3Service {
       context,
       ncMeta,
     );
+    // Scope every inserted node (group + leaf) to the list level. additionalProps
+    // is spread into all Filter.insert calls below, so this covers the whole tree.
+    if (fkLevelId) {
+      (additionalProps as any).fk_level_id = fkLevelId;
+    }
     let innerViewWebhookManager: ViewWebhookManager;
     if ((param as any).viewId && !viewWebhookManager) {
-      const view = await View.get(context, (param as any).viewId, ncMeta);
+      const view = await View.get(
+        context,
+        (param as any).viewId,
+        false,
+        ncMeta,
+      );
       innerViewWebhookManager = (param as any).viewId
         ? (
             await (
@@ -214,6 +164,7 @@ export class FiltersV3Service {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       innerViewWebhookManager = (
@@ -243,6 +194,17 @@ export class FiltersV3Service {
 
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
+      const filterColumn = await Column.get(
+        context,
+        { colId: (groupOrFilter as any).field_id },
+        ncMeta,
+      );
+      if (filterColumn?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${filterColumn.title}' in filter: ${filterColumn.colOptions.error}`,
+        );
+      }
+
       const filter = await Filter.insert(
         context,
         {
@@ -356,6 +318,7 @@ export class FiltersV3Service {
             viewId,
             viewWebhookManager,
             insertedFilters,
+            fkLevelId,
             ncMeta,
           });
         }
@@ -469,7 +432,13 @@ export class FiltersV3Service {
       NcError.badRequest('Filter not found');
     }
 
-    await this.filtersService.filterDelete(context, param);
+    // `viewId` isn't consumed by the v2 filterDelete (the filter is resolved by
+    // id) and isn't in the strict filterDelete command schema — pass only the
+    // recognized keys so a sandbox changelog entry isn't polluted / dropped.
+    await this.filtersService.filterDelete(context, {
+      filterId: param.filterId,
+      req: param.req,
+    });
 
     return {};
   }
@@ -603,6 +572,21 @@ export class FiltersV3Service {
       );
     }
 
+    return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);
+  }
+
+  /**
+   * List view filters scoped to a single list level (`fk_level_id`). Reuses the
+   * same flat-list → nested-tree build as `filterList`, pre-filtered by level.
+   */
+  async filterListByLevel(
+    context: NcContext,
+    param: { viewId: string; levelId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const filters = (
+      await Filter.allViewFilterList(context, { viewId: param.viewId }, ncMeta)
+    ).filter((f) => (f as any).fk_level_id === param.levelId);
     return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);
   }
 

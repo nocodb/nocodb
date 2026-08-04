@@ -46,6 +46,8 @@ const vModel = computed({
   },
 })
 
+const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
+
 const lastSaved = ref()
 
 const currencyMeta = computed(() => {
@@ -112,6 +114,22 @@ const onKeydownEnter = () => {
   }
 }
 
+const onPaste = (e: ClipboardEvent) => {
+  const value = e.clipboardData?.getData('text/plain')
+  if (!value) return
+
+  const storedData = getCurrentCopiedCellClipboardData(value)
+  if (storedData) {
+    const clipboardItem = storedData.dbCellValueArr?.[0]?.[0]
+    if (clipboardItem !== undefined && clipboardItem !== null && !isNaN(Number(clipboardItem))) {
+      e.preventDefault()
+      e.stopPropagation()
+      vModel.value = Number(clipboardItem)
+    }
+  }
+  // Fall through to browser native paste for external clipboard
+}
+
 onMounted(() => {
   lastSaved.value = vModel.value
 })
@@ -140,6 +158,7 @@ const showInputField = computed(
     :class="isForm && !isEditColumn && !hidePrefix ? 'flex flex-1' : 'w-full'"
     :placeholder="placeholder"
     :disabled="readOnly"
+    @paste="onPaste"
     @blur="onBlur"
     @keydown.enter="onKeydownEnter"
     @keydown.down.stop
@@ -161,6 +180,7 @@ const showInputField = computed(
     :class="isForm && !isEditColumn && !hidePrefix ? 'flex flex-1' : 'w-full'"
     :placeholder="placeholder"
     :disabled="readOnly"
+    @paste="onPaste"
     @focus="onFocus"
     @keydown.down.stop
     @keydown.left.stop

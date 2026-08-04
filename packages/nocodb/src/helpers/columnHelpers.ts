@@ -2,7 +2,10 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isLinksOrLTAR,
   isMMOrMMLike,
+  isRollupAggregatableColumn,
+  OperationSource,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -24,6 +27,7 @@ import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type Model from '~/models/Model';
+import type { LtarHmBtIds } from '~/services/columns.service.type';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -55,6 +59,10 @@ export async function createHmAndBtColumn(
   parentColumn?: Column,
   isCustom = false,
   columnWebhookManager?: ColumnWebhookManager,
+  // Sandbox-replay only — pre-set IDs honored by `Column.insert` and ID
+  // capture for the recording side. CE callers leave both undefined.
+  idHints?: LtarHmBtIds,
+  out?: LtarHmBtIds,
 ) {
   let savedColumn: Column;
   let crossBaseProps: {
@@ -80,6 +88,7 @@ export async function createHmAndBtColumn(
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
       { ...context, base_id: child.base_id },
       {
+        ...(idHints?.childRelColId ? { id: idHints.childRelColId } : {}),
         title,
 
         fk_model_id: child.id,
@@ -115,6 +124,7 @@ export async function createHmAndBtColumn(
         },
       },
     );
+    if (out) out.childRelColId = childRelCol.id;
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
       action: WebhookActions.INSERT,
@@ -157,6 +167,7 @@ export async function createHmAndBtColumn(
     savedColumn = await Column.insert(
       { ...context, base_id: parent.base_id },
       {
+        ...(idHints?.savedColumnId ? { id: idHints.savedColumnId } : {}),
         title,
         fk_model_id: parent.id,
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -179,6 +190,7 @@ export async function createHmAndBtColumn(
         ...crossBaseProps,
       },
     );
+    if (out) out.savedColumnId = savedColumn.id;
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,
       action: WebhookActions.INSERT,
@@ -231,6 +243,9 @@ export async function createOOColumn(
   parentColumn?: Column,
   isCustom = false,
   columnWebhookManager?: ColumnWebhookManager,
+  // Sandbox-replay only — see `createHmAndBtColumn` for shape and rationale.
+  idHints?: LtarHmBtIds,
+  out?: LtarHmBtIds,
 ) {
   let savedColumn: Column;
 
@@ -260,6 +275,7 @@ export async function createOOColumn(
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
       childContext,
       {
+        ...(idHints?.childRelColId ? { id: idHints.childRelColId } : {}),
         title,
         fk_model_id: child.id,
         // ref_db_alias
@@ -291,6 +307,7 @@ export async function createOOColumn(
         ...crossBaseProps,
       },
     );
+    if (out) out.childRelColId = childRelCol.id;
 
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
@@ -337,6 +354,7 @@ export async function createOOColumn(
     };
 
     savedColumn = await Column.insert(parentContext, {
+      ...(idHints?.savedColumnId ? { id: idHints.savedColumnId } : {}),
       title,
       fk_model_id: parent.id,
       uidt: UITypes.LinkToAnotherRecord,
@@ -358,6 +376,7 @@ export async function createOOColumn(
       ...crossBaseProps,
       ...(colExtra || {}),
     });
+    if (out) out.savedColumnId = savedColumn.id;
 
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,
@@ -398,16 +417,29 @@ export async function validateRollupPayload(
     colId: (payload as RollupColumnReqType).fk_relation_column_id,
   });
 
+  if (!column) {
+    NcError.get(context).relationFieldNotFound(
+      (payload as RollupColumnReqType).fk_relation_column_id,
+    );
+  }
+
+  if (!isLinksOrLTAR(column)) {
+    NcError.get(context).badRequest(
+      `A rollup must aggregate through a link field, but "${column.title}" is ${column.uidt}.`,
+    );
+  }
+
   const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
     context,
   );
-  const { refContext } = relation.getRelContext(context);
 
   if (!relation) {
     NcError.get(context).relationFieldNotFound(
       (payload as RollupColumnReqType).fk_relation_column_id,
     );
   }
+
+  const { refContext } = relation.getRelContext(context);
 
   let relatedColumn: Column;
   const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
@@ -426,13 +458,34 @@ export async function validateRollupPayload(
   }
 
   const relatedTable = await relatedColumn.getModel(refContext);
+  const relatedTableColumns = await relatedTable.getColumns(refContext);
 
-  const rollupColumn = (await relatedTable.getColumns(refContext)).find(
+  const rollupColumn = relatedTableColumns.find(
     (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
   );
 
   if (!rollupColumn)
     NcError.get(context).badRequest('Rollup column not found in related table');
+
+  // Rolling up a link/lookup/barcode-style column would build SQL against a
+  // column that doesn't physically exist, breaking every read of the table.
+  if (!isRollupAggregatableColumn(rollupColumn)) {
+    const aggregatable = relatedTableColumns
+      .filter(
+        (c) =>
+          !c.system &&
+          isRollupAggregatableColumn(c) &&
+          getAvailableRollupForUiType(c.uidt).length,
+      )
+      .map((c) => c.title);
+
+    NcError.get(context).badRequest(
+      `Field "${rollupColumn.title}" (${rollupColumn.uidt}) in "${relatedTable.title}" cannot be aggregated by a rollup.` +
+        (aggregatable.length
+          ? ` Aggregatable fields are: ${aggregatable.join(', ')}.`
+          : ''),
+    );
+  }
 
   if (
     !getAvailableRollupForUiType(rollupColumn.uidt).includes(
@@ -442,7 +495,7 @@ export async function validateRollupPayload(
     NcError.get(context).badRequest(
       `Rollup function (${
         (payload as RollupColumnReqType).rollup_function
-      }) not available for type (${relatedColumn.uidt})`,
+      }) not available for type (${rollupColumn.uidt})`,
     );
   }
 }
@@ -675,15 +728,26 @@ export const travelLookupColumn = async ({
 }: {
   context: NcContext;
   column: Column;
-}) => {
+}): Promise<Column | null> => {
   const lookupColOptions = await column.getColOptions<LookupColumn>(context);
-  const targetColumn = await Column.get(context, {
+  if (lookupColOptions?.error) return null;
+
+  const relationColumn = await lookupColOptions.getRelationColumn(context);
+  if (!relationColumn) return null;
+
+  const relationColOptions =
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  const { refContext } = relationColOptions.getRelContext(context);
+
+  const targetColumn = await Column.get(refContext, {
     colId: lookupColOptions.fk_lookup_column_id,
   });
 
+  if (!targetColumn) return null;
+
   if (targetColumn.uidt === UITypes.Lookup) {
     return travelLookupColumn({
-      context,
+      context: refContext,
       column: targetColumn,
     });
   } else {
@@ -773,7 +837,12 @@ export const TableSystemColumns = (isMetaColSupport = false, isMeta = true) => [
     : []),
 ];
 
-export const deleteColumnSystemPropsFromRequest = (col: any) => {
+export { OperationSource };
+
+export const deleteColumnSystemPropsFromRequest = (
+  col: any,
+  opts?: { operationSource?: OperationSource },
+) => {
   // remove all properties not in documentations
   delete col.dt;
   delete col.np;
@@ -791,7 +860,25 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   // delete col.dtxs;
   delete col.au;
   delete col.validate;
-  delete col.system;
+  switch (opts?.operationSource) {
+    case OperationSource.AT_IMPORT: {
+      const isNcRecordColumn =
+        col.system && ['ncRecordId', 'ncRecordHash'].includes(col.title);
+      if (!isNcRecordColumn) {
+        delete col.system;
+      }
+      break;
+    }
+    case OperationSource.SYNC: {
+      // table-sync flags its Remote*/Sync* metadata columns as system so they
+      // hide behind the "Show system fields" toggle. Honor the caller's
+      // `system` flag here instead of stripping it.
+      break;
+    }
+    default: {
+      delete col.system;
+    }
+  }
 };
 
 // get the reverse type of the relation

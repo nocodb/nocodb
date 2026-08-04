@@ -1,4 +1,10 @@
 <script setup lang="ts">
+defineProps<{
+  /** Render in compact mode (flat cells, tight spacing, uppercase labels,
+   * blank-placeholder). Forwarded straight to Columns. */
+  compactMode?: boolean
+}>()
+
 const { fields, hiddenFields } = useExpandedFormStoreOrThrow()
 </script>
 
@@ -7,6 +13,7 @@ const { fields, hiddenFields } = useExpandedFormStoreOrThrow()
     :fields="fields"
     :hidden-fields="hiddenFields"
     :is-loading="false"
+    :compact-mode="compactMode"
     force-vertical-mode
     class="mini-columns-wrapper"
   />

@@ -105,7 +105,7 @@ export default class HookLog implements HookLogType {
       'triggered_by',
     ]);
 
-    const hook = await Hook.get(context, hookLog.fk_hook_id, ncMeta);
+    const hook = await Hook.get(context, hookLog.fk_hook_id, false, ncMeta);
 
     if (!hookLog.source_id) {
       insertObj.source_id = hook.source_id;
@@ -160,5 +160,20 @@ export default class HookLog implements HookLogType {
     }
 
     return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;
+  }
+
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOK_LOGS,
+      {
+        base_id: baseId,
+      },
+    );
   }
 }

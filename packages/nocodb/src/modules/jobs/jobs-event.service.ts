@@ -34,11 +34,14 @@ export class JobsEventService {
 
   @OnQueueActive()
   onActive(job: BullJob) {
-    if (SKIP_STORING_JOB_META.includes(job.data.jobName as JobTypes)) {
+    const emitActive = () =>
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
         status: JobStatus.ACTIVE,
       });
+
+    if (SKIP_STORING_JOB_META.includes(job.data.jobName as JobTypes)) {
+      emitActive();
       return;
     }
 
@@ -52,17 +55,12 @@ export class JobsEventService {
         status: JobStatus.ACTIVE,
       },
     )
-      .then(() => {
-        this.eventEmitter.emit(JobEvents.STATUS, {
-          id: job.id.toString(),
-          status: JobStatus.ACTIVE,
-        });
-      })
       .catch((error) => {
         this.logger.error(
           `Failed to update job (${job.id}) status to active: ${error.message}`,
         );
-      });
+      })
+      .finally(() => emitActive());
   }
 
   @OnQueueFailed()
@@ -80,7 +78,7 @@ export class JobsEventService {
       `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
     );
 
-    if (SKIP_STORING_JOB_META.includes(job.data.jobName as JobTypes)) {
+    const emitFailed = () =>
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
         status: JobStatus.FAILED,
@@ -91,6 +89,9 @@ export class JobsEventService {
           result: error?.data,
         },
       });
+
+    if (SKIP_STORING_JOB_META.includes(job.data.jobName as JobTypes)) {
+      emitFailed();
       return;
     }
 
@@ -105,24 +106,12 @@ export class JobsEventService {
         result: error?.data,
       },
     )
-      .then(() => {
-        const newLocal = this;
-        newLocal.eventEmitter.emit(JobEvents.STATUS, {
-          id: job.id.toString(),
-          status: JobStatus.FAILED,
-          data: {
-            error: {
-              message: error?.message,
-            },
-            result: error?.data,
-          },
-        });
-      })
-      .catch((error) => {
+      .catch((updateError) => {
         this.logger.error(
-          `Failed to update job (${job.id}) status to failed: ${error.message}`,
+          `Failed to update job (${job.id}) status to failed: ${updateError.message}`,
         );
-      });
+      })
+      .finally(() => emitFailed());
   }
 
   @OnQueueCompleted()
@@ -145,8 +134,7 @@ export class JobsEventService {
       return;
     }
 
-    // Don't store job results for certain job types
-    if (SKIP_STORING_JOB_META.includes(job.data.jobName as JobTypes)) {
+    const emitCompleted = () =>
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
         status: JobStatus.COMPLETED,
@@ -154,6 +142,9 @@ export class JobsEventService {
           result: data,
         },
       });
+
+    if (SKIP_STORING_JOB_META.includes(job.data.jobName as JobTypes)) {
+      emitCompleted();
       return;
     }
 
@@ -168,19 +159,11 @@ export class JobsEventService {
         result: data,
       },
     )
-      .then(() => {
-        this.eventEmitter.emit(JobEvents.STATUS, {
-          id: job.id.toString(),
-          status: JobStatus.COMPLETED,
-          data: {
-            result: data,
-          },
-        });
-      })
       .catch((error) => {
         this.logger.error(
           `Failed to update job (${job.id}) status to completed: ${error.message}`,
         );
-      });
+      })
+      .finally(() => emitCompleted());
   }
 }

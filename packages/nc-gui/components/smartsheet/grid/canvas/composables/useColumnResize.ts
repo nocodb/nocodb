@@ -7,7 +7,7 @@ export function useColumnResize(
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
   isViewOperationsAllowed: ComputedRef<boolean>,
-  onResize?: (columnId: string, width: number) => void,
+  onResize?: (columnId: string, width: number, leftX: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {
   const RESIZE_HANDLE_WIDTH = 8
@@ -16,6 +16,9 @@ export function useColumnResize(
     id: string
     initialWidth: number
     startX: number
+    // canvas x of the column's left edge at drag start — used to position the
+    // resize guideline marker (right edge = leftX + newWidth).
+    leftX: number
   } | null>(null)
 
   const mousePosition = ref<{ x: number; y: number } | null>(null)
@@ -86,7 +89,7 @@ export function useColumnResize(
           const delta = mousePosition.value.x - activeColumn.value.startX
           const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
 
-          onResize?.(activeColumn.value.id, newWidth)
+          onResize?.(activeColumn.value.id, newWidth, activeColumn.value.leftX)
         })
       }
     } catch (error) {
@@ -129,6 +132,7 @@ export function useColumnResize(
       id: column.id,
       initialWidth: column.width,
       startX: mousePosition.value?.x || 0,
+      leftX: column.x,
     }
 
     window.addEventListener('mousemove', handleMouseMove)

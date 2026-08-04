@@ -33,7 +33,10 @@ export class BasesV3Service {
   ) {
     return extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
       ? await Base.list()
-      : await BaseUser.getProjectsList(param.user.id, param.query);
+      : await BaseUser.getProjectsList(param.user.id, {
+          ...param.query,
+          workspaceId: param.workspaceId,
+        });
   }
 
   baseMemberHelpers: BaseMemberHelpers;

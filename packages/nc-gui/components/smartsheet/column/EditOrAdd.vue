@@ -23,7 +23,6 @@ import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#im
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
-import { isEeUI } from '#imports'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -40,6 +39,10 @@ const props = defineProps<{
   editDescription?: boolean
   readonly?: boolean
   disableTitleFocus?: boolean
+  // Force the interface "edits the whole base" footer when the editor mounts
+  // outside a viz (the InterfacePageDataInj signal doesn't reach e.g. the
+  // interface properties panel).
+  interfaceNote?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
@@ -61,7 +64,16 @@ const {
   isAiMode,
   isSyncedField,
   defaultFormState,
+  sqlUi,
 } = useColumnCreateStoreOrThrow()
+
+// Patch colOptions into formState during setup so the child SelectOptions
+// (whose onMounted runs before this parent's onMounted) initializes its
+// local options from preload's pending edits rather than the stale column data.
+// Full preload merge (others + meta) still happens in onMounted below.
+if (props.preload?.colOptions) {
+  formState.value.colOptions = { ...props.preload.colOptions }
+}
 
 const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
@@ -93,8 +105,6 @@ const {
   saveFields,
   onToggleTag: _onToggleTag,
 } = usePredictFields(ref(false))
-
-const { clone } = useUndoRedo()
 
 onBeforeMount(() => {
   if (props.fromTableExplorer || isEdit.value) return
@@ -136,13 +146,16 @@ const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const meta = inject(MetaInj, ref())
 
+// Interface pages: schema edits from an interface warn about base-wide scope
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { isMysql, isPg, isDatabricks, isXcdbBase } = useBase()
+const { isMysql, isPg, isMssql, isDatabricks, isXcdbBase } = useBase()
 
 const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
 
@@ -160,22 +173,30 @@ const onMouseOverUniqueValuesInfoIcon = ref(false)
 
 const columnUidt = computed({
   get: () => {
-    // Show legacy LTAR v1 columns as "Links" in the type dropdown
-    if (isEdit.value && formState.value.uidt === UITypes.LinkToAnotherRecord && formState.value.colOptions?.version !== 2) {
+    // Show legacy LTAR v1 columns as "Links" in the type dropdown — but only
+    // when editing an existing link column. When converting another type
+    // (e.g. SingleLineText) into a link, the new field has no version yet, so
+    // this would wrongly relabel the freshly chosen "Link to another record".
+    if (
+      isEdit.value &&
+      column?.value?.uidt === UITypes.LinkToAnotherRecord &&
+      formState.value.uidt === UITypes.LinkToAnotherRecord &&
+      formState.value.colOptions?.version !== 2
+    ) {
       return UITypes.Links
     }
     return formState.value.uidt
   },
   set: (value: UITypes) => {
-    if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+    if (value === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
       return
     }
 
-    if (value === AIButton && showUpgradeToUseAiButtonField()) {
+    if (value === AIButton && showUpgradeToUseAiButtonField({ triggerSource: 'field-menu-ai-button' })) {
       return
     }
 
-    if (value === UITypes.Colour && showUpgradeToUseColourField()) {
+    if (value === UITypes.Colour && showUpgradeToUseColourField({ triggerSource: 'field-menu-colour-field' })) {
       return
     }
 
@@ -228,29 +249,49 @@ const uiFilters = (t: UiTypesType) => {
   if (t.name === column?.value?.uidt) {
     return true
   }
+  // A link (LTAR/Links) column can only be converted to SingleLineText (its
+  // linked display values are joined into text) — hide all other targets.
+  if (isEdit.value && column?.value && isLinksOrLTAR(column.value)) {
+    return t.name === UITypes.SingleLineText
+  }
+  // M2M junction tables have no source rows for system audit fields — values would always be null
+  const isMmTable = !!meta.value?.mm
+  if (isMmTable && isSystemField(t)) return false
+
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
-  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt
+
+  // Converting an existing SingleLineText column into a link (LTAR) is
+  // supported — cell text is resolved to related records on save. Allow LTAR
+  // through the edit-mode virtual/LTAR guards for that one source type.
+  const isTextToLtar = isEdit.value && column?.value?.uidt === UITypes.SingleLineText && t.name === UITypes.LinkToAnotherRecord
+
+  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt || isTextToLtar
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
   const showAiFields = [AIPrompt, AIButton].includes(t.name)
-    ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
+    ? isAiBetaFeaturesEnabled.value && !isEdit.value && showEEFeatures.value
     : true
-  const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
+  const showColourField = t.name === UITypes.Colour ? showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
-  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value : true
+  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value || isTextToLtar : true
 
   let formulaColumnTypeValid = true
   if (column?.value?.uidt === UITypes.Formula) {
     formulaColumnTypeValid = [UITypes.SingleLineText].includes(t.name)
   }
 
-  // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
+  // UUID is supported on PostgreSQL (`uuid` + `gen_random_uuid()`) and SQL
+  // Server (`uniqueidentifier` + `NEWID()`). Cannot be CONVERTED to from
+  // other types because values are DB-generated + unique — converting
+  // existing data would break both invariants; the backend (and the
+  // dropdown line 228 above for edit mode) enforces that.
+  const isUuidCompatibleSource = isPg(meta.value?.source_id) || isMssql(meta.value?.source_id)
+  const showUUID = t.name !== UITypes.UUID || (isUuidCompatibleSource && showEEFeatures.value && !isEdit.value)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && showEEFeatures.value)
 
   return (
     systemFiledNotEdited &&
@@ -266,6 +307,17 @@ const uiFilters = (t: UiTypesType) => {
     showAutoNumber
   )
 }
+
+// Converting an existing SingleLineText column into a link: the field is
+// edited, but the LTAR options sub-component must behave like create mode so
+// it surfaces the related-table / relation-type pickers and validation.
+const isTextToLtarConversion = computed(
+  () => isEdit.value && column?.value?.uidt === UITypes.SingleLineText && formState.value.uidt === UITypes.LinkToAnotherRecord,
+)
+
+// Editing a link (LTAR/Links) column — the type dropdown is normally locked
+// for links, but we allow converting them to SingleLineText.
+const canConvertLtarToText = computed(() => isEdit.value && !!column?.value && isLinksOrLTAR(column.value))
 
 const extraIcons = ref<Record<string, string>>({})
 
@@ -328,7 +380,7 @@ const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: s
         disabled: isColumnTypeDisabled,
         tooltip:
           isColumnTypeDisabled && UITypesName[type.name]
-            ? `${UITypesName[type.name]} field cannot be used as display value field`
+            ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName[type.name] })
             : '',
       }
     })
@@ -399,6 +451,8 @@ const saving = ref(false)
 
 const warningVisible = ref(false)
 
+const selectOptionsRef = ref<{ flushSort: () => void } | null>(null)
+
 const saveSubmitted = async () => {
   if (readOnly.value) return
   let saved, savedColumn
@@ -441,6 +495,9 @@ const saveSubmitted = async () => {
 async function onSubmit() {
   if (readOnly.value) return
 
+  selectOptionsRef.value?.flushSort()
+  await nextTick()
+
   // Show warning message if user tries to change type of column
   if (isEdit.value && formState.value.uidt !== column.value?.uidt) {
     warningVisible.value = true
@@ -459,6 +516,7 @@ async function onSubmit() {
 
 // focus and select the column name field
 const antInput = ref()
+
 watchEffect(() => {
   if (antInput.value && formState.value && !readOnly.value) {
     // todo: replace setTimeout
@@ -626,7 +684,7 @@ watch(
 
         if (!selectedField) return
 
-        selectedField.formState = clone(formState.value)
+        selectedField.formState = deepClone(formState.value)
       }
     }
   },
@@ -661,7 +719,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   return searchCompare([...(UITypesSearchTerms[option.value as string] || [])], input, (matchKeyword) => {
     if (!matchKeyword) return
 
-    searchBasisInfoMap.value[option.value] = `Matched by keyword: ${matchKeyword}`
+    searchBasisInfoMap.value[option.value] = t('msg.matchedByKeyword', { matchKeyword })
   })
 }
 
@@ -800,7 +858,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 const unique = computed({
   get: () => formState.value?.unique,
   set: (value) => {
-    if (!!value && showUpgradeToUseUnique()) {
+    if (!!value && showUpgradeToUseUnique({ triggerSource: 'field-menu-unique' })) {
       return
     }
 
@@ -819,7 +877,7 @@ const unique = computed({
     :class="{
       'bg-nc-bg-default max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
-      '!w-[600px]': isLinksOrLTAR(formState.uidt),
+      '!w-[500px]': isLinksOrLTAR(formState.uidt),
       '!min-w-[560px]': lookupRollupFilterEnabled,
       'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 dark:shadow-black/40 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
@@ -855,7 +913,7 @@ const unique = computed({
               v-if="isAiFeaturesEnabled"
               :ai-mode="aiAutoSuggestMode"
               :ai-loading="aiLoading"
-              :off-tooltip="`Auto suggest fields for ${meta?.title || 'the current table'}`"
+              :off-tooltip="$t('tooltip.autoSuggestFieldsFor', { table: meta?.title || $t('labels.theCurrentTable') })"
               @click="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
             />
           </div>
@@ -890,7 +948,7 @@ const unique = computed({
                       <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
                       <!-- Todo: add table name  -->
-                      <div class="nc-animate-dots">Auto suggesting fields for {{ meta?.title }}</div>
+                      <div class="nc-animate-dots">{{ $t('msg.autoSuggestingFieldsForTable', { table: meta?.title }) }}</div>
                     </div>
                   </div>
                   <div v-else-if="aiAutoSuggestModeStep === 'pick'" class="flex gap-3 items-start">
@@ -899,7 +957,7 @@ const unique = computed({
                         <template v-for="f of activeTabPredictedFields" :key="f.title">
                           <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
                             <template #title>
-                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
+                              <div class="w-[150px]">{{ $t('msg.info.maxFieldSelectionAtATime', { maxSelectionCount }) }}</div>
                             </template>
 
                             <a-tag
@@ -945,7 +1003,7 @@ const unique = computed({
                             ? activeTabPredictHistory.length + activeTabSelectedFields.length < 10
                             : activeTabPredictHistory.length < 10
                         "
-                        title="Suggest more"
+                        :title="$t('tooltip.suggestMore')"
                         placement="top"
                       >
                         <NcButton
@@ -963,7 +1021,7 @@ const unique = computed({
                           </template>
                         </NcButton>
                       </NcTooltip>
-                      <NcTooltip title="Clear all and Re-suggest" placement="top">
+                      <NcTooltip :title="$t('tooltip.clearAllAndResuggest')" placement="top">
                         <NcButton
                           size="xs"
                           class="!px-1"
@@ -997,7 +1055,7 @@ const unique = computed({
                       ref="aiPromptInputRef"
                       v-model:value="prompt"
                       :disabled="saving"
-                      placeholder="Enter your prompt to get field suggestions.."
+                      :placeholder="$t('placeholder.enterPromptForFieldSuggestions')"
                       class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
                       @keydown.enter.stop
                     >
@@ -1043,13 +1101,13 @@ const unique = computed({
                   </div>
 
                   <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                    <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Field(s)</div>
+                    <div class="text-nc-content-purple-dark font-semibold text-xs">{{ $t('labels.generatedFields') }}</div>
                     <div class="flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedFields.length">
                         <template v-for="f of activeTabPredictedFields" :key="f.title">
                           <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
                             <template #title>
-                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
+                              <div class="w-[150px]">{{ $t('msg.info.maxFieldSelectionAtATime', { maxSelectionCount }) }}</div>
                             </template>
 
                             <a-tag
@@ -1099,9 +1157,9 @@ const unique = computed({
             >
               <GeneralIcon icon="ncInfoSolid" class="flex-none text-nc-content-red-dark" />
               <div class="flex flex-col gap-1">
-                <div class="text-nc-content-gray text-base font-bold">Failed to add fields</div>
+                <div class="text-nc-content-gray text-base font-bold">{{ $t('msg.error.failedToAddFields') }}</div>
                 <div class="text-nc-content-gray-muted text-sm">
-                  NocoDB was unable to add {{ predicted.length }} fields to the table. Please retry adding the fields.
+                  {{ $t('msg.error.unableToAddFields', { count: predicted.length }) }}
                 </div>
               </div>
               <NcButton size="xsmall" type="text" class="!px-1" @click.stop="failedToSaveFields = false">
@@ -1148,7 +1206,9 @@ const unique = computed({
                   {{ submitBtnLabel.loadingLabel }}
                 </template>
               </NcButton>
-              <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
+              <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations">
+                {{ $t('labels.addAiIntegration') }}
+              </NcButton>
             </div>
           </a-form-item>
         </div>
@@ -1219,11 +1279,7 @@ const unique = computed({
         >
           <NcTooltip placement="right" :disabled="!isSyncedField && !(!isEdit && formState.uidt && !!formState?.ai_temp_id)">
             <template #title>
-              {{
-                isSyncedField
-                  ? $t('msg.info.updateTypeSyncedCol')
-                  : 'You cannot edit field types of AI-generated fields. Edits can be made after the field is created.'
-              }}
+              {{ isSyncedField ? $t('msg.info.updateTypeSyncedCol') : $t('msg.info.cannotEditAiGeneratedFieldType') }}
             </template>
             <a-select
               v-model:open="isColumnTypeOpen"
@@ -1238,7 +1294,7 @@ const unique = computed({
                 (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
                 isKanban ||
                 readOnly ||
-                (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
+                (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt) && !canConvertLtarToText) ||
                 (isEdit && !isFullUpdateAllowed) ||
                 isSystem ||
                 isSyncedField
@@ -1306,7 +1362,7 @@ const unique = computed({
                         <span
                           class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
                           @click.stop="isConvertLinkV2ModalOpen = true"
-                          >(Legacy)</span
+                          >{{ $t('labels.legacy') }}</span
                         >
                       </NcTooltip>
                     </div>
@@ -1397,7 +1453,8 @@ const unique = computed({
           v-if="isLinksOrLTAR(formState.uidt)"
           :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
-          :is-edit="isEdit"
+          :is-edit="isEdit && !isTextToLtarConversion"
+          :hide-advanced-options="isTextToLtarConversion"
           @upgrade="isConvertLinkV2ModalOpen = true"
         />
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
@@ -1405,6 +1462,7 @@ const unique = computed({
         <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
         <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+          ref="selectOptionsRef"
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
         />
@@ -1447,9 +1505,9 @@ const unique = computed({
                 isXcdbBase(meta?.source_id) &&
                 !isVirtualCol(formState) &&
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
+                sqlUi?.isUniqueSupportedField?.(formState.uidt) !== false &&
                 !isUUID(formState) &&
                 !isAutoNumber(formState) &&
-                isEeUI &&
                 showEEFeatures
               "
               class="flex"
@@ -1505,7 +1563,7 @@ const unique = computed({
             Default Value for JSON & LongText is not supported in MySQL  -->
             <NcTooltip
               v-if="isTextArea(formState) && formState.meta?.richMode && formState.unique"
-              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              :title="$t('tooltip.cannotSetDefaultValueWithUnique')"
               placement="right"
             >
               <div class="pointer-events-none opacity-60">
@@ -1531,7 +1589,7 @@ const unique = computed({
                 !isUUID(formState) &&
                 !isAutoNumber(formState)
               "
-              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              :title="$t('tooltip.cannotSetDefaultValueWithUnique')"
               placement="right"
             >
               <div class="pointer-events-none opacity-60">
@@ -1675,7 +1733,7 @@ const unique = computed({
                   type="primary"
                   :theme="isAiMode ? 'ai' : 'default'"
                   :loading="saving"
-                  :disabled="!formState.uidt || disableSubmitBtn || saving"
+                  :disabled="!formState.uidt || disableSubmitBtn || saving || (isTextToLtarConversion && !formState.childId)"
                   size="small"
                   :label="submitBtnLabel.label"
                   :loading-label="submitBtnLabel.loadingLabel"
@@ -1695,6 +1753,20 @@ const unique = computed({
     </a-form>
 
     <LazyDlgConvertLinkV2 v-model:visible="isConvertLinkV2ModalOpen" :column="column" @converted="emit('cancel')" />
+
+    <!-- Interface builders edit the REAL base field — the card says so. Full
+         bleed via negative margins (card mode is p-5 with !pb-0 when a type
+         is set, which is always true while editing). -->
+    <div
+      v-if="isEdit && !embedMode && (interfacePageDataApi || props.interfaceNote)"
+      class="nc-interface-field-edit-note -mx-5 mt-4 px-5 py-3 flex items-start gap-2 bg-nc-bg-gray-light rounded-b-2xl border-t border-nc-border-gray-medium text-bodySm text-nc-content-gray-subtle"
+    >
+      <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5 mt-0.5" />
+      <div>
+        <div class="font-semibold">{{ $t('msg.info.interfaceFieldEditShared') }}</div>
+        <div>{{ $t('msg.info.interfaceFieldEditSharedDetail') }}</div>
+      </div>
+    </div>
   </div>
 </template>
 

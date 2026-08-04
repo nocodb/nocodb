@@ -182,9 +182,11 @@ const innerAdd = async (isGroup: boolean) => {
     if (!newFilter.is_group) {
       const evalColumn = getColumn(newFilter)
       const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
-      newFilter.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter((compOp) =>
-        isComparisonOpAllowed(newFilter, compOp, evalUidt, props.showNullAndEmptyInFilter),
-      )[0]?.value
+      newFilter.comparison_op = getDefaultComparisonOp(
+        comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format),
+        (compOp) => isComparisonOpAllowed(newFilter, compOp, evalUidt, props.showNullAndEmptyInFilter),
+        evalUidt,
+      )
     }
     handleFilterChange(newFilter, props.index)
     vModel.value.push(newFilter)

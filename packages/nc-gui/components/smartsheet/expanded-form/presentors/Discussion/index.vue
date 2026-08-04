@@ -3,26 +3,59 @@
 
 const props = defineProps<{
   isUnsavedDuplicatedRecordExist: boolean
+  /** Force-hide the right-side sidebar (fields summary) regardless of the
+   * user's commentsDrawer preference. Used by the EE docked panel at narrow
+   * widths. */
+  hideSidebar?: boolean
+  /** Render the sidebar's fields in compact mode. */
+  compactMode?: boolean
 }>()
 
 const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordExist')
 
 /* stores */
 
-const { saveComment, commentsDrawer, isNew, audits, comments, auditCommentGroups, hasMoreAudits, loadMoreAudits } =
-  useExpandedFormStoreOrThrow()
+const {
+  saveComment,
+  commentsDrawer,
+  isNew,
+  audits,
+  comments,
+  auditCommentGroups,
+  hasMoreAudits,
+  loadMoreAudits,
+  primaryKey,
+  resetAuditPages,
+} = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
+const {
+  isCommentAttachmentsEnabled,
+  pendingAttachments,
+  isUploading: isAttachmentUploading,
+  openFilePicker,
+  handlePaste: handleAttachmentPaste,
+  handleDrop: handleAttachmentDrop,
+  removeAttachment,
+  clearAttachments,
+} = useCommentAttachments()
+
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
-const { appInfo } = useGlobal()
+const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
 
-const isCeRetentionLimited = computed(() => !appInfo.value?.ee)
+// Audits accumulate via unshift() in the store and are only reset by explicit
+// callers. The legacy Sidebar/Audits.vue watches primaryKey for this; mirror
+// the same here so switching rows in the docked panel's Discussion mode shows
+// the new row's history instead of the previous row's.
+watch(primaryKey, () => {
+  resetAuditPages()
+})
 
 /* flags */
 
-const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
+const showRightSections = computed(() => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
 onMounted(() => {
   scrollToBottom()
@@ -36,8 +69,12 @@ const newCommentText = ref('')
 const shouldSkipAuditsScroll = ref(false)
 
 function handleCreatingNewComment() {
-  saveComment(newCommentText.value)
+  if (isAttachmentUploading.value) return
+  if (!newCommentText.value.trim() && !pendingAttachments.value.length) return
+
+  saveComment(newCommentText.value, [...pendingAttachments.value])
   newCommentText.value = ''
+  clearAttachments()
 
   refRichComment?.value?.setEditorContent('', true)
 }
@@ -82,33 +119,12 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="w-[680px] max-w-full flex-grow flex flex-col px-6 2xl:px-0">
+      <div class="w-[680px] max-w-full flex-grow flex flex-col pl-3 pr-6 2xl:px-0">
         <div
           class="w-full h-0 flex-grow ml-15.8 rtl:(mr-15.8 ml-0 border-l-0 border-r-1) border-l-1 border-nc-border-gray-dark"
         />
       </div>
-      <div v-if="isCeRetentionLimited" class="w-[680px] max-w-full flex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0 pt-2">
-        <div class="flex flex-col items-center gap-2 py-2">
-          <div class="text-center text-nc-content-gray-subtle2 text-xs">
-            {{ $t('upgrade.ceAuditRetentionNotice') }}
-          </div>
-          <a
-            v-e="['c:audit:retention:upgrade']"
-            href="https://app.nocodb.com/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=audit_retention"
-            target="_blank"
-            rel="noopener"
-            class="!no-underline"
-          >
-            <NcButton type="secondary" size="xs">
-              <div class="flex items-center gap-1">
-                <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
-                {{ $t('general.upgrade') }}
-              </div>
-            </NcButton>
-          </a>
-        </div>
-      </div>
-      <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
+      <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col pl-3 pr-6 2xl:px-0">
         <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-nc-border-gray-dark relative">
           <NcButton
             size="small"
@@ -116,12 +132,12 @@ export default {
             class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
             @click="initLoadMoreAudits()"
           >
-            Load more
+            {{ $t('general.loadMore') }}
           </NcButton>
         </div>
       </div>
       <div class="w-[680px] max-w-full pb-4">
-        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-6 2xl:px-0">
+        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full pl-3 pr-6 2xl:px-0">
           <template v-if="group.type === 'audit'">
             <SmartsheetExpandedFormPresentorsDiscussionEntryAudit :audit-group="group" />
           </template>
@@ -131,25 +147,57 @@ export default {
         </div>
         <div
           v-if="isUIAllowed('commentEdit')"
-          class="w-full border-t border-nc-border-gray-medium px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
+          class="w-full border-t border-nc-border-gray-medium pl-3 pr-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
         >
-          <div class="font-bold my-3">Add a comment</div>
-          <SmartsheetExpandedFormRichComment
-            ref="refRichComment"
-            v-model:value="newCommentText"
-            :hide-options="false"
-            placeholder="Comment..."
-            class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-default !w-auto"
-            data-testid="expanded-form-comment-input"
-            :autofocus="isExpandedFormCommentMode"
-            @focus="isExpandedFormCommentMode = false"
-            @update:value="scrollToBottom()"
-            @keydown.stop
-            @save="handleCreatingNewComment"
-            @keydown.enter.exact.prevent="handleCreatingNewComment"
-          />
+          <div class="font-bold my-3">{{ $t('activity.addComment') }}</div>
+          <div
+            @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
+            @dragover.prevent
+            @drop="isCommentAttachmentsEnabled ? handleAttachmentDrop($event) : undefined"
+          >
+            <SmartsheetExpandedFormRichComment
+              ref="refRichComment"
+              v-model:value="newCommentText"
+              :hide-options="false"
+              :extra-save-enabled="pendingAttachments.length > 0"
+              :placeholder="$t('placeholder.comment')"
+              class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-default !w-auto"
+              data-testid="expanded-form-comment-input"
+              :autofocus="isExpandedFormCommentMode"
+              @focus="isExpandedFormCommentMode = false"
+              @update:value="scrollToBottom()"
+              @keydown.stop
+              @save="handleCreatingNewComment"
+              @keydown.enter.exact.prevent="handleCreatingNewComment"
+            >
+              <template v-if="pendingAttachments.length" #attachments>
+                <SmartsheetExpandedFormCommentAttachments
+                  :attachments="pendingAttachments"
+                  editable
+                  class="px-1 pt-1"
+                  @remove="removeAttachment"
+                />
+              </template>
+              <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
+                <NcTooltip :title="$t('activity.attachFile')" placement="top">
+                  <NcButton
+                    v-e="['c:comment:attach-file']"
+                    type="text"
+                    size="xsmall"
+                    class="nc-comment-attach-btn !h-7 !w-7"
+                    :loading="isAttachmentUploading"
+                    :disabled="isAttachmentUploading"
+                    data-testid="nc-comment-attach-btn"
+                    @click="openFilePicker"
+                  >
+                    <GeneralIcon v-if="!isAttachmentUploading" icon="lucidePaperclip" class="text-md" />
+                  </NcButton>
+                </NcTooltip>
+              </template>
+            </SmartsheetExpandedFormRichComment>
+          </div>
         </div>
-        <div v-else class="w-full px-6 2xl:px-0">
+        <div v-else class="w-full pl-3 pr-6 2xl:px-0">
           <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-nc-border-gray-dark" />
         </div>
 
@@ -158,12 +206,14 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default h-full xs:hidden rounded-br-2xl flex-shrink-0"
+      :style="{ width: `${sidebarWidth}px` }"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper />
+      <div class="nc-sidebar-resize-handle" @mousedown.prevent="onResizeStart" />
+      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :compact-mode="compactMode" />
     </div>
   </div>
 </template>
@@ -175,10 +225,17 @@ export default {
   &:focus,
   &:focus-within {
     @apply min-h-16 !bg-nc-bg-default border-nc-border-brand;
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+    box-shadow: 0px 0px 0px 2px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
   &::placeholder {
     @apply !text-gray-400;
   }
+}
+
+.nc-sidebar-resize-handle {
+  @apply absolute left-0 top-0 h-full w-1 cursor-col-resize z-50 transition-colors;
+}
+.nc-sidebar-resize-handle:hover {
+  @apply bg-nc-border-gray-medium;
 }
 </style>

@@ -16,6 +16,7 @@ import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 import { getGroupDecimalSymbolFromLocale } from '~/lib/currencyHelpers';
+import { getSeparatorChars, resolveColumnSeparator } from './separator';
 
 /**
  * Remove outer quotes & unescape
@@ -37,9 +38,12 @@ export const serializeDecimalValue = (
   callback?: (val: any) => any,
   params?: SerializerOrParserFnProps['params']
 ) => {
-  // If we have clipboard data, use it
+  // If we have clipboard data with a raw numeric value, use it directly
+  // regardless of separator differences — the dbCellValue is the canonical
+  // number and doesn't need re-interpretation.
   if (
-    params?.clipboardItem?.dbCellValue &&
+    params?.clipboardItem?.dbCellValue !== undefined &&
+    params?.clipboardItem?.dbCellValue !== null &&
     ncIsNumber(params.clipboardItem.dbCellValue)
   ) {
     return params.clipboardItem.dbCellValue;
@@ -51,11 +55,59 @@ export const serializeDecimalValue = (
 
   // If it's a string, remove commas and check if it's a valid number
   if (ncIsString(value)) {
-    const cleanedValue = ncIsFunction(callback)
-      ? callback(value)
-      : value
-          .replace(/[\s\u00A0]/g, '') // remove spaces/non-breaking spaces
-          .replace(/(?!^-)[^\d.-]/g, ''); // keep only digits, dot, one leading minus
+    // For LTAR multi-field search: only accept pure numbers, don't strip non-numeric chars
+    // e.g., "station 1" should NOT be converted to 1
+    if (params?.serializeLinkRecordSearchQuery) {
+      return ncIsNaN(value) ? null : Number(value);
+    }
+
+    let cleanedValue: string;
+    if (ncIsFunction(callback)) {
+      cleanedValue = callback(value);
+    } else if (params?.col) {
+      const separator = resolveColumnSeparator(parseProp(params.col.meta));
+      const { thousandSeparator, decimalSeparator } =
+        getSeparatorChars(separator);
+
+      cleanedValue = value;
+      // Remove thousand separators
+      if (thousandSeparator) {
+        cleanedValue = cleanedValue.replace(
+          new RegExp('\\' + thousandSeparator, 'g'),
+          ''
+        );
+      }
+      // Truncate at the second occurrence of the decimal separator
+      const firstIdx = cleanedValue.indexOf(decimalSeparator);
+      if (firstIdx !== -1) {
+        const secondIdx = cleanedValue.indexOf(decimalSeparator, firstIdx + 1);
+        if (secondIdx !== -1) {
+          cleanedValue = cleanedValue.substring(0, secondIdx);
+        }
+      }
+      // Remove anything that's not digit, decimal separator, or leading minus
+      cleanedValue = cleanedValue
+        .replace(new RegExp(`(?!^-)[^\\d\\${decimalSeparator}-]`, 'g'), '')
+        .trim();
+      // Replace decimal separator with dot
+      if (decimalSeparator !== '.') {
+        cleanedValue = cleanedValue.replace(
+          new RegExp('\\' + decimalSeparator),
+          '.'
+        );
+      }
+      // Remove duplicate dots — keep only the first one
+      const dotIdx = cleanedValue.indexOf('.');
+      if (dotIdx !== -1) {
+        cleanedValue =
+          cleanedValue.substring(0, dotIdx + 1) +
+          cleanedValue.substring(dotIdx + 1).replace(/\./g, '');
+      }
+    } else {
+      cleanedValue = value
+        .replace(/[\s\u00A0]/g, '')
+        .replace(/(?!^-)[^\d.-]/g, '');
+    }
 
     if (!cleanedValue) return null;
 
@@ -71,8 +123,11 @@ export const serializeDecimalValue = (
   return null;
 };
 
-export const serializeIntValue = (value: string | null | number) => {
-  value = serializeDecimalValue(value);
+export const serializeIntValue = (
+  value: string | null | number,
+  params?: SerializerOrParserFnProps['params']
+) => {
+  value = serializeDecimalValue(value, undefined, params);
 
   if (ncIsNumber(value)) {
     return parseInt(value.toString(), 10);
@@ -113,6 +168,82 @@ export const serializeCheckboxValue = (
   return null;
 };
 
+/**
+ * Coerce a raw imported cell value (a CSV string or pasted text) into the value
+ * the destination column expects before it is written to the DB.
+ *
+ * Single source of truth shared by the server-side file-import job
+ * (`DataImportProcessor`) and the client-side CSV-upload extension, so both
+ * import paths produce identical rows. Previously these were two hand-synced
+ * `switch` statements that drifted (the client copy was missing `Duration` and
+ * used a different checkbox parser) — change coercion behaviour here only.
+ *
+ * Link/LTAR columns are intentionally NOT handled here: importers resolve those
+ * by display value in a separate link phase.
+ */
+export const serializeImportValue = (raw: any, col: ColumnType) => {
+  const value = raw === '' || raw === undefined || raw === null ? null : raw;
+
+  switch (col?.uidt as UITypes) {
+    case UITypes.Checkbox:
+      return serializeCheckboxValue(value);
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect:
+      return (value ?? '').toString().trim() || null;
+    case UITypes.Decimal:
+    case UITypes.Percent:
+      return serializeDecimalValue(value, undefined, { col });
+    case UITypes.Number:
+    case UITypes.Rating:
+      return serializeIntValue(value, { col });
+    case UITypes.Duration:
+      return value === null
+        ? null
+        : serializeDurationValue(value as string, col);
+    default:
+      return value;
+  }
+};
+
+/**
+ * Convert an Excel date *serial* into the string a date column expects.
+ *
+ * Excel stores dates as numbers — days since 1899-12-30 (the epoch includes the
+ * historical 1900 leap-year bug). When a spreadsheet cell holding a date is NOT
+ * formatted as a date (General / numeric format), the xlsx parser hands us the
+ * raw serial instead of a `Date`. Forwarding that integer to a typed date
+ * column then fails at the DB (`column ... is of type date but expression is of
+ * type integer`).
+ *
+ * This is Excel-specific and intentionally NOT wired into `serializeImportValue`
+ * (which stays format-agnostic and is shared with the CSV-upload extension). It
+ * is invoked only from the Excel import path — see `DataImportProcessor`. Only a
+ * numeric `value` is treated as a serial; anything else (a Date, an already-
+ * formatted date string) is returned untouched for the normal path to handle.
+ *
+ * The importer bulk-inserts with `raw: true`, so `_convertDateFormat` is skipped
+ * — the returned string must already be DB-ready:
+ *   - `Date`     → `YYYY-MM-DD`
+ *   - `DateTime` → `YYYY-MM-DD HH:mm:ssZ` (UTC; Excel serials carry no timezone)
+ */
+export const serializeExcelDateValue = (value: any, col: ColumnType) => {
+  if (value === null || value === undefined || value === '') return null;
+
+  // Only numeric Excel serials need conversion; leave everything else alone.
+  if (!ncIsNumber(value)) return value;
+
+  // 25569 = the serial of 1970-01-01 in the Excel 1900 date system.
+  const ms = Math.round((value - 25569) * 86400000);
+  const date = new Date(ms);
+  if (ncIsNaN(date.getTime())) return null;
+
+  const iso = date.toISOString(); // YYYY-MM-DDTHH:mm:ss.sssZ (UTC)
+
+  return (col?.uidt as UITypes) === UITypes.DateTime
+    ? `${iso.slice(0, 10)} ${iso.slice(11, 19)}+00:00`
+    : iso.slice(0, 10);
+};
+
 export const serializeJsonValue = (value: any) => {
   try {
     return ncIsString(value)
@@ -129,38 +260,43 @@ export const serializeCurrencyValue = (
 ) => {
   // If we have clipboard data, use it
   if (
-    params?.clipboardItem?.dbCellValue &&
+    params?.clipboardItem?.dbCellValue !== undefined &&
+    params?.clipboardItem?.dbCellValue !== null &&
     ncIsNumber(params.clipboardItem.dbCellValue)
   ) {
     return params.clipboardItem.dbCellValue;
   }
 
-  return serializeDecimalValue(value, (value) => {
-    const columnMeta = parseProp(params.col.meta);
-    // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
-    const formatter = new Intl.NumberFormat(
-      columnMeta?.currency_locale || 'en-US'
-    );
+  return serializeDecimalValue(
+    value,
+    (value) => {
+      const columnMeta = parseProp(params.col.meta);
+      // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
+      const formatter = new Intl.NumberFormat(
+        columnMeta?.currency_locale || 'en-US'
+      );
 
-    // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
-    if (
-      !columnMeta?.currency_locale ||
-      columnMeta.currency_locale === 'en-US' ||
-      typeof (formatter as any).formatToParts !== 'function'
-    ) {
-      return value?.replace(/[^0-9.]/g, '')?.trim();
-    }
+      // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
+      if (
+        !columnMeta?.currency_locale ||
+        columnMeta.currency_locale === 'en-US' ||
+        typeof (formatter as any).formatToParts !== 'function'
+      ) {
+        return value?.replace(/[^0-9.]/g, '')?.trim();
+      }
 
-    const { group, decimal } = getGroupDecimalSymbolFromLocale(
-      columnMeta?.currency_locale
-    );
+      const { group, decimal } = getGroupDecimalSymbolFromLocale(
+        columnMeta?.currency_locale
+      );
 
-    return value
-      .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
-      .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
-      .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
-      .trim(); // 4. Trim whitespace from both ends of the string
-  });
+      return value
+        .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
+        .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
+        .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
+        .trim(); // 4. Trim whitespace from both ends of the string
+    },
+    params
+  );
 };
 
 export const serializeTimeValue = (

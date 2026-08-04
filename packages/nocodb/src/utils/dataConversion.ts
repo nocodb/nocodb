@@ -118,5 +118,32 @@ export const convertValueToAIRecordType = async (args: {
         column.column_name,
       ],
     );
+  } else if (source.type === 'mssql') {
+    // T-SQL has no `JSON_OBJECT` — synthesize the same JSON shape via a
+    // single-row derived `SELECT ... FOR JSON PATH, WITHOUT_ARRAY_WRAPPER`.
+    // `STRING_ESCAPE(..., 'json')` would also work as a manual concat, but
+    // the derived-table form is simpler and handles nesting + nulls.
+    // Casting isStale to BIT in the subquery so FOR JSON emits a proper
+    // `true`/`false` literal (vs. quoted string).
+    await sqlClient.raw(
+      `UPDATE ??
+        SET ?? = (
+          SELECT ?? AS [value],
+                 ? AS [lastModifiedBy],
+                 ? AS [lastModifiedTime],
+                 CAST(? AS BIT) AS [isStale]
+          FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        )
+        WHERE ?? IS NOT NULL`,
+      [
+        baseModel.getTnPath(table.table_name),
+        column.column_name,
+        column.column_name,
+        commonRecord.lastModifiedBy.toString(),
+        commonRecord.lastModifiedTime.toString(),
+        commonRecord.isStale ? 1 : 0,
+        column.column_name,
+      ],
+    );
   }
 };

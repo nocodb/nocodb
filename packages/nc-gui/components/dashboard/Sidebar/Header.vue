@@ -21,7 +21,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     style="height: var(--topbar-height)"
   >
     <div v-if="!isWorkspacesLoading" class="flex flex-row items-center w-full">
-      <div>Bases</div>
+      <div>{{ $t('objects.projects') }}</div>
 
       <div class="flex flex-grow min-w-1"></div>
 

@@ -25,7 +25,9 @@ const { isDataSourceLimitReached, bases } = storeToRefs(basesStore)
 
 const base = computed(() => bases.value.get(props.baseId) ?? {})
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+
+const sourceCreateReason = computed(() => (!isDataSourceLimitReached.value ? sandboxRestrictionReason('sourceCreate') : null))
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
@@ -322,23 +324,30 @@ const handleClickRow = (source: SourceType, tab?: string) => {
         </template>
       </a-input>
 
-      <NcButton
-        v-if="!isDataSourceLimitReached && isUIAllowed('sourceCreate')"
-        size="large"
-        class="z-10 !px-2"
-        type="primary"
-        @click="
-          () => {
-            if (showExternalSourcePlanLimitExceededModal()) return
-            vState = DataSourcesSubTab.New
-          }
-        "
+      <NcTooltip
+        v-if="(!isDataSourceLimitReached && isUIAllowed('sourceCreate')) || !!sourceCreateReason"
+        :title="sourceCreateReason ? $t(sourceCreateReason) : ''"
+        :disabled="!sourceCreateReason"
       >
-        <div class="flex flex-row items-center w-full gap-x-1">
-          <component :is="iconMap.plus" />
-          <div class="flex">{{ $t('activity.newSource') }}</div>
-        </div>
-      </NcButton>
+        <NcButton
+          size="large"
+          class="z-10 !px-2"
+          type="primary"
+          :disabled="!!sourceCreateReason"
+          @click="
+            () => {
+              if (sourceCreateReason) return
+              if (showExternalSourcePlanLimitExceededModal()) return
+              vState = DataSourcesSubTab.New
+            }
+          "
+        >
+          <div class="flex flex-row items-center w-full gap-x-1">
+            <component :is="iconMap.plus" />
+            <div class="flex">{{ $t('activity.newSource') }}</div>
+          </div>
+        </NcButton>
+      </NcTooltip>
     </div>
     <div
       data-testid="nc-settings-datasources"
@@ -358,7 +367,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
           <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
             <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold !ml-1">
               <a-breadcrumb-item @click="activeSource = null">
-                <a class="!no-underline text-base">Data Sources</a>
+                <a class="!no-underline text-base">{{ $t('labels.dataSources') }}</a>
               </a-breadcrumb-item>
               <a-breadcrumb-item v-if="activeSource">
                 <span class="capitalize text-base">{{ activeSource.alias || 'Default Source' }}</span>

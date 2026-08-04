@@ -67,4 +67,22 @@ export interface WorkflowNodeDefinition {
     title: string; // e.g., 'GitHub', 'Google', 'Core', 'NocoDB'
     icon?: string; // Package icon
   };
+
+  /**
+   * Sub-group within a package for organizing many nodes (mega-menu style).
+   * Nodes with the same `group` value are grouped together in the dropdown.
+   */
+  group?: string; // e.g., 'campaign', 'contact', 'audience'
+
+  /**
+   * Human-readable label for the group.
+   * If not set, falls back to capitalizing the `group` value.
+   */
+  groupLabel?: string; // e.g., 'Campaign', 'Contact', 'Audience'
+
+  /**
+   * Display order of the group within the package dropdown.
+   * Lower numbers appear first.
+   */
+  groupOrder?: number;
 }

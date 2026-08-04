@@ -36,7 +36,7 @@ const { navigateToProject } = useGlobal()
 
 const { $e } = useNuxtApp()
 
-const { clone } = useUndoRedo()
+const { t } = useI18n()
 
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
@@ -118,17 +118,17 @@ const isOldPromptChanged = computed(() => {
 const additionalDetails = [
   {
     title: 'Organisation',
-    placeholder: '(optional)',
+    placeholder: t('labels.optional'),
     key: 'organization',
   },
   {
     title: 'Industry',
-    placeholder: '(optional)',
+    placeholder: t('labels.optional'),
     key: 'industry',
   },
   {
     title: 'Audience',
-    placeholder: '(optional)',
+    placeholder: t('labels.optional'),
     key: 'audience',
   },
 ]
@@ -204,7 +204,7 @@ const onPredictSchema = async () => {
 
       previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
       aiStep.value = AI_STEP.MODIFY
-      oldAiFormState.value = clone(aiFormState.value)
+      oldAiFormState.value = deepClone(aiFormState.value)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -491,7 +491,7 @@ onMounted(() => {
             <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
 
             <div class="w-[calc(100%_-_36px)] flex flex-col gap-1">
-              <div class="font-bold text-base text-nc-content-gray">Something went wrong</div>
+              <div class="font-bold text-base text-nc-content-gray">{{ $t('msg.error.somethingWentWrong') }}</div>
               <NcTooltip class="truncate text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                 <template #title>
                   {{ aiError }}

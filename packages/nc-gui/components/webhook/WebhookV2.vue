@@ -459,7 +459,7 @@ const supportedDocs: SupportedDocsType[] = [
     href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
   },
   {
-    title: 'Create webhook',
+    title: t('activity.createWebhook'),
     href: 'https://nocodb.com/docs/product-docs/automation/webhook',
   },
   {
@@ -1073,7 +1073,7 @@ const toggleIncludeUser = async () => {
 .title-input {
   &:focus-within {
     @apply transition-all duration-0.3s border-b-brand-500;
-    box-shadow: 0px 2px 0px 0px rgba(51, 102, 255, 0.24);
+    box-shadow: 0px 2px 0px 0px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
 }
 

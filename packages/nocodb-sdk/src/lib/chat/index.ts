@@ -11,6 +11,8 @@ export enum ChatEventAction {
   TOKEN = 'token',
   TOOL_START = 'tool-start',
   TOOL_CALL = 'tool-call',
+  /** Live step update from a long-running tool (e.g. "Creating page 3/7"). */
+  TOOL_PROGRESS = 'tool-progress',
   TOOL_RESULT = 'tool-result',
   MESSAGE_DONE = 'message-done',
   MESSAGE_UPDATE = 'message-update',
@@ -21,6 +23,17 @@ export enum ChatEventAction {
   USER_MESSAGE = 'user-message',
   AGENT_SWITCH = 'agent-switch',
   FOLLOW_UPS = 'follow-ups',
+}
+
+/**
+ * Payload of a TOOL_PROGRESS event — a live step update from a long-running
+ * tool call ("Designing table 3: Deals…", "Creating page 2/7: Pipeline").
+ * Transient: streamed for UX only, never persisted on the message.
+ */
+export interface ChatToolProgress {
+  label: string;
+  current?: number;
+  total?: number;
 }
 
 export enum ChatToolCallStatus {
@@ -40,6 +53,16 @@ export interface ChatSessionMetaType {
     completed: string[];
     remaining: string[];
   }>;
+  sandboxId?: string;
+  /**
+   * Follow-up prompts generated at turn end, persisted so reopening the
+   * session serves them from storage instead of re-generating (a model call).
+   * `messageId` pins them to the assistant message they were generated for.
+   */
+  followUps?: {
+    messageId: string;
+    items: string[];
+  };
 }
 
 export interface ChatSessionType {
@@ -115,11 +138,13 @@ export interface ChatMessageType {
   content?: string | null;
   parts?: ChatContentBlock[];
   files?: ChatAttachmentType[];
+  created_files?: ChatAttachmentType[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;
   bt_span_id?: string | null;
   created_at?: string;
+  uiContextRecord?: { tableId: string; recordId: string; recordTitle?: string };
 }
 
 export const NC_NEW_SESSION = 'NC_SESSION';
@@ -130,6 +155,8 @@ export interface ChatUIContext {
   viewId?: string;
   dashboardId?: string;
   documentId?: string;
+  recordId?: string;
+  recordTitle?: string;
 }
 
 export interface ChatSendMessageType {

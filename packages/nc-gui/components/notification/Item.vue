@@ -6,15 +6,24 @@ const props = defineProps<{
   item: NotificationType
 }>()
 
+const emits = defineEmits(['close'])
+
 const item = toRef(props, 'item')
 
 const notificationStore = useNotification()
 
 const { toggleRead } = notificationStore
+
+// Clicking a notification acts on it (usually navigating away) — the popover
+// closes so it doesn't sit over the destination.
+function onItemClick() {
+  toggleRead(item.value, item.value.is_read)
+  emits('close')
+}
 </script>
 
 <template>
-  <div class="select-none" @click="toggleRead(item, item.is_read)">
+  <div class="select-none" @click="onItemClick">
     <NotificationItemWelcome v-if="item.type === AppEvents.WELCOME" :item="item" />
     <NotificationItemProjectInvite v-else-if="item.type === AppEvents.PROJECT_INVITE" :item="item" />
     <NotificationItemWorkspaceInvite v-else-if="item.type === AppEvents.WORKSPACE_USER_INVITE" :item="item" />

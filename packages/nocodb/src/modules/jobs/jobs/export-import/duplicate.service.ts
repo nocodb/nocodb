@@ -41,6 +41,7 @@ export class DuplicateService {
         excludeHooks?: boolean;
         excludeScripts?: boolean;
         excludeDashboards?: boolean;
+        excludeInterfaces?: boolean;
         excludeWorkflows?: boolean;
         excludeDocuments?: boolean;
       };
@@ -52,6 +53,12 @@ export class DuplicateService {
 
     if (!base) {
       NcError.get(context).baseNotFound(baseId);
+    }
+
+    if (base.is_sandbox) {
+      NcError.get(context).badRequest(
+        'Sandbox bases cannot be duplicated. Duplicate the master base instead.',
+      );
     }
 
     const source = sourceId

@@ -24,7 +24,9 @@ import {
 } from '~/helpers/dbHelpers';
 import { Audit, Column } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
+import { MssqlDataMigration } from '~/services/formula-column-type-changer/mssql-data-migration';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
+import { OracleDataMigration } from '~/services/formula-column-type-changer/oracle-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
 
@@ -40,6 +42,8 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     const pgDriver = new PgDataMigration();
     const mysqlDriver = new MysqlDataMigration();
     const sqliteDriver = new SqliteDataMigration();
+    const mssqlDriver = new MssqlDataMigration();
+    const oracleDriver = new OracleDataMigration();
     this.dataMigrationDriver['postgre'] = pgDriver;
     this.dataMigrationDriver[pgDriver.dbDriverName] = pgDriver;
     this.dataMigrationDriver['mariadb'] = mysqlDriver;
@@ -47,6 +51,8 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     this.dataMigrationDriver[mysqlDriver.dbDriverName] = mysqlDriver;
     this.dataMigrationDriver[sqliteDriver.dbDriverName] = sqliteDriver;
     this.dataMigrationDriver['sqlite3'] = sqliteDriver;
+    this.dataMigrationDriver[mssqlDriver.dbDriverName] = mssqlDriver;
+    this.dataMigrationDriver[oracleDriver.dbDriverName] = oracleDriver;
   }
 
   dataMigrationDriver: {
@@ -107,7 +113,6 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
         await this.columnsService.columnDelete(context, {
           columnId: newColumn.id,
           req: params.req,
-          user: params.user,
           reuse: params.reuse,
           forceDeleteSystem: false,
         });
@@ -153,7 +158,8 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
         context,
         modelId: formulaColumn.fk_model_id,
       }));
-    const rowCount = await baseModel.count();
+    // PG count() returns BIGINT-as-string — coerce so `=== 0` works.
+    const rowCount = Number(await baseModel.count()) || 0;
     if (rowCount === 0) {
       return;
     }

@@ -28,7 +28,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams } = useEeConfig()
 
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
@@ -87,10 +87,12 @@ const tab = computed({
           plan: PlanTitles.ENTERPRISE,
         }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+        triggerSource: 'ws-home-audit',
       })
     }
 
-    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-home-teams' }))
+      return
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
@@ -164,7 +166,7 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
+    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && isEeUI) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||

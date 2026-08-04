@@ -133,7 +133,15 @@ export default class SqlMgrv2 {
   }
 
   protected async getSqlClient(source: Source) {
-    if (source.is_meta && this.ncMeta) {
+    const metaClient = this.ncMeta?.knex?.client?.config?.client;
+    const sourceClient = (await source.getConnectionConfig())?.client;
+    if (
+      source.is_meta &&
+      this.ncMeta &&
+      metaClient &&
+      sourceClient &&
+      metaClient === sourceClient
+    ) {
       return NcConnectionMgrv2.getSqlClient(source, this.ncMeta.knex);
     }
 

@@ -1,6 +1,8 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirstNonPersonalView } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { validateRowFilters } from '~/utils/dataUtils'
+import { flattenFiltersForEval } from '~/utils/realtimeUtils'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -20,6 +22,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { $api, $eventBus } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const router = useRouter()
     const route = router.currentRoute
 
@@ -27,9 +31,25 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const { activeView: view, activeNestedFilters, activeSorts, views } = storeToRefs(useViewsStore())
+    const { activeView: globalActiveView, activeNestedFilters, activeSorts, views } = storeToRefs(useViewsStore())
+
+    /**
+     * The store normally resolves its view GLOBALLY (views store / shared-view
+     * hijack) and ignores `_view` — fine while only one view is mounted at a
+     * time. Interface dashboards mount SEVERAL synthetic-view smartsheets at
+     * once, where a single global active view cannot work, so in shared mode
+     * an explicitly passed view wins and scopes this injection tree to it.
+     * Every pre-existing shared caller passes the same object it hijacks into
+     * `sharedView`, so behavior there is unchanged. No consumer writes
+     * `view.value` (writes go through the views store), so read-only is safe.
+     */
+    const view = shared && _view ? computed(() => _view.value ?? globalActiveView.value) : globalActiveView
 
     const baseStore = useBase()
+
+    const { getBaseType } = baseStore
+
+    const { metas } = useMetas()
 
     const { sqlUis, base, isSharedBase } = storeToRefs(baseStore)
 
@@ -52,6 +72,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
     const isCalendar = computed(() => view.value?.type === ViewTypes.CALENDAR)
     const isTimeline = computed(() => view.value?.type === ViewTypes.TIMELINE)
+    const isGantt = computed(() => view.value?.type === ViewTypes.GANTT)
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isList = computed(() => view.value?.type === ViewTypes.LIST)
@@ -163,12 +184,63 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return `${where ? `${where}~and` : ''}${colWhereQuery}`
     })
 
+    // The active ad-hoc narrowing (URL `where` + toolbar search) parsed into filters. Unlike
+    // saved view filters, the server can't know these (per-client), so realtime handlers AND
+    // `rowMatchesSearchAndUrl` in client-side on top of the server's matchedViewIds.
+    const xWhereFilters = computed<FilterType[]>(() => {
+      if (!xWhere.value || ncIsEmptyObject(aliasColObjMap.value)) return []
+      const { filters, errors } = extractFilterFromXwhere(
+        { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        xWhere.value,
+        aliasColObjMap.value,
+        false,
+      )
+      if (errors?.length) return []
+      return (filters ?? []).map((f) => ({
+        ...f,
+        value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value,
+      }))
+    })
+
+    // Present only under an interface page — carries the viewer's ephemeral
+    // narrowing for the realtime gate below.
+    const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
     const isSyncedTable = computed(() => !!(meta.value as TableType)?.synced)
 
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
+
+    // Interface pages: the scoped realtime room only enforces the builder
+    // scope — the viewer's ephemeral narrowing (user-filter tab/dropdown
+    // selection + ad-hoc Filter-action filters, which ride `filtersArr` on
+    // fetches) must be AND-ed client-side, exactly like toolbar search.
+    // Flattened for evaluation (`validateRowFilters` wipes pre-nested
+    // `children`) and memoized — realtime handlers evaluate per pushed row.
+    const interfaceViewerFilters = computed<FilterType[]>(() =>
+      interfacePageDataApi
+        ? flattenFiltersForEval([...interfacePageDataApi.viewerScopeFilters(), ...(nestedFilters.value ?? [])])
+        : [],
+    )
+
+    const rowMatchesSearchAndUrl = (rowPayload: Record<string, any>) => {
+      const allFilters = [...xWhereFilters.value, ...interfaceViewerFilters.value]
+      if (!allFilters.length) return true
+      return validateRowFilters(
+        allFilters,
+        rowPayload,
+        (meta.value as TableType)?.columns as ColumnType[],
+        getBaseType((meta.value as TableType)?.source_id),
+        metas.value,
+        (meta.value as TableType)?.base_id,
+        {
+          currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      )
+    }
 
     const allFilters = ref<FilterType[]>([])
 
@@ -215,7 +287,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
             throw new Error('Workspace ID not found')
           }
           // Always use internal API for consistency and cross-base support
-          const result = await $api.internal.getOperation(workspaceId, baseId, {
+          const result = await internalGet(workspaceId, baseId, {
             operation: 'viewColumnList',
             viewId,
           })
@@ -248,6 +320,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isList,
       isCalendar,
       isTimeline,
+      isGantt,
       isSharedForm,
       sorts,
       nestedFilters,
@@ -264,6 +337,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       filtersFromUrlParamsReadableErrors,
       whereQueryFromUrl,
       validFiltersFromUrlParams,
+      rowMatchesSearchAndUrl,
       isSyncedTable,
       totalRowsWithSearchQuery,
       totalRowsWithoutSearchQuery,

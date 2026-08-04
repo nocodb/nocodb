@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
+import type { ColumnType } from 'nocodb-sdk'
+import { getAttachmentAnnotationKey } from 'nocodb-sdk'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 
@@ -77,8 +79,10 @@ const showAllAttachments = ref(false)
 const { width: sortableRefWidth } = useElementSize(sortableRef)
 
 const maxVisibleCards = computed(() => {
-  // min of total visible items and max cards per row * 2
-  return Math.min(visibleItems.value.length, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2)
+  // min of total visible items and max cards per row * 2 — floored at 1 so a
+  // host narrower than one card (record-review's detail column) still shows
+  // the first attachment instead of only a "+ N more" button
+  return Math.min(visibleItems.value.length, Math.max(1, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2))
 })
 
 const expandedFormVisibelItems = computed(() => {
@@ -98,6 +102,23 @@ const meta = inject(MetaInj, ref())
 if (!isPublic.value && !isForm.value && meta.value) {
   useProvideRowComments(meta, row)
 }
+
+// A comment list outside the carousel (expanded record sidebar) can request
+// focus on an annotated attachment — open this cell's carousel when the
+// request targets our row and one of our files.
+const { request: annotationFocusRequest } = useAnnotationFocusRequest()
+
+watch(annotationFocusRequest, (req) => {
+  if (!req || selectedFile.value) return
+
+  const rowId = extractPkFromRow(row.value?.row, (meta.value?.columns ?? []) as ColumnType[])
+  if (!rowId || rowId !== req.rowId) return
+
+  const match = visibleItems.value.find((item: any) => getAttachmentAnnotationKey(item) === req.attachmentKey)
+  if (match) {
+    selectedFile.value = { ...match }
+  }
+})
 
 const onDropAction = function (...args: any[]) {
   const draggingBool = unref(dragging)

@@ -30,13 +30,17 @@ const { $e } = useNuxtApp()
 
 const { isDark, getColor } = useTheme()
 
-const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, column, isSyncedField } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 
 const { isAiFeaturesEnabled, aiIntegrationAvailable, predictSelectOptions } = useNocoAi()
 
 const { isAiModeFieldModal } = usePredictFields()
+
+// Interface pages get the redesigned colour panel (NcColorPanel); the classic
+// data app keeps the legacy picker.
+const isInterfaceContext = useIsInterfaceUi()
 
 const meta = inject(MetaInj, ref())
 
@@ -66,6 +70,17 @@ const isColorCodeEnabled = computed({
   set: (val: boolean) => {
     const metaObj = parseProp(vModel.value.meta)
     vModel.value.meta = { ...metaObj, isColorCodeEnabled: val }
+  },
+})
+
+const isAlphabetized = computed({
+  get: () => {
+    const metaObj = parseProp(vModel.value.meta)
+    return metaObj.isAlphabetized === true
+  },
+  set: (val: boolean) => {
+    const metaObj = parseProp(vModel.value.meta)
+    vModel.value.meta = { ...metaObj, isAlphabetized: val }
   },
 })
 
@@ -180,6 +195,12 @@ const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
   vModel.value.colOptions.options = options.value
     .filter((op) => op.status !== 'remove')
     .sort((a, b) => {
+      // On submit (e.g. saving a kanban stack) respect the Alphabetize toggle so the
+      // persisted option order is alphabetical rather than the current rendered order.
+      if (submit && isAlphabetized.value) {
+        return (a.title ?? '').localeCompare(b.title ?? '')
+      }
+
       const renderA = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === a.index)
       const renderB = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === b.index)
       if (renderA === -1 || renderB === -1) return 0
@@ -221,6 +242,20 @@ const removeRenderedOption = (index: number) => {
       defaultOption.value = defaultOption.value.filter((o) => o.id !== optionId)
       vModel.value.cdf = defaultOption.value.map((o) => o.title).join(',')
     }
+  }
+}
+
+/** Enter saves the stack, Escape cancels the edit - single handler so a-input's onKeydown prop stays a function. */
+function onKanbanStackInputKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Enter' && e.key !== 'Escape') return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  if (e.key === 'Enter') {
+    syncOptions(true, true, kanbanStackOption.value ?? undefined)
+  } else {
+    emit('saveChanges', true, false)
   }
 }
 
@@ -383,7 +418,7 @@ const predictOptions = async () => {
   }
 }
 
-const alphabetizeOptions = () => {
+const sortOptionsInPlace = () => {
   const activeOptions = options.value.filter((op) => op.status !== 'remove')
 
   const alreadySorted = activeOptions.every(
@@ -409,7 +444,11 @@ const alphabetizeOptions = () => {
   syncOptions()
 }
 
-onMounted(() => {
+// Seed the local `options` list from the bound model. Runs on mount and again whenever
+// the underlying field changes while this component stays mounted (AI auto-suggest field
+// switch, where `colOptions` is swapped under us). Without re-seeding, the previously
+// selected field's options would stay on screen even though every other prop updated.
+function seedOptionsFromModel() {
   if (!vModel.value.colOptions?.options) {
     vModel.value.colOptions = {
       options: [],
@@ -444,9 +483,26 @@ onMounted(() => {
   }
 
   const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
-  if (fndDefaultOption.length) {
-    defaultOption.value = vModel.value.uidt === UITypes.SingleSelect ? [fndDefaultOption[0]] : fndDefaultOption
-  }
+  defaultOption.value = fndDefaultOption.length
+    ? vModel.value.uidt === UITypes.SingleSelect
+      ? [fndDefaultOption[0]]
+      : fndDefaultOption
+    : []
+}
+
+// Re-seed when the bound field switches in place (identity changes), e.g. toggling
+// between AI auto-suggested select fields. Local edits never change the identity key,
+// so this never fires mid-edit.
+watch(
+  () => vModel.value.ai_temp_id ?? vModel.value.id ?? vModel.value.temp_id,
+  () => {
+    seedOptionsFromModel()
+  },
+)
+
+onMounted(() => {
+  seedOptionsFromModel()
+
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
   } else if (isKanbanStack.value) {
@@ -498,6 +554,12 @@ if (!isKanbanStack.value) {
     })
   })
 }
+
+defineExpose({
+  flushSort: () => {
+    if (isAlphabetized.value) sortOptionsInPlace()
+  },
+})
 </script>
 
 <template>
@@ -509,12 +571,16 @@ if (!isKanbanStack.value) {
         </NcSwitch>
       </div>
 
-      <NcButton v-e="['c:field:select:alphabetize']" type="text" size="small" @click.stop="alphabetizeOptions">
-        <template #icon>
-          <GeneralIcon icon="ncArrowUpDown" class="h-4 w-4 opacity-80" />
-        </template>
-        {{ $t('labels.alphabetize') }}
-      </NcButton>
+      <div class="flex items-center">
+        <NcSwitch
+          v-model:checked="isAlphabetized"
+          size="xsmall"
+          :disabled="isSyncedField"
+          @change="(v) => $e('c:field:select:alphabetize:toggle', { enabled: v })"
+        >
+          {{ $t('labels.alphabetize') }}
+        </NcSwitch>
+      </div>
     </div>
 
     <div
@@ -537,7 +603,7 @@ if (!isKanbanStack.value) {
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
-              :disabled="isLoadingPredictOptions"
+              :disabled="isLoadingPredictOptions || isSyncedField"
               use-backdrop
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
@@ -558,7 +624,18 @@ if (!isKanbanStack.value) {
 
               <template #overlay>
                 <div>
+                  <LazyNcColorPanel
+                    v-if="isInterfaceContext"
+                    :model-value="kanbanStackOption.color"
+                    :preview-label="kanbanStackOption.title"
+                    @escape="colorMenus[kanbanStackOption.index!] = false"
+                    @update:model-value="(el: string) => {
+                      kanbanStackOption!.color = el
+                      optionChanged(kanbanStackOption!)
+                    }"
+                  />
                   <LazyGeneralAdvanceColorPicker
+                    v-else
                     v-model="kanbanStackOption.color"
                     :is-open="colorMenus[kanbanStackOption.index!]"
                     invert-in-dark-mode
@@ -574,11 +651,11 @@ if (!isKanbanStack.value) {
 
             <a-input
               v-model:value="kanbanStackOption.title"
-              placeholder="Enter option name..."
+              :placeholder="$t('placeholder.enterOptionName')"
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
-              :disabled="isLoadingPredictOptions"
-              @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
+              :disabled="isLoadingPredictOptions || isSyncedField"
+              @keydown="onKanbanStackInputKeydown"
               @change="() => {
                   kanbanStackOption!.status = undefined
                   optionChanged(kanbanStackOption!)
@@ -601,6 +678,7 @@ if (!isKanbanStack.value) {
           :list="renderedOptions"
           item-key="id"
           handle=".nc-child-draggable-icon"
+          :disabled="isAlphabetized || isSyncedField"
           @change="onDragReorder"
         >
           <template #item="{ element, index }">
@@ -612,13 +690,20 @@ if (!isKanbanStack.value) {
               >
                 <div
                   v-if="!isKanban"
-                  class="nc-child-draggable-icon p-2 flex cursor-pointer text-nc-content-gray-subtle"
+                  class="nc-child-draggable-icon p-2 flex text-nc-content-gray-subtle"
+                  :class="isAlphabetized ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
                   :data-testid="`select-option-column-handle-icon-${element.title}`"
                 >
                   <component :is="iconMap.dragVertical" small class="handle" />
                 </div>
 
-                <NcDropdown v-if="isColorCodeEnabled" v-model:visible="colorMenus[index]" :auto-close="false" use-backdrop>
+                <NcDropdown
+                  v-if="isColorCodeEnabled"
+                  v-model:visible="colorMenus[index]"
+                  :auto-close="false"
+                  :disabled="isSyncedField"
+                  use-backdrop
+                >
                   <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                     <div
                       class="h-6 w-6 rounded flex items-center"
@@ -633,7 +718,18 @@ if (!isKanbanStack.value) {
 
                   <template #overlay>
                     <div>
+                      <LazyNcColorPanel
+                        v-if="isInterfaceContext"
+                        :model-value="element.color"
+                        :preview-label="element.title"
+                        @escape="colorMenus[index] = false"
+                        @update:model-value="(el: string) => {
+                          element.color = el
+                          optionChanged(element)
+                        }"
+                      />
                       <LazyGeneralAdvanceColorPicker
+                        v-else
                         v-model="element.color"
                         :is-open="colorMenus[index]"
                         invert-in-dark-mode
@@ -651,14 +747,14 @@ if (!isKanbanStack.value) {
                   v-model:value="element.title"
                   class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
                   :data-testid="`select-column-option-input-${index}`"
-                  :disabled="element.status === 'remove'"
+                  :disabled="element.status === 'remove' || isSyncedField"
                   @keydown.enter.prevent="element.title?.trim() && addNewOption()"
                   @change="optionChanged(element)"
                 />
               </div>
 
               <div
-                v-if="element.status !== 'remove'"
+                v-if="element.status !== 'remove' && !isSyncedField"
                 :data-testid="`select-column-option-remove-${index}`"
                 class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="removeRenderedOption(index)"
@@ -666,7 +762,7 @@ if (!isKanbanStack.value) {
                 <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
               </div>
               <div
-                v-else
+                v-else-if="element.status === 'remove' && !isSyncedField"
                 :data-testid="`select-column-option-remove-undo-${index}`"
                 class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="undoRemoveRenderedOption(index)"
@@ -714,7 +810,7 @@ if (!isKanbanStack.value) {
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
     <div
-      v-if="!isKanbanStack"
+      v-if="!isKanbanStack && !isSyncedField"
       class="nc-add-select-option-btn-wrapper flex shadow-sm"
       :class="{
         'mt-2': renderedOptions.length,
@@ -734,14 +830,10 @@ if (!isKanbanStack.value) {
 
         {{ $t('labels.addOption') }}
       </NcButton>
-      <NcTooltip v-if="isAiFeaturesEnabled" class="w-1/2">
+      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable" class="w-1/2">
         <template #title>
           {{
-            aiIntegrationAvailable
-              ? !vModel.title?.trim()
-                ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions')
-                : $t('tooltip.autoSuggestSelectOptions')
-              : $t('title.noAiIntegrationAvailable')
+            !vModel.title?.trim() ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions') : $t('tooltip.autoSuggestSelectOptions')
           }}
         </template>
 
@@ -751,7 +843,7 @@ if (!isKanbanStack.value) {
           class="nc-add-select-option-auto-suggest w-full caption"
           size="small"
           :bordered="false"
-          :disabled="isLoadingPredictOptions || !vModel.title?.trim() || !aiIntegrationAvailable"
+          :disabled="isLoadingPredictOptions || !vModel.title?.trim()"
           :loading="isLoadingPredictOptions"
           @click.stop="predictOptions()"
         >
@@ -763,10 +855,10 @@ if (!isKanbanStack.value) {
         </NcButton>
       </NcTooltip>
     </div>
-    <div v-else-if="!kanbanStackOption?.id" class="mt-2 pl-1">
-      <NcTooltip v-if="isAiFeaturesEnabled" class="w-full" placement="bottom">
+    <div v-else-if="!kanbanStackOption?.id && !isSyncedField" class="mt-2 pl-1">
+      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable" class="w-full" placement="bottom">
         <template #title>
-          {{ aiIntegrationAvailable ? $t('tooltip.autoSuggestSelectOptions') : $t('title.noAiIntegrationAvailable') }}
+          {{ $t('tooltip.autoSuggestSelectOptions') }}
         </template>
 
         <NcButton
@@ -774,7 +866,7 @@ if (!isKanbanStack.value) {
           theme="ai"
           class="nc-add-select-option-auto-suggest caption w-full"
           size="small"
-          :disabled="isLoadingPredictOptions || !aiIntegrationAvailable"
+          :disabled="isLoadingPredictOptions"
           :loading="isLoadingPredictOptions"
           @click.stop="predictOptions()"
         >

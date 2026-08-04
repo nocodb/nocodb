@@ -374,6 +374,17 @@ watch(
                       </template> -->
                     </a-input>
                   </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Date">
+                    <a-date-picker
+                      class="!w-full !rounded-lg"
+                      :disabled="disabled"
+                      :value="deepReference(field.model)"
+                      :placeholder="field.placeholder"
+                      format="YYYY-MM-DD"
+                      value-format="YYYY-MM-DD"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </template>
                   <template v-else-if="field.type === FormBuilderInputType.Textarea">
                     <a-textarea
                       class="!w-full !rounded-lg !text-sm !min-h-[90px] max-h-[500px] nc-scrollbar-thin"
@@ -414,6 +425,7 @@ watch(
                         :value="getSelectValue(field)"
                         :mode="selectMode(field)"
                         :max-tag-count="field.selectMode === 'singleWithInput' ? 1 : undefined"
+                        dropdown-class-name="nc-form-builder-select-dropdown"
                         show-search
                         :placeholder="field.placeholder"
                         :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
@@ -798,4 +810,8 @@ watch(
 }
 </style>
 
-<style lang="scss"></style>
+<style lang="scss">
+.nc-form-builder-select-dropdown .ant-select-item-option-state {
+  @apply !hidden;
+}
+</style>

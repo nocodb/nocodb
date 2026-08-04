@@ -29,9 +29,9 @@ if (!notFound.value) {
 
   useViewRowColorProvider({ shared: true })
 
-  applyLanguageDirection(sharedViewMeta.value.rtl ? 'rtl' : 'ltr')
+  applyLanguageDirection(sharedViewMeta.value?.rtl ? 'rtl' : 'ltr')
 
-  if (sharedViewMeta.value.language) {
+  if (sharedViewMeta.value?.language) {
     setI18nLanguage(sharedViewMeta.value.language)
   }
 }

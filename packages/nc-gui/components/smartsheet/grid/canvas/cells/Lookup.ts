@@ -1,7 +1,16 @@
-import { RelationTypes, UITypes, getMetaWithCompositeKey, isBtLikeV2Junction, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  NC_ERROR_SENTINEL,
+  RelationTypes,
+  UITypes,
+  getEffectiveLookupColumn,
+  getMetaWithCompositeKey,
+  isBtLikeV2Junction,
+  isLinksOrLTAR,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
-import { renderSingleLineText } from '../utils/canvas'
+import { renderCellError, renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links]
@@ -29,6 +38,11 @@ export const LookupCellRenderer: CellRenderer = {
     let y = _y
     let width = _width - ellipsisWidth
 
+    if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
+      renderCellError(ctx, { x, y, width: _width, height, padding, getColor })
+      return
+    }
+
     // If it is empty text then no need to render
     if (!metas) return
 
@@ -52,7 +66,7 @@ export const LookupCellRenderer: CellRenderer = {
       const relatedModelId = relatedColOptions.fk_related_model_id
       if (!relatedModelId) return
 
-      if (tableMetaLoader.isLoading(relatedModelId, relatedBaseId)) return
+      if (!tableMetaLoader || tableMetaLoader.isLoading(relatedModelId, relatedBaseId)) return
 
       tableMetaLoader.getTableMeta(relatedModelId, relatedBaseId)
 
@@ -62,6 +76,12 @@ export const LookupCellRenderer: CellRenderer = {
     const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
 
     if (!lookupColumn || lookupColumn?.uidt === UITypes.Button) return
+
+    // Apply the lookup column's own formatting override (meta.display_type +
+    // meta.display_column_meta) on top of the resolved child column. For number/date
+    // result types this swaps in the chosen display type + format meta; otherwise the
+    // child column is returned unchanged so its native formatting is inherited.
+    const effectiveLookupColumn = getEffectiveLookupColumn(parseProp(column.meta), lookupColumn)
 
     y =
       y +
@@ -73,6 +93,44 @@ export const LookupCellRenderer: CellRenderer = {
       lookupColumn.extra = getSingleMultiselectColOptions(lookupColumn)
     } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(lookupColumn.uidt)) {
       lookupColumn.extra = getUserColOptions(lookupColumn, props.baseUsers || [])
+    }
+
+    // Resolve the leaf of a nested lookup chain (Lookup -> Lookup -> ... -> X).
+    // When the chain ultimately points to an Attachment, the value reaching
+    // here is already a flat array of attachment objects, so it must render as
+    // a single attachment strip rather than one stacked nested cell per file.
+    let attachmentLeafColumn: ColumnType | undefined
+    if (lookupColumn.uidt === UITypes.Lookup) {
+      let nextCol: ColumnType | undefined = lookupColumn
+      let ownMeta: TableType | undefined = relatedTableMeta
+      let guard = 0
+      while (nextCol && nextCol.uidt === UITypes.Lookup && guard++ < 20) {
+        const lkOpt = nextCol.colOptions as LookupType
+        const relCol = ownMeta?.columns?.find((c) => c.id === lkOpt.fk_relation_column_id)
+        const relOpt = relCol?.colOptions as LinkToAnotherRecordType | undefined
+        if (!relCol || !relOpt?.fk_related_model_id) {
+          nextCol = undefined
+          break
+        }
+
+        const leafBaseId = getRelatedBaseId(relCol, ownMeta?.base_id || '')
+        const leafMeta = getMetaWithCompositeKey(metas, leafBaseId, relOpt.fk_related_model_id)
+
+        // Leaf meta not loaded yet — request it and bail (before any clipping).
+        if (!leafMeta) {
+          if (tableMetaLoader && !tableMetaLoader.isLoading(relOpt.fk_related_model_id, leafBaseId)) {
+            tableMetaLoader.getTableMeta(relOpt.fk_related_model_id, leafBaseId)
+          }
+          return
+        }
+
+        ownMeta = leafMeta
+        nextCol = leafMeta.columns?.find((c) => c.id === lkOpt.fk_lookup_column_id)
+      }
+
+      if (nextCol && isAttachment(nextCol)) {
+        attachmentLeafColumn = nextCol
+      }
     }
 
     const getArrValue = () => {
@@ -92,7 +150,7 @@ export const LookupCellRenderer: CellRenderer = {
 
       if (ncIsNullOrUndefined(value)) return []
 
-      if (lookupColumn.uidt === UITypes.Attachment) {
+      if (lookupColumn.uidt === UITypes.Attachment || attachmentLeafColumn) {
         if (relatedColType && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColType as RelationTypes)) {
           return ncIsArray(value) ? value : [value]
         }
@@ -151,7 +209,7 @@ export const LookupCellRenderer: CellRenderer = {
         // Restore canvas context before returning — ctx.save()/ctx.clip() was already called above
         ctx.restore()
 
-        if (tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
+        if (!tableMetaLoader || tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
 
         tableMetaLoader.getTableMeta(lkRelatedModelId, lkRelatedBaseId)
 
@@ -161,7 +219,7 @@ export const LookupCellRenderer: CellRenderer = {
 
     const renderProps: CellRendererOptions = {
       ...props,
-      column: lookupColumn,
+      column: effectiveLookupColumn,
       relatedColObj: undefined,
       relatedTableMeta: lkRelatedTableMeta,
       isUnderLookup: true,
@@ -181,7 +239,17 @@ export const LookupCellRenderer: CellRenderer = {
       textColor: getColor(themeV4Colors.gray['700']),
     }
 
+    // getEffectiveDisplayColumn returns a new object only when an override is active.
+    const hasDisplayOverride = effectiveLookupColumn !== lookupColumn
+
     const lookupRenderer = (options: CellRendererOptions) => {
+      // With a formatting override the result is always a scalar number/date type
+      // (even for computed Formula/Rollup children), so render it as a plain value
+      // using the effective column carried in options.column.
+      if (hasDisplayOverride) {
+        return PlainCellRenderer.render(ctx, options)
+      }
+
       return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
         ? renderCell(ctx, lookupColumn, options)
         : PlainCellRenderer.render(ctx, options)
@@ -313,7 +381,18 @@ export const LookupCellRenderer: CellRenderer = {
       }
     }
 
-    if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
+    if (attachmentLeafColumn && ncIsObject(arrValue[0])) {
+      // Nested lookup whose leaf is an Attachment — render the flattened
+      // attachment array as a single strip instead of one cell per file.
+      renderCell(ctx, attachmentLeafColumn, {
+        ...renderProps,
+        column: attachmentLeafColumn,
+        value: arrValue,
+        height,
+        textAlign: 'center',
+        tag: { ...renderProps.tag, renderAsTag: false },
+      })
+    } else if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
       if (
         lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&

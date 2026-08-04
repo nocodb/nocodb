@@ -72,6 +72,7 @@ export function useTableNew(param: {
 
     const navigateToTable = async () => {
       if (navigate && openedViewsTab.value === 'view') {
+        // TODO: use getFirstNonPersonalView(table?.views ?? [], { includeViewType: ViewTypes.GRID }) so we don't default to a personal or non-grid view
         let defaultView = table?.views?.[0]
 
         if (!defaultView && table.base_id) {

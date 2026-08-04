@@ -25,15 +25,17 @@ export const LTARColsUpdater = (param: {
 
     const trx = await baseModel.dbDriver.transaction();
 
-    // Create a BaseModelSqlv2 instance that uses the transaction for operations
-    // while preserving the original dbDriver reference for non-transactional operations
-    const trxBaseModel = await Model.getBaseModelSQL(baseModel.context, {
-      model: baseModel.model,
-      transaction: trx,
-      dbDriver: baseModel.dbDriver,
-    });
-
     try {
+      // Create a BaseModelSqlv2 instance that uses the transaction for operations
+      // while preserving the original dbDriver reference for non-transactional
+      // operations. Must be inside the try block so a failure here can't leak
+      // the open trx.
+      const trxBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        model: baseModel.model,
+        transaction: trx,
+        dbDriver: baseModel.dbDriver,
+      });
+
       for (const col of baseModel.model.columns) {
         // skip if not LTAR or Links
         if (!isLinksOrLTAR(col)) continue;
@@ -45,19 +47,30 @@ export const LTARColsUpdater = (param: {
           if (!(col.title in d)) continue;
 
           // extract existing link values to current record
-          let existingLinks = [];
+          let existingLinks: Record<string, any>[] | Record<string, any> = [];
 
           profiler.log(`${col.colOptions.type} list start`);
           if (isMMOrMMLike(col)) {
-            existingLinks = await trxBaseModel.mmList({
-              colId: col.id,
-              parentId: rowId,
-            });
+            existingLinks = await trxBaseModel.mmList(
+              {
+                colId: col.id,
+                parentId: rowId,
+              },
+              // diff only needs PKs — read pk + display value, skipping the
+              // related table's other (incl. virtual) columns. `selectAllRecords`
+              // removes the 25-row cap so every existing link is compared.
+              { pkAndPvOnly: true },
+              true,
+            );
           } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-            existingLinks = await trxBaseModel.hmList({
-              colId: col.id,
-              id: rowId,
-            });
+            existingLinks = await trxBaseModel.hmList(
+              {
+                colId: col.id,
+                id: rowId,
+              },
+              { pkAndPvOnly: true },
+              true,
+            );
           } else {
             existingLinks = await trxBaseModel.btRead({
               colId: col.id,

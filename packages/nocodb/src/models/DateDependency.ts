@@ -11,6 +11,10 @@ export default class DateDependency {
     return null;
   }
 
+  public static async getByGanttViewId(..._args: any[]): Promise<any> {
+    return null;
+  }
+
   public static async insert(..._args: any[]): Promise<any> {
     return null;
   }
@@ -22,6 +26,8 @@ export default class DateDependency {
   public static async delete(..._args: any[]): Promise<void> {}
 
   public static async deleteByModelId(..._args: any[]): Promise<void> {}
+
+  public static async deleteByGanttViewId(..._args: any[]): Promise<void> {}
 
   public static async isColumnUsed(..._args: any[]): Promise<boolean> {
     return false;

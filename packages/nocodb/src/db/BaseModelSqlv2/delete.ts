@@ -5,6 +5,7 @@ import {
   isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isSmartText,
   UITypes,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -14,6 +15,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import {
   _wherePk,
+  deletedColValue,
   getCompositePkValue,
   shouldCascadeLinkCleanup,
 } from '~/helpers/dbHelpers';
@@ -129,12 +131,12 @@ export class BaseModelDelete {
         this.baseModel.context,
       ));
 
-    // Exclude already soft-deleted records from the delete query
     if (isSoftDelete) {
+      const notDeletedValue = deletedColValue(this.baseModel, false);
       qb.where(function () {
         this.whereNull(deletedColumn.column_name).orWhere(
           deletedColumn.column_name,
-          false,
+          notDeletedValue,
         );
       });
     }
@@ -156,6 +158,13 @@ export class BaseModelDelete {
         this.baseModel.context,
       );
 
+      if (!colOptions) {
+        this.logger.warn(
+          `prepareBulkDeleteAll: skipping link cleanup for column ${column.id} — missing relation options (orphaned link)`,
+        );
+        continue;
+      }
+
       const { refContext, mmContext, parentContext, childContext } =
         await colOptions.getParentChildContext(this.baseModel.context);
 
@@ -164,7 +173,19 @@ export class BaseModelDelete {
       if (colOptions.type === 'bt' && !isMMOrMMLike(column)) {
         const btChildColumn = await colOptions.getChildColumn(childContext);
         const btParentColumn = await colOptions.getParentColumn(parentContext);
+        if (!btChildColumn || !btParentColumn) {
+          this.logger.warn(
+            `prepareBulkDeleteAll: skipping bt link for column ${column.id} — related FK column missing (orphaned link)`,
+          );
+          continue;
+        }
         const btParentTable = await btParentColumn.getModel(parentContext);
+        if (!btParentTable) {
+          this.logger.warn(
+            `prepareBulkDeleteAll: skipping bt link for column ${column.id} — related table missing (orphaned link)`,
+          );
+          continue;
+        }
         await btParentTable.getColumns(parentContext);
         const btParentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: btParentTable,
@@ -204,8 +225,20 @@ export class BaseModelDelete {
 
       const childColumn = await colOptions.getChildColumn(childContext);
       const parentColumn = await colOptions.getParentColumn(parentContext);
+      if (!childColumn || !parentColumn) {
+        this.logger.warn(
+          `prepareBulkDeleteAll: skipping link cleanup for column ${column.id} — related FK column missing (orphaned link)`,
+        );
+        continue;
+      }
       const parentTable = await parentColumn.getModel(parentContext);
       const childTable = await childColumn.getModel(childContext);
+      if (!childTable || !parentTable) {
+        this.logger.warn(
+          `prepareBulkDeleteAll: skipping link cleanup for column ${column.id} — related table missing (orphaned link)`,
+        );
+        continue;
+      }
       await childTable.getColumns(childContext);
       await parentTable.getColumns(parentContext);
 
@@ -222,6 +255,12 @@ export class BaseModelDelete {
             const vChildCol = await colOptions.getMMChildColumn(mmContext);
             const vParentCol = await colOptions.getMMParentColumn(mmContext);
             const vTable = await colOptions.getMMModel(mmContext);
+            if (!vChildCol || !vParentCol || !vTable) {
+              this.logger.warn(
+                `prepareBulkDeleteAll: skipping mm cleanup for column ${column.id} — junction table missing (orphaned link)`,
+              );
+              break;
+            }
             const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
               model: vTable,
               dbDriver: this.baseModel.dbDriver,
@@ -261,13 +300,14 @@ export class BaseModelDelete {
           {
             // skip if it's an mm table column
             const relatedTable = await colOptions.getRelatedTable(refContext);
-            if (relatedTable.mm) {
+            if (!relatedTable || relatedTable.mm) {
               break;
             }
 
             const childCol = await Column.get(childContext, {
               colId: colOptions.fk_child_column_id,
             });
+            if (!childCol) break;
 
             if (!isSoftDelete) {
               execQueries.push(({ trx, ids }) => {
@@ -306,9 +346,11 @@ export class BaseModelDelete {
               const ooParentColumn = await colOptions.getParentColumn(
                 parentContext,
               );
+              if (!ooParentColumn) break;
               const ooParentTable = await ooParentColumn.getModel(
                 parentContext,
               );
+              if (!ooParentTable) break;
               await ooParentTable.getColumns(parentContext);
               const ooParentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
@@ -344,13 +386,14 @@ export class BaseModelDelete {
             }
             // HM-side: same cleanup + LMT as HM
             const ooRelatedTable = await colOptions.getRelatedTable(refContext);
-            if (ooRelatedTable.mm) {
+            if (!ooRelatedTable || ooRelatedTable.mm) {
               break;
             }
 
             const ooChildCol = await Column.get(childContext, {
               colId: colOptions.fk_child_column_id,
             });
+            if (!ooChildCol) break;
 
             if (!isSoftDelete) {
               execQueries.push(({ trx, ids }) => {
@@ -421,6 +464,45 @@ export class BaseModelDelete {
       }
     });
 
+    // remove FileReferences for SmartText cells
+    //
+    // SmartText image / file refs are scoped by (fk_model_id, fk_column_id,
+    // fk_row_id) — the cell-keyed attachment proxy resolves them by that triple.
+    // The attachment-column path above doesn't visit them because the refs
+    // live in `nc_row_meta` (PM JSON), not in the cell column. Without this
+    // block, deleting rows leaks both the FileReference rows and the
+    // underlying storage objects.
+    const smartTextColumns = columns.filter((c) => isSmartText(c));
+    if (smartTextColumns.length > 0) {
+      const smartTextColumnIds = smartTextColumns
+        .map((c) => c.id)
+        .filter(Boolean) as string[];
+      const primaryKeys = this.baseModel.model.primaryKeys;
+      metaQueries.push(async ({ rows }) => {
+        if (!rows.length || !smartTextColumnIds.length) return;
+        const rowIds = rows
+          .map((row) => getCompositePkValue(primaryKeys, row))
+          .filter((v) => v != null && v !== '')
+          .map(String);
+        if (!rowIds.length) return;
+        if (isSoftDelete) {
+          await FileReference.bulkSoftDeleteForCells(
+            this.baseModel.context,
+            this.baseModel.model.id,
+            smartTextColumnIds,
+            rowIds,
+          );
+        } else {
+          await FileReference.bulkDeleteForCells(
+            this.baseModel.context,
+            this.baseModel.model.id,
+            smartTextColumnIds,
+            rowIds,
+          );
+        }
+      });
+    }
+
     // Capture one timestamp for the whole bulkAll invocation so every chunk —
     // and every linked-record LMT propagation inside each chunk — stamps rows
     // with the same LastModifiedTime. Without this, each 100-row chunk plus
@@ -435,7 +517,7 @@ export class BaseModelDelete {
         // Soft-delete: mark rows as deleted instead of removing them
         // Also stamp LastModifiedTime/LastModifiedBy so the trash UI shows who deleted and when
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(trx, true),
         };
         const lmtCol = columns.find(
           (c) => c.uidt === UITypes.LastModifiedTime && c.system,
@@ -687,7 +769,6 @@ export class BaseModelDelete {
       if (!skip_hooks) {
         await this.baseModel.afterBulkDelete(
           chunkResponse,
-          this.baseModel.dbDriver,
           cookie,
           true,
           bulkAuditEvent,
@@ -699,6 +780,11 @@ export class BaseModelDelete {
         break;
       }
     }
+
+    if (isSoftDelete && response.length > 0) {
+      await this.baseModel.afterSoftDeleteCompleted({ cookie, operationNow });
+    }
+
     return response;
   }
 
@@ -724,6 +810,13 @@ export class BaseModelDelete {
         this.baseModel.context,
       );
 
+      if (!colOptions) {
+        this.logger.warn(
+          `permanentDeleteByIds: skipping link cleanup for column ${column.id} — missing relation options (orphaned link)`,
+        );
+        continue;
+      }
+
       const { refContext, mmContext, parentContext, childContext } =
         await colOptions.getParentChildContext(this.baseModel.context);
 
@@ -735,8 +828,20 @@ export class BaseModelDelete {
 
       const childColumn = await colOptions.getChildColumn(childContext);
       const parentColumn = await colOptions.getParentColumn(parentContext);
+      if (!childColumn || !parentColumn) {
+        this.logger.warn(
+          `permanentDeleteByIds: skipping link cleanup for column ${column.id} — related FK column missing (orphaned link)`,
+        );
+        continue;
+      }
       const parentTable = await parentColumn.getModel(parentContext);
       const childTable = await childColumn.getModel(childContext);
+      if (!childTable || !parentTable) {
+        this.logger.warn(
+          `permanentDeleteByIds: skipping link cleanup for column ${column.id} — related table missing (orphaned link)`,
+        );
+        continue;
+      }
       await childTable.getColumns(childContext);
       await parentTable.getColumns(parentContext);
 
@@ -753,6 +858,12 @@ export class BaseModelDelete {
           {
             const vChildCol = await colOptions.getMMChildColumn(mmContext);
             const vTable = await colOptions.getMMModel(mmContext);
+            if (!vChildCol || !vTable) {
+              this.logger.warn(
+                `permanentDeleteByIds: skipping mm cleanup for column ${column.id} — junction table missing (orphaned link)`,
+              );
+              break;
+            }
             const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
               model: vTable,
               dbDriver: this.baseModel.dbDriver,
@@ -767,13 +878,14 @@ export class BaseModelDelete {
         case 'hm':
           {
             const relatedTable = await colOptions.getRelatedTable(refContext);
-            if (relatedTable.mm) {
+            if (!relatedTable || relatedTable.mm) {
               break;
             }
 
             const childColumn = await Column.get(childContext, {
               colId: colOptions.fk_child_column_id,
             });
+            if (!childColumn) break;
 
             execQueries.push(({ trx, ids }) => {
               const query = trx(childTn)
@@ -793,11 +905,12 @@ export class BaseModelDelete {
             }
             // HM-side: null FK on child
             const ooRelatedTable = await colOptions.getRelatedTable(refContext);
-            if (ooRelatedTable.mm) break;
+            if (!ooRelatedTable || ooRelatedTable.mm) break;
 
             const ooChildColumn = await Column.get(childContext, {
               colId: colOptions.fk_child_column_id,
             });
+            if (!ooChildColumn) break;
 
             execQueries.push(({ trx, ids }) => {
               const query = trx(childTn)
@@ -842,6 +955,32 @@ export class BaseModelDelete {
       await FileReference.delete(this.baseModel.context, fileReferenceIds);
     });
 
+    // remove FileReferences for SmartText cells (permanent-delete path).
+    // SmartText image / file refs live in nc_row_meta keyed by
+    // (fk_model_id, fk_column_id, fk_row_id) — not on the cell column —
+    // so the attachment block above doesn't visit them.
+    const permSmartTextColumns = columns.filter((c) => isSmartText(c));
+    if (permSmartTextColumns.length > 0) {
+      const permSmartTextColumnIds = permSmartTextColumns
+        .map((c) => c.id)
+        .filter(Boolean) as string[];
+      const permPrimaryKeys = this.baseModel.model.primaryKeys;
+      metaQueries.push(async ({ rows }) => {
+        if (!rows.length || !permSmartTextColumnIds.length) return;
+        const rowIdsForCells = rows
+          .map((row) => getCompositePkValue(permPrimaryKeys, row))
+          .filter((v) => v != null && v !== '')
+          .map(String);
+        if (!rowIdsForCells.length) return;
+        await FileReference.bulkDeleteForCells(
+          this.baseModel.context,
+          this.baseModel.model.id,
+          permSmartTextColumnIds,
+          rowIdsForCells,
+        );
+      });
+    }
+
     // Hard-delete the rows
     execQueries.push(({ trx, qb, ids }) => {
       if (this.baseModel.model.primaryKeys.length === 1) {
@@ -875,32 +1014,57 @@ export class BaseModelDelete {
           })
         : rowIds;
 
-    // Fetch old records directly (bypass soft-delete filter since these ARE trashed records)
-    const pk = this.baseModel.model.primaryKey;
-    const oldRecords = await this.baseModel.execAndParse(
-      this.baseModel
-        .dbDriver(this.baseModel.tnPath)
-        .whereIn(pk.column_name, rowIds)
-        .select(columns.filter((c) => c.column_name).map((c) => c.column_name)),
-      columns,
-      { raw: true },
-    );
+    const oldRecords = await this.baseModel.chunkList({
+      pks: rowIds,
+      deletedOnly: true,
+    });
 
-    // Verify all rows are actually soft-deleted before permanently deleting
-    const deletedCol = columns.find((c) => isDeletedCol(c));
-    if (deletedCol) {
-      const activeRows = oldRecords.filter((r) => !r[deletedCol.column_name]);
-      if (activeRows.length > 0) {
-        NcError.get(this.baseModel.context).recordNotTrashed();
-      }
+    // Strict-equality check (`oldRecords.length !== rowIds.length`) caused the
+    // base-trash cleanup processor to retry the same trash entries indefinitely
+    // in production. Race scenarios that drop the count:
+    //   - A concurrent restore activated some of the rows since the trash
+    //     handler's `nextBatch` query selected them.
+    //   - A prior partial-success run hard-deleted some rows; the remaining
+    //     rowIds in the entry's batch no longer exist anywhere.
+    //   - User opened the trash UI and hard-deleted a subset manually.
+    // In all cases the right behavior is to proceed with what we found, not
+    // to throw `recordNotTrashed` and retry forever. Throw only when ZERO
+    // matching trashed rows survive — there is genuinely nothing to delete
+    // and the caller (handler.permanentDelete) should bubble it up so the
+    // trash entry's cleanup_retry_count records the dead-end state.
+    if (oldRecords.length === 0) {
+      NcError.get(this.baseModel.context).recordNotTrashed();
     }
+    if (oldRecords.length !== rowIds.length) {
+      this.logger.warn(
+        `permanentDeleteByIds: ${rowIds.length - oldRecords.length} of ${
+          rowIds.length
+        } target rows are no longer trashed (restored or already hard-deleted). ` +
+          `Proceeding with the ${oldRecords.length} that remain.`,
+      );
+    }
+    // Narrow the ids list to only the rows we actually have, so the delete
+    // query targets the same set we'll report in `oldRecords`.
+    const survivingIds =
+      oldRecords.length === rowIds.length
+        ? ids
+        : this.baseModel.model.primaryKeys.length > 1
+        ? oldRecords.map((r) =>
+            this.baseModel.model.primaryKeys.reduce((acc, pk) => {
+              acc[pk.title] = r[pk.column_name];
+              return acc;
+            }, {} as Record<string, any>),
+          )
+        : oldRecords.map((r) => r[this.baseModel.model.primaryKey.column_name]);
 
     const rows = oldRecords;
 
     const trx = await this.baseModel.dbDriver.transaction();
     try {
       for (const execQuery of execQueries) {
-        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
+        await Promise.all(
+          execQuery({ trx, qb: qb.clone(), ids: survivingIds, rows }),
+        );
       }
       await trx.commit();
     } catch (ex) {
@@ -910,12 +1074,11 @@ export class BaseModelDelete {
     }
 
     for (const metaQuery of metaQueries) {
-      await metaQuery({ qb: qb.clone(), ids, rows });
+      await metaQuery({ qb: qb.clone(), ids: survivingIds, rows });
     }
 
     await this.baseModel.afterBulkDelete(
       oldRecords,
-      this.baseModel.dbDriver,
       cookie,
       isBulkAllOperation,
       AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE,

@@ -83,7 +83,7 @@ const onInit = () => {
     form.value?.resetFields()
 
     formState.value = {
-      title: 'Base',
+      title: t('objects.project'),
       meta: {
         iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
       },
@@ -134,7 +134,7 @@ watch(dialogShow, (n) => {
             v-model:value="formState.title"
             name="title"
             class="nc-metadb-base-name nc-input-sm nc-input-shadow"
-            placeholder="Title"
+            :placeholder="$t('general.title')"
           />
         </a-form-item>
       </a-form>

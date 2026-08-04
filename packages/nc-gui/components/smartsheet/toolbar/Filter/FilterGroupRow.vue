@@ -183,7 +183,7 @@ const onEnabledChange = (val: boolean | Event) => {
 
 const onToggleFilterChange = (val: boolean | Event) => {
   if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
+    showUpgradeToUseToggleFilter({ triggerSource: 'toolbar-toggle-filter' })
     return
   }
   onEnabledChange(val)
@@ -243,7 +243,7 @@ const onToggleFilterChange = (val: boolean | Event) => {
               v-e="['c:filter:logical-op:select']"
               :dropdown-match-select-width="false"
               class="min-w-18 capitalize"
-              placeholder="Group op"
+              :placeholder="$t('placeholder.groupOp')"
               dropdown-class-name="nc-dropdown-filter-logical-op-group"
               :disabled="(index > 1 && !isLogicalOpChangeAllowed) || isDisabled"
               :class="{

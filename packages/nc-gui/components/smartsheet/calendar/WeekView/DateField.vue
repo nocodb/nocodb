@@ -1,9 +1,15 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
+import {
+  CALENDAR_CARD_MAX_FIELDS,
+  CALENDAR_CARD_ROW_GAP,
+  cardHeightForFieldCount,
+  computeColumnPackedLayout,
+} from '../calendarRecordCardHeight'
 import type { Row } from '~/lib/types'
 
-const emits = defineEmits(['expandRecord', 'newRecord'])
+const emits = defineEmits(['expandRecord', 'newRecord', 'recordContextMenu'])
 
 const {
   selectedDateRange,
@@ -16,13 +22,30 @@ const {
   viewMetaProperties,
   updateFormat,
   isSyncedFromColumn,
+  isAddDeleteInlineEnabled,
+  recordHeightMode,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
+// Interface editor: a date/dblclick selects the calendar element (opens
+// `Page › Calendar`) instead of highlighting the date or adding a record. Null
+// in the published view and outside interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
 const maxVisibleDays = computed(() => {
+  // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns
+  // (weekends always included). Week mode honours hide_weekend → 5 columns.
+  if (isDayAnchoredMode.value) return dayAnchoredSpan.value
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
+
+// True only when weekends are actually hidden (week mode + hide_weekend). A day-anchored
+// 5-day custom window also yields maxVisibleDays === 5 but is NOT weekend-hidden, so the
+// weekend-skip logic must guard on this, not on the column count.
+const isWeekendHidden = computed(() => !isDayAnchoredMode.value && maxVisibleDays.value === 5)
 
 const container = ref<null | HTMLElement>(null)
 
@@ -31,6 +54,13 @@ const { $e } = useNuxtApp()
 const { width: containerWidth } = useElementSize(container)
 
 const { isUIAllowed } = useRoles()
+
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — event drag/resize must honor it like grid cells do. Plain data-app
+// trees never provide it (fallback false → behavior unchanged).
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
 
 const meta = inject(MetaInj, ref())
 
@@ -56,12 +86,31 @@ const getFieldStyle = (field: ColumnType) => {
   return fieldStyles.value.get(field.id)
 }
 
+// All non-empty visible fields for a record.
+const nonEmptyCardFields = (record: Row) => (fields.value ?? []).filter((f) => f && !isRowEmpty(record, f))
+
+// Fields actually rendered on the card. When there are more than the cap, the
+// last line is reserved for a "+N more" hint, so we render one fewer field.
+const cardFields = (record: Row) => {
+  const all = nonEmptyCardFields(record)
+  return all.length > CALENDAR_CARD_MAX_FIELDS ? all.slice(0, CALENDAR_CARD_MAX_FIELDS - 1) : all
+}
+
+// Count of non-empty fields not shown on the card (0 when everything fits).
+const hiddenFieldCount = (record: Row) => {
+  const total = nonEmptyCardFields(record).length
+  return total > CALENDAR_CARD_MAX_FIELDS ? total - (CALENDAR_CARD_MAX_FIELDS - 1) : 0
+}
+
+// Lines the card renders: the shown fields plus the "+N more" line, if any.
+const cardLineCount = (record: Row) => cardFields(record).length + (hiddenFieldCount(record) > 0 ? 1 : 0)
+
 // Calculate the dates of the week
 const weekDates = computed(() => {
   let startOfWeek = dayjs(selectedDateRange.value.start)
   let endOfWeek = dayjs(selectedDateRange.value.end)
 
-  if (maxVisibleDays.value === 5) {
+  if (isWeekendHidden.value) {
     endOfWeek = endOfWeek.subtract(2, 'day')
   }
   const datesArray = []
@@ -72,6 +121,46 @@ const weekDates = computed(() => {
 
   return datesArray
 })
+
+// --- Collapsed-weekend column model -----------------------------------------
+// When collapse_weekend is on (week mode → 7 columns), Sat & Sun render in
+// narrower columns. Record positioning is px-based, so expose per-column
+// width/offset helpers; when not collapsed they return the uniform values, so
+// show / hide are unchanged.
+const WEEKEND_COLLAPSE_RATIO = 0.5
+
+const isWeekendCollapsed = computed(() => !!viewMetaProperties.value?.collapse_weekend && maxVisibleDays.value === 7)
+
+const columnWeights = computed<number[]>(() =>
+  weekDates.value.map((d) => (isWeekendCollapsed.value && (d.day() === 0 || d.day() === 6) ? WEEKEND_COLLAPSE_RATIO : 1)),
+)
+
+const totalColumnWeight = computed(() => columnWeights.value.reduce((sum, w) => sum + w, 0))
+
+const columnWidthPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return containerWidth.value / maxVisibleDays.value
+  return (containerWidth.value * columnWeights.value[index]) / totalColumnWeight.value
+}
+
+const columnOffsetPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return index * (containerWidth.value / maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < index; i++) offset += columnWidthPx(i)
+  return offset
+}
+
+const columnFromX = (x: number) => {
+  if (!isWeekendCollapsed.value) return Math.floor((x / containerWidth.value) * maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < weekDates.value.length; i++) {
+    offset += columnWidthPx(i)
+    if (x < offset) return i
+  }
+  return weekDates.value.length - 1
+}
+
+// Flex column width (%) for the day headers and day columns.
+const columnWidthPct = (index: number) => `${(columnWeights.value[index] / totalColumnWeight.value) * 100}%`
 
 // This function is used to find the first suitable row for a record
 // It takes the recordsInDay object, the start day index and the span of the record in days
@@ -101,8 +190,9 @@ const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays
 }
 
 const isInRange = (date: dayjs.Dayjs) => {
-  const rangeEndDate =
-    maxVisibleDays.value === 5 ? dayjs(selectedDateRange.value.end).subtract(2, 'day') : dayjs(selectedDateRange.value.end)
+  const rangeEndDate = isWeekendHidden.value
+    ? dayjs(selectedDateRange.value.end).subtract(2, 'day')
+    : dayjs(selectedDateRange.value.end)
 
   return (
     date && date.isBetween(dayjs(selectedDateRange.value.start).startOf('day'), dayjs(rangeEndDate).endOf('day'), 'day', '[]')
@@ -112,9 +202,8 @@ const isInRange = (date: dayjs.Dayjs) => {
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
 
-  const recordsInDay = Array.from({ length: 7 }, () => ({})) as Record<number, Record<number, boolean>>
+  const recordsInDay = Array.from({ length: maxVisibleDays.value }, () => ({})) as Record<number, Record<number, boolean>>
   const recordsInRange = [] as Row[]
-  const perDayWidth = containerWidth.value / maxVisibleDays.value
 
   calendarRange.value.forEach(({ fk_from_col, fk_to_col }) => {
     if (!fk_from_col) return
@@ -129,6 +218,13 @@ const calendarData = computed(() => {
         : dayjs(record.row[fk_from_col.title!])
       const ogStartDate = startDate.clone()
       const endDate = fk_to_col && record.row[fk_to_col.title!] ? dayjs(record.row[fk_to_col.title!]) : startDate
+
+      // Single-date records with no end column cannot span; if the date sits outside
+      // the visible week (e.g. backend over-fetched a boundary day), skip rather
+      // than clamping it onto Monday with a cutoff indicator.
+      if (!fk_to_col && !isInRange(ogStartDate)) {
+        return
+      }
 
       if (startDate.isBefore(selectedDateRange.value.start)) {
         startDate = dayjs(selectedDateRange.value.start)
@@ -155,6 +251,10 @@ const calendarData = computed(() => {
       else if (isStartInRange) position = 'leftRounded'
       else if (isEndInRange) position = 'rightRounded'
 
+      // Card height grows with the number of non-empty visible fields (capped),
+      // so week-view cards can show several fields over multiple lines.
+      const cardHeight = cardHeightForFieldCount(cardLineCount(record))
+
       recordsInRange.push({
         ...record,
         rowMeta: {
@@ -162,11 +262,25 @@ const calendarData = computed(() => {
           range: { fk_from_col, fk_to_col },
           position,
           id,
+          rowIndex: suitableRow,
           spanningDays: Math.abs(ogStartDate.diff(endDate, 'day')) - Math.abs(startDate.diff(endDate, 'day')),
+          // Stashed for the post-pass that packs cards down each column.
+          suitableRow,
+          cardHeight,
+          startCol: startDaysDiff,
+          spanCols: spanDays,
           style: {
-            width: `calc(max(${spanDays * perDayWidth + 0.5}px, ${perDayWidth + 0.5}px))`,
-            left: `${startDaysDiff * perDayWidth - 1}px`,
-            top: `${suitableRow * 28 + Math.max(suitableRow + 1, 1) * 8}px`,
+            width: `calc(max(${
+              columnOffsetPx(startDaysDiff + spanDays - 1) +
+              columnWidthPx(startDaysDiff + spanDays - 1) -
+              columnOffsetPx(startDaysDiff) +
+              0.5
+            }px, ${columnWidthPx(startDaysDiff) + 0.5}px))`,
+            // Snap the card's left to a whole pixel so the colored accent bar
+            // lands at the same sub-pixel offset in every column (otherwise
+            // columns on a .5px boundary, e.g. Sunday, render the thin bar
+            // softened/narrower than the others).
+            left: `${Math.round(columnOffsetPx(startDaysDiff)) - 1}px`,
           },
         },
       })
@@ -194,7 +308,47 @@ const calendarData = computed(() => {
     }
   })
 
+  // Each card keeps its own natural height and packs tightly down its column;
+  // multi-day bars sit below whatever is already in the columns they span.
+  const tops = computeColumnPackedLayout(
+    recordsInRange.map((r) => ({
+      startCol: r.rowMeta.startCol!,
+      spanCols: r.rowMeta.spanCols!,
+      rowIndex: r.rowMeta.suitableRow!,
+      height: r.rowMeta.cardHeight!,
+    })),
+  )
+  recordsInRange.forEach((r, i) => {
+    if (!r.rowMeta.style) r.rowMeta.style = {}
+    r.rowMeta.style.top = `${tops[i]}px`
+    r.rowMeta.style.height = `${r.rowMeta.cardHeight}px`
+  })
+
   return recordsInRange
+})
+
+// --- Compact / Expanded record height ---------------------------------------
+// Compact (default): the grid is locked to the viewport height and records scroll
+// inside the overlay. Expanded: the grid grows to fit the tallest day's stack so
+// every record is visible and the page scrolls instead.
+const isExpanded = computed(() => recordHeightMode.value === 'expanded')
+
+// Height needed to show every card in the tallest column. Cards are variable-height and
+// packed by computeColumnPackedLayout (their final `top` + `cardHeight` live on rowMeta),
+// so the content bottom is the max of `top + cardHeight` across all records, plus a gap.
+const contentHeight = computed(() => {
+  let maxBottom = 0
+  for (const record of calendarData.value) {
+    const top = Number.parseFloat(record.rowMeta.style?.top as string) || 0
+    const height = (record.rowMeta as { cardHeight?: number }).cardHeight ?? 0
+    if (top + height > maxBottom) maxBottom = top + height
+  }
+  return maxBottom + CALENDAR_CARD_ROW_GAP
+})
+
+const gridStyle = computed(() => {
+  if (!isExpanded.value) return undefined
+  return { height: `max(calc(100vh - 7.3rem), ${contentHeight.value}px)` }
 })
 
 const dragElement = ref<HTMLElement | null>(null)
@@ -206,6 +360,22 @@ const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 const isDragging = ref(false)
 
 const dragRecord = ref<Row>()
+
+// Scroll container for windowing: compact scrolls the record layer itself; expanded lets it grow
+// and the calendar body (provided by calendar/index.vue) scrolls instead.
+const recordScrollContainer = ref<HTMLElement | null>(null)
+
+const calendarScrollContainer = inject<Ref<HTMLElement | undefined>>('calendarScrollContainer', ref())
+
+const windowScrollContainer = computed<HTMLElement | null | undefined>(() =>
+  isExpanded.value ? calendarScrollContainer.value : recordScrollContainer.value,
+)
+
+// A dense day fans out into hundreds of lane rows; render only the records whose vertical band is
+// within the scrolled viewport so the DOM stays small (the layout/scroll range is unchanged).
+const visibleRecords = useCalendarWindow(windowScrollContainer, calendarData, {
+  alwaysInclude: (record) => record.rowMeta.id === dragRecord.value?.rowMeta.id,
+})
 
 const resizeDirection = ref<'right' | 'left' | null>()
 
@@ -219,7 +389,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 
 // This function is used to calculate the new start and end date of a record when resizing
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
+  if (!canEditCalendarData.value || !container.value || !resizeRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
 
@@ -233,7 +403,7 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
   const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
 
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const day = columnFromX(percentX * containerWidth.value)
 
   let updateProperty: string[] = []
   let updateRecord: Row
@@ -296,7 +466,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value) return
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -326,10 +497,12 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 
   if (!fromCol) return { updatedProperty: [], newRow: null }
 
-  // Calculate the day index based on the percentage of the width
-  const day = Math.floor(
-    percentX * maxVisibleDays.value - dragRecord.value.rowMeta.spanningDays - Math.max(0, Math.min(1, relativeX / width)),
-  )
+  // Column under the cursor (clamped to the visible range), then shifted back by
+  // the record's leading span so a multi-day record's start lands correctly.
+  // Using the cursor's own column — rather than subtracting the whole-grid
+  // fraction — keeps the last column reachable for any column count (3-day / week).
+  const cursorDay = Math.max(0, Math.min(maxVisibleDays.value - 1, columnFromX(percentX * containerWidth.value)))
+  const day = cursorDay - dragRecord.value.rowMeta.spanningDays
 
   // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
@@ -390,7 +563,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!container.value || !dragRecord.value) return
   event.preventDefault()
 
@@ -401,7 +574,7 @@ const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
   const { updateProperty, newRow } = calculateNewRow(event)
@@ -434,7 +607,9 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (resizeInProgress.value || isSyncedFromColumn.value) return
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
+  if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
   isDragging.value = false
@@ -444,27 +619,32 @@ const dragStart = (event: MouseEvent, record: Row) => {
     y: event.clientY - target.getBoundingClientRect().top,
   }
 
-  dragTimeout.value = setTimeout(() => {
-    if (!isUIAllowed('dataEdit')) return
-    isDragging.value = true
-    while (!target.classList.contains('draggable-record')) {
-      target = target.parentElement as HTMLElement
-    }
+  // Drag-to-reschedule is gated to editable, non-synced ranges; click-to-expand
+  // (onMouseUp below) must work regardless so synced records can be opened.
+  const canDrag = canEditCalendarData.value && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
-    const allRecords = document.querySelectorAll('.draggable-record')
-    allRecords.forEach((el) => {
-      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-        el.style.opacity = '30%'
+  if (canDrag) {
+    dragTimeout.value = setTimeout(() => {
+      isDragging.value = true
+      while (!target.classList.contains('draggable-record')) {
+        target = target.parentElement as HTMLElement
       }
-    })
 
-    isDragging.value = true
-    dragElement.value = target
-    dragRecord.value = record
+      const allRecords = document.querySelectorAll('.draggable-record')
+      allRecords.forEach((el) => {
+        if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
+          el.style.opacity = '30%'
+        }
+      })
 
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
-  }, 200)
+      isDragging.value = true
+      dragElement.value = target
+      dragRecord.value = record
+
+      document.addEventListener('mousemove', onDrag)
+      document.addEventListener('mouseup', stopDrag)
+    }, 200)
+  }
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value!)
@@ -484,7 +664,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   event.preventDefault()
 
   const data = event.dataTransfer?.getData('text/plain')
@@ -513,14 +693,18 @@ const dropEvent = (event: DragEvent) => {
 }
 
 const selectDate = (day: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
   selectedDate.value = day
   dragRecord.value = undefined
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value || !isSyncedTable.value) return
-  const fromCol = calendarRange.value[0].fk_from_col
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  // Records can't be added to synced (read-only) tables — return if synced.
+  // (This guard was inverted; the sibling MonthView/DateTimeView use the same check.)
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
+  const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
     row: {
@@ -539,37 +723,45 @@ const addRecord = (date: dayjs.Dayjs) => {
         :key="weekIndex"
         :class="{
           'selected-date-header': dayjs(date).isSame(selectedDate, 'day'),
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
         }"
-        class="cursor-pointer text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium border-l-nc-border-gray-extralight border-t-nc-border-gray-extralight last:border-r-0 border-b-1 border-r-1 bg-nc-bg-gray-extralight"
+        :style="{ width: columnWidthPct(weekIndex) }"
+        class="cursor-pointer text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted py-1 border-nc-border-gray-medium border-l-nc-border-gray-extralight border-t-nc-border-gray-extralight last:border-r-0 border-b-1 border-r-1 bg-nc-bg-gray-extralight"
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       >
         {{ dayjs(date).format('DD ddd') }}
       </div>
     </div>
-    <div ref="container" class="flex h-[calc(100vh-7.3rem)] w-full">
+    <div
+      ref="container"
+      class="flex w-full"
+      :class="isExpanded ? 'min-h-[calc(100vh-7.3rem)]' : 'h-[calc(100vh-7.3rem)]'"
+      :style="gridStyle"
+    >
       <div
         v-for="(date, dateIndex) in weekDates"
         :key="dateIndex"
-        :class="{
-          'selected-date': dayjs(date).isSame(selectedDate, 'day'),
-          '!bg-nc-bg-gray-extralight': date.get('day') === 0 || date.get('day') === 6,
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
-        }"
-        class="flex cursor-pointer flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center"
+        :class="[
+          {
+            'selected-date': dayjs(date).isSame(selectedDate, 'day'),
+            '!bg-nc-bg-gray-extralight': date.get('day') === 0 || date.get('day') === 6,
+          },
+          isExpanded ? 'min-h-full' : 'min-h-[100vh]',
+        ]"
+        :style="{ width: columnWidthPct(dateIndex) }"
+        class="flex cursor-pointer flex-col border-r-1 last:border-r-0 items-center"
         data-testid="nc-calendar-week-day"
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       ></div>
     </div>
     <div
-      class="absolute nc-scrollbar-md overflow-y-auto z-2 mt-6 pointer-events-none inset-0"
+      ref="recordScrollContainer"
+      class="absolute z-2 mt-6 pointer-events-none inset-0"
+      :class="isExpanded ? 'overflow-visible' : 'nc-scrollbar-md overflow-y-auto'"
       data-testid="nc-calendar-week-record-container"
     >
-      <template v-for="(record, id) in calendarData" :key="id">
+      <template v-for="(record, id) in visibleRecords" :key="id">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
@@ -582,6 +774,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @mousedown.stop="dragStart($event, record)"
+          @contextmenu="emits('recordContextMenu', $event, record)"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
@@ -589,13 +782,15 @@ const addRecord = (date: dayjs.Dayjs) => {
               :dragging="record.rowMeta.id === dragRecord?.rowMeta?.id || record.rowMeta.id === resizeRecord?.rowMeta?.id"
               :position="record.rowMeta.position"
               :record="record"
-              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
+              size="auto"
+              multiline
+              :has-hidden-fields="hiddenFieldCount(record) > 0"
               @dblclick.stop="emits('expandRecord', record)"
               @resize-start="onResizeStart"
             >
-              <template v-for="(field, index) in fields" :key="index">
+              <template v-for="(field, index) in cardFields(record)" :key="index">
                 <LazySmartsheetPlainCell
-                  v-if="!isRowEmpty(record, field!)"
                   v-model="record.row[field!.title!]"
                   class="text-xs"
                   :bold="getFieldStyle(field).bold"
@@ -603,6 +798,15 @@ const addRecord = (date: dayjs.Dayjs) => {
                   :italic="getFieldStyle(field).italic"
                   :underline="getFieldStyle(field).underline"
                 />
+              </template>
+              <div
+                v-if="hiddenFieldCount(record) > 0"
+                class="nc-calendar-card-more truncate leading-5 text-bodySm text-nc-content-gray-muted"
+              >
+                {{ $t('msg.chat.showMore', { count: hiddenFieldCount(record) }) }}
+              </div>
+              <template #tooltip>
+                <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
               </template>
             </LazySmartsheetCalendarRecordCard>
           </LazySmartsheetRow>

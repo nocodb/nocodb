@@ -2,6 +2,7 @@
 import { diff } from 'deep-object-diff'
 import { defineAsyncComponent } from 'vue'
 import {
+  type FilterType,
   type HookReqType,
   type HookTestReqType,
   type HookType,
@@ -11,7 +12,7 @@ import {
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol, pickFields } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 import { jsonThemeDark, jsonThemeLight } from '~/components/monaco/json'
 
@@ -49,8 +50,6 @@ const { isDark } = useTheme()
 const { api, isLoading: loading } = useApi()
 
 const modalVisible = useVModel(props, 'value')
-
-const { clone } = useUndoRedo()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
@@ -152,8 +151,15 @@ let hookRef = reactive<
   condition: false,
   trigger_field: false,
   trigger_fields: [],
+  comment_config: undefined,
   active: true,
   version: 'v3',
+})
+
+// Default comment-filter config used when switching the source to "Comment".
+const defaultCommentConfig = () => ({
+  mention: { enabled: false, scope: 'anyone' as const, user_ids: [] as string[] },
+  commenter: { enabled: false, mode: 'exclude' as const, user_ids: [] as string[] },
 })
 
 const operationsEnum = computed(() => {
@@ -189,6 +195,14 @@ const sendMeEverythingChecked = ref(true)
 
 const filterRef = ref()
 
+// Surfaces the "modified by another user" banner. Set when a `hook_update`
+// realtime event arrives for the hook currently being edited; cleared when
+// the user reloads or closes.
+const externallyModified = ref(false)
+// Set to true when another user deletes the hook we're editing — disables
+// further saves and tells the user to close the dialog.
+const externallyDeleted = ref(false)
+
 const isDropdownOpen = ref()
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
@@ -210,7 +224,7 @@ const notificationTypes = computed(() => {
       ? [
           {
             type: 'Script',
-            label: 'Run Script',
+            label: t('labels.runScript'),
           },
         ]
       : []),
@@ -248,7 +262,7 @@ const toggleOperation = (operation: string) => {
   hookRef.operation = ops // this will trigger hookRef.operation watch
   // event other than 'field', 'view', 'after' has no 'send me everything'
   sendMeEverythingChecked.value =
-    ['field', 'view', 'after'].includes(hookRef.event) && ops?.length === operationsEnum.value?.length
+    ['field', 'view', 'after', 'comment'].includes(hookRef.event) && ops?.length === operationsEnum.value?.length
 }
 
 const toggleSendMeEverythingChecked = (_evt: Event) => {
@@ -265,7 +279,7 @@ const handleEventChange = (e: string) => {
   sendMeEverythingChecked.value = false
   hookRef.operation = []
   hookRef.event = e as any
-  if (!['field', 'view', 'after'].includes(e)) {
+  if (!['field', 'view', 'after', 'comment'].includes(e)) {
     hookRef.operation = ['trigger']
     hookRef.trigger_field = false
     hookRef.trigger_fields = []
@@ -280,6 +294,10 @@ const handleEventChange = (e: string) => {
   if (hookRef.event === 'manual') {
     hookRef.active = true
   }
+
+  // Comment source carries its own filter config; initialise it on switch-in
+  // and clear it when switching away so stale filters aren't persisted.
+  hookRef.comment_config = e === 'comment' ? defaultCommentConfig() : undefined
 }
 
 const formInput = ref({
@@ -446,6 +464,20 @@ const validators = computed(() => {
           },
         },
       ],
+      ...(['POST', 'PUT', 'PATCH'].includes(hookRef.notification.payload?.method) && {
+        'notification.payload.body': [
+          {
+            required: true,
+            validator: (_rule: any, value: any) => {
+              if (typeof value === 'string' ? value.trim().length > 0 : !!value) {
+                return Promise.resolve()
+              }
+              const httpMethod = hookRef.notification.payload?.method?.toUpperCase() ?? ''
+              return Promise.reject(new Error(t('msg.error.webhookBodyEmpty', { method: httpMethod })))
+            },
+          },
+        ],
+      }),
     }),
     ...(hookRef.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator()],
@@ -537,7 +569,7 @@ function setHook(newHook: HookType) {
     },
   })
   if (
-    ['field', 'view', 'after'].includes(toAssign.event) &&
+    ['field', 'view', 'after', 'comment'].includes(toAssign.event) &&
     toAssign.operation &&
     toAssign.operation.length === eventList.value.filter((k) => k.value[0] === toAssign.event).length
   ) {
@@ -548,7 +580,11 @@ function setHook(newHook: HookType) {
 
   hookRef.trigger_field = !!hookRef?.trigger_field
 
-  oldHookRef.value = clone(hookRef)
+  if (hookRef.event === 'comment' && !hookRef.comment_config) {
+    hookRef.comment_config = defaultCommentConfig()
+  }
+
+  oldHookRef.value = deepClone(hookRef)
 
   loadSampleData()
 }
@@ -599,6 +635,15 @@ function onEventChange() {
   }
 }
 
+// The condition toggle (`hookRef.condition`) is driven purely by the user switch and the saved
+// hook state — it is NOT coupled to the filter editor's live `filters-length` emits. The editor
+// runs an async loadFilters() after mount that transiently reports 0 filters right after the user
+// enables the toggle / adds a filter; coupling `condition` to that count flipped the toggle back
+// off mid-interaction and tore down the filter UI — the root cause of flaky webhook.spec
+// "Conditional webhooks". Whether a hook is actually conditional is resolved from its filter set at
+// save time (see `effectiveCondition` in saveHooks), which also preserves the auto-clear when the
+// last filter is removed (webhook.spec deleteCondition).
+
 async function loadPluginList() {
   if (isEeUI) return
   try {
@@ -647,6 +692,24 @@ async function saveHooks() {
   } catch (error: any) {
     console.error('validation error', error)
 
+    const fieldErrors = error?.errorFields as Array<{ name?: string | string[]; errors?: string[] }> | undefined
+
+    if (fieldErrors?.length) {
+      const fieldName = (f: { name?: string | string[] }) => (Array.isArray(f?.name) ? f.name.join('.') : f?.name ?? '')
+
+      const hasBodyError = fieldErrors.some((f) => fieldName(f) === 'notification.payload.body')
+
+      if (hasBodyError && hookRef.notification.type === 'URL') {
+        urlTabKey.value = 'body'
+      }
+
+      const firstMsg = fieldErrors.find((f) => f?.errors?.length)?.errors?.[0]
+
+      if (firstMsg) {
+        message.error(firstMsg)
+      }
+    }
+
     loading.value = false
 
     return
@@ -656,6 +719,73 @@ async function saveHooks() {
   if (sendMeEverythingChecked.value === true) {
     operations = eventList.value.filter((k) => k.value[0] === hookRef.event).map((k) => k.value[1])
   }
+
+  const projectFilter = (f: any): any => {
+    const out: any = {
+      id: f.id,
+      fk_column_id: f.fk_column_id,
+      fk_parent_id: f.fk_parent_id,
+      comparison_op: f.comparison_op,
+      comparison_sub_op: f.comparison_sub_op,
+      value: f.value,
+      is_group: f.is_group,
+      logical_op: f.logical_op,
+      order: f.order,
+      enabled: f.enabled,
+      meta: f.meta,
+      fk_value_col_id: f.fk_value_col_id,
+    }
+    if (f.children?.length) {
+      out.children = f.children.filter((c: any) => c.status !== 'delete').map(projectFilter)
+    }
+    return out
+  }
+  let bundledFilters: FilterType[] | undefined
+  if (filterRef.value && isConditionSupport.value && hookRef.condition) {
+    const tree = (filterRef.value.filters?.value ?? filterRef.value.filters ?? []) as Array<
+      FilterType & { status?: string; children?: any[] }
+    >
+    bundledFilters = tree.filter((f) => f.status !== 'delete').map(projectFilter) as FilterType[]
+  } else if (!isConditionSupport.value) {
+    // The condition is forced off (e.g. bulk webhook) — replace-all with
+    // an empty array clears server-side filters.
+    bundledFilters = []
+  }
+
+  // Resolve the persisted `condition` flag from the actual filter set rather than tracking it live
+  // off the editor (which raced with its async loadFilters and flipped the toggle off mid-edit —
+  // flaky webhook.spec "Conditional webhooks"). A hook triggers conditionally iff it actually has
+  // filters: when conditions aren't supported, or the toggle is on but no filters remain, persist
+  // condition=false (this is what webhook.spec deleteCondition relies on — removing the last filter
+  // makes the hook fire unconditionally again).
+  const effectiveCondition = !isConditionSupport.value
+    ? false
+    : bundledFilters !== undefined
+    ? bundledFilters.length > 0
+    : hookRef.condition
+
+  const HOOK_API_FIELDS = [
+    'title',
+    'description',
+    'env',
+    'event',
+    'fk_model_id',
+    'type',
+    'async',
+    'active',
+    'condition',
+    'trigger_field',
+    'trigger_fields',
+    'retries',
+    'retry_interval',
+    'timeout',
+    'version',
+    'url',
+    'headers',
+    'payload',
+    'comment_config',
+    'id',
+  ] as const
 
   try {
     let res
@@ -668,13 +798,15 @@ async function saveHooks() {
           hookId: hookRef.id,
         },
         {
-          ...hookRef,
+          ...pickFields(hookRef, HOOK_API_FIELDS as unknown as readonly (keyof typeof hookRef)[]),
+          condition: effectiveCondition,
           title: hookRef.title?.trim(),
           operation: operations,
           notification: {
             ...hookRef.notification,
             payload: hookRef.notification.payload,
           },
+          ...(bundledFilters !== undefined ? { filters: bundledFilters } : {}),
         },
       )
     } else {
@@ -686,13 +818,15 @@ async function saveHooks() {
           tableId: meta.value!.id!,
         },
         {
-          ...hookRef,
+          ...pickFields(hookRef, HOOK_API_FIELDS as unknown as readonly (keyof typeof hookRef)[]),
+          condition: effectiveCondition,
           title: hookRef.title?.trim(),
           operation: operations,
           notification: {
             ...hookRef.notification,
             payload: hookRef.notification.payload,
           },
+          ...(bundledFilters !== undefined ? { filters: bundledFilters } : {}),
         } as HookReqType,
       )
 
@@ -707,11 +841,6 @@ async function saveHooks() {
     if (!hookRef.id && res) {
       hookRef = { ...hookRef, ...res } as any
     }
-
-    if (filterRef.value) {
-      await filterRef.value.applyChanges(hookRef.id, false, isConditionSupport.value)
-    }
-
     // Webhook details updated successfully
     hooks.value = hooks.value.map((h) => {
       if (h.id === hookRef.id) {
@@ -722,7 +851,7 @@ async function saveHooks() {
 
     $e('a:webhook:add', {
       operation: hookRef.operation,
-      condition: hookRef.condition,
+      condition: effectiveCondition,
       notification: hookRef.notification.type,
     })
 
@@ -732,6 +861,14 @@ async function saveHooks() {
       message.success('Webhook upgraded to v3 successfully!')
     }
   } catch (e: any) {
+    console.error('[saveHooks] failed', {
+      error: e,
+      message: e?.message,
+      stack: e?.stack,
+      bundledFilters,
+      hookId: hookRef.id,
+      hookCondition: hookRef.condition,
+    })
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     getMeta(activeTable.value.base_id!, activeTable.value.id, true)
@@ -801,7 +938,7 @@ const supportedDocs: SupportedDocsType[] = [
     href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
   },
   {
-    title: 'Create webhook',
+    title: t('activity.createWebhook'),
     href: 'https://nocodb.com/docs/product-docs/automation/webhook',
   },
   {
@@ -900,8 +1037,16 @@ watch(
   () => props.hook,
   () => {
     if (props.hook) {
-      setHook(props.hook)
-      onEventChange()
+      // Only (re)initialise the editor when opening a *different* hook. Re-running setHook() for
+      // the same hook resets hookRef to the server state (condition=false, etc.) and clobbers the
+      // user's in-progress edits — this fires whenever the hooks list is replaced in the
+      // background (a realtime meta event or refetch hands a fresh object for the same id) and was
+      // a root cause of flaky webhook.spec failures where a just-enabled condition got reset
+      // mid-edit. The explicit "pull remote changes" path is handled by reloadFromRemote().
+      if (props.hook.id !== hookRef.id) {
+        setHook(props.hook)
+        onEventChange()
+      }
     } else {
       // Set the default hook title only when creating a new hook.
       hookRef.title = getDefaultHookName(hooks.value)
@@ -911,7 +1056,16 @@ watch(
   { immediate: true },
 )
 
+const { $eventBus } = useNuxtApp()
+const realtimeListener = (evt: string, payload: any) => {
+  if (!hookRef.id || payload?.id !== hookRef.id) return
+  if (evt === 'hook_update') externallyModified.value = true
+  else if (evt === 'hook_delete') externallyDeleted.value = true
+}
+
 onMounted(async () => {
+  $eventBus.realtimeViewMetaEventBus.on(realtimeListener)
+
   await loadPluginList()
 
   onNotificationTypeChange()
@@ -925,6 +1079,30 @@ onMounted(async () => {
       })
   }
 })
+
+onBeforeUnmount(() => {
+  $eventBus.realtimeViewMetaEventBus.off(realtimeListener)
+})
+
+// Refetch the hook fields from the server, replacing local edits with the
+// authoritative state. Used by the "modified by another user" banner so the
+// user can pull the remote change without losing the editor.
+async function reloadFromRemote() {
+  if (!hookRef.id) return
+  try {
+    const fresh = hooks.value.find((h) => h.id === hookRef.id)
+    if (fresh) {
+      Object.assign(hookRef, fresh)
+      if (typeof hookRef.notification === 'string') {
+        hookRef.notification = JSON.parse(hookRef.notification as any)
+      }
+      oldHookRef.value = JSON.parse(JSON.stringify(hookRef))
+    }
+    externallyModified.value = false
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 const toggleIncludeUser = async () => {
   hookRef.notification.include_user = !hookRef.notification.include_user
@@ -942,12 +1120,14 @@ const triggerSubType = computed(() => {
 
   const operations = hookRef.operation.map((o) => eventsLabelMap.value[hookRef.event]?.[o]?.text[1])
 
+  const withAfterPrefix = ['after', 'comment'].includes(hookRef.event)
+
   if (operations.length === 1) {
-    return `${hookRef.event === 'after' ? `${t('general.after')} ` : ''}${operations[0]}`
+    return `${withAfterPrefix ? `${t('general.after')} ` : ''}${operations[0]}`
   }
 
   const lastOperation = operations.pop()
-  return `${hookRef.event === 'after' ? `${t('general.after')} ` : ''}${operations.join(', ')} ${t(
+  return `${withAfterPrefix ? `${t('general.after')} ` : ''}${operations.join(', ')} ${t(
     'general.or',
   ).toLowerCase()} ${lastOperation}`
 })
@@ -1063,7 +1243,7 @@ const webhookV2AndV3Diff = computed(() => {
               :loading="loading"
               type="primary"
               size="small"
-              :disabled="!hasUnsavedChanges"
+              :disabled="!hasUnsavedChanges || externallyDeleted"
               data-testid="nc-save-webhook"
               @click.stop="saveHooks"
             >
@@ -1154,6 +1334,26 @@ const webhookV2AndV3Diff = computed(() => {
           class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 py-6 mx-auto"
         >
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
+            <NcAlert
+              v-if="externallyDeleted"
+              type="error"
+              :show-icon="true"
+              :message="$t('msg.webhook.externallyDeletedTitle')"
+              :description="$t('msg.webhook.externallyDeletedDescription')"
+            />
+            <NcAlert
+              v-else-if="externallyModified"
+              type="warning"
+              :show-icon="true"
+              :message="$t('msg.webhook.externallyModifiedTitle')"
+              :description="$t('msg.webhook.externallyModifiedDescription')"
+            >
+              <template #action>
+                <NcButton size="small" type="secondary" @click="reloadFromRemote">
+                  {{ $t('general.reload') }}
+                </NcButton>
+              </template>
+            </NcAlert>
             <a-form-item v-bind="validateInfos.title">
               <div
                 class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-nc-border-gray-medium bg-nc-bg-gray-light"
@@ -1195,7 +1395,10 @@ const webhookV2AndV3Diff = computed(() => {
                         <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                       </NcSelect>
                     </a-form-item>
-                    <NcDropdown v-if="['field', 'view', 'after'].includes(hookRef.event)" v-model:visible="isDropdownOpen">
+                    <NcDropdown
+                      v-if="['field', 'view', 'after', 'comment'].includes(hookRef.event)"
+                      v-model:visible="isDropdownOpen"
+                    >
                       <div
                         class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
                         data-testid="nc-dropdown-hook-operation"
@@ -1225,7 +1428,7 @@ const webhookV2AndV3Diff = computed(() => {
                           data-testid="nc-dropdown-hook-operation-modal"
                           data-testvalue="send_everything"
                         >
-                          <template v-if="['field', 'view', 'after'].includes(hookRef.event)">
+                          <template v-if="['field', 'view', 'after', 'comment'].includes(hookRef.event)">
                             <NcMenuItem
                               data-testid="nc-dropdown-hook-operation-option"
                               data-testvalue="sendMeEverything"
@@ -1248,7 +1451,7 @@ const webhookV2AndV3Diff = computed(() => {
                             @click.prevent="toggleOperation(operation.value)"
                           >
                             <div class="flex-1 w-full text-sm">
-                              <template v-if="['field', 'view', 'after'].includes(hookRef.event)">
+                              <template v-if="['field', 'view', 'after', 'comment'].includes(hookRef.event)">
                                 {{ $t('general.after') }}
                               </template>
                               {{ operation.text }}
@@ -1315,7 +1518,6 @@ const webhookV2AndV3Diff = computed(() => {
                       :hook-id="hookRef.id"
                       :web-hook="true"
                       action-btn-type="secondary"
-                      @update:filters-length="hookRef.condition = $event > 0"
                     />
                   </div>
 
@@ -1338,6 +1540,12 @@ const webhookV2AndV3Diff = computed(() => {
                       :table-id="meta.id"
                     />
                   </div>
+
+                  <WebhookCommentFilters
+                    v-if="isEeUI && hookRef.event === 'comment' && hookRef.comment_config"
+                    v-model="hookRef.comment_config"
+                    class="mb-4"
+                  />
                 </div>
 
                 <div class="text-nc-content-gray text-base mt-6 font-bold leading-6">
@@ -1727,7 +1935,7 @@ const webhookV2AndV3Diff = computed(() => {
 .title-input {
   &:focus-within {
     @apply transition-all duration-0.3s border-b-nc-border-brand;
-    box-shadow: 0px 2px 0px 0px rgba(51, 102, 255, 0.24);
+    box-shadow: 0px 2px 0px 0px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
 }
 

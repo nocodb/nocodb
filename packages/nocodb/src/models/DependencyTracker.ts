@@ -45,6 +45,8 @@ export type DependencyFieldsMap = {
   [DependencyTableType.Model]: GeneralDependencyFields;
   [DependencyTableType.View]: GeneralDependencyFields;
   [DependencyTableType.DateDependency]: GeneralDependencyFields;
+  [DependencyTableType.Bookmark]: GeneralDependencyFields;
+  [DependencyTableType.InterfacePage]: WidgetDependencyFields;
 };
 
 /**
@@ -72,6 +74,7 @@ export interface Dependencies {
   columns?: DependencyInfo[];
   models?: DependencyInfo[];
   views?: DependencyInfo[];
+  pages?: DependencyInfo[];
 }
 
 export type WidgetDependencies = Dependencies;
@@ -130,6 +133,24 @@ export default class DependencyTracker implements DependencyTrackerType {
 
   public static async trackDependencies(
     context: NcContext,
+    dependentType: DependencyTableType.Bookmark,
+    dependentId: string,
+    dependencies: Dependencies,
+    ncMeta?: any,
+    ignoreClear?: boolean,
+  ): Promise<void>;
+
+  public static async trackDependencies(
+    context: NcContext,
+    dependentType: DependencyTableType.InterfacePage,
+    dependentId: string,
+    dependencies: Dependencies,
+    ncMeta?: any,
+    ignoreClear?: boolean,
+  ): Promise<void>;
+
+  public static async trackDependencies(
+    context: NcContext,
     dependentType: DependencyTableType,
     dependentId: string,
     dependencies: Dependencies | WidgetDependencies | WorkflowDependencies,
@@ -143,7 +164,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     const deps: any[] = [];
 
     const sourceTypes: Array<{
-      key: 'columns' | 'models' | 'views' | 'workflows';
+      key: 'columns' | 'models' | 'views' | 'workflows' | 'pages';
       type: DependencyTableType;
     }> = [
       { key: 'columns', type: DependencyTableType.Column },
@@ -153,6 +174,7 @@ export default class DependencyTracker implements DependencyTrackerType {
       },
       { key: 'views', type: DependencyTableType.View },
       { key: 'workflows', type: DependencyTableType.Workflow },
+      { key: 'pages', type: DependencyTableType.InterfacePage },
     ];
 
     for (const { key, type } of sourceTypes) {
@@ -203,6 +225,24 @@ export default class DependencyTracker implements DependencyTrackerType {
       {
         dependent_type: dependentType,
         dependent_id: dependentId,
+      },
+    );
+  }
+
+  /**
+   * Clear all dependency rows for a base (used on base hard-delete).
+   */
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DEPENDENCY_TRACKER,
+      {
+        base_id: baseId,
       },
     );
   }

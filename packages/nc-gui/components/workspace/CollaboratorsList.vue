@@ -201,6 +201,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
         role: roles,
         workspaceId: currentWorkspace.value.id,
         isAdminPanel: isAdminPanel.value,
+        triggerSource: 'collaborators-members',
       })
     }
   }
@@ -514,6 +515,7 @@ watch(inviteDlg, (newVal) => {
                     isInviteTeamDlg = true
                     inviteDlg = true
                   },
+                  triggerSource: 'collaborators-teams',
                 })
               "
             >
@@ -528,7 +530,11 @@ watch(inviteDlg, (newVal) => {
               type="primary"
               :disabled="isCollaboratorsLoading"
               data-testid="nc-add-member-btn"
-              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
+              @click="
+                blockWorkspaceMembers
+                  ? showUpgradeToManageWorkspaceMembers({ triggerSource: 'collaborators-members' })
+                  : (inviteDlg = true)
+              "
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
@@ -622,9 +628,9 @@ watch(inviteDlg, (newVal) => {
                 <div class="flex items-center gap-1">
                   <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
-                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                      {{ extractUserDisplayNameOrEmail(record) }}
                     </template>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                    {{ extractUserDisplayNameOrEmail(record) }}
                   </NcTooltip>
                   <NcTooltip
                     v-if="(isPaymentEnabled || appInfo.isOnPrem) && parseProp(record.meta).billable"
@@ -805,7 +811,7 @@ watch(inviteDlg, (newVal) => {
               <div class="text-sm text-nc-content-gray-subtle">
                 {{ $t('placeholder.inviteYourTeamLabel') }}
               </div>
-              <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
+              <img src="~assets/img/placeholder/invite-team.png" :alt="$t('activity.inviteTeam')" class="!w-[30rem] flex-none" />
             </div>
           </template>
         </NcTable>

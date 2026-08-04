@@ -6,8 +6,24 @@ function useSelectedCellKeydownListener(
   handler: (e: KeyboardEvent) => void,
   { immediate = false, isGridCell = true }: { immediate?: boolean; isGridCell?: boolean } = {},
 ) {
+  // Detect whether THIS cell is being rendered inside the expanded-record
+  // side panel (EFP). The panel hardcodes `active=true` on every cell it
+  // renders so every cell registers a document keydown listener — without a
+  // gate, every panel cell fires on every keystroke, including ones the user
+  // directed at the grid behind the panel.
+  const isInsideExpandedFormPanel = inject(IsExpandedFormOpenInj, ref(false))
+
   const finalHandler = (e: KeyboardEvent) => {
     if (cmdKActive()) return
+
+    // If this cell is in the EFP and the user's current interaction intent is
+    // NOT on the panel (e.g. their last click was on a grid cell), bail. The
+    // grid's own keyboard handlers will take it from here. Without this,
+    // pressing Enter on a grid cell while EFP is open opens the panel's
+    // corresponding-field picker/dropdown.
+    if (isInsideExpandedFormPanel.value && !isExpandedFormPanelOpen()) {
+      return
+    }
 
     /**
      * If `useSelectedCellKeydownListener` used for grid cell and active element is not in grid then prevent

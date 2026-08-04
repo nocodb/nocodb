@@ -21,7 +21,7 @@ export class RatingHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    const res = serializeIntValue(value ?? 0);
+    const res = serializeIntValue(value ?? 0, params);
 
     if (res === null) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {

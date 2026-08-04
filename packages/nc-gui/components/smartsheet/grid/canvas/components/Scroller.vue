@@ -502,7 +502,6 @@ defineExpose({
   @apply relative h-full w-full;
   min-width: 100%;
   min-height: 100%;
-  will-change: transform;
 }
 
 .custom-scrollbar-track {

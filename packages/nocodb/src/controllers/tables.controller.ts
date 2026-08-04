@@ -123,7 +123,6 @@ export class TablesController {
   ) {
     const result = await this.tablesService.tableDelete(context, {
       tableId: req.params.tableId,
-      user: (req as any).user,
       req,
     });
 

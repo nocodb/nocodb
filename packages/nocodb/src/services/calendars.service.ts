@@ -5,8 +5,9 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -14,7 +15,10 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { NcError } from '~/helpers/catchError';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { CalendarView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
@@ -22,12 +26,13 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class CalendarsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async calendarViewGet(context: NcContext, param: { calendarViewId: string }) {
     return await CalendarView.get(context, param.calendarViewId);
   }
 
+  @TraceCommand(OperationName.calendarViewCreate)
   async calendarViewCreate(
     context: NcContext,
     param: {
@@ -40,6 +45,13 @@ export class CalendarsService {
     },
     ncMeta?: MetaService,
   ) {
+    if (param?.ownedBy) {
+      await assertNotSandbox(
+        context,
+        'Personal views cannot be created in a sandbox. Create them on the production base.',
+      );
+    }
+
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.calendar,
@@ -51,7 +63,7 @@ export class CalendarsService {
 
     await assertPersonalViewAllowed(context, param.calendar.lock_type);
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     param.calendar.title = param.calendar.title?.trim();
     const existingView = await View.getByTitleOrId(
@@ -100,7 +112,7 @@ export class CalendarsService {
       ncMeta,
     );
 
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
       context,
@@ -146,6 +158,7 @@ export class CalendarsService {
     return view;
   }
 
+  @TraceCommand(OperationName.calendarViewUpdate)
   async calendarViewUpdate(
     context: NcContext,
     param: {
@@ -161,7 +174,7 @@ export class CalendarsService {
       param.calendar,
     );
 
-    const view = await View.get(context, param.calendarViewId, ncMeta);
+    const view = await View.get(context, param.calendarViewId, false, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.calendarViewId);
@@ -210,13 +223,16 @@ export class CalendarsService {
 
     await view.getView(context);
 
+    // Strip the stored bcrypt password hash from every outbound payload.
+    const safeView = View.maskPasswordForResponse(view);
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: view,
+          payload: safeView,
         },
       },
       context.socket_id,
@@ -225,6 +241,6 @@ export class CalendarsService {
     if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
-    return view;
+    return safeView;
   }
 }

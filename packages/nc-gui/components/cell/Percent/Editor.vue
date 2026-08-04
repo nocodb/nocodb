@@ -100,6 +100,22 @@ const onBlur = () => {
 const onFocus = () => {
   cellFocused.value = true
 }
+
+// In form view the input is rendered as type="text" (so the "25%" formatted
+// display can be shown when not focused). That disables the browser's native
+// ↑/↓ step, so emulate it here by ±1.
+const onKeyDown = (e: KeyboardEvent) => {
+  if (!isForm.value || isEditColumn.value) return
+  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+
+  e.preventDefault()
+
+  const current = Number(_vModel.value ?? 0)
+  if (ncIsNaN(current)) return
+
+  const direction = e.key === 'ArrowUp' ? 1 : -1
+  _vModel.value = current + direction
+}
 onMounted(() => {
   if (isCanvasInjected || (!isEditColumn.value && !isForm.value)) {
     inputRef.value?.focus()
@@ -120,6 +136,7 @@ onMounted(() => {
     :is-show-number="!isLinkRecordDropdown"
     :percentage="vModelNumber"
     :precision="percentMeta.precision"
+    :shape="percentMeta.shape"
   >
     <template v-if="showInput" #default>
       <!-- eslint-disable vue/use-v-on-exact -->
@@ -133,6 +150,7 @@ onMounted(() => {
         :disabled="readOnly"
         @blur="onBlur"
         @focus="onFocus"
+        @keydown="onKeyDown"
         @keydown.down.stop
         @keydown.left.stop
         @keydown.right.stop
@@ -155,6 +173,7 @@ onMounted(() => {
       :disabled="readOnly"
       @blur="onBlur"
       @focus="onFocus"
+      @keydown="onKeyDown"
       @keydown.down.stop
       @keydown.left.stop
       @keydown.right.stop

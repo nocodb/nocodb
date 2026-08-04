@@ -203,7 +203,10 @@ export const useRolesShared = createSharedComposable(() => {
 
   const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)
 
-  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded }
+  // CE has no sandbox concept — always returns null so CE behavior is identical to before.
+  const sandboxRestrictionReason = (..._args: any[]): string | null => null
+
+  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded, sandboxRestrictionReason }
 })
 
 type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>
@@ -213,7 +216,11 @@ type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllow
  * which will be used to determine if a user has permission to perform an action based on the source's restrictions
  */
 export const useRoles = () => {
-  const currentSource = inject(ActiveSourceInj, ref())
+  // `inject()` returns `undefined` (not the supplied fallback) when called outside a
+  // component setup context — e.g. from a raw canvas cell click handler. Coalescing to a
+  // fresh ref keeps `.value` accesses in the computeds below from throwing
+  // "Cannot read properties of undefined (reading 'value')" in that case.
+  const currentSource = inject(ActiveSourceInj, ref()) ?? ref()
   const useRolesRes = useRolesShared()
 
   const isMetaReadOnly = computed(() => {
@@ -229,6 +236,7 @@ export const useRoles = () => {
     isUIAllowed: (...args: IsUIAllowedParams) => {
       return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
     },
+    sandboxRestrictionReason: (..._args: any[]): string | null => null,
     isDataReadOnly,
     isMetaReadOnly,
   }

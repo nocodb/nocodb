@@ -36,6 +36,8 @@ enum AuditV1OperationTypes {
   ORG_DOMAIN_DELETE = 'ORG_DOMAIN_DELETE',
   ORG_DOMAIN_VERIFY = 'ORG_DOMAIN_VERIFY',
 
+  WHITE_LABEL_UPDATE = 'WHITE_LABEL_UPDATE',
+
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
   USER_PASSWORD_FORGOT = 'USER_PASSWORD_FORGOT',
@@ -177,6 +179,7 @@ enum AuditV1OperationTypes {
   SNAPSHOT_DELETE = 'SNAPSHOT_DELETE',
   SNAPSHOT_CREATE = 'SNAPSHOT_CREATE',
   SNAPSHOT_RESTORE = 'SNAPSHOT_RESTORE',
+  SNAPSHOT_SCHEDULE_UPDATE = 'SNAPSHOT_SCHEDULE_UPDATE',
 
   DATA_IMPORT = 'DATA_IMPORT',
   DATA_EXPORT = 'DATA_EXPORT',
@@ -203,6 +206,27 @@ enum AuditV1OperationTypes {
   WIDGET_UPDATE = 'WIDGET_UPDATE',
   WIDGET_DELETE = 'WIDGET_DELETE',
   WIDGET_DUPLICATE = 'WIDGET_DUPLICATE',
+
+  INTERFACE_CREATE = 'INTERFACE_CREATE',
+  INTERFACE_UPDATE = 'INTERFACE_UPDATE',
+  INTERFACE_DELETE = 'INTERFACE_DELETE',
+  INTERFACE_DUPLICATE = 'INTERFACE_DUPLICATE',
+  INTERFACE_PUBLISH = 'INTERFACE_PUBLISH',
+
+  INTERFACE_PAGE_CREATE = 'INTERFACE_PAGE_CREATE',
+  INTERFACE_PAGE_UPDATE = 'INTERFACE_PAGE_UPDATE',
+  INTERFACE_PAGE_DELETE = 'INTERFACE_PAGE_DELETE',
+  INTERFACE_PAGE_DUPLICATE = 'INTERFACE_PAGE_DUPLICATE',
+
+  SHARED_INTERFACE_PAGE_CREATE = 'SHARED_INTERFACE_PAGE_CREATE',
+  SHARED_INTERFACE_PAGE_UPDATE = 'SHARED_INTERFACE_PAGE_UPDATE',
+  SHARED_INTERFACE_PAGE_DELETE = 'SHARED_INTERFACE_PAGE_DELETE',
+
+  INTERFACE_DATA_EXPORT = 'INTERFACE_DATA_EXPORT',
+
+  INTERFACE_USER_INVITE = 'INTERFACE_USER_INVITE',
+  INTERFACE_USER_UPDATE = 'INTERFACE_USER_UPDATE',
+  INTERFACE_USER_DELETE = 'INTERFACE_USER_DELETE',
 
   PERMISSION_CREATE = 'PERMISSION_CREATE',
   PERMISSION_UPDATE = 'PERMISSION_UPDATE',
@@ -236,6 +260,12 @@ enum AuditV1OperationTypes {
   DOCUMENT_CREATE = 'DOCUMENT_CREATE',
   DOCUMENT_UPDATE = 'DOCUMENT_UPDATE',
   DOCUMENT_DELETE = 'DOCUMENT_DELETE',
+
+  DOCUMENT_REVISION_RESTORE = 'DOCUMENT_REVISION_RESTORE',
+
+  DOCUMENT_PUBLIC_SHARE_CREATE = 'DOCUMENT_PUBLIC_SHARE_CREATE',
+  DOCUMENT_PUBLIC_SHARE_UPDATE = 'DOCUMENT_PUBLIC_SHARE_UPDATE',
+  DOCUMENT_PUBLIC_SHARE_DELETE = 'DOCUMENT_PUBLIC_SHARE_DELETE',
 
   DOCUMENT_COMMENT_CREATE = 'DOCUMENT_COMMENT_CREATE',
   DOCUMENT_COMMENT_UPDATE = 'DOCUMENT_COMMENT_UPDATE',
@@ -404,6 +434,14 @@ export const auditV1OperationsCategory: Record<
     value: 'DASHBOARD',
     types: Object.values(AuditV1OperationTypes).filter(
       (key) => key.startsWith('DASHBOARD_') || key.startsWith('WIDGET_')
+    ),
+  },
+  INTERFACE: {
+    label: 'general.interface',
+    value: 'INTERFACE',
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) =>
+        key.startsWith('INTERFACE_') || key.startsWith('SHARED_INTERFACE_')
     ),
   },
   WORKFLOW: {
@@ -1138,6 +1176,15 @@ export interface SnapshotPayload {
   base_title: string;
   snapshot_base_id: string;
 }
+export interface SnapshotSchedulePayload {
+  base_title: string;
+  enabled: boolean;
+  frequency: string;
+  cron_expression: string;
+  timezone: string;
+  keep_last: number;
+  delete_after_days: number;
+}
 export interface SnapshotRestorePayload {
   snapshot_title: string;
   snapshot_id: string;
@@ -1152,7 +1199,7 @@ export interface DataExportPayload {
   view_title: string;
   table_id: string;
   table_title: string;
-  export_type: 'excel' | 'csv' | 'json';
+  export_type: 'excel' | 'csv' | 'json' | 'ics';
 }
 
 export interface DataImportPayload {
@@ -1257,6 +1304,177 @@ export interface WidgetDuplicatePayload {
   error?: string;
 }
 
+export interface InterfaceCreatePayload {
+  interface_title: string;
+  interface_id: string;
+}
+
+export interface InterfaceUpdatePayload extends UpdatePayload {
+  interface_title: string;
+  interface_id: string;
+}
+
+export interface InterfaceDeletePayload {
+  interface_title: string;
+  interface_id: string;
+}
+
+export interface InterfaceDuplicatePayload {
+  duplicated_interface_title: string;
+  duplicated_interface_id: string;
+  source_interface_title: string;
+  source_interface_id: string;
+}
+
+export interface InterfacePublishPayload {
+  interface_title: string;
+  interface_id: string;
+  /** Pages carried into the published snapshot by this publish. */
+  published_page_count: number;
+}
+
+export interface InterfaceAuditTableRef {
+  id: string;
+  title: string;
+}
+
+/**
+ * Identity carried by every page-scoped interface audit. An id alone is dead
+ * weight in a log — the reader needs to know WHICH interface the page belongs
+ * to and WHICH tables it reads, without resolving those entities by hand (some
+ * of which may already be deleted by the time the log is read).
+ */
+export interface InterfacePageContext {
+  page_title: string;
+  page_id: string;
+  page_layout: string;
+  interface_id: string;
+  interface_title: string;
+  /**
+   * EVERY table the page reads, not just its primary binding. A table or
+   * record-review page binds one; a DASHBOARD binds one per widget and a LIST
+   * visualization one per level — so this is a list. Absent for layouts that
+   * read no table at all (overview).
+   *
+   * Capped at {@link INTERFACE_AUDIT_TABLE_LIMIT}; `table_count` is not.
+   */
+  tables?: InterfaceAuditTableRef[];
+  /** Distinct tables the page reads — accurate even when `tables` is capped. */
+  table_count?: number;
+}
+
+/** Keeps a wide dashboard from writing an unbounded list into every audit row. */
+export const INTERFACE_AUDIT_TABLE_LIMIT = 20;
+
+export type InterfacePageCreatePayload = InterfacePageContext;
+
+/** One entry of {@link InterfacePageConfigDiff}. */
+export interface InterfacePageConfigChange {
+  op: 'added' | 'removed' | 'changed' | 'reordered';
+  /** Id-keyed path, e.g. `visualizations[viz1].sorts[0].direction`. */
+  path: string;
+  from?: unknown;
+  to?: unknown;
+  /** Id space of this leaf, when the page schema declares one. */
+  ref?: 'column' | 'model' | 'page';
+  /** Resolved names for `from`/`to` when they hold ids. */
+  from_title?: string;
+  to_title?: string;
+  /** Identity of an entity added or removed wholesale. */
+  entity?: { id?: string; type?: string; title?: string };
+  /** Stands in for `from`/`to` when the value was too large to embed. */
+  summary?: string;
+}
+
+/**
+ * The DELTA of a page's builder config — never the config itself, which is
+ * the whole page and would be rewritten into `nc_audit` on every save.
+ *
+ * Computed against the layout's zod schema, so entity arrays match by id
+ * (reordering a visualization doesn't rewrite every index) and id-valued
+ * leaves are resolved to names.
+ */
+export interface InterfacePageConfigDiff {
+  changes: InterfacePageConfigChange[];
+  /** True total — `changes` is capped. */
+  change_count: number;
+  truncated: boolean;
+}
+
+export interface InterfacePageUpdatePayload
+  extends InterfacePageContext,
+    Partial<UpdatePayload> {
+  config_changed: boolean;
+  /**
+   * Absent when the config didn't change, or when it was unreadable — in the
+   * latter case `config_changed` still records that it did.
+   */
+  config_diff?: InterfacePageConfigDiff;
+}
+
+export type InterfacePageDeletePayload = InterfacePageContext;
+
+/** Page context here describes the DUPLICATE; the source is named alongside. */
+export interface InterfacePageDuplicatePayload extends InterfacePageContext {
+  source_page_title: string;
+  source_page_id: string;
+}
+
+export interface SharedInterfacePageCreatePayload
+  extends InterfacePageContext {
+  uuid: string;
+  password_protected: boolean;
+}
+
+export interface SharedInterfacePageUpdatePayload
+  extends InterfacePageContext {
+  uuid: string;
+  password_protected: boolean;
+  /** The hash itself is never recorded — only that it was rotated/cleared. */
+  password_changed: boolean;
+}
+
+export interface SharedInterfacePageDeletePayload
+  extends InterfacePageContext {
+  uuid: string;
+}
+
+export interface InterfaceDataExportPayload extends InterfacePageContext {
+  table_id: string;
+  table_title: string;
+  export_type: 'csv';
+  /** True when served through the public share-to-web link. */
+  is_public_share: boolean;
+}
+
+/**
+ * Interface access grants. The principal is either a user or a team, and the
+ * grant targets either the whole interface (`page_id` absent) or a single page.
+ */
+export interface InterfaceGrantContext {
+  interface_title: string;
+  interface_id: string;
+  principal_type: 'user' | 'team';
+  principal_id: string;
+  principal_title: string;
+  /** Present only for page-level grants. */
+  page_id?: string;
+  page_title?: string;
+}
+
+export interface InterfaceUserInvitePayload extends InterfaceGrantContext {
+  role: string;
+}
+
+export interface InterfaceUserUpdatePayload extends InterfaceGrantContext {
+  role: string;
+  old_role?: string | null;
+}
+
+export interface InterfaceUserDeletePayload extends InterfaceGrantContext {
+  role?: string | null;
+}
+
 export interface PermissionCreatePayload {
   permission_id: string;
   permission: string;
@@ -1307,6 +1525,12 @@ export interface RlsPolicyDeletePayload {
 export interface DateDependencyUpdatePayload {
   table_id: string;
   table_title: string;
+  /** Set when the rule is scoped to a single Gantt view rather than the
+   * table-level default. A table can have one default rule + multiple
+   * per-view overrides; surface the view identity so the audit log
+   * disambiguates them. */
+  gantt_view_id?: string;
+  gantt_view_title?: string;
   date_dependency_id: string;
   is_new: boolean;
   start_date_field?: { id: string; title: string };
@@ -1324,6 +1548,9 @@ export interface DateDependencyUpdatePayload {
 export interface DateDependencyDeletePayload {
   table_id: string;
   table_title: string;
+  /** Set when the deleted rule was scoped to a single Gantt view. */
+  gantt_view_id?: string;
+  gantt_view_title?: string;
 }
 
 export interface DocAiCompletionPayload {
@@ -1344,6 +1571,35 @@ export interface DocumentUpdatePayload {
 export interface DocumentDeletePayload {
   document_title: string;
   document_id: string;
+}
+
+export interface DocumentRevisionRestorePayload {
+  document_title: string;
+  document_id: string;
+  revision_id: string;
+  revision_created_at: string;
+  revision_author?: string | null;
+  revision_source: 'auto' | 'manual' | 'restore';
+}
+
+export interface DocumentPublicShareCreatePayload {
+  document_title: string;
+  document_id: string;
+  uuid: string;
+  include_subtree: boolean;
+}
+
+export interface DocumentPublicShareUpdatePayload {
+  document_title: string;
+  document_id: string;
+  uuid: string;
+  include_subtree: boolean;
+}
+
+export interface DocumentPublicShareDeletePayload {
+  document_title: string;
+  document_id: string;
+  uuid: string;
 }
 
 export interface DocumentCommentCreatePayload {
@@ -1498,6 +1754,33 @@ export interface AuditV1<T = any> {
   details: T;
   version: 1;
   fk_parent_id?: string;
+  // Reference id for the originating entity — e.g. the shared view / form id
+  // for anonymous (ANONYMOUS_USER) public submissions, for traceability.
+  fk_ref_id?: string | null;
+}
+
+/**
+ * ` on table 'X'` for a single-table page, ` across N tables` for a dashboard
+ * or leveled list, empty for a page that reads none (overview).
+ */
+function interfaceTableSuffix(details: {
+  tables?: InterfaceAuditTableRef[];
+  table_count?: number;
+}): string {
+  const count = details.table_count ?? details.tables?.length ?? 0;
+  if (!count) return '';
+  if (count === 1 && details.tables?.[0])
+    return ` on table '${details.tables[0].title}'`;
+  return ` across ${count} tables`;
+}
+
+/** `page 'X' of ` — grants target either the whole interface or one page. */
+function interfaceGrantScope(details: {
+  page_title?: string;
+  page_id?: string;
+}): string {
+  if (!details.page_id) return '';
+  return `page '${details.page_title ?? details.page_id}' of `;
 }
 
 const descriptionTemplates = {
@@ -1540,7 +1823,10 @@ const descriptionTemplates = {
   ) => `User '${audit.user}' disabled two-factor authentication`,
   [AuditV1OperationTypes.USER_MFA_VERIFY]: (
     audit: AuditV1<UserMfaVerifyPayload>
-  ) => `User '${audit.user}' verified 2FA${audit.details?.method === 'backup_code' ? ' using backup code' : ''}`,
+  ) =>
+    `User '${audit.user}' verified 2FA${
+      audit.details?.method === 'backup_code' ? ' using backup code' : ''
+    }`,
   [AuditV1OperationTypes.USER_MFA_BACKUP_CODE_USED]: (
     audit: AuditV1<UserMfaBackupCodeUsedPayload>
   ) => `User '${audit.user}' used a backup code to sign in`,
@@ -1608,6 +1894,10 @@ const descriptionTemplates = {
     `Domain '${audit.details?.domain_name}' removed from organization`,
   [AuditV1OperationTypes.ORG_DOMAIN_VERIFY]: (audit: AuditV1<any>) =>
     `Domain '${audit.details?.domain_name}' verification initiated`,
+  [AuditV1OperationTypes.WHITE_LABEL_UPDATE]: (audit: AuditV1<any>) =>
+    `White-label settings updated (${
+      audit.details?.enabled ? 'enabled' : 'disabled'
+    })`,
   [AuditV1OperationTypes.DATA_INSERT]: (audit: AuditV1<DataInsertPayload>) =>
     `Record with ID [${audit.row_id}] has been inserted`,
   [AuditV1OperationTypes.DATA_UPDATE]: (audit: AuditV1<DataUpdatePayload>) =>
@@ -1770,6 +2060,99 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.WIDGET_DUPLICATE]: (
     audit: AuditV1<WidgetDuplicatePayload>
   ) => `Widget '${audit.details.duplicated_widget_title}' has been duplicated`,
+  [AuditV1OperationTypes.INTERFACE_CREATE]: (
+    audit: AuditV1<InterfaceCreatePayload>
+  ) => `Interface '${audit.details.interface_title}' has been created`,
+  [AuditV1OperationTypes.INTERFACE_UPDATE]: (
+    audit: AuditV1<InterfaceUpdatePayload>
+  ) => `Interface '${audit.details.interface_title}' has been updated`,
+  [AuditV1OperationTypes.INTERFACE_DELETE]: (
+    audit: AuditV1<InterfaceDeletePayload>
+  ) => `Interface '${audit.details.interface_title}' has been deleted`,
+  [AuditV1OperationTypes.INTERFACE_DUPLICATE]: (
+    audit: AuditV1<InterfaceDuplicatePayload>
+  ) =>
+    `Interface '${audit.details.source_interface_title}' has been duplicated`,
+  [AuditV1OperationTypes.INTERFACE_PUBLISH]: (
+    audit: AuditV1<InterfacePublishPayload>
+  ) =>
+    `Interface '${audit.details.interface_title}' has been published with ${audit.details.published_page_count} page(s)`,
+  [AuditV1OperationTypes.INTERFACE_PAGE_CREATE]: (
+    audit: AuditV1<InterfacePageCreatePayload>
+  ) =>
+    `Interface page '${audit.details.page_title}' (${
+      audit.details.page_layout
+    }) has been created in interface '${
+      audit.details.interface_title
+    }'${interfaceTableSuffix(audit.details)}`,
+  [AuditV1OperationTypes.INTERFACE_PAGE_UPDATE]: (
+    audit: AuditV1<InterfacePageUpdatePayload>
+  ) => {
+    const count = audit.details.config_diff?.change_count ?? 0;
+    return `Interface page '${audit.details.page_title}' in interface '${
+      audit.details.interface_title
+    }' has been updated${count ? ` (${count} config change(s))` : ''}`;
+  },
+  [AuditV1OperationTypes.INTERFACE_PAGE_DELETE]: (
+    audit: AuditV1<InterfacePageDeletePayload>
+  ) =>
+    `Interface page '${audit.details.page_title}' has been deleted from interface '${audit.details.interface_title}'`,
+  [AuditV1OperationTypes.INTERFACE_PAGE_DUPLICATE]: (
+    audit: AuditV1<InterfacePageDuplicatePayload>
+  ) =>
+    `Interface page '${audit.details.source_page_title}' has been duplicated as '${audit.details.page_title}' in interface '${audit.details.interface_title}'`,
+  [AuditV1OperationTypes.SHARED_INTERFACE_PAGE_CREATE]: (
+    audit: AuditV1<SharedInterfacePageCreatePayload>
+  ) =>
+    `Interface page '${audit.details.page_title}' of interface '${
+      audit.details.interface_title
+    }' has been shared publicly${
+      audit.details.password_protected ? ' with a password' : ''
+    }${interfaceTableSuffix(audit.details)}`,
+  [AuditV1OperationTypes.SHARED_INTERFACE_PAGE_UPDATE]: (
+    audit: AuditV1<SharedInterfacePageUpdatePayload>
+  ) =>
+    `Public share settings of interface page '${audit.details.page_title}' of interface '${audit.details.interface_title}' have been updated`,
+  [AuditV1OperationTypes.SHARED_INTERFACE_PAGE_DELETE]: (
+    audit: AuditV1<SharedInterfacePageDeletePayload>
+  ) =>
+    `Public share of interface page '${audit.details.page_title}' of interface '${audit.details.interface_title}' has been revoked`,
+  [AuditV1OperationTypes.INTERFACE_DATA_EXPORT]: (
+    audit: AuditV1<InterfaceDataExportPayload>
+  ) =>
+    `User '${audit.user}' exported ${
+      audit.details.export_type
+    } from interface page '${audit.details.page_title}' of interface '${
+      audit.details.interface_title
+    }' (table '${audit.details.table_title}')${
+      audit.details.is_public_share ? ' via the public share link' : ''
+    }`,
+  [AuditV1OperationTypes.INTERFACE_USER_INVITE]: (
+    audit: AuditV1<InterfaceUserInvitePayload>
+  ) =>
+    `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
+      audit.details.principal_title
+    }' has been granted '${audit.details.role}' on ${
+      interfaceGrantScope(audit.details)
+    }interface '${audit.details.interface_title}'`,
+  [AuditV1OperationTypes.INTERFACE_USER_UPDATE]: (
+    audit: AuditV1<InterfaceUserUpdatePayload>
+  ) =>
+    `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
+      audit.details.principal_title
+    }' role on ${
+      interfaceGrantScope(audit.details)
+    }interface '${audit.details.interface_title}' has been changed${
+      audit.details.old_role ? ` from '${audit.details.old_role}'` : ''
+    } to '${audit.details.role}'`,
+  [AuditV1OperationTypes.INTERFACE_USER_DELETE]: (
+    audit: AuditV1<InterfaceUserDeletePayload>
+  ) =>
+    `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
+      audit.details.principal_title
+    }' access to ${
+      interfaceGrantScope(audit.details)
+    }interface '${audit.details.interface_title}' has been revoked`,
   [AuditV1OperationTypes.PERMISSION_CREATE]: (
     audit: AuditV1<PermissionCreatePayload>
   ) =>
@@ -1838,6 +2221,19 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DOCUMENT_DELETE]: (
     audit: AuditV1<DocumentDeletePayload>
   ) => `Document '${audit.details.document_title}' has been deleted`,
+  [AuditV1OperationTypes.DOCUMENT_REVISION_RESTORE]: (
+    audit: AuditV1<DocumentRevisionRestorePayload>
+  ) =>
+    `Document '${audit.details.document_title}' restored to the version from ${audit.details.revision_created_at}`,
+  [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_CREATE]: (
+    audit: AuditV1<DocumentPublicShareCreatePayload>
+  ) => `Public share enabled for document '${audit.details.document_title}'`,
+  [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_UPDATE]: (
+    audit: AuditV1<DocumentPublicShareUpdatePayload>
+  ) => `Public share updated for document '${audit.details.document_title}'`,
+  [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_DELETE]: (
+    audit: AuditV1<DocumentPublicShareDeletePayload>
+  ) => `Public share disabled for document '${audit.details.document_title}'`,
   [AuditV1OperationTypes.DOCUMENT_COMMENT_CREATE]: (
     audit: AuditV1<DocumentCommentCreatePayload>
   ) => `Comment added to document '${audit.details.document_id}'`,
@@ -1849,13 +2245,18 @@ const descriptionTemplates = {
   ) => `Comment deleted from document '${audit.details.document_id}'`,
   [AuditV1OperationTypes.DATE_DEPENDENCY_UPDATE]: (
     audit: AuditV1<DateDependencyUpdatePayload>
-  ) =>
-    `Date dependency ${
-      audit.details.is_new ? 'created' : 'updated'
-    } for table '${audit.details.table_title}'`,
+  ) => {
+    const verb = audit.details.is_new ? 'created' : 'updated';
+    return audit.details.gantt_view_title
+      ? `Date dependency ${verb} for Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
+      : `Date dependency ${verb} for table '${audit.details.table_title}'`;
+  },
   [AuditV1OperationTypes.DATE_DEPENDENCY_DELETE]: (
     audit: AuditV1<DateDependencyDeletePayload>
-  ) => `Date dependency deleted from table '${audit.details.table_title}'`,
+  ) =>
+    audit.details.gantt_view_title
+      ? `Date dependency deleted from Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
+      : `Date dependency deleted from table '${audit.details.table_title}'`,
 };
 
 function auditDescription(audit: AuditV1) {

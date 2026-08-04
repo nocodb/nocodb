@@ -65,6 +65,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Connection '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND]: {
+    message: (id: string) => `Sync '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_INTEGRATION_LINKED_WITH_BASES]: {
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
@@ -79,6 +83,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.ERR_FIELD_NOT_FOUND]: {
     message: (id: string) => `Field ${id} not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_FILTER_NOT_FOUND]: {
+    message: (id: string) => `Filter '${id}' not found`,
     code: 404,
   },
   [NcErrorType.ERR_HOOK_NOT_FOUND]: {
@@ -124,9 +132,30 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `View section '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_TRASH_NOT_FOUND]: {
+    message: (id: string) => `Trash entry '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_PARENT_IN_TRASH]: {
+    message: (parentType: string) =>
+      `Cannot restore — parent ${parentType} is in trash. Restore it first.`,
+    code: 400,
+  },
   [NcErrorType.ERR_DASHBOARD_NOT_FOUND]: {
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_NOT_FOUND]: {
+    message: (id: string) => `Interface '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND]: {
+    message: (id: string) => `Interface page '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED]: {
+    message: () => 'Writes are disabled while previewing as another user',
+    code: 403,
   },
   [NcErrorType.ERR_CHAT_SESSION_NOT_FOUND]: {
     message: (id: string) => `Chat session '${id}' not found`,
@@ -146,6 +175,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.ERR_RLS_POLICY_NOT_FOUND]: {
     message: (id: string) => `RLS Policy '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_TABLE_SYNC_NOT_FOUND]: {
+    message: (id: string) => `Table sync '${id}' not found`,
     code: 404,
   },
   [NcErrorType.ERR_REQUIRED_FIELD_MISSING]: {
@@ -209,6 +242,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.ERR_SHARED_DASHBOARD_PASSWORD_INVALID]: {
     message: 'Invalid shared dashboard password',
+    code: 403,
+  },
+  [NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID]: {
+    message: 'Invalid shared interface page password',
     code: 403,
   },
   [NcErrorType.ERR_INVALID_ATTACHMENT_JSON]: {
@@ -473,5 +510,22 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) =>
       message || 'Too many requests. Please try again later.',
     code: 429,
+  },
+  [NcErrorType.ERR_SANDBOX_BLOCKED]: {
+    message: (message: string) =>
+      message || 'This operation is not allowed in a sandbox base.',
+    code: 403,
+  },
+  [NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
+    code: 403,
+  },
+  [NcErrorType.ERR_SNAPSHOT_BLOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This base is a snapshot and cannot be accessed directly. Restore the snapshot to a new base to view or edit its contents.',
+    code: 403,
   },
 };

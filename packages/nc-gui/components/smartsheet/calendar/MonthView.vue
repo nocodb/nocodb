@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import type dayjs from 'dayjs'
-import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
+import { CalendarEventTheme, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
-const emit = defineEmits(['newRecord', 'expandRecord'])
+const emit = defineEmits(['newRecord', 'expandRecord', 'recordContextMenu'])
+
+const { isMobileMode } = useGlobal()
 
 const {
   selectedDate,
   selectedMonth,
+  selectedDateRange,
   formattedData,
   formattedSideBarData,
   calDataType,
@@ -19,7 +22,45 @@ const {
   updateFormat,
   timezoneDayjs,
   isSyncedFromColumn,
+  isAddDeleteInlineEnabled,
+  weeksInRange,
+  isMultiWeekRange,
+  recordHeightMode,
+  eventDisplayTheme,
+  calendarMetaData,
 } = useCalendarViewStoreOrThrow()
+
+// Interface editor: a date/"+"/dblclick selects the calendar element (opens
+// `Page › Calendar`) instead of highlighting the date or adding a record. Null in
+// the published view and outside interface pages, so the calendar stays live.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
+// Flat themes (dot / minimal / pill) render a single text line, so they stack
+// tighter than the bordered / solid chip themes (which keep the taller chip).
+const isCompactRowTheme = computed(() =>
+  [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(eventDisplayTheme.value),
+)
+
+// Interface pages render the chips at 24px (12px text) — the lane math follows.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+// Per-record lane height (px) — drives both stacking offsets and the lane cap.
+// Kept in sync with the card height in RecordCard.vue (24px in interfaces —
+// see the VizWrapper gutter overrides).
+const perRecordHeightPx = computed(() => (isCompactRowTheme.value ? 22 : interfacePageDataApi ? 24 : 28))
+
+// The calendar range (start/end date) columns are already represented by the
+// event's time prefix + grid position, so rendering them again in the card body
+// is pure duplication (the old "• 2026-06-05 08:00 • …" noise). Exclude them so
+// the card defaults to a clean title line for every theme.
+const rangeFieldIds = computed(() => {
+  const ids = new Set<string>()
+  for (const r of calendarRange.value || []) {
+    if (r.fk_from_col?.id) ids.add(r.fk_from_col.id)
+    if (r.fk_to_col?.id) ids.add(r.fk_to_col.id)
+  }
+  return ids
+})
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
@@ -29,9 +70,23 @@ const isMondayFirst = ref(true)
 
 const { isUIAllowed } = useRoles()
 
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — event drag/resize must honor it like grid cells do. Plain data-app
+// trees never provide it (fallback false → behavior unchanged).
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
+
 const meta = inject(MetaInj, ref())
 
+// Viewport-bounded calendar body height (provided by calendar/index.vue). Used as the
+// compact (minimum) week-row height in Expanded mode.
+const calendarBodyHeight = inject<Ref<number>>('calendarBodyHeight', ref(0))
+
 const maxVisibleDays = computed(() => {
+  // Hide weekends → 5 columns; honoured for the month layout AND the multi-week
+  // (2/6-week) ranges. Each row is still a full week, so the Mon-Fri columns line
+  // up across rows.
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
@@ -54,6 +109,54 @@ const days = computed(() => {
 const calendarGridContainer = ref()
 
 const { width: gridContainerWidth, height: gridContainerHeight } = useElementSize(calendarGridContainer)
+
+// --- Collapsed-weekend column model -----------------------------------------
+// When collapse_weekend is on (and weekends aren't hidden), Sat & Sun render in
+// narrower columns. All event positioning here is px-based, so instead of a
+// uniform per-column width we expose a per-column width/offset model. When not
+// collapsed these helpers return the original uniform values, so the show /
+// hide-weekend layouts are unchanged.
+const WEEKEND_COLLAPSE_RATIO = 0.5
+
+const isWeekendCollapsed = computed(() => !!viewMetaProperties.value?.collapse_weekend && maxVisibleDays.value === 7)
+
+// Column weights in render order (Mon-first or Sun-first). Weekend columns shrink
+// to WEEKEND_COLLAPSE_RATIO only while collapsed; otherwise every column is equal.
+const columnWeights = computed<number[]>(() => {
+  const weekendCols = isMondayFirst.value ? [5, 6] : [0, 6]
+  return Array.from({ length: 7 }, (_, i) => (isWeekendCollapsed.value && weekendCols.includes(i) ? WEEKEND_COLLAPSE_RATIO : 1))
+})
+
+const totalColumnWeight = computed(() => columnWeights.value.reduce((sum, w) => sum + w, 0))
+
+const columnWidth = (index: number) => {
+  if (!isWeekendCollapsed.value) return gridContainerWidth.value / maxVisibleDays.value
+  return (gridContainerWidth.value * columnWeights.value[index]) / totalColumnWeight.value
+}
+
+const columnOffset = (index: number) => {
+  if (!isWeekendCollapsed.value) return index * (gridContainerWidth.value / maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < index; i++) offset += columnWidth(i)
+  return offset
+}
+
+// Map a horizontal pixel position (within the grid) to a column index (0-6).
+const columnFromX = (x: number) => {
+  if (!isWeekendCollapsed.value) return Math.floor((x / gridContainerWidth.value) * maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < 7; i++) {
+    offset += columnWidth(i)
+    if (x < offset) return i
+  }
+  return 6
+}
+
+// grid-template-columns string for the collapsed layout (header + week rows);
+// undefined when not collapsed so the grid-cols-* utility class takes over.
+const gridTemplateColumns = computed(() =>
+  isWeekendCollapsed.value ? columnWeights.value.map((w) => `${w}fr`).join(' ') : undefined,
+)
 
 const dragElement = ref<HTMLElement | null>(null)
 
@@ -90,19 +193,65 @@ const fieldStyles = computed(() => {
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
+// Interface calendars split card LABELS from tooltip fields: `label_field_ids`
+// picks what renders ON the chip (absent → display value only), while the
+// injected visible fields keep driving the hover tooltip. Data tab: unchanged
+// (chips render the visible fields).
+const interfaceCalendarMeta = computed(() => (interfacePageDataApi ? parseProp(calendarMetaData.value?.meta) : undefined))
+
+const cardFields = computed(() => {
+  if (!interfacePageDataApi) return fields.value ?? []
+
+  const metaColumns = (meta.value?.columns ?? []) as ColumnType[]
+  const labelIds: string[] = interfaceCalendarMeta.value?.label_field_ids ?? []
+  if (labelIds.length) return metaColumns.filter((c) => labelIds.includes(c.id as string))
+
+  const displayValue = metaColumns.find((c) => c.pv)
+  return displayValue ? [displayValue] : []
+})
+
+const labelImageColumn = computed(() => {
+  const id = interfaceCalendarMeta.value?.label_image_field_id
+  return id ? ((meta.value?.columns ?? []) as ColumnType[]).find((c) => c.id === id) : undefined
+})
+
+/** First attachment of the label-image field — the chip's right-edge thumbnail. */
+function recordLabelAttachment(record: Row) {
+  const column = labelImageColumn.value
+  if (!column?.title) return null
+
+  try {
+    const raw = record.row[column.title]
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+    return Array.isArray(parsed) && parsed.length ? parsed.flat()[0] : null
+  } catch {
+    return null
+  }
+}
+
 const calendarData = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
-  const startOfMonth = timezoneDayjs.timezonize(selectedMonth.value.startOf('month'))
   const firstDayOffset = isMondayFirst.value ? 0 : -1
-  const firstDayToDisplay = timezoneDayjs.timezonize(startOfMonth.startOf('week')).add(firstDayOffset, 'day')
   const today = timezoneDayjs.timezonize()
 
-  const daysInMonth = startOfMonth.daysInMonth()
-  const firstDayOfMonth = startOfMonth.day()
+  let firstDayToDisplay: dayjs.Dayjs
+  let weeksNeeded: number
 
-  const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
-
-  const weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)
+  if (isMultiWeekRange.value) {
+    // 2-week / 6-week grids anchor to the Monday of the selected week and
+    // always render a fixed number of full weeks. The 6-week range maxes the
+    // backend's 42-day calendar fetch window exactly — don't extend further
+    // without also raising the limit in calendar-datas.service.ts.
+    firstDayToDisplay = timezoneDayjs.timezonize(selectedDateRange.value.start.startOf('week')).add(firstDayOffset, 'day')
+    weeksNeeded = weeksInRange.value
+  } else {
+    const startOfMonth = timezoneDayjs.timezonize(selectedMonth.value.startOf('month'))
+    firstDayToDisplay = timezoneDayjs.timezonize(startOfMonth.startOf('week')).add(firstDayOffset, 'day')
+    const daysInMonth = startOfMonth.daysInMonth()
+    const firstDayOfMonth = startOfMonth.day()
+    const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
+    weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)
+  }
 
   return {
     weeks: Array.from({ length: weeksNeeded }, (_, weekIndex) => ({
@@ -115,7 +264,9 @@ const calendarData = computed(() => {
           key: `${weekIndex}-${dayIndex}`,
           isWeekend: day.get('day') === 0 || day.get('day') === 6,
           isToday: day.isSame(today, 'date'),
-          isInPagedMonth: day.isSame(selectedMonth.value, 'month'),
+          // For multi-week grids every cell is "in range" — the layout itself
+          // is bounded to the visible window, so we don't fade non-month days.
+          isInPagedMonth: isMultiWeekRange.value ? true : day.isSame(selectedMonth.value, 'month'),
           isVisible: maxVisibleDays.value === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true,
           dayNumber: day.format('DD'),
         }
@@ -130,18 +281,47 @@ const calendarData = computed(() => {
   }
 })
 
+// --- Compact / Expanded record height ---------------------------------------
+// Compact (default): the grid fits the viewport and surplus records collapse into a
+// "+N more" popover per day. Expanded: lanes are uncapped and the grid grows so every
+// record is visible, scrolling the page instead.
+const isExpanded = computed(() => recordHeightMode.value === 'expanded')
+
 const recordsToDisplay = computed<{
   records: Row[]
-  count: { [p: string]: { overflow: boolean; count: number; overflowCount: number; overflowRecords: Array<Row> } }
+  count: {
+    [p: string]: { overflow: boolean; count: number; overflowCount: number; overflowRecords: Array<Row>; lanes?: boolean[] }
+  }
 }>(() => {
   if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
 
-  const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
-  const perRecordHeight = 28
+  const perRecordHeight = perRecordHeightPx.value
 
-  const spaceBetweenRecords = 27
-  const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
+  // Interfaces run tighter type (12px chips) — the date→first-record inset follows.
+  const spaceBetweenRecords = interfacePageDataApi ? 22 : 27
+  // Expanded: never cap lanes — every record gets a lane (no "+N more"), and the grid
+  // grows to fit (see expandedGridHeightPx). Compact: derive the cap from the row height.
+  // Interfaces cap on the REAL render pitch (+4) — the Data tab's +8 reserve
+  // left a whole visible lane unused with the tighter 24px chips.
+  const laneCapPitch = perRecordHeight + (interfacePageDataApi ? 4 : 8)
+  // The "+N more" badge is bottom-anchored inside each day cell (23px xxsmall button +
+  // 4px `bottom-1` inset), while the record overlay renders ~8px lower than the cells
+  // (`mt-8` vs the ~24px weekday header). The Data tab's +8 cap pitch accrues enough
+  // slack under the last lane to keep that band clear, but capping interfaces on the
+  // exact render pitch left zero slack — the last lane and the badge shared the same
+  // vertical band. Reserve the badge row in the interface cap: 23px badge + 8px overlay
+  // downshift (the badge's 4px inset is covered by the last lane's trailing 4px gap).
+  const overflowRowReserve = interfacePageDataApi ? 31 : 0
+  // Always allow at least one lane. `perHeight` is `gridHeight / weeksInMonth`,
+  // so a 6-week month (e.g. Aug 2026 — starts on a Saturday) makes each row
+  // shorter; in the tighter interface layout (larger `overflowRowReserve`) the
+  // floor can hit 0, which sends EVERY record to overflow and renders zero chips
+  // (empty cells behind a "+N more" badge). A day cell must always show its
+  // first record before overflowing.
+  const maxLanes = isExpanded.value
+    ? Infinity
+    : Math.max(1, Math.floor((perHeight - spaceBetweenRecords - overflowRowReserve) / laneCapPitch))
 
   // Track records and lanes for each day
   const recordsInDay: {
@@ -218,7 +398,16 @@ const recordsToDisplay = computed<{
 
         const aSpan = aStart && aEnd ? aEnd.diff(aStart) : 0
         const bSpan = bStart && bEnd ? bEnd.diff(bStart) : 0
-        return bSpan - aSpan
+
+        // Multi-day (spanning) events are laid out first, longest first, so they
+        // occupy continuous lanes across day cells. Events that start and end on
+        // the same day are then ordered by start time within their day.
+        const aMultiDay = !!(aStart && aEnd) && !aEnd.isSame(aStart, 'day')
+        const bMultiDay = !!(bStart && bEnd) && !bEnd.isSame(bStart, 'day')
+        if (aMultiDay !== bMultiDay) return aMultiDay ? -1 : 1
+        if (aMultiDay && bMultiDay) return bSpan - aSpan
+        if (aStart && bStart) return aStart.diff(bStart)
+        return 0
       })
 
     sortedFormattedData.forEach((record: Row) => {
@@ -247,8 +436,8 @@ const recordsToDisplay = computed<{
         const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 
         const style: Partial<CSSStyleDeclaration> = {
-          left: `${dayIndex * perWidth}px`,
-          width: `${perWidth}px`,
+          left: `${columnOffset(dayIndex)}px`,
+          width: `${columnWidth(dayIndex)}px`,
           top: isRecordDraggingOrResizeState
             ? `${weekIndex * perHeight}px`
             : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
@@ -272,6 +461,10 @@ const recordsToDisplay = computed<{
             position: 'rounded',
             range,
             id,
+            // Week index + within-row offset, so Expanded can re-derive `top` from the
+            // variable per-week row heights (see positionedRecords).
+            weekRowIndex: weekIndex,
+            withinRowTop: isRecordDraggingOrResizeState ? 0 : spaceBetweenRecords + lane * (perRecordHeight + 4),
           },
         })
       } else if (startCol && endCol) {
@@ -357,8 +550,8 @@ const recordsToDisplay = computed<{
           const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 
           const style: Partial<CSSStyleDeclaration> = {
-            left: `${startDayIndex * perWidth - 0.5}px`,
-            width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
+            left: `${columnOffset(startDayIndex) - 0.5}px`,
+            width: `${columnOffset(endDayIndex) + columnWidth(endDayIndex) - columnOffset(startDayIndex)}px`,
             top: isRecordDraggingOrResizeState
               ? `${weekIndex * perHeight + perRecordHeight}px`
               : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
@@ -403,6 +596,8 @@ const recordsToDisplay = computed<{
               maxSpanning: endDayIndex - startDayIndex + 1,
               id,
               recordIndex,
+              weekRowIndex: weekIndex,
+              withinRowTop: isRecordDraggingOrResizeState ? perRecordHeight : spaceBetweenRecords + lane * (perRecordHeight + 4),
             },
           })
           recordIndex++
@@ -417,6 +612,117 @@ const recordsToDisplay = computed<{
     count: recordsInDay,
   }
 })
+
+// --- Expanded per-week row heights ------------------------------------------
+// Each week row grows to fit its OWN busiest day (lanes), with a floor of the compact
+// row height, so empty weeks stay compact and busy weeks expand.
+const RECORD_GAP = 8 // matches the compact maxLanes spacing (perRecordHeight + 8)
+
+const ROW_TOP_PADDING = 27 // spaceBetweenRecords — date number + top gap
+
+const ROW_BOTTOM_PADDING = 8
+
+const WEEKDAY_HEADER_PX = 26 // the weekday header grid above the week rows (~1.59rem)
+
+// Compact row height = the viewport-fit height a row gets in Compact mode. Used as the
+// minimum row height in Expanded so sparse weeks don't collapse.
+const compactRowHeight = computed(() => {
+  const weeks = calendarData.value?.weeks.length || 1
+  const available = Math.max(0, calendarBodyHeight.value - WEEKDAY_HEADER_PX)
+  return available > 0 ? available / weeks : 120
+})
+
+// Max lanes used in each week (its busiest day). Looked up via the same date key the
+// template uses for the overflow popover, so it stays consistent.
+const perWeekLanes = computed(() => {
+  const count = recordsToDisplay.value.count
+  return (calendarData.value?.weeks ?? []).map((week) => {
+    let max = 0
+    for (const day of week.days) {
+      const lanes = count[day.date.format('YYYY-MM-DD')]?.lanes?.length ?? 0
+      if (lanes > max) max = lanes
+    }
+    return max
+  })
+})
+
+const perWeekHeights = computed(() =>
+  perWeekLanes.value.map((lanes) =>
+    // Use the theme-aware lane height so expanded rows track the same density
+    // as compact (flat themes pack tighter — see perRecordHeightPx).
+    Math.max(compactRowHeight.value, ROW_TOP_PADDING + lanes * (perRecordHeightPx.value + RECORD_GAP) + ROW_BOTTOM_PADDING),
+  ),
+)
+
+// Cumulative top offset of each week row (relative to the grid top).
+const weekRowTops = computed(() => {
+  const tops: number[] = []
+  let acc = 0
+  for (const h of perWeekHeights.value) {
+    tops.push(acc)
+    acc += h
+  }
+  return tops
+})
+
+// Grid container style. Compact keeps the original viewport-fit height and splits it into
+// N equal week rows (driven by the week count, so any custom-week count 1–6 gets uniform
+// fixed rows — not just the enumerated 2/5/6 of month/2week/6week, which left 1/3/4-week
+// custom grids with content-sized rows that reflow on hover). Expanded sets explicit
+// per-week row tracks (variable heights) and grows the grid to their sum.
+const gridContainerStyle = computed(() => {
+  if (!isExpanded.value) {
+    return {
+      height: 'calc(100% - 1.59rem)',
+      gridTemplateRows: `repeat(${calendarData.value?.weeks.length || 1}, minmax(0, 1fr))`,
+    }
+  }
+  return {
+    minHeight: 'calc(100% - 1.59rem)',
+    gridTemplateRows: perWeekHeights.value.map((h) => `${h}px`).join(' '),
+  }
+})
+
+// Records with their `top` re-derived from the variable per-week row heights. In Compact
+// the records already carry the correct uniform `top`, so they pass through unchanged.
+const positionedRecords = computed<Row[]>(() => {
+  const recs = recordsToDisplay.value.records
+  if (!isExpanded.value) return recs
+  return recs.map((r) => {
+    const wi = (r.rowMeta as { weekRowIndex?: number }).weekRowIndex ?? 0
+    const within = (r.rowMeta as { withinRowTop?: number }).withinRowTop ?? 0
+    return {
+      ...r,
+      rowMeta: {
+        ...r.rowMeta,
+        style: { ...r.rowMeta.style, top: `${(weekRowTops.value[wi] ?? 0) + within}px` },
+      },
+    }
+  })
+})
+
+// Expanded row-height grows the grid to fit every lane, so a dense day would mount hundreds of DOM
+// nodes and lag the tab. Render only the records whose vertical band is within the scrolled
+// viewport (the grid height is set by CSS gridTemplateRows, so the scroll range is unaffected).
+const calendarScrollContainer = inject<Ref<HTMLElement | undefined>>('calendarScrollContainer', ref())
+
+const visibleRecords = useCalendarWindow(calendarScrollContainer, positionedRecords, {
+  alwaysInclude: (record) =>
+    record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id,
+})
+
+// Map a vertical pixel offset (within the grid) to a week index — honours the variable
+// per-week row heights in Expanded; falls back to uniform division in Compact.
+const weekFromY = (y: number) => {
+  const weeks = calendarData.value?.weeks.length || 1
+  if (!isExpanded.value) {
+    return Math.max(0, Math.min(weeks - 1, Math.floor((y / (gridContainerHeight.value || 1)) * weeks)))
+  }
+  for (let i = 0; i < perWeekHeights.value.length; i++) {
+    if (y < weekRowTops.value[i] + perWeekHeights.value[i]) return i
+  }
+  return weeks - 1
+}
 
 const dragOffset = ref<{
   x: number | null
@@ -435,15 +741,14 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   const relativeY = event.clientY - top
 
   const percentX = Math.max(0, Math.min(1, relativeX / width))
-  const percentY = Math.max(0, Math.min(1, relativeY / height))
 
   const fromCol = dragRecord.value?.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value?.rowMeta.range?.fk_to_col
 
   if (!fromCol) return { newRow: null, updateProperty: [] }
 
-  const week = Math.floor(percentY * calendarData.value.weeks.length)
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const week = weekFromY(Math.max(0, Math.min(height, relativeY)))
+  const day = columnFromX(percentX * gridContainerWidth.value)
 
   let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day]?.date : null
 
@@ -519,7 +824,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !dragRecord.value) return
+  if (!canEditCalendarData.value || !dragRecord.value) return
 
   calculateNewRow(event, false)
 }
@@ -529,11 +834,11 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !resizeRecord.value) return
+  if (!canEditCalendarData.value || !resizeRecord.value) return
 
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
-  const percentY = (event.clientY - top - window.scrollY) / height
+  const relativeY = event.clientY - top - window.scrollY
   const percentX = (event.clientX - left - window.scrollX) / width
 
   const ogEndDate = resizeRecord.value.row[resizeRecord.value.rowMeta!.range!.fk_to_col!.title!]
@@ -542,8 +847,8 @@ const onResize = (event: MouseEvent) => {
   const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
 
-  const week = Math.floor(percentY * calendarData.value.weeks.length)
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const week = weekFromY(Math.max(0, Math.min(height, relativeY)))
+  const day = columnFromX(percentX * gridContainerWidth.value)
 
   let updateProperty: string[] = []
   let newRow: Row
@@ -609,7 +914,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit') || draggingId.value) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value || draggingId.value) return
 
   if (record.rowMeta.range?.is_readonly) return
 
@@ -624,7 +930,7 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
 const stopDrag = (event: MouseEvent) => {
   clearTimeout(dragTimeout.value)
-  if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
+  if (!canEditCalendarData.value || !dragRecord.value || !isDragging.value) return
   if (dragRecord.value.rowMeta.range?.is_readonly) return
 
   event.preventDefault()
@@ -655,37 +961,39 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (resizeInProgress.value || !record.rowMeta.id || isSyncedFromColumn.value) return
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
+  if (resizeInProgress.value || !record.rowMeta.id) return
   let target = event.target as HTMLElement
   isDragging.value = false
 
-  dragTimeout.value = setTimeout(() => {
-    if (!isUIAllowed('dataEdit')) return
-    if (record.rowMeta.range?.is_readonly) return
-    isDragging.value = true
+  // Drag-to-reschedule is only available on editable, non-synced, non-readonly
+  // ranges. Click-to-expand (registered via onMouseUp below) must work regardless,
+  // otherwise records on synced tables (readonly date column) can't be opened.
+  const canDrag = canEditCalendarData.value && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
-    while (!target.classList.contains('draggable-record')) {
-      target = target.parentElement as HTMLElement
-    }
+  if (canDrag) {
+    dragTimeout.value = setTimeout(() => {
+      isDragging.value = true
 
-    // TODO: @DarkPhoenix2704
-    // const initialDragElement = document.querySelector(`[data-unique-id="${record.rowMeta.id}-0"]`)
+      while (!target.classList.contains('draggable-record')) {
+        target = target.parentElement as HTMLElement
+      }
 
-    // selectedDate.value = null
+      isDragging.value = true
+      dragElement.value = target
+      draggingId.value = record.rowMeta!.id!
+      dragRecord.value = record
 
-    isDragging.value = true
-    dragElement.value = target
-    draggingId.value = record.rowMeta!.id!
-    dragRecord.value = record
+      dragOffset.value = {
+        x: dragRecord.value?.rowMeta.maxSpanning > 1 ? event.clientX - target.getBoundingClientRect().left : 0,
+        y: event.clientY,
+      }
 
-    dragOffset.value = {
-      x: dragRecord.value?.rowMeta.maxSpanning > 1 ? event.clientX - target.getBoundingClientRect().left : 0,
-      y: event.clientY,
-    }
-
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
-  }, 500)
+      document.addEventListener('mousemove', onDrag)
+      document.addEventListener('mouseup', stopDrag)
+    }, 500)
+  }
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value)
@@ -699,7 +1007,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {
@@ -730,6 +1038,7 @@ const dropEvent = (event: DragEvent) => {
 }
 
 const selectDate = (date: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
   dragRecord.value = null
   draggingId.value = null
   resizeRecord.value = null
@@ -752,8 +1061,9 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
-  const fromCol = calendarRange.value[0].fk_from_col
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
+  const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
     row: {
@@ -762,40 +1072,53 @@ const addRecord = (date: dayjs.Dayjs) => {
   }
   emit('newRecord', newRecord)
 }
+
+const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || isSyncedTable.value) return
+  const record = {
+    row: {
+      [range.fk_from_col!.title!]: date.format(updateFormat.value),
+      ...(range.fk_to_col
+        ? {
+            [range.fk_to_col!.title!]: date.endOf('day').format(updateFormat.value),
+          }
+        : {}),
+    },
+  }
+  emit('newRecord', record)
+}
 </script>
 
 <template>
-  <div v-if="calendarRange" class="h-full prevent-select relative" data-testid="nc-calendar-month-view">
+  <div
+    v-if="calendarRange"
+    class="prevent-select relative"
+    :class="isExpanded ? 'min-h-full' : 'h-full'"
+    data-testid="nc-calendar-month-view"
+  >
     <div
       class="grid"
       :class="{
         'grid-cols-7': maxVisibleDays === 7,
         'grid-cols-5': maxVisibleDays === 5,
       }"
+      :style="gridTemplateColumns ? { gridTemplateColumns } : undefined"
     >
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
+        class="nc-calendar-weekday-label text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
       >
         {{ day }}
       </div>
     </div>
-    <div
-      ref="calendarGridContainer"
-      :class="{
-        'grid-rows-5': calendarData.weeks.length === 5,
-        'grid-rows-6': calendarData.weeks.length === 6,
-        'grid-rows-7': calendarData.weeks.length === 7,
-      }"
-      class="grid"
-      style="height: calc(100% - 1.59rem)"
-      @drop="dropEvent"
-    >
+    <div ref="calendarGridContainer" class="grid" :style="gridContainerStyle" @drop="dropEvent">
       <div
         v-for="week in calendarData.weeks"
         :key="week.weekIndex"
         :class="calendarData.gridClass"
+        :style="gridTemplateColumns ? { gridTemplateColumns } : undefined"
         data-testid="nc-calendar-month-week"
       >
         <template v-for="(day, i) in week.days">
@@ -814,15 +1137,24 @@ const addRecord = (date: dayjs.Dayjs) => {
             @click="selectDate(day.date)"
             @dblclick="addRecord(day.date)"
           >
-            <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
+            <div
+              v-if="canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled)"
+              class="flex justify-between p-1"
+            >
               <span
                 :class="{
-                  'block group-hover:hidden': !isDateSelected(day.date) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
-                  'hidden': isDateSelected(day.date) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'block group-hover:hidden':
+                    isAddDeleteInlineEnabled &&
+                    !isDateSelected(day.date) &&
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'hidden':
+                    isAddDeleteInlineEnabled &&
+                    isDateSelected(day.date) &&
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
                 }"
               ></span>
 
-              <NcDropdown v-if="calendarRange.length > 1 && !isSyncedFromColumn" auto-close>
+              <NcDropdown v-if="isAddDeleteInlineEnabled && calendarRange.length > 1 && !isSyncedFromColumn" auto-close>
                 <NcButton
                   :class="{
                     '!block': isDateSelected(day.date),
@@ -836,26 +1168,12 @@ const addRecord = (date: dayjs.Dayjs) => {
                 </NcButton>
                 <template #overlay>
                   <NcMenu class="w-64">
-                    <NcMenuItem> Select date field to add </NcMenuItem>
+                    <NcMenuItem> {{ $t('labels.selectDateFieldToAdd') }} </NcMenuItem>
                     <NcMenuItem
                       v-for="(range, index) in calendarRange"
                       :key="index"
                       class="text-nc-content-gray-default font-semibold text-sm"
-                      @click="
-                      () => {
-                        const record = {
-                          row: {
-                            [range.fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
-                            ...(range.fk_to_col
-                        ? {
-                            [range.fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
-                          }
-                        : {}),
-                          },
-                        }
-                        emit('newRecord', record)
-                      }
-                    "
+                      @click="addRecordWithRange(range, day.date)"
                     >
                       <div class="flex items-center gap-1">
                         <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
@@ -868,7 +1186,9 @@ const addRecord = (date: dayjs.Dayjs) => {
               </NcDropdown>
 
               <PermissionsTooltip
-                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn"
+                v-else-if="
+                  isAddDeleteInlineEnabled && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn
+                "
                 :entity="PermissionEntity.TABLE"
                 :entity-id="meta?.id"
                 :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -883,21 +1203,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                     size="xsmall"
                     type="secondary"
                     :disabled="!isAllowed"
-                    @click="
-                () => {
-                  const record = {
-                    row: {
-                      [calendarRange[0].fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
-                      ...(calendarRange[0].fk_to_col
-                        ? {
-                            [calendarRange[0].fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
-                          }
-                        : {}),
-                    },
-                  }
-                  emit('newRecord', record)
-                }
-              "
+                    @click="addRecordWithRange(calendarRange[0], day.date)"
                   >
                     <component :is="iconMap.plus" />
                   </NcButton>
@@ -907,12 +1213,17 @@ const addRecord = (date: dayjs.Dayjs) => {
                 :class="{
                   'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
                 }"
-                class="px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
+                class="nc-calendar-day-label px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
               >
                 {{ day.dayNumber }}
               </span>
             </div>
-            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 text-[13px] p-3">{{ day.dayNumber }}</div>
+            <div
+              v-if="!(canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
+              class="leading-3 text-[13px] p-3"
+            >
+              {{ day.dayNumber }}
+            </div>
 
             <NcDropdown
               v-if="
@@ -920,10 +1231,17 @@ const addRecord = (date: dayjs.Dayjs) => {
                 recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflow &&
                 !draggingId
               "
+              :trigger="isMobileMode ? [] : ['click']"
             >
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"
                 class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
+                :class="{
+                  // Interfaces can render narrow day columns (collapsed weekends in a
+                  // small viz) — clamp the badge to its own cell so it can't spill
+                  // across the border and collide with the neighbouring day's badge.
+                  'max-w-[calc(100%_-_8px)] overflow-hidden': !!interfacePageDataApi,
+                }"
                 size="xxsmall"
                 type="secondary"
                 @click="viewMore(day.date)"
@@ -938,10 +1256,8 @@ const addRecord = (date: dayjs.Dayjs) => {
                     :key="idx"
                     :draggable="false"
                     class="w-64"
-                    :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
                     :invalid="false"
                     :row="record"
-                    :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
                     data-testid="nc-sidebar-record-card"
                     @click="emit('expandRecord', record)"
                   >
@@ -960,6 +1276,9 @@ const addRecord = (date: dayjs.Dayjs) => {
                     <template v-else>
                       <span class="text-nc-content-gray-muted"> - </span>
                     </template>
+                    <template #tooltip>
+                      <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
+                    </template>
                   </LazySmartsheetCalendarSideRecordCard>
                 </div>
               </template>
@@ -969,7 +1288,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       </div>
     </div>
     <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
-      <template v-for="record in recordsToDisplay.records">
+      <template v-for="record in visibleRecords">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :key="record.rowMeta.id"
@@ -993,6 +1312,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @mousedown.stop="dragStart($event, record)"
+          @contextmenu="emit('recordContextMenu', $event, record)"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
@@ -1000,26 +1320,38 @@ const addRecord = (date: dayjs.Dayjs) => {
               :position="record.rowMeta.position"
               :record="record"
               :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
-              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
+              :label-attachment="recordLabelAttachment(record)"
               @resize-start="onResizeStart"
             >
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
                 <span class="text-xs font-medium text-nc-content-gray-disabled">
                   {{
-                    timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1)
+                    is12hrTimeColumn(record.rowMeta.range?.fk_from_col)
+                      ? timezoneDayjs
+                          .timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!])
+                          .format('h:mma')
+                          .slice(0, -1)
+                      : timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('HH:mm')
                   }}
                 </span>
               </template>
-              <template v-for="field in fields" :key="field.id">
+              <!-- Range (date) columns are shown as the time prefix already, so
+                   they're excluded here — the card body stays a clean title line
+                   by default across every theme. -->
+              <template v-for="field in cardFields" :key="field.id">
                 <LazySmartsheetPlainCell
-                  v-if="!isRowEmpty(record, field!)"
+                  v-if="!isRowEmpty(record, field!) && !rangeFieldIds.has(field!.id)"
                   v-model="record.row[field!.title!]"
                   class="text-xs"
-                  :bold="fieldStyles[field.id].bold"
+                  :bold="fieldStyles[field.id!]?.bold"
                   :column="field"
-                  :italic="fieldStyles[field.id].italic"
-                  :underline="fieldStyles[field.id].underline"
+                  :italic="fieldStyles[field.id!]?.italic"
+                  :underline="fieldStyles[field.id!]?.underline"
                 />
+              </template>
+              <template #tooltip>
+                <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
               </template>
             </LazySmartsheetCalendarRecordCard>
           </LazySmartsheetRow>

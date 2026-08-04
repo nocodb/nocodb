@@ -27,9 +27,23 @@ const source = toRef(props, 'source')
 
 const base = toRef(props, 'base')
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
+
+const airtableImportReason = computed(() =>
+  sandboxRestrictionReason('airtableImport', { roles: baseRole.value, source: source.value }),
+)
+
+const csvImportReason = computed(() => sandboxRestrictionReason('csvImport', { roles: baseRole.value, source: source.value }))
+
+const jsonImportReason = computed(() => sandboxRestrictionReason('jsonImport', { roles: baseRole.value, source: source.value }))
+
+const excelImportReason = computed(() => sandboxRestrictionReason('excelImport', { roles: baseRole.value, source: source.value }))
+
+const anyImportReason = computed(
+  () => !!airtableImportReason.value || !!csvImportReason.value || !!jsonImportReason.value || !!excelImportReason.value,
+)
 
 const { $e } = useNuxtApp()
 
@@ -82,6 +96,11 @@ function openQuickImportDialog(type: string) {
 <template>
   <!-- Quick Import From -->
   <NcSubMenu
+    v-if="
+      ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
+        isUIAllowed(permission, { roles: baseRole, source }),
+      ) || anyImportReason
+    "
     class="py-0"
     :class="submenuClass"
     data-testid="nc-sidebar-base-import"
@@ -102,44 +121,68 @@ function openQuickImportDialog(type: string) {
 
     <slot name="label"> </slot>
 
-    <NcMenuItem
-      v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
-      key="quick-import-airtable"
-      v-e="['c:import:airtable']"
-      @click="openAirtableImportDialog(source.base_id, source.id)"
+    <NcTooltip
+      v-if="isUIAllowed('airtableImport', { roles: baseRole, source }) || !!airtableImportReason"
+      :title="airtableImportReason ? $t(airtableImportReason) : ''"
+      :disabled="!airtableImportReason"
     >
-      <GeneralIcon icon="airtable" class="max-w-3.75" />
-      <div class="ml-0.5">{{ $t('labels.airtableBase') }}</div>
-    </NcMenuItem>
+      <NcMenuItem
+        key="quick-import-airtable"
+        v-e="['c:import:airtable']"
+        :disabled="!!airtableImportReason"
+        @click="!airtableImportReason && openAirtableImportDialog(source.base_id, source.id)"
+      >
+        <GeneralIcon icon="airtable" class="max-w-3.75" />
+        <div class="ml-0.5">{{ $t('labels.airtableBase') }}</div>
+      </NcMenuItem>
+    </NcTooltip>
 
-    <NcMenuItem
-      v-if="isUIAllowed('csvImport', { roles: baseRole, source })"
-      key="quick-import-csv"
-      v-e="['c:import:csv']"
-      @click="openQuickImportDialog('csv')"
+    <NcTooltip
+      v-if="isUIAllowed('csvImport', { roles: baseRole, source }) || !!csvImportReason"
+      :title="csvImportReason ? $t(csvImportReason) : ''"
+      :disabled="!csvImportReason"
     >
-      <GeneralIcon icon="ncFileTypeCsvSmall" class="w-4 h-4" />
-      {{ $t('labels.csvFile') }}
-    </NcMenuItem>
+      <NcMenuItem
+        key="quick-import-csv"
+        v-e="['c:import:csv']"
+        :disabled="!!csvImportReason"
+        @click="!csvImportReason && openQuickImportDialog('csv')"
+      >
+        <GeneralIcon icon="ncFileTypeCsvSmall" class="w-4 h-4" />
+        {{ $t('labels.csvFile') }}
+      </NcMenuItem>
+    </NcTooltip>
 
-    <NcMenuItem
-      v-if="isUIAllowed('jsonImport', { roles: baseRole, source })"
-      key="quick-import-json"
-      v-e="['c:import:json']"
-      @click="openQuickImportDialog('json')"
+    <NcTooltip
+      v-if="isUIAllowed('jsonImport', { roles: baseRole, source }) || !!jsonImportReason"
+      :title="jsonImportReason ? $t(jsonImportReason) : ''"
+      :disabled="!jsonImportReason"
     >
-      <GeneralIcon icon="ncFileTypeJson" class="h-4" />
-      {{ $t('labels.jsonFile') }}
-    </NcMenuItem>
+      <NcMenuItem
+        key="quick-import-json"
+        v-e="['c:import:json']"
+        :disabled="!!jsonImportReason"
+        @click="!jsonImportReason && openQuickImportDialog('json')"
+      >
+        <GeneralIcon icon="ncFileTypeJson" class="h-4" />
+        {{ $t('labels.jsonFile') }}
+      </NcMenuItem>
+    </NcTooltip>
 
-    <NcMenuItem
-      v-if="isUIAllowed('excelImport', { roles: baseRole, source })"
-      key="quick-import-excel"
-      v-e="['c:import:excel']"
-      @click="openQuickImportDialog('excel')"
+    <NcTooltip
+      v-if="isUIAllowed('excelImport', { roles: baseRole, source }) || !!excelImportReason"
+      :title="excelImportReason ? $t(excelImportReason) : ''"
+      :disabled="!excelImportReason"
     >
-      <GeneralIcon icon="ncFileTypeExcel" class="w-4 h-4" />
-      {{ $t('labels.microsoftExcel') }}
-    </NcMenuItem>
+      <NcMenuItem
+        key="quick-import-excel"
+        v-e="['c:import:excel']"
+        :disabled="!!excelImportReason"
+        @click="!excelImportReason && openQuickImportDialog('excel')"
+      >
+        <GeneralIcon icon="ncFileTypeExcel" class="w-4 h-4" />
+        {{ $t('labels.microsoftExcel') }}
+      </NcMenuItem>
+    </NcTooltip>
   </NcSubMenu>
 </template>

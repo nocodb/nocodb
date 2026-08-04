@@ -12,6 +12,7 @@ const { t } = useI18n()
 const showUpgrade = () => {
   handleUpgradePlan({
     content: t('upgrade.upgradeGenericSubtitle'),
+    triggerSource: 'ws-topbar',
   })
 }
 
@@ -28,7 +29,7 @@ const workspaceTitle = computed(() => {
       {{ workspaceTitle }}
     </h1>
     <div
-      v-if="isEeUI && showEEFeatures"
+      v-if="showEEFeatures"
       dir="ltr"
       class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
     >

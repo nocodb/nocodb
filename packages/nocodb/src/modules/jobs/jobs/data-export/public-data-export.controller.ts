@@ -11,6 +11,7 @@ import {
 import { ViewTypes } from 'nocodb-sdk';
 import type { DataExportJobData } from '~/interface/Jobs';
 import { BasesService } from '~/services/bases.service';
+import { PublicDatasService } from '~/services/public-datas.service';
 import { View } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -25,6 +26,7 @@ export class PublicDataExportController {
   constructor(
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
+    protected readonly publicDatasService: PublicDatasService,
   ) {}
 
   @Post(['/api/v2/public/export/:publicDataUuid/:exportAs'])
@@ -33,7 +35,7 @@ export class PublicDataExportController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('publicDataUuid') publicDataUuid: string,
-    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel',
+    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel' | 'ics',
     @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.getByUUID(context, publicDataUuid);
@@ -60,12 +62,17 @@ export class PublicDataExportController {
         ...(options ?? {}),
         // includeByteOrderMark when export is triggered from controller
         includeByteOrderMark: true,
+        // Anonymous export: the ICS description otherwise builds from all model
+        // columns, including view-hidden ones.
+        isPublicExport: true,
       },
       modelId: view.fk_model_id,
       viewId: view.id,
       user: req.user,
       exportAs,
       ncSiteUrl: req.ncSiteUrl,
+      locale:
+        (req.headers?.['accept-language'] || '').split(',')[0] || undefined,
     });
 
     return {

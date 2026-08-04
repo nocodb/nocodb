@@ -30,7 +30,7 @@ const up = async (knex: Knex) => {
   }
 
   // find super user
-  const superUser = await knex(MetaTable.USERS)
+  let superUser = await knex(MetaTable.USERS)
     .where('roles', 'like', '%super%')
     .first();
 
@@ -43,9 +43,24 @@ const up = async (knex: Knex) => {
     if (!userCount || +userCount.count === 0) {
       return;
     }
-    throw new Error(
-      'No super user found in the system, cannot create default workspace',
-    );
+
+    // Mark first created user on instance as super user
+    const firstUser = await knex(MetaTable.USERS)
+      .orderBy('created_at', 'asc')
+      .first();
+
+    if (!firstUser)
+      throw new Error(
+        'No appropriate user found in the system, cannot create default workspace',
+      );
+
+    await knex(MetaTable.USERS)
+      .update({
+        roles: 'org-level-creator,super',
+      })
+      .where('id', firstUser.id);
+
+    superUser = firstUser;
   }
 
   const defaultWorkspaceId = `w${nanoidWorkspace()}`;

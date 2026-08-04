@@ -137,6 +137,18 @@ export class AuthController {
   ])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async me(@Req() req: NcRequest) {
+    // GlobalGuard silently falls back to a guest user when JWT validation
+    // fails. If the caller supplied a JWT (xc-auth header or nc_token cookie)
+    // and we ended up as guest, the token is invalid/expired — surface 401
+    // so the client can refresh or sign out instead of consuming a guest
+    // identity that flips the UI's session state mid-flight.
+    if (
+      (req.headers?.['xc-auth'] || req.cookies?.nc_token) &&
+      (req.user as any)?.roles?.guest
+    ) {
+      NcError.unauthorized('Token Expired. Please login again.');
+    }
+
     const user = {
       ...req.user,
       roles: extractRolesObj(req.user.roles),
@@ -272,7 +284,12 @@ export class AuthController {
           {
             ncPublicUrl: ncSiteUrl || '',
             token: tokenId,
-            baseUrl: `/`,
+            // Honor the configured site URL so the in-page API calls resolve
+            // correctly when NocoDB is served from a sub-path / behind a
+            // reverse proxy (e.g. https://example.com/noco). Falling back to
+            // `/` keeps root deployments working. Used as `<%= baseUrl %>api/..`
+            // so it must carry a single trailing slash.
+            baseUrl: ncSiteUrl ? `${ncSiteUrl.replace(/\/+$/, '')}/` : `/`,
           },
         ),
       );

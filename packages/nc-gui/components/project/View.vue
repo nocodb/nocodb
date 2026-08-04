@@ -24,6 +24,8 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
+const { productName } = useBranding()
+
 const { $e, $api } = useNuxtApp()
 
 const {
@@ -34,6 +36,7 @@ const {
   isWsAuditEnabled,
   isEEFeatureBlocked,
   showEEFeatures,
+  hideInterfaces,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -84,14 +87,13 @@ const userCount = computed(() => {
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(
-  () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
+  () => !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
 )
 
 const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
 
 const isWorkflowsTabVisible = computed(
   () =>
-    isEeUI &&
     appInfo.value?.ee &&
     isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
     isUIAllowed('workflowCreateOrEdit') &&
@@ -114,11 +116,15 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (value === 'permissions' && showEEFeatures.value && showUpgradeToUseTableAndFieldPermissions()) {
+    if (
+      value === 'permissions' &&
+      showEEFeatures.value &&
+      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'project-table-field-permissions' })
+    ) {
       return
     }
 
-    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync()) {
+    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync({ triggerSource: 'project-sync' })) {
       return
     }
 
@@ -179,9 +185,13 @@ watch(
         projectPageTab.value = 'workflows'
       } else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
-      } else if (newVal === 'snapshots' && isEeUI) {
+      } else if (newVal === 'variables' && showEEFeatures.value) {
+        projectPageTab.value = 'variables'
+      } else if (newVal === 'interface-members' && showEEFeatures.value && !hideInterfaces.value) {
+        projectPageTab.value = 'interface-members'
+      } else if (newVal === 'snapshots' && showEEFeatures.value) {
         projectPageTab.value = 'snapshots'
-      } else if (newVal === 'record-trash' && isEeUI) {
+      } else if (newVal === 'record-trash' && showEEFeatures.value) {
         projectPageTab.value = 'record-trash'
       } else {
         projectPageTab.value = 'collaborator'
@@ -205,9 +215,11 @@ const { t } = useI18n()
 const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     'collaborator': t('labels.addUserToBase'),
+    'interface-members': t('labels.addUserToInterface'),
     'permissions': t('labels.dataPermissions'),
     'docs-permissions': t('labels.docsPermissions'),
     'mcp': t('title.mcpServer'),
+    'variables': t('title.baseVariables'),
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
     'record-trash': t('trash.settings'),
@@ -232,7 +244,10 @@ watch(projectPageTab, () => {
     const wsId = route.value.params.typeOrId
 
     const baseId = route.value.params.baseId
-    navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
+    navigateTo({
+      path: `/${wsId}/${baseId}/settings/${slug}`,
+      query: route.value.query,
+    })
     return
   }
 
@@ -262,7 +277,7 @@ watch(
   () => {
     if (activeTable.value?.title) return
 
-    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
+    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? productName.value ?? 'NocoDB'}`)
   },
   {
     immediate: true,
@@ -383,8 +398,10 @@ watch(
         </div>
       </div>
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
+        <SmartsheetTopbarVariableSetupWarning />
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
+        <LazySmartsheetTopbarHistory />
         <LazyGeneralShareProject v-if="!props.tab" />
       </div>
     </div>
@@ -439,6 +456,18 @@ watch(
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
+        <a-tab-pane
+          v-if="showEEFeatures && !hideInterfaces && isUIAllowed('interfaceUsersMatrix', { roles: baseRoles }) && base.id"
+          key="interface-members"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__interface-members">
+              <GeneralIcon icon="ncUsers" />
+              <div>{{ $t('labels.addUserToInterface') }}</div>
+            </div>
+          </template>
+          <ProjectInterfaceMembers />
+        </a-tab-pane>
         <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__workflows">
@@ -458,7 +487,7 @@ watch(
           </template>
           <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
@@ -472,10 +501,7 @@ watch(
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures"
-          key="docs-permissions"
-        >
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__docs-permissions">
               <GeneralIcon icon="ncFileText" />
@@ -517,11 +543,11 @@ watch(
           </template>
           <DashboardSettingsBaseIntegrations :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
-              <div>Syncs</div>
+              <div>{{ $t('labels.manageSyncs') }}</div>
               <LazyPaymentUpgradeBadge
                 :feature="PlanFeatureTypes.FEATURE_SYNC"
                 :feature-enabled-callback="() => !isEEFeatureBlocked"
@@ -552,10 +578,18 @@ watch(
             <DashboardSettingsBaseMCP />
           </div>
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && showEEFeatures && isUIAllowed('recordTrashSettingsList') && base.id && !isMobileMode"
-          key="record-trash"
-        >
+        <a-tab-pane v-if="showEEFeatures && base.id && !isMobileMode" key="variables">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__variables">
+              <GeneralIcon icon="ncSettings" />
+              <div>{{ $t('title.baseVariables') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseVariables />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode" key="record-trash">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__record-trash">
               <GeneralIcon icon="ncTrash2" />
@@ -567,14 +601,7 @@ watch(
           </div>
         </a-tab-pane>
         <a-tab-pane
-          v-if="
-            isEeUI &&
-            isUIAllowed('baseMiscSettings') &&
-            isUIAllowed('manageSnapshot') &&
-            base.id &&
-            !isMobileMode &&
-            showEEFeatures
-          "
+          v-if="isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode && showEEFeatures"
           key="snapshots"
         >
           <template #tab>

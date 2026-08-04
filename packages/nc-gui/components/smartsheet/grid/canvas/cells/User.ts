@@ -83,7 +83,7 @@ export const UserFieldCellRenderer: CellRenderer = {
     for (const user of users) {
       const userDisplayName = user.display_name?.trim() ?? ''
       const userEmail = user.email ?? ''
-      const displayName = userDisplayName || userEmail
+      const displayName = extractUserDisplayNameOrEmail(user)
 
       const isDeleted = user.deleted
 
@@ -129,7 +129,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
       const userIcon = getUserIcon(user.meta)
       const isImage = userIcon.icon && userIcon.iconType === IconType.IMAGE && !!userIcon.icon[0]
-      const initials = usernameInitials(userDisplayName, userEmail)
+      const initials = usernameInitials(displayName, userEmail)
       const circleSize = 19
       const circleRadius = circleSize / 2
       const enableBackground = isDeleted ? true : !isImage
@@ -226,11 +226,15 @@ export const UserFieldCellRenderer: CellRenderer = {
     }
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers, isInterface }) {
     const { hideTooltip, tryShowTooltip } = useTooltipStore()
     hideTooltip()
 
     if (!selected) return
+
+    // Interface pages: the chip already names the user — the name/email/base-role
+    // hover card is collaborator-facing chrome (and leaks roles to consumers).
+    if (isInterface) return
 
     const getUserRole = (email: string) => {
       const user = (baseUsers || []).find((user) => user.email === email)
@@ -262,7 +266,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     let line = 1
     for (const user of users) {
-      const displayName = user.display_name?.trim() || user.email!
+      const displayName = extractUserDisplayNameOrEmail(user)
 
       const { width: textWidth } = renderSingleLineText(ctx, {
         text: displayName,
@@ -286,7 +290,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         y: y + 6,
         width: minTagWidth,
         height: tagHeight,
-        display_name: user.display_name?.trim(),
+        display_name: extractUserDisplayNameOrEmail(user),
         email: user.email,
         deleted: user.deleted,
       })

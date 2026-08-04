@@ -24,7 +24,10 @@ export interface Marker {
 
 const markers: Marker[] = [
   { open: '**', close: '**', style: 'bold' },
+  // '*' must come after '**' so '**bold**' resolves to bold, not italic-italic.
+  { open: '*', close: '*', style: 'italic' },
   { open: '_', close: '_', style: 'italic' },
+  { open: '~~', close: '~~', style: 'strikethrough' },
   { open: '<u>', close: '</u>', style: 'underline' },
   { open: '<s>', close: '</s>', style: 'strikethrough' },
   {
@@ -96,7 +99,7 @@ const markers: Marker[] = [
 
       const newStyles: MarkdownStyle[] = [...activeStyles, 'mention']
 
-      const displayValue = displayName && displayName.length > 0 ? displayName : email
+      const displayValue = extractUserDisplayNameOrEmail({ display_name: displayName, email })
 
       return {
         tokens: [
@@ -271,6 +274,12 @@ export const getFontForToken = (
 ): string => {
   const { baseFontSize, fontFamily } = props
 
+  // Callers may pass a full font shorthand (e.g. '500 13px Inter') instead of
+  // just a family name. Strip any leading weight + size so the recombined
+  // string below stays a valid CSS font shorthand — otherwise canvas silently
+  // rejects the assignment and bold/italic never apply.
+  const familyOnly = fontFamily.replace(/^(?:\d+\s+)?\d+(?:\.\d+)?(?:px|pt|em|rem)\s+/, '')
+
   const fontParts: string[] = []
   const fontSize = baseFontSize
 
@@ -283,7 +292,7 @@ export const getFontForToken = (
   }
 
   fontParts.push(`${fontSize}px`)
-  fontParts.push(fontFamily)
+  fontParts.push(familyOnly)
   return fontParts.join(' ')
 }
 
@@ -300,7 +309,7 @@ function updateMentionsWithUserData(
       if (foundUser) {
         return {
           ...token,
-          value: `${foundUser.display_name || foundUser.email || id}`,
+          value: `${extractUserDisplayNameOrEmail(foundUser) || id}`,
           mentionData: {
             ...token.mentionData,
             email: foundUser.email,

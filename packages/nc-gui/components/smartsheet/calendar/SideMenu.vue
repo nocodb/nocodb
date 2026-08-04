@@ -42,9 +42,40 @@ const {
   updateFormat,
   timezone,
   timezoneDayjs,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
+  weeksInRange,
+  isMultiWeekRange,
+  isAddDeleteInlineEnabled,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+
+// Interface editor: the side-panel "New record" button selects the calendar
+// element (opens `Page › Calendar`) instead of adding a record. Null in the
+// published view and outside interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
+// Interface pages: the side panel is the RECORD LIST only — the toolbar's
+// date navigation already covers moving around, so the date/month/year
+// pickers are dropped. Core calendar keeps them.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+// Day-anchored modes ('3day', custom + day-unit) anchor on a single day; the picker
+// selects the first visible day and the window spans that day + (N-1). Mirrors the
+// calendar toolbar header so the side-panel selector navigates the same canonical cursors.
+const dayAnchoredDate = computed<dayjs.Dayjs>({
+  get: () => timezoneDayjs.timezonize(selectedDateRange.value.start),
+  set: (date: dayjs.Dayjs) => {
+    const start = date.startOf('day')
+    selectedDate.value = start
+    if (pageDate.value.month() !== start.month()) pageDate.value = start
+    selectedDateRange.value = {
+      start,
+      end: start.add(dayAnchoredSpan.value - 1, 'day').endOf('day'),
+    }
+  },
+})
 
 const sideBarListRef = ref<VNodeRef | null>(null)
 
@@ -109,6 +140,10 @@ const renderData = computed<Array<Row>>(() => {
           sideBarFilterOption.value === 'selectedDate' ||
           sideBarFilterOption.value === 'selectedHours' ||
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '3day' ||
+          sideBarFilterOption.value === '2week' ||
+          sideBarFilterOption.value === '6week' ||
+          sideBarFilterOption.value === 'custom' ||
           sideBarFilterOption.value === 'day'
         ) {
           let fromDate: dayjs.Dayjs | null = null
@@ -119,6 +154,25 @@ const renderData = computed<Array<Row>>(() => {
               fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
               toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
               break
+            case '3day':
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
+              break
+            case 'custom':
+              if (isDayAnchoredMode.value) {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+                toDate = timezoneDayjs
+                  .dayjsTz(selectedDateRange.value.start)
+                  .add(dayAnchoredSpan.value - 1, 'day')
+                  .endOf('day')
+              } else {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+                toDate = fromDate
+                  .clone()
+                  .add(weeksInRange.value * 7 - 1, 'day')
+                  .endOf('day')
+              }
+              break
             case 'year':
               fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
               toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('year')
@@ -128,9 +182,16 @@ const renderData = computed<Array<Row>>(() => {
               toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
               break
             case 'week':
+            case '2week':
+            case '6week': {
+              const weeks = sideBarFilterOption.value === '2week' ? 2 : sideBarFilterOption.value === '6week' ? 6 : 1
               fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
-              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
+              toDate = fromDate
+                .clone()
+                .add(weeks * 7 - 1, 'day')
+                .endOf('day')
               break
+            }
             case 'day':
               fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
               toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
@@ -170,6 +231,10 @@ const renderData = computed<Array<Row>>(() => {
           }
         } else if (
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '3day' ||
+          sideBarFilterOption.value === '2week' ||
+          sideBarFilterOption.value === '6week' ||
+          sideBarFilterOption.value === 'custom' ||
           sideBarFilterOption.value === 'month' ||
           sideBarFilterOption.value === 'year'
         ) {
@@ -177,10 +242,36 @@ const renderData = computed<Array<Row>>(() => {
           let toDate: dayjs.Dayjs
 
           switch (sideBarFilterOption.value) {
-            case 'week':
-              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
-              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
+            case '3day':
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
               break
+            case 'custom':
+              if (isDayAnchoredMode.value) {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+                toDate = timezoneDayjs
+                  .dayjsTz(selectedDateRange.value.start)
+                  .add(dayAnchoredSpan.value - 1, 'day')
+                  .endOf('day')
+              } else {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+                toDate = fromDate
+                  .clone()
+                  .add(weeksInRange.value * 7 - 1, 'day')
+                  .endOf('day')
+              }
+              break
+            case 'week':
+            case '2week':
+            case '6week': {
+              const weeks = sideBarFilterOption.value === '2week' ? 2 : sideBarFilterOption.value === '6week' ? 6 : 1
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+              toDate = fromDate
+                .clone()
+                .add(weeks * 7 - 1, 'day')
+                .endOf('day')
+              break
+            }
             case 'month':
               fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
               toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
@@ -207,48 +298,92 @@ const options = computed(() => {
     case 'day' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In this day', value: 'day' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inThisDay'), value: 'day' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       } else {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In this day', value: 'day' },
-          { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inThisDay'), value: 'day' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
+        ]
+      }
+    case '3day' as const:
+      if (calDataType.value === UITypes.Date) {
+        return [
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedRange'), value: '3day' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
+        ]
+      } else {
+        return [
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedRange'), value: '3day' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       }
     case 'week' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedWeek'), value: 'week' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       } else {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedWeek'), value: 'week' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       }
+    case '2week' as const:
+      return [
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: '2week' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
+      ]
+    case '6week' as const:
+      return [
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: '6week' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
+      ]
+    case 'custom' as const: {
+      const customOptions = [
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: 'custom' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+      ]
+      // Day-anchored DateTime windows expose the hour filter, mirroring 3-day/week.
+      if (isDayAnchoredMode.value && calDataType.value !== UITypes.Date) {
+        customOptions.push({ label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' })
+      }
+      customOptions.push({ label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' })
+      return customOptions
+    }
     case 'month' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In this month', value: 'month' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inThisMonth'), value: 'month' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
     case 'year' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In this year', value: 'year' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inThisYear'), value: 'year' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
   }
 })
@@ -266,6 +401,9 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
 })
 
 const newRecord = () => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value) return
+
   const row = {
     ...rowDefaultData(meta.value?.columns, user.value ?? undefined),
   }
@@ -273,12 +411,28 @@ const newRecord = () => {
   let fromDate
   if (activeCalendarView.value === 'day') {
     fromDate = selectedDate.value
-  } else if (activeCalendarView.value === 'week') {
+  } else if (
+    activeCalendarView.value === 'week' ||
+    activeCalendarView.value === '3day' ||
+    activeCalendarView.value === '2week' ||
+    activeCalendarView.value === '6week' ||
+    activeCalendarView.value === 'custom'
+  ) {
+    // 3-day / custom are day-anchored or week-aligned, so selectedDateRange.start is
+    // their first visible day (same source the header/today/store use) — week-family
+    // modes use it too.
     fromDate = selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
     fromDate = selectedDate.value ?? selectedMonth.value
   } else if (activeCalendarView.value === 'year') {
     fromDate = selectedDate.value
+  }
+
+  if (!fromDate) {
+    // Unhandled calendar view (e.g. a future mode not wired up here) — surface a toast and
+    // bail instead of throwing on fromDate.format() below.
+    message.error(t('msg.error.unableToCreateRecordInThisView'))
+    return
   }
 
   // Set the from date
@@ -348,10 +502,10 @@ const selectOption = (option) => {
       '!min-w-[100svw]': props.visible && isMobileMode,
       'nc-calendar-side-menu-open': props.visible,
     }"
-    class="h-full relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
+    class="h-full flex flex-col relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
-    <div class="flex min-w-[288px] flex-col">
+    <div v-if="!interfacePageDataApi" class="flex min-w-[288px] flex-col">
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
         v-model:active-dates="activeDates"
@@ -363,7 +517,17 @@ const selectOption = (option) => {
         :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
-        v-else-if="activeCalendarView === ('week' as const)"
+        v-else-if="isDayAnchoredMode"
+        v-model:active-dates="activeDates"
+        v-model:page-date="pageDate"
+        v-model:selected-date="dayAnchoredDate"
+        :timezone="timezone"
+        size="medium"
+        header="v2"
+        :hide-calendar="height < 700"
+      />
+      <NcDateWeekSelector
+        v-else-if="activeCalendarView === ('week' as const) || isMultiWeekRange"
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-week="selectedDateRange"
@@ -395,10 +559,10 @@ const selectOption = (option) => {
 
     <div
       :class="{
-        '!border-t-0 ': height < 700,
-        'pt-6': height >= 700,
+        '!border-t-0 ': height < 700 || !!interfacePageDataApi,
+        'pt-6': height >= 700 && !interfacePageDataApi,
       }"
-      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-col gap-y-3"
+      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-1 min-h-0 flex-col gap-y-3"
     >
       <div class="flex px-4 h-8 items-center gap-3">
         <NcDropdown v-model:visible="isDropdownOpen">
@@ -464,7 +628,7 @@ const selectOption = (option) => {
           }"
           class="!rounded-lg !h-8 !placeholder:text-nc-content-gray-muted !px-4"
           data-testid="nc-calendar-sidebar-search"
-          placeholder="Search records"
+          :placeholder="$t('placeholder.searchRecords')"
           @keydown.esc="toggleSearch"
         >
           <template #prefix>
@@ -478,7 +642,7 @@ const selectOption = (option) => {
         </a-input>
       </div>
       <div
-        v-if="isViewOperationsAllowed || (isUIAllowed('dataEdit') && props.visible && !isSyncedTable)"
+        v-if="isViewOperationsAllowed || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled && props.visible && !isSyncedTable)"
         class="mx-4 gap-2 flex items-center"
       >
         <LazySmartsheetToolbarSortListMenu v-if="isViewOperationsAllowed" />
@@ -486,7 +650,7 @@ const selectOption = (option) => {
         <div class="flex-1" />
 
         <PermissionsTooltip
-          v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"
+          v-if="isUIAllowed('dataEdit') && isAddDeleteInlineEnabled && props.visible && !isSyncedTable"
           :entity="PermissionEntity.TABLE"
           :entity-id="meta?.id"
           :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -503,7 +667,7 @@ const selectOption = (option) => {
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncPlus" />
-              Record
+              {{ $t('general.record') }}
             </div>
           </NcButton>
         </PermissionsTooltip>
@@ -512,25 +676,7 @@ const selectOption = (option) => {
       <div
         v-if="calendarRange?.length"
         :ref="sideBarListRef"
-        :class="{
-          '!h-[calc(100svh-22.15rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-24.9rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-13.85rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-16.61rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-30.15rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          ' !h-[calc(100svh-32.9rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-          '!h-[calc(100svh-13.8rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          '!h-[calc(100svh-16.6rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-        }"
-        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto"
+        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto flex-1 min-h-0"
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >
@@ -568,6 +714,9 @@ const selectOption = (option) => {
                 <template v-else>
                   <span class="text-nc-content-gray-muted"> - </span>
                 </template>
+                <template #tooltip>
+                  <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
+                </template>
               </LazySmartsheetCalendarSideRecordCard>
             </SmartsheetRow>
           </div>
@@ -576,22 +725,47 @@ const selectOption = (option) => {
       <div
         v-else
         :class="{
+          // Interface: no picker above — `h-full` already fills the flexing panel.
           '!h-[calc(100svh-22.15rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            !showSearch,
           '!h-[calc(100svh-24.9rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            showSearch,
           '!h-[calc(100svh-13.85rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            !showSearch,
           '!h-[calc(100svh-16.61rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            showSearch,
           '!h-[calc(100svh-30.15rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            !showSearch,
           ' !h-[calc(100svh-32.9rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            showSearch,
           '!h-[calc(100svh-13.8rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            !showSearch,
           '!h-[calc(100svh-16.6rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            showSearch,
         }"
         class="flex items-center justify-center h-full"
       >

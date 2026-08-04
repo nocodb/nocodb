@@ -1070,7 +1070,7 @@
                         "type": "Number",
                         "default_value": "34",
                         "options": {
-                          "locale_string": true
+                          "separator": "comma_period"
                         }
                       },
                       {
@@ -1282,7 +1282,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "separator": "comma_period"
                           }
                         },
                         {
@@ -1572,7 +1572,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "separator": "comma_period"
                           }
                         },
                         {
@@ -2431,6 +2431,152 @@
             "description": "Field was deleted."
           },
           "404": {
+            "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/fields/{fieldId}/options": {
+      "post": {
+        "summary": "Add field options",
+        "description": "Add one or more choices (options) to a SingleSelect or MultiSelect field. Existing choices are kept. Choices whose `title` already exists on the field are skipped (idempotent). Returns the updated field.",
+        "operationId": "field-options-create",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the field."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldOptionsAddReq"
+              },
+              "examples": {
+                "Add choices": {
+                  "value": {
+                    "choices": [
+                      {
+                        "title": "In Progress"
+                      },
+                      {
+                        "title": "Done",
+                        "color": "#36BFFF"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Choices were added. Returns the updated field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body, or the field is not a select field."
+          },
+          "422": {
+            "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove field options",
+        "description": "Remove one or more choices (options) from a SingleSelect or MultiSelect field, addressed by `id`. Ids not present on the field are ignored (idempotent). Removing a choice clears that value from existing records. At least one choice must remain. Returns the updated field.",
+        "operationId": "field-options-delete",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the field."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldOptionsDeleteReq"
+              },
+              "examples": {
+                "Remove choices": {
+                  "value": {
+                    "choices": [
+                      {
+                        "id": "sl_xxxxxxxxxxxxxx"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Choices were removed. Returns the updated field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body, the field is not a select field, or the request would remove the last remaining choice."
+          },
+          "422": {
             "description": "Field not found."
           },
           "500": {
@@ -8739,6 +8885,16 @@
             }
           }
         },
+        "AutoNumber": {
+          "title": "AutoNumber",
+          "properties": {
+            "type": {
+              "enum": [
+                "AutoNumber"
+              ]
+            }
+          }
+        },
         "QrCode": {
           "title": "QrCode",
           "properties": {
@@ -9404,6 +9560,11 @@
               "desc"
             ],
             "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
+          },
+          "enabled": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation."
           }
         },
         "required": [
@@ -9826,7 +9987,9 @@
               "kanban",
               "calendar",
               "form",
-              "map"
+              "map",
+              "timeline",
+              "gantt"
             ],
             "description": "Type of the view."
           }
@@ -9896,7 +10059,9 @@
                     "kanban",
                     "calendar",
                     "form",
-                    "map"
+                    "map",
+                    "timeline",
+                    "gantt"
                   ],
                   "description": "Type of the view."
                 },
@@ -9959,7 +10124,10 @@
                 "kanban",
                 "calendar",
                 "map",
-                "form"
+                "form",
+                "timeline",
+                "gantt",
+                "list"
               ],
               "description": "Type of the view."
             },
@@ -10204,6 +10372,138 @@
           "date_ranges"
         ]
       },
+      "ViewOptionsTimeline": {
+        "type": "object",
+        "description": "Timeline view configuration. A timeline may have multiple date ranges (e.g. \"planned\" vs \"actual\"); each range has a required start field and an optional end field.",
+        "additionalProperties": false,
+        "properties": {
+          "date_ranges": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "start_date_field_id": {
+                  "type": "string",
+                  "description": "Field ID of the start date column."
+                },
+                "end_date_field_id": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Field ID of the end date column. Null means the range is a single point in time."
+                }
+              },
+              "required": [
+                "start_date_field_id"
+              ]
+            }
+          }
+        }
+      },
+      "ViewOptionsTimelineCreate": {
+        "description": "Timeline view configuration on create — same shape as ViewOptionsTimeline but requires date_ranges. Update (PATCH) uses the base schema so partial updates are allowed.",
+        "allOf": [
+          { "$ref": "#/components/schemas/ViewOptionsTimeline" },
+          { "required": ["date_ranges"] }
+        ]
+      },
+      "ViewOptionsGantt": {
+        "type": "object",
+        "description": "Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON.",
+        "additionalProperties": false,
+        "properties": {
+          "date_dependency": {
+            "oneOf": [
+              { "$ref": "#/components/schemas/DateDependency" },
+              { "type": "null" }
+            ],
+            "description": "The view-owned date dependency rule. When null, the gantt falls back to the table-level default rule (if any). PATCH replaces the entire object — no partial updates."
+          }
+        }
+      },
+      "ViewOptionsGanttCreate": {
+        "description": "Gantt view configuration on create — same shape as ViewOptionsGantt but requires date_dependency. Update (PATCH) uses the base schema so partial updates are allowed.",
+        "allOf": [
+          { "$ref": "#/components/schemas/ViewOptionsGantt" },
+          { "required": ["date_dependency"] }
+        ]
+      },
+      "DateDependency": {
+        "type": "object",
+        "description": "Date dependency rule for a gantt view. Top-level properties are all optional; supplying a child object (`dates`, `dependency`) commits to providing every property inside it.",
+        "additionalProperties": false,
+        "properties": {
+          "dates": {
+            "type": "object",
+            "description": "Date column pair. Atomic — supply both or omit the block entirely.",
+            "additionalProperties": false,
+            "properties": {
+              "start_field_id": {
+                "type": "string",
+                "description": "Field ID of the start date column."
+              },
+              "end_field_id": {
+                "type": "string",
+                "description": "Field ID of the end date column."
+              }
+            },
+            "required": [
+              "start_field_id",
+              "end_field_id"
+            ]
+          },
+          "duration_field_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional standalone duration field; independent of the `dates` block."
+          },
+          "dependency": {
+            "type": "object",
+            "description": "Predecessor/successor link configuration. Atomic — supply all five properties or omit the block entirely.",
+            "additionalProperties": false,
+            "properties": {
+              "linkrow_field_id": {
+                "type": "string",
+                "description": "Link-to-another-record field that connects predecessor/successor records."
+              },
+              "linkrow_role": {
+                "type": "string",
+                "enum": ["predecessors", "successors"]
+              },
+              "connection_type": {
+                "type": "string",
+                "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"]
+              },
+              "buffer_type": {
+                "type": "string",
+                "enum": ["flexible", "fixed", "none"]
+              },
+              "buffer_days": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Buffer in days. Meaningful when `buffer_type` is `fixed`; pass 0 when buffer_type is `flexible` or `none`."
+              }
+            },
+            "required": [
+              "linkrow_field_id",
+              "linkrow_role",
+              "connection_type",
+              "buffer_type",
+              "buffer_days"
+            ]
+          },
+          "include_weekends": {
+            "type": "boolean",
+            "default": true
+          },
+          "is_active": {
+            "type": "boolean",
+            "default": true,
+            "description": "Soft-disable the rule without deleting it."
+          }
+        }
+      },
       "ViewOptionsGallery": {
         "type": "object",
         "properties": {
@@ -10215,10 +10515,75 @@
       },
       "ViewOptionsMap": {
         "type": "object",
+        "additionalProperties": false,
         "properties": {
-          "fk_geo_data_col_id": {
+          "geo_data_field_id": {
             "type": "string",
-            "description": "Foreign Key to GeoData Column to be used for the map view."
+            "description": "Field ID of the GeoData column plotted on the map."
+          }
+        }
+      },
+      "ViewOptionsList": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field.",
+        "properties": {
+          "levels": {
+            "type": "array",
+            "description": "Ordered levels of the list. Level 1 is the root table; deeper levels connect to their parent via link_field_id.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "level": {
+                  "type": "number",
+                  "description": "1-based depth of this level (1 = root)."
+                },
+                "table_id": {
+                  "type": "string",
+                  "description": "Table shown at this level."
+                },
+                "link_field_id": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Link field connecting this level to its parent. Omitted/null for the root level."
+                },
+                "filters": {
+                  "$ref": "#/components/schemas/FilterCreate",
+                  "description": "Filters applied at this level."
+                },
+                "sorts": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SortCreate"
+                  },
+                  "description": "Sorts applied at this level."
+                },
+                "fields": {
+                  "$ref": "#/components/schemas/ViewFields",
+                  "description": "Field visibility/order at this level. Listed fields are shown in order; unlisted fields are hidden (same semantics as top-level fields)."
+                }
+              },
+              "required": [
+                "level",
+                "table_id"
+              ]
+            }
+          },
+          "show_empty_parents": {
+            "type": "boolean",
+            "description": "Show parent rows that have no child records."
+          },
+          "row_height": {
+            "type": "string",
+            "enum": [
+              "short",
+              "medium",
+              "tall",
+              "extra"
+            ],
+            "description": "Height of the rows in the list view.",
+            "default": "short"
           }
         }
       },
@@ -10438,6 +10803,76 @@
                 },
                 {
                   "type": "object",
+                  "title": "timeline",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "timeline"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsTimelineCreate"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  },
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "title": "gantt",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "gantt"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGanttCreate"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  },
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
                   "title": "map",
                   "properties": {
                     "type": {
@@ -10483,6 +10918,21 @@
                     },
                     "fields": {
                       "$ref": "#/components/schemas/ViewFields"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "list",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "list"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsList"
                     }
                   }
                 }
@@ -10613,6 +11063,58 @@
                 },
                 {
                   "type": "object",
+                  "title": "timeline",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsTimeline"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "gantt",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGantt"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
                   "title": "map",
                   "properties": {
                     "options": {
@@ -10646,6 +11148,15 @@
                     },
                     "fields": {
                       "$ref": "#/components/schemas/ViewFields"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "list",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsList"
                     }
                   }
                 }
@@ -10843,6 +11354,73 @@
               },
               {
                 "type": "object",
+                "title": "timeline",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "timeline"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsTimeline"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+              },
+              {
+                "type": "object",
+                "title": "gantt",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "gantt"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGantt"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
                 "title": "map",
                 "properties": {
                   "type": {
@@ -10870,6 +11448,21 @@
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
                     "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "list",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "list"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsList"
                   }
                 }
               }
@@ -10932,7 +11525,8 @@
               "LastModifiedBy",
               "LinkToAnotherRecord",
               "User",
-              "JSON"
+              "JSON",
+              "AutoNumber"
             ],
             "description": "Field data type."
           },
@@ -11010,7 +11604,8 @@
                   "CreatedBy",
                   "LastModifiedBy",
                   "User",
-                  "JSON"
+                  "JSON",
+                  "AutoNumber"
                 ],
                 "description": "Field data type."
               }
@@ -11076,9 +11671,18 @@
         "type": "object",
         "title": "Number",
         "properties": {
-          "locale_string": {
-            "type": "boolean",
-            "description": "Show thousand separator on the UI."
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
           }
         },
         "additionalProperties": false
@@ -11092,6 +11696,19 @@
             "description": "Decimal field precision. Defaults to 0",
             "minimum": 0,
             "maximum": 5
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
           }
         },
         "additionalProperties": false
@@ -11304,6 +11921,11 @@
           "show_as_progress": {
             "type": "boolean",
             "description": "Display as a progress bar."
+          },
+          "shape": {
+            "type": "string",
+            "enum": ["bar", "circle"],
+            "description": "Progress bar shape. Only applies when `show_as_progress` is enabled.\n- `bar` (default)\n- `circle`"
           }
         },
         "additionalProperties": false
@@ -11325,7 +11947,7 @@
         "properties": {
           "date_format": {
             "type": "string",
-            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`"
+            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`\n- `dddd YYYY-MM-DD`\n- `ddd YYYY-MM-DD`\n- `dddd DD/MM/YYYY`\n- `ddd DD/MM/YYYY`\n- `dddd MM/DD/YYYY`\n- `ddd MM/DD/YYYY`"
           },
           "time_format": {
             "type": "string",
@@ -11356,7 +11978,7 @@
         "properties": {
           "date_format": {
             "type": "string",
-            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`"
+            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`\n- `dddd YYYY-MM-DD`\n- `ddd YYYY-MM-DD`\n- `dddd DD/MM/YYYY`\n- `ddd DD/MM/YYYY`\n- `dddd MM/DD/YYYY`\n- `ddd MM/DD/YYYY`"
           }
         },
         "additionalProperties": false
@@ -11513,6 +12135,10 @@
           "related_table_lookup_field_id": {
             "type": "string",
             "description": "Lookup field ID in the linked table."
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message when dependent field is deleted"
           }
         },
         "required": [
@@ -11545,6 +12171,23 @@
               "countDistinct",
               "sumDistinct",
               "avgDistinct"
+            ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message when dependent field is deleted"
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style for numeric rollups. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
             ]
           }
         },
@@ -12071,6 +12714,72 @@
         "errorMessage": {
           "oneOf": "Must match either a Filter or a FilterGroup schema."
         }
+      },
+      "FieldOptionAddItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Choice title."
+          },
+          "color": {
+            "type": "string",
+            "description": "Tile color for the choice as a hex code (e.g. `#36BFFF`). Defaults to a palette color when omitted.",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "FieldOptionDeleteItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the choice to remove. Must match an existing choice title exactly."
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "FieldOptionsAddReq": {
+        "type": "object",
+        "description": "Add choices (options) to a SingleSelect/MultiSelect field. Titles that already exist on the field are skipped (idempotent).",
+        "properties": {
+          "choices": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/FieldOptionAddItem"
+            }
+          }
+        },
+        "required": [
+          "choices"
+        ],
+        "additionalProperties": false
+      },
+      "FieldOptionsDeleteReq": {
+        "type": "object",
+        "description": "Remove choices (options) from a SingleSelect/MultiSelect field by title. Titles not present on the field are ignored (idempotent).",
+        "properties": {
+          "choices": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/FieldOptionDeleteItem"
+            }
+          }
+        },
+        "required": [
+          "choices"
+        ],
+        "additionalProperties": false
       },
       "FieldUpdate": {
         "allOf": [
@@ -14188,7 +14897,7 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_percentage_on_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] },
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] },
               "custom_color_schema": {
                 "type": "array",
                 "items": {
@@ -14242,7 +14951,7 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_percentage_on_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] },
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] },
               "custom_color_schema": {
                 "type": "array",
                 "items": {
@@ -14309,7 +15018,7 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_value_in_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] }
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] }
             }
           }
         },
@@ -14365,7 +15074,61 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_value_in_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] }
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] }
+            }
+          }
+        },
+        "required": ["chart_type"]
+      },
+      "WidgetOptionsScatter": {
+        "type": "object",
+        "description": "Options for a scatter plot widget (type=chart, chart_type=scatter). Same data structure as bar chart.",
+        "properties": {
+          "chart_type": { "type": "string", "enum": ["scatter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
+          "data": {
+            "type": "object",
+            "properties": {
+              "x_axis": {
+                "type": "object",
+                "properties": {
+                  "field_id": { "type": "string" },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"] },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" },
+                  "category_limit": { "type": "number" }
+                },
+                "required": ["field_id"]
+              },
+              "y_axis": {
+                "type": "object",
+                "properties": {
+                  "start_at_zero": { "type": "boolean" },
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field_id": { "type": "string" },
+                        "aggregation": { "type": "string" }
+                      },
+                      "required": ["field_id", "aggregation"]
+                    }
+                  },
+                  "group_by": { "type": ["string", "null"] }
+                }
+              }
+            }
+          },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_value_in_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] }
             }
           }
         },
@@ -14447,6 +15210,7 @@
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
@@ -14557,6 +15321,7 @@
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
@@ -14601,6 +15366,7 @@
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
@@ -14920,7 +15686,7 @@
             "type": "string",
             "description": "Comment text (supports markdown).",
             "example": "This is a comment",
-            "maxLength": 3000
+            "maxLength": 10000
           },
           "created_by": {
             "type": "string",
@@ -14965,7 +15731,7 @@
             "type": "string",
             "description": "Comment text (supports markdown).",
             "example": "This is a comment",
-            "maxLength": 3000
+            "maxLength": 10000
           }
         },
         "required": [
@@ -14980,7 +15746,7 @@
             "type": "string",
             "description": "Updated comment text.",
             "example": "Updated comment",
-            "maxLength": 3000
+            "maxLength": 10000
           }
         },
         "required": [

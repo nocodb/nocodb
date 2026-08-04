@@ -139,6 +139,38 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['DATESTR({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
+  DATETIME_FORMAT: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#datetime_format`,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+      custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
+        if (
+          parsedTree.arguments[1] &&
+          parsedTree.arguments[1].type === JSEPNode.LITERAL &&
+          typeof parsedTree.arguments[1].value !== 'string'
+        ) {
+          throw new FormulaError(
+            FormulaErrorType.TYPE_MISMATCH,
+            { key: 'msg.formula.secondParamDateFormatHaveString' },
+            'Second parameter of DATETIME_FORMAT should be a string'
+          );
+        }
+      },
+    },
+    description:
+      'Formats a date / datetime field into a string using the given Day.js format. Supports localized presets such as "LL", "LLL" and "LLLL".',
+    syntax: 'DATETIME_FORMAT(date | datetime, ["format"])',
+    examples: [
+      'DATETIME_FORMAT({column1})',
+      'DATETIME_FORMAT({column1}, "YYYY-MM-DD")',
+      'DATETIME_FORMAT({column1}, "DD MMM YYYY")',
+      'DATETIME_FORMAT({column1}, "LLL")',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
   DAY: {
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#day`,
     validation: {
@@ -896,6 +928,60 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
 
+  WEEKNUM: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#weeknum`,
+
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+        type: FormulaDataTypes.NUMERIC,
+      },
+      custom(_argTypes: FormulaDataTypes[], parsedTree: any) {
+        if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
+          if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.firstParamWeekNumHaveDate' },
+              'First parameter of WEEKNUM should be a date'
+            );
+          }
+        }
+
+        // if second argument is present and literal then validate it
+        if (
+          parsedTree.arguments[1] &&
+          parsedTree.arguments[1].type === JSEPNode.LITERAL
+        ) {
+          const value = parsedTree.arguments[1].value;
+          if (
+            typeof value !== 'string' ||
+            ![
+              'sunday',
+              'monday',
+              'tuesday',
+              'wednesday',
+              'thursday',
+              'friday',
+              'saturday',
+            ].includes(value.toLowerCase())
+          ) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.secondParamWeekNumHaveDate' },
+              'Second parameter of WEEKNUM should be day of week string'
+            );
+          }
+        }
+      },
+    },
+    description:
+      'Retrieve the week number of the year as an integer (1-54). Week 1 is the week containing January 1st, and weeks start on Sunday by default.',
+    syntax: 'WEEKNUM(date, [startDayOfWeek])',
+    examples: ['WEEKNUM("2021-06-09")', 'WEEKNUM(NOW(), "monday")'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+
   TRUE: {
     validation: {
       args: {
@@ -1024,6 +1110,51 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
     returnType: FormulaDataTypes.STRING,
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#regex_replace`,
+  },
+  MD5: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.STRING,
+      },
+    },
+    description:
+      'Computes the MD5 hash (as a 32-character hexadecimal string) of the input value. Useful for checksums and verifying data integrity.',
+    syntax: 'MD5(value)',
+    examples: [
+      'MD5({title})',
+      'MD5("nocodb") => "d867ba3554696af54e71a5b42ccd4947"',
+    ],
+    returnType: FormulaDataTypes.STRING,
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#md5`,
+  },
+  SHA256: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.STRING,
+      },
+    },
+    description:
+      'Computes the SHA-256 hash (as a 64-character hexadecimal string) of the input value. Useful for checksums and verifying data integrity.',
+    syntax: 'SHA256(value)',
+    examples: ['SHA256({title})', 'SHA256("nocodb")'],
+    returnType: FormulaDataTypes.STRING,
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#sha256`,
+  },
+  SHA512: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.STRING,
+      },
+    },
+    description:
+      'Computes the SHA-512 hash (as a 128-character hexadecimal string) of the input value. Useful for checksums and verifying data integrity.',
+    syntax: 'SHA512(value)',
+    examples: ['SHA512({title})', 'SHA512("nocodb")'],
+    returnType: FormulaDataTypes.STRING,
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#sha512`,
   },
   BLANK: {
     validation: {

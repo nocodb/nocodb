@@ -16,7 +16,6 @@ export class SharedBasesService {
     param: {
       baseId: string;
       roles: string;
-      password: string;
       siteUrl: string;
 
       req: NcRequest;
@@ -39,9 +38,18 @@ export class SharedBasesService {
       NcError.baseNotFound(param.baseId);
     }
 
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Shared links cannot be created on sandbox bases. Share the master base instead.',
+      );
+    }
+
     const data: any = {
       uuid: uuidv4(),
-      password: param?.password,
+      // Shared bases have no password feature (not in SharedBaseReq, not in the
+      // UI, never verified). Force null so a body-smuggled `password` can
+      // neither be stored nor later disclosed.
+      password: null,
       roles,
     };
 
@@ -73,7 +81,6 @@ export class SharedBasesService {
     param: {
       baseId: string;
       roles: string;
-      password: string;
       siteUrl: string;
       req: NcRequest;
       custom_url_path?: string;
@@ -90,6 +97,12 @@ export class SharedBasesService {
 
     if (!base) {
       NcError.baseNotFound(param.baseId);
+    }
+
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Shared links cannot be updated on sandbox bases. Share the master base instead.',
+      );
     }
 
     if (roles === 'editor') {
@@ -140,7 +153,8 @@ export class SharedBasesService {
 
     const data: any = {
       uuid: base.uuid || uuidv4(),
-      password: param.password,
+      // Shared bases have no password feature — force it null (see create).
+      password: null,
       roles,
       fk_custom_url_id: customUrl?.id ?? null,
     };

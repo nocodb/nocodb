@@ -1,5 +1,10 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parsePercentValue, precisionFormats, serializeDecimalValue } from '..';
+import {
+  parsePercentValue,
+  precisionFormats,
+  progressBarShapes,
+  serializeDecimalValue,
+} from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -11,6 +16,7 @@ export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[2],
     is_progress: false,
+    shape: progressBarShapes[0],
   };
 
   serializeValue(

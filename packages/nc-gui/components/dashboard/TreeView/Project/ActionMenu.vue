@@ -26,14 +26,23 @@ const base = inject(ProjectInj)!
 
 const { appInfo } = useGlobal()
 
-const { orgRoles, isUIAllowed } = useRoles()
+const { orgRoles, isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
+
+const baseDuplicateReason = computed(() =>
+  sandboxRestrictionReason('baseDuplicate', {
+    roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join(),
+    base,
+  }),
+)
 
 const isOptionVisible = computed(() => {
   return {
     rename: isUIAllowed('baseRename'),
-    baseDuplicate: isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
+    baseDuplicate:
+      isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }) ||
+      !!baseDuplicateReason.value,
     baseOptions:
       (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
       props.showBaseOption(base.value.sources[0]),
@@ -73,18 +82,24 @@ const isOptionVisible = computed(() => {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem
+    <NcTooltip
       v-if="isOptionVisible.baseDuplicate"
-      data-testid="nc-sidebar-base-duplicate"
-      @click="emits('duplicateProject', base)"
+      :title="baseDuplicateReason ? $t(baseDuplicateReason) : ''"
+      :disabled="!baseDuplicateReason"
     >
-      <div v-e="['c:base:duplicate']" class="flex gap-2 items-center">
-        <GeneralIcon icon="duplicate" />
-        {{ $t('general.duplicate') }}
-      </div>
-    </NcMenuItem>
+      <NcMenuItem
+        data-testid="nc-sidebar-base-duplicate"
+        :disabled="!!baseDuplicateReason"
+        @click="!baseDuplicateReason && emits('duplicateProject', base)"
+      >
+        <div v-e="['c:base:duplicate']" class="flex gap-2 items-center">
+          <GeneralIcon icon="duplicate" />
+          {{ $t('general.duplicate') }}
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
 
-    <NcDivider v-if="['baseDuplicate', 'baseRename'].some((permission) => isUIAllowed(permission))" />
+    <NcDivider v-if="['baseDuplicate', 'baseRename'].some((permission) => isUIAllowed(permission)) || !!baseDuplicateReason" />
 
     <!-- Copy Project Info -->
     <NcMenuItem v-if="!isEeUI" key="copy" data-testid="nc-sidebar-base-copy-base-info" @click.stop="emits('copyProjectInfo')">

@@ -33,7 +33,8 @@ const focus: VNodeRef = (el) => {
 
 const textareaValue = computed({
   get: () => vModel.value ?? '',
-  set: (val) => (vModel.value = val),
+  // Store an empty SingleLineText value as null rather than '' to keep cleared cells null
+  set: (val) => (vModel.value = val || null),
 })
 
 onMounted(() => {
@@ -42,11 +43,14 @@ onMounted(() => {
   }
 })
 
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
+
 // This way special characters are updated immediately
 // which does not occur in vanilla v-model
 // See https://github.com/vuejs/vue/issues/9777
 function updateInput(e: any) {
-  vModel.value = (e.target as HTMLInputElement)?.value ?? ''
+  // Store an empty SingleLineText value as null rather than '' to keep cleared cells null
+  vModel.value = (e.target as HTMLInputElement)?.value || null
 }
 </script>
 
@@ -56,6 +60,7 @@ function updateInput(e: any) {
     v-if="!isExpandedFormOpen"
     :ref="focus"
     :value="vModel"
+    :autocomplete="formFieldAutocomplete"
     class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
     @input="updateInput"
     @blur="editEnabled = false"

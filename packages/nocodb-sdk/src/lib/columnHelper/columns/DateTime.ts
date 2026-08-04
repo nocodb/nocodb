@@ -11,6 +11,7 @@ import {
   DATE_SCALE_LABEL_TO_DIFF_MAP,
   isNumberRound,
   parseDateTimeValue,
+  parseDayjsWithJalaliSupport,
   serializeDateOrDateTimeValue,
 } from '../utils';
 import { SilentTypeConversionError } from '~/lib/error';
@@ -108,7 +109,10 @@ export class DateTimeHelper extends AbstractColumnHelper {
       ) {
         return populateFillHandleStrictCopy(params);
       }
-      const currentData = dayjs(date, dateTimeFormat);
+      // Jalali-aware parse: for a Jalali column the highlighted values are
+      // Jalali display strings and must be converted from Jalali rather than
+      // misread as Gregorian.
+      const currentData = parseDayjsWithJalaliSupport(date, dateTimeFormat);
       // unlikely on normal case
       if (!currentData.isValid()) {
         return populateFillHandleStrictCopy(params);

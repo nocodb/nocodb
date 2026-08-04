@@ -42,6 +42,12 @@ export interface RowCommentEvent extends NcBaseEvent {
   rowId: string;
   comment: CommentType;
   ip?: string;
+  /**
+   * Source surface when the comment rode an interface-scoped op — mention
+   * notifications stamp it so clicks route back to the interface. Absent =
+   * posted in the data app.
+   */
+  source?: { interfaceId: string; pageId: string };
 }
 
 export interface RowMentionEvent extends NcBaseEvent {
@@ -231,6 +237,13 @@ export interface TimelineViewUpdateEvent extends NcBaseEvent {
   view: ViewType;
   timelineView: any;
   oldTimelineView: any;
+  owner: UserType;
+}
+
+export interface GanttViewUpdateEvent extends NcBaseEvent {
+  view: ViewType;
+  ganttView: any;
+  oldGanttView: any;
   owner: UserType;
 }
 
@@ -507,12 +520,13 @@ export interface IntegrationUpdateEvent extends IntegrationEvent {
 export interface DataExportEvent extends NcBaseEvent {
   view: ViewType;
   table: TableType;
-  type: 'excel' | 'csv' | 'json';
+  type: 'excel' | 'csv' | 'json' | 'ics';
 }
 
 export interface RecordsSoftDeleteEvent extends NcBaseEvent {
   tableId: string;
   rowIds: string[];
+  deletedAt: string;
 }
 
 export interface RecordsRestoreEvent extends NcBaseEvent {
@@ -540,4 +554,20 @@ export type AppEventPayload =
   | RowCommentEvent
   | RowMentionEvent
   | WebhookTriggerEvent
-  | ColumnEvent;
+  | ColumnEvent
+  | ResourceRestoreEvent
+  | ResourcePermanentDeleteEvent;
+
+export interface ResourceRestoreEvent extends NcBaseEvent {
+  resourceType: string;
+  resourceId: string;
+  name: string;
+  user: Partial<UserType>;
+}
+
+export interface ResourcePermanentDeleteEvent extends NcBaseEvent {
+  resourceType: string;
+  resourceId: string;
+  name: string;
+  user: Partial<UserType>;
+}

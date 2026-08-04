@@ -18,7 +18,7 @@ import {
   verifyDefaultWorkspace,
 } from '~/helpers/verifyDefaultWorkspace';
 import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
-import { isEE, isOnPrem, T } from '~/utils';
+import { isEE, isOnPrem, sanitiseUserObj, T } from '~/utils';
 import {
   clearAuthCookie,
   genJwt,
@@ -29,14 +29,16 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { PresignedUrl, User, UserRefreshToken } from '~/models';
+import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
+import { isTokenExpired } from '~/helpers/isTokenExpired';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class UsersService {
@@ -126,7 +128,15 @@ export class UsersService {
 
     await PresignedUrl.signMetaIconImage(user);
 
-    return user;
+    // Strip secrets before returning this user as the API response.
+    // sanitiseUserObj drops password/salt/tokens/totp; also drop token_version
+    // here (the JWT-invalidation counter), which the shared sanitiser
+    // intentionally keeps because the auth/token-issuance paths read it. The
+    // audit hook above gets the full object but already excludes secrets and
+    // only diffs changed fields.
+    const safeUser = sanitiseUserObj(user);
+    delete safeUser.token_version;
+    return safeUser;
   }
 
   async registerNewUserIfAllowed(
@@ -279,7 +289,7 @@ export class UsersService {
       param.body,
     );
 
-    const _email = param.body.email;
+    const _email = sanitizeEmail(param.body.email);
 
     if (!_email) {
       NcError.badRequest('Please enter your email address.');
@@ -310,6 +320,7 @@ export class UsersService {
         );
       }
 
+      await UserRefreshToken.deleteAllUserToken(user.id);
       await this.revokeAllOAuthTokensByUser(user.id);
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
@@ -336,7 +347,7 @@ export class UsersService {
     if (!user || !user.email) {
       NcError.badRequest('Invalid reset url');
     }
-    if (new Date(user.reset_password_expires) < new Date()) {
+    if (isTokenExpired(user.reset_password_expires)) {
       NcError.badRequest('Password reset url expired');
     }
 
@@ -367,7 +378,7 @@ export class UsersService {
     if (!user) {
       NcError.badRequest('Invalid reset url');
     }
-    if (user.reset_password_expires < new Date()) {
+    if (isTokenExpired(user.reset_password_expires)) {
       NcError.badRequest('Password reset url expired');
     }
     if (user.provider && user.provider !== 'local') {
@@ -475,11 +486,25 @@ export class UsersService {
 
       const refreshToken = randomTokenString();
 
+      // Rotation is a compare-and-swap: 0 rows means this token was already
+      // rotated (concurrent presentation / replay of a single-use token).
+      let rotatedRows: number;
       try {
-        await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
+        rotatedRows = await UserRefreshToken.updateOldToken(
+          oldRefreshToken,
+          refreshToken,
+        );
       } catch (error) {
         console.error('Failed to update old refresh token:', error);
         NcError.internalServerError('Failed to update refresh token');
+      }
+
+      if (!rotatedRows) {
+        // Reject without minting a second token. Deliberately not invalidating
+        // the user's whole token set: rows are per-login with no lineage column,
+        // so that would sign them out on every device for what is usually a
+        // benign double-submit.
+        NcError.unauthorized('Invalid refresh token');
       }
 
       setTokenCookie(param.res, refreshToken, param.req);
@@ -505,7 +530,8 @@ export class UsersService {
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
-    const { email: _email, token, ignore_subscribe } = param.req.body;
+    const { email: rawEmail, token, ignore_subscribe } = param.req.body;
+    const _email = sanitizeEmail(rawEmail);
 
     let { password } = param.req.body;
 
@@ -536,7 +562,7 @@ export class UsersService {
       if (token) {
         if (token !== user.invite_token) {
           NcError.badRequest(`Invalid invite url`);
-        } else if (user.invite_token_expires < new Date()) {
+        } else if (isTokenExpired(user.invite_token_expires)) {
           NcError.badRequest(
             'Expired invite url, Please contact super admin to get a new invite url',
           );
@@ -683,6 +709,13 @@ export class UsersService {
     return base;
   }
 
+  // Test-only bypass: parallel Playwright workers share user@nocodb.com
+  // and would otherwise invalidate each other's sessions. EE overrides to
+  // add an operator-controlled opt-out as well.
+  protected shouldEnforceSingleSession(_req?: any): boolean {
+    return process.env.PLAYWRIGHT_TEST !== 'true';
+  }
+
   async setRefreshToken({ res, req }) {
     const userId = req.user?.id;
 
@@ -694,12 +727,39 @@ export class UsersService {
 
     const refreshToken = randomTokenString();
 
-    if (!user['token_version']) {
-      user['token_version'] = randomTokenString();
+    // Single-session enforcement: rotate token_version and clear any existing
+    // refresh tokens so previously logged-in sessions for this user are
+    // invalidated as soon as this login completes.
+    // API tokens are unaffected — the JWT strategy short-circuits before the
+    // token_version check when `is_api_token` is set on the payload.
+    //
+    // The bypass conditions live in `shouldEnforceSingleSession`, which EE
+    // overrides to support deployment-specific opt-outs.
+    if (this.shouldEnforceSingleSession(req)) {
+      const newTokenVersion = randomTokenString();
 
       await User.update(user.id, {
-        token_version: user['token_version'],
+        token_version: newTokenVersion,
       });
+
+      user.token_version = newTokenVersion;
+      // Mirror onto req.user so the genJwt() call that follows (in login())
+      // signs the access token with the rotated version.
+      if (req.user) {
+        req.user.token_version = newTokenVersion;
+      }
+
+      await UserRefreshToken.deleteAllUserToken(user.id);
+    } else if (!user.token_version) {
+      // Preserve legacy behavior: ensure token_version exists for users that
+      // pre-date the column or had it cleared.
+      user.token_version = randomTokenString();
+      await User.update(user.id, {
+        token_version: user.token_version,
+      });
+      if (req.user) {
+        req.user.token_version = user.token_version;
+      }
     }
 
     await UserRefreshToken.insert({
@@ -711,5 +771,7 @@ export class UsersService {
     setTokenCookie(res, refreshToken, req);
   }
 
-  protected async revokeAllOAuthTokensByUser(_userId: string) {}
+  protected async revokeAllOAuthTokensByUser(userId: string) {
+    await OAuthToken.revokeAllByUser(userId);
+  }
 }

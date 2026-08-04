@@ -3,6 +3,7 @@ import { BaseType } from '../Api';
 export enum FormBuilderInputType {
   Input = 'input',
   Textarea = 'textarea',
+  Date = 'date',
   Select = 'select',
   Switch = 'switch',
   Space = 'space',
@@ -362,6 +363,17 @@ export interface FormBuilderTextareaElement extends FormBuilderElementBase {
 }
 
 /**
+ * Date element (date picker)
+ *
+ * Value is stored as an ISO date string (YYYY-MM-DD).
+ */
+export interface FormBuilderDateElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Date;
+  /** Default value as an ISO date string (YYYY-MM-DD) */
+  defaultValue?: string | null;
+}
+
+/**
  * Password element (password input)
  */
 export interface FormBuilderPasswordElement extends FormBuilderElementBase {
@@ -671,6 +683,7 @@ export interface FormBuilderConditionBuilderElement
 export type FormBuilderElement =
   | FormBuilderInputElement
   | FormBuilderTextareaElement
+  | FormBuilderDateElement
   | FormBuilderPasswordElement
   | FormBuilderSelectElement
   | FormBuilderSwitchElement

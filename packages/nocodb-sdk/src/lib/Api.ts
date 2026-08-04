@@ -848,6 +848,7 @@ export interface WidgetUpdateReqV3Type {
     | WidgetOptionsDonutChartV3Type
     | WidgetOptionsBarChartV3Type
     | WidgetOptionsLineChartV3Type
+    | WidgetOptionsScatterV3Type
     | WidgetOptionsTextV3Type
     | WidgetOptionsIframeV3Type;
   /** Display order of the widget. */
@@ -886,6 +887,7 @@ export interface WidgetCreateReqV3Type {
     | WidgetOptionsDonutChartV3Type
     | WidgetOptionsBarChartV3Type
     | WidgetOptionsLineChartV3Type
+    | WidgetOptionsScatterV3Type
     | WidgetOptionsTextV3Type
     | WidgetOptionsIframeV3Type;
   /** Position and size of the widget on the dashboard grid. */
@@ -947,6 +949,7 @@ export interface WidgetReadV3Type {
     | WidgetOptionsDonutChartV3Type
     | WidgetOptionsBarChartV3Type
     | WidgetOptionsLineChartV3Type
+    | WidgetOptionsScatterV3Type
     | WidgetOptionsTextV3Type
     | WidgetOptionsIframeV3Type;
   /** Display order of the widget. */
@@ -1023,6 +1026,46 @@ export interface WidgetOptionsTextV3Type {
 }
 
 /**
+ * Options for a scatter plot widget (type=chart, chart_type=scatter). Same data structure as bar chart.
+ */
+export interface WidgetOptionsScatterV3Type {
+  chart_type: 'scatter';
+  data_source?: 'table' | 'view' | 'filter';
+  data?: {
+    x_axis?: {
+      field_id: string;
+      sort_by?: 'x_axis' | 'y_axis';
+      order_by?: 'default' | 'asc' | 'desc';
+      include_empty_records?: boolean;
+      include_others?: boolean;
+      category_limit?: number;
+    };
+    y_axis?: {
+      start_at_zero?: boolean;
+      fields?: {
+        field_id: string;
+        aggregation: string;
+      }[];
+      group_by?: string | null;
+    };
+  };
+  appearance?: {
+    size?: 'small' | 'medium' | 'large';
+    show_count_in_legend?: boolean;
+    show_value_in_chart?: boolean;
+    legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
+    color_schema?:
+      | 'default'
+      | 'classic'
+      | 'vibrant'
+      | 'pastel'
+      | 'earth'
+      | 'monoBlue'
+      | 'custom';
+  };
+}
+
+/**
  * Options for a line chart widget (type=chart, chart_type=line). Same data structure as bar chart with additional line-specific appearance options.
  */
 export interface WidgetOptionsLineChartV3Type {
@@ -1055,7 +1098,14 @@ export interface WidgetOptionsLineChartV3Type {
     show_count_in_legend?: boolean;
     show_value_in_chart?: boolean;
     legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
-    color_schema?: 'default' | 'custom';
+    color_schema?:
+      | 'default'
+      | 'classic'
+      | 'vibrant'
+      | 'pastel'
+      | 'earth'
+      | 'monoBlue'
+      | 'custom';
   };
 }
 
@@ -1095,7 +1145,14 @@ export interface WidgetOptionsBarChartV3Type {
     show_count_in_legend?: boolean;
     show_value_in_chart?: boolean;
     legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
-    color_schema?: 'default' | 'custom';
+    color_schema?:
+      | 'default'
+      | 'classic'
+      | 'vibrant'
+      | 'pastel'
+      | 'earth'
+      | 'monoBlue'
+      | 'custom';
   };
 }
 
@@ -1124,7 +1181,14 @@ export interface WidgetOptionsDonutChartV3Type {
     show_count_in_legend?: boolean;
     show_percentage_on_chart?: boolean;
     legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
-    color_schema?: 'default' | 'custom';
+    color_schema?:
+      | 'default'
+      | 'classic'
+      | 'vibrant'
+      | 'pastel'
+      | 'earth'
+      | 'monoBlue'
+      | 'custom';
     custom_color_schema?: {
       color?: string;
       label?: string;
@@ -1162,7 +1226,14 @@ export interface WidgetOptionsPieChartV3Type {
     show_count_in_legend?: boolean;
     show_percentage_on_chart?: boolean;
     legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
-    color_schema?: 'default' | 'custom';
+    color_schema?:
+      | 'default'
+      | 'classic'
+      | 'vibrant'
+      | 'pastel'
+      | 'earth'
+      | 'monoBlue'
+      | 'custom';
     custom_color_schema?: {
       color?: string;
       label?: string;
@@ -2194,6 +2265,35 @@ export type FieldUpdateV3Type = FieldBaseV3Type &
       }
   );
 
+/**
+ * Remove choices (options) from a SingleSelect/MultiSelect field by title. Titles not present on the field are ignored (idempotent).
+ */
+export interface FieldOptionsDeleteReqV3Type {
+  choices: FieldOptionDeleteItemV3Type[];
+}
+
+/**
+ * Add choices (options) to a SingleSelect/MultiSelect field. Titles that already exist on the field are skipped (idempotent).
+ */
+export interface FieldOptionsAddReqV3Type {
+  choices: FieldOptionAddItemV3Type[];
+}
+
+export interface FieldOptionDeleteItemV3Type {
+  /** Title of the choice to remove. Must match an existing choice title exactly. */
+  title: string;
+}
+
+export interface FieldOptionAddItemV3Type {
+  /** Choice title. */
+  title: string;
+  /**
+   * Tile color for the choice as a hex code (e.g. `#36BFFF`). Defaults to a palette color when omitted.
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  color?: string;
+}
+
 export type FilterCreateUpdateV3Type = FilterV3Type | FilterGroupV3Type;
 
 export type FieldV3Type = FieldBaseV3Type &
@@ -2414,6 +2514,17 @@ export interface FieldOptionsRollupV3Type {
     | 'countDistinct'
     | 'sumDistinct'
     | 'avgDistinct';
+  /** Error message when dependent field is deleted */
+  error?: string;
+  /** Thousand/decimal separator style for numeric rollups. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping. */
+  separator?:
+    | 'locale'
+    | 'none_period'
+    | 'none_comma'
+    | 'comma_period'
+    | 'period_comma'
+    | 'space_period'
+    | 'space_comma';
 }
 
 export interface FieldOptionsLookupV3Type {
@@ -2421,6 +2532,8 @@ export interface FieldOptionsLookupV3Type {
   related_field_id: string;
   /** Lookup field ID in the linked table. */
   related_table_lookup_field_id: string;
+  /** Error message when dependent field is deleted */
+  error?: string;
 }
 
 export interface FieldOptionsUserV3Type {
@@ -2525,6 +2638,12 @@ export interface FieldOptionsDateV3Type {
    * - `MM DD YYYY`
    * - `YYYY-MM`
    * - `YYYY MM`
+   * - `dddd YYYY-MM-DD`
+   * - `ddd YYYY-MM-DD`
+   * - `dddd DD/MM/YYYY`
+   * - `ddd DD/MM/YYYY`
+   * - `dddd MM/DD/YYYY`
+   * - `ddd MM/DD/YYYY`
    */
   date_format?: string;
 }
@@ -2543,6 +2662,12 @@ export interface FieldOptionsDateTimeV3Type {
    * - `MM DD YYYY`
    * - `YYYY-MM`
    * - `YYYY MM`
+   * - `dddd YYYY-MM-DD`
+   * - `ddd YYYY-MM-DD`
+   * - `dddd DD/MM/YYYY`
+   * - `ddd DD/MM/YYYY`
+   * - `dddd MM/DD/YYYY`
+   * - `ddd MM/DD/YYYY`
    */
   date_format?: string;
   /**
@@ -2577,6 +2702,12 @@ export interface FieldOptionsDurationV3Type {
 export interface FieldOptionsPercentV3Type {
   /** Display as a progress bar. */
   show_as_progress?: boolean;
+  /**
+   * Progress bar shape. Only applies when `show_as_progress` is enabled.
+   * - `bar` (default)
+   * - `circle`
+   */
+  shape?: 'bar' | 'circle';
 }
 
 /**
@@ -2779,11 +2910,27 @@ export interface FieldOptionsDecimalV3Type {
    * @max 5
    */
   precision?: number;
+  /** Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping. */
+  separator?:
+    | 'locale'
+    | 'none_period'
+    | 'none_comma'
+    | 'comma_period'
+    | 'period_comma'
+    | 'space_period'
+    | 'space_comma';
 }
 
 export interface FieldOptionsNumberV3Type {
-  /** Show thousand separator on the UI. */
-  locale_string?: boolean;
+  /** Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping. */
+  separator?:
+    | 'locale'
+    | 'none_period'
+    | 'none_comma'
+    | 'comma_period'
+    | 'period_comma'
+    | 'space_period'
+    | 'space_comma';
 }
 
 export interface FieldOptionsEmailV3Type {
@@ -2840,7 +2987,8 @@ export type TableFieldBaseCreateV3Type = FieldBaseV3Type & {
     | 'CreatedBy'
     | 'LastModifiedBy'
     | 'User'
-    | 'JSON';
+    | 'JSON'
+    | 'AutoNumber';
 };
 
 export type FieldBaseCreateV3Type = FieldBaseV3Type;
@@ -2885,7 +3033,8 @@ export interface FieldBaseV3Type {
     | 'LastModifiedBy'
     | 'LinkToAnotherRecord'
     | 'User'
-    | 'JSON';
+    | 'JSON'
+    | 'AutoNumber';
   /** Description of the field. */
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
@@ -2984,6 +3133,42 @@ export type ViewV3Type = {
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: 'timeline';
+        /** Timeline view configuration. A timeline may have multiple date ranges (e.g. "planned" vs "actual"); each range has a required start field and an optional end field. */
+        options: ViewOptionsTimelineV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'gantt';
+        /** Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON. */
+        options?: ViewOptionsGanttV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
         type?: 'map';
         options?: ViewOptionsMapV3Type;
         /** List of sorts to be applied to the view. */
@@ -2999,6 +3184,11 @@ export type ViewV3Type = {
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the the view. */
         row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'list';
+        /** List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field. */
+        options?: ViewOptionsListV3Type;
       }
   );
 
@@ -3069,6 +3259,40 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        /** Timeline view configuration. A timeline may have multiple date ranges (e.g. "planned" vs "actual"); each range has a required start field and an optional end field. */
+        options?: ViewOptionsTimelineV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        /** Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON. */
+        options?: ViewOptionsGanttV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
         options?: ViewOptionsMapV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
@@ -3094,6 +3318,10 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - In case of partial list, fields not included in the list will be excluded from the view.
          */
         fields?: ViewFieldsV3Type;
+      }
+    | {
+        /** List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field. */
+        options?: ViewOptionsListV3Type;
       }
   );
 
@@ -3168,6 +3396,42 @@ export type ViewCreateV3Type = ViewBaseV3Type &
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: 'timeline';
+        /** Timeline view configuration on create — same shape as ViewOptionsTimeline but requires date_ranges. Update (PATCH) uses the base schema so partial updates are allowed. */
+        options: ViewOptionsTimelineCreateV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'gantt';
+        /** Gantt view configuration on create — same shape as ViewOptionsGantt but requires date_dependency. Update (PATCH) uses the base schema so partial updates are allowed. */
+        options: ViewOptionsGanttCreateV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
         type?: 'map';
         options?: ViewOptionsMapV3Type;
         /** List of sorts to be applied to the view. */
@@ -3195,6 +3459,11 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - In case of partial list, fields not included in the list will be excluded from the view.
          */
         fields?: ViewFieldsV3Type;
+      }
+    | {
+        type?: 'list';
+        /** List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field. */
+        options?: ViewOptionsListV3Type;
       }
   );
 
@@ -3243,14 +3512,104 @@ export interface ViewOptionsFormV3Type {
   fields_by_id?: Record<string, FormFieldConfigV3Type>;
 }
 
+/**
+ * List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field.
+ */
+export interface ViewOptionsListV3Type {
+  /** Ordered levels of the list. Level 1 is the root table; deeper levels connect to their parent via link_field_id. */
+  levels?: {
+    /** 1-based depth of this level (1 = root). */
+    level: number;
+    /** Table shown at this level. */
+    table_id: string;
+    /** Link field connecting this level to its parent. Omitted/null for the root level. */
+    link_field_id?: string | null;
+    /** Filters applied at this level. */
+    filters?: FilterCreateV3Type;
+    /** Sorts applied at this level. */
+    sorts?: SortCreateV3Type[];
+    /** Field visibility/order at this level. Listed fields are shown in order; unlisted fields are hidden (same semantics as top-level fields). */
+    fields?: ViewFieldsV3Type;
+  }[];
+  /** Show parent rows that have no child records. */
+  show_empty_parents?: boolean;
+  /** Height of the rows in the list view. */
+  row_height?: 'short' | 'medium' | 'tall' | 'extra';
+}
+
 export interface ViewOptionsMapV3Type {
-  /** Foreign Key to GeoData Column to be used for the map view. */
-  fk_geo_data_col_id?: string;
+  /** Field ID of the GeoData column plotted on the map. */
+  geo_data_field_id?: string;
 }
 
 export interface ViewOptionsGalleryV3Type {
   /** Attachment field ID to be used as cover image in gallery view. Is optional, if not provided, the first attachment field will be used. */
   cover_field_id?: string;
+}
+
+/**
+ * Date dependency rule for a gantt view. Top-level properties are all optional; supplying a child object (`dates`, `dependency`) commits to providing every property inside it.
+ */
+export interface DateDependencyV3Type {
+  /** Date column pair. Atomic — supply both or omit the block entirely. */
+  dates?: {
+    /** Field ID of the start date column. */
+    start_field_id: string;
+    /** Field ID of the end date column. */
+    end_field_id: string;
+  };
+  /** Optional standalone duration field; independent of the `dates` block. */
+  duration_field_id?: string | null;
+  /** Predecessor/successor link configuration. Atomic — supply all five properties or omit the block entirely. */
+  dependency?: {
+    /** Link-to-another-record field that connects predecessor/successor records. */
+    linkrow_field_id: string;
+    linkrow_role: 'predecessors' | 'successors';
+    connection_type:
+      | 'end-to-start'
+      | 'end-to-end'
+      | 'start-to-end'
+      | 'start-to-start';
+    buffer_type: 'flexible' | 'fixed' | 'none';
+    /**
+     * Buffer in days. Meaningful when `buffer_type` is `fixed`; pass 0 when buffer_type is `flexible` or `none`.
+     * @min 0
+     */
+    buffer_days: number;
+  };
+  include_weekends?: boolean;
+  /** Soft-disable the rule without deleting it. */
+  is_active?: boolean;
+}
+
+/**
+ * Gantt view configuration on create — same shape as ViewOptionsGantt but requires date_dependency. Update (PATCH) uses the base schema so partial updates are allowed.
+ */
+export type ViewOptionsGanttCreateV3Type = ViewOptionsGanttV3Type;
+
+/**
+ * Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON.
+ */
+export interface ViewOptionsGanttV3Type {
+  /** The view-owned date dependency rule. When null, the gantt falls back to the table-level default rule (if any). PATCH replaces the entire object — no partial updates. */
+  date_dependency?: DateDependencyV3Type | null;
+}
+
+/**
+ * Timeline view configuration on create — same shape as ViewOptionsTimeline but requires date_ranges. Update (PATCH) uses the base schema so partial updates are allowed.
+ */
+export type ViewOptionsTimelineCreateV3Type = ViewOptionsTimelineV3Type;
+
+/**
+ * Timeline view configuration. A timeline may have multiple date ranges (e.g. "planned" vs "actual"); each range has a required start field and an optional end field.
+ */
+export interface ViewOptionsTimelineV3Type {
+  date_ranges?: {
+    /** Field ID of the start date column. */
+    start_date_field_id: string;
+    /** Field ID of the end date column. Null means the range is a single point in time. */
+    end_date_field_id?: string | null;
+  }[];
 }
 
 export interface ViewOptionsCalendarV3Type {
@@ -3351,7 +3710,16 @@ export interface ViewBaseV3Type {
   /** Title of the view. */
   title: string;
   /** Type of the view. */
-  type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'map' | 'form';
+  type:
+    | 'grid'
+    | 'gallery'
+    | 'kanban'
+    | 'calendar'
+    | 'map'
+    | 'form'
+    | 'timeline'
+    | 'gantt'
+    | 'list';
   /**
    * Lock type of the view.
    *
@@ -3373,7 +3741,15 @@ export interface ViewListV3Type {
     /** Description of the view. */
     description?: string | null;
     /** Type of the view. */
-    type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form' | 'map';
+    type:
+      | 'grid'
+      | 'gallery'
+      | 'kanban'
+      | 'calendar'
+      | 'form'
+      | 'map'
+      | 'timeline'
+      | 'gantt';
     /** View configuration edit state. */
     lock_type: 'collaborative' | 'locked' | 'personal';
     /** User ID of the creator. */
@@ -3429,7 +3805,15 @@ export interface ViewSummaryV3Type {
   /** Name of the view. */
   title?: string;
   /** Type of the view. */
-  view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form' | 'map';
+  view_type?:
+    | 'grid'
+    | 'gallery'
+    | 'kanban'
+    | 'calendar'
+    | 'form'
+    | 'map'
+    | 'timeline'
+    | 'gantt';
 }
 
 export type HookNotificationV3V3Type =
@@ -3635,6 +4019,8 @@ export interface SortUpdateV3Type {
   field_id?: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
   direction?: 'asc' | 'desc';
+  /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
+  enabled?: boolean | null;
 }
 
 export interface SortCreateV3Type {
@@ -3989,6 +4375,8 @@ export interface ApiTokenListType {
  * Model for Attachment
  */
 export interface AttachmentType {
+  /** FileReference ID for the attachment */
+  id?: string;
   /** Data for uploading */
   data?: any;
   /** The mimetype of the attachment */
@@ -4231,7 +4619,15 @@ export interface SourceType {
    * DB Type
    * @example mysql2
    */
-  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
+  type?:
+    | 'mysql'
+    | 'mysql2'
+    | 'mssql'
+    | 'oracledb'
+    | 'pg'
+    | 'snowflake'
+    | 'sqlite3'
+    | 'databricks';
 }
 
 /**
@@ -4313,7 +4709,15 @@ export interface BaseReqType {
   /** Is the data source data readonly */
   is_data_readonly?: BoolType;
   /** DB Type */
-  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
+  type?:
+    | 'mysql'
+    | 'mysql2'
+    | 'mssql'
+    | 'oracledb'
+    | 'pg'
+    | 'snowflake'
+    | 'sqlite3'
+    | 'databricks';
   fk_integration_id?: string;
 }
 
@@ -4581,6 +4985,10 @@ export interface CommentReqType {
    * @example 3
    */
   row_id: string;
+  /** Files attached to the comment */
+  attachments?: AttachmentType[];
+  /** Meta info for the comment (e.g. image annotation anchor) */
+  meta?: MetaType;
 }
 
 /**
@@ -4597,6 +5005,10 @@ export interface CommentUpdateReqType {
    * @example md_ehn5izr99m7d45
    */
   fk_model_id?: string;
+  /** Files attached to the comment */
+  attachments?: AttachmentType[];
+  /** Meta info for the comment (e.g. image annotation anchor) */
+  meta?: MetaType;
 }
 
 /**
@@ -4913,7 +5325,7 @@ export interface FormType {
   /** Form Columns */
   columns?: FormColumnType[];
   /** Email to sned after form is submitted */
-  email?: StringOrNullType;
+  email?: TextOrNullType;
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -4942,6 +5354,8 @@ export interface FormType {
   redirect_after_secs?: StringOrNullType;
   /** URL to redirect after submission */
   redirect_url?: TextOrNullType;
+  /** Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit. */
+  save_draft_to_browser?: BoolType;
   /** Show `Blank Form` after 5 seconds */
   show_blank_form?: BoolType;
   /**
@@ -4971,7 +5385,7 @@ export interface FormUpdateReqType {
   /** Banner Image URL */
   banner_image_url?: AttachmentReqType | null;
   /** Email to sned after form is submitted */
-  email?: StringOrNullType;
+  email?: TextOrNullType;
   /**
    * The heading of the form
    * @example My Form
@@ -4985,6 +5399,8 @@ export interface FormUpdateReqType {
   redirect_after_secs?: StringOrNullType;
   /** URL to redirect after submission */
   redirect_url?: TextOrNullType;
+  /** Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit. */
+  save_draft_to_browser?: BoolType;
   /** Show `Blank Form` after 5 seconds */
   show_blank_form?: BoolType;
   /**
@@ -5025,6 +5441,11 @@ export interface FormColumnType {
    * @example 1
    */
   order?: number;
+  /**
+   * Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped.
+   * @example fr_12ab34cd
+   */
+  row_id?: string | null;
   /** Is this form column required in submission? */
   required?: BoolType;
   /** Is this column shown in Form? */
@@ -5052,6 +5473,8 @@ export interface FormColumnReqType {
   meta?: MetaType;
   /** The order among all the columns in the form */
   order?: number;
+  /** Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped. */
+  row_id?: string | null;
   /** Is this form column required in submission? */
   required?: BoolType;
   /** Is this column shown in Form? */
@@ -5343,6 +5766,8 @@ export interface GridColumnType {
    * @example asc
    */
   group_by_sort?: StringOrNullType;
+  /** Whether this group-by is enabled. Disabled group-bys retain their config but are not applied. */
+  group_by_enabled?: BoolType;
   /**
    * Aggregation Type
    * @example sum
@@ -5374,12 +5799,14 @@ export interface GridColumnReqType {
    * Group By Order
    * @example 1
    */
-  group_by_order?: number;
+  group_by_order?: any;
   /**
    * Group By Sort
    * @example asc
    */
   group_by_sort?: StringOrNullType;
+  /** Whether this group-by is enabled. Disabled group-bys retain their config but are not applied. */
+  group_by_enabled?: BoolType;
   /**
    * Aggregation
    * @example sum
@@ -5398,6 +5825,25 @@ export interface GridUpdateReqType {
   row_height?: number;
   /** Meta Info for grid view */
   meta?: MetaType;
+}
+
+/**
+ * Comment-source webhook filters (only used when event = 'comment'). Stored as JSON on the hook.
+ */
+export interface CommentHookConfigType {
+  /** Only fire for comments that @mention a user. */
+  mention?: {
+    enabled?: boolean;
+    /** anyone = any mention; specific = only mentions of user_ids */
+    scope?: 'anyone' | 'specific';
+    user_ids?: string[];
+  };
+  /** Include or exclude comments authored by specific users (e.g. exclude API/automation accounts to prevent loops). */
+  commenter?: {
+    enabled?: boolean;
+    mode?: 'include' | 'exclude';
+    user_ids?: string[];
+  };
 }
 
 /**
@@ -5422,7 +5868,7 @@ export interface HookType {
    * Event Type for the operation
    * @example after
    */
-  event?: 'view' | 'field' | 'after' | 'before' | 'manual';
+  event?: 'view' | 'field' | 'after' | 'before' | 'manual' | 'comment';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -5436,7 +5882,17 @@ export interface HookType {
    * Hook Operation
    * @example insert
    */
-  operation?: ('insert' | 'update' | 'delete' | 'trigger')[];
+  operation?: (
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'trigger'
+    | 'added'
+    | 'edited'
+    | 'deleted'
+    | 'resolved'
+    | 'reopened'
+  )[];
   /**
    * Retry Count
    * @example 10
@@ -5467,6 +5923,8 @@ export interface HookType {
   /** Is this hook only trigger when some fields are affected */
   trigger_field?: boolean;
   trigger_fields?: string[];
+  /** Comment-source filters (mention / commenter). Only used when event = 'comment'. */
+  comment_config?: CommentHookConfigType | null;
 }
 
 /**
@@ -5488,7 +5946,7 @@ export interface HookReqType {
    * Event Type for the operation
    * @example after
    */
-  event: 'view' | 'field' | 'after' | 'before' | 'manual';
+  event: 'view' | 'field' | 'after' | 'before' | 'manual' | 'comment';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -5502,7 +5960,17 @@ export interface HookReqType {
    * Hook Operation
    * @example insert
    */
-  operation: ('insert' | 'update' | 'delete' | 'trigger')[];
+  operation: (
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'trigger'
+    | 'added'
+    | 'edited'
+    | 'deleted'
+    | 'resolved'
+    | 'reopened'
+  )[];
   /**
    * Retry Count
    * @example 10
@@ -5530,6 +5998,10 @@ export interface HookReqType {
   /** Is this hook only trigger when some fields are affected */
   trigger_field?: boolean;
   trigger_fields?: string[];
+  /** Optional list of filter rows to attach to this hook in the same call. Useful for atomic save (one op = hook + filters) so undo restores both as one unit. */
+  filters?: FilterReqType[];
+  /** Comment-source filters (mention / commenter). Only used when event = 'comment'. */
+  comment_config?: CommentHookConfigType | null;
 }
 
 /**
@@ -5563,7 +6035,7 @@ export interface HookLogType {
    * Hook Event
    * @example after
    */
-  event?: 'field' | 'view' | 'after' | 'before' | 'manual';
+  event?: 'field' | 'view' | 'after' | 'before' | 'manual' | 'comment';
   /**
    * Execution Time in milliseconds
    * @example 98
@@ -5579,7 +6051,16 @@ export interface HookLogType {
    * Hook Operation
    * @example insert
    */
-  operation?: 'insert' | 'update' | 'delete' | 'trigger';
+  operation?:
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'trigger'
+    | 'added'
+    | 'edited'
+    | 'deleted'
+    | 'resolved'
+    | 'reopened';
   /**
    * Hook Payload
    * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
@@ -5920,6 +6401,7 @@ export interface LinkToAnotherRecordType {
   fk_related_source_id?: string;
   fk_mm_source_id?: string;
   version?: number;
+  fk_display_value_column_id?: string | null;
 }
 
 /**
@@ -5939,6 +6421,8 @@ export interface LookupType {
    * @example 1
    */
   order?: number;
+  /** Error Message */
+  error?: string;
 }
 
 /**
@@ -6413,8 +6897,8 @@ export interface BaseType {
   }[];
   /** Indicates if the base is a sandbox */
   is_sandbox?: BoolType;
-  /** Indicates if the base is a sandbox master */
-  is_sandbox_master?: BoolType;
+  /** Indicates if the base is a sandbox production base (has at least one sandbox derived from it) */
+  is_sandbox_production?: BoolType;
 }
 
 /**
@@ -6568,6 +7052,8 @@ export interface RollupType {
     | 'countDistinct'
     | 'sumDistinct'
     | 'avgDistinct';
+  /** Error Message */
+  error?: string;
 }
 
 /**
@@ -6731,6 +7217,10 @@ export interface SortType {
   base_id?: string;
   /** Foreign Key to List View Level */
   fk_level_id?: StringOrNullType;
+  /** When set, scopes this sort to a lookup column (it orders that lookup's relation sub-query) instead of a view */
+  fk_lookup_col_id?: StringOrNullType;
+  /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
+  enabled?: boolean | null;
 }
 
 /**
@@ -6753,6 +7243,10 @@ export interface SortReqType {
   direction?: 'asc' | 'desc';
   /** Foreign Key to List View Level */
   fk_level_id?: StringOrNullType;
+  /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
+  enabled?: boolean | null;
+  /** The order in which the sort is applied relative to other sorts on the view. */
+  order?: number | null;
 }
 
 /**
@@ -6989,6 +7483,8 @@ export interface ViewType {
         ListType);
   /** ID of view owner user */
   owned_by?: IdType;
+  /** Whether this view can be used as a source for internal sync. */
+  allow_sync?: BoolType;
   /** The row coloring mode whether it is select, condition or not set */
   row_coloring_mode?: 'filter' | 'select';
   /** ID of custom url */
@@ -7077,6 +7573,8 @@ export interface ViewUpdateReqType {
   show_system_fields?: BoolType;
   /** ID of view owner user */
   owned_by?: IdType;
+  /** Whether this view can be used as a source for internal sync. */
+  allow_sync?: BoolType;
 }
 
 /**
@@ -7343,6 +7841,10 @@ export interface CommentType {
   updated_at?: string;
   /** Whether the comment has been deleted by the user or not */
   is_deleted?: boolean;
+  /** Files attached to the comment */
+  attachments?: AttachmentType[];
+  /** Meta info for the comment (e.g. image annotation anchor) */
+  meta?: MetaType;
 }
 
 /**
@@ -7455,6 +7957,59 @@ export interface SnapshotType {
   created_by?: IdType;
   /** Status of the Snapshot */
   status?: string;
+  /** Whether the snapshot was created by a schedule */
+  is_auto?: BoolType;
+}
+
+/**
+ * Model for Snapshot Schedule
+ */
+export interface SnapshotScheduleType {
+  /** Unique ID */
+  id?: IdType;
+  /** Foreign Key to Base */
+  base_id?: IdType;
+  /** Foreign Key to Workspace */
+  fk_workspace_id?: IdType;
+  /** Whether the schedule is active */
+  enabled?: BoolType;
+  /** Schedule frequency preset or custom cron */
+  frequency?: 'daily' | 'weekly' | 'monthly' | 'cron';
+  /** Frequency-specific configuration */
+  config?: {
+    /** Time of day HH:mm (daily/weekly/monthly) */
+    time?: string;
+    /** Day of week 0-6, Sunday=0 (weekly) */
+    dayOfWeek?: number;
+    /** Day of month 1-31 (monthly) */
+    dayOfMonth?: number;
+    /** Custom cron expression (cron frequency) */
+    cron?: string;
+  };
+  /** IANA timezone the schedule is evaluated in */
+  timezone?: string;
+  /** Normalized cron expression (server-computed) */
+  cron_expression?: string;
+  /** Retention: number of automatic snapshots to keep */
+  keep_last?: number;
+  /** Retention: delete automatic snapshots older than this many days */
+  delete_after_days?: number;
+  /** Next scheduled run time (ISO, UTC) */
+  next_run_at?: string;
+  /** Last scheduled run time (ISO, UTC) */
+  last_run_at?: string;
+  /** User ID of the creator */
+  created_by?: IdType;
+  /**
+   * Date of creation
+   * @format date
+   */
+  created_at?: string;
+  /**
+   * Date of last update
+   * @format date
+   */
+  updated_at?: string;
 }
 
 /**
@@ -7529,8 +8084,6 @@ export interface WorkflowType {
 }
 
 export interface ExtensionReqType {
-  /** Unique Base ID */
-  base_id?: IdType;
   /** Extension Title */
   title?: string;
   /** Extension ID */
@@ -7724,6 +8277,61 @@ export interface WorkspaceUserListType {
 export interface IntegrationListType {
   /** List of Integration Models */
   list: IntegrationType[];
+  /** Pagination Info */
+  pageInfo: PaginatedType;
+}
+
+/**
+ * Model for Base Trash Entry
+ */
+export interface BaseTrashType {
+  /** Unique Trash Entry ID */
+  id?: IdType;
+  /** Workspace ID */
+  fk_workspace_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Type of the trashed resource */
+  resource_type?:
+    | 'table'
+    | 'view'
+    | 'field'
+    | 'dashboard'
+    | 'widget'
+    | 'script'
+    | 'workflow'
+    | 'extension'
+    | 'record'
+    | 'hook';
+  /** ID of the trashed resource */
+  resource_id?: IdType;
+  /** Type of the parent entity */
+  parent_type?: string;
+  /** ID of the parent entity */
+  parent_id?: IdType;
+  /** Display name of the trashed resource */
+  name?: string;
+  /** Display name of the parent entity */
+  parent_name?: string;
+  /** ID of the user who deleted */
+  deleted_by?: IdType;
+  /**
+   * Timestamp of deletion
+   * @format date-time
+   */
+  deleted_at?: string;
+  /** JSON string tracking cascade effects */
+  related_items?: string;
+  /** Resource-specific metadata for UI rendering (e.g. view type, table icon, field uidt) */
+  meta?: object;
+}
+
+/**
+ * Model for Base Trash List
+ */
+export interface BaseTrashListType {
+  /** List of Base Trash Entries */
+  list: BaseTrashType[];
   /** Pagination Info */
   pageInfo: PaginatedType;
 }
@@ -8770,6 +9378,16 @@ export class Api<
    * @example true
    *\
   invite_only_signup?: boolean,
+  \**
+   * Restrict workspace creation to super admin only
+   * @example false
+   *\
+  restrict_workspace_creation?: boolean,
+  \**
+   * Show the email/password sign-in form alongside SSO (self-hosted only)
+   * @example false
+   *\
+  allow_email_signin_with_sso?: boolean,
 
 }` OK
  * @response `400` `{
@@ -8786,6 +9404,16 @@ export class Api<
            * @example true
            */
           invite_only_signup?: boolean;
+          /**
+           * Restrict workspace creation to super admin only
+           * @example false
+           */
+          restrict_workspace_creation?: boolean;
+          /**
+           * Show the email/password sign-in form alongside SSO (self-hosted only)
+           * @example false
+           */
+          allow_email_signin_with_sso?: boolean;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -8823,6 +9451,16 @@ export class Api<
          * @example true
          */
         invite_only_signup?: boolean;
+        /**
+         * Restrict workspace creation to super admin only
+         * @example false
+         */
+        restrict_workspace_creation?: boolean;
+        /**
+         * Show the email/password sign-in form alongside SSO (self-hosted only)
+         * @example false
+         */
+        allow_email_signin_with_sso?: boolean;
       },
       params: RequestParams = {}
     ) =>
@@ -10805,39 +11443,6 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-  };
-  dbLinks = {
-    /**
- * @description Read the table metadata by linked column ID and  table ID
- * 
- * @tags DB Links
- * @name TableRead
- * @summary Read Partial Linked Table
- * @request GET:/api/v1/db/internal/links/{linkColumnId}/tables/{tableId}
- * @response `200` `TableType` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    tableRead: (
-      linkColumnId: IdType,
-      tableId: IdType,
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        TableType,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/internal/links/${linkColumnId}/tables/${tableId}`,
-        method: 'GET',
         format: 'json',
         ...params,
       }),
@@ -13027,6 +13632,8 @@ export class Api<
       query?: {
         /** To get Hidden Columns */
         getHiddenColumn?: boolean;
+        /** When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them. */
+        typecast?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -13138,6 +13745,10 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object[],
+      query?: {
+        /** When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them. */
+        typecast?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -13149,6 +13760,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/upsert`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -13219,6 +13831,10 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object[],
+      query?: {
+        /** When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them. */
+        typecast?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -13230,6 +13846,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'PATCH',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -13918,6 +14535,10 @@ export class Api<
       viewName: string,
       rowId: any,
       data: object,
+      query?: {
+        /** When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them. */
+        typecast?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -13929,6 +14550,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'PATCH',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -14264,45 +14886,6 @@ export class Api<
         }
       >({
         path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/dataList`,
-        method: 'POST',
-        query: query,
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description Read bulk group data from a given table with provided filters
- * 
- * @tags Public
- * @name DataTableBulkGroup
- * @summary Read Shared View Bulk Group Data
- * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/group
- * @response `200` `object` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    dataTableBulkGroup: (
-      sharedViewUuid: string,
-      data: object[],
-      query?: {
-        /** Extra filtering */
-        where?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        object,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/group`,
         method: 'POST',
         query: query,
         body: data,
@@ -15002,46 +15585,6 @@ export class Api<
         ...params,
       }),
   };
-  dbDataTableBulkGroupList = {
-    /**
- * @description Read bulk group data from a given table with given filters
- * 
- * @tags DB Data Table Bulk Group List
- * @name DbDataTableBulkGroupList
- * @summary Read Bulk Group Data
- * @request POST:/api/v2/tables/{tableId}/bulk/group
- * @response `200` `object` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    dbDataTableBulkGroupList: (
-      tableId: string,
-      query: {
-        /** View ID is required */
-        viewId: string;
-      },
-      data: object[],
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        object,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v2/tables/${tableId}/bulk/group`,
-        method: 'POST',
-        query: query,
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-  };
   oAuth = {
     /**
  * @description Retrieve public information about an OAuth client for authorization display
@@ -15516,7 +16059,7 @@ export class Api<
    * DB Type
    * @example mysql2
    *\
-  client?: "mysql" | "mysql2" | "pg" | "snowflake" | "sqlite3" | "databricks",
+  client?: "mysql" | "mysql2" | "mssql" | "oracledb" | "pg" | "snowflake" | "sqlite3" | "databricks",
   \** Connection Config *\
   connection?: {
   \** DB User *\
@@ -15558,6 +16101,8 @@ export class Api<
           client?:
             | 'mysql'
             | 'mysql2'
+            | 'mssql'
+            | 'oracledb'
             | 'pg'
             | 'snowflake'
             | 'sqlite3'
@@ -16220,7 +16765,7 @@ export class Api<
  */
     samplePayloadGet: (
       tableId: IdType,
-      event: 'field' | 'view' | 'after' | 'before' | 'manual',
+      event: 'field' | 'view' | 'after' | 'before' | 'manual' | 'comment',
       operation:
         | 'insert'
         | 'update'
@@ -18073,6 +18618,16 @@ export class Api<
         dashboardId?: string;
         /** Entity ID */
         id?: string;
+        /** Model ID */
+        modelId?: string;
+        /** Row ID */
+        rowId?: string;
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+        /** Document ID */
+        docId?: string;
+        /** Document Revision ID */
+        revisionId?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -18168,6 +18723,16 @@ export class Api<
         dashboardId?: string;
         /** Entity ID */
         id?: string;
+        /** Model ID */
+        modelId?: string;
+        /** Row ID */
+        rowId?: string;
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+        /** Document ID */
+        docId?: string;
+        /** Document Revision ID */
+        revisionId?: string;
       },
       params: RequestParams = {}
     ) =>

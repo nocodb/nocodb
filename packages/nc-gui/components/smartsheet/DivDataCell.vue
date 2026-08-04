@@ -42,4 +42,14 @@ const onTabPress = () => {
 .nc-data-cell {
   @apply border-1 border-nc-border-gray-medium overflow-hidden rounded-lg;
 }
+/* Compact view — strip the visible wrapper at all states. Cells stay editable;
+   the inner widget shows its own feedback (text cursor, picker overlay,
+   dropdown, etc.). Lives here (not in a parent's scoped style) so it competes
+   in the same scope as the rules above and reliably wins. */
+.nc-data-cell.nc-data-cell-compact,
+.nc-data-cell.nc-data-cell-compact:focus-within,
+.nc-data-cell.nc-data-cell-compact:hover {
+  @apply !border-0 !rounded-none !shadow-none !ring-0;
+  background: transparent !important;
+}
 </style>

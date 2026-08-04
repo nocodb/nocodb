@@ -7,6 +7,9 @@ interface ItemType {
   tooltip?: string
   value: string
   hidden?: boolean
+  // Render a lock indicator on the tab; clicks resolve to the upgrade modal
+  // instead of switching the mode.
+  locked?: boolean
 }
 
 const props = defineProps<{
@@ -15,11 +18,13 @@ const props = defineProps<{
 
 const modelValue = defineModel<string>()
 
-const { appInfo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -27,9 +32,12 @@ const { isNew, commentsDrawer, baseRoles } = useExpandedFormStoreOrThrow()
 
 const viewsStore = useViewsStore()
 
+// Show in every EE build (licensed + unlicensed on-prem + cloud). Unlicensed
+// on-prem users see the tabs but get an upgrade modal on click for File /
+// Discussion modes — discoverability over hiding.
 const isViewModeEnabled = computed(() => {
   return (
-    appInfo.value.ee &&
+    isEeUI &&
     !isNew.value &&
     commentsDrawer.value &&
     isUIAllowed('commentList', baseRoles.value) &&
@@ -38,22 +46,40 @@ const isViewModeEnabled = computed(() => {
   )
 })
 
+const { handleUpgradePlan, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
+
+const { t } = useI18n()
+
 const items = computed(() => {
   return [
-    { icon: 'menu', value: ExpandedFormMode.FIELD, tooltip: 'Fields' },
+    { icon: 'menu', value: ExpandedFormMode.FIELD, tooltip: t('objects.fields') },
     {
       icon: modelValue.value === ExpandedFormMode.ATTACHMENT ? 'ncFileTextSolid' : 'ncFileText',
       value: ExpandedFormMode.ATTACHMENT,
-      tooltip: 'File Preview',
+      tooltip: t('labels.filePreview'),
+      hidden: !showEEFeatures.value,
+      locked: isEEFeatureBlocked.value,
     },
     {
       icon: modelValue.value === ExpandedFormMode.DISCUSSION ? 'ncMessageSquare1Solid' : 'ncMessageSquare1Outline',
       value: ExpandedFormMode.DISCUSSION,
-      tooltip: 'Discussion',
-      hidden: isSqlView.value,
+      tooltip: t('labels.discussion'),
+      // Hidden in shared bases: Discussion interleaves comments + audits, and
+      // audit reads are blocked there (CVE GHSA-6297-qpqf-235w). Other modes
+      // (Fields, Attachment) stay available.
+      hidden: isSqlView.value || isSharedBase.value || !showEEFeatures.value,
+      locked: isEEFeatureBlocked.value,
     },
   ].filter((i) => !i.hidden) as ItemType[]
 })
+
+const onTabClick = (item: ItemType) => {
+  if (item.locked) {
+    handleUpgradePlan({ triggerSource: 'record-view-mode' })
+    return
+  }
+  modelValue.value = item.value
+}
 
 onMounted(() => {
   if (!isViewModeEnabled.value && modelValue.value !== ExpandedFormMode.FIELD) {
@@ -68,7 +94,7 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="isViewModeEnabled"
+    v-if="isViewModeEnabled && items.length > 1"
     class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
   >
     <NcTooltip v-for="(item, idx) of items" :key="item.value" :disabled="!item.tooltip">
@@ -79,14 +105,16 @@ onMounted(() => {
         :class="[
           `nc-tab-${modelValue}`,
           {
-            'active': modelValue === item.value,
+            'active': modelValue === item.value && !item.locked,
             'first-tab': idx === 0,
             'last-tab': idx === items.length - 1,
+            'nc-tab-locked': item.locked,
           },
         ]"
-        @click="modelValue = item.value"
+        @click="onTabClick(item)"
       >
         <GeneralIcon :icon="item.icon" class="tab-icon" />
+        <GeneralIcon v-if="item.locked" icon="ncUpgradeSparkle" class="tab-lock-icon" />
         <div v-if="item.title" class="tab-title nc-tab">
           {{ $t(item.title) }}
         </div>
@@ -128,6 +156,12 @@ onMounted(() => {
 .tab-icon {
   font-size: 1rem !important;
   @apply w-4;
+}
+.tab-lock-icon {
+  @apply w-2.5 h-2.5 ml-0.5 text-nc-content-gray-muted;
+}
+.tab.nc-tab-locked {
+  @apply text-nc-content-gray-muted;
 }
 .tab .tab-title {
   @apply min-w-0;

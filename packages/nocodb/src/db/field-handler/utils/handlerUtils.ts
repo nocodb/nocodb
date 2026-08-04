@@ -12,6 +12,7 @@ import type {
   FilterOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from 'knex';
+import type { ClientType } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
@@ -19,15 +20,59 @@ import { Filter, Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
+import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
+import { DBQueryClient } from '~/dbQueryClient';
+import {
+  buildNestedLookupLevelLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
 }
 
+/**
+ * Detect a knex raw / ref value. Dynamic (field-to-field) filters set
+ * `filter.value` to a `knex.ref()` / `knex.raw()` column reference instead of
+ * a scalar literal. Such objects carry `isRawInstance === true`.
+ */
+export function ncIsKnexRawOrRef(val: any): val is Knex.Raw {
+  return (
+    !!val && typeof val === 'object' && (val as any).isRawInstance === true
+  );
+}
+
+/**
+ * Build a `%value%` LIKE pattern where `value` is a column reference
+ * (knex raw / ref) rather than a scalar literal.
+ *
+ * The wildcards must be concatenated in SQL — dialect specific — so the
+ * reference stays a reference. Interpolating it in JS (`` `%${ref}%` ``)
+ * stringifies the reference into a literal, which never matches.
+ */
+export function ncLikePatternForRef(knex: CustomKnex, ref: Knex.Raw): Knex.Raw {
+  const client = knex.clientType();
+  if (client === 'mysql' || client === 'mysql2' || client === 'vitess') {
+    return knex.raw("CONCAT('%', ?, '%')", [ref]);
+  }
+  if (client === 'mssql') {
+    return knex.raw("('%' + ? + '%')", [ref]);
+  }
+  // pg, sqlite3, oracledb, databricks and default support `||` concatenation
+  return knex.raw("('%' || ? || '%')", [ref]);
+}
+
+/**
+ * Lookup / LTAR only: ops that must become `NOT EXISTS (positive op)` instead
+ * of `EXISTS (negative op)` — otherwise a row linked to both a valued and an
+ * unvalued record matches the op and its opposite, and a row with no links
+ * matches neither.
+ */
 export const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },
   blank: { comparison_op: 'notblank' },
+  null: { comparison_op: 'notnull' },
   notchecked: { comparison_op: 'checked' },
   nanyof: { comparison_op: 'anyof' },
   nallof: { comparison_op: 'allof' },
@@ -57,6 +102,10 @@ export async function nestedConditionJoin({
   parseConditionV2: ConditionParser;
 }): Promise<FilterOperationResult> {
   const context = baseModelSqlv2.context;
+
+  const dbQueryClient = DBQueryClient.get(
+    baseModelSqlv2.dbDriver.clientType() as ClientType,
+  );
 
   const clauses: ((qb: Knex.QueryBuilder) => void)[] = [];
   const rootAppliances: ((qb: Knex.QueryBuilder) => void)[] = [];
@@ -136,10 +185,11 @@ export async function nestedConditionJoin({
               );
               clauses.push((qb) => {
                 qb.join(
-                  knex.raw(`?? as ??`, [
+                  dbQueryClient.tableAlias(
+                    knex,
                     childBaseModel.getTnPath(childModel.table_name),
                     relAlias,
-                  ]),
+                  ),
                   `${alias}.${parentColumn.column_name}`,
                   `${relAlias}.${childColumn.column_name}`,
                 );
@@ -167,7 +217,7 @@ export async function nestedConditionJoin({
               );
               clauses.push((qb) => {
                 qb.join(
-                  knex.raw(`?? as ??`, [relAlias, relAlias]),
+                  dbQueryClient.tableAlias(knex, relAlias, relAlias),
                   `${alias}.${parentColumn.column_name}`,
                   `${relAlias}.root_id`,
                 );
@@ -179,10 +229,11 @@ export async function nestedConditionJoin({
               );
               clauses.push((qb) => {
                 qb.join(
-                  knex.raw(`?? as ??`, [
+                  dbQueryClient.tableAlias(
+                    knex,
                     parentBaseModel.getTnPath(parentModel.table_name),
                     relAlias,
-                  ]),
+                  ),
                   `${alias}.${childColumn.column_name}`,
                   `${relAlias}.${parentColumn.column_name}`,
                 );
@@ -216,17 +267,19 @@ export async function nestedConditionJoin({
             );
             clauses.push((qb) => {
               qb.join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
-                ]),
+                ),
                 `${assocAlias}.${mmChildColumn.column_name}`,
                 `${alias}.${childColumn.column_name}`,
               ).join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   parentBaseModel.getTnPath(parentModel.table_name),
                   relAlias,
-                ]),
+                ),
                 `${relAlias}.${parentColumn.column_name}`,
                 `${assocAlias}.${mmParentColumn.column_name}`,
               );
@@ -236,6 +289,39 @@ export async function nestedConditionJoin({
             });
           }
           break;
+      }
+
+      // Per-lookup Limit — INNER level (PG): restrict this nested level's joined
+      // rows to the top-N per the previous level's row, matching the display /
+      // formula builders so all three consumers show the same set. Only BT and
+      // HM nested levels are limited (the display builder does not limit nested
+      // MM levels); the config comes from THIS level's lookup column. Applied as
+      // a deferred clause because `qb` isn't available until the clauses run.
+      if (
+        baseModelSqlv2.isPg &&
+        lookupColumn.uidt === UITypes.Lookup &&
+        (relationType === RelationTypes.HAS_MANY ||
+          relationType === RelationTypes.BELONGS_TO)
+      ) {
+        const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+        if (cfg.hasConfig && cfg.limitVal > 0) {
+          const isHm = relationType === RelationTypes.HAS_MANY;
+          const applier = await buildNestedLookupLevelLimit({
+            nestedAlias: relAlias,
+            nestedRefBaseModel: isHm ? childBaseModel : parentBaseModel,
+            corrColName: isHm
+              ? childColumn.column_name
+              : parentColumn.column_name,
+            prevAlias: alias,
+            prevCorrColName: isHm
+              ? parentColumn.column_name
+              : childColumn.column_name,
+            sorts: cfg.sorts,
+            limitVal: cfg.limitVal,
+            takeLast: cfg.takeLast,
+          });
+          if (applier) clauses.push(applier);
+        }
       }
     }
 
@@ -258,6 +344,11 @@ export async function nestedConditionJoin({
       const relationType = isMMOrMMLike(relationColumn)
         ? 'mm'
         : relationColOptions.type;
+      // Resolve display column once — honors per-LTAR fk_display_value_column_id override
+      const displayCol = await getDisplayValueOfRefTable(
+        context,
+        relationColumn,
+      );
       switch (relationType) {
         case RelationTypes.HAS_MANY: {
           const filterOperationResult = await parseConditionV2(
@@ -265,7 +356,7 @@ export async function nestedConditionJoin({
             new Filter({
               ...filter,
               fk_model_id: childModel.id,
-              fk_column_id: childModel.displayValue?.id,
+              fk_column_id: displayCol?.id,
             }),
             aliasCount,
             relAlias,
@@ -282,7 +373,7 @@ export async function nestedConditionJoin({
             new Filter({
               ...filter,
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.displayValue?.id,
+              fk_column_id: displayCol?.id,
             }),
             aliasCount,
             relAlias,
@@ -299,7 +390,7 @@ export async function nestedConditionJoin({
             new Filter({
               ...filter,
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel.displayValue?.id,
+              fk_column_id: displayCol?.id,
             }),
             aliasCount,
             relAlias,
@@ -344,7 +435,7 @@ export async function nestedConditionJoin({
 
 export const unsupportedFilter = async (
   _args: {
-    sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+    sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
     val: any;
   },
   rootArgs: {

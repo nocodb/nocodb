@@ -19,6 +19,7 @@ export class TelemetryHandlerService implements OnModuleInit, OnModuleDestroy {
       error_type?: string;
       message?: string;
       error_details?: string;
+      affected_resources?: (string | undefined | null)[];
     },
   ) {
     Noco.eventEmitter.emit(HANDLE_PRIORITY_ERROR, { context, ...param });
@@ -36,6 +37,7 @@ export class TelemetryHandlerService implements OnModuleInit, OnModuleDestroy {
       error_type?: string;
       message?: string;
       error_details?: string;
+      affected_resources?: (string | undefined | null)[];
     },
   ): Promise<void> {
     this.telemetryService.sendSystemEvent({
@@ -49,7 +51,8 @@ export class TelemetryHandlerService implements OnModuleInit, OnModuleDestroy {
         context.user?.id,
         context.base_id,
         context.workspace_id,
-      ],
+        ...(param.affected_resources ?? []),
+      ].filter((v): v is string => !!v),
     });
   }
 

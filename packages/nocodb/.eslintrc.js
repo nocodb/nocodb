@@ -29,6 +29,8 @@ module.exports = {
     '**/*.spec.ts',
     'test/',
     'src/types/nc-plugin/',
+    'src/integrations/index.ts',
+    'src/ee/integrations/index.ts',
   ],
   globals: {
     BigInt: true,

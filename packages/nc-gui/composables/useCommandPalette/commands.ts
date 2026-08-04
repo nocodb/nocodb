@@ -1,13 +1,15 @@
-export const homeCommands = [
+import { getI18n } from '~/plugins/a.i18n'
+
+export const getHomeCommands = () => [
   {
     id: 'user',
-    title: 'Account',
+    title: getI18n().global.t('labels.account'),
     icon: 'account',
     section: 'Accounts',
   },
   {
     id: 'user_account-settings',
-    title: 'Account Settings',
+    title: getI18n().global.t('title.accountSettings'),
     icon: 'settings',
     parent: 'user',
     section: 'Account',
@@ -25,7 +27,7 @@ export const homeCommands = [
   },
   {
     id: 'user_account-discord',
-    title: 'Discord',
+    title: getI18n().global.t('general.discord'),
     icon: 'discord',
     parent: 'user',
     section: 'Community',

@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ncIsArray, RoleLabels } from 'nocodb-sdk';
 import { render } from '@react-email/render';
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcRequest, WhiteLabelConfig } from 'nocodb-sdk';
 import type { MailParams, RawMailParams } from '~/interface/Mail';
 import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
-import { MailEvent } from '~/interface/Mail';
+import { MailEvent, SKIP_STORING_MAIL_EVENTS } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, MetaTable } from '~/utils/globals';
+import { CacheGetType, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import config from '~/app.config';
 import { extractDisplayNameFromEmail } from '~/utils';
@@ -16,18 +16,23 @@ import { ncSiteUrl } from '~/utils/envs';
 
 type TemplateComponent<K extends keyof typeof MailTemplates> =
   (typeof MailTemplates)[K];
-type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
-  TemplateComponent<K>
+type TemplateProps<K extends keyof typeof MailTemplates> = Omit<
+  ComponentProps<TemplateComponent<K>>,
+  'branding'
 >;
 
 @Injectable()
 export class MailService {
   protected logger = new Logger(MailService.name);
+  private static adapterMissingLogged = false;
   protected async getAdapter(ncMeta = Noco.ncMeta) {
     try {
       return await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
     } catch (e) {
-      this.logger.error('Email Plugin not configured / active');
+      if (!MailService.adapterMissingLogged) {
+        MailService.adapterMissingLogged = true;
+        this.logger.warn('Email Plugin not configured / active');
+      }
       return null;
     }
   }
@@ -93,13 +98,119 @@ export class MailService {
     return false;
   }
 
+  /**
+   * Hook: subclasses (EE) override to return the active white-label config.
+   * CE returns null — emails ship with default NocoDB branding.
+   */
+  protected async getBranding(): Promise<WhiteLabelConfig | null> {
+    return null;
+  }
+
+  /**
+   * Hook: subclasses (EE) return the white-label From display-name override for
+   * emails (the configured sender NAME, not address). CE has none.
+   */
+  protected async getEmailSenderName(): Promise<string | null> {
+    return null;
+  }
+
+  /**
+   * Resolve the subject line. Pass a `(productName) => string` builder for any
+   * subject that references the product name — it receives the white-label name
+   * when branding is enabled, else "NocoDB". Pass a plain string for subjects
+   * that don't reference the product name; it is used VERBATIM.
+   *
+   * We intentionally do NOT string-replace "NocoDB" in plain strings: that
+   * blunt substitution would rebrand unintended occurrences and silently miss
+   * any subject that doesn't hardcode the literal. Product-name subjects must
+   * use the builder form instead.
+   */
+  protected resolveSubject(
+    subject: string | ((productName: string) => string),
+    branding: WhiteLabelConfig | null,
+  ): string {
+    if (typeof subject === 'function') {
+      const productName =
+        (branding?.enabled && branding.productName) || 'NocoDB';
+      return subject(productName);
+    }
+    return subject;
+  }
+
   protected async renderMail<K extends keyof typeof MailTemplates>(
     template: K,
     props: TemplateProps<K>,
+    branding: WhiteLabelConfig | null,
   ) {
     const Component = MailTemplates[template];
     // TODO: Fix Type here
-    return await render(Component(props as TemplateProps<any>));
+    return await render(Component({ ...props, branding } as any));
+  }
+
+  /**
+   * Send via adapter and write an audit row to `nc_mail_sends`.
+   *
+   * Re-throws send errors so outer try/catch preserves the existing
+   * boolean-return contract of `sendMail()`. Audit-row INSERT failures are
+   * logged but never re-thrown — the email is what matters; missing audit is
+   * an operational concern, not a user-visible one.
+   *
+   * Events in `SKIP_STORING_MAIL_EVENTS` send but don't log (user-content
+   * paths — form responders, send-record).
+   */
+  protected async dispatchAndLog(
+    adapter: any,
+    ncMeta: any,
+    args: {
+      event: MailEvent;
+      fk_user_id?: string | null;
+      to: string;
+      subject: string;
+      html: string;
+    },
+  ): Promise<void> {
+    let sendError: Error | undefined;
+    try {
+      // White-label sender-name override (display name only; null when not
+      // white-labelled — the adapter then uses its configured From unchanged).
+      const fromName = await this.getEmailSenderName();
+      await adapter.mailSend({
+        to: args.to,
+        subject: args.subject,
+        html: args.html,
+        ...(fromName ? { fromName } : {}),
+      });
+    } catch (e) {
+      sendError = e as Error;
+    }
+
+    if (!SKIP_STORING_MAIL_EVENTS.has(args.event)) {
+      try {
+        await ncMeta.metaInsert2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.MAIL_SENDS,
+          {
+            event: args.event,
+            fk_user_id: args.fk_user_id ?? null,
+            to_email: args.to,
+            subject: args.subject,
+            status: sendError ? 'failed' : 'sent',
+            error: sendError
+              ? String(sendError?.message ?? sendError).slice(0, 8000)
+              : null,
+            sent_at: sendError ? null : new Date(),
+          },
+        );
+      } catch (logError) {
+        this.logger.error(
+          'Failed to write nc_mail_sends audit row',
+          (logError as Error).stack,
+        );
+      }
+    }
+
+    if (sendError) throw sendError;
   }
 
   buildUrl(
@@ -191,7 +302,6 @@ export class MailService {
   async sendMailRaw(params: RawMailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
-      this.logger.error('Email Plugin not configured / active');
       return false;
     }
 
@@ -201,6 +311,7 @@ export class MailService {
     }
 
     try {
+      const fromName = await this.getEmailSenderName();
       await mailerAdapter.mailSend({
         to: params.to,
         subject: params.subject,
@@ -209,6 +320,7 @@ export class MailService {
         cc: ncIsArray(params.cc) ? params?.cc?.join(',') : params?.cc,
         bcc: ncIsArray(params.bcc) ? params?.bcc?.join(',') : params?.bcc,
         attachments: params.attachments,
+        ...(fromName ? { fromName } : {}),
       });
     } catch (e) {
       this.logger.error(e);
@@ -221,7 +333,6 @@ export class MailService {
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
-      this.logger.error('Email Plugin not configured / active');
       return false;
     }
 
@@ -233,28 +344,36 @@ export class MailService {
       if (!(await this.ensurePublicUrl(ncMeta))) return false;
     }
 
+    const branding = await this.getBranding();
+
     try {
       switch (mailEvent) {
         case MailEvent.BASE_INVITE: {
           const { base, user, req, token } = payload;
 
           const invitee = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'You’ve been invited to a Base',
-            html: await this.renderMail('BaseInvite', {
-              baseTitle: base.title,
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              link: this.buildUrl(req, {
-                workspaceId: base.fk_workspace_id,
-                baseId: base.id,
-                token,
-              }),
-            }),
+            html: await this.renderMail(
+              'BaseInvite',
+              {
+                baseTitle: base.title,
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                link: this.buildUrl(req, {
+                  workspaceId: base.fk_workspace_id,
+                  baseId: base.id,
+                  token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -262,118 +381,173 @@ export class MailService {
           const { req, user, base, oldRole, newRole } = payload;
           const invitee = req.user;
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Your Base role has been updated',
-            html: await this.renderMail('BaseRoleUpdate', {
-              baseTitle: base.title,
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              oldRole: RoleLabels[oldRole],
-              newRole: RoleLabels[newRole],
-              link: this.buildUrl(req, {
-                workspaceId: base.fk_workspace_id,
-                baseId: base.id,
-              }),
-            }),
+            html: await this.renderMail(
+              'BaseRoleUpdate',
+              {
+                baseTitle: base.title,
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                oldRole: RoleLabels[oldRole],
+                newRole: RoleLabels[newRole],
+                link: this.buildUrl(req, {
+                  workspaceId: base.fk_workspace_id,
+                  baseId: base.id,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
         case MailEvent.RESET_PASSWORD: {
           const { user, req } = payload;
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Reset your password',
-            html: await this.renderMail('PasswordReset', {
-              email: user.email,
-              link: this.buildUrl(req, {
-                resetPassword: (user as any).reset_password_token,
-              }),
-            }),
+            html: await this.renderMail(
+              'PasswordReset',
+              {
+                email: user.email,
+                link: this.buildUrl(req, {
+                  resetPassword: (user as any).reset_password_token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
 
         case MailEvent.VERIFY_EMAIL: {
           const { user, req } = payload;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Verify your email',
-            html: await this.renderMail('VerifyEmail', {
-              email: user.email,
-              link: this.buildUrl(req, {
-                verificationToken: (user as any).email_verification_token,
-              }),
-            }),
+            html: await this.renderMail(
+              'VerifyEmail',
+              {
+                email: user.email,
+                link: this.buildUrl(req, {
+                  verificationToken: (user as any).email_verification_token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
         case MailEvent.WELCOME: {
           const { req, user } = payload;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
-            subject: 'Welcome to NocoDB!',
-            html: await this.renderMail('Welcome', {
-              email: user.email,
-              link: this.buildUrl(req, {}),
-            }),
+            subject: this.resolveSubject(
+              (productName) => `Welcome to ${productName}!`,
+              branding,
+            ),
+            html: await this.renderMail(
+              'Welcome',
+              {
+                email: user.email,
+                link: this.buildUrl(req, {}),
+              },
+              branding,
+            ),
           });
           break;
         }
         case MailEvent.ORGANIZATION_INVITE: {
           const { req, user, token } = payload;
           const invitee = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
-            subject: 'You have been invited to join NocoDB',
-            html: await this.renderMail('OrganizationInvite', {
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              link: this.buildUrl(req, {
-                token,
-              }),
-            }),
+            subject: this.resolveSubject(
+              (productName) => `You have been invited to join ${productName}`,
+              branding,
+            ),
+            html: await this.renderMail(
+              'OrganizationInvite',
+              {
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                link: this.buildUrl(req, {
+                  token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
         case MailEvent.ORGANIZATION_ROLE_UPDATE: {
           const { req, user, oldRole, newRole } = payload;
           const invitee = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
-            subject: 'Role updated in NocoDB',
-            html: await this.renderMail('OrganizationRoleUpdate', {
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              oldRole: RoleLabels[oldRole],
-              newRole: RoleLabels[newRole],
-              link: this.buildUrl(req, {}),
-            }),
+            subject: this.resolveSubject(
+              (productName) => `Role updated in ${productName}`,
+              branding,
+            ),
+            html: await this.renderMail(
+              'OrganizationRoleUpdate',
+              {
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                oldRole: RoleLabels[oldRole],
+                newRole: RoleLabels[newRole],
+                link: this.buildUrl(req, {}),
+              },
+              branding,
+            ),
           });
           break;
         }
         case MailEvent.FORM_SUBMISSION: {
           const { formView, data, model, emails, base } = payload;
 
-          await mailerAdapter.mailSend({
+          // SKIP_STORING_MAIL_EVENTS — recipients + payload are end-user data
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
             to: emails.join(','),
-            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
-            html: await this.renderMail('FormSubmission', {
-              formTitle: formView.title,
-              tableTitle: model.title,
-              submissionData: data,
-              baseTitle: base.title,
-            }),
+            subject: this.resolveSubject(
+              (productName) =>
+                `${productName} Forms: Someone has responded to ${formView.title}`,
+              branding,
+            ),
+            html: await this.renderMail(
+              'FormSubmission',
+              {
+                formTitle: formView.title,
+                tableTitle: model.title,
+                submissionData: data,
+                baseTitle: base.title,
+              },
+              branding,
+            ),
           });
 
           break;

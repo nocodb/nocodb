@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type dayjs from 'dayjs'
 
-const { selectedDate, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
+const { selectedDate, activeDates, activeCalendarView, sideBarFilterOption, showSideMenu } = useCalendarViewStoreOrThrow()
+
+const { isMobileMode } = useGlobal()
 
 // Create a shared cache service for all Month components in Year View
 const sharedCalendarCache = reactive({
@@ -80,6 +82,13 @@ const size = ref<'small' | 'medium'>('small')
 const cols = ref(4)
 
 const handleResize = () => {
+  // On a phone two months don't fit side-by-side and the right column clips at the edge —
+  // stack to a single month column instead.
+  if (isMobileMode.value) {
+    size.value = 'medium'
+    cols.value = 1
+    return
+  }
   if (width.value > 1250) {
     size.value = 'medium'
     cols.value = 4
@@ -103,6 +112,17 @@ const changeView = (date: dayjs.Dayjs) => {
   sharedCalendarCache.clearAllCaches()
   selectedDate.value = date
   activeCalendarView.value = 'day'
+}
+
+const onDateSelect = (date: dayjs.Dayjs) => {
+  selectedDate.value = date
+
+  // On desktop keep the old behaviour: a single click only moves the selection.
+  // On mobile, single-tap opens the record sidebar filtered to that day's records.
+  if (!isMobileMode.value) return
+
+  sideBarFilterOption.value = 'selectedDate'
+  showSideMenu.value = true
 }
 
 // Update the active dates grouping when activeDates change
@@ -130,7 +150,7 @@ onMounted(() => {
   handleResize()
 })
 
-watch(width, handleResize)
+watch([width, isMobileMode], handleResize)
 </script>
 
 <template>
@@ -151,10 +171,11 @@ watch(width, handleResize)
         :key="index"
         v-model:active-dates="activeDates"
         v-model:page-date="months[index]"
-        v-model:selected-date="selectedDate"
+        :selected-date="selectedDate"
         :size="size"
         class="nc-year-view-calendar"
         data-testid="nc-calendar-year-view-month-selector"
+        @update:selected-date="onDateSelect"
         @dbl-click="changeView"
       />
     </div>

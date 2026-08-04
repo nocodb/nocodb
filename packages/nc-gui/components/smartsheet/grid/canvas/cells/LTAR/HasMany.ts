@@ -1,4 +1,4 @@
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderSingleLineText } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
@@ -24,10 +24,14 @@ export const HasManyCellRenderer: CellRenderer = {
       cellRenderStore,
       selected,
       getColor,
+      isSimpleLinkRecordList,
     } = props
 
-    const relatedTableDisplayValueProp =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
+    const fkDisplayValueColumnId = (props.column?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
+
+    const relatedTableDisplayValueProp = fkDisplayValueColumnId
+      ? relatedTableMeta?.columns?.find((c) => c.id === fkDisplayValueColumnId)?.title || ''
+      : (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
     const hmColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType
@@ -46,7 +50,9 @@ export const HasManyCellRenderer: CellRenderer = {
     }, []) as { value: any; item: Record<string, any> }[]
 
     const initialX = x + 4
-    const initialWidth = width - 8
+    // Simple link picker reserves the select-chevron slot up front — chips must
+    // never render under it (it appears on hover, so reserving lazily would rewrap)
+    const initialWidth = width - 8 - (isSimpleLinkRecordList ? 24 : 0)
 
     let currentX = initialX
     let currentY = y + (rowHeightInPx['1'] === height ? 0 : 2)
@@ -183,7 +189,25 @@ export const HasManyCellRenderer: CellRenderer = {
       })
     }
 
-    if (selected) {
+    // Simple link picker (interface inline edit) reads as a select — one chevron on
+    // hover/selection, in readonly too (expand-button parity: there it opens the
+    // linked-records browse). Drawn over the old expand hit-box so clicks keep working;
+    // classic keeps the selected-only plus/expand buttons.
+    if (isSimpleLinkRecordList) {
+      if (selected || isBoxHovered({ x, y, width, height }, mousePosition)) {
+        spriteLoader.renderIcon(ctx, {
+          icon: 'chevronDown',
+          x: x + width - 26,
+          y: y + 8,
+          size: 16,
+          color: getColor(themeV4Colors.gray['500']),
+        })
+
+        if (isBoxHovered({ x: x + width - 30, y: y + 6, width: buttonSize, height: buttonSize }, mousePosition)) {
+          setCursor('pointer')
+        }
+      }
+    } else if (selected) {
       const borderRadius = 6
 
       if (!readonly) {
@@ -291,15 +315,18 @@ export const HasManyCellRenderer: CellRenderer = {
           const rowId = extractPkFromRow(cellItem.value, (column.relatedTableMeta?.columns || []) as ColumnType[])
 
           if (rowId) {
-            openDetachedExpandedForm({
-              isOpen: true,
-              row: { row: cellItem.value, rowMeta: {}, oldRow: { ...cellItem.value } },
-              meta: column.relatedTableMeta || ({} as TableType),
-              rowId,
-              useMetaFields: true,
-              maintainDefaultViewOrder: true,
-              loadRow: !isPublic,
-            })
+            openDetachedExpandedForm(
+              {
+                isOpen: true,
+                row: { row: cellItem.value, rowMeta: {}, oldRow: { ...cellItem.value } },
+                meta: column.relatedTableMeta || ({} as TableType),
+                rowId,
+                useMetaFields: true,
+                maintainDefaultViewOrder: true,
+                loadRow: !isPublic,
+              },
+              column.columnObj,
+            )
           }
 
           /**

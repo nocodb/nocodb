@@ -26,6 +26,7 @@ import { PublicDataExportController } from '~/modules/jobs/jobs/data-export/publ
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
+import { DataImportProcessor } from '~/modules/jobs/jobs/data-import/data-import.processor';
 
 // Job Map
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
@@ -40,6 +41,9 @@ import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
 import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
 import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-jobs/nc_job_011_normalize_soft_delete_sqlite';
+import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
+import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
+import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -89,6 +93,7 @@ export const JobsModuleMetadata = {
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
     AttachmentUrlUploadProcessor,
+    DataImportProcessor,
 
     // Migration Jobs
     InitMigrationJobs,
@@ -103,6 +108,9 @@ export const JobsModuleMetadata = {
     AuditMigration,
     SoftDeleteColumnMigration,
     NormalizeSoftDeleteSqliteMigration,
+    RecordTrashBackfillMigration,
+    CleanupOrphanCrossBaseLinksMigration,
+    CleanupOrphanViewColumnsMigration,
   ],
   exports: ['JobsService', JobsLogService, DuplicateProcessor],
 };

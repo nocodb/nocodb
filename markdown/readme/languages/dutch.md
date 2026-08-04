@@ -134,7 +134,7 @@ Toegang tot dashboard met behulp van : [http://localhost:8080/dashboard](http://
 
 # Production Setup
 
-NOCODB vereist een database om metadata van spreadsheets weergaven en externe databases op te slaan. En verbindingsparamumenten voor deze database kunnen worden opgegeven in de variabele NC_DB-omgeving.
+NocoDB vereist een database om metadata van spreadsheets weergaven en externe databases op te slaan. En verbindingsparamumenten voor deze database kunnen worden opgegeven in de variabele NC_DB-omgeving.
 
 ## Docker
 

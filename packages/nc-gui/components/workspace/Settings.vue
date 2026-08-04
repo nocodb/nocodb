@@ -113,7 +113,7 @@ watch(
                 <a-input
                   v-model:value="form.title"
                   class="w-full !rounded-lg !px-4 h-10"
-                  placeholder="Workspace name"
+                  :placeholder="$t('labels.workspaceName')"
                   size="large"
                   :disabled="!hasWorkspaceManagePermission"
                   data-testid="nc-workspace-settings-settings-rename-input"

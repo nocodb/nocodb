@@ -1,7 +1,12 @@
 import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
+  AttachmentReqType,
   AttachmentResType,
   ChatUIContext,
+  FileImportOptions,
+  FileImportParserConfig,
+  FileImportSheet,
+  FileImportType,
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
@@ -9,6 +14,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { Filter } from '~/models';
 export const JOBS_QUEUE = 'jobs';
 
 export enum MigrationJobTypes {
@@ -23,6 +29,9 @@ export enum MigrationJobTypes {
   AuditMigration = 'audit-migration',
   SoftDeleteColumnMigration = 'soft-delete-column-migration',
   NormalizeSoftDeleteSqliteMigration = 'normalize-soft-delete-sqlite-migration',
+  RecordTrashBackfill = 'record-trash-backfill',
+  CleanupOrphanCrossBaseLinks = 'cleanup-orphan-cross-base-links',
+  CleanupOrphanViewColumns = 'cleanup-orphan-view-columns',
 }
 
 export enum JobTypes {
@@ -40,6 +49,7 @@ export enum JobTypes {
   HandleWebhook = 'handle-webhook',
   CleanUp = 'clean-up',
   DataExport = 'data-export',
+  InterfaceDataExport = 'interface-data-export',
   DataExportCleanUp = 'data-export-clean-up',
   ThumbnailGenerator = 'thumbnail-generator',
   AttachmentCleanUp = 'attachment-clean-up',
@@ -47,11 +57,13 @@ export enum JobTypes {
   UseWorker = 'use-worker',
   CreateSnapshot = 'create-snapshot',
   RestoreSnapshot = 'restore-snapshot',
+  SnapshotSchedule = 'snapshot-schedule',
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
   SyncModuleRefreshData = 'sync-module-refresh-data',
   SyncModuleSchedule = 'sync-module-schedule',
+  TableSyncRun = 'table-sync-run',
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
@@ -69,7 +81,15 @@ export enum JobTypes {
   WorkflowDraftReminder = 'workflow-draft-reminder',
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
-  RecordTrashCleanup = 'record-trash-cleanup',
+  BaseTrashCleanUp = 'base-trash-clean-up',
+  DataImport = 'data-import',
+  SandboxMerge = 'sandbox-merge',
+  SandboxDelete = 'sandbox-delete',
+  ManagedAppUpdate = 'managed-app-update',
+  MailDispatch = 'mail-dispatch',
+  MailOutboxRecovery = 'mail-outbox-recovery',
+  MailScanner = 'mail-scanner',
+  OperationCleanup = 'operation-cleanup',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -82,9 +102,12 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateWsStat,
   JobTypes.UpdateUsageStats,
   JobTypes.SyncModuleSchedule,
+  JobTypes.SnapshotSchedule,
   JobTypes.ReseatSubscription,
   JobTypes.WorkflowCronSchedule,
   JobTypes.WorkflowResumeSchedule,
+  JobTypes.BaseTrashCleanUp,
+  JobTypes.OperationCleanup,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
   JobTypes.PollWorkflow,
@@ -93,7 +116,10 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowDraftReminder,
   JobTypes.ChatMessage,
   JobTypes.ChatApproval,
-  JobTypes.RecordTrashCleanup,
+  JobTypes.MailDispatch,
+  JobTypes.MailOutboxRecovery,
+  JobTypes.MailScanner,
+  JobTypes.TableSyncRun,
 ];
 
 export enum JobStatus {
@@ -120,7 +146,25 @@ export const JobVersions: {
 
 export const JOB_REQUEUED = 'job.requeued';
 
-export const JOB_REQUEUE_LIMIT = 10;
+// Requeues exist for transient mismatches between primary and worker during
+// rolling deploys (new job type, renamed fn, version skew) and for local
+// concurrency back-pressure. Both want to wait patiently for the system to
+// settle. Exponential backoff (5s, 10s, 20s, 40s, capped at 60s) catches
+// fast-resolving blips quickly and settles into a steady 60s tail.
+// 60 attempts × max 60s ≈ 57 min total budget before the job is dropped.
+export const JOB_REQUEUE_LIMIT = 60;
+export const JOB_REQUEUE_BASE_DELAY_MS = 5_000;
+export const JOB_REQUEUE_MAX_DELAY_MS = 60_000;
+
+export function jobRequeueDelay(attempt: number): number {
+  const exp = JOB_REQUEUE_BASE_DELAY_MS * 2 ** Math.max(0, attempt - 1);
+  return Math.min(exp, JOB_REQUEUE_MAX_DELAY_MS);
+}
+
+export function parseWorkerConcurrency(value: string | undefined): number {
+  const parsed = parseInt(value ?? '10', 10);
+  return Math.max(1, Number.isFinite(parsed) ? parsed : 10);
+}
 
 export const InstanceTypes = {
   PRIMARY: `${process.env.NC_ENV ?? 'default'}-primary`,
@@ -139,7 +183,6 @@ export enum InstanceCommands {
 export interface JobData {
   // meta info
   jobName: string;
-  _jobDelay?: number;
   _jobAttempt?: number;
   _jobVersion?: number;
   // context
@@ -180,7 +223,12 @@ export interface DuplicateBaseJobData extends JobData {
     excludeUsers?: boolean;
     excludeScripts?: boolean;
     excludeDashboards?: boolean;
+    excludeInterfaces?: boolean;
     excludeWorkflows?: boolean;
+    excludeDocuments?: boolean;
+    excludePersonalViews?: boolean;
+    excludePermissions?: boolean;
+    excludeRls?: boolean;
   };
 }
 
@@ -216,6 +264,32 @@ export interface DuplicateDashboardJobData extends JobData {
   options: never;
 }
 
+export interface SandboxMergeJobData extends JobData {
+  sandboxBaseId: string;
+  productionBaseId: string;
+  sandboxId: string;
+  req: NcRequest;
+  selectedChangelogIds?: string[];
+}
+
+export interface SandboxDeleteJobData extends JobData {
+  context: NcContext;
+  sandboxId: string;
+  sandboxBaseId: string;
+  productionBaseId: string;
+  req: NcRequest;
+}
+
+export interface ManagedAppUpdateJobData extends JobData {
+  managedAppId: string;
+  managedAppTitle: string;
+  masterBaseId: string;
+  masterWorkspaceId: string;
+  newVersionId: string;
+  newVersion: string;
+  req: NcRequest;
+}
+
 export interface HandleWebhookJobData extends JobData {
   hookId: string;
   modelId: string;
@@ -237,11 +311,30 @@ export interface DataExportJobData extends JobData {
     filenameTimeZone?: string;
     filterArrJson?: string;
     sortArrJson?: string;
+    // Set on the anonymous public export route to restrict the ICS description
+    // to view-visible columns.
+    isPublicExport?: boolean;
   };
   modelId: string;
   viewId: string;
-  exportAs: 'csv' | 'json' | 'excel';
+  exportAs: 'csv' | 'json' | 'excel' | 'ics';
   ncSiteUrl: string;
+  locale?: string;
+}
+
+export interface InterfaceDataExportJobData extends JobData {
+  options?: {
+    filenameTimeZone?: string;
+  };
+  scope: {
+    modelId: string;
+    exportColumnIds: string[];
+    customConditions: Filter[];
+    sortArrJson?: string;
+  };
+  pageTitle: string;
+  ncSiteUrl: string;
+  locale?: string;
 }
 
 export interface ThumbnailGeneratorJobData extends JobData {
@@ -254,6 +347,15 @@ export interface CreateSnapshotJobData extends JobData {
   snapshotBaseId: string;
   req: NcRequest;
   snapshot: SnapshotType;
+}
+
+export interface ConsolidateBasesOptions {
+  /**
+   * Physical table names can collide across sources; meta ids cannot. `fail`
+   * refuses and lists them, `prefix` renames the losing side. Never silent.
+   */
+  onTableNameCollision?: 'fail' | 'prefix';
+  excludeData?: boolean;
 }
 
 export interface RestoreSnapshotJobData extends JobData {
@@ -272,6 +374,18 @@ export interface SyncDataSyncModuleJobData extends JobData {
   targetTables?: string[];
   trigger: SyncTrigger;
   bulk?: boolean;
+  /** Force a full fetch this run regardless of the config's sync_type —
+   *  set after a config update so added tables/columns backfill. */
+  fullResync?: boolean;
+  req: NcRequest;
+}
+
+export type TableSyncJobMode = 'full-create' | 'full-resync' | 'incremental';
+
+export interface TableSyncJobData extends JobData {
+  syncId: string;
+  mode?: TableSyncJobMode;
+  affectedIdsBySource?: Record<string, string[]>;
   req: NcRequest;
 }
 
@@ -332,5 +446,33 @@ export interface ChatMessageJobData extends JobData {
 export interface ChatApprovalJobData extends JobData {
   sessionId: string;
   messageId: string;
-  decisions: Record<string, 'approved' | 'denied'>;
+  /**
+   * How the user resolved each paused tool call. A bare 'approved'/'denied' for
+   * simple approval gates; the object form carries structured `input` merged into
+   * the tool's args on resume (input tools like import_file). Generic so every
+   * approval/input feature reuses one resume path.
+   */
+  decisions: Record<
+    string,
+    | 'approved'
+    | 'denied'
+    | { decision: 'approved' | 'denied'; input?: Record<string, any> }
+  >;
+  /** User's current UI navigation context (active table/view/dashboard/document). */
+  uiContext?: ChatUIContext;
+}
+
+export interface MailDispatchJobData extends JobData {
+  mailSendId: string;
+}
+
+export interface DataImportJobData extends JobData {
+  baseId: string;
+  sourceId: string;
+  importType: FileImportType;
+  attachment: AttachmentReqType;
+  sheets: FileImportSheet[];
+  parserConfig: FileImportParserConfig;
+  options: FileImportOptions;
+  req: NcRequest;
 }

@@ -21,7 +21,7 @@ const openProject = async (base: BaseType) => {
   <div>
     <div class="grid grid-cols-3 gap-2 prose-md p-2 font-semibold">
       <div>{{ $t('general.title') }}</div>
-      <div>Updated At</div>
+      <div>{{ $t('labels.syncSchemaColUpdatedAt') }}</div>
       <div></div>
     </div>
 

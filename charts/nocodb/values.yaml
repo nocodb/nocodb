@@ -1,0 +1,362 @@
+## @section Common
+## @param nameOverride Override the chart name
+nameOverride: ""
+## @param fullnameOverride Override the fully qualified release name
+fullnameOverride: ""
+## @param commonLabels Labels added to all resources
+commonLabels: {}
+## @param commonAnnotations Annotations added to all resources
+commonAnnotations: {}
+
+## @section Service account
+## @param serviceAccount.create Create a ServiceAccount
+## @param serviceAccount.name Name of the ServiceAccount (defaults to fullname)
+## @param serviceAccount.annotations Annotations for the ServiceAccount (e.g. IRSA / Workload Identity)
+## @param serviceAccount.automountServiceAccountToken Auto-mount the SA token
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @section Global
+global:
+  ## @param global.imageRegistry Global image registry override
+  imageRegistry: ""
+  ## @param global.imagePullSecrets Global image pull secrets
+  imagePullSecrets: []
+  ## @param global.storageClass Global storage class for PVCs
+  storageClass: ""
+
+## @section Image
+image:
+  ## @param image.registry NocoDB image registry
+  registry: docker.io
+  ## @param image.repository NocoDB image repository
+  repository: nocodb/nocodb
+  ## @skip image.tag Image tag (defaults to chart appVersion; immutable tags recommended)
+  tag: ""
+  ## @param image.digest Image digest (takes precedence over tag), e.g. sha256:...
+  digest: ""
+  ## @param image.pullPolicy Image pull policy
+  pullPolicy: IfNotPresent
+  ## @param image.pullSecrets Image pull secrets
+  pullSecrets: []
+
+## @section App workload
+## @param replicaCount Number of app replicas (>=2 requires Redis)
+replicaCount: 2
+## @param updateStrategy Deployment update strategy (ordered rollout for migration safety)
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+## @param resources App container resources. Default requests reserve a full node vCPU; 2Gi memory recommended, 1Gi minimum
+resources:
+  requests:
+    cpu: "1"
+    memory: 2Gi
+## @param podAnnotations Extra annotations for app pods
+podAnnotations: {}
+## @param podLabels Extra labels for app pods
+podLabels: {}
+## @param podSecurityContext App pod security context
+podSecurityContext:
+  fsGroup: 1000
+## @param containerSecurityContext App container security context
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop: ["ALL"]
+  seccompProfile:
+    type: RuntimeDefault
+## @param livenessProbe App liveness probe (httpGet /api/v1/health)
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+  successThreshold: 1
+## @param readinessProbe App readiness probe
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+## @param startupProbe App startup probe (generous to cover first-boot migrations)
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+## @param customLivenessProbe Replaces the generated liveness probe when set
+customLivenessProbe: {}
+## @param customReadinessProbe Replaces the generated readiness probe when set
+customReadinessProbe: {}
+## @param customStartupProbe Replaces the generated startup probe when set
+customStartupProbe: {}
+## @param lifecycle Container lifecycle hooks (default preStop drains the LB)
+lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "sleep 5"]
+## @param terminationGracePeriodSeconds Grace period for in-flight request drain
+terminationGracePeriodSeconds: 60
+
+## @section App config (non-secret)
+nocodb:
+  ## @param nocodb.publicUrl NC_SITE_URL. If empty, derived from the first ingress host when TLS is set
+  publicUrl: ""
+  ## @param nocodb.dashboardUrl NC_DASHBOARD_URL
+  dashboardUrl: ""
+  ## @param nocodb.disableMux Set NC_DISABLE_MUX=true (recommended for self-hosted)
+  disableMux: true
+  ## @param nocodb.disableTelemetry Set NC_DISABLE_TELE=true
+  disableTelemetry: false
+  ## @param nocodb.licenseKey NC_LICENSE_KEY (enterprise)
+  licenseKey: ""
+  ## @param nocodb.extraEnvVars Extra raw env vars for the app (list of name/value or valueFrom)
+  extraEnvVars: []
+
+## @section Worker workload
+worker:
+  ## @param worker.enabled Deploy a dedicated background worker (requires Redis)
+  enabled: true
+  ## @param worker.replicaCount Worker replicas
+  replicaCount: 2
+  ## @param worker.concurrency NC_WORKER_CONCURRENCY (empty = NocoDB default)
+  concurrency: ""
+  ## @param worker.terminationGracePeriodSeconds Grace period for the worker to drain in-flight Bull jobs on shutdown (raise above your longest job)
+  terminationGracePeriodSeconds: 120
+  ## @param worker.resources Worker container resources. Default requests reserve a full node vCPU; 2Gi memory recommended, 1Gi minimum
+  resources:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+  ## @param worker.podAnnotations Extra annotations for worker pods
+  podAnnotations: {}
+  ## @param worker.nodeSelector Worker node selector
+  nodeSelector: {}
+  ## @param worker.tolerations Worker tolerations
+  tolerations: []
+  ## @param worker.affinity Worker affinity (overrides the default anti-affinity preset)
+  affinity: {}
+  ## @param worker.autoscaling.enabled Enable HPA for the worker
+  ## @param worker.autoscaling.minReplicas Minimum worker replicas
+  ## @param worker.autoscaling.maxReplicas Maximum worker replicas
+  ## @param worker.autoscaling.targetCPU Target CPU utilisation percentage for worker HPA
+  ## @param worker.autoscaling.targetMemory Target memory utilisation percentage for worker HPA (empty to disable)
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPU: 80
+    targetMemory: ""
+  ## @param worker.extraEnvVars Extra raw env vars for the worker
+  extraEnvVars: []
+
+## @section External Postgres (required)
+externalDatabase:
+  ## @param externalDatabase.host Postgres host (eval/inline path)
+  host: ""
+  ## @param externalDatabase.port Postgres port
+  port: 5432
+  ## @param externalDatabase.database Database name
+  database: nocodb
+  ## @param externalDatabase.username Database user
+  username: nocodb
+  ## @param externalDatabase.password Database password (eval only; use existingSecret in prod)
+  password: ""
+  ## @param externalDatabase.sslMode sslmode appended to the assembled URL
+  sslMode: prefer
+  ## @param externalDatabase.urlEnvVar Env var name for the connection URL (DATABASE_URL or NC_DB)
+  urlEnvVar: DATABASE_URL
+  ## @param externalDatabase.existingSecret Secret holding the full connection URL
+  existingSecret: ""
+  ## @param externalDatabase.existingSecretUrlKey Key in existingSecret holding the URL
+  existingSecretUrlKey: DATABASE_URL
+
+## @section External Redis (required for HA / worker)
+externalRedis:
+  ## @param externalRedis.host Redis host
+  host: ""
+  ## @param externalRedis.port Redis port
+  port: 6379
+  ## @param externalRedis.password Redis password (eval only)
+  password: ""
+  ## @param externalRedis.tls Use rediss:// scheme
+  tls: false
+  ## @param externalRedis.existingSecret Secret holding the full NC_REDIS_URL
+  existingSecret: ""
+  ## @param externalRedis.existingSecretUrlKey Key in existingSecret holding NC_REDIS_URL
+  existingSecretUrlKey: NC_REDIS_URL
+
+## @section SMTP (optional)
+smtp:
+  ## @param smtp.enabled Configure SMTP email
+  enabled: false
+  ## @param smtp.host SMTP host
+  host: ""
+  ## @param smtp.port SMTP port
+  port: 587
+  ## @param smtp.from From address
+  from: ""
+  ## @param smtp.username SMTP username
+  username: ""
+  ## @param smtp.password SMTP password (eval only)
+  password: ""
+  ## @param smtp.secure NC_SMTP_SECURE
+  secure: false
+  ## @param smtp.existingSecret Secret holding the SMTP password
+  existingSecret: ""
+  ## @param smtp.passwordKey Key in existingSecret for the SMTP password
+  passwordKey: NC_SMTP_PASSWORD
+
+## @section SSO (optional)
+sso:
+  ## @param sso.oidc.enabled Enable OIDC (sets NC_SSO=oidc)
+  ## @param sso.oidc.providerName Display name for the OIDC provider
+  oidc:
+    enabled: false
+    providerName: OpenID Connect
+  ## @param sso.saml.enabled Enable SAML (sets NC_SSO=saml)
+  ## @param sso.saml.providerName Display name for the SAML provider
+  saml:
+    enabled: false
+    providerName: SAML
+
+## @section Auth keys
+auth:
+  ## @param auth.jwtSecret NC_AUTH_JWT_SECRET (auto-generated+persisted if empty)
+  jwtSecret: ""
+  ## @param auth.encryptionKey NC_CONNECTION_ENCRYPT_KEY (auto-generated+persisted if empty; never rotated)
+  encryptionKey: ""
+  ## @param auth.existingSecret Secret holding both keys
+  existingSecret: ""
+  ## @param auth.jwtSecretKey Key in existingSecret for the JWT secret
+  jwtSecretKey: NC_AUTH_JWT_SECRET
+  ## @param auth.encryptionKeyKey Key in existingSecret for the encryption key
+  encryptionKeyKey: NC_CONNECTION_ENCRYPT_KEY
+
+## @section Scaling & scheduling
+autoscaling:
+  ## @param autoscaling.enabled App HPA
+  enabled: false
+  ## @param autoscaling.minReplicas Minimum app replicas for HPA
+  minReplicas: 2
+  ## @param autoscaling.maxReplicas Maximum app replicas for HPA
+  maxReplicas: 10
+  ## @param autoscaling.targetCPU Target CPU utilisation percentage for app HPA
+  targetCPU: 80
+  ## @param autoscaling.targetMemory Target memory utilisation percentage for app HPA (empty to disable)
+  targetMemory: ""
+## @param pdb.create Create a PodDisruptionBudget for the app
+pdb:
+  create: false
+  ## @param pdb.minAvailable Minimum available pods for PDB (integer or percentage)
+  minAvailable: 1
+  ## @param pdb.maxUnavailable Maximum unavailable pods for PDB (integer or percentage; empty if minAvailable is set)
+  maxUnavailable: ""
+## @param podAntiAffinityPreset Default app pod anti-affinity (soft|hard|"")
+podAntiAffinityPreset: soft
+## @param topologySpreadConstraints App topology spread constraints
+topologySpreadConstraints: []
+## @param affinity App affinity (overrides podAntiAffinityPreset)
+affinity: {}
+## @param nodeSelector App node selector
+nodeSelector: {}
+## @param tolerations App tolerations
+tolerations: []
+## @param priorityClassName App priority class
+priorityClassName: ""
+
+## @section Networking
+service:
+  ## @param service.type Service type
+  type: ClusterIP
+  ## @param service.port Service port
+  port: 8080
+  ## @param service.annotations Service annotations
+  annotations: {}
+ingress:
+  ## @param ingress.enabled Create an Ingress
+  enabled: false
+  ## @param ingress.className Ingress class name
+  className: ""
+  ## @param ingress.annotations Ingress annotations (cert-manager cluster-issuer here)
+  annotations: {}
+  ## @param ingress.hosts Ingress hosts
+  hosts:
+    - host: nocodb.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  ## @param ingress.tls Ingress TLS entries
+  tls: []
+networkPolicy:
+  ## @param networkPolicy.enabled Create a NetworkPolicy
+  enabled: false
+  ## @param networkPolicy.allowExternal Allow ingress from anywhere
+  allowExternal: true
+  ## @param networkPolicy.extraIngress Extra ingress rules
+  extraIngress: []
+  ## @param networkPolicy.extraEgress Extra egress rules
+  extraEgress: []
+
+## @section Persistence (local attachment storage)
+persistence:
+  ## @param persistence.enabled Mount a PVC at /usr/app/data instead of emptyDir
+  enabled: false
+  ## @param persistence.storageClass StorageClass for the PVC (empty uses cluster default)
+  storageClass: ""
+  ## @param persistence.accessModes PVC access modes
+  accessModes: ["ReadWriteOnce"]
+  ## @param persistence.size PVC size
+  size: 10Gi
+  ## @param persistence.existingClaim Existing PVC name (skips PVC creation)
+  existingClaim: ""
+
+## @section Observability
+monitoring:
+  ## @param monitoring.sentry.enabled Set NC_SENTRY_DSN
+  ## @param monitoring.sentry.dsn Sentry DSN (eval; use existingSecret in prod)
+  ## @param monitoring.sentry.existingSecret Secret holding the Sentry DSN
+  ## @param monitoring.sentry.dsnKey Key in existingSecret for the DSN
+  sentry:
+    enabled: false
+    dsn: ""
+    existingSecret: ""
+    dsnKey: NC_SENTRY_DSN
+
+## @section Escape hatches
+## @param extraEnvVars Extra env vars applied to app and worker
+extraEnvVars: []
+## @param extraEnvVarsCM Name of a ConfigMap with extra env vars
+extraEnvVarsCM: ""
+## @param extraEnvVarsSecret Name of a Secret with extra env vars
+extraEnvVarsSecret: ""
+## @param extraVolumes Extra volumes
+extraVolumes: []
+## @param extraVolumeMounts Extra volume mounts
+extraVolumeMounts: []
+## @param initContainers Extra init containers
+initContainers: []
+## @param sidecars Extra sidecar containers
+sidecars: []
+## @param command Override container command
+command: []
+## @param args Override container args
+args: []
+## @param lifecycleHooks Override container lifecycle hooks (takes precedence over lifecycle)
+lifecycleHooks: {}
+## @param extraDeploy Extra raw manifests (tpl-rendered)
+extraDeploy: []

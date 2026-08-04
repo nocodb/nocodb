@@ -2,6 +2,17 @@
 import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
+interface Props {
+  /**
+   * Keep the "Filter" text label on mobile. Interface toolbars hide the icon
+   * (plain-text controls), so the default mobile icon-only collapse would
+   * leave the button empty.
+   */
+  keepLabelOnMobile?: boolean
+}
+
+const props = defineProps<Props>()
+
 const isLocked = inject(IsLockedInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -11,6 +22,9 @@ const isToolbarIconMode = inject(
   IsToolbarIconMode,
   computed(() => false),
 )
+
+// Interface pages restyle the popover to the panel vocabulary via this class.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -43,10 +57,13 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
   true,
 )
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI.
-// Public/shared views always get the interactive UI — their changes are local-only.
-const isRestrictedEditor = computed(() => !isPublic.value && (isLocked.value || !canSyncFilter.value))
+// Public/shared views AND shared bases always get the interactive UI — their
+// changes are local-only. A shared base sets isSharedBase (isPublic stays false).
+const isRestrictedEditor = computed(() => !isPublic.value && !isSharedBase.value && (isLocked.value || !canSyncFilter.value))
 
 // True when user is viewing a personal view they don't own
 const isPersonalViewNonOwner = computed(
@@ -172,10 +189,36 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
   }
 
   const column = payload?.column as ColumnType | undefined
-
-  if (!column) return
+  const columns = payload?.columns as ColumnType[] | undefined
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
+    // Bulk path: a list of columns from the multi-field menu. We stage each
+    // as a draft sequentially, waiting for the watcher inside ColumnFilter
+    // to commit (it resets draftFilter to {} when done) before staging the
+    // next — otherwise drafts get overwritten and only the last one lands.
+    if (columns?.length) {
+      open.value = true
+      for (const col of columns) {
+        if (!col?.id) continue
+        draftFilter.value = { fk_column_id: col.id }
+        await new Promise<void>((resolve) => {
+          const stop = watch(
+            draftFilter,
+            (v) => {
+              if (!v || !Object.keys(v).length) {
+                stop()
+                resolve()
+              }
+            },
+            { deep: true },
+          )
+        })
+      }
+      return
+    }
+
+    if (!column) return
+
     draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
@@ -258,10 +301,10 @@ watch(
     v-model:visible="open"
     :scrollable-body="false"
     drawer-body-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown !px-0 !pb-0 h-full"
-    overlay-class-name="nc-dropdown-filter-menu overflow-hidden"
+    :overlay-class-name="`nc-dropdown-filter-menu overflow-hidden${interfacePageDataApi ? ' nc-interface-toolbar-filter' : ''}`"
   >
     <template #default="{ onClick }">
-      <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
+      <NcTooltip :disabled="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode">
         <template #title>
           {{ $t('activity.filter') }}
         </template>
@@ -281,9 +324,12 @@ watch(
             <div class="flex items-center gap-2">
               <component :is="iconMap.filter" class="h-4 w-4" />
               <!-- Filter -->
-              <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-                $t('activity.filter')
-              }}</span>
+              <span
+                v-if="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
+                class="text-capitalize !text-[13px] font-medium"
+              >
+                {{ $t('activity.filter') }}
+              </span>
             </div>
 
             <NcTooltip v-if="combinedFilterLength" :disabled="!isCurrentUserFilterPresent" class="flex">
@@ -398,7 +444,7 @@ watch(
           <div v-else-if="filtersFromUrlParams?.errors?.length">
             <NcAlert
               type="error"
-              message="Error"
+              :message="$t('objects.ncMessage.error')"
               :description="$t('msg.urlFilterError')"
               :copy-text="filtersFromUrlParamsReadableErrors"
               :copy-btn-tooltip="$t('tooltip.copyErrorMessage')"

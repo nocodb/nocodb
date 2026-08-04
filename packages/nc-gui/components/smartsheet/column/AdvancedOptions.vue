@@ -37,7 +37,7 @@ vModel.value.au = !!vModel.value.au */
       <div class="flex justify-between w-full gap-1">
         <a-form-item>
           <template #label>
-            <span title="Not Null">NN</span>
+            <span :title="$t('labels.notNull')">NN</span>
           </template>
           <a-checkbox
             v-model:checked="vModel.rqd"
@@ -49,7 +49,7 @@ vModel.value.au = !!vModel.value.au */
 
         <a-form-item>
           <template #label>
-            <span title="Primary Key">PK</span>
+            <span :title="$t('labels.primaryKey')">PK</span>
           </template>
           <a-checkbox
             v-model:checked="vModel.pk"
@@ -61,7 +61,7 @@ vModel.value.au = !!vModel.value.au */
 
         <a-form-item>
           <template #label>
-            <span title="Auto Increment">AI</span>
+            <span :title="$t('labels.autoIncrement')">AI</span>
           </template>
           <a-checkbox
             v-model:checked="vModel.ai"
@@ -73,14 +73,14 @@ vModel.value.au = !!vModel.value.au */
 
         <a-form-item :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
           <template #label>
-            <span title="Unsigned">UN</span>
+            <span :title="$t('labels.unsigned')">UN</span>
           </template>
           <a-checkbox v-model:checked="vModel.un" class="nc-column-checkbox-UN" />
         </a-form-item>
 
         <a-form-item :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
           <template #label>
-            <span title="Auto Update">AU</span>
+            <span :title="$t('labels.autoUpdate')">AU</span>
           </template>
           <a-checkbox v-model:checked="vModel.au" class="nc-column-checkbox-AU" />
         </a-form-item>
@@ -115,7 +115,7 @@ vModel.value.au = !!vModel.value.au */
         />
       </a-form-item>
 
-      <a-form-item v-if="sqlUi.showScale(vModel)" label="Scale">
+      <a-form-item v-if="sqlUi.showScale(vModel)" :label="$t('labels.scale')">
         <a-input v-model:value="vModel.dtxs" class="!rounded-lg" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
       </a-form-item>
 

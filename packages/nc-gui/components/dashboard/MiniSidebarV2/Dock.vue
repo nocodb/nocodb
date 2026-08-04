@@ -17,9 +17,13 @@ const { navigateToProject, isMobileMode } = useGlobal()
 
 const { $e: _$e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
+
+const { isWhiteLabelled, productName, faviconUrl } = useBranding()
 
 const basesStore = useBases()
 
@@ -45,7 +49,29 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks, hideInterfaces } = useEeConfig()
+
+const isBookmarksFlyoutOpen = ref(false)
+
+const bookmarksContainerRef = ref<HTMLElement | null>(null)
+
+onClickOutside(
+  bookmarksContainerRef,
+  () => {
+    isBookmarksFlyoutOpen.value = false
+  },
+  {
+    ignore: [
+      '.nc-bookmark-add-dropdown',
+      '.nc-bookmark-context-menu',
+      '.nc-bookmark-group-menu',
+      '.nc-bookmark-settings-menu',
+      '.nc-modal-wrapper',
+      '.nc-bookmark-bulk-more-dropdown-move-to',
+      '.nc-bookmark-bulk-more-dropdown',
+    ],
+  },
+)
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -96,6 +122,8 @@ const onTabClick = async (tabKey: string) => {
 
   if (tabKey === 'workflows') {
     await navigateTo(`${basePath}/workflows`)
+  } else if (tabKey === 'interfaces') {
+    await navigateTo(`${basePath}/interfaces`)
   } else {
     await navigateTo(basePath)
   }
@@ -122,16 +150,32 @@ const mainItems = computed<NavItem[]>(() => [
   {
     key: 'data',
     icon: 'ncTable',
-    label: 'Data',
+    label: t('general.data'),
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
-  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
+  // Interfaces are paid-only and hidden (not badge-gated) below the tier.
+  ...(showEEFeatures.value && !hideInterfaces.value
+    ? [
+        {
+          key: 'interfaces',
+          icon: 'ncLayout',
+          label: t('general.interfaces'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('interfaceList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('interfaces'),
+        },
+      ]
+    : []),
+  ...(!isMobileMode.value && showEEFeatures.value
     ? [
         {
           key: 'workflows',
           icon: 'ncAutomation',
-          label: 'Workflows',
+          label: t('general.workflows'),
           disabled:
             !hasAvailableBases.value ||
             !isUIAllowed('scriptList', {
@@ -269,6 +313,14 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     handleChatToggle()
   }
 })
+
+const handleOpenBookmarkPanel = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToUseBookmarks({ triggerSource: 'minisidebar-bookmarks' })
+  } else {
+    isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+  }
+}
 </script>
 
 <template>
@@ -284,19 +336,13 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :scale="getScale('logo')"
       @click="navigateTo(`/${activeWorkspaceId}`)"
     >
-      <GeneralProjectIcon
-        class="!h-7 !w-7 nc-logo-icon"
-        :color="parseProp(resolvedProject?.meta).iconColor"
-        :type="resolvedProject?.type"
-        :managed-app="
-          resolvedProject
-            ? {
-                managed_app_master: resolvedProject?.managed_app_master,
-                managed_app_id: resolvedProject?.managed_app_id,
-              }
-            : undefined
-        "
+      <img
+        v-if="isWhiteLabelled && faviconUrl"
+        :src="faviconUrl"
+        :alt="productName"
+        class="!h-7 !w-7 nc-logo-icon object-contain"
       />
+      <GeneralNocodbLogo v-else class="!h-7 !w-7 nc-logo-icon" />
       <div class="nc-back-icon">
         <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
       </div>
@@ -323,7 +369,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
-      label="Chat"
+      :label="$t('labels.chat')"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
@@ -338,7 +384,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('settings', el)"
       icon="ncSettings"
-      label="Settings"
+      :label="$t('labels.settings')"
       panel-key="settings"
       :active="activeSidebarTab === 'settings' && !isChatFullScreen"
       :scale="getScale('settings')"
@@ -350,7 +396,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <!-- Help -->
       <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
         <DashboardMiniSidebarHelp>
-          <DashboardMiniSidebarV2DockItem icon="ncHelp" label="Help" panel-key="help" :scale="1" />
+          <DashboardMiniSidebarV2DockItem icon="ncHelp" :label="$t('general.help')" panel-key="help" :scale="1" />
         </DashboardMiniSidebarHelp>
       </div>
     </div>
@@ -364,6 +410,22 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :style="getMagnifyStyle('create')"
     >
       <DashboardMiniSidebarCreateNewActionMenu />
+    </div>
+
+    <!-- Bookmarks -->
+    <div v-if="showEEFeatures" ref="bookmarksContainerRef" class="relative">
+      <div :ref="(el: any) => setItemRef('bookmarks', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('bookmarks')">
+        <DashboardMiniSidebarV2DockItem
+          icon="ncBookmark"
+          :label="$t('labels.bookmarks')"
+          :active="isBookmarksFlyoutOpen"
+          data-testid="nc-dock-bookmarks"
+          :scale="getScale('bookmarks')"
+          @click="handleOpenBookmarkPanel"
+        />
+      </div>
+
+      <LazyBookmarksFlyout v-if="isBookmarksFlyoutOpen" @close="isBookmarksFlyoutOpen = false" />
     </div>
 
     <!-- Activity / Notifications -->
@@ -381,7 +443,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         :style="getMagnifyStyle('notification')"
       >
         <DashboardMiniSidebarV2DockItem
-          :label="isNotificationOpen ? undefined : 'Activity'"
+          :label="isNotificationOpen ? undefined : $t('labels.activity')"
           panel-key="notification"
           data-testid="nc-sidebar-notification-btn"
           :active="isNotificationOpen"

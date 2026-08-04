@@ -8,6 +8,8 @@ const { isViewToolbar } = defineProps<{
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const route = useRoute()
+
 const baseStore = useBase()
 const { base, isPrivateBase } = storeToRefs(baseStore)
 const { navigateToProjectPage } = baseStore
@@ -15,6 +17,8 @@ const { isUIAllowed } = useRoles()
 const { activeView } = storeToRefs(useViewsStore())
 const dashboardStore = useDashboardStore()
 const { activeDashboard } = storeToRefs(dashboardStore)
+const documentsStore = useDocumentsStore()
+const { activeDocument } = storeToRefs(documentsStore)
 
 let view: Ref<ViewType | undefined>
 if (isViewToolbar) {
@@ -122,6 +126,20 @@ watch(showShareModal, (val) => {
         <DlgShareAndCollaborateSharePage />
       </div>
 
+      <div v-if="activeDocument" class="share-doc">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <GeneralIcon icon="ncFileText" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+          <div>{{ $t('activity.shareDoc') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            <span>{{ activeDocument.title || $t('general.untitled') }}</span>
+          </div>
+        </div>
+        <DlgShareAndCollaborateSharePageDoc />
+      </div>
+
       <div v-if="activeDashboard" class="share-dashboard">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <LazyGeneralEmojiPicker class="nc-dashboard-icon" size="small" :emoji="activeDashboard?.meta?.icon" readonly>
@@ -142,7 +160,8 @@ watch(showShareModal, (val) => {
         <DlgShareAndCollaborateShareDashboard />
       </div>
 
-      <div v-if="isUIAllowed('baseShare')" class="share-base">
+      <DlgShareAndCollaborateShareInterface />
+      <div v-if="isUIAllowed('baseShare') && !route.params.interfaceId" class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <GeneralProjectIcon
             :color="parseProp(base.meta).iconColor"
@@ -177,8 +196,9 @@ watch(showShareModal, (val) => {
         <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false">
           {{ $t('general.close') }}
         </NcButton>
+        <DlgShareAndCollaborateShareInterfaceActions v-if="isEeUI" />
         <NcButton
-          v-if="isUIAllowed('baseShare')"
+          v-if="isUIAllowed('baseShare') && !route.params.interfaceId"
           data-testid="docs-share-manage-access"
           type="secondary"
           :loading="isOpeningManageAccess"
@@ -208,6 +228,8 @@ watch(showShareModal, (val) => {
 
   .share-view,
   .share-dashboard,
+  .share-doc,
+  .share-interface,
   .share-base {
     @apply !border-1 border-nc-border-gray-medium mx-3 rounded-lg mt-3 px-1 py-1;
   }

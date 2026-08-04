@@ -1,4 +1,10 @@
-import { roundUpToPrecision } from 'nocodb-sdk'
+import {
+  SeparatorType,
+  formatNumberWithSeparator,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  roundUpToPrecision,
+} from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const DecimalCellRenderer: CellRenderer = {
@@ -9,13 +15,18 @@ export const DecimalCellRenderer: CellRenderer = {
     const meta = parseProp(column?.meta)
 
     if (value !== null && !isNaN(Number(value))) {
-      if (meta.isLocaleString) {
-        displayValue = Number(roundUpToPrecision(Number(value), meta.precision ?? 1)).toLocaleString(undefined, {
-          minimumFractionDigits: meta.precision ?? 1,
-          maximumFractionDigits: meta.precision ?? 1,
+      const separator = resolveColumnSeparator(meta)
+      const precision = meta.precision ?? 1
+      const numValue = Number(roundUpToPrecision(Number(value), precision))
+
+      if (separator === SeparatorType.Locale) {
+        displayValue = numValue.toLocaleString(undefined, {
+          minimumFractionDigits: precision,
+          maximumFractionDigits: precision,
         })
       } else {
-        displayValue = roundUpToPrecision(Number(value), meta.precision ?? 1)
+        const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator)
+        displayValue = formatNumberWithSeparator(numValue, thousandSeparator, decimalSeparator, precision)
       }
     }
 

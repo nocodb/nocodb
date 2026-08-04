@@ -3,7 +3,7 @@ import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias 
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
+const { isUIAllowed, orgRoles, workspaceRoles, sandboxRestrictionReason } = useRoles()
 
 const { openedProject } = storeToRefs(useBases())
 
@@ -28,8 +28,16 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView, blockDocs } =
-  useEeConfig()
+const {
+  isEEFeatureBlocked,
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseGanttView,
+  blockListView,
+  blockTimelineView,
+  blockGanttView,
+  blockDocs,
+} = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -129,6 +137,19 @@ const hasTableCreateAccess = computed(() => {
   })
 })
 
+const tableCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('tableCreate', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    // ProjectInj is not provided in the MiniSidebar tree, so the useRoles
+    // wrapper's injected-base fallback is empty here — pass base explicitly or
+    // the reason is always null (the gate would be inert on a sandbox-master).
+    base: base.value,
+  })
+})
+
 const hasViewCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
@@ -151,6 +172,36 @@ const hasDashboardCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('dashboardCreate')
+})
+
+const dashboardCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('dashboardCreate', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    base: base.value,
+  })
+})
+
+const workflowCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('workflowCreateOrEdit', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    base: base.value,
+  })
+})
+
+const scriptCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('scriptCreateOrEdit', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    base: base.value,
+  })
 })
 
 const hasDocumentCreateAccess = computed(() => {
@@ -187,13 +238,15 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <template v-if="isEeUI && showEEFeatures">
+          <template v-if="showEEFeatures">
             <NcTooltip
               :title="
                 !isWorkflowsTab
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.workflow').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                  : workflowCreateReason
+                  ? $t(workflowCreateReason)
                   : !hasWorkflowCreateAccess
                   ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
                   : ''
@@ -220,6 +273,8 @@ const hasDocumentCreateAccess = computed(() => {
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateScript')
+                  : scriptCreateReason
+                  ? $t(scriptCreateReason)
                   : !hasScriptCreateAccess
                   ? $t('tooltip.youDontHaveAccessToCreateNewScript')
                   : ''
@@ -299,11 +354,7 @@ const hasDocumentCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
-                data-testid="mini-sidebar-view-create-map"
-                @click="onOpenModal({ type: ViewTypes.MAP })"
-              >
+              <NcMenuItem v-if="isEeUI" data-testid="mini-sidebar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
               </NcMenuItem>
@@ -311,7 +362,12 @@ const hasDocumentCreateAccess = computed(() => {
                 v-if="isListViewEnabled"
                 data-testid="mini-sidebar-view-create-list"
                 inner-class="w-full"
-                @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
+                @click="
+                  showUpgradeToUseListView({
+                    successCallback: () => onOpenModal({ type: ViewTypes.LIST }),
+                    triggerSource: 'minisidebar-list',
+                  })
+                "
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
                 <div class="flex-1">{{ $t('objects.viewType.list') }}</div>
@@ -325,10 +381,15 @@ const hasDocumentCreateAccess = computed(() => {
                 />
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
+                v-if="showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
                 inner-class="w-full"
-                @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+                @click="
+                  showUpgradeToUseTimelineView({
+                    successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }),
+                    triggerSource: 'minisidebar-timeline',
+                  })
+                "
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                 <div class="flex-1">{{ $t('objects.viewType.timeline') }}</div>
@@ -336,6 +397,28 @@ const hasDocumentCreateAccess = computed(() => {
                 <PaymentUpgradeBadge
                   v-if="blockTimelineView"
                   :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
+                  :plan-title="PlanTitles.BUSINESS"
+                  remove-click
+                  show-as-lock
+                />
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="showEEFeatures"
+                data-testid="mini-sidebar-view-create-gantt"
+                inner-class="w-full"
+                @click="
+                  showUpgradeToUseGanttView({
+                    successCallback: () => onOpenModal({ type: ViewTypes.GANTT }),
+                    triggerSource: 'minisidebar-gantt',
+                  })
+                "
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
+                <div class="flex-1">{{ $t('objects.viewType.gantt') }}</div>
+
+                <PaymentUpgradeBadge
+                  v-if="blockGanttView"
+                  :feature="PlanFeatureTypes.FEATURE_GANTT_VIEW"
                   :plan-title="PlanTitles.BUSINESS"
                   remove-click
                   show-as-lock
@@ -351,13 +434,15 @@ const hasDocumentCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isEeUI && showEEFeatures">
+          <template v-if="showEEFeatures">
             <NcTooltip
               :title="
                 !isDataTab
                   ? $t('tooltip.switchToDataTab', { type: $t('general.dashboard').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateDashboard')
+                  : dashboardCreateReason
+                  ? $t(dashboardCreateReason)
                   : !hasDashboardCreateAccess
                   ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
                   : ''
@@ -380,7 +465,9 @@ const hasDocumentCreateAccess = computed(() => {
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
+          </template>
 
+          <template v-if="isEeUI">
             <NcTooltip
               :title="
                 !isDataTab
@@ -416,16 +503,18 @@ const hasDocumentCreateAccess = computed(() => {
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.table').toLowerCase() })
                 : !isBaseHomePage
                 ? $t('tooltip.navigateToBaseToCreateTable')
+                : tableCreateReason
+                ? $t(tableCreateReason)
                 : !hasTableCreateAccess
                 ? $t('tooltip.youDontHaveAccessToCreateNewTable')
                 : ''
             "
-            :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess"
+            :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess && !tableCreateReason"
             placement="right"
           >
             <NcMenuItem
               data-testid="mini-sidebar-table-create"
-              :disabled="!isDataTab || !isBaseHomePage || !hasTableCreateAccess"
+              :disabled="!isDataTab || !isBaseHomePage || !hasTableCreateAccess || !!tableCreateReason"
               @click="openTableCreateDialog"
             >
               <GeneralIcon icon="table" />

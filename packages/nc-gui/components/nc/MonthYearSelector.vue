@@ -11,6 +11,7 @@ interface Props {
   showCurrentDateOption?: boolean | 'disabled'
   timezone?: string
   header?: 'v1' | 'v2'
+  isJalali?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   isCellInputField: false,
   pickerType: 'date',
   header: 'v1',
+  isJalali: false,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:pickerType', 'currentDate'])
 
@@ -36,8 +38,15 @@ const timezoneDayjs = computed(() => {
 
 const years = computed(() => {
   const date = pageDate.value
-  const startOfYear = date.startOf('year')
   const years: dayjs.Dayjs[] = []
+  if (props.isJalali) {
+    const jy = jalaliPartsOf(date).jy
+    for (let i = 0; i < 12; i++) {
+      years.push(timezoneDayjs.value.timezonize(jalaliDate(date, jy + i, 1, 1)))
+    }
+    return years
+  }
+  const startOfYear = date.startOf('year')
   for (let i = 0; i < 12; i++) {
     years.push(timezoneDayjs.value.timezonize(startOfYear.add(i, 'year')))
   }
@@ -46,6 +55,13 @@ const years = computed(() => {
 
 const months = computed(() => {
   const months: dayjs.Dayjs[] = []
+  if (props.isJalali) {
+    const jy = jalaliPartsOf(pageDate.value).jy
+    for (let i = 0; i < 12; i++) {
+      months.push(jalaliDate(pageDate.value, jy, i + 1, 1))
+    }
+    return months
+  }
   for (let i = 0; i < 12; i++) {
     months.push(pageDate.value.set('month', i))
   }
@@ -54,6 +70,9 @@ const months = computed(() => {
 
 const compareDates = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
+  if (props.isJalali) {
+    return isSameJalaliMonth(date1, date2)
+  }
   return date1.isSame(date2, 'month') && date1.isSame(date2, 'year')
 }
 
@@ -64,22 +83,16 @@ const isMonthSelected = (date: dayjs.Dayjs) => {
 
 const paginateMonth = (action: 'next' | 'prev') => {
   let date = pageDate.value
-  if (action === 'next') {
-    date = date.add(1, 'year')
-  } else {
-    date = date.subtract(1, 'year')
-  }
+  const delta = action === 'next' ? 1 : -1
+  date = props.isJalali ? jalaliAddYears(date, delta) : date.add(delta, 'year')
   pageDate.value = date
   emit('update:pageDate', date)
 }
 
 const paginateYear = (action: 'next' | 'prev') => {
   let date = timezoneDayjs.value.dayjsTz(pageDate.value)
-  if (action === 'next') {
-    date = date.add(12, 'year')
-  } else {
-    date = date.subtract(12, 'year')
-  }
+  const delta = action === 'next' ? 12 : -12
+  date = props.isJalali ? jalaliAddYears(date, delta) : date.add(delta, 'year')
   pageDate.value = date
   emit('update:pageDate', date)
 }
@@ -94,6 +107,9 @@ const paginate = (action: 'next' | 'prev') => {
 
 const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
+  if (props.isJalali) {
+    return isSameJalaliYear(date1, date2)
+  }
   return date1.isSame(date2, 'year')
 }
 </script>
@@ -128,9 +144,15 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
           >{{
             isYearPicker
               ? isCellInputField
-                ? timezoneDayjs.dayjsTz(selectedDate).year() || timezoneDayjs.dayjsTz().year()
+                ? isJalali
+                  ? timezoneDayjs.dayjsTz(selectedDate).isValid()
+                    ? timezoneDayjs.dayjsTz(selectedDate).format('jYYYY')
+                    : timezoneDayjs.dayjsTz().format('jYYYY')
+                  : timezoneDayjs.dayjsTz(selectedDate).year() || timezoneDayjs.dayjsTz().year()
+                : isJalali
+                ? timezoneDayjs.dayjsTz(selectedDate).format('jYYYY')
                 : timezoneDayjs.dayjsTz(selectedDate).year()
-              : timezoneDayjs.dayjsTz(pageDate).format('YYYY')
+              : timezoneDayjs.dayjsTz(pageDate).format(isJalali ? 'jYYYY' : 'YYYY')
           }}</span
         >
         <div class="flex">
@@ -147,7 +169,13 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       <template v-else>
         <div class="text-nc-content-gray-subtle text-sm font-semibold">
           <span class="px-1 font-bold leading-6 text-sm text-nc-content-gray-subtle py-2">
-            {{ isYearPicker ? timezoneDayjs.dayjsTz(selectedDate).year() : timezoneDayjs.dayjsTz(pageDate).format('YYYY') }}
+            {{
+              isYearPicker
+                ? isJalali
+                  ? timezoneDayjs.dayjsTz(selectedDate).format('jYYYY')
+                  : timezoneDayjs.dayjsTz(selectedDate).year()
+                : timezoneDayjs.dayjsTz(pageDate).format(isJalali ? 'jYYYY' : 'YYYY')
+            }}
           </span>
         </div>
 
@@ -173,7 +201,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     </div>
     <div
       v-if="!hideCalendar"
-      class="rounded-y-xl max-w-[350px]"
+      class="nc-month-year-grid rounded-y-xl max-w-[350px]"
       :class="{
         'px-2 py-1': isCellInputField,
         'px-2.5 py-1': !isCellInputField,
@@ -188,15 +216,17 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               'bg-nc-bg-gray-medium !text-nc-brand-900 !font-bold': isMonthSelected(month) && !isCellInputField,
               'bg-nc-bg-gray-dark !font-weight-600 ': isMonthSelected(month) && isCellInputField,
               'hover:(border-1 border-nc-border-gray-medium bg-nc-bg-gray-light)': !isMonthSelected(month),
-              '!text-nc-content-brand': timezoneDayjs.dayjsTz().isSame(month, 'month'),
+              '!text-nc-content-brand': isJalali
+                ? isSameJalaliMonth(timezoneDayjs.dayjsTz(), month)
+                : timezoneDayjs.dayjsTz().isSame(month, 'month'),
               'font-weight-400': isCellInputField,
               'font-medium': !isCellInputField,
             }"
             class="nc-month-item h-8 flex items-center rounded transition-all justify-center text-nc-content-gray-subtle cursor-pointer"
-            :title="isCellInputField ? month.format('YYYY-MM') : undefined"
+            :title="isCellInputField ? month.format(isJalali ? 'jYYYY-jMM' : 'YYYY-MM') : undefined"
             @click="selectedDate = month"
           >
-            {{ month.format('MMM') }}
+            {{ isJalali ? month.format('jMMMM') : month.format('MMM') }}
           </span>
         </template>
         <template v-else>
@@ -207,15 +237,17 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               'bg-nc-bg-gray-medium !font-bold ': compareYear(year, selectedDate) && !isCellInputField,
               'bg-nc-bg-gray-dark !text-nc-content-brand !font-weight-600 ': compareYear(year, selectedDate) && isCellInputField,
               'hover:(border-1 border-nc-border-gray-medium bg-nc-bg-gray-light)': !compareYear(year, selectedDate),
-              '!text-nc-content-brand': timezoneDayjs.dayjsTz().format('YYYY') === year.format('YYYY'),
+              '!text-nc-content-brand': isJalali
+                ? isSameJalaliYear(timezoneDayjs.dayjsTz(), year)
+                : timezoneDayjs.dayjsTz().format('YYYY') === year.format('YYYY'),
               'font-weight-400 text-nc-content-gray-subtle': isCellInputField,
               'font-medium text-nc-content-gray-emphasis': !isCellInputField,
             }"
             class="nc-year-item h-8 flex items-center rounded transition-all justify-center cursor-pointer"
-            :title="isCellInputField ? year.format('YYYY') : undefined"
+            :title="isCellInputField ? year.format(isJalali ? 'jYYYY' : 'YYYY') : undefined"
             @click="selectedDate = year"
           >
-            {{ year.format('YYYY') }}
+            {{ isJalali ? year.format('jYYYY') : year.format('YYYY') }}
           </span>
         </template>
       </div>

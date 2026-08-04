@@ -28,6 +28,12 @@ const installing = ref<string | null>(null)
 const searchQuery = ref('')
 const selectedCategory = ref<string | undefined>(undefined)
 
+// Variable setup state
+const isVariableSetupVisible = ref(false)
+const setupVariables = ref<any[]>([])
+const setupBaseId = ref('')
+const setupBaseTitle = ref('')
+
 const categories = computed(() => {
   const cats = new Set<string>()
   managedApps.value.forEach((ma) => {
@@ -92,7 +98,7 @@ const loadManagedApps = async () => {
 const installManagedApp = async (managedApp: ManagedAppType) => {
   installing.value = managedApp.id
   try {
-    await $api.internal.postOperation(
+    const response = (await $api.internal.postOperation(
       props.workspaceId,
       NO_SCOPE,
       {
@@ -102,11 +108,19 @@ const installManagedApp = async (managedApp: ManagedAppType) => {
         managedAppId: managedApp.id,
         target_workspace_id: props.workspaceId,
       },
-    )
+    )) as any
 
     message.success(t('msg.success.baseInstalled'))
     emit('installed', managedApp)
     visible.value = false
+
+    // If setup is required, show variable configuration modal
+    if (response?.setupRequired && response?.setupVariables?.length) {
+      setupVariables.value = response.setupVariables
+      setupBaseId.value = response.installedBaseId
+      setupBaseTitle.value = managedApp.title
+      isVariableSetupVisible.value = true
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -297,6 +311,16 @@ watch(
         </div>
       </div>
     </div>
+
+    <DlgManagedAppVariableSetup
+      v-if="isVariableSetupVisible"
+      v-model:visible="isVariableSetupVisible"
+      :variables="setupVariables"
+      :base-id="setupBaseId"
+      :base-title="setupBaseTitle"
+      :workspace-id="props.workspaceId"
+      @configured="isVariableSetupVisible = false"
+    />
   </div>
 </template>
 
@@ -312,7 +336,7 @@ watch(
 .nc-app-market-icon {
   @apply w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm;
   background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
-  box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
+  box-shadow: 0 2px 4px rgba(var(--nc-brand-accent-rgb), 0.15);
 }
 
 .nc-app-market-filters {
@@ -343,7 +367,7 @@ watch(
 
   &:hover {
     @apply border-nc-border-brand transform translate-x-0.5;
-    box-shadow: 0 4px 12px rgba(51, 102, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(var(--nc-brand-accent-rgb), 0.08);
 
     &::before {
       @apply opacity-100;
@@ -351,7 +375,7 @@ watch(
 
     .nc-app-icon {
       @apply transform scale-105;
-      box-shadow: 0 4px 8px rgba(51, 102, 255, 0.15);
+      box-shadow: 0 4px 8px rgba(var(--nc-brand-accent-rgb), 0.15);
     }
   }
 

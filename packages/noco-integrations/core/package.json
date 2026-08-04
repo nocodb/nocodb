@@ -11,6 +11,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@ai-sdk/devtools": "^0.0.19",
     "@ai-sdk/provider": "^3.0.0",
     "ai": "^6.0.3",
     "nocodb-sdk": "file:../../nocodb-sdk",

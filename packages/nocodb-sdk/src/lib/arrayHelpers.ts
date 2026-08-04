@@ -1,9 +1,17 @@
 export const arrUniq = (array: any[]) => {
   return [...new Set(array)];
 };
+
+export const arrUniqMerge = <T>(...arrays: T[][]): T[] => {
+  const set = new Set<T>();
+  for (const arr of arrays) for (const v of arr) set.add(v);
+  return [...set];
+};
+
 export const arrIntersection = (...arrays: any[][]) => {
   return arrays.reduce((a, b) => a.filter((c) => b.includes(c)));
 };
+
 export const arrDetailedDiff = (a: any[], b: any[]) => {
   const intersected = arrIntersection(a, b);
   return {

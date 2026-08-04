@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nocodb.fullname" . }}-env
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nocodb.labels" . | nindent 4 }}
+  {{- with include "nocodb.annotations" (dict "context" . "extraAnnotations" dict) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+data:
+  PORT: "8080"
+  NC_DISABLE_MUX: {{ .Values.nocodb.disableMux | quote }}
+  {{- if .Values.nocodb.disableTelemetry }}
+  NC_DISABLE_TELE: "true"
+  {{- end }}
+  {{- if .Values.nocodb.publicUrl }}
+  NC_SITE_URL: {{ .Values.nocodb.publicUrl | quote }}
+  {{- else if and .Values.ingress.enabled .Values.ingress.hosts }}
+  NC_SITE_URL: {{ printf "%s://%s" (ternary "https" "http" (gt (len .Values.ingress.tls) 0)) (first .Values.ingress.hosts).host | quote }}
+  {{- end }}
+  {{- with .Values.nocodb.dashboardUrl }}
+  NC_DASHBOARD_URL: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.nocodb.licenseKey }}
+  NC_LICENSE_KEY: {{ . | quote }}
+  {{- end }}
+  {{- if .Values.smtp.enabled }}
+  NC_SMTP_HOST: {{ .Values.smtp.host | quote }}
+  NC_SMTP_PORT: {{ .Values.smtp.port | quote }}
+  NC_SMTP_FROM: {{ .Values.smtp.from | quote }}
+  {{- with .Values.smtp.username }}
+  NC_SMTP_USERNAME: {{ . | quote }}
+  {{- end }}
+  NC_SMTP_SECURE: {{ .Values.smtp.secure | quote }}
+  {{- end }}
+  {{- if .Values.sso.oidc.enabled }}
+  NC_SSO: "oidc"
+  NC_OIDC_PROVIDER_NAME: {{ .Values.sso.oidc.providerName | quote }}
+  {{- else if .Values.sso.saml.enabled }}
+  NC_SSO: "saml"
+  NC_SSO_SAML_PROVIDER_NAME: {{ .Values.sso.saml.providerName | quote }}
+  {{- end }}

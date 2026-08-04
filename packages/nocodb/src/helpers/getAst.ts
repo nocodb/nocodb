@@ -1,11 +1,5 @@
 import {
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isDeletedCol,
-  isHiddenCol,
-  isLinksOrLTAR,
   isOrderCol,
-  isSystemColumn,
   NcApiVersion,
   parseProp,
   RelationTypes,
@@ -25,23 +19,30 @@ import type {
 import type { ViewMetaRowColoring } from '~/models/View';
 import {
   CalendarRange,
+  DateDependency,
   Filter,
   GalleryView,
   GridViewColumn,
   KanbanView,
   KanbanViewColumn,
+  TimelineRange,
   View,
 } from '~/models';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
+import {
+  type Ast,
+  type AstResult,
+  type ColumnAstContext,
+  resolveColumnAst,
+} from '~/helpers/getAstColumnStrategy';
 
 const logger = new Logger('getAst');
 
-type Ast = {
-  [key: string]: 1 | true | null | Ast;
-};
+// Cap on recursive nested-LTAR expansion. See `_depth` param doc on getAst.
+const GET_AST_MAX_DEPTH = 8;
 
 const getAst = async (
   context: NcContext,
@@ -65,6 +66,9 @@ const getAst = async (
     includeRowColorColumns = false,
     includeButtonFilterColumns = false,
     skipSubstitutingColumnIds = false,
+    fk_display_value_column_id,
+    allowRequestedHiddenFields = false,
+    _depth = 0,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -82,12 +86,29 @@ const getAst = async (
     includeRowColorColumns?: boolean;
     includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
+    fk_display_value_column_id?: string | null;
+    // Return requested fields even if view-hidden. Opt-in; authenticated
+    // link-picker paths only (see ColumnAstContext doc).
+    allowRequestedHiddenFields?: boolean;
+    // Internal: recursion depth for nested LTAR expansion. Bounded to
+    // GET_AST_MAX_DEPTH (8) to prevent client-controlled `?nested[a][nested]
+    // [b][nested]…` payloads or cyclic LTAR/Lookup metadata from blowing
+    // the stack. Eight levels covers every realistic UI/agent need.
+    _depth?: number;
   },
 ): Promise<{
   ast: Ast;
   dependencyFields: DependantFields;
   parsedQuery: DependantFields;
 }> => {
+  if (_depth > GET_AST_MAX_DEPTH) {
+    logger.warn(
+      `getAst recursion depth exceeded (${_depth} > ${GET_AST_MAX_DEPTH}) for model ${model.id}; ` +
+        `truncating nested expansion. This usually means a deeply nested ?nested[…] ` +
+        `query, or a cyclic LTAR/Lookup chain in column metadata.`,
+    );
+    return { ast: {}, dependencyFields, parsedQuery: dependencyFields };
+  }
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
@@ -97,7 +118,7 @@ const getAst = async (
   };
 
   let coverImageId;
-  let dependencyFieldsForCalenderView;
+  let dependencyFieldsForRangeView;
   let kanbanGroupColumnId;
   let sortColumnIds: string[] = [];
   let filterColumnIds: string[] = [];
@@ -113,10 +134,43 @@ const getAst = async (
     // coverImageId = calendar.fk_cover_image_col_id;
     const calenderRanges = await CalendarRange.read(context, view.id);
     if (calenderRanges) {
-      dependencyFieldsForCalenderView = calenderRanges.ranges
+      dependencyFieldsForRangeView = calenderRanges.ranges
         .flatMap((obj) =>
           [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
         )
+        .map(String);
+    }
+  } else if (view && view.type === ViewTypes.TIMELINE) {
+    // Timeline date columns (start/end) drive the bar position. They are
+    // typically hidden in the Fields menu, so without explicitly forcing
+    // them through `allowedCols`, the data response would strip the values
+    // and the frontend would treat every record as "without dates".
+    const timelineRanges = await TimelineRange.read(context, view.id);
+    if (timelineRanges) {
+      dependencyFieldsForRangeView = timelineRanges.ranges
+        .flatMap((obj) =>
+          [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
+        )
+        .map(String);
+    }
+  } else if (view && view.type === ViewTypes.GANTT) {
+    // Gantt consumes a DateDependency rule (EE-only). View-owned rule
+    // (fk_gantt_view_id = view.id) takes precedence, with fallback to the
+    // table-level default (fk_gantt_view_id IS NULL). Start/end date and
+    // dep-link columns often aren't "shown" on the view, so we augment
+    // the range-field list the same way Calendar does. CE's DateDependency
+    // stub returns null from both methods, so this block is an effective
+    // no-op in CE.
+    const dep =
+      (await DateDependency.getByGanttViewId(context, view.id)) ||
+      (await DateDependency.getByModelId(context, model.id));
+    if (dep && dep.is_active !== false) {
+      dependencyFieldsForRangeView = [
+        dep.fk_start_date_field_id,
+        dep.fk_end_date_field_id,
+        dep.fk_dependency_linkrow_field_id,
+      ]
+        .filter(Boolean)
         .map(String);
     }
   }
@@ -174,19 +228,30 @@ const getAst = async (
 
     await extractDependencies(context, model.displayValue, dependencyFields);
 
+    // Include custom display value column if specified by the parent LTAR relation
+    if (fk_display_value_column_id) {
+      const customDisplayCol = model.columns?.find(
+        (c) => c.id === fk_display_value_column_id,
+      );
+      if (customDisplayCol) {
+        ast[getFieldKey(customDisplayCol)] = 1;
+        await extractDependencies(context, customDisplayCol, dependencyFields);
+      }
+    }
+
     return { ast, dependencyFields, parsedQuery: dependencyFields };
   }
 
   if (extractOnlyRangeFields) {
     const ast: Ast = {
-      ...(dependencyFieldsForCalenderView || []).reduce((o, f) => {
+      ...(dependencyFieldsForRangeView || []).reduce((o, f) => {
         const col = model.columns.find((c) => c.id === f);
         return { ...o, [getFieldKey(col)]: 1 };
       }, {}),
     };
 
     await Promise.all(
-      (dependencyFieldsForCalenderView || []).map((f) =>
+      (dependencyFieldsForRangeView || []).map((f) =>
         extractDependencies(
           context,
           model.columns.find((c) => c.id === f),
@@ -215,6 +280,12 @@ const getAst = async (
     fields = null;
   }
 
+  // This `allowedCols` gate (keyed on view-column `show`) omits view-hidden
+  // columns from the default RESPONSE PAYLOAD only. That is intended and is a
+  // separate concern from query-level filtering: hidden columns stay fully
+  // queryable via where/sort/filter (field visibility is the real ACL, not
+  // view `show`). Do not extend this into query-param sanitization — see the
+  // DESIGN NOTE in services/public-datas.service.ts.
   let allowedCols = null;
   if (view) {
     allowedCols = (await View.getColumns(context, view.id)).reduce(
@@ -231,8 +302,8 @@ const getAst = async (
     if (coverImageId) {
       allowedCols[coverImageId] = 1;
     }
-    if (dependencyFieldsForCalenderView) {
-      dependencyFieldsForCalenderView.forEach((id) => {
+    if (dependencyFieldsForRangeView) {
+      dependencyFieldsForRangeView.forEach((id) => {
         allowedCols[id] = 1;
       });
     }
@@ -244,7 +315,24 @@ const getAst = async (
 
   const columns = model.columns;
 
-  const ast: Ast = {};
+  // Collected with the broad strategy-result type; narrowed to `Ast` on return.
+  const ast: Record<string, AstResult> = {};
+
+  // Shared inputs for the per-column strategy chain (see getAstColumnStrategy).
+  const astCtx: ColumnAstContext = {
+    model,
+    view,
+    apiVersion,
+    getHiddenColumn,
+    extractOrderColumn,
+    includePkByDefault,
+    fields,
+    allowedCols,
+    rowColoringColumnIds,
+    buttonFilterColumnIds,
+    dependencyFieldsForRangeView,
+    allowRequestedHiddenFields,
+  };
 
   for (const col of columns) {
     let value: number | boolean | { [key: string]: any } = 1;
@@ -261,6 +349,15 @@ const getAst = async (
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
           context,
         );
+
+        if (!colOpt) {
+          logger.warn(
+            `Skipping column ${col.title}: LTAR colOptions missing for column ${col.id}`,
+          );
+          ast[getFieldKey(col)] = null;
+          continue;
+        }
+
         const model = await colOpt.getRelatedTable(context);
 
         if (!model) {
@@ -278,12 +375,14 @@ const getAst = async (
         const { ast: childAst } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
+          fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},
               fieldsSet: new Set(),
             }),
           throwErrorIfInvalidParams,
+          _depth: _depth + 1,
         });
 
         value = childAst;
@@ -304,6 +403,14 @@ const getAst = async (
         context,
       );
 
+      if (!colOpt) {
+        logger.warn(
+          `Skipping column ${col.title}: LTAR colOptions missing for column ${col.id}`,
+        );
+        ast[getFieldKey(col)] = null;
+        continue;
+      }
+
       const { refContext: refTableContext } = colOpt.getRelContext(context);
 
       const model = await colOpt.getRelatedTable(context);
@@ -323,85 +430,33 @@ const getAst = async (
           model,
           query: query?.nested?.[col.title],
           extractOnlyPrimaries: nestedFields !== '*',
+          fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},
               fieldsSet: new Set(),
             }),
           throwErrorIfInvalidParams,
+          _depth: _depth + 1,
         })
       ).ast;
     }
-    let isRequested;
-
-    const isInFields =
-      fields?.length && (fields.includes(col.title) || fields.includes(col.id));
-    const isSortOrFilterColumn =
+    const isInFields = !!(
+      fields?.length &&
+      (fields.includes(col.title) || fields.includes(col.id))
+    );
+    const isSortOrFilterColumn = !!(
       includeSortAndFilterColumns &&
-      (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));
-    // exclude row meta column
-    if (col.uidt === UITypes.Meta) {
-      isRequested = false;
-    } else if (isSortOrFilterColumn) {
-      isRequested = true;
-    } else if (
-      rowColoringColumnIds.has(col.id) ||
-      buttonFilterColumnIds.has(col.id)
-    ) {
-      isRequested = true;
-    } else if (col.pk && apiVersion === NcApiVersion.V3) {
-      isRequested = true;
-    }
-    // exclude system column and foreign key from API response for v3
-    // but always keep PK columns — they are needed for id/id_fields
-    else if (
-      col.system &&
-      !col.pk &&
-      ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt) &&
-      apiVersion === NcApiVersion.V3
-    ) {
-      isRequested = false;
-    } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
-      isRequested = false;
-    } else if (isOrderCol(col) && col.system) {
-      isRequested = extractOrderColumn || getHiddenColumn;
-    } else if (isDeletedCol(col) && col.system) {
-      isRequested = false;
-    } else if (getHiddenColumn) {
-      isRequested =
-        !isSystemColumn(col) ||
-        ((!view || !!view?.show_system_fields) && !isHiddenCol(col, model)) ||
-        (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
-        // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
-        (isLinksOrLTAR(col) &&
-          col.system &&
-          [
-            RelationTypes.BELONGS_TO,
-            RelationTypes.MANY_TO_MANY,
-            RelationTypes.ONE_TO_ONE,
-          ].includes(
-            (col.colOptions as LinkToAnotherRecordColumn)
-              ?.type as RelationTypes,
-          )) ||
-        col.pk;
-    } else if (allowedCols && (!includePkByDefault || !col.pk)) {
-      isRequested =
-        allowedCols[col.id] &&
-        (!isSystemColumn(col) ||
-          (!view && isCreatedOrLastModifiedTimeCol(col)) ||
-          view.show_system_fields ||
-          (dependencyFieldsForCalenderView ?? []).includes(col.id) ||
-          col.pv) &&
-        (!fields?.length || isInFields) &&
-        value;
-    } else if (fields?.length) {
-      // For APIv3, always extract primary key dependencies even if not explicitly requested
-      // This is needed because APIv3 always returns the primary key as 'id' at root level
-      isRequested =
-        (isInFields && value) || (apiVersion === NcApiVersion.V3 && col.pk);
-    } else {
-      isRequested = value;
-    }
+      (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id))
+    );
+
+    // Decide inclusion via the ordered strategy chain (first match wins).
+    const isRequested = resolveColumnAst(astCtx, {
+      col,
+      value,
+      isInFields,
+      isSortOrFilterColumn,
+    });
 
     if (isRequested || col.pk)
       await extractDependencies(context, col, dependencyFields);
@@ -409,7 +464,9 @@ const getAst = async (
     ast[getFieldKey(col)] = isRequested;
   }
 
-  return { ast, dependencyFields, parsedQuery: dependencyFields };
+  // Narrow back to `Ast`: falsy entries are runtime-only "not requested" markers
+  // that `nocoExecute` ignores; the exposed shape stays `1 | true | null | Ast`.
+  return { ast: ast as Ast, dependencyFields, parsedQuery: dependencyFields };
 };
 
 const getViewRowColorFields = async (params: {
@@ -501,10 +558,31 @@ const extractDependencies = async (
     nested: {},
     fieldsSet: new Set(),
   },
+  _visited: Set<string> = new Set(),
 ) => {
+  // Cycle guard: a Lookup chain that loops back on itself (A→B→A) would
+  // recurse forever and either blow the JS stack or, worse, build a SELECT
+  // QueryBuilder that contains itself — which is what trips the Knex
+  // `columnize → wrap → toSQL → unwrapRaw → wrap` infinite loop seen in
+  // production. Skip a column we've already walked.
+  if (!column?.id) return;
+  if (_visited.has(column.id)) {
+    logger.warn(
+      `extractDependencies cycle: column ${column.id} (${column.title}) ` +
+        `already visited in this dependency walk. Breaking to avoid recursion.`,
+    );
+    return;
+  }
+  _visited.add(column.id);
+
   switch (column?.uidt) {
     case UITypes.Lookup:
-      await extractLookupDependencies(context, column, dependencyFields);
+      await extractLookupDependencies(
+        context,
+        column,
+        dependencyFields,
+        _visited,
+      );
       break;
     case UITypes.LinkToAnotherRecord:
       await extractRelationDependencies(context, column, dependencyFields);
@@ -522,22 +600,36 @@ const extractLookupDependencies = async (
     nested: {},
     fieldsSet: new Set(),
   },
+  _visited: Set<string> = new Set(),
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions(context);
+  if (lookupColumnOpts?.error) return;
   const relationColumn = await lookupColumnOpts.getRelationColumn(context);
+  if (!relationColumn) return;
   const relationColumnOpts =
     await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  if (!relationColumnOpts) return;
   const { refContext } = relationColumnOpts.getRelContext(context);
   await extractRelationDependencies(context, relationColumn, dependencyFields);
+
+  // Reuse the nested bucket for the relation column if one already exists. It
+  // may have been seeded from the request query (e.g. the export's
+  // `buildNestedLinkLimitQuery` puts a `{ limit }` object under every link
+  // column's title) and therefore lack `nested`/`fieldsSet`. Normalize both —
+  // `extractDependencies` writes straight to `fieldsSet.add(...)` and, unlike
+  // `getAst`, never defaults it, so a missing set would crash.
+  dependencyFields.nested[relationColumn.title] =
+    dependencyFields.nested[relationColumn.title] || {};
+  const nestedDependencyFields = dependencyFields.nested[relationColumn.title];
+  nestedDependencyFields.nested = nestedDependencyFields.nested || {};
+  nestedDependencyFields.fieldsSet =
+    nestedDependencyFields.fieldsSet || new Set();
+
   await extractDependencies(
     refContext,
     await lookupColumnOpts.getLookupColumn(refContext),
-    (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
-      relationColumn.title
-    ] || {
-      nested: {},
-      fieldsSet: new Set(),
-    }),
+    nestedDependencyFields,
+    _visited,
   );
 };
 
@@ -550,6 +642,7 @@ const extractRelationDependencies = async (
   },
 ) => {
   const relationColumnOpts = await relationColumn.getColOptions(context);
+  if (!relationColumnOpts) return;
 
   switch (relationColumnOpts.type) {
     case RelationTypes.HAS_MANY:

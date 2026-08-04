@@ -38,7 +38,7 @@ const { isAiBetaFeaturesEnabled } = useNocoAi()
 
 const { getPlanTitle, showEEFeatures } = useEeConfig()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
   useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -57,8 +57,12 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-if (showEEFeatures.value) {
-  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+// The injected table meta covers hosts without a route-level active table /
+// opened base (e.g. the interface builder's field editor).
+const scriptsBaseId = openedProject.value?.id ?? meta.value?.base_id
+
+if (isEeUI) {
+  await Promise.all([loadHooksList(meta.value), ...(scriptsBaseId ? [loadScripts({ baseId: scriptsBaseId, force: true })] : [])])
 }
 
 const { activeBaseScripts } = toRefs(scriptStore)
@@ -106,7 +110,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI && showEEFeatures.value
+  ...(showEEFeatures.value
     ? [
         {
           icon: 'ncScript',
@@ -139,7 +143,7 @@ const validators = {
       validator: (_: any, formula: any) => {
         return (async () => {
           if (vModel.value.type === ButtonActionsType.Url) {
-            if (!formula?.trim()) throw new Error('Formula is required for URL Button')
+            if (!formula?.trim()) throw new Error(t('msg.error.formulaRequiredForUrlButton'))
 
             try {
               await validateFormulaAndExtractTreeWithType({
@@ -165,7 +169,7 @@ const validators = {
               throw new Error(e.message)
             }
           } else if (vModel.value.type === ButtonActionsType.Ai) {
-            if (!formula?.trim()) throw new Error('Prompt required for AI Button')
+            if (!formula?.trim()) throw new Error(t('msg.error.promptRequiredForAiButton'))
           }
         })()
       },
@@ -250,7 +254,7 @@ const validators = {
       validator: (_: any, value: any) => {
         return new Promise<void>((resolve, reject) => {
           if (vModel.value.type === ButtonActionsType.Ai && !value) {
-            reject(new Error('At least one output field is required for AI Button'))
+            reject(new Error(t('msg.error.outputFieldRequiredForAiButton')))
           }
           resolve()
         })
@@ -376,16 +380,6 @@ if (isEdit.value) {
     filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
   }
 }
-
-onMounted(() => {
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
-})
-
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
 </script>
 
 <template>
@@ -399,7 +393,7 @@ onUnmounted(() => {
             :class="{
               'nc-ai-input': isAiMode,
             }"
-            placeholder="Button"
+            :placeholder="$t('datatype.Button')"
           />
         </a-form-item>
       </a-col>
@@ -564,7 +558,7 @@ onUnmounted(() => {
       v-model:selected-script="selectedScript"
     />
 
-    <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+    <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
       <template #default="{ click }">
         <div class="nc-button-filter-section mt-2">
           <div

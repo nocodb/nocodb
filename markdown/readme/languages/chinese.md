@@ -85,7 +85,7 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 自动安装升级执行以下操作：🕊
 - 🐳 自动安装所有的依赖软件，如 docker、docker-compose
-- 🚀 使用 Docker Compose 自动安装带有 PostgreSQL、Redis、Minio、Traefik 网关的 NocoDB。 🐘 🗄️ 🌐
+- 🚀 使用 Docker Compose 自动安装带有 PostgreSQL、Redis、Traefik 网关的 NocoDB。 🐘 🗄️ 🌐
 - 🔄 当您再次运行该命令时，会自动将 NocoDB 升级到最新版本。
 - 🔒 自动配置并续订 SSL 证书。在安装时需要输入域名或子域名。
 

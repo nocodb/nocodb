@@ -139,7 +139,8 @@ onMounted(() => {
       @apply border-nc-border-brand-medium;
 
       &:hover {
-        box-shadow: 0px 12px 16px -4px rgba(51, 102, 255, 0.12), 0px 4px 6px -2px rgba(51, 102, 255, 0.08);
+        box-shadow: 0px 12px 16px -4px rgba(var(--nc-brand-accent-rgb), 0.12),
+          0px 4px 6px -2px rgba(var(--nc-brand-accent-rgb), 0.08);
       }
 
       .nc-placeholder-icon-wrapper {

@@ -122,6 +122,11 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'The database schema has changed.';
         break;
 
+      case 'EACCES':
+        message = 'Connection to internal hosts is not allowed';
+        httpStatus = 403;
+        break;
+
       default:
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database sqlite`,

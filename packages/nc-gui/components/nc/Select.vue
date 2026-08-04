@@ -16,6 +16,12 @@ const props = withDefaults(
     loading?: boolean
     suffixIcon?: keyof typeof iconMap
     maxTagCount?: number
+    /**
+     * Which option prop to render for the *selected* value. Without it antd
+     * reuses the option's full slot content, so rich options (label + a
+     * description line) render inside the closed input too.
+     */
+    optionLabelProp?: string
   }>(),
   {
     suffixIcon: 'arrowDown',
@@ -58,6 +64,7 @@ const onSearch = (value: string) => {
     :filter-option="filterOption"
     :loading="loading"
     :mode="mode"
+    :option-label-prop="optionLabelProp"
     :placeholder="placeholder"
     :show-search="showSearch"
     :max-tag-count="maxTagCount"

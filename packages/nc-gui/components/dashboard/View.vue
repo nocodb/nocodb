@@ -40,6 +40,8 @@ const viewportWidth = ref(window.innerWidth)
 
 const { isPanelExpanded: isChatPanelExpanded, isFullScreen: isChatFullScreen } = useChatPanel()
 
+const { isDrawerOpen: isSandboxDrawerOpen } = useSandboxChangelog()
+
 const { isRtl } = useRtl()
 
 const isChatToggling = ref(false)
@@ -162,7 +164,8 @@ function onWindowResize(e?: any): void {
   if (isChatToggling.value) return
 
   const chatPanelOffset = parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
-  viewportWidth.value = window.innerWidth - chatPanelOffset
+  const sandboxDrawerOffset = parseFloat(document.documentElement.style.getPropertyValue('--nc-sandbox-drawer-offset')) || 0
+  viewportWidth.value = window.innerWidth - chatPanelOffset - sandboxDrawerOffset
 
   if (!e && isLeftSidebarOpen.value && !sideBarSize.value.current && !isMobileMode.value) {
     currentSidebarSize.value = sideBarSize.value.old
@@ -237,17 +240,18 @@ function onResize(widthPercent: any) {
 
 const contentWidthStyle = computed(() => ({
   width: isMiniSidebarVisible.value
-    ? 'calc(100vw - var(--mini-sidebar-width) - var(--nc-chat-panel-offset, 0px))'
-    : 'calc(100vw - var(--nc-chat-panel-offset, 0px))',
+    ? 'calc(100vw - var(--mini-sidebar-width) - var(--nc-chat-panel-offset, 0px) - var(--nc-sandbox-drawer-offset, 0px))'
+    : 'calc(100vw - var(--nc-chat-panel-offset, 0px) - var(--nc-sandbox-drawer-offset, 0px))',
 }))
 
-watch(isChatPanelExpanded, () => {
+watch([isChatPanelExpanded, isSandboxDrawerOpen], () => {
   isChatToggling.value = true
   document.documentElement.classList.add('nc-chat-toggling')
 
   nextTick(() => {
-    const offset = parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
-    viewportWidth.value = window.innerWidth - offset
+    const chatOffset = parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
+    const sandboxOffset = parseFloat(document.documentElement.style.getPropertyValue('--nc-sandbox-drawer-offset')) || 0
+    viewportWidth.value = window.innerWidth - chatOffset - sandboxOffset
 
     const containerWidth = isMiniSidebarVisible.value ? viewportWidth.value - miniSidebarWidth.value : viewportWidth.value
     if (containerWidth > 0) {

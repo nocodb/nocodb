@@ -26,18 +26,20 @@ const {
   handleUpgradePlan,
 } = useEeConfig()
 
+// Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO)
 const isWorkspaceSsoAvail = computed(() => {
-  return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && getFeature(PlanFeatureTypes.FEATURE_SSO)
+  return isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)
 })
 
 const navigateToWsSettings = (page: string) => {
-  if (page === 'ws-teams' && showUpgradeToUseTeams()) return
+  if (page === 'ws-teams' && showUpgradeToUseTeams({ triggerSource: 'ws-settings-teams' })) return
 
   if (page === 'ws-audits' && !isWsAuditEnabled.value) {
     handleUpgradePlan({
       title: t('upgrade.upgradeToAccessWsAudit'),
       content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
       limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      triggerSource: 'ws-settings-audit',
     })
     return
   }

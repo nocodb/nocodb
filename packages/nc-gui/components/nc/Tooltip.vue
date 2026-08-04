@@ -38,6 +38,12 @@ interface NcTooltipProps {
    * Key to be pressed on hover to trigger the tooltip
    */
   modifierKey?: string
+  /**
+   * Tooltip text. When omitted (and no `#title` slot is provided), the default slot content
+   * is reused as the tooltip — handy for `show-on-truncate-only` cases where the trigger and
+   * the tooltip share the same string.
+   */
+  title?: string
   tooltipStyle?: CSSProperties
   attrs?: Record<string, unknown>
   color?: 'dark' | 'light'
@@ -46,6 +52,13 @@ interface NcTooltipProps {
   disableInMobile?: boolean
   placement?: TooltipPlacement | undefined
   showOnTruncateOnly?: boolean
+  /**
+   * Used with `showOnTruncateOnly`. A CSS selector for a descendant (queried within the tooltip's
+   * own wrapper) to measure for truncation instead of the wrapper itself. Use when the text clips
+   * inside a nested element rather than directly in the wrapper — e.g. a smartsheet cell's
+   * `.nc-cell-field`.
+   */
+  truncateSelector?: string
   hideOnClick?: boolean
   overlayClassName?: string
   wrapChild?: keyof HTMLElementTagNameMap
@@ -143,16 +156,21 @@ watchDebounced(
   [isOverlayHovering, isHovering, () => modifierKey.value, () => disabled.value],
   ([overlayHovering, hovering, key, isDisabled]) => {
     if (showOnTruncateOnly?.value) {
-      const targetElement = el?.value
+      // When `truncateSelector` is set, measure that descendant instead of the wrapper itself —
+      // for cases where the text clips inside a nested element (e.g. a cell's `.nc-cell-field`).
+      const targetElement = (props.truncateSelector ? el?.value?.querySelector(props.truncateSelector) : el?.value) as
+        | HTMLElement
+        | null
+        | undefined
 
       let isElementTruncated = false
 
       if (props.lineClamp) {
         // Multi-line `line-clamp`
-        isElementTruncated = targetElement && isLineClamped(targetElement)
+        isElementTruncated = !!targetElement && isLineClamped(targetElement)
       } else {
         // Single line `truncate`
-        isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
+        isElementTruncated = !!targetElement && targetElement.scrollWidth > targetElement.clientWidth
       }
 
       if (!isElementTruncated) {
@@ -224,7 +242,11 @@ const onClick = () => {
   >
     <template #title>
       <div ref="element">
-        <slot name="title" />
+        <!-- Priority: #title slot → title prop → default slot -->
+        <slot name="title">
+          <template v-if="title">{{ title }}</template>
+          <slot v-else />
+        </slot>
       </div>
     </template>
 

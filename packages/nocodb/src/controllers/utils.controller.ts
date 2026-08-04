@@ -17,6 +17,14 @@ import {
   IntegrationsType,
   OrgUserRoles,
 } from 'nocodb-sdk';
+import {
+  hasSslFilePath,
+  validateDbConnectionHost,
+} from '~/helpers/validateDbConnectionHost';
+import {
+  SSL_FILE_PATH_TEST_MIN_RESPONSE_MS,
+  withMinResponseTime,
+} from '~/helpers/withMinResponseTime';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -83,12 +91,23 @@ export class UtilsController {
         NcError.integrationNotFound(body.fk_integration_id);
       }
 
+      // Integration must belong to the caller's current workspace.
+      const callerWorkspaceId = (req as any).ncWorkspaceId;
+      if (
+        integration.fk_workspace_id &&
+        callerWorkspaceId &&
+        integration.fk_workspace_id !== callerWorkspaceId
+      ) {
+        NcError.forbidden('Integration belongs to a different workspace');
+      }
+
       if (integration.is_private && integration.created_by !== req.user.id) {
         NcError.forbidden('You do not have access to this integration');
       }
 
       if (!req.user.roles[OrgUserRoles.CREATOR]) {
-        // check if user have owner/creator role in any of the base in the workspace
+        // Caller must hold owner/creator on a base inside the integration's
+        // workspace, not just any workspace they belong to.
         const baseWithPermission = await Noco.ncMeta
           .knex(MetaTable.PROJECT_USERS)
           .innerJoin(
@@ -97,6 +116,10 @@ export class UtilsController {
             `${MetaTable.PROJECT_USERS}.base_id`,
           )
           .where(`${MetaTable.PROJECT_USERS}.fk_user_id`, req.user.id)
+          .where(
+            `${MetaTable.PROJECT}.fk_workspace_id`,
+            integration.fk_workspace_id,
+          )
           .where((qb) => {
             qb.where(
               `${MetaTable.PROJECT_USERS}.roles`,
@@ -117,6 +140,10 @@ export class UtilsController {
       }
     }
 
+    if (config.connection?.host) {
+      await validateDbConnectionHost(config.connection.host);
+    }
+
     if (config.connection?.ssl) {
       config.connection.ssl = validateAndExtractSSLProp(
         config.connection,
@@ -125,7 +152,14 @@ export class UtilsController {
       );
     }
 
-    return await this.utilsService.testConnection({ body: config });
+    const runTest = () => this.utilsService.testConnection({ body: config });
+
+    // Flatten the SSL file-path timing oracle: when the request reads a cert
+    // from disk, pad the response to a common floor so file-existence can't be
+    // inferred from response time. Plain connections are not penalised.
+    return hasSslFilePath(config.connection?.ssl)
+      ? await withMinResponseTime(SSL_FILE_PATH_TEST_MIN_RESPONSE_MS, runTest)
+      : await runTest();
   }
 
   @UseGuards(PublicApiLimiterGuard)

@@ -195,11 +195,6 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
   }
 
   const getBaseUrl = (workspaceId: string) => {
-    // if baseUrl is set in appInfo, use it
-    if (state.appInfo.value.baseUrl) {
-      return state.appInfo.value.baseUrl
-    }
-
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
     }

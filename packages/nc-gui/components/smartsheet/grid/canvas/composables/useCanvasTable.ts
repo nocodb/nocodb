@@ -1,13 +1,14 @@
 import {
+  CommonAggregations,
   PermissionEntity,
   PermissionKey,
   UITypes,
+  computeAggregation,
   isAIPromptCol,
   isLinksOrLTAR,
   isOrderCol,
   isReadonlyVirtualColumn,
   isSystemColumn,
-  isUUID,
   isVirtualCol,
   ncHasProperties,
 } from 'nocodb-sdk'
@@ -59,6 +60,7 @@ export function useCanvasTable({
   vSelectedAllRecords,
   vSelectedAllRecordsSkipPks,
   selectedRows,
+  selectedHeaderColumnIds,
   updateRecordOrder,
   expandRows,
   updateOrSaveRow,
@@ -78,6 +80,7 @@ export function useCanvasTable({
   groupByColumns,
   fetchMissingGroupChunks,
   getDataCache,
+  maxSelectionLimit,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -95,12 +98,12 @@ export function useCanvasTable({
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
+  selectedHeaderColumnIds: Ref<Set<string>>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
-    undo?: boolean,
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -132,14 +135,12 @@ export function useCanvasTable({
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   addEmptyRow: (
@@ -172,11 +173,14 @@ export function useCanvasTable({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  maxSelectionLimit: ComputedRef<number>
 }) {
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
   const { isAllowed } = usePermissions()
   const { getColor } = useTheme()
+
+  const { brandColor } = useBranding()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -236,8 +240,6 @@ export function useCanvasTable({
   // Initialize loaders that need meta.base_id after meta is available
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas(), (meta.value as TableType)?.base_id)
   const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
-  const { addUndo, defineViewScope } = useUndoRedo()
-  const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
@@ -253,7 +255,7 @@ export function useCanvasTable({
 
   const { isMysql, isPg } = baseStore
 
-  const { sqlUis } = storeToRefs(baseStore)
+  const { sqlUis, isSharedBase } = storeToRefs(baseStore)
 
   const { basesUser } = storeToRefs(useBases())
 
@@ -316,11 +318,38 @@ export function useCanvasTable({
 
   const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)
 
-  const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
+  // Interface pages flag row add/delete separately from cell editing.
+  const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
-  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value && !isMobileMode.value)
+  // Interface builder: the clicked header field (blue border + 3-dot button) —
+  // deliberately separate from selectedHeaderColumnIds so no cell range selects.
+  const interfaceActiveHeaderFieldId = ref<string | null>(null)
 
-  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
+  // Inside an interface page the header field affordance (and the trailing
+  // add-column "+") exists only for the builder in edit mode — published /
+  // consumer grids draw neither, whatever the viewer's base role.
+  const isFieldEditAllowed = computed(
+    () => isUIAllowed('fieldAdd') && (!interfacePageDataApi || !!interfacePageDataApi.canConfigureFields?.value),
+  )
+
+  const isRowDraggingEnabled = computed(
+    // Role term — reorder writes dataMove (editor+) and the optimistic shuffle
+    // is not reverted on failure.
+    () =>
+      isDataEditAllowed.value &&
+      !readOnly.value &&
+      isOrderColumnExists.value &&
+      !isRowReorderDisabled.value &&
+      !isMobileMode.value,
+  )
+
+  const isAddingEmptyRowAllowed = computed(
+    () =>
+      isDataEditAllowed.value &&
+      !meta.value?.synced &&
+      !meta.value?.mm &&
+      (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value),
+  )
 
   const isAddingEmptyRowPermitted = computed(() =>
     meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
@@ -343,7 +372,18 @@ export function useCanvasTable({
 
   // Override applied during column resize to avoid recomputing the heavy _columnsBase.
   // Set on each resize frame, cleared on mouseup.
-  const resizeWidthOverride = ref<{ columnId: string; width: string } | null>(null)
+  // During an active resize, patch the displayed width of one or more columns
+  // without going through the heavy _columnsBase recomputation. When the
+  // resized column is part of a multi-field header selection, `columnIds`
+  // holds every selected column so they all preview the same width.
+  const resizeWidthOverride = ref<{ columnIds: Set<string>; width: string } | null>(null)
+
+  // Multi-field resize guideline: instead of live-resizing every selected column
+  // while dragging (which shifts the dragged edge away from the pointer), we draw
+  // a single vertical marker at `x` and defer the width change to mouseup.
+  // `columnIds` snapshots the co-resize set so it survives the selection being
+  // cleared by the canvas-level mouseup that fires alongside the resize mouseup.
+  const resizeMarker = ref<{ x: number; columnIds: Set<string> } | null>(null)
 
   const _columnsBase = computed<CanvasGridColumn[]>(() => {
     // Early return if meta is not available yet
@@ -441,12 +481,29 @@ export function useCanvasTable({
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
-        const isCellEditable =
-          showReadonlyColumnTooltip(f) ||
-          !showEditRestrictedColumnTooltip(f) ||
-          isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+        // Interface builder: a per-column "Edit this column inline" opt-out
+        // (field_configs[id].edit_inline === false) keeps the column read-only.
+        // It forces isCellEditable off so paste / fill / bulk-clear skip it, but
+        // is tracked separately as `inlineEditDisabled` so the renderer draws the
+        // read-only gray border WITHOUT the permission "Edit restricted" tooltip.
+        //
+        // Only engages when the grid is OTHERWISE editable — mirroring the
+        // field-permission gray border, which never shows for viewer / commenter /
+        // public / element-editing-off (those go uniformly read-only, no border).
+        const inlineEditDisabled =
+          !!interfacePageDataApi &&
+          isDataEditAllowed.value &&
+          !isDataReadOnly.value &&
+          !readOnly.value &&
+          interfacePageDataApi.fieldConfigs?.value?.[f.id]?.edit_inline === false
 
-        const isSyncedCol = meta.value?.synced && f.readonly && !isAutoNumber(f)
+        const isCellEditable =
+          !inlineEditDisabled &&
+          (showReadonlyColumnTooltip(f) ||
+            !showEditRestrictedColumnTooltip(f) ||
+            isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT))
+
+        const isSyncedCol = meta.value?.synced && f.readonly && !isAutoGeneratedColumn(f)
 
         const aggregation = getFormattedAggrationValue(gridViewCol.aggregation, aggregations.value[f.title!], f, [], {
           col: f,
@@ -474,9 +531,11 @@ export function useCanvasTable({
             isDataReadOnly.value ||
             !isDataEditAllowed.value ||
             isPublicView.value ||
+            readOnly.value ||
             !isCellEditable ||
             isSyncedCol,
           isCellEditable,
+          inlineEditDisabled,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation,
@@ -514,14 +573,281 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
+  // Walks the (possibly nested) group tree and returns the full path lineage
+  // for every group node — same serialization as generateGroupPath, but
+  // collected breadth-first so callers can look up each group's per-path cache.
+  const collectGroupPaths = (groups: Map<number, any> | undefined, parent: any[] = [], out: any[][] = []): any[][] => {
+    if (!groups) return out
+    for (const [, group] of groups) {
+      const cur = [...parent, ...(group?.path ?? [])]
+      if (cur.length) out.push(cur)
+      if (group?.groups?.size > 0) collectGroupPaths(group.groups, cur, out)
+    }
+    return out
+  }
+
+  // Bail-out cap for selection-mode aggregation. Beyond this many cells the
+  // JS reducers get expensive and the computed re-fires per mousemove during
+  // drag-select. The SQL footer is more accurate for huge selections anyway.
+  const MAX_SELECTION_CELLS_FOR_AGG = 50_000
+
+  // Debounced view of `selection` for aggregation computeds only. The raw
+  // `selection` ref updates on every mousemove during drag-select; the visual
+  // rect needs that immediacy, but recomputing aggregation values per move is
+  // wasteful. 60ms is short enough that the footer feels live on drag-end but
+  // long enough to coalesce intermediate ticks. Renderers and selection
+  // visuals should keep reading `selection` directly.
+  const selectionForAgg = refDebounced(selection, 60)
+
+  // Selection-scoped aggregation. When the user has a multi-cell rectangular
+  // range or any row-checkbox selection, footer aggregators recompute over the
+  // selected cells (per-field), via SDK's computeAggregation. Fields outside
+  // the selection scope blank out so the footer reflects only what's selected.
+  // Single-cell active is NOT a selection (cellCount === 1 → leaves footer alone).
+  const selectionAggregations = computed<{
+    active: boolean
+    values: Record<string, any>
+    scopedTitles: Set<string>
+  }>(() => {
+    // "Select all records" via the header checkbox sets vSelectedAllRecords
+    // true, but the actual selectedRows array only reflects rows currently
+    // loaded into the virtualized cache. Computing client-side over that
+    // partial set yields a sum that drifts as the user scrolls. The SQL
+    // footer already shows the correct total for the all-rows case, so
+    // deactivating selection-mode here lets it pass through unchanged.
+    if (vSelectedAllRecords.value) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
+    const range = selectionForAgg.value
+    const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    // Above this size we'd rather let the SQL footer stand than recompute over
+    // tens of thousands of cells on every mousemove during a drag-select.
+    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
+    const topLevelCheckboxRows = selectedRows.value || []
+
+    // In group-by mode each group has its own cachedRows + selectedRows under
+    // getDataCache(path). Reading the top-level cache for a grouped selection
+    // pulls rows from the wrong index space (which is why the footer summed
+    // unrelated values pre-fix). Walk all groups to find any checkbox state.
+    const groupCheckboxRows: Row[] = []
+    if (isGroupBy.value && cachedGroups?.value) {
+      for (const path of collectGroupPaths(cachedGroups.value)) {
+        const groupChecked = getDataCache(path as number[]).selectedRows?.value ?? []
+        if (groupChecked.length) groupCheckboxRows.push(...groupChecked)
+      }
+    }
+
+    const hasCheckbox = topLevelCheckboxRows.length > 0 || groupCheckboxRows.length > 0
+    if (!hasCheckbox && !hasRange) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
+    const values: Record<string, any> = {}
+    const scopedTitles = new Set<string>()
+
+    const computeFor = (col: ColumnType, rows: Row[]) => {
+      if (!col?.id || !col?.title) return
+      scopedTitles.add(col.title)
+      const aggType = gridViewCols.value[col.id]?.aggregation
+      if (!aggType || aggType === CommonAggregations.None) return
+      const cellValues = rows.map((r) => r?.row?.[col.title!])
+      try {
+        values[col.title] = computeAggregation({
+          aggregation: aggType,
+          values: cellValues,
+          column: col,
+          parsedFormulaType: (col.colOptions as any)?.parsed_tree?.dataType,
+        })
+      } catch {
+        // swallow — leaving the field unscored is safer than crashing render
+      }
+    }
+
+    if (hasCheckbox) {
+      const checkboxRows = topLevelCheckboxRows.length ? topLevelCheckboxRows : groupCheckboxRows
+      for (const f of fields.value) computeFor(f, checkboxRows)
+    } else if (isGroupBy.value && activeCell.value?.path) {
+      // Grouped cell-range: read from the active cell's group cache.
+      const dataCache = getDataCache(activeCell.value.path as number[])
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = dataCache.cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      // Bail if the range overlaps unloaded rows — better to keep the SQL
+      // footer than display a misleading partial-set sum.
+      if (rangeRows.length === 0) {
+        return { active: false, values: {}, scopedTitles: new Set<string>() }
+      }
+      const baseCols = _columnsBase.value
+      for (let c = range.start.col; c <= range.end.col; c++) {
+        const colObj = baseCols[c]
+        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+        computeFor(colObj.columnObj, rangeRows)
+      }
+    } else {
+      // Non-grouped cell-range.
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      if (rangeRows.length === 0) {
+        return { active: false, values: {}, scopedTitles: new Set<string>() }
+      }
+      const baseCols = _columnsBase.value
+      for (let c = range.start.col; c <= range.end.col; c++) {
+        const colObj = baseCols[c]
+        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+        computeFor(colObj.columnObj, rangeRows)
+      }
+    }
+
+    return { active: true, values, scopedTitles }
+  })
+
+  // Per-group selection-scoped aggregations. Keyed by group path joined on
+  // '-' (matches the serialization in useInfiniteGroups). Each entry holds
+  // pre-formatted display values for that group's columns and the
+  // scopedTitles set (column titles in selection scope; others blank).
+  // Cell-range selection: only the active group gets an entry. Row-checkbox
+  // selection: every group with checked rows gets its own entry.
+  const groupSelectionAggregations = computed<
+    Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>
+  >(() => {
+    const result = new Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>()
+    if (!isGroupBy.value) return result
+    // Same loading-state caveat as selectionAggregations: select-all gives a
+    // partial selectedRows that grows with scroll. Skip per-group overrides;
+    // SQL group totals are correct for the all-rows case.
+    if (vSelectedAllRecords.value) return result
+
+    const range = selectionForAgg.value
+    const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    // Same bail-out as selectionAggregations — see MAX_SELECTION_CELLS_FOR_AGG.
+    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) return result
+
+    const formatFor = (col: ColumnType, rawValue: any): string | undefined => {
+      const aggType = gridViewCols.value[col.id!]?.aggregation
+      if (!aggType || aggType === CommonAggregations.None || rawValue === undefined) return undefined
+      return getFormattedAggrationValue(aggType, rawValue, col, [], {
+        col,
+        meta: meta.value as TableType,
+        metas: metas.value,
+        isMysql,
+        isPg,
+      })
+    }
+
+    const computePerGroup = (
+      rows: Row[],
+      colsForScope: ColumnType[],
+    ): { values: Record<string, string | undefined>; scopedTitles: Set<string> } => {
+      const values: Record<string, string | undefined> = {}
+      const scopedTitles = new Set<string>()
+      for (const f of colsForScope) {
+        if (!f?.id || !f?.title) continue
+        scopedTitles.add(f.title)
+        const aggType = gridViewCols.value[f.id]?.aggregation
+        if (!aggType || aggType === CommonAggregations.None) continue
+        const cellValues = rows.map((r) => r?.row?.[f.title!])
+        try {
+          const raw = computeAggregation({
+            aggregation: aggType,
+            values: cellValues,
+            column: f,
+            parsedFormulaType: (f.colOptions as any)?.parsed_tree?.dataType,
+          })
+          values[f.title] = formatFor(f, raw)
+        } catch {
+          // swallow — fall back to undefined; renderer treats as blank
+        }
+      }
+      return { values, scopedTitles }
+    }
+
+    // Cell-range: scope is the column slice [start.col, end.col] in the active group
+    if (hasRange && activeCell.value?.path?.length) {
+      const path = activeCell.value.path as number[]
+      const dataCache = getDataCache(path)
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = dataCache.cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      if (rangeRows.length > 0) {
+        const baseCols = _columnsBase.value
+        const colsForScope: ColumnType[] = []
+        for (let c = range.start.col; c <= range.end.col; c++) {
+          const colObj = baseCols[c]
+          if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+          colsForScope.push(colObj.columnObj)
+        }
+        result.set(path.join('-'), computePerGroup(rangeRows, colsForScope))
+      }
+    }
+
+    // Row-checkbox: each group with checked rows scopes ALL fields
+    if (cachedGroups?.value) {
+      for (const path of collectGroupPaths(cachedGroups.value)) {
+        const checked = getDataCache(path as number[]).selectedRows?.value ?? []
+        if (!checked.length) continue
+        // Only override if not already set by cell-range branch above
+        const key = (path as number[]).join('-')
+        if (result.has(key)) continue
+        result.set(key, computePerGroup(checked, fields.value as ColumnType[]))
+      }
+    }
+
+    return result
+  })
+
   // Lightweight wrapper: during resize, patches only the resizing column's width
   // without recomputing _columnsBase (which does heavy meta/aggregation/permission work).
+  // Also layers the selection-scoped aggregation override on top.
   const columns = computed<CanvasGridColumn[]>(() => {
     const base = _columnsBase.value
     const override = resizeWidthOverride.value
-    if (!override) return base
+    const widthApplied = override
+      ? base.map((col) => (override.columnIds.has(col.id) ? { ...col, width: override.width } : col))
+      : base
 
-    return base.map((col) => (col.id === override.columnId ? { ...col, width: override.width } : col))
+    const sel = selectionAggregations.value
+    if (!sel.active) return widthApplied
+
+    return widthApplied.map((col) => {
+      if (col.id === 'row_number') return col
+
+      if (sel.scopedTitles.has(col.title)) {
+        // In-selection field: replace footer value with JS-computed selection aggregation.
+        // If the column has no aggregation configured (`agg_fn` empty/None), nothing to override —
+        // existing "Summary" affordance stays as-is, but suppress hover via the sentinel anyway
+        // so the user isn't tempted to configure aggregation while a selection is active.
+        const rawValue = sel.values[col.title]
+        if (rawValue === undefined || !col.agg_fn || col.agg_fn === CommonAggregations.None) {
+          return { ...col, aggregationSuppressed: true } as CanvasGridColumn
+        }
+        const formatted = getFormattedAggrationValue(col.agg_fn, rawValue, col.columnObj, [], {
+          col: col.columnObj,
+          meta: meta.value as TableType,
+          metas: metas.value,
+          isMysql,
+          isPg,
+        })
+        return { ...col, aggregation: formatted ?? '' }
+      }
+
+      // Out-of-selection field at the global level: just set the suppression
+      // flag. Don't blank agg_fn / agg_prefix / aggregation — per-group
+      // rendering is a separate decision and reads them independently.
+      return { ...col, aggregationSuppressed: true } as CanvasGridColumn
+    })
   })
 
   const columnWidths = computed(() =>
@@ -593,6 +919,9 @@ export function useCanvasTable({
     return !(
       !isDataReadOnly.value &&
       !readOnly.value &&
+      // Role term — every sibling write path checks it; fill writes rows
+      // optimistically, so a 403 would leave data LOOKING saved.
+      isDataEditAllowed.value &&
       (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt)) &&
       (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
       !dataCache.cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)
@@ -800,27 +1129,30 @@ export function useCanvasTable({
       return null
     }
 
-    // If selection is single cell and cell is virtual, hide fill handler
+    // Hide fill handle for cells that can't accept a user-supplied value:
+    // virtual/system/AI-prompt (computed or internal) and auto-generated
+    // identity columns like AutoNumber/UUID (DB-filled, readonly).
     if (selection.value.isSingleCell()) {
       if (removeInlineAddRecord.value && selection.value.start.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return null
 
       const selectedColumn = columns.value[selection.value.end.col]
-      // If the cell is virtual, system column, AI prompt, or UUID (read-only auto-generated), hide the fill handler
       if (
         selectedColumn?.virtual ||
         isSystemColumn(selectedColumn?.columnObj) ||
         (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj)) ||
-        (selectedColumn?.columnObj && isUUID(selectedColumn?.columnObj))
+        (selectedColumn?.columnObj && isAutoGeneratedColumn(selectedColumn?.columnObj))
       ) {
         return null
       }
     } else {
-      // If selection is not single cell and atleast one column is not virtual, show handler
-      // Check if all selected columns are virtual
+      // If every selected column is unfillable, hide handle; otherwise show
+      // (fill will skip readonly cells during the extend op).
       const selectedColumns = columns.value.slice(selection.value.start.col, selection.value.end.col + 1)
-      const allColumnsVirtual = selectedColumns.every((col) => col?.virtual)
+      const allColumnsUnfillable = selectedColumns.every(
+        (col) => col?.virtual || (col?.columnObj && isAutoGeneratedColumn(col.columnObj)),
+      )
 
-      if (allColumnsVirtual) {
+      if (allColumnsUnfillable) {
         return null
       }
     }
@@ -860,7 +1192,7 @@ export function useCanvasTable({
     return {
       x: xPos,
       y: startY,
-      size: isAiFillMode.value ? 10 : 8,
+      size: isAiFillMode.value ? 8 : 6,
       fixedCol: selection.value.end.col < fixedCols.length,
     }
   }
@@ -879,6 +1211,7 @@ export function useCanvasTable({
 
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
+    interfaceActiveHeaderFieldId,
     mousePosition,
     elementMap,
     height,
@@ -910,6 +1243,8 @@ export function useCanvasTable({
     vSelectedAllRecordsSkipPks,
     isRowDraggingEnabled,
     selectedRows,
+    selectedHeaderColumnIds,
+    resizeMarker,
     isDragging,
     draggedRowIndex,
     targetRowIndex,
@@ -943,6 +1278,7 @@ export function useCanvasTable({
     rowColouringBorderWidth,
     isRecordSelected,
     isViewOperationsAllowed,
+    groupSelectionAggregations,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -972,6 +1308,7 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     isAlreadyShownUpgradeModal,
     isExternalSource,
+    tableColumns: computed(() => (meta.value?.columns ?? []) as ColumnType[]),
   })
 
   const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
@@ -1061,19 +1398,14 @@ export function useCanvasTable({
     reloadVisibleDataHook?.trigger()
   }
 
-  const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
-    if (!meta.value?.columns || !meta.value?.columnsById) return
-
-    meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
-      if (c.id !== columnId) return c
-
-      c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: order }
-      return c
-    })
-
-    if (meta.value?.columnsById?.[columnId]) {
-      meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columnsById[columnId].meta), defaultViewColOrder: order }
+  // When resizing a column that's part of a multi-field selection (size > 1),
+  // apply the resize to every selected column. Otherwise just the dragged one.
+  const getCoResizeColumnIds = (resizedColumnId: string): Set<string> => {
+    const selected = selectedHeaderColumnIds.value
+    if (selected.size > 1 && selected.has(resizedColumnId)) {
+      return new Set(selected)
     }
+    return new Set([resizedColumnId])
   }
 
   const {
@@ -1089,21 +1421,45 @@ export function useCanvasTable({
     isViewOperationsAllowed,
     // onResize (per-frame): set lightweight override instead of mutating gridViewCols,
     // which would trigger the heavy _columnsBase recomputation.
-    (columnId, width) => {
+    //
+    // Single-column resize previews the new width live. A multi-field resize
+    // (the dragged column is part of a header selection) instead shows only a
+    // vertical guideline marker and defers the width change to mouseup — live
+    // fan-out shifts the columns left of the pointer, dragging the resized edge
+    // away from the cursor (Excel / Google Sheets behaviour).
+    (columnId, width, leftX) => {
       const metaCol = metaColumnById.value[columnId]
       if (!metaCol) return
 
       const normalizedWidth = normalizeWidth(metaCol, width)
-      resizeWidthOverride.value = { columnId, width: `${normalizedWidth}px` }
+      const coResizeIds = getCoResizeColumnIds(columnId)
+
+      if (coResizeIds.size > 1) {
+        resizeMarker.value = { x: leftX + normalizedWidth, columnIds: coResizeIds }
+      } else {
+        resizeWidthOverride.value = { columnIds: coResizeIds, width: `${normalizedWidth}px` }
+      }
       reloadVisibleDataHook?.trigger()
     },
-    // onResizeEnd (mouseup): clear override, flush final width to gridViewCols + persist.
+    // onResizeEnd (mouseup): clear override/marker, flush final width to
+    // gridViewCols + persist. For a multi-field resize, apply the same width to
+    // every selected column. Each column is normalized against its own type
+    // (Attachment has a larger minWidth, etc.) before persisting. We read the
+    // co-resize set from the marker / live override (snapshot at drag time)
+    // rather than re-reading `selectedHeaderColumnIds` — the canvas-level mouseup
+    // that bubbles alongside the resize mouseup clears the selection before we
+    // get here.
     (columnId, width) => {
+      const coResizeIds = resizeMarker.value?.columnIds ?? resizeWidthOverride.value?.columnIds ?? getCoResizeColumnIds(columnId)
       resizeWidthOverride.value = null
-      handleColumnWidth(columnId, width, (normalizedWidth) => {
-        gridViewCols.value[columnId]!.width = normalizedWidth
-        updateGridViewColumn(columnId, { width: normalizedWidth })
-      })
+      resizeMarker.value = null
+      for (const id of coResizeIds) {
+        handleColumnWidth(id, width, (normalizedWidth) => {
+          if (!gridViewCols.value[id]) return
+          gridViewCols.value[id]!.width = normalizedWidth
+          updateGridViewColumn(id, { width: normalizedWidth })
+        })
+      }
     },
   )
   const {
@@ -1136,7 +1492,6 @@ export function useCanvasTable({
       if (nextToViewCol === null && lastViewCol === null) return
 
       const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
-      const oldOrder = toBeReorderedViewCol.order
 
       toBeReorderedViewCol.order = newOrder
 
@@ -1155,33 +1510,7 @@ export function useCanvasTable({
         }
       }
 
-      addUndo({
-        undo: {
-          fn: async () => {
-            toBeReorderedViewCol.order = oldOrder
-            if (isDefaultView.value) {
-              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
-            }
-            await updateGridViewColumn(toBeReorderedCol.id, { order: oldOrder })
-            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          },
-          args: [],
-        },
-        redo: {
-          fn: async () => {
-            toBeReorderedViewCol.order = newOrder
-            if (isDefaultView.value) {
-              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
-            }
-            await updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
-            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          },
-          args: [],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
-      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder }, true)
+      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     },
     isViewOperationsAllowed,
@@ -1209,6 +1538,7 @@ export function useCanvasTable({
     addNewColumn,
     handleCellKeyDown,
     removeInlineAddRecord,
+    maxSelectionLimit,
   })
 
   const {
@@ -1225,6 +1555,7 @@ export function useCanvasTable({
     scrollToCell,
     elementMap,
     getDataCache,
+    maxSelectionLimit,
   })
 
   async function clearSelectedRangeOfCells(path?: Array<number>) {
@@ -1274,15 +1605,23 @@ export function useCanvasTable({
     }
     if (bulkLtarDeleteOps.length) {
       try {
-        await $api.internal.postOperation(
-          meta.value?.fk_workspace_id as string,
-          meta.value?.base_id as string,
-          {
-            operation: 'nestedDataBulkCopyPasteOrDeleteAll',
-            tableId: meta.value?.id as string,
-          },
-          bulkLtarDeleteOps.map(({ columnId, data }) => ({ columnId, data })),
-        )
+        const bulkPayload = bulkLtarDeleteOps.map(({ columnId, data }) => ({ columnId, data }))
+
+        // Interface pages route through the page-scoped op — the raw
+        // internal op 403s for interface collaborators.
+        if (interfacePageDataApi?.nestedBulkCopyPaste) {
+          await interfacePageDataApi.nestedBulkCopyPaste(bulkPayload as any)
+        } else {
+          await $api.internal.postOperation(
+            meta.value?.fk_workspace_id as string,
+            meta.value?.base_id as string,
+            {
+              operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+              tableId: meta.value?.id as string,
+            },
+            bulkPayload,
+          )
+        }
       } catch (e: any) {
         for (const op of bulkLtarDeleteOps) {
           op.rowRef.row[op.columnTitle] = op.oldValue
@@ -1302,9 +1641,7 @@ export function useCanvasTable({
         if (isVirtualCol(colObj)) continue
 
         // skip readonly columns
-        if (isReadonlyVirtualColumn(colObj)) continue
-
-        if (colObj.readonly) continue
+        if (isReadonlyVirtualColumn(colObj) || isAutoGeneratedColumn(colObj) || colObj.readonly) continue
 
         row.row[colObj.title] = null
         props.push(colObj.title)
@@ -1318,7 +1655,7 @@ export function useCanvasTable({
       return
     }
 
-    await bulkUpdateRows(rows, props, undefined, false, path)
+    await bulkUpdateRows(rows, props, undefined, path)
   }
 
   const cachedCurrentRow = ref<Row>()
@@ -1428,7 +1765,18 @@ export function useCanvasTable({
 
     const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
 
-    if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value || isEditRestricted) {
+    // Interface builder: `inlineEditDisabled` (per-column "Edit this column
+    // inline" opt-out) behaves like a real read-only field — expandable cells
+    // below still open their viewer (read-only, since isCellEditable is off),
+    // all other cells stay inert.
+    if (
+      !isDataEditAllowed.value ||
+      readOnly.value ||
+      isPublicView.value ||
+      !isAddingEmptyRowAllowed.value ||
+      isEditRestricted ||
+      clickedColumn.inlineEditDisabled
+    ) {
       if (
         [
           UITypes.LongText,
@@ -1449,7 +1797,7 @@ export function useCanvasTable({
 
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
 
-    if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol) {
+    if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol || clickedColumn.inlineEditDisabled) {
       return null
     }
 
@@ -1526,12 +1874,34 @@ export function useCanvasTable({
     renderCanvas()
   }
 
+  // Interface builder: redraw headers when a per-column label override changes
+  // (the label lives in the viz config, not the column meta, so the render loop
+  // has no other dependency on it).
+  if (interfacePageDataApi?.fieldConfigs) {
+    watch(
+      interfacePageDataApi.fieldConfigs,
+      () => {
+        clearTextCache()
+        triggerRefreshCanvas()
+      },
+      { deep: true },
+    )
+  }
+
   watch(rowHeight, () => {
     clearTextCache()
     triggerRefreshCanvas()
   })
 
   watch(isAiFillMode, () => {
+    triggerRefreshCanvas()
+  })
+
+  // White-label brand colour changed. The canvas isn't reactively bound to brandColor
+  // (it's read only inside _updateRowColors during a render), and useBrandingApply has
+  // cleared useTheme's colorCache — so force a repaint to re-resolve the new brand rgb
+  // for selection tints, the active-cell border and the fill handle.
+  watch(brandColor, () => {
     triggerRefreshCanvas()
   })
 
@@ -1569,15 +1939,23 @@ export function useCanvasTable({
         await Promise.all(
           metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
             if (!tableId || !relatedBaseId) return
-            // Try fetching full table meta first. If it fails (e.g., user lacks permission
-            // to access the related table), fall back to partial meta which only fetches
-            // the linked column metadata needed to render the LTAR cell.
-            try {
-              await getMeta(relatedBaseId, tableId, false, false, true)
-            } catch {}
+            // Skip the full-meta call for a cross-base LTAR rendered inside a
+            // shared view or shared base — the viewer has no access to the
+            // external base there, so getMeta would 401 and kick off a token
+            // refresh loop. Fall straight through to partial meta.
+            const isCrossBase = relatedBaseId !== meta.value?.base_id
+            const skipGetMeta = isCrossBase && (isPublicView.value || isSharedBase.value)
+            if (!skipGetMeta) {
+              try {
+                await getMeta(relatedBaseId, tableId, false, false, true)
+              } catch {}
+            }
             const metaKey = `${relatedBaseId}:${tableId}`
             if (!metas.value[metaKey]) {
-              await getPartialMeta(relatedBaseId, colId, tableId)
+              await getPartialMeta(relatedBaseId, colId, tableId, {
+                workspaceId: (meta.value as any)?.fk_workspace_id,
+                baseId: meta.value?.base_id,
+              })
             }
           }),
         )
@@ -1696,6 +2074,7 @@ export function useCanvasTable({
 
     // permissions
     isFieldEditAllowed,
+    interfaceActiveHeaderFieldId,
     isDataEditAllowed,
     isContextMenuAllowed,
     removeInlineAddRecord,

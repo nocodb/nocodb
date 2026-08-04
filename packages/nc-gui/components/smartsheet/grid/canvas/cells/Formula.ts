@@ -1,4 +1,4 @@
-import { type ColumnType, FormulaDataTypes, UITypes, handleTZ } from 'nocodb-sdk'
+import { type ColumnType, FormulaDataTypes, getEffectiveDisplayColumn, handleTZ } from 'nocodb-sdk'
 import {
   defaultOffscreen2DContext,
   isBoxHovered,
@@ -96,11 +96,7 @@ export const FormulaCellRenderer: CellRenderer = {
     if (colExtra?.display_type) {
       getDisplayValueCellRenderer(column).render(ctx, {
         ...props,
-        column: {
-          ...column,
-          uidt: colExtra?.display_type || UITypes.LongText,
-          ...colExtra.display_column_meta,
-        },
+        column: getEffectiveDisplayColumn(colExtra, column),
         readonly: true,
         formula: true,
       })
@@ -201,11 +197,7 @@ export const FormulaCellRenderer: CellRenderer = {
           ...props,
           column: {
             ...column,
-            columnObj: {
-              ...colObj,
-              uidt: colMeta?.display_type,
-              ...colMeta.display_column_meta,
-            },
+            columnObj: getEffectiveDisplayColumn(colMeta, colObj),
           },
           formula: true,
           getColor,
@@ -294,11 +286,7 @@ export const FormulaCellRenderer: CellRenderer = {
         ...props,
         column: {
           ...column,
-          columnObj: {
-            ...colObj,
-            uidt: colMeta?.display_type || UITypes.LongText,
-            ...colMeta.display_column_meta,
-          },
+          columnObj: getEffectiveDisplayColumn(colMeta, colObj),
         },
       })
     }

@@ -29,7 +29,8 @@ const vModel = computed({
   set: (val) => {
     localState.value = val
     if (!parseProp(column.value.meta)?.validate || (val && isValidURL(trim(val))) || !val || isForm.value || isEditColumn.value) {
-      emit('update:modelValue', val)
+      // Store an empty URL value as null rather than '' to keep cleared cells null
+      emit('update:modelValue', val || null)
     }
   },
 })
@@ -83,6 +84,8 @@ const onBlur = () => {
 const showClicableLink = computed(() => {
   return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && url.value
 })
+
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 </script>
 
 <template>
@@ -92,6 +95,7 @@ const showClicableLink = computed(() => {
       :ref="focus"
       v-model="vModel"
       inputmode="url"
+      :autocomplete="formFieldAutocomplete"
       class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"
       :class="{
         'nc-text-transparent': showClicableLink,

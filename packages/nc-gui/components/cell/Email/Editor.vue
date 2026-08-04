@@ -28,7 +28,8 @@ const vModel = computed({
   set: (val) => {
     localState.value = val
     if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value || isEditColumn.value) {
-      emit('update:modelValue', val)
+      // Store an empty Email value as null rather than '' to keep cleared cells null
+      emit('update:modelValue', val || null)
     }
   },
 })
@@ -83,6 +84,8 @@ const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 const showClicableLink = computed(() => {
   return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && validEmail.value
 })
+
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 </script>
 
 <template>
@@ -97,6 +100,7 @@ const showClicableLink = computed(() => {
     }"
     :disabled="readOnly"
     inputmode="email"
+    :autocomplete="formFieldAutocomplete"
     @blur="onBlur"
     @focus="isFocused = true"
     @keydown.down.stop

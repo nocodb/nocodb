@@ -1,4 +1,4 @@
-import UITypes, { isLinksOrLTAR, isNumericCol } from './UITypes';
+import UITypes, { isLinksOrLTAR, isNumericCol, isVirtualCol } from './UITypes';
 import { RelationTypes, RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
 import {
@@ -165,22 +165,60 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
   }
 };
 
+/**
+ * Whether a column in the linked table can be the target of a Rollup.
+ * The listed virtual types are the ones `genRollupSelectv2` lowers to a
+ * correlated subquery; every other virtual type has no column to aggregate,
+ * so rolling it up emits broken SQL.
+ */
+const isRollupAggregatableColumn = (
+  col: UITypes | { uidt: UITypes | string }
+) => {
+  const uidt = (typeof col === 'object' ? col?.uidt : col) as UITypes;
+  return (
+    !isVirtualCol(uidt) ||
+    [
+      UITypes.Formula,
+      UITypes.Rollup,
+      UITypes.CreatedTime,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedTime,
+      UITypes.LastModifiedBy,
+    ].includes(uidt)
+  );
+};
+
 /** Rollup functions that always return integer values — no decimal precision needed */
 const integerRollupFunctions: string[] = ['count', 'countDistinct'];
 
 /** Rollup functions that preserve the source column type (integer in → integer out) */
-const integerPreservingRollupFunctions: string[] = ['sum', 'min', 'max', 'sumDistinct'];
+const integerPreservingRollupFunctions: string[] = [
+  'sum',
+  'min',
+  'max',
+  'sumDistinct',
+];
 
 /** Check if a column UIType stores integer values */
 const isIntegerUiType = (column: ColumnType) =>
-  [UITypes.Number, UITypes.ID, UITypes.AutoNumber, UITypes.Rating, UITypes.Links].includes(column.uidt as UITypes);
+  [
+    UITypes.Number,
+    UITypes.ID,
+    UITypes.AutoNumber,
+    UITypes.Rating,
+    UITypes.Links,
+  ].includes(column.uidt as UITypes);
 
 /**
  * Returns parsed rollup column meta with `precision` stripped when the
  * source column type + rollup function combination doesn't support it.
  * Prevents stale precision from old column configs affecting rendering.
  */
-const getRollupColumnMeta = (rollupMeta: any, childUidt: UITypes, rollupFunction: string) => {
+const getRollupColumnMeta = (
+  rollupMeta: any,
+  childUidt: UITypes,
+  rollupFunction: string
+) => {
   const meta = parseProp(rollupMeta);
 
   if (meta.precision != null) {
@@ -281,6 +319,7 @@ export {
   getAvailableRollupForUiType,
   getAvailableRollupForFormulaType,
   getRenderAsTextFunForUiType,
+  isRollupAggregatableColumn,
   integerRollupFunctions,
   integerPreservingRollupFunctions,
   isIntegerUiType,
@@ -300,7 +339,11 @@ export const getTestDatabaseName = (db: {
   client: ClientType;
   connection?: { database?: string };
 }) => {
-  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE)
+  if (
+    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(
+      db.client,
+    )
+  )
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
 };

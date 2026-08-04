@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
+import dayjs from 'dayjs'
+import { ColumnHelper, UITypes, dateFormats, jalaliDateFormats, timeFormats } from 'nocodb-sdk'
 import { type TimeZone, getTimeZones } from '@vvo/tzdb'
+import { timeFormatsObj } from '../../cell/DateTime/utils'
 
 const props = defineProps<{
   value: any
@@ -9,6 +11,8 @@ const props = defineProps<{
 const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
+
+const allDateFormats = [...dateFormats, ...jalaliDateFormats]
 
 const { appInfo } = useGlobal()
 
@@ -56,59 +60,91 @@ const useSameTimezoneForAll = computed({
     }
   },
 })
+
+// Examples are rendered against the current date/time so users see what each format produces
+const today = dayjs()
+
+function formatDateExample(format: string) {
+  return today.format(format)
+}
+
+function formatTimeExample(format: string) {
+  const display = vModel.value.meta.is12hrFormat ? timeFormatsObj[format as keyof typeof timeFormatsObj] ?? format : format
+  return today.format(display)
+}
+
+const combinedPreview = computed(
+  () => `${formatDateExample(vModel.value.meta.date_format)} ${formatTimeExample(vModel.value.meta.time_format)}`,
+)
 </script>
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex items-center gap-2 children:flex-1">
-      <a-form-item>
-        <a-select
-          v-model:value="vModel.meta.date_format"
-          class="nc-date-select"
-          dropdown-class-name="nc-dropdown-date-format"
-          show-search
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
+    <a-form-item>
+      <template #label>
+        <div class="flex items-center justify-between w-full gap-2">
+          <span class="flex-none">{{ $t('labels.dateFormat') }}</span>
+          <span class="flex items-center gap-1.5 min-w-0">
+            <span class="flex-none text-nc-content-gray-muted">{{ $t('labels.preview') }}</span>
+            <span class="truncate text-nc-content-gray font-weight-500">{{ combinedPreview }}</span>
+          </span>
+        </div>
+      </template>
+      <a-select
+        v-model:value="vModel.meta.date_format"
+        class="nc-date-select"
+        dropdown-class-name="nc-dropdown-date-format"
+        show-search
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+        </template>
 
-          <a-select-option v-for="(format, i) of dateFormats" :key="i" :value="format">
-            <div class="flex gap-2 w-full justify-between items-center">
-              {{ format }}
+        <a-select-option v-for="(format, i) of allDateFormats" :key="i" :value="format">
+          <div class="w-full flex items-center gap-2">
+            <span class="nc-check-gutter flex-none w-4 h-4 flex items-center justify-center">
               <component
                 :is="iconMap.check"
                 v-if="vModel.meta.date_format === format"
                 id="nc-selected-item-icon"
                 class="text-nc-content-brand w-4 h-4"
               />
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
+            </span>
+            <span class="nc-format-example flex-1 min-w-0 truncate text-nc-content-gray">{{ formatDateExample(format) }}</span>
+            <span class="nc-format-token flex-none">{{ format }}</span>
+          </div>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+    <a-form-item>
+      <template #label>
+        <span>{{ $t('labels.timeFormat') }}</span>
+      </template>
+      <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+        </template>
 
-          <a-select-option v-for="(format, i) of timeFormats" :key="i" :value="format">
-            <div class="flex gap-2 w-full justify-between items-center" :data-testid="`nc-time-${format}`">
-              {{ format }}
+        <a-select-option v-for="(format, i) of timeFormats" :key="i" :value="format">
+          <div class="w-full flex items-center gap-2" :data-testid="`nc-time-${format}`">
+            <span class="nc-check-gutter flex-none w-4 h-4 flex items-center justify-center">
               <component
                 :is="iconMap.check"
                 v-if="vModel.meta.time_format === format"
                 id="nc-selected-item-icon"
                 class="text-nc-content-brand w-4 h-4"
               />
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </div>
+            </span>
+            <span class="nc-format-example flex-1 min-w-0 truncate text-nc-content-gray">{{ formatTimeExample(format) }}</span>
+            <span class="nc-format-token flex-none">{{ format }}</span>
+          </div>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
     <a-form-item>
       <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout">
-        <a-radio :value="true">12 Hrs</a-radio>
-        <a-radio :value="false">24 Hrs</a-radio>
+        <a-radio :value="true">{{ $t('labels.hours12') }}</a-radio>
+        <a-radio :value="false">{{ $t('labels.hours24') }}</a-radio>
       </a-radio-group>
     </a-form-item>
 
@@ -142,14 +178,14 @@ const useSameTimezoneForAll = computed({
           allow-clear
           :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
           dropdown-class-name="nc-dropdown-timezone"
-          placeholder="Use same timezone for all collaborator"
+          :placeholder="$t('placeholder.useSameTimezoneForAll')"
           class="nc-search-timezone"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
 
-          <a-select-opt-group label="Suggested">
+          <a-select-opt-group :label="$t('labels.suggested')">
             <a-select-option
               v-for="timezone of priorityTzs"
               :key="timezone.name"
@@ -172,7 +208,7 @@ const useSameTimezoneForAll = computed({
               </div>
             </a-select-option>
           </a-select-opt-group>
-          <a-select-opt-group label="All">
+          <a-select-opt-group :label="$t('general.all')">
             <a-select-option
               v-for="timezone of timezones"
               :key="timezone.name"
@@ -202,6 +238,28 @@ const useSameTimezoneForAll = computed({
 </template>
 
 <style lang="scss" scoped>
+// In the dropdown list the format token is plain muted text alongside the example
+.nc-format-token {
+  @apply text-nc-content-gray-muted text-captionSm font-mono;
+}
+
+// The closed selector reuses the selected option's markup — render it as a clean
+// "example + format badge": drop the leading checkmark gutter, keep the example from
+// stretching so the badge sits next to it, and pill the token
+:deep(.ant-select-selection-item) {
+  .nc-check-gutter {
+    display: none;
+  }
+
+  .nc-format-example {
+    flex: 0 1 auto;
+  }
+
+  .nc-format-token {
+    @apply bg-nc-bg-gray-light rounded px-1.5 py-0.5 leading-tight;
+  }
+}
+
 :deep(.nc-time-form-layout) {
   @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-nc-border-gray-dark rounded-lg);
 

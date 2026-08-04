@@ -6,6 +6,8 @@ const meta = inject(MetaInj, ref())
 
 const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
 
+const { t } = useI18n()
+
 const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -23,21 +25,9 @@ const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
-const { loadCalendarData, loadSidebarData, fetchActiveDates, viewMetaProperties } = useCalendarViewStoreOrThrow()
+const { loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
-
-const showWeekends = computed({
-  get: () => !viewMetaProperties.value?.hide_weekend,
-  set: (newValue) => {
-    updateViewMeta(activeView.value?.id as string, ViewTypes.CALENDAR, {
-      meta: {
-        ...(viewMetaProperties.value || {}),
-        hide_weekend: !newValue,
-      },
-    })
-  },
-})
 
 const dateFieldOptions = computed<SelectProps['options']>(() => {
   return (
@@ -135,10 +125,10 @@ const saveCalendarRanges = async () => {
       // calendarRangeDropdown.value = false
     } catch (e) {
       console.log(e)
-      message.error('There was an error while updating view!')
+      message.error(t('msg.error.errorWhileUpdatingView'))
     }
   } else {
-    message.error('Please select a view first')
+    message.error(t('msg.error.selectViewFirst'))
   }
 }
 
@@ -179,37 +169,45 @@ const onValueChange = async () => {
 </script>
 
 <template>
-  <NcDropdown
+  <NcDropDrawer
     v-if="!IsPublic"
     v-model:visible="calendarRangeDropdown"
     :trigger="['click']"
-    class="!xs:hidden"
+    drawer-content-height
     overlay-class-name="overflow-hidden"
   >
-    <NcTooltip :disabled="!isToolbarIconMode" class="nc-calendar-btn">
-      <template #title>
-        {{ $t('activity.settings') }}
-      </template>
+    <template #default="{ onClick }">
+      <NcTooltip :disabled="!isToolbarIconMode" class="nc-calendar-btn">
+        <template #title>
+          {{ $t('activity.settings') }}
+        </template>
 
-      <NcButton
-        v-e="['c:calendar:change-calendar-range']"
-        class="nc-toolbar-btn !border-0 group !h-7"
-        size="small"
-        type="secondary"
-        data-testid="nc-calendar-range-btn"
-        :show-as-disabled="isLocked"
-      >
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.calendar" class="h-4 w-4" />
-          <span v-if="!isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
-            {{ $t('activity.settings') }}
-          </span>
-        </div>
-      </NcButton>
-    </NcTooltip>
+        <NcButton
+          v-e="['c:calendar:change-calendar-range']"
+          class="nc-toolbar-btn !border-0 group !h-7"
+          size="small"
+          type="secondary"
+          data-testid="nc-calendar-range-btn"
+          :show-as-disabled="isLocked"
+          @click="onClick"
+        >
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.calendar" class="h-4 w-4" />
+            <span v-if="!isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+              {{ $t('activity.settings') }}
+            </span>
+          </div>
+        </NcButton>
+      </NcTooltip>
+    </template>
 
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-108 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div
+        v-if="calendarRangeDropdown"
+        class="w-full sm:w-108 space-y-4 sm:space-y-6 sm:rounded-2xl px-0 py-1 sm:p-6"
+        data-testid="nc-calendar-range-menu"
+        @click.stop
+      >
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -265,7 +263,7 @@ const onValueChange = async () => {
               </div>
             </a-select-option>
           </a-select>
-          <div v-if="isEeUI && showEEFeatures" class="w-full space-y-2">
+          <div v-if="showEEFeatures" class="w-full space-y-2">
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
               <template #default="{ click }">
                 <NcButton
@@ -357,24 +355,13 @@ const onValueChange = async () => {
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />
-          <span class="text-sm text-nc-content-gray-muted"> Date field is required! </span>
+          <span class="text-sm text-nc-content-gray-muted"> {{ $t('msg.dateFieldRequired') }} </span>
         </div>
 
-        <div>
-          <NcSwitch v-model:checked="showWeekends" :disabled="isLocked">
-            <span class="text-nc-content-gray font-semibold">
-              {{ $t('activity.showSaturdaysAndSundays') }}
-            </span>
-          </NcSwitch>
-        </div>
-
-        <!--
-        <div class="text-[13px] text-nc-content-gray-muted py-2">Records in this view will be based on the specified date field.</div>
--->
         <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
-  </NcDropdown>
+  </NcDropDrawer>
 </template>
 
 <style lang="scss">

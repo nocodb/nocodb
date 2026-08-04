@@ -65,7 +65,13 @@ const { isPg, isMysql } = useBase()
 const tempSelectedOptsState = reactive<SelectInputOptionType[]>([])
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
+  () =>
+    !isPublic.value &&
+    !disableOptionCreation &&
+    isUIAllowed('fieldEdit') &&
+    !isMetaReadOnly.value &&
+    !isForm.value &&
+    !column.value?.readonly,
 )
 
 const options = computed(() => {
@@ -75,7 +81,7 @@ const options = computed(() => {
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
     if (op.title) {
-      acc[op.title.trim()] = op
+      acc[ncIsString(op.title) ? op.title.trim() : `${op.title}`] = op
     }
     return acc
   }, {} as Record<string, (typeof options.value)[number]>)

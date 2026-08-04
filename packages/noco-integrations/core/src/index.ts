@@ -3,6 +3,9 @@ export * from './types';
 export * from './registry';
 export * from './utils/manifest';
 export * from './utils/axios';
+export * from './utils/externalDbSsrf';
+export * from './utils/dbSsl';
+export * from './nocodb';
 export * from './sync';
 export * from './auth';
 export * from './ai';
@@ -12,6 +15,7 @@ export { SCHEMA_TICKETING } from './sync/schema-ticketing';
 export { SCHEMA_HRIS } from './sync/schema-hris';
 export { SCHEMA_CRM } from './sync/schema-crm';
 export { SCHEMA_FILE_STORAGE } from './sync/schema-filestorage';
+export { SCHEMA_CALENDAR } from './sync/schema-calendar';
 export type {
   TicketingTicketRecord,
   TicketingUserRecord,

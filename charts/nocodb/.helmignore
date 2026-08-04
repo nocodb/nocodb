@@ -1,0 +1,7 @@
+.git/
+.github/
+/ci/
+/tests/
+*_test.yaml
+.vscode/
+*.tmp

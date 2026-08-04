@@ -10,6 +10,7 @@ import {
   User,
 } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import { buildOAuthAccessTokenClaims } from '~/modules/oauth/services/oauth-token.claims';
 import Noco from '~/Noco';
 
 export interface TokenResponse {
@@ -68,17 +69,14 @@ export class OauthTokenService {
     const now = Math.floor(Date.now() / 1000);
 
     return jwt.sign(
-      {
-        sub: payload.userId,
-        email: user.email,
-        client_id: payload.clientId,
+      buildOAuthAccessTokenClaims({
+        userId: payload.userId,
+        clientId: payload.clientId,
         scope: payload.scope,
-        iat: now,
-        exp: now + this.ACCESS_TOKEN_EXPIRES_IN,
-        id: user.id,
-        roles: user.roles,
-        token_version: user.token_version,
-      },
+        user,
+        nowSeconds: now,
+        expiresInSeconds: this.ACCESS_TOKEN_EXPIRES_IN,
+      }),
       Noco.config.auth.jwt.secret,
       {
         algorithm: 'HS256',
@@ -169,14 +167,13 @@ export class OauthTokenService {
       );
     }
 
-    // Check if code is already used
+    // Fast-path reject before CAS.
     if (authCode.is_used) {
       throw new Error(
         'invalid_grant: Authorization code has already been used',
       );
     }
 
-    // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
       throw new Error('invalid_grant: Authorization code has expired');
     }
@@ -245,9 +242,19 @@ export class OauthTokenService {
       resource: authCode.resource,
     };
 
+    // Atomic single-use claim deferred until all preconditions pass so a
+    // failing redirect_uri / PKCE / client auth check does not consume the code.
+    const claimed = await OAuthAuthorizationCode.claimByCode(code);
+    if (!claimed) {
+      throw new Error(
+        'invalid_grant: Authorization code has already been used',
+      );
+    }
+
     await OAuthToken.insert(insertObj);
 
-    // Mark authorization code as used
+    // markAsUsed is a safety net — claimByCode above already won the
+    // single-use race.
     await OAuthAuthorizationCode.markAsUsed(code);
 
     return {
@@ -268,6 +275,12 @@ export class OauthTokenService {
     resource?: string;
   }): Promise<TokenResponse> {
     const { refreshToken, clientId, clientSecret } = params;
+
+    // TODO: refresh-grant failures below reject via NcError.badRequest, while the
+    // authorization-code grant throws RFC-6749 `invalid_grant: …` codes. Align the
+    // whole refresh flow on RFC-6749 error codes in a dedicated change (kept out of
+    // the GHSA-353r advisory fix to avoid altering response shapes here).
+    // https://github.com/nocodb/nocohub/pull/9337#discussion_r3435641193
 
     // Get token by refresh token
     const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
@@ -320,8 +333,17 @@ export class OauthTokenService {
     // Rotate refresh tokens for security
     const newRefreshToken = randomBytes(64).toString('base64url');
 
-    // Revoke old token
-    await OAuthToken.revoke(tokenRecord.id);
+    // Atomically revoke the presented refresh token, gating issuance of the new
+    // chain. This compare-and-swap is the single-use guard: two concurrent
+    // refreshes presenting the same token both pass the is_revoked check above,
+    // but only one wins revokeIfActive — the loser is rejected here instead of
+    // minting a second valid token chain. Done after token generation so a
+    // generateAccessToken failure does not burn the still-valid refresh token
+    // (GHSA-353r).
+    const revoked = await OAuthToken.revokeIfActive(tokenRecord.id);
+    if (!revoked) {
+      NcError.badRequest('Refresh token has been revoked');
+    }
 
     // Create new token record
     await OAuthToken.insert({

@@ -1,0 +1,47 @@
+name: Helm chart release
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Overwrite the chart version in GHCR even if it already exists"
+        type: boolean
+        default: false
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with: { version: v3.18.6 }
+      - name: Lint
+        run: helm lint charts/nocodb
+      - name: Render (sanity)
+        run: |
+          helm template nocodb charts/nocodb \
+            -f charts/nocodb/ci/external-only-values.yaml \
+            --set externalDatabase.existingSecret=s \
+            --set externalRedis.existingSecret=s \
+            --set auth.existingSecret=s > /dev/null
+
+  publish:
+    needs: lint-test
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with: { version: v3.18.6 }
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Package
+        run: helm package charts/nocodb -d .cr-release-packages
+      - name: Push to OCI (skips if the version exists, unless force is set)
+        run: |
+          VERSION=$(helm show chart charts/nocodb | awk '/^version:/{print $2}')
+          if [ "${{ inputs.force }}" != "true" ] && helm pull oci://ghcr.io/nocodb/charts/nocodb --version "$VERSION" >/dev/null 2>&1; then
+            echo "Version $VERSION already published; skipping (re-run with force=true to overwrite)."
+          else
+            helm push ".cr-release-packages/nocodb-$VERSION.tgz" oci://ghcr.io/nocodb/charts
+          fi

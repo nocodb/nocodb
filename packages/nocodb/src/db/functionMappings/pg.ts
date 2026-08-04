@@ -1,16 +1,21 @@
 import dayjs from 'dayjs';
 import { customAlphabet } from 'nanoid';
-import { FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
+import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import { sanitize } from 'src/helpers/sqlSanitize';
 import commonFns, {
+  extractDatetimeFormat,
   safeDateAddUnitSQL,
   validateDateAddUnit,
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
-import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {
+  getWeekdayByText,
+  getWeekStartOffsetSunday,
+} from '~/helpers/formulaFnHelper';
 import { NcError } from '~/helpers/ncError';
+import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const getArraySourceAttachmentUnnested = async (
   argument: any,
@@ -227,12 +232,42 @@ const pg = {
       ),
     };
   },
+  WEEKNUM: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Excel-compatible WEEKNUM: week 1 is the week containing Jan 1, weeks start
+    // on Sunday by default. DOW is 0 (Sunday) .. 6 (Saturday); DOY is 1-based.
+    const source =
+      pt.arguments[0].type === 'Literal'
+        ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
+            'YYYY-MM-DD',
+          )}'`
+        : `(${(await fn(pt.arguments[0])).builder})::TIMESTAMP`;
+    const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
+    const doy = `EXTRACT(DOY FROM ${source})::INTEGER`;
+    const dow = `EXTRACT(DOW FROM ${source})::INTEGER`;
+    return {
+      builder: knex.raw(
+        `(FLOOR(((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7.0) + 1)::INTEGER`,
+      ),
+    };
+  },
   DATESTR: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `TO_CHAR((${
           (await fn(pt?.arguments[0])).builder
         }), 'YYYY-MM-DD')::text`,
+      ),
+    };
+  },
+  DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const format = extractDatetimeFormat(pt);
+    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `${getDatetimeFormatHandler(ClientType.PG).build(
+          `${dateExpr}`,
+          format,
+        )}::text`,
       ),
     };
   },
@@ -379,6 +414,28 @@ const pg = {
       ]),
     };
   },
+  MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`MD5(?::TEXT)`, [source]),
+    };
+  },
+  SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`ENCODE(SHA256(CONVERT_TO(?::TEXT, 'UTF8')), 'hex')`, [
+        source,
+      ]),
+    };
+  },
+  SHA512: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`ENCODE(SHA512(CONVERT_TO(?::TEXT, 'UTF8')), 'hex')`, [
+        source,
+      ]),
+    };
+  },
   XOR: async ({ fn, knex, pt }: MapFnArgs) => {
     const predicates = (pt.arguments.map(() => '?') as string[]).join(' # ');
     const parsedArguments = await Promise.all(
@@ -484,12 +541,39 @@ END`,
   },
   JSON_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
-    const needle = (await fn(pt.arguments[1])).builder;
 
     const removeNullUnicode = (source: string) => {
       // use four backspace so it will translate into two backspace in sql query
       return `regexp_replace(${source}, '\\\\u0000', 'u0000', 'g')`;
     };
+    // When the path argument is a string literal, build the full jsonpath at
+    // JS level and bind as a single parameter. The naive `CONCAT('$', ?)`
+    // form leaves `'$',` adjacent in the rendered SQL — the `$'` pair is a
+    // special pattern in JS's String.prototype.replace ("rest of string after
+    // the match"), which knex applies when inlining this raw inside another
+    // raw with named bindings (e.g. the `:value` placeholders in VALUE()).
+    // The result is corrupted SQL like `CONCAT(', '.price')` and a syntax
+    // error. See nocodb/nocodb#12695.
+    const pathArg = pt.arguments[1];
+    if (
+      pathArg?.type === JSEPNode.LITERAL &&
+      typeof pathArg.value === 'string'
+    ) {
+      return {
+        builder: knex.raw(
+          [
+            `CASE WHEN ( ${removeNullUnicode('?')} )::jsonb IS NOT NULL`,
+            `THEN jsonb_path_query_first(( ${removeNullUnicode(
+              '?',
+            )} )::jsonb, ?::jsonpath)`,
+            `ELSE NULL END`,
+          ].join(' '),
+          [source, source, `$${pathArg.value}`],
+        ),
+      };
+    }
+
+    const needle = (await fn(pathArg)).builder;
     return {
       builder: knex.raw(
         [

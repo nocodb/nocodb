@@ -32,6 +32,11 @@ const {
   handleAddMissingRequiredFieldDefaultState,
   fieldMappings,
   backgroundAndTextColor,
+  meta,
+  draftWasRestored,
+  draftRestoredAt,
+  discardDraft,
+  dismissDraftBanner,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -270,6 +275,8 @@ onMounted(() => {
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => sharedFormView?.value?.success_msg),
   computed(() => formState.value),
+  formColumns,
+  meta,
 )
 </script>
 
@@ -379,6 +386,13 @@ const { message: templatedMessage } = useTemplatedMessage(
           </h1>
         </div>
         <template v-if="isStarted && !submitted">
+          <SmartsheetFormDraftRestoredBanner
+            v-if="draftWasRestored"
+            :restored-at="draftRestoredAt"
+            class="mb-4"
+            @discard="discardDraft"
+            @close="dismissDraftBanner"
+          />
           <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
             <a-form :model="formState">
               <div
@@ -428,7 +442,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             readonly: field?.read_only,
                           }"
                           :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-                          :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                          :data-testid="`nc-survey-form__input-${toSafeClassName(field.title)}`"
                           :column="field"
                           :read-only="field?.read_only"
                           @update:model-value="validateField(field.title)"
@@ -439,7 +453,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           v-model="formState[field.title]"
                           class="nc-input h-auto"
                           :class="{ 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only }"
-                          :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                          :data-testid="`nc-survey-form__input-${toSafeClassName(field.title)}`"
                           :column="field"
                           :edit-enabled="!field?.read_only"
                           :read-only="field?.read_only"

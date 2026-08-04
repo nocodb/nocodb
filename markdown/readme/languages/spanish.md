@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ La alternativa open-source de Airtable ✨ <br>
+    ✨ La alternativa fair-code de Airtable ✨ <br>
 
 </h1>
 <p align="center">
@@ -135,7 +135,7 @@ Proveemos las siguientes maneras para dejar que los usuarios puedan invocar acci
 
 # Configruación para Entorno de Producción:
 
-Nocodb requiere una base de datos para almacenar metadatos de vistas a las hojas de cálculo y bases de datos externas. Y los parámetros de conexión para esta base de datos se pueden especificar en la variable de entorno NC_DB.
+NocoDB requiere una base de datos para almacenar metadatos de vistas a las hojas de cálculo y bases de datos externas. Y los parámetros de conexión para esta base de datos se pueden especificar en la variable de entorno NC_DB.
 
 ## Docker
 
@@ -178,4 +178,4 @@ La mayoría de las empresas de Internet emplean una hoja de cálculo o una base 
 
 # Nuestra misión
 
-Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos, la cual es open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también producirá a miles de millones de personas o más con habilidades radicales de perfección y construcción en Internet.
+Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos, la cual es fair-code para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también producirá a miles de millones de personas o más con habilidades radicales de perfección y construcción en Internet.

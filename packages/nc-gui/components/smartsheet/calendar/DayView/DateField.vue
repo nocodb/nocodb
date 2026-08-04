@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { UseVirtualList } from '@vueuse/components'
 
-const emit = defineEmits(['expandRecord', 'newRecord'])
+const emit = defineEmits(['expandRecord', 'newRecord', 'recordContextMenu'])
 
 const meta = inject(MetaInj, ref())
 
@@ -11,10 +11,30 @@ const container = ref()
 
 const { isUIAllowed } = useRoles()
 
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — event drag/resize must honor it like grid cells do. Plain data-app
+// trees never provide it (fallback false → behavior unchanged).
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
+
 const { $e } = useNuxtApp()
 
-const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedDate,
+  formattedData,
+  formattedSideBarData,
+  calendarRange,
+  updateRowProperty,
+  isSyncedFromColumn,
+  isAddDeleteInlineEnabled,
+  updateFormat,
+} = useCalendarViewStoreOrThrow()
+
+// Interface editor: a dblclick selects the calendar element (opens `Page ›
+// Calendar`) instead of adding a record. Null in the published view and outside
+// interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
 
 const fields = inject(FieldsInj, ref())
 
@@ -117,7 +137,7 @@ const hoverRecord = ref<string | null>(null)
 
 // We support drag and drop from the sidebar to the day view of the date field
 const dropEvent = (event: DragEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {
@@ -145,7 +165,7 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
       },
     }
 
@@ -164,7 +184,7 @@ const dropEvent = (event: DragEvent) => {
       } else {
         endDate = newStartDate.clone()
       }
-      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+      newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
       updateProperty.push(toCol.title!)
     }
 
@@ -195,10 +215,12 @@ const dropEvent = (event: DragEvent) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const newRecord = () => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedFromColumn.value) return
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value?.length || isSyncedFromColumn.value)
+    return
   const record = {
     row: {
-      [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),
+      [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format(updateFormat.value),
     },
   }
   emit('newRecord', record)
@@ -223,16 +245,18 @@ const newRecord = () => {
           data-testid="nc-calendar-day-record-card"
           @mouseleave="hoverRecord = null"
           @click.prevent="emit('expandRecord', record)"
+          @contextmenu="emit('recordContextMenu', $event, record)"
           @mouseover="hoverRecord = record.rowMeta.id as string"
         >
           <LazySmartsheetRow :row="record">
+            <!-- No card-level click: the wrapper above already emits, and a
+                 doubled emit reads as a double-click (peek → full sheet skip) -->
             <LazySmartsheetCalendarRecordCard
               :record="record"
               :hover="hoverRecord === record.rowMeta.id"
               :resize="false"
               :position="record.rowMeta.position"
               size="small"
-              @click.prevent="emit('expandRecord', record)"
             >
               <template v-for="(field, id) in fields" :key="id">
                 <LazySmartsheetPlainCell
@@ -244,6 +268,9 @@ const newRecord = () => {
                   :italic="getFieldStyle(field).italic"
                   :underline="getFieldStyle(field).underline"
                 />
+              </template>
+              <template #tooltip>
+                <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
               </template>
             </LazySmartsheetCalendarRecordCard>
           </LazySmartsheetRow>
@@ -259,7 +286,7 @@ const newRecord = () => {
     @drop="dropEvent"
     @dblclick="newRecord"
   >
-    No records in this day
+    {{ $t('msg.noRecordsInThisDay') }}
   </div>
 </template>
 

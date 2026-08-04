@@ -1,10 +1,14 @@
+import crypto from 'crypto';
 import {
   AppEvents,
   CommonAggregations,
+  DependencyTableType,
   EventType,
   ExpandedFormMode,
   getFirstNonPersonalView,
+  isBcryptHash,
   isSystemColumn,
+  NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
   NcBaseError,
   parseProp,
   UITypes,
@@ -24,6 +28,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
+import { notDeletedXcCondition } from '~/utils/trashUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -32,9 +37,13 @@ import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
 import CalendarView from '~/models/CalendarView';
 import TimelineView from '~/models/TimelineView';
+import GanttView from '~/models/GanttView';
 import GridViewColumn from '~/models/GridViewColumn';
 import CalendarViewColumn from '~/models/CalendarViewColumn';
 import TimelineViewColumn from '~/models/TimelineViewColumn';
+import GanttViewColumn from '~/models/GanttViewColumn';
+import DateDependency from '~/models/DateDependency';
+import DependencyTracker from '~/models/DependencyTracker';
 import CalendarRange from '~/models/CalendarRange';
 import TimelineRange from '~/models/TimelineRange';
 import Sort from '~/models/Sort';
@@ -69,6 +78,10 @@ import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import NocoSocket from '~/socket/NocoSocket';
+import {
+  SINGLE_QUERY_DEFAULT_VIEW,
+  singleQueryCacheKey,
+} from '~/dbQueryClient/cross-db-utils/single-query-cache';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -101,6 +114,7 @@ export default class View implements ViewType {
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
   row_coloring_mode?: ROW_COLORING_MODE;
+  allow_sync?: boolean;
   created_by?: string;
   owned_by?: string;
 
@@ -113,7 +127,8 @@ export default class View implements ViewType {
     | GalleryView
     | MapView
     | CalendarView
-    | TimelineView;
+    | TimelineView
+    | GanttView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
@@ -122,6 +137,7 @@ export default class View implements ViewType {
     | MapViewColumn
     | CalendarViewColumn
     | TimelineViewColumn
+    | GanttViewColumn
   >;
 
   sorts: Sort[];
@@ -141,6 +157,7 @@ export default class View implements ViewType {
   public static async get(
     context: NcContext,
     viewId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     let view =
@@ -159,9 +176,12 @@ export default class View implements ViewType {
       );
       if (view) {
         view.meta = parseMetaProp(view);
-
         await NocoCache.set(context, `${CacheScope.VIEW}:${view.id}`, view);
       }
+    }
+
+    if (view?.deleted && !includeDeleted) {
+      return null;
     }
 
     return view && new View(view);
@@ -187,17 +207,11 @@ export default class View implements ViewType {
         { fk_model_id },
         null,
         {
-          _or: [
+          _and: [
             {
-              id: {
-                eq: titleOrId,
-              },
+              _or: [{ id: { eq: titleOrId } }, { title: { eq: titleOrId } }],
             },
-            {
-              title: {
-                eq: titleOrId,
-              },
-            },
+            notDeletedXcCondition,
           ],
         },
       );
@@ -235,7 +249,7 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = getFirstNonPersonalView(
-        await this.list(context, fk_model_id, ncMeta),
+        await this.list(context, fk_model_id, false, ncMeta),
         {
           includeViewType: ViewTypes.GRID,
         },
@@ -257,6 +271,7 @@ export default class View implements ViewType {
   public static async list(
     context: NcContext,
     modelId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
@@ -283,6 +298,11 @@ export default class View implements ViewType {
       }
       await NocoCache.setList(context, CacheScope.VIEW, [modelId], viewsList);
     }
+
+    if (!includeDeleted) {
+      viewsList = viewsList.filter((v) => !v.deleted);
+    }
+
     viewsList.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
@@ -307,6 +327,7 @@ export default class View implements ViewType {
           | MapView
           | CalendarView
           | TimelineView
+          | GanttView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
@@ -356,7 +377,7 @@ export default class View implements ViewType {
 
       copyFromView =
         view.copy_from_id &&
-        (await View.get(context, view.copy_from_id, ncMeta));
+        (await View.get(context, view.copy_from_id, false, ncMeta));
       await copyFromView?.getView(context);
 
       const { id: view_id } = await ncMeta.metaInsert2(
@@ -366,9 +387,24 @@ export default class View implements ViewType {
         insertObj,
       );
 
-      let columns: any[] = await (
-        await Model.getByIdOrName(context, { id: view.fk_model_id }, ncMeta)
-      ).getColumns(context, ncMeta);
+      // Include trashed columns so brand-new views still get a view-column
+      // row for them (with show: false). Without this, restoring a trashed
+      // column wouldn't surface it in views created during the trash window.
+      const parentModel = await Model.getByIdOrName(
+        context,
+        { id: view.fk_model_id },
+        ncMeta,
+      );
+      if (!parentModel) {
+        NcError.get(context).tableNotFound(view.fk_model_id);
+      }
+      let columns: any[] = await parentModel.getColumns(
+        context,
+        ncMeta,
+        undefined,
+        true,
+        true,
+      );
 
       const levelIdMap = new Map<string, string>();
       let defaultLevelId: string | undefined;
@@ -532,6 +568,55 @@ export default class View implements ViewType {
           await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
           break;
         }
+        case ViewTypes.GANTT: {
+          // Gantt resolves start/end/predecessor from a DateDependency
+          // rule — either view-owned (fk_gantt_view_id = view.id) or the
+          // table-level default (fk_gantt_view_id IS NULL). The per-view
+          // rule is the editor's primary surface, so a duplicate should
+          // re-create the rule pointing at the new view id — otherwise
+          // the user is forced to reconfigure the schedule from scratch
+          // on every duplicate.
+          await GanttView.insert(
+            context,
+            {
+              ...(copyFromView?.view || {}),
+              ...view,
+              fk_view_id: view_id,
+            },
+            ncMeta,
+          );
+
+          if (copyFromView?.id && copyFromView.type === ViewTypes.GANTT) {
+            const sourceRule = await DateDependency.getByGanttViewId(
+              context,
+              copyFromView.id,
+              ncMeta,
+            );
+            if (sourceRule) {
+              await DateDependency.insert(
+                context,
+                {
+                  fk_model_id: sourceRule.fk_model_id,
+                  fk_gantt_view_id: view_id,
+                  fk_start_date_field_id: sourceRule.fk_start_date_field_id,
+                  fk_end_date_field_id: sourceRule.fk_end_date_field_id,
+                  fk_duration_field_id: sourceRule.fk_duration_field_id,
+                  fk_dependency_linkrow_field_id:
+                    sourceRule.fk_dependency_linkrow_field_id,
+                  dependency_linkrow_role: sourceRule.dependency_linkrow_role,
+                  dependency_connection_type:
+                    sourceRule.dependency_connection_type,
+                  dependency_buffer_type: sourceRule.dependency_buffer_type,
+                  dependency_buffer_days: sourceRule.dependency_buffer_days,
+                  include_weekends: sourceRule.include_weekends,
+                  is_active: sourceRule.is_active,
+                },
+                ncMeta,
+              );
+            }
+          }
+          break;
+        }
       }
 
       if (copyFromView) {
@@ -558,6 +643,7 @@ export default class View implements ViewType {
             'base_id',
             'source_id',
             'order',
+            'enabled',
           ]);
           if (sortProps.fk_level_id) {
             sortProps.fk_level_id =
@@ -630,13 +716,14 @@ export default class View implements ViewType {
         let order = 1;
         let galleryShowLimit = 0;
         let kanbanShowLimit = 0;
-        let calendarRanges: Array<string> | null = null;
+        let rangeColumns: Array<string> | null = null;
 
         if (
           view.type === ViewTypes.CALENDAR ||
-          view.type === ViewTypes.TIMELINE
+          view.type === ViewTypes.TIMELINE ||
+          view.type === ViewTypes.GANTT
         ) {
-          calendarRanges = await View.getRangeColumnsAsArray(
+          rangeColumns = await View.getRangeColumnsAsArray(
             context,
             view_id,
             ncMeta,
@@ -711,19 +798,29 @@ export default class View implements ViewType {
               view_id,
               ncMeta,
             );
-            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            if (rangeColumns && rangeColumns.includes(vCol.id)) {
               show = true;
             } else
               show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.TIMELINE && !copyFromView) {
             // Timeline has no cover image, just show range columns and primary value
-            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            if (rangeColumns && rangeColumns.includes(vCol.id)) {
               show = true;
             } else {
               show = vCol.pv;
             }
             // Show all Fields in Ranges
+          } else if (view.type === ViewTypes.GANTT && !copyFromView) {
+            // Gantt: default to only the display value (matches Timeline
+            // and Gantt's own bulkInsertFromMeta path). The bar gets its
+            // label from pv and the sidebar shows row identity; other
+            // fields are opt-in via the Fields panel. The per-view
+            // DateDependency rule is created AFTER this code runs, so
+            // rangeColumns is always empty here — range fields stay
+            // hidden until the user configures the dependency, then
+            // opts them in.
+            show = vCol.pv;
           } else if (view.type === ViewTypes.MAP && !copyFromView) {
             const mapView = await MapView.get(context, view_id, ncMeta);
             if (vCol.id === mapView?.fk_geo_data_col_id) {
@@ -733,10 +830,18 @@ export default class View implements ViewType {
 
           // if columns is list of virtual columns then get the parent column
           const col = vCol.fk_column_id
-            ? await Column.get(context, { colId: vCol.fk_column_id }, ncMeta)
+            ? await Column.get(
+                context,
+                { colId: vCol.fk_column_id, includeDeleted: true },
+                ncMeta,
+              )
             : vCol;
 
           if (isSystemColumn(col)) show = false;
+
+          // Trashed columns get a row but stay hidden — they only become
+          // visible if/when the field is restored.
+          if (col?.deleted) show = false;
 
           const resolvedLevelId =
             vCol.fk_level_id && levelIdMap.has(vCol.fk_level_id)
@@ -779,7 +884,7 @@ export default class View implements ViewType {
           context,
         });
       }
-      return View.get(context, view_id, ncMeta).then(async (v) => {
+      return View.get(context, view_id, false, ncMeta).then(async (v) => {
         await NocoCache.appendToList(
           context,
           CacheScope.VIEW,
@@ -831,6 +936,7 @@ export default class View implements ViewType {
       });
       return Array.from(tlIds) as Array<string>;
     }
+    // Gantt has no per-view range — skip.
     return [];
   }
 
@@ -853,7 +959,7 @@ export default class View implements ViewType {
       order: param.order,
       show: param.column_show.show,
     };
-    const views = await this.list(context, param.fk_model_id, ncMeta);
+    const views = await this.list(context, param.fk_model_id, false, ncMeta);
 
     const tableColumns = await Column.list(
       context,
@@ -966,6 +1072,16 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.GANTT:
+          await GanttViewColumn.insert(
+            context,
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+          break;
         case ViewTypes.FORM:
           await FormViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
@@ -988,7 +1104,7 @@ export default class View implements ViewType {
       Partial<CalendarViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, param.view_id, ncMeta);
+    const view = await this.get(context, param.view_id, false, ncMeta);
 
     let col;
     switch (view.type) {
@@ -1088,6 +1204,18 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.GANTT:
+        {
+          col = await GanttViewColumn.insert(
+            context,
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
     }
 
     return col;
@@ -1098,7 +1226,7 @@ export default class View implements ViewType {
     id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const list = await this.list(context, id, ncMeta);
+    const list = await this.list(context, id, false, ncMeta);
     for (const item of list) {
       await item.getViewWithInfo(context, ncMeta);
     }
@@ -1118,10 +1246,19 @@ export default class View implements ViewType {
       | MapViewColumn
       | CalendarViewColumn
       | TimelineViewColumn
+      | GanttViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
+
+    // Guard: a stale fk_view_id reference (e.g. a column's column_order.view_id
+    // pointing at a deleted view, or a list-view-level referencing a deleted
+    // view) returns null here. Without this guard, `view.type` blows up with
+    // "Cannot read properties of null (reading 'type')" and the whole caller
+    // chain (Column.list → Model.getColumns → ColumnsService.columnAdd/Update)
+    // dies. Treat the view as having no columns and let the caller proceed.
+    if (!view) return columns;
 
     // todo:  just get - order & show props
     switch (view.type) {
@@ -1148,6 +1285,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         columns = await TimelineViewColumn.list(context, viewId, ncMeta);
+        break;
+      case ViewTypes.GANTT:
+        columns = await GanttViewColumn.list(context, viewId, ncMeta);
         break;
     }
 
@@ -1211,6 +1351,11 @@ export default class View implements ViewType {
         cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
 
         break;
+      case ViewTypes.GANTT:
+        tableName = MetaTable.GANTT_VIEW_COLUMNS;
+        cacheScope = CacheScope.GANTT_VIEW_COLUMN;
+
+        break;
     }
 
     const key = `${cacheScope}:viewColumnId:${colId}`;
@@ -1246,7 +1391,8 @@ export default class View implements ViewType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
+    if (!view) NcError.viewNotFound(viewId);
     let table;
     let cacheScope;
     switch (view.type) {
@@ -1281,64 +1427,83 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW_COLUMNS;
         cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
+        break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW_COLUMNS;
+        cacheScope = CacheScope.GANTT_VIEW_COLUMN;
     }
     let updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
-      let primary_value_column_meta = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COLUMNS,
-        {
-          fk_model_id: view.fk_model_id,
-          pv: true,
-        },
+      // Junction (m2m) tables don't have a display value column — skip pv logic
+      const model = await Model.getByIdOrName(
+        context,
+        { id: view.fk_model_id },
+        ncMeta,
       );
-      if (!primary_value_column_meta) {
-        const metaColumns = await ncMeta.metaList2(
+
+      if (!model?.mm) {
+        let primary_value_column_meta = await ncMeta.metaGet2(
           context.workspace_id,
           context.base_id,
           MetaTable.COLUMNS,
           {
-            xcCondition: (qb) => {
-              qb.where('fk_model_id', view.fk_model_id);
-              qb.andWhere((subQb) => {
-                subQb.where('system', false).orWhereNull('system');
-              });
-            },
-            orderBy: { order: 'asc' },
+            fk_model_id: view.fk_model_id,
+            pv: true,
           },
-        );
-        primary_value_column_meta = metaColumns.find((col) =>
-          isSupportedDisplayValueColumn(col),
+          undefined,
+          notDeletedXcCondition,
         );
         if (!primary_value_column_meta) {
-          NcError.get(context).internalServerError(
-            `No display field setup for table`,
+          const metaColumns = await ncMeta.metaList2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COLUMNS,
+            {
+              xcCondition: (qb) => {
+                qb.where('fk_model_id', view.fk_model_id);
+                qb.andWhere((subQb) => {
+                  subQb.where('system', false).orWhereNull('system');
+                });
+              },
+              orderBy: { order: 'asc' },
+            },
           );
+          primary_value_column_meta = metaColumns.find((col) =>
+            isSupportedDisplayValueColumn(col),
+          );
+          if (!primary_value_column_meta) {
+            NcError.get(context).internalServerError(
+              `No display field setup for table`,
+            );
+          }
+          await Column.update(context, primary_value_column_meta.id, {
+            pv: true,
+          });
         }
-        await Column.update(context, primary_value_column_meta.id, {
-          pv: true,
-        });
-      }
 
-      const primary_value_column = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.GRID_VIEW_COLUMNS,
-        {
-          fk_view_id: view.id,
-          fk_column_id: primary_value_column_meta.id,
-        },
-      );
+        const primary_value_column = await ncMeta.metaGet2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.GRID_VIEW_COLUMNS,
+          {
+            fk_view_id: view.id,
+            fk_column_id: primary_value_column_meta.id,
+          },
+        );
 
-      if (primary_value_column && primary_value_column.id === colId) {
-        updateObj.order = 1;
-        updateObj.show = true;
+        if (primary_value_column && primary_value_column.id === colId) {
+          updateObj.order = 1;
+          updateObj.show = true;
+        }
       }
     }
-    if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
+    if (
+      view.type === ViewTypes.CALENDAR ||
+      view.type === ViewTypes.TIMELINE ||
+      view.type === ViewTypes.GANTT
+    ) {
       updateObj = {
         ...updateObj,
         ...extractProps(colData, ['underline', 'bold', 'italic']),
@@ -1368,7 +1533,7 @@ export default class View implements ViewType {
     colId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     switch (view.type) {
       case ViewTypes.GRID:
         return GridViewColumn.get(context, colId, ncMeta);
@@ -1386,6 +1551,8 @@ export default class View implements ViewType {
         return CalendarViewColumn.get(context, colId, ncMeta);
       case ViewTypes.TIMELINE:
         return TimelineViewColumn.get(context, colId, ncMeta);
+      case ViewTypes.GANTT:
+        return GanttViewColumn.get(context, colId, ncMeta);
     }
     return null;
   }
@@ -1407,7 +1574,8 @@ export default class View implements ViewType {
     | MapViewColumn
     | any
   > {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
+    if (!view) NcError.viewNotFound(viewId);
     const table = this.extractViewColumnsTableName(view);
 
     const existingCol = await ncMeta.metaGet2(
@@ -1531,6 +1699,17 @@ export default class View implements ViewType {
             },
             ncMeta,
           );
+        case ViewTypes.GANTT:
+          return await GanttViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
       }
       return await ncMeta.metaInsert2(
         context.workspace_id,
@@ -1560,6 +1739,8 @@ export default class View implements ViewType {
       {
         uuid,
       },
+      undefined,
+      notDeletedXcCondition,
     );
 
     if (view) {
@@ -1625,6 +1806,16 @@ export default class View implements ViewType {
     { password }: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
+    // Sentinel: client signals "password unchanged" — skip update entirely.
+    // Pre-hashed input: refuse to re-hash (defends against stale clients that
+    // echo the stored hash back to us).
+    if (
+      password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      isBcryptHash(password)
+    ) {
+      return;
+    }
+
     const hashedPassword = password
       ? await bcrypt.hash(password, 10)
       : password;
@@ -1645,6 +1836,31 @@ export default class View implements ViewType {
     });
   }
 
+  /**
+   * Mask the stored password value before returning a view to an
+   * owner-facing API consumer.
+   *
+   * - Bcrypt hash → replaced with the sentinel; the hash never leaves the
+   *   backend and the frontend renders a masked locked state.
+   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
+   *   left as-is so the owner can still read their original password.
+   *   Migrates to bcrypt the next time the owner changes it.
+   * - Empty/null → unchanged.
+   *
+   * Returns a copy when masking is needed so we don't mutate cached View
+   * instances. Preserves the prototype so the returned value is still a
+   * `View` (methods stay callable on it).
+   */
+  static maskPasswordForResponse<T extends { password?: string | null }>(
+    view: T,
+  ): T {
+    if (!view || !view.password) return view;
+    if (!isBcryptHash(view.password)) return view;
+    return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+    });
+  }
+
   static async verifyPassword(
     view: { password?: string },
     inputPassword: string,
@@ -1653,12 +1869,18 @@ export default class View implements ViewType {
     if (!inputPassword) return false;
 
     // Support bcrypt hashed passwords (new) and plaintext (legacy)
-    if (view.password.startsWith('$2a$') || view.password.startsWith('$2b$')) {
+    if (isBcryptHash(view.password)) {
       return bcrypt.compare(inputPassword, view.password);
     }
 
-    // Plaintext fallback for pre-migration passwords
-    return view.password === inputPassword;
+    // Timing-safe plaintext fallback for pre-migration view passwords.
+    const a = Buffer.from(inputPassword, 'utf-8');
+    const b = Buffer.from(view.password, 'utf-8');
+    if (a.length !== b.length) {
+      crypto.timingSafeEqual(a, Buffer.alloc(a.length));
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
   }
 
   static async sharedViewDelete(
@@ -1704,6 +1926,7 @@ export default class View implements ViewType {
       fk_custom_url_id?: string;
       fk_view_section_id?: string | null;
       row_coloring_mode?: ROW_COLORING_MODE;
+      allow_sync?: BoolType;
     },
     includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
@@ -1718,14 +1941,24 @@ export default class View implements ViewType {
       'meta',
       'uuid',
       'row_coloring_mode',
+      'allow_sync',
       ...(isEE ? ['fk_custom_url_id'] : []),
       ...(isEE ? ['fk_view_section_id'] : []),
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
 
-    // Hash shared view password before storage
-    if (updateObj.password) {
+    // Password handling:
+    //  - Sentinel → "no change", strip from update so the stored hash is preserved.
+    //  - Already-hashed value (stale client echoing back the hash) → strip,
+    //    so we never re-hash an existing hash and invalidate the password.
+    //  - Plaintext → hash with bcrypt before storage.
+    if (
+      updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      isBcryptHash(updateObj.password)
+    ) {
+      delete updateObj.password;
+    } else if (updateObj.password) {
       updateObj.password = await bcrypt.hash(updateObj.password, 10);
     }
 
@@ -1737,7 +1970,7 @@ export default class View implements ViewType {
       }
     }
 
-    const oldView = await this.get(context, viewId, ncMeta);
+    const oldView = await this.get(context, viewId, false, ncMeta);
 
     // set meta
     await ncMeta.metaUpdate(
@@ -1770,7 +2003,7 @@ export default class View implements ViewType {
 
     // Get the first collaborative grid view to update default view cache
     const defaultView = getFirstNonPersonalView(
-      await this.list(context, oldView.fk_model_id, ncMeta),
+      await this.list(context, oldView.fk_model_id, false, ncMeta),
       {
         includeViewType: ViewTypes.GRID,
       },
@@ -1785,7 +2018,7 @@ export default class View implements ViewType {
       );
     }
 
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
 
     if (view.type === ViewTypes.GRID) {
       if ('show_system_fields' in updateObj) {
@@ -1807,9 +2040,28 @@ export default class View implements ViewType {
     return view;
   }
 
+  static async softDelete(
+    context: NcContext,
+    viewId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.VIEWS,
+      { deleted },
+      viewId,
+    );
+    await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
+      deleted,
+    });
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {});
+  }
+
   // @ts-ignore
   static async delete(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     await Sort.deleteAll(context, viewId, ncMeta);
     await Filter.deleteAll(context, viewId, ncMeta);
     const table = this.extractViewTableName(view);
@@ -1893,6 +2145,34 @@ export default class View implements ViewType {
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
+
+    // For Gantt View, delete the per-view DateDependency rule (if any) — each
+    // Gantt view owns its own rule via nc_date_dependency.fk_gantt_view_id.
+    // The table-level default rule (fk_gantt_view_id IS NULL) is untouched.
+    //
+    // Route through the DateDependency model (instead of a raw metaDelete) so
+    // we also (a) clean up nc_dependency_tracker rows that reference this
+    // rule's id, and (b) invalidate the per-rule cache key
+    // `${CacheScope.DATE_DEPENDENCY}:${rule.id}` — CHILD_TO_PARENT from
+    // `:list` does NOT walk to child id-keys, so the previous flow left
+    // stale `DateDependency.get(ruleId)` cache entries after the row was
+    // gone.
+    if (view.type === ViewTypes.GANTT) {
+      const ganttRule = await DateDependency.getByGanttViewId(
+        context,
+        viewId,
+        ncMeta,
+      );
+      if (ganttRule?.id) {
+        await DependencyTracker.clearDependencies(
+          context,
+          DependencyTableType.DateDependency,
+          ganttRule.id,
+        );
+        await DateDependency.deleteByGanttViewId(context, viewId, ncMeta);
+      }
+    }
+
     await NocoCache.deepDel(
       context,
       `${columnTableScope}:${viewId}`,
@@ -2070,7 +2350,7 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta,
     levelId?: string,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
 
@@ -2083,6 +2363,8 @@ export default class View implements ViewType {
           fk_model_id: view.fk_model_id,
           pv: true,
         },
+        undefined,
+        notDeletedXcCondition,
       );
 
       // keep primary_value_column always visible
@@ -2149,7 +2431,7 @@ export default class View implements ViewType {
     viewId,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     if (!view.uuid) return null;
 
     let viewType;
@@ -2175,6 +2457,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         viewType = 'timeline';
         break;
+      case ViewTypes.GANTT:
+        viewType = 'gantt';
+        break;
       default:
         viewType = 'view';
     }
@@ -2191,33 +2476,14 @@ export default class View implements ViewType {
     tableId,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
-      tableId,
-    ]);
-    let { list: sharedViews } = cachedList;
-    const { isNoneList } = cachedList;
-    if (!isNoneList && !sharedViews.length) {
-      sharedViews = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.VIEWS,
-        {
-          xcCondition: {
-            fk_model_id: {
-              eq: tableId,
-            },
-            _not: {
-              uuid: {
-                eq: null,
-              },
-            },
-          },
-        },
-      );
-      await NocoCache.setList(context, CacheScope.VIEW, [tableId], sharedViews);
-    }
-    sharedViews = sharedViews.filter((v) => v.uuid !== null);
-    return sharedViews?.map((v) => new View(v));
+    // Reuse the full view list and filter — must NOT write to
+    // `view:{tableId}:list` ourselves, since that's the same key
+    // `View.list` reads from. Caching a shared-only subset here
+    // poisons every subsequent View.list call for this table:
+    // tables with no shared views end up with a `NONE` list cache,
+    // which then drops them from `getAccessibleTables`.
+    const views = await this.list(context, tableId, false, ncMeta);
+    return views.filter((v) => v.uuid !== null);
   }
 
   static async fixPVColumnForView(
@@ -2248,6 +2514,8 @@ export default class View implements ViewType {
         context.base_id,
         MetaTable.COLUMNS,
         col.fk_column_id,
+        undefined,
+        notDeletedXcCondition,
       );
       if (col_meta) view_columns_meta.push(col_meta);
     }
@@ -2358,49 +2626,19 @@ export default class View implements ViewType {
       );
     }
 
-    const deleteKeys = [];
-
+    // Every singleQuery plan for a (model, view) is a FIELD of a single
+    // `singleQuery_v4:{modelId}:{viewIdOrDefault}` HASH, so one `del` wipes
+    // every variant for the view (`:queries`, `:count`, `:read:N`, `:ltar`,
+    // `:deleted`, `:primaries`, `:rls:*`, `:dvc:*`, and any combination)
+    // atomically. There is no separate index to expire or race against, so an
+    // entry can never be orphaned and replay stale SQL after a schema change.
     for (const view of viewsList) {
-      deleteKeys.push(
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries:ltar`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:count`,
-      );
-      // Add all 16 combinations of bitwise flags (0-15)
-      for (let flags = 0; flags < 16; flags++) {
-        deleteKeys.push(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:${flags}`,
-        );
-      }
+      await NocoCache.del(context, singleQueryCacheKey(modelId, view.id));
     }
-
-    deleteKeys.push(
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries:ltar`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:count`,
-    );
-    // Add all 16 combinations of bitwise flags (0-15)
-    for (let flags = 0; flags < 16; flags++) {
-      deleteKeys.push(
-        `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:${flags}`,
-      );
-    }
-
-    // Delete tracked RLS-specific cache keys (stored as Redis SET)
-    const rlsTrackingKey = `${CacheScope.SINGLE_QUERY}:${modelId}:rls_keys`;
-    const rlsKeys = await NocoCache.get(
+    await NocoCache.del(
       context,
-      rlsTrackingKey,
-      CacheGetType.TYPE_ARRAY,
+      singleQueryCacheKey(modelId, SINGLE_QUERY_DEFAULT_VIEW),
     );
-    if (rlsKeys?.length) {
-      deleteKeys.push(
-        ...rlsKeys.filter((k) => k && k !== 'NONE'),
-        rlsTrackingKey,
-      );
-    }
-
-    await NocoCache.del(context, deleteKeys);
   }
 
   static async bulkColumnInsertToViews(
@@ -2423,6 +2661,7 @@ export default class View implements ViewType {
         | MapViewColumn
         | CalendarViewColumn
         | TimelineViewColumn
+        | GanttViewColumn
       )[];
     },
     view: View,
@@ -2446,7 +2685,8 @@ export default class View implements ViewType {
           'source_id',
           'order',
           ...(view.type === ViewTypes.CALENDAR ||
-          view.type === ViewTypes.TIMELINE
+          view.type === ViewTypes.TIMELINE ||
+          view.type === ViewTypes.GANTT
             ? ['bold', 'italic', 'underline']
             : []),
           ...(view.type === ViewTypes.FORM
@@ -2522,6 +2762,7 @@ export default class View implements ViewType {
             .flat();
         }
       }
+      // Gantt: no per-view range — start/end come from table-level DateDependency.
 
       for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
@@ -2590,7 +2831,25 @@ export default class View implements ViewType {
           if (!calendarRangeColumns) break;
           if (calendarRangeColumns.includes(column.id)) {
             show = true;
+          } else if (!copyFromView && !column.pv) {
+            // Fresh timeline views default to a minimal visible set:
+            // display value (pv) + the configured range columns. Other
+            // fields stay hidden so the windowed-fetch payload is a few
+            // fields × N records, not the entire row. Users can opt
+            // additional fields into the bar via the Fields menu —
+            // visibility is per-view-column, fully reversible. Skipped
+            // when duplicating a view so the source's column choices
+            // carry over.
+            show = false;
           }
+        } else if (view.type === ViewTypes.GANTT) {
+          // Gantt: default-show only the display value (pv) so the bar
+          // gets a label and the sidebar shows row identity. Other fields
+          // stay hidden — users opt them in via the Fields panel. The
+          // date range columns don't need to be `show=true` here since
+          // bars read dates straight from row data via ganttRange, not
+          // via per-view-column visibility.
+          show = !!column.pv;
         }
 
         insertObjs.push({
@@ -2673,6 +2932,14 @@ export default class View implements ViewType {
           MetaTable.TIMELINE_VIEW_COLUMNS,
           insertObjs,
         );
+        break;
+      case ViewTypes.GANTT:
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.GANTT_VIEW_COLUMNS,
+          insertObjs,
+        );
     }
   }
 
@@ -2692,11 +2959,13 @@ export default class View implements ViewType {
           | MapView
           | CalendarView
           | TimelineView
+          | GanttView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
           timeline_range?: Partial<TimelineRange>[];
+          dependency?: Partial<DateDependency>;
           created_by: string;
           owned_by: string;
           expanded_record_mode?: ExpandedFormModeType;
@@ -2754,7 +3023,8 @@ export default class View implements ViewType {
     insertObj.meta = stringifyMetaProp(insertObj);
 
     const copyFromView =
-      view.copy_from_id && (await View.get(context, view.copy_from_id, ncMeta));
+      view.copy_from_id &&
+      (await View.get(context, view.copy_from_id, false, ncMeta));
     await copyFromView?.getView(context);
 
     const table = await Model.getByIdOrName(
@@ -2938,6 +3208,71 @@ export default class View implements ViewType {
 
         break;
       }
+      case ViewTypes.GANTT: {
+        // Gantt resolves start/end/predecessor from a DateDependency rule
+        // — either view-owned (fk_gantt_view_id = view.id) or the
+        // table-level default (fk_gantt_view_id IS NULL). Three create
+        // paths land here, only one of which lands a rule:
+        //  - duplicate of an existing Gantt → clone the source's rule
+        //  - fresh create with `dependency` payload → insert that rule
+        //  - either with no rule data → view falls back to the table-level
+        //    default until the user configures one via the dialog
+        // Sitting next to the GanttView.insert call (same ncMeta, same
+        // switch arm) mirrors how Calendar/Timeline insert their
+        // CalendarRange / TimelineRange — keeping the view + its config
+        // row in one place so the failure mode is symmetric.
+        await GanttView.insert(
+          context,
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        if (copyFromView?.id && copyFromView.type === ViewTypes.GANTT) {
+          const sourceRule = await DateDependency.getByGanttViewId(
+            context,
+            copyFromView.id,
+            ncMeta,
+          );
+          if (sourceRule) {
+            await DateDependency.insert(
+              context,
+              {
+                fk_model_id: sourceRule.fk_model_id,
+                fk_gantt_view_id: view_id,
+                fk_start_date_field_id: sourceRule.fk_start_date_field_id,
+                fk_end_date_field_id: sourceRule.fk_end_date_field_id,
+                fk_duration_field_id: sourceRule.fk_duration_field_id,
+                fk_dependency_linkrow_field_id:
+                  sourceRule.fk_dependency_linkrow_field_id,
+                dependency_linkrow_role: sourceRule.dependency_linkrow_role,
+                dependency_connection_type:
+                  sourceRule.dependency_connection_type,
+                dependency_buffer_type: sourceRule.dependency_buffer_type,
+                dependency_buffer_days: sourceRule.dependency_buffer_days,
+                include_weekends: sourceRule.include_weekends,
+                is_active: sourceRule.is_active,
+              },
+              ncMeta,
+            );
+          }
+        } else if (view.dependency) {
+          await DateDependency.insert(
+            context,
+            {
+              ...view.dependency,
+              fk_model_id: view.fk_model_id,
+              fk_gantt_view_id: view_id,
+            },
+            ncMeta,
+          );
+        }
+
+        break;
+      }
     }
     try {
       // copy from view
@@ -2979,6 +3314,7 @@ export default class View implements ViewType {
             'direction',
             'base_id',
             'source_id',
+            'enabled',
           ]);
           if (sortProps.fk_level_id) {
             sortProps.fk_level_id =
@@ -3186,6 +3522,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW_COLUMNS;
         break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW_COLUMNS;
+        break;
     }
     return table;
   }
@@ -3216,6 +3555,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW;
+        break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW;
         break;
     }
     return table;
@@ -3248,6 +3590,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         scope = CacheScope.TIMELINE_VIEW_COLUMN;
         break;
+      case ViewTypes.GANTT:
+        scope = CacheScope.GANTT_VIEW_COLUMN;
+        break;
     }
     return scope;
   }
@@ -3278,6 +3623,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         scope = CacheScope.TIMELINE_VIEW;
+        break;
+      case ViewTypes.GANTT:
+        scope = CacheScope.GANTT_VIEW;
         break;
     }
     return scope;
@@ -3328,6 +3676,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         this.view = await TimelineView.get(context, this.id, ncMeta);
         break;
+      case ViewTypes.GANTT:
+        this.view = await GanttView.get(context, this.id, ncMeta);
+        break;
     }
     return <T>this.view;
   }
@@ -3360,6 +3711,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         this.view = await TimelineView.get(context, this.id, ncMeta);
+        break;
+      case ViewTypes.GANTT:
+        this.view = await GanttView.get(context, this.id, ncMeta);
         break;
     }
     return this.view;

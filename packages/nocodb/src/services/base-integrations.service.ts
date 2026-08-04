@@ -121,15 +121,21 @@ export class BaseIntegrationsService {
       );
     }
 
-    if (param.includeConfig) {
-      // Only the creator can see config
-      if (integration.is_private && param.userId !== integration.created_by) {
-        integration.config = undefined;
-      } else {
-        integration.config = await integration.getConnectionConfig();
-      }
+    // Clear config unless the caller explicitly requested it AND is allowed to
+    // see it. The safe behavior must NOT depend on `includeConfig` being present
+    // — otherwise omitting it leaks the raw stored config. Mirrors the
+    // workspace-scoped read in integrations.controller.ts.
+    if (
+      !param.includeConfig ||
+      (integration.is_private && param.userId !== integration.created_by)
+    ) {
+      integration.config = undefined;
+    } else {
+      integration.config = await integration.getConnectionConfig();
     }
 
+    // Runs only on the decrypted config object (or `undefined`) — never on the
+    // raw stored string, so the DB password mask actually takes effect.
     if (integration.type === IntegrationsTypeEnum.Database) {
       maskKnexConfig(integration);
     }
@@ -390,6 +396,14 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
+    // Validate before opening a transaction — otherwise falling through to
+    // the bad-request throw below would leak an open trx.
+    if (!param.allBases && !param.baseIds?.length) {
+      NcError.get(context).badRequest(
+        'Either all_bases or base_ids must be provided.',
+      );
+    }
+
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
@@ -410,36 +424,30 @@ export class BaseIntegrationsService {
         return { all_bases: true };
       }
 
-      if (param.baseIds?.length) {
-        // Set restricted + replace links
-        await Integration.updateIntegration(
-          context,
-          param.integrationId,
-          { is_restricted: true },
-          ncMeta,
-        );
-        await IntegrationLink.replaceLinksForIntegration(
-          context,
-          {
-            integrationId: param.integrationId,
-            baseIds: param.baseIds,
-            workspaceId: integration.fk_workspace_id,
-            userId: param.userId,
-          },
-          ncMeta,
-        );
-        await ncMeta.commit();
-        return { all_bases: false, base_ids: param.baseIds };
-      }
+      // Set restricted + replace links
+      await Integration.updateIntegration(
+        context,
+        param.integrationId,
+        { is_restricted: true },
+        ncMeta,
+      );
+      await IntegrationLink.replaceLinksForIntegration(
+        context,
+        {
+          integrationId: param.integrationId,
+          baseIds: param.baseIds,
+          workspaceId: integration.fk_workspace_id,
+          userId: param.userId,
+        },
+        ncMeta,
+      );
+      await ncMeta.commit();
+      return { all_bases: false, base_ids: param.baseIds };
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to update linked bases');
     }
-
-    NcError.get(context).badRequest(
-      'Either all_bases or base_ids must be provided.',
-    );
   }
 }

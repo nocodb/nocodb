@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+const { t } = useI18n()
+
 const supportedDocs = [
   {
-    title: 'Integrations',
+    title: t('general.integrations'),
     href: 'https://nocodb.com/docs/product-docs/integrations',
   },
   {

@@ -18,7 +18,7 @@ import {
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
-import { PlanTitles, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { PlanTitles, UITypes, ViewLockType, ViewTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -78,6 +78,20 @@ interface Form {
     fk_to_column_id: string | null
   }>
 
+  // for gantt view only — view-owned DateDependency rule, sent atomically
+  // with the view-create payload so each Gantt has independent schedule config
+  dependency?: {
+    fk_start_date_field_id?: string | null
+    fk_end_date_field_id?: string | null
+    fk_dependency_linkrow_field_id?: string | null
+    dependency_linkrow_role?: 'predecessors' | 'successors'
+    dependency_connection_type?: 'end-to-start' | 'end-to-end' | 'start-to-end' | 'start-to-start'
+    dependency_buffer_type?: 'flexible' | 'fixed' | 'none'
+    dependency_buffer_days?: number
+    include_weekends?: boolean
+    is_active?: boolean
+  }
+
   fk_cover_image_col_id: string | null | undefined
 
   // Applied after view creation via a follow-up updateView call. Defaults
@@ -102,6 +116,12 @@ const workspaceStore = useWorkspace()
 
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
+
+const basesStore = useBases()
+
+const isSandboxProduction = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox_production)
+
+const isSandbox = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox)
 
 const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature } = useEeConfig()
 
@@ -149,6 +169,7 @@ const errorMessages = {
   [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
   [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
   [ViewTypes.TIMELINE]: t('msg.warning.timelineNoFields'),
+  [ViewTypes.GANTT]: t('msg.warning.ganttNoFields'),
 }
 
 const form = reactive<Form>({
@@ -196,6 +217,7 @@ const typeAlias = computed(
       [ViewTypes.CALENDAR]: 'calendar',
       [ViewTypes.LIST]: 'list',
       [ViewTypes.TIMELINE]: 'timeline',
+      [ViewTypes.GANTT]: 'gantt',
       // Todo: add ai view docs route
       AI: '',
     }[props.type]),
@@ -232,10 +254,12 @@ const canLockView = computed(() => isUIAllowed('fieldAdd'))
 
 // Personal views are an EE-only concept — CE has only Collaborative
 // and the legacy Locked lock_types.
+// Locked views cannot be created on a sandbox master — make the change in the sandbox instead.
+// Personal views cannot be created on a sandbox — they belong to the master base.
 const lockTypeOptions = computed(() => {
   const options: Array<{ value: ViewLockType; disabled?: boolean }> = [{ value: ViewLockType.Collaborative }]
-  if (isEeUI) options.push({ value: ViewLockType.Personal })
-  if (canLockView.value) options.push({ value: ViewLockType.Locked })
+  if (showEEFeatures.value) options.push({ value: ViewLockType.Personal, disabled: isSandbox.value })
+  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: isSandboxProduction.value })
   return options
 })
 
@@ -394,7 +418,9 @@ onMounted(async () => {
   }
 
   if (
-    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE].includes(props.type) ||
+    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE, ViewTypes.GANTT].includes(
+      props.type,
+    ) ||
     aiIntegrationAvailable.value
   ) {
     isMetaLoading.value = true
@@ -606,6 +632,60 @@ onMounted(async () => {
           }
         } else {
           // if there is no date field column, disable the create button
+          isNecessaryColumnsPresent.value = false
+        }
+      }
+
+      if (props.type === ViewTypes.GANTT) {
+        // Auto-pick the per-view DateDependency config (Airtable-style: each
+        // Gantt owns its own rule, decoupled from the table-level rule).
+        // Priority:
+        //   1. If the table has an existing DateDependency rule, use those fields.
+        //   2. Else pick the first two date columns (start, end) + first self-link Links field.
+        //   3. Else pick just the first date column (milestone-only Gantt).
+        const tableDep = (meta.value as any)?.date_dependency
+        const cols = meta.value!.columns ?? []
+        const dateCols = cols.filter((c: ColumnType) => c.uidt === UITypes.Date || c.uidt === UITypes.DateTime)
+        // Auto-pick a self-referencing HM/OM/OO link column as the default
+        // dep field. Exclude system-generated inverse columns — writes via
+        // the inverse store the junction with flipped mm_parent/mm_child
+        // relative to the user-facing column, which makes the cell appear
+        // on the wrong row in any grid view that displays the canonical
+        // column. The user-created (non-system) side keeps Gantt arrows +
+        // grid cell display consistent.
+        const selfLink = cols.find((c: ColumnType) => {
+          if (!isLinksOrLTAR(c)) return false
+          if ((c as any).system) return false
+          const opts = (c.colOptions as any) ?? {}
+          return ['hm', 'om', 'oo'].includes(opts.type) && opts.fk_related_model_id === meta.value!.id
+        })
+
+        if (tableDep?.fk_start_date_field_id) {
+          form.dependency = {
+            fk_start_date_field_id: tableDep.fk_start_date_field_id,
+            fk_end_date_field_id: tableDep.fk_end_date_field_id ?? null,
+            fk_dependency_linkrow_field_id: tableDep.fk_dependency_linkrow_field_id ?? null,
+            dependency_linkrow_role: tableDep.dependency_linkrow_role ?? 'successors',
+            dependency_connection_type: tableDep.dependency_connection_type ?? 'end-to-start',
+            dependency_buffer_type: tableDep.dependency_buffer_type ?? 'flexible',
+            dependency_buffer_days: tableDep.dependency_buffer_days ?? 0,
+            include_weekends: tableDep.include_weekends ?? true,
+            is_active: true,
+          }
+        } else if (dateCols.length >= 1) {
+          form.dependency = {
+            fk_start_date_field_id: dateCols[0].id,
+            fk_end_date_field_id: dateCols[1]?.id ?? null,
+            fk_dependency_linkrow_field_id: selfLink?.id ?? null,
+            dependency_linkrow_role: 'successors',
+            dependency_connection_type: 'end-to-start',
+            dependency_buffer_type: selfLink ? 'flexible' : 'none',
+            dependency_buffer_days: 0,
+            include_weekends: true,
+            is_active: true,
+          }
+        } else {
+          // No date columns — can't render Gantt. Same disabling pattern as Timeline.
           isNecessaryColumnsPresent.value = false
         }
       }
@@ -963,6 +1043,14 @@ watch(activeBaseId, () => {
               {{ $t(`labels.${getPluralName('createTimelineView')}`) }}
             </template>
           </template>
+          <template v-else-if="form.type === ViewTypes.GANTT">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateGanttView') }}
+            </template>
+            <template v-else>
+              {{ $t(`labels.${getPluralName('createGanttView')}`) }}
+            </template>
+          </template>
           <template v-else-if="form.type === 'AI'">
             {{ $t('labels.createViewUsingAi') }}
           </template>
@@ -1012,47 +1100,69 @@ watch(activeBaseId, () => {
             <div class="text-[13px] font-medium text-nc-content-gray">{{ $t('labels.whoCanEdit') }}</div>
             <a-radio-group
               v-model:value="form.lock_type"
-              class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center gap-x-5"
+              class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center justify-between"
             >
               <template v-for="option in lockTypeOptions" :key="option.value">
                 <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
                      the radio shows an upgrade badge and clicks open the upgrade
-                     modal instead of setting lock_type. Mirrors the View mode
-                     submenu pattern in ViewActionMenu.vue. -->
-                <PaymentUpgradeBadgeProvider
-                  v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
-                  :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                     modal instead of setting lock_type. On a sandbox base, personal
+                     views are disabled — they must be created on the master base. -->
+                <NcTooltip
+                  v-if="option.value === ViewLockType.Personal && showEEFeatures"
+                  :disabled="!option.disabled"
+                  :title="$t('tooltip.personalViewDisabledOnSandbox')"
                 >
-                  <template #default="{ click }">
-                    <a-radio
-                      :value="option.value"
-                      :data-testid="`nc-create-view-lock-type-${option.value}`"
-                      @click.capture="
-                        (e) => {
-                          if (!isPersonalViewFeatureEnabled) {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)
+                  <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
+                    <template #default="{ click }">
+                      <a-radio
+                        :value="option.value"
+                        :disabled="option.disabled"
+                        :data-testid="`nc-create-view-lock-type-${option.value}`"
+                        @click.capture="
+                          (e) => {
+                            if (!isPersonalViewFeatureEnabled) {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)
+                            }
                           }
-                        }
-                      "
-                    >
-                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                        <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
-                        {{ $t(viewLockIcons[option.value].title) }}
-                        <!-- show-as-lock renders a compact lock icon when gated
-                             and auto-hides when the feature is enabled -->
-                        <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS" show-as-lock />
-                      </span>
-                    </a-radio>
-                  </template>
-                </PaymentUpgradeBadgeProvider>
-                <a-radio v-else :value="option.value" :data-testid="`nc-create-view-lock-type-${option.value}`">
-                  <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                    <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
-                    {{ $t(viewLockIcons[option.value].title) }}
-                  </span>
-                </a-radio>
+                        "
+                      >
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                          <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                          {{ $t(viewLockIcons[option.value].title) }}
+                          <!-- show-as-lock renders a compact lock icon when gated
+                               and auto-hides when the feature is enabled -->
+                          <PaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                            :content="
+                              $t('upgrade.upgradeToAccessPersonalViewSubtitle', {
+                                plan: getPlanTitle(PlanTitles.PLUS),
+                              })
+                            "
+                            show-as-lock
+                          />
+                        </span>
+                      </a-radio>
+                    </template>
+                  </PaymentUpgradeBadgeProvider>
+                </NcTooltip>
+                <NcTooltip
+                  v-else
+                  :disabled="!option.disabled || option.value !== ViewLockType.Locked"
+                  :title="$t('tooltip.lockedViewDisabledOnSandboxMaster')"
+                >
+                  <a-radio
+                    :value="option.value"
+                    :disabled="option.disabled"
+                    :data-testid="`nc-create-view-lock-type-${option.value}`"
+                  >
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                      <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                      {{ $t(viewLockIcons[option.value].title) }}
+                    </span>
+                  </a-radio>
+                </NcTooltip>
               </template>
             </a-radio-group>
             <div class="text-[12px] text-nc-content-gray-subtle2 leading-[16px]">
@@ -1208,7 +1318,7 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
                 <template #default="{ click }">
                   <div class="w-full space-y-2">
                     <NcButton

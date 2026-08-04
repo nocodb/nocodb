@@ -12,6 +12,8 @@ export interface IntegrationItemType {
   isAvailable?: boolean
   iconStyle?: CSSProperties
   isOssOnly?: boolean
+  /** EE-only data source (e.g. MSSQL, Oracle) — hidden in CE; in EE gated by its paid add-on. */
+  isEeOnly?: boolean
   subtitle?: string
   dynamic?: boolean
   hidden?: boolean
@@ -142,6 +144,22 @@ export const allIntegrations: IntegrationItemType[] = [
     type: IntegrationCategoryType.DATABASE,
     isAvailable: true,
     isOssOnly: true,
+  },
+  {
+    title: 'objects.syncData.mssql',
+    sub_type: ClientType.MSSQL,
+    icon: iconMap.mssqlServer,
+    type: IntegrationCategoryType.DATABASE,
+    isAvailable: true,
+    isEeOnly: true,
+  },
+  {
+    title: 'objects.syncData.oracle',
+    sub_type: ClientType.ORACLE,
+    icon: iconMap.oracle,
+    type: IntegrationCategoryType.DATABASE,
+    isAvailable: true,
+    isEeOnly: true,
   },
   // Temp removed
   // {

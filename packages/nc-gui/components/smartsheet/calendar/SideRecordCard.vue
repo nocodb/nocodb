@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { CalendarEventTheme } from 'nocodb-sdk'
+import type { Row } from '~/lib/types'
 
 interface Props {
   row?: Record<string, any>
@@ -13,11 +15,36 @@ const props = withDefaults(defineProps<Props>(), {
   showDate: true,
 })
 
-const rowColorInfo = computed(() => {
-  return extractRowBackgroundColorStyle(props.row as Row)
-})
+const { timezoneDayjs, eventDisplayTheme } = useCalendarViewStoreOrThrow()
 
-const { timezoneDayjs } = useCalendarViewStoreOrThrow()
+const colors = computed(() => getCalendarEventColors(props.row as Row))
+
+const themeVars = computed(() => ({
+  '--cal-accent': colors.value.accent,
+  '--cal-tint': colors.value.tint,
+  '--cal-border': colors.value.border,
+  '--cal-on-accent': colors.value.onAccent,
+}))
+
+// Pill's only colour cue is its time pill, but the sidebar shows the date as
+// plain text (no pill) — so a pill card would render with no colour at all here.
+// Fall back to the bordered look (the intentional default) for the sidebar only;
+// the grid pill look is untouched.
+const sideTheme = computed(() =>
+  eventDisplayTheme.value === CalendarEventTheme.PILL ? CalendarEventTheme.BORDERED : eventDisplayTheme.value,
+)
+
+const isSolid = computed(() => sideTheme.value === CalendarEventTheme.SOLID)
+
+const isDot = computed(() => sideTheme.value === CalendarEventTheme.DOT)
+
+const isBordered = computed(() => sideTheme.value === CalendarEventTheme.BORDERED)
+
+// The accent bar belongs to the minimal theme only (bordered shows just its
+// border + tint); dot shows a colour dot, solid fills.
+const showLeftBar = computed(() => sideTheme.value === CalendarEventTheme.MINIMAL)
+
+const { t } = useI18n()
 
 // Extract range configuration
 const range = computed(() => props.row?.rowMeta?.range)
@@ -32,14 +59,16 @@ const toDateRaw = computed(() => (toCol.value ? props.row?.row?.[toCol.value.tit
 const fromDate = computed(() => {
   if (!fromDateRaw.value || !fromCol.value) return null
 
-  const format = props.calDataType === 'Date' ? 'D MMM' : 'D MMM • h:mm A'
+  const timeFormat = is12hrTimeColumn(fromCol.value) ? 'h:mm A' : 'HH:mm'
+  const format = props.calDataType === 'Date' ? 'D MMM' : `D MMM • ${timeFormat}`
   return timezoneDayjs.timezonize(fromDateRaw.value).format(format)
 })
 
 const toDate = computed(() => {
   if (!toDateRaw.value || !toCol.value || !dayjs(toDateRaw.value)?.isValid()) return null
 
-  const format = props.calDataType === 'Date' ? 'DD MMM' : 'DD MMM • HH:mm A'
+  const timeFormat = is12hrTimeColumn(toCol.value) ? 'h:mm A' : 'HH:mm'
+  const format = props.calDataType === 'Date' ? 'DD MMM' : `DD MMM • ${timeFormat}`
   return timezoneDayjs.timezonize(toDateRaw.value).format(format)
 })
 
@@ -70,55 +99,56 @@ const errorInfo = computed(() => {
 
   if (dateOrderError) {
     return {
-      message: 'Date Error',
-      tooltip:
-        "Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.",
+      message: t('msg.error.dateError'),
+      tooltip: t('msg.error.dateOrderErrorTooltip'),
     }
   }
 
   if (missingFromDate && missingToDate) {
     return {
-      message: 'Missing Dates',
-      tooltip: 'At least one date (start or end) is required for this record to be displayed in the calendar.',
+      message: t('msg.error.missingDates'),
+      tooltip: t('msg.error.missingDatesTooltip'),
     }
   }
 
   return {
-    message: 'Invalid Record',
-    tooltip: 'This record has errors and may not display correctly in the calendar.',
+    message: t('msg.error.invalidRecord'),
+    tooltip: t('msg.error.invalidRecordTooltip'),
   }
 })
 </script>
 
 <template>
   <div
-    class="border-1 cursor-pointer h-12.5 flex-none border-nc-border-gray-medium flex gap-2 flex-col rounded-lg overflow-hidden"
-    :style="rowColorInfo.rowBgColor"
+    :class="[`nc-side-card--${sideTheme}`, { 'nc-side-card--uncolored': !colors.hasColor }]"
+    :style="themeVars"
+    class="nc-side-card cursor-pointer h-12.5 flex-none flex gap-2 flex-col rounded-lg overflow-hidden"
   >
     <div class="flex relative items-center gap-2">
-      <span
-        :class="{
-          'bg-nc-maroon-500': props.color === 'maroon',
-          'bg-nc-blue-500': props.color === 'blue',
-          'bg-nc-green-500': props.color === 'green',
-          'bg-nc-yellow-500': props.color === 'yellow',
-          'bg-nc-pink-500': props.color === 'pink',
-          'bg-nc-purple-500': props.color === 'purple',
-          'bg-nc-gray-900': props.color === 'gray',
-        }"
-        class="block h-12 w-1"
-        :style="rowColorInfo.rowLeftBorderColor"
-      ></span>
+      <span v-if="showLeftBar" class="nc-side-card-leftbar block h-12 w-1"></span>
+      <!-- Align the dot with the first line (title), matching the calendar view's
+           dot theme: a box the height of the title line (leading-4 → h-4), offset
+           by the body's top padding (py-1) and centred, so it sits on the title
+           rather than the middle of the 2-line card. -->
+      <span v-else-if="isDot" class="self-start mt-1 h-4 ml-2 flex items-center flex-none">
+        <span class="nc-side-card-dot"></span>
+      </span>
       <slot name="image" />
-      <div class="flex gap-1 py-1 flex-col">
-        <span
+      <div class="flex gap-1 py-1 flex-col" :class="{ 'pl-2': isSolid || isBordered }">
+        <NcTooltip
+          wrap-child="span"
+          :disabled="!$slots.tooltip"
+          overlay-class-name="nc-record-fields-tooltip"
           :class="{
             '!max-w-35': invalid,
           }"
           class="text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
         >
+          <template #title>
+            <slot name="tooltip" />
+          </template>
           <slot />
-        </span>
+        </NcTooltip>
         <NcTooltip v-if="invalid" placement="left" class="top-1 absolute right-1">
           <NcBadge color="red" :border="false" class="!h-5">
             <div class="flex items-center gap-1">
@@ -133,7 +163,7 @@ const errorInfo = computed(() => {
         <NcTooltip
           v-if="showDate"
           show-on-truncate-only
-          class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
+          class="nc-side-card-date text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
         >
           {{
             fromDate && toDate
@@ -161,4 +191,46 @@ const errorInfo = computed(() => {
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.nc-side-card-leftbar {
+  background: var(--cal-accent);
+}
+
+.nc-side-card-dot {
+  @apply w-2 h-2 rounded-full;
+  background: var(--cal-accent);
+}
+
+// Bordered — accent-derived tint + border (stays visible in dark mode, where the
+// row-colouring tint resolves to near-black; see RecordCard for rationale).
+.nc-side-card--bordered {
+  @apply border-1;
+  background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
+}
+
+// Uncoloured events keep the classic white card (not the gray accent wash) so the
+// default look matches the pre-theme calendar.
+.nc-side-card--bordered.nc-side-card--uncolored {
+  background: var(--nc-bg-default);
+  border-color: var(--nc-border-gray-medium);
+}
+
+// Solid — fill, readable text on the accent.
+.nc-side-card--solid {
+  background: var(--cal-accent);
+
+  :deep(.nc-side-card-date),
+  :deep(span) {
+    color: var(--cal-on-accent) !important;
+  }
+}
+
+// Flat themes — transparent, marker only (bar for minimal, dot for dot, nothing
+// for pill — matches the month-view RecordCard look).
+.nc-side-card--minimal,
+.nc-side-card--dot,
+.nc-side-card--pill {
+  @apply bg-transparent border-1 border-transparent;
+}
+</style>

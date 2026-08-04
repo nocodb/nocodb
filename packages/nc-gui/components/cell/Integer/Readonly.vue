@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { SeparatorType, formatNumberWithSeparator, getSeparatorChars, resolveColumnSeparator } from 'nocodb-sdk'
+
 interface Props {
   // when we set a number, then it is number type
   // for sqlite, when we clear a cell or empty the cell, it returns ""
@@ -15,9 +17,19 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(props.modelValue))) return null
 
-  if (parseProp(column.value.meta).isLocaleString) return Number(props.modelValue).toLocaleString()
+  const separator = resolveColumnSeparator(parseProp(column.value.meta))
 
-  return Number(props.modelValue)
+  if (separator === SeparatorType.Locale) {
+    return Number(props.modelValue).toLocaleString()
+  }
+
+  const { thousandSeparator } = getSeparatorChars(separator)
+
+  if (!thousandSeparator) {
+    return Number(props.modelValue)
+  }
+
+  return formatNumberWithSeparator(Number(props.modelValue), thousandSeparator, '.')
 })
 </script>
 

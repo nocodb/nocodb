@@ -1,5 +1,10 @@
 import groupBy from 'lodash/groupBy';
-import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  getFirstNonPersonalView,
+  NcApiVersion,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -14,6 +19,28 @@ import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
 
 const GROUP_COL = '__nc_group_id';
+
+// SQLite AND MSSQL forbid `ORDER BY` (and `TOP`/`LIMIT`) inside a parenthesized
+// `UNION ALL` operand — only pg/mysql accept `(SELECT … ORDER BY … LIMIT …)`
+// branches. For those two dialects we instead wrap each branch in a derived
+// table (`SELECT * FROM (<branch>)`) and tell knex NOT to parenthesize the
+// union members. MSSQL additionally requires the derived table to be aliased.
+//
+// Oracle forbids branch-level ORDER BY too, but intentionally does NOT need
+// the wrap: knex's oracledb dialect compiles `.limit()/.offset()` into a
+// ROWNUM inline-view wrapper, so each compiled branch is already a plain
+// `SELECT * FROM (… ORDER BY …) WHERE ROWNUM <= n` with no top-level
+// ORDER BY/LIMIT — a valid parenthesized UNION ALL operand (live-verified).
+function needsUnionMemberWrap(model: IBaseModelSqlV2): boolean {
+  return (model as any).isSqlite || (model as any).isMssql;
+}
+
+function wrapUnionMember(model: IBaseModelSqlV2, query: any): any {
+  if (!needsUnionMemberWrap(model)) return query;
+  return (model as any).dbDriver
+    .select()
+    .from((model as any).isMssql ? query.as('__nc_u') : query);
+}
 
 export const relationDataFetcher = (param: {
   baseModel: IBaseModelSqlV2;
@@ -117,6 +144,8 @@ export const relationDataFetcher = (param: {
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          fk_display_value_column_id:
+            relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
         const view = relationColOpts.fk_target_view_id
@@ -163,11 +192,9 @@ export const relationDataFetcher = (param: {
                 );
                 query.offset(+rest?.offset || 0);
 
-                return baseModel.isSqlite
-                  ? baseModel.dbDriver.select().from(query)
-                  : query;
+                return wrapUnionMember(baseModel, query);
               }),
-              !baseModel.isSqlite,
+              !needsUnionMemberWrap(baseModel),
             )
             .as('list'),
         );
@@ -204,7 +231,12 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldsSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+      } = {},
       selectAllRecords = false,
     ) {
       const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -280,13 +312,20 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        pkAndPvOnly:
+          relColOptions.isCrossBaseLink() ||
+          hasLimitedAccess ||
+          !!args.pkAndPvOnly,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
       });
 
       await refTable.getViews(refContext);
       const viewId =
-        relColumn.colOptions?.fk_target_view_id ?? refTable.views?.[0]?.id;
+        relColumn.colOptions?.fk_target_view_id ??
+        getFirstNonPersonalView([...(refTable.views ?? [])], {
+          includeViewType: ViewTypes.GRID,
+        })?.id;
       let view: View | null = null;
       if (viewId) view = await View.get(refContext, viewId);
 
@@ -304,9 +343,35 @@ export const relationDataFetcher = (param: {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
           : await View.getFirstCollaborativeView(refContext, refTable.id);
+        let childSorts = [];
         if (view) {
-          const childSorts = await view.getSorts(refContext);
-          await sortV2(refBaseModel, childSorts, qb);
+          childSorts = await view.getSorts(refContext);
+          if (childSorts?.length) await sortV2(refBaseModel, childSorts, qb);
+        }
+        // No explicit sort and no view sort → fall back to the per-link order.
+        // The junction Order column grouped by the current side's FK (vcn, i.e.
+        // getMMChildColumn) holds this record's manual arrangement of its links.
+        // v1 links / external junctions have no such column → natural order.
+        // Per-link ordering is Postgres-only (the Order column exists on any
+        // isMeta source, but ordering by it is only wired/valid on pg).
+        if (!childSorts?.length && baseModel.isPg) {
+          const linkOrderCol = await relColOptions.getMMChildOrderColumn(
+            mmContext,
+          );
+          if (linkOrderCol) {
+            // Drop the default related-table order applied above (the related
+            // model's own `nc_order`/PK sort). Without this the per-link order is
+            // only appended as a tiebreaker, so the related table's row order
+            // wins and the manual link arrangement is ignored. Safe here: this
+            // branch runs only when there is NO explicit sort AND no view sort,
+            // so nothing user-intended is discarded.
+            qb.clear('order');
+            qb.orderBy(`${vtn}.${linkOrderCol.column_name}`, 'asc');
+            // Deterministic tiebreak on the related-side junction FK (part of
+            // the junction PK) so equal order values (backfill/manual/concurrent)
+            // never yield a nondeterministic read order.
+            qb.orderBy(`${vtn}.${vrcn}`, 'asc');
+          }
         }
       }
 
@@ -423,6 +488,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const child = await refBaseModel.execAndParse(
@@ -472,7 +538,7 @@ export const relationDataFetcher = (param: {
 
         await parentTable.getColumns(baseModel.context);
 
-        const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        const childBaseModel = await Model.getBaseModelSQL(refContext, {
           dbDriver: baseModel.dbDriver,
           model: childTable,
         });
@@ -502,11 +568,9 @@ export const relationDataFetcher = (param: {
 
               if (hmCountSoftDeleteFilter) query.where(hmCountSoftDeleteFilter);
 
-              return childBaseModel.isSqlite
-                ? childBaseModel.dbDriver.select().from(query)
-                : query;
+              return wrapUnionMember(childBaseModel, query);
             }),
-            !childBaseModel.isSqlite,
+            !needsUnionMemberWrap(childBaseModel),
           ),
           null,
           { raw: true },
@@ -531,7 +595,13 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+      } = {},
+      selectAllRecords = false,
     ) {
       try {
         const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -572,7 +642,10 @@ export const relationDataFetcher = (param: {
 
         await childTable.getViews(childBaseModel.context);
         const viewId =
-          relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
+          relColumn.colOptions?.fk_target_view_id ??
+          getFirstNonPersonalView([...(childTable.views ?? [])], {
+            includeViewType: ViewTypes.GRID,
+          })?.id;
         let view: View | null = null;
         if (viewId) view = await View.get(childBaseModel.context, viewId);
 
@@ -585,8 +658,13 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(parentTable.primaryKeys, id)),
         );
         // todo: sanitize
-        qb.limit(+rest?.limit || 25);
-        qb.offset(+rest?.offset || 0);
+        // `selectAllRecords` (set by the text↔link conversion's link read) skips
+        // the limit so every linked child is returned — without it a row with
+        // >25 children would be silently truncated. Mirrors `mmList`.
+        if (!selectAllRecords) {
+          qb.limit(+rest?.limit || 25);
+        }
+        qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
         const hasLimitedAccess = !(await hasTableVisibilityAccess(
           baseModel.context,
@@ -597,7 +675,12 @@ export const relationDataFetcher = (param: {
         await childBaseModel.selectObject({
           qb,
           fieldsSet: args.fieldSet,
-          pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          pkAndPvOnly:
+            relationColOpts.isCrossBaseLink() ||
+            hasLimitedAccess ||
+            !!args.pkAndPvOnly,
+          fk_display_value_column_id:
+            relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
 
@@ -801,6 +884,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
       });
 
@@ -841,11 +925,9 @@ export const relationDataFetcher = (param: {
               (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
           );
           query.offset(+rest?.offset || 0);
-          return baseModel.isSqlite
-            ? baseModel.dbDriver.select().from(query)
-            : query;
+          return wrapUnionMember(baseModel, query);
         }),
-        !baseModel.isSqlite,
+        !needsUnionMemberWrap(baseModel),
       );
 
       const children = await refBaseModel.execAndParse(
@@ -872,6 +954,14 @@ export const relationDataFetcher = (param: {
         baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
+      // Resolve mm/related contexts so cross-base junction & related tables are
+      // schema-qualified against THEIR base, not the requesting base. Mirrors the
+      // singular mmListCount; without this, cross-base link counts qualify the
+      // junction/related tables with the wrong schema.
+      const { mmContext, refContext } = relColOptions.getRelContext(
+        baseModel.context,
+      );
+
       const mmTable = await relColOptions.getMMModel(baseModel.context);
 
       // if mm table is not present then return
@@ -879,32 +969,35 @@ export const relationDataFetcher = (param: {
         return parentIds.map(() => 0);
       }
 
-      const vtn = baseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
+      const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+        model: mmTable,
+        dbDriver: baseModel.dbDriver,
+      });
+
+      const vtn = assocBaseModel.getTnPath(mmTable);
+      const vcn = (await relColOptions.getMMChildColumn(mmContext)).column_name;
+      const vrcn = (await relColOptions.getMMParentColumn(mmContext))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
-        .column_name;
-      const rcn = (await relColOptions.getParentColumn(baseModel.context))
-        .column_name;
+      const rcn = (await relColOptions.getParentColumn(refContext)).column_name;
       const cn = (await relColOptions.getChildColumn(baseModel.context))
         .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(baseModel.context)
-      ).getModel(baseModel.context);
+        await relColOptions.getParentColumn(refContext)
+      ).getModel(refContext);
       const parentTable = await (
         await relColOptions.getChildColumn(baseModel.context)
       ).getModel(baseModel.context);
       await parentTable.getColumns(baseModel.context);
 
-      const childTn = baseModel.getTnPath(childTable);
-      const parentTn = baseModel.getTnPath(parentTable);
-
-      const rtn = childTn;
-
-      const refBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+      const refBaseModel = await Model.getBaseModelSQL(refContext, {
         dbDriver: baseModel.dbDriver,
         model: childTable,
       });
+
+      const childTn = refBaseModel.getTnPath(childTable);
+      const parentTn = baseModel.getTnPath(parentTable);
+
+      const rtn = childTn;
 
       const qb = baseModel
         .dbDriver(rtn)
@@ -934,11 +1027,9 @@ export const relationDataFetcher = (param: {
               )
               .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
             // baseModel._paginateAndSort(query, { sort, limit, offset }, null, true);
-            return baseModel.isSqlite
-              ? baseModel.dbDriver.select().from(query)
-              : query;
+            return wrapUnionMember(baseModel, query);
           }),
-          !baseModel.isSqlite,
+          !needsUnionMemberWrap(baseModel),
         ),
         null,
         { raw: true },
@@ -1238,10 +1329,13 @@ export const relationDataFetcher = (param: {
       if (refView) {
         const { dependencyFields } = await getAst(refContext, {
           model: refTable,
-          query: {},
+          // Honor explicit `fields` so a view-hidden requested column is still
+          // returned. Limited-access still collapses to pk/pv below.
+          query: { fields: (args as any)?.fields },
           view: hasLimitedAccess ? null : refView,
           throwErrorIfInvalidParams: false,
           extractOnlyPrimaries: hasLimitedAccess,
+          allowRequestedHiddenFields: true,
         });
         listArgs = dependencyFields;
       }
@@ -1282,6 +1376,7 @@ export const relationDataFetcher = (param: {
         fieldsSet: listArgs?.fieldsSet,
         viewId: refView?.id,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1394,6 +1489,7 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1566,9 +1662,12 @@ export const relationDataFetcher = (param: {
       if (targetView) {
         const { dependencyFields } = await getAst(refContext, {
           model: isBt ? parentTable : childTable,
-          query: {},
+          // Honor explicit `fields` so a view-hidden requested column is still
+          // returned. Limited-access still collapses to pk/pv below.
+          query: { fields: (args as any)?.fields },
           view: targetView,
           throwErrorIfInvalidParams: false,
+          allowRequestedHiddenFields: true,
         });
         listArgs = dependencyFields;
       }
@@ -1608,6 +1707,7 @@ export const relationDataFetcher = (param: {
         fieldsSet: listArgs.fieldsSet,
         viewId: targetView?.id,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       // extract col-alias map based on the correct relation table
@@ -1904,6 +2004,7 @@ export const relationDataFetcher = (param: {
       await parentBaseModel.selectObject({
         qb,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await parentTable.getAliasColObjMap(

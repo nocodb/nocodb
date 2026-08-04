@@ -1,4 +1,15 @@
-import { ColumnHelper, type ColumnType, FormulaDataTypes, type TableType, UITypes, isNumericCol, isVirtualCol } from 'nocodb-sdk'
+import {
+  ClientType,
+  ColumnHelper,
+  type ColumnType,
+  FormulaDataTypes,
+  SqlUiFactory,
+  type TableType,
+  UITypes,
+  isNumericCol,
+  isVirtualCol,
+  ncIsNaN,
+} from 'nocodb-sdk'
 
 export interface FieldQueryType {
   field: string
@@ -59,7 +70,7 @@ export function useFieldQuery() {
     col: ColumnType,
     query?: string,
     tableMeta?: TableType,
-    params: { getWhereQueryAs?: 'string' | 'object' } = {},
+    params: { getWhereQueryAs?: 'string' | 'object'; serializeLinkRecordSearchQuery?: boolean } = {},
   ): string | ValidSearchQueryForColumnReturnType => {
     if (!isValidValue(query)) return ''
 
@@ -76,6 +87,7 @@ export function useFieldQuery() {
         meta: tableMeta,
         metas: metas.value,
         serializeSearchQuery: true,
+        serializeLinkRecordSearchQuery: params.serializeLinkRecordSearchQuery,
       })
     } catch (_err: any) {
       /**
@@ -100,7 +112,15 @@ export function useFieldQuery() {
 
     if (!params.getWhereQueryAs) return searchQuery ?? ''
 
-    const sqlUi = tableMeta?.source_id ? sqlUis.value[tableMeta.source_id] : Object.values(sqlUis.value)[0]
+    // The base store normally resolves a SqlUi per source; on public/interface-only
+    // surfaces it seeds one from the shared-interface meta's real client (see
+    // `sqlUis` in ee/store/base.ts). The MySQL default is a last resort for the
+    // narrow window before that meta loads — without any SqlUi the abstract-type
+    // check below fails and every text column falls through to `eq` instead of `like`.
+    const sqlUi =
+      (tableMeta?.source_id && sqlUis.value[tableMeta.source_id]) ||
+      Object.values(sqlUis.value)[0] ||
+      SqlUiFactory.create({ client: ClientType.MYSQL })
 
     if (
       (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
@@ -119,6 +139,13 @@ export function useFieldQuery() {
 
       return `(${col.title},like,%${searchQuery}%)`
     }
+
+    const isNumericSearchTarget =
+      isNumericCol(col) ||
+      col.dt === 'bigint' ||
+      (col.uidt === UITypes.Formula && getFormulaColDataType(col) === FormulaDataTypes.NUMERIC)
+
+    if (isNumericSearchTarget && ncIsNaN(searchQuery)) return ''
 
     if (params.getWhereQueryAs === 'object') {
       return {

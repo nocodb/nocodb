@@ -112,6 +112,13 @@ export default class PresignedUrl {
       preview?: boolean;
       mimetype?: string;
       encoding?: string;
+      /**
+       * When true the file lives on local disk regardless of the active storage
+       * adapter, so the dltemp route is used instead of external signed URLs.
+       * Set this when signing an attachment whose DB record has a `path` field
+       * (meaning it was stored before any migration to external storage).
+       */
+      isLocalPath?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -205,7 +212,10 @@ export default class PresignedUrl {
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
 
-    if (typeof (storageAdapter as any).getSignedUrl === 'function') {
+    if (
+      !param.isLocalPath &&
+      typeof (storageAdapter as any).getSignedUrl === 'function'
+    ) {
       tempUrl = await (storageAdapter as any).getSignedUrl(
         path,
         expiresInSeconds,
@@ -279,6 +289,10 @@ export default class PresignedUrl {
           pathOrUrl: attachment.path.replace(/^download[/\\]/i, ''),
           preview,
           mimetype: mimetype || attachment.mimetype,
+          // attachment.path means the file was stored on local disk; skip the
+          // S3 adapter even if one is configured now (e.g. after migrating from
+          // local storage) — the file was never uploaded to S3.
+          isLocalPath: true,
           ...(extra ? { ...extra } : {}),
         },
         ncMeta,

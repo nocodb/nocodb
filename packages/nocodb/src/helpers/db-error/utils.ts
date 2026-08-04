@@ -93,8 +93,85 @@ export function isTransientError(error: any): boolean {
     // SQLite errors
     if (['SQLITE_BUSY', 'SQLITE_LOCKED'].includes(code)) return true;
 
+    // MSSQL / tedious driver-level transport errors. `EREQUEST` is
+    // omitted intentionally — it wraps server errors that include
+    // permanent ones (e.g. constraint violations) where retry is wrong.
+    if (
+      ['ETIMEOUT', 'ESOCKET', 'EABORT', 'ECANCEL', 'EINVALIDSTATE'].includes(
+        code,
+      )
+    ) {
+      return true;
+    }
+
     // File system errors (relevant for SQLite and file-based operations)
     if (['EACCES', 'EROFS', 'ENOSPC'].includes(code)) return true;
+
+    // Oracle — node-oracledb driver-level connection failures (NJS-xxx,
+    // raised before any SQL runs). NJS-518 (service not registered) is
+    // included: it fires while the DB/PDB is starting up or restarting.
+    if (
+      [
+        'NJS-500', // connection pool closed
+        'NJS-501', // connection to host terminated
+        'NJS-503', // connection could not be established (ECONNREFUSED)
+        'NJS-510', // connection establishment timed out
+        'NJS-511', // connection to listener refused
+        'NJS-518', // service is not registered with the listener
+        'NJS-521', // connection closed by host
+      ].includes(code)
+    ) {
+      return true;
+    }
+
+    // Oracle server-side transient errors — connection/instance
+    // availability, session limits, and lock/deadlock contention.
+    const oraNum = code.match(/^ORA-(\d+)$/)
+      ? Number(code.slice(4))
+      : undefined;
+    if (oraNum !== undefined) {
+      const oracleTransientNums = new Set([
+        18, // maximum number of sessions exceeded
+        28, // your session has been killed
+        54, // resource busy and acquire with NOWAIT specified
+        60, // deadlock detected while waiting for resource
+        1033, // ORACLE initialization or shutdown in progress
+        1034, // ORACLE not available
+        2049, // distributed lock timeout
+        3113, // end-of-file on communication channel
+        3114, // not connected to ORACLE
+        4021, // timeout occurred while waiting to lock object
+        30006, // resource busy; acquire with WAIT timeout expired
+        12170, // TNS: connect timeout occurred
+        12514, // listener does not currently know of service
+        12537, // TNS: connection closed
+        12541, // TNS: no listener
+      ]);
+      if (oracleTransientNums.has(oraNum)) return true;
+    }
+  }
+
+  // node-oracledb marks errors where a retry on a fresh connection may
+  // succeed (instance failover, killed session) with `isRecoverable`.
+  if (error?.isRecoverable === true) return true;
+
+  // MSSQL server-side transient error numbers — deadlock / lock timeout,
+  // snapshot-isolation conflicts, DB-in-transition, and the Azure SQL
+  // "service busy / session killed" family.
+  if (typeof error?.number === 'number') {
+    const mssqlTransientNumbers = new Set([
+      952, // Database is in transition
+      1205, // Transaction was deadlocked
+      1222, // Lock request time-out exceeded
+      3960, // Snapshot isolation transaction aborted (serialization conflict)
+      40197, // Service has encountered an error processing your request
+      40501, // Service is currently busy
+      40613, // Database is unavailable (Azure SQL)
+      49918, // Cannot process request — too many operations in progress
+      49919, // Cannot process create or update request
+      49920, // Cannot process request — too many operations
+    ]);
+    if (mssqlTransientNumbers.has(error.number)) return true;
   }
 
   // 4. Check error message for specific connection-related patterns

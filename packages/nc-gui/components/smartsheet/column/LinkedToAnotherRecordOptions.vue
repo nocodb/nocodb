@@ -5,17 +5,21 @@ import {
   ModelTypes,
   PlanFeatureTypes,
   PlanTitles,
-  ProjectRoles,
   RelationTypes,
   SqliteUi,
+  type TableType,
   UITypes,
   ViewTypes,
-  WorkspaceUserRoles,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
   isEdit: boolean
+  /** Hide advanced link options (custom display field, limit-by-view, limit-by-filter)
+   *  — used during text→link conversion to keep the dialog minimal. */
+  hideAdvancedOptions?: boolean
 }>()
 
 const emit = defineEmits(['update:value', 'upgrade'])
@@ -38,6 +42,8 @@ const isUpgradeable = computed(() => {
 
 const meta = inject(MetaInj, ref())
 
+const { isMetaReadOnly } = useRoles()
+
 const filterRef = ref()
 
 const crossBase = ref(
@@ -45,12 +51,9 @@ const crossBase = ref(
     (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
 )
 
-const { basesList } = storeToRefs(useBases())
-
 const {
   setAdditionalValidations,
   setAvoidShowingToastMsgForValidations,
-  setPostSaveOrUpdateCbk,
   validateInfos,
   onDataTypeChange,
   sqlUi,
@@ -67,7 +70,7 @@ const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
 
-const { getPlanTitle, showEEFeatures } = useEeConfig()
+const { getPlanTitle, showEEFeatures, isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -129,6 +132,36 @@ if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_r
 if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
 if (!vModel.value.type) vModel.value.type = vModel.value?.colOptions?.type || 'mm'
 
+// Initialize custom display value field from colOptions
+if (vModel.value.fk_display_value_column_id === undefined) {
+  vModel.value.fk_display_value_column_id =
+    (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id || null
+}
+
+const useCustomDisplayField = ref(!!vModel.value.fk_display_value_column_id)
+
+watch(useCustomDisplayField, (val) => {
+  if (!val) {
+    vModel.value.fk_display_value_column_id = null
+  }
+})
+
+// Custom display value field is an enterprise feature. showUpgradeForEEFeature
+// auto-routes: on unlicensed on-prem → license upgrade modal; on licensed
+// Starter → Enterprise upgrade modal. CE: no-op (the section is hidden).
+const onToggleCustomDisplayField = (val: boolean) => {
+  if (val && isEEFeatureBlocked.value) {
+    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'), undefined, 'field-ltar-custom-display')
+    return
+  }
+  useCustomDisplayField.value = val
+}
+
+const onCustomDisplayLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+  onToggleCustomDisplayField(!useCustomDisplayField.value)
+}
+
 const advancedOptions = ref(false)
 
 const tablesStore = useTablesStore()
@@ -145,6 +178,24 @@ const isLinkedViewPrivate = computed(() => {
   const tableMeta = getMetaByKey(baseId, childId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
+})
+
+// Fields eligible for custom display value — same filter as useLTARStore's `fields`
+const eligibleDisplayFields = computed(() => {
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return []
+
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+    : meta.value?.base_id
+
+  if (!relatedBaseId) return []
+
+  const tableMeta = getMetaByKey(relatedBaseId, childId)
+
+  return ((tableMeta as TableType)?.columns ?? []).filter(
+    (col) => !isSystemColumn(col) && !isPrimary(col) && isSupportedDisplayValueColumn(col),
+  )
 })
 
 const refTables = computed(() => {
@@ -282,7 +333,12 @@ watch(
 
       if (!relatedBaseId) return
 
-      getMeta(relatedBaseId, tableId).catch(() => {
+      // Force-refresh for cross-base links: the related table lives in another
+      // base whose realtime meta events this client never receives (the META
+      // socket channel + handler are scoped to the active base), so a cached
+      // meta can be stale — e.g. a peer added a field in the other base. A
+      // same-base related table stays fresh via realtime, so don't force there.
+      getMeta(relatedBaseId, tableId, crossBase.value).catch(() => {
         // ignore
       })
       viewsStore
@@ -333,15 +389,14 @@ provide(
   }),
 )
 
-onMounted(() => {
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
-})
-
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 
 const referenceTableChildId = computed({
   get: () => (isEdit.value ? vModel.value?.colOptions?.fk_related_model_id : vModel.value?.childId) ?? null,
@@ -401,13 +456,19 @@ const handleUpdateRefTable = () => {
   })
 }
 
+// referenceTableChildId's setter ignores falsy values, so clear the underlying model fields directly
+const clearSelectedTable = () => {
+  vModel.value.childId = null
+  vModel.value.childTableTitle = undefined
+}
+
 const onBaseChange = async (baseId: string) => {
   // load tables for the selected base
   await tablesStore.loadProjectTables(baseId)
 
-  // reset current model id value
-  if (referenceTableChildId.value) {
-    referenceTableChildId.value = null
+  // keep the selected table only when linking within the current base, otherwise clear it
+  if (baseId !== meta.value?.base_id) {
+    clearSelectedTable()
   }
 }
 
@@ -457,31 +518,37 @@ const onFilterLabelClick = () => {
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToCond.value = !limitRecToCond.value
+
+  // On enabling the filter picker, re-fetch the related table's meta for
+  // cross-base links so fields a peer added since this panel opened show up in
+  // the field list. Cross-base meta isn't kept live — this client never
+  // receives the other base's realtime events; same-base stays fresh via realtime.
+  if (limitRecToCond.value && crossBase.value) {
+    const tableId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+    const relatedBaseId = (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+
+    if (tableId && relatedBaseId) {
+      getMeta(relatedBaseId, tableId, true).catch(() => {
+        // ignore
+      })
+    }
+  }
 }
 
 const onCrossBaseToggle = () => {
-  // reset current model id value if cross base disabled and selected table is not in current base
+  const currentBaseId = meta.value?.base_id
+
+  // base the selected table currently belongs to — capture before resetting referenceBaseId
+  const selectedBaseId = referenceBaseId.value ?? currentBaseId
+
   if (!crossBase.value) {
     referenceBaseId.value = null
-    if (refTables.value.every((t) => t.id !== referenceTableChildId)) {
-      referenceTableChildId.value = null
-    }
-  }
-}
-
-// check user have creator or above role to create cross base link to the base
-const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
-  if (base.project_role) {
-    if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
-      return true
-    }
-  } else if (base.workspace_role) {
-    if ([WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(base.workspace_role)) {
-      return true
-    }
   }
 
-  return false
+  // keep the selected table only if it belongs to the current base, otherwise clear it
+  if (selectedBaseId !== currentBaseId) {
+    clearSelectedTable()
+  }
 }
 
 const toggleCrossBase = () => {
@@ -623,11 +690,13 @@ const handleScrollIntoView = () => {
           >
         </span>
       </div>
-      <NcButton size="xs" type="primary" @click="emit('upgrade')">
-        {{ $t('general.upgrade') }}
-      </NcButton>
+      <GeneralSourceRestrictionTooltip :message="$t('tooltip.fieldCannotBeUpgraded')" :enabled="!!isMetaReadOnly">
+        <NcButton size="xs" type="primary" :disabled="isMetaReadOnly" @click="emit('upgrade')">
+          {{ $t('general.upgrade') }}
+        </NcButton>
+      </GeneralSourceRestrictionTooltip>
     </div>
-    <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">
+    <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI && !isEEFeatureBlocked">
       <a-switch
         v-model:checked="vModel.is_custom_link"
         :disabled="isEdit"
@@ -642,7 +711,7 @@ const handleScrollIntoView = () => {
           'cursor-pointer': !isEdit,
         }"
         @click="onCustomSwitchLabelClick"
-        >Advanced Link</span
+        >{{ $t('labels.advancedLink') }}</span
       >
     </div>
     <div v-if="isEeUI && vModel.is_custom_link">
@@ -674,57 +743,13 @@ const handleScrollIntoView = () => {
           </a-tooltip>
         </div>
 
-        <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">
-          <a-select
-            v-model:value="referenceBaseId"
-            show-search
-            :disabled="isEdit"
-            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
-            placeholder="Select base"
-            dropdown-class-name="nc-dropdown-ltar-child-table"
-            @change="onBaseChange(referenceBaseId)"
-          >
-            <template #suffixIcon>
-              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-            </template>
-            <a-select-option
-              v-for="base of basesList"
-              :key="base.id"
-              :data-label="base.title"
-              :disabled="!canCreateCrossBaseLink(base)"
-              :value="base.id"
-            >
-              <a-tooltip>
-                <template v-if="!canCreateCrossBaseLink(base)" #title>
-                  You can only link to tables in bases where you have creator access or above.
-                </template>
-                <div class="flex w-full items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralProjectIcon
-                      :color="parseProp(base.meta).iconColor"
-                      :type="base.type"
-                      :managed-app="{
-                        managed_app_master: base.managed_app_master,
-                        managed_app_id: base.managed_app_id,
-                      }"
-                      class="nc-project-icon"
-                    />
-                  </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ base.title }}</template>
-                    <span>{{ base.title }}</span>
-                  </NcTooltip>
-
-                  <div class="flex gap-2 items-center">
-                    <div v-if="base?.id === meta?.base_id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                      {{ $t('labels.currentBase') }}
-                    </div>
-                  </div>
-                </div>
-              </a-tooltip>
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+        <LazySmartsheetColumnLinkCrossBaseOptions
+          v-if="crossBase"
+          v-model:value="vModel"
+          :meta="meta"
+          :is-edit="isEdit"
+          @base-change="onBaseChange"
+        />
       </template>
       <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
         <NcTooltip :disabled="!isLinkedTablePrivate" placement="right">
@@ -733,7 +758,7 @@ const handleScrollIntoView = () => {
             show-search
             :disabled="isEdit || isLinkedTablePrivate"
             :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
-            placeholder="select table to link"
+            :placeholder="$t('placeholder.selectTableToLink')"
             dropdown-class-name="nc-dropdown-ltar-child-table"
             @change="handleUpdateRefTable"
           >
@@ -772,7 +797,50 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </template>
 
-    <div class="flex flex-col gap-2">
+    <div v-if="showEEFeatures && !hideAdvancedOptions" class="flex flex-col gap-2">
+      <div class="flex gap-2 items-center">
+        <a-switch
+          v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
+          :checked="useCustomDisplayField"
+          size="small"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+          @change="onToggleCustomDisplayField"
+        />
+        <span class="cursor-pointer" data-testid="nc-use-custom-display-field" @click="onCustomDisplayLabelClick">
+          {{ $t('labels.useCustomDisplayField') }}
+        </span>
+        <LazyPaymentUpgradeBadge
+          v-if="!useCustomDisplayField"
+          :feature-enabled-callback="() => !isEEFeatureBlocked"
+          :plan-title="PlanTitles.ENTERPRISE"
+          class="ml-1"
+        />
+      </div>
+      <a-form-item v-if="useCustomDisplayField" class="!pl-8 flex w-full pb-2 mt-4 space-y-2">
+        <NcSelect
+          v-model:value="vModel.fk_display_value_column_id"
+          :placeholder="$t('labels.selectFieldAsDisplayName')"
+          show-search
+          :disabled="isEEFeatureBlocked"
+          :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+          dropdown-class-name="nc-dropdown-ltar-display-value-field"
+        >
+          <a-select-option v-for="field of eligibleDisplayFields" :key="field.id" :value="field.id" :data-label="field.title">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="field" class="text-nc-content-gray-muted" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ field.title }}</template>
+                <span>{{ field.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+    </div>
+
+    <div v-if="!hideAdvancedOptions" class="flex flex-col gap-2">
       <NcTooltip :disabled="!isSyncedField && !isLinkedViewPrivate" placement="right">
         <div class="flex gap-2 items-center">
           <a-switch
@@ -860,7 +928,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </div>
 
-    <template v-if="isEeUI && showEEFeatures">
+    <template v-if="showEEFeatures && !hideAdvancedOptions">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
           <template #default="{ click }">
@@ -1067,41 +1135,3 @@ const handleScrollIntoView = () => {
   @apply flex-1;
 }
 </style>
-
-<!-- todo: remove later
-<style lang="scss" scoped>
-.nc-ltar-relation-type-radio-group {
-  .nc-ltar-icon {
-    @apply flex items-center p-1 rounded;
-
-    &.nc-mm-icon {
-      @apply bg-pink-500;
-    }
-    &.nc-hm-icon {
-      @apply bg-orange-500;
-    }
-    &.nc-oo-icon {
-      @apply bg-purple-500;
-      :deep(svg path) {
-        @apply stroke-purple-50;
-      }
-    }
-  }
-
-  :deep(.ant-radio-wrapper) {
-    @apply px-3 py-2 flex items-center mr-0;
-
-    &:not(:last-child) {
-      @apply border-b border-nc-border-gray-medium;
-    }
-  }
-
-  :deep(.ant-radio) {
-    @apply top-0;
-    & + span {
-      @apply flex items-center gap-2;
-    }
-  }
-}
-</style>
--->

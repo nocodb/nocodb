@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { OperationSource } from 'nocodb-sdk';
 import type Source from '~/models/Source';
 import {
   defaultConnectionConfig,
@@ -9,6 +10,8 @@ import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
 import { RedisVersionTracker } from '~/utils/RedisVersionTracker';
 import { LRUMap } from '~/utils/LRUMap';
+import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
+import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 
 const CONNECTION_CACHE_MAX_SIZE = +(
   process.env.NC_CONNECTION_CACHE_MAX_SIZE || 500
@@ -75,6 +78,35 @@ export default class NcConnectionMgrv2 {
     });
   }
 
+  /**
+   * Cache the data source's major version on the knex client config so
+   * dialect-aware code paths (e.g. MSSQL formula compilation) can read it
+   * via `~/db/util/dbVersion.getDbMajor` without an extra round-trip.
+   *
+   * Source of truth: `source.meta.dbVersion` — populated for every dialect
+   * by `populateMeta` via `SqlClient.version()`. The first dot-separated
+   * component is always the major.
+   */
+  protected static stashDbMajorVersion(knex: XKnex, source: Source) {
+    if (!knex?.client?.config) return;
+    const meta = source.meta;
+    let dbVersion: string | undefined;
+    if (meta && typeof meta === 'object') {
+      dbVersion = (meta as any).dbVersion;
+    } else if (typeof meta === 'string') {
+      try {
+        dbVersion = JSON.parse(meta)?.dbVersion;
+      } catch {
+        // ignore — fall through to lazy detection
+      }
+    }
+    if (!dbVersion) return;
+    const major = parseInt(String(dbVersion).split('.')[0], 10);
+    if (Number.isFinite(major) && major > 0) {
+      (knex.client.config as any).nocoDbMajorVersion = major;
+    }
+  }
+
   public static async get(source: Source): Promise<XKnex> {
     if (source.isMeta()) return Noco.ncMeta.knex;
 
@@ -88,7 +120,7 @@ export default class NcConnectionMgrv2 {
 
     const connectionConfig = await source.getConnectionConfig();
 
-    const knex = XKnex({
+    const knexConfig = {
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -117,8 +149,18 @@ export default class NcConnectionMgrv2 {
           return res;
         },
       },
-    } as any);
+    } as any;
 
+    // SSRF: external user-supplied source only. Meta/internal connections
+    // return earlier (source.isMeta) and never reach here.
+    applyDbSsrfProtection(
+      knexConfig,
+      isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
+    );
+
+    const knex = XKnex(knexConfig);
+
+    this.stashDbMajorVersion(knex, source);
     this.connectionRefs.set(source.id, knex);
     return knex;
   }

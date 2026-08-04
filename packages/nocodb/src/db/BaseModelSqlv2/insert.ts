@@ -1,4 +1,8 @@
-import { dataWrapper, populatePk } from 'src/helpers/dbHelpers';
+import {
+  coerceOracleReturnedPk,
+  dataWrapper,
+  populatePk,
+} from 'src/helpers/dbHelpers';
 import {
   isAttachment,
   isLinksOrLTAR,
@@ -6,11 +10,21 @@ import {
   type NcRequest,
 } from 'nocodb-sdk';
 import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparator';
+import type { Knex } from 'knex';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
+import type { DisplacedRecord } from '~/command-registry/types';
+import {
+  mssqlBuildBulkInsertWithCapture,
+  mssqlChunkSize,
+  mssqlNeedsIdentityInsert,
+  mssqlTableHasTriggers,
+} from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   const single = async (
@@ -48,7 +62,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await baseModel.validate(insertObj, columns);
 
       if ('beforeInsert' in baseModel) {
-        await baseModel.beforeInsert(insertObj, trx, request);
+        await baseModel.beforeInsert(insertObj, request);
       }
 
       await baseModel.prepareNocoData(insertObj, true, request);
@@ -56,12 +70,66 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       let response;
       // const driver = trx ? trx : baseModel.dbDriver;
 
+      // Oracle has no `DEFAULT VALUES` / column-less `VALUES (default)`: an empty
+      // insert object compiles to `insert into "t" () values (default)` and fails
+      // with ORA-00947 (not enough values). Pin the PK to DEFAULT so it becomes a
+      // valid `insert into "t" ("PK") values (DEFAULT)` — other columns take their
+      // own defaults, and an identity/sequence-trigger PK is generated as usual.
+      if (
+        baseModel.isOracle &&
+        insertObj &&
+        Object.keys(insertObj).length === 0 &&
+        baseModel.model.primaryKey
+      ) {
+        insertObj[baseModel.model.primaryKey.column_name] =
+          baseModel.dbDriver.raw('DEFAULT');
+      }
+
       const query = baseModel.dbDriver(baseModel.tnPath).insert(insertObj);
-      if (baseModel.isPg && baseModel.model.primaryKey) {
+      // pg + mssql both support inline RETURNING/OUTPUT. knex's mssql
+      // dialect translates `.returning('col as alias')` to
+      // `OUTPUT INSERTED.[col] AS [alias]`, returning the same
+      // `[{ alias: value }]` shape the downstream extractor expects.
+      // Without this, mssql falls into the generic else-branch (shaped
+      // for mysql's `insertId`) and `extractCompositePK` returns '' →
+      // ERR_INVALID_PK_VALUE.
+      // NOT oracle: its RETURNING…INTO clause needs driver out-binds, which
+      // the stringified execAndParse pipeline can't carry — `toQuery()`
+      // serializes the out-bind as a literal and execution fails with
+      // NJS-098. Oracle takes the MAX() fallback below instead.
+      if ((baseModel.isPg || baseModel.isMssql) && baseModel.model.primaryKey) {
         query.returning(
           `${baseModel.model.primaryKey.column_name} as ${baseModel.model.primaryKey.id}`,
         );
-        response = await baseModel.execAndParse(query, null, { raw: true });
+
+        if (baseModel.isMssql) {
+          // MSSQL: AI columns are stripped above (line ~33), so
+          // IDENTITY_INSERT only matters when caller explicitly bypasses
+          // that strip (rare; left here defensively). Triggers always
+          // require the OUTPUT-INTO pattern.
+          const aiColName =
+            baseModel.model.columns?.find((c) => c.ai)?.column_name ?? null;
+          const explicitIdentity = mssqlNeedsIdentityInsert(
+            [insertObj],
+            aiColName,
+          );
+          const hasTriggers = await mssqlTableHasTriggers(baseModel);
+          if (hasTriggers || explicitIdentity) {
+            const sql = mssqlBuildBulkInsertWithCapture({
+              knex: baseModel.dbDriver,
+              tnPath: baseModel.tnPath,
+              rows: [insertObj],
+              pkCols: baseModel.model.primaryKeys ?? [],
+              explicitIdentity,
+              aliasField: 'id', // single-row path expects `col.id` keys
+            });
+            response = await baseModel.execAndParse(sql, null, { raw: true });
+          } else {
+            response = await baseModel.execAndParse(query, null, { raw: true });
+          }
+        } else {
+          response = await baseModel.execAndParse(query, null, { raw: true });
+        }
       }
 
       const ai = baseModel.model.columns.find((c) => c.ai);
@@ -95,8 +163,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         } else {
           const res = await baseModel.execAndParse(query, null, {
             raw: true,
+            first: true,
           });
-          id = res?.id ?? res[0]?.insertId ?? res;
+          id = res?.id ?? res?.insertId ?? res;
         }
 
         if (ai) {
@@ -112,7 +181,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 { raw: true, first: true },
               )
             )?.__nc_ai_id;
-          } else if (baseModel.isSnowflake || baseModel.isDatabricks) {
+          } else if (
+            baseModel.isSnowflake ||
+            baseModel.isDatabricks ||
+            baseModel.isOracle
+          ) {
             id = (
               await baseModel.execAndParse(
                 baseModel.dbDriver(baseModel.tnPath).max(ai.column_name, {
@@ -147,7 +220,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await baseModel.afterInsert({
         data: response,
         insertData: data,
-        trx,
         req: request,
       });
 
@@ -163,7 +235,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel: baseModel,
         insertData: insertObj || data,
       });
-      await baseModel.errorInsert(e, data, trx, request);
+      await baseModel.errorInsert(e, data, request);
       throw e;
     }
   };
@@ -181,6 +253,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       allowSystemColumn = false,
       undo = false,
       apiVersion = NcApiVersion.V2,
+      onInsertedPks,
+      skipPermissionCheck = false,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -193,16 +267,37 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       typecast?: boolean;
       undo?: boolean;
       apiVersion?: NcApiVersion;
+      /**
+       * Runtime-only sink invoked with the inserted rows' primary keys in
+       * insertion order. Used by file import to correlate each inserted row
+       * back to its source LTAR cell. Forces pk-bearing ordered responses
+       * (PG `returning` even in raw mode; mysql/sqlite one-by-one) so the
+       * order is reliable — unlike the `list({pks})` re-read which does not
+       * preserve order.
+       */
+      onInsertedPks?: (pks: (string | number)[]) => void;
+      /** Consumed by the EE override to skip per-field edit-permission checks. */
+      skipPermissionCheck?: boolean;
     } = {},
   ) => {
+    const capturePks = typeof onInsertedPks === 'function';
     let trx;
     try {
       const insertDatas = raw ? datas : [];
       const postInsertOpsMap: Record<
         number,
-        ((rowId: any) => Promise<string>)[]
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
-      let preInsertOps: (() => Promise<string>)[] = [];
+      const preInsertOps: ((
+        trx?: Knex | Knex.Transaction,
+      ) => Promise<string>)[] = [];
+      // Accumulator for displacement capture across the row loop. The
+      // capture-closures in `preInsertOps` push into their own
+      // `operations.displacedRecords` reference when `runOps` fires; we
+      // keep those references here and drain them post-runOps so the
+      // trace decorator sees the union across every row.
+      const displacedRecords: DisplacedRecord[] = [];
+      const displacedRecordRefs: DisplacedRecord[][] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
       let columns: Column[];
@@ -228,6 +323,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           await baseModel.prepareNocoData(insertObj, true, cookie, null, {
             ncOrder: order?.plus(index),
             undo,
+            allowSystemColumn,
+            skipPermissionCheck,
           });
 
           // prepare nested link data for insert only if it is single record insertion
@@ -240,7 +337,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             });
 
             postInsertOpsMap[index] = operations.postInsertOps;
-            preInsertOps = operations.preInsertOps;
+            preInsertOps.push(...operations.preInsertOps);
+            // Keep the array reference — closures inside preInsertOps
+            // push into it when `runOps` fires below. Reading `.length`
+            // here would be 0 (closures haven't run yet).
+            displacedRecordRefs.push(operations.displacedRecords);
           }
           if (attachmentCols.length > 0) {
             const attachmentOperations =
@@ -256,10 +357,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               ...(postInsertOpsMap[index] ?? []),
               ...(attachmentOperations.postInsertOps ?? []),
             ];
-            preInsertOps = [].concat(
-              ...(preInsertOps ?? []),
-              ...(attachmentOperations.preInsertOps ?? []),
-            );
+            preInsertOps.push(...(attachmentOperations.preInsertOps ?? []));
           }
 
           insertDatas.push(insertObj);
@@ -279,13 +377,15 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 raw,
                 undo: undo,
                 ncOrder: order?.plus(i),
+                allowSystemColumn,
+                skipPermissionCheck,
               }),
           ),
         );
       }
 
       if ('beforeBulkInsert' in baseModel) {
-        await baseModel.beforeBulkInsert(insertDatas, trx, cookie, {
+        await baseModel.beforeBulkInsert(insertDatas, cookie, {
           allowSystemColumn,
         });
       }
@@ -308,15 +408,34 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       }
 
       await baseModel.runOps(
-        preInsertOps.map((f) => f()),
+        preInsertOps.map((f) => f(trx)),
         trx,
       );
 
+      // Drain each row's `operations.displacedRecords` reference now that
+      // the capture-closures in preInsertOps have populated them. Spreading
+      // these any earlier (e.g. inside the row loop) would see empty arrays
+      // because the closures hadn't fired yet.
+      for (const ref of displacedRecordRefs) {
+        if (ref?.length) displacedRecords.push(...ref);
+      }
+
+      // Deposit displacement capture for the trace decorator. The
+      // capture-ops in preInsertOps populated each row's array during
+      // Promise.all (parallel SELECTs), then runOps walked the mutating
+      // query strings serially — so reads precede writes.
+      // Skipped under replay (replay reads from meta.extra).
+      if (displacedRecords.length > 0 && !isReplay()) {
+        captureForTrace('displacedRecords', displacedRecords);
+      }
+
       let responses;
 
-      // insert one by one as fallback to get ids for sqlite and mysql
+      // insert one by one as fallback to get ids for sqlite and mysql.
+      // also forced when the caller needs inserted pks (onInsertedPks) since
+      // those engines can't `returning` from a batch insert.
       if (
-        insertOneByOneAsFallback &&
+        (insertOneByOneAsFallback || capturePks) &&
         (baseModel.isSqlite || baseModel.isMySQL)
       ) {
         // sqlite and mysql doesn't support returning, so insert one by one and return ids
@@ -347,14 +466,102 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           returningObj[col.title] = col.column_name;
         }
 
-        responses =
-          !raw && baseModel.isPg
-            ? await trx
-                .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
-                .returning(
-                  baseModel.model.primaryKeys?.length ? returningObj : '*',
-                )
-            : await trx.batchInsert(baseModel.tnPath, insertDatas, chunkSize);
+        const mssqlAiColName =
+          baseModel.isMssql && insertDatas.length
+            ? baseModel.model.columns?.find((c) => c.ai)?.column_name ?? null
+            : null;
+        const mssqlExplicitIdentity = mssqlNeedsIdentityInsert(
+          insertDatas,
+          mssqlAiColName,
+        );
+
+        if (!raw && baseModel.isMssql && insertDatas.length) {
+          // MSSQL bulk path — uses the OUTPUT-INTO-table-variable pattern
+          // that's safe across all three quirks (triggers, IDENTITY_INSERT,
+          // 2100-param cap). See `mssql-insert-sql.ts` for the SQL shape.
+          const chunk = mssqlChunkSize(insertDatas, chunkSize);
+          const hasTriggers = await mssqlTableHasTriggers(baseModel);
+
+          // Standard path still uses knex's .returning() when neither
+          // triggers nor explicit identity is in play — faster and exercises
+          // the well-trodden code path.
+          if (!hasTriggers && !mssqlExplicitIdentity) {
+            responses = await trx
+              .batchInsert(baseModel.tnPath, insertDatas, chunk)
+              .returning(
+                baseModel.model.primaryKeys?.length ? returningObj : '*',
+              );
+          } else {
+            responses = [];
+            for (let i = 0; i < insertDatas.length; i += chunk) {
+              const slice = insertDatas.slice(i, i + chunk);
+              const sql = mssqlBuildBulkInsertWithCapture({
+                knex: baseModel.dbDriver,
+                tnPath: baseModel.tnPath,
+                rows: slice,
+                pkCols: baseModel.model.primaryKeys ?? [],
+                explicitIdentity: mssqlExplicitIdentity,
+              });
+              const result: any = await trx.raw(sql);
+              const rows: any[] = Array.isArray(result)
+                ? result
+                : result?.rows ?? result?.recordset ?? [];
+              responses.push(...rows);
+            }
+          }
+        } else if (
+          raw &&
+          baseModel.isMssql &&
+          insertDatas.length &&
+          mssqlExplicitIdentity
+        ) {
+          // Raw + MSSQL + explicit identity values (import / duplicate flow
+          // with PKs preserved). The standard `batchInsert` below would hit
+          // T-SQL error 544 — `Cannot insert explicit value for identity
+          // column…` — because the table has an IDENTITY column and we're
+          // supplying values for it. Wrap each chunk in
+          // `SET IDENTITY_INSERT ON/OFF`, but skip the trigger check and
+          // `.returning()` plumbing — raw callers discard the response.
+          const chunk = mssqlChunkSize(insertDatas, chunkSize);
+          responses = [];
+          for (let i = 0; i < insertDatas.length; i += chunk) {
+            const slice = insertDatas.slice(i, i + chunk);
+            const sql = mssqlBuildBulkInsertWithCapture({
+              knex: baseModel.dbDriver,
+              tnPath: baseModel.tnPath,
+              rows: slice,
+              pkCols: baseModel.model.primaryKeys ?? [],
+              explicitIdentity: true,
+            });
+            await trx.raw(sql);
+          }
+        } else if (
+          (!raw || capturePks) &&
+          baseModel.isOracle &&
+          baseModel.model.primaryKeys?.length
+        ) {
+          // Oracle RETURNING rejects aliases (ORA-00925) — return the bare
+          // pk columns and remap to the title-keyed shape downstream expects.
+          const pkCols = baseModel.model.primaryKeys;
+          const rows = await trx
+            .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
+            .returning(pkCols.map((c) => c.column_name));
+          responses = (rows ?? []).map((r) =>
+            pkCols.reduce((acc, c) => {
+              acc[c.title] = coerceOracleReturnedPk(r[c.column_name], c);
+              return acc;
+            }, {}),
+          );
+        } else {
+          responses =
+            (!raw || capturePks) && baseModel.isPg
+              ? await trx
+                  .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
+                  .returning(
+                    baseModel.model.primaryKeys?.length ? returningObj : '*',
+                  )
+              : await trx.batchInsert(baseModel.tnPath, insertDatas, chunkSize);
+        }
       }
 
       if (!foreign_key_checks) {
@@ -377,13 +584,16 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           });
 
           await baseModel.runOps(
-            (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
+            (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
             trx,
           );
         }
       }
 
       await trx.commit();
+      // Transaction is finalized; clear the reference so a post-commit
+      // failure below can't trigger rollback() on an already-closed trx.
+      trx = null;
 
       if (!raw && !skip_hooks) {
         // we will wrap returning primary key values with primary key column name
@@ -407,12 +617,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           await baseModel.afterInsert({
             data: insertData,
             insertData: datas?.[0],
-            trx: baseModel.dbDriver,
             req: cookie,
           });
         } else {
           const insertResponseList = await baseModel.chunkList({
-            pks: responses.map((d) => baseModel.extractPksValues(d)),
+            // composite PKs require the `___`-joined string form (asString=true);
+            // the object form stringifies to "[object Object]" in chunkList's join
+            pks: responses.map((d) => baseModel.extractPksValues(d, true)),
           });
 
           // get ast
@@ -428,17 +639,21 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             {},
             parsedQuery,
           );
-          await baseModel.afterBulkInsert(
-            insertResponses,
-            baseModel.dbDriver,
-            cookie,
-          );
+          await baseModel.afterBulkInsert(insertResponses, cookie);
         }
       }
 
       await baseModel.statsUpdate({
         count: insertDatas.length,
       });
+
+      // Hand back inserted pks in insertion order. `responses` are pk-bearing
+      // (PG returning / mysql-sqlite one-by-one) whenever `capturePks` is set.
+      if (capturePks) {
+        onInsertedPks(
+          responses.map((r) => baseModel.extractPksValues(r, true)),
+        );
+      }
 
       return responses;
     } catch (e: any) {

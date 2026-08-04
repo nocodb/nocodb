@@ -1,11 +1,16 @@
 import {
   convertMS2Duration,
+  getEffectiveLookupColumn,
+  isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
+  parseDecimalValue,
   parseHelper,
+  parseIntValue,
   parseProp,
   roundUpToPrecision,
   UITypes,
 } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
@@ -61,10 +66,12 @@ export async function serializeCellValue(
     value,
     column,
     siteUrl,
+    locale,
   }: {
     column?: Column;
     value: any;
     siteUrl: string;
+    locale?: string;
   },
 ) {
   if (!column) {
@@ -111,25 +118,42 @@ export async function serializeCellValue(
       } catch {}
 
       return (data ? (Array.isArray(data) ? data : [data]) : [])
-        .map((user) => `${user.email}`)
+        .map((user) => user.display_name || user.email || '')
         .join(', ');
     }
     case UITypes.Lookup:
       {
         const colOptions = await column.getColOptions<LookupColumn>(context);
-        const relationColOptions = await colOptions
-          .getRelationColumn(context)
-          .then((col) => col.getColOptions<LinkToAnotherRecordColumn>(context));
+        if (colOptions?.error) return value?.toString?.() ?? '';
+
+        const relationCol = await colOptions.getRelationColumn(context);
+        if (!relationCol) return value?.toString?.() ?? '';
+
+        const relationColOptions =
+          await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
         const { refContext } = relationColOptions.getRelContext(context);
 
         const lookupColumn = await colOptions.getLookupColumn(refContext);
+        if (!lookupColumn) return value?.toString?.() ?? '';
+
+        // Apply the lookup column's own formatting override (meta.display_type +
+        // meta.display_column_meta) so export/webhook payloads honour the configured
+        // number/date format — but only when the override is still valid for the
+        // child's current result type; falls back to the child column otherwise (no
+        // override set, or a stale override after the looked-up field changed type).
+        const effectiveColumn = getEffectiveLookupColumn(
+          parseProp(column.meta),
+          lookupColumn as unknown as ColumnType,
+        ) as unknown as Column;
+
         return (
           await Promise.all(
             [...(Array.isArray(value) ? value : [value])].map(async (v) =>
               serializeCellValue(refContext, {
                 value: v,
-                column: lookupColumn,
+                column: effectiveColumn,
                 siteUrl,
+                locale,
               }),
             ),
           )
@@ -143,9 +167,19 @@ export async function serializeCellValue(
         const { refContext } = await colOptions.getRelContext(context);
         const relatedModel = await colOptions.getRelatedTable(refContext);
         await relatedModel.getColumns(refContext);
+        // Honor the per-LTAR custom display value override — the grid shows
+        // that column, so exports must print the same value.
+        const overrideCol = colOptions.fk_display_value_column_id
+          ? relatedModel.columns?.find(
+              (c) =>
+                c.id === colOptions.fk_display_value_column_id &&
+                isSupportedDisplayValueColumn(c),
+            )
+          : undefined;
+        const displayCol = overrideCol ?? relatedModel.displayValue;
         return [...(Array.isArray(value) ? value : [value])]
           .map((v) => {
-            return v[relatedModel.displayValue?.title];
+            return v[displayCol?.title] ?? v[displayCol?.id];
           })
           .join(', ');
       }
@@ -175,7 +209,20 @@ export async function serializeCellValue(
       {
         if (isNaN(Number(value))) return null;
 
-        return Number(value).toFixed(column.meta?.precision ?? 1);
+        return parseDecimalValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
+      }
+      break;
+    case UITypes.Number:
+      {
+        if (isNaN(Number(value))) return null;
+
+        return parseIntValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
       }
       break;
     case UITypes.Duration: {

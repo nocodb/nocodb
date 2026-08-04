@@ -6,6 +6,7 @@ import {
   isLinksOrLTAR,
   isMMOrMMLike,
   isVirtualCol,
+  MetaEventType,
   ModelTypes,
   RelationTypes,
   SqlUiFactory,
@@ -16,13 +17,18 @@ import type { UserType } from 'nocodb-sdk';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import ModelXcMetaFactory from '~/db/sql-mgr/code/models/xc/ModelXcMetaFactory';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { NcError } from '~/helpers/catchError';
 import { normalizeDr } from '~/helpers/dbHelpers';
+import {
+  detectColumnSchemaPropsChanged,
+  resolvePkAfterSync,
+} from '~/services/meta-diffs/pk-preservation';
+import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -149,7 +155,10 @@ type MetaDiffChange = {
 
 @Injectable()
 export class MetaDiffsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(
+    private appHooksService: AppHooksService,
+    private metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
 
   async getMetaDiff(
     context: NcContext,
@@ -160,6 +169,13 @@ export class MetaDiffsService {
     // if meta base then return empty array
     if (source.isMeta()) {
       return [];
+    }
+
+    // meta-diff introspects columns once per table (N+1). On Oracle each call is
+    // a slow data-dictionary round-trip; hint the client to batch them into a
+    // single schema-wide fetch (no-op for clients that don't implement it).
+    if ('bulkColumnList' in sqlClient) {
+      sqlClient.bulkColumnList = true;
     }
 
     const changes: Array<MetaDiff> = [];
@@ -269,7 +285,15 @@ export class MetaDiffsService {
           // if mysql and data type is set or enum then compare dtxp as well
           (['mysql', 'mysql2'].includes(source.type) &&
             ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp)
+            column.dtxp !== oldCol.dtxp) ||
+          // PG native enum: dt stays 'USER-DEFINED' but option list can
+          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
+          // type itself can be swapped (different udt_name).
+          (source.type === 'pg' &&
+            column.udt_typtype === 'e' &&
+            (column.dtxp !== oldCol.dtxp ||
+              column.data_type_custom !==
+                oldCol.internal_meta?.pg_enum_type_name))
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
@@ -279,13 +303,9 @@ export class MetaDiffsService {
             column: oldCol,
           });
         }
-        if (
-          !!oldCol.pk !== !!column.pk ||
-          !!oldCol.rqd !== !!column.rqd ||
-          !!oldCol.un !== !!column.un ||
-          !!oldCol.ai !== !!column.ai ||
-          !!oldCol.unique !== !!column.unique
-        ) {
+        // Asymmetric on `pk` — preserve a user-set NocoDB PK across syncs.
+        // See `~/services/meta-diffs/pk-preservation`.
+        if (detectColumnSchemaPropsChanged(oldCol, column)) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED,
             msg: `Column properties changed (${column.cn})`,
@@ -398,6 +418,51 @@ export class MetaDiffsService {
               msg: `Relation removed (${
                 !parentModel ? 'parent' : 'child'
               } table missing)`,
+              colId: relationCol.id,
+              column: relationCol,
+            });
+          }
+        }
+        continue;
+      }
+
+      // If either side of the relation no longer has a primary key, the
+      // LTAR is unusable — every read path that builds nested record JSON
+      // dereferences `relatedModel.primaryKey.column_name` and crashes.
+      // Mark it for removal so meta-sync naturally cleans up legacy bad
+      // state (LTARs created before the prevention guard in
+      // TABLE_RELATION_ADD shipped). The matching TABLE_RELATION_ADD path
+      // skips creation while PKs are still missing, so this won't oscillate
+      // — once the user re-flags `pk` (or the source schema gains a PK),
+      // the next sync recreates the LTAR.
+      //
+      // Predict the post-sync pk state instead of reading only the stale
+      // NocoDB metadata. A column-prop-changed apply earlier in this same
+      // sync may set `pk:true` from what the sqlClient reports — without
+      // this prediction, the LTAR-removal flag would be raised in the same
+      // pass that's about to restore the pk, and the removal would still
+      // apply later, undoing the recovery.
+      await parentModel.getColumns(context);
+      await childModel.getColumns(context);
+      const hasPostSyncPk = (model: Model): boolean => {
+        if (model.primaryKey) return true;
+        const dbCols = colListRef[model.table_name];
+        return !!(dbCols && dbCols.find((c: any) => c.pk));
+      };
+      const parentHasPk = hasPostSyncPk(parentModel);
+      const childHasPk = hasPostSyncPk(childModel);
+      if (!parentHasPk || !childHasPk) {
+        const ownerModel = await relationCol.getModel(context);
+        if (ownerModel) {
+          const ownerTable = changes.find(
+            (t) => t.table_name === ownerModel.table_name,
+          );
+          if (ownerTable) {
+            ownerTable.detectedChanges.push({
+              type: MetaDiffType.TABLE_RELATION_REMOVE,
+              msg: `Relation removed (${
+                !parentHasPk ? 'parent' : 'child'
+              } table has no primary key)`,
               colId: relationCol.id,
               column: relationCol,
             });
@@ -703,7 +768,15 @@ export class MetaDiffsService {
           // if mysql and data type is set or enum then compare dtxp as well
           (['mysql', 'mysql2'].includes(source.type) &&
             ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp)
+            column.dtxp !== oldCol.dtxp) ||
+          // PG native enum: dt stays 'USER-DEFINED' but option list can
+          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
+          // type itself can be swapped (different udt_name).
+          (source.type === 'pg' &&
+            column.udt_typtype === 'e' &&
+            (column.dtxp !== oldCol.dtxp ||
+              column.data_type_custom !==
+                oldCol.internal_meta?.pg_enum_type_name))
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
@@ -818,7 +891,14 @@ export class MetaDiffsService {
       return;
     }
 
-    const virtualColumnInsert: Array<() => Promise<void>> = [];
+    // Group queued virtual-column inserts by target model so callbacks
+    // writing to the same model run sequentially. Without this, two
+    // concurrent inserts targeting the same table can each compute the
+    // same unique title against a stale snapshot.
+    const virtualColumnInsertByTarget = new Map<
+      string,
+      Array<() => Promise<void>>
+    >();
 
     logger?.(`Getting meta diff for ${source.alias}`);
 
@@ -949,17 +1029,13 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
-              const metaFact = ModelXcMetaFactory.create(
-                { client: source.type },
-                {},
-              );
 
               // check if new type is compatible with old uidt
               const allowedDatatypes = sqlUi.getDataTypeListForUiType(column);
 
               // if UIDT not compatible with new type then change uidt
               if (!allowedDatatypes?.includes(column.dt)) {
-                column.uidt = metaFact.getUIDataType(column);
+                column.uidt = sqlUi.getMetaUIDataType(column);
               }
 
               column.title = change.column.title;
@@ -973,7 +1049,9 @@ export class MetaDiffsService {
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const colMeta = columns.find((c) => c.cn === change.cn);
               if (!colMeta) break;
-              const { pk, ai, rqd, un, unique } = colMeta;
+              const { ai, rqd, un, unique } = colMeta;
+              // pk asymmetry — see `~/services/meta-diffs/pk-preservation`.
+              const pk = resolvePkAfterSync(change.column.pk, colMeta.pk);
               await Column.update(context, change.column.id, {
                 pk,
                 ai,
@@ -986,10 +1064,18 @@ export class MetaDiffsService {
           case MetaDiffType.TABLE_COLUMN_REMOVE:
           case MetaDiffType.VIEW_COLUMN_REMOVE:
             await change.column.delete(context);
+            await this.metaDependencyEventHandler.handleEvent(context, {
+              eventType: MetaEventType.COLUMN_DELETED,
+              oldEntity: change.column,
+            });
             break;
           case MetaDiffType.TABLE_RELATION_REMOVE:
           case MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE:
             await change.column.delete(context);
+            await this.metaDependencyEventHandler.handleEvent(context, {
+              eventType: MetaEventType.COLUMN_DELETED,
+              oldEntity: change.column,
+            });
             break;
           case MetaDiffType.TABLE_RELATION_CHANGED:
             {
@@ -1015,7 +1101,19 @@ export class MetaDiffsService {
             break;
           case MetaDiffType.TABLE_RELATION_ADD:
             {
-              virtualColumnInsert.push(async () => {
+              // Group by the model the virtual column will be inserted into:
+              //   BELONGS_TO -> LTAR column on child table (change.tn)
+              //   HAS_MANY   -> Links column on parent table (change.rtn)
+              const targetTable =
+                change.relationType === RelationTypes.BELONGS_TO
+                  ? change.tn
+                  : change.rtn;
+              let group = virtualColumnInsertByTarget.get(targetTable);
+              if (!group) {
+                group = [];
+                virtualColumnInsertByTarget.set(targetTable, group);
+              }
+              group.push(async () => {
                 const parentModel = await Model.getByIdOrName(context, {
                   base_id: source.base_id,
                   source_id: source.id,
@@ -1037,16 +1135,29 @@ export class MetaDiffsService {
                   return;
                 }
 
-                const parentCol = await parentModel
-                  .getColumns(context)
-                  .then((cols) =>
-                    cols.find((c) => c.column_name === change.rcn),
+                const parentCols = await parentModel.getColumns(context);
+                const childCols = await childModel.getColumns(context);
+
+                // Skip relation creation if either side has no primary key.
+                // PK-less tables (e.g. PG junction tables without a PK
+                // constraint) can't be addressed by row id, so cascading
+                // deletes, link broadcasts, and undo all break downstream
+                // (see delByPk, updateLinkedRecordsOnDelete). Leave them as
+                // plain tables so the FK column is still imported, just
+                // without the LTAR virtual column.
+                if (!parentModel.primaryKey || !childModel.primaryKey) {
+                  logger?.(
+                    `Skipping relation creation between ${change.tn} and ${change.rtn} because one of the tables has no primary key.`,
                   );
-                const childCol = await childModel
-                  .getColumns(context)
-                  .then((cols) =>
-                    cols.find((c) => c.column_name === change.cn),
-                  );
+                  return;
+                }
+
+                const parentCol = parentCols.find(
+                  (c) => c.column_name === change.rcn,
+                );
+                const childCol = childCols.find(
+                  (c) => c.column_name === change.cn,
+                );
 
                 await Column.update(context, childCol.id, {
                   ...childCol,
@@ -1072,14 +1183,28 @@ export class MetaDiffsService {
                     virtual: false,
                     fk_index_name: change.cstn,
                     dr,
+                    description: formatLinkDbMapping({
+                      kind: 'bt',
+                      childTable: childModel.table_name,
+                      fkColumn: childCol.column_name,
+                      parentTable: parentModel.table_name,
+                      parentPk: parentCol.column_name,
+                    }),
                   });
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
+                  // Uniqueness is checked against parentModel.columns — the
+                  // model the column is inserted into. Sibling HAS_MANY
+                  // inserts for the same parent are serialized below so each
+                  // sees the previous insert when computing its title.
                   const title = getUniqueColumnAliasName(
-                    childModel.columns,
+                    parentModel.columns,
                     pluralize(childModel.title || childModel.table_name),
                   );
                   await Column.insert<LinkToAnotherRecordColumn>(context, {
-                    uidt: UITypes.Links,
+                    // External-source relations use LinkToAnotherRecord (LTAR),
+                    // not the deprecated Links uidt. hm has no junction table,
+                    // so the version heuristic resolves this to LTAR v1.
+                    uidt: UITypes.LinkToAnotherRecord,
                     title,
                     fk_model_id: parentModel.id,
                     fk_related_model_id: childModel.id,
@@ -1093,6 +1218,13 @@ export class MetaDiffsService {
                       plural: pluralize(childModel.title),
                       singular: singularize(childModel.title),
                     },
+                    description: formatLinkDbMapping({
+                      kind: 'hm',
+                      childTable: childModel.table_name,
+                      fkColumn: childCol.column_name,
+                      parentTable: parentModel.table_name,
+                      parentPk: parentCol.column_name,
+                    }),
                   });
                 }
               });
@@ -1105,7 +1237,18 @@ export class MetaDiffsService {
 
     logger?.(`Processing virtual column changes`);
 
-    await NcHelp.executeOperations(virtualColumnInsert, source.type);
+    // Run each per-target group sequentially so siblings inserting into the
+    // same model see each other's columns when computing unique titles.
+    // Different groups still run in parallel (via NcHelp.executeOperations).
+    const targetGroupRunners: Array<() => Promise<void>> = [];
+    for (const fns of virtualColumnInsertByTarget.values()) {
+      targetGroupRunners.push(async () => {
+        for (const fn of fns) {
+          await fn();
+        }
+      });
+    }
+    await NcHelp.executeOperations(targetGroupRunners, source.type);
 
     logger?.(`Virtual column changes applied`);
 
@@ -1266,6 +1409,13 @@ export class MetaDiffsService {
         );
 
         if (!isRelationAvailInA) {
+          const fkChildColA = assocModel.columns.find(
+            (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+          );
+          const fkParentColA = assocModel.columns.find(
+            (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+          );
+
           await Column.insert<LinksColumn>(context, {
             title: getUniqueColumnAliasName(
               modelA.columns,
@@ -1282,14 +1432,32 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[1].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.Links,
+            // mm has a junction table (fk_mm_model_id set), so the version
+            // heuristic resolves LinkToAnotherRecord to LTAR v2.
+            uidt: UITypes.LinkToAnotherRecord,
             meta: {
               plural: pluralize(modelB.title),
               singular: singularize(modelB.title),
             },
+            description:
+              fkChildColA && fkParentColA
+                ? formatLinkDbMapping({
+                    kind: 'mm',
+                    junctionTable: assocModel.table_name,
+                    fkChildColumn: fkChildColA.column_name,
+                    fkParentColumn: fkParentColA.column_name,
+                  })
+                : undefined,
           });
         }
         if (!isRelationAvailInB) {
+          const fkChildColB = assocModel.columns.find(
+            (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+          );
+          const fkParentColB = assocModel.columns.find(
+            (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+          );
+
           await Column.insert<LinksColumn>(context, {
             title: getUniqueColumnAliasName(
               modelB.columns,
@@ -1306,11 +1474,22 @@ export class MetaDiffsService {
             fk_mm_parent_column_id:
               belongsToCols[0].colOptions.fk_child_column_id,
             type: RelationTypes.MANY_TO_MANY,
-            uidt: UITypes.Links,
+            // mm has a junction table (fk_mm_model_id set), so the version
+            // heuristic resolves LinkToAnotherRecord to LTAR v2.
+            uidt: UITypes.LinkToAnotherRecord,
             meta: {
               plural: pluralize(modelA.title),
               singular: singularize(modelA.title),
             },
+            description:
+              fkChildColB && fkParentColB
+                ? formatLinkDbMapping({
+                    kind: 'mm',
+                    junctionTable: assocModel.table_name,
+                    fkChildColumn: fkChildColB.column_name,
+                    fkParentColumn: fkParentColB.column_name,
+                  })
+                : undefined,
           });
         }
 

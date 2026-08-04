@@ -22,10 +22,17 @@ import type {
 } from '~/models';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
+import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import {
+  applyLookupPkInLimit,
+  applyNestedLookupLevelLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 import { getRefColumnIfAlias } from '~/helpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export const lookupOrLtarBuilder =
   (
@@ -49,6 +56,8 @@ export const lookupOrLtarBuilder =
       getAliasCount,
     } = params;
 
+    const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
+
     let selectQb;
     let isArray = false;
     const alias = `__nc_formula${getAliasCount()}`;
@@ -56,6 +65,10 @@ export const lookupOrLtarBuilder =
       column.uidt === UITypes.Lookup
         ? await column.getColOptions<LookupColumn>(context)
         : null;
+
+    if (lookup?.error) {
+      return { builder: knex.raw('?', [null]) };
+    }
     {
       const relationCol = lookup
         ? await lookup.getRelationColumn(context)
@@ -96,10 +109,11 @@ export const lookupOrLtarBuilder =
             });
 
             selectQb = knex(
-              knex.raw(`?? as ??`, [
+              dbQueryClient.tableAlias(
+                knex,
                 parentBaseModel.getTnPath(parentModel.table_name),
                 alias,
-              ]),
+              ),
             ).where(
               `${alias}.${parentColumn.column_name}`,
               knex.raw(`??`, [
@@ -108,7 +122,9 @@ export const lookupOrLtarBuilder =
                 }.${childColumn.column_name}`,
               ]),
             );
-            lookupColumn = lookupColumn ?? parentModel.displayValue;
+            lookupColumn =
+              lookupColumn ??
+              (await getDisplayValueOfRefTable(context, relationCol));
 
             await extractLinkRelFiltersAndApply({
               context,
@@ -136,10 +152,11 @@ export const lookupOrLtarBuilder =
             });
             isArray = relation.type !== RelationTypes.ONE_TO_ONE;
             selectQb = knex(
-              knex.raw(`?? as ??`, [
+              dbQueryClient.tableAlias(
+                knex,
                 childBaseModel.getTnPath(childModel.table_name),
                 alias,
-              ]),
+              ),
             ).where(
               `${alias}.${childColumn.column_name}`,
               knex.raw(`??`, [
@@ -148,7 +165,9 @@ export const lookupOrLtarBuilder =
                 }.${parentColumn.column_name}`,
               ]),
             );
-            lookupColumn = lookupColumn ?? childModel.displayValue;
+            lookupColumn =
+              lookupColumn ??
+              (await getDisplayValueOfRefTable(context, relationCol));
 
             await extractLinkRelFiltersAndApply({
               context,
@@ -186,16 +205,18 @@ export const lookupOrLtarBuilder =
 
             const assocAlias = `__nc${getAliasCount()}`;
             selectQb = knex(
-              knex.raw(`?? as ??`, [
+              dbQueryClient.tableAlias(
+                knex,
                 parentBaseModel.getTnPath(parentModel.table_name),
                 alias,
-              ]),
+              ),
             )
               .join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
-                ]),
+                ),
                 `${assocAlias}.${mmParentColumn.column_name}`,
                 `${alias}.${parentColumn.column_name}`,
               )
@@ -213,7 +234,27 @@ export const lookupOrLtarBuilder =
               selectQb.limit(1);
             }
 
-            lookupColumn = lookupColumn ?? parentModel.displayValue;
+            // Per-link ordering (PG only): stash the junction Order column ref
+            // (current side) on the row query so the aggregate (getAggregateFn →
+            // concat) can ORDER BY it. Absent for non-PG / v1 / external links.
+            // Only as the DEFAULT order — if this lookup has its own sort/limit
+            // config, that ordering wins, so skip the link order to avoid
+            // overriding it.
+            if (baseModelSqlv2.isPg) {
+              const lookupCfg = await loadLookupSortAndLimit(context, column);
+              const linkOrderCol = lookupCfg.hasConfig
+                ? null
+                : await relation.getMMChildOrderColumn(context);
+              if (linkOrderCol) {
+                (selectQb as any)._ncLinkOrderRef = knex.raw('??', [
+                  `${assocAlias}.${linkOrderCol.column_name}`,
+                ]);
+              }
+            }
+
+            lookupColumn =
+              lookupColumn ??
+              (await getDisplayValueOfRefTable(context, relationCol));
 
             await extractLinkRelFiltersAndApply({
               context,
@@ -238,6 +279,37 @@ export const lookupOrLtarBuilder =
       let prevAlias = alias;
       // set initial lookup context
       let lookupContext = refContext;
+      const singleLevelLookupCol = lookupColumn;
+
+      // Per-lookup Limit — OUTER level (PG): restrict the first-level relation
+      // rows a formula sees to the configured top-N BEFORE any nested joins,
+      // correlated to the root row. Applies to single-level lookups and the
+      // outer level of nested ones (the pk-IN survives the nested joins below).
+      // selectQb is still a plain builder here (it only becomes a function in
+      // the terminal switch after the loop).
+      if (
+        column.uidt === UITypes.Lookup &&
+        baseModelSqlv2.isPg &&
+        typeof (selectQb as any)?.clone === 'function'
+      ) {
+        const cfg = await loadLookupSortAndLimit(context, column);
+        if (cfg.hasConfig && cfg.limitVal > 0) {
+          const refModel = await singleLevelLookupCol.getModel(refContext);
+          const refBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: refModel,
+            dbDriver: knex,
+          });
+          await applyLookupPkInLimit({
+            qb: selectQb,
+            alias,
+            refBaseModel,
+            sorts: cfg.sorts,
+            limitVal: cfg.limitVal,
+            takeLast: cfg.takeLast,
+          });
+        }
+      }
+
       while (lookupColumn.uidt === UITypes.Lookup) {
         // overwrite lookupContext from previous iteration
         const context = lookupContext;
@@ -287,10 +359,11 @@ export const lookupOrLtarBuilder =
           case RelationTypes.BELONGS_TO:
             {
               selectQb.join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   parentBaseModel.getTnPath(parentModel.table_name),
                   nestedAlias,
-                ]),
+                ),
                 `${prevAlias}.${childColumn.column_name}`,
                 `${nestedAlias}.${parentColumn.column_name}`,
               );
@@ -301,7 +374,9 @@ export const lookupOrLtarBuilder =
                 table: parentModel,
                 baseModel: parentBaseModel,
                 qb: selectQb,
-                alias,
+                // this nested level's related table is joined as `nestedAlias`,
+                // not the first-level `alias` — see the mm-lookup filter fix.
+                alias: nestedAlias,
               });
 
               const nestedBtSoftDeleteFilter = await getAliasedSoftDeleteFilter(
@@ -311,16 +386,36 @@ export const lookupOrLtarBuilder =
               if (nestedBtSoftDeleteFilter) {
                 selectQb.where(nestedBtSoftDeleteFilter);
               }
+
+              // INNER-level limit for a nested lookup (BT): restrict this
+              // level's joined rows to the top-N per the previous level's row.
+              if (baseModelSqlv2.isPg && nestedLookup) {
+                const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+                if (cfg.hasConfig && cfg.limitVal > 0) {
+                  await applyNestedLookupLevelLimit({
+                    qb: selectQb,
+                    nestedAlias,
+                    nestedRefBaseModel: parentBaseModel,
+                    corrColName: parentColumn.column_name,
+                    prevAlias,
+                    prevCorrColName: childColumn.column_name,
+                    sorts: cfg.sorts,
+                    limitVal: cfg.limitVal,
+                    takeLast: cfg.takeLast,
+                  });
+                }
+              }
             }
             break;
           case RelationTypes.HAS_MANY:
             {
               isArray = relation.type !== RelationTypes.ONE_TO_ONE;
               selectQb.join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   childBaseModel.getTnPath(childModel.table_name),
                   nestedAlias,
-                ]),
+                ),
                 `${prevAlias}.${parentColumn.column_name}`,
                 `${nestedAlias}.${childColumn.column_name}`,
               );
@@ -331,7 +426,9 @@ export const lookupOrLtarBuilder =
                 table: childModel,
                 baseModel: childBaseModel,
                 qb: selectQb,
-                alias,
+                // this nested level's related table is joined as `nestedAlias`,
+                // not the first-level `alias` — see the mm-lookup filter fix.
+                alias: nestedAlias,
               });
 
               const nestedHmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
@@ -340,6 +437,25 @@ export const lookupOrLtarBuilder =
               );
               if (nestedHmSoftDeleteFilter) {
                 selectQb.where(nestedHmSoftDeleteFilter);
+              }
+
+              // INNER-level limit for a nested lookup (HM): restrict this
+              // level's joined rows to the top-N per the previous level's row.
+              if (baseModelSqlv2.isPg && nestedLookup) {
+                const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+                if (cfg.hasConfig && cfg.limitVal > 0) {
+                  await applyNestedLookupLevelLimit({
+                    qb: selectQb,
+                    nestedAlias,
+                    nestedRefBaseModel: childBaseModel,
+                    corrColName: childColumn.column_name,
+                    prevAlias,
+                    prevCorrColName: parentColumn.column_name,
+                    sorts: cfg.sorts,
+                    limitVal: cfg.limitVal,
+                    takeLast: cfg.takeLast,
+                  });
+                }
               }
             }
             break;
@@ -359,18 +475,20 @@ export const lookupOrLtarBuilder =
 
             selectQb
               .join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
-                ]),
+                ),
                 `${assocAlias}.${mmChildColumn.column_name}`,
                 `${prevAlias}.${childColumn.column_name}`,
               )
               .join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   parentBaseModel.getTnPath(parentModel.table_name),
                   nestedAlias,
-                ]),
+                ),
                 `${nestedAlias}.${parentColumn.column_name}`,
                 `${assocAlias}.${mmParentColumn.column_name}`,
               );
@@ -381,7 +499,9 @@ export const lookupOrLtarBuilder =
               table: parentModel,
               baseModel: parentBaseModel,
               qb: selectQb,
-              alias,
+              // this nested level's related table is joined as `nestedAlias`,
+              // not the first-level `alias` — see the mm-lookup filter fix.
+              alias: nestedAlias,
             });
 
             const nestedMmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
@@ -403,6 +523,7 @@ export const lookupOrLtarBuilder =
         lookupColumn = await nestedLookup.getLookupColumn(refContext);
         prevAlias = nestedAlias;
       }
+
       switch (lookupColumn.uidt) {
         case UITypes.Links:
         case UITypes.Rollup:
@@ -477,25 +598,37 @@ export const lookupOrLtarBuilder =
               : relation.type;
 
             if (relationType === RelationTypes.ONE_TO_ONE) {
-              relationType = relationCol.meta?.bt
+              // direction comes from the terminal LTAR being resolved, not
+              // the first-hop relation column
+              relationType = lookupColumn.meta?.bt
                 ? RelationTypes.BELONGS_TO
                 : RelationTypes.HAS_MANY;
             }
+
+            // Resolve display column once — honors fk_display_value_column_id.
+            // Must be resolved from the terminal LTAR (lookupColumn), whose
+            // related table the joins below read from — resolving from the
+            // first-hop relationCol picked a column of the wrong table.
+            const nestedDisplayCol = await getDisplayValueOfRefTable(
+              context,
+              lookupColumn,
+            );
 
             switch (relationType) {
               case RelationTypes.BELONGS_TO:
                 {
                   selectQb.join(
-                    knex.raw(`?? as ??`, [
+                    dbQueryClient.tableAlias(
+                      knex,
                       parentBaseModel.getTnPath(parentModel.table_name),
                       nestedAlias,
-                    ]),
+                    ),
                     `${alias}.${childColumn.column_name}`,
                     `${nestedAlias}.${parentColumn.column_name}`,
                   );
                   cn = knex.raw('??.??', [
                     nestedAlias,
-                    parentModel?.displayValue?.column_name,
+                    nestedDisplayCol?.column_name,
                   ]);
                 }
                 break;
@@ -503,16 +636,17 @@ export const lookupOrLtarBuilder =
                 {
                   isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                   selectQb.join(
-                    knex.raw(`?? as ??`, [
+                    dbQueryClient.tableAlias(
+                      knex,
                       childBaseModel.getTnPath(childModel.table_name),
                       nestedAlias,
-                    ]),
+                    ),
                     `${alias}.${parentColumn.column_name}`,
                     `${nestedAlias}.${childColumn.column_name}`,
                   );
                   cn = knex.raw('??.??', [
                     nestedAlias,
-                    childModel?.displayValue?.column_name,
+                    nestedDisplayCol?.column_name,
                   ]);
                 }
                 break;
@@ -536,25 +670,27 @@ export const lookupOrLtarBuilder =
 
                   selectQb
                     .join(
-                      knex.raw(`?? as ??`, [
+                      dbQueryClient.tableAlias(
+                        knex,
                         mmBaseModel.getTnPath(mmModel.table_name),
                         assocAlias,
-                      ]),
+                      ),
                       `${assocAlias}.${mmChildColumn.column_name}`,
                       `${alias}.${childColumn.column_name}`,
                     )
                     .join(
-                      knex.raw(`?? as ??`, [
+                      dbQueryClient.tableAlias(
+                        knex,
                         parentBaseModel.getTnPath(parentModel.table_name),
                         nestedAlias,
-                      ]),
+                      ),
                       `${nestedAlias}.${parentColumn.column_name}`,
                       `${assocAlias}.${mmParentColumn.column_name}`,
                     );
                 }
                 cn = knex.raw('??.??', [
                   nestedAlias,
-                  parentModel?.displayValue?.column_name,
+                  nestedDisplayCol?.column_name,
                 ]);
             }
 

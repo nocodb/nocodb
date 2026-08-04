@@ -8,6 +8,12 @@ import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType } from './Api';
 import { parseProp } from './helperFunctions';
 import { ncIsNull, ncIsUndefined } from './is';
+import {
+  isJalaliFormat,
+  jalaliDateFormats,
+  jalaliDateMonthFormats,
+  jalaliPlugin,
+} from './jalali';
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -15,18 +21,29 @@ dayjs.extend(customParseFormat);
 dayjs.extend(duration);
 dayjs.extend(weekday);
 dayjs.extend(timezone);
+dayjs.extend(jalaliPlugin);
 
 export const dateMonthFormats = ['YYYY-MM', 'YYYY MM'];
 
 export const timeFormats = ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS'];
 
 export const dateFormats = [
+  // Weekday-prefixed variants are display-only: the weekday name is rendered by
+  // dayjs at display time, while values still sort/group on the underlying date.
+  // Each pair (full `dddd` + short `ddd`) is placed next to its base format.
+  // See issue #9154.
   'YYYY-MM-DD',
+  'dddd YYYY-MM-DD',
+  'ddd YYYY-MM-DD',
   'YYYY/MM/DD',
   'DD-MM-YYYY',
   'MM-DD-YYYY',
   'DD/MM/YYYY',
+  'dddd DD/MM/YYYY',
+  'ddd DD/MM/YYYY',
   'MM/DD/YYYY',
+  'dddd MM/DD/YYYY',
+  'ddd MM/DD/YYYY',
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',
@@ -40,7 +57,7 @@ export const dateFormats = [
 ];
 
 export const isDateMonthFormat = (format: string) =>
-  dateMonthFormats.includes(format);
+  dateMonthFormats.includes(format) || jalaliDateMonthFormats.includes(format);
 
 export function validateDateWithUnknownFormat(v: string) {
   for (const format of dateFormats) {
@@ -75,6 +92,38 @@ export function getDateTimeFormat(v: string) {
     }
   }
   return 'YYYY/MM/DD HH:mm';
+}
+
+// dayjs' customParseFormat plugin only accepts zero-padded month/day/hour/
+// minute/second segments when the format string uses the padded tokens (MM,
+// DD, HH, ...). Users routinely type or paste unpadded dates (e.g. "5/5/2026"
+// for an MM/DD/YYYY column). This returns an unpadded variant of a format
+// (MM -> M, DD -> D, ...) so those values parse the same way the padded form
+// does. Month-name (MMM/MMMM) and weekday (ddd/dddd) tokens are left untouched.
+export function getUnpaddedDateFormat(format: string) {
+  return format
+    .replace(/(?<!M)MM(?!M)/g, 'M')
+    .replace(/(?<!D)DD(?!D)/g, 'D')
+    .replace(/(?<!H)HH(?!H)/g, 'H')
+    .replace(/(?<!h)hh(?!h)/g, 'h')
+    .replace(/(?<!m)mm(?!m)/g, 'm')
+    .replace(/(?<!s)ss(?!s)/g, 's');
+}
+
+// Parse a date/datetime string against the column's configured format, also
+// accepting the same value without zero-padding on month/day/hour/etc. The
+// padded format is tried first (non-strict, preserving existing behaviour);
+// only if that fails do we retry with the unpadded variant in strict mode, so
+// genuinely invalid values (e.g. "hello") are still rejected rather than
+// silently coerced.
+export function parseDateWithFormat(value: string, format: string) {
+  let parsed = dayjs(value, format);
+
+  if (!parsed.isValid()) {
+    parsed = dayjs(value, getUnpaddedDateFormat(format), true);
+  }
+
+  return parsed;
 }
 
 export function parseStringDate(v: string, dateFormat: string) {
@@ -135,7 +184,11 @@ export const handleTZ = (val: any) => {
 };
 
 export function validateDateFormat(v: string) {
-  return dateFormats.includes(v);
+  return (
+    dateFormats.includes(v) ||
+    jalaliDateFormats.includes(v) ||
+    jalaliDateMonthFormats.includes(v)
+  );
 }
 
 export const timeAgo = (date: any) => {
@@ -184,7 +237,10 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
   const isUtcOrGmt = timezone && /^(utc|gmt)$/i.test(timezone);
 
   return {
-    dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
+    dayjsTz(
+      value?: string | number | null | Date | dayjs.Dayjs,
+      format?: string
+    ) {
       if (!isEeUI) {
         return dayjs(value, format);
       }
@@ -195,16 +251,14 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
         } else {
           return dayjs();
         }
-      } else if (typeof value === 'object' && value.isValid()) {
+      } else if (dayjs.isDayjs(value) && value.isValid()) {
         return value;
       }
 
       if (timezone) {
         if (isUtcOrGmt) {
           const strValue =
-            typeof value === 'object' &&
-            typeof value.isValid === 'function' &&
-            value.isValid()
+            dayjs.isDayjs(value) && value.isValid()
               ? value.toISOString()
               : value;
           return format
@@ -274,6 +328,13 @@ export const getDateTimeValue = (
   const dateTimeFormat = `${dateFormat} ${timeFormat}`;
 
   if (!isXcdbBase) {
+    // For a Jalali date_format the stored value is Gregorian and cannot be
+    // parsed with the Jalali format as a mask (customParseFormat has no
+    // `j`-token support -> "Invalid Date"). Parse the raw value and let the
+    // dayjs Jalali plugin render it via .format().
+    if (isJalaliFormat(dateFormat)) {
+      return dayjs(modelValue).format(dateTimeFormat);
+    }
     return dayjs(
       /^\d+$/.test(modelValue) ? +modelValue : modelValue,
       dateTimeFormat
@@ -297,4 +358,8 @@ export const getDateValue = (
   return dayjs(
     /^\d+$/.test(String(modelValue)) ? +modelValue : modelValue
   ).format(dateFormat);
+};
+
+export const newSnapshotTitle = () => {
+  return dayjs().format('D MMMM YYYY, h mm A');
 };

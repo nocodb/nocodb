@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
@@ -9,6 +10,9 @@ import { NcError } from '~/helpers/catchError';
 import { MapView, Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { CacheScope } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
+import Noco from '~/Noco';
 
 @Injectable()
 export class MapsService {
@@ -18,6 +22,7 @@ export class MapsService {
     return await MapView.get(context, param.mapViewId);
   }
 
+  @TraceCommand(OperationName.mapViewCreate)
   async mapViewCreate(
     context: NcContext,
     param: {
@@ -26,6 +31,7 @@ export class MapsService {
       user: UserType;
       req: NcRequest;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -38,25 +44,29 @@ export class MapsService {
 
     await assertPersonalViewAllowed(context, param.map.lock_type);
 
-    const model = await Model.get(context, param.tableId);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
-    const { id } = await View.insertMetaOnly(context, {
-      view: {
-        ...param.map,
-        // todo: sanitize
-        fk_model_id: param.tableId,
-        type: ViewTypes.MAP,
-        base_id: model.base_id,
-        source_id: model.source_id,
-        created_by: param.user?.id,
-        owned_by: param.user?.id,
+    const { id } = await View.insertMetaOnly(
+      context,
+      {
+        view: {
+          ...param.map,
+          // todo: sanitize
+          fk_model_id: param.tableId,
+          type: ViewTypes.MAP,
+          base_id: model.base_id,
+          source_id: model.source_id,
+          created_by: param.user?.id,
+          owned_by: param.user?.id,
+        },
+        model,
+        req: param.req,
       },
-      model,
-      req: param.req,
-    });
+      ncMeta,
+    );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id);
+    const view = await View.get(context, id, false, ncMeta);
     await NocoCache.appendToList(
       context,
       CacheScope.VIEW,
@@ -76,6 +86,7 @@ export class MapsService {
     return view;
   }
 
+  @TraceCommand(OperationName.mapViewUpdate)
   async mapViewUpdate(
     context: NcContext,
     param: {
@@ -83,18 +94,19 @@ export class MapsService {
       map: MapUpdateReqType;
       req: NcRequest;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 
-    const view = await View.get(context, param.mapViewId);
+    const view = await View.get(context, param.mapViewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.mapViewId);
     }
 
-    const oldMapView = await MapView.get(context, param.mapViewId);
+    const oldMapView = await MapView.get(context, param.mapViewId, ncMeta);
 
-    await MapView.update(context, param.mapViewId, param.map);
+    await MapView.update(context, param.mapViewId, param.map, ncMeta);
 
     let owner = param.req.user;
 
@@ -112,8 +124,9 @@ export class MapsService {
       owner,
     });
 
-    await view.getView(context);
+    await view.getView(context, ncMeta);
 
-    return view;
+    // Strip the stored bcrypt password hash from the outbound response.
+    return View.maskPasswordForResponse(view);
   }
 }

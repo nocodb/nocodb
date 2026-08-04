@@ -9,7 +9,7 @@ const { pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem
       <div class="flex items-center p-6">
         <div class="cursor-pointer text-primary mr-4" @click="pageMode = IntegrationsPageMode.LIST">
           <GeneralIcon icon="arrowLeft" />
-          Back
+          {{ $t('general.back') }}
         </div>
         <WorkspaceIntegrationsIcon :integration-item="activeIntegrationItem" size="sm" />
         <div class="text-md font-bold">New {{ activeIntegration.title }}</div>

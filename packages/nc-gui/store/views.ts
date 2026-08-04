@@ -20,6 +20,7 @@ import {
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
+import { INTERFACE_VIEW_ID_PREFIX } from '~/lib/interfaceData'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
 import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
 import { userLocalStorageInfoManager } from '#imports'
@@ -207,13 +208,22 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
   const isActiveViewFieldHeaderVisible = computed(() => {
+    const viewMeta = parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)
+
+    // Synthetic interface views carry the builder's "Display field names" toggle
+    // in their meta and bypass the view-feature plan gate — the toggle belongs to
+    // the interface builder surface, not the view settings UI the gate protects.
+    if (activeView.value?.id?.startsWith(INTERFACE_VIEW_ID_PREFIX)) {
+      return viewMeta?.is_field_header_visible ?? true
+    }
+
     // If card field header visibility is not enabled or blocked, return true to show header by default
     if (blockCardFieldHeaderVisibility.value || !isEeUI) return true
 
-    return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
+    return viewMeta?.is_field_header_visible ?? true
   })
 
-  const isListViewEnabled = computed(() => isEeUI && showEEFeatures.value)
+  const isListViewEnabled = computed(() => showEEFeatures.value)
 
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
@@ -420,6 +430,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
     try {
       let data: ViewType | null = null
 
+      const commonFields = {
+        title: form.title,
+        type: form.type,
+        description: form.description,
+        copy_from_id: form.copy_from_id,
+      }
+
       switch (form.type) {
         case ViewTypes.GRID:
           data = await $api.internal.postOperation(
@@ -429,7 +446,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'gridViewCreate',
               tableId,
             },
-            form,
+            commonFields,
           )
           break
         case ViewTypes.GALLERY:
@@ -440,7 +457,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'galleryViewCreate',
               tableId,
             },
-            form,
+            {
+              ...commonFields,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
+            },
           )
           break
         case ViewTypes.FORM:
@@ -452,7 +472,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
               tableId,
             },
             {
-              ...form,
+              ...commonFields,
               ...getDefaultViewMetas(ViewTypes.FORM),
             },
           )
@@ -465,7 +485,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'kanbanViewCreate',
               tableId,
             },
-            form,
+            {
+              ...commonFields,
+              fk_grp_col_id: form.fk_grp_col_id,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
+            },
           )
           break
         case ViewTypes.MAP:
@@ -476,7 +500,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'mapViewCreate',
               tableId,
             },
-            form,
+            {
+              ...commonFields,
+              fk_geo_data_col_id: form.fk_geo_data_col_id,
+            },
           )
           break
         case ViewTypes.CALENDAR:
@@ -488,7 +515,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
               tableId,
             },
             {
-              ...form,
+              ...commonFields,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
               calendar_range: form.calendar_range.map((range) => ({
                 fk_from_column_id: range.fk_from_column_id,
                 fk_to_column_id: range.fk_to_column_id,
@@ -504,7 +532,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'listViewCreate',
               tableId,
             },
-            form,
+            commonFields,
           )
           break
         case ViewTypes.TIMELINE:
@@ -516,7 +544,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
               tableId,
             },
             {
-              ...form,
+              ...commonFields,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
               timeline_range: form.timeline_range.map((range) => ({
                 fk_from_column_id: range.fk_from_column_id,
                 fk_to_column_id: range.fk_to_column_id,
@@ -524,9 +553,39 @@ export const useViewsStore = defineStore('viewsStore', () => {
             },
           )
           break
+        case ViewTypes.GANTT:
+          // Gantt sends a `dependency` field alongside the standard view-create
+          // payload: a per-view DateDependency rule that the backend persists
+          // atomically with the view (fk_gantt_view_id = new view's id).
+          // The view-create form (dlg/View/Create.vue) populates `dependency`
+          // from the table-level rule if any, else from auto-detected date
+          // columns + first self-link. Each Gantt thus owns its own schedule.
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'ganttViewCreate',
+              tableId,
+            },
+            {
+              ...commonFields,
+              ...(form.dependency ? { dependency: form.dependency } : {}),
+            },
+          )
+          break
       }
 
       if (data) {
+        // Mark fresh Gantt views for first-time setup — the Configure dialog
+        // will auto-open when the new view mounts, so users can review/edit
+        // the auto-picked dependency fields before they're locked in.
+        // Duplicates skip the wizard: the source's rule is cloned by the
+        // backend (View.ts GANTT case), so the duplicate lands already
+        // configured.
+        if (form.type === ViewTypes.GANTT && data.id && !form.copy_from_id) {
+          useGanttSetupDialog().enqueue(data.id)
+        }
+
         // Get the base_id for the table
         const table = tablesStore.baseTables.get(activeProjectId.value!)?.find((t) => t.id === tableId)
         if (!table?.base_id) {
@@ -626,6 +685,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
                 fk_to_column_id: range.fk_to_column_id as string,
               })) || [],
           }
+        case ViewTypes.GANTT:
+          // Gantt duplicates don't need to carry per-view range props — the
+          // new view inherits the table-level DateDependency automatically.
+          return baseProps
         default:
           return baseProps
       }
@@ -633,13 +696,19 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     const viewSpecificProps = getViewSpecificProps(view)
 
+    // Carry the full source meta across — previously only rowColoringInfo
+    // was extracted, which silently dropped the view icon (meta.icon),
+    // initial-view setting, expanded-record mode, and any other
+    // view-meta knobs the user had configured. Parse once and forward
+    // the whole object; the backend uses it as-is.
+    const sourceMeta = parseProp(view.meta) ?? {}
     const duplicateForm: CreateViewForm = {
       title: uniqueTitle,
       type: view.type,
       description: view.description || '',
       copy_from_id: view.id!,
       row_coloring_mode: view.row_coloring_mode!,
-      meta: parseProp(view.meta)?.rowColoringInfo ? { rowColoringInfo: parseProp(view.meta).rowColoringInfo } : undefined,
+      meta: Object.keys(sourceMeta).length ? sourceMeta : undefined,
       ...viewSpecificProps,
     }
 
@@ -702,6 +771,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (activeViewId === view.id) {
         const key = getViewsKey(view.base_id, view.fk_model_id)
         const remainingViews = viewsByTable.value.get(key) || []
+        // TODO: use getFirstNonPersonalView(remainingViews, { includeViewType: ViewTypes.GRID }) so we don't default to a personal or non-grid view
         const defaultView = remainingViews[0]
 
         if (defaultView && activeTable.value) {
@@ -842,6 +912,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
               activeView.value!.fk_workspace_id!,
               activeView.value!.base_id!,
               { operation: 'timelineViewUpdate', viewId },
+              updates,
+            )
+            break
+          case ViewTypes.GANTT:
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'ganttViewUpdate', viewId },
               updates,
             )
             break
@@ -1121,7 +1199,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const result = {
       isDisabled: false,
       tooltip: '',
-      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
+      isVisible: isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
     }
 
     if (!view) return result

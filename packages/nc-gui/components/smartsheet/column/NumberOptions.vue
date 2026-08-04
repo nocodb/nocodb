@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, resolveColumnSeparator } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -16,14 +16,18 @@ vModel.value.meta = {
 }
 
 const { isSystem } = useColumnCreateStoreOrThrow()
+
+// Backward compat: resolve isLocaleString to separator if separator is not yet set
+if (!vModel.value.meta.separator) {
+  vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+}
 </script>
 
 <template>
-  <a-form-item>
-    <div class="flex items-center gap-1">
-      <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString" :disabled="isSystem">
-        <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
-      </NcSwitch>
-    </div>
-  </a-form-item>
+  <SmartsheetColumnSeparatorSelect
+    v-model:value="vModel.meta.separator"
+    :disabled="isSystem"
+    integer
+    dropdown-class-name="nc-dropdown-number-separator-format"
+  />
 </template>

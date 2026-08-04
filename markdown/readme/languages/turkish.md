@@ -65,7 +65,7 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 Auto-upstall şunları yapar: 🕊
 - 🐳 Docker ve Docker Compose gibi tüm ön gereksinimleri otomatik olarak yükler.
-- 🚀 Docker Compose kullanarak NocoDB ile birlikte PostgreSQL, Redis, Minio ve Traefik gateway servislerini otomatik olarak kurar. 🐘 🗄️ 🌐
+- 🚀 Docker Compose kullanarak NocoDB ile birlikte PostgreSQL, Redis ve Traefik gateway servislerini otomatik olarak kurar. 🐘 🗄️ 🌐
 - 🔄 Komutu tekrar çalıştırdığınızda NocoDB'yi otomatik olarak en son sürüme günceller.
 - 🔒 SSL sertifikasını otomatik olarak kurar ve yeniler. Kurulum sırasında bir alan adı (domain) veya alt alan adı (subdomain) girmeniz gerekir.
 >  [install.nocodb.com/noco.sh](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh) script'ini GitHub sayfamızda bulabilirsiniz. 

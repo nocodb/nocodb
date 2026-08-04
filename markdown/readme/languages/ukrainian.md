@@ -10,7 +10,7 @@
 </h1>
 
 <p align="center">
-Nocodb перетворює будь-яку базу даних MySQL, PostgreSQL, SQL Server, SQLite та MariaDB в розумну електронну таблицю.
+NocoDB перетворює будь-яку базу даних MySQL, PostgreSQL, SQL Server, SQLite та MariaDB в розумну електронну таблицю.
 </p>
 
 <div align="center">

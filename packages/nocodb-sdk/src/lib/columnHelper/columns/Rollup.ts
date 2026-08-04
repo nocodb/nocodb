@@ -4,11 +4,18 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { ColumnHelper } from '../column-helper';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
-import { getRenderAsTextFunForUiType, getRollupColumnMeta, integerRollupFunctions, integerPreservingRollupFunctions, parseProp } from '~/lib/helperFunctions';
+import {
+  getRenderAsTextFunForUiType,
+  getRollupColumnMeta,
+  integerPreservingRollupFunctions,
+  integerRollupFunctions,
+  parseProp,
+} from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { isIntegerUiType } from '../utils/cell';
+import { getEffectiveDisplayColumn } from '../utils/get-effective-display-column';
 import { ComputedTypePasteError } from '~/lib/error';
-import { precisionFormats } from '../utils';
+import { precisionFormats, SeparatorType } from '../utils';
 import { isValidValue } from '~/lib/is';
 import rfdc from 'rfdc';
 
@@ -17,7 +24,7 @@ const clone = rfdc();
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[0],
-    isLocaleString: false,
+    separator: SeparatorType.NonePeriod,
   };
 
   serializeValue(
@@ -39,12 +46,15 @@ export class RollupHelper extends AbstractColumnHelper {
 
     const { col, meta, metas } = params;
 
-    const baseId = meta?.base_id;
     const colOptions = col.colOptions as RollupType;
     const relationColumnOptions = colOptions.fk_relation_column_id
       ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)
           ?.colOptions as LinkToAnotherRecordType)
       : null;
+    // For cross-base links the related table is keyed by its own base, so use
+    // fk_related_base_id when present; fall back to the rollup table's base_id
+    // for same-base links. Mirrors the Rollup cell renderer (Rollup.vue).
+    const baseId = relationColumnOptions?.fk_related_base_id || meta?.base_id;
     const relatedTableMeta =
       relationColumnOptions?.fk_related_model_id &&
       getMetaWithCompositeKey(
@@ -68,15 +78,23 @@ export class RollupHelper extends AbstractColumnHelper {
       const colMeta = parseProp(childColumn.meta);
       if (colMeta?.display_type) {
         isFormulaWithDisplayType = true;
-        const displayColumnMeta = parseProp(colMeta.display_column_meta);
 
+        // Resolve the formula's display_type into the effective child column, then
+        // layer the rollup-specific meta on top of the display format meta. Base the
+        // meta on display_column_meta.meta explicitly (not the effective column's
+        // meta) so it stays {} when display_column_meta has no `meta` key — otherwise
+        // the formula's own meta would leak in.
+        const displayColumnMeta = parseProp(colMeta.display_column_meta);
+        childColumn = getEffectiveDisplayColumn(colMeta, childColumn);
         childColumn = {
           ...childColumn,
-          uidt: colMeta.display_type,
-          ...displayColumnMeta,
           meta: {
             ...parseProp(displayColumnMeta?.meta),
-            ...getRollupColumnMeta(col?.meta, colMeta.display_type, colOptions.rollup_function),
+            ...getRollupColumnMeta(
+              col?.meta,
+              colMeta.display_type,
+              colOptions.rollup_function
+            ),
           },
         } as ColumnType;
       }
@@ -91,14 +109,21 @@ export class RollupHelper extends AbstractColumnHelper {
     if (!isFormulaWithDisplayType) {
       childColumn.meta = {
         ...parseProp(childColumn?.meta),
-        ...getRollupColumnMeta(col?.meta, childColumn.uidt as UITypes, colOptions.rollup_function),
+        ...getRollupColumnMeta(
+          col?.meta,
+          childColumn.uidt as UITypes,
+          colOptions.rollup_function
+        ),
       };
     }
 
     if (renderAsTextFun.includes(colOptions.rollup_function)) {
       const isInteger =
         integerRollupFunctions.includes(colOptions.rollup_function) ||
-        (isIntegerUiType(childColumn) && integerPreservingRollupFunctions.includes(colOptions.rollup_function));
+        (isIntegerUiType(childColumn) &&
+          integerPreservingRollupFunctions.includes(
+            colOptions.rollup_function
+          ));
 
       childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal;
     }

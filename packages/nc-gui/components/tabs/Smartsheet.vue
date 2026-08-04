@@ -2,7 +2,7 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSmartText } from 'nocodb-sdk'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
@@ -41,10 +41,60 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && getMetaByKey(activeProjectId.value, viewId)
 })
 
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, xWhere, eventBus } =
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, isGantt, xWhere, eventBus } =
   useProvideSmartsheetStore(activeView, meta)
 
 useViewRowColorProvider({ view: activeView, eventBus })
+
+const expandedFormPanelStore = useProvideExpandedFormPanel()
+
+const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore.isOpen.value)
+
+const isExpandedFormPanelFullscreen = computed(
+  () => expandedFormPanelStore.isOpen.value && expandedFormPanelStore.isFullscreen.value,
+)
+
+// SmartText panel claims the right-side slot when ?cellCol points at a SmartText
+// column. Hide the expanded-record panel while that's true so we never show two
+// panels at once. The `useExpandedFormPanel` provider state is kept (rowId in
+// URL is untouched), so closing the SmartText panel re-renders the expanded
+// record at the same row.
+const isSmartTextActive = computed(() => {
+  const cellCol = route.query.cellCol as string | undefined
+  if (!cellCol) return false
+  const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
+  return !!col && isSmartText(col)
+})
+
+// When the SmartText panel closes (true → false), the expanded-record panel
+// becomes the topmost visible panel again. Clicking SmartText's close button
+// counts as a click outside `.nc-expanded-form-panel`, so the click-intent
+// flag would otherwise leave the user stuck — Escape and Tab would not act
+// on EFP until they click into it. Reset intent here so the next keystroke
+// targets EFP.
+watch(isSmartTextActive, (active, prev) => {
+  if (prev && !active && isExpandedFormPanelOpen.value) {
+    markExpandedFormPanelFocus()
+  }
+})
+
+watch(
+  () => isGrid.value,
+  (gridActive) => {
+    if (!gridActive && isExpandedFormPanelOpen.value) {
+      expandedFormPanelStore.closePanel()
+      if (route.query.rowId) {
+        navigateTo({
+          query: {
+            ...route.query,
+            path: undefined,
+            rowId: undefined,
+          },
+        })
+      }
+    }
+  },
+)
 
 const reloadViewDataEventHook = createEventHook()
 
@@ -58,11 +108,25 @@ const activeSource = computed(() => {
   return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
 })
 
-useProvideKanbanViewStore(meta, activeView)
+const { useWindowedKanbanLoad } = useProvideKanbanViewStore(meta, activeView)
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+// Enable the optimised Kanban's windowed (per-visible-stack) data loading as early as the store is
+// created. The optimised board (SmartsheetKanbanWrapper → lazy KanbanOptimized) sets this too, but
+// only after its async chunk resolves — by then the store's `watch(groupingFieldColumn)` has already
+// fired a full loadKanbanData() that fetches every stack upfront (the freeze the windowed path
+// exists to avoid). Setting it here, before that watcher can run, lets the bulk load be skipped.
+// This tab is never a public/shared view, so windowed mode is safe whenever the beta flag is on.
+watchEffect(() => {
+  useWindowedKanbanLoad.value = isFeatureEnabled('kanban_opt')
+})
+
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
 useProvideListViewStore(meta, activeView)
 useProvideTimelineViewStore(meta, activeView, false, xWhere)
+useProvideGanttViewStore(meta, activeView, false, xWhere)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -73,6 +137,7 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
 provide(IsTimelineInj, isTimeline)
+provide(IsGanttInj, isGantt)
 provide(TabMetaInj, activeTab)
 provide(ActiveSourceInj, activeSource)
 provide(ReloadAggregateHookInj, createEventHook())
@@ -304,35 +369,47 @@ watch(isViewsLoading, async () => {
           @resize="onResize"
           @resized="onResized"
         >
-          <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-            <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
-            <div
-              :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"
-              class="flex flex-row w-full"
-            >
-              <Transition name="layout" mode="out-in">
-                <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
-                  <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
-                    <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+          <Pane class="flex flex-row h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
+            <div v-show="!isExpandedFormPanelFullscreen" class="flex flex-col flex-1 min-w-0 h-full">
+              <SmartsheetToolbar v-if="!isForm && !isGantt" show-full-screen-toggle />
+              <div
+                :style="{ height: isForm || isTimeline || isGantt ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+                class="flex flex-row w-full"
+              >
+                <Transition name="layout" mode="out-in">
+                  <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
+                    <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
+                      <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
-                    <template v-if="activeView && meta">
-                      <SmartsheetGallery v-if="isGallery" />
+                      <template v-if="activeView && meta">
+                        <SmartsheetGallery v-if="isGallery" />
 
-                      <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                        <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                      <SmartsheetKanbanWrapper v-else-if="isKanban" />
+                        <SmartsheetKanbanWrapper v-else-if="isKanban" />
 
-                      <SmartsheetCalendar v-else-if="isCalendar" />
+                        <SmartsheetCalendar v-else-if="isCalendar" />
 
-                      <SmartsheetTimeline v-else-if="isTimeline" />
+                        <SmartsheetTimeline v-else-if="isTimeline" />
 
-                      <SmartsheetMap v-else-if="isMap" />
+                        <SmartsheetGantt v-else-if="isGantt" />
 
-                      <SmartsheetList v-else-if="isList" />
-                    </template>
+                        <SmartsheetMap v-else-if="isMap" />
+
+                        <SmartsheetList v-else-if="isList" />
+                      </template>
+                    </div>
                   </div>
-                </div>
-              </Transition>
+                </Transition>
+              </div>
+            </div>
+            <!-- Wrap with display:contents so the EFP itself remains the flex
+                 child of <Pane>. Toggling visibility on the wrapper (instead
+                 of the component) preserves the EFP's internal state across
+                 SmartText cell hops — otherwise users lose unsaved edits when
+                 they briefly open a SmartText cell from the grid. -->
+            <div v-if="isExpandedFormPanelOpen && isGrid" v-show="!isSmartTextActive" style="display: contents">
+              <SmartsheetGridExpandedFormPanel />
             </div>
           </Pane>
           <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />

@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "replicaCount": { "type": "integer", "minimum": 1 },
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": { "type": "string" },
+        "repository": { "type": "string" },
+        "tag": { "type": "string" },
+        "digest": { "type": "string" },
+        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+      },
+      "required": ["repository"]
+    },
+    "worker": {
+      "type": "object",
+      "properties": { "enabled": { "type": "boolean" } }
+    },
+    "externalDatabase": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "port": { "type": ["integer", "string"] },
+        "existingSecret": { "type": "string" }
+      }
+    },
+    "externalRedis": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "existingSecret": { "type": "string" }
+      }
+    },
+    "podAntiAffinityPreset": { "type": "string", "enum": ["", "soft", "hard"] }
+  }
+}

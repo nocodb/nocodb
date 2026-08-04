@@ -27,6 +27,8 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const inputRef = ref<HTMLInputElement>()
 const _vModel = useVModel(props, 'modelValue', emits)
 
+const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
+
 const vModel = computed({
   get: () => _vModel.value,
   set: (value) => {
@@ -66,18 +68,32 @@ function onKeyDown(e: any) {
     return e.preventDefault()
   }
 
-  if (e.key === 'ArrowDown') {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    // Step the value by ±1 — matches Currency/Percent/Float native behavior
+    // and works regardless of whether the input is rendered as type=number
+    // (grid / expanded form) or type=text (form view).
     e.preventDefault()
-    // Move the cursor to the end of the input
-    e.target.type = 'text'
-    e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
-    e.target.type = 'number'
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    e.target.type = 'text'
-    e.target?.setSelectionRange(0, 0)
-    e.target.type = 'number'
+    const current = Number(_vModel.value ?? 0)
+    if (isNaN(current)) return
+    const direction = e.key === 'ArrowUp' ? 1 : -1
+    vModel.value = toSafeInteger(current + direction)
   }
+}
+
+const onPaste = (e: ClipboardEvent) => {
+  const value = e.clipboardData?.getData('text/plain')
+  if (!value) return
+
+  const storedData = getCurrentCopiedCellClipboardData(value)
+  if (storedData) {
+    const clipboardItem = storedData.dbCellValueArr?.[0]?.[0]
+    if (clipboardItem !== undefined && clipboardItem !== null && !isNaN(Number(clipboardItem))) {
+      e.preventDefault()
+      e.stopPropagation()
+      vModel.value = parseInt(String(clipboardItem), 10)
+    }
+  }
+  // Fall through to browser native paste for external clipboard
 }
 
 onMounted(() => {
@@ -97,6 +113,7 @@ onMounted(() => {
     style="letter-spacing: 0.06rem"
     :disabled="readOnly"
     @blur="editEnabled = false"
+    @paste="onPaste"
     @keydown="onKeyDown"
     @keydown.down.stop
     @keydown.left.stop

@@ -20,6 +20,7 @@ import type {
   FormColumnEvent,
   FormViewUpdateEvent,
   GalleryViewUpdateEvent,
+  GanttViewUpdateEvent,
   GridColumnEvent,
   GridViewUpdateEvent,
   IntegrationEvent,
@@ -47,6 +48,8 @@ import type {
   RecordsRestoreEvent,
   RecordsSoftDeleteEvent,
   RelationEvent,
+  ResourcePermanentDeleteEvent,
+  ResourceRestoreEvent,
   RowCommentEvent,
   RowMentionEvent,
   SharedBaseDeleteEvent,
@@ -214,6 +217,14 @@ export class AppHooksService {
     event: AppEvents.RECORDS_PERMANENT_DELETE,
     listener: (data: RecordsPermanentDeleteEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.RESOURCE_RESTORE,
+    listener: (data: ResourceRestoreEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RESOURCE_PERMANENT_DELETE,
+    listener: (data: ResourcePermanentDeleteEvent) => void,
+  ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
 
@@ -372,6 +383,7 @@ export class AppHooksService {
       | AppEvents.GRID_CREATE
       | AppEvents.CALENDAR_CREATE
       | AppEvents.TIMELINE_CREATE
+      | AppEvents.GANTT_CREATE
       | AppEvents.GALLERY_CREATE
       | AppEvents.KANBAN_CREATE
       | AppEvents.MAP_CREATE
@@ -384,6 +396,7 @@ export class AppHooksService {
       | AppEvents.GRID_DELETE
       | AppEvents.CALENDAR_DELETE
       | AppEvents.TIMELINE_DELETE
+      | AppEvents.GANTT_DELETE
       | AppEvents.GALLERY_DELETE
       | AppEvents.KANBAN_DELETE
       | AppEvents.MAP_DELETE
@@ -395,6 +408,7 @@ export class AppHooksService {
       | AppEvents.GRID_UPDATE
       | AppEvents.CALENDAR_UPDATE
       | AppEvents.TIMELINE_UPDATE
+      | AppEvents.GANTT_UPDATE
       | AppEvents.GALLERY_UPDATE
       | AppEvents.KANBAN_UPDATE
       | AppEvents.MAP_UPDATE
@@ -408,7 +422,8 @@ export class AppHooksService {
       | MapViewUpdateEvent
       | FormViewUpdateEvent
       | ListViewUpdateEvent
-      | TimelineViewUpdateEvent,
+      | TimelineViewUpdateEvent
+      | GanttViewUpdateEvent,
   ): void;
   emit(
     event:
@@ -452,6 +467,7 @@ export class AppHooksService {
       | AppEvents.GRID_UPDATE
       | AppEvents.CALENDAR_UPDATE
       | AppEvents.TIMELINE_UPDATE
+      | AppEvents.GANTT_UPDATE
       | AppEvents.GALLERY_UPDATE
       | AppEvents.KANBAN_UPDATE
       | AppEvents.MAP_UPDATE
@@ -465,7 +481,8 @@ export class AppHooksService {
       | MapViewUpdateEvent
       | FormViewUpdateEvent
       | ListViewUpdateEvent
-      | TimelineViewUpdateEvent,
+      | TimelineViewUpdateEvent
+      | GanttViewUpdateEvent,
   ): void;
   emit(
     event:
@@ -479,7 +496,10 @@ export class AppHooksService {
     event:
       | AppEvents.DOCUMENT_CREATE
       | AppEvents.DOCUMENT_UPDATE
-      | AppEvents.DOCUMENT_DELETE,
+      | AppEvents.DOCUMENT_DELETE
+      | AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE
+      | AppEvents.DOCUMENT_PUBLIC_SHARE_UPDATE
+      | AppEvents.DOCUMENT_PUBLIC_SHARE_DELETE,
     data: any,
   ): void;
   emit(
@@ -494,6 +514,11 @@ export class AppHooksService {
   emit(
     event: AppEvents.RECORDS_PERMANENT_DELETE,
     data: RecordsPermanentDeleteEvent,
+  ): void;
+  emit(event: AppEvents.RESOURCE_RESTORE, data: ResourceRestoreEvent): void;
+  emit(
+    event: AppEvents.RESOURCE_PERMANENT_DELETE,
+    data: ResourcePermanentDeleteEvent,
   ): void;
 
   emit(event, data): void {

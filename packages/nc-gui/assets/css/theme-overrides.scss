@@ -321,10 +321,10 @@ body {
 // Dark theme specific style
 [theme='dark'] {
   ::-moz-selection {
-    background-color: #3366ff40;
+    background-color: rgba(var(--nc-brand-accent-rgb), 0.25);
   }
   ::selection {
-    background-color: #3366ff40;
+    background-color: rgba(var(--nc-brand-accent-rgb), 0.25);
   }
 
   /* Change autocomplete styles in WebKit */

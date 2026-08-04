@@ -1,6 +1,7 @@
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
 
 export default class Teams implements IWebhookNotificationAdapter {
   public init(): Promise<any> {
@@ -13,10 +14,10 @@ export default class Teams implements IWebhookNotificationAdapter {
         return await axios.post(
           webhook_url,
           { Text },
-          {
-            httpAgent: useAgent(webhook_url),
-            httpsAgent: useAgent(webhook_url),
-          },
+          getFilteredAgents({
+            url: webhook_url,
+            source: OperationSource.PLUGINS,
+          }),
         );
       } catch (e) {
         console.log(e);

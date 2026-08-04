@@ -1,6 +1,10 @@
 import { Logger } from '@nestjs/common';
-import { hasInputCalls, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
-import { useAgent } from 'request-filtering-agent';
+import {
+  hasInputCalls,
+  NOCO_SERVICE_USERS,
+  OperationSource,
+  ServiceUserType,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ncIsNullOrUndefined } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
@@ -13,7 +17,9 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { Filter } from '~/models';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { getWebhookMaxBodySize } from '~/utils/nc-config/constants';
 import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
@@ -24,6 +30,7 @@ import {
 } from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import {
+  BaseVariable,
   type Hook,
   HookLog,
   type Model,
@@ -33,7 +40,7 @@ import {
 } from '~/models';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
-import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.helper';
 import { isEE, isOnPrem } from '~/utils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 
@@ -62,6 +69,7 @@ export class WebhookInvoker {
     prevData,
     newData,
     user,
+    vars,
   }: {
     apiMeta: any;
     user: UserType;
@@ -70,6 +78,7 @@ export class WebhookInvoker {
     view?: ViewType;
     prevData: Record<string, unknown>;
     newData: Record<string, unknown>;
+    vars?: Record<string, string>;
   }) {
     if (!_apiMeta) {
       _apiMeta = {};
@@ -112,13 +121,13 @@ export class WebhookInvoker {
             : JSON.stringify(apiMeta.body),
           (_key, value) => {
             return typeof value === 'string'
-              ? parseBody(value, webhookData)
+              ? parseBody(value, webhookData, vars)
               : value;
           },
         );
       } catch (e) {
         // if string parsing failed then directly apply the handlebar
-        apiMeta.body = parseBody(apiMeta.body, webhookData);
+        apiMeta.body = parseBody(apiMeta.body, webhookData, vars);
       }
     }
     if (apiMeta.auth) {
@@ -129,22 +138,22 @@ export class WebhookInvoker {
             : JSON.stringify(apiMeta.auth),
           (_key, value) => {
             return typeof value === 'string'
-              ? parseBody(value, webhookData)
+              ? parseBody(value, webhookData, vars)
               : value;
           },
         );
       } catch (e) {
-        apiMeta.auth = parseBody(apiMeta.auth, webhookData);
+        apiMeta.auth = parseBody(apiMeta.auth, webhookData, vars);
       }
     }
     apiMeta.response = {};
-    const url = parseBody(apiMeta.path, webhookData);
+    const url = parseBody(apiMeta.path, webhookData, vars);
 
     const reqPayload = {
       params: apiMeta.parameters
         ? apiMeta.parameters.reduce((paramsObj, param) => {
             if (param.name && param.enabled) {
-              paramsObj[param.name] = parseBody(param.value, webhookData);
+              paramsObj[param.name] = parseBody(param.value, webhookData, vars);
             }
             return paramsObj;
           }, {})
@@ -155,20 +164,27 @@ export class WebhookInvoker {
       headers: apiMeta.headers
         ? apiMeta.headers.reduce((headersObj, header) => {
             if (header.name && header.enabled) {
-              headersObj[header.name] = parseBody(header.value, webhookData);
+              headersObj[header.name] = parseBody(
+                header.value,
+                webhookData,
+                vars,
+              );
             }
             return headersObj;
           }, {})
         : {},
       withCredentials: true,
-      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' &&
-      !ncIsNullOrUndefined(url)
-        ? {
-            httpAgent: useAgent(url),
-            httpsAgent: useAgent(url),
-          }
+      ...(!ncIsNullOrUndefined(url)
+        ? getFilteredAgents({ url, source: OperationSource.HOOKS })
         : {}),
       timeout: 30 * 1000,
+      // Bound the request/response body so axios can't buffer an unbounded
+      // native Buffer (default maxContentLength is -1 = unlimited). A webhook
+      // flood at full worker concurrency previously OOM-killed the worker.
+      // Overflow surfaces as a friendly error via the maxContentLength /
+      // maxBodyLength handlers in invoke().
+      maxContentLength: getWebhookMaxBodySize(),
+      maxBodyLength: getWebhookMaxBodySize(),
     };
 
     return reqPayload;
@@ -357,6 +373,10 @@ export class WebhookInvoker {
     let hookLog: HookLogType;
     const startTime = process.hrtime();
     const source = await Source.get(context, model.source_id);
+
+    // Load base variables for template resolution
+    const vars = await BaseVariable.listAsMap(context, model.base_id);
+
     let notification, filters;
     let reqPayload;
     try {
@@ -376,7 +396,10 @@ export class WebhookInvoker {
         return;
       }
 
-      if (hook.condition && !testHook) {
+      // Comment webhooks evaluate their condition against the *parent record*
+      // upstream in CommentHookHandlerService (this `newData` is the comment
+      // payload, not a record row), so skip the record-condition check here.
+      if (hook.condition && !testHook && (hook.event as any) !== 'comment') {
         filters = testFilters || (await hook.getFilters(context));
 
         if (isBulkOperation) {
@@ -462,9 +485,13 @@ export class WebhookInvoker {
             });
 
             const parsedPayload = {
-              to: parseBody(notification?.payload?.to, webhookData),
-              subject: parseBody(notification?.payload?.subject, webhookData),
-              html: parseBody(notification?.payload?.body, webhookData),
+              to: parseBody(notification?.payload?.to, webhookData, vars),
+              subject: parseBody(
+                notification?.payload?.subject,
+                webhookData,
+                vars,
+              ),
+              html: parseBody(notification?.payload?.body, webhookData, vars),
             };
             const res = await (
               await NcPluginMgrv2.emailAdapter(false)
@@ -493,7 +520,14 @@ export class WebhookInvoker {
               view,
               prevData,
               newData,
+              vars,
             });
+
+            const isBodyEmpty =
+              !reqPayload.data &&
+              ['POST', 'PUT', 'PATCH'].includes(
+                reqPayload.method?.toUpperCase(),
+              );
 
             const { requestPayload, responsePayload } = await handleHttpWebHook(
               {
@@ -501,7 +535,22 @@ export class WebhookInvoker {
               },
             );
 
-            if (webhookLogLevel === 'ALL' || (isEE && !webhookLogLevel)) {
+            if (
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel) ||
+              (webhookLogLevel === 'ERROR' && isBodyEmpty)
+            ) {
+              const emptyBodyError = isBodyEmpty
+                ? {
+                    error_code: 'EMPTY_BODY',
+                    error_message: `Webhook body is empty for ${reqPayload.method?.toUpperCase()} request — custom payload may be misconfigured.`,
+                    error: JSON.stringify({
+                      code: 'EMPTY_BODY',
+                      message: `Custom payload body is empty for a ${reqPayload.method?.toUpperCase()} request.`,
+                    }),
+                  }
+                : {};
+
               hookLog = {
                 ...hook,
                 operation: hookPayload.operation as any,
@@ -511,6 +560,7 @@ export class WebhookInvoker {
                 response: JSON.stringify(responsePayload),
                 triggered_by: user?.email,
                 conditions: JSON.stringify(filters),
+                ...emptyBodyError,
               };
             }
           }
@@ -608,12 +658,12 @@ export class WebhookInvoker {
             const res = await (
               await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
             ).sendMessage(
-              parseBody(notification?.payload?.body, webhookData),
+              parseBody(notification?.payload?.body, webhookData, vars),
               JSON.parse(
                 JSON.stringify(notification?.payload),
                 (_key, value) => {
                   return typeof value === 'string'
-                    ? parseBody(value, webhookData)
+                    ? parseBody(value, webhookData, vars)
                     : value;
                 },
               ),
@@ -647,14 +697,14 @@ export class WebhookInvoker {
       }
     } catch (e) {
       if (e.response) {
-        this.logger.error({
+        this.logger.debug({
           data: e.response.data,
           status: e.response.status,
           url: e.response.config?.url,
           message: e.message,
         });
       } else {
-        this.logger.error(e.message, e.stack);
+        this.logger.debug(e.message, e.stack);
       }
       if (['ERROR', 'ALL'].includes(webhookLogLevel) || isEE) {
         hookLog = {
@@ -833,6 +883,24 @@ export class WebhookInvoker {
           e?.message?.includes?.('maxBodyLength')
         ) {
           throw new Error(`Request body too large for ${reqPayload.url}`);
+        }
+
+        // Check for invalid header content (CRLF injection guard — axios >=1.15.0
+        // rejects header values containing \r or \n. Webhook header templates can
+        // resolve to multi-line values when bound to free-form record fields.)
+        if (e?.message?.includes?.('Invalid character in header content')) {
+          throw new Error(
+            `Webhook header contains invalid characters (CR/LF) for ${reqPayload.url} — check header templates`,
+          );
+        }
+
+        // Check for response size errors (axios >=1.15.1 enforces maxContentLength
+        // on streamed responses, which was previously silently ignored.)
+        if (
+          e?.code === 'ERR_FR_MAX_CONTENT_LENGTH_EXCEEDED' ||
+          e?.message?.includes?.('maxContentLength')
+        ) {
+          throw new Error(`Response body too large for ${reqPayload.url}`);
         }
 
         // Check for cancelled requests

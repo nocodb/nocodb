@@ -36,7 +36,7 @@ const showSidebarBtn = computed(() => {
   <div class="nc-sidebar-header nc-active-project" :data-workspace-title="activeWorkspace?.title">
     <template v-if="!isWorkspacesLoading && !isLoading">
       <div class="nc-sidebar-header-content text-subHeading2 truncate">
-        <slot> Bases </slot>
+        <slot> {{ $t('objects.projects') }} </slot>
       </div>
 
       <div class="flex items-center gap-0.5">

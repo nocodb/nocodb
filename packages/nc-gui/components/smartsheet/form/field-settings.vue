@@ -96,6 +96,9 @@ const columnSupportsScanning = (elementType: UITypes) =>
       </div>
     </div>
 
+    <!-- Browser Autofill Settings -->
+    <SmartsheetFormFieldSettingsAutocomplete />
+
     <!-- Field Appearance Settings -->
     <div
       v-if="isSelectTypeCol(activeField.uidt)"
@@ -105,7 +108,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
       <div class="flex flex-col gap-6">
         <!-- Select type field Options Layout  -->
         <div>
-          <div class="text-nc-content-gray font-medium">Options layout</div>
+          <div class="text-nc-content-gray font-medium">{{ $t('labels.optionsLayout') }}</div>
 
           <a-radio-group
             :value="!!activeField.meta.isList"

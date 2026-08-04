@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AIRecordType } from 'nocodb-sdk'
+import { isSmartText } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 const props = defineProps<{
@@ -28,6 +29,10 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isInterfaceUi = useIsInterfaceUi()
+
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isGallery = inject(IsGalleryInj, ref(false))
@@ -39,6 +44,14 @@ const readOnlyInj = inject(ReadonlyInj, ref(false))
 const isUnderFormula = inject(IsUnderFormulaInj, ref(false))
 
 const cellEventHook = inject(CellEventHookInj, null)
+
+// SmartText modal saves via its own backend endpoint, bypassing the cell's
+// v-model auto-save. The expanded form fetches its own copy of the row
+// (different object reference from the grid's cached row), so a local
+// mutation here doesn't reach the canvas. Trigger the expanded form's
+// reloadHook — it propagates to the parent grid's row reload + canvas
+// redraw, mirroring the rich-text auto-save chain.
+const reloadRowHook = inject(ReloadRowDataHookInj, undefined)
 
 const active = inject(ActiveCellInj, null)
 
@@ -186,8 +199,19 @@ const isRichMode = computed(() => {
   return meta?.richMode
 })
 
+// SmartText cells are edited via the SmartText side panel — the rich text
+// expand modal would just show raw markdown, so suppress the expand affordance.
+const isSmartMode = computed(() => isSmartText(column?.value))
+
+// Render-only flag — SmartText cells preview their stored markdown the same
+// way the grid canvas does (LongText.ts treats SmartText as rich-mode for
+// rendering). Form view still uses the textarea so users can type input.
+// Edit-mode flows continue to gate on isRichMode so the LongText rich modal
+// doesn't auto-open for SmartText cells (they have their own modal).
+const isRichPreview = computed(() => isRichMode.value || (isSmartMode.value && !isForm.value))
+
 const richTextContent = computedAsync(async () => {
-  if (isRichMode.value && vModel.value) {
+  if (isRichPreview.value && vModel.value) {
     return Promise.resolve(
       NcMarkdownParser.parse(
         unref(vModel.value),
@@ -206,8 +230,33 @@ const richTextContent = computedAsync(async () => {
   return Promise.resolve('')
 })
 
+const isSmartTextModalOpen = ref(false)
+
 const onExpand = () => {
+  if (isSmartMode.value) {
+    if (isExpandedFormOpen.value) {
+      isSmartTextModalOpen.value = true
+    }
+    // Outside the expanded form (gallery / kanban card) the SmartText modal
+    // isn't mounted here — opening the LongText rich modal would surface raw
+    // markdown, which is worse than no-op. The user reaches the modal by
+    // opening the row.
+    return
+  }
   isVisible.value = true
+}
+
+const onSmartTextSaved = (markdown: string | null) => {
+  // Mirror the new markdown into the expanded form's local row copy so the
+  // form preview updates immediately (without waiting for the reload below).
+  if (currentRow.value?.row && column?.value?.title) {
+    currentRow.value.row[column.value.title] = markdown
+  }
+  // Propagate to the parent grid — the expanded form's reloadHook reloads
+  // the row from the server, which refreshes the canvas's cached row and
+  // forces a redraw. Required because the expanded form's row is a fresh
+  // server-fetched object, not the same reference as the canvas cache.
+  reloadRowHook?.trigger(null)
 }
 
 const onMouseMove = (e: MouseEvent) => {
@@ -277,8 +326,14 @@ if (props.isAi) {
   })
 }
 
+// Click-to-edit (grid / expanded record / interface list viz) jumps rich & AI
+// cells straight to the expanded modal. The interface record form is excluded:
+// there `editEnabled` is a capability binding — a config flip (e.g. record
+// review `edit_fields` off → inline) transitions it without user intent — and
+// rich text edits inline. Scoped to interface form surfaces only so classic
+// product behavior is untouched.
 watch(editEnabled, () => {
-  if (editEnabled.value && (isRichMode.value || props.isAi)) {
+  if (editEnabled.value && (isRichMode.value || props.isAi) && !(isForm.value && isInterfaceUi.value)) {
     isVisible.value = true
   }
 })
@@ -503,13 +558,14 @@ useResizeObserver(inputWrapperRef, () => {
             }"
             :autofocus="false"
             show-menu
+            sync-value-change
             :read-only="readOnly"
           />
         </div>
       </div>
 
       <div
-        v-else-if="isRichMode"
+        v-else-if="isRichPreview"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :class="[
           isExpandedFormOpen ? 'nc-scrollbar-thin' : 'overflow-hidden',
@@ -579,6 +635,8 @@ useResizeObserver(inputWrapperRef, () => {
             maxHeight: 'min(800px, calc(100vh - 200px))',
           }"
           :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
+          :readonly="isSmartMode && isExpandedFormOpen"
+          :autocomplete="formFieldAutocomplete"
           @blur="editEnabled = false"
           @keydown.alt.stop
           @keydown.alt.enter.stop
@@ -618,14 +676,14 @@ useResizeObserver(inputWrapperRef, () => {
                 {{
                   user?.id === props.aiMeta?.lastModifiedBy
                     ? 'you'
-                    : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                    : extractUserDisplayNameOrEmail(idUserMap[props.aiMeta?.lastModifiedBy])
                 }}
               </template>
               Edited by
               {{
                 user?.id === props.aiMeta?.lastModifiedBy
                   ? 'you'
-                  : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                  : extractUserDisplayNameOrEmail(idUserMap[props.aiMeta?.lastModifiedBy])
               }}
             </NcTooltip>
             <span v-else class="text-nc-content-purple-light truncate flex-1">Generated by AI</span>
@@ -673,7 +731,7 @@ useResizeObserver(inputWrapperRef, () => {
 
       <div
         v-if="!isPageDesignerPreviewPanel"
-        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 items-center gap-1"
+        class="!absolute nc-text-area-expand-btn z-3 items-center gap-1"
         :class="{
           'active': active && isCanvasInjected,
           'right-1': isForm,
@@ -686,6 +744,12 @@ useResizeObserver(inputWrapperRef, () => {
             !isRichMode &&
             ((editEnabled && !isVisible) || isForm || (isUnderFormula && isVisible)),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm) || isUnderFormula,
+          // SmartText cells inside the expanded form keep the expand button
+          // always visible — keyboard-only users have no way to open the
+          // SmartText editor otherwise (the hover-revealed affordance is
+          // unreachable via Tab).
+          '!flex': isExpandedFormOpen && isSmartMode,
+          '!hidden group-hover:block': !(isExpandedFormOpen && isSmartMode),
         }"
       >
         <NcTooltip
@@ -714,7 +778,7 @@ useResizeObserver(inputWrapperRef, () => {
             </template>
           </NcButton>
         </NcTooltip>
-        <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
+        <NcTooltip v-if="!isVisible && !isForm && (!isSmartMode || isExpandedFormOpen)" placement="bottom" class="nc-action-icon">
           <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
           <NcButton
             type="secondary"
@@ -793,7 +857,7 @@ useResizeObserver(inputWrapperRef, () => {
                   {{
                     user?.id === props.aiMeta?.lastModifiedBy
                       ? 'you'
-                      : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                      : extractUserDisplayNameOrEmail(idUserMap[props.aiMeta?.lastModifiedBy])
                   }}
                 </span>
                 <span v-else class="text-nc-content-purple-dark truncate">Generated by AI</span>
@@ -876,9 +940,29 @@ useResizeObserver(inputWrapperRef, () => {
           />
         </div>
 
-        <CellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
+        <CellRichText
+          v-else
+          v-model:value="vModel"
+          show-menu
+          full-mode
+          sync-value-change
+          :read-only="readOnly"
+          @close="handleClose"
+        />
       </div>
     </a-modal>
+
+    <CellSmartTextModal
+      v-if="isEeUI && isSmartMode && isExpandedFormOpen"
+      v-model:visible="isSmartTextModalOpen"
+      :table-id="meta?.id"
+      :row-id="rowId"
+      :column-id="column?.id"
+      :column-title="column?.title"
+      :column="column"
+      :read-only="readOnly"
+      @saved="onSmartTextSaved"
+    />
   </div>
 </template>
 

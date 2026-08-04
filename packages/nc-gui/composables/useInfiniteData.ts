@@ -404,9 +404,7 @@ export function useInfiniteData(args: {
         return
       }
 
-      newItems.forEach((item) => {
-        dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
-      })
+      upsertCachedRows(dataCache.cachedRows.value, newItems, (row) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
       dataCache.chunkStates.value[chunkId] = 'loaded'
     } catch (error) {
       console.error('Error fetching chunk:', error)
@@ -595,9 +593,9 @@ export function useInfiniteData(args: {
               getEvaluatedRowMetaRowColorInfo,
               evaluateButtonVisibility,
             )
-            rows.forEach((item: any) => {
-              dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
-            })
+            upsertCachedRows(dataCache.cachedRows.value, rows, (row) =>
+              extractPkFromRow(row, meta.value?.columns as ColumnType[]),
+            )
             dataCache.chunkStates.value[request.chunkId] = 'loaded'
 
             allFormattedRows.push({ rows, path: request.path })
@@ -621,9 +619,7 @@ export function useInfiniteData(args: {
 
       for (const { request, rows, dataCache } of processedChunks) {
         try {
-          rows.forEach((item: any) => {
-            dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
-          })
+          upsertCachedRows(dataCache.cachedRows.value, rows, (row) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
 
           dataCache.chunkStates.value[request.chunkId] = 'loaded'
           request.resolve(undefined)

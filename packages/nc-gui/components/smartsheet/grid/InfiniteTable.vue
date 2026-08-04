@@ -268,7 +268,7 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
 
   try {
     const newItems = await loadData({ offset, limit })
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
+    upsertCachedRows(cachedRows.value, newItems, (row) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
 
     chunkStates.value[chunkId] = 'loaded'
     if (isInitialLoad) {

@@ -36,8 +36,8 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
             v-model="formState[field.title]"
             :row="row"
             class="nc-input"
-            :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
-            :data-testid="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+            :class="`nc-form-input-${toSafeClassName(field.title)}`"
+            :data-testid="`nc-form-input-${toSafeClassName(field.title)}`"
             :column="field"
           />
           <LazySmartsheetCell
@@ -45,13 +45,13 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
             v-model="formState[field.title]"
             class="nc-input truncate"
             :class="[
-              `nc-form-input-${field.title.replaceAll(' ', '')}`,
+              `nc-form-input-${toSafeClassName(field.title)}`,
               {
                 'layout-list': field.meta.isList,
                 'nc-input-has-attachments': isAttachmentCellWithFiles(field),
               },
             ]"
-            :data-testid="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+            :data-testid="`nc-form-input-${toSafeClassName(field.title)}`"
             :column="field"
             :edit-enabled="true"
           />

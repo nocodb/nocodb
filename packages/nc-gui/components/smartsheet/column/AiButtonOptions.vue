@@ -692,7 +692,7 @@ onBeforeUnmount(() => {
                                     v-if="isVirtualCol(field)"
                                     :model-value="selectedRecord?.row?.row?.[field.title]"
                                     class="mt-0 nc-input nc-cell"
-                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :class="[`nc-form-input-${toSafeClassName(field.title)}`, { readonly: field?.read_only }]"
                                     :column="field"
                                     :read-only="true"
                                   />
@@ -701,7 +701,7 @@ onBeforeUnmount(() => {
                                     v-else
                                     :model-value="selectedRecord?.row?.row?.[field.title]"
                                     class="nc-input truncate"
-                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :class="[`nc-form-input-${toSafeClassName(field.title)}`, { readonly: field?.read_only }]"
                                     :column="field"
                                     :edit-enabled="true"
                                     :read-only="true"
@@ -867,7 +867,7 @@ onBeforeUnmount(() => {
                                     v-if="isVirtualCol(field)"
                                     :model-value="previewOutputRow.row[field.title]"
                                     class="mt-0 nc-input nc-cell"
-                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :class="[`nc-form-input-${toSafeClassName(field.title)}`, { readonly: field?.read_only }]"
                                     :column="field"
                                     :read-only="true"
                                   />
@@ -876,7 +876,7 @@ onBeforeUnmount(() => {
                                     v-else
                                     v-model="previewOutputRow.row[field.title]"
                                     class="nc-input truncate"
-                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :class="[`nc-form-input-${toSafeClassName(field.title)}`, { readonly: field?.read_only }]"
                                     :column="field"
                                     :edit-enabled="true"
                                     :read-only="true"

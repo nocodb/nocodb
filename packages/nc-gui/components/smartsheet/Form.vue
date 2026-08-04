@@ -1128,7 +1128,7 @@ const updateFieldTitle = (value: string) => {
 
 const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
   const field = document.querySelector(
-    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(title?.replaceAll(' ', ''))}`,
+    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(toSafeClassName(title))}`,
   )
 
   if (field) {
@@ -1891,7 +1891,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             :key="element.id"
                             class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-4 lg:p-6"
                             :class="[
-                              `nc-form-drag-${element.title.replaceAll(' ', '')}`,
+                              `nc-form-drag-${toSafeClassName(element.title)}`,
                               {
                                 'rounded-2xl border-2 my-1': isEditable,
                               },

@@ -23,7 +23,7 @@ import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { NcError } from '~/helpers/catchError';
-import { normalizeDr } from '~/helpers/dbHelpers';
+import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import {
   detectColumnSchemaPropsChanged,
   resolvePkAfterSync,
@@ -183,7 +183,7 @@ export class MetaDiffsService {
 
     // @ts-ignore
     const tableList: Array<{ tn: string }> = (
-      await sqlClient.tableList({ schema: source.getConfig()?.schema })
+      await sqlClient.tableList({ schema: getSourceIntrospectionSchema(source) })
     )?.data?.list?.filter((t) => {
       if (base?.prefix && source.is_meta) {
         return t.tn?.startsWith(base?.prefix);
@@ -212,7 +212,7 @@ export class MetaDiffsService {
       cstn?: string;
       dr?: string;
     }> = (
-      await sqlClient.relationListAll({ schema: source.getConfig()?.schema })
+      await sqlClient.relationListAll({ schema: getSourceIntrospectionSchema(source) })
     )?.data?.list;
 
     for (const table of tableList) {
@@ -256,7 +256,7 @@ export class MetaDiffsService {
       colListRef[table.tn] = (
         await sqlClient.columnList({
           tn: table.tn,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 
@@ -526,7 +526,7 @@ export class MetaDiffsService {
           (
             await sqlClient.columnList({
               tn: childModel.table_name,
-              schema: source.getConfig()?.schema,
+              schema: getSourceIntrospectionSchema(source),
             })
           )?.data?.list);
 
@@ -535,7 +535,7 @@ export class MetaDiffsService {
           (
             await sqlClient.columnList({
               tn: parentModel.table_name,
-              schema: source.getConfig()?.schema,
+              schema: getSourceIntrospectionSchema(source),
             })
           )?.data?.list);
 
@@ -544,7 +544,7 @@ export class MetaDiffsService {
           (
             await sqlClient.columnList({
               tn: m2mTable.tn,
-              schema: source.getConfig()?.schema,
+              schema: getSourceIntrospectionSchema(source),
             })
           )?.data?.list);
 
@@ -686,7 +686,7 @@ export class MetaDiffsService {
       tn: string;
       type: 'view';
     }> = (
-      await sqlClient.viewList({ schema: source.getConfig()?.schema })
+      await sqlClient.viewList({ schema: getSourceIntrospectionSchema(source) })
     )?.data?.list
       ?.map((v) => {
         v.type = 'view';
@@ -739,7 +739,7 @@ export class MetaDiffsService {
       colListRef[view.tn] = (
         await sqlClient.columnList({
           tn: view.tn,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 
@@ -935,7 +935,7 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: source.getConfig()?.schema,
+                  schema: getSourceIntrospectionSchema(source),
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
@@ -967,7 +967,7 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: source.getConfig()?.schema,
+                  schema: getSourceIntrospectionSchema(source),
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
@@ -1002,7 +1002,7 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: source.getConfig()?.schema,
+                  schema: getSourceIntrospectionSchema(source),
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
@@ -1025,7 +1025,7 @@ export class MetaDiffsService {
               const columns = (
                 await sqlClient.columnList({
                   tn: table_name,
-                  schema: source.getConfig()?.schema,
+                  schema: getSourceIntrospectionSchema(source),
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);

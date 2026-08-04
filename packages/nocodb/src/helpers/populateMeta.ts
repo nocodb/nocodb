@@ -10,7 +10,7 @@ import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
 import Source from '~/models/Source';
 import { META_COL_NAME } from '~/constants';
-import { normalizeDr } from '~/helpers/dbHelpers';
+import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
@@ -288,13 +288,13 @@ export async function populateMeta(
 
   /* Get all relations */
   const relations = (
-    await sqlClient.relationListAll({ schema: source.getConfig()?.schema })
+    await sqlClient.relationListAll({ schema: getSourceIntrospectionSchema(source) })
   )?.data?.list;
 
   info.relationsCount = relations.length;
 
   let tables = (
-    await sqlClient.tableList({ schema: source.getConfig()?.schema })
+    await sqlClient.tableList({ schema: getSourceIntrospectionSchema(source) })
   )?.data?.list
     ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
     ?.map((t) => {
@@ -362,7 +362,7 @@ export async function populateMeta(
       > = (
         await sqlClient.columnList({
           tn: table.tn,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 
@@ -570,7 +570,7 @@ export async function populateMeta(
 
   let views: Array<{ order: number; table_name: string; title: string }> = (
     await sqlClient.viewList({
-      schema: source.getConfig()?.schema,
+      schema: getSourceIntrospectionSchema(source),
     })
   )?.data?.list
     // ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
@@ -595,7 +595,7 @@ export async function populateMeta(
       const columns = (
         await sqlClient.columnList({
           tn: table.table_name,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 

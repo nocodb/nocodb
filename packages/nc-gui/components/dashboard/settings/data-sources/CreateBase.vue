@@ -121,7 +121,9 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-      clientValidations['dataSource.searchPath.0'] = selectedIntegration.value ? [] : [fieldRequiredValidator()]
+      // Schema is optional for PG — an empty value is treated as undefined on
+      // submit and the source inherits the integration / DB default (public).
+      clientValidations['dataSource.searchPath.0'] = []
       break
   }
 
@@ -370,7 +372,13 @@ const changeIntegration = (triggerTestConnection = false) => {
       connection: {
         database: selectedIntegrationDb.value,
       },
-      searchPath: selectedIntegration.value.config?.searchPath,
+      // Always surface an (editable) schema field for schema-aware clients, even
+      // when the integration has no searchPath stored — otherwise the input is
+      // hidden and the schema can't be set. Empty means "use the integration
+      // default" (stripped to undefined on submit).
+      searchPath:
+        selectedIntegration.value.config?.searchPath ??
+        ([ClientType.PG, ClientType.MSSQL].includes(selectedIntegration.value.sub_type) ? [''] : undefined),
     }
   } else {
     onClientChange()
@@ -671,8 +679,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           <!-- Schema name -->
                           <a-form-item
                             v-if="
-                              ([ClientType.PG].includes(formState.dataSource.client) ||
-                                [ClientType.PG].includes(selectedIntegration?.sub_type)) &&
+                              ([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client) ||
+                                [ClientType.PG, ClientType.MSSQL].includes(selectedIntegration?.sub_type)) &&
                               formState.dataSource.searchPath
                             "
                             :label="$t('labels.schemaName')"
@@ -680,6 +688,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           >
                             <a-input
                               v-model:value="formState.dataSource.searchPath[0]"
+                              data-testid="nc-extdb-schema-name"
                               :placeholder="selectedIntegrationSchema && `${selectedIntegrationSchema} (default)`"
                             />
                           </a-form-item>

@@ -167,7 +167,9 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      // Schema is optional for PG — an empty value is treated as undefined on
+      // submit and the connection uses the DB default (public).
+      clientValidations['dataSource.searchPath.0'] = []
       break
   }
 
@@ -291,6 +293,18 @@ const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
+// PG/MSSQL schema is optional: an empty searchPath (`['']`, `[]`, …) means "use
+// the DB default". Strip it to `undefined` so NEITHER save nor test-connection
+// posts a meaningless value — this form bypasses the integration-merge path, and
+// knex renders `['']` as `set search_path to ""` and `[]` as `set search_path to`,
+// both of which Postgres rejects. Shared so the two call sites can't drift.
+const stripEmptySearchPath = <T extends { searchPath?: any }>(config: T): T => {
+  if (config && !config.searchPath?.filter?.(Boolean).length) {
+    config.searchPath = undefined
+  }
+  return config
+}
+
 const createOrUpdateIntegration = async () => {
   // if it is edit mode and activeIntegration id is not present then return
   if (isEditMode.value && !activeIntegration.value?.id) return
@@ -307,7 +321,7 @@ const createOrUpdateIntegration = async () => {
 
     const connection = getConnectionConfig()
 
-    const config = { ...formState.value.dataSource, connection }
+    const config = stripEmptySearchPath({ ...formState.value.dataSource, connection })
 
     if (!isEditMode.value) {
       await saveIntegration(
@@ -381,10 +395,10 @@ const testConnection = async (retry = 0, initialConfig = null, initialError = nu
 
       connection.database = getTestDatabaseName(formState.value.dataSource)!
 
-      const testConnectionConfig = {
+      const testConnectionConfig = stripEmptySearchPath({
         ...formState.value.dataSource,
         connection,
-      }
+      })
 
       const result = await api.utils.testConnection(testConnectionConfig)
 
@@ -564,6 +578,16 @@ onMounted(async () => {
       extraParameters: tempParameters,
       sslUse: SSLUsage.No,
       is_private: activeIntegration.value?.is_private,
+    }
+
+    // Ensure a schema-aware connection always exposes an (editable) schema field
+    // when editing — a stored config with no searchPath would otherwise hide it,
+    // leaving no way to set/change the schema on an existing connection.
+    if (
+      [ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) &&
+      !formState.value.dataSource.searchPath
+    ) {
+      formState.value.dataSource.searchPath = ['']
     }
 
     if (formState.value.dataSource?.connection?.password === null) {
@@ -963,11 +987,11 @@ watch(
                       <a-col :span="12">
                         <!-- Schema name -->
                         <a-form-item
-                          v-if="[ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
+                          v-if="[ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client) && formState.dataSource.searchPath"
                           :label="$t('labels.schemaName')"
                           v-bind="validateInfos['dataSource.searchPath.0']"
                         >
-                          <a-input v-model:value="formState.dataSource.searchPath[0]" />
+                          <a-input v-model:value="formState.dataSource.searchPath[0]" data-testid="nc-extdb-schema-name" />
                         </a-form-item>
                       </a-col>
                     </a-row>

@@ -273,6 +273,7 @@ export const extractCallExpressionReferencedInfo = ({
     case 'YEAR':
     case 'HOUR':
     case 'WEEKDAY':
+    case 'WEEKNUM':
     case 'LEN':
     case 'DATESTR':
     case 'AND':

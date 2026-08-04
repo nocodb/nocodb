@@ -928,6 +928,60 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
 
+  WEEKNUM: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#weeknum`,
+
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+        type: FormulaDataTypes.NUMERIC,
+      },
+      custom(_argTypes: FormulaDataTypes[], parsedTree: any) {
+        if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
+          if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.firstParamWeekNumHaveDate' },
+              'First parameter of WEEKNUM should be a date'
+            );
+          }
+        }
+
+        // if second argument is present and literal then validate it
+        if (
+          parsedTree.arguments[1] &&
+          parsedTree.arguments[1].type === JSEPNode.LITERAL
+        ) {
+          const value = parsedTree.arguments[1].value;
+          if (
+            typeof value !== 'string' ||
+            ![
+              'sunday',
+              'monday',
+              'tuesday',
+              'wednesday',
+              'thursday',
+              'friday',
+              'saturday',
+            ].includes(value.toLowerCase())
+          ) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.secondParamWeekNumHaveDate' },
+              'Second parameter of WEEKNUM should be day of week string'
+            );
+          }
+        }
+      },
+    },
+    description:
+      'Retrieve the week number of the year as an integer (1-54). Week 1 is the week containing January 1st, and weeks start on Sunday by default.',
+    syntax: 'WEEKNUM(date, [startDayOfWeek])',
+    examples: ['WEEKNUM("2021-06-09")', 'WEEKNUM(NOW(), "monday")'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+
   TRUE: {
     validation: {
       args: {

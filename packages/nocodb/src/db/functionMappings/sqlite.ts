@@ -12,7 +12,10 @@ import commonFns, {
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
-import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {
+  getWeekdayByText,
+  getWeekStartOffsetSunday,
+} from '~/helpers/formulaFnHelper';
 import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const sqlite3 = {
@@ -232,6 +235,23 @@ const sqlite3 = {
               )}'`
             : (await fn(pt.arguments[0])).builder
         }) - 1 - ${getWeekdayByText(pt?.arguments[1]?.value)} % 7 + 7) % 7`,
+      ),
+    };
+  },
+  WEEKNUM: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Excel-compatible WEEKNUM: week 1 is the week containing Jan 1, weeks start
+    // on Sunday by default. strftime('%w') is 0 (Sunday) .. 6 (Saturday);
+    // strftime('%j') is the 1-based day of the year.
+    const source =
+      pt.arguments[0].type === 'Literal'
+        ? `'${dayjs((await fn(pt.arguments[0])).builder).format('YYYY-MM-DD')}'`
+        : `(${(await fn(pt.arguments[0])).builder})`;
+    const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
+    const doy = `CAST(strftime('%j', ${source}) AS INTEGER)`;
+    const dow = `CAST(strftime('%w', ${source}) AS INTEGER)`;
+    return {
+      builder: knex.raw(
+        `CAST((((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7) + 1 AS INTEGER)`,
       ),
     };
   },

@@ -101,6 +101,10 @@ export class PgSourceSearchPathBackfillMigration {
       })
       .select('id', 'base_id', 'fk_workspace_id', 'type');
 
+    this.logger.log(
+      `Found ${rows.length} candidate source(s) (external integration-backed pg/mssql) to evaluate`,
+    );
+
     let pinned = 0;
 
     for (const row of rows) {
@@ -138,6 +142,12 @@ export class PgSourceSearchPathBackfillMigration {
         // and every other instance invalidates via the version bump.
         await NcConnectionMgrv2.resetSource(source.id);
         pinned++;
+
+        // Per-pin audit line — this migration mutates source config, so record
+        // exactly which sources were changed and to what.
+        this.logger.log(
+          `Pinned source ${source.id} (base ${row.base_id}) searchPath -> [${searchPath[0]}]`,
+        );
       } catch (e) {
         this.logger.error(
           `Failed to backfill searchPath for source ${row.id}: ${e.message}`,

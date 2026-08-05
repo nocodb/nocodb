@@ -1,6 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bull';
+import { nanoid } from 'nanoid';
 import { Timer } from 'nocodb-sdk';
 import type { JobData } from '~/interface/Jobs';
 import {
@@ -16,6 +17,14 @@ import { JobsMap } from '~/modules/jobs/jobs-map.service';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
 import { TelemetryService } from '~/services/telemetry.service';
+import {
+  acquireLock,
+  JOB_LOCK_HEARTBEAT_MS,
+  JOB_LOCK_PREFIX,
+  JOB_LOCK_TTL_SECONDS,
+  releaseLock,
+  renewLock,
+} from '~/helpers/lockHelpers';
 
 const NC_WORKER_CONCURRENCY = parseWorkerConcurrency(
   process.env.NC_WORKER_CONCURRENCY,
@@ -28,6 +37,17 @@ const LOCAL_CONCURRENCY_LIMIT = {
 };
 
 export const LOCAL_JOB_COUNT_MAP = new Map<string, number>();
+
+/**
+ * Jobs that must never have more than one execution running at a time for a
+ * given job id. Bull can re-deliver a "stalled" long-running job while the
+ * original execution is still alive; for these jobs a concurrent second run
+ * causes real damage (e.g. duplicateBase issues concurrent CREATE TABLE into the
+ * same schema → `pg_class_relname_nsp_index` unique violation). Each execution
+ * takes a heartbeat-renewed distributed lock keyed on the job id; the loser
+ * requeues. Extend this set as other jobs need the same guarantee.
+ */
+const IDEMPOTENT_JOBS = new Set<string>([JobTypes.DuplicateBase]);
 
 @Processor(JOBS_QUEUE)
 export class JobsProcessor {
@@ -76,9 +96,36 @@ export class JobsProcessor {
       return;
     }
 
+    // Idempotency guard: for allowlisted jobs, hold a heartbeat-renewed
+    // distributed lock keyed on the job id so a stalled Bull re-delivery cannot
+    // run a second execution concurrently with the original. If the lock is
+    // already held by a live sibling, defer via the normal requeue backoff —
+    // the sibling either finishes (and this retry no-ops on terminal state) or
+    // dies (its lease lapses and this retry takes over).
+    const guarded = IDEMPOTENT_JOBS.has(jobName);
+    const lockKey = `${JOB_LOCK_PREFIX}${job.id}`;
+    const lockId = nanoid();
+
+    if (guarded) {
+      const acquired = await acquireLock(
+        lockKey,
+        lockId,
+        0,
+        JOB_LOCK_TTL_SECONDS,
+      );
+      if (!acquired) {
+        this.logger.warn(
+          `Job '${job.id}' (${jobName}) is already running; requeueing to avoid concurrent execution`,
+        );
+        await this.requeue(job);
+        return;
+      }
+    }
+
     let warningTime = 1;
     let incremented = false;
     let longProcessWarning: Timer | undefined;
+    let heartbeat: ReturnType<typeof setInterval> | undefined;
 
     try {
       longProcessWarning = Timer.start(async (timer) => {
@@ -91,6 +138,20 @@ export class JobsProcessor {
           timer.start();
         }
       }, 10 * 60 * 1000);
+
+      if (guarded) {
+        // Periodic signalling: keep renewing the lease while this execution
+        // runs so it never expires under us. unref() prevents the timer from
+        // holding the event loop open during shutdown.
+        heartbeat = setInterval(() => {
+          renewLock(lockKey, lockId, JOB_LOCK_TTL_SECONDS).catch((e) =>
+            this.logger.warn(
+              `Failed to renew lock for job '${job.id}': ${e.message}`,
+            ),
+          );
+        }, JOB_LOCK_HEARTBEAT_MS);
+        heartbeat.unref?.();
+      }
 
       if (localLimit !== undefined) {
         LOCAL_JOB_COUNT_MAP.set(jobName, localRunning + 1);
@@ -108,6 +169,12 @@ export class JobsProcessor {
         LOCAL_JOB_COUNT_MAP.set(jobName, Math.max(0, current - 1));
       }
       longProcessWarning?.stop();
+      if (heartbeat) {
+        clearInterval(heartbeat);
+      }
+      if (guarded) {
+        await releaseLock(lockKey, lockId);
+      }
     }
   }
 

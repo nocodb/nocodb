@@ -5257,6 +5257,8 @@
       "interfaceLayoutInUse": "This layout is in use and cannot be deleted.",
       "interfaceUserFilterSupportedFields": "Only showing supported fields.",
       "interfaceTabFiltersActive": "Hidden filter conditions from {tab} are active",
+      "interfaceTabShowingAllRecordsIn": "Showing all records in {table}",
+      "interfaceTabShowingAllRecords": "Showing all records",
       "textWidgetEmptyPrompt": "Double-click to add text",
       "numberColorConditions": "Color the number based on conditions",
       "siteRefusesEmbedding": "{host} doesn't allow embedding.",

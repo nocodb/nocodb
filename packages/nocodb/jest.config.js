@@ -5,7 +5,7 @@
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts', 'tsx', 'jsx', 'node'],
   rootDir: 'src',
-  testRegex: '(Integration|Source)\\.spec\\.ts$',
+  testRegex: '(Integration|Source|Unit)\\.spec\\.ts$',
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
@@ -34,7 +34,15 @@ module.exports = {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
-        tsconfig: 'tsconfig.json',
+        // tsconfig.json is written for `tsc --noEmit` type checking; ts-jest
+        // needs to actually emit, and its incremental program trips over the
+        // shared .tsbuildinfo. Override just those, keeping path mappings.
+        tsconfig: {
+          noEmit: false,
+          incremental: false,
+          module: 'commonjs',
+          moduleResolution: 'node',
+        },
       },
     ],
   },

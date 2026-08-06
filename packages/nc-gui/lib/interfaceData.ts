@@ -265,6 +265,13 @@ export interface InterfacePageDataApi {
     limit?: number
     offset?: number
     search?: string
+    /**
+     * The record-form field element requesting the read — the server gates
+     * `fields` on that element's allow-list (its viz curation, else the
+     * related table's non-system columns). Omit it and `fields` is ignored,
+     * leaving the pk + display-value default.
+     */
+    fieldElementId?: string
     fields?: string
     /** Related-table where/sort (data-API grammar) — the LTAR embedded-viz renderers. */
     where?: string

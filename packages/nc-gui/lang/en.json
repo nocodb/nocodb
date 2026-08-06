@@ -4250,8 +4250,6 @@
     "noSchemaChanges": "No schema changes to publish",
     "seeNComments": "See {n} comment | See {n} comments",
     "conditionallyVisibleField": "Conditionally visible field",
-    "fieldSizeTopLabelsOnly": "Field size applies only when the group's field labels are on top",
-    "sideLabelsMultiFieldRows": "Cannot be configured for rows with multiple fields.",
     "collapsibleGroups": "Allow groups with titles to be collapsed",
     "bookmarks": "Bookmarks",
     "scopeReadOnly": "View records, tables, fields, views, and comments. No modifications allowed.",

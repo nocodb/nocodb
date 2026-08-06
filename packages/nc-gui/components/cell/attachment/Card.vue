@@ -117,7 +117,7 @@ const handleFileDeleteStart = () => {
 
     <div class="relative px-1 pb-1 items-center flex" :title="attachment.title">
       <div
-        class="flex w-full text-[12px] items-center text-nc-content-gray-subtle cursor-default h-5"
+        class="nc-attachment-card-title flex w-full text-[12px] items-center text-nc-content-gray-subtle cursor-default h-5"
         :class="{ truncate: !isRenamingFile }"
         @dblclick.stop="allowRename && isEditAllowed && handleFileRenameStart()"
       >
@@ -140,7 +140,7 @@ const handleFileDeleteStart = () => {
         />
       </div>
       <div
-        class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-nc-bg-default"
+        class="nc-attachment-card-actions flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-nc-bg-default"
         :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile }"
       >
         <NcTooltip placement="bottom">

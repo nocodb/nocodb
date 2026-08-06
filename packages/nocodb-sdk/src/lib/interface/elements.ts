@@ -279,8 +279,16 @@ export interface InterfaceFieldElementConfig {
   fk_detail_page_id?: string | null;
   appearance?: {
     size?: 'default' | 'lg' | 'xl';
-    /** Per-type style variant, e.g. single select: 'field' | 'list' | 'stepper'. */
+    /**
+     * Per-type style variant, e.g. single select: 'field' | 'list' | 'stepper';
+     * attachment: 'field' (card tiles, default) | 'hero' | 'carousel'.
+     */
     style?: string;
+    /**
+     * Attachment hero/carousel only — images shown per view (1-4). 1 = hero,
+     * >1 = carousel; the builder keeps `style` and this in sync.
+     */
+    quantity?: number;
     /** Horizontal cap within the field's layout row — absent = full. */
     width?: 'third' | 'half' | 'full';
   };

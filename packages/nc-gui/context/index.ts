@@ -47,6 +47,11 @@ export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injectio
 export const IsAllowedInj: InjectionKey<Ref<boolean>> = Symbol('is-allowed-injection')
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
+/** Host-tuned attachment-card display (interface record layouts): show every
+ *  attachment (no "+N more" pager) and/or the larger tile size. */
+export const AttachmentCellDisplayInj: InjectionKey<Ref<{ showAll?: boolean; largeTiles?: boolean } | null>> = Symbol(
+  'attachment-cell-display-injection',
+)
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 export const isWorkflowInj: InjectionKey<Ref<boolean>> = Symbol('is-workflow-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */

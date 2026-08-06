@@ -76,17 +76,22 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const showAllAttachments = ref(false)
 
+// Host-tuned card display (interface record layouts) — all cards, larger tiles.
+const attachmentDisplay = inject(AttachmentCellDisplayInj, ref(null))
+
+const cardWidth = computed(() => (attachmentDisplay.value?.largeTiles ? 168 : 124))
+
 const { width: sortableRefWidth } = useElementSize(sortableRef)
 
 const maxVisibleCards = computed(() => {
   // min of total visible items and max cards per row * 2 — floored at 1 so a
   // host narrower than one card (record-review's detail column) still shows
   // the first attachment instead of only a "+ N more" button
-  return Math.min(visibleItems.value.length, Math.max(1, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2))
+  return Math.min(visibleItems.value.length, Math.max(1, Math.floor((sortableRefWidth.value + 8) / (cardWidth.value + 8)) * 2))
 })
 
 const expandedFormVisibelItems = computed(() => {
-  if (showAllAttachments.value) {
+  if (showAllAttachments.value || attachmentDisplay.value?.showAll) {
     return visibleItems.value
   }
 
@@ -359,20 +364,21 @@ onUnmounted(() => {
         v-for="(item, i) in expandedFormVisibelItems"
         :key="`${item?.title}-${i}`"
         v-model:dragging="dragging"
-        class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative w-[124px] overflow-hidden"
+        class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative overflow-hidden"
+        :style="{ width: `${cardWidth}px` }"
         :attachment="item"
         :index="i"
         :allow-selection="false"
         :allow-rename="isEditAllowed"
         :allow-delete="!isReadonly"
-        preview-class-override="!h-20"
+        :preview-class-override="attachmentDisplay?.largeTiles ? '!h-28' : '!h-20'"
         :rename-inline="false"
         :confirm-to-delete="true"
         @clicked="onFileClick(item)"
         @on-delete="onRemoveFileClick(item.title, i)"
       />
     </div>
-    <div v-if="visibleItems.length > maxVisibleCards" class="mb-2">
+    <div v-if="!attachmentDisplay?.showAll && visibleItems.length > maxVisibleCards" class="mb-2">
       <NcButton type="text" size="small" @click="showAllAttachments = !showAllAttachments">
         {{
           showAllAttachments

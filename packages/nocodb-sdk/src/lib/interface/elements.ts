@@ -7,6 +7,7 @@
  */
 
 import type { Validation } from '../form';
+import type { InterfaceVisualizationConfig } from './pageConfigs';
 
 /**
  * Filter tree stored inside page configs.
@@ -290,6 +291,12 @@ export interface InterfaceFieldElementConfig {
      * (embedded view of the linked records).
      */
     show_as?: 'field' | 'view';
+    /**
+     * Links/LTAR `show_as: 'view'` — the embedded visualization over the
+     * linked records (the table-page viz vocabulary). Absent = the default
+     * lightweight list.
+     */
+    viz?: InterfaceVisualizationConfig;
     /**
      * Attachment hero/carousel only — images shown per view (1-4). 1 = hero,
      * >1 = carousel; the builder keeps `style` and this in sync.

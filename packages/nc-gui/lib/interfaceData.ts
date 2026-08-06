@@ -266,6 +266,9 @@ export interface InterfacePageDataApi {
     offset?: number
     search?: string
     fields?: string
+    /** Related-table where/sort (data-API grammar) — the LTAR embedded-viz renderers. */
+    where?: string
+    sort?: string
   }): Promise<{ list: Record<string, any>[]; pageInfo: PaginatedType }>
   /**
    * "Link record" picker candidates (related rows NOT yet linked) — same

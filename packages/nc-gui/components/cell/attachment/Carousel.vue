@@ -117,13 +117,21 @@ const openComments = ref(false)
 // outside them (interface record overlays and form pages provide IsFormInj).
 const rowComments = useRowComments()
 
+// Interface record layouts gate the viewer's comments behind the page's own
+// Comments setting — absent (every other host) leaves the decision here.
+const attachmentDisplay = inject(AttachmentCellDisplayInj, ref(null))
+
 // Carousel comments + annotations are available whenever the full-screen
 // viewer is open — including over the expanded record (the most common way to
 // open an attachment). The viewer sits on top, so its own comments panel is
 // the active one regardless of how it was opened.
 const carouselCommentsEnabled = computed(
   () =>
-    !!rowComments && !isPublic.value && isUIAllowed('commentList') && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS),
+    !!rowComments &&
+    !isPublic.value &&
+    isUIAllowed('commentList') &&
+    isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS) &&
+    attachmentDisplay.value?.allowComments !== false,
 )
 
 // Image annotations are EE-only; plain carousel comments stay available in CE.

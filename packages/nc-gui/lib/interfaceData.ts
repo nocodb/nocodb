@@ -254,8 +254,10 @@ export interface InterfacePageDataApi {
   createRecord?(data: Record<string, any>): Promise<Record<string, any>>
   /**
    * Linked records of one LTAR cell within the page scope — pk + display
-   * value only, with an optional display-value search. Read-tier: any grant
-   * that sees the page can expand the cell.
+   * value by default, or the related-table fields named in `fields`
+   * (comma-separated titles; the LTAR cards/embedded-view renderers).
+   * Optional display-value search. Read-tier: any grant that sees the page
+   * can expand the cell.
    */
   nestedList?(params: {
     rowId: string
@@ -263,6 +265,17 @@ export interface InterfacePageDataApi {
     limit?: number
     offset?: number
     search?: string
+    /**
+     * The record-form field element requesting the read — the server gates
+     * `fields` on that element's allow-list (its viz curation, else the
+     * related table's non-system columns). Omit it and `fields` is ignored,
+     * leaving the pk + display-value default.
+     */
+    fieldElementId?: string
+    fields?: string
+    /** Related-table where/sort (data-API grammar) — the LTAR embedded-viz renderers. */
+    where?: string
+    sort?: string
   }): Promise<{ list: Record<string, any>[]; pageInfo: PaginatedType }>
   /**
    * "Link record" picker candidates (related rows NOT yet linked) — same
@@ -395,7 +408,7 @@ export interface InterfacePageDataApi {
  */
 export interface InterfaceRecordSidebarApi {
   commentList(rowId: string): Promise<{ list: any[] }>
-  commentRow(rowId: string, body: { comment: string; attachments?: any[] }): Promise<any>
+  commentRow(rowId: string, body: { comment: string; attachments?: any[]; meta?: any; parent_comment_id?: string }): Promise<any>
   commentUpdate(commentId: string, body: Record<string, any>): Promise<any>
   commentDelete(commentId: string): Promise<any>
   commentResolve(commentId: string): Promise<any>

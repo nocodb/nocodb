@@ -47,6 +47,19 @@ export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injectio
 export const IsAllowedInj: InjectionKey<Ref<boolean>> = Symbol('is-allowed-injection')
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
+/** Host-tuned attachment-card display (interface record layouts): show every
+ *  attachment (no "+N more" pager), the larger tile size, and whether the
+ *  full-screen viewer may offer comments/annotations (false = the host's
+ *  Comments setting is off; absent = the viewer's own gates decide). */
+export const AttachmentCellDisplayInj: InjectionKey<
+  Ref<{ showAll?: boolean; largeTiles?: boolean; allowComments?: boolean } | null>
+> = Symbol('attachment-cell-display-injection')
+/** The attachment currently open in the full-screen viewer — the comments side
+ *  panel tags new comments with it (pin-less annotation) so they count toward
+ *  that image's badge. Absent/null = plain record comments. */
+export const AttachmentViewerCommentAnchorInj: InjectionKey<Ref<{ path?: string; url?: string; title?: string } | null>> = Symbol(
+  'attachment-viewer-comment-anchor-injection',
+)
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 export const isWorkflowInj: InjectionKey<Ref<boolean>> = Symbol('is-workflow-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
@@ -251,6 +264,13 @@ export interface LinkRecordExpandApi {
   isEnabled: (column: ColumnType) => boolean
   /** Open the record's detail surface — the picker passes the linked table's meta it already holds. */
   expand: (params: { column: ColumnType; row: Record<string, any>; relatedTableMeta: TableType }) => void
+  /**
+   * Builder-only: `isEnabled` is false and the host can offer the enable
+   * prompt, so the affordance stays live and the click configures instead of
+   * doing nothing. Absent on consumer surfaces — a viewer can't configure, so
+   * there the click is genuinely inert.
+   */
+  configure?: (params: { column: ColumnType; row: Record<string, any>; relatedTableMeta: TableType }) => void
 }
 
 export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')

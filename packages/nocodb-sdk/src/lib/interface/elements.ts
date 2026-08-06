@@ -7,6 +7,7 @@
  */
 
 import type { Validation } from '../form';
+import type { InterfaceVisualizationConfig } from './pageConfigs';
 
 /**
  * Filter tree stored inside page configs.
@@ -279,8 +280,28 @@ export interface InterfaceFieldElementConfig {
   fk_detail_page_id?: string | null;
   appearance?: {
     size?: 'default' | 'lg' | 'xl';
-    /** Per-type style variant, e.g. single select: 'field' | 'list' | 'stepper'. */
+    /**
+     * Per-type style variant, e.g. single select: 'field' | 'list' | 'stepper';
+     * attachment: 'field' (card tiles, default) | 'hero' | 'carousel';
+     * Links/LTAR field mode: 'pills' (chips, default) | 'cards'.
+     */
     style?: string;
+    /**
+     * Links/LTAR only — 'field' (inline pills/cards, default) or 'view'
+     * (embedded view of the linked records).
+     */
+    show_as?: 'field' | 'view';
+    /**
+     * Links/LTAR `show_as: 'view'` — the embedded visualization over the
+     * linked records (the table-page viz vocabulary). Absent = the default
+     * lightweight list.
+     */
+    viz?: InterfaceVisualizationConfig;
+    /**
+     * Attachment hero/carousel only — images shown per view (1-4). 1 = hero,
+     * >1 = carousel; the builder keeps `style` and this in sync.
+     */
+    quantity?: number;
     /** Horizontal cap within the field's layout row — absent = full. */
     width?: 'third' | 'half' | 'full';
   };

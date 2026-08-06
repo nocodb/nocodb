@@ -76,17 +76,42 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const showAllAttachments = ref(false)
 
+// Host-tuned card display (interface record layouts) — all cards, larger tiles.
+const attachmentDisplay = inject(AttachmentCellDisplayInj, ref(null))
+
+// Record layouts cap at TWO tiles per row — comment badges + hover actions +
+// captions need the room, and the 2-up scale matches hero/carousel. The px
+// value only feeds the "+N more" math, which showAll already bypasses.
+const cardWidthStyle = computed(() => (attachmentDisplay.value?.largeTiles ? 'calc(50% - 4px)' : '124px'))
+
+const cardWidth = computed(() => (attachmentDisplay.value?.largeTiles ? 168 : 124))
+
+// Per-attachment comment counts (annotation threads: root + replies) — only
+// where the host allows viewer comments (record layouts with Comments on) and
+// a row-comments scope exists in the tree.
+const rowCommentsCtx = useRowComments()
+
+const attachmentCommentCounts = computed(() =>
+  attachmentDisplay.value?.allowComments && rowCommentsCtx ? buildAttachmentCommentCounts(rowCommentsCtx.comments.value) : null,
+)
+
+function attachmentCommentCount(item: any): number {
+  const key = getAttachmentAnnotationKey(item)
+
+  return (key && attachmentCommentCounts.value?.get(key)) || 0
+}
+
 const { width: sortableRefWidth } = useElementSize(sortableRef)
 
 const maxVisibleCards = computed(() => {
   // min of total visible items and max cards per row * 2 — floored at 1 so a
   // host narrower than one card (record-review's detail column) still shows
   // the first attachment instead of only a "+ N more" button
-  return Math.min(visibleItems.value.length, Math.max(1, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2))
+  return Math.min(visibleItems.value.length, Math.max(1, Math.floor((sortableRefWidth.value + 8) / (cardWidth.value + 8)) * 2))
 })
 
 const expandedFormVisibelItems = computed(() => {
-  if (showAllAttachments.value) {
+  if (showAllAttachments.value || attachmentDisplay.value?.showAll) {
     return visibleItems.value
   }
 
@@ -359,20 +384,22 @@ onUnmounted(() => {
         v-for="(item, i) in expandedFormVisibelItems"
         :key="`${item?.title}-${i}`"
         v-model:dragging="dragging"
-        class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative w-[124px] overflow-hidden"
+        class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative overflow-hidden"
+        :style="{ width: cardWidthStyle }"
         :attachment="item"
         :index="i"
         :allow-selection="false"
         :allow-rename="isEditAllowed"
         :allow-delete="!isReadonly"
-        preview-class-override="!h-20"
+        :comment-count="attachmentCommentCount(item)"
+        :preview-class-override="attachmentDisplay?.largeTiles ? '!h-48' : '!h-20'"
         :rename-inline="false"
         :confirm-to-delete="true"
         @clicked="onFileClick(item)"
         @on-delete="onRemoveFileClick(item.title, i)"
       />
     </div>
-    <div v-if="visibleItems.length > maxVisibleCards" class="mb-2">
+    <div v-if="!attachmentDisplay?.showAll && visibleItems.length > maxVisibleCards" class="mb-2">
       <NcButton type="text" size="small" @click="showAllAttachments = !showAllAttachments">
         {{
           showAllAttachments

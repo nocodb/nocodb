@@ -395,7 +395,7 @@ export interface InterfacePageDataApi {
  */
 export interface InterfaceRecordSidebarApi {
   commentList(rowId: string): Promise<{ list: any[] }>
-  commentRow(rowId: string, body: { comment: string; attachments?: any[] }): Promise<any>
+  commentRow(rowId: string, body: { comment: string; attachments?: any[]; meta?: any; parent_comment_id?: string }): Promise<any>
   commentUpdate(commentId: string, body: Record<string, any>): Promise<any>
   commentDelete(commentId: string): Promise<any>
   commentResolve(commentId: string): Promise<any>

@@ -67,14 +67,13 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     try {
       if (!ignoreLoadingIndicator) isCommentsLoading.value = true
 
-      const res = ((
-        ifaceSidebar
-          ? await ifaceSidebar.commentList(rowId)
-          : await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-              operation: 'commentList',
-              row_id: rowId,
-              fk_model_id: meta.value.id as string,
-            })
+      const res = ((ifaceSidebar
+        ? await ifaceSidebar.commentList(rowId)
+        : await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+            operation: 'commentList',
+            row_id: rowId,
+            fk_model_id: meta.value.id as string,
+          })
       ).list || []) as Array<CommentTypeExtended>
 
       comments.value = res.map((comment) => {
@@ -212,6 +211,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         await ifaceSidebar.commentRow(rowId, {
           comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
           ...(attachments?.length ? { attachments } : {}),
+          ...(commentMeta !== undefined ? { meta: commentMeta } : {}),
+          ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}),
         })
       } else {
         await $api.internal.postOperation(

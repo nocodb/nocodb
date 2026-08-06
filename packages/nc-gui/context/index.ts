@@ -264,6 +264,13 @@ export interface LinkRecordExpandApi {
   isEnabled: (column: ColumnType) => boolean
   /** Open the record's detail surface — the picker passes the linked table's meta it already holds. */
   expand: (params: { column: ColumnType; row: Record<string, any>; relatedTableMeta: TableType }) => void
+  /**
+   * Builder-only: `isEnabled` is false and the host can offer the enable
+   * prompt, so the affordance stays live and the click configures instead of
+   * doing nothing. Absent on consumer surfaces — a viewer can't configure, so
+   * there the click is genuinely inert.
+   */
+  configure?: (params: { column: ColumnType; row: Record<string, any>; relatedTableMeta: TableType }) => void
 }
 
 export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')

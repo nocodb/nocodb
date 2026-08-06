@@ -79,12 +79,31 @@ const showAllAttachments = ref(false)
 // Host-tuned card display (interface record layouts) — all cards, larger tiles.
 const attachmentDisplay = inject(AttachmentCellDisplayInj, ref(null))
 
-// Record layouts cap at TWO tiles per row — comment badges + hover actions +
-// captions need the room, and the 2-up scale matches hero/carousel. The px
-// value only feeds the "+N more" math, which showAll already bypasses.
-const cardWidthStyle = computed(() => (attachmentDisplay.value?.largeTiles ? 'calc(50% - 4px)' : '124px'))
+const { width: sortableRefWidth } = useElementSize(sortableRef)
 
-const cardWidth = computed(() => (attachmentDisplay.value?.largeTiles ? 168 : 124))
+/** Below two of these side by side, the large tiles go one per row. */
+const LARGE_CARD_MIN_WIDTH = 200
+
+// Record layouts cap at TWO tiles per row — comment badges + hover actions and
+// captions need the room, and the 2-up scale matches hero/carousel. A field
+// cell too narrow for two (a side-label row, the record-review detail column)
+// drops to ONE full-width tile instead of halving: the preview keeps its tall
+// crop either way, so a half-width tile in a narrow cell renders as a sliver.
+// Unmeasured (0) stays 2-up — the roomy case is the common one, so only
+// genuinely narrow cells reflow after the first measurement.
+const cardsPerRow = computed(() => {
+  if (attachmentDisplay.value?.largeTiles) {
+    return sortableRefWidth.value && sortableRefWidth.value < LARGE_CARD_MIN_WIDTH * 2 + 8 ? 1 : 2
+  }
+
+  return Math.floor((sortableRefWidth.value + 8) / (124 + 8))
+})
+
+const cardWidthStyle = computed(() => {
+  if (!attachmentDisplay.value?.largeTiles) return '124px'
+
+  return cardsPerRow.value === 1 ? '100%' : 'calc(50% - 4px)'
+})
 
 // Per-attachment comment counts (annotation threads: root + replies) — only
 // where the host allows viewer comments (record layouts with Comments on) and
@@ -101,13 +120,11 @@ function attachmentCommentCount(item: any): number {
   return (key && attachmentCommentCounts.value?.get(key)) || 0
 }
 
-const { width: sortableRefWidth } = useElementSize(sortableRef)
-
 const maxVisibleCards = computed(() => {
-  // min of total visible items and max cards per row * 2 — floored at 1 so a
+  // min of total visible items and two rows of cards — floored at 1 so a
   // host narrower than one card (record-review's detail column) still shows
   // the first attachment instead of only a "+ N more" button
-  return Math.min(visibleItems.value.length, Math.max(1, Math.floor((sortableRefWidth.value + 8) / (cardWidth.value + 8)) * 2))
+  return Math.min(visibleItems.value.length, Math.max(1, cardsPerRow.value * 2))
 })
 
 const expandedFormVisibelItems = computed(() => {

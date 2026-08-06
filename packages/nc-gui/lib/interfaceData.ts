@@ -254,8 +254,10 @@ export interface InterfacePageDataApi {
   createRecord?(data: Record<string, any>): Promise<Record<string, any>>
   /**
    * Linked records of one LTAR cell within the page scope — pk + display
-   * value only, with an optional display-value search. Read-tier: any grant
-   * that sees the page can expand the cell.
+   * value by default, or the related-table fields named in `fields`
+   * (comma-separated titles; the LTAR cards/embedded-view renderers).
+   * Optional display-value search. Read-tier: any grant that sees the page
+   * can expand the cell.
    */
   nestedList?(params: {
     rowId: string
@@ -263,6 +265,7 @@ export interface InterfacePageDataApi {
     limit?: number
     offset?: number
     search?: string
+    fields?: string
   }): Promise<{ list: Record<string, any>[]; pageInfo: PaginatedType }>
   /**
    * "Link record" picker candidates (related rows NOT yet linked) — same

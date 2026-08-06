@@ -281,9 +281,15 @@ export interface InterfaceFieldElementConfig {
     size?: 'default' | 'lg' | 'xl';
     /**
      * Per-type style variant, e.g. single select: 'field' | 'list' | 'stepper';
-     * attachment: 'field' (card tiles, default) | 'hero' | 'carousel'.
+     * attachment: 'field' (card tiles, default) | 'hero' | 'carousel';
+     * Links/LTAR field mode: 'pills' (chips, default) | 'cards'.
      */
     style?: string;
+    /**
+     * Links/LTAR only — 'field' (inline pills/cards, default) or 'view'
+     * (embedded view of the linked records).
+     */
+    show_as?: 'field' | 'view';
     /**
      * Attachment hero/carousel only — images shown per view (1-4). 1 = hero,
      * >1 = carousel; the builder keeps `style` and this in sync.

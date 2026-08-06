@@ -56,6 +56,9 @@ export class ApiTokensService {
 
   async apiTokenDelete(param: { tokenId: string; user: User; req: NcRequest }) {
     const apiToken = await ApiToken.get(param.tokenId);
+    if (!apiToken) {
+      NcError.notFound('Token not found');
+    }
     if (
       !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&
       apiToken.fk_user_id !== param.user.id

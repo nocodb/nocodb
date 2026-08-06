@@ -3775,6 +3775,8 @@
     "showAs": "Show as",
     "pills": "Pills",
     "cards": "Cards",
+    "showLabelsForEntireRow": "Show labels for entire row",
+    "hideLabelsForEntireRow": "Hide labels for entire row",
     "addHelperText": "Add helper text",
     "addLabel": "Add label",
     "characterLimit": "Character limit",

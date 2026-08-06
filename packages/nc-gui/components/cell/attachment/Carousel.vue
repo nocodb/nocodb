@@ -164,6 +164,15 @@ const {
   clearFocus,
 } = useProvideImageAnnotations(selectedFile, visibleItems)
 
+// Side-panel comments tag the OPEN image (pin-less annotation) — they count
+// toward its badge without rendering a marker.
+provide(
+  AttachmentViewerCommentAnchorInj,
+  computed(() =>
+    selectedFile.value ? { path: selectedFile.value.path, url: selectedFile.value.url, title: selectedFile.value.title } : null,
+  ),
+)
+
 // Clicks in the carousel area (outside the image/chrome): close an open comment
 // modal first, otherwise close the carousel. Marker/popup clicks use @click.stop
 // so they never reach here.

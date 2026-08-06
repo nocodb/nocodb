@@ -79,7 +79,27 @@ const showAllAttachments = ref(false)
 // Host-tuned card display (interface record layouts) — all cards, larger tiles.
 const attachmentDisplay = inject(AttachmentCellDisplayInj, ref(null))
 
+// Record layouts cap at TWO tiles per row — comment badges + hover actions +
+// captions need the room, and the 2-up scale matches hero/carousel. The px
+// value only feeds the "+N more" math, which showAll already bypasses.
+const cardWidthStyle = computed(() => (attachmentDisplay.value?.largeTiles ? 'calc(50% - 4px)' : '124px'))
+
 const cardWidth = computed(() => (attachmentDisplay.value?.largeTiles ? 168 : 124))
+
+// Per-attachment comment counts (annotation threads: root + replies) — only
+// where the host allows viewer comments (record layouts with Comments on) and
+// a row-comments scope exists in the tree.
+const rowCommentsCtx = useRowComments()
+
+const attachmentCommentCounts = computed(() =>
+  attachmentDisplay.value?.allowComments && rowCommentsCtx ? buildAttachmentCommentCounts(rowCommentsCtx.comments.value) : null,
+)
+
+function attachmentCommentCount(item: any): number {
+  const key = getAttachmentAnnotationKey(item)
+
+  return (key && attachmentCommentCounts.value?.get(key)) || 0
+}
 
 const { width: sortableRefWidth } = useElementSize(sortableRef)
 
@@ -365,13 +385,14 @@ onUnmounted(() => {
         :key="`${item?.title}-${i}`"
         v-model:dragging="dragging"
         class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative overflow-hidden"
-        :style="{ width: `${cardWidth}px` }"
+        :style="{ width: cardWidthStyle }"
         :attachment="item"
         :index="i"
         :allow-selection="false"
         :allow-rename="isEditAllowed"
         :allow-delete="!isReadonly"
-        :preview-class-override="attachmentDisplay?.largeTiles ? '!h-28' : '!h-20'"
+        :comment-count="attachmentCommentCount(item)"
+        :preview-class-override="attachmentDisplay?.largeTiles ? '!h-48' : '!h-20'"
         :rename-inline="false"
         :confirm-to-delete="true"
         @clicked="onFileClick(item)"

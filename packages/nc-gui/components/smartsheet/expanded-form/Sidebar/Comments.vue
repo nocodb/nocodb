@@ -48,6 +48,10 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
+// Hosted inside the attachment viewer — new comments tag the open image
+// (pin-less annotation) so they count toward its badge.
+const viewerCommentAnchor = inject(AttachmentViewerCommentAnchorInj, ref(null))
+
 const {
   deleteComment,
   resolveComment,
@@ -264,7 +268,11 @@ const saveComment = async () => {
   })
 
   try {
-    await _saveComment(tempCom, tempAttachments)
+    await _saveComment(
+      tempCom,
+      tempAttachments,
+      viewerCommentAnchor.value ? { annotation: { attachment: viewerCommentAnchor.value } } : undefined,
+    )
     await nextTick(() => {
       isExpandedFormCommentMode.value = true
     })

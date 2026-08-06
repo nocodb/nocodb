@@ -54,6 +54,12 @@ export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol
 export const AttachmentCellDisplayInj: InjectionKey<
   Ref<{ showAll?: boolean; largeTiles?: boolean; allowComments?: boolean } | null>
 > = Symbol('attachment-cell-display-injection')
+/** The attachment currently open in the full-screen viewer — the comments side
+ *  panel tags new comments with it (pin-less annotation) so they count toward
+ *  that image's badge. Absent/null = plain record comments. */
+export const AttachmentViewerCommentAnchorInj: InjectionKey<Ref<{ path?: string; url?: string; title?: string } | null>> = Symbol(
+  'attachment-viewer-comment-anchor-injection',
+)
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 export const isWorkflowInj: InjectionKey<Ref<boolean>> = Symbol('is-workflow-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */

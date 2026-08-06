@@ -37,7 +37,12 @@ export interface CommentAnnotationAttachmentRef {
 
 export interface CommentImageAnnotation {
   attachment: CommentAnnotationAttachmentRef;
-  region: CommentAnnotationRegion;
+  /**
+   * On-image pin location. Absent = the comment is tagged to the image without
+   * a pin (typed in the viewer's side panel while this image was open) — it
+   * counts toward the image's comment badge but renders no marker.
+   */
+  region?: CommentAnnotationRegion;
 }
 
 /** Shape stored under `CommentType.meta` for attachment-carousel comments. */

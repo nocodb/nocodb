@@ -4379,6 +4379,7 @@
     "filterByLimitExceeded": "Filter by limit exceeded",
     "groupByLimitExceeded": "Group by limit exceeded",
     "displayValueFieldExcluded": "Display value field cannot be hidden or deleted",
+    "displayValueFieldCannotBeReordered": "Display value field cannot be reordered",
     "interfaceLastVizRequired": "A page needs at least one visualization",
     "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
     "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated.",

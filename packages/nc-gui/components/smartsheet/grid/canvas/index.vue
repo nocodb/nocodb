@@ -3064,8 +3064,11 @@ watch(rowHeight, () => {
   triggerRefreshCanvas()
 })
 
-// watch for column hide and re-render canvas
-watch([() => columns.value?.length, () => totalRows.value], () => {
+// watch for column hide/reorder and re-render canvas — keyed on the id
+// SEQUENCE (not the count): an external reorder (the interface builder's
+// Fields pane writes viz `field_order`) changes order but never length, and
+// the canvas only repaints on its own interaction events otherwise
+watch([() => columns.value?.map((c) => c.id).join(), () => totalRows.value], () => {
   nextTick(() => {
     calculateSlices()
     triggerRefreshCanvas()

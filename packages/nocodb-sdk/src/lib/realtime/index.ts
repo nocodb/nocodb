@@ -31,6 +31,7 @@ export enum EventType {
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
   DOCUMENT_SYNC_EVENT = 'event-document-sync',
   SMART_TEXT_EVENT = 'event-smart-text',
+  CREDIT_EVENT = 'event-credit',
 }
 
 /** Client→server socket events for collaborative doc editing (binary Yjs frames). */

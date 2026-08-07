@@ -326,7 +326,7 @@ watch(isOpen, (newValue) => {
                 </div>
               </template>
 
-              <div v-if="tabItem.value === IconType.ICON" class="h-full nc-scrollbar-md flex flex-col">
+              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-y-auto nc-icon-tab-scroll flex flex-col">
                 <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
@@ -443,6 +443,28 @@ watch(isOpen, (newValue) => {
 </template>
 
 <style lang="scss" scoped>
+// Always show a thin (but clearly visible) scrollbar when the icon list
+// overflows, instead of the overlay scrollbar that stays hidden until scroll.
+.nc-icon-tab-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.7) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: rgba(156, 163, 175, 0.7);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(107, 114, 128, 0.9);
+  }
+}
+
 .nc-icon-selector-dropdown-tabs {
   :deep(.ant-tabs-nav) {
     @apply px-3;
@@ -543,22 +565,25 @@ watch(isOpen, (newValue) => {
   }
 
   .emoji-mart-scroll {
-    // Keep a thin scrollbar visible whenever the emoji list overflows, instead
-    // of `overflow: overlay` which stays hidden until the user scrolls. Explicit
-    // rules (not `@apply nc-scrollbar-md`, which is a plain CSS class, not a
-    // Windi shortcut) mirroring the always-visible `.nc-scrollbar-md` treatment.
+    // Keep a thin (but clearly visible) scrollbar whenever the emoji list
+    // overflows, instead of `overflow: overlay` which stays hidden until scroll.
     overflow-y: auto;
     scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.7) transparent;
 
     &::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+      width: 6px;
+      height: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
     }
     &::-webkit-scrollbar-thumb {
-      @apply bg-gray-200 dark:bg-gray-500;
+      border-radius: 9999px;
+      background-color: rgba(156, 163, 175, 0.7);
     }
     &::-webkit-scrollbar-thumb:hover {
-      @apply bg-gray-300 dark:bg-gray-600;
+      background-color: rgba(107, 114, 128, 0.9);
     }
   }
 

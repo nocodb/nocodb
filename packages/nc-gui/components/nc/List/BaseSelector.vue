@@ -143,6 +143,7 @@ defineExpose({
         <div v-if="selectedBase" class="min-w-5 flex items-center justify-center">
           <GeneralProjectIcon
             :color="parseProp(selectedBase.meta).iconColor"
+            :icon="parseProp(selectedBase.meta).icon"
             :managed-app="{
               managed_app_master: selectedBase.managed_app_master,
               managed_app_id: selectedBase.managed_app_id,
@@ -187,6 +188,7 @@ defineExpose({
             <div class="min-w-5 flex items-center justify-center">
               <GeneralProjectIcon
                 :color="parseProp(option.meta).iconColor"
+                :icon="parseProp(option.meta).icon"
                 :managed-app="{
                   managed_app_master: option.managed_app_master,
                   managed_app_id: option.managed_app_id,

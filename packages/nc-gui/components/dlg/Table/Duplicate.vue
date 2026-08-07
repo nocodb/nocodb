@@ -399,6 +399,7 @@ onMounted(() => {
                   <div class="flex-1 capitalize truncate flex gap-1">
                     <GeneralProjectIcon
                       :color="parseProp(targetBase?.meta ?? {}).iconColor"
+                      :icon="parseProp(targetBase?.meta ?? {}).icon"
                       :managed-app="{
                         managed_app_master: targetBase?.managed_app_master,
                         managed_app_id: targetBase?.managed_app_id,
@@ -451,6 +452,7 @@ onMounted(() => {
                     <template #listItemExtraLeft="{ option: optionItem }">
                       <GeneralProjectIcon
                         :color="parseProp(optionItem.meta).iconColor"
+                        :icon="parseProp(optionItem.meta).icon"
                         :managed-app="{
                           managed_app_master: optionItem.managed_app_master,
                           managed_app_id: optionItem.managed_app_id,

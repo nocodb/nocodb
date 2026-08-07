@@ -56,6 +56,7 @@ const onDelete = async () => {
       >
         <GeneralProjectIcon
           :color="parseProp(base.meta).iconColor"
+          :icon="parseProp(base.meta).icon"
           :type="base.type"
           :managed-app="{
             managed_app_master: base.managed_app_master,

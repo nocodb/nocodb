@@ -316,23 +316,55 @@ export abstract class AiIntegration<
     const model = this.getModel({ customModel: args.customModel });
     const tools = args.websearch ? this.webSearchTool() : undefined;
 
-    const response = await sdkGenerateText({
-      model,
-      output: Output.object({ schema: args.schema }),
-      messages: args.messages,
-      temperature: this.temperature,
-      ...(tools ? { tools } : {}),
-    });
+    try {
+      const response = await sdkGenerateText({
+        model,
+        output: Output.object({ schema: args.schema }),
+        messages: args.messages,
+        temperature: this.temperature,
+        ...(tools ? { tools } : {}),
+      });
 
-    return {
-      usage: {
-        input_tokens: response.usage.inputTokens,
-        output_tokens: response.usage.outputTokens,
-        total_tokens: response.usage.totalTokens,
-        model: model.modelId,
-      },
-      data: response.output as T,
-    };
+      return {
+        usage: {
+          input_tokens: response.usage.inputTokens,
+          output_tokens: response.usage.outputTokens,
+          total_tokens: response.usage.totalTokens,
+          model: model.modelId,
+        },
+        data: response.output as T,
+      };
+    } catch (err: any) {
+      // OpenAI-compatible endpoints (Ollama, local models, etc.) may not support
+      // structured output mode and return plain text instead, causing
+      // AI_NoObjectGeneratedError. Fall back to plain generateText and parse JSON
+      // from the text response.
+      if (err?.name !== 'AI_NoObjectGeneratedError') {
+        throw err;
+      }
+
+      const fallbackResponse = await sdkGenerateText({
+        model,
+        messages: args.messages,
+        temperature: this.temperature,
+        ...(tools ? { tools } : {}),
+      });
+
+      const jsonText = fallbackResponse.text.trim();
+      // Strip markdown code fences if the model wraps the JSON
+      const stripped = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      const parsed = JSON.parse(stripped) as T;
+
+      return {
+        usage: {
+          input_tokens: fallbackResponse.usage.inputTokens,
+          output_tokens: fallbackResponse.usage.outputTokens,
+          total_tokens: fallbackResponse.usage.totalTokens,
+          model: model.modelId,
+        },
+        data: parsed,
+      };
+    }
   }
 
   /**

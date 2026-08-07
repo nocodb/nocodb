@@ -122,7 +122,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="border-1 rounded-lg border-nc-border-gray-medium h-[250px]">
+      <div class="border-1 rounded-lg border-nc-border-gray-medium">
         <NcList
           v-model:value="selectedFieldId"
           v-model:open="value"

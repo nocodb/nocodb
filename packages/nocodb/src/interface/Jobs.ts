@@ -96,6 +96,7 @@ export enum JobTypes {
   MailScanner = 'mail-scanner',
   OperationCleanup = 'operation-cleanup',
   CreditReaper = 'credit-reaper',
+  CreditMeteringAudit = 'credit-metering-audit',
 }
 
 export const SKIP_STORING_JOB_META = [

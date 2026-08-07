@@ -34,7 +34,7 @@ const up = async (knex: Knex) => {
     table.string('fk_subscription_id', 20); // Stripe reconciliation only
     table.string('entry_type', 20); // grant | consume | expire | clawback | adjust
     table.bigInteger('amount_micro'); // signed; negative = debit
-    table.string('service', 20); // ai | compute | null
+    table.string('service', 20); // ai | compute | web | null
     table.text('usage'); // JSON CreditUsageRef — this row's segment
     table.string('rate_version', 20);
     // JSON CreditLedgerMetaType — why this row exists in user-explainable
@@ -48,7 +48,9 @@ const up = async (knex: Knex) => {
     table.string('fk_base_id', 20);
     table.string('fk_user_id', 20);
     table.timestamps(true, true);
-    table.unique(['idempotency_key']);
+    // Per-tenant, NOT global: the key derives from client-influenced request
+    // identity, so two tenants may legitimately present the same one.
+    table.unique(['scope', 'fk_scope_id', 'idempotency_key']);
     // `id` tail: one settle writes many rows in the same instant.
     table.index(['scope', 'fk_scope_id', 'created_at', 'id']); // ledger page
     table.index(['scope', 'fk_scope_id', 'fk_grant_id']); // sumUnattributed
@@ -69,9 +71,31 @@ const up = async (knex: Knex) => {
     table.index(['scope', 'fk_scope_id']);
     table.index(['expires_at']);
   });
+
+  // Metering counters — the INDEPENDENT side of the billing reconciliation.
+  //
+  // Written at gateway admission, before any credit code runs, so a bug in
+  // the settle path cannot suppress this number too. Compared daily against
+  // the ledger's distinct CONSUME correlations: the ledger alone is
+  // self-consistent even when debits silently stop, so it cannot audit
+  // itself. See CreditMeteringAuditProcessor.
+  //
+  // Natural composite key, no nanoid: one row per scope per day per service,
+  // upserted by increment.
+  await knex.schema.createTable(MetaTable.CREDIT_METERING_COUNTERS, (table) => {
+    table.string('scope', 20);
+    table.string('fk_scope_id', 20);
+    table.string('usage_day', 10); // 'YYYY-MM-DD', UTC
+    table.string('service', 20); // ai | compute | web
+    table.bigInteger('billable_calls').defaultTo(0);
+    table.timestamps(true, true);
+    table.primary(['scope', 'fk_scope_id', 'usage_day', 'service']);
+    table.index(['usage_day']); // the audit scans one completed day
+  });
 };
 
 const down = async (knex: Knex) => {
+  await knex.schema.dropTableIfExists(MetaTable.CREDIT_METERING_COUNTERS);
   await knex.schema.dropTableIfExists(MetaTable.CREDIT_HOLDS);
   await knex.schema.dropTableIfExists(MetaTable.CREDIT_LEDGER);
   await knex.schema.dropTableIfExists(MetaTable.CREDIT_GRANTS);

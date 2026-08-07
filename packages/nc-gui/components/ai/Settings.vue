@@ -37,6 +37,8 @@ const availableModels = ref<{ value: string; label: string }[]>([])
 
 const isLoadingAvailableModels = ref<boolean>(false)
 
+const isGlobalIntegration = computed(() => !!vFkIntegrationId.value?.startsWith('global_'))
+
 const onIntegrationChange = async (newFkINtegrationId?: string) => {
   if (!vFkIntegrationId.value && !newFkINtegrationId) return
 
@@ -48,6 +50,11 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 
   if (lastIntegrationId.value !== newFkINtegrationId) {
     vModel.value = undefined
+  }
+
+  if (newFkINtegrationId?.startsWith('global_')) {
+    vModel.value = undefined
+    return
   }
 
   isLoadingAvailableModels.value = true
@@ -143,7 +150,13 @@ onMounted(async () => {
             </a-form-item>
           </div>
           <!-- Model Select -->
-          <div class="flex items-center gap-2">
+          <div v-if="isGlobalIntegration" class="flex items-center gap-2">
+            <span class="text-nc-content-gray w-2/6">Model</span>
+            <span class="flex-1 text-nc-content-gray-muted nc-ai-model-auto-note">
+              {{ $t('labels.aiModelAutoSelected') }}
+            </span>
+          </div>
+          <div v-else class="flex items-center gap-2">
             <span class="text-nc-content-gray w-2/6">Model</span>
             <div v-if="showTooltip" class="w-1/6 flex justify-end">
               <NcTooltip placement="top">

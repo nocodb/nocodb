@@ -1576,6 +1576,7 @@
   "labels": {
     "theme": "Theme",
     "shareToWeb": "Share to web",
+    "aiModelAutoSelected": "Model is chosen automatically by NocoDB AI",
     "prefix": "Prefix",
     "suffix": "Suffix",
     "compactNumbers": "Compact numbers",

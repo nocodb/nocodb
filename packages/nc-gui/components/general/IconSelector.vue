@@ -326,7 +326,7 @@ watch(isOpen, (newValue) => {
                 </div>
               </template>
 
-              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
+              <div v-if="tabItem.value === IconType.ICON" class="h-full nc-scrollbar-md flex flex-col">
                 <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
@@ -543,8 +543,23 @@ watch(isOpen, (newValue) => {
   }
 
   .emoji-mart-scroll {
-    @apply nc-scrollbar-thin;
-    overflow-y: overlay;
+    // Keep a thin scrollbar visible whenever the emoji list overflows, instead
+    // of `overflow: overlay` which stays hidden until the user scrolls. Explicit
+    // rules (not `@apply nc-scrollbar-md`, which is a plain CSS class, not a
+    // Windi shortcut) mirroring the always-visible `.nc-scrollbar-md` treatment.
+    overflow-y: auto;
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      @apply bg-gray-200 dark:bg-gray-500;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      @apply bg-gray-300 dark:bg-gray-600;
+    }
   }
 
   .emoji-mart-emoji {

@@ -2,6 +2,7 @@
 interface Props {
   modelValue?: boolean
   details?: { available_credits?: number; period_end?: string }
+  licenseId?: string
 }
 
 defineProps<Props>()

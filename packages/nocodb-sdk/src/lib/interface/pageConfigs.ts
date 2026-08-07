@@ -63,13 +63,13 @@ interface InterfaceVizCommon {
   visible_field_ids?: string[];
   /**
    * Display ORDER of the viz's columns, independent of visibility — written by
-   * the grid's own header drag (interface-only; the source table's grid views
-   * keep their own order). Listed ids come first in this order; anything
-   * unlisted (a newly added column, a field revealed later) follows in table
-   * order. Kept separate from `visible_field_ids` on purpose: that array
-   * normalizes to `undefined` when everything is visible, which would drop the
-   * order — and materializing it would opt the viz out of auto-showing new
-   * columns.
+   * the builder's Fields pane (every viz type) and, on grids, by the column
+   * header drag as well. Interface-only; the source table's grid views keep
+   * their own order. Listed ids come first in this order; anything unlisted (a
+   * newly added column, a field revealed later) follows in table order. Kept
+   * separate from `visible_field_ids` on purpose: that array normalizes to
+   * `undefined` when everything is visible, which would drop the order — and
+   * materializing it would opt the viz out of auto-showing new columns.
    */
   field_order?: string[];
   /** Per-column overrides (label, inline-edit), keyed by column id. */
@@ -181,6 +181,13 @@ export interface InterfaceListLevelConfig {
   filters?: InterfaceFilterGroup | null;
   sorts?: InterfaceSortConfig[];
   visible_field_ids?: string[];
+  /**
+   * Display ORDER of THIS level's columns — the parent-level twin of the
+   * viz-level `field_order` (the LEAF rides that one, since its curation is the
+   * viz's own). Same semantics: listed ids first, unlisted ids after in table
+   * order, independent of visibility.
+   */
+  field_order?: string[];
   /**
    * Per-table "Click into record details" for parent levels — the leaf level
    * (index 0) rides the viz-level `click_into_details`/`fk_detail_page_id`

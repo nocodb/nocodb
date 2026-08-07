@@ -160,6 +160,11 @@ export const useEeConfig = createSharedComposable(() => {
   // AutoNumber field is EE-only — always blocked in CE
   const blockAutoNumberField = computed(() => true)
 
+  // AI credits are EE/Cloud-only — CE never gates on them
+  const blockAiCredits = computed(() => false)
+
+  const showBuyCredits = (..._args: any[]) => {}
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -538,6 +543,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockAiCredits,
+    showBuyCredits,
     blockAiIntegrations,
     showUpgradeToUseAiIntegrations,
     blockAiIntegrationsLimit,

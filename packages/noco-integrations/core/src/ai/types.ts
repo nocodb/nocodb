@@ -34,6 +34,55 @@ if (devToolsMw) {
 
 export type ModelCapability = 'text' | 'vision' | 'tools' | 'image-generation';
 
+/**
+ * System AI activity — lets an integration route different activities to
+ * different models (the NocoDB-managed integration maps these via its
+ * `activities` config; every other provider ignores them).
+ *
+ * NOTE: features where the user explicitly picks an integration AND a model
+ * (AI fields, AI buttons, workflow AI nodes) do NOT use a use case — they pass
+ * `customModel` instead. So this enum only enumerates no-human-in-the-loop
+ * activities served by the default/global integration.
+ */
+export enum AiUseCase {
+  /** Chat turn triage — picks the specialist agent. */
+  ChatRouter = 'chat_router',
+  /** Schema/structure building specialist agent. */
+  ChatBuilder = 'chat_builder',
+  /** Data Q&A + record CRUD specialist agent (merged qa + record). */
+  ChatData = 'chat_data',
+  /** Product support specialist agent. */
+  ChatSupport = 'chat_support',
+  /** Pages/dashboard authoring specialist agent. */
+  ChatPages = 'chat_pages',
+  /** Session title generation from the first user message. */
+  ChatTitle = 'chat_title',
+  /** History compaction — summarizing older messages to fit the token budget. */
+  ChatCompaction = 'chat_compaction',
+  /** End-of-turn summary written for future turns' context. */
+  ChatSummarize = 'chat_summarize',
+  /** Prompt-chip generation: empty-state suggestions and post-turn follow-ups. */
+  ChatSuggestions = 'chat_suggestions',
+  /** Schema/table/view/filter generation from a prompt. */
+  Schema = 'schema',
+  /** Field-type / select-option / next-field / next-table / next-button prediction. */
+  FieldSuggestions = 'field_suggestions',
+  /** Formula generation, repair, and next-formula prediction. */
+  Formula = 'formula',
+  /** Row auto-fill and extract-from-input (no per-field integration). */
+  Data = 'data',
+  /** Document authoring/editing: write, continue, improve. */
+  DocsWrite = 'docs_write',
+  /** Document summarization. */
+  DocsSummarize = 'docs_summarize',
+  /** Document translation. */
+  DocsTranslate = 'docs_translate',
+  /** Script/code completion. */
+  Completion = 'completion',
+  /** Fallback when no specific use case applies. */
+  Default = 'default',
+}
+
 export interface ModelInfo {
   value: string;
   label: string;
@@ -216,7 +265,7 @@ export abstract class AiIntegration<
   /**
    * Resolve a user-facing model selector to a concrete provider model id.
    * Default: the selector itself, falling back to the first configured model.
-   * Override for tier maps (e.g. high/medium/low → concrete model ids).
+   * Override when a selector isn't already a concrete provider model id.
    */
   protected resolveModelId(input?: string): string {
     const modelId = input || this.config.models?.[0];
@@ -224,6 +273,16 @@ export abstract class AiIntegration<
       throw new Error('Integration not configured properly');
     }
     return modelId;
+  }
+
+  /**
+   * Resolve the full model-selection args to a concrete provider model id.
+   * Default ignores `useCase` and delegates to {@link resolveModelId} — only
+   * integrations that route activities to different models (the NocoDB-managed
+   * integration) override this.
+   */
+  protected resolveModel(args?: AiGetModelArgs): string {
+    return this.resolveModelId(args?.customModel);
   }
 
   /**
@@ -248,6 +307,19 @@ export abstract class AiIntegration<
   }
 
   /**
+   * The model reference this integration would resolve `args` to, as it should be
+   * *reported* — not necessarily what the provider is handed.
+   *
+   * These differ for the NocoDB-managed integration: it resolves `<provider>/<modelId>`
+   * and then hands the delegate only the bare `<modelId>`, so `LanguageModel.modelId`
+   * loses the namespace. Billing keys its rate table on the qualified ref, so usage must
+   * be reported from here rather than off the returned model.
+   */
+  public resolveModelRef(args?: AiGetModelArgs): string {
+    return this.resolveModel(args);
+  }
+
+  /**
    * Get the underlying language model, with reasoning effort baked in when requested.
    *
    * Reasoning is applied as a model-level default via `defaultSettingsMiddleware`, so
@@ -256,7 +328,7 @@ export abstract class AiIntegration<
    */
   public getModel(args?: AiGetModelArgs): LanguageModel {
     const provider = this.createProvider();
-    const modelId = this.resolveModelId(args?.customModel);
+    const modelId = this.resolveModel(args);
     let model = provider(modelId);
 
     if (args?.reasoningEffort) {
@@ -286,7 +358,10 @@ export abstract class AiIntegration<
   public async generateText(
     args: AiGenerateTextArgs,
   ): Promise<AiGenerateTextResponse> {
-    const model = this.getModel({ customModel: args.customModel });
+    const model = this.getModel({
+      customModel: args.customModel,
+      useCase: args.useCase,
+    });
     const tools = args.websearch ? this.webSearchTool() : undefined;
 
     const response = await sdkGenerateText({
@@ -299,12 +374,30 @@ export abstract class AiIntegration<
       ...(tools ? { tools } : {}),
     });
 
+    // Cache reads/writes split out of input so billing prices each bucket at
+    // its own rate; reasoning is already inside outputTokens.
+    const cacheRead =
+      response.usage.inputTokenDetails?.cacheReadTokens ??
+      response.usage.cachedInputTokens ??
+      0;
+    const cacheWrite = response.usage.inputTokenDetails?.cacheWriteTokens ?? 0;
+    const reasoning = response.usage.outputTokenDetails?.reasoningTokens ?? 0;
+
     return {
       usage: {
-        input_tokens: response.usage.inputTokens,
+        input_tokens:
+          response.usage.inputTokenDetails?.noCacheTokens ??
+          Math.max(0, (response.usage.inputTokens ?? 0)),
+        cache_read_tokens: cacheRead,
+        cache_write_tokens: cacheWrite,
         output_tokens: response.usage.outputTokens,
+        reasoning_tokens: reasoning,
         total_tokens: response.usage.totalTokens,
-        model: model.modelId,
+        // Qualified ref, not `model.modelId` — see `resolveModelRef` and AiUsage.
+        model: this.resolveModelRef({
+          customModel: args.customModel,
+          useCase: args.useCase,
+        }),
       },
       data: response.text,
     };
@@ -313,7 +406,10 @@ export abstract class AiIntegration<
   public async generateObject<T = any>(
     args: AiGenerateObjectArgs,
   ): Promise<AiGenerateObjectResponse<T>> {
-    const model = this.getModel({ customModel: args.customModel });
+    const model = this.getModel({
+      customModel: args.customModel,
+      useCase: args.useCase,
+    });
     const tools = args.websearch ? this.webSearchTool() : undefined;
 
     const response = await sdkGenerateText({
@@ -324,12 +420,30 @@ export abstract class AiIntegration<
       ...(tools ? { tools } : {}),
     });
 
+    // Cache reads/writes split out of input so billing prices each bucket at
+    // its own rate; reasoning is already inside outputTokens.
+    const cacheRead =
+      response.usage.inputTokenDetails?.cacheReadTokens ??
+      response.usage.cachedInputTokens ??
+      0;
+    const cacheWrite = response.usage.inputTokenDetails?.cacheWriteTokens ?? 0;
+    const reasoning = response.usage.outputTokenDetails?.reasoningTokens ?? 0;
+
     return {
       usage: {
-        input_tokens: response.usage.inputTokens,
+        input_tokens:
+          response.usage.inputTokenDetails?.noCacheTokens ??
+          Math.max(0, (response.usage.inputTokens ?? 0) - cacheRead - cacheWrite),
+        cache_read_tokens: cacheRead,
+        cache_write_tokens: cacheWrite,
         output_tokens: response.usage.outputTokens,
+        reasoning_tokens: reasoning,
         total_tokens: response.usage.totalTokens,
-        model: model.modelId,
+        // Qualified ref, not `model.modelId` — see `resolveModelRef` and AiUsage.
+        model: this.resolveModelRef({
+          customModel: args.customModel,
+          useCase: args.useCase,
+        }),
       },
       data: response.output as T,
     };
@@ -386,8 +500,20 @@ export abstract class AiIntegration<
 
 export interface AiUsage {
   input_tokens?: number;
+  cache_read_tokens?: number;
+  cache_write_tokens?: number;
   output_tokens?: number;
+  reasoning_tokens?: number;
   total_tokens?: number;
+  /**
+   * The resolved `<provider>/<modelId>` ref, NOT the provider's bare model id.
+   *
+   * The managed integration resolves a namespaced ref and then hands the
+   * delegate only the bare id, so `LanguageModel.modelId` loses the namespace.
+   * Billing keys its rate table on the qualified form; reporting the bare id
+   * misses every entry and silently prices at the most expensive fallback.
+   * BYO integrations are unaffected — they resolve to a bare id either way.
+   */
   model: string;
 }
 
@@ -395,6 +521,8 @@ export interface AiGenerateObjectArgs {
   messages: ModelMessage[];
   schema: any;
   customModel?: string;
+  /** System activity — only activity-routing integrations map this to a model. */
+  useCase?: AiUseCase;
   websearch?: boolean;
 }
 
@@ -406,6 +534,8 @@ interface AiGenerateObjectResponse<T> {
 export type AiGenerateTextArgs = {
   system: string;
   customModel?: string;
+  /** System activity — only activity-routing integrations map this to a model. */
+  useCase?: AiUseCase;
   websearch?: boolean;
 } & ({ prompt: string } | { messages: ModelMessage[] });
 
@@ -415,7 +545,10 @@ interface AiGenerateTextResponse {
 }
 
 export interface AiGetModelArgs {
+  /** Explicit model id chosen by the user (AI fields/buttons/workflow nodes). */
   customModel?: string;
+  /** System activity — only activity-routing integrations map this to a model. */
+  useCase?: AiUseCase;
   /**
    * Normalized reasoning intensity; translated per-provider and baked into the
    * returned model as a default. Omit for the provider's own default behaviour.

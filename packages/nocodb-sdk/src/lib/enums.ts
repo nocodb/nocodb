@@ -434,6 +434,10 @@ export enum AppEvents {
   MANAGED_APP_UPDATE_START = 'managedApp.update.start',
   MANAGED_APP_UPDATE_COMPLETE = 'managedApp.update.complete',
   MANAGED_APP_UPDATE_FAIL = 'managedApp.update.fail',
+
+  CREDIT_GRANT = 'credit.grant',
+  CREDIT_TOPUP = 'credit.topup',
+  CREDITS_EXHAUSTED = 'credit.exhausted',
 }
 
 export enum ClickhouseTables {

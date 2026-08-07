@@ -8,6 +8,31 @@ import FormViewColumn from '~/models/FormViewColumn';
 import { deletedColValue } from '~/helpers/dbHelpers';
 
 /**
+ * Is this driver error a unique-constraint violation?
+ *
+ * For callers that use a unique index as a concurrency primitive — insert and
+ * treat a collision as "someone else already did this" — rather than to report
+ * a validation failure to a user. See {@link handleUniqueConstraintError} for
+ * the latter, which resolves the offending column for an NcError.
+ *
+ * The message-matching fallback is deliberate: wrapper layers sometimes lose
+ * the driver code, and a missed detection turns an idempotent no-op into a
+ * thrown error.
+ */
+export function isUniqueViolation(e: any): boolean {
+  if (!e) return false;
+
+  const code = e.code ?? e.originalError?.code ?? e.cause?.code;
+
+  return (
+    code === '23505' || // postgres
+    code === 'ER_DUP_ENTRY' || // mysql
+    code === 'SQLITE_CONSTRAINT' ||
+    /unique|duplicate/i.test(e.message ?? '')
+  );
+}
+
+/**
  * Extracts column name from database error message
  * @param error - Database error
  * @param clientType - Database client type

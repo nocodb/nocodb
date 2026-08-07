@@ -182,6 +182,7 @@ export enum NcErrorType {
   ERR_FORBIDDEN = 'ERR_FORBIDDEN',
   ERR_API_TOKEN_NOT_ALLOWED = 'ERR_API_TOKEN_NOT_ALLOWED',
   ERR_WORKSPACE_NOT_FOUND = 'ERR_WORKSPACE_NOT_FOUND',
+  ERR_ORG_NOT_FOUND = 'ERR_ORG_NOT_FOUND',
   ERR_BASE_NOT_FOUND = 'ERR_BASE_NOT_FOUND',
   ERR_SOURCE_NOT_FOUND = 'ERR_SOURCE_NOT_FOUND',
   ERR_TABLE_NOT_FOUND = 'ERR_TABLE_NOT_FOUND',
@@ -313,6 +314,10 @@ export enum NcErrorType {
 
   // Snapshot errors
   ERR_SNAPSHOT_BLOCKED = 'ERR_SNAPSHOT_BLOCKED',
+
+  // Credit system errors
+  ERR_CREDITS_EXHAUSTED = 'ERR_CREDITS_EXHAUSTED',
+  ERR_CREDIT_PACK_NOT_FOUND = 'ERR_CREDIT_PACK_NOT_FOUND',
 }
 
 export enum ROW_COLORING_MODE {
@@ -412,7 +417,18 @@ interface PlanLimitExceededDetailsType {
   higherPlan?: PlanTitles | OnPremPlanTitles;
 }
 
-export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
+interface CreditsExhaustedDetailsType {
+  available_credits?: number;
+  period_end?: string;
+}
+
+export {
+  Roles,
+  RolesObj,
+  RolesType,
+  PlanLimitExceededDetailsType,
+  CreditsExhaustedDetailsType,
+};
 
 export type RowColoringMode = null | 'SELECT' | 'FILTER';
 

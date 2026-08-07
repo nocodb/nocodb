@@ -287,6 +287,11 @@ export interface ChatEventPayload extends BaseSocketPayload {
   followUps?: string[];
   // action: 'error'
   error?: string;
+  /** Machine-readable `NcErrorType` when the failure has one (e.g.
+   * `ERR_CREDITS_EXHAUSTED`) — the UI branches on it for recovery CTAs. */
+  code?: string;
+  /** Structured payload of the coded error (remaining balance, period end). */
+  details?: Record<string, unknown>;
   // action: 'session-create' | 'session-update' | 'session-delete'
   session?: ChatSessionType;
   // action: 'user-message'

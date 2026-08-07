@@ -32,7 +32,11 @@ export enum MigrationJobTypes {
   RecordTrashBackfill = 'record-trash-backfill',
   CleanupOrphanCrossBaseLinks = 'cleanup-orphan-cross-base-links',
   CleanupOrphanViewColumns = 'cleanup-orphan-view-columns',
+<<<<<<< HEAD
   PgSourceSearchPathBackfill = 'pg-source-searchpath-backfill',
+=======
+  CreditPlanBackfill = 'credit-plan-backfill',
+>>>>>>> a6b2fa3751 (feat: credits + gateway)
 }
 
 export enum JobTypes {
@@ -91,6 +95,7 @@ export enum JobTypes {
   MailOutboxRecovery = 'mail-outbox-recovery',
   MailScanner = 'mail-scanner',
   OperationCleanup = 'operation-cleanup',
+  CreditReaper = 'credit-reaper',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -109,6 +114,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowResumeSchedule,
   JobTypes.BaseTrashCleanUp,
   JobTypes.OperationCleanup,
+  JobTypes.CreditReaper,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
   JobTypes.PollWorkflow,

@@ -120,6 +120,9 @@ export enum MetaTable {
   SUBSCRIPTIONS = 'nc_subscriptions',
   ADDONS = 'nc_addons',
   SUBSCRIPTION_ADDONS = 'nc_subscription_addons',
+  CREDIT_GRANTS = 'nc_credit_grants',
+  CREDIT_LEDGER = 'nc_credit_ledger',
+  CREDIT_HOLDS = 'nc_credit_holds',
   AUTOMATIONS = 'nc_automations',
   AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
@@ -378,6 +381,9 @@ export const orderedMetaTables = [
   MetaTable.AUTOMATIONS,
 
   // Payment
+  MetaTable.CREDIT_LEDGER,
+  MetaTable.CREDIT_HOLDS,
+  MetaTable.CREDIT_GRANTS,
   MetaTable.SUBSCRIPTION_ADDONS,
   MetaTable.SUBSCRIPTIONS,
   MetaTable.ADDONS,

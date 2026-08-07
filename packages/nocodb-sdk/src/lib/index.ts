@@ -28,6 +28,7 @@ export * from '~/lib/types';
 export * from '~/lib/bookmark';
 export * from '~/lib/helpers/metaHelpers';
 export * from '~/lib/circularReplacer';
+export * from '~/lib/payment/credits';
 export {
   default as UITypes,
   UITypesName,

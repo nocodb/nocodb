@@ -49,6 +49,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Workspace '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_ORG_NOT_FOUND]: {
+    message: (id: string) => `Org '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_BASE_NOT_FOUND]: {
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
@@ -527,5 +531,14 @@ export const presetErrorCodexMap: Partial<
       message ||
       'This base is a snapshot and cannot be accessed directly. Restore the snapshot to a new base to view or edit its contents.',
     code: 403,
+  },
+  [NcErrorType.ERR_CREDIT_PACK_NOT_FOUND]: {
+    message: (id: string) => `Credit pack '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_CREDITS_EXHAUSTED]: {
+    message: (message: string) =>
+      message || 'You have run out of credits. Top up to continue.',
+    code: 402,
   },
 };

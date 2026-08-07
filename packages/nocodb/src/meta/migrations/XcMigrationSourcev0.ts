@@ -89,6 +89,7 @@ import * as nc_202607091000_comments_meta from './v0/nc_202607091000_comments_me
 import * as nc_202607251200_interfaces from './v0/nc_202607251200_interfaces';
 import * as nc_202607271818_composite_pk_missing_tables_2 from './v0/nc_202607271818_composite_pk_missing_tables_2';
 import * as nc_202607281200_snapshot_schedule_daily_floor from './v0/nc_202607281200_snapshot_schedule_daily_floor';
+import * as nc_202607121506_credit_system from './v0/nc_202607121506_credit_system';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -189,6 +190,7 @@ export default class XcMigrationSourcev0 {
       'nc_202607251200_interfaces',
       'nc_202607271818_composite_pk_missing_tables_2',
       'nc_202607281200_snapshot_schedule_daily_floor',
+      'nc_202607121506_credit_system',
     ]);
   }
 
@@ -380,6 +382,8 @@ export default class XcMigrationSourcev0 {
         return nc_202607271818_composite_pk_missing_tables_2;
       case 'nc_202607281200_snapshot_schedule_daily_floor':
         return nc_202607281200_snapshot_schedule_daily_floor;
+      case 'nc_202607121506_credit_system':
+        return nc_202607121506_credit_system;
     }
   }
 }

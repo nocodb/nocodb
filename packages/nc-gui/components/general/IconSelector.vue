@@ -443,28 +443,6 @@ watch(isOpen, (newValue) => {
 </template>
 
 <style lang="scss" scoped>
-// Always show a thin (but clearly visible) scrollbar when the icon list
-// overflows, instead of the overlay scrollbar that stays hidden until scroll.
-.nc-icon-tab-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.7) transparent;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    border-radius: 9999px;
-    background-color: rgba(156, 163, 175, 0.7);
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(107, 114, 128, 0.9);
-  }
-}
-
 .nc-icon-selector-dropdown-tabs {
   :deep(.ant-tabs-nav) {
     @apply px-3;
@@ -517,6 +495,31 @@ watch(isOpen, (newValue) => {
 </style>
 
 <style>
+// Always show a thin (but clearly visible) scrollbar when the icon list
+// overflows. `scrollbar-gutter: stable` reserves the lane so the custom
+// `::-webkit-scrollbar` renders as a classic (always-visible) bar instead of
+// the overlay that stays hidden until scroll. NOTE: do NOT add `scrollbar-width`
+// — it makes Chromium ignore the custom scrollbar and revert to the overlay.
+// Unscoped so the `::-webkit-scrollbar` pseudo reliably applies (class is unique).
+.nc-icon-tab-scroll {
+  scrollbar-gutter: stable;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: rgba(156, 163, 175, 0.7);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(107, 114, 128, 0.9);
+  }
+}
+
 .nc-icon-selector-image-uploader {
   &.ant-upload.ant-upload-drag {
     @apply !rounded-lg !bg-nc-bg-default !hover:bg-nc-bg-gray-light !transition-colors duration-300;
@@ -567,9 +570,12 @@ watch(isOpen, (newValue) => {
   .emoji-mart-scroll {
     // Keep a thin (but clearly visible) scrollbar whenever the emoji list
     // overflows, instead of `overflow: overlay` which stays hidden until scroll.
+    // `scrollbar-gutter: stable` reserves the lane so the custom scrollbar
+    // renders as a classic (always-visible) bar. Do NOT set `scrollbar-width` —
+    // it makes Chromium ignore `::-webkit-scrollbar` and revert to the hidden
+    // overlay.
     overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(156, 163, 175, 0.7) transparent;
+    scrollbar-gutter: stable;
 
     &::-webkit-scrollbar {
       width: 6px;

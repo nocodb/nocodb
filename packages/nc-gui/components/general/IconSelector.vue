@@ -326,7 +326,7 @@ watch(isOpen, (newValue) => {
                 </div>
               </template>
 
-              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-y-auto nc-icon-tab-scroll flex flex-col">
+              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-y-auto nc-scrollbar-visible flex flex-col">
                 <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
@@ -495,31 +495,6 @@ watch(isOpen, (newValue) => {
 </style>
 
 <style>
-// Always show a thin (but clearly visible) scrollbar when the icon list
-// overflows. `scrollbar-gutter: stable` reserves the lane so the custom
-// `::-webkit-scrollbar` renders as a classic (always-visible) bar instead of
-// the overlay that stays hidden until scroll. NOTE: do NOT add `scrollbar-width`
-// — it makes Chromium ignore the custom scrollbar and revert to the overlay.
-// Unscoped so the `::-webkit-scrollbar` pseudo reliably applies (class is unique).
-.nc-icon-tab-scroll {
-  scrollbar-gutter: stable;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    border-radius: 9999px;
-    background-color: rgba(156, 163, 175, 0.7);
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(107, 114, 128, 0.9);
-  }
-}
-
 .nc-icon-selector-image-uploader {
   &.ant-upload.ant-upload-drag {
     @apply !rounded-lg !bg-nc-bg-default !hover:bg-nc-bg-gray-light !transition-colors duration-300;
@@ -560,36 +535,12 @@ watch(isOpen, (newValue) => {
   }
 
   .emoji-mart-scroll {
-    @apply mt-1 px-1 overflow-x-hidden;
+    /* `nc-scrollbar-visible` replaces the library's `overflow: overlay`, which
+       keeps the bar hidden until the user scrolls. */
+    @apply mt-1 px-1 overflow-x-hidden overflow-y-auto nc-scrollbar-visible;
 
     h3.emoji-mart-category-label {
       @apply text-xs text-nc-content-gray-muted mb-0 bg-nc-bg-default;
-    }
-  }
-
-  .emoji-mart-scroll {
-    // Keep a thin (but clearly visible) scrollbar whenever the emoji list
-    // overflows, instead of `overflow: overlay` which stays hidden until scroll.
-    // `scrollbar-gutter: stable` reserves the lane so the custom scrollbar
-    // renders as a classic (always-visible) bar. Do NOT set `scrollbar-width` —
-    // it makes Chromium ignore `::-webkit-scrollbar` and revert to the hidden
-    // overlay.
-    overflow-y: auto;
-    scrollbar-gutter: stable;
-
-    &::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      border-radius: 9999px;
-      background-color: rgba(156, 163, 175, 0.7);
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background-color: rgba(107, 114, 128, 0.9);
     }
   }
 

@@ -94,6 +94,20 @@ export default defineConfig({
       'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-nc-gray-100 scrollbar-track-base-white',
     'nc-scrollbar-thin':
       'scrollbar scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-500 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-gray-600 scrollbar-track-transparent',
+    // A thin scrollbar that stays visible whenever the content overflows.
+    // `nc-scrollbar-thin` above sets `scrollbar-width: thin`, which makes
+    // Chromium 121+ honour the standard thin scrollbar and IGNORE the custom
+    // `::-webkit-scrollbar` — falling back to the OS overlay bar that only
+    // appears on hover/scroll. So this shortcut sets no `scrollbar-width` and
+    // uses `scrollbar-gutter: stable` to reserve the lane, which renders the
+    // custom bar as a classic, always-visible scrollbar.
+    'nc-scrollbar-visible': {
+      'scrollbar-gutter': 'stable',
+      '&::-webkit-scrollbar': { width: '6px', height: '6px' },
+      '&::-webkit-scrollbar-track': { background: 'transparent' },
+      '&::-webkit-scrollbar-thumb': { 'border-radius': '9999px', 'background-color': 'rgba(156, 163, 175, 0.7)' },
+      '&::-webkit-scrollbar-thumb:hover': { 'background-color': 'rgba(107, 114, 128, 0.9)' },
+    },
     'nc-content-max-w': 'max-w-[97.5rem]',
   },
 

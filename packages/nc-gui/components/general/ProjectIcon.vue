@@ -31,29 +31,16 @@ const managedAppInfo = computed(() => {
 
 // A valid custom base icon takes precedence over the default sphere (managed
 // apps keep their own iconography).
-const customBaseIcon = computed<IconMapKey | undefined>(() =>
-  icon.value && icon.value in iconMap && !managedAppInfo.value.isManagedApp ? (icon.value as IconMapKey) : undefined,
-)
+const customBaseIcon = computed(() => (managedAppInfo.value.isManagedApp ? undefined : resolveIconMapKey(icon.value)))
 
 const { isDark } = useTheme()
 
-// Tinted identity tile for the custom icon — mirrors the workspace-landing card
-// treatment (light bg + darkened glyph, inverted in dark mode) so the base's
-// icon looks the same everywhere, not a bare glyph.
-const iconTileTint = computed(() => {
-  const base = color.value && tinycolor(color.value).isValid() ? color.value : baseIconColors[0]
-  const hsl = tinycolor(base).toHsl()
-
-  return isDark.value
-    ? {
-        bg: tinycolor({ h: hsl.h, s: hsl.s * 0.45, l: 0.16 }).toHexString(),
-        glyph: tinycolor(base).lighten(10).desaturate(10).toHexString(),
-      }
-    : {
-        bg: tinycolor({ h: hsl.h, s: hsl.s, l: 0.94 }).toHexString(),
-        glyph: tinycolor(base).darken(15).desaturate(15).toHexString(),
-      }
-})
+// Tinted identity tile for the custom icon — same treatment as the
+// workspace-landing card (`WorkspaceBaseListModalBaseNode`) so the base's icon
+// looks the same everywhere, not a bare glyph.
+const iconTileTint = computed(() =>
+  getIconTileTint(color.value && tinycolor(color.value).isValid() ? color.value : baseIconColors[0], isDark.value),
+)
 
 const iconColor = computed(() => {
   return color.value && tinycolor(color.value).isValid()

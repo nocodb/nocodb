@@ -4713,3 +4713,11 @@ export const searchIcons = (searchTerm: string) => {
 }
 
 export type IconMapKey = keyof typeof iconMap
+
+/**
+ * Narrow a persisted icon name (e.g. `base.meta.icon`) to a renderable `iconMap`
+ * key. Returns `undefined` for unset or stale names so callers can fall back.
+ */
+export function resolveIconMapKey(icon?: string): IconMapKey | undefined {
+  return icon && icon in iconMap ? (icon as IconMapKey) : undefined
+}

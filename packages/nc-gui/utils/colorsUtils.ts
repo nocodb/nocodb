@@ -851,6 +851,45 @@ export const themeVariables = {
   },
 }
 
+/** Tinted identity tile derived from a brand swatch — a glyph on a tinted surface. */
+export interface IconTileTint {
+  /** Tile background — the swatch hue at ~94% lightness. */
+  bg: string
+  /** Tile border — one step deeper than the background. */
+  border: string
+  /** Glyph tone — the swatch darkened (and slightly desaturated) ~15%. */
+  glyph: string
+}
+
+/**
+ * Derive an identity tile tint from a swatch colour:
+ * bg ≈ 92–94% lightness of the swatch hue, border one step deeper,
+ * glyph the swatch darkened ~15% (e.g. sky → #E5F4FC / #C9E8F7 / #2E9FD6).
+ *
+ * With `isDark`, the pastel flips to a deep tinted surface (same hue,
+ * desaturated and compressed to ~16% lightness — mirroring `getAdaptiveTint`'s
+ * dark treatment) with the glyph lightened instead of darkened, so the tile
+ * sits above a dark card (#1d1d1f) instead of glowing on it. Callers derive
+ * the tint inside a computed over `useTheme().isDark` to stay theme-reactive.
+ */
+export function getIconTileTint(color: string, isDark = false): IconTileTint {
+  const hsl = tinycolor(color).toHsl()
+
+  if (isDark) {
+    return {
+      bg: tinycolor({ h: hsl.h, s: hsl.s * 0.45, l: 0.16 }).toHexString(),
+      border: tinycolor({ h: hsl.h, s: hsl.s * 0.45, l: 0.24 }).toHexString(),
+      glyph: tinycolor(color).lighten(10).desaturate(10).toHexString(),
+    }
+  }
+
+  return {
+    bg: tinycolor({ h: hsl.h, s: hsl.s, l: 0.94 }).toHexString(),
+    border: tinycolor({ h: hsl.h, s: hsl.s, l: 0.88 }).toHexString(),
+    glyph: tinycolor(color).darken(15).desaturate(15).toHexString(),
+  }
+}
+
 export const getAdaptiveTint = (
   color: string,
   opts?: {

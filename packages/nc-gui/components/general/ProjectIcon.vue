@@ -35,6 +35,26 @@ const customBaseIcon = computed<IconMapKey | undefined>(() =>
   icon.value && icon.value in iconMap && !managedAppInfo.value.isManagedApp ? (icon.value as IconMapKey) : undefined,
 )
 
+const { isDark } = useTheme()
+
+// Tinted identity tile for the custom icon — mirrors the workspace-landing card
+// treatment (light bg + darkened glyph, inverted in dark mode) so the base's
+// icon looks the same everywhere, not a bare glyph.
+const iconTileTint = computed(() => {
+  const base = color.value && tinycolor(color.value).isValid() ? color.value : baseIconColors[0]
+  const hsl = tinycolor(base).toHsl()
+
+  return isDark.value
+    ? {
+        bg: tinycolor({ h: hsl.h, s: hsl.s * 0.45, l: 0.16 }).toHexString(),
+        glyph: tinycolor(base).lighten(10).desaturate(10).toHexString(),
+      }
+    : {
+        bg: tinycolor({ h: hsl.h, s: hsl.s, l: 0.94 }).toHexString(),
+        glyph: tinycolor(base).darken(15).desaturate(15).toHexString(),
+      }
+})
+
 const iconColor = computed(() => {
   return color.value && tinycolor(color.value).isValid()
     ? {
@@ -59,16 +79,17 @@ const gradientId = computed(() => {
 </script>
 
 <template>
-  <!-- Custom base icon (base.meta.icon) -->
-  <GeneralIcon
+  <!-- Custom base icon (base.meta.icon) on a tinted tile -->
+  <div
     v-if="customBaseIcon"
-    :icon="customBaseIcon"
-    class="w-5 h-5 nc-base-icon nc-base-custom-icon"
+    class="w-5 h-5 nc-base-icon nc-base-custom-icon flex-none flex items-center justify-center rounded-md"
     :class="{
       'nc-base-icon-hoverable': hoverable,
     }"
-    :style="{ color: iconColor.shade }"
-  />
+    :style="{ backgroundColor: iconTileTint.bg }"
+  >
+    <GeneralIcon :icon="customBaseIcon" class="w-3/4 h-3/4" :style="{ color: iconTileTint.glyph }" />
+  </div>
   <svg
     v-else-if="!managedAppInfo.isManagedApp"
     xmlns="http://www.w3.org/2000/svg"

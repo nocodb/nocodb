@@ -32,11 +32,8 @@ export enum MigrationJobTypes {
   RecordTrashBackfill = 'record-trash-backfill',
   CleanupOrphanCrossBaseLinks = 'cleanup-orphan-cross-base-links',
   CleanupOrphanViewColumns = 'cleanup-orphan-view-columns',
-<<<<<<< HEAD
   PgSourceSearchPathBackfill = 'pg-source-searchpath-backfill',
-=======
   CreditPlanBackfill = 'credit-plan-backfill',
->>>>>>> a6b2fa3751 (feat: credits + gateway)
 }
 
 export enum JobTypes {

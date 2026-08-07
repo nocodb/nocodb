@@ -24,7 +24,7 @@ import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_j
 import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
 import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
 import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
-import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_credit_plan_backfill';
+import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
 import { isEE } from '~/utils';
 
 @Injectable()

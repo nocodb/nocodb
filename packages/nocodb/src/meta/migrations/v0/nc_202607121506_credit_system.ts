@@ -37,6 +37,10 @@ const up = async (knex: Knex) => {
     table.string('service', 20); // ai | compute | null
     table.text('usage'); // JSON CreditUsageRef — this row's segment
     table.string('rate_version', 20);
+    // JSON CreditLedgerMetaType — why this row exists in user-explainable
+    // terms (reason + the calculation inputs), so grants/expiries are never
+    // a black box in the billing UI.
+    table.text('meta');
     table.string('idempotency_key', 255);
     // Every row one settle wrote; equals the caller's requestRef, linking the
     // charge back to the action that caused it.

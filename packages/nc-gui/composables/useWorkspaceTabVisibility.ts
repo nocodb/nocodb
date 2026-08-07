@@ -18,6 +18,7 @@ export function useWorkspaceTabVisibility(
   const { isUIAllowed, isBaseRolesLoaded } = useRoles()
   const { isTeamsEnabled } = storeToRefs(useWorkspace())
   const { isPaymentEnabled, getFeature, showEEFeatures } = useEeConfig()
+  const { creditsEnabled } = storeToRefs(useCredits())
 
   // Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO)
   const isWorkspaceSsoAvail = computed(() => {
@@ -42,7 +43,7 @@ export function useWorkspaceTabVisibility(
         !isAdmin.value &&
         isEeUI &&
         !ws.value?.fk_org_id &&
-        isPaymentEnabled.value &&
+        (isPaymentEnabled.value || creditsEnabled.value) &&
         isBaseRolesLoaded.value &&
         isUIAllowed('workspaceBilling'),
       audits:

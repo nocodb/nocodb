@@ -2,7 +2,6 @@
 interface Props {
   modelValue?: boolean
   details?: { available_credits?: number; period_end?: string }
-  inPlace?: boolean
 }
 
 defineProps<Props>()

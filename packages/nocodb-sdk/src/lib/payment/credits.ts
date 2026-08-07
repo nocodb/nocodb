@@ -99,12 +99,43 @@ export enum CreditServiceType {
   COMPUTE = 'compute',
 }
 
+/**
+ * One active grant block in the balance breakdown, in display credits. The
+ * billing page renders these as the per-pack rows ("10,000 pack — 2,604 left,
+ * expires 15 Aug 2026") and derives the plan/top-up segmentation from `type`.
+ */
+export interface CreditGrantSummaryType {
+  id: string;
+  /** Loose on purpose — a newer cloud may serve kinds this build predates. */
+  type: CreditGrantType | string;
+  /** Originally granted amount. */
+  credits: number;
+  /** What is left of this grant right now. */
+  remaining: number;
+  granted_at: string;
+  /** Null for grants without a fixed window (e.g. manual adjustments). */
+  expires_at?: string | null;
+}
+
 /** Balance for the UI, in display credits. */
 export interface CreditBalanceType {
   available_credits: number;
   plan_credits: number;
   period_end?: string;
   low: boolean;
+  /**
+   * Active grant blocks the balance is made of, burn-order first. Optional —
+   * older gateway peers answer the balance without it and the UI degrades to
+   * the unsegmented bar.
+   */
+  grants?: CreditGrantSummaryType[];
+}
+
+/** One day of consumed credits for the usage chart. Display credits, ≥ 0. */
+export interface CreditUsageDailyType {
+  /** UTC calendar day, `YYYY-MM-DD`. */
+  date: string;
+  used: number;
 }
 
 /** Token usage for an `ai` debit. */
@@ -173,6 +204,95 @@ export interface CreditUsageRef extends CreditServiceUsageMap {
 }
 
 
+/**
+ * Why a ledger row exists, in user-explainable terms — the unified vocabulary
+ * every writer stamps and the ONE thing the billing UI renders explanations
+ * from. A discriminated union so a writer cannot invent a shape the renderer
+ * doesn't know: adding a reason means adding a variant here plus its i18n
+ * template, and the compiler holds both sides to it.
+ *
+ * All amounts are DISPLAY credits (not micro) — this is presentation data.
+ */
+export type CreditLedgerReasonType =
+  /** The period's plan allowance (first grant, lazy free-tier, renewal). */
+  | {
+      kind: 'period_grant';
+      rate: number;
+      per_seat?: number;
+      seats?: number;
+    }
+  /** Mid-period re-price after a plan switch. */
+  | {
+      kind: 'plan_reprice';
+      rate: number;
+      per_seat?: number;
+      seats?: number;
+      /** Credits already earned at the previous rate(s) this period. */
+      accrued: number;
+      /** Consumption carried into the replacement grant. */
+      carried_consumed: number;
+    }
+  /** Mid-period re-price after a chargeable-seat change. */
+  | {
+      kind: 'seat_reprice';
+      rate: number;
+      per_seat?: number;
+      seats?: number;
+      accrued: number;
+      carried_consumed: number;
+    }
+  /** Closed because a re-priced allowance replaced it (pairs with a reprice). */
+  | { kind: 'superseded' }
+  /** Plan allowance lapsed with the billing period. */
+  | { kind: 'period_end' }
+  /** A top-up hit the end of its rollover window. */
+  | { kind: 'rollover_end'; months: number }
+  /**
+   * A plan grant lapsed while carrying overspend debt. The debt is NOT
+   * forgiven — it converts to unattributed scope debt (this row) that the next
+   * grant retires. Forgiving it was the seat-cycling exploit's reset button:
+   * pump seats, burn the prorated allowance, drop the seats, wait out the
+   * period, repeat.
+   */
+  | { kind: 'debt_carried' }
+  /** A new grant retired earlier overspend debt (pairs net to zero). */
+  | { kind: 'debt_settled' }
+  /**
+   * A downgrade re-priced the period below what was already spent; the excess
+   * is charged in the NORMAL burn order (remaining plan credits, then
+   * top-ups) — the ledger ends up as if the final entitlement had applied all
+   * along. Any unfunded remainder becomes unattributed debt (`debt_carried` /
+   * `debt_settled` take over from there).
+   */
+  | { kind: 'overspend_charge' }
+  /** Paid top-up pack. */
+  | { kind: 'topup'; pack_credits: number }
+  /** Stripe refund/chargeback clawed the fulfilled top-up back. */
+  | { kind: 'refund' }
+  /**
+   * Balance moved between scopes (e.g. workspace → org). `title` is a
+   * SNAPSHOT of the counterpart's display name at move time — the ledger is a
+   * historical record and must still read correctly after the counterpart is
+   * renamed or deleted; the id stays for audit.
+   */
+  | {
+      kind: 'transfer_out';
+      to_scope: CreditScope;
+      to_scope_id: string;
+      to_title?: string;
+    }
+  | {
+      kind: 'transfer_in';
+      from_scope: CreditScope;
+      from_scope_id: string;
+      from_title?: string;
+    };
+
+/** Ledger-row `meta` payload. */
+export interface CreditLedgerMetaType {
+  reason?: CreditLedgerReasonType;
+}
+
 /** A ledger row as returned by `creditLedgerList`. */
 export interface CreditLedgerRowType {
   id: string;
@@ -189,6 +309,8 @@ export interface CreditLedgerRowType {
   service: CreditServiceType | null;
   usage: CreditUsageRef | null;
   rate_version: string | null;
+  /** Why the row exists — see {@link CreditLedgerReasonType}. */
+  meta?: CreditLedgerMetaType | null;
   idempotency_key: string | null;
   /** Shared by every row one settle wrote. Null on rows written before it. */
   correlation_id: string | null;
@@ -201,4 +323,6 @@ export interface CreditPackType {
   id: string;
   credits: number;
   usd: number;
+  /** Highlighted with a "Popular" badge in the pack picker. */
+  popular?: boolean;
 }

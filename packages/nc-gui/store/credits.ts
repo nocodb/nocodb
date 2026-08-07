@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { CreditBalanceType, CreditLedgerRowType, CreditPackType } from 'nocodb-sdk'
+import type { CreditBalanceType, CreditLedgerRowType, CreditPackType, CreditUsageDailyType } from 'nocodb-sdk'
 
 export const useCredits = defineStore('creditsStore', () => {
   const balance = ref<CreditBalanceType | null>(null)
@@ -7,6 +7,8 @@ export const useCredits = defineStore('creditsStore', () => {
   const packs = ref<CreditPackType[]>([])
 
   const ledger = ref<CreditLedgerRowType[]>([])
+
+  const usageDaily = ref<CreditUsageDailyType[]>([])
 
   const isLoadingBalance = ref(false)
 
@@ -22,11 +24,23 @@ export const useCredits = defineStore('creditsStore', () => {
 
   const blockAiCredits = computed(() => false)
 
+  const canManageCredits = computed(() => false)
+
+  const canPurchaseCredits = computed(() => false)
+
+  const orgBillingId = ref<string | null>(null)
+
+  const setOrgBilling = (_orgId: string | null): number => 0
+
+  const clearOrgBilling = (_epoch: number) => {}
+
   const loadBalance = async () => {}
 
   const loadPacks = async () => {}
 
   const loadLedger = async (..._args: any[]) => {}
+
+  const loadUsageDaily = async (..._args: any[]) => {}
 
   const createTopupCheckout = async (
     ..._args: any[]
@@ -44,6 +58,7 @@ export const useCredits = defineStore('creditsStore', () => {
     balance,
     packs,
     ledger,
+    usageDaily,
     isLoadingBalance,
     isLoadingLedger,
     ledgerIsLastPage,
@@ -51,9 +66,15 @@ export const useCredits = defineStore('creditsStore', () => {
     available,
     isLowBalance,
     blockAiCredits,
+    canManageCredits,
+    canPurchaseCredits,
+    orgBillingId,
+    setOrgBilling,
+    clearOrgBilling,
     loadBalance,
     loadPacks,
     loadLedger,
+    loadUsageDaily,
     createTopupCheckout,
     verifyTopup,
     showBuyCredits,

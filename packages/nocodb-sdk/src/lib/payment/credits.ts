@@ -93,10 +93,14 @@ export enum CreditLedgerEntryType {
   ADJUST = 'adjust',
 }
 
-/** Metered upstreams: `ai` priced per token, `compute` per second. */
+/**
+ * Metered upstreams: `ai` priced per token, `compute` per second, `web` per
+ * search and retrieved document.
+ */
 export enum CreditServiceType {
   AI = 'ai',
   COMPUTE = 'compute',
+  WEB = 'web',
 }
 
 /**
@@ -176,6 +180,43 @@ export interface CreditComputeUsage {
 }
 
 /**
+ * Retrieval usage for a `web` debit. Keys mirror `CreditRateTable.web`.
+ *
+ * Deliberately provider-shaped rather than vendor-shaped: search and scrape are
+ * the two legs every retrieval vendor sells (Exa, Tavily, Firecrawl, Brave …),
+ * so adding one is a rate-table entry, not a new service.
+ */
+export interface CreditWebUsage {
+  /**
+   * Web provider that served it, e.g. 'exa'. This is the pricing key —
+   * providers differ enough in cost that one flat per-call rate cannot cover
+   * them. Where a vendor sells tiers at different prices, report the qualified
+   * `provider:tier` (Exa's costlier Deep Search would be `exa:deep`) and give
+   * the bare name that vendor's priciest rate, so an unqualified report can
+   * never land on a cheaper tier than the call actually used.
+   */
+  provider?: string;
+  /** Which leg ran, e.g. 'search' | 'scrape'. Audit only. */
+  operation?: string;
+  /**
+   * Search requests issued. A scrape reports 0 — it fetches a known URL without
+   * searching, and that leg is priced per page rather than per request. The
+   * count therefore also selects which leg of the rate applies.
+   */
+  searches?: number;
+  /**
+   * Documents retrieved: search results, or fetched pages. Vendors bill each
+   * content type (text / highlights / summary) of a page as its own document,
+   * so a fetch asking for two of them reports 2, not 1.
+   *
+   * Report 0 explicitly for a search that matched nothing. An ABSENT count
+   * means "not reported" and falls back to the provider's assumed result count,
+   * so an under-reporting call is charged as a normal one rather than as free.
+   */
+  documents?: number;
+}
+
+/**
  * The per-service payloads a usage envelope can carry — one key per
  * `CreditServiceType` value (the key IS the enum's string value, which is what
  * keeps the wire format stable)
@@ -190,6 +231,13 @@ export interface CreditServiceUsageMap {
    */
   ai?: CreditAiUsage[];
   compute?: CreditComputeUsage;
+  /**
+   * One segment per web call the turn made — always a list, even for one.
+   *
+   * An agent turn routinely runs several searches and then scrapes the best
+   * hits; each is priced on its own quantities, so segments never collapse.
+   */
+  web?: CreditWebUsage[];
 }
 
 /**

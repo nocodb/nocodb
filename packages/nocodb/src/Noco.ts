@@ -61,6 +61,7 @@ export default class Noco {
   public static _ncOperationLogs: any;
   public static appHooksService: AppHooksService;
   public static _computeService: any;
+  public static _webService: any;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
   public env: string;

@@ -321,6 +321,8 @@ loadLicense()
             </template>
           </div>
 
+          <AccountLicenseCredits v-if="isEeUI" />
+
           <!-- Buy / Manage License card -->
           <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
             <div class="flex flex-col gap-1">

@@ -125,7 +125,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     }
   }
 
-  const onUpdateIcon = async (base: NcProject, icon: string) => {
+  // `null` clears the custom glyph so the base falls back to its default icon.
+  const onUpdateIcon = async (base: NcProject, icon: string | null) => {
     try {
       const newMeta = {
         ...parseProp(base.meta),

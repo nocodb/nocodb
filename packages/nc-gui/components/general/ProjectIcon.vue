@@ -5,6 +5,10 @@ const props = withDefaults(
   defineProps<{
     hoverable?: boolean
     color?: string
+    // Custom base glyph (`base.meta.icon`) — an iconMap key. When set (and not a
+    // managed app), render it instead of the default sphere so a base's chosen
+    // icon shows everywhere, not just on the workspace landing cards.
+    icon?: string
     managedApp?: {
       managed_app_master?: boolean
       managed_app_id?: string
@@ -12,10 +16,11 @@ const props = withDefaults(
   }>(),
   {
     color: baseIconColors[0],
+    icon: undefined,
     managedApp: () => ({}),
   },
 )
-const { color, managedApp } = toRefs(props)
+const { color, icon, managedApp } = toRefs(props)
 
 const managedAppInfo = computed(() => {
   return {
@@ -23,6 +28,19 @@ const managedAppInfo = computed(() => {
     isMaster: !!managedApp.value?.managed_app_master && !!managedApp.value?.managed_app_id,
   }
 })
+
+// A valid custom base icon takes precedence over the default sphere (managed
+// apps keep their own iconography).
+const customBaseIcon = computed(() => (managedAppInfo.value.isManagedApp ? undefined : resolveIconMapKey(icon.value)))
+
+const { isDark } = useTheme()
+
+// Tinted identity tile for the custom icon — same treatment as the
+// workspace-landing card (`WorkspaceBaseListModalBaseNode`) so the base's icon
+// looks the same everywhere, not a bare glyph.
+const iconTileTint = computed(() =>
+  getIconTileTint(color.value && tinycolor(color.value).isValid() ? color.value : baseIconColors[0], isDark.value),
+)
 
 const iconColor = computed(() => {
   return color.value && tinycolor(color.value).isValid()
@@ -48,8 +66,19 @@ const gradientId = computed(() => {
 </script>
 
 <template>
+  <!-- Custom base icon (base.meta.icon) on a tinted tile -->
+  <div
+    v-if="customBaseIcon"
+    class="w-5 h-5 nc-base-icon nc-base-custom-icon flex-none flex items-center justify-center rounded-md"
+    :class="{
+      'nc-base-icon-hoverable': hoverable,
+    }"
+    :style="{ backgroundColor: iconTileTint.bg }"
+  >
+    <GeneralIcon :icon="customBaseIcon" class="w-3/4 h-3/4" :style="{ color: iconTileTint.glyph }" />
+  </div>
   <svg
-    v-if="!managedAppInfo.isManagedApp"
+    v-else-if="!managedAppInfo.isManagedApp"
     xmlns="http://www.w3.org/2000/svg"
     width="20"
     height="20"

@@ -86,6 +86,7 @@ const viewModeInfo = computed(() => {
               <GeneralProjectIcon
                 :type="base?.type"
                 :color="parseProp(base.meta).iconColor"
+                :icon="parseProp(base.meta).icon"
                 :managed-app="{
                   managed_app_master: base?.managed_app_master,
                   managed_app_id: base?.managed_app_id,

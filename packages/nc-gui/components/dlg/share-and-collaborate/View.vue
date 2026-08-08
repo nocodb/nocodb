@@ -165,6 +165,7 @@ watch(showShareModal, (val) => {
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <GeneralProjectIcon
             :color="parseProp(base.meta).iconColor"
+            :icon="parseProp(base.meta).icon"
             :type="base.type"
             :managed-app="{
               managed_app_master: base.managed_app_master,

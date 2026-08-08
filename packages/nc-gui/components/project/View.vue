@@ -368,6 +368,7 @@ watch(
           <template v-else>
             <GeneralProjectIcon
               :color="parseProp(currentBase?.meta).iconColor"
+              :icon="parseProp(currentBase?.meta).icon"
               :type="currentBase?.type"
               :managed-app="{
                 managed_app_master: currentBase?.managed_app_master,

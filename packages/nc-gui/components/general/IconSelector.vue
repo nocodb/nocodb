@@ -326,7 +326,7 @@ watch(isOpen, (newValue) => {
                 </div>
               </template>
 
-              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
+              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-y-auto nc-scrollbar-visible flex flex-col">
                 <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
@@ -535,16 +535,13 @@ watch(isOpen, (newValue) => {
   }
 
   .emoji-mart-scroll {
-    @apply mt-1 px-1 overflow-x-hidden;
+    /* `nc-scrollbar-visible` replaces the library's `overflow: overlay`, which
+       keeps the bar hidden until the user scrolls. */
+    @apply mt-1 px-1 overflow-x-hidden overflow-y-auto nc-scrollbar-visible;
 
     h3.emoji-mart-category-label {
       @apply text-xs text-nc-content-gray-muted mb-0 bg-nc-bg-default;
     }
-  }
-
-  .emoji-mart-scroll {
-    @apply nc-scrollbar-thin;
-    overflow-y: overlay;
   }
 
   .emoji-mart-emoji {

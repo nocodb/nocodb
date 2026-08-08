@@ -552,6 +552,7 @@ defineExpose({
                     :key="`${base.id}_${parseProp(base.meta).iconColor}`"
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"
+                    :icon="parseProp(base.meta).icon"
                     size="small"
                     :readonly="
                       (base?.type && base?.type !== 'database') || !isUIAllowed('baseRename') || isProjectNodeContextMenuOpen
@@ -569,6 +570,7 @@ defineExpose({
               :key="`${base.id}_${parseProp(base.meta).iconColor}`"
               class="flex-none !w-4.5 !h-4.5"
               :color="parseProp(base.meta).iconColor"
+              :icon="parseProp(base.meta).icon"
               :managed-app="{
                 managed_app_master: base.managed_app_master,
                 managed_app_id: base.managed_app_id,

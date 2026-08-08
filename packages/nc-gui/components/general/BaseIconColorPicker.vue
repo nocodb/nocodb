@@ -7,6 +7,9 @@ const props = withDefaults(
     size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
     readonly?: boolean
     iconClass?: string
+    // Custom base glyph (`base.meta.icon`) — forwarded to GeneralProjectIcon so
+    // the trigger reflects the base's chosen icon, not just its color.
+    icon?: string
     managedApp?: {
       managed_app_master?: boolean
       managed_app_id?: string
@@ -88,7 +91,7 @@ watch(
           </template>
 
           <div class="flex items-center">
-            <GeneralProjectIcon :color="colorRef" :class="iconClass" :managed-app="managedApp" />
+            <GeneralProjectIcon :color="colorRef" :icon="icon" :class="iconClass" :managed-app="managedApp" />
           </div>
         </NcTooltip>
       </div>

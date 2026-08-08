@@ -95,9 +95,23 @@ describe('scopeColumnsToPageVisualization', () => {
   it('keeps every column when there is no page', () => {
     expect(scopedIds(null)).toEqual(['c1', 'c2', 'c3', 'c4'])
   })
+
+  it('keeps every column when no curated field would survive the form filter', () => {
+    // The page shows ONLY computed fields — possible, since even the display
+    // value can be a formula. The curation is non-empty here, but
+    // `buildDefaultRecordFormConfig` drops every computed type, so scoping to
+    // it would hand the builder a zero-field creation modal.
+    const computedOnly = [
+      { id: 'f1', title: 'Label', pv: true, uidt: 'Formula' },
+      { id: 'f2', title: 'Total', uidt: 'Rollup' },
+      { id: 'f3', title: 'Name', uidt: 'SingleLineText' },
+    ] as ColumnType[]
+
+    const page = buildPage([buildViz({ visible_field_ids: ['f1', 'f2'] })])
+
+    expect(scopeColumnsToPageVisualization(computedOnly, page, 'tbl1').map((column) => column.id)).toEqual(['f1', 'f2', 'f3'])
+  })
 })
 
-// `buildDefaultRecordFormConfig` is deliberately not covered here: it depends on
-// the auto-imported `isFormViewHiddenCol`, which vitest does not provide, and
-// stubbing it would make the assertion circular. It preserves the order it is
-// handed — which is what the scoping above pins down.
+// `buildDefaultRecordFormConfig` is deliberately not covered here — it preserves
+// the order it is handed, which is what the scoping above pins down.

@@ -78,11 +78,37 @@ export function collectVizStructuralFieldIds(
 }
 
 /**
- * Apply a viz's `field_order` (written by the grid's header drag) to a list of
- * column ids: listed ids first, in that order, then everything unlisted in the
- * order it came in. Ids in `field_order` that aren't in `ids` are dropped — the
- * caller's list is the authority on which columns exist at all (a curated
- * `visible_field_ids`, the consumer's allow-listed projection, …).
+ * Apply an explicit `field_order` to a list of column ids: listed ids first, in
+ * that order, then everything unlisted in the order it came in. Ids in
+ * `fieldOrder` that aren't in `ids` are dropped — the caller's list is the
+ * authority on which columns exist at all (a curated `visible_field_ids`, the
+ * consumer's allow-listed projection, …).
+ *
+ * Ordering NEVER widens what's visible or fetched: it only permutes the ids the
+ * caller already decided on. That's why the allow-list collectors don't read
+ * `field_order` at all.
+ *
+ * Takes the array rather than the config so leveled lists — whose PARENT levels
+ * carry their own `field_order` — share one implementation with the viz level.
+ */
+export function applyFieldOrder(
+  fieldOrder: string[] | null | undefined,
+  ids: Array<string | undefined>
+): string[] {
+  const present = ids.filter((id): id is string => !!id);
+
+  if (!fieldOrder?.length) return present;
+
+  const presentSet = new Set(present);
+  const listed = fieldOrder.filter((id) => presentSet.has(id));
+  const listedSet = new Set(listed);
+
+  return [...listed, ...present.filter((id) => !listedSet.has(id))];
+}
+
+/**
+ * Apply a viz's `field_order` (written by the builder's Fields pane; on grids
+ * the column header drag writes it too) to a list of column ids.
  *
  * Single source of truth for BOTH sides, like `collectVizStructuralFieldIds`:
  * - frontend `buildInterfaceSyntheticMeta` → the rendered column order
@@ -92,16 +118,7 @@ export function orderVizFieldIds(
   viz: InterfaceVisualizationConfig,
   ids: Array<string | undefined>
 ): string[] {
-  const present = ids.filter((id): id is string => !!id);
-
-  const fieldOrder = viz.field_order;
-  if (!fieldOrder?.length) return present;
-
-  const presentSet = new Set(present);
-  const listed = fieldOrder.filter((id) => presentSet.has(id));
-  const listedSet = new Set(listed);
-
-  return [...listed, ...present.filter((id) => !listedSet.has(id))];
+  return applyFieldOrder(viz.field_order, ids);
 }
 
 /** Column ids referenced anywhere in a config filter tree. */

@@ -42,6 +42,8 @@ export enum PlanLimitTypes {
   LIMIT_WORKSPACE = 'limit_workspace',
   LIMIT_TRASH_RETENTION = 'limit_trash_retention',
   LIMIT_AI_INTEGRATIONS = 'limit_ai_integrations',
+  LIMIT_CREDITS = 'limit_credits',
+  LIMIT_CREDITS_PER_SEAT = 'limit_credits_per_seat',
 }
 
 export enum PlanFeatureTypes {
@@ -404,6 +406,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to keep document revision history for longer.',
   [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
   [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 'to add more AI integrations.',
+  [PlanLimitTypes.LIMIT_CREDITS]: 'to get more credits.',
+  [PlanLimitTypes.LIMIT_CREDITS_PER_SEAT]: 'to get more credits per seat.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -587,3 +591,16 @@ export const PlanFeatureTypesToPlanTitles = {} as Record<
 export type PlanMetaType = Partial<
   Record<PlanFeatureTypes, boolean> & Record<PlanLimitTypes, number>
 >;
+
+/**
+ * Sentinel `stripe_customer_id` for workspaces/orgs with no real Stripe
+ * customer — free, internal and comped accounts. Nothing can be charged
+ * against it, so any money-in path must check before calling Stripe.
+ */
+export const INTERNAL_STRIPE_CUSTOMER_ID = 'nocodb';
+
+/** True when this is a chargeable Stripe customer, not the internal sentinel. */
+export const isChargeableStripeCustomer = (
+  stripeCustomerId?: string | null
+): boolean =>
+  !!stripeCustomerId && stripeCustomerId !== INTERNAL_STRIPE_CUSTOMER_ID;

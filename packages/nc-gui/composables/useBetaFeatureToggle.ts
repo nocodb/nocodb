@@ -195,6 +195,15 @@ const FEATURES = [
     version: 3,
     isEngineering: false,
   },
+  {
+    id: 'credit_usage_overview',
+    title: 'Credit usage overview',
+    description: 'Show the credit usage chart and activity list on the billing page.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

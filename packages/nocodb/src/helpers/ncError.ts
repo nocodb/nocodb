@@ -4,6 +4,7 @@ import { NcErrorV3 } from './ncErrorV3';
 import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
+  CreditsExhaustedDetailsType,
   NcErrorArgs,
   PlanLimitExceededDetailsType,
   SourceType,
@@ -35,6 +36,10 @@ export class NcError {
 
   static workspaceNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.workspaceNotFound(id, args);
+  }
+
+  static orgNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.orgNotFound(id, args);
   }
 
   static columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
@@ -257,6 +262,17 @@ export class NcError {
     args?: NcErrorArgs,
   ): never {
     return NcError._.planLimitExceeded(message, details, args);
+  }
+
+  static creditPackNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.creditPackNotFound(id, args);
+  }
+
+  static creditsExhausted(
+    details?: CreditsExhaustedDetailsType,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.creditsExhausted(details, args);
   }
 
   static allowedOnlySSOAccess(ncWorkspaceId: string): never {

@@ -10,7 +10,11 @@ import {
   TestConnectionError,
   UnprocessableEntity,
 } from '../error/nc-base.error';
-import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
+import {
+  CreditsExhaustedDetailsType,
+  NcErrorType,
+  PlanLimitExceededDetailsType,
+} from '../globals';
 import {
   HigherPlan,
   PlanFeatureTypes,
@@ -44,6 +48,13 @@ export class NcErrorBase {
 
   workspaceNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKSPACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  orgNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ORG_NOT_FOUND, {
       params: id,
       ...args,
     });
@@ -579,6 +590,23 @@ export class NcErrorBase {
         ...details,
         ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
       },
+    });
+  }
+
+  creditPackNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_CREDIT_PACK_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  creditsExhausted(
+    details?: CreditsExhaustedDetailsType,
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_CREDITS_EXHAUSTED, {
+      ...args,
+      details,
     });
   }
 

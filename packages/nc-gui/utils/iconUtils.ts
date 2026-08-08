@@ -807,6 +807,16 @@ import NcLogoManusIm from '~icons/nc-icons-v2/manus-im.svg'
 import NcLogoHuggingface from '~icons/nc-icons-v2/huggingface-colored.svg'
 import NcLogoReplitAi from '~icons/nc-icons-v2/replit-ai-colored.svg'
 import NcLogoLangchain from '~icons/nc-icons-v2/langchain.svg'
+import NcLogoAlibabaAi from '~icons/nc-icons-v2/alibaba-ai.svg'
+import NcLogoBasetenAi from '~icons/nc-icons-v2/baseten-ai.svg'
+import NcLogoCerebrasAi from '~icons/nc-icons-v2/cerebras-ai.svg'
+import NcLogoCohereAi from '~icons/nc-icons-v2/cohere-ai.svg'
+import NcLogoDeepinfraAi from '~icons/nc-icons-v2/deepinfra-ai.svg'
+import NcLogoFireworksAi from '~icons/nc-icons-v2/fireworks-ai.svg'
+import NcLogoMistralAi from '~icons/nc-icons-v2/mistral-ai.svg'
+import NcLogoTogetherAi from '~icons/nc-icons-v2/together-ai.svg'
+import NcLogoVercelAi from '~icons/nc-icons-v2/vercel-ai.svg'
+import NcLogoXaiAi from '~icons/nc-icons-v2/xai-ai.svg'
 import NcLogoBambooHrColored from '~icons/nc-icons-v2/bamboo-hr-colored.svg'
 import NcLogoDockerColored from '~icons/nc-icons-v2/docker-colored.svg'
 import NcLogoHootsuiteColored from '~icons/nc-icons-v2/hootsuite-colored.svg'
@@ -1402,6 +1412,17 @@ export const iconMap = {
   'claude': h(NcClaude, { stroke: 'transparent' }),
   'ollama': h(NcOllama, { stroke: 'transparent' }),
   'groq': h(NcGroq, { stroke: 'transparent' }),
+  'alibaba': h(NcLogoAlibabaAi, { stroke: 'transparent' }),
+  'baseten': h(NcLogoBasetenAi, { stroke: 'transparent' }),
+  'cerebras': h(NcLogoCerebrasAi, { stroke: 'transparent' }),
+  'cohere': h(NcLogoCohereAi, { stroke: 'transparent' }),
+  'deepinfra': h(NcLogoDeepinfraAi, { stroke: 'transparent' }),
+  'fireworks': h(NcLogoFireworksAi, { stroke: 'transparent' }),
+  'huggingface': h(NcLogoHuggingface, { stroke: 'transparent' }),
+  'mistral': h(NcLogoMistralAi, { stroke: 'transparent' }),
+  'together': h(NcLogoTogetherAi, { stroke: 'transparent' }),
+  'vercel': h(NcLogoVercelAi, { stroke: 'transparent' }),
+  'xai': h(NcLogoXaiAi, { stroke: 'transparent' }),
   'posthog': h(NcPosthog, { stroke: 'transparent' }),
   'nocodbPg': h(NcNocodbPg, { stroke: 'transparent' }),
   'refreshCw': NcRefreshCW,

@@ -52,6 +52,7 @@ oracle-data-db.json
 # ignoring to avoid commiting those files
 # nc-gui dir is copied for building local docker.
 /docker/main.js
+/docker/*.main.js
 /docker/nc-gui/
 /docker/public/
 

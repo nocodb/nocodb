@@ -201,3 +201,4 @@ export * from './enums';
 export * from './elements';
 export * from './pageConfigs';
 export * from './vizFields';
+export * from './copyFromView';

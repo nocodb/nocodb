@@ -1137,6 +1137,15 @@
       "selectConfigurationToCopy": "Select configuration(s) to copy",
       "selectViewToCopyFrom": "Select view to copy from",
       "copyConfigurationFromAnotherView": "Copy configuration from another view",
+      "copySettingsFromView": "Copy settings from a view",
+      "chooseSettings": "Choose settings",
+      "settingsSelected": "{count} selected",
+      "warning": {
+        "dynamic_filters_dropped": "{count} field-to-field condition(s) can't be copied — this page will show more records than the view.",
+        "negated_filters_dropped": "{count} negated condition(s) can't be copied — this page will show more records than the view.",
+        "row_color_background_lost": "Record colours are copied, but their background fill isn't.",
+        "grouping_dropped": "This layout doesn't support grouping, so it isn't copied."
+      },
       "notSupportedByViewType": "Not supported by {view} view type",
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",

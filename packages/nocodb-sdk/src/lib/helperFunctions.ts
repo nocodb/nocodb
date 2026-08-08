@@ -66,7 +66,7 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 const getAvailableRollupForColumn = (column: ColumnType) => {
   if ([UITypes.Formula].includes(column.uidt as UITypes)) {
     return getAvailableRollupForFormulaType(
-      (column.colOptions as FormulaType as any).parsed_tree?.dataType ??
+      (column.colOptions as FormulaType as any)?.parsed_tree?.dataType ??
         FormulaDataTypes.UNKNOWN
     );
   } else {

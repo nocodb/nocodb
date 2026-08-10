@@ -57,6 +57,7 @@ interface User {
   display_name?: string | null
   featureFlags?: Record<string, boolean>
   meta?: MetaType
+  is_new_user?: boolean
 }
 
 interface ProjectMetaInfo {

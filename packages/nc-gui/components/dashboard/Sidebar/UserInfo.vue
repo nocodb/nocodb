@@ -56,6 +56,7 @@ onMounted(() => {
               'nc-mini-sidebar-ws-item flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"
+            data-tour="sidebar-userinfo"
             :data-email="user?.email"
           >
             <div

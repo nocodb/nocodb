@@ -519,6 +519,17 @@ export class UtilsService {
         process.env.NC_DISABLE_ONBOARDING_FLOW === 'true' ||
         process.env.NODE_ENV === 'development' ||
         process.env.NODE_ENV === 'test',
+      /**
+       * Kill switch for in-app product tours.
+       *
+       * Hard-disabled under `test` so tour overlays can never intercept clicks
+       * in the Playwright suite. Unlike `disableOnboardingFlow` this stays
+       * ENABLED in `development` — engineers need to see tours while authoring
+       * them.
+       */
+      disableTours:
+        process.env.NC_DISABLE_TOURS === 'true' ||
+        process.env.NODE_ENV === 'test',
       ...(isEE === false
         ? {
             defaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,

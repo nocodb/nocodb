@@ -110,6 +110,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const { updateUserProfile } = useUsers()
 
+  const { markOnboardingHandoff } = useTours()
+
   const isEnabledOnboardingFlow = computed(() => {
     return (
       !appInfo.value.disableOnboardingFlow &&
@@ -958,6 +960,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
     isSubmitting.value = true
 
     postCompleteOnboardingFlow(skipped)
+
+    markOnboardingHandoff()
 
     /**
      * Mark `is_new_user` as `false` in user object after onboarding flow is completed

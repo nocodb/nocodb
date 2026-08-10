@@ -68,6 +68,7 @@ export interface AppInfo {
   openReplayKey?: string | null
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
+  disableTours: boolean
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number

@@ -481,6 +481,7 @@
     "renameEntity": "Rename {entity}",
     "untitledEntity": "Untitled {entity}",
     "reload": "Reload",
+    "replay": "Replay",
     "newUpdateAvailable": "New update available!",
     "refresh": "Refresh",
     "reset": "Reset",
@@ -1447,6 +1448,7 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
+    "productTours": "Product Tours",
     "generateRandomName": "Generate Random Name",
     "findRowByScanningCode": "Find record by scanning a QR or Barcode",
     "tokenManagement": "Token Management",
@@ -4455,6 +4457,8 @@
     "autoSuggestViewsFor": "Auto suggest views for {tableName}",
     "discardDraftChanges": "Discard draft changes and restore published version",
     "testAllNodesBeforePublish": "Please test all nodes before publishing",
+    "tourCompleteStepToContinue": "Complete this step to continue",
+    "tourTakeTheTour": "{tour} — take the tour",
     "fieldPropertiesCannotBeEdited": "Field properties cannot be edited.",
     "fieldAssociatedWithLinkColumn": "Field is associated with a link column",
     "fieldCannotBeUpgraded": "Field cannot be upgraded.",
@@ -5942,6 +5946,94 @@
       "limitsAttention": "Some plan limits need attention",
       "hideLimits": "Hide limits",
       "showLimits": "Show limits"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "Get around your workspace",
+      "welcome": {
+        "title": "Welcome to NocoDB",
+        "description": "A quick lap around your workspace. You can leave any time — hit Skip."
+      },
+      "createBase": {
+        "title": "Start with a base",
+        "description": "A base holds your tables, views and automations. This is where most work begins."
+      },
+      "switchWorkspaces": {
+        "title": "Switch workspaces",
+        "description": "Every workspace you belong to lives behind this selector. Open it to see the rest."
+      },
+      "moreWorkspaces": {
+        "title": "More than one workspace",
+        "description": "Workspaces keep separate teams and projects apart, each with their own members."
+      },
+      "account": {
+        "title": "Account and settings",
+        "description": "Profile, theme, keyboard shortcuts and account settings all live behind your avatar."
+      }
+    },
+    "workflows": {
+      "title": "Build your first workflow",
+      "overview": {
+        "title": "Build a workflow, end to end",
+        "description": "Create it, pick a trigger, add an action, publish, switch it on, then watch it run."
+      },
+      "create": {
+        "title": "Create a workflow",
+        "description": "Start from scratch — this opens a short form."
+      },
+      "createSubmit": {
+        "title": "Create it",
+        "description": "This drops you straight into the canvas."
+      },
+      "addTrigger": {
+        "title": "Add a trigger",
+        "description": "Every workflow starts here — click to see what can kick it off."
+      },
+      "pickManualTrigger": {
+        "title": "Pick \"When manually triggered\"",
+        "description": "You fire this one yourself, so you can get the rest working before wiring it to real events."
+      },
+      "testTrigger": {
+        "title": "Test the trigger",
+        "description": "Run it once and look at the data it produces. Every later step builds on this output."
+      },
+      "addAction": {
+        "title": "Add an action",
+        "description": "Actions are what the workflow actually does once the trigger fires."
+      },
+      "pickListRecords": {
+        "title": "Pick \"List records\"",
+        "description": "It only reads, so you can run it as often as you like without changing any data."
+      },
+      "chooseTable": {
+        "title": "Choose a table",
+        "description": "Every action needs to know what it works on. Pick the table to list records from."
+      },
+      "testAction": {
+        "title": "Test the action too",
+        "description": "Each node tests on its own. Confirm this one returns what you expect before publishing."
+      },
+      "publish": {
+        "title": "Publish your changes",
+        "description": "Edits are saved as a <b>draft</b>. Publishing is what makes this version the one that runs."
+      },
+      "enable": {
+        "title": "Switch it on",
+        "description": "Published isn't the same as running. A workflow stays <b>Paused</b> until you enable it — this is the step people miss."
+      },
+      "run": {
+        "title": "Run it once",
+        "description": "A manual trigger fires on demand — give it a go and watch it execute."
+      },
+      "logs": {
+        "title": "Check the logs",
+        "description": "Every run is recorded here — what fired, what each step returned, and anything that failed."
+      },
+      "wrapUp": {
+        "title": "That's the whole loop",
+        "description": "Trigger, actions, publish, enable, run, logs. Every workflow you build from here follows the same shape."
+      }
     }
   }
 }

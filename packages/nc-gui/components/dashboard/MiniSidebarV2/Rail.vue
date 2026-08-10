@@ -202,22 +202,6 @@ const mainItems = computed<NavItem[]>(() => [
       onTabClick('data')
     },
   },
-  // Interfaces are paid-only and hidden (not badge-gated) below the tier.
-  ...(showEEFeatures.value && !hideInterfaces.value
-    ? [
-        {
-          key: 'interfaces',
-          icon: 'ncLayout',
-          label: t('general.interfaces'),
-          disabled:
-            !hasAvailableBases.value ||
-            !isUIAllowed('interfaceList', {
-              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
-            }),
-          onClick: () => onTabClick('interfaces'),
-        },
-      ]
-    : []),
   ...(!isMobileMode.value && showEEFeatures.value
     ? [
         {
@@ -232,6 +216,22 @@ const mainItems = computed<NavItem[]>(() => [
           onClick: () => {
             onTabClick('workflows')
           },
+        },
+      ]
+    : []),
+  // Interfaces are paid-only and hidden (not badge-gated) below the tier.
+  ...(showEEFeatures.value && !hideInterfaces.value
+    ? [
+        {
+          key: 'interfaces',
+          icon: 'ncLayout',
+          label: t('general.interfaces'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('interfaceList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('interfaces'),
         },
       ]
     : []),

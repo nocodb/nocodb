@@ -154,6 +154,21 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
+  ...(!isMobileMode.value && showEEFeatures.value
+    ? [
+        {
+          key: 'workflows',
+          icon: 'ncAutomation',
+          label: t('general.workflows'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('scriptList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('workflows'),
+        },
+      ]
+    : []),
   // Interfaces are paid-only and hidden (not badge-gated) below the tier.
   ...(showEEFeatures.value && !hideInterfaces.value
     ? [
@@ -167,21 +182,6 @@ const mainItems = computed<NavItem[]>(() => [
               roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
             }),
           onClick: () => onTabClick('interfaces'),
-        },
-      ]
-    : []),
-  ...(!isMobileMode.value && showEEFeatures.value
-    ? [
-        {
-          key: 'workflows',
-          icon: 'ncAutomation',
-          label: t('general.workflows'),
-          disabled:
-            !hasAvailableBases.value ||
-            !isUIAllowed('scriptList', {
-              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
-            }),
-          onClick: () => onTabClick('workflows'),
         },
       ]
     : []),

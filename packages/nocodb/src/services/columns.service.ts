@@ -8396,6 +8396,7 @@ export class ColumnsService implements IColumnsService {
       let newLtarCol: Column | undefined;
       let dependentLookupColIds: string[] = [];
       let dependentRollupColIds: string[] = [];
+      let dependentLevelIds: string[] = [];
       // View-column rows of the dropped FK column, removed inside the meta
       // transaction; their cache is busted post-commit (see below).
       const fkViewColumnDeepDelKeys: { scope: CacheScope; id: string }[] = [];
@@ -8646,6 +8647,29 @@ export class ColumnsService implements IColumnsService {
               (r: any) => r.fk_column_id,
             );
           }
+
+          // Nested-records list views nest a level by this link via
+          // fk_self_link_column_id. The hm side is REPLACED with a new column
+          // id on the v2 upgrade, so re-point the levels from hmColumn →
+          // newLtarCol — same as the Lookup/Rollup retarget above. Without it
+          // the level points at the dropped column and the nested tree silently
+          // flattens after "Upgrade to v2".
+          const dependentLevelRows = await ncMeta.metaList2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.LIST_VIEW_LEVELS,
+            { condition: { fk_self_link_column_id: hmColumn.id } },
+          );
+          if (dependentLevelRows.length > 0) {
+            await ncMeta.metaUpdate(
+              context.workspace_id,
+              context.base_id,
+              MetaTable.LIST_VIEW_LEVELS,
+              { fk_self_link_column_id: newLtarCol.id },
+              { fk_self_link_column_id: hmColumn.id },
+            );
+            dependentLevelIds = dependentLevelRows.map((r: any) => r.id);
+          }
         }
 
         await ncMeta.commit();
@@ -8725,6 +8749,14 @@ export class ColumnsService implements IColumnsService {
           await NocoCache.update(context, `${CacheScope.COL_ROLLUP}:${colId}`, {
             fk_relation_column_id: newLtarCol.id,
           });
+        }
+        // Cached list-view levels re-pointed to the new v2 link column.
+        for (const levelId of dependentLevelIds) {
+          await NocoCache.update(
+            context,
+            `${CacheScope.LIST_VIEW_LEVEL}:${levelId}`,
+            { fk_self_link_column_id: newLtarCol.id },
+          );
         }
       }
 

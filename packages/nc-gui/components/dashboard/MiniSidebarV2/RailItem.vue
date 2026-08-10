@@ -30,6 +30,11 @@ const emits = defineEmits<{
   (e: 'click'): void
 }>()
 
+const slots = useSlots()
+
+// Labels render beside icons only at ≥1280px (see media query in styles) — the tooltip is redundant then
+const isLabelVisible = useMediaQuery('(min-width: 1280px)')
+
 const tooltipText = computed(() => props.tooltip || props.label)
 
 const currentIcon = computed(() => {
@@ -37,7 +42,11 @@ const currentIcon = computed(() => {
   return props.icon
 })
 
-const disableTooltipForNewSidebar = true
+const isTooltipDisabled = computed(() => {
+  if (!tooltipText.value || props.disableTooltip) return true
+
+  return !!(props.label || slots.label) && isLabelVisible.value
+})
 </script>
 
 <template>
@@ -45,7 +54,7 @@ const disableTooltipForNewSidebar = true
     class="w-full flex justify-center relative"
     placement="right"
     :arrow="false"
-    :disabled="!tooltipText || disableTooltip || disableTooltipForNewSidebar"
+    :disabled="isTooltipDisabled"
   >
     <template #title>{{ tooltipText }}</template>
 

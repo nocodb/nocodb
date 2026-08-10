@@ -220,15 +220,17 @@ const hasDocumentCreateAccess = computed(() => {
       :align="{ offset: [12, 3] }"
     >
       <div class="w-full py-1 flex items-center justify-center">
-        <div
-          class="nc-mini-sidebar-plus-btn border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
-          :class="{
-            'border-nc-border-gray-dark': !isVisibleCreateNew,
-            'active border-primary shadow-selected': isVisibleCreateNew,
-          }"
-        >
-          <GeneralIcon icon="ncPlus" />
-        </div>
+        <NcTooltip :title="$t('labels.createNew')" placement="right" :arrow="false" :disabled="isVisibleCreateNew">
+          <div
+            class="nc-mini-sidebar-plus-btn border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
+            :class="{
+              'border-nc-border-gray-dark': !isVisibleCreateNew,
+              'active border-primary shadow-selected': isVisibleCreateNew,
+            }"
+          >
+            <GeneralIcon icon="ncPlus" />
+          </div>
+        </NcTooltip>
       </div>
 
       <template #overlay>

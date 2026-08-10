@@ -284,7 +284,6 @@ const handleOpenBookmarkPanel = () => {
       :panel-key="item.key"
       :active="activeSidebarTab === item.key && !isChatFullScreen"
       :disabled="item.disabled"
-      :disable-tooltip="true"
       @click="item.onClick?.()"
     />
 
@@ -296,7 +295,6 @@ const handleOpenBookmarkPanel = () => {
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
-      :disable-tooltip="true"
       :plain-active="!isChatFullScreen"
       @click="handleChatToggle"
     >
@@ -311,7 +309,6 @@ const handleOpenBookmarkPanel = () => {
       :label="$t('labels.settings')"
       panel-key="settings"
       :active="activeSidebarTab === 'settings' && !isChatFullScreen"
-      :disable-tooltip="true"
       @click="onTabClick('settings')"
     />
 

@@ -2,6 +2,7 @@ import {
   FormulaDataTypes,
   isBtLikeV2Junction,
   isMMOrMMLike,
+  isRollupAggregatableColumn,
   NC_ERROR_SENTINEL,
   NcDataErrorCodes,
   RelationTypes,
@@ -39,8 +40,18 @@ export default async function genRollupSelectv2(param: {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
 
+  // Callers treat the result as a query builder — `select-object` and `group-by`
+  // call `.as()` on it, which knex 3's `Raw` doesn't implement. Oracle is the
+  // one dialect that rejects a SELECT without a FROM.
+  const errorSentinel = () => {
+    const qb = knex.select(knex.raw(`?`, [NC_ERROR_SENTINEL]));
+    return {
+      builder: baseModelSqlv2.isOracle ? qb.from(knex.raw('dual')) : qb,
+    };
+  };
+
   if ((columnOptions as RollupColumn).error) {
-    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+    return errorSentinel();
   }
 
   const context = baseModelSqlv2.context;
@@ -74,7 +85,7 @@ export default async function genRollupSelectv2(param: {
   profiler.log('getRelationColumn done');
 
   if (!relationColumn) {
-    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+    return errorSentinel();
   }
 
   const relationColumnOption: LinkToAnotherRecordColumn =
@@ -93,6 +104,14 @@ export default async function genRollupSelectv2(param: {
 
   if (!rollupColumn) {
     NcError.get(context).fieldNotFound(columnOptions.fk_rollup_column_id);
+  }
+
+  // No column to aggregate: the fallthrough in `applyFunction` would bind a null
+  // `column_name` and fail the whole read, not just this cell. Signal only —
+  // `colOptions.error` means "dependency deleted" (cleared on restore), so this
+  // partial check must never write to it.
+  if (!isRollupAggregatableColumn(rollupColumn)) {
+    return errorSentinel();
   }
 
   const childCol = await relationColumnOption.getChildColumn(childContext);

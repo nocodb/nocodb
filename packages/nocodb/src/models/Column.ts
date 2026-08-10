@@ -1308,9 +1308,18 @@ export default class Column<T = any> implements ColumnType {
     }
 
     const oldCol = await Column.get(context, { colId }, ncMeta);
+
+    // insertColOption() dispatches on the incoming uidt, so without one it can
+    // rebuild nothing — dropping the existing colOptions below would be pure
+    // loss. This covers the types that have a delete case in the switch but no
+    // requiredColumnsToRecreate entry (Select, LongText).
+    const incomingUidt =
+      column.uidt ?? (column as { ui_data_type?: UITypes }).ui_data_type;
+
     const requiredColAvail =
-      !requiredColumnsToRecreate[oldCol.uidt] ||
-      requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]);
+      !!incomingUidt &&
+      (!requiredColumnsToRecreate[oldCol.uidt] ||
+        requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]));
 
     if (requiredColAvail) {
       switch (oldCol.uidt) {

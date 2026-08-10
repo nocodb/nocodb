@@ -724,7 +724,6 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
-        <!--
         <div v-if="!isPublic && isList" class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light">
           <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.prefixField') }}</div>
 
@@ -778,7 +777,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             </a-select>
           </div>
         </div>
--->
+
         <div v-if="isList && isListConfigured" class="px-2 py-2 border-b-1">
           <SmartsheetToolbarListLevelSelector />
         </div>

@@ -560,6 +560,18 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to control access per interface page.',
 };
 
+// Add-on-only features — no plan tier grants these, so "upgrade your plan"
+// would send the user to a purchase that cannot unlock them. Standalone
+// sentences, not fragments appended to an upgrade prefix.
+export const PlanFeatureAddonMessages: Partial<
+  Record<PlanFeatureTypes, string>
+> = {
+  [PlanFeatureTypes.FEATURE_MSSQL]:
+    'Microsoft SQL Server sources require the MSSQL add-on.',
+  [PlanFeatureTypes.FEATURE_ORACLE]:
+    'Oracle Database sources require the Oracle add-on.',
+};
+
 export const getUpgradeMessage = (
   limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
 ) => {

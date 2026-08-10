@@ -30,11 +30,6 @@ const emits = defineEmits<{
   (e: 'click'): void
 }>()
 
-const slots = useSlots()
-
-// Labels render beside icons only at ≥1280px (see media query in styles) — the tooltip is redundant then
-const isLabelVisible = useMediaQuery('(min-width: 1280px)')
-
 const tooltipText = computed(() => props.tooltip || props.label)
 
 const currentIcon = computed(() => {
@@ -42,11 +37,7 @@ const currentIcon = computed(() => {
   return props.icon
 })
 
-const isTooltipDisabled = computed(() => {
-  if (!tooltipText.value || props.disableTooltip) return true
-
-  return !!(props.label || slots.label) && isLabelVisible.value
-})
+const isTooltipDisabled = computed(() => !tooltipText.value || props.disableTooltip)
 </script>
 
 <template>
@@ -74,10 +65,6 @@ const isTooltipDisabled = computed(() => {
           <GeneralIcon v-if="currentIcon" :icon="(currentIcon as any)" class="nc-rail-item-icon" />
         </slot>
       </template>
-
-      <span v-if="label || $slots.label" class="nc-rail-item-label">
-        <slot name="label">{{ label }}</slot>
-      </span>
     </div>
   </NcTooltip>
 </template>
@@ -85,8 +72,9 @@ const isTooltipDisabled = computed(() => {
 <style lang="scss" scoped>
 .nc-rail-item {
   @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150 rounded-lg;
-  width: 36px;
-  height: 36px;
+  // Proportional to the rail: 36px in the 48px rail, 48px in the 64px rail (≥1290px)
+  width: calc(var(--mini-sidebar-width) * 0.75);
+  height: calc(var(--mini-sidebar-width) * 0.75);
 
   &:not(.active) {
     @apply text-nc-content-gray-muted;
@@ -100,10 +88,6 @@ const isTooltipDisabled = computed(() => {
 
   .nc-rail-item-icon {
     @apply h-4 w-4 flex items-center justify-center;
-  }
-
-  .nc-rail-item-label {
-    @apply select-none text-captionXsBold leading-tight tracking-tight hidden;
   }
 
   &:hover:not(.active):not(.disabled) {
@@ -148,15 +132,9 @@ const isTooltipDisabled = computed(() => {
     @apply opacity-40 cursor-not-allowed;
   }
 
-  // Expanded layout with labels when sidebar is 64px
-  @media (min-width: 1280px) {
-    @apply gap-1.5 pt-2.5 pb-1.5 rounded-[10px];
-    width: 53px;
-    height: auto;
-
-    .nc-rail-item-label {
-      display: block;
-    }
+  // Expanded rail (64px) — scale indicator with the larger items
+  @media (min-width: 1290px) {
+    @apply rounded-[10px];
 
     .nc-rail-item-indicator {
       @apply h-[36px];
@@ -166,12 +144,10 @@ const isTooltipDisabled = computed(() => {
 </style>
 
 <style lang="scss">
-.nc-rail-item:not(.active) .nc-rail-item-label,
 .nc-rail-item:not(.active) .nc-rail-item-icon {
   color: rgba(0, 0, 0, 0.7);
 }
 
-[theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-label,
 [theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-icon {
   color: rgba(255, 255, 255, 0.95);
 }

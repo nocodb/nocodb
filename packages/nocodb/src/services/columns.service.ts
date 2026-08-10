@@ -870,6 +870,10 @@ export class ColumnsService implements IColumnsService {
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
     const column = await Column.get(context, { colId: param.columnId });
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
     const oldColumn = deepClone(column);
 
     let createdBackup: ColumnBackupRef | undefined;
@@ -3698,12 +3702,13 @@ export class ColumnsService implements IColumnsService {
     param: { columnId: string; req: NcRequest },
   ) {
     const oldColumn = await Column.get(context, { colId: param.columnId });
-    const oldPrimaryColumn = await Model.get(context, oldColumn.fk_model_id)
-      .then((model) => model.getColumns(context))
-      .then((columns) => columns.find((c) => c.pv));
     if (!oldColumn) {
       NcError.get(context).fieldNotFound(param.columnId);
     }
+
+    const oldPrimaryColumn = await Model.get(context, oldColumn.fk_model_id)
+      .then((model) => model?.getColumns(context))
+      .then((columns) => columns?.find((c) => c.pv));
 
     // LongText (and its richMode / smartMode / ai variants) is rejected as a
     // display value — multi-line / markdown content renders poorly in

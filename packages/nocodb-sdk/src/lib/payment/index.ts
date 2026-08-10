@@ -570,6 +570,8 @@ export const PlanFeatureAddonMessages: Partial<
     'Microsoft SQL Server sources require the MSSQL add-on.',
   [PlanFeatureTypes.FEATURE_ORACLE]:
     'Oracle Database sources require the Oracle add-on.',
+  [PlanFeatureTypes.FEATURE_SCIM]:
+    'SCIM provisioning requires the SCIM add-on.',
 };
 
 export const getUpgradeMessage = (

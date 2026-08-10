@@ -301,6 +301,8 @@ const hasDocumentCreateAccess = computed(() => {
             <NcDivider />
           </template>
 
+          <DashboardMiniSidebarInterfaceCreateMenuItem v-if="isEeUI" />
+
           <!-- Data tab items (reads bottom-up: Table → Document → Dashboard → View) -->
           <NcTooltip
             :title="

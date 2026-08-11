@@ -54,6 +54,10 @@ export type InterfaceLeveledRow = Record<string, any> & {
   __nc_pk: string | number
   __nc_parent_id: string | number | null
   __nc_row_type: string
+  /** Nested-records (self-link tree) metadata — leaf rows only, when enabled. */
+  __nc_nest?: number
+  __nc_self_parent?: string | number | null
+  __nc_has_nested?: boolean
 }
 
 /**

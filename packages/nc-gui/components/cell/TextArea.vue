@@ -146,6 +146,27 @@ const rowId = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
 })
 
+// A not-yet-created record has no primary key, so the SmartText editor's
+// rowId-keyed backend load/save can't run. In that case the editor works against
+// a locally-buffered ProseMirror draft (see below) which is flushed to the backend
+// once the record is created (useExpandedFormStore.save).
+const isNewRecord = computed(() => !!currentRow.value?.rowMeta?.new)
+
+// The SmartText ProseMirror draft buffered on the row for this column while the
+// record is new. Two-way bound into the SmartText modal.
+const smartTextDraft = computed(() => {
+  if (!column?.value?.id) return null
+  return currentRow.value?.rowMeta?.smartTextDrafts?.[column.value.id] ?? null
+})
+
+// Markdown already present on a new record's cell (duplicated record or column
+// default value) — seeds the draft editor so the copied content is visible and
+// not clobbered by the first edit.
+const smartTextInitialMarkdown = computed(() => {
+  if (!isNewRecord.value || !ncIsString(vModel.value) || !vModel.value) return null
+  return vModel.value
+})
+
 const isAiGenerating = computed(() => {
   return !!(
     rowId.value &&
@@ -252,11 +273,53 @@ const onSmartTextSaved = (markdown: string | null) => {
   if (currentRow.value?.row && column?.value?.title) {
     currentRow.value.row[column.value.title] = markdown
   }
+  // A successful backend save supersedes any buffered draft (e.g. one kept
+  // around after a failed post-create flush and re-saved via the modal).
+  if (column?.value?.id && currentRow.value?.rowMeta?.smartTextDrafts) {
+    delete currentRow.value.rowMeta.smartTextDrafts[column.value.id]
+  }
   // Propagate to the parent grid — the expanded form's reloadHook reloads
   // the row from the server, which refreshes the canvas's cached row and
   // forces a redraw. Required because the expanded form's row is a fresh
   // server-fetched object, not the same reference as the canvas cache.
   reloadRowHook?.trigger(null)
+}
+
+// Flatten a ProseMirror doc into plain text — used only as an interim cell
+// preview for a new record. The authoritative markdown is derived on the backend
+// when the buffered draft is flushed on record creation.
+const pmToPlainText = (pm: Record<string, any> | null): string => {
+  if (!pm) return ''
+  const lines: string[] = []
+  const walk = (node: any) => {
+    if (!node) return
+    if (node.type === 'text' && typeof node.text === 'string') lines.push(node.text)
+    if (Array.isArray(node.content)) node.content.forEach(walk)
+    // Block-level nodes end with a line break so the preview keeps paragraph shape.
+    if (node.type && node.type !== 'text' && node.type !== 'doc') lines.push('\n')
+  }
+  walk(pm)
+  return lines
+    .join('')
+    .replace(/\n{2,}/g, '\n')
+    .trim()
+}
+
+// New-record SmartText edit — buffer the ProseMirror draft on the row so it
+// survives modal close and can be flushed to the backend once the record is
+// created, and mirror a plain-text preview into the cell value meanwhile.
+const onSmartTextDraftUpdate = (pm: Record<string, any> | null) => {
+  if (!currentRow.value || !column?.value?.id) return
+
+  if (!currentRow.value.rowMeta) currentRow.value.rowMeta = {}
+  if (!currentRow.value.rowMeta.smartTextDrafts) currentRow.value.rowMeta.smartTextDrafts = {}
+  currentRow.value.rowMeta.smartTextDrafts[column.value.id] = pm
+
+  // Route the preview through the cell vModel (not a direct row write) so the
+  // expanded form registers the change (`changedColumns`) — otherwise Save stays
+  // disabled and close skips the unsaved-changes prompt when the SmartText field
+  // is the only edit on the new record.
+  vModel.value = pmToPlainText(pm)
 }
 
 const onMouseMove = (e: MouseEvent) => {
@@ -961,7 +1024,11 @@ useResizeObserver(inputWrapperRef, () => {
       :column-title="column?.title"
       :column="column"
       :read-only="readOnly"
+      :is-new-record="isNewRecord"
+      :draft-content="smartTextDraft"
+      :initial-markdown="smartTextInitialMarkdown"
       @saved="onSmartTextSaved"
+      @update:draft-content="onSmartTextDraftUpdate"
     />
   </div>
 </template>

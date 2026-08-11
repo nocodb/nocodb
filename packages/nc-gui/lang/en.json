@@ -2233,6 +2233,7 @@
     "chatHeadingAsk": "What would you like to know?",
     "chatHeadingAnalyze": "What insights are you looking for?",
     "chatHeadingBuild": "What are we building?",
+    "chatContinueWhereLeftOff": "Continue from where you left off",
     "followUps": "Follow-ups",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",

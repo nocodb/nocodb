@@ -23,6 +23,7 @@ export enum ChatEventAction {
   USER_MESSAGE = 'user-message',
   AGENT_SWITCH = 'agent-switch',
   FOLLOW_UPS = 'follow-ups',
+  HEARTBEAT = 'heartbeat',
 }
 
 /**

@@ -1739,7 +1739,7 @@ export function useCanvasRender({
       const extra = box.focuses.length > 1 ? ` +${box.focuses.length - 1}` : ''
       // `editing` is authoritative — the editor's client only broadcasts it for cells it can
       // actually edit (read-only/computed/synced/no-permission cells are never "editing").
-      const labelText = (isEditing ? `${primary.name} is typing…` : primary.name) + extra
+      const labelText = (isEditing ? t('labels.userIsTyping', { user: primary.name }) : primary.name) + extra
       const labelFont = '600 11px Inter'
       const padX = 5
       const labelH = 16

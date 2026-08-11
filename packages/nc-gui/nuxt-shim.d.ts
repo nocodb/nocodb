@@ -40,6 +40,7 @@ declare module '#app' {
       offMessage: (listenerId: string) => void
       emit: (evt: string, payload: Record<string, any>) => void
       on: (evt: string, handler: (...args: any[]) => void) => () => void
+      onHandshake: (handler: () => void) => () => void
     }
     $eventBus: {
       smartsheetStoreEventBus: UseEventBusReturn<SmartsheetStoreEvents, any>

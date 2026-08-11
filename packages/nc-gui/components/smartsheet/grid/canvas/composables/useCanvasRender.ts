@@ -1659,6 +1659,10 @@ export function useCanvasRender({
     width: number
     height: number
     focuses: GridRemoteFocus[]
+    /** Whether the cell belongs to a frozen column — decides if the fixed-area clip applies. */
+    fixed: boolean
+    /** The group's row clip, when rendered inside a grouped view (see renderGroupRows). */
+    clip?: { x: number; y: number; width: number; height: number }
   }
 
   const remoteFocusBoxes: RemoteFocusBox[] = []
@@ -1670,20 +1674,51 @@ export function useCanvasRender({
     y: number,
     cellWidth: number,
     cellHeight: number,
+    fixed: boolean,
+    clip?: { x: number; y: number; width: number; height: number },
   ) {
     if (!pk || !fieldId) return
     const map = remoteFocuses.value
     if (!map.size) return
     const focuses = map.get(pk)?.get(fieldId)
-    if (focuses?.length) remoteFocusBoxes.push({ x, y, width: cellWidth, height: cellHeight, focuses })
+    if (focuses?.length) remoteFocusBoxes.push({ x, y, width: cellWidth, height: cellHeight, focuses, fixed, clip })
   }
 
   function drawRemoteFocusBoxes(ctx: CanvasRenderingContext2D) {
     if (!remoteFocusBoxes.length) return
-    ctx.save()
+
+    // Same fixed-column geometry renderActiveState uses. This overlay draws last — after
+    // the fixed columns have repainted over whatever scrollable content sits beneath them —
+    // so a box belonging to a scrolled-under column must be clipped to the region right of
+    // the frozen area, or skipped when it is entirely underneath. `row_number` is always
+    // fixed, so fixedWidth is non-zero on every view.
+    const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
+
     for (const box of remoteFocusBoxes) {
       const primary = box.focuses[0]
       if (!primary) continue
+
+      const clippedByFixed = !box.fixed && box.x < fixedWidth
+      if (clippedByFixed && box.x + box.width <= fixedWidth) continue
+
+      ctx.save()
+
+      // Grouped views clip each row to the group's indent and width, but that clip is
+      // restored long before this pass runs — without re-applying it the box bleeds past
+      // the group indent on the left and the group edge on the right.
+      if (box.clip) {
+        ctx.beginPath()
+        ctx.rect(box.clip.x, box.clip.y, box.clip.width, box.clip.height)
+        ctx.clip()
+      }
+
+      if (clippedByFixed) {
+        ctx.beginPath()
+        // +1 for the border separating the fixed and scrollable columns
+        ctx.rect(fixedWidth + 1, box.y, box.x + box.width - fixedWidth - 1, box.height)
+        ctx.clip()
+      }
+
       const color = primary.color
       const isEditing = box.focuses.some((f) => f.editing)
 
@@ -1726,8 +1761,9 @@ export function useCanvasRender({
         verticalAlign: 'middle',
         isTagLabel: true,
       })
+
+      ctx.restore()
     }
-    ctx.restore()
   }
 
   function renderRow(
@@ -1741,6 +1777,7 @@ export function useCanvasRender({
       yOffset,
       group,
       rowBgAlreadyApplied = false,
+      clipRect,
     }: {
       row: Row
       initialXOffset: number
@@ -1750,6 +1787,12 @@ export function useCanvasRender({
       rowIdx: number
       group?: CanvasGroup
       rowBgAlreadyApplied?: boolean
+      /**
+       * The clip the caller has applied around this row, if any. Only grouped views set it.
+       * Carried so overlays drawn after the row pass (remote focus boxes) can re-apply the
+       * same bounds — by then the caller's ctx.restore() has already dropped them.
+       */
+      clipRect?: { x: number; y: number; width: number; height: number }
     },
   ) {
     let activeState: {
@@ -1869,7 +1912,7 @@ export function useCanvasRender({
           }
         }
 
-        collectRemoteFocus(pk, column.columnObj?.id, xOffset - _scrollLeft, yOffset, width, _rowH)
+        collectRemoteFocus(pk, column.columnObj?.id, xOffset - _scrollLeft, yOffset, width, _rowH, false, clipRect)
 
         const value = row.row[column.title]
 
@@ -1992,7 +2035,7 @@ export function useCanvasRender({
               }
             }
 
-            collectRemoteFocus(pk, column.columnObj?.id, xOffset, yOffset, width, _rowH)
+            collectRemoteFocus(pk, column.columnObj?.id, xOffset, yOffset, width, _rowH, true, clipRect)
 
             if (isColumnRequiredAndNull(column.columnObj, row.row)) {
               renderRedBorders.push({ rowIndex: rowIdx, column })
@@ -3130,6 +3173,7 @@ export function useCanvasRender({
         rowIdx: i,
         yOffset,
         group,
+        clipRect: { x: indent, y: yOffset, width: adjustedWidth, height: rowHeight.value },
       })
       ctx.restore()
       elementMap.addElement({

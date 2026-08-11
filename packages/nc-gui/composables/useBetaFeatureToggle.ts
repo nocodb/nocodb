@@ -174,7 +174,7 @@ const FEATURES = [
     title: 'Hide chat suggestions',
     description:
       'Hide the suggestion prompts on the empty chat screen (follow-ups are unaffected). No suggestion API calls are made while hidden.',
-    enabled: true,
+    enabled: false,
     version: 1,
     isEngineering: true,
     isEE: true,

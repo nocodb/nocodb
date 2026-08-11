@@ -26,6 +26,7 @@ export enum EventType {
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
   INTERFACE_EVENT = 'event-interface',
   PRESENCE_EVENT = 'event-presence',
+  FOCUS_EVENT = 'event-focus',
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
@@ -49,6 +50,9 @@ export function getDocSyncRoom(
 ): string {
   return `${EventType.DOCUMENT_SYNC_EVENT}:${workspaceId}:${baseId}:${docId}`;
 }
+
+/** Client→server socket event for emitting a connection's current focus. */
+export const FOCUS_UPDATE_EVENT = 'focus:update';
 
 export interface BaseSocketPayload {
   timestamp: number;
@@ -190,14 +194,22 @@ export enum PresencePageType {
   DOCUMENT = 'document',
 }
 
+/**
+ * A user as carried on realtime presence / focus payloads. Only `id` is
+ * guaranteed — name, email and avatar (`meta`) may be absent depending on the
+ * source (e.g. a focus broadcast derives identity from the JWT). Receivers
+ * resolve the canonical avatar/colour from the base-presence list keyed by `id`.
+ */
+export interface RealtimeUser {
+  id: string;
+  email?: string;
+  display_name?: string;
+  meta?: Record<string, any> | null;
+}
+
 export interface PresenceAnnouncePayload extends BaseSocketPayload {
   action: 'announce';
-  user: {
-    id: string;
-    email: string;
-    displayName: string;
-    meta?: Record<string, any> | null;
-  };
+  user: RealtimeUser;
   resource: {
     id: string;
     type: PresencePageType;
@@ -239,12 +251,7 @@ export interface PresenceLeavePayload extends BaseSocketPayload {
 export interface PresenceBatchPayload extends BaseSocketPayload {
   action: 'batch';
   users: Array<{
-    user: {
-      id: string;
-      email: string;
-      displayName: string;
-      meta?: Record<string, any> | null;
-    };
+    user: RealtimeUser;
     resource: {
       id: string;
       type: PresencePageType;
@@ -260,6 +267,49 @@ export type PresencePayload =
   | PresenceLocationChangePayload
   | PresenceLeavePayload
   | PresenceBatchPayload;
+
+/**
+ * A connection's current focus within a view. Typed by `type` so additional
+ * focus kinds (e.g. `row`) can be added without a protocol change. `null` means
+ * the connection has no focus (cleared selection / left the view).
+ */
+export type FocusValue = {
+  type: 'cell';
+  rowPk: string;
+  fieldId: string;
+  editing?: boolean;
+} | null;
+
+/** Server→client: a single connection's focus changed. */
+export interface FocusUpdatePayload extends BaseSocketPayload {
+  action: 'focus';
+  /** Per-connection id (socket id) — distinct from user id. */
+  presenceId: string;
+  user: RealtimeUser;
+  focus: FocusValue;
+}
+
+/** Server→client: a connection left the view / disconnected; drop its focus. */
+export interface FocusLeavePayload extends BaseSocketPayload {
+  action: 'focus-leave';
+  presenceId: string;
+  user: RealtimeUser;
+}
+
+/** Server→client: bootstrap snapshot of all current focuses, sent on subscribe. */
+export interface FocusBatchPayload extends BaseSocketPayload {
+  action: 'focus-batch';
+  focuses: Array<{
+    presenceId: string;
+    user: RealtimeUser;
+    focus: FocusValue;
+  }>;
+}
+
+export type FocusPayload =
+  | FocusUpdatePayload
+  | FocusLeavePayload
+  | FocusBatchPayload;
 
 export interface ChatEventPayload extends BaseSocketPayload {
   action: ChatEventAction;
@@ -315,6 +365,7 @@ export type SocketEventPayload =
   | DocumentCommentPayload
   | NotificationPayload
   | PresencePayload
+  | FocusPayload
   | ChatEventPayload
   | SmartTextPayload;
 
@@ -329,6 +380,7 @@ export type SocketEventPayloadMap = {
   [EventType.COMMENT_EVENT]: CommentPayload;
   [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
+  [EventType.FOCUS_EVENT]: FocusPayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
   [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;

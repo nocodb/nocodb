@@ -1,4 +1,5 @@
 import type { CSSProperties } from '@vue/runtime-dom'
+import type { Ref } from 'vue'
 
 import {
   type BaseType,
@@ -1236,4 +1237,25 @@ export type {
   OAuthAuthorization,
   SupportedDocsType,
   TeamType,
+}
+
+export interface GridRemoteFocus {
+  userId: string
+  presenceId: string
+  color: string
+  /** Collaborator display name, shown as a label on the focused cell. */
+  name: string
+  editing: boolean
+}
+
+/** rowPk → fieldId → focuses (one entry per remote connection on that cell). */
+export type GridRemoteFocusMap = Map<string, Map<string, GridRemoteFocus[]>>
+
+export interface FocusPresenceParams {
+  view: Ref<ViewType | undefined>
+  activeCell: Ref<{ row?: number; column?: number; path?: Array<number> }>
+  /** Truthy while a cell is in edit mode (typed `unknown` to decouple from the canvas edit type). */
+  editEnabled: Ref<unknown>
+  columns: Ref<Array<{ id?: string; columnObj?: ColumnType }>>
+  getRowPk: (rowIndex: number, path?: Array<number>) => string | null
 }

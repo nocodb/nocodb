@@ -302,9 +302,12 @@ onMounted(() => nextTick(syncScrollState))
         >
           <template v-if="format === 'number'">{{ i + 1 }}</template>
         </span>
-        <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
-          <span class="truncate">{{ op.title }}</span>
-        </slot>
+        <!-- Cap long chips so one wordy option doesn't eat the row (tooltip shows the full title) -->
+        <span class="min-w-0 max-w-40 flex">
+          <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
+            <span class="truncate">{{ op.title }}</span>
+          </slot>
+        </span>
       </button>
     </div>
   </div>
@@ -369,6 +372,29 @@ onMounted(() => nextTick(syncScrollState))
   &::after {
     left: 50%;
     right: 0;
+  }
+
+  /* First/last hug the container edges (Airtable parity) — indicator + chip
+     flush to the edge, their line segment extended under the opaque circle. */
+  &.nc-stepper-item-first {
+    @apply items-start pl-0;
+
+    &::after {
+      left: 0;
+    }
+  }
+
+  &.nc-stepper-item-last {
+    @apply items-end pr-0;
+
+    &::before {
+      right: 0;
+    }
+  }
+
+  /* Single option is both first and last — keep it left-aligned. */
+  &.nc-stepper-item-first.nc-stepper-item-last {
+    @apply items-start;
   }
 
   &.nc-stepper-item-first::before {

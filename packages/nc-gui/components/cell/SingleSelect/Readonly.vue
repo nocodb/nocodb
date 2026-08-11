@@ -42,7 +42,16 @@ const selectedOpt = computed(() => {
     class="nc-cell-field h-full w-full flex items-center nc-single-select focus:outline-transparent read-only"
     :class="{ 'max-w-full': isForm }"
   >
-    <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+    <div v-if="isForm && parseProp(column.meta)?.isStepper" class="w-full max-w-full">
+      <CellSingleSelectLayoutStepper
+        :options="options"
+        :model-value="modelValue || undefined"
+        :format="parseProp(column.meta)?.stepperFormat"
+        disabled
+      />
+    </div>
+
+    <div v-else-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <CellSingleSelectLayoutList :options="options" :model-value="modelValue" disabled :row-index="rowIndex" />
     </div>
 

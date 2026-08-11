@@ -302,6 +302,8 @@ export interface InterfaceFieldElementConfig {
      * >1 = carousel; the builder keeps `style` and this in sync.
      */
     quantity?: number;
+    /** Stepper style only — indicator format; absent = 'radio'. */
+    format?: 'radio' | 'number';
     /** Horizontal cap within the field's layout row — absent = full. */
     width?: 'third' | 'half' | 'full';
   };

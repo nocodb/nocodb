@@ -174,9 +174,6 @@ const FEATURES = [
     title: 'Hide chat suggestions',
     description:
       'Hide the suggestion prompts on the empty chat screen (follow-ups are unaffected). No suggestion API calls are made while hidden.',
-    // Intentionally default-on: the empty-chat suggestion prompts are being
-    // retired for all EE users, so the flag ships enabled (flip it off to
-    // bring the suggestions back). Confirmed as an intended product change.
     enabled: true,
     version: 1,
     isEngineering: true,

@@ -265,17 +265,12 @@ export interface ChatEventPayload extends BaseSocketPayload {
   action: ChatEventAction;
   sessionId: string;
   /**
-   * Monotonic per-turn sequence number stamped on every streamed event so a
-   * client can replay the journal after a reload/reconnect and dedup against
-   * events it already applied (drop anything <= lastSeq for the same turnId).
-   * Absent on transient events (HEARTBEAT) and session lifecycle events.
+   * Monotonic per-turn sequence, for replay dedup — drop anything <= the
+   * highest seq already applied for the same turnId. Absent on HEARTBEAT and
+   * session lifecycle events.
    */
   seq?: number;
-  /**
-   * Identifies the turn the event belongs to (the triggering user message id).
-   * A turnId change tells the client to reset its streaming state — seq
-   * numbering restarts per turn.
-   */
+  /** Turn the event belongs to; seq numbering restarts per turn. */
   turnId?: string;
   // action: 'token'
   content?: string;
@@ -321,42 +316,31 @@ export interface ChatEventPayload extends BaseSocketPayload {
 
 /**
  * Server-derived state of a chat session's in-flight turn, served by
- * `GET .../chat/sessions/:sessionId/stream-state`. Lets a client that
- * reloaded or reconnected mid-stream recover the partial turn (replaying
- * `events`) and distinguish a slow turn from a dead one (`status`).
+ * `GET .../chat/sessions/:sessionId/stream-state` — lets a client that
+ * reloaded or reconnected mid-stream replay the partial turn and tell a slow
+ * turn from a dead one.
  */
 export enum ChatStreamStatus {
-  /** No turn in flight and no journal — nothing to recover. */
   IDLE = 'idle',
-  /** Turn job is queued but has not started emitting yet. */
+  /** Job is queued but has not started emitting yet. */
   QUEUED = 'queued',
-  /** Turn job is actively running — keep the streaming UI alive. */
   STREAMING = 'streaming',
-  /** Turn ended (journal sentinel or job state) with a failure. */
   FAILED = 'failed',
 }
 
 export interface ChatStreamStateType {
   status: ChatStreamStatus;
-  /** Turn the journal belongs to (triggering user message id), if any. */
+  /** Turn the journal belongs to, if any. */
   turnId?: string | null;
   /** Highest seq in the journal — client resumes live dedup from here. */
   lastSeq?: number;
-  /**
-   * Lowest seq still present in the journal. > 1 means the head is missing:
-   * a full replay lacks its earliest events, so the client should treat
-   * pre-firstSeq content as unavailable rather than as a corrupt gap.
-   */
-  firstSeq?: number;
   /** Journaled events after `sinceSeq`, in emit order, for replay. */
   events?: ChatEventPayload[];
-  /** Present when status is FAILED and a terminal error was recorded. */
   error?: string;
   /**
-   * Present when this FAILED response persisted the crashed turn's partial
-   * work as a durable assistant message (first detector persists it; later
-   * reads serve it from message history). The client should render this
-   * message instead of promoting its transient streaming state.
+   * Set when this FAILED response persisted the crashed turn's partial work
+   * as a durable assistant message — render it instead of promoting the
+   * transient streaming state.
    */
   draftMessage?: ChatMessageType;
 }

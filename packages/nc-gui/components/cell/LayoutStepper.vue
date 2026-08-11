@@ -2,8 +2,6 @@
 export interface CellStepperOption {
   key: string
   title: string
-  /** Extra search haystack beyond the title (e.g. user email). */
-  searchText?: string
 }
 
 interface Props {
@@ -75,11 +73,6 @@ function selectOption(op: CellStepperOption) {
   if (props.disabled || isSelected(op)) return
 
   emits('update:modelValue', op.key)
-}
-
-/** Search titles AND the extra haystack (e.g. user email). */
-function menuFilterOption(query: string, item: CellStepperOption) {
-  return searchCompare([item.title, item.searchText ?? ''], query)
 }
 
 function syncScrollState() {
@@ -183,7 +176,6 @@ onMounted(() => nextTick(syncScrollState))
             option-value-key="key"
             option-label-key="title"
             :search-input-placeholder="$t('placeholder.searchOptions')"
-            :filter-option="menuFilterOption"
             :is-locked="disabled"
             variant="medium"
             class="!w-70 max-w-[90vw]"

@@ -1737,15 +1737,33 @@ export function useCanvasRender({
       // Collaborator name label (bottom-right tab) — no avatar/emoji, just the name
       // so it's clear who's on the cell. While they're editing it reads "… is typing".
       const extra = box.focuses.length > 1 ? ` +${box.focuses.length - 1}` : ''
-      // `editing` is authoritative — the editor's client only broadcasts it for cells it can
-      // actually edit (read-only/computed/synced/no-permission cells are never "editing").
-      const labelText = (isEditing ? t('labels.userIsTyping', { user: primary.name }) : primary.name) + extra
       const labelFont = '600 11px Inter'
       const padX = 5
       const labelH = 16
-      const maxTextW = Math.max(0, box.width - 2 - padX * 2)
+      // Capped independently of the cell: the label is drawn INSIDE the cell over its
+      // content, so sizing it to the cell let an unbounded display name blanket exactly
+      // what the viewer is trying to read — wide cells made it worse, not better.
+      const maxLabelW = Math.min(box.width - 2, 140)
+      const maxTextW = Math.max(0, maxLabelW - padX * 2)
+      // Truncate the NAME, never the suffixes: "is typing…" / "+N" are the states the
+      // label exists to show, and composing before truncating let a long name push
+      // them out entirely.
+      const suffixW = renderSingleLineText(ctx, {
+        text: (isEditing ? t('labels.userIsTyping', { user: '' }) : '') + extra,
+        fontFamily: labelFont,
+        render: false,
+      }).width
+      const { text: fittedName } = renderSingleLineText(ctx, {
+        text: primary.name,
+        fontFamily: labelFont,
+        maxWidth: Math.max(0, maxTextW - suffixW),
+        render: false,
+      })
+      // `editing` is authoritative — the editor's client only broadcasts it for cells it can
+      // actually edit (read-only/computed/synced/no-permission cells are never "editing").
+      const labelText = (isEditing ? t('labels.userIsTyping', { user: fittedName }) : fittedName) + extra
       const measured = renderSingleLineText(ctx, { text: labelText, fontFamily: labelFont, maxWidth: maxTextW, render: false })
-      const labelW = Math.min(box.width - 2, measured.width + padX * 2)
+      const labelW = Math.min(maxLabelW, measured.width + padX * 2)
       const labelX = box.x + box.width - 1 - labelW
       const labelY = box.y + box.height - 1 - labelH
       roundedRect(ctx, labelX, labelY, labelW, labelH, { topLeft: 6, bottomRight: 2 }, { backgroundColor: color })

@@ -167,6 +167,13 @@ interface Row {
     /** Per-button-column visibility: true = button disabled for this row */
     buttonDisabled?: Record<string, boolean>
     /**
+     * Buffered SmartText (LongText + smartMode) ProseMirror drafts for a NEW
+     * (not-yet-created) record, keyed by column id. The SmartText editor persists
+     * via a rowId-keyed backend op which doesn't exist until the record is created,
+     * so edits are staged here and flushed on save (see useExpandedFormStore.save).
+     */
+    smartTextDrafts?: Record<string, Record<string, any> | null>
+    /**
      * Optimistic-row save failure marker. Set when a frontend pre-check
      * (currently: missing required NOT-NULL fields) blocks the insert before
      * the row reaches the backend. The row stays in the local cache with this

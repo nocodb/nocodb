@@ -146,6 +146,19 @@ const rowId = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
 })
 
+// A not-yet-created record has no primary key, so the SmartText editor's
+// rowId-keyed backend load/save can't run. In that case the editor works against
+// a locally-buffered ProseMirror draft (see below) which is flushed to the backend
+// once the record is created (useExpandedFormStore.save).
+const isNewRecord = computed(() => !!currentRow.value?.rowMeta?.new)
+
+// The SmartText ProseMirror draft buffered on the row for this column while the
+// record is new. Two-way bound into the SmartText modal.
+const smartTextDraft = computed(() => {
+  if (!column?.value?.id) return null
+  return currentRow.value?.rowMeta?.smartTextDrafts?.[column.value.id] ?? null
+})
+
 const isAiGenerating = computed(() => {
   return !!(
     rowId.value &&
@@ -257,6 +270,38 @@ const onSmartTextSaved = (markdown: string | null) => {
   // forces a redraw. Required because the expanded form's row is a fresh
   // server-fetched object, not the same reference as the canvas cache.
   reloadRowHook?.trigger(null)
+}
+
+// Flatten a ProseMirror doc into plain text — used only as an interim cell
+// preview for a new record. The authoritative markdown is derived on the backend
+// when the buffered draft is flushed on record creation.
+const pmToPlainText = (pm: Record<string, any> | null): string => {
+  if (!pm) return ''
+  const lines: string[] = []
+  const walk = (node: any) => {
+    if (!node) return
+    if (node.type === 'text' && typeof node.text === 'string') lines.push(node.text)
+    if (Array.isArray(node.content)) node.content.forEach(walk)
+    // Block-level nodes end with a line break so the preview keeps paragraph shape.
+    if (node.type && node.type !== 'text' && node.type !== 'doc') lines.push('\n')
+  }
+  walk(pm)
+  return lines.join('').replace(/\n{2,}/g, '\n').trim()
+}
+
+// New-record SmartText edit — buffer the ProseMirror draft on the row so it
+// survives modal close and can be flushed to the backend once the record is
+// created, and mirror a plain-text preview into the cell value meanwhile.
+const onSmartTextDraftUpdate = (pm: Record<string, any> | null) => {
+  if (!currentRow.value || !column?.value?.id) return
+
+  if (!currentRow.value.rowMeta) currentRow.value.rowMeta = {}
+  if (!currentRow.value.rowMeta.smartTextDrafts) currentRow.value.rowMeta.smartTextDrafts = {}
+  currentRow.value.rowMeta.smartTextDrafts[column.value.id] = pm
+
+  if (column.value.title) {
+    currentRow.value.row[column.value.title] = pmToPlainText(pm)
+  }
 }
 
 const onMouseMove = (e: MouseEvent) => {
@@ -961,7 +1006,10 @@ useResizeObserver(inputWrapperRef, () => {
       :column-title="column?.title"
       :column="column"
       :read-only="readOnly"
+      :is-new-record="isNewRecord"
+      :draft-content="smartTextDraft"
       @saved="onSmartTextSaved"
+      @update:draft-content="onSmartTextDraftUpdate"
     />
   </div>
 </template>

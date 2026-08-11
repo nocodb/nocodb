@@ -110,6 +110,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
+    const { flushSmartTextDrafts } = useSmartTextDraftFlush()
+
     const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
     const { isAllowed } = usePermissions()
@@ -433,6 +435,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           ...(ltarState || {}),
         })
 
+        // Persist any SmartText (LongText + smartMode) drafts that were staged while
+        // the record was still new — the editor's rowId-keyed backend op couldn't run
+        // until the row existed (#9954). Awaited here so it completes before the form
+        // closes/reloads. Read the buffer before it's cleared below.
+        const smartTextDrafts = row.value.rowMeta?.smartTextDrafts
+        if (smartTextDrafts && Object.keys(smartTextDrafts).length) {
+          const newRowId = extractPkFromRow(data, meta.value.columns as ColumnType[])
+          if (newRowId) {
+            await flushSmartTextDrafts(meta.value, newRowId, smartTextDrafts, data)
+          }
+        }
+
         Object.assign(row.value, {
           row: data,
           rowMeta: {
@@ -441,6 +455,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // Links were persisted via the create payload — clear the buffer so the
             // record is no longer flagged as having unsaved relational changes (#14013).
             ltarState: {},
+            // SmartText drafts have been flushed to the backend — drop the buffer.
+            smartTextDrafts: {},
           },
           oldRow: { ...data },
         })

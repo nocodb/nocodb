@@ -11,6 +11,7 @@ interface Props {
   readOnly?: boolean
   isNewRecord?: boolean
   draftContent?: Record<string, any> | null
+  initialMarkdown?: string | null
 }
 
 defineProps<Props>()

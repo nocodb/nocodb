@@ -438,13 +438,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         // Persist any SmartText (LongText + smartMode) drafts that were staged while
         // the record was still new — the editor's rowId-keyed backend op couldn't run
         // until the row existed (#9954). Awaited here so it completes before the form
-        // closes/reloads. Read the buffer before it's cleared below.
+        // closes/reloads. Drafts whose flush fails are kept buffered so the SmartText
+        // modal can restore and re-save them instead of the rich content being lost.
         const smartTextDrafts = row.value.rowMeta?.smartTextDrafts
+        let unflushedSmartTextDrafts: Record<string, Record<string, any> | null> = {}
         if (smartTextDrafts && Object.keys(smartTextDrafts).length) {
           const newRowId = extractPkFromRow(data, meta.value.columns as ColumnType[])
-          if (newRowId) {
-            await flushSmartTextDrafts(meta.value, newRowId, smartTextDrafts, data)
-          }
+          unflushedSmartTextDrafts = newRowId
+            ? await flushSmartTextDrafts(meta.value, newRowId, smartTextDrafts, data)
+            : smartTextDrafts
         }
 
         Object.assign(row.value, {
@@ -455,8 +457,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // Links were persisted via the create payload — clear the buffer so the
             // record is no longer flagged as having unsaved relational changes (#14013).
             ltarState: {},
-            // SmartText drafts have been flushed to the backend — drop the buffer.
-            smartTextDrafts: {},
+            // SmartText drafts have been flushed to the backend — drop the buffer,
+            // keeping only drafts whose flush failed (recovered via the modal).
+            smartTextDrafts: unflushedSmartTextDrafts,
           },
           oldRow: { ...data },
         })

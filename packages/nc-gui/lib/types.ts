@@ -171,6 +171,8 @@ interface Row {
      * (not-yet-created) record, keyed by column id. The SmartText editor persists
      * via a rowId-keyed backend op which doesn't exist until the record is created,
      * so edits are staged here and flushed on save (see useExpandedFormStore.save).
+     * Drafts whose flush fails stay buffered so the SmartText modal can restore
+     * and re-save them.
      */
     smartTextDrafts?: Record<string, Record<string, any> | null>
     /**

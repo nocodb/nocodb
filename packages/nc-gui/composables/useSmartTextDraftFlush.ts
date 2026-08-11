@@ -11,7 +11,7 @@ export function useSmartTextDraftFlush() {
     _rowId: string,
     _drafts: Record<string, Record<string, any> | null>,
     _rowData?: Record<string, any>,
-  ) => {}
+  ): Promise<Record<string, Record<string, any> | null>> => ({})
 
   return { flushSmartTextDrafts }
 }

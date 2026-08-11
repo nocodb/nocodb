@@ -237,7 +237,10 @@ onMounted(() => nextTick(syncScrollState))
         :data-testid="`nc-stepper-option-${op.title}`"
         @click="selectOption(op)"
       >
-        <span class="nc-stepper-indicator" :class="{ 'nc-stepper-indicator-selected': isSelected(op) }">
+        <span
+          class="nc-stepper-indicator"
+          :class="{ 'nc-stepper-indicator-selected': isSelected(op), 'nc-stepper-indicator-radio': format === 'radio' }"
+        >
           <template v-if="format === 'number'">{{ i + 1 }}</template>
         </span>
         <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
@@ -263,7 +266,10 @@ onMounted(() => nextTick(syncScrollState))
         :data-testid="`nc-stepper-option-${op.title}`"
         @click="selectOption(op)"
       >
-        <span class="nc-stepper-indicator relative z-1" :class="{ 'nc-stepper-indicator-selected': isSelected(op) }">
+        <span
+          class="nc-stepper-indicator relative z-1"
+          :class="{ 'nc-stepper-indicator-selected': isSelected(op), 'nc-stepper-indicator-radio': format === 'radio' }"
+        >
           <template v-if="format === 'number'">{{ i + 1 }}</template>
         </span>
         <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
@@ -294,6 +300,17 @@ onMounted(() => nextTick(syncScrollState))
     border-color: var(--nc-content-gray);
     background: var(--nc-content-gray);
     color: var(--nc-bg-default);
+  }
+
+  /* Radio format: keep the ring light and mark selection with an inner dot. */
+  &.nc-stepper-indicator-radio.nc-stepper-indicator-selected {
+    background: var(--nc-bg-default);
+
+    &::after {
+      content: '';
+      @apply w-2 h-2 rounded-full;
+      background: var(--nc-content-gray);
+    }
   }
 }
 

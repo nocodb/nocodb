@@ -301,7 +301,17 @@ onMounted(() => {
     @click="toggleMenu"
     @keydown.enter.stop.prevent="toggleMenu"
   >
-    <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+    <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isStepper" class="w-full max-w-full">
+      <CellSingleSelectLayoutStepper
+        :model-value="vModel || undefined"
+        :options="options"
+        :format="parseProp(column.meta)?.stepperFormat"
+        :disabled="readOnly || !editAllowed"
+        @update:model-value="(value) => (vModel = value ?? '')"
+      />
+    </div>
+
+    <div v-else-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <CellSingleSelectLayoutList
         v-model="vModel"
         :options="options"

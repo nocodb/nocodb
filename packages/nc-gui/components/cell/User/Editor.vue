@@ -81,6 +81,11 @@ const { showEEFeatures, showUpgradeToUseCurrentUserFilter } = useEeConfig()
 
 const isFormListView = computed(() => !isEditColumn.value && isForm.value && parseProp(column.value.meta)?.isList)
 
+// Stepper layout is single-user only — a stepper implies exactly one selection.
+const isFormStepperView = computed(
+  () => !isEditColumn.value && isForm.value && !isMultiple.value && parseProp(column.value.meta)?.isStepper,
+)
+
 const options = computed(() => {
   const currentUserField: any[] = []
   if (isEeUI && (isInFilter.value || isEditColumn.value) && showEEFeatures.value) {
@@ -160,6 +165,12 @@ const vModelListLayout = computed(() => {
   } else {
     return (vModel.value || [])?.[0]?.value || ''
   }
+})
+
+const stepperValue = computed(() => {
+  const value = vModelListLayout.value
+
+  return ncIsString(value) && value ? value : undefined
 })
 
 watch(isOpen, (n, _o) => {
@@ -342,7 +353,17 @@ onMounted(() => {
     :class="{ 'read-only': readOnly }"
     @click="toggleMenu"
   >
-    <div v-if="isFormListView" class="w-full max-w-full">
+    <div v-if="isFormStepperView" class="w-full max-w-full">
+      <CellUserLayoutStepper
+        :options="nonDeletedOptions"
+        :model-value="stepperValue"
+        :format="parseProp(column.meta)?.stepperFormat"
+        :disabled="readOnly || !editAllowed"
+        @update:model-value="(value) => (vModel = value ? [value] : [])"
+      />
+    </div>
+
+    <div v-else-if="isFormListView" class="w-full max-w-full">
       <div class="rounded-lg border-1 border-nc-border-gray-medium w-full max-w-full">
         <div v-if="nonDeletedOptions.length > 6" class="border-b-1 border-nc-border-gray-medium pl-1 group" @click.stop>
           <a-input

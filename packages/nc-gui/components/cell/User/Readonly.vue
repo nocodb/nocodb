@@ -86,6 +86,14 @@ const selectedUsersListLayout = computed(() => {
   }
 })
 
+const nonDeletedOptions = computed(() => options.value.filter((op) => !op.deleted))
+
+const stepperValue = computed(() => {
+  const value = selectedUsersListLayout.value
+
+  return ncIsString(value) && value ? value : undefined
+})
+
 // check if user is part of the base
 const isCollaborator = (userIdOrEmail) => {
   return !idUserMap.value?.[userIdOrEmail]?.deleted
@@ -94,7 +102,16 @@ const isCollaborator = (userIdOrEmail) => {
 
 <template>
   <div class="nc-cell-field nc-user-select h-full w-full flex items-center read-only">
-    <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+    <div v-if="isForm && !isMultiple && parseProp(column.meta)?.isStepper" class="w-full max-w-full">
+      <CellUserLayoutStepper
+        :options="nonDeletedOptions"
+        :model-value="stepperValue"
+        :format="parseProp(column.meta)?.stepperFormat"
+        disabled
+      />
+    </div>
+
+    <div v-else-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <component
         :is="isMultiple ? CheckboxGroup : RadioGroup"
         :value="selectedUsersListLayout"

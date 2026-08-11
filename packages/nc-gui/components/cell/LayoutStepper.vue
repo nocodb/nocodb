@@ -1,0 +1,393 @@
+<script lang="ts" setup>
+export interface CellStepperOption {
+  key: string
+  title: string
+  /** Extra search haystack beyond the title (e.g. user email). */
+  searchText?: string
+}
+
+interface Props {
+  options: CellStepperOption[]
+  modelValue?: string
+  /** Indicator style — radio dots or 1..N position numbers. */
+  format?: 'radio' | 'number'
+  disabled?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: undefined,
+  format: 'radio',
+  disabled: false,
+})
+
+const emits = defineEmits<{
+  'update:modelValue': [value: string | null]
+}>()
+
+/** Below this container width the stepper stacks vertically (narrow panes /
+ *  third-width fields); at or above it stays a chevron-scrollable row. */
+const VERTICAL_BREAKPOINT = 320
+
+const rootRef = ref<HTMLElement>()
+
+const scrollerRef = ref<HTMLElement>()
+
+const isMenuOpen = ref(false)
+
+const canScrollLeft = ref(false)
+
+const canScrollRight = ref(false)
+
+const { width: rootWidth } = useElementSize(rootRef)
+
+const isVertical = computed(() => rootWidth.value > 0 && rootWidth.value < VERTICAL_BREAKPOINT)
+
+const showChevrons = computed(() => !isVertical.value && (canScrollLeft.value || canScrollRight.value))
+
+const hasSelection = computed(() => props.options.some((op) => op.key === props.modelValue))
+
+/** All-options menu (NcList) — writes back on pick, no-op when disabled. */
+const menuValue = computed({
+  get: () => props.modelValue,
+  set: (value) => {
+    if (props.disabled || !ncIsString(value)) return
+
+    emits('update:modelValue', value)
+  },
+})
+
+function isSelected(op: CellStepperOption) {
+  return op.key === props.modelValue
+}
+
+function selectOption(op: CellStepperOption) {
+  if (props.disabled || isSelected(op)) return
+
+  emits('update:modelValue', op.key)
+}
+
+/** Search titles AND the extra haystack (e.g. user email). */
+function menuFilterOption(query: string, item: CellStepperOption) {
+  return searchCompare([item.title, item.searchText ?? ''], query)
+}
+
+function clearSelection() {
+  isMenuOpen.value = false
+
+  if (props.disabled) return
+
+  emits('update:modelValue', null)
+}
+
+function syncScrollState() {
+  const el = scrollerRef.value
+  if (!el) {
+    canScrollLeft.value = false
+    canScrollRight.value = false
+    return
+  }
+
+  canScrollLeft.value = el.scrollLeft > 1
+  canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+}
+
+function scrollByStep(direction: -1 | 1) {
+  const el = scrollerRef.value
+  if (!el) return
+
+  el.scrollBy({ left: direction * Math.max(120, el.clientWidth * 0.8), behavior: 'smooth' })
+}
+
+function jumpToSelected() {
+  isMenuOpen.value = false
+
+  if (!hasSelection.value) return
+
+  nextTick(() => {
+    rootRef.value
+      ?.querySelector<HTMLElement>('.nc-stepper-item-selected')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  })
+}
+
+/** Keep arrow keys inside the control — outer surfaces use them for cell/row nav. */
+function handleKeyDown(e: KeyboardEvent) {
+  switch (e.key) {
+    case 'ArrowUp':
+    case 'ArrowDown':
+    case 'ArrowRight':
+    case 'ArrowLeft':
+      e.stopPropagation()
+      break
+  }
+}
+
+useEventListener(scrollerRef, 'scroll', syncScrollState)
+
+useResizeObserver(scrollerRef, syncScrollState)
+
+watch(
+  () => [props.options, isVertical.value],
+  () => nextTick(syncScrollState),
+)
+
+onMounted(() => nextTick(syncScrollState))
+</script>
+
+<template>
+  <div
+    ref="rootRef"
+    class="nc-cell-stepper w-full max-w-full flex flex-col"
+    :class="{ 'nc-cell-stepper-disabled': disabled }"
+    @click.stop
+    @keydown="handleKeyDown"
+  >
+    <!-- Top-right controls (Airtable parity): ⋯ all-options menu, then ‹ ›
+         scroll arrows when the horizontal row overflows. -->
+    <div class="flex items-center justify-end gap-0.5">
+      <NcDropdown v-model:visible="isMenuOpen" placement="bottomRight" overlay-class-name="nc-stepper-menu-overlay">
+        <NcButton size="xs" type="text" class="nc-stepper-menu-btn" data-testid="nc-stepper-all-options">
+          <template #icon>
+            <GeneralIcon icon="threeDotHorizontal" class="w-3.5 h-3.5" />
+          </template>
+        </NcButton>
+
+        <template #overlay>
+          <NcList
+            v-model:value="menuValue"
+            v-model:open="isMenuOpen"
+            :list="options"
+            option-value-key="key"
+            option-label-key="title"
+            :search-input-placeholder="$t('placeholder.searchOptions')"
+            :filter-option="menuFilterOption"
+            :is-locked="disabled"
+            variant="medium"
+            class="!w-70 max-w-[90vw]"
+            @click.stop
+          >
+            <template v-if="!disabled && hasSelection" #listHeader>
+              <div class="px-2 pb-1">
+                <button
+                  type="button"
+                  class="nc-stepper-menu-row"
+                  data-testid="nc-stepper-clear-selection"
+                  @click="clearSelection"
+                >
+                  <span class="nc-stepper-menu-clear-chip">{{ $t('labels.clearSelection') }}</span>
+                </button>
+              </div>
+            </template>
+
+            <template #listItemContent="{ option, isSelected: isItemSelected }">
+              <div class="flex-1 flex min-w-0" :data-testid="`nc-stepper-menu-option-${option.title}`">
+                <slot name="chip" :option="option" :selected="isItemSelected" :in-menu="true">
+                  <span class="truncate">{{ option.title }}</span>
+                </slot>
+              </div>
+            </template>
+
+            <template #listFooter>
+              <div class="border-t-1 border-nc-border-gray-medium p-1 mt-1">
+                <button
+                  type="button"
+                  class="nc-stepper-menu-row text-nc-content-brand"
+                  :disabled="!hasSelection"
+                  :class="{ '!text-nc-content-gray-muted !cursor-default': !hasSelection }"
+                  data-testid="nc-stepper-jump-to-selected"
+                  @click="jumpToSelected"
+                >
+                  <GeneralIcon icon="arrowRight" class="flex-none w-3.5 h-3.5" />
+                  <span>{{ $t('labels.jumpToSelected') }}</span>
+                </button>
+              </div>
+            </template>
+          </NcList>
+        </template>
+      </NcDropdown>
+
+      <template v-if="showChevrons">
+        <NcButton size="xs" type="text" class="nc-stepper-chevron" :disabled="!canScrollLeft" @click="scrollByStep(-1)">
+          <template #icon>
+            <GeneralIcon icon="chevronLeft" class="w-3.5 h-3.5" />
+          </template>
+        </NcButton>
+        <NcButton size="xs" type="text" class="nc-stepper-chevron" :disabled="!canScrollRight" @click="scrollByStep(1)">
+          <template #icon>
+            <GeneralIcon icon="chevronRight" class="w-3.5 h-3.5" />
+          </template>
+        </NcButton>
+      </template>
+    </div>
+
+    <!-- Vertical: circle rail on the left with a continuous line through the
+         indicators, chip beside each circle. -->
+    <div v-if="isVertical" class="flex flex-col items-start px-1 pb-1">
+      <button
+        v-for="(op, i) of options"
+        :key="op.key"
+        type="button"
+        class="nc-stepper-item nc-stepper-item-v relative flex items-center gap-3 py-2 max-w-full"
+        :class="{
+          'nc-stepper-item-selected': isSelected(op),
+          'nc-stepper-item-first': i === 0,
+          'nc-stepper-item-last': i === options.length - 1,
+        }"
+        :disabled="disabled"
+        :data-testid="`nc-stepper-option-${op.title}`"
+        @click="selectOption(op)"
+      >
+        <span class="nc-stepper-indicator" :class="{ 'nc-stepper-indicator-selected': isSelected(op) }">
+          <template v-if="format === 'number'">{{ i + 1 }}</template>
+        </span>
+        <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
+          <span class="truncate">{{ op.title }}</span>
+        </slot>
+      </button>
+    </div>
+
+    <!-- Horizontal: indicator row with a continuous line through the circles,
+         chip centered UNDER each circle (Airtable parity). -->
+    <div v-else ref="scrollerRef" class="nc-stepper-scroller flex items-start px-1 pb-1 pt-1">
+      <button
+        v-for="(op, i) of options"
+        :key="op.key"
+        type="button"
+        class="nc-stepper-item nc-stepper-item-h relative flex-1 flex flex-col items-center gap-1.5 px-2"
+        :class="{
+          'nc-stepper-item-selected': isSelected(op),
+          'nc-stepper-item-first': i === 0,
+          'nc-stepper-item-last': i === options.length - 1,
+        }"
+        :disabled="disabled"
+        :data-testid="`nc-stepper-option-${op.title}`"
+        @click="selectOption(op)"
+      >
+        <span class="nc-stepper-indicator relative z-1" :class="{ 'nc-stepper-indicator-selected': isSelected(op) }">
+          <template v-if="format === 'number'">{{ i + 1 }}</template>
+        </span>
+        <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
+          <span class="truncate">{{ op.title }}</span>
+        </slot>
+      </button>
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-stepper-item {
+  @apply p-0 border-none bg-transparent cursor-pointer min-w-0;
+
+  &:disabled {
+    @apply cursor-default;
+  }
+}
+
+.nc-stepper-indicator {
+  @apply flex-none w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-semibold leading-none;
+  border: 1px solid var(--nc-border-gray-medium);
+  background: var(--nc-bg-default);
+  color: var(--nc-content-gray-muted);
+
+  &.nc-stepper-indicator-selected {
+    border-color: var(--nc-content-gray);
+    background: var(--nc-content-gray);
+    color: var(--nc-bg-default);
+  }
+}
+
+/* Continuous through-line — two half segments per item at circle-center
+   height, suppressed on the outer halves of the first/last items. The
+   opaque circle sits on top, so the line reads as touching the circles. */
+.nc-stepper-item-h {
+  min-width: max-content;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 11.5px; /* pt-1 (4px) + half of the 16px circle */
+    height: 1px;
+    background: var(--nc-border-gray-medium);
+  }
+
+  &::before {
+    left: 0;
+    right: 50%;
+  }
+
+  &::after {
+    left: 50%;
+    right: 0;
+  }
+
+  &.nc-stepper-item-first::before {
+    content: none;
+  }
+
+  &.nc-stepper-item-last::after {
+    content: none;
+  }
+}
+
+.nc-stepper-item-v {
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 7.5px; /* center of the 16px circle */
+    width: 1px;
+    background: var(--nc-border-gray-medium);
+  }
+
+  &::before {
+    top: 0;
+    bottom: 50%;
+  }
+
+  &::after {
+    top: 50%;
+    bottom: 0;
+  }
+
+  &.nc-stepper-item-first::before {
+    content: none;
+  }
+
+  &.nc-stepper-item-last::after {
+    content: none;
+  }
+
+  .nc-stepper-indicator {
+    @apply relative z-1;
+  }
+}
+
+/* Chevrons live in the top-right controls — hide the native scrollbar. */
+.nc-stepper-scroller {
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.nc-stepper-menu-row {
+  @apply w-full flex items-center gap-2 px-2 py-1.5 rounded-md border-none bg-transparent cursor-pointer text-left;
+
+  &:hover:not(:disabled) {
+    @apply bg-nc-bg-gray-light;
+  }
+
+  &:disabled {
+    @apply cursor-default;
+  }
+}
+
+.nc-stepper-menu-clear-chip {
+  @apply inline-flex items-center px-2 rounded-[12px] text-small text-nc-content-gray;
+  border: 1px solid var(--nc-border-gray-medium);
+  background: var(--nc-bg-default);
+}
+</style>

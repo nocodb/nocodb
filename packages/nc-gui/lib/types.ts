@@ -1256,6 +1256,8 @@ export interface FocusPresenceParams {
   activeCell: Ref<{ row?: number; column?: number; path?: Array<number> }>
   /** Truthy while a cell is in edit mode (typed `unknown` to decouple from the canvas edit type). */
   editEnabled: Ref<unknown>
-  columns: Ref<Array<{ id?: string; columnObj?: ColumnType }>>
+  /** `readonly` is the rolled-up "can this user edit this cell" — used to avoid broadcasting
+   *  "editing" when the grid opens a read-only/computed/synced cell in view mode. */
+  columns: Ref<Array<{ id?: string; columnObj?: ColumnType; readonly?: boolean }>>
   getRowPk: (rowIndex: number, path?: Array<number>) => string | null
 }

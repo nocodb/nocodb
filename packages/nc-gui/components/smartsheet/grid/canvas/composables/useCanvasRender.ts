@@ -1699,9 +1699,11 @@ export function useCanvasRender({
         borderWidth: 2,
       })
 
-      // Collaborator name label (top-left tab) — no avatar/emoji, just the name so
-      // it's clear who's on the cell. While they're editing it reads "… is typing".
+      // Collaborator name label (bottom-right tab) — no avatar/emoji, just the name
+      // so it's clear who's on the cell. While they're editing it reads "… is typing".
       const extra = box.focuses.length > 1 ? ` +${box.focuses.length - 1}` : ''
+      // `editing` is authoritative — the editor's client only broadcasts it for cells it can
+      // actually edit (read-only/computed/synced/no-permission cells are never "editing").
       const labelText = (isEditing ? `${primary.name} is typing…` : primary.name) + extra
       const labelFont = '600 11px Inter'
       const padX = 5
@@ -1709,9 +1711,9 @@ export function useCanvasRender({
       const maxTextW = Math.max(0, box.width - 2 - padX * 2)
       const measured = renderSingleLineText(ctx, { text: labelText, fontFamily: labelFont, maxWidth: maxTextW, render: false })
       const labelW = Math.min(box.width - 2, measured.width + padX * 2)
-      const labelX = box.x + 1
-      const labelY = box.y + 1
-      roundedRect(ctx, labelX, labelY, labelW, labelH, { topLeft: 2, bottomRight: 6 }, { backgroundColor: color })
+      const labelX = box.x + box.width - 1 - labelW
+      const labelY = box.y + box.height - 1 - labelH
+      roundedRect(ctx, labelX, labelY, labelW, labelH, { topLeft: 6, bottomRight: 2 }, { backgroundColor: color })
       renderSingleLineText(ctx, {
         x: labelX + padX,
         y: labelY,

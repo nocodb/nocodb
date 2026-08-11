@@ -22,15 +22,18 @@ const emits = defineEmits<{
 
 const { getColor } = useTheme()
 
+/** Keyed on id — matches getSelectedUsers and the list layout's radio. */
 const stepperOptions = computed<CellStepperOption[]>(() =>
-  props.options.map((op) => ({
-    key: (op.id || op.email) ?? '',
-    title: extractUserDisplayNameOrEmail(op),
-    searchText: op.email,
-  })),
+  props.options
+    .filter((op) => !!op.id)
+    .map((op) => ({
+      key: op.id!,
+      title: extractUserDisplayNameOrEmail(op),
+      searchText: op.email,
+    })),
 )
 
-const usersByKey = computed(() => new Map(props.options.map((op) => [(op.id || op.email) ?? '', op])))
+const usersByKey = computed(() => new Map(props.options.filter((op) => !!op.id).map((op) => [op.id!, op])))
 </script>
 
 <template>

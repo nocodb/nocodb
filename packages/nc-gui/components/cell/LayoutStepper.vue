@@ -227,7 +227,7 @@ onMounted(() => nextTick(syncScrollState))
         v-for="(op, i) of options"
         :key="op.key"
         type="button"
-        class="nc-stepper-item nc-stepper-item-v relative flex items-center gap-3 py-2 max-w-full"
+        class="nc-stepper-item nc-stepper-item-v relative flex items-center gap-3 max-w-full"
         :class="{
           'nc-stepper-item-selected': isSelected(op),
           'nc-stepper-item-first': i === 0,
@@ -253,7 +253,7 @@ onMounted(() => nextTick(syncScrollState))
         v-for="(op, i) of options"
         :key="op.key"
         type="button"
-        class="nc-stepper-item nc-stepper-item-h relative flex-1 flex flex-col items-center gap-1.5 px-2"
+        class="nc-stepper-item nc-stepper-item-h relative flex-1 flex flex-col items-center gap-1.5"
         :class="{
           'nc-stepper-item-selected': isSelected(op),
           'nc-stepper-item-first': i === 0,
@@ -275,6 +275,7 @@ onMounted(() => nextTick(syncScrollState))
 </template>
 
 <style lang="scss" scoped>
+/* Padding here, not in the template — scoped selectors outrank Windi utilities. */
 .nc-stepper-item {
   @apply p-0 border-none bg-transparent cursor-pointer min-w-0;
 
@@ -300,13 +301,15 @@ onMounted(() => nextTick(syncScrollState))
    height, suppressed on the outer halves of the first/last items. The
    opaque circle sits on top, so the line reads as touching the circles. */
 .nc-stepper-item-h {
+  @apply px-2;
+
   min-width: max-content;
 
   &::before,
   &::after {
     content: '';
     position: absolute;
-    top: 11.5px; /* pt-1 (4px) + half of the 16px circle */
+    top: 7.5px; /* half the 16px circle */
     height: 1px;
     background: var(--nc-border-gray-medium);
   }
@@ -331,6 +334,8 @@ onMounted(() => nextTick(syncScrollState))
 }
 
 .nc-stepper-item-v {
+  @apply py-2;
+
   &::before,
   &::after {
     content: '';

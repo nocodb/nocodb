@@ -24,9 +24,14 @@ const emits = defineEmits<{
   'update:modelValue': [value: string | null]
 }>()
 
+const { t } = useI18n()
+
 /** Below this container width the stepper stacks vertically (narrow panes /
  *  third-width fields); at or above it stays a chevron-scrollable row. */
 const VERTICAL_BREAKPOINT = 320
+
+/** Synthetic menu row key — "Clear selection" scrolls with the options. */
+const CLEAR_OPTION_KEY = '__nc_stepper_clear__'
 
 const rootRef = ref<HTMLElement>()
 
@@ -46,13 +51,19 @@ const showChevrons = computed(() => !isVertical.value && (canScrollLeft.value ||
 
 const hasSelection = computed(() => props.options.some((op) => op.key === props.modelValue))
 
+const menuList = computed<CellStepperOption[]>(() => {
+  if (props.disabled || !hasSelection.value) return props.options
+
+  return [{ key: CLEAR_OPTION_KEY, title: t('labels.clearSelection') }, ...props.options]
+})
+
 /** All-options menu (NcList) — writes back on pick, no-op when disabled. */
 const menuValue = computed({
   get: () => props.modelValue,
   set: (value) => {
     if (props.disabled || !ncIsString(value)) return
 
-    emits('update:modelValue', value)
+    emits('update:modelValue', value === CLEAR_OPTION_KEY ? null : value)
   },
 })
 
@@ -69,14 +80,6 @@ function selectOption(op: CellStepperOption) {
 /** Search titles AND the extra haystack (e.g. user email). */
 function menuFilterOption(query: string, item: CellStepperOption) {
   return searchCompare([item.title, item.searchText ?? ''], query)
-}
-
-function clearSelection() {
-  isMenuOpen.value = false
-
-  if (props.disabled) return
-
-  emits('update:modelValue', null)
 }
 
 function syncScrollState() {
@@ -110,15 +113,34 @@ function jumpToSelected() {
   })
 }
 
-/** Keep arrow keys inside the control — outer surfaces use them for cell/row nav. */
+/** Arrows move the selection (radio-group pattern) and stay inside the
+ *  control — outer surfaces use them for cell/row nav. */
 function handleKeyDown(e: KeyboardEvent) {
   switch (e.key) {
     case 'ArrowUp':
     case 'ArrowDown':
     case 'ArrowRight':
-    case 'ArrowLeft':
+    case 'ArrowLeft': {
       e.stopPropagation()
+      e.preventDefault()
+
+      if (props.disabled || !props.options.length) return
+
+      const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1
+      const current = props.options.findIndex((op) => op.key === props.modelValue)
+      const next = current === -1 ? (dir === 1 ? 0 : props.options.length - 1) : current + dir
+
+      if (next < 0 || next >= props.options.length || next === current) return
+
+      emits('update:modelValue', props.options[next]!.key)
+
+      nextTick(() => {
+        const el = rootRef.value?.querySelector<HTMLElement>('.nc-stepper-item-selected')
+        el?.focus({ preventScroll: true })
+        el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      })
       break
+    }
   }
 }
 
@@ -138,7 +160,8 @@ onMounted(() => nextTick(syncScrollState))
   <div
     ref="rootRef"
     class="nc-cell-stepper w-full max-w-full flex flex-col"
-    :class="{ 'nc-cell-stepper-disabled': disabled }"
+    :class="{ 'nc-cell-stepper-disabled': disabled, 'nc-stepper-format-number': format === 'number' }"
+    role="radiogroup"
     @click.stop
     @keydown="handleKeyDown"
   >
@@ -146,7 +169,7 @@ onMounted(() => nextTick(syncScrollState))
          scroll arrows when the horizontal row overflows. -->
     <div class="flex items-center justify-end gap-0.5">
       <NcDropdown v-model:visible="isMenuOpen" placement="bottomRight" overlay-class-name="nc-stepper-menu-overlay">
-        <NcButton size="xs" type="text" class="nc-stepper-menu-btn" data-testid="nc-stepper-all-options">
+        <NcButton icon-only size="xsmall" type="text" class="nc-stepper-menu-btn !px-1" data-testid="nc-stepper-all-options">
           <template #icon>
             <GeneralIcon icon="threeDotHorizontal" class="w-3.5 h-3.5" />
           </template>
@@ -156,7 +179,7 @@ onMounted(() => nextTick(syncScrollState))
           <NcList
             v-model:value="menuValue"
             v-model:open="isMenuOpen"
-            :list="options"
+            :list="menuList"
             option-value-key="key"
             option-label-key="title"
             :search-input-placeholder="$t('placeholder.searchOptions')"
@@ -166,21 +189,15 @@ onMounted(() => nextTick(syncScrollState))
             class="!w-70 max-w-[90vw]"
             @click.stop
           >
-            <template v-if="!disabled && hasSelection" #listHeader>
-              <div class="px-2 pb-1">
-                <button
-                  type="button"
-                  class="nc-stepper-menu-row"
-                  data-testid="nc-stepper-clear-selection"
-                  @click="clearSelection"
-                >
-                  <span class="nc-stepper-menu-clear-chip">{{ $t('labels.clearSelection') }}</span>
-                </button>
-              </div>
-            </template>
-
             <template #listItemContent="{ option, isSelected: isItemSelected }">
-              <div class="flex-1 flex min-w-0" :data-testid="`nc-stepper-menu-option-${option.title}`">
+              <span
+                v-if="option.key === CLEAR_OPTION_KEY"
+                class="nc-stepper-menu-clear-chip"
+                data-testid="nc-stepper-clear-selection"
+              >
+                {{ option.title }}
+              </span>
+              <div v-else class="flex-1 flex min-w-0" :data-testid="`nc-stepper-menu-option-${option.title}`">
                 <slot name="chip" :option="option" :selected="isItemSelected" :in-menu="true">
                   <span class="truncate">{{ option.title }}</span>
                 </slot>
@@ -207,12 +224,26 @@ onMounted(() => nextTick(syncScrollState))
       </NcDropdown>
 
       <template v-if="showChevrons">
-        <NcButton size="xs" type="text" class="nc-stepper-chevron" :disabled="!canScrollLeft" @click="scrollByStep(-1)">
+        <NcButton
+          icon-only
+          size="xsmall"
+          type="text"
+          class="nc-stepper-chevron !px-1"
+          :disabled="!canScrollLeft"
+          @click="scrollByStep(-1)"
+        >
           <template #icon>
             <GeneralIcon icon="chevronLeft" class="w-3.5 h-3.5" />
           </template>
         </NcButton>
-        <NcButton size="xs" type="text" class="nc-stepper-chevron" :disabled="!canScrollRight" @click="scrollByStep(1)">
+        <NcButton
+          icon-only
+          size="xsmall"
+          type="text"
+          class="nc-stepper-chevron !px-1"
+          :disabled="!canScrollRight"
+          @click="scrollByStep(1)"
+        >
           <template #icon>
             <GeneralIcon icon="chevronRight" class="w-3.5 h-3.5" />
           </template>
@@ -222,11 +253,13 @@ onMounted(() => nextTick(syncScrollState))
 
     <!-- Vertical: circle rail on the left with a continuous line through the
          indicators, chip beside each circle. -->
-    <div v-if="isVertical" class="flex flex-col items-start px-1 pb-1">
+    <div v-if="isVertical" class="flex flex-col items-start px-1 pb-1 max-h-[440px] overflow-y-auto nc-scrollbar-visible">
       <button
         v-for="(op, i) of options"
         :key="op.key"
         type="button"
+        role="radio"
+        :aria-checked="isSelected(op)"
         class="nc-stepper-item nc-stepper-item-v relative flex items-center gap-3 max-w-full"
         :class="{
           'nc-stepper-item-selected': isSelected(op),
@@ -243,9 +276,12 @@ onMounted(() => nextTick(syncScrollState))
         >
           <template v-if="format === 'number'">{{ i + 1 }}</template>
         </span>
-        <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
-          <span class="truncate">{{ op.title }}</span>
-        </slot>
+        <!-- min-w-0 wrapper so long chips ellipsize instead of overflowing the panel -->
+        <span class="min-w-0 flex">
+          <slot name="chip" :option="op" :selected="isSelected(op)" :in-menu="false">
+            <span class="truncate">{{ op.title }}</span>
+          </slot>
+        </span>
       </button>
     </div>
 
@@ -256,6 +292,8 @@ onMounted(() => nextTick(syncScrollState))
         v-for="(op, i) of options"
         :key="op.key"
         type="button"
+        role="radio"
+        :aria-checked="isSelected(op)"
         class="nc-stepper-item nc-stepper-item-h relative flex-1 flex flex-col items-center gap-1.5"
         :class="{
           'nc-stepper-item-selected': isSelected(op),
@@ -382,6 +420,23 @@ onMounted(() => nextTick(syncScrollState))
 
   .nc-stepper-indicator {
     @apply relative z-1;
+  }
+}
+
+/* Number format needs room for two digits — bigger circle, line re-centered. */
+.nc-stepper-format-number {
+  .nc-stepper-indicator {
+    @apply w-5 h-5 text-[10px];
+  }
+
+  .nc-stepper-item-h::before,
+  .nc-stepper-item-h::after {
+    top: 9.5px;
+  }
+
+  .nc-stepper-item-v::before,
+  .nc-stepper-item-v::after {
+    left: 9.5px;
   }
 }
 

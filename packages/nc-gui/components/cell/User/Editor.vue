@@ -174,8 +174,8 @@ const stepperValue = computed(() => {
 })
 
 watch(isOpen, (n, _o) => {
-  // If it is form list view then we don't need to do anything here
-  if (isFormListView.value) return
+  // List and stepper render their own controls — nothing to focus/blur here
+  if (isFormListView.value || isFormStepperView.value) return
 
   if (!n) searchVal.value = ''
 
@@ -271,6 +271,9 @@ const onTagClick = (e: Event, onClose: Function) => {
 }
 
 function toggleMenu() {
+  // Stepper renders its own control — no dropdown to open.
+  if (isFormStepperView.value) return
+
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value

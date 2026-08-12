@@ -102,6 +102,14 @@ const initSortable = (el: Element) => {
 
       if (newIndex === oldIndex) return
 
+      // A sidebar search renders only a filtered subset; renumbering the visible
+      // rows would collide with the hidden ones. Ignore the drag and snap the
+      // rendered order back to the store.
+      if (baseHomeSearchQuery.value?.trim()) {
+        bumpSortableKey(source_id)
+        return
+      }
+
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById.value[itemEl.dataset.id as string]
 

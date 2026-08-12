@@ -360,6 +360,9 @@ export const getDateValue = (
   ).format(dateFormat);
 };
 
-export const newSnapshotTitle = () => {
-  return dayjs().format('D MMMM YYYY, h mm A');
+export const newSnapshotTitle = (tz?: string) => {
+  // Auto-scheduled snapshots run on the server (UTC), but the title should read
+  // in the schedule's own timezone so it matches the "runs at ..." summary the
+  // user configured. Manual snapshots pass no tz and use the caller's local time.
+  return (tz ? dayjs().tz(tz) : dayjs()).format('D MMMM YYYY, h mm A');
 };

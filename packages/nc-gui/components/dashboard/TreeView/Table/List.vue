@@ -39,7 +39,9 @@ const { isUIAllowed } = useRoles()
 
 const { openedProject, baseHomeSearchQuery } = storeToRefs(useBases())
 
-const { baseTables } = storeToRefs(useTablesStore())
+const tablesStore = useTablesStore()
+const { baseTables } = storeToRefs(tablesStore)
+const { loadProjectTables } = tablesStore
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const { viewsByTable } = storeToRefs(useViewsStore())
@@ -60,6 +62,33 @@ const menuRefs = ref<HTMLElement[] | HTMLElement>()
 
 const sortables: Record<string, Sortable> = {}
 
+// Persist a single table's new order to the backend
+function persistTableOrder(tableId: string, order: number) {
+  return $api.internal.postOperation(
+    base.value.fk_workspace_id!,
+    base.value.id!,
+    {
+      operation: 'tableReorder',
+      tableId,
+    },
+    {
+      order,
+    },
+  )
+}
+
+// Force the sortable list to re-render (SortableJS mutates the DOM directly, so
+// Vue's patch can miss the reorder unless we bump the container key)
+function bumpSortableKey(source_id: string) {
+  keys.value[source_id] = (keys.value[source_id] ?? 0) + 1
+}
+
+// Keep the local store array in the same order the backend sorts by, so what the
+// user sees after the drag matches what a refresh will load (order asc, nulls last)
+function resortLocalTables() {
+  tables.value.sort((a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity))
+}
+
 // todo: replace with vuedraggable
 const initSortable = (el: Element) => {
   const source_id = el.getAttribute('nc-source')
@@ -69,8 +98,6 @@ const initSortable = (el: Element) => {
   if (sortables[source_id]) sortables[source_id].destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.source_id === source_id)
-
       const { newIndex = 0, oldIndex = 0 } = evt
 
       if (newIndex === oldIndex) return
@@ -78,51 +105,78 @@ const initSortable = (el: Element) => {
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById.value[itemEl.dataset.id as string]
 
-      // get the html collection of all list items
+      if (!item?.id) return
+
+      // the html collection of all list items, already in the dropped order
       const children: HTMLCollection = evt.to.children
 
       // skip if children count is 1
       if (children.length < 2) return
 
-      // get items before and after the moved item
-      const itemBeforeEl = children[newIndex - 1] as HTMLLIElement
-      const itemAfterEl = children[newIndex + 1] as HTMLLIElement
+      // resolve the tables sitting immediately before and after the moved item
+      const itemBefore = tablesById.value[(children[newIndex - 1] as HTMLLIElement)?.dataset.id as string]
+      const itemAfter = tablesById.value[(children[newIndex + 1] as HTMLLIElement)?.dataset.id as string]
 
-      // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && tablesById.value[itemBeforeEl.dataset.id as string]
-      const itemAfter = itemAfterEl && tablesById.value[itemAfterEl.dataset.id as string]
+      const beforeOrder = itemBefore?.order ?? null
+      const afterOrder = itemAfter?.order ?? null
 
-      // set new order value based on the new order of the items
-      if (children.length - 1 === evt.newIndex) {
-        item.order = (itemBefore.order as number) + 1
+      // compute a candidate order between the two neighbours (null-safe)
+      let newOrder: number
+      if (children.length - 1 === newIndex) {
+        newOrder = (beforeOrder ?? 0) + 1
       } else if (newIndex === 0) {
-        item.order = (itemAfter.order as number) / 2
+        newOrder = (afterOrder ?? 1) / 2
       } else {
-        item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
+        newOrder = ((beforeOrder ?? 0) + (afterOrder ?? 0)) / 2
       }
 
-      // update the order of the moved item
-      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
+      // The candidate only yields a stable position when it sits strictly between
+      // the neighbours' orders. When sibling tables share the same order or have no
+      // order at all (legacy / bulk / sync-created bases), the midpoint collides and
+      // the drag would silently revert on next load — renormalise the whole source
+      // to distinct, evenly-spaced orders instead.
+      const strictlyPlaceable =
+        (itemBefore == null || (beforeOrder != null && newOrder > beforeOrder)) &&
+        (itemAfter == null || (afterOrder != null && newOrder < afterOrder))
 
-      // force re-render the list
-      if (keys.value[source_id]) {
-        keys.value[source_id] = keys.value[source_id] + 1
-      } else {
-        keys.value[source_id] = 1
+      // snapshot to revert local state if persistence fails
+      const prevOrders = tables.value.map((t) => ({ table: t, order: t.order }))
+
+      try {
+        if (strictlyPlaceable) {
+          item.order = newOrder
+          resortLocalTables()
+          bumpSortableKey(source_id)
+
+          await persistTableOrder(item.id, newOrder)
+        } else {
+          // renormalise: walk the dropped DOM order and hand out fresh 1..n orders
+          const reordered = (Array.from(children) as HTMLLIElement[])
+            .map((child) => tablesById.value[child.dataset.id as string])
+            .filter((t): t is TableType => !!t?.id)
+
+          const changed: TableType[] = []
+          reordered.forEach((table, index) => {
+            const order = index + 1
+            if (table.order !== order) {
+              table.order = order
+              changed.push(table)
+            }
+          })
+
+          resortLocalTables()
+          bumpSortableKey(source_id)
+
+          await Promise.all(changed.map((table) => persistTableOrder(table.id as string, table.order as number)))
+        }
+      } catch (e) {
+        // restore local order and reload from server so the UI reflects reality
+        for (const { table, order } of prevOrders) table.order = order
+        resortLocalTables()
+        bumpSortableKey(source_id)
+        message.error(await extractSdkResponseErrorMsg(e))
+        await loadProjectTables(base.value.id!, true)
       }
-
-      // update the item order
-      await $api.internal.postOperation(
-        base.value.fk_workspace_id!,
-        base.value.id!,
-        {
-          operation: 'tableReorder',
-          tableId: item.id as string,
-        },
-        {
-          order: item.order,
-        },
-      )
     },
     animation: 150,
     setData(dataTransfer, dragEl) {

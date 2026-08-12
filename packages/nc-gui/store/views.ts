@@ -1520,6 +1520,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     lastOpenedViewId,
     activeViewRowColorInfo,
     sharedView,
+    isPublic,
     isActiveViewFieldHeaderVisible,
 
     // Methods

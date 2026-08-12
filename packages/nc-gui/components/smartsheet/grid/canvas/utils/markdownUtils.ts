@@ -1,4 +1,5 @@
 import type { UserType } from 'nocodb-sdk'
+import { decode as decodeHtmlEntities } from 'html-entities'
 
 type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link' | 'mention'
 
@@ -131,7 +132,10 @@ function parseTokens(
 
   const flushText = () => {
     if (currentText) {
-      tokens.push({ styles: [...activeStyles], value: currentText })
+      // markdown-it (used by the DOM/expand renderer) decodes HTML character
+      // references such as `&#39;` -> `'` in text. Mirror that here so the
+      // canvas grid preview doesn't show raw entities for rich-mode values.
+      tokens.push({ styles: [...activeStyles], value: decodeHtmlEntities(currentText) })
       currentText = ''
     }
   }

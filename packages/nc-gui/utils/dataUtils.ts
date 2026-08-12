@@ -551,7 +551,8 @@ export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => 
   if (isRichMode) {
     // Strip markdown/HTML markup, then decode HTML entities (e.g. `&#39;` -> `'`)
     // to match the rich renderer, which parses markdown via markdown-it.
-    return decodeHtmlEntities(modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || '')
+    // `scope: 'strict'` requires the trailing `;`, same as CommonMark/markdown-it.
+    return decodeHtmlEntities(modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || '', { scope: 'strict' })
   }
 
   if (isAIPromptCol(col)) {

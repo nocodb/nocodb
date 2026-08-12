@@ -67,7 +67,11 @@ const markers: Marker[] = [
 
         activeStyles.push('link')
 
-        return { tokens: [{ styles: activeStyles, value: mergedText, url }], newIndex: index }
+        // markdown-it also decodes entities in link destinations (`&amp;` -> `&`)
+        return {
+          tokens: [{ styles: activeStyles, value: mergedText, url: decodeHtmlEntities(url, { scope: 'strict' }) }],
+          newIndex: index,
+        }
       } else {
         return {
           tokens: [{ styles: activeStyles, value: `[${linkTextTokens.map((t) => t.value).join('')}]` }],
@@ -135,7 +139,8 @@ function parseTokens(
       // markdown-it (used by the DOM/expand renderer) decodes HTML character
       // references such as `&#39;` -> `'` in text. Mirror that here so the
       // canvas grid preview doesn't show raw entities for rich-mode values.
-      tokens.push({ styles: [...activeStyles], value: decodeHtmlEntities(currentText) })
+      // `scope: 'strict'` requires the trailing `;`, same as CommonMark/markdown-it.
+      tokens.push({ styles: [...activeStyles], value: decodeHtmlEntities(currentText, { scope: 'strict' }) })
       currentText = ''
     }
   }

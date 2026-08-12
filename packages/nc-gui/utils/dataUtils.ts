@@ -36,6 +36,7 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import { decode as decodeHtmlEntities } from 'html-entities'
 import { isColumnRequiredAndNull } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
@@ -548,7 +549,10 @@ export const getIntValue = (modelValue: string | null | number) => {
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
   const isRichMode = parseProp(col.meta).richMode
   if (isRichMode) {
-    return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || ''
+    // Strip markdown/HTML markup, then decode HTML entities (e.g. `&#39;` -> `'`)
+    // to match the rich renderer, which parses markdown via markdown-it.
+    // `scope: 'strict'` requires the trailing `;`, same as CommonMark/markdown-it.
+    return decodeHtmlEntities(modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || '', { scope: 'strict' })
   }
 
   if (isAIPromptCol(col)) {

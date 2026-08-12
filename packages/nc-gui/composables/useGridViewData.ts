@@ -444,7 +444,10 @@ export function useGridViewData(
       const cleanRow = (row: any) => {
         const cleanedRow = { ...row }
         metaValue?.columns?.forEach((col) => {
-          if (col.system || isVirtualCol(col)) delete cleanedRow[col.title!]
+          // Strip system, virtual and readonly (e.g. AutoNumber) columns — the backend
+          // rejects readonly columns in insert/update payloads. Keep pk so upsert can
+          // still match existing rows for updates.
+          if (col.system || isVirtualCol(col) || (col.readonly && !col.pk)) delete cleanedRow[col.title!]
         })
         return cleanedRow
       }

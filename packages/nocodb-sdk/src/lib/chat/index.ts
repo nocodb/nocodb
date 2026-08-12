@@ -116,7 +116,6 @@ export type ChatContentBlock =
       is_error?: boolean;
       agent?: string;
       visibility?: ChatToolVisibility;
-      user_visible_plan?: string;
       metadata?: ChatToolMetadata;
     };
 

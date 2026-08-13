@@ -113,6 +113,7 @@ import {
   dataWrapper,
   deletedColValue,
   displayValueMapKey,
+  extractLinkFieldsByTitle,
   extractSortsObject,
   formatDataForAudit,
   getBaseModelSqlFromModelId,
@@ -3731,7 +3732,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           const operations = await this.prepareNestedLinkQb({
             nestedCols,
-            data: original,
+            // The preparator matches link fields by title only; re-key
+            // id/column_name payloads so an inserted row honours the same keys
+            // a matched row does.
+            data: {
+              ...original,
+              ...extractLinkFieldsByTitle(original, nestedCols),
+            },
             insertObj: toInsert[i],
             req: cookie,
           });
@@ -3779,19 +3786,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const original = originalByPrepared.get(data);
           if (!original) continue;
 
-          const linkFields: Record<string, any> = {};
+          const linkFields = extractLinkFieldsByTitle(original, nestedCols);
 
-          for (const col of nestedCols) {
-            // Upsert payloads may be keyed by title or id, and an explicit
-            // `null` has to be told apart from an absent field — so test for
-            // key presence rather than reading the value.
-            const key = [col.title, col.id, col.column_name].find(
-              (k) => k in original,
-            );
-            if (key === undefined) continue;
-            // `null` means "unlink all". The shared updater would turn it into
-            // `[null]` and then fail resolving that id, so send `[]` instead.
-            linkFields[col.title] = original[key] ?? [];
+          // `null` means "unlink all". The shared updater would turn it into
+          // `[null]` and then fail resolving that id, so send `[]` instead.
+          for (const title of Object.keys(linkFields)) {
+            linkFields[title] ??= [];
           }
 
           if (!Object.keys(linkFields).length) continue;

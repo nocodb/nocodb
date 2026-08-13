@@ -2494,6 +2494,12 @@ export class ImportService {
                     // they belong to neither the destination base nor (in
                     // general) the acting user — the ownership check can never
                     // pass here
+                    // TODO: this also relaxes the guard for cross-instance
+                    // remote import, whose refs arrive in the request body
+                    // rather than from an ACL-checked base. Thread the flag
+                    // per-caller once remote import transfers attachment files
+                    // instead of passing refs through verbatim.
+                    // github.com/nocodb/nocohub/pull/10063#discussion_r3773398681
                     skipAttachmentOwnershipCheck: true,
                   });
                 } catch (e) {

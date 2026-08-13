@@ -35,14 +35,29 @@ export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
 }
 
-// Response-shape keys that must never be controllable by public/shared-view
-// callers. `getHiddenColumn` bypasses the getAst `allowedCols` gate and would
-// emit every non-system column's VALUES; `nested` drives caller-controlled
-// nested-LTAR expansion. Stripping these keeps hidden columns out of the
-// default response payload — see the DESIGN NOTE below, boundary (1).
-// Re-exported from a dependency-light helper so calendar/other public services
-// can strip the same keys without importing this heavy service graph, and so
-// the logic stays unit-testable in isolation.
+// Each bulk entry costs a full query, and these routes are anonymous — without a
+// cap one 50MB body (the json-body middleware limit) buys tens of thousands of
+// them. 200 leaves 2x headroom over the largest batch the UI sends
+// (GROUP_CHUNK_SIZE = 100 in useInfiniteGroups).
+const MAX_PUBLIC_BULK_ENTRIES = 200;
+
+function assertBulkFilterListWithinLimit(bulkFilterList: unknown): void {
+  if (!Array.isArray(bulkFilterList) || !bulkFilterList.length) {
+    NcError.badRequest('Invalid bulkFilterList');
+  }
+
+  if ((bulkFilterList as unknown[]).length > MAX_PUBLIC_BULK_ENTRIES) {
+    NcError.badRequest(
+      `bulkFilterList exceeds the maximum of ${MAX_PUBLIC_BULK_ENTRIES} entries`,
+    );
+  }
+}
+
+// Response-shape keys a public/shared-view caller must not control:
+// `getHiddenColumn` bypasses getAst's `allowedCols` and would emit every
+// non-system column's VALUES; `nested` drives caller-controlled LTAR expansion.
+// Re-exported from a dependency-light helper so other public services can strip
+// the same keys without importing this service graph.
 export {
   PUBLIC_QUERY_BLOCKED_KEYS,
   sanitizePublicQuery,
@@ -1219,6 +1234,20 @@ export class PublicDatasService {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
+    // Before the per-entry loop below — that loop is itself per-entry work.
+    assertBulkFilterListWithinLimit(bulkFilterList);
+
+    // Each bulk entry is its own query object against the same model, so each
+    // needs the same confinement as a single `dataList` call.
+    for (const entry of ncIsArray(bulkFilterList) ? bulkFilterList : []) {
+      await restrictSharedViewQuery(context, {
+        model,
+        view,
+        query: entry,
+        scope,
+      });
+    }
+
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
@@ -1226,10 +1255,6 @@ export class PublicDatasService {
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
-
-    if (!bulkFilterList?.length) {
-      NcError.badRequest('Invalid bulkFilterList');
-    }
 
     const dataListResults = await bulkFilterList.reduce(
       async (accPromise, dF: any) => {
@@ -1298,7 +1323,12 @@ export class PublicDatasService {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    // each caller-supplied filter object is a query — sanitize per element too
+    // Before the per-entry work below (sanitize + confinement + one aggregate each).
+    assertBulkFilterListWithinLimit(bulkFilterList);
+
+    // each caller-supplied filter object is a query — sanitize per element too.
+    // Must run before the confinement below: sanitizing replaces each entry with
+    // a copy, and `restrictSharedView*` mutates the object it is handed.
     if (Array.isArray(bulkFilterList)) {
       bulkFilterList = bulkFilterList.map((dF: any) => sanitizePublicQuery(dF));
     }

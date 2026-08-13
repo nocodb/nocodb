@@ -207,7 +207,14 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
       const size = getAttachmentSize(rowHeight!)
-      const thumbnailUrls = getPossibleAttachmentSrc(item, size)
+      // Only images have real thumbnails (see prepareAttachmentForSigning on the backend,
+      // which only populates `item.thumbnails` for image mimetypes). Attempting to load a
+      // video/pdf/etc. through an `<img>` element (loadOrGetImage) always fails, but not
+      // before the browser downloads part or all of the file — on every canvas repaint
+      // (scroll/hover/selection), this saturates the per-origin connection limit and starves
+      // real image loads, causing widespread slow/failed loading across the grid. See
+      // handleHover/handleClick below, which already gate this the same way.
+      const thumbnailUrls = isImage(item.title, item.mimetype || item.type) ? getPossibleAttachmentSrc(item, size) : undefined
 
       let thumbnailLoaded = false
 

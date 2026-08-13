@@ -79,8 +79,31 @@ const { loadRow } = useSmartsheetRowStoreOrThrow()
 
 const isUpdated = ref(1)
 
+// Tracks which attachment (by url/path/title) has already triggered a self-heal reload, so a
+// single flaky attachment can't re-trigger `loadRow` on every subsequent media `error` event
+// (previously this reset on every error, and since the reload re-signs every URL in the row and
+// remounts all media in the carousel, a single bad attachment could cascade into repeated
+// full-row refetches + full carousel re-downloads). Switching to a different attachment allows
+// one reload attempt again, so a genuinely stale URL for that attachment can still self-heal.
+const reloadedAttachmentKeys = new Set<string>()
+
+const getAttachmentKey = (item: Record<string, any> | false) => (item ? item.url || item.path || item.title || '' : '')
+
 const triggerReload = async () => {
-  await loadRow()
+  const key = getAttachmentKey(selectedFile.value)
+  if (key && reloadedAttachmentKeys.has(key)) return
+  if (key) reloadedAttachmentKeys.add(key)
+
+  // Defensive: this runs off a media (img/video) `error` event, so a failure here must never
+  // escape as an uncaught rejection and crash the whole page via the top-level ErrorBoundary.
+  // `silent: true` — this is a background self-heal attempt, not a user-initiated action, so a
+  // failure (e.g. transient 404) should log rather than pop a toast (see useSmartsheetLtarHelpers).
+  try {
+    await loadRow({ silent: true })
+  } catch (e) {
+    console.error('Failed to reload row after attachment load error:', e)
+    return
+  }
   isUpdated.value = isUpdated.value + 1
 }
 

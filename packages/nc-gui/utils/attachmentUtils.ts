@@ -85,8 +85,13 @@ export async function isURLExpired(url?: string) {
       status: response.status,
     }
   } catch (error) {
+    // A thrown fetch (CORS block, DNS hiccup, offline, aborted, etc.) tells us nothing about
+    // whether the URL itself is expired — it's "unknown", not "expired". Treating it as expired
+    // caused callers (e.g. Video.vue's handleError) to trigger a row reload for transient/CORS
+    // errors that had nothing to do with the attachment URL being stale, contributing to
+    // spurious reload loops and false "record not found" toasts.
     return {
-      isExpired: true,
+      isExpired: false,
       status: 0,
       error: error.message,
     }

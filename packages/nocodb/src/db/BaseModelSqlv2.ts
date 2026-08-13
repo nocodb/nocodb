@@ -113,6 +113,7 @@ import {
   dataWrapper,
   deletedColValue,
   displayValueMapKey,
+  extractLinkFieldsByTitle,
   extractSortsObject,
   formatDataForAudit,
   getBaseModelSqlFromModelId,
@@ -3492,6 +3493,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       mergeColumns,
       throwOnDuplicate = false,
       typecast = false,
+      apiVersion,
+      onUpsertSplit,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3501,6 +3504,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
       typecast?: boolean;
+      /** V3 honours inline link fields; earlier versions ignore them. */
+      apiVersion?: NcApiVersion;
+      /**
+       * Reports which pks were matched-and-updated. The return value merges
+       * updates and inserts, so callers that need per-record status (v3
+       * `status: inserted | updated`) can't derive it otherwise.
+       */
+      onUpsertSplit?: (split: { updatedPks: string[] }) => void;
     } = {},
   ) {
     let trx;
@@ -3539,6 +3550,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               );
             }),
           );
+
+      // Link columns are virtual, so `mapAliasToColumn` strips them from the
+      // prepared rows — the values survive only on the originals. The split
+      // below shuffles prepared rows into toInsert/toUpdate, so key the
+      // originals by prepared-object identity to find them again afterwards.
+      const originalByPrepared = new Map<any, any>();
+      preparedDatas.forEach((prepared, i) =>
+        originalByPrepared.set(prepared, datas[i]),
+      );
 
       const toInsert = [];
       const toUpdate = [];
@@ -3689,7 +3709,53 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      // V3 accepts inline link fields on upsert. Inserted rows reuse the same
+      // preparator `bulkInsert` uses; it mutates `insertObj` with the FK for
+      // BELONGS_TO / MANY_TO_ONE, so it has to run before the INSERT is built.
+      const nestedCols =
+        !raw && apiVersion === NcApiVersion.V3
+          ? columns.filter((col) => isLinksOrLTAR(col))
+          : [];
+
+      const linkPreInsertOps: ((
+        trx?: Knex | Knex.Transaction,
+      ) => Promise<string>)[] = [];
+      const linkPostInsertOpsMap: Record<
+        number,
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
+      > = {};
+
+      if (nestedCols.length) {
+        for (let i = 0; i < toInsert.length; i++) {
+          const original = originalByPrepared.get(toInsert[i]);
+          if (!original) continue;
+
+          const operations = await this.prepareNestedLinkQb({
+            nestedCols,
+            // The preparator matches link fields by title only; re-key
+            // id/column_name payloads so an inserted row honours the same keys
+            // a matched row does.
+            data: {
+              ...original,
+              ...extractLinkFieldsByTitle(original, nestedCols),
+            },
+            insertObj: toInsert[i],
+            req: cookie,
+          });
+
+          linkPostInsertOpsMap[i] = operations.postInsertOps;
+          linkPreInsertOps.push(...operations.preInsertOps);
+        }
+      }
+
       trx = await this.dbDriver.transaction();
+
+      if (linkPreInsertOps.length) {
+        await this.runOps(
+          linkPreInsertOps.map((f) => f(trx)),
+          trx,
+        );
+      }
 
       const updatedPks = [];
 
@@ -3708,6 +3774,53 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             : data;
           await trx(this.tnPath).update(dataToUpdate).where(wherePk);
         }
+      }
+
+      // Matched rows get replace semantics, the same as PATCH: the sent link
+      // set becomes the row's link set.
+      const linkUpdateDatas = [];
+
+      if (nestedCols.length && toUpdate.length) {
+        for (const data of toUpdate) {
+          const original = originalByPrepared.get(data);
+          if (!original) continue;
+
+          const linkFields = extractLinkFieldsByTitle(original, nestedCols);
+
+          // `null` means "unlink all". The shared updater would turn it into
+          // `[null]` and then fail resolving that id, so send `[]` instead.
+          for (const title of Object.keys(linkFields)) {
+            linkFields[title] ??= [];
+          }
+
+          if (!Object.keys(linkFields).length) continue;
+
+          linkUpdateDatas.push({
+            ...this.model.primaryKeys.reduce((acc, pk) => {
+              acc[pk.title] = data[pk.column_name];
+              return acc;
+            }, {}),
+            ...linkFields,
+          });
+        }
+      }
+
+      // Everywhere but sqlite the link writes join `trx`, so a rejected link id
+      // rolls the field writes back with it. sqlite's pool is a single
+      // connection, and in CE a meta source shares it with `Noco.ncMeta`, so
+      // there the link writer's own queries would wait on the connection `trx`
+      // is holding — a deadlock that only ends at the 60s acquire timeout.
+      // Those links are written after the commit instead, giving up atomicity.
+      // TODO: drop the split once the sqlite pool can hand out a second
+      // connection.
+      const deferLinkUpdates = this.isSqlite;
+
+      if (linkUpdateDatas.length && !deferLinkUpdates) {
+        await this.updateLTARCols({
+          datas: linkUpdateDatas,
+          cookie,
+          trx,
+        });
       }
 
       if (toInsert.length > 0) {
@@ -3822,12 +3935,38 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
         insertedDatas.push(...responses);
+
+        // Inserted rows only get their pk here, so the link writes that need it
+        // run now — still inside `trx`, matching bulkInsert's ordering.
+        for (let i = 0; i < responses.length; i++) {
+          const ops = linkPostInsertOpsMap[i];
+          if (!ops?.length) continue;
+
+          const rowId = this.extractCompositePK({
+            rowId: responses[i][this.model.primaryKey?.title],
+            ai: aiPkCol,
+            ag: agPkCol,
+            insertObj: toInsert[i],
+          });
+
+          await this.runOps(
+            ops.map((f) => f(rowId, trx)),
+            trx,
+          );
+        }
       }
 
       await trx.commit();
       // Transaction is finalized; clear the reference so a post-commit
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
+
+      if (linkUpdateDatas.length && deferLinkUpdates) {
+        await this.updateLTARCols({
+          datas: linkUpdateDatas,
+          cookie,
+        });
+      }
 
       const updatedRecords = await this.chunkList({
         pks: updatedPks,
@@ -3918,6 +4057,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         await this.afterBulkUpdate(existingRecords, updatedDataList, cookie);
       }
+
+      onUpsertSplit?.({ updatedPks: updatedPks.map((pk) => String(pk)) });
 
       return [...updatedDataList, ...insertedDataList];
     } catch (e) {
@@ -4427,10 +4568,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
+  async updateLTARCols({
+    datas,
+    cookie,
+    trx,
+  }: {
+    datas: any[];
+    cookie: NcRequest;
+    trx?: Knex.Transaction;
+  }) {
     return LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
       datas,
       cookie,
+      trx,
     });
   }
 

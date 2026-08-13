@@ -27,6 +27,10 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import {
+  getLtarDisplayValueContext,
+  resolveLtarDisplayValuesToPks,
+} from '~/helpers/ltarDisplayValueResolver';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -501,6 +505,106 @@ export class DataV3Service {
   /**
    * Transform LTAR fields from v3 format to internal format
    */
+  /**
+   * Resolves link targets supplied as display values into `{ id }` form,
+   * in place, so the rest of the write path only ever sees record ids.
+   *
+   * A link entry is treated as a display value when it is a bare string or
+   * number; an object carrying `id` is left alone. Both forms may be mixed in
+   * one array:
+   *
+   *   "Brand":  "Acme"                     → single (belongs-to / one-to-one)
+   *   "Cities": ["Paris", "Lyon"]          → many
+   *   "Cities": ["Paris", { id: 5 }]       → mixed
+   *   "Cities": [] | null                  → untouched (unlink)
+   *
+   * Matching reuses `resolveLtarDisplayValuesToPks`, shared with grid paste,
+   * file import and text→link conversion, so "which column counts as the
+   * display value" stays one answer across the product: the link's
+   * `fk_display_value_column_id` if set, else the related table's primary
+   * value.
+   *
+   * Two ways this is deliberately stricter than grid paste:
+   *
+   *  - Matching is **exact** (`caseInsensitiveFallback: false`). Paste is
+   *    lenient because a human pasting "paris" means the row titled "Paris";
+   *    an API caller sending the same payload twice should get the same rows
+   *    both times, whatever the database collation says. It also skips the
+   *    `like` query, an unindexed scan on the related table.
+   *  - Values that match no row raise a 400 naming them, rather than being
+   *    skipped silently. An unattended sync should hear about a brand it could
+   *    not find instead of writing a record with the link quietly missing —
+   *    and this matches how an unresolvable *id* already behaves on the
+   *    validated link path.
+   *
+   * Known divergence: a display value matching more than one row resolves to
+   * the first row, inherited from the shared resolver. Reporting ambiguity
+   * would change paste and import behaviour too, so it is left alone here.
+   */
+  private async resolveLinkDisplayValues(
+    context: NcContext,
+    records: { fields: Record<string, any> }[],
+    ltarColumns: Column[],
+  ): Promise<void> {
+    if (!ltarColumns.length) return;
+
+    const isDisplayValue = (entry: any) =>
+      typeof entry === 'string' || typeof entry === 'number';
+
+    for (const column of ltarColumns) {
+      // Collect every display value for this column across the whole request,
+      // so each link column costs one resolution query rather than one per row.
+      const pending: { fields: Record<string, any>; key: string }[] = [];
+      const uniqueValues = new Set<string>();
+
+      for (const record of records) {
+        if (!record?.fields) continue;
+
+        const key = dataWrapper(record.fields).getColumnKeyName(column);
+        const value = record.fields[key];
+        if (value === null || value === undefined) continue;
+
+        const entries = Array.isArray(value) ? value : [value];
+        if (!entries.some(isDisplayValue)) continue;
+
+        pending.push({ fields: record.fields, key });
+        for (const entry of entries) {
+          if (isDisplayValue(entry)) uniqueValues.add(String(entry));
+        }
+      }
+
+      if (!pending.length) continue;
+
+      const groupCtx = await getLtarDisplayValueContext(context, column);
+      const valueToPk = await resolveLtarDisplayValuesToPks(
+        groupCtx,
+        uniqueValues,
+        { caseInsensitiveFallback: false },
+      );
+
+      const unmatched = [...uniqueValues].filter((v) => !valueToPk.has(v));
+      if (unmatched.length) {
+        NcError.get(context).invalidRequestBody(
+          `Link field '${column.title}': no record in '${
+            groupCtx.relatedModel.title
+          }' has an exact ${
+            groupCtx.displayValueColumn.title
+          } match for ${unmatched.map((v) => `'${v}'`).join(', ')}`,
+        );
+      }
+
+      for (const { fields, key } of pending) {
+        const value = fields[key];
+        const entries = Array.isArray(value) ? value : [value];
+        const resolved = entries.map((entry) =>
+          isDisplayValue(entry) ? { id: valueToPk.get(String(entry)) } : entry,
+        );
+
+        fields[key] = Array.isArray(value) ? resolved : resolved[0];
+      }
+    }
+  }
+
   private async transformLTARFieldsToInternal(
     context: NcContext,
     fields: any,
@@ -878,6 +982,10 @@ export class DataV3Service {
     // 4. Transform LTAR fields
     const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
 
+    // Resolve any link targets given as display values into {id} form before
+    // the normal transform runs, so everything downstream still sees ids.
+    await this.resolveLinkDisplayValues(context, records, ltarColumns);
+
     const transformedBody = await Promise.all(
       records.map(async (record) =>
         this.transformLTARFieldsToInternal(context, record.fields, ltarColumns),
@@ -892,42 +1000,33 @@ export class DataV3Service {
       source,
     });
 
-    // 6. Find existing records by merge fields to track insert vs update status
-    let existingPkSet = new Set<string>();
+    // 6. Call bulkUpsert with merge columns. It resolves the insert/update
+    // split internally and reports it back, so there's no second merge-field
+    // lookup here — and no risk of the two disagreeing.
+    let updatedPkSet = new Set<string>();
 
-    if (mergeColumns?.length) {
-      const mergeColNames = mergeColumns.map((col) => col.column_name);
-      const mergeValuesPerRecord = transformedBody.map((data) =>
-        mergeColNames.map((cn) => data[cn]),
-      );
-      const existingRecords = await baseModel.findByMergeFields(
-        mergeColumns,
-        mergeValuesPerRecord,
-      );
-      existingPkSet = new Set(
-        existingRecords.map((r) => String(baseModel.extractPksValues(r, true))),
-      );
-    }
-
-    // 7. Call bulkUpsert with merge columns
     const allRecords = await baseModel.bulkUpsert(transformedBody, {
       cookie: param.cookie,
       mergeColumns,
       throwOnDuplicate: true,
+      apiVersion: NcApiVersion.V3,
+      onUpsertSplit: ({ updatedPks }) => {
+        updatedPkSet = new Set(updatedPks);
+      },
     });
 
-    // 8. Build ID-to-status mapping
+    // 7. Build ID-to-status mapping
     const statusMap = new Map<string, 'inserted' | 'updated'>();
 
     for (const record of allRecords) {
       const pk = String(baseModel.extractPksValues(record, true));
-      statusMap.set(pk, existingPkSet.has(pk) ? 'updated' : 'inserted');
+      statusMap.set(pk, updatedPkSet.has(pk) ? 'updated' : 'inserted');
     }
 
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // 9. Transform to V3 format
+    // 8. Transform to V3 format
     const v3Records = await this.transformRecordsToV3Format({
       context,
       records: allRecords,
@@ -943,7 +1042,7 @@ export class DataV3Service {
       linksAsLtar,
     });
 
-    // 10. Attach status to each record
+    // 9. Attach status to each record
     const result: DataUpsertRecordResponse[] = v3Records.map((record) => ({
       ...record,
       status: statusMap.get(String(record.id)) ?? 'inserted',

@@ -391,6 +391,30 @@ export function getRelatedLinksColumn(
 export function extractIdPropIfObjectOrReturn(id: any, prop: string) {
   return typeof id === 'object' ? id[prop] : id;
 }
+
+/**
+ * Pick the inline link fields out of a payload and re-key them by column title
+ * — the only key the nested-link writers look for. V3 accepts a field keyed by
+ * title *or* column id, so every consumer has to resolve the key the same way
+ * or the same payload behaves differently per code path.
+ *
+ * Key presence decides, not the value: an explicit `null` (unlink all) has to
+ * be told apart from an absent field.
+ */
+export function extractLinkFieldsByTitle(
+  data: Record<string, any>,
+  linkColumns: { title: string; id: string; column_name?: string }[],
+): Record<string, any> {
+  const linkFields: Record<string, any> = {};
+
+  for (const col of linkColumns) {
+    const key = [col.title, col.id, col.column_name].find((k) => k in data);
+    if (key === undefined) continue;
+    linkFields[col.title] = data[key];
+  }
+
+  return linkFields;
+}
 export const nanoidv2 = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz',
   14,

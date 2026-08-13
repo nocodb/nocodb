@@ -1,4 +1,26 @@
-import { type ColumnType, type UserFieldRecordType, type UserType, arrFlatMap } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  NOCO_SERVICE_USERS,
+  UITypes,
+  type UserFieldRecordType,
+  type UserType,
+  arrFlatMap,
+} from 'nocodb-sdk'
+
+// System users (NocoDB Workflow, Automation, Sync, System, …) that stamp
+// CreatedBy / LastModifiedBy when records are created or updated by internal
+// actors. They are absent from the base-users list (they don't live in
+// nc_users), so expose them as selectable options in the filter dropdown so
+// records created by e.g. "NocoDB Workflow" can be filtered.
+export const getSystemUserFilterOptions = (column: ColumnType): UserFieldRecordType[] => {
+  if (![UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt as UITypes)) return []
+
+  return Object.values(NOCO_SERVICE_USERS).map((user) => ({
+    id: user.id,
+    email: user.email,
+    display_name: user.display_name,
+  }))
+}
 
 export const getOptions = (
   column: ColumnType,

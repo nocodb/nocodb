@@ -6778,10 +6778,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /**
    * Extract distinct group column values for grouping operations
    * Handles options parameter, SingleSelect columns, and other column types
+   *
+   * The distinct-value query is scoped to the same rows the caller's row query
+   * can see (RLS + view filter + any link conditions). Without that, a value
+   * occurring only in filtered-out rows leaks as a group key — the row list
+   * comes back empty, but the key itself is the secret.
    */
   public async extractGroupingValues(
     column: Column,
     options?: (string | number | null | boolean)[],
+    scope?: {
+      ignoreViewFilterAndSort?: boolean;
+      extraConditions?: Filter[];
+    },
   ): Promise<Set<any>> {
     // TODO: Add virtual column support
     if (isVirtualCol(column)) {
@@ -6808,6 +6817,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const softDeleteFilter = await this.getSoftDeleteFilter();
       if (softDeleteFilter) {
         qb.where(softDeleteFilter);
+      }
+
+      const rlsConditions = await this.getRlsConditions();
+      const scopeConditions: Filter[] = [];
+
+      if (rlsConditions.length) {
+        scopeConditions.push(
+          new Filter({ children: rlsConditions, is_group: true }),
+        );
+      }
+
+      if (!scope?.ignoreViewFilterAndSort && this.viewId) {
+        scopeConditions.push(
+          new Filter({
+            children:
+              (await Filter.rootFilterList(this.context, {
+                viewId: this.viewId,
+              })) || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+        );
+      }
+
+      if (scope?.extraConditions?.length) {
+        scopeConditions.push(
+          new Filter({
+            children: scope.extraConditions,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        );
+      }
+
+      if (scopeConditions.length) {
+        await conditionV2(this, scopeConditions, qb);
       }
 
       groupingValues = new Set(
@@ -6848,6 +6893,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const groupingValues = await this.extractGroupingValues(
         column,
         args.options,
+        { ignoreViewFilterAndSort: args.ignoreViewFilterAndSort },
       );
 
       const qb = this.dbDriver(this.tnPath);

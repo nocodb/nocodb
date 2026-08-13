@@ -690,7 +690,7 @@ export function useCanvasRender({
         (fillHandler && xOffset - _scrollLeft + 1 >= fillHandler.x && xOffset - _scrollLeft - 1 <= fillHandler.x)
       ) {
         // Draw line above active state
-        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], themeV4Colors.gray['100'])
         if (fillHandler && activeState?.y) {
           ctx.beginPath()
           ctx.moveTo(xOffset - _scrollLeft, _headerRowHeight)
@@ -732,7 +732,7 @@ export function useCanvasRender({
         // Draw full line if not intersecting with active state
         // To avoid rendering the line inside fixed columns, set the xOffset to the right of fixed columns if xOffset is less than fixedColsWidth
         const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - _scrollLeft)
-        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(verticalLineXOffset, _headerRowHeight)
         ctx.lineTo(
@@ -968,6 +968,15 @@ export function useCanvasRender({
           colResizeHoveredColIds.value.delete(column.id)
         }
       })
+
+      // Redraw the bottom border across the fixed region — the fixed-column
+      // backgrounds are painted after the shared bottom border and cover its top half
+      ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, _headerRowHeight)
+      ctx.lineTo(xOffset, _headerRowHeight)
+      ctx.stroke()
 
       if (_scrollLeft) {
         ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
@@ -1623,11 +1632,11 @@ export function useCanvasRender({
     selectionBg: '',
     // selection tint overlaid on rows that carry a custom row colour
     selectionBgOnRowColor: '',
-    gray200: '',
-    gray100: '',
+    borderMedium: '',
+    borderLight: '',
     gray50: '',
     white: '',
-    gray300: '',
+    borderDark: '',
   }
 
   function _updateRowColors() {
@@ -1637,11 +1646,13 @@ export function useCanvasRender({
     _rowColors = {
       selectionBg: whiteLabelled ? getColor(themeV4Colors.brand['50']) : getColor('#F6F7FE', themeV4Colors.brand['50']),
       selectionBgOnRowColor: whiteLabelled ? getColor(themeV4Colors.brand['500'], undefined, 0.05) : '#3366ff0d',
-      gray200: getColor(themeV4Colors.gray['200']),
-      gray100: getColor(themeV4Colors.gray['100']),
+      // Grid lines are one shade darker in light theme — the same gray tokens
+      // have ~half the contrast on white than on the dark theme background
+      borderMedium: getColor(themeV4Colors.gray['300'], themeV4Colors.gray['200']),
+      borderLight: getColor(themeV4Colors.gray['200'], themeV4Colors.gray['100']),
       gray50: getColor(themeV4Colors.gray['50']),
       white: getColor(themeV4Colors.base.white),
-      gray300: getColor(themeV4Colors.gray['300']),
+      borderDark: getColor(themeV4Colors.gray['300']),
     }
   }
 
@@ -1715,8 +1726,8 @@ export function useCanvasRender({
       }
 
       // Batch vertical borders: collect line x-coordinates by color, stroke once per color
-      const bordersGray100: number[] = []
-      const bordersGray200: number[] = []
+      const bordersLight: number[] = []
+      const bordersMedium: number[] = []
       const _scrollLeft = scrollLeft.value
       const _yOffset = yOffset
       const _rowH = rowHeight.value
@@ -1757,13 +1768,13 @@ export function useCanvasRender({
           isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx - 1 }))
 
         // Collect vertical border coordinates for batched stroke.
-        // Use gray-200 (darker) for colored rows — gray-100 has near-zero contrast
-        // against colored backgrounds. Matches fixed columns behavior (line ~1629).
+        // Use the medium (darker) border for colored rows — the light border has
+        // near-zero contrast against colored backgrounds. Matches fixed columns behavior.
         const borderX = xOffset - _scrollLeft
         if (needsHighlightedBorders || isColumnInSelection || columnState || prevColumnState || rowColor) {
-          bordersGray200.push(borderX)
+          bordersMedium.push(borderX)
         } else {
-          bordersGray100.push(borderX)
+          bordersLight.push(borderX)
         }
 
         // add white background color for active cell
@@ -1824,21 +1835,21 @@ export function useCanvasRender({
 
       // Batch-stroke all vertical borders (2 strokes instead of N per row)
       ctx.lineWidth = 1
-      if (bordersGray100.length) {
-        ctx.strokeStyle = _rowColors.gray100
+      if (bordersLight.length) {
+        ctx.strokeStyle = _rowColors.borderLight
         ctx.beginPath()
-        for (let i = 0; i < bordersGray100.length; i++) {
-          ctx.moveTo(bordersGray100[i], _yOffset)
-          ctx.lineTo(bordersGray100[i], _yOffset + _rowH)
+        for (let i = 0; i < bordersLight.length; i++) {
+          ctx.moveTo(bordersLight[i], _yOffset)
+          ctx.lineTo(bordersLight[i], _yOffset + _rowH)
         }
         ctx.stroke()
       }
-      if (bordersGray200.length) {
-        ctx.strokeStyle = _rowColors.gray200
+      if (bordersMedium.length) {
+        ctx.strokeStyle = _rowColors.borderMedium
         ctx.beginPath()
-        for (let i = 0; i < bordersGray200.length; i++) {
-          ctx.moveTo(bordersGray200[i], _yOffset)
-          ctx.lineTo(bordersGray200[i], _yOffset + _rowH)
+        for (let i = 0; i < bordersMedium.length; i++) {
+          ctx.moveTo(bordersMedium[i], _yOffset)
+          ctx.lineTo(bordersMedium[i], _yOffset + _rowH)
         }
         ctx.stroke()
       }
@@ -1943,7 +1954,9 @@ export function useCanvasRender({
             isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx - 1 }))
 
           ctx.strokeStyle =
-            idx !== 0 && (needsHighlightedBorders || isColumnInSelection || rowColor) ? _rowColors.gray200 : _rowColors.gray100
+            idx !== 0 && (needsHighlightedBorders || isColumnInSelection || rowColor)
+              ? _rowColors.borderMedium
+              : _rowColors.borderLight
           ctx.lineWidth = 1
 
           ctx.beginPath()
@@ -1958,7 +1971,7 @@ export function useCanvasRender({
           ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
           ctx.rect(xOffset, yOffset, 4, _rowH)
           ctx.fill()
-          ctx.strokeStyle = _rowColors.gray300
+          ctx.strokeStyle = _rowColors.borderDark
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
           ctx.lineTo(xOffset, yOffset + _rowH)
@@ -1966,7 +1979,7 @@ export function useCanvasRender({
         }
 
         if (!visibleCols.some((f) => !f.fixed)) {
-          ctx.strokeStyle = _rowColors.gray100
+          ctx.strokeStyle = _rowColors.borderLight
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
           ctx.lineTo(xOffset, yOffset + _rowH)
@@ -2020,7 +2033,7 @@ export function useCanvasRender({
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
 
-        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.strokeStyle = _rowColors.borderLight
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
         ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
@@ -2082,7 +2095,7 @@ export function useCanvasRender({
             drawShimmerEffect(ctx, xOffset, yOffset, width, rowIdx)
           }
 
-          ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+          ctx.strokeStyle = _rowColors.borderLight
           ctx.beginPath()
 
           ctx.moveTo(xOffset, yOffset)
@@ -2092,7 +2105,7 @@ export function useCanvasRender({
           xOffset += width
         })
 
-        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.strokeStyle = _rowColors.borderLight
         ctx.beginPath()
         ctx.moveTo(xOffset, yOffset)
         ctx.lineTo(xOffset, yOffset + rowHeight.value)
@@ -2146,8 +2159,8 @@ export function useCanvasRender({
     // Use pre-computed colors (resolved once via _updateRowColors, not per frame)
     const colorGray50 = _rowColors.gray50
     const colorWhite = _rowColors.white
-    const colorGray200 = _rowColors.gray200
-    const colorGray300 = _rowColors.gray300
+    const colorBorderMedium = _rowColors.borderMedium
+    const colorBorderDark = _rowColors.borderDark
     let warningRow: { row: Row; yOffset: number } | null = null
     const dataCache = getDataCache()
 
@@ -2224,8 +2237,8 @@ export function useCanvasRender({
           isNextRowCellSelected ||
           isNextRowSelected ||
           rowColor
-            ? colorGray300
-            : colorGray200
+            ? colorBorderDark
+            : colorBorderMedium
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(0, yOffset + _rowH)
@@ -2265,7 +2278,7 @@ export function useCanvasRender({
           : getColor(themeV4Colors.base.white)
       ctx.fillRect(0, yOffset, adjustedWidth, _headerRowHeight)
       // Bottom border for new row
-      ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+      ctx.strokeStyle = _rowColors.borderLight
       ctx.beginPath()
       ctx.moveTo(0, yOffset + _headerRowHeight)
       ctx.lineTo(adjustedWidth, yOffset + _headerRowHeight)
@@ -2440,7 +2453,7 @@ export function useCanvasRender({
 
     // Top border
     ctx.beginPath()
-    ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+    ctx.strokeStyle = _rowColors.borderMedium
     ctx.moveTo(0, _height - AGGREGATION_HEIGHT - 0.5)
     ctx.lineTo(_width, _height - AGGREGATION_HEIGHT - 0.5)
     ctx.stroke()
@@ -2483,7 +2496,7 @@ export function useCanvasRender({
         // Selection-mode footer: column is either out-of-selection or has no
         // aggregator configured. Render the divider but skip value + hover.
         ctx.beginPath()
-        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.strokeStyle = _rowColors.borderLight
         ctx.moveTo(xOffset - _scrollLeft, _height - AGGREGATION_HEIGHT)
         ctx.lineTo(xOffset - _scrollLeft, _height)
         ctx.stroke()
@@ -2571,7 +2584,7 @@ export function useCanvasRender({
       }
 
       ctx.beginPath()
-      ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+      ctx.strokeStyle = _rowColors.borderLight
       ctx.moveTo(xOffset - _scrollLeft, _height - AGGREGATION_HEIGHT)
       ctx.lineTo(xOffset - _scrollLeft, _height)
       ctx.stroke()
@@ -2775,7 +2788,7 @@ export function useCanvasRender({
           })
         }
 
-        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+        ctx.strokeStyle = _rowColors.borderMedium
         ctx.beginPath()
         ctx.moveTo(xOffset, _height - AGGREGATION_HEIGHT)
         ctx.lineTo(xOffset, _height)
@@ -2850,7 +2863,7 @@ export function useCanvasRender({
             ctx.restore()
           }
 
-          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+          ctx.strokeStyle = _rowColors.borderMedium
           ctx.beginPath()
           ctx.moveTo(xOffset, _height - AGGREGATION_HEIGHT)
           ctx.lineTo(xOffset, _height)
@@ -2859,7 +2872,7 @@ export function useCanvasRender({
           xOffset += width
         })
 
-        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.strokeStyle = _rowColors.borderLight
         ctx.beginPath()
         ctx.moveTo(xOffset, _height - AGGREGATION_HEIGHT)
         ctx.lineTo(xOffset, _height)
@@ -3058,7 +3071,7 @@ export function useCanvasRender({
       renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
 
       // Bottom border for each row
-      ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+      ctx.strokeStyle = _rowColors.borderMedium
       ctx.beginPath()
       ctx.moveTo(indent, yOffset + rowHeight.value)
       ctx.lineTo(adjustedWidth + indent, yOffset + rowHeight.value)

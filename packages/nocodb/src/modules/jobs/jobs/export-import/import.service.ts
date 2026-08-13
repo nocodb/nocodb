@@ -2490,6 +2490,11 @@ export class ImportService {
                     // import/duplication copies rows verbatim — not user field
                     // edits — so bypass per-field edit-permission enforcement
                     skipPermissionCheck: true,
+                    // attachments are carried over from the source base, so
+                    // they belong to neither the destination base nor (in
+                    // general) the acting user — the ownership check can never
+                    // pass here
+                    skipAttachmentOwnershipCheck: true,
                   });
                 } catch (e) {
                   // stop the stream
@@ -2519,6 +2524,8 @@ export class ImportService {
                 // import/duplication copies rows verbatim — not user field
                 // edits — so bypass per-field edit-permission enforcement
                 skipPermissionCheck: true,
+                // see the chunked insert above
+                skipAttachmentOwnershipCheck: true,
               });
             } catch (e) {
               // stop the stream

@@ -255,6 +255,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       apiVersion = NcApiVersion.V2,
       onInsertedPks,
       skipPermissionCheck = false,
+      skipAttachmentOwnershipCheck = false,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -278,6 +279,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       onInsertedPks?: (pks: (string | number)[]) => void;
       /** Consumed by the EE override to skip per-field edit-permission checks. */
       skipPermissionCheck?: boolean;
+      /** Trusted internal copy paths only — see `prepareNocoData`. */
+      skipAttachmentOwnershipCheck?: boolean;
     } = {},
   ) => {
     const capturePks = typeof onInsertedPks === 'function';
@@ -325,6 +328,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             undo,
             allowSystemColumn,
             skipPermissionCheck,
+            skipAttachmentOwnershipCheck,
           });
 
           // prepare nested link data for insert only if it is single record insertion
@@ -379,6 +383,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 ncOrder: order?.plus(i),
                 allowSystemColumn,
                 skipPermissionCheck,
+                skipAttachmentOwnershipCheck,
               }),
           ),
         );

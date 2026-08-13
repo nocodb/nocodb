@@ -1797,7 +1797,7 @@ export class ExportService {
     if (result.list.length === 0 && offset === 0) {
       // Empty result - generate Excel with just headers
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.aoa_to_sheet([fields]);
+      const worksheet = XLSX.utils.aoa_to_sheet([escapeFormulaHeader(fields)]);
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
       const excelBuffer = XLSX.write(workbook, {
         type: 'buffer',
@@ -1819,9 +1819,18 @@ export class ExportService {
 
     if (result.pageInfo.isLastPage) {
       // All data collected — generate Excel workbook
+      // xlsx opens in the same spreadsheet apps as CSV, so it carries the same
+      // CWE-1236 exposure — escape it the way the CSV path does.
+      escapeFormulaeInRows(allRows, model.columns);
+
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet(allRows, {
         header: headers,
+      });
+      // `header` doubles as the row-key lookup, so it must stay unescaped above;
+      // rewrite the emitted header row afterwards.
+      XLSX.utils.sheet_add_aoa(worksheet, [escapeFormulaHeader(headers)], {
+        origin: 'A1',
       });
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
 

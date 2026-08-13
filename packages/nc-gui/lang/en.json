@@ -5296,7 +5296,7 @@
       "interfaceEditFieldsOff": "All groups and fields will no longer be editable.",
       "interfaceEditFieldsInline": "All groups and fields will be editable inline.",
       "interfaceEditFieldsForm": "An edit button will be added to the record and all edits will need to be submitted via a customizable form.",
-      "inlineEditingOffForElement": "Inline editing is turned off for this element.",
+      "editRecordsInlineDisabled": "Editing records inline is disabled",
       "interfaceAllowRecordDetails": "Your users will be able to see additional details by clicking on records. You can configure record details to display the fields and layout you want.",
       "interfaceLayoutDeleteConfirmTitle": "Are you sure you want to delete this layout?",
       "interfaceLayoutDeleteInfo": "Deleting this layout will disable record details across all places where it is currently used. Any element referencing this layout will no longer have record details enabled. You can re-enable access by choosing a different layout or creating a new one later.",

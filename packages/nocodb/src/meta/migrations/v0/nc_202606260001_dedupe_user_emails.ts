@@ -153,39 +153,22 @@ async function pickSurvivor(knex: Knex, rows: UserRow[]): Promise<UserRow> {
   })[0];
 }
 
-const up = async (knex: Knex) => {
+/**
+ * Merge active rows that share a canonical email onto one survivor, then clear
+ * `canonical_email` on every tombstone — leaving it unique across active users.
+ *
+ * Exported so the migration that adds the uniqueness constraint can re-run it:
+ * rows created between the two migrations may have raced past the app-level
+ * duplicate check, and the constraint cannot be created while they exist.
+ */
+export async function mergeDuplicateCanonicalEmails(knex: Knex): Promise<{
+  duplicateGroups: number;
+  merged: number;
+  neutralized: number;
+}> {
   const hasLinkTable: Record<string, boolean> = {};
   for (const link of LINK_TABLES) {
     hasLinkTable[link.table] = await knex.schema.hasTable(link.table);
-  }
-
-  // ---- Pass 1: re-sanitize stored values for every non-deleted user --------
-  // (this alone repairs the "corrupted single row" case)
-  let offset = 0;
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const users: UserRow[] = await knex(MetaTable.USERS)
-      .select('id', 'email', 'canonical_email')
-      .where(function () {
-        this.where('is_deleted', false).orWhereNull('is_deleted');
-      })
-      .orderBy('id')
-      .offset(offset)
-      .limit(BATCH_SIZE);
-
-    if (users.length === 0) break;
-    offset += users.length;
-
-    for (const user of users) {
-      if (!user.email) continue;
-      const cleanEmail = sanitizeEmail(user.email).toLowerCase();
-      const canonical = normalizeEmail(user.email);
-      if (cleanEmail !== user.email || canonical !== user.canonical_email) {
-        await knex(MetaTable.USERS)
-          .where('id', user.id)
-          .update({ email: cleanEmail, canonical_email: canonical });
-      }
-    }
   }
 
   // ---- Pass 2: merge rows that now share a canonical email -----------------
@@ -253,8 +236,48 @@ const up = async (knex: Knex) => {
     .whereNotNull('canonical_email')
     .update({ canonical_email: null });
 
+  return {
+    duplicateGroups: dupGroups.length,
+    merged: mergedCount,
+    neutralized: neutralizedCount,
+  };
+}
+
+const up = async (knex: Knex) => {
+  // ---- Pass 1: re-sanitize stored values for every non-deleted user --------
+  // (this alone repairs the "corrupted single row" case)
+  let offset = 0;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const users: UserRow[] = await knex(MetaTable.USERS)
+      .select('id', 'email', 'canonical_email')
+      .where(function () {
+        this.where('is_deleted', false).orWhereNull('is_deleted');
+      })
+      .orderBy('id')
+      .offset(offset)
+      .limit(BATCH_SIZE);
+
+    if (users.length === 0) break;
+    offset += users.length;
+
+    for (const user of users) {
+      if (!user.email) continue;
+      const cleanEmail = sanitizeEmail(user.email).toLowerCase();
+      const canonical = normalizeEmail(user.email);
+      if (cleanEmail !== user.email || canonical !== user.canonical_email) {
+        await knex(MetaTable.USERS)
+          .where('id', user.id)
+          .update({ email: cleanEmail, canonical_email: canonical });
+      }
+    }
+  }
+
+  const { duplicateGroups, merged, neutralized } =
+    await mergeDuplicateCanonicalEmails(knex);
+
   logger.log(
-    `User email dedup complete: ${dupGroups.length} duplicate group(s), ${mergedCount} row(s) merged & soft-deleted, ${neutralizedCount} legacy soft-deleted row(s) cleared.`,
+    `User email dedup complete: ${duplicateGroups} duplicate group(s), ${merged} row(s) merged & soft-deleted, ${neutralized} legacy soft-deleted row(s) cleared.`,
   );
 };
 

@@ -26,6 +26,7 @@ import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
+import { isUniqueViolation } from '~/helpers/isUniqueViolation';
 
 export default class User implements UserType {
   id: string;
@@ -101,12 +102,22 @@ export default class User implements UserType {
       insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
-    const { id } = await ncMeta.metaInsert2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.USERS,
-      prepareForDb(insertObj),
-    );
+    // The caller's "already exists" check and this insert are not atomic — a
+    // concurrent signup for the same address can pass both checks and land here.
+    // The unique index on canonical_email is what actually decides; translate its
+    // violation into the same error the pre-check would have raised.
+    let id: string;
+    try {
+      ({ id } = await ncMeta.metaInsert2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.USERS,
+        prepareForDb(insertObj),
+      ));
+    } catch (e) {
+      if (!isUniqueViolation(e)) throw e;
+      NcError.badRequest('User already exist');
+    }
 
     await NocoCache.del('root', CacheScope.INSTANCE_META);
 
@@ -187,6 +198,52 @@ export default class User implements UserType {
     await this.clearCache(id, ncMeta);
 
     return this.get(id, ncMeta);
+  }
+
+  /**
+   * Consume a password-reset token as an atomic compare-and-swap: the UPDATE is
+   * keyed on the token, so of two concurrent resets sharing one link exactly one
+   * observes a non-zero result. Returns rows affected — callers MUST treat 0 as
+   * "already used" and reject, rather than proceeding on the stale read.
+   *
+   * Mirrors {@link UserRefreshToken.updateOldToken}.
+   */
+  public static async consumeResetPasswordToken(
+    token: string,
+    user: Pick<User, 'id' | 'email'>,
+    update: Pick<User, 'salt' | 'password' | 'token_version'>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    // A blank token would match every already-reset user, and metaUpdate writes
+    // EVERY matching row — unlike the metaGet this replaces.
+    if (typeof token !== 'string' || !token.length) {
+      return 0;
+    }
+
+    const affected = await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      prepareForDb({
+        salt: update.salt,
+        password: update.password,
+        token_version: update.token_version,
+        reset_password_expires: null,
+        reset_password_token: '',
+      }),
+      {
+        reset_password_token: token,
+      },
+    );
+
+    const rowsAffected = Number(affected) || 0;
+
+    if (rowsAffected) {
+      await NocoCache.del('root', `${CacheScope.USER}:${user.email}`);
+      await this.clearCache(user.id, ncMeta);
+    }
+
+    return rowsAffected;
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {

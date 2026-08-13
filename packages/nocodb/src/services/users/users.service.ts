@@ -394,14 +394,18 @@ export class UsersService {
     const salt = await promisify(bcrypt.genSalt)(10);
     const password = await promisify(bcrypt.hash)(body.password, salt);
 
-    await User.update(user.id, {
-      salt,
-      password,
-      email: user.email,
-      reset_password_expires: null,
-      reset_password_token: '',
-      token_version: randomTokenString(),
-    });
+    // The read above is stale by the time we get here — the bcrypt hash alone is
+    // a ~100ms window in which the same link can be replayed. Claim the token in
+    // the write itself and reject if another request already consumed it.
+    const consumed = await User.consumeResetPasswordToken(
+      token,
+      { id: user.id, email: user.email },
+      { salt, password, token_version: randomTokenString() },
+    );
+
+    if (!consumed) {
+      NcError.badRequest('Invalid reset url');
+    }
 
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);

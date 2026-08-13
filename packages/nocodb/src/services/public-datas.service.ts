@@ -22,6 +22,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
+import { defaultGroupByLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
 import { Filter } from '~/models';
@@ -39,7 +40,14 @@ export function sanitizeUrlPath(paths) {
 // cap one 50MB body (the json-body middleware limit) buys tens of thousands of
 // them. 200 leaves 2x headroom over the largest batch the UI sends
 // (GROUP_CHUNK_SIZE = 100 in useInfiniteGroups).
-const MAX_PUBLIC_BULK_ENTRIES = 200;
+//
+// useViewGroupBy sizes its batch by `limitGroup` instead, which has a lower clamp
+// only — so raising NC_DB_QUERY_LIMIT_GROUP_BY_GROUP past the cap would 400 every
+// shared-view request and blame this file. Track it rather than couple to it.
+const MAX_PUBLIC_BULK_ENTRIES = Math.max(
+  200,
+  defaultGroupByLimitConfig.limitGroup,
+);
 
 function assertBulkFilterListWithinLimit(bulkFilterList: unknown): void {
   if (!Array.isArray(bulkFilterList) || !bulkFilterList.length) {

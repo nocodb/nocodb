@@ -1,6 +1,37 @@
-import { getNumericValue } from './currencyHelpers';
+import {
+  getCurrencyFormatExample,
+  getCurrencySymbol,
+  getNumericValue,
+} from './currencyHelpers';
 
 describe('currencyHelpers', () => {
+  describe('getCurrencySymbol', () => {
+    it('resolves the symbol for USD / en-US', () => {
+      expect(getCurrencySymbol('USD', 'en-US')).toBe('$');
+    });
+    it('resolves the symbol for EUR / de-DE', () => {
+      expect(getCurrencySymbol('EUR', 'de-DE')).toBe('€');
+    });
+    it('resolves the symbol for INR / en-IN', () => {
+      expect(getCurrencySymbol('INR', 'en-IN')).toBe('₹');
+    });
+    it('defaults to USD / en-US when args are omitted', () => {
+      expect(getCurrencySymbol()).toBe('$');
+    });
+    it('falls back to the code on an invalid currency', () => {
+      expect(getCurrencySymbol('NOTACODE', 'en-US')).toBe('NOTACODE');
+    });
+  });
+
+  describe('getCurrencyFormatExample', () => {
+    it('renders a USD example at precision 2', () => {
+      expect(getCurrencyFormatExample('USD', 'en-US', 2)).toBe('$1,234.56');
+    });
+    it('honours precision 0', () => {
+      expect(getCurrencyFormatExample('USD', 'en-US', 0)).toBe('$1,235');
+    });
+  });
+
   describe('getNumericValue', () => {
     it('will parse a correct number', () => {
       const strVal = '1,234.5';

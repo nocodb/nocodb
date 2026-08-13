@@ -26,7 +26,6 @@ import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
-import { isUniqueViolation } from '~/helpers/isUniqueViolation';
 
 export default class User implements UserType {
   id: string;
@@ -102,22 +101,12 @@ export default class User implements UserType {
       insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
-    // The caller's "already exists" check and this insert are not atomic — a
-    // concurrent signup for the same address can pass both checks and land here.
-    // The unique index on canonical_email is what actually decides; translate its
-    // violation into the same error the pre-check would have raised.
-    let id: string;
-    try {
-      ({ id } = await ncMeta.metaInsert2(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.USERS,
-        prepareForDb(insertObj),
-      ));
-    } catch (e) {
-      if (!isUniqueViolation(e)) throw e;
-      NcError.badRequest('User already exist');
-    }
+    const { id } = await ncMeta.metaInsert2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      prepareForDb(insertObj),
+    );
 
     await NocoCache.del('root', CacheScope.INSTANCE_META);
 

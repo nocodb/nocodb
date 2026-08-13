@@ -33,6 +33,7 @@ import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { isTokenExpired } from '~/helpers/isTokenExpired';
+import { withSignupClaim } from '~/helpers/signupClaim';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
@@ -600,14 +601,20 @@ export class UsersService {
         NcError.badRequest('User already exist');
       }
     } else {
-      const { createdProject: _createdProject } =
-        await this.registerNewUserIfAllowed({
-          email,
-          salt,
-          password,
-          email_verification_token,
-          req: param.req,
-        });
+      const { createdProject: _createdProject } = await withSignupClaim(
+        email,
+        async () =>
+          (await User.getByCanonicalEmail(email)) ||
+          (await User.getByEmail(email)),
+        () =>
+          this.registerNewUserIfAllowed({
+            email,
+            salt,
+            password,
+            email_verification_token,
+            req: param.req,
+          }),
+      );
       createdProject = _createdProject;
     }
     user = await User.getByEmail(email);

@@ -892,42 +892,33 @@ export class DataV3Service {
       source,
     });
 
-    // 6. Find existing records by merge fields to track insert vs update status
-    let existingPkSet = new Set<string>();
+    // 6. Call bulkUpsert with merge columns. It resolves the insert/update
+    // split internally and reports it back, so there's no second merge-field
+    // lookup here — and no risk of the two disagreeing.
+    let updatedPkSet = new Set<string>();
 
-    if (mergeColumns?.length) {
-      const mergeColNames = mergeColumns.map((col) => col.column_name);
-      const mergeValuesPerRecord = transformedBody.map((data) =>
-        mergeColNames.map((cn) => data[cn]),
-      );
-      const existingRecords = await baseModel.findByMergeFields(
-        mergeColumns,
-        mergeValuesPerRecord,
-      );
-      existingPkSet = new Set(
-        existingRecords.map((r) => String(baseModel.extractPksValues(r, true))),
-      );
-    }
-
-    // 7. Call bulkUpsert with merge columns
     const allRecords = await baseModel.bulkUpsert(transformedBody, {
       cookie: param.cookie,
       mergeColumns,
       throwOnDuplicate: true,
+      apiVersion: NcApiVersion.V3,
+      onUpsertSplit: ({ updatedPks }) => {
+        updatedPkSet = new Set(updatedPks);
+      },
     });
 
-    // 8. Build ID-to-status mapping
+    // 7. Build ID-to-status mapping
     const statusMap = new Map<string, 'inserted' | 'updated'>();
 
     for (const record of allRecords) {
       const pk = String(baseModel.extractPksValues(record, true));
-      statusMap.set(pk, existingPkSet.has(pk) ? 'updated' : 'inserted');
+      statusMap.set(pk, updatedPkSet.has(pk) ? 'updated' : 'inserted');
     }
 
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // 9. Transform to V3 format
+    // 8. Transform to V3 format
     const v3Records = await this.transformRecordsToV3Format({
       context,
       records: allRecords,
@@ -943,7 +934,7 @@ export class DataV3Service {
       linksAsLtar,
     });
 
-    // 10. Attach status to each record
+    // 9. Attach status to each record
     const result: DataUpsertRecordResponse[] = v3Records.map((record) => ({
       ...record,
       status: statusMap.get(String(record.id)) ?? 'inserted',

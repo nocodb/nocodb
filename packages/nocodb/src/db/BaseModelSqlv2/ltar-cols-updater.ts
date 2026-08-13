@@ -1,5 +1,6 @@
 import { isLinksOrLTAR, isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
+import type { Knex } from 'knex';
 import type { NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column } from '~/models';
@@ -17,13 +18,39 @@ export const LTARColsUpdater = (param: {
   const update = async ({
     datas,
     cookie,
+    trx: externalTrx,
   }: {
     datas: any[];
     cookie: NcRequest;
+    /**
+     * When supplied, link writes join the caller's transaction and the caller
+     * owns commit/rollback — used by `bulkUpsert` so field and link writes for
+     * one request land atomically.
+     */
+    trx?: Knex.Transaction;
   }) => {
     const profiler = Profiler.start(`base-model/updateLTARCols`);
 
-    const trx = await baseModel.dbDriver.transaction();
+    // Same guard as the EE updater — EE falls back here for external sources.
+    // No-op in CE, where checkPermission is a stub.
+    const writtenLinkColIds = baseModel.model.columns
+      .filter((col) => isLinksOrLTAR(col) && datas.some((d) => col.title in d))
+      .map((col) => col.id);
+
+    // One call per column: checkPermission resolves a single grant with `.find()`,
+    // so batching ids lets one permissive grant answer for every field.
+    for (const colId of writtenLinkColIds) {
+      await baseModel.checkPermission({
+        entity: PermissionEntity.FIELD,
+        entityId: colId,
+        permission: PermissionKey.RECORD_FIELD_EDIT,
+        user: cookie?.user,
+        req: cookie,
+      });
+    }
+
+    const ownsTrx = !externalTrx;
+    const trx = externalTrx ?? (await baseModel.dbDriver.transaction());
 
     try {
       // Create a BaseModelSqlv2 instance that uses the transaction for operations
@@ -135,9 +162,9 @@ export const LTARColsUpdater = (param: {
         }
       }
 
-      await trx.commit();
+      if (ownsTrx) await trx.commit();
     } catch (e) {
-      await trx.rollback();
+      if (ownsTrx) await trx.rollback();
       throw e;
     }
     profiler.end();

@@ -3492,6 +3492,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       mergeColumns,
       throwOnDuplicate = false,
       typecast = false,
+      apiVersion,
+      onUpsertSplit,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3501,6 +3503,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
       typecast?: boolean;
+      /** V3 honours inline link fields; earlier versions ignore them. */
+      apiVersion?: NcApiVersion;
+      /**
+       * Reports which pks were matched-and-updated. The return value merges
+       * updates and inserts, so callers that need per-record status (v3
+       * `status: inserted | updated`) can't derive it otherwise.
+       */
+      onUpsertSplit?: (split: { updatedPks: string[] }) => void;
     } = {},
   ) {
     let trx;
@@ -3539,6 +3549,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               );
             }),
           );
+
+      // Link columns are virtual, so `mapAliasToColumn` strips them from the
+      // prepared rows — the values survive only on the originals. The split
+      // below shuffles prepared rows into toInsert/toUpdate, so key the
+      // originals by prepared-object identity to find them again afterwards.
+      const originalByPrepared = new Map<any, any>();
+      preparedDatas.forEach((prepared, i) =>
+        originalByPrepared.set(prepared, datas[i]),
+      );
 
       const toInsert = [];
       const toUpdate = [];
@@ -3689,7 +3708,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      // V3 accepts inline link fields on upsert. Inserted rows reuse the same
+      // preparator `bulkInsert` uses; it mutates `insertObj` with the FK for
+      // BELONGS_TO / MANY_TO_ONE, so it has to run before the INSERT is built.
+      const nestedCols =
+        !raw && apiVersion === NcApiVersion.V3
+          ? columns.filter((col) => isLinksOrLTAR(col))
+          : [];
+
+      const linkPreInsertOps: ((
+        trx?: Knex | Knex.Transaction,
+      ) => Promise<string>)[] = [];
+      const linkPostInsertOpsMap: Record<
+        number,
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
+      > = {};
+
+      if (nestedCols.length) {
+        for (let i = 0; i < toInsert.length; i++) {
+          const original = originalByPrepared.get(toInsert[i]);
+          if (!original) continue;
+
+          const operations = await this.prepareNestedLinkQb({
+            nestedCols,
+            data: original,
+            insertObj: toInsert[i],
+            req: cookie,
+          });
+
+          linkPostInsertOpsMap[i] = operations.postInsertOps;
+          linkPreInsertOps.push(...operations.preInsertOps);
+        }
+      }
+
       trx = await this.dbDriver.transaction();
+
+      if (linkPreInsertOps.length) {
+        await this.runOps(
+          linkPreInsertOps.map((f) => f(trx)),
+          trx,
+        );
+      }
 
       const updatedPks = [];
 
@@ -3707,6 +3766,51 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               )
             : data;
           await trx(this.tnPath).update(dataToUpdate).where(wherePk);
+        }
+      }
+
+      // Matched rows get replace semantics, the same as PATCH: the sent link
+      // set becomes the row's link set. Joins `trx` so a rejected link id rolls
+      // the field writes back with it.
+      if (nestedCols.length && toUpdate.length) {
+        const linkUpdateDatas = [];
+
+        for (const data of toUpdate) {
+          const original = originalByPrepared.get(data);
+          if (!original) continue;
+
+          const linkFields: Record<string, any> = {};
+
+          for (const col of nestedCols) {
+            // Upsert payloads may be keyed by title or id, and an explicit
+            // `null` has to be told apart from an absent field — so test for
+            // key presence rather than reading the value.
+            const key = [col.title, col.id, col.column_name].find(
+              (k) => k in original,
+            );
+            if (key === undefined) continue;
+            // `null` means "unlink all". The shared updater would turn it into
+            // `[null]` and then fail resolving that id, so send `[]` instead.
+            linkFields[col.title] = original[key] ?? [];
+          }
+
+          if (!Object.keys(linkFields).length) continue;
+
+          linkUpdateDatas.push({
+            ...this.model.primaryKeys.reduce((acc, pk) => {
+              acc[pk.title] = data[pk.column_name];
+              return acc;
+            }, {}),
+            ...linkFields,
+          });
+        }
+
+        if (linkUpdateDatas.length) {
+          await this.updateLTARCols({
+            datas: linkUpdateDatas,
+            cookie,
+            trx,
+          });
         }
       }
 
@@ -3822,6 +3926,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
         insertedDatas.push(...responses);
+
+        // Inserted rows only get their pk here, so the link writes that need it
+        // run now — still inside `trx`, matching bulkInsert's ordering.
+        for (let i = 0; i < responses.length; i++) {
+          const ops = linkPostInsertOpsMap[i];
+          if (!ops?.length) continue;
+
+          const rowId = this.extractCompositePK({
+            rowId: responses[i][this.model.primaryKey?.title],
+            ai: aiPkCol,
+            ag: agPkCol,
+            insertObj: toInsert[i],
+          });
+
+          await this.runOps(
+            ops.map((f) => f(rowId, trx)),
+            trx,
+          );
+        }
       }
 
       await trx.commit();
@@ -3918,6 +4041,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         await this.afterBulkUpdate(existingRecords, updatedDataList, cookie);
       }
+
+      onUpsertSplit?.({ updatedPks: updatedPks.map((pk) => String(pk)) });
 
       return [...updatedDataList, ...insertedDataList];
     } catch (e) {
@@ -4425,10 +4550,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
+  async updateLTARCols({
+    datas,
+    cookie,
+    trx,
+  }: {
+    datas: any[];
+    cookie: NcRequest;
+    trx?: Knex.Transaction;
+  }) {
     return LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
       datas,
       cookie,
+      trx,
     });
   }
 

@@ -3777,11 +3777,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       // Matched rows get replace semantics, the same as PATCH: the sent link
-      // set becomes the row's link set. Joins `trx` so a rejected link id rolls
-      // the field writes back with it.
-      if (nestedCols.length && toUpdate.length) {
-        const linkUpdateDatas = [];
+      // set becomes the row's link set.
+      const linkUpdateDatas = [];
 
+      if (nestedCols.length && toUpdate.length) {
         for (const data of toUpdate) {
           const original = originalByPrepared.get(data);
           if (!original) continue;
@@ -3804,14 +3803,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             ...linkFields,
           });
         }
+      }
 
-        if (linkUpdateDatas.length) {
-          await this.updateLTARCols({
-            datas: linkUpdateDatas,
-            cookie,
-            trx,
-          });
-        }
+      // Everywhere but sqlite the link writes join `trx`, so a rejected link id
+      // rolls the field writes back with it. sqlite's pool is a single
+      // connection, and in CE a meta source shares it with `Noco.ncMeta`, so
+      // there the link writer's own queries would wait on the connection `trx`
+      // is holding — a deadlock that only ends at the 60s acquire timeout.
+      // Those links are written after the commit instead, giving up atomicity.
+      // TODO: drop the split once the sqlite pool can hand out a second
+      // connection.
+      const deferLinkUpdates = this.isSqlite;
+
+      if (linkUpdateDatas.length && !deferLinkUpdates) {
+        await this.updateLTARCols({
+          datas: linkUpdateDatas,
+          cookie,
+          trx,
+        });
       }
 
       if (toInsert.length > 0) {
@@ -3951,6 +3960,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // Transaction is finalized; clear the reference so a post-commit
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
+
+      if (linkUpdateDatas.length && deferLinkUpdates) {
+        await this.updateLTARCols({
+          datas: linkUpdateDatas,
+          cookie,
+        });
+      }
 
       const updatedRecords = await this.chunkList({
         pks: updatedPks,

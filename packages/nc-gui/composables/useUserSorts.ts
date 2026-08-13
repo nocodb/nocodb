@@ -149,6 +149,13 @@ export function useUserSorts(
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
           }
         }
+        case 'billable': {
+          if (sortsConfig.direction === 'asc') {
+            return Number(!!a.billable) - Number(!!b.billable)
+          } else {
+            return Number(!!b.billable) - Number(!!a.billable)
+          }
+        }
         case 'baseCount':
         case 'workspaceCount':
         case 'memberCount': {

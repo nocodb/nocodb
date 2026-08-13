@@ -20783,6 +20783,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "userId",
+          "in": "query",
+          "description": "User ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "clientId",
           "in": "query",
           "description": "Client ID",

@@ -2,7 +2,7 @@
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
-import { getOptions, getSelectedUsers } from './utils'
+import { getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -90,7 +90,9 @@ const options = computed(() => {
       email: CURRENT_USER_TOKEN,
     })
   }
-  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
+  const systemUsers = isInFilter.value ? getSystemUserFilterOptions(column.value) : []
+
+  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)), ...systemUsers]
 })
 
 const nonDeletedOptions = computed(() => {

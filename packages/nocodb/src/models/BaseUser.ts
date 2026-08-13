@@ -1,4 +1,5 @@
 import {
+  IconType,
   NOCO_SERVICE_USERS,
   ProjectRoles,
   WorkspaceUserRoles,
@@ -337,6 +338,8 @@ export default class BaseUser {
         ...Object.values(NOCO_SERVICE_USERS).map((u: any) => ({
           ...u,
           deleted: true,
+          // NocoDB brand mark as avatar (matches the filter dropdown options)
+          meta: { icon: 'nocodb1', iconType: IconType.ICON },
         })),
       );
     }

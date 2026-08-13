@@ -1,4 +1,41 @@
-import { type ColumnType, type UserFieldRecordType, type UserType, arrFlatMap } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  IconType,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
+  UITypes,
+  type UserFieldRecordType,
+  type UserType,
+  arrFlatMap,
+} from 'nocodb-sdk'
+
+// Service users that can stamp CreatedBy / LastModifiedBy: Automation, Sync
+// and Workflow write records via jobs; Anonymous via public form submissions.
+// The remaining service users (System, Trash Cleanup, Snapshot) are audit-only
+// actors that never appear in these columns.
+const RECORD_STAMPING_SERVICE_USERS = [
+  ServiceUserType.ANONYMOUS_USER,
+  ServiceUserType.AUTOMATION_USER,
+  ServiceUserType.SYNC_USER,
+  ServiceUserType.WORKFLOW_USER,
+] as const
+
+// Absent from the base-users list (they don't live in nc_users), so expose
+// them as selectable options in the filter dropdown so records created by
+// e.g. "NocoDB Workflow" can be filtered.
+export const getSystemUserFilterOptions = (column: ColumnType): UserFieldRecordType[] => {
+  if (![UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt as UITypes)) return []
+
+  return RECORD_STAMPING_SERVICE_USERS.map((key) => {
+    const user = NOCO_SERVICE_USERS[key]
+    return {
+      id: user.id,
+      email: user.email,
+      display_name: user.display_name,
+      meta: { icon: 'nocodb1', iconType: IconType.ICON },
+    }
+  })
+}
 
 export const getOptions = (
   column: ColumnType,

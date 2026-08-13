@@ -54,6 +54,7 @@ const {
   blockWorkspaceMembers,
   showUpgradeToManageWorkspaceMembers,
   showEEFeatures,
+  isEEFeatureBlocked,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -259,15 +260,12 @@ const isSuperAdmin = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const showBillableColumn = computed(() => isPaymentEnabled.value || !!appInfo.value.isOnPrem)
 
-// Free cloud / unlicensed on-prem: seats count toward limits but nothing is billed — use seat wording, not billing
-const showBillableLabel = computed(
-  () => !(activePlanTitle.value === PlanTitles.FREE && !appInfo.value.isOnPrem) && !(appInfo.value.isOnPrem && !appInfo.value.ee),
-)
+// Unlicensed on-prem has no billing — use seat wording and hide seat detail
+const showBillableLabel = computed(() => !isEEFeatureBlocked.value)
 
 // Billing detail is owner-only (matches backend `workspaceUserSeatDetail` ACL);
 // `isWsOwner` is absent from the CE useEeConfig stub, hence the optional read.
-// Hidden on free/unlicensed plans — seat detail is billing information.
-const canOpenSeatDetail = computed(() => showBillableLabel.value && !!(isWsOwner?.value || isSuperAdmin.value))
+const canOpenSeatDetail = computed(() => !!(isWsOwner?.value || isSuperAdmin.value))
 
 const seatDetailUser = ref<WorkspaceUserType | null>(null)
 

@@ -5236,6 +5236,7 @@
       "matchedByFieldDescription": "Matched by field description",
       "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles.",
       "billableSeatExplainer": "A member consumes a paid seat when they have an Editor or higher role at the workspace level, in any base, or on any interface.",
+      "editorSeatExplainer": "A member consumes an editor seat when they have an Editor or higher role at the workspace level, in any base, or on any interface.",
       "noBillableSources": "No Editor or higher access found for this member. If a role was changed recently, seat status may take a moment to update.",
       "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role.",
       "recordSavedButHidden": "Record saved successfully but is hidden due to your access permissions.",

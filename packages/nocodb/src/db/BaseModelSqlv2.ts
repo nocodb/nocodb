@@ -6893,7 +6893,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const groupingValues = await this.extractGroupingValues(
         column,
         args.options,
-        { ignoreViewFilterAndSort: args.ignoreViewFilterAndSort },
+        {
+          ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
+          // The interface/kanban path builds its baseModel without a viewId and
+          // carries its confinement here instead, so `this.viewId` alone would
+          // leave the values unscoped.
+          extraConditions: args.filterArr,
+        },
       );
 
       const qb = this.dbDriver(this.tnPath);

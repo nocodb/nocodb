@@ -221,6 +221,9 @@ export default class User implements UserType {
         reset_password_token: '',
       }),
       {
+        // The token stays in the predicate so the database still picks the CAS
+        // winner; the id bounds the write to one row.
+        id: user.id,
         reset_password_token: token,
       },
     );

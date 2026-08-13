@@ -1,5 +1,6 @@
 import {
   type ColumnType,
+  IconType,
   NOCO_SERVICE_USERS,
   ServiceUserType,
   UITypes,
@@ -31,6 +32,7 @@ export const getSystemUserFilterOptions = (column: ColumnType): UserFieldRecordT
       id: user.id,
       email: user.email,
       display_name: user.display_name,
+      meta: { icon: 'nocodb1', iconType: IconType.ICON },
     }
   })
 }

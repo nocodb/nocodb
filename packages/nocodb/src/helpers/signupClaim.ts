@@ -50,6 +50,9 @@ export async function withSignupClaim<T>(
 
     return await create();
   } finally {
-    await NocoCache.del('root', key);
+    // Swallowed: awaiting bare, a Redis blip here would replace an already-created
+    // account with a 500, and the retry would hit "User already exist". The TTL
+    // releases the claim anyway.
+    await NocoCache.del('root', key).catch(() => {});
   }
 }

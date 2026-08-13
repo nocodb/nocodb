@@ -7,6 +7,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { Filter } from '~/models';
 import type { FilterOptions, SortOptions } from '../../field-handler.interface';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
@@ -298,6 +299,14 @@ export class UserGeneralHandler extends GenericFieldHandler {
     const { val } = args;
     const { knex, filter, column } = rootArgs;
     const { context } = options;
+
+    // Empty value (fresh filter row): skip the display-name substitution —
+    // the generic handler's empty-value semantics apply to the raw column.
+    if (!ncIsStringHasValue(val)) {
+      return filter.comparison_op === 'like'
+        ? this.singleLineTextHandler.filterLike(args, rootArgs, options)
+        : this.singleLineTextHandler.filterNlike(args, rootArgs, options);
+    }
 
     const baseUsers = await BaseUser.getUsersList(context, {
       base_id: column.base_id,

@@ -275,6 +275,7 @@ export function useCanvasTable({
 
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
+  const interfaceInlineEditHint = inject(InterfaceInlineEditHintInj, ref(null))
 
   const { eventBus: scriptEventBus } = useScriptExecutor()
 
@@ -1803,6 +1804,11 @@ export function useCanvasTable({
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
 
     if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol || clickedColumn.inlineEditDisabled) {
+      // Interface builder: the element's "Edit records inline" option is the blocker —
+      // surface it instead of dying silently (system columns stay inert regardless).
+      if (readOnly.value && !isSystemCol && isDataEditAllowed.value && !editEnabled.value) {
+        interfaceInlineEditHint.value?.()
+      }
       return null
     }
 

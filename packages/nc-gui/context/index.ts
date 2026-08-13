@@ -334,6 +334,16 @@ export const UiRolesOverrideInj: InjectionKey<Ref<Record<string, boolean> | null
 export const InterfaceVizEditSelectInj: InjectionKey<Ref<(() => void) | null>> = Symbol('interface-viz-edit-select')
 
 /**
+ * Interface EDITOR only: called when a double-click (or Enter) tries to edit a
+ * cell while the element's "Edit records inline" option is off — the wrapper
+ * surfaces guidance toward that option instead of letting the attempt die
+ * silently. Provided by the interface page wrapper (EE) while editing; null in
+ * the published view and outside interface pages, so every other readonly
+ * context (locked views, shared views) stays silent.
+ */
+export const InterfaceInlineEditHintInj: InjectionKey<Ref<(() => void) | null>> = Symbol('interface-inline-edit-hint')
+
+/**
  * Interface pages with a "new record" FORM configured (an OPEN_RECORD_FORM
  * button → RECORD_DETAIL page) route the calendar's inline add through this
  * handler instead of the default expanded-record form. Provided by the interface

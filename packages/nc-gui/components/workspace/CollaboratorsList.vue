@@ -259,9 +259,15 @@ const isSuperAdmin = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const showBillableColumn = computed(() => isPaymentEnabled.value || !!appInfo.value.isOnPrem)
 
+// Free cloud / unlicensed on-prem: seats count toward limits but nothing is billed — use seat wording, not billing
+const showBillableLabel = computed(
+  () => !(activePlanTitle.value === PlanTitles.FREE && !appInfo.value.isOnPrem) && !(appInfo.value.isOnPrem && !appInfo.value.ee),
+)
+
 // Billing detail is owner-only (matches backend `workspaceUserSeatDetail` ACL);
 // `isWsOwner` is absent from the CE useEeConfig stub, hence the optional read.
-const canOpenSeatDetail = computed(() => !!(isWsOwner?.value || isSuperAdmin.value))
+// Hidden on free/unlicensed plans — seat detail is billing information.
+const canOpenSeatDetail = computed(() => showBillableLabel.value && !!(isWsOwner?.value || isSuperAdmin.value))
 
 const seatDetailUser = ref<WorkspaceUserType | null>(null)
 
@@ -355,9 +361,9 @@ const columns = computed<NcTableColumnProps[]>(() => [
     ? [
         {
           key: 'billable',
-          title: t('general.billable'),
-          width: 110,
-          minWidth: 110,
+          title: showBillableLabel.value ? t('general.billable') : t('labels.editorSeat'),
+          width: showBillableLabel.value ? 110 : 150,
+          minWidth: showBillableLabel.value ? 110 : 150,
           dataIndex: 'billable',
           showOrderBy: true,
         } as NcTableColumnProps,

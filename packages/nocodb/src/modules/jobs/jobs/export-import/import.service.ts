@@ -2490,6 +2490,17 @@ export class ImportService {
                     // import/duplication copies rows verbatim — not user field
                     // edits — so bypass per-field edit-permission enforcement
                     skipPermissionCheck: true,
+                    // attachments are carried over from the source base, so
+                    // they belong to neither the destination base nor (in
+                    // general) the acting user — the ownership check can never
+                    // pass here
+                    // TODO: this also relaxes the guard for cross-instance
+                    // remote import, whose refs arrive in the request body
+                    // rather than from an ACL-checked base. Thread the flag
+                    // per-caller once remote import transfers attachment files
+                    // instead of passing refs through verbatim.
+                    // github.com/nocodb/nocohub/pull/10063#discussion_r3773398681
+                    skipAttachmentOwnershipCheck: true,
                   });
                 } catch (e) {
                   // stop the stream
@@ -2519,6 +2530,8 @@ export class ImportService {
                 // import/duplication copies rows verbatim — not user field
                 // edits — so bypass per-field edit-permission enforcement
                 skipPermissionCheck: true,
+                // see the chunked insert above
+                skipAttachmentOwnershipCheck: true,
               });
             } catch (e) {
               // stop the stream

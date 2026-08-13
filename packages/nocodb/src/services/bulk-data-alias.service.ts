@@ -59,6 +59,7 @@ export class BulkDataAliasService {
       allowSystemColumn?: boolean;
       undo?: boolean;
       skipPermissionCheck?: boolean;
+      skipAttachmentOwnershipCheck?: boolean;
       onInsertedPks?: (pks: (string | number)[]) => void;
     },
   ) {
@@ -77,6 +78,7 @@ export class BulkDataAliasService {
           allowSystemColumn: param.allowSystemColumn,
           undo: param.undo,
           skipPermissionCheck: param.skipPermissionCheck,
+          skipAttachmentOwnershipCheck: param.skipAttachmentOwnershipCheck,
           onInsertedPks: param.onInsertedPks,
         },
       ],

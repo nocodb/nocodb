@@ -1385,7 +1385,14 @@ export default class Column<T = any> implements ColumnType {
         }
 
         case UITypes.Button: {
-          await Filter.deleteAllByButtonColumn(context, colId, ncMeta);
+          // Visibility-condition filters are keyed on the (stable) column id, so
+          // they survive this colOption rebuild. Only wipe them when the column
+          // is being converted away from Button — otherwise the delta-based
+          // filter CRUD in the column-update service (applyFilterCrud) would drop
+          // every filter that wasn't re-sent with a create/update/delete status.
+          if (incomingUidt !== UITypes.Button) {
+            await Filter.deleteAllByButtonColumn(context, colId, ncMeta);
+          }
 
           await ncMeta.metaDelete(
             context.workspace_id,

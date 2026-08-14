@@ -49,9 +49,28 @@ const isPickerOn = ref(false)
 const compare = (colorA: string, colorB: string) =>
   colorA.toLowerCase() === colorB.toLowerCase() || colorA.toLowerCase() === tinycolor(colorB).toHex8String().toLowerCase()
 
-watch(picked, (n, _o) => {
+// set only by the modelValue sync below, so its write doesn't echo back out as
+// an input event; user picks always emit, even when equal to modelValue
+let syncedFromProp: string | null = null
+
+watch(picked, (n) => {
+  const fromProp = syncedFromProp
+  syncedFromProp = null
+  if (n === fromProp) return
   vModel.value = n
 })
+
+// follow external modelValue changes (e.g. a Reset outside the picker) so the
+// selection highlight doesn't stick to the previously picked swatch
+watch(
+  () => props.modelValue,
+  (v) => {
+    if (!ncIsString(v) || !v) return
+    if (ncIsString(picked.value) && compare(picked.value, v)) return
+    syncedFromProp = v
+    picked.value = v
+  },
+)
 </script>
 
 <template>

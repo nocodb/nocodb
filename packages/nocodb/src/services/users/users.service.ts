@@ -33,6 +33,7 @@ import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { isTokenExpired } from '~/helpers/isTokenExpired';
+import { withSignupClaim } from '~/helpers/signupClaim';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
@@ -394,14 +395,18 @@ export class UsersService {
     const salt = await promisify(bcrypt.genSalt)(10);
     const password = await promisify(bcrypt.hash)(body.password, salt);
 
-    await User.update(user.id, {
-      salt,
-      password,
-      email: user.email,
-      reset_password_expires: null,
-      reset_password_token: '',
-      token_version: randomTokenString(),
-    });
+    // The read above is stale by the time we get here — the bcrypt hash alone is
+    // a ~100ms window in which the same link can be replayed. Claim the token in
+    // the write itself and reject if another request already consumed it.
+    const consumed = await User.consumeResetPasswordToken(
+      token,
+      { id: user.id, email: user.email },
+      { salt, password, token_version: randomTokenString() },
+    );
+
+    if (!consumed) {
+      NcError.badRequest('Invalid reset url');
+    }
 
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
@@ -596,14 +601,20 @@ export class UsersService {
         NcError.badRequest('User already exist');
       }
     } else {
-      const { createdProject: _createdProject } =
-        await this.registerNewUserIfAllowed({
-          email,
-          salt,
-          password,
-          email_verification_token,
-          req: param.req,
-        });
+      const { createdProject: _createdProject } = await withSignupClaim(
+        email,
+        async () =>
+          (await User.getByCanonicalEmail(email)) ||
+          (await User.getByEmail(email)),
+        () =>
+          this.registerNewUserIfAllowed({
+            email,
+            salt,
+            password,
+            email_verification_token,
+            req: param.req,
+          }),
+      );
       createdProject = _createdProject;
     }
     user = await User.getByEmail(email);

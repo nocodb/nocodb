@@ -222,6 +222,21 @@ class DataLoaderWithArgs<K, V> extends DataLoader<K, V> {
 }
 
 /**
+ * Fresh Filter instances for a memoized condition tree — conditionV2 normalizes
+ * `comparison_op` / `value` in place, so handing out the cached objects would let
+ * one query's normalization reach the next.
+ */
+function cloneFilters(filters: Filter[]): Filter[] {
+  return filters.map(
+    (filter) =>
+      new Filter({
+        ...filter,
+        ...(filter.children ? { children: cloneFilters(filter.children) } : {}),
+      }),
+  );
+}
+
+/**
  * Base class for models
  *
  * @class
@@ -247,6 +262,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _queryQueue: PQueue;
   protected _columns = {};
   protected _softDeleteFilter: Promise<Knex.QueryCallback | null> | undefined;
+  protected _rlsConditions: Promise<Filter[]> | undefined;
   protected source: Source;
   public model: Model;
   public context: NcContext;
@@ -6778,10 +6794,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /**
    * Extract distinct group column values for grouping operations
    * Handles options parameter, SingleSelect columns, and other column types
+   *
+   * The distinct-value query is scoped to the same rows the caller's row query
+   * can see (RLS + view filter + any link conditions). Without that, a value
+   * occurring only in filtered-out rows leaks as a group key — the row list
+   * comes back empty, but the key itself is the secret.
    */
   public async extractGroupingValues(
     column: Column,
     options?: (string | number | null | boolean)[],
+    scope?: {
+      ignoreViewFilterAndSort?: boolean;
+      extraConditions?: Filter[];
+    },
   ): Promise<Set<any>> {
     // TODO: Add virtual column support
     if (isVirtualCol(column)) {
@@ -6808,6 +6833,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const softDeleteFilter = await this.getSoftDeleteFilter();
       if (softDeleteFilter) {
         qb.where(softDeleteFilter);
+      }
+
+      const rlsConditions = await this.getRlsConditions();
+      const scopeConditions: Filter[] = [];
+
+      if (rlsConditions.length) {
+        scopeConditions.push(
+          new Filter({ children: rlsConditions, is_group: true }),
+        );
+      }
+
+      if (!scope?.ignoreViewFilterAndSort && this.viewId) {
+        scopeConditions.push(
+          new Filter({
+            children:
+              (await Filter.rootFilterList(this.context, {
+                viewId: this.viewId,
+              })) || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+        );
+      }
+
+      if (scope?.extraConditions?.length) {
+        scopeConditions.push(
+          new Filter({
+            children: scope.extraConditions,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        );
+      }
+
+      if (scopeConditions.length) {
+        await conditionV2(this, scopeConditions, qb);
       }
 
       groupingValues = new Set(
@@ -6848,6 +6909,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const groupingValues = await this.extractGroupingValues(
         column,
         args.options,
+        {
+          ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
+          // The interface/kanban path builds its baseModel without a viewId and
+          // carries its confinement here instead, so `this.viewId` alone would
+          // leave the values unscoped.
+          extraConditions: args.filterArr,
+        },
       );
 
       const qb = this.dbDriver(this.tnPath);
@@ -10225,10 +10293,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   /**
    * Returns RLS (Row-Level Security) filter conditions for the current user.
-   * CE version: no-op, returns empty array (no RLS).
-   * EE version: resolves applicable policies and returns filter conditions.
+   *
+   * Memoized per instance — `Model.getBaseModelSQL` constructs a fresh
+   * BaseModelSqlv2 on every call and `this.context` is never reassigned after
+   * construction, so one instance is always one user. A single request can hit
+   * this a dozen times (list + count + each grouped-list query), and the EE
+   * resolution is a team expansion plus per-policy filter loads.
+   *
+   * Callers get their own Filter instances because conditionV2 mutates the
+   * filters it is handed (`comparison_op` / `value` normalization).
    */
   public async getRlsConditions(): Promise<Filter[]> {
+    this._rlsConditions ??= this.resolveRlsConditions();
+    return cloneFilters(await this._rlsConditions);
+  }
+
+  /**
+   * CE: no-op, no RLS. EE overrides with policy resolution.
+   */
+  protected async resolveRlsConditions(): Promise<Filter[]> {
     return [];
   }
 

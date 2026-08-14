@@ -1819,6 +1819,9 @@ export class ExportService {
 
     if (result.pageInfo.isLastPage) {
       // All data collected — generate Excel workbook
+      // No CWE-1236 escaping here, unlike the CSV path: json_to_sheet emits typed
+      // text cells (`t:"s"`, no `f`), which spreadsheet apps never evaluate.
+      // Escaping would only corrupt values like "-", "+1-555-…" and "@handle".
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet(allRows, {
         header: headers,

@@ -4384,6 +4384,7 @@
     "navigateToBaseToCreateScript": "Navigate to a base to create a script",
     "navigateToBaseToCreateWorkflow": "Navigate to a base to create a workflow",
     "navigateToBaseToCreateDashboard": "Navigate to a base to create a dashboard",
+    "navigateToBaseToCreateSection": "Navigate to a base to create a section",
     "navigateToBaseToCreateDocument": "Navigate to a base to create a document",
     "navigateToBaseToCreateInterface": "Navigate to a base to create an interface",
     "navigateToTableToCreateView": "Navigate to a table to create a view",

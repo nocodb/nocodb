@@ -526,6 +526,14 @@ const hasDocumentCreateAccess = computed(() => {
             </NcMenuItem>
           </NcTooltip>
 
+          <!-- Base-level section (EE) — CE stub renders nothing -->
+          <DashboardMiniSidebarSectionCreateMenuItem
+            v-if="isEeUI"
+            :is-data-tab="isDataTab"
+            :is-base-home-page="isBaseHomePage"
+            :base-id="openedProject?.id"
+          />
+
           <NcMenuItem v-if="hasBaseCreateAccess" data-testid="mini-sidebar-base-create" @click="baseCreateDlg = true">
             <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
             {{ $t('objects.project') }}

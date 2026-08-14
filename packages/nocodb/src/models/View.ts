@@ -12,6 +12,7 @@ import {
   NcBaseError,
   parseProp,
   UITypes,
+  ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
 import bcrypt from 'bcryptjs';
@@ -980,6 +981,13 @@ export default class View implements ViewType {
         modifiedInsertObj.show = false;
       } else if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
+      } else if (
+        view.lock_type === ViewLockType.Personal ||
+        view.lock_type === ViewLockType.Locked
+      ) {
+        // New fields should not auto-appear in personal/locked views;
+        // their owners must add them explicitly.
+        modifiedInsertObj.show = false;
       } else if (view.uuid) {
         // if view is shared, then keep the show state as it is
       }

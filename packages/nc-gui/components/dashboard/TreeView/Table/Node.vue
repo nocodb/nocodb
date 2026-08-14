@@ -59,9 +59,15 @@ const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
+// Resolve from the table itself: inside a section the node renders outside its
+// source group, where `sourceIndex` only carries the indent level.
 const source = computed(() => {
-  return base.value?.sources?.[sourceIndex.value]
+  return base.value?.sources?.find((s) => s.id === table.value?.source_id) ?? base.value?.sources?.[sourceIndex.value]
 })
+
+/** Default-source sections are stored with a null source — normalise so the
+ *  menu asks for the right group. */
+const isDefaultSourceTable = computed(() => table.value?.source_id === base.value?.sources?.[0]?.id)
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
@@ -693,12 +699,13 @@ const isMmTable = computed(() => !!table.value?.mm)
                       </NcMenuItem>
                     </NcTooltip>
 
-                    <!-- Move to base-level section (EE) — default-source tables only -->
+                    <!-- Move to a section of this table's own source (EE) -->
                     <DashboardTreeViewDataMoveToSectionMenu
-                      v-if="isEeUI && sourceIndex === 0 && table.id && base.id"
+                      v-if="isEeUI && table.id && base.id"
                       :entity-id="table.id"
                       entity-type="table"
                       :base-id="base.id"
+                      :source-id="isDefaultSourceTable ? null : table.source_id"
                       :current-section-id="table.fk_base_section_id ?? null"
                       :order="table.order"
                       @close-modal="isOptionsOpen = false"

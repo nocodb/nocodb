@@ -18,6 +18,10 @@ const up = async (knex: Knex) => {
 
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20).notNullable();
+    // Sections are per source: the default source's sections interleave with the
+    // sidebar's top level, an external source's sit inside its own group. Null =
+    // default source.
+    table.string('source_id', 20);
 
     table.string('title', 255).notNullable();
     table.float('order');

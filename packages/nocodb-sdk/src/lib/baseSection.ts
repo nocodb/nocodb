@@ -3,12 +3,17 @@
  * entities living directly under a base (tables, root documents, dashboards).
  *
  * Distinct from `ViewSectionType`, which groups views *inside* a single table.
- * Base sections are keyed by `base_id` alone and never nest.
+ * Sections never nest and are scoped to one source: the default source's
+ * sections interleave with the sidebar's top level, while an external source's
+ * sections live inside that source's own group. An entity can only join a
+ * section of its own source.
  */
 export interface BaseSectionType {
   id?: string;
   fk_workspace_id?: string;
   base_id?: string;
+  /** Source the section belongs to. Null/absent = the base's default source. */
+  source_id?: string | null;
   title: string;
   order?: number;
   meta?: Record<string, any>;
@@ -24,6 +29,8 @@ export interface BaseSectionListType {
 
 export interface BaseSectionCreateReqType {
   title: string;
+  /** Defaults to the base's default source. */
+  source_id?: string | null;
   order?: number;
   meta?: Record<string, any>;
 }

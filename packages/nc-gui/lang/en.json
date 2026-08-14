@@ -5025,6 +5025,7 @@
       "pasteNotAvailableForSyncedTable": "Cannot paste into a cell in synced table",
       "clearNotAvailableForSyncedTable": "Cannot clear a cell synced table",
       "syncedFieldsAreNotEditable": "Synced fields are not editable",
+      "previewReadonlyEdits": "Read-only preview — editing is disabled while previewing",
       "displayValueChangeNotAvailableForSyncedTable": "Cannot change display value in synced table",
       "roles": {
         "orgCreator": "Creator can create new bases and access any invited base.",

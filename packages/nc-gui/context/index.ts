@@ -334,6 +334,15 @@ export const PermissionPrincipalOverrideInj: InjectionKey<Ref<{ userId?: string;
   Symbol('permission-principal-override')
 
 /**
+ * Explanation for WHY the surface under it is read-only, surfaced as a toast
+ * when the user attempts an edit that the read-only state silently swallows
+ * (e.g. the interface editor's read-only "Preview as" — selection still works,
+ * so the blue cell border reads as editable). Null when the read-only state
+ * needs no callout.
+ */
+export const ReadonlyEditNoticeInj: InjectionKey<Ref<string | null>> = Symbol('readonly-edit-notice')
+
+/**
  * Interface EDITOR only: a callback that selects the mounted visualization
  * element — moving the properties panel to its `Page › <Viz>` pane, exactly like
  * clicking a button element opens its pane. Provided by the interface page

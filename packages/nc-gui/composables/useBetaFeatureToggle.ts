@@ -205,9 +205,11 @@ const FEATURES = [
     isEE: true,
   },
   {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
     id: 'minimal_base_sections',
-    title: 'Minimal section style',
-    description: 'Render base sidebar sections as plain text headers — no folder icon, no member indentation.',
+    title: 'Minimal folder style',
+    description: 'Render sidebar folders as plain text headers — no icon, no member indentation.',
     enabled: false,
     version: 1,
     isEngineering: false,

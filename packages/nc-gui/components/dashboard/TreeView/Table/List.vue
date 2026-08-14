@@ -9,12 +9,6 @@ const props = withDefaults(
     baseId: string
     sourceIndex?: number
     showCreateTableBtn?: boolean
-    /** Rendered elsewhere (EE: inside one of this source's sections) — skipped
-     *  here so the row doesn't appear twice. Unused in CE. */
-    excludeTableIds?: Set<string>
-    /** SortableJS group name. EE sets a per-source one so rows can be dragged
-     *  between this list and that source's folders. */
-    sortableGroup?: string
   }>(),
   {
     sourceIndex: 0,
@@ -69,7 +63,7 @@ const menuRefs = ref<HTMLElement[] | HTMLElement>()
 const sortables: Record<string, Sortable> = {}
 
 // Persist a single table's new order to the backend
-function persistTableOrder(tableId: string, order: number, sectionId?: string | null) {
+function persistTableOrder(tableId: string, order: number) {
   return $api.internal.postOperation(
     base.value.fk_workspace_id!,
     base.value.id!,
@@ -79,9 +73,6 @@ function persistTableOrder(tableId: string, order: number, sectionId?: string | 
     },
     {
       order,
-      // Omitted unless a cross-container drop resolved one, so a plain reorder
-      // leaves membership untouched.
-      ...(sectionId !== undefined ? { fk_base_section_id: sectionId } : {}),
     },
   )
 }
@@ -106,16 +97,10 @@ const initSortable = (el: Element) => {
 
   if (sortables[source_id]) sortables[source_id].destroy()
   Sortable.create(el as HTMLLIElement, {
-    // EE passes a per-source group so this list and that source's section
-    // containers can exchange rows; unset keeps SortableJS's default isolation.
-    ...(props.sortableGroup ? { group: props.sortableGroup } : {}),
     onEnd: async (evt) => {
       const { newIndex = 0, oldIndex = 0 } = evt
 
-      // A cross-container drop always changes something, even at the same index.
-      const isCrossContainer = evt.from !== evt.to
-
-      if (!isCrossContainer && newIndex === oldIndex) return
+      if (newIndex === oldIndex) return
 
       // A sidebar search renders only a filtered subset; renumbering the visible
       // rows would collide with the hidden ones. Ignore the drag and snap the
@@ -128,50 +113,7 @@ const initSortable = (el: Element) => {
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById.value[itemEl.dataset.id as string]
 
-      if (!item?.id) {
-        bumpSortableKey(source_id)
-        return
-      }
-
-      // Dropped outside this list — EE renders section containers alongside it,
-      // so the row is joining (or leaving) a folder. `fk_base_section_id` rides
-      // along with the order; the id comes from the container, so CE — which has
-      // no such containers — never takes this branch.
-      if (isCrossContainer) {
-        const sectionId = (evt.to as HTMLElement).dataset.sectionId || null
-
-        // Sortable re-parented the row into a container this component doesn't
-        // own. Re-mounting only drops OUR container (its children go with it
-        // implicitly), so the moved node would survive there as a duplicate —
-        // drop it explicitly and let the owning list render it from state.
-        itemEl.remove()
-        const siblings = (Array.from(evt.to.children) as HTMLElement[])
-          .map((c) => tablesById.value[c.dataset.id as string])
-          .filter((t): t is TableType => !!t?.id && t.id !== item.id)
-
-        const before = siblings[newIndex - 1]?.order ?? 0
-        const after = siblings[newIndex]?.order
-        const order = after != null && after > before ? (before + after) / 2 : before + 1
-
-        const prevOrder = item.order
-        const prevSectionId = item.fk_base_section_id ?? null
-
-        item.order = order
-        item.fk_base_section_id = sectionId
-        resortLocalTables()
-        bumpSortableKey(source_id)
-
-        try {
-          await persistTableOrder(item.id, order, sectionId)
-        } catch (e) {
-          item.order = prevOrder
-          item.fk_base_section_id = prevSectionId
-          resortLocalTables()
-          bumpSortableKey(source_id)
-          message.error(await extractSdkResponseErrorMsg(e))
-        }
-        return
-      }
+      if (!item?.id) return
 
       // the html collection of all list items, already in the dropped order
       const children: HTMLCollection = evt.to.children
@@ -273,10 +215,7 @@ watchEffect(() => {
 })
 
 const availableTables = computed(() => {
-  return tables.value.filter(
-    (table) =>
-      table.source_id === base.value?.sources?.[sourceIndex.value].id && !(table.id && props.excludeTableIds?.has(table.id)),
-  )
+  return tables.value.filter((table) => table.source_id === base.value?.sources?.[sourceIndex.value].id)
 })
 
 const filteredAvailableTables = computed(() => {

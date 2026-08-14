@@ -496,9 +496,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: 'to use AutoNumber fields.',
   [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: 'to use record templates.',
   [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
-  [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',
+  [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into folders.',
   [PlanFeatureTypes.FEATURE_BASE_SECTIONS]:
-    'to organize tables, documents and dashboards into sections.',
+    'to organize tables, documents and dashboards into folders.',
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
   [PlanFeatureTypes.FEATURE_LIST_VIEW]: 'to use list view.',
   [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: 'to use team hierarchy.',

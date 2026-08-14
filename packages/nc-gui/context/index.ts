@@ -323,6 +323,26 @@ export const InterfacePublicPageInj: InjectionKey<Ref<InterfacePublicPageState |
 export const UiRolesOverrideInj: InjectionKey<Ref<Record<string, boolean> | null>> = Symbol('ui-roles-override')
 
 /**
+ * Companion to `UiRolesOverrideInj` for base table/field permission checks
+ * (`usePermissions.isAllowed`): the previewed PRINCIPAL, not just its role.
+ * User-subject grants need the previewed user's id — evaluating the builder's
+ * own id would show a field as editable merely because the BUILDER is in the
+ * grant's subject list. `userId` is unset for bare-role targets (a generic
+ * principal of that role). Null when not previewing.
+ */
+export const PermissionPrincipalOverrideInj: InjectionKey<Ref<{ userId?: string; role?: string } | null>> =
+  Symbol('permission-principal-override')
+
+/**
+ * Explanation for WHY the surface under it is read-only, surfaced as a toast
+ * when the user attempts an edit that the read-only state silently swallows
+ * (e.g. the interface editor's read-only "Preview as" — selection still works,
+ * so the blue cell border reads as editable). Null when the read-only state
+ * needs no callout.
+ */
+export const ReadonlyEditNoticeInj: InjectionKey<Ref<string | null>> = Symbol('readonly-edit-notice')
+
+/**
  * Interface EDITOR only: a callback that selects the mounted visualization
  * element — moving the properties panel to its `Page › <Viz>` pane, exactly like
  * clicking a button element opens its pane. Provided by the interface page

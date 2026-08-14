@@ -276,6 +276,7 @@ export function useCanvasTable({
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
   const interfaceInlineEditHint = inject(InterfaceInlineEditHintInj, ref(null))
+  const readonlyEditNotice = inject(ReadonlyEditNoticeInj, ref(null))
 
   const { eventBus: scriptEventBus } = useScriptExecutor()
 
@@ -1802,6 +1803,14 @@ export function useCanvasTable({
     }
 
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
+
+    // Read-only surface with an explanation (read-only interface preview) —
+    // surface it on the attempt instead of silently swallowing the gesture.
+    // Edit-restricted columns keep their own, more specific field-lock signal.
+    if (readOnly.value && readonlyEditNotice.value && !isEditRestricted) {
+      message.toast(readonlyEditNotice.value)
+      return null
+    }
 
     if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol || clickedColumn.inlineEditDisabled) {
       // Interface builder: the element's "Edit records inline" option is the blocker —

@@ -225,6 +225,7 @@ export const EventBusEnum = {
   RealtimeBaseUser: Symbol('RealtimeBaseUser'),
   RealtimeViewMeta: Symbol('RealtimeViewMeta'),
   SmartsheetActions: Symbol('SmartSheetActions'),
+  Tour: Symbol('Tour'),
 }
 
 export enum NcBaseCreateMode {

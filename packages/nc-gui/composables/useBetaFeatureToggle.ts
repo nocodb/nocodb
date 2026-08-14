@@ -204,6 +204,15 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'product_tours_menu',
+    title: 'Product tours menu',
+    description: 'Show the Product Tours entry in the account menu, for replaying onboarding and feature tours.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

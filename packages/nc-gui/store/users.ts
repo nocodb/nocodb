@@ -20,6 +20,29 @@ export const useUsers = defineStore('userStore', () => {
     basesStore.clearBasesUser()
   }
 
+  /**
+   * Patch `user.meta` without clobbering keys written by other features.
+   *
+   * The backend replaces `meta` wholesale (`profileUpdate` -> `User.update`), so
+   * sending a partial object drops everything else stored there. Any caller that
+   * writes a single key (avatar icon, tour state, ...) must go through this.
+   *
+   * Read-modify-write is not atomic — a concurrent write from another tab can be
+   * lost. That is acceptable for the current callers (worst case: an avatar or a
+   * dismissed tour reverts); do not use this for anything where a lost write
+   * matters.
+   */
+  const updateUserMeta = async (patch: Record<string, unknown>) => {
+    if (!user.value) throw new Error('User is not defined')
+
+    const meta = {
+      ...(parseProp(user.value.meta) ?? {}),
+      ...patch,
+    }
+
+    await updateUserProfile({ attrs: { meta } })
+  }
+
   const loadCurrentUser = loadRoles
 
   watch(
@@ -38,6 +61,7 @@ export const useUsers = defineStore('userStore', () => {
   return {
     loadCurrentUser,
     updateUserProfile,
+    updateUserMeta,
   }
 })
 

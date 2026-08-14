@@ -3,10 +3,10 @@
  * entities living directly under a base (tables, root documents, dashboards).
  *
  * Distinct from `ViewSectionType`, which groups views *inside* a single table.
- * Sections never nest and are scoped to one source: the default source's
- * sections interleave with the sidebar's top level, while an external source's
- * sections live inside that source's own group. An entity can only join a
- * section of its own source.
+ * Sections never nest and are scoped to one source. Each source renders one
+ * ordered list in which its sections interleave with its own entities, so a
+ * section shares the `order` sequence of the rows it sits among. An entity can
+ * only join a section of its own source.
  */
 export interface BaseSectionType {
   id?: string;

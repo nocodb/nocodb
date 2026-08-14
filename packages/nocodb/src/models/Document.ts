@@ -11,7 +11,7 @@ export default class Document implements DocumentType {
   parent_id: string | null;
   /** Base-level sidebar section (EE). Root docs only — a child's effective
    *  section is its root ancestor's. */
-  fk_section_id?: string | null;
+  fk_base_section_id?: string | null;
   has_children: boolean;
   deleted: boolean;
   version: number;

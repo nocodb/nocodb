@@ -28606,7 +28606,7 @@
             "description": "Unique Source ID",
             "type": "string"
           },
-          "fk_section_id": {
+          "fk_base_section_id": {
             "description": "ID of the base-level section this table is grouped under, if any",
             "type": "string",
             "nullable": true

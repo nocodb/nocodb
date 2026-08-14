@@ -9,7 +9,7 @@ export interface DashboardType {
   meta?: any;
   order?: number;
   /** Base-level sidebar section this dashboard is grouped under. */
-  fk_section_id?: string | null;
+  fk_base_section_id?: string | null;
   created_at?: string;
   updated_at?: string;
   created_by?: string;

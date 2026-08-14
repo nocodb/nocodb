@@ -39,13 +39,13 @@ const up = async (knex: Knex) => {
   // dashboards are all nc_models_v2 rows (discriminated by `type`) — the
   // legacy nc_dashboards_v2 table holds no live rows.
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
-    table.string('fk_section_id', 20).nullable();
+    table.string('fk_base_section_id', 20).nullable();
   });
 };
 
 const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
-    table.dropColumn('fk_section_id');
+    table.dropColumn('fk_base_section_id');
   });
 
   await knex.schema.dropTableIfExists(MetaTable.BASE_SECTIONS);

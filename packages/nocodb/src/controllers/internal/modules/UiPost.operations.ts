@@ -207,8 +207,8 @@ export class UiPostOperations
           order: payload.order,
           // EE base-level sections: optional membership move riding along
           // with the reorder (null = top level, absent = untouched).
-          ...('fk_section_id' in (payload ?? {})
-            ? { fk_section_id: payload.fk_section_id }
+          ...('fk_base_section_id' in (payload ?? {})
+            ? { fk_base_section_id: payload.fk_base_section_id }
             : {}),
           req,
         });

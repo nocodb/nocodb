@@ -1118,7 +1118,7 @@ export default class Model implements TableType {
     }
 
     if (fkSectionId !== undefined) {
-      updateObj.fk_section_id = fkSectionId;
+      updateObj.fk_base_section_id = fkSectionId;
     }
 
     if (!Object.keys(updateObj).length) return;

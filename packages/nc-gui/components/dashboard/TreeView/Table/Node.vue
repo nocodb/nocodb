@@ -699,7 +699,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                       :entity-id="table.id"
                       entity-type="table"
                       :base-id="base.id"
-                      :current-section-id="table.fk_section_id ?? null"
+                      :current-section-id="table.fk_base_section_id ?? null"
                       :order="table.order"
                       @close-modal="isOptionsOpen = false"
                     />

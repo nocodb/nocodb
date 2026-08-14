@@ -289,15 +289,15 @@ export class TablesService {
       order: any;
       // EE-only: base-level sidebar section (null = top level, undefined =
       // membership untouched). Validated in the EE service override.
-      fk_section_id?: string | null;
+      fk_base_section_id?: string | null;
       req: NcRequest;
     },
   ) {
     // Without either field updateOrder is a no-op — reject rather than emit a
     // TABLE_UPDATE (and audit row) for a write that never happened.
-    if (param.order === undefined && param.fk_section_id === undefined) {
+    if (param.order === undefined && param.fk_base_section_id === undefined) {
       NcError.get(context).invalidRequestBody(
-        'Either order or fk_section_id is required',
+        'Either order or fk_base_section_id is required',
       );
     }
 
@@ -307,7 +307,7 @@ export class TablesService {
       context,
       param.tableId,
       param.order,
-      param.fk_section_id,
+      param.fk_base_section_id,
     );
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
@@ -315,8 +315,8 @@ export class TablesService {
       table: {
         ...model,
         ...(param.order !== undefined ? { order: param.order } : {}),
-        ...(param.fk_section_id !== undefined
-          ? { fk_section_id: param.fk_section_id }
+        ...(param.fk_base_section_id !== undefined
+          ? { fk_base_section_id: param.fk_base_section_id }
           : {}),
       } as TableType,
       req: param.req,

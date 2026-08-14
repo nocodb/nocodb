@@ -1,8 +1,3 @@
-/**
- * CE no-op stub. Base-level sections are an EE feature — the real implementation
- * lives in `src/ee/models/BaseSection.ts` and shadows this via the tsconfig
- * overlay. CE keeps the shape so shared code paths can call through harmlessly.
- */
 export default class BaseSection {
   constructor(data: BaseSection) {
     Object.assign(this, data);

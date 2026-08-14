@@ -293,6 +293,14 @@ export class TablesService {
       req: NcRequest;
     },
   ) {
+    // Without either field updateOrder is a no-op — reject rather than emit a
+    // TABLE_UPDATE (and audit row) for a write that never happened.
+    if (param.order === undefined && param.fk_section_id === undefined) {
+      NcError.get(context).invalidRequestBody(
+        'Either order or fk_section_id is required',
+      );
+    }
+
     const model = await Model.get(context, param.tableId);
 
     const res = await Model.updateOrder(

@@ -1103,18 +1103,25 @@ export default class Model implements TableType {
   static async updateOrder(
     context: NcContext,
     tableId: string,
-    order: number,
+    // `undefined` = keep the current order (membership-only move).
+    order?: number,
     // EE-only: base-level sidebar section (null = top level). `undefined`
     // leaves membership untouched — CE never passes it. Same shape as the
     // `fk_view_section_id` handling in View.update.
     fkSectionId?: string | null,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj: Record<string, any> = { order };
+    const updateObj: Record<string, any> = {};
+
+    if (order !== undefined) {
+      updateObj.order = order;
+    }
 
     if (fkSectionId !== undefined) {
       updateObj.fk_section_id = fkSectionId;
     }
+
+    if (!Object.keys(updateObj).length) return;
 
     // set meta
     const res = await ncMeta.metaUpdate(

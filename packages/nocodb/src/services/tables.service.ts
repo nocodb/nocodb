@@ -306,7 +306,7 @@ export class TablesService {
       prevTable: model as TableType,
       table: {
         ...model,
-        order: param.order,
+        ...(param.order !== undefined ? { order: param.order } : {}),
         ...(param.fk_section_id !== undefined
           ? { fk_section_id: param.fk_section_id }
           : {}),

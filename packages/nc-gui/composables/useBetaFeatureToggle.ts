@@ -204,6 +204,17 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'minimal_base_sections',
+    title: 'Minimal folder style',
+    description: 'Render sidebar folders as plain text headers — no icon, no member indentation.',
+    enabled: false,
+    version: 1,
+    isEngineering: false,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

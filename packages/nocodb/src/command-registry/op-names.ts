@@ -151,6 +151,9 @@ export const OperationName = {
   viewSectionCreate: 'viewSectionCreate',
   viewSectionUpdate: 'viewSectionUpdate',
   viewSectionDelete: 'viewSectionDelete',
+  baseSectionCreate: 'baseSectionCreate',
+  baseSectionUpdate: 'baseSectionUpdate',
+  baseSectionDelete: 'baseSectionDelete',
 
   // Record templates
   recordTemplateCreate: 'recordTemplateCreate',

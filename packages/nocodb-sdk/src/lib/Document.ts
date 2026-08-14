@@ -7,6 +7,9 @@ export interface DocumentType {
   meta?: Record<string, any>; // icon, cover, lock, settings, share.include_subtree
   order?: number;
   parent_id?: string | null;
+  /** Base-level sidebar section this doc is grouped under. Root docs only —
+   *  a child doc's effective section is its root ancestor's. */
+  fk_base_section_id?: string | null;
   deleted?: boolean;
   has_children?: boolean;
   version?: number;

@@ -30,6 +30,7 @@ import type {
 } from '@nestjs/common';
 import {
   Base,
+  BaseSection,
   Column,
   Comment,
   Extension,
@@ -177,6 +178,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const filterParentId = params.filterParentId || query.filterParentId;
       const widgetId = params.widgetId || query.widgetId;
       const sectionId = params.sectionId || query.sectionId;
+      const baseSectionId = params.baseSectionId || query.baseSectionId;
       const sortId = params.sortId || query.sortId;
       const syncId = params.syncId || query.syncId;
       const extensionId = params.extensionId || query.extensionId;
@@ -392,6 +394,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = section.source_id;
+      } else if (baseSectionId) {
+        // Base-level sections are base-scoped, so there is no source to pin.
+        // This branch exists only to 404 an unknown id before the handler runs.
+        const baseSection = await BaseSection.get(context, baseSectionId);
+
+        if (!baseSection) {
+          NcError.baseSectionNotFound(baseSectionId);
+        }
       } else if (sortId) {
         const sort = await Sort.get(context, sortId);
 

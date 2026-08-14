@@ -202,6 +202,7 @@ export class MetaService {
       [MetaTable.PERMISSIONS]: 'perm',
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
+      [MetaTable.BASE_SECTIONS]: 'sec',
       [MetaTable.WIDGETS]: 'wgt',
       [MetaTable.INTERFACES]: 'itf',
       [MetaTable.INTERFACE_PAGES]: 'pag',

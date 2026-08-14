@@ -148,6 +148,14 @@ export const ActiveSourceInj: InjectionKey<
   >
 > = Symbol('active-source-injection')
 
+/**
+ * Extra left indent (px) carried by a sidebar row nested inside a base-level
+ * section, provided by the table node so its view rows shift with it. The
+ * indent lives on each row's own padding — indenting a container instead would
+ * inset the rows' hover background away from the sidebar edge.
+ */
+export const SidebarSectionIndentInj: InjectionKey<Ref<number> | ComputedRef<number>> = Symbol('sidebar-section-indent-injection')
+
 export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('toolbar-icon-mode-injection')
 export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>> =
   Symbol('field-name-alias')

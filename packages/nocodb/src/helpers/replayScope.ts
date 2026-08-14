@@ -11,6 +11,11 @@ export interface ReplayBag {
   replayDuplicateId: string;
   columnBackupOut: ColumnBackupRef;
   viewSectionRestoreViewIds: ReadonlyArray<string>;
+  baseSectionRestoreChildren: ReadonlyArray<{
+    id: string;
+    entity: 'table' | 'document' | 'dashboard';
+    order?: number;
+  }>;
   rowColorFilterIds: ReadonlyArray<string>;
   interfaceDuplicatePageIds: ReadonlyArray<string>;
 }

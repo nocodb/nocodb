@@ -28606,6 +28606,11 @@
             "description": "Unique Source ID",
             "type": "string"
           },
+          "fk_base_section_id": {
+            "description": "ID of the base-level section this table is grouped under, if any",
+            "type": "string",
+            "nullable": true
+          },
           "date_dependency": {
             "description": "Date dependency rule for this table",
             "nullable": true,

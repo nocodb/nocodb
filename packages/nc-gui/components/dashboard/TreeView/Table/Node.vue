@@ -8,8 +8,11 @@ const props = withDefaults(
     base: BaseType
     table: SidebarTableNode
     sourceIndex: number
+    /** Extra indent when this row sits inside a base-level section, so the
+     *  table's view rows step in with it (EE; 0 everywhere else). */
+    sectionIndentPx?: number
   }>(),
-  { sourceIndex: 0 },
+  { sourceIndex: 0, sectionIndentPx: 0 },
 )
 
 const { base, table, sourceIndex } = toRefs(props)
@@ -37,6 +40,13 @@ const { meta: metaKey, control } = useMagicKeys()
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
+// Reaches this table's view rows (Views/Node) so they keep their one-step
+// offset from the table when the whole row is nested inside a section.
+provide(
+  SidebarSectionIndentInj,
+  computed(() => props.sectionIndentPx),
+)
+
 const { isBookmarkAllowed } = useBookmarks()
 
 const {
@@ -59,9 +69,15 @@ const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
+// Resolve from the table itself: inside a section the node renders outside its
+// source group, where `sourceIndex` only carries the indent level.
 const source = computed(() => {
-  return base.value?.sources?.[sourceIndex.value]
+  return base.value?.sources?.find((s) => s.id === table.value?.source_id) ?? base.value?.sources?.[sourceIndex.value]
 })
+
+/** Default-source sections are stored with a null source — normalise so the
+ *  menu asks for the right group. */
+const isDefaultSourceTable = computed(() => table.value?.source_id === base.value?.sources?.[0]?.id)
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
@@ -692,6 +708,18 @@ const isMmTable = computed(() => !!table.value?.mm)
                         </div>
                       </NcMenuItem>
                     </NcTooltip>
+
+                    <!-- Move to a section of this table's own source (EE) -->
+                    <DashboardTreeViewDataMoveToSectionMenu
+                      v-if="isEeUI && table.id && base.id"
+                      :entity-id="table.id"
+                      entity-type="table"
+                      :base-id="base.id"
+                      :source-id="isDefaultSourceTable ? null : table.source_id"
+                      :current-section-id="table.fk_base_section_id ?? null"
+                      :order="table.order"
+                      @close-modal="isOptionsOpen = false"
+                    />
                     <NcDivider />
 
                     <NcTooltip

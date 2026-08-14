@@ -336,6 +336,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
 
+  const blockBaseSections = computed(() => true)
+
+  const showUpgradeToUseBaseSections = (..._args: any[]) => {}
+
   const blockBaseVariables = computed(() => true)
 
   const showUpgradeToUseBaseVariables = (..._args: any[]) => {}
@@ -590,6 +594,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockBaseSections,
+    showUpgradeToUseBaseSections,
     blockBaseVariables,
     showUpgradeToUseBaseVariables,
     blockListView,

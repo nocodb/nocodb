@@ -90,6 +90,10 @@ export class NcError {
     return NcError._.viewSectionNotFound(id, args);
   }
 
+  static baseSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.baseSectionNotFound(id, args);
+  }
+
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.sourceNotFound(id, args);
   }

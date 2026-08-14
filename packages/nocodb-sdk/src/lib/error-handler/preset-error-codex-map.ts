@@ -133,7 +133,11 @@ export const presetErrorCodexMap: Partial<
     code: 404,
   },
   [NcErrorType.ERR_VIEW_SECTION_NOT_FOUND]: {
-    message: (id: string) => `View section '${id}' not found`,
+    message: (id: string) => `View folder '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_BASE_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
     code: 404,
   },
   [NcErrorType.ERR_TRASH_NOT_FOUND]: {

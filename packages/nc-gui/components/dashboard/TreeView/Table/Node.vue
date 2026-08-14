@@ -692,6 +692,17 @@ const isMmTable = computed(() => !!table.value?.mm)
                         </div>
                       </NcMenuItem>
                     </NcTooltip>
+
+                    <!-- Move to base-level section (EE) — default-source tables only -->
+                    <DashboardTreeViewDataMoveToSectionMenu
+                      v-if="isEeUI && sourceIndex === 0 && table.id && base.id"
+                      :entity-id="table.id"
+                      entity-type="table"
+                      :base-id="base.id"
+                      :current-section-id="table.fk_section_id ?? null"
+                      :order="table.order"
+                      @close-modal="isOptionsOpen = false"
+                    />
                     <NcDivider />
 
                     <NcTooltip

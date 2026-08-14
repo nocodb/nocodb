@@ -743,8 +743,8 @@ watch(inviteDlg, (newVal) => {
               <NcTooltip
                 v-if="record.billable"
                 class="flex items-center"
-                :tooltip-style="{ width: '180px' }"
-                :overlay-inner-style="{ width: '180px' }"
+                :tooltip-style="{ width: '230px' }"
+                :overlay-inner-style="{ width: '230px' }"
               >
                 <template #title>
                   <div>{{ $t('tooltip.paidUserBadgeTooltip') }}</div>

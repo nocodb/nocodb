@@ -79,6 +79,15 @@ const menuRef = useTemplateRef('menuRef')
 
 const isMarked = ref<string | false>(false)
 
+/** Keys the list so a drop can re-mount it: Sortable moves the row's DOM node
+ *  into the target section's container, which desyncs Vue's vdom and can leave
+ *  the same view rendered under two sections until reload. */
+const renderKey = ref(0)
+
+function forceRerender() {
+  renderKey.value++
+}
+
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
   if (nextActiveView && nextActiveView.id) {
@@ -186,7 +195,10 @@ const initSortable = (el: Element) => {
       const itemEl = evt.item as HTMLElement
       const currentItem = views.value.find((v) => v.id === itemEl.dataset.id)
 
-      if (!currentItem || !currentItem.id) return
+      if (!currentItem || !currentItem.id) {
+        forceRerender()
+        return
+      }
 
       const firstCollaborativeView = getFirstNonPersonalView(views.value, {
         includeViewType: ViewTypes.GRID,
@@ -195,7 +207,10 @@ const initSortable = (el: Element) => {
       const isFirstCollaborativeView = firstCollaborativeView?.id === currentItem.id
 
       const newOrder = computeNewOrder(evt, newIndex)
-      if (newOrder == null) return
+      if (newOrder == null) {
+        forceRerender()
+        return
+      }
 
       currentItem.order = newOrder
 
@@ -254,6 +269,10 @@ const initSortable = (el: Element) => {
           }
         }
       }
+
+      // onEnd fires on the source list, whose vdom still owns the node Sortable
+      // moved into the target container — re-mounting here drops that orphan.
+      forceRerender()
     },
     animation: 150,
     revertOnSpill: true,
@@ -458,6 +477,7 @@ const filteredViews = computed(() => {
     <div
       v-if="filteredViews.length || !!sectionId"
       ref="menuRef"
+      :key="`views-${renderKey}`"
       :data-section-id="sectionId"
       :data-table-id="table?.id"
       :class="{ dragging, 'min-h-6': !!sectionId && !filteredViews.length }"

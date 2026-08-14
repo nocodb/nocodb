@@ -8,8 +8,11 @@ const props = withDefaults(
     base: BaseType
     table: SidebarTableNode
     sourceIndex: number
+    /** Extra indent when this row sits inside a base-level section, so the
+     *  table's view rows step in with it (EE; 0 everywhere else). */
+    sectionIndentPx?: number
   }>(),
-  { sourceIndex: 0 },
+  { sourceIndex: 0, sectionIndentPx: 0 },
 )
 
 const { base, table, sourceIndex } = toRefs(props)
@@ -36,6 +39,13 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
+
+// Reaches this table's view rows (Views/Node) so they keep their one-step
+// offset from the table when the whole row is nested inside a section.
+provide(
+  SidebarSectionIndentInj,
+  computed(() => props.sectionIndentPx),
+)
 
 const { isBookmarkAllowed } = useBookmarks()
 

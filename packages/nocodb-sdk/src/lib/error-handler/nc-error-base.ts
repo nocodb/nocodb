@@ -185,6 +185,16 @@ export class NcErrorBase {
     );
   }
 
+  baseSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_BASE_SECTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
   apiClientNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_API_CLIENT_NOT_FOUND, {
       params: id,

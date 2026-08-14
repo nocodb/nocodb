@@ -136,6 +136,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `View section '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_BASE_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Section '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_TRASH_NOT_FOUND]: {
     message: (id: string) => `Trash entry '${id}' not found`,
     code: 404,

@@ -284,17 +284,32 @@ export class TablesService {
   @TraceCommand(OperationName.tableReorder)
   async reorderTable(
     context: NcContext,
-    param: { tableId: string; order: any; req: NcRequest },
+    param: {
+      tableId: string;
+      order: any;
+      // EE-only: base-level sidebar section (null = top level, undefined =
+      // membership untouched). Validated in the EE service override.
+      fk_section_id?: string | null;
+      req: NcRequest;
+    },
   ) {
     const model = await Model.get(context, param.tableId);
 
-    const res = await Model.updateOrder(context, param.tableId, param.order);
+    const res = await Model.updateOrder(
+      context,
+      param.tableId,
+      param.order,
+      param.fk_section_id,
+    );
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       prevTable: model as TableType,
       table: {
         ...model,
         order: param.order,
+        ...(param.fk_section_id !== undefined
+          ? { fk_section_id: param.fk_section_id }
+          : {}),
       } as TableType,
       req: param.req,
       context,

@@ -1104,22 +1104,32 @@ export default class Model implements TableType {
     context: NcContext,
     tableId: string,
     order: number,
+    // EE-only: base-level sidebar section (null = top level). `undefined`
+    // leaves membership untouched — CE never passes it. Same shape as the
+    // `fk_view_section_id` handling in View.update.
+    fkSectionId?: string | null,
     ncMeta = Noco.ncMeta,
   ) {
+    const updateObj: Record<string, any> = { order };
+
+    if (fkSectionId !== undefined) {
+      updateObj.fk_section_id = fkSectionId;
+    }
+
     // set meta
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,
-      {
-        order,
-      },
+      updateObj,
       tableId,
     );
 
-    await NocoCache.update(context, `${CacheScope.MODEL}:${tableId}`, {
-      order,
-    });
+    await NocoCache.update(
+      context,
+      `${CacheScope.MODEL}:${tableId}`,
+      updateObj,
+    );
 
     return res;
   }

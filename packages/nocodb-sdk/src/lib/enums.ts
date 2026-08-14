@@ -390,6 +390,10 @@ export enum AppEvents {
   VIEW_SECTION_UPDATE = 'viewSection.update',
   VIEW_SECTION_DELETE = 'viewSection.delete',
 
+  BASE_SECTION_CREATE = 'baseSection.create',
+  BASE_SECTION_UPDATE = 'baseSection.update',
+  BASE_SECTION_DELETE = 'baseSection.delete',
+
   CHAT_SESSION_CREATE = 'chat.session.create',
   CHAT_SESSION_UPDATE = 'chat.session.update',
   CHAT_SESSION_DELETE = 'chat.session.delete',

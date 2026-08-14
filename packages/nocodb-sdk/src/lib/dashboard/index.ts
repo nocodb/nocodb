@@ -8,6 +8,8 @@ export interface DashboardType {
   fk_workspace_id?: string;
   meta?: any;
   order?: number;
+  /** Base-level sidebar section this dashboard is grouped under. */
+  fk_section_id?: string | null;
   created_at?: string;
   updated_at?: string;
   created_by?: string;

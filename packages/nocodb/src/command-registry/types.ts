@@ -268,6 +268,15 @@ export interface CaptureBag {
   /** View ids that lived in a section at delete time — needed to re-link
    *  child views when the section is recreated on undo. */
   viewSectionViewIds: ReadonlyArray<string>;
+  /** Entities that lived in a base-level section at delete time. Unlike view
+   *  sections this must carry `order` too: deleting a base section rewrites its
+   *  children's orders to fill the gap it leaves, so re-linking alone would
+   *  restore the grouping but not the positions. */
+  baseSectionChildren: ReadonlyArray<{
+    id: string;
+    entity: 'table' | 'document' | 'dashboard';
+    order?: number;
+  }>;
   /** Filter ids created as side-effects of `rowColorConditionAdd` (the
    *  inner filter tree).
    */

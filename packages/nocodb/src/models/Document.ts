@@ -9,6 +9,9 @@ export default class Document implements DocumentType {
   meta: Record<string, any>;
   order: number;
   parent_id: string | null;
+  /** Base-level sidebar section (EE). Root docs only — a child's effective
+   *  section is its root ancestor's. */
+  fk_section_id?: string | null;
   has_children: boolean;
   deleted: boolean;
   version: number;

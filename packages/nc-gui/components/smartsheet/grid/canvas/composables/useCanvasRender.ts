@@ -1774,19 +1774,26 @@ export function useCanvasRender({
   function drawRemoteFocusBoxes(ctx: CanvasRenderingContext2D) {
     if (!remoteFocusBoxes.length) return
 
-    // Same fixed-column geometry renderActiveState uses. This overlay draws last — after
-    // the fixed columns have repainted over whatever scrollable content sits beneath them —
-    // so a box belonging to a scrolled-under column must be clipped to the region right of
-    // the frozen area, or skipped when it is entirely underneath. `row_number` is always
-    // fixed, so fixedWidth is non-zero on every view.
+    // `row_number` is always fixed, so fixedWidth is non-zero on every view.
     const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
     for (const box of remoteFocusBoxes) {
       const primary = box.focuses[0]
       if (!primary) continue
 
-      const clippedByFixed = !box.fixed && box.x < fixedWidth
-      if (clippedByFixed && box.x + box.width <= fixedWidth) continue
+      // Mirror renderActiveState's fixed-area geometry EXACTLY — same `<=` comparison,
+      // same +1 reposition — so the presence border lands on the same pixels as the
+      // active border. Anything else shows as a skew on a cell carrying both; the first
+      // scrollable column (x === fixedWidth) is the giveaway.
+      let drawX = box.x
+      let drawW = box.width
+      if (!box.fixed && box.x <= fixedWidth) {
+        // Entirely under the fixed area — the fixed columns repainted over it.
+        if (box.x + box.width <= fixedWidth) continue
+        // +1 for the border separating the fixed and scrollable columns.
+        drawX = fixedWidth + 1
+        drawW = box.width - (fixedWidth - box.x)
+      }
 
       ctx.save()
 
@@ -1799,24 +1806,19 @@ export function useCanvasRender({
         ctx.clip()
       }
 
-      if (clippedByFixed) {
-        ctx.beginPath()
-        // +1 for the border separating the fixed and scrollable columns
-        ctx.rect(fixedWidth + 1, box.y, box.x + box.width - fixedWidth - 1, box.height)
-        ctx.clip()
-      }
-
       const color = primary.color
 
       // The viewer is on this cell too: their own selection/edit UI wins. A corner
       // wedge in the collaborator's colour keeps the "someone else is here" hint
       // without competing with the active border or hiding under the DOM editor.
+      // Inset by 1 so the active border stroke stays fully visible — on overlap the
+      // active border wins, the wedge tucks inside it.
       if (box.ownCell) {
         const size = 8
         ctx.beginPath()
-        ctx.moveTo(box.x + box.width - 1 - size, box.y + 1)
-        ctx.lineTo(box.x + box.width - 1, box.y + 1)
-        ctx.lineTo(box.x + box.width - 1, box.y + 1 + size)
+        ctx.moveTo(drawX + drawW - 1 - size, box.y + 1)
+        ctx.lineTo(drawX + drawW - 1, box.y + 1)
+        ctx.lineTo(drawX + drawW - 1, box.y + 1 + size)
         ctx.closePath()
         ctx.fillStyle = color
         ctx.fill()
@@ -1829,13 +1831,13 @@ export function useCanvasRender({
       if (isEditing) {
         ctx.globalAlpha = 0.1
         ctx.fillStyle = color
-        ctx.fillRect(box.x, box.y, box.width, box.height)
+        ctx.fillRect(drawX, box.y, drawW, box.height)
         ctx.globalAlpha = 1
       }
 
       // Same geometry as renderActiveState, so a collaborator's cell reads like the
       // viewer's own active cell — only the colour differs.
-      roundedRect(ctx, box.x, box.y, box.width, box.height, 2, {
+      roundedRect(ctx, drawX, box.y, drawW, box.height, 2, {
         borderColor: color,
         borderWidth: 1,
       })
@@ -1850,7 +1852,7 @@ export function useCanvasRender({
       // lets an unbounded display name blanket exactly what the viewer is trying to
       // read. Grow with the column, but never past 3/4 of the cell — the content keeps
       // the last quarter — with a 140px floor so narrow columns still get a legible name.
-      const maxLabelW = Math.min(box.width - 2, Math.max(140, ((box.width - 2) * 3) / 4))
+      const maxLabelW = Math.min(drawW - 2, Math.max(140, ((drawW - 2) * 3) / 4))
       const maxTextW = Math.max(0, maxLabelW - padX * 2)
       // Truncate the NAME, never the suffixes: "is typing…" / "+N" are the states the
       // label exists to show, and composing before truncating lets a long name push
@@ -1873,7 +1875,7 @@ export function useCanvasRender({
       const labelW = Math.min(maxLabelW, measured.width + padX * 2)
       // Anchored on the border path itself (the 1px stroke is centered on it), so the
       // label background meets the border line with no gap.
-      const labelX = box.x + box.width - labelW
+      const labelX = drawX + drawW - labelW
       const labelY = box.y + box.height - labelH
       roundedRect(ctx, labelX, labelY, labelW, labelH, { topLeft: 6, bottomRight: 2 }, { backgroundColor: color })
       renderSingleLineText(ctx, {
@@ -4355,10 +4357,17 @@ export function useCanvasRender({
       ctx.beginPath()
       ctx.rect(0, _headerRowHeight, totalWidth.value, _height - _headerRowHeight - AGGREGATION_HEIGHT)
       ctx.clip()
-      postRenderCbk?.()
 
+      // Presence overlay BEFORE the active-cell UI: adjacent cells share their border
+      // pixels, so whichever draws last owns the shared line — and that must be the
+      // viewer's own border and fill handle. Grouped views re-draw them via
+      // postRenderCbk; flat views via the explicit calls (renderActiveState no-ops on
+      // an undefined activeState, which is the grouped case).
       drawRemoteFocusBoxes(ctx)
       drawRemoteRecordMarks(ctx)
+      postRenderCbk?.()
+      renderActiveState(ctx, activeState)
+      renderFillHandle(ctx)
     } finally {
       ctx.restore()
     }

@@ -369,12 +369,11 @@ function hexToRGBObject(hexColor: string) {
   return { r, g, b }
 }
 
-export function isColorDark(hexColor: string) {
+export function isColorDark(hexColor: string, threshold = 128) {
   const rgbColor = hexToRGBObject(hexColor)
 
   const luminance = 0.299 * rgbColor.r + 0.587 * rgbColor.g + 0.114 * rgbColor.b
-  // Choose a luminance threshold (e.g., 0.5) to determine darkness/lightness
-  return luminance < 128
+  return luminance < threshold
 }
 
 export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light') {

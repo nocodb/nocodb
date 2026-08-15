@@ -1810,7 +1810,10 @@ export function useCanvasRender({
         text: labelText,
         fontFamily: labelFont,
         maxWidth: maxTextW,
-        fillStyle: isColorDark(color) ? '#ffffff' : '#000000',
+        // 150, not the default 128: the presence palette is saturated mid-tone accents
+        // (emerald #10b981 scores 128.1) that need white text despite passing the
+        // default cutoff. At 150 only the genuinely light ones (amber, lime) keep black.
+        fillStyle: isColorDark(color, 150) ? '#ffffff' : '#000000',
         textAlign: 'left',
         verticalAlign: 'middle',
         isTagLabel: true,

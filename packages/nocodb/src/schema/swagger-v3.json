@@ -15284,6 +15284,7 @@
       "DashboardUpdateReq": {
         "description": "Dashboard update request body",
         "type": "object",
+        "additionalProperties": false,
         "properties": {
           "title": {
             "type": "string",

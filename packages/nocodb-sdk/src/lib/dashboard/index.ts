@@ -18,6 +18,14 @@ export interface DashboardType {
   password?: string;
   fk_custom_url_id?: string;
   uuid?: string;
+
+  /**
+   * Transient (response-only): true when an explicit DASHBOARD_VISIBILITY
+   * restriction exists. Set by dashboardGet/dashboardList so the client can
+   * disable the public-share toggle (sharing is refused server-side while
+   * this is true). Mirrors Document `has_visibility_permission`.
+   */
+  has_visibility_permission?: boolean;
 }
 
 export enum WidgetTypes {

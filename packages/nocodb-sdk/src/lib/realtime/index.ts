@@ -51,8 +51,31 @@ export function getDocSyncRoom(
   return `${EventType.DOCUMENT_SYNC_EVENT}:${workspaceId}:${baseId}:${docId}`;
 }
 
+/**
+ * Room key for a table's focus-presence channel.
+ *
+ * Keyed by table, not view, so every surface over one table — grid, expanded
+ * record, cards, field-config editor — lands in the same room and their
+ * occupants see each other.
+ */
+export function getFocusRoom(
+  workspaceId: string,
+  baseId: string,
+  tableId: string
+): string {
+  return `${EventType.FOCUS_EVENT}:${workspaceId}:${baseId}:table:${tableId}`;
+}
+
 /** Client→server socket event for emitting a connection's current focus. */
 export const FOCUS_UPDATE_EVENT = 'focus:update';
+
+/**
+ * Client→server: release a focus room once its last local consumer lets go.
+ *
+ * Rooms are per-table, so without this browsing N tables leaves N live cursor
+ * streams attached to the connection.
+ */
+export const FOCUS_UNSUBSCRIBE_EVENT = 'focus:unsubscribe';
 
 export interface BaseSocketPayload {
   timestamp: number;
@@ -281,16 +304,36 @@ export type PresencePayload =
   | PresenceBatchPayload;
 
 /**
- * A connection's current focus within a view. Typed by `type` so additional
- * focus kinds (e.g. `row`) can be added without a protocol change. `null` means
- * the connection has no focus (cleared selection / left the view).
+ * A connection's current focus within a table. Typed by `type` so additional
+ * focus kinds can be added without a protocol change. `null` means the
+ * connection has no focus (cleared selection / left the table).
+ *
+ * - `cell` — a grid cell. `editing` = actively typing; `uploading` = attachment
+ *   upload in flight.
+ * - `record` — the connection has the record open (expanded form / card).
+ *   `editing` = unsaved changes; `typing: 'comment'` = composing a comment.
+ * - `field` — the connection has the field's config editor (column edit
+ *   dropdown) open.
  */
-export type FocusValue = {
-  type: 'cell';
-  rowPk: string;
-  fieldId: string;
-  editing?: boolean;
-} | null;
+export type FocusValue =
+  | {
+      type: 'cell';
+      rowPk: string;
+      fieldId: string;
+      editing?: boolean;
+      uploading?: boolean;
+    }
+  | {
+      type: 'record';
+      rowPk: string;
+      editing?: boolean;
+      typing?: 'comment';
+    }
+  | {
+      type: 'field';
+      fieldId: string;
+    }
+  | null;
 
 /** Server→client: a single connection's focus changed. */
 export interface FocusUpdatePayload extends BaseSocketPayload {

@@ -3569,6 +3569,10 @@
     "userIsInThisBase": "{name} is in this base",
     "andCountMore": "and {count} more",
     "moreCollaborators": "{count} more collaborator | {count} more collaborators",
+    "userIsTyping": "{name} is typing…",
+    "usersAreTyping": "{name1} and {name2} are typing…",
+    "peopleAreTyping": "{count} people are typing…",
+    "uploadingEllipsis": "Uploading…",
     "installedVersion": "Installed Version",
     "currentState": "Current State",
     "liveVersion": "Live: v{version}",
@@ -4649,6 +4653,8 @@
     "writeCustomAiPrompt": "Write custom AI Prompt instruction here"
   },
   "msg": {
+    "recordEditedByCollaborator": "{name} is also editing this record — the last save wins",
+    "fieldEditedByCollaborator": "{name} is currently editing this field's settings",
     "sandboxBlockedBySync": "Cannot create a sandbox for a base with active sync. Remove sync configurations first.",
     "sourceViewNotShared": "Sync is disabled on this view",
     "sourceViewNotSharedDesc": "Enable \"Allow sync\" on the source view to use it as a sync source.",

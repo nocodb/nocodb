@@ -891,6 +891,7 @@ const unique = computed({
     @scroll="handleScrollDebounce"
     @dblclick="easterEggCount += 1"
   >
+    <SmartsheetColumnEditPresence v-if="isEeUI && isEdit" :column-id="column?.id" />
     <a-form
       v-model="formState"
       no-style

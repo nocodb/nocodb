@@ -6,6 +6,7 @@ import {
   type BaseVersion,
   type ColumnType,
   type FilterType,
+  type FocusValue,
   type MetaType,
   type PaginatedType,
   type PermissionEntity,
@@ -1255,10 +1256,43 @@ export interface GridRemoteFocus {
   /** Collaborator display name, shown as a label on the focused cell. */
   name: string
   editing: boolean
+  /** An attachment upload is in flight on this cell. */
+  uploading?: boolean
 }
 
 /** rowPk → fieldId → focuses (one entry per remote connection on that cell). */
 export type GridRemoteFocusMap = Map<string, Map<string, GridRemoteFocus[]>>
+
+/** rowPk → connections with that record open (expanded form / card). */
+export type GridRemoteRecordMap = Map<string, GridRemoteFocus[]>
+
+/** fieldId → connections with that field's config editor open. */
+export type GridRemoteFieldMap = Map<string, GridRemoteFocus[]>
+
+/**
+ * One remote connection's focus on a table, resolved for display.
+ *
+ * `active` folds the freshness check on the activity flags (`editing` /
+ * `typing` / `uploading`) so consumers render a boolean rather than each
+ * re-deriving staleness.
+ */
+export interface RemoteFocusEntry {
+  userId: string
+  presenceId: string
+  color: string
+  name: string
+  focus: NonNullable<FocusValue>
+  active: boolean
+}
+
+/** A user rendered in a presence avatar stack (topbar / doc / expanded record). */
+export interface PresenceStackUser {
+  userId: string
+  email?: string
+  display_name?: string
+  meta?: Record<string, any> | null
+  color?: string
+}
 
 export interface FocusPresenceParams {
   view: Ref<ViewType | undefined>

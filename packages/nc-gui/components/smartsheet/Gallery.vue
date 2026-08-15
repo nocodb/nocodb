@@ -776,7 +776,7 @@ function hasPosterCover(record: RowType) {
             >
               <LazySmartsheetRow :row="record">
                 <a-card
-                  class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group overflow-hidden break-all cursor-pointer flex flex-col"
+                  class="relative !rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group overflow-hidden break-all cursor-pointer flex flex-col"
                   :class="[
                     fixedColumnsPerRow ? '!max-w-none' : 'max-w-[450px]',
                     {
@@ -790,6 +790,7 @@ function hasPosterCover(record: RowType) {
                   @click="expandFormClick($event, record)"
                   @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
                 >
+                  <SmartsheetRecordPresenceBadge v-if="isEeUI" :row="record" class="absolute top-2 right-2 z-10" />
                   <template v-if="showCover" #cover>
                     <a-carousel
                       v-if="isMounted && !reloadAttachments && attachments(record).length"

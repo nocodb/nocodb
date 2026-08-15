@@ -986,7 +986,9 @@ export default {
             </div>
           </div>
         </div>
-        <div v-if="!templateMode && !blueprintMode" class="ml-auto">
+        <div v-if="!templateMode && !blueprintMode" class="ml-auto flex items-center gap-3">
+          <!-- Unsaved (isNew) rows have no pk, so there is nothing for peers to be present on. -->
+          <SmartsheetExpandedFormPresence v-if="isEeUI && !isNew" />
           <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" :view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div v-else class="ml-auto" />

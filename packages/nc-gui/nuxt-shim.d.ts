@@ -39,6 +39,7 @@ declare module '#app' {
       onMessage: (evt: string, handler: (...args: any[]) => void) => string
       offMessage: (listenerId: string) => void
       emit: (evt: string, payload: Record<string, any>) => void
+      onReady: (handler: (ctx: { reconnected: boolean }) => void) => () => void
       on: (evt: string, handler: (...args: any[]) => void) => () => void
     }
     $eventBus: {

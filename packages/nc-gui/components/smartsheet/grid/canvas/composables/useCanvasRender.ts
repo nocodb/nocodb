@@ -1672,6 +1672,8 @@ export function useCanvasRender({
     focuses: GridRemoteFocus[]
     /** Whether the cell belongs to a frozen column — decides if the fixed-area clip applies. */
     fixed: boolean
+    /** The viewer's own active cell — demoted to a corner marker so the native selection/edit UI wins. */
+    ownCell: boolean
     /** The group's row clip, when rendered inside a grouped view (see renderGroupRows). */
     clip?: { x: number; y: number; width: number; height: number }
   }
@@ -1686,13 +1688,14 @@ export function useCanvasRender({
     cellWidth: number,
     cellHeight: number,
     fixed: boolean,
+    ownCell: boolean,
     clip?: { x: number; y: number; width: number; height: number },
   ) {
     if (!pk || !fieldId) return
     const map = remoteFocuses.value
     if (!map.size) return
     const focuses = map.get(pk)?.get(fieldId)
-    if (focuses?.length) remoteFocusBoxes.push({ x, y, width: cellWidth, height: cellHeight, focuses, fixed, clip })
+    if (focuses?.length) remoteFocusBoxes.push({ x, y, width: cellWidth, height: cellHeight, focuses, fixed, ownCell, clip })
   }
 
   function drawRemoteFocusBoxes(ctx: CanvasRenderingContext2D) {
@@ -1731,6 +1734,23 @@ export function useCanvasRender({
       }
 
       const color = primary.color
+
+      // The viewer is on this cell too: their own selection/edit UI wins. A corner
+      // wedge in the collaborator's colour keeps the "someone else is here" hint
+      // without competing with the active border or hiding under the DOM editor.
+      if (box.ownCell) {
+        const size = 8
+        ctx.beginPath()
+        ctx.moveTo(box.x + box.width - 1 - size, box.y + 1)
+        ctx.lineTo(box.x + box.width - 1, box.y + 1)
+        ctx.lineTo(box.x + box.width - 1, box.y + 1 + size)
+        ctx.closePath()
+        ctx.fillStyle = color
+        ctx.fill()
+        ctx.restore()
+        continue
+      }
+
       const isEditing = box.focuses.some((f) => f.editing)
 
       if (isEditing) {
@@ -1946,7 +1966,7 @@ export function useCanvasRender({
           }
         }
 
-        collectRemoteFocus(pk, column.columnObj?.id, xOffset - _scrollLeft, yOffset, width, _rowH, false, clipRect)
+        collectRemoteFocus(pk, column.columnObj?.id, xOffset - _scrollLeft, yOffset, width, _rowH, false, isActive, clipRect)
 
         const value = row.row[column.title]
 
@@ -2069,7 +2089,7 @@ export function useCanvasRender({
               }
             }
 
-            collectRemoteFocus(pk, column.columnObj?.id, xOffset, yOffset, width, _rowH, true, clipRect)
+            collectRemoteFocus(pk, column.columnObj?.id, xOffset, yOffset, width, _rowH, true, isActive, clipRect)
 
             if (isColumnRequiredAndNull(column.columnObj, row.row)) {
               renderRedBorders.push({ rowIndex: rowIdx, column })

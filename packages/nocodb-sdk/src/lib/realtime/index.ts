@@ -272,6 +272,17 @@ export interface PresenceHeartbeatPayload extends BaseSocketPayload {
   resource?: PresenceResource;
 }
 
+/**
+ * Server-side batched form of the heartbeat relay: the ids of users whose
+ * heartbeats arrived in the room since its last flush. Liveness only —
+ * receivers refresh `lastSeen` for ids they already track; an unknown id is
+ * introduced by its own announce, never by this.
+ */
+export interface PresenceHeartbeatBatchPayload extends BaseSocketPayload {
+  action: 'heartbeat-batch';
+  userIds: string[];
+}
+
 export interface PresenceLocationChangePayload extends BaseSocketPayload {
   action: 'location-change';
   user: {
@@ -299,6 +310,7 @@ export interface PresenceBatchPayload extends BaseSocketPayload {
 export type PresencePayload =
   | PresenceAnnouncePayload
   | PresenceHeartbeatPayload
+  | PresenceHeartbeatBatchPayload
   | PresenceLocationChangePayload
   | PresenceLeavePayload
   | PresenceBatchPayload;

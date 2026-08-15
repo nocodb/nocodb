@@ -1,8 +1,10 @@
-import type { NcErrorType } from 'nocodb-sdk'
+import type { NcErrorType, SsoFailureCode } from 'nocodb-sdk'
 
 export interface SsoError {
-  type: NcErrorType
+  type: NcErrorType | SsoFailureCode
   message: string
+  /** Log correlation id — set when the backend redirected here after a failed sign-in. */
+  ref?: string
 }
 
 export const useSsoError = () => {

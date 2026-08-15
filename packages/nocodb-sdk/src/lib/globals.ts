@@ -175,6 +175,19 @@ export enum NcDataErrorCodes {
   NC_ERR_MM_MODEL_NOT_FOUND = 'NC_ERR_MM_MODEL_NOT_FOUND',
 }
 
+/**
+ * Coarse buckets for SSO sign-in failures, surfaced to the browser as
+ * `/sso?error=<code>`. Deliberately coarse — the precise reason stays in the
+ * server log, since the redirect endpoint is unauthenticated.
+ */
+export enum SsoFailureCode {
+  SSO_STATE_INVALID = 'SSO_STATE_INVALID',
+  SSO_TOKEN_INVALID = 'SSO_TOKEN_INVALID',
+  SSO_PROVIDER_ERROR = 'SSO_PROVIDER_ERROR',
+  SSO_ACCOUNT_NOT_ALLOWED = 'SSO_ACCOUNT_NOT_ALLOWED',
+  SSO_FAILED = 'SSO_FAILED',
+}
+
 export const NC_ERROR_SENTINEL = '_____NC_ERROR_____';
 
 export enum NcErrorType {

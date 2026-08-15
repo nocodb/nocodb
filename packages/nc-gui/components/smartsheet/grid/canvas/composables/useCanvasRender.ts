@@ -48,6 +48,7 @@ import { ElementTypes } from '../utils/CanvasElement'
 import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
+import type { GridRemoteFieldMap, GridRemoteFocus, GridRemoteFocusMap, GridRemoteRecordMap } from '~/lib/types'
 
 export function useCanvasRender({
   width,
@@ -61,6 +62,9 @@ export function useCanvasRender({
   rowHeight,
   headerRowHeight,
   activeCell,
+  remoteFocuses,
+  remoteRecords,
+  remoteFields,
   dragOver,
   hoverRow,
   selection,
@@ -127,6 +131,9 @@ export function useCanvasRender({
     column?: number
     path?: Array<number>
   }>
+  remoteFocuses: Ref<GridRemoteFocusMap>
+  remoteRecords: Ref<GridRemoteRecordMap>
+  remoteFields: Ref<GridRemoteFieldMap>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedGroups: Ref<Map<number, CanvasGroup>>
@@ -236,6 +243,20 @@ export function useCanvasRender({
     if (!expandedFormPanelStore?.isOpen.value) return null
     return expandedFormPanelStore.activePath.value ?? []
   })
+
+  // Whether THIS viewer has the row open in the side panel. Shared by the brand accent
+  // bar in renderRowMeta and the remote-record bar, which shifts right when both land on
+  // the same row so neither is lost.
+  function isExpandedPanelRow(row: Row) {
+    return (
+      expandedPanelRowIndex.value === row.rowMeta.rowIndex &&
+      expandedPanelPath.value !== null &&
+      // Default both sides to [] — flat rows have row.rowMeta.path === undefined,
+      // and comparePath requires arrays on both sides, so the highlight would
+      // never paint in non-group-by views without this normalisation.
+      comparePath(expandedPanelPath.value, row.rowMeta?.path ?? [])
+    )
+  }
 
   const { isDark, getColor } = useTheme()
 
@@ -512,6 +533,8 @@ export function useCanvasRender({
             fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
           })
         }
+
+        drawHeaderFieldFocus(ctx, colObj.id, xOffset - _scrollLeft, width, _headerRowHeight)
       }
 
       ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
@@ -803,6 +826,8 @@ export function useCanvasRender({
               fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
             })
           }
+
+          drawHeaderFieldFocus(ctx, column.columnObj.id, xOffset, width, _headerRowHeight)
         }
 
         ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
@@ -1220,14 +1245,7 @@ export function useCanvasRender({
 
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
-    if (
-      expandedPanelRowIndex.value === row.rowMeta.rowIndex &&
-      expandedPanelPath.value !== null &&
-      // Default both sides to [] — flat rows have row.rowMeta.path === undefined,
-      // and comparePath requires arrays on both sides, so the highlight would
-      // never paint in non-group-by views without this normalisation.
-      comparePath(expandedPanelPath.value, row.rowMeta?.path ?? [])
-    ) {
+    if (isExpandedPanelRow(row)) {
       ctx.fillStyle = getColor(themeV4Colors.brand['500'])
       ctx.fillRect(xOffset, yOffset, 3, rowHeight.value)
     }
@@ -1656,6 +1674,249 @@ export function useCanvasRender({
     }
   }
 
+  // ── Remote focus presence (other collaborators' cell cursors) ──
+  // Boxes are collected during the row render (where the row PK and the cell
+  // rect are already in hand) and drawn as a single clipped overlay after the
+  // rows, so the coloured borders sit on top of cell content. Keyed by row PK +
+  // field id, so a cursor follows its data even as rows scroll / reorder.
+  interface RemoteFocusBox {
+    x: number
+    y: number
+    width: number
+    height: number
+    focuses: GridRemoteFocus[]
+    /** Whether the cell belongs to a frozen column — decides if the fixed-area clip applies. */
+    fixed: boolean
+    /** The viewer's own active cell — demoted to a corner marker so the native selection/edit UI wins. */
+    ownCell: boolean
+    /** The group's row clip, when rendered inside a grouped view (see renderGroupRows). */
+    clip?: { x: number; y: number; width: number; height: number }
+  }
+
+  const remoteFocusBoxes: RemoteFocusBox[] = []
+
+  // ── Remote record presence (collaborators with the record open) ──
+  // Collected once per row (where the PK is already in hand) and drawn as a left accent
+  // bar in the overlay pass. In MODAL mode this is the only grid signal for an expanded
+  // record — opening one suppresses that connection's cell cursor. In side-panel mode the
+  // cursor stays live, so a collaborator can show both this bar and a cell cursor, on
+  // different rows.
+  interface RemoteRecordMark {
+    x: number
+    y: number
+    height: number
+    focuses: GridRemoteFocus[]
+  }
+
+  const remoteRecordMarks: RemoteRecordMark[] = []
+
+  const RECORD_MARK_WIDTH = 3
+
+  function collectRemoteRecord(pk: string | null | undefined, row: Row, x: number, y: number, height: number) {
+    if (!pk) return
+    const map = remoteRecords.value
+    if (!map.size) return
+    const focuses = map.get(pk)
+    if (!focuses?.length) return
+
+    // This pass runs after renderRowMeta, so drawing the full strip would silently
+    // replace the viewer's own side-panel bar — which in panel mode is their only cue for
+    // which row they have open. Share it instead: brand keeps the top half, the
+    // collaborator takes the bottom. Split vertically rather than sideways so the mark
+    // stays inside the original 3px — the row-meta drag handle starts 4px in, and this
+    // pass would draw over it.
+    const shared = isExpandedPanelRow(row)
+    const splitAt = shared ? Math.floor(height / 2) : 0
+
+    // `x` must be the row-meta column's own left edge — the same origin renderRowMeta
+    // draws the brand bar from, so the two share one lane. Callers pass it rather than
+    // `initialXOffset`, which in flat views also carries the horizontal scroll offset and
+    // would send the bar drifting out into the data area.
+    remoteRecordMarks.push({ x: Math.max(0, x), y: y + splitAt, height: height - splitAt, focuses })
+  }
+
+  function drawRemoteRecordMarks(ctx: CanvasRenderingContext2D) {
+    if (!remoteRecordMarks.length) return
+    ctx.save()
+    for (const mark of remoteRecordMarks) {
+      // First collaborator only — the bar carries no identity, so a second colour would
+      // just be noise. Who is where comes from the topbar avatars.
+      const primary = mark.focuses[0]
+      if (!primary) continue
+      ctx.fillStyle = primary.color
+      ctx.fillRect(mark.x, mark.y, RECORD_MARK_WIDTH, mark.height)
+    }
+    ctx.restore()
+  }
+
+  /**
+   * Field-config-editor presence: a coloured underline on the column header while a
+   * collaborator has that field's edit dropdown open. Called from both header passes
+   * (scrolling + fixed columns).
+   */
+  function drawHeaderFieldFocus(
+    ctx: CanvasRenderingContext2D,
+    fieldId: string | undefined,
+    x: number,
+    width: number,
+    headerHeight: number,
+  ) {
+    if (!fieldId) return
+    const map = remoteFields.value
+    if (!map.size) return
+    const focuses = map.get(fieldId)
+    if (!focuses?.length) return
+    ctx.save()
+    ctx.fillStyle = focuses[0]!.color
+    ctx.fillRect(x, headerHeight - 2.5, width, 2.5)
+    ctx.restore()
+  }
+
+  function collectRemoteFocus(
+    pk: string | null | undefined,
+    fieldId: string | undefined,
+    x: number,
+    y: number,
+    cellWidth: number,
+    cellHeight: number,
+    fixed: boolean,
+    ownCell: boolean,
+    clip?: { x: number; y: number; width: number; height: number },
+  ) {
+    if (!pk || !fieldId) return
+    const map = remoteFocuses.value
+    if (!map.size) return
+    const focuses = map.get(pk)?.get(fieldId)
+    if (focuses?.length) remoteFocusBoxes.push({ x, y, width: cellWidth, height: cellHeight, focuses, fixed, ownCell, clip })
+  }
+
+  function drawRemoteFocusBoxes(ctx: CanvasRenderingContext2D) {
+    if (!remoteFocusBoxes.length) return
+
+    // `row_number` is always fixed, so fixedWidth is non-zero on every view.
+    const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
+
+    for (const box of remoteFocusBoxes) {
+      const primary = box.focuses[0]
+      if (!primary) continue
+
+      // Mirror renderActiveState's fixed-area geometry EXACTLY — same `<=` comparison,
+      // same +1 reposition — so the presence border lands on the same pixels as the
+      // active border. Anything else shows as a skew on a cell carrying both; the first
+      // scrollable column (x === fixedWidth) is the giveaway.
+      let drawX = box.x
+      let drawW = box.width
+      if (!box.fixed && box.x <= fixedWidth) {
+        // Entirely under the fixed area — the fixed columns repainted over it.
+        if (box.x + box.width <= fixedWidth) continue
+        // +1 for the border separating the fixed and scrollable columns.
+        drawX = fixedWidth + 1
+        drawW = box.width - (fixedWidth - box.x)
+      }
+
+      ctx.save()
+
+      // Grouped views clip each row to the group's indent and width, but that clip is
+      // restored long before this pass runs — without re-applying it the box bleeds past
+      // the group indent on the left and the group edge on the right.
+      if (box.clip) {
+        ctx.beginPath()
+        ctx.rect(box.clip.x, box.clip.y, box.clip.width, box.clip.height)
+        ctx.clip()
+      }
+
+      const color = primary.color
+
+      // The viewer is on this cell too: their own selection/edit UI wins. A corner
+      // wedge in the collaborator's colour keeps the "someone else is here" hint
+      // without competing with the active border or hiding under the DOM editor.
+      // Inset by 1 so the active border stroke stays fully visible — on overlap the
+      // active border wins, the wedge tucks inside it.
+      if (box.ownCell) {
+        const size = 8
+        ctx.beginPath()
+        ctx.moveTo(drawX + drawW - 1 - size, box.y + 1)
+        ctx.lineTo(drawX + drawW - 1, box.y + 1)
+        ctx.lineTo(drawX + drawW - 1, box.y + 1 + size)
+        ctx.closePath()
+        ctx.fillStyle = color
+        ctx.fill()
+        ctx.restore()
+        continue
+      }
+
+      const isEditing = box.focuses.some((f) => f.editing)
+
+      if (isEditing) {
+        ctx.globalAlpha = 0.1
+        ctx.fillStyle = color
+        ctx.fillRect(drawX, box.y, drawW, box.height)
+        ctx.globalAlpha = 1
+      }
+
+      // Same geometry as renderActiveState, so a collaborator's cell reads like the
+      // viewer's own active cell — only the colour differs.
+      roundedRect(ctx, drawX, box.y, drawW, box.height, 2, {
+        borderColor: color,
+        borderWidth: 1,
+      })
+
+      // Collaborator name label (bottom-right tab) — no avatar/emoji, just the name
+      // so it's clear who's on the cell. While they're editing it reads "… is typing".
+      const extra = box.focuses.length > 1 ? ` +${box.focuses.length - 1}` : ''
+      const labelFont = '600 11px Inter'
+      const padX = 5
+      const labelH = 16
+      // The label is drawn INSIDE the cell over its content, so sizing it to the cell
+      // lets an unbounded display name blanket exactly what the viewer is trying to
+      // read. Grow with the column, but never past 3/4 of the cell — the content keeps
+      // the last quarter — with a 140px floor so narrow columns still get a legible name.
+      const maxLabelW = Math.min(drawW - 2, Math.max(140, ((drawW - 2) * 3) / 4))
+      const maxTextW = Math.max(0, maxLabelW - padX * 2)
+      // Truncate the NAME, never the suffixes: "is typing…" / "+N" are the states the
+      // label exists to show, and composing before truncating lets a long name push
+      // them out entirely.
+      const suffixW = renderSingleLineText(ctx, {
+        text: (isEditing ? t('labels.userIsTyping', { name: '' }) : '') + extra,
+        fontFamily: labelFont,
+        render: false,
+      }).width
+      const { text: fittedName } = renderSingleLineText(ctx, {
+        text: primary.name,
+        fontFamily: labelFont,
+        maxWidth: Math.max(0, maxTextW - suffixW),
+        render: false,
+      })
+      // `editing` is authoritative — the editor's client only broadcasts it for cells it can
+      // actually edit (read-only/computed/synced/no-permission cells are never "editing").
+      const labelText = (isEditing ? t('labels.userIsTyping', { name: fittedName }) : fittedName) + extra
+      const measured = renderSingleLineText(ctx, { text: labelText, fontFamily: labelFont, maxWidth: maxTextW, render: false })
+      const labelW = Math.min(maxLabelW, measured.width + padX * 2)
+      // Anchored on the border path itself (the 1px stroke is centered on it), so the
+      // label background meets the border line with no gap.
+      const labelX = drawX + drawW - labelW
+      const labelY = box.y + box.height - labelH
+      roundedRect(ctx, labelX, labelY, labelW, labelH, { topLeft: 6, bottomRight: 2 }, { backgroundColor: color })
+      renderSingleLineText(ctx, {
+        x: labelX + padX,
+        y: labelY,
+        height: labelH,
+        text: labelText,
+        fontFamily: labelFont,
+        maxWidth: maxTextW,
+        // 150, not the default 128: the presence palette is saturated mid-tone accents
+        // (emerald #10b981 scores 128.1) that need white text despite passing the
+        // default cutoff. At 150 only the genuinely light ones (amber, lime) keep black.
+        fillStyle: isColorDark(color, 150) ? '#ffffff' : '#000000',
+        textAlign: 'left',
+        verticalAlign: 'middle',
+        isTagLabel: true,
+      })
+
+      ctx.restore()
+    }
+  }
+
   function renderRow(
     ctx: CanvasRenderingContext2D,
     {
@@ -1667,6 +1928,7 @@ export function useCanvasRender({
       yOffset,
       group,
       rowBgAlreadyApplied = false,
+      clipRect,
     }: {
       row: Row
       initialXOffset: number
@@ -1676,6 +1938,12 @@ export function useCanvasRender({
       rowIdx: number
       group?: CanvasGroup
       rowBgAlreadyApplied?: boolean
+      /**
+       * The clip the caller has applied around this row, if any. Only grouped views set it.
+       * Carried so overlays drawn after the row pass (remote focus boxes) can re-apply the
+       * same bounds — by then the caller's ctx.restore() has already dropped them.
+       */
+      clipRect?: { x: number; y: number; width: number; height: number }
     },
   ) {
     let activeState: {
@@ -1731,6 +1999,10 @@ export function useCanvasRender({
       const _scrollLeft = scrollLeft.value
       const _yOffset = yOffset
       const _rowH = rowHeight.value
+
+      // Mirrors both fixed-column passes below (`xOffset = isGroupBy ? initialXOffset : 0`),
+      // which is where renderRowMeta paints the brand side-panel bar.
+      collectRemoteRecord(pk, row, isGroupBy.value ? initialXOffset : 0, _yOffset, _rowH)
 
       visibleCols.forEach((column, colIdx) => {
         let width = parseCellWidth(column.width)
@@ -1794,6 +2066,8 @@ export function useCanvasRender({
             height: _rowH,
           }
         }
+
+        collectRemoteFocus(pk, column.columnObj?.id, xOffset - _scrollLeft, yOffset, width, _rowH, false, isActive, clipRect)
 
         const value = row.row[column.title]
 
@@ -1915,6 +2189,9 @@ export function useCanvasRender({
                 height: _rowH,
               }
             }
+
+            collectRemoteFocus(pk, column.columnObj?.id, xOffset, yOffset, width, _rowH, true, isActive, clipRect)
+
             if (isColumnRequiredAndNull(column.columnObj, row.row)) {
               renderRedBorders.push({ rowIndex: rowIdx, column })
             }
@@ -3053,6 +3330,7 @@ export function useCanvasRender({
         rowIdx: i,
         yOffset,
         group,
+        clipRect: { x: indent, y: yOffset, width: adjustedWidth, height: rowHeight.value },
       })
       ctx.restore()
       elementMap.addElement({
@@ -4045,6 +4323,8 @@ export function useCanvasRender({
       let activeState
 
       elementMap.clear()
+      remoteFocusBoxes.length = 0
+      remoteRecordMarks.length = 0
       let postRenderCbk
 
       const _headerRowHeight = headerRowHeight.value
@@ -4098,7 +4378,17 @@ export function useCanvasRender({
       ctx.beginPath()
       ctx.rect(0, _headerRowHeight, totalWidth.value, _height - _headerRowHeight - AGGREGATION_HEIGHT)
       ctx.clip()
+
+      // Presence overlay BEFORE the active-cell UI: adjacent cells share their border
+      // pixels, so whichever draws last owns the shared line — and that must be the
+      // viewer's own border and fill handle. Grouped views re-draw them via
+      // postRenderCbk; flat views via the explicit calls (renderActiveState no-ops on
+      // an undefined activeState, which is the grouped case).
+      drawRemoteFocusBoxes(ctx)
+      drawRemoteRecordMarks(ctx)
       postRenderCbk?.()
+      renderActiveState(ctx, activeState)
+      renderFillHandle(ctx)
     } finally {
       ctx.restore()
     }

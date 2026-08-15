@@ -1141,7 +1141,7 @@ const cardFields = (record: RowType) => {
                               <LazySmartsheetRow :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                                  class="relative !rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
                                   :body-style="{
                                     padding: cardBodyPadding,
                                     flex: 1,
@@ -1158,6 +1158,7 @@ const cardFields = (record: RowType) => {
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
                                 >
+                                  <SmartsheetRecordPresenceBadge v-if="isEeUI" :row="record" class="absolute top-2 right-2 z-10" />
                                   <!--
                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.

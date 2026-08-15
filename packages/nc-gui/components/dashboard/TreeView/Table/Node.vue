@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType } from 'nocodb-sdk'
+import { type BaseType, PlanFeatureTypes, PlanTitles, PresencePageType, type TableType } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -607,6 +607,11 @@ const isMmTable = computed(() => !!table.value?.mm)
               {{ table.title }}
             </span>
           </NcTooltip>
+          <DashboardTreeViewPresenceAvatars
+            v-if="isEeUI && !isEditing"
+            :resource-id="table.id"
+            :page-type="PresencePageType.TABLE"
+          />
           <div
             v-if="!isEditing"
             class="flex items-center"

@@ -84,9 +84,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <!-- Sandbox Status -->
         <LazySmartsheetTopbarSandboxStatus v-if="!isSharedBase && !isMobileMode" />
 
-        <LazySmartsheetTopbarCollaboratorPresence
-          v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
-        />
+        <!-- isEeUI, not appInfo.ee: presence ships on unlicensed on-prem too, where appInfo.ee is false. -->
+        <LazySmartsheetTopbarCollaboratorPresence v-if="!isPublic && !isSharedBase && !isMobileMode && isEeUI" />
 
         <LazySmartsheetTopbarHistory v-if="!isSharedBase && !isMobileMode && isEeUI" />
 

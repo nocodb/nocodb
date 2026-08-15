@@ -5,6 +5,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       onMessage: (..._args: any[]) => null,
       offMessage: (..._args: any[]) => null,
       emit: (..._args: any[]) => undefined,
+      onReady:
+        (..._args: any[]) =>
+        () => {},
       on:
         (..._args: any[]) =>
         () => {},

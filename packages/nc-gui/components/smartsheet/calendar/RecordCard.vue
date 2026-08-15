@@ -121,6 +121,8 @@ const cardShadow = computed(() => {
     <!-- Minimal makes the bar its defining mark, so it runs the full card height (flush). -->
     <div v-if="showLeftBar" class="nc-cal-leftbar self-stretch -my-px -ml-px"></div>
 
+    <SmartsheetRecordPresenceBadge v-if="isEeUI && record" :row="record" class="absolute top-1 right-1 z-10" />
+
     <div
       v-if="(position === 'leftRounded' || position === 'rounded') && resize"
       class="mt-0.7 w-2 h-7.1 -left-1 absolute resize"

@@ -26,6 +26,7 @@ export enum EventType {
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
   INTERFACE_EVENT = 'event-interface',
   PRESENCE_EVENT = 'event-presence',
+  FOCUS_EVENT = 'event-focus',
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
@@ -49,6 +50,32 @@ export function getDocSyncRoom(
 ): string {
   return `${EventType.DOCUMENT_SYNC_EVENT}:${workspaceId}:${baseId}:${docId}`;
 }
+
+/**
+ * Room key for a table's focus-presence channel.
+ *
+ * Keyed by table, not view, so every surface over one table — grid, expanded
+ * record, cards, field-config editor — lands in the same room and their
+ * occupants see each other.
+ */
+export function getFocusRoom(
+  workspaceId: string,
+  baseId: string,
+  tableId: string
+): string {
+  return `${EventType.FOCUS_EVENT}:${workspaceId}:${baseId}:table:${tableId}`;
+}
+
+/** Client→server socket event for emitting a connection's current focus. */
+export const FOCUS_UPDATE_EVENT = 'focus:update';
+
+/**
+ * Client→server: release a focus room once its last local consumer lets go.
+ *
+ * Rooms are per-table, so without this browsing N tables leaves N live cursor
+ * streams attached to the connection.
+ */
+export const FOCUS_UNSUBSCRIBE_EVENT = 'focus:unsubscribe';
 
 export interface BaseSocketPayload {
   timestamp: number;
@@ -191,33 +218,69 @@ export enum PresencePageType {
   DASHBOARD = 'dashboard',
   SCRIPT = 'script',
   DOCUMENT = 'document',
+  /** Settings, base home — a page with no addressable resource. Renders as "Active". */
+  OTHER = 'other',
+}
+
+/**
+ * A user as carried on realtime presence / focus payloads. Only `id` is
+ * guaranteed — name, email and avatar (`meta`) may be absent depending on the
+ * source (e.g. a focus broadcast derives identity from the JWT). Receivers
+ * resolve the canonical avatar/colour from the base-presence list keyed by `id`.
+ */
+export interface RealtimeUser {
+  id: string;
+  email?: string;
+  display_name?: string;
+  meta?: Record<string, any> | null;
+}
+
+/**
+ * Where a collaborator is, at whatever detail the recipient is entitled to.
+ *
+ * - **located** — `id` (and optionally `viewId`) present: the recipient can reach it
+ * - **typed** — `type` only: the recipient cannot access this resource
+ * - **active** — the whole `resource` is absent: there is no addressable resource
+ *
+ * Server→client frames broadcast to the base room never carry `id`; the located tier is
+ * emitted into access-scoped rooms instead. See the tiering in `NocoPresence`.
+ */
+export interface PresenceResource {
+  id?: string;
+  type: PresencePageType;
+  viewId?: string;
 }
 
 export interface PresenceAnnouncePayload extends BaseSocketPayload {
   action: 'announce';
-  user: {
-    id: string;
-    email: string;
-    displayName: string;
-    meta?: Record<string, any> | null;
-  };
-  resource: {
-    id: string;
-    type: PresencePageType;
-    viewId?: string;
-  };
+  user: RealtimeUser;
+  resource?: PresenceResource;
 }
 
+/**
+ * Client→server: liveness plus the sender's current location.
+ *
+ * Also broadcast server→client (identity only, no `resource`) when a heartbeat did NOT
+ * change location — receivers expire a collaborator they have not heard from within
+ * their own timeout, so a stationary user needs *something* on the wire to stay alive.
+ */
 export interface PresenceHeartbeatPayload extends BaseSocketPayload {
   action: 'heartbeat';
   user: {
     id: string;
   };
-  resource: {
-    id: string;
-    type: PresencePageType;
-    viewId?: string;
-  };
+  resource?: PresenceResource;
+}
+
+/**
+ * Server-side batched form of the heartbeat relay: the ids of users whose
+ * heartbeats arrived in the room since its last flush. Liveness only —
+ * receivers refresh `lastSeen` for ids they already track; an unknown id is
+ * introduced by its own announce, never by this.
+ */
+export interface PresenceHeartbeatBatchPayload extends BaseSocketPayload {
+  action: 'heartbeat-batch';
+  userIds: string[];
 }
 
 export interface PresenceLocationChangePayload extends BaseSocketPayload {
@@ -225,11 +288,7 @@ export interface PresenceLocationChangePayload extends BaseSocketPayload {
   user: {
     id: string;
   };
-  resource: {
-    id: string;
-    type: PresencePageType;
-    viewId?: string;
-  };
+  resource?: PresenceResource;
 }
 
 export interface PresenceLeavePayload extends BaseSocketPayload {
@@ -242,17 +301,8 @@ export interface PresenceLeavePayload extends BaseSocketPayload {
 export interface PresenceBatchPayload extends BaseSocketPayload {
   action: 'batch';
   users: Array<{
-    user: {
-      id: string;
-      email: string;
-      displayName: string;
-      meta?: Record<string, any> | null;
-    };
-    resource: {
-      id: string;
-      type: PresencePageType;
-      viewId?: string;
-    };
+    user: RealtimeUser;
+    resource?: PresenceResource;
     lastSeen: number;
   }>;
 }
@@ -260,9 +310,88 @@ export interface PresenceBatchPayload extends BaseSocketPayload {
 export type PresencePayload =
   | PresenceAnnouncePayload
   | PresenceHeartbeatPayload
+  | PresenceHeartbeatBatchPayload
   | PresenceLocationChangePayload
   | PresenceLeavePayload
   | PresenceBatchPayload;
+
+/**
+ * A connection's current focus within a table. Typed by `type` so additional
+ * focus kinds can be added without a protocol change. `null` means the
+ * connection has no focus (cleared selection / left the table).
+ *
+ * - `cell` — a grid cell. `editing` = actively typing; `uploading` = attachment
+ *   upload in flight.
+ * - `record` — the connection has the record open (expanded form / card).
+ *   `editing` = unsaved changes; `typing: 'comment'` = composing a comment.
+ * - `field` — the connection has the field's config editor (column edit
+ *   dropdown) open.
+ */
+export type FocusValue =
+  | {
+      type: 'cell';
+      rowPk: string;
+      fieldId: string;
+      /**
+       * View the cursor sits in — grids hide cell cursors from other views.
+       * Absent on view-agnostic frames (attachment upload).
+       */
+      viewId?: string;
+      editing?: boolean;
+      uploading?: boolean;
+      /**
+       * Record open in the expanded-form SIDE PANEL, which — unlike the modal —
+       * leaves the grid interactive. So a connection holds a cursor and an open
+       * record at the same time, and they may be different rows.
+       *
+       * Rides on the cell frame rather than being a second focus: one frame per
+       * connection is what the presence tiering's `.except()` routing depends on.
+       * The modal path still emits a plain `record` focus.
+       */
+      openRecordPk?: string;
+    }
+  | {
+      type: 'record';
+      rowPk: string;
+      editing?: boolean;
+      typing?: 'comment';
+    }
+  | {
+      type: 'field';
+      fieldId: string;
+    }
+  | null;
+
+/** Server→client: a single connection's focus changed. */
+export interface FocusUpdatePayload extends BaseSocketPayload {
+  action: 'focus';
+  /** Per-connection id (socket id) — distinct from user id. */
+  presenceId: string;
+  user: RealtimeUser;
+  focus: FocusValue;
+}
+
+/** Server→client: a connection left the view / disconnected; drop its focus. */
+export interface FocusLeavePayload extends BaseSocketPayload {
+  action: 'focus-leave';
+  presenceId: string;
+  user: RealtimeUser;
+}
+
+/** Server→client: bootstrap snapshot of all current focuses, sent on subscribe. */
+export interface FocusBatchPayload extends BaseSocketPayload {
+  action: 'focus-batch';
+  focuses: Array<{
+    presenceId: string;
+    user: RealtimeUser;
+    focus: FocusValue;
+  }>;
+}
+
+export type FocusPayload =
+  | FocusUpdatePayload
+  | FocusLeavePayload
+  | FocusBatchPayload;
 
 export interface ChatEventPayload extends BaseSocketPayload {
   action: ChatEventAction;
@@ -318,6 +447,7 @@ export type SocketEventPayload =
   | DocumentCommentPayload
   | NotificationPayload
   | PresencePayload
+  | FocusPayload
   | ChatEventPayload
   | SmartTextPayload;
 
@@ -332,6 +462,7 @@ export type SocketEventPayloadMap = {
   [EventType.COMMENT_EVENT]: CommentPayload;
   [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
+  [EventType.FOCUS_EVENT]: FocusPayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
   [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;

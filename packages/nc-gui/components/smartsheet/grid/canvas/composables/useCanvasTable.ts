@@ -1216,12 +1216,46 @@ export function useCanvasTable({
     attachmentCellDropOver,
   })
 
+  const getFocusRowPk = (rowIndex: number, path: Array<number> = []) => {
+    if (rowIndex == null || rowIndex < 0) return null
+    const dataCache = getDataCache(path)
+    const row = dataCache?.cachedRows?.value?.get(rowIndex)
+    if (!row) return null
+    return extractPkFromRow(row.row, (meta.value?.columns ?? []) as ColumnType[])
+  }
+
+  const { remoteFocuses, remoteRecords, remoteFields, followedFocus } = useGridFocusPresence({
+    view,
+    activeCell,
+    editEnabled,
+    columns,
+    getRowPk: getFocusRowPk,
+  })
+
+  // Reverse of getFocusRowPk — locate a loaded row by pk so follow-scroll can
+  // target it. Flat-view loaded chunks only: an unloaded or grouped row simply
+  // doesn't scroll (the remote cursor still renders when it comes into view).
+  const findFocusRowIndex = (rowPk: string): number | null => {
+    const rows = getDataCache([])?.cachedRows?.value
+    if (!rows) return null
+    const metaColumns = (meta.value?.columns ?? []) as ColumnType[]
+    for (const [index, row] of rows) {
+      if (extractPkFromRow(row.row, metaColumns) === rowPk) return index
+    }
+    return null
+  }
+
+  watch([remoteFocuses, remoteRecords, remoteFields], () => triggerRefreshCanvas())
+
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
     interfaceActiveHeaderFieldId,
     mousePosition,
     elementMap,
     height,
+    remoteFocuses,
+    remoteRecords,
+    remoteFields,
     columns,
     colSlice,
     groupByColumns,
@@ -2023,6 +2057,10 @@ export function useCanvasTable({
     findColumnPosition,
     isRecordSelectedInSelectedAllRecords,
     isRecordSelected,
+
+    // Focus presence (follow mode)
+    followedFocus,
+    findFocusRowIndex,
 
     // GroupBy Related
     syncGroupCount,

@@ -213,6 +213,7 @@ function onCellValueChange(colTitle: string | undefined) {
           show-lock-icon
           show-menu-mobile
         />
+        <SmartsheetExpandedFormFieldPresence v-if="isEeUI" :column-id="col.id" />
       </div>
 
       <a-skeleton-input

@@ -891,6 +891,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <SmartsheetExpandedFormCommentTypingIndicator v-if="isEeUI && hasEditPermission" :draft="comment" />
       <div
         v-if="hasEditPermission"
         class="px-3 pt-1 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-default"

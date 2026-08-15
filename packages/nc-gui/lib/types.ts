@@ -1,10 +1,12 @@
 import type { CSSProperties } from '@vue/runtime-dom'
+import type { Ref } from 'vue'
 
 import {
   type BaseType,
   type BaseVersion,
   type ColumnType,
   type FilterType,
+  type FocusValue,
   type MetaType,
   type PaginatedType,
   type PermissionEntity,
@@ -1245,4 +1247,66 @@ export type {
   OAuthAuthorization,
   SupportedDocsType,
   TeamType,
+}
+
+export interface GridRemoteFocus {
+  userId: string
+  presenceId: string
+  color: string
+  /** Collaborator display name, shown as a label on the focused cell. */
+  name: string
+  editing: boolean
+  /** An attachment upload is in flight on this cell. */
+  uploading?: boolean
+}
+
+/** rowPk → fieldId → focuses (one entry per remote connection on that cell). */
+export type GridRemoteFocusMap = Map<string, Map<string, GridRemoteFocus[]>>
+
+/** rowPk → connections with that record open (expanded form / card). */
+export type GridRemoteRecordMap = Map<string, GridRemoteFocus[]>
+
+/** fieldId → connections with that field's config editor open. */
+export type GridRemoteFieldMap = Map<string, GridRemoteFocus[]>
+
+/** The followed collaborator's focused cell in the current view (drives follow-scroll). */
+export interface GridFollowedFocus {
+  rowPk: string
+  fieldId: string
+}
+
+/**
+ * One remote connection's focus on a table, resolved for display.
+ *
+ * `active` folds the freshness check on the activity flags (`editing` /
+ * `typing` / `uploading`) so consumers render a boolean rather than each
+ * re-deriving staleness.
+ */
+export interface RemoteFocusEntry {
+  userId: string
+  presenceId: string
+  color: string
+  name: string
+  focus: NonNullable<FocusValue>
+  active: boolean
+}
+
+/** A user rendered in a presence avatar stack (topbar / doc / expanded record). */
+export interface PresenceStackUser {
+  userId: string
+  email?: string
+  display_name?: string
+  meta?: Record<string, any> | null
+  color?: string
+}
+
+export interface FocusPresenceParams {
+  view: Ref<ViewType | undefined>
+  activeCell: Ref<{ row?: number; column?: number; path?: Array<number> }>
+  /** Truthy while a cell is in edit mode (typed `unknown` to decouple from the canvas edit type). */
+  editEnabled: Ref<unknown>
+  /** `readonly` is the rolled-up "can this user edit this cell" — used to avoid broadcasting
+   *  "editing" when the grid opens a read-only/computed/synced cell in view mode. */
+  columns: Ref<Array<{ id?: string; columnObj?: ColumnType; readonly?: boolean }>>
+  getRowPk: (rowIndex: number, path?: Array<number>) => string | null
 }

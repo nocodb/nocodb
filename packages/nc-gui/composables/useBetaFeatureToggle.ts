@@ -184,6 +184,17 @@ const FEATURES = [
     description: 'Allow users to hide their own presence from other collaborators.',
     enabled: false,
     version: 1,
+    // Not engineering-only: engineering mode is a triple-click easter egg on a
+    // non-persisted ref, so the toggle was unreachable for real users.
+    isEngineering: false,
+    isEE: true,
+  },
+  {
+    id: 'presence_follow',
+    title: 'Follow Collaborator',
+    description: 'Follow a collaborator: track them across views and keep their cursor scrolled into view in the grid.',
+    enabled: false,
+    version: 1,
     isEngineering: true,
     isEE: true,
   },

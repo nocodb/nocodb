@@ -151,6 +151,7 @@ export class UiGetOperations
         return new PagedResponseImpl(
           await this.filtersService.filterChildrenList(context, {
             filterId: req.query.filterId as string,
+            req,
           }),
         );
       case 'sortList':

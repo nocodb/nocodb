@@ -5728,13 +5728,13 @@
     "tryAgain": "Try Again",
     "sso": {
       "signInFailed": "We couldn't sign you in",
-      "shareCode": "Contact your administrator and share this code",
+      "shareCode": "Need help? Share this code with your administrator",
       "failure": {
-        "SSO_STATE_INVALID": "Your sign-in session expired or couldn't be verified. Start again from the sign-in page.",
-        "SSO_TOKEN_INVALID": "Your identity provider responded, but its response couldn't be validated.",
-        "SSO_PROVIDER_ERROR": "Your identity provider reported an error during sign-in.",
-        "SSO_ACCOUNT_NOT_ALLOWED": "Your account isn't allowed to sign in here.",
-        "SSO_FAILED": "Your identity provider responded, but the sign-in couldn't be completed."
+        "SSO_STATE_INVALID": "Your sign-in session expired or was interrupted. Please try again.",
+        "SSO_TOKEN_INVALID": "We couldn't verify the reply from your sign-in provider. Please try again, and tell your administrator if it keeps happening.",
+        "SSO_PROVIDER_ERROR": "Your sign-in provider ran into a problem. Please try again in a moment.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "This account isn't allowed to sign in. Ask your administrator for access, or try a different account.",
+        "SSO_FAILED": "Something went wrong while signing you in. Please try again."
       }
     },
     "internalUrlsNotAllowed": "Internal URLs are not allowed",

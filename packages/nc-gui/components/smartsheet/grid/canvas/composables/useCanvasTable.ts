@@ -1224,7 +1224,7 @@ export function useCanvasTable({
     return extractPkFromRow(row.row, (meta.value?.columns ?? []) as ColumnType[])
   }
 
-  const { remoteFocuses, followedFocus } = useGridFocusPresence({
+  const { remoteFocuses, remoteRecords, remoteFields, followedFocus } = useGridFocusPresence({
     view,
     activeCell,
     editEnabled,
@@ -1245,7 +1245,7 @@ export function useCanvasTable({
     return null
   }
 
-  watch(remoteFocuses, () => triggerRefreshCanvas())
+  watch([remoteFocuses, remoteRecords, remoteFields], () => triggerRefreshCanvas())
 
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
@@ -1254,6 +1254,8 @@ export function useCanvasTable({
     elementMap,
     height,
     remoteFocuses,
+    remoteRecords,
+    remoteFields,
     columns,
     colSlice,
     groupByColumns,

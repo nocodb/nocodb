@@ -48,7 +48,7 @@ import { ElementTypes } from '../utils/CanvasElement'
 import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
-import type { GridRemoteFocus, GridRemoteFocusMap } from '~/lib/types'
+import type { GridRemoteFieldMap, GridRemoteFocus, GridRemoteFocusMap, GridRemoteRecordMap } from '~/lib/types'
 
 export function useCanvasRender({
   width,
@@ -63,6 +63,8 @@ export function useCanvasRender({
   headerRowHeight,
   activeCell,
   remoteFocuses,
+  remoteRecords,
+  remoteFields,
   dragOver,
   hoverRow,
   selection,
@@ -130,6 +132,8 @@ export function useCanvasRender({
     path?: Array<number>
   }>
   remoteFocuses: Ref<GridRemoteFocusMap>
+  remoteRecords: Ref<GridRemoteRecordMap>
+  remoteFields: Ref<GridRemoteFieldMap>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedGroups: Ref<Map<number, CanvasGroup>>
@@ -515,6 +519,8 @@ export function useCanvasRender({
             fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
           })
         }
+
+        drawHeaderFieldFocus(ctx, colObj.id, xOffset - _scrollLeft, width, _headerRowHeight)
       }
 
       ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
@@ -806,6 +812,8 @@ export function useCanvasRender({
               fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
             })
           }
+
+          drawHeaderFieldFocus(ctx, column.columnObj.id, xOffset, width, _headerRowHeight)
         }
 
         ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
@@ -1680,6 +1688,71 @@ export function useCanvasRender({
 
   const remoteFocusBoxes: RemoteFocusBox[] = []
 
+  // ── Remote record presence (collaborators with the record open) ──
+  // Collected once per row (where the PK is already in hand) and drawn as a left accent
+  // bar in the overlay pass. This is the ONLY grid signal for an expanded record: opening
+  // one suppresses that connection's cell cursor, so without the bar the collaborator
+  // vanishes from the grid entirely.
+  interface RemoteRecordMark {
+    x: number
+    y: number
+    height: number
+    focuses: GridRemoteFocus[]
+  }
+
+  const remoteRecordMarks: RemoteRecordMark[] = []
+
+  function collectRemoteRecord(pk: string | null | undefined, x: number, y: number, height: number) {
+    if (!pk) return
+    const map = remoteRecords.value
+    if (!map.size) return
+    const focuses = map.get(pk)
+    // `x` = the row's left edge, carrying the group indentation in group-by mode so the
+    // bar hugs the row instead of floating in the gutter.
+    if (focuses?.length) remoteRecordMarks.push({ x: Math.max(0, x), y, height, focuses })
+  }
+
+  // Shares its pixels with the side-panel row marker in renderRowMeta, and this pass runs
+  // later — so on the row open in the side panel the collaborator's colour replaces the
+  // brand one. Accepted: only one row can be in the panel, and someone else being in that
+  // record is the more urgent fact.
+  function drawRemoteRecordMarks(ctx: CanvasRenderingContext2D) {
+    if (!remoteRecordMarks.length) return
+    ctx.save()
+    for (const mark of remoteRecordMarks) {
+      // First collaborator only — the bar carries no identity, so a second colour would
+      // just be noise. Who is where comes from the topbar avatars.
+      const primary = mark.focuses[0]
+      if (!primary) continue
+      ctx.fillStyle = primary.color
+      ctx.fillRect(mark.x, mark.y, 3, mark.height)
+    }
+    ctx.restore()
+  }
+
+  /**
+   * Field-config-editor presence: a coloured underline on the column header while a
+   * collaborator has that field's edit dropdown open. Called from both header passes
+   * (scrolling + fixed columns).
+   */
+  function drawHeaderFieldFocus(
+    ctx: CanvasRenderingContext2D,
+    fieldId: string | undefined,
+    x: number,
+    width: number,
+    headerHeight: number,
+  ) {
+    if (!fieldId) return
+    const map = remoteFields.value
+    if (!map.size) return
+    const focuses = map.get(fieldId)
+    if (!focuses?.length) return
+    ctx.save()
+    ctx.fillStyle = focuses[0]!.color
+    ctx.fillRect(x, headerHeight - 2.5, width, 2.5)
+    ctx.restore()
+  }
+
   function collectRemoteFocus(
     pk: string | null | undefined,
     fieldId: string | undefined,
@@ -1905,6 +1978,8 @@ export function useCanvasRender({
       const _scrollLeft = scrollLeft.value
       const _yOffset = yOffset
       const _rowH = rowHeight.value
+
+      collectRemoteRecord(pk, initialXOffset, _yOffset, _rowH)
 
       visibleCols.forEach((column, colIdx) => {
         let width = parseCellWidth(column.width)
@@ -4226,6 +4301,7 @@ export function useCanvasRender({
 
       elementMap.clear()
       remoteFocusBoxes.length = 0
+      remoteRecordMarks.length = 0
       let postRenderCbk
 
       const _headerRowHeight = headerRowHeight.value
@@ -4282,6 +4358,7 @@ export function useCanvasRender({
       postRenderCbk?.()
 
       drawRemoteFocusBoxes(ctx)
+      drawRemoteRecordMarks(ctx)
     } finally {
       ctx.restore()
     }

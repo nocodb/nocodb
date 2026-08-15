@@ -999,7 +999,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   'expanded-form-store',
 )
 
-export { useProvideExpandedFormStore }
+// The non-throw consumer is exported too: hosts that may mount OUTSIDE an
+// expanded form (e.g. the comment typing indicator inside the interface
+// record sidebar) probe for the store and degrade gracefully.
+export { useProvideExpandedFormStore, useExpandedFormStore }
 
 export function useExpandedFormStoreOrThrow() {
   const expandedFormStore = useExpandedFormStore()

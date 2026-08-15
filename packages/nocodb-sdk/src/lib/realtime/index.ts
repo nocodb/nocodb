@@ -332,6 +332,11 @@ export type FocusValue =
       type: 'cell';
       rowPk: string;
       fieldId: string;
+      /**
+       * View the cursor sits in — grids hide cell cursors from other views.
+       * Absent on view-agnostic frames (attachment upload).
+       */
+      viewId?: string;
       editing?: boolean;
       uploading?: boolean;
     }

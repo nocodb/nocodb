@@ -5726,6 +5726,17 @@
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
     "tryAgain": "Try Again",
+    "sso": {
+      "signInFailed": "We couldn't sign you in",
+      "shareCode": "Need help? Share this code with your administrator",
+      "failure": {
+        "SSO_STATE_INVALID": "Your sign-in session expired or was interrupted. Please try again.",
+        "SSO_TOKEN_INVALID": "We couldn't verify the reply from your sign-in provider. Please try again, and tell your administrator if it keeps happening.",
+        "SSO_PROVIDER_ERROR": "Your sign-in provider ran into a problem. Please try again in a moment.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "This account isn't allowed to sign in. Ask your administrator for access, or try a different account.",
+        "SSO_FAILED": "Something went wrong while signing you in. Please try again."
+      }
+    },
     "internalUrlsNotAllowed": "Internal URLs are not allowed",
     "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls",
     "webhook": {

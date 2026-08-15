@@ -404,7 +404,7 @@ watch(
         <SmartsheetTopbarSandboxStatus />
         <!-- Base-level presence: this topbar backs base home, settings and docs, so
              without it the avatars vanish the moment a user steps off a table. -->
-        <LazySmartsheetTopbarCollaboratorPresence v-if="!isSharedBase && appInfo.ee" />
+        <LazySmartsheetTopbarCollaboratorPresence v-if="!isSharedBase && isEeUI" />
         <LazySmartsheetTopbarHistory />
         <LazyGeneralShareProject v-if="!props.tab" />
       </div>

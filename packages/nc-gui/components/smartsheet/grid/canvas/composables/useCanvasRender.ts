@@ -1740,9 +1740,11 @@ export function useCanvasRender({
         ctx.globalAlpha = 1
       }
 
-      roundedRect(ctx, box.x + 1, box.y + 1, box.width - 2, box.height - 2, 2, {
+      // Same geometry as renderActiveState, so a collaborator's cell reads like the
+      // viewer's own active cell — only the colour differs.
+      roundedRect(ctx, box.x, box.y, box.width, box.height, 2, {
         borderColor: color,
-        borderWidth: 2,
+        borderWidth: 1,
       })
 
       // Collaborator name label (bottom-right tab) — no avatar/emoji, just the name
@@ -1776,8 +1778,10 @@ export function useCanvasRender({
       const labelText = (isEditing ? t('labels.userIsTyping', { name: fittedName }) : fittedName) + extra
       const measured = renderSingleLineText(ctx, { text: labelText, fontFamily: labelFont, maxWidth: maxTextW, render: false })
       const labelW = Math.min(maxLabelW, measured.width + padX * 2)
-      const labelX = box.x + box.width - 1 - labelW
-      const labelY = box.y + box.height - 1 - labelH
+      // Anchored on the border path itself (the 1px stroke is centered on it), so the
+      // label background meets the border line with no gap.
+      const labelX = box.x + box.width - labelW
+      const labelY = box.y + box.height - labelH
       roundedRect(ctx, labelX, labelY, labelW, labelH, { topLeft: 6, bottomRight: 2 }, { backgroundColor: color })
       renderSingleLineText(ctx, {
         x: labelX + padX,

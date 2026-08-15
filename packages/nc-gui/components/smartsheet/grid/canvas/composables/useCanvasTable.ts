@@ -1216,12 +1216,31 @@ export function useCanvasTable({
     attachmentCellDropOver,
   })
 
+  const getFocusRowPk = (rowIndex: number, path: Array<number> = []) => {
+    if (rowIndex == null || rowIndex < 0) return null
+    const dataCache = getDataCache(path)
+    const row = dataCache?.cachedRows?.value?.get(rowIndex)
+    if (!row) return null
+    return extractPkFromRow(row.row, (meta.value?.columns ?? []) as ColumnType[])
+  }
+
+  const { remoteFocuses } = useGridFocusPresence({
+    view,
+    activeCell,
+    editEnabled,
+    columns,
+    getRowPk: getFocusRowPk,
+  })
+
+  watch(remoteFocuses, () => triggerRefreshCanvas())
+
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
     interfaceActiveHeaderFieldId,
     mousePosition,
     elementMap,
     height,
+    remoteFocuses,
     columns,
     colSlice,
     groupByColumns,

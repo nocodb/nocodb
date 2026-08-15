@@ -48,6 +48,7 @@ import { ElementTypes } from '../utils/CanvasElement'
 import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
+import type { GridRemoteFocus, GridRemoteFocusMap } from '~/lib/types'
 
 export function useCanvasRender({
   width,
@@ -61,6 +62,7 @@ export function useCanvasRender({
   rowHeight,
   headerRowHeight,
   activeCell,
+  remoteFocuses,
   dragOver,
   hoverRow,
   selection,
@@ -127,6 +129,7 @@ export function useCanvasRender({
     column?: number
     path?: Array<number>
   }>
+  remoteFocuses: Ref<GridRemoteFocusMap>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedGroups: Ref<Map<number, CanvasGroup>>
@@ -1656,6 +1659,86 @@ export function useCanvasRender({
     }
   }
 
+  // ── Remote focus presence (other collaborators' cell cursors) ──
+  // Boxes are collected during the row render (where the row PK and the cell
+  // rect are already in hand) and drawn as a single clipped overlay after the
+  // rows, so the coloured borders sit on top of cell content. Keyed by row PK +
+  // field id, so a cursor follows its data even as rows scroll / reorder.
+  interface RemoteFocusBox {
+    x: number
+    y: number
+    width: number
+    height: number
+    focuses: GridRemoteFocus[]
+  }
+
+  const remoteFocusBoxes: RemoteFocusBox[] = []
+
+  function collectRemoteFocus(
+    pk: string | null | undefined,
+    fieldId: string | undefined,
+    x: number,
+    y: number,
+    cellWidth: number,
+    cellHeight: number,
+  ) {
+    if (!pk || !fieldId) return
+    const map = remoteFocuses.value
+    if (!map.size) return
+    const focuses = map.get(pk)?.get(fieldId)
+    if (focuses?.length) remoteFocusBoxes.push({ x, y, width: cellWidth, height: cellHeight, focuses })
+  }
+
+  function drawRemoteFocusBoxes(ctx: CanvasRenderingContext2D) {
+    if (!remoteFocusBoxes.length) return
+    ctx.save()
+    for (const box of remoteFocusBoxes) {
+      const primary = box.focuses[0]
+      if (!primary) continue
+      const color = primary.color
+      const isEditing = box.focuses.some((f) => f.editing)
+
+      if (isEditing) {
+        ctx.globalAlpha = 0.1
+        ctx.fillStyle = color
+        ctx.fillRect(box.x, box.y, box.width, box.height)
+        ctx.globalAlpha = 1
+      }
+
+      roundedRect(ctx, box.x + 1, box.y + 1, box.width - 2, box.height - 2, 2, {
+        borderColor: color,
+        borderWidth: 2,
+      })
+
+      // Collaborator name label (top-left tab) — no avatar/emoji, just the name so
+      // it's clear who's on the cell. While they're editing it reads "… is typing".
+      const extra = box.focuses.length > 1 ? ` +${box.focuses.length - 1}` : ''
+      const labelText = (isEditing ? `${primary.name} is typing…` : primary.name) + extra
+      const labelFont = '600 11px Inter'
+      const padX = 5
+      const labelH = 16
+      const maxTextW = Math.max(0, box.width - 2 - padX * 2)
+      const measured = renderSingleLineText(ctx, { text: labelText, fontFamily: labelFont, maxWidth: maxTextW, render: false })
+      const labelW = Math.min(box.width - 2, measured.width + padX * 2)
+      const labelX = box.x + 1
+      const labelY = box.y + 1
+      roundedRect(ctx, labelX, labelY, labelW, labelH, { topLeft: 2, bottomRight: 6 }, { backgroundColor: color })
+      renderSingleLineText(ctx, {
+        x: labelX + padX,
+        y: labelY,
+        height: labelH,
+        text: labelText,
+        fontFamily: labelFont,
+        maxWidth: maxTextW,
+        fillStyle: isColorDark(color) ? '#ffffff' : '#000000',
+        textAlign: 'left',
+        verticalAlign: 'middle',
+        isTagLabel: true,
+      })
+    }
+    ctx.restore()
+  }
+
   function renderRow(
     ctx: CanvasRenderingContext2D,
     {
@@ -1795,6 +1878,8 @@ export function useCanvasRender({
           }
         }
 
+        collectRemoteFocus(pk, column.columnObj?.id, xOffset - _scrollLeft, yOffset, width, _rowH)
+
         const value = row.row[column.title]
 
         if (isColumnRequiredAndNull(column.columnObj, row.row)) {
@@ -1915,6 +2000,9 @@ export function useCanvasRender({
                 height: _rowH,
               }
             }
+
+            collectRemoteFocus(pk, column.columnObj?.id, xOffset, yOffset, width, _rowH)
+
             if (isColumnRequiredAndNull(column.columnObj, row.row)) {
               renderRedBorders.push({ rowIndex: rowIdx, column })
             }
@@ -4045,6 +4133,7 @@ export function useCanvasRender({
       let activeState
 
       elementMap.clear()
+      remoteFocusBoxes.length = 0
       let postRenderCbk
 
       const _headerRowHeight = headerRowHeight.value
@@ -4099,6 +4188,8 @@ export function useCanvasRender({
       ctx.rect(0, _headerRowHeight, totalWidth.value, _height - _headerRowHeight - AGGREGATION_HEIGHT)
       ctx.clip()
       postRenderCbk?.()
+
+      drawRemoteFocusBoxes(ctx)
     } finally {
       ctx.restore()
     }

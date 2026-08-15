@@ -188,6 +188,15 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'presence_follow',
+    title: 'Follow Collaborator',
+    description: 'Follow a collaborator: track them across views and keep their cursor scrolled into view in the grid.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'expanded_record_panel',
     title: 'Expanded record side panel',
     description: 'Open expanded records in a resizable side panel beside the grid instead of a centered modal.',

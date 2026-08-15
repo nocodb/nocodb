@@ -699,6 +699,14 @@ export class PublicDatasService {
 
     if (typeof body === 'string') body = JSON.parse(body);
 
+    // A public form submission may arrive without a `data` field (e.g. an
+    // attachment-only submission where the fields are sent as files, or an
+    // empty body). In that case `body` is null/undefined and Object.entries
+    // would throw "Cannot convert undefined or null to object". Default to an
+    // empty object so the submission still proceeds via the attachment/nested
+    // link handling below.
+    if (!body || typeof body !== 'object') body = {};
+
     const insertObject = Object.entries(body).reduce((obj, [key, val]) => {
       if (key in fields) {
         obj[key] = val;

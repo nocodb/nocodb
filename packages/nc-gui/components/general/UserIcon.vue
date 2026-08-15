@@ -198,6 +198,7 @@ const usernameInitials = computed(() => {
       v-else-if="usernameInitials"
       class="font-semibold"
       :class="{
+        '!text-[8px]': size === 'small',
         '!text-md': size === 'base',
         '!text-3xl': size === 'large',
         '!text-4xl': size === 'xlarge',

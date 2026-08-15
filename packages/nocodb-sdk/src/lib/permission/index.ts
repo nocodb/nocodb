@@ -9,6 +9,8 @@ export enum PermissionKey {
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
   DOCUMENT_VISIBILITY = 'DOCUMENT_VISIBILITY',
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
+  DASHBOARD_VISIBILITY = 'DASHBOARD_VISIBILITY',
+  DASHBOARD_EDIT = 'DASHBOARD_EDIT',
 }
 
 export enum PermissionGrantedType {
@@ -21,6 +23,7 @@ export enum PermissionEntity {
   TABLE = 'table',
   FIELD = 'field',
   DOCUMENT = 'document',
+  DASHBOARD = 'dashboard',
 }
 
 export enum PermissionRole {
@@ -156,6 +159,20 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to edit this page.',
   },
+  [PermissionKey.DASHBOARD_VISIBILITY]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can view this dashboard',
+    description: 'can view dashboard',
+    userSelectorDescription:
+      'Only members selected here will be able to view this dashboard.',
+  },
+  [PermissionKey.DASHBOARD_EDIT]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can edit this dashboard',
+    description: 'can edit dashboard',
+    userSelectorDescription:
+      'Only members selected here will be able to edit this dashboard.',
+  },
 };
 
 // Restrictiveness order for document permission inheritance (lower = more permissive).
@@ -198,6 +215,11 @@ export const isMoreRestrictive = (
 export const DOCUMENT_PERMISSION_KEYS = [
   PermissionKey.DOCUMENT_VISIBILITY,
   PermissionKey.DOCUMENT_EDIT,
+];
+
+export const DASHBOARD_PERMISSION_KEYS = [
+  PermissionKey.DASHBOARD_VISIBILITY,
+  PermissionKey.DASHBOARD_EDIT,
 ];
 
 // Utility functions for permission management

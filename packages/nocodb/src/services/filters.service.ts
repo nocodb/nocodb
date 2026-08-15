@@ -464,13 +464,19 @@ export class FiltersService {
     return updated;
   }
 
-  async filterChildrenList(context: NcContext, param: { filterId: string }) {
+  async filterChildrenList(
+    context: NcContext,
+    param: { filterId: string; req?: NcRequest },
+  ) {
     return Filter.parentFilterList(context, {
       parentId: param.filterId,
     });
   }
 
-  async filterGet(context: NcContext, param: { filterId: string }) {
+  async filterGet(
+    context: NcContext,
+    param: { filterId: string; req?: NcRequest },
+  ) {
     const filter = await Filter.get(context, param.filterId);
     return filter;
   }

@@ -90,8 +90,9 @@ export class FiltersController {
   async filterGet(
     @TenantContext() context: NcContext,
     @Param('filterId') filterId: string,
+    @Req() req: NcRequest,
   ) {
-    return await this.filtersService.filterGet(context, { filterId });
+    return await this.filtersService.filterGet(context, { filterId, req });
   }
 
   @Get([
@@ -102,10 +103,12 @@ export class FiltersController {
   async filterChildrenList(
     @TenantContext() context: NcContext,
     @Param('filterParentId') filterParentId: string,
+    @Req() req: NcRequest,
   ) {
     return new PagedResponseImpl(
       await this.filtersService.filterChildrenList(context, {
         filterId: filterParentId,
+        req,
       }),
     );
   }

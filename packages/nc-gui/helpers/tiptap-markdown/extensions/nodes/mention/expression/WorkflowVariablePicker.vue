@@ -10,7 +10,6 @@ interface NodeGroup {
 }
 
 interface Props {
-  items: VariableDefinition[]
   groupedItems?: NodeGroup[]
   command: (attrs: { id: string; label: string; expression: string }) => void
   query?: string
@@ -21,241 +20,158 @@ const props = withDefaults(defineProps<Props>(), {
   groupedItems: () => [],
 })
 
-// State
+// tiptap's suggestion plugin passes props this picker does not read (editor, range, items,
+// clientRect...). Keep them off the rendered element.
+defineOptions({ inheritAttrs: false })
+
+const GROUP_ORDER = ['fields', 'iteration', 'meta', 'other'] as const
+
+type GroupKey = (typeof GROUP_ORDER)[number]
+
+const groupLabels: Record<GroupKey, string> = {
+  fields: 'Insert value from field',
+  iteration: 'Iteration variables',
+  meta: 'System fields',
+  other: 'Other',
+}
+
+// An array output describes its element shape in extra.itemSchema rather than in children, so
+// the picker drills into the first item: `rows` -> `rows[0].email`.
+const ARRAY_ITEM_INDEX = 0
+
+const MAX_SEARCH_DEPTH = 4
+
 const selectedNodeIndex = ref(0)
 
 const selectedVariableIndex = ref(0)
 
-const searchQuery = ref(props.query || '')
+const searchQuery = ref(props.query)
 
 const navigationStack = ref<{ title: string; variables: VariableDefinition[] }[]>([])
 
-const nodeGroups = computed(() => {
-  if (props.groupedItems && props.groupedItems.length > 0) {
-    return props.groupedItems
-  }
-
-  const groups: Record<string, NodeGroup> = {}
-
-  props.items.forEach((variable: any) => {
-    const nodeTitle = variable.extra?.sourceNodeTitle || 'Variables'
-    const nodeId = variable.extra?.sourceNodeId || 'default'
-
-    if (!groups[nodeId]) {
-      groups[nodeId] = {
-        nodeId,
-        nodeTitle,
-        variables: [],
-      }
-    }
-    groups[nodeId].variables.push(variable)
-  })
-
-  return Object.values(groups)
-})
-
-const selectedNode = computed(() => {
-  if (nodeGroups.value.length === 0) return null
-  return nodeGroups.value[selectedNodeIndex.value] || null
-})
+const selectedNode = computed(() => props.groupedItems[selectedNodeIndex.value] ?? null)
 
 const currentVariables = computed(() => {
-  if (navigationStack.value.length > 0) {
-    const node = navigationStack.value[navigationStack.value.length - 1]
-    if (node) {
-      return node.variables
-    }
-  }
-  return Array.isArray(selectedNode.value?.variables) ? selectedNode.value.variables : []
+  const level = navigationStack.value[navigationStack.value.length - 1]
+  if (level) return level.variables
+
+  return selectedNode.value?.variables ?? []
 })
 
-const currentTitle = computed(() => {
-  if (navigationStack.value.length > 0) {
-    const node = navigationStack.value[navigationStack.value.length - 1]
-    if (node) {
-      return node.title
-    }
-  }
-  return 'Choose data'
-})
+const currentTitle = computed(() => navigationStack.value[navigationStack.value.length - 1]?.title ?? 'Choose data')
 
 const filteredVariables = computed(() => {
-  if (!searchQuery.value) {
-    return currentVariables.value
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return currentVariables.value
+
+  return collectMatches(currentVariables.value, query, 0)
+})
+
+const variableGroups = computed(() => {
+  const buckets: Record<GroupKey, VariableDefinition[]> = { fields: [], iteration: [], meta: [], other: [] }
+
+  for (const variable of filteredVariables.value) {
+    buckets[groupKeyOf(variable)].push(variable)
   }
 
-  const query = searchQuery.value.toLowerCase()
-  return currentVariables.value.filter(
-    (v) =>
-      v.name.toLowerCase().includes(query) ||
-      v.key.toLowerCase().includes(query) ||
-      v.extra?.description?.toLowerCase().includes(query),
+  // `offset` is the index of a group's first row within the flat keyboard-navigable list.
+  let offset = 0
+
+  return GROUP_ORDER.filter((key) => buckets[key].length).map((key) => {
+    const group = { key, label: groupLabels[key], variables: buckets[key], offset }
+    offset += group.variables.length
+    return group
+  })
+})
+
+const visibleVariables = computed(() => variableGroups.value.flatMap((group) => group.variables))
+
+const hasVariables = computed(() => visibleVariables.value.length > 0)
+
+function groupKeyOf(variable: VariableDefinition): GroupKey {
+  const key = String(variable.groupKey ?? '')
+  return (GROUP_ORDER as readonly string[]).includes(key) ? (key as GroupKey) : 'other'
+}
+
+function joinKey(baseKey: string, relativeKey: string) {
+  return relativeKey.startsWith('[') ? `${baseKey}${relativeKey}` : `${baseKey}.${relativeKey}`
+}
+
+// Within an itemSchema a child key is relative to its parent, except when it already repeats the
+// parent key (parent `tags`, child `tags.length`). Same rule as VariableDisplay's
+// populateChildrenValues.
+function stripParentKey(childKey: string, parentKey: string) {
+  if (!parentKey) return childKey
+  if (childKey.startsWith(`${parentKey}.`)) return childKey.slice(parentKey.length + 1)
+  if (childKey.startsWith(`${parentKey}[`)) return childKey.slice(parentKey.length)
+
+  return childKey
+}
+
+// itemSchema keys are relative to the array item; rewrite the subtree onto insertable keys.
+function toAbsoluteKeys(schemaDef: VariableDefinition, parentKey: string): VariableDefinition {
+  const key = joinKey(parentKey, schemaDef.key)
+
+  return {
+    ...schemaDef,
+    key,
+    children: schemaDef.children?.map((child) =>
+      toAbsoluteKeys({ ...child, key: stripParentKey(child.key, schemaDef.key) }, key),
+    ),
+  }
+}
+
+function isExpandable(variable: VariableDefinition) {
+  return !!variable.children?.length || !!variable.extra?.itemSchema?.length
+}
+
+function expandVariable(variable: VariableDefinition): VariableDefinition[] {
+  const children = variable.children ?? []
+  const itemSchema = variable.extra?.itemSchema
+
+  if (!itemSchema?.length) return children
+
+  const itemKey = `${variable.key}[${ARRAY_ITEM_INDEX}]`
+  const [firstEntry] = itemSchema
+
+  // A lone entry with an empty key means an array of primitives: the item *is* the value.
+  if (itemSchema.length === 1 && firstEntry && firstEntry.key === '') {
+    return [{ ...firstEntry, key: itemKey, name: `${variable.name} ${ARRAY_ITEM_INDEX + 1}` }, ...children]
+  }
+
+  return [...itemSchema.map((schemaDef) => toAbsoluteKeys(schemaDef, itemKey)), ...children]
+}
+
+function matchesQuery(variable: VariableDefinition, query: string) {
+  return (
+    variable.name.toLowerCase().includes(query) ||
+    variable.key.toLowerCase().includes(query) ||
+    !!variable.extra?.description?.toLowerCase().includes(query)
   )
-})
+}
 
-// Group variables by groupKey (fields, meta, iteration, etc.)
-const groupedVariables = computed(() => {
-  const groups: Record<string, VariableDefinition[]> = {
-    fields: [],
-    meta: [],
-    iteration: [],
-    other: [],
-  }
+function collectMatches(variables: VariableDefinition[], query: string, depth: number): VariableDefinition[] {
+  const matches: VariableDefinition[] = []
 
-  filteredVariables.value.forEach((v) => {
-    const groupKey = v.groupKey || 'other'
-    if (!groups[groupKey]) {
-      groups[groupKey] = []
+  for (const variable of variables) {
+    if (matchesQuery(variable, query)) {
+      // Nested hits are listed flat, so show the path that will actually be inserted.
+      matches.push(depth === 0 ? variable : { ...variable, extra: { ...variable.extra, description: variable.key } })
     }
-    groups[groupKey].push(v)
-  })
 
-  return groups
-})
-
-const hasVariables = computed(() => filteredVariables.value.length > 0)
-
-const groupLabels: Record<string, string> = {
-  fields: 'Insert value from field',
-  meta: 'System fields',
-  iteration: 'Iteration variables',
-  other: 'Other',
-}
-
-const scrollToSelected = () => {
-  nextTick(() => {
-    const selectedEl = document.querySelector('.nc-workflow-variable-picker .nc-variable-item.is-selected')
-    selectedEl?.scrollIntoView({ block: 'nearest' })
-  })
-}
-
-const currentParentVariable = ref<VariableDefinition | null>(null)
-
-const navigateInto = (variable: VariableDefinition) => {
-  if (variable.children && variable.children.length > 0) {
-    navigationStack.value.push({
-      title: variable.name,
-      variables: variable.children,
-    })
-    currentParentVariable.value = variable
-    selectedVariableIndex.value = 0
-    searchQuery.value = ''
-  }
-}
-
-const goBack = () => {
-  if (navigationStack.value.length > 0) {
-    navigationStack.value.pop()
-    selectedVariableIndex.value = 0
-    if (navigationStack.value.length > 0) {
-      const parentLevel = navigationStack.value[navigationStack.value.length - 2]
-      if (parentLevel) {
-        currentParentVariable.value =
-          parentLevel.variables.find((v) => v.name === navigationStack.value[navigationStack.value.length - 1].title) || null
-      }
-    } else {
-      currentParentVariable.value = null
+    if (depth < MAX_SEARCH_DEPTH) {
+      matches.push(...collectMatches(expandVariable(variable), query, depth + 1))
     }
   }
+
+  return matches
 }
 
-const upHandler = () => {
-  selectedVariableIndex.value = Math.max(0, selectedVariableIndex.value - 1)
-  scrollToSelected()
-}
+function getVariableIcon(variable: VariableDefinition) {
+  if (variable.extra?.icon) return variable.extra.icon
 
-const downHandler = () => {
-  selectedVariableIndex.value = Math.min(filteredVariables.value.length - 1, selectedVariableIndex.value + 1)
-  scrollToSelected()
-}
+  if (variable.isArray || variable.type === 'array') return 'cellJson'
 
-const leftHandler = () => {
-  if (navigationStack.value.length > 0) {
-    goBack()
-  } else {
-    selectedNodeIndex.value = Math.max(0, selectedNodeIndex.value - 1)
-  }
-}
-
-const selectVariable = (variable: VariableDefinition) => {
-  const expression = `{{ ${variable.key} }}`
-
-  props.command({
-    id: variable.key,
-    label: variable.name,
-    expression,
-  })
-}
-
-const rightHandler = () => {
-  const variable = filteredVariables.value[selectedVariableIndex.value]
-  if (variable?.children && variable.children.length > 0) {
-    navigateInto(variable)
-  }
-}
-
-const enterHandler = () => {
-  const variable = filteredVariables.value[selectedVariableIndex.value]
-  if (variable) {
-    if (variable.children && variable.children.length > 0) {
-      navigateInto(variable)
-    } else {
-      selectVariable(variable)
-    }
-  }
-}
-
-const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
-  if (event.key === 'ArrowUp') {
-    upHandler()
-    return true
-  }
-
-  if (event.key === 'ArrowDown') {
-    downHandler()
-    return true
-  }
-
-  if (event.key === 'ArrowLeft') {
-    leftHandler()
-    return true
-  }
-
-  if (event.key === 'ArrowRight') {
-    rightHandler()
-    return true
-  }
-
-  if (event.key === 'Enter') {
-    event.stopPropagation()
-    enterHandler()
-    return true
-  }
-
-  if (event.key === 'Escape' && navigationStack.value.length > 0) {
-    goBack()
-    return true
-  }
-
-  return false
-}
-
-const selectNode = (index: number) => {
-  selectedNodeIndex.value = index
-  selectedVariableIndex.value = 0
-  navigationStack.value = []
-}
-
-const getVariableIcon = (variable: VariableDefinition) => {
-  if (variable.extra?.icon) {
-    return variable.extra.icon
-  }
-
-  if (variable.isArray || variable.type === 'array') {
-    return 'cellJson'
-  }
-
-  // Type-based icons (fallback)
   switch (variable.type) {
     case 'string':
       return 'cellText'
@@ -273,18 +189,100 @@ const getVariableIcon = (variable: VariableDefinition) => {
   }
 }
 
-const getNodeIcon = (node: NodeGroup) => {
-  const firstVar = node.variables[0]
-  if (firstVar?.extra?.nodeIcon) {
-    return firstVar.extra.nodeIcon
-  }
-  return 'ncAutomation'
+function getNodeIcon(node: NodeGroup) {
+  return node.variables[0]?.extra?.nodeIcon ?? 'ncAutomation'
 }
 
-watch(selectedNodeIndex, () => {
+function resetLevel() {
   selectedVariableIndex.value = 0
   navigationStack.value = []
   searchQuery.value = ''
+}
+
+function selectNode(index: number) {
+  selectedNodeIndex.value = index
+  resetLevel()
+}
+
+function navigateInto(variable: VariableDefinition) {
+  const children = expandVariable(variable)
+  if (!children.length) return
+
+  navigationStack.value.push({ title: variable.name, variables: children })
+  selectedVariableIndex.value = 0
+  searchQuery.value = ''
+}
+
+function goBack() {
+  if (!navigationStack.value.length) return
+
+  navigationStack.value.pop()
+  selectedVariableIndex.value = 0
+}
+
+function selectVariable(variable: VariableDefinition) {
+  props.command({
+    id: variable.key,
+    label: variable.name,
+    expression: `{{ ${variable.key} }}`,
+  })
+}
+
+function activateVariable(variable: VariableDefinition) {
+  if (isExpandable(variable)) navigateInto(variable)
+  else selectVariable(variable)
+}
+
+function scrollToSelected() {
+  nextTick(() => {
+    document.querySelector('.nc-workflow-variable-picker .nc-variable-item.is-selected')?.scrollIntoView({ block: 'nearest' })
+  })
+}
+
+function onKeyDown({ event }: { event: KeyboardEvent }) {
+  switch (event.key) {
+    case 'ArrowUp':
+      selectedVariableIndex.value = Math.max(0, selectedVariableIndex.value - 1)
+      scrollToSelected()
+      return true
+
+    case 'ArrowDown':
+      selectedVariableIndex.value = Math.min(visibleVariables.value.length - 1, selectedVariableIndex.value + 1)
+      scrollToSelected()
+      return true
+
+    case 'ArrowLeft':
+      if (navigationStack.value.length) goBack()
+      else selectedNodeIndex.value = Math.max(0, selectedNodeIndex.value - 1)
+      return true
+
+    case 'ArrowRight': {
+      const variable = visibleVariables.value[selectedVariableIndex.value]
+      if (variable) navigateInto(variable)
+      return true
+    }
+
+    case 'Enter': {
+      event.stopPropagation()
+      const variable = visibleVariables.value[selectedVariableIndex.value]
+      if (variable) activateVariable(variable)
+      return true
+    }
+
+    case 'Escape':
+      if (!navigationStack.value.length) return false
+      goBack()
+      return true
+
+    default:
+      return false
+  }
+}
+
+watch(selectedNodeIndex, resetLevel)
+
+watch(searchQuery, () => {
+  selectedVariableIndex.value = 0
 })
 
 defineExpose({
@@ -304,7 +302,7 @@ defineExpose({
       </div>
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
         <div
-          v-for="(node, index) in nodeGroups"
+          v-for="(node, index) in groupedItems"
           :key="node.nodeId"
           class="nc-node-item flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors"
           :class="{
@@ -332,16 +330,14 @@ defineExpose({
           <GeneralIcon v-if="index === selectedNodeIndex" icon="check" class="w-4 h-4 text-nc-content-brand flex-none" />
         </div>
 
-        <div v-if="nodeGroups.length === 0" class="px-4 py-8 text-center text-nc-content-gray-disabled text-sm">
+        <div v-if="groupedItems.length === 0" class="px-4 py-8 text-center text-nc-content-gray-disabled text-sm">
           No data sources available.<br />
           Run previous steps first.
         </div>
       </div>
     </div>
 
-    <!-- Right Panel: Variable Selection -->
     <div class="nc-variable-picker-variables flex-1 flex flex-col min-w-0">
-      <!-- Header with back button and title -->
       <div class="px-3 py-2 border-b border-nc-border-gray-light flex items-center gap-2">
         <NcButton v-if="navigationStack.length > 0" size="xs" type="text" class="!px-1" @click="goBack">
           <GeneralIcon icon="arrowLeft" class="w-4 h-4" />
@@ -349,7 +345,6 @@ defineExpose({
         <span class="text-sm font-semibold text-nc-content-gray-emphasis">{{ currentTitle }}</span>
       </div>
 
-      <!-- Search -->
       <div class="px-3 py-2 border-b border-nc-border-gray-light">
         <a-input v-model:value="searchQuery" placeholder="Search..." class="!rounded-md nc-input-shadow" allow-clear @click.stop>
           <template #prefix>
@@ -358,94 +353,22 @@ defineExpose({
         </a-input>
       </div>
 
-      <!-- Variables List -->
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
         <template v-if="hasVariables">
-          <!-- Fields Group -->
-          <template v-if="groupedVariables.fields?.length">
+          <template v-for="group in variableGroups" :key="group.key">
             <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-              {{ groupLabels.fields }}
+              {{ group.label }}
             </div>
             <div
-              v-for="variable in groupedVariables.fields"
-              :key="variable.key"
+              v-for="(variable, index) in group.variables"
+              :key="`${group.offset + index}:${variable.key}`"
               class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
               :class="{
-                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
-                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
+                'is-selected bg-nc-bg-gray-light': group.offset + index === selectedVariableIndex,
+                'hover:bg-nc-bg-gray-extralight': group.offset + index !== selectedVariableIndex,
               }"
             >
-              <div
-                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
-                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
-              >
-                <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
-                  <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                  <div v-if="variable?.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
-                    {{ variable.extra.description }}
-                  </div>
-                </div>
-              </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
-                {{ $t('labels.select') }}
-              </NcButton>
-            </div>
-          </template>
-
-          <!-- Iteration Group -->
-          <template v-if="groupedVariables.iteration?.length">
-            <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-              {{ groupLabels.iteration }}
-            </div>
-            <div
-              v-for="variable in groupedVariables.iteration"
-              :key="variable.key"
-              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
-              :class="{
-                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
-                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
-              }"
-            >
-              <div
-                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
-                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
-              >
-                <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
-                  <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                  <div v-if="variable?.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
-                    {{ variable.extra.description }}
-                  </div>
-                </div>
-              </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
-                {{ $t('labels.select') }}
-              </NcButton>
-            </div>
-          </template>
-
-          <template v-if="groupedVariables.meta?.length">
-            <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-              {{ groupLabels.meta }}
-            </div>
-            <div
-              v-for="variable in groupedVariables.meta"
-              :key="variable.key"
-              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
-              :class="{
-                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
-                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
-              }"
-            >
-              <div
-                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
-                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
-              >
+              <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer" @click="activateVariable(variable)">
                 <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
                   <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
                 </div>
@@ -456,39 +379,11 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
-                {{ $t('labels.select') }}
-              </NcButton>
-            </div>
-          </template>
-
-          <template v-if="groupedVariables.other?.length">
-            <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-              {{ groupLabels.other }}
-            </div>
-            <div
-              v-for="variable in groupedVariables.other"
-              :key="variable.key"
-              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
-              :class="{
-                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
-                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
-              }"
-            >
-              <div
-                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
-                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
-              >
-                <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
-                  <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                  <div v-if="variable.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
-                    {{ variable.extra.description }}
-                  </div>
-                </div>
-              </div>
+              <GeneralIcon
+                v-if="isExpandable(variable)"
+                icon="ncChevronRight"
+                class="w-4 h-4 flex-none text-nc-content-gray-muted"
+              />
               <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
                 {{ $t('labels.select') }}
               </NcButton>

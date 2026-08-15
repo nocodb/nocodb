@@ -11,6 +11,49 @@ export interface WorkflowNodeLog {
   data?: any;
 }
 
+export type ExternalQueryClient =
+  | 'pg'
+  | 'mysql2'
+  | 'mssql'
+  | 'oracledb'
+  | 'snowflake'
+  | 'databricks';
+
+export interface ExternalQueryParams {
+  client: ExternalQueryClient;
+  connection: Record<string, unknown>;
+  query: string | string[];
+  /**
+   * Applied only on the `raw` path with a single statement — an array `query`
+   * runs statement by statement with no bindings.
+   */
+  bindings?: readonly unknown[];
+  /** Driver response instead of the row array, where rows lose information. */
+  raw?: boolean;
+}
+
+export interface ExternalQueryResult {
+  rows: Record<string, unknown>[];
+  /** Set instead of `rows` when the driver response is not a row array. */
+  rawResponse?: unknown;
+}
+
+export type ExecuteExternalQuery = (
+  params: ExternalQueryParams,
+) => Promise<ExternalQueryResult>;
+
+/** Catch to fall back to the node's own client. */
+export class ExternalQueryUnavailableError extends Error {
+  public readonly code = 'EXTERNAL_QUERY_UNAVAILABLE';
+
+  constructor(
+    message = 'Pooled SQL executor is not available in this deployment.',
+  ) {
+    super(message);
+    this.name = 'ExternalQueryUnavailableError';
+  }
+}
+
 export interface WorkflowNodeRunContext<TConfig = any> {
   workspaceId: string;
   baseId: string;
@@ -47,6 +90,7 @@ export interface WorkflowNodeRunContext<TConfig = any> {
   getIntegration?: <T = any>(
     integrationId: string
   ) => Promise<T>;
+  executeExternalQuery?: ExecuteExternalQuery;
 }
 
 /**
@@ -182,6 +226,63 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
       throw new Error('Integration loader not available. This node must be executed within a workflow context.');
     }
     return this._integrationLoader<T>(integrationId);
+  }
+
+  /**
+   * Stored pooled SQL executor from execution context.
+   * Set by the workflow executor before node execution, and left unset by
+   * hosts that have no SQL executor to offer.
+   * @internal
+   */
+  protected _externalQueryExecutor?: ExecuteExternalQuery;
+
+  /**
+   * Set the pooled SQL executor for this node instance.
+   * Called by the workflow executor before node execution.
+   * @internal
+   */
+  public setExternalQueryExecutor(executor: ExecuteExternalQuery) {
+    this._externalQueryExecutor = executor;
+  }
+
+  /**
+   * Whether the host provided the pooled SQL executor. Branch on this to pick
+   * the pooled path without going through a thrown error.
+   */
+  protected get hasExternalQueryExecutor(): boolean {
+    return typeof this._externalQueryExecutor === 'function';
+  }
+
+  /**
+   * Execute SQL against an external database through the platform's pooled SQL
+   * executor instead of opening a pool the node then has to tear down.
+   *
+   * @param params - Client, connection config, statement(s) and bindings
+   * @returns Promise resolving to the rows the statement produced
+   * @throws ExternalQueryUnavailableError if the host provided no executor
+   *
+   * @example
+   * ```typescript
+   * async run(_ctx: WorkflowNodeRunContext) {
+   *   if (this.hasExternalQueryExecutor) {
+   *     const { rows } = await this.executeExternalQuery({
+   *       client: 'pg',
+   *       connection: this.connectionConfig,
+   *       query: 'select * from users limit 10',
+   *     });
+   *     return { outputs: { rows } };
+   *   }
+   *   return { outputs: { rows: await this.queryWithOwnClient() } };
+   * }
+   * ```
+   */
+  protected async executeExternalQuery(
+    params: ExternalQueryParams,
+  ): Promise<ExternalQueryResult> {
+    if (!this._externalQueryExecutor) {
+      throw new ExternalQueryUnavailableError();
+    }
+    return this._externalQueryExecutor(params);
   }
 
   public abstract definition(): Promise<WorkflowNodeDefinition>;

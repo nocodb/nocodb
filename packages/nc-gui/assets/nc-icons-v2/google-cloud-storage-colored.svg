@@ -1,0 +1,4 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="16" height="16" rx="2" fill="white"/>
+<g transform="translate(-0.1 -0.1) scale(0.675)" fill="#000"><g><path d="M2 4h20v7H2z" fill="#aecbfa"/><path d="M20 4h2v7h-2z" fill="#669df6"/><path d="M22 4h-2v7z" fill="#4285f4"/><path d="M2 4h2v7H2z" fill="#669df6"/><path d="M6 7h6v1H6z" fill="#fff"/><rect width="3" height="3" x="15" y="6" rx="1.5" fill="#fff"/><path d="M2 13h20v7H2z" fill="#aecbfa"/><path d="M20 13h2v7h-2z" fill="#669df6"/><path d="M22 13h-2v7z" fill="#4285f4"/><path d="M2 13h2v7H2z" fill="#669df6"/><path d="M6 16h6v1H6z" fill="#fff"/><rect width="3" height="3" x="15" y="15" rx="1.5" fill="#fff"/></g></g>
+</svg>

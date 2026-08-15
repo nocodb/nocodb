@@ -556,6 +556,14 @@ export interface FormBuilderEntitySelectorElement
   type: FormBuilderInputType.EntitySelector;
   /** Available modes - defaults to just list mode if not specified */
   modes?: EntitySelectorMode[];
+  /**
+   * Mirrors the list mode's key at the top level. `EntitySelector.vue` reads
+   * the key from `modes[]` to load its own options, but `setupDependencyWatchers`
+   * in `useFormBuilder` only registers a `dependsOn` reload watcher for elements
+   * carrying it here - without it a dependent selector never refreshes, and keeps
+   * submitting a value scoped to the previous parent.
+   */
+  fetchOptionsKey?: string;
   /** Default value - simple string */
   defaultValue?: string | null;
 }

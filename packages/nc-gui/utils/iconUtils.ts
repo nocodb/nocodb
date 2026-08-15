@@ -245,6 +245,8 @@ import NcGoogleDrive from '~icons/nc-icons/google-drive'
 import NcHubspot from '~icons/nc-icons/hubspot'
 import NcJira from '~icons/nc-icons/jira'
 import NcLinear from '~icons/nc-icons-v2/linear'
+import NcNotion from '~icons/nc-icons-v2/notion-colored'
+import NcClickup from '~icons/nc-icons-v2/clickup-colored'
 import NcMailchimp from '~icons/nc-icons/mailchimp'
 import NcMicrosoftAccess from '~icons/nc-icons/microsoft_access'
 import NcMicrosoftExcel from '~icons/nc-icons/microsoft_excel'
@@ -701,19 +703,32 @@ import NcRecordDelete from '~icons/nc-icons-v2/record-delete'
 import NcRecordEntersView from '~icons/nc-icons-v2/record-enters-view'
 import NcIfElse from '~icons/nc-icons-v2/if-else'
 
+import NcLogoActivecampaignColored from '~icons/nc-icons-v2/activecampaign-colored.svg'
 import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
 import NcLogoAsana from '~icons/nc-icons-v2/asana.svg'
+import NcLogoBigcommerce from '~icons/nc-icons-v2/bigcommerce.svg'
+import NcLogoBigqueryColored from '~icons/nc-icons-v2/bigquery-colored.svg'
 import NcLogoBitbucketColored from '~icons/nc-icons-v2/bitbucket-colored.svg'
 import NcLogoBitbucket from '~icons/nc-icons-v2/bitbucket.svg'
 import NcLogoBoxLogoColored from '~icons/nc-icons-v2/box-logo-colored.svg'
 import NcLogoBoxLogo from '~icons/nc-icons-v2/box-logo.svg'
+import NcLogoBrevoColored from '~icons/nc-icons-v2/brevo-colored.svg'
+import NcLogoCalendlyColored from '~icons/nc-icons-v2/calendly-colored.svg'
 import NcLogoChromeColored from '~icons/nc-icons-v2/chrome-colored.svg'
 import NcLogoClaudeAiColored from '~icons/nc-icons-v2/claude-ai-colored.svg'
 import NcLogoClaudeAi from '~icons/nc-icons-v2/claude-ai.svg'
+import NcLogoClickhouse from '~icons/nc-icons-v2/clickhouse.svg'
+import NcLogoClockifyColored from '~icons/nc-icons-v2/clockify-colored.svg'
+import NcLogoCockroachdb from '~icons/nc-icons-v2/cockroachdb.svg'
+import NcLogoConfluenceCloudColored from '~icons/nc-icons-v2/confluence-cloud-colored.svg'
+import NcLogoCosmosdbColored from '~icons/nc-icons-v2/cosmosdb-colored.svg'
+import NcLogoCouchbase from '~icons/nc-icons-v2/couchbase.svg'
+import NcLogoCustomerioColored from '~icons/nc-icons-v2/customerio-colored.svg'
 import NcLogoDiscordColored from '~icons/nc-icons-v2/discord-colored.svg'
 import NcLogoDiscord from '~icons/nc-icons-v2/discord.svg'
 import NcLogoDropboxColored from '~icons/nc-icons-v2/dropbox-colored.svg'
 import NcLogoDropbox from '~icons/nc-icons-v2/dropbox.svg'
+import NcLogoElasticsearchColored from '~icons/nc-icons-v2/elasticsearch-colored.svg'
 import NcLogoFacebookColored from '~icons/nc-icons-v2/facebook-colored.svg'
 import NcLogoFacebook from '~icons/nc-icons-v2/facebook.svg'
 import NcLogoFigmaColored from '~icons/nc-icons-v2/figma-colored.svg'
@@ -728,6 +743,7 @@ import NcLogoGithubColored from '~icons/nc-icons-v2/github-colored.svg'
 import NcLogoGitlabColored from '~icons/nc-icons-v2/gitlab-colored.svg'
 import NcLogoGmailColored from '~icons/nc-icons-v2/gmail-colored.svg'
 import NcLogoGmail from '~icons/nc-icons-v2/gmail.svg'
+import NcLogoGoogleCloudStorageColored from '~icons/nc-icons-v2/google-cloud-storage-colored.svg'
 import NcLogoGoogleDriveColored from '~icons/nc-icons-v2/google-drive-colored.svg'
 import NcLogoGoogleMapColored from '~icons/nc-icons-v2/google-map-colored.svg'
 import NcLogoOpenStreetMapColored from '~icons/nc-icons-v2/open-street-map.svg'
@@ -736,6 +752,7 @@ import NcLogoGreenhouseColored from '~icons/nc-icons-v2/greenhouse-colored.svg'
 import NcLogoGreenhouse from '~icons/nc-icons-v2/greenhouse.svg'
 import NcLogoGroqAiColored from '~icons/nc-icons-v2/groq-ai-colored.svg'
 import NcLogoGroqAi from '~icons/nc-icons-v2/groq-ai.svg'
+import NcLogoHighlevelColored from '~icons/nc-icons-v2/highlevel-colored.svg'
 import NcLogoHubspotColored from '~icons/nc-icons-v2/hubspot-colored.svg'
 import NcLogoHubspot from '~icons/nc-icons-v2/hubspot.svg'
 import NcLogoInstagramColored from '~icons/nc-icons-v2/instagram-colored.svg'
@@ -743,6 +760,7 @@ import NcLogoIntercomColored from '~icons/nc-icons-v2/intercom-colored.svg'
 import NcLogoIntercom from '~icons/nc-icons-v2/intercom.svg'
 import NcLogoJiraColored from '~icons/nc-icons-v2/jira-colored.svg'
 import NcLogoJira from '~icons/nc-icons-v2/jira.svg'
+import NcLogoJotformColored from '~icons/nc-icons-v2/jotform-colored.svg'
 import NcLogoLeverColored from '~icons/nc-icons-v2/lever-colored.svg'
 import NcLogoLever from '~icons/nc-icons-v2/lever.svg'
 import NcLogoLinkedinColored from '~icons/nc-icons-v2/linkedin-colored.svg'
@@ -751,6 +769,7 @@ import NcLogoMailchimp from '~icons/nc-icons-v2/mailchimp.svg'
 import NcLogoMiroColored from '~icons/nc-icons-v2/miro-colored.svg'
 import NcLogoMiro from '~icons/nc-icons-v2/miro.svg'
 import NcLogoMondayColored from '~icons/nc-icons-v2/monday-colored.svg'
+import NcLogoMongodbColored from '~icons/nc-icons-v2/mongodb-colored.svg'
 import NcLogoMsDynamicsColored from '~icons/nc-icons-v2/ms-dynamics-colored.svg'
 import NcLogoMsDynamics from '~icons/nc-icons-v2/ms-dynamics.svg'
 import NcLogoOllamaColored from '~icons/nc-icons-v2/ollama-colored.svg'
@@ -763,9 +782,14 @@ import NcLogoPipedriveColored from '~icons/nc-icons-v2/pipedrive-colored.svg'
 import NcLogoPipedrive from '~icons/nc-icons-v2/pipedrive.svg'
 import NcLogoQuickbooksColored from '~icons/nc-icons-v2/quickbooks-colored.svg'
 import NcLogoQuickbooks from '~icons/nc-icons-v2/quickbooks.svg'
+import NcLogoRazorpay from '~icons/nc-icons-v2/razorpay.svg'
 import NcLogoSalesforceColored from '~icons/nc-icons-v2/salesforce-colored.svg'
 import NcLogoSalesforce from '~icons/nc-icons-v2/salesforce.svg'
+import NcLogoSendgridColored from '~icons/nc-icons-v2/sendgrid-colored.svg'
+import NcLogoSharepointColored from '~icons/nc-icons-v2/sharepoint-colored.svg'
+import NcLogoShopifyColored from '~icons/nc-icons-v2/shopify-colored.svg'
 import NcLogoSlackColored from '~icons/nc-icons-v2/slack-colored.svg'
+import NcLogoSquareLogo from '~icons/nc-icons-v2/square-logo.svg'
 import NcLogoSlack from '~icons/nc-icons-v2/slack.svg'
 import NcLogoStripeColored from '~icons/nc-icons-v2/stripe-colored.svg'
 import NcLogoStripe from '~icons/nc-icons-v2/stripe.svg'
@@ -775,6 +799,7 @@ import NcLogoTeamsColored from '~icons/nc-icons-v2/teams-colored.svg'
 import NcLogoTeams from '~icons/nc-icons-v2/teams.svg'
 import NcLogoTelegramColored from '~icons/nc-icons-v2/telegram-colored.svg'
 import NcLogoTelegram from '~icons/nc-icons-v2/telegram.svg'
+import NcLogoToggl from '~icons/nc-icons-v2/toggl.svg'
 import NcLogoTrelloColored from '~icons/nc-icons-v2/trello-colored.svg'
 import NcLogoTrello from '~icons/nc-icons-v2/trello.svg'
 import NcLogoTwilioColored from '~icons/nc-icons-v2/twilio-colored.svg'
@@ -1353,6 +1378,8 @@ export const iconMap = {
   'githubSolid': NcGithubSolid,
   'chatwoot': h(NcChatwoot, { stroke: 'transparent' }),
   'linear': NcLinear,
+  'notion': NcNotion,
+  'clickup': NcClickup,
   'gitlab': NcGitlab,
   'googleCalendar': NcGoogleCalendar,
   'googleSheet': NcGoogleSheet,
@@ -1786,19 +1813,32 @@ export const iconMap = {
   'ncAutomation': AutomationIcon,
   'ncWebhook': NcWebhook,
   'ncMessageCircleFilled': NcMessageCircleFilled,
+  'ncLogoActivecampaignColored': h(NcLogoActivecampaignColored, { stroke: 'transparent' }),
   'ncLogoAsanaColored': h(NcLogoAsanaColored, { stroke: 'transparent' }),
   'ncLogoAsana': h(NcLogoAsana, { stroke: 'transparent' }),
+  'ncLogoBigcommerce': h(NcLogoBigcommerce, { stroke: 'transparent' }),
+  'ncLogoBigqueryColored': h(NcLogoBigqueryColored, { stroke: 'transparent' }),
   'ncLogoBitbucketColored': h(NcLogoBitbucketColored, { stroke: 'transparent' }),
   'ncLogoBitbucket': h(NcLogoBitbucket, { stroke: 'transparent' }),
   'ncLogoBoxLogoColored': h(NcLogoBoxLogoColored, { stroke: 'transparent' }),
   'ncLogoBoxLogo': h(NcLogoBoxLogo, { stroke: 'transparent' }),
+  'ncLogoBrevoColored': h(NcLogoBrevoColored, { stroke: 'transparent' }),
+  'ncLogoCalendlyColored': h(NcLogoCalendlyColored, { stroke: 'transparent' }),
   'ncLogoChromeColored': h(NcLogoChromeColored, { stroke: 'transparent' }),
   'ncLogoClaudeAiColored': h(NcLogoClaudeAiColored, { stroke: 'transparent' }),
   'ncLogoClaudeAi': h(NcLogoClaudeAi, { stroke: 'transparent' }),
+  'ncLogoClickhouse': h(NcLogoClickhouse, { stroke: 'transparent' }),
+  'ncLogoClockifyColored': h(NcLogoClockifyColored, { stroke: 'transparent' }),
+  'ncLogoCockroachdb': h(NcLogoCockroachdb, { stroke: 'transparent' }),
+  'ncLogoConfluenceCloudColored': h(NcLogoConfluenceCloudColored, { stroke: 'transparent' }),
+  'ncLogoCosmosdbColored': h(NcLogoCosmosdbColored, { stroke: 'transparent' }),
+  'ncLogoCouchbase': h(NcLogoCouchbase, { stroke: 'transparent' }),
+  'ncLogoCustomerioColored': h(NcLogoCustomerioColored, { stroke: 'transparent' }),
   'ncLogoDiscord': h(NcLogoDiscord, { stroke: 'transparent' }),
   'ncLogoDiscordColored': h(NcLogoDiscordColored, { stroke: 'transparent' }),
   'ncLogoDropboxColored': h(NcLogoDropboxColored, { stroke: 'transparent' }),
   'ncLogoDropbox': h(NcLogoDropbox, { stroke: 'transparent' }),
+  'ncLogoElasticsearchColored': h(NcLogoElasticsearchColored, { stroke: 'transparent' }),
   'ncLogoFacebookColored': h(NcLogoFacebookColored, { stroke: 'transparent' }),
   'ncLogoFacebook': h(NcLogoFacebook, { stroke: 'transparent' }),
   'ncLogoFigmaColored': h(NcLogoFigmaColored, { stroke: 'transparent' }),
@@ -1813,6 +1853,7 @@ export const iconMap = {
   'ncLogoGitlabColored': h(NcLogoGitlabColored, { stroke: 'transparent' }),
   'ncLogoGmailColored': h(NcLogoGmailColored, { stroke: 'transparent' }),
   'ncLogoGmail': h(NcLogoGmail, { stroke: 'transparent' }),
+  'ncLogoGoogleCloudStorageColored': h(NcLogoGoogleCloudStorageColored, { stroke: 'transparent' }),
   'ncLogoGoogleDriveColored': h(NcLogoGoogleDriveColored, { stroke: 'transparent' }),
   'ncLogoGoogleDrive': h(NcLogoGoogleDrive, { stroke: 'transparent' }),
   'ncLogoGreenhouseColored': h(NcLogoGreenhouseColored, { stroke: 'transparent' }),
@@ -1821,6 +1862,7 @@ export const iconMap = {
   'ncLogoGreenhouse': h(NcLogoGreenhouse, { stroke: 'transparent' }),
   'ncLogoGroqAiColored': h(NcLogoGroqAiColored, { stroke: 'transparent' }),
   'ncLogoGroqAi': h(NcLogoGroqAi, { stroke: 'transparent' }),
+  'ncLogoHighlevelColored': h(NcLogoHighlevelColored, { stroke: 'transparent' }),
   'ncLogoHubspotColored': h(NcLogoHubspotColored, { stroke: 'transparent' }),
   'ncLogoHubspot': h(NcLogoHubspot, { stroke: 'transparent' }),
   'ncLogoInstagramColored': h(NcLogoInstagramColored, { stroke: 'transparent' }),
@@ -1828,6 +1870,7 @@ export const iconMap = {
   'ncLogoIntercom': h(NcLogoIntercom, { stroke: 'transparent' }),
   'ncLogoJiraColored': h(NcLogoJiraColored, { stroke: 'transparent' }),
   'ncLogoJira': h(NcLogoJira, { stroke: 'transparent' }),
+  'ncLogoJotformColored': h(NcLogoJotformColored, { stroke: 'transparent' }),
   'ncLogoLeverColored': h(NcLogoLeverColored, { stroke: 'transparent' }),
   'ncLogoLever': h(NcLogoLever, { stroke: 'transparent' }),
   'ncLogoLinkedinColored': h(NcLogoLinkedinColored, { stroke: 'transparent' }),
@@ -1836,6 +1879,7 @@ export const iconMap = {
   'ncLogoMiroColored': h(NcLogoMiroColored, { stroke: 'transparent' }),
   'ncLogoMiro': h(NcLogoMiro, { stroke: 'transparent' }),
   'ncLogoMondayColored': h(NcLogoMondayColored, { stroke: 'transparent' }),
+  'ncLogoMongodbColored': h(NcLogoMongodbColored, { stroke: 'transparent' }),
   'ncLogoMsDynamicsColored': h(NcLogoMsDynamicsColored, { stroke: 'transparent' }),
   'ncLogoMsDynamics': h(NcLogoMsDynamics, { stroke: 'transparent' }),
   'ncLogoOllamaColored': h(NcLogoOllamaColored, { stroke: 'transparent' }),
@@ -1848,10 +1892,15 @@ export const iconMap = {
   'ncLogoPipedrive': h(NcLogoPipedrive, { stroke: 'transparent' }),
   'ncLogoQuickbooksColored': h(NcLogoQuickbooksColored, { stroke: 'transparent' }),
   'ncLogoQuickbooks': h(NcLogoQuickbooks, { stroke: 'transparent' }),
+  'ncLogoRazorpay': h(NcLogoRazorpay, { stroke: 'transparent' }),
   'ncLogoSalesforceColored': h(NcLogoSalesforceColored, { stroke: 'transparent' }),
   'ncLogoSalesforce': h(NcLogoSalesforce, { stroke: 'transparent' }),
+  'ncLogoSendgridColored': h(NcLogoSendgridColored, { stroke: 'transparent' }),
+  'ncLogoSharepointColored': h(NcLogoSharepointColored, { stroke: 'transparent' }),
+  'ncLogoShopifyColored': h(NcLogoShopifyColored, { stroke: 'transparent' }),
   'ncLogoSlackColored': h(NcLogoSlackColored, { stroke: 'transparent' }),
   'ncLogoSlack': h(NcLogoSlack, { stroke: 'transparent' }),
+  'ncLogoSquareLogo': h(NcLogoSquareLogo, { stroke: 'transparent' }),
   'ncLogoStripeColored': h(NcLogoStripeColored, { stroke: 'transparent' }),
   'ncLogoStripe': h(NcLogoStripe, { stroke: 'transparent' }),
   'ncLogoSurveyMonkeyColored': h(NcLogoSurveyMonkeyColored, { stroke: 'transparent' }),
@@ -1860,6 +1909,7 @@ export const iconMap = {
   'ncLogoTeams': h(NcLogoTeams, { stroke: 'transparent' }),
   'ncLogoTelegramColored': h(NcLogoTelegramColored, { stroke: 'transparent' }),
   'ncLogoTelegram': h(NcLogoTelegram, { stroke: 'transparent' }),
+  'ncLogoToggl': h(NcLogoToggl, { stroke: 'transparent' }),
   'ncLogoTrelloColored': h(NcLogoTrelloColored, { stroke: 'transparent' }),
   'ncLogoTrello': h(NcLogoTrello, { stroke: 'transparent' }),
   'ncLogoTwilioColored': h(NcLogoTwilioColored, { stroke: 'transparent' }),

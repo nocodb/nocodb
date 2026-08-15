@@ -129,7 +129,10 @@ export async function assertExternalDbHostAllowed(
   if (!isDbSsrfProtectionEnabled()) return;
   if (typeof host !== 'string' || host.length === 0) return;
 
-  const trimmed = host.trim();
+  // `new URL(...).hostname` brackets IPv6 (`[::1]`), which `isIP` cannot parse
+  // - unstripped it falls through the DNS-failure branch and bypasses the
+  // check.
+  const trimmed = host.trim().replace(/^\[(.+)\]$/, '$1');
   if (
     trimmed === '0.0.0.0' ||
     trimmed === '::' ||
@@ -138,10 +141,8 @@ export async function assertExternalDbHostAllowed(
     throw new SsrfBlockedHostError();
   }
 
-  // TOCTOU note: the driver re-resolves at connect-time; a controlled DNS
-  // record with short TTL could flip between this lookup and the driver's
-  // connect(). Mitigating fully requires passing the resolved IP to the
-  // driver, which is per-driver wiring out of scope here.
+  // TOCTOU: the driver re-resolves at connect time, so a short-TTL record can
+  // flip between this lookup and connect().
   let resolvedIps: string[] = [];
   if (isIP(trimmed)) {
     resolvedIps = [trimmed];
@@ -167,4 +168,45 @@ export async function assertExternalDbHostAllowed(
       throw new SsrfBlockedHostError();
     }
   }
+}
+
+export type ExternalUrlScheme = 'https:' | 'http:';
+
+export interface ExternalUrlOptions {
+  label: string;
+  example?: string;
+  schemes?: readonly ExternalUrlScheme[];
+}
+
+// Without the scheme check `file:` and `gopher:` stay reachable: the host guard
+// ignores the protocol.
+export async function assertExternalUrlAllowed(
+  rawUrl: unknown,
+  options: ExternalUrlOptions,
+): Promise<URL> {
+  const { label, example, schemes = ['https:'] } = options;
+
+  if (typeof rawUrl !== 'string' || !rawUrl.trim()) {
+    throw new Error(`${label} is required`);
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl.trim());
+  } catch {
+    throw new Error(
+      example
+        ? `${label} is not a valid URL - use the form ${example}`
+        : `${label} is not a valid URL`,
+    );
+  }
+
+  if (!schemes.includes(parsed.protocol as ExternalUrlScheme)) {
+    const allowed = schemes.map((s) => `${s}//`).join(' or ');
+    throw new Error(`${label} must use ${allowed}`);
+  }
+
+  await assertExternalDbHostAllowed(parsed.hostname);
+
+  return parsed;
 }

@@ -1269,6 +1269,12 @@ export type GridRemoteRecordMap = Map<string, GridRemoteFocus[]>
 /** fieldId → connections with that field's config editor open. */
 export type GridRemoteFieldMap = Map<string, GridRemoteFocus[]>
 
+/** The followed collaborator's focused cell in the current view (drives follow-scroll). */
+export interface GridFollowedFocus {
+  rowPk: string
+  fieldId: string
+}
+
 /**
  * One remote connection's focus on a table, resolved for display.
  *

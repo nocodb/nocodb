@@ -405,6 +405,8 @@ const {
   rowColouringBorderWidth,
   isRecordSelected,
   isViewOperationsAllowed,
+  followedFocus,
+  findFocusRowIndex,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -1542,6 +1544,21 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>, horiz
     })
   }
 }
+
+// Follow mode: keep the followed collaborator's cursor scrolled into view as it
+// moves. Value-compared, not identity-compared — every remoteFocuses rebuild
+// (any peer's frame, keepalives) produces a fresh object for the same cell, and
+// only an actual cell change may move the viewport. Skipped while this viewer is
+// editing: yanking the viewport out from under an open editor loses their input.
+watch(followedFocus, (focus, prev) => {
+  if (!focus) return
+  if (prev && prev.rowPk === focus.rowPk && prev.fieldId === focus.fieldId) return
+  if (editEnabled.value) return
+  const rowIndex = findFocusRowIndex(focus.rowPk)
+  if (rowIndex === null) return
+  const colIndex = columns.value.findIndex((c) => c.columnObj?.id === focus.fieldId)
+  scrollToCell(rowIndex, colIndex === -1 ? 0 : colIndex, [], colIndex !== -1)
+})
 
 function clearColAutoScrollTimer() {
   if (colAutoScrollTimerId) {

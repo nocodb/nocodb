@@ -195,6 +195,8 @@ export enum PresencePageType {
   DASHBOARD = 'dashboard',
   SCRIPT = 'script',
   DOCUMENT = 'document',
+  /** Settings, base home — a page with no addressable resource. Renders as "Active". */
+  OTHER = 'other',
 }
 
 /**
@@ -210,26 +212,41 @@ export interface RealtimeUser {
   meta?: Record<string, any> | null;
 }
 
+/**
+ * Where a collaborator is, at whatever detail the recipient is entitled to.
+ *
+ * - **located** — `id` (and optionally `viewId`) present: the recipient can reach it
+ * - **typed** — `type` only: the recipient cannot access this resource
+ * - **active** — the whole `resource` is absent: there is no addressable resource
+ *
+ * Server→client frames broadcast to the base room never carry `id`; the located tier is
+ * emitted into access-scoped rooms instead. See the tiering in `NocoPresence`.
+ */
+export interface PresenceResource {
+  id?: string;
+  type: PresencePageType;
+  viewId?: string;
+}
+
 export interface PresenceAnnouncePayload extends BaseSocketPayload {
   action: 'announce';
   user: RealtimeUser;
-  resource: {
-    id: string;
-    type: PresencePageType;
-    viewId?: string;
-  };
+  resource?: PresenceResource;
 }
 
+/**
+ * Client→server: liveness plus the sender's current location.
+ *
+ * Also broadcast server→client (identity only, no `resource`) when a heartbeat did NOT
+ * change location — receivers expire a collaborator they have not heard from within
+ * their own timeout, so a stationary user needs *something* on the wire to stay alive.
+ */
 export interface PresenceHeartbeatPayload extends BaseSocketPayload {
   action: 'heartbeat';
   user: {
     id: string;
   };
-  resource: {
-    id: string;
-    type: PresencePageType;
-    viewId?: string;
-  };
+  resource?: PresenceResource;
 }
 
 export interface PresenceLocationChangePayload extends BaseSocketPayload {
@@ -237,11 +254,7 @@ export interface PresenceLocationChangePayload extends BaseSocketPayload {
   user: {
     id: string;
   };
-  resource: {
-    id: string;
-    type: PresencePageType;
-    viewId?: string;
-  };
+  resource?: PresenceResource;
 }
 
 export interface PresenceLeavePayload extends BaseSocketPayload {
@@ -255,11 +268,7 @@ export interface PresenceBatchPayload extends BaseSocketPayload {
   action: 'batch';
   users: Array<{
     user: RealtimeUser;
-    resource: {
-      id: string;
-      type: PresencePageType;
-      viewId?: string;
-    };
+    resource?: PresenceResource;
     lastSeen: number;
   }>;
 }

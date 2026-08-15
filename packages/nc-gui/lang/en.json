@@ -3561,6 +3561,8 @@
     "presenceAScript": "A script",
     "presenceDocLocation": "Doc: {title}",
     "presenceADocument": "A document",
+    "presenceATable": "A table",
+    "presenceIsActive": "Active",
     "goThere": "Go there",
     "following": "Following",
     "follow": "Follow",

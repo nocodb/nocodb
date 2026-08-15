@@ -244,6 +244,20 @@ export function useCanvasRender({
     return expandedFormPanelStore.activePath.value ?? []
   })
 
+  // Whether THIS viewer has the row open in the side panel. Shared by the brand accent
+  // bar in renderRowMeta and the remote-record bar, which shifts right when both land on
+  // the same row so neither is lost.
+  function isExpandedPanelRow(row: Row) {
+    return (
+      expandedPanelRowIndex.value === row.rowMeta.rowIndex &&
+      expandedPanelPath.value !== null &&
+      // Default both sides to [] — flat rows have row.rowMeta.path === undefined,
+      // and comparePath requires arrays on both sides, so the highlight would
+      // never paint in non-group-by views without this normalisation.
+      comparePath(expandedPanelPath.value, row.rowMeta?.path ?? [])
+    )
+  }
+
   const { isDark, getColor } = useTheme()
 
   function renderInterfaceFieldMenuButton(ctx: CanvasRenderingContext2D, x: number, centerY: number) {
@@ -1231,14 +1245,7 @@ export function useCanvasRender({
 
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
-    if (
-      expandedPanelRowIndex.value === row.rowMeta.rowIndex &&
-      expandedPanelPath.value !== null &&
-      // Default both sides to [] — flat rows have row.rowMeta.path === undefined,
-      // and comparePath requires arrays on both sides, so the highlight would
-      // never paint in non-group-by views without this normalisation.
-      comparePath(expandedPanelPath.value, row.rowMeta?.path ?? [])
-    ) {
+    if (isExpandedPanelRow(row)) {
       ctx.fillStyle = getColor(themeV4Colors.brand['500'])
       ctx.fillRect(xOffset, yOffset, 3, rowHeight.value)
     }
@@ -1690,9 +1697,10 @@ export function useCanvasRender({
 
   // ── Remote record presence (collaborators with the record open) ──
   // Collected once per row (where the PK is already in hand) and drawn as a left accent
-  // bar in the overlay pass. This is the ONLY grid signal for an expanded record: opening
-  // one suppresses that connection's cell cursor, so without the bar the collaborator
-  // vanishes from the grid entirely.
+  // bar in the overlay pass. In MODAL mode this is the only grid signal for an expanded
+  // record — opening one suppresses that connection's cell cursor. In side-panel mode the
+  // cursor stays live, so a collaborator can show both this bar and a cell cursor, on
+  // different rows.
   interface RemoteRecordMark {
     x: number
     y: number
@@ -1702,20 +1710,31 @@ export function useCanvasRender({
 
   const remoteRecordMarks: RemoteRecordMark[] = []
 
-  function collectRemoteRecord(pk: string | null | undefined, x: number, y: number, height: number) {
+  const RECORD_MARK_WIDTH = 3
+
+  function collectRemoteRecord(pk: string | null | undefined, row: Row, x: number, y: number, height: number) {
     if (!pk) return
     const map = remoteRecords.value
     if (!map.size) return
     const focuses = map.get(pk)
-    // `x` = the row's left edge, carrying the group indentation in group-by mode so the
-    // bar hugs the row instead of floating in the gutter.
-    if (focuses?.length) remoteRecordMarks.push({ x: Math.max(0, x), y, height, focuses })
+    if (!focuses?.length) return
+
+    // This pass runs after renderRowMeta, so drawing the full strip would silently
+    // replace the viewer's own side-panel bar — which in panel mode is their only cue for
+    // which row they have open. Share it instead: brand keeps the top half, the
+    // collaborator takes the bottom. Split vertically rather than sideways so the mark
+    // stays inside the original 3px — the row-meta drag handle starts 4px in, and this
+    // pass would draw over it.
+    const shared = isExpandedPanelRow(row)
+    const splitAt = shared ? Math.floor(height / 2) : 0
+
+    // `x` must be the row-meta column's own left edge — the same origin renderRowMeta
+    // draws the brand bar from, so the two share one lane. Callers pass it rather than
+    // `initialXOffset`, which in flat views also carries the horizontal scroll offset and
+    // would send the bar drifting out into the data area.
+    remoteRecordMarks.push({ x: Math.max(0, x), y: y + splitAt, height: height - splitAt, focuses })
   }
 
-  // Shares its pixels with the side-panel row marker in renderRowMeta, and this pass runs
-  // later — so on the row open in the side panel the collaborator's colour replaces the
-  // brand one. Accepted: only one row can be in the panel, and someone else being in that
-  // record is the more urgent fact.
   function drawRemoteRecordMarks(ctx: CanvasRenderingContext2D) {
     if (!remoteRecordMarks.length) return
     ctx.save()
@@ -1725,7 +1744,7 @@ export function useCanvasRender({
       const primary = mark.focuses[0]
       if (!primary) continue
       ctx.fillStyle = primary.color
-      ctx.fillRect(mark.x, mark.y, 3, mark.height)
+      ctx.fillRect(mark.x, mark.y, RECORD_MARK_WIDTH, mark.height)
     }
     ctx.restore()
   }
@@ -1981,7 +2000,9 @@ export function useCanvasRender({
       const _yOffset = yOffset
       const _rowH = rowHeight.value
 
-      collectRemoteRecord(pk, initialXOffset, _yOffset, _rowH)
+      // Mirrors both fixed-column passes below (`xOffset = isGroupBy ? initialXOffset : 0`),
+      // which is where renderRowMeta paints the brand side-panel bar.
+      collectRemoteRecord(pk, row, isGroupBy.value ? initialXOffset : 0, _yOffset, _rowH)
 
       visibleCols.forEach((column, colIdx) => {
         let width = parseCellWidth(column.width)

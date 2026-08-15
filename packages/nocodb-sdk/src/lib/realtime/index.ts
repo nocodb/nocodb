@@ -339,6 +339,16 @@ export type FocusValue =
       viewId?: string;
       editing?: boolean;
       uploading?: boolean;
+      /**
+       * Record open in the expanded-form SIDE PANEL, which — unlike the modal —
+       * leaves the grid interactive. So a connection holds a cursor and an open
+       * record at the same time, and they may be different rows.
+       *
+       * Rides on the cell frame rather than being a second focus: one frame per
+       * connection is what the presence tiering's `.except()` routing depends on.
+       * The modal path still emits a plain `record` focus.
+       */
+      openRecordPk?: string;
     }
   | {
       type: 'record';

@@ -1308,6 +1308,10 @@ export default class Column<T = any> implements ColumnType {
     }
 
     const oldCol = await Column.get(context, { colId }, ncMeta);
+    // Target uidt after this update — fall back to the existing type when the
+    // payload omits uidt (partial updates). Used to decide whether button
+    // visibility filters should be wiped on colOption rebuild.
+    const incomingUidt = (column.uidt as UITypes) || oldCol.uidt;
     const requiredColAvail =
       !requiredColumnsToRecreate[oldCol.uidt] ||
       requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]);

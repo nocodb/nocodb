@@ -282,7 +282,7 @@ export const serializeCurrencyValue = (
         columnMeta.currency_locale === 'en-US' ||
         typeof (formatter as any).formatToParts !== 'function'
       ) {
-        return value?.replace(/[^0-9.]/g, '')?.trim();
+        return value?.replace(/[^\d.-]/g, '')?.trim();
       }
 
       const { group, decimal } = getGroupDecimalSymbolFromLocale(

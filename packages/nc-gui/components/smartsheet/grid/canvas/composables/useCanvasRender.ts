@@ -1011,25 +1011,7 @@ export function useCanvasRender({
       ctx.lineTo(xOffset, _headerRowHeight)
       ctx.stroke()
 
-      if (_scrollLeft) {
-        ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
-        ctx.beginPath()
-        ctx.lineWidth = 1
-        ctx.moveTo(xOffset, 0)
-        ctx.lineTo(xOffset, isGroupBy.value ? height.value : _headerRowHeight)
-        ctx.stroke()
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-        ctx.rect(xOffset, 0, 4, isGroupBy.value ? height.value : _headerRowHeight)
-        ctx.fill()
-      } else {
-        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
-        ctx.beginPath()
-        ctx.lineWidth = 1
-        ctx.moveTo(xOffset, 0)
-        ctx.lineTo(xOffset, isGroupBy.value ? height.value : _headerRowHeight)
-        ctx.stroke()
-      }
+      // Freeze boundary line is drawn full-height by renderFreezeBoundary
       ctx.shadowColor = 'transparent'
       ctx.shadowBlur = 0
       ctx.shadowOffsetX = 0
@@ -2252,25 +2234,7 @@ export function useCanvasRender({
           xOffset += width
         })
 
-        if (scrollLeft.value && !isGroupBy.value) {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-          ctx.rect(xOffset, yOffset, 4, _rowH)
-          ctx.fill()
-          ctx.strokeStyle = _rowColors.borderDark
-          ctx.beginPath()
-          ctx.moveTo(xOffset, yOffset)
-          ctx.lineTo(xOffset, yOffset + _rowH)
-          ctx.stroke()
-        }
-
-        if (!visibleCols.some((f) => !f.fixed)) {
-          ctx.strokeStyle = _rowColors.borderLight
-          ctx.beginPath()
-          ctx.moveTo(xOffset, yOffset)
-          ctx.lineTo(xOffset, yOffset + _rowH)
-          ctx.stroke()
-        }
-
+        // Freeze boundary line + scroll tint are drawn full-height by renderFreezeBoundary
         ctx.fillStyle = 'transparent'
         ctx.strokeStyle = _rowColors.white
         ctx.shadowColor = 'transparent'
@@ -2725,6 +2689,29 @@ export function useCanvasRender({
     ctx.restore()
   }
 
+  // Always-visible freeze boundary: a full-height line (header → footer, past
+  // the last row) one shade darker than column borders, so the frozen region
+  // reads without hovering or scrolling. Scroll adds the elevation tint.
+  const renderFreezeBoundary = (ctx: CanvasRenderingContext2D) => {
+    if (!fixedCols.value.length) return
+
+    const x = fixedColsWidth.value - 1
+
+    ctx.save()
+    ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, height.value)
+    ctx.stroke()
+
+    if (scrollLeft.value) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
+      ctx.fillRect(x, 0, 4, height.value)
+    }
+    ctx.restore()
+  }
+
   // Freeze divider affordance: grip pill on hover, full-height guideline while
   // dragging (snapped to the previewed field boundary).
   const renderFreezeDivider = (ctx: CanvasRenderingContext2D) => {
@@ -2823,12 +2810,7 @@ export function useCanvasRender({
       ctx.fillStyle = isHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
       if (column.aggregationSuppressed) {
         // Selection-mode footer: column is either out-of-selection or has no
-        // aggregator configured. Render the divider but skip value + hover.
-        ctx.beginPath()
-        ctx.strokeStyle = _rowColors.borderLight
-        ctx.moveTo(xOffset - _scrollLeft, _height - AGGREGATION_HEIGHT)
-        ctx.lineTo(xOffset - _scrollLeft, _height)
-        ctx.stroke()
+        // aggregator configured. Skip value + hover.
         xOffset += width
         return
       }
@@ -2911,12 +2893,6 @@ export function useCanvasRender({
           })
         }
       }
-
-      ctx.beginPath()
-      ctx.strokeStyle = _rowColors.borderLight
-      ctx.moveTo(xOffset - _scrollLeft, _height - AGGREGATION_HEIGHT)
-      ctx.lineTo(xOffset - _scrollLeft, _height)
-      ctx.stroke()
 
       xOffset += width
     })
@@ -3117,12 +3093,6 @@ export function useCanvasRender({
           })
         }
 
-        ctx.strokeStyle = _rowColors.borderMedium
-        ctx.beginPath()
-        ctx.moveTo(xOffset, _height - AGGREGATION_HEIGHT)
-        ctx.lineTo(xOffset, _height)
-        ctx.stroke()
-
         xOffset += mergedWidth
 
         fixedCols.value.slice(2).forEach((column) => {
@@ -3192,20 +3162,8 @@ export function useCanvasRender({
             ctx.restore()
           }
 
-          ctx.strokeStyle = _rowColors.borderMedium
-          ctx.beginPath()
-          ctx.moveTo(xOffset, _height - AGGREGATION_HEIGHT)
-          ctx.lineTo(xOffset, _height)
-          ctx.stroke()
-
           xOffset += width
         })
-
-        ctx.strokeStyle = _rowColors.borderLight
-        ctx.beginPath()
-        ctx.moveTo(xOffset, _height - AGGREGATION_HEIGHT)
-        ctx.lineTo(xOffset, _height)
-        ctx.stroke()
 
         ctx.shadowColor = 'transparent'
         ctx.shadowBlur = 0
@@ -4426,6 +4384,8 @@ export function useCanvasRender({
       renderRowDragPreview(ctx, draggedRowGroupPath.value)
 
       renderAggregations(ctx)
+
+      renderFreezeBoundary(ctx)
 
       renderFreezeDivider(ctx)
 

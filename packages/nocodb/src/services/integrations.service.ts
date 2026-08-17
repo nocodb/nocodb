@@ -489,7 +489,7 @@ export class IntegrationsService {
       );
 
       // Destroy local connection + bump Redis version for cross-server invalidation
-      await NcConnectionMgrv2.resetSource(source.id);
+      await NcConnectionMgrv2.resetSource(source);
     }
   }
 

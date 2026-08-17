@@ -207,7 +207,7 @@ export class PgSourceSearchPathBackfillMigration {
           // fires. resetSource() deletes the local ref then bumps, so this
           // instance rebuilds against the pinned schema on the next connection
           // and every other instance invalidates via the version bump.
-          await NcConnectionMgrv2.resetSource(source.id);
+          await NcConnectionMgrv2.resetSource(source);
           pinned++;
 
           // Per-pin audit line — this migration mutates source config, so

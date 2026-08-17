@@ -81,8 +81,10 @@ export default class Source implements SourceType {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    // `id` is deliberately absent — metaInsert2 generates it. A caller-chosen
+    // id can collide with a source in another base, and the connection cache
+    // then hands over that base's live DB connection.
     const insertObj = extractProps(source, [
-      'id',
       'alias',
       'config',
       'type',
@@ -229,7 +231,7 @@ export default class Source implements SourceType {
     // for metadata-only changes (readonly flags, alias, order) where the
     // connection config hasn't changed. Callers that change connection config
     // (integrations service, sourceCleanup) call resetSource() directly.
-    await NcConnectionMgrv2.bumpSourceVersion(sourceId);
+    await NcConnectionMgrv2.bumpSourceVersion(oldSource);
 
     return await this.get(context, oldSource.id, false, ncMeta);
   }
@@ -484,7 +486,7 @@ export default class Source implements SourceType {
     await NcConnectionMgrv2.deleteAwait(this);
 
     // Bump Redis version so all servers invalidate on next read
-    await NcConnectionMgrv2.bumpSourceVersion(this.id);
+    await NcConnectionMgrv2.bumpSourceVersion(this);
   }
 
   async delete(

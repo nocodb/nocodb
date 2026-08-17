@@ -3825,6 +3825,7 @@
     "pills": "Pills",
     "cards": "Cards",
     "linkUnlinkRecords": "Link/unlink records",
+    "limitRecordSelection": "Limit record selection",
     "selection": "Selection",
     "allRecords": "All records",
     "specificRecords": "Specific records",

@@ -316,23 +316,6 @@ export function useCanvasTable({
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
-  // Optimistic frozen count while a divider-drag write is in flight; any meta
-  // change from the server (own write, undo, realtime) clears it.
-  const frozenCountOverride = ref<number | null>(null)
-
-  const metaFrozenCount = computed(() => {
-    const count = parseProp((view.value?.view as GridType)?.meta)?.frozen_column_count
-    return ncIsNumber(count) ? Math.min(Math.max(Math.round(count), 1), MAX_FROZEN_FIELDS) : 1
-  })
-
-  // Persisted frozen field count for this view (frozen fields = first N visible
-  // fields, display value hoisted first). Row-number gutter is not counted.
-  const savedFrozenCount = computed(() => frozenCountOverride.value ?? metaFrozenCount.value)
-
-  watch(metaFrozenCount, () => {
-    frozenCountOverride.value = null
-  })
-
   const removeInlineAddRecord = computed(() => {
     return (
       !isGroupBy.value &&
@@ -353,6 +336,26 @@ export function useCanvasTable({
   const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
   actionManager.setInterfaceDataApi(interfacePageDataApi)
+
+  // Optimistic frozen count while a divider-drag write is in flight; any
+  // upstream change (own write, undo, realtime) clears it.
+  const frozenCountOverride = ref<number | null>(null)
+
+  // Interface grids persist the count in the viz config; native grids in view meta.
+  const metaFrozenCount = computed(() => {
+    const count = interfacePageDataApi
+      ? interfacePageDataApi.frozenFieldCount?.value
+      : parseProp((view.value?.view as GridType)?.meta)?.frozen_column_count
+    return ncIsNumber(count) ? Math.min(Math.max(Math.round(count), 1), MAX_FROZEN_FIELDS) : 1
+  })
+
+  // Persisted frozen field count (frozen fields = first N visible fields,
+  // display value hoisted first). Row-number gutter is not counted.
+  const savedFrozenCount = computed(() => frozenCountOverride.value ?? metaFrozenCount.value)
+
+  watch(metaFrozenCount, () => {
+    frozenCountOverride.value = null
+  })
 
   // Interface builder: the clicked header field (blue border + 3-dot button) —
   // deliberately separate from selectedHeaderColumnIds so no cell range selects.

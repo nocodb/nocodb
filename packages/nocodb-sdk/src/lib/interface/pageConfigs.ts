@@ -124,6 +124,8 @@ export interface InterfaceGridVizConfig
   group_by?: InterfaceGridGroupByConfig[];
   /** Drop the null/uncategorized group when grouping (mirrors the grid view's `hide_empty_groups` meta). */
   hide_empty_groups?: boolean;
+  /** Frozen field count, 1-3 incl. the display value (mirrors the grid view's `frozen_column_count` meta). */
+  frozen_column_count?: number;
 }
 
 /**

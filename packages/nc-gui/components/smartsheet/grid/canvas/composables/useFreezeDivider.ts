@@ -47,22 +47,23 @@ export function useFreezeDivider({
 
   const isPublicView = inject(IsPublicInj, ref(false))
 
-  // Interface pages run on synthetic views — nothing to persist the count on
+  // Interface grids persist through the adapter (viz config) — builder only
   const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
   const { isSharedBase } = storeToRefs(useBase())
 
   const freezeDrag = ref<{ previewCount: number; previewX: number } | null>(null)
 
-  const canAdjustFrozen = computed(
-    () =>
-      !isMobileMode.value &&
-      !isLocked.value &&
-      !isPublicView.value &&
-      !isSharedBase.value &&
-      !interfacePageDataApi &&
-      isViewOperationsAllowed.value,
-  )
+  const canAdjustFrozen = computed(() => {
+    if (isMobileMode.value) return false
+
+    // Interface mounts are always "public" — gate on builder edit mode instead
+    if (interfacePageDataApi) {
+      return !!interfacePageDataApi.canConfigureFields?.value && !!interfacePageDataApi.setFrozenFieldCount
+    }
+
+    return !isLocked.value && !isPublicView.value && !isSharedBase.value && isViewOperationsAllowed.value
+  })
 
   // x of the freeze boundary in canvas coords (right edge of the last fixed column)
   const freezeDividerX = computed(() =>
@@ -100,6 +101,14 @@ export function useFreezeDivider({
   const isFreezeDividerHovered = computed(() => !!freezeDrag.value || isInFreezeDividerZone(mousePosition.x, mousePosition.y))
 
   async function persistFrozenCount(count: number) {
+    // Interface grid: the host writes viz `frozen_column_count` (optimistic —
+    // the adapter's reactive count clears the override once the write lands)
+    if (interfacePageDataApi) {
+      frozenCountOverride.value = count
+      interfacePageDataApi.setFrozenFieldCount?.(count)
+      return
+    }
+
     if (!view.value?.id) return
 
     const previous = frozenCountOverride.value

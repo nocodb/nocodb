@@ -425,6 +425,7 @@ const {
   width,
   height,
   scrollToCell,
+  scrollToLeftEdge,
   scrollTop,
   aggregations,
   vSelectedAllRecords,
@@ -1497,6 +1498,19 @@ async function handleMouseDown(e: MouseEvent) {
 const PADDING_BOTTOM = 96
 const FIXED_COLUMN_PADDING = 128
 
+/**
+ * Freeze-divider drag entry point. Snap targets are absolute widths (where a
+ * boundary lands once those fields are frozen), while unfrozen fields paint at
+ * `absolute - scrollLeft` — so the preview only tells the truth at the left
+ * edge. Jump there instantly, before the drag starts; animating would slide the
+ * snap targets out from under a pointer that is already down.
+ */
+function scrollToLeftEdge(): void {
+  if (!scrollLeft.value) return
+
+  scroller.value?.scrollTo({ left: 0 })
+}
+
 function scrollToCell(row?: number, column?: number, path?: Array<number>, horizontalScroll: boolean = true): void {
   const currentRow = row ?? activeCell.value.row ?? -1
   const currentColumn = column ?? activeCell.value.column ?? -1
@@ -2338,7 +2352,11 @@ const handleMouseMove = (e: MouseEvent) => {
   mousePosition.y = e.clientY - rect.top
 
   let cursor = colResizeHoveredColIds.value.size ? 'col-resize' : 'auto'
-  hideTooltip()
+  // Hover tooltips are re-published by the render pass, so clearing per move is
+  // what makes them appear only once the pointer settles. The freeze-drag label
+  // has to stay put while the pointer moves — renderFreezeDivider owns showing
+  // and hiding that one.
+  if (!isFreezeDividerDragging.value) hideTooltip()
   scheduleHideDescriptionPopover()
 
   // Freeze divider: repaint per move while the grip is visible (it tracks mouse y);

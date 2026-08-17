@@ -4515,7 +4515,8 @@
     "previewGeneratedFromFirstRecord": "Preview is generated using the first record in this table",
     "includeFieldInPromptToGenerate": "Include at least 1 field in prompt to generate",
     "editorsReportedByInstance": "Editor count is reported by your instance on each heartbeat. Manage editors on the instance itself.",
-    "dragToAdjustFrozenFields": "Drag to adjust the number of frozen fields"
+    "dragToAdjustFrozenFields": "Drag to adjust the number of frozen fields",
+    "freezeColumnsCount": "Freeze {count} column | Freeze {count} columns"
   },
   "placeholder": {
     "findBaseCollaborator": "Find a base collaborator",

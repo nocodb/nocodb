@@ -215,7 +215,7 @@ export function useCanvasRender({
   isRecordSelected: (row: Row) => boolean
   isViewOperationsAllowed: ComputedRef<boolean>
   groupSelectionAggregations: ComputedRef<Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>>
-  freezeDrag: Ref<{ previewCount: number; previewX: number } | null>
+  freezeDrag: Ref<{ previewCount: number; previewX: number; hasMoved: boolean } | null>
   canAdjustFrozen: ComputedRef<boolean>
   freezeDividerX: ComputedRef<number>
   isFreezeDividerHovered: ComputedRef<boolean>
@@ -227,7 +227,7 @@ export function useCanvasRender({
   // a first click activates the field, a second on the button opens its menu.
   const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
   const colResizeHoveredColIds = ref(new Set())
-  const { tryShowTooltip } = useTooltipStore()
+  const { tryShowTooltip, showTooltip, hideTooltip } = useTooltipStore()
   const { isMobileMode, isAddNewRecordGridMode, appInfo } = useGlobal()
   const { isWsOwner } = useEeConfig()
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
@@ -2751,14 +2751,36 @@ export function useCanvasRender({
 
     ctx.restore()
 
-    if (!dragging) {
-      tryShowTooltip({
+    const gripRect = { x: x - 5, y: gripY, width: 10, height: gripHeight }
+
+    if (dragging) {
+      // Nothing to announce until the drag has moved the divider — grabbing it
+      // just restates the current count. handleMouseMove deliberately does not
+      // clear tooltips mid-drag (that would blink the label on every move), so
+      // hiding it here is this pass's job.
+      if (!dragging.hasMoved) {
+        hideTooltip()
+        return
+      }
+
+      // Anchored to the previewed boundary rather than the pointer, which sits
+      // between snap points — a hover test against the grip would miss it.
+      showTooltip({
         mousePosition,
-        text: t('tooltip.dragToAdjustFrozenFields'),
-        rect: { x: x - 5, y: gripY, width: 10, height: gripHeight },
+        text: t('tooltip.freezeColumnsCount', { count: dragging.previewCount }, dragging.previewCount),
+        rect: gripRect,
         placement: 'right',
       })
+
+      return
     }
+
+    tryShowTooltip({
+      mousePosition,
+      text: t('tooltip.dragToAdjustFrozenFields'),
+      rect: gripRect,
+      placement: 'right',
+    })
   }
 
   function renderAggregations(ctx: CanvasRenderingContext2D) {

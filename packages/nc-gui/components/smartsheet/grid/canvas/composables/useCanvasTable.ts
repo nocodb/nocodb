@@ -67,6 +67,7 @@ export function useCanvasTable({
   width,
   height,
   scrollToCell,
+  scrollToLeftEdge,
   aggregations,
   vSelectedAllRecords,
   vSelectedAllRecordsSkipPks,
@@ -105,6 +106,8 @@ export function useCanvasTable({
   width: Ref<number>
   height: Ref<number>
   scrollToCell: CanvasScrollToCellFn
+  /** Jump the grid to `scrollLeft: 0` — the freeze divider only previews truthfully there. */
+  scrollToLeftEdge: () => void
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
@@ -1316,6 +1319,7 @@ export function useCanvasTable({
     isMobileMode,
     isViewOperationsAllowed,
     triggerRefreshCanvas,
+    scrollToLeftEdge,
   })
 
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({

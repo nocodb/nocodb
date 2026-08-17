@@ -23,6 +23,7 @@ export function useFreezeDivider({
   isMobileMode,
   isViewOperationsAllowed,
   triggerRefreshCanvas,
+  scrollToLeftEdge,
 }: {
   columns: ComputedRef<CanvasGridColumn[]>
   width: Ref<number>
@@ -36,12 +37,17 @@ export function useFreezeDivider({
   isMobileMode: Ref<boolean>
   isViewOperationsAllowed: ComputedRef<boolean>
   triggerRefreshCanvas: () => void
+  scrollToLeftEdge: () => void
 }) {
   const { t } = useI18n()
 
   const { updateViewMeta } = useViewsStore()
 
   const { showInfoModal } = useNcConfirmModal()
+
+  // The drag label is shown unconditionally (the pointer sits between snap
+  // points), so ending the drag has to take it down.
+  const { hideTooltip } = useTooltipStore()
 
   const isLocked = inject(IsLockedInj, ref(false))
 
@@ -52,7 +58,10 @@ export function useFreezeDivider({
 
   const { isSharedBase } = storeToRefs(useBase())
 
-  const freezeDrag = ref<{ previewCount: number; previewX: number } | null>(null)
+  // `hasMoved` stays false until the drag crosses a snap boundary — grabbing the
+  // divider announces nothing, every snap after it does (including snapping back
+  // to the count the drag started from).
+  const freezeDrag = ref<{ previewCount: number; previewX: number; hasMoved: boolean } | null>(null)
 
   const canAdjustFrozen = computed(() => {
     if (isMobileMode.value) return false
@@ -199,13 +208,21 @@ export function useFreezeDivider({
 
     e.preventDefault()
 
-    freezeDrag.value = { previewCount: currentSnap.count, previewX: currentSnap.x }
+    // Snap targets are absolute field widths, so they only line up with what is
+    // painted when nothing is scrolled away — and freezing is about the leading
+    // fields, which is what the left edge shows.
+    scrollToLeftEdge()
+
+    freezeDrag.value = { previewCount: currentSnap.count, previewX: currentSnap.x, hasMoved: false }
+    // Drop the hover hint on grab — the drag label replaces it, once the drag
+    // has actually moved the divider.
+    hideTooltip()
     triggerRefreshCanvas()
 
     onDragMove = (moveEvent: MouseEvent) => {
       const snap = snapCountFromX(moveEvent.clientX - rect.left)
       if (!snap || snap.count === freezeDrag.value?.previewCount) return
-      freezeDrag.value = { previewCount: snap.count, previewX: snap.x }
+      freezeDrag.value = { previewCount: snap.count, previewX: snap.x, hasMoved: true }
       triggerRefreshCanvas()
     }
 
@@ -214,6 +231,7 @@ export function useFreezeDivider({
 
       const previewCount = freezeDrag.value?.previewCount
       freezeDrag.value = null
+      hideTooltip()
       triggerRefreshCanvas()
 
       if (previewCount && previewCount !== savedFrozenCount.value) {
@@ -232,6 +250,7 @@ export function useFreezeDivider({
   onBeforeUnmount(() => {
     detachDragListeners()
     freezeDrag.value = null
+    hideTooltip()
   })
 
   return {

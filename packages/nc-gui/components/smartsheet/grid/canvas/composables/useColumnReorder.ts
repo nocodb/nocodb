@@ -1,4 +1,5 @@
 import { parseCellWidth } from '../utils/cell'
+import { getColumnDropTargetIndex } from '../utils/headerUtils'
 
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
@@ -19,11 +20,21 @@ export function useColumnReorder(
   } | null>(null)
 
   const findColumnAtPosition = (x: number) => {
+    // While a drag is in progress, targets must stay on the same side of the
+    // freeze divider — fields can be reordered within the frozen band or within
+    // the scrollable area, never across.
+    const sourceCol = dragStart.value ? columns.value.find((c) => c.id === dragStart.value!.id) : null
+    const matchesSide = (col: CanvasGridColumn) => !sourceCol || !!col.fixed === !!sourceCol.fixed
+
     let currentX = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (const col of fixedCols) {
       const width = parseCellWidth(col.width)
-      if (x >= currentX && x < currentX + width) return null
+      if (x >= currentX && x < currentX + width) {
+        // row-number gutter is never a drag source/target
+        if (!col.uidt) return null
+        return matchesSide(col) ? col : null
+      }
       currentX += width
     }
 
@@ -39,7 +50,7 @@ export function useColumnReorder(
       const column = columns.value[i]
       if (!column?.fixed) {
         const width = parseCellWidth(column?.width)
-        if (x >= currentX && x < currentX + width) return column
+        if (x >= currentX && x < currentX + width) return column && matchesSide(column) ? column : null
         currentX += width
       }
     }
@@ -61,12 +72,18 @@ export function useColumnReorder(
         index: columns.value.findIndex((c) => c.id === col.id),
       }
       requestAnimationFrame(drawCanvas)
+    } else if (!col && dragOver.value) {
+      // No valid target under the pointer (other side of the freeze divider, or
+      // the row-number gutter) — drop the pending target so mouseup cancels
+      // instead of committing the last one we saw.
+      dragOver.value = null
+      requestAnimationFrame(drawCanvas)
     }
   }
 
   const dragEndHandler = () => {
     if (dragStart.value && dragOver.value) {
-      emit('reorderColumns', dragStart.value.index, dragOver.value.index - 1)
+      emit('reorderColumns', dragStart.value.index, getColumnDropTargetIndex(columns.value, dragOver.value.index))
     }
     cleanup()
   }
@@ -85,7 +102,9 @@ export function useColumnReorder(
   const startDrag = (x: number) => {
     if (isLocked.value || !isViewOperationsAllowed.value) return
     const col = findColumnAtPosition(x)
-    if (col) {
+    // The display value is always the first frozen field — it can be a drop
+    // target (insert right after it) but never a drag source.
+    if (col && !col.pv) {
       isDragging.value = true
       dragStart.value = {
         id: col.id,

@@ -385,6 +385,14 @@ export interface InterfacePageDataApi {
    * contract as `setFieldWidth`.
    */
   setFieldOrder?: (orderedColumnIds: string[]) => void
+  /** Frozen field count for a grid viz (reactive; the canvas reads it instead of grid view meta). */
+  frozenFieldCount?: Ref<number | undefined>
+  /**
+   * Persist the freeze-divider drag for this viz — writes viz
+   * `frozen_column_count` (1-3). Same builder-only / no-native-write contract
+   * as `setFieldWidth`; absent = the divider is not adjustable.
+   */
+  setFrozenFieldCount?: (count: number) => void
   /** Open this column's Field pane in the properties panel (builder canvas). */
   openFieldPane?: (columnId: string) => void
   /** Close the active column Field pane (builder canvas field deselect). */

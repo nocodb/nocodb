@@ -32,7 +32,7 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
+const { gridViewCols, fieldsMap, hidingViewColumnsMap, adjustFrozenFieldsOnBulkHide } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit, groupBy } = useViewGroupByOrThrow()
 
@@ -109,6 +109,9 @@ const hideAllSelected = async () => {
     for (const id of hiddenColIds) {
       delete hidingViewColumnsMap.value[id]
     }
+
+    // Shrink the frozen region once for all frozen fields that were just hidden
+    await adjustFrozenFieldsOnBulkHide(hiddenColIds)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()

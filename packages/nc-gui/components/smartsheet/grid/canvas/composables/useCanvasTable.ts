@@ -12,7 +12,16 @@ import {
   isVirtualCol,
   ncHasProperties,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType, TableType, UserType, ViewType } from 'nocodb-sdk'
+import type {
+  ButtonType,
+  ColumnType,
+  FormulaType,
+  GridType,
+  LinkToAnotherRecordType,
+  TableType,
+  UserType,
+  ViewType,
+} from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -23,6 +32,7 @@ import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
   EDIT_INTERACTABLE,
+  FROZEN_AREA_MAX_WIDTH_RATIO,
   ROW_COLOR_BORDER_WIDTH,
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
@@ -35,6 +45,7 @@ import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
 import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
+import { useFreezeDivider } from './useFreezeDivider'
 import { useColumnReorder } from './useColumnReorder'
 import { normalizeWidth, useColumnResize } from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
@@ -56,6 +67,7 @@ export function useCanvasTable({
   width,
   height,
   scrollToCell,
+  scrollToLeftEdge,
   aggregations,
   vSelectedAllRecords,
   vSelectedAllRecordsSkipPks,
@@ -94,6 +106,8 @@ export function useCanvasTable({
   width: Ref<number>
   height: Ref<number>
   scrollToCell: CanvasScrollToCellFn
+  /** Jump the grid to `scrollLeft: 0` — the freeze divider only previews truthfully there. */
+  scrollToLeftEdge: () => void
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
@@ -325,6 +339,27 @@ export function useCanvasTable({
 
   actionManager.setInterfaceDataApi(interfacePageDataApi)
 
+  // Optimistic frozen count while a divider-drag write is in flight; any
+  // upstream change (own write, undo, realtime) clears it.
+  const frozenCountOverride = ref<number | null>(null)
+
+  // Interface grids persist the count in the viz config; native grids in view meta.
+  const metaFrozenCount = computed(() =>
+    clampFrozenFieldCount(
+      interfacePageDataApi
+        ? interfacePageDataApi.frozenFieldCount?.value
+        : parseProp((view.value?.view as GridType)?.meta)?.frozen_column_count,
+    ),
+  )
+
+  // Persisted frozen field count (frozen fields = first N visible fields,
+  // display value hoisted first). Row-number gutter is not counted.
+  const savedFrozenCount = computed(() => frozenCountOverride.value ?? metaFrozenCount.value)
+
+  watch(metaFrozenCount, () => {
+    frozenCountOverride.value = null
+  })
+
   // Interface builder: the clicked header field (blue border + 3-dot button) —
   // deliberately separate from selectedHeaderColumnIds so no cell range selects.
   const interfaceActiveHeaderFieldId = ref<string | null>(null)
@@ -524,13 +559,7 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed: isMobileMode.value
-            ? false
-            : isGroupBy.value
-            ? !!f.pv
-            : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
-            ? false
-            : !!f.pv,
+          fixed: false,
           readonly:
             f.readonly ||
             isDataReadOnly.value ||
@@ -558,8 +587,27 @@ export function useCanvasTable({
           abstractType: sqlUi?.getAbstractType(f),
         }
       })
-      .filter((c) => !!c)
-      .sort((a, b) => !!b.fixed - !!a.fixed)
+      .filter((c): c is Exclude<typeof c, false> => !!c)
+      .sort((a, b) => Number(!!b.pv) - Number(!!a.pv))
+
+    // Freeze the first `savedFrozenCount` visible fields, dropping fields from
+    // the right while the cumulative frozen width exceeds the viewport ratio.
+    // Under group-by the display value always stays frozen (merged group
+    // headers/footers render against it).
+    if (!isMobileMode.value) {
+      const maxFrozenWidth = width.value * FROZEN_AREA_MAX_WIDTH_RATIO
+      const minFrozen = isGroupBy.value ? 1 : 0
+      let frozenWidth = 0
+      let frozenCount = 0
+      while (frozenCount < Math.min(savedFrozenCount.value, cols.length)) {
+        frozenWidth += parseCellWidth(cols[frozenCount].width)
+        if (frozenWidth > maxFrozenWidth && frozenCount >= minFrozen) break
+        frozenCount++
+      }
+      for (let i = 0; i < frozenCount; i++) {
+        cols[i].fixed = true
+      }
+    }
 
     fetchMetaIds.value.push(...fetchMetaIdsLocal)
 
@@ -854,6 +902,10 @@ export function useCanvasTable({
       return { ...col, aggregationSuppressed: true } as CanvasGridColumn
     })
   })
+
+  // Frozen fields actually rendered fixed right now — may be lower than
+  // savedFrozenCount when the viewport-width clamp kicked in.
+  const effectiveFrozenCount = computed(() => _columnsBase.value.filter((col) => col.fixed && col.id !== 'row_number').length)
 
   const columnWidths = computed(() =>
     columns.value.map((col) => {
@@ -1247,6 +1299,30 @@ export function useCanvasTable({
 
   watch([remoteFocuses, remoteRecords, remoteFields], () => triggerRefreshCanvas())
 
+  const {
+    freezeDrag,
+    canAdjustFrozen,
+    freezeDividerX,
+    isFreezeDividerHovered,
+    isInFreezeDividerZone,
+    handleFreezeDividerMouseDown,
+  } = useFreezeDivider({
+    columns,
+    width,
+    height,
+    headerRowHeight,
+    mousePosition,
+    savedFrozenCount,
+    effectiveFrozenCount,
+    frozenCountOverride,
+    view,
+    isMobileMode,
+    isViewOperationsAllowed,
+    getFillHandlerPosition,
+    triggerRefreshCanvas,
+    scrollToLeftEdge,
+  })
+
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
     interfaceActiveHeaderFieldId,
@@ -1320,6 +1396,10 @@ export function useCanvasTable({
     isRecordSelected,
     isViewOperationsAllowed,
     groupSelectionAggregations,
+    freezeDrag,
+    canAdjustFrozen,
+    freezeDividerX,
+    isFreezeDividerHovered,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -2129,6 +2209,13 @@ export function useCanvasTable({
     renderCell,
 
     totalColumnsWidth,
+
+    // Frozen fields
+    savedFrozenCount,
+    effectiveFrozenCount,
+    isInFreezeDividerZone,
+    handleFreezeDividerMouseDown,
+    isFreezeDividerDragging: computed(() => !!freezeDrag.value),
 
     // permissions
     isFieldEditAllowed,

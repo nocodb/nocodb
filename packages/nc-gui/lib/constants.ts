@@ -270,6 +270,13 @@ export const getChartColors = (schema?: string | null, isDark = false): string[]
 // default (brand) palette. New chart code reads getChartColors(appearance.colorSchema).
 export const CHART_COLORS = CHART_PALETTES.default!
 
+/** Grid freeze — max frozen fields, display value included. Mirrored by the interface viz schema (`config-schemas.ts`). */
+export const MAX_FROZEN_FIELDS = 3
+
+/** Frozen field count as persisted in grid view meta / interface viz config. Anything unusable falls back to 1. */
+export const clampFrozenFieldCount = (value: unknown): number =>
+  ncIsNumber(value) ? Math.min(Math.max(Math.round(value), 1), MAX_FROZEN_FIELDS) : 1
+
 /** Virtual section ID for views not assigned to any real section */
 export const DEFAULT_SECTION_ID = '__default__'
 

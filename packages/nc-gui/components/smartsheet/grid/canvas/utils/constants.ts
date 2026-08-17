@@ -16,3 +16,6 @@ export const GROUP_EXPANDED_BOTTOM_PADDING = 0
 export const GROUP_PADDING = 12
 
 export const AGGREGATION_HEIGHT = 36
+
+// Frozen fields (row-number gutter excluded) may take at most this share of the grid viewport
+export const FROZEN_AREA_MAX_WIDTH_RATIO = 3 / 4

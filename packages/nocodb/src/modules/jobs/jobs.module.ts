@@ -46,6 +46,7 @@ import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-j
 import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
 import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
 import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
+import { AutoNumberNotNullRepairMigration } from '~/modules/jobs/migration-jobs/nc_job_017_autonumber_notnull_repair';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -115,6 +116,7 @@ export const JobsModuleMetadata = {
     CleanupOrphanViewColumnsMigration,
     PgSourceSearchPathBackfillMigration,
     CreditPlanBackfillMigration,
+    AutoNumberNotNullRepairMigration,
   ],
   exports: ['JobsService', JobsLogService, DuplicateProcessor],
 };

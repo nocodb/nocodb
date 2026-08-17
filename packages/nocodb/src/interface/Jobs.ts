@@ -34,6 +34,7 @@ export enum MigrationJobTypes {
   CleanupOrphanViewColumns = 'cleanup-orphan-view-columns',
   PgSourceSearchPathBackfill = 'pg-source-searchpath-backfill',
   CreditPlanBackfill = 'credit-plan-backfill',
+  AutoNumberNotNullRepair = 'autonumber-notnull-repair',
 }
 
 export enum JobTypes {

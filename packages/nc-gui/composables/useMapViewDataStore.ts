@@ -1,7 +1,7 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 
-const formatData = (list: Record<string, any>[]) =>
+const formatData = (list: Record<string, any>[] = []) =>
   list.map(
     (row) =>
       ({
@@ -89,7 +89,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
           })
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
-      formattedData.value = formatData(res!.list)
+      formattedData.value = formatData(res?.list)
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {

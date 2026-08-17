@@ -22,6 +22,7 @@ export function useFreezeDivider({
   view,
   isMobileMode,
   isViewOperationsAllowed,
+  getFillHandlerPosition,
   triggerRefreshCanvas,
   scrollToLeftEdge,
 }: {
@@ -36,6 +37,7 @@ export function useFreezeDivider({
   view: Ref<ViewType | undefined>
   isMobileMode: Ref<boolean>
   isViewOperationsAllowed: ComputedRef<boolean>
+  getFillHandlerPosition: () => FillHandlerPosition | null
   triggerRefreshCanvas: () => void
   scrollToLeftEdge: () => void
 }) {
@@ -109,13 +111,26 @@ export function useFreezeDivider({
   // leaves the divider with nothing to drag and nothing to reset.
   const isFreezeDividerActionable = computed(() => !isFrozenCountClamped.value || savedFrozenCount.value > 1)
 
+  // The active cell's fill handle is painted on the boundary when that cell sits
+  // in the last frozen field, and its hit radius is smaller than the divider
+  // zone — it would be unreachable without this.
+  function isOverFillHandle(x: number, y: number) {
+    const handle = getFillHandlerPosition()
+    if (!handle) return false
+
+    const radius = handle.size / 2
+
+    return (x - handle.x) ** 2 + (y - handle.y) ** 2 <= radius * radius
+  }
+
   function isInFreezeDividerZone(x: number, y: number) {
     return (
       canAdjustFrozen.value &&
       isFreezeDividerActionable.value &&
       Math.abs(x - freezeDividerX.value) <= HIT_ZONE_HALF_WIDTH &&
       y > headerRowHeight.value &&
-      y < height.value - AGGREGATION_HEIGHT
+      y < height.value - AGGREGATION_HEIGHT &&
+      !isOverFillHandle(x, y)
     )
   }
 

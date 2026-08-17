@@ -1318,6 +1318,7 @@ export function useCanvasTable({
     view,
     isMobileMode,
     isViewOperationsAllowed,
+    getFillHandlerPosition,
     triggerRefreshCanvas,
     scrollToLeftEdge,
   })

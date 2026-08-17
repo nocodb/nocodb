@@ -34,6 +34,7 @@ import {
   MAX_SELECTED_ROWS,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
+import { getColumnDropTargetIndex } from '../utils/headerUtils'
 import {
   calculateGroupHeight,
   calculateGroupRange,
@@ -975,24 +976,16 @@ export function useCanvasRender({
         const isNearEdge =
           mousePosition && Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= _headerRowHeight
 
-        // Right border for row number field
-        if (column.id === 'row_number') {
-          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
-          ctx.lineWidth = 2
-          ctx.beginPath()
-          ctx.moveTo(xOffset, 0)
-          ctx.lineTo(xOffset, _headerRowHeight)
-          ctx.stroke()
-        } else {
-          // Separator between frozen header cells (the scrollable pass skips
-          // fixed columns, and the fixed backgrounds repaint over its strokes)
-          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
-          ctx.lineWidth = 1
-          ctx.beginPath()
-          ctx.moveTo(xOffset, 0)
-          ctx.lineTo(xOffset, _headerRowHeight)
-          ctx.stroke()
-        }
+        // Right border for the row-number gutter, separator between frozen
+        // header cells otherwise (the scrollable pass skips fixed columns, and
+        // the fixed backgrounds repaint over its strokes). The last one is
+        // overpainted by renderFreezeBoundary's darker full-height line.
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+        ctx.lineWidth = column.id === 'row_number' ? 2 : 1
+        ctx.beginPath()
+        ctx.moveTo(xOffset, 0)
+        ctx.lineTo(xOffset, _headerRowHeight)
+        ctx.stroke()
 
         if (isNearEdge && column.id !== 'row_number' && !isLocked.value && isViewOperationsAllowed.value) {
           colResizeHoveredColIds.value.add(column.id)
@@ -2657,12 +2650,16 @@ export function useCanvasRender({
   const renderColumnDragIndicator = (ctx: CanvasRenderingContext2D) => {
     if (!dragOver.value || !isViewOperationsAllowed.value) return
 
+    // Edge the field would land on — right of the drop target, so a drop on the
+    // display value shows at its right edge (that is where it inserts)
+    const edgeIndex = getColumnDropTargetIndex(columns.value, dragOver.value.index) + 1
+
     let xPosition = 0
-    for (let i = 0; i < dragOver.value.index; i++) {
+    for (let i = 0; i < edgeIndex; i++) {
       xPosition += parseCellWidth(columns.value[i]?.width)
     }
 
-    const width = parseCellWidth(columns.value[dragOver.value.index - 1]?.width)
+    const width = parseCellWidth(columns.value[edgeIndex - 1]?.width)
 
     // Fixed columns render at absolute x — no scroll offset for in-band targets
     const drawX = columns.value[dragOver.value.index]?.fixed ? xPosition : xPosition - scrollLeft.value
@@ -2818,13 +2815,14 @@ export function useCanvasRender({
           },
           mousePosition,
         ) && isViewOperationsAllowed.value
-      ctx.fillStyle = isHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
       if (column.aggregationSuppressed) {
         // Selection-mode footer: column is either out-of-selection or has no
         // aggregator configured. Skip value + hover.
         xOffset += width
         return
       }
+
+      ctx.fillStyle = isHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
       if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
         ctx.beginPath()

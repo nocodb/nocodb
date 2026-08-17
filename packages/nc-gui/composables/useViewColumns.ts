@@ -12,7 +12,6 @@ import type {
 import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
-import { MAX_FROZEN_FIELDS } from '../components/smartsheet/grid/canvas/utils/constants'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -304,6 +303,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         return
       }
 
+      // Captured before the fields land, to compare against the region afterwards
+      const frozenIdsBefore = frozenFieldIdsSnapshot()
+
       if (view?.value?.id) {
         await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
           operation: 'showAllColumns',
@@ -318,6 +320,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
 
       await loadViewColumns()
+      await preserveFrozenFields(frozenIdsBefore)
       reloadData?.()
       $e('a:fields:show-all')
     }
@@ -368,11 +371,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
 
         // Only the display value stays visible — collapse the frozen region with it
-        if (view.value.type === ViewTypes.GRID) {
-          const gridMeta = parseProp((view.value?.view as GridType)?.meta)
-          if (ncIsNumber(gridMeta?.frozen_column_count) && gridMeta.frozen_column_count > 1) {
-            await viewStore.updateViewMeta(view.value.id, ViewTypes.GRID, { meta: { ...gridMeta, frozen_column_count: 1 } })
-          }
+        if (canAdjustFrozenFields() && currentFrozenCount() > 1) {
+          await writeFrozenCount(1)
         }
       }
 
@@ -615,6 +615,76 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         ?.map((field: Field) => metaColumnById?.value?.[field.fk_column_id!]) || []) as ColumnType[]
     })
 
+    function canAdjustFrozenFields() {
+      return view.value?.type === ViewTypes.GRID && !!view.value?.id && !isLocalMode.value && canEditViewFields.value
+    }
+
+    function currentFrozenCount() {
+      return clampFrozenFieldCount(parseProp((view.value?.view as GridType)?.meta)?.frozen_column_count)
+    }
+
+    function fieldOrderOf(colId?: string) {
+      return (fields.value || []).find((f) => f.fk_column_id === colId)?.order ?? 0
+    }
+
+    /**
+     * The frozen region: the first `count` visible fields in canvas order
+     * (display value hoisted first, then by order). `alsoVisibleIds` re-adds
+     * fields whose local `show` the caller already flipped off optimistically.
+     */
+    function frozenRegionFieldIds(count: number, alsoVisibleIds: string[] = []) {
+      const cols = [...sortedAndFilteredFields.value]
+
+      for (const id of alsoVisibleIds) {
+        const col = metaColumnById.value?.[id]
+        if (col && !cols.some((c) => c.id === id)) cols.push(col)
+      }
+
+      return cols
+        .sort((a, b) => Number(!!b.pv) - Number(!!a.pv) || fieldOrderOf(a.id) - fieldOrderOf(b.id))
+        .slice(0, count)
+        .map((c) => c.id!)
+    }
+
+    /** Never throws — a failed count write must not roll back the visibility change that triggered it. */
+    async function writeFrozenCount(count: number) {
+      try {
+        const gridMeta = parseProp((view.value?.view as GridType)?.meta)
+
+        await viewStore.updateViewMeta(view.value!.id!, ViewTypes.GRID, {
+          meta: { ...gridMeta, frozen_column_count: count },
+        })
+      } catch (e) {
+        message.error(t('msg.error.errorWhileUpdatingView'))
+      }
+    }
+
+    /** Frozen field ids as they stand now; empty when there is nothing to preserve. */
+    function frozenFieldIdsSnapshot() {
+      if (!canAdjustFrozenFields()) return []
+
+      const frozenCount = currentFrozenCount()
+
+      return frozenCount > 1 ? frozenRegionFieldIds(frozenCount) : []
+    }
+
+    /**
+     * Frozen membership is positional, so un-hiding fields can pull ones the user
+     * never froze into the region. Shrink the count to the leading run that was
+     * already frozen.
+     */
+    async function preserveFrozenFields(frozenIdsBefore: string[]) {
+      if (frozenIdsBefore.length < 2 || !canAdjustFrozenFields()) return
+
+      const frozenCount = currentFrozenCount()
+      const frozenNow = frozenRegionFieldIds(frozenCount)
+
+      let preserved = 0
+      while (preserved < frozenNow.length && frozenIdsBefore.includes(frozenNow[preserved]!)) preserved++
+
+      if (preserved < frozenCount) await writeFrozenCount(Math.max(1, preserved))
+    }
+
     /**
      * Grid frozen fields (`frozen_column_count` in grid view meta = first N
      * visible fields, display value hoisted first). Visibility toggles keep the
@@ -625,16 +695,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
      *   to the first non-frozen slot instead of silently freezing it
      */
     const adjustFrozenFieldsOnVisibilityChange = async (columnId?: string, shown?: boolean) => {
-      if (!columnId || view.value?.type !== ViewTypes.GRID || isLocalMode.value || !canEditViewFields.value) return
+      if (!columnId || !canAdjustFrozenFields()) return
 
-      const gridMeta = parseProp((view.value?.view as GridType)?.meta)
-      const rawCount = gridMeta?.frozen_column_count
-      const frozenCount = ncIsNumber(rawCount) ? Math.min(Math.max(Math.round(rawCount), 1), MAX_FROZEN_FIELDS) : 1
+      const frozenCount = currentFrozenCount()
 
       const toggledField = (fields.value || []).find((f) => f.fk_column_id === columnId)
       if (!toggledField || metaColumnById.value?.[columnId]?.pv) return
-
-      const fieldOrderOf = (colId?: string) => (fields.value || []).find((f) => f.fk_column_id === colId)?.order ?? 0
 
       // Visible fields in canvas order (display value first, then by order), excluding the toggled one
       const visibleOthers = [...sortedAndFilteredFields.value]
@@ -648,10 +714,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (index >= frozenCount) return
 
       if (!shown) {
-        if (frozenCount <= 1 || !view.value?.id) return
-        await viewStore.updateViewMeta(view.value.id, ViewTypes.GRID, {
-          meta: { ...gridMeta, frozen_column_count: frozenCount - 1 },
-        })
+        if (frozenCount <= 1) return
+        await writeFrozenCount(frozenCount - 1)
         return
       }
 
@@ -662,8 +726,34 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       const nextCol = visibleOthers[frozenCount]
       toggledField.order = nextCol ? (prevOrder + fieldOrderOf(nextCol.id)) / 2 : prevOrder + 1
 
+      // The column menu shows a field by posting `show: true` without touching the
+      // local field, so this order write must not carry a stale `show: false`.
+      toggledField.show = true
+
       const fieldIndex = (fields.value || []).findIndex((f) => f.fk_column_id === columnId)
-      await saveOrUpdate(toggledField, fieldIndex, true, isDefaultView.value)
+
+      try {
+        await saveOrUpdate(toggledField, fieldIndex, true, isDefaultView.value)
+      } catch (e) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
+    /**
+     * Bulk-hide counterpart — one count write for the whole gesture. `columnIds`
+     * are the fields just hidden; their local `show` is already false, so they are
+     * re-added when reconstructing the region they used to sit in.
+     */
+    const adjustFrozenFieldsOnBulkHide = async (columnIds: string[]) => {
+      if (!columnIds.length || !canAdjustFrozenFields()) return
+
+      const frozenCount = currentFrozenCount()
+      if (frozenCount <= 1) return
+
+      const hiddenFrozenCount = frozenRegionFieldIds(frozenCount, columnIds).filter((id) => columnIds.includes(id)).length
+      if (!hiddenFrozenCount) return
+
+      await writeFrozenCount(Math.max(1, frozenCount - hiddenFrozenCount))
     }
 
     const toggleFieldVisibility = async (checked: boolean, field: any) => {
@@ -847,6 +937,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       metaColumnById,
       toggleFieldVisibility,
       adjustFrozenFieldsOnVisibilityChange,
+      adjustFrozenFieldsOnBulkHide,
       toggleFieldStyles,
       isViewColumnsLoading,
       updateGridViewColumn,

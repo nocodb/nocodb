@@ -1,7 +1,7 @@
 import type { GridType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { parseCellWidth } from '../utils/cell'
-import { AGGREGATION_HEIGHT, FROZEN_AREA_MAX_WIDTH_RATIO, MAX_FROZEN_FIELDS } from '../utils/constants'
+import { AGGREGATION_HEIGHT, FROZEN_AREA_MAX_WIDTH_RATIO } from '../utils/constants'
 
 const HIT_ZONE_HALF_WIDTH = 5
 
@@ -89,9 +89,21 @@ export function useFreezeDivider({
     return points
   })
 
+  const fieldColumnCount = computed(() => columns.value.filter((col) => col.id !== 'row_number').length)
+
+  // Saved count can't be honored at this viewport width
+  const isFrozenCountClamped = computed(
+    () => effectiveFrozenCount.value < Math.min(savedFrozenCount.value, fieldColumnCount.value),
+  )
+
+  // A clamped count offers a reset — unless the saved count is already 1, which
+  // leaves the divider with nothing to drag and nothing to reset.
+  const isFreezeDividerActionable = computed(() => !isFrozenCountClamped.value || savedFrozenCount.value > 1)
+
   function isInFreezeDividerZone(x: number, y: number) {
     return (
       canAdjustFrozen.value &&
+      isFreezeDividerActionable.value &&
       Math.abs(x - freezeDividerX.value) <= HIT_ZONE_HALF_WIDTH &&
       y > headerRowHeight.value &&
       y < height.value - AGGREGATION_HEIGHT
@@ -101,10 +113,11 @@ export function useFreezeDivider({
   const isFreezeDividerHovered = computed(() => !!freezeDrag.value || isInFreezeDividerZone(mousePosition.x, mousePosition.y))
 
   async function persistFrozenCount(count: number) {
-    // Interface grid: the host writes viz `frozen_column_count` (optimistic —
-    // the adapter's reactive count clears the override once the write lands)
+    // Interface grid: the host writes viz `frozen_column_count` into the local
+    // config synchronously, so the adapter's reactive count is already current —
+    // no optimistic override to bridge (one that the host silently dropping the
+    // write, e.g. edit mode ended mid-drag, would leave stuck).
     if (interfacePageDataApi) {
-      frozenCountOverride.value = count
       interfacePageDataApi.setFrozenFieldCount?.(count)
       return
     }
@@ -119,6 +132,10 @@ export function useFreezeDivider({
       const currentMeta = parseProp((view.value?.view as GridType)?.meta)
 
       await updateViewMeta(view.value.id, ViewTypes.GRID, { meta: { ...currentMeta, frozen_column_count: count } })
+
+      // Fall back to whatever the view now reports — if the write didn't take,
+      // the grid should show that instead of holding the optimistic count.
+      frozenCountOverride.value = null
     } catch (e) {
       frozenCountOverride.value = previous
       message.error(t('msg.error.errorWhileUpdatingView'))
@@ -151,6 +168,17 @@ export function useFreezeDivider({
     return nearest
   }
 
+  let onDragMove: ((e: MouseEvent) => void) | null = null
+
+  let onDragUp: (() => void) | null = null
+
+  function detachDragListeners() {
+    if (onDragMove) document.removeEventListener('mousemove', onDragMove)
+    if (onDragUp) document.removeEventListener('mouseup', onDragUp)
+    onDragMove = null
+    onDragUp = null
+  }
+
   /** Returns true when the mousedown was consumed by the divider. */
   function handleFreezeDividerMouseDown(e: MouseEvent, rect: DOMRect) {
     const x = e.clientX - rect.left
@@ -158,33 +186,31 @@ export function useFreezeDivider({
 
     if (!isInFreezeDividerZone(x, y)) return false
 
-    e.preventDefault()
-
-    // Saved count can't be honored at this viewport width — offer a reset
-    // instead of a drag that would snap right back.
-    const fieldCount = columns.value.filter((col) => col.id !== 'row_number').length
-    if (effectiveFrozenCount.value < Math.min(savedFrozenCount.value, fieldCount)) {
-      // With a single (unresizable-below-1) frozen field a reset would be a no-op
-      if (savedFrozenCount.value > 1) showTooNarrowModal()
+    // Offer a reset instead of a drag that would snap right back (the zone check
+    // above already excluded the clamped-with-nothing-to-reset case).
+    if (isFrozenCountClamped.value) {
+      e.preventDefault()
+      showTooNarrowModal()
       return true
     }
 
     const currentSnap = snapCountFromX(freezeDividerX.value)
-    if (!currentSnap) return true
+    if (!currentSnap) return false
+
+    e.preventDefault()
 
     freezeDrag.value = { previewCount: currentSnap.count, previewX: currentSnap.x }
     triggerRefreshCanvas()
 
-    const onMove = (moveEvent: MouseEvent) => {
+    onDragMove = (moveEvent: MouseEvent) => {
       const snap = snapCountFromX(moveEvent.clientX - rect.left)
       if (!snap || snap.count === freezeDrag.value?.previewCount) return
       freezeDrag.value = { previewCount: snap.count, previewX: snap.x }
       triggerRefreshCanvas()
     }
 
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove)
-      document.removeEventListener('mouseup', onUp)
+    onDragUp = () => {
+      detachDragListeners()
 
       const previewCount = freezeDrag.value?.previewCount
       freezeDrag.value = null
@@ -195,11 +221,18 @@ export function useFreezeDivider({
       }
     }
 
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp)
+    document.addEventListener('mousemove', onDragMove)
+    document.addEventListener('mouseup', onDragUp)
 
     return true
   }
+
+  // Unmounting mid-drag (view switch, realtime view delete) must not leave the
+  // listeners writing `frozen_column_count` to a view we already navigated off.
+  onBeforeUnmount(() => {
+    detachDragListeners()
+    freezeDrag.value = null
+  })
 
   return {
     freezeDrag,

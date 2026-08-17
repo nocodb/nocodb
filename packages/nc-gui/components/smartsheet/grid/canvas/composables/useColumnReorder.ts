@@ -1,4 +1,5 @@
 import { parseCellWidth } from '../utils/cell'
+import { getColumnDropTargetIndex } from '../utils/headerUtils'
 
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
@@ -71,12 +72,18 @@ export function useColumnReorder(
         index: columns.value.findIndex((c) => c.id === col.id),
       }
       requestAnimationFrame(drawCanvas)
+    } else if (!col && dragOver.value) {
+      // No valid target under the pointer (other side of the freeze divider, or
+      // the row-number gutter) — drop the pending target so mouseup cancels
+      // instead of committing the last one we saw.
+      dragOver.value = null
+      requestAnimationFrame(drawCanvas)
     }
   }
 
   const dragEndHandler = () => {
     if (dragStart.value && dragOver.value) {
-      emit('reorderColumns', dragStart.value.index, dragOver.value.index - 1)
+      emit('reorderColumns', dragStart.value.index, getColumnDropTargetIndex(columns.value, dragOver.value.index))
     }
     cleanup()
   }

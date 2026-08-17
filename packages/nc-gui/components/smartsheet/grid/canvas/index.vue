@@ -2423,7 +2423,12 @@ const handleMouseMove = (e: MouseEvent) => {
   } else if (isDragging.value || resizeableColumn.value) {
     const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
-    if (mousePosition.x >= width.value - 200) {
+    // A frozen-band drag never auto-scrolls: the whole band sits left of
+    // `fixedWidth` (up to 75% of the viewport), so the left-edge test below would
+    // fire for every pointer move — and targets can't cross the divider anyway.
+    const canAutoScroll = !isDragging.value || !columns.value.find((c) => c.id === dragStart.value?.id)?.fixed
+
+    if (canAutoScroll && mousePosition.x >= width.value - 200) {
       scroller.value?.scrollTo({
         left: scrollLeft.value + 10,
       })
@@ -2452,7 +2457,7 @@ const handleMouseMove = (e: MouseEvent) => {
           }
         }, 0)
       }
-    } else if (mousePosition.x <= fixedWidth) {
+    } else if (canAutoScroll && mousePosition.x <= fixedWidth) {
       scroller.value?.scrollTo({
         left: scrollLeft.value - 10,
       })

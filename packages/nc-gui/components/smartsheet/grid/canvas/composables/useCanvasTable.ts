@@ -33,7 +33,6 @@ import {
   COLUMN_HEADER_HEIGHT_IN_PX,
   EDIT_INTERACTABLE,
   FROZEN_AREA_MAX_WIDTH_RATIO,
-  MAX_FROZEN_FIELDS,
   ROW_COLOR_BORDER_WIDTH,
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
@@ -342,12 +341,13 @@ export function useCanvasTable({
   const frozenCountOverride = ref<number | null>(null)
 
   // Interface grids persist the count in the viz config; native grids in view meta.
-  const metaFrozenCount = computed(() => {
-    const count = interfacePageDataApi
-      ? interfacePageDataApi.frozenFieldCount?.value
-      : parseProp((view.value?.view as GridType)?.meta)?.frozen_column_count
-    return ncIsNumber(count) ? Math.min(Math.max(Math.round(count), 1), MAX_FROZEN_FIELDS) : 1
-  })
+  const metaFrozenCount = computed(() =>
+    clampFrozenFieldCount(
+      interfacePageDataApi
+        ? interfacePageDataApi.frozenFieldCount?.value
+        : parseProp((view.value?.view as GridType)?.meta)?.frozen_column_count,
+    ),
+  )
 
   // Persisted frozen field count (frozen fields = first N visible fields,
   // display value hoisted first). Row-number gutter is not counted.

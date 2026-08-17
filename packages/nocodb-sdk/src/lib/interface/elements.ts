@@ -298,6 +298,13 @@ export interface InterfaceFieldElementConfig {
      */
     viz?: InterfaceVisualizationConfig;
     /**
+     * Links/LTAR `style: 'cards'` — related-table column ids rendered on each
+     * card beside the title, in display order (the "Field visibility and
+     * order" curation). Absent = the default heuristic (first few plain
+     * columns after the display value).
+     */
+    card_field_ids?: string[];
+    /**
      * Attachment hero/carousel only — images shown per view (1-4). 1 = hero,
      * >1 = carousel; the builder keeps `style` and this in sync.
      */

@@ -983,6 +983,15 @@ export function useCanvasRender({
           ctx.moveTo(xOffset, 0)
           ctx.lineTo(xOffset, _headerRowHeight)
           ctx.stroke()
+        } else {
+          // Separator between frozen header cells (the scrollable pass skips
+          // fixed columns, and the fixed backgrounds repaint over its strokes)
+          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(xOffset, 0)
+          ctx.lineTo(xOffset, _headerRowHeight)
+          ctx.stroke()
         }
 
         if (isNearEdge && column.id !== 'row_number' && !isLocked.value && isViewOperationsAllowed.value) {
@@ -2695,7 +2704,8 @@ export function useCanvasRender({
   const renderFreezeBoundary = (ctx: CanvasRenderingContext2D) => {
     if (!fixedCols.value.length) return
 
-    const x = fixedColsWidth.value - 1
+    // +0.5 keeps the 1px stroke crisp on non-retina displays
+    const x = fixedColsWidth.value - 1 + 0.5
 
     ctx.save()
     ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
@@ -2727,10 +2737,10 @@ export function useCanvasRender({
     ctx.save()
 
     ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
-    ctx.lineWidth = 2
+    ctx.lineWidth = 1
     ctx.beginPath()
-    ctx.moveTo(x, dragging ? 0 : top)
-    ctx.lineTo(x, bottom)
+    ctx.moveTo(x + 0.5, dragging ? 0 : top)
+    ctx.lineTo(x + 0.5, bottom)
     ctx.stroke()
 
     const gripHeight = 24

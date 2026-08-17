@@ -16,8 +16,13 @@ const STRUCTURAL = /[()'",]/;
  * - No structural/whitespace-sensitive characters → returned as-is.
  * - Contains structural chars → wrapped in a quote the value doesn't contain
  *   (double preferred, single as fallback).
- * - Contains BOTH quote types → double-quoted; the parser keeps the value
- *   verbatim, so this pathological case is best-effort.
+ * - Contains BOTH quote types → NOT round-trippable: no single quoted token can
+ *   carry both quote chars (the parser strips the outer pair without
+ *   unescaping), so the returned double-quoted string will FAIL to parse. This
+ *   pathological case cannot be expressed in the DSL; callers that must handle
+ *   it need a different strategy (e.g. a LIKE pattern with `_` wildcards + an
+ *   exact post-match, as the workflow link resolver does). Use
+ *   `canEncodeQueryFilterToken` to detect it up front.
  */
 export function encodeQueryFilterToken(input: string | number): string {
   const s = String(input);
@@ -28,6 +33,15 @@ export function encodeQueryFilterToken(input: string | number): string {
   if (!s.includes('"')) return `"${s}"`;
   if (!s.includes("'")) return `'${s}'`;
   return `"${s}"`;
+}
+
+/**
+ * Whether a value can be encoded into a round-trippable token. False only when
+ * it contains BOTH quote types (see encodeQueryFilterToken).
+ */
+export function canEncodeQueryFilterToken(input: string | number): boolean {
+  const s = String(input);
+  return !(s.includes('"') && s.includes("'"));
 }
 
 /** Build a single `(field,op,value)` clause with both sides safely encoded. */

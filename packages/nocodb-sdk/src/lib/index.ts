@@ -81,6 +81,7 @@ export * from '~/lib/dateTimeHelper';
 export * from '~/lib/jalali';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
+export * from '~/lib/parser/queryFilter/query-filter-encoder';
 export * from '~/lib/aggregationCompute';
 export * from '~/lib/connectionConfigUtils';
 export * from '~/lib/currencyHelpers';

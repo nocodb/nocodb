@@ -276,6 +276,12 @@ export interface InterfacePageDataApi {
      * leaving the pk + display-value default.
      */
     fieldElementId?: string
+    /**
+     * Page whose config carries `fieldElementId` when it is NOT this
+     * adapter's page — overlay record-detail sheets read through their
+     * origin viz's adapter while their elements live on the sheet's page.
+     */
+    fieldPageId?: string
     fields?: string
     /** Related-table where/sort (data-API grammar) — the LTAR embedded-viz renderers. */
     where?: string
@@ -284,7 +290,8 @@ export interface InterfacePageDataApi {
   /**
    * "Link record" picker candidates (related rows NOT yet linked) — same
    * projection/search contract as `nestedList`. Editor-gated like the link
-   * write it precedes.
+   * write it precedes. Element addressing scopes the candidates to the
+   * field's "Link/unlink records" selection filter server-side.
    */
   nestedExcludedList?(params: {
     rowId: string
@@ -292,6 +299,10 @@ export interface InterfacePageDataApi {
     limit?: number
     offset?: number
     search?: string
+    fieldElementId?: string
+    fieldPageId?: string
+    /** Allow-listed related-table field titles — the picker's card rows. */
+    fields?: string
   }): Promise<{ list: Record<string, any>[]; pageInfo: PaginatedType }>
   /** Link records into an LTAR cell — gated exactly like an inline cell edit. */
   nestedLink?(params: { rowId: string; columnId: string; refRowIds: (string | number)[] }): Promise<boolean>

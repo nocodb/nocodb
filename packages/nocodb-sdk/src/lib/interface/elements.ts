@@ -278,6 +278,21 @@ export interface InterfaceFieldElementConfig {
   click_into_details?: boolean;
   /** Record-detail page (layout = RECORD_DETAIL) of the LINKED table. */
   fk_detail_page_id?: string | null;
+  /**
+   * Links/LTAR detail layouts: consumers may link/unlink records — gates the
+   * linked-records block's per-record unlink and its "+ Add record" picker.
+   * Absent = DISABLED (the block is a read-only display).
+   */
+  allow_link_unlink?: boolean;
+  /**
+   * Link-picker candidate scope — 'all' (default) offers every related
+   * record; 'specific' constrains candidates to `filters` over the LINKED
+   * table (the record-layout twin of the grid's "Limit record selection").
+   */
+  link_record_selection?: {
+    mode: 'all' | 'specific';
+    filters?: InterfaceFilterGroup | null;
+  };
   appearance?: {
     size?: 'default' | 'lg' | 'xl';
     /**

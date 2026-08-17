@@ -284,6 +284,18 @@ export interface LinkRecordExpandApi {
 export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')
 
 /**
+ * Element addressing for LTAR picker calls made from inside a record-form
+ * FIELD — an overlay record sheet fetches through its ORIGIN viz's adapter,
+ * so an unaddressed picker call resolves against that viz and inherits its
+ * per-column "Limit record selection". Addressed, the server reads THIS
+ * element's own "Link/unlink records" selection instead. Provided per-field
+ * by the interface record-form field row (EE); absent on viz inline cells,
+ * which genuinely are the viz's own surface.
+ */
+export const InterfaceFieldElementInj: InjectionKey<Ref<{ fieldElementId: string; fieldPageId?: string } | null> | undefined> =
+  Symbol('interface-field-element')
+
+/**
  * Record-sidebar adapter for the comment + revision-history panels of an
  * interface record overlay — the record-scoped sibling of `InterfacePageDataInj`.
  * Provided by the overlay (EE); when present, the base comment/revision

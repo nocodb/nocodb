@@ -191,6 +191,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // ops clear the plain ACL for base roles too).
     const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
+    // Record-form field element hosting this cell — picker calls carry its
+    // addressing so the server applies the ELEMENT's link-record selection,
+    // not the adapter page viz's per-column one. Absent on viz inline cells.
+    const interfaceFieldElement = inject(InterfaceFieldElementInj, undefined)
+
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
     const type = computed(() => colOptions.value?.type as RelationTypes)
@@ -662,6 +667,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             limit: childrenExcludedListPagination.size,
             offset,
             search: childrenExcludedListPagination.query || undefined,
+            ...(interfaceFieldElement?.value ?? {}),
           })
         } else {
           // extract changed data and include with the api call if any
@@ -1355,6 +1361,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           limit,
           offset,
           search: childrenExcludedListPagination.query || undefined,
+          ...(interfaceFieldElement?.value ?? {}),
         })
       } else {
         let changedRowData

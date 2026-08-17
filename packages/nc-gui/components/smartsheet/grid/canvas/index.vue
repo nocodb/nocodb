@@ -407,6 +407,11 @@ const {
   isViewOperationsAllowed,
   followedFocus,
   findFocusRowIndex,
+
+  // Freeze divider
+  isInFreezeDividerZone,
+  handleFreezeDividerMouseDown,
+  isFreezeDividerDragging,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -570,6 +575,11 @@ function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType)
    */
   if (isRowReorderActive.value) {
     cursor = 'grabbing'
+  }
+
+  // Freeze divider hover/drag owns the cursor over every other hover state
+  if (isFreezeDividerDragging.value || isInFreezeDividerZone(mousePosition.x, mousePosition.y)) {
+    cursor = 'col-resize'
   }
 
   if (activeCursor.value !== cursor) {
@@ -1358,6 +1368,18 @@ async function handleMouseDown(e: MouseEvent) {
 
   const clickType = getMouseClickType(e)
   if (!clickType) return
+
+  // Freeze divider drag (or too-narrow reset modal) — consumes the event
+  // before any cell/selection handling; its own document listeners drive the drag.
+  if (clickType === MouseClickType.SINGLE_CLICK && handleFreezeDividerMouseDown(e, rect)) {
+    if (mouseUpListener) {
+      document.removeEventListener('mouseup', mouseUpListener)
+      mouseUpListener = null
+    }
+    triggerRefreshCanvas()
+    return
+  }
+
   // Handle all Column Header Operations
   if (y <= headerRowHeight.value) {
     // If x less than 80px, use is hovering over the row meta column
@@ -2318,6 +2340,17 @@ const handleMouseMove = (e: MouseEvent) => {
   let cursor = colResizeHoveredColIds.value.size ? 'col-resize' : 'auto'
   hideTooltip()
   scheduleHideDescriptionPopover()
+
+  // Freeze divider: repaint per move while the grip is visible (it tracks mouse y);
+  // while dragging, skip all other hover handling entirely.
+  if (isFreezeDividerDragging.value || isInFreezeDividerZone(mousePosition.x, mousePosition.y)) {
+    triggerRefreshCanvas()
+    if (isFreezeDividerDragging.value) {
+      setCursor('col-resize')
+      return
+    }
+  }
+
   const fixedCols = columns.value.filter((col) => col.fixed)
 
   if (mousePosition.y < headerRowHeight.value) {
@@ -2352,10 +2385,8 @@ const handleMouseMove = (e: MouseEvent) => {
     }
 
     // Now we check if the mouse is over the x positions of the fixed columns
-    const isMouseOverFixedRegions = fixedCols.some((col) => {
-      const width = parseCellWidth(col.width)
-      return mousePosition.x >= 0 && mousePosition.x <= width
-    })
+    const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
+    const isMouseOverFixedRegions = mousePosition.x >= 0 && mousePosition.x <= fixedWidth
 
     // We do not want to process the tooltip & pointer for the non-fixed columns if the mouse is over the fixed columns
     // If the mouse is not over the fixed columns, we show the tooltip for the non-fixed columns
@@ -2364,8 +2395,6 @@ const handleMouseMove = (e: MouseEvent) => {
       for (let i = 0; i < colSlice.value.start; i++) {
         initialOffset += parseCellWidth(columns.value[i]!.width)
       }
-
-      const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
       if (mousePosition.x >= fixedWidth) {
         const tooltipRegions = getHeaderTooltipRegions(colSlice.value.start, colSlice.value.end, initialOffset, scrollLeft.value)

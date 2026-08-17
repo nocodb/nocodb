@@ -65,7 +65,7 @@ const showDeleteColumnModal = ref(false)
 
 const showConvertLinkV2Modal = ref(false)
 
-const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
+const { gridViewCols, fieldsMap, hidingViewColumnsMap, adjustFrozenFieldsOnVisibilityChange } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByOrThrow()
 
@@ -366,6 +366,8 @@ const performHideOrShow = async () => {
 
     // delete current columnId from hidingViewColumnsMap so that while loading view columns, we can use db stored value
     delete hidingViewColumnsMap.value[column.value.id!]
+
+    await adjustFrozenFieldsOnVisibilityChange(column.value.id, !currentColumn.show)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     if (!currentColumn.show) {

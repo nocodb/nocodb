@@ -3,6 +3,7 @@ import type {
   ColumnType,
   GridColumnReqType,
   GridColumnType,
+  GridType,
   ListType,
   MapType,
   TableType,
@@ -11,6 +12,7 @@ import type {
 import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
+import { MAX_FROZEN_FIELDS } from '../components/smartsheet/grid/canvas/utils/constants'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -364,6 +366,14 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         if (isDefaultView.value) {
           updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: false }, true)
         }
+
+        // Only the display value stays visible — collapse the frozen region with it
+        if (view.value.type === ViewTypes.GRID) {
+          const gridMeta = parseProp((view.value?.view as GridType)?.meta)
+          if (ncIsNumber(gridMeta?.frozen_column_count) && gridMeta.frozen_column_count > 1) {
+            await viewStore.updateViewMeta(view.value.id, ViewTypes.GRID, { meta: { ...gridMeta, frozen_column_count: 1 } })
+          }
+        }
       }
 
       await loadViewColumns()
@@ -605,11 +615,63 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         ?.map((field: Field) => metaColumnById?.value?.[field.fk_column_id!]) || []) as ColumnType[]
     })
 
-    const toggleFieldVisibility = (checked: boolean, field: any) => {
+    /**
+     * Grid frozen fields (`frozen_column_count` in grid view meta = first N
+     * visible fields, display value hoisted first). Visibility toggles keep the
+     * count coherent:
+     * - hiding a frozen field shrinks the count (the region must not swallow
+     *   the next scrollable field)
+     * - re-showing a field whose order falls inside the frozen region moves it
+     *   to the first non-frozen slot instead of silently freezing it
+     */
+    const adjustFrozenFieldsOnVisibilityChange = async (columnId?: string, shown?: boolean) => {
+      if (!columnId || view.value?.type !== ViewTypes.GRID || isLocalMode.value || !canEditViewFields.value) return
+
+      const gridMeta = parseProp((view.value?.view as GridType)?.meta)
+      const rawCount = gridMeta?.frozen_column_count
+      const frozenCount = ncIsNumber(rawCount) ? Math.min(Math.max(Math.round(rawCount), 1), MAX_FROZEN_FIELDS) : 1
+
+      const toggledField = (fields.value || []).find((f) => f.fk_column_id === columnId)
+      if (!toggledField || metaColumnById.value?.[columnId]?.pv) return
+
+      const fieldOrderOf = (colId?: string) => (fields.value || []).find((f) => f.fk_column_id === colId)?.order ?? 0
+
+      // Visible fields in canvas order (display value first, then by order), excluding the toggled one
+      const visibleOthers = [...sortedAndFilteredFields.value]
+        .filter((c) => c.id !== columnId)
+        .sort((a, b) => Number(!!b.pv) - Number(!!a.pv))
+
+      // Index the toggled field held (hide) or would take (show) among visible fields
+      const toggledOrder = toggledField.order ?? Number.POSITIVE_INFINITY
+      const index = visibleOthers.filter((c) => !!c.pv || fieldOrderOf(c.id) < toggledOrder).length
+
+      if (index >= frozenCount) return
+
+      if (!shown) {
+        if (frozenCount <= 1 || !view.value?.id) return
+        await viewStore.updateViewMeta(view.value.id, ViewTypes.GRID, {
+          meta: { ...gridMeta, frozen_column_count: frozenCount - 1 },
+        })
+        return
+      }
+
+      // No non-frozen slot exists — the field legitimately joins the frozen region
+      if (visibleOthers.length < frozenCount) return
+
+      const prevOrder = fieldOrderOf(visibleOthers[frozenCount - 1]?.id)
+      const nextCol = visibleOthers[frozenCount]
+      toggledField.order = nextCol ? (prevOrder + fieldOrderOf(nextCol.id)) / 2 : prevOrder + 1
+
+      const fieldIndex = (fields.value || []).findIndex((f) => f.fk_column_id === columnId)
+      await saveOrUpdate(toggledField, fieldIndex, true, isDefaultView.value)
+    }
+
+    const toggleFieldVisibility = async (checked: boolean, field: any) => {
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
 
       if (!fieldIndex && fieldIndex !== 0) return
-      saveOrUpdate(field, fieldIndex, !checked, isDefaultView.value)
+      await saveOrUpdate(field, fieldIndex, !checked, isDefaultView.value)
+      await adjustFrozenFieldsOnVisibilityChange(field.fk_column_id, checked)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {
@@ -784,6 +846,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       showSystemFields,
       metaColumnById,
       toggleFieldVisibility,
+      adjustFrozenFieldsOnVisibilityChange,
       toggleFieldStyles,
       isViewColumnsLoading,
       updateGridViewColumn,

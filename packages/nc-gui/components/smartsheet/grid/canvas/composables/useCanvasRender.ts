@@ -118,6 +118,10 @@ export function useCanvasRender({
   isRecordSelected,
   isViewOperationsAllowed,
   groupSelectionAggregations,
+  freezeDrag,
+  canAdjustFrozen,
+  freezeDividerX,
+  isFreezeDividerHovered,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -210,6 +214,10 @@ export function useCanvasRender({
   isRecordSelected: (row: Row) => boolean
   isViewOperationsAllowed: ComputedRef<boolean>
   groupSelectionAggregations: ComputedRef<Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>>
+  freezeDrag: Ref<{ previewCount: number; previewX: number } | null>
+  canAdjustFrozen: ComputedRef<boolean>
+  freezeDividerX: ComputedRef<number>
+  isFreezeDividerHovered: ComputedRef<boolean>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
 
@@ -2682,18 +2690,21 @@ export function useCanvasRender({
 
     const width = parseCellWidth(columns.value[dragOver.value.index - 1]?.width)
 
+    // Fixed columns render at absolute x — no scroll offset for in-band targets
+    const drawX = columns.value[dragOver.value.index]?.fixed ? xPosition : xPosition - scrollLeft.value
+
     // Draw a Ghost Column
     ctx.fillStyle = getColor(themeV4Colors.gray['100'])
     ctx.globalAlpha = 0.6
 
-    ctx.fillRect(xPosition - scrollLeft.value, 0, width, height.value)
+    ctx.fillRect(drawX, 0, width, height.value)
     ctx.globalAlpha = 1
 
     ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
     ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(xPosition - scrollLeft.value, 0)
-    ctx.lineTo(xPosition - scrollLeft.value, height.value)
+    ctx.moveTo(drawX, 0)
+    ctx.lineTo(drawX, height.value)
     ctx.stroke()
   }
 
@@ -2712,6 +2723,47 @@ export function useCanvasRender({
     ctx.lineTo(x, height.value)
     ctx.stroke()
     ctx.restore()
+  }
+
+  // Freeze divider affordance: grip pill on hover, full-height guideline while
+  // dragging (snapped to the previewed field boundary).
+  const renderFreezeDivider = (ctx: CanvasRenderingContext2D) => {
+    if (!canAdjustFrozen.value) return
+
+    const dragging = freezeDrag.value
+    if (!dragging && !isFreezeDividerHovered.value) return
+
+    const x = dragging ? dragging.previewX : freezeDividerX.value
+    const top = headerRowHeight.value
+    const bottom = height.value - AGGREGATION_HEIGHT
+
+    ctx.save()
+
+    ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(x, dragging ? 0 : top)
+    ctx.lineTo(x, bottom)
+    ctx.stroke()
+
+    const gripHeight = 24
+    const gripWidth = 6
+    const gripY = Math.min(Math.max(mousePosition.y - gripHeight / 2, top + 4), bottom - gripHeight - 4)
+
+    roundedRect(ctx, x - gripWidth / 2, gripY, gripWidth, gripHeight, 3, {
+      backgroundColor: getColor(themeV4Colors.brand['500']),
+    })
+
+    ctx.restore()
+
+    if (!dragging) {
+      tryShowTooltip({
+        mousePosition,
+        text: t('tooltip.dragToAdjustFrozenFields'),
+        rect: { x: x - 5, y: gripY, width: 10, height: gripHeight },
+        placement: 'right',
+      })
+    }
   }
 
   function renderAggregations(ctx: CanvasRenderingContext2D) {
@@ -3089,7 +3141,7 @@ export function useCanvasRender({
           ctx.fillStyle = getColor(themeV4Colors.gray['50'])
           ctx.fillRect(xOffset, _height - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
 
-          const aggregationValue = firstFixedCol.aggregation?.toString()
+          const aggregationValue = column.aggregation?.toString()
 
           if (isValidValue(aggregationValue)) {
             ctx.save()
@@ -3591,12 +3643,13 @@ export function useCanvasRender({
     const missingChunks = []
 
     const _headerRowHeight = headerRowHeight.value
-    const rowNumberCol = fixedCols.value.find((col) => col.id === 'row_number')
-    const firstFixedCol = fixedCols.value.find((col) => col.id !== 'row_number')
     const xOffset = (level + 1) * 13
     const isMmTable = !!meta.value?.mm
 
-    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - xOffset
+    // Group title band spans the whole frozen region (per-column aggregations
+    // are only rendered for scrollable columns). -1 strips fixedColsWidth's
+    // divider-pixel seed.
+    const mergedWidth = fixedColsWidth.value - 1 - xOffset
     const adjustedWidth = Math.max(
       fixedColsWidth.value - (level + 1) * 13,
       totalWidth.value - scrollLeft.value - 256 < width.value
@@ -4373,6 +4426,8 @@ export function useCanvasRender({
       renderRowDragPreview(ctx, draggedRowGroupPath.value)
 
       renderAggregations(ctx)
+
+      renderFreezeDivider(ctx)
 
       // render the active cell state and clip the header and aggregation footer areas
       ctx.beginPath()

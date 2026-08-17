@@ -1591,7 +1591,8 @@
     "noSearchResultsFound": "No search results found",
     "countOfTotal": "{count} of {total}",
     "hierarchyNotConfigured": "Hierarchy Not Configured",
-    "theListIsEmpty": "The list is empty"
+    "theListIsEmpty": "The list is empty",
+    "tooNarrowToAdjustFrozenFields": "Window is too narrow to adjust frozen fields"
   },
   "labels": {
     "theme": "Theme",
@@ -3891,7 +3892,8 @@
     "ownerAll": "Owner (all)",
     "creatorAll": "Creator (all)",
     "requests": "Requests",
-    "record": "Record"
+    "record": "Record",
+    "resetToOneFrozenField": "Reset to 1 frozen field"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4512,7 +4514,8 @@
     "useAiToGenerateContent": "Use AI to generate content based on record data.",
     "previewGeneratedFromFirstRecord": "Preview is generated using the first record in this table",
     "includeFieldInPromptToGenerate": "Include at least 1 field in prompt to generate",
-    "editorsReportedByInstance": "Editor count is reported by your instance on each heartbeat. Manage editors on the instance itself."
+    "editorsReportedByInstance": "Editor count is reported by your instance on each heartbeat. Manage editors on the instance itself.",
+    "dragToAdjustFrozenFields": "Drag to adjust the number of frozen fields"
   },
   "placeholder": {
     "findBaseCollaborator": "Find a base collaborator",
@@ -5388,7 +5391,8 @@
       "interfaceLastPageCannotBeDeleted": "An interface must have at least one page",
       "interfaceLastVisiblePageCannotBeHidden": "At least one page must stay visible in the navigation",
       "interfaceFieldEditShared": "This edits the field for the whole base.",
-      "interfaceFieldEditSharedDetail": "Changes apply everywhere it is used — views, scripts and workflows."
+      "interfaceFieldEditSharedDetail": "Changes apply everywhere it is used — views, scripts and workflows.",
+      "tooNarrowToAdjustFrozenFields": "You have {saved} frozen fields but only {effective} are appearing frozen right now because your window is too narrow. You can reset the number of frozen fields to 1. You can also change the number of frozen fields by enlarging your window or by making individual fields narrower."
     },
     "error": {
       "noResultReturned": "No result returned",

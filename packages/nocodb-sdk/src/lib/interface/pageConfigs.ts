@@ -44,6 +44,16 @@ export interface InterfaceVizFieldConfig {
   click_into_details?: boolean;
   /** Record-detail page (layout = RECORD_DETAIL) of the LINKED table. */
   fk_detail_page_id?: string | null;
+  /**
+   * Links/LTAR columns only: "Limit record selection" — constrain the inline
+   * cell's link-picker candidates to `filters` over the LINKED table. Composes
+   * (AND) with the column's own link conditions; the record-layout twin is the
+   * field element's `link_record_selection`.
+   */
+  link_record_selection?: {
+    mode: 'all' | 'specific';
+    filters?: InterfaceFilterGroup | null;
+  };
   /** Grid footer / group-header summary aggregation for this column ('sum',
    *  'avg', … — the Aggregations families). Absent/'none' = no summary. */
   aggregation?: string;

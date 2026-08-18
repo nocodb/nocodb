@@ -395,6 +395,21 @@ export interface InterfaceTablePageConfig {
   show_description?: boolean;
   /** Page-level builder filter — composes (AND) with per-viz filters. */
   filters?: InterfaceFilterGroup | null;
+  /**
+   * Builder-authored DEFAULTS for the end-user toolbar Filter menu — a separate
+   * surface from `filters` above, with the opposite semantics.
+   *
+   * `filters` decides what data the page brings in: enforced server-side, never
+   * shown in the toolbar, not removable by a viewer. This tree only seeds the
+   * toolbar when the page loads — the viewer may add, edit or remove it, and
+   * nothing persists (a reload restores the configured set).
+   *
+   * Never composed server-side. It reaches the backend only as the client's
+   * `nestedFilterArrJson`, which is applied narrow-only and scoped to the field
+   * allow-list — so clearing it can never widen past `filters`. Inert when
+   * `user_actions.allow_filter` is off (the toolbar isn't rendered at all).
+   */
+  toolbar_filters?: InterfaceFilterGroup | null;
   /** ≥1 — end-user switcher shows when more than one. */
   visualizations: InterfaceVisualizationConfig[];
   default_visualization_id?: string | null;

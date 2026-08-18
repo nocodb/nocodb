@@ -50,6 +50,14 @@ export function ieeeModuloSql(left: string, right: string): string {
   );
 }
 
+// pg's sqrt raises on a negative, failing the whole statement — every row of the
+// column renders ERR — and -Infinity is now reachable from any `x/0`. IEEE says
+// sqrt of a negative is NaN. Testing `< 0` rather than `>= 0` leaves NULL and
+// NaN in the ELSE, where sqrt maps both to themselves.
+export function ieeeSqrtSql(expr: string): string {
+  return `(CASE WHEN (${expr}) < 0 THEN 'NaN'::${IEEE_TYPE} ELSE sqrt(${expr}) END)`;
+}
+
 // NaN satisfies no ordering comparison, but pg ranks it above every number, so
 // a bare `x > 100` takes the true branch. NULL fails every comparison, which is
 // the semantics NaN should have had, and it lands correctly in both contexts:

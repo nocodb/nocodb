@@ -11,6 +11,7 @@ import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import {
   ieeeModuloSql,
+  ieeeSqrtSql,
   isFiniteSql,
   stripNaNSql,
 } from '~/db/formulav2/pg-ieee';
@@ -113,7 +114,10 @@ const pg = {
   },
   CEILING: 'ceil',
   POWER: 'pow',
-  SQRT: 'sqrt',
+  SQRT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return { builder: knex.raw(ieeeSqrtSql(`${source}`)) };
+  },
   SEARCH: async (args: MapFnArgs) => {
     const needle = (await args.fn(args.pt.arguments[1])).builder;
     const source = (await args.fn(args.pt.arguments[0])).builder;

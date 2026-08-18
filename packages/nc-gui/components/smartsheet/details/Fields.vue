@@ -492,7 +492,7 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
     if (isNewField) {
       newFields.value = newFields.value.map((op) => {
         if (compareCols(op, state)) {
-          ops.value = ops.value.filter((op) => op.op === 'add' && !compareCols(op.column, state))
+          ops.value = ops.value.filter((op) => op.op !== 'add' || !compareCols(op.column, state))
           ops.value = [
             ...ops.value,
             {
@@ -887,6 +887,9 @@ const clearChanges = () => {
   visibilityOps.value = []
   localPredictions.value = []
   showOrHideSystemFields.value = showSystemFields.value
+  // Keep-alive editors survive changeField(), so their internal filter/sort state
+  // would outlive a reset — drop the keys to force a rebuild from fresh meta.
+  aliveFieldKeys.value = []
   changeField()
   onInit()
 }

@@ -1342,13 +1342,17 @@ export default class Column<T = any> implements ColumnType {
     }
 
     const oldCol = await Column.get(context, { colId }, ncMeta);
-    // Target uidt after this update — fall back to the existing type when the
-    // payload omits uidt (partial updates). Used to decide whether button
-    // visibility filters should be wiped on colOption rebuild.
-    const incomingUidt = (column.uidt as UITypes) || oldCol.uidt;
+
+    // insertColOption() dispatches on the incoming uidt, so without one the
+    // delete below would drop colOptions it can never rebuild. Same `||`
+    // fallback as that dispatch.
+    const incomingUidt =
+      column.uidt || (column as { ui_data_type?: UITypes }).ui_data_type;
+
     const requiredColAvail =
-      !requiredColumnsToRecreate[oldCol.uidt] ||
-      requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]);
+      !!incomingUidt &&
+      (!requiredColumnsToRecreate[oldCol.uidt] ||
+        requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]));
 
     if (requiredColAvail) {
       switch (oldCol.uidt) {

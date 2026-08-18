@@ -587,9 +587,13 @@ const selectFilterField = (filter: Filter, index: number) => {
   // reset filter value as well
   filter.value = null
 
-  // Check if dynamic filter is still allowed for the new column
+  // Check if dynamic filter is still allowed for the new column. In slot mode
+  // (`dynamicValue` RLS placeholders / `workflow` variable input) the value is
+  // supplied by the parent, so the field-to-field `isDynamicFilterAllowed`
+  // constraint doesn't apply — keep dynamic on (mirrors changeToDynamic), so
+  // switching to e.g. a Formula column doesn't silently drop dynamic mode.
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  if (filter.dynamic && !isDynamicFilterAllowed(filter)) {
+  if (filter.dynamic && !dynamicValue.value && !workflow.value && !isDynamicFilterAllowed(filter)) {
     filter.dynamic = false
     filter.fk_value_col_id = null // Also reset the dynamic value column if it was set
   }
@@ -1130,10 +1134,15 @@ function hasDynamicValueOptions(filter: FilterType) {
 
 const changeToDynamic = async (filter, i) => {
   // `isDynamicFilterAllowed` exists for field-to-field comparison — it enforces
-  // abstract-type compatibility and excludes the `anyof` family. In slot mode
-  // the parent supplies the value, so the only requirement is that the row has
-  // a value input to replace.
-  filter.dynamic = dynamicValue.value ? showFilterInput(filter) : isDynamicFilterAllowed(filter) && showFilterInput(filter)
+  // abstract-type compatibility and excludes the `anyof` family, and rejects
+  // virtual columns (Formula, etc). In slot mode — `dynamicValue` (RLS
+  // placeholders) or `workflow` (the `#dynamic-filter` variable input) — the
+  // parent supplies the value, so none of those field-to-field constraints
+  // apply; the only requirement is that the row has a value input to replace.
+  // Without this, a dynamic filter on a Formula column was a silent no-op in
+  // workflow nodes.
+  filter.dynamic =
+    dynamicValue.value || workflow.value ? showFilterInput(filter) : isDynamicFilterAllowed(filter) && showFilterInput(filter)
   await saveOrUpdate(filter, i)
 }
 

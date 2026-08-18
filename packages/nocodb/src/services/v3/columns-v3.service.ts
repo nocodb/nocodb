@@ -39,8 +39,6 @@ type ColumnReqWithMeta = ColumnReqType & {
 
 type SelectChoiceV3 = { id?: string; title: string; color?: string };
 
-const META_ONLY_PROPS = new Set(['description']);
-
 @Injectable()
 export class ColumnsV3Service {
   constructor(protected readonly columnsService: ColumnsService) {}
@@ -90,42 +88,30 @@ export class ColumnsV3Service {
         .addColumn(column)
         .forUpdate();
 
-    // Check if this is a meta-only update (description, meta) — if so,
-    // skip v3-to-v2 transformation to avoid injecting title/column_name
-    // which would make the payload appear structural
-    const isMetaOnlyUpdate = Object.keys(param.column).every((k) =>
-      META_ONLY_PROPS.has(k),
-    );
+    const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
 
-    let processedColumnReq: ColumnReqWithMeta;
+    const processedColumnReq = columnV3ToV2Builder().build({
+      ...param.column,
+      type,
+    } as FieldV3Type) as ColumnReqWithMeta;
 
-    if (isMetaOnlyUpdate) {
-      processedColumnReq = { ...param.column } as ColumnReqWithMeta;
-    } else {
-      const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
+    // The v2 update path needs a full identity for the column; backfilling the
+    // stored title/column_name is a no-op there, since it diffs submitted
+    // values against the stored ones rather than reading the payload's keys.
+    if (!processedColumnReq.column_name) {
+      processedColumnReq.column_name = column.column_name;
+    }
+    if (!processedColumnReq.title) {
+      processedColumnReq.title = column.title;
+    }
 
-      processedColumnReq = columnV3ToV2Builder().build({
-        ...param.column,
-        type,
-      } as FieldV3Type) as ColumnReqWithMeta;
-
-      if (!processedColumnReq.column_name) {
-        processedColumnReq.column_name = column.column_name;
+    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+      if (column.meta) {
+        column.meta.choices = undefined;
       }
-      if (!processedColumnReq.title) {
-        processedColumnReq.title = column.title;
-      }
-
-      if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
-        if (column.meta) {
-          column.meta.choices = undefined;
-        }
-        column.dtxp = (
-          column.colOptions as unknown as { options: any[] }
-        )?.options
-          ?.map((o: any) => `'${o.value}'`)
-          .join('');
-      }
+      column.dtxp = (column.colOptions as unknown as { options: any[] })?.options
+        ?.map((o: any) => `'${o.value}'`)
+        .join('');
     }
 
     // in payload id is required in existing implementation

@@ -59,6 +59,12 @@ export const useRolesShared = createSharedComposable(() => {
     return orgRoles
   })
 
+  // CE has no org-role concept (org/workspace roles are an EE feature), so this
+  // is a stub. The real implementation lives in `ee/composables/useRoles` and
+  // gates org-admin surfaces such as the instance-wide audit log at
+  // /account/audit. Mirrors the CE-stub / EE-impl split of `useOrgUserInvitePicker`.
+  const isOrgAdmin = computed<boolean>(() => false)
+
   const baseRoles = computed<RolesObj | null>(() => {
     let baseRoles = user.value?.base_roles ?? {}
 
@@ -206,7 +212,17 @@ export const useRolesShared = createSharedComposable(() => {
   // CE has no sandbox concept — always returns null so CE behavior is identical to before.
   const sandboxRestrictionReason = (..._args: any[]): string | null => null
 
-  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded, sandboxRestrictionReason }
+  return {
+    allRoles,
+    orgRoles,
+    isOrgAdmin,
+    workspaceRoles,
+    baseRoles,
+    loadRoles,
+    isUIAllowed,
+    isBaseRolesLoaded,
+    sandboxRestrictionReason,
+  }
 })
 
 type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>

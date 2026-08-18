@@ -23,6 +23,7 @@ import {
 } from '~/helpers/getUniqueName';
 import { DriverClient } from '~/utils/nc-config';
 import { isEE } from '~/utils';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 
 export const repopulateCreateTableSystemColumns = (
   _context: NcContext,
@@ -207,4 +208,29 @@ export async function hasTableVisibilityAccess(
     id: user.id,
     role: userRole,
   });
+}
+
+/**
+ * Whether a nested-link fetch must collapse the RELATED table to what the link
+ * exposes (pk + primary value + the link's custom display column). Two
+ * independent access boundaries: the caller lacks TABLE_VISIBILITY on the
+ * related table, or the request came through a shared VIEW/form — which
+ * publishes one view of one table, so the tables it links to are not published.
+ *
+ * The second needs its own check: with no user `hasTableVisibilityAccess` falls
+ * back to `hasDefaultTableVisibility`, `true` whenever no TABLE_VISIBILITY row
+ * exists, so a same-base link on a shared view used to expose the full table.
+ * Shared BASE is excluded — authenticated pseudo-user, normal access.
+ */
+export async function hasLimitedRelatedTableAccess(
+  context: NcContext,
+  relatedTableId: string,
+): Promise<boolean> {
+  if (isSharedViewAccess(context)) return true;
+
+  return !(await hasTableVisibilityAccess(
+    context,
+    relatedTableId,
+    context.user,
+  ));
 }

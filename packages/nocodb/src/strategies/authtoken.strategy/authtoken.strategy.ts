@@ -23,6 +23,20 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           return callback({ msg: 'Invalid token' });
         }
 
+        // Enforce the token's base scope. A token minted through a base-scoped
+        // endpoint carries a `base_id` and must only operate within that base;
+        // reject any request that targets a different base. Account-wide
+        // tokens leave `base_id` null and are unaffected. Requests with no
+        // resolved base (workspace/org-level routes) carry no target base to
+        // mismatch, so they are left to the normal role-based ACL.
+        if (
+          apiToken.base_id &&
+          req['ncBaseId'] &&
+          apiToken.base_id !== req['ncBaseId']
+        ) {
+          return callback({ msg: 'Invalid token' });
+        }
+
         user = {
           is_api_token: true,
         };

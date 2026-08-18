@@ -1,6 +1,6 @@
 import type { Request } from 'express';
 import type { TableType, UserType } from '~/lib/Api';
-import { NcApiVersion } from './enums';
+import { NcAccessSource, NcApiVersion } from './enums';
 
 export type NcContextTriggeredVia = 'undo' | 'redo' | 'sandbox-merge';
 
@@ -32,7 +32,21 @@ export interface NcContext {
   cacheMap?: any;
   permissions?: any;
   is_api_token?: boolean;
+  /**
+   * True for ANY share surface. Derived, kept for the existing behavioural
+   * readers (after-hook suppression, user-column redaction). Prefer
+   * `access_source` when a gate needs to tell one share surface from another.
+   */
   is_public?: boolean;
+  /**
+   * Which surface this request arrived through — see {@link NcAccessSource}.
+   * Left unset for contexts built outside the request middleware, so gates must
+   * test for the specific source they restrict rather than for its absence.
+   *
+   * Invariant, asserted per entry point in the unit suite:
+   * `is_public === true` ⟺ `SHARED_ACCESS_SOURCES.includes(access_source)`.
+   */
+  access_source?: NcAccessSource;
   /**
    * Set by replay dispatchers when running an undo / redo / sandbox-merge.
    */

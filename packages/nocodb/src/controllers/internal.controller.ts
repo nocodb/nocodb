@@ -12,9 +12,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
-import { INTERNAL_BATCH_MAX_SIZE, NcContext, NcRequest } from 'nocodb-sdk';
+import {
+  INTERNAL_BATCH_MAX_SIZE,
+  NcContext,
+  NcRequest,
+  SourceRestriction,
+} from 'nocodb-sdk';
 import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import type { InternalApiModule } from '~/utils/internal-type';
+import { sourceRestrictions } from '~/utils/acl';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -37,6 +43,24 @@ import {
   View,
 } from '~/models';
 import { RootScopes } from '~/utils/globals';
+
+// Operations that must never run inside the batch envelope. A batch sub-op
+// inherits the envelope request's already-resolved entity context (source /
+// base) through the prototype chain, so a source-restricted *write* could be
+// authorized against the outer request's source while targeting a different,
+// restricted one. We block exactly the source-restricted (data/schema-readonly)
+// operations — the authoritative mutation set from `sourceRestrictions`. This
+// closes the bypass without constraining reads: the frontend legitimately
+// batches read-only ops both from `BATCHABLE_INTERNAL_OPERATIONS` and via the
+// per-call `_batch: true` escape hatch (e.g. `refTableGet`), and enumerating
+// every current/future batchable read on the server would be brittle and has
+// broken the UI before. Reads carry no source-restriction, so allowing them is
+// safe; the write vector is what this — plus per-sub-op `ncSourceId` isolation
+// and the data-service read-only guard — shuts down.
+const BATCH_BLOCKED_OPERATIONS: ReadonlySet<string> = new Set<string>([
+  ...Object.keys(sourceRestrictions[SourceRestriction.DATA_READONLY]),
+  ...Object.keys(sourceRestrictions[SourceRestriction.SCHEMA_READONLY]),
+]);
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -323,6 +347,16 @@ export class InternalController {
       if (op.operation === 'batch') {
         NcError.badRequest('Nested batch is not allowed');
       }
+      // Source-restricted (data/schema read-only) write operations must not run
+      // inside a batch — see BATCH_BLOCKED_OPERATIONS. The sub-request inherits
+      // the envelope's resolved source through the prototype chain, so such a
+      // write could otherwise be authorized against the outer request's source
+      // while targeting a different, restricted one.
+      if (BATCH_BLOCKED_OPERATIONS.has(op.operation)) {
+        NcError.badRequest(
+          `Operation "${op.operation}" is not allowed in a batch`,
+        );
+      }
     }
 
     const settled = await Promise.allSettled(
@@ -429,6 +463,14 @@ export class InternalController {
     const subReq: NcRequest = Object.create(req);
     subReq.query = { ...(req.query ?? {}), ...(subOp.query ?? {}), operation };
     subReq.body = subOp.payload ?? {};
+
+    // Do NOT let the sub-op inherit the envelope request's resolved source
+    // through the prototype chain. `ncSourceId` was extracted once, from the
+    // outer request's tableId, and the source-level ACL (read-only / schema
+    // restrictions) is keyed on it — inheriting it would authorize a sub-op
+    // against a different source than the one it actually targets. Clear it as
+    // an own property so the ACL cannot silently trust the wrong source.
+    subReq.ncSourceId = undefined;
 
     // Per-sub-op authorization. `this.checkAcl` is overridable in EE so
     // license checks etc. layer on automatically through prototype dispatch.

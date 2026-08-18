@@ -173,6 +173,13 @@ export class DataTableService {
     const { model, view } = await this.getModelAndView(context, param);
     const source = await Source.get(context, model.source_id);
 
+    // Defense in depth: the source-level read-only restriction is enforced by
+    // the ACL middleware, but re-assert it against the actually-resolved target
+    // source so a caller that reaches this service with a mismatched
+    // authorization context (e.g. via the internal batch envelope) still cannot
+    // write to a data-read-only source.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -260,6 +267,10 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
+    // Defense in depth — see dataInsert. Re-assert data-read-only against the
+    // resolved target source regardless of how authorization was reached.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -311,6 +322,11 @@ export class DataTableService {
     await this.checkForDuplicateRow(context, { rows: param.body, model });
 
     const source = await Source.get(context, model.source_id);
+
+    // Defense in depth — see dataInsert. Re-assert data-read-only against the
+    // resolved target source regardless of how authorization was reached.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,

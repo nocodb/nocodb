@@ -44,10 +44,16 @@ export class ApiTokensController {
     blockApiTokenAccess: true,
     blockOAuthTokenAccess: true,
   })
-  async apiTokenCreate(@Req() req: NcRequest, @Body() body) {
+  async apiTokenCreate(
+    @Req() req: NcRequest,
+    @Param('baseId') baseId: string,
+    @Body() body,
+  ) {
     return await this.apiTokensService.apiTokenCreate({
       tokenBody: body,
       userId: req['user'].id,
+      // Scope the token to the base named in the (base-scoped) creation URL.
+      baseId,
       req,
     });
   }

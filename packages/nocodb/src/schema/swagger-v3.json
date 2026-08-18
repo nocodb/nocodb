@@ -44,7 +44,7 @@
       "get": {
         "summary": "List workspaces",
         "operationId": "workspace-list",
-        "description": "Retrieve a list of all workspaces accessible to the user.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of all workspaces accessible to the user.\n\n**Note**: Listing and creating workspaces is available on all cloud-hosted plans and on all self-hosted deployments. Reading, updating, and deleting a specific workspace requires cloud-hosted **Business** plans and above, or a licensed self-hosted deployment (**Business** plan and above). Unlicensed self-hosted deployments are limited to the default workspace.",
         "tags": [
           "Workspaces"
         ],
@@ -85,7 +85,7 @@
       "post": {
         "summary": "Create workspace",
         "operationId": "workspace-create",
-        "description": "Create a new workspace with the specified title and optional organization ID.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new workspace with the specified title and optional organization ID.\n\n**Note**: Listing and creating workspaces is available on all cloud-hosted plans and on all self-hosted deployments. Reading, updating, and deleting a specific workspace requires cloud-hosted **Business** plans and above, or a licensed self-hosted deployment (**Business** plan and above). Unlicensed self-hosted deployments are limited to the default workspace.",
         "tags": [
           "Workspaces"
         ],
@@ -147,7 +147,7 @@
       "get": {
         "summary": "Get workspace",
         "operationId": "workspace-read",
-        "description": "Retrieve details of a specific workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve details of a specific workspace.\n\n**Note**: This endpoint is available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above). Listing and creating workspaces is available on all plans; unlicensed self-hosted deployments are limited to the default workspace.",
         "tags": [
           "Workspaces"
         ],
@@ -208,7 +208,7 @@
       "patch": {
         "summary": "Update workspace",
         "operationId": "workspace-update",
-        "description": "Update workspace details.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Update workspace details.\n\n**Note**: This endpoint is available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above). Listing and creating workspaces is available on all plans; unlicensed self-hosted deployments are limited to the default workspace.",
         "tags": [
           "Workspaces"
         ],
@@ -276,7 +276,7 @@
       "delete": {
         "summary": "Delete workspace",
         "operationId": "workspace-delete",
-        "description": "Delete a workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Delete a workspace.\n\n**Note**: This endpoint is available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above). Listing and creating workspaces is available on all plans; unlicensed self-hosted deployments are limited to the default workspace.",
         "tags": [
           "Workspaces"
         ],
@@ -462,7 +462,7 @@
       "get": {
         "summary": "List workspace members",
         "operationId": "workspace-members-read",
-        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Workspace Members"
         ],
@@ -547,7 +547,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/members": {
       "post": {
         "summary": "Add workspace members",
-        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workspace-members-invite",
         "tags": [
           "Workspace Members"
@@ -619,7 +619,7 @@
       },
       "patch": {
         "summary": "Update workspace members",
-        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workspace-members-update",
         "tags": [
           "Workspace Members"
@@ -691,7 +691,7 @@
       },
       "delete": {
         "summary": "Delete workspace members",
-        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workspace-members-delete",
         "tags": [
           "Workspace Members"
@@ -1912,7 +1912,7 @@
         "tags": [
           "Views"
         ],
-        "description": "Retrieve a list of all views for a specific table.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of all views for a specific table.\n\n**Note**: View APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "parameters": [
           {
             "name": "baseId",
@@ -2022,7 +2022,7 @@
       },
       "post": {
         "summary": "Create view",
-        "description": "Create a view for table.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Create a view for table.\n\n**Note**: View APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "view-create",
         "tags": [
           "Views"
@@ -2592,7 +2592,7 @@
         "tags": [
           "Hooks"
         ],
-        "description": "Retrieve a list of all hooks for a specific table.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of all hooks for a specific table.\n\n**Note**: Hook APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "parameters": [
           {
             "name": "baseId",
@@ -2659,7 +2659,7 @@
       },
       "post": {
         "summary": "Create hook",
-        "description": "Create a new hook for a table.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new hook for a table.\n\n**Note**: Hook APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "hook-create",
         "tags": [
           "Hooks"
@@ -2774,7 +2774,7 @@
     "/api/v3/meta/bases/{baseId}/hooks/{hookId}": {
       "get": {
         "summary": "Get hook",
-        "description": "Retrieve the details of a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve the details of a specific hook.\n\n**Note**: Hook APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "hook-read",
         "tags": [
           "Hooks"
@@ -2842,7 +2842,7 @@
       },
       "patch": {
         "summary": "Update hook",
-        "description": "Update the details of a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Update the details of a specific hook.\n\n**Note**: Hook APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "hook-update",
         "tags": [
           "Hooks"
@@ -2961,7 +2961,7 @@
       },
       "delete": {
         "summary": "Delete hook",
-        "description": "Delete a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Delete a specific hook.\n\n**Note**: Hook APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "hook-delete",
         "tags": [
           "Hooks"
@@ -3002,7 +3002,7 @@
     "/api/v3/meta/bases/{baseId}/views/{viewId}": {
       "get": {
         "summary": "Get view schema",
-        "description": "Retrieve the details of a specific view.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve the details of a specific view.\n\n**Note**: View APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "view-read",
         "tags": [
           "Views"
@@ -3103,7 +3103,7 @@
       },
       "patch": {
         "summary": "Update view",
-        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.\n\n**Note**: View APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "view-update",
         "tags": [
           "Views"
@@ -3224,7 +3224,7 @@
       },
       "delete": {
         "summary": "Delete view",
-        "description": "Delete a specific view.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Delete a specific view.\n\n**Note**: View APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "view-delete",
         "tags": [
           "Views"
@@ -3804,7 +3804,7 @@
     "/api/v3/meta/bases/{baseId}?include[]=members": {
       "get": {
         "summary": "List base members",
-        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "base-members-list",
         "tags": [
           "Base Members"
@@ -3879,7 +3879,7 @@
     "/api/v3/meta/bases/{base_id}/members": {
       "post": {
         "summary": "Invite base members",
-        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "base-members-invite",
         "parameters": [
           {
@@ -3933,7 +3933,7 @@
       },
       "patch": {
         "summary": "Update base members",
-        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "base-members-update",
         "parameters": [
           {
@@ -3987,7 +3987,7 @@
       },
       "delete": {
         "summary": "Delete base members",
-        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
+        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "base-members-delete",
         "parameters": [
           {
@@ -4032,7 +4032,7 @@
     "/api/v3/meta/bases/{base_id}/scripts": {
       "get": {
         "summary": "List Scripts",
-        "description": "Retrieve a list of scripts associated with a specific base.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of scripts associated with a specific base.\n\n**Note**: Script APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "scripts-list",
         "tags": [
           "Scripts"
@@ -4091,7 +4091,7 @@
       },
       "post": {
         "summary": "Create script",
-        "description": "Create a new script within the specified base by providing the required script details in the request body.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new script within the specified base by providing the required script details in the request body.\n\n**Note**: Script APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "script-create",
         "parameters": [
           {
@@ -4163,7 +4163,7 @@
     "/api/v3/meta/bases/{base_id}/scripts/{script_id}": {
       "get": {
         "summary": "Get Script Info",
-        "description": "Retrieve the details of a specific script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve the details of a specific script.\n\n**Note**: Script APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "script-read",
         "tags": [
           "Scripts"
@@ -4219,7 +4219,7 @@
       },
       "patch": {
         "summary": "Update script",
-        "description": "Update the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Update the script.\n\n**Note**: Script APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "script-update",
         "tags": [
           "Scripts"
@@ -4269,7 +4269,7 @@
       },
       "delete": {
         "summary": "Delete script",
-        "description": "Delete the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Delete the script.\n\n**Note**: Script APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "script-delete",
         "tags": [
           "Scripts"
@@ -4304,7 +4304,7 @@
     "/api/v3/meta/bases/{base_id}/dashboards": {
       "get": {
         "summary": "List Dashboards",
-        "description": "Retrieve a list of dashboards in the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of dashboards in the specified base.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "dashboards-list",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4333,7 +4333,7 @@
       },
       "post": {
         "summary": "Create Dashboard",
-        "description": "Create a new dashboard within the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new dashboard within the specified base.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "dashboard-create",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4373,7 +4373,7 @@
     "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}": {
       "get": {
         "summary": "Get Dashboard",
-        "description": "Retrieve details of a specific dashboard. Optionally include widgets by setting the `includeWidgets` query parameter to `true`.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve details of a specific dashboard. Optionally include widgets by setting the `includeWidgets` query parameter to `true`.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "dashboard-read",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4422,7 +4422,7 @@
       },
       "patch": {
         "summary": "Update Dashboard",
-        "description": "Update the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Update the specified dashboard.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "dashboard-update",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4468,7 +4468,7 @@
       },
       "delete": {
         "summary": "Delete Dashboard",
-        "description": "Delete the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Delete the specified dashboard.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "dashboard-delete",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4497,7 +4497,7 @@
     "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/data": {
       "get": {
         "summary": "Get Dashboard Data",
-        "description": "Retrieve data for all widgets in the specified dashboard. Returns a map of widget IDs to their data.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve data for all widgets in the specified dashboard. Returns a map of widget IDs to their data.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "dashboard-data-read",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4535,7 +4535,7 @@
     "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets": {
       "get": {
         "summary": "List Widgets",
-        "description": "Retrieve a list of widgets in the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of widgets in the specified dashboard.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "widgets-list",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4571,7 +4571,7 @@
       },
       "post": {
         "summary": "Create Widget",
-        "description": "Create a new widget within the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new widget within the specified dashboard.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "widget-create",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4619,7 +4619,7 @@
     "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}": {
       "get": {
         "summary": "Get Widget",
-        "description": "Retrieve details of a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve details of a specific widget.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "widget-read",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4662,7 +4662,7 @@
       },
       "patch": {
         "summary": "Update Widget",
-        "description": "Update the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Update the specified widget.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "widget-update",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4715,7 +4715,7 @@
       },
       "delete": {
         "summary": "Delete Widget",
-        "description": "Delete the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Delete the specified widget.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "widget-delete",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4751,7 +4751,7 @@
     "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}/data": {
       "get": {
         "summary": "Get Widget Data",
-        "description": "Retrieve data for a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve data for a specific widget.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "widget-data-read",
         "tags": ["Dashboards"],
         "parameters": [
@@ -4798,7 +4798,7 @@
     "/api/v3/meta/bases/{base_id}/workflows": {
       "get": {
         "summary": "List Workflows",
-        "description": "Retrieve a list of workflows associated with a specific base.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of workflows associated with a specific base.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workflows-list",
         "tags": ["Workflows"],
         "parameters": [
@@ -4827,7 +4827,7 @@
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}": {
       "get": {
         "summary": "Get Workflow",
-        "description": "Retrieve the details of a specific workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve the details of a specific workflow.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workflow-read",
         "tags": ["Workflows"],
         "parameters": [
@@ -4863,7 +4863,7 @@
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/execute": {
       "post": {
         "summary": "Execute Workflow",
-        "description": "Manually trigger a workflow execution. This endpoint only works for workflows whose trigger type is `manual-trigger`.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Manually trigger a workflow execution. This endpoint only works for workflows whose trigger type is `manual-trigger`.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workflow-execute",
         "tags": ["Workflows"],
         "parameters": [
@@ -4914,7 +4914,7 @@
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions": {
       "get": {
         "summary": "List Workflow Executions",
-        "description": "Retrieve a list of executions for a specific workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of executions for a specific workflow.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workflow-execution-list",
         "tags": ["Workflows"],
         "parameters": [
@@ -4962,7 +4962,7 @@
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions/{execution_id}": {
       "get": {
         "summary": "Get Workflow Execution",
-        "description": "Retrieve the details of a specific workflow execution.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve the details of a specific workflow execution.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "workflow-execution-read",
         "tags": ["Workflows"],
         "parameters": [
@@ -6938,7 +6938,7 @@
     "/api/v3/meta/tokens": {
       "get": {
         "summary": "List API tokens",
-        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: \nAPI Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: \nAPI Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
         ],
@@ -6979,7 +6979,7 @@
       },
       "post": {
         "summary": "Create API token",
-        "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
         ],
@@ -7048,7 +7048,7 @@
     "/api/v3/meta/tokens/{tokenId}": {
       "delete": {
         "summary": "Delete API token",
-        "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
         ],
@@ -7099,7 +7099,7 @@
       "get": {
         "summary": "List documents",
         "operationId": "document-list",
-        "description": "Retrieve a list of documents in a base. Documents are returned without content for lightweight listing.\n\nUse the `parent_id` query parameter to navigate the document hierarchy:\n- `parent_id=null` or omitted — returns root-level documents\n- `parent_id={docId}` — returns children of the specified document\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
+        "description": "Retrieve a list of documents in a base. Documents are returned without content for lightweight listing.\n\nUse the `parent_id` query parameter to navigate the document hierarchy:\n- `parent_id=null` or omitted — returns root-level documents\n- `parent_id={docId}` — returns children of the specified document\n\nDocuments APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Documents"
         ],
@@ -7225,7 +7225,7 @@
       "post": {
         "summary": "Create document",
         "operationId": "document-create",
-        "description": "Create a new document in a base. If no `title` is provided, defaults to \"Untitled\". If no `content` is provided, defaults to an empty document.\n\nTo create a child document, pass the `parent_id` of the parent document.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
+        "description": "Create a new document in a base. If no `title` is provided, defaults to \"Untitled\". If no `content` is provided, defaults to an empty document.\n\nTo create a child document, pass the `parent_id` of the parent document.\n\nDocuments APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Documents"
         ],
@@ -7382,7 +7382,7 @@
       "get": {
         "summary": "Get document",
         "operationId": "document-read",
-        "description": "Retrieve a single document with its full content (rich-text JSON).\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
+        "description": "Retrieve a single document with its full content (rich-text JSON).\n\nDocuments APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Documents"
         ],
@@ -7530,7 +7530,7 @@
       "patch": {
         "summary": "Update document",
         "operationId": "document-update",
-        "description": "Update a document's title, content, or metadata.\n\n**Optimistic concurrency control**: You must include the current `version` of the document. If the version does not match the server's version (i.e., someone else edited it), the request will be rejected with a 422 error. This prevents silent overwrites.\n\nAfter a successful update, the returned document will have `version` incremented by 1.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
+        "description": "Update a document's title, content, or metadata.\n\n**Optimistic concurrency control**: You must include the current `version` of the document. If the version does not match the server's version (i.e., someone else edited it), the request will be rejected with a 422 error. This prevents silent overwrites.\n\nAfter a successful update, the returned document will have `version` incremented by 1.\n\nDocuments APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Documents"
         ],
@@ -7677,7 +7677,7 @@
       "delete": {
         "summary": "Delete document",
         "operationId": "document-delete",
-        "description": "Soft-delete a document. All child documents are also deleted (cascade).\n\nAttachments (images, files) referenced by the document are also cleaned up.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
+        "description": "Soft-delete a document. All child documents are also deleted (cascade).\n\nAttachments (images, files) referenced by the document are also cleaned up.\n\nDocuments APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Documents"
         ],
@@ -7738,7 +7738,7 @@
       "patch": {
         "summary": "Reorder or move document",
         "operationId": "document-reorder",
-        "description": "Update a document's sort order among its siblings, and optionally move it to a different parent.\n\n**Order**: Pass a float value. To insert between two siblings with orders 2.0 and 3.0, use 2.5 (midpoint).\n\n**Move**: Include `parent_id` to re-parent the document. Pass `null` to move to root level. Circular moves (moving a document under itself or its descendants) are rejected.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
+        "description": "Update a document's sort order among its siblings, and optionally move it to a different parent.\n\n**Order**: Pass a float value. To insert between two siblings with orders 2.0 and 3.0, use 2.5 (midpoint).\n\n**Move**: Include `parent_id` to re-parent the document. Pass `null` to move to root level. Circular moves (moving a document under itself or its descendants) are rejected.\n\nDocuments APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Documents"
         ],
@@ -7870,7 +7870,7 @@
         "tags": [
           "Comments"
         ],
-        "description": "Retrieve all comments for a specific record.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve all comments for a specific record.\n\n**Note**: Comment APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "parameters": [
           {
             "name": "baseId",
@@ -7934,7 +7934,7 @@
         "tags": [
           "Comments"
         ],
-        "description": "Create a new comment on a record.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new comment on a record.\n\n**Note**: Comment APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "parameters": [
           {
             "name": "baseId",
@@ -8009,7 +8009,7 @@
         "tags": [
           "Comments"
         ],
-        "description": "Update the text of an existing comment. Only the comment creator can update.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Update the text of an existing comment. Only the comment creator can update.\n\n**Note**: Comment APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "parameters": [
           {
             "name": "baseId",
@@ -8073,7 +8073,7 @@
         "tags": [
           "Comments"
         ],
-        "description": "Soft-delete a comment. Only the comment creator can delete.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Soft-delete a comment. Only the comment creator can delete.\n\n**Note**: Comment APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "parameters": [
           {
             "name": "baseId",
@@ -8128,7 +8128,7 @@
         "tags": [
           "Comments"
         ],
-        "description": "Toggle the resolved state of a comment. If already resolved, unresolves it.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Toggle the resolved state of a comment. If already resolved, unresolves it.\n\n**Note**: Comment APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "parameters": [
           {
             "name": "baseId",

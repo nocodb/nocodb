@@ -1,4 +1,10 @@
-import { isLinkV2, type NcRequest, RelationTypes } from 'nocodb-sdk';
+import {
+  isLinkV2,
+  type NcRequest,
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { DisplacedRecord } from '~/command-registry/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -96,6 +102,25 @@ export class NestedLinkPreparator {
     // The caller forwards this to `captureForTrace('displacedRecords',
     // displacedRecords)` so undo can restore the rows.
     const displacedRecords: DisplacedRecord[] = [];
+
+    // Nested link values are written here rather than through addLinks(), so the
+    // field permission has to be applied at this chokepoint too.
+    const writtenLinkColIds = nestedCols
+      .filter((col) => col.title in data)
+      .map((col) => col.id);
+
+    // One call per column: checkPermission resolves a single grant with `.find()`,
+    // so batching ids lets one permissive grant answer for every field.
+    for (const colId of writtenLinkColIds) {
+      await baseModel.checkPermission({
+        entity: PermissionEntity.FIELD,
+        entityId: colId,
+        permission: PermissionKey.RECORD_FIELD_EDIT,
+        user: req?.user,
+        req,
+      });
+    }
+
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(

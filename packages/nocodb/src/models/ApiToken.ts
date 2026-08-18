@@ -49,6 +49,10 @@ export default class ApiToken implements ApiTokenType {
         token,
         fk_user_id: apiToken.fk_user_id,
         fk_sso_client_id: apiToken.fk_sso_client_id ?? null,
+        // Persist the base scope when the token is minted through a
+        // base-scoped endpoint. `null` means account-wide (the account-level
+        // /api/v1/tokens endpoint), which keeps existing tokens working.
+        base_id: apiToken.base_id ?? null,
       },
       true,
     );

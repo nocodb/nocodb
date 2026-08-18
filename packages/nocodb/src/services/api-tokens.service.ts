@@ -28,6 +28,7 @@ export class ApiTokensService {
     userId: string;
     tokenBody: ApiTokenReqType;
     req: NcRequest;
+    baseId?: string;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ApiTokenReq',
@@ -42,6 +43,9 @@ export class ApiTokensService {
       ...param.tokenBody,
       fk_user_id: param.userId,
       fk_sso_client_id: ssoClientId || null,
+      // Confine the token to the base it was created under. Account-wide
+      // creation (org-tokens.controller) leaves this undefined → null.
+      base_id: param.baseId ?? null,
     });
 
     this.appHooksService.emit(AppEvents.API_TOKEN_CREATE, {

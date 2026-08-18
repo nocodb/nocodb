@@ -2,9 +2,11 @@
 // `getHiddenColumn` bypasses the getAst `allowedCols` gate and emits every
 // non-system column's values; `nested` drives caller-controlled LTAR expansion.
 //
-// Deliberately does NOT touch `where` / `sort` / `filter` / `groupBy` references
-// to view-hidden columns — those stay queryable. See the DESIGN NOTE in
-// public-datas.service.ts.
+// Only these two. Column REFERENCES in `where` / `sort` / `filterArrJson` /
+// group-by are confined separately, by `restrictSharedViewQuery` and
+// `restrictSharedViewColumnReferences` — they strip per leaf/term rather than
+// deleting the key, so a multi-field search degrades instead of returning
+// everything. See the DESIGN NOTE in public-datas.service.ts.
 export const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'] as const;
 
 export function sanitizePublicQuery<T extends Record<string, any>>(

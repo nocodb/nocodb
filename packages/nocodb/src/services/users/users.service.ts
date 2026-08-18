@@ -301,11 +301,15 @@ export class UsersService {
 
     if (user) {
       const token = uuidv4();
+      // Issue the reset token WITHOUT rotating `token_version`. Rotating it here
+      // would invalidate every active access JWT the moment an unauthenticated
+      // caller requests a reset link for a known address, letting an attacker
+      // repeatedly sign a user out (CWE-400). Session revocation belongs in
+      // reset COMPLETION (passwordReset), not reset-token issuance.
       const updatedUser = await User.update(user.id, {
         email: user.email,
         reset_password_token: token,
         reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-        token_version: randomTokenString(),
       });
       try {
         await this.mailService.sendMail({

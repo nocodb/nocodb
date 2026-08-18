@@ -158,6 +158,14 @@ export enum PlanFeatureTypes {
   FEATURE_WHITE_LABEL = 'feature_white_label',
   /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
   FEATURE_SCHEDULED_SNAPSHOTS = 'feature_scheduled_snapshots',
+  /**
+   * Migrating a base OUT to another NocoDB instance (POST /api/v2/meta/migrate/:baseId).
+   * On-prem: enabled on every tier including Free — self-hosted users own their data.
+   * Cloud: disabled on every tier and never sold; granted per workspace/org through
+   * `subscription.meta.plan_meta` for customers moving to paid on-prem.
+   * Does not gate inbound import — that is FEATURE_EE_CORE.
+   */
+  FEATURE_MIGRATE_BASE_EXPORT = 'feature_migrate_base_export',
 }
 
 export enum PlanAddonTypes {
@@ -561,6 +569,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_INTERFACE_OVERVIEW]: 'to build overview pages.',
   [PlanFeatureTypes.FEATURE_INTERFACE_PAGE_ACCESS_CONTROL]:
     'to control access per interface page.',
+  [PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT]:
+    'to migrate a base to another NocoDB instance.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

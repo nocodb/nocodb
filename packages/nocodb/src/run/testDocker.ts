@@ -2,8 +2,9 @@ import dns from 'node:dns';
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
-import { User } from '~/models';
+import { User, WorkspaceUser } from '~/models';
 import { handleUncaughtErrors } from '~/utils';
 handleUncaughtErrors(process);
 
@@ -98,6 +99,22 @@ process.env[`NC_ALLOW_LOCAL_DATA_IMPORT`] = 'true';
           );
 
           console.log(response2.data);
+
+          // baseCreate (and every other workspace-scoped op) is resolved
+          // against the user's DEFAULT-WORKSPACE role, not their org role. The
+          // org-role PATCH above used to cascade to the default-workspace role,
+          // but that side effect was intentionally removed as a security fix
+          // (cf0264c2122 / defect 9). Set the workspace role explicitly here so
+          // the seeded test user can create bases — otherwise it stays
+          // WorkspaceUserRoles.NO_ACCESS and Playwright setup fails every base
+          // create with "403 baseCreate … roles: No Access".
+          if (Noco.ncDefaultWorkspaceId) {
+            await WorkspaceUser.update(
+              Noco.ncDefaultWorkspaceId,
+              user.data.id,
+              { roles: WorkspaceUserRoles.CREATOR },
+            );
+          }
         }
       }
     });

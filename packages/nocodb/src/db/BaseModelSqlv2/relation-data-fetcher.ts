@@ -14,7 +14,7 @@ import sortV2 from '~/db/sortV2';
 import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
-import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
 
@@ -133,11 +133,10 @@ export const relationDataFetcher = (param: {
 
         const qb = childBaseModel.dbDriver(childTn);
 
-        const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        const hasLimitedAccess = await hasLimitedRelatedTableAccess(
           baseModel.context,
           childTable.id,
-          baseModel.context.user,
-        ));
+        );
 
         await childBaseModel.selectObject({
           qb,
@@ -303,11 +302,10 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(table.primaryKeys, parentId)),
         );
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
@@ -478,11 +476,10 @@ export const relationDataFetcher = (param: {
         qb.where(refSoftDeleteFilter);
       }
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
@@ -666,11 +663,10 @@ export const relationDataFetcher = (param: {
         }
         qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
-        const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        const hasLimitedAccess = await hasLimitedRelatedTableAccess(
           baseModel.context,
           childTable.id,
-          baseModel.context.user,
-        ));
+        );
 
         await childBaseModel.selectObject({
           qb,
@@ -874,11 +870,10 @@ export const relationDataFetcher = (param: {
         .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
@@ -1320,11 +1315,10 @@ export const relationDataFetcher = (param: {
       const refView = await relColOptions.getChildView(refContext, refTable);
       let listArgs: any = {};
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        context.user,
-      ));
+      );
 
       if (refView) {
         const { dependencyFields } = await getAst(refContext, {
@@ -1480,11 +1474,10 @@ export const relationDataFetcher = (param: {
         await refBaseModel.getSoftDeleteFilter();
       if (hmExclListSoftDeleteFilter) qb.where(hmExclListSoftDeleteFilter);
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
@@ -1696,11 +1689,10 @@ export const relationDataFetcher = (param: {
       await parentTable.getColumns(parentContext);
       await childTable.getColumns(childContext);
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         (isBt ? parentTable : childTable).id,
-        baseModel.context.user,
-      ));
+      );
 
       await refModel.selectObject({
         qb,
@@ -1995,11 +1987,10 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         parentTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await parentBaseModel.selectObject({
         qb,

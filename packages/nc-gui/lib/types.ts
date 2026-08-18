@@ -54,6 +54,7 @@ interface User {
   roles: RolesObj
   base_roles: RolesObj
   workspace_roles: RolesObj
+  org_roles?: RolesObj
   invite_token?: string
   base_id?: string
   display_name?: string | null
@@ -485,10 +486,7 @@ interface CellRendererOptions {
   baseRoles?: Record<string, any>
   // Bound at grid setup and threaded through so cell click handlers can run
   // permission checks without calling useRoles() outside a component setup.
-  isUIAllowed?: (
-    permission: string,
-    args?: { roles?: string | Record<string, boolean> | string[] | null },
-  ) => boolean
+  isUIAllowed?: (permission: string, args?: { roles?: string | Record<string, boolean> | string[] | null }) => boolean
   x: number
   y: number
   width: number

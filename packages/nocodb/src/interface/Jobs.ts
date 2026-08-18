@@ -446,6 +446,8 @@ export interface ChatMessageJobData extends JobData {
   approvals?: Record<string, 'approved' | 'denied'>;
   /** User's current UI navigation context (active table/view/dashboard/document). */
   uiContext?: ChatUIContext;
+  /** Identifies this turn on streamed events and in the stream journal (the triggering user message id). */
+  turnId?: string;
 }
 
 export interface ChatApprovalJobData extends JobData {

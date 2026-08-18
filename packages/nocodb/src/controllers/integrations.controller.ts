@@ -135,14 +135,21 @@ export class IntegrationsController {
     @Query('offset') offset?: string,
     @Query('query') query?: string,
   ) {
+    // Parse once. The strip guard below MUST key off the same boolean the
+    // service receives — testing the raw query string instead (`!includeDatabaseInfo`)
+    // inverts for every value but `'true'`/absent, so `includeDatabaseInfo=false`
+    // skips both the field reduction and the strip and returns the raw stored
+    // config.
+    const withDatabaseInfo = includeDatabaseInfo === 'true';
+
     const integrations = await this.integrationsService.integrationList({
       req,
-      includeDatabaseInfo: includeDatabaseInfo === 'true',
+      includeDatabaseInfo: withDatabaseInfo,
       type,
       query,
     });
 
-    if (!includeDatabaseInfo) {
+    if (!withDatabaseInfo) {
       for (const integration of integrations.list) {
         integration.config = undefined;
       }

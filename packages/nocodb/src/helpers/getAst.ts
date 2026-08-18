@@ -1,11 +1,9 @@
 import {
-  isOrderCol,
   NcApiVersion,
   parseProp,
   RelationTypes,
   ROW_COLORING_MODE,
   UITypes,
-  ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
@@ -17,17 +15,7 @@ import type {
   Model,
 } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
-import {
-  CalendarRange,
-  DateDependency,
-  Filter,
-  GalleryView,
-  GridViewColumn,
-  KanbanView,
-  KanbanViewColumn,
-  TimelineRange,
-  View,
-} from '~/models';
+import { View } from '~/models';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
 import RowColorCondition from '~/models/RowColorCondition';
@@ -38,6 +26,7 @@ import {
   type ColumnAstContext,
   resolveColumnAst,
 } from '~/helpers/getAstColumnStrategy';
+import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
 
 const logger = new Logger('getAst');
 
@@ -87,8 +76,9 @@ const getAst = async (
     includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
     fk_display_value_column_id?: string | null;
-    // Return requested fields even if view-hidden. Opt-in; authenticated
-    // link-picker paths only (see ColumnAstContext doc).
+    // Opt-in: return an explicitly requested field even if view-hidden. Off by
+    // default for every caller — the nested-link fetchers set it, since there the
+    // exposure is bounded by the link's own pk/pv/display projection instead.
     allowRequestedHiddenFields?: boolean;
     // Internal: recursion depth for nested LTAR expansion. Bounded to
     // GET_AST_MAX_DEPTH (8) to prevent client-controlled `?nested[a][nested]
@@ -117,81 +107,22 @@ const getAst = async (
     return skipSubstitutingColumnIds ? col.id : col.title;
   };
 
-  let coverImageId;
-  let dependencyFieldsForRangeView;
-  let kanbanGroupColumnId;
-  let sortColumnIds: string[] = [];
-  let filterColumnIds: string[] = [];
-  if (view && view.type === ViewTypes.GALLERY) {
-    const gallery = await GalleryView.get(context, view.id);
-    coverImageId = gallery.fk_cover_image_col_id;
-  } else if (view && view.type === ViewTypes.KANBAN) {
-    const kanban = await KanbanView.get(context, view.id);
-    coverImageId = kanban.fk_cover_image_col_id;
-    kanbanGroupColumnId = kanban.fk_grp_col_id;
-  } else if (view && view.type === ViewTypes.CALENDAR) {
-    // const calendar = await CalendarView.get(view.id);
-    // coverImageId = calendar.fk_cover_image_col_id;
-    const calenderRanges = await CalendarRange.read(context, view.id);
-    if (calenderRanges) {
-      dependencyFieldsForRangeView = calenderRanges.ranges
-        .flatMap((obj) =>
-          [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
-        )
-        .map(String);
-    }
-  } else if (view && view.type === ViewTypes.TIMELINE) {
-    // Timeline date columns (start/end) drive the bar position. They are
-    // typically hidden in the Fields menu, so without explicitly forcing
-    // them through `allowedCols`, the data response would strip the values
-    // and the frontend would treat every record as "without dates".
-    const timelineRanges = await TimelineRange.read(context, view.id);
-    if (timelineRanges) {
-      dependencyFieldsForRangeView = timelineRanges.ranges
-        .flatMap((obj) =>
-          [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
-        )
-        .map(String);
-    }
-  } else if (view && view.type === ViewTypes.GANTT) {
-    // Gantt consumes a DateDependency rule (EE-only). View-owned rule
-    // (fk_gantt_view_id = view.id) takes precedence, with fallback to the
-    // table-level default (fk_gantt_view_id IS NULL). Start/end date and
-    // dep-link columns often aren't "shown" on the view, so we augment
-    // the range-field list the same way Calendar does. CE's DateDependency
-    // stub returns null from both methods, so this block is an effective
-    // no-op in CE.
-    const dep =
-      (await DateDependency.getByGanttViewId(context, view.id)) ||
-      (await DateDependency.getByModelId(context, model.id));
-    if (dep && dep.is_active !== false) {
-      dependencyFieldsForRangeView = [
-        dep.fk_start_date_field_id,
-        dep.fk_end_date_field_id,
-        dep.fk_dependency_linkrow_field_id,
-      ]
-        .filter(Boolean)
-        .map(String);
-    }
-  }
-
-  if (view && includeSortAndFilterColumns) {
-    const sorts = await view.getSorts(context);
-    const filters = await Filter.allViewFilterList(context, {
-      viewId: view.id,
-    });
-    sortColumnIds = sorts.map((s) => s.fk_column_id);
-    filterColumnIds = filters.map((f) => f.fk_column_id);
-  }
-
-  if (!model.columns?.length) await model.getColumns(context);
-
-  if (includeSortAndFilterColumns) {
-    const orderCol = model.columns.find((c) => isOrderCol(c));
-    if (orderCol) {
-      sortColumnIds.push(orderCol.id);
-    }
-  }
+  // Per-view-type visible-column resolution lives in `viewVisibleColumns` so the
+  // response-payload gate below (`allowedCols`) and the shared-view QUERY gate
+  // (`restrictSharedViewQuery`) are computed from one source and cannot drift.
+  //
+  // Stays ABOVE the `extractOnlyPrimaries` return: it lazily loads
+  // `model.columns`, which that block reads via `model.primaryKeys`.
+  const {
+    allowedCols,
+    dependencyFieldsForRangeView,
+    sortColumnIds,
+    filterColumnIds,
+  } = await resolveViewVisibleColumns(context, {
+    model,
+    view,
+    includeSortAndFilterColumns,
+  });
 
   const rowColoringColumnIds = new Set<string>();
   if (view && includeRowColorColumns) {
@@ -278,39 +209,6 @@ const getAst = async (
     }
   } else {
     fields = null;
-  }
-
-  // This `allowedCols` gate (keyed on view-column `show`) omits view-hidden
-  // columns from the default RESPONSE PAYLOAD only. That is intended and is a
-  // separate concern from query-level filtering: hidden columns stay fully
-  // queryable via where/sort/filter (field visibility is the real ACL, not
-  // view `show`). Do not extend this into query-param sanitization — see the
-  // DESIGN NOTE in services/public-datas.service.ts.
-  let allowedCols = null;
-  if (view) {
-    allowedCols = (await View.getColumns(context, view.id)).reduce(
-      (o, c) => ({
-        ...o,
-        [c.fk_column_id]:
-          c.show ||
-          (c instanceof GridViewColumn && c.group_by) ||
-          (c instanceof KanbanViewColumn &&
-            c.fk_column_id === kanbanGroupColumnId),
-      }),
-      {},
-    );
-    if (coverImageId) {
-      allowedCols[coverImageId] = 1;
-    }
-    if (dependencyFieldsForRangeView) {
-      dependencyFieldsForRangeView.forEach((id) => {
-        allowedCols[id] = 1;
-      });
-    }
-    if (includeSortAndFilterColumns) {
-      sortColumnIds.forEach((id) => (allowedCols[id] = 1));
-      filterColumnIds.forEach((id) => (allowedCols[id] = 1));
-    }
   }
 
   const columns = model.columns;

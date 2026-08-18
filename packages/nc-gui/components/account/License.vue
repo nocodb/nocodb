@@ -305,7 +305,8 @@ loadLicense()
                     {{ $t('labels.removeLicense') }}
                   </NcButton>
                 </NcTooltip>
-                <NcTooltip v-if="savedKey && isEEActive" :title="$t('labels.refreshLicenseTooltip')">
+                <!-- Shown while expired too — refreshing is what picks up a renewal -->
+                <NcTooltip v-if="savedKey" :title="$t('labels.refreshLicenseTooltip')">
                   <NcButton
                     v-e="['c:account:license:refresh']"
                     type="secondary"

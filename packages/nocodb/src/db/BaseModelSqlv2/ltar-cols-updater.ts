@@ -1,4 +1,10 @@
-import { isLinksOrLTAR, isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isMMOrMMLike,
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
+} from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { NcRequest } from 'nocodb-sdk';
@@ -206,6 +212,18 @@ export const LTARColsUpdater = (param: {
     trx: CustomKnex;
     cookie: any;
   }) => {
+    // This calls the addOrRemoveLinks helper directly rather than
+    // baseModel.addLinks(), so it misses that method's permission check. The v3
+    // link endpoints enter here without going through update(), which guards its
+    // own batch.
+    await baseModel.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: col.id,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: cookie?.user,
+      req: cookie,
+    });
+
     for (const each of linkDataPayload.data) {
       await addOrRemoveLinks(baseModel).addLinks({
         cookie,

@@ -207,12 +207,12 @@ const hiddenColumnFieldStrategy: ColumnAstStrategy = {
   },
 };
 
-// 10. View present — the `allowedCols` gate (keyed on view-column `show`) omits
-//     view-hidden columns from the default RESPONSE PAYLOAD only. That is
-//     intended and is a separate concern from query-level filtering: hidden
-//     columns stay fully queryable via where/sort/filter (field visibility is
-//     the real ACL, not view `show`). Do not extend this into query-param
-//     sanitization — see the DESIGN NOTE in services/public-datas.service.ts.
+// 10. View present — the `allowedCols` gate, keyed on view-column `show`, which
+//     omits view-hidden columns from the response payload for EVERY caller. On a
+//     shared view `restrictSharedViewQuery` confines the query surface to the
+//     same set, so payload and query agree. `allowRequestedHiddenFields` is an
+//     opt-in used only by the nested-link fetchers.
+//     See the DESIGN NOTE in services/public-datas.service.ts.
 //     PK is skipped here (handled by the fields/default strategies) when
 //     `includePkByDefault` so it stays in the response by default.
 const viewVisibilityFieldStrategy: ColumnAstStrategy = {
@@ -228,7 +228,7 @@ const viewVisibilityFieldStrategy: ColumnAstStrategy = {
       allowRequestedHiddenFields,
     } = ctx;
 
-    // Opt-in: an explicitly-requested field passes even when view-hidden.
+    // An explicitly-requested field passes even when view-hidden.
     const passesViewVisibility =
       allowedCols[col.id] || (allowRequestedHiddenFields && isInFields);
 

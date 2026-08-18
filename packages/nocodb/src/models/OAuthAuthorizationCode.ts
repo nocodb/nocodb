@@ -10,6 +10,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
+import { NcError } from '~/helpers/catchError';
 
 export default class OAuthAuthorizationCode {
   code: string;
@@ -186,15 +187,21 @@ export default class OAuthAuthorizationCode {
         );
       }
 
+      // See OAuthToken.deleteAllByClient: `{ code: { in: [...] } }` as the simple
+      // condition is a no-op. Use whereIn and verify the affected-row count.
       const codesToDelete = codes.map((c) => c.code);
-      await ncMeta.metaDelete(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.OAUTH_AUTHORIZATION_CODES,
-        { code: { in: codesToDelete } },
-      );
+      const affected = await ncMeta
+        .knexConnection(MetaTable.OAUTH_AUTHORIZATION_CODES)
+        .whereIn('code', codesToDelete)
+        .del();
 
-      deletedCount += codes.length;
+      if (affected !== codesToDelete.length) {
+        NcError.internalServerError(
+          'Failed to delete all OAuth authorization codes for the client',
+        );
+      }
+
+      deletedCount += affected;
 
       // If we got fewer than BATCH_SIZE, we're done
       if (codes.length < BATCH_SIZE) {

@@ -288,7 +288,9 @@ export async function populateMeta(
 
   /* Get all relations */
   const relations = (
-    await sqlClient.relationListAll({ schema: getSourceIntrospectionSchema(source) })
+    await sqlClient.relationListAll({
+      schema: getSourceIntrospectionSchema(source),
+    })
   )?.data?.list;
 
   info.relationsCount = relations.length;

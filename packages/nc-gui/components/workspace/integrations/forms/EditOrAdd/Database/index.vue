@@ -583,10 +583,7 @@ onMounted(async () => {
     // Ensure a schema-aware connection always exposes an (editable) schema field
     // when editing — a stored config with no searchPath would otherwise hide it,
     // leaving no way to set/change the schema on an existing connection.
-    if (
-      [ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) &&
-      !formState.value.dataSource.searchPath
-    ) {
+    if ([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) && !formState.value.dataSource.searchPath) {
       formState.value.dataSource.searchPath = ['']
     }
 
@@ -987,7 +984,10 @@ watch(
                       <a-col :span="12">
                         <!-- Schema name -->
                         <a-form-item
-                          v-if="[ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client) && formState.dataSource.searchPath"
+                          v-if="
+                            [ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client) &&
+                            formState.dataSource.searchPath
+                          "
                           :label="$t('labels.schemaName')"
                           v-bind="validateInfos['dataSource.searchPath.0']"
                         >

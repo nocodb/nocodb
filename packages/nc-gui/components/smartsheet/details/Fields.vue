@@ -284,13 +284,7 @@ const changingField = ref(false)
 
 // Field types whose editors are kept alive (v-show) across field switches so filter
 // state inside SmartsheetToolbarColumnFilter is never destroyed.
-const KEEP_ALIVE_TYPES = [
-  UITypes.Links,
-  UITypes.LinkToAnotherRecord,
-  UITypes.Rollup,
-  UITypes.Lookup,
-  UITypes.Button,
-]
+const KEEP_ALIVE_TYPES = [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.Rollup, UITypes.Lookup, UITypes.Button]
 
 const isKeepAliveType = (field?: TableExplorerColumn) => !!(field?.uidt && KEEP_ALIVE_TYPES.includes(field.uidt as UITypes))
 

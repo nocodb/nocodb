@@ -170,6 +170,16 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'hide_chat_suggestions',
+    title: 'Hide chat suggestions',
+    description:
+      'Hide the suggestion prompts on the empty chat screen (follow-ups are unaffected). No suggestion API calls are made while hidden.',
+    enabled: true,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'workflows_tab',
     title: 'Workflows tab',
     description: 'Enable workflows tab in base overview to manage workflows.',

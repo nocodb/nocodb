@@ -387,18 +387,6 @@ if (isEdit.value) {
     filtersCount.value = vModel.value.filters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
   }
 }
-
-// Keep formState.filters in sync with the filter editor (same pattern as
-// LTAR/Lookup/Rollup). Relying only on v-model can lose entries when the
-// editor remounts or when deep filter mutations do not re-emit the array.
-watch(
-  () => filterRef.value?.filters,
-  (next) => {
-    if (!vModel.value) return
-    vModel.value.filters = next ? [...next] : []
-  },
-  { deep: true },
-)
 </script>
 
 <template>

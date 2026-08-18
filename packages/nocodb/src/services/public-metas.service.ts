@@ -31,6 +31,8 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
+import { isSharedViewAccess } from '~/helpers/accessSource';
+import { projectRelatedMetas } from '~/helpers/relatedMetaProjection';
 
 @Injectable()
 export class PublicMetasService {
@@ -163,6 +165,15 @@ export class PublicMetasService {
     // Some times related metas are null, so we need to filter them out
     for (const key in relatedMetas) {
       if (relatedMetas[key] == null) delete relatedMetas[key];
+    }
+
+    // `extractRelatedMetas` above attaches each related/junction table's FULL
+    // column set, so an anonymous consumer would get the names, types and select
+    // options of columns the share never exposes. Project down to what the DATA
+    // path returns under `pkAndPvOnly` — the two must agree, or the frontend
+    // renders fields the API refuses to return.
+    if (isSharedViewAccess(context)) {
+      projectRelatedMetas(relatedMetas, view.model.columns);
     }
 
     view.relatedMetas = relatedMetas;

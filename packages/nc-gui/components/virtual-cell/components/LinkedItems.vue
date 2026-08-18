@@ -250,6 +250,7 @@ const onClick = (row: Row) => {
   expandedFormDlg.value = true
 }
 const addNewRecord = () => {
+  if (readOnly.value) return
   if (showRecordPlanLimitExceededModal()) return
   // Don't allow creating new record if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
@@ -744,6 +745,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
           <PermissionsTooltip
             v-if="
               allowNewRecord &&
+              !readOnly &&
               isLinkedTableAccessible &&
               !isPublic &&
               !isDataReadOnly &&

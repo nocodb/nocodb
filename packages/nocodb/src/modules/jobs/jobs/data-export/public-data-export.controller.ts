@@ -19,6 +19,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { restrictSharedViewQueryForView } from '~/helpers/sharedViewQueryHelpers';
 
 @Controller()
 @UseGuards(PublicApiLimiterGuard)
@@ -56,10 +57,21 @@ export class PublicDataExportController {
 
     if (!view) NcError.viewNotFound(publicDataUuid);
 
+    // `options` is an @Body() TS interface, not a class DTO, so nothing upstream
+    // strips unknown keys — `filterArrJson` / `sortArrJson` arrive verbatim and
+    // reach `datasService.dataList` in the export processor. The shared-view UI
+    // legitimately sends the viewer's own filters/sorts here, so confine them to
+    // the view's columns rather than dropping them.
+    const exportOptions = { ...(options ?? {}) };
+    await restrictSharedViewQueryForView(context, {
+      view,
+      query: exportOptions,
+    });
+
     const job = await this.jobsService.add(JobTypes.DataExport, {
       context,
       options: {
-        ...(options ?? {}),
+        ...exportOptions,
         // includeByteOrderMark when export is triggered from controller
         includeByteOrderMark: true,
         // Anonymous export: the ICS description otherwise builds from all model

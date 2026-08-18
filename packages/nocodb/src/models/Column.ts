@@ -1164,6 +1164,11 @@ export default class Column<T = any> implements ColumnType {
       MetaTable.GALLERY_VIEW_COLUMNS,
       MetaTable.CALENDAR_VIEW_COLUMNS,
       MetaTable.MAP_VIEW_COLUMNS,
+      // LIST_VIEW_COLUMNS (EE nested-records list view): a list view level holds
+      // a per-column row too, so drop it here like every other view type —
+      // otherwise the deleted column orphans its list-view-column row. No-op in
+      // CE, which has no list-view-column rows.
+      MetaTable.LIST_VIEW_COLUMNS,
     ];
     const viewColumnCacheScope = [
       CacheScope.GRID_VIEW_COLUMN,
@@ -1172,6 +1177,7 @@ export default class Column<T = any> implements ColumnType {
       CacheScope.GALLERY_VIEW_COLUMN,
       CacheScope.CALENDAR_VIEW_COLUMN,
       CacheScope.MAP_VIEW_COLUMN,
+      CacheScope.LIST_VIEW_COLUMN,
     ];
 
     for (let i = 0; i < viewColumnTables.length; i++) {
@@ -1195,6 +1201,34 @@ export default class Column<T = any> implements ColumnType {
           CacheDelDirection.CHILD_TO_PARENT,
         );
       }
+    }
+
+    // Nested-records list views (EE) nest a leaf level by a self-link column
+    // (fk_self_link_column_id). Deleting that column must RESET the tree —
+    // mirroring how deleting a grid group-by column drops the grouping — so the
+    // level falls back to a flat list instead of pointing at a dead column
+    // (which otherwise leaves a dangling ref and stale nested output). No-op in
+    // CE. Only the self-link (tree) ref is reset here; between-level links are
+    // handled by the list view's own level lifecycle.
+    const nestedLevels = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.LIST_VIEW_LEVELS,
+      { condition: { fk_self_link_column_id: id } },
+    );
+    for (const level of nestedLevels) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.LIST_VIEW_LEVELS,
+        { fk_self_link_column_id: null, enable_nested_records: false },
+        level.id,
+      );
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.LIST_VIEW_LEVEL}:${level.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
     }
 
     // Get LTAR columns in which current column is referenced as foreign key

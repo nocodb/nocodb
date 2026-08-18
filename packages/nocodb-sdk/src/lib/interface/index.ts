@@ -63,7 +63,12 @@ export interface InterfaceUserType {
   /** Resolved role after inheritance (grant or base-role-derived). */
   effective_role?: InterfaceRoles | null;
   /** Where the effective role comes from. */
-  role_source?: 'interface-grant' | 'team-grant' | 'base-role' | 'builder';
+  role_source?:
+    | 'interface-grant'
+    | 'team-grant'
+    | 'base-role'
+    | 'workspace-role'
+    | 'builder';
   /** Explicit page-level overrides (pageId → role); absence = Inherited. */
   page_roles?: Record<string, InterfaceRoles>;
   /** Invite pending (user never signed up). */

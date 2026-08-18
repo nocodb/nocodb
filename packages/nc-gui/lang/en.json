@@ -4286,6 +4286,7 @@
     "addComment": "Add a comment"
   },
   "tooltip": {
+    "sideLabelsNeedSingleFieldRows": "Not available while a row holds more than one field.",
     "showFieldInView": "Show this field in the current view.",
     "hideFieldInView": "Hide this field in the current view.",
     "viewAllEventsInDayView": "View all {count} event in day view | View all {count} events in day view",

@@ -374,12 +374,31 @@ const filtersCount = ref(0)
 
 if (isEdit.value) {
   const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
-  if (Array.isArray(existingFilters) && existingFilters.length) {
-    vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+  // Prefer draft filters already on the form (e.g. restored from an unsaved
+  // edit) over colOptions so remounting the editor does not drop in-progress
+  // visibility conditions.
+  if (!Array.isArray(vModel.value.filters) || !vModel.value.filters.length) {
+    if (Array.isArray(existingFilters) && existingFilters.length) {
+      vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+    }
+  }
+  if (Array.isArray(vModel.value.filters) && vModel.value.filters.length) {
     isFilterSectionOpen.value = true
-    filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
+    filtersCount.value = vModel.value.filters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
   }
 }
+
+// Keep formState.filters in sync with the filter editor (same pattern as
+// LTAR/Lookup/Rollup). Relying only on v-model can lose entries when the
+// editor remounts or when deep filter mutations do not re-emit the array.
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 </script>
 
 <template>

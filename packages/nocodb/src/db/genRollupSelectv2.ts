@@ -24,10 +24,22 @@ import { NcError } from '~/helpers/ncError';
 import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { excludeNonFiniteSql } from '~/db/formulav2/pg-ieee';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
 import { DBQueryClient } from '~/dbQueryClient';
+
+// Numeric rollups a non-finite value would poison. `count`/`countDistinct` are
+// deliberately absent — they must keep seeing every row.
+const NON_FINITE_EXCLUDING_ROLLUPS = [
+  'sum',
+  'sumDistinct',
+  'avg',
+  'avgDistinct',
+  'min',
+  'max',
+];
 
 export default async function genRollupSelectv2(param: {
   baseModelSqlv2: IBaseModelSqlV2;
@@ -210,8 +222,27 @@ export default async function genRollupSelectv2(param: {
       // See: parsed-tree-builder.ts:307 (where the original `\\?` escape
       // is applied to formula output).
       selectColumnIsSubquery = true;
+      const resolvedFormulaSql = `(${formulaQb.builder
+        .toQuery()
+        .replaceAll('?', '\\?')})`;
+      // A rollup is the second numeric-aggregate consumer of a pg formula, and
+      // the only one that doesn't route through applyAggregation — so it needs
+      // the same exclusion at its own site. Otherwise a single non-finite row
+      // takes the whole aggregate (NaN poisons sum/avg/max; -Infinity wins min),
+      // and since the value lands on a Rollup column rather than a Formula one,
+      // convertFormulaNonFinite skips it and JSON.stringify blanks it to null —
+      // a wrong value that reads as no value. The count family is deliberately
+      // excluded: an Infinity cell is not an empty cell.
+      // Composed as SQL text, not a nested knex.raw bind — see the `\\?` note
+      // above; re-binding this Raw would strip the escape.
       selectColumnName = knex.raw(
-        `(${formulaQb.builder.toQuery().replaceAll('?', '\\?')})`,
+        baseModelSqlv2.isPg &&
+          formulOption.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
+          NON_FINITE_EXCLUDING_ROLLUPS.includes(
+            columnOptions.rollup_function as string,
+          )
+          ? excludeNonFiniteSql(resolvedFormulaSql)
+          : resolvedFormulaSql,
       );
       // A boolean-returning formula (e.g. a Checkbox passthrough) lowers to a
       // `bit`-typed expression on MSSQL — flag it so the bit→FLOAT cast fires.

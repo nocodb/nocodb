@@ -138,21 +138,45 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       }
     }
 
+    /**
+     * Re-read one record in place. Callers are the attachment carousels — which
+     * refresh here to re-sign an expired preview URL — and the script executor's
+     * reloadRow action.
+     *
+     * Keyed by table id, like every other single-record read in the app. It used
+     * to pass `meta.title` to the v1 alias route, which resolves the table by
+     * title: user-editable, unencoded in the path, and a 404 for any title
+     * carrying a path-significant character (`/`, `#`, `?`).
+     */
     const loadRow = async (row: Row) => {
-      const record = await $api.dbTableRow.read(
-        NOCO,
-        meta.value?.base_id ?? (base.value?.id as string),
-        meta.value?.title as string,
-        encodeURIComponent(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])),
-      )
-      Object.assign(unref(row), {
-        row: record,
-        oldRow: { ...record },
-        rowMeta: {
-          ...row.rowMeta,
-          new: false,
-        },
-      })
+      const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+
+      // an unsaved row has no pk to read back
+      if (!meta.value?.id || !rowId) return
+
+      try {
+        const record = await $api.dbTableRow.read(
+          NOCO,
+          meta.value?.base_id ?? (base.value?.id as string),
+          meta.value.id,
+          encodeURIComponent(rowId),
+        )
+
+        Object.assign(unref(row), {
+          row: record,
+          oldRow: { ...record },
+          rowMeta: {
+            ...row.rowMeta,
+            new: false,
+          },
+        })
+      } catch (e: any) {
+        // Every caller is a DOM event handler (`@error` on a preview that failed
+        // to render). An unhandled rejection there reaches app.vue's
+        // ErrorBoundary, which buries the real failure under a generic
+        // "Page Loading Error" toast and offers the user a page reload.
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     }
 
     // clear MM cell

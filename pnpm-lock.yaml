@@ -84,6 +84,7 @@ overrides:
   '@tootallnate/once@>=3.0.0 <3.0.1': ^3.0.1
   tar-fs@>=3.0.0 <3.1.1: ^3.1.1
   uuid@>=12.0.0 <12.0.1: ^12.0.1
+  tar: 7.5.21
 
 importers:
 
@@ -17194,8 +17195,8 @@ packages:
   tar-stream@3.1.7:
     resolution: {integrity: sha512-qJj60CXt7IU1Ffyc3NJMjh6EkuCFej46zUqJ4J7pqYlThyd9bO0XBTmcOIhSzZJVWfsLks0+nle/j538YAW9RQ==}
 
-  tar@7.5.15:
-    resolution: {integrity: sha512-dzGK0boVlC4W5QFuQN1EFSl3bIDYsk7Tj40U6eIBnK2k/8ml7TZ5agbI5j5+qnoVcAA+rNtBml8SEiLxZpNqRQ==}
+  tar@7.5.21:
+    resolution: {integrity: sha512-XdhtCvlMywwxpCW8YEq3lOXBJpUPTR2OHHcwLPO3HwsJqOHa2Ok/oJ7ruGzp+JrKoRPVCzJwAdEjqLW/vNRPHA==}
     engines: {node: '>=18'}
 
   tarn@3.0.2:
@@ -23952,7 +23953,7 @@ snapshots:
       ssri: 10.0.6
       string-width: 4.2.3
       strong-log-transformer: 2.1.0
-      tar: 7.5.15
+      tar: 7.5.21
       temp-dir: 1.0.0
       upath: 2.0.1
       uuid: 10.0.0
@@ -23993,7 +23994,7 @@ snapshots:
       npmlog: 5.0.1
       rimraf: 3.0.2
       semver: 7.7.2
-      tar: 7.5.15
+      tar: 7.5.21
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -24006,7 +24007,7 @@ snapshots:
       node-fetch: 2.7.0(encoding@0.1.13)
       nopt: 8.1.0
       semver: 7.8.0
-      tar: 7.5.15
+      tar: 7.5.21
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -29109,7 +29110,7 @@ snapshots:
       prebuild-install: 7.1.3
       resolve: 1.22.10
       stream-meter: 1.0.4
-      tar: 7.5.15
+      tar: 7.5.21
       tinyglobby: 0.2.14
       unzipper: 0.12.3
     transitivePeerDependencies:
@@ -30121,7 +30122,7 @@ snapshots:
       promise-inflight: 1.0.1
       rimraf: 3.0.2
       ssri: 8.0.1
-      tar: 7.5.15
+      tar: 7.5.21
       unique-filename: 1.1.1
     transitivePeerDependencies:
       - bluebird
@@ -30139,7 +30140,7 @@ snapshots:
       minipass-pipeline: 1.2.4
       p-map: 4.0.0
       ssri: 10.0.6
-      tar: 7.5.15
+      tar: 7.5.21
       unique-filename: 3.0.0
 
   call-bind-apply-helpers@1.0.2:
@@ -34951,7 +34952,7 @@ snapshots:
       ssri: 10.0.6
       string-width: 4.2.3
       strong-log-transformer: 2.1.0
-      tar: 7.5.15
+      tar: 7.5.21
       temp-dir: 1.0.0
       typescript: 5.8.3
       upath: 2.0.1
@@ -36464,7 +36465,7 @@ snapshots:
       nopt: 7.2.1
       proc-log: 4.2.0
       semver: 7.8.0
-      tar: 7.5.15
+      tar: 7.5.21
       which: 4.0.0
     transitivePeerDependencies:
       - supports-color
@@ -36479,7 +36480,7 @@ snapshots:
       npmlog: 6.0.2
       rimraf: 3.0.2
       semver: 7.8.0
-      tar: 7.5.15
+      tar: 7.5.21
       which: 2.0.2
     transitivePeerDependencies:
       - bluebird
@@ -37305,7 +37306,7 @@ snapshots:
       promise-retry: 2.0.1
       sigstore: 2.3.1
       ssri: 10.0.6
-      tar: 7.5.15
+      tar: 7.5.21
     transitivePeerDependencies:
       - bluebird
       - supports-color
@@ -39509,7 +39510,7 @@ snapshots:
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11(encoding@0.1.13)
       node-addon-api: 4.3.0
-      tar: 7.5.15
+      tar: 7.5.21
     optionalDependencies:
       node-gyp: 8.4.1
     transitivePeerDependencies:
@@ -39522,7 +39523,7 @@ snapshots:
       bindings: 1.5.0
       node-addon-api: 7.1.1
       prebuild-install: 7.1.3
-      tar: 7.5.15
+      tar: 7.5.21
     optionalDependencies:
       node-gyp: 8.4.1
     transitivePeerDependencies:
@@ -39947,11 +39948,11 @@ snapshots:
       fast-fifo: 1.3.2
       streamx: 2.22.0
 
-  tar@7.5.15:
+  tar@7.5.21:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
-      minipass: 7.1.2
+      minipass: 7.1.3
       minizlib: 3.1.0
       yallist: 5.0.0
 

@@ -140,6 +140,12 @@ export interface InterfacePageType<
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  /**
+   * Requesting user's effective role ON THIS PAGE, resolved server-side
+   * (page grant → interface grant → base-role fallback). Absent for base
+   * builders (owner/creator), who have full access.
+   */
+  effective_role?: InterfaceRoles;
 }
 
 export type AnyInterfacePageType = InterfacePageType<InterfacePageLayoutTypes>;

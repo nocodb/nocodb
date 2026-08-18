@@ -3,7 +3,34 @@ import type {
   InterfaceFilterGroup,
   InterfaceRecordColorConfig,
 } from './elements';
+import { InterfaceVisualizationTypes } from './pageConfigs';
 import type { InterfaceVisualizationConfig } from './pageConfigs';
+
+/**
+ * Viz types whose cards render the DISPLAY VALUE ONLY when the builder hasn't
+ * curated `visible_field_ids` — as opposed to grid/list, which render every
+ * column in that state.
+ *
+ * This is a security contract, not a rendering detail: the server's field
+ * allow-list reads an absent `visible_field_ids` as "uncurated". For these
+ * types that is wrong — absent means MINIMAL, and treating it as unrestricted
+ * serves columns the surface never draws. The renderer's `defaultShow` and the
+ * builder's Fields summary are the other two halves and must agree, so all
+ * three route through here.
+ *
+ * The enum is read inside the function body on purpose — a top-level SDK enum
+ * read can hit an undefined enum object in the prod bundle.
+ */
+export function isMinimalCardInterfaceViz(
+  type?: InterfaceVisualizationTypes | null
+): boolean {
+  return (
+    type === InterfaceVisualizationTypes.KANBAN ||
+    type === InterfaceVisualizationTypes.GALLERY ||
+    type === InterfaceVisualizationTypes.TIMELINE ||
+    type === InterfaceVisualizationTypes.GANTT
+  );
+}
 
 /**
  * STRUCTURAL field ids of a visualization — columns the viz consumes as DATA

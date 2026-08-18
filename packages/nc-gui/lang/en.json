@@ -5024,6 +5024,7 @@
       "cantDeleteLastSyncSource": "Cannot delete last sync source",
       "cantDeleteLastGridView": "You can't delete a view when it's the only collaborative grid view in the table",
       "inviteSent": "Invitation sent successfully",
+      "interfaceInvitePageRolesHint": "The selected role applies to the whole interface. To set page-level roles, invite first, then adjust each page from the member's row.",
       "separateEmailsWithComma": "Separate multiple email addresses with commas. Maximum 15 recipients.",
       "selectBaseMembers": "Select base members to send the record to",
       "subjectLineNotification": "This subject line will appear in the email notification",

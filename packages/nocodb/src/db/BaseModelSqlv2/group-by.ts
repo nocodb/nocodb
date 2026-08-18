@@ -200,16 +200,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         case UITypes.Formula:
           try {
-            // Group keys are user-visible, so this is a display path: on pg an
-            // error row groups under Infinity/NaN, not under the coalesced
-            // value that would merge it with genuine results. Opening a group
-            // matches because pg defines NaN = NaN as true.
             const _selectQb = await baseModel.getSelectQueryBuilderForFormula(
               column,
-              undefined,
-              false,
-              {},
-              true,
             );
             columnQuery = _selectQb.builder;
 
@@ -814,14 +806,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           case UITypes.Formula: {
             let selectQb;
             try {
-              // Display path — must match the group keys built in list()
-              // above, or count and list disagree on pg IEEE rows.
               const _selectQb = await baseModel.getSelectQueryBuilderForFormula(
                 column,
-                undefined,
-                false,
-                {},
-                true,
               );
 
               let formulaBuilder: any = _selectQb.builder;

@@ -18,10 +18,6 @@ export interface FormulaBaseParams {
   baseModelSqlv2: IBaseModelSqlV2;
   tableAlias?: string;
   baseUsers?: (Partial<User> & BaseUser)[];
-  // Opt-in, display path only: emits pg IEEE error values (Infinity/NaN).
-  // Sort, filter and aggregation must leave this unset so errors stay NULL and
-  // are skipped by aggregates rather than poisoning them with NaN.
-  displayMode?: boolean;
 }
 export type TAliasToColumnParam = {
   tableAlias?: string;

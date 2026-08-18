@@ -283,7 +283,6 @@ export interface IBaseModelSqlV2 {
     tableAlias?: string,
     validateFormula?: boolean,
     aliasToColumnBuilder?: any,
-    displayMode?: boolean,
   ): Promise<any>;
 
   errorInsert(_e, _data, _cookie): void | Promise<void>;

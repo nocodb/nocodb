@@ -9,11 +9,7 @@ import {
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../mapFunctionName';
-import {
-  coalesceNumericOperand,
-  ieeeDivisionSql,
-  isPgClient,
-} from './pg-ieee';
+import { coalesceNumericOperand, ieeeDivisionSql, isPgClient } from './pg-ieee';
 import type {
   BinaryExpressionNode,
   ComparisonOperator,
@@ -46,7 +42,6 @@ export const callExpressionBuilder = async ({
   knex,
   model,
   columnIdToUidt,
-  displayMode,
 }: {
   context: NcContext;
   pt: CallExpressionNode;
@@ -59,7 +54,6 @@ export const callExpressionBuilder = async ({
   knex: CustomKnex;
   model: Model;
   columnIdToUidt: Record<string, UITypes>;
-  displayMode?: boolean;
 }): Promise<{ builder: any }> => {
   switch (pt.callee.name.toUpperCase()) {
     case 'ADD':
@@ -294,7 +288,6 @@ export const callExpressionBuilder = async ({
           fn,
           prevBinaryOp,
           model,
-          displayMode,
         });
         if (res) return res;
       }
@@ -347,7 +340,6 @@ export const binaryExpressionBuilder = async ({
   columnIdToUidt,
   aliasToColumn,
   model,
-  displayMode,
 }: {
   context: NcContext;
   pt: BinaryExpressionNode;
@@ -360,7 +352,6 @@ export const binaryExpressionBuilder = async ({
   columnIdToUidt: Record<string, UITypes>;
   aliasToColumn: TAliasToColumn;
   model: Model;
-  displayMode?: boolean;
 }) => {
   // treat `&` as shortcut for concat
   if (pt.operator === '&') {
@@ -710,11 +701,11 @@ export const binaryExpressionBuilder = async ({
       // Operands are already DOUBLE PRECISION via the FLOAT() wrap above, so
       // the IEEE branches unify as float8 — `numeric` could not hold Infinity
       // before PG 14.
-      sql = displayMode
-        ? ieeeDivisionSql(left, right)
-        : // Computational path (sort/filter/aggregate): errors stay NULL so
-          // aggregates skip them instead of being poisoned by NaN.
-          `${left} / NULLIF(${right}, 0)`;
+      // Always the IEEE form: a divide-by-zero is a value, not a mode. The
+      // one consumer that cannot take it — aggregation — drops non-finite rows
+      // at its own site (excludeNonFiniteSql), so nothing has to be threaded
+      // through the recursion here.
+      sql = ieeeDivisionSql(left, right);
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({

@@ -1674,10 +1674,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     tableAlias?: string,
     validateFormula = false,
     aliasToColumnBuilder = {},
-    // Opt-in. Only the record-read select list sets this; sort, filter and
-    // aggregation resolve formulas through getColumnNameQuery and must stay on
-    // the NULLIF form so errors are NULL and get skipped by aggregates.
-    displayMode = false,
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
     if (formula.error) NcError.get(this.context).formulaError(formula.error);
@@ -1690,7 +1686,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasToColumn: aliasToColumnBuilder,
       tableAlias,
       validateFormula,
-      displayMode,
     });
     return qb;
   }

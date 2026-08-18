@@ -9,35 +9,51 @@ export function isPgClient(knex: CustomKnex): boolean {
   return knex.clientType() === 'pg';
 }
 
-export function coalesceNumericOperand(
-  sql: string,
-  knex: CustomKnex,
-): string {
+export function coalesceNumericOperand(sql: string, knex: CustomKnex): string {
   if (!isPgClient(knex)) return sql;
   return `COALESCE(${sql}, 0)`;
 }
 
-// Airtable semantics: x/0 -> ±Infinity, 0/0 -> NaN. PG raises `division by
-// zero` rather than producing Infinity, so the value is constructed explicitly.
+// Finite test that mentions the operand once. NaN and ±Infinity both fail it —
+// pg ranks NaN above every number, so `abs(NaN) < Infinity` is false — and NULL
+// stays NULL. Spelling it out with three <> comparisons would inline the
+// operand three times, which matters because these nest.
+export function isFiniteSql(expr: string): string {
+  return `abs(${expr}) < 'Infinity'::${IEEE_TYPE}`;
+}
+
+// Airtable semantics: x/0 -> ±Infinity, 0/0 -> NaN. pg raises `division by
+// zero` rather than producing the value, so it has to be introduced by hand —
+// but pg's own arithmetic *is* IEEE once an Infinity exists, so `x * Infinity`
+// resolves all three cases with the correct sign (5→Infinity, -5→-Infinity,
+// 0→NaN, NULL→NULL). That keeps each operand to two appearances; branching on
+// the sign of `left` instead would inline it three times, and since `/` is
+// left-associative the outer left operand is the inner CASE — chained division
+// would then grow 3ⁿ instead of 2ⁿ.
 export function ieeeDivisionSql(left: string, right: string): string {
   return (
     `(CASE WHEN (${right}) <> 0 THEN (${left}) / (${right}) ` +
-    `WHEN (${left}) = 0 THEN 'NaN'::${IEEE_TYPE} ` +
-    `WHEN (${left}) > 0 THEN 'Infinity'::${IEEE_TYPE} ` +
-    `ELSE '-Infinity'::${IEEE_TYPE} END)`
+    `ELSE (${left}) * 'Infinity'::${IEEE_TYPE} END)`
   );
 }
 
-// IEEE fmod(x, 0) is NaN; PG's MOD() raises division by zero instead.
-// PG has no mod(double precision, double precision) — MOD is defined for
-// integer/numeric only — so the division itself goes through numeric and the
-// result is cast back to float8 to match the NaN branch. `numeric` appears only
-// on the non-zero path, so this stays safe on PG < 14 where numeric has no
-// Infinity.
+// IEEE fmod(x, 0) is NaN, and so is fmod(±Infinity, y) and fmod(NaN, y) — one
+// guard covers all of them. pg has no mod(double precision, double precision)
+// (MOD is integer/numeric only), so the real path goes through numeric and
+// casts back; the guard is what keeps a non-finite operand out of that cast,
+// which would raise on pg < 14 where numeric has no Infinity.
 export function ieeeModuloSql(left: string, right: string): string {
   return (
-    `(CASE WHEN (${right}) <> 0 ` +
+    `(CASE WHEN (${right}) <> 0 AND ${isFiniteSql(left)} ` +
     `THEN MOD((${left})::numeric, (${right})::numeric)::${IEEE_TYPE} ` +
     `ELSE 'NaN'::${IEEE_TYPE} END)`
   );
+}
+
+// Aggregation resolves a formula to the same IEEE value the cell shows, but a
+// single NaN would poison SUM/AVG/MAX for the whole column, so error rows are
+// dropped to NULL and skipped here instead. This is the only consumer that
+// needs it — filters, sorts and group keys all want the value itself.
+export function excludeNonFiniteSql(expr: string): string {
+  return `(CASE WHEN ${isFiniteSql(expr)} THEN (${expr}) END)`;
 }

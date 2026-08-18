@@ -9,7 +9,7 @@ import commonFns, {
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
-import { ieeeModuloSql } from '~/db/formulav2/pg-ieee';
+import { ieeeModuloSql, isFiniteSql } from '~/db/formulav2/pg-ieee';
 import { convertUnits } from '~/helpers/convertUnits';
 import {
   getWeekdayByText,
@@ -114,8 +114,15 @@ const pg = {
       ? (await fn(pt.arguments[1])).builder
       : 0;
 
+    // ROUND is numeric-only, and casting ±Infinity/NaN to numeric raises on
+    // pg < 14. Rounding a non-finite value is the value itself anyway.
     return {
-      builder: knex.raw(`ROUND((?)::numeric, ?)`, [source, precision]),
+      builder: knex.raw(
+        `(CASE WHEN ${isFiniteSql(
+          `(?)`,
+        )} THEN ROUND((?)::numeric, ?) ELSE (?) END)`,
+        [source, source, precision, source],
+      ),
     };
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
@@ -371,22 +378,10 @@ const pg = {
       };
     }
   },
-  MOD: async ({ fn, knex, pt, displayMode }: MapFnArgs) => {
+  MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;
     const y = (await fn(pt.arguments[1])).builder;
-    if (displayMode) {
-      // IEEE fmod(x, 0) is NaN; PG's MOD() raises division by zero instead.
-      // double precision, not NUMERIC — NUMERIC cannot hold Infinity < PG 14.
-      return { builder: knex.raw(ieeeModuloSql(`${x}`, `${y}`)) };
-    }
-    // Computational path still needs the zero guard: an unguarded MOD raises a
-    // hard pg error, which the formula validation dry-run turns into a broken
-    // column long before display mode is ever consulted.
-    return {
-      builder: knex.raw(
-        `MOD((${x})::NUMERIC, NULLIF((${y})::NUMERIC, 0))`,
-      ),
-    };
+    return { builder: knex.raw(ieeeModuloSql(`${x}`, `${y}`)) };
   },
   REGEX_MATCH: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;

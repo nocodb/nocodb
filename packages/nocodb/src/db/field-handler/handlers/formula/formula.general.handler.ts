@@ -48,10 +48,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       return;
     }
 
-    // Sort on the displayed value, or an error row orders by whatever the
-    // computational form coalesced it to — `(A/B)+1` ranks every one of them
-    // as 1, interleaved with the rows that genuinely equal 1.
-    const displayMode = isPgNumericFormula(baseModelSqlv2, parsedTree);
+    const isIeeeCapable = isPgNumericFormula(baseModelSqlv2, parsedTree);
     const builder = (
       await formulaQueryBuilderv2({
         baseModel: baseModelSqlv2,
@@ -59,11 +56,10 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         model,
         column,
         tableAlias: alias,
-        displayMode,
       })
     ).builder;
 
-    if (displayMode) {
+    if (isIeeeCapable) {
       // pg orders NaN above every number, including Infinity. Rank it below
       // -Infinity instead: the flag is false only for NaN, so ascending puts
       // that block first and descending puts it last.
@@ -92,11 +88,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     const model = await column.getModel(context);
     const formula = await column.getColOptions<FormulaColumn>(context);
     const parsedTree: ParsedFormulaNode = formula.getParsedTree();
-    // Filters resolve the formula the way the cell and the group key do, and it
-    // cuts both ways: `eq Infinity` must match the error rows, `eq 1` must not.
-    // Unconditional, not value-dependent. Aggregation is unaffected — it goes
-    // through getColumnNameQuery, not this handler.
-    const displayMode = isPgNumericFormula(baseModelSqlv2, parsedTree);
+    const isIeeeCapable = isPgNumericFormula(baseModelSqlv2, parsedTree);
     let builder = (
       await formulaQueryBuilderv2({
         baseModel: baseModelSqlv2,
@@ -104,30 +96,32 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         model,
         column,
         tableAlias: alias,
-        displayMode,
       })
     ).builder;
 
-    if (displayMode && ORDERING_COMPARISON_OPS.includes(filter.comparison_op)) {
+    if (
+      isIeeeCapable &&
+      ORDERING_COMPARISON_OPS.includes(filter.comparison_op)
+    ) {
       // NULL fails every ordering comparison, which is the semantics NaN
       // should have had. ±Infinity still compare normally.
       builder = knex.raw(`NULLIF(??, 'NaN'::double precision)`, [builder]);
     }
     const value =
-      displayMode && isFormulaNonFiniteValue(filter.value)
+      isIeeeCapable && isFormulaNonFiniteValue(filter.value)
         ? // double precision, never numeric — numeric cannot hold Infinity
-          // before pg 14, and Number/Decimal columns map to numeric. Gated on
-          // displayMode so the pg-only `::` cast never reaches another dialect.
+          // before pg 14, and Number/Decimal columns map to numeric. Gated so
+          // the pg-only `::` cast never reaches another dialect.
           knex.raw('?::double precision', [filter.value])
-      : parsedTree?.dataType === FormulaDataTypes.DATE
-      ? filter.value
-      : knex.raw('?', [
-          // convert value to number if formulaDataType if numeric
-          parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
-          !isNaN(+filter.value)
-            ? +filter.value
-            : filter.value ?? null, // in gp_null value is undefined
-        ]);
+        : parsedTree?.dataType === FormulaDataTypes.DATE
+        ? filter.value
+        : knex.raw('?', [
+            // convert value to number if formulaDataType if numeric
+            parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
+            !isNaN(+filter.value)
+              ? +filter.value
+              : filter.value ?? null, // in gp_null value is undefined
+          ]);
     return parseConditionV2(
       baseModelSqlv2,
       new Filter({

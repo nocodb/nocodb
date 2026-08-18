@@ -63,7 +63,12 @@ export interface InterfaceUserType {
   /** Resolved role after inheritance (grant or base-role-derived). */
   effective_role?: InterfaceRoles | null;
   /** Where the effective role comes from. */
-  role_source?: 'interface-grant' | 'team-grant' | 'base-role' | 'builder';
+  role_source?:
+    | 'interface-grant'
+    | 'team-grant'
+    | 'base-role'
+    | 'workspace-role'
+    | 'builder';
   /** Explicit page-level overrides (pageId → role); absence = Inherited. */
   page_roles?: Record<string, InterfaceRoles>;
   /** Invite pending (user never signed up). */
@@ -103,6 +108,11 @@ export interface InterfaceUsersMatrixRow {
     page_roles?: Record<string, InterfaceRoles>;
     /** Team rows only: descendant expansion of the interface-level grant. */
     hierarchy_scope?: SubjectHierarchyScope;
+    /**
+     * User rows only: teams whose grant on this interface (or its pages)
+     * reaches this user — the provenance behind a derived role.
+     */
+    via_teams?: Array<{ id: string; title: string | null }>;
   }>;
 }
 
@@ -140,6 +150,12 @@ export interface InterfacePageType<
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  /**
+   * Requesting user's effective role ON THIS PAGE, resolved server-side
+   * (page grant → interface grant → base-role fallback). Absent for base
+   * builders (owner/creator), who have full access.
+   */
+  effective_role?: InterfaceRoles;
 }
 
 export type AnyInterfacePageType = InterfacePageType<InterfacePageLayoutTypes>;

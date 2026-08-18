@@ -1565,12 +1565,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // get qr code columns and delete if target type is not supported by QR code column type
-    // An absent uidt means "type unchanged", not "unsupported" — without the
-    // guard a description-only update drops every dependent QR/Barcode column.
-    if (
-      updateObj.uidt &&
-      !AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)
-    ) {
+    if (!AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)) {
       const qrCodeCols = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,

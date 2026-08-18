@@ -7,6 +7,7 @@ import { CalendarRange, Column, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
 import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
+import { restrictSharedViewQueryForView } from '~/helpers/sharedViewQueryHelpers';
 
 @Injectable()
 export class CalendarDatasService {
@@ -110,6 +111,11 @@ export class CalendarDatasService {
       return NcError.get(context).invalidSharedViewPassword();
     }
 
+    // Before `getCalendarRecordCount` merges the date window into
+    // `filterArrJson` — after that the caller's entries are indistinguishable
+    // from the server's.
+    await restrictSharedViewQueryForView(context, { view, query });
+
     return this.getCalendarRecordCount(context, {
       viewId: view.id,
       query,
@@ -145,6 +151,10 @@ export class CalendarDatasService {
     if (!(await View.verifyPassword(view, password))) {
       return NcError.get(context).invalidSharedViewPassword();
     }
+
+    // Before `getCalendarDataList` merges the date window into `filterArrJson` —
+    // after that the caller's entries are indistinguishable from the server's.
+    await restrictSharedViewQueryForView(context, { view, query });
 
     return this.getCalendarDataList(context, {
       viewId: view.id,

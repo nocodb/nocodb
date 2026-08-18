@@ -149,8 +149,10 @@ export class UserGeneralHandler extends GenericFieldHandler {
     const baseUserById = new Map<string, (typeof baseUsers)[number]>();
     const baseUserByEmail = new Map<string, (typeof baseUsers)[number]>();
     for (const bu of baseUsers) {
-      if (bu.id != null && !baseUserById.has(bu.id)) baseUserById.set(bu.id, bu);
-      if (bu.email != null && !baseUserByEmail.has(bu.email)) baseUserByEmail.set(bu.email, bu);
+      if (bu.id != null && !baseUserById.has(bu.id))
+        baseUserById.set(bu.id, bu);
+      if (bu.email != null && !baseUserByEmail.has(bu.email))
+        baseUserByEmail.set(bu.email, bu);
     }
 
     if (typeof evalValue === 'object') {

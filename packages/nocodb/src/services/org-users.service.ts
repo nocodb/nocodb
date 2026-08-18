@@ -112,19 +112,15 @@ export class OrgUsersService {
       req: param.req,
     });
 
-    // Also update workspace role in the default workspace
-    if (Noco.ncDefaultWorkspaceId && updateBody.roles) {
-      const wsRole =
-        updateBody.roles === OrgUserRoles.CREATOR
-          ? WorkspaceUserRoles.CREATOR
-          : WorkspaceUserRoles.VIEWER;
-      try {
-        await WorkspaceUser.update(Noco.ncDefaultWorkspaceId, param.userId, {
-          roles: wsRole,
-        });
-      } catch {
-        // User might not have a workspace entry yet — ignore
-      }
+    // The org role gates org-scoped operations only — upload, uploadViaURL,
+    // genericGPT, testConnection, api tokens, bookmarks. It no longer cascades
+    // to the default-workspace role, so changing it neither grants nor revokes
+    // access to any workspace or base; workspace membership roles are the
+    // enforced dimension there.
+    if (updateBody.roles) {
+      this.logger.warn(
+        `Org role updated for user ${param.userId} — org roles do not grant or revoke workspace or base access; use workspace membership roles for that`,
+      );
     }
 
     return result;

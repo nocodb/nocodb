@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string
@@ -49,7 +49,14 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks, hideInterfaces } = useEeConfig()
+const {
+  blockAiChat,
+  showEEFeatures,
+  isEEFeatureBlocked,
+  showUpgradeToUseBookmarks,
+  hideInterfaces,
+  showUpgradeForInterfaceFeature,
+} = useEeConfig()
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -123,6 +130,11 @@ const onTabClick = async (tabKey: string) => {
   if (tabKey === 'workflows') {
     await navigateTo(`${basePath}/workflows`)
   } else if (tabKey === 'interfaces') {
+    // Plan-blocked: upsell instead of navigating (mirrors Rail)
+    if (hideInterfaces.value) {
+      showUpgradeForInterfaceFeature(PlanFeatureTypes.FEATURE_INTERFACES, 'minisidebar-interfaces')
+      return
+    }
     await navigateTo(`${basePath}/interfaces`)
   } else {
     await navigateTo(basePath)
@@ -169,8 +181,9 @@ const mainItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
-  // Interfaces are paid-only and hidden (not badge-gated) below the tier.
-  ...(showEEFeatures.value && !hideInterfaces.value
+  // Paid-only, but the entry stays visible below the tier — clicking upsells
+  // (onTabClick) instead of navigating, mirroring Rail.
+  ...(showEEFeatures.value
     ? [
         {
           key: 'interfaces',

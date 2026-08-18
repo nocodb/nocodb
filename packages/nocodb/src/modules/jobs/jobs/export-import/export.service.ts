@@ -192,6 +192,14 @@ export class ExportService {
       excludeData?: boolean;
       excludeComments?: boolean;
       excludePermissions?: boolean;
+      /**
+       * Carry the email of every user a permission is granted to. Only the
+       * cross-instance migration needs it — everything else lands back on the
+       * instance the ids came from — and `exportBase` writes this payload to a
+       * file, so it stays off by default rather than putting emails in an
+       * artifact that never carried them.
+       */
+      includeSubjectEmails?: boolean;
       compatibilityMode?: boolean;
     },
   ) {
@@ -201,9 +209,9 @@ export class ExportService {
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
     const excludeRowColorConditions = param?.excludeRowColorConditions || false;
-    const excludeComments =
-      param?.excludeComments || param?.excludeData || false;
+    const excludeComments = param?.excludeComments || excludeData;
     const excludePermissions = param?.excludePermissions || false;
+    const includeSubjectEmails = param?.includeSubjectEmails || false;
 
     const compatibilityMode = param?.compatibilityMode || false;
 
@@ -215,6 +223,25 @@ export class ExportService {
     const bases: Base[] = [];
     const sources: Source[] = [];
     const modelsMap = new Map<string, Model[]>();
+
+    // Permission subjects address users by id, which means nothing on another
+    // instance. Email is the only handle that survives the hop, so carry it
+    // alongside the id — the importer prefers the id and falls back to email.
+    // Opt-in; see `includeSubjectEmails`.
+    const baseUserEmails = new Map<string, Map<string, string>>();
+
+    const getUserEmails = async (baseId: string) => {
+      if (!baseUserEmails.has(baseId)) {
+        const users = await BaseUser.getUsersList(context, { base_id: baseId });
+
+        baseUserEmails.set(
+          baseId,
+          new Map(users.map((user) => [user.id, user.email])),
+        );
+      }
+
+      return baseUserEmails.get(baseId);
+    };
 
     for (const modelId of modelIds) {
       const model = await Model.get(context, modelId);
@@ -699,6 +726,10 @@ export class ExportService {
       if (!excludePermissions) {
         const basePermissions = await Permission.list(context, model.base_id);
 
+        const userEmails = includeSubjectEmails
+          ? await getUserEmails(model.base_id)
+          : null;
+
         const fieldIds = model.columns.map((c) => c.id);
 
         const modelPermissions = basePermissions.filter(
@@ -723,7 +754,11 @@ export class ExportService {
             enforce_for_automation: permission.enforce_for_automation,
             granted_type: permission.granted_type,
             granted_role: permission.granted_role,
-            subjects: permission.subjects,
+            subjects: permission.subjects?.map((subject) =>
+              subject.type === 'user' && userEmails?.has(subject.id)
+                ? { ...subject, email: userEmails.get(subject.id) }
+                : subject,
+            ),
           });
         }
       }

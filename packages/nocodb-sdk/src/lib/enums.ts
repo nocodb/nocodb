@@ -748,6 +748,47 @@ export enum ViewLockType {
   Collaborative = 'collaborative',
 }
 
+/**
+ * How the current request reached the server — the access source recorded on
+ * `NcContext.access_source`.
+ *
+ * `NcContext.is_public` collapses every share surface into one boolean, which
+ * cannot express "shared view but not shared base": a shared base is an
+ * authenticated pseudo-user that must keep full access, while a shared view is
+ * an anonymous surface that must be restricted. This enum keeps the branch the
+ * middleware already took, so gates can name the exact surface they restrict.
+ *
+ * Gates must read POSITIVELY (`access_source === SHARED_VIEW` restricts), since
+ * contexts built outside the request middleware (job processors, SCIM strategy,
+ * internal model helpers) legitimately leave this unset.
+ */
+export enum NcAccessSource {
+  /** Authenticated user session (incl. API token). The default. */
+  USER = 'user',
+  SHARED_BASE = 'shared-base',
+  SHARED_VIEW = 'shared-view',
+  SHARED_FORM = 'shared-form',
+  SHARED_DOC = 'shared-doc',
+  SHARED_INTERFACE = 'shared-interface',
+}
+
+/** Every source that is a share surface — i.e. everything `is_public` covers. */
+export const SHARED_ACCESS_SOURCES = Object.values(NcAccessSource).filter(
+  (s) => s !== NcAccessSource.USER
+);
+
+/**
+ * Share surfaces that publish a single VIEW anonymously. A form is a view, so
+ * both get shared-view field semantics: the view's own hidden-field gate plus
+ * the LTAR related-table restriction (pk + pv + link display value only).
+ * Shared BASE is deliberately absent — it is an authenticated pseudo-user and
+ * keeps normal access.
+ */
+export const SHARED_VIEW_ACCESS_SOURCES = [
+  NcAccessSource.SHARED_VIEW,
+  NcAccessSource.SHARED_FORM,
+];
+
 // Calendar event-display themes — how each event/record is drawn in the grid.
 // Persisted per calendar view in `meta.event_display_theme`. `BORDERED` is the
 // default (and the only look prior to this feature).

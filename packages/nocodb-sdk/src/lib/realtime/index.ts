@@ -396,6 +396,14 @@ export type FocusPayload =
 export interface ChatEventPayload extends BaseSocketPayload {
   action: ChatEventAction;
   sessionId: string;
+  /**
+   * Monotonic per-turn sequence, for replay dedup — drop anything <= the
+   * highest seq already applied for the same turnId. Absent on HEARTBEAT and
+   * session lifecycle events.
+   */
+  seq?: number;
+  /** Turn the event belongs to; seq numbering restarts per turn. */
+  turnId?: string;
   // action: 'token'
   content?: string;
   // action: 'tool-start' | 'tool-call'
@@ -436,6 +444,37 @@ export interface ChatEventPayload extends BaseSocketPayload {
   agentLabel?: string;
   /** Tool visibility level for filtering in the UI */
   visibility?: 'hidden' | 'action' | 'data' | 'ui';
+}
+
+/**
+ * Server-derived state of a chat session's in-flight turn, served by
+ * `GET .../chat/sessions/:sessionId/stream-state` — lets a client that
+ * reloaded or reconnected mid-stream replay the partial turn and tell a slow
+ * turn from a dead one.
+ */
+export enum ChatStreamStatus {
+  IDLE = 'idle',
+  /** Job is queued but has not started emitting yet. */
+  QUEUED = 'queued',
+  STREAMING = 'streaming',
+  FAILED = 'failed',
+}
+
+export interface ChatStreamStateType {
+  status: ChatStreamStatus;
+  /** Turn the journal belongs to, if any. */
+  turnId?: string | null;
+  /** Highest seq in the journal — client resumes live dedup from here. */
+  lastSeq?: number;
+  /** Journaled events after `sinceSeq`, in emit order, for replay. */
+  events?: ChatEventPayload[];
+  error?: string;
+  /**
+   * Set when this FAILED response persisted the crashed turn's partial work
+   * as a durable assistant message — render it instead of promoting the
+   * transient streaming state.
+   */
+  draftMessage?: ChatMessageType;
 }
 
 export type SocketEventPayload =

@@ -425,6 +425,47 @@ export default class FileReference {
     return rows.map((r: any) => new FileReference(r));
   }
 
+  /**
+   * Authorization check for a client-supplied attachment `path`. A local
+   * attachment path is opaque and resolvable to a file on disk, so a caller who
+   * can write to an Attachment column could otherwise embed *another* base's
+   * file path in a row and later have the server sign & serve it (cross-tenant
+   * attachment disclosure). Before accepting such a path we require that it is
+   * already referenced by a FileReference the caller legitimately owns — either
+   * one uploaded by the caller (the normal upload → store flow leaves a root
+   * reference with the uploader's id) or one already stored in the current base
+   * (same-base copy/paste, including files uploaded by a collaborator).
+   */
+  public static async isFileUrlAccessibleForWrite(
+    context: NcContext,
+    {
+      fileUrl,
+      userId,
+    }: {
+      fileUrl: string;
+      userId?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (!fileUrl) return false;
+
+    // Fail closed when there is nothing to scope ownership by. With neither a
+    // base context nor a user, the sub-query below would be an empty group and
+    // collapse to `WHERE file_url = ?`, matching any tenant's reference.
+    if (!context.base_id && !userId) return false;
+
+    const qb = ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where('file_url', fileUrl)
+      .where((builder) => {
+        if (context.base_id) builder.orWhere('base_id', context.base_id);
+        if (userId) builder.orWhere('fk_user_id', userId);
+      });
+
+    const row = await qb.first();
+    return !!row;
+  }
+
   public static async updateWorkspaceCache(
     context: NcContext,
     size: number,

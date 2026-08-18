@@ -1,5 +1,6 @@
 import isURL from 'validator/lib/isURL'
-import { decode } from 'html-entities'
+import DOMPurify from 'isomorphic-dompurify'
+import { decode, encode } from 'html-entities'
 import { isValidURL } from 'nocodb-sdk'
 import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { getI18n } from '../plugins/a.i18n'
@@ -45,7 +46,13 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
       const label = _label?.trim()?.replace(/\\([()])/g, '$1')
 
       if (!url.trim()) {
-        return label || ' '
+        // `label` is user-controlled (from LABEL::(...)). In HTML mode the
+        // return value is assigned to innerHTML by downstream consumers, so it
+        // must be HTML-encoded to prevent stored XSS (e.g. an <img onerror>
+        // payload). In plainCellValue mode the value is used as text, so leave
+        // it raw.
+        if (plainCellValue) return label || ' '
+        return label ? encode(label) : ' '
       }
 
       const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''
@@ -57,7 +64,15 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
 
       const anchorLabel = label || url || ''
 
-      if (!isUrl || plainCellValue) return anchorLabel
+      // plainCellValue: consumer uses the string as text, return raw.
+      if (plainCellValue) return anchorLabel
+
+      // Invalid URL: this string is assigned to innerHTML downstream. The
+      // valid-URL branch below is safe because it builds the anchor with
+      // `textContent`; make the invalid branch consistent by HTML-encoding the
+      // user-controlled label so it can never introduce active markup (root
+      // cause of the canvas-grid formula-URL stored XSS).
+      if (!isUrl) return encode(anchorLabel)
 
       const a = document.createElement('a')
       a.textContent = anchorLabel
@@ -86,7 +101,9 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
     return formulaTextSegmentsCache.get(anchorLinkHTML)!
   }
   const container = document.createElement('div')
-  container.innerHTML = anchorLinkHTML
+  // Defense in depth: sanitize before innerHTML so a payload can never execute
+  // even on this detached measuring node (see canvas renderFormulaURL).
+  container.innerHTML = DOMPurify.sanitize(anchorLinkHTML)
 
   const result: Array<{ text: string; url?: string }> = []
 

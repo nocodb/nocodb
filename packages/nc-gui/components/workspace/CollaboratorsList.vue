@@ -742,15 +742,14 @@ watch(inviteDlg, (newVal) => {
             <div v-if="column.key === 'billable'" class="flex items-center">
               <NcTooltip
                 v-if="record.billable"
-                :title="
-                  canOpenSeatDetail && !record.isTeam
-                    ? $t('tooltip.paidUserBadgeTooltipClickable')
-                    : $t('tooltip.paidUserBadgeTooltip')
-                "
                 class="flex items-center"
-                :tooltip-style="{ width: '180px' }"
-                :overlay-inner-style="{ width: '180px' }"
+                :tooltip-style="{ width: '230px' }"
+                :overlay-inner-style="{ width: '230px' }"
               >
+                <template #title>
+                  <div>{{ $t('tooltip.paidUserBadgeTooltip') }}</div>
+                  <div v-if="canOpenSeatDetail && !record.isTeam" class="mt-2">{{ $t('tooltip.clickToSeeDetails') }}</div>
+                </template>
                 <component
                   :is="canOpenSeatDetail && !record.isTeam ? 'button' : 'div'"
                   v-e="['c:workspace:member:billable-detail']"

@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { extractRolesObj } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OAuthToken, User } from '~/models';
+import { OAuthClient, OAuthToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 @Injectable()
@@ -43,6 +43,16 @@ export class OAuthTokenStrategy extends PassportStrategy(
         return callback({ msg: 'OAuth token expired' });
       }
 
+      // Defense in depth: a bearer is only valid while its issuing client still
+      // exists. Deleting the client must terminate its tokens; reject any token
+      // whose client is gone even if an orphaned token row survived (CWE-613).
+      if (oAuthToken.fk_client_id) {
+        const client = await OAuthClient.getByClientId(oAuthToken.fk_client_id);
+        if (!client) {
+          return callback({ msg: 'Invalid OAuth token' });
+        }
+      }
+
       // Get user associated with the OAuth token
       const dbUser: Record<string, any> = await User.getWithRoles(
         req.context,
@@ -69,32 +79,40 @@ export class OAuthTokenStrategy extends PassportStrategy(
         });
       }
 
-      // Validate resource limitations if granted_resources exist
-      if (oAuthToken.granted_resources) {
+      // Identity lookup (/auth/user/me) and MCP are the only allowed routes that
+      // legitimately run WITHOUT a resource context — the former only exposes the
+      // token's own identity, the latter builds context from the stored grant.
+      // Every other route must resource-match a scoped grant.
+      const isContextExemptPath =
+        req.path?.startsWith('/auth/user/me') || req.path?.startsWith('/mcp');
+
+      // Validate resource limitations if granted_resources exist. This must FAIL
+      // CLOSED: a grant scoped to a workspace/base is only valid when the
+      // request's resolved context matches. A missing context (e.g. a
+      // workspace-scoped V3 route with no base_id) is a mismatch, not a licence
+      // to skip the check — otherwise a base-restricted bearer reaches other
+      // bases through context-less routes (CWE-863).
+      if (oAuthToken.granted_resources && !isContextExemptPath) {
         const grantedResources = oAuthToken.granted_resources;
 
         // Check workspace access limitation (EE only)
-        if (grantedResources.workspace_id) {
-          if (
-            req.context?.workspace_id &&
-            req.context.workspace_id !== grantedResources.workspace_id
-          ) {
-            return callback({
-              msg: 'OAuth token access limited to specific workspace',
-            });
-          }
+        if (
+          grantedResources.workspace_id &&
+          req.context?.workspace_id !== grantedResources.workspace_id
+        ) {
+          return callback({
+            msg: 'OAuth token access limited to specific workspace',
+          });
         }
 
         // Check base access limitation
-        if (grantedResources.base_id) {
-          if (
-            req.context?.base_id &&
-            req.context.base_id !== grantedResources.base_id
-          ) {
-            return callback({
-              msg: 'OAuth token access limited to specific base',
-            });
-          }
+        if (
+          grantedResources.base_id &&
+          req.context?.base_id !== grantedResources.base_id
+        ) {
+          return callback({
+            msg: 'OAuth token access limited to specific base',
+          });
         }
       }
 

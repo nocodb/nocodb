@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
   extractRolesObj,
+  NcAccessSource,
   NcApiVersion,
   OrgUserRoles,
   ProjectRoles,
@@ -20,6 +21,7 @@ import {
   personalViewOwnerOnlyOps,
   VIEW_KEY,
 } from './extract-ids.helpers';
+import type { ViewTypes } from 'nocodb-sdk';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -28,6 +30,7 @@ import type {
   NestInterceptor,
   NestMiddleware,
 } from '@nestjs/common';
+import { resolveShareAccessSource } from '~/helpers/accessSource';
 import {
   Base,
   BaseSection,
@@ -149,6 +152,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       };
 
       let view;
+      // See the note on the same binding in `legacyExtractIds` — kept apart from
+      // `view` so a shared view never reaches `markPersonalViewIfNeeded`.
+      let shareViewType: ViewTypes | undefined;
 
       const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
       const integrationId = params.integrationId || query.integrationId;
@@ -257,6 +263,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.get(context).viewNotFound(publicDataUuid);
         }
 
+        shareViewType = view?.type;
         req.ncSourceId = view?.source_id;
       } else if (sharedViewUuid) {
         const view = await View.getByUUID(context, sharedViewUuid);
@@ -265,6 +272,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.get(context).viewNotFound(sharedViewUuid);
         }
 
+        shareViewType = view.type;
         req.ncSourceId = view.source_id;
       } else if (sharedBaseUuid) {
         const base = await Base.getByUuid(context, sharedBaseUuid);
@@ -434,6 +442,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       if (publicDataUuid || sharedViewUuid || sharedBaseUuid) {
         req.context.is_public = true;
+        req.context.access_source = resolveShareAccessSource(
+          { publicDataUuid, sharedViewUuid, sharedBaseUuid },
+          shareViewType,
+        );
       }
     } else {
       await this.legacyExtractIds(req);
@@ -464,6 +476,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   protected async legacyExtractIds(req) {
     const { params } = req;
     let view;
+    // Type of the view behind a share uuid, for the `access_source` refinement
+    // where `req.context` is built. Deliberately NOT the `view` binding above:
+    // that one feeds `markPersonalViewIfNeeded`, and attaching a locked or
+    // personal view to an anonymous request would change its ACL evaluation.
+    let shareViewType: ViewTypes | undefined;
     let tableIdToCheck: string | null = null; // Store table ID for permission check at the end
 
     const context = {
@@ -592,6 +609,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).viewNotFound(req.params.publicDataUuid);
       }
 
+      shareViewType = view?.type;
       req.ncBaseId = view?.base_id;
       req.ncSourceId = view?.source_id;
     } else if (params.sharedViewUuid) {
@@ -601,6 +619,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).viewNotFound(req.params.sharedViewUuid);
       }
 
+      shareViewType = view.type;
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
     } else if (params.sharedBaseUuid) {
@@ -1020,7 +1039,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       ...(params.publicDataUuid ||
       params.sharedViewUuid ||
       params.sharedBaseUuid
-        ? { is_public: true }
+        ? {
+            is_public: true,
+            access_source: resolveShareAccessSource(params, shareViewType),
+          }
         : {}),
     };
 
@@ -1086,6 +1108,9 @@ export class AclMiddleware implements NestInterceptor {
 
     if (req.user?.isPublicBase && req.context) {
       req.context.is_public = true;
+      // `xc-shared-base-id`: BaseViewStrategy resolved it into a pseudo-user, so
+      // the request took the authenticated routes, not the share-uuid branch.
+      req.context.access_source = NcAccessSource.SHARED_BASE;
     }
 
     // Block non-owners from modifying filters/sorts on someone else's personal view

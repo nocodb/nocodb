@@ -183,7 +183,9 @@ export class MetaDiffsService {
 
     // @ts-ignore
     const tableList: Array<{ tn: string }> = (
-      await sqlClient.tableList({ schema: getSourceIntrospectionSchema(source) })
+      await sqlClient.tableList({
+        schema: getSourceIntrospectionSchema(source),
+      })
     )?.data?.list?.filter((t) => {
       if (base?.prefix && source.is_meta) {
         return t.tn?.startsWith(base?.prefix);
@@ -212,7 +214,9 @@ export class MetaDiffsService {
       cstn?: string;
       dr?: string;
     }> = (
-      await sqlClient.relationListAll({ schema: getSourceIntrospectionSchema(source) })
+      await sqlClient.relationListAll({
+        schema: getSourceIntrospectionSchema(source),
+      })
     )?.data?.list;
 
     for (const table of tableList) {

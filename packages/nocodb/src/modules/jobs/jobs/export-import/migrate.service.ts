@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { OperationSource } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { Base, Source } from '~/models';
+import type { Base, Model, Source } from '~/models';
 import { getFilteredAgents } from '~/utils/ssrf';
 import { NcError } from '~/helpers/ncError';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
@@ -15,6 +15,23 @@ export class MigrateService {
   private readonly debugLog = debug('nc:jobs:export');
 
   constructor(private readonly exportService: ExportService) {}
+
+  /**
+   * Base configuration that none of the fixed steps below carry: extra typed
+   * messages to stream, plus human-readable notes replayed into the target's
+   * import log.
+   *
+   * CE has nothing to add. EE overrides this — see the RLS handling there.
+   */
+  protected async collectMigrationExtras(
+    _context: NcContext,
+    _param: { models: Model[]; idMap: Map<string, string> },
+  ): Promise<{
+    messages: { type: string; data: any }[];
+    warnings: string[];
+  }> {
+    return { messages: [], warnings: [] };
+  }
 
   async migrateBase({
     context,
@@ -51,6 +68,9 @@ export class MigrateService {
     const { serializedModels: exportedModels, idMap: exportModelMap } =
       await this.exportService.serializeModels(context, {
         modelIds: models.map((m) => m.id),
+        // The target is a different instance, so permission subjects have to
+        // resolve by email there — their user ids mean nothing.
+        includeSubjectEmails: true,
         compatibilityMode: source.type !== 'pg',
       });
 
@@ -61,6 +81,14 @@ export class MigrateService {
     const exportedUsers = await this.exportService.serializeUsers(context, {
       baseId: base.id,
     });
+
+    const exportedScripts = await this.exportService.serializeScripts(context);
+
+    const exportedWorkflows = await this.exportService.serializeWorkflows(
+      context,
+      { idMap: exportModelMap },
+      req,
+    );
 
     const exportedDocuments = await this.exportService.serializeDocuments(
       context,
@@ -76,6 +104,15 @@ export class MigrateService {
       context,
       { idMap: exportModelMap, req },
     );
+
+    // Gathered here with the other serializers, above the stream: everything
+    // below this line is live, and `migrateBase` has no try/catch, so a
+    // rejection past this point would skip the `pushStream(null)` terminator
+    // and leave the receiver holding an open request.
+    const extras = await this.collectMigrationExtras(context, {
+      models,
+      idMap: exportModelMap,
+    });
 
     const stream = new Readable({
       read() {},
@@ -126,6 +163,31 @@ export class MigrateService {
       data: exportedModels,
     });
 
+    // Pushed straight after the schema: the notes reach the receiver's log while
+    // the migration is still starting, and the extra messages queue behind the
+    // schema import that their ids resolve against.
+    if (extras.warnings.length) {
+      pushStream({
+        type: 'warnings',
+        data: extras.warnings,
+      });
+    }
+
+    for (const message of extras.messages) {
+      pushStream(message);
+    }
+
+    // Ordering below mirrors duplicate.processor: scripts → documents →
+    // dashboards → workflows → interfaces. Dashboards and workflows resolve
+    // aliases through the id map, and interface page configs reference models,
+    // columns and views, so interfaces stay last.
+    if (exportedScripts?.length) {
+      pushStream({
+        type: 'scripts',
+        data: exportedScripts,
+      });
+    }
+
     if (exportedDocuments?.length) {
       pushStream({
         type: 'documents',
@@ -137,6 +199,13 @@ export class MigrateService {
       pushStream({
         type: 'dashboards',
         data: exportedDashboards,
+      });
+    }
+
+    if (exportedWorkflows?.length) {
+      pushStream({
+        type: 'workflows',
+        data: exportedWorkflows,
       });
     }
 

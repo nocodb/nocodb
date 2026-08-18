@@ -42,10 +42,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
  */
 export function grandfatherSearchPath(source: Source): string[] | null {
   // External only — skip the meta / local base source.
-  if (
-    (source.type !== 'pg' && source.type !== 'mssql') ||
-    source.isMeta()
-  ) {
+  if ((source.type !== 'pg' && source.type !== 'mssql') || source.isMeta()) {
     return null;
   }
 

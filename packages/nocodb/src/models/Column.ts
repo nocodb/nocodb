@@ -1338,17 +1338,26 @@ export default class Column<T = any> implements ColumnType {
         ncMeta,
       );
 
+      // title/description are part of the EE base schema snapshot
+      cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+        logger.error('Failed to clean base schema cache');
+      });
+
       return this.get(context, { colId }, ncMeta);
     }
 
     const oldCol = await Column.get(context, { colId }, ncMeta);
-    // Target uidt after this update — fall back to the existing type when the
-    // payload omits uidt (partial updates). Used to decide whether button
-    // visibility filters should be wiped on colOption rebuild.
-    const incomingUidt = (column.uidt as UITypes) || oldCol.uidt;
+
+    // insertColOption() dispatches on the incoming uidt, so without one the
+    // delete below would drop colOptions it can never rebuild. Same `||`
+    // fallback as that dispatch.
+    const incomingUidt =
+      column.uidt || (column as { ui_data_type?: UITypes }).ui_data_type;
+
     const requiredColAvail =
-      !requiredColumnsToRecreate[oldCol.uidt] ||
-      requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]);
+      !!incomingUidt &&
+      (!requiredColumnsToRecreate[oldCol.uidt] ||
+        requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]));
 
     if (requiredColAvail) {
       switch (oldCol.uidt) {
@@ -1561,7 +1570,12 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // get qr code columns and delete if target type is not supported by QR code column type
-    if (!AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)) {
+    // An absent uidt means "type unchanged", not "unsupported" — without the
+    // guard a description-only update drops every dependent QR/Barcode column.
+    if (
+      updateObj.uidt &&
+      !AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)
+    ) {
       const qrCodeCols = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
@@ -1948,6 +1962,16 @@ export default class Column<T = any> implements ColumnType {
       `${CacheScope.COLUMN}:${colId}`,
       prepareForResponse({ meta }),
     );
+
+    // Meta is baked into the compiled single-query plans (this model and any
+    // Lookup/Rollup referrer) and into the EE base schema snapshot.
+    const col = await Column.get(context, { colId }, ncMeta);
+    await View.clearSingleQueryCache(context, col.fk_model_id, null, ncMeta);
+    await clearSingleQueryCacheForColumnReferences(context, col, ncMeta);
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
   }
 
   static async updateValidation(

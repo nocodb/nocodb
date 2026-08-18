@@ -174,6 +174,36 @@ export function getPathFromUrl(url: string, removePrefix = false) {
   return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
 }
 
+/**
+ * Whether a client-supplied attachment `path`/`url` resolves to an object in
+ * OUR storage — and therefore must pass an ownership check before a data write
+ * accepts it — as opposed to a genuinely external http(s) file.
+ *
+ * Mirrors `PresignedUrl.getSignedUrl`: an http(s) url is reduced to its pathname
+ * via `getPathFromUrl` and, on external storage, that pathname is signed as a
+ * storage key. So a crafted `https://anything/nc/uploads/<victim>/secret.pdf`
+ * would resolve to another tenant's object regardless of its host. We gate on
+ * the resolved key living under the `nc/uploads/` record-attachment root, using
+ * the SAME normalisation `getSignedUrl` applies so URL-encoding can't slip past.
+ * A non-http(s) value is always an opaque local storage path.
+ */
+export function attachmentRefResolvesToStorage(ref?: string): boolean {
+  if (!ref || typeof ref !== 'string') return false;
+
+  // a non-http(s) url/path is always an opaque storage path
+  if (!/^https?:\/\//i.test(ref)) return true;
+
+  let storageKey: string;
+  try {
+    storageKey = getPathFromUrl(ref).replace(/^\/+/, '');
+  } catch {
+    // unparseable url — fail closed and force the ownership check
+    return true;
+  }
+
+  return /^nc\/uploads\//i.test(storageKey);
+}
+
 export function resolveAttachmentFilePath(attachment: {
   path?: string;
   url?: string;

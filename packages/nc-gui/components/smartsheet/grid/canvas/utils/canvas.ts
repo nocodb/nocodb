@@ -1,5 +1,6 @@
 import { LRUCache } from 'lru-cache'
 import JsBarcode from 'jsbarcode'
+import DOMPurify from 'isomorphic-dompurify'
 import type { ColumnType, UserType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { type MarkdownLoader, markdownTextCache } from '../loaders/markdownLoader'
@@ -1681,7 +1682,10 @@ export function renderFormulaURL(
   const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
 
   const container = document.createElement('div')
-  container.innerHTML = htmlText
+  // Defense in depth: even though the formula-URL HTML is now built with
+  // encoded labels upstream, sanitize before assigning to innerHTML so a
+  // detached-node <img onerror>/<svg onload> payload can never execute here.
+  container.innerHTML = DOMPurify.sanitize(htmlText)
 
   let currentLine = 0
   let currentX = x

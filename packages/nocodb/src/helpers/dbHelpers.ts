@@ -37,6 +37,10 @@ import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
+  LIST_ARG_ALIASES,
+  resolveListArgAlias,
+} from '~/helpers/listArgAliases';
+import {
   Column,
   type LinkToAnotherRecordColumn,
   Model,
@@ -770,7 +774,7 @@ export function getListArgs(
   } = {},
 ): XcFilter {
   const obj: XcFilter = {};
-  obj.where = args.where || args.filter || args.w || '';
+  obj.where = resolveListArgAlias(args, LIST_ARG_ALIASES.where) || '';
   obj.having = args.having || args.h || '';
   obj.shuffle = args.shuffle || args.r || '';
   obj.condition = args.condition || args.c || {};
@@ -806,8 +810,11 @@ export function getListArgs(
     NcError.invalidOffsetValue(obj.offset);
   }
   obj.fields =
-    args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
-  obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
+    resolveListArgAlias(args, LIST_ARG_ALIASES.fields) ||
+    (ignoreAssigningWildcardSelect ? null : '*');
+  obj.sort =
+    resolveListArgAlias(args, LIST_ARG_ALIASES.sort) ||
+    model.primaryKey?.[0]?.column_name;
   obj.pks = args?.pks;
   obj.aggregation = args.aggregation || [];
   obj.column_name = args.column_name;

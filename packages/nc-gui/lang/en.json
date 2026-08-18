@@ -3908,6 +3908,8 @@
     "sourceFromBaseDesc": "Follows from the member's base role",
     "sourceFromWorkspace": "Inherited from workspace",
     "sourceFromWorkspaceDesc": "Follows from the member's workspace role",
+    "sourceTeams": "Teams",
+    "sourceTeamsDesc": "Teams holding a role on this interface",
     "sourceBuilders": "Full access",
     "sourceBuildersDesc": "Base owners and creators",
     "viaTeam": "via {team}",

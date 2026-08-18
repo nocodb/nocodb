@@ -107,8 +107,9 @@ const renderAsCell = computed(() => {
     </NcTooltip>
 
     <!-- pg IEEE value for this row. No tooltip: unlike colOptions.error above,
-         a row-level error carries no message. -->
-    <span v-else-if="isFormulaNonFiniteValue(cellValue)" class="nc-formula-non-finite text-nc-content-orange-dark">
+         a row-level error carries no message. Numeric formulas only — a string
+         formula returning the literal "Infinity" is an ordinary result. -->
+    <span v-else-if="isNumber && isFormulaNonFiniteValue(cellValue)" class="nc-formula-non-finite text-nc-content-orange-dark">
       {{ cellValue }}
     </span>
 

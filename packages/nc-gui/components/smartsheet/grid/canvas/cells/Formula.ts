@@ -100,10 +100,11 @@ export const FormulaCellRenderer: CellRenderer = {
     }
 
     // pg IEEE value for this row — distinct from the column-level error above.
-    // fillStyle is mandatory: canvas state carries over between cells, so
-    // omitting it paints this text in whatever colour the previous cell left
-    // behind — invisible on rows whose neighbouring cells were blank.
-    if (isFormulaNonFiniteValue(value)) {
+    // Numeric formulas only: a string formula returning the literal "Infinity"
+    // is an ordinary result. fillStyle is mandatory: canvas state carries over
+    // between cells, so omitting it paints this text in whatever colour the
+    // previous cell left behind — invisible on rows whose neighbours were blank.
+    if (column?.colOptions?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC && isFormulaNonFiniteValue(value)) {
       renderSingleLineText(ctx, {
         text: String(value),
         x: x + padding,

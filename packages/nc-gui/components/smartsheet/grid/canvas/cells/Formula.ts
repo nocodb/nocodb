@@ -84,20 +84,34 @@ export const FormulaCellRenderer: CellRenderer = {
     const colExtra = column.extra
 
     if (parseProp(column.colOptions)?.error) {
+      // Same fillStyle requirement as the IEEE branch below — without it this
+      // inherited the previous cell's colour and rendered invisibly on rows
+      // whose neighbouring cells were blank.
       renderSingleLineText(ctx, {
         text: 'ERR!',
         x: x + padding,
         y,
+        maxWidth: width - padding * 2,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
+        fillStyle: getColor(themeV4Colors.orange['700']),
+        height,
       })
       return
     }
 
     // pg IEEE value for this row — distinct from the column-level error above.
+    // fillStyle is mandatory: canvas state carries over between cells, so
+    // omitting it paints this text in whatever colour the previous cell left
+    // behind — invisible on rows whose neighbouring cells were blank.
     if (isFormulaNonFiniteValue(value)) {
       renderSingleLineText(ctx, {
         text: String(value),
         x: x + padding,
         y,
+        maxWidth: width - padding * 2,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
+        fillStyle: getColor(themeV4Colors.orange['700']),
+        height,
       })
       return
     }

@@ -1700,7 +1700,7 @@ defineExpose({
                       <template #overlay>
                         <div class="relative overflow-visible min-h-17 w-10">
                           <div
-                            class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
+                            class="absolute -top-21 right-0 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
                             style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                           >
                             <div

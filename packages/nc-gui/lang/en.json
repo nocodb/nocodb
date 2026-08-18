@@ -3891,6 +3891,10 @@
     "nInterfaces": "{count} interface | {count} interfaces",
     "ownerAll": "Owner (all)",
     "creatorAll": "Creator (all)",
+    "roleInheritedFromTeam": "Role inherited from {team}",
+    "roleInheritedFromTeamPlus": "Role inherited from {team} +{n}",
+    "roleInheritedFromBase": "Role inherited from base",
+    "viaTeam": "via {team}",
     "requests": "Requests",
     "record": "Record",
     "resetToOneFrozenField": "Reset to 1 frozen field"

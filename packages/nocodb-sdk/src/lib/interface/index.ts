@@ -103,6 +103,11 @@ export interface InterfaceUsersMatrixRow {
     page_roles?: Record<string, InterfaceRoles>;
     /** Team rows only: descendant expansion of the interface-level grant. */
     hierarchy_scope?: SubjectHierarchyScope;
+    /**
+     * User rows only: teams whose grant on this interface (or its pages)
+     * reaches this user — the provenance behind a derived role.
+     */
+    via_teams?: Array<{ id: string; title: string | null }>;
   }>;
 }
 

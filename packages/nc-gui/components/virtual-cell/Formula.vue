@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { FormulaDataTypes, getEffectiveDisplayColumn, handleTZ } from 'nocodb-sdk'
+import { FormulaDataTypes, getEffectiveDisplayColumn, handleTZ, isFormulaNonFiniteValue } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
@@ -105,6 +105,12 @@ const renderAsCell = computed(() => {
       </template>
       <span>ERR!</span>
     </NcTooltip>
+
+    <!-- pg IEEE value for this row. No tooltip: unlike colOptions.error above,
+         a row-level error carries no message. -->
+    <span v-else-if="isFormulaNonFiniteValue(cellValue)" class="nc-formula-non-finite text-nc-content-orange-dark">
+      {{ cellValue }}
+    </span>
 
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
       <div

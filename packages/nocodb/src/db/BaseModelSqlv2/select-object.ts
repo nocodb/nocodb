@@ -369,6 +369,10 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 alias,
                 validateFormula,
                 aliasToColumnBuilder,
+                // Record-read select list: emit pg IEEE error values. QR,
+                // barcode and button formulas below stay computational — their
+                // output is a payload, not a displayed number.
+                true,
               );
 
               if ('toQuery' in selectQb.builder) {

@@ -16,6 +16,8 @@ export interface MapFnArgs {
   fn: (...args: any) => Promise<{ builder: Knex.QueryBuilder | any }>;
   prevBinaryOp?: any;
   model: Model;
+  // Display path only — see FormulaBaseParams.displayMode.
+  displayMode?: boolean;
 }
 
 const mapFunctionName = async (args: MapFnArgs): Promise<any> => {

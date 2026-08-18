@@ -407,6 +407,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         knex,
         model,
         prevBinaryOp,
+        displayMode: params.displayMode,
       });
     } else if (pt.type === 'Literal') {
       // MSSQL: inline string literals as `N'...'` rather than binding `?`.
@@ -464,6 +465,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         prevBinaryOp,
         aliasToColumn,
         model,
+        displayMode: params.displayMode,
       });
     } else if (pt.type === 'UnaryExpression') {
       let query;
@@ -506,6 +508,7 @@ export default async function formulaQueryBuilderv2({
   baseUsers,
   parentColumns,
   columns,
+  displayMode = false,
 }: {
   baseModel: IBaseModelSqlV2;
   tree;
@@ -519,6 +522,7 @@ export default async function formulaQueryBuilderv2({
   baseUsers?: (Partial<User> & BaseUser)[];
   parentColumns?: CircularRefContext;
   columns?: Column[];
+  displayMode?: boolean;
 }) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -562,6 +566,7 @@ export default async function formulaQueryBuilderv2({
       parentColumns,
       columns,
       getAliasCount,
+      displayMode,
     });
     let sqlLength = 0;
     try {

@@ -1,4 +1,4 @@
-import { type ColumnType, FormulaDataTypes, getEffectiveDisplayColumn, handleTZ } from 'nocodb-sdk'
+import { type ColumnType, FormulaDataTypes, getEffectiveDisplayColumn, handleTZ, isFormulaNonFiniteValue } from 'nocodb-sdk'
 import {
   defaultOffscreen2DContext,
   isBoxHovered,
@@ -86,6 +86,16 @@ export const FormulaCellRenderer: CellRenderer = {
     if (parseProp(column.colOptions)?.error) {
       renderSingleLineText(ctx, {
         text: 'ERR!',
+        x: x + padding,
+        y,
+      })
+      return
+    }
+
+    // pg IEEE value for this row — distinct from the column-level error above.
+    if (isFormulaNonFiniteValue(value)) {
+      renderSingleLineText(ctx, {
+        text: String(value),
         x: x + padding,
         y,
       })

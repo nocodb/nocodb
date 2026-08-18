@@ -9,6 +9,11 @@ import {
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../mapFunctionName';
+import {
+  coalesceNumericOperand,
+  ieeeDivisionSql,
+  isPgClient,
+} from './pg-ieee';
 import type {
   BinaryExpressionNode,
   ComparisonOperator,
@@ -41,6 +46,7 @@ export const callExpressionBuilder = async ({
   knex,
   model,
   columnIdToUidt,
+  displayMode,
 }: {
   context: NcContext;
   pt: CallExpressionNode;
@@ -53,6 +59,7 @@ export const callExpressionBuilder = async ({
   knex: CustomKnex;
   model: Model;
   columnIdToUidt: Record<string, UITypes>;
+  displayMode?: boolean;
 }): Promise<{ builder: any }> => {
   switch (pt.callee.name.toUpperCase()) {
     case 'ADD':
@@ -287,6 +294,7 @@ export const callExpressionBuilder = async ({
           fn,
           prevBinaryOp,
           model,
+          displayMode,
         });
         if (res) return res;
       }
@@ -339,6 +347,7 @@ export const binaryExpressionBuilder = async ({
   columnIdToUidt,
   aliasToColumn,
   model,
+  displayMode,
 }: {
   context: NcContext;
   pt: BinaryExpressionNode;
@@ -351,6 +360,7 @@ export const binaryExpressionBuilder = async ({
   columnIdToUidt: Record<string, UITypes>;
   aliasToColumn: TAliasToColumn;
   model: Model;
+  displayMode?: boolean;
 }) => {
   // treat `&` as shortcut for concat
   if (pt.operator === '&') {
@@ -466,6 +476,11 @@ export const binaryExpressionBuilder = async ({
     }
   }
 
+  // The `/` rewrite below replaces the operand nodes with FLOAT() wrappers that
+  // carry no dataType, so capture the operand types first.
+  const leftDataType = pt.left.dataType;
+  const rightDataType = pt.right.dataType;
+
   if (pt.operator === '/') {
     pt.left = {
       callee: { name: 'FLOAT' },
@@ -483,6 +498,25 @@ export const binaryExpressionBuilder = async ({
 
   let left = (await fn(pt.left, pt.operator)).builder.toQuery();
   let right = (await fn(pt.right, pt.operator)).builder.toQuery();
+
+  // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
+  // Applied in every mode, not just display: if display coalesced but sort did
+  // not, a blank operand would render as a number yet sort as NULL.
+  if (
+    isPgClient(knex) &&
+    ['+', '-', '*', '/', '%', '<', '>', '<=', '>=', '=', '!='].includes(
+      pt.operator,
+    )
+  ) {
+    // `/` operands are numeric by construction — FLOAT()-wrapped above.
+    const isDivision = pt.operator === '/';
+    if (isDivision || leftDataType === FormulaDataTypes.NUMERIC) {
+      left = coalesceNumericOperand(left, knex);
+    }
+    if (isDivision || rightDataType === FormulaDataTypes.NUMERIC) {
+      right = coalesceNumericOperand(right, knex);
+    }
+  }
 
   // Ordering comparisons (<, <=, >, >=) need numeric operands. A formula can put
   // a text-typed expression on one side — e.g. IF(cond, "", <number>), whose
@@ -672,6 +706,15 @@ export const binaryExpressionBuilder = async ({
         isMssql || isOracle
           ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
           : `(CASE WHEN ${sql} THEN true ELSE false END )`;
+    } else if (pt.operator === '/' && isPgClient(knex)) {
+      // Operands are already DOUBLE PRECISION via the FLOAT() wrap above, so
+      // the IEEE branches unify as float8 — `numeric` could not hold Infinity
+      // before PG 14.
+      sql = displayMode
+        ? ieeeDivisionSql(left, right)
+        : // Computational path (sort/filter/aggregate): errors stay NULL so
+          // aggregates skip them instead of being poisoned by NaN.
+          `${left} / NULLIF(${right}, 0)`;
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({

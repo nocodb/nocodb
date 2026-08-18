@@ -91,7 +91,12 @@ async function processColumnToSwaggerField(
         const formulaDataType = column.colOptions.parsed_tree.dataType;
         switch (formulaDataType) {
           case FormulaDataTypes.NUMERIC:
-            field.type = ['number', 'null'];
+            // On PostgreSQL sources a division by zero yields an IEEE value —
+            // "Infinity" / "-Infinity" / "NaN" — carried as a string because
+            // JSON cannot represent those numbers. Other dialects return null.
+            field.type = ['number', 'string', 'null'];
+            field.description =
+              'Numeric formula result. On PostgreSQL sources division by zero returns the string "Infinity", "-Infinity" or "NaN".';
             break;
           case FormulaDataTypes.STRING:
             field.type = ['string', 'null'];

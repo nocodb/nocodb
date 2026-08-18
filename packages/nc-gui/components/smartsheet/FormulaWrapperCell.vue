@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isFormulaNonFiniteValue } from 'nocodb-sdk'
 import { defaultOffscreen2DContext } from './grid/canvas/utils/canvas'
 
 interface Props {
@@ -58,7 +58,10 @@ provide(ColumnInj, column)
       'nc-grid-numeric-cell-right': isGrid && isNumericField && !isExpandedFormOpen && !isRating(column),
     }"
   >
-    <template v-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
+    <template v-if="isFormulaNonFiniteValue(cellValue)">
+      <span class="nc-formula-non-finite text-nc-content-orange-dark">{{ cellValue }}</span>
+    </template>
+    <template v-else-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
       <CellText model-value="NULL" />
     </template>
     <CellCheckbox v-else-if="isBoolean(column)" :model-value="cellValue" />

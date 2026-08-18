@@ -9,7 +9,11 @@ import commonFns, {
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
-import { ieeeModuloSql, isFiniteSql } from '~/db/formulav2/pg-ieee';
+import {
+  ieeeModuloSql,
+  isFiniteSql,
+  stripNaNSql,
+} from '~/db/formulav2/pg-ieee';
 import { convertUnits } from '~/helpers/convertUnits';
 import {
   getWeekdayByText,
@@ -78,7 +82,35 @@ const pg = {
   ...commonFns,
   LEN: 'length',
   MIN: 'least',
-  MAX: 'greatest',
+  // pg's GREATEST ranks NaN above every number, so MAX(NaN, 5) is NaN — IEEE
+  // maxNum ignores NaN and returns 5. LEAST needs no guard for the same reason
+  // it is already correct: NaN being largest means it never wins a minimum.
+  // `greatest` is the same handler under the name older columns stored: when a
+  // mapping is a plain string alias, mapFunctionName rewrites pt.callee.name and
+  // that rewritten tree is persisted, so a MAX column created before this became
+  // a function still arrives as `greatest` and would otherwise skip the guard.
+  GREATEST: async (args: MapFnArgs) => pg.MAX(args),
+  MAX: async ({ fn, knex, pt }: MapFnArgs) => {
+    const args = await Promise.all(
+      pt.arguments.map(async (arg) => `(${(await fn(arg)).builder})`),
+    );
+    const allNumeric = pt.arguments.every(
+      (arg) => arg.dataType === FormulaDataTypes.NUMERIC,
+    );
+    if (!allNumeric) {
+      return { builder: knex.raw(`greatest(${args.join(', ')})`) };
+    }
+    // Strip NaN from the operands, then fall back to the unstripped form so an
+    // all-NaN argument list still yields NaN instead of blanking.
+    const stripped = args.map((arg) => stripNaNSql(arg));
+    return {
+      builder: knex.raw(
+        `COALESCE(greatest(${stripped.join(', ')}), greatest(${args.join(
+          ', ',
+        )}))`,
+      ),
+    };
+  },
   CEILING: 'ceil',
   POWER: 'pow',
   SQRT: 'sqrt',

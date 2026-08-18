@@ -50,6 +50,16 @@ export function ieeeModuloSql(left: string, right: string): string {
   );
 }
 
+// NaN satisfies no ordering comparison, but pg ranks it above every number, so
+// a bare `x > 100` takes the true branch. NULL fails every comparison, which is
+// the semantics NaN should have had, and it lands correctly in both contexts:
+// an IF condition falls through to ELSE, and a standalone comparison is wrapped
+// in `CASE WHEN … THEN true ELSE false END`. One operand mention, so this costs
+// nothing in query length.
+export function stripNaNSql(expr: string): string {
+  return `NULLIF(${expr}, 'NaN'::${IEEE_TYPE})`;
+}
+
 // Aggregation resolves a formula to the same IEEE value the cell shows, but a
 // single NaN would poison SUM/AVG/MAX for the whole column, so error rows are
 // dropped to NULL and skipped here instead. This is the only consumer that

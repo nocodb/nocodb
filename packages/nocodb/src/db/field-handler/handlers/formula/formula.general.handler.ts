@@ -15,6 +15,7 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { FormulaColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { stripNaNSql } from '~/db/formulav2/pg-ieee';
 import { Column, Filter } from '~/models';
 
 // NaN satisfies no ordering comparison, but pg ranks it above every number, so
@@ -104,8 +105,9 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       ORDERING_COMPARISON_OPS.includes(filter.comparison_op)
     ) {
       // NULL fails every ordering comparison, which is the semantics NaN
-      // should have had. ±Infinity still compare normally.
-      builder = knex.raw(`NULLIF(??, 'NaN'::double precision)`, [builder]);
+      // should have had. ±Infinity still compare normally. Same helper the
+      // in-formula comparisons use, so the two layers cannot drift.
+      builder = knex.raw(stripNaNSql('??'), [builder]);
     }
     const value =
       isIeeeCapable && isFormulaNonFiniteValue(filter.value)

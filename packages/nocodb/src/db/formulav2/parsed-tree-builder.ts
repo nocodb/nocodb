@@ -9,7 +9,12 @@ import {
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../mapFunctionName';
-import { coalesceNumericOperand, ieeeDivisionSql, isPgClient } from './pg-ieee';
+import {
+  coalesceNumericOperand,
+  ieeeDivisionSql,
+  isPgClient,
+  stripNaNSql,
+} from './pg-ieee';
 import type {
   BinaryExpressionNode,
   ComparisonOperator,
@@ -546,6 +551,18 @@ export const binaryExpressionBuilder = async ({
       pt.left.dataType === FormulaDataTypes.NUMERIC
     ) {
       right = toSafeNumeric(right);
+    }
+
+    // Same rule the filter layer applies to gt/lt/gte/lte: NaN satisfies no
+    // ordering comparison. Without this a divide-by-zero row takes the true
+    // branch of `> 100`, silently flipping the IF around it.
+    if (isPgClient(knex)) {
+      if (pt.left.dataType === FormulaDataTypes.NUMERIC) {
+        left = stripNaNSql(left);
+      }
+      if (pt.right.dataType === FormulaDataTypes.NUMERIC) {
+        right = stripNaNSql(right);
+      }
     }
   }
 

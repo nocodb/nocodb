@@ -587,13 +587,12 @@ const selectFilterField = (filter: Filter, index: number) => {
   // reset filter value as well
   filter.value = null
 
-  // Check if dynamic filter is still allowed for the new column. In slot mode
-  // (`dynamicValue` RLS placeholders / `workflow` variable input) the value is
-  // supplied by the parent, so the field-to-field `isDynamicFilterAllowed`
-  // constraint doesn't apply — keep dynamic on (mirrors changeToDynamic), so
-  // switching to e.g. a Formula column doesn't silently drop dynamic mode.
+  // Check if dynamic filter is still allowed for the new column. Mirror
+  // changeToDynamic: RLS (`dynamicValue`) keeps dynamic unconditionally; workflow
+  // mode uses `allowComputed` so switching to a Formula/Lookup/Rollup/LTAR column
+  // doesn't silently drop dynamic, while a blocklisted field type still resets.
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  if (filter.dynamic && !dynamicValue.value && !workflow.value && !isDynamicFilterAllowed(filter)) {
+  if (filter.dynamic && !dynamicValue.value && !isDynamicFilterAllowed(filter, { allowComputed: workflow.value })) {
     filter.dynamic = false
     filter.fk_value_col_id = null // Also reset the dynamic value column if it was set
   }
@@ -1061,10 +1060,16 @@ const sqlUi = computed(() => {
     : Object.values(sqlUis.value)[0]
 })
 
-const isDynamicFilterAllowed = (filter: FilterType) => {
+// `allowComputed`: in slot mode (workflow `{{ }}` variable input) the value is a
+// literal supplied by the parent, not a column reference — so the field-to-field
+// constraints (physical/virtual column, abstract-type compatibility) don't apply.
+// The uidt blocklist and operator whitelist still do: those field types have no
+// text-value input, so a variable value is meaningless there.
+const isDynamicFilterAllowed = (filter: FilterType, { allowComputed = false } = {}) => {
   const col = getColumn(filter)
-  // if virtual column, don't allow dynamic filter
-  if (!col || isVirtualCol(col)) return false
+  if (!col) return false
+  // Field-to-field only: a virtual column has no physical value to compare.
+  if (!allowComputed && isVirtualCol(col)) return false
 
   // disable dynamic filter for certain fields like rating, attachment, etc
   if (
@@ -1080,6 +1085,12 @@ const isDynamicFilterAllowed = (filter: FilterType) => {
     ].includes(col.uidt as UITypes)
   )
     return false
+
+  // Field-to-field only: getAbstractType keys off the physical `dt`, which is
+  // absent for virtual columns — skip it when the value is a supplied literal.
+  if (allowComputed) {
+    return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
+  }
 
   const abstractType = sqlUi.value?.getAbstractType(col)
 
@@ -1133,16 +1144,15 @@ function hasDynamicValueOptions(filter: FilterType) {
 }
 
 const changeToDynamic = async (filter, i) => {
-  // `isDynamicFilterAllowed` exists for field-to-field comparison — it enforces
-  // abstract-type compatibility and excludes the `anyof` family, and rejects
-  // virtual columns (Formula, etc). In slot mode — `dynamicValue` (RLS
-  // placeholders) or `workflow` (the `#dynamic-filter` variable input) — the
-  // parent supplies the value, so none of those field-to-field constraints
-  // apply; the only requirement is that the row has a value input to replace.
-  // Without this, a dynamic filter on a Formula column was a silent no-op in
-  // workflow nodes.
-  filter.dynamic =
-    dynamicValue.value || workflow.value ? showFilterInput(filter) : isDynamicFilterAllowed(filter) && showFilterInput(filter)
+  // `dynamicValue` (RLS placeholders): the parent fully controls the value, so
+  // only a value input is required. `workflow` (the `#dynamic-filter` variable
+  // input): the value is a supplied literal, so allow computed/virtual columns
+  // (Formula, Lookup, Rollup, LTAR) via `allowComputed` — but the uidt blocklist
+  // still excludes field types with no text-value input. Without this, a dynamic
+  // filter on a Formula column was a silent no-op in workflow nodes.
+  filter.dynamic = dynamicValue.value
+    ? showFilterInput(filter)
+    : isDynamicFilterAllowed(filter, { allowComputed: workflow.value }) && showFilterInput(filter)
   await saveOrUpdate(filter, i)
 }
 

@@ -17,6 +17,16 @@ import type { FormulaColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { Column, Filter } from '~/models';
 
+// NaN satisfies no ordering comparison, but pg ranks it above every number, so
+// an unguarded `> 0` matches it. Only these operators need it filtered out —
+// eq/neq compare the displayed token and must keep matching NaN.
+const ORDERING_COMPARISON_OPS = ['gt', 'lt', 'gte', 'lte', 'ge', 'le'];
+
+const isPgNumericFormula = (
+  baseModel: { isPg?: boolean },
+  parsedTree?: ParsedFormulaNode,
+) => !!baseModel.isPg && parsedTree?.dataType === FormulaDataTypes.NUMERIC;
+
 export class FormulaGeneralHandler extends ComputedFieldHandler {
   override async applySort(
     qb: Knex.QueryBuilder,
@@ -38,6 +48,10 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       return;
     }
 
+    // Sort on the displayed value, or an error row orders by whatever the
+    // computational form coalesced it to — `(A/B)+1` ranks every one of them
+    // as 1, interleaved with the rows that genuinely equal 1.
+    const displayMode = isPgNumericFormula(baseModelSqlv2, parsedTree);
     const builder = (
       await formulaQueryBuilderv2({
         baseModel: baseModelSqlv2,
@@ -45,8 +59,20 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         model,
         column,
         tableAlias: alias,
+        displayMode,
       })
     ).builder;
+
+    if (displayMode) {
+      // pg orders NaN above every number, including Infinity. Rank it below
+      // -Infinity instead: the flag is false only for NaN, so ascending puts
+      // that block first and descending puts it last.
+      qb.orderBy(
+        knex.raw(`(?? <> 'NaN'::double precision)`, [builder]) as any,
+        direction,
+        nulls,
+      );
+    }
     qb.orderBy(builder, direction, nulls);
   }
 
@@ -70,9 +96,8 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     // cuts both ways: `eq Infinity` must match the error rows, `eq 1` must not.
     // Unconditional, not value-dependent. Aggregation is unaffected — it goes
     // through getColumnNameQuery, not this handler.
-    const displayMode =
-      baseModelSqlv2.isPg && parsedTree?.dataType === FormulaDataTypes.NUMERIC;
-    const builder = (
+    const displayMode = isPgNumericFormula(baseModelSqlv2, parsedTree);
+    let builder = (
       await formulaQueryBuilderv2({
         baseModel: baseModelSqlv2,
         tree: formula.formula,
@@ -82,6 +107,12 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         displayMode,
       })
     ).builder;
+
+    if (displayMode && ORDERING_COMPARISON_OPS.includes(filter.comparison_op)) {
+      // NULL fails every ordering comparison, which is the semantics NaN
+      // should have had. ±Infinity still compare normally.
+      builder = knex.raw(`NULLIF(??, 'NaN'::double precision)`, [builder]);
+    }
     const value =
       displayMode && isFormulaNonFiniteValue(filter.value)
         ? // double precision, never numeric — numeric cannot hold Infinity

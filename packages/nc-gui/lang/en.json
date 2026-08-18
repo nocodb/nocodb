@@ -5370,6 +5370,7 @@
       "interfaceFormNoPermission": "You don't have permission to submit this form.",
       "previewInterfaceNotVisible": "This interface is not visible to the previewed user or role.",
       "previewPageNotVisible": "This page is not visible to the previewed user or role.",
+      "previewSwitchedToVisiblePage": "Showing {page} — the previous page is not visible to the previewed user or role.",
       "interfaceDashboardNoGroups": "This dashboard has no groups yet. Add a group to get started.",
       "interfaceDashboardGroupNoSource": "Select a source table for this group in the panel.",
       "interfaceDashboardGroupEmpty": "This group has no widgets yet.",

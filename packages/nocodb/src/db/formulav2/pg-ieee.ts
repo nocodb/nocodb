@@ -58,6 +58,46 @@ export function ieeeSqrtSql(expr: string): string {
   return `(CASE WHEN (${expr}) < 0 THEN 'NaN'::${IEEE_TYPE} ELSE sqrt(${expr}) END)`;
 }
 
+// pg raises on a negative base with a non-integer exponent ("a negative number
+// raised to a non-integer power yields a complex result"), and -Infinity is now
+// reachable from any `x/0`. IEEE returns NaN there. The integer-exponent case
+// has to stay on pg's own path: pow(-Infinity, 2) is Infinity, which a blanket
+// negative-base guard would destroy.
+export function ieeePowerSql(base: string, exponent: string): string {
+  return (
+    `(CASE WHEN (${base}) < 0 AND (${exponent}) <> floor(${exponent}) ` +
+    `THEN 'NaN'::${IEEE_TYPE} ELSE pow(${base}, ${exponent}) END)`
+  );
+}
+
+// pg's log raises on both zero and negatives; -Infinity is newly reachable from
+// any `x/0` and zero already was. Same `<=` trick as ieeeSqrtSql — NULL and NaN
+// fail the test and land in the ELSE, where log maps each to itself.
+export function ieeeLogSql(expr: string): string {
+  return `(CASE WHEN (${expr}) <= 0 THEN 'NaN'::${IEEE_TYPE} ELSE log(${expr}) END)`;
+}
+
+// Two-arg LOG(base, value). pg has no float8 overload — only log(numeric,
+// numeric) — so the operands must be cast, and a non-finite one raises on
+// pg < 14. Same shape as ieeeModuloSql: prove both are in domain first, so
+// nothing invalid reaches the cast. The test is negated so NULL falls to the
+// ELSE and a blank stays blank.
+//
+// `< 'Infinity'` also rejects NaN (pg ranks it above every number), so
+// LOG(b, +Infinity) is NaN here while the one-arg form gives Infinity.
+// Representing it would mean casting Infinity to numeric, which pg < 14 cannot
+// do; the cast-free ln(x)/ln(b) loses precision (ln(1000)/ln(10) is
+// 2.9999999999999996, not 3), which is worse for every real input.
+export function ieeeLogBaseSql(base: string, value: string): string {
+  const inDomain = (e: string) =>
+    `((${e}) > 0 AND (${e}) < 'Infinity'::${IEEE_TYPE})`;
+  return (
+    `(CASE WHEN NOT ${inDomain(value)} OR NOT ${inDomain(base)} ` +
+    `OR (${base}) = 1 THEN 'NaN'::${IEEE_TYPE} ` +
+    `ELSE log((${base})::numeric, (${value})::numeric)::${IEEE_TYPE} END)`
+  );
+}
+
 // NaN satisfies no ordering comparison, but pg ranks it above every number, so
 // a bare `x > 100` takes the true branch. NULL fails every comparison, which is
 // the semantics NaN should have had, and it lands correctly in both contexts:

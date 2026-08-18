@@ -10,7 +10,10 @@ import commonFns, {
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import {
+  ieeeLogBaseSql,
+  ieeeLogSql,
   ieeeModuloSql,
+  ieeePowerSql,
   ieeeSqrtSql,
   isFiniteSql,
   stripNaNSql,
@@ -113,7 +116,26 @@ const pg = {
     };
   },
   CEILING: 'ceil',
-  POWER: 'pow',
+  // `pow` is the same handler under the name older columns stored: a plain
+  // string mapping rewrites pt.callee.name and that tree is persisted, so a
+  // POWER column created before this became a function still arrives as `pow`.
+  // Same reason GREATEST exists above. SQRT needs no twin — 'sqrt' uppercases
+  // back to SQRT, so it keeps hitting its own key.
+  POW: async (args: MapFnArgs) => pg.POWER(args),
+  POWER: async ({ fn, knex, pt }: MapFnArgs) => {
+    const base = (await fn(pt.arguments[0])).builder;
+    const exponent = (await fn(pt.arguments[1])).builder;
+    return { builder: knex.raw(ieeePowerSql(`${base}`, `${exponent}`)) };
+  },
+  LOG: async ({ fn, knex, pt }: MapFnArgs) => {
+    if (pt.arguments.length > 1) {
+      const base = (await fn(pt.arguments[0])).builder;
+      const value = (await fn(pt.arguments[1])).builder;
+      return { builder: knex.raw(ieeeLogBaseSql(`${base}`, `${value}`)) };
+    }
+    const source = (await fn(pt.arguments[0])).builder;
+    return { builder: knex.raw(ieeeLogSql(`${source}`)) };
+  },
   SQRT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     return { builder: knex.raw(ieeeSqrtSql(`${source}`)) };

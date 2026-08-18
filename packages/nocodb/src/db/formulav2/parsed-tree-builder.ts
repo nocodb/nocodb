@@ -12,6 +12,7 @@ import mapFunctionName from '../mapFunctionName';
 import {
   coalesceNumericOperand,
   ieeeDivisionSql,
+  ieeeModuloSql,
   isPgClient,
   stripNaNSql,
 } from './pg-ieee';
@@ -723,6 +724,11 @@ export const binaryExpressionBuilder = async ({
       // at its own site (excludeNonFiniteSql), so nothing has to be threaded
       // through the recursion here.
       sql = ieeeDivisionSql(left, right);
+    } else if (pt.operator === '%' && isPgClient(knex)) {
+      // `%` is the operator spelling of MOD(), so it gets MOD's lowering. It
+      // needs it: the COALESCE above turns a blank divisor into a literal 0,
+      // which pg rejects with `division by zero` instead of returning NULL.
+      sql = ieeeModuloSql(left, right);
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({

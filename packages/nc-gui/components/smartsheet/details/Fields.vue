@@ -439,6 +439,10 @@ const duplicateField = async (field: TableExplorerColumn) => {
 
 // Check any filter is changed recursively
 const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => {
+  // diff() represents an array present on both sides as an index-keyed object, so
+  // callers can hand us a non-iterable here.
+  if (!Array.isArray(filters)) return false
+
   for (const filter of filters) {
     if (filter.status) {
       return true
@@ -476,6 +480,13 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const diffs = Object.fromEntries(
     Object.entries(pdiffs).filter(([_, value]) => value !== undefined),
   ) as Partial<TableExplorerColumn>
+
+  // Opening a Button editor hydrates formState.filters from colOptions, which is not
+  // a user edit — only status-tagged filters are a real change. Without this, merely
+  // selecting the field marks it updated and enables Save.
+  if ('filters' in diffs && !checkForFilterChange(state.filters || [])) {
+    delete diffs.filters
+  }
 
   if (
     Object.keys(diffs).length === 0 ||
@@ -828,8 +839,23 @@ const recoverField = (state: TableExplorerColumn) => {
       ops.value = ops.value.filter((op) => !compareCols(op.column, state))
       moveOps.value = moveOps.value.filter((op) => !compareCols(op.column, state))
     }
+    // Same reason as clearChanges(): a keep-alive editor survives changeField(),
+    // so it would keep the reverted state. Drop its key and re-activate on the
+    // next tick — dropping and re-adding in one tick collapses into a single
+    // keyed patch, so the editor is never destroyed.
+    const key = state.id || state.temp_id
+    const wasAlive = !!key && aliveFieldKeys.value.includes(key)
+    if (wasAlive) aliveFieldKeys.value = aliveFieldKeys.value.filter((k) => k !== key)
+
     activeField.value = null
-    changeField(fields.value.filter((fiel) => fiel.id === state.id)[0])
+
+    const restore = () => changeField(fields.value.filter((fiel) => fiel.id === state.id)[0])
+
+    if (wasAlive) {
+      nextTick(restore)
+    } else {
+      restore()
+    }
   }
 }
 

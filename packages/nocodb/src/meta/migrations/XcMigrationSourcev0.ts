@@ -92,6 +92,7 @@ import * as nc_202607281200_snapshot_schedule_daily_floor from './v0/nc_20260728
 import * as nc_202607121506_credit_system from './v0/nc_202607121506_credit_system';
 import * as nc_202608071500_ai_col_global_model_reset from './v0/nc_202608071500_ai_col_global_model_reset';
 import * as nc_202608121200_base_sections from './v0/nc_202608121200_base_sections';
+import * as nc_202608191200_credit_hold_ref_scoped from './v0/nc_202608191200_credit_hold_ref_scoped';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -195,6 +196,7 @@ export default class XcMigrationSourcev0 {
       'nc_202607121506_credit_system',
       'nc_202608071500_ai_col_global_model_reset',
       'nc_202608121200_base_sections',
+      'nc_202608191200_credit_hold_ref_scoped',
     ]);
   }
 
@@ -392,6 +394,8 @@ export default class XcMigrationSourcev0 {
         return nc_202608071500_ai_col_global_model_reset;
       case 'nc_202608121200_base_sections':
         return nc_202608121200_base_sections;
+      case 'nc_202608191200_credit_hold_ref_scoped':
+        return nc_202608191200_credit_hold_ref_scoped;
     }
   }
 }

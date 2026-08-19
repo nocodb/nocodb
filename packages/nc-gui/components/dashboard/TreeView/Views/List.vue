@@ -43,6 +43,16 @@ const emits = defineEmits<Emits>()
 const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
+/** Extra indent when the owning table sits inside a base-level folder — view
+ *  rows step in by the same amount (Views/Node.vue). */
+const sectionIndentPx = inject(SidebarSectionIndentInj, ref(0))
+
+const { isRtl } = useRtl()
+
+const emptyPlaceholderIndentStyle = computed(() =>
+  isRtl.value ? { marginRight: `${sectionIndentPx.value}px` } : { marginLeft: `${sectionIndentPx.value}px` },
+)
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $api } = useNuxtApp()
@@ -490,6 +500,7 @@ const filteredViews = computed(() => {
           'pl-14.5 xs:(pl-16) rtl:(pr-14.5 pl-0) rtl:xs:(pr-16 pl-0)': isDefaultSource,
           'pl-21.5 xs:(pl-23) rtl:(pr-21.5 pl-0) rtl:xs:(pr-23 pl-0)': !isDefaultSource,
         }"
+        :style="emptyPlaceholderIndentStyle"
       >
         {{ $t('general.empty') }}
       </div>

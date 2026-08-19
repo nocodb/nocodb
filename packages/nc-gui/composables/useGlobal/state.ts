@@ -156,6 +156,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isOnPrem: false,
     isPostgres: false,
     isAirgapped: false,
+    managedGatewayEnabled: true,
     seatLimit: null,
     isTrial: false,
     isTrialExpired: false,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { FormulaDataTypes, UITypes, isFormulaNonFiniteValue } from 'nocodb-sdk'
 import { defaultOffscreen2DContext } from './grid/canvas/utils/canvas'
 
 interface Props {
@@ -27,6 +27,14 @@ const { showNull } = useGlobal()
 const isNumericField = computed(() => {
   return isNumericFieldType(column.value, null)
 })
+
+// Only a numeric formula can carry a pg IEEE value; a string formula returning
+// the literal "Infinity" is an ordinary result and must not get the error style.
+const isNonFiniteResult = computed(
+  () =>
+    (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC &&
+    isFormulaNonFiniteValue(cellValue?.value),
+)
 
 const showAsLongText = computed(() => {
   if (!width.value || !isTextArea(column.value)) return false
@@ -58,7 +66,10 @@ provide(ColumnInj, column)
       'nc-grid-numeric-cell-right': isGrid && isNumericField && !isExpandedFormOpen && !isRating(column),
     }"
   >
-    <template v-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
+    <template v-if="isNonFiniteResult">
+      <span class="nc-formula-non-finite text-nc-content-orange-dark">{{ cellValue }}</span>
+    </template>
+    <template v-else-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
       <CellText model-value="NULL" />
     </template>
     <CellCheckbox v-else-if="isBoolean(column)" :model-value="cellValue" />

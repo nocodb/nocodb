@@ -9,6 +9,15 @@ import commonFns, {
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
+import {
+  ieeeLogBaseSql,
+  ieeeLogSql,
+  ieeeModuloSql,
+  ieeePowerSql,
+  ieeeSqrtSql,
+  isFiniteSql,
+  stripNaNSql,
+} from '~/db/formulav2/pg-ieee';
 import { convertUnits } from '~/helpers/convertUnits';
 import {
   getWeekdayByText,
@@ -77,10 +86,60 @@ const pg = {
   ...commonFns,
   LEN: 'length',
   MIN: 'least',
-  MAX: 'greatest',
+  // pg's GREATEST ranks NaN above every number, so MAX(NaN, 5) is NaN — IEEE
+  // maxNum ignores NaN and returns 5. LEAST needs no guard for the same reason
+  // it is already correct: NaN being largest means it never wins a minimum.
+  // `greatest` is the same handler under the name older columns stored: when a
+  // mapping is a plain string alias, mapFunctionName rewrites pt.callee.name and
+  // that rewritten tree is persisted, so a MAX column created before this became
+  // a function still arrives as `greatest` and would otherwise skip the guard.
+  GREATEST: async (args: MapFnArgs) => pg.MAX(args),
+  MAX: async ({ fn, knex, pt }: MapFnArgs) => {
+    const args = await Promise.all(
+      pt.arguments.map(async (arg) => `(${(await fn(arg)).builder})`),
+    );
+    const allNumeric = pt.arguments.every(
+      (arg) => arg.dataType === FormulaDataTypes.NUMERIC,
+    );
+    if (!allNumeric) {
+      return { builder: knex.raw(`greatest(${args.join(', ')})`) };
+    }
+    // Strip NaN from the operands, then fall back to the unstripped form so an
+    // all-NaN argument list still yields NaN instead of blanking.
+    const stripped = args.map((arg) => stripNaNSql(arg));
+    return {
+      builder: knex.raw(
+        `COALESCE(greatest(${stripped.join(', ')}), greatest(${args.join(
+          ', ',
+        )}))`,
+      ),
+    };
+  },
   CEILING: 'ceil',
-  POWER: 'pow',
-  SQRT: 'sqrt',
+  // `pow` is the same handler under the name older columns stored: a plain
+  // string mapping rewrites pt.callee.name and that tree is persisted, so a
+  // POWER column created before this became a function still arrives as `pow`.
+  // Same reason GREATEST exists above. SQRT needs no twin — 'sqrt' uppercases
+  // back to SQRT, so it keeps hitting its own key.
+  POW: async (args: MapFnArgs) => pg.POWER(args),
+  POWER: async ({ fn, knex, pt }: MapFnArgs) => {
+    const base = (await fn(pt.arguments[0])).builder;
+    const exponent = (await fn(pt.arguments[1])).builder;
+    return { builder: knex.raw(ieeePowerSql(`${base}`, `${exponent}`)) };
+  },
+  LOG: async ({ fn, knex, pt }: MapFnArgs) => {
+    if (pt.arguments.length > 1) {
+      const base = (await fn(pt.arguments[0])).builder;
+      const value = (await fn(pt.arguments[1])).builder;
+      return { builder: knex.raw(ieeeLogBaseSql(`${base}`, `${value}`)) };
+    }
+    const source = (await fn(pt.arguments[0])).builder;
+    return { builder: knex.raw(ieeeLogSql(`${source}`)) };
+  },
+  SQRT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return { builder: knex.raw(ieeeSqrtSql(`${source}`)) };
+  },
   SEARCH: async (args: MapFnArgs) => {
     const needle = (await args.fn(args.pt.arguments[1])).builder;
     const source = (await args.fn(args.pt.arguments[0])).builder;
@@ -113,8 +172,15 @@ const pg = {
       ? (await fn(pt.arguments[1])).builder
       : 0;
 
+    // ROUND is numeric-only, and casting ±Infinity/NaN to numeric raises on
+    // pg < 14. Rounding a non-finite value is the value itself anyway.
     return {
-      builder: knex.raw(`ROUND((?)::numeric, ?)`, [source, precision]),
+      builder: knex.raw(
+        `(CASE WHEN ${isFiniteSql(
+          `(?)`,
+        )} THEN ROUND((?)::numeric, ?) ELSE (?) END)`,
+        [source, source, precision, source],
+      ),
     };
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
@@ -373,9 +439,7 @@ const pg = {
   MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;
     const y = (await fn(pt.arguments[1])).builder;
-    return {
-      builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC)`),
-    };
+    return { builder: knex.raw(ieeeModuloSql(`${x}`, `${y}`)) };
   },
   REGEX_MATCH: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;

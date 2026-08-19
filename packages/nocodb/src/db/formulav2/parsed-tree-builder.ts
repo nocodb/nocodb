@@ -9,6 +9,13 @@ import {
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../mapFunctionName';
+import {
+  coalesceNumericOperand,
+  ieeeDivisionSql,
+  ieeeModuloSql,
+  isPgClient,
+  stripNaNSql,
+} from './pg-ieee';
 import type {
   BinaryExpressionNode,
   ComparisonOperator,
@@ -466,6 +473,11 @@ export const binaryExpressionBuilder = async ({
     }
   }
 
+  // The `/` rewrite below replaces the operand nodes with FLOAT() wrappers that
+  // carry no dataType, so capture the operand types first.
+  const leftDataType = pt.left.dataType;
+  const rightDataType = pt.right.dataType;
+
   if (pt.operator === '/') {
     pt.left = {
       callee: { name: 'FLOAT' },
@@ -483,6 +495,25 @@ export const binaryExpressionBuilder = async ({
 
   let left = (await fn(pt.left, pt.operator)).builder.toQuery();
   let right = (await fn(pt.right, pt.operator)).builder.toQuery();
+
+  // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
+  // Applied in every mode, not just display: if display coalesced but sort did
+  // not, a blank operand would render as a number yet sort as NULL.
+  if (
+    isPgClient(knex) &&
+    ['+', '-', '*', '/', '%', '<', '>', '<=', '>=', '=', '!='].includes(
+      pt.operator,
+    )
+  ) {
+    // `/` operands are numeric by construction — FLOAT()-wrapped above.
+    const isDivision = pt.operator === '/';
+    if (isDivision || leftDataType === FormulaDataTypes.NUMERIC) {
+      left = coalesceNumericOperand(left, knex);
+    }
+    if (isDivision || rightDataType === FormulaDataTypes.NUMERIC) {
+      right = coalesceNumericOperand(right, knex);
+    }
+  }
 
   // Ordering comparisons (<, <=, >, >=) need numeric operands. A formula can put
   // a text-typed expression on one side — e.g. IF(cond, "", <number>), whose
@@ -521,6 +552,18 @@ export const binaryExpressionBuilder = async ({
       pt.left.dataType === FormulaDataTypes.NUMERIC
     ) {
       right = toSafeNumeric(right);
+    }
+
+    // Same rule the filter layer applies to gt/lt/gte/lte: NaN satisfies no
+    // ordering comparison. Without this a divide-by-zero row takes the true
+    // branch of `> 100`, silently flipping the IF around it.
+    if (isPgClient(knex)) {
+      if (pt.left.dataType === FormulaDataTypes.NUMERIC) {
+        left = stripNaNSql(left);
+      }
+      if (pt.right.dataType === FormulaDataTypes.NUMERIC) {
+        right = stripNaNSql(right);
+      }
     }
   }
 
@@ -672,6 +715,20 @@ export const binaryExpressionBuilder = async ({
         isMssql || isOracle
           ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
           : `(CASE WHEN ${sql} THEN true ELSE false END )`;
+    } else if (pt.operator === '/' && isPgClient(knex)) {
+      // Operands are already DOUBLE PRECISION via the FLOAT() wrap above, so
+      // the IEEE branches unify as float8 — `numeric` could not hold Infinity
+      // before PG 14.
+      // Always the IEEE form: a divide-by-zero is a value, not a mode. The
+      // one consumer that cannot take it — aggregation — drops non-finite rows
+      // at its own site (excludeNonFiniteSql), so nothing has to be threaded
+      // through the recursion here.
+      sql = ieeeDivisionSql(left, right);
+    } else if (pt.operator === '%' && isPgClient(knex)) {
+      // `%` is the operator spelling of MOD(), so it gets MOD's lowering. It
+      // needs it: the COALESCE above turns a blank divisor into a literal 0,
+      // which pg rejects with `division by zero` instead of returning NULL.
+      sql = ieeeModuloSql(left, right);
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({

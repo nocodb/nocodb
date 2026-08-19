@@ -117,6 +117,7 @@ import {
   extractSortsObject,
   formatDataForAudit,
   getBaseModelSqlFromModelId,
+  getAs,
   getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
@@ -130,6 +131,7 @@ import {
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
+import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
 import { attachmentRefResolvesToStorage } from '~/helpers/attachmentHelpers';
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import getAst from '~/helpers/getAst';
@@ -195,6 +197,7 @@ const INSERT_REGEX = /^(\(|)insert/i;
 
 export interface ExecAndParseOptions {
   skipDateConversion?: boolean;
+  skipFormulaNonFiniteConversion?: boolean;
   skipAttachmentConversion?: boolean;
   skipSubstitutingColumnIds?: boolean;
   skipUserConversion?: boolean;
@@ -7285,6 +7288,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     dependencyColumns?: Column[],
     options: ExecAndParseOptions = {
       skipDateConversion: false,
+      skipFormulaNonFiniteConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
@@ -7359,6 +7363,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = this.convertDateFormat(data, dependencyColumns);
     }
     _perf?.mark('date');
+
+    // stringify pg IEEE formula values (Infinity/-Infinity/NaN)
+    if (!options.skipFormulaNonFiniteConversion) {
+      data = this.convertFormulaNonFinite(data, dependencyColumns);
+    }
+    _perf?.mark('formulaNonFinite');
 
     // update user fields
     if (!options.skipUserConversion) {
@@ -8493,6 +8503,43 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     }
     return data;
+  }
+
+  // PG returns float8 Infinity/-Infinity/NaN as JS numbers, and JSON.stringify
+  // collapses all three to null — indistinguishable from a real NULL. Convert
+  // them to strings before serialization. PG-only: no other dialect can produce
+  // a non-finite value here.
+  public convertFormulaNonFinite(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Record<string, any>[];
+  public convertFormulaNonFinite(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Record<string, any>;
+  public convertFormulaNonFinite(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ) {
+    if (!data || !this.isPg) return data;
+
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const formulaColumns = columns?.filter(
+      (c) => c.uidt === UITypes.Formula,
+    );
+    if (!formulaColumns?.length) return data;
+
+    const apply = (d: Record<string, any>) => {
+      if (!d) return d;
+      for (const col of formulaColumns) {
+        // The select is aliased with getAs (asId || id), not the raw id.
+        const key = getAs(col);
+        if (key in d) d[key] = mapNonFiniteToString(d[key]);
+      }
+      return d;
+    };
+
+    return Array.isArray(data) ? data.map(apply) : apply(data);
   }
 
   async addLinks(params: {

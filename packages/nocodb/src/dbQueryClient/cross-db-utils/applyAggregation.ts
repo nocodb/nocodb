@@ -1,10 +1,16 @@
-import { UITypes, validateAggregationColType } from 'nocodb-sdk';
+import {
+  FormulaDataTypes,
+  NumericalAggregations,
+  UITypes,
+  validateAggregationColType,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
+import { excludeNonFiniteSql } from '~/db/formulav2/pg-ieee';
 import { DBQueryClient } from '~/dbQueryClient';
 
 export interface ApplyAggregationParams {
@@ -86,7 +92,7 @@ export async function applyAggregation({
    * These column types require special handling because they are virtual columns and do not have a direct column name.
    * We generate the select query for these columns and use the generated query.
    * */
-  const column_name_query = (
+  let column_name_query = (
     await getColumnNameQuery({
       baseModelSqlv2,
       column,
@@ -95,6 +101,25 @@ export async function applyAggregation({
   ).builder;
 
   const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
+
+  // A pg numeric formula resolves to the IEEE value the cell shows, and a
+  // single NaN would take SUM/AVG/MAX for the whole column with it. Drop the
+  // non-finite rows to NULL so they are skipped instead. Numeric aggregations
+  // only — an Infinity cell is not empty, so the count family must keep seeing
+  // it. Cells, filters, sorts and group keys all want the value itself.
+  if (
+    column.uidt === UITypes.Formula &&
+    parsedFormulaType === FormulaDataTypes.NUMERIC &&
+    baseModelSqlv2.isPg &&
+    Object.values(NumericalAggregations).includes(aggregation as any) &&
+    typeof column_name_query !== 'string'
+  ) {
+    // excludeNonFiniteSql mentions the expression twice, so it needs two binds.
+    column_name_query = baseModelSqlv2.dbDriver.raw(excludeNonFiniteSql('??'), [
+      column_name_query,
+      column_name_query,
+    ]) as any;
+  }
 
   return DBQueryClient.fromKnex(baseModelSqlv2.dbDriver).generateAggregateQuery(
     {

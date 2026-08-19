@@ -93,6 +93,33 @@ const sqlNullIfBlank = ({
 };
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
+  // pg ranks NaN above every number, so ordering group keys by the raw value
+  // puts the NaN group last while the rows inside it sort NaN first (see
+  // FormulaGeneralHandler.applySort). Rank NaN below -Infinity here too, or the
+  // group list and its contents disagree about the same column.
+  const applyIeeeNanRank = (
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: string,
+    nulls: 'FIRST' | 'LAST',
+  ) => {
+    if (!baseModel.isPg || column.uidt !== UITypes.Formula) return;
+    if (
+      (column.colOptions as FormulaColumn)?.getParsedTree?.()?.dataType !==
+      FormulaDataTypes.NUMERIC
+    ) {
+      return;
+    }
+    qb.orderBy(
+      baseModel.dbDriver.raw(`??.?? <> 'NaN'::double precision`, [
+        'g',
+        getAs(column),
+      ]) as any,
+      direction,
+      nulls,
+    );
+  };
+
   // Wrap a subquery as a derived table with an alias, deferring the dialect's
   // table-alias syntax to the query client (Oracle forbids `AS` on a table
   // alias; the rest use `(..) as ..`).
@@ -666,6 +693,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
+          applyIeeeNanRank(outerQb, column, sort.direction, 'FIRST');
           outerQb.orderBy(
             baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
@@ -679,6 +707,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             ['g', getAs(column), 'g', getAs(column)],
           );
         } else {
+          applyIeeeNanRank(
+            outerQb,
+            column,
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+          );
           outerQb.orderBy(
             baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,

@@ -1,4 +1,4 @@
-import { ClientType } from 'nocodb-sdk';
+import { ClientType, FormulaDataTypes, isNumericCol } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Column, FormulaColumn } from '~/models';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer/index';
@@ -10,6 +10,7 @@ import {
 import { ROOT_ALIAS } from '~/utils';
 import { _wherePk } from '~/helpers/dbHelpers';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { excludeNonFiniteSql } from '~/db/formulav2/pg-ieee';
 
 /*
  result from formula qb:
@@ -50,6 +51,28 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
       offset,
     });
 
+    const formulaBuilder = (
+      await formulaQueryBuilderv2({
+        baseModel: baseModelSqlV2,
+        tree: formulaColumnOption.formula_raw,
+        model: baseModelSqlV2.model,
+        column: formulaColumn,
+        validateFormula: false,
+        tableAlias: formulaValueTableAlias,
+        parsedTree: formulaColumnOption.getParsedTree(),
+      })
+    ).builder;
+
+    // The resolved formula is the IEEE value, UPDATEd straight into the
+    // destination. Number is bigint and Rating an int (both raise `out of
+    // range`), and numeric only gained Infinity/NaN in pg 14; float8 Percent
+    // holds them but reads back as null. Text is left unwrapped — there the
+    // token survives the conversion intact.
+    const excludeNonFinite =
+      isNumericCol(destinationColumn) &&
+      formulaColumnOption.getParsedTree()?.dataType ===
+        FormulaDataTypes.NUMERIC;
+
     const formulaValueTable = knex(
       baseModelSqlV2.getTnPath(
         baseModelSqlV2.model.table_name,
@@ -57,17 +80,16 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
       ),
     )
       .select({
-        [formulaColumnAlias]: (
-          await formulaQueryBuilderv2({
-            baseModel: baseModelSqlV2,
-            tree: formulaColumnOption.formula_raw,
-            model: baseModelSqlV2.model,
-            column: formulaColumn,
-            validateFormula: false,
-            tableAlias: formulaValueTableAlias,
-            parsedTree: formulaColumnOption.getParsedTree(),
-          })
-        ).builder,
+        [formulaColumnAlias]: excludeNonFinite
+          ? // builder escapes its own `?` so knex won't bind them; toQuery()
+            // strips that escape, so re-apply it before re-wrapping. Same dance
+            // as genRollupSelectv2.
+            knex.raw(
+              excludeNonFiniteSql(
+                `(${formulaBuilder.toQuery().replaceAll('?', '\\?')})`,
+              ),
+            )
+          : formulaBuilder,
         ...getPrimaryKeySelectColumns({
           model: baseModelSqlV2.model,
           sourceTable: formulaValueTableAlias,

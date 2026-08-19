@@ -10,6 +10,7 @@ export * from './formula/operators';
 export * from './formula/types';
 export * from './formula/validate-extract-tree';
 export * from './formula/jsepInstances';
+export * from './formula/non-finite';
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,

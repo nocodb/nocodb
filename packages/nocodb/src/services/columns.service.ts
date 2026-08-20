@@ -7976,6 +7976,24 @@ export class ColumnsService implements IColumnsService {
       NcError.badRequest('Column is not a Link/LTAR type');
     }
 
+    // System columns (auto-created HM links to junction tables, etc.) are
+    // hidden in the UI and must never be upgraded — calling convertLinkToV2
+    // on them corrupts the junction-side metadata of the parent M2M.
+    if (column.system) {
+      NcError.badRequest(
+        'Cannot upgrade a system column. Only user-visible Link/LTAR fields can be converted to V2.',
+      );
+    }
+
+    // Junction-table columns are also off-limits — the V2 conversion is a
+    // user-facing operation against user-facing tables.
+    const ownerModel = await Model.get(context, column.fk_model_id);
+    if (ownerModel?.mm) {
+      NcError.badRequest(
+        'Cannot upgrade columns on a junction table. Only user-facing tables can be converted to V2.',
+      );
+    }
+
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,
     );

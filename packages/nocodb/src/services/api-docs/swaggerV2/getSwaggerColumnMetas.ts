@@ -4,7 +4,7 @@ import type { SourcesMap } from '~/services/api-docs/types';
 import type { Column, LinkToAnotherRecordColumn, Model } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
-import type { DriverClient } from '~/utils/nc-config';
+import { DriverClient } from '~/utils/nc-config';
 import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
@@ -64,12 +64,17 @@ async function processColumnToSwaggerField(
         const formulaDataType = column.colOptions.parsed_tree.dataType;
         switch (formulaDataType) {
           case FormulaDataTypes.NUMERIC:
-            // On PostgreSQL sources a division by zero yields an IEEE value —
-            // "Infinity" / "-Infinity" / "NaN" — carried as a string because
-            // JSON cannot represent those numbers. Other dialects return null.
-            field.type = ['number', 'string'];
-            field.description =
-              'Numeric formula result. On PostgreSQL sources division by zero returns the string "Infinity", "-Infinity" or "NaN".';
+            // pg carries the IEEE error values as strings; no other dialect can
+            // produce one. OpenAPI 3.0 has no type arrays, so it must be oneOf.
+            if (dbType === DriverClient.PG) {
+              field.type = undefined;
+              field.oneOf = [{ type: 'number' }, { type: 'string' }];
+              field.description =
+                'Numeric formula result. Division by zero returns the string "Infinity", "-Infinity" or "NaN".';
+            } else {
+              field.type = 'number';
+            }
+            field.nullable = true;
             break;
           case FormulaDataTypes.STRING:
             field.type = 'string';
@@ -272,4 +277,6 @@ export interface SwaggerColumn {
   column: Column;
   items?: any;
   format?: string;
+  oneOf?: any[];
+  nullable?: boolean;
 }

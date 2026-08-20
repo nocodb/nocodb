@@ -28,6 +28,7 @@ import {
   applyNestedLookupLevelLimit,
   loadLookupSortAndLimit,
 } from '~/db/lookupSortLimit';
+import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { NcError } from '~/helpers/catchError';
 import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
 import { Model, View } from '~/models';
@@ -181,6 +182,11 @@ export default async function generateLookupSelectQuery({
 
     await column.getColOptions<LookupColumn>(context);
     let refContext: NcContext;
+    // The related table (aliased `alias`) that the outer lookup's own link
+    // conditions filter on — captured per relation type so those conditions can
+    // be applied to the relation sub-query (mirrors the display path in
+    // ee/dbQueryClient/pg.ts). Nested-lookup levels apply theirs in the loop.
+    let firstLevelRefBaseModel: IBaseModelSqlV2;
     {
       const relationCol = lookupColOpt
         ? await lookupColOpt.getRelationColumn(context)
@@ -231,6 +237,7 @@ export default async function generateLookupSelectQuery({
           model: parentModel,
           dbDriver: knex,
         });
+        firstLevelRefBaseModel = parentBaseModel;
 
         selectQb = knex(
           dbQueryClient.tableAlias(
@@ -273,6 +280,7 @@ export default async function generateLookupSelectQuery({
           model: parentModel,
           dbDriver: knex,
         });
+        firstLevelRefBaseModel = childBaseModel;
 
         selectQb = knex(
           dbQueryClient.tableAlias(
@@ -318,6 +326,7 @@ export default async function generateLookupSelectQuery({
           model: parentModel,
           dbDriver: knex,
         });
+        firstLevelRefBaseModel = parentBaseModel;
 
         selectQb = knex(
           dbQueryClient.tableAlias(
@@ -383,6 +392,22 @@ export default async function generateLookupSelectQuery({
         }
       }
     }
+
+    // Apply the outer lookup's own link conditions ("limit record by filter")
+    // to the first-level relation sub-query. Without this, sort/group-by/rollup
+    // over a filtered lookup ignore its conditions. No-op for LTAR columns or
+    // when conditions are disabled (and a no-op stub in CE).
+    if (column.uidt === UITypes.Lookup && firstLevelRefBaseModel) {
+      await extractLinkRelFiltersAndApply({
+        qb: selectQb,
+        column,
+        alias,
+        table: firstLevelRefBaseModel.model,
+        baseModel: firstLevelRefBaseModel,
+        context: firstLevelRefBaseModel.context,
+      });
+    }
+
     let lookupColumn = lookupColOpt
       ? await lookupColOpt.getLookupColumn(refContext)
       : await getDisplayValueOfRefTable(refContext, column);
@@ -446,6 +471,9 @@ export default async function generateLookupSelectQuery({
 
         let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
         let nestedLookupColOpt: LookupColumn;
+        // Related table (aliased `nestedAlias`) whose columns this nested
+        // lookup's own conditions filter on — captured per relation type below.
+        let nestedLevelRefBaseModel: IBaseModelSqlV2;
 
         if (lookupColumn.uidt === UITypes.Lookup) {
           nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>(
@@ -501,6 +529,7 @@ export default async function generateLookupSelectQuery({
             model: parentModel,
             dbDriver: knex,
           });
+          nestedLevelRefBaseModel = parentBaseModel;
 
           selectQb.join(
             dbQueryClient.tableAlias(
@@ -551,6 +580,7 @@ export default async function generateLookupSelectQuery({
             model: childModel,
             dbDriver: knex,
           });
+          nestedLevelRefBaseModel = childBaseModel;
 
           selectQb.join(
             dbQueryClient.tableAlias(
@@ -621,6 +651,7 @@ export default async function generateLookupSelectQuery({
             model: mmModel,
             dbDriver: knex,
           });
+          nestedLevelRefBaseModel = parentBaseModel;
 
           selectQb
             .innerJoin(
@@ -661,6 +692,21 @@ export default async function generateLookupSelectQuery({
           if (nestedIsSingleTargetV2) {
             selectQb.limit(1);
           }
+        }
+
+        // Apply this intermediate lookup's own link conditions to its joined
+        // rows — the fix for #10150: a lookup over a filtered lookup dropped the
+        // inner lookup's conditions. Only for nested Lookup levels (not plain
+        // LTAR hops); no-op when conditions are disabled / in CE.
+        if (nestedLookupColOpt && nestedLevelRefBaseModel) {
+          await extractLinkRelFiltersAndApply({
+            qb: selectQb,
+            column: lookupColumn,
+            alias: nestedAlias,
+            table: nestedLevelRefBaseModel.model,
+            baseModel: nestedLevelRefBaseModel,
+            context: nestedLevelRefBaseModel.context,
+          });
         }
 
         if (lookupColumn.uidt === UITypes.Lookup)

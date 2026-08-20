@@ -930,13 +930,15 @@ export const isFilterValueConsistOf = <T extends string | string[]>(
   const evalNeedle = needle.toLowerCase().trim();
 
   if (Array.isArray(filterValue)) {
-    const arr = filterValue as string[];
-    const result = arr.some((k) => k.toLowerCase().trim() === evalNeedle);
+    // Array entries are not guaranteed to be strings — a link-row constraint
+    // carries numeric ids, and only the optimised query path scans these.
+    const arr = filterValue as unknown[];
+    const matches = (k: unknown) =>
+      typeof k === 'string' && k.toLowerCase().trim() === evalNeedle;
+    const result = arr.some(matches);
 
     if (result && option?.replace) {
-      const replaced = arr.map((k) =>
-        k.toLowerCase().trim() === evalNeedle ? option.replace! : k,
-      );
+      const replaced = arr.map((k) => (matches(k) ? option.replace! : k));
       return { exists: true, value: replaced as T };
     }
 

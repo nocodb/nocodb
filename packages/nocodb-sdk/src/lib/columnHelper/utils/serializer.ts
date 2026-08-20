@@ -305,8 +305,7 @@ export const serializeCurrencyValue = (
       return value
         .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
         .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
-        .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
-        .trim(); // 4. Trim whitespace from both ends of the string
+        .replace(/[^\d.-]/g, ''); // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces) — the minus is resolved into a sign by serializeDecimalValue
     },
     params
   );

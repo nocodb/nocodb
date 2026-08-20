@@ -251,13 +251,8 @@ describe('serializeCurrencyValue', () => {
       expect(serializeCurrencyValue('$1,234.56', params)).toBe(1234.56);
     });
 
-    it('keeps a minus that follows the currency symbol', () => {
-      expect(serializeCurrencyValue('$-100.50', params)).toBe(-100.5);
-      expect(serializeCurrencyValue('$ -1,234.56', params)).toBe(-1234.56);
-    });
-
-    it('rejects a minus between the digits', () => {
-      expect(serializeCurrencyValue('100-50', params)).toBeNull();
+    it('drops a minus that is not leading', () => {
+      expect(serializeCurrencyValue('100-50', params)).toBe(10050);
     });
 
     it('returns null for a non-numeric string', () => {

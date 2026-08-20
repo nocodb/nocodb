@@ -288,10 +288,9 @@ export const serializeCurrencyValue = (
         columnMeta.currency_locale === 'en-US' ||
         typeof (formatter as any).formatToParts !== 'function'
       ) {
-        // '-' stays inside the class, like the locale-aware path below and
-        // serializeDecimalValue, so a minus after the symbol survives too; the
-        // class strips whitespace as well, so no trim is needed
-        return value?.replace(/[^0-9.-]/g, '');
+        // trim first so a padded minus still sits at index 0, where (?!^-)
+        // spares it; any later minus is still stripped, matching Airtable
+        return value?.trim().replace(/(?!^-)[^0-9.]/g, '');
       }
 
       const { group, decimal } = getGroupDecimalSymbolFromLocale(

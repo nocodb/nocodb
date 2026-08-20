@@ -61,10 +61,14 @@ describe('DecimalHelper', () => {
       expect(helper.serializeValue('\u221299.5', makeParams())).toBe(-99.5);
     });
 
-    // only a leading minus survives — same rule as the currency path and as
-    // extractDecimalFromString, which backs the cell editor
-    it('drops a minus that is not leading', () => {
-      expect(helper.serializeValue('$-99.5', makeParams())).toBe(99.5);
+    // a minus ahead of the digits is the sign, a later one is noise — same rule
+    // as the currency path and as extractDecimalFromString, which backs the
+    // cell editor
+    it('keeps a minus that follows the currency symbol', () => {
+      expect(helper.serializeValue('$-99.5', makeParams())).toBe(-99.5);
+    });
+
+    it('drops a minus that follows the digits', () => {
       expect(helper.serializeValue('100-50', makeParams())).toBe(10050);
     });
 

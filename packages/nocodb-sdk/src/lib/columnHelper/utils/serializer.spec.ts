@@ -147,9 +147,12 @@ describe('serializeDecimalValue', () => {
       );
     });
 
-    // same rule as the currency path — only a leading minus survives
-    it('drops a minus that is not leading', () => {
-      expect(serializeDecimalValue('$-100.50', undefined, params)).toBe(100.5);
+    // a minus ahead of the digits is the sign, wherever the symbol sits
+    it('keeps a minus that follows the currency symbol', () => {
+      expect(serializeDecimalValue('$-100.50', undefined, params)).toBe(-100.5);
+      expect(serializeDecimalValue('$ -1,234.56', undefined, params)).toBe(
+        -1234.56
+      );
     });
   });
 
@@ -204,8 +207,9 @@ describe('serializeDecimalValue', () => {
       expect(serializeDecimalValue('\u221242.5')).toBe(-42.5);
     });
 
-    it('drops a minus that is not leading', () => {
+    it('drops a minus that follows the digits', () => {
       expect(serializeDecimalValue('100-50')).toBe(10050);
+      expect(serializeDecimalValue('1,234.56-')).toBe(1234.56);
     });
   });
 
@@ -252,8 +256,12 @@ describe('serializeIntValue', () => {
     expect(serializeIntValue('\u22121,234.56', params)).toBe(-1234);
   });
 
-  it('drops a minus that is not leading', () => {
-    expect(serializeIntValue('$-1,234.56', params)).toBe(1234);
+  it('keeps a minus that follows the currency symbol', () => {
+    expect(serializeIntValue('$-1,234.56', params)).toBe(-1234);
+  });
+
+  it('drops a minus that follows the digits', () => {
+    expect(serializeIntValue('1,234.56-', params)).toBe(1234);
   });
 
   it('returns null for a non-numeric string', () => {
@@ -293,7 +301,12 @@ describe('serializeCurrencyValue', () => {
       expect(serializeCurrencyValue('$1,234.56', params)).toBe(1234.56);
     });
 
-    it('drops a minus that is not leading', () => {
+    it('keeps a minus that follows the currency symbol', () => {
+      expect(serializeCurrencyValue('$-100.50', params)).toBe(-100.5);
+      expect(serializeCurrencyValue('$ -1,234.56', params)).toBe(-1234.56);
+    });
+
+    it('drops a minus that follows the digits', () => {
       expect(serializeCurrencyValue('100-50', params)).toBe(10050);
     });
 

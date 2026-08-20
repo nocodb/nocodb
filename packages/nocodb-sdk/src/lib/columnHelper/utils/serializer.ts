@@ -91,10 +91,11 @@ export const serializeDecimalValue = (
           cleanedValue = cleanedValue.substring(0, secondIdx);
         }
       }
-      // Remove anything that's not digit, decimal separator, or leading minus
-      cleanedValue = cleanedValue
-        .trim()
-        .replace(new RegExp(`(?!^-)[^\\d\\${decimalSeparator}]`, 'g'), '');
+      // Remove anything that's not a digit, the decimal separator, or a minus
+      cleanedValue = cleanedValue.replace(
+        new RegExp(`[^\\d\\${decimalSeparator}-]`, 'g'),
+        ''
+      );
       // Replace decimal separator with dot
       if (decimalSeparator !== '.') {
         cleanedValue = cleanedValue.replace(
@@ -110,15 +111,20 @@ export const serializeDecimalValue = (
           cleanedValue.substring(dotIdx + 1).replace(/\./g, '');
       }
     } else {
-      cleanedValue = value
-        .replace(/[\s\u00A0]/g, '')
-        .replace(/(?!^-)[^\d.]/g, '');
+      cleanedValue = value.replace(/[^\d.-]/g, '');
     }
+
+    // Phase two — the strips above keep every '-', so the sign is resolved here,
+    // the same way extractDecimalFromString does it for the cell editor: a minus
+    // ahead of the digits is the sign ("-$1", "$-1"); any later one is noise
+    // ("100-50" -> 10050).
+    const isNegative = cleanedValue.startsWith('-');
+    cleanedValue = cleanedValue.replace(/-/g, '');
 
     if (!cleanedValue) return null;
 
     // Try converting the cleaned value to a number
-    const numberValue = Number(cleanedValue);
+    const numberValue = Number(isNegative ? `-${cleanedValue}` : cleanedValue);
 
     // If it's a valid number, return it
     if (!isNaN(numberValue)) {
@@ -288,9 +294,8 @@ export const serializeCurrencyValue = (
         columnMeta.currency_locale === 'en-US' ||
         typeof (formatter as any).formatToParts !== 'function'
       ) {
-        // trim first so a padded minus still sits at index 0, where (?!^-)
-        // spares it; any later minus is still stripped, matching Airtable
-        return value?.trim().replace(/(?!^-)[^0-9.]/g, '');
+        // keep '-' for the sign pass in serializeDecimalValue to resolve
+        return value?.replace(/[^0-9.-]/g, '');
       }
 
       const { group, decimal } = getGroupDecimalSymbolFromLocale(

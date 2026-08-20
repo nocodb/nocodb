@@ -1007,7 +1007,7 @@ export function useCanvasRender({
       // Redraw the bottom border across the fixed region — the fixed-column
       // backgrounds are painted after the shared bottom border and cover its top
       // half. gray-300 (vs gray-200 elsewhere) matches the freeze boundary line.
-      ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
+      ctx.strokeStyle = getColor(themeV4Colors.gray['300'], 'var(--color-gray-200)')
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.moveTo(0, _headerRowHeight)
@@ -2706,7 +2706,8 @@ export function useCanvasRender({
     const x = fixedColsWidth.value - 1 + 0.5
 
     ctx.save()
-    ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
+    // dark: gray-300 glares against the canvas — drop to the border token
+    ctx.strokeStyle = getColor(themeV4Colors.gray['300'], 'var(--color-gray-200)')
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.moveTo(x, 0)

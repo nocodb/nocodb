@@ -91,12 +91,20 @@ async function processColumnToSwaggerField(
         const formulaDataType = column.colOptions.parsed_tree.dataType;
         switch (formulaDataType) {
           case FormulaDataTypes.NUMERIC:
-            // On PostgreSQL sources a division by zero yields an IEEE value —
-            // "Infinity" / "-Infinity" / "NaN" — carried as a string because
-            // JSON cannot represent those numbers. Other dialects return null.
-            field.type = ['number', 'string', 'null'];
-            field.description =
-              'Numeric formula result. On PostgreSQL sources division by zero returns the string "Infinity", "-Infinity" or "NaN".';
+            // pg carries the IEEE error values as strings; no other dialect can
+            // produce one. anyOf rather than a type array — generators handle a
+            // branch list far better than a multi-type, and it matches how the
+            // rest of this file expresses a union. No null branch — it survives
+            // the 3.1 -> 3.0 downgrade verbatim and progenitor rejects it; and
+            // `nullable` is no substitute, ajv won't compile it without `type`.
+            if (dbType === DriverClient.PG) {
+              field.type = undefined;
+              field.anyOf = [{ type: 'number' }, { type: 'string' }];
+              field.description =
+                'Numeric formula result. Division by zero returns the string "Infinity", "-Infinity" or "NaN".';
+            } else {
+              field.type = ['number', 'null'];
+            }
             break;
           case FormulaDataTypes.STRING:
             field.type = ['string', 'null'];

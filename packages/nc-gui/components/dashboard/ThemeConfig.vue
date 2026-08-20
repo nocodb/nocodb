@@ -4,18 +4,8 @@
  * per-token fine-tuning. Opened from the user menu; mounted once in app.vue.
  */
 
-const {
-  isThemeConfigOpen,
-  selectedTheme,
-  setTheme,
-  isDark,
-  darkPalette,
-  activeDarkPaletteValues,
-  isDefaultDarkPalette,
-  setDarkPreset,
-  setDarkPaletteToken,
-  resetDarkPalette,
-} = useTheme()
+const { isThemeConfigOpen, selectedTheme, setTheme, darkPalette, activeDarkPaletteValues, setDarkPreset, setDarkPaletteToken } =
+  useTheme()
 
 const { $e } = useNuxtApp()
 
@@ -62,11 +52,6 @@ const onTokenInput = (key: string, event: Event) => {
   const value = (event.target as HTMLInputElement).value
   setDarkPaletteToken(key, value)
   $e('c:theme:token', { token: key })
-}
-
-const onReset = () => {
-  resetDarkPalette()
-  $e('c:theme:reset')
 }
 
 const close = () => {
@@ -117,20 +102,8 @@ const close = () => {
 
         <!-- dark palette presets -->
         <div class="flex flex-col gap-2">
-          <div class="flex items-center gap-2">
-            <div class="nc-theme-config-section-title">{{ $t('labels.themeConfig.darkPalette') }}</div>
-            <div class="flex-1" />
-            <NcButton
-              v-if="!isDefaultDarkPalette"
-              size="xsmall"
-              type="text"
-              data-testid="nc-theme-palette-reset"
-              @click="onReset"
-            >
-              {{ $t('general.reset') }}
-            </NcButton>
-          </div>
-          <div v-if="!isDark" class="text-tiny text-nc-content-gray-muted -mt-1">
+          <div class="nc-theme-config-section-title">{{ $t('labels.themeConfig.darkPalette') }}</div>
+          <div class="text-tiny text-nc-content-gray-muted -mt-1">
             {{ $t('labels.themeConfig.darkPaletteHint') }}
           </div>
           <div class="flex flex-col gap-1.5">

@@ -165,6 +165,7 @@ const _ = (window as any).ResizeObserver
     </div>
   </ErrorBoundary>
 
+  <LazyDashboardThemeConfig />
   <LazyChatPanel />
   <LazyChatFab />
   <LazySandboxChangelogDrawer />

@@ -351,6 +351,7 @@
     "optional": "Optional",
     "none": "None",
     "light": "Light",
+    "dark": "Dark",
     "medium": "Medium",
     "paragraph": "Paragraph",
     "done": "Done",
@@ -1592,7 +1593,8 @@
     "countOfTotal": "{count} of {total}",
     "hierarchyNotConfigured": "Hierarchy Not Configured",
     "theListIsEmpty": "The list is empty",
-    "tooNarrowToAdjustFrozenFields": "Window is too narrow to adjust frozen fields"
+    "tooNarrowToAdjustFrozenFields": "Window is too narrow to adjust frozen fields",
+    "themeSettings": "Theme settings"
   },
   "labels": {
     "theme": "Theme",
@@ -2866,7 +2868,6 @@
     "viewMode": "View mode",
     "whoCanEdit": "Who can edit",
     "moveTo": "Move to...",
-    "newFolder": "New folder",
     "removeFromFolder": "Remove from folder",
     "newViewFolder": "New view folder",
     "removeFromViewFolder": "Remove from view folder",
@@ -3917,7 +3918,23 @@
     "viaTeam": "via {team}",
     "requests": "Requests",
     "record": "Record",
-    "resetToOneFrozenField": "Reset to 1 frozen field"
+    "resetToOneFrozenField": "Reset to 1 frozen field",
+    "themeConfig": {
+      "darkPalette": "Dark palette",
+      "darkPaletteHint": "Applies when dark mode is active.",
+      "miniSidebar": "Mini sidebar",
+      "sidebar": "Sidebar",
+      "content": "Content",
+      "canvas": "Canvas",
+      "elevated": "Popovers & modals",
+      "input": "Input fill",
+      "hover": "Hover",
+      "gridLines": "Grid lines",
+      "borders": "Borders",
+      "selection": "Selection",
+      "text": "Text",
+      "mutedText": "Muted text"
+    }
   },
   "activity": {
     "useTemplate": "Use template",

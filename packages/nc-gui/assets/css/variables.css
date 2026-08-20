@@ -481,6 +481,9 @@
   --nc-bg-canvas: #1d1d1f;
   --rgb-nc-bg-canvas: 29, 29, 31;
   --nc-bg-input: #171717;
+  /* tooltips sit above every surface — historically a fixed lifted gray */
+  --nc-bg-tooltip: #3a3f4b;
+  --rgb-nc-bg-tooltip: 58, 63, 75;
 
   --color-base-none: #ffffff00;
 

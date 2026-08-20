@@ -270,12 +270,19 @@ const onClick = () => {
 }
 .nc-tooltip-dark {
   .ant-tooltip-inner {
-    @apply !px-2 !py-1 !rounded-lg !bg-gray-800 dark:!bg-nc-bg-gray-medium;
+    @apply !px-2 !py-1 !rounded-lg !bg-gray-800;
   }
 
   .ant-tooltip-arrow-content {
-    @apply !bg-gray-800 dark:!bg-nc-bg-gray-medium;
+    @apply !bg-gray-800;
   }
+}
+
+/* dark: tooltip surface comes from the palette's tooltip token (classic keeps the
+   historical #3a3f4b) — plain CSS so it can't be dropped by a utility variant */
+[theme='dark'] .nc-tooltip-dark .ant-tooltip-inner,
+[theme='dark'] .nc-tooltip-dark .ant-tooltip-arrow-content {
+  background-color: var(--nc-bg-tooltip) !important;
 }
 
 .nc-tooltip-light {

@@ -7,6 +7,10 @@
 const { isThemeConfigOpen, selectedTheme, setTheme, darkPalette, activeDarkPaletteValues, setDarkPreset, setDarkPaletteToken } =
   useTheme()
 
+const { isMobileMode } = useGlobal()
+
+const { isRtl } = useRtl()
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -62,8 +66,8 @@ const close = () => {
 <template>
   <a-drawer
     v-model:visible="isThemeConfigOpen"
-    placement="right"
-    :width="340"
+    :placement="isRtl ? 'left' : 'right'"
+    :width="isMobileMode ? 'min(95vw, 458px)' : 'min(32vw, 458px)'"
     :closable="false"
     :body-style="{ padding: '0' }"
     :mask-style="{ backgroundColor: 'transparent' }"
@@ -72,9 +76,10 @@ const close = () => {
   >
     <div class="flex flex-col h-full">
       <!-- header -->
-      <div class="flex items-center gap-2 px-4 h-12 flex-shrink-0 border-b-1 border-nc-border-gray-light">
+      <div class="flex items-center gap-2 px-4 h-[var(--toolbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
         <GeneralIcon icon="palette" class="w-4 h-4 text-nc-content-gray-muted" />
         <span class="text-nc-content-gray font-semibold">{{ $t('title.themeSettings') }}</span>
+        <NcBadgeBeta />
         <div class="flex-1" />
         <NcButton size="xsmall" type="text" data-testid="nc-theme-config-close" @click="close">
           <GeneralIcon icon="close" class="w-4 h-4" />
@@ -165,7 +170,22 @@ const close = () => {
 <style lang="scss">
 .nc-theme-config-drawer {
   .ant-drawer-content-wrapper {
+    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)] border-1 border-r-0 border-nc-border-gray-medium;
     box-shadow: -8px 0 24px rgba(0, 0, 0, 0.16);
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh_-_48px)];
+    }
+
+    @supports (height: 100svh) {
+      @apply h-[calc(100svh_-_48px)];
+    }
+  }
+}
+
+.rtl .nc-theme-config-drawer {
+  .ant-drawer-content-wrapper {
+    @apply !rounded-l-none !rounded-r-xl !border-l-0 !border-r-1;
   }
 }
 </style>

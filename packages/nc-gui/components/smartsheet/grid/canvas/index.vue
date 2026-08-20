@@ -4173,9 +4173,13 @@ watch(
 
 <style lang="scss">
 .nc-field-description-popover {
-  @apply bg-gray-800 text-white rounded-lg text-xs shadow-lg dark:!bg-nc-bg-gray-medium;
+  @apply bg-gray-800 text-white rounded-lg text-xs shadow-lg;
   max-width: 320px;
   z-index: 1000;
+}
+
+[theme='dark'] .nc-field-description-popover {
+  background-color: var(--nc-bg-tooltip);
 }
 
 .nc-field-description-popover-body {

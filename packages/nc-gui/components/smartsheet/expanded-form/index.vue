@@ -1138,11 +1138,6 @@ export default {
   @apply w-full text-nc-content-gray-muted !font-weight-500 xs:(text-nc-content-gray-subtle2 mb-2 !text-small) pr-3;
   font-size: 13px !important;
 
-  /* dark: muted reads too dim against the filled inputs — lift labels one step */
-  [theme='dark'] & {
-    @apply !text-nc-content-gray-subtle;
-  }
-
   svg.nc-cell-icon,
   svg.nc-virtual-cell-icon {
     @apply !w-3.5 !h-3.5;

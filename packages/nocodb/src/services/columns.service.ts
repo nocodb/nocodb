@@ -5197,6 +5197,25 @@ export class ColumnsService implements IColumnsService {
               ncMeta,
             );
 
+          // No relation row at all — a deeper orphan than the child/parent check
+          // below, which still needs one to resolve either side. There is nothing
+          // to tear down and no `fk_mm_model_id` to find, so drop the column meta;
+          // otherwise every delete attempt 500s and the field is unremovable.
+          if (!relationColOpt) {
+            this.logger.warn(
+              `Orphaned LTAR column ${param.columnId} — no relation metadata, deleting column meta only`,
+            );
+            await Column.delete2(
+              context,
+              {
+                id: param.columnId,
+                ...generateColumnDeleteHandler(columnWebhookManager),
+              },
+              ncMeta,
+            );
+            break;
+          }
+
           const { childContext, parentContext, mmContext } =
             await relationColOpt.getParentChildContext(context);
           const childColumn = await relationColOpt.getChildColumn(

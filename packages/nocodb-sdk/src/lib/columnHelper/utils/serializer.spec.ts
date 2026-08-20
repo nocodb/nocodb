@@ -2,6 +2,7 @@ import {
   serializeCurrencyValue,
   serializeDecimalValue,
   serializeExcelDateValue,
+  serializeIntValue,
 } from './serializer';
 import { parseCurrencyValue } from './parser';
 import { SeparatorType } from './common';
@@ -229,6 +230,34 @@ describe('serializeDecimalValue', () => {
       } as any;
       expect(serializeDecimalValue('1.23', undefined, params)).toBe(1.23);
     });
+  });
+});
+
+describe('serializeIntValue', () => {
+  const params = makeParams(SeparatorType.CommaPeriod);
+
+  it('truncates the fractional part', () => {
+    expect(serializeIntValue('1,234.56', params)).toBe(1234);
+  });
+
+  it('keeps a leading minus', () => {
+    expect(serializeIntValue('-1,234.56', params)).toBe(-1234);
+  });
+
+  it('keeps a leading minus padded with whitespace', () => {
+    expect(serializeIntValue(' -1,234.56 ', params)).toBe(-1234);
+  });
+
+  it('keeps a U+2212 minus sign', () => {
+    expect(serializeIntValue('\u22121,234.56', params)).toBe(-1234);
+  });
+
+  it('drops a minus that is not leading', () => {
+    expect(serializeIntValue('$-1,234.56', params)).toBe(1234);
+  });
+
+  it('returns null for a non-numeric string', () => {
+    expect(serializeIntValue('abc', params)).toBeNull();
   });
 });
 

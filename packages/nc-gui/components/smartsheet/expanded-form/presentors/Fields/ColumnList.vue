@@ -357,8 +357,13 @@ function onCellValueChange(colTitle: string | undefined) {
   @apply !rounded-lg;
   transition: all 0.3s;
 
-  // dark: filled inputs — tinted overlay from the palette's input token
-  [theme='dark'] &:not(.nc-data-cell-compact):not(.nc-system-field) {
+  // dark: filled inputs — tinted overlay from the palette's input token.
+  // Borderless cells (barcode/QR render their own scannable block, buttons are
+  // self-contained) must stay unfilled — a fill with no rim reads as a stray slab.
+  [theme='dark']
+    &:not(.nc-data-cell-compact):not(.nc-system-field):not(:has(.nc-virtual-cell-qrcode)):not(:has(.nc-virtual-cell-barcode)):not(
+      :has(.nc-virtual-cell-button)
+    ) {
     background-color: var(--nc-bg-input);
     border-color: var(--nc-border-input);
   }

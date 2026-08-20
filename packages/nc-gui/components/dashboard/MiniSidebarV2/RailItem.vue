@@ -120,7 +120,9 @@ const isTooltipDisabled = computed(() => {
     @apply text-nc-content-brand;
     background: rgba(0, 0, 0, 0.08);
 
+    // brand-500 on the dark pill is only ~3.5:1 — lift to brand-600 for AA
     :root[theme='dark'] & {
+      @apply text-nc-brand-600;
       background: rgba(255, 255, 255, 0.08);
     }
 

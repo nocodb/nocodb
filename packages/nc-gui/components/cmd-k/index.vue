@@ -638,7 +638,7 @@ defineExpose({
   --cmdk-icon-color: var(--cmdk-secondary-text-color);
   --cmdk-icon-size: 1.2em;
 
-  --cmdk-modal-background: var(--nc-bg-default);
+  --cmdk-modal-background: var(--nc-bg-elevated);
 }
 
 .dark .cmdk-modal {

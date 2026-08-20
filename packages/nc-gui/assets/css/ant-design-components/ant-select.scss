@@ -58,7 +58,8 @@
   // }
 
   .ant-select-selection-placeholder {
-    color: rgba(var(--rgb-base), 0.3);
+    /* 30% white failed AA on tinted inputs — use the palette's muted text token */
+    color: var(--nc-content-gray-muted);
   }
 
   .ant-select-arrow {

@@ -969,7 +969,7 @@ function setFormData() {
     save_draft_to_browser: !!(formViewData.value?.save_draft_to_browser ?? 1),
     meta: {
       hide_branding: false,
-      background_color: '#F9F9FA',
+      background_color: DEFAULT_FORM_BACKGROUND_COLOR,
       hide_banner: false,
       ...(parseProp(formViewData.value?.meta) ?? {}),
     },
@@ -1023,6 +1023,21 @@ const onFormItemClick = (element: any, sidebarClick = false) => {
 
   activeRow.value = element.id
 }
+
+/**
+ * Form page background. The stored default (#F9F9FA) is light gray-50 — in dark mode it must
+ * follow the palette token instead of an adaptive tint, otherwise every dark palette renders
+ * the same computed gray. Colors the user actually picked still adapt.
+ */
+const formBackground = computed(() => {
+  const color = parseProp(formViewData.value?.meta)?.background_color
+
+  if (!color || color.toLowerCase() === DEFAULT_FORM_BACKGROUND_COLOR.toLowerCase()) {
+    return 'var(--nc-bg-gray-extralight)'
+  }
+
+  return getDarkModeCompatibleBgColor({ color, isDark: isDark.value, shade: 0 })
+})
 
 const handleChangeBackground = (color: string) => {
   if (isLocked.value || !isEditable) return
@@ -1351,11 +1366,7 @@ const { message: templatedMessage } = useTemplatedMessage(
       <div
         v-if="submitted"
         class="h-full p-6 overflow-auto nc-scrollbar-thin"
-        :style="{
-          background: parseProp(formViewData?.meta)?.background_color
-            ? getDarkModeCompatibleBgColor({ color: parseProp(formViewData?.meta)?.background_color, isDark, shade: 0 })
-            : 'var(--nc-bg-gray-extralight)',
-        }"
+        :style="{ background: formBackground }"
         data-testid="nc-form-wrapper-submit"
       >
         <div class="max-w-[max(33%,688px)] mx-auto">
@@ -1445,15 +1456,7 @@ const { message: templatedMessage } = useTemplatedMessage(
             <template #preview>
               <div
                 class="nc-form-preview-scroller w-full h-full overflow-auto nc-scrollbar-thin p-6"
-                :style="{
-                  background: parseProp(formViewData?.meta)?.background_color
-                    ? getDarkModeCompatibleBgColor({
-                        color: parseProp(formViewData?.meta)?.background_color,
-                        isDark,
-                        shade: 0,
-                      })
-                    : 'var(--nc-bg-gray-extralight)',
-                }"
+                :style="{ background: formBackground }"
               >
                 <Transition
                   enter-active-class="transition-opacity delay-300 duration-300"

@@ -4,7 +4,7 @@
     color: rgba(var(--rgb-base), 0.85);
     /* filled input — translucent tint stays one step above any surface */
     background: var(--nc-bg-input);
-    border-color: var(--nc-border-gray-medium);
+    border-color: var(--nc-border-input);
   }
 
   .ant-picker:hover,

@@ -1796,6 +1796,7 @@ const unique = computed({
 [theme='dark'] .nc-edit-or-add-provider-wrapper textarea.ant-input.nc-input-text-area.nc-input-shadow,
 [theme='dark'] .nc-edit-or-add-provider-wrapper .nc-default-value-wrapper {
   background-color: var(--nc-bg-input) !important;
+  border-color: var(--nc-border-input);
 }
 </style>
 

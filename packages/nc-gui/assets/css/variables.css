@@ -481,6 +481,7 @@
   --nc-bg-canvas: #1d1d1f;
   --rgb-nc-bg-canvas: 29, 29, 31;
   --nc-bg-input: #171717;
+  --nc-border-input: #3b3d40;
 
   --color-base-none: #ffffff00;
 
@@ -1054,6 +1055,9 @@
   --nc-border-gray-medium: var(--color-gray-200);
   --nc-border-gray-dark: var(--color-gray-300);
   --nc-border-gray-extra-dark: var(--color-gray-400);
+
+  /* outline of filled/tinted inputs — dark palettes may use a translucent rim */
+  --nc-border-input: var(--nc-border-gray-medium);
 
   --nc-border-coloured-red: var(--color-red-500);
   --nc-border-coloured-green: var(--color-green-500);

@@ -228,6 +228,10 @@ describe('serializeCurrencyValue', () => {
       expect(serializeCurrencyValue('-$1,234.56', params)).toBe(-1234.56);
     });
 
+    it('keeps a leading minus padded with whitespace', () => {
+      expect(serializeCurrencyValue(' -100.50 ', params)).toBe(-100.5);
+    });
+
     it('strips symbols and group separators from positive values', () => {
       expect(serializeCurrencyValue('$1,234.56', params)).toBe(1234.56);
     });

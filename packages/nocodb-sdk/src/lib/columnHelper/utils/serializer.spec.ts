@@ -63,6 +63,10 @@ describe('serializeDecimalValue', () => {
       );
     });
 
+    it('keeps a leading minus padded with whitespace', () => {
+      expect(serializeDecimalValue(' -99.5 ', undefined, params)).toBe(-99.5);
+    });
+
     it('truncates at second decimal separator and strips non-numeric', () => {
       // a1,234.5678,45 → no thousand sep removal → first "." at index 6
       // no second "." → stays a1,234.5678,45 → regex removes a and commas → 1234.567845
@@ -141,6 +145,11 @@ describe('serializeDecimalValue', () => {
         -1000000.5
       );
     });
+
+    // same rule as the currency path — only a leading minus survives
+    it('drops a minus that is not leading', () => {
+      expect(serializeDecimalValue('$-100.50', undefined, params)).toBe(100.5);
+    });
   });
 
   describe('PeriodComma ("." thousand, "," decimal)', () => {
@@ -192,6 +201,10 @@ describe('serializeDecimalValue', () => {
 
     it('handles a U+2212 minus sign', () => {
       expect(serializeDecimalValue('\u221242.5')).toBe(-42.5);
+    });
+
+    it('drops a minus that is not leading', () => {
+      expect(serializeDecimalValue('100-50')).toBe(10050);
     });
   });
 

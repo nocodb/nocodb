@@ -93,8 +93,8 @@ export const serializeDecimalValue = (
       }
       // Remove anything that's not digit, decimal separator, or leading minus
       cleanedValue = cleanedValue
-        .replace(new RegExp(`(?!^-)[^\\d\\${decimalSeparator}-]`, 'g'), '')
-        .trim();
+        .trim()
+        .replace(new RegExp(`(?!^-)[^\\d\\${decimalSeparator}]`, 'g'), '');
       // Replace decimal separator with dot
       if (decimalSeparator !== '.') {
         cleanedValue = cleanedValue.replace(
@@ -112,7 +112,7 @@ export const serializeDecimalValue = (
     } else {
       cleanedValue = value
         .replace(/[\s\u00A0]/g, '')
-        .replace(/(?!^-)[^\d.-]/g, '');
+        .replace(/(?!^-)[^\d.]/g, '');
     }
 
     if (!cleanedValue) return null;

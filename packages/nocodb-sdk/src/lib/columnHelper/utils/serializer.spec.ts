@@ -1,4 +1,8 @@
-import { serializeDecimalValue, serializeExcelDateValue } from './serializer';
+import {
+  serializeCurrencyValue,
+  serializeDecimalValue,
+  serializeExcelDateValue,
+} from './serializer';
 import { SeparatorType } from './common';
 import UITypes from '~/lib/UITypes';
 
@@ -201,6 +205,58 @@ describe('serializeDecimalValue', () => {
       } as any;
       expect(serializeDecimalValue('1.23', undefined, params)).toBe(1.23);
     });
+  });
+});
+
+describe('serializeCurrencyValue', () => {
+  function currencyParams(currency_locale?: string) {
+    return {
+      col: {
+        meta: JSON.stringify({ currency_locale, currency_code: 'USD' }),
+      },
+    } as any;
+  }
+
+  describe('en-US (fast path)', () => {
+    const params = currencyParams('en-US');
+
+    it('keeps a leading minus', () => {
+      expect(serializeCurrencyValue('-100.50', params)).toBe(-100.5);
+    });
+
+    it('keeps a leading minus ahead of the currency symbol', () => {
+      expect(serializeCurrencyValue('-$1,234.56', params)).toBe(-1234.56);
+    });
+
+    it('strips symbols and group separators from positive values', () => {
+      expect(serializeCurrencyValue('$1,234.56', params)).toBe(1234.56);
+    });
+
+    it('drops a minus that is not leading', () => {
+      expect(serializeCurrencyValue('100-50', params)).toBe(10050);
+    });
+
+    it('returns null for a non-numeric string', () => {
+      expect(serializeCurrencyValue('abc', params)).toBeNull();
+    });
+  });
+
+  it('applies the same rule when no locale is set', () => {
+    expect(serializeCurrencyValue('-100.50', currencyParams())).toBe(-100.5);
+  });
+
+  it('keeps a leading minus on the locale-aware path', () => {
+    expect(serializeCurrencyValue('-1.234,56', currencyParams('de-DE'))).toBe(
+      -1234.56
+    );
+  });
+
+  it('prefers a numeric clipboard dbCellValue over the string', () => {
+    const params = {
+      ...currencyParams('en-US'),
+      clipboardItem: { dbCellValue: -42.5 },
+    } as any;
+    expect(serializeCurrencyValue('ignored', params)).toBe(-42.5);
   });
 });
 

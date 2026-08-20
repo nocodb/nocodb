@@ -282,7 +282,8 @@ export const serializeCurrencyValue = (
         columnMeta.currency_locale === 'en-US' ||
         typeof (formatter as any).formatToParts !== 'function'
       ) {
-        return value?.replace(/[^0-9.]/g, '')?.trim();
+        // (?!^-) keeps a leading minus while still stripping any later one
+        return value?.replace(/(?!^-)[^0-9.]/g, '')?.trim();
       }
 
       const { group, decimal } = getGroupDecimalSymbolFromLocale(

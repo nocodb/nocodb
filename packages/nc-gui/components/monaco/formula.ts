@@ -43,7 +43,7 @@ const themeDark: editor.IStandaloneThemeData = {
 
   colors: {
     'editor.foreground': '#EDEDED',
-    'editor.background': '#171717',
+    'editor.background': '#23252c',
     'editorCursor.foreground': '#79a8ff',
     'editor.selectionBackground': '#3A3D41',
     'focusBorder': '#1E1E1E',

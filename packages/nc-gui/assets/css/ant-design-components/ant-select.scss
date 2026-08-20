@@ -4,7 +4,7 @@
   }
 
   .ant-select-disabled.ant-select-multiple .ant-select-selector {
-    background: #141414;
+    background: var(--nc-bg-gray-light);
   }
 
   .ant-select-multiple .ant-select-selection-item {
@@ -13,8 +13,8 @@
   }
 
   .ant-select-disabled.ant-select-multiple .ant-select-selection-item {
-    color: #595959;
-    border-color: #1f1f1f;
+    color: var(--nc-content-gray-disabled);
+    border-color: var(--nc-border-gray-light);
   }
 
   .ant-select-multiple .ant-select-selection-item-remove {
@@ -31,7 +31,8 @@
   }
 
   .ant-select:not(.ant-select-customize-input) .ant-select-selector {
-    background-color: transparent;
+    /* filled input — translucent tint stays one step above any surface */
+    background-color: var(--nc-bg-input);
     border: 1px solid var(--nc-border-gray-medium);
   }
 
@@ -48,7 +49,7 @@
   }
 
   .ant-select-multiple.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector {
-    background: #141414;
+    background: var(--nc-bg-gray-light);
   }
 
   // .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
@@ -66,7 +67,7 @@
 
   .ant-select-clear {
     color: rgba(var(--rgb-base), 0.3);
-    background: #141414;
+    background: var(--nc-bg-elevated);
   }
 
   .ant-select-clear:hover {
@@ -75,7 +76,7 @@
 
   .ant-select-dropdown {
     color: rgba(var(--rgb-base), 0.65);
-    background-color: #1f1f1f;
+    background-color: var(--nc-bg-elevated);
     box-shadow: 0 3px 6px -4px #0000007a, 0 6px 16px #00000052, 0 9px 28px 8px #0003;
   }
 
@@ -101,7 +102,7 @@
 
   .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
     color: rgba(var(--rgb-base), 0.65);
-    background-color: #111b26;
+    background-color: var(--nc-bg-brand);
   }
 
   .ant-select-item-option-selected:not(.ant-select-item-option-disabled) .ant-select-item-option-state {
@@ -113,7 +114,7 @@
   }
 
   .ant-select-item-option-disabled.ant-select-item-option-selected {
-    background-color: #141414;
+    background-color: var(--nc-bg-gray-light);
   }
 }
 

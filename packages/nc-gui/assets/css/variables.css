@@ -43,6 +43,18 @@
   --color-base-white: #ffffff;
   --rgb-color-base-white: 255, 255, 255;
 
+  /* Surface tokens (dark-mode refactor) — dedicated backgrounds for chrome,
+     overlays and inputs. Light values match the pre-refactor look exactly. */
+  --color-sidebar-bg: #f9f9fa;
+  --rgb-color-sidebar-bg: 249, 249, 250;
+  --color-minisidebar-bg: #f4f4f5;
+  --rgb-color-minisidebar-bg: 244, 244, 245;
+  --nc-bg-elevated: #ffffff;
+  --rgb-nc-bg-elevated: 255, 255, 255;
+  --nc-bg-canvas: #f9f9fa;
+  --rgb-nc-bg-canvas: 249, 249, 250;
+  --nc-bg-input: #ffffff;
+
   --color-base-none: #ffffff00;
 
   /* 🎨 Brand */
@@ -455,17 +467,30 @@
   --color-base-black: #ffffff;
   --rgb-color-base-black: 255, 255, 255;
 
-  --color-base-white: #171717;
-  --rgb-color-base-white: 23, 23, 23;
+  --color-base-white: #23252c;
+  --rgb-color-base-white: 35, 37, 44;
+
+  /* Surface tokens (dark-mode refactor) — elevation model: mini sidebar darkest,
+     sidebar, content, then overlays/inputs progressively lighter. Input fill is a
+     translucent tint so it stays one step above whatever surface is behind it. */
+  --color-sidebar-bg: #1d1f25;
+  --rgb-color-sidebar-bg: 29, 31, 37;
+  --color-minisidebar-bg: #16181d;
+  --rgb-color-minisidebar-bg: 22, 24, 29;
+  --nc-bg-elevated: #292b32;
+  --rgb-nc-bg-elevated: 41, 43, 50;
+  --nc-bg-canvas: #111215;
+  --rgb-nc-bg-canvas: 17, 18, 21;
+  --nc-bg-input: rgba(195, 212, 249, 0.14);
 
   --color-base-none: #ffffff00;
 
   /* 🎨 Brand */
-  --color-brand-20: #0f1230;
-  --rgb-color-brand-20: 15, 18, 48;
+  --color-brand-20: #161d38;
+  --rgb-color-brand-20: 22, 29, 56;
 
-  --color-brand-50: #141a3a;
-  --rgb-color-brand-50: 20, 26, 58;
+  --color-brand-50: #1e2947;
+  --rgb-color-brand-50: 30, 41, 71;
 
   /* --color-brand-50: #141a57;
   --rgb-color-brand-50: 20, 26, 87; */
@@ -498,23 +523,23 @@
   --rgb-color-brand-900: 238, 244, 255;
 
   /* 🎨 Gray */
-  --color-gray-20: #0b0b0e;
-  --rgb-color-gray-20: 11, 11, 14;
+  --color-gray-20: #14161a;
+  --rgb-color-gray-20: 20, 22, 26;
 
-  --color-gray-50: #1d1d1f;
-  --rgb-color-gray-50: 29, 29, 31;
+  --color-gray-50: #2c2f36;
+  --rgb-color-gray-50: 44, 47, 54;
 
-  --color-gray-100: #2a2c2e;
-  --rgb-color-gray-100: 42, 44, 46;
+  --color-gray-100: #33373f;
+  --rgb-color-gray-100: 51, 55, 63;
 
-  --color-gray-200: #3b3d40;
-  --rgb-color-gray-200: 59, 61, 64;
+  --color-gray-200: #3f434d;
+  --rgb-color-gray-200: 63, 67, 77;
 
-  --color-gray-300: #505257;
-  --rgb-color-gray-300: 80, 82, 87;
+  --color-gray-300: #4d515c;
+  --rgb-color-gray-300: 77, 81, 92;
 
-  --color-gray-400: #6c6f75;
-  --rgb-color-gray-400: 108, 111, 117;
+  --color-gray-400: #6d727d;
+  --rgb-color-gray-400: 109, 114, 125;
 
   --color-gray-500: #989ca5;
   --rgb-color-gray-500: 152, 156, 165;

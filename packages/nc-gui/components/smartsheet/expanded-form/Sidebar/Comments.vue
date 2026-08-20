@@ -977,6 +977,10 @@ onBeforeUnmount(() => {
     @apply !m-0 !leading-5;
   }
 }
+
+[theme='dark'] .expanded-form-comment-input {
+  background-color: var(--nc-bg-input) !important;
+}
 </style>
 
 <style lang="scss">

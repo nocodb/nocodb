@@ -238,4 +238,8 @@ export default {
 .nc-sidebar-resize-handle:hover {
   @apply bg-nc-border-gray-medium;
 }
+
+[theme='dark'] .expanded-form-comment-input {
+  background-color: var(--nc-bg-input) !important;
+}
 </style>

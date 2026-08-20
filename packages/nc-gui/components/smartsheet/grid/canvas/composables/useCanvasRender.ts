@@ -2499,7 +2499,7 @@ export function useCanvasRender({
 
         // Since blur is not working we can use just fill rect
         if (_removeInlineAddRecord && rowIdx >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
-          ctx.fillStyle = getColor('#e7e7e9', '#171717', 0.8)
+          ctx.fillStyle = getColor('#e7e7e9', '#23252c', 0.8)
           ctx.fillRect(0, yOffset, adjustedWidth, _rowH)
 
           ctx.fill()
@@ -4359,7 +4359,8 @@ export function useCanvasRender({
     ctx.save()
     try {
       ctx.clearRect(0, 0, _width, _height)
-      ctx.fillStyle = getColor(themeV4Colors.gray['50'])
+      // dark: recede behind the data rows (--nc-bg-canvas); light: unchanged gray-50
+      ctx.fillStyle = getColor(themeV4Colors.gray['50'], 'var(--nc-bg-canvas)')
       ctx.fillRect(0, 0, _width, _height)
 
       let activeState

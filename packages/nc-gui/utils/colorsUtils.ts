@@ -699,14 +699,17 @@ export const themeVariables = {
   },
   background: {
     'nc-bg-default': themeV4Colors.base.white,
+    // Dedicated surface tokens — chrome and overlays no longer share the gray ramp
+    'nc-bg-elevated': '--rgb-nc-bg-elevated',
+    'nc-bg-canvas': '--rgb-nc-bg-canvas',
     'nc-bg-brand': {
       DEFAULT: themeV4Colors.brand[50],
       inverted: themeV4Colors.brand.inverted,
     },
     'nc-bg-gray': {
       extralight: themeV4Colors.gray[50],
-      sidebar: themeV4Colors.gray[50],
-      minisidebar: themeV4Colors.gray[100],
+      sidebar: '--rgb-color-sidebar-bg',
+      minisidebar: '--rgb-color-minisidebar-bg',
       light: themeV4Colors.gray[100],
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],

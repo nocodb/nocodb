@@ -2,8 +2,13 @@
   .ant-input-number-affix-wrapper {
     color: rgba(var(--rgb-base), 0.65);
     border: 1px solid var(--nc-border-gray-medium);
-    background-color: transparent;
+    /* filled input — translucent tint stays one step above any surface */
+    background-color: var(--nc-bg-input);
     background-image: none;
+  }
+
+  .ant-input-number-affix-wrapper > div.ant-input-number {
+    background-color: transparent;
   }
 
   .ant-input-number-affix-wrapper::placeholder {
@@ -67,7 +72,7 @@
   .ant-input-number {
     color: rgba(var(--rgb-base), 0.65);
     border: 1px solid var(--nc-border-gray-medium);
-    background-color: transparent;
+    background-color: var(--nc-bg-input);
     background-image: none;
   }
 

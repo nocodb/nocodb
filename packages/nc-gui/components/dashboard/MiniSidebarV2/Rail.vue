@@ -421,7 +421,7 @@ const handleOpenBookmarkPanel = () => {
     z-index: 1;
 
     :root[theme='dark'] & {
-      border-color: #161616;
+      border-color: var(--color-minisidebar-bg);
     }
   }
 }

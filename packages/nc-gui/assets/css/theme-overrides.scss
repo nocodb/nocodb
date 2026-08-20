@@ -22,13 +22,13 @@ body {
   @apply !bg-nc-bg-default;
 }
 
-// Dropdown
+// Dropdown — overlays sit on the elevated surface (lighter than content in dark)
 .ant-dropdown {
-  @apply !bg-nc-bg-default text-nc-content-gray;
+  @apply !bg-nc-bg-elevated text-nc-content-gray;
 }
 
 .ant-tabs-dropdown-menu {
-  @apply bg-nc-bg-default text-nc-content-gray;
+  @apply bg-nc-bg-elevated text-nc-content-gray;
 }
 
 // Drawer & Modal
@@ -36,7 +36,7 @@ body {
 .ant-modal-content,
 .ant-modal-header,
 .ant-card {
-  @apply !bg-nc-bg-default;
+  @apply !bg-nc-bg-elevated;
 }
 
 .ant-modal-footer {
@@ -52,7 +52,7 @@ body {
 // Dropdown Menu
 .ant-dropdown-menu.ant-dropdown-menu-root,
 .ant-dropdown-menu.ant-dropdown-menu-sub {
-  @apply !bg-nc-bg-default !text-nc-content-gray;
+  @apply !bg-nc-bg-elevated !text-nc-content-gray;
 
   .ant-dropdown-menu-item {
     &:not(.ant-dropdown-menu-item-disabled) {
@@ -62,7 +62,7 @@ body {
 }
 
 .ant-dropdown-menu-submenu.ant-dropdown-menu-submenu-disabled .ant-dropdown-menu-submenu-title {
-  @apply !bg-nc-bg-default !text-nc-content-gray-disabled;
+  @apply !bg-nc-bg-elevated !text-nc-content-gray-disabled;
 }
 
 .ant-dropdown-menu-submenu.ant-dropdown-menu-submenu-popup {
@@ -75,7 +75,7 @@ body {
 
 .ant-popover-inner,
 .ant-popover-arrow-content {
-  @apply bg-nc-bg-default;
+  @apply bg-nc-bg-elevated;
 }
 
 .ant-dropdown-menu-item,

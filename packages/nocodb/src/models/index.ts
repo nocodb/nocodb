@@ -75,6 +75,7 @@ export { default as Workspace } from './Workspace';
 export { default as DependencyTracker } from './DependencyTracker';
 export { default as ViewSection } from './ViewSection';
 export { default as BaseSection } from './BaseSection';
+export { default as AutomationSection } from './AutomationSection';
 export { default as Widget } from './Widget';
 export { default as Interface } from './Interface';
 export { default as InterfacePage } from './InterfacePage';

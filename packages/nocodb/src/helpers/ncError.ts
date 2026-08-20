@@ -94,6 +94,10 @@ export class NcError {
     return NcError._.baseSectionNotFound(id, args);
   }
 
+  static automationSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.automationSectionNotFound(id, args);
+  }
+
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.sourceNotFound(id, args);
   }

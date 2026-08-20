@@ -140,6 +140,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Folder '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_AUTOMATION_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_TRASH_NOT_FOUND]: {
     message: (id: string) => `Trash entry '${id}' not found`,
     code: 404,

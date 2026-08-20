@@ -30596,6 +30596,11 @@
             "type": "number",
             "description": "Order of the Script"
           },
+          "fk_automation_section_id": {
+            "description": "ID of the automation folder this script is grouped under, if any",
+            "type": "string",
+            "nullable": true
+          },
           "base_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Base ID",
@@ -30689,6 +30694,11 @@
           "order": {
             "description": "The order of the workflow in the list",
             "type": "number"
+          },
+          "fk_automation_section_id": {
+            "description": "ID of the automation folder this workflow is grouped under, if any",
+            "type": "string",
+            "nullable": true
           },
           "updated_at": {
             "type": "string",

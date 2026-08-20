@@ -277,6 +277,13 @@ export interface CaptureBag {
     entity: 'table' | 'document' | 'dashboard';
     order?: number;
   }>;
+  /** Automations that lived in an automation section at delete time —
+   *  carries `order` for the same gap-fill reason as baseSectionChildren. */
+  automationSectionChildren: ReadonlyArray<{
+    id: string;
+    entity: 'workflow' | 'script';
+    order?: number;
+  }>;
   /** Filter ids created as side-effects of `rowColorConditionAdd` (the
    *  inner filter tree).
    */

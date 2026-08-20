@@ -7907,6 +7907,53 @@ export class ColumnsService implements IColumnsService {
   }
 
   /**
+   * Find the link/LTAR column on the other side of a relation. Used by the
+   * convertLinkToV2 inconsistency guard. The paired-finding logic in
+   * convertMMToV2 and the HM/BT/OO branch of convertLinkToV2 is left in
+   * place — this helper is a read-only sibling used before dispatch.
+   */
+  protected async findPairedLinkColumn(
+    context: NcContext,
+    column: Column,
+    colOptions: LinkToAnotherRecordColumn,
+  ): Promise<Column | undefined> {
+    const { refContext } = colOptions.getRelContext(context);
+    const relatedTable = await colOptions.getRelatedTable(refContext);
+    if (!relatedTable) return undefined;
+    const relatedColumns = await relatedTable.getColumns(refContext);
+
+    for (const c of relatedColumns) {
+      if (!isLinksOrLTAR(c.uidt)) continue;
+      if (c.id === column.id) continue;
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+      if (!opts) continue;
+      if (opts.fk_related_model_id !== column.fk_model_id) continue;
+
+      // Junction-table relations (MM, OM, MO): match by junction model and
+      // swapped FK columns (handles self-referencing tables).
+      if (colOptions.fk_mm_model_id) {
+        if (
+          opts.fk_mm_model_id === colOptions.fk_mm_model_id &&
+          opts.fk_mm_child_column_id === colOptions.fk_mm_parent_column_id &&
+          opts.fk_mm_parent_column_id === colOptions.fk_mm_child_column_id
+        ) {
+          return c;
+        }
+        continue;
+      }
+
+      // Direct relations (HM/BT/OO): match by parent/child FK columns.
+      if (
+        opts.fk_parent_column_id === colOptions.fk_parent_column_id &&
+        opts.fk_child_column_id === colOptions.fk_child_column_id
+      ) {
+        return c;
+      }
+    }
+    return undefined;
+  }
+
+  /**
    * Convert a V1 LTAR column (HM/BT/OO with direct FK) to V2 (junction-table-based).
    * If a BT column is provided, automatically finds and converts from the paired HM side.
    * Both paired columns are updated atomically.
@@ -7932,6 +7979,32 @@ export class ColumnsService implements IColumnsService {
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,
     );
+
+    // Reject when the paired column on the other side of the relation is
+    // already V2 but this column is V1. Both sides must transition together —
+    // an earlier convert call mutated only one side, and re-running the
+    // conversion here would create duplicate Rollup/LTAR metadata and corrupt
+    // dependent Lookup/Rollup references. Surface the inconsistency so the
+    // caller can recover manually instead of compounding damage.
+    if (colOptions.version !== LinksVersion.V2) {
+      const pairedColumn = await this.findPairedLinkColumn(
+        context,
+        column,
+        colOptions,
+      );
+      if (pairedColumn) {
+        const pairedOpts =
+          await pairedColumn.getColOptions<LinkToAnotherRecordColumn>(
+            colOptions.getRelContext(context).refContext,
+          );
+        if (pairedOpts?.version === LinksVersion.V2) {
+          NcError.badRequest(
+            `Cannot upgrade '${column.title}': its paired field '${pairedColumn.title}' is already V2. ` +
+              `Both sides of a relation upgrade together — this side is in an inconsistent state and may require manual repair.`,
+          );
+        }
+      }
+    }
 
     // MM — Rollup + LTAR conversion (junction table already exists)
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {

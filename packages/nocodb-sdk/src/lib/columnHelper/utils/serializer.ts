@@ -61,6 +61,12 @@ export const serializeDecimalValue = (
       return ncIsNaN(value) ? null : Number(value);
     }
 
+    // Intl.NumberFormat renders negatives with U+2212 MINUS SIGN in 36 locales
+    // (sv, fi, nb, nn, hr, et, sl, lt, eu, fo, gsw, se, ksh), so copying one of
+    // our own cells and pasting it back dropped the sign. Normalize to ASCII '-'
+    // before the strips below, which treat U+2212 as noise.
+    value = value.replace(/\u2212/g, '-');
+
     let cleanedValue: string;
     if (ncIsFunction(callback)) {
       cleanedValue = callback(value);
@@ -282,9 +288,10 @@ export const serializeCurrencyValue = (
         columnMeta.currency_locale === 'en-US' ||
         typeof (formatter as any).formatToParts !== 'function'
       ) {
-        // trim first so a padded minus still sits at index 0, where (?!^-)
-        // spares it; any later minus is still stripped
-        return value?.trim().replace(/(?!^-)[^0-9.]/g, '');
+        // '-' stays inside the class, like the locale-aware path below and
+        // serializeDecimalValue, so a minus after the symbol survives too; the
+        // class strips whitespace as well, so no trim is needed
+        return value?.replace(/[^0-9.-]/g, '');
       }
 
       const { group, decimal } = getGroupDecimalSymbolFromLocale(

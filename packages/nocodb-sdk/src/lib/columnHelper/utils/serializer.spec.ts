@@ -3,6 +3,7 @@ import {
   serializeDecimalValue,
   serializeExcelDateValue,
 } from './serializer';
+import { parseCurrencyValue } from './parser';
 import { SeparatorType } from './common';
 import UITypes from '~/lib/UITypes';
 
@@ -54,6 +55,12 @@ describe('serializeDecimalValue', () => {
 
     it('handles negative', () => {
       expect(serializeDecimalValue('-99.5', undefined, params)).toBe(-99.5);
+    });
+
+    it('handles a U+2212 minus sign', () => {
+      expect(serializeDecimalValue('\u221299.5', undefined, params)).toBe(
+        -99.5
+      );
     });
 
     it('truncates at second decimal separator and strips non-numeric', () => {
@@ -182,6 +189,10 @@ describe('serializeDecimalValue', () => {
     it('handles negative', () => {
       expect(serializeDecimalValue('-42.5')).toBe(-42.5);
     });
+
+    it('handles a U+2212 minus sign', () => {
+      expect(serializeDecimalValue('\u221242.5')).toBe(-42.5);
+    });
   });
 
   describe('clipboard data shortcut', () => {
@@ -232,12 +243,21 @@ describe('serializeCurrencyValue', () => {
       expect(serializeCurrencyValue(' -100.50 ', params)).toBe(-100.5);
     });
 
+    it('keeps a U+2212 minus sign', () => {
+      expect(serializeCurrencyValue('\u2212100.50', params)).toBe(-100.5);
+    });
+
     it('strips symbols and group separators from positive values', () => {
       expect(serializeCurrencyValue('$1,234.56', params)).toBe(1234.56);
     });
 
-    it('drops a minus that is not leading', () => {
-      expect(serializeCurrencyValue('100-50', params)).toBe(10050);
+    it('keeps a minus that follows the currency symbol', () => {
+      expect(serializeCurrencyValue('$-100.50', params)).toBe(-100.5);
+      expect(serializeCurrencyValue('$ -1,234.56', params)).toBe(-1234.56);
+    });
+
+    it('rejects a minus between the digits', () => {
+      expect(serializeCurrencyValue('100-50', params)).toBeNull();
     });
 
     it('returns null for a non-numeric string', () => {
@@ -253,6 +273,16 @@ describe('serializeCurrencyValue', () => {
     expect(serializeCurrencyValue('-1.234,56', currencyParams('de-DE'))).toBe(
       -1234.56
     );
+  });
+
+  // sv-SE is one of 36 selectable locales whose Intl.NumberFormat output uses
+  // U+2212 for the sign (also fi, nb, nn, hr, et, sl, lt, eu, fo, gsw, se, ksh).
+  it('round-trips a negative value rendered by a U+2212 locale', () => {
+    const params = currencyParams('sv-SE');
+    const rendered = parseCurrencyValue(-1234.56, params.col) as string;
+
+    expect(rendered).toContain('\u2212');
+    expect(serializeCurrencyValue(rendered, params)).toBe(-1234.56);
   });
 
   it('prefers a numeric clipboard dbCellValue over the string', () => {

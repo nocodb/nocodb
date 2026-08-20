@@ -262,7 +262,7 @@ function onCellValueChange(colTitle: string | undefined) {
               :class="[
                 compactMode
                   ? 'min-h-4 items-start !bg-transparent pl-1 pr-1 -mt-0.5'
-                  : 'min-h-8 items-center bg-nc-bg-default px-1',
+                  : 'min-h-8 items-center bg-nc-bg-elevated px-1',
                 {
                   'w-full': props.forceVerticalMode,
                   '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':

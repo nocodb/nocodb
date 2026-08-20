@@ -174,7 +174,7 @@ async function copyComment(comment: CommentType) {
       />
     </div>
     <div
-      class="flex-1 bg-nc-bg-default rounded-lg border-1 group ml-11.5 rtl:(mr-11.5 ml-0)"
+      class="flex-1 bg-nc-bg-elevated rounded-lg border-1 group ml-11.5 rtl:(mr-11.5 ml-0)"
       :class="{
         'border-nc-brand-200/70 dark:!border-[#388bfd4b]': isCreatedByYou,
         'border-nc-border-gray-medium': !isCreatedByYou,
@@ -284,7 +284,7 @@ async function copyComment(comment: CommentType) {
           autofocus-to-end
           :hide-options="false"
           :extra-save-enabled="editAttachments.length > 0"
-          class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+          class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-elevated !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
           data-testid="expanded-form-comment-input"
           sync-value-change
           @save="onEditComment"

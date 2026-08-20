@@ -147,7 +147,7 @@ export default {
         </div>
         <div
           v-if="isUIAllowed('commentEdit')"
-          class="w-full border-t border-nc-border-gray-medium pl-3 pr-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
+          class="w-full border-t border-nc-border-gray-medium pl-3 pr-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-elevated z-10"
         >
           <div class="font-bold my-3">{{ $t('activity.addComment') }}</div>
           <div
@@ -161,7 +161,7 @@ export default {
               :hide-options="false"
               :extra-save-enabled="pendingAttachments.length > 0"
               :placeholder="$t('placeholder.comment')"
-              class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-default !w-auto"
+              class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-elevated !w-auto"
               data-testid="expanded-form-comment-input"
               :autofocus="isExpandedFormCommentMode"
               @focus="isExpandedFormCommentMode = false"
@@ -206,7 +206,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default h-full xs:hidden rounded-br-2xl flex-shrink-0"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-elevated h-full xs:hidden rounded-br-2xl flex-shrink-0"
       :style="{ width: `${sidebarWidth}px` }"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
@@ -224,7 +224,7 @@ export default {
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16 !bg-nc-bg-default border-nc-border-brand;
+    @apply min-h-16 !bg-nc-bg-elevated border-nc-border-brand;
     box-shadow: 0px 0px 0px 2px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
   &::placeholder {

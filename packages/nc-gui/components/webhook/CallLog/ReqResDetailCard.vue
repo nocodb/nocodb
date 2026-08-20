@@ -114,7 +114,7 @@ const formattedPayload = computed(() => {
                 inherit: true,
                 rules: [],
                 colors: {
-                  'editor.background': isDark ? '#23252c' : '#f9f9fa',
+                  'editor.background': isDark ? '#171717' : '#f9f9fa',
                 },
               }"
               @keydown.enter.stop

@@ -35,7 +35,7 @@ export const jsonThemeDark: editor.IStandaloneThemeData = {
     { token: 'delimiter', foreground: '#E6E6E6', fontStyle: 'semibold' },
   ],
   colors: {
-    'editor.background': '#23252c',
+    'editor.background': '#171717',
     'editor.foreground': '#ECECEC',
     'editorCursor.foreground': '#66D1FF',
     'editor.selectionBackground': '#66D1FF33',

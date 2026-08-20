@@ -64,6 +64,29 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     },
   },
   {
+    /**
+     * flat surfaces + tinted-overlay inputs (mined reference system) — the
+     * planned future default; 'default' (classic) stays applied until the
+     * remaining dark issues are fixed, then this moves into variables.css.
+     */
+    id: 'cobalt',
+    label: 'Default',
+    values: {
+      minisidebar: '#111215',
+      sidebar: '#1d1f25',
+      content: '#1d1f25',
+      canvas: '#0c0d10',
+      elevated: '#1d1f25',
+      input: 'rgba(195, 212, 249, 0.18)',
+      hover: '#22242b',
+      borderLight: '#282a30',
+      border: '#34363b',
+      selection: '#243043',
+      text: '#ffffff',
+      textMuted: '#979aa0',
+    },
+  },
+  {
     /** reference-hue elevation model — the new NocoDB dark theme (WIP name) */
     id: 'elevated',
     label: 'Elevated',
@@ -152,24 +175,6 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
       selection: '#1e2a4a',
       text: '#e5e8ef',
       textMuted: '#9aa0ae',
-    },
-  },
-  {
-    id: 'blueprint',
-    label: 'Blueprint',
-    values: {
-      minisidebar: '#111215',
-      sidebar: '#1d1f25',
-      content: '#1d1f25',
-      canvas: '#0c0d10',
-      elevated: '#1d1f25',
-      input: 'rgba(195, 212, 249, 0.18)',
-      hover: '#22242b',
-      borderLight: '#282a30',
-      border: '#34363b',
-      selection: '#243043',
-      text: '#ffffff',
-      textMuted: '#979aa0',
     },
   },
   {

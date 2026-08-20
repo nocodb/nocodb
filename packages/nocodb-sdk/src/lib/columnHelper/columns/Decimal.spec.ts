@@ -53,6 +53,25 @@ describe('DecimalHelper', () => {
       expect(helper.serializeValue('$1234.56', makeParams())).toBe(1234.56);
     });
 
+    it('keeps a leading minus padded with whitespace', () => {
+      expect(helper.serializeValue(' -99.5 ', makeParams())).toBe(-99.5);
+    });
+
+    it('keeps a U+2212 minus sign', () => {
+      expect(helper.serializeValue('\u221299.5', makeParams())).toBe(-99.5);
+    });
+
+    // a minus ahead of the digits is the sign, a later one is noise — same rule
+    // as the currency path and as extractDecimalFromString, which backs the
+    // cell editor
+    it('keeps a minus that follows the currency symbol', () => {
+      expect(helper.serializeValue('$-99.5', makeParams())).toBe(-99.5);
+    });
+
+    it('drops a minus that follows the digits', () => {
+      expect(helper.serializeValue('100-50', makeParams())).toBe(10050);
+    });
+
     it('throws SilentTypeConversionError for non-numeric string in single paste', () => {
       expect(() => helper.serializeValue('abc', makeParams())).toThrow(
         SilentTypeConversionError

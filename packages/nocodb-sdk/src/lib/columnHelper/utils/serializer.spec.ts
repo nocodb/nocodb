@@ -1,4 +1,10 @@
-import { serializeDecimalValue, serializeExcelDateValue } from './serializer';
+import {
+  serializeCurrencyValue,
+  serializeDecimalValue,
+  serializeExcelDateValue,
+  serializeIntValue,
+} from './serializer';
+import { parseCurrencyValue } from './parser';
 import { SeparatorType } from './common';
 import UITypes from '~/lib/UITypes';
 
@@ -50,6 +56,16 @@ describe('serializeDecimalValue', () => {
 
     it('handles negative', () => {
       expect(serializeDecimalValue('-99.5', undefined, params)).toBe(-99.5);
+    });
+
+    it('handles a U+2212 minus sign', () => {
+      expect(serializeDecimalValue('\u221299.5', undefined, params)).toBe(
+        -99.5
+      );
+    });
+
+    it('keeps a leading minus padded with whitespace', () => {
+      expect(serializeDecimalValue(' -99.5 ', undefined, params)).toBe(-99.5);
     });
 
     it('truncates at second decimal separator and strips non-numeric', () => {
@@ -130,6 +146,14 @@ describe('serializeDecimalValue', () => {
         -1000000.5
       );
     });
+
+    // a minus ahead of the digits is the sign, wherever the symbol sits
+    it('keeps a minus that follows the currency symbol', () => {
+      expect(serializeDecimalValue('$-100.50', undefined, params)).toBe(-100.5);
+      expect(serializeDecimalValue('$ -1,234.56', undefined, params)).toBe(
+        -1234.56
+      );
+    });
   });
 
   describe('PeriodComma ("." thousand, "," decimal)', () => {
@@ -178,6 +202,15 @@ describe('serializeDecimalValue', () => {
     it('handles negative', () => {
       expect(serializeDecimalValue('-42.5')).toBe(-42.5);
     });
+
+    it('handles a U+2212 minus sign', () => {
+      expect(serializeDecimalValue('\u221242.5')).toBe(-42.5);
+    });
+
+    it('drops a minus that follows the digits', () => {
+      expect(serializeDecimalValue('100-50')).toBe(10050);
+      expect(serializeDecimalValue('1,234.56-')).toBe(1234.56);
+    });
   });
 
   describe('clipboard data shortcut', () => {
@@ -201,6 +234,113 @@ describe('serializeDecimalValue', () => {
       } as any;
       expect(serializeDecimalValue('1.23', undefined, params)).toBe(1.23);
     });
+  });
+});
+
+describe('serializeIntValue', () => {
+  const params = makeParams(SeparatorType.CommaPeriod);
+
+  it('truncates the fractional part', () => {
+    expect(serializeIntValue('1,234.56', params)).toBe(1234);
+  });
+
+  it('keeps a leading minus', () => {
+    expect(serializeIntValue('-1,234.56', params)).toBe(-1234);
+  });
+
+  it('keeps a leading minus padded with whitespace', () => {
+    expect(serializeIntValue(' -1,234.56 ', params)).toBe(-1234);
+  });
+
+  it('keeps a U+2212 minus sign', () => {
+    expect(serializeIntValue('\u22121,234.56', params)).toBe(-1234);
+  });
+
+  it('keeps a minus that follows the currency symbol', () => {
+    expect(serializeIntValue('$-1,234.56', params)).toBe(-1234);
+  });
+
+  it('drops a minus that follows the digits', () => {
+    expect(serializeIntValue('1,234.56-', params)).toBe(1234);
+  });
+
+  it('returns null for a non-numeric string', () => {
+    expect(serializeIntValue('abc', params)).toBeNull();
+  });
+});
+
+describe('serializeCurrencyValue', () => {
+  function currencyParams(currency_locale?: string) {
+    return {
+      col: {
+        meta: JSON.stringify({ currency_locale, currency_code: 'USD' }),
+      },
+    } as any;
+  }
+
+  describe('en-US (fast path)', () => {
+    const params = currencyParams('en-US');
+
+    it('keeps a leading minus', () => {
+      expect(serializeCurrencyValue('-100.50', params)).toBe(-100.5);
+    });
+
+    it('keeps a leading minus ahead of the currency symbol', () => {
+      expect(serializeCurrencyValue('-$1,234.56', params)).toBe(-1234.56);
+    });
+
+    it('keeps a leading minus padded with whitespace', () => {
+      expect(serializeCurrencyValue(' -100.50 ', params)).toBe(-100.5);
+    });
+
+    it('keeps a U+2212 minus sign', () => {
+      expect(serializeCurrencyValue('\u2212100.50', params)).toBe(-100.5);
+    });
+
+    it('strips symbols and group separators from positive values', () => {
+      expect(serializeCurrencyValue('$1,234.56', params)).toBe(1234.56);
+    });
+
+    it('keeps a minus that follows the currency symbol', () => {
+      expect(serializeCurrencyValue('$-100.50', params)).toBe(-100.5);
+      expect(serializeCurrencyValue('$ -1,234.56', params)).toBe(-1234.56);
+    });
+
+    it('drops a minus that follows the digits', () => {
+      expect(serializeCurrencyValue('100-50', params)).toBe(10050);
+    });
+
+    it('returns null for a non-numeric string', () => {
+      expect(serializeCurrencyValue('abc', params)).toBeNull();
+    });
+  });
+
+  it('applies the same rule when no locale is set', () => {
+    expect(serializeCurrencyValue('-100.50', currencyParams())).toBe(-100.5);
+  });
+
+  it('keeps a leading minus on the locale-aware path', () => {
+    expect(serializeCurrencyValue('-1.234,56', currencyParams('de-DE'))).toBe(
+      -1234.56
+    );
+  });
+
+  // sv-SE is one of 36 selectable locales whose Intl.NumberFormat output uses
+  // U+2212 for the sign (also fi, nb, nn, hr, et, sl, lt, eu, fo, gsw, se, ksh).
+  it('round-trips a negative value rendered by a U+2212 locale', () => {
+    const params = currencyParams('sv-SE');
+    const rendered = parseCurrencyValue(-1234.56, params.col) as string;
+
+    expect(rendered).toContain('\u2212');
+    expect(serializeCurrencyValue(rendered, params)).toBe(-1234.56);
+  });
+
+  it('prefers a numeric clipboard dbCellValue over the string', () => {
+    const params = {
+      ...currencyParams('en-US'),
+      clipboardItem: { dbCellValue: -42.5 },
+    } as any;
+    expect(serializeCurrencyValue('ignored', params)).toBe(-42.5);
   });
 });
 

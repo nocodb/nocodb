@@ -3933,6 +3933,7 @@
       "borders": "Borders",
       "selection": "Selection",
       "text": "Text",
+      "cellText": "Cell text",
       "mutedText": "Muted text"
     }
   },

@@ -1783,6 +1783,20 @@ const unique = computed({
   .nc-column-name-input {
   }
 }
+
+/* dark: field name + type sit flat on the popover surface; config inputs below keep the tint */
+[theme='dark'] .nc-column-name-input.ant-input,
+[theme='dark'] .ant-input-affix-wrapper.nc-column-name-input,
+[theme='dark'] .ant-select.nc-column-type-input:not(.ant-select-customize-input) .ant-select-selector {
+  background-color: transparent;
+}
+
+/* dark: description + default value are config inputs — filled like the rest
+   (extra classes out-specific the global transparent-input rule in theme-overrides) */
+[theme='dark'] .nc-edit-or-add-provider-wrapper textarea.ant-input.nc-input-text-area.nc-input-shadow,
+[theme='dark'] .nc-edit-or-add-provider-wrapper .nc-default-value-wrapper {
+  background-color: var(--nc-bg-input) !important;
+}
 </style>
 
 <style lang="scss" scoped>

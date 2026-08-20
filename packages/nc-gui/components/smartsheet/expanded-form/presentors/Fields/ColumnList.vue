@@ -357,6 +357,11 @@ function onCellValueChange(colTitle: string | undefined) {
   @apply !rounded-lg;
   transition: all 0.3s;
 
+  // dark: filled inputs — tinted overlay from the palette's input token
+  [theme='dark'] &:not(.nc-data-cell-compact):not(.nc-system-field) {
+    background-color: var(--nc-bg-input);
+  }
+
   &:not(:focus-within):not(.nc-data-cell-compact):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(
       .nc-virtual-cell-button
     ) {

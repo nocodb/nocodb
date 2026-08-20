@@ -2,9 +2,8 @@
   // Date Picker input
   .ant-picker {
     color: rgba(var(--rgb-base), 0.85);
-    /* filled input — translucent tint stays one step above any surface */
-    background: var(--nc-bg-input);
-    border-color: var(--nc-border-input);
+    background: var(--nc-bg-default);
+    border-color: var(--nc-border-gray-medium);
   }
 
   .ant-picker:hover,

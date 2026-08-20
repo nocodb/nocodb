@@ -1,9 +1,8 @@
 [theme='dark'] {
   .ant-input-number-affix-wrapper {
     color: rgba(var(--rgb-base), 0.65);
-    border: 1px solid var(--nc-border-input);
-    /* filled input — translucent tint stays one step above any surface */
-    background-color: var(--nc-bg-input);
+    border: 1px solid var(--nc-border-gray-medium);
+    background-color: transparent;
     background-image: none;
   }
 
@@ -71,8 +70,8 @@
 
   .ant-input-number {
     color: rgba(var(--rgb-base), 0.65);
-    border: 1px solid var(--nc-border-input);
-    background-color: var(--nc-bg-input);
+    border: 1px solid var(--nc-border-gray-medium);
+    background-color: transparent;
     background-image: none;
   }
 

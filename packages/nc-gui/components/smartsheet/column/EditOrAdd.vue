@@ -1791,10 +1791,25 @@ const unique = computed({
   background-color: transparent;
 }
 
-/* dark: description + default value are config inputs — filled like the rest
-   (extra classes out-specific the global transparent-input rule in theme-overrides) */
+/* dark: config inputs inside the field editor are filled — the fill is scoped here
+   (and to the expanded form) rather than applied to every ant input in the app.
+   The extra classes out-specific the global transparent-input rule in theme-overrides. */
 [theme='dark'] .nc-edit-or-add-provider-wrapper textarea.ant-input.nc-input-text-area.nc-input-shadow,
 [theme='dark'] .nc-edit-or-add-provider-wrapper .nc-default-value-wrapper {
+  background-color: var(--nc-bg-input) !important;
+  border-color: var(--nc-border-input);
+}
+
+[theme='dark']
+  .nc-edit-or-add-provider-wrapper
+  .ant-select:not(.ant-select-customize-input):not(.nc-column-type-input)
+  .ant-select-selector,
+/* the :not() chain mirrors the global transparent-input rule in theme-overrides so this
+   wins on specificity, not just on !important */
+[theme='dark']
+  .nc-edit-or-add-provider-wrapper
+  .ant-input-number:not(:disabled):not(.ant-select-selection-search-input),
+[theme='dark'] .nc-edit-or-add-provider-wrapper .ant-picker {
   background-color: var(--nc-bg-input) !important;
   border-color: var(--nc-border-input);
 }

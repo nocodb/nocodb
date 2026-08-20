@@ -31,9 +31,8 @@
   }
 
   .ant-select:not(.ant-select-customize-input) .ant-select-selector {
-    /* filled input — translucent tint stays one step above any surface */
-    background-color: var(--nc-bg-input);
-    border: 1px solid var(--nc-border-input);
+    background-color: transparent;
+    border: 1px solid var(--nc-border-gray-medium);
   }
 
   .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {

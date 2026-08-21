@@ -4,12 +4,16 @@ on:
     branches: [develop]
     paths:
       - "packages/nocodb/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
       - ".github/workflows/jest-unit-test.yml"
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, labeled]
     branches: [develop]
     paths:
       - "packages/nocodb/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
       - ".github/workflows/jest-unit-test.yml"
   workflow_call:
   # Triggered manually
@@ -31,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
           cache: 'pnpm'
       - name: Set CI env
         run: export CI=true

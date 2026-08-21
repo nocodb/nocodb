@@ -236,6 +236,16 @@ const FEATURES = [
     isEngineering: false,
     isEE: true,
   },
+  {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'theme_settings',
+    title: 'Theme settings',
+    description: 'Pick a dark palette and fine-tune its surface colours from the user menu.',
+    enabled: false,
+    version: 1,
+    isEngineering: false,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

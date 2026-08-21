@@ -3,7 +3,9 @@ import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
 import type { AttachmentReqType } from 'nocodb-sdk'
-import type { ImageCropperProps } from '#imports'
+// Imported by path, not '#imports': the SFC compiler has to resolve the type to
+// generate runtime props and cannot follow Nuxt's virtual module.
+import type { ImageCropperProps } from '../../lib/types'
 
 const { imageConfig, uploadConfig, ...props } = defineProps<ImageCropperProps>()
 

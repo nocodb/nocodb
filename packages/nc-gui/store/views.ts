@@ -24,6 +24,7 @@ import { INTERFACE_VIEW_ID_PREFIX } from '~/lib/interfaceData'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
 import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
 import { userLocalStorageInfoManager } from '#imports'
+import { getI18n } from '~/plugins/a.i18n'
 
 // Types and Interfaces
 interface RecentView {
@@ -41,7 +42,7 @@ interface RecentView {
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { t } = useI18n()
+  const { t } = getI18n().global
 
   const { appInfo, ncNavigateTo, user } = useGlobal()
 

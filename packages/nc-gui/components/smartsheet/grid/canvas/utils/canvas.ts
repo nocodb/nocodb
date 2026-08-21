@@ -336,7 +336,7 @@ export const renderCheckbox = (
     ctx.fillStyle = getColor('#FFFFFF', themeV4Colors.base.white)
     ctx.fill()
 
-    ctx.strokeStyle = strokeColor ?? getColor('#D1D5DB')
+    ctx.strokeStyle = strokeColor ?? getColor('#D1D5DB', themeV4Colors.gray['200'])
     ctx.lineWidth = 1
     ctx.stroke()
   }

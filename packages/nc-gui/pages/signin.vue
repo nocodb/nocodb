@@ -84,7 +84,7 @@ function navigateForgotPassword() {
     <NuxtLayout>
       <div
         data-testid="nc-form-signin"
-        class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
+        class="md:bg-primary/5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
       >
         <div
           class="bg-nc-bg-default md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"

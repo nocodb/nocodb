@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
-import type { NcListProps } from '#imports'
+// Imported by path, not '#imports': the SFC compiler has to resolve the type to
+// generate runtime props and cannot follow Nuxt's virtual module.
+import type { NcListProps } from '../../../lib/types'
 
 interface Emits {
   (e: 'update:value', value: RawValueType): void

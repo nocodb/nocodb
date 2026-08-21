@@ -160,7 +160,7 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
     @apply px-4 min-h-[75px] w-full h-full;
 
     .nc-attachment {
-      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
     }
 
     .nc-attachment-cell-dropzone {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { NcMenu } from '#components'
+import { NcBaseCreateMode } from '#imports'
 interface Props {
   visible: boolean
   variant: 'modal' | 'dropdown'

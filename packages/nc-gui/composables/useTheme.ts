@@ -236,6 +236,107 @@ export const useTheme = createSharedComposable(() => {
     colorCache.clear()
   }
 
+  /** ————— dark palette (presets + per-token overrides) ————— */
+
+  const DARK_PALETTE_STORAGE_KEY = 'nc-dark-palette'
+
+  const isThemeConfigOpen = ref(false)
+
+  /** bumped whenever resolved theme colors change (mode toggle or palette change) — canvas renderers watch this to repaint */
+  const themeRepaintVersion = ref(0)
+
+  const darkPalette = ref<DarkPaletteState>({ preset: 'default', overrides: {} })
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  /** the palette picker (and the palettes themselves) are still beta */
+  const isThemeSettingsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
+
+  const activeDarkPaletteValues = computed(() => resolveDarkPalette(darkPalette.value))
+
+  const isDefaultDarkPalette = computed(
+    () => darkPalette.value.preset === 'default' && !Object.keys(darkPalette.value.overrides).length,
+  )
+
+  /**
+   * Applies the palette as a `<style>` scoped to `[theme='dark']` so light mode
+   * is never touched. The default preset with no overrides removes the style
+   * entirely (pure variables.css values).
+   */
+  const applyDarkPalette = () => {
+    if (typeof document === 'undefined') return
+
+    let styleEl = document.getElementById('nc-dark-palette') as HTMLStyleElement | null
+
+    // behind the beta flag: without the picker there'd be no way back off a stored palette
+    if (isDefaultDarkPalette.value || !isThemeSettingsEnabled.value) {
+      styleEl?.remove()
+    } else {
+      const values = activeDarkPaletteValues.value
+      const lines: string[] = []
+      for (const token of DARK_PALETTE_TOKENS) {
+        const value = values[token.key]
+        if (!value) continue
+        lines.push(`${token.cssVar}: ${value};`)
+        if (token.rgb && value.startsWith('#')) {
+          lines.push(`--rgb-${token.cssVar.slice(2)}: ${hexToRgb(value)};`)
+        }
+      }
+      if (!styleEl) {
+        styleEl = document.createElement('style')
+        styleEl.id = 'nc-dark-palette'
+        document.head.appendChild(styleEl)
+      }
+      styleEl.textContent = `[theme='dark'] {\n  ${lines.join('\n  ')}\n}`
+    }
+
+    // canvas grid resolves CSS vars through cached getColor() — flush + repaint
+    barcodeCache.clear()
+    clearColorCache()
+    themeRepaintVersion.value++
+  }
+
+  const persistDarkPalette = () => {
+    if (typeof localStorage === 'undefined') return
+    if (isDefaultDarkPalette.value) {
+      localStorage.removeItem(DARK_PALETTE_STORAGE_KEY)
+    } else {
+      localStorage.setItem(DARK_PALETTE_STORAGE_KEY, JSON.stringify(darkPalette.value))
+    }
+  }
+
+  const setDarkPreset = (presetId: string) => {
+    darkPalette.value = { preset: presetId, overrides: {} }
+    applyDarkPalette()
+    persistDarkPalette()
+  }
+
+  const setDarkPaletteToken = (key: string, value: string) => {
+    darkPalette.value = {
+      ...darkPalette.value,
+      overrides: { ...darkPalette.value.overrides, [key]: value },
+    }
+    applyDarkPalette()
+    persistDarkPalette()
+  }
+
+  const resetDarkPalette = () => setDarkPreset('default')
+
+  const loadDarkPalette = () => {
+    if (typeof localStorage === 'undefined') return
+    try {
+      const saved = localStorage.getItem(DARK_PALETTE_STORAGE_KEY)
+      if (!saved) return
+      const parsed = JSON.parse(saved)
+      if (parsed && typeof parsed.preset === 'string') {
+        darkPalette.value = { preset: parsed.preset, overrides: parsed.overrides ?? {} }
+        applyDarkPalette()
+      }
+    } catch {
+      localStorage.removeItem(DARK_PALETTE_STORAGE_KEY)
+    }
+  }
+
   let initialized = false
 
   const init = () => {
@@ -263,6 +364,8 @@ export const useTheme = createSharedComposable(() => {
     mediaQuery.addEventListener('change', (e) => {
       systemPreference.value = e.matches ? 'dark' : 'light'
     })
+
+    loadDarkPalette()
   }
 
   // Update selectedTheme when nc-theme is changed in another tab
@@ -273,16 +376,34 @@ export const useTheme = createSharedComposable(() => {
         selectedTheme.value = newTheme
       }
     }
+
+    if (event.key === DARK_PALETTE_STORAGE_KEY) {
+      try {
+        const parsed = event.newValue ? JSON.parse(event.newValue) : { preset: 'default', overrides: {} }
+        if (parsed && typeof parsed.preset === 'string') {
+          darkPalette.value = { preset: parsed.preset, overrides: parsed.overrides ?? {} }
+          applyDarkPalette()
+        }
+      } catch {
+        // ignore malformed cross-tab payloads
+      }
+    }
   }
 
   useEventListener(window, 'storage', handleStorageChange)
 
   watch(isDark, applyTheme, { immediate: true })
 
+  // toggling the beta flag off must drop the injected palette immediately (back to the
+  // classic values in variables.css); turning it on re-applies the stored palette
+  watch(isThemeSettingsEnabled, () => applyDarkPalette())
+
   watch(isDark, () => {
     barcodeCache.clear()
 
     clearColorCache()
+
+    themeRepaintVersion.value++
   })
 
   init()
@@ -299,5 +420,14 @@ export const useTheme = createSharedComposable(() => {
     isThemeEnabled,
     getColor,
     clearColorCache,
+    isThemeConfigOpen,
+    isThemeSettingsEnabled,
+    themeRepaintVersion,
+    darkPalette,
+    activeDarkPaletteValues,
+    isDefaultDarkPalette,
+    setDarkPreset,
+    setDarkPaletteToken,
+    resetDarkPalette,
   }
 })

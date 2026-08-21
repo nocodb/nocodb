@@ -4,7 +4,7 @@ import type { SourcesMap } from '~/services/api-docs/types';
 import type { Column, LinkToAnotherRecordColumn, RollupColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
-import type { DriverClient } from '~/utils/nc-config';
+import { DriverClient } from '~/utils/nc-config';
 import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';

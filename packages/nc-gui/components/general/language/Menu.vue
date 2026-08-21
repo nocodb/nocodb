@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { setI18nLanguage } from '~/plugins/a.i18n'
+import { Language } from '#imports'
 
 const { $e } = useNuxtApp()
 

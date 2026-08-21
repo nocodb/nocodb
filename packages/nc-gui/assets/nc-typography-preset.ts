@@ -1,4 +1,4 @@
-import plugin from 'windicss/plugin'
+import type { Preset } from 'unocss'
 
 const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?: string; fontWeight: number }]> = {
   heading1: ['64px', { lineHeight: '92px', letterSpacing: '-0.02rem', fontWeight: 700 }],
@@ -25,21 +25,20 @@ const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?
   sidebarSelected: ['14px', { lineHeight: '20px', fontWeight: 550 }],
 }
 
-export default plugin(({ addUtilities }) => {
-  const utils: Record<string, any> = {}
-
-  Object.entries(fontStyleMap).forEach(([key, [fontSize, opts]]) => {
-    utils[`.text-${key}`] = {
+// Figma-aligned text utilities (text-heading1, text-body, text-captionSm, ...).
+// WindiCSS emitted these into its `components` layer, i.e. losing same-specificity ties against
+// utilities — so this must stay registered ahead of presetWind3 in uno.config.ts.
+export const ncTypographyPreset = (): Preset => ({
+  name: 'nc-typography',
+  rules: Object.entries(fontStyleMap).map(([key, [fontSize, opts]]) => [
+    `text-${key}`,
+    {
       'font-size': fontSize,
       'line-height': opts.lineHeight,
       ...(opts.letterSpacing ? { 'letter-spacing': opts.letterSpacing } : {}),
       'font-weight': `${opts.fontWeight}`,
-    }
-  })
-
-  addUtilities(utils, {
-    layer: 'components',
-    variants: ['responsive'],
-    completions: Object.keys(fontStyleMap).map((k) => `text-${k}`), // <-- this enables autocomplete in IDE
-  })
+    },
+  ]),
 })
+
+export default ncTypographyPreset

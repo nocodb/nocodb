@@ -95,7 +95,7 @@ onMounted(() => {
 <template>
   <div
     v-if="isViewModeEnabled && items.length > 1"
-    class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
+    class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated h-7 overflow-hidden"
   >
     <NcTooltip v-for="(item, idx) of items" :key="item.value" :disabled="!item.tooltip">
       <template #title>{{ item.tooltip }}</template>

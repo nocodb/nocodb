@@ -158,11 +158,16 @@ export const getSelectTypeFieldOptionBgColor = ({
     return getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
   }
 
-  if (isDark) {
-    return getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
+  // colorless option — follow the theme instead of tinting a literal gray (same value in light)
+  if (!color) {
+    return getColor ? getColor('var(--nc-bg-gray-medium)') : 'var(--nc-bg-gray-medium)'
   }
 
-  return color || '#e7e7e9'
+  if (isDark) {
+    return getAdaptiveTint(color, { isDarkMode: isDark, shade: shade ?? -10 })
+  }
+
+  return color
 }
 
 export const getDarkModeCompatibleBgColor = ({ color, isDark, shade }: { color?: string; isDark: boolean; shade?: number }) => {
@@ -180,7 +185,7 @@ export const getSelectTypeFieldOptionTextColor = ({
   getColor: GetColorType
   isColorCodeEnabled?: boolean
 }) => {
-  if (!isColorCodeEnabled) {
+  if (!isColorCodeEnabled || !color) {
     return getColor('var(--nc-content-gray)')
   }
 

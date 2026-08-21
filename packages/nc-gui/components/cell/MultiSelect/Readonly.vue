@@ -158,6 +158,7 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[1px];
+  /* keep in sync with .rounded-tag above */
+  @apply py-[0.5px] px-2 rounded-[12px] my-[1px];
 }
 </style>

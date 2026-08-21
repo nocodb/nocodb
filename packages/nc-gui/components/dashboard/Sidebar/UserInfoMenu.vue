@@ -17,7 +17,12 @@ const { user, signOut, isMobileMode } = useGlobal()
 
 const { toggleMode } = useMiniSidebarMode()
 
-const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen, isThemeSettingsEnabled } = useTheme()
+
+const openThemeConfig = () => {
+  isThemeConfigOpen.value = true
+  emits('closeMenu')
+}
 
 const themeLabel = computed(
   () =>
@@ -187,6 +192,18 @@ const openKeyboardShortcutDialog = () => {
         <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
       </NcMenuItem>
 
+      <!-- Theme settings -->
+      <NcMenuItem
+        v-if="isThemeEnabled && isThemeSettingsEnabled"
+        v-e="['c:theme:config-open']"
+        data-testid="nc-sidebar-user-theme-config"
+        @click="openThemeConfig"
+      >
+        <GeneralIcon icon="palette" class="menu-icon" />
+        <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
+        <NcBadgeBeta />
+      </NcMenuItem>
+
       <!-- Account Settings -->
       <nuxt-link
         v-e="['c:user:settings']"
@@ -235,6 +252,10 @@ const openKeyboardShortcutDialog = () => {
           <GeneralIcon :icon="themeIcon" class="menu-icon" />
           <span class="menu-btn">{{ themeLabel }}</span>
           <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
+        </NcMenuItem>
+        <NcMenuItem v-e="['c:theme:config-open']" data-testid="nc-sidebar-user-theme-config" @click="openThemeConfig">
+          <GeneralIcon icon="palette" class="menu-icon" />
+          <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
         </NcMenuItem>
       </template>
 

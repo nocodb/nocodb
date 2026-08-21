@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, PlanFeatureTypes, PlanTitles, ViewTypes } from 'nocodb-sdk'
+import { PreFilledMode } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()

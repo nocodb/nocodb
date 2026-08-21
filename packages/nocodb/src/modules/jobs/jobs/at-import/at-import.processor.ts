@@ -1547,14 +1547,24 @@ export class AtImportProcessor {
                 `${aTbl.name} :: ${reason} :: using '${displayValue.title}' as display value`,
               );
             } else {
-              // no field in the table qualifies - add one to label records with
-              const ncName: any = nc_getSanitizedColumnName(
-                'Title',
-                table.table_name,
+              // no field in the table qualifies - add one to label records
+              // with. nc_getSanitizedColumnName is no use here: its name
+              // generator is keyed by the pre-create table name, and
+              // tableCreate prefixes table_name, so it would hand back a title
+              // the table already has. 'Title' needs no sanitizing.
+              const taken = new Set(
+                table.columns
+                  .flatMap((x) => [x.title, x.column_name])
+                  .filter(Boolean)
+                  .map((name) => name.toLowerCase()),
               );
+              let title = 'Title';
+              for (let i = 1; taken.has(title.toLowerCase()); i++) {
+                title = `Title_${i}`;
+              }
 
               logWarning(
-                `${aTbl.name} :: ${reason} and no other field can be used :: adding '${ncName.title}' as display value`,
+                `${aTbl.name} :: ${reason} and no other field can be used :: adding '${title}' as display value`,
               );
 
               const _perfStart = recordPerfStart();
@@ -1562,8 +1572,8 @@ export class AtImportProcessor {
                 tableId: ncTblId,
                 column: {
                   uidt: UITypes.SingleLineText,
-                  title: ncName.title,
-                  column_name: ncName.column_name,
+                  title,
+                  column_name: title,
                 },
                 req,
                 user: syncDB.user,
@@ -1572,9 +1582,7 @@ export class AtImportProcessor {
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
               updateNcTblSchema(ncTbl);
-              displayValue = ncTbl.columns.find(
-                (x) => x.title === ncName.title,
-              );
+              displayValue = ncTbl.columns.find((x) => x.title === title);
             }
           }
 

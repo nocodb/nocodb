@@ -178,6 +178,10 @@ export function useGridViewData(
   const offSocketReady = $ncSocket.onReady(({ reconnected }) => {
     if (!reconnected) return
     reloadViewDataHook?.trigger()
+    // Footer/column aggregations aren't re-fetched by the data reload above (group
+    // aggregations reload with their chunks, but the view-level footer only reloads
+    // on view switch), so refresh them too or they'd stay stale after reconnect.
+    reloadAggregate?.trigger(undefined)
   })
 
   onBeforeUnmount(() => {

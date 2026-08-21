@@ -4,16 +4,12 @@ on:
     branches: [develop]
     paths:
       - "packages/nocodb/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
       - ".github/workflows/jest-unit-test.yml"
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, labeled]
     branches: [develop]
     paths:
       - "packages/nocodb/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
       - ".github/workflows/jest-unit-test.yml"
   workflow_call:
   # Triggered manually

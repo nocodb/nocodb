@@ -265,7 +265,8 @@ const isCollaborator = (userIdOrEmail) => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[1px];
+  /* keep in sync with .rounded-tag above */
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px] my-[1px];
 }
 
 :deep(.nc-user-avatar) {

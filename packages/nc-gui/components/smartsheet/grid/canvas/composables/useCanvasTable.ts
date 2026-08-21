@@ -27,7 +27,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearTextCache } from '../utils/canvas'
+import { clearTextCache, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -192,7 +192,7 @@ export function useCanvasTable({
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
   const { isAllowed } = usePermissions()
-  const { getColor } = useTheme()
+  const { getColor, themeRepaintVersion } = useTheme()
 
   const { brandColor } = useBranding()
   const rowSlice = ref({ start: 0, end: 0 })
@@ -1298,6 +1298,14 @@ export function useCanvasTable({
   }
 
   watch([remoteFocuses, remoteRecords, remoteFields], () => triggerRefreshCanvas())
+
+  // repaint with fresh colors when the theme mode or dark palette changes
+  watch(themeRepaintVersion, () => {
+    clearTextCache()
+    selectOptionBgColorCache.clear()
+    selectOptionTextColorCache.clear()
+    triggerRefreshCanvas()
+  })
 
   const {
     freezeDrag,

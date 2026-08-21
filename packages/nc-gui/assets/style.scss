@@ -2,18 +2,14 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
-@layer utilities {
-  @variants responsive {
-    /* Chrome, Safari and Opera */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
+/* Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
-    .no-scrollbar {
-      -ms-overflow-style: none; /* IE and Edge */
-      scrollbar-width: none; /* Firefox */
-    }
-  }
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 * {
@@ -53,8 +49,8 @@ body {
   --footer-height: 2.125rem;
   --sidebar-bottom-height: 8.5rem;
   --new-header-height: 3.5rem;
-  --tw-text-opacity: 1;
-  --tw-bg-opacity: 1;
+  --un-text-opacity: 1;
+  --un-bg-opacity: 1;
   --navbar-bg: #fafafa;
   --navbar-border: #e0e0e0;
 

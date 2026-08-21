@@ -220,7 +220,7 @@ function toggleLongText(key: string) {
             <div
               v-for="(item, i) of processOldDataFor(columnKey)"
               :key="item.url || item.title"
-              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
+              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-elevated w-full"
             >
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">
@@ -252,7 +252,7 @@ function toggleLongText(key: string) {
             <div
               v-for="(item, i) of processNewDataFor(columnKey)"
               :key="item.url || item.title"
-              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
+              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-elevated w-full"
             >
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">

@@ -420,7 +420,8 @@ onMounted(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  /* keep in sync with .rounded-tag above */
+  @apply py-[1px] px-2 rounded-[12px];
 }
 
 :deep(.ant-select-clear) {

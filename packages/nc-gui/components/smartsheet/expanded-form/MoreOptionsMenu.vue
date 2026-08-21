@@ -192,7 +192,7 @@ const onConfirmDeleteRowClick = async () => {
 </script>
 
 <template>
-  <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode && !compact" class="!<lg:hidden">
+  <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode && !compact" class="lt-lg:!hidden">
     <template #title>
       {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
     </template>

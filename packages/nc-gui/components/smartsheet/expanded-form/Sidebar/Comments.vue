@@ -656,7 +656,7 @@ onBeforeUnmount(() => {
                     </div>
 
                     <template #overlay>
-                      <div class="bg-nc-bg-default rounded-lg">
+                      <div class="bg-nc-bg-elevated rounded-lg">
                         <div class="flex items-center gap-4 py-3 px-2">
                           <GeneralUserIcon
                             class="border-1 border-nc-border-gray-medium rounded-full"
@@ -794,7 +794,7 @@ onBeforeUnmount(() => {
                   autofocus-to-end
                   :hide-options="false"
                   :extra-save-enabled="editAttachments.length > 0"
-                  class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+                  class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-elevated !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
                   data-testid="expanded-form-comment-input"
                   @save="onEditComment"
                   @keydown.esc="onCancel"
@@ -839,7 +839,7 @@ onBeforeUnmount(() => {
               <div v-else class="space-y-1 pl-9">
                 <div
                   v-if="annotationRefByCommentId[commentItem.id!]"
-                  class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-1.5 py-1"
+                  class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-1"
                   :class="{
                     'cursor-pointer hover:bg-nc-bg-gray-light':
                       !!imageAnnotations || annotationRefByCommentId[commentItem.id!].matched,
@@ -872,7 +872,7 @@ onBeforeUnmount(() => {
 
                 <div
                   v-if="annotationLabels[commentItem.id] || annotationRefByCommentId[commentItem.id!]?.matched"
-                  class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
+                  class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
                   :data-testid="`nc-annotation-ref-${annotationLabels[commentItem.id] ?? commentItem.id}`"
                   @click="viewAnnotationComment(commentItem)"
                 >
@@ -894,7 +894,7 @@ onBeforeUnmount(() => {
       <SmartsheetExpandedFormCommentTypingIndicator v-if="isEeUI && hasEditPermission" :draft="comment" />
       <div
         v-if="hasEditPermission"
-        class="px-3 pt-1 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-default"
+        class="px-3 pt-1 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-elevated"
         @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
         @dragover.prevent
         @drop="isCommentAttachmentsEnabled ? handleAttachmentDrop($event) : undefined"
@@ -949,7 +949,7 @@ onBeforeUnmount(() => {
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16 !bg-nc-bg-default border-nc-border-brand;
+    @apply min-h-16 !bg-nc-bg-elevated border-nc-border-brand;
     box-shadow: 0px 0px 0px 2px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
   &::placeholder {
@@ -958,7 +958,7 @@ onBeforeUnmount(() => {
 }
 
 :deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
-  @apply bg-nc-bg-default;
+  @apply bg-nc-bg-elevated;
 }
 
 .nc-hovered-comment {
@@ -976,6 +976,10 @@ onBeforeUnmount(() => {
   p {
     @apply !m-0 !leading-5;
   }
+}
+
+[theme='dark'] .expanded-form-comment-input {
+  background-color: var(--nc-bg-input) !important;
 }
 </style>
 

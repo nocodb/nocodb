@@ -156,9 +156,6 @@ const onSearch = (value: string) => {
       width: 4px;
       @apply bg-nc-bg-gray-dark rounded-md;
     }
-    &::-webkit-scrollbar-thumb:hover {
-      @apply bg-nc-bg-gray-extra-dark;
-    }
   }
 }
 </style>

@@ -805,7 +805,7 @@ watch(
   @apply mt-2 mb-2;
 
   button {
-    @apply hover: !text-nc-content-brand;
+    @apply hover:!text-nc-content-brand;
   }
 }
 </style>

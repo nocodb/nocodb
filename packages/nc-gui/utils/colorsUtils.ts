@@ -1,7 +1,14 @@
-import colors from 'windicss/colors'
+import { colors as unoColors } from '@unocss/preset-mini/colors'
 import { enumColors as enumColor } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 export { enumColors as enumColor } from 'nocodb-sdk'
+
+// UnoCSS ships shorthand (1-9), 950 and DEFAULT keys alongside the 50-900 shades.
+// Callers iterate palette values, so keep only the shades WindiCSS exposed.
+const WINDI_SHADES = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900']
+
+const canonicalShades = (palette: Record<string, string>) =>
+  Object.fromEntries(WINDI_SHADES.filter((shade) => shade in palette).map((shade) => [shade, palette[shade]]))
 
 export const theme = {
   light: ['#ffdce5', '#fee2d5', '#ffeab6', '#d1f7c4', '#ede2fe', '#eee', '#cfdffe', '#d0f1fd', '#c2f5e8', '#ffdaf6'],
@@ -54,7 +61,7 @@ export const themeV2Colors = {
   },
 
   /** Accent shades */
-  'pink': colors.pink,
+  'pink': canonicalShades(unoColors.pink),
 }
 
 // @deprecated
@@ -413,11 +420,9 @@ export function ncBuildColorsWithOpacity(colors: Record<string, any>, prefix: st
   Object.entries(flat).forEach(([key, value]) => {
     const rgb = value.startsWith('#') ? hexToRgb(value) : `var(${value})`
 
-    result[key] = ({ opacityVariable, opacityValue }: { opacityVariable?: string; opacityValue?: number } = {}) => {
-      if (opacityValue !== undefined) return `rgba(${rgb}, ${opacityValue})`
-      if (opacityVariable !== undefined) return `rgba(${rgb}, var(${opacityVariable}, 1))`
-      return `rgb(${rgb})`
-    }
+    // UnoCSS substitutes <alpha-value> with the utility's alpha (1 when unspecified),
+    // replacing WindiCSS's opacityVariable/opacityValue callback form.
+    result[key] = `rgba(${rgb}, <alpha-value>)`
   })
 
   return result
@@ -699,14 +704,17 @@ export const themeVariables = {
   },
   background: {
     'nc-bg-default': themeV4Colors.base.white,
+    // Dedicated surface tokens — chrome and overlays no longer share the gray ramp
+    'nc-bg-elevated': '--rgb-nc-bg-elevated',
+    'nc-bg-canvas': '--rgb-nc-bg-canvas',
     'nc-bg-brand': {
       DEFAULT: themeV4Colors.brand[50],
       inverted: themeV4Colors.brand.inverted,
     },
     'nc-bg-gray': {
       extralight: themeV4Colors.gray[50],
-      sidebar: themeV4Colors.gray[50],
-      minisidebar: themeV4Colors.gray[100],
+      sidebar: '--rgb-color-sidebar-bg',
+      minisidebar: '--rgb-color-minisidebar-bg',
       light: themeV4Colors.gray[100],
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],

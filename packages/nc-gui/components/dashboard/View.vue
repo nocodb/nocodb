@@ -333,7 +333,7 @@ watch([isChatPanelExpanded, isSandboxDrawerOpen], () => {
 <style lang="scss">
 .nc-sidebar-wrapper.minimized-height {
   & > * {
-    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-nc-border-gray-medium shadow-lg);
+    @apply h-4/5 pb-2 !rounded-r-lg !border-1 !border-nc-border-gray-medium !shadow-lg;
     width: calc(100% + 4px);
   }
 

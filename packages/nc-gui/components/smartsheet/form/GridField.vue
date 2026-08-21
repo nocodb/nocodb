@@ -59,7 +59,7 @@ const hasVisibilityCondition = computed(() => !!allViewFilters.value?.[props.fie
           <NcButton
             type="link"
             size="xsmall"
-            class="nc-form-field-hide !bg-white !h-5 !w-5 !min-w-5 !rounded-full"
+            class="nc-form-field-hide !bg-nc-bg-default !h-5 !w-5 !min-w-5 !rounded-full"
             :class="{
               '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(field, field.required),
             }"

@@ -50,12 +50,7 @@ const isTooltipDisabled = computed(() => {
 </script>
 
 <template>
-  <NcTooltip
-    class="w-full flex justify-center relative"
-    placement="right"
-    :arrow="false"
-    :disabled="isTooltipDisabled"
-  >
+  <NcTooltip class="w-full flex justify-center relative" placement="right" :arrow="false" :disabled="isTooltipDisabled">
     <template #title>{{ tooltipText }}</template>
 
     <div
@@ -107,7 +102,6 @@ const isTooltipDisabled = computed(() => {
   }
 
   &:hover:not(.active):not(.disabled) {
-    @apply text-nc-content-subtle2;
     background: rgba(0, 0, 0, 0.05);
 
     :root[theme='dark'] & {
@@ -120,7 +114,9 @@ const isTooltipDisabled = computed(() => {
     @apply text-nc-content-brand;
     background: rgba(0, 0, 0, 0.08);
 
+    // brand-500 on the dark pill is only ~3.5:1 — lift to brand-600 for AA
     :root[theme='dark'] & {
+      @apply text-nc-brand-600;
       background: rgba(255, 255, 255, 0.08);
     }
 

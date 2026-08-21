@@ -10,6 +10,7 @@ import {
 } from 'nocodb-sdk'
 import type { Attachment } from '../../lib/types'
 import type { Row as RowType } from '#imports'
+import { NavigateDir } from '#imports'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -1039,7 +1040,7 @@ function hasPosterCover(record: RowType) {
                               <div class="flex flex-row w-full justify-start">
                                 <div
                                   v-if="isActiveViewFieldHeaderVisible"
-                                  class="nc-card-col-header w-full !children:text-gray-500"
+                                  class="nc-card-col-header w-full !children:text-nc-content-gray-muted"
                                   :class="{ 'nc-card-col-header-no-icon': !!interfacePageDataApi }"
                                 >
                                   <!-- Interface cards label with the field NAME only — no type icon -->

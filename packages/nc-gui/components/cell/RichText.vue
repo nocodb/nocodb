@@ -436,13 +436,13 @@ onClickOutside(editorDom, (e) => {
     }
     &.readonly {
       ul[data-type='taskList'] li input[type='checkbox'] {
-        background-color: #d5d5d9 !important;
+        background-color: var(--nc-bg-gray-dark) !important;
         &:not(:checked) {
           @apply !border-nc-border-gray-extradark;
         }
         &:focus {
           box-shadow: none !important;
-          background-color: #d5d5d9 !important;
+          background-color: var(--nc-bg-gray-dark) !important;
         }
       }
     }

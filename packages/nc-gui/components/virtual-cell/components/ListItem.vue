@@ -222,7 +222,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
                 class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
                 :class="{
                   'bg-nc-bg-gray-medium text-nc-content-gray hover:(bg-nc-bg-red-dark text-nc-content-red-medium)': isLinked,
-                  'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
+                  'bg-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
                 }"
                 :disabled="!isAllowed"
                 @click="$emit('linkOrUnlink')"

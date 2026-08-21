@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import windiColors from 'windicss/colors'
 import { themeV3Colors } from '../../utils/colorsUtils'
 
 interface Props {
@@ -45,15 +44,13 @@ const defaultColors = computed<string[][]>(() => {
     'maroon',
     'purple',
     'blue',
-  ] as (keyof typeof themeV3Colors)[] & (keyof typeof windiColors)[]
+  ] as (keyof typeof themeV3Colors)[]
 
   const allColors = []
 
   for (const color of colors) {
     if (themeV3Colors[color]) {
       allColors.push(color === 'gray' ? Object.values(themeV3Colors[color]).slice(1) : Object.values(themeV3Colors[color]))
-    } else if (windiColors[color]) {
-      allColors.push(Object.values(windiColors[color]))
     }
   }
   return allColors

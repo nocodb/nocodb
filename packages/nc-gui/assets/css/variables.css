@@ -43,6 +43,18 @@
   --color-base-white: #ffffff;
   --rgb-color-base-white: 255, 255, 255;
 
+  /* Surface tokens (dark-mode refactor) — dedicated backgrounds for chrome,
+     overlays and inputs. Light values match the pre-refactor look exactly. */
+  --color-sidebar-bg: #f9f9fa;
+  --rgb-color-sidebar-bg: 249, 249, 250;
+  --color-minisidebar-bg: #f4f4f5;
+  --rgb-color-minisidebar-bg: 244, 244, 245;
+  --nc-bg-elevated: #ffffff;
+  --rgb-nc-bg-elevated: 255, 255, 255;
+  --nc-bg-canvas: #f9f9fa;
+  --rgb-nc-bg-canvas: 249, 249, 250;
+  --nc-bg-input: #ffffff;
+
   --color-base-none: #ffffff00;
 
   /* 🎨 Brand */
@@ -458,11 +470,26 @@
   --color-base-white: #171717;
   --rgb-color-base-white: 23, 23, 23;
 
+  /* Surface tokens (dark-mode refactor) — defaults mirror the classic (pre-refactor)
+     palette; the elevation-model themes are applied as presets via useTheme(). */
+  --color-sidebar-bg: #1d1d1f;
+  --rgb-color-sidebar-bg: 29, 29, 31;
+  --color-minisidebar-bg: #2a2c2e;
+  --rgb-color-minisidebar-bg: 42, 44, 46;
+  --nc-bg-elevated: #171717;
+  --rgb-nc-bg-elevated: 23, 23, 23;
+  --nc-bg-canvas: #1d1d1f;
+  --rgb-nc-bg-canvas: 29, 29, 31;
+  --nc-bg-input: #171717;
+  /* tooltips sit above every surface — historically a fixed lifted gray */
+  --nc-bg-tooltip: #3a3f4b;
+  --rgb-nc-bg-tooltip: 58, 63, 75;
+
   --color-base-none: #ffffff00;
 
   /* 🎨 Brand */
-  --color-brand-20: #0f1230;
-  --rgb-color-brand-20: 15, 18, 48;
+  --color-brand-20: #161d38;
+  --rgb-color-brand-20: 22, 29, 56;
 
   --color-brand-50: #141a3a;
   --rgb-color-brand-50: 20, 26, 58;
@@ -498,8 +525,8 @@
   --rgb-color-brand-900: 238, 244, 255;
 
   /* 🎨 Gray */
-  --color-gray-20: #0b0b0e;
-  --rgb-color-gray-20: 11, 11, 14;
+  --color-gray-20: #14161a;
+  --rgb-color-gray-20: 20, 22, 26;
 
   --color-gray-50: #1d1d1f;
   --rgb-color-gray-50: 29, 29, 31;
@@ -510,11 +537,11 @@
   --color-gray-200: #3b3d40;
   --rgb-color-gray-200: 59, 61, 64;
 
-  --color-gray-300: #505257;
-  --rgb-color-gray-300: 80, 82, 87;
+  --color-gray-300: #4d515c;
+  --rgb-color-gray-300: 77, 81, 92;
 
-  --color-gray-400: #6c6f75;
-  --rgb-color-gray-400: 108, 111, 117;
+  --color-gray-400: #6d727d;
+  --rgb-color-gray-400: 109, 114, 125;
 
   --color-gray-500: #989ca5;
   --rgb-color-gray-500: 152, 156, 165;
@@ -1030,6 +1057,9 @@
   --nc-border-gray-medium: var(--color-gray-200);
   --nc-border-gray-dark: var(--color-gray-300);
   --nc-border-gray-extra-dark: var(--color-gray-400);
+
+  /* outline of filled/tinted inputs — dark palettes may use a translucent rim */
+  --nc-border-input: var(--nc-border-gray-medium);
 
   --nc-border-coloured-red: var(--color-red-500);
   --nc-border-coloured-green: var(--color-green-500);

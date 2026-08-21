@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { PlanLimitTypes, type SourceType } from 'nocodb-sdk'
-import { ClientType } from '#imports'
+import { ClientType, DataSourcesSubTab } from '#imports'
 
 interface Props {
   state: string

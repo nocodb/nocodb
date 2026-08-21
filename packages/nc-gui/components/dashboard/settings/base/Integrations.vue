@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { IntegrationCategoryType, type IntegrationType } from 'nocodb-sdk'
+import { IntegrationCategoryType, type IntegrationType, IntegrationsType } from 'nocodb-sdk'
 import type { IntegrationItemType, NcTableColumnProps } from '#imports'
 
 interface Props {
@@ -61,19 +61,22 @@ const connectionsSearchQuery = ref('')
 const mainSearchInputRef = ref<HTMLInputElement>()
 const connectionsSearchInputRef = ref<HTMLInputElement>()
 
+// Sync integrations are managed via Manage Syncs — exclude them from connection lists
+const nonSyncLinkedIntegrations = computed(() => linkedIntegrations.value.filter((i) => i.type !== IntegrationsType.Sync))
+
 const filteredAllConnections = computed(() => {
-  if (!connectionsSearchQuery.value.trim()) return linkedIntegrations.value
+  if (!connectionsSearchQuery.value.trim()) return nonSyncLinkedIntegrations.value
 
   const query = connectionsSearchQuery.value.trim().toLowerCase()
-  return linkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
+  return nonSyncLinkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
 })
 
 // Filtered linked integrations based on search
 const filteredLinkedIntegrations = computed(() => {
-  if (!searchQuery.value.trim()) return linkedIntegrations.value
+  if (!searchQuery.value.trim()) return nonSyncLinkedIntegrations.value
 
   const query = searchQuery.value.trim().toLowerCase()
-  return linkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
+  return nonSyncLinkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
 })
 
 // Build category map for the card grid

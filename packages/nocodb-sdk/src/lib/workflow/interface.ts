@@ -47,9 +47,10 @@ interface VariableDefinition {
     // UIType for fields
     uiType?: string;
 
-    // Available option titles for SingleSelect / MultiSelect fields.
-    // Lets condition builders offer the actual options instead of free text.
-    selectOptions?: string[];
+    // Available options for SingleSelect / MultiSelect fields, so condition
+    // builders can offer the actual options as coloured chips instead of free
+    // text. `color` is omitted when the column has colour coding turned off.
+    selectOptions?: { title: string; color?: string }[];
 
     // Table/View names for display
     tableName?: string;

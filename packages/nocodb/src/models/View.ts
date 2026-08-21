@@ -3003,6 +3003,7 @@ export default class View implements ViewType {
             'expanded_record_mode',
             'attachment_mode_column_id',
             'row_coloring_mode',
+            'fk_view_section_id',
           ]
         : []),
     ]);
@@ -3034,6 +3035,16 @@ export default class View implements ViewType {
       view.copy_from_id &&
       (await View.get(context, view.copy_from_id, false, ncMeta));
     await copyFromView?.getView(context);
+
+    // When duplicating a view, keep the copy inside the same section as the
+    // source view (unless the caller explicitly requested a section). Without
+    // this the duplicate lands in the default section instead of alongside
+    // the original.
+    if (isEE && copyFromView && !insertObj.fk_view_section_id) {
+      insertObj.fk_view_section_id =
+        (copyFromView as { fk_view_section_id?: string | null })
+          .fk_view_section_id ?? null;
+    }
 
     const table = await Model.getByIdOrName(
       context,

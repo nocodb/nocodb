@@ -57,7 +57,9 @@ const textColor = computed(() =>
 
 <style scoped lang="scss">
 .nc-select-option-tag {
-  @apply py-0 px-2 rounded-[12px] my-[2px] flex items-center;
+  // inline-flex, not flex: a block-level tag stretches to the full option row
+  // instead of hugging its label. Padding matches `.rounded-tag` in the select cells.
+  @apply py-[0.5px] px-2 rounded-[12px] my-[1px] inline-flex items-center max-w-full;
 }
 
 .nc-select-option-tag-close {

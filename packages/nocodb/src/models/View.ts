@@ -3037,13 +3037,10 @@ export default class View implements ViewType {
     await copyFromView?.getView(context);
 
     // When duplicating a view, keep the copy inside the same section as the
-    // source view (unless the caller explicitly requested a section). Without
-    // this the duplicate lands in the default section instead of alongside
-    // the original.
-    if (isEE && copyFromView && !insertObj.fk_view_section_id) {
-      insertObj.fk_view_section_id =
-        (copyFromView as { fk_view_section_id?: string | null })
-          .fk_view_section_id ?? null;
+    // source view. A caller-supplied value always wins — including `null`,
+    // which means "create at top level, not in the source's section".
+    if (isEE && copyFromView && insertObj.fk_view_section_id === undefined) {
+      insertObj.fk_view_section_id = copyFromView.fk_view_section_id;
     }
 
     const table = await Model.getByIdOrName(

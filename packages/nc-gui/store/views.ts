@@ -814,9 +814,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
         updates,
       )
 
-      // Find the table and update the view in the store
-      const tableId = activeView.value?.fk_model_id
-      const baseId = activeView.value?.base_id
+      // Locate the updated view's own bucket. `activeView` is not it — the
+      // sidebar context menu updates views other than the open one, and often
+      // no view is open at all, which silently skipped the store update.
+      const tableId = updatedView?.fk_model_id ?? activeView.value?.fk_model_id
+      const baseId = updatedView?.base_id ?? activeView.value?.base_id
       if (tableId && baseId) {
         const key = getViewsKey(baseId, tableId)
         const tableViews = viewsByTable.value.get(key) || []

@@ -4691,7 +4691,7 @@
     "aiButtonPromptExample": "Enter prompt here...\n\n eg : Categorise this {'{'}Notes{'}'}",
     "selectMappingField": "Select a Mapping Field",
     "comment": "Comment...",
-    "selectAnOption": "Select and option",
+    "selectAnOption": "Select an option",
     "typeErrorMessage": "Type error message...",
     "typeValue": "Type value...",
     "searchFieldToAddAsLookup": "Search field to add as lookup",

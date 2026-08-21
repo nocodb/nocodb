@@ -47,6 +47,10 @@ interface VariableDefinition {
     // UIType for fields
     uiType?: string;
 
+    // Available option titles for SingleSelect / MultiSelect fields.
+    // Lets condition builders offer the actual options instead of free text.
+    selectOptions?: string[];
+
     // Table/View names for display
     tableName?: string;
     viewName?: string;

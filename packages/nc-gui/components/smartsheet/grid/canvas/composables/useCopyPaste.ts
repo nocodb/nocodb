@@ -14,6 +14,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   populateUniqueFileName,
+  unquoteSingleCellClipboardValue,
 } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '../../../../../helpers/parsers/parserHelpers'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
@@ -1354,7 +1355,13 @@ export function useCopyPaste({
             { enrichClipboard: true, includeHtml: true },
           )
 
-          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+          // #14442: a single-cell copy must carry the RAW value. LongText's
+          // parseValue CSV-quotes its output so multi-cell TSV keeps grid
+          // structure; unwrapping it only for the lone-cell clipboard text
+          // leaves in-app paste (dbCellValueArr) and range copies intact.
+          const plainTextValue = isValidValue(textToCopy)
+            ? unquoteSingleCellClipboardValue(textToCopy, columnObj)
+            : ''
 
           await copyMimes({ 'text/plain': plainTextValue, ...clipboardContent })
 

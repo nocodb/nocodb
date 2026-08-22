@@ -87,6 +87,21 @@ export default defineConfig({
     },
   ],
 
+  // WindiCSS emitted bracket utilities after the static scale, so `h-full … h-[1px]` on one
+  // element resolved to 1px. Both are one class, so the tie falls to source order, and UnoCSS
+  // emits the bracket one first. A variant `sort` only reorders within a single rule — UnoCSS
+  // sorts by rule index first — so `grid-cols-2`/`grid-cols-[1fr_2fr]` and pseudo-class pairs
+  // would still miss; a layer is what puts every bracket utility last.
+  layers: { 'nc-arbitrary': 1 },
+
+  // Keyed off the escaped selector, not the candidate: a shortcut that expands to a bracket
+  // value (`nc-content-max-w`) has none in its own selector and stays in the shortcuts layer.
+  postprocess: [
+    (util) => {
+      if (util.selector?.includes('\\[')) util.layer = 'nc-arbitrary'
+    },
+  ],
+
   rules: [
     // WindiCSS scoped this to borderColor only; `text-error`/`bg-error` still use themeColors.error.
     ['border-error', { 'border-color': 'var(--ant-error-color)' }],

@@ -3,6 +3,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
 import type { VariableDefinition } from 'nocodb-sdk'
+import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
@@ -35,7 +36,24 @@ const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 
 const vModel = computed({
-  get: () => props.modelValue ?? '',
+  get: () => {
+    const value = props.modelValue
+
+    if (ncIsString(value)) return value
+
+    if (ncIsNumber(value)) return value.toString()
+
+    // date conditions can hold a Date/dayjs instance; ISO is what if.ts's `new Date(value)` reads back.
+    // toISOString() throws RangeError on an invalid date, so validity is checked first
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? '' : value.toISOString()
+
+    if (dayjs.isDayjs(value)) return value.isValid() ? value.toISOString() : ''
+
+    // anyof/allof conditions store multi-values as an array; if.ts reads the comma-joined form identically
+    if (ncIsArray(value)) return value.every(isPrimitiveValue) ? value.filter(isValidValue).join(',') : ''
+
+    return ''
+  },
   set: (v) => {
     emit('update:modelValue', v)
   },

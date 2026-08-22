@@ -89,7 +89,8 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
       inputBorder: 'rgba(255, 255, 255, 0.1)',
       tooltip: '#31353e',
       hover: '#282a30',
-      borderLight: '#282a30',
+      /* must differ from `hover`: cards rest on gray-50 and hover to gray-100 */
+      borderLight: '#2d2f35',
       gridLine: '#3d3e44',
       border: '#34363b',
       selection: '#243043',

@@ -458,7 +458,7 @@ export function useCanvasRender({
     ctx.fillRect(0, 0, columnsWidth, _headerRowHeight)
 
     // Header borders
-    ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+    ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
     ctx.lineWidth = 1
 
     // Bottom border
@@ -679,7 +679,7 @@ export function useCanvasRender({
         ctx.stroke()
 
         // Reset for regular column separator
-        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
         ctx.lineWidth = 1
       } else {
         colResizeHoveredColIds.value.delete(column.id)
@@ -980,7 +980,7 @@ export function useCanvasRender({
         // header cells otherwise (the scrollable pass skips fixed columns, and
         // the fixed backgrounds repaint over its strokes). The last one is
         // overpainted by renderFreezeBoundary's darker full-height line.
-        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
         ctx.lineWidth = column.id === 'row_number' ? 2 : 1
         ctx.beginPath()
         ctx.moveTo(xOffset, 0)
@@ -997,7 +997,7 @@ export function useCanvasRender({
           ctx.stroke()
 
           // Reset for regular column separator
-          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+          ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
           ctx.lineWidth = 1
         } else {
           colResizeHoveredColIds.value.delete(column.id)
@@ -1659,7 +1659,7 @@ export function useCanvasRender({
       selectionBgOnRowColor: whiteLabelled ? getColor(themeV4Colors.brand['500'], undefined, 0.05) : '#3366ff0d',
       // Grid lines are one shade darker in light theme — the same gray tokens
       // have ~half the contrast on white than on the dark theme background
-      borderMedium: getColor(themeV4Colors.gray['300'], themeV4Colors.gray['200']),
+      borderMedium: getColor(themeV4Colors.gray['300'], 'var(--nc-grid-line)'),
       borderLight: getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)'),
       gray50: getColor(themeV4Colors.gray['50']),
       white: getColor(themeV4Colors.base.white),

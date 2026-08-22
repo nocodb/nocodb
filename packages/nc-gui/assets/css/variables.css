@@ -1054,6 +1054,8 @@
 
   --nc-border-gray-extra-light: var(--color-gray-50);
   --nc-border-gray-light: var(--color-gray-100);
+  /* grid row/column separators — palettes lift these without touching the gray-100 fill */
+  --nc-grid-line: var(--color-gray-100);
   --nc-border-gray-medium: var(--color-gray-200);
   --nc-border-gray-dark: var(--color-gray-300);
   --nc-border-gray-extra-dark: var(--color-gray-400);

@@ -22,6 +22,17 @@ body {
   @apply !bg-nc-bg-default;
 }
 
+/* dark: a 10%-black shadow (utility `shadow-lg`) is invisible on a dark surface — overlays
+   need a much heavier one to read as lifted. Light mode keeps the utility's shadow. */
+[theme='dark'] {
+  .ant-dropdown,
+  .ant-popover-inner,
+  .ant-select-dropdown,
+  .ant-picker-dropdown {
+    box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.7), 0 4px 10px -4px rgba(0, 0, 0, 0.5) !important;
+  }
+}
+
 // Dropdown — overlays sit on the elevated surface (lighter than content in dark)
 .ant-dropdown {
   @apply !bg-nc-bg-elevated text-nc-content-gray;

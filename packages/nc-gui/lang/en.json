@@ -3931,6 +3931,7 @@
       "inputBorder": "Input borders",
       "tooltip": "Tooltip",
       "hover": "Hover",
+      "surfaceLight": "Light surfaces",
       "gridLines": "Grid lines",
       "borders": "Borders",
       "selection": "Selection",

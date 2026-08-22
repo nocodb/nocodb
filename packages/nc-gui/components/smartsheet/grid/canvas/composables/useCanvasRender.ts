@@ -722,7 +722,7 @@ export function useCanvasRender({
         (fillHandler && xOffset - _scrollLeft + 1 >= fillHandler.x && xOffset - _scrollLeft - 1 <= fillHandler.x)
       ) {
         // Draw line above active state
-        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], themeV4Colors.gray['100'])
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
         if (fillHandler && activeState?.y) {
           ctx.beginPath()
           ctx.moveTo(xOffset - _scrollLeft, _headerRowHeight)
@@ -764,7 +764,7 @@ export function useCanvasRender({
         // Draw full line if not intersecting with active state
         // To avoid rendering the line inside fixed columns, set the xOffset to the right of fixed columns if xOffset is less than fixedColsWidth
         const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - _scrollLeft)
-        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], themeV4Colors.gray['100'])
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
         ctx.beginPath()
         ctx.moveTo(verticalLineXOffset, _headerRowHeight)
         ctx.lineTo(
@@ -1660,7 +1660,7 @@ export function useCanvasRender({
       // Grid lines are one shade darker in light theme — the same gray tokens
       // have ~half the contrast on white than on the dark theme background
       borderMedium: getColor(themeV4Colors.gray['300'], themeV4Colors.gray['200']),
-      borderLight: getColor(themeV4Colors.gray['200'], themeV4Colors.gray['100']),
+      borderLight: getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)'),
       gray50: getColor(themeV4Colors.gray['50']),
       white: getColor(themeV4Colors.base.white),
       borderDark: getColor(themeV4Colors.gray['300']),

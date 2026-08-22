@@ -498,6 +498,22 @@ function onCellValueChange(colTitle: string | undefined) {
   background: transparent !important;
 }
 
+/* dark: the field label is white text at reduced alpha, not a dimmer grey — the reference
+   does this with a `.quiet { opacity: .75 }` wrapper (its #c6c7c8 on #1d1f25 is exactly
+   #fff at .75). We run a touch brighter at .85, with the icon a further step down at .62.
+   Alpha on the colour rather than the `opacity` property, so the row's menu chevron, lock
+   and required-asterisk aren't dimmed with it. Both track the palette's `text` knob, so
+   every preset follows. Lives here rather than in expanded-form/index.vue because this
+   component renders the header for BOTH the modal and the docked side panel. Light mode
+   keeps the muted grey. */
+[theme='dark'] .nc-expanded-cell-header {
+  @apply !text-nc-content-gray/85;
+}
+[theme='dark'] .nc-expanded-cell-header :deep(svg.nc-cell-icon),
+[theme='dark'] .nc-expanded-cell-header :deep(svg.nc-virtual-cell-icon) {
+  @apply !text-nc-content-gray/62;
+}
+
 /* Compact view — flatten the field label too: remove its own pt-0.5 (added by
    SmartsheetHeaderCell in expanded-form mode) and the label-container's mb-2
    so the label sits flush with the value below. */

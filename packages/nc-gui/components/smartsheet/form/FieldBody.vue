@@ -177,6 +177,16 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
   }
 }
 
+/* dark: fill the input rather than painting it the page colour, so a field reads as an
+   input — same treatment as the expanded record. Reuses the static-class exclusions
+   above deliberately; `:has()` is avoided here for the invalidation cost noted there.
+   Checkbox and attachment cells are borderless, so a fill on them reads as a stray slab
+   beside their own content rather than as an input. */
+[theme='dark'] .nc-input:not(.layout-list):not(.nc-input-has-attachments):not(.nc-cell-checkbox):not(.nc-cell-attachment) {
+  background-color: var(--nc-bg-input) !important;
+  border-color: var(--nc-border-input);
+}
+
 .nc-form-field-body {
   :deep(.nc-cell) {
     @apply my-0;

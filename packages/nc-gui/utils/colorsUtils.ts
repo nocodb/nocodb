@@ -707,6 +707,9 @@ export const themeVariables = {
     // Dedicated surface tokens — chrome and overlays no longer share the gray ramp
     'nc-bg-elevated': '--rgb-nc-bg-elevated',
     'nc-bg-canvas': '--rgb-nc-bg-canvas',
+    // hover twin is a derived color-mix in dark, so it has no rgb triplet and no
+    // utility — consume it as raw var(--nc-bg-card-hover)
+    'nc-bg-card': '--rgb-nc-bg-card',
     'nc-bg-brand': {
       DEFAULT: themeV4Colors.brand[50],
       inverted: themeV4Colors.brand.inverted,

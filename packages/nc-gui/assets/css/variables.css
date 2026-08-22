@@ -936,6 +936,13 @@
   --nc-bg-gray-dark: var(--color-gray-300);
   --nc-bg-gray-extra-dark: var(--color-gray-400);
 
+  /* Card surfaces. Named apart from the gray ramp because those stops do double
+     duty as hover targets and subtle borders — a palette that flattens them for
+     chrome would otherwise leave cards with no hover step. */
+  --nc-bg-card: var(--color-gray-50);
+  --rgb-nc-bg-card: var(--rgb-color-gray-50);
+  --nc-bg-card-hover: var(--color-gray-100);
+
   --nc-bg-default: var(--color-base-white);
   --nc-bg-brand: var(--color-brand-50);
 
@@ -1054,6 +1061,8 @@
 
   --nc-border-gray-extra-light: var(--color-gray-50);
   --nc-border-gray-light: var(--color-gray-100);
+  /* grid row/column separators — palettes lift these without touching the gray-100 fill */
+  --nc-grid-line: var(--color-gray-100);
   --nc-border-gray-medium: var(--color-gray-200);
   --nc-border-gray-dark: var(--color-gray-300);
   --nc-border-gray-extra-dark: var(--color-gray-400);
@@ -1077,4 +1086,11 @@
   --measurements-radius-x-large: var(--spacing-06);
   --measurements-radius-xx-large: var(--spacing-07);
   --measurements-radius-rounded: var(--spacing-13);
+}
+
+/* Card hover in dark is derived from the card surface, not taken from the gray ramp:
+   flat palettes compress those stops for chrome, which leaves a large card with no
+   perceptible hover step. 6% reproduces the classic palette's own step. */
+[theme='dark'] {
+  --nc-bg-card-hover: color-mix(in srgb, #ffffff 6%, var(--nc-bg-card));
 }

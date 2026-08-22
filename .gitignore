@@ -110,6 +110,9 @@ antd.variable.css
 # Claude - per-branch working memory (ephemeral, local only)
 .claude/branches/
 
+# Claude - durable reference material for skills (large/third-party assets, local only)
+.claude/refs/
+
 # nocodb-api skill runtime state
 .claude/skills/nocodb-dev-api/.state.json
 /.claude/worktrees/

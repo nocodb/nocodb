@@ -40,6 +40,8 @@ const {
   setFormState,
   loadOptions,
   getFieldOptions,
+  getFieldOptionsError,
+  getFieldOptionsBlockedBy,
   getIsLoadingFieldOptions,
   toggleGroup,
   isGroupCollapsed,
@@ -458,6 +460,29 @@ watch(
                             />
                           </div>
                         </a-select-option>
+
+                        <template v-if="field.fetchOptionsKey" #notFoundContent>
+                          <div
+                            v-if="getFieldOptionsError(field.model)"
+                            class="flex flex-col gap-2 items-start p-2 text-bodySm text-nc-content-gray-subtle"
+                            data-testid="nc-form-builder-options-error"
+                          >
+                            <span>{{ getFieldOptionsError(field.model) }}</span>
+                            <NcButton size="xsmall" type="secondary" @mousedown.prevent="loadOptions(field)">
+                              {{ $t('general.retry') }}
+                            </NcButton>
+                          </div>
+                          <div
+                            v-else-if="getFieldOptionsBlockedBy(field)"
+                            class="p-2 text-bodySm text-nc-content-gray-subtle"
+                            data-testid="nc-form-builder-options-blocked"
+                          >
+                            {{ $t('msg.info.selectFieldFirst', { field: getFieldOptionsBlockedBy(field) }) }}
+                          </div>
+                          <div v-else class="p-2 text-bodySm text-nc-content-gray-subtle">
+                            {{ $t('labels.noResults') }}
+                          </div>
+                        </template>
                       </NcSelect>
                     </NcFormBuilderInputMountedWrapper>
                   </template>

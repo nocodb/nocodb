@@ -77,6 +77,20 @@ export const presetErrorCodexMap: Partial<
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
   },
+  [NcErrorType.ERR_INTEGRATION_AUTH_FAILED]: {
+    message: (message: string) =>
+      message ||
+      'This connection is no longer valid. Reconnect it and try again.',
+    // Deliberately not 401 — the frontend interceptor treats 401 as an expired
+    // NocoDB session and would kick off a token refresh.
+    code: 400,
+  },
+  [NcErrorType.ERR_INTEGRATION_REQUEST_FAILED]: {
+    message: (message: string) =>
+      message ||
+      "Couldn't reach the connected service. Try again, and if it keeps happening contact support.",
+    code: 400,
+  },
   [NcErrorType.ERR_TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,

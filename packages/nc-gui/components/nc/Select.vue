@@ -80,6 +80,9 @@ const onSearch = (value: string) => {
     <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">
       <slot name="dropdownRender" :menu-node="menuNode" />
     </template>
+    <template v-if="$slots.notFoundContent" #notFoundContent>
+      <slot name="notFoundContent" />
+    </template>
     <slot />
   </a-select>
 </template>

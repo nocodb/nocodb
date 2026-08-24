@@ -12,6 +12,7 @@ import {
 import slash from 'slash';
 import { getBase64FileSize } from 'src/helpers/stringHelpers';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
+import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
 import type {
   AttachmentBase64UploadParam,
@@ -24,6 +25,8 @@ import {
 } from '~/constants';
 import {
   constructFilePath,
+  getSafeAttachmentErrorLog,
+  tryDeleteUploadedFile,
   validateNumberOfFilesInCell,
 } from '~/helpers/attachmentHelpers';
 import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
@@ -66,8 +69,14 @@ export class DataAttachmentV3Service {
     await baseModel.model.getColumns(context);
     const processedAttachments = [];
     const generateThumbnailAttachments = [];
+    const uploadedAttachmentRefs: {
+      id: string;
+      storageKey: string;
+      storageAdapter: IStorageAdapterV2;
+    }[] = [];
 
     for (const attachment of attachments) {
+      let downloadedAttachment;
       try {
         if (
           attachment.id &&
@@ -82,7 +91,7 @@ export class DataAttachmentV3Service {
         ) {
           // If attachment has URL, download and process it
 
-          const downloadedAttachment = await this.downloadAndStoreAttachment(
+          downloadedAttachment = await this.downloadAndStoreAttachment(
             context,
             {
               filePath: attachment,
@@ -115,6 +124,11 @@ export class DataAttachmentV3Service {
             file_size: downloadedAttachment.fileSize,
             deleted: false,
           });
+          uploadedAttachmentRefs.push({
+            id: attachment.id,
+            storageKey: downloadedAttachment.storageKey,
+            storageAdapter: downloadedAttachment.storageAdapter,
+          });
           const processedAttachment = {
             id: attachment.id,
             url: ncIsNull(downloadedAttachment.url)
@@ -139,16 +153,46 @@ export class DataAttachmentV3Service {
           }
         }
       } catch (error) {
-        console.error(`Failed to process attachment:`, error);
+        if (downloadedAttachment?.storageKey && attachment.id) {
+          try {
+            await FileReference.delete(context, attachment.id);
+          } catch {}
+        }
+        if (downloadedAttachment?.storageKey) {
+          try {
+            await tryDeleteUploadedFile(
+              downloadedAttachment.storageAdapter,
+              downloadedAttachment.storageKey,
+            );
+          } catch {}
+        }
+        const { message, stack } = getSafeAttachmentErrorLog(error);
+        this.logger.error(`Failed to process attachment: ${message}`, stack);
       }
     }
     // direct update to prevent prepare noco data again
-    await baseModel
-      .dbDriver(baseModel.getTnPath(baseModel.model))
-      .update({
-        [column.column_name]: JSON.stringify(processedAttachments),
-      })
-      .where(await _wherePk(baseModel.model.primaryKeys, recordId, true));
+    try {
+      await baseModel
+        .dbDriver(baseModel.getTnPath(baseModel.model))
+        .update({
+          [column.column_name]: JSON.stringify(processedAttachments),
+        })
+        .where(await _wherePk(baseModel.model.primaryKeys, recordId, true));
+    } catch (error) {
+      await Promise.all(
+        uploadedAttachmentRefs.map(
+          async ({ id, storageKey, storageAdapter }) => {
+            try {
+              await FileReference.delete(context, id);
+            } catch {}
+            try {
+              await tryDeleteUploadedFile(storageAdapter, storageKey);
+            } catch {}
+          },
+        ),
+      );
+      throw error;
+    }
 
     if (generateThumbnailAttachments.length > 0) {
       await this.jobsService.add(JobTypes.ThumbnailGenerator, {
@@ -279,9 +323,12 @@ export class DataAttachmentV3Service {
 
     const processedAttachments = [];
     const generateThumbnailAttachments = [];
+    let storageAdapter: IStorageAdapterV2;
+    let uploadedKey: string;
+    let uploadedReferenceId: string;
 
     try {
-      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      storageAdapter = await NcPluginMgrv2.storageAdapter();
       const mimeType = attachment.contentType.split(';')[0].trim();
 
       let filename = attachment.filename;
@@ -299,9 +346,10 @@ export class DataAttachmentV3Service {
         ),
       );
       const destPath = path.join('nc', scope ?? 'uploads', filePath);
+      uploadedKey = slash(path.join(destPath, filename));
 
       const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
-        slash(path.join(destPath, filename)),
+        uploadedKey,
         new PassThrough().end(attachment.file, 'base64'),
       );
 
@@ -324,7 +372,7 @@ export class DataAttachmentV3Service {
       );
 
       // Step 2: Create FileReference with workspace info and deleted: false
-      const attachmentId = await FileReference.insert(context, {
+      uploadedReferenceId = await FileReference.insert(context, {
         file_url:
           resultAttachmentUrl ?? path.join('download', filePath, filename),
         file_size: fileSize,
@@ -339,7 +387,7 @@ export class DataAttachmentV3Service {
       // Use the second (workspace-aware) FileReference ID as attachment value
 
       const processedAttachment = {
-        id: attachmentId, // Generate a new ID for the attachment
+        id: uploadedReferenceId, // Generate a new ID for the attachment
         url: ncIsNull(resultAttachmentUrl) ? undefined : resultAttachmentUrl,
         path: ncIsNull(resultAttachmentUrl)
           ? path.join('download', filePath, filename)
@@ -353,7 +401,19 @@ export class DataAttachmentV3Service {
         generateThumbnailAttachments.push(processedAttachment);
       }
     } catch (error) {
-      this.logger.error(`${error?.constructor?.name}: ${error?.message}`);
+      if (uploadedReferenceId) {
+        try {
+          await FileReference.delete(context, uploadedReferenceId);
+        } catch {}
+      }
+      if (uploadedKey && storageAdapter) {
+        await tryDeleteUploadedFile(storageAdapter, uploadedKey);
+      }
+      const { message, stack } = getSafeAttachmentErrorLog(error);
+      this.logger.error(
+        `Failed to process base64 attachment: ${message}`,
+        stack,
+      );
       NcError.get(context).unprocessableEntity(
         `Failed to process base64 attachment`,
       );
@@ -361,12 +421,24 @@ export class DataAttachmentV3Service {
 
     const updatedAttachments = [...currentAttachments, ...processedAttachments];
 
-    await baseModel
-      .dbDriver(baseModel.getTnPath(baseModel.model))
-      .update({
-        [column.column_name]: JSON.stringify(updatedAttachments),
-      })
-      .where(_wherePk(baseModel.model.primaryKeys, recordId, true));
+    try {
+      await baseModel
+        .dbDriver(baseModel.getTnPath(baseModel.model))
+        .update({
+          [column.column_name]: JSON.stringify(updatedAttachments),
+        })
+        .where(_wherePk(baseModel.model.primaryKeys, recordId, true));
+    } catch (error) {
+      if (uploadedReferenceId) {
+        try {
+          await FileReference.delete(context, uploadedReferenceId);
+        } catch {}
+      }
+      if (uploadedKey && storageAdapter) {
+        await tryDeleteUploadedFile(storageAdapter, uploadedKey);
+      }
+      throw error;
+    }
 
     if (generateThumbnailAttachments.length > 0) {
       await this.jobsService.add(JobTypes.ThumbnailGenerator, {
@@ -491,10 +563,17 @@ export class DataAttachmentV3Service {
           originalFileName,
         })
       : filePath;
-    const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
-      filePathConstructed.storageDest,
-      response.data.pipe(sizeLimiter),
-    );
+    const storageKey = filePathConstructed.storageDest;
+    let resultAttachmentUrl;
+    try {
+      resultAttachmentUrl = await storageAdapter.fileCreateByStream(
+        storageKey,
+        response.data.pipe(sizeLimiter),
+      );
+    } catch (error) {
+      await tryDeleteUploadedFile(storageAdapter, storageKey);
+      throw error;
+    }
     // sizeLimiter.bytesProcessed is the exact number of bytes streamed into
     // storage by the time fileCreateByStream resolves. Prefer it over the
     // Content-Length header, which can be absent (chunked), understated, or
@@ -503,6 +582,8 @@ export class DataAttachmentV3Service {
 
     return {
       storageName: storageAdapter.name,
+      storageAdapter,
+      storageKey,
       url: resultAttachmentUrl,
       path: path.join(
         'download',

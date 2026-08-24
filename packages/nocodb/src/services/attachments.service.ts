@@ -25,7 +25,11 @@ import { NcBaseError, NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
-import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
+import {
+  getSafeAttachmentErrorLog,
+  tryDeleteUploadedFile,
+  validateAndNormaliseLocalPath,
+} from '~/helpers/attachmentHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { UseWorker } from '~/decorators/use-worker.decorator';
@@ -102,6 +106,7 @@ export class AttachmentsService {
 
     queue.addAll(
       param.files?.map((file) => async () => {
+        let uploadedKey: string;
         try {
           const nanoId = nanoid(5);
 
@@ -152,10 +157,8 @@ export class AttachmentsService {
             }
           }
 
-          const url = await storageAdapter.fileCreate(
-            slash(path.join(destPath, fileName)),
-            file,
-          );
+          uploadedKey = slash(path.join(destPath, fileName));
+          const url = await storageAdapter.fileCreate(uploadedKey, file);
 
           await FileReference.insert(
             {
@@ -189,6 +192,9 @@ export class AttachmentsService {
 
           attachments.push(attachment);
         } catch (e) {
+          if (uploadedKey) {
+            await tryDeleteUploadedFile(storageAdapter, uploadedKey);
+          }
           errors.push(e);
         }
       }),
@@ -197,9 +203,12 @@ export class AttachmentsService {
     await queue.onIdle();
 
     if (errors.length) {
-      errors.forEach((error) => this.logger.error(error));
+      errors.forEach((error) => {
+        const { message, stack } = getSafeAttachmentErrorLog(error);
+        this.logger.error(`Attachment upload failed: ${message}`, stack);
+      });
 
-      const firstError = errors[0].error;
+      const firstError = errors[0];
 
       if (firstError instanceof NcError || firstError instanceof NcBaseError) {
         throw firstError;
@@ -284,6 +293,7 @@ export class AttachmentsService {
 
     queue.addAll(
       param.urls?.map?.((urlMeta) => async () => {
+        let uploadedKey: string;
         try {
           const { url, fileName: _fileName } = urlMeta;
 
@@ -383,25 +393,22 @@ export class AttachmentsService {
           }
 
           let attachmentUrl, file;
+          uploadedKey = slash(path.join(fileDestPath, fileName));
 
           if (!base64TempStream) {
             const { url: _attachmentUrl, data: _file } =
-              await storageAdapter.fileCreateByUrl(
-                slash(path.join(fileDestPath, fileName)),
-                finalUrl,
-                {
-                  fetchOptions: {
-                    // The sharp requires image to be passed as buffer.);
-                    buffer: mimeType.includes('image'),
-                  },
+              await storageAdapter.fileCreateByUrl(uploadedKey, finalUrl, {
+                fetchOptions: {
+                  // The sharp requires image to be passed as buffer.);
+                  buffer: mimeType.includes('image'),
                 },
-              );
+              });
 
             attachmentUrl = _attachmentUrl;
             file = _file;
           } else {
             attachmentUrl = await storageAdapter.fileCreateByStream(
-              slash(path.join(fileDestPath, fileName)),
+              uploadedKey,
               base64TempStream,
             );
 
@@ -462,6 +469,9 @@ export class AttachmentsService {
 
           attachments.push(attachment);
         } catch (e) {
+          if (uploadedKey) {
+            await tryDeleteUploadedFile(storageAdapter, uploadedKey);
+          }
           errors.push(e);
         }
       }),
@@ -470,9 +480,12 @@ export class AttachmentsService {
     await queue.onIdle();
 
     if (errors.length) {
-      errors.forEach((error) => this.logger.error(error));
+      errors.forEach((error) => {
+        const { message, stack } = getSafeAttachmentErrorLog(error);
+        this.logger.error(`Attachment upload failed: ${message}`, stack);
+      });
 
-      const firstError = errors[0].error;
+      const firstError = errors[0];
 
       if (firstError instanceof NcError || firstError instanceof NcBaseError) {
         throw firstError;

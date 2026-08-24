@@ -10,6 +10,7 @@ import type { Response } from 'express';
 import type { NcContext } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import type { AttachmentsService } from '~/services/attachments.service';
+import type IStorageAdapter from '~/types/nc-plugin/lib/IStorageAdapter';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -219,6 +220,57 @@ export function resolveAttachmentFilePath(attachment: {
   }
 
   throw new Error('Attachment must have either path or url');
+}
+
+const redactAttachmentLogValue = (value: string) =>
+  value
+    .replace(/https?:\/\/[^\s"'<>]+/gi, '[REDACTED_URL]')
+    .replace(
+      /((?:access[_-]?key(?:id)?|secret(?:[_-]?access)?[_-]?key|password|token|authorization|signature)\s*[:=]\s*)[^\s,;}\]]+/gi,
+      '$1[REDACTED]',
+    );
+
+export function getSafeAttachmentErrorLog(error: unknown): {
+  message: string;
+  stack?: string;
+} {
+  let message: string;
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === 'string') {
+    message = error;
+  } else {
+    try {
+      message = JSON.stringify(error) ?? String(error);
+    } catch {
+      message = String(error);
+    }
+  }
+
+  return {
+    message: redactAttachmentLogValue(message),
+    stack:
+      error instanceof Error && error.stack
+        ? redactAttachmentLogValue(error.stack)
+        : undefined,
+  };
+}
+
+export function getSafeAttachmentLogIdentifier(fileUrl: string): string {
+  try {
+    return new URL(fileUrl).pathname;
+  } catch {
+    return fileUrl.split(/[?#]/, 1)[0];
+  }
+}
+
+export async function tryDeleteUploadedFile(
+  storageAdapter: Pick<IStorageAdapter, 'fileDelete'>,
+  storagePath: string,
+): Promise<void> {
+  try {
+    await storageAdapter.fileDelete(storagePath);
+  } catch {}
 }
 
 export const localFileExists = (path: string) => {

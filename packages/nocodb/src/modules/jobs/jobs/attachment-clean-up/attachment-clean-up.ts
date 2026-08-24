@@ -4,7 +4,11 @@ import type { Job } from 'bull';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import {
+  getPathFromUrl,
+  getSafeAttachmentErrorLog,
+  getSafeAttachmentLogIdentifier,
+} from '~/helpers/attachmentHelpers';
 
 const retentionDays = process.env.NC_ATTACHMENT_RETENTION_DAYS || 10;
 
@@ -84,8 +88,14 @@ export class AttachmentCleanUpProcessor {
           .knexConnection(MetaTable.FILE_REFERENCES)
           .where('file_url', file.file_url)
           .del();
-      } catch (e) {
-        this.debugLog(`error deleting file ${file.file_url}: ${e.message}`);
+      } catch (error) {
+        const { message, stack } = getSafeAttachmentErrorLog(error);
+        const identifier = getSafeAttachmentLogIdentifier(file.file_url);
+        this.debugLog(
+          `error deleting attachment ${identifier}: ${message}${
+            stack ? `\n${stack}` : ''
+          }`,
+        );
       }
     }
 

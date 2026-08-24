@@ -521,6 +521,26 @@ export class NcErrorBase {
     });
   }
 
+  integrationAuthFailed(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_AUTH_FAILED,
+      {
+        params: message,
+        ...(args || {}),
+      }
+    );
+  }
+
+  integrationRequestFailed(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_REQUEST_FAILED,
+      {
+        params: message,
+        ...(args || {}),
+      }
+    );
+  }
+
   syncConfigNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND, {
       params: id,

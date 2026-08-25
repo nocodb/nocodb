@@ -102,6 +102,17 @@ export default defineConfig({
     (util) => {
       if (util.selector?.includes('\\[')) util.layer = 'nc-arbitrary'
     },
+
+    // Two utilities of the same property tie on specificity, so the later one wins, and UnoCSS
+    // breaks that tie alphabetically inside a rule (documented). `border-transparent` therefore
+    // beats `border-nc-border-brand` (n < t) but loses to `border-white` (w > t) — which of a
+    // base and its override applies came down to the colour's name. WindiCSS ordered the group by
+    // theme key, putting the resets first, so the token won. Pin them first again.
+    (util) => {
+      if (/-(transparent|current|inherit)(?=$|:|\s)/.test(util.selector?.replace(/\\/g, '') || '')) {
+        util.sort = -1000
+      }
+    },
   ],
 
   rules: [

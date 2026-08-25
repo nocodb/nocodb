@@ -15,7 +15,10 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { FormulaColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import { stripNaNSql } from '~/db/formulav2/pg-ieee';
+import {
+  isNonFiniteFormulaHandlingEnabled,
+  stripNaNSql,
+} from '~/db/formulav2/pg-ieee';
 import { Column, Filter } from '~/models';
 
 // NaN satisfies no ordering comparison, but pg ranks it above every number, so
@@ -26,7 +29,10 @@ const ORDERING_COMPARISON_OPS = ['gt', 'lt', 'gte', 'lte', 'ge', 'le'];
 const isPgNumericFormula = (
   baseModel: { isPg?: boolean },
   parsedTree?: ParsedFormulaNode,
-) => !!baseModel.isPg && parsedTree?.dataType === FormulaDataTypes.NUMERIC;
+) =>
+  isNonFiniteFormulaHandlingEnabled() &&
+  !!baseModel.isPg &&
+  parsedTree?.dataType === FormulaDataTypes.NUMERIC;
 
 export class FormulaGeneralHandler extends ComputedFieldHandler {
   override async applySort(
@@ -176,6 +182,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       // the Decimal verifier rejects them — Number('NaN') fails its numeric
       // check, so `eq NaN` 422s before reaching the query.
       if (
+        isNonFiniteFormulaHandlingEnabled() &&
         dataType === FormulaDataTypes.NUMERIC &&
         isFormulaNonFiniteValue(filter.value)
       ) {

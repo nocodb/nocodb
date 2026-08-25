@@ -10,7 +10,7 @@ import {
 import { ROOT_ALIAS } from '~/utils';
 import { _wherePk } from '~/helpers/dbHelpers';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import { excludeNonFiniteSql } from '~/db/formulav2/pg-ieee';
+import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 
 /*
  result from formula qb:
@@ -69,6 +69,7 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
     // holds them but reads back as null. Text is left unwrapped — there the
     // token survives the conversion intact.
     const excludeNonFinite =
+      isPgIeeeEnabled(knex) &&
       isNumericCol(destinationColumn) &&
       formulaColumnOption.getParsedTree()?.dataType ===
         FormulaDataTypes.NUMERIC;

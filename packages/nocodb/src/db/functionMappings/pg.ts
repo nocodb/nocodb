@@ -16,6 +16,7 @@ import {
   ieeePowerSql,
   ieeeSqrtSql,
   isFiniteSql,
+  isPgIeeeEnabled,
   stripNaNSql,
 } from '~/db/formulav2/pg-ieee';
 import { convertUnits } from '~/helpers/convertUnits';
@@ -101,7 +102,7 @@ const pg = {
     const allNumeric = pt.arguments.every(
       (arg) => arg.dataType === FormulaDataTypes.NUMERIC,
     );
-    if (!allNumeric) {
+    if (!allNumeric || !isPgIeeeEnabled(knex)) {
       return { builder: knex.raw(`greatest(${args.join(', ')})`) };
     }
     // Strip NaN from the operands, then fall back to the unstripped form so an
@@ -125,19 +126,31 @@ const pg = {
   POWER: async ({ fn, knex, pt }: MapFnArgs) => {
     const base = (await fn(pt.arguments[0])).builder;
     const exponent = (await fn(pt.arguments[1])).builder;
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`pow(${base}, ${exponent})`) };
+    }
     return { builder: knex.raw(ieeePowerSql(`${base}`, `${exponent}`)) };
   },
   LOG: async ({ fn, knex, pt }: MapFnArgs) => {
     if (pt.arguments.length > 1) {
       const base = (await fn(pt.arguments[0])).builder;
       const value = (await fn(pt.arguments[1])).builder;
+      if (!isPgIeeeEnabled(knex)) {
+        return { builder: knex.raw(`log(${base}, ${value})`) };
+      }
       return { builder: knex.raw(ieeeLogBaseSql(`${base}`, `${value}`)) };
     }
     const source = (await fn(pt.arguments[0])).builder;
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`log(${source})`) };
+    }
     return { builder: knex.raw(ieeeLogSql(`${source}`)) };
   },
   SQRT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`sqrt(${source})`) };
+    }
     return { builder: knex.raw(ieeeSqrtSql(`${source}`)) };
   },
   SEARCH: async (args: MapFnArgs) => {
@@ -172,6 +185,11 @@ const pg = {
       ? (await fn(pt.arguments[1])).builder
       : 0;
 
+    if (!isPgIeeeEnabled(knex)) {
+      return {
+        builder: knex.raw(`ROUND((?)::numeric, ?)`, [source, precision]),
+      };
+    }
     // ROUND is numeric-only, and casting ±Infinity/NaN to numeric raises on
     // pg < 14. Rounding a non-finite value is the value itself anyway.
     return {
@@ -439,6 +457,9 @@ const pg = {
   MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;
     const y = (await fn(pt.arguments[1])).builder;
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC)`) };
+    }
     return { builder: knex.raw(ieeeModuloSql(`${x}`, `${y}`)) };
   },
   REGEX_MATCH: async ({ fn, knex, pt }: MapFnArgs) => {

@@ -13,7 +13,7 @@ import {
   coalesceNumericOperand,
   ieeeDivisionSql,
   ieeeModuloSql,
-  isPgClient,
+  isPgIeeeEnabled,
   stripNaNSql,
 } from './pg-ieee';
 import type {
@@ -500,7 +500,7 @@ export const binaryExpressionBuilder = async ({
   // Applied in every mode, not just display: if display coalesced but sort did
   // not, a blank operand would render as a number yet sort as NULL.
   if (
-    isPgClient(knex) &&
+    isPgIeeeEnabled(knex) &&
     ['+', '-', '*', '/', '%', '<', '>', '<=', '>=', '=', '!='].includes(
       pt.operator,
     )
@@ -557,7 +557,7 @@ export const binaryExpressionBuilder = async ({
     // Same rule the filter layer applies to gt/lt/gte/lte: NaN satisfies no
     // ordering comparison. Without this a divide-by-zero row takes the true
     // branch of `> 100`, silently flipping the IF around it.
-    if (isPgClient(knex)) {
+    if (isPgIeeeEnabled(knex)) {
       if (pt.left.dataType === FormulaDataTypes.NUMERIC) {
         left = stripNaNSql(left);
       }
@@ -715,7 +715,7 @@ export const binaryExpressionBuilder = async ({
         isMssql || isOracle
           ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
           : `(CASE WHEN ${sql} THEN true ELSE false END )`;
-    } else if (pt.operator === '/' && isPgClient(knex)) {
+    } else if (pt.operator === '/' && isPgIeeeEnabled(knex)) {
       // Operands are already DOUBLE PRECISION via the FLOAT() wrap above, so
       // the IEEE branches unify as float8 — `numeric` could not hold Infinity
       // before PG 14.
@@ -724,7 +724,7 @@ export const binaryExpressionBuilder = async ({
       // at its own site (excludeNonFiniteSql), so nothing has to be threaded
       // through the recursion here.
       sql = ieeeDivisionSql(left, right);
-    } else if (pt.operator === '%' && isPgClient(knex)) {
+    } else if (pt.operator === '%' && isPgIeeeEnabled(knex)) {
       // `%` is the operator spelling of MOD(), so it gets MOD's lowering. It
       // needs it: the COALESCE above turns a blank divisor into a literal 0,
       // which pg rejects with `division by zero` instead of returning NULL.

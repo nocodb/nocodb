@@ -10,7 +10,7 @@ import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
-import { excludeNonFiniteSql } from '~/db/formulav2/pg-ieee';
+import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import { DBQueryClient } from '~/dbQueryClient';
 
 export interface ApplyAggregationParams {
@@ -110,7 +110,7 @@ export async function applyAggregation({
   if (
     column.uidt === UITypes.Formula &&
     parsedFormulaType === FormulaDataTypes.NUMERIC &&
-    baseModelSqlv2.isPg &&
+    isPgIeeeEnabled(baseModelSqlv2.dbDriver) &&
     Object.values(NumericalAggregations).includes(aggregation as any) &&
     typeof column_name_query !== 'string'
   ) {

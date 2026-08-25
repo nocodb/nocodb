@@ -290,7 +290,7 @@ const onCreateCancel = () => {
         <!-- Empty state -->
         <div
           v-else-if="!isLoadingAllTokens && !tokens.length"
-          class="max-w-[40rem] border px-3 py-6 flex flex-col items-center justify-center gap-6 text-center"
+          class="max-w-[40rem] px-3 py-6 flex flex-col items-center justify-center gap-6 text-center"
         >
           <img src="~assets/img/placeholder/api-tokens.png" class="!w-[22rem] flex-none" />
           <div class="text-2xl text-nc-content-gray font-bold">{{ $t('placeholder.noTokenCreated') }}</div>

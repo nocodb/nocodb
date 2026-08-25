@@ -24,7 +24,7 @@ import { NcError } from '~/helpers/ncError';
 import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import { excludeNonFiniteSql } from '~/db/formulav2/pg-ieee';
+import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
@@ -236,7 +236,7 @@ export default async function genRollupSelectv2(param: {
       // Composed as SQL text, not a nested knex.raw bind — see the `\\?` note
       // above; re-binding this Raw would strip the escape.
       selectColumnName = knex.raw(
-        baseModelSqlv2.isPg &&
+        isPgIeeeEnabled(knex) &&
           formulOption.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
           NON_FINITE_EXCLUDING_ROLLUPS.includes(
             columnOptions.rollup_function as string,

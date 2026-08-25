@@ -132,6 +132,7 @@ import {
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
+import { isNonFiniteFormulaHandlingEnabled } from '~/db/formulav2/pg-ieee';
 import { attachmentRefResolvesToStorage } from '~/helpers/attachmentHelpers';
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import getAst from '~/helpers/getAst';
@@ -8521,7 +8522,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
-    if (!data || !this.isPg) return data;
+    if (!data || !this.isPg || !isNonFiniteFormulaHandlingEnabled())
+      return data;
 
     const columns = this.model?.columns.concat(dependencyColumns ?? []);
     const formulaColumns = columns?.filter(

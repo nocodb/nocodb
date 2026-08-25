@@ -9,6 +9,20 @@ export function isPgClient(knex: CustomKnex): boolean {
   return knex.clientType() === 'pg';
 }
 
+// Blank-as-zero + IEEE non-finite (Infinity/-Infinity/NaN) formula semantics are
+// opt-in and off by default: a deployment keeps the pre-feature formula behaviour
+// unless NC_FORMULA_PG_IEEE=true. Read at call time (not cached as a module
+// constant) so it can be toggled per-process, e.g. from a test's before hook.
+export function isNonFiniteFormulaHandlingEnabled(): boolean {
+  return process.env.NC_FORMULA_PG_IEEE === 'true';
+}
+
+// The feature is pg-only AND opt-in — both must hold. This is the single gate
+// every non-finite formula site checks.
+export function isPgIeeeEnabled(knex: CustomKnex): boolean {
+  return isNonFiniteFormulaHandlingEnabled() && isPgClient(knex);
+}
+
 export function coalesceNumericOperand(sql: string, knex: CustomKnex): string {
   if (!isPgClient(knex)) return sql;
   return `COALESCE(${sql}, 0)`;

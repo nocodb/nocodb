@@ -4,6 +4,7 @@ import { presetForms } from '@julr/unocss-preset-forms'
 
 import { ncAmpersandGuard } from './assets/nc-ampersand-guard'
 import { ncApplyTransformer } from './assets/nc-apply-transformer'
+import { ncFormsBasePreset } from './assets/nc-forms-base-preset'
 import { ncPreflightPreset } from './assets/nc-preflight-preset'
 import { ncTypographyPreset } from './assets/nc-typography-preset'
 import { ncScreenPreset } from './assets/nc-screen-preset'
@@ -48,9 +49,11 @@ export default defineConfig({
     ncTypographyPreset(),
     presetWind3({ dark: 'class', preflight: true }),
     presetTypography(),
-    // 'class' keeps the element-level base out: its bare-input selector and :focus outline
-    // are the two things WindiCSS's forms plugin never emitted.
+    // 'class' emits no element-level base. WindiCSS's forms plugin ran with its default strategy
+    // and did emit one, so every bare input, select and textarea in the app lost its padding and
+    // border on the migration; ncFormsBasePreset restores that base from WindiCSS's own output.
     presetForms({ strategy: 'class' }),
+    ncFormsBasePreset(),
     ncScreenPreset(),
     ncScrollbarPreset(),
   ],

@@ -1011,7 +1011,7 @@ watch(
 span:has(> .nc-modern-drag-import) {
   display: flex;
   flex-direction: column-reverse;
-  :deep(& > .ant-upload-list:has(.ant-upload-list-picture-container)) {
+  :deep(> .ant-upload-list:has(.ant-upload-list-picture-container)) {
     @apply mb-4 space-y-2 transition-all nc-scrollbar-thin overflow-hidden;
   }
 }

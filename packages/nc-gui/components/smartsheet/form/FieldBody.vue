@@ -103,11 +103,11 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
     @apply p-2;
   }
 
-  :deep(&.nc-cell:not(.nc-cell-longtext)) {
+  &.nc-cell:not(.nc-cell-longtext) {
     &.nc-cell-phonenumber,
     &.nc-cell-email,
     &.nc-cell-url {
-      .nc-cell-field.nc-cell-link-preview {
+      :deep(.nc-cell-field.nc-cell-link-preview) {
         @apply px-3;
       }
     }

@@ -2,6 +2,7 @@ import { defineConfig, presetTypography, presetWind3, transformerDirectives, tra
 import { colors as unoColors } from '@unocss/preset-mini/colors'
 import { presetForms } from '@julr/unocss-preset-forms'
 
+import { ncAmpersandGuard } from './assets/nc-ampersand-guard'
 import { ncApplyTransformer } from './assets/nc-apply-transformer'
 import { ncPreflightPreset } from './assets/nc-preflight-preset'
 import { ncTypographyPreset } from './assets/nc-typography-preset'
@@ -37,7 +38,8 @@ export default defineConfig({
 
   // ncApplyTransformer rewrites the 5.5k inherited `@apply` directives to `--at-apply` before
   // sass runs; transformerDirectives then expands them once sass has produced valid CSS.
-  transformers: [ncApplyTransformer(), transformerDirectives(), transformerVariantGroup()],
+  // ncAmpersandGuard runs first: it only reads, and it reports against the untouched source.
+  transformers: [ncAmpersandGuard(), ncApplyTransformer(), transformerDirectives(), transformerVariantGroup()],
 
   presets: [
     ncPreflightPreset(),

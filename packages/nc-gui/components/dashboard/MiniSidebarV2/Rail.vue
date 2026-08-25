@@ -41,13 +41,7 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const {
-  isPanelExpanded: isChatPanelExpanded,
-  isFullScreen: isChatFullScreen,
-  hasWorkspaceContext: hasChatWorkspaceContext,
-  hasBaseContext: hasChatBaseContext,
-  toggleChatPanel,
-} = useChatPanel()
+const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, toggleChatPanel } = useChatPanel()
 
 const {
   blockAiChat,
@@ -188,7 +182,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || blockAiChat.value) return
+  if (!isEeUI || blockAiChat.value || !hasChatBaseContext.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -299,22 +293,6 @@ const handleOpenBookmarkPanel = () => {
       :disabled="item.disabled"
       @click="item.onClick?.()"
     />
-
-    <!-- AI Chat -->
-    <DashboardMiniSidebarV2RailItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
-      v-e="['c:chat:toggle']"
-      :label="$t('labels.chat')"
-      panel-key="chat"
-      data-testid="nc-sidebar-chat-btn"
-      :active="isChatPanelExpanded"
-      :plain-active="!isChatFullScreen"
-      @click="handleChatToggle"
-    >
-      <template #icon>
-        <GeneralIcon icon="ncAutoAwesome" class="nc-rail-item-icon !text-nc-content-brand" />
-      </template>
-    </DashboardMiniSidebarV2RailItem>
 
     <!-- Settings -->
     <DashboardMiniSidebarV2RailItem

@@ -41,13 +41,7 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const {
-  isPanelExpanded: isChatPanelExpanded,
-  isFullScreen: isChatFullScreen,
-  hasWorkspaceContext: hasChatWorkspaceContext,
-  hasBaseContext: hasChatBaseContext,
-  toggleChatPanel,
-} = useChatPanel()
+const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, toggleChatPanel } = useChatPanel()
 
 const {
   blockAiChat,
@@ -376,22 +370,6 @@ const handleOpenBookmarkPanel = () => {
       :scale="getScale(item.key)"
       @click="item.onClick?.()"
     />
-
-    <!-- AI Chat -->
-    <DashboardMiniSidebarV2DockItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
-      :ref="(el: any) => setItemRef('chat', el)"
-      v-e="['c:chat:toggle']"
-      :label="$t('labels.chat')"
-      panel-key="chat"
-      data-testid="nc-sidebar-chat-btn"
-      :active="isChatPanelExpanded"
-      :scale="getScale('chat')"
-      class="nc-dock-chat-item"
-      @click="handleChatToggle"
-    >
-      <GeneralIcon icon="ncAutoAwesome" class="nc-dock-item-icon !text-nc-content-brand" />
-    </DashboardMiniSidebarV2DockItem>
 
     <!-- Settings -->
     <DashboardMiniSidebarV2DockItem

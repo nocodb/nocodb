@@ -914,6 +914,13 @@
      --color-brand-600 for these: that ramp stop inverts in dark mode. */
   --nc-brand-accent-hover: #2952cc;
 
+  /* NocoAI accent — the agents CTA pink-red. Mode-independent for the same
+     reason as the brand accent above: it backs solid surfaces carrying white
+     text, so a ramp stop that inverts in dark mode would wreck the contrast. */
+  --nc-ai-accent: #e7345e;
+  --nc-ai-accent-rgb: 231, 52, 94;
+  --nc-ai-accent-hover: #c11e4b;
+
   --nc-content-gray-extreme: var(--color-base-black);
   --nc-content-gray-emphasis: var(--color-gray-900);
   --nc-content-gray: var(--color-gray-800);

@@ -43,41 +43,42 @@ export interface DarkPalettePreset {
   values: Record<string, string>
 }
 
+/** What a user who has never opened theme settings gets — also the state written as "no key". */
+export const DEFAULT_DARK_PRESET = 'default'
+
+/** `classic` mirrors variables.css exactly, so selecting it removes the runtime override. */
+export const VARIABLES_CSS_DARK_PRESET = 'classic'
+
 /**
- * 'default' mirrors the values shipped in variables.css — selecting it removes
- * the runtime override entirely.
+ * Bump when a preset id changes meaning. Persisted payloads carry it; anything
+ * older is migrated on read.
  */
+export const DARK_PALETTE_STATE_VERSION = 2
+
+/**
+ * Before v2, `default` was the classic palette and `cobalt` was the flat one.
+ * Now `default` IS the flat one and classic moved to `classic`, so a stored
+ * `default` from v1 must not be read as the new default — it meant classic.
+ */
+const LEGACY_PRESET_IDS: Record<string, string> = {
+  default: VARIABLES_CSS_DARK_PRESET,
+  cobalt: DEFAULT_DARK_PRESET,
+}
+
+/** Returns the preset id under the current scheme, migrating a pre-v2 payload. */
+export function migratePresetId(presetId: string, version?: number): string {
+  if (version === DARK_PALETTE_STATE_VERSION) return presetId
+  return LEGACY_PRESET_IDS[presetId] ?? presetId
+}
+
 export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   {
-    /** classic (pre-refactor) production dark palette */
-    id: 'default',
-    label: 'NocoDB classic',
-    values: {
-      minisidebar: '#2a2c2e',
-      sidebar: '#1d1d1f',
-      content: '#171717',
-      canvas: '#1d1d1f',
-      elevated: '#171717',
-      input: '#171717',
-      inputBorder: '#3b3d40',
-      tooltip: '#3a3f4b',
-      hover: '#1d1d1f',
-      borderLight: '#2a2c2e',
-      gridLine: '#3b3d40',
-      border: '#3b3d40',
-      selection: '#141a3a',
-      text: '#e2e9f6',
-      cellText: '#c5cbd6',
-      textMuted: '#989ca5',
-    },
-  },
-  {
     /**
-     * flat surfaces + tinted-overlay inputs (mined reference system) — the
-     * planned future default; 'default' (classic) stays applied until the
-     * remaining dark issues are fixed, then this moves into variables.css.
+     * flat surfaces + tinted-overlay inputs (mined reference system). The
+     * applied default — its values still live here rather than in
+     * variables.css, so selecting it injects a block.
      */
-    id: 'cobalt',
+    id: 'default',
     label: 'Default',
     values: {
       minisidebar: '#1d1f25',
@@ -97,6 +98,29 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
       text: '#ffffff',
       cellText: '#ffffff',
       textMuted: '#979aa0',
+    },
+  },
+  {
+    /** classic (pre-refactor) production dark palette — this one IS variables.css */
+    id: 'classic',
+    label: 'NocoDB classic',
+    values: {
+      minisidebar: '#2a2c2e',
+      sidebar: '#1d1d1f',
+      content: '#171717',
+      canvas: '#1d1d1f',
+      elevated: '#171717',
+      input: '#171717',
+      inputBorder: '#3b3d40',
+      tooltip: '#3a3f4b',
+      hover: '#1d1d1f',
+      borderLight: '#2a2c2e',
+      gridLine: '#3b3d40',
+      border: '#3b3d40',
+      selection: '#141a3a',
+      text: '#e2e9f6',
+      cellText: '#c5cbd6',
+      textMuted: '#989ca5',
     },
   },
   {
@@ -212,7 +236,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   },
   {
     id: 'notion',
-    label: 'Notion',
+    label: 'Charcoal',
     values: {
       minisidebar: '#262626',
       sidebar: '#202020',
@@ -234,9 +258,9 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   },
   {
     id: 'linear',
-    label: 'Linear',
+    label: 'Eclipse',
     values: {
-      minisidebar: '#0e0f11',
+      minisidebar: '#24262b',
       sidebar: '#141518',
       content: '#191a1e',
       canvas: '#0a0b0d',
@@ -256,9 +280,9 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   },
   {
     id: 'github-dim',
-    label: 'GitHub dim',
+    label: 'Steel',
     values: {
-      minisidebar: '#0d1117',
+      minisidebar: '#212b37',
       sidebar: '#151b23',
       content: '#1a212c',
       canvas: '#090c11',
@@ -277,24 +301,29 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     },
   },
   {
+    /**
+     * Deep blue-black — the darkest `content` in the set. It used to sit one
+     * step up its own ramp: the panel shade was on `content`, which pushed the
+     * rail down to the inset value, a near-black slab identical to `canvas`.
+     */
     id: 'github-default',
-    label: 'GitHub default',
+    label: 'Navy',
     values: {
-      minisidebar: '#010409',
-      sidebar: '#0d1117',
-      content: '#161b22',
+      minisidebar: '#21262d',
+      sidebar: '#161b22',
+      content: '#0d1117',
       canvas: '#010409',
-      elevated: '#21262d',
+      elevated: '#161b22',
       input: '#0d1117',
       inputBorder: '#30363d',
       tooltip: '#30363d',
       hover: '#1c2129',
       borderLight: '#21262d',
-      gridLine: '#373b42',
+      gridLine: '#30363d',
       border: '#30363d',
-      selection: '#182b45',
+      selection: '#0d2847',
       text: '#e6edf3',
-      cellText: '#c5cbd6',
+      cellText: '#c9d1d9',
       textMuted: '#8b949e',
     },
   },
@@ -302,7 +331,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     id: 'contrast',
     label: 'High contrast',
     values: {
-      minisidebar: '#0a0a0b',
+      minisidebar: '#2c2c30',
       sidebar: '#151517',
       content: '#232327',
       canvas: '#050506',
@@ -328,6 +357,9 @@ export interface DarkPaletteState {
 }
 
 export function resolveDarkPalette(state: DarkPaletteState): Record<string, string> {
-  const preset = DARK_PALETTE_PRESETS.find((p) => p.id === state.preset) ?? DARK_PALETTE_PRESETS[0]
+  const preset =
+    DARK_PALETTE_PRESETS.find((p) => p.id === state.preset) ??
+    // explicit, not positional: display order must not decide the fallback
+    DARK_PALETTE_PRESETS.find((p) => p.id === DEFAULT_DARK_PRESET)!
   return { ...preset.values, ...state.overrides }
 }

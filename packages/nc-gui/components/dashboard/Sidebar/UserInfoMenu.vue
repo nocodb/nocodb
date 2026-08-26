@@ -17,7 +17,7 @@ const { user, signOut, isMobileMode } = useGlobal()
 
 const { toggleMode } = useMiniSidebarMode()
 
-const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen, isThemeSettingsEnabled } = useTheme()
+const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen } = useTheme()
 
 const openThemeConfig = () => {
   isThemeConfigOpen.value = true
@@ -194,7 +194,7 @@ const openKeyboardShortcutDialog = () => {
 
       <!-- Theme settings -->
       <NcMenuItem
-        v-if="isThemeEnabled && isThemeSettingsEnabled"
+        v-if="isThemeEnabled"
         v-e="['c:theme:config-open']"
         data-testid="nc-sidebar-user-theme-config"
         @click="openThemeConfig"

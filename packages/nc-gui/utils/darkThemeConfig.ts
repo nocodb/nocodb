@@ -76,11 +76,13 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
      * flat surfaces + tinted-overlay inputs (mined reference system) — the
      * planned future default; 'default' (classic) stays applied until the
      * remaining dark issues are fixed, then this moves into variables.css.
+     * The rail is the one deliberate break from flat: at the sidebar's own
+     * colour it had no edge at all, only a hairline border.
      */
     id: 'cobalt',
     label: 'Default',
     values: {
-      minisidebar: '#1d1f25',
+      minisidebar: '#2b2e36',
       sidebar: '#1d1f25',
       content: '#1d1f25',
       canvas: '#000000',
@@ -236,7 +238,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     id: 'linear',
     label: 'Linear',
     values: {
-      minisidebar: '#0e0f11',
+      minisidebar: '#24262b',
       sidebar: '#141518',
       content: '#191a1e',
       canvas: '#0a0b0d',
@@ -258,7 +260,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     id: 'github-dim',
     label: 'GitHub dim',
     values: {
-      minisidebar: '#0d1117',
+      minisidebar: '#212b37',
       sidebar: '#151b23',
       content: '#1a212c',
       canvas: '#090c11',
@@ -277,24 +279,29 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     },
   },
   {
+    /**
+     * Primer dark (default). The page is canvas.default #0d1117 — putting
+     * canvas.subtle on `content` shifted the whole app one step up the ramp and
+     * pushed the rail down to canvas.inset, a near-black slab.
+     */
     id: 'github-default',
     label: 'GitHub default',
     values: {
-      minisidebar: '#010409',
-      sidebar: '#0d1117',
-      content: '#161b22',
+      minisidebar: '#21262d',
+      sidebar: '#161b22',
+      content: '#0d1117',
       canvas: '#010409',
-      elevated: '#21262d',
+      elevated: '#161b22',
       input: '#0d1117',
       inputBorder: '#30363d',
       tooltip: '#30363d',
       hover: '#1c2129',
       borderLight: '#21262d',
-      gridLine: '#373b42',
+      gridLine: '#21262d',
       border: '#30363d',
-      selection: '#182b45',
+      selection: '#0d2847',
       text: '#e6edf3',
-      cellText: '#c5cbd6',
+      cellText: '#c9d1d9',
       textMuted: '#8b949e',
     },
   },
@@ -302,7 +309,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     id: 'contrast',
     label: 'High contrast',
     values: {
-      minisidebar: '#0a0a0b',
+      minisidebar: '#2c2c30',
       sidebar: '#151517',
       content: '#232327',
       canvas: '#050506',

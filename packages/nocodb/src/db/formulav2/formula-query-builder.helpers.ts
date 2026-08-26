@@ -53,6 +53,11 @@ export const formulaOutputsRawJson = (node: any): boolean => {
   return false;
 };
 
+// Hard upper bound on the generated SQL text (in characters) for one formula
+// column. A formula whose rendered query exceeds this is rejected outright —
+// past this size the query is slow enough to take the server down.
+export const FORMULA_MAX_QUERY_LENGTH = 500 * 1000;
+
 // Hard upper bound on the rendered length (in characters) of a formula's
 // string output. Some formula functions (e.g. REPEAT, or CONCAT over large
 // lookup/long-text values) can generate strings large enough to crash the

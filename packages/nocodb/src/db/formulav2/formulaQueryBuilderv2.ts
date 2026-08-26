@@ -18,6 +18,7 @@ import {
   callExpressionBuilder,
 } from './parsed-tree-builder';
 import {
+  FORMULA_MAX_QUERY_LENGTH,
   formulaOutputsRawJson,
   getFormulaOutputMaxLength,
   wrapFormulaWithMaxLength,
@@ -569,7 +570,7 @@ export default async function formulaQueryBuilderv2({
     } catch (ex) {}
 
     // we limit the formula length to 500k to prevent server crashing
-    if (sqlLength > 500 * 1000) {
+    if (sqlLength > FORMULA_MAX_QUERY_LENGTH) {
       const columnInfo = {
         title: column?.title ? `column ${column.title}` : 'new column',
         id: column?.id ? ` (${column.id})` : '',

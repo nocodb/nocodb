@@ -297,7 +297,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
       tooltip: '#30363d',
       hover: '#1c2129',
       borderLight: '#21262d',
-      gridLine: '#21262d',
+      gridLine: '#30363d',
       border: '#30363d',
       selection: '#0d2847',
       text: '#e6edf3',

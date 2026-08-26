@@ -49,6 +49,34 @@ export interface DarkPalettePreset {
  */
 export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   {
+    /**
+     * flat surfaces + tinted-overlay inputs (mined reference system) — the
+     * planned future default; 'default' (classic) stays applied until the
+     * remaining dark issues are fixed, then this moves into variables.css.
+     */
+    id: 'cobalt',
+    label: 'Default',
+    values: {
+      minisidebar: '#1d1f25',
+      sidebar: '#1d1f25',
+      content: '#1d1f25',
+      canvas: '#000000',
+      elevated: '#1d1f25',
+      input: 'rgba(195, 212, 249, 0.18)',
+      inputBorder: 'rgba(255, 255, 255, 0.1)',
+      tooltip: '#31353e',
+      hover: '#282a30',
+      /* must differ from `hover`: cards rest on gray-50 and hover to gray-100 */
+      borderLight: '#2d2f35',
+      gridLine: '#3d3e44',
+      border: '#34363b',
+      selection: '#243043',
+      text: '#ffffff',
+      cellText: '#ffffff',
+      textMuted: '#979aa0',
+    },
+  },
+  {
     /** classic (pre-refactor) production dark palette */
     id: 'default',
     label: 'NocoDB classic',
@@ -69,36 +97,6 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
       text: '#e2e9f6',
       cellText: '#c5cbd6',
       textMuted: '#989ca5',
-    },
-  },
-  {
-    /**
-     * flat surfaces + tinted-overlay inputs (mined reference system) — the
-     * planned future default; 'default' (classic) stays applied until the
-     * remaining dark issues are fixed, then this moves into variables.css.
-     * The rail is the one deliberate break from flat: at the sidebar's own
-     * colour it had no edge at all, only a hairline border.
-     */
-    id: 'cobalt',
-    label: 'Default',
-    values: {
-      minisidebar: '#2b2e36',
-      sidebar: '#1d1f25',
-      content: '#1d1f25',
-      canvas: '#000000',
-      elevated: '#1d1f25',
-      input: 'rgba(195, 212, 249, 0.18)',
-      inputBorder: 'rgba(255, 255, 255, 0.1)',
-      tooltip: '#31353e',
-      hover: '#282a30',
-      /* must differ from `hover`: cards rest on gray-50 and hover to gray-100 */
-      borderLight: '#2d2f35',
-      gridLine: '#3d3e44',
-      border: '#34363b',
-      selection: '#243043',
-      text: '#ffffff',
-      cellText: '#ffffff',
-      textMuted: '#979aa0',
     },
   },
   {
@@ -335,6 +333,10 @@ export interface DarkPaletteState {
 }
 
 export function resolveDarkPalette(state: DarkPaletteState): Record<string, string> {
-  const preset = DARK_PALETTE_PRESETS.find((p) => p.id === state.preset) ?? DARK_PALETTE_PRESETS[0]
+  const preset =
+    DARK_PALETTE_PRESETS.find((p) => p.id === state.preset) ??
+    // explicit, not positional: a stale id must land on classic whatever the
+    // display order is
+    DARK_PALETTE_PRESETS.find((p) => p.id === 'default')!
   return { ...preset.values, ...state.overrides }
 }

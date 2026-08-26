@@ -214,7 +214,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   },
   {
     id: 'notion',
-    label: 'Notion',
+    label: 'Charcoal',
     values: {
       minisidebar: '#262626',
       sidebar: '#202020',
@@ -236,7 +236,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   },
   {
     id: 'linear',
-    label: 'Linear',
+    label: 'Eclipse',
     values: {
       minisidebar: '#24262b',
       sidebar: '#141518',
@@ -258,7 +258,7 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   },
   {
     id: 'github-dim',
-    label: 'GitHub dim',
+    label: 'Steel',
     values: {
       minisidebar: '#212b37',
       sidebar: '#151b23',
@@ -280,12 +280,12 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   },
   {
     /**
-     * Primer dark (default). The page is canvas.default #0d1117 — putting
-     * canvas.subtle on `content` shifted the whole app one step up the ramp and
-     * pushed the rail down to canvas.inset, a near-black slab.
+     * Deep blue-black — the darkest `content` in the set. It used to sit one
+     * step up its own ramp: the panel shade was on `content`, which pushed the
+     * rail down to the inset value, a near-black slab identical to `canvas`.
      */
     id: 'github-default',
-    label: 'GitHub default',
+    label: 'Navy',
     values: {
       minisidebar: '#21262d',
       sidebar: '#161b22',

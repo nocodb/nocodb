@@ -245,13 +245,24 @@ export const useTheme = createSharedComposable(() => {
   /** bumped whenever resolved theme colors change (mode toggle or palette change) — canvas renderers watch this to repaint */
   const themeRepaintVersion = ref(0)
 
-  const darkPalette = ref<DarkPaletteState>({ preset: 'default', overrides: {} })
+  const darkPalette = ref<DarkPaletteState>({ preset: DEFAULT_DARK_PRESET, overrides: {} })
 
   /** preset values with any per-token overrides applied on top */
   const activeDarkPaletteValues = computed(() => resolveDarkPalette(darkPalette.value))
 
-  const isDefaultDarkPalette = computed(
+  /**
+   * `default` (classic) IS variables.css, so it needs no injected block. This is
+   * deliberately not the same question as "is this the app default" — since the
+   * shipped default became cobalt the two answers differ, and conflating them
+   * would drop the stored value of anyone who picked classic.
+   */
+  const isVariablesCssPalette = computed(
     () => darkPalette.value.preset === 'default' && !Object.keys(darkPalette.value.overrides).length,
+  )
+
+  /** nothing worth persisting when the state already matches the shipped default */
+  const isDefaultDarkPalette = computed(
+    () => darkPalette.value.preset === DEFAULT_DARK_PRESET && !Object.keys(darkPalette.value.overrides).length,
   )
 
   /**
@@ -264,7 +275,7 @@ export const useTheme = createSharedComposable(() => {
 
     let styleEl = document.getElementById('nc-dark-palette') as HTMLStyleElement | null
 
-    if (isDefaultDarkPalette.value) {
+    if (isVariablesCssPalette.value) {
       styleEl?.remove()
     } else {
       const values = activeDarkPaletteValues.value
@@ -315,7 +326,7 @@ export const useTheme = createSharedComposable(() => {
     persistDarkPalette()
   }
 
-  const resetDarkPalette = () => setDarkPreset('default')
+  const resetDarkPalette = () => setDarkPreset(DEFAULT_DARK_PRESET)
 
   const loadDarkPalette = () => {
     if (typeof localStorage === 'undefined') return
@@ -374,7 +385,7 @@ export const useTheme = createSharedComposable(() => {
 
     if (event.key === DARK_PALETTE_STORAGE_KEY) {
       try {
-        const parsed = event.newValue ? JSON.parse(event.newValue) : { preset: 'default', overrides: {} }
+        const parsed = event.newValue ? JSON.parse(event.newValue) : { preset: DEFAULT_DARK_PRESET, overrides: {} }
         if (parsed && typeof parsed.preset === 'string') {
           darkPalette.value = { preset: parsed.preset, overrides: parsed.overrides ?? {} }
           applyDarkPalette()
@@ -416,6 +427,7 @@ export const useTheme = createSharedComposable(() => {
     darkPalette,
     activeDarkPaletteValues,
     isDefaultDarkPalette,
+    isVariablesCssPalette,
     setDarkPreset,
     setDarkPaletteToken,
     resetDarkPalette,

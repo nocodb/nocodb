@@ -47,6 +47,12 @@ export interface DarkPalettePreset {
  * 'default' mirrors the values shipped in variables.css — selecting it removes
  * the runtime override entirely.
  */
+/**
+ * What a user who has never opened theme settings gets. `default` (classic)
+ * mirrors variables.css; anything else is injected at runtime.
+ */
+export const DEFAULT_DARK_PRESET = 'cobalt'
+
 export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   {
     /**
@@ -335,8 +341,7 @@ export interface DarkPaletteState {
 export function resolveDarkPalette(state: DarkPaletteState): Record<string, string> {
   const preset =
     DARK_PALETTE_PRESETS.find((p) => p.id === state.preset) ??
-    // explicit, not positional: a stale id must land on classic whatever the
-    // display order is
-    DARK_PALETTE_PRESETS.find((p) => p.id === 'default')!
+    // explicit, not positional: display order must not decide the fallback
+    DARK_PALETTE_PRESETS.find((p) => p.id === DEFAULT_DARK_PRESET)!
   return { ...preset.values, ...state.overrides }
 }

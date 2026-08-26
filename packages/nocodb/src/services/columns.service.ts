@@ -7807,11 +7807,15 @@ export class ColumnsService implements IColumnsService {
     );
 
     let table: Model;
+    // the context `table` was resolved from — for a cross-base link this is the
+    // related/junction base, not the request base
+    let tableContext: NcContext;
 
     const { refContext, mmContext } = colOptions.getRelContext(context);
 
     if (colOptions.fk_mm_model_id === tableId) {
       table = await colOptions.getMMModel(mmContext);
+      tableContext = mmContext;
       // A null means orphaned link metadata: the related table was deleted
       // without cleaning up this link column. Surface a clear, actionable
       // message that NAMES the offending field (not an opaque 500) so the user
@@ -7833,6 +7837,7 @@ export class ColumnsService implements IColumnsService {
       await table.getColumns(mmContext);
     } else if (colOptions.fk_related_model_id === tableId) {
       table = await colOptions.getRelatedTable(refContext);
+      tableContext = refContext;
       if (!table) {
         this.logger.warn(
           `Orphaned link column ${columnId} (${column?.title}) on model ` +
@@ -7868,7 +7873,7 @@ export class ColumnsService implements IColumnsService {
       const baseRoles = extractRolesObj((user as any)?.base_roles);
       // Base owners always have access
       if (!baseRoles?.[ProjectRoles.OWNER]) {
-        const permissions = await Permission.list(context, table.base_id);
+        const permissions = await Permission.list(tableContext, table.base_id);
         const visibilityPermission = permissions.find(
           (p) =>
             p.entity === PermissionEntity.TABLE &&

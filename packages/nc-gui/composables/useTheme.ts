@@ -247,11 +247,7 @@ export const useTheme = createSharedComposable(() => {
 
   const darkPalette = ref<DarkPaletteState>({ preset: 'default', overrides: {} })
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
-  /** the palette picker (and the palettes themselves) are still beta */
-  const isThemeSettingsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
-
+  /** preset values with any per-token overrides applied on top */
   const activeDarkPaletteValues = computed(() => resolveDarkPalette(darkPalette.value))
 
   const isDefaultDarkPalette = computed(
@@ -268,8 +264,7 @@ export const useTheme = createSharedComposable(() => {
 
     let styleEl = document.getElementById('nc-dark-palette') as HTMLStyleElement | null
 
-    // behind the beta flag: without the picker there'd be no way back off a stored palette
-    if (isDefaultDarkPalette.value || !isThemeSettingsEnabled.value) {
+    if (isDefaultDarkPalette.value) {
       styleEl?.remove()
     } else {
       const values = activeDarkPaletteValues.value
@@ -394,10 +389,6 @@ export const useTheme = createSharedComposable(() => {
 
   watch(isDark, applyTheme, { immediate: true })
 
-  // toggling the beta flag off must drop the injected palette immediately (back to the
-  // classic values in variables.css); turning it on re-applies the stored palette
-  watch(isThemeSettingsEnabled, () => applyDarkPalette())
-
   watch(isDark, () => {
     barcodeCache.clear()
 
@@ -421,7 +412,6 @@ export const useTheme = createSharedComposable(() => {
     getColor,
     clearColorCache,
     isThemeConfigOpen,
-    isThemeSettingsEnabled,
     themeRepaintVersion,
     darkPalette,
     activeDarkPaletteValues,

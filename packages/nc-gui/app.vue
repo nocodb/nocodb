@@ -21,8 +21,6 @@ initializeFeatures()
 
 useAntDvTheme()
 
-const { isThemeSettingsEnabled } = useTheme()
-
 useBrandingApply()
 
 const { isRtl } = useRtl()
@@ -165,7 +163,7 @@ const _ = (window as any).ResizeObserver
     </div>
   </ErrorBoundary>
 
-  <LazyDashboardThemeConfig v-if="isThemeSettingsEnabled" />
+  <LazyDashboardThemeConfig />
   <LazyChatPanel />
   <LazyChatFab />
   <LazySandboxChangelogDrawer />

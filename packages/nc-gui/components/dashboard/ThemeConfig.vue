@@ -7,6 +7,8 @@
 const { isThemeConfigOpen, selectedTheme, setTheme, darkPalette, activeDarkPaletteValues, setDarkPreset, setDarkPaletteToken } =
   useTheme()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { isMobileMode } = useGlobal()
 
 const { isRtl } = useRtl()
@@ -15,7 +17,23 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+/**
+ * Per-token pickers are not signed off yet. Deliberately a const, not a beta
+ * toggle — a toggle would put unverified controls one click away for anyone
+ * browsing the feature list. Flip to `true` when the fine-tuning UX is agreed.
+ */
+const SHOW_ADVANCED_TOKENS = false
+
 const showAdvanced = ref(false)
+
+/** Palettes past the first two are still being tuned — gated, and the active one always shows. */
+const visiblePresets = computed(() => {
+  if (isFeatureEnabled(FEATURE_FLAG.THEME_ALL_PALETTES)) return DARK_PALETTE_PRESETS
+
+  return DARK_PALETTE_PRESETS.filter(
+    (preset) => preset.id === 'cobalt' || preset.id === 'default' || preset.id === darkPalette.value.preset,
+  )
+})
 
 const modes = computed(() => [
   { value: 'system', label: t('general.system'), icon: 'ncSunMoon' as const },
@@ -113,7 +131,7 @@ const close = () => {
           </div>
           <div class="flex flex-col gap-1.5">
             <div
-              v-for="preset of DARK_PALETTE_PRESETS"
+              v-for="preset of visiblePresets"
               :key="preset.id"
               class="nc-theme-preset-row"
               :class="{ active: darkPalette.preset === preset.id }"
@@ -134,7 +152,7 @@ const close = () => {
         </div>
 
         <!-- advanced fine-tune -->
-        <div class="flex flex-col gap-2">
+        <div v-if="SHOW_ADVANCED_TOKENS" class="flex flex-col gap-2">
           <div
             class="flex items-center gap-1 cursor-pointer select-none"
             data-testid="nc-theme-advanced-toggle"

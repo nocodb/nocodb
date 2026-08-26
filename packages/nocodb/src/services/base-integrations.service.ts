@@ -9,6 +9,8 @@ import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { IntegrationsService } from '~/services/integrations.service';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { partialExtract } from '~/utils/dataUtils';
+import { decryptPropIfRequired } from '~/utils/encryptDecrypt';
 
 @Injectable()
 export class BaseIntegrationsService {
@@ -50,6 +52,7 @@ export class BaseIntegrationsService {
         `${MetaTable.INTEGRATIONS}.is_global`,
         `${MetaTable.INTEGRATIONS}.is_restricted`,
         `${MetaTable.INTEGRATIONS}.created_by`,
+        `${MetaTable.INTEGRATIONS}.config`,
         `${MetaTable.INTEGRATIONS}.meta`,
         `${MetaTable.INTEGRATIONS}.created_at`,
       )
@@ -76,7 +79,7 @@ export class BaseIntegrationsService {
 
     // Filter: available if unrestricted OR explicitly linked OR global
     // Also exclude private integrations not created by the current user
-    return integrations.filter((integration) => {
+    const available = integrations.filter((integration) => {
       if (
         integration.is_private &&
         param.userId &&
@@ -88,6 +91,29 @@ export class BaseIntegrationsService {
       if (!integration.is_restricted) return true;
       return linkedIntegrationIds.has(integration.id);
     });
+
+    // Expose only the non-sensitive DB info (client, database, schema) the
+    // create/edit source form needs — never host/user/password. Mirrors the
+    // includeDatabaseInfo subset in Integration.list; without it the base-scoped
+    // list drops config entirely and the PG schema field never renders.
+    for (const integration of available) {
+      if (integration.type === IntegrationsTypeEnum.Database) {
+        integration.config = partialExtract(
+          decryptPropIfRequired({ data: integration }),
+          [
+            'client',
+            ['connection', 'database'],
+            ['connection', 'filepath'],
+            ['connection', 'connection', 'filepath'],
+            ['searchPath'],
+          ],
+        );
+      } else {
+        integration.config = undefined;
+      }
+    }
+
+    return available;
   }
 
   /**

@@ -332,15 +332,18 @@ export const useTheme = createSharedComposable(() => {
     if (typeof localStorage === 'undefined') return
     try {
       const saved = localStorage.getItem(DARK_PALETTE_STORAGE_KEY)
-      if (!saved) return
-      const parsed = JSON.parse(saved)
+      const parsed = saved ? JSON.parse(saved) : null
       if (parsed && typeof parsed.preset === 'string') {
         darkPalette.value = { preset: parsed.preset, overrides: parsed.overrides ?? {} }
-        applyDarkPalette()
       }
     } catch {
       localStorage.removeItem(DARK_PALETTE_STORAGE_KEY)
     }
+
+    // Unconditional: the shipped default is no longer the variables.css palette,
+    // so a user with nothing stored still needs the block injected. Bailing
+    // early here left the picker showing Default while classic rendered.
+    applyDarkPalette()
   }
 
   let initialized = false

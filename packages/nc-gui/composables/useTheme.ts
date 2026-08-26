@@ -257,7 +257,7 @@ export const useTheme = createSharedComposable(() => {
    * would drop the stored value of anyone who picked classic.
    */
   const isVariablesCssPalette = computed(
-    () => darkPalette.value.preset === 'default' && !Object.keys(darkPalette.value.overrides).length,
+    () => darkPalette.value.preset === VARIABLES_CSS_DARK_PRESET && !Object.keys(darkPalette.value.overrides).length,
   )
 
   /** nothing worth persisting when the state already matches the shipped default */
@@ -307,7 +307,7 @@ export const useTheme = createSharedComposable(() => {
     if (isDefaultDarkPalette.value) {
       localStorage.removeItem(DARK_PALETTE_STORAGE_KEY)
     } else {
-      localStorage.setItem(DARK_PALETTE_STORAGE_KEY, JSON.stringify(darkPalette.value))
+      localStorage.setItem(DARK_PALETTE_STORAGE_KEY, JSON.stringify({ v: DARK_PALETTE_STATE_VERSION, ...darkPalette.value }))
     }
   }
 
@@ -330,11 +330,16 @@ export const useTheme = createSharedComposable(() => {
 
   const loadDarkPalette = () => {
     if (typeof localStorage === 'undefined') return
+    let migrated = false
     try {
       const saved = localStorage.getItem(DARK_PALETTE_STORAGE_KEY)
       const parsed = saved ? JSON.parse(saved) : null
       if (parsed && typeof parsed.preset === 'string') {
-        darkPalette.value = { preset: parsed.preset, overrides: parsed.overrides ?? {} }
+        // a pre-v2 payload wrote `default` meaning classic — read it as classic,
+        // not as today's default, or the choice silently flips
+        const preset = migratePresetId(parsed.preset, parsed.v)
+        darkPalette.value = { preset, overrides: parsed.overrides ?? {} }
+        if (preset !== parsed.preset) migrated = true
       }
     } catch {
       localStorage.removeItem(DARK_PALETTE_STORAGE_KEY)
@@ -344,6 +349,9 @@ export const useTheme = createSharedComposable(() => {
     // so a user with nothing stored still needs the block injected. Bailing
     // early here left the picker showing Default while classic rendered.
     applyDarkPalette()
+
+    // rewrite once at the new version so the mapping never runs twice
+    if (migrated) persistDarkPalette()
   }
 
   let initialized = false

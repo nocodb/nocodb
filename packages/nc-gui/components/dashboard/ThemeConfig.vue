@@ -31,7 +31,8 @@ const visiblePresets = computed(() => {
   if (isFeatureEnabled(FEATURE_FLAG.THEME_ALL_PALETTES)) return DARK_PALETTE_PRESETS
 
   return DARK_PALETTE_PRESETS.filter(
-    (preset) => preset.id === 'cobalt' || preset.id === 'default' || preset.id === darkPalette.value.preset,
+    (preset) =>
+      preset.id === DEFAULT_DARK_PRESET || preset.id === VARIABLES_CSS_DARK_PRESET || preset.id === darkPalette.value.preset,
   )
 })
 

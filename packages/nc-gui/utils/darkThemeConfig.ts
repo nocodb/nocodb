@@ -43,24 +43,42 @@ export interface DarkPalettePreset {
   values: Record<string, string>
 }
 
+/** What a user who has never opened theme settings gets — also the state written as "no key". */
+export const DEFAULT_DARK_PRESET = 'default'
+
+/** `classic` mirrors variables.css exactly, so selecting it removes the runtime override. */
+export const VARIABLES_CSS_DARK_PRESET = 'classic'
+
 /**
- * 'default' mirrors the values shipped in variables.css — selecting it removes
- * the runtime override entirely.
+ * Bump when a preset id changes meaning. Persisted payloads carry it; anything
+ * older is migrated on read.
  */
+export const DARK_PALETTE_STATE_VERSION = 2
+
 /**
- * What a user who has never opened theme settings gets. `default` (classic)
- * mirrors variables.css; anything else is injected at runtime.
+ * Before v2, `default` was the classic palette and `cobalt` was the flat one.
+ * Now `default` IS the flat one and classic moved to `classic`, so a stored
+ * `default` from v1 must not be read as the new default — it meant classic.
  */
-export const DEFAULT_DARK_PRESET = 'cobalt'
+const LEGACY_PRESET_IDS: Record<string, string> = {
+  default: VARIABLES_CSS_DARK_PRESET,
+  cobalt: DEFAULT_DARK_PRESET,
+}
+
+/** Returns the preset id under the current scheme, migrating a pre-v2 payload. */
+export function migratePresetId(presetId: string, version?: number): string {
+  if (version === DARK_PALETTE_STATE_VERSION) return presetId
+  return LEGACY_PRESET_IDS[presetId] ?? presetId
+}
 
 export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
   {
     /**
-     * flat surfaces + tinted-overlay inputs (mined reference system) — the
-     * planned future default; 'default' (classic) stays applied until the
-     * remaining dark issues are fixed, then this moves into variables.css.
+     * flat surfaces + tinted-overlay inputs (mined reference system). The
+     * applied default — its values still live here rather than in
+     * variables.css, so selecting it injects a block.
      */
-    id: 'cobalt',
+    id: 'default',
     label: 'Default',
     values: {
       minisidebar: '#1d1f25',
@@ -83,8 +101,8 @@ export const DARK_PALETTE_PRESETS: DarkPalettePreset[] = [
     },
   },
   {
-    /** classic (pre-refactor) production dark palette */
-    id: 'default',
+    /** classic (pre-refactor) production dark palette — this one IS variables.css */
+    id: 'classic',
     label: 'NocoDB classic',
     values: {
       minisidebar: '#2a2c2e',

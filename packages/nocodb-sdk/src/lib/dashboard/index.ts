@@ -38,6 +38,23 @@ export enum WidgetTypes {
   PIVOT = 'pivot',
 }
 
+/**
+ * Widget types rendering a server-computed AGGREGATE rather than record rows.
+ * Backend room resolution and the frontend dashboard subscriptions must agree
+ * on the set, so it lives here. A predicate, not a Set: an enum-valued const at
+ * module scope breaks the frontend's Rollup build.
+ */
+export function isAggregateWidgetType(
+  type: string | null | undefined
+): boolean {
+  return (
+    type === WidgetTypes.CHART ||
+    type === WidgetTypes.METRIC ||
+    type === WidgetTypes.GAUGE ||
+    type === WidgetTypes.PIVOT
+  );
+}
+
 export const WidgetChartLabelMap = {
   [ChartTypes.BAR]: 'Bar Chart',
   [ChartTypes.LINE]: 'Line Chart',

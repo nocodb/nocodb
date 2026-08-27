@@ -250,7 +250,9 @@ export function useMultiSelect(
             { enrichClipboard: true, includeHtml: true },
           )
 
-          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+          // Must be a string: `copiedPlainText` is strict-compared against the OS
+          // clipboard text on paste, so a number here silently drops the item.
+          const plainTextValue = isValidValue(textToCopy) ? String(textToCopy) : ''
 
           await copyMimes({ 'text/plain': plainTextValue, ...clipboardContent })
 

@@ -108,6 +108,10 @@ const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 // Whether the interface viz opens records — gates the context-menu Expand item.
 const interfaceClickIntoDetails = inject(InterfaceClickIntoDetailsInj, ref(true))
 
+// Link-scoped embeds: row-level "Unlink record" — removes the LINK between the
+// host record and the row, never the row itself. Null/absent hides the item.
+const interfaceUnlinkRecord = inject(InterfaceUnlinkRecordInj, ref(null))
+
 // Computed States
 // Cell-level ops (paste / clear / AI) — interfaces gate these via edit_inline (ReadonlyInj).
 const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isReadonly.value)
@@ -229,6 +233,17 @@ function interfaceExpandRecord() {
   if (!row) return
 
   expandForm(row, {}, false, contextMenuPath.value)
+}
+
+/** Interface embed: remove the LINK between the host record and the right-clicked row. */
+function interfaceUnlinkRow() {
+  if (contextMenuRow.value === null || !contextMenuPath.value) return
+
+  const dataCache = getDataCache(contextMenuPath.value)
+  const row = dataCache.cachedRows.value.get(contextMenuRow.value)
+  if (!row) return
+
+  interfaceUnlinkRecord.value?.(row.row)
 }
 
 /** Interface: deep link to this record — the current page URL with its rowId. */
@@ -423,6 +438,19 @@ const execBulkAction = async (path: Array<number>) => {
             </div>
           </NcMenuItem>
         </template>
+        <!-- Link-scoped embeds — removes the LINK, never the record (Airtable parity). -->
+        <NcMenuItem
+          v-if="interfaceUnlinkRecord && contextMenuRow !== null && contextMenuPath !== null"
+          key="interface-unlink-record"
+          class="nc-base-menu-item"
+          data-testid="context-menu-item-interface-unlink"
+          @click="interfaceUnlinkRow"
+        >
+          <div v-e="['c:interface:grid:record:unlink']" class="text-bodyDefaultSm flex gap-2 items-center">
+            <GeneralIcon icon="linkRemove" />
+            {{ $t('labels.unlinkRecord') }}
+          </div>
+        </NcMenuItem>
         <template
           v-if="canAddDeleteRows && !isDataReadOnly && !isSyncedTable && contextMenuRow !== null && contextMenuPath !== null"
         >

@@ -304,10 +304,25 @@ export interface InterfacePageDataApi {
     /** Allow-listed related-table field titles — the picker's card rows. */
     fields?: string
   }): Promise<{ list: Record<string, any>[]; pageInfo: PaginatedType }>
-  /** Link records into an LTAR cell — gated exactly like an inline cell edit. */
-  nestedLink?(params: { rowId: string; columnId: string; refRowIds: (string | number)[] }): Promise<boolean>
+  /**
+   * Link records into an LTAR cell — gated like an inline cell edit, or (when
+   * element-addressed) through the element's own "Link/unlink records" grant.
+   */
+  nestedLink?(params: {
+    rowId: string
+    columnId: string
+    refRowIds: (string | number)[]
+    fieldElementId?: string
+    fieldPageId?: string
+  }): Promise<boolean>
   /** Unlink records from an LTAR cell — same gating as `nestedLink`. */
-  nestedUnlink?(params: { rowId: string; columnId: string; refRowIds: (string | number)[] }): Promise<boolean>
+  nestedUnlink?(params: {
+    rowId: string
+    columnId: string
+    refRowIds: (string | number)[]
+    fieldElementId?: string
+    fieldPageId?: string
+  }): Promise<boolean>
   /**
    * Single-cell LTAR copy/paste or clear-all (the structured cell paste) —
    * every entry's column/row is validated against the page scope server-side.

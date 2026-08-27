@@ -293,6 +293,25 @@ export interface InterfaceFieldElementConfig {
     mode: 'all' | 'specific';
     filters?: InterfaceFilterGroup | null;
   };
+  /**
+   * Links/LTAR `show_as: 'view'` — the embed's end-user toolbar actions
+   * (search / sort / filter / group / row height). Element-scoped twin of the
+   * table page's `user_actions` minus `buttons`. Absent = every toggle off
+   * (the embed renders without a toolbar).
+   */
+  user_actions?: {
+    allow_sort?: boolean;
+    allow_search?: boolean;
+    allow_filter?: boolean;
+    /** "Where applicable" flags — honored by viz types that support them. */
+    allow_group_by?: boolean;
+    allow_row_height?: boolean;
+  };
+  /**
+   * Links/LTAR `show_as: 'view'` — end-user filter elements (tabs / dropdowns)
+   * over the embed, enforced server-side like the table page's.
+   */
+  user_filters?: InterfaceUserFilterConfig;
   appearance?: {
     size?: 'default' | 'lg' | 'xl';
     /**
@@ -328,6 +347,11 @@ export interface InterfaceFieldElementConfig {
     format?: 'radio' | 'number';
     /** Horizontal cap within the field's layout row — absent = full. */
     width?: 'third' | 'half' | 'full';
+    /**
+     * Links/LTAR `show_as: 'view'` — the embed block's height. Fixed steps,
+     * or 'auto' (the default): fit the row count, clamped to the large step.
+     */
+    view_size?: 'auto' | 'small' | 'medium' | 'large';
   };
   rules?: InterfaceFieldElementRules;
 }

@@ -296,6 +296,15 @@ export const InterfaceFieldElementInj: InjectionKey<Ref<{ fieldElementId: string
   Symbol('interface-field-element')
 
 /**
+ * Row-level "Unlink record" for renderers mounted over a link scope (the LTAR
+ * embedded viz): removes the LINK between the host record and the row, never
+ * the row itself. Provided by the embed host when the element's "Link/unlink
+ * records" option is on; `null`/absent hides the context-menu item.
+ */
+export const InterfaceUnlinkRecordInj: InjectionKey<Ref<((row: Record<string, any>) => void) | null>> =
+  Symbol('interface-unlink-record')
+
+/**
  * Record-sidebar adapter for the comment + revision-history panels of an
  * interface record overlay — the record-scoped sibling of `InterfacePageDataInj`.
  * Provided by the overlay (EE); when present, the base comment/revision

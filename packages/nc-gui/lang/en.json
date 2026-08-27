@@ -3941,6 +3941,7 @@
       "mutedText": "Muted text"
     },
     "xAxis": "X-axis",
+    "values": "Values",
     "barOrientation": "Bar orientation",
     "horizontal": "Horizontal",
     "vertical": "Vertical",

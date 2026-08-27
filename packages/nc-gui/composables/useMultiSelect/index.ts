@@ -508,7 +508,9 @@ export function useMultiSelect(
               true,
             )
           } catch (ex) {
-            if (ex instanceof ComputedTypePasteError) throw ex
+            // Only conversion failures are per-column recoverable; anything else
+            // still aborts so it stays visible.
+            if (!(ex instanceof TypeConversionError) || ex instanceof ComputedTypePasteError) throw ex
 
             // A column the serializer rejects (link cells, whose clipboard text
             // is the display value) must not take the whole fill down with it.

@@ -3939,7 +3939,14 @@
       "text": "Text",
       "cellText": "Cell text",
       "mutedText": "Muted text"
-    }
+    },
+    "yAxisLeft": "Y-axis (left)",
+    "yAxisRight": "Y-axis (right)",
+    "startAtZero": "Start at zero",
+    "showThisAxis": "Show this axis",
+    "fieldsCount": "{count} field | {count} fields",
+    "chartRecordCount": "Number of records",
+    "addSeriesField": "Add field"
   },
   "activity": {
     "useTemplate": "Use template",

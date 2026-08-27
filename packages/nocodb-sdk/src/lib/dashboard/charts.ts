@@ -89,7 +89,15 @@ export interface DonutChartConfig extends BaseChartConfig {
  */
 export interface XYChartYAxisField {
   column_id: string;
-  aggregation: typeof AllAggregations;
+  /**
+   * Aggregation key, e.g. 'count' / 'sum' / 'avg'.
+   *
+   * Typed as a string rather than `typeof AllAggregations` (which the inline
+   * shape this was extracted from used): that annotation names the type of the
+   * lookup OBJECT, so no aggregation value is actually assignable to it, and
+   * every consumer had to cast around it.
+   */
+  aggregation: string;
   /** Which axis this series plots against. Absent = left. */
   axis?: 'left' | 'right';
   /**

@@ -86,7 +86,7 @@ export const usePlugin = createSharedComposable(() => {
   const availableExtensions = ref<ExtensionManifest[]>([])
   const availableScripts = ref<ScriptManifest[]>([])
 
-  const { appInfo } = useGlobal()
+  const { appInfo, signedIn } = useGlobal()
 
   const pluginCollections = {
     [PluginType.extension]: {
@@ -277,10 +277,19 @@ export const usePlugin = createSharedComposable(() => {
   }
 
   watch(
-    [() => isBetaPluginsEnabled.value, () => isPluginsEnabled.value, () => appInfo.value?.isOnPrem],
+    [() => isBetaPluginsEnabled.value, () => isPluginsEnabled.value, () => appInfo.value?.isOnPrem, () => signedIn.value],
     async () => {
       availableExtensions.value = []
       availableScripts.value = []
+      pluginsLoaded.value = false
+
+      // Defer loading the full plugin catalog until the user is authenticated.
+      // The unauthenticated shell (e.g. the signin page) has no UI that can use
+      // extensions/scripts — they are gated behind auth and `!isSharedBase` — so
+      // eagerly fetching every plugin manifest/asset chunk there only delays the
+      // first paint of the login screen. Once signed in the catalog loads in the
+      // background while the app routes to the dashboard.
+      if (!signedIn.value) return
 
       await loadPlugins()
     },

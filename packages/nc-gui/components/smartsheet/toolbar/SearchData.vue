@@ -24,7 +24,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { search, loadFieldQuery } = useFieldQuery()
+const { search, loadFieldQuery, isScoped: isScopedSearch } = useFieldQuery()
 
 const { isMobileMode } = useGlobal()
 
@@ -117,7 +117,11 @@ watch(
     if (n !== o) {
       let reset = false
 
-      if (n !== lastOpenedViewId.value) {
+      // A tree-scoped search (the LTAR embedded viz) owns its own state, so it
+      // must keep its hands off the app-global "last opened view": stamping a
+      // synthetic viz id there left the PAGE's box resetting itself on its next
+      // view switch — the very cross-talk the scope exists to stop.
+      if (!isScopedSearch && n !== lastOpenedViewId.value) {
         lastOpenedViewId.value = n
         reset = true
       }

@@ -268,17 +268,36 @@ export const LinkRecordDropdownVariantInj: InjectionKey<Ref<LinkRecordDropdownVa
  * config; `null`/absent = no expand affordance (the CE default everywhere).
  */
 export interface LinkRecordExpandApi {
-  /** Whether the LTAR column has click-into-details configured (with a valid layout). */
-  isEnabled: (column: ColumnType) => boolean
+  /**
+   * Whether the LTAR column has click-into-details configured (with a valid
+   * layout). `elementId` names the record-form element the click came from —
+   * pass it whenever the caller knows it: resolving by COLUMN alone is
+   * ambiguous once a sheet carries two elements on the same LTAR column (a
+   * pills field plus a Show-as-View embed), and the loser inherits the other's
+   * config and opener hop.
+   */
+  isEnabled: (column: ColumnType, elementId?: string) => boolean
   /** Open the record's detail surface — the picker passes the linked table's meta it already holds. */
-  expand: (params: { column: ColumnType; row: Record<string, any>; relatedTableMeta: TableType }) => void
+  expand: (params: {
+    column: ColumnType
+    row: Record<string, any>
+    relatedTableMeta: TableType
+    /** See `isEnabled`. */
+    elementId?: string
+  }) => void
   /**
    * Builder-only: `isEnabled` is false and the host can offer the enable
    * prompt, so the affordance stays live and the click configures instead of
    * doing nothing. Absent on consumer surfaces — a viewer can't configure, so
    * there the click is genuinely inert.
    */
-  configure?: (params: { column: ColumnType; row: Record<string, any>; relatedTableMeta: TableType }) => void
+  configure?: (params: {
+    column: ColumnType
+    row: Record<string, any>
+    relatedTableMeta: TableType
+    /** See `isEnabled` — the prompt must configure the element that was clicked. */
+    elementId?: string
+  }) => void
 }
 
 export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')

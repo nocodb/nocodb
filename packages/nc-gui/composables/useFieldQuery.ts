@@ -187,5 +187,11 @@ export function useFieldQuery() {
     return `(${col.title},eq,${searchQuery})`
   }
 
-  return { search, loadFieldQuery, getValidSearchQueryForColumn }
+  return {
+    search,
+    loadFieldQuery,
+    getValidSearchQueryForColumn,
+    /** True inside a `FieldQueryScopeInj` subtree — its search state is its own. */
+    isScoped: !!scope,
+  }
 }

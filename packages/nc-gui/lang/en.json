@@ -3940,6 +3940,7 @@
       "cellText": "Cell text",
       "mutedText": "Muted text"
     },
+    "xAxis": "X-axis",
     "yAxisLeft": "Y-axis (left)",
     "yAxisRight": "Y-axis (right)",
     "startAtZero": "Start at zero",
@@ -4339,6 +4340,7 @@
     "addComment": "Add a comment"
   },
   "tooltip": {
+    "chartIncludeOthers": "Combine categories beyond the limit into a single Others category instead of dropping them.",
     "sideLabelsNeedSingleFieldRows": "Not available while a row holds more than one field.",
     "showFieldInView": "Show this field in the current view.",
     "hideFieldInView": "Hide this field in the current view.",

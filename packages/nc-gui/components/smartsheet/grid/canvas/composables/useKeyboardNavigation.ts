@@ -1,12 +1,13 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
-import { NO_EDITABLE_CELL } from '../utils/cell'
-import { EDIT_INTERACTABLE } from '../utils/constants'
+import { EDIT_INTERACTABLE, NO_EDITABLE_CELL } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
+import { findNextNavigableCellPosition, isLastNavigableColumnInRow } from '../utils/keyboardNavigation'
 
 // column types which support delete even when it's in edit state
 const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
 
 const MIN_COLUMN_INDEX = 1
+
 export function useKeyboardNavigation({
   activeCell,
   columns,
@@ -383,7 +384,11 @@ export function useKeyboardNavigation({
 
         let isAdded = false
         e.preventDefault()
-        if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
+        if (
+          !e.shiftKey &&
+          activeCell.value.row === lastRow &&
+          isLastNavigableColumnInRow(columns.value, activeCell.value.column, lastCol)
+        ) {
           if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value && isAddingEmptyRowPermitted.value) {
             addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
@@ -392,21 +397,17 @@ export function useKeyboardNavigation({
           return
         }
 
-        if (e.shiftKey) {
-          if (activeCell.value.column > MIN_COLUMN_INDEX) {
-            activeCell.value.column--
-          } else if (activeCell.value.row > 0) {
-            activeCell.value.row--
-            activeCell.value.column = lastCol
-          }
-        } else {
-          if (activeCell.value.column < lastCol) {
-            activeCell.value.column++
-          } else if (activeCell.value.row < (isAdded ? lastRow + 1 : lastRow)) {
-            activeCell.value.row++
-            activeCell.value.column = MIN_COLUMN_INDEX
-          }
-        }
+        const nextPosition = findNextNavigableCellPosition({
+          row: activeCell.value.row,
+          column: activeCell.value.column,
+          columns: columns.value,
+          lastRow: isAdded ? lastRow + 1 : lastRow,
+          lastCol,
+          isShiftKey: e.shiftKey,
+        })
+
+        activeCell.value.row = nextPosition.row
+        activeCell.value.column = nextPosition.column
         moved = true
         break
       }

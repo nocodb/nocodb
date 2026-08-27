@@ -279,17 +279,18 @@ export const usePlugin = createSharedComposable(() => {
   watch(
     [() => isBetaPluginsEnabled.value, () => isPluginsEnabled.value, () => appInfo.value?.isOnPrem, () => signedIn.value],
     async () => {
+      // The signin shell has no UI that can use extensions/scripts, so loading
+      // the catalog there only delays first paint. Guard sits before the resets:
+      // `signedIn` is token validity, not "has logged in", and flips false on
+      // expiry — clearing here would wipe the catalog under a live session until
+      // the next 401 or navigation.
+      if (!signedIn.value) return
+
+      // processPluginManifest only adds/replaces, so a flag change that newly
+      // excludes a plugin needs a clean slate.
       availableExtensions.value = []
       availableScripts.value = []
       pluginsLoaded.value = false
-
-      // Defer loading the full plugin catalog until the user is authenticated.
-      // The unauthenticated shell (e.g. the signin page) has no UI that can use
-      // extensions/scripts — they are gated behind auth and `!isSharedBase` — so
-      // eagerly fetching every plugin manifest/asset chunk there only delays the
-      // first paint of the login screen. Once signed in the catalog loads in the
-      // background while the app routes to the dashboard.
-      if (!signedIn.value) return
 
       await loadPlugins()
     },

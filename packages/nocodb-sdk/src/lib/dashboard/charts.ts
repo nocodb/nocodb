@@ -74,6 +74,40 @@ export interface DonutChartConfig extends BaseChartConfig {
   permissions: ChartPermissionConfig;
 }
 
+/**
+ * One plotted series of an xy chart.
+ *
+ * The query path turns each entry into exactly one series, in order
+ * (`xy-chart.common.handler.ts` → `yAxisColumns.map`), so a renderer resolves a
+ * series' axis, mark and colour by POSITION against this array.
+ *
+ * A secondary (right-hand) axis is modelled as an entry tagged
+ * `axis: 'right'` rather than a config block of its own — that keeps it inside
+ * the existing query path, which already aggregates one column per entry across
+ * all five dialect handlers. The cost is that this shape is heterogeneous: the
+ * axis-level members below mean nothing on a left-hand entry.
+ */
+export interface XYChartYAxisField {
+  column_id: string;
+  aggregation: typeof AllAggregations;
+  /** Which axis this series plots against. Absent = left. */
+  axis?: 'left' | 'right';
+  /**
+   * Mark type for THIS series, letting a right-hand series read as a line over
+   * left-hand bars. Absent = follow the widget's own `chartType`.
+   */
+  series_type?: ChartTypes.BAR | ChartTypes.LINE | ChartTypes.SCATTER;
+  /** Explicit series colour. Absent = take the appearance palette. */
+  color?: string;
+  // ── Right-hand entries only ──────────────────────────────────────────────
+  /** Axis caption. Absent = the renderer's derived name ("Average: ID"). */
+  label?: string;
+  /** Anchor this axis at zero rather than at the data minimum. */
+  start_at_zero?: boolean;
+  /** Builder toggled the axis off — keeps its config while hiding the series. */
+  show?: boolean;
+}
+
 export interface BarChartDataConfig {
   xAxis: {
     column_id: string;
@@ -85,11 +119,10 @@ export interface BarChartDataConfig {
   };
   yAxis: {
     startAtZero: boolean;
-    fields: Array<{
-      column_id: string;
-      aggregation: typeof AllAggregations;
-    }>;
+    fields: XYChartYAxisField[];
     groupBy?: string;
+    /** Left-axis caption. Absent = no caption (not a derived fallback). */
+    label?: string;
   };
 }
 
@@ -204,3 +237,70 @@ export type ChartWidgetConfig<T extends ChartTypes = ChartTypes> =
     : T extends ChartTypes.TREEMAP
     ? TreemapChartConfig
     : never;
+
+// ────────────────────────────────────────────────────────────────────────────
+// Y-axis field helpers
+//
+// Shared so the properties pane and the renderer read a `fields` array the same
+// way. Every rule here is a fallback for a key an older widget will not carry:
+// before secondary axes existed every entry was an untagged left-hand series,
+// and those must keep rendering exactly as they did.
+// ────────────────────────────────────────────────────────────────────────────
+
+/** A series entry plots against the right-hand axis. */
+export function isRightYAxisField(field: XYChartYAxisField): boolean {
+  return field.axis === 'right';
+}
+
+/**
+ * The single right-hand entry, if the builder has configured one.
+ *
+ * Only one is supported; a config carrying several takes the first so the
+ * extras cannot silently double-plot.
+ */
+export function findRightYAxisField(
+  fields: XYChartYAxisField[] | undefined
+): XYChartYAxisField | undefined {
+  return (fields ?? []).find(isRightYAxisField);
+}
+
+/** Entries plotting against the left-hand axis — the default for untagged ones. */
+export function leftYAxisFields(
+  fields: XYChartYAxisField[] | undefined
+): XYChartYAxisField[] {
+  return (fields ?? []).filter((field) => !isRightYAxisField(field));
+}
+
+/**
+ * Whether a series entry should be plotted at all.
+ *
+ * `show` is meaningful only on the right-hand entry, where toggling the axis off
+ * must keep its configuration rather than discard it. Left-hand entries have no
+ * such toggle, so an absent `show` always means visible.
+ */
+export function isXYChartFieldPlotted(field: XYChartYAxisField): boolean {
+  return !isRightYAxisField(field) || field.show !== false;
+}
+
+/** The right-hand axis is configured AND switched on. */
+export function hasVisibleRightYAxis(
+  fields: XYChartYAxisField[] | undefined
+): boolean {
+  const right = findRightYAxisField(fields);
+
+  return !!right && isXYChartFieldPlotted(right);
+}
+
+/**
+ * Mark type for one series. Left-hand entries always follow the widget's own
+ * `chartType`; only a right-hand entry may differ, which is what lets a line
+ * ride over bars.
+ */
+export function xyChartSeriesType(
+  field: XYChartYAxisField,
+  chartType: ChartTypes
+): ChartTypes {
+  if (!isRightYAxisField(field) || !field.series_type) return chartType;
+
+  return field.series_type;
+}

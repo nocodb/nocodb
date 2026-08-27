@@ -1,4 +1,6 @@
 import { BelongsToHelper } from './BelongsTo';
+import { HasManyHelper } from './HasMany';
+import { OneToOneHelper } from './OneToOne';
 import { ManyToManyHelper } from './ManyToMany';
 import { LinksHelper } from '../Links';
 import { SilentTypeConversionError } from '~/lib/error';
@@ -49,6 +51,33 @@ describe('LTAR clipboard serialization', () => {
     colOptions: { type: 'mm', fk_related_model_id: RELATED_MODEL_ID },
   } as ColumnType;
 
+  const ooCol = {
+    id: 'cl_oo',
+    title: 'Order',
+    uidt: UITypes.LinkToAnotherRecord,
+    colOptions: { type: 'oo', fk_related_model_id: RELATED_MODEL_ID },
+  } as ColumnType;
+
+  const hmCol = {
+    id: 'cl_hm',
+    title: 'Orders',
+    uidt: UITypes.LinkToAnotherRecord,
+    colOptions: { type: 'hm', fk_related_model_id: RELATED_MODEL_ID },
+  } as ColumnType;
+
+  // V2 single-record link: uidt Links, but the value is the related record,
+  // not a count. This is what the v3 field API creates for a `bt` request.
+  const moLinksCol = {
+    id: 'cl_mo',
+    title: 'Order',
+    uidt: UITypes.Links,
+    colOptions: {
+      type: 'mo',
+      fk_related_model_id: RELATED_MODEL_ID,
+      version: 2,
+    },
+  } as ColumnType;
+
   const baseParams = { meta, metas } as any;
 
   describe('parseValue (copy → text/plain)', () => {
@@ -86,6 +115,58 @@ describe('LTAR clipboard serialization', () => {
           rowId: 'r1',
         })
       ).toBe('3 Links');
+    });
+
+    it('OO copies the display value', () => {
+      expect(
+        new OneToOneHelper().parseValue(
+          { Id: 1, order_id: '702-4787840-9226625' },
+          { ...baseParams, col: ooCol }
+        )
+      ).toBe('702-4787840-9226625');
+    });
+
+    it('HM copies joined display values, not the raw record array', () => {
+      const value = [
+        { Id: 1, order_id: 'A-1' },
+        { Id: 2, order_id: 'A-2' },
+      ];
+
+      expect(
+        new HasManyHelper().parseValue(value, { ...baseParams, col: hmCol })
+      ).toBe('A-1, A-2');
+    });
+
+    it('Links (V2 mo) copies the display value, never "[object Object]"', () => {
+      const parsed = new LinksHelper().parseValue(
+        { Id: 1, order_id: '702-4787840-9226625' },
+        { ...baseParams, col: moLinksCol }
+      );
+
+      expect(parsed).toBe('702-4787840-9226625');
+      expect(String(parsed)).not.toContain('[object Object]');
+    });
+
+    it('Links (V2 om) copies joined display values', () => {
+      const omLinksCol = {
+        ...moLinksCol,
+        id: 'cl_om',
+        colOptions: {
+          type: 'om',
+          fk_related_model_id: RELATED_MODEL_ID,
+          version: 2,
+        },
+      } as ColumnType;
+
+      expect(
+        new LinksHelper().parseValue(
+          [
+            { Id: 1, order_id: 'A-1' },
+            { Id: 2, order_id: 'A-2' },
+          ],
+          { ...baseParams, col: omLinksCol }
+        )
+      ).toBe('A-1, A-2');
     });
   });
 

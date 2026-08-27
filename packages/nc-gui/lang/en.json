@@ -3941,6 +3941,9 @@
       "mutedText": "Muted text"
     },
     "xAxis": "X-axis",
+    "barOrientation": "Bar orientation",
+    "horizontal": "Horizontal",
+    "vertical": "Vertical",
     "smoothLines": "Smooth lines",
     "plotDotsOnLines": "Plot dots on lines",
     "yAxisLeft": "Y-axis (left)",

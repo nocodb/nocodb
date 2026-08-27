@@ -386,6 +386,7 @@ import NcDropletIcon from '~icons/nc-icons-v2/droplet.svg'
 import NcZapOffIcon from '~icons/nc-icons-v2/zap-off.svg'
 import NcXIcon from '~icons/nc-icons-v2/x.svg'
 import NcBarChartIcon from '~icons/nc-icons-v2/bar-chart.svg'
+import NcBarChartHorizontalIcon from '~icons/nc-icons-v2/bar-chart-horizontal.svg'
 import NcLockIcon from '~icons/nc-icons-v2/lock.svg'
 import NcLogInIcon from '~icons/nc-icons-v2/log-in.svg'
 import NcRefreshCwIcon from '~icons/nc-icons-v2/refresh-cw.svg'
@@ -1511,6 +1512,7 @@ export const iconMap = {
   'ncZapOff': NcZapOffIcon,
   'ncX': NcXIcon,
   'ncBarChart': NcBarChartIcon,
+  'ncBarChartHorizontal': NcBarChartHorizontalIcon,
   'ncLock': NcLockIcon,
   'ncLogIn': NcLogInIcon,
   'ncRefreshCw': NcRefreshCwIcon,

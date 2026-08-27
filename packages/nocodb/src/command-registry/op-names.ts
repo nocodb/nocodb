@@ -154,6 +154,9 @@ export const OperationName = {
   baseSectionCreate: 'baseSectionCreate',
   baseSectionUpdate: 'baseSectionUpdate',
   baseSectionDelete: 'baseSectionDelete',
+  automationSectionCreate: 'automationSectionCreate',
+  automationSectionUpdate: 'automationSectionUpdate',
+  automationSectionDelete: 'automationSectionDelete',
 
   // Record templates
   recordTemplateCreate: 'recordTemplateCreate',

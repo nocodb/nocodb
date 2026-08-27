@@ -146,6 +146,7 @@ export enum MetaTable {
   RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
   VIEW_SECTIONS = 'nc_view_sections',
   BASE_SECTIONS = 'nc_base_sections',
+  AUTOMATION_SECTIONS = 'nc_automation_sections',
   CHAT_SESSIONS = 'nc_chat_sessions',
   CHAT_MESSAGES = 'nc_chat_messages',
   /** @deprecated Documents now live in nc_models_v2 (type='document'). Kept for legacy data cleanup. */
@@ -382,6 +383,7 @@ export const orderedMetaTables = [
   MetaTable.AUTOMATION_SUBSCRIBERS,
   MetaTable.AUTOMATION_EXECUTIONS,
   MetaTable.AUTOMATIONS,
+  MetaTable.AUTOMATION_SECTIONS,
 
   // Payment
   MetaTable.CREDIT_METERING_COUNTERS,
@@ -589,6 +591,7 @@ export enum CacheScope {
   RLS_POLICY = 'rlsPolicy',
   VIEW_SECTION = 'viewSection',
   BASE_SECTION = 'baseSection',
+  AUTOMATION_SECTION = 'automationSection',
   CHAT_SESSION = 'chatSession',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',

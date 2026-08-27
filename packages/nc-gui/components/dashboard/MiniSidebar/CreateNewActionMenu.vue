@@ -530,6 +530,7 @@ const hasDocumentCreateAccess = computed(() => {
           <DashboardMiniSidebarSectionCreateMenuItem
             v-if="isEeUI"
             :is-data-tab="isDataTab"
+            :is-workflows-tab="isWorkflowsTab"
             :is-base-home-page="isBaseHomePage"
             :base-id="openedProject?.id"
           />

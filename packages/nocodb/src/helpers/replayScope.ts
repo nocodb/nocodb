@@ -16,6 +16,11 @@ export interface ReplayBag {
     entity: 'table' | 'document' | 'dashboard';
     order?: number;
   }>;
+  automationSectionRestoreChildren: ReadonlyArray<{
+    id: string;
+    entity: 'workflow' | 'script';
+    order?: number;
+  }>;
   rowColorFilterIds: ReadonlyArray<string>;
   interfaceDuplicatePageIds: ReadonlyArray<string>;
 }

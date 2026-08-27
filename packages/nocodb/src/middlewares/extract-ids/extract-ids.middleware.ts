@@ -33,6 +33,7 @@ import type {
 import { resolveShareAccessSource } from '~/helpers/accessSource';
 import {
   Base,
+  AutomationSection,
   BaseSection,
   Column,
   Comment,
@@ -185,6 +186,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const widgetId = params.widgetId || query.widgetId;
       const sectionId = params.sectionId || query.sectionId;
       const baseSectionId = params.baseSectionId || query.baseSectionId;
+      const automationSectionId =
+        params.automationSectionId || query.automationSectionId;
       const sortId = params.sortId || query.sortId;
       const syncId = params.syncId || query.syncId;
       const extensionId = params.extensionId || query.extensionId;
@@ -409,6 +412,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         if (!baseSection) {
           NcError.baseSectionNotFound(baseSectionId);
+        }
+      } else if (automationSectionId) {
+        // Automation sections are base-scoped, so there is no source to pin.
+        // This branch exists only to 404 an unknown id before the handler runs.
+        const automationSection = await AutomationSection.get(
+          context,
+          automationSectionId,
+        );
+
+        if (!automationSection) {
+          NcError.automationSectionNotFound(automationSectionId);
         }
       } else if (sortId) {
         const sort = await Sort.get(context, sortId);

@@ -36,13 +36,20 @@ export async function getCommandPaletteForUserWorkspace(
         )
         .innerJoin(`${MetaTable.PROJECT_USERS} as bu`, `b.id`, `bu.base_id`)
         .innerJoin(`${MetaTable.MODELS} as t`, `t.base_id`, `b.id`)
-        .innerJoin(`${MetaTable.VIEWS} as v`, `v.fk_model_id`, `t.id`)
-        .leftJoin(`${MetaTable.MODEL_ROLE_VISIBILITY} as dm`, function () {
-          this.on(`dm.fk_view_id`, `=`, `v.id`).andOn(
-            `dm.role`,
+        // VIEWS and MODEL_ROLE_VISIBILITY are keyed on [base_id, id], so both
+        // joins need base_id — on id alone, a duplicated base's views and
+        // visibility rows attach to this base's tables.
+        .innerJoin(`${MetaTable.VIEWS} as v`, function () {
+          this.on(`v.fk_model_id`, `=`, `t.id`).andOn(
+            `v.base_id`,
             `=`,
-            `bu.roles`,
+            `t.base_id`,
           );
+        })
+        .leftJoin(`${MetaTable.MODEL_ROLE_VISIBILITY} as dm`, function () {
+          this.on(`dm.fk_view_id`, `=`, `v.id`)
+            .andOn(`dm.base_id`, `=`, `v.base_id`)
+            .andOn(`dm.role`, `=`, `bu.roles`);
         })
         .where('bu.fk_user_id', userId)
         .andWhereNot('bu.roles', ProjectRoles.NO_ACCESS)

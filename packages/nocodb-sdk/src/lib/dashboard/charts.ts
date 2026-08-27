@@ -75,11 +75,9 @@ export interface DonutChartConfig extends BaseChartConfig {
 }
 
 /**
- * One plotted series of an xy chart. The query path emits one series per entry,
- * in order, so a series resolves to its entry by POSITION.
- *
- * The shape is heterogeneous: the axis-level members below mean nothing on a
- * left-hand entry.
+ * One plotted series of an xy chart — the query path emits one per entry, in
+ * order, so a series resolves to its entry by POSITION. Heterogeneous: the
+ * axis-level members mean nothing on a left-hand entry.
  */
 export interface XYChartYAxisField {
   column_id: string;
@@ -87,10 +85,7 @@ export interface XYChartYAxisField {
   aggregation: string;
   /** Which axis this series plots against. Absent = left. */
   axis?: 'left' | 'right';
-  /**
-   * Mark type for THIS series, letting a right-hand series read as a line over
-   * left-hand bars. Absent = follow the widget's own `chartType`.
-   */
+  /** Per-series mark, so a right-hand line can ride over bars. Absent = the widget's `chartType`. */
   series_type?: ChartTypes.BAR | ChartTypes.LINE | ChartTypes.SCATTER;
   /** Explicit series colour. Absent = take the appearance palette. */
   color?: string;
@@ -238,9 +233,8 @@ export type ChartWidgetConfig<T extends ChartTypes = ChartTypes> =
     : never;
 
 // ────────────────────────────────────────────────────────────────────────────
-// Y-axis field helpers — shared so the properties pane and the renderer read a
-// `fields` array the same way. Each rule falls back to the pre-secondary-axis
-// behaviour for keys an older widget will not carry.
+// Y-axis field helpers — shared so the pane and the renderer read `fields` the
+// same way. Absent keys fall back to the pre-secondary-axis behaviour.
 // ────────────────────────────────────────────────────────────────────────────
 
 /** A series entry plots against the right-hand axis. */
@@ -249,11 +243,8 @@ export function isRightYAxisField(field: XYChartYAxisField): boolean {
 }
 
 /**
- * The right-hand entry the builder edits — first one found, hidden or not, so
- * toggling the axis off keeps its configuration editable.
- *
- * For rendering use `findPlottedRightYAxisField`: this one may return a hidden
- * entry, and a renderer that built no axis for it would strand its series.
+ * The right-hand entry the builder EDITS — hidden or not. Renderers want
+ * `findPlottedRightYAxisField`; a hidden entry here has no axis to plot on.
  */
 export function findRightYAxisField(
   fields: XYChartYAxisField[] | undefined
@@ -261,11 +252,7 @@ export function findRightYAxisField(
   return (fields ?? []).find(isRightYAxisField);
 }
 
-/**
- * The right-hand entry that drives the secondary axis — the first one actually
- * plotted. Only one secondary axis exists, so any further plotted right entries
- * share it.
- */
+/** The entry driving the secondary axis. Only one exists, so further right entries share it. */
 export function findPlottedRightYAxisField(
   fields: XYChartYAxisField[] | undefined
 ): XYChartYAxisField | undefined {
@@ -281,13 +268,7 @@ export function leftYAxisFields(
   return (fields ?? []).filter((field) => !isRightYAxisField(field));
 }
 
-/**
- * Whether a series entry should be plotted at all.
- *
- * `show` is meaningful only on the right-hand entry, where toggling the axis off
- * must keep its configuration rather than discard it. Left-hand entries have no
- * such toggle, so an absent `show` always means visible.
- */
+/** `show` is meaningful only on a right-hand entry — left ones have no toggle. */
 export function isXYChartFieldPlotted(field: XYChartYAxisField): boolean {
   return !isRightYAxisField(field) || field.show !== false;
 }

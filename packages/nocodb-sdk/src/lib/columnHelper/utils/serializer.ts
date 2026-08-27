@@ -33,6 +33,32 @@ export const serializeStringValue = (value: any) => {
   return value;
 };
 
+/**
+ * Return the raw text a SINGLE-CELL copy should place on the clipboard.
+ *
+ * LongText.parseValue CSV-quotes its value (escaping inner quotes) so that
+ * multi-cell selections keep their grid structure when the cells are joined
+ * into TSV. A single-cell copy has no grid to protect: pasting the quoted
+ * form into any other application wraps the value in literal quotes and
+ * escapes its inner ones (#14442). In-app paste is unaffected either way —
+ * it round-trips through the clipboard item's dbCellValueArr, not the plain
+ * text.
+ *
+ * Only LongText columns are unwrapped (the one parser that quotes), so a
+ * legitimate value of any other type that happens to start and end with a
+ * quote character is never touched.
+ */
+export const unquoteSingleCellClipboardValue = (
+  value: any,
+  col?: ColumnType
+): any => {
+  if (col?.uidt !== UITypes.LongText) return value;
+
+  const unquoted = serializeStringValue(value);
+
+  return unquoted === null ? value : unquoted;
+};
+
 export const serializeDecimalValue = (
   value: string | null | number,
   callback?: (val: any) => any,

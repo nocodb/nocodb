@@ -3,6 +3,8 @@ import {
   serializeDecimalValue,
   serializeExcelDateValue,
   serializeIntValue,
+  serializeStringValue,
+  unquoteSingleCellClipboardValue,
 } from './serializer';
 import { parseCurrencyValue } from './parser';
 import { SeparatorType } from './common';
@@ -410,5 +412,51 @@ describe('serializeExcelDateValue', () => {
         '2025-01-01 18:00:00+00:00'
       );
     });
+  });
+});
+
+describe('unquoteSingleCellClipboardValue', () => {
+  const longTextCol = { uidt: UITypes.LongText } as any;
+  const singleLineCol = { uidt: UITypes.SingleLineText } as any;
+
+  it('unwraps what LongText.parseValue quoted so a lone cell copies raw', () => {
+    const quoted = `"line one\nline with \"inner\" quotes"`;
+    expect(unquoteSingleCellClipboardValue(quoted, longTextCol)).toBe(
+      'line one\nline with "inner" quotes'
+    );
+  });
+
+  it('unwraps the minimal empty-string quoting to an empty string', () => {
+    expect(unquoteSingleCellClipboardValue('""', longTextCol)).toBe('');
+  });
+
+  it('keeps values that parseValue would not have quoted', () => {
+    expect(unquoteSingleCellClipboardValue('plain', longTextCol)).toBe('plain');
+  });
+
+  it('passes nullish through instead of coercing to a string', () => {
+    expect(unquoteSingleCellClipboardValue(null, longTextCol)).toBe(null);
+    expect(unquoteSingleCellClipboardValue(undefined, longTextCol)).toBe(
+      undefined
+    );
+  });
+
+  it('never touches other column types, even fully quoted values', () => {
+    expect(
+      unquoteSingleCellClipboardValue('"legitimately quoted"', singleLineCol)
+    ).toBe('"legitimately quoted"');
+    expect(unquoteSingleCellClipboardValue('"quoted"', undefined)).toBe(
+      '"quoted"'
+    );
+  });
+
+  it('round-trips with serializeStringValue, the paste-side unwrapper', () => {
+    const original = 'a\tb\nc with "quotes"';
+    const quotedByParseValue = `"${original.replace(/"/g, '\\"')}"`;    const copiedRaw = unquoteSingleCellClipboardValue(
+      quotedByParseValue,
+      longTextCol
+    );
+    expect(copiedRaw).toBe(original);
+    expect(serializeStringValue(copiedRaw)).toBe(copiedRaw);
   });
 });

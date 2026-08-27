@@ -3,9 +3,9 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { isBt, isMm, isOo, parseLinksValue } from '../utils';
-import { ncIsArray, ncIsNaN, ncIsObject } from '~/lib/is';
+import { ncIsNaN, ncIsObject } from '~/lib/is';
 import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
-import { isMMOrMMLike } from '~/lib/UITypes';
+import { isBtLikeV2Junction, isMMOrMMLike } from '~/lib/UITypes';
 import { LookupHelper } from './Lookup';
 
 export class LinksHelper extends AbstractColumnHelper {
@@ -64,22 +64,22 @@ export class LinksHelper extends AbstractColumnHelper {
   }
 
   parseValue(value: any, params: SerializerOrParserFnProps['params']) {
-    // Clipboard text is what the cell renders ("N Links" / the display
-    // value) — the lossless envelope rides the clipboard item instead (see
-    // serializeValue).
-    if (isMm(params.col)) {
-      return parseLinksValue(!ncIsNaN(value) ? +value : 0, params);
-    } else if (isBt(params.col) || isOo(params.col)) {
+    // Clipboard text is what the cell renders — the lossless envelope rides the
+    // clipboard item instead (see serializeValue). Split on the SAME predicate
+    // the grid renderer uses to pick a renderer for a Links column
+    // (`isBtLikeV2Junction`, canvas/cells/index.ts), so copy and display can't
+    // drift apart:
+    //   record-shaped (v1 bt/oo, v2 bt/mo/oo) → the related record's display value
+    //   count-shaped  (hm, mm, om)            → "N Links"
+    if (
+      isBt(params.col) ||
+      isOo(params.col) ||
+      isBtLikeV2Junction(params.col)
+    ) {
       return new LookupHelper().parsePlainCellValue(value, params) ?? '';
     }
 
-    // V2 om/mo carry the related record(s) rather than a count — returning them
-    // raw stringifies to "[object Object]" on the clipboard.
-    if (ncIsObject(value) || ncIsArray(value)) {
-      return new LookupHelper().parsePlainCellValue(value, params) ?? '';
-    }
-
-    return value ?? '';
+    return parseLinksValue(!ncIsNaN(value) ? +value : 0, params);
   }
 
   parsePlainCellValue(

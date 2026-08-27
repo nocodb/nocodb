@@ -147,12 +147,39 @@ describe('LTAR clipboard serialization', () => {
       expect(String(parsed)).not.toContain('[object Object]');
     });
 
-    it('Links (V2 om) copies joined display values', () => {
-      const omLinksCol = {
+    // hm / mm / om are the COUNT-shaped Links relations — the renderer shows
+    // "N Links" for all three (`parseLinksValue` via `parsePlainCellValue`), so
+    // copy must too. Only bt/oo and the v2 bt-like junctions (mo/oo) are
+    // record-shaped; `isBtLikeV2Junction` is the split, shared with the grid.
+    it.each([['hm'], ['mm'], ['om']])(
+      'Links (%s) copies the rendered count, identically across count relations',
+      (relationType) => {
+        const countCol = {
+          ...mmLinksCol,
+          id: `cl_${relationType}`,
+          colOptions: {
+            type: relationType,
+            fk_related_model_id: RELATED_MODEL_ID,
+            ...(relationType === 'om' ? { version: 2 } : {}),
+          },
+        } as ColumnType;
+
+        expect(
+          new LinksHelper().parseValue(3, {
+            ...baseParams,
+            col: countCol,
+            rowId: 'r1',
+          })
+        ).toBe('3 Links');
+      }
+    );
+
+    it('Links (V2 oo) is record-shaped, not a count', () => {
+      const ooLinksCol = {
         ...moLinksCol,
-        id: 'cl_om',
+        id: 'cl_oo_v2',
         colOptions: {
-          type: 'om',
+          type: 'oo',
           fk_related_model_id: RELATED_MODEL_ID,
           version: 2,
         },
@@ -160,13 +187,10 @@ describe('LTAR clipboard serialization', () => {
 
       expect(
         new LinksHelper().parseValue(
-          [
-            { Id: 1, order_id: 'A-1' },
-            { Id: 2, order_id: 'A-2' },
-          ],
-          { ...baseParams, col: omLinksCol }
+          { Id: 1, order_id: '702-4787840-9226625' },
+          { ...baseParams, col: ooLinksCol }
         )
-      ).toBe('A-1, A-2');
+      ).toBe('702-4787840-9226625');
     });
   });
 

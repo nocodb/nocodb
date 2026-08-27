@@ -75,28 +75,15 @@ export interface DonutChartConfig extends BaseChartConfig {
 }
 
 /**
- * One plotted series of an xy chart.
+ * One plotted series of an xy chart. The query path emits one series per entry,
+ * in order, so a series resolves to its entry by POSITION.
  *
- * The query path turns each entry into exactly one series, in order
- * (`xy-chart.common.handler.ts` → `yAxisColumns.map`), so a renderer resolves a
- * series' axis, mark and colour by POSITION against this array.
- *
- * A secondary (right-hand) axis is modelled as an entry tagged
- * `axis: 'right'` rather than a config block of its own — that keeps it inside
- * the existing query path, which already aggregates one column per entry across
- * all five dialect handlers. The cost is that this shape is heterogeneous: the
- * axis-level members below mean nothing on a left-hand entry.
+ * The shape is heterogeneous: the axis-level members below mean nothing on a
+ * left-hand entry.
  */
 export interface XYChartYAxisField {
   column_id: string;
-  /**
-   * Aggregation key, e.g. 'count' / 'sum' / 'avg'.
-   *
-   * Typed as a string rather than `typeof AllAggregations` (which the inline
-   * shape this was extracted from used): that annotation names the type of the
-   * lookup OBJECT, so no aggregation value is actually assignable to it, and
-   * every consumer had to cast around it.
-   */
+  /** Aggregation key, e.g. 'count' / 'sum' / 'avg'. */
   aggregation: string;
   /** Which axis this series plots against. Absent = left. */
   axis?: 'left' | 'right';
@@ -124,6 +111,8 @@ export interface BarChartDataConfig {
     includeEmptyRecords?: boolean;
     includeOthers?: boolean;
     categoryLimit?: number;
+    /** Category-axis caption. Absent = no caption. */
+    legend_title?: string;
   };
   yAxis: {
     startAtZero: boolean;
@@ -249,12 +238,9 @@ export type ChartWidgetConfig<T extends ChartTypes = ChartTypes> =
     : never;
 
 // ────────────────────────────────────────────────────────────────────────────
-// Y-axis field helpers
-//
-// Shared so the properties pane and the renderer read a `fields` array the same
-// way. Every rule here is a fallback for a key an older widget will not carry:
-// before secondary axes existed every entry was an untagged left-hand series,
-// and those must keep rendering exactly as they did.
+// Y-axis field helpers — shared so the properties pane and the renderer read a
+// `fields` array the same way. Each rule falls back to the pre-secondary-axis
+// behaviour for keys an older widget will not carry.
 // ────────────────────────────────────────────────────────────────────────────
 
 /** A series entry plots against the right-hand axis. */
@@ -263,15 +249,29 @@ export function isRightYAxisField(field: XYChartYAxisField): boolean {
 }
 
 /**
- * The single right-hand entry, if the builder has configured one.
+ * The right-hand entry the builder edits — first one found, hidden or not, so
+ * toggling the axis off keeps its configuration editable.
  *
- * Only one is supported; a config carrying several takes the first so the
- * extras cannot silently double-plot.
+ * For rendering use `findPlottedRightYAxisField`: this one may return a hidden
+ * entry, and a renderer that built no axis for it would strand its series.
  */
 export function findRightYAxisField(
   fields: XYChartYAxisField[] | undefined
 ): XYChartYAxisField | undefined {
   return (fields ?? []).find(isRightYAxisField);
+}
+
+/**
+ * The right-hand entry that drives the secondary axis — the first one actually
+ * plotted. Only one secondary axis exists, so any further plotted right entries
+ * share it.
+ */
+export function findPlottedRightYAxisField(
+  fields: XYChartYAxisField[] | undefined
+): XYChartYAxisField | undefined {
+  return (fields ?? []).find(
+    (field) => isRightYAxisField(field) && isXYChartFieldPlotted(field)
+  );
 }
 
 /** Entries plotting against the left-hand axis — the default for untagged ones. */
@@ -296,9 +296,7 @@ export function isXYChartFieldPlotted(field: XYChartYAxisField): boolean {
 export function hasVisibleRightYAxis(
   fields: XYChartYAxisField[] | undefined
 ): boolean {
-  const right = findRightYAxisField(fields);
-
-  return !!right && isXYChartFieldPlotted(right);
+  return !!findPlottedRightYAxisField(fields);
 }
 
 /**

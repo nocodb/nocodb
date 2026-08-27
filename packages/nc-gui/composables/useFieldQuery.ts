@@ -17,6 +17,28 @@ export interface FieldQueryType {
   isValidFieldQuery?: boolean
 }
 
+export interface FieldQueryScope {
+  search: Ref<FieldQueryType>
+  searchMap: Ref<Record<string, FieldQueryType>>
+}
+
+/**
+ * Tree-scoped override for `useFieldQuery` — provided by hosts that mount a
+ * SECOND live search surface beside the page's own (the LTAR embedded viz),
+ * so their SearchData + smartsheet store read an isolated state instead of
+ * the app-global "current view" search (typing in one box would otherwise
+ * show up — and filter — in the other).
+ */
+export const FieldQueryScopeInj: InjectionKey<FieldQueryScope> = Symbol('field-query-scope')
+
+/** Fresh isolated state for `FieldQueryScopeInj` providers. */
+export function createFieldQueryScope(): FieldQueryScope {
+  return {
+    search: ref({ field: '', query: '', isValidFieldQuery: true }),
+    searchMap: ref({}),
+  }
+}
+
 export interface ValidSearchQueryForColumnReturnType {
   fk_column_id: string
   comparison_op: 'like' | 'eq'
@@ -39,13 +61,20 @@ export function useFieldQuery() {
     isValidFieldQuery: true,
   }
 
+  // Tree-scoped override (see FieldQueryScopeInj) — null keeps the app-global
+  // state below. Guarded: callers are all setup-context composables, but a
+  // future non-setup call must not warn.
+  const scope = getCurrentInstance() ? inject(FieldQueryScopeInj, null) : null
+
   // mapping view id (key) to corresponding emptyFieldQueryObj (value)
-  const searchMap = useState<Record<string, FieldQueryType>>('field-query-search-map', () => ({}))
+  const searchMap = scope?.searchMap ?? useState<Record<string, FieldQueryType>>('field-query-search-map', () => ({}))
 
   // the fieldQueryObj under the current view
-  const search = useState<FieldQueryType>('field-query-search', () => ({
-    ...emptyFieldQueryObj,
-  }))
+  const search =
+    scope?.search ??
+    useState<FieldQueryType>('field-query-search', () => ({
+      ...emptyFieldQueryObj,
+    }))
 
   // retrieve the fieldQueryObj of the given view id
   // if it is not found in `searchMap`, init with emptyFieldQueryObj
@@ -158,5 +187,11 @@ export function useFieldQuery() {
     return `(${col.title},eq,${searchQuery})`
   }
 
-  return { search, loadFieldQuery, getValidSearchQueryForColumn }
+  return {
+    search,
+    loadFieldQuery,
+    getValidSearchQueryForColumn,
+    /** True inside a `FieldQueryScopeInj` subtree — its search state is its own. */
+    isScoped: !!scope,
+  }
 }

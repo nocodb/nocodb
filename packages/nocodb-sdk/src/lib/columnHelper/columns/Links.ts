@@ -3,7 +3,7 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { isBt, isMm, isOo, parseLinksValue } from '../utils';
-import { ncIsNaN, ncIsObject } from '~/lib/is';
+import { ncIsArray, ncIsNaN, ncIsObject } from '~/lib/is';
 import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isMMOrMMLike } from '~/lib/UITypes';
 import { LookupHelper } from './Lookup';
@@ -70,6 +70,12 @@ export class LinksHelper extends AbstractColumnHelper {
     if (isMm(params.col)) {
       return parseLinksValue(!ncIsNaN(value) ? +value : 0, params);
     } else if (isBt(params.col) || isOo(params.col)) {
+      return new LookupHelper().parsePlainCellValue(value, params) ?? '';
+    }
+
+    // V2 om/mo carry the related record(s) rather than a count — returning them
+    // raw stringifies to "[object Object]" on the clipboard.
+    if (ncIsObject(value) || ncIsArray(value)) {
       return new LookupHelper().parsePlainCellValue(value, params) ?? '';
     }
 

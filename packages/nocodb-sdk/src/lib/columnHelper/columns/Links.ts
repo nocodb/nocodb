@@ -4,7 +4,9 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { isBt, isMm, isOo, parseLinksValue } from '../utils';
 import { ncIsNaN, ncIsObject } from '~/lib/is';
-import { LinkToAnotherRecordType } from '~/lib/Api';
+import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
+import { isMMOrMMLike } from '~/lib/UITypes';
+import { LookupHelper } from './Lookup';
 
 export class LinksHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -16,6 +18,27 @@ export class LinksHelper extends AbstractColumnHelper {
     if (params.serializeSearchQuery) return null;
 
     if (!isMm(params.col)) throw new SilentTypeConversionError();
+
+    // In-app copies carry the source row/column identity on the clipboard
+    // item — the text is the human-readable value. The legacy JSON-envelope
+    // text (older copies) is still accepted below.
+    const item = params.clipboardItem;
+    if (
+      item?.rowId != null &&
+      item.column?.id &&
+      isMMOrMMLike(item.column as ColumnType) &&
+      (item.column.colOptions as LinkToAnotherRecordType)
+        ?.fk_related_model_id ===
+        (params.col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+    ) {
+      return {
+        rowId: item.rowId,
+        columnId: item.column.id,
+        fk_related_model_id: (item.column.colOptions as LinkToAnotherRecordType)
+          .fk_related_model_id,
+        value: item.dbCellValue,
+      };
+    }
 
     let parsedVal = value;
 
@@ -41,21 +64,13 @@ export class LinksHelper extends AbstractColumnHelper {
   }
 
   parseValue(value: any, params: SerializerOrParserFnProps['params']) {
+    // Clipboard text is what the cell renders ("N Links" / the display
+    // value) — the lossless envelope rides the clipboard item instead (see
+    // serializeValue).
     if (isMm(params.col)) {
-      return JSON.stringify({
-        rowId: params.rowId,
-        columnId: params.col.id,
-        fk_related_model_id: (params.col.colOptions as LinkToAnotherRecordType)
-          .fk_related_model_id,
-        value: !ncIsNaN(value) ? +value : 0,
-      });
+      return parseLinksValue(!ncIsNaN(value) ? +value : 0, params);
     } else if (isBt(params.col) || isOo(params.col)) {
-      // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
-      return JSON.stringify({
-        fk_related_model_id: (params.col.colOptions as LinkToAnotherRecordType)
-          .fk_related_model_id,
-        value: value || null,
-      });
+      return new LookupHelper().parsePlainCellValue(value, params) ?? '';
     }
 
     return value ?? '';

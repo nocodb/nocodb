@@ -50,6 +50,7 @@ export default class Base implements BaseType {
 
   // shared base props
   uuid?: string;
+  // Never verified. Base share is uuid-only; writable via update(), never read.
   password?: string;
   roles?: string;
   fk_custom_url_id?: string;

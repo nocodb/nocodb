@@ -23,6 +23,8 @@ export interface ICteScope {
   add(cteBlock: ICteBlock): ICteBlock;
   /** Aliases this scope owns, in registration order. */
   readonly aliases: string[];
+  /** Blocks this scope owns — so a caller can measure what it registered. */
+  readonly blocks: ICteBlock[];
   /** Drop only this scope's blocks from the shared map. */
   rollback(): void;
   /** Re-register this scope's blocks (e.g. after an external `clear()`). */

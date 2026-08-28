@@ -1,6 +1,6 @@
 import type { UITypes } from 'nocodb-sdk';
 
-export type HoistStrategy = 'inline' | 'cte-aggregate' | 'cte-window';
+export type HoistStrategy = 'inline' | 'cte-aggregate';
 
 /**
  * Column metadata the planner needs, decoupled from the model layer so the
@@ -11,7 +11,7 @@ export interface PlanColumnMeta {
   uidt: UITypes;
   /** relation.type !== ONE_TO_ONE — the reference needs an aggregate */
   isArray?: boolean;
-  /** per-lookup sort/limit configured (EE, pg-only) → cte-window */
+  /** per-lookup sort/limit configured (EE, pg-only) — diagnostic only */
   hasSortLimitConfig?: boolean;
   /** lookup/rollup: the column at the other end of the relation */
   targetColumnId?: string;

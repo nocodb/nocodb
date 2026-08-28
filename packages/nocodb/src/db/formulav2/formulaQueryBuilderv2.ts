@@ -27,6 +27,7 @@ import type { ICteScope } from '~/db/cte-generator/types';
 import {
   buildFormulaPlan,
   hoistAboveBytes,
+  maxStatementBytes,
   makeColumnMetaResolver,
 } from '~/db/formulav2/plan';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -642,8 +643,29 @@ export default async function formulaQueryBuilderv2({
       }
     }
 
+    // Hoisting shrinks the expression by moving bulk into block bodies that
+    // `applyCte` splices in later, so the expression alone stops reflecting
+    // what the database is asked to parse. Measure the blocks this build
+    // registered and hold the total to its own ceiling.
+    let statementLength = sqlLength;
+    if (hoistScope) {
+      for (const block of hoistScope.blocks) {
+        try {
+          const probe = knex.queryBuilder();
+          block.applyCte(probe, { context, knex });
+          statementLength += probe.toSQL().sql.length;
+        } catch {
+          // an unmeasurable block must not fail the query; the expression cap
+          // below still applies
+        }
+      }
+    }
+
     // we limit the formula length to 500k to prevent server crashing
-    if (sqlLength > 500 * 1000) {
+    if (sqlLength > 500 * 1000 || statementLength > maxStatementBytes()) {
+      // this throws, so the blocks registered above would otherwise stay on the
+      // shared generator and dangle into the next query
+      hoistScope?.rollback();
       const columnInfo = {
         title: column?.title ? `column ${column.title}` : 'new column',
         id: column?.id ? ` (${column.id})` : '',
@@ -663,10 +685,14 @@ export default async function formulaQueryBuilderv2({
             .slice(0, 3)
             .map((r) => r.columnId)
         : [];
-      const detail = hoistPlan
-        ? ` This formula reaches ${hoistPlan.inlineLeafPaths} referenced fields` +
-          (heaviest.length ? `; the heaviest are ${heaviest.join(', ')}.` : '.')
-        : '';
+      const detail =
+        (hoistPlan
+          ? ` This formula reaches ${hoistPlan.inlineLeafPaths} referenced fields` +
+            (heaviest.length ? `; the heaviest are ${heaviest.join(', ')}.` : '.')
+          : '') +
+        (statementLength > maxStatementBytes()
+          ? ` The full statement is ${Math.round(statementLength / 1000)}kb.`
+          : '');
       NcError.get(context).formulaError(
         `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.${detail}`,
       );

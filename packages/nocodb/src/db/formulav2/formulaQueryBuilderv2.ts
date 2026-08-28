@@ -13,10 +13,8 @@ import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
-import {
-  binaryExpressionBuilder,
-  callExpressionBuilder,
-} from './parsed-tree-builder';
+import { callExpressionBuilder } from './parsed-tree-builder';
+import { binaryExpressionBuilder } from './fn-handler';
 import {
   formulaOutputsRawJson,
   getFormulaOutputMaxLength,
@@ -473,6 +471,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       return { builder: knex.raw(`??`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {
       return await binaryExpressionBuilder({
+        compileCall: callExpressionBuilder,
         context,
         pt,
         fn,

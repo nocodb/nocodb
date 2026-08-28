@@ -2,7 +2,7 @@ import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../../column.interface';
-import { LinkToAnotherRecordType } from '~/lib/Api';
+import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
 import { ncHasProperties } from '~/lib/is';
 import { isMMOrMMLike } from '~/lib/UITypes';
 import { LookupHelper } from '../Lookup';
@@ -12,6 +12,27 @@ export class ManyToManyHelper extends AbstractColumnHelper {
 
   serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
     if (!isMMOrMMLike(params.col)) throw new SilentTypeConversionError();
+
+    // In-app copies carry the source row/column identity on the clipboard
+    // item — the text is the human-readable value. The legacy JSON-envelope
+    // text (older copies) is still accepted below.
+    const item = params.clipboardItem;
+    if (
+      item?.rowId != null &&
+      item.column?.id &&
+      isMMOrMMLike(item.column as ColumnType) &&
+      (item.column.colOptions as LinkToAnotherRecordType)
+        ?.fk_related_model_id ===
+        (params.col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+    ) {
+      return {
+        rowId: item.rowId,
+        columnId: item.column.id,
+        fk_related_model_id: (item.column.colOptions as LinkToAnotherRecordType)
+          .fk_related_model_id,
+        value: item.dbCellValue,
+      };
+    }
 
     let parsedVal = value;
 
@@ -36,13 +57,9 @@ export class ManyToManyHelper extends AbstractColumnHelper {
   }
 
   parseValue(value: any, params: SerializerOrParserFnProps['params']) {
-    return JSON.stringify({
-      rowId: params.rowId,
-      columnId: params.col.id,
-      fk_related_model_id: (params.col.colOptions as LinkToAnotherRecordType)
-        .fk_related_model_id,
-      value,
-    });
+    // Clipboard text is the display value the cell renders — the lossless
+    // envelope rides the clipboard item instead (see serializeValue).
+    return this.parsePlainCellValue(value, params);
   }
 
   parsePlainCellValue(

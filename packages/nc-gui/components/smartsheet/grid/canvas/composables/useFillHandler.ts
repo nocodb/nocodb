@@ -220,22 +220,37 @@ export function useFillHandler({
         }
 
         for (const [colIndex, cpCol] of cpCols.entries()) {
-          const pasteValue = convertCellData(
-            {
-              value: fillValuesByCols[colIndex!]![incrementIndex],
-              to: cpCol.uidt as UITypes,
-              column: cpCol,
-              appInfo: unref(appInfo),
-              maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
-              showUpgradeToAddMoreAttachmentsInCell,
-              isInfoShown: isColInfoShown[cpCol.title!],
-              markInfoShown: () => {
-                isColInfoShown[cpCol.title!] = true
+          let pasteValue: any
+
+          try {
+            pasteValue = convertCellData(
+              {
+                value: fillValuesByCols[colIndex!]![incrementIndex],
+                to: cpCol.uidt as UITypes,
+                column: cpCol,
+                appInfo: unref(appInfo),
+                maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                showUpgradeToAddMoreAttachmentsInCell,
+                isInfoShown: isColInfoShown[cpCol.title!],
+                markInfoShown: () => {
+                  isColInfoShown[cpCol.title!] = true
+                },
               },
-            },
-            isMysql(meta.value?.source_id),
-            true,
-          )
+              isMysql(meta.value?.source_id),
+              true,
+            )
+          } catch (ex) {
+            // Only conversion failures are per-column recoverable; anything else
+            // still aborts so it stays visible.
+            if (!(ex instanceof TypeConversionError) || ex instanceof ComputedTypePasteError) throw ex
+
+            // A column the serializer rejects (link cells, whose clipboard text
+            // is the display value) must not take the whole fill down with it.
+            // Leave the cell untouched rather than writing null — the title is
+            // still sent to bulkUpdateRows below.
+            continue
+          }
+
           rowObj.row[cpCol.title] = pasteValue
         }
         rowsToPaste.push(rowObj)

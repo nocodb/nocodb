@@ -2,6 +2,18 @@
 export const MAX_GENERATED_SQL_BYTES = 500 * 1000;
 
 /**
+ * Kill switch for CTE hoisting. On by default; set NC_DISABLE_FORMULA_CTE_HOIST
+ * to opt out. Read at call time so it can be flipped per test.
+ *
+ * Disabled, nothing downstream runs — no plan is built, no scope is opened, the
+ * statement cap collapses to the expression cap and the error message loses its
+ * plan detail — so the emitted SQL is byte-identical to the un-hoisted build.
+ */
+export function isCteHoistEnabled() {
+  return process.env.NC_DISABLE_FORMULA_CTE_HOIST !== 'true';
+}
+
+/**
  * Ceiling on the WHOLE statement — expression plus every hoisted block body.
  * MAX_GENERATED_SQL_BYTES only measures the expression, and hoisting moves the
  * bulk into blocks that `applyCte` splices in afterwards, so without this the

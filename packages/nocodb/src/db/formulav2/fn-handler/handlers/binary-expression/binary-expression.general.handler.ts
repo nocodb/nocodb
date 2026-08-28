@@ -11,13 +11,14 @@ import {
   ieeeModuloSql,
   isPgIeeeEnabled,
   stripNaNSql,
-} from '../../pg-ieee';
-import { fnKeyOf } from '../fn-node';
-import { getFnHandler } from '../registry';
-import { callExpressionBuilder } from './call-expression.handler';
+} from '../../../pg-ieee';
+import { fnKeyOf } from '../../fn-node';
+import { getFnHandler } from '../../registry';
+import { callExpressionBuilder } from '../call-expression/call-expression.general.handler';
 import type {
   BinaryExpressionNode,
   CallExpressionNode,
+  ClientType,
   ComparisonOperator,
   IdentifierNode,
   LiteralNode,
@@ -28,12 +29,13 @@ import type {
   FnParsedTreeNode,
   FormulaBuildHints,
   TAliasToColumn,
-} from '../../formula-query-builder.types';
+} from '../../../formula-query-builder.types';
 import type {
   FnNodeContext,
+  FnNodeEstimateContext,
   FnNodeHandlerInterface,
-} from '../fn-handler.interface';
-import type CustomKnex from '../../../CustomKnex';
+} from '../../fn-handler.interface';
+import type CustomKnex from '../../../../CustomKnex';
 
 /**
  * Lowering for every binary operator. Kept whole rather than split per operator:
@@ -47,6 +49,20 @@ import type CustomKnex from '../../../CustomKnex';
  * call-expression imports nothing from this module, so there is no cycle to
  * dodge. `FnEmitContext.compileCall` still carries it down to a lowering.
  */
+
+/** the operators the pg blank-as-zero pass coalesces — mirrors the emitter below */
+const COALESCED_OPERATORS = [
+  '+',
+  '-',
+  '*',
+  '%',
+  '<',
+  '>',
+  '<=',
+  '>=',
+  '=',
+  '!=',
+];
 
 const assignFnName = (pt: FnParsedTreeNode) => {
   if (pt.fnName) return;
@@ -199,9 +215,13 @@ export const binaryExpressionBuilder = async ({
   // blank-as-zero and the emitted form — in one class per variant. `buildHints`
   // can pin the variant; otherwise it follows the dialect. Operators with no
   // handler fall through to the inline handling below.
-  const fnHandler = getFnHandler(
+  const resolved = getFnHandler(
     fnKeyOf(pt),
-    { pgIeee: isPgIeeeEnabled(knex), fnVariants: buildHints?.fnVariants },
+    {
+      clientType: knex.clientType() as ClientType,
+      pgIeee: isPgIeeeEnabled(knex),
+      fnVariants: buildHints?.fnVariants,
+    },
     pt,
   );
 
@@ -210,7 +230,7 @@ export const binaryExpressionBuilder = async ({
   const leftDataType = pt.left.dataType;
   const rightDataType = pt.right.dataType;
 
-  fnHandler?.prepareTree(pt);
+  resolved?.handler.prepareTree(pt);
 
   assignFnName(pt.left as FnParsedTreeNode);
   assignFnName(pt.right as FnParsedTreeNode);
@@ -218,8 +238,12 @@ export const binaryExpressionBuilder = async ({
   let left = (await fn(pt.left, pt.operator)).builder.toQuery();
   let right = (await fn(pt.right, pt.operator)).builder.toQuery();
 
-  if (fnHandler) {
-    [left, right] = fnHandler.prepareOperands([left, right], knex);
+  if (resolved) {
+    [left, right] = resolved.handler.prepareOperands(
+      [left, right],
+      knex,
+      resolved.variant,
+    );
   } else if (
     // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
     // Applied in every mode, not just display: if display coalesced but sort did
@@ -437,9 +461,10 @@ export const binaryExpressionBuilder = async ({
         isMssql || isOracle
           ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
           : `(CASE WHEN ${sql} THEN true ELSE false END )`;
-    } else if (fnHandler) {
-      sql = await fnHandler.emit({
+    } else if (resolved) {
+      sql = await resolved.handler.emit({
         context,
+        variant: resolved.variant,
         pt,
         operands: [left, right],
         knex,
@@ -487,7 +512,7 @@ export const binaryExpressionBuilder = async ({
  * results in order, and only two of them (`/` via FN_REGISTRY, and `%`) are
  * per-operator lowerings.
  */
-export class BinaryExpressionHandler implements FnNodeHandlerInterface {
+export class BinaryExpressionGeneralHandler implements FnNodeHandlerInterface {
   readonly kind = 'bin_exp' as const;
 
   compile(ctx: FnNodeContext): Promise<{ builder: any }> {
@@ -502,5 +527,48 @@ export class BinaryExpressionHandler implements FnNodeHandlerInterface {
       model: ctx.model,
       buildHints: ctx.buildHints,
     });
+  }
+
+  /**
+   * Exact where it matters, approximate where it does not.
+   *
+   * A registered lowering answers for itself, so the operand duplication that
+   * makes a chain grow ~2ⁿ is counted exactly — that is the case this estimate
+   * exists to catch. The inline arms add the operator, the blank-as-zero
+   * COALESCE pg applies, and a flat allowance for the CASE/IFNULL wrapping some
+   * dialects put round a comparison; those are small and additive, so getting
+   * them slightly wrong shifts the total by a constant rather than a factor.
+   */
+  estimate(ctx: FnNodeEstimateContext): number {
+    const pt = ctx.pt as {
+      operator?: string;
+      left?: unknown;
+      right?: unknown;
+    };
+    const left = ctx.estimate(pt.left as never);
+    const right = ctx.estimate(pt.right as never);
+
+    const resolved = getFnHandler(
+      fnKeyOf(ctx.pt),
+      { clientType: ctx.clientType, pgIeee: ctx.pgIeee },
+      ctx.pt,
+    );
+    if (resolved) {
+      return resolved.handler.estimate({
+        pt: ctx.pt,
+        operands: [left, right],
+        variant: resolved.variant,
+      });
+    }
+
+    const operator = pt.operator ?? '';
+    let bytes = left + right + operator.length + ' '.length * 2;
+    if (ctx.pgIeee && COALESCED_OPERATORS.includes(operator)) {
+      bytes += 'COALESCE(, 0)'.length * 2;
+    }
+    if (ComparisonOperators.includes(operator as ComparisonOperator)) {
+      bytes += '(CASE WHEN  THEN true ELSE false END )'.length;
+    }
+    return bytes;
   }
 }

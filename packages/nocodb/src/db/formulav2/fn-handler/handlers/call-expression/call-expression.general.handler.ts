@@ -4,18 +4,26 @@ import {
   type ParsedFormulaNode,
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
-import mapFunctionName from '../../../mapFunctionName';
+import mapFunctionName from '../../../../mapFunctionName';
 import type { NcContext, UITypes } from 'nocodb-sdk';
 import type { Model } from 'src/models';
 import type {
   FnParsedTreeNode,
   TAliasToColumn,
-} from '../../formula-query-builder.types';
+} from '../../../formula-query-builder.types';
 import type {
   FnNodeContext,
+  FnNodeEstimateContext,
   FnNodeHandlerInterface,
-} from '../fn-handler.interface';
-import type CustomKnex from '../../../CustomKnex';
+} from '../../fn-handler.interface';
+import type CustomKnex from '../../../../CustomKnex';
+
+/**
+ * Flat allowance for the dialect template a function name expands into — a
+ * `CAST(... AS ...)`, a `strftime(...)`, an `IFNULL` wrap. Measured as a rough
+ * middle of the mappings in `db/functionMappings/`.
+ */
+const MAPPED_FUNCTION_ALLOWANCE = 16;
 
 export const callExpressionBuilder = async ({
   context,
@@ -316,7 +324,7 @@ export const callExpressionBuilder = async ({
 };
 
 /** `call_exp` — the node-kind entry for a CallExpression. */
-export class CallExpressionHandler implements FnNodeHandlerInterface {
+export class CallExpressionGeneralHandler implements FnNodeHandlerInterface {
   readonly kind = 'call_exp' as const;
 
   compile(ctx: FnNodeContext): Promise<{ builder: any }> {
@@ -330,5 +338,31 @@ export class CallExpressionHandler implements FnNodeHandlerInterface {
       model: ctx.model,
       columnIdToUidt: ctx.columnIdToUidt,
     });
+  }
+
+  /**
+   * `NAME(arg, arg)` plus an allowance for what the dialect's mapping expands
+   * it into. Deliberately coarse: `mapFunctionName` has a template per function
+   * per dialect, and mirroring all of them here would be a second copy to keep
+   * in step. A call contributes a constant, not a multiplier, so the error does
+   * not compound the way operand duplication does.
+   */
+  estimate(ctx: FnNodeEstimateContext): number {
+    const pt = ctx.pt as {
+      callee?: { name?: string };
+      arguments?: unknown[];
+    };
+    const args = pt.arguments ?? [];
+    const inner = args.reduce<number>(
+      (sum, arg) => sum + ctx.estimate(arg as never),
+      0,
+    );
+    return (
+      (pt.callee?.name?.length ?? 0) +
+      '()'.length +
+      Math.max(0, args.length - 1) * ', '.length +
+      inner +
+      MAPPED_FUNCTION_ALLOWANCE
+    );
   }
 }

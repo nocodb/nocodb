@@ -1,38 +1,65 @@
-import { BinaryExpressionHandler } from './handlers/binary-expression.handler';
-import { CallExpressionHandler } from './handlers/call-expression.handler';
-import {
-  IdentifierHandler,
-  LiteralHandler,
-  UnaryExpressionHandler,
-} from './handlers/leaf.handlers';
-import { DivisionGeneralHandler } from './handlers/division.general.handler';
-import { DivisionPgIeeeHandler } from './handlers/division.pg-ieee.handler';
+import { ClientType } from 'nocodb-sdk';
+import { CLIENT_DEFAULT } from './fn-handler.interface';
+import { BinaryExpressionGeneralHandler } from './handlers/binary-expression/binary-expression.general.handler';
+import { CallExpressionGeneralHandler } from './handlers/call-expression/call-expression.general.handler';
+import { DivisionGeneralHandler } from './handlers/division/division.general.handler';
+import { DivisionPgHandler } from './handlers/division/division.pg.handler';
+import { IdentifierGeneralHandler } from './handlers/identifier/identifier.general.handler';
+import { LiteralGeneralHandler } from './handlers/literal/literal.general.handler';
+import { UnaryExpressionGeneralHandler } from './handlers/unary-expression/unary-expression.general.handler';
 import type {
+  FnClient,
   FnConditions,
   FnHandlerInterface,
   FnHandlerKey,
   FnNodeHandlerInterface,
   FnNodeKind,
   FnVariant,
+  ResolvedFnHandler,
 } from './fn-handler.interface';
 import type { FnNode } from './fn-node';
 
 /**
- * One entry per lowered function/operator, one class per variant of it. Same
- * shape as the field-handler registry: key first, then the variant, with
- * `general` as the fallback every key must provide.
+ * One entry per lowered function/operator, then per dialect, then per variant.
+ * Same dialect axis as the field-handler registry — `CLIENT_DEFAULT` is the
+ * bucket every client falls back to — with a third level the field handlers do
+ * not need: several lowerings of one operator can coexist on one dialect, and
+ * the query plan picks between them per site.
  *
  * Add a lowering by adding its key here — nothing else in the emitter or the
  * query plan needs to know about it. Unregistered keys resolve to undefined and
  * keep whatever inline handling they have today.
  */
 const FN_REGISTRY: Partial<
-  Record<FnHandlerKey, Partial<Record<FnVariant, new () => FnHandlerInterface>>>
+  Record<FnHandlerKey, Partial<Record<FnClient, new () => FnHandlerInterface>>>
 > = {
   '/': {
-    general: DivisionGeneralHandler,
-    'pg-ieee': DivisionPgIeeeHandler,
+    [CLIENT_DEFAULT]: DivisionGeneralHandler,
+    // pg is the only dialect that can produce ±Infinity/NaN by hand. That is a
+    // variant this class emits, not a separate registration.
+    [ClientType.PG]: DivisionPgHandler,
   },
+};
+
+/**
+ * One entry per parsed-tree node kind, then per dialect — the outer dispatch,
+ * above the per-operator lowerings. The two nest rather than compete: a
+ * `bin_exp` handler resolves `/` from `FN_REGISTRY` while it runs.
+ *
+ * Every kind is `CLIENT_DEFAULT` today; the branching each one does on
+ * `knex.clientType()` internally is what a dialect entry would later take over.
+ */
+const FN_NODE_REGISTRY: Partial<
+  Record<
+    FnNodeKind,
+    Partial<Record<FnClient, new () => FnNodeHandlerInterface>>
+  >
+> = {
+  bin_exp: { [CLIENT_DEFAULT]: BinaryExpressionGeneralHandler },
+  call_exp: { [CLIENT_DEFAULT]: CallExpressionGeneralHandler },
+  literal: { [CLIENT_DEFAULT]: LiteralGeneralHandler },
+  identifier: { [CLIENT_DEFAULT]: IdentifierGeneralHandler },
+  unary_exp: { [CLIENT_DEFAULT]: UnaryExpressionGeneralHandler },
 };
 
 /**
@@ -53,10 +80,40 @@ function sitePinOf(node: FnNode | undefined): FnVariant | undefined {
 }
 
 /**
- * The one place generation is conditioned. A pin wins if that variant exists
- * for the key — the node's own annotation first, since it names one occurrence
- * and `fnVariants` names all of them; otherwise pg+IEEE takes the `pg-ieee`
- * variant when there is one, and everything else falls back to `general`.
+ * The variants registered for this key on this dialect, falling back to the
+ * catch-all bucket.
+ *
+ * `pgIeee` stands in for the dialect when no `clientType` was given, because
+ * `isPgIeeeEnabled` is `flag && isPgClient` — the flag cannot be true anywhere
+ * but pg. That keeps a caller that only knows about the flag (the query plan,
+ * which is built without a connection) resolving the same handler the emitter
+ * will use, instead of silently dropping to `general` and under-reporting
+ * duplication.
+ */
+function clientOf(conditions: FnConditions): FnClient {
+  return (
+    conditions.clientType ??
+    (conditions.pgIeee ? ClientType.PG : undefined) ??
+    CLIENT_DEFAULT
+  );
+}
+
+function classOf(key: FnHandlerKey, conditions: FnConditions) {
+  const byClient = FN_REGISTRY[key];
+  if (!byClient) return undefined;
+  return byClient[clientOf(conditions)] ?? byClient[CLIENT_DEFAULT];
+}
+
+/**
+ * Which lowering this site asks for: the node's own annotation first, since it
+ * names one occurrence where `fnVariants` names all of them, then the IEEE flag,
+ * else `general`.
+ *
+ * Nothing checks that the dialect offers it. A handler that does not implement a
+ * variant ignores the argument and emits its general form — which is exactly
+ * what `DivisionGeneralHandler` does — so an inapplicable request degrades on
+ * its own instead of needing a guard here. The corollary: this is the variant
+ * *requested*, not a promise that it was emitted.
  *
  * `node` is optional only so a caller with nothing but a key can still ask what
  * the key-wide answer is. Anything lowering an actual expression has the node
@@ -67,44 +124,29 @@ export function resolveFnVariant(
   conditions: FnConditions = {},
   node?: FnNode,
 ): FnVariant {
-  const variants = FN_REGISTRY[key];
   const pinned = sitePinOf(node) ?? conditions.fnVariants?.[key];
-  if (pinned && variants?.[pinned]) return pinned;
-  if (conditions.pgIeee && variants?.['pg-ieee']) return 'pg-ieee';
-  return 'general';
+  if (pinned) return pinned;
+  return conditions.pgIeee ? 'pg-ieee' : 'general';
 }
 
-/** The handler for this key, or undefined when nothing is registered for it. */
+/**
+ * The handler for this key plus the variant it should emit, or undefined when
+ * nothing is registered. Both come back together because the class no longer
+ * encodes the variant — every method whose output depends on it takes it.
+ */
 export function getFnHandler(
   key: FnHandlerKey | undefined,
   conditions: FnConditions = {},
   node?: FnNode,
-): FnHandlerInterface | undefined {
+): ResolvedFnHandler | undefined {
   if (!key) return undefined;
-  const variants = FN_REGISTRY[key];
-  if (!variants) return undefined;
-  const Handler =
-    variants[resolveFnVariant(key, conditions, node)] ?? variants.general;
-  return Handler ? new Handler() : undefined;
+  const Handler = classOf(key, conditions);
+  if (!Handler) return undefined;
+  return {
+    handler: new Handler(),
+    variant: resolveFnVariant(key, conditions, node),
+  };
 }
-
-/**
- * One entry per parsed-tree node kind — the outer dispatch, above the
- * per-operator lowerings in `FN_REGISTRY`. The two nest rather than compete: a
- * `bin_exp` handler resolves `/` from `FN_REGISTRY` while it runs.
- *
- * No variant axis here: a node handler holds whatever dialect branching it
- * needs internally, so there is nothing for a caller to pin.
- */
-const FN_NODE_REGISTRY: Partial<
-  Record<FnNodeKind, new () => FnNodeHandlerInterface>
-> = {
-  bin_exp: BinaryExpressionHandler,
-  call_exp: CallExpressionHandler,
-  literal: LiteralHandler,
-  identifier: IdentifierHandler,
-  unary_exp: UnaryExpressionHandler,
-};
 
 /** The node kind this parsed-tree node dispatches under, if any. */
 export function fnNodeKindOf(node: unknown): FnNodeKind | undefined {
@@ -125,11 +167,14 @@ export function fnNodeKindOf(node: unknown): FnNodeKind | undefined {
   }
 }
 
-/** The handler for this node kind, or undefined while it is still inline. */
+/** The handler for this node kind on this dialect, or the catch-all. */
 export function getFnNodeHandler(
   kind: FnNodeKind | undefined,
+  clientType?: ClientType,
 ): FnNodeHandlerInterface | undefined {
   if (!kind) return undefined;
-  const Handler = FN_NODE_REGISTRY[kind];
+  const byClient = FN_NODE_REGISTRY[kind];
+  const Handler =
+    (clientType && byClient?.[clientType]) ?? byClient?.[CLIENT_DEFAULT];
   return Handler ? new Handler() : undefined;
 }

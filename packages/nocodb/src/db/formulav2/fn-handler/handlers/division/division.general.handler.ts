@@ -1,9 +1,10 @@
 import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
-import { fnSlots, isCallTo, setFnSlots } from '../fn-node';
+import { fnSlots, isCallTo, setFnSlots } from '../../fn-node';
 import type { CallExpressionNode, ParsedFormulaNode } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
   FnEmitContext,
+  FnEstimateContext,
   FnHandlerInterface,
   FnHandlerKey,
   FnVariant,
@@ -19,12 +20,23 @@ import type { FnNode } from '~/db/formulav2/fn-handler/fn-node';
  * here at all: it wraps the whole binary expression in `IFNULL` upstream and
  * returns NULL for `x/0` natively.
  */
+/** ` / ` plus what `NULLIF(x, 0)` adds around the divisor. */
+const DIVISION_TEMPLATE_BYTES = ' / '.length + 'NULLIF(, 0)'.length;
+
+/**
+ * What `prepareTree`'s FLOAT() wrap costs per operand once the dialect expands
+ * it. A handler owns three byte-producing stages — prepareTree, prepareOperands
+ * and emit — so an estimate that models only `emit` under-counts every operand
+ * by whatever the other two add. pg spells it `CAST(x as DOUBLE PRECISION)`;
+ * the shorter spellings elsewhere (mssql `FLOAT(x)`) make this the pessimistic
+ * end, which is the safe direction for a size gate.
+ */
+export const FLOAT_WRAP_BYTES = '(CAST( as DOUBLE PRECISION))'.length;
+
 export class DivisionGeneralHandler implements FnHandlerInterface {
   readonly key: FnHandlerKey = '/';
 
-  readonly variant: FnVariant = 'general';
-
-  multiplicity(_pt: FnNode): number[] {
+  multiplicity(_pt: FnNode, _variant: FnVariant): number[] {
     return [1, 1];
   }
 
@@ -56,7 +68,11 @@ export class DivisionGeneralHandler implements FnHandlerInterface {
     );
   }
 
-  prepareOperands(operands: string[], _knex: CustomKnex): string[] {
+  prepareOperands(
+    operands: string[],
+    _knex: CustomKnex,
+    _variant: FnVariant,
+  ): string[] {
     return operands;
   }
 
@@ -88,5 +104,14 @@ export class DivisionGeneralHandler implements FnHandlerInterface {
       columnIdToUidt: ctx.columnIdToUidt,
     });
     return `${left} / ${right.builder}`;
+  }
+
+  /**
+   * `left / NULLIF(right, 0)` — each operand once, plus the template, plus the
+   * FLOAT wrap `prepareTree` put round both operands.
+   */
+  estimate(ctx: FnEstimateContext): number {
+    const [left = 0, right = 0] = ctx.operands;
+    return DIVISION_TEMPLATE_BYTES + left + right + FLOAT_WRAP_BYTES * 2;
   }
 }

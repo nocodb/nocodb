@@ -20,6 +20,7 @@ import {
   wrapFormulaWithMaxLength,
 } from './formula-query-builder.helpers';
 import type { ClientType } from 'nocodb-sdk';
+
 import type { ICteScope } from '~/db/cte-generator/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
@@ -43,7 +44,9 @@ import {
   hoistAboveBytes,
   isCteHoistEnabled,
   makeColumnMetaResolver,
+  makePlainLeafSizer,
   maxStatementBytes,
+  triageFormula,
 } from '~/db/formulav2/plan';
 import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
@@ -413,7 +416,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
 
     // Every node kind is a registry entry; an unknown kind compiles to nothing,
     // which is what the old if/else chain did by falling off the end.
-    const nodeHandler = getFnNodeHandler(fnNodeKindOf(pt));
+    const nodeHandler = getFnNodeHandler(
+      fnNodeKindOf(pt),
+      knex.clientType() as ClientType,
+    );
 
     if (nodeHandler) {
       return await nodeHandler.compile({
@@ -500,68 +506,71 @@ export default async function formulaQueryBuilderv2({
         table: model?.title,
       });
     }
-    // generate qb
-    qb = await _formulaQueryBuilder({
-      baseModelSqlv2,
-      _tree,
-      model,
-      aliasToColumn,
-      tableAlias,
-      columnIdToUidt,
-      column,
-      // callers hand in a bare tree; the payload is this module's transport
-      payload: {
-        parsedTree:
-          parsedTree ??
-          (await column
-            ?.getColOptions<FormulaColumn | ButtonColumn>(context)
-            .then((formula) => formula?.getParsedTree())),
-      },
-      baseUsers,
-      parentColumns,
-      columns,
-      getAliasCount,
-      cteScope,
-      buildHints,
-    });
-    let sqlLength = 0;
-    try {
-      sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;
-    } catch (ex) {}
+    // callers hand in a bare tree; the payload is this module's transport
+    const rootTree =
+      parsedTree ??
+      (await column
+        ?.getColOptions<FormulaColumn | ButtonColumn>(context)
+        .then((formula) => formula?.getParsedTree()));
 
-    // Gate: rebuild with CTE hoisting once the MEASURED length gets close to
-    // the cap. Deliberately not predicted — per-leaf-path SQL size varies ~97×
-    // between schemas, so any estimate is either useless or rejects working
-    // formulas. Below the threshold this block never runs and the emitted SQL
-    // is the same object today produces.
+    const build = (payload, scope?: ICteScope) =>
+      _formulaQueryBuilder({
+        baseModelSqlv2,
+        _tree,
+        model,
+        aliasToColumn: payload === undefined ? aliasToColumn : {},
+        tableAlias,
+        columnIdToUidt: payload === undefined ? columnIdToUidt : {},
+        column,
+        payload: payload ?? { parsedTree: rootTree },
+        baseUsers,
+        parentColumns,
+        columns,
+        getAliasCount,
+        cteScope: scope ?? cteScope,
+        buildHints,
+      });
+
     let hoistScope: ICteScope | undefined;
     let hoistPlan: Awaited<ReturnType<typeof buildFormulaPlan>> | null = null;
-    if (
+    /** the plan already had its say — do not ask it the same question twice */
+    let planned = false;
+
+    // Where the gate could act at all. Checked before triage rather than after,
+    // because triage is the thing that costs metadata.
+    const canGate =
       isCteHoistEnabled() &&
       !cteScope &&
       !disableCteHoist &&
-      sqlLength > hoistAboveBytes() &&
       knex.clientType() === 'pg' &&
-      typeof knex.cteGenerator === 'function'
-    ) {
+      typeof knex.cteGenerator === 'function';
+
+    /**
+     * Plan the tree and, if the plan asks for it, build the optimized form.
+     * Returns the build, or null when the plan had nothing to apply — the
+     * caller then falls back to (or keeps) the inline build.
+     */
+    const buildOptimized = async (tree: unknown, measuredBytes?: number) => {
       hoistPlan = await buildFormulaPlan({
-        tree: qb?.payload?.parsedTree,
+        tree,
         resolve: makeColumnMetaResolver(context),
         ieee: isPgIeeeEnabled(knex),
         fnVariants: buildHints?.fnVariants,
       }).catch(() => null);
 
-      // The plan's decisions, verbatim. Everything the gate does below follows
-      // from this line, so a build's strategy can be read out of the log rather
-      // than inferred from the SQL it produced. `warn` when the plan wanted
+      // The plan's decisions, verbatim. Everything below follows from this
+      // line, so a build's strategy can be read out of the log rather than
+      // inferred from the SQL it produced. `warn` when the plan wanted
       // something it could not have.
       if (hoistPlan?.optimizations.length) {
         const summary = hoistPlan.optimizations
           .map((opt) => `[${opt.kind}/${opt.status}] ${opt.reason}`)
           .join(' | ');
-        const message = `Formula ${
-          column?.id ?? 'preview'
-        } plan (${sqlLength}B): ${summary}`;
+        const message = `Formula ${column?.id ?? 'preview'} plan (${
+          measuredBytes === undefined
+            ? 'pre-build'
+            : `${measuredBytes}B measured`
+        }): ${summary}`;
         if (
           hoistPlan.optimizations.some((opt) => opt.status === 'unavailable')
         ) {
@@ -577,61 +586,118 @@ export default async function formulaQueryBuilderv2({
         (opt): opt is CteHoistOptimization =>
           opt.kind === 'cte-hoist' && opt.status === 'apply',
       );
-
-      // The plan folded onto the tree it describes. Each `apply` decision now
-      // sits on the node it applies to, so the rebuild carries its own
-      // instructions and there is no second argument that has to agree with the
-      // tree. Only worth building when something would act on it.
       const wantsRelowering = (hoistPlan?.optimizations ?? []).some(
         (opt) =>
           opt.kind === 'fn-variant' && opt.status === 'apply' && !!opt.variant,
       );
-      const rebuildPayload =
-        hoistPlan && wantsRelowering
-          ? buildFormulaPayload({
-              tree: qb?.payload?.parsedTree,
-              plan: hoistPlan,
-            })
-          : qb?.payload;
+      if (!hoistDirective && !wantsRelowering) return null;
 
-      if (hoistDirective || wantsRelowering) {
-        // only hoisting needs a scope; a build that just re-lowers some sites
-        // registers no blocks
-        const scope = hoistDirective
-          ? knex.cteGenerator(context).openScope()
-          : undefined;
-        try {
-          const rebuilt = await _formulaQueryBuilder({
-            baseModelSqlv2,
-            _tree,
-            model,
-            aliasToColumn: {},
-            tableAlias,
-            columnIdToUidt: {},
-            column,
-            payload: rebuildPayload,
-            baseUsers,
-            parentColumns,
-            columns,
-            getAliasCount,
-            cteScope: scope,
-            buildHints,
-          });
-          const rebuiltLength = rebuilt?.builder?.toSQL?.().sql?.length ?? 0;
-          if (rebuiltLength > 0 && rebuiltLength < sqlLength) {
-            qb = rebuilt;
-            sqlLength = rebuiltLength;
-            hoistScope = scope;
-          } else {
-            // no saving materialised — discard every block this attempt added
-            scope?.rollback();
-          }
-        } catch (ex) {
-          // all-or-nothing: a partially registered set would leave the next
-          // query referencing aliases with no WITH clause
-          scope?.rollback();
-          logger.log(ex);
+      // The plan folded onto the tree it describes. Each `apply` decision now
+      // sits on the node it applies to, so the build carries its own
+      // instructions and there is no second argument that has to agree with
+      // the tree. Only hoisting needs a scope; a build that just re-lowers
+      // some sites registers no blocks.
+      const payload = wantsRelowering
+        ? buildFormulaPayload({ tree, plan: hoistPlan })
+        : { parsedTree: tree };
+      const scope = hoistDirective
+        ? knex.cteGenerator(context).openScope()
+        : undefined;
+      try {
+        const built = await build(payload, scope);
+        return { built, scope };
+      } catch (ex) {
+        // all-or-nothing: a partially registered set would leave the next
+        // query referencing aliases with no WITH clause
+        scope?.rollback();
+        logger.log(ex);
+        return null;
+      }
+    };
+
+    // ---- strategy selection, BEFORE the build ---------------------------
+    // Sizing the tree first is what lets the big cases skip building the
+    // inline form only to throw it away. `triageFormula` walks the tree and
+    // resolves only the references that are not plain columns of this model,
+    // so an ordinary formula reaches this with no metadata reads at all.
+    let estimatedBytes: number | undefined;
+    if (canGate) {
+      const triage = await triageFormula(rootTree, {
+        clientType: knex.clientType() as ClientType,
+        pgIeee: isPgIeeeEnabled(knex),
+        fnVariants: buildHints?.fnVariants,
+        resolve: makeColumnMetaResolver(context),
+        plainBytes: makePlainLeafSizer(columns, tableAlias ?? model.table_name),
+      });
+      // Only act on a SIZED estimate. Unsized it is a floor, and a floor that
+      // happens to clear the threshold says nothing about the real size.
+      if (triage.estimateIsSized) estimatedBytes = triage.estimatedBytes;
+
+      if (
+        triage.estimateIsSized &&
+        triage.worthPlanning &&
+        triage.estimatedBytes > hoistAboveBytes()
+      ) {
+        logger.log(
+          `Formula ${column?.id ?? 'preview'} triage: estimated ${
+            triage.estimatedBytes
+          }B, over the ${hoistAboveBytes()}B hoist threshold — ${
+            triage.reason
+          }`,
+        );
+        planned = true;
+        const attempt = await buildOptimized(rootTree);
+        if (attempt) {
+          qb = attempt.built;
+          hoistScope = attempt.scope;
         }
+      }
+    }
+
+    // The ordinary path, and the fallback when the plan declined or threw.
+    if (!qb) qb = await build(undefined);
+
+    let sqlLength = 0;
+    try {
+      sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;
+    } catch (ex) {}
+
+    // The one place estimate and measurement can be compared on a real schema.
+    // Logged only for builds big enough to matter, so an ordinary read stays
+    // quiet, and only when the estimate was sized — an unsized floor says
+    // nothing about accuracy. `warn` on an UNDER-estimate: that is the
+    // direction that would let an oversized query past the pre-build gate, and
+    // it is the signal that the leaf constants need recalibrating.
+    // `!planned` keeps it like-for-like: once the pre-build hoist fires, what
+    // was measured is the hoisted form, not the inline one the estimate models.
+    if (
+      !planned &&
+      estimatedBytes !== undefined &&
+      sqlLength > hoistAboveBytes() / 4
+    ) {
+      const ratio = estimatedBytes / Math.max(1, sqlLength);
+      const line =
+        `Formula ${column?.id ?? 'preview'} size: estimated ` +
+        `${estimatedBytes}B vs measured ${sqlLength}B (${ratio.toFixed(2)}x)`;
+      if (ratio < 1) logger.warn(line);
+      else logger.log(line);
+    }
+
+    // Safety net for an estimate that came in low. The estimate is measured at
+    // 1.02-1.29x of actual and biased high, but it is still an estimate, and
+    // under is the direction that would let an oversized query through — so
+    // the MEASURED length keeps its own say. Here there is an inline build in
+    // hand, so a rebuild has to prove it shrank something.
+    if (!planned && canGate && sqlLength > hoistAboveBytes()) {
+      const attempt = await buildOptimized(qb?.payload?.parsedTree, sqlLength);
+      const rebuiltLength = attempt?.built?.builder?.toSQL?.().sql?.length ?? 0;
+      if (attempt && rebuiltLength > 0 && rebuiltLength < sqlLength) {
+        qb = attempt.built;
+        sqlLength = rebuiltLength;
+        hoistScope = attempt.scope;
+      } else {
+        // no saving materialised — discard every block this attempt added
+        attempt?.scope?.rollback();
       }
     }
 

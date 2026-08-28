@@ -3,4 +3,7 @@ export * from './thresholds';
 export * from './duplication';
 export * from './build-plan';
 export * from './payload';
+export * from './estimate';
+export * from './leaf-size';
+export * from './triage';
 export * from './column-meta-resolver';

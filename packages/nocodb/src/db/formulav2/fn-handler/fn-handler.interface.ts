@@ -1,6 +1,7 @@
 import type {
   CallExpressionNode,
   CircularRefContext,
+  ClientType,
   NcContext,
   UITypes,
 } from 'nocodb-sdk';
@@ -20,6 +21,12 @@ import type { FnNode } from './fn-node';
  */
 export type FnHandlerKey = '/';
 
+/** Bucket for a handler that serves every dialect — mirrors field-handler. */
+export const CLIENT_DEFAULT = '_default';
+
+/** A registry's dialect axis: a specific client, or the catch-all. */
+export type FnClient = ClientType | typeof CLIENT_DEFAULT;
+
 /**
  * Which lowering of a given key to emit. `general` is the dialect-neutral form
  * every key must provide; the rest are named alternatives the resolver picks or
@@ -33,6 +40,12 @@ export type FnVariant = 'general' | 'pg-ieee';
  * it has no connection.
  */
 export interface FnConditions {
+  /**
+   * Which dialect's bucket to resolve from. Absent falls back to
+   * `CLIENT_DEFAULT`, so a caller that does not care gets the dialect-neutral
+   * handler rather than an error.
+   */
+  clientType?: ClientType;
   /** pg AND NC_FORMULA_PG_IEEE — `isPgIeeeEnabled` */
   pgIeee?: boolean;
   /**
@@ -65,6 +78,13 @@ export type CallExpressionCompiler = (args: {
 
 export interface FnEmitContext {
   context: NcContext;
+  /**
+   * The lowering `resolveFnVariant` chose for THIS site. Resolution stays in the
+   * registry — the plan has to be able to name a variant for a specific node —
+   * but the class no longer encodes it, so one handler per dialect serves every
+   * variant that dialect offers.
+   */
+  variant: FnVariant;
   /** the node being lowered, operand slots already rewritten by `prepareTree` */
   pt: FnParsedTreeNode;
   /** compiled operand SQL in slot order, after `prepareOperands` */
@@ -120,23 +140,83 @@ export interface FnNodeContext {
 export interface FnNodeHandlerInterface {
   readonly kind: FnNodeKind;
   compile(ctx: FnNodeContext): Promise<{ builder: any }>;
+  /** Bytes `compile` would produce, without building anything. */
+  estimate(ctx: FnNodeEstimateContext): number;
 }
 
 export interface FnHandlerInterface {
   readonly key: FnHandlerKey;
-  readonly variant: FnVariant;
   /**
-   * How many copies of each operand slot `emit` writes. Read by the formula
-   * query plan to size the expression before it is built — see
-   * `plan/duplication.ts`. Takes the node because the count can depend on it:
-   * a variadic `MAX` has one entry per argument, `LOG` differs by arity.
+   * How many copies of each operand slot `emit` writes, for the given variant.
+   * Read by the formula query plan to size the expression before it is built —
+   * see `plan/duplication.ts`. Takes the node because the count can depend on
+   * it: a variadic `MAX` has one entry per argument, `LOG` differs by arity.
    * A variant that stops duplicating must say so here, or the plan will keep
    * reporting bloat that is no longer emitted.
    */
-  multiplicity(pt: FnNode): number[];
+  multiplicity(pt: FnNode, variant: FnVariant): number[];
   /** Operand-node rewrites needed before the operands are compiled. */
   prepareTree(pt: FnNode): void;
   /** Rewrites on the compiled operand SQL, in slot order. */
-  prepareOperands(operands: string[], knex: CustomKnex): string[];
+  prepareOperands(
+    operands: string[],
+    knex: CustomKnex,
+    variant: FnVariant,
+  ): string[];
   emit(ctx: FnEmitContext): Promise<string>;
+  /**
+   * Bytes `emit` would write, given its operands' sizes. Exact for a lowering
+   * whose emitted form is a fixed template — take the overhead straight from
+   * that template rather than hand-counting, so the two cannot drift.
+   */
+  estimate(ctx: FnEstimateContext): number;
+}
+
+/**
+ * What a size estimate is computed from. Compositional: the operands' estimates
+ * are already known when a handler is asked for its own, so a handler only has
+ * to account for what IT writes.
+ */
+export interface FnEstimateContext {
+  pt: FnNode;
+  /** estimated bytes of each operand slot, in slot order */
+  operands: number[];
+  variant: FnVariant;
+}
+
+/** Estimating a node of any kind — recurses back through the node registry. */
+export interface FnNodeEstimateContext {
+  pt: FnNode;
+  /** estimate a child node */
+  estimate: (node: FnNode) => number;
+  clientType?: ClientType;
+  pgIeee?: boolean;
+  /**
+   * Bytes this column reference expands to, pre-resolved by `sizeTreeLeaves`.
+   * Supplying it is what makes the estimate usable; without it the leaf term
+   * falls back to `ESTIMATED_LEAF_BYTES` and the whole estimate is a lower
+   * bound, not a prediction — see below.
+   */
+  leafBytes?: (name: string) => number | undefined;
+}
+
+/**
+ * Fallback for a leaf nobody sized. An Identifier expands to anything from a
+ * 19-byte quoted column to a multi-hop sub-query in the hundreds of bytes that
+ * keeps growing with the reference chain below it, so a constant here cannot
+ * be right: measured against real schemas it runs 7x to 1857x UNDER, which is
+ * the dangerous direction for a size gate.
+ *
+ * Every structural multiplier above a leaf is exact — verified against emitted
+ * SQL, including the ~2ⁿ growth of an IEEE division chain — so the whole-tree
+ * error IS this term's error. Pass `leafBytes` (see `plan/leaf-size.ts`) and
+ * the estimate lands within ~1.3x and on the high side; leave it out and treat
+ * the result as a floor only.
+ */
+export const ESTIMATED_LEAF_BYTES = 24;
+
+/** A resolved lowering: the class to drive, and which of its forms to emit. */
+export interface ResolvedFnHandler {
+  handler: FnHandlerInterface;
+  variant: FnVariant;
 }

@@ -128,15 +128,15 @@ export function operandMultiplicity(
   // A registered lowering answers for itself — same handler, same conditions as
   // the build, so the two cannot drift. It needs no `ieee` gate: with the flag
   // off the resolver picks a variant that writes each operand once.
-  const handler = getFnHandler(
+  const resolved = getFnHandler(
     key,
     { pgIeee: opts.ieee, fnVariants: opts.fnVariants },
     node,
   );
 
   let mult: number[] | undefined;
-  if (handler) {
-    mult = handler.multiplicity(node);
+  if (resolved) {
+    mult = resolved.handler.multiplicity(node, resolved.variant);
   } else if (opts.ieee) {
     mult =
       node.type === JSEPNode.BINARY_EXP

@@ -6,16 +6,14 @@ export * from './fn-node';
 export * from './registry';
 export {
   binaryExpressionBuilder,
-  BinaryExpressionHandler,
-} from './handlers/binary-expression.handler';
+  BinaryExpressionGeneralHandler,
+} from './handlers/binary-expression/binary-expression.general.handler';
 export {
   callExpressionBuilder,
-  CallExpressionHandler,
-} from './handlers/call-expression.handler';
-export {
-  IdentifierHandler,
-  LiteralHandler,
-  UnaryExpressionHandler,
-} from './handlers/leaf.handlers';
-export { DivisionGeneralHandler } from './handlers/division.general.handler';
-export { DivisionPgIeeeHandler } from './handlers/division.pg-ieee.handler';
+  CallExpressionGeneralHandler,
+} from './handlers/call-expression/call-expression.general.handler';
+export { DivisionGeneralHandler } from './handlers/division/division.general.handler';
+export { DivisionPgHandler } from './handlers/division/division.pg.handler';
+export { IdentifierGeneralHandler } from './handlers/identifier/identifier.general.handler';
+export { LiteralGeneralHandler } from './handlers/literal/literal.general.handler';
+export { UnaryExpressionGeneralHandler } from './handlers/unary-expression/unary-expression.general.handler';

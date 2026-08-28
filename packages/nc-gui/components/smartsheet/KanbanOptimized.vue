@@ -2868,30 +2868,19 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 
 // Interfaces read collapsed stacks TOP-TO-BOTTOM (reference design) — the
 // +90deg/translateY pair occupies the exact same 52px strip as the base.
-// The strip itself is a flat gray column: tinted fill, no border, square
-// corners (the base keeps its white bordered card look).
+// The card itself is transparent: the STRIP (the full-height stack wrapper
+// below) carries the gray fill, so the column is one shade from the header
+// down to the frame bottom (the base keeps its white bordered card look).
 .nc-kanban-collapsed-stack-reading-down {
   transform: rotate(90deg) translateY(-100%);
-  @apply !bg-nc-bg-gray-light !border-none !rounded-none;
+  @apply !bg-transparent !border-none !rounded-none;
 }
 
-// Adjacent interface collapsed strips sit 2px apart with a gray divider
-// filling the seam (reference design). The divider is a box-shadow — NOT a
-// border — so it occupies no layout space and leaves the bar's content
-// centering untouched; it rotates with the card, so the pre-transform
-// "below the bar" offset renders at the strip's LEFT edge.
-// Every interface collapsed strip draws the 1.5px divider on its RIGHT edge —
-// the card is rotated 90°, so a shadow above the bar's TOP renders there.
-// Between strips it fills the seam; on the last strip it closes the cluster.
-.nc-kanban-stack-interface-collapsed .nc-kanban-collapsed-stack-reading-down {
-  box-shadow: 0 -1.5px 0 0 var(--nc-border-gray-medium) !important;
-}
-
-// NOTE: the interface kanban themes zero the stacks container's flex gap
-// (.nc-kanban-theme-* { gap: 0 }), so this margin IS the seam — it does not
-// net against gap-3 like the classic board would.
-.nc-kanban-stack-interface-collapsed + .nc-kanban-stack-interface-collapsed {
-  margin-left: 1.5px;
+// One flat gray column per collapsed strip — the theme's full-height
+// .nc-kanban-stack border-right is the only divider between strips, so the
+// seam line runs unbroken instead of stopping where the rotated card ends.
+.nc-kanban-stack-interface-collapsed {
+  background: var(--nc-bg-gray-light);
 }
 
 :deep(.slick-dots li button) {

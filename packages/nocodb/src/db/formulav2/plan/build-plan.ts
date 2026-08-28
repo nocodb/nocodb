@@ -2,6 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import { MIN_HOIST_RATIO } from './thresholds';
 import type {
   FormulaPlan,
+  PlanColumnMeta,
   PlanMetaResolver,
   RefDescriptor,
 } from './types';
@@ -72,9 +73,41 @@ export async function buildFormulaPlan({
     return result;
   };
 
-  // Subtree cost with every hoistable column counted once globally — models
-  // the recursive planner re-entry: a hoisted block's body is written once,
-  // and blocks it needs are themselves hoisted.
+  // The emitter is the source of truth for what hoists. `hoistFormulaLookup`
+  // is reached only from the terminal `case UITypes.Formula`, and the hop walk
+  // that gets there follows `uidt === Lookup` ONLY — a chain reaching a Rollup
+  // or Links exits into those cases, which emit inline. So: walk Lookups, and
+  // report the terminal only when it is a Formula the emitter can key on.
+  const terminalOf = async (
+    columnId: string,
+  ): Promise<{ id: string; meta: PlanColumnMeta } | undefined> => {
+    const first = await resolve(columnId);
+    if (!first || first.uidt !== UITypes.Lookup) return undefined;
+    const walked = new Set<string>();
+    let current: string | undefined = columnId;
+    while (current && !walked.has(current)) {
+      walked.add(current);
+      const meta = await resolve(current);
+      if (!meta) return undefined;
+      if (meta.uidt !== UITypes.Lookup) return { id: current, meta };
+      current = meta.targetColumnId;
+    }
+    return undefined;
+  };
+
+  /** Block key the emitter would use for this reference, if it hoists it. */
+  const blockKeyOf = async (columnId: string): Promise<string | undefined> => {
+    const terminal = await terminalOf(columnId);
+    if (!terminal || terminal.meta.uidt !== UITypes.Formula) return undefined;
+    // no single-column PK → hoistFormulaLookup returns null and inlines
+    if (terminal.meta.hasPrimaryKey === false) return undefined;
+    return terminal.id;
+  };
+
+  // Subtree cost under the emitter's rules: a hoisted target formula's body is
+  // written once (keyed by the FORMULA, so two lookups onto the same formula
+  // share one block) and every later reference collapses to a scalar sub-query.
+  // Everything else expands exactly as it does today.
   const hoistedCost = async (
     columnId: string,
     path: Set<string>,
@@ -84,13 +117,18 @@ export async function buildFormulaPlan({
     const meta = await resolve(columnId);
     if (!meta) return 1;
     const nextPath = new Set(path).add(columnId);
+
+    const blockKey = await blockKeyOf(columnId);
+    if (blockKey) {
+      if (seen.has(blockKey)) return 0;
+      seen.add(blockKey);
+      return hoistedCost(blockKey, nextPath, seen);
+    }
+
     if (HOISTABLE_UIDTS.has(meta.uidt)) {
-      if (seen.has(columnId)) return 0;
-      seen.add(columnId);
-      if (meta.targetColumnId) {
-        return hoistedCost(meta.targetColumnId, nextPath, seen);
-      }
-      return 1;
+      return meta.targetColumnId
+        ? hoistedCost(meta.targetColumnId, nextPath, seen)
+        : 1;
     }
     if (meta.uidt === UITypes.Formula && meta.formulaTree) {
       let sum = 0;
@@ -139,8 +177,17 @@ export async function buildFormulaPlan({
     const uidt = meta?.uidt as UITypes;
     let strategy: RefDescriptor['strategy'] = 'inline';
     let ineligibleReason: string | undefined;
-    if (meta && HOISTABLE_UIDTS.has(meta.uidt)) {
-      strategy = meta.hasSortLimitConfig ? 'cte-window' : 'cte-aggregate';
+    const blockKey = await blockKeyOf(site);
+    if (blockKey) {
+      strategy = meta?.hasSortLimitConfig ? 'cte-window' : 'cte-aggregate';
+    } else if (meta && HOISTABLE_UIDTS.has(meta.uidt)) {
+      const terminal = await terminalOf(site);
+      ineligibleReason =
+        terminal?.meta.uidt === UITypes.Formula
+          ? 'target formula has no single-column primary key to key a block on'
+          : `hoisting is lookup-onto-formula only; this chain ends at ${
+              terminal?.meta.uidt ?? meta.uidt
+            }`;
     } else if (meta?.uidt === UITypes.Formula || meta?.uidt === UITypes.Button) {
       ineligibleReason =
         'same-table formula/button builders are expressions, not sub-queries; excluded from hoisting';
@@ -158,10 +205,10 @@ export async function buildFormulaPlan({
     });
   }
 
-  const hoistable = [...refs.values()]
-    .filter((r) => r.strategy !== 'inline')
-    .map((r) => r.columnId)
-    .sort();
+  // `seen` accumulated every block the emitter would write, at every depth —
+  // not just top-level sites. Previously this listed reference columns, which
+  // both missed nested blocks and named things the emitter never emits.
+  const hoistable = [...seen].sort();
 
   const reductionRatio =
     hoistedLeafPaths > 0 ? inlineLeafPaths / hoistedLeafPaths : 1;

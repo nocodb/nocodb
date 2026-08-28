@@ -80,6 +80,16 @@ export class CTEGenerator implements ICTEGenerator {
   }
 
   customCte(cteBlock: ICteBlock) {
+    // Refcount alongside `blocks` so a scope that later adds the same alias
+    // cannot drop this registration on rollback (0 -> 1 -> 0). Unreachable
+    // with today's `nc_base_user_*` vs `nc_lk_*` schemes, but the same class
+    // as the scope-collision bug one alias-scheme change away.
+    if (!this.blocks.has(cteBlock.alias)) {
+      this.blockRefs.set(
+        cteBlock.alias,
+        (this.blockRefs.get(cteBlock.alias) ?? 0) + 1,
+      );
+    }
     this.blocks.set(cteBlock.alias, cteBlock);
     return cteBlock;
   }
@@ -119,7 +129,13 @@ export class CTEGenerator implements ICTEGenerator {
         owned.clear();
       },
       restore() {
-        for (const [alias, cteBlock] of owned) blocks.set(alias, cteBlock);
+        for (const [alias, cteBlock] of owned) {
+          // `clear()` wipes refcounts alongside blocks, so re-establish this
+          // scope's count for any alias it is bringing back — otherwise a
+          // later rollback would decrement from zero and never delete.
+          if (!blocks.has(alias)) refs.set(alias, (refs.get(alias) ?? 0) + 1);
+          blocks.set(alias, cteBlock);
+        }
       },
     };
   }
@@ -132,5 +148,9 @@ export class CTEGenerator implements ICTEGenerator {
 
   clear() {
     this.blocks.clear();
+    // Refcounts track entries in `blocks`; the generator is memoized per pooled
+    // knex, so leaving them behind lets counts drift up across queries and a
+    // later rollback decrements to non-zero and declines to delete the block.
+    this.blockRefs.clear();
   }
 }

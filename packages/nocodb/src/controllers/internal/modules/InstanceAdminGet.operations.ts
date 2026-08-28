@@ -53,13 +53,28 @@ export class InstanceAdminGetOperations
         calculateInstanceEditorCount(),
         ncMeta
           .knexConnection(MetaTable.PROJECT)
+          .leftJoin(
+            MetaTable.WORKSPACE,
+            `${MetaTable.PROJECT}.fk_workspace_id`,
+            `${MetaTable.WORKSPACE}.id`,
+          )
           .where(function () {
-            this.where('deleted', false).orWhereNull('deleted');
+            this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
+              `${MetaTable.PROJECT}.deleted`,
+            );
           })
           .andWhere(function () {
-            this.where('is_snapshot', false).orWhereNull('is_snapshot');
+            this.where(`${MetaTable.PROJECT}.is_snapshot`, false).orWhereNull(
+              `${MetaTable.PROJECT}.is_snapshot`,
+            );
           })
-          .count('id as count')
+          // Match the bases list: don't count bases under soft-deleted workspaces.
+          .andWhere(function () {
+            this.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+              `${MetaTable.WORKSPACE}.deleted`,
+            );
+          })
+          .count(`${MetaTable.PROJECT}.id as count`)
           .first(),
       ]);
 
@@ -163,6 +178,13 @@ export class InstanceAdminGetOperations
       .andWhere(function () {
         this.where(`${MetaTable.PROJECT}.is_snapshot`, false).orWhereNull(
           `${MetaTable.PROJECT}.is_snapshot`,
+        );
+      })
+      // Exclude bases whose workspace was soft-deleted — they are orphaned and
+      // throw "workspace not found" when opened, so they must not be listed.
+      .andWhere(function () {
+        this.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE}.deleted`,
         );
       })
       .orderBy(`${MetaTable.PROJECT}.title`, 'asc');

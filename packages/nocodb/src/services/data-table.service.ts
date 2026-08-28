@@ -917,6 +917,9 @@ export class DataTableService {
     }
 
     const column = await this.getColumn(context, param);
+
+    await assertLinkColOptions(context, column);
+
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,
     );
@@ -1659,6 +1662,8 @@ export class DataTableService {
     if (!relationColumn || !isLinksOrLTAR(relationColumn)) {
       NcError.get(context).fieldNotFound(linkColumnId);
     }
+
+    await assertLinkColOptions(context, relationColumn);
 
     const { refContext } = (
       relationColumn.colOptions as LinkToAnotherRecordColumn

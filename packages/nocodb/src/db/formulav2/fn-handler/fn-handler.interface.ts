@@ -1,8 +1,14 @@
-import type { CallExpressionNode, NcContext, UITypes } from 'nocodb-sdk';
+import type {
+  CallExpressionNode,
+  CircularRefContext,
+  NcContext,
+  UITypes,
+} from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Model } from '~/models';
 import type {
   FnParsedTreeNode,
+  FormulaBuildHints,
   TAliasToColumn,
 } from '~/db/formulav2/formula-query-builder.types';
 import type { FnNode } from './fn-node';
@@ -45,11 +51,7 @@ export type FormulaNodeCompiler = (
   prevBinaryOp?: string,
 ) => undefined | Promise<{ builder: any }>;
 
-/**
- * `callExpressionBuilder`, injected rather than imported: the handlers live
- * below parsed-tree-builder, which imports them, so importing it back would
- * close the cycle.
- */
+/** `callExpressionBuilder`'s shape, as `FnEmitContext` hands it to a lowering. */
 export type CallExpressionCompiler = (args: {
   context: NcContext;
   pt: CallExpressionNode;
@@ -74,6 +76,50 @@ export interface FnEmitContext {
   columnIdToUidt: Record<string, UITypes>;
   model: Model;
   compileCall: CallExpressionCompiler;
+}
+
+/**
+ * Which kind of parsed-tree node a handler compiles. A separate namespace from
+ * `FnHandlerKey` on purpose: these two levels nest — the `bin_exp` handler
+ * resolves `/` from `FN_REGISTRY` while it runs — so sharing one key space
+ * would make the outer dispatch look like recursion.
+ */
+export type FnNodeKind =
+  | 'bin_exp'
+  | 'call_exp'
+  | 'literal'
+  | 'identifier'
+  | 'unary_exp';
+
+/**
+ * Everything a node handler can need. Wider than `FnEmitContext`: a lowering
+ * receives operands already compiled, whereas a node handler owns the descent
+ * and so needs `fn`, plus the alias/table state the Identifier case reads.
+ */
+export interface FnNodeContext {
+  context: NcContext;
+  pt: FnParsedTreeNode;
+  fn: FormulaNodeCompiler;
+  prevBinaryOp?: string;
+  knex: CustomKnex;
+  model: Model;
+  aliasToColumn: TAliasToColumn;
+  columnIdToUidt: Record<string, UITypes>;
+  tableAlias?: string;
+  parentColumns?: CircularRefContext;
+  buildHints?: FormulaBuildHints;
+}
+
+/**
+ * One node kind's compiler. Deliberately NOT `FnHandlerInterface`: of that
+ * contract's five members a node handler would use only `key`. It returns a
+ * builder rather than a SQL string, it has no operands to declare a
+ * `multiplicity` for, and `prepareTree`/`prepareOperands` are things it *calls*
+ * on the inner lowering rather than implements.
+ */
+export interface FnNodeHandlerInterface {
+  readonly kind: FnNodeKind;
+  compile(ctx: FnNodeContext): Promise<{ builder: any }>;
 }
 
 export interface FnHandlerInterface {

@@ -4,14 +4,18 @@ import {
   type ParsedFormulaNode,
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
-import mapFunctionName from '../mapFunctionName';
+import mapFunctionName from '../../../mapFunctionName';
 import type { NcContext, UITypes } from 'nocodb-sdk';
 import type { Model } from 'src/models';
 import type {
   FnParsedTreeNode,
   TAliasToColumn,
-} from './formula-query-builder.types';
-import type CustomKnex from '../CustomKnex';
+} from '../../formula-query-builder.types';
+import type {
+  FnNodeContext,
+  FnNodeHandlerInterface,
+} from '../fn-handler.interface';
+import type CustomKnex from '../../../CustomKnex';
 
 export const callExpressionBuilder = async ({
   context,
@@ -310,3 +314,21 @@ export const callExpressionBuilder = async ({
     builder: knex.raw(`${calleeName}(${callArgs})`.replace(/\?/g, '\\?')),
   };
 };
+
+/** `call_exp` — the node-kind entry for a CallExpression. */
+export class CallExpressionHandler implements FnNodeHandlerInterface {
+  readonly kind = 'call_exp' as const;
+
+  compile(ctx: FnNodeContext): Promise<{ builder: any }> {
+    return callExpressionBuilder({
+      context: ctx.context,
+      pt: ctx.pt as CallExpressionNode,
+      fn: ctx.fn,
+      prevBinaryOp: ctx.prevBinaryOp,
+      aliasToColumn: ctx.aliasToColumn,
+      knex: ctx.knex,
+      model: ctx.model,
+      columnIdToUidt: ctx.columnIdToUidt,
+    });
+  }
+}

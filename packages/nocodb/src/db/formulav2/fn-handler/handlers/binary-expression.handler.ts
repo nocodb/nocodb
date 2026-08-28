@@ -14,6 +14,7 @@ import {
 } from '../../pg-ieee';
 import { fnKeyOf } from '../fn-node';
 import { getFnHandler } from '../registry';
+import { callExpressionBuilder } from './call-expression.handler';
 import type {
   BinaryExpressionNode,
   CallExpressionNode,
@@ -28,7 +29,10 @@ import type {
   FormulaBuildHints,
   TAliasToColumn,
 } from '../../formula-query-builder.types';
-import type { CallExpressionCompiler } from '../fn-handler.interface';
+import type {
+  FnNodeContext,
+  FnNodeHandlerInterface,
+} from '../fn-handler.interface';
 import type CustomKnex from '../../../CustomKnex';
 
 /**
@@ -39,9 +43,9 @@ import type CustomKnex from '../../../CustomKnex';
  * FLOAT cast) apply across families of operators and read each other's results
  * in order.
  *
- * `compileCall` is injected rather than imported, for the same reason
- * `FnEmitContext` injects it: this module sits below parsed-tree-builder, which
- * imports the registry, so importing it back would close the cycle.
+ * `callExpressionBuilder` is a plain sibling import: both are handlers now, and
+ * call-expression imports nothing from this module, so there is no cycle to
+ * dodge. `FnEmitContext.compileCall` still carries it down to a lowering.
  */
 
 const assignFnName = (pt: FnParsedTreeNode) => {
@@ -63,7 +67,6 @@ export const binaryExpressionBuilder = async ({
   aliasToColumn,
   model,
   buildHints,
-  compileCall,
 }: {
   context: NcContext;
   pt: BinaryExpressionNode;
@@ -77,8 +80,6 @@ export const binaryExpressionBuilder = async ({
   aliasToColumn: TAliasToColumn;
   model: Model;
   buildHints?: FormulaBuildHints;
-  /** `callExpressionBuilder`, injected — see the note above. */
-  compileCall: CallExpressionCompiler;
 }) => {
   // treat `&` as shortcut for concat
   if (pt.operator === '&') {
@@ -447,7 +448,7 @@ export const binaryExpressionBuilder = async ({
         aliasToColumn,
         columnIdToUidt,
         model,
-        compileCall,
+        compileCall: callExpressionBuilder,
       });
     } else if (pt.operator === '%' && isPgIeeeEnabled(knex)) {
       // `%` is the operator spelling of MOD(), so it gets MOD's lowering. It
@@ -479,3 +480,27 @@ export const binaryExpressionBuilder = async ({
   }
   return { builder: query };
 };
+
+/**
+ * `bin_exp` — the node-kind entry for a BinaryExpression. Thin on purpose: the
+ * compilation above stays one function because its passes read each other's
+ * results in order, and only two of them (`/` via FN_REGISTRY, and `%`) are
+ * per-operator lowerings.
+ */
+export class BinaryExpressionHandler implements FnNodeHandlerInterface {
+  readonly kind = 'bin_exp' as const;
+
+  compile(ctx: FnNodeContext): Promise<{ builder: any }> {
+    return binaryExpressionBuilder({
+      context: ctx.context,
+      pt: ctx.pt as BinaryExpressionNode,
+      fn: ctx.fn,
+      prevBinaryOp: ctx.prevBinaryOp,
+      knex: ctx.knex,
+      columnIdToUidt: ctx.columnIdToUidt,
+      aliasToColumn: ctx.aliasToColumn,
+      model: ctx.model,
+      buildHints: ctx.buildHints,
+    });
+  }
+}

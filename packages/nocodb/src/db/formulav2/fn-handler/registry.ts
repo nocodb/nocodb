@@ -1,9 +1,18 @@
+import { BinaryExpressionHandler } from './handlers/binary-expression.handler';
+import { CallExpressionHandler } from './handlers/call-expression.handler';
+import {
+  IdentifierHandler,
+  LiteralHandler,
+  UnaryExpressionHandler,
+} from './handlers/leaf.handlers';
 import { DivisionGeneralHandler } from './handlers/division.general.handler';
 import { DivisionPgIeeeHandler } from './handlers/division.pg-ieee.handler';
 import type {
   FnConditions,
   FnHandlerInterface,
   FnHandlerKey,
+  FnNodeHandlerInterface,
+  FnNodeKind,
   FnVariant,
 } from './fn-handler.interface';
 import type { FnNode } from './fn-node';
@@ -76,5 +85,51 @@ export function getFnHandler(
   if (!variants) return undefined;
   const Handler =
     variants[resolveFnVariant(key, conditions, node)] ?? variants.general;
+  return Handler ? new Handler() : undefined;
+}
+
+/**
+ * One entry per parsed-tree node kind — the outer dispatch, above the
+ * per-operator lowerings in `FN_REGISTRY`. The two nest rather than compete: a
+ * `bin_exp` handler resolves `/` from `FN_REGISTRY` while it runs.
+ *
+ * No variant axis here: a node handler holds whatever dialect branching it
+ * needs internally, so there is nothing for a caller to pin.
+ */
+const FN_NODE_REGISTRY: Partial<
+  Record<FnNodeKind, new () => FnNodeHandlerInterface>
+> = {
+  bin_exp: BinaryExpressionHandler,
+  call_exp: CallExpressionHandler,
+  literal: LiteralHandler,
+  identifier: IdentifierHandler,
+  unary_exp: UnaryExpressionHandler,
+};
+
+/** The node kind this parsed-tree node dispatches under, if any. */
+export function fnNodeKindOf(node: unknown): FnNodeKind | undefined {
+  const type = (node as { type?: string })?.type;
+  switch (type) {
+    case 'BinaryExpression':
+      return 'bin_exp';
+    case 'CallExpression':
+      return 'call_exp';
+    case 'Literal':
+      return 'literal';
+    case 'Identifier':
+      return 'identifier';
+    case 'UnaryExpression':
+      return 'unary_exp';
+    default:
+      return undefined;
+  }
+}
+
+/** The handler for this node kind, or undefined while it is still inline. */
+export function getFnNodeHandler(
+  kind: FnNodeKind | undefined,
+): FnNodeHandlerInterface | undefined {
+  if (!kind) return undefined;
+  const Handler = FN_NODE_REGISTRY[kind];
   return Handler ? new Handler() : undefined;
 }

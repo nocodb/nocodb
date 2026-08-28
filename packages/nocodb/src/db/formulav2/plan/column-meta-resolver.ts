@@ -76,14 +76,28 @@ export function makeColumnMetaResolver(context: NcContext): PlanMetaResolver {
         const opts = await FormulaColumn.read(context, column.id);
         // hoistFormulaLookup keys its block on this model's PK and bails
         // without one, so the plan must see the same condition.
-        const model = await column
-          .getModel(context)
-          .catch(() => null as Model | null);
-        if (model) await model.getColumns(context).catch(() => null);
+        //
+        // Left UNDEFINED when the model can't be read, never false: `false`
+        // means "known to have no PK" and suppresses hoisting, so folding a
+        // transient metadata failure into it would inline a formula that needs
+        // hoisting and render it as ERR — the very bug this PR fixes. Unknown
+        // defers to the emitter, which checks the real PK and inlines just
+        // that reference if there is none; the cost of guessing wrong is one
+        // rebuild the gate discards.
+        let hasPrimaryKey: boolean | undefined;
+        try {
+          const model: Model = await column.getModel(context);
+          if (model) {
+            await model.getColumns(context);
+            hasPrimaryKey = !!model.primaryKey?.column_name;
+          }
+        } catch {
+          // leave undefined
+        }
         return {
           uidt: column.uidt,
           formulaTree: opts?.getParsedTree(),
-          hasPrimaryKey: !!model?.primaryKey?.column_name,
+          hasPrimaryKey,
         };
       }
       default:

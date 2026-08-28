@@ -1956,6 +1956,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             type="text"
                             size="xs"
                             class="!px-1.5 mt-0.5"
+                            :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi }"
                             data-testid="nc-kanban-stack-collapse-btn"
                             @click="handleCollapseStack(getAbsStackIdx(relStackIdx))"
                           >
@@ -1972,6 +1973,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             type="text"
                             size="xs"
                             class="!px-1.5 mt-0.5"
+                            :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi }"
                             data-testid="nc-kanban-stack-context-menu"
                           >
                             <GeneralIcon icon="threeDotVertical" />
@@ -2381,6 +2383,37 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           </template>
                         </Draggable>
 
+                        <!-- Interface: "New record" flows after the last card (no pinned stack footer) -->
+                        <PermissionsTooltip
+                          v-if="
+                            interfacePageDataApi &&
+                            formattedData.get(stack.title)?.length &&
+                            isUIAllowed('dataInsert') &&
+                            !isSyncedTable &&
+                            canAddDeleteRows
+                          "
+                          :entity="PermissionEntity.TABLE"
+                          :entity-id="meta?.id"
+                          :permission="PermissionKey.TABLE_RECORD_ADD"
+                        >
+                          <template #default="{ isAllowed }">
+                            <NcButton
+                              size="small"
+                              type="text"
+                              class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
+                              :disabled="!isAllowed"
+                              data-testid="nc-kanban-stack-inline-new-record"
+                              @click="handleOpenNewRecordForm(stack.title)"
+                            >
+                              <div class="w-full flex items-center gap-2">
+                                <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+
+                                {{ $t('activity.newRecord') }}
+                              </div>
+                            </NcButton>
+                          </template>
+                        </PermissionsTooltip>
+
                         <!-- Empty state. Requires loaded data: an unloaded stack rendered mid-drag (skeleton
                              suppressed) isn't known to be empty, so show a plain droppable column instead. -->
                         <div
@@ -2424,11 +2457,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         </div>
                       </div>
                     </a-layout-content>
+                    <!-- Interface pages have no pinned footer — "New record" rides inline after the last card -->
                     <a-layout-footer
-                      v-if="
-                        formattedData.get(stack.title) &&
-                        (!interfacePageDataApi || (isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows))
-                      "
+                      v-if="formattedData.get(stack.title) && !interfacePageDataApi"
                       class="border-t-1 border-nc-border-gray-light"
                     >
                       <div class="flex items-center justify-between">
@@ -3112,5 +3143,22 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 .ant-card.nc-interface-card-selected,
 .ant-card.nc-interface-card-selected:hover {
   border-color: var(--nc-border-brand) !important;
+}
+
+// Interface stack-header actions (collapse / menu): hover-revealed. Stay
+// visible while the context menu is open (ant stamps the trigger) or on
+// keyboard focus.
+.nc-kanban-stack-hover-action {
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  &:focus-visible,
+  &.ant-dropdown-open {
+    opacity: 1;
+  }
+}
+
+.nc-kanban-stack-head:hover .nc-kanban-stack-hover-action {
+  opacity: 1;
 }
 </style>

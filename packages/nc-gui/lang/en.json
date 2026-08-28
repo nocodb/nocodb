@@ -2657,6 +2657,7 @@
     "inviteUsersToWorkspace": "Invite Members to Workspace",
     "inviteMembers": "Invite Members",
     "admin": "Admin",
+    "administration": "Administration",
     "selectWorkspace": "-select workspaces to invite to-",
     "addMembersToOrganization": "Add Members to Organization",
     "memberIn": "Member in:",

@@ -39,6 +39,7 @@ import {
   hoistAboveBytes,
   isCteHoistEnabled,
   makeColumnMetaResolver,
+  MAX_GENERATED_SQL_BYTES,
   maxStatementBytes,
 } from '~/db/formulav2/plan';
 import { DBQueryClient } from '~/dbQueryClient';
@@ -663,8 +664,11 @@ export default async function formulaQueryBuilderv2({
       }
     }
 
-    // we limit the formula length to 500k to prevent server crashing
-    if (sqlLength > 500 * 1000 || statementLength > maxStatementBytes()) {
+    // we limit the formula length to prevent server crashing
+    if (
+      sqlLength > MAX_GENERATED_SQL_BYTES ||
+      statementLength > maxStatementBytes()
+    ) {
       // this throws, so the blocks registered above would otherwise stay on the
       // shared generator and dangle into the next query
       hoistScope?.rollback();

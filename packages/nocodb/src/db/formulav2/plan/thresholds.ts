@@ -1,4 +1,12 @@
-/** The generated-SQL ceiling enforced in formulaQueryBuilderv2. */
+/**
+ * The generated-SQL ceiling enforced in formulaQueryBuilderv2.
+ *
+ * Note on units: every threshold in this file is compared against
+ * `toSQL().sql.length`, which counts UTF-16 code units, not bytes. Identical
+ * for ASCII SQL; non-ASCII identifiers (e.g. unicode column titles) undercount
+ * slightly. The "*_BYTES" naming reflects the intended semantics — the small
+ * skew is well within the headroom between the caps.
+ */
 export const MAX_GENERATED_SQL_BYTES = 500 * 1000;
 
 /**

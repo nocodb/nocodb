@@ -29,9 +29,12 @@ const PLACEHOLDER_RUN = /\?(?:\s*,\s*\?)+/g;
  */
 const MYSQL_PARSE_FRAGMENT = /near '[\s\S]*' at line (\d+)/g;
 
-// phrases after which a quoted token names schema, not data
+// phrases after which a quoted token names schema, not data. MSSQL inserts
+// `name` between the noun and the quote (`Invalid column name 'X'`,
+// `There is already an object named 'X'`), so those forms are matched too —
+// otherwise the identifier the error exists to name gets masked.
 const DIAGNOSTIC_PHRASE =
-  /\b(?:near|key|column|table|constraint|index|relation|database|schema|in)\s+$/i;
+  /\b(?:near|key|column|table|constraint|index|relation|database|schema|in|(?:column|object|table|index)\s+name|named)\s+$/i;
 const IDENTIFIER_SHAPE = /^[A-Za-z_][\w$]*(?:\.[A-Za-z_][\w$]*)*$/;
 // MySQL names the failing clause in the same position an identifier appears
 const CLAUSE_NAMES = new Set([

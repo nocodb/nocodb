@@ -13,6 +13,7 @@ import type {
 } from 'nocodb-sdk';
 import type { BaseUser, Column, Model, User } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { ICteScope } from '~/db/cte-generator/types';
 
 export interface FormulaBaseParams {
   baseModelSqlv2: IBaseModelSqlV2;
@@ -38,6 +39,13 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   columns: Column[];
   parentColumns: CircularRefContext;
   getAliasCount: () => number;
+  /**
+   * When present, a lookup onto a Formula is hoisted into a keyed CTE block on
+   * this scope instead of embedding that formula's expression inline. Absence
+   * is the off switch — every existing caller omits it and gets byte-identical
+   * SQL.
+   */
+  cteScope?: ICteScope;
 }
 export type FnParsedTreeBase = {
   fnName?: string;

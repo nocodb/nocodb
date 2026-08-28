@@ -8,7 +8,7 @@ image:
   repository: nocodb/nocodb
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "0.105.3"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -42,16 +42,19 @@ service:
 
 ingress:
   enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
   hosts:
-    - host: chart-example.local
-      paths: []
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - host: nocodb.dese.datacosmos.com.br
+      paths: 
+      - path: /
+        pathType: Prefix
+        backend: "8080"
+  tls: 
+    - secretName: nc-dese-tls
+      hosts:
+        - nocodb.dese.datacosmos.com.br
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -79,20 +82,21 @@ tolerations: []
 affinity: {}
 
 extraEnvs:
-  NC_PUBLIC_URL: https:/nocodb.local.org
+  NC_PUBLIC_URL: https://nocodb.dese.datacosmos.com.br
 
 extraSecretEnvs:
-  NC_AUTH_JWT_SECRET: secretString
+  NC_AUTH_JWT_SECRET: dKMTIseqEa3ObtxWyTEi3l3T7OVPIl
 
 storage:
   size: 3Gi
-  storageClassName: ""
+  storageClassName: "nfs-storage"
 
 postgresql:
   enabled: false
   auth:
     database: nocodb_dese
     username: nocodb_dese
+    host: dese.timescaledb.svc
     password: FoChjOBVHou3ZXryKbtj7vrzQMdsdfaf
   persistence:
     size: 8Gi

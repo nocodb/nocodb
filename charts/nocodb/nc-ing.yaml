@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dese-nc-d
+  namespace: nocodb
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  #  external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: d.nc.datacosmos.com.br
+    http:
+      paths:
+      - backend:
+          service:
+            name: dese-nocodb
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - d.nc.datacosmos.com.br
+    secretName: nc-dese-tls

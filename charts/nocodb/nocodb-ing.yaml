@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dese-nocodb
+  namespace: nocodb
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      ssl_stapling on;
+      ssl_stapling_verify on;
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: sameorigin";
+      more_set_headers "X-Xss-Protection: 1; mode=block";
+      more_set_headers "X-Content-Type-Options nosniff";
+      more_set_headers "Strict-Transport-Security max-age=15724800; includeSubDomains; preload;"
+      more_set_headers "Referrer-Policy strict-origin-when-cross-origin";
+      more_set_headers "Content-Security-Policy object-src 'none'; form-action 'self'; frame-ancestors 'none'";
+      more_set_headers "Feature-Policy geolocation 'none';midi 'none';notifications 'none';push 'none';sync-xhr 'none';microphone 'none';camera 'none';magnetometer 'none';gyroscope 'none';speaker 'self';vibrate 'none';fullscreen 'self';payment 'none';";
+
+  #  external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: nocodb.dese.datacosmos.com.br
+    http:
+      paths:
+      - backend:
+          service:
+            name: dese-nocodb
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - nocodb.dese.datacosmos.com.br
+    secretName: noco-dese-tls
+

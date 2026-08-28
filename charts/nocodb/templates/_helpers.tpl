@@ -62,7 +62,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "postgresHost" -}}
-{{- printf "%s-postgresql" .Release.Name }}
+{{- .Values.postgresql.auth.host }}
 {{- end }}
 
 {{- define "postgresDatabase" -}}

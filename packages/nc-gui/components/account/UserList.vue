@@ -424,9 +424,6 @@ const columns = computed(() => {
                     </NcBadge>
                   </button>
                 </NcTooltip>
-                <NcTooltip v-else :title="$t('msg.info.noBillableSources')" class="flex items-center">
-                  <span class="text-nc-content-gray-muted text-small">{{ $t('general.free') }}</span>
-                </NcTooltip>
               </div>
               <div v-if="column.key === 'created_at'">
                 <NcTooltip class="max-w-full">

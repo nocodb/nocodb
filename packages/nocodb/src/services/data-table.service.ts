@@ -14,7 +14,10 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { LtarDisplayValueContext } from '~/helpers/ltarDisplayValueResolver';
 import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
-import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
+import {
+  assertLinkColOptions,
+  validateV1V2DataPayloadLimit,
+} from '~/helpers/dataHelpers';
 import { restrictNestedLinkQuery } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { Column, Model, Source, View } from '~/models';
@@ -509,6 +512,8 @@ export class DataTableService {
     }
 
     const column = await this.getColumn(context, param);
+
+    await assertLinkColOptions(context, column);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,

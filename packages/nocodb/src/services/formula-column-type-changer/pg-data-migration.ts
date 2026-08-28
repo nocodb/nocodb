@@ -60,6 +60,10 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
         validateFormula: false,
         tableAlias: formulaValueTableAlias,
         parsedTree: formulaColumnOption.getParsedTree(),
+        // This statement is stringified with `.toQuery()` before
+        // `execAndParse`, which skips `applyCte` — and a raw UPDATE cannot
+        // carry a WITH clause anyway, so hoisted blocks would dangle.
+        disableCteHoist: true,
       })
     ).builder;
 

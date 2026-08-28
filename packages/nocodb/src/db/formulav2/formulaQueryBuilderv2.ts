@@ -591,6 +591,7 @@ export default async function formulaQueryBuilderv2({
     // formulas. Below the threshold this block never runs and the emitted SQL
     // is the same object today produces.
     let hoistScope: ICteScope | undefined;
+    let hoistPlan: Awaited<ReturnType<typeof buildFormulaPlan>> | null = null;
     if (
       !cteScope &&
       !disableCteHoist &&
@@ -598,14 +599,14 @@ export default async function formulaQueryBuilderv2({
       knex.clientType() === 'pg' &&
       typeof knex.cteGenerator === 'function'
     ) {
-      const plan = await buildFormulaPlan({
+      hoistPlan = await buildFormulaPlan({
         tree: qb?.parsedTree,
         resolve: makeColumnMetaResolver(context),
       }).catch(() => null);
 
       // ratio ≈ 1 means every operand is referenced once — hoisting would
       // rewrite the SQL for no saving, so leave it and let the cap error stand
-      if (plan?.worthHoisting) {
+      if (hoistPlan?.worthHoisting) {
         const scope = knex.cteGenerator(context).openScope();
         try {
           const rebuilt = await _formulaQueryBuilder({
@@ -652,8 +653,22 @@ export default async function formulaQueryBuilderv2({
         error_type: 'FORMULA_TOO_LONG_ERROR',
         message: `Generated query too long for ${columnInfo.title}${columnInfo.id}`,
       });
+      // Name the heaviest references when the plan is available — "reduce the
+      // number of referenced fields" is far more actionable with the actual
+      // offenders and a count attached.
+      const heaviest = hoistPlan
+        ? [...hoistPlan.refs.values()]
+            .filter((r) => r.leafPaths > 1)
+            .sort((a, b) => b.leafPaths * b.siteCount - a.leafPaths * a.siteCount)
+            .slice(0, 3)
+            .map((r) => r.columnId)
+        : [];
+      const detail = hoistPlan
+        ? ` This formula reaches ${hoistPlan.inlineLeafPaths} referenced fields` +
+          (heaviest.length ? `; the heaviest are ${heaviest.join(', ')}.` : '.')
+        : '';
       NcError.get(context).formulaError(
-        `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.`,
+        `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.${detail}`,
       );
     }
 

@@ -38,17 +38,20 @@ export interface RefDescriptor {
   ineligibleReason?: string;
 }
 
+/**
+ * Structural advice only. Deliberately carries no byte figures: per-leaf-path
+ * SQL size varies ~97× between schemas, so bytes come from measuring the built
+ * query (formulaQueryBuilderv2 already does), never from the plan.
+ */
 export interface FormulaPlan {
   refs: Map<string, RefDescriptor>;
   /** Σ over reference SITES — what the inline emitter produces today */
   inlineLeafPaths: number;
   /** Σ with every hoistable column's subtree counted once, recursively */
   hoistedLeafPaths: number;
-  estimatedInlineBytes: number;
-  estimatedHoistedBytes: number;
+  /** inlineLeafPaths / hoistedLeafPaths — 1 means hoisting changes nothing */
+  reductionRatio: number;
   hoistable: string[];
-  /** post-hoist estimate still exceeds the generated-SQL cap */
-  stillOverCap: boolean;
-  /** the wholesale gate: over threshold AND something to hoist */
-  shouldHoist: boolean;
+  /** ratio clears MIN_HOIST_RATIO and there is something to hoist */
+  worthHoisting: boolean;
 }

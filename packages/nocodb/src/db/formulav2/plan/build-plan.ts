@@ -1,9 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
-import {
-  estimateBytes,
-  HOIST_ABOVE_LEAF_PATHS,
-  MAX_GENERATED_SQL_BYTES,
-} from './estimate-cost';
+import { MIN_HOIST_RATIO } from './thresholds';
 import type {
   FormulaPlan,
   PlanMetaResolver,
@@ -40,11 +36,11 @@ function collectSites(tree: unknown, out: string[] = []): string[] {
 export async function buildFormulaPlan({
   tree,
   resolve,
-  threshold = HOIST_ABOVE_LEAF_PATHS,
+  minRatio = MIN_HOIST_RATIO,
 }: {
   tree: unknown;
   resolve: PlanMetaResolver;
-  threshold?: number;
+  minRatio?: number;
 }): Promise<FormulaPlan> {
   const refs = new Map<string, RefDescriptor>();
   // memoised per-column subtree cost; keyed by column id
@@ -167,17 +163,15 @@ export async function buildFormulaPlan({
     .map((r) => r.columnId)
     .sort();
 
-  const estimatedInlineBytes = estimateBytes(inlineLeafPaths);
-  const estimatedHoistedBytes = estimateBytes(hoistedLeafPaths);
+  const reductionRatio =
+    hoistedLeafPaths > 0 ? inlineLeafPaths / hoistedLeafPaths : 1;
 
   return {
     refs,
     inlineLeafPaths,
     hoistedLeafPaths,
-    estimatedInlineBytes,
-    estimatedHoistedBytes,
+    reductionRatio,
     hoistable,
-    stillOverCap: estimatedHoistedBytes > MAX_GENERATED_SQL_BYTES,
-    shouldHoist: inlineLeafPaths > threshold && hoistable.length > 0,
+    worthHoisting: reductionRatio >= minRatio && hoistable.length > 0,
   };
 }

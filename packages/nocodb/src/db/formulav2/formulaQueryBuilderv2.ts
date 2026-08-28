@@ -24,12 +24,6 @@ import {
 } from './formula-query-builder.helpers';
 import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { ICteScope } from '~/db/cte-generator/types';
-import {
-  buildFormulaPlan,
-  hoistAboveBytes,
-  maxStatementBytes,
-  makeColumnMetaResolver,
-} from '~/db/formulav2/plan';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
@@ -40,6 +34,13 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import {
+  buildFormulaPlan,
+  hoistAboveBytes,
+  isCteHoistEnabled,
+  makeColumnMetaResolver,
+  maxStatementBytes,
+} from '~/db/formulav2/plan';
 import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
@@ -594,6 +595,7 @@ export default async function formulaQueryBuilderv2({
     let hoistScope: ICteScope | undefined;
     let hoistPlan: Awaited<ReturnType<typeof buildFormulaPlan>> | null = null;
     if (
+      isCteHoistEnabled() &&
       !cteScope &&
       !disableCteHoist &&
       sqlLength > hoistAboveBytes() &&
@@ -681,14 +683,18 @@ export default async function formulaQueryBuilderv2({
       const heaviest = hoistPlan
         ? [...hoistPlan.refs.values()]
             .filter((r) => r.leafPaths > 1)
-            .sort((a, b) => b.leafPaths * b.siteCount - a.leafPaths * a.siteCount)
+            .sort(
+              (a, b) => b.leafPaths * b.siteCount - a.leafPaths * a.siteCount,
+            )
             .slice(0, 3)
             .map((r) => r.columnId)
         : [];
       const detail =
         (hoistPlan
           ? ` This formula reaches ${hoistPlan.inlineLeafPaths} referenced fields` +
-            (heaviest.length ? `; the heaviest are ${heaviest.join(', ')}.` : '.')
+            (heaviest.length
+              ? `; the heaviest are ${heaviest.join(', ')}.`
+              : '.')
           : '') +
         (statementLength > maxStatementBytes()
           ? ` The full statement is ${Math.round(statementLength / 1000)}kb.`

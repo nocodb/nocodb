@@ -1,5 +1,5 @@
 import { NcErrorType } from 'nocodb-sdk';
-import { DBError } from './utils';
+import { DBError, DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
@@ -16,6 +16,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
     let message: string;
     let _extra: Record<string, any>;
     let _type: DBError;
+    let _kind: DBErrorKind;
     let httpStatus = 422;
 
     // todo: handle not null constraint error for all databases
@@ -96,7 +97,10 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
         break;
       case 'ER_PARSE_ERROR':
-        message = 'There was a syntax error in your SQL query.';
+        message =
+          "This request couldn't be processed by the database. Please review your input and try again.";
+        // our generated SQL is malformed — see the pg 42601 note
+        _kind = DBErrorKind.UNKNOWN;
         break;
       case 'ER_NO_DEFAULT_FOR_FIELD':
         message = 'A value is required for this field.';
@@ -190,6 +194,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       message,
       code: error.code,
       httpStatus,
+      ...(_kind && { kind: _kind }),
     };
   }
 }

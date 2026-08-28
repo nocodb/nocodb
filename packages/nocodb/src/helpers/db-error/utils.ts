@@ -1,5 +1,19 @@
 import { NcBaseErrorv2, NcErrorType } from 'nocodb-sdk';
 
+/**
+ * How noisy an extracted DB error should be. Mapping quality and
+ * observability are independent: a unique-constraint violation is mapped and
+ * uninteresting, while pool exhaustion is mapped and very interesting.
+ */
+export enum DBErrorKind {
+  /** Caused by user input. Mapped message, no log, no Sentry. */
+  EXPECTED = 'EXPECTED',
+  /** Connection / timeout / capacity. Logged for operators, but not paged on. */
+  INFRA = 'INFRA',
+  /** No dialect matched — likely a bug rather than a DB error. Logged + Sentry. */
+  UNKNOWN = 'UNKNOWN',
+}
+
 export type DBErrorExtractResult =
   | {
       message: string;
@@ -7,6 +21,8 @@ export type DBErrorExtractResult =
       details?: any;
       code?: string;
       httpStatus: number;
+      /** Defaults to EXPECTED when a dialect extractor doesn't say otherwise. */
+      kind?: DBErrorKind;
     }
   | undefined;
 export interface IClientDbErrorExtractor {

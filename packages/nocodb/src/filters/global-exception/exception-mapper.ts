@@ -5,6 +5,7 @@ import {
   NcSDKErrorV2,
   BadRequest as SdkBadRequest,
 } from 'nocodb-sdk';
+import { DBErrorKind } from '~/helpers/db-error/utils';
 import {
   AjvError,
   BadRequest,
@@ -60,10 +61,13 @@ export function mapExceptionToResponse(
   const dbError =
     exception instanceof NcBaseError ? null : extractDBError(exception);
   if (dbError) {
-    const { httpStatus, ...responsePayload } = dbError;
+    const { httpStatus, kind, ...responsePayload } = dbError;
     return {
       status: apiVersion === NcApiVersion.V3 ? httpStatus : 400,
       body: responsePayload,
+      // an unknown error reached us as a db error only because it carried a
+      // `code` — keep it on the unhandled path so it's captured
+      unhandled: kind === DBErrorKind.UNKNOWN,
     };
   }
 

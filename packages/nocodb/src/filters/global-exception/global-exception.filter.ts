@@ -11,6 +11,7 @@ import {
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { throttlerLogger } from '~/helpers/throttlerLogger';
+import { DBErrorKind } from '~/helpers/db-error/utils';
 import { mapExceptionToResponse } from '~/filters/global-exception/exception-mapper';
 import {
   AjvError,
@@ -58,11 +59,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const dbError =
       exception instanceof NcBaseError ? null : extractDBError(exception);
 
+    // Only a user-caused db error is quiet. Infra errors (connection loss,
+    // pool exhaustion) are logged so operators see an outage, and unknown
+    // ones — any failure carrying a `code` that no dialect matched — are
+    // logged and reported.
+    const quietDbError =
+      (dbError?.kind ?? DBErrorKind.EXPECTED) === DBErrorKind.EXPECTED
+        ? dbError
+        : null;
+
     // skip unnecessary error logging
     if (
       process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
       !(
-        dbError ||
+        quietDbError ||
         exception instanceof BadRequest ||
         exception instanceof AjvError ||
         exception instanceof Unauthorized ||

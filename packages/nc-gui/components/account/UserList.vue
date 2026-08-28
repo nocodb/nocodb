@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
+import { EnterpriseOrgUserRoles, NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
 import type { RequestParams, UserType } from 'nocodb-sdk'
 
 const { api, isLoading } = useApi()

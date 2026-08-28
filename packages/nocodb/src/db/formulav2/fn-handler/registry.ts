@@ -5,6 +5,17 @@ import { CallExpressionGeneralHandler } from './handlers/call-expression/call-ex
 import { DivisionGeneralHandler } from './handlers/division/division.general.handler';
 import { DivisionPgHandler } from './handlers/division/division.pg.handler';
 import { IdentifierGeneralHandler } from './handlers/identifier/identifier.general.handler';
+import { LogPgHandler } from './handlers/log/log.pg.handler';
+import { GreatestPgHandler, MaxPgHandler } from './handlers/max/max.pg.handler';
+import { ModPgHandler } from './handlers/mod/mod.pg.handler';
+import { ModuloGeneralHandler } from './handlers/modulo/modulo.general.handler';
+import { ModuloPgHandler } from './handlers/modulo/modulo.pg.handler';
+import {
+  PowerPgHandler,
+  PowPgHandler,
+} from './handlers/power/power.pg.handler';
+import { RoundPgHandler } from './handlers/round/round.pg.handler';
+import { SqrtPgHandler } from './handlers/sqrt/sqrt.pg.handler';
 import { LiteralGeneralHandler } from './handlers/literal/literal.general.handler';
 import { UnaryExpressionGeneralHandler } from './handlers/unary-expression/unary-expression.general.handler';
 import type {
@@ -39,6 +50,21 @@ const FN_REGISTRY: Partial<
     // variant this class emits, not a separate registration.
     [ClientType.PG]: DivisionPgHandler,
   },
+  '%': {
+    [CLIENT_DEFAULT]: ModuloGeneralHandler,
+    [ClientType.PG]: ModuloPgHandler,
+  },
+  // Function-keyed lowerings. pg only, deliberately: these guard IEEE
+  // semantics pg alone can produce, and every other dialect keeps resolving to
+  // no handler and going through `mapFunctionName` unchanged.
+  MOD: { [ClientType.PG]: ModPgHandler },
+  POWER: { [ClientType.PG]: PowerPgHandler },
+  POW: { [ClientType.PG]: PowPgHandler },
+  LOG: { [ClientType.PG]: LogPgHandler },
+  SQRT: { [ClientType.PG]: SqrtPgHandler },
+  MAX: { [ClientType.PG]: MaxPgHandler },
+  GREATEST: { [ClientType.PG]: GreatestPgHandler },
+  ROUND: { [ClientType.PG]: RoundPgHandler },
 };
 
 /**

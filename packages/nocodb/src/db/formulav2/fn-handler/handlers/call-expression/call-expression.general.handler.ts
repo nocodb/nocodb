@@ -5,13 +5,16 @@ import {
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../../../../mapFunctionName';
-import type { NcContext, UITypes } from 'nocodb-sdk';
+import { isPgIeeeEnabled } from '../../../pg-ieee';
+import { getFnHandler } from '../../registry';
+import type { ClientType, NcContext, UITypes } from 'nocodb-sdk';
 import type { Model } from 'src/models';
 import type {
   FnParsedTreeNode,
   TAliasToColumn,
 } from '../../../formula-query-builder.types';
 import type {
+  FnHandlerKey,
   FnNodeContext,
   FnNodeEstimateContext,
   FnNodeHandlerInterface,
@@ -47,6 +50,46 @@ export const callExpressionBuilder = async ({
   model: Model;
   columnIdToUidt: Record<string, UITypes>;
 }): Promise<{ builder: any }> => {
+  // A registered lowering owns the whole emitted form for its function, the
+  // same way one does for an operator in `binaryExpressionBuilder`. Resolved
+  // before the switch so it takes precedence over `mapFunctionName`; a function
+  // with no handler on this dialect resolves to undefined and the existing
+  // mapping runs untouched.
+  const resolvedFn = getFnHandler(
+    pt.callee.name.toUpperCase() as FnHandlerKey,
+    {
+      clientType: knex.clientType() as ClientType,
+      pgIeee: isPgIeeeEnabled(knex),
+    },
+    pt,
+  );
+  if (resolvedFn) {
+    resolvedFn.handler.prepareTree(pt);
+    const compiled = await Promise.all(
+      pt.arguments.map(async (arg) => `${(await fn(arg)).builder}`),
+    );
+    const operands = resolvedFn.handler.prepareOperands(
+      compiled,
+      knex,
+      resolvedFn.variant,
+      pt,
+    );
+    const sql = await resolvedFn.handler.emit({
+      context,
+      variant: resolvedFn.variant,
+      pt,
+      operands,
+      knex,
+      fn,
+      prevBinaryOp,
+      aliasToColumn,
+      columnIdToUidt,
+      model,
+      compileCall: callExpressionBuilder,
+    });
+    return { builder: knex.raw(sql) };
+  }
+
   switch (pt.callee.name.toUpperCase()) {
     case 'ADD':
     case 'SUM':
@@ -341,11 +384,18 @@ export class CallExpressionGeneralHandler implements FnNodeHandlerInterface {
   }
 
   /**
-   * `NAME(arg, arg)` plus an allowance for what the dialect's mapping expands
-   * it into. Deliberately coarse: `mapFunctionName` has a template per function
-   * per dialect, and mirroring all of them here would be a second copy to keep
-   * in step. A call contributes a constant, not a multiplier, so the error does
-   * not compound the way operand duplication does.
+   * A registered lowering answers for itself, exactly as it does for an
+   * operator — without that, a function that writes an operand more than once
+   * (every pg IEEE guard: ROUND writes its value three times) is counted once
+   * and the whole estimate lands UNDER, which is the direction a size gate
+   * cannot afford.
+   *
+   * Everything else gets `NAME(arg, arg)` plus a flat allowance for what the
+   * dialect's mapping expands it into. Deliberately coarse: `mapFunctionName`
+   * has a template per function per dialect, and mirroring all of them here
+   * would be a second copy to keep in step. Measured, an unregistered call
+   * contributes at most ~28B beyond the allowance — a constant, not a
+   * multiplier, so it does not compound the way duplication does.
    */
   estimate(ctx: FnNodeEstimateContext): number {
     const pt = ctx.pt as {
@@ -353,15 +403,26 @@ export class CallExpressionGeneralHandler implements FnNodeHandlerInterface {
       arguments?: unknown[];
     };
     const args = pt.arguments ?? [];
-    const inner = args.reduce<number>(
-      (sum, arg) => sum + ctx.estimate(arg as never),
-      0,
+    const operands = args.map((arg) => ctx.estimate(arg as never));
+
+    const resolved = getFnHandler(
+      pt.callee?.name?.toUpperCase() as FnHandlerKey,
+      { clientType: ctx.clientType, pgIeee: ctx.pgIeee },
+      ctx.pt,
     );
+    if (resolved) {
+      return resolved.handler.estimate({
+        pt: ctx.pt,
+        operands,
+        variant: resolved.variant,
+      });
+    }
+
     return (
       (pt.callee?.name?.length ?? 0) +
       '()'.length +
       Math.max(0, args.length - 1) * ', '.length +
-      inner +
+      operands.reduce((sum, bytes) => sum + bytes, 0) +
       MAPPED_FUNCTION_ALLOWANCE
     );
   }

@@ -1,4 +1,4 @@
-import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
+import { JSEPNode } from 'nocodb-sdk';
 import type {
   FnHandlerKey,
   FnSitePath,
@@ -68,56 +68,17 @@ export interface DuplicationWalk {
 }
 
 /**
- * Operand mentions per emitter site, mirroring `pg-ieee.ts`. These are counted
- * off the emitted string, not guessed: `ieeeModuloSql` tests the divisor, tests
- * the dividend for finiteness, then divides, so both operands land twice.
+ * Copies this node makes of each operand, or undefined if it makes one each.
  *
- * A number here is the count of copies the emitter makes of the operand in that
- * slot. Slots are positional: `[left, right]` for a binary expression,
- * `arguments[i]` for a call.
+ * Every duplicating lowering is a registered handler, so each answers for
+ * itself — resolved with the same key and conditions the emitter will use, so
+ * the count and the SQL cannot drift apart. This used to carry a hand-written
+ * mirror of `pg-ieee.ts` alongside; the mirror is what let `ROUND` go
+ * unreported (it writes its value operand three times and had no entry).
  *
- * Keys with a handler under `fn-handler/` are absent on purpose — the handler
- * declares its own multiplicity, so a new variant updates this analysis for
- * free. Everything below is still a mirror, and each entry should move into a
- * handler when its lowering does.
+ * No `ieee` gate is needed: with the flag off the resolver picks a variant
+ * that writes each operand once.
  */
-const IEEE_BINARY_MULTIPLICITY: Record<string, number[]> = {
-  // ieeeModuloSql: (right) <> 0 · abs(left) · MOD((left), (right))
-  '%': [2, 2],
-};
-
-function ieeeCallMultiplicity(
-  name: string,
-  args: { dataType?: FormulaDataTypes }[],
-): number[] | undefined {
-  switch (name) {
-    // ieeePowerSql: (base) < 0 · pow(base, …) | (exp) <> floor(exp) · pow(…, exp)
-    case 'POW':
-    case 'POWER':
-      return [2, 3];
-    // ieeeModuloSql, reached through the MOD() spelling
-    case 'MOD':
-      return [2, 2];
-    // ieeeSqrtSql: (expr) < 0 · sqrt(expr)
-    case 'SQRT':
-      return [2];
-    // ieeeLogSql mentions its operand twice. Two-arg ieeeLogBaseSql proves both
-    // operands in domain before the numeric cast: value 2 + 1, base 2 + 1 + 1.
-    case 'LOG':
-      return args.length > 1 ? [4, 3] : [2];
-    // pg.MAX writes the whole argument list twice — NaN-stripped, then raw as
-    // the COALESCE fallback — and only when every argument is numeric.
-    case 'MAX':
-    case 'GREATEST':
-      return args.every((a) => a?.dataType === FormulaDataTypes.NUMERIC)
-        ? args.map(() => 2)
-        : undefined;
-    default:
-      return undefined;
-  }
-}
-
-/** Copies this node makes of each operand, or undefined if it makes one each. */
 export function operandMultiplicity(
   node: Record<string, unknown>,
   opts: DuplicationOptions = {},
@@ -125,27 +86,13 @@ export function operandMultiplicity(
   const key = fnKeyOf(node);
   if (!key) return undefined;
 
-  // A registered lowering answers for itself — same handler, same conditions as
-  // the build, so the two cannot drift. It needs no `ieee` gate: with the flag
-  // off the resolver picks a variant that writes each operand once.
   const resolved = getFnHandler(
     key,
     { pgIeee: opts.ieee, fnVariants: opts.fnVariants },
     node,
   );
+  const mult = resolved?.handler.multiplicity(node, resolved.variant);
 
-  let mult: number[] | undefined;
-  if (resolved) {
-    mult = resolved.handler.multiplicity(node, resolved.variant);
-  } else if (opts.ieee) {
-    mult =
-      node.type === JSEPNode.BINARY_EXP
-        ? IEEE_BINARY_MULTIPLICITY[key]
-        : ieeeCallMultiplicity(
-            key,
-            (node.arguments as { dataType?: FormulaDataTypes }[]) ?? [],
-          );
-  }
   // writing every operand once is not a duplicating site
   return mult?.some((copies) => copies > 1) ? mult : undefined;
 }

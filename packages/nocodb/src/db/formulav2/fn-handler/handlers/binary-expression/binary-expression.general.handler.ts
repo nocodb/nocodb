@@ -8,7 +8,6 @@ import {
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import {
   coalesceNumericOperand,
-  ieeeModuloSql,
   isPgIeeeEnabled,
   stripNaNSql,
 } from '../../../pg-ieee';
@@ -51,18 +50,7 @@ import type CustomKnex from '../../../../CustomKnex';
  */
 
 /** the operators the pg blank-as-zero pass coalesces — mirrors the emitter below */
-const COALESCED_OPERATORS = [
-  '+',
-  '-',
-  '*',
-  '%',
-  '<',
-  '>',
-  '<=',
-  '>=',
-  '=',
-  '!=',
-];
+const COALESCED_OPERATORS = ['+', '-', '*', '<', '>', '<=', '>=', '=', '!='];
 
 const assignFnName = (pt: FnParsedTreeNode) => {
   if (pt.fnName) return;
@@ -243,15 +231,16 @@ export const binaryExpressionBuilder = async ({
       [left, right],
       knex,
       resolved.variant,
+      pt,
     );
   } else if (
     // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
     // Applied in every mode, not just display: if display coalesced but sort did
-    // not, a blank operand would render as a number yet sort as NULL. `/` is
-    // absent from the list — its handler owns the rule; the same goes for any
-    // operator that moves into fn-handler.
+    // not, a blank operand would render as a number yet sort as NULL. `/` and
+    // `%` are absent from the list — their handlers own the rule; the same goes
+    // for any operator that moves into fn-handler.
     isPgIeeeEnabled(knex) &&
-    ['+', '-', '*', '%', '<', '>', '<=', '>=', '=', '!='].includes(pt.operator)
+    ['+', '-', '*', '<', '>', '<=', '>=', '=', '!='].includes(pt.operator)
   ) {
     if (leftDataType === FormulaDataTypes.NUMERIC) {
       left = coalesceNumericOperand(left, knex);
@@ -475,11 +464,6 @@ export const binaryExpressionBuilder = async ({
         model,
         compileCall: callExpressionBuilder,
       });
-    } else if (pt.operator === '%' && isPgIeeeEnabled(knex)) {
-      // `%` is the operator spelling of MOD(), so it gets MOD's lowering. It
-      // needs it: the COALESCE above turns a blank divisor into a literal 0,
-      // which pg rejects with `division by zero` instead of returning NULL.
-      sql = ieeeModuloSql(left, right);
     } else {
       sql = `${sql} `;
     }

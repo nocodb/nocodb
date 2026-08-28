@@ -16,10 +16,27 @@ import type { FnNode } from './fn-node';
 
 /**
  * What a handler is registered against: the operator spelling for a binary
- * expression, or the uppercased callee name for a call. Grows as lowerings move
- * in — `%`, `MOD`, `POWER`, `LOG`, `SQRT`, `MAX`, `MIN` are all candidates.
+ * expression, or the uppercased callee name for a call.
+ *
+ * `POW`/`GREATEST` are separate keys rather than aliases because a plain-string
+ * mapping in `functionMappings` rewrites `pt.callee.name` and that rewritten
+ * tree is persisted — so a POWER column created before POWER became a function
+ * still arrives spelled `pow`, and would otherwise resolve to no handler.
+ *
+ * `MIN` is deliberately absent: it maps to a bare `least`, writes each operand
+ * once, and has no IEEE form to guard.
  */
-export type FnHandlerKey = '/';
+export type FnHandlerKey =
+  | '/'
+  | '%'
+  | 'MOD'
+  | 'POWER'
+  | 'POW'
+  | 'LOG'
+  | 'SQRT'
+  | 'MAX'
+  | 'GREATEST'
+  | 'ROUND';
 
 /** Bucket for a handler that serves every dialect — mirrors field-handler. */
 export const CLIENT_DEFAULT = '_default';
@@ -157,11 +174,17 @@ export interface FnHandlerInterface {
   multiplicity(pt: FnNode, variant: FnVariant): number[];
   /** Operand-node rewrites needed before the operands are compiled. */
   prepareTree(pt: FnNode): void;
-  /** Rewrites on the compiled operand SQL, in slot order. */
+  /**
+   * Rewrites on the compiled operand SQL, in slot order. Takes the node because
+   * a rewrite can be conditional on an operand's declared type — `%` coalesces
+   * only its NUMERIC sides, where `/` can coalesce both unconditionally because
+   * its `prepareTree` already made them numeric.
+   */
   prepareOperands(
     operands: string[],
     knex: CustomKnex,
     variant: FnVariant,
+    pt: FnNode,
   ): string[];
   emit(ctx: FnEmitContext): Promise<string>;
   /**

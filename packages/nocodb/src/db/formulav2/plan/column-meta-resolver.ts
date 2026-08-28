@@ -1,5 +1,6 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type Model from '~/models/Model';
 import type { PlanColumnMeta, PlanMetaResolver } from './types';
 import Column from '~/models/Column';
 import LookupColumn from '~/models/LookupColumn';
@@ -73,9 +74,16 @@ export function makeColumnMetaResolver(context: NcContext): PlanMetaResolver {
       case UITypes.Formula:
       case UITypes.Button: {
         const opts = await FormulaColumn.read(context, column.id);
+        // hoistFormulaLookup keys its block on this model's PK and bails
+        // without one, so the plan must see the same condition.
+        const model = await column
+          .getModel(context)
+          .catch(() => null as Model | null);
+        if (model) await model.getColumns(context).catch(() => null);
         return {
           uidt: column.uidt,
           formulaTree: opts?.getParsedTree(),
+          hasPrimaryKey: !!model?.primaryKey?.column_name,
         };
       }
       default:

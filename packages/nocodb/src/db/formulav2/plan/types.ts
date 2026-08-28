@@ -17,6 +17,13 @@ export interface PlanColumnMeta {
   targetColumnId?: string;
   /** formula: its parsed tree */
   formulaTree?: unknown;
+  /**
+   * formula: its model has a usable primary key. `hoistFormulaLookup` bails
+   * without one (no key to match the block on), so the plan must too or it
+   * would promise a block the emitter declines to write. Undefined is treated
+   * as present — only an explicit `false` blocks hoisting.
+   */
+  hasPrimaryKey?: boolean;
 }
 
 export type PlanMetaResolver = (
@@ -51,6 +58,11 @@ export interface FormulaPlan {
   hoistedLeafPaths: number;
   /** inlineLeafPaths / hoistedLeafPaths — 1 means hoisting changes nothing */
   reductionRatio: number;
+  /**
+   * Block keys the emitter will write — terminal formula column ids, at every
+   * depth, not just top-level reference sites. One entry per `nc_lk_` alias in
+   * the rebuilt SQL, so it can be asserted against the emitted query.
+   */
   hoistable: string[];
   /** ratio clears MIN_HOIST_RATIO and there is something to hoist */
   worthHoisting: boolean;

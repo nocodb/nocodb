@@ -63,10 +63,11 @@ const hasBillableData = ref(false)
 
 const pageSizeOptions = ['10', '25', '50', '100']
 
+const minPageSize = Number(pageSizeOptions[0])
+
 const pagination = reactive({
   total: 0,
   billableCount: 0,
-  pageSize: 10,
   position: ['bottomCenter'],
 })
 
@@ -86,8 +87,6 @@ const loadUsers = useDebounceFn(async (page = currentPage.value, limit = current
 
     pagination.total = response.pageInfo.totalRows ?? 0
 
-    pagination.pageSize = limit
-
     if (typeof response.pageInfo.billableCount === 'number') {
       pagination.billableCount = response.pageInfo.billableCount
       hasBillableData.value = true
@@ -99,9 +98,6 @@ const loadUsers = useDebounceFn(async (page = currentPage.value, limit = current
   }
 }, 500)
 
-// Billable status is only meaningful where the backend supplies it.
-const showBillable = computed(() => hasBillableData.value)
-
 // "from–to of total" for the current page, so the count can be reconciled
 // against the invoice / SQL query.
 const shownRange = computed(() => {
@@ -110,6 +106,10 @@ const shownRange = computed(() => {
   const to = Math.min(currentPage.value * currentLimit.value, pagination.total)
   return { from, to }
 })
+
+// billableCount is org-wide while total honours the search filter, so pairing
+// them mid-search would read "2 members · 47 billable seats".
+const showSummary = computed(() => !searchText.value)
 
 onMounted(() => {
   loadUsers()
@@ -243,7 +243,7 @@ const columns = computed(() => {
     })
   }
 
-  if (showBillable.value) {
+  if (hasBillableData.value) {
     cols.push({
       key: 'billable',
       title: t('general.billable'),
@@ -283,11 +283,11 @@ const columns = computed(() => {
         </span>
       </template>
       <template #subtitle>
-        <span class="flex items-center gap-1.5" data-testid="nc-super-user-summary">
+        <span v-if="showSummary" class="flex items-center gap-1.5" data-testid="nc-super-user-summary">
           <span class="text-nc-content-gray-subtle">
             {{ $t('objects.membersCount', { count: pagination.total }) }}
           </span>
-          <template v-if="showBillable">
+          <template v-if="hasBillableData">
             <span class="text-nc-content-gray-muted">·</span>
             <span class="flex items-center gap-1 text-nc-content-gray-subtle">
               <GeneralIcon icon="ncCrown" class="flex-none h-3.5 w-3.5 text-nc-content-green-dark" />
@@ -308,7 +308,7 @@ const columns = computed(() => {
               v-model:value="searchText"
               class="!max-w-90 !rounded-md"
               :placeholder="$t('title.searchMembers')"
-              @change="loadUsers()"
+              @change="loadUsers(1)"
             >
               <template #prefix>
                 <PhMagnifyingGlassBold class="!h-3.5 text-nc-content-gray-muted" />
@@ -479,8 +479,11 @@ const columns = computed(() => {
                 <span class="text-nc-content-gray-subtle2 text-small flex-none" data-testid="nc-super-user-range">
                   {{ $t('labels.showingRangeOfTotal', { from: shownRange.from, to: shownRange.to, total: pagination.total }) }}
                 </span>
+                <!-- Gate on the smallest option, not currentLimit: a-pagination hosts
+                     the size changer, so hiding it at total <= currentLimit would strand
+                     the user on a large page size with no way back. -->
                 <a-pagination
-                  v-if="pagination.total > currentLimit"
+                  v-if="pagination.total > minPageSize"
                   v-model:current="currentPage"
                   :total="pagination.total"
                   :page-size="currentLimit"

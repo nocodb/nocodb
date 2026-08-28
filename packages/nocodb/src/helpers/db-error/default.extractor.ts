@@ -1,4 +1,5 @@
 import { NcErrorType } from 'nocodb-sdk';
+import { DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
@@ -42,7 +43,7 @@ export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
       message,
       code: error.code,
       httpStatus,
-      recognized: false,
+      kind: DBErrorKind.UNKNOWN,
     };
   }
 }

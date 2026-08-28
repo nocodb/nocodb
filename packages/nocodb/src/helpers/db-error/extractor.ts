@@ -4,6 +4,7 @@ import type {
   DBErrorExtractResult,
   IClientDbErrorExtractor,
 } from '~/helpers/db-error/utils';
+import { DBErrorKind, isTransientError } from '~/helpers/db-error/utils';
 import { PgDBErrorExtractor } from '~/helpers/db-error/pg.extractor';
 import { SqliteDBErrorExtractor } from '~/helpers/db-error/sqlite.extractor';
 import { MysqlDBErrorExtractor } from '~/helpers/db-error/mysql.extractor';
@@ -124,6 +125,14 @@ export class DBErrorExtractor {
 
     if (!extractResult && !option?.ignoreDefault) {
       extractResult = this.defaultExtractor.extract(error);
+    }
+
+    // Classify centrally rather than per-case in every dialect extractor —
+    // `isTransientError` is already the project's list of infra codes, and
+    // this catches mapped ones (53300, EACCES) as well as unmapped ones
+    // (ECONNREFUSED) that would otherwise be reported to Sentry on every flap.
+    if (extractResult && isTransientError(error)) {
+      extractResult.kind = DBErrorKind.INFRA;
     }
 
     return extractResult;

@@ -6,6 +6,7 @@ import type {
   FnHandlerKey,
   FnVariant,
 } from './fn-handler.interface';
+import type { FnNode } from './fn-node';
 
 export * from './fn-handler.interface';
 export * from './fn-node';
@@ -31,16 +32,39 @@ const FN_REGISTRY: Partial<
 };
 
 /**
+ * This node's own pinned variant, if the query plan annotated it. Read straight
+ * off the node so a decision and the expression it applies to travel together —
+ * there is no side table that could be keyed against a different tree.
+ */
+function sitePinOf(node: FnNode | undefined): FnVariant | undefined {
+  if (!node || typeof node !== 'object') return undefined;
+  const optimization = (node as { optimization?: unknown }).optimization as
+    | { kind?: string; status?: string; variant?: FnVariant }
+    | undefined;
+  return optimization?.kind === 'fn-variant' &&
+    optimization.status === 'apply' &&
+    optimization.variant
+    ? optimization.variant
+    : undefined;
+}
+
+/**
  * The one place generation is conditioned. A pin wins if that variant exists
- * for the key; otherwise pg+IEEE takes the `pg-ieee` variant when there is one,
- * and everything else falls back to `general`.
+ * for the key — the node's own annotation first, since it names one occurrence
+ * and `fnVariants` names all of them; otherwise pg+IEEE takes the `pg-ieee`
+ * variant when there is one, and everything else falls back to `general`.
+ *
+ * `node` is optional only so a caller with nothing but a key can still ask what
+ * the key-wide answer is. Anything lowering an actual expression has the node
+ * and should pass it, or its annotation is silently ignored.
  */
 export function resolveFnVariant(
   key: FnHandlerKey,
   conditions: FnConditions = {},
+  node?: FnNode,
 ): FnVariant {
   const variants = FN_REGISTRY[key];
-  const pinned = conditions.fnVariants?.[key];
+  const pinned = sitePinOf(node) ?? conditions.fnVariants?.[key];
   if (pinned && variants?.[pinned]) return pinned;
   if (conditions.pgIeee && variants?.['pg-ieee']) return 'pg-ieee';
   return 'general';
@@ -50,11 +74,12 @@ export function resolveFnVariant(
 export function getFnHandler(
   key: FnHandlerKey | undefined,
   conditions: FnConditions = {},
+  node?: FnNode,
 ): FnHandlerInterface | undefined {
   if (!key) return undefined;
   const variants = FN_REGISTRY[key];
   if (!variants) return undefined;
   const Handler =
-    variants[resolveFnVariant(key, conditions)] ?? variants.general;
+    variants[resolveFnVariant(key, conditions, node)] ?? variants.general;
   return Handler ? new Handler() : undefined;
 }

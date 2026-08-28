@@ -480,10 +480,11 @@ export const binaryExpressionBuilder = async ({
   // blank-as-zero and the emitted form — in one class per variant. `buildHints`
   // can pin the variant; otherwise it follows the dialect. Operators with no
   // handler fall through to the inline handling below.
-  const fnHandler = getFnHandler(fnKeyOf(pt), {
-    pgIeee: isPgIeeeEnabled(knex),
-    fnVariants: buildHints?.fnVariants,
-  });
+  const fnHandler = getFnHandler(
+    fnKeyOf(pt),
+    { pgIeee: isPgIeeeEnabled(knex), fnVariants: buildHints?.fnVariants },
+    pt,
+  );
 
   // `prepareTree` replaces the operand nodes with FLOAT() wrappers that carry no
   // dataType, so capture the operand types first.

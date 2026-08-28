@@ -4,6 +4,7 @@ import { collectWeightedSites } from './duplication';
 import type { DuplicatingSite } from './duplication';
 import type { FnHandlerKey, FnVariant } from '~/db/formulav2/fn-handler';
 import type {
+  FnOptimization,
   FormulaPlan,
   PlanColumnMeta,
   PlanMetaResolver,
@@ -16,6 +17,21 @@ const HOISTABLE_UIDTS = new Set<UITypes>([
   UITypes.Links,
   UITypes.Rollup,
 ]);
+
+/**
+ * Which lowering to move a duplicating site to, or undefined to leave it as it
+ * is. Decided per site, not per key: lifting a site out of the inline form has
+ * its own cost, so a standalone `x/2` is usually better left alone while the
+ * chain that multiplies is rewritten — `site.chainDepth` is the discriminator.
+ *
+ * Nothing is registered yet: `/` has only the duplicating `pg-ieee` lowering,
+ * so every site reports `unavailable`. Returning a variant here is the whole
+ * switch — the gate resolves the site's path back to its node and pins the
+ * variant onto that node alone.
+ */
+function nonDuplicatingVariant(_site: DuplicatingSite): FnVariant | undefined {
+  return undefined;
+}
 
 /** Identifier sites in a parsed tree, in encounter order. Skips callee names. */
 function collectSites(tree: unknown): string[] {
@@ -256,21 +272,77 @@ export async function buildFormulaPlan({
     (a, b) => b.weight * b.multiplicity - a.weight * a.multiplicity,
   );
 
+  const worthHoisting = reductionRatio >= minRatio && hoistable.length > 0;
+  // hoisting collapses at most `reductionRatio`; anything beyond that is the
+  // duplication multiplier and no rebuild the gate can do will recover it
+  const duplicationDominant =
+    duplicationFactor >= DUPLICATION_DOMINANT_FACTOR &&
+    duplicationFactor > reductionRatio;
+
+  const optimizations: FnOptimization[] = [];
+  if (worthHoisting) {
+    optimizations.push({
+      kind: 'cte-hoist',
+      status: 'apply',
+      targets: hoistable,
+      reason:
+        `${inlineLeafPaths} inlined reference paths collapse to ` +
+        `${hoistedLeafPaths} (${reductionRatio.toFixed(1)}x) across ` +
+        `${hoistable.length} block(s)`,
+    });
+  }
+  // One entry per (key, target variant), each naming the exact tree positions it
+  // covers. The unit of application is the site, so a variant lands on the chain
+  // that multiplies and not on every occurrence of the operator. Figures are per
+  // group: `duplicationFactor` is the whole tree's, and repeating it under each
+  // key would attribute the same bloat more than once.
+  const byKind = new Map<string, DuplicatingSite[]>();
+  for (const site of duplicatingSites) {
+    const own = byKind.get(site.kind);
+    if (own) own.push(site);
+    else byKind.set(site.kind, [site]);
+  }
+  for (const [kind, own] of byKind) {
+    const groups = new Map<FnVariant | undefined, DuplicatingSite[]>();
+    for (const site of own) {
+      const target = nonDuplicatingVariant(site);
+      const group = groups.get(target);
+      if (group) group.push(site);
+      else groups.set(target, [site]);
+    }
+    for (const [variant, group] of groups) {
+      const deepest = Math.max(...group.map((site) => site.chainDepth));
+      const copies = Math.max(
+        ...group.map((site) => site.weight * site.multiplicity),
+      );
+      optimizations.push({
+        kind: 'fn-variant',
+        status: variant ? 'apply' : 'unavailable',
+        key: kind as FnHandlerKey,
+        sites: group.map((site) => site.path),
+        variant,
+        reason:
+          `${kind} repeats operands at ${group.length} site(s), nested ` +
+          `${deepest} deep, up to ${copies} copies of one operand` +
+          (variant
+            ? `; pinning those sites to the ${variant} lowering`
+            : `; no non-duplicating lowering is registered for ${kind}`),
+      });
+    }
+  }
+
   return {
     refs,
     inlineLeafPaths,
     hoistedLeafPaths,
     reductionRatio,
     hoistable,
-    worthHoisting: reductionRatio >= minRatio && hoistable.length > 0,
+    worthHoisting,
     emittedLeafPaths,
     duplicationFactor,
     duplicatingSites,
     maxDuplicationChain: walk.maxChainDepth,
-    // hoisting collapses at most `reductionRatio`; anything beyond that is the
-    // duplication multiplier and no rebuild the gate can do will recover it
-    duplicationDominant:
-      duplicationFactor >= DUPLICATION_DOMINANT_FACTOR &&
-      duplicationFactor > reductionRatio,
+    duplicationDominant,
+    optimizations,
   };
 }

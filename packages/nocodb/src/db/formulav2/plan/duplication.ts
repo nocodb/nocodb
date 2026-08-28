@@ -1,6 +1,16 @@
 import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
-import type { FnHandlerKey, FnVariant } from '~/db/formulav2/fn-handler';
-import { fnKeyOf, fnSlots, getFnHandler } from '~/db/formulav2/fn-handler';
+import type {
+  FnHandlerKey,
+  FnSitePath,
+  FnVariant,
+} from '~/db/formulav2/fn-handler';
+import {
+  FN_NON_OPERAND_KEYS,
+  fnKeyOf,
+  fnSitePaths,
+  fnSlots,
+  getFnHandler,
+} from '~/db/formulav2/fn-handler';
 
 /**
  * Operand duplication: the second bloat source, orthogonal to reference
@@ -18,7 +28,10 @@ export interface DuplicationOptions {
    * weights stay 1 and no site is reported.
    */
   ieee?: boolean;
-  /** the build pins a lowering — resolve the same handler it will emit */
+  /**
+   * The build pins a lowering key-wide — resolve the same handler it will emit.
+   * Per-node pins need no option: `getFnHandler` reads them off the node.
+   */
   fnVariants?: Partial<Record<FnHandlerKey, FnVariant>>;
 }
 
@@ -32,6 +45,11 @@ export interface WeightedSite {
 export interface DuplicatingSite {
   /** operator spelling (`/`) or the uppercased callee name (`POWER`) */
   kind: string;
+  /**
+   * Where in the parsed tree this site is — what an optimization names to pin a
+   * variant onto this occurrence and no other. See `fnSitePaths`.
+   */
+  path: FnSitePath;
   /** copies of this site's own SQL the statement carries */
   weight: number;
   /** largest number of copies it makes of any one of its operands */
@@ -110,10 +128,11 @@ export function operandMultiplicity(
   // A registered lowering answers for itself — same handler, same conditions as
   // the build, so the two cannot drift. It needs no `ieee` gate: with the flag
   // off the resolver picks a variant that writes each operand once.
-  const handler = getFnHandler(key, {
-    pgIeee: opts.ieee,
-    fnVariants: opts.fnVariants,
-  });
+  const handler = getFnHandler(
+    key,
+    { pgIeee: opts.ieee, fnVariants: opts.fnVariants },
+    node,
+  );
 
   let mult: number[] | undefined;
   if (handler) {
@@ -143,6 +162,9 @@ export function collectWeightedSites(
   const sites: WeightedSite[] = [];
   const duplicating: DuplicatingSite[] = [];
   let maxChainDepth = 0;
+  // labelled by the shared walker, not by this one — the emitter resolves these
+  // same paths back to nodes, so the two must name a position identically
+  const pathOf = fnSitePaths(tree);
 
   const visit = (node: unknown, weight: number, chain: number) => {
     if (!node || typeof node !== 'object') return;
@@ -162,6 +184,7 @@ export function collectWeightedSites(
       maxChainDepth = Math.max(maxChainDepth, depth);
       duplicating.push({
         kind: fnKeyOf(n) ?? '',
+        path: pathOf.get(n) ?? '',
         weight,
         multiplicity: Math.max(...mult),
         chainDepth: depth,
@@ -175,7 +198,7 @@ export function collectWeightedSites(
     }
 
     for (const key of Object.keys(n)) {
-      if (key === 'callee') continue;
+      if (FN_NON_OPERAND_KEYS.has(key)) continue;
       const child = n[key];
       if (child && typeof child === 'object') visit(child, weight, chain);
     }

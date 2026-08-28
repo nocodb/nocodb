@@ -29,7 +29,14 @@ export type FnVariant = 'general' | 'pg-ieee';
 export interface FnConditions {
   /** pg AND NC_FORMULA_PG_IEEE — `isPgIeeeEnabled` */
   pgIeee?: boolean;
-  /** pin the variant for specific keys, bypassing the rules */
+  /**
+   * Pin the variant for specific keys, bypassing the rules. Key-wide: it hits
+   * every occurrence of the operator.
+   *
+   * To pin one occurrence, the node carries its own `optimization.variant` —
+   * see `resolveFnVariant`. That is not a condition of the build, it is a
+   * property of the expression, which is why it is not a field here.
+   */
   fnVariants?: Partial<Record<FnHandlerKey, FnVariant>>;
 }
 

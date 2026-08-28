@@ -35,8 +35,13 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import type {
+  CteHoistOptimization,
+  FnVariantOptimization,
+} from '~/db/formulav2/plan';
 import { isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import {
+  buildFormulaPayload,
   buildFormulaPlan,
   hoistAboveBytes,
   isCteHoistEnabled,
@@ -71,7 +76,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     aliasToColumn = {},
     columnIdToUidt = {},
     tableAlias,
-    parsedTree,
+    payload,
     column = null,
     columns,
     getAliasCount,
@@ -83,7 +88,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
 
   const context = baseModelSqlv2.context;
 
-  let tree = parsedTree;
+  let tree = payload?.parsedTree;
   if (!tree) {
     const relatedModels: Map<string, Model> = await getRelatedModelMap(
       context,
@@ -162,7 +167,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               model,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
               tableAlias,
-              parsedTree: formulOption.getParsedTree(),
+              payload: { parsedTree: formulOption.getParsedTree() },
               baseUsers,
               parentColumns,
               getAliasCount,
@@ -503,7 +508,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     }
   };
   const builder = (await fn(tree)).builder;
-  return { builder, parsedTree: tree };
+  // the payload back out, so a caller that had none still learns the tree that
+  // was parsed, and one that passed a plan gets it handed straight back
+  return { builder, payload: { ...payload, parsedTree: tree } };
 }
 
 export default async function formulaQueryBuilderv2({
@@ -578,11 +585,14 @@ export default async function formulaQueryBuilderv2({
       tableAlias,
       columnIdToUidt,
       column,
-      parsedTree:
-        parsedTree ??
-        (await column
-          ?.getColOptions<FormulaColumn | ButtonColumn>(context)
-          .then((formula) => formula?.getParsedTree())),
+      // callers hand in a bare tree; the payload is this module's transport
+      payload: {
+        parsedTree:
+          parsedTree ??
+          (await column
+            ?.getColOptions<FormulaColumn | ButtonColumn>(context)
+            .then((formula) => formula?.getParsedTree())),
+      },
       baseUsers,
       parentColumns,
       columns,
@@ -611,34 +621,61 @@ export default async function formulaQueryBuilderv2({
       typeof knex.cteGenerator === 'function'
     ) {
       hoistPlan = await buildFormulaPlan({
-        tree: qb?.parsedTree,
+        tree: qb?.payload?.parsedTree,
         resolve: makeColumnMetaResolver(context),
         ieee: isPgIeeeEnabled(knex),
         fnVariants: buildHints?.fnVariants,
       }).catch(() => null);
 
-      // Duplication is a multiplier on the expression text, so hoisting — which
-      // only dedupes references — cannot bring it back under the cap. Recorded
-      // here so the shape is visible before it trips the cap below; acting on
-      // it is a separate change.
-      if (hoistPlan?.duplicationDominant) {
-        logger.warn(
-          `Formula ${
-            column?.id ?? 'preview'
-          } is duplication-bound: operand duplication multiplies it ${hoistPlan.duplicationFactor.toFixed(
-            1,
-          )}x (chain depth ${
-            hoistPlan.maxDuplicationChain
-          }), while hoisting can recover at most ${hoistPlan.reductionRatio.toFixed(
-            1,
-          )}x.`,
-        );
+      // The plan's decisions, verbatim. Everything the gate does below follows
+      // from this line, so a build's strategy can be read out of the log rather
+      // than inferred from the SQL it produced. `warn` when the plan wanted
+      // something it could not have.
+      if (hoistPlan?.optimizations.length) {
+        const summary = hoistPlan.optimizations
+          .map((opt) => `[${opt.kind}/${opt.status}] ${opt.reason}`)
+          .join(' | ');
+        const message = `Formula ${
+          column?.id ?? 'preview'
+        } plan (${sqlLength}B): ${summary}`;
+        if (
+          hoistPlan.optimizations.some((opt) => opt.status === 'unavailable')
+        ) {
+          logger.warn(message);
+        } else {
+          logger.log(message);
+        }
       }
 
-      // ratio ≈ 1 means every operand is referenced once — hoisting would
-      // rewrite the SQL for no saving, so leave it and let the cap error stand
-      if (hoistPlan?.worthHoisting) {
-        const scope = knex.cteGenerator(context).openScope();
+      // No `apply` entry means the plan found nothing worth rebuilding for — a
+      // ratio near 1, where hoisting would rewrite the SQL for no saving.
+      const hoistDirective = hoistPlan?.optimizations.find(
+        (opt): opt is CteHoistOptimization =>
+          opt.kind === 'cte-hoist' && opt.status === 'apply',
+      );
+
+      // The plan folded onto the tree it describes. Each `apply` decision now
+      // sits on the node it applies to, so the rebuild carries its own
+      // instructions and there is no second argument that has to agree with the
+      // tree. Only worth building when something would act on it.
+      const wantsRelowering = (hoistPlan?.optimizations ?? []).some(
+        (opt) =>
+          opt.kind === 'fn-variant' && opt.status === 'apply' && !!opt.variant,
+      );
+      const rebuildPayload =
+        hoistPlan && wantsRelowering
+          ? buildFormulaPayload({
+              tree: qb?.payload?.parsedTree,
+              plan: hoistPlan,
+            })
+          : qb?.payload;
+
+      if (hoistDirective || wantsRelowering) {
+        // only hoisting needs a scope; a build that just re-lowers some sites
+        // registers no blocks
+        const scope = hoistDirective
+          ? knex.cteGenerator(context).openScope()
+          : undefined;
         try {
           const rebuilt = await _formulaQueryBuilder({
             baseModelSqlv2,
@@ -648,7 +685,7 @@ export default async function formulaQueryBuilderv2({
             tableAlias,
             columnIdToUidt: {},
             column,
-            parsedTree: qb?.parsedTree,
+            payload: rebuildPayload,
             baseUsers,
             parentColumns,
             columns,
@@ -663,12 +700,12 @@ export default async function formulaQueryBuilderv2({
             hoistScope = scope;
           } else {
             // no saving materialised — discard every block this attempt added
-            scope.rollback();
+            scope?.rollback();
           }
         } catch (ex) {
           // all-or-nothing: a partially registered set would leave the next
           // query referencing aliases with no WITH clause
-          scope.rollback();
+          scope?.rollback();
           logger.log(ex);
         }
       }
@@ -720,17 +757,31 @@ export default async function formulaQueryBuilderv2({
         : [];
       // "reduce the referenced fields" is the wrong advice when a duplicating
       // operator is the multiplier — the field count is fine and nesting is
-      // what grew. Name the operators instead.
-      const duplication = hoistPlan?.duplicationDominant
+      // what grew. Name the operators instead. Which ones, and whether to say
+      // anything at all, comes from the plan's decision list; only the
+      // user-facing wording lives here (`reason` is written for logs).
+      // Gated on dominance, not on the mere presence of a duplicating site: one
+      // incidental `/` in a formula that blew the cap on field fan-out would
+      // otherwise be blamed for a 1x multiplier.
+      const wantedVariants = hoistPlan?.duplicationDominant
+        ? hoistPlan.optimizations.filter(
+            (opt): opt is FnVariantOptimization =>
+              opt.kind === 'fn-variant' && opt.status === 'unavailable',
+          )
+        : [];
+      const duplication = wantedVariants.length
         ? ` Operands repeated by ${[
-            ...new Set(hoistPlan.duplicatingSites.map((site) => site.kind)),
+            // a key can span several entries once its sites split by variant
+            ...new Set(wantedVariants.map((opt) => opt.key)),
           ]
             .slice(0, 3)
-            .join(', ')} multiply it ${hoistPlan.duplicationFactor.toFixed(
+            .join(', ')} multiply it ${hoistPlan!.duplicationFactor.toFixed(
             0,
           )}x` +
-          (hoistPlan.maxDuplicationChain > 1
-            ? `, and nesting them (${hoistPlan.maxDuplicationChain} deep here) multiplies again at every level.`
+          (hoistPlan!.maxDuplicationChain > 1
+            ? `, and nesting them (${
+                hoistPlan!.maxDuplicationChain
+              } deep here) multiplies again at every level.`
             : '.')
         : '';
       const detail =
@@ -761,9 +812,9 @@ export default async function formulaQueryBuilderv2({
     // come back as jsonb whose representation a text cast would corrupt, and
     // they can't grow unbounded since they only read already-stored JSON.
     if (
-      qb?.parsedTree?.dataType === FormulaDataTypes.STRING &&
+      qb?.payload?.parsedTree?.dataType === FormulaDataTypes.STRING &&
       qb.builder &&
-      !formulaOutputsRawJson(qb.parsedTree)
+      !formulaOutputsRawJson(qb.payload.parsedTree)
     ) {
       qb.builder = wrapFormulaWithMaxLength({
         knex,

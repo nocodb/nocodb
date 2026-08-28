@@ -7,7 +7,6 @@ import type {
   IdentifierNode,
   LiteralNode,
   MemberExpressionNode,
-  ParsedFormulaNode,
   UITypes,
   UnaryExpressionNode,
 } from 'nocodb-sdk';
@@ -18,6 +17,11 @@ import type {
   FnHandlerKey,
   FnVariant,
 } from '~/db/formulav2/fn-handler/fn-handler.interface';
+// plan/types imports only the sdk and fn-handler, so this cannot cycle back
+import type {
+  FormulaPayload,
+  NodeOptimization,
+} from '~/db/formulav2/plan/types';
 
 /**
  * Per-build overrides for how an expression is generated. Every field is a pin
@@ -25,7 +29,11 @@ import type {
  * empty (or absent) object is byte-identical to having none.
  */
 export interface FormulaBuildHints {
-  /** pin which lowering a handled function/operator emits — see db/formulav2/fn-handler */
+  /**
+   * Pin which lowering a handled function/operator emits, for every occurrence
+   * of it — see db/formulav2/fn-handler. To pin one occurrence, annotate that
+   * node instead: `optimization.variant` on the node beats this.
+   */
   fnVariants?: Partial<Record<FnHandlerKey, FnVariant>>;
 }
 
@@ -48,7 +56,13 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   model: Model;
   aliasToColumn?: TAliasToColumn;
   columnIdToUidt?: Record<string, UITypes>;
-  parsedTree?: ParsedFormulaNode;
+  /**
+   * The tree to build, and whatever the plan concluded about it. Omit it and the
+   * formula string is parsed and persisted instead. Every nested build must pass
+   * its OWN column's payload — inheriting the caller's would build the caller's
+   * tree, the same hazard the bare `parsedTree` had.
+   */
+  payload?: FormulaPayload;
   column?: Column;
   columns: Column[];
   parentColumns: CircularRefContext;
@@ -65,6 +79,12 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
 export type FnParsedTreeBase = {
   fnName?: string;
   argsCount?: number;
+  /**
+   * The query plan's verdict for this node, when there is one. Set only on the
+   * annotated copy `buildFormulaPayload` produces — a tree straight from the
+   * model never carries it, which is why the first build is unaffected.
+   */
+  optimization?: NodeOptimization;
 };
 export type FnParsedTreeNode =
   | (BinaryExpressionNode & FnParsedTreeBase)

@@ -1,5 +1,5 @@
 import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
-import { fnSlots, setFnSlots } from '../fn-node';
+import { fnSlots, isCallTo, setFnSlots } from '../fn-node';
 import type { CallExpressionNode, ParsedFormulaNode } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -34,17 +34,24 @@ export class DivisionGeneralHandler implements FnHandlerInterface {
    * its branches unify as float8 and `numeric` could not hold Infinity before
    * pg 14. The wrappers carry no dataType, so callers that need the operand
    * types must capture them before this runs.
+   *
+   * Idempotent. The parsed tree is a cached, model-owned object and this mutates
+   * it in place, so a second build over the same tree — which is exactly what
+   * the CTE hoist rebuild does — used to wrap an already-wrapped operand. The
+   * extra `CAST(… AS DOUBLE PRECISION)` was harmless but grew the rebuilt SQL,
+   * biasing the gate's `rebuilt < inline` check against hoisting.
    */
   prepareTree(pt: FnNode): void {
     setFnSlots(
       pt,
-      fnSlots(pt).map(
-        (slot) =>
-          ({
-            callee: { name: 'FLOAT' },
-            type: JSEPNode.CALL_EXP,
-            arguments: [slot],
-          } as CallExpressionNode as ParsedFormulaNode),
+      fnSlots(pt).map((slot) =>
+        isCallTo(slot, 'FLOAT')
+          ? slot
+          : ({
+              callee: { name: 'FLOAT' },
+              type: JSEPNode.CALL_EXP,
+              arguments: [slot],
+            } as CallExpressionNode as ParsedFormulaNode),
       ),
     );
   }

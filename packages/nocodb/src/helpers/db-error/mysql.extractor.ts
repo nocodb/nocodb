@@ -96,7 +96,8 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
         break;
       case 'ER_PARSE_ERROR':
-        message = 'There was a syntax error in your SQL query.';
+        message =
+          "This request couldn't be processed by the database. Please review your input and try again.";
         break;
       case 'ER_NO_DEFAULT_FOR_FIELD':
         message = 'A value is required for this field.';

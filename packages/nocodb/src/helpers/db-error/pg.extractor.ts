@@ -123,7 +123,8 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         break;
       }
       case '42601':
-        message = 'There was a syntax error in your SQL query.';
+        message =
+          "This request couldn't be processed by the database. Please review your input and try again.";
         break;
       case '23502': {
         // not_null_violation. Surface the generic message and expose the

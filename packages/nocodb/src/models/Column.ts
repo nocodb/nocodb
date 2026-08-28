@@ -47,6 +47,7 @@ import {
   clearSingleQueryCacheForColumnReferences,
   clearSingleQueryCacheForRenamedColumnReferences,
 } from '~/helpers/singleQueryCacheInvalidator';
+import { clearFormulaPlanCache } from '~/db/formulav2/plan/plan-cache';
 import { NcCache } from '~/decorators/nc-cache.decorator';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { getReplay, isReplay } from '~/helpers/replayScope';
@@ -296,6 +297,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
+    await clearFormulaPlanCache(context, column.fk_model_id);
 
     cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
       logger.error('Failed to clean base schema cache');
@@ -1274,6 +1276,7 @@ export default class Column<T = any> implements ColumnType {
     // on column delete, delete any optimised single query cache
     {
       await View.clearSingleQueryCache(context, col.fk_model_id, null, ncMeta);
+      await clearFormulaPlanCache(context, col.fk_model_id);
     }
 
     cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
@@ -1337,6 +1340,7 @@ export default class Column<T = any> implements ColumnType {
         null,
         ncMeta,
       );
+      await clearFormulaPlanCache(context, oldCol.fk_model_id);
 
       // title/description are part of the EE base schema snapshot
       cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
@@ -1656,6 +1660,7 @@ export default class Column<T = any> implements ColumnType {
 
     // on column update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, oldCol.fk_model_id, null, ncMeta);
+    await clearFormulaPlanCache(context, oldCol.fk_model_id);
 
     const updatedColumn = await Column.get(context, { colId }, ncMeta);
     if (!skipFormulaInvalidate) {
@@ -1840,6 +1845,7 @@ export default class Column<T = any> implements ColumnType {
     const column = await Column.get(context, { colId }, ncMeta);
 
     await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
+    await clearFormulaPlanCache(context, column.fk_model_id);
   }
 
   public getValidators(): any {

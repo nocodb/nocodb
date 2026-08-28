@@ -48,6 +48,11 @@ import {
   maxStatementBytes,
   triageFormula,
 } from '~/db/formulav2/plan';
+import {
+  formulaPlanCacheField,
+  getFormulaPlanCache,
+  setFormulaPlanCache,
+} from '~/db/formulav2/plan/plan-cache';
 import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
@@ -545,6 +550,11 @@ export default async function formulaQueryBuilderv2({
       knex.clientType() === 'pg' &&
       typeof knex.cteGenerator === 'function';
 
+    // One resolver for the whole build. Triage and the full plan walk the same
+    // reference closure and the memo is per instance, so a second resolver
+    // would resolve every column in that closure a second time.
+    const resolveColumnMeta = makeColumnMetaResolver(context);
+
     /**
      * Plan the tree and, if the plan asks for it, build the optimized form.
      * Returns the build, or null when the plan had nothing to apply — the
@@ -553,7 +563,7 @@ export default async function formulaQueryBuilderv2({
     const buildOptimized = async (tree: unknown, measuredBytes?: number) => {
       hoistPlan = await buildFormulaPlan({
         tree,
-        resolve: makeColumnMetaResolver(context),
+        resolve: resolveColumnMeta,
         ieee: isPgIeeeEnabled(knex),
         fnVariants: buildHints?.fnVariants,
       }).catch(() => null);
@@ -622,13 +632,49 @@ export default async function formulaQueryBuilderv2({
     // so an ordinary formula reaches this with no metadata reads at all.
     let estimatedBytes: number | undefined;
     if (canGate) {
-      const triage = await triageFormula(rootTree, {
-        clientType: knex.clientType() as ClientType,
-        pgIeee: isPgIeeeEnabled(knex),
-        fnVariants: buildHints?.fnVariants,
-        resolve: makeColumnMetaResolver(context),
-        plainBytes: makePlainLeafSizer(columns, tableAlias ?? model.table_name),
-      });
+      // Cacheable only when the tree came FROM the column. A caller-supplied
+      // `parsedTree` is the column-add/update validation path, where the tree
+      // being sized is the CANDIDATE formula while `column.id` still names the
+      // stored one — keying on that id would serve a decision measured against
+      // a different expression.
+      const cacheable = !parsedTree && !!column?.id && !!model?.id;
+      const cacheField = cacheable
+        ? formulaPlanCacheField({
+            columnId: column.id,
+            clientType: knex.clientType() as ClientType,
+            ieee: isPgIeeeEnabled(knex),
+            // sizing reads the alias's LENGTH, so that is what separates entries
+            aliasLength: (tableAlias ?? model.table_name ?? '').length,
+            fnVariants: buildHints?.fnVariants,
+          })
+        : null;
+
+      let triage = cacheField
+        ? await getFormulaPlanCache(context, {
+            modelId: model.id,
+            field: cacheField,
+          })
+        : null;
+
+      if (!triage) {
+        triage = await triageFormula(rootTree, {
+          clientType: knex.clientType() as ClientType,
+          pgIeee: isPgIeeeEnabled(knex),
+          fnVariants: buildHints?.fnVariants,
+          resolve: resolveColumnMeta,
+          plainBytes: makePlainLeafSizer(
+            columns,
+            tableAlias ?? model.table_name,
+          ),
+        });
+        if (cacheField) {
+          await setFormulaPlanCache(context, {
+            modelId: model.id,
+            field: cacheField,
+            triage,
+          });
+        }
+      }
       // Only act on a SIZED estimate. Unsized it is a floor, and a floor that
       // happens to clear the threshold says nothing about the real size.
       if (triage.estimateIsSized) estimatedBytes = triage.estimatedBytes;

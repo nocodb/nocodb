@@ -521,6 +521,13 @@ export enum CacheScope {
   // _v4: lookup-of-LTAR payloads now include the custom display value column —
   // queries compiled before that fix would keep serving pk+pv-only JSON.
   SINGLE_QUERY = 'singleQuery_v4',
+  // Pre-build formula plan decisions (`FormulaTriage`), one hash per model.
+  // Deliberately NOT a field of SINGLE_QUERY: that hash is cleared by filter,
+  // sort, view and RLS changes, none of which can change a formula's plan, and
+  // the plan is only ever read on a single-query MISS — sharing the key would
+  // drop it on exactly the churn it is supposed to survive.
+  // Versioned suffix, same as SINGLE_QUERY: bump when the cached shape changes.
+  FORMULA_PLAN = 'formulaPlan_v1',
   JOBS = 'nc_jobs',
   JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',

@@ -9,6 +9,7 @@ import type {
   ICteScope,
 } from '~/db/cte-generator/types';
 import { BaseUserGeneralCte } from '~/db/cte-generator/base-user.general.cte';
+import { LookupGeneralCte } from '~/db/cte-generator/lookup.general.cte';
 import { Base } from '~/models';
 const CLIENT_DEFAULT = '_default';
 
@@ -20,6 +21,9 @@ export class CTEGenerator implements ICTEGenerator {
   cteModules = {
     baseUser: {
       [CLIENT_DEFAULT]: BaseUserGeneralCte,
+    },
+    lookup: {
+      [CLIENT_DEFAULT]: LookupGeneralCte,
     },
   };
 

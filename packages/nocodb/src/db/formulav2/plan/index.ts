@@ -1,3 +1,4 @@
 export * from './types';
-export * from './estimate-cost';
+export * from './thresholds';
 export * from './build-plan';
+export * from './column-meta-resolver';

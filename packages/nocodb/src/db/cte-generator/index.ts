@@ -3,7 +3,11 @@ import type { NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Source } from '~/models';
-import type { ICteBlock, ICTEGenerator } from '~/db/cte-generator/types';
+import type {
+  ICteBlock,
+  ICTEGenerator,
+  ICteScope,
+} from '~/db/cte-generator/types';
 import { BaseUserGeneralCte } from '~/db/cte-generator/base-user.general.cte';
 import { Base } from '~/models';
 const CLIENT_DEFAULT = '_default';
@@ -66,6 +70,30 @@ export class CTEGenerator implements ICTEGenerator {
   customCte(cteBlock: ICteBlock) {
     this.blocks.set(cteBlock.alias, cteBlock);
     return cteBlock;
+  }
+
+  openScope(): ICteScope {
+    const owned = new Map<string, ICteBlock>();
+    const blocks = this.blocks;
+    return {
+      add(cteBlock: ICteBlock) {
+        const existing = owned.get(cteBlock.alias);
+        if (existing) return existing;
+        owned.set(cteBlock.alias, cteBlock);
+        blocks.set(cteBlock.alias, cteBlock);
+        return cteBlock;
+      },
+      get aliases() {
+        return [...owned.keys()];
+      },
+      rollback() {
+        for (const alias of owned.keys()) blocks.delete(alias);
+        owned.clear();
+      },
+      restore() {
+        for (const [alias, cteBlock] of owned) blocks.set(alias, cteBlock);
+      },
+    };
   }
 
   applyCte(qb: Knex.QueryInterface) {

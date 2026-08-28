@@ -1,5 +1,5 @@
 import { NcErrorType } from 'nocodb-sdk';
-import { DBError } from './utils';
+import { DBError, DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
@@ -47,6 +47,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
     let message: string;
     let _extra: Record<string, any>;
     let _type: DBError;
+    let _kind: DBErrorKind;
     let httpStatus = 422;
 
     // todo: handle not null constraint error for all databases
@@ -125,6 +126,9 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       case '42601':
         message =
           "This request couldn't be processed by the database. Please review your input and try again.";
+        // we generate the SQL, so a syntax error is our defect — must reach
+        // the log. knex has already prefixed the query onto `error.message`.
+        _kind = DBErrorKind.UNKNOWN;
         break;
       case '23502': {
         // not_null_violation. Surface the generic message and expose the
@@ -389,6 +393,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       code: error.code,
       httpStatus,
       ...(_extra && { details: _extra }),
+      ...(_kind && { kind: _kind }),
     };
   }
 }

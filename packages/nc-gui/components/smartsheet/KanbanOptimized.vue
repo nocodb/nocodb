@@ -1956,6 +1956,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             type="text"
                             size="xs"
                             class="!px-1.5 mt-0.5"
+                            :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi }"
                             data-testid="nc-kanban-stack-collapse-btn"
                             @click="handleCollapseStack(getAbsStackIdx(relStackIdx))"
                           >
@@ -1967,15 +1968,18 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                           class="bg-nc-bg-default !rounded-lg"
                         >
-                          <NcButton
-                            :disabled="compareStack(stack, isSavingStack)"
-                            type="text"
-                            size="xs"
-                            class="!px-1.5 mt-0.5"
-                            data-testid="nc-kanban-stack-context-menu"
-                          >
-                            <GeneralIcon icon="threeDotVertical" />
-                          </NcButton>
+                          <template #default="{ visible }">
+                            <NcButton
+                              :disabled="compareStack(stack, isSavingStack)"
+                              type="text"
+                              size="xs"
+                              class="!px-1.5 mt-0.5"
+                              :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi && !visible }"
+                              data-testid="nc-kanban-stack-context-menu"
+                            >
+                              <GeneralIcon icon="threeDotVertical" />
+                            </NcButton>
+                          </template>
 
                           <template #overlay>
                             <NcMenu :variant="interfacePageDataApi ? 'medium' : 'small'">
@@ -2381,6 +2385,38 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           </template>
                         </Draggable>
 
+                        <!-- Interface: "New record" flows after the last card (no pinned stack footer) -->
+                        <PermissionsTooltip
+                          v-if="
+                            interfacePageDataApi &&
+                            formattedData.get(stack.title)?.length &&
+                            isUIAllowed('dataInsert') &&
+                            !isSyncedTable &&
+                            canAddDeleteRows
+                          "
+                          :entity="PermissionEntity.TABLE"
+                          :entity-id="meta?.id"
+                          :permission="PermissionKey.TABLE_RECORD_ADD"
+                        >
+                          <template #default="{ isAllowed }">
+                            <NcButton
+                              v-e="['c:kanban:inline-new-record']"
+                              size="small"
+                              type="text"
+                              class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
+                              :disabled="!isAllowed"
+                              data-testid="nc-kanban-stack-inline-new-record"
+                              @click="handleOpenNewRecordForm(stack.title)"
+                            >
+                              <div class="w-full flex items-center gap-2">
+                                <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+
+                                {{ $t('activity.newRecord') }}
+                              </div>
+                            </NcButton>
+                          </template>
+                        </PermissionsTooltip>
+
                         <!-- Empty state. Requires loaded data: an unloaded stack rendered mid-drag (skeleton
                              suppressed) isn't known to be empty, so show a plain droppable column instead. -->
                         <div
@@ -2424,11 +2460,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         </div>
                       </div>
                     </a-layout-content>
+                    <!-- Interface pages have no pinned footer — "New record" rides inline after the last card -->
                     <a-layout-footer
-                      v-if="
-                        formattedData.get(stack.title) &&
-                        (!interfacePageDataApi || (isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows))
-                      "
+                      v-if="formattedData.get(stack.title) && !interfacePageDataApi"
                       class="border-t-1 border-nc-border-gray-light"
                     >
                       <div class="flex items-center justify-between">
@@ -2837,30 +2871,19 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 
 // Interfaces read collapsed stacks TOP-TO-BOTTOM (reference design) — the
 // +90deg/translateY pair occupies the exact same 52px strip as the base.
-// The strip itself is a flat gray column: tinted fill, no border, square
-// corners (the base keeps its white bordered card look).
+// The card itself is transparent: the STRIP (the full-height stack wrapper
+// below) carries the gray fill, so the column is one shade from the header
+// down to the frame bottom (the base keeps its white bordered card look).
 .nc-kanban-collapsed-stack-reading-down {
   transform: rotate(90deg) translateY(-100%);
-  @apply !bg-nc-bg-gray-light !border-none !rounded-none;
+  @apply !bg-transparent !border-none !rounded-none;
 }
 
-// Adjacent interface collapsed strips sit 2px apart with a gray divider
-// filling the seam (reference design). The divider is a box-shadow — NOT a
-// border — so it occupies no layout space and leaves the bar's content
-// centering untouched; it rotates with the card, so the pre-transform
-// "below the bar" offset renders at the strip's LEFT edge.
-// Every interface collapsed strip draws the 1.5px divider on its RIGHT edge —
-// the card is rotated 90°, so a shadow above the bar's TOP renders there.
-// Between strips it fills the seam; on the last strip it closes the cluster.
-.nc-kanban-stack-interface-collapsed .nc-kanban-collapsed-stack-reading-down {
-  box-shadow: 0 -1.5px 0 0 var(--nc-border-gray-medium) !important;
-}
-
-// NOTE: the interface kanban themes zero the stacks container's flex gap
-// (.nc-kanban-theme-* { gap: 0 }), so this margin IS the seam — it does not
-// net against gap-3 like the classic board would.
-.nc-kanban-stack-interface-collapsed + .nc-kanban-stack-interface-collapsed {
-  margin-left: 1.5px;
+// One flat gray column per collapsed strip — the theme's full-height
+// .nc-kanban-stack border-right is the only divider between strips, so the
+// seam line runs unbroken instead of stopping where the rotated card ends.
+.nc-kanban-stack-interface-collapsed {
+  background: var(--nc-bg-gray-light);
 }
 
 :deep(.slick-dots li button) {
@@ -3112,5 +3135,27 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 .ant-card.nc-interface-card-selected,
 .ant-card.nc-interface-card-selected:hover {
   border-color: var(--nc-border-brand) !important;
+}
+
+// Interface stack-header actions (collapse / menu): hover-revealed. The open
+// context menu keeps its trigger visible by dropping this class (see template).
+.nc-kanban-stack-hover-action {
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+
+.nc-kanban-stack-head:hover .nc-kanban-stack-hover-action {
+  opacity: 1;
+}
+
+// No hover on touch — these would be permanently unreachable.
+@media (hover: none) {
+  .nc-kanban-stack-hover-action {
+    opacity: 1;
+  }
 }
 </style>

@@ -845,6 +845,7 @@ const permissionDescriptions: Record<string, string> = {
   orgWorkspaceAdd: 'add a new workspace',
   orgGet: 'view organization details',
   orgWorkspaceList: 'view list of workspaces in the organization',
+  orgUsageList: 'view per-workspace usage across the organization',
   orgUserList: 'view list of users in the organization',
   orgBaseList: 'view list of bases in the organization',
   orgSsoClientList: 'view list of SSO clients in the organization',

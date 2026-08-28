@@ -33,6 +33,12 @@ const tabItems = computed<TabItem[]>(() => {
       hidden: !wsTabVisibility.value.billing,
     },
     {
+      key: 'usage',
+      icon: 'ncBarChart2',
+      label: t('general.usage'),
+      hidden: !wsTabVisibility.value.usage,
+    },
+    {
       key: 'audits',
       icon: 'audit',
       label: t('title.audits'),

@@ -23,6 +23,12 @@ import {
   wrapFormulaWithMaxLength,
 } from './formula-query-builder.helpers';
 import type { ClientType, LiteralNode } from 'nocodb-sdk';
+import type { ICteScope } from '~/db/cte-generator/types';
+import {
+  buildFormulaPlan,
+  hoistAboveBytes,
+  makeColumnMetaResolver,
+} from '~/db/formulav2/plan';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
@@ -158,6 +164,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               getAliasCount,
               column: col,
               columns,
+              cteScope: params.cteScope,
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -506,6 +513,8 @@ export default async function formulaQueryBuilderv2({
   baseUsers,
   parentColumns,
   columns,
+  cteScope,
+  disableCteHoist,
 }: {
   baseModel: IBaseModelSqlV2;
   tree;
@@ -518,6 +527,13 @@ export default async function formulaQueryBuilderv2({
   parsedTree?: any;
   baseUsers?: (Partial<User> & BaseUser)[];
   parentColumns?: CircularRefContext;
+  cteScope?: ICteScope;
+  /**
+   * Refuse to hoist even above the threshold. Set by callers that stringify
+   * the whole statement before `execAndParse`, where `applyCte` is skipped and
+   * the registered blocks would dangle.
+   */
+  disableCteHoist?: boolean;
   columns?: Column[];
 }) {
   const knex = baseModelSqlv2.dbDriver;
@@ -562,11 +578,68 @@ export default async function formulaQueryBuilderv2({
       parentColumns,
       columns,
       getAliasCount,
+      cteScope,
     });
     let sqlLength = 0;
     try {
       sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;
     } catch (ex) {}
+
+    // Gate: rebuild with CTE hoisting once the MEASURED length gets close to
+    // the cap. Deliberately not predicted — per-leaf-path SQL size varies ~97×
+    // between schemas, so any estimate is either useless or rejects working
+    // formulas. Below the threshold this block never runs and the emitted SQL
+    // is the same object today produces.
+    let hoistScope: ICteScope | undefined;
+    if (
+      !cteScope &&
+      !disableCteHoist &&
+      sqlLength > hoistAboveBytes() &&
+      knex.clientType() === 'pg' &&
+      typeof knex.cteGenerator === 'function'
+    ) {
+      const plan = await buildFormulaPlan({
+        tree: qb?.parsedTree,
+        resolve: makeColumnMetaResolver(context),
+      }).catch(() => null);
+
+      // ratio ≈ 1 means every operand is referenced once — hoisting would
+      // rewrite the SQL for no saving, so leave it and let the cap error stand
+      if (plan?.worthHoisting) {
+        const scope = knex.cteGenerator(context).openScope();
+        try {
+          const rebuilt = await _formulaQueryBuilder({
+            baseModelSqlv2,
+            _tree,
+            model,
+            aliasToColumn: {},
+            tableAlias,
+            columnIdToUidt: {},
+            column,
+            parsedTree: qb?.parsedTree,
+            baseUsers,
+            parentColumns,
+            columns,
+            getAliasCount,
+            cteScope: scope,
+          });
+          const rebuiltLength = rebuilt?.builder?.toSQL?.().sql?.length ?? 0;
+          if (rebuiltLength > 0 && rebuiltLength < sqlLength) {
+            qb = rebuilt;
+            sqlLength = rebuiltLength;
+            hoistScope = scope;
+          } else {
+            // no saving materialised — discard every block this attempt added
+            scope.rollback();
+          }
+        } catch (ex) {
+          // all-or-nothing: a partially registered set would leave the next
+          // query referencing aliases with no WITH clause
+          scope.rollback();
+          logger.log(ex);
+        }
+      }
+    }
 
     // we limit the formula length to 500k to prevent server crashing
     if (sqlLength > 500 * 1000) {
@@ -617,13 +690,22 @@ export default async function formulaQueryBuilderv2({
 
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
-    await baseModelSqlv2.execAndParse(
-      knex(baseModelSqlv2.getTnPath(model, tableAlias))
-        .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
-        .as('dry-run-only'),
-      null,
-      { raw: true },
-    );
+    try {
+      await baseModelSqlv2.execAndParse(
+        knex(baseModelSqlv2.getTnPath(model, tableAlias))
+          .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
+          .as('dry-run-only'),
+        null,
+        { raw: true },
+      );
+    } finally {
+      // execAndParse runs applyCte, which APPLIES the registered blocks to the
+      // dry-run query and then clears them — so the real query that embeds
+      // this same expression would reference aliases with no WITH clause.
+      // Put them back. `validateFormula` is not a create-time-only path: the
+      // ordinary read retries with it whenever a formula query fails.
+      hoistScope?.restore();
+    }
 
     // if column is provided, i.e. formula has been created
     if (column) {

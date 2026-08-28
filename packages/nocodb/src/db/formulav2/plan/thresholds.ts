@@ -8,9 +8,11 @@ export const MAX_GENERATED_SQL_BYTES = 500 * 1000;
  * by ~97× between schemas (identifier lengths, junction joins and per-hop
  * filters dominate), so nothing here is derived from path counts.
  */
-export const HOIST_ABOVE_BYTES = process.env.NC_FORMULA_CTE_HOIST_BYTES
-  ? +process.env.NC_FORMULA_CTE_HOIST_BYTES
-  : 200 * 1000;
+export function hoistAboveBytes() {
+  return process.env.NC_FORMULA_CTE_HOIST_BYTES
+    ? +process.env.NC_FORMULA_CTE_HOIST_BYTES
+    : 200 * 1000;
+}
 
 /**
  * Minimum inline:hoisted leaf-path ratio worth rebuilding for. A formula

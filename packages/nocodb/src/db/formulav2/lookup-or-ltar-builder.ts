@@ -33,6 +33,83 @@ import { getRefColumnIfAlias } from '~/helpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
+import {
+  buildLookupCteBlock,
+  CTE_KEY,
+  CTE_VALUE,
+  lookupCteAlias,
+} from '~/db/cte-generator/lookup.general.cte';
+
+/**
+ * Emit a lookup-onto-Formula target as a keyed CTE block and return a scalar
+ * sub-query reading it. Keyed on the *formula* column, so two different
+ * lookups pointing at the same target formula share one block.
+ *
+ * The block computes the formula against its own standalone alias; the chain
+ * that reaches it stays correlated exactly as before, so nothing about hop
+ * joins, soft-delete filters or junction handling changes.
+ */
+async function hoistFormulaLookup({
+  cteScope,
+  knex,
+  context,
+  dbQueryClient,
+  lookupColumn,
+  lookupModel,
+  columns,
+  formulaOption,
+  parentColumns,
+  params,
+  _formulaQueryBuilder,
+  prevAlias,
+  blockAlias,
+}: any): Promise<{ builder: any } | null> {
+  const keyColumn = lookupModel.primaryKey?.column_name;
+  // Without a single-column PK there is no key to join the block on.
+  if (!keyColumn) return null;
+
+  const alias = lookupCteAlias({ columnId: lookupColumn.id });
+  const existing = cteScope.aliases.includes(alias);
+
+  if (!existing) {
+    const { builder: expr } = await _formulaQueryBuilder({
+      ...params,
+      _tree: formulaOption.formula,
+      model: lookupModel,
+      parsedTree: formulaOption.getParsedTree(),
+      parentColumns,
+      tableAlias: blockAlias,
+      column: lookupColumn,
+      columns,
+    });
+
+    const lookupBaseModel = await Model.getBaseModelSQL(context, {
+      model: lookupModel,
+      dbDriver: knex,
+    });
+
+    const select = knex(
+      dbQueryClient.tableAlias(
+        knex,
+        lookupBaseModel.getTnPath(lookupModel.table_name),
+        blockAlias,
+      ),
+    )
+      .select(knex.raw('?? as ??', [`${blockAlias}.${keyColumn}`, CTE_KEY]))
+      .select(knex.raw('? as ??', [expr, CTE_VALUE]));
+
+    cteScope.add(buildLookupCteBlock({ alias, select }));
+  }
+
+  return {
+    builder: knex.raw('(select ?? from ?? where ?? = ??)', [
+      `${alias}.${CTE_VALUE}`,
+      alias,
+      `${alias}.${CTE_KEY}`,
+      `${prevAlias}.${keyColumn}`,
+    ]),
+  };
+}
 
 export const lookupOrLtarBuilder =
   (
@@ -724,16 +801,43 @@ export const lookupOrLtarBuilder =
               title: lookupColumn.title,
               table: lookupModel?.title,
             });
-            const { builder } = await _formulaQueryBuilder({
-              ...params,
-              _tree: formulaOption.formula,
-              model: lookupModel,
-              parsedTree: formulaOption.getParsedTree(),
-              parentColumns,
-              tableAlias: prevAlias,
-              column: lookupColumn,
-              columns,
-            });
+
+            // This is where generated SQL multiplies: embedding the target
+            // formula inlines its whole expression, whose own lookups inline
+            // theirs. Hoisted, each target formula is written once as a keyed
+            // block and every reference site shrinks to a scalar sub-query.
+            // The recursive `_formulaQueryBuilder` call carries the scope, so
+            // deeper alternation levels hoist themselves.
+            const hoisted = params.cteScope
+              ? await hoistFormulaLookup({
+                  cteScope: params.cteScope,
+                  knex,
+                  context,
+                  dbQueryClient,
+                  lookupColumn,
+                  lookupModel,
+                  columns,
+                  formulaOption,
+                  parentColumns,
+                  params,
+                  _formulaQueryBuilder,
+                  prevAlias,
+                  blockAlias: `__nc_cte${getAliasCount()}`,
+                })
+              : null;
+
+            const { builder } =
+              hoisted ??
+              (await _formulaQueryBuilder({
+                ...params,
+                _tree: formulaOption.formula,
+                model: lookupModel,
+                parsedTree: formulaOption.getParsedTree(),
+                parentColumns,
+                tableAlias: prevAlias,
+                column: lookupColumn,
+                columns,
+              }));
             if (isArray) {
               const qb = selectQb;
               selectQb = (fn) =>

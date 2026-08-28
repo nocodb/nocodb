@@ -11,11 +11,11 @@ import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../mapFunctionName';
 import {
   coalesceNumericOperand,
-  ieeeDivisionSql,
   ieeeModuloSql,
   isPgIeeeEnabled,
   stripNaNSql,
 } from './pg-ieee';
+import { fnKeyOf, getFnHandler } from './fn-handler';
 import type {
   BinaryExpressionNode,
   ComparisonOperator,
@@ -26,6 +26,7 @@ import type {
 import type { Model } from 'src/models';
 import type {
   FnParsedTreeNode,
+  FormulaBuildHints,
   TAliasToColumn,
 } from './formula-query-builder.types';
 import type CustomKnex from '../CustomKnex';
@@ -346,6 +347,7 @@ export const binaryExpressionBuilder = async ({
   columnIdToUidt,
   aliasToColumn,
   model,
+  buildHints,
 }: {
   context: NcContext;
   pt: BinaryExpressionNode;
@@ -358,6 +360,7 @@ export const binaryExpressionBuilder = async ({
   columnIdToUidt: Record<string, UITypes>;
   aliasToColumn: TAliasToColumn;
   model: Model;
+  buildHints?: FormulaBuildHints;
 }) => {
   // treat `&` as shortcut for concat
   if (pt.operator === '&') {
@@ -473,44 +476,43 @@ export const binaryExpressionBuilder = async ({
     }
   }
 
-  // The `/` rewrite below replaces the operand nodes with FLOAT() wrappers that
-  // carry no dataType, so capture the operand types first.
+  // A registered lowering owns its whole generation — operand wrapping,
+  // blank-as-zero and the emitted form — in one class per variant. `buildHints`
+  // can pin the variant; otherwise it follows the dialect. Operators with no
+  // handler fall through to the inline handling below.
+  const fnHandler = getFnHandler(fnKeyOf(pt), {
+    pgIeee: isPgIeeeEnabled(knex),
+    fnVariants: buildHints?.fnVariants,
+  });
+
+  // `prepareTree` replaces the operand nodes with FLOAT() wrappers that carry no
+  // dataType, so capture the operand types first.
   const leftDataType = pt.left.dataType;
   const rightDataType = pt.right.dataType;
 
-  if (pt.operator === '/') {
-    pt.left = {
-      callee: { name: 'FLOAT' },
-      type: JSEPNode.CALL_EXP,
-      arguments: [pt.left],
-    };
-    pt.right = {
-      callee: { name: 'FLOAT' },
-      type: JSEPNode.CALL_EXP,
-      arguments: [pt.right],
-    };
-  }
+  fnHandler?.prepareTree(pt);
+
   assignFnName(pt.left as FnParsedTreeNode);
   assignFnName(pt.right as FnParsedTreeNode);
 
   let left = (await fn(pt.left, pt.operator)).builder.toQuery();
   let right = (await fn(pt.right, pt.operator)).builder.toQuery();
 
-  // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
-  // Applied in every mode, not just display: if display coalesced but sort did
-  // not, a blank operand would render as a number yet sort as NULL.
-  if (
+  if (fnHandler) {
+    [left, right] = fnHandler.prepareOperands([left, right], knex);
+  } else if (
+    // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
+    // Applied in every mode, not just display: if display coalesced but sort did
+    // not, a blank operand would render as a number yet sort as NULL. `/` is
+    // absent from the list — its handler owns the rule; the same goes for any
+    // operator that moves into fn-handler.
     isPgIeeeEnabled(knex) &&
-    ['+', '-', '*', '/', '%', '<', '>', '<=', '>=', '=', '!='].includes(
-      pt.operator,
-    )
+    ['+', '-', '*', '%', '<', '>', '<=', '>=', '=', '!='].includes(pt.operator)
   ) {
-    // `/` operands are numeric by construction — FLOAT()-wrapped above.
-    const isDivision = pt.operator === '/';
-    if (isDivision || leftDataType === FormulaDataTypes.NUMERIC) {
+    if (leftDataType === FormulaDataTypes.NUMERIC) {
       left = coalesceNumericOperand(left, knex);
     }
-    if (isDivision || rightDataType === FormulaDataTypes.NUMERIC) {
+    if (rightDataType === FormulaDataTypes.NUMERIC) {
       right = coalesceNumericOperand(right, knex);
     }
   }
@@ -715,46 +717,24 @@ export const binaryExpressionBuilder = async ({
         isMssql || isOracle
           ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
           : `(CASE WHEN ${sql} THEN true ELSE false END )`;
-    } else if (pt.operator === '/' && isPgIeeeEnabled(knex)) {
-      // Operands are already DOUBLE PRECISION via the FLOAT() wrap above, so
-      // the IEEE branches unify as float8 — `numeric` could not hold Infinity
-      // before PG 14.
-      // Always the IEEE form: a divide-by-zero is a value, not a mode. The
-      // one consumer that cannot take it — aggregation — drops non-finite rows
-      // at its own site (excludeNonFiniteSql), so nothing has to be threaded
-      // through the recursion here.
-      sql = ieeeDivisionSql(left, right);
+    } else if (fnHandler) {
+      sql = await fnHandler.emit({
+        context,
+        pt,
+        operands: [left, right],
+        knex,
+        fn,
+        prevBinaryOp,
+        aliasToColumn,
+        columnIdToUidt,
+        model,
+        compileCall: callExpressionBuilder,
+      });
     } else if (pt.operator === '%' && isPgIeeeEnabled(knex)) {
       // `%` is the operator spelling of MOD(), so it gets MOD's lowering. It
       // needs it: the COALESCE above turns a blank divisor into a literal 0,
       // which pg rejects with `division by zero` instead of returning NULL.
       sql = ieeeModuloSql(left, right);
-    } else if (pt.operator === '/') {
-      // handle divide by zero
-      const right = await callExpressionBuilder({
-        context,
-        pt: {
-          callee: { name: 'NULLIF', type: 'Identifier' },
-          dataType: FormulaDataTypes.NUMERIC,
-          type: JSEPNode.CALL_EXP,
-          arguments: [
-            pt.right,
-            {
-              type: JSEPNode.LITERAL,
-              dataType: FormulaDataTypes.NUMERIC,
-              value: 0,
-              raw: '0',
-            },
-          ],
-        } as CallExpressionNode,
-        fn,
-        prevBinaryOp,
-        aliasToColumn,
-        knex,
-        model,
-        columnIdToUidt,
-      });
-      sql = `${left} ${pt.operator} ${right.builder}`;
     } else {
       sql = `${sql} `;
     }

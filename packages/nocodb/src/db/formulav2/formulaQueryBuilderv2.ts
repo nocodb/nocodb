@@ -30,10 +30,12 @@ import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
 import type {
   FnParsedTreeNode,
+  FormulaBuildHints,
   FormulaQueryBuilderBaseParams,
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import { isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import {
   buildFormulaPlan,
   hoistAboveBytes,
@@ -167,6 +169,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               column: col,
               columns,
               cteScope: params.cteScope,
+              buildHints: params.buildHints,
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -473,6 +476,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         prevBinaryOp,
         aliasToColumn,
         model,
+        buildHints: params.buildHints,
       });
     } else if (pt.type === 'UnaryExpression') {
       let query;
@@ -517,6 +521,7 @@ export default async function formulaQueryBuilderv2({
   columns,
   cteScope,
   disableCteHoist,
+  buildHints,
 }: {
   baseModel: IBaseModelSqlV2;
   tree;
@@ -537,6 +542,8 @@ export default async function formulaQueryBuilderv2({
    */
   disableCteHoist?: boolean;
   columns?: Column[];
+  /** pins on how the expression is generated — see FormulaBuildHints */
+  buildHints?: FormulaBuildHints;
 }) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -581,6 +588,7 @@ export default async function formulaQueryBuilderv2({
       columns,
       getAliasCount,
       cteScope,
+      buildHints,
     });
     let sqlLength = 0;
     try {
@@ -605,7 +613,27 @@ export default async function formulaQueryBuilderv2({
       hoistPlan = await buildFormulaPlan({
         tree: qb?.parsedTree,
         resolve: makeColumnMetaResolver(context),
+        ieee: isPgIeeeEnabled(knex),
+        fnVariants: buildHints?.fnVariants,
       }).catch(() => null);
+
+      // Duplication is a multiplier on the expression text, so hoisting — which
+      // only dedupes references — cannot bring it back under the cap. Recorded
+      // here so the shape is visible before it trips the cap below; acting on
+      // it is a separate change.
+      if (hoistPlan?.duplicationDominant) {
+        logger.warn(
+          `Formula ${
+            column?.id ?? 'preview'
+          } is duplication-bound: operand duplication multiplies it ${hoistPlan.duplicationFactor.toFixed(
+            1,
+          )}x (chain depth ${
+            hoistPlan.maxDuplicationChain
+          }), while hoisting can recover at most ${hoistPlan.reductionRatio.toFixed(
+            1,
+          )}x.`,
+        );
+      }
 
       // ratio ≈ 1 means every operand is referenced once — hoisting would
       // rewrite the SQL for no saving, so leave it and let the cap error stand
@@ -626,6 +654,7 @@ export default async function formulaQueryBuilderv2({
             columns,
             getAliasCount,
             cteScope: scope,
+            buildHints,
           });
           const rebuiltLength = rebuilt?.builder?.toSQL?.().sql?.length ?? 0;
           if (rebuiltLength > 0 && rebuiltLength < sqlLength) {
@@ -689,6 +718,21 @@ export default async function formulaQueryBuilderv2({
             .slice(0, 3)
             .map((r) => r.columnId)
         : [];
+      // "reduce the referenced fields" is the wrong advice when a duplicating
+      // operator is the multiplier — the field count is fine and nesting is
+      // what grew. Name the operators instead.
+      const duplication = hoistPlan?.duplicationDominant
+        ? ` Operands repeated by ${[
+            ...new Set(hoistPlan.duplicatingSites.map((site) => site.kind)),
+          ]
+            .slice(0, 3)
+            .join(', ')} multiply it ${hoistPlan.duplicationFactor.toFixed(
+            0,
+          )}x` +
+          (hoistPlan.maxDuplicationChain > 1
+            ? `, and nesting them (${hoistPlan.maxDuplicationChain} deep here) multiplies again at every level.`
+            : '.')
+        : '';
       const detail =
         (hoistPlan
           ? ` This formula reaches ${hoistPlan.inlineLeafPaths} referenced fields` +
@@ -696,6 +740,7 @@ export default async function formulaQueryBuilderv2({
               ? `; the heaviest are ${heaviest.join(', ')}.`
               : '.')
           : '') +
+        duplication +
         (statementLength > maxStatementBytes()
           ? ` The full statement is ${Math.round(statementLength / 1000)}kb.`
           : '');

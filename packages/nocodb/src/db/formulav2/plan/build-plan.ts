@@ -1,5 +1,8 @@
 import { UITypes } from 'nocodb-sdk';
-import { MIN_HOIST_RATIO } from './thresholds';
+import { DUPLICATION_DOMINANT_FACTOR, MIN_HOIST_RATIO } from './thresholds';
+import { collectWeightedSites } from './duplication';
+import type { DuplicatingSite } from './duplication';
+import type { FnHandlerKey, FnVariant } from '~/db/formulav2/fn-handler';
 import type {
   FormulaPlan,
   PlanColumnMeta,
@@ -15,34 +18,26 @@ const HOISTABLE_UIDTS = new Set<UITypes>([
 ]);
 
 /** Identifier sites in a parsed tree, in encounter order. Skips callee names. */
-function collectSites(tree: unknown, out: string[] = []): string[] {
-  if (!tree || typeof tree !== 'object') return out;
-  if (Array.isArray(tree)) {
-    for (const item of tree) collectSites(item, out);
-    return out;
-  }
-  const node = tree as Record<string, unknown>;
-  if (node.type === 'Identifier' && typeof node.name === 'string') {
-    out.push(node.name);
-    return out;
-  }
-  for (const key of Object.keys(node)) {
-    if (key === 'callee') continue;
-    const child = node[key];
-    if (child && typeof child === 'object') collectSites(child, out);
-  }
-  return out;
+function collectSites(tree: unknown): string[] {
+  return collectWeightedSites(tree).sites.map((site) => site.name);
 }
 
 export async function buildFormulaPlan({
   tree,
   resolve,
   minRatio = MIN_HOIST_RATIO,
+  ieee = false,
+  fnVariants,
 }: {
   tree: unknown;
   resolve: PlanMetaResolver;
   minRatio?: number;
+  /** the pg IEEE lowerings are in force — enables duplication detection */
+  ieee?: boolean;
+  /** the build pins a lowering — size it the way that variant emits */
+  fnVariants?: Partial<Record<FnHandlerKey, FnVariant>>;
 }): Promise<FormulaPlan> {
+  const dupOpts = { ieee, fnVariants };
   const refs = new Map<string, RefDescriptor>();
   // memoised per-column subtree cost; keyed by column id
   const leafPathMemo = new Map<string, number>();
@@ -70,6 +65,35 @@ export async function buildFormulaPlan({
       }
     }
     leafPathMemo.set(columnId, result);
+    return result;
+  };
+
+  // `leafPaths` again, but counting the copies the emitter actually writes: a
+  // site under a duplicating operand is emitted `weight` times. Kept separate
+  // from `leafPaths` on purpose — the hoisting decision below is calibrated on
+  // unweighted counts and this is detection only.
+  const emittedPathMemo = new Map<string, number>();
+  const emittedPaths = async (
+    columnId: string,
+    path: Set<string>,
+  ): Promise<number> => {
+    if (path.has(columnId)) return 0;
+    if (emittedPathMemo.has(columnId)) return emittedPathMemo.get(columnId)!;
+    const meta = await resolve(columnId);
+    let result = 1;
+    if (meta) {
+      const nextPath = new Set(path).add(columnId);
+      if (HOISTABLE_UIDTS.has(meta.uidt) && meta.targetColumnId) {
+        result = await emittedPaths(meta.targetColumnId, nextPath);
+      } else if (meta.uidt === UITypes.Formula && meta.formulaTree) {
+        result = 0;
+        for (const site of collectWeightedSites(meta.formulaTree, dupOpts)
+          .sites) {
+          result += site.weight * (await emittedPaths(site.name, nextPath));
+        }
+      }
+    }
+    emittedPathMemo.set(columnId, result);
     return result;
   };
 
@@ -154,11 +178,18 @@ export async function buildFormulaPlan({
     return depth;
   };
 
-  const sites = collectSites(tree);
+  const walk = collectWeightedSites(tree, dupOpts);
+  const sites = walk.sites.map((site) => site.name);
 
   let inlineLeafPaths = 0;
   for (const site of sites) {
     inlineLeafPaths += await leafPaths(site, new Set());
+  }
+
+  let emittedLeafPaths = 0;
+  for (const site of walk.sites) {
+    emittedLeafPaths +=
+      site.weight * (await emittedPaths(site.name, new Set()));
   }
 
   const seen = new Set<string>();
@@ -188,7 +219,10 @@ export async function buildFormulaPlan({
           : `hoisting is lookup-onto-formula only; this chain ends at ${
               terminal?.meta.uidt ?? meta.uidt
             }`;
-    } else if (meta?.uidt === UITypes.Formula || meta?.uidt === UITypes.Button) {
+    } else if (
+      meta?.uidt === UITypes.Formula ||
+      meta?.uidt === UITypes.Button
+    ) {
       ineligibleReason =
         'same-table formula/button builders are expressions, not sub-queries; excluded from hoisting';
     }
@@ -213,6 +247,15 @@ export async function buildFormulaPlan({
   const reductionRatio =
     hoistedLeafPaths > 0 ? inlineLeafPaths / hoistedLeafPaths : 1;
 
+  const duplicationFactor =
+    inlineLeafPaths > 0 ? emittedLeafPaths / inlineLeafPaths : 1;
+
+  // Weight is what a site costs the statement, so ranking by it puts the
+  // operand that got copied the most first — that is the one to fix.
+  const duplicatingSites: DuplicatingSite[] = [...walk.duplicating].sort(
+    (a, b) => b.weight * b.multiplicity - a.weight * a.multiplicity,
+  );
+
   return {
     refs,
     inlineLeafPaths,
@@ -220,5 +263,14 @@ export async function buildFormulaPlan({
     reductionRatio,
     hoistable,
     worthHoisting: reductionRatio >= minRatio && hoistable.length > 0,
+    emittedLeafPaths,
+    duplicationFactor,
+    duplicatingSites,
+    maxDuplicationChain: walk.maxChainDepth,
+    // hoisting collapses at most `reductionRatio`; anything beyond that is the
+    // duplication multiplier and no rebuild the gate can do will recover it
+    duplicationDominant:
+      duplicationFactor >= DUPLICATION_DOMINANT_FACTOR &&
+      duplicationFactor > reductionRatio,
   };
 }

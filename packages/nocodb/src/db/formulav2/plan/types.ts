@@ -1,4 +1,5 @@
 import type { UITypes } from 'nocodb-sdk';
+import type { DuplicatingSite } from './duplication';
 
 export type HoistStrategy = 'inline' | 'cte-aggregate';
 
@@ -66,4 +67,33 @@ export interface FormulaPlan {
   hoistable: string[];
   /** ratio clears MIN_HOIST_RATIO and there is something to hoist */
   worthHoisting: boolean;
+
+  // ---- operand duplication (detection only; nothing acts on it yet) ----
+
+  /**
+   * `inlineLeafPaths` with every site weighted by how many times the emitter
+   * writes it — see `duplication.ts`. Equal to `inlineLeafPaths` whenever no
+   * lowering duplicates an operand, which is every non-pg and non-IEEE build.
+   */
+  emittedLeafPaths: number;
+  /**
+   * emittedLeafPaths / inlineLeafPaths. 1 means the expression is as large as
+   * its reference count implies; 64 means duplication made it 64× that.
+   */
+  duplicationFactor: number;
+  /** duplicating sites, heaviest contribution first */
+  duplicatingSites: DuplicatingSite[];
+  /**
+   * Longest nested run of duplicating sites in the ROOT tree — the shape that
+   * turns growth exponential. Duplication inside a referenced formula still
+   * counts toward `duplicationFactor`, but not toward this.
+   */
+  maxDuplicationChain: number;
+  /**
+   * Duplication, not reference fan-out, is what makes this query large:
+   * the factor clears DUPLICATION_DOMINANT_FACTOR and beats what hoisting
+   * could recover. Hoisting cannot fix these — the fix has to change how the
+   * duplicating operand is emitted.
+   */
+  duplicationDominant: boolean;
 }

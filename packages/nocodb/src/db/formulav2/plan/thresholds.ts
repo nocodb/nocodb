@@ -48,3 +48,11 @@ export function hoistAboveBytes() {
  * no saving, so skip it and let the cap error stand.
  */
 export const MIN_HOIST_RATIO = 1.5;
+
+/**
+ * Duplication factor at which the expression is large because of operand
+ * duplication rather than reference fan-out. 4 is two nested divisions — below
+ * that the multiplier is not what put a query near a 500KB cap, so attributing
+ * it to duplication would send the fix at the wrong target.
+ */
+export const DUPLICATION_DOMINANT_FACTOR = 4;

@@ -14,6 +14,20 @@ import type {
 import type { BaseUser, Column, Model, User } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { ICteScope } from '~/db/cte-generator/types';
+import type {
+  FnHandlerKey,
+  FnVariant,
+} from '~/db/formulav2/fn-handler/fn-handler.interface';
+
+/**
+ * Per-build overrides for how an expression is generated. Every field is a pin
+ * on a decision the emitter would otherwise make from the dialect alone, so an
+ * empty (or absent) object is byte-identical to having none.
+ */
+export interface FormulaBuildHints {
+  /** pin which lowering a handled function/operator emits — see db/formulav2/fn-handler */
+  fnVariants?: Partial<Record<FnHandlerKey, FnVariant>>;
+}
 
 export interface FormulaBaseParams {
   baseModelSqlv2: IBaseModelSqlV2;
@@ -46,6 +60,7 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
    * SQL.
    */
   cteScope?: ICteScope;
+  buildHints?: FormulaBuildHints;
 }
 export type FnParsedTreeBase = {
   fnName?: string;

@@ -1,5 +1,9 @@
 import { UITypes } from 'nocodb-sdk';
-import { DUPLICATION_DOMINANT_FACTOR, MIN_HOIST_RATIO } from './thresholds';
+import {
+  DUPLICATION_DOMINANT_FACTOR,
+  MAX_GENERATED_SQL_BYTES,
+  MIN_HOIST_RATIO,
+} from './thresholds';
 import { collectWeightedSites } from './duplication';
 import type { DuplicatingSite } from './duplication';
 import type { FnHandlerKey, FnVariant } from '~/db/formulav2/fn-handler';
@@ -19,18 +23,78 @@ const HOISTABLE_UIDTS = new Set<UITypes>([
 ]);
 
 /**
+ * Operators allowed to fall back to their `general` lowering, which writes each
+ * operand exactly once (`multiplicity` `[1, 1]`) and so removes the site's
+ * duplication outright — for `/` that is `left / NULLIF(right, 0)`.
+ *
+ * `%` qualifies on the same grounds and is deliberately not listed yet: `/` is
+ * left-associative and chains, which is what produces the exponent, so it is
+ * the case worth the semantic change. Add `%` when a chain of it shows up.
+ *
+ * The call-form lowerings (POWER, LOG, SQRT, …) can never qualify — they share
+ * `CallLoweringHandler`, whose `general` is the same shape as its `pg-ieee`.
+ */
+const GENERAL_IS_NON_DUPLICATING = new Set<string>(['/']);
+
+/**
  * Which lowering to move a duplicating site to, or undefined to leave it as it
  * is. Decided per site, not per key: lifting a site out of the inline form has
  * its own cost, so a standalone `x/2` is usually better left alone while the
  * chain that multiplies is rewritten — `site.chainDepth` is the discriminator.
  *
- * Nothing is registered yet: `/` has only the duplicating `pg-ieee` lowering,
- * so every site reports `unavailable`. Returning a variant here is the whole
- * switch — the gate resolves the site's path back to its node and pins the
- * variant onto that node alone.
+ * Returning a variant here is the whole switch — the gate resolves the site's
+ * path back to its node and pins the variant onto that node alone.
+ *
+ * `general` is a DOWNGRADE, not a free win: it is the pre-IEEE lowering, so a
+ * pinned site stops treating `x/0` as ±Infinity (it becomes NULL, via
+ * `NULLIF`) and stops reading a blank operand as 0. That is the behaviour every
+ * non-pg client has today, but it is still a visible change — so it is offered
+ * only when the alternative is the cap error, i.e. no value at all.
  */
-function nonDuplicatingVariant(_site: DuplicatingSite): FnVariant | undefined {
-  return undefined;
+function nonDuplicatingVariant(
+  site: DuplicatingSite,
+  overCap: boolean,
+): FnVariant | undefined {
+  if (!overCap) return undefined;
+  if (!GENERAL_IS_NON_DUPLICATING.has(site.kind)) return undefined;
+  // Every site of the key, not just the deep ones. `chainDepth` cannot tell a
+  // standalone `x/2` from the OUTERMOST site of a real chain — both are depth 1
+  // — and that outermost site is the one duplicating the largest subtree, so
+  // skipping it leaves most of the growth in place. Uniform is also the kinder
+  // result: one formula where some divisions treat `x/0` as NULL and others as
+  // Infinity is harder to explain than one where all of them changed.
+  //
+  // Being liberal here is safe because the gate keeps a rebuild only when it
+  // came out smaller, and still raises the cap error if it did not fit — so a
+  // downgrade that buys nothing is never what the user ends up reading.
+  return 'general';
+}
+
+/**
+ * The half of an `fn-variant` reason that explains the verdict. `unavailable`
+ * has two distinct causes that call for different fixes — nothing is registered
+ * for the operator, or the formula is not big enough to be worth the semantic
+ * change — so the log names which one rather than implying the first.
+ */
+function whyNotDowngraded(
+  kind: string,
+  variant: FnVariant | undefined,
+  sizeBytes: number | undefined,
+  capBytes: number,
+): string {
+  if (variant) {
+    return (
+      `; over the ${capBytes}B cap at ${sizeBytes}B, so pinning those sites ` +
+      `to the ${variant} lowering — x/0 reads as NULL there, not ±Infinity, ` +
+      `and a blank operand stops counting as 0`
+    );
+  }
+  if (!GENERAL_IS_NON_DUPLICATING.has(kind)) {
+    return `; no non-duplicating lowering is registered for ${kind}`;
+  }
+  return sizeBytes === undefined
+    ? `; size unknown, so IEEE semantics are kept`
+    : `; ${sizeBytes}B is within the ${capBytes}B cap, so IEEE semantics are kept`;
 }
 
 /** Identifier sites in a parsed tree, in encounter order. Skips callee names. */
@@ -44,6 +108,8 @@ export async function buildFormulaPlan({
   minRatio = MIN_HOIST_RATIO,
   ieee = false,
   fnVariants,
+  sizeBytes,
+  capBytes = MAX_GENERATED_SQL_BYTES,
 }: {
   tree: unknown;
   resolve: PlanMetaResolver;
@@ -52,6 +118,16 @@ export async function buildFormulaPlan({
   ieee?: boolean;
   /** the build pins a lowering — size it the way that variant emits */
   fnVariants?: Partial<Record<FnHandlerKey, FnVariant>>;
+  /**
+   * How large this formula is WITHOUT any downgrade — measured after a build,
+   * or the pre-build estimate. Omit it and no site is downgraded: an unknown
+   * size must not be read as "small enough" (that would keep IEEE semantics on
+   * a formula that then fails the cap) nor as "over" (that would downgrade
+   * every formula the plan ever sees).
+   */
+  sizeBytes?: number;
+  /** what `sizeBytes` is judged against; the expression cap by default */
+  capBytes?: number;
 }): Promise<FormulaPlan> {
   const dupOpts = { ieee, fnVariants };
   const refs = new Map<string, RefDescriptor>();
@@ -302,10 +378,13 @@ export async function buildFormulaPlan({
     if (own) own.push(site);
     else byKind.set(site.kind, [site]);
   }
+  // Only a formula that would otherwise breach the cap is worth downgrading —
+  // see `nonDuplicatingVariant`. Unknown size counts as "not over".
+  const overCap = sizeBytes !== undefined && sizeBytes > capBytes;
   for (const [kind, own] of byKind) {
     const groups = new Map<FnVariant | undefined, DuplicatingSite[]>();
     for (const site of own) {
-      const target = nonDuplicatingVariant(site);
+      const target = nonDuplicatingVariant(site, overCap);
       const group = groups.get(target);
       if (group) group.push(site);
       else groups.set(target, [site]);
@@ -324,9 +403,7 @@ export async function buildFormulaPlan({
         reason:
           `${kind} repeats operands at ${group.length} site(s), nested ` +
           `${deepest} deep, up to ${copies} copies of one operand` +
-          (variant
-            ? `; pinning those sites to the ${variant} lowering`
-            : `; no non-duplicating lowering is registered for ${kind}`),
+          whyNotDowngraded(kind, variant, sizeBytes, capBytes),
       });
     }
   }

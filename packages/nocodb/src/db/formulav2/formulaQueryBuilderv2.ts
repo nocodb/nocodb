@@ -45,6 +45,7 @@ import {
   isCteHoistEnabled,
   makeColumnMetaResolver,
   makePlainLeafSizer,
+  MAX_GENERATED_SQL_BYTES,
   maxStatementBytes,
   triageFormula,
 } from '~/db/formulav2/plan';
@@ -560,12 +561,26 @@ export default async function formulaQueryBuilderv2({
      * Returns the build, or null when the plan had nothing to apply — the
      * caller then falls back to (or keeps) the inline build.
      */
-    const buildOptimized = async (tree: unknown, measuredBytes?: number) => {
+    const buildOptimized = async (
+      tree: unknown,
+      measuredBytes?: number,
+      /**
+       * What the plan judges against the cap when deciding whether a semantic
+       * downgrade is warranted. Defaults to the measurement; only the
+       * last-resort call passes it separately, because that is the one place
+       * the size in hand is a breach rather than just "big".
+       */
+      sizeBytes: number | undefined = measuredBytes,
+      /** the cap `sizeBytes` broke, so the plan repeats the gate's comparison */
+      capBytes?: number,
+    ) => {
       hoistPlan = await buildFormulaPlan({
         tree,
         resolve: resolveColumnMeta,
         ieee: isPgIeeeEnabled(knex),
         fnVariants: buildHints?.fnVariants,
+        sizeBytes,
+        ...(capBytes === undefined ? {} : { capBytes }),
       }).catch(() => null);
 
       // The plan's decisions, verbatim. Everything below follows from this
@@ -751,22 +766,65 @@ export default async function formulaQueryBuilderv2({
     // `applyCte` splices in later, so the expression alone stops reflecting
     // what the database is asked to parse. Measure the blocks this build
     // registered and hold the total to its own ceiling.
-    let statementLength = sqlLength;
-    if (hoistScope) {
-      for (const block of hoistScope.blocks) {
+    const measureStatement = (base: number, scope?: ICteScope) => {
+      let total = base;
+      for (const block of scope?.blocks ?? []) {
         try {
           const probe = knex.queryBuilder();
           block.applyCte(probe, { context, knex });
-          statementLength += probe.toSQL().sql.length;
+          total += probe.toSQL().sql.length;
         } catch {
           // an unmeasurable block must not fail the query; the expression cap
           // below still applies
         }
       }
+      return total;
+    };
+    let statementLength = measureStatement(sqlLength, hoistScope);
+
+    // The (size, cap) pair that broke, or null while the build fits. Returning
+    // the pair rather than a boolean is what keeps the retry and the error below
+    // on the same rule, and it hands the plan the SAME comparison the gate just
+    // made — judging the statement cap's breach against the expression cap would
+    // have the plan refuse a downgrade the gate had already decided was needed.
+    const capBreach = () => {
+      if (sqlLength > MAX_GENERATED_SQL_BYTES) {
+        return { size: sqlLength, cap: MAX_GENERATED_SQL_BYTES };
+      }
+      const statementCap = maxStatementBytes();
+      if (statementLength > statementCap) {
+        return { size: statementLength, cap: statementCap };
+      }
+      return null;
+    };
+
+    // Last resort. The plan only offers a variant downgrade once the size it is
+    // given is over the cap, so this is the first call that can receive one —
+    // and deliberately the last, because taking it changes what `x/0` and a
+    // blank operand mean. Everything above has already failed to fit.
+    const breach = capBreach();
+    if (canGate && breach) {
+      const attempt = await buildOptimized(
+        qb?.payload?.parsedTree,
+        sqlLength,
+        breach.size,
+        breach.cap,
+      );
+      const rebuiltLength = attempt?.built?.builder?.toSQL?.().sql?.length ?? 0;
+      if (attempt && rebuiltLength > 0 && rebuiltLength < sqlLength) {
+        // the superseded attempt's blocks must not dangle on the shared generator
+        hoistScope?.rollback();
+        qb = attempt.built;
+        sqlLength = rebuiltLength;
+        hoistScope = attempt.scope;
+        statementLength = measureStatement(sqlLength, hoistScope);
+      } else {
+        attempt?.scope?.rollback();
+      }
     }
 
     // we limit the formula length to 500k to prevent server crashing
-    if (sqlLength > 500 * 1000 || statementLength > maxStatementBytes()) {
+    if (capBreach()) {
       // this throws, so the blocks registered above would otherwise stay on the
       // shared generator and dangle into the next query
       hoistScope?.rollback();

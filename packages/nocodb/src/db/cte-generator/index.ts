@@ -39,6 +39,14 @@ export class CTEGenerator implements ICTEGenerator {
 
   blocks: Map<string, ICteBlock> = new Map<string, ICteBlock>();
 
+  /**
+   * How many open scopes own each alias. Two top-level formula columns in one
+   * query each open their own scope, and if both reach a lookup onto the same
+   * target formula they compute the same alias — so a rollback in one must not
+   * delete a block the other is still referencing.
+   */
+  private blockRefs: Map<string, number> = new Map<string, number>();
+
   clientType?: ClientType;
   async getClientType() {
     if (this.clientType) {
@@ -79,13 +87,18 @@ export class CTEGenerator implements ICTEGenerator {
   openScope(): ICteScope {
     const owned = new Map<string, ICteBlock>();
     const blocks = this.blocks;
+    const refs = this.blockRefs;
     return {
       add(cteBlock: ICteBlock) {
         const existing = owned.get(cteBlock.alias);
         if (existing) return existing;
-        owned.set(cteBlock.alias, cteBlock);
-        blocks.set(cteBlock.alias, cteBlock);
-        return cteBlock;
+        // an equivalent block from another scope is reused rather than
+        // overwritten, so both scopes reference the same object
+        const shared = blocks.get(cteBlock.alias) ?? cteBlock;
+        owned.set(cteBlock.alias, shared);
+        blocks.set(cteBlock.alias, shared);
+        refs.set(cteBlock.alias, (refs.get(cteBlock.alias) ?? 0) + 1);
+        return shared;
       },
       get aliases() {
         return [...owned.keys()];
@@ -94,7 +107,15 @@ export class CTEGenerator implements ICTEGenerator {
         return [...owned.values()];
       },
       rollback() {
-        for (const alias of owned.keys()) blocks.delete(alias);
+        for (const alias of owned.keys()) {
+          const remaining = (refs.get(alias) ?? 1) - 1;
+          if (remaining > 0) {
+            refs.set(alias, remaining);
+            continue; // another scope still references it
+          }
+          refs.delete(alias);
+          blocks.delete(alias);
+        }
         owned.clear();
       },
       restore() {

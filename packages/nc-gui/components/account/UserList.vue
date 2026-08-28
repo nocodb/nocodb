@@ -57,14 +57,22 @@ const isOpen = ref(false)
 
 const searchText = ref<string>('')
 
+// Backend only reports billable seat data on licensed EE (on-prem/cloud);
+// stays false in CE / unlicensed, where the billable column & chip are hidden.
+const hasBillableData = ref(false)
+
+const pageSizeOptions = ['10', '25', '50', '100']
+
 const pagination = reactive({
   total: 0,
+  billableCount: 0,
   pageSize: 10,
   position: ['bottomCenter'],
 })
 
 const loadUsers = useDebounceFn(async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
+  currentLimit.value = limit
   try {
     const response: any = await api.orgUsers.list({
       query: {
@@ -78,13 +86,30 @@ const loadUsers = useDebounceFn(async (page = currentPage.value, limit = current
 
     pagination.total = response.pageInfo.totalRows ?? 0
 
-    pagination.pageSize = 10
+    pagination.pageSize = limit
+
+    if (typeof response.pageInfo.billableCount === 'number') {
+      pagination.billableCount = response.pageInfo.billableCount
+      hasBillableData.value = true
+    }
 
     users.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }, 500)
+
+// Billable status is only meaningful where the backend supplies it.
+const showBillable = computed(() => hasBillableData.value)
+
+// "from–to of total" for the current page, so the count can be reconciled
+// against the invoice / SQL query.
+const shownRange = computed(() => {
+  if (!pagination.total) return { from: 0, to: 0 }
+  const from = (currentPage.value - 1) * currentLimit.value + 1
+  const to = Math.min(currentPage.value * currentLimit.value, pagination.total)
+  return { from, to }
+})
 
 onMounted(() => {
   loadUsers()
@@ -218,6 +243,15 @@ const columns = computed(() => {
     })
   }
 
+  if (showBillable.value) {
+    cols.push({
+      key: 'billable',
+      title: t('general.billable'),
+      width: 140,
+      minWidth: 120,
+    })
+  }
+
   cols.push({
     key: 'created_at',
     title: t('title.dateJoined'),
@@ -246,6 +280,23 @@ const columns = computed(() => {
       <template #title>
         <span data-rec="true">
           {{ $t('title.userManagement') }}
+        </span>
+      </template>
+      <template #subtitle>
+        <span class="flex items-center gap-1.5" data-testid="nc-super-user-summary">
+          <span class="text-nc-content-gray-subtle">
+            {{ $t('objects.membersCount', { count: pagination.total }) }}
+          </span>
+          <template v-if="showBillable">
+            <span class="text-nc-content-gray-muted">·</span>
+            <span class="flex items-center gap-1 text-nc-content-gray-subtle">
+              <GeneralIcon icon="ncCrown" class="flex-none h-3.5 w-3.5 text-nc-content-green-dark" />
+              {{ $t('labels.nBillableSeats', { count: pagination.billableCount }) }}
+            </span>
+            <NcTooltip :title="$t('msg.info.billableSeatExplainer')" class="flex items-center">
+              <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+            </NcTooltip>
+          </template>
         </span>
       </template>
     </NcPageHeader>
@@ -325,6 +376,23 @@ const columns = computed(() => {
                   class="cursor-pointer"
                   data-testid="nc-org-role-select"
                 />
+              </div>
+              <div v-if="column.key === 'billable'" class="flex items-center">
+                <NcTooltip v-if="el.billable" :title="$t('tooltip.paidUserBadgeTooltip')" class="flex items-center">
+                  <NcBadge
+                    :border="false"
+                    color="green"
+                    class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  >
+                    <span class="flex items-center gap-1">
+                      <GeneralIcon icon="ncCrown" class="flex-none h-3 w-3" />
+                      {{ $t('general.billable') }}
+                    </span>
+                  </NcBadge>
+                </NcTooltip>
+                <NcTooltip v-else :title="$t('msg.info.noBillableSources')" class="flex items-center">
+                  <span class="text-nc-content-gray-muted text-small">{{ $t('general.free') }}</span>
+                </NcTooltip>
               </div>
               <div v-if="column.key === 'created_at'">
                 <NcTooltip class="max-w-full">
@@ -407,12 +475,19 @@ const columns = computed(() => {
             </template>
 
             <template #tableFooter>
-              <div v-if="pagination.total > 10" class="px-4 py-2 flex items-center justify-center">
+              <div v-if="pagination.total" class="px-4 py-2 flex items-center justify-between gap-3">
+                <span class="text-nc-content-gray-subtle2 text-small flex-none" data-testid="nc-super-user-range">
+                  {{ $t('labels.showingRangeOfTotal', { from: shownRange.from, to: shownRange.to, total: pagination.total }) }}
+                </span>
                 <a-pagination
+                  v-if="pagination.total > currentLimit"
                   v-model:current="currentPage"
                   :total="pagination.total"
+                  :page-size="currentLimit"
+                  :page-size-options="pageSizeOptions"
+                  show-size-changer
                   show-less-items
-                  @change="loadUsers(currentPage, currentLimit)"
+                  @change="(page, size) => loadUsers(page, size)"
                 />
               </div>
             </template>

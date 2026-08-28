@@ -60,8 +60,11 @@ onMounted(async () => {
             </div>
             <div class="flex-1 px-4 border-r-1 py-3">
               <div class="text-[40px] font-semibold">{{ isLoading ? '-' : stats.totalUsers }}</div>
-              <div class="text-nc-content-gray-subtle2 mt-2">
+              <div class="text-nc-content-gray-subtle2 mt-2 flex items-center gap-1">
                 {{ $t('objects.users') }}
+                <NcTooltip :title="$t('msg.info.instanceTotalUsersExplainer')" class="flex items-center">
+                  <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                </NcTooltip>
               </div>
             </div>
             <div class="flex-1 px-4 border-r-1 py-3">
@@ -72,7 +75,12 @@ onMounted(async () => {
             </div>
             <div class="flex-1 px-4 py-3">
               <div class="text-[40px] font-semibold">{{ isLoading ? '-' : stats.editorCount }}</div>
-              <div class="text-nc-content-gray-subtle2 mt-2">{{ $t('title.editors') }}</div>
+              <div class="text-nc-content-gray-subtle2 mt-2 flex items-center gap-1">
+                {{ $t('title.editors') }}
+                <NcTooltip :title="$t('msg.info.billableSeatExplainer')" class="flex items-center">
+                  <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                </NcTooltip>
+              </div>
             </div>
           </div>
         </div>

@@ -36,6 +36,10 @@ export function isFiniteSql(expr: string): string {
   return `abs(${expr}) < 'Infinity'::${IEEE_TYPE}`;
 }
 
+// TODO(#10194): each ieee*Sql builder below inlines its operands more than once,
+// which is the 2ⁿ expansion that issue tracks. Retire them once the plan-based
+// fn-variant path is stable enough to pick a non-duplicating lowering per site.
+
 // Airtable semantics: x/0 -> ±Infinity, 0/0 -> NaN. pg raises `division by
 // zero` rather than producing the value, so it has to be introduced by hand —
 // but pg's own arithmetic *is* IEEE once an Infinity exists, so `x * Infinity`

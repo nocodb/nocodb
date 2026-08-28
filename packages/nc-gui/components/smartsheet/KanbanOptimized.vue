@@ -1968,16 +1968,18 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                           class="bg-nc-bg-default !rounded-lg"
                         >
-                          <NcButton
-                            :disabled="compareStack(stack, isSavingStack)"
-                            type="text"
-                            size="xs"
-                            class="!px-1.5 mt-0.5"
-                            :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi }"
-                            data-testid="nc-kanban-stack-context-menu"
-                          >
-                            <GeneralIcon icon="threeDotVertical" />
-                          </NcButton>
+                          <template #default="{ visible }">
+                            <NcButton
+                              :disabled="compareStack(stack, isSavingStack)"
+                              type="text"
+                              size="xs"
+                              class="!px-1.5 mt-0.5"
+                              :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi && !visible }"
+                              data-testid="nc-kanban-stack-context-menu"
+                            >
+                              <GeneralIcon icon="threeDotVertical" />
+                            </NcButton>
+                          </template>
 
                           <template #overlay>
                             <NcMenu :variant="interfacePageDataApi ? 'medium' : 'small'">
@@ -2398,6 +2400,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         >
                           <template #default="{ isAllowed }">
                             <NcButton
+                              v-e="['c:kanban:inline-new-record']"
                               size="small"
                               type="text"
                               class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
@@ -3134,20 +3137,25 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   border-color: var(--nc-border-brand) !important;
 }
 
-// Interface stack-header actions (collapse / menu): hover-revealed. Stay
-// visible while the context menu is open (ant stamps the trigger) or on
-// keyboard focus.
+// Interface stack-header actions (collapse / menu): hover-revealed. The open
+// context menu keeps its trigger visible by dropping this class (see template).
 .nc-kanban-stack-hover-action {
   opacity: 0;
   transition: opacity 0.15s;
 
-  &:focus-visible,
-  &.ant-dropdown-open {
+  &:focus-visible {
     opacity: 1;
   }
 }
 
 .nc-kanban-stack-head:hover .nc-kanban-stack-hover-action {
   opacity: 1;
+}
+
+// No hover on touch — these would be permanently unreachable.
+@media (hover: none) {
+  .nc-kanban-stack-hover-action {
+    opacity: 1;
+  }
 }
 </style>

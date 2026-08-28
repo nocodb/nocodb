@@ -1007,16 +1007,18 @@ const cardFields = (record: RowType) => {
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                           class="bg-nc-bg-default !rounded-lg"
                         >
-                          <NcButton
-                            :disabled="compareStack(stack, isSavingStack)"
-                            type="text"
-                            size="xs"
-                            class="!px-1.5 mt-0.5"
-                            :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi }"
-                            data-testid="nc-kanban-stack-context-menu"
-                          >
-                            <GeneralIcon icon="threeDotVertical" />
-                          </NcButton>
+                          <template #default="{ visible }">
+                            <NcButton
+                              :disabled="compareStack(stack, isSavingStack)"
+                              type="text"
+                              size="xs"
+                              class="!px-1.5 mt-0.5"
+                              :class="{ 'nc-kanban-stack-hover-action': !!interfacePageDataApi && !visible }"
+                              data-testid="nc-kanban-stack-context-menu"
+                            >
+                              <GeneralIcon icon="threeDotVertical" />
+                            </NcButton>
+                          </template>
 
                           <template #overlay>
                             <NcMenu :variant="interfacePageDataApi ? 'medium' : 'small'">
@@ -1435,33 +1437,40 @@ const cardFields = (record: RowType) => {
                                 </template>
                               </PermissionsTooltip>
                             </div>
-
-                            <!-- Interface: "New record" flows after the last card (no pinned stack footer) -->
-                            <PermissionsTooltip
-                              v-else-if="interfacePageDataApi && isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows"
-                              :entity="PermissionEntity.TABLE"
-                              :entity-id="meta?.id"
-                              :permission="PermissionKey.TABLE_RECORD_ADD"
-                            >
-                              <template #default="{ isAllowed }">
-                                <NcButton
-                                  size="small"
-                                  type="text"
-                                  class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
-                                  :disabled="!isAllowed"
-                                  data-testid="nc-kanban-stack-inline-new-record"
-                                  @click="handleOpenNewRecordForm(stack.title)"
-                                >
-                                  <div class="w-full flex items-center gap-2">
-                                    <component :is="iconMap.plus" class="flex-none w-4 h-4" />
-
-                                    {{ $t('activity.newRecord') }}
-                                  </div>
-                                </NcButton>
-                              </template>
-                            </PermissionsTooltip>
                           </template>
                         </Draggable>
+
+                        <!-- Interface: "New record" flows after the last card (no pinned stack footer) -->
+                        <PermissionsTooltip
+                          v-if="
+                            interfacePageDataApi &&
+                            formattedData.get(stack.title)?.length &&
+                            isUIAllowed('dataInsert') &&
+                            !isSyncedTable &&
+                            canAddDeleteRows
+                          "
+                          :entity="PermissionEntity.TABLE"
+                          :entity-id="meta?.id"
+                          :permission="PermissionKey.TABLE_RECORD_ADD"
+                        >
+                          <template #default="{ isAllowed }">
+                            <NcButton
+                              v-e="['c:kanban:inline-new-record']"
+                              size="small"
+                              type="text"
+                              class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
+                              :disabled="!isAllowed"
+                              data-testid="nc-kanban-stack-inline-new-record"
+                              @click="handleOpenNewRecordForm(stack.title)"
+                            >
+                              <div class="w-full flex items-center gap-2">
+                                <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+
+                                {{ $t('activity.newRecord') }}
+                              </div>
+                            </NcButton>
+                          </template>
+                        </PermissionsTooltip>
                       </div>
                     </a-layout-content>
                     <!-- Interface pages have no pinned footer — "New record" rides inline after the last card -->
@@ -2140,20 +2149,25 @@ const cardFields = (record: RowType) => {
   border-color: var(--nc-border-brand) !important;
 }
 
-// Interface stack-header actions (collapse / menu): hover-revealed. Stay
-// visible while the context menu is open (ant stamps the trigger) or on
-// keyboard focus.
+// Interface stack-header actions (collapse / menu): hover-revealed. The open
+// context menu keeps its trigger visible by dropping this class (see template).
 .nc-kanban-stack-hover-action {
   opacity: 0;
   transition: opacity 0.15s;
 
-  &:focus-visible,
-  &.ant-dropdown-open {
+  &:focus-visible {
     opacity: 1;
   }
 }
 
 .nc-kanban-stack-head:hover .nc-kanban-stack-hover-action {
   opacity: 1;
+}
+
+// No hover on touch — these would be permanently unreachable.
+@media (hover: none) {
+  .nc-kanban-stack-hover-action {
+    opacity: 1;
+  }
 }
 </style>

@@ -90,6 +90,9 @@ export class CTEGenerator implements ICTEGenerator {
       get aliases() {
         return [...owned.keys()];
       },
+      get blocks() {
+        return [...owned.values()];
+      },
       rollback() {
         for (const alias of owned.keys()) blocks.delete(alias);
         owned.clear();

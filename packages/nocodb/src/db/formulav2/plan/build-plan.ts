@@ -179,7 +179,7 @@ export async function buildFormulaPlan({
     let ineligibleReason: string | undefined;
     const blockKey = await blockKeyOf(site);
     if (blockKey) {
-      strategy = meta?.hasSortLimitConfig ? 'cte-window' : 'cte-aggregate';
+      strategy = 'cte-aggregate';
     } else if (meta && HOISTABLE_UIDTS.has(meta.uidt)) {
       const terminal = await terminalOf(site);
       ineligibleReason =

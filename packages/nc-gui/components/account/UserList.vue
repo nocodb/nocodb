@@ -15,6 +15,8 @@ const { dashboardUrl } = useDashboard()
 
 const { appInfo, user: loggedInUser } = useGlobal()
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const { copy } = useCopy()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
@@ -57,9 +59,24 @@ const isOpen = ref(false)
 
 const searchText = ref<string>('')
 
-// Backend only reports billable seat data on licensed EE (on-prem/cloud);
-// stays false in CE / unlicensed, where the billable column & chip are hidden.
+// Backend only reports billable seat data on EE (on-prem/cloud); stays false
+// in CE, where the billable column & seat count are hidden.
 const hasBillableData = ref(false)
+
+// Unlicensed on-prem counts editor seats but bills for none — say "editor
+// seat" there, matching the workspace members list.
+const showBillableLabel = computed(() => !isEEFeatureBlocked.value)
+
+const orgId = computed(() => appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID)
+
+const seatDetailUser = ref<UserType | null>(null)
+
+const isSeatDetailModalOpen = ref(false)
+
+function openSeatDetail(user: UserType) {
+  seatDetailUser.value = user
+  isSeatDetailModalOpen.value = true
+}
 
 const pageSizeOptions = ['10', '25', '50', '100']
 
@@ -106,10 +123,6 @@ const shownRange = computed(() => {
   const to = Math.min(currentPage.value * currentLimit.value, pagination.total)
   return { from, to }
 })
-
-// billableCount is org-wide while total honours the search filter, so pairing
-// them mid-search would read "2 members · 47 billable seats".
-const showSummary = computed(() => !searchText.value)
 
 onMounted(() => {
   loadUsers()
@@ -246,9 +259,9 @@ const columns = computed(() => {
   if (hasBillableData.value) {
     cols.push({
       key: 'billable',
-      title: t('general.billable'),
-      width: 140,
-      minWidth: 120,
+      title: showBillableLabel.value ? t('general.billable') : t('labels.editorSeat'),
+      width: showBillableLabel.value ? 120 : 150,
+      minWidth: showBillableLabel.value ? 120 : 150,
     })
   }
 
@@ -282,23 +295,6 @@ const columns = computed(() => {
           {{ $t('title.userManagement') }}
         </span>
       </template>
-      <template #subtitle>
-        <span v-if="showSummary" class="flex items-center gap-1.5" data-testid="nc-super-user-summary">
-          <span class="text-nc-content-gray-subtle">
-            {{ $t('objects.membersCount', { count: pagination.total }) }}
-          </span>
-          <template v-if="hasBillableData">
-            <span class="text-nc-content-gray-muted">·</span>
-            <span class="flex items-center gap-1 text-nc-content-gray-subtle">
-              <GeneralIcon icon="ncCrown" class="flex-none h-3.5 w-3.5 text-nc-content-green-dark" />
-              {{ $t('labels.nBillableSeats', { count: pagination.billableCount }) }}
-            </span>
-            <NcTooltip :title="$t('msg.info.billableSeatExplainer')" class="flex items-center">
-              <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
-            </NcTooltip>
-          </template>
-        </span>
-      </template>
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="h-full">
@@ -315,6 +311,29 @@ const columns = computed(() => {
               </template>
             </a-input>
             <div class="flex gap-3 items-center justify-center">
+              <template v-if="hasBillableData">
+                <NcTooltip
+                  :title="showBillableLabel ? $t('msg.info.billableSeatExplainer') : $t('msg.info.editorSeatExplainer')"
+                  :tooltip-style="{ width: '230px' }"
+                  :overlay-inner-style="{ width: '230px' }"
+                >
+                  <div
+                    class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap"
+                    data-testid="nc-super-user-seat-count"
+                  >
+                    <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
+                    <template v-if="showBillableLabel">
+                      {{ pagination.billableCount }} {{ $t('general.paid') }}
+                      {{ pagination.billableCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
+                    </template>
+                    <template v-else>
+                      {{ pagination.billableCount }}
+                      {{ pagination.billableCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+                    </template>
+                  </div>
+                </NcTooltip>
+                <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
+              </template>
               <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers(currentPage, currentLimit)" />
               <NcButton data-testid="nc-super-user-invite" size="small" type="primary" @click="openInviteModal">
                 <div class="flex items-center gap-1" data-rec="true">
@@ -378,17 +397,32 @@ const columns = computed(() => {
                 />
               </div>
               <div v-if="column.key === 'billable'" class="flex items-center">
-                <NcTooltip v-if="el.billable" :title="$t('tooltip.paidUserBadgeTooltip')" class="flex items-center">
-                  <NcBadge
-                    :border="false"
-                    color="green"
-                    class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                <NcTooltip
+                  v-if="el.billable"
+                  class="flex items-center"
+                  :tooltip-style="{ width: '230px' }"
+                  :overlay-inner-style="{ width: '230px' }"
+                >
+                  <template #title>
+                    <div>
+                      {{ showBillableLabel ? $t('tooltip.paidUserBadgeTooltip') : $t('msg.info.editorSeatExplainer') }}
+                    </div>
+                    <div class="mt-2">{{ $t('tooltip.clickToSeeDetails') }}</div>
+                  </template>
+                  <button
+                    v-e="['c:admin:user:billable-detail']"
+                    class="nc-billable-badge flex items-center border-none p-0 bg-transparent cursor-pointer"
+                    data-testid="nc-billable-badge"
+                    @click="openSeatDetail(el)"
                   >
-                    <span class="flex items-center gap-1">
-                      <GeneralIcon icon="ncCrown" class="flex-none h-3 w-3" />
-                      {{ $t('general.billable') }}
-                    </span>
-                  </NcBadge>
+                    <NcBadge
+                      :border="false"
+                      color="green"
+                      class="text-nc-content-green-dark dark:!bg-nc-bg-green-light text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                    >
+                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
+                    </NcBadge>
+                  </button>
                 </NcTooltip>
                 <NcTooltip v-else :title="$t('msg.info.noBillableSources')" class="flex items-center">
                   <span class="text-nc-content-gray-muted text-small">{{ $t('general.free') }}</span>
@@ -515,6 +549,13 @@ const columns = computed(() => {
           </GeneralDeleteModal>
 
           <AccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+
+          <AccountOrgBillableDetailModal
+            v-if="isEeUI && seatDetailUser"
+            v-model:visible="isSeatDetailModalOpen"
+            :org-id="orgId"
+            :user="seatDetailUser"
+          />
         </div>
       </div>
     </div>

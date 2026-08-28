@@ -616,7 +616,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     // Apply order by on the outer query, referencing g.<alias>
     for (const sort of sorts || []) {
       // skip disabled sorts (enabled === false or enabled === 0)
-      if (sort.enabled === false || (sort.enabled as any) === 0) continue;
+      if (sort.enabled != null && !sort.enabled) continue;
       if (!groupByColumns[sort.fk_column_id]) {
         continue;
       }

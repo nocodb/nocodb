@@ -7,6 +7,13 @@ export type DBErrorExtractResult =
       details?: any;
       code?: string;
       httpStatus: number;
+      /**
+       * False when no dialect extractor matched and the default extractor
+       * merely stamped the error because it carried a `code`. Consumers use
+       * this to tell a real DB error from an arbitrary failure that happens
+       * to look like one — the latter still needs logging + Sentry.
+       */
+      recognized?: boolean;
     }
   | undefined;
 export interface IClientDbErrorExtractor {

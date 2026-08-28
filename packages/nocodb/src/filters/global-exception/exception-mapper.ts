@@ -60,10 +60,13 @@ export function mapExceptionToResponse(
   const dbError =
     exception instanceof NcBaseError ? null : extractDBError(exception);
   if (dbError) {
-    const { httpStatus, ...responsePayload } = dbError;
+    const { httpStatus, recognized, ...responsePayload } = dbError;
     return {
       status: apiVersion === NcApiVersion.V3 ? httpStatus : 400,
       body: responsePayload,
+      // an unrecognized error reached us as a db error only because it
+      // carried a `code` — keep it on the unhandled path so it's captured
+      unhandled: recognized === false,
     };
   }
 

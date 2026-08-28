@@ -58,11 +58,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const dbError =
       exception instanceof NcBaseError ? null : extractDBError(exception);
 
+    // Only a dialect-mapped db error is expected-and-quiet. An unrecognized
+    // one is any failure carrying a `code` (node ERR_*, axios, multer …) that
+    // the default extractor stamped — those are real bugs and must be logged.
+    const recognizedDbError = dbError?.recognized === false ? null : dbError;
+
     // skip unnecessary error logging
     if (
       process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
       !(
-        dbError ||
+        recognizedDbError ||
         exception instanceof BadRequest ||
         exception instanceof AjvError ||
         exception instanceof Unauthorized ||

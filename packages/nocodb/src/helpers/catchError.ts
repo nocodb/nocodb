@@ -1,4 +1,5 @@
 import { DBErrorExtractor } from './db-error/extractor';
+import type { DBErrorExtractResult } from './db-error/utils';
 import type { NcContext } from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
 export {
@@ -28,14 +29,6 @@ export function extractDBError(
   context?: NcContext & {
     clientType?: ClientType;
   },
-):
-  | {
-      message: string;
-      error: string;
-      details?: any;
-      code?: string;
-      httpStatus: number;
-    }
-  | undefined {
+): DBErrorExtractResult {
   return DBErrorExtractor.get().extractDbError(error, context);
 }

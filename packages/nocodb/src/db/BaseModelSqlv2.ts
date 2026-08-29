@@ -267,7 +267,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _queryQueue: PQueue;
   protected _columns = {};
   protected _softDeleteFilter: Promise<Knex.QueryCallback | null> | undefined;
-  protected _rlsConditions: Promise<Filter[]> | undefined;
+  protected _rlsConditions: Partial<
+    Record<'read' | 'write', Promise<Filter[]>>
+  > = {};
   protected source: Source;
   public model: Model;
   public context: NcContext;
@@ -483,9 +485,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data.__proto__ = proto;
     }
 
-    return data
+    const result = data
       ? await nocoExecute(ast, data as ResolverObj, {}, parsedQuery)
       : null;
+
+    // Tag as read-only if visible-but-not-editable (EE-only; no-op in CE).
+    if (result && !ignoreRls) {
+      await this.applyRlsReadonlyFlags([result]);
+    }
+
+    return result;
   }
 
   public async readByPkFromModel(
@@ -1064,6 +1073,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ignorePagination,
         validateFormula: true,
       });
+    }
+
+    // Tag visible-but-not-editable rows so the client can render them as locked
+    // (EE-only; no-op in CE). Best-effort — never blocks the read.
+    if (!ignoreRlsOpt && data?.length) {
+      await this.applyRlsReadonlyFlags(data);
     }
 
     return data?.map((d) => {
@@ -4672,8 +4687,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           true,
         );
 
-        // Resolve RLS conditions for bulkUpdateAll
-        const rlsConditionsBUA = await this.getRlsConditions();
+        // Resolve RLS conditions for bulkUpdateAll (write gate: excludes read_only rows)
+        const rlsConditionsBUA = await this.getRlsConditions('write');
         const rlsFilterGroupBUA = rlsConditionsBUA.length
           ? [new Filter({ children: rlsConditionsBUA, is_group: true })]
           : [];
@@ -10344,26 +10359,37 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /**
    * Returns RLS (Row-Level Security) filter conditions for the current user.
    *
-   * Memoized per instance — `Model.getBaseModelSQL` constructs a fresh
-   * BaseModelSqlv2 on every call and `this.context` is never reassigned after
-   * construction, so one instance is always one user. A single request can hit
-   * this a dozen times (list + count + each grouped-list query), and the EE
+   * Memoized per instance and per `mode` — `Model.getBaseModelSQL` constructs a
+   * fresh BaseModelSqlv2 on every call and `this.context` is never reassigned
+   * after construction, so one instance is always one user. A single request can
+   * hit this a dozen times (list + count + each grouped-list query), and the EE
    * resolution is a team expansion plus per-policy filter loads.
    *
    * Callers get their own Filter instances because conditionV2 mutates the
    * filters it is handed (`comparison_op` / `value` normalization).
    */
-  public async getRlsConditions(): Promise<Filter[]> {
-    this._rlsConditions ??= this.resolveRlsConditions();
-    return cloneFilters(await this._rlsConditions);
+  public async getRlsConditions(
+    mode: 'read' | 'write' = 'read',
+  ): Promise<Filter[]> {
+    this._rlsConditions[mode] ??= this.resolveRlsConditions(mode);
+    return cloneFilters(await this._rlsConditions[mode]);
   }
 
   /**
    * CE: no-op, no RLS. EE overrides with policy resolution.
+   * `mode` ('read' | 'write') is honored only by the EE override.
    */
-  protected async resolveRlsConditions(): Promise<Filter[]> {
+  protected async resolveRlsConditions(
+    _mode: 'read' | 'write' = 'read',
+  ): Promise<Filter[]> {
     return [];
   }
+
+  /**
+   * Tags rows the user can see but not edit with `__nc_rls_readonly`.
+   * CE version: no-op (no RLS). EE version marks read_only rows.
+   */
+  public async applyRlsReadonlyFlags(_rows: any[]): Promise<void> {}
 
   /**
    * Returns a knex where-clause callback that excludes soft-deleted records,

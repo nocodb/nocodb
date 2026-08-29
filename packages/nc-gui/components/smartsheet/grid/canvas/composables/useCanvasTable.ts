@@ -1890,6 +1890,15 @@ export function useCanvasTable({
     // Row is hidden by RLS policy — lock it to prevent edits before it's removed from view
     if (row.rowMeta?.isRlsHidden) return null
 
+    // Row is locked read-only by an RLS read_only policy — block edits (stays visible)
+    // and tell the user why (mirrors the synced-field / no-PK restriction messages below).
+    if (row.rowMeta?.isRlsReadonly) {
+      if (showEditCellRestrictionTooltip) {
+        message.toast(t('objects.permissions.rlsPolicy.recordReadonlyToast'))
+      }
+      return null
+    }
+
     if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
     const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)

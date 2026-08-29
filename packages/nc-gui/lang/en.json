@@ -1121,7 +1121,15 @@
           "currentUserTeamNamesWithDescendantsDescription": "Names of the user's teams plus every team beneath them.",
           "currentUserTeamWithDescendantMembers": "Members of my teams",
           "currentUserTeamWithDescendantMembersDescription": "Everyone in the user's teams and sub-teams — use with 'contains any of' to see your reports' records."
-        }
+        },
+        "accessLevel": "Access Level",
+        "accessLevelDescription": "Choose whether matching rows can be edited or are locked as read-only.",
+        "editRecords": "Edit records",
+        "editRecordsDescription": "Members can view and edit matching rows.",
+        "viewOnly": "View only",
+        "viewOnlyDescription": "Members can view matching rows but cannot edit them.",
+        "readOnlyBadge": "Read-only",
+        "recordReadonlyToast": "This record is read-only and can't be edited."
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",

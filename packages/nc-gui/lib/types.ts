@@ -141,6 +141,8 @@ interface Row {
     fromExpandedForm?: boolean
     // Row is hidden by RLS policy after insert
     isRlsHidden?: boolean
+    // Row is visible but locked read-only by an RLS read_only policy — editing is blocked
+    isRlsReadonly?: boolean
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view

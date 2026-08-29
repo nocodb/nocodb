@@ -20,14 +20,15 @@ import { nocoExecute } from '~/utils/nocoExecute';
 import {
   getRelationReadDepth,
   runAtNextRelationReadDepth,
-} from '~/db/BaseModelSqlv2/relationReadDepth';
+} from '~/db/BaseModelSqlv2/relation-read-depth';
 
 const GROUP_COL = '__nc_group_id';
 
 // How many relation levels `postProcessData` expands LTAR/Lookup before falling
 // back to a value-only projection (scalars/Rollup/Links/Formula). Depth 0 is the
 // surfaced relation read; expanding through this many levels means a lookup
-// chain up to that many hops deep resolves (depth 2 → lookup→lookup→lookup).
+// chain up to one hop deeper than the bound resolves (depth 2 → the three-hop
+// lookup→lookup→lookup).
 //
 // This is a deliberate correctness/cost trade-off, NOT an arbitrary cap: each
 // extra expanded level turns one relation read into N more, and a
@@ -81,6 +82,10 @@ export const relationDataFetcher = (param: {
       return data;
     }
 
+    // Seed the request-scoped cache map. Not read directly here anymore (the
+    // depth counter moved to AsyncLocalStorage), but `getRelContext` propagates
+    // it and `@NcCache` piggybacks on it — dropping this would cost cache hits
+    // on the nested reads below.
     if (!context.cacheMap) {
       context.cacheMap = new Map();
     }
@@ -92,7 +97,7 @@ export const relationDataFetcher = (param: {
     // relation SELECT, which is what keeps an outer lookup's target (#14229) —
     // dropped by the old PK+PV projection — while staying cheap. Depth is
     // per-async-chain (AsyncLocalStorage), not a shared counter, because
-    // nocoExecute resolves sibling relations concurrently — see relationReadDepth.
+    // nocoExecute resolves sibling relations concurrently — see relation-read-depth.
     const depth = getRelationReadDepth();
 
     const { ast, parsedQuery } = await getAst(context, {

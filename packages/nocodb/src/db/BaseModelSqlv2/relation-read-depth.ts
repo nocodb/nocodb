@@ -25,5 +25,6 @@ const scope = new AsyncLocalStorage<number>();
 export const getRelationReadDepth = (): number => scope.getStore() ?? 0;
 
 /** Run `fn` one relation-read level deeper than the current async chain. */
-export const runAtNextRelationReadDepth = <T>(fn: () => Promise<T>): Promise<T> =>
-  scope.run(getRelationReadDepth() + 1, fn);
+export const runAtNextRelationReadDepth = <T>(
+  fn: () => Promise<T>,
+): Promise<T> => scope.run(getRelationReadDepth() + 1, fn);

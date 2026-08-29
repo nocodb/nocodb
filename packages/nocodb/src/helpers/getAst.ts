@@ -1,5 +1,4 @@
 import {
-  isOrderCol,
   NcApiVersion,
   parseProp,
   RelationTypes,

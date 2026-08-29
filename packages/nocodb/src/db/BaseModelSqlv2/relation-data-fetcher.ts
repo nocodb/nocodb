@@ -3,12 +3,13 @@ import {
   extractFilterFromXwhere,
   getFirstNonPersonalView,
   NcApiVersion,
+  UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
@@ -17,8 +18,70 @@ import { Filter, Model, View } from '~/models';
 import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
+import {
+  getRelationReadDepth,
+  runAtNextRelationReadDepth,
+} from '~/db/BaseModelSqlv2/relation-read-depth';
 
 const GROUP_COL = '__nc_group_id';
+
+// How many relation levels `postProcessData` expands LTAR/Lookup before falling
+// back to a value-only projection (scalars/Rollup/Links/Formula). Depth 0 is the
+// surfaced relation read; expanding through this many levels means a lookup
+// chain up to one hop deeper than the bound resolves (depth 1 → the two-hop
+// lookup→lookup).
+//
+// Bounded at 1 — the cheapest bound that still fixes #14229's two-level
+// lookup→lookup case. Raising it to 2 (to also resolve a three-hop chain) was
+// tried but pushed the heavy self-referential metaLTAR read over its timeout on
+// hundreds of rows (CI: metaLTAR delete-record test timed out): each extra
+// expanded level turns one relation read into N more. Deeper chains are still
+// resolved — not by raising this bound, but by targeted expansion below, which
+// keeps only the columns an outer lookup actually references. Cyclic chains
+// still terminate here.
+const MAX_NESTED_RELATION_DEPTH = 1;
+
+// Targeted expansion (#14229): past the bound, a bounded nested read still keeps
+// the LTAR/Lookup columns an *outer* lookup chain references (so a deep
+// lookup→lookup→lookup resolves) instead of dropping all relations. That keeps
+// re-entering postProcessData one hop per lookup level, so a self/cyclic lookup
+// chain could recurse without limit. This hard cap severs it: at or ABOVE this
+// depth (`depth < TARGETED_EXPANSION_MAX_DEPTH` stops holding) we stop passing
+// required columns, the AST drops all relations again, and the recursion
+// terminates. Practical lookup chains are far shallower than this.
+const TARGETED_EXPANSION_MAX_DEPTH = 8;
+
+// The target columns on `model`'s related table that outer lookups need from the
+// relation `relationColumnId`: the union of `fk_lookup_column_id` for every
+// Lookup on the owner model that traverses that relation. Passed to getAst as
+// `requiredColumnIds` so exactly those columns survive a bounded nested read —
+// each kept target may itself be a Lookup/LTAR, which resolves one level deeper.
+async function requiredLookupTargets(
+  context: NcContext,
+  ownerModel: Model,
+  relationColumnId: string,
+): Promise<Set<string> | undefined> {
+  const columns = await ownerModel.getColumns(context);
+
+  let targets: Set<string> | undefined;
+
+  for (const col of columns) {
+    if (col.uidt !== UITypes.Lookup) continue;
+
+    const colOptions = (await col.getColOptions(context)) as LookupColumn;
+
+    if (
+      colOptions?.fk_relation_column_id !== relationColumnId ||
+      !colOptions.fk_lookup_column_id
+    ) {
+      continue;
+    }
+
+    (targets ??= new Set<string>()).add(colOptions.fk_lookup_column_id);
+  }
+
+  return targets;
+}
 
 // SQLite AND MSSQL forbid `ORDER BY` (and `TOP`/`LIMIT`) inside a parenthesized
 // `UNION ALL` operand — only pg/mysql accept `(SELECT … ORDER BY … LIMIT …)`
@@ -54,32 +117,72 @@ export const relationDataFetcher = (param: {
       data,
       model,
       query,
+      relationColumnId,
     }: {
       data: any[];
       model: Model;
       query: any;
+      // The LTAR column on the owner model (`baseModel.model`) that this related
+      // data was read through — lets a bounded nested read keep only the target
+      // columns an outer lookup chain needs (targeted expansion, #14229).
+      relationColumnId?: string;
     },
   ) {
     if (Noco.isEE()) {
       return data;
     }
 
-    const { ast, parsedQuery } = await getAst(context, {
-      model,
-      query,
-      extractOnlyPrimaries:
-        context.cacheMap?.get('relation_postProcessData') ?? false,
-    });
-
+    // Seed the request-scoped cache map. Nothing in THIS function reads it (the
+    // depth counter moved to AsyncLocalStorage), but it is not dead: the EE
+    // `@NcCache` decorator self-seeds only on its first decorated call, while
+    // `LinkToAnotherRecordColumn.getRelContext` propagates the map to the
+    // related contexts *only* `if (context.cacheMap)`. Seeding here means the
+    // nested reads below share the parent's map instead of each starting a
+    // fresh one, so dropping this would cost cache hits across the relation
+    // boundary on unlicensed on-prem (EE build, `Noco.isEE()` false).
     if (!context.cacheMap) {
       context.cacheMap = new Map();
     }
-    // set context.cacheMap `relation_postProcessData` to ensure non-infinite loop
-    context.cacheMap.set('relation_postProcessData', true);
 
-    // nocoexecute
-    const result = await nocoExecute(ast, data, {}, parsedQuery);
-    return result;
+    // Re-resolving a relation's lookups here re-enters this function for the
+    // next relation, so the recursion is bounded by depth. Below the bound the
+    // AST is built normally MINUS LTAR/Lookup (the two columns that re-enter
+    // here) — except the specific target columns an outer lookup chain still
+    // needs, which are kept via requiredColumnIds below (targeted expansion).
+    // Scalars/Rollup/Links/Formula still resolve within the single relation
+    // SELECT, which is what keeps an outer lookup's target (#14229) — dropped
+    // by the old PK+PV projection — while staying cheap. Depth is
+    // per-async-chain (AsyncLocalStorage), not a shared counter, because
+    // nocoExecute resolves sibling relations concurrently — see relation-read-depth.
+    const depth = getRelationReadDepth();
+
+    const skipRelationExpansion = depth >= MAX_NESTED_RELATION_DEPTH;
+
+    // Below the bound, keep the columns an outer lookup chain still needs from
+    // this relation (targeted expansion) instead of dropping every relation.
+    // The cyclic-safety cap stops feeding required columns past a fixed depth so
+    // a self-referential lookup chain terminates — see TARGETED_EXPANSION_MAX_DEPTH.
+    const requiredColumnIds =
+      skipRelationExpansion &&
+      relationColumnId &&
+      depth < TARGETED_EXPANSION_MAX_DEPTH
+        ? await requiredLookupTargets(
+            baseModel.context,
+            baseModel.model,
+            relationColumnId,
+          )
+        : undefined;
+
+    const { ast, parsedQuery } = await getAst(context, {
+      model,
+      query,
+      skipRelationExpansion,
+      requiredColumnIds,
+    });
+
+    return runAtNextRelationReadDepth(() =>
+      nocoExecute(ast, data, {}, parsedQuery),
+    );
   }
 
   return {
@@ -400,6 +503,7 @@ export const relationDataFetcher = (param: {
         }),
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -503,6 +607,7 @@ export const relationDataFetcher = (param: {
         data: [child],
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
 
       return result?.[0] ?? null;
@@ -708,6 +813,7 @@ export const relationDataFetcher = (param: {
           }),
           model: childTable,
           query: args,
+          relationColumnId: colId,
         });
       } catch (e) {
         throw e;
@@ -1414,6 +1520,7 @@ export const relationDataFetcher = (param: {
         }),
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -1525,6 +1632,7 @@ export const relationDataFetcher = (param: {
         }),
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -1753,6 +1861,7 @@ export const relationDataFetcher = (param: {
         }),
         model: isBt ? parentTable : childTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -2051,6 +2160,7 @@ export const relationDataFetcher = (param: {
         }),
         model: parentTable,
         query: args,
+        relationColumnId: colId,
       });
     },
   };

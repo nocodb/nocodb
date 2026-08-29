@@ -1,4 +1,8 @@
-import { ClientType, extractFilterFromXwhere } from 'nocodb-sdk';
+import {
+  AllAggregations,
+  ClientType,
+  extractFilterFromXwhere,
+} from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { NcContext } from '~/interface/config';
@@ -14,6 +18,10 @@ import { NC_DISABLE_BULK_AGG_CONSOLIDATION } from '~/utils/nc-config';
 // JSON_BUILD_OBJECT takes 2 args per aggregate and PG caps function calls at
 // 100 arguments — above this the consolidated path can't pack a bucket row.
 const MAX_CONSOLIDATED_AGG_COLUMNS = 50;
+
+// Ops the grid's group-by emits (nc-gui `buildNestedFilterArr`). Each pins a
+// column to one bucket, so distinct tuples of them cannot share a row.
+const PARTITIONING_OPS = new Set(['gb_eq', 'gb_null', 'checked', 'notchecked']);
 
 /**
  * Shared, dialect-agnostic bulk aggregation orchestration.
@@ -97,18 +105,76 @@ export const bulkAggregate =
         : [];
 
       /**
+       * Cheap, sound proof that a bucket is one branch of a partition.
+       *
+       * Nothing upstream guarantees disjointness: the grid batches several
+       * group-by levels into one request (a parent's rows are a superset of
+       * its children's), and the REST/MCP/AI callers document their filter
+       * groups as independent. So require every bucket to be an AND-chain of
+       * the ops the group-by flow emits (`buildNestedFilterArr`), and (by the
+       * caller) over the same columns with a distinct value tuple — distinct
+       * equality/null/checkbox tuples on identical columns cannot both match
+       * one row, whatever else is ANDed alongside. Returns null when that
+       * can't be established.
+       */
+      const provePartition = (
+        filterGroups: Array<Filter[] | undefined>,
+      ): { cols: string; key: string } | null => {
+        const cols: string[] = [];
+        const conds: string[] = [];
+
+        for (const filters of filterGroups) {
+          const entries = filters ?? [];
+          for (let i = 0; i < entries.length; i++) {
+            const f = entries[i];
+            // A top-level OR makes the chain a disjunction and voids the proof.
+            if (i > 0 && `${f.logical_op ?? 'and'}`.toLowerCase() === 'or') {
+              return null;
+            }
+            if (f.is_group) continue;
+
+            const op = f.comparison_op as string;
+            if (!PARTITIONING_OPS.has(op)) continue;
+            if (!f.fk_column_id) return null;
+
+            // Sub-op rides the column signature: two buckets bucketing the same
+            // date column at different granularities are not a partition.
+            const subOp = f.comparison_sub_op ?? '';
+            cols.push(`${f.fk_column_id}:${subOp}`);
+            conds.push(
+              JSON.stringify([
+                f.fk_column_id,
+                op,
+                subOp,
+                op === 'gb_eq' ? f.value ?? null : null,
+              ]),
+            );
+          }
+        }
+
+        if (!conds.length) return null;
+
+        return {
+          cols: [...cols].sort().join('|'),
+          key: [...conds].sort().join('|'),
+        };
+      };
+
+      /**
        * Single-scan consolidation (PG only). The legacy path below builds one
        * fully-filtered derived subquery PER bucket — N buckets = N scans of the
        * table inside one statement, which is what melts large tables when the
        * grid requests aggregations for many groups.
        *
        * Instead: tag each row with the alias of the bucket it belongs to via a
-       * CASE over the buckets' conditions, GROUP BY that tag (buckets from the
-       * grid group-by flow are disjoint — a row belongs to exactly one group;
-       * for overlapping buckets the first matching CASE branch wins), pack the
+       * CASE over the buckets' conditions, GROUP BY that tag, pack the
        * aggregates per bucket with JSON_BUILD_OBJECT, then pivot back to the
        * legacy single-row `{alias: json}` shape so `execAndParse` post-
        * processing and the response contract stay identical.
+       *
+       * A CASE puts each row in exactly ONE bucket, so this is only equivalent
+       * to the per-bucket path when the buckets are mutually exclusive — see
+       * `provePartition`, which bails out unless that can be proven.
        *
        * PG's aggregation handler emits plain aggregate expressions (internal
        * `FILTER (WHERE ...)` clauses and correlated-subquery arguments are
@@ -134,6 +200,11 @@ export const bulkAggregate =
           const wherePrefix = `${emptyPrefix} where `;
 
           const buckets: Array<{ alias: string; cond: string }> = [];
+          // Every bucket must key on the same columns with a distinct value
+          // tuple, else the buckets may overlap and CASE would drop rows.
+          const seenKeys = new Set<string>();
+          let partitionCols: string | null = null;
+
           for (const f of bulkFilterList) {
             const condQb = knex(baseModel.tnPath);
             const { filters: bucketFilter } = extractFilterFromXwhere(
@@ -142,6 +213,19 @@ export const bulkAggregate =
               aliasColObjMap,
             );
             const parsedFilterArrJson = parsedFilterArrJsonByAlias.get(f.alias);
+
+            const partition = provePartition([
+              bucketFilter,
+              parsedFilterArrJson,
+            ]);
+            if (!partition) return null;
+            if (partitionCols === null) {
+              partitionCols = partition.cols;
+            } else if (partitionCols !== partition.cols) {
+              return null;
+            }
+            if (seenKeys.has(partition.key)) return null;
+            seenKeys.add(partition.key);
 
             await conditionV2(
               baseModel,
@@ -223,9 +307,10 @@ export const bulkAggregate =
             innerQb.where(softDeleteFilterC);
           }
 
-          // Restrict the scan to rows belonging to a requested bucket. The
-          // composed fragments carry no knex bindings, so literal `?` chars
-          // inside them are left untouched.
+          // Restrict the scan to rows belonging to a requested bucket. These
+          // fragments are already interpolated, so they must reach the DB via
+          // execAndParse — its `sanitizeQuery` escapes any `?` inside them
+          // before knex's PG dialect would rewrite it as a binding.
           innerQb.whereRaw(
             `(${buckets.map((b) => `(${b.cond})`).join(' OR ')})`,
           );
@@ -245,14 +330,36 @@ export const bulkAggregate =
           innerQb.select(knex.raw(`(${jsonPack})::text as __nc_aggs__`));
           innerQb.groupByRaw('1');
 
-          // Pivot the bucket rows back into the legacy one-row shape. Empty
-          // buckets (no matching rows) fall back to '{}'.
+          // A bucket matching no rows produces no grouped row at all. Legacy
+          // still returns every key (its aggregates are COALESCE(??, 0)-wrapped
+          // by the handler, except the two date ones), so mirror that shape —
+          // '{}' would leave the caller's `Object.assign` a no-op and render
+          // blank instead of 0.
+          const emptyAggs = JSON.stringify(
+            Object.fromEntries(
+              aggregateColumns
+                .filter(({ col }) => expressions[col.id])
+                .map(({ col, aggregation: agg }) => [
+                  col.id,
+                  (
+                    [
+                      AllAggregations.EarliestDate,
+                      AllAggregations.LatestDate,
+                    ] as string[]
+                  ).includes(agg)
+                    ? null
+                    : 0,
+                ]),
+            ),
+          );
+
+          // Pivot the bucket rows back into the legacy one-row shape.
           const outerQb = knex
             .select(
               ...buckets.map((b) =>
                 knex.raw(
-                  `COALESCE(MAX(CASE WHEN ?? = ? THEN ?? END), '{}') as ??`,
-                  ['__nc_bucket__', b.alias, '__nc_aggs__', b.alias],
+                  `COALESCE(MAX(CASE WHEN ?? = ? THEN ?? END), ?) as ??`,
+                  ['__nc_bucket__', b.alias, '__nc_aggs__', emptyAggs, b.alias],
                 ),
               ),
             )

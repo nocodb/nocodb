@@ -17,8 +17,25 @@ import { Filter, Model, View } from '~/models';
 import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
+import {
+  getRelationReadDepth,
+  runAtNextRelationReadDepth,
+} from '~/db/BaseModelSqlv2/relationReadDepth';
 
 const GROUP_COL = '__nc_group_id';
+
+// How many relation levels `postProcessData` expands LTAR/Lookup before falling
+// back to a value-only projection (scalars/Rollup/Links/Formula). Depth 0 is the
+// surfaced relation read; expanding through this many levels means a lookup
+// chain up to that many hops deep resolves (depth 2 → lookup→lookup→lookup).
+//
+// This is a deliberate correctness/cost trade-off, NOT an arbitrary cap: each
+// extra expanded level turns one relation read into N more, and a
+// self-referential M:N over hundreds of rows is what originally pushed the heavy
+// metaLTAR read past its timeout. Raise it to cover deeper chains at
+// proportionally higher read cost; lower to 1 for the cheapest bound (fixes only
+// the two-level lookup→lookup case). Cyclic chains still terminate here.
+const MAX_NESTED_RELATION_DEPTH = 2;
 
 // SQLite AND MSSQL forbid `ORDER BY` (and `TOP`/`LIMIT`) inside a parenthesized
 // `UNION ALL` operand — only pg/mysql accept `(SELECT … ORDER BY … LIMIT …)`
@@ -68,51 +85,25 @@ export const relationDataFetcher = (param: {
       context.cacheMap = new Map();
     }
 
-    // postProcessData re-resolves a relation's virtual columns (lookups) with
-    // nocoExecute, which can recurse into further relations. That recursion has
-    // to be bounded so a self-referential / cyclic chain (A → B → A) terminates.
-    //
-    // The previous guard set a single `relation_postProcessData` boolean on the
-    // FIRST relation read and never reset it. Because `context.cacheMap` is
-    // request-scoped, that boolean leaked across the whole request: the first
-    // read (often just the internal junction read of an M:N) tripped it, and
-    // every SUBSEQUENT read — SIBLINGS at the same level included — was then
-    // forced to `extractOnlyPrimaries` (PK + primary value only). That dropped
-    // non-PV lookup target columns, so a second lookup over the same relation,
-    // and a lookup-of-a-lookup whose inner target is a non-PV column, resolved
-    // to null (#14229) — visible only on unlicensed builds since the licensed
-    // path returns above.
-    //
-    // Track true call-stack DEPTH instead (restored in `finally`), so sibling
-    // reads at the same depth are not poisoned by an earlier sibling. The root
-    // relation read (depth 0) expands normally; from depth 1 on we ask getAst to
-    // build the AST normally but SKIP relation expansion — i.e. keep every
-    // column except LTAR/Lookup. Those two are the only ones that re-enter
-    // postProcessData (each level fans out into more relation queries, which on
-    // a self-referential M:N over hundreds of rows is what pushed the heavy
-    // metaLTAR read past its timeout); everything else — scalars, Rollup, a
-    // Links count, Formula — resolves within the single relation SELECT. A
-    // lookup reads its inner target one level down via a
-    // `[relationColumn, targetColumn]` alias path, and that target is one of the
-    // kept column types, so this fixes #14229 while staying as cheap as, and
-    // bounded like, the old PK+PV read.
-    const depth =
-      (context.cacheMap.get('relation_postProcessData_depth') as number) ?? 0;
+    // Re-resolving a relation's lookups here re-enters this function for the
+    // next relation, so the recursion is bounded by depth. Below the bound the
+    // AST is built normally MINUS LTAR/Lookup (the two columns that re-enter
+    // here); scalars/Rollup/Links/Formula still resolve within the single
+    // relation SELECT, which is what keeps an outer lookup's target (#14229) —
+    // dropped by the old PK+PV projection — while staying cheap. Depth is
+    // per-async-chain (AsyncLocalStorage), not a shared counter, because
+    // nocoExecute resolves sibling relations concurrently — see relationReadDepth.
+    const depth = getRelationReadDepth();
 
     const { ast, parsedQuery } = await getAst(context, {
       model,
       query,
-      skipRelationExpansion: depth > 0,
+      skipRelationExpansion: depth >= MAX_NESTED_RELATION_DEPTH,
     });
 
-    context.cacheMap.set('relation_postProcessData_depth', depth + 1);
-
-    try {
-      // nocoexecute
-      return await nocoExecute(ast, data, {}, parsedQuery);
-    } finally {
-      context.cacheMap.set('relation_postProcessData_depth', depth);
-    }
+    return runAtNextRelationReadDepth(() =>
+      nocoExecute(ast, data, {}, parsedQuery),
+    );
   }
 
   return {

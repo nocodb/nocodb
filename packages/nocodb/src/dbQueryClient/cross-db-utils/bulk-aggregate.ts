@@ -22,6 +22,40 @@ const defaultLogger = new Logger('bulkAggregate');
 // 100 arguments — above this the consolidated path can't pack a bucket row.
 const MAX_CONSOLIDATED_AGG_COLUMNS = 50;
 
+/**
+ * Outcome of the consolidation attempt, logged on every bulkAggregate call.
+ *
+ * The consolidated and legacy paths are observationally identical — same
+ * response shape, same numbers — so nothing in a test or a production log can
+ * otherwise tell which one ran, and the optimization could stop engaging
+ * without anything going red. These strings are the signal: tests spy on
+ * `Logger.prototype.debug` and assert the path, and `declined:<reason>` says
+ * which guard sent a real workload back to the per-bucket path.
+ */
+export const BULK_AGG_CONSOLIDATION = {
+  engaged: 'bulkAggregate consolidation engaged',
+  declined: 'bulkAggregate consolidation declined',
+  failed: 'bulkAggregate consolidation failed',
+} as const;
+
+export const BulkAggDecline = {
+  Disabled: 'disabled',
+  NotPg: 'non-pg',
+  AggColumnCap: 'agg-column-cap',
+  NoBuckets: 'no-buckets',
+  NotAPartition: 'not-a-partition',
+  MixedPartitionColumns: 'mixed-partition-columns',
+  OverlappingBuckets: 'overlapping-buckets',
+  UnslicableCondition: 'unslicable-condition',
+  EmptyCondition: 'empty-condition',
+  BackslashBinding: 'backslash-binding',
+  NoAggExpressions: 'no-agg-expressions',
+  EmptyResult: 'empty-result',
+} as const;
+
+export type BulkAggDeclineReason =
+  (typeof BulkAggDecline)[keyof typeof BulkAggDecline];
+
 // Ops the grid's group-by emits (nc-gui `buildNestedFilterArr`). Each pins a
 // column to one bucket, so distinct tuples of them cannot share a row.
 const PARTITIONING_OPS = new Set(['gb_eq', 'gb_null', 'checked', 'notchecked']);
@@ -187,6 +221,11 @@ export const bulkAggregate =
         };
       };
 
+      const decline = (reason: BulkAggDeclineReason) => {
+        logger.debug(`${BULK_AGG_CONSOLIDATION.declined}: ${reason}`);
+        return null;
+      };
+
       /**
        * Single-scan consolidation (PG only). The legacy path below builds one
        * fully-filtered derived subquery PER bucket — N buckets = N scans of the
@@ -216,9 +255,12 @@ export const bulkAggregate =
         string,
         Record<string, unknown>
       > | null> => {
-        if (NC_DISABLE_BULK_AGG_CONSOLIDATION) return null;
-        if (client.clientType !== ClientType.PG) return null;
-        if (aggregateColumns.length > MAX_CONSOLIDATED_AGG_COLUMNS) return null;
+        if (NC_DISABLE_BULK_AGG_CONSOLIDATION)
+          return decline(BulkAggDecline.Disabled);
+        if (client.clientType !== ClientType.PG)
+          return decline(BulkAggDecline.NotPg);
+        if (aggregateColumns.length > MAX_CONSOLIDATED_AGG_COLUMNS)
+          return decline(BulkAggDecline.AggColumnCap);
 
         try {
           // Deterministic prefix used to slice each bucket's WHERE fragment out
@@ -249,13 +291,14 @@ export const bulkAggregate =
               bucketFilter,
               parsedFilterArrJson,
             ]);
-            if (!partition) return null;
+            if (!partition) return decline(BulkAggDecline.NotAPartition);
             if (partitionCols === null) {
               partitionCols = partition.cols;
             } else if (partitionCols !== partition.cols) {
-              return null;
+              return decline(BulkAggDecline.MixedPartitionColumns);
             }
-            if (seenKeys.has(partition.key)) return null;
+            if (seenKeys.has(partition.key))
+              return decline(BulkAggDecline.OverlappingBuckets);
             seenKeys.add(partition.key);
 
             await conditionV2(
@@ -284,9 +327,10 @@ export const bulkAggregate =
             // as a placeholder downstream — it steals execAndParse's `limit ?`.
             const { sql, bindings } = condQb.toSQL();
             // A bucket with no distinguishing predicate can't be CASE-tagged.
-            if (!sql.startsWith(wherePrefix)) return null;
+            if (!sql.startsWith(wherePrefix))
+              return decline(BulkAggDecline.UnslicableCondition);
             const cond = sql.slice(wherePrefix.length).trim();
-            if (!cond) return null;
+            if (!cond) return decline(BulkAggDecline.EmptyCondition);
 
             // execAndParse renders this query via toQuery() and then re-escapes
             // it (`sanitizeQuery`) before knex re-scans it for placeholders. A
@@ -294,12 +338,12 @@ export const bulkAggregate =
             // escape and gets eaten as a placeholder, so such a bucket can't be
             // consolidated — hand the whole request to the legacy path.
             if (bindings.some((b) => typeof b === 'string' && b.includes('\\')))
-              return null;
+              return decline(BulkAggDecline.BackslashBinding);
 
             buckets.push({ alias: f.alias, cond, bindings });
           }
 
-          if (!buckets.length) return null;
+          if (!buckets.length) return decline(BulkAggDecline.NoBuckets);
 
           // PG ignores `baseQuery`, so one expression set serves every bucket.
           const expressions: Record<string, string> = {};
@@ -311,7 +355,8 @@ export const bulkAggregate =
             });
             if (aggSql) expressions[col.id] = aggSql;
           }
-          if (!Object.keys(expressions).length) return null;
+          if (!Object.keys(expressions).length)
+            return decline(BulkAggDecline.NoAggExpressions);
 
           const innerQb = knex(baseModel.tnPath);
 
@@ -406,15 +451,27 @@ export const bulkAggregate =
             )
             .from(innerQb.as('__nc_bulk_agg__'));
 
-          return await baseModel.execAndParse(outerQb, null, {
+          const result = await baseModel.execAndParse(outerQb, null, {
             first: true,
             bulkAggregate: true,
           });
+
+          // Falsy would fall through to the legacy path below, so it isn't an
+          // "engaged" outcome however unreachable it is.
+          if (!result) return decline(BulkAggDecline.EmptyResult);
+
+          logger.debug(
+            `${BULK_AGG_CONSOLIDATION.engaged}: ${buckets.length} buckets, ${
+              Object.keys(expressions).length
+            } aggregates`,
+          );
+
+          return result;
         } catch (err) {
           logger.warn(
-            `bulkAggregate consolidation failed, falling back to per-bucket path: ${
-              (err as Error).message
-            }`,
+            `${
+              BULK_AGG_CONSOLIDATION.failed
+            }, falling back to per-bucket path: ${(err as Error).message}`,
           );
           return null;
         }

@@ -9,7 +9,6 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import type { ClientType, NcRequest } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
@@ -19,7 +18,10 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { getColumnByIdOrName } from '~/helpers/dataHelpers';
+import {
+  assertLinkColOptions,
+  getColumnByIdOrName,
+} from '~/helpers/dataHelpers';
 import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
 import { collectRelatedNeededColumnIds } from '~/helpers/relatedMetaProjection';
 import {
@@ -878,12 +880,7 @@ export class PublicDatasService {
     if (!isLinksOrLTAR(column))
       NcError.get(context).badRequest('Column is not a relation column');
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
-
-    if (!colOptions)
-      NcError.get(context).badRequest('Relation column metadata is missing');
+    const colOptions = await assertLinkColOptions(context, column);
 
     const model = await colOptions.getRelatedTable(context);
 

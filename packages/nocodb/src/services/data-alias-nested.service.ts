@@ -5,6 +5,7 @@ import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
+  assertLinkColOptions,
   getColumnByIdOrName,
   getViewAndModelByAliasOrId,
 } from '~/helpers/dataHelpers';
@@ -49,6 +50,8 @@ export class DataAliasNestedService {
 
     if (!column || !isLinksOrLTAR(column))
       NcError.badRequest('Column is not LTAR');
+
+    await assertLinkColOptions(context, column);
 
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables). Mutates
@@ -96,6 +99,8 @@ export class DataAliasNestedService {
       source,
     });
     const column = await getColumnByIdOrName(context, param.columnName, model);
+
+    await assertLinkColOptions(context, column);
 
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
@@ -150,6 +155,8 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
+    await assertLinkColOptions(context, column);
+
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
     // dimension, which stays queryable). The excluded (link-picker) fetch is
@@ -202,6 +209,8 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
+    await assertLinkColOptions(context, column);
+
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
     // dimension, which stays queryable). The excluded (link-picker) fetch is
@@ -252,6 +261,8 @@ export class DataAliasNestedService {
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
+
+    await assertLinkColOptions(context, column);
 
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
@@ -329,6 +340,8 @@ export class DataAliasNestedService {
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
     if (!isLinksOrLTAR(column)) NcError.badRequest('Column is not LTAR');
+
+    await assertLinkColOptions(context, column);
 
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables). Mutates

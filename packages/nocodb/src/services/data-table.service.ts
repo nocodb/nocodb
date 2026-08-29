@@ -10,11 +10,13 @@ import {
 import { validatePayload } from 'src/helpers';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
 import type { LtarDisplayValueContext } from '~/helpers/ltarDisplayValueResolver';
 import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
-import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
+import {
+  assertLinkColOptions,
+  validateV1V2DataPayloadLimit,
+} from '~/helpers/dataHelpers';
 import { restrictNestedLinkQuery } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { Column, Model, Source, View } from '~/models';
@@ -510,9 +512,7 @@ export class DataTableService {
 
     const column = await this.getColumn(context, param);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const colOptions = await assertLinkColOptions(context, column);
 
     // The related table may live in another base (cross-base link). Build the
     // projection in the related table's own context — otherwise `getAst` loads its
@@ -912,9 +912,8 @@ export class DataTableService {
     }
 
     const column = await this.getColumn(context, param);
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+
+    const colOptions = await assertLinkColOptions(context, column);
 
     const { refContext } = await colOptions.getParentChildContext(context);
 
@@ -1655,9 +1654,9 @@ export class DataTableService {
       NcError.get(context).fieldNotFound(linkColumnId);
     }
 
-    const { refContext } = (
-      relationColumn.colOptions as LinkToAnotherRecordColumn
-    ).getRelContext(context);
+    const colOptions = await assertLinkColOptions(context, relationColumn);
+
+    const { refContext } = colOptions.getRelContext(context);
 
     return this.dataList(refContext, {
       query: {
@@ -1666,10 +1665,8 @@ export class DataTableService {
         linkColumnId,
         linkBaseId: context.base_id,
       },
-      modelId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
-        .fk_related_model_id,
-      viewId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
-        .fk_target_view_id,
+      modelId: colOptions.fk_related_model_id,
+      viewId: colOptions.fk_target_view_id,
       includeSortAndFilterColumns:
         req.query.includeSortAndFilterColumns === 'true',
       user: req.user,

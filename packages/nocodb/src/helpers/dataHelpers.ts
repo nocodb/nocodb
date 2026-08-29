@@ -1,6 +1,7 @@
 import {
   convertMS2Duration,
   getEffectiveLookupColumn,
+  isLinksOrLTAR,
   isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
   parseDecimalValue,
@@ -248,6 +249,39 @@ export async function serializeCellValue(
       }
       return value;
   }
+}
+
+/**
+ * A link column whose `nc_col_relations_v2` row is orphaned (Column.delete2 drops
+ * it before the COLUMNS row, non-transactionally) passes every uidt check, so the
+ * nested-link read paths would deref null. Fail naming the column instead.
+ *
+ * Returns the resolved relation metadata so callers can reuse it instead of
+ * re-fetching — in CE `getColOptions` is a real `NocoCache` round-trip, not a
+ * per-request memo.
+ *
+ * No-op (returns `undefined`) for a missing or non-link column — `getColOptions`
+ * returning null is legitimate there, and those callers own that validation.
+ */
+export async function assertLinkColOptions(
+  context: NcContext,
+  column: Column,
+): Promise<LinkToAnotherRecordColumn | undefined> {
+  if (!column || !isLinksOrLTAR(column)) return undefined;
+
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+    context,
+  );
+
+  if (!colOptions) {
+    NcError.get(context).internalServerError(
+      `Link field '${
+        column.title || column.column_name
+      }' is missing its relation metadata`,
+    );
+  }
+
+  return colOptions;
 }
 
 export async function getColumnByIdOrName(

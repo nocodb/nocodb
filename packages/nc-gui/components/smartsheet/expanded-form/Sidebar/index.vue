@@ -60,6 +60,8 @@ const showAudits = computed(() => !props.activityInMainPane && !isSqlView.value 
 
 const feedOptions = computed(() => FEEDS.filter((feed) => (feed.value === 'fields' ? !!props.showFieldsTab : showAudits.value)))
 
+const hasMenu = computed(() => showCommentFilters.value || feedOptions.value.length > 1)
+
 const activeLabel = computed(() => {
   const feed = FEEDS.find((f) => f.value === tab.value)
   if (feed) return t(feed.labelKey)
@@ -118,7 +120,7 @@ watch(
     class="flex flex-col bg-nc-bg-elevated !h-full w-full rounded-br-2xl overflow-hidden"
   >
     <div class="flex-none flex items-center gap-1 px-2 py-1.5 border-b-1 border-nc-border-gray-light">
-      <NcDropdown v-model:visible="isSelectorOpen" placement="bottomLeft">
+      <NcDropdown v-if="hasMenu" v-model:visible="isSelectorOpen" placement="bottomLeft">
         <NcButton type="text" size="small" data-testid="nc-expanded-form-sidebar-feed-selector">
           <div class="flex items-center gap-1.5 min-w-0 text-bodyDefaultSm font-medium text-nc-content-gray">
             <span class="truncate">{{ activeLabel }}</span>
@@ -185,6 +187,11 @@ watch(
           </NcMenu>
         </template>
       </NcDropdown>
+
+      <!-- Matches NcButton size="small" (px-1.75 h-8) so the label doesn't shift. -->
+      <div v-else class="flex items-center h-8 px-1.75 min-w-0 text-bodyDefaultSm font-medium text-nc-content-gray">
+        <span class="truncate">{{ activeLabel }}</span>
+      </div>
 
       <!-- Record bell — per-user comment-notification preference (EE; CE stub
            renders nothing). -->

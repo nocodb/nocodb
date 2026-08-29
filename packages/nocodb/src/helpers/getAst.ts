@@ -58,6 +58,7 @@ const getAst = async (
     fk_display_value_column_id,
     allowRequestedHiddenFields = false,
     skipRelationExpansion = false,
+    requiredColumnIds,
     _depth = 0,
   }: {
     query?: RequestQuery;
@@ -71,6 +72,14 @@ const getAst = async (
     // LTAR/Lookup fan-out (#14229). A Links column stays a count (its
     // non-linksAsLtar path is forced here).
     skipRelationExpansion?: boolean;
+    // #14229 targeted expansion: on a bounded nested read, LTAR/Lookup columns
+    // whose id is in this set are KEPT (expanded) even past the depth bound —
+    // these are the lookup targets an outer lookup chain actually needs, so a
+    // deep lookup→lookup→lookup chain resolves without expanding every unrelated
+    // relation column on the table (which caused the metaLTAR fan-out). Computed
+    // per relation read in relation-data-fetcher (union of the fk_lookup_column_id
+    // of all lookups traversing that relation) and threaded down here.
+    requiredColumnIds?: Set<string>;
     includePkByDefault?: boolean;
     model: Model;
     view?: View;
@@ -248,9 +257,14 @@ const getAst = async (
     // postProcessData to read related rows. Every other column resolves within
     // this one SELECT and is kept (scalars/Rollup/Links-count/Formula/…). Root
     // reads (skipRelationExpansion=false) still expand relations fully.
+    // Exception (targeted expansion): keep a column an outer lookup chain needs
+    // (requiredColumnIds) so a deep lookup→lookup chain resolves without
+    // expanding every unrelated relation column here.
     if (
       skipRelationExpansion &&
-      (col.uidt === UITypes.LinkToAnotherRecord || col.uidt === UITypes.Lookup)
+      (col.uidt === UITypes.LinkToAnotherRecord ||
+        col.uidt === UITypes.Lookup) &&
+      !requiredColumnIds?.has(col.id)
     ) {
       ast[getFieldKey(col)] = null;
       continue;

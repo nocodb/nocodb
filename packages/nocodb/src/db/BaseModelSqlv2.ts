@@ -10420,7 +10420,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * Throws if any row in a condition-based bulk update scope is locked read-only.
    * CE version: no-op (no RLS). EE version enforces read_only policies.
    */
-  public async assertConditionWritable(_scopeFilters: Filter[]): Promise<void> {}
+  public async assertConditionWritable(
+    _scopeFilters: Filter[],
+  ): Promise<void> {}
 
   /**
    * Throws if any of the given rows (by PK value) is locked read-only.

@@ -4687,7 +4687,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           true,
         );
 
-        // Resolve RLS conditions for bulkUpdateAll (write gate: excludes read_only rows)
+        // Resolve RLS conditions for bulkUpdateAll (write gate: restricts to the
+        // user's writable/visible set)
         const rlsConditionsBUA = await this.getRlsConditions('write');
         const rlsFilterGroupBUA = rlsConditionsBUA.length
           ? [new Filter({ children: rlsConditionsBUA, is_group: true })]
@@ -4718,6 +4719,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             }),
           );
         }
+
+        // Reject the bulk update if any row in scope is locked read-only by RLS
+        // (EE-only; no-op in CE). No PK list here, so this is a scope-based check.
+        await this.assertConditionWritable(conditionObj);
 
         await conditionV2(this, conditionObj, qb, undefined, true);
 
@@ -10390,6 +10395,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * CE version: no-op (no RLS). EE version marks read_only rows.
    */
   public async applyRlsReadonlyFlags(_rows: any[]): Promise<void> {}
+
+  /**
+   * Throws if any row in a condition-based bulk update scope is locked read-only.
+   * CE version: no-op (no RLS). EE version enforces read_only policies.
+   */
+  public async assertConditionWritable(_scopeFilters: Filter[]): Promise<void> {}
 
   /**
    * Returns a knex where-clause callback that excludes soft-deleted records,

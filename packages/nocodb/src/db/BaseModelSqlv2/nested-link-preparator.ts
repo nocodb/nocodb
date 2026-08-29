@@ -72,6 +72,103 @@ export class NestedLinkPreparator {
     });
   }
 
+  /**
+   * RLS `read_only` gate for nested inline links on insert.
+   *
+   * Only rows whose FK is *physically rewritten* need asserting:
+   * - bt / oo(bt-side): the FK lands on the row being inserted, which does not
+   *   exist yet and so cannot be locked — but the exclusive oo link also nulls
+   *   the FK of whichever row currently points at the target, and that
+   *   displaced row can be locked.
+   * - hm / oo(reverse): the FK is rewritten on the named child rows.
+   * - mm / V2 links: junction rows only, no record row is mutated.
+   */
+  private async assertNestedLinkRowsWritable(
+    baseModel: IBaseModelSqlV2,
+    { nestedCols, data }: { nestedCols: Column[]; data: Record<string, any> },
+  ) {
+    for (const col of nestedCols) {
+      if (!(col.title in data)) continue;
+
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
+        baseModel.context,
+      );
+      if (!colOptions) continue;
+
+      // Junction-only: neither record row is mutated.
+      if (
+        isLinkV2(col) ||
+        colOptions.type === RelationTypes.MANY_TO_MANY ||
+        colOptions.type === RelationTypes.BELONGS_TO
+      ) {
+        continue;
+      }
+
+      let nestedData;
+      try {
+        nestedData =
+          typeof data[col.title] === 'string'
+            ? JSON.parse(data[col.title])
+            : data[col.title];
+      } catch {
+        continue;
+      }
+      if (nestedData == null) continue;
+
+      const { childContext } = await colOptions.getParentChildContext(
+        baseModel.context,
+      );
+      const childCol = await colOptions.getChildColumn(childContext);
+      const childModel = await childCol.getModel(childContext);
+      await childModel.getColumns(childContext);
+      if (!childModel.primaryKey) continue;
+
+      const childBaseModel = await Model.getBaseModelSQL(childContext, {
+        model: childModel,
+        dbDriver: baseModel.dbDriver,
+      });
+
+      const isOoBtSide =
+        colOptions.type === RelationTypes.ONE_TO_ONE && col.meta?.bt;
+
+      if (isOoBtSide) {
+        // The inserted row takes the FK; the currently-linked row loses it.
+        const targetId = extractIdPropIfObjectOrReturn(
+          Array.isArray(nestedData) ? nestedData[0] : nestedData,
+          childModel.primaryKey.title,
+        );
+        if (targetId == null) continue;
+
+        const displaced = await childBaseModel.execAndParse(
+          childBaseModel
+            .dbDriver(childBaseModel.getTnPath(childModel.table_name))
+            .select(...childModel.primaryKeys.map((c) => c.column_name))
+            .where(childCol.column_name, targetId),
+          null,
+          { raw: true },
+        );
+        if (displaced?.length) {
+          await childBaseModel.assertRowsWritable(
+            displaced.map((r) => childBaseModel.extractPksValues(r, true)),
+          );
+        }
+        continue;
+      }
+
+      // hm / oo(reverse): the named children have their FK re-pointed.
+      // `extractPksValues` (not `extractIdPropIfObjectOrReturn`) because the
+      // assert matches with `_wherePk`, and on a composite-PK child only the
+      // compound `a___b` form splits back into every PK column.
+      const childIds = (Array.isArray(nestedData) ? nestedData : [nestedData])
+        .map((r) => childBaseModel.extractPksValues(r, true))
+        .filter((v) => v != null);
+
+      if (childIds.length) {
+        await childBaseModel.assertRowsWritable(childIds);
+      }
+    }
+  }
+
   async prepareNestedLinkQb(
     baseModel: IBaseModelSqlV2,
     {
@@ -120,6 +217,11 @@ export class NestedLinkPreparator {
         req,
       });
     }
+
+    // Same reason as the field check above: these links bypass addLinks(), so
+    // the RLS read_only row lock has to be applied here too. Rejects the whole
+    // payload before any op is queued.
+    await this.assertNestedLinkRowsWritable(baseModel, { nestedCols, data });
 
     for (const col of nestedCols) {
       if (col.title in data) {

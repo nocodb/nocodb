@@ -94,6 +94,7 @@ import * as nc_202608071500_ai_col_global_model_reset from './v0/nc_202608071500
 import * as nc_202608121200_base_sections from './v0/nc_202608121200_base_sections';
 import * as nc_202608191200_credit_hold_ref_scoped from './v0/nc_202608191200_credit_hold_ref_scoped';
 import * as nc_202608201200_automation_sections from './v0/nc_202608201200_automation_sections';
+import * as nc_202608201200_rls_policy_access_level from './v0/nc_202608201200_rls_policy_access_level';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -199,6 +200,7 @@ export default class XcMigrationSourcev0 {
       'nc_202608121200_base_sections',
       'nc_202608191200_credit_hold_ref_scoped',
       'nc_202608201200_automation_sections',
+      'nc_202608201200_rls_policy_access_level',
     ]);
   }
 
@@ -400,6 +402,8 @@ export default class XcMigrationSourcev0 {
         return nc_202608191200_credit_hold_ref_scoped;
       case 'nc_202608201200_automation_sections':
         return nc_202608201200_automation_sections;
+      case 'nc_202608201200_rls_policy_access_level':
+        return nc_202608201200_rls_policy_access_level;
     }
   }
 }

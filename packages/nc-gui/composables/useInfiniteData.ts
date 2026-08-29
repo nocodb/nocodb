@@ -71,6 +71,7 @@ const formatData = (
           path,
           ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
           ...(buttonDisabled ? { buttonDisabled } : {}),
+          ...((row as any).__nc_rls_readonly ? { isRlsReadonly: true } : {}),
         },
       }
     })
@@ -88,6 +89,7 @@ const formatData = (
         path,
         ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
         ...(buttonDisabled ? { buttonDisabled } : {}),
+        ...((row as any).__nc_rls_readonly ? { isRlsReadonly: true } : {}),
       },
     }
   })
@@ -1574,6 +1576,17 @@ export function useInfiniteData(args: {
       throw new Error('Row metadata is missing')
     }
 
+    // Row is locked read-only by an RLS read_only policy — revert the local edit
+    // and notify. The backend also blocks the write (defense in depth), but
+    // guarding here avoids a silent no-op that would revert only on reload.
+    if (toUpdate.rowMeta.isRlsReadonly || (toUpdate.row as any)?.__nc_rls_readonly) {
+      if (toUpdate.oldRow && property in toUpdate.oldRow) {
+        toUpdate.row[property] = toUpdate.oldRow[property]
+      }
+      message.toast(t('objects.permissions.rlsPolicy.recordReadonlyToast'))
+      return
+    }
+
     const dataCache = getDataCache(path)
 
     toUpdate.rowMeta.saving = true
@@ -1648,6 +1661,9 @@ export function useInfiniteData(args: {
       if (updatedRowData?.__nc_rls_hidden) {
         toUpdate.rowMeta.isRlsHidden = true
       }
+
+      // Mark row as read-only if it became locked by an RLS read_only policy after update
+      toUpdate.rowMeta.isRlsReadonly = !!updatedRowData?.__nc_rls_readonly
 
       // Update the row in cachedRows
       if (toUpdate.rowMeta.rowIndex !== undefined) {

@@ -416,6 +416,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
       const isNewRow = row.value.rowMeta?.new ?? false
 
+      // Existing row locked read-only by an RLS read_only policy — block the save.
+      if (!isNewRow && (row.value.rowMeta?.isRlsReadonly || (row.value.row as any)?.__nc_rls_readonly)) {
+        message.toast(t('objects.permissions.rlsPolicy.recordReadonlyToast'))
+        return
+      }
+
       if (isNewRow) {
         const { getMeta } = useMetas()
 
@@ -492,6 +498,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // If the updated row is now hidden by RLS policy, mark it
             if (updatedData?.__nc_rls_hidden) {
               row.value.row.__nc_rls_hidden = true
+            }
+
+            // If the update pushed the row into read_only scope, lock it for further edits
+            if (row.value.rowMeta) {
+              row.value.rowMeta.isRlsReadonly = !!updatedData?.__nc_rls_readonly
             }
           }
 

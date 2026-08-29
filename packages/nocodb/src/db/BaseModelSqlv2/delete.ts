@@ -86,36 +86,33 @@ export class BaseModelDelete {
       true,
     );
 
-    // Resolve RLS conditions for bulkDeleteAll
-    const rlsConditionsBDA = await this.baseModel.getRlsConditions();
+    // Resolve RLS conditions for bulkDeleteAll (write gate: restricts to the
+    // user's writable/visible set)
+    const rlsConditionsBDA = await this.baseModel.getRlsConditions('write');
     const rlsFilterGroupBDA = rlsConditionsBDA.length
       ? [new Filter({ children: rlsConditionsBDA, is_group: true })]
       : [];
 
-    await conditionV2(
-      this.baseModel,
-      [
-        ...rlsFilterGroupBDA,
-        new Filter({
-          children: args.filterArr || [],
-          is_group: true,
-          logical_op: 'and',
-        }),
-        new Filter({
-          children: filterObj,
-          is_group: true,
-          logical_op: 'and',
-        }),
-        ...(args.viewId
-          ? await Filter.rootFilterList(this.baseModel.context, {
-              viewId: args.viewId,
-            })
-          : []),
-      ],
-      qb,
-      undefined,
-      true,
-    );
+    const conditionObjBDA = [
+      ...rlsFilterGroupBDA,
+      new Filter({
+        children: args.filterArr || [],
+        is_group: true,
+        logical_op: 'and',
+      }),
+      new Filter({
+        children: filterObj,
+        is_group: true,
+        logical_op: 'and',
+      }),
+      ...(args.viewId
+        ? await Filter.rootFilterList(this.baseModel.context, {
+            viewId: args.viewId,
+          })
+        : []),
+    ];
+
+    await conditionV2(this.baseModel, conditionObjBDA, qb, undefined, true);
     const execQueries: ExecQueryType[] = [];
 
     const metaQueries: MetaQueryType[] = [];
@@ -130,6 +127,17 @@ export class BaseModelDelete {
       (await this.baseModel.model.isTrashEnabledForWorkspace(
         this.baseModel.context,
       ));
+
+    // Reject the bulk delete if any row in scope is locked read-only by RLS
+    // (EE-only; no-op in CE). No PK list here, so this is a scope-based check.
+    // A hard delete reaches trashed rows, so the probe must scan them too —
+    // otherwise a trashed locked row is invisible to the gate and destroyed.
+    await this.baseModel.assertConditionWritable(conditionObjBDA, {
+      includeSoftDeleted: !isSoftDelete,
+      // skipPks is applied to `qb` above but is not part of conditionObjBDA,
+      // so the probe needs it explicitly to scan the same row set.
+      skipPks: args.skipPks,
+    });
 
     if (isSoftDelete) {
       const notDeletedValue = deletedColValue(this.baseModel, false);

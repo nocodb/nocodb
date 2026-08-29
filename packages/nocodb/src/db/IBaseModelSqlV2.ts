@@ -453,7 +453,19 @@ export interface IBaseModelSqlV2 {
    * to avoid amplifying requests to an overwhelmed external source.
    */
   formulaDryRunFailed?: boolean;
-  getRlsConditions(): Promise<Filter[]>;
+  getRlsConditions(mode?: 'read' | 'write'): Promise<Filter[]>;
+  applyRlsReadonlyFlags(rows: any[]): Promise<void>;
+  assertConditionWritable(
+    scopeFilters: Filter[],
+    options?: { includeSoftDeleted?: boolean; skipPks?: string },
+  ): Promise<void>;
+  assertRowsWritable(pkVals: any[]): Promise<void>;
+  assertLinkRowsWritable(params: {
+    colId: string;
+    rowId: string;
+    childIds: (string | number)[];
+    isLink?: boolean;
+  }): Promise<void>;
   getSoftDeleteFilter(): Promise<Knex.QueryCallback | null>;
   updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any): Promise<void>;
   afterSoftDeleteCompleted(params: {

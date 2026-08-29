@@ -164,7 +164,8 @@ export const getSelectTypeFieldOptionBgColor = ({
   }
 
   if (isDark) {
-    return getAdaptiveTint(color, { isDarkMode: isDark, shade: shade ?? -10 })
+    // `shade` predates the chip resolver and no caller sets it — honour it only if one does.
+    return shade === undefined ? getSelectChipColors(color, isDark).bg : getAdaptiveTint(color, { isDarkMode: isDark, shade })
   }
 
   return color
@@ -189,7 +190,7 @@ export const getSelectTypeFieldOptionTextColor = ({
     return getColor('var(--nc-content-gray)')
   }
 
-  return getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
+  return getSelectChipColors(color, isDark).ink
 }
 
 export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {

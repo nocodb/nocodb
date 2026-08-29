@@ -4143,17 +4143,12 @@ export function useCanvasRender({
         const tag = tags[i] || ''
         const color = colors[i] || '#ccc'
 
-        const opBgColor = !isColorCodeEnabled
-          ? getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
-          : isDark.value
-          ? getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
-          : color
+        const chip = getSelectChipColors(color, isDark.value)
+        const opBgColor = !isColorCodeEnabled ? getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') : chip.bg
 
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 
-        const textColor = !isColorCodeEnabled
-          ? getColor('var(--nc-content-gray)')
-          : getOppositeColorOfBackground(opBgColor, color)
+        const textColor = !isColorCodeEnabled ? getColor('var(--nc-content-gray)') : chip.ink
 
         ctx.save()
         ctx.font = '700 13px Inter'

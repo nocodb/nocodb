@@ -638,6 +638,8 @@ defineExpose({
                     v-else
                     v-model="kanbanStackOption.color"
                     :is-open="colorMenus[kanbanStackOption.index!]"
+                    palette="chip"
+                    :preview-label="kanbanStackOption.title"
                     invert-in-dark-mode
                     show-text-icon
                     @input="(el:string) => {
@@ -732,6 +734,8 @@ defineExpose({
                         v-else
                         v-model="element.color"
                         :is-open="colorMenus[index]"
+                        palette="chip"
+                        :preview-label="element.title"
                         invert-in-dark-mode
                         show-text-icon
                         @input="(el:string) => {

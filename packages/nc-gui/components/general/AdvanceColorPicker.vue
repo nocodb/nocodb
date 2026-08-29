@@ -58,12 +58,6 @@ const swatchLabel = computed(() => (props.palette === 'chip' ? props.previewLabe
 /** 24px square, or a 48px chip once it carries a label — plus 4px padding each side. */
 const cellWidth = computed(() => (swatchLabel.value ? 56 : 32))
 
-/**
- * Panel width follows the widest row so a narrower palette doesn't leave a gutter:
- * cells, inside the grid's own 8px padding.
- */
-const panelWidth = computed(() => Math.max(...swatches.value.map((row) => row.length)) * cellWidth.value + 16)
-
 const localIsDefaultColorTab = ref<'true' | 'false'>('true')
 
 const isDefaultColorTab = computed({
@@ -89,6 +83,26 @@ const isDefaultColorTab = computed({
     }
   },
 })
+
+/**
+ * The spectrum doesn't need the swatch grid's width — a labelled grid runs to 520px
+ * and the picker just stretches to fill it. Each tab sizes to its own content: the
+ * grid to its columns, the spectrum to the width the full palette already uses.
+ * Only the width changes on tab switch, which re-aligns the dropdown horizontally
+ * without flipping it above the trigger the way a height change does.
+ */
+const SPECTRUM_TAB_WIDTH = 336
+
+const gridTabWidth = computed(() => Math.max(...swatches.value.map((row) => row.length)) * cellWidth.value + 16)
+
+const panelWidth = computed(() => (isDefaultColorTab.value === 'true' ? gridTabWidth.value : SPECTRUM_TAB_WIDTH))
+
+/**
+ * The tab bar keeps the narrower tab's width in both states. Left to fill the panel it
+ * would stretch with it, and the title you just clicked slides out from under the
+ * cursor as the panel resizes behind it.
+ */
+const tabBarWidth = computed(() => Math.min(gridTabWidth.value, SPECTRUM_TAB_WIDTH))
 
 const selectColor = (color: string, closeModal = false) => {
   picked.value = color
@@ -122,7 +136,11 @@ watch(
 </script>
 
 <template>
-  <div class="nc-advance-color-picker pt-2" :style="{ width: `${panelWidth}px` }" click.stop>
+  <div
+    class="nc-advance-color-picker pt-2"
+    :style="{ 'width': `${panelWidth}px`, '--nc-color-picker-tab-bar-width': `${tabBarWidth}px` }"
+    click.stop
+  >
     <NcTabs v-model:active-key="isDefaultColorTab" class="nc-advance-color-picker-tab w-full">
       <a-tab-pane key="true">
         <template #tab>
@@ -219,12 +237,23 @@ watch(
   @apply !ml-3;
 }
 
+// The spectrum is aspect-driven — `.vc-chrome-saturation-wrap` is 55% of its width —
+// so at the panel's width the gradient alone runs to ~277px and the tab towers over
+// the swatch grid. A fixed height covers the same range, just sampled more coarsely.
+:deep(.vc-chrome-saturation-wrap) {
+  height: 150px;
+  padding-bottom: 0;
+}
+
 :deep(.ant-tabs) {
   @apply !overflow-visible;
   .ant-tabs-nav {
     @apply px-1;
     .ant-tabs-nav-list {
-      @apply w-[99%] mx-auto gap-6;
+      @apply gap-6;
+      // fixed so the tab titles hold their position when the panel resizes; -8px for
+      // the nav's own px-1
+      width: calc(var(--nc-color-picker-tab-bar-width) - 8px);
 
       .ant-tabs-tab {
         @apply flex-1 flex items-center justify-center pt-2 pb-2 text-xs font-semibold;

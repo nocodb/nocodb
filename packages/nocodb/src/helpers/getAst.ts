@@ -1,4 +1,5 @@
 import {
+  isBtLikeV2Junction,
   NcApiVersion,
   parseProp,
   RelationTypes,
@@ -64,13 +65,12 @@ const getAst = async (
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
     // Bound relation re-resolution to a single query: build the AST normally
-    // but drop the two recursion drivers — LinkToAnotherRecord and Lookup —
-    // which resolve by reading related rows (re-entering postProcessData).
-    // Everything else (scalars, Rollup, a Links count, Formula, Barcode/…)
-    // resolves inside this one SELECT and is kept, so an outer lookup can read a
-    // target of any of those types on the nested read without unbounded
-    // LTAR/Lookup fan-out (#14229). A Links column stays a count (its
-    // non-linksAsLtar path is forced here).
+    // but drop the recursion drivers — LinkToAnotherRecord, Lookup, and V2
+    // junction Links (mo/bt/oo) — which resolve by reading related rows
+    // (re-entering postProcessData). Everything else (scalars, Rollup, a Links
+    // count, Formula, Barcode/…) resolves inside this one SELECT and is kept,
+    // so an outer lookup can read a target of any of those types on the nested
+    // read without unbounded fan-out (#14229).
     skipRelationExpansion?: boolean;
     // #14229 targeted expansion: on a bounded nested read, LTAR/Lookup columns
     // whose id is in this set are KEPT (expanded) even past the depth bound —
@@ -252,18 +252,22 @@ const getAst = async (
   };
 
   for (const col of columns) {
-    // #14229: on a bounded (single-query) nested relation read, drop the two
-    // recursion drivers — LTAR and Lookup — since resolving either re-enters
-    // postProcessData to read related rows. Every other column resolves within
-    // this one SELECT and is kept (scalars/Rollup/Links-count/Formula/…). Root
-    // reads (skipRelationExpansion=false) still expand relations fully.
+    // #14229: on a bounded (single-query) nested relation read, drop every
+    // column that resolves by reading related rows, since each one re-enters
+    // postProcessData. Everything else resolves within this one SELECT and is
+    // kept (scalars/Rollup/Links-count/Formula/…). Root reads
+    // (skipRelationExpansion=false) still expand relations fully.
     // Exception (targeted expansion): keep a column an outer lookup chain needs
     // (requiredColumnIds) so a deep lookup→lookup chain resolves without
     // expanding every unrelated relation column here.
     if (
       skipRelationExpansion &&
       (col.uidt === UITypes.LinkToAnotherRecord ||
-        col.uidt === UITypes.Lookup) &&
+        col.uidt === UITypes.Lookup ||
+        // A V2 junction mo/bt/oo link is a `Links` column, but getProto serves
+        // it under the bare title as a record read rather than a `_nc_lk_`
+        // count (select-object skips its rollup), so it recurses like an LTAR.
+        (col.uidt === UITypes.Links && isBtLikeV2Junction(col))) &&
       !requiredColumnIds?.has(col.id)
     ) {
       ast[getFieldKey(col)] = null;
@@ -274,8 +278,8 @@ const getAst = async (
     // TODO: also get from col.id
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
-    // A Links column expands into related rows only via linksAsLtar; on a
-    // bounded read force it back to a plain count so it never recurses.
+    // Outside the junction case above, a Links column expands into related rows
+    // only via linksAsLtar; on a bounded read force it back to a plain count.
     const linksAsLtar = !skipRelationExpansion && query?.linksAsLtar === 'true';
 
     if (nestedFields && nestedFields !== '*') {

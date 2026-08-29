@@ -15,6 +15,10 @@ const props = defineProps<{
 
 const tableMeta = inject(MetaInj, ref())
 
+// Interface panels hide field-type icons (interfaces abstract the schema
+// away) — same treatment as the interface kanban card labels.
+const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
+
 const isSyncedTable = computed(() => !!(tableMeta.value as TableType | undefined)?.synced)
 
 const details = computed(() => {
@@ -186,6 +190,7 @@ function toggleLongText(key: string) {
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
     <div class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header">
       <SmartsheetHeaderIcon
+        v-if="!ifaceSidebar"
         :column="{
           uidt: meta[columnKey]?.type,
           dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,

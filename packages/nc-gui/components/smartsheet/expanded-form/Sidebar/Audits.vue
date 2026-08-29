@@ -96,6 +96,10 @@ watch(
 
 const meta = inject(MetaInj, ref())
 
+// Interface panels hide field-type icons (interfaces abstract the schema
+// away) — same treatment as AuditMiniItem's per-field headers.
+const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
+
 const isSyncedTable = computed(() => !!(meta.value as TableType | undefined)?.synced)
 
 function safeJsonParse(json: string) {
@@ -244,6 +248,7 @@ function isV0Audit(audit: AuditType) {
               <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
                   <SmartsheetHeaderVirtualCellIcon
+                    v-if="!ifaceSidebar"
                     :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(audit) } }"
                     class="!m-0"
                   />

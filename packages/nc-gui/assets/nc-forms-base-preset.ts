@@ -10,9 +10,8 @@ import type { Preset } from 'unocss'
 // Geometry keeps normal specificity so it still beats the generic `input { padding: 0 }` reset.
 //
 // Captured from windicss@3.5.6 running the original windi.config.ts, so the bare-element
-// rendering matches what the app was built against. Windi's `--tw-ring-*` names are rewritten to
-// `--un-*`: ~40 inputs cancel this focus ring with `ring-transparent`, which presetWind3 emits as
-// `--un-ring-color` — under the original names the ring painted regardless.
+// rendering matches what the app was built against. Ring vars renamed `--tw-*` → `--un-*` so
+// `ring-transparent` can cancel the focus ring.
 const FORMS_BASE = `
 [type='text'], [type='email'], [type='url'], [type='password'], [type='number'], [type='date'], [type='datetime-local'], [type='month'], [type='search'], [type='tel'], [type='time'], [type='week'], [multiple], textarea, select { -webkit-appearance: none; -moz-appearance: none; appearance: none; border-width: 1px; border-radius: 0px; padding-top: 0.5rem; padding-right: 0.75rem; padding-bottom: 0.5rem; padding-left: 0.75rem; font-size: 1rem; line-height: 1.5rem; }
 :where([type='text'], [type='email'], [type='url'], [type='password'], [type='number'], [type='date'], [type='datetime-local'], [type='month'], [type='search'], [type='tel'], [type='time'], [type='week'], [multiple], textarea, select) { background-color: #fff; border-color: #6A7184; }

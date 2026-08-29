@@ -345,11 +345,7 @@ const cellClassName = computed(() => {
     className += ' nc-grid-numeric-cell-right'
   }
 
-  // `h-10` and `h-full` are the same specificity on the same property, so whichever the
-  // stylesheet emits last wins. WindiCSS emitted in file-discovery order (`h-full` first,
-  // so `h-10` won); UnoCSS sorts alphabetically inside a rule, flipping it — every form cell
-  // fell back to `height: 100%` of an auto-height parent, i.e. content height. Emit one or
-  // the other so the box height never depends on utility order.
+  // One height utility only — h-10 and h-full tie on specificity, so emission order would decide.
   const isFormFixedHeight =
     !isEditColumnMenu.value &&
     isForm.value &&

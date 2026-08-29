@@ -4,6 +4,7 @@ import {
   ClientType,
   extractFilterFromXwhere,
 } from 'nocodb-sdk';
+import type { FilterType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { NcContext } from '~/interface/config';
 import type { BulkAggregateCtx, DBQueryClient } from '~/dbQueryClient/types';
@@ -120,7 +121,9 @@ export const bulkAggregate =
        * can't be established.
        */
       const provePartition = (
-        filterGroups: Array<Filter[] | undefined>,
+        // FilterType, not Filter: xwhere yields plain FilterType objects while
+        // filterArrJson yields Filter models, and only the shared fields are read.
+        filterGroups: Array<FilterType[] | undefined>,
       ): { cols: string; key: string } | null => {
         const cols: string[] = [];
         const conds: string[] = [];
@@ -142,13 +145,23 @@ export const bulkAggregate =
             // Sub-op rides the column signature: two buckets bucketing the same
             // date column at different granularities are not a partition.
             const subOp = f.comparison_sub_op ?? '';
+
+            // `gb_null` matches NULL *and* '', so it overlaps a `gb_eq` on ''
+            // over the same column. Fold both to one op so two such buckets
+            // produce the same key and collide in `seenKeys` — otherwise they
+            // read as distinct and CASE hands the shared rows to whichever
+            // bucket is listed first, zeroing the other.
+            const isBlank =
+              op === 'gb_null' || (op === 'gb_eq' && (f.value ?? '') === '');
+            const normalizedOp = isBlank ? 'gb_blank' : op;
+
             cols.push(`${f.fk_column_id}:${subOp}`);
             conds.push(
               JSON.stringify([
                 f.fk_column_id,
-                op,
+                normalizedOp,
                 subOp,
-                op === 'gb_eq' ? f.value ?? null : null,
+                normalizedOp === 'gb_eq' ? f.value ?? null : null,
               ]),
             );
           }

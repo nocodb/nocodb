@@ -333,8 +333,26 @@ export function useGridViewData(
 
     const dataCache = getDataCache(path)
 
+    // Rows locked by an RLS read_only policy are dropped from the batch rather
+    // than sent: the backend rejects the whole bulk write if any row in it is
+    // locked, so one locked row in a fill or paste range would discard every
+    // other edit. The reload at the end replaces their stale optimistic values
+    // with server truth.
+    const hasLockedRows = rows.some((row) => row.rowMeta?.isRlsReadonly)
+    const writableRows = hasLockedRows ? rows.filter((row) => !row.rowMeta?.isRlsReadonly) : rows
+
+    if (hasLockedRows) {
+      message.toast(t('objects.permissions.rlsPolicy.recordReadonlyToast'))
+    }
+
+    if (!writableRows.length) {
+      isBulkOperationInProgress.value = false
+      if (hasLockedRows) reloadViewDataHook?.trigger()
+      return
+    }
+
     await Promise.all(
-      rows.map(async (row) => {
+      writableRows.map(async (row) => {
         if (row.rowMeta) {
           row.rowMeta.changed = false
           await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
@@ -344,7 +362,7 @@ export function useGridViewData(
     )
     const pksIndex = [] as { pk: string; rowIndex: number }[]
 
-    const updateArray = rows.map((row) => {
+    const updateArray = writableRows.map((row) => {
       const pk = rowPkData(row.row, metaValue?.columns as ColumnType[])
       const updateData = props.reduce((acc, prop) => ({ ...acc, [prop]: row.row[prop] }), {})
       pksIndex.push({
@@ -364,7 +382,7 @@ export function useGridViewData(
         // realtime updates reconcile.
         const pkTitles = ((metaValue?.columns ?? []) as ColumnType[]).filter((c) => c.pk).map((c) => c.title!)
         await interfaceDataApi.bulkUpdateRows(
-          rows.map((row) => ({
+          writableRows.map((row) => ({
             rowId: extractPkFromRow(row.row, metaValue?.columns as ColumnType[]) as string,
             data: props.reduce(
               (acc, prop) => (pkTitles.includes(prop) ? acc : { ...acc, [prop]: row.row[prop] }),
@@ -410,11 +428,11 @@ export function useGridViewData(
       isBulkOperationInProgress.value = false
       return
     } finally {
-      rows.forEach((row) => {
+      writableRows.forEach((row) => {
         if (row.rowMeta) row.rowMeta.saving = false
       })
     }
-    applySorting(rows)
+    applySorting(writableRows)
     syncVisibleData()
     reloadViewDataHook?.trigger()
     isBulkOperationInProgress.value = false

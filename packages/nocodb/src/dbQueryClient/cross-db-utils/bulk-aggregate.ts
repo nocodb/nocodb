@@ -1,9 +1,9 @@
+import { Logger } from '@nestjs/common';
 import {
   AllAggregations,
   ClientType,
   extractFilterFromXwhere,
 } from 'nocodb-sdk';
-import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { NcContext } from '~/interface/config';
 import type { BulkAggregateCtx, DBQueryClient } from '~/dbQueryClient/types';
@@ -14,6 +14,8 @@ import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { resolveAggregateColumns } from '~/dbQueryClient/cross-db-utils/aggregate';
 import { NC_DISABLE_BULK_AGG_CONSOLIDATION } from '~/utils/nc-config';
+
+const defaultLogger = new Logger('bulkAggregate');
 
 // JSON_BUILD_OBJECT takes 2 args per aggregate and PG caps function calls at
 // 100 arguments — above this the consolidated path can't pack a bucket row.
@@ -36,7 +38,7 @@ const PARTITIONING_OPS = new Set(['gb_eq', 'gb_null', 'checked', 'notchecked']);
  * `execAndParse({ bulkAggregate: true })`.
  */
 export const bulkAggregate =
-  (client: DBQueryClient, logger?: Logger) =>
+  (client: DBQueryClient, logger: Logger = defaultLogger) =>
   async (
     context: NcContext,
     ctx: BulkAggregateCtx,
@@ -196,10 +198,14 @@ export const bulkAggregate =
         try {
           // Deterministic prefix used to slice each bucket's WHERE fragment out
           // of a throwaway builder — bail out if the shape ever diverges.
-          const emptyPrefix = knex(baseModel.tnPath).toQuery();
+          const emptyPrefix = knex(baseModel.tnPath).toSQL().sql;
           const wherePrefix = `${emptyPrefix} where `;
 
-          const buckets: Array<{ alias: string; cond: string }> = [];
+          const buckets: Array<{
+            alias: string;
+            cond: string;
+            bindings: readonly unknown[];
+          }> = [];
           // Every bucket must key on the same columns with a distinct value
           // tuple, else the buckets may overlap and CASE would drop rows.
           const seenKeys = new Set<string>();
@@ -247,13 +253,25 @@ export const bulkAggregate =
               condQb,
             );
 
-            const sql = condQb.toQuery();
+            // toSQL(), not toQuery(): the fragment must keep its `?`
+            // placeholders and carry its values as bindings. Splicing
+            // interpolated SQL instead lets a `?` inside a group value be read
+            // as a placeholder downstream — it steals execAndParse's `limit ?`.
+            const { sql, bindings } = condQb.toSQL();
             // A bucket with no distinguishing predicate can't be CASE-tagged.
             if (!sql.startsWith(wherePrefix)) return null;
             const cond = sql.slice(wherePrefix.length).trim();
             if (!cond) return null;
 
-            buckets.push({ alias: f.alias, cond });
+            // execAndParse renders this query via toQuery() and then re-escapes
+            // it (`sanitizeQuery`) before knex re-scans it for placeholders. A
+            // backslash in a value survives that round-trip as an even-numbered
+            // escape and gets eaten as a placeholder, so such a bucket can't be
+            // consolidated — hand the whole request to the legacy path.
+            if (bindings.some((b) => typeof b === 'string' && b.includes('\\')))
+              return null;
+
+            buckets.push({ alias: f.alias, cond, bindings });
           }
 
           if (!buckets.length) return null;
@@ -307,25 +325,23 @@ export const bulkAggregate =
             innerQb.where(softDeleteFilterC);
           }
 
-          // Restrict the scan to rows belonging to a requested bucket. These
-          // fragments are already interpolated, so they must reach the DB via
-          // execAndParse — its `sanitizeQuery` escapes any `?` inside them
-          // before knex's PG dialect would rewrite it as a binding.
+          // Restrict the scan to rows belonging to a requested bucket.
           innerQb.whereRaw(
             `(${buckets.map((b) => `(${b.cond})`).join(' OR ')})`,
+            buckets.flatMap((b) => [...b.bindings]),
           );
 
+          // Bindings run in placeholder order: each bucket's own values, then
+          // its alias for the THEN.
           const caseSql = `CASE ${buckets
-            .map(
-              (b) =>
-                `WHEN ${b.cond} THEN ${knex.raw('?', [b.alias]).toQuery()}`,
-            )
+            .map((b) => `WHEN ${b.cond} THEN ?`)
             .join(' ')} END`;
+          const caseBindings = buckets.flatMap((b) => [...b.bindings, b.alias]);
           const jsonPack = `JSON_BUILD_OBJECT(${Object.keys(expressions)
             .map((k) => `'${k}', ${expressions[k]}`)
             .join(', ')})`;
 
-          innerQb.select(knex.raw(`${caseSql} as __nc_bucket__`));
+          innerQb.select(knex.raw(`${caseSql} as __nc_bucket__`, caseBindings));
           // ::text so the outer MAX() pivot can aggregate it (json has no max).
           innerQb.select(knex.raw(`(${jsonPack})::text as __nc_aggs__`));
           innerQb.groupByRaw('1');
@@ -370,7 +386,7 @@ export const bulkAggregate =
             bulkAggregate: true,
           });
         } catch (err) {
-          logger?.warn?.(
+          logger.warn(
             `bulkAggregate consolidation failed, falling back to per-bucket path: ${
               (err as Error).message
             }`,
@@ -471,7 +487,7 @@ export const bulkAggregate =
         bulkAggregate: true,
       });
     } catch (err) {
-      logger?.error?.((err as Error).message, (err as Error).stack);
+      logger.error((err as Error).message, (err as Error).stack);
       return {};
     }
   };

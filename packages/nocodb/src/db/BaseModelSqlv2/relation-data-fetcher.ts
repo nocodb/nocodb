@@ -27,16 +27,17 @@ const GROUP_COL = '__nc_group_id';
 // How many relation levels `postProcessData` expands LTAR/Lookup before falling
 // back to a value-only projection (scalars/Rollup/Links/Formula). Depth 0 is the
 // surfaced relation read; expanding through this many levels means a lookup
-// chain up to one hop deeper than the bound resolves (depth 2 → the three-hop
-// lookup→lookup→lookup).
+// chain up to one hop deeper than the bound resolves (depth 1 → the two-hop
+// lookup→lookup).
 //
-// This is a deliberate correctness/cost trade-off, NOT an arbitrary cap: each
-// extra expanded level turns one relation read into N more, and a
-// self-referential M:N over hundreds of rows is what originally pushed the heavy
-// metaLTAR read past its timeout. Raise it to cover deeper chains at
-// proportionally higher read cost; lower to 1 for the cheapest bound (fixes only
-// the two-level lookup→lookup case). Cyclic chains still terminate here.
-const MAX_NESTED_RELATION_DEPTH = 2;
+// Bounded at 1 — the cheapest bound that still fixes #14229's two-level
+// lookup→lookup case. Raising it to 2 (to also resolve a three-hop chain) was
+// tried but pushed the heavy self-referential metaLTAR read over its timeout on
+// hundreds of rows (CI: metaLTAR delete-record test timed out): each extra
+// expanded level turns one relation read into N more. A 3+-hop lookup chain
+// therefore stays out of scope — known limitation. Cyclic chains still
+// terminate here.
+const MAX_NESTED_RELATION_DEPTH = 1;
 
 // SQLite AND MSSQL forbid `ORDER BY` (and `TOP`/`LIMIT`) inside a parenthesized
 // `UNION ALL` operand — only pg/mysql accept `(SELECT … ORDER BY … LIMIT …)`

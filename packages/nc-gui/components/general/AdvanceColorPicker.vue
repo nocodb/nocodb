@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { themeV3Colors } from '../../utils/colorsUtils'
+import { chipPaletteColors, fullPaletteColors } from '../../utils/colorsUtils'
 
 interface Props {
   modelValue?: string | any
@@ -8,12 +8,29 @@ interface Props {
   includeBlackAndWhiteAsDefaultColors?: boolean
   invertInDarkMode?: boolean
   showTextIcon?: boolean
+  /**
+   * Which swatch set the Default colours tab offers.
+   *
+   * `full` — every stop of every ramp, 9 x 10. Right where the swatch becomes a
+   *   foreground on a normal surface (checkbox tick, rating star, Colour cell),
+   *   because all ten shades stay distinct there.
+   * `chip` — 4 tiers x 9 hues. Right where the swatch becomes a chip: the trimmed
+   *   set drops shades that render identically once a chip background is applied.
+   */
+  palette?: 'full' | 'chip'
+  /**
+   * Option title to render inside every swatch, so each one previews the real label
+   * on the real background rather than a stand-in glyph. Chip palette only — the full
+   * palette backs foreground pickers (checkbox tick, rating star) that have no label.
+   */
+  previewLabel?: string
   getBgColorCallback?: (color: string, isDark: boolean) => string
   getTextColorCallback?: (color: string, isDark: boolean) => string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isOpen: false,
+  palette: 'full',
 })
 
 const emit = defineEmits(['input', 'closeModal'])
@@ -33,34 +50,19 @@ const showActiveColorTab = ref<boolean>(false)
 
 const picked = ref<string>(props.modelValue || enumColor.light[0])
 
-const defaultColors = computed<string[][]>(() => {
-  const colors = [
-    'gray',
-    'red',
-    'green',
-    'yellow',
-    'orange',
-    'pink',
-    'maroon',
-    'purple',
-    'blue',
-  ] as (keyof typeof themeV3Colors)[]
+const swatches = computed<string[][]>(() => (props.palette === 'chip' ? chipPaletteColors : fullPaletteColors))
 
-  const allColors = []
+/** Swatch renders as a labelled chip only when there is a label to put in it. */
+const swatchLabel = computed(() => (props.palette === 'chip' ? props.previewLabel?.trim() || '' : ''))
 
-  for (const color of colors) {
-    if (themeV3Colors[color]) {
-      allColors.push(color === 'gray' ? Object.values(themeV3Colors[color]).slice(1) : Object.values(themeV3Colors[color]))
-    }
-  }
-  return allColors
-})
+/** 24px square, or a 48px chip once it carries a label — plus 4px padding each side. */
+const cellWidth = computed(() => (swatchLabel.value ? 56 : 32))
 
 const localIsDefaultColorTab = ref<'true' | 'false'>('true')
 
 const isDefaultColorTab = computed({
   get: () => {
-    const colorGrps = [...defaultColors.value]
+    const colorGrps = [...swatches.value]
     if (props.includeBlackAndWhiteAsDefaultColors) colorGrps.push(['#000000', '#ffffff'])
     if (showActiveColorTab.value && vModel.value) {
       for (const colorGrp of colorGrps) {
@@ -81,6 +83,26 @@ const isDefaultColorTab = computed({
     }
   },
 })
+
+/**
+ * The spectrum doesn't need the swatch grid's width — a labelled grid runs to 520px
+ * and the picker just stretches to fill it. Each tab sizes to its own content: the
+ * grid to its columns, the spectrum to the width the full palette already uses.
+ * Only the width changes on tab switch, which re-aligns the dropdown horizontally
+ * without flipping it above the trigger the way a height change does.
+ */
+const SPECTRUM_TAB_WIDTH = 336
+
+const gridTabWidth = computed(() => Math.max(...swatches.value.map((row) => row.length)) * cellWidth.value + 16)
+
+const panelWidth = computed(() => (isDefaultColorTab.value === 'true' ? gridTabWidth.value : SPECTRUM_TAB_WIDTH))
+
+/**
+ * The tab bar keeps the narrower tab's width in both states. Left to fill the panel it
+ * would stretch with it, and the title you just clicked slides out from under the
+ * cursor as the panel resizes behind it.
+ */
+const tabBarWidth = computed(() => Math.min(gridTabWidth.value, SPECTRUM_TAB_WIDTH))
 
 const selectColor = (color: string, closeModal = false) => {
   picked.value = color
@@ -114,7 +136,11 @@ watch(
 </script>
 
 <template>
-  <div class="nc-advance-color-picker w-[336px] pt-2" click.stop>
+  <div
+    class="nc-advance-color-picker pt-2"
+    :style="{ 'width': `${panelWidth}px`, '--nc-color-picker-tab-bar-width': `${tabBarWidth}px` }"
+    click.stop
+  >
     <NcTabs v-model:active-key="isDefaultColorTab" class="nc-advance-color-picker-tab w-full">
       <a-tab-pane key="true">
         <template #tab>
@@ -122,15 +148,16 @@ watch(
         </template>
         <div class="h-full p-2">
           <div class="flex flex-col gap-1">
-            <div v-for="(colorGroup, i) of defaultColors" :key="i" class="flex">
+            <div v-for="(colorGroup, i) of swatches" :key="i" class="flex">
               <div
                 v-for="(color, j) of colorGroup"
                 :key="`color-${i}-${j}`"
-                class="p-1 rounded-md flex h-8 hover:bg-nc-bg-gray-medium"
+                class="p-1 flex h-8"
+                :class="swatchLabel ? 'rounded-full' : 'rounded-md hover:bg-nc-bg-gray-medium'"
               >
                 <button
                   class="color-selector"
-                  :class="{ selected: compare(picked, color) }"
+                  :class="{ 'selected': compare(picked, color), 'is-labelled': !!swatchLabel }"
                   :style="{
                     backgroundColor: getBgColorCallback
                       ? getBgColorCallback(color || '#ccc', isDark)
@@ -148,9 +175,11 @@ watch(
                           getColor,
                         }),
                   }"
+                  :title="swatchLabel || undefined"
                   @click="selectColor(color, true)"
                 >
-                  <GeneralIcon v-if="showTextIcon" icon="cellText" class="w-3.5 h-3.5" />
+                  <span v-if="swatchLabel" class="nc-color-selector-label">{{ swatchLabel }}</span>
+                  <GeneralIcon v-else-if="showTextIcon" icon="cellText" class="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -183,6 +212,17 @@ watch(
   -webkit-text-stroke-width: 1px;
   -webkit-text-stroke-color: var(--nc-bg-default);
 }
+
+// Labelled variant: a real chip at the size the grid renders one, so the swatch
+// previews the option instead of standing in for it.
+.color-selector.is-labelled {
+  @apply w-12 rounded-xl flex items-center justify-center overflow-hidden px-1.5;
+  -webkit-text-stroke-width: 0;
+}
+
+.nc-color-selector-label {
+  @apply truncate text-[11px] font-semibold leading-none;
+}
 .color-selector:hover {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
@@ -198,12 +238,23 @@ watch(
   @apply !ml-3;
 }
 
+// The spectrum is aspect-driven — `.vc-chrome-saturation-wrap` is 55% of its width —
+// so at the panel's width the gradient alone runs to ~277px and the tab towers over
+// the swatch grid. A fixed height covers the same range, just sampled more coarsely.
+:deep(.vc-chrome-saturation-wrap) {
+  height: 150px;
+  padding-bottom: 0;
+}
+
 :deep(.ant-tabs) {
   @apply !overflow-visible;
   .ant-tabs-nav {
     @apply px-1;
     .ant-tabs-nav-list {
-      @apply w-[99%] mx-auto gap-6;
+      @apply gap-6;
+      // fixed so the tab titles hold their position when the panel resizes; -8px for
+      // the nav's own px-1
+      width: calc(var(--nc-color-picker-tab-bar-width) - 8px);
 
       .ant-tabs-tab {
         @apply flex-1 flex items-center justify-center pt-2 pb-2 text-xs font-semibold;

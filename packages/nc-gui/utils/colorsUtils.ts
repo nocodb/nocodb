@@ -183,6 +183,21 @@ export const themeV3Colors = {
     800: '#690735',
     900: '#42001F',
   },
+  // Built on the mean lightness/saturation profile of the other ramps at hue 178,
+  // so it behaves like a native family rather than a bolted-on one. Fills the only
+  // gap in the hue wheel — the picker previously had nothing between green and blue.
+  teal: {
+    50: '#E2FCFB',
+    100: '#CAF8F7',
+    200: '#A4F4F1',
+    300: '#7DECE8',
+    400: '#57E5E0',
+    500: '#2FDFD9',
+    600: '#2EB0AB',
+    700: '#258783',
+    800: '#195F5D',
+    900: '#0C2F2E',
+  },
   green: {
     50: '#ECFFF2',
     100: '#D4F7E0',
@@ -900,6 +915,72 @@ export function getIconTileTint(color: string, isDark = false): IconTileTint {
   }
 }
 
+/**
+ * Hue families offered in the "Default colours" grid, in spectrum order.
+ *
+ * `maroon` is not offered: its 500 sits 15° from pink's, so the two columns read as
+ * one colour twice. It stays in `themeV3Colors` for its ~175 existing usages. Teal
+ * takes the slot — nothing else in the palette lands within 21° of it.
+ */
+const DEFAULT_PALETTE_HUES = ['gray', 'red', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink'] as const
+
+/** Ramp stops for the three light rows: wash, tint, vivid. 500 is peak chroma in every ramp. */
+const DEFAULT_PALETTE_TONES = ['100', '300', '500'] as const
+
+/** The surface a dark-mode chip sits on, and the separation the deep row has to keep from it. */
+const DARK_CHIP_SURFACE = '#171717'
+const DEEP_TILE_MIN_CONTRAST = 1.5
+
+/**
+ * The "Default colours" swatch grid — one row per tier, one column per hue.
+ *
+ * The full 50–900 ramps offered 90 swatches resolving to far fewer colours anyone
+ * can tell apart: adjacent shades sit ΔE2000 0–4 apart, and in dark mode all 90
+ * collapsed into 15 groups. Four tiers keep every swatch distinct.
+ *
+ * The vivid row is deliberately NOT levelled by luminance. A luminance-levelled row
+ * has to drag yellow down to an olive and green to a forest to match how dark a
+ * saturated blue is — the row goes level and every colour in it goes dull. Chroma is
+ * what the row has in common; brightness is not, and shouldn't be: vivid luminance
+ * runs 0.10 (purple) to 0.58 (yellow), and that spread is the point.
+ *
+ * Colours no longer offered still render wherever they were already saved — the
+ * picker routes an unrecognised value to its Custom colours tab.
+ */
+export const chipPaletteColors: string[][] = [
+  ...DEFAULT_PALETTE_TONES.map((tone) => DEFAULT_PALETTE_HUES.map((hue) => themeV3Colors[hue][tone])),
+  // Deep row: as low as each ramp goes while the tile still separates from the dark
+  // surface. A flat 800 sinks gray and purple to 1.13:1 there — a chip you cannot see.
+  DEFAULT_PALETTE_HUES.map((hue) => {
+    const stops = Object.values(themeV3Colors[hue]) as string[]
+    const legible = stops.filter((hex) => tinycolor.readability(hex, DARK_CHIP_SURFACE) >= DEEP_TILE_MIN_CONTRAST)
+
+    return legible[legible.length - 1] ?? stops[stops.length - 1]
+  }),
+]
+
+/** Hue order of the untrimmed grid — as it shipped, with teal slotted beside green. */
+const FULL_PALETTE_HUES = ['gray', 'red', 'green', 'teal', 'yellow', 'orange', 'pink', 'maroon', 'purple', 'blue'] as const
+
+/**
+ * Every stop of every ramp — one row per hue, 50 through 900.
+ *
+ * Still the right set wherever a swatch becomes a foreground (a checkbox tick, a
+ * rating star, a Colour cell's value): those paint on a normal surface, where all
+ * ten shades stay distinct. `chipPaletteColors` is for swatches that become chips.
+ */
+export const fullPaletteColors: string[][] = FULL_PALETTE_HUES.map((hue) =>
+  // gray carries an extra ultra-light 10 step — drop it so every row is 10 cells
+  (Object.values(themeV3Colors[hue]) as string[]).slice(hue === 'gray' ? 1 : 0),
+)
+
+/** HSV chroma — how colourful, independent of how light. */
+const chromaOf = (color: tinycolor.Instance) => {
+  const { s, v } = color.toHsv()
+
+  return s * v
+}
+
 export const getAdaptiveTint = (
   color: string,
   opts?: {
@@ -950,6 +1031,193 @@ export const getAdaptiveTint = (
   }
 
   return tinycolor({ h: hsv.h, s, v }).toHexString()
+}
+
+/** Contrast a chip label aims for. Not every background can reach it — see getReadableInkColor. */
+const INK_CONTRAST_TARGET = 7
+
+/** Lightness bounds for the solved ink — pure #000/#fff is reserved for the fallback. */
+const INK_L_BOUNDS = { min: 0.05, max: 0.985 }
+
+const inkColorCache = new Map<string, string>()
+
+/**
+ * Label colour for a coloured chip: the option's own hue, pushed along lightness
+ * until it clears the contrast target against the background it will sit on.
+ *
+ * Replaces a pass/fail flip between the option colour and pure white, which fired
+ * at a different shade in every hue family — across the 90 default options that
+ * spanned 3.2:1–17.5:1 in dark and left seven of them below AA. Solving instead of
+ * flipping puts every chip on the same weight.
+ *
+ * The target is deliberately mode-independent: it depends on the background, not the
+ * theme, so a swatch whose background survives `getAdaptiveChipTint` untouched renders
+ * identically in light and dark.
+ *
+ * `hueSource` is the raw option colour — an inverted dark background is a deep tint
+ * that has lost most of the hue, so the label has to take it from the option. Where a
+ * mid-tone background can't reach the target with its own hue, the ink desaturates in
+ * steps and finally falls back to white / near-black — no worse than the flip it
+ * replaces.
+ */
+export const getReadableInkColor = (background: string, hueSource?: string): string => {
+  const cacheKey = `${background}|${hueSource ?? ''}`
+
+  const cached = inkColorCache.get(cacheKey)
+  if (cached) return cached
+
+  const bg = tinycolor(background)
+  const { h, s } = tinycolor(hueSource || background).toHsl()
+  const bgL = bg.toHsl().l
+  const target = INK_CONTRAST_TARGET
+
+  // Which way the ink has to travel — lighter on a dark chip, darker on a light one.
+  const up = tinycolor.readability(bg, '#ffffff') >= tinycolor.readability(bg, '#000000')
+  const baseS = Math.min(s * (up ? 0.72 : 0.9), 0.62)
+
+  let ink = up ? '#ffffff' : '#0b0b0e'
+
+  for (const satScale of [1, 0.7, 0.45, 0.2, 0]) {
+    const inkS = baseS * satScale
+
+    // Contrast is monotonic in lightness, so the extreme tells us whether this
+    // saturation can reach the target at all before we bother searching.
+    if (tinycolor.readability(bg, tinycolor({ h, s: inkS, l: up ? INK_L_BOUNDS.max : INK_L_BOUNDS.min })) < target) continue
+
+    let lo = up ? bgL : INK_L_BOUNDS.min
+    let hi = up ? INK_L_BOUNDS.max : bgL
+    let best = tinycolor({ h, s: inkS, l: up ? INK_L_BOUNDS.max : INK_L_BOUNDS.min })
+
+    // Closest lightness to the background that still clears the target, so the
+    // label stays a tint of the option rather than slamming to the extreme.
+    for (let i = 0; i < 18; i++) {
+      const mid = (lo + hi) / 2
+      const candidate = tinycolor({ h, s: inkS, l: mid })
+
+      if (tinycolor.readability(bg, candidate) >= target) {
+        best = candidate
+        if (up) hi = mid
+        else lo = mid
+      } else if (up) {
+        lo = mid
+      } else {
+        hi = mid
+      }
+    }
+
+    ink = best.toHexString()
+    break
+  }
+
+  // Custom option colours are unbounded — drop the cache rather than grow forever.
+  if (inkColorCache.size > 2000) inkColorCache.clear()
+
+  inkColorCache.set(cacheKey, ink)
+
+  return ink
+}
+
+/**
+ * A colour inverts in dark mode when it is light AND washed out — i.e. a pastel.
+ * Luminance alone is the wrong test: a vivid yellow is lighter than a pastel purple
+ * and still has to carry through, the way a bright swatch does in any dark UI.
+ */
+const CHIP_INVERT_LUMINANCE = 0.24
+const CHIP_INVERT_CHROMA = 0.55
+
+/**
+ * An inverted chip is the dark surface lifted with a little white, carrying only a
+ * trace of its hue — roughly a 6–10% white overlay. The colour does not stay in the
+ * background; it moves into the label. Tinting the background with the hue instead
+ * produced a muddy tile that read as a disabled chip.
+ *
+ * These are the luminances the lift lands on, solved rather than set as a lightness
+ * so the rows stay level across hues. The gap between them is wide on purpose: at a
+ * narrower one the two pastel rows landed within ΔE 1.3 of each other for four hues
+ * and read as a single row. Depth normalises over `CHIP_PASTEL_SPAN`, not over the
+ * whole 0–1 range — normalising over the latter meant the wash target was only
+ * reachable at a luminance no real colour has, so the row settled mid-range.
+ */
+const CHIP_LIFT_TARGET = { tint: 0.075, wash: 0.022 }
+const CHIP_LIFT_HUE_STRENGTH = 0.22
+
+/** Luminance range the pastel tiers actually occupy — what the lift depth normalises over. */
+const CHIP_PASTEL_SPAN = 0.68
+
+/**
+ * The label on a lifted chip is the option's own colour at full strength, lightened
+ * only as far as the floor demands — the least-light value that clears it, which is
+ * also the most colourful. Solving to a high contrast target instead washes the
+ * label out to a pastel and loses the one place the colour still lives.
+ */
+const CHIP_SOLID_INK_FLOOR = 5
+const CHIP_SOLID_INK_SATURATION = 0.8
+
+const chipCache = new Map<string, { bg: string; ink: string }>()
+
+/** Bisect HSL lightness for the lowest value satisfying a predicate monotonic in l. */
+const solveLightness = (predicate: (l: number) => boolean, lo: number, hi: number) => {
+  for (let i = 0; i < 18; i++) {
+    const mid = (lo + hi) / 2
+
+    if (predicate(mid)) hi = mid
+    else lo = mid
+  }
+
+  return (lo + hi) / 2
+}
+
+const liftedChipSurface = (color: tinycolor.Instance) => {
+  const { h, s } = color.toHsl()
+  // A near-grey swatch lifts to a grey tile. Our gray ramp carries hue 224, so applying
+  // the tint regardless turns it blue-violet.
+  const tileS = s < 0.05 ? 0 : CHIP_LIFT_HUE_STRENGTH
+  const depth = Math.min(1, (color.getLuminance() - CHIP_INVERT_LUMINANCE) / CHIP_PASTEL_SPAN)
+  const target = CHIP_LIFT_TARGET.tint - (CHIP_LIFT_TARGET.tint - CHIP_LIFT_TARGET.wash) * depth
+  const l = solveLightness((mid) => tinycolor({ h, s: tileS, l: mid }).getLuminance() >= target, 0.02, 0.5)
+
+  return tinycolor({ h, s: tileS, l }).toHexString()
+}
+
+const solidChipInk = (color: tinycolor.Instance, background: string) => {
+  const { h, s } = color.toHsl()
+  const inkS = s < 0.05 ? 0 : Math.max(s, CHIP_SOLID_INK_SATURATION)
+  const l = solveLightness(
+    (mid) => tinycolor.readability(background, tinycolor({ h, s: inkS, l: mid })) >= CHIP_SOLID_INK_FLOOR,
+    0.2,
+    0.95,
+  )
+
+  return tinycolor({ h, s: inkS, l }).toHexString()
+}
+
+/**
+ * Background and label for a coloured option chip, resolved together.
+ *
+ * Three cases, and they have to be decided in one place because the label rule
+ * depends on which one the background took:
+ *
+ *  - light mode — the swatch is the chip, label solved for contrast against it
+ *  - dark, vivid or deep — same, untouched, so the chip is identical in both themes
+ *  - dark, pastel — the surface lifted with white, the colour moved into the label
+ */
+export const getSelectChipColors = (color: string, isDark: boolean): { bg: string; ink: string } => {
+  const cacheKey = `${color}|${isDark ? 'd' : 'l'}`
+
+  const cached = chipCache.get(cacheKey)
+  if (cached) return cached
+
+  const parsed = tinycolor(color)
+  const inverts = isDark && parsed.getLuminance() >= CHIP_INVERT_LUMINANCE && chromaOf(parsed) < CHIP_INVERT_CHROMA
+  const bg = inverts ? liftedChipSurface(parsed) : parsed.toHexString()
+  const resolved = { bg, ink: inverts ? solidChipInk(parsed, bg) : getReadableInkColor(bg, color) }
+
+  // Custom option colours are unbounded — drop the cache rather than grow forever.
+  if (chipCache.size > 2000) chipCache.clear()
+
+  chipCache.set(cacheKey, resolved)
+
+  return resolved
 }
 
 export const getOppositeColorOfBackground = (

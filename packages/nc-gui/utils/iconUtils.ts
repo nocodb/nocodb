@@ -433,6 +433,7 @@ import NcRadioIcon from '~icons/nc-icons-v2/radio.svg'
 import NcBookIcon from '~icons/nc-icons-v2/book.svg'
 import NcUserMinusIcon from '~icons/nc-icons-v2/user-minus.svg'
 import NcBellIcon from '~icons/nc-icons-v2/bell.svg'
+import NcBellRingIcon from '~icons/nc-icons-v2/bell-ring.svg'
 import NcGitBranchIcon from '~icons/nc-icons-v2/git-branch.svg'
 import NcSandboxIcon from '~icons/nc-icons-v2/sandbox.svg'
 import NcSandboxPlusIcon from '~icons/nc-icons-v2/sandbox-plus.svg'
@@ -1559,6 +1560,7 @@ export const iconMap = {
   'ncBook': NcBookIcon,
   'ncUserMinus': NcUserMinusIcon,
   'ncBell': NcBellIcon,
+  'ncBellRing': NcBellRingIcon,
   'ncGitBranch': NcGitBranchIcon,
   'ncSandbox': NcSandboxIcon,
   'ncSandboxPlus': NcSandboxPlusIcon,

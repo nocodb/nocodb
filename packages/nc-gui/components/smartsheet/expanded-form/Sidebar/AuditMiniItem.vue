@@ -41,15 +41,6 @@ const meta = computed(() => {
   return details.value.column_meta ?? {}
 })
 
-/**
- * Interface panels drop the diff tiles' red/green borders — the tinted fill
- * carries the diff. Select chips keep theirs (the chip needs an edge against
- * its own pill fill); attachments render their own bordered frames.
- */
-function showDiffTileBorder(columnKey: string) {
-  return !ifaceSidebar || ['SingleSelect', 'MultiSelect'].includes(meta.value[columnKey]?.type)
-}
-
 const columnKeys = computed(() => {
   const keys = Object.keys(newData.value)
   // On synced tables, sync bookkeeping fields (RemoteSyncedAt, SyncRunId, …)
@@ -299,15 +290,13 @@ function toggleLongText(key: string) {
       <template v-else-if="shouldShowRaw(columnKey)">
         <div
           v-if="isShowableValue(oldData[columnKey])"
-          class="text-small1 text-nc-content-red-dark rounded-md px-1 bg-nc-bg-red-light line-through break-all"
-          :class="{ 'border-1 border-nc-red-200': showDiffTileBorder(columnKey) }"
+          class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through break-all"
         >
           {{ oldData[columnKey] }}
         </div>
         <div
           v-if="isShowableValue(newData[columnKey])"
-          class="text-small1 text-nc-content-green-dark rounded-md px-1 bg-nc-bg-green-light break-all"
-          :class="{ 'border-1 border-nc-green-200': showDiffTileBorder(columnKey) }"
+          class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light break-all"
         >
           {{ newData[columnKey] }}
         </div>
@@ -317,15 +306,13 @@ function toggleLongText(key: string) {
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="max-w-full text-small1 text-nc-content-red-dark rounded-md px-1 mr-1 bg-nc-bg-red-light line-through decoration-clone"
-              :class="{ 'border-1 border-nc-red-200': showDiffTileBorder(columnKey) }"
+              class="max-w-full text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 mr-1 bg-nc-bg-red-light line-through decoration-clone"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="max-w-full text-small1 text-nc-content-green-dark rounded-md px-1 mr-1 bg-nc-bg-green-light decoration-clone"
-              :class="{ 'border-1 border-nc-green-200': showDiffTileBorder(columnKey) }"
+              class="max-w-full text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 mr-1 bg-nc-bg-green-light decoration-clone"
             >
               {{ block.text }}
             </span>
@@ -398,14 +385,12 @@ function toggleLongText(key: string) {
           <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
             <pre
               v-if="block.op === 'removed'"
-              class="text-small1 text-nc-content-red-dark rounded-md px-1 bg-nc-bg-red-light line-through decoration-clone inline"
-              :class="{ 'border-1 border-nc-red-200': showDiffTileBorder(columnKey) }"
+              class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre
               v-else-if="block.op === 'added'"
-              class="text-small1 text-nc-content-green-dark rounded-md px-1 bg-nc-bg-green-light decoration-clone inline"
-              :class="{ 'border-1 border-nc-green-200': showDiffTileBorder(columnKey) }"
+              class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre v-else class="inline text-small1">{{ block.text }}</pre>
@@ -415,9 +400,8 @@ function toggleLongText(key: string) {
       <template v-else>
         <div
           v-if="isShowableValue(processOldDataFor(columnKey))"
-          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-nc-content-red-dark rounded-md bg-nc-bg-red-light line-through"
+          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-nc-content-red-dark border-1 border-nc-red-200 rounded-md bg-nc-bg-red-light line-through"
           :class="{
-            'border-1 border-nc-red-200': showDiffTileBorder(columnKey),
             'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
             '!p-0.25': shouldUseUniformPadding(columnKey),
           }"
@@ -440,9 +424,8 @@ function toggleLongText(key: string) {
         </div>
         <div
           v-if="isShowableValue(processNewDataFor(columnKey))"
-          class="nc-audit-mini-item-cell nc-audit-addition rounded-md bg-nc-bg-green-light"
+          class="nc-audit-mini-item-cell nc-audit-addition border-1 border-nc-green-200 rounded-md bg-nc-bg-green-light"
           :class="{
-            'border-1 border-nc-green-200': showDiffTileBorder(columnKey),
             'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
             '!p-0.25': shouldUseUniformPadding(columnKey),
           }"

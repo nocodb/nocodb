@@ -6329,6 +6329,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return;
     }
 
+    // Reject if the FK-holding row is locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({ colId, rowId, childIds: [childId] });
+
     const relationManager = await RelationManager.getRelationManager(
       this,
       colId,
@@ -6721,6 +6724,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
       NcError.get(this.context).fieldNotFound(colId);
+
+    // Reject if the FK-holding row is locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({ colId, rowId, childIds: [childId] });
 
     const relationManager = await RelationManager.getRelationManager(
       this,
@@ -8578,6 +8584,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: params.cookie,
     });
 
+    // Reject if the FK-holding row(s) are locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({
+      colId: params.colId,
+      rowId: params.rowId,
+      childIds: params.childIds,
+    });
+
     return addOrRemoveLinks(this).addLinks(params);
   }
 
@@ -8593,6 +8606,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       permission: PermissionKey.RECORD_FIELD_EDIT,
       user: params.cookie?.user,
       req: params.cookie,
+    });
+
+    // Reject if the FK-holding row(s) are locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({
+      colId: params.colId,
+      rowId: params.rowId,
+      childIds: params.childIds,
     });
 
     return addOrRemoveLinks(this).removeLinks(params);
@@ -10401,6 +10421,65 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * CE version: no-op (no RLS). EE version enforces read_only policies.
    */
   public async assertConditionWritable(_scopeFilters: Filter[]): Promise<void> {}
+
+  /**
+   * Throws if any of the given rows (by PK value) is locked read-only.
+   * CE version: no-op (no RLS). EE version enforces read_only policies.
+   */
+  public async assertRowsWritable(_pkVals: any[]): Promise<void> {}
+
+  /**
+   * RLS write gate for link mutations: assert that the row(s) whose FK column
+   * is physically rewritten by a link/unlink are not locked read-only.
+   * - bt / oo(bt-side): the FK lives on this table's `rowId` row.
+   * - hm / oo(reverse): the FK lives on the related table's child row(s).
+   * - mm / mm-like: only junction rows change — no record row is mutated.
+   * No-op in CE builds (assertRowsWritable is an EE override).
+   */
+  protected async assertLinkRowsWritable({
+    colId,
+    rowId,
+    childIds,
+  }: {
+    colId: string;
+    rowId: string;
+    childIds: (string | number)[];
+  }): Promise<void> {
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
+    if (!column || !isLinksOrLTAR(column)) return;
+
+    // mm / mm-like: junction-table rows only — neither record is mutated
+    if (isMMOrMMLike(column)) return;
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      this.context,
+    );
+
+    // Same bt-side detection as RelationManager.isRelationReversed
+    const isBtSide =
+      colOptions.type === RelationTypes.BELONGS_TO || column.meta?.bt;
+
+    if (isBtSide) {
+      // FK lives on this table's row — the locked row itself would be rewritten
+      await this.assertRowsWritable([rowId]);
+      return;
+    }
+
+    // hm / oo(reverse): FK lives on the related (child) table's rows
+    if (!childIds?.length) return;
+
+    const { childContext } = await colOptions.getParentChildContext(
+      this.context,
+    );
+    const childColumn = await colOptions.getChildColumn(childContext);
+    const childTable = await childColumn.getModel(childContext);
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
+      model: childTable,
+      dbDriver: this.dbDriver,
+    });
+    await childBaseModel.assertRowsWritable(childIds);
+  }
 
   /**
    * Returns a knex where-clause callback that excludes soft-deleted records,

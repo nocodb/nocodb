@@ -134,6 +134,9 @@ export class BaseModelDelete {
     // otherwise a trashed locked row is invisible to the gate and destroyed.
     await this.baseModel.assertConditionWritable(conditionObjBDA, {
       includeSoftDeleted: !isSoftDelete,
+      // skipPks is applied to `qb` above but is not part of conditionObjBDA,
+      // so the probe needs it explicitly to scan the same row set.
+      skipPks: args.skipPks,
     });
 
     if (isSoftDelete) {

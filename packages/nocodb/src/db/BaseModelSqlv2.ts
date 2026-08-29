@@ -10431,7 +10431,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   public async assertConditionWritable(
     _scopeFilters: Filter[],
-    _options?: { includeSoftDeleted?: boolean },
+    _options?: { includeSoftDeleted?: boolean; skipPks?: string },
   ): Promise<void> {}
 
   /**

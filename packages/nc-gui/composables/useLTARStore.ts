@@ -15,7 +15,14 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { reconcilePendingLtarOp, resolveDeferredLtarCount, resolveDeferredSingleTargetValue } from '~/utils/ltarDeferredOps'
+import type { LtarCellShape } from '~/utils/ltarDeferredOps'
+import {
+  applyLtarCellOp,
+  ltarCellCount,
+  reconcilePendingLtarOp,
+  resolveDeferredLtarCount,
+  resolveDeferredSingleTargetValue,
+} from '~/utils/ltarDeferredOps'
 
 interface DataApiResponse {
   list: Record<string, any>[]
@@ -208,6 +215,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isBtLikeV2Junction(column.value)
       )
     })
+
+    const ltarCellShape = computed<LtarCellShape>(() =>
+      isSingleTargetRelation.value ? 'single' : column.value?.uidt === UITypes.Links ? 'count' : 'records',
+    )
 
     const { sharedView } = useSharedView()
 
@@ -1007,18 +1018,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         return
       }
 
-      // Multi-target: keep the child-list count badge in sync, and preserve the cell
-      // value's SHAPE — which is decided by the CELL RENDERER (uidt), not the link version.
-      // A `Links` cell renders a numeric rollup count; a `LinkToAnotherRecord` hm/mm cell
-      // renders an array of chips (ManyToMany/HasMany.vue call .reduce on it) even when the
-      // relation is version V2. Keying off `isLinkV2` (version) here wrote a bare count into a
-      // LinkToAnotherRecord cell, so `localCellValue` fell back to [] and the cell appeared to
-      // clear on every deferred edit until save (#14013).
-      const persistedCount = Array.isArray(base) ? base.length : +(base ?? 0) || 0
-      const count = resolveDeferredLtarCount(queue, colId, persistedCount)
+      // Multi-target: keep the child-list count badge in sync, and preserve the cell value's
+      // shape (see `LtarCellShape`). Keying off `isLinkV2` (version) here wrote a bare count
+      // into a LinkToAnotherRecord cell, so `localCellValue` fell back to [] and the cell
+      // appeared to clear on every deferred edit until save (#14013).
+      const count = resolveDeferredLtarCount(queue, colId, ltarCellCount(base))
       childrenListCount.value = count
 
-      if (column.value.uidt === UITypes.Links) {
+      if (ltarCellShape.value === 'count') {
         cur.row[colTitle] = count
       } else {
         const unlinkIds = new Set(queue.filter((o) => o.columnId === colId && o.op === 'unlink').map((o) => o.relatedRowId))
@@ -1070,20 +1077,20 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // New row: links live in ltarState — drop the buffered link and update display.
         if (!removeLTARRef) return
         await removeLTARRef(relatedRow, column.value as ColumnType, { skipRowDisplay: true })
-        if (isSingleTargetRelation.value) {
-          rowStoreCurrentRow.value.row[column.value.title!] = null
-        } else {
+        if (!isSingleTargetRelation.value) {
           childrenListCount.value = Math.max(0, childrenListCount.value - 1)
-          const colVal = rowStoreCurrentRow.value.row[column.value.title!]
-          if (Array.isArray(colVal)) {
-            const idx = colVal.findIndex((r: Record<string, any>) => getRelatedTableRowId(r) === getRelatedTableRowId(relatedRow))
-            const next = [...colVal]
-            if (idx !== -1) next.splice(idx, 1)
-            rowStoreCurrentRow.value.row[column.value.title!] = next
-          } else {
-            rowStoreCurrentRow.value.row[column.value.title!] = Math.max(0, (+colVal || 0) - 1)
-          }
         }
+
+        const colTitle = column.value.title!
+        const colVal = rowStoreCurrentRow.value.row[colTitle]
+        rowStoreCurrentRow.value.row[colTitle] = applyLtarCellOp({
+          op: 'unlink',
+          shape: ltarCellShape.value,
+          current: colVal,
+          snapshot: colVal,
+          relatedRow,
+          getRelatedRowId: getRelatedTableRowId,
+        })
       } else {
         // Existing row: enqueue an unlink — reconcile cancels the matching queued link, and
         // refreshDeferredDisplay re-derives the count from persisted + queue (#14058).
@@ -1138,6 +1145,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         $e('a:links:unlink')
         return
       }
+
+      // Read before the await — applyLtarCellOp needs it to spot an authoritative realtime
+      // write that landed while the request was in flight.
+      const preWriteCellValue = rowStoreCurrentRow?.value.row[column.value.title!]
+
       try {
         // todo: audit
 
@@ -1180,23 +1192,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenListCount.value = childrenListCount.value - 1
         }
 
-        // Mirror the new-row branch: reflect the unlink in the row store so the cell
-        // refreshes immediately. Reload paths are no-ops in EE, so this is the only
-        // signal. Keep the SHAPE the cell renderer expects: BT/MO/OO show the linked
-        // record directly; a `Links` cell shows a numeric count; a LinkToAnotherRecord
-        // hm/mm cell shows an array of chips (#14013).
+        // Mirror the new-row branch: reflect the unlink in the row store so the cell refreshes
+        // immediately — the reload paths are no-ops in EE, so this is the only signal on a grid
+        // with no realtime listener. See `applyLtarCellOp` for the shape and idempotency rules.
         if (rowStoreCurrentRow) {
-          const cur = rowStoreCurrentRow.value
           const colTitle = column.value.title!
-          if (isSingleTargetRelation.value) {
-            cur.row[colTitle] = null
-          } else if (column.value.uidt === UITypes.Links) {
-            cur.row[colTitle] = Math.max(0, (+cur.row[colTitle] || 0) - 1)
-          } else if (Array.isArray(cur.row[colTitle])) {
-            cur.row[colTitle] = cur.row[colTitle].filter(
-              (r: Record<string, any>) => getRelatedTableRowId(r) !== getRelatedTableRowId(row),
-            )
-          }
+          rowStoreCurrentRow.value.row[colTitle] = applyLtarCellOp({
+            op: 'unlink',
+            shape: ltarCellShape.value,
+            current: rowStoreCurrentRow.value.row[colTitle],
+            snapshot: preWriteCellValue,
+            relatedRow: row,
+            getRelatedRowId: getRelatedTableRowId,
+          })
         }
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1260,6 +1268,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         $e('a:links:link')
         return
       }
+
+      // Read before the await — see unlink().
+      const preWriteCellValue = rowStoreCurrentRow?.value.row[column.value.title!]
+
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
@@ -1307,22 +1319,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           excludedLinkedState.value.set(index, true)
         }
 
-        // Mirror the new-row branch: reflect the link in the row store so the cell
-        // refreshes immediately. Reload paths are no-ops in EE, so this is the only
-        // signal. Keep the SHAPE the cell renderer expects: BT/MO/OO show the linked
-        // record directly; a `Links` cell shows a numeric count; a LinkToAnotherRecord
-        // hm/mm cell shows an array of chips (#14013).
+        // See unlink() — same optimistic write, opposite direction.
         if (rowStoreCurrentRow) {
-          const cur = rowStoreCurrentRow.value
           const colTitle = column.value.title!
-          if (isSingleTargetRelation.value) {
-            cur.row[colTitle] = row
-          } else if (column.value.uidt === UITypes.Links) {
-            cur.row[colTitle] = (+cur.row[colTitle] || 0) + 1
-          } else {
-            const colVal = cur.row[colTitle]
-            cur.row[colTitle] = [...(Array.isArray(colVal) ? colVal : []), row]
-          }
+          rowStoreCurrentRow.value.row[colTitle] = applyLtarCellOp({
+            op: 'link',
+            shape: ltarCellShape.value,
+            current: rowStoreCurrentRow.value.row[colTitle],
+            snapshot: preWriteCellValue,
+            relatedRow: row,
+            getRelatedRowId: getRelatedTableRowId,
+          })
         }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)

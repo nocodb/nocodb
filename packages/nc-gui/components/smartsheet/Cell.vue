@@ -345,16 +345,20 @@ const cellClassName = computed(() => {
     className += ' nc-grid-numeric-cell-right'
   }
 
-  if (
+  // `h-10` and `h-full` are the same specificity on the same property, so whichever the
+  // stylesheet emits last wins. WindiCSS emitted in file-discovery order (`h-full` first,
+  // so `h-10` won); UnoCSS sorts alphabetically inside a rule, flipping it — every form cell
+  // fell back to `height: 100%` of an auto-height parent, i.e. content height. Emit one or
+  // the other so the box height never depends on utility order.
+  const isFormFixedHeight =
     !isEditColumnMenu.value &&
     isForm.value &&
     !props.virtual &&
     cellType.value !== 'attachment' &&
     cellType.value !== 'textarea' &&
     cellType.value !== 'ai'
-  ) {
-    className += ' h-10'
-  }
+
+  className += isFormFixedHeight ? ' h-10' : ' h-full'
 
   if ((isForm.value && isNumericField.value && isExpandedFormOpen.value) || isEditColumnMenu.value) {
     className += ' nc-grid-numeric-cell-left'
@@ -375,7 +379,7 @@ const cellClassName = computed(() => {
 <template>
   <div
     :class="[cellClassName, { 'nc-under-ltar': isUnderLTAR }]"
-    class="nc-cell w-full h-full relative"
+    class="nc-cell w-full relative"
     @contextmenu="onContextmenu"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"

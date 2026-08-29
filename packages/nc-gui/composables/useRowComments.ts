@@ -322,7 +322,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     try {
       const res = ifaceSidebar
         ? await ifaceSidebar.commentNotificationPreferenceGet(rowId)
-        : await ($api.internal.getOperation as any)((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        : await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
             operation: 'commentNotificationPreferenceGet',
             row_id: rowId,
             fk_model_id: meta.value.id as string,
@@ -369,6 +369,12 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       )
     }
   }
+
+  // Next/prev record navigation rebinds the same engine (the panel stays
+  // mounted) — the bell must follow the row, not its mount.
+  watch(primaryKey, (pk, prev) => {
+    if (pk && pk !== prev) loadCommentNotificationPreference().catch(() => undefined)
+  })
 
   return {
     comments,

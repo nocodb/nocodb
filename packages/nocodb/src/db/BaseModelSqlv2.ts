@@ -4722,7 +4722,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         // Reject the bulk update if any row in scope is locked read-only by RLS
         // (EE-only; no-op in CE). No PK list here, so this is a scope-based check.
-        await this.assertConditionWritable(conditionObj);
+        // Mirror the soft-delete scope applied to `qb` below.
+        await this.assertConditionWritable(conditionObj, {
+          includeSoftDeleted: args.includeSoftDeleted,
+        });
 
         await conditionV2(this, conditionObj, qb, undefined, true);
 
@@ -6330,7 +6333,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // Reject if the FK-holding row is locked read-only by an RLS policy
-    await this.assertLinkRowsWritable({ colId, rowId, childIds: [childId] });
+    await this.assertLinkRowsWritable({
+      colId,
+      rowId,
+      childIds: [childId],
+      isLink: true,
+    });
 
     const relationManager = await RelationManager.getRelationManager(
       this,
@@ -8589,6 +8597,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       colId: params.colId,
       rowId: params.rowId,
       childIds: params.childIds,
+      isLink: true,
     });
 
     return addOrRemoveLinks(this).addLinks(params);
@@ -10422,6 +10431,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   public async assertConditionWritable(
     _scopeFilters: Filter[],
+    _options?: { includeSoftDeleted?: boolean },
   ): Promise<void> {}
 
   /**
@@ -10435,17 +10445,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * is physically rewritten by a link/unlink are not locked read-only.
    * - bt / oo(bt-side): the FK lives on this table's `rowId` row.
    * - hm / oo(reverse): the FK lives on the related table's child row(s).
+   * - oo (both sides): additionally displaces whichever row currently holds the
+   *   link — see `assertOoDisplacedRowWritable`.
    * - mm / mm-like: only junction rows change — no record row is mutated.
    * No-op in CE builds (assertRowsWritable is an EE override).
    */
-  protected async assertLinkRowsWritable({
+  public async assertLinkRowsWritable({
     colId,
     rowId,
     childIds,
+    isLink,
   }: {
     colId: string;
     rowId: string;
     childIds: (string | number)[];
+    // Only a link displaces a third row; unlink just clears the named row's FK.
+    isLink?: boolean;
   }): Promise<void> {
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
@@ -10465,23 +10480,44 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (isBtSide) {
       // FK lives on this table's row — the locked row itself would be rewritten
       await this.assertRowsWritable([rowId]);
-      return;
+    } else {
+      // hm / oo(reverse): FK lives on the related (child) table's rows
+      if (!childIds?.length) return;
+
+      const { childContext } = await colOptions.getParentChildContext(
+        this.context,
+      );
+      const childColumn = await colOptions.getChildColumn(childContext);
+      const childTable = await childColumn.getModel(childContext);
+      const childBaseModel = await Model.getBaseModelSQL(childContext, {
+        model: childTable,
+        dbDriver: this.dbDriver,
+      });
+      await childBaseModel.assertRowsWritable(childIds);
     }
 
-    // hm / oo(reverse): FK lives on the related (child) table's rows
-    if (!childIds?.length) return;
-
-    const { childContext } = await colOptions.getParentChildContext(
-      this.context,
-    );
-    const childColumn = await colOptions.getChildColumn(childContext);
-    const childTable = await childColumn.getModel(childContext);
-    const childBaseModel = await Model.getBaseModelSQL(childContext, {
-      model: childTable,
-      dbDriver: this.dbDriver,
-    });
-    await childBaseModel.assertRowsWritable(childIds);
+    if (isLink && colOptions.type === RelationTypes.ONE_TO_ONE) {
+      await this.assertOoDisplacedRowWritable({
+        column,
+        colOptions,
+        rowId,
+        childIds,
+      });
+    }
   }
+
+  /**
+   * A one-to-one link is exclusive, so linking nulls the FK of whatever row
+   * currently points at the target. That displaced row is in neither `rowId`
+   * nor `childIds`, so `assertLinkRowsWritable` cannot see it.
+   * CE version: no-op (no RLS). EE resolves the row and asserts it.
+   */
+  protected async assertOoDisplacedRowWritable(_params: {
+    column: Column;
+    colOptions: LinkToAnotherRecordColumn;
+    rowId: string;
+    childIds: (string | number)[];
+  }): Promise<void> {}
 
   /**
    * Returns a knex where-clause callback that excludes soft-deleted records,

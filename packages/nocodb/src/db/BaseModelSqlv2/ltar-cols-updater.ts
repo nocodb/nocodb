@@ -213,9 +213,9 @@ export const LTARColsUpdater = (param: {
     cookie: any;
   }) => {
     // This calls the addOrRemoveLinks helper directly rather than
-    // baseModel.addLinks(), so it misses that method's permission check. The v3
-    // link endpoints enter here without going through update(), which guards its
-    // own batch.
+    // baseModel.addLinks(), so it must repeat that method's guards itself. The
+    // v3 link endpoints enter here without going through update(), which guards
+    // its own batch.
     await baseModel.checkPermission({
       entity: PermissionEntity.FIELD,
       entityId: col.id,
@@ -223,6 +223,17 @@ export const LTARColsUpdater = (param: {
       user: cookie?.user,
       req: cookie,
     });
+
+    // Separate pass: reject the whole payload before writing any of it, rather
+    // than leaving earlier rows linked when a later one turns out to be locked.
+    for (const each of linkDataPayload.data) {
+      await baseModel.assertLinkRowsWritable({
+        colId: col.id,
+        rowId: each.rowId,
+        childIds: each.links,
+        isLink: true,
+      });
+    }
 
     for (const each of linkDataPayload.data) {
       await addOrRemoveLinks(baseModel).addLinks({

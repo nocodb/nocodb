@@ -46,6 +46,12 @@ const isNarrow = computed(() => sidebarWidth.value > 0 && sidebarWidth.value < T
 <template>
   <div ref="sidebarRef" class="flex flex-col bg-nc-bg-elevated !h-full w-full rounded-br-2xl overflow-hidden">
     <NcTabs v-model:active-key="tab" class="h-full">
+      <!-- Record bell — per-user comment-notification preference (EE; CE stub
+           renders nothing). Comments-tab concern, docked in the tab bar. -->
+      <template v-if="isEeUI && tab === 'comments'" #rightExtra>
+        <SmartsheetExpandedFormSidebarCommentNotificationBell class="mr-2" />
+      </template>
+
       <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
         <template #tab>
           <NcTooltip :disabled="!isNarrow" :title="$t('objects.fields')">

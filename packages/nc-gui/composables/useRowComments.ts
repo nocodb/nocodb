@@ -241,6 +241,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       // reloadTrigger?.trigger()
 
       await loadComments()
+
+      // Commenting auto-subscribes server-side (unless an explicit
+      // "only @mentions" pick exists) — refresh so the bell reflects it.
+      loadCommentNotificationPreference().catch(() => undefined)
     } catch (e: any) {
       comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
       message.error(
@@ -300,6 +304,72 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
+  /**
+   * Record bell — the caller's comment-notification preference for THIS record.
+   * 'mentions' (default, no stored row) | 'all' (subscribed — set explicitly
+   * via the bell, or auto-set server-side by commenting). Backend ops are
+   * EE-only; the bell UI gates on isEeUI.
+   */
+  const commentNotificationPreference = ref<'all' | 'mentions'>('mentions')
+
+  async function loadCommentNotificationPreference() {
+    if (!isEeUI) return
+    if (!ifaceSidebar && !isUIAllowed('commentList')) return
+
+    const rowId = extractPkFromRow(row.value?.row, meta.value.columns as ColumnType[])
+    if (!rowId) return
+
+    try {
+      const res = ifaceSidebar
+        ? await ifaceSidebar.commentNotificationPreferenceGet(rowId)
+        : await ($api.internal.getOperation as any)((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+            operation: 'commentNotificationPreferenceGet',
+            row_id: rowId,
+            fk_model_id: meta.value.id as string,
+          })
+
+      commentNotificationPreference.value = (res as any)?.preference === 'all' ? 'all' : 'mentions'
+    } catch {
+      // Silent — the bell just keeps showing the default.
+    }
+  }
+
+  async function setCommentNotificationPreference(preference: 'all' | 'mentions') {
+    const rowId = extractPkFromRow(row.value?.row, meta.value.columns as ColumnType[])
+    if (!rowId) return
+
+    const previous = commentNotificationPreference.value
+    commentNotificationPreference.value = preference
+
+    try {
+      if (ifaceSidebar) {
+        await ifaceSidebar.commentNotificationPreferenceSet(rowId, preference)
+      } else {
+        await ($api.internal.postOperation as any)(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'commentNotificationPreferenceSet' },
+          {
+            fk_model_id: meta.value?.id as string,
+            row_id: rowId,
+            preference,
+          },
+        )
+      }
+
+      $e('a:row-expand:comment-notification-preference', { preference })
+    } catch (e: any) {
+      commentNotificationPreference.value = previous
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
+    }
+  }
+
   return {
     comments,
     loadComments,
@@ -311,6 +381,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     primaryKey,
     parsedHtmlComments,
     row,
+    commentNotificationPreference,
+    loadCommentNotificationPreference,
+    setCommentNotificationPreference,
   }
 })
 

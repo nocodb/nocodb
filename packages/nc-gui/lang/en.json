@@ -3730,6 +3730,8 @@
     "interfaceRevisionHistory": "Revision history",
     "allActivity": "All activity",
     "allComments": "All comments",
+    "notifyMeOnlyForMentions": "Notify me only for {'@'}mentions",
+    "notifyMeAboutAllComments": "Notify me about all comments",
     "recordComments": "Record comments",
     "commentsOnAttachments": "Comments on attachments",
     "commentsWithAttachments": "Comments with attachments",

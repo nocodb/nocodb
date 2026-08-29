@@ -64,22 +64,53 @@ export const relationDataFetcher = (param: {
       return data;
     }
 
-    const { ast, parsedQuery } = await getAst(context, {
-      model,
-      query,
-      extractOnlyPrimaries:
-        context.cacheMap?.get('relation_postProcessData') ?? false,
-    });
-
     if (!context.cacheMap) {
       context.cacheMap = new Map();
     }
-    // set context.cacheMap `relation_postProcessData` to ensure non-infinite loop
-    context.cacheMap.set('relation_postProcessData', true);
 
-    // nocoexecute
-    const result = await nocoExecute(ast, data, {}, parsedQuery);
-    return result;
+    // postProcessData re-resolves a relation's virtual columns (lookups) with
+    // nocoExecute, which can recurse into further relations. That recursion has
+    // to be bounded so a self-referential / cyclic chain (A → B → A) terminates.
+    //
+    // The previous guard set a single `relation_postProcessData` boolean on the
+    // FIRST relation read and never reset it. Because `context.cacheMap` is
+    // request-scoped, that boolean leaked across the whole request: the first
+    // read (often just the internal junction read of an M:N) tripped it, and
+    // every SUBSEQUENT read — SIBLINGS at the same level included — was then
+    // forced to `extractOnlyPrimaries` (PK + primary value only). That dropped
+    // non-PV lookup target columns, so a second lookup over the same relation,
+    // and a lookup-of-a-lookup whose inner target is a non-PV column, resolved
+    // to null (#14229) — visible only on unlicensed builds since the licensed
+    // path returns above.
+    //
+    // Track true call-stack DEPTH instead (restored in `finally`), so sibling
+    // reads at the same depth are not poisoned by an earlier sibling. From
+    // depth 1 on we still project away nested LTAR expansion (the expensive
+    // part — each level fans out into more relation queries, which on a
+    // self-referential M:N over hundreds of rows is what pushed the heavy
+    // metaLTAR read past its timeout), but we now ALSO keep the model's plain
+    // scalar columns. A lookup resolves its inner relation one level down via a
+    // `[relationColumn, targetColumn]` alias path; the target is a scalar on
+    // that nested read, so keeping scalars (which add columns to one SELECT, not
+    // extra queries) fixes #14229 while staying as cheap as the old PK+PV read.
+    const depth =
+      (context.cacheMap.get('relation_postProcessData_depth') as number) ?? 0;
+
+    const { ast, parsedQuery } = await getAst(context, {
+      model,
+      query,
+      extractOnlyPrimaries: depth > 0,
+      includeScalarColumns: depth > 0,
+    });
+
+    context.cacheMap.set('relation_postProcessData_depth', depth + 1);
+
+    try {
+      // nocoexecute
+      return await nocoExecute(ast, data, {}, parsedQuery);
+    } finally {
+      context.cacheMap.set('relation_postProcessData_depth', depth);
+    }
   }
 
   return {

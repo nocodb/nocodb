@@ -1,4 +1,7 @@
 import {
+  isOrderCol,
+  isSystemColumn,
+  isVirtualCol,
   NcApiVersion,
   parseProp,
   RelationTypes,
@@ -57,10 +60,16 @@ const getAst = async (
     skipSubstitutingColumnIds = false,
     fk_display_value_column_id,
     allowRequestedHiddenFields = false,
+    includeScalarColumns = false,
     _depth = 0,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
+    // When paired with `extractOnlyPrimaries`, also keep the model's plain
+    // scalar (non-virtual) columns — not just PK + PV. Used by the legacy
+    // relation re-resolution to preserve lookup target columns on nested reads
+    // without paying for nested LTAR expansion (#14229).
+    includeScalarColumns?: boolean;
     includePkByDefault?: boolean;
     model: Model;
     view?: View;
@@ -167,6 +176,20 @@ const getAst = async (
       if (customDisplayCol) {
         ast[getFieldKey(customDisplayCol)] = 1;
         await extractDependencies(context, customDisplayCol, dependencyFields);
+      }
+    }
+
+    // Additionally keep plain scalar columns. A lookup resolves its target via a
+    // `[relationColumn, targetColumn]` alias path; on the nested read the target
+    // is a scalar, and a PK+PV-only projection drops it (non-PV targets resolve
+    // to null — #14229). Scalars add columns to this one SELECT, not extra
+    // relation queries, so nested/self-referential reads stay shallow and cheap
+    // — virtual columns (LTAR/Lookup/Rollup/Formula/…) are intentionally NOT
+    // expanded here, which is what keeps the recursion bounded.
+    if (includeScalarColumns) {
+      for (const col of model.columns ?? []) {
+        if (isVirtualCol(col) || isSystemColumn(col)) continue;
+        ast[getFieldKey(col)] = 1;
       }
     }
 

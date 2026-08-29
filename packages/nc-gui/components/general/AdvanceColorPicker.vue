@@ -152,7 +152,8 @@ watch(
               <div
                 v-for="(color, j) of colorGroup"
                 :key="`color-${i}-${j}`"
-                class="p-1 rounded-md flex h-8 hover:bg-nc-bg-gray-medium"
+                class="p-1 flex h-8"
+                :class="swatchLabel ? 'rounded-full' : 'rounded-md hover:bg-nc-bg-gray-medium'"
               >
                 <button
                   class="color-selector"

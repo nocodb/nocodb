@@ -335,17 +335,19 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     if (!rowId) return
 
     try {
-      const res = ifaceSidebar
-        ? await ifaceSidebar.commentNotificationPreferenceGet(rowId)
-        : await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-            operation: 'commentNotificationPreferenceGet',
-            row_id: rowId,
-            fk_model_id: meta.value.id as string,
-          })
+      const res = (
+        ifaceSidebar
+          ? await ifaceSidebar.commentNotificationPreferenceGet(rowId)
+          : await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              operation: 'commentNotificationPreferenceGet',
+              row_id: rowId,
+              fk_model_id: meta.value.id as string,
+            })
+      ) as { preference?: CommentNotificationPreference }
 
       if (seq !== commentNotificationPreferenceSeq) return
 
-      commentNotificationPreference.value = (res as any)?.preference === 'all' ? 'all' : 'mentions'
+      commentNotificationPreference.value = res?.preference === 'all' ? 'all' : 'mentions'
     } catch {
       // Silent — the bell keeps the default reset above.
     }
@@ -376,15 +378,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       }
 
       $e('a:row-expand:comment-notification-preference', { preference })
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (seq === commentNotificationPreferenceSeq) commentNotificationPreference.value = previous
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
+      message.error(await extractSdkResponseErrorMsg(e as Error))
     }
   }
 

@@ -2,8 +2,8 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 /**
- * The comment fan-out reads this table by (fk_model_id, row_id, preferences)
- * — none of which lead the only existing index — and the check-then-insert
+ * The comment fan-out reads this table by (fk_model_id, row_id), neither of
+ * which leads the only existing index — and the check-then-insert
  * auto-subscribe can race two rows in for the same user on one record.
  */
 const up = async (knex: Knex) => {
@@ -18,7 +18,7 @@ const up = async (knex: Knex) => {
         indexName: 'user_comments_preference_unique',
       });
       table.index(
-        ['fk_model_id', 'row_id', 'preferences'],
+        ['fk_model_id', 'row_id'],
         'user_comments_preference_fanout_index',
       );
     },
@@ -30,7 +30,7 @@ const down = async (knex: Knex) => {
     MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE,
     (table) => {
       table.dropIndex(
-        ['fk_model_id', 'row_id', 'preferences'],
+        ['fk_model_id', 'row_id'],
         'user_comments_preference_fanout_index',
       );
       table.dropUnique(

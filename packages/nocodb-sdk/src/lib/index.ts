@@ -123,6 +123,7 @@ export * from '~/lib/Document';
 export * from '~/lib/DocumentComment';
 export * from '~/lib/comment';
 export * from '~/lib/commentAnnotation';
+export * from '~/lib/notification';
 export * from '~/lib/DocumentRevision';
 export * from '~/lib/docs';
 export * from '~/lib/entityNameValidation';

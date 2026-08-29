@@ -4026,7 +4026,7 @@ export function useCanvasRender({
           setCursor('pointer')
         }
 
-        if (!isMouseHoveringOverGroupHeader || !appInfo.value.isOnPrem) {
+        if (!isMouseHoveringOverGroupHeader) {
           const countRender = renderSingleLineText(ctx, {
             text: `${group?.count ?? '-'}`,
             x: xOffset + mergedWidth - 12,

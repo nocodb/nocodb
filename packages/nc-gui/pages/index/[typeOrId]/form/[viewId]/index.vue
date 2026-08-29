@@ -194,9 +194,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
    expanded record and the in-app form view (components/smartsheet/form/FieldBody.vue).
    Covers survey mode too: it renders inside .nc-form-view. */
 [theme='dark'] .nc-form-view {
-  .nc-input:not(.layout-list):not(.nc-cell-checkbox):not(.nc-cell-attachment):not(
-      :has(.form-attachment-cell.nc-has-attachments)
-    ) {
+  .nc-input:not(.layout-list):not(.nc-cell-attachment):not(:has(.form-attachment-cell.nc-has-attachments)) {
     background-color: var(--nc-bg-input) !important;
     border-color: var(--nc-border-input);
   }

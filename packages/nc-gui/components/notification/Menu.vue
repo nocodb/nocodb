@@ -1,4 +1,13 @@
 <script lang="ts" setup>
+interface Props {
+  /** Interface surfaces render the compact (record-peek sized) card. */
+  compact?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  compact: false,
+})
+
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 
 const notificationStore = useNotification()
@@ -47,7 +56,7 @@ const isDropdownOpen = ref(false)
       </div>
 
       <template #overlay>
-        <NotificationCard @close="isDropdownOpen = false" />
+        <NotificationCard :compact="props.compact" @close="isDropdownOpen = false" />
       </template>
     </NcDropdown>
   </div>

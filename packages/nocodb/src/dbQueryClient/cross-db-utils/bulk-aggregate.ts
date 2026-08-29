@@ -26,6 +26,18 @@ const MAX_CONSOLIDATED_AGG_COLUMNS = 50;
 // column to one bucket, so distinct tuples of them cannot share a row.
 const PARTITIONING_OPS = new Set(['gb_eq', 'gb_null', 'checked', 'notchecked']);
 
+// Bucket keys compare `gb_eq` values as JSON, but SQL compares them by column
+// semantics: 10, '10', ' 10', '010' and '+10' all select the same numeric rows.
+// Fold anything numeric to one canonical form so such buckets collide in
+// `seenKeys` and decline. Over-folding only costs the optimization (text '1' and
+// '1.0' fall back), never correctness; under-folding hands the shared rows to
+// whichever bucket the CASE reaches first and silently zeroes the rest.
+const canonicalEqKey = (value: unknown): string => {
+  const raw = `${value ?? ''}`.trim();
+  const num = Number(raw);
+  return raw !== '' && Number.isFinite(num) ? `n:${num}` : `s:${raw}`;
+};
+
 /**
  * Shared, dialect-agnostic bulk aggregation orchestration.
  *
@@ -161,7 +173,7 @@ export const bulkAggregate =
                 f.fk_column_id,
                 normalizedOp,
                 subOp,
-                normalizedOp === 'gb_eq' ? f.value ?? null : null,
+                normalizedOp === 'gb_eq' ? canonicalEqKey(f.value) : null,
               ]),
             );
           }

@@ -764,9 +764,16 @@ export const useInfiniteGroups = (
           batchGroups.forEach((group) => {
             const key = createGroupUniqueIdentifier(group)
             const attempts = (aggregationFailureCounts.get(key) ?? 0) + 1
-            aggregationFailureCounts.set(key, attempts)
-            // Give up after the cap — 'loaded' stops the viewport loop from re-requesting.
-            group.aggregationState = attempts >= AGGREGATION_MAX_FETCH_ATTEMPTS ? 'loaded' : undefined
+
+            if (attempts >= AGGREGATION_MAX_FETCH_ATTEMPTS) {
+              // Give up — 'loaded' stops the viewport loop from re-requesting, which
+              // also makes the counter unreachable, so drop it instead of leaking it.
+              group.aggregationState = 'loaded'
+              aggregationFailureCounts.delete(key)
+            } else {
+              aggregationFailureCounts.set(key, attempts)
+              group.aggregationState = undefined
+            }
           })
         }
       }

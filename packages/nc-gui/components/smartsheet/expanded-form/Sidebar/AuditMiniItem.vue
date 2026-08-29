@@ -188,7 +188,12 @@ function toggleLongText(key: string) {
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
-    <div class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header">
+    <!-- Interface panels: 11px all-caps field labels, tighter label→value gap
+         (reference design); the classic expanded form keeps its 12px casing. -->
+    <div
+      class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header"
+      :class="{ 'uppercase !text-[11px] tracking-wide': ifaceSidebar }"
+    >
       <SmartsheetHeaderIcon
         v-if="!ifaceSidebar"
         :column="{
@@ -215,7 +220,7 @@ function toggleLongText(key: string) {
         ({{ $t('labels.generatedByAi') }})
       </span>
     </div>
-    <div class="flex items-center gap-2 mt-3 flex-wrap">
+    <div class="flex items-center gap-2 flex-wrap" :class="ifaceSidebar ? 'mt-1.5' : 'mt-3'">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
         <div
           v-if="processOldDataFor(columnKey)?.length > 0"

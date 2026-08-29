@@ -239,7 +239,8 @@ function isV0Audit(audit: AuditType) {
               <div class="pl-9">{{ $t('activity.createdRecord') }}</div>
               <div
                 v-if="safeJsonParse(audit.details)?.data && Object.keys(safeJsonParse(audit.details)?.column_meta || {}).length"
-                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y"
+                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+                :class="{ 'divide-y': !ifaceSidebar }"
               >
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>
@@ -290,7 +291,11 @@ function isV0Audit(audit: AuditType) {
               <div v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'" class="pl-9 text-xs text-nc-content-gray-muted mb-1">
                 {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
               </div>
-              <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y">
+              <!-- Interface panels drop the between-field dividers (reference design) -->
+              <div
+                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+                :class="{ 'divide-y': !ifaceSidebar }"
+              >
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>
             </template>

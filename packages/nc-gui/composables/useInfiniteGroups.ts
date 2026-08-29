@@ -497,8 +497,16 @@ export const useInfiniteGroups = (
       chunkStates.value = []
       // Reload-style full reset: any chunk we wipe must also have its failure
       // count reset, otherwise the canvas retry cap fires on the first
-      // failure of the next fetch.
+      // failure of the next fetch. Same for the aggregation counter — its key
+      // is value+path based, so it outlives the group objects we just dropped.
       chunkFailureCounts.clear()
+      aggregationFailureCounts.clear()
+      // A queued flush would cross the new `where` with the old group keys.
+      pendingAggregationGroups.clear()
+      if (aggregationFlushTimer) {
+        clearTimeout(aggregationFlushTimer)
+        aggregationFlushTimer = null
+      }
       return
     }
 
@@ -684,14 +692,17 @@ export const useInfiniteGroups = (
       })
     }
 
+    // Mark every batch up-front: marking inside the loop leaves groups past the
+    // first batch unmarked across batch 1's round-trip, so the render loop
+    // re-queues and duplicate-fetches them.
+    if (markState) {
+      groups.forEach((group) => {
+        group.aggregationState = 'loading'
+      })
+    }
+
     for (let i = 0; i < groups.length; i += BATCH_SIZE) {
       const batchGroups = groups.slice(i, i + BATCH_SIZE)
-
-      if (markState) {
-        batchGroups.forEach((group) => {
-          group.aggregationState = 'loading'
-        })
-      }
 
       const aggregationParams = batchGroups.map((group) => ({
         where: where?.value,

@@ -1,7 +1,5 @@
 import {
   isOrderCol,
-  isSystemColumn,
-  isVirtualCol,
   NcApiVersion,
   parseProp,
   RelationTypes,
@@ -60,16 +58,20 @@ const getAst = async (
     skipSubstitutingColumnIds = false,
     fk_display_value_column_id,
     allowRequestedHiddenFields = false,
-    includeScalarColumns = false,
+    skipRelationExpansion = false,
     _depth = 0,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
-    // When paired with `extractOnlyPrimaries`, also keep the model's plain
-    // scalar (non-virtual) columns — not just PK + PV. Used by the legacy
-    // relation re-resolution to preserve lookup target columns on nested reads
-    // without paying for nested LTAR expansion (#14229).
-    includeScalarColumns?: boolean;
+    // Bound relation re-resolution to a single query: build the AST normally
+    // but drop the two recursion drivers — LinkToAnotherRecord and Lookup —
+    // which resolve by reading related rows (re-entering postProcessData).
+    // Everything else (scalars, Rollup, a Links count, Formula, Barcode/…)
+    // resolves inside this one SELECT and is kept, so an outer lookup can read a
+    // target of any of those types on the nested read without unbounded
+    // LTAR/Lookup fan-out (#14229). A Links column stays a count (its
+    // non-linksAsLtar path is forced here).
+    skipRelationExpansion?: boolean;
     includePkByDefault?: boolean;
     model: Model;
     view?: View;
@@ -179,20 +181,6 @@ const getAst = async (
       }
     }
 
-    // Additionally keep plain scalar columns. A lookup resolves its target via a
-    // `[relationColumn, targetColumn]` alias path; on the nested read the target
-    // is a scalar, and a PK+PV-only projection drops it (non-PV targets resolve
-    // to null — #14229). Scalars add columns to this one SELECT, not extra
-    // relation queries, so nested/self-referential reads stay shallow and cheap
-    // — virtual columns (LTAR/Lookup/Rollup/Formula/…) are intentionally NOT
-    // expanded here, which is what keeps the recursion bounded.
-    if (includeScalarColumns) {
-      for (const col of model.columns ?? []) {
-        if (isVirtualCol(col) || isSystemColumn(col)) continue;
-        ast[getFieldKey(col)] = 1;
-      }
-    }
-
     return { ast, dependencyFields, parsedQuery: dependencyFields };
   }
 
@@ -256,11 +244,26 @@ const getAst = async (
   };
 
   for (const col of columns) {
+    // #14229: on a bounded (single-query) nested relation read, drop the two
+    // recursion drivers — LTAR and Lookup — since resolving either re-enters
+    // postProcessData to read related rows. Every other column resolves within
+    // this one SELECT and is kept (scalars/Rollup/Links-count/Formula/…). Root
+    // reads (skipRelationExpansion=false) still expand relations fully.
+    if (
+      skipRelationExpansion &&
+      (col.uidt === UITypes.LinkToAnotherRecord || col.uidt === UITypes.Lookup)
+    ) {
+      ast[getFieldKey(col)] = null;
+      continue;
+    }
+
     let value: number | boolean | { [key: string]: any } = 1;
     // TODO: also get from col.id
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
-    const linksAsLtar = query?.linksAsLtar === 'true';
+    // A Links column expands into related rows only via linksAsLtar; on a
+    // bounded read force it back to a plain count so it never recurses.
+    const linksAsLtar = !skipRelationExpansion && query?.linksAsLtar === 'true';
 
     if (nestedFields && nestedFields !== '*') {
       if (

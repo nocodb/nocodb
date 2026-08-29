@@ -84,23 +84,25 @@ export const relationDataFetcher = (param: {
     // path returns above.
     //
     // Track true call-stack DEPTH instead (restored in `finally`), so sibling
-    // reads at the same depth are not poisoned by an earlier sibling. From
-    // depth 1 on we still project away nested LTAR expansion (the expensive
-    // part — each level fans out into more relation queries, which on a
-    // self-referential M:N over hundreds of rows is what pushed the heavy
-    // metaLTAR read past its timeout), but we now ALSO keep the model's plain
-    // scalar columns. A lookup resolves its inner relation one level down via a
-    // `[relationColumn, targetColumn]` alias path; the target is a scalar on
-    // that nested read, so keeping scalars (which add columns to one SELECT, not
-    // extra queries) fixes #14229 while staying as cheap as the old PK+PV read.
+    // reads at the same depth are not poisoned by an earlier sibling. The root
+    // relation read (depth 0) expands normally; from depth 1 on we ask getAst to
+    // build the AST normally but SKIP relation expansion — i.e. keep every
+    // column except LTAR/Lookup. Those two are the only ones that re-enter
+    // postProcessData (each level fans out into more relation queries, which on
+    // a self-referential M:N over hundreds of rows is what pushed the heavy
+    // metaLTAR read past its timeout); everything else — scalars, Rollup, a
+    // Links count, Formula — resolves within the single relation SELECT. A
+    // lookup reads its inner target one level down via a
+    // `[relationColumn, targetColumn]` alias path, and that target is one of the
+    // kept column types, so this fixes #14229 while staying as cheap as, and
+    // bounded like, the old PK+PV read.
     const depth =
       (context.cacheMap.get('relation_postProcessData_depth') as number) ?? 0;
 
     const { ast, parsedQuery } = await getAst(context, {
       model,
       query,
-      extractOnlyPrimaries: depth > 0,
-      includeScalarColumns: depth > 0,
+      skipRelationExpansion: depth > 0,
     });
 
     context.cacheMap.set('relation_postProcessData_depth', depth + 1);

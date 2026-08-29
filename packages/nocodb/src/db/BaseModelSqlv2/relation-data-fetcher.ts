@@ -35,18 +35,20 @@ const GROUP_COL = '__nc_group_id';
 // lookup→lookup case. Raising it to 2 (to also resolve a three-hop chain) was
 // tried but pushed the heavy self-referential metaLTAR read over its timeout on
 // hundreds of rows (CI: metaLTAR delete-record test timed out): each extra
-// expanded level turns one relation read into N more. A 3+-hop lookup chain
-// therefore stays out of scope — known limitation. Cyclic chains still
-// terminate here.
+// expanded level turns one relation read into N more. Deeper chains are still
+// resolved — not by raising this bound, but by targeted expansion below, which
+// keeps only the columns an outer lookup actually references. Cyclic chains
+// still terminate here.
 const MAX_NESTED_RELATION_DEPTH = 1;
 
 // Targeted expansion (#14229): past the bound, a bounded nested read still keeps
 // the LTAR/Lookup columns an *outer* lookup chain references (so a deep
 // lookup→lookup→lookup resolves) instead of dropping all relations. That keeps
 // re-entering postProcessData one hop per lookup level, so a self/cyclic lookup
-// chain could recurse without limit. This hard cap severs it: at or below this
-// depth we stop passing required columns, the AST drops all relations again, and
-// the recursion terminates. Practical lookup chains are far shallower than this.
+// chain could recurse without limit. This hard cap severs it: at or ABOVE this
+// depth (`depth < TARGETED_EXPANSION_MAX_DEPTH` stops holding) we stop passing
+// required columns, the AST drops all relations again, and the recursion
+// terminates. Practical lookup chains are far shallower than this.
 const TARGETED_EXPANSION_MAX_DEPTH = 8;
 
 // The target columns on `model`'s related table that outer lookups need from the
@@ -130,10 +132,14 @@ export const relationDataFetcher = (param: {
       return data;
     }
 
-    // Seed the request-scoped cache map. Not read directly here anymore (the
-    // depth counter moved to AsyncLocalStorage), but `getRelContext` propagates
-    // it and `@NcCache` piggybacks on it — dropping this would cost cache hits
-    // on the nested reads below.
+    // Seed the request-scoped cache map. Nothing in THIS function reads it (the
+    // depth counter moved to AsyncLocalStorage), but it is not dead: the EE
+    // `@NcCache` decorator self-seeds only on its first decorated call, while
+    // `LinkToAnotherRecordColumn.getRelContext` propagates the map to the
+    // related contexts *only* `if (context.cacheMap)`. Seeding here means the
+    // nested reads below share the parent's map instead of each starting a
+    // fresh one, so dropping this would cost cache hits across the relation
+    // boundary on unlicensed on-prem (EE build, `Noco.isEE()` false).
     if (!context.cacheMap) {
       context.cacheMap = new Map();
     }

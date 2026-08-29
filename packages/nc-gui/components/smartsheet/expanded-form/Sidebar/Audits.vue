@@ -199,7 +199,8 @@ function isV0Audit(audit: AuditType) {
           <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> {{ $t('general.loadEarlier') }} </NcButton>
         </div>
         <div v-for="audit of visibleAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
-          <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-nc-bg-gray-light">
+          <!-- Interface panels: no hover fill — the entries aren't interactive there -->
+          <div class="group gap-3 overflow-hidden px-3 py-2 transition" :class="{ 'hover:bg-nc-bg-gray-light': !ifaceSidebar }">
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">
                 <GeneralUserIcon

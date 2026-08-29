@@ -1129,7 +1129,8 @@
         "viewOnly": "View only",
         "viewOnlyDescription": "Members can view matching rows but cannot edit them.",
         "readOnlyBadge": "Read-only",
-        "recordReadonlyToast": "This record is read-only and can't be edited."
+        "recordReadonlyToast": "This record is read-only and can't be edited.",
+        "recordReadonlyBanner": "This record is read-only. It's visible to you but locked for editing by a row-level security policy."
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",

@@ -16,8 +16,9 @@ const props = defineProps<{
 const tableMeta = inject(MetaInj, ref())
 
 // Interface panels hide field-type icons (interfaces abstract the schema
-// away) — same treatment as the interface kanban card labels.
-const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
+// away) — same treatment as the interface kanban card labels. Presentation
+// flag, not the ops adapter (which public interface pages don't get).
+const ifaceSidebar = inject(IsInterfaceRecordSurfaceInj, false)
 
 const isSyncedTable = computed(() => !!(tableMeta.value as TableType | undefined)?.synced)
 

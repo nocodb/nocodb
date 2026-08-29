@@ -97,8 +97,10 @@ watch(
 const meta = inject(MetaInj, ref())
 
 // Interface panels hide field-type icons (interfaces abstract the schema
-// away) — same treatment as AuditMiniItem's per-field headers.
-const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
+// away) — same treatment as AuditMiniItem's per-field headers. Presentation
+// flag, not the ops adapter: public interface pages have no adapter but must
+// still look like an interface.
+const ifaceSidebar = inject(IsInterfaceRecordSurfaceInj, false)
 
 const isSyncedTable = computed(() => !!(meta.value as TableType | undefined)?.synced)
 
@@ -247,8 +249,14 @@ function isV0Audit(audit: AuditType) {
               </div>
             </template>
             <div v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)" class="pl-9">
-              <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
-                <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
+              <div
+                class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight py-2 px-3"
+                :class="{ 'divide-y': !ifaceSidebar }"
+              >
+                <div
+                  class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3"
+                  :class="{ 'uppercase !text-[10px] tracking-wide': ifaceSidebar }"
+                >
                   <SmartsheetHeaderVirtualCellIcon
                     v-if="!ifaceSidebar"
                     :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(audit) } }"

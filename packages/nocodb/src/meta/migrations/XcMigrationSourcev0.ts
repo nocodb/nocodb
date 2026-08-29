@@ -95,6 +95,7 @@ import * as nc_202608121200_base_sections from './v0/nc_202608121200_base_sectio
 import * as nc_202608191200_credit_hold_ref_scoped from './v0/nc_202608191200_credit_hold_ref_scoped';
 import * as nc_202608201200_automation_sections from './v0/nc_202608201200_automation_sections';
 import * as nc_202608211200_widen_entity_id_columns from './v0/nc_202608211200_widen_entity_id_columns';
+import * as nc_202608281200_comment_notification_pref_index from './v0/nc_202608281200_comment_notification_pref_index';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -201,6 +202,7 @@ export default class XcMigrationSourcev0 {
       'nc_202608191200_credit_hold_ref_scoped',
       'nc_202608201200_automation_sections',
       'nc_202608211200_widen_entity_id_columns',
+      'nc_202608281200_comment_notification_pref_index',
     ]);
   }
 
@@ -404,6 +406,8 @@ export default class XcMigrationSourcev0 {
         return nc_202608201200_automation_sections;
       case 'nc_202608211200_widen_entity_id_columns':
         return nc_202608211200_widen_entity_id_columns;
+      case 'nc_202608281200_comment_notification_pref_index':
+        return nc_202608281200_comment_notification_pref_index;
     }
   }
 }

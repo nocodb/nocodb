@@ -300,8 +300,11 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
+  // Optional chaining is load-bearing: `watch(primaryKey)` below evaluates
+  // this during setup, and the interface record body mounts before its meta
+  // resolves. extractPkFromRow already returns null for a missing row/columns.
   const primaryKey = computed(() => {
-    return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    return extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
   })
 
   /**
@@ -312,32 +315,47 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
    */
   const commentNotificationPreference = ref<'all' | 'mentions'>('mentions')
 
+  // Guards the bell against stale writes: every load/set claims a ticket, and
+  // only the newest one may land. Without it, two quick next/prev navigations
+  // let the slower (older record's) response win.
+  let commentNotificationPreferenceSeq = 0
+
   async function loadCommentNotificationPreference() {
     if (!isEeUI) return
     if (!ifaceSidebar && !isUIAllowed('commentList')) return
 
-    const rowId = extractPkFromRow(row.value?.row, meta.value.columns as ColumnType[])
+    const seq = ++commentNotificationPreferenceSeq
+
+    // Back to the default before we know: a failed or slow load must never
+    // leave the previous record's answer on screen, or the bell's
+    // already-selected check silently swallows the user's next pick.
+    commentNotificationPreference.value = 'mentions'
+
+    const rowId = primaryKey.value
     if (!rowId) return
 
     try {
       const res = ifaceSidebar
         ? await ifaceSidebar.commentNotificationPreferenceGet(rowId)
-        : await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        : await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
             operation: 'commentNotificationPreferenceGet',
             row_id: rowId,
             fk_model_id: meta.value.id as string,
           })
 
+      if (seq !== commentNotificationPreferenceSeq) return
+
       commentNotificationPreference.value = (res as any)?.preference === 'all' ? 'all' : 'mentions'
     } catch {
-      // Silent — the bell just keeps showing the default.
+      // Silent — the bell keeps the default reset above.
     }
   }
 
   async function setCommentNotificationPreference(preference: 'all' | 'mentions') {
-    const rowId = extractPkFromRow(row.value?.row, meta.value.columns as ColumnType[])
+    const rowId = primaryKey.value
     if (!rowId) return
 
+    const seq = ++commentNotificationPreferenceSeq
     const previous = commentNotificationPreference.value
     commentNotificationPreference.value = preference
 
@@ -345,8 +363,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       if (ifaceSidebar) {
         await ifaceSidebar.commentNotificationPreferenceSet(rowId, preference)
       } else {
-        await ($api.internal.postOperation as any)(
-          (meta.value as any).fk_workspace_id!,
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
           meta.value!.base_id!,
           { operation: 'commentNotificationPreferenceSet' },
           {
@@ -359,7 +377,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
       $e('a:row-expand:comment-notification-preference', { preference })
     } catch (e: any) {
-      commentNotificationPreference.value = previous
+      if (seq === commentNotificationPreferenceSeq) commentNotificationPreference.value = previous
       message.error(
         await extractSdkResponseErrorMsg(
           e as Error & {

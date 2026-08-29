@@ -1102,17 +1102,6 @@ watch(activeRowId, () => {
   background-color: transparent !important;
 }
 
-/* Sidebar tabs — smaller font for Comments / Revision History */
-.nc-expanded-form-panel .nc-comments-drawer .ant-tabs-tab {
-  .flex.items-center {
-    @apply !text-xs;
-
-    svg {
-      @apply !w-3.5 !h-3.5;
-    }
-  }
-}
-
 /* No shadow at rest, subtle shadow on hover */
 .nc-expanded-form-panel .nc-data-cell {
   box-shadow: none !important;

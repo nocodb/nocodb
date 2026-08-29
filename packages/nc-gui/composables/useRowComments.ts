@@ -1,4 +1,4 @@
-import type { AttachmentType, ColumnType, CommentType, MetaType, TableType } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType, CommentNotificationPreference, CommentType, MetaType, TableType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 export interface CommentTypeExtended extends CommentType {
@@ -313,7 +313,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
    * via the bell, or auto-set server-side by commenting). Backend ops are
    * EE-only; the bell UI gates on isEeUI.
    */
-  const commentNotificationPreference = ref<'all' | 'mentions'>('mentions')
+  const commentNotificationPreference = ref<CommentNotificationPreference>('mentions')
 
   // Guards the bell against stale writes: every load/set claims a ticket, and
   // only the newest one may land. Without it, two quick next/prev navigations
@@ -351,7 +351,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  async function setCommentNotificationPreference(preference: 'all' | 'mentions') {
+  async function setCommentNotificationPreference(preference: CommentNotificationPreference) {
     const rowId = primaryKey.value
     if (!rowId) return
 

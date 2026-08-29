@@ -9,6 +9,66 @@ import { Filter, Model } from '~/models';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { resolveAggregateColumns } from '~/dbQueryClient/cross-db-utils/aggregate';
+import {
+  getDataQueryTimeout,
+  NC_DISABLE_BULK_AGG_CONSOLIDATION,
+} from '~/utils/nc-config';
+
+const defaultLogger = new Logger('bulkAggregate');
+
+// JSON_BUILD_OBJECT takes 2 args per aggregate and PG caps function calls at
+// 100 arguments — above this the consolidated path can't pack a bucket row.
+const MAX_CONSOLIDATED_AGG_COLUMNS = 50;
+
+/**
+ * Outcome of the consolidation attempt, logged on every bulkAggregate call.
+ *
+ * The consolidated and legacy paths are observationally identical — same
+ * response shape, same numbers — so nothing in a test or a production log can
+ * otherwise tell which one ran, and the optimization could stop engaging
+ * without anything going red. These strings are the signal: tests spy on
+ * `Logger.prototype.debug` and assert the path, and `declined:<reason>` says
+ * which guard sent a real workload back to the per-bucket path.
+ */
+export const BULK_AGG_CONSOLIDATION = {
+  engaged: 'bulkAggregate consolidation engaged',
+  declined: 'bulkAggregate consolidation declined',
+  failed: 'bulkAggregate consolidation failed',
+} as const;
+
+export const BulkAggDecline = {
+  Disabled: 'disabled',
+  NotPg: 'non-pg',
+  AggColumnCap: 'agg-column-cap',
+  NoBuckets: 'no-buckets',
+  NotAPartition: 'not-a-partition',
+  MixedPartitionColumns: 'mixed-partition-columns',
+  OverlappingBuckets: 'overlapping-buckets',
+  UnslicableCondition: 'unslicable-condition',
+  EmptyCondition: 'empty-condition',
+  BackslashBinding: 'backslash-binding',
+  NoAggExpressions: 'no-agg-expressions',
+  EmptyResult: 'empty-result',
+} as const;
+
+export type BulkAggDeclineReason =
+  (typeof BulkAggDecline)[keyof typeof BulkAggDecline];
+
+// Ops the grid's group-by emits (nc-gui `buildNestedFilterArr`). Each pins a
+// column to one bucket, so distinct tuples of them cannot share a row.
+const PARTITIONING_OPS = new Set(['gb_eq', 'gb_null', 'checked', 'notchecked']);
+
+// Bucket keys compare `gb_eq` values as JSON, but SQL compares them by column
+// semantics: 10, '10', ' 10', '010' and '+10' all select the same numeric rows.
+// Fold anything numeric to one canonical form so such buckets collide in
+// `seenKeys` and decline. Over-folding only costs the optimization (text '1' and
+// '1.0' fall back), never correctness; under-folding hands the shared rows to
+// whichever bucket the CASE reaches first and silently zeroes the rest.
+const canonicalEqKey = (value: unknown): string => {
+  const raw = `${value ?? ''}`.trim();
+  const num = Number(raw);
+  return raw !== '' && Number.isFinite(num) ? `n:${num}` : `s:${raw}`;
+};
 
 /**
  * Shared, dialect-agnostic bulk aggregation orchestration.
@@ -90,6 +150,340 @@ export const bulkAggregate =
       const rlsFilterGroup = rlsConditions.length
         ? [new Filter({ children: rlsConditions, is_group: true })]
         : [];
+
+      /**
+       * Cheap, sound proof that a bucket is one branch of a partition.
+       *
+       * Nothing upstream guarantees disjointness: the grid batches several
+       * group-by levels into one request (a parent's rows are a superset of
+       * its children's), and the REST/MCP/AI callers document their filter
+       * groups as independent. So require every bucket to be an AND-chain of
+       * the ops the group-by flow emits (`buildNestedFilterArr`), and (by the
+       * caller) over the same columns with a distinct value tuple — distinct
+       * equality/null/checkbox tuples on identical columns cannot both match
+       * one row, whatever else is ANDed alongside. Returns null when that
+       * can't be established.
+       */
+      const provePartition = (
+        // FilterType, not Filter: xwhere yields plain FilterType objects while
+        // filterArrJson yields Filter models, and only the shared fields are read.
+        filterGroups: Array<FilterType[] | undefined>,
+      ): { cols: string; key: string } | null => {
+        const cols: string[] = [];
+        const conds: string[] = [];
+
+        for (const filters of filterGroups) {
+          const entries = filters ?? [];
+          for (let i = 0; i < entries.length; i++) {
+            const f = entries[i];
+            // A top-level OR makes the chain a disjunction and voids the proof.
+            if (i > 0 && `${f.logical_op ?? 'and'}`.toLowerCase() === 'or') {
+              return null;
+            }
+            if (f.is_group) continue;
+
+            const op = f.comparison_op as string;
+            if (!PARTITIONING_OPS.has(op)) continue;
+            if (!f.fk_column_id) return null;
+
+            // Sub-op rides the column signature: two buckets bucketing the same
+            // date column at different granularities are not a partition.
+            const subOp = f.comparison_sub_op ?? '';
+
+            // `gb_null` matches NULL *and* '', so it overlaps a `gb_eq` on ''
+            // over the same column. Fold both to one op so two such buckets
+            // produce the same key and collide in `seenKeys` — otherwise they
+            // read as distinct and CASE hands the shared rows to whichever
+            // bucket is listed first, zeroing the other.
+            const isBlank =
+              op === 'gb_null' || (op === 'gb_eq' && (f.value ?? '') === '');
+            const normalizedOp = isBlank ? 'gb_blank' : op;
+
+            cols.push(`${f.fk_column_id}:${subOp}`);
+            conds.push(
+              JSON.stringify([
+                f.fk_column_id,
+                normalizedOp,
+                subOp,
+                normalizedOp === 'gb_eq' ? canonicalEqKey(f.value) : null,
+              ]),
+            );
+          }
+        }
+
+        if (!conds.length) return null;
+
+        return {
+          cols: [...cols].sort().join('|'),
+          key: [...conds].sort().join('|'),
+        };
+      };
+
+      const decline = (reason: BulkAggDeclineReason) => {
+        logger.debug(`${BULK_AGG_CONSOLIDATION.declined}: ${reason}`);
+        return null;
+      };
+
+      /**
+       * Single-scan consolidation (PG only). The legacy path below builds one
+       * fully-filtered derived subquery PER bucket — N buckets = N scans of the
+       * table inside one statement, which is what melts large tables when the
+       * grid requests aggregations for many groups.
+       *
+       * Instead: tag each row with the alias of the bucket it belongs to via a
+       * CASE over the buckets' conditions, GROUP BY that tag, pack the
+       * aggregates per bucket with JSON_BUILD_OBJECT, then pivot back to the
+       * legacy single-row `{alias: json}` shape so `execAndParse` post-
+       * processing and the response contract stay identical.
+       *
+       * A CASE puts each row in exactly ONE bucket, so this is only equivalent
+       * to the per-bucket path when the buckets are mutually exclusive — see
+       * `provePartition`, which bails out unless that can be proven.
+       *
+       * PG's aggregation handler emits plain aggregate expressions (internal
+       * `FILTER (WHERE ...)` clauses and correlated-subquery arguments are
+       * valid in a grouped context, and it never uses `baseQuery`), so the
+       * expressions ride GROUP BY unchanged. MySQL/SQLite emulate median &co.
+       * with self-contained subqueries over `baseQuery` — those would silently
+       * aggregate the whole table under GROUP BY, so they stay on the legacy
+       * path. Any bail-out (dialect, arg cap, un-extractable bucket condition,
+       * error) returns null and the legacy path runs.
+       */
+      const tryConsolidated = async (): Promise<Record<
+        string,
+        Record<string, unknown>
+      > | null> => {
+        if (NC_DISABLE_BULK_AGG_CONSOLIDATION)
+          return decline(BulkAggDecline.Disabled);
+        if (client.clientType !== ClientType.PG)
+          return decline(BulkAggDecline.NotPg);
+        if (aggregateColumns.length > MAX_CONSOLIDATED_AGG_COLUMNS)
+          return decline(BulkAggDecline.AggColumnCap);
+
+        try {
+          // Deterministic prefix used to slice each bucket's WHERE fragment out
+          // of a throwaway builder — bail out if the shape ever diverges.
+          const emptyPrefix = knex(baseModel.tnPath).toSQL().sql;
+          const wherePrefix = `${emptyPrefix} where `;
+
+          const buckets: Array<{
+            alias: string;
+            cond: string;
+            bindings: readonly unknown[];
+          }> = [];
+          // Every bucket must key on the same columns with a distinct value
+          // tuple, else the buckets may overlap and CASE would drop rows.
+          const seenKeys = new Set<string>();
+          let partitionCols: string | null = null;
+
+          for (const f of bulkFilterList) {
+            const condQb = knex(baseModel.tnPath);
+            const { filters: bucketFilter } = extractFilterFromXwhere(
+              baseModel.context,
+              f.where,
+              aliasColObjMap,
+            );
+            const parsedFilterArrJson = parsedFilterArrJsonByAlias.get(f.alias);
+
+            const partition = provePartition([
+              bucketFilter,
+              parsedFilterArrJson,
+            ]);
+            if (!partition) return decline(BulkAggDecline.NotAPartition);
+            if (partitionCols === null) {
+              partitionCols = partition.cols;
+            } else if (partitionCols !== partition.cols) {
+              return decline(BulkAggDecline.MixedPartitionColumns);
+            }
+            if (seenKeys.has(partition.key))
+              return decline(BulkAggDecline.OverlappingBuckets);
+            seenKeys.add(partition.key);
+
+            await conditionV2(
+              baseModel,
+              [
+                new Filter({
+                  children: bucketFilter,
+                  is_group: true,
+                  logical_op: 'and',
+                }),
+                ...(parsedFilterArrJson
+                  ? [
+                      new Filter({
+                        children: parsedFilterArrJson,
+                        is_group: true,
+                      }),
+                    ]
+                  : []),
+              ],
+              condQb,
+            );
+
+            // toSQL(), not toQuery(): the fragment must keep its `?`
+            // placeholders and carry its values as bindings. Splicing
+            // interpolated SQL instead lets a `?` inside a group value be read
+            // as a placeholder downstream — it steals execAndParse's `limit ?`.
+            const { sql, bindings } = condQb.toSQL();
+            // A bucket with no distinguishing predicate can't be CASE-tagged.
+            if (!sql.startsWith(wherePrefix))
+              return decline(BulkAggDecline.UnslicableCondition);
+            const cond = sql.slice(wherePrefix.length).trim();
+            if (!cond) return decline(BulkAggDecline.EmptyCondition);
+
+            // execAndParse renders this query via toQuery() and then re-escapes
+            // it (`sanitizeQuery`) before knex re-scans it for placeholders. A
+            // backslash in a value survives that round-trip as an even-numbered
+            // escape and gets eaten as a placeholder, so such a bucket can't be
+            // consolidated — hand the whole request to the legacy path.
+            if (bindings.some((b) => typeof b === 'string' && b.includes('\\')))
+              return decline(BulkAggDecline.BackslashBinding);
+
+            buckets.push({ alias: f.alias, cond, bindings });
+          }
+
+          if (!buckets.length) return decline(BulkAggDecline.NoBuckets);
+
+          // PG ignores `baseQuery`, so one expression set serves every bucket.
+          const expressions: Record<string, string> = {};
+          for (const { col, aggregation: agg } of aggregateColumns) {
+            const aggSql = await applyAggregation({
+              baseModelSqlv2: baseModel,
+              aggregation: agg,
+              column: col,
+            });
+            if (aggSql) expressions[col.id] = aggSql;
+          }
+          if (!Object.keys(expressions).length)
+            return decline(BulkAggDecline.NoAggExpressions);
+
+          const innerQb = knex(baseModel.tnPath);
+
+          await conditionV2(
+            baseModel,
+            [
+              ...rlsFilterGroup,
+              ...(baseModel.viewId
+                ? [
+                    new Filter({
+                      children: viewFilterList || [],
+                      is_group: true,
+                    }),
+                  ]
+                : []),
+              new Filter({
+                children: args.filterArr || [],
+                is_group: true,
+                logical_op: 'and',
+              }),
+              new Filter({
+                children: extractFilterFromXwhere(
+                  baseModel.context,
+                  where,
+                  aliasColObjMap,
+                ).filters,
+                is_group: true,
+                logical_op: 'and',
+              }),
+            ],
+            innerQb,
+          );
+
+          const softDeleteFilterC = await baseModel.getSoftDeleteFilter();
+          if (softDeleteFilterC) {
+            innerQb.where(softDeleteFilterC);
+          }
+
+          // Restrict the scan to rows belonging to a requested bucket.
+          innerQb.whereRaw(
+            `(${buckets.map((b) => `(${b.cond})`).join(' OR ')})`,
+            buckets.flatMap((b) => [...b.bindings]),
+          );
+
+          // Bindings run in placeholder order: each bucket's own values, then
+          // its alias for the THEN.
+          const caseSql = `CASE ${buckets
+            .map((b) => `WHEN ${b.cond} THEN ?`)
+            .join(' ')} END`;
+          const caseBindings = buckets.flatMap((b) => [...b.bindings, b.alias]);
+          const jsonPack = `JSON_BUILD_OBJECT(${Object.keys(expressions)
+            .map((k) => `'${k}', ${expressions[k]}`)
+            .join(', ')})`;
+
+          innerQb.select(knex.raw(`${caseSql} as __nc_bucket__`, caseBindings));
+          // ::text so the outer MAX() pivot can aggregate it (json has no max).
+          innerQb.select(knex.raw(`(${jsonPack})::text as __nc_aggs__`));
+          innerQb.groupByRaw('1');
+
+          // A bucket matching no rows produces no grouped row at all. Legacy
+          // still returns every key (its aggregates are COALESCE(??, 0)-wrapped
+          // by the handler, except the two date ones), so mirror that shape —
+          // '{}' would leave the caller's `Object.assign` a no-op and render
+          // blank instead of 0.
+          const emptyAggs = JSON.stringify(
+            Object.fromEntries(
+              aggregateColumns
+                .filter(({ col }) => expressions[col.id])
+                .map(({ col, aggregation: agg }) => [
+                  col.id,
+                  (
+                    [
+                      AllAggregations.EarliestDate,
+                      AllAggregations.LatestDate,
+                    ] as string[]
+                  ).includes(agg)
+                    ? null
+                    : 0,
+                ]),
+            ),
+          );
+
+          // Pivot the bucket rows back into the legacy one-row shape.
+          const outerQb = knex
+            .select(
+              ...buckets.map((b) =>
+                knex.raw(
+                  `COALESCE(MAX(CASE WHEN ?? = ? THEN ?? END), ?) as ??`,
+                  ['__nc_bucket__', b.alias, '__nc_aggs__', emptyAggs, b.alias],
+                ),
+              ),
+            )
+            .from(innerQb.as('__nc_bulk_agg__'));
+
+          // Capped like the legacy path below: this is a single scan over the
+          // whole table, so it pins a pooled connection for at least as long.
+          // A cancellation lands in the catch and falls back to the per-bucket
+          // path, which is capped too — so the worst case is bounded at 2x.
+          const result = await baseModel.execAndParse(outerQb, null, {
+            first: true,
+            bulkAggregate: true,
+            queryTimeout: getDataQueryTimeout(),
+          });
+
+          // Falsy would fall through to the legacy path below, so it isn't an
+          // "engaged" outcome however unreachable it is.
+          if (!result) return decline(BulkAggDecline.EmptyResult);
+
+          logger.debug(
+            `${BULK_AGG_CONSOLIDATION.engaged}: ${buckets.length} buckets, ${
+              Object.keys(expressions).length
+            } aggregates`,
+          );
+
+          return result;
+        } catch (err) {
+          logger.warn(
+            `${
+              BULK_AGG_CONSOLIDATION.failed
+            }, falling back to per-bucket path: ${(err as Error).message}`,
+          );
+          return null;
+        }
+      };
+
+      const consolidated = await tryConsolidated();
+      if (consolidated) {
+        return consolidated;
+      }
 
       const selectors: Knex.Raw[] = [];
 
@@ -173,9 +567,15 @@ export const bulkAggregate =
       qb.select(...selectors);
       qb.limit(1);
 
+      // One of these runs per visible group, so a grouped grid fans this out
+      // across the pool — the closest match to the load the cap targets.
+      // NOTE: the catch below returns {}, so a cancelled aggregation blanks the
+      // footer rather than surfacing an error. The connection is still freed,
+      // which is the point of the cap, but the swallow predates it.
       return await baseModel.execAndParse(qb, null, {
         first: true,
         bulkAggregate: true,
+        queryTimeout: getDataQueryTimeout(),
       });
     } catch (err) {
       logger?.error?.((err as Error).message, (err as Error).stack);

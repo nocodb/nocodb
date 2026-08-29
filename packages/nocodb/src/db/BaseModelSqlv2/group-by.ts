@@ -23,7 +23,10 @@ import {
 } from '~/helpers/dbHelpers';
 import { BaseUser, Column, Filter, Sort } from '~/models';
 import { getAliasGenerator } from '~/utils';
-import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
+import {
+  getDataQueryTimeout,
+  NC_DISABLE_GROUP_BY_LIMIT,
+} from '~/utils/nc-config';
 
 // PR review fix #2: Shared helper for UUID group-by to avoid 4x code duplication.
 // Casts UUID to text on PostgreSQL (avoids type mismatch), passes through on other DBs.
@@ -739,7 +742,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
       // T-SQL forbids wrapping a CTE in a derived table — skip the outer
       // `__nc_group_alias` wrap.
-      return await baseModel.execAndParse(outerQb);
+      return await baseModel.execAndParse(outerQb, null, {
+        queryTimeout: getDataQueryTimeout(),
+      });
     }
 
     if (baseModel.isOracle) {
@@ -749,13 +754,17 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       // and the group keys are materialised in the `__nc_grp_src__` derived
       // table above (so no GROUP BY on a select alias), so execute outerQb
       // directly like the mssql path.
-      return await baseModel.execAndParse(outerQb);
+      return await baseModel.execAndParse(outerQb, null, {
+        queryTimeout: getDataQueryTimeout(),
+      });
     }
 
     return await baseModel.execAndParse(
       baseModel.dbDriver.from(
         baseModel.dbDriver.raw(outerQb).wrap('(', ') __nc_group_alias'),
       ),
+      null,
+      { queryTimeout: getDataQueryTimeout() },
     );
   };
 
@@ -1155,8 +1164,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         .from(groupedCte.as('sub'));
     }
 
-    return (await baseModel.execAndParse(qbP, null, { raw: true, first: true }))
-      ?.count;
+    return (
+      await baseModel.execAndParse(qbP, null, {
+        raw: true,
+        first: true,
+        queryTimeout: getDataQueryTimeout(),
+      })
+    )?.count;
   };
 
   return {

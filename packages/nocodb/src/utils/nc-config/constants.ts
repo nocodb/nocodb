@@ -1,3 +1,5 @@
+import { Logger } from '@nestjs/common';
+
 export const driverClientMapping = {
   mysql: 'mysql2',
   mariadb: 'mysql2',
@@ -102,6 +104,54 @@ export const NC_DISABLE_GROUP_BY_LIMIT =
 
 export const NC_DISABLE_GROUP_BY_AGG =
   process.env.NC_DISABLE_GROUP_BY_AGG === 'true' || false;
+
+// Kill-switch for the single-scan bulkAggregate consolidation (PG) — when set,
+// every bucket runs as its own derived subquery (legacy behavior).
+export const NC_DISABLE_BULK_AGG_CONSOLIDATION =
+  process.env.NC_DISABLE_BULK_AGG_CONSOLIDATION === 'true' || false;
+
+// Per-query execution cap (ms) for expensive customer-data aggregation reads
+// (count / groupBy / groupByCount / the optimised-path list count and
+// aggregations). Bounds how long a single such query can pin a pooled DB
+// connection: without it a runaway GROUP-BY-count over a large table holds one
+// of only NC_DB_POOL_MAX connections for its full runtime, and a browser
+// fan-out of such queries drains the pool and cascades 5xx across tenants.
+// Enforced server-side on PG only, via `SET LOCAL statement_timeout` so
+// Postgres cancels the query and frees the connection (see
+// BaseModelSqlv2.execAndGetRows). Set to 0 to disable. Default 30s.
+const DEFAULT_DATA_QUERY_TIMEOUT_MS = 30000;
+
+// PG's `statement_timeout` GUC is a signed 32-bit int. A larger value makes the
+// `SET LOCAL` itself fail with SQLSTATE 22023 *before* the query runs, which
+// would turn every capped read into an error, so clamp rather than pass through.
+const MAX_DATA_QUERY_TIMEOUT_MS = 2147483647;
+
+let warnedInvalidDataQueryTimeout = false;
+
+export const getDataQueryTimeout = (): number => {
+  const raw = process.env.NC_DATA_QUERY_TIMEOUT_MS?.trim();
+
+  if (!raw) {
+    return DEFAULT_DATA_QUERY_TIMEOUT_MS;
+  }
+
+  // The whole string must be digits. `parseInt` alone silently accepts a unit
+  // suffix, so `30s` would read as 30 *milliseconds* and cancel every
+  // aggregation read on the instance — a plausible typo with an outage-shaped
+  // blast radius. Reject it and keep the default instead.
+  if (/^\d+$/.test(raw)) {
+    return Math.min(parseInt(raw, 10), MAX_DATA_QUERY_TIMEOUT_MS);
+  }
+
+  if (!warnedInvalidDataQueryTimeout) {
+    warnedInvalidDataQueryTimeout = true;
+    new Logger('nc-config').warn(
+      `Ignoring invalid NC_DATA_QUERY_TIMEOUT_MS="${raw}" — expected whole milliseconds (e.g. 30000, or 0 to disable). Using ${DEFAULT_DATA_QUERY_TIMEOUT_MS}ms.`,
+    );
+  }
+
+  return DEFAULT_DATA_QUERY_TIMEOUT_MS;
+};
 
 export const NC_DISABLE_UNDO_REDO =
   process.env.NC_DISABLE_UNDO_REDO === 'true' || false;

@@ -360,6 +360,20 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         httpStatus = 503;
         break;
 
+      case '57014': // query_canceled
+        // Most often a data query exceeding the per-query execution cap
+        // (NC_DATA_QUERY_TIMEOUT_MS) — PG has already cancelled it server-side
+        // and freed the connection. Note 57014 covers *any* cancellation
+        // though, including an admin pg_cancel_backend() and a DBA-set
+        // role-level statement_timeout on DDL or writes, so the wording below
+        // is a best-fit for the common case rather than a precise diagnosis.
+        // Status/kind are unchanged from the default extractor (422 / INFRA /
+        // not Sentry-captured); this case only replaces the message.
+        message =
+          'The query took too long and was cancelled. Try narrowing the filter or grouping.';
+        httpStatus = 422;
+        break;
+
       case 'XX000': // internal_error — leave unhandled on purpose.
         // PG raises this for assertion failures or driver-level wrap of
         // an otherwise-uncategorised internal exception. The bare code

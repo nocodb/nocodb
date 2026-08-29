@@ -162,6 +162,7 @@ import {
   removeBlankPropsAndMask,
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
+import { getDataQueryTimeout } from '~/utils/nc-config';
 import { chunkArray } from '~/utils/tsUtils';
 import {
   QUERY_STRING_FIELD_ID_ON_RESULT,
@@ -211,6 +212,13 @@ export interface ExecAndParseOptions {
   // write paths that need full emails to flow into webhook hooks; they apply
   // the redaction themselves on the response copy after firing hooks.
   skipPublicRedaction?: boolean;
+  // Per-query execution cap (ms). When set (>0) AND the source is Postgres, the
+  // query runs under a server-side statement timeout so a runaway query can't
+  // pin its pooled connection indefinitely. Ignored on every other dialect —
+  // passing it there is a no-op, not a fallback. Applied to expensive
+  // aggregation reads (count / groupBy / groupByCount, and the optimised-path
+  // list count / aggregations). See execAndGetRows.
+  queryTimeout?: number;
 }
 
 /** Args stashed on DataLoader instances for relation queries (hm/mm/bt/oo). */
@@ -1182,8 +1190,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       as: 'count',
     }).first();
     debugCount(qb.toQuery());
-    return (await this.execAndParse(qb, null, { raw: true, first: true }))
-      ?.count;
+    return (
+      await this.execAndParse(qb, null, {
+        raw: true,
+        first: true,
+        queryTimeout: getDataQueryTimeout(),
+      })
+    )?.count;
   }
 
   async groupByAndAggregate(
@@ -7239,10 +7252,41 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async execAndGetRows(
     query: string,
     trx?: Knex | CustomKnex,
+    timeout?: number,
   ): Promise<Record<string, any>[]> {
     trx = trx || this.dbDriver;
 
     query = this.sanitizeQuery(query);
+
+    // Server-side per-query execution cap. Without it a runaway query (e.g. an
+    // unbounded GROUP BY count over a large table) pins its pooled connection
+    // for its full runtime; a fan-out of such queries drains the pool
+    // (NC_DB_POOL_MAX) and cascades 5xx across tenants. For PG we scope
+    // `statement_timeout` to a transaction — `SET LOCAL` auto-reverts on
+    // commit/rollback so it never poisons the shared pool — and Postgres
+    // cancels the query server-side, releasing the connection immediately.
+    // Mirrors the DROP SCHEMA guard in ee/models/Source.ts. PG-only: other
+    // dialects use divergent syntax/semantics and are out of scope here.
+    //
+    // Scope, precisely: this caps every *pooled* PG source, internal or
+    // external. Only EE Cloud with the DB mux enabled skips it, because there
+    // `isExternal` is true (CustomKnex.isExternal = !!extDb && isMuxEnabled)
+    // and ee/db/BaseModelSqlv2 routes to runExternal before reaching here. On
+    // CE, on EE on-prem, and on Cloud with NC_DISABLE_MUX=true, `isMuxEnabled`
+    // is false, so an external Postgres gets a plain pooled knex and IS capped
+    // — which is intended: those sources share the same NC_DB_POOL_MAX pool
+    // this guard protects, so exempting them would reopen the hole.
+    //
+    // This bounds how long one query holds a connection; it does NOT bound the
+    // acquire. Queued callers are still governed by acquireConnectionTimeout
+    // (600s) — they now wait behind a bounded head-of-line query instead of an
+    // unbounded one.
+    if (timeout && timeout > 0 && this.isPg) {
+      return await (trx as Knex).transaction(async (tx) => {
+        await tx.raw(`SET LOCAL statement_timeout = ${Math.floor(timeout)}`);
+        return (await tx.raw(query))?.rows;
+      });
+    }
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
@@ -7321,7 +7365,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const query = typeof qb === 'string' ? qb : qb.toQuery();
     _perf?.mark('build');
 
-    let data = await this.execAndGetRows(query);
+    let data = await this.execAndGetRows(
+      query,
+      undefined,
+      options.queryTimeout,
+    );
     _perf?.mark('dbQuery');
     _perf?.set('rows', data?.length ?? 0);
     _perf?.set('client', this.clientType);

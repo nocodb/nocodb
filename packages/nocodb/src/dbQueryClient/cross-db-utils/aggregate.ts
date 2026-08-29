@@ -12,6 +12,7 @@ import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregatio
 import conditionV2 from '~/db/conditionV2';
 import { Filter, GridViewColumn, Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { getDataQueryTimeout } from '~/utils/nc-config';
 
 export interface AggregateColumnSpec {
   col: Column;
@@ -131,6 +132,7 @@ export const aggregate =
         skipDateConversion: true,
         skipAttachmentConversion: true,
         skipUserConversion: true,
+        queryTimeout: getDataQueryTimeout(),
       });
 
       if (!aggregated || typeof aggregated !== 'object') {

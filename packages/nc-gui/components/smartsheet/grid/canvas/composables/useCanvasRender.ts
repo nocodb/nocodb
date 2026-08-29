@@ -108,6 +108,7 @@ export function useCanvasRender({
   isGroupBy,
   baseColor,
   fetchMissingGroupChunks,
+  fetchMissingGroupAggregations,
   elementMap,
   getDataCache,
   getRows,
@@ -195,6 +196,7 @@ export function useCanvasRender({
   isGroupBy: ComputedRef<boolean>
   baseColor: Ref<string>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, canvasGroup?: CanvasGroup) => Promise<void>
+  fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   elementMap: CanvasElement
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
@@ -3631,6 +3633,9 @@ export function useCanvasRender({
     const groups = pGroup?.groups ?? cachedGroups.value
 
     const missingChunks = []
+    // Groups visible this frame whose aggregations haven't been requested yet —
+    // handed to the debounced viewport-lazy loader after the loop.
+    const aggregationPendingGroups: CanvasGroup[] = []
 
     const _headerRowHeight = headerRowHeight.value
     const xOffset = (level + 1) * 13
@@ -3667,6 +3672,10 @@ export function useCanvasRender({
       }
 
       if (group) {
+        if (!group.aggregationState) {
+          aggregationPendingGroups.push(group)
+        }
+
         elementMap.addElement({
           y: groupHeaderY,
           x: xOffset,
@@ -4105,6 +4114,10 @@ export function useCanvasRender({
         currentOffset = tempCurrentOffset
       }
       currentOffset += GROUP_PADDING
+    }
+
+    if (aggregationPendingGroups.length) {
+      fetchMissingGroupAggregations(aggregationPendingGroups)
     }
 
     return {

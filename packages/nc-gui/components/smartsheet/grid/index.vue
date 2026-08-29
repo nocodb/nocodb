@@ -91,6 +91,7 @@ const {
   groupByColumns,
   groupSyncCount,
   fetchMissingGroupChunks,
+  fetchMissingGroupAggregations,
   toggleExpand,
   totalGroups,
   clearGroupCache,
@@ -936,6 +937,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :toggle-expand="toggleExpand"
         :group-sync-count="groupSyncCount"
         :fetch-missing-group-chunks="fetchMissingGroupChunks"
+        :fetch-missing-group-aggregations="fetchMissingGroupAggregations"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
         :toggle-expand-all="toggleExpandAll"
         @toggle-optimised-query="toggleOptimisedQuery"

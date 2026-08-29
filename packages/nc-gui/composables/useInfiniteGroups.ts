@@ -93,6 +93,25 @@ export const useInfiniteGroups = (
   const getChunkKey = (chunkId: number, parentGroup?: CanvasGroup) =>
     `${parentGroup ? generateGroupPath(parentGroup) : 'root'}:${chunkId}`
 
+  // Viewport-lazy aggregation loading — groups queue here when they become
+  // visible and flush as one debounced bulkAggregate request.
+  const AGGREGATION_FETCH_DEBOUNCE_MS = 200
+  const AGGREGATION_MAX_FETCH_ATTEMPTS = 2
+  const pendingAggregationGroups = new Map<string, CanvasGroup>()
+  const aggregationFailureCounts = new Map<string, number>()
+  let aggregationFlushTimer: ReturnType<typeof setTimeout> | null = null
+
+  const hasAggregations = computed(() =>
+    Object.values(gridViewCols.value).some((f) => f.aggregation && f.aggregation !== CommonAggregations.None),
+  )
+
+  onBeforeUnmount(() => {
+    if (aggregationFlushTimer) {
+      clearTimeout(aggregationFlushTimer)
+      aggregationFlushTimer = null
+    }
+  })
+
   const getGroupChunkIndex = (offset: number) => Math.floor(offset / GROUP_CHUNK_SIZE)
 
   const colors = ref(enumColor.light)
@@ -339,80 +358,9 @@ export const useInfiniteGroups = (
         groups.push(group)
       }
 
-      // Interface pages route group aggregations through the adapter's bulk op.
-      if (
-        groups.length &&
-        !appInfo.value.disableGroupByAggregation &&
-        (!interfaceDataApi || interfaceDataApi.fetchBulkAggregate)
-      ) {
-        const aggregationAliasMapper = new AliasMapper()
-
-        const aggregation = Object.values(gridViewCols.value)
-          .map((f) => ({
-            field: f.fk_column_id!,
-            type: f.aggregation ?? CommonAggregations.None,
-          }))
-          .filter((f) => f.type !== CommonAggregations.None)
-
-        const aggregationParams = groups.map((group) => ({
-          where: where?.value,
-          alias: aggregationAliasMapper.generateAlias(group.value),
-          filterArrJson: JSON.stringify([...nestedFilters.value, ...buildNestedFilterArr(group)]),
-        }))
-        let aggResponse = {}
-
-        if (aggregation.length) {
-          aggResponse = interfaceDataApi
-            ? await interfaceDataApi.fetchBulkAggregate!({
-                aggregation,
-                where: where?.value,
-                filtersArr: nestedFilters.value,
-                bulkFilterList: aggregationParams,
-              })
-            : !isPublic.value
-            ? await $api.internal.postOperation(
-                (meta.value as any)!.fk_workspace_id!,
-                meta.value!.base_id!,
-                {
-                  operation: 'bulkAggregate',
-                  tableId: meta.value!.id,
-                  viewId: view.value!.id,
-                  baseId: meta.value!.base_id!,
-                  aggregation,
-                  filterArrJson: JSON.stringify(nestedFilters.value),
-                },
-                aggregationParams,
-              )
-            : await fetchBulkAggregatedData(
-                {
-                  aggregation,
-                  filterArrJson: JSON.stringify(nestedFilters.value),
-                },
-                aggregationParams,
-              )
-
-          await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-            const group = groups.find((g) => g.value.toString() === originalKey.toString())
-
-            Object.keys(value).forEach((key) => {
-              const field = gridViewColByTitle.value[key]
-              const col = columnsById.value[field.fk_column_id]
-              value[key] =
-                getFormattedAggrationValue(field.aggregation, value[key], col, [originalKey.toString()], {
-                  col,
-                  meta: meta.value as TableType,
-                  metas: metas.value,
-                  isMysql: baseStore.isMysql,
-                  isPg: baseStore.isPg,
-                }) ?? ''
-            })
-
-            if (group) {
-              Object.assign(group.aggregations, value)
-            }
-          })
-        }
-      }
+      // Aggregations are NOT fetched here — they load lazily when a group becomes
+      // visible in the viewport (see fetchMissingGroupAggregations), so scrolling
+      // through group headers doesn't fan out expensive per-group aggregate queries.
 
       if (!parentGroup) {
         totalGroups.value = response.pageInfo.totalRows || totalGroups.value
@@ -721,6 +669,11 @@ export const useInfiniteGroups = (
 
     if (!aggregation.length) return
 
+    // Only a full-set fetch (no explicit field subset) settles aggregationState —
+    // a partial field refresh must not block the lazy full fetch for a group that
+    // hasn't loaded its remaining aggregations yet.
+    const markState = fields === undefined
+
     const fieldAggregationMap = new Map<string, string>()
     if (fields) {
       fields.forEach((f) => {
@@ -733,6 +686,12 @@ export const useInfiniteGroups = (
 
     for (let i = 0; i < groups.length; i += BATCH_SIZE) {
       const batchGroups = groups.slice(i, i + BATCH_SIZE)
+
+      if (markState) {
+        batchGroups.forEach((group) => {
+          group.aggregationState = 'loading'
+        })
+      }
 
       const aggregationParams = batchGroups.map((group) => ({
         where: where?.value,
@@ -791,11 +750,54 @@ export const useInfiniteGroups = (
 
           Object.assign(group.aggregations, value)
         })
+
+        if (markState) {
+          batchGroups.forEach((group) => {
+            group.aggregationState = 'loaded'
+            aggregationFailureCounts.delete(createGroupUniqueIdentifier(group))
+          })
+        }
       } catch (error) {
         console.error('Error refreshing group aggregations batch:', error)
+
+        if (markState) {
+          batchGroups.forEach((group) => {
+            const key = createGroupUniqueIdentifier(group)
+            const attempts = (aggregationFailureCounts.get(key) ?? 0) + 1
+            aggregationFailureCounts.set(key, attempts)
+            // Give up after the cap — 'loaded' stops the viewport loop from re-requesting.
+            group.aggregationState = attempts >= AGGREGATION_MAX_FETCH_ATTEMPTS ? 'loaded' : undefined
+          })
+        }
       }
     }
     callbacks?.syncVisibleData()
+  }
+
+  /**
+   * Viewport-lazy aggregation loader — called by the canvas render loop with the
+   * groups currently visible. Debounced so a scroll pass coalesces into one
+   * bulkAggregate request; groups already loading/loaded are skipped.
+   */
+  function fetchMissingGroupAggregations(groups: CanvasGroup[]) {
+    if (appInfo.value.disableGroupByAggregation || (interfaceDataApi && !interfaceDataApi.fetchBulkAggregate)) return
+    if (!hasAggregations.value) return
+
+    for (const group of groups) {
+      if (group.aggregationState) continue
+      pendingAggregationGroups.set(createGroupUniqueIdentifier(group), group)
+    }
+
+    if (!pendingAggregationGroups.size || aggregationFlushTimer) return
+
+    aggregationFlushTimer = setTimeout(() => {
+      aggregationFlushTimer = null
+      const groupsToFetch = [...pendingAggregationGroups.values()].filter((group) => !group.aggregationState)
+      pendingAggregationGroups.clear()
+      if (groupsToFetch.length) {
+        updateGroupAggregations(groupsToFetch)
+      }
+    }, AGGREGATION_FETCH_DEBOUNCE_MS)
   }
 
   const toggleExpand = async (group: CanvasGroup) => {
@@ -856,6 +858,7 @@ export const useInfiniteGroups = (
     columnsById,
     gridViewColByTitle,
     updateGroupAggregations,
+    fetchMissingGroupAggregations,
     toggleExpandAll,
   }
 }

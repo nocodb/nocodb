@@ -779,6 +779,8 @@ interface CanvasGroup {
   path?: Array<number>
   nestedIn: GroupNestedIn[]
   aggregations: Record<string, any>
+  /** Lazy aggregation fetch state — unset means not requested yet (fetched when the group becomes visible) */
+  aggregationState?: 'loading' | 'loaded'
 }
 
 interface CloudFeaturesType {

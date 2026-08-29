@@ -1180,11 +1180,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenListCount.value = childrenListCount.value - 1
         }
 
-        // Mirror the new-row branch: clear the linked record from the row store so
-        // BT/MO cells (which display the linked record directly off the row) refresh
-        // immediately. Reload paths are no-ops in EE, so this is the only signal.
-        if (isSingleTargetRelation.value && rowStoreCurrentRow) {
-          rowStoreCurrentRow.value.row[column.value.title!] = null
+        // Mirror the new-row branch: reflect the unlink in the row store so the cell
+        // refreshes immediately. Reload paths are no-ops in EE, so this is the only
+        // signal. Keep the SHAPE the cell renderer expects: BT/MO/OO show the linked
+        // record directly; a `Links` cell shows a numeric count; a LinkToAnotherRecord
+        // hm/mm cell shows an array of chips (#14013).
+        if (rowStoreCurrentRow) {
+          const cur = rowStoreCurrentRow.value
+          const colTitle = column.value.title!
+          if (isSingleTargetRelation.value) {
+            cur.row[colTitle] = null
+          } else if (column.value.uidt === UITypes.Links) {
+            cur.row[colTitle] = Math.max(0, (+cur.row[colTitle] || 0) - 1)
+          } else if (Array.isArray(cur.row[colTitle])) {
+            cur.row[colTitle] = cur.row[colTitle].filter(
+              (r: Record<string, any>) => getRelatedTableRowId(r) !== getRelatedTableRowId(row),
+            )
+          }
         }
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1295,11 +1307,22 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           excludedLinkedState.value.set(index, true)
         }
 
-        // Mirror the new-row branch: write the picked record back to the row store so
-        // BT/MO cells (which display the linked record directly off the row) refresh
-        // immediately. Reload paths are no-ops in EE, so this is the only signal.
-        if (isSingleTargetRelation.value && rowStoreCurrentRow) {
-          rowStoreCurrentRow.value.row[column.value.title!] = row
+        // Mirror the new-row branch: reflect the link in the row store so the cell
+        // refreshes immediately. Reload paths are no-ops in EE, so this is the only
+        // signal. Keep the SHAPE the cell renderer expects: BT/MO/OO show the linked
+        // record directly; a `Links` cell shows a numeric count; a LinkToAnotherRecord
+        // hm/mm cell shows an array of chips (#14013).
+        if (rowStoreCurrentRow) {
+          const cur = rowStoreCurrentRow.value
+          const colTitle = column.value.title!
+          if (isSingleTargetRelation.value) {
+            cur.row[colTitle] = row
+          } else if (column.value.uidt === UITypes.Links) {
+            cur.row[colTitle] = (+cur.row[colTitle] || 0) + 1
+          } else {
+            const colVal = cur.row[colTitle]
+            cur.row[colTitle] = [...(Array.isArray(colVal) ? colVal : []), row]
+          }
         }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)

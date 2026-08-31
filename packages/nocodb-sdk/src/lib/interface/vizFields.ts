@@ -53,6 +53,7 @@ export function collectVizStructuralFieldIds(
   };
 
   const anyViz = viz as InterfaceVisualizationConfig & {
+    theme?: string;
     group_by?: Array<{ fk_column_id: string }>;
     stacking_field_id?: string;
     image_field_id?: string | null;
@@ -72,7 +73,10 @@ export function collectVizStructuralFieldIds(
     anyViz.stacking_field_id,
     anyViz.image_field_id,
     anyViz.title_field_id,
-    anyViz.secondary_field_id,
+    // `simple` is the only gallery theme that renders a secondary field, and its
+    // picker is hidden under every other theme — so a value left behind by a
+    // theme switch would keep projecting a column nobody can see or clear.
+    anyViz.theme === 'simple' ? anyViz.secondary_field_id : undefined,
     anyViz.prefix_field_id,
     anyViz.label_image_field_id
   );

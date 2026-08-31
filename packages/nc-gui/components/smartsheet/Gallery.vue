@@ -258,26 +258,37 @@ async function interfaceCopyRecordUrl() {
   message.toast(t('msg.info.copiedToClipboard'))
 }
 
+// Parse-per-call is too hot for the tile themes: a single card reads its cover
+// up to seven times (theme class, cover branch, caption anchor, scrim, ...) and
+// the whole visible slice re-renders on every scroll frame. Keyed on the raw
+// cell value, so a row whose attachment value is replaced re-parses.
+const attachmentCache = new WeakMap<object, { raw: unknown; parsed: Attachment[] }>()
+
 const attachments = (record: any): Attachment[] => {
-  if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
+  const raw = coverImageColumn.value?.title ? record.row[coverImageColumn.value.title] : undefined
+  if (!raw) return []
+
+  const cached = attachmentCache.get(record)
+  if (cached && cached.raw === raw) return cached.parsed
+
+  let parsed: Attachment[] = []
 
   try {
-    const att =
-      typeof record.row[coverImageColumn.value.title] === 'string'
-        ? JSON.parse(record.row[coverImageColumn.value.title])
-        : record.row[coverImageColumn.value.title]
+    const att = typeof raw === 'string' ? JSON.parse(raw) : raw
 
     if (Array.isArray(att)) {
-      return att
+      parsed = att
         .flat()
         .map((a) => (typeof a === 'string' ? JSON.parse(a) : a))
         .filter((a) => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
     }
-
-    return []
   } catch (e) {
-    return []
+    parsed = []
   }
+
+  attachmentCache.set(record, { raw, parsed })
+
+  return parsed
 }
 
 const expandedFormOnRowIdDlg = computed({
@@ -855,7 +866,7 @@ function hasPosterCover(record: RowType) {
                           <NcButton
                             type="secondary"
                             size="xsmall"
-                            class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                            class="!absolute !left-1.5 !bottom-0 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                           >
                             <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
                           </NcButton>
@@ -866,7 +877,7 @@ function hasPosterCover(record: RowType) {
                           <NcButton
                             type="secondary"
                             size="xsmall"
-                            class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                            class="!absolute !right-1.5 !bottom-0 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                           >
                             <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
                           </NcButton>
@@ -1276,16 +1287,23 @@ function hasPosterCover(record: RowType) {
 }
 
 // Simple tiles with a cover reveal scrim + caption on hover only.
-.nc-gallery-tile-reveal {
-  .nc-gallery-poster-scrim,
-  .nc-gallery-tile-caption {
-    opacity: 0;
-    transition: opacity 0.15s ease;
-  }
+// Gated on a real hover capability: on touch there is nothing to hover and a tap
+// expands the record, so the caption would be permanently unreachable — those
+// devices keep it visible instead of degrading `simple` into `minimal`.
+@media (hover: hover) {
+  .nc-gallery-tile-reveal {
+    .nc-gallery-poster-scrim,
+    .nc-gallery-tile-caption {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
 
-  &:hover .nc-gallery-poster-scrim,
-  &:hover .nc-gallery-tile-caption {
-    opacity: 1;
+    &:hover .nc-gallery-poster-scrim,
+    &:focus-within .nc-gallery-poster-scrim,
+    &:hover .nc-gallery-tile-caption,
+    &:focus-within .nc-gallery-tile-caption {
+      opacity: 1;
+    }
   }
 }
 
@@ -1316,12 +1334,15 @@ function hasPosterCover(record: RowType) {
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
   @apply !w-auto;
 }
+// Slick anchors its arrows at `top: 50%`; re-anchor to the cover's BOTTOM so the
+// offset survives a variable cover height (interface `aspect_ratio`) instead of
+// only lining up against the fixed 208px band.
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
-  @apply left-0;
+  @apply left-0 top-auto bottom-3;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-next) {
-  @apply right-0;
+  @apply right-0 top-auto bottom-3;
 }
 
 :deep(.ant-card) {
@@ -1595,5 +1616,61 @@ function hasPosterCover(record: RowType) {
 .ant-card.nc-interface-card-selected,
 .ant-card.nc-interface-card-selected:hover {
   border-color: var(--nc-border-brand) !important;
+}
+</style>
+
+<!--
+  Unscoped: the `nc-gallery-theme-*` class sits on the HOST (interface viz wrapper,
+  dashboard widget host, record-form LTAR host), so a scoped rule can't reach it
+  from here. Keyed on the theme classes alone rather than on each host, so every
+  host that stamps one gets the tile styling — this lives with the markup it
+  styles instead of being copied into each host.
+-->
+<style lang="scss">
+// GALLERY — image tiles (poster / minimal / simple): the image IS the card.
+// White title on the bottom scrim; coverless tiles wear a soft record-color
+// wash (plain gray surface without a record color) with the title centered.
+.nc-gallery-theme-poster,
+.nc-gallery-theme-minimal,
+.nc-gallery-theme-simple {
+  .nc-gallery-poster-tile {
+    background: var(--nc-bg-gray-light);
+
+    &.nc-has-record-color {
+      background: color-mix(in srgb, var(--nc-record-color, var(--nc-bg-default)) 14%, var(--nc-bg-default));
+    }
+  }
+
+  .nc-gallery-poster-scrim {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+  }
+
+  // Overlay title reads white over the scrim — out-ranks the renderer's
+  // scoped/utility color stamps (brand on the cell root, gray on the field).
+  h2.nc-gallery-poster-title-overlay {
+    &,
+    .nc-cell,
+    .nc-virtual-cell,
+    .nc-cell .nc-cell-field:not(.ant-select-selection-search-input),
+    .nc-virtual-cell .nc-cell-field:not(.ant-select-selection-search-input),
+    .nc-cell .nc-cell-field-link,
+    .nc-cell input,
+    .nc-cell textarea {
+      color: #fff !important;
+    }
+  }
+
+  // Wash tiles center the title — the inner cells are flex rows, so both
+  // the text alignment and the flex axis need centering.
+  h2.nc-gallery-poster-title-centered {
+    .nc-cell,
+    .nc-virtual-cell {
+      justify-content: center;
+    }
+
+    .nc-cell-field {
+      text-align: center;
+    }
+  }
 }
 </style>

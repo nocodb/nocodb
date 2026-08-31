@@ -27,7 +27,7 @@ interface Props {
   webHook?: boolean
   link?: boolean
   showDynamicCondition?: boolean
-  /** Render the "No filters added" hint when the root group is empty. */
+  /** Render the "No filters added" hint when a group is empty. Forwarded to nested groups. */
   showEmptyPlaceholder?: boolean
   widget?: boolean
   workflow?: boolean
@@ -1334,6 +1334,7 @@ defineExpose({
                   :web-hook="webHook"
                   :link="link"
                   :show-dynamic-condition="showDynamicCondition"
+                  :show-empty-placeholder="showEmptyPlaceholder"
                   :show-loading="false"
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"

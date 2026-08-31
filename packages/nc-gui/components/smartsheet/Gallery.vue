@@ -936,12 +936,15 @@ function hasPosterCover(record: RowType) {
                     }"
                   >
                     <template v-if="hasPosterCover(record)">
+                      <!-- Fill/Fit applies to the tile themes too: `contain`
+                           letterboxes the image against the tile surface (gray,
+                           or the record-colour wash). -->
                       <LazyCellAttachmentPreviewThumbnail
                         :attachment="attachments(record)[0]"
                         class="nc-gallery-poster-image !absolute !inset-0"
                         image-class="!w-full !h-full"
                         thumbnail="card_cover"
-                        object-fit="cover"
+                        :object-fit="coverImageObjectFitStyle"
                       />
                       <div
                         v-if="!isMinimalTheme"

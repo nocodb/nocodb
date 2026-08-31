@@ -131,9 +131,17 @@ export interface InterfaceGridVizConfig
 /**
  * Gallery surface theme — presentation only (never fields, ordering or the
  * record-color meaning). `card` (cover on top, details below) is the default
- * when the field is absent.
+ * when the field is absent. `poster` overlays the title on a 4:5 image tile;
+ * `minimal` is the image tile alone; `simple` reveals title + secondary field
+ * on hover (always shown when the record has no image).
  */
-export type InterfaceGalleryVizTheme = 'card' | 'poster';
+export type InterfaceGalleryVizTheme = 'card' | 'poster' | 'minimal' | 'simple';
+
+/**
+ * Cover crop on `card` (`none` = the fixed 208px band); tile geometry on
+ * `minimal`/`simple` (16:10 when `none`). `poster` ignores it.
+ */
+export type InterfaceGalleryCoverAspectRatio = 'none' | 'wide' | 'square' | 'tall';
 
 export interface InterfaceGalleryVizConfig
   extends InterfaceVizCommon,
@@ -141,10 +149,12 @@ export interface InterfaceGalleryVizConfig
   type: InterfaceVisualizationTypes.GALLERY;
   theme?: InterfaceGalleryVizTheme;
   image_field_id?: string | null;
-  aspect_ratio?: string | null;
+  aspect_ratio?: InterfaceGalleryCoverAspectRatio | null;
   fit_image?: boolean;
   style?: 'rich' | 'compact';
   title_field_id?: string | null;
+  /** `simple` theme: one field shown under the title on hover. */
+  secondary_field_id?: string | null;
   title_size?: 'small' | 'large';
   /** Explicit column count (1-6) pins the card grid; 'auto' fits by width. */
   columns_per_row?: 'auto' | number;

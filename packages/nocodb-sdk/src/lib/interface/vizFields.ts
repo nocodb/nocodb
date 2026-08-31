@@ -53,10 +53,12 @@ export function collectVizStructuralFieldIds(
   };
 
   const anyViz = viz as InterfaceVisualizationConfig & {
+    theme?: string;
     group_by?: Array<{ fk_column_id: string }>;
     stacking_field_id?: string;
     image_field_id?: string | null;
     title_field_id?: string | null;
+    secondary_field_id?: string | null;
     prefix_field_id?: string | null;
     label_field_ids?: string[];
     label_image_field_id?: string | null;
@@ -71,6 +73,9 @@ export function collectVizStructuralFieldIds(
     anyViz.stacking_field_id,
     anyViz.image_field_id,
     anyViz.title_field_id,
+    // Only `simple` renders a secondary field; elsewhere a leftover value would
+    // project a column nothing shows.
+    anyViz.theme === 'simple' ? anyViz.secondary_field_id : undefined,
     anyViz.prefix_field_id,
     anyViz.label_image_field_id
   );

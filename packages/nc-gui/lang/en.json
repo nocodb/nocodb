@@ -3763,6 +3763,7 @@
     "allFields": "All fields",
     "imageField": "Image field",
     "titleField": "Title field",
+    "secondaryField": "Secondary field",
     "titleSize": "Title size",
     "columnsPerRow": "Columns per row",
     "cardSize": "Card size",
@@ -3774,6 +3775,13 @@
     "coverFits": {
       "fill": "Fill",
       "fit": "Fit"
+    },
+    "coverAspectRatio": "Aspect ratio",
+    "coverAspectRatios": {
+      "none": "None",
+      "wide": "Wide",
+      "square": "Square",
+      "tall": "Tall"
     },
     "displayFieldNames": "Display field names",
     "showFieldDescriptions": "Show field descriptions",
@@ -4023,6 +4031,10 @@
     "galleryThemeCardSubtext": "Cover image on top, details below",
     "galleryThemePoster": "Poster",
     "galleryThemePosterSubtext": "Image fills the card, title overlaid",
+    "galleryThemeMinimal": "Minimal",
+    "galleryThemeMinimalSubtext": "Image only, no title or fields",
+    "galleryThemeSimple": "Simple",
+    "galleryThemeSimpleSubtext": "Title and one field shown on hover",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",
     "deactivate": "De-activate",

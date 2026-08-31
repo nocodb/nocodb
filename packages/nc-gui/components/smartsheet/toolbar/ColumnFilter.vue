@@ -27,6 +27,8 @@ interface Props {
   webHook?: boolean
   link?: boolean
   showDynamicCondition?: boolean
+  /** Render the "No filters added" hint when a group is empty. Forwarded to nested groups. */
+  showEmptyPlaceholder?: boolean
   widget?: boolean
   workflow?: boolean
   /**
@@ -71,6 +73,7 @@ const props = withDefaults(defineProps<Props>(), {
   workflow: false,
   dynamicValue: false,
   showDynamicCondition: true,
+  showEmptyPlaceholder: true,
   linkColId: undefined,
   buttonColId: undefined,
   isButton: false,
@@ -1331,6 +1334,7 @@ defineExpose({
                   :web-hook="webHook"
                   :link="link"
                   :show-dynamic-condition="showDynamicCondition"
+                  :show-empty-placeholder="showEmptyPlaceholder"
                   :show-loading="false"
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
@@ -2003,7 +2007,7 @@ defineExpose({
       </div>
     </template>
     <div
-      v-if="!visibleFilters || !visibleFilters.length"
+      v-if="showEmptyPlaceholder && (!visibleFilters || !visibleFilters.length)"
       class="flex flex-row text-nc-content-gray-disabled mt-2"
       :class="{
         'ml-1': nested,

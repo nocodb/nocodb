@@ -135,13 +135,16 @@ export interface InterfaceGridVizConfig
  */
 export type InterfaceGalleryVizTheme = 'card' | 'poster';
 
+/** Cover crop for the `card` theme — `none` keeps the fixed 208px band. */
+export type InterfaceGalleryCoverAspectRatio = 'none' | 'wide' | 'square' | 'tall';
+
 export interface InterfaceGalleryVizConfig
   extends InterfaceVizCommon,
     InterfaceVizEditability {
   type: InterfaceVisualizationTypes.GALLERY;
   theme?: InterfaceGalleryVizTheme;
   image_field_id?: string | null;
-  aspect_ratio?: string | null;
+  aspect_ratio?: InterfaceGalleryCoverAspectRatio | null;
   fit_image?: boolean;
   style?: 'rich' | 'compact';
   title_field_id?: string | null;

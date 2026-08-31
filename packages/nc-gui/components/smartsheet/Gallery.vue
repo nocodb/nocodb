@@ -399,21 +399,37 @@ const columnsPerRow = computed(() => {
   return Math.floor((scrollContainerWidth.value - singleColumnCutoff) / (CARD_MIN_WIDTH + 12)) + 2
 })
 
+// Card width mirrors the CSS track math (12px container padding each side +
+// 12px gaps); auto-fit tracks keep the card's 450px cap. ≤0 until the
+// container is measured.
+const cardWidth = computed(() => {
+  const trackWidth = (scrollContainerWidth.value - 24 - (columnsPerRow.value - 1) * 12) / columnsPerRow.value
+  return fixedColumnsPerRow.value ? trackWidth : Math.min(trackWidth, 450)
+})
+
+const CARD_COVER_HEIGHT = 208
+
+/** height / width per interface `aspect_ratio`; `none` keeps the fixed band. */
+const COVER_ASPECT: Record<string, number> = { wide: 9 / 16, square: 1, tall: 5 / 3 }
+
+// Cover height is stamped inline so rendered height and slice math agree.
+const coverHeight = computed(() => {
+  const ratio = COVER_ASPECT[interfaceGalleryMeta.value?.cover_aspect_ratio ?? 'none']
+  if (!ratio || cardWidth.value <= 0) return CARD_COVER_HEIGHT
+  return Math.round(cardWidth.value * ratio)
+})
+
 const cardHeight = computed(() => {
-  // POSTER: width-driven tiles at a fixed 4:5 aspect. Card width mirrors the
-  // CSS track math (12px container padding each side + 12px gaps), and the
-  // auto-fit tracks keep the card's 450px cap. The height is stamped inline on
-  // the card, so rendered height and slice math agree by construction — it
-  // just re-reacts to container width. The 160px floor covers the unmeasured
-  // first paint (container width 0) so the initial slice stays sane.
+  // POSTER: width-driven tiles at a fixed 4:5 aspect. The height is stamped
+  // inline on the card, so rendered height and slice math agree by
+  // construction — it just re-reacts to container width. The 160px floor
+  // covers the unmeasured first paint (container width 0).
   if (isPosterTheme.value) {
-    const trackWidth = (scrollContainerWidth.value - 24 - (columnsPerRow.value - 1) * 12) / columnsPerRow.value
-    const cardWidth = fixedColumnsPerRow.value ? trackWidth : Math.min(trackWidth, 450)
-    return Math.max(160, Math.round(cardWidth * 1.25))
+    return Math.max(160, Math.round(cardWidth.value * 1.25))
   }
 
   // Calculate cardHeight in pixels From the FIELD_HEIGHT_MAP and if the card has cover image
-  // 208 px for Card Image Height
+  // coverHeight px for Card Image Height (208 unless an interface aspect ratio applies)
 
   // 32 px for displayField
   // 16 px padding top and bottom
@@ -426,7 +442,7 @@ const cardHeight = computed(() => {
     return acc + fieldHeight + 12
   }, 0)
 
-  return displayFieldHeight + fieldsHeight + (galleryData.value?.fk_cover_image_col_id ? 208 : 0) + 2
+  return displayFieldHeight + fieldsHeight + (galleryData.value?.fk_cover_image_col_id ? coverHeight.value : 0) + 2
 })
 
 const visibleRows = computed(() => {
@@ -795,8 +811,10 @@ function hasPosterCover(record: RowType) {
                   <template v-if="showCover" #cover>
                     <a-carousel
                       v-if="isMounted && !reloadAttachments && attachments(record).length"
-                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium min-h-52 !bg-nc-bg-default"
+                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
                       :style="{
+                        'minHeight': `${coverHeight}px`,
+                        '--nc-cover-h': `${coverHeight}px`,
                         ...extractRowBackgroundColorStyle(record).rowBgColor,
                         ...extractRowBackgroundColorStyle(record).rowBorderColor,
                       }"
@@ -835,9 +853,11 @@ function hasPosterCover(record: RowType) {
                         v-for="(attachment, index) in attachments(record)"
                         :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
                       >
+                        <!-- Slick clones its direct child and REPLACES its inline style, so the
+                             cover height rides a CSS var set on the carousel root instead. -->
                         <LazyCellAttachmentPreviewThumbnail
                           :attachment="attachment"
-                          class="!h-52"
+                          class="nc-gallery-cover-thumb"
                           thumbnail="card_cover"
                           image-class="!w-full"
                           :object-fit="coverImageObjectFitStyle"
@@ -847,7 +867,8 @@ function hasPosterCover(record: RowType) {
                     </a-carousel>
                     <div
                       v-else
-                      class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
+                      class="w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
+                      :style="{ height: `${coverHeight}px` }"
                     >
                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                     </div>
@@ -1186,6 +1207,11 @@ function hasPosterCover(record: RowType) {
 
 :deep(.slick-dots li button) {
   @apply !bg-black;
+}
+
+// Cover height from the carousel's `--nc-cover-h` (see the template note).
+.ant-carousel.gallery-carousel :deep(.nc-gallery-cover-thumb) {
+  height: var(--nc-cover-h);
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots) {

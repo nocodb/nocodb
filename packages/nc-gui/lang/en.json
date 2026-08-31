@@ -3775,6 +3775,13 @@
       "fill": "Fill",
       "fit": "Fit"
     },
+    "coverAspectRatio": "Aspect ratio",
+    "coverAspectRatios": {
+      "none": "None",
+      "wide": "Wide",
+      "square": "Square",
+      "tall": "Tall"
+    },
     "displayFieldNames": "Display field names",
     "showFieldDescriptions": "Show field descriptions",
     "wrapLongCellValues": "Wrap long cell values",

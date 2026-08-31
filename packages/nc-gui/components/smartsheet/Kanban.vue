@@ -1213,7 +1213,7 @@ const cardFields = (record: RowType) => {
                                         <template v-for="attachment in attachments(record)" :key="attachment.path">
                                           <LazyCellAttachmentPreviewThumbnail
                                             :attachment="attachment"
-                                            class="h-52"
+                                            class="!h-52"
                                             image-class="!w-full"
                                             thumbnail="card_cover"
                                             :object-fit="coverImageObjectFitStyle"

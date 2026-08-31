@@ -837,7 +837,7 @@ function hasPosterCover(record: RowType) {
                       >
                         <LazyCellAttachmentPreviewThumbnail
                           :attachment="attachment"
-                          class="h-52"
+                          class="!h-52"
                           thumbnail="card_cover"
                           image-class="!w-full"
                           :object-fit="coverImageObjectFitStyle"

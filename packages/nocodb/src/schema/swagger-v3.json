@@ -23,7 +23,9 @@
         "Dashboards",
         "Documents",
         "Hooks",
-        "Comments"
+        "Comments",
+        "Permissions",
+        "RLS Policies"
       ]
     },
     {

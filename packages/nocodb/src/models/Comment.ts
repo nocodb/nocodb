@@ -98,6 +98,10 @@ export default class Comment implements CommentType {
       .knex(MetaTable.COMMENTS)
       .select(`${MetaTable.COMMENTS}.*`)
       .where('row_id', row_id)
+      // Model ids are unique per base (MODELS is keyed on `base_id, id`), so
+      // `(row_id, fk_model_id)` alone identifies a discussion in EVERY base at
+      // once — the caller's authorized base has to be part of the predicate.
+      .where('base_id', context.base_id)
       .where('fk_model_id', fk_model_id)
       .where(function () {
         this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
@@ -112,15 +116,15 @@ export default class Comment implements CommentType {
     comment: Partial<Comment>,
     ncMeta = Noco.ncMeta,
   ) {
+    // `id`, `base_id` and `source_id` are deliberately NOT accepted from the
+    // caller. A chosen `id` collides with an existing comment, and the client
+    // renders bodies from a map keyed on comment id — the later body wins and
+    // shows under the earlier comment's author.
     const insertObj = extractProps(comment, [
-      'id',
       'fk_model_id',
       'row_id',
       'comment',
       'parent_comment_id',
-      'source_id',
-      'base_id',
-      'fk_model_id',
       'created_by',
       'created_by_email',
       'attachments',
@@ -135,14 +139,16 @@ export default class Comment implements CommentType {
 
     if (!insertObj.fk_model_id) NcError.tableNotFound(insertObj.fk_model_id);
 
-    if (!insertObj.source_id) {
-      const model = await Model.getByIdOrName(
-        context,
-        { id: insertObj.fk_model_id },
-        ncMeta,
-      );
-      insertObj.source_id = model.source_id;
-    }
+    // Always resolve the model inside the authorized base — this is what binds
+    // the comment to the caller's context. It used to be skipped whenever the
+    // caller supplied `source_id`, which made the check opt-out.
+    const model = await Model.getByIdOrName(
+      context,
+      { id: insertObj.fk_model_id },
+      ncMeta,
+    );
+    if (!model) NcError.tableNotFound(insertObj.fk_model_id);
+    insertObj.source_id = model.source_id;
 
     const res = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -294,6 +300,8 @@ export default class Comment implements CommentType {
       .count('id', { as: 'count' })
       .select('row_id')
       .whereIn('row_id', args.ids)
+      // Base-scoped for the same reason as `list` above.
+      .where('base_id', context.base_id)
       .where('fk_model_id', args.fk_model_id)
       .where(function () {
         this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
@@ -332,13 +340,13 @@ export default class Comment implements CommentType {
     comment: Partial<Comment>,
     ncMeta = Noco.ncMeta,
   ) {
+    // No caller-supplied `id` — see the note on `insert`. `base_id` comes from
+    // the context inside metaInsert2.
     const insertObj = extractProps(comment, [
-      'id',
       'fk_doc_id',
       'anchor_id',
       'comment',
       'parent_comment_id',
-      'base_id',
       'created_by',
       'created_by_email',
     ]);

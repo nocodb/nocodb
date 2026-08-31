@@ -64,6 +64,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import { OperationName } from '~/command-registry/op-names';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 @Injectable()
 export class TablesService {
@@ -879,6 +880,14 @@ export class TablesService {
       ...(param.synced ? { synced: true } : {}),
       ...(param.mm ? { mm: true } : {}),
     };
+
+    // Model ids are only unique per base, and several lookups key on the bare
+    // id — so a caller-chosen id lets an attacker mint a decoy table carrying
+    // another base's model id. Sandbox merge replay is the one path that must
+    // keep the original id (`sandbox.id_field` injects it).
+    if (!isReplay()) {
+      delete (tableCreatePayLoad as { id?: string }).id;
+    }
 
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();

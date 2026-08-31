@@ -1,5 +1,13 @@
 import type { Ref } from 'vue'
-import type { FilterType, InterfacePageType, InterfaceVizFieldConfig, PaginatedType, SortType, TableType } from 'nocodb-sdk'
+import type {
+  CommentNotificationPreference,
+  FilterType,
+  InterfacePageType,
+  InterfaceVizFieldConfig,
+  PaginatedType,
+  SortType,
+  TableType,
+} from 'nocodb-sdk'
 
 /** Environment a consumer-facing interface page renders against. */
 export type InterfacePageDataEnv = 'draft' | 'published'
@@ -451,6 +459,12 @@ export interface InterfaceRecordSidebarApi {
   commentDelete(commentId: string): Promise<any>
   commentResolve(commentId: string): Promise<any>
   recordAuditList(rowId: string, cursor?: string): Promise<{ list: any[]; pageInfo?: any }>
+  /** The record bell — per-user comment-notification preference. */
+  commentNotificationPreferenceGet(rowId: string): Promise<{ preference: CommentNotificationPreference }>
+  commentNotificationPreferenceSet(
+    rowId: string,
+    preference: CommentNotificationPreference,
+  ): Promise<{ preference: CommentNotificationPreference }>
 }
 
 /**

@@ -335,6 +335,17 @@ export const InterfaceUnlinkRecordInj: InjectionKey<Ref<((row: Record<string, an
 export const InterfaceRecordSidebarInj: InjectionKey<InterfaceRecordSidebarApi | undefined> = Symbol('interface-record-sidebar')
 
 /**
+ * "This record panel is an interface surface" — presentation only, for the CE
+ * comment/revision panels that restyle themselves inside an interface (no field
+ * icons, no hover fill, 10px caps labels).
+ *
+ * Deliberately separate from `InterfaceRecordSidebarInj`: that adapter is
+ * absent on public interface pages (the ops are gated), but a public record
+ * sheet is still an interface surface and must keep the same look.
+ */
+export const IsInterfaceRecordSurfaceInj: InjectionKey<boolean> = Symbol('is-interface-record-surface')
+
+/**
  * Kanban surface theme for interface-mounted kanbans. Provided by the interface
  * hosts (EE) from the kanban viz config; undefined outside interface pages —
  * the renderer then keeps the data-app's default (`board`) treatment.

@@ -1,4 +1,4 @@
-import type { AttachmentType, ColumnType, CommentType, MetaType, TableType } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType, CommentNotificationPreference, CommentType, MetaType, TableType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 export interface CommentTypeExtended extends CommentType {
@@ -241,6 +241,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       // reloadTrigger?.trigger()
 
       await loadComments()
+
+      // Commenting auto-subscribes server-side (unless an explicit
+      // "only @mentions" pick exists) — refresh so the bell reflects it.
+      loadCommentNotificationPreference().catch(() => undefined)
     } catch (e: any) {
       comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
       message.error(
@@ -296,8 +300,94 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
+  // Optional chaining is load-bearing: `watch(primaryKey)` below evaluates
+  // this during setup, and the interface record body mounts before its meta
+  // resolves. extractPkFromRow already returns null for a missing row/columns.
   const primaryKey = computed(() => {
-    return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    return extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
+  })
+
+  /**
+   * Record bell — the caller's comment-notification preference for THIS record.
+   * 'mentions' (default, no stored row) | 'all' (subscribed — set explicitly
+   * via the bell, or auto-set server-side by commenting). Backend ops are
+   * EE-only; the bell UI gates on isEeUI.
+   */
+  const commentNotificationPreference = ref<CommentNotificationPreference>('mentions')
+
+  // Guards the bell against stale writes: every load/set claims a ticket, and
+  // only the newest one may land. Without it, two quick next/prev navigations
+  // let the slower (older record's) response win.
+  let commentNotificationPreferenceSeq = 0
+
+  async function loadCommentNotificationPreference() {
+    if (!isEeUI) return
+    if (!ifaceSidebar && !isUIAllowed('commentList')) return
+
+    const seq = ++commentNotificationPreferenceSeq
+
+    // Back to the default before we know: a failed or slow load must never
+    // leave the previous record's answer on screen, or the bell's
+    // already-selected check silently swallows the user's next pick.
+    commentNotificationPreference.value = 'mentions'
+
+    const rowId = primaryKey.value
+    if (!rowId) return
+
+    try {
+      const res = (
+        ifaceSidebar
+          ? await ifaceSidebar.commentNotificationPreferenceGet(rowId)
+          : await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              operation: 'commentNotificationPreferenceGet',
+              row_id: rowId,
+              fk_model_id: meta.value.id as string,
+            })
+      ) as { preference?: CommentNotificationPreference }
+
+      if (seq !== commentNotificationPreferenceSeq) return
+
+      commentNotificationPreference.value = res?.preference === 'all' ? 'all' : 'mentions'
+    } catch {
+      // Silent — the bell keeps the default reset above.
+    }
+  }
+
+  async function setCommentNotificationPreference(preference: CommentNotificationPreference) {
+    const rowId = primaryKey.value
+    if (!rowId) return
+
+    const seq = ++commentNotificationPreferenceSeq
+    const previous = commentNotificationPreference.value
+    commentNotificationPreference.value = preference
+
+    try {
+      if (ifaceSidebar) {
+        await ifaceSidebar.commentNotificationPreferenceSet(rowId, preference)
+      } else {
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'commentNotificationPreferenceSet' },
+          {
+            fk_model_id: meta.value?.id as string,
+            row_id: rowId,
+            preference,
+          },
+        )
+      }
+
+      $e('a:row-expand:comment-notification-preference', { preference })
+    } catch (e: unknown) {
+      if (seq === commentNotificationPreferenceSeq) commentNotificationPreference.value = previous
+      message.error(await extractSdkResponseErrorMsg(e as Error))
+    }
+  }
+
+  // Next/prev record navigation rebinds the same engine (the panel stays
+  // mounted) — the bell must follow the row, not its mount.
+  watch(primaryKey, (pk, prev) => {
+    if (pk && pk !== prev) loadCommentNotificationPreference().catch(() => undefined)
   })
 
   return {
@@ -311,6 +401,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     primaryKey,
     parsedHtmlComments,
     row,
+    commentNotificationPreference,
+    loadCommentNotificationPreference,
+    setCommentNotificationPreference,
   }
 })
 

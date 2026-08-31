@@ -30333,13 +30333,13 @@
             "example": "mod0Adp9PMG9o7uJy",
             "description": "Model ID"
           },
-          "preference": {
+          "preferences": {
             "type": "string",
             "enum": [
-              "ALL_COMMENTS",
-              "ONLY_MENTIONS"
+              "all",
+              "mentions"
             ],
-            "description": "Is Read"
+            "description": "Comment notification preference for the record"
           },
           "created_at": {
             "type": "string",

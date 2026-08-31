@@ -15,6 +15,11 @@ const props = defineProps<{
 
 const tableMeta = inject(MetaInj, ref())
 
+// Interface panels hide field-type icons (interfaces abstract the schema
+// away) — same treatment as the interface kanban card labels. Presentation
+// flag, not the ops adapter (which public interface pages don't get).
+const ifaceSidebar = inject(IsInterfaceRecordSurfaceInj, false)
+
 const isSyncedTable = computed(() => !!(tableMeta.value as TableType | undefined)?.synced)
 
 const details = computed(() => {
@@ -184,8 +189,14 @@ function toggleLongText(key: string) {
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
-    <div class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header">
+    <!-- Interface panels: 10px all-caps field labels, tighter label→value gap
+         (reference design); the classic expanded form keeps its 12px casing. -->
+    <div
+      class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header"
+      :class="{ 'uppercase !text-[10px] tracking-wide': ifaceSidebar }"
+    >
       <SmartsheetHeaderIcon
+        v-if="!ifaceSidebar"
         :column="{
           uidt: meta[columnKey]?.type,
           dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
@@ -210,7 +221,7 @@ function toggleLongText(key: string) {
         ({{ $t('labels.generatedByAi') }})
       </span>
     </div>
-    <div class="flex items-center gap-2 mt-3 flex-wrap">
+    <div class="flex items-center gap-2 flex-wrap" :class="ifaceSidebar ? 'mt-1.5' : 'mt-3'">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
         <div
           v-if="processOldDataFor(columnKey)?.length > 0"

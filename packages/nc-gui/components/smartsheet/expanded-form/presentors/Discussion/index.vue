@@ -213,7 +213,7 @@ export default {
       }"
     >
       <div class="nc-sidebar-resize-handle" @mousedown.prevent="onResizeStart" />
-      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :compact-mode="compactMode" />
+      <SmartsheetExpandedFormSidebar show-fields-tab activity-in-main-pane :compact-mode="compactMode" />
     </div>
   </div>
 </template>

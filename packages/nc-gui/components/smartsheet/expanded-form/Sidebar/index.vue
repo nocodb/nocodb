@@ -1,26 +1,99 @@
 <script setup lang="ts">
-import { useResizeObserver } from '@vueuse/core'
+import { useStorage } from '@vueuse/core'
 
 const props = defineProps<{
   showFieldsTab?: boolean
   /** Render the Fields tab content in compact mode. Forwarded straight to
    * MiniColumnsWrapper. */
   compactMode?: boolean
+  /** Discussion mode — the feed lives in the MAIN pane: Fields only, bell kept. */
+  activityInMainPane?: boolean
 }>()
+
+const { $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
 
 // Audit (revision history) is hidden in public/shared bases — the backend
-// blocks the read; offering an empty/forbidden tab makes no sense there.
+// blocks the read; offering an empty/forbidden feed makes no sense there.
 const { isAuditEnabled } = expandedFormStore
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
-const tab = ref<'fields' | 'comments' | 'audits'>(
-  props.showFieldsTab && (!isExpandedFormCommentMode.value || isSqlView.value) ? 'fields' : 'comments',
+const FEEDS = [
+  { value: 'fields', labelKey: 'objects.fields' },
+  { value: 'audits', labelKey: 'labels.revisionHistory' },
+] as const
+
+/** Bottom section — picking one IS selecting the comments feed. */
+const COMMENT_FILTERS = [
+  { value: 'all', labelKey: 'labels.allComments' },
+  { value: 'record', labelKey: 'labels.recordComments' },
+  { value: 'onAttachments', labelKey: 'labels.commentsOnAttachments' },
+  { value: 'withAttachments', labelKey: 'labels.commentsWithAttachments' },
+] as const
+
+type SidebarFeed = (typeof FEEDS)[number]['value'] | 'comments'
+type CommentFilter = (typeof COMMENT_FILTERS)[number]['value']
+
+const tab = ref<SidebarFeed>(
+  props.showFieldsTab && (props.activityInMainPane || !isExpandedFormCommentMode.value || isSqlView.value)
+    ? 'fields'
+    : 'comments',
 )
+
+const isSelectorOpen = ref(false)
+
+/** Own keys, not the interface drawer's — the two surfaces must not overwrite each other. */
+const commentFilter = useStorage<CommentFilter>('nc-expanded-form-comment-filter', 'all')
+
+/** Defaults ON — the classic feed passed no filter before, so it always showed resolved. */
+const showResolvedComments = useStorage('nc-expanded-form-show-resolved', true)
+
+const showCommentFilters = computed(() => !props.activityInMainPane && !isSqlView.value)
+
+const showAudits = computed(() => !props.activityInMainPane && !isSqlView.value && isAuditEnabled.value)
+
+const feedOptions = computed(() => FEEDS.filter((feed) => (feed.value === 'fields' ? !!props.showFieldsTab : showAudits.value)))
+
+const hasMenu = computed(() => showCommentFilters.value || feedOptions.value.length > 1)
+
+const activeLabel = computed(() => {
+  const feed = FEEDS.find((f) => f.value === tab.value)
+  if (feed) return t(feed.labelKey)
+
+  // The comments feed reads as its active filter ("All comments" & co).
+  return t(COMMENT_FILTERS.find((f) => f.value === commentFilter.value)?.labelKey ?? 'labels.allComments')
+})
+
+/** The resolved toggle is meaningless for the attachment filters — those are open-comments-only. */
+const offersResolvedToggle = computed(
+  () => tab.value === 'comments' && (commentFilter.value === 'all' || commentFilter.value === 'record'),
+)
+
+/** The bell follows the comments feed — except in Discussion mode, where the main pane is it. */
+const showNotificationBell = computed(() => isEeUI && (props.activityInMainPane || tab.value === 'comments'))
+
+function setFeed(value: SidebarFeed) {
+  tab.value = value
+  isSelectorOpen.value = false
+}
+
+function setCommentFilter(filter: CommentFilter) {
+  commentFilter.value = filter
+  setFeed('comments')
+  $e('c:row-expand:comment', { filter })
+}
+
+/** A scope toggle, not a feed pick — leaves the active filter alone. */
+function toggleShowResolved() {
+  showResolvedComments.value = !showResolvedComments.value
+  $e('c:row-expand:show-resolved', { on: showResolvedComments.value })
+}
 
 watch(tab, (newValue) => {
   if (newValue === 'audits') {
@@ -28,115 +101,112 @@ watch(tab, (newValue) => {
   }
 })
 
-// Container-aware tab labels: when the sidebar itself is narrow (not the
-// viewport), collapse each tab to icon-only and surface the label via tooltip.
-// Below this threshold a 3-tab pill cannot host icon + label without elbowing
-// each tab into <80 px which clips the labels anyway.
-const sidebarRef = ref<HTMLElement>()
-const sidebarWidth = ref(0)
-
-useResizeObserver(sidebarRef, (entries) => {
-  sidebarWidth.value = entries[0]?.contentRect.width ?? 0
-})
-
-const TAB_LABEL_THRESHOLD = 320
-const isNarrow = computed(() => sidebarWidth.value > 0 && sidebarWidth.value < TAB_LABEL_THRESHOLD)
+// Options come and go with the host presentor (Fields) and the row's context
+// (SQL view, shared base) — never leave the panel on a feed that's gone.
+watch(
+  [feedOptions, showCommentFilters],
+  ([options, hasComments]) => {
+    if (tab.value === 'comments' ? hasComments : options.some((feed) => feed.value === tab.value)) return
+    if (hasComments) return setFeed('comments')
+    if (options.length) setFeed(options[0].value)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <div ref="sidebarRef" class="flex flex-col bg-nc-bg-elevated !h-full w-full rounded-br-2xl overflow-hidden">
-    <NcTabs v-model:active-key="tab" class="h-full">
-      <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
-        <template #tab>
-          <NcTooltip :disabled="!isNarrow" :title="$t('objects.fields')">
-            <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
-              <GeneralIcon icon="fields" class="w-4 h-4" />
-              <span v-show="!isNarrow"> {{ $t('objects.fields') }} </span>
-            </div>
-          </NcTooltip>
-        </template>
-        <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :compact-mode="compactMode" />
-      </a-tab-pane>
+  <div
+    v-if="feedOptions.length || showCommentFilters"
+    class="flex flex-col bg-nc-bg-elevated !h-full w-full rounded-br-2xl overflow-hidden"
+  >
+    <div class="flex-none flex items-center gap-1 px-2 py-1.5 border-b-1 border-nc-border-gray-light">
+      <NcDropdown v-if="hasMenu" v-model:visible="isSelectorOpen" placement="bottomLeft">
+        <NcButton type="text" size="small" data-testid="nc-expanded-form-sidebar-feed-selector">
+          <div class="flex items-center gap-1.5 min-w-0 text-bodyDefaultSm font-medium text-nc-content-gray">
+            <span class="truncate">{{ activeLabel }}</span>
+            <GeneralIcon icon="chevronDown" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+          </div>
+        </NcButton>
 
-      <a-tab-pane v-if="!isSqlView" key="comments" class="w-full h-full">
-        <template #tab>
-          <NcTooltip :disabled="!isNarrow" :title="$t('general.comments')">
-            <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
-              <GeneralIcon icon="messageCircle" class="w-4 h-4" />
-              <span v-show="!isNarrow"> {{ $t('general.comments') }} </span>
-            </div>
-          </NcTooltip>
-        </template>
-        <SmartsheetExpandedFormSidebarComments />
-      </a-tab-pane>
+        <template #overlay>
+          <NcMenu variant="small">
+            <NcMenuItem
+              v-if="showFieldsTab"
+              v-e="['c:row-expand:fields']"
+              data-testid="nc-expanded-form-sidebar-feed-fields"
+              @click="setFeed('fields')"
+            >
+              <div class="flex items-center gap-2 min-w-52">
+                <span class="flex-1">{{ $t('objects.fields') }}</span>
+                <GeneralIcon v-if="tab === 'fields'" icon="check" class="flex-none w-4 h-4 text-nc-content-brand" />
+              </div>
+            </NcMenuItem>
 
-      <a-tab-pane v-if="!isSqlView && isAuditEnabled" key="audits" class="w-full">
-        <template #tab>
-          <NcTooltip :disabled="!isNarrow" :title="$t('labels.revisionHistory')">
-            <div v-e="['c:row-expand:audit']" class="flex items-center gap-2">
-              <GeneralIcon icon="audit" class="w-4 h-4" />
-              <span v-show="!isNarrow"> {{ $t('labels.revisionHistory') }} </span>
-            </div>
-          </NcTooltip>
+            <NcMenuItem
+              v-if="showAudits"
+              v-e="['c:row-expand:audit']"
+              data-testid="nc-expanded-form-sidebar-feed-audits"
+              @click="setFeed('audits')"
+            >
+              <div class="flex items-center gap-2 min-w-52">
+                <span class="flex-1">{{ $t('labels.revisionHistory') }}</span>
+                <GeneralIcon v-if="tab === 'audits'" icon="check" class="flex-none w-4 h-4 text-nc-content-brand" />
+              </div>
+            </NcMenuItem>
+
+            <template v-if="showCommentFilters">
+              <NcDivider v-if="feedOptions.length" class="!my-1" />
+
+              <NcMenuItem
+                v-for="option in COMMENT_FILTERS"
+                :key="option.value"
+                :data-testid="`nc-expanded-form-sidebar-filter-${option.value}`"
+                @click="setCommentFilter(option.value)"
+              >
+                <div class="flex items-center gap-2 min-w-52">
+                  <span class="flex-1">{{ $t(option.labelKey) }}</span>
+                  <GeneralIcon
+                    v-if="tab === 'comments' && commentFilter === option.value"
+                    icon="check"
+                    class="flex-none w-4 h-4 text-nc-content-brand"
+                  />
+                </div>
+              </NcMenuItem>
+
+              <template v-if="offersResolvedToggle">
+                <NcDivider class="!my-1" />
+
+                <NcMenuItem data-testid="nc-expanded-form-sidebar-show-resolved" @click="toggleShowResolved">
+                  <div class="flex items-center gap-2 min-w-52">
+                    <span class="flex-1">{{ $t('labels.showResolvedComments') }}</span>
+                    <GeneralIcon v-if="showResolvedComments" icon="check" class="flex-none w-4 h-4 text-nc-content-brand" />
+                  </div>
+                </NcMenuItem>
+              </template>
+            </template>
+          </NcMenu>
         </template>
-        <SmartsheetExpandedFormSidebarAudits />
-      </a-tab-pane>
-    </NcTabs>
+      </NcDropdown>
+
+      <!-- Matches NcButton size="small" (px-1.75 h-8) so the label doesn't shift. -->
+      <div v-else class="flex items-center h-8 px-1.75 min-w-0 text-bodyDefaultSm font-medium text-nc-content-gray">
+        <span class="truncate">{{ activeLabel }}</span>
+      </div>
+
+      <!-- Record bell — per-user comment-notification preference (EE; CE stub
+           renders nothing). -->
+      <SmartsheetExpandedFormSidebarCommentNotificationBell v-if="showNotificationBell" class="flex-none ml-auto" />
+    </div>
+
+    <div class="flex-1 min-h-0 overflow-hidden">
+      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper v-if="tab === 'fields'" :compact-mode="compactMode" />
+      <SmartsheetExpandedFormSidebarComments
+        v-else-if="tab === 'comments'"
+        :comment-filter="commentFilter"
+        :show-resolved="showResolvedComments"
+        class="h-full"
+      />
+      <SmartsheetExpandedFormSidebarAudits v-else-if="tab === 'audits'" class="h-full" />
+    </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.tab {
-  @apply max-w-1/2;
-}
-
-.tab .tab-title {
-  @apply min-w-0 flex justify-center gap-2 font-semibold items-center;
-  word-break: 'keep-all';
-  white-space: 'nowrap';
-  display: 'inline';
-}
-
-.text-decoration-line-through {
-  text-decoration: line-through;
-}
-
-:deep(.ant-tabs) {
-  @apply !overflow-visible;
-  .ant-tabs-nav {
-    @apply px-3 bg-nc-bg-elevated;
-    .ant-tabs-nav-list {
-      @apply w-[99%] mx-auto gap-6;
-
-      .ant-tabs-tab {
-        @apply flex-1 flex items-center justify-center pt-3 pb-2.5;
-
-        & + .ant-tabs-tab {
-          @apply !ml-0;
-        }
-      }
-    }
-    /* Ant-design auto-shows a `…` overflow menu when it thinks the tabs
-       don't fit. With only 3 tabs that collapse to icons below 320 px
-       (see useResizeObserver above), they always fit — kill the overflow
-       button so it doesn't appear as visual noise. */
-    .ant-tabs-nav-more {
-      @apply !hidden;
-    }
-  }
-  .ant-tabs-content-holder {
-    .ant-tabs-content {
-      @apply h-full;
-    }
-  }
-}
-</style>
-
-<style lang="scss">
-.ant-tabs-dropdown {
-  @apply overflow-hidden;
-  .ant-tabs-dropdown-content {
-    @apply !rounded-lg overflow-hidden border-1 border-nc-border-gray-medium;
-  }
-}
-</style>

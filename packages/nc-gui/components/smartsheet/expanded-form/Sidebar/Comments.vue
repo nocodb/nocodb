@@ -441,7 +441,7 @@ async function onEditComment() {
  * list, which interface-only collaborators can't read — and base
  * membership is base-scoped info regardless).
  */
-const isInterfaceSurface = inject(InterfaceRecordSidebarInj, undefined)
+const isInterfaceSurface = inject(IsInterfaceRecordSurfaceInj, false)
 
 const createdBy = (
   comment: CommentType & {

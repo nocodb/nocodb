@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import InfiniteLoading from 'v3-infinite-loading'
 
+interface Props {
+  /** Interface surfaces: the record-peek envelope (440x520) instead of 520x620. */
+  compact?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  compact: false,
+})
+
 const emits = defineEmits(['close'])
 
 const notificationStore = useNotification()
@@ -20,9 +29,11 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
   <div
     ref="container"
     style="box-shadow: 0px -12px 16px -4px rgba(0, 0, 0, 0.1), 0px -4px 6px -2px rgba(0, 0, 0, 0.06)"
-    :style="!isMobileMode ? 'width: min(80svw, 520px);' : ''"
+    :style="!isMobileMode ? `width: min(80svw, ${props.compact ? 440 : 520}px);` : ''"
     :class="{
-      'max-h-[70vh] h-[620px]': !isMobileMode,
+      'max-h-[70vh]': !isMobileMode,
+      'h-[620px]': !isMobileMode && !props.compact,
+      'h-[520px]': !isMobileMode && props.compact,
       'nc-h-screen nc-w-screen': isMobileMode,
     }"
     class="!rounded-lg pt-4"

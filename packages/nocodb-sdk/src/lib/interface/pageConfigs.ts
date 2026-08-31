@@ -138,9 +138,8 @@ export interface InterfaceGridVizConfig
 export type InterfaceGalleryVizTheme = 'card' | 'poster' | 'minimal' | 'simple';
 
 /**
- * Cover crop on the `card` theme — `none` keeps the fixed 208px band. Doubles as
- * the TILE geometry for `minimal`/`simple` (16:10 when `none`); `poster` ignores
- * it and stays 4:5.
+ * Cover crop on `card` (`none` = the fixed 208px band); tile geometry on
+ * `minimal`/`simple` (16:10 when `none`). `poster` ignores it.
  */
 export type InterfaceGalleryCoverAspectRatio = 'none' | 'wide' | 'square' | 'tall';
 

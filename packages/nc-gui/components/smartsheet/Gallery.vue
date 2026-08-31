@@ -258,10 +258,7 @@ async function interfaceCopyRecordUrl() {
   message.toast(t('msg.info.copiedToClipboard'))
 }
 
-// Parse-per-call is too hot for the tile themes: a single card reads its cover
-// up to seven times (theme class, cover branch, caption anchor, scrim, ...) and
-// the whole visible slice re-renders on every scroll frame. Keyed on the raw
-// cell value, so a row whose attachment value is replaced re-parses.
+// Tile cards read their cover ~7x per render; cache on the raw cell value.
 const attachmentCache = new WeakMap<object, { raw: unknown; parsed: Attachment[] }>()
 
 const attachments = (record: any): Attachment[] => {
@@ -595,12 +592,7 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
-// Sizer for the virtual scroll. GRID_PADDING_Y covers the `p-3` gutter on
-// `.nc-gallery-container`, which sits INSIDE this height: without it the
-// scrollable extent falls 24px short of the rendered grid and the last row
-// can't be scrolled fully into view. Only the tile themes showed it — they
-// stamp an exact inline card height, while the card theme's `cardHeight` is a
-// generous estimate whose surplus absorbed the gap.
+// `.nc-gallery-container`'s own `p-3` sits inside this height.
 const GRID_PADDING_Y = 24
 
 const containerHeight = computed(() => {
@@ -741,11 +733,8 @@ function hasPosterCover(record: RowType) {
 </script>
 
 <template>
-  <!-- Height: interface hosts (table page / dashboard widget / record-form LTAR)
-       mount this in an `h-full` box under a `flex-1 min-h-0` parent, so fill the
-       host the way SmartsheetGrid does. The viewport calc only holds for the
-       standalone smartsheet view — the interface chrome differs per mode, so it
-       mis-measured and pushed the last row out of scroll range. -->
+  <!-- Interface hosts size the viz box themselves; the viewport calc only holds
+       for the standalone smartsheet view. -->
   <div
     ref="scrollContainer"
     data-testid="nc-gallery-wrapper"
@@ -936,9 +925,6 @@ function hasPosterCover(record: RowType) {
                     }"
                   >
                     <template v-if="hasPosterCover(record)">
-                      <!-- Fill/Fit applies to the tile themes too: `contain`
-                           letterboxes the image against the tile surface (gray,
-                           or the record-colour wash). -->
                       <LazyCellAttachmentPreviewThumbnail
                         :attachment="attachments(record)[0]"
                         class="nc-gallery-poster-image !absolute !inset-0"
@@ -1305,10 +1291,8 @@ function hasPosterCover(record: RowType) {
   height: var(--nc-cover-h);
 }
 
-// Simple tiles with a cover reveal scrim + caption on hover only.
-// Gated on a real hover capability: on touch there is nothing to hover and a tap
-// expands the record, so the caption would be permanently unreachable — those
-// devices keep it visible instead of degrading `simple` into `minimal`.
+// Simple tiles reveal scrim + caption on hover. Hover-capable devices only —
+// on touch a tap expands the record, so the caption would be unreachable.
 @media (hover: hover) {
   .nc-gallery-tile-reveal {
     .nc-gallery-poster-scrim,
@@ -1353,9 +1337,8 @@ function hasPosterCover(record: RowType) {
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
   @apply !w-auto;
 }
-// Slick anchors its arrows at `top: 50%`; re-anchor to the cover's BOTTOM so the
-// offset survives a variable cover height (interface `aspect_ratio`) instead of
-// only lining up against the fixed 208px band.
+// Slick anchors arrows at `top: 50%`; re-anchor to the bottom so the offset
+// survives a variable cover height.
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   @apply left-0 top-auto bottom-3;
 }
@@ -1638,13 +1621,7 @@ function hasPosterCover(record: RowType) {
 }
 </style>
 
-<!--
-  Unscoped: the `nc-gallery-theme-*` class sits on the HOST (interface viz wrapper,
-  dashboard widget host, record-form LTAR host), so a scoped rule can't reach it
-  from here. Keyed on the theme classes alone rather than on each host, so every
-  host that stamps one gets the tile styling — this lives with the markup it
-  styles instead of being copied into each host.
--->
+<!-- Unscoped: `nc-gallery-theme-*` sits on the host, out of scoped reach. -->
 <style lang="scss">
 // GALLERY — image tiles (poster / minimal / simple): the image IS the card.
 // White title on the bottom scrim; coverless tiles wear a soft record-color

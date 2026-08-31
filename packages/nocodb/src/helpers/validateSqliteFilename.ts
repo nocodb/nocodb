@@ -15,17 +15,37 @@ import { getToolDir } from '~/utils/nc-config';
 function canonicalize(rawPath: string): string {
   let current = path.resolve(rawPath);
   const tail: string[] = [];
+  let hops = 0;
 
   for (;;) {
     try {
       return path.join(fs.realpathSync(current), ...tail);
     } catch {
+      // realpathSync also fails on a *dangling* symlink, which still opens the
+      // target once SQLite creates it — follow the link itself before giving up
+      // on this component. Bounded so a self-referential link can't spin.
+      const link = readLinkTarget(current);
+      if (link && hops++ < MAX_LINK_HOPS) {
+        current = link;
+        continue;
+      }
       const parent = path.dirname(current);
       // reached the root without finding anything that exists
       if (parent === current) return path.resolve(rawPath);
       tail.unshift(path.basename(current));
       current = parent;
     }
+  }
+}
+
+const MAX_LINK_HOPS = 40;
+
+function readLinkTarget(target: string): string | undefined {
+  try {
+    if (!fs.lstatSync(target).isSymbolicLink()) return undefined;
+    return path.resolve(path.dirname(target), fs.readlinkSync(target));
+  } catch {
+    return undefined;
   }
 }
 

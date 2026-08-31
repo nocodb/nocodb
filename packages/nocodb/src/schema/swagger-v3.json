@@ -8174,6 +8174,209 @@
           }
         }
       }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/permissions": {
+      "get": {
+        "summary": "List table permissions",
+        "description": "List all grant permissions for a table. Returns every applicable key (TABLE_VISIBILITY, TABLE_RECORD_ADD, TABLE_RECORD_DELETE); unset keys are returned with the system default and `configured: false`.",
+        "operationId": "table-permission-list",
+        "tags": ["Permissions"],
+        "parameters": [
+          { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
+          { "name": "tableId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the table." }
+        ],
+        "responses": {
+          "200": { "description": "List of table grant permissions.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantListV3" } } } },
+          "401": { "description": "Unauthorized." },
+          "403": { "description": "Forbidden." },
+          "404": { "description": "Table not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/permissions/{permissionKey}": {
+      "parameters": [
+        { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
+        { "name": "tableId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the table." },
+        { "name": "permissionKey", "in": "path", "required": true, "schema": { "type": "string", "enum": ["TABLE_VISIBILITY", "TABLE_RECORD_ADD", "TABLE_RECORD_DELETE"] }, "description": "The table permission key." }
+      ],
+      "get": {
+        "summary": "Get table permission",
+        "description": "Get a single table grant permission by key. Returns the system default with `configured: false` when no explicit permission is set.",
+        "operationId": "table-permission-get",
+        "tags": ["Permissions"],
+        "responses": {
+          "200": { "description": "The table grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
+          "400": { "description": "Invalid permission key for entity." },
+          "403": { "description": "Forbidden." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "put": {
+        "summary": "Set table permission",
+        "description": "Upsert a table grant permission for the given key.",
+        "operationId": "table-permission-set",
+        "tags": ["Permissions"],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantSetV3" } } } },
+        "responses": {
+          "200": { "description": "The updated table grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
+          "400": { "description": "Invalid request body or permission key." },
+          "403": { "description": "Forbidden." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "delete": {
+        "summary": "Reset table permission",
+        "description": "Reset a table grant permission to its system default.",
+        "operationId": "table-permission-delete",
+        "tags": ["Permissions"],
+        "responses": {
+          "200": { "description": "Permission reset to default.", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "description": "Invalid permission key for entity." },
+          "403": { "description": "Forbidden." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/fields/{fieldId}/permissions": {
+      "get": {
+        "summary": "List field permissions",
+        "description": "List all grant permissions for a field. Returns the RECORD_FIELD_EDIT key; when unset it is returned with the system default and `configured: false`.",
+        "operationId": "field-permission-list",
+        "tags": ["Permissions"],
+        "parameters": [
+          { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
+          { "name": "fieldId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the field." }
+        ],
+        "responses": {
+          "200": { "description": "List of field grant permissions.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantListV3" } } } },
+          "401": { "description": "Unauthorized." },
+          "403": { "description": "Forbidden." },
+          "404": { "description": "Field not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/fields/{fieldId}/permissions/{permissionKey}": {
+      "parameters": [
+        { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
+        { "name": "fieldId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the field." },
+        { "name": "permissionKey", "in": "path", "required": true, "schema": { "type": "string", "enum": ["RECORD_FIELD_EDIT"] }, "description": "The field permission key." }
+      ],
+      "get": {
+        "summary": "Get field permission",
+        "description": "Get a single field grant permission by key. Returns the system default with `configured: false` when no explicit permission is set.",
+        "operationId": "field-permission-get",
+        "tags": ["Permissions"],
+        "responses": {
+          "200": { "description": "The field grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
+          "400": { "description": "Invalid permission key for entity." },
+          "403": { "description": "Forbidden." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "put": {
+        "summary": "Set field permission",
+        "description": "Upsert a field grant permission for the given key.",
+        "operationId": "field-permission-set",
+        "tags": ["Permissions"],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantSetV3" } } } },
+        "responses": {
+          "200": { "description": "The updated field grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
+          "400": { "description": "Invalid request body or permission key." },
+          "403": { "description": "Forbidden." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "delete": {
+        "summary": "Reset field permission",
+        "description": "Reset a field grant permission to its system default.",
+        "operationId": "field-permission-delete",
+        "tags": ["Permissions"],
+        "responses": {
+          "200": { "description": "Permission reset to default.", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "description": "Invalid permission key for entity." },
+          "403": { "description": "Forbidden." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/rls-policies": {
+      "parameters": [
+        { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
+        { "name": "tableId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the table." }
+      ],
+      "get": {
+        "summary": "List RLS policies",
+        "description": "List all row-level security policies for a table.",
+        "operationId": "rls-policy-list",
+        "tags": ["RLS Policies"],
+        "responses": {
+          "200": { "description": "List of RLS policies.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyListV3" } } } },
+          "403": { "description": "Forbidden." },
+          "404": { "description": "Table not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "post": {
+        "summary": "Create RLS policy",
+        "description": "Create a row-level security policy for a table. Filters travel as a v3 FilterGroup and are stored as the policy's condition tree.",
+        "operationId": "rls-policy-create",
+        "tags": ["RLS Policies"],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyCreateV3" } } } },
+        "responses": {
+          "200": { "description": "The created RLS policy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyV3" } } } },
+          "400": { "description": "Invalid request body." },
+          "402": { "description": "Feature not available on current plan / policy limit reached." },
+          "403": { "description": "Forbidden." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/rls-policies/{policyId}": {
+      "parameters": [
+        { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
+        { "name": "tableId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the table." },
+        { "name": "policyId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the RLS policy." }
+      ],
+      "get": {
+        "summary": "Get RLS policy",
+        "description": "Get a single row-level security policy by id.",
+        "operationId": "rls-policy-get",
+        "tags": ["RLS Policies"],
+        "responses": {
+          "200": { "description": "The RLS policy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyV3" } } } },
+          "403": { "description": "Forbidden." },
+          "404": { "description": "Policy not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "patch": {
+        "summary": "Update RLS policy",
+        "description": "Update a row-level security policy. Provided fields are applied; `subjects` and `filters` replace the current values when present.",
+        "operationId": "rls-policy-update",
+        "tags": ["RLS Policies"],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyUpdateV3" } } } },
+        "responses": {
+          "200": { "description": "The updated RLS policy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyV3" } } } },
+          "400": { "description": "Invalid request body." },
+          "403": { "description": "Forbidden." },
+          "404": { "description": "Policy not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "delete": {
+        "summary": "Delete RLS policy",
+        "description": "Delete a row-level security policy.",
+        "operationId": "rls-policy-delete",
+        "tags": ["RLS Policies"],
+        "responses": {
+          "200": { "description": "Policy deleted.", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "403": { "description": "Forbidden." },
+          "404": { "description": "Policy not found." },
+          "500": { "description": "Server error." }
+        }
+      }
     }
   },
   "components": {
@@ -16863,6 +17066,159 @@
           }
         },
         "required": ["id", "workflow_id", "status"]
+      },
+      "PermissionSubjectV3": {
+        "type": "object",
+        "required": ["type", "id"],
+        "properties": {
+          "type": { "type": "string", "enum": ["user", "team"] },
+          "id": { "type": "string" },
+          "hierarchy_scope": {
+            "type": "string",
+            "enum": ["self_only", "self_and_descendants"]
+          }
+        }
+      },
+      "PermissionGrantV3": {
+        "type": "object",
+        "properties": {
+          "permission_key": {
+            "type": "string",
+            "enum": [
+              "TABLE_VISIBILITY",
+              "TABLE_RECORD_ADD",
+              "TABLE_RECORD_DELETE",
+              "RECORD_FIELD_EDIT"
+            ]
+          },
+          "entity": { "type": "string", "enum": ["table", "field"] },
+          "entity_id": { "type": "string" },
+          "granted_type": {
+            "type": "string",
+            "enum": ["role", "user", "nobody"]
+          },
+          "granted_role": {
+            "type": "string",
+            "enum": ["owner", "creator", "editor", "commenter", "viewer"]
+          },
+          "subjects": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PermissionSubjectV3" }
+          },
+          "enforce_for_form": { "type": "boolean" },
+          "enforce_for_automation": { "type": "boolean" },
+          "configured": {
+            "type": "boolean",
+            "description": "false when no explicit permission is set and the system default is returned"
+          }
+        }
+      },
+      "PermissionGrantListV3": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PermissionGrantV3" }
+          }
+        }
+      },
+      "PermissionGrantSetV3": {
+        "type": "object",
+        "required": ["granted_type"],
+        "properties": {
+          "granted_type": {
+            "type": "string",
+            "enum": ["role", "user", "nobody"]
+          },
+          "granted_role": {
+            "type": "string",
+            "enum": ["owner", "creator", "editor", "commenter", "viewer"]
+          },
+          "subjects": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PermissionSubjectV3" }
+          },
+          "enforce_for_form": { "type": "boolean" },
+          "enforce_for_automation": { "type": "boolean" }
+        }
+      },
+      "RlsPolicySubjectV3": {
+        "type": "object",
+        "required": ["type", "id"],
+        "properties": {
+          "type": { "type": "string", "enum": ["user", "team", "role"] },
+          "id": { "type": "string" },
+          "hierarchy_scope": {
+            "type": "string",
+            "enum": ["self_only", "self_and_descendants"]
+          }
+        }
+      },
+      "RlsPolicyV3": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "base_id": { "type": "string" },
+          "table_id": { "type": "string" },
+          "title": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "is_default": { "type": "boolean" },
+          "default_behavior": {
+            "type": "string",
+            "enum": ["show_all", "deny_all", "condition"]
+          },
+          "order": { "type": "number" },
+          "subjects": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RlsPolicySubjectV3" }
+          },
+          "filters": { "$ref": "#/components/schemas/FilterGroup" },
+          "created_by": { "type": "string" },
+          "created_at": { "type": "string" },
+          "updated_at": { "type": "string" }
+        }
+      },
+      "RlsPolicyListV3": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RlsPolicyV3" }
+          }
+        }
+      },
+      "RlsPolicyCreateV3": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "subjects": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RlsPolicySubjectV3" }
+          },
+          "filters": { "$ref": "#/components/schemas/FilterGroup" },
+          "is_default": { "type": "boolean" },
+          "default_behavior": {
+            "type": "string",
+            "enum": ["show_all", "deny_all", "condition"]
+          }
+        }
+      },
+      "RlsPolicyUpdateV3": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "order": { "type": "number" },
+          "default_behavior": {
+            "type": "string",
+            "enum": ["show_all", "deny_all", "condition"]
+          },
+          "subjects": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RlsPolicySubjectV3" }
+          },
+          "filters": { "$ref": "#/components/schemas/FilterGroup" }
+        }
       }
     },
     "responses": {

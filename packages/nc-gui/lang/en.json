@@ -1638,6 +1638,7 @@
     "conditions": "Conditions",
     "defineACondition": "Define a condition",
     "addColor": "Add color",
+    "interfaceButtonVisibilityNote": "Not recommended for hiding sensitive data — the information stays accessible and this is no substitute for permissions.",
     "otherwise": "Otherwise",
     "numberColors": {
       "white": "White",

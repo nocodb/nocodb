@@ -18,9 +18,11 @@ import {
   OrgUserRoles,
 } from 'nocodb-sdk';
 import {
+  extractDbConnectionHosts,
   hasSslFilePath,
   validateDbConnectionHost,
 } from '~/helpers/validateDbConnectionHost';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 import {
   SSL_FILE_PATH_TEST_MIN_RESPONSE_MS,
   withMinResponseTime,
@@ -140,9 +142,16 @@ export class UtilsController {
       }
     }
 
-    if (config.connection?.host) {
-      await validateDbConnectionHost(config.connection.host);
+    // Every host shape, not just `connection.host` — a string DSN used to skip
+    // the check entirely, and this endpoint builds a plain knex (no CustomKnex),
+    // so there is no connect-time lookup behind it to catch the miss.
+    for (const host of extractDbConnectionHosts(config)) {
+      await validateDbConnectionHost(host);
     }
+
+    // Same internal-DB guard the source/integration write paths apply: without
+    // it this endpoint is an open/exists oracle for NocoDB's own SQLite state.
+    validateAndNormalizeSqliteConfig(config, config.client);
 
     if (config.connection?.ssl) {
       config.connection.ssl = validateAndExtractSSLProp(

@@ -5504,6 +5504,7 @@
       "tooNarrowToAdjustFrozenFields": "You have {saved} frozen fields but only {effective} are appearing frozen right now because your window is too narrow. You can reset the number of frozen fields to 1. You can also change the number of frozen fields by enlarging your window or by making individual fields narrower."
     },
     "error": {
+      "interfaceButtonFieldMissing": "This button refers to a field that no longer exists",
       "noResultReturned": "No result returned",
       "somethingWentWrongTryAgain": "Something went wrong. Please try again.",
       "failedToCreateSync": "Failed to create sync",

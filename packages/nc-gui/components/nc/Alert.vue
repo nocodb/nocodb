@@ -375,8 +375,14 @@ onUnmounted(() => {
       // Plain declarations, not @apply: the notification's `w-[calc(30vw-32px)]`
       // kept winning over an applied `w-[fit-content]`, leaving toasts with a
       // viewport-relative width and empty space after short text.
+      //
+      // min-width stays `fit-content` — the value the original rule declared at
+      // both breakpoints. `0` would let a toast shrink below its own content,
+      // and this is the shared component behind every `message.toast` in the
+      // product (~150 call sites, CE included), so the override has to stay a
+      // width fix and not a restyle.
       width: fit-content !important;
-      min-width: 0 !important;
+      min-width: fit-content !important;
       max-width: 350px !important;
     }
   }

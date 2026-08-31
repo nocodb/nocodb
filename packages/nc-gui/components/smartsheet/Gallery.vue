@@ -111,6 +111,15 @@ const galleryCardTheme = computed<InterfaceGalleryVizTheme>(() =>
 
 const isPosterTheme = computed(() => galleryCardTheme.value === 'poster')
 
+const isMinimalTheme = computed(() => galleryCardTheme.value === 'minimal')
+
+const isSimpleTheme = computed(() => galleryCardTheme.value === 'simple')
+
+// Image-tile themes share the poster markup: the card IS the image, body
+// fields never render. Poster keeps its fixed 4:5; minimal/simple follow the
+// interface aspect ratio (16:10 when none).
+const isTileTheme = computed(() => isPosterTheme.value || isMinimalTheme.value || isSimpleTheme.value)
+
 const displayField = computed(() => {
   // Interface galleries can point the card title at any column — falls back
   // to the classic display-value title.
@@ -143,10 +152,18 @@ const coverImageObjectFitStyle = computed(() => {
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return 'cover'
 })
 
-// Classic cover-on-top slot — poster owns its full-bleed cover markup.
-const showCover = computed(() => !isPosterTheme.value && !!galleryData.value?.fk_cover_image_col_id)
+// Classic cover-on-top slot — tile themes own their full-bleed cover markup.
+const showCover = computed(() => !isTileTheme.value && !!galleryData.value?.fk_cover_image_col_id)
 
-const cardBodyPadding = computed(() => (isPosterTheme.value ? '0 !important' : '12px !important'))
+/** `simple` tiles: one field under the overlaid title. */
+const secondaryField = computed(() => {
+  if (!isSimpleTheme.value) return null
+  const id = interfaceGalleryMeta.value?.secondary_field_id
+  if (!id || id === displayField.value?.id) return null
+  return meta.value?.columns?.find((c) => c.id === id) ?? null
+})
+
+const cardBodyPadding = computed(() => (isTileTheme.value ? '0 !important' : '12px !important'))
 
 const isReadonly = inject(ReadonlyInj, ref(false))
 
@@ -419,13 +436,19 @@ const coverHeight = computed(() => {
   return Math.round(cardWidth.value * ratio)
 })
 
+/** Tile height / width: poster stays 4:5; minimal & simple follow the aspect ratio, 16:10 when none. */
+const tileRatio = computed(() => {
+  if (isPosterTheme.value) return 1.25
+  return COVER_ASPECT[interfaceGalleryMeta.value?.cover_aspect_ratio ?? 'none'] ?? 0.625
+})
+
 const cardHeight = computed(() => {
-  // POSTER: width-driven tiles at a fixed 4:5 aspect. The height is stamped
-  // inline on the card, so rendered height and slice math agree by
-  // construction — it just re-reacts to container width. The 160px floor
-  // covers the unmeasured first paint (container width 0).
-  if (isPosterTheme.value) {
-    return Math.max(160, Math.round(cardWidth.value * 1.25))
+  // TILE themes: width-driven. The height is stamped inline on the card, so
+  // rendered height and slice math agree by construction — it just re-reacts
+  // to container width. The 160px floor covers the unmeasured first paint
+  // (container width 0).
+  if (isTileTheme.value) {
+    return Math.max(160, Math.round(cardWidth.value * tileRatio.value))
   }
 
   // Calculate cardHeight in pixels From the FIELD_HEIGHT_MAP and if the card has cover image
@@ -803,7 +826,7 @@ function hasPosterCover(record: RowType) {
                   ]"
                   :body-style="{ padding: cardBodyPadding, flex: 1, display: 'flex' }"
                   :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
-                  :style="[getCardColorStyle(record), isPosterTheme ? { height: `${cardHeight}px` } : {}]"
+                  :style="[getCardColorStyle(record), isTileTheme ? { height: `${cardHeight}px` } : {}]"
                   @click="expandFormClick($event, record)"
                   @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
                 >
@@ -878,9 +901,12 @@ function hasPosterCover(record: RowType) {
                        bottom scrim; coverless records wash in the record color
                        with the title centered. Body fields never render. -->
                   <div
-                    v-if="isPosterTheme"
+                    v-if="isTileTheme"
                     class="nc-gallery-poster-tile relative w-full h-full overflow-hidden"
-                    :class="{ 'nc-has-record-color': !!record.rowMeta?.rowLeftBorderColor }"
+                    :class="{
+                      'nc-has-record-color': !!record.rowMeta?.rowLeftBorderColor,
+                      'nc-gallery-tile-reveal': isSimpleTheme && hasPosterCover(record),
+                    }"
                   >
                     <template v-if="hasPosterCover(record)">
                       <LazyCellAttachmentPreviewThumbnail
@@ -890,56 +916,91 @@ function hasPosterCover(record: RowType) {
                         thumbnail="card_cover"
                         object-fit="cover"
                       />
-                      <div class="nc-gallery-poster-scrim absolute inset-x-0 bottom-0 h-2/5 pointer-events-none"></div>
+                      <div
+                        v-if="!isMinimalTheme"
+                        class="nc-gallery-poster-scrim absolute inset-x-0 bottom-0 h-2/5 pointer-events-none"
+                      ></div>
                     </template>
+                    <div v-else-if="isMinimalTheme" class="absolute inset-0 flex items-center justify-center">
+                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                    </div>
 
-                    <h2
-                      v-if="displayField"
-                      class="nc-card-display-value-wrapper absolute z-1 p-3"
+                    <!-- Caption: title (+ secondary field on simple). Overlaid on the scrim
+                         with a cover; centered (poster) / top-and-bottom (simple) on the wash. -->
+                    <div
+                      v-if="displayField && !isMinimalTheme"
+                      class="nc-gallery-tile-caption absolute z-1 p-3 flex flex-col gap-1.5"
                       :class="[
-                        hasPosterCover(record)
-                          ? 'nc-gallery-poster-title-overlay inset-x-0 bottom-0'
-                          : 'nc-gallery-poster-title-centered inset-0 flex flex-col justify-center',
-                        {
-                          'nc-card-title-large': cardTitleSize === 'large',
-                          'nc-card-title-interface': !!interfacePageDataApi,
-                        },
+                        hasPosterCover(record) ? 'inset-x-0 bottom-0' : 'inset-0',
+                        { 'justify-center': !hasPosterCover(record) && !secondaryField },
+                        { 'justify-between': !hasPosterCover(record) && !!secondaryField },
                       ]"
                     >
-                      <template
-                        v-if="
-                          !isRowEmpty(record, displayField) ||
-                          isAllowToRenderRowEmptyField(displayField) ||
-                          isPercent(displayField)
-                        "
+                      <h2
+                        class="nc-card-display-value-wrapper"
+                        :class="[
+                          hasPosterCover(record) ? 'nc-gallery-poster-title-overlay' : 'nc-gallery-poster-title-centered',
+                          {
+                            'nc-card-title-large': cardTitleSize === 'large',
+                            'nc-card-title-interface': !!interfacePageDataApi,
+                          },
+                        ]"
                       >
-                        <LazySmartsheetVirtualCell
-                          v-if="isVirtualCol(displayField)"
-                          v-model="record.row[displayField.title]"
-                          class="!text-nc-content-brand"
-                          :column="displayField"
-                          :row="record"
-                        />
-                        <NcTooltip
-                          v-else
-                          class="!w-full max-w-full"
-                          placement="top"
-                          show-on-truncate-only
-                          truncate-selector=".nc-cell-field"
-                          :disabled="!isDisplayFieldTextOrNumber"
-                          :title="`${record.row[displayField.title] ?? ''}`"
+                        <template
+                          v-if="
+                            !isRowEmpty(record, displayField) ||
+                            isAllowToRenderRowEmptyField(displayField) ||
+                            isPercent(displayField)
+                          "
                         >
-                          <LazySmartsheetCell
+                          <LazySmartsheetVirtualCell
+                            v-if="isVirtualCol(displayField)"
                             v-model="record.row[displayField.title]"
                             class="!text-nc-content-brand"
                             :column="displayField"
-                            :edit-enabled="false"
-                            :read-only="true"
+                            :row="record"
                           />
-                        </NcTooltip>
-                      </template>
-                      <template v-else> - </template>
-                    </h2>
+                          <NcTooltip
+                            v-else
+                            class="!w-full max-w-full"
+                            placement="top"
+                            show-on-truncate-only
+                            truncate-selector=".nc-cell-field"
+                            :disabled="!isDisplayFieldTextOrNumber"
+                            :title="`${record.row[displayField.title] ?? ''}`"
+                          >
+                            <LazySmartsheetCell
+                              v-model="record.row[displayField.title]"
+                              class="!text-nc-content-brand"
+                              :column="displayField"
+                              :edit-enabled="false"
+                              :read-only="true"
+                            />
+                          </NcTooltip>
+                        </template>
+                        <template v-else> - </template>
+                      </h2>
+
+                      <div
+                        v-if="secondaryField"
+                        class="nc-gallery-tile-secondary !children:pointer-events-none"
+                        :class="{ 'nc-gallery-tile-on-cover': hasPosterCover(record) }"
+                      >
+                        <LazySmartsheetVirtualCell
+                          v-if="isVirtualCol(secondaryField)"
+                          v-model="record.row[secondaryField.title]"
+                          :column="secondaryField"
+                          :row="record"
+                        />
+                        <LazySmartsheetCell
+                          v-else
+                          v-model="record.row[secondaryField.title]"
+                          :column="secondaryField"
+                          :edit-enabled="false"
+                          :read-only="true"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div v-else class="flex-1 flex content-stretch gap-3 w-full">
@@ -1212,6 +1273,31 @@ function hasPosterCover(record: RowType) {
 // Cover height from the carousel's `--nc-cover-h` (see the template note).
 .ant-carousel.gallery-carousel :deep(.nc-gallery-cover-thumb) {
   height: var(--nc-cover-h);
+}
+
+// Simple tiles with a cover reveal scrim + caption on hover only.
+.nc-gallery-tile-reveal {
+  .nc-gallery-poster-scrim,
+  .nc-gallery-tile-caption {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover .nc-gallery-poster-scrim,
+  &:hover .nc-gallery-tile-caption {
+    opacity: 1;
+  }
+}
+
+// Secondary field over the scrim reads white like the overlaid title.
+.nc-gallery-tile-secondary.nc-gallery-tile-on-cover {
+  &,
+  :deep(.nc-cell),
+  :deep(.nc-virtual-cell),
+  :deep(.nc-cell .nc-cell-field:not(.ant-select-selection-search-input)),
+  :deep(.nc-virtual-cell .nc-cell-field:not(.ant-select-selection-search-input)) {
+    color: #fff !important;
+  }
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots) {

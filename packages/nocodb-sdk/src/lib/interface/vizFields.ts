@@ -57,6 +57,7 @@ export function collectVizStructuralFieldIds(
     stacking_field_id?: string;
     image_field_id?: string | null;
     title_field_id?: string | null;
+    secondary_field_id?: string | null;
     prefix_field_id?: string | null;
     label_field_ids?: string[];
     label_image_field_id?: string | null;
@@ -71,6 +72,7 @@ export function collectVizStructuralFieldIds(
     anyViz.stacking_field_id,
     anyViz.image_field_id,
     anyViz.title_field_id,
+    anyViz.secondary_field_id,
     anyViz.prefix_field_id,
     anyViz.label_image_field_id
   );

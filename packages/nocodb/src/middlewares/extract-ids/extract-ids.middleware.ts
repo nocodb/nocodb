@@ -1286,7 +1286,9 @@ export class AclMiddleware implements NestInterceptor {
         roles,
       ))
     ) {
-      NcError.forbidden('Unauthorized access');
+      // 404, not 403 — matches `getTableWithAccessibleViews` and keeps the id
+      // from confirming that a hidden table exists.
+      NcError.get(req.context).tableNotFound(req.context.ncTableId);
     }
 
     // check if permission have source level permission restriction

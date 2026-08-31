@@ -478,7 +478,8 @@ const cardHeight = computed(() => {
 
 const visibleRows = computed(() => {
   const { start, end } = rowSlice
-  return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
+  // Never negative — `Array.from` turns that into an empty (blank) gallery.
+  return Array.from({ length: Math.max(0, Math.min(end, totalRows.value) - start) }, (_, i) => {
     const rowIndex = start + i
     return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
   })
@@ -565,6 +566,15 @@ const updateVisibleRows = async () => {
 
 const containerTransformY = ref(0)
 
+// Clamped to the last row: a tall card (columns-per-row 1 makes one card taller
+// than the viewport) plus a stale offset would otherwise put the slice start
+// past the last record, and `visibleRows` would come out empty.
+const firstVisibleRow = computed(() => {
+  const lastRow = Math.max(0, Math.ceil(totalRows.value / columnsPerRow.value) - 1)
+
+  return Math.min(lastRow, Math.floor(scrollTop.value / (cardHeight.value + 12)))
+})
+
 const calculateSlices = () => {
   if (!scrollContainer.value) {
     setTimeout(calculateSlices, 50)
@@ -573,7 +583,11 @@ const calculateSlices = () => {
 
   const { clientHeight } = scrollContainer.value
 
-  const visibleRowStart = Math.floor(scrollTop.value / (cardHeight.value + 12))
+  // Non-scroll callers (theme / columns-per-row / aspect-ratio changes, sizer
+  // remounts) can leave the cached offset past the end of the new content.
+  scrollTop.value = scrollContainer.value.scrollTop
+
+  const visibleRowStart = firstVisibleRow.value
 
   const rowsVisible = Math.ceil((clientHeight - 12) / (cardHeight.value + 12))
 
@@ -638,14 +652,13 @@ watch(
   },
 )
 
+// Must stay in step with `calculateSlices` — same clamped row, same buffer.
 const placeholderAboveHeight = computed(() => {
-  const visibleRowStart = Math.floor(scrollTop.value / (cardHeight.value + 12))
-
-  const startRecordIndex = Math.max(0, visibleRowStart - 2)
-  const placeholderHeight = startRecordIndex * (cardHeight.value + 12)
+  const startRow = Math.max(0, firstVisibleRow.value - 2)
+  const placeholderHeight = startRow * (cardHeight.value + 12)
 
   if (placeholderHeight > containerHeight.value) {
-    return containerHeight.value - cardHeight.value
+    return Math.max(0, containerHeight.value - cardHeight.value)
   }
   return placeholderHeight
 })
@@ -1187,8 +1200,11 @@ function hasPosterCover(record: RowType) {
               </LazySmartsheetRow>
             </div>
 
-            <template v-if="visibleRows.length <= 4">
-              <div v-for="index of Array(8 - visibleRows.length)" :key="index" class="nc-empty-card"></div>
+            <!-- Keyed on the record count, not the virtual slice: a long list
+                 renders a small window, and padding that out added grid rows the
+                 scroll height never accounted for. -->
+            <template v-if="!isTileTheme && totalRows <= 4">
+              <div v-for="index of Array(8 - totalRows)" :key="index" class="nc-empty-card"></div>
             </template>
           </div>
         </div>

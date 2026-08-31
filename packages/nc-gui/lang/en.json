@@ -5451,6 +5451,7 @@
       "interfaceNoUpdates": "No updates",
       "interfaceButtonConfirmUpdateRecord": "This will update the current record.",
       "interfaceRecordUpdated": "Record updated",
+      "interfaceRecordUpdatedMovedNext": "{from} updated · now showing {to} ({index} of {total})",
       "interfaceNoConfiguredPage": "No configured page",
       "interfaceNoConfiguredForm": "No configured form",
       "interfaceButtonConfirmMessage": "Are you sure you want to continue?",

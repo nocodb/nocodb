@@ -12,7 +12,7 @@ import {
 } from 'nocodb-sdk';
 import type { UITypes, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
-import { Permission } from '~/models';
+import { Model, ModelRoleVisibility, Permission } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
   TableSystemColumns,
@@ -207,6 +207,56 @@ export async function hasTableVisibilityAccess(
   return await Permission.isAllowed(context, visibilityPermission, {
     id: user.id,
     role: userRole,
+  });
+}
+
+/**
+ * Whether the caller's role still reaches a table under the CE per-view
+ * visibility rules (`ModelRoleVisibility`, the "UI ACL" screen).
+ *
+ * `getAccessibleTables` drops a table from the LIST once every one of its views
+ * is disabled for the role, but the routes that take a table or view id
+ * directly never re-applied that decision — so an id learned while access was
+ * legitimate (or read off a Link column's `fk_related_model_id`) kept working.
+ * Same rule as the list: reachable while ANY view is still enabled for ANY role
+ * the caller holds.
+ */
+export async function hasModelRoleVisibilityAccess(
+  context: NcContext,
+  tableId: string,
+  roles: Record<string, boolean>,
+): Promise<boolean> {
+  if (roles?.[ProjectRoles.OWNER]) return true;
+
+  // Cheapest gate first — most bases have no UI-ACL rows at all, and this list
+  // is cached, so the common request never loads the model or its views.
+  const disabledRolesByView = new Map<string, Set<string>>();
+  for (const entry of await ModelRoleVisibility.list(
+    context,
+    context.base_id,
+  )) {
+    if (!entry.disabled) continue;
+    const disabled = disabledRolesByView.get(entry.fk_view_id) ?? new Set();
+    disabled.add(entry.role);
+    disabledRolesByView.set(entry.fk_view_id, disabled);
+  }
+  if (!disabledRolesByView.size) return true;
+
+  const callerRoles = Object.values(ProjectRoles).filter(
+    (role) => roles?.[role],
+  );
+  if (!callerRoles.length) return false;
+
+  const model = await Model.get(context, tableId);
+  // Unknown table — leave the 404 to the route rather than masking it as a 403.
+  if (!model) return true;
+
+  const views = await model.getViews(context);
+  if (!views.length) return true;
+
+  return views.some((view) => {
+    const disabled = disabledRolesByView.get(view.id);
+    return callerRoles.some((role) => !disabled?.has(role));
   });
 }
 

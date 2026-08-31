@@ -12,7 +12,7 @@ import {
 } from 'nocodb-sdk';
 import type { UITypes, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
-import { Model, ModelRoleVisibility, Permission } from '~/models';
+import { Model, ModelRoleVisibility, Permission, View } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
   TableSystemColumns,
@@ -219,7 +219,9 @@ export async function hasTableVisibilityAccess(
  * directly never re-applied that decision — so an id learned while access was
  * legitimate (or read off a Link column's `fk_related_model_id`) kept working.
  * Same rule as the list: reachable while ANY view is still enabled for ANY role
- * the caller holds.
+ * the caller holds — except a model with no views at all, which the list drops
+ * but this grants. That divergence is deliberately fail-open: a viewless model
+ * is mid-create or partially deleted, not an access decision to enforce.
  */
 export async function hasModelRoleVisibilityAccess(
   context: NcContext,
@@ -245,13 +247,21 @@ export async function hasModelRoleVisibilityAccess(
   const callerRoles = Object.values(ProjectRoles).filter(
     (role) => roles?.[role],
   );
-  if (!callerRoles.length) return false;
+  // No ProjectRole in the caller's set — fail open, consistent with every other
+  // unknown here (`!model`, `!views.length`). The set can legitimately lack one
+  // (a non-`base` scope that still resolves a table id, or access granted purely
+  // via `extendedScope`), and UI-ACL is keyed on ProjectRoles, so it has nothing
+  // to say about such a caller. The main ACL gate already ran.
+  if (!callerRoles.length) return true;
 
   const model = await Model.get(context, tableId);
   // Unknown table — leave the 404 to the route rather than masking it as a 403.
   if (!model) return true;
 
-  const views = await model.getViews(context);
+  // Only view ids are needed, and this runs in extract-ids on every request
+  // that resolves a table or view id — so use the cheap cached id list, not
+  // `model.getViews` (a per-view `getViewWithInfo`, i.e. N fetches per request).
+  const views = await View.list(context, tableId);
   if (!views.length) return true;
 
   return views.some((view) => {

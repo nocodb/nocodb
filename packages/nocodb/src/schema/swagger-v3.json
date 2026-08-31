@@ -8190,8 +8190,9 @@
         "responses": {
           "200": { "description": "List of table grant permissions.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantListV3" } } } },
           "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
-          "404": { "description": "Table not found." },
+          "422": { "description": "Table not found." },
           "500": { "description": "Server error." }
         }
       }
@@ -8210,7 +8211,10 @@
         "responses": {
           "200": { "description": "The table grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
           "400": { "description": "Invalid permission key for entity." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
+          "422": { "description": "Table not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -8223,7 +8227,10 @@
         "responses": {
           "200": { "description": "The updated table grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
           "400": { "description": "Invalid request body or permission key." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
+          "422": { "description": "Table not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -8235,12 +8242,15 @@
         "responses": {
           "200": { "description": "Permission reset to default.", "content": { "application/json": { "schema": { "type": "object" } } } },
           "400": { "description": "Invalid permission key for entity." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
+          "422": { "description": "Table not found." },
           "500": { "description": "Server error." }
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/fields/{fieldId}/permissions": {
+    "/api/v3/meta/bases/{baseId}/fields/{columnId}/permissions": {
       "get": {
         "summary": "List field permissions",
         "description": "List all grant permissions for a field. Returns the RECORD_FIELD_EDIT key; when unset it is returned with the system default and `configured: false`.",
@@ -8248,21 +8258,22 @@
         "tags": ["Permissions"],
         "parameters": [
           { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
-          { "name": "fieldId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the field." }
+          { "name": "columnId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the field." }
         ],
         "responses": {
           "200": { "description": "List of field grant permissions.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantListV3" } } } },
           "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
-          "404": { "description": "Field not found." },
+          "422": { "description": "Field not found." },
           "500": { "description": "Server error." }
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/fields/{fieldId}/permissions/{permissionKey}": {
+    "/api/v3/meta/bases/{baseId}/fields/{columnId}/permissions/{permissionKey}": {
       "parameters": [
         { "name": "baseId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the base." },
-        { "name": "fieldId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the field." },
+        { "name": "columnId", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Unique identifier for the field." },
         { "name": "permissionKey", "in": "path", "required": true, "schema": { "type": "string", "enum": ["RECORD_FIELD_EDIT"] }, "description": "The field permission key." }
       ],
       "get": {
@@ -8273,7 +8284,10 @@
         "responses": {
           "200": { "description": "The field grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
           "400": { "description": "Invalid permission key for entity." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
+          "422": { "description": "Field not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -8286,7 +8300,10 @@
         "responses": {
           "200": { "description": "The updated field grant permission.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PermissionGrantV3" } } } },
           "400": { "description": "Invalid request body or permission key." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
+          "422": { "description": "Field not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -8298,7 +8315,10 @@
         "responses": {
           "200": { "description": "Permission reset to default.", "content": { "application/json": { "schema": { "type": "object" } } } },
           "400": { "description": "Invalid permission key for entity." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
+          "422": { "description": "Field not found." },
           "500": { "description": "Server error." }
         }
       }
@@ -8315,8 +8335,10 @@
         "tags": ["RLS Policies"],
         "responses": {
           "200": { "description": "List of RLS policies.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyListV3" } } } },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
-          "404": { "description": "Table not found." },
+          "422": { "description": "Table not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -8329,8 +8351,10 @@
         "responses": {
           "200": { "description": "The created RLS policy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyV3" } } } },
           "400": { "description": "Invalid request body." },
-          "402": { "description": "Feature not available on current plan / policy limit reached." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
+          "422": { "description": "Table not found." },
           "500": { "description": "Server error." }
         }
       }
@@ -8348,8 +8372,10 @@
         "tags": ["RLS Policies"],
         "responses": {
           "200": { "description": "The RLS policy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyV3" } } } },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
-          "404": { "description": "Policy not found." },
+          "422": { "description": "Policy not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -8362,8 +8388,10 @@
         "responses": {
           "200": { "description": "The updated RLS policy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RlsPolicyV3" } } } },
           "400": { "description": "Invalid request body." },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
-          "404": { "description": "Policy not found." },
+          "422": { "description": "Policy not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -8374,8 +8402,10 @@
         "tags": ["RLS Policies"],
         "responses": {
           "200": { "description": "Policy deleted.", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "401": { "description": "Unauthorized." },
+          "402": { "description": "License required." },
           "403": { "description": "Forbidden." },
-          "404": { "description": "Policy not found." },
+          "422": { "description": "Policy not found." },
           "500": { "description": "Server error." }
         }
       }
@@ -17197,7 +17227,7 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/RlsPolicySubjectV3" }
           },
-          "filters": { "$ref": "#/components/schemas/FilterGroup" },
+          "filters": { "$ref": "#/components/schemas/FilterGroupLevel1" },
           "is_default": { "type": "boolean" },
           "default_behavior": {
             "type": "string",
@@ -17219,7 +17249,7 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/RlsPolicySubjectV3" }
           },
-          "filters": { "$ref": "#/components/schemas/FilterGroup" }
+          "filters": { "$ref": "#/components/schemas/FilterGroupLevel1" }
         }
       }
     },

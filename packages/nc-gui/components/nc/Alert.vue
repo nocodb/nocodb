@@ -372,7 +372,12 @@ onUnmounted(() => {
     }
 
     &.nc-alert-type-toast {
-      @apply min-w-[fit-content]  md:min-w-[fit-content] max-w-[350px] w-[fit-content];
+      // Plain declarations, not @apply: the notification's `w-[calc(30vw-32px)]`
+      // kept winning over an applied `w-[fit-content]`, leaving toasts with a
+      // viewport-relative width and empty space after short text.
+      width: fit-content !important;
+      min-width: 0 !important;
+      max-width: 350px !important;
     }
   }
 

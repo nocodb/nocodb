@@ -76,6 +76,8 @@ export enum InterfaceButtonActionTypes {
   UPDATE_RECORD = 'update_record',
   COPY_RECORD_LINK = 'copy_record_link',
   DELETE_RECORD = 'delete_record',
+  /** Open the URL stored in one of the record's fields. */
+  RECORD_URL = 'record_url',
 }
 
 export interface InterfaceButtonConfirmation {
@@ -139,13 +141,21 @@ export interface InterfaceButtonDeleteRecord extends InterfaceButtonBase {
   action: InterfaceButtonActionTypes.DELETE_RECORD;
 }
 
+/** Record-scoped — opens the link held by `fk_column_id` on the open record. */
+export interface InterfaceButtonRecordUrl extends InterfaceButtonBase {
+  action: InterfaceButtonActionTypes.RECORD_URL;
+  fk_column_id: string;
+  open_in_new_tab?: boolean;
+}
+
 export type InterfaceButtonConfig =
   | InterfaceButtonExternalUrl
   | InterfaceButtonInterfacePage
   | InterfaceButtonOpenRecordForm
   | InterfaceButtonUpdateRecord
   | InterfaceButtonCopyRecordLink
-  | InterfaceButtonDeleteRecord;
+  | InterfaceButtonDeleteRecord
+  | InterfaceButtonRecordUrl;
 
 /** Navigation-only button actions — the subset allowed outside record scope. */
 export const INTERFACE_NAV_BUTTON_ACTIONS = [

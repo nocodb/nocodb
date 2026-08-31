@@ -713,10 +713,14 @@ export const lookupOrLtarBuilder =
           break;
         case UITypes.Formula:
           {
+            // lookupColumn was resolved in `lookupContext` (refContext for a
+            // single-level lookup, the nested refContext otherwise). Resolve its
+            // model/columns in the SAME context — using the outer `context`
+            // finds nothing for a cross-base lookup and crashes on the next line.
             const formulaOption =
-              await lookupColumn.getColOptions<FormulaColumn>(context);
-            const lookupModel = await lookupColumn.getModel(context);
-            const columns = await lookupModel.getColumns(context);
+              await lookupColumn.getColOptions<FormulaColumn>(lookupContext);
+            const lookupModel = await lookupColumn.getModel(lookupContext);
+            const columns = await lookupModel.getColumns(lookupContext);
             parentColumns = (
               parentColumns ?? CircularRefContext.make()
             ).cloneAndAdd({

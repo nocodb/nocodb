@@ -595,9 +595,19 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
+// Sizer for the virtual scroll. GRID_PADDING_Y covers the `p-3` gutter on
+// `.nc-gallery-container`, which sits INSIDE this height: without it the
+// scrollable extent falls 24px short of the rendered grid and the last row
+// can't be scrolled fully into view. Only the tile themes showed it — they
+// stamp an exact inline card height, while the card theme's `cardHeight` is a
+// generous estimate whose surplus absorbed the gap.
+const GRID_PADDING_Y = 24
+
 const containerHeight = computed(() => {
   const numberOfRows = Math.ceil(totalRows.value / columnsPerRow.value)
-  return numberOfRows * cardHeight.value + (numberOfRows - 1) * 12
+  if (numberOfRows <= 0) return 0
+
+  return numberOfRows * cardHeight.value + (numberOfRows - 1) * 12 + GRID_PADDING_Y
 })
 
 let scrollRaf = false
@@ -731,10 +741,16 @@ function hasPosterCover(record: RowType) {
 </script>
 
 <template>
+  <!-- Height: interface hosts (table page / dashboard widget / record-form LTAR)
+       mount this in an `h-full` box under a `flex-1 min-h-0` parent, so fill the
+       host the way SmartsheetGrid does. The viewport calc only holds for the
+       standalone smartsheet view — the interface chrome differs per mode, so it
+       mis-measured and pushed the last row out of scroll range. -->
   <div
     ref="scrollContainer"
     data-testid="nc-gallery-wrapper"
-    class="flex flex-col w-full nc-gallery select-none relative nc-view-scrollbar-y bg-nc-bg-gray-extralight h-[calc(100svh-var(--toolbar-height)-var(--topbar-height))]"
+    class="flex flex-col w-full nc-gallery select-none relative nc-view-scrollbar-y bg-nc-bg-gray-extralight"
+    :class="interfacePageDataApi ? 'h-full min-h-0' : 'h-[calc(100svh-var(--toolbar-height)-var(--topbar-height))]'"
     :style="fixedColumnsPerRow ? { '--nc-gallery-template-columns': `repeat(${fixedColumnsPerRow}, minmax(0, 1fr))` } : undefined"
   >
     <NcDropdown

@@ -838,6 +838,22 @@ export class MetaDiffsService {
     return changes;
   }
 
+  // The diff returned to the client (as the meta-diff job's return value)
+  // only needs the display fields — `msg` and the table-level props. The
+  // heavy `column`/`model` objects embedded in each change are used solely
+  // by `syncBaseMeta`, which recomputes its own diff via `getMetaDiff`.
+  // On large schemas those objects serialize to hundreds of MB and blow past
+  // V8's max string length when Bull JSON-stringifies the return value,
+  // permanently breaking meta-sync. Strip them from the response diff.
+  private stripDiffForResponse(changes: Array<MetaDiff>): Array<MetaDiff> {
+    return changes.map((change) => ({
+      ...change,
+      detectedChanges: change.detectedChanges.map(
+        ({ column: _column, model: _model, ...rest }: any) => rest,
+      ),
+    }));
+  }
+
   async metaDiff(context: NcContext, param: { baseId: string }) {
     const base = await Base.getWithInfo(context, param.baseId);
     let changes = [];
@@ -856,7 +872,7 @@ export class MetaDiffsService {
       }
     }
 
-    return changes;
+    return this.stripDiffForResponse(changes);
   }
 
   async baseMetaDiff(
@@ -871,7 +887,7 @@ export class MetaDiffsService {
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
     changes = await this.getMetaDiff(context, sqlClient, base, source);
 
-    return changes;
+    return this.stripDiffForResponse(changes);
   }
 
   async syncBaseMeta(

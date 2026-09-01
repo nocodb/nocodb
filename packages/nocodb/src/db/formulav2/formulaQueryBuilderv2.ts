@@ -65,6 +65,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     column = null,
     columns,
     getAliasCount,
+    formulaBuilderCache,
   } = params;
 
   let { baseUsers = null } = params;
@@ -135,6 +136,23 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             tableAlias,
             parentColumns,
           }: TAliasToColumnParam) => {
+            // Reuse the already-built SQL for this (column, tableAlias) rather
+            // than re-expanding it. A formula referencing another formula
+            // multiple times (directly or via a diamond dependency) would
+            // otherwise rebuild that subtree once per occurrence — exponential
+            // in nesting depth (k^D), materializing a huge SQL string (OOM).
+            // Keyed by tableAlias too: leaf resolvers embed it, so the same
+            // formula under a different alias legitimately produces different
+            // SQL. A cache hit cannot mask a real cycle — a cycle would have
+            // thrown via CircularRefContext during the first (successful) build.
+            const cacheKey = `${col.id}::${tableAlias ?? ''}`;
+            const cachedBuild = formulaBuilderCache?.get(cacheKey);
+            if (cachedBuild) {
+              return {
+                builder: knex.raw(cachedBuild.sql, [...cachedBuild.bindings]),
+              };
+            }
+
             parentColumns = (
               parentColumns ?? CircularRefContext.make()
             ).cloneAndAdd({
@@ -158,8 +176,28 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               getAliasCount,
               column: col,
               columns,
+              formulaBuilderCache,
             });
+
+            // Capture the flattened SQL BEFORE the in-place wrap so a later
+            // cache hit reproduces identical, parenthesized SQL deterministically
+            // (independent of how `.sql` mutation interacts with `.toSQL()`).
+            let compiled: { sql: string; bindings: readonly any[] } | undefined;
+            try {
+              compiled = builder.toSQL?.();
+            } catch {
+              compiled = undefined;
+            }
+
             builder.sql = '(' + builder.sql + ')';
+
+            if (compiled && formulaBuilderCache) {
+              formulaBuilderCache.set(cacheKey, {
+                sql: '(' + compiled.sql + ')',
+                bindings: compiled.bindings ?? [],
+              });
+            }
+
             return {
               builder,
             };
@@ -716,6 +754,13 @@ export default async function formulaQueryBuilderv2({
     return result;
   };
 
+  // Shared across this whole build so a referenced formula/button column is
+  // expanded at most once per (col, tableAlias) — see formulaBuilderCache docs.
+  const formulaBuilderCache = new Map<
+    string,
+    { sql: string; bindings: readonly any[] }
+  >();
+
   let qb;
   try {
     parentColumns = parentColumns ?? CircularRefContext.make();
@@ -744,6 +789,7 @@ export default async function formulaQueryBuilderv2({
       parentColumns,
       columns,
       getAliasCount,
+      formulaBuilderCache,
     });
     let sqlLength = 0;
     try {

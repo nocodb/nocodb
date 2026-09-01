@@ -38,6 +38,12 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   columns: Column[];
   parentColumns: CircularRefContext;
   getAliasCount: () => number;
+  // Memoizes the built SQL of a referenced formula/button column per
+  // (col.id + tableAlias) within a single top-level build. Without it a formula
+  // that references another formula multiple times (directly or via a diamond
+  // dependency) rebuilds that subtree once per occurrence — exponential in
+  // nesting depth (k^D), materializing a huge SQL string (an OOM vector).
+  formulaBuilderCache?: Map<string, { sql: string; bindings: readonly any[] }>;
 }
 export type FnParsedTreeBase = {
   fnName?: string;

@@ -131,7 +131,10 @@ import {
   transformObjectKeys,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
-import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import {
+  defaultGroupByLimitConfig,
+  defaultLimitConfig,
+} from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
 import { isNonFiniteFormulaHandlingEnabled } from '~/db/formulav2/pg-ieee';
@@ -6894,6 +6897,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (scopeConditions.length) {
         await conditionV2(this, scopeConditions, qb);
       }
+
+      // Bound the distinct-value discovery. Grouping by a high-cardinality
+      // column (unique text/number/timestamp) would otherwise load every
+      // distinct value in the table into memory AND build a UNION ALL with one
+      // subquery per value — an unbounded, unauthenticated (shared-view) OOM.
+      // Cap to the configured group page size (NC_DB_QUERY_LIMIT_GROUP_BY_GROUP,
+      // default 25); the normal group-by flow passes explicit `options` and
+      // skips this branch entirely.
+      qb.limit(defaultGroupByLimitConfig.limitGroup);
 
       groupingValues = new Set(
         (await this.execAndParse(qb, null, { raw: true })).map(

@@ -37,12 +37,10 @@ import type {
 } from './formula-query-builder.types';
 import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
-import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
-import { CacheScope } from '~/utils/globals';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
@@ -530,6 +528,45 @@ async function clearFormulaColumnError(
 }
 
 /**
+ * Store a formula/button column error so later reads surface it.
+ *
+ * Both models write the update through to NocoCache, so there is no separate
+ * cache write — a separate one is how the Button branch used to end up with
+ * `error` in the cache but never in the row.
+ */
+async function persistFormulaColumnError(
+  context: NcContext,
+  column: Column,
+  message: string,
+) {
+  if (column.uidt !== UITypes.Button) {
+    await FormulaColumn.update(context, column.id, { error: message });
+    return;
+  }
+
+  // ButtonColumn.update derives its updatable props from `type`, so `error` is
+  // filtered straight back out without it
+  let type = (column.colOptions as { type?: ButtonActionsType })?.type;
+  if (!type) {
+    try {
+      type = (await column.getColOptions<ButtonColumn>(context))?.type;
+    } catch {
+      // this path is usually reached because the source is unreachable — the
+      // lookup must not replace the error being reported
+    }
+  }
+
+  if (!type) {
+    logger.warn(
+      `Button column ${column.id} has no resolvable type — formula error not stored`,
+    );
+    return;
+  }
+
+  await ButtonColumn.update(context, column.id, { error: message, type });
+}
+
+/**
  * Decide what a stored formula/button error means for a read.
  *
  * A validation run persists whatever the dry-run threw, including failures
@@ -774,33 +811,8 @@ export default async function formulaQueryBuilderv2({
       console.error(e);
 
       if (column) {
-        if (column?.uidt === UITypes.Button) {
-          await ButtonColumn.update(context, column.id, {
-            error: null,
-          });
-          // update cache to reflect the error in UI
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_BUTTON}:${column.id}`,
-            {
-              error: e.message,
-            },
-          );
-        } else {
-          // add formula error to show in UI
-          await FormulaColumn.update(context, column.id, {
-            error: e.message,
-          });
-
-          // update cache to reflect the error in UI
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_FORMULA}:${column.id}`,
-            {
-              error: e.message,
-            },
-          );
-        }
+        // show the error in the UI, and keep it for later reads
+        await persistFormulaColumnError(context, column, e.message);
       }
     } else {
       // Mark dry-run as failed so subsequent formula validations on the same

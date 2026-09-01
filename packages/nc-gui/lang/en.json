@@ -5500,6 +5500,7 @@
       "workflowButtonTriggerDisconnect3": "Change \"Action\" in the properties pane",
       "workflowButtonTriggerNoButton": "This automation is not connected to a button",
       "workflowButtonTriggerNotPublished": "The button is not configured with the action Run automation in the published version of this interface.",
+      "workflowButtonTriggerPageUnavailable": "This automation is connected to an interface page that can't be read — it may have been deleted, or you may not have access to it.",
       "interfaceButtonConfirmDeleteRecord": "This will delete the record. This can't be undone.",
       "interfaceRecordUpdatedMovedNext": "{from} updated · now showing {to} ({index} of {total})",
       "interfaceNoConfiguredPage": "No configured page",

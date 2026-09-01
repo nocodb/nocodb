@@ -388,7 +388,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 );
               }
             } catch (e) {
-              logFormulaBuildError(logger, e);
+              logFormulaBuildError(logger, e, column);
               // return dummy select
               qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
             }
@@ -561,7 +561,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               }
             }
           } catch (e) {
-            logFormulaBuildError(logger, e);
+            logFormulaBuildError(logger, e, column);
             // return dummy select
             qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
           }

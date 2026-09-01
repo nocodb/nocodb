@@ -204,9 +204,13 @@ export function isTransientError(error: any): boolean {
   // Both quote styles: Postgres quotes *identifiers* with double quotes but
   // *values* with single quotes (`invalid input value for enum foo: 'x'`), so
   // stripping only double quotes leaves a code-shaped cell value exposed.
-  // Apostrophes in prose ("doesn't exist") are harmless here — they only ever
-  // appear after the paired quotes have been consumed.
-  const stripQuoted = (text: string) => text.replace(/"[^"]*"|'[^']*'/g, '""');
+  //
+  // A prose apostrophe (`can't`, `the server's pool`) is indistinguishable from
+  // an opening quote to a left-to-right scan, so two of them would delete the
+  // text between — including the transient phrase we are looking for. Drop
+  // those first: an apostrophe between two letters is never a quote delimiter.
+  const stripQuoted = (text: string) =>
+    text.replace(/(\p{L})'(\p{L})/gu, '$1$2').replace(/"[^"]*"|'[^']*'/g, '""');
 
   const errorMessage = stripQuoted(
     typeof error === 'string' ? error : error?.message || '',

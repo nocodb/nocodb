@@ -619,9 +619,14 @@ export async function checkStoredFormulaError(
  * anything unexpected. `debug` is not an option: pino runs at `info` in every
  * deployment, so it would silence the message entirely.
  */
-export function logFormulaBuildError(logger: Logger, e: any) {
+export function logFormulaBuildError(logger: Logger, e: any, column?: Column) {
   // internal control flow, not a real formula error
   if (e?.message === FORMULA_DRY_RUN_SKIPPED_MESSAGE) return;
+
+  // Without this the line is often just the driver message (`Control plane
+  // request failed`) and names no column — unactionable, and more so now that
+  // the self-heal can clear and re-flag errors underneath the operator.
+  const where = column ? `column ${column.id} (${column.title}): ` : '';
 
   if (
     e instanceof NcBaseErrorv2 &&
@@ -629,7 +634,7 @@ export function logFormulaBuildError(logger: Logger, e: any) {
       e.error,
     )
   ) {
-    logger.warn(e.message);
+    logger.warn(`${where}${e.message}`);
     return;
   }
 
@@ -759,10 +764,18 @@ export default async function formulaQueryBuilderv2({
     }
 
     // dry run qb.builder to see if it will break the grid view or not
-    // if so, set formula error and show empty selectQb instead
+    // if so, set formula error and show empty selectQb instead.
+    //
+    // Bounded with a LIMIT: the read-path self-heal can trigger this, and an
+    // unbounded scan there would evaluate the formula for every row of the
+    // table on the first read after infra recovery — concurrently, across
+    // however many requests observe the stored error. One row exercises the
+    // same SQL generation and type resolution, and a grid read only ever
+    // renders a page anyway.
     await baseModelSqlv2.execAndParse(
       knex(baseModelSqlv2.getTnPath(model, tableAlias))
         .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
+        .limit(1)
         .as('dry-run-only'),
       null,
       { raw: true },
@@ -773,13 +786,23 @@ export default async function formulaQueryBuilderv2({
       const formula = await column.getColOptions<FormulaColumn | ButtonColumn>(
         context,
       );
-      // clean the previous formula error if the formula works this time
+      // clean the previous formula error if the formula works this time.
+      // Best-effort: this sits inside the outer try whose catch *persists*
+      // errors, so a throw here (e.g. a Button column with no resolvable
+      // type, or a meta write failing) would misreport a formula that just
+      // validated successfully as broken.
       if (formula.error) {
-        await clearFormulaColumnError(
-          { ...context, cache: false },
-          column,
-          formula,
-        );
+        try {
+          await clearFormulaColumnError(
+            { ...context, cache: false },
+            column,
+            formula,
+          );
+        } catch (clearErr) {
+          logger.warn(
+            `Failed to clear formula error on column ${column.id} after a successful dry run: ${clearErr?.message}`,
+          );
+        }
       }
       // clear context cache if present since metadata has changed
       context.cacheMap?.clear();

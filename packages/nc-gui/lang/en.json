@@ -5985,7 +5985,7 @@
   },
   "payment": {
     "credits": {
-      "balance": "Credit balance",
+      "balance": "AI credit balance",
       "available": "{count} credits available",
       "availableShort": "{count} left",
       "planCredits": "of {count} plan credits",

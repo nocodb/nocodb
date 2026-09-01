@@ -15,6 +15,7 @@ import type {
   FileImportOptions,
   FileImportSheet,
   FileImportType,
+  HookType,
   NcRequest,
   UserType,
 } from 'nocodb-sdk';
@@ -30,7 +31,7 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
-import { Audit, Model, Source, Workflow } from '~/models';
+import { Audit, Hook, Model, Source, Workflow } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import Noco from '~/Noco';
@@ -683,13 +684,23 @@ export class DataImportProcessor {
     );
     const handler = getImportHandler(importType);
 
-    // Imports skip webhooks/audit (raw + skip_hooks) for speed. When the target
-    // table has record-triggered workflows, still read inserted rows back and
-    // dispatch those workflows — otherwise e.g. "record matches condition" never
-    // fires on CSV upload. Resolved once (returns false in CE / when none exist).
-    const hasRecordWorkflows = await Workflow.hasRecordInsertTriggers(
-      context,
-      tableId,
+    // Imports skip hooks for speed, so nothing listening for inserts ever fired
+    // on CSV upload — not "record matches condition", not after-insert webhooks.
+    // Keep the fast path unless the table actually has a listener; the readback
+    // and per-row audit that hooks cost are then paid only where they're wanted.
+    // Resolved once per sheet.
+    const [hasRecordWorkflows, insertHooks] = await Promise.all([
+      Workflow.hasRecordInsertTriggers(context, tableId),
+      // Same lookup handleHooks itself performs for 'after.bulkInsert', so the
+      // gate can't drift from what would actually be dispatched.
+      Hook.list(context, {
+        fk_model_id: tableId,
+        event: 'after',
+        operation: 'bulkInsert' as HookType['operation'][0],
+      }),
+    ]);
+    const skipHooks = !(
+      hasRecordWorkflows || insertHooks.some((hook) => hook.active)
     );
 
     const stats = {
@@ -771,9 +782,8 @@ export class DataImportProcessor {
         tableName: tableId,
         body: rows,
         cookie: req,
-        skip_hooks: true,
+        skip_hooks: skipHooks,
         raw: true,
-        fireWorkflowTriggers: hasRecordWorkflows,
         ...(options.typecast ? { typecast: 'true' } : {}),
         ...(onInsertedPks ? { onInsertedPks } : {}),
       });

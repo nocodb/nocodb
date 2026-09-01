@@ -256,7 +256,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       onInsertedPks,
       skipPermissionCheck = false,
       skipAttachmentOwnershipCheck = false,
-      fireWorkflowTriggers = false,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -269,12 +268,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       typecast?: boolean;
       undo?: boolean;
       apiVersion?: NcApiVersion;
-      /**
-       * File import skips webhooks/audit (raw + skip_hooks), but record-triggered
-       * workflows must still fire for imported rows. When set, inserted rows are
-       * read back and dispatched to workflow triggers only.
-       */
-      fireWorkflowTriggers?: boolean;
       /**
        * Runtime-only sink invoked with the inserted rows' primary keys in
        * insertion order. Used by file import to correlate each inserted row
@@ -290,10 +283,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       skipAttachmentOwnershipCheck?: boolean;
     } = {},
   ) => {
-    // Workflow triggering also needs pk-bearing ordered responses to read the
-    // inserted rows back, so force pk capture even without an onInsertedPks sink.
+    // The after-insert hooks read the inserted rows back by pk. In raw mode the
+    // usual MySQL pk-wrapping below can't run (it needs the ai/ag columns the
+    // non-raw branch resolves), so force pk capture to get pk-bearing responses
+    // out of the insert itself.
     const capturePks =
-      typeof onInsertedPks === 'function' || fireWorkflowTriggers;
+      typeof onInsertedPks === 'function' || (raw && !skip_hooks);
     let trx;
     try {
       const insertDatas = raw ? datas : [];
@@ -610,11 +605,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
 
-      if (!raw && !skip_hooks) {
+      if (!skip_hooks) {
         // we will wrap returning primary key values with primary key column name
         // only needed when responses are raw auto-increment IDs (batchInsert path)
-        // skip when insertOneByOneAsFallback already wrapped them via extractCompositePK
-        if (baseModel.isMySQL && !insertOneByOneAsFallback) {
+        // skip when the one-by-one path already wrapped them via
+        // extractCompositePK — taken for the fallback and whenever capturePks
+        // forces it (see the insert branch above)
+        if (baseModel.isMySQL && !insertOneByOneAsFallback && !capturePks) {
           responses = responses.map((r, idx) => {
             const rowId = baseModel.extractCompositePK({
               rowId: r,
@@ -656,30 +653,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           );
           await baseModel.afterBulkInsert(insertResponses, cookie);
         }
-      } else if (
-        fireWorkflowTriggers &&
-        !isSingleRecordInsertion &&
-        responses?.length
-      ) {
-        // Import path (raw + skip_hooks) still needs record-triggered workflows.
-        // Read the inserted rows back in the same shape as the normal bulk path
-        // so workflow condition evaluation behaves identically, then dispatch
-        // workflow triggers only (no webhooks, no audit).
-        const insertResponseList = await baseModel.chunkList({
-          pks: responses.map((d) => baseModel.extractPksValues(d, true)),
-        });
-        const { ast, parsedQuery } = await getAst(baseModel.context, {
-          model: baseModel.model,
-          query: {},
-          extractOnlyPrimaries: false,
-        });
-        const insertResponses = await nocoExecute(
-          ast,
-          insertResponseList,
-          {},
-          parsedQuery,
-        );
-        await baseModel.afterBulkInsertWorkflowTriggers(insertResponses, cookie);
       }
 
       await baseModel.statsUpdate({
@@ -688,8 +661,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       // Hand back inserted pks in insertion order. `responses` are pk-bearing
       // (PG returning / mysql-sqlite one-by-one) whenever `capturePks` is set.
-      // `capturePks` can also be forced by `fireWorkflowTriggers` alone, so
-      // guard against a missing sink.
+      // `capturePks` can also be forced by the raw hook path alone, so guard
+      // against a missing sink.
       if (capturePks && onInsertedPks) {
         onInsertedPks(
           responses.map((r) => baseModel.extractPksValues(r, true)),

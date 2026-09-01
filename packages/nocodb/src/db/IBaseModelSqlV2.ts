@@ -214,8 +214,6 @@ export interface IBaseModelSqlV2 {
 
   afterBulkInsert(data: any[], req): Promise<void>;
 
-  afterBulkInsertWorkflowTriggers(data: any[], req): Promise<void>;
-
   afterBulkDelete(
     data: any,
     req: any,

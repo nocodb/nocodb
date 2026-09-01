@@ -40,9 +40,22 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
 
   public async handleHooks(
     context: NcContext,
-    param: { hookName; prevData; newData; user; viewId; modelId },
+    param: {
+      hookName;
+      prevData;
+      newData;
+      user;
+      viewId;
+      modelId;
+      workflowTriggersOnly?: boolean;
+    },
   ): Promise<void> {
     const { hookName, prevData, newData, user, viewId, modelId } = param;
+
+    // Workflow-only dispatch (file import): CE has no workflows, and webhooks
+    // stay skipped for imports, so there is nothing to do here.
+    if (param.workflowTriggersOnly) return;
+
     const [event, operation] = hookName.split('.');
 
     const view = await View.get(context, viewId);

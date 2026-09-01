@@ -30,7 +30,7 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
-import { Audit, Model, Source } from '~/models';
+import { Audit, Model, Source, Workflow } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import Noco from '~/Noco';
@@ -683,6 +683,15 @@ export class DataImportProcessor {
     );
     const handler = getImportHandler(importType);
 
+    // Imports skip webhooks/audit (raw + skip_hooks) for speed. When the target
+    // table has record-triggered workflows, still read inserted rows back and
+    // dispatch those workflows — otherwise e.g. "record matches condition" never
+    // fires on CSV upload. Resolved once (returns false in CE / when none exist).
+    const hasRecordWorkflows = await Workflow.hasRecordInsertTriggers(
+      context,
+      tableId,
+    );
+
     const stats = {
       rowsInserted: 0,
       rowsFailed: 0,
@@ -764,6 +773,7 @@ export class DataImportProcessor {
         cookie: req,
         skip_hooks: true,
         raw: true,
+        fireWorkflowTriggers: hasRecordWorkflows,
         ...(options.typecast ? { typecast: 'true' } : {}),
         ...(onInsertedPks ? { onInsertedPks } : {}),
       });

@@ -28,4 +28,8 @@ export default class Workflow {
   public static async findByTrigger(..._args: any) {
     return [];
   }
+
+  public static async hasRecordInsertTriggers(..._args: any) {
+    return false;
+  }
 }

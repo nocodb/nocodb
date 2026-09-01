@@ -4358,6 +4358,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipPermissionCheck?: boolean;
       /** Trusted internal copy paths only — see `prepareNocoData`. */
       skipAttachmentOwnershipCheck?: boolean;
+      /**
+       * File import skips webhooks/audit (raw + skip_hooks) for speed, but
+       * record-triggered workflows must still fire for imported rows. When set,
+       * inserted rows are read back and dispatched to workflow triggers only.
+       */
+      fireWorkflowTriggers?: boolean;
     },
   ) {
     return await baseModelInsert(this).bulk(datas, params);
@@ -5975,6 +5981,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     prevData: Record<string, any> | Record<string, any>[] | null,
     newData: Record<string, any> | Record<string, any>[] | null,
     req: NcRequest,
+    opts?: { workflowTriggersOnly?: boolean },
   ): Promise<void> {
     // Webhook destinations are server-side and configured by the workspace
     // owner — they receive whatever the caller passes here. Public-viewer
@@ -6018,6 +6025,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       viewId: this.viewId,
       modelId: this.model.id,
       tnPath: this.tnPath,
+      workflowTriggersOnly: opts?.workflowTriggersOnly,
+    });
+  }
+
+  // Fire record-triggered workflows for imported rows without emitting webhooks
+  // or audit. Used by file import, which otherwise skips all hooks for speed.
+  public async afterBulkInsertWorkflowTriggers(
+    data: Record<string, any>[],
+    req: NcRequest,
+  ): Promise<void> {
+    await this.handleHooks('after.bulkInsert', null, data, req, {
+      workflowTriggersOnly: true,
     });
   }
 

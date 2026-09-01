@@ -61,6 +61,7 @@ export class BulkDataAliasService {
       skipPermissionCheck?: boolean;
       skipAttachmentOwnershipCheck?: boolean;
       onInsertedPks?: (pks: (string | number)[]) => void;
+      fireWorkflowTriggers?: boolean;
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -80,6 +81,7 @@ export class BulkDataAliasService {
           skipPermissionCheck: param.skipPermissionCheck,
           skipAttachmentOwnershipCheck: param.skipAttachmentOwnershipCheck,
           onInsertedPks: param.onInsertedPks,
+          fireWorkflowTriggers: param.fireWorkflowTriggers,
         },
       ],
     });

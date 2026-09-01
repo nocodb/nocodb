@@ -27,6 +27,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
+import type { NcContext } from '~/interface/config';
 import type {
   FnParsedTreeNode,
   FormulaQueryBuilderBaseParams,
@@ -491,6 +492,40 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   };
   const builder = (await fn(tree)).builder;
   return { builder, parsedTree: tree };
+}
+
+/**
+ * Drop a stored formula/button column error and its cache entry.
+ *
+ * Used to discard an error that a validation run persisted for a reason
+ * unrelated to the formula itself (an unreachable source, a control-plane
+ * hiccup). Such an error never clears on its own — the only self-heal is a
+ * successful validated dry-run, and reads don't validate — so it keeps
+ * failing every request long after the infrastructure recovered. A genuine
+ * error is re-persisted by the next validation run.
+ */
+export async function clearFormulaColumnError(
+  context: NcContext,
+  column: Column,
+) {
+  if (column.uidt === UITypes.Button) {
+    // ButtonColumn.update picks the updatable props off `type`, so it has to
+    // be passed along or `error` is dropped from the update.
+    const buttonColumn = await column.getColOptions<ButtonColumn>(context);
+    await ButtonColumn.update(context, column.id, {
+      error: null,
+      type: buttonColumn?.type,
+    });
+  } else {
+    await FormulaColumn.update(context, column.id, { error: null });
+  }
+
+  // colOptions for this request were resolved before the clear
+  context.cacheMap?.clear();
+
+  logger.warn(
+    `Cleared stale formula error on column ${column.id} (${column.title})`,
+  );
 }
 
 export default async function formulaQueryBuilderv2({

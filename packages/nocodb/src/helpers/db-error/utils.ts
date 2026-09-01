@@ -215,6 +215,16 @@ export function isTransientError(error: any): boolean {
       'lost connection',
       'connection was killed',
       'timeout acquiring a connection', // Knex connection pool timeout
+      // Managed-Postgres control planes / poolers reject the connection before
+      // any SQL runs and report it as a bare message with no driver code or
+      // SQLSTATE, so the checks above can't catch them.
+      'control plane request failed',
+      'connection terminated',
+      'server closed the connection',
+      'terminating connection due to',
+      'database system is starting up',
+      'database system is shutting down',
+      'too many clients already',
     ];
 
     if (specificPatterns.some((pattern) => errorMessage.includes(pattern))) {

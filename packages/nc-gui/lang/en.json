@@ -6052,6 +6052,8 @@
       "lastNDays": "Last {count} days",
       "usedInWindow": "{count} credits used",
       "viewAllActivity": "View all activity",
+      "hideActivity": "Hide activity",
+      "showActivity": "Show activity",
       "popular": "Popular",
       "continueToPayment": "Continue to payment",
       "checkoutSubtitle": "You are adding {count} credits to your balance.",

@@ -41,6 +41,13 @@ const NON_FINITE_EXCLUDING_ROLLUPS = [
   'max',
 ];
 
+// Ceiling on nested rollup-of-rollup expansion. Each nested rollup increments
+// `nestedLevel`; without a cap a long chain of distinct rollup columns (which
+// the CircularRefContext cycle guard does not catch, since no id repeats) keeps
+// nesting correlated subqueries and re-materializing an ever-growing SQL string
+// — a memory-exhaustion vector. Real chains are 1–3 deep; 16 is generous.
+const MAX_ROLLUP_NESTED_LEVEL = 16;
+
 export default async function genRollupSelectv2(param: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
@@ -67,6 +74,13 @@ export default async function genRollupSelectv2(param: {
   }
 
   const context = baseModelSqlv2.context;
+
+  if (nestedLevel > MAX_ROLLUP_NESTED_LEVEL) {
+    NcError.get(context).badRequest(
+      `Rollup nesting is too deep (> ${MAX_ROLLUP_NESTED_LEVEL}). Simplify the dependent rollup chain.`,
+    );
+  }
+
   parentColumns = parentColumns ?? CircularRefContext.make();
   const profiler = Profiler.start(
     'DEBUG:/genRollupSelectv2/' + columnOptions.fk_column_id,

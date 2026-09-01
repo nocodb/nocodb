@@ -5985,7 +5985,7 @@
   },
   "payment": {
     "credits": {
-      "balance": "AI credit balance",
+      "balance": "Credit balance",
       "available": "{count} credits available",
       "availableShort": "{count} left",
       "planCredits": "of {count} plan credits",
@@ -6042,6 +6042,10 @@
       "expiresOn": "Expires {date}",
       "planUsedFirst": "Plan credits are used first · {remaining} of {total} remaining this cycle",
       "planUsedFirstShort": "Plan credits are used first",
+      "aiCredits": "AI credits",
+      "usedOfTotal": "{used} of {total} used",
+      "planUsedMeta": "Plan {used} / {total} used \u00b7 resets {date} \u00b7 Top-up {topup} \u00b7 plan credits are used first",
+      "planUsedMetaNoReset": "Plan {used} / {total} used \u00b7 Top-up {topup} \u00b7 plan credits are used first",
       "noTopupsYet": "No top-up credits yet",
       "granted": "Credits granted",
       "todayAt": "Today, {time}",
@@ -6083,7 +6087,11 @@
       "limitsHealthy": "All plan limits healthy",
       "limitsAttention": "Some plan limits need attention",
       "hideLimits": "Hide limits",
-      "showLimits": "Show limits"
+      "showLimits": "Show limits",
+      "usageThisCycle": "Usage this cycle",
+      "seatsOnWorkspace": "Seats on this workspace",
+      "workspaceSubscription": "Workspace subscription",
+      "orgSubscription": "Organization subscription"
     }
   }
 }

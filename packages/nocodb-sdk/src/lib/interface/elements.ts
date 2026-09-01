@@ -80,6 +80,8 @@ export enum InterfaceButtonActionTypes {
   RECORD_URL = 'record_url',
   /** Start a workflow whose trigger is "When a button is clicked". */
   RUN_WORKFLOW = 'run_workflow',
+  /** Open the NocoAI chat with the record in context, optionally sending a prompt. */
+  OPEN_NOCO_AI = 'open_noco_ai',
 }
 
 export interface InterfaceButtonConfirmation {
@@ -160,6 +162,16 @@ export interface InterfaceButtonRunWorkflow extends InterfaceButtonBase {
   fk_workflow_id: string;
 }
 
+/**
+ * Record-scoped — opens the NocoAI chat on a new thread with the open record
+ * as context. `prompt` lands in the composer (sent at once with `auto_submit`).
+ */
+export interface InterfaceButtonOpenNocoAi extends InterfaceButtonBase {
+  action: InterfaceButtonActionTypes.OPEN_NOCO_AI;
+  prompt?: string;
+  auto_submit?: boolean;
+}
+
 export type InterfaceButtonConfig =
   | InterfaceButtonExternalUrl
   | InterfaceButtonInterfacePage
@@ -168,7 +180,8 @@ export type InterfaceButtonConfig =
   | InterfaceButtonCopyRecordLink
   | InterfaceButtonDeleteRecord
   | InterfaceButtonRecordUrl
-  | InterfaceButtonRunWorkflow;
+  | InterfaceButtonRunWorkflow
+  | InterfaceButtonOpenNocoAi;
 
 /** Node id of the workflow trigger an interface button connects to. */
 export const INTERFACE_BUTTON_TRIGGER_NODE_TYPE = 'core.trigger.button';

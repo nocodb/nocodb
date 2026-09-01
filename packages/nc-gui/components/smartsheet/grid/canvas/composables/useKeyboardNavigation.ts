@@ -132,7 +132,7 @@ export function useKeyboardNavigation({
         else return
       }
       group = findGroupByPath(cachedGroups.value, groupPath)
-      defaultData = getDefaultGroupData(group)
+      defaultData = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
     }
 
     if (cmdOrCtrl && e.key === 'f' && editEnabled.value) {

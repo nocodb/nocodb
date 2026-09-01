@@ -990,7 +990,7 @@ const onNewRecordToGridClick = (path: Array<number> = []) => {
 
   if (isGroupBy.value) {
     const group = findGroupByPath(cachedGroups.value, path)
-    overwrite = getDefaultGroupData(group)
+    overwrite = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
   }
 
   addEmptyRow(undefined, undefined, undefined, overwrite, path)
@@ -1006,7 +1006,7 @@ function onNewRecordToFormClick(path: Array<number> = []) {
 
   if (isGroupBy.value) {
     const group = findGroupByPath(cachedGroups.value, path)
-    overwrite = getDefaultGroupData(group)
+    overwrite = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
   }
   openNewRecordFormHook.trigger({ overwrite, path })
   openAddNewRowDropdown.value = null
@@ -2045,7 +2045,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           return
         }
 
-        const setGroup = getDefaultGroupData(group)
+        const setGroup = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
 
         if (selectedTemplate.value) {
           onSelectedTemplateClick()
@@ -3028,7 +3028,7 @@ const onNavigate = async (dir: NavigateDir) => {
 
   const group = findGroupByPath(cachedGroups.value, path)
 
-  const defaultData = getDefaultGroupData(group)
+  const defaultData = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
 
   const dataCache = getDataCache(path)
 

@@ -1,4 +1,5 @@
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import { GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
 export function getGroupColors(depth: number, maxDepth: number, getColor: (color: string) => string) {
@@ -395,18 +396,24 @@ export function isGroupExpanded(groups: Map<number, CanvasGroup>, groupPath: num
 
 // Accepts anything carrying `nestedIn` (canvas `CanvasGroup` or the
 // `Group` shape used by Gantt/Timeline) — only the group path is read here.
-export function getDefaultGroupData(group?: Pick<CanvasGroup, 'nestedIn'>) {
+export function getDefaultGroupData(group?: Pick<CanvasGroup, 'nestedIn'>, columns?: ColumnType[]) {
   if (!group) return {}
   return group.nestedIn.reduce((acc, curr) => {
+    // `nestedIn.column_uidt` carries the *related display* column's type for
+    // link/lookup groups (used for where-clause building), so it can't identify
+    // the grouped column here. Resolve the real column by id — otherwise a
+    // grouped link's display string gets pre-filled but is silently dropped on
+    // save since it isn't a valid FK (issue #10188).
+    const uidt = (columns?.find((c) => c.id === curr.column_id)?.uidt ?? curr.column_uidt) as UITypes
     if (
       curr.key !== '__nc_null__' &&
       // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
-      !isLinksOrLTAR(curr.column_uidt) &&
-      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
+      !isLinksOrLTAR(uidt) &&
+      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(uidt)
     ) {
       acc[curr.title] = curr.key
 
-      if (curr.column_uidt === UITypes.Checkbox) {
+      if (uidt === UITypes.Checkbox) {
         acc[curr.title] =
           acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
       }

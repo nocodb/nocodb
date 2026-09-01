@@ -130,11 +130,11 @@ function onNavClick(item: NavItem) {
     </div>
 
     <!-- Bottom section: User info + notification bell -->
-    <div class="flex-none border-t-1 border-nc-border-gray-light p-1.5">
+    <div class="flex-none border-t-1 border-nc-border-gray-light px-2 py-1.5">
       <div class="flex items-center gap-0.5">
         <NcDropdown v-model:visible="isUserMenuOpen" placement="topLeft" overlay-class-name="!min-w-56">
           <div
-            class="flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-md cursor-pointer flex-1 min-w-0 transition-colors"
+            class="flex items-center gap-2 pl-2 pr-2 py-1 rounded-md cursor-pointer flex-1 min-w-0 transition-colors"
             :class="{
               'bg-nc-bg-gray-medium': isUserMenuOpen,
               'hover:bg-nc-bg-gray-medium': !isUserMenuOpen,

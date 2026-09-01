@@ -6084,12 +6084,11 @@
       "paidPlanOnly": "Credits can be purchased on paid plans only. Upgrade your plan to buy credits."
     },
     "planCard": {
-      "limitsHealthy": "All plan limits healthy",
-      "limitsAttention": "Some plan limits need attention",
       "hideLimits": "Hide limits",
       "showLimits": "Show limits",
       "usageThisCycle": "Usage this cycle",
       "seatsOnWorkspace": "Seats on this workspace",
+      "seatsOnOrg": "Seats in this organization",
       "workspaceSubscription": "Workspace subscription",
       "orgSubscription": "Organization subscription"
     }

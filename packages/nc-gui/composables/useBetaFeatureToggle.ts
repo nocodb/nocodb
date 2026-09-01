@@ -239,9 +239,9 @@ const FEATURES = [
   {
     // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
     // would silently reset the toggle for anyone who had it on.
-    id: 'theme_all_palettes',
-    title: 'All dark palettes',
-    description: 'Show every dark palette in theme settings, not just Default and NocoDB classic.',
+    id: 'theme_settings',
+    title: 'Theme settings',
+    description: 'Pick a dark mode palette from the theme settings drawer in the user menu.',
     enabled: false,
     version: 1,
     isEngineering: false,

@@ -247,8 +247,18 @@ export const useTheme = createSharedComposable(() => {
 
   const darkPalette = ref<DarkPaletteState>({ preset: DEFAULT_DARK_PRESET, overrides: {} })
 
+  // beta-gated; read off `features` because `isFeatureEnabled` pulls useEeConfig (and the workspace store) in with it
+  const isDarkPaletteConfigurable = computed(
+    () => useBetaFeatureToggle().features.value.find((f) => f.id === FEATURE_FLAG.THEME_SETTINGS)?.enabled ?? false,
+  )
+
+  /** what renders: the stored choice while the flag is on, the shipped default otherwise (the choice is kept, not cleared) */
+  const effectiveDarkPalette = computed<DarkPaletteState>(() =>
+    isDarkPaletteConfigurable.value ? darkPalette.value : { preset: DEFAULT_DARK_PRESET, overrides: {} },
+  )
+
   /** preset values with any per-token overrides applied on top */
-  const activeDarkPaletteValues = computed(() => resolveDarkPalette(darkPalette.value))
+  const activeDarkPaletteValues = computed(() => resolveDarkPalette(effectiveDarkPalette.value))
 
   /**
    * `default` (classic) IS variables.css, so it needs no injected block. This is
@@ -257,7 +267,9 @@ export const useTheme = createSharedComposable(() => {
    * would drop the stored value of anyone who picked classic.
    */
   const isVariablesCssPalette = computed(
-    () => darkPalette.value.preset === VARIABLES_CSS_DARK_PRESET && !Object.keys(darkPalette.value.overrides).length,
+    () =>
+      effectiveDarkPalette.value.preset === VARIABLES_CSS_DARK_PRESET &&
+      !Object.keys(effectiveDarkPalette.value.overrides).length,
   )
 
   /** nothing worth persisting when the state already matches the shipped default */
@@ -410,6 +422,12 @@ export const useTheme = createSharedComposable(() => {
   useEventListener(window, 'storage', handleStorageChange)
 
   watch(isDark, applyTheme, { immediate: true })
+
+  // toggling the beta flag swaps the rendered palette without touching the stored choice
+  watch(isDarkPaletteConfigurable, (enabled) => {
+    if (!enabled) isThemeConfigOpen.value = false
+    applyDarkPalette()
+  })
 
   watch(isDark, () => {
     barcodeCache.clear()

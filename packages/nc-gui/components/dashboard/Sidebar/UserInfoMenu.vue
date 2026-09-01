@@ -42,7 +42,9 @@ const themeIcon = computed(
     }[selectedTheme.value] as IconMapKey),
 )
 
-const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
+const { isExperimentalFeatureModalOpen, isFeatureEnabled } = useBetaFeatureToggle()
+
+const isThemeConfigEnabled = computed(() => isThemeEnabled.value && isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
 
 const auditsStore = useAuditsStore()
 
@@ -194,7 +196,7 @@ const openKeyboardShortcutDialog = () => {
 
       <!-- Theme settings -->
       <NcMenuItem
-        v-if="isThemeEnabled"
+        v-if="isThemeConfigEnabled"
         v-e="['c:theme:config-open']"
         data-testid="nc-sidebar-user-theme-config"
         @click="openThemeConfig"
@@ -253,7 +255,12 @@ const openKeyboardShortcutDialog = () => {
           <span class="menu-btn">{{ themeLabel }}</span>
           <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
         </NcMenuItem>
-        <NcMenuItem v-e="['c:theme:config-open']" data-testid="nc-sidebar-user-theme-config" @click="openThemeConfig">
+        <NcMenuItem
+          v-if="isThemeConfigEnabled"
+          v-e="['c:theme:config-open']"
+          data-testid="nc-sidebar-user-theme-config"
+          @click="openThemeConfig"
+        >
           <GeneralIcon icon="palette" class="menu-icon" />
           <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
         </NcMenuItem>

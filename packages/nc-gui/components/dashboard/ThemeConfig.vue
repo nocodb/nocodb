@@ -7,8 +7,6 @@
 const { isThemeConfigOpen, selectedTheme, setTheme, darkPalette, activeDarkPaletteValues, setDarkPreset, setDarkPaletteToken } =
   useTheme()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { isMobileMode } = useGlobal()
 
 const { isRtl } = useRtl()
@@ -25,16 +23,6 @@ const { t } = useI18n()
 const SHOW_ADVANCED_TOKENS = false
 
 const showAdvanced = ref(false)
-
-/** Palettes past the first two are still being tuned — gated, and the active one always shows. */
-const visiblePresets = computed(() => {
-  if (isFeatureEnabled(FEATURE_FLAG.THEME_ALL_PALETTES)) return DARK_PALETTE_PRESETS
-
-  return DARK_PALETTE_PRESETS.filter(
-    (preset) =>
-      preset.id === DEFAULT_DARK_PRESET || preset.id === VARIABLES_CSS_DARK_PRESET || preset.id === darkPalette.value.preset,
-  )
-})
 
 const modes = computed(() => [
   { value: 'system', label: t('general.system'), icon: 'ncSunMoon' as const },
@@ -132,7 +120,7 @@ const close = () => {
           </div>
           <div class="flex flex-col gap-1.5">
             <div
-              v-for="preset of visiblePresets"
+              v-for="preset of DARK_PALETTE_PRESETS"
               :key="preset.id"
               class="nc-theme-preset-row"
               :class="{ active: darkPalette.preset === preset.id }"

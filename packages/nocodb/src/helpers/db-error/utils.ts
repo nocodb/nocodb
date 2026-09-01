@@ -200,7 +200,13 @@ export function isTransientError(error: any): boolean {
   // wrongly-transient error is never persisted, leaving the column showing ERR
   // with no diagnostic. Strip quoted spans before matching; no transient
   // pattern below quotes anything.
-  const stripQuoted = (text: string) => text.replace(/"[^"]*"/g, '""');
+  //
+  // Both quote styles: Postgres quotes *identifiers* with double quotes but
+  // *values* with single quotes (`invalid input value for enum foo: 'x'`), so
+  // stripping only double quotes leaves a code-shaped cell value exposed.
+  // Apostrophes in prose ("doesn't exist") are harmless here — they only ever
+  // appear after the paired quotes have been consumed.
+  const stripQuoted = (text: string) => text.replace(/"[^"]*"|'[^']*'/g, '""');
 
   const errorMessage = stripQuoted(
     typeof error === 'string' ? error : error?.message || '',

@@ -193,8 +193,17 @@ export function isTransientError(error: any): boolean {
   // 4. Check error message for specific connection-related patterns
   // Note: Using specific phrases to minimize false positives
   // Handle both error objects with .message property and plain strings
-  const errorMessage = (
-    typeof error === 'string' ? error : error?.message || ''
+  // Drivers quote user data and identifiers back in the message (`invalid input
+  // syntax for type numeric: "ECONNREFUSED"`, `ORA-00904: "ETIMEDOUT": invalid
+  // identifier`). A token inside those quotes is a value the query touched, not
+  // the driver's own code, so a real formula error would read as infra — and a
+  // wrongly-transient error is never persisted, leaving the column showing ERR
+  // with no diagnostic. Strip quoted spans before matching; no transient
+  // pattern below quotes anything.
+  const stripQuoted = (text: string) => text.replace(/"[^"]*"/g, '""');
+
+  const errorMessage = stripQuoted(
+    typeof error === 'string' ? error : error?.message || '',
   ).toLowerCase();
 
   // Only check messages with reasonable length to avoid matching generic errors
@@ -240,7 +249,7 @@ export function isTransientError(error: any): boolean {
   // name that merely appears inside a table or column name.
   if (
     /(^|[^A-Z0-9_])(ECONNREFUSED|ETIMEDOUT|ECONNRESET|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|ECONNABORTED|EHOSTDOWN|EAI_AGAIN|SQLITE_BUSY|SQLITE_LOCKED|ER_LOCK_WAIT_TIMEOUT|ER_CON_COUNT_ERROR|ER_TOO_MANY_USER_CONNECTIONS|NJS-(?:500|501|503|510|511|518|521)|ORA-0*(?:1033|1034|3113|3114|12170|12514|12537|12541))([^A-Z0-9_]|$)/i.test(
-      typeof error === 'string' ? error : error?.message ?? '',
+      stripQuoted(typeof error === 'string' ? error : error?.message ?? ''),
     )
   ) {
     return true;

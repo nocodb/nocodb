@@ -28,6 +28,7 @@ import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
 import type { NcContext } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import type {
   FnParsedTreeNode,
   FormulaQueryBuilderBaseParams,
@@ -499,16 +500,27 @@ async function clearFormulaColumnError(
   context: NcContext,
   column: Column,
   colOptions: { error?: string | null; type?: ButtonActionsType },
+  ncMeta?: MetaService,
 ) {
   if (column.uidt === UITypes.Button) {
     // ButtonColumn.update picks the updatable props off `type`, so it has to
-    // be passed along or `error` is dropped from the update.
-    await ButtonColumn.update(context, column.id, {
-      error: null,
-      type: colOptions?.type,
-    });
+    // be passed along or `error` is dropped from the update. Without a type
+    // the write would resolve having changed nothing, and the caller would
+    // retry the clear on every later read.
+    if (!colOptions?.type) {
+      throw new Error(`Button column ${column.id} has no resolvable type`);
+    }
+    await ButtonColumn.update(
+      context,
+      column.id,
+      {
+        error: null,
+        type: colOptions.type,
+      },
+      ncMeta,
+    );
   } else {
-    await FormulaColumn.update(context, column.id, { error: null });
+    await FormulaColumn.update(context, column.id, { error: null }, ncMeta);
   }
 
   // both models write through to NocoCache, so only the caller's already
@@ -539,6 +551,7 @@ export async function checkStoredFormulaError(
   context: NcContext,
   column: Column,
   colOptions: { error?: string | null; type?: ButtonActionsType },
+  ncMeta?: MetaService,
 ): Promise<{ blocking: boolean; revalidate: boolean }> {
   if (!colOptions?.error) return { blocking: false, revalidate: false };
 
@@ -547,7 +560,7 @@ export async function checkStoredFormulaError(
   }
 
   try {
-    await clearFormulaColumnError(context, column, colOptions);
+    await clearFormulaColumnError(context, column, colOptions, ncMeta);
   } catch (e) {
     logger.warn(
       `Failed to clear stale formula error on column ${column.id}: ${e?.message}`,

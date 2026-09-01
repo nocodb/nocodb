@@ -103,10 +103,22 @@ export async function getColumnNameQuery({
       );
       // a stored error that turns out to be a stale infra failure is cleared
       // here rather than silently dropping the expression from the query
-      const stored = await checkStoredFormulaError(context, column, formula);
+      const stored = await checkStoredFormulaError(
+        context,
+        column,
+        formula,
+        ncMeta,
+      );
       if (!stored.blocking) {
+        // forward `revalidate`: the clear already nulled `error`, so the check
+        // inside getSelectQueryBuilderForFormula can no longer derive it, and a
+        // formula that really is broken would lose its stored diagnostic
         column_name_query =
-          await baseModelSqlv2.getSelectQueryBuilderForFormula(column);
+          await baseModelSqlv2.getSelectQueryBuilderForFormula(
+            column,
+            undefined,
+            stored.revalidate,
+          );
       }
       break;
     }

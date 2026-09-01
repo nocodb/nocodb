@@ -684,8 +684,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       // Hand back inserted pks in insertion order. `responses` are pk-bearing
       // (PG returning / mysql-sqlite one-by-one) whenever `capturePks` is set.
-      // `capturePks` can also be forced by the raw hook path alone, so guard
-      // against a missing sink.
+      // `capturePks` can be set via `raw && !skip_hooks` with no `onInsertedPks`
+      // sink supplied, so guard against a missing one.
       if (capturePks && onInsertedPks) {
         onInsertedPks(
           responses.map((r) => baseModel.extractPksValues(r, true)),

@@ -32,7 +32,7 @@ export function useGridViewData(
 
   const { base } = storeToRefs(useBase())
 
-  const { $api } = useNuxtApp()
+  const { $api, $ncSocket } = useNuxtApp()
 
   const isBulkOperationInProgress = ref(false)
 
@@ -170,8 +170,23 @@ export function useGridViewData(
 
   reloadAggregate?.on(reloadAggregateListener)
 
+  // While the socket is disconnected (e.g. tab left idle for hours) every realtime
+  // data event is missed — peers moving records between groups, deletes, updates —
+  // so group counts and cached rows go stale and moved-out records linger as loading
+  // placeholders. A page reload fixes it; so does resyncing the view on reconnect.
+  // Only on an actual reconnect, not the first handshake (data is already fresh then).
+  const offSocketReady = $ncSocket.onReady(({ reconnected }) => {
+    if (!reconnected) return
+    reloadViewDataHook?.trigger()
+    // Footer/column aggregations aren't re-fetched by the data reload above (group
+    // aggregations reload with their chunks, but the view-level footer only reloads
+    // on view switch), so refresh them too or they'd stay stale after reconnect.
+    reloadAggregate?.trigger(undefined)
+  })
+
   onBeforeUnmount(() => {
     reloadAggregate?.off(reloadAggregateListener)
+    offSocketReady?.()
   })
 
   function getCount(path?: Array<number>) {

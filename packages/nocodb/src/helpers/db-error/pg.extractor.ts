@@ -216,6 +216,29 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'You do not have permission to perform this action.';
         httpStatus = 401;
         break;
+      case '42501': {
+        // insufficient_privilege — the connected DB role lacks the required
+        // permission. The most common case from the UI is ALTER TABLE failing
+        // because the role does not own the table; PG raises `must be owner of
+        // table X`. Other grants (SELECT/INSERT/...) raise `permission denied
+        // for <object> X`. Surface a clear, actionable message so users stop
+        // blindly retrying the same operation.
+        const raw = pgRawMessage(error) || '';
+        const objectMatch = raw.match(
+          /(?:permission denied for|must be owner of)\s+(?:table|relation|view|schema|sequence|database)\s+"?([^"\s]+)"?/i,
+        );
+        if (/must be owner/i.test(raw)) {
+          message = objectMatch
+            ? `The database user is not the owner of '${objectMatch[1]}' and cannot alter it.`
+            : 'The database user is not the owner of this table and cannot alter it.';
+        } else {
+          message = objectMatch
+            ? `The database user does not have permission to access '${objectMatch[1]}'.`
+            : 'The database user does not have permission to perform this operation.';
+        }
+        httpStatus = 403;
+        break;
+      }
       case '40P01':
         message = 'A timeout occurred while waiting for a table lock.';
         httpStatus = 500;

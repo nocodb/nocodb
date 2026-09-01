@@ -640,6 +640,34 @@ export function haveFormulaColumn(columns: Column[]) {
 }
 
 /**
+ * True when any Formula/Button column carries a stored error.
+ *
+ * Such a column compiles to `'ERR' as …` (or is dropped, for Button), so a plan
+ * built now is poisoned. Caching it puts the model on the cache-hit path, which
+ * returns before the columns are extracted — and the self-heal probe lives in
+ * that extraction, so the column would stay broken until the hash expires
+ * (NC_REDIS_TTL, 3 days) even after the source recovered.
+ *
+ * colOptions are NocoCache-backed, and this only runs on the plan-building
+ * (cache-miss) path.
+ */
+export async function hasFlaggedFormulaColumn(
+  context: NcContext,
+  columns: Column[],
+): Promise<boolean> {
+  for (const col of columns) {
+    if (col.uidt !== UITypes.Formula && col.uidt !== UITypes.Button) continue;
+    try {
+      const colOptions = await col.getColOptions<{ error?: string }>(context);
+      if (colOptions?.error) return true;
+    } catch {
+      // a missing colOptions row is not a reason to skip caching
+    }
+  }
+  return false;
+}
+
+/**
  * Returns a Knex where-clause callback that excludes soft-deleted records
  * using an alias-qualified column name. For use in subqueries where the
  * table is aliased (e.g. lookups, rollups, CTEs).

@@ -12,6 +12,7 @@ import type { NcContext } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { Column } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { checkStoredFormulaError } from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { boolSqlLiteral } from '~/helpers/dbHelpers';
 import Noco from '~/Noco';
@@ -100,7 +101,13 @@ export async function getColumnNameQuery({
         context,
         ncMeta,
       );
-      if (!formula.error) {
+      // a stored error that reads as a stale infra failure gets revalidated
+      // rather than silently dropping the expression from the query. Nothing
+      // is written here — getSelectQueryBuilderForFormula re-derives the
+      // revalidate decision from the still-stored error and runs the bounded
+      // self-heal probe; only its success-path clear removes the error.
+      const stored = await checkStoredFormulaError(context, column, formula);
+      if (!stored.blocking) {
         column_name_query =
           await baseModelSqlv2.getSelectQueryBuilderForFormula(column);
       }

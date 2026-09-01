@@ -100,7 +100,9 @@ import {
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
 import { DBQueryClient } from '~/dbQueryClient';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import formulaQueryBuilderv2, {
+  checkStoredFormulaError,
+} from '~/db/formulav2/formulaQueryBuilderv2';
 import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
@@ -1677,7 +1679,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     aliasToColumnBuilder = {},
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
-    if (formula.error) NcError.get(this.context).formulaError(formula.error);
+    let dryRunLimit: number | undefined;
+    if (formula.error) {
+      const stored = await checkStoredFormulaError(
+        this.context,
+        column,
+        formula,
+      );
+      if (stored.blocking) {
+        NcError.get(this.context).formulaError(formula.error);
+      }
+      // the stored error reads as stale — validating this build is what
+      // proves the formula works (the success-path clear removes it), and
+      // re-flags it if it doesn't. The self-heal probe is bounded; an
+      // explicit validation from a column edit stays unbounded.
+      if (stored.revalidate && !validateFormula) dryRunLimit = 1;
+      validateFormula = validateFormula || stored.revalidate;
+    }
 
     const qb = await formulaQueryBuilderv2({
       baseModel: this,
@@ -1687,6 +1705,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasToColumn: aliasToColumnBuilder,
       tableAlias,
       validateFormula,
+      dryRunLimit,
     });
     return qb;
   }
@@ -8654,7 +8673,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async btRead(
     { colId, id }: { colId; id; apiVersion?: NcApiVersion },
-    args: { limit?; offset?; fieldSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldSet?: Set<string>;
+      pkAndPvOnly?: boolean;
+    } = {},
   ) {
     try {
       await this.model.getColumns(this.context);
@@ -8723,7 +8747,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         qb.where(parentSoftDeleteFilter);
       }
 
-      await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
+      await parentModel.selectObject({
+        qb,
+        fieldsSet: args.fieldSet,
+        pkAndPvOnly: args.pkAndPvOnly,
+      });
 
       const parent = await this.execAndParse(
         qb,

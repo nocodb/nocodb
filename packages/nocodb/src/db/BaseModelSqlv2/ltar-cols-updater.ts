@@ -109,10 +109,13 @@ export const LTARColsUpdater = (param: {
             true,
           );
         } else {
-          existingLinks = await readBaseModel.btRead({
-            colId: col.id,
-            id: rowId,
-          });
+          existingLinks = await readBaseModel.btRead(
+            {
+              colId: col.id,
+              id: rowId,
+            },
+            { pkAndPvOnly: true },
+          );
         }
         profiler.log(`${col.colOptions.type} list done`);
 

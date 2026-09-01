@@ -26,7 +26,7 @@ import {
 } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NC_MAX_TEXT_LENGTH } from '~/constants';
-import { FORMULA_DRY_RUN_SKIPPED_MESSAGE } from '~/db/formulav2/formulaQueryBuilderv2';
+import { logFormulaBuildError } from '~/db/formulav2/formulaQueryBuilderv2';
 
 export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   return async ({
@@ -388,10 +388,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 );
               }
             } catch (e) {
-              // The dry-run short-circuit sentinel is internal control flow,
-              // not a real formula error. Logging it per record/column is the
-              // exact noise that floods logs when an external source is down.
-              if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE) logger.log(e);
+              logFormulaBuildError(logger, e, column);
               // return dummy select
               qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
             }
@@ -564,9 +561,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               }
             }
           } catch (e) {
-            // See the Formula case above — don't log the internal short-circuit
-            // sentinel.
-            if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE) logger.log(e);
+            logFormulaBuildError(logger, e, column);
             // return dummy select
             qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
           }

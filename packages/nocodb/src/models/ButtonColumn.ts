@@ -109,9 +109,7 @@ export default class ButtonColumn {
         { fk_column_id: columnId },
       );
       if (column) {
-        if (column.type === ButtonActionsType.Url) {
-          column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
-        }
+        column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
         await NocoCache.set(
           context,
           `${CacheScope.COL_BUTTON}:${columnId}`,
@@ -121,6 +119,11 @@ export default class ButtonColumn {
     }
 
     if (column) {
+      // Entries cached by the pre-fix `update()` hold JSON text, and nothing
+      // rewrites them — `getRaw` refreshes the TTL on every read, so a hot one
+      // never expires. Mirrors FormulaColumn.read().
+      column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
+
       column.filters = await Filter.allButtonFilterList(
         context,
         { buttonColId: columnId },
@@ -137,13 +140,7 @@ export default class ButtonColumn {
     button: Partial<ButtonColumn> & { parsed_tree?: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const urlProps = [
-      'fk_column_id',
-      'formula_raw',
-      'formula',
-      'error',
-      'parsed_tree',
-    ];
+    const urlProps = ['fk_column_id', 'formula_raw', 'formula', 'error'];
 
     const webhookProps = ['fk_webhook_id'];
 
@@ -173,11 +170,12 @@ export default class ButtonColumn {
       'type',
       'icon',
       'label',
+      // type-independent: the two parsed_tree-only writers (the formula builder
+      // caching a freshly built tree, Column.update invalidating it) have no
+      // `type` to pass, and the Url branch above would drop it — leaving the
+      // tree unwritable and the cache entry unable to self-correct
+      'parsed_tree',
     ]);
-
-    if (button.type === ButtonActionsType.Url) {
-      button.parsed_tree = stringifyMetaProp(button, 'parsed_tree', null);
-    }
 
     if ('parsed_tree' in updateObj)
       updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree', null);
@@ -193,10 +191,24 @@ export default class ButtonColumn {
       },
     );
 
+    // The meta row stores `parsed_tree` as JSON text, but every reader expects
+    // the parsed tree — `read()` parses it on the way out of the DB. Caching the
+    // stringified form hands the next reader a string, the formula build throws
+    // on it, and the Button branch of the query builders drops the column from
+    // the SELECT entirely: a button that renders as nothing, with no stored
+    // error to explain it, until the column is edited.
+    //
+    // Built as a separate object rather than mutating `updateObj` back, which
+    // was already handed to `metaUpdate` above.
     await NocoCache.update(
       context,
       `${CacheScope.COL_BUTTON}:${columnId}`,
-      updateObj,
+      'parsed_tree' in updateObj
+        ? {
+            ...updateObj,
+            parsed_tree: parseMetaProp(updateObj, 'parsed_tree', null),
+          }
+        : updateObj,
     );
   }
 

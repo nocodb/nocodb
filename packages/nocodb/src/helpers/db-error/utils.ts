@@ -193,8 +193,35 @@ export function isTransientError(error: any): boolean {
   // 4. Check error message for specific connection-related patterns
   // Note: Using specific phrases to minimize false positives
   // Handle both error objects with .message property and plain strings
-  const errorMessage = (
-    typeof error === 'string' ? error : error?.message || ''
+  // Drivers quote user data and identifiers back in the message (`invalid input
+  // syntax for type numeric: "ECONNREFUSED"`, `ORA-00904: "ETIMEDOUT": invalid
+  // identifier`). A token inside those quotes is a value the query touched, not
+  // the driver's own code, so a real formula error would read as infra — and a
+  // wrongly-transient error is never persisted, leaving the column showing ERR
+  // with no diagnostic. Strip quoted spans before matching; no transient
+  // pattern below quotes anything.
+  //
+  // All three quote styles: Postgres quotes *identifiers* with double quotes
+  // but *values* with single quotes (`invalid input value for enum foo: 'x'`),
+  // and MySQL quotes identifiers with backticks (``Unknown column
+  // 'ECONNREFUSED' in `ETIMEDOUT` ``), so covering only one leaves a
+  // code-shaped cell value or column name exposed.
+  //
+  // A prose apostrophe (`can't`, `the server's pool`) is indistinguishable from
+  // an opening quote to a left-to-right scan, so two of them would delete the
+  // text between — including the transient phrase we are looking for. Drop
+  // those first. Heuristic, not an invariant: a letter-adjacent apostrophe is
+  // rarely a quote delimiter, but it can be (MSSQL's `'Employee's Name'`),
+  // and dropping one shifts how the remaining quotes pair. Real driver
+  // messages all classify correctly; the exact fix is the schema-backed
+  // classification planned as a follow-up.
+  const stripQuoted = (text: string) =>
+    text
+      .replace(/(\p{L})'(\p{L})/gu, '$1$2')
+      .replace(/"[^"]*"|'[^']*'|`[^`]*`/g, '""');
+
+  const errorMessage = stripQuoted(
+    typeof error === 'string' ? error : error?.message || '',
   ).toLowerCase();
 
   // Only check messages with reasonable length to avoid matching generic errors
@@ -215,11 +242,35 @@ export function isTransientError(error: any): boolean {
       'lost connection',
       'connection was killed',
       'timeout acquiring a connection', // Knex connection pool timeout
+      // Managed-Postgres control planes / poolers reject the connection before
+      // any SQL runs and report it as a bare message with no driver code or
+      // SQLSTATE, so the checks above can't catch them.
+      'control plane request failed',
+      'connection terminated',
+      'server closed the connection',
+      'terminating connection due to',
+      'database system is starting up',
+      'database system is shutting down',
+      'too many clients already',
     ];
 
     if (specificPatterns.some((pattern) => errorMessage.includes(pattern))) {
       return true;
     }
+  }
+
+  // 5. Driver codes embedded in the message text. Drivers prefix the code
+  // (`connect ECONNREFUSED 10.0.0.5:5432`, `ORA-12541: TNS:no listener`), and
+  // some callers only keep the message — a persisted column error, a
+  // serialized error forwarded by the sql-executor — so the `error.code`
+  // checks above have nothing to match on. Anchored to avoid matching a code
+  // name that merely appears inside a table or column name.
+  if (
+    /(^|[^A-Z0-9_])(ECONNREFUSED|ETIMEDOUT|ECONNRESET|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|ECONNABORTED|EHOSTDOWN|EAI_AGAIN|SQLITE_BUSY|SQLITE_LOCKED|ER_LOCK_WAIT_TIMEOUT|ER_CON_COUNT_ERROR|ER_TOO_MANY_USER_CONNECTIONS|NJS-(?:500|501|503|510|511|518|521)|ORA-0*(?:1033|1034|3113|3114|12170|12514|12537|12541))([^A-Z0-9_]|$)/i.test(
+      stripQuoted(typeof error === 'string' ? error : error?.message ?? ''),
+    )
+  ) {
+    return true;
   }
 
   return false;

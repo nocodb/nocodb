@@ -1800,7 +1800,6 @@
       "dragDropPrefix": "Drag & drop, or",
       "browse": "browse",
       "placeholder": {
-    "interfaceNocoAiPrompt": "Ask a question, or generate content based on this record.",
         "productName": "NocoDB",
         "brandColor": "#3366FF",
         "seoDescription": "The smart no-code platform your team runs on.",
@@ -4633,6 +4632,7 @@
     "freezeColumnsCount": "Freeze {count} column | Freeze {count} columns"
   },
   "placeholder": {
+    "interfaceNocoAiPrompt": "Ask a question, or generate content based on this record.",
     "findBaseCollaborator": "Find a base collaborator",
     "enterVerificationCode": "Enter 6-digit code",
     "enterBackupCode": "Enter backup code (e.g., xxxx-xxxx)",

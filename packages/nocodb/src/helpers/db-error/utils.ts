@@ -201,9 +201,11 @@ export function isTransientError(error: any): boolean {
   // with no diagnostic. Strip quoted spans before matching; no transient
   // pattern below quotes anything.
   //
-  // Both quote styles: Postgres quotes *identifiers* with double quotes but
-  // *values* with single quotes (`invalid input value for enum foo: 'x'`), so
-  // stripping only double quotes leaves a code-shaped cell value exposed.
+  // All three quote styles: Postgres quotes *identifiers* with double quotes
+  // but *values* with single quotes (`invalid input value for enum foo: 'x'`),
+  // and MySQL quotes identifiers with backticks (``Unknown column
+  // 'ECONNREFUSED' in `ETIMEDOUT` ``), so covering only one leaves a
+  // code-shaped cell value or column name exposed.
   //
   // A prose apostrophe (`can't`, `the server's pool`) is indistinguishable from
   // an opening quote to a left-to-right scan, so two of them would delete the
@@ -214,7 +216,9 @@ export function isTransientError(error: any): boolean {
   // messages all classify correctly; the exact fix is the schema-backed
   // classification planned as a follow-up.
   const stripQuoted = (text: string) =>
-    text.replace(/(\p{L})'(\p{L})/gu, '$1$2').replace(/"[^"]*"|'[^']*'/g, '""');
+    text
+      .replace(/(\p{L})'(\p{L})/gu, '$1$2')
+      .replace(/"[^"]*"|'[^']*'|`[^`]*`/g, '""');
 
   const errorMessage = stripQuoted(
     typeof error === 'string' ? error : error?.message || '',

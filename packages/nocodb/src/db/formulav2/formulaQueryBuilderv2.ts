@@ -39,7 +39,7 @@ import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
-import { BaseUser, ButtonColumn } from '~/models';
+import { BaseUser, ButtonColumn, View } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
@@ -525,6 +525,36 @@ async function clearFormulaColumnError(
   // resolved copies are stale
   if (colOptions) colOptions.error = null;
   if (column.colOptions) (column.colOptions as { error?: string }).error = null;
+
+  await invalidateSingleQueryPlans(context, column, ncMeta);
+}
+
+/**
+ * Drop the compiled singleQuery plans for the column's model.
+ *
+ * `error` shapes the SQL — a flagged column compiles to `'ERR' as …` (or is
+ * dropped, for Button) — but `FormulaColumn.update` / `ButtonColumn.update` are
+ * the only column writers that don't clear the plan cache, unlike
+ * `Column.update`. Harmless while they only ran at edit time; on the read path
+ * the stale plan is exactly what the caller is about to serve, for up to
+ * NC_REDIS_TTL.
+ *
+ * Best-effort: both call sites have already committed the meta write, and the
+ * clear runs inside the dry-run try whose catch persists errors.
+ */
+async function invalidateSingleQueryPlans(
+  context: NcContext,
+  column: Column,
+  ncMeta?: MetaService,
+) {
+  if (!column.fk_model_id) return;
+  try {
+    await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
+  } catch (e) {
+    logger.warn(
+      `Failed to clear singleQuery cache for model ${column.fk_model_id} after a formula error change: ${e?.message}`,
+    );
+  }
 }
 
 /**
@@ -541,6 +571,7 @@ async function persistFormulaColumnError(
 ) {
   if (column.uidt !== UITypes.Button) {
     await FormulaColumn.update(context, column.id, { error: message });
+    await invalidateSingleQueryPlans(context, column);
     return;
   }
 
@@ -564,6 +595,7 @@ async function persistFormulaColumnError(
   }
 
   await ButtonColumn.update(context, column.id, { error: message, type });
+  await invalidateSingleQueryPlans(context, column);
 }
 
 /**

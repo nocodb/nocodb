@@ -109,9 +109,7 @@ export default class ButtonColumn {
         { fk_column_id: columnId },
       );
       if (column) {
-        if (column.type === ButtonActionsType.Url) {
-          column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
-        }
+        column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
         await NocoCache.set(
           context,
           `${CacheScope.COL_BUTTON}:${columnId}`,
@@ -121,6 +119,11 @@ export default class ButtonColumn {
     }
 
     if (column) {
+      // Entries cached by the pre-fix `update()` hold JSON text, and nothing
+      // rewrites them — `getRaw` refreshes the TTL on every read, so a hot one
+      // never expires. Mirrors FormulaColumn.read().
+      column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
+
       column.filters = await Filter.allButtonFilterList(
         context,
         { buttonColId: columnId },
@@ -137,13 +140,7 @@ export default class ButtonColumn {
     button: Partial<ButtonColumn> & { parsed_tree?: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const urlProps = [
-      'fk_column_id',
-      'formula_raw',
-      'formula',
-      'error',
-      'parsed_tree',
-    ];
+    const urlProps = ['fk_column_id', 'formula_raw', 'formula', 'error'];
 
     const webhookProps = ['fk_webhook_id'];
 
@@ -173,6 +170,11 @@ export default class ButtonColumn {
       'type',
       'icon',
       'label',
+      // type-independent: the two parsed_tree-only writers (the formula builder
+      // caching a freshly built tree, Column.update invalidating it) have no
+      // `type` to pass, and the Url branch above would drop it — leaving the
+      // tree unwritable and the cache entry unable to self-correct
+      'parsed_tree',
     ]);
 
     if ('parsed_tree' in updateObj)

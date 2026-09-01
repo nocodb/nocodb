@@ -78,6 +78,10 @@ export enum InterfaceButtonActionTypes {
   DELETE_RECORD = 'delete_record',
   /** Open the URL stored in one of the record's fields. */
   RECORD_URL = 'record_url',
+  /** Start a workflow whose trigger is "When a button is clicked". */
+  RUN_WORKFLOW = 'run_workflow',
+  /** Open the NocoAI chat with the record in context, optionally sending a prompt. */
+  OPEN_NOCO_AI = 'open_noco_ai',
 }
 
 export interface InterfaceButtonConfirmation {
@@ -148,6 +152,26 @@ export interface InterfaceButtonRecordUrl extends InterfaceButtonBase {
   open_in_new_tab?: boolean;
 }
 
+/**
+ * Record-scoped — runs the workflow bound to this button. The workflow's
+ * "When a button is clicked" trigger carries the reverse binding
+ * (`InterfaceButtonTriggerConfig`), written server-side on page save.
+ */
+export interface InterfaceButtonRunWorkflow extends InterfaceButtonBase {
+  action: InterfaceButtonActionTypes.RUN_WORKFLOW;
+  fk_workflow_id: string;
+}
+
+/**
+ * Record-scoped — opens the NocoAI chat on a new thread with the open record
+ * as context. `prompt` lands in the composer (sent at once with `auto_submit`).
+ */
+export interface InterfaceButtonOpenNocoAi extends InterfaceButtonBase {
+  action: InterfaceButtonActionTypes.OPEN_NOCO_AI;
+  prompt?: string;
+  auto_submit?: boolean;
+}
+
 export type InterfaceButtonConfig =
   | InterfaceButtonExternalUrl
   | InterfaceButtonInterfacePage
@@ -155,7 +179,20 @@ export type InterfaceButtonConfig =
   | InterfaceButtonUpdateRecord
   | InterfaceButtonCopyRecordLink
   | InterfaceButtonDeleteRecord
-  | InterfaceButtonRecordUrl;
+  | InterfaceButtonRecordUrl
+  | InterfaceButtonRunWorkflow
+  | InterfaceButtonOpenNocoAi;
+
+/** Node id of the workflow trigger an interface button connects to. */
+export const INTERFACE_BUTTON_TRIGGER_NODE_TYPE = 'core.trigger.button';
+
+/** `data.config` of a `core.trigger.button` node — set by the interface, read-only in the editor. */
+export interface InterfaceButtonTriggerConfig {
+  modelId?: string;
+  interfaceId?: string;
+  pageId?: string;
+  buttonId?: string;
+}
 
 /** Navigation-only button actions — the subset allowed outside record scope. */
 export const INTERFACE_NAV_BUTTON_ACTIONS = [

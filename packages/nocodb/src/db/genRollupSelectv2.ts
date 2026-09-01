@@ -41,11 +41,13 @@ const NON_FINITE_EXCLUDING_ROLLUPS = [
   'max',
 ];
 
-// Ceiling on nested rollup-of-rollup expansion. Each nested rollup increments
-// `nestedLevel`; without a cap a long chain of distinct rollup columns (which
-// the CircularRefContext cycle guard does not catch, since no id repeats) keeps
-// nesting correlated subqueries and re-materializing an ever-growing SQL string
-// — a memory-exhaustion vector. Real chains are 1–3 deep; 16 is generous.
+// Ceiling on rollup-of-rollup expansion — a chain of *distinct* rollups repeats
+// no column id, so CircularRefContext never fires and the correlated subqueries
+// nest without limit. Real chains are 1–3 deep; 16 is generous.
+//
+// Partial: `nestedLevel` lives only in this file, so a Rollup → Formula → Rollup
+// hop re-enters at 0 and evades the cap. Closing that means threading the depth
+// through formulaQueryBuilderv2.
 const MAX_ROLLUP_NESTED_LEVEL = 16;
 
 export default async function genRollupSelectv2(param: {

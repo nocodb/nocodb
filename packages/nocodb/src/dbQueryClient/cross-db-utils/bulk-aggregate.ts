@@ -11,6 +11,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { resolveAggregateColumns } from '~/dbQueryClient/cross-db-utils/aggregate';
 import { NC_DISABLE_BULK_AGG_CONSOLIDATION } from '~/utils/nc-config';
 import { NcError } from '~/helpers/ncError';
+import { defaultGroupByLimitConfig } from '~/helpers/extractLimitAndOffset';
 
 const defaultLogger = new Logger('bulkAggregate');
 
@@ -68,12 +69,15 @@ const canonicalEqKey = (value: unknown): string => {
   return raw !== '' && Number.isFinite(num) ? `n:${num}` : `s:${raw}`;
 };
 
-// Each bucket appends a fully-filtered correlated subquery to a single SELECT,
-// so the query string grows with bucket_count × column_count × filter-tree size.
-// The client paginates group buckets, so a request with thousands of buckets is
-// abuse/a bug; cap it to keep one request from building a multi-megabyte query.
-const MAX_BULK_AGGREGATE_BUCKETS = 500;
-
+// Each bucket appends a fully-filtered correlated subquery to one SELECT, so the
+// query string grows with buckets × columns × filter-tree size. Tracks the client
+// page size the way MAX_PUBLIC_BULK_ENTRIES does rather than hardcoding: raising
+// NC_DB_QUERY_LIMIT_GROUP_BY_GROUP grows the batches useViewGroupBy sends, and
+// `limitGroup` is floor-clamped only, so a fixed number would 400 real requests.
+const MAX_BULK_AGGREGATE_BUCKETS = Math.max(
+  500,
+  defaultGroupByLimitConfig.limitGroup,
+);
 
 /**
  * Shared, dialect-agnostic bulk aggregation orchestration.
@@ -239,15 +243,13 @@ export const bulkAggregate =
         }
 
         if (Object.keys(expressions).length === 0) {
-          // No aggregation SQL for this bucket (e.g. aggregation type 'none', or
-          // all requested columns are unsupported). Emitting JSON_BUILD_OBJECT()
-          // over the filtered subquery selects one row per matching row →
-          // Postgres "more than one row returned by a subquery used as an
-          // expression". The catch below swallows that to `{}`, so the client
-          // silently retries the same failing request in a tight loop (a request
-          // storm). Return a NULL constant for the bucket instead — no subquery,
-          // no error, so the request succeeds and the client stops retrying.
-          selectors.push(baseModel.dbDriver.raw('? as ??', [null, f.alias]));
+          // Nothing to aggregate (e.g. aggregation type 'none'). The scalar
+          // subquery wrapper around JSON_BUILD_OBJECT() then matches >1 row and
+          // PG errors "more than one row returned by a subquery"; the catch below
+          // swallows that to `{}` and the client re-fires in a tight loop.
+          // Emit the empty-object literal rather than SQL NULL — NULL survives
+          // the parser as JS null and crashes AliasMapper's Object.keys().
+          selectors.push(baseModel.dbDriver.raw('? as ??', ['{}', f.alias]));
         } else {
           selectors.push(
             client.bulkAggregateRowSelector(

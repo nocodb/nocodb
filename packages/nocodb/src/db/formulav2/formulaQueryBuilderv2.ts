@@ -23,6 +23,7 @@ import {
   wrapFormulaWithMaxLength,
 } from './formula-query-builder.helpers';
 import type { ButtonActionsType, ClientType, LiteralNode } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
@@ -136,21 +137,14 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             tableAlias,
             parentColumns,
           }: TAliasToColumnParam) => {
-            // Reuse the already-built SQL for this (column, tableAlias) rather
-            // than re-expanding it. A formula referencing another formula
-            // multiple times (directly or via a diamond dependency) would
-            // otherwise rebuild that subtree once per occurrence — exponential
-            // in nesting depth (k^D), materializing a huge SQL string (OOM).
-            // Keyed by tableAlias too: leaf resolvers embed it, so the same
-            // formula under a different alias legitimately produces different
-            // SQL. A cache hit cannot mask a real cycle — a cycle would have
-            // thrown via CircularRefContext during the first (successful) build.
+            // Memoized per (column, tableAlias) — see formulaBuilderCache.
+            // Keyed by tableAlias because leaf resolvers embed it. A hit cannot
+            // mask a cycle: CircularRefContext throws during the first
+            // expansion, so a cyclic column never reaches the cache.
             const cacheKey = `${col.id}::${tableAlias ?? ''}`;
-            const cachedBuild = formulaBuilderCache?.get(cacheKey);
-            if (cachedBuild) {
-              return {
-                builder: knex.raw(cachedBuild.sql, [...cachedBuild.bindings]),
-              };
+            const cached = formulaBuilderCache?.get(cacheKey);
+            if (cached) {
+              return { builder: cached };
             }
 
             parentColumns = (
@@ -179,24 +173,14 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               formulaBuilderCache,
             });
 
-            // Capture the flattened SQL BEFORE the in-place wrap so a later
-            // cache hit reproduces identical, parenthesized SQL deterministically
-            // (independent of how `.sql` mutation interacts with `.toSQL()`).
-            let compiled: { sql: string; bindings: readonly any[] } | undefined;
-            try {
-              compiled = builder.toSQL?.();
-            } catch {
-              compiled = undefined;
-            }
-
             builder.sql = '(' + builder.sql + ')';
 
-            if (compiled && formulaBuilderCache) {
-              formulaBuilderCache.set(cacheKey, {
-                sql: '(' + compiled.sql + ')',
-                bindings: compiled.bindings ?? [],
-              });
-            }
+            // Cache the Raw itself, not {sql, bindings} — re-inflating via
+            // knex.raw(sql, bindings) flips knex into placeholder-scanning, and
+            // this pipeline emits bare `?` on purpose (hence the `\?` escapes),
+            // so any array — even [] — throws "Expected 0 bindings, saw N".
+            // Sharing one Raw is safe: the wrap above is the last write to it.
+            formulaBuilderCache?.set(cacheKey, builder);
 
             return {
               builder,
@@ -754,12 +738,8 @@ export default async function formulaQueryBuilderv2({
     return result;
   };
 
-  // Shared across this whole build so a referenced formula/button column is
-  // expanded at most once per (col, tableAlias) — see formulaBuilderCache docs.
-  const formulaBuilderCache = new Map<
-    string,
-    { sql: string; bindings: readonly any[] }
-  >();
+  // Scoped to this build — see formulaBuilderCache docs.
+  const formulaBuilderCache = new Map<string, Knex.Raw>();
 
   let qb;
   try {

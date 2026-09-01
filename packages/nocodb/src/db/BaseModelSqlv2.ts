@@ -131,10 +131,7 @@ import {
   transformObjectKeys,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
-import {
-  defaultGroupByLimitConfig,
-  defaultLimitConfig,
-} from '~/helpers/extractLimitAndOffset';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
 import { isNonFiniteFormulaHandlingEnabled } from '~/db/formulav2/pg-ieee';
@@ -197,6 +194,13 @@ const JSON_COLUMN_TYPES = [UITypes.Button];
 const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
+
+// Safety ceiling on distinct group values, NOT a page size — groupedList gives
+// each discovered value its own cloned subquery, so a high-cardinality group
+// column builds an enormous statement. Deliberately decoupled from
+// `defaultGroupByLimitConfig.limitGroup`, which is a published client page size
+// (appInfo.defaultGroupByLimit) with a floor clamp only.
+const MAX_GROUPING_VALUES = 1000;
 
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
@@ -6898,20 +6902,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await conditionV2(this, scopeConditions, qb);
       }
 
-      // Bound the distinct-value discovery. Grouping by a high-cardinality
-      // column (unique text/number/timestamp) would otherwise load every
-      // distinct value in the table into memory AND build a UNION ALL with one
-      // subquery per value — an unbounded, unauthenticated (shared-view) OOM.
-      // Cap to the configured group page size (NC_DB_QUERY_LIMIT_GROUP_BY_GROUP,
-      // default 25); the normal group-by flow passes explicit `options` and
-      // skips this branch entirely.
-      qb.limit(defaultGroupByLimitConfig.limitGroup);
+      // Bound the discovery: grouping by a high-cardinality column loads every
+      // distinct value and gives groupedList one subquery per value, on a route
+      // that is anonymous for shared views. Read one row past the ceiling and
+      // reject — callers here have no group-level pagination, so slicing would
+      // drop groups from the response silently and with no way to fetch them.
+      // Ordered so the ceiling check can't depend on planner row order.
+      qb.orderBy(column.column_name).limit(MAX_GROUPING_VALUES + 1);
 
-      groupingValues = new Set(
-        (await this.execAndParse(qb, null, { raw: true })).map(
-          (row) => row[column.column_name],
-        ),
-      );
+      const discoveredValues = (
+        await this.execAndParse(qb, null, { raw: true })
+      ).map((row) => row[column.column_name]);
+
+      if (discoveredValues.length > MAX_GROUPING_VALUES) {
+        NcError.get(this.context).badRequest(
+          `Cannot group by '${column.title}': it has more than ${MAX_GROUPING_VALUES} distinct values. Filter the records first or group by a field with fewer values.`,
+        );
+      }
+
+      groupingValues = new Set(discoveredValues);
       groupingValues.add(null);
     }
 

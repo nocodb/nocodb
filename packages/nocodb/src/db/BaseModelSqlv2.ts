@@ -200,7 +200,15 @@ const MAX_RECURSION_DEPTH = 2;
 // column builds an enormous statement. Deliberately decoupled from
 // `defaultGroupByLimitConfig.limitGroup`, which is a published client page size
 // (appInfo.defaultGroupByLimit) with a floor clamp only.
-const MAX_GROUPING_VALUES = 1000;
+export const MAX_GROUPING_VALUES = 1000;
+
+// SQLite refuses a compound SELECT past SQLITE_MAX_COMPOUND_SELECT (500) terms,
+// and groupedList unions one term per discovered value plus the appended
+// `null`. Measured on sqlite3 5.1.7 / SQLite 3.44.2: 500 terms run, 501 fails
+// with "too many terms in compound SELECT statement". Above this the request
+// would die as a raw SQLITE_ERROR instead of the clean 400 the ceiling exists
+// to return, so SQLite gets its own — 499 values + the null term = 500.
+export const MAX_GROUPING_VALUES_SQLITE = 499;
 
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
@@ -6908,15 +6916,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // reject — callers here have no group-level pagination, so slicing would
       // drop groups from the response silently and with no way to fetch them.
       // Ordered so the ceiling check can't depend on planner row order.
-      qb.orderBy(column.column_name).limit(MAX_GROUPING_VALUES + 1);
+      const maxGroupingValues = this.isSqlite
+        ? MAX_GROUPING_VALUES_SQLITE
+        : MAX_GROUPING_VALUES;
+
+      qb.orderBy(column.column_name).limit(maxGroupingValues + 1);
 
       const discoveredValues = (
         await this.execAndParse(qb, null, { raw: true })
       ).map((row) => row[column.column_name]);
 
-      if (discoveredValues.length > MAX_GROUPING_VALUES) {
+      if (discoveredValues.length > maxGroupingValues) {
         NcError.get(this.context).badRequest(
-          `Cannot group by '${column.title}': it has more than ${MAX_GROUPING_VALUES} distinct values. Filter the records first or group by a field with fewer values.`,
+          `Cannot group by '${column.title}': it has more than ${maxGroupingValues} distinct values. Filter the records first or group by a field with fewer values.`,
         );
       }
 

@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   coerceOracleReturnedPk,
   dataWrapper,
@@ -606,52 +607,66 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       trx = null;
 
       if (!skip_hooks) {
-        // we will wrap returning primary key values with primary key column name
-        // only needed when responses are raw auto-increment IDs (batchInsert path)
-        // skip when the one-by-one path already wrapped them via
-        // extractCompositePK — taken for the fallback and whenever capturePks
-        // forces it (see the insert branch above)
-        if (baseModel.isMySQL && !insertOneByOneAsFallback && !capturePks) {
-          responses = responses.map((r, idx) => {
-            const rowId = baseModel.extractCompositePK({
-              rowId: r,
-              ai: aiPkCol,
-              ag: agPkCol,
-              insertObj: insertDatas[idx],
+        try {
+          // we will wrap returning primary key values with primary key column name
+          // only needed when responses are raw auto-increment IDs (batchInsert path)
+          // skip when the one-by-one path already wrapped them via
+          // extractCompositePK — taken for the fallback and whenever capturePks
+          // forces it (see the insert branch above)
+          if (baseModel.isMySQL && !insertOneByOneAsFallback && !capturePks) {
+            responses = responses.map((r, idx) => {
+              const rowId = baseModel.extractCompositePK({
+                rowId: r,
+                ai: aiPkCol,
+                ag: agPkCol,
+                insertObj: insertDatas[idx],
+              });
+              if (rowId && typeof rowId === 'object') return rowId;
+              return { [baseModel.model.primaryKey.column_name]: rowId ?? r };
             });
-            if (rowId && typeof rowId === 'object') return rowId;
-            return { [baseModel.model.primaryKey.column_name]: rowId ?? r };
-          });
-        }
+          }
 
-        if (isSingleRecordInsertion) {
-          const insertData = await baseModel.readByPk(responses[0]);
-          await baseModel.afterInsert({
-            data: insertData,
-            insertData: datas?.[0],
-            req: cookie,
-          });
-        } else {
-          const insertResponseList = await baseModel.chunkList({
-            // composite PKs require the `___`-joined string form (asString=true);
-            // the object form stringifies to "[object Object]" in chunkList's join
-            pks: responses.map((d) => baseModel.extractPksValues(d, true)),
-          });
+          if (isSingleRecordInsertion) {
+            const insertData = await baseModel.readByPk(responses[0]);
+            await baseModel.afterInsert({
+              data: insertData,
+              insertData: datas?.[0],
+              req: cookie,
+            });
+          } else {
+            const insertResponseList = await baseModel.chunkList({
+              // composite PKs require the `___`-joined string form (asString=true);
+              // the object form stringifies to "[object Object]" in chunkList's join
+              pks: responses.map((d) => baseModel.extractPksValues(d, true)),
+            });
 
-          // get ast
-          const { ast, parsedQuery } = await getAst(baseModel.context, {
-            model: baseModel.model,
-            query: {},
-            extractOnlyPrimaries: false,
-          });
-          // nocoexecute
-          const insertResponses = await nocoExecute(
-            ast,
-            insertResponseList,
-            {},
-            parsedQuery,
+            // get ast
+            const { ast, parsedQuery } = await getAst(baseModel.context, {
+              model: baseModel.model,
+              query: {},
+              extractOnlyPrimaries: false,
+            });
+            // nocoexecute
+            const insertResponses = await nocoExecute(
+              ast,
+              insertResponseList,
+              {},
+              parsedQuery,
+            );
+            await baseModel.afterBulkInsert(insertResponses, cookie);
+          }
+        } catch (hookErr: any) {
+          // The rows are already durably committed above. On the raw import
+          // path a hook/readback failure must not surface as an insert
+          // failure: that would mark committed rows failed and drop the whole
+          // batch's LTAR links (the caller's onInsertedPks loop is skipped on
+          // throw). Log and continue so pk capture / statsUpdate still run.
+          // The non-raw HTTP bulk path keeps throwing, preserving its 5xx.
+          if (!raw) throw hookErr;
+          new Logger('BaseModelSqlv2').error(
+            `after-insert hooks failed on raw insert for model ${baseModel.model?.id}: ${hookErr?.message}`,
+            hookErr?.stack,
           );
-          await baseModel.afterBulkInsert(insertResponses, cookie);
         }
       }
 

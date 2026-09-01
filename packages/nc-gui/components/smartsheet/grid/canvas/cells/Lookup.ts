@@ -10,7 +10,7 @@ import {
 } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
-import { renderCellError, renderSingleLineText } from '../utils/canvas'
+import { isBoxHovered, renderCellError, renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links]
@@ -33,10 +33,19 @@ export const LookupCellRenderer: CellRenderer = {
       tableMetaLoader,
       row,
       getColor,
+      cellRenderStore,
+      mousePosition,
+      selected,
+      setCursor,
     } = props
     let x = _x
     let y = _y
     let width = _width - ellipsisWidth
+
+    // cellRenderStore persists per cell across frames, so the link boxes must be dropped up
+    // front — every early return below would otherwise leave the previous frame's boxes
+    // clickable on a cell that no longer paints them.
+    if (cellRenderStore) cellRenderStore.links = []
 
     if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
       renderCellError(ctx, { x, y, width: _width, height, padding, getColor })
@@ -99,7 +108,11 @@ export const LookupCellRenderer: CellRenderer = {
     // When the chain ultimately points to an Attachment, the value reaching
     // here is already a flat array of attachment objects, so it must render as
     // a single attachment strip rather than one stacked nested cell per file.
+    // When it points to a URL, the intermediate Lookup hop would otherwise drop
+    // the URL type and render the value as a plain string, so capture the leaf
+    // to render it through the URL renderer (a clickable link) instead.
     let attachmentLeafColumn: ColumnType | undefined
+    let nestedLeafColumn: ColumnType | undefined
     if (lookupColumn.uidt === UITypes.Lookup) {
       let nextCol: ColumnType | undefined = lookupColumn
       let ownMeta: TableType | undefined = relatedTableMeta
@@ -128,10 +141,21 @@ export const LookupCellRenderer: CellRenderer = {
         nextCol = leafMeta.columns?.find((c) => c.id === lkOpt.fk_lookup_column_id)
       }
 
+      nestedLeafColumn = nextCol
+
       if (nextCol && isAttachment(nextCol)) {
         attachmentLeafColumn = nextCol
       }
     }
+
+    // The URL column to render each value with — a single-level URL lookup, or the
+    // resolved leaf of a nested chain ending in a URL. Rendered as a clickable link
+    // (like a plain URL field) rather than a generic string.
+    const urlLeafColumn: ColumnType | undefined =
+      lookupColumn.uidt === UITypes.URL ? lookupColumn : nestedLeafColumn?.uidt === UITypes.URL ? nestedLeafColumn : undefined
+
+    // Clickable link boxes recorded during render for handleClick / cursor.
+    const urlLinkBoxes: { x: number; y: number; width: number; height: number; url: string }[] = []
 
     const getArrValue = () => {
       const relatedColType = (relatedColObj.colOptions as LinkToAnotherRecordType)?.type
@@ -248,6 +272,29 @@ export const LookupCellRenderer: CellRenderer = {
       // using the effective column carried in options.column.
       if (hasDisplayOverride) {
         return PlainCellRenderer.render(ctx, options)
+      }
+
+      // Render a URL value (direct or resolved from a nested lookup chain) as a
+      // clickable link, and record its box so handleClick can open it.
+      if (urlLeafColumn) {
+        const point = renderCell(ctx, urlLeafColumn, {
+          ...options,
+          column: urlLeafColumn,
+          tag: { ...options.tag, renderAsTag: false },
+        })
+
+        const urlText = addMissingUrlSchma(options.value?.toString() ?? '')
+        if (urlText && isValidURL(urlText)) {
+          urlLinkBoxes.push({
+            x: options.x,
+            y: options.y,
+            width: Math.max((point?.x ?? options.x) - options.x, 0),
+            height: rowHeightInPx['1']!,
+            url: urlText,
+          })
+        }
+
+        return point
       }
 
       return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
@@ -419,6 +466,34 @@ export const LookupCellRenderer: CellRenderer = {
 
     // Restore context after clipping
     ctx.restore()
+
+    // Expose the clickable URL link boxes for handleClick and show a pointer
+    // cursor when hovering one (only meaningful once the cell is selected).
+    if (urlLeafColumn && cellRenderStore) {
+      cellRenderStore.links = urlLinkBoxes
+
+      if (selected && mousePosition && urlLinkBoxes.some((box) => isBoxHovered(box, mousePosition))) {
+        setCursor?.('pointer')
+      }
+    }
+  },
+  async handleClick(ctx) {
+    const { selected, isDoubleClick, mousePosition, cellRenderStore } = ctx
+
+    // Open a lookup URL value when the (selected) cell's link is clicked. Anything
+    // else returns false so the default handling (e.g. double-click opens the
+    // lookup value overlay) still runs.
+    const links = cellRenderStore?.links
+    if ((selected || isDoubleClick) && mousePosition && ncIsArray(links) && links.length) {
+      for (const link of links) {
+        if (isBoxHovered(link, mousePosition)) {
+          confirmPageLeavingRedirect(link.url, '_blank')
+          return true
+        }
+      }
+    }
+
+    return false
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

@@ -495,6 +495,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             }
           }
 
+          // Persist any SmartText drafts buffered while editing this existing record
+          // in the expanded form — the SmartText modal defers its rowId-keyed write to
+          // the form's explicit Save so it follows every other field (#10261). The
+          // regular update above stored only the interim plain-text preview; this
+          // writes back the authoritative rich content. Failed flushes stay buffered
+          // so the modal can restore and re-save them.
+          const smartTextDrafts = row.value.rowMeta?.smartTextDrafts
+          if (smartTextDrafts && Object.keys(smartTextDrafts).length) {
+            const unflushedSmartTextDrafts = await flushSmartTextDrafts(meta.value, id, smartTextDrafts, row.value.row)
+            if (row.value.rowMeta) row.value.rowMeta.smartTextDrafts = unflushedSmartTextDrafts
+          }
+
           // Persist queued link/unlink changes after the row update.
           if (hasLtarChanges) {
             await applyPendingLtarOps()

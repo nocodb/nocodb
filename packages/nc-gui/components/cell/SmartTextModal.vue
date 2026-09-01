@@ -12,6 +12,7 @@ interface Props {
   isNewRecord?: boolean
   draftContent?: Record<string, any> | null
   initialMarkdown?: string | null
+  deferSave?: boolean
 }
 
 defineProps<Props>()

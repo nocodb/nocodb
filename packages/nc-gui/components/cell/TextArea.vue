@@ -1027,6 +1027,7 @@ useResizeObserver(inputWrapperRef, () => {
       :is-new-record="isNewRecord"
       :draft-content="smartTextDraft"
       :initial-markdown="smartTextInitialMarkdown"
+      :defer-save="!isNewRecord"
       @saved="onSmartTextSaved"
       @update:draft-content="onSmartTextDraftUpdate"
     />

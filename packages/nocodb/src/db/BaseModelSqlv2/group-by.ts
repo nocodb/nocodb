@@ -1,4 +1,9 @@
-import { extractFilterFromXwhere, FormulaDataTypes, UITypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  FormulaDataTypes,
+  isBtLikeV2Junction,
+  UITypes,
+} from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
@@ -199,7 +204,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
 
       let columnQuery;
-      switch (column.uidt) {
+
+      // V2 MO/OO are `Links` columns but have single-record semantics, so they
+      // group on the linked display value like BT — not on a link count.
+      const groupByUidt = isBtLikeV2Junction(column)
+        ? UITypes.LinkToAnotherRecord
+        : column.uidt;
+
+      switch (groupByUidt) {
         case UITypes.Attachment:
           NcError.get(baseModel.context).badRequest(
             'Group by using attachment column is not supported',
@@ -804,7 +816,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             asId: column.id,
           });
 
-        switch (column.uidt) {
+        // See the equivalent normalization in `list` — V2 MO/OO group on the
+        // linked display value, not on a link count.
+        const groupByUidt = isBtLikeV2Junction(column)
+          ? UITypes.LinkToAnotherRecord
+          : column.uidt;
+
+        switch (groupByUidt) {
           case UITypes.Attachment:
             NcError.get(baseModel.context).badRequest(
               'Group by using attachment column is not supported',

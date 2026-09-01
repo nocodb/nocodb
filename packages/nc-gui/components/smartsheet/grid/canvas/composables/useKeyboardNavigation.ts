@@ -1,7 +1,7 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
-import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
+import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData, getGroupSampleRow } from '../utils/groupby'
 
 // column types which support delete even when it's in edit state
 const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
@@ -132,7 +132,7 @@ export function useKeyboardNavigation({
         else return
       }
       group = findGroupByPath(cachedGroups.value, groupPath)
-      defaultData = getDefaultGroupData(group)
+      defaultData = getDefaultGroupData(group, meta.value?.columns, getGroupSampleRow(getDataCache(groupPath)?.cachedRows.value))
     }
 
     if (cmdOrCtrl && e.key === 'f' && editEnabled.value) {

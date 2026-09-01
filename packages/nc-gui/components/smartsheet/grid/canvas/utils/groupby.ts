@@ -1,4 +1,5 @@
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
 export function getGroupColors(depth: number, maxDepth: number, getColor: (color: string) => string) {
@@ -393,20 +394,51 @@ export function isGroupExpanded(groups: Map<number, CanvasGroup>, groupPath: num
   return !!group?.isExpanded
 }
 
+// First saved row of a group's data cache — used to seed link values for new
+// rows, since every group is derived from at least one existing record.
+export function getGroupSampleRow(cachedRows?: Map<number, Row>): Record<string, any> | undefined {
+  if (!cachedRows) return undefined
+  for (const r of cachedRows.values()) {
+    if (!r.rowMeta?.new && r.row) return r.row
+  }
+  return undefined
+}
+
 // Accepts anything carrying `nestedIn` (canvas `CanvasGroup` or the
 // `Group` shape used by Gantt/Timeline) — only the group path is read here.
-export function getDefaultGroupData(group?: Pick<CanvasGroup, 'nestedIn'>) {
+export function getDefaultGroupData(
+  group?: Pick<CanvasGroup, 'nestedIn'>,
+  columns?: ColumnType[],
+  sampleRow?: Record<string, any>,
+) {
   if (!group) return {}
   return group.nestedIn.reduce((acc, curr) => {
-    if (
-      curr.key !== '__nc_null__' &&
-      // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
-      !isLinksOrLTAR(curr.column_uidt) &&
-      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
-    ) {
+    if (curr.key === '__nc_null__') return acc
+
+    // `nestedIn.column_uidt` carries the *related display* column's type for
+    // link/lookup groups (used for where-clause building), so it can't identify
+    // the grouped column here. Resolve the real column by id — otherwise a
+    // grouped link's display string gets pre-filled but is silently dropped on
+    // save since it isn't a valid FK (issue #10188).
+    const column = columns?.find((c) => c.id === curr.column_id)
+    const uidt = (column?.uidt ?? curr.column_uidt) as UITypes
+
+    if (isLinksOrLTAR(uidt)) {
+      // The group key is only the display string — seed the actual link object
+      // from an existing group row. Only bt/mo can share a linked record: bt
+      // resolves to an FK via `populateInsertObject`, mo rides along as an
+      // inline link object that `nestedInsert` resolves. An inline oo link is
+      // dropped on insert (even when the target is unlinked), and hm/om/mm
+      // aren't groupable — seeding either would pre-fill a value that never
+      // saves, which is the bug this fixes.
+      const relationType = (column?.colOptions as LinkToAnotherRecordType | undefined)?.type
+      if ((relationType === RelationTypes.BELONGS_TO || relationType === RelationTypes.MANY_TO_ONE) && sampleRow?.[curr.title]) {
+        acc[curr.title] = sampleRow[curr.title]
+      }
+    } else if (![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(uidt)) {
       acc[curr.title] = curr.key
 
-      if (curr.column_uidt === UITypes.Checkbox) {
+      if (uidt === UITypes.Checkbox) {
         acc[curr.title] =
           acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
       }

@@ -39,10 +39,10 @@ const options = computed<ColumnType[]>(
 
           return showSystemFields.value
         } else {
-          /** ignore hasmany and manytomany relations if it's using within group menu */
+          /** ignore multi-record relations (hm/om/mm) if it's using within group menu */
           return !(
             isLinksOrLTAR(c) &&
-            ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+            ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE, RelationTypes.MANY_TO_ONE].includes(
               (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
             )
           )

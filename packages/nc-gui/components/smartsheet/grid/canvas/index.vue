@@ -33,7 +33,14 @@ import {
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
 } from './utils/constants'
-import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
+import {
+  calculateGroupRowTop,
+  comparePath,
+  findGroupByPath,
+  generateGroupPath,
+  getDefaultGroupData,
+  getGroupSampleRow,
+} from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import GroupContextMenu from './components/GroupHeaderMenu.vue'
@@ -981,6 +988,12 @@ function onActiveCellChanged() {
   triggerRefreshCanvas()
 }
 
+// Group defaults for a new row; an existing group row supplies the savable
+// link object for bt/mo link groups (the group key is just the display string).
+function getGroupDefaultData(group?: CanvasGroup, path: Array<number> = []) {
+  return getDefaultGroupData(group, meta.value?.columns, getGroupSampleRow(getDataCache(path)?.cachedRows.value))
+}
+
 const onNewRecordToGridClick = (path: Array<number> = []) => {
   if (showRecordPlanLimitExceededModal()) return
 
@@ -990,7 +1003,7 @@ const onNewRecordToGridClick = (path: Array<number> = []) => {
 
   if (isGroupBy.value) {
     const group = findGroupByPath(cachedGroups.value, path)
-    overwrite = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
+    overwrite = getGroupDefaultData(group, path)
   }
 
   addEmptyRow(undefined, undefined, undefined, overwrite, path)
@@ -1006,7 +1019,7 @@ function onNewRecordToFormClick(path: Array<number> = []) {
 
   if (isGroupBy.value) {
     const group = findGroupByPath(cachedGroups.value, path)
-    overwrite = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
+    overwrite = getGroupDefaultData(group, path)
   }
   openNewRecordFormHook.trigger({ overwrite, path })
   openAddNewRowDropdown.value = null
@@ -2045,7 +2058,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           return
         }
 
-        const setGroup = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
+        const setGroup = getGroupDefaultData(group, groupPath)
 
         if (selectedTemplate.value) {
           onSelectedTemplateClick()
@@ -3028,7 +3041,7 @@ const onNavigate = async (dir: NavigateDir) => {
 
   const group = findGroupByPath(cachedGroups.value, path)
 
-  const defaultData = getDefaultGroupData(group, meta.value?.columns as ColumnType[])
+  const defaultData = getGroupDefaultData(group, path)
 
   const dataCache = getDataCache(path)
 

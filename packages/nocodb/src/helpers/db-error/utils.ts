@@ -232,5 +232,19 @@ export function isTransientError(error: any): boolean {
     }
   }
 
+  // 5. Driver codes embedded in the message text. Drivers prefix the code
+  // (`connect ECONNREFUSED 10.0.0.5:5432`, `ORA-12541: TNS:no listener`), and
+  // some callers only keep the message — a persisted column error, a
+  // serialized error forwarded by the sql-executor — so the `error.code`
+  // checks above have nothing to match on. Anchored to avoid matching a code
+  // name that merely appears inside a table or column name.
+  if (
+    /(^|[^A-Z0-9_])(ECONNREFUSED|ETIMEDOUT|ECONNRESET|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|ECONNABORTED|EHOSTDOWN|EAI_AGAIN|SQLITE_BUSY|SQLITE_LOCKED|ER_LOCK_WAIT_TIMEOUT|ER_CON_COUNT_ERROR|ER_TOO_MANY_USER_CONNECTIONS|NJS-(?:500|501|503|510|511|518|521)|ORA-0*(?:1033|1034|3113|3114|12170|12514|12537|12541))([^A-Z0-9_]|$)/i.test(
+      typeof error === 'string' ? error : error?.message ?? '',
+    )
+  ) {
+    return true;
+  }
+
   return false;
 }

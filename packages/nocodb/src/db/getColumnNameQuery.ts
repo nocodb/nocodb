@@ -12,6 +12,7 @@ import type { NcContext } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { Column } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { checkStoredFormulaError } from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { boolSqlLiteral } from '~/helpers/dbHelpers';
 import Noco from '~/Noco';
@@ -100,7 +101,10 @@ export async function getColumnNameQuery({
         context,
         ncMeta,
       );
-      if (!formula.error) {
+      // a stored error that turns out to be a stale infra failure is cleared
+      // here rather than silently dropping the expression from the query
+      const stored = await checkStoredFormulaError(context, column, formula);
+      if (!stored.blocking) {
         column_name_query =
           await baseModelSqlv2.getSelectQueryBuilderForFormula(column);
       }

@@ -101,7 +101,7 @@ import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
 import { DBQueryClient } from '~/dbQueryClient';
 import formulaQueryBuilderv2, {
-  clearFormulaColumnError,
+  checkStoredFormulaError,
 } from '~/db/formulav2/formulaQueryBuilderv2';
 import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
@@ -1680,16 +1680,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
     if (formula.error) {
-      // A transient infrastructure failure (unreachable source, control-plane
-      // hiccup) can end up persisted as the column error by a validation run.
-      // Nothing clears it afterwards, so every later read of this column keeps
-      // failing with ERR_FORMULA. Discard it and rebuild — if the formula is
-      // really broken, the next validation run persists the error again.
-      if (isTransientError(formula.error)) {
-        await clearFormulaColumnError(this.context, column);
-      } else {
+      const stored = await checkStoredFormulaError(
+        this.context,
+        column,
+        formula,
+      );
+      if (stored.blocking) {
         NcError.get(this.context).formulaError(formula.error);
       }
+      // the stored error was cleared as stale — validating this build is what
+      // proves the formula works, and re-flags it if it doesn't
+      validateFormula = validateFormula || stored.revalidate;
     }
 
     const qb = await formulaQueryBuilderv2({

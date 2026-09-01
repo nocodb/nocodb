@@ -22,7 +22,7 @@ import {
   getFormulaOutputMaxLength,
   wrapFormulaWithMaxLength,
 } from './formula-query-builder.helpers';
-import type { ClientType, LiteralNode } from 'nocodb-sdk';
+import type { ButtonActionsType, ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
@@ -494,38 +494,96 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   return { builder, parsedTree: tree };
 }
 
-/**
- * Drop a stored formula/button column error and its cache entry.
- *
- * Used to discard an error that a validation run persisted for a reason
- * unrelated to the formula itself (an unreachable source, a control-plane
- * hiccup). Such an error never clears on its own — the only self-heal is a
- * successful validated dry-run, and reads don't validate — so it keeps
- * failing every request long after the infrastructure recovered. A genuine
- * error is re-persisted by the next validation run.
- */
-export async function clearFormulaColumnError(
+/** Drop a stored formula/button column error. Throws if the meta write fails. */
+async function clearFormulaColumnError(
   context: NcContext,
   column: Column,
+  colOptions: { error?: string | null; type?: ButtonActionsType },
 ) {
   if (column.uidt === UITypes.Button) {
     // ButtonColumn.update picks the updatable props off `type`, so it has to
     // be passed along or `error` is dropped from the update.
-    const buttonColumn = await column.getColOptions<ButtonColumn>(context);
     await ButtonColumn.update(context, column.id, {
       error: null,
-      type: buttonColumn?.type,
+      type: colOptions?.type,
     });
   } else {
     await FormulaColumn.update(context, column.id, { error: null });
   }
 
-  // colOptions for this request were resolved before the clear
-  context.cacheMap?.clear();
+  // both models write through to NocoCache, so only the caller's already
+  // resolved copies are stale
+  if (colOptions) colOptions.error = null;
+  if (column.colOptions) (column.colOptions as { error?: string }).error = null;
+}
+
+/**
+ * Decide what a stored formula/button error means for a read.
+ *
+ * A validation run persists whatever the dry-run threw, including failures
+ * that say nothing about the formula (an unreachable source, a control-plane
+ * hiccup). Nothing clears those afterwards — the only self-heal is a
+ * *successful validated* dry-run, and reads don't validate — so the column
+ * keeps failing every request long after the infrastructure recovered.
+ *
+ * `blocking` callers render `ERR` / skip the column as before. `revalidate`
+ * asks the caller to build this one formula with `validateFormula`, so a
+ * formula that really is broken re-persists its error instead of silently
+ * losing the diagnostic.
+ *
+ * Clearing is best-effort: the trigger condition is flaky infrastructure, so
+ * the meta write can fail too. It stays blocking in that case rather than
+ * escaping into callers that drop the column from the SELECT entirely.
+ */
+export async function checkStoredFormulaError(
+  context: NcContext,
+  column: Column,
+  colOptions: { error?: string | null; type?: ButtonActionsType },
+): Promise<{ blocking: boolean; revalidate: boolean }> {
+  if (!colOptions?.error) return { blocking: false, revalidate: false };
+
+  if (!isTransientError(colOptions.error)) {
+    return { blocking: true, revalidate: false };
+  }
+
+  try {
+    await clearFormulaColumnError(context, column, colOptions);
+  } catch (e) {
+    logger.warn(
+      `Failed to clear stale formula error on column ${column.id}: ${e?.message}`,
+    );
+    return { blocking: true, revalidate: false };
+  }
 
   logger.warn(
     `Cleared stale formula error on column ${column.id} (${column.title})`,
   );
+  return { blocking: false, revalidate: true };
+}
+
+/**
+ * A broken formula is already surfaced to the user — the cell renders `ERR` —
+ * and it fails identically on every read, so a stack per column per read is
+ * pure noise: one bulk update alone re-reads the parent row for every record
+ * it touches. Log the message without the stack, and keep full logging for
+ * anything unexpected. `debug` is not an option: pino runs at `info` in every
+ * deployment, so it would silence the message entirely.
+ */
+export function logFormulaBuildError(logger: Logger, e: any) {
+  // internal control flow, not a real formula error
+  if (e?.message === FORMULA_DRY_RUN_SKIPPED_MESSAGE) return;
+
+  if (
+    e instanceof NcBaseErrorv2 &&
+    [NcErrorType.ERR_FORMULA, NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA].includes(
+      e.error,
+    )
+  ) {
+    logger.warn(e.message);
+    return;
+  }
+
+  logger.log(e);
 }
 
 export default async function formulaQueryBuilderv2({
@@ -667,15 +725,11 @@ export default async function formulaQueryBuilderv2({
       );
       // clean the previous formula error if the formula works this time
       if (formula.error) {
-        if (formula.constructor.name === 'ButtonColumn') {
-          await ButtonColumn.update({ ...context, cache: false }, column.id, {
-            error: null,
-          });
-        } else {
-          await FormulaColumn.update({ ...context, cache: false }, column.id, {
-            error: null,
-          });
-        }
+        await clearFormulaColumnError(
+          { ...context, cache: false },
+          column,
+          formula,
+        );
       }
       // clear context cache if present since metadata has changed
       context.cacheMap?.clear();

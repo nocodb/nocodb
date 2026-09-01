@@ -2,8 +2,6 @@ import {
   ButtonActionsType,
   isBtLikeV2Junction,
   NC_ERROR_SENTINEL,
-  NcBaseErrorv2,
-  NcErrorType,
   UITypes,
 } from 'nocodb-sdk';
 import genRollupSelectv2 from '../genRollupSelectv2';
@@ -28,26 +26,7 @@ import {
 } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NC_MAX_TEXT_LENGTH } from '~/constants';
-import { FORMULA_DRY_RUN_SKIPPED_MESSAGE } from '~/db/formulav2/formulaQueryBuilderv2';
-
-/**
- * A broken formula is already surfaced to the user — the cell renders `ERR` —
- * and it fails identically on every read, so a full stack per column per read
- * is pure noise: one bulk update alone re-reads the parent row for every record
- * it touches. Log the message only, and keep the stack for anything unexpected.
- */
-const logFormulaBuildError = (logger: Logger, e: any) => {
-  if (
-    e instanceof NcBaseErrorv2 &&
-    [NcErrorType.ERR_FORMULA, NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA].includes(
-      e.error,
-    )
-  ) {
-    logger.debug(e.message);
-    return;
-  }
-  logger.log(e);
-};
+import { logFormulaBuildError } from '~/db/formulav2/formulaQueryBuilderv2';
 
 export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   return async ({
@@ -409,11 +388,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 );
               }
             } catch (e) {
-              // The dry-run short-circuit sentinel is internal control flow,
-              // not a real formula error. Logging it per record/column is the
-              // exact noise that floods logs when an external source is down.
-              if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE)
-                logFormulaBuildError(logger, e);
+              logFormulaBuildError(logger, e);
               // return dummy select
               qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
             }
@@ -586,10 +561,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               }
             }
           } catch (e) {
-            // See the Formula case above — don't log the internal short-circuit
-            // sentinel.
-            if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE)
-              logFormulaBuildError(logger, e);
+            logFormulaBuildError(logger, e);
             // return dummy select
             qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
           }

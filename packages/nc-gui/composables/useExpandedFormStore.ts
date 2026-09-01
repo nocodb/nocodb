@@ -469,11 +469,22 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           return obj
         }, {} as Record<string, any>)
 
+        // SmartText columns are persisted via their own rowId-keyed op below (#10261) —
+        // strip their interim markdown preview from the payload so a failed flush
+        // can't leave the client-derived preview as the stored value.
+        const smartTextDrafts = row.value.rowMeta?.smartTextDrafts ?? {}
+        const hasSmartTextDrafts = Object.values(smartTextDrafts).some(Boolean)
+        for (const [columnId, draft] of Object.entries(smartTextDrafts)) {
+          if (!draft) continue
+          const colTitle = (meta.value.columns as ColumnType[])?.find((c) => c.id === columnId)?.title
+          if (colTitle) delete updateOrInsertObj[colTitle]
+        }
+
         // Relational fields queue their changes (#14013/#14058) and are persisted here on
         // save, not on each link/unlink. A record can be "modified" via links alone.
         const hasLtarChanges = rowStore.hasLtarChanges.value
 
-        if (Object.keys(updateOrInsertObj).length || hasLtarChanges) {
+        if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts) {
           const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
           if (!id) {
@@ -493,6 +504,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             if (updatedData?.__nc_rls_hidden) {
               row.value.row.__nc_rls_hidden = true
             }
+          }
+
+          // Persist buffered SmartText drafts — deferred to the form's Save (#10261).
+          // Failed flushes stay buffered so the modal can restore and re-save them.
+          if (hasSmartTextDrafts) {
+            const unflushedSmartTextDrafts = await flushSmartTextDrafts(meta.value, id, smartTextDrafts, row.value.row)
+            if (row.value.rowMeta) row.value.rowMeta.smartTextDrafts = unflushedSmartTextDrafts
           }
 
           // Persist queued link/unlink changes after the row update.

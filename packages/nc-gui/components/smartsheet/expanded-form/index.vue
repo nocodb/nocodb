@@ -442,6 +442,9 @@ const clearLtarBuffers = () => {
   // pendingLtarOps queue (#14058). Drop both so a discarded edit can't leak.
   if (_row.value?.rowMeta) {
     _row.value.rowMeta.ltarState = {}
+    // SmartText edits are buffered on the row until the form's Save (#10261) —
+    // drop them here too so a discarded edit isn't flushed on a later save.
+    _row.value.rowMeta.smartTextDrafts = {}
   }
   pendingLtarOps.value = []
 }

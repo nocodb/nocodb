@@ -42,6 +42,11 @@ export const LookupCellRenderer: CellRenderer = {
     let y = _y
     let width = _width - ellipsisWidth
 
+    // cellRenderStore persists per cell across frames, so the link boxes must be dropped up
+    // front — every early return below would otherwise leave the previous frame's boxes
+    // clickable on a cell that no longer paints them.
+    if (cellRenderStore) cellRenderStore.links = []
+
     if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
       renderCellError(ctx, { x, y, width: _width, height, padding, getColor })
       return

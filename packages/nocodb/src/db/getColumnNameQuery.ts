@@ -101,24 +101,15 @@ export async function getColumnNameQuery({
         context,
         ncMeta,
       );
-      // a stored error that turns out to be a stale infra failure is cleared
-      // here rather than silently dropping the expression from the query.
-      // `ncMeta` is deliberately NOT forwarded: this is the only call site that
-      // has a caller-supplied one, and if it were ever a transaction that later
-      // rolled back, the row would revert to the stored error while NocoCache
-      // had already been updated to `error: null`. Let the clear autocommit on
-      // its own connection, as it does at every other site.
+      // a stored error that reads as a stale infra failure gets revalidated
+      // rather than silently dropping the expression from the query. Nothing
+      // is written here — getSelectQueryBuilderForFormula re-derives the
+      // revalidate decision from the still-stored error and runs the bounded
+      // self-heal probe; only its success-path clear removes the error.
       const stored = await checkStoredFormulaError(context, column, formula);
       if (!stored.blocking) {
-        // forward `revalidate`: the clear already nulled `error`, so the check
-        // inside getSelectQueryBuilderForFormula can no longer derive it, and a
-        // formula that really is broken would lose its stored diagnostic
         column_name_query =
-          await baseModelSqlv2.getSelectQueryBuilderForFormula(
-            column,
-            undefined,
-            stored.revalidate,
-          );
+          await baseModelSqlv2.getSelectQueryBuilderForFormula(column);
       }
       break;
     }

@@ -580,15 +580,16 @@ async function persistFormulaColumnError(
  * formula that really is broken re-persists its error instead of silently
  * losing the diagnostic.
  *
- * Clearing is best-effort: the trigger condition is flaky infrastructure, so
- * the meta write can fail too. It stays blocking in that case rather than
- * escaping into callers that drop the column from the SELECT entirely.
+ * Deciding is all this does — nothing is written here. The stored error is
+ * cleared only by the success-path clear after the revalidating dry-run has
+ * actually proven the formula, so a revalidation cut short by another
+ * transient failure leaves the column flagged rather than unproven with a
+ * clean row (a Button column has no retry ladder to ever re-flag it).
  */
 export async function checkStoredFormulaError(
   context: NcContext,
   column: Column,
   colOptions: { error?: string | null; type?: ButtonActionsType },
-  ncMeta?: MetaService,
 ): Promise<{ blocking: boolean; revalidate: boolean }> {
   if (!colOptions?.error) return { blocking: false, revalidate: false };
 
@@ -596,17 +597,8 @@ export async function checkStoredFormulaError(
     return { blocking: true, revalidate: false };
   }
 
-  try {
-    await clearFormulaColumnError(context, column, colOptions, ncMeta);
-  } catch (e) {
-    logger.warn(
-      `Failed to clear stale formula error on column ${column.id}: ${e?.message}`,
-    );
-    return { blocking: true, revalidate: false };
-  }
-
   logger.warn(
-    `Cleared stale formula error on column ${column.id} (${column.title})`,
+    `Stale transient formula error on column ${column.id} (${column.title}) — revalidating`,
   );
   return { blocking: false, revalidate: true };
 }
@@ -638,7 +630,8 @@ export function logFormulaBuildError(logger: Logger, e: any, column?: Column) {
     return;
   }
 
-  logger.log(e);
+  // unexpected — keep the full stack, but still name the column
+  logger.error(`${where}${e?.message}`, e?.stack);
 }
 
 export default async function formulaQueryBuilderv2({
@@ -650,6 +643,7 @@ export default async function formulaQueryBuilderv2({
   columnIdToUidt = {},
   tableAlias,
   validateFormula = false,
+  dryRunLimit,
   parsedTree,
   baseUsers,
   parentColumns,
@@ -663,6 +657,14 @@ export default async function formulaQueryBuilderv2({
   columnIdToUidt?: Record<string, UITypes>;
   tableAlias?: string;
   validateFormula?: boolean;
+  /**
+   * Bound the validation dry-run to this many rows. Set (to 1) ONLY by the
+   * read-path self-heal probe, where "does this expression compile and
+   * execute" is the whole question. Column create/update stays unbounded so
+   * row-dependent failures (a bad cast on row 500) are still caught and
+   * persisted at edit time.
+   */
+  dryRunLimit?: number;
   parsedTree?: any;
   baseUsers?: (Partial<User> & BaseUser)[];
   parentColumns?: CircularRefContext;
@@ -766,43 +768,51 @@ export default async function formulaQueryBuilderv2({
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead.
     //
-    // Bounded with a LIMIT: the read-path self-heal can trigger this, and an
-    // unbounded scan there would evaluate the formula for every row of the
-    // table on the first read after infra recovery — concurrently, across
-    // however many requests observe the stored error. One row exercises the
-    // same SQL generation and type resolution, and a grid read only ever
-    // renders a page anyway.
-    await baseModelSqlv2.execAndParse(
-      knex(baseModelSqlv2.getTnPath(model, tableAlias))
-        .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
-        .limit(1)
-        .as('dry-run-only'),
-      null,
-      { raw: true },
+    // `dryRunLimit` bounds the scan ONLY for the read-path self-heal probe —
+    // there an unbounded scan would evaluate the formula for every row on the
+    // first read after infra recovery, concurrently across every request that
+    // observes the stored error. Validation from column create/update stays
+    // unbounded: it is the product's only pre-flight formula feedback, and a
+    // row-dependent failure (bad cast on row 500) must fail the edit, not
+    // resurface later as an unexplained read error.
+    //
+    // `skipBinding` inlines the LIMIT literal instead of adding a binding.
+    // Formula SQL is full of escaped/literal `?` (sanitize, lookup subquery
+    // re-escaping), and a trailing real binding is exactly the shape that
+    // shifts positional interpolation onto them (see the mssql client's
+    // `TOP (?)` note) — CI hit `limit ?` reaching SQLite unbound
+    // (SQLITE_MISMATCH) when this was a plain `.limit(1)`.
+    const dryRunQb = knex(baseModelSqlv2.getTnPath(model, tableAlias)).select(
+      knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']),
     );
+    if (dryRunLimit) dryRunQb.limit(dryRunLimit, { skipBinding: true });
+    await baseModelSqlv2.execAndParse(dryRunQb.as('dry-run-only'), null, {
+      raw: true,
+    });
 
     // if column is provided, i.e. formula has been created
     if (column) {
-      const formula = await column.getColOptions<FormulaColumn | ButtonColumn>(
-        context,
-      );
       // clean the previous formula error if the formula works this time.
-      // Best-effort: this sits inside the outer try whose catch *persists*
-      // errors, so a throw here (e.g. a Button column with no resolvable
-      // type, or a meta write failing) would misreport a formula that just
-      // validated successfully as broken.
-      if (formula.error) {
-        try {
+      // Best-effort, and the try covers the colOptions read too: this sits
+      // inside the outer try whose catch *persists* errors, so any throw here
+      // (a missing colOptions row, a Button column with no resolvable type,
+      // the meta write failing) would misreport a formula that just validated
+      // successfully as broken.
+      try {
+        const formula = await column.getColOptions<
+          FormulaColumn | ButtonColumn
+        >(context);
+        if (formula.error) {
           await clearFormulaColumnError(
             { ...context, cache: false },
             column,
             formula,
           );
-        } catch (clearErr) {
-          logger.warn(
-            `Failed to clear formula error on column ${column.id} after a successful dry run: ${clearErr?.message}`,
-          );
         }
+      } catch (clearErr) {
+        logger.warn(
+          `Failed to clear formula error on column ${column.id} after a successful dry run: ${clearErr?.message}`,
+        );
       }
       // clear context cache if present since metadata has changed
       context.cacheMap?.clear();

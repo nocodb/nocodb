@@ -208,7 +208,11 @@ export function isTransientError(error: any): boolean {
   // A prose apostrophe (`can't`, `the server's pool`) is indistinguishable from
   // an opening quote to a left-to-right scan, so two of them would delete the
   // text between — including the transient phrase we are looking for. Drop
-  // those first: an apostrophe between two letters is never a quote delimiter.
+  // those first. Heuristic, not an invariant: a letter-adjacent apostrophe is
+  // rarely a quote delimiter, but it can be (MSSQL's `'Employee's Name'`),
+  // and dropping one shifts how the remaining quotes pair. Real driver
+  // messages all classify correctly; the exact fix is the schema-backed
+  // classification planned as a follow-up.
   const stripQuoted = (text: string) =>
     text.replace(/(\p{L})'(\p{L})/gu, '$1$2').replace(/"[^"]*"|'[^']*'/g, '""');
 

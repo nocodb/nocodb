@@ -1679,6 +1679,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     aliasToColumnBuilder = {},
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
+    let dryRunLimit: number | undefined;
     if (formula.error) {
       const stored = await checkStoredFormulaError(
         this.context,
@@ -1688,8 +1689,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (stored.blocking) {
         NcError.get(this.context).formulaError(formula.error);
       }
-      // the stored error was cleared as stale — validating this build is what
-      // proves the formula works, and re-flags it if it doesn't
+      // the stored error reads as stale — validating this build is what
+      // proves the formula works (the success-path clear removes it), and
+      // re-flags it if it doesn't. The self-heal probe is bounded; an
+      // explicit validation from a column edit stays unbounded.
+      if (stored.revalidate && !validateFormula) dryRunLimit = 1;
       validateFormula = validateFormula || stored.revalidate;
     }
 
@@ -1701,6 +1705,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasToColumn: aliasToColumnBuilder,
       tableAlias,
       validateFormula,
+      dryRunLimit,
     });
     return qb;
   }

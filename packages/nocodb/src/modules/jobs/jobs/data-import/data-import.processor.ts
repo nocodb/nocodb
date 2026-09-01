@@ -688,15 +688,26 @@ export class DataImportProcessor {
     // on CSV upload — not "record matches condition", not after-insert webhooks.
     // Keep the fast path unless the table actually has a listener; the readback
     // and per-row audit that hooks cost are then paid only where they're wanted.
-    // Resolved once per sheet.
+    // Resolved once per sheet. Best-effort: a metadata hiccup here must not
+    // abort the sheet — fall back to the pre-existing skip-hooks behavior.
     const [hasRecordWorkflows, insertHooks] = await Promise.all([
-      Workflow.hasRecordInsertTriggers(context, tableId),
+      Workflow.hasRecordInsertTriggers(context, tableId).catch((e) => {
+        this.logger.warn(
+          `Failed to resolve record-insert workflow triggers for model ${tableId}: ${e?.message}`,
+        );
+        return false;
+      }),
       // Same lookup handleHooks itself performs for 'after.bulkInsert', so the
       // gate can't drift from what would actually be dispatched.
       Hook.list(context, {
         fk_model_id: tableId,
         event: 'after',
         operation: 'bulkInsert' as HookType['operation'][0],
+      }).catch((e) => {
+        this.logger.warn(
+          `Failed to resolve after-insert hooks for model ${tableId}: ${e?.message}`,
+        );
+        return [];
       }),
     ]);
     const skipHooks = !(

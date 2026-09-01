@@ -633,6 +633,14 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               insertData: datas?.[0],
               req: cookie,
             });
+          } else if (!baseModel.model.primaryKeys?.length) {
+            // A PK-less table's readback pk filter (`_wherePk`) resolves to an
+            // empty `{}` where-clause, which `orWhere` no-ops — chunkList would
+            // silently return the table's first N pre-existing rows instead of
+            // the ones just inserted, dispatching hooks against the wrong rows.
+            new Logger('BaseModelSqlv2').warn(
+              `skipping after-insert hook dispatch for model ${baseModel.model?.id}: table has no primary key columns to re-read inserted rows by`,
+            );
           } else {
             const insertResponseList = await baseModel.chunkList({
               // composite PKs require the `___`-joined string form (asString=true);

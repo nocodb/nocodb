@@ -285,29 +285,102 @@ const onSmartTextSaved = (markdown: string | null) => {
   reloadRowHook?.trigger(null)
 }
 
-// Flatten a ProseMirror doc into plain text — used only as an interim cell
-// preview for a new record. The authoritative markdown is derived on the backend
-// when the buffered draft is flushed on record creation.
-const pmToPlainText = (pm: Record<string, any> | null): string => {
-  if (!pm) return ''
-  const lines: string[] = []
-  const walk = (node: any) => {
-    if (!node) return
-    if (node.type === 'text' && typeof node.text === 'string') lines.push(node.text)
-    if (Array.isArray(node.content)) node.content.forEach(walk)
-    // Block-level nodes end with a line break so the preview keeps paragraph shape.
-    if (node.type && node.type !== 'text' && node.type !== 'doc') lines.push('\n')
-  }
-  walk(pm)
-  return lines
+// Serialize inline PM content (text + marks) to markdown.
+const pmInline = (content?: Record<string, any>[]): string => {
+  return (content ?? [])
+    .map((node) => {
+      if (node.type === 'text') {
+        let text = node.text ?? ''
+        for (const mark of node.marks ?? []) {
+          if (mark.type === 'bold' || mark.type === 'strong') text = `**${text}**`
+          else if (mark.type === 'italic' || mark.type === 'em') text = `*${text}*`
+          else if (mark.type === 'strike') text = `~~${text}~~`
+          else if (mark.type === 'code') text = `\`${text}\``
+          else if (mark.type === 'link') text = `[${text}](${mark.attrs?.href ?? ''})`
+        }
+        return text
+      }
+      if (node.type === 'hardBreak') return '\n'
+      return pmInline(node.content)
+    })
     .join('')
-    .replace(/\n{2,}/g, '\n')
-    .trim()
 }
 
-// New-record SmartText edit — buffer the ProseMirror draft on the row so it
-// survives modal close and can be flushed to the backend once the record is
-// created, and mirror a plain-text preview into the cell value meanwhile.
+// Serialize a buffered ProseMirror draft to markdown for the interim cell preview —
+// mirrors the backend derivation (prosemirrorUtils) for common nodes; exotic doc
+// nodes degrade to their text. The backend-derived markdown replaces it on flush.
+const pmToMarkdown = (pm: Record<string, any> | null): string => {
+  const walk = (nodes?: Record<string, any>[], indent = ''): string => {
+    return (nodes ?? [])
+      .map((node) => {
+        switch (node.type) {
+          case 'heading':
+            return `${'#'.repeat(node.attrs?.level || 1)} ${pmInline(node.content)}\n\n`
+          case 'paragraph':
+            return `${indent}${pmInline(node.content)}\n\n`
+          case 'bulletList':
+          case 'orderedList':
+          case 'taskList': {
+            let out = ''
+            const items = node.content ?? []
+            for (let i = 0; i < items.length; i++) {
+              const item = items[i]
+              const prefix =
+                node.type === 'orderedList'
+                  ? `${i + 1}. `
+                  : node.type === 'taskList'
+                  ? `- [${item.attrs?.checked ? 'x' : ' '}] `
+                  : '- '
+              const children = item.content ?? []
+              if (children[0]?.type === 'paragraph') {
+                out += `${indent}${prefix}${pmInline(children[0].content)}\n`
+                out += walk(children.slice(1), `${indent}  `)
+              } else {
+                out += `${indent}${prefix}${walk(children, `${indent}  `).trim()}\n`
+              }
+            }
+            return `${out}\n`
+          }
+          case 'blockquote':
+            return `${walk(node.content)
+              .trimEnd()
+              .split('\n')
+              .map((l) => `> ${l}`)
+              .join('\n')}\n\n`
+          case 'codeBlock':
+            return `\`\`\`${node.attrs?.language ?? ''}\n${pmInline(node.content)}\n\`\`\`\n\n`
+          case 'horizontalRule':
+            return '---\n\n'
+          case 'image':
+            return `![${node.attrs?.alt ?? ''}](${node.attrs?.path || node.attrs?.src || ''})\n\n`
+          case 'hardBreak':
+            return '\n'
+          default:
+            return walk(node.content, indent)
+        }
+      })
+      .join('')
+  }
+
+  return walk(pm?.content).trimEnd()
+}
+
+// Non-recursive plain-text fallback — cannot throw on malformed/deep docs.
+const pmToText = (pm: Record<string, any> | null): string => {
+  const out: string[] = []
+  const stack: any[] = [pm]
+  while (stack.length) {
+    const node = stack.pop()
+    if (!node || typeof node !== 'object') continue
+    if (typeof node.text === 'string') out.push(node.text)
+    if (Array.isArray(node.content)) stack.push(...node.content)
+  }
+  return out.join(' ')
+}
+
+// Deferred SmartText edit — buffer the ProseMirror draft on the row so it
+// survives modal close and can be flushed to the backend on record create /
+// form save, and mirror a markdown preview into the cell value meanwhile.
 const onSmartTextDraftUpdate = (pm: Record<string, any> | null) => {
   if (!currentRow.value || !column?.value?.id) return
 
@@ -318,8 +391,13 @@ const onSmartTextDraftUpdate = (pm: Record<string, any> | null) => {
   // Route the preview through the cell vModel (not a direct row write) so the
   // expanded form registers the change (`changedColumns`) — otherwise Save stays
   // disabled and close skips the unsaved-changes prompt when the SmartText field
-  // is the only edit on the new record.
-  vModel.value = pmToPlainText(pm)
+  // is the only edit on the record. The preview must never break editing — the
+  // draft above is already buffered, so fall back to plain text on any error.
+  try {
+    vModel.value = pmToMarkdown(pm)
+  } catch {
+    vModel.value = pmToText(pm)
+  }
 }
 
 const onMouseMove = (e: MouseEvent) => {

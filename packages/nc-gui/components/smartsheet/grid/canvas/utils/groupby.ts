@@ -425,8 +425,12 @@ export function getDefaultGroupData(
 
     if (isLinksOrLTAR(uidt)) {
       // The group key is only the display string — seed the actual link object
-      // from an existing group row. Only bt/mo can share a linked record; oo
-      // can't (the group's record already holds the link), hm/om/mm aren't groupable.
+      // from an existing group row. Only bt/mo can share a linked record: bt
+      // resolves to an FK via `populateInsertObject`, mo rides along as an
+      // inline link object that `nestedInsert` resolves. An inline oo link is
+      // dropped on insert (even when the target is unlinked), and hm/om/mm
+      // aren't groupable — seeding either would pre-fill a value that never
+      // saves, which is the bug this fixes.
       const relationType = (column?.colOptions as LinkToAnotherRecordType | undefined)?.type
       if ((relationType === RelationTypes.BELONGS_TO || relationType === RelationTypes.MANY_TO_ONE) && sampleRow?.[curr.title]) {
         acc[curr.title] = sampleRow[curr.title]

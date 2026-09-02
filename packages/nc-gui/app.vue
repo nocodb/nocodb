@@ -9,7 +9,7 @@ const route = router.currentRoute
 
 // Shared/public pages route external link clicks through the /leaving interstitial.
 watch(
-  () => isSharedBaseOrErdOrViewRoute(route.value),
+  () => isSharedBaseOrErdOrViewRoute(route.value) || isSharedDashboardRoute(route.value) || isSharedInterfaceRoute(route.value),
   (isShared) => addConfirmPageLeavingRedirectToWindow(!isShared),
   { immediate: true },
 )

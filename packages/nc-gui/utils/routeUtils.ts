@@ -25,6 +25,20 @@ export const isSharedFormViewRoute = (route: RouteLocationNormalizedLoadedGeneri
   return routeName.startsWith('index-typeOrId-form-viewId')
 }
 
+/** Public share-to-web dashboard route (`/:typeOrId/dashboard/:uuid`) */
+export const isSharedDashboardRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+  if (!route) return false
+
+  return ((route.name as string) || '').startsWith('index-typeOrId-dashboard-dashboardId')
+}
+
+/** Public share-to-web interface route (`/:typeOrId/interface/:uuid`) */
+export const isSharedInterfaceRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+  if (!route) return false
+
+  return ((route.name as string) || '').startsWith('index-typeOrId-interface-uuid')
+}
+
 /**
  * Check if the route is a public route
  * @param route - The route to check

@@ -425,7 +425,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
-  const isWorkflowLimitReached = (_count: number) => true
+  const isWorkflowLimitReached = (_count: number) => false
 
   const showWorkflowPlanLimitExceededModal = (..._args: any[]) => {}
 

@@ -21,6 +21,10 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  // Interface pages: sorts are viewer-local — the synthetic view has no server
+  // row, so every persistence path (list/create/update/delete) must stay local.
+  const isInterfacePage = !!inject(InterfacePageDataInj, undefined)
+
   const meta = inject(MetaInj, ref())
 
   const loadSorts = async () => {
@@ -28,6 +32,9 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       sorts.value = []
       return
     }
+
+    // Keep whatever the toolbar / side panel already picked.
+    if (isInterfacePage) return
 
     // Wait for meta to be available before loading sorts (up to 5 seconds)
     if (!meta.value && view?.value) {
@@ -53,7 +60,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
   }
 
   const saveOrUpdate = async (sort: SortType, i: number) => {
-    if (isPublic.value || isSharedBase.value) {
+    if (isPublic.value || isSharedBase.value || isInterfacePage) {
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       reloadHook?.trigger()
@@ -116,7 +123,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       const existingSortIndex = sorts.value.findIndex((s) => s.fk_column_id === column.id)
       const existingSort = existingSortIndex > -1 ? sorts.value[existingSortIndex] : undefined
 
-      const isLocalMode = isPublic.value || isSharedBase.value || !canSyncSort.value
+      const isLocalMode = isPublic.value || isSharedBase.value || isInterfacePage || !canSyncSort.value
       // Delete existing sort and not update the state as sort count in UI will change for a sec
       if (existingSort && !isLocalMode) {
         await $api.internal.postOperation(
@@ -165,7 +172,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   async function deleteSort(sort: SortType, i: number) {
     try {
-      const isLocalMode = isPublic.value || isSharedBase.value || !canSyncSort.value
+      const isLocalMode = isPublic.value || isSharedBase.value || isInterfacePage || !canSyncSort.value
       if (sort.id && !isLocalMode) {
         await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,

@@ -763,6 +763,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               limit: queryParams.value.limit,
               offset: params.offset,
               where: queryParams.value.where,
+              sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
               nestedFiltersArr: sideBarFilter.value,
             })
@@ -1249,6 +1250,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           ? await interfaceDataApi.fetchList({
               limit: queryParams.value.limit,
               where: queryParams.value.where,
+              sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
               nestedFiltersArr: sideBarFilter.value,
             })

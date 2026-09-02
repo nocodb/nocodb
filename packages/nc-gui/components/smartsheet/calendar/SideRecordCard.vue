@@ -68,7 +68,7 @@ const toDate = computed(() => {
   if (!toDateRaw.value || !toCol.value || !dayjs(toDateRaw.value)?.isValid()) return null
 
   const timeFormat = is12hrTimeColumn(toCol.value) ? 'h:mm A' : 'HH:mm'
-  const format = props.calDataType === 'Date' ? 'DD MMM' : `DD MMM • ${timeFormat}`
+  const format = props.calDataType === 'Date' ? 'D MMM' : `D MMM • ${timeFormat}`
   return timezoneDayjs.timezonize(toDateRaw.value).format(format)
 })
 
@@ -142,18 +142,18 @@ const errorInfo = computed(() => {
           :class="{
             '!max-w-35': invalid,
           }"
-          class="text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
+          class="nc-side-card-title text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
         >
           <template #title>
             <slot name="tooltip" />
           </template>
           <slot />
         </NcTooltip>
-        <NcTooltip v-if="invalid" placement="left" class="top-1 absolute right-1">
+        <NcTooltip v-if="invalid" placement="left" class="nc-side-card-error top-1 absolute right-1">
           <NcBadge color="red" :border="false" class="!h-5">
             <div class="flex items-center gap-1">
-              <GeneralIcon icon="warning" class="text-nc-content-red-medium !h-4 !w-4" />
-              <span class="font-normal text-xs">{{ errorInfo.message }}</span>
+              <GeneralIcon icon="ncAlertTriangle" class="flex-none w-3.5 h-3.5 text-nc-content-red-dark" />
+              <span class="font-normal text-xs text-nc-content-red-dark">{{ errorInfo.message }}</span>
             </div>
           </NcBadge>
           <template #title>
@@ -223,6 +223,11 @@ const errorInfo = computed(() => {
   :deep(.nc-side-card-date),
   :deep(span) {
     color: var(--cal-on-accent) !important;
+  }
+
+  // The error badge keeps its own red palette so it reads on any accent.
+  :deep(.nc-side-card-error span) {
+    color: var(--nc-content-red-dark) !important;
   }
 }
 

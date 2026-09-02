@@ -28,6 +28,8 @@ const {
   recordHeightMode,
   eventDisplayTheme,
   calendarMetaData,
+  resolveRecordEdge,
+  jumpToDate,
 } = useCalendarViewStoreOrThrow()
 
 // Interface editor: a date/"+"/dblclick selects the calendar element (opens
@@ -268,7 +270,7 @@ const calendarData = computed(() => {
           // is bounded to the visible window, so we don't fade non-month days.
           isInPagedMonth: isMultiWeekRange.value ? true : day.isSame(selectedMonth.value, 'month'),
           isVisible: maxVisibleDays.value === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true,
-          dayNumber: day.format('DD'),
+          dayNumber: day.format(interfacePageDataApi ? 'D' : 'DD'),
         }
       }),
     })),
@@ -292,8 +294,10 @@ const recordsToDisplay = computed<{
   count: {
     [p: string]: { overflow: boolean; count: number; overflowCount: number; overflowRecords: Array<Row>; lanes?: boolean[] }
   }
+  /** Visible lanes per week row (Infinity when expanded) — positions the interface's "+N more". */
+  maxLanes: number
 }>(() => {
-  if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
+  if (!calendarData.value || !calendarRange.value) return { records: [], count: {}, maxLanes: 0 }
 
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
   const perRecordHeight = perRecordHeightPx.value
@@ -305,14 +309,11 @@ const recordsToDisplay = computed<{
   // Interfaces cap on the REAL render pitch (+4) — the Data tab's +8 reserve
   // left a whole visible lane unused with the tighter 24px chips.
   const laneCapPitch = perRecordHeight + (interfacePageDataApi ? 4 : 8)
-  // The "+N more" badge is bottom-anchored inside each day cell (23px xxsmall button +
-  // 4px `bottom-1` inset), while the record overlay renders ~8px lower than the cells
-  // (`mt-8` vs the ~24px weekday header). The Data tab's +8 cap pitch accrues enough
-  // slack under the last lane to keep that band clear, but capping interfaces on the
-  // exact render pitch left zero slack — the last lane and the badge shared the same
-  // vertical band. Reserve the badge row in the interface cap: 23px badge + 8px overlay
-  // downshift (the badge's 4px inset is covered by the last lane's trailing 4px gap).
-  const overflowRowReserve = interfacePageDataApi ? 31 : 0
+  // Interfaces place the "+N more" badge (16px text row, see overflowBadgeStyle) directly
+  // under the last lane, and the record overlay renders 8px lower than the cells (`mt-8`
+  // vs the ~24px weekday header). Reserve both so the badge stays inside the cell:
+  // 16px badge + 8px overlay downshift. The Data tab's +8 cap pitch already leaves slack.
+  const overflowRowReserve = interfacePageDataApi ? 24 : 0
   // Always allow at least one lane. `perHeight` is `gridHeight / weeksInMonth`,
   // so a 6-week month (e.g. Aug 2026 — starts on a Saturday) makes each row
   // shorter; in the tighter interface layout (larger `overflowRowReserve`) the
@@ -610,8 +611,18 @@ const recordsToDisplay = computed<{
   return {
     records: recordsToDisplay,
     count: recordsInDay,
+    maxLanes,
   }
 })
+
+// Interface: "+N more" sits directly under the last lane, left-aligned like the
+// bars it summarises (the Data tab keeps its bottom-right badge). Cell-relative:
+// 8px overlay downshift + 22px date inset + one lane pitch per visible lane.
+const overflowBadgeStyle = computed(() =>
+  interfacePageDataApi && Number.isFinite(recordsToDisplay.value.maxLanes)
+    ? { top: `${30 + (perRecordHeightPx.value + 4) * recordsToDisplay.value.maxLanes}px` }
+    : undefined,
+)
 
 // --- Expanded per-week row heights ------------------------------------------
 // Each week row grows to fit its OWN busiest day (lanes), with a floor of the compact
@@ -1048,9 +1059,57 @@ const selectDate = (date: dayjs.Dayjs) => {
   selectedDate.value = date
 }
 
+// Chevron target whose edge is already on this page: pulse the segment that
+// holds that edge so the click still lands somewhere visible.
+const jumpTarget = ref<{ id: string; edge: 'start' | 'end' } | null>(null)
+let jumpTargetTimer: ReturnType<typeof setTimeout> | undefined
+
+const isJumpTarget = (record: Row) => {
+  const target = jumpTarget.value
+  if (!target || record.rowMeta.id !== target.id) return false
+  const pos = record.rowMeta.position
+  return pos === 'rounded' || pos === (target.edge === 'end' ? 'rightRounded' : 'leftRounded')
+}
+
+onBeforeUnmount(() => clearTimeout(jumpTargetTimer))
+
+// Chevron on a spilled-over bar: page the calendar to the record's start / end.
+const jumpToRecordEdge = (record: Row, edge: 'start' | 'end') => {
+  const date = resolveRecordEdge(record, edge)
+  if (!date) return
+
+  // Already on this page (visible grid spans leading/trailing days too): no
+  // paging — scroll its week row into view (expanded grids scroll) and pulse
+  // the edge segment instead.
+  const weeks = calendarData.value?.weeks ?? []
+  const first = weeks[0]?.days[0]?.date
+  const lastDays = weeks[weeks.length - 1]?.days
+  const last = lastDays?.[lastDays.length - 1]?.date
+  if (first && last && !date.isBefore(first, 'day') && !date.isAfter(last, 'day')) {
+    selectedDate.value = date
+
+    const weekIdx = weeks.findIndex((w) => w.days.some((d) => d.date.isSame(date, 'day')))
+    calendarGridContainer.value
+      ?.querySelectorAll('[data-testid="nc-calendar-month-week"]')
+      [weekIdx]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+
+    jumpTarget.value = { id: record.rowMeta.id!, edge }
+    clearTimeout(jumpTargetTimer)
+    jumpTargetTimer = setTimeout(() => (jumpTarget.value = null), 1000)
+    return
+  }
+
+  jumpToDate(date, edge)
+}
+
 const viewMore = (date: dayjs.Dayjs) => {
-  sideBarFilterOption.value = 'selectedDate' as const
   selectedDate.value = date
+
+  // Interfaces: the "+N more" dropdown lists the overflow itself — don't also
+  // swing the records panel open onto that date.
+  if (interfacePageDataApi) return
+
+  sideBarFilterOption.value = 'selectedDate' as const
   showSideMenu.value = true
 }
 
@@ -1213,16 +1272,23 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                 :class="{
                   'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
                 }"
-                class="nc-calendar-day-label px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
+                class="nc-calendar-day-label px-1.3 py-1 text-[13px] leading-3 font-medium rounded-lg"
               >
                 {{ day.dayNumber }}
               </span>
             </div>
             <div
               v-if="!(canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
-              class="leading-3 text-[13px] p-3"
+              class="flex justify-end p-1"
             >
-              {{ day.dayNumber }}
+              <span
+                :class="{
+                  'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
+                }"
+                class="nc-calendar-day-label px-1.3 py-1 text-[13px] leading-3 font-medium rounded-lg"
+              >
+                {{ day.dayNumber }}
+              </span>
             </div>
 
             <NcDropdown
@@ -1232,25 +1298,34 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                 !draggingId
               "
               :trigger="isMobileMode ? [] : ['click']"
+              :overlay-class-name="interfacePageDataApi ? 'nc-interface-calendar-more-overlay' : undefined"
             >
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"
-                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
+                class="nc-calendar-month-more !absolute text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
                 :class="{
+                  'bottom-1 right-1': !interfacePageDataApi,
                   // Interfaces can render narrow day columns (collapsed weekends in a
                   // small viz) — clamp the badge to its own cell so it can't spill
                   // across the border and collide with the neighbouring day's badge.
-                  'max-w-[calc(100%_-_8px)] overflow-hidden': !!interfacePageDataApi,
+                  'left-1 max-w-[calc(100%_-_8px)] overflow-hidden': !!interfacePageDataApi,
                 }"
+                :style="overflowBadgeStyle"
                 size="xxsmall"
                 type="secondary"
                 @click="viewMore(day.date)"
               >
-                <span class="text-xs px-1"> + {{ recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount }} </span>
+                <span class="text-xs px-1">
+                  {{
+                    interfacePageDataApi
+                      ? $t('labels.nMore', { count: recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount })
+                      : `+ ${recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount}`
+                  }}
+                </span>
               </NcButton>
 
               <template #overlay>
-                <div class="bg-nc-bg-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+                <div class="bg-nc-bg-default rounded-lg px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                   <LazySmartsheetCalendarSideRecordCard
                     v-for="(record, idx) in recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowRecords"
                     :key="idx"
@@ -1258,6 +1333,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                     class="w-64"
                     :invalid="false"
                     :row="record"
+                    :cal-data-type="calDataType"
                     data-testid="nc-sidebar-record-card"
                     @click="emit('expandRecord', record)"
                   >
@@ -1307,6 +1383,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
           }"
           :class="{
             'cursor-pointer': !resizeInProgress,
+            'nc-cal-jump-target': isJumpTarget(record),
           }"
           class="absolute group draggable-record transition pointer-events-auto"
           @mouseleave="hoverRecord = null"
@@ -1323,6 +1400,8 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
               :label-attachment="recordLabelAttachment(record)"
               @resize-start="onResizeStart"
+              @jump-start="jumpToRecordEdge(record, 'start')"
+              @jump-end="jumpToRecordEdge(record, 'end')"
             >
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
                 <span class="text-xs font-medium text-nc-content-gray-disabled">
@@ -1370,6 +1449,22 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
 
 .grid-cols-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.nc-cal-jump-target {
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  animation: nc-cal-jump-pulse 1s ease-out;
+}
+
+@keyframes nc-cal-jump-pulse {
+  0%,
+  50% {
+    outline-color: var(--nc-border-brand);
+  }
+  100% {
+    outline-color: transparent;
+  }
 }
 
 .selected-date {

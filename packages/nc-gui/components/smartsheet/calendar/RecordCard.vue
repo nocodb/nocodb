@@ -37,7 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
   hasHiddenFields: false,
 })
 
-const emit = defineEmits(['resizeStart'])
+const emit = defineEmits(['resizeStart', 'jumpStart', 'jumpEnd'])
 
 const { eventDisplayTheme } = useCalendarViewStoreOrThrow()
 
@@ -144,7 +144,24 @@ const cardShadow = computed(() => {
       >
         <span class="nc-cal-dot"></span>
       </span>
-      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
+      <!-- Spilled-over edges: chevrons page the calendar to the record's start / end
+           (every host wires jumpStart / jumpEnd to the store's jumpToRecordEdge). -->
+      <NcTooltip
+        v-if="position === 'rightRounded' || position === 'none'"
+        :title="$t('labels.jumpToRecordStart')"
+        hide-on-click
+        class="flex-none self-stretch flex items-center ml-1"
+      >
+        <button
+          type="button"
+          class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
+          data-testid="nc-calendar-record-jump-start"
+          @mousedown.stop
+          @click.stop="emit('jumpStart')"
+        >
+          <GeneralIcon icon="ncChevronLeft" class="w-3.5 h-3.5" />
+        </button>
+      </NcTooltip>
       <span v-if="isPill && $slots.time" class="nc-cal-time-pill">
         <slot name="time" />
       </span>
@@ -195,7 +212,24 @@ const cardShadow = computed(() => {
           </template>
         </NcTooltip>
       </div>
-      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute mb-0.6 z-10 right-5"> ... </span>
+      <!-- Sits left of the label-image tile (right-0.5, w-5) when one is shown. -->
+      <NcTooltip
+        v-if="position === 'leftRounded' || position === 'none'"
+        :title="$t('labels.jumpToRecordEnd')"
+        hide-on-click
+        class="absolute z-10 top-0 bottom-0 flex items-center"
+        :class="labelAttachment ? 'right-6' : 'right-1.5'"
+      >
+        <button
+          type="button"
+          class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
+          data-testid="nc-calendar-record-jump-end"
+          @mousedown.stop
+          @click.stop="emit('jumpEnd')"
+        >
+          <GeneralIcon icon="ncChevronRight" class="w-3.5 h-3.5" />
+        </button>
+      </NcTooltip>
     </div>
 
     <!-- Rounded inset tile — anchored 2px off the card's right edge so the

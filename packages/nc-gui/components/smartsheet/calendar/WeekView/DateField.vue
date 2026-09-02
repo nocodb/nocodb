@@ -26,6 +26,7 @@ const {
   recordHeightMode,
   isDayAnchoredMode,
   dayAnchoredSpan,
+  jumpToRecordEdge,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
@@ -34,6 +35,8 @@ const { isSyncedTable } = useSmartsheetStoreOrThrow()
 // `Page › Calendar`) instead of highlighting the date or adding a record. Null
 // in the published view and outside interface pages.
 const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 const maxVisibleDays = computed(() => {
   // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns
@@ -91,13 +94,17 @@ const nonEmptyCardFields = (record: Row) => (fields.value ?? []).filter((f) => f
 
 // Fields actually rendered on the card. When there are more than the cap, the
 // last line is reserved for a "+N more" hint, so we render one fewer field.
+// Interfaces drop the hint — it reads like the month grid's "+N more" record
+// count — and spend that line on one more field.
 const cardFields = (record: Row) => {
   const all = nonEmptyCardFields(record)
+  if (interfacePageDataApi) return all.slice(0, CALENDAR_CARD_MAX_FIELDS)
   return all.length > CALENDAR_CARD_MAX_FIELDS ? all.slice(0, CALENDAR_CARD_MAX_FIELDS - 1) : all
 }
 
 // Count of non-empty fields not shown on the card (0 when everything fits).
 const hiddenFieldCount = (record: Row) => {
+  if (interfacePageDataApi) return 0
   const total = nonEmptyCardFields(record).length
   return total > CALENDAR_CARD_MAX_FIELDS ? total - (CALENDAR_CARD_MAX_FIELDS - 1) : 0
 }
@@ -788,6 +795,8 @@ const addRecord = (date: dayjs.Dayjs) => {
               :has-hidden-fields="hiddenFieldCount(record) > 0"
               @dblclick.stop="emits('expandRecord', record)"
               @resize-start="onResizeStart"
+              @jump-start="jumpToRecordEdge(record, 'start')"
+              @jump-end="jumpToRecordEdge(record, 'end')"
             >
               <template v-for="(field, index) in cardFields(record)" :key="index">
                 <LazySmartsheetPlainCell

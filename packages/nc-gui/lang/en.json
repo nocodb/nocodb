@@ -2857,6 +2857,8 @@
     "pluralLabel": "Plural Label",
     "selectDateField": "Select a date field",
     "startDateField": "Start date field",
+    "jumpToRecordStart": "Go to start",
+    "jumpToRecordEnd": "Go to end",
     "endDateField": "End date field",
     "optional": "(Optional)",
     "clickToMake": "Click to make",

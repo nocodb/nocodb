@@ -92,6 +92,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockInterfacePreviewAs = computed(() => true)
   const blockInterfaceAccessControl = computed(() => true)
   const blockInterfacePageAccessControl = computed(() => true)
+  const blockInterfaceButtonVisibility = computed(() => true)
   const showUpgradeForInterfaceFeature = (..._args: any[]) => {}
   const showInterfacePlanLimitExceededModal = (..._args: any[]) => {}
   const showInterfacePageLimitExceededModal = (..._args: any[]) => {}
@@ -537,6 +538,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockInterfacePreviewAs,
     blockInterfaceAccessControl,
     blockInterfacePageAccessControl,
+    blockInterfaceButtonVisibility,
     showUpgradeForInterfaceFeature,
     showInterfacePlanLimitExceededModal,
     showInterfacePageLimitExceededModal,

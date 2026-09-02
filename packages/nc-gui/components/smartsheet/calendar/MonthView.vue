@@ -1310,7 +1310,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               </NcButton>
 
               <template #overlay>
-                <div class="bg-nc-bg-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+                <div class="bg-nc-bg-default rounded-lg px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                   <LazySmartsheetCalendarSideRecordCard
                     v-for="(record, idx) in recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowRecords"
                     :key="idx"

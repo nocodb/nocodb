@@ -24,9 +24,6 @@ interface Props {
   // Interfaces split chip labels from the tooltip fields — the tooltip is a
   // deliberate hover surface there, not a truncation fallback.
   forceTooltip?: boolean
-  // Spilled-over edges render as chevrons emitting jumpStart / jumpEnd; the
-  // host must handle both. Off (default), they render as passive markers.
-  jumpable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,7 +35,6 @@ const props = withDefaults(defineProps<Props>(), {
   dragging: false,
   multiline: false,
   hasHiddenFields: false,
-  jumpable: false,
 })
 
 const emit = defineEmits(['resizeStart', 'jumpStart', 'jumpEnd'])
@@ -148,26 +144,24 @@ const cardShadow = computed(() => {
       >
         <span class="nc-cal-dot"></span>
       </span>
-      <!-- Spilled-over edges: chevrons page the calendar to the record's start / end. -->
-      <template v-if="position === 'rightRounded' || position === 'none'">
-        <NcTooltip
-          v-if="jumpable"
-          :title="$t('labels.jumpToRecordStart')"
-          hide-on-click
-          class="flex-none self-stretch flex items-center ml-1"
+      <!-- Spilled-over edges: chevrons page the calendar to the record's start / end
+           (every host wires jumpStart / jumpEnd to the store's jumpToRecordEdge). -->
+      <NcTooltip
+        v-if="position === 'rightRounded' || position === 'none'"
+        :title="$t('labels.jumpToRecordStart')"
+        hide-on-click
+        class="flex-none self-stretch flex items-center ml-1"
+      >
+        <button
+          type="button"
+          class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
+          data-testid="nc-calendar-record-jump-start"
+          @mousedown.stop
+          @click.stop="emit('jumpStart')"
         >
-          <button
-            type="button"
-            class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
-            data-testid="nc-calendar-record-jump-start"
-            @mousedown.stop
-            @click.stop="emit('jumpStart')"
-          >
-            <GeneralIcon icon="ncChevronLeft" class="w-3.5 h-3.5" />
-          </button>
-        </NcTooltip>
-        <span v-else class="ml-2 mb-0.6"> .... </span>
-      </template>
+          <GeneralIcon icon="ncChevronLeft" class="w-3.5 h-3.5" />
+        </button>
+      </NcTooltip>
       <span v-if="isPill && $slots.time" class="nc-cal-time-pill">
         <slot name="time" />
       </span>
@@ -218,27 +212,24 @@ const cardShadow = computed(() => {
           </template>
         </NcTooltip>
       </div>
-      <template v-if="position === 'leftRounded' || position === 'none'">
-        <!-- Sits left of the label-image tile (right-0.5, w-5) when one is shown. -->
-        <NcTooltip
-          v-if="jumpable"
-          :title="$t('labels.jumpToRecordEnd')"
-          hide-on-click
-          class="absolute z-10 top-0 bottom-0 flex items-center"
-          :class="labelAttachment ? 'right-6' : 'right-1.5'"
+      <!-- Sits left of the label-image tile (right-0.5, w-5) when one is shown. -->
+      <NcTooltip
+        v-if="position === 'leftRounded' || position === 'none'"
+        :title="$t('labels.jumpToRecordEnd')"
+        hide-on-click
+        class="absolute z-10 top-0 bottom-0 flex items-center"
+        :class="labelAttachment ? 'right-6' : 'right-1.5'"
+      >
+        <button
+          type="button"
+          class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
+          data-testid="nc-calendar-record-jump-end"
+          @mousedown.stop
+          @click.stop="emit('jumpEnd')"
         >
-          <button
-            type="button"
-            class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
-            data-testid="nc-calendar-record-jump-end"
-            @mousedown.stop
-            @click.stop="emit('jumpEnd')"
-          >
-            <GeneralIcon icon="ncChevronRight" class="w-3.5 h-3.5" />
-          </button>
-        </NcTooltip>
-        <span v-else class="absolute mb-0.6 z-10 right-5"> ... </span>
-      </template>
+          <GeneralIcon icon="ncChevronRight" class="w-3.5 h-3.5" />
+        </button>
+      </NcTooltip>
     </div>
 
     <!-- Rounded inset tile — anchored 2px off the card's right edge so the

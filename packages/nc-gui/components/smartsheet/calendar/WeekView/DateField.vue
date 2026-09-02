@@ -26,6 +26,7 @@ const {
   recordHeightMode,
   isDayAnchoredMode,
   dayAnchoredSpan,
+  jumpToRecordEdge,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
@@ -794,6 +795,8 @@ const addRecord = (date: dayjs.Dayjs) => {
               :has-hidden-fields="hiddenFieldCount(record) > 0"
               @dblclick.stop="emits('expandRecord', record)"
               @resize-start="onResizeStart"
+              @jump-start="jumpToRecordEdge(record, 'start')"
+              @jump-end="jumpToRecordEdge(record, 'end')"
             >
               <template v-for="(field, index) in cardFields(record)" :key="index">
                 <LazySmartsheetPlainCell

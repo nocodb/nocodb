@@ -53,6 +53,7 @@ const {
   timezoneDayjs,
   isDayAnchoredMode,
   dayAnchoredSpan,
+  jumpToRecordEdge,
 } = useCalendarViewStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
@@ -553,6 +554,8 @@ defineExpose({
                 :resize="activeCalendarView === 'week'"
                 @dblclick.stop="emit('expandRecord', record)"
                 @resize-start="onResizeStart"
+                @jump-start="jumpToRecordEdge(record, 'start')"
+                @jump-end="jumpToRecordEdge(record, 'end')"
               >
                 <template v-for="(field, index) in fields" :key="index">
                   <LazySmartsheetPlainCell

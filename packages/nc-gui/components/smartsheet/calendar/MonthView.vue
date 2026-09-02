@@ -10,7 +10,6 @@ const {
   selectedDate,
   selectedMonth,
   selectedDateRange,
-  pageDate,
   formattedData,
   formattedSideBarData,
   calDataType,
@@ -29,6 +28,8 @@ const {
   recordHeightMode,
   eventDisplayTheme,
   calendarMetaData,
+  resolveRecordEdge,
+  jumpToDate,
 } = useCalendarViewStoreOrThrow()
 
 // Interface editor: a date/"+"/dblclick selects the calendar element (opens
@@ -1058,33 +1059,47 @@ const selectDate = (date: dayjs.Dayjs) => {
   selectedDate.value = date
 }
 
+// Chevron target whose edge is already on this page: pulse the segment that
+// holds that edge so the click still lands somewhere visible.
+const jumpTarget = ref<{ id: string; edge: 'start' | 'end' } | null>(null)
+let jumpTargetTimer: ReturnType<typeof setTimeout> | undefined
+
+const isJumpTarget = (record: Row) => {
+  const target = jumpTarget.value
+  if (!target || record.rowMeta.id !== target.id) return false
+  const pos = record.rowMeta.position
+  return pos === 'rounded' || pos === (target.edge === 'end' ? 'rightRounded' : 'leftRounded')
+}
+
+onBeforeUnmount(() => clearTimeout(jumpTargetTimer))
+
 // Chevron on a spilled-over bar: page the calendar to the record's start / end.
 const jumpToRecordEdge = (record: Row, edge: 'start' | 'end') => {
-  const range = record.rowMeta.range
-  const col = edge === 'end' ? range?.fk_to_col ?? range?.fk_from_col : range?.fk_from_col
-  const raw = col && record.row[col.title!]
-  if (!raw) return
+  const date = resolveRecordEdge(record, edge)
+  if (!date) return
 
-  const date = timezoneDayjs.timezonize(raw)
-  selectedDate.value = date
-
-  // Already on this page (visible grid spans leading/trailing days too) — the
-  // edge is in view, so no month change and no reload.
+  // Already on this page (visible grid spans leading/trailing days too): no
+  // paging — scroll its week row into view (expanded grids scroll) and pulse
+  // the edge segment instead.
   const weeks = calendarData.value?.weeks ?? []
   const first = weeks[0]?.days[0]?.date
   const lastDays = weeks[weeks.length - 1]?.days
   const last = lastDays?.[lastDays.length - 1]?.date
-  if (first && last && !date.isBefore(first, 'day') && !date.isAfter(last, 'day')) return
+  if (first && last && !date.isBefore(first, 'day') && !date.isAfter(last, 'day')) {
+    selectedDate.value = date
 
-  // Multi-week grids anchor on selectedDateRange; selectedMonth is ignored there.
-  if (isMultiWeekRange.value) {
-    selectedDateRange.value = { start: date.startOf('week'), end: date.endOf('week') }
-    if (pageDate.value.month() !== date.month()) pageDate.value = date
+    const weekIdx = weeks.findIndex((w) => w.days.some((d) => d.date.isSame(date, 'day')))
+    calendarGridContainer.value
+      ?.querySelectorAll('[data-testid="nc-calendar-month-week"]')
+      [weekIdx]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+
+    jumpTarget.value = { id: record.rowMeta.id!, edge }
+    clearTimeout(jumpTargetTimer)
+    jumpTargetTimer = setTimeout(() => (jumpTarget.value = null), 1000)
     return
   }
 
-  pageDate.value = date
-  selectedMonth.value = date
+  jumpToDate(date, edge)
 }
 
 const viewMore = (date: dayjs.Dayjs) => {
@@ -1368,6 +1383,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
           }"
           :class="{
             'cursor-pointer': !resizeInProgress,
+            'nc-cal-jump-target': isJumpTarget(record),
           }"
           class="absolute group draggable-record transition pointer-events-auto"
           @mouseleave="hoverRecord = null"
@@ -1383,7 +1399,6 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
               :label-attachment="recordLabelAttachment(record)"
-              jumpable
               @resize-start="onResizeStart"
               @jump-start="jumpToRecordEdge(record, 'start')"
               @jump-end="jumpToRecordEdge(record, 'end')"
@@ -1434,6 +1449,22 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
 
 .grid-cols-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.nc-cal-jump-target {
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  animation: nc-cal-jump-pulse 1s ease-out;
+}
+
+@keyframes nc-cal-jump-pulse {
+  0%,
+  50% {
+    outline-color: var(--nc-border-brand);
+  }
+  100% {
+    outline-color: transparent;
+  }
 }
 
 .selected-date {

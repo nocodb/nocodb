@@ -29,6 +29,7 @@ const {
   isSyncedFromColumn,
   isAddDeleteInlineEnabled,
   updateFormat,
+  jumpToRecordEdge,
 } = useCalendarViewStoreOrThrow()
 
 // Interface editor: a dblclick selects the calendar element (opens `Page ›
@@ -257,6 +258,8 @@ const newRecord = () => {
               :resize="false"
               :position="record.rowMeta.position"
               size="small"
+              @jump-start="jumpToRecordEdge(record, 'start')"
+              @jump-end="jumpToRecordEdge(record, 'end')"
             >
               <template v-for="(field, id) in fields" :key="id">
                 <LazySmartsheetPlainCell

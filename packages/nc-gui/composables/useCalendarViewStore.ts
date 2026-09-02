@@ -1241,6 +1241,47 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
+    // Chevron on a spilled-over bar: the record's start / end date from its
+    // range columns; null when that cell is empty.
+    const resolveRecordEdge = (record: Row, edge: 'start' | 'end'): dayjs.Dayjs | null => {
+      const range = record.rowMeta.range
+      const col = edge === 'end' ? range?.fk_to_col ?? range?.fk_from_col : range?.fk_from_col
+      const raw = col && record.row[col.title!]
+      return raw ? timezoneDayjs.timezonize(raw) : null
+    }
+
+    // Move the visible window so `date` is on screen. An `end` edge lands on the
+    // window's last row / column so the record leads into it.
+    const jumpToDate = (date: dayjs.Dayjs, edge: 'start' | 'end' = 'start') => {
+      if (activeCalendarView.value === 'year') return
+
+      selectedDate.value = date
+
+      if (activeCalendarView.value === 'month') {
+        selectedMonth.value = date
+      } else if (activeCalendarView.value === 'day') {
+        selectedTime.value = date
+      } else {
+        // week / 3day / 2week / 6week / custom all anchor on selectedDateRange.
+        const anchor =
+          edge !== 'end'
+            ? date
+            : isDayAnchoredMode.value
+            ? date.subtract(dayAnchoredSpan.value - 1, 'day')
+            : date.subtract((weeksInRange.value - 1) * 7, 'day')
+        selectedDateRange.value = rangeForActiveMode(anchor)
+      }
+
+      if (pageDate.value.year() !== date.year() || pageDate.value.month() !== date.month()) {
+        pageDate.value = date
+      }
+    }
+
+    const jumpToRecordEdge = (record: Row, edge: 'start' | 'end') => {
+      const date = resolveRecordEdge(record, edge)
+      if (date) jumpToDate(date, edge)
+    }
+
     // Interface footer count (page ∧ viz scope, all dates). Not awaited — the panel must not
     // wait on it. Skipped while the scope is unchanged (navigation only moves the window);
     // `force` refetches after record inserts / deletes.
@@ -1878,6 +1919,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedMonth,
       selectedDateRange,
       paginateCalendarView,
+      resolveRecordEdge,
+      jumpToDate,
+      jumpToRecordEdge,
       viewMetaProperties,
       recordHeightMode,
       eventDisplayTheme,

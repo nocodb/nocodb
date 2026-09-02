@@ -50,6 +50,8 @@ const {
   showUpgradeToUseBookmarks,
   hideInterfaces,
   showUpgradeForInterfaceFeature,
+  blockWorkflows,
+  showUpgradeToUseWorkflows,
 } = useEeConfig()
 
 const isBookmarksFlyoutOpen = ref(false)
@@ -122,6 +124,10 @@ const onTabClick = async (tabKey: string) => {
   if (!basePath) return
 
   if (tabKey === 'workflows') {
+    if (blockWorkflows.value) {
+      showUpgradeToUseWorkflows({ triggerSource: 'minisidebar-workflows' })
+      return
+    }
     await navigateTo(`${basePath}/workflows`)
   } else if (tabKey === 'interfaces') {
     // Plan-blocked: upsell instead of navigating (mirrors Rail)

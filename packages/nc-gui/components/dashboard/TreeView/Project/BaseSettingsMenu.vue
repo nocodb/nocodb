@@ -14,7 +14,7 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const baseRole = inject(ProjectRoleInj)!
 
-const { isMobileMode, appInfo } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isUIAllowed, baseRoles, loadRoles } = useRoles()
 
@@ -33,6 +33,7 @@ const {
   isEEFeatureBlocked,
   showEEFeatures,
   hideInterfaces,
+  blockWorkflows,
 } = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
@@ -187,7 +188,7 @@ onMounted(() => {
     <NcSidebarMenuItem
       v-if="
         isEeUI &&
-        appInfo?.ee &&
+        !blockWorkflows &&
         showEEFeatures &&
         isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles }) &&
         isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&

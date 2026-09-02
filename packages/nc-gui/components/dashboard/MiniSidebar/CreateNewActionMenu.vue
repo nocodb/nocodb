@@ -266,7 +266,7 @@ const hasDocumentCreateAccess = computed(() => {
                 <div class="flex-1">
                   {{ $t('general.workflow') }}
                 </div>
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+                <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_WORKFLOWS" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
             <NcTooltip

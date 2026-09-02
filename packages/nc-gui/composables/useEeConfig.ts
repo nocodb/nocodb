@@ -425,6 +425,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
+  const isWorkflowLimitReached = (_count: number) => false
+
+  const showWorkflowPlanLimitExceededModal = (..._args: any[]) => {}
+
   const blockBookmarks = computed(() => true)
 
   const showUpgradeToUseBookmarks = (..._args: any[]) => {}
@@ -635,6 +639,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockWorkflows,
     showUpgradeToUseWorkflows,
+    isWorkflowLimitReached,
+    showWorkflowPlanLimitExceededModal,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

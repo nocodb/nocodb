@@ -23,6 +23,7 @@ import {
   wrapFormulaWithMaxLength,
 } from './formula-query-builder.helpers';
 import type { ButtonActionsType, ClientType, LiteralNode } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
@@ -65,6 +66,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     column = null,
     columns,
     getAliasCount,
+    formulaBuilderCache,
   } = params;
 
   let { baseUsers = null } = params;
@@ -135,6 +137,16 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             tableAlias,
             parentColumns,
           }: TAliasToColumnParam) => {
+            // Memoized per (column, tableAlias) — see formulaBuilderCache.
+            // Keyed by tableAlias because leaf resolvers embed it. A hit cannot
+            // mask a cycle: CircularRefContext throws during the first
+            // expansion, so a cyclic column never reaches the cache.
+            const cacheKey = `${col.id}::${tableAlias ?? ''}`;
+            const cached = formulaBuilderCache?.get(cacheKey);
+            if (cached) {
+              return { builder: cached };
+            }
+
             parentColumns = (
               parentColumns ?? CircularRefContext.make()
             ).cloneAndAdd({
@@ -158,8 +170,18 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               getAliasCount,
               column: col,
               columns,
+              formulaBuilderCache,
             });
+
             builder.sql = '(' + builder.sql + ')';
+
+            // Cache the Raw itself, not {sql, bindings} — re-inflating via
+            // knex.raw(sql, bindings) flips knex into placeholder-scanning, and
+            // this pipeline emits bare `?` on purpose (hence the `\?` escapes),
+            // so any array — even [] — throws "Expected 0 bindings, saw N".
+            // Sharing one Raw is safe: the wrap above is the last write to it.
+            formulaBuilderCache?.set(cacheKey, builder);
+
             return {
               builder,
             };
@@ -716,6 +738,9 @@ export default async function formulaQueryBuilderv2({
     return result;
   };
 
+  // Scoped to this build — see formulaBuilderCache docs.
+  const formulaBuilderCache = new Map<string, Knex.Raw>();
+
   let qb;
   try {
     parentColumns = parentColumns ?? CircularRefContext.make();
@@ -744,6 +769,7 @@ export default async function formulaQueryBuilderv2({
       parentColumns,
       columns,
       getAliasCount,
+      formulaBuilderCache,
     });
     let sqlLength = 0;
     try {

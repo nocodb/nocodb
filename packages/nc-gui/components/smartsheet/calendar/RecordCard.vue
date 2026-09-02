@@ -149,7 +149,7 @@ const cardShadow = computed(() => {
         v-if="position === 'rightRounded' || position === 'none'"
         :title="$t('labels.jumpToRecordStart')"
         hide-on-click
-        class="flex-none flex items-center ml-1"
+        class="flex-none self-stretch flex items-center ml-1"
       >
         <button
           type="button"

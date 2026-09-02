@@ -218,6 +218,19 @@ export const patchUrl = (url: string, user?: Record<string, any>): string => {
   }
 }
 
+// Hostnames that skip the /leaving interstitial on shared pages (exact or subdomain match, https only).
+const TRUSTED_LINK_DOMAINS = ['nocodb.com']
+
+export const isTrustedLinkUrl = (url: string) => {
+  try {
+    const { protocol, hostname } = new URL(url)
+    if (protocol !== 'https:') return false
+    return TRUSTED_LINK_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
+  } catch {
+    return false
+  }
+}
+
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean, userObj?: any) => {
   url = addMissingUrlSchma(url)
 
@@ -245,8 +258,8 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
     return
   }
 
-  // No need to navigate to leaving page if it is same origin url
-  if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {
+  // No need to navigate to leaving page for same-origin or trusted urls
+  if (isSameOriginUrl(url) || isTrustedLinkUrl(url) || !ncIsSharedViewOrBase()) {
     window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
   } else {
     const leavingUrl = new URL(`${window.location.origin}/leaving`)

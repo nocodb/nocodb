@@ -7,6 +7,13 @@ useUpdateChecker()
 
 const route = router.currentRoute
 
+// Shared/public pages route external link clicks through the /leaving interstitial.
+watch(
+  () => isSharedBaseOrErdOrViewRoute(route.value),
+  (isShared) => addConfirmPageLeavingRedirectToWindow(!isShared),
+  { immediate: true },
+)
+
 const { showOnboardingFlow } = useOnboardingFlow()
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())

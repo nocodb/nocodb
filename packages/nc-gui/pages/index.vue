@@ -6,8 +6,6 @@ definePageMeta({
 
 const { showOnboardingFlow } = useOnboardingFlow()
 
-const { isSharedBase, isSharedErd } = storeToRefs(useBase())
-
 const basesStore = useBases()
 
 const workspaceStore = useWorkspace()
@@ -145,16 +143,6 @@ onMounted(() => {
     }
   })
 })
-
-watch(
-  [() => isSharedFormView.value, () => isSharedView.value, () => isSharedBase.value, () => isSharedErd.value],
-  (arr) => {
-    addConfirmPageLeavingRedirectToWindow(!arr.some(Boolean))
-  },
-  {
-    immediate: true,
-  },
-)
 </script>
 
 <template>

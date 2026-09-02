@@ -34,6 +34,7 @@ export enum PlanLimitTypes {
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_INTERFACE_PER_WORKSPACE = 'limit_interface',
   LIMIT_INTERFACE_PAGE_PER_INTERFACE = 'limit_interface_page',
+  LIMIT_WORKFLOW_PER_BASE = 'limit_workflow_per_base',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
@@ -127,6 +128,8 @@ export enum PlanFeatureTypes {
   FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
   FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
+  /** Workflow builder (Automations). Node-level tiers live in workflowNodeHelpers. */
+  FEATURE_WORKFLOWS = 'feature_workflows',
   FEATURE_BASE_VARIABLES = 'feature_base_variables',
   /** Sandbox (branch & merge for a base). Cloud: Scale+. On-prem: Enterprise add-on only. */
   FEATURE_SANDBOX = 'feature_sandbox',
@@ -403,6 +406,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more interfaces in a workspace.',
   [PlanLimitTypes.LIMIT_INTERFACE_PAGE_PER_INTERFACE]:
     'to add more pages in an interface.',
+  [PlanLimitTypes.LIMIT_WORKFLOW_PER_BASE]:
+    'to add more workflows in a base.',
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
@@ -527,6 +532,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
+  [PlanFeatureTypes.FEATURE_WORKFLOWS]: 'to build workflows.',
   [PlanFeatureTypes.FEATURE_BASE_VARIABLES]: 'to use base variables.',
   [PlanFeatureTypes.FEATURE_SANDBOX]: 'to use Sandboxes.',
   [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',

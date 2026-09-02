@@ -37,6 +37,7 @@ const {
   isEEFeatureBlocked,
   showEEFeatures,
   hideInterfaces,
+  blockWorkflows,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -62,7 +63,7 @@ const { base } = storeToRefs(useBase())
 
 const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 
-const { isMobileMode, appInfo } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
@@ -94,7 +95,7 @@ const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllow
 
 const isWorkflowsTabVisible = computed(
   () =>
-    appInfo.value?.ee &&
+    !blockWorkflows.value &&
     isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
     isUIAllowed('workflowCreateOrEdit') &&
     !isMobileMode.value &&

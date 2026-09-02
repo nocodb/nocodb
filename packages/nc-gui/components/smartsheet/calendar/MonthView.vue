@@ -1232,7 +1232,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
             </div>
             <div
               v-if="!(canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
-              class="flex justify-end p-2"
+              class="flex justify-end p-1"
             >
               <span
                 :class="{

@@ -291,6 +291,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const formattedSideBarData = ref<Row[]>([])
 
+    /** Interface pages only: records in the page ∧ viz scope regardless of the visible window (footer count). */
+    const totalRecordCount = ref<number | null>(null)
+
     const isSidebarLoading = ref<boolean>(false)
 
     const activeDates = ref<dayjs.Dayjs[]>([])
@@ -1264,6 +1267,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             })
 
         formattedSideBarData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
+
+        // Not awaited — the panel must not wait on the count.
+        interfaceDataApi
+          ?.fetchCount({ where: queryParams.value.where, filtersArr: nestedFilters.value })
+          .then((r) => (totalRecordCount.value = r.count))
+          .catch(() => {})
       } catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
@@ -1840,6 +1849,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       calendarRange,
       loadCalendarData,
       formattedData,
+      totalRecordCount,
       isSidebarLoading,
       showSideMenu,
       selectedTime,

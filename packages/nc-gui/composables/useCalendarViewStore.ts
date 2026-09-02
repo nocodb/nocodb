@@ -1241,6 +1241,23 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
+    // Interface footer count (page ∧ viz scope, all dates). Not awaited — the panel must not
+    // wait on it. Skipped while the scope is unchanged (navigation only moves the window);
+    // `force` refetches after record inserts / deletes.
+    let lastCountKey: string | undefined
+    const fetchTotalRecordCount = (force = false) => {
+      if (!interfaceDataApi) return
+      const key = `${queryParams.value.where}|${stringifyFilterOrSortArr(nestedFilters.value)}`
+      if (!force && key === lastCountKey) return
+      lastCountKey = key
+      interfaceDataApi
+        .fetchCount({ where: queryParams.value.where, filtersArr: nestedFilters.value })
+        .then((r) => (totalRecordCount.value = r.count))
+        .catch(() => {
+          if (lastCountKey === key) lastCountKey = undefined
+        })
+    }
+
     const loadSidebarData = async (showLoading = true) => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
 
@@ -1270,11 +1287,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         formattedSideBarData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
 
-        // Not awaited — the panel must not wait on the count.
-        interfaceDataApi
-          ?.fetchCount({ where: queryParams.value.where, filtersArr: nestedFilters.value })
-          .then((r) => (totalRecordCount.value = r.count))
-          .catch(() => {})
+        fetchTotalRecordCount()
       } catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
@@ -1852,6 +1865,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       loadCalendarData,
       formattedData,
       totalRecordCount,
+      fetchTotalRecordCount,
       isSidebarLoading,
       showSideMenu,
       selectedTime,

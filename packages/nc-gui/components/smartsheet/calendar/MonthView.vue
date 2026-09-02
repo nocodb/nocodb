@@ -308,14 +308,11 @@ const recordsToDisplay = computed<{
   // Interfaces cap on the REAL render pitch (+4) — the Data tab's +8 reserve
   // left a whole visible lane unused with the tighter 24px chips.
   const laneCapPitch = perRecordHeight + (interfacePageDataApi ? 4 : 8)
-  // The "+N more" badge is bottom-anchored inside each day cell (23px xxsmall button +
-  // 4px `bottom-1` inset), while the record overlay renders ~8px lower than the cells
-  // (`mt-8` vs the ~24px weekday header). The Data tab's +8 cap pitch accrues enough
-  // slack under the last lane to keep that band clear, but capping interfaces on the
-  // exact render pitch left zero slack — the last lane and the badge shared the same
-  // vertical band. Reserve the badge row in the interface cap: 23px badge + 8px overlay
-  // downshift (the badge's 4px inset is covered by the last lane's trailing 4px gap).
-  const overflowRowReserve = interfacePageDataApi ? 31 : 0
+  // Interfaces place the "+N more" badge (16px text row, see overflowBadgeStyle) directly
+  // under the last lane, and the record overlay renders 8px lower than the cells (`mt-8`
+  // vs the ~24px weekday header). Reserve both so the badge stays inside the cell:
+  // 16px badge + 8px overlay downshift. The Data tab's +8 cap pitch already leaves slack.
+  const overflowRowReserve = interfacePageDataApi ? 24 : 0
   // Always allow at least one lane. `perHeight` is `gridHeight / weeksInMonth`,
   // so a 6-week month (e.g. Aug 2026 — starts on a Saturday) makes each row
   // shorter; in the tighter interface layout (larger `overflowRowReserve`) the
@@ -1079,6 +1076,13 @@ const jumpToRecordEdge = (record: Row, edge: 'start' | 'end') => {
   const last = lastDays?.[lastDays.length - 1]?.date
   if (first && last && !date.isBefore(first, 'day') && !date.isAfter(last, 'day')) return
 
+  // Multi-week grids anchor on selectedDateRange; selectedMonth is ignored there.
+  if (isMultiWeekRange.value) {
+    selectedDateRange.value = { start: date.startOf('week'), end: date.endOf('week') }
+    if (pageDate.value.month() !== date.month()) pageDate.value = date
+    return
+  }
+
   pageDate.value = date
   selectedMonth.value = date
 }
@@ -1379,6 +1383,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
               :label-attachment="recordLabelAttachment(record)"
+              jumpable
               @resize-start="onResizeStart"
               @jump-start="jumpToRecordEdge(record, 'start')"
               @jump-end="jumpToRecordEdge(record, 'end')"

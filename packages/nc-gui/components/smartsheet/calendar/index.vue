@@ -53,6 +53,7 @@ const {
   calDataType, // Calendar Data Type
   loadCalendarData, // Function to load Calendar Data
   loadSidebarData, // Function to load Sidebar Data
+  fetchTotalRecordCount, // Interface footer count — forced on reload (inserts / deletes)
   isCalendarDataLoading, // Boolean ref to check if Calendar Data is Loading
   fetchActiveDates, // Function to fetch Active Dates
   showSideMenu, // Boolean Ref to show Side Menu
@@ -310,6 +311,7 @@ const reloadViewDataListener = withLoading(async (params: void | { shouldShowLoa
     loadSidebarData(params?.shouldShowLoading ?? false),
     fetchActiveDates(),
   ])
+  fetchTotalRecordCount(true)
 })
 
 reloadViewDataHook?.on(reloadViewDataListener)

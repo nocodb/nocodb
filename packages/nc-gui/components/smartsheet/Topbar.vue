@@ -25,7 +25,7 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions, communityMode } = useEeConfig()
+const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions, communityMode, blockWorkflows } = useEeConfig()
 
 const isSharedBase = computed(() => route.params.typeOrId === 'base')
 
@@ -160,7 +160,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
           <LazySmartsheetTopbarDashboardState v-if="activeDashboardId && isUIAllowed('dashboardEdit')" />
           <LazySmartsheetTopbarScriptAction v-if="activeScriptId && appInfo.ee" />
-          <LazySmartsheetTopbarWorkflowAction v-if="activeWorkflowId && appInfo.ee" />
+          <!-- Not `appInfo.ee`: workflows are a capped Free feature on unlicensed
+               on-prem, and this holds the only Publish / revert affordance. -->
+          <LazySmartsheetTopbarWorkflowAction v-if="activeWorkflowId && !blockWorkflows" />
         </div>
 
         <DashboardMiniSidebarTheme v-if="isSharedBase" placement="bottom" render-as-btn button-class="h-8 w-8" />

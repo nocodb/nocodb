@@ -2485,6 +2485,8 @@ export class ImportService {
                     chunkSize: chunk.length + 1,
                     foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
+                    // Row copy, not a user write — no webhooks, workflows or audit.
+                    skip_hooks: true,
                     // this is to avoid skipping autoincrement column
                     undo: true,
                     // import/duplication copies rows verbatim — not user field
@@ -2525,6 +2527,8 @@ export class ImportService {
                 chunkSize: chunk.length + 1,
                 foreign_key_checks: !!destBase.isMeta(),
                 raw: true,
+                // Row copy, not a user write — no webhooks, workflows or audit.
+                skip_hooks: true,
                 // this is to avoid skipping autoincrement column
                 undo: true,
                 // import/duplication copies rows verbatim — not user field
@@ -2588,6 +2592,8 @@ export class ImportService {
             chunkSize: 1000,
             foreign_key_checks: !!destBase.isMeta(),
             raw: true,
+            // Junction row copy, not a user write — no webhooks or audit.
+            skip_hooks: true,
             // this is to avoid skipping autoincrement column
             undo: true,
             // Junction rows are an internal link copy, not user edits. The null

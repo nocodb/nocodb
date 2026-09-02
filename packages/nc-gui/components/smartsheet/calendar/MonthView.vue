@@ -10,6 +10,7 @@ const {
   selectedDate,
   selectedMonth,
   selectedDateRange,
+  pageDate,
   formattedData,
   formattedSideBarData,
   calDataType,
@@ -1060,6 +1061,28 @@ const selectDate = (date: dayjs.Dayjs) => {
   selectedDate.value = date
 }
 
+// Chevron on a spilled-over bar: page the calendar to the record's start / end.
+const jumpToRecordEdge = (record: Row, edge: 'start' | 'end') => {
+  const range = record.rowMeta.range
+  const col = edge === 'end' ? range?.fk_to_col ?? range?.fk_from_col : range?.fk_from_col
+  const raw = col && record.row[col.title!]
+  if (!raw) return
+
+  const date = timezoneDayjs.timezonize(raw)
+  selectedDate.value = date
+
+  // Already on this page (visible grid spans leading/trailing days too) — the
+  // edge is in view, so no month change and no reload.
+  const weeks = calendarData.value?.weeks ?? []
+  const first = weeks[0]?.days[0]?.date
+  const lastDays = weeks[weeks.length - 1]?.days
+  const last = lastDays?.[lastDays.length - 1]?.date
+  if (first && last && !date.isBefore(first, 'day') && !date.isAfter(last, 'day')) return
+
+  pageDate.value = date
+  selectedMonth.value = date
+}
+
 const viewMore = (date: dayjs.Dayjs) => {
   sideBarFilterOption.value = 'selectedDate' as const
   selectedDate.value = date
@@ -1352,6 +1375,8 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
               :label-attachment="recordLabelAttachment(record)"
               @resize-start="onResizeStart"
+              @jump-start="jumpToRecordEdge(record, 'start')"
+              @jump-end="jumpToRecordEdge(record, 'end')"
             >
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
                 <span class="text-xs font-medium text-nc-content-gray-disabled">

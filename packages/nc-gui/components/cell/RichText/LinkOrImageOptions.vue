@@ -231,7 +231,7 @@ const onImageEditModeUpdate = () => {
 
 const openLink = () => {
   if (href.value) {
-    window.open(href.value, '_blank', 'noopener,noreferrer')
+    confirmPageLeavingRedirect(href.value, '_blank')
   }
 }
 

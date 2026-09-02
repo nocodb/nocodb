@@ -68,7 +68,7 @@ const toDate = computed(() => {
   if (!toDateRaw.value || !toCol.value || !dayjs(toDateRaw.value)?.isValid()) return null
 
   const timeFormat = is12hrTimeColumn(toCol.value) ? 'h:mm A' : 'HH:mm'
-  const format = props.calDataType === 'Date' ? 'DD MMM' : `DD MMM • ${timeFormat}`
+  const format = props.calDataType === 'Date' ? 'D MMM' : `D MMM • ${timeFormat}`
   return timezoneDayjs.timezonize(toDateRaw.value).format(format)
 })
 
@@ -142,7 +142,7 @@ const errorInfo = computed(() => {
           :class="{
             '!max-w-35': invalid,
           }"
-          class="text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
+          class="nc-side-card-title text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
         >
           <template #title>
             <slot name="tooltip" />

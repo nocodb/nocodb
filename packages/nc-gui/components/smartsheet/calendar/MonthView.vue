@@ -268,7 +268,7 @@ const calendarData = computed(() => {
           // is bounded to the visible window, so we don't fade non-month days.
           isInPagedMonth: isMultiWeekRange.value ? true : day.isSame(selectedMonth.value, 'month'),
           isVisible: maxVisibleDays.value === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true,
-          dayNumber: day.format('DD'),
+          dayNumber: day.format(interfacePageDataApi ? 'D' : 'DD'),
         }
       }),
     })),
@@ -292,8 +292,10 @@ const recordsToDisplay = computed<{
   count: {
     [p: string]: { overflow: boolean; count: number; overflowCount: number; overflowRecords: Array<Row>; lanes?: boolean[] }
   }
+  /** Visible lanes per week row (Infinity when expanded) — positions the interface's "+N more". */
+  maxLanes: number
 }>(() => {
-  if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
+  if (!calendarData.value || !calendarRange.value) return { records: [], count: {}, maxLanes: 0 }
 
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
   const perRecordHeight = perRecordHeightPx.value
@@ -610,8 +612,18 @@ const recordsToDisplay = computed<{
   return {
     records: recordsToDisplay,
     count: recordsInDay,
+    maxLanes,
   }
 })
+
+// Interface: "+N more" sits directly under the last lane, left-aligned like the
+// bars it summarises (the Data tab keeps its bottom-right badge). Cell-relative:
+// 8px overlay downshift + 22px date inset + one lane pitch per visible lane.
+const overflowBadgeStyle = computed(() =>
+  interfacePageDataApi && Number.isFinite(recordsToDisplay.value.maxLanes)
+    ? { top: `${30 + (perRecordHeightPx.value + 4) * recordsToDisplay.value.maxLanes}px` }
+    : undefined,
+)
 
 // --- Expanded per-week row heights ------------------------------------------
 // Each week row grows to fit its OWN busiest day (lanes), with a floor of the compact
@@ -1213,16 +1225,23 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                 :class="{
                   'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
                 }"
-                class="nc-calendar-day-label px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
+                class="nc-calendar-day-label px-1.3 py-1 text-[13px] leading-3 font-medium rounded-lg"
               >
                 {{ day.dayNumber }}
               </span>
             </div>
             <div
               v-if="!(canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
-              class="leading-3 text-[13px] p-3"
+              class="flex justify-end p-2"
             >
-              {{ day.dayNumber }}
+              <span
+                :class="{
+                  'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
+                }"
+                class="nc-calendar-day-label px-1.3 py-1 text-[13px] leading-3 font-medium rounded-lg"
+              >
+                {{ day.dayNumber }}
+              </span>
             </div>
 
             <NcDropdown
@@ -1232,21 +1251,30 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                 !draggingId
               "
               :trigger="isMobileMode ? [] : ['click']"
+              :overlay-class-name="interfacePageDataApi ? 'nc-interface-calendar-more-overlay' : undefined"
             >
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"
-                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
+                class="nc-calendar-month-more !absolute text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
                 :class="{
+                  'bottom-1 right-1': !interfacePageDataApi,
                   // Interfaces can render narrow day columns (collapsed weekends in a
                   // small viz) — clamp the badge to its own cell so it can't spill
                   // across the border and collide with the neighbouring day's badge.
-                  'max-w-[calc(100%_-_8px)] overflow-hidden': !!interfacePageDataApi,
+                  'left-1 max-w-[calc(100%_-_8px)] overflow-hidden': !!interfacePageDataApi,
                 }"
+                :style="overflowBadgeStyle"
                 size="xxsmall"
                 type="secondary"
                 @click="viewMore(day.date)"
               >
-                <span class="text-xs px-1"> + {{ recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount }} </span>
+                <span class="text-xs px-1">
+                  {{
+                    interfacePageDataApi
+                      ? $t('labels.nMore', { count: recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount })
+                      : `+ ${recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount}`
+                  }}
+                </span>
               </NcButton>
 
               <template #overlay>
@@ -1258,6 +1286,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                     class="w-64"
                     :invalid="false"
                     :row="record"
+                    :cal-data-type="calDataType"
                     data-testid="nc-sidebar-record-card"
                     @click="emit('expandRecord', record)"
                   >

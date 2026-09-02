@@ -109,8 +109,6 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const openComments = ref(false)
 
 // Absent in form contexts — the attachment cell only provides row comments
@@ -126,12 +124,7 @@ const attachmentDisplay = inject(AttachmentCellDisplayInj, ref(null))
 // open an attachment). The viewer sits on top, so its own comments panel is
 // the active one regardless of how it was opened.
 const carouselCommentsEnabled = computed(
-  () =>
-    !!rowComments &&
-    !isPublic.value &&
-    isUIAllowed('commentList') &&
-    isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS) &&
-    attachmentDisplay.value?.allowComments !== false,
+  () => !!rowComments && !isPublic.value && isUIAllowed('commentList') && attachmentDisplay.value?.allowComments !== false,
 )
 
 // Image annotations are EE-only; plain carousel comments stay available in CE.

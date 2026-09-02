@@ -157,6 +157,7 @@ export enum PlanFeatureTypes {
   FEATURE_INTERFACE_RECORD_REVIEW = 'feature_interface_record_review',
   FEATURE_INTERFACE_OVERVIEW = 'feature_interface_overview',
   FEATURE_INTERFACE_PAGE_ACCESS_CONTROL = 'feature_interface_page_access_control',
+  FEATURE_INTERFACE_BUTTON_VISIBILITY = 'feature_interface_button_visibility',
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
   /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
@@ -575,6 +576,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_INTERFACE_OVERVIEW]: 'to build overview pages.',
   [PlanFeatureTypes.FEATURE_INTERFACE_PAGE_ACCESS_CONTROL]:
     'to control access per interface page.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_BUTTON_VISIBILITY]:
+    'to show interface buttons conditionally.',
   [PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT]:
     'to migrate a base to another NocoDB instance.',
 };

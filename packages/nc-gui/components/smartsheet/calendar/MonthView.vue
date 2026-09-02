@@ -1084,8 +1084,13 @@ const jumpToRecordEdge = (record: Row, edge: 'start' | 'end') => {
 }
 
 const viewMore = (date: dayjs.Dayjs) => {
-  sideBarFilterOption.value = 'selectedDate' as const
   selectedDate.value = date
+
+  // Interfaces: the "+N more" dropdown lists the overflow itself — don't also
+  // swing the records panel open onto that date.
+  if (interfacePageDataApi) return
+
+  sideBarFilterOption.value = 'selectedDate' as const
   showSideMenu.value = true
 }
 

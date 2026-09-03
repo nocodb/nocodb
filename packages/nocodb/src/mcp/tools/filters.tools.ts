@@ -4,8 +4,11 @@ import type { FilterCreateV3Type, FilterUpdateV3Type } from 'nocodb-sdk';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { FiltersV3Service } from '~/services/v3/filters-v3.service';
 
-// A single leaf condition.
+// A single leaf condition. `id` is optional and accepted-but-ignored on
+// create/replace — declaring it keeps the listFilters -> edit -> replaceFilters
+// round-trip valid for clients that pre-validate against the advertised schema.
 const filterLeafSchema = z.object({
+  id: z.string().optional().describe('Filter ID (ignored on create/replace)'),
   field_id: z.string().describe('Field/column ID this condition applies to'),
   operator: z.string().describe('Comparison operator (e.g. eq, gt, lt, like)'),
   sub_operator: z
@@ -26,6 +29,7 @@ const filterLeafSchema = z.object({
 // advertised JSON Schema stays finite; the service re-validates the full tree
 // with ajv against `swagger-v3.json#/components/schemas/FilterCreate`.
 const filterGroupSchema = z.object({
+  id: z.string().optional().describe('Filter ID (ignored on create/replace)'),
   group_operator: z
     .enum(['AND', 'OR'])
     .describe('Logical operator combining the group members'),
@@ -40,10 +44,18 @@ const filterGroupSchema = z.object({
 
 // Required filter body — either a single condition or a (nestable) group.
 const filterCreateSchema = z.union([filterLeafSchema, filterGroupSchema]);
-const filterUpdateSchema = z.intersection(
-  z.object({ id: z.string().describe('Filter ID to update') }),
-  filterCreateSchema,
-);
+// `z.intersection` of an object with a union emits an unsatisfiable JSON
+// Schema (allOf branches both carry additionalProperties:false without `id`),
+// rejecting every payload for pre-validating clients. Union of the two
+// branches, each with `id` required, stays satisfiable.
+const filterUpdateSchema = z.union([
+  filterLeafSchema.extend({
+    id: z.string().describe('Filter ID to update'),
+  }),
+  filterGroupSchema.extend({
+    id: z.string().describe('Filter ID to update'),
+  }),
+]);
 
 const filterBodyDescription =
   'Filter definition. A filter group has the shape ' +

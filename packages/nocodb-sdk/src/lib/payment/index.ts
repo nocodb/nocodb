@@ -84,6 +84,8 @@ export enum PlanFeatureTypes {
   FEATURE_API_DASHBOARD_V3 = 'feature_api_dashboard_v3',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_API_WEBHOOK_V3 = 'feature_api_webhook_v3',
+  FEATURE_MCP_SCRIPT = 'feature_mcp_script',
+  FEATURE_MCP_WEBHOOK = 'feature_mcp_webhook',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
@@ -476,6 +478,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_WEBHOOK_V3]: 'to use webhook api.',
   [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: 'to use script api.',
   [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: 'to use dashboard api.',
+  [PlanFeatureTypes.FEATURE_MCP_SCRIPT]: 'to use script tools over MCP.',
+  [PlanFeatureTypes.FEATURE_MCP_WEBHOOK]: 'to use webhook tools over MCP.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',

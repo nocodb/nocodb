@@ -1414,9 +1414,12 @@ svg.nc-virtual-cell-icon {
         border-width: 1.5px;
         @apply border-gray-700;
       }
+      // Default fill is currentColor (text), which hides the white tick on light text in dark palettes
+      [theme='dark'] & input:checked {
+        background-color: var(--nc-bg-gray-dark);
+      }
     }
   }
-
 }
 
 .nc-rich-text-content {

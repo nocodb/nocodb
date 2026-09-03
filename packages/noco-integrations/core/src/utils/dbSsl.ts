@@ -23,9 +23,11 @@ export interface SqlAuthSslConfig {
 }
 
 /** The value assigned to knex `connection.ssl` for the `pg` / `mysql2` drivers. */
+// Always an object when TLS is on, never boolean `true`: mysql2 throws on a
+// boolean ("SSL profile must be an object") before it opens a socket.
 export type KnexSqlSslValue =
-  | true
-  | { ca: string; rejectUnauthorized: true }
+  | { rejectUnauthorized: false }
+  | { ca?: string; rejectUnauthorized: true }
   | undefined;
 
 /**
@@ -53,10 +55,24 @@ export function buildSqlAuthSsl(config: SqlAuthSslConfig): KnexSqlSslValue {
 
   if (!mode || mode === SSLUsage.No) {
     // Back-compat: honour the pre-`sslMode` boolean flag if it was ever set.
-    if (config.ssl === true || config.ssl === 'true') return true;
+    // Object form for the same reason as below — a legacy integration carrying
+    // `ssl: true` hit the identical mysql2 crash.
+    if (config.ssl === true || config.ssl === 'true')
+      return { rejectUnauthorized: true };
     return undefined;
   }
 
-  // Any non-`No` mode without a custom CA → TLS verified against the public CAs.
-  return true;
+  // Encrypt but don't verify the certificate — the only way a server with a
+  // self-signed / mismatched cert can connect.
+  if (mode === SSLUsage.Allowed || mode === SSLUsage.Preferred) {
+    return { rejectUnauthorized: false };
+  }
+
+  // Any other non-`No` mode without a custom CA → TLS verified against the
+  // public CAs. Must be the object form, not boolean `true`: mysql2 rejects a
+  // boolean outright ("SSL profile must be an object, instead it's a boolean")
+  // before it ever opens a socket, which made `Required` unusable on MySQL.
+  // pg treats `{rejectUnauthorized:true}` and `true` identically — it spreads
+  // any non-`true` ssl value straight into `tls.connect`.
+  return { rejectUnauthorized: true };
 }

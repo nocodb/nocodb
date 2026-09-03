@@ -65,7 +65,13 @@ export function registerTableTools(
         },
       },
       async ({ tableId, title, description, meta }) => {
-        const table: TableUpdateV3Type = { title, description, meta };
+        // Only forward keys the caller actually supplied — sending explicit
+        // `undefined`s would otherwise blank out title/description on update.
+        const table: TableUpdateV3Type = {
+          ...(title !== undefined ? { title } : {}),
+          ...(description !== undefined ? { description } : {}),
+          ...(meta !== undefined ? { meta } : {}),
+        };
         return runTool(() =>
           service.tableUpdate(context, {
             tableId,

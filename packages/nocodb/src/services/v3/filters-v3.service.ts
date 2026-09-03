@@ -602,6 +602,17 @@ export class FiltersV3Service {
       req: NcRequest;
     } & { viewId: string }, // | { hookId: string } | { linkColumnId: string }),
   ) {
+    // Validate the incoming group up front: filterCreate below only validates
+    // once it recurses into insertFilterGroup, i.e. *after* deleteAll has
+    // already wiped the view's filters. Validating here keeps a bad/missing
+    // payload from destroying the existing set.
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FilterCreate',
+      param.filter,
+      true,
+      context,
+    );
+
     // delete existing filters
     await Filter.deleteAll(context, param.viewId);
 

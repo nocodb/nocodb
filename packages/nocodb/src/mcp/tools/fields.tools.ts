@@ -41,6 +41,12 @@ export function registerFieldTools(
       }),
   );
 
+  if (!roles.isCreatorPlus) return;
+
+  // `getField` returns the raw column config (including per-role visibility
+  // internals), so it mirrors the REST `columnGet` ACL tier (CREATOR+; the
+  // permission is absent from the include maps). `listFields` above stays
+  // viewer-tier because it derives from the accessible-view table schema.
   server.registerTool(
     'getField',
     {
@@ -56,8 +62,6 @@ export function registerFieldTools(
     async ({ fieldId }) =>
       runTool(() => service.columnGet(context, { columnId: fieldId })),
   );
-
-  if (!roles.isCreatorPlus) return;
 
   server.registerTool(
     'createField',

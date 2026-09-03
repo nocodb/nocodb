@@ -10,10 +10,10 @@ import type {
   TableV3Type,
   UserType,
 } from 'nocodb-sdk';
-import type { Model, User } from '~/models';
+import type { User } from '~/models';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
-import { Base, Column } from '~/models';
+import { Base, Column, Model, Source } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -131,6 +131,18 @@ export class TablesV3Service {
       req: NcRequest;
     },
   ) {
+    // Schema-readonly sources reject structural changes. The REST path enforces
+    // this via the sourceRestrictions ACL middleware, which MCP bypasses — so
+    // re-check here (the shared entry point for both) before deleting.
+    const table = await Model.getByIdOrName(context, { id: param.tableId });
+    if (!table) {
+      NcError.get(context).tableNotFound(param.tableId);
+    }
+    const source = await Source.get(context, table.source_id);
+    if (source?.is_schema_readonly) {
+      NcError.get(context).sourceMetaReadOnly(source.alias);
+    }
+
     await this.tablesService.tableDelete(context, param);
     return {};
   }
@@ -254,6 +266,17 @@ export class TablesV3Service {
   ) {
     let tableCreateOutput: Model | undefined;
     try {
+      // Schema-readonly sources reject structural changes. The REST path
+      // enforces this via the sourceRestrictions ACL middleware, which MCP
+      // bypasses — so re-check here before creating.
+      const base = await Base.getWithInfo(context, param.baseId);
+      const source = param.sourceId
+        ? base.sources.find((s) => s.id === param.sourceId)
+        : base.sources[0];
+      if (source?.is_schema_readonly) {
+        NcError.get(context).sourceMetaReadOnly(source.alias);
+      }
+
       validatePayload(
         'swagger-v3.json#/components/schemas/TableCreate',
         param.table,

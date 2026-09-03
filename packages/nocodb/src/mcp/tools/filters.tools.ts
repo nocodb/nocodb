@@ -4,8 +4,46 @@ import type { FilterCreateV3Type, FilterUpdateV3Type } from 'nocodb-sdk';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { FiltersV3Service } from '~/services/v3/filters-v3.service';
 
-const filterCreateSchema = z.custom<FilterCreateV3Type>();
-const filterUpdateSchema = z.custom<FilterUpdateV3Type>();
+// A single leaf condition.
+const filterLeafSchema = z.object({
+  field_id: z.string().describe('Field/column ID this condition applies to'),
+  operator: z.string().describe('Comparison operator (e.g. eq, gt, lt, like)'),
+  sub_operator: z
+    .string()
+    .nullish()
+    .describe('Secondary operator, when the operator requires one'),
+  value: z
+    .union([z.string(), z.number(), z.boolean(), z.null()])
+    .optional()
+    .describe('Value to compare against'),
+  parent_id: z
+    .string()
+    .optional()
+    .describe('Parent group ID; defaults to root'),
+});
+
+// A group of conditions. Nested groups are accepted as loose objects so the
+// advertised JSON Schema stays finite; the service re-validates the full tree
+// with ajv against `swagger-v3.json#/components/schemas/FilterCreate`.
+const filterGroupSchema = z.object({
+  group_operator: z
+    .enum(['AND', 'OR'])
+    .describe('Logical operator combining the group members'),
+  filters: z
+    .array(z.union([filterLeafSchema, z.record(z.string(), z.unknown())]))
+    .describe('Leaf conditions and/or nested filter groups'),
+  parent_id: z
+    .string()
+    .optional()
+    .describe('Parent group ID; defaults to root'),
+});
+
+// Required filter body — either a single condition or a (nestable) group.
+const filterCreateSchema = z.union([filterLeafSchema, filterGroupSchema]);
+const filterUpdateSchema = z.intersection(
+  z.object({ id: z.string().describe('Filter ID to update') }),
+  filterCreateSchema,
+);
 
 const filterBodyDescription =
   'Filter definition. A filter group has the shape ' +
@@ -50,7 +88,12 @@ export function registerFilterTools(
     },
     async ({ viewId, filter }) =>
       runTool(() =>
-        service.filterCreate(context, { filter, viewId, user, req }),
+        service.filterCreate(context, {
+          filter: filter as FilterCreateV3Type,
+          viewId,
+          user,
+          req,
+        }),
       ),
   );
 
@@ -71,7 +114,7 @@ export function registerFilterTools(
       runTool(() =>
         service.filterUpdate(context, {
           filterId: filter.id,
-          filter,
+          filter: filter as FilterUpdateV3Type,
           user,
           viewId,
           req,
@@ -93,7 +136,12 @@ export function registerFilterTools(
     },
     async ({ viewId, filter }) =>
       runTool(() =>
-        service.filterReplace(context, { filter, user, req, viewId }),
+        service.filterReplace(context, {
+          filter: filter as FilterCreateV3Type,
+          user,
+          req,
+          viewId,
+        }),
       ),
   );
 

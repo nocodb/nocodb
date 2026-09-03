@@ -286,6 +286,7 @@
     "upgradeToUseDateDependency": "Upgrade to use Date Dependencies",
     "upgradeToUseDateDependencySubtitle": "Upgrade to use date dependencies to automatically sync date fields and propagate schedule changes across linked rows.",
     "upgradeToPlanForFeature": "Upgrade to the {plan} plan {detail}",
+    "runAutomationFromInterfaceButtonDetail": "to run automations from interface buttons.",
     "planFeatureTitle": "{plan} Feature",
     "enterpriseFeatureTitle": "Enterprise Feature",
     "enterpriseFeatureSubtitle": "{feature} is available with an Enterprise license. Enter your license key to unlock this feature.",

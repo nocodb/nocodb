@@ -9,8 +9,12 @@ describe('buildSqlAuthSsl', () => {
   });
 
   it('honours the legacy boolean ssl flag when no mode is set', () => {
-    expect(buildSqlAuthSsl({ ssl: true })).toBe(true);
-    expect(buildSqlAuthSsl({ ssl: 'true' })).toBe(true);
+    expect(buildSqlAuthSsl({ ssl: true })).toEqual({
+      rejectUnauthorized: true,
+    });
+    expect(buildSqlAuthSsl({ ssl: 'true' })).toEqual({
+      rejectUnauthorized: true,
+    });
     expect(buildSqlAuthSsl({ ssl: false })).toBeUndefined();
   });
 

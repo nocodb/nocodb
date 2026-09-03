@@ -23,9 +23,11 @@ export interface SqlAuthSslConfig {
 }
 
 /** The value assigned to knex `connection.ssl` for the `pg` / `mysql2` drivers. */
+// Always an object when TLS is on, never boolean `true`: mysql2 throws on a
+// boolean ("SSL profile must be an object") before it opens a socket.
 export type KnexSqlSslValue =
-  | true
-  | { ca: string; rejectUnauthorized: true }
+  | { rejectUnauthorized: false }
+  | { ca?: string; rejectUnauthorized: true }
   | undefined;
 
 /**
@@ -53,7 +55,10 @@ export function buildSqlAuthSsl(config: SqlAuthSslConfig): KnexSqlSslValue {
 
   if (!mode || mode === SSLUsage.No) {
     // Back-compat: honour the pre-`sslMode` boolean flag if it was ever set.
-    if (config.ssl === true || config.ssl === 'true') return true;
+    // Object form for the same reason as below — a legacy integration carrying
+    // `ssl: true` hit the identical mysql2 crash.
+    if (config.ssl === true || config.ssl === 'true')
+      return { rejectUnauthorized: true };
     return undefined;
   }
 

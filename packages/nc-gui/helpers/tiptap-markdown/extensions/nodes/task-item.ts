@@ -143,9 +143,11 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
       })
 
       listItem.dataset.checked = node.attrs.checked
-      if (node.attrs.checked) {
-        checkbox.setAttribute('checked', 'checked')
-      }
+      // Drive the live `checked` IDL property, not the attribute: once a checkbox
+      // has been clicked its "dirty checkedness" flag is set, after which the
+      // `checked` attribute no longer reflects to the visible state — so a remote
+      // collaborator's toggle applied via setAttribute wouldn't show (#10316).
+      checkbox.checked = node.attrs.checked
 
       checkboxWrapper.append(checkbox, checkboxStyler)
       listItem.append(checkboxWrapper, content)
@@ -163,11 +165,9 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
           }
 
           listItem.dataset.checked = updatedNode.attrs.checked
-          if (updatedNode.attrs.checked) {
-            checkbox.setAttribute('checked', 'checked')
-          } else {
-            checkbox.removeAttribute('checked')
-          }
+          // See note above: assign the IDL property so a remote toggle stays
+          // visible even after this checkbox has been clicked locally.
+          checkbox.checked = updatedNode.attrs.checked
 
           return true
         },

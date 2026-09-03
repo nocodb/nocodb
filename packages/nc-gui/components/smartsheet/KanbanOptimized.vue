@@ -2383,39 +2383,40 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               />
                             </div>
                           </template>
-                        </Draggable>
-
-                        <!-- Interface: "New record" flows after the last card (no pinned stack footer) -->
-                        <PermissionsTooltip
-                          v-if="
-                            interfacePageDataApi &&
-                            formattedData.get(stack.title)?.length &&
-                            isUIAllowed('dataInsert') &&
-                            !isSyncedTable &&
-                            canAddDeleteRows
-                          "
-                          :entity="PermissionEntity.TABLE"
-                          :entity-id="meta?.id"
-                          :permission="PermissionKey.TABLE_RECORD_ADD"
-                        >
-                          <template #default="{ isAllowed }">
-                            <NcButton
-                              v-e="['c:kanban:inline-new-record']"
-                              size="small"
-                              type="text"
-                              class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
-                              :disabled="!isAllowed"
-                              data-testid="nc-kanban-stack-inline-new-record"
-                              @click="handleOpenNewRecordForm(stack.title)"
+                          <template #footer>
+                            <!-- Interface: "New record" flows after the last card. It lives in the Draggable footer slot so the
+                                 blank space below stays a drop target and the button scrolls with the cards. -->
+                            <PermissionsTooltip
+                              v-if="
+                                interfacePageDataApi &&
+                                formattedData.get(stack.title)?.length &&
+                                isUIAllowed('dataInsert') &&
+                                !isSyncedTable &&
+                                canAddDeleteRows
+                              "
+                              :entity="PermissionEntity.TABLE"
+                              :entity-id="meta?.id"
+                              :permission="PermissionKey.TABLE_RECORD_ADD"
                             >
-                              <div class="w-full flex items-center gap-2">
-                                <component :is="iconMap.plus" class="flex-none w-4 h-4" />
-
-                                {{ $t('activity.newRecord') }}
-                              </div>
-                            </NcButton>
+                              <template #default="{ isAllowed }">
+                                <NcButton
+                                  v-e="['c:kanban:inline-new-record']"
+                                  size="small"
+                                  type="text"
+                                  class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
+                                  :disabled="!isAllowed"
+                                  data-testid="nc-kanban-stack-inline-new-record"
+                                  @click="handleOpenNewRecordForm(stack.title)"
+                                >
+                                  <div class="flex items-center gap-2">
+                                    <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+                                    {{ $t('activity.newRecord') }}
+                                  </div>
+                                </NcButton>
+                              </template>
+                            </PermissionsTooltip>
                           </template>
-                        </PermissionsTooltip>
+                        </Draggable>
 
                         <!-- Empty state. Requires loaded data: an unloaded stack rendered mid-drag (skeleton
                              suppressed) isn't known to be empty, so show a plain droppable column instead. -->

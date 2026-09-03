@@ -43,10 +43,8 @@ export function registerFieldTools(
 
   if (!roles.isCreatorPlus) return;
 
-  // `getField` returns the raw column config (including per-role visibility
-  // internals), so it mirrors the REST `columnGet` ACL tier (CREATOR+; the
-  // permission is absent from the include maps). `listFields` above stays
-  // viewer-tier because it derives from the accessible-view table schema.
+  // `columnGet` is absent from every ACL include map, so REST resolves it
+  // CREATOR+. `listFields` above is the same call as REST `tableGet` (VIEWER+).
   server.registerTool(
     'getField',
     {

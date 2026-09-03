@@ -17,12 +17,20 @@ import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
+import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { hasMinimumRole } from '~/utils/roleHelper';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
 import { AuditsService } from '~/services/audits.service';
 import { isEE } from '~/utils';
 import { aggregationDescription, whereDescription } from '~/mcp/descriptions';
+import { getRoleFlags } from '~/mcp/tools/tool-helpers';
+import { registerTableTools } from '~/mcp/tools/tables.tools';
+import { registerFieldTools } from '~/mcp/tools/fields.tools';
+import { registerFilterTools } from '~/mcp/tools/filters.tools';
+import { registerSortTools } from '~/mcp/tools/sorts.tools';
 
 @Injectable()
 export class McpService {
@@ -32,6 +40,9 @@ export class McpService {
     protected readonly datasV3Service: DataV3Service,
     protected readonly dataTableService: DataTableService,
     protected readonly auditService: AuditsService,
+    protected readonly columnsV3Service: ColumnsV3Service,
+    protected readonly filtersV3Service: FiltersV3Service,
+    protected readonly sortsV3Service: SortsV3Service,
   ) {}
 
   async handleRequest(
@@ -73,7 +84,8 @@ export class McpService {
     server: McpServer;
     req: NcRequest;
   }) {
-    const isEditorPlus = hasMinimumRole(user, ProjectRoles.EDITOR);
+    const roles = getRoleFlags(user);
+    const isEditorPlus = roles.isEditorPlus;
 
     // Base Details
     server.registerTool(
@@ -753,6 +765,17 @@ export class McpService {
         },
       );
     }
+
+    // Meta (schema) tools — core v3 APIs available in every edition.
+    const toolCtx = { server, context, req, user, roles };
+    registerTableTools({ ...toolCtx, service: this.tablesV3Service });
+    registerFieldTools({
+      ...toolCtx,
+      service: this.columnsV3Service,
+      tablesService: this.tablesV3Service,
+    });
+    registerFilterTools({ ...toolCtx, service: this.filtersV3Service });
+    registerSortTools({ ...toolCtx, service: this.sortsV3Service });
   }
 }
 

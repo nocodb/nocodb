@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { runTool } from '~/mcp/tools/tool-helpers';
+import type { FilterCreateV3Type, FilterUpdateV3Type } from 'nocodb-sdk';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { FiltersV3Service } from '~/services/v3/filters-v3.service';
+
+const filterCreateSchema = z.custom<FilterCreateV3Type>();
+const filterUpdateSchema = z.custom<FilterUpdateV3Type>();
 
 const filterBodyDescription =
   'Filter definition. A filter group has the shape ' +
@@ -41,17 +45,12 @@ export function registerFilterTools(
       annotations: { title: 'Create Filter', readOnlyHint: false },
       inputSchema: {
         viewId: z.string().describe('View ID'),
-        filter: z.record(z.string(), z.any()).describe(filterBodyDescription),
+        filter: filterCreateSchema.describe(filterBodyDescription),
       },
     },
     async ({ viewId, filter }) =>
       runTool(() =>
-        service.filterCreate(context, {
-          filter: filter as any,
-          viewId,
-          user,
-          req,
-        }),
+        service.filterCreate(context, { filter, viewId, user, req }),
       ),
   );
 
@@ -63,16 +62,16 @@ export function registerFilterTools(
       annotations: { title: 'Update Filter', readOnlyHint: false },
       inputSchema: {
         viewId: z.string().describe('View ID'),
-        filter: z
-          .record(z.string(), z.any())
-          .describe('Filter to update — must include its `id`'),
+        filter: filterUpdateSchema.describe(
+          'Filter to update — must include its `id`',
+        ),
       },
     },
     async ({ viewId, filter }) =>
       runTool(() =>
         service.filterUpdate(context, {
-          filterId: (filter as any).id,
-          filter: filter as any,
+          filterId: filter.id,
+          filter,
           user,
           viewId,
           req,
@@ -89,17 +88,12 @@ export function registerFilterTools(
       annotations: { title: 'Replace Filters', readOnlyHint: false },
       inputSchema: {
         viewId: z.string().describe('View ID'),
-        filter: z.record(z.string(), z.any()).describe(filterBodyDescription),
+        filter: filterCreateSchema.describe(filterBodyDescription),
       },
     },
     async ({ viewId, filter }) =>
       runTool(() =>
-        service.filterReplace(context, {
-          filter: filter as any,
-          user,
-          req,
-          viewId,
-        }),
+        service.filterReplace(context, { filter, user, req, viewId }),
       ),
   );
 

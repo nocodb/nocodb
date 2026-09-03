@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { runTool } from '~/mcp/tools/tool-helpers';
+import type { SortCreateV3Type, SortUpdateV3Type } from 'nocodb-sdk';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { SortsV3Service } from '~/services/v3/sorts-v3.service';
 
@@ -43,14 +44,10 @@ export function registerSortTools(
           .describe('Sort direction (default: asc)'),
       },
     },
-    async ({ viewId, field_id, direction }) =>
-      runTool(() =>
-        service.sortCreate(context, {
-          sort: { field_id, direction } as any,
-          viewId,
-          req,
-        }),
-      ),
+    async ({ viewId, field_id, direction }) => {
+      const sort: SortCreateV3Type = { field_id, direction };
+      return runTool(() => service.sortCreate(context, { sort, viewId, req }));
+    },
   );
 
   server.registerTool(
@@ -69,15 +66,12 @@ export function registerSortTools(
           .describe('Sort direction'),
       },
     },
-    async ({ viewId, sortId, field_id, direction }) =>
-      runTool(() =>
-        service.sortUpdate(context, {
-          sortId,
-          sort: { id: sortId, field_id, direction } as any,
-          req,
-          viewId,
-        }),
-      ),
+    async ({ viewId, sortId, field_id, direction }) => {
+      const sort: SortUpdateV3Type = { id: sortId, field_id, direction };
+      return runTool(() =>
+        service.sortUpdate(context, { sortId, sort, req, viewId }),
+      );
+    },
   );
 
   server.registerTool(

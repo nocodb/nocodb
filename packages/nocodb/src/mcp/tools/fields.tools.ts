@@ -1,5 +1,11 @@
 import { z } from 'zod';
 import { runTool } from '~/mcp/tools/tool-helpers';
+import type {
+  FieldOptionAddItemV3Type,
+  FieldOptionDeleteItemV3Type,
+  FieldUpdateV3Type,
+  FieldV3Type,
+} from 'nocodb-sdk';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import type { TablesV3Service } from '~/services/v3/tables-v3.service';
@@ -31,7 +37,7 @@ export function registerFieldTools(
           tableId,
           user,
         });
-        return { list: (table as any)?.fields ?? [] };
+        return { list: (table as { fields?: unknown[] })?.fields ?? [] };
       }),
   );
 
@@ -62,18 +68,13 @@ export function registerFieldTools(
       inputSchema: {
         tableId: z.string().describe('Table ID'),
         field: z
-          .record(z.string(), z.any())
+          .custom<FieldV3Type>()
           .describe('Field definition (title, type and type-specific options)'),
       },
     },
     async ({ tableId, field }) =>
       runTool(() =>
-        service.columnAdd(context, {
-          tableId,
-          column: field as any,
-          req,
-          user,
-        }),
+        service.columnAdd(context, { tableId, column: field, req, user }),
       ),
   );
 
@@ -86,7 +87,7 @@ export function registerFieldTools(
       inputSchema: {
         fieldId: z.string().describe('Field/column ID'),
         field: z
-          .record(z.string(), z.any())
+          .custom<FieldUpdateV3Type>()
           .describe('Field properties to update'),
       },
     },
@@ -94,7 +95,7 @@ export function registerFieldTools(
       runTool(() =>
         service.columnUpdate(context, {
           columnId: fieldId,
-          column: field as any,
+          column: field,
           req,
           user,
         }),
@@ -127,7 +128,7 @@ export function registerFieldTools(
       inputSchema: {
         fieldId: z.string().describe('Field/column ID'),
         choices: z
-          .array(z.record(z.string(), z.any()))
+          .array(z.custom<FieldOptionAddItemV3Type>())
           .describe('Choices to add, e.g. [{ "title": "Open" }]'),
       },
     },
@@ -135,7 +136,7 @@ export function registerFieldTools(
       runTool(() =>
         service.columnOptionsAdd(context, {
           columnId: fieldId,
-          choices: choices as any,
+          choices,
           req,
           user,
         }),
@@ -156,7 +157,7 @@ export function registerFieldTools(
       inputSchema: {
         fieldId: z.string().describe('Field/column ID'),
         choices: z
-          .array(z.record(z.string(), z.any()))
+          .array(z.custom<FieldOptionDeleteItemV3Type>())
           .describe('Choices to remove (by id or title)'),
       },
     },
@@ -164,7 +165,7 @@ export function registerFieldTools(
       runTool(() =>
         service.columnOptionsDelete(context, {
           columnId: fieldId,
-          choices: choices as any,
+          choices,
           req,
           user,
         }),

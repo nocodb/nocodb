@@ -1,5 +1,11 @@
 import { z } from 'zod';
 import { runTool } from '~/mcp/tools/tool-helpers';
+import type {
+  TableCreateFieldV3Type,
+  TableCreateV3Type,
+  TableMetaV3Type,
+  TableUpdateV3Type,
+} from 'nocodb-sdk';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { TablesV3Service } from '~/services/v3/tables-v3.service';
 
@@ -19,7 +25,7 @@ export function registerTableTools(
           title: z.string().describe('Table title'),
           description: z.string().optional().describe('Table description'),
           fields: z
-            .array(z.record(z.string(), z.any()))
+            .array(z.custom<TableCreateFieldV3Type>())
             .optional()
             .describe('Field definitions to create with the table'),
           source_id: z
@@ -28,16 +34,18 @@ export function registerTableTools(
             .describe('Optional data source ID for external sources'),
         },
       },
-      async ({ title, description, fields, source_id }) =>
-        runTool(() =>
+      async ({ title, description, fields, source_id }) => {
+        const table: TableCreateV3Type = { title, description, fields };
+        return runTool(() =>
           service.tableCreate(context, {
             baseId: context.base_id,
             sourceId: source_id,
-            table: { title, description, fields } as any,
+            table,
             user,
             req,
           }),
-        ),
+        );
+      },
     );
 
     server.registerTool(
@@ -51,21 +59,23 @@ export function registerTableTools(
           title: z.string().optional().describe('New table title'),
           description: z.string().optional().describe('New table description'),
           meta: z
-            .record(z.string(), z.any())
+            .custom<TableMetaV3Type>()
             .optional()
             .describe('Table meta configuration'),
         },
       },
-      async ({ tableId, title, description, meta }) =>
-        runTool(() =>
+      async ({ tableId, title, description, meta }) => {
+        const table: TableUpdateV3Type = { title, description, meta };
+        return runTool(() =>
           service.tableUpdate(context, {
             tableId,
-            table: { title, description, meta } as any,
+            table,
             baseId: context.base_id,
             user,
             req,
           }),
-        ),
+        );
+      },
     );
 
     server.registerTool(

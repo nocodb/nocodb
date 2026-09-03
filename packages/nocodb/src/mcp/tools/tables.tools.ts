@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { runTool } from '~/mcp/tools/tool-helpers';
 import type {
   TableCreateFieldV3Type,
   TableCreateV3Type,
@@ -8,6 +7,11 @@ import type {
 } from 'nocodb-sdk';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { TablesV3Service } from '~/services/v3/tables-v3.service';
+import {
+  hasNoDeprecatedLinksType,
+  REJECT_DEPRECATED_LINKS_MESSAGE,
+  runTool,
+} from '~/mcp/tools/tool-helpers';
 
 export function registerTableTools(
   ctx: McpToolRegisterCtx & { service: TablesV3Service },
@@ -27,7 +31,12 @@ export function registerTableTools(
           fields: z
             .array(z.custom<TableCreateFieldV3Type>())
             .optional()
-            .describe('Field definitions to create with the table'),
+            .refine(hasNoDeprecatedLinksType, {
+              message: REJECT_DEPRECATED_LINKS_MESSAGE,
+            })
+            .describe(
+              'Field definitions to create with the table. For relation fields, use type "LinkToAnotherRecord" — the deprecated "Links" type is rejected.',
+            ),
           source_id: z
             .string()
             .optional()

@@ -30,6 +30,22 @@ export function getRoleFlags(user: McpToolUser): McpRoleFlags {
   };
 }
 
+// `Links` is NocoDB's deprecated v1-style relation field (flagged with an
+// upgrade banner in the UI regardless of its internal LTAR version).
+// `LinkToAnotherRecord` always resolves to the current v2 LTAR relation —
+// the MCP tools only ever offer that one, whether creating a field directly
+// or bundling one into table creation.
+export const REJECT_DEPRECATED_LINKS_MESSAGE =
+  "type 'Links' creates a deprecated relation field; use 'LinkToAnotherRecord' instead";
+
+export function isNotDeprecatedLinksType(field: unknown) {
+  return (field as { type?: string } | undefined)?.type !== 'Links';
+}
+
+export function hasNoDeprecatedLinksType(fields: unknown) {
+  return !Array.isArray(fields) || fields.every(isNotDeprecatedLinksType);
+}
+
 // Wraps a tool handler with the standard NocoDB MCP result shape and error
 // handling so every tool returns a consistent text payload.
 export async function runTool(

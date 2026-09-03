@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { runTool } from '~/mcp/tools/tool-helpers';
 import type {
   FieldOptionAddItemV3Type,
   FieldOptionDeleteItemV3Type,
@@ -9,6 +8,11 @@ import type {
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import type { TablesV3Service } from '~/services/v3/tables-v3.service';
+import {
+  isNotDeprecatedLinksType,
+  REJECT_DEPRECATED_LINKS_MESSAGE,
+  runTool,
+} from '~/mcp/tools/tool-helpers';
 
 export function registerFieldTools(
   ctx: McpToolRegisterCtx & {
@@ -71,7 +75,12 @@ export function registerFieldTools(
         tableId: z.string().describe('Table ID'),
         field: z
           .custom<FieldV3Type>()
-          .describe('Field definition (title, type and type-specific options)'),
+          .refine(isNotDeprecatedLinksType, {
+            message: REJECT_DEPRECATED_LINKS_MESSAGE,
+          })
+          .describe(
+            'Field definition (title, type and type-specific options). For relation fields, use type "LinkToAnotherRecord" — the deprecated "Links" type is rejected.',
+          ),
       },
     },
     async ({ tableId, field }) =>
@@ -90,7 +99,12 @@ export function registerFieldTools(
         fieldId: z.string().describe('Field/column ID'),
         field: z
           .custom<FieldUpdateV3Type>()
-          .describe('Field properties to update'),
+          .refine(isNotDeprecatedLinksType, {
+            message: REJECT_DEPRECATED_LINKS_MESSAGE,
+          })
+          .describe(
+            'Field properties to update. For relation fields, use type "LinkToAnotherRecord" — the deprecated "Links" type is rejected.',
+          ),
       },
     },
     async ({ fieldId, field }) =>

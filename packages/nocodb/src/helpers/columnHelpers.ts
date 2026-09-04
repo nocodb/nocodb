@@ -710,9 +710,16 @@ export const validateLmtTrackedFields = (
   {
     columnBody,
     columns,
+    allowEmptyTrackedSet = false,
   }: {
     columnBody: { uidt?: string; meta?: any; tracked_field_ids?: string[] };
     columns: Column[];
+    /**
+     * Import only: a tracked set whose columns all failed to resolve stays
+     * `specific` with zero entries, so the column keeps reading NULL instead
+     * of degrading to `all` and surfacing the row's `updated_at`.
+     */
+    allowEmptyTrackedSet?: boolean;
   },
 ) => {
   if (
@@ -732,7 +739,10 @@ export const validateLmtTrackedFields = (
   }
 
   const trackedIds = columnBody.tracked_field_ids;
-  if (!Array.isArray(trackedIds) || !trackedIds.length) {
+  if (
+    !Array.isArray(trackedIds) ||
+    (!trackedIds.length && !allowEmptyTrackedSet)
+  ) {
     ncError.badRequest('At least one field to track is required');
   }
 

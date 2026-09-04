@@ -1675,30 +1675,30 @@ export class ImportService {
         // remap the tracked field ids of a field-tracking LMT/LMB column
         // (exported top-level, persisted as junction rows by columnAdd);
         // ids that don't resolve in the target (e.g. partial column import)
-        // are dropped, and when none survive the column degrades to
-        // tracking all fields instead of failing the whole import
-        let importMeta = flatCol.meta;
+        // are dropped
+        const importMeta = flatCol.meta;
         let importTrackedFieldIds: string[] | undefined;
         if (parseProp(importMeta)?.fields_mode === 'specific') {
           importTrackedFieldIds = ((col as any).tracked_field_ids || [])
             .map((a: string) => getIdOrExternalId(a))
             .filter(Boolean);
           if (!importTrackedFieldIds.length) {
-            // None of the tracked columns made it into this import. Specific
-            // mode needs >=1 tracked field (validateLmtTrackedFields), so fall
-            // back to tracking all fields rather than failing the whole import
-            // — but log it, since it silently changes what the column tracks.
+            // None of the tracked columns made it into this import. Stay in
+            // 'specific' mode with an empty set so the column keeps reading
+            // NULL, matching the source: degrading to 'all' would make the
+            // copy surface the row's updated_at, i.e. edits to fields it was
+            // never meant to track.
             this.logger.warn(
-              `LMT/LMB column "${flatCol.title}" imported with fields_mode='all': none of its tracked fields were included in the import`,
+              `LMT/LMB column "${flatCol.title}" imported with an empty tracked set: none of its tracked fields were included in the import`,
             );
-            importMeta = { ...parseProp(importMeta), fields_mode: 'all' };
-            importTrackedFieldIds = undefined;
           }
         }
 
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
+            // a fully-unresolved tracked set must not become an all-fields column
+            allowEmptyLmtTrackedSet: true,
             tableId: getIdOrExternalId(getParentIdentifier(col.id)),
             column: withoutId({
               ...flatCol,

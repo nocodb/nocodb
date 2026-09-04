@@ -4,6 +4,7 @@ import type { TAliasToColumn } from './formula-query-builder.types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type Column from '~/models/Column';
 import type Model from '~/models/Model';
+import LmtTrackedField from '~/models/LmtTrackedField';
 
 export { lmbFieldQueryBuilder } from './lmbFieldQueryBuilder';
 
@@ -14,6 +15,7 @@ export { lmbFieldQueryBuilder } from './lmbFieldQueryBuilder';
  * Delegates to the formula engine via the synthetic
  * `LAST_MODIFIED_TIME({colId}, …)` formula — the same
  * `greatest()`-over-`nc_row_meta` SQL users get from that formula function.
+ * The tracked ids are read from the `nc_col_lmt_tracked_fields` junction.
  */
 export async function lmtFieldQueryBuilder({
   baseModel,
@@ -34,7 +36,12 @@ export async function lmtFieldQueryBuilder({
   const refModel = model ?? baseModel.model;
   const columns = await refModel.getColumns(context);
 
-  const synthetic = getLmtSyntheticFormula(column, columns);
+  const trackedIds = await LmtTrackedField.getTrackedFieldIds(
+    context,
+    column.id,
+  );
+
+  const synthetic = getLmtSyntheticFormula(trackedIds, columns);
   if (!synthetic) {
     return { builder: baseModel.dbDriver.raw('NULL') };
   }

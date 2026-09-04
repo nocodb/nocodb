@@ -30,19 +30,27 @@ const fieldsMode = computed<'all' | 'specific'>({
   set: (mode) => {
     if (!vModel.value.meta) vModel.value.meta = {}
     vModel.value.meta.fields_mode = mode
-    if (mode === 'specific' && !Array.isArray(vModel.value.meta.tracked_field_ids)) {
-      vModel.value.meta.tracked_field_ids = []
+    if (mode === 'specific') {
+      if (!Array.isArray(vModel.value.tracked_field_ids)) {
+        vModel.value.tracked_field_ids = []
+      }
+      // picking fields is the obvious next step — open the picker right away
+      // (next tick: the dropdown trigger mounts with this same state change)
+      nextTick(() => {
+        isDropdownOpen.value = true
+      })
     }
   },
 })
 
 const isSpecificFields = computed(() => fieldsMode.value === 'specific')
 
+// persisted as junction rows on the backend and hydrated onto the column
+// as a top-level property (like webhook trigger_fields) — not in meta
 const trackedFieldIds = computed<string[]>({
-  get: () => vModel.value.meta?.tracked_field_ids || [],
+  get: () => vModel.value.tracked_field_ids || [],
   set: (ids) => {
-    if (!vModel.value.meta) vModel.value.meta = {}
-    vModel.value.meta.tracked_field_ids = ids
+    vModel.value.tracked_field_ids = ids
   },
 })
 

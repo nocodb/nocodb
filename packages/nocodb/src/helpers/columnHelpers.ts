@@ -711,7 +711,7 @@ export const validateLmtTrackedFields = (
     columnBody,
     columns,
   }: {
-    columnBody: { uidt?: string; meta?: any };
+    columnBody: { uidt?: string; meta?: any; tracked_field_ids?: string[] };
     columns: Column[];
   },
 ) => {
@@ -731,7 +731,7 @@ export const validateLmtTrackedFields = (
     );
   }
 
-  const trackedIds = meta.tracked_field_ids;
+  const trackedIds = columnBody.tracked_field_ids;
   if (!Array.isArray(trackedIds) || !trackedIds.length) {
     ncError.badRequest('At least one field to track is required');
   }

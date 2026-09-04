@@ -404,11 +404,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           let updateData: typeof formState.value = formState.value
 
-          // For system datetime fields, only send meta and description
-          // to avoid triggering the system field non-modifiable check
+          // For system datetime fields, only send meta, tracked fields and
+          // description to avoid triggering the system field non-modifiable check
           if (isSystem.value && isCreatedOrLastModifiedTimeCol(column.value)) {
             updateData = {
               meta: updateData.meta,
+              tracked_field_ids: (updateData as any).tracked_field_ids,
               description: updateData.description,
             } as typeof updateData
           }

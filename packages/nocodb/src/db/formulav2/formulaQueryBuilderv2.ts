@@ -46,6 +46,8 @@ import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn, View } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
+import LmtTrackedField from '~/models/LmtTrackedField';
+import { CacheScope } from '~/utils/globals';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
@@ -236,7 +238,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           // system updated_at column
           if (isFieldTrackingLmtCol(col)) {
             aliasToColumn[col.id] = async (): Promise<any> => {
-              const synthetic = getLmtSyntheticFormula(col, columns);
+              const trackedIds = await LmtTrackedField.getTrackedFieldIds(
+                context,
+                col.id,
+              );
+              const synthetic = getLmtSyntheticFormula(trackedIds, columns);
               if (!synthetic) return { builder: knex.raw('NULL') };
               const { builder } = await formulaQueryBuilderv2({
                 baseModel: baseModelSqlv2,

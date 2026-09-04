@@ -1672,19 +1672,21 @@ export class ImportService {
       ) {
         if (col.system) continue;
 
-        // remap the tracked field ids of a field-tracking LastModifiedTime
-        // column; ids that don't resolve in the target (e.g. partial column
-        // import) are dropped, and when none survive the column degrades to
+        // remap the tracked field ids of a field-tracking LMT/LMB column
+        // (exported top-level, persisted as junction rows by columnAdd);
+        // ids that don't resolve in the target (e.g. partial column import)
+        // are dropped, and when none survive the column degrades to
         // tracking all fields instead of failing the whole import
         let importMeta = flatCol.meta;
-        const parsedMeta = parseProp(importMeta);
-        if (parsedMeta?.fields_mode === 'specific') {
-          const trackedFieldIds = (parsedMeta.tracked_field_ids || [])
+        let importTrackedFieldIds: string[] | undefined;
+        if (parseProp(importMeta)?.fields_mode === 'specific') {
+          importTrackedFieldIds = ((col as any).tracked_field_ids || [])
             .map((a: string) => getIdOrExternalId(a))
             .filter(Boolean);
-          importMeta = trackedFieldIds.length
-            ? { ...parsedMeta, tracked_field_ids: trackedFieldIds }
-            : { ...parsedMeta, fields_mode: 'all', tracked_field_ids: [] };
+          if (!importTrackedFieldIds.length) {
+            importMeta = { ...parseProp(importMeta), fields_mode: 'all' };
+            importTrackedFieldIds = undefined;
+          }
         }
 
         const freshModelData = (await this.columnsService.columnAdd(
@@ -1694,6 +1696,9 @@ export class ImportService {
             column: withoutId({
               ...flatCol,
               meta: importMeta,
+              ...(importTrackedFieldIds && {
+                tracked_field_ids: importTrackedFieldIds,
+              }),
               // provide column_name to avoid ajv error
               // it will be ignored by the service
               column_name: 'system',

@@ -1,11 +1,8 @@
-import {
-  getLmtTrackedFieldIds,
-  isAllowedLmtTrackedField,
-  UITypes,
-} from 'nocodb-sdk';
+import { isAllowedLmtTrackedField, UITypes } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type Column from '~/models/Column';
 import type Model from '~/models/Model';
+import LmtTrackedField from '~/models/LmtTrackedField';
 
 /**
  * Builds the select expression for a LastModifiedBy column configured to
@@ -34,7 +31,9 @@ export async function lmbFieldQueryBuilder({
   const columns = await refModel.getColumns(context);
 
   const metaColumn = columns.find((c) => c.uidt === UITypes.Meta);
-  const trackedIds = getLmtTrackedFieldIds(column).filter((id) => {
+  const trackedIds = (
+    await LmtTrackedField.getTrackedFieldIds(context, column.id)
+  ).filter((id) => {
     const tracked = columns.find((c) => c.id === id);
     return tracked && isAllowedLmtTrackedField(tracked);
   });

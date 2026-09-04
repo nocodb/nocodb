@@ -418,16 +418,12 @@ export function isCreatedOrLastModifiedTimeCol(
 export interface LastModifiedTimeColMeta {
   /** absent or 'all' → track every editable field (aliases updated_at) */
   fields_mode?: 'all' | 'specific';
-  /** column ids tracked when fields_mode === 'specific' */
-  tracked_field_ids?: string[];
 }
 
 function hasSpecificFieldsMeta(col: { meta?: any }): boolean {
-  const meta = parseProp((col as any)?.meta) as LastModifiedTimeColMeta;
   return (
-    meta?.fields_mode === 'specific' &&
-    Array.isArray(meta?.tracked_field_ids) &&
-    meta.tracked_field_ids.length > 0
+    (parseProp((col as any)?.meta) as LastModifiedTimeColMeta)?.fields_mode ===
+    'specific'
   );
 }
 
@@ -443,12 +439,20 @@ export function isFieldTrackingLmbCol(
   return col?.uidt === UITypes.LastModifiedBy && hasSpecificFieldsMeta(col);
 }
 
+/**
+ * Tracked column ids of a field-tracking LMT/LMB column. Persisted as
+ * junction rows (`nc_col_lmt_tracked_fields`) and hydrated onto the
+ * column object as a top-level `tracked_field_ids` property (mirroring
+ * webhook `trigger_fields`) — never stored in `meta`.
+ */
 export function getLmtTrackedFieldIds(
-  col: { readonly uidt: UITypes | string; meta?: any } | ColumnType
+  col:
+    | { readonly uidt: UITypes | string; meta?: any; tracked_field_ids?: any }
+    | ColumnType
 ): string[] {
   if (!isFieldTrackingLmtCol(col) && !isFieldTrackingLmbCol(col)) return [];
-  return (parseProp((col as any)?.meta) as LastModifiedTimeColMeta)
-    .tracked_field_ids;
+  const ids = (col as any)?.tracked_field_ids;
+  return Array.isArray(ids) ? ids : [];
 }
 
 /**

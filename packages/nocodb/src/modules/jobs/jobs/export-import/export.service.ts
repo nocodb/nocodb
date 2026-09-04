@@ -49,6 +49,7 @@ import {
   Dashboard,
   Filter,
   Hook,
+  LmtTrackedField,
   Model,
   Permission,
   Script,
@@ -763,6 +764,10 @@ export class ExportService {
         }
       }
 
+      // tracked-field sets of field-tracking LMT/LMB columns live in
+      // junction rows — hydrate so they serialize with the column
+      await LmtTrackedField.hydrateColumns(context, model.columns);
+
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
@@ -780,6 +785,9 @@ export class ExportService {
               ai: columnData.ai,
               column_name: columnData.column_name,
               meta: columnData.meta,
+              ...(columnData.tracked_field_ids?.length && {
+                tracked_field_ids: columnData.tracked_field_ids,
+              }),
               pk: columnData.pk,
               pv: columnData.pv,
               order: columnData.order,

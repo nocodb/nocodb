@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const popover = useShareViewPopover()!
 
-const { isPublicShared, url, isUpdating, isReadOnly, isFormView, toggleShare, goTo } = popover
+const { isPublicShared, url, isUpdating, isReadOnly, isFormView, toggleShare, confirmDisableLink, goTo } = popover
 
 const isOpeningEmbed = ref(false)
 
@@ -30,11 +30,22 @@ const toggleDescription = computed(() => {
   return isFormView.value ? t('activity.shareFormToWebDescription') : t('activity.shareViewToWebDescription')
 })
 
+// Enabling shares immediately; disabling an active link routes through the same
+// confirmation screen as the "Disable link" button in Link settings.
+function onToggle() {
+  if (isReadOnly.value || isUpdating.value.public) return
+  if (isPublicShared.value) {
+    confirmDisableLink('main')
+  } else {
+    toggleShare()
+  }
+}
+
 const onRowClick = (event: MouseEvent) => {
   if (isReadOnly.value || isUpdating.value.public) return
   const target = event.target as HTMLElement | null
   if (target?.closest('button, .ant-switch')) return
-  toggleShare()
+  onToggle()
 }
 </script>
 
@@ -55,7 +66,7 @@ const onRowClick = (event: MouseEvent) => {
         size="small"
         class="!mt-1 flex-none"
         data-testid="share-view-toggle"
-        @change="toggleShare"
+        @change="onToggle"
       />
       <div class="flex flex-col flex-1 min-w-0 gap-0.5">
         <span class="text-nc-content-gray-extreme text-body font-weight-600">{{ $t('activity.shareToWeb') }}</span>
@@ -74,7 +85,7 @@ const onRowClick = (event: MouseEvent) => {
         <ShareCommonMenuItem
           icon="settings"
           :label="$t('activity.linkSettings')"
-          :hint="$t('activity.linkSettingsHint')"
+          :hint="isFormView ? $t('activity.linkSettingsFormHint') : $t('activity.linkSettingsHint')"
           trailing="chevron"
           ve-key="c:share:view:open-link-settings"
           testid="nc-share-view-link-settings"

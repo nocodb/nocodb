@@ -25,6 +25,10 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
   const screen = ref<ShareBaseModalScreen>('main')
   const direction = ref<'forward' | 'backward'>('forward')
 
+  // disable-confirm can be reached from the main toggle or the link-settings
+  // "Disable link" button — remember where to return on cancel.
+  const disableConfirmReturn = ref<ShareBaseModalScreen>('link-settings')
+
   function goTo(target: ShareBaseModalScreen) {
     direction.value = 'forward'
     screen.value = target
@@ -32,11 +36,19 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
 
   function goBack() {
     direction.value = 'backward'
-    if (screen.value === 'regenerate-confirm' || screen.value === 'disable-confirm') {
+    if (screen.value === 'disable-confirm') {
+      screen.value = disableConfirmReturn.value
+    } else if (screen.value === 'regenerate-confirm') {
       screen.value = 'link-settings'
     } else {
       screen.value = 'main'
     }
+  }
+
+  function confirmDisableLink(returnTo: ShareBaseModalScreen = 'link-settings') {
+    // Callers guard on isPrivateBase before reaching here.
+    disableConfirmReturn.value = returnTo
+    goTo('disable-confirm')
   }
 
   const sharedBase = ref<null | ShareBase>(null)
@@ -215,6 +227,7 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
     toggleSharedBase,
     onRoleToggle,
     copyCustomUrl,
+    confirmDisableLink,
     disableLink,
     regenerateLink,
   }

@@ -17,6 +17,10 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
   const screen = ref<ShareViewPopoverScreen>('main')
   const direction = ref<'forward' | 'backward'>('forward')
 
+  // The disable-confirm screen can be reached from either the main toggle or the
+  // link-settings "Disable link" button — remember where to return on cancel.
+  const disableConfirmReturn = ref<ShareViewPopoverScreen>('link-settings')
+
   function goTo(target: ShareViewPopoverScreen) {
     direction.value = 'forward'
     screen.value = target
@@ -25,12 +29,20 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
   function goBack() {
     direction.value = 'backward'
     // Navigate up one level — sub-confirmation screens hang off link-settings,
-    // link-settings hangs off main.
-    if (screen.value === 'regenerate-confirm' || screen.value === 'disable-confirm' || screen.value === 'change-password') {
+    // link-settings hangs off main. disable-confirm returns to its origin.
+    if (screen.value === 'disable-confirm') {
+      screen.value = disableConfirmReturn.value
+    } else if (screen.value === 'regenerate-confirm' || screen.value === 'change-password') {
       screen.value = 'link-settings'
     } else {
       screen.value = 'main'
     }
+  }
+
+  function confirmDisableLink(returnTo: ShareViewPopoverScreen = 'link-settings') {
+    // Callers guard on isReadOnly before reaching here.
+    disableConfirmReturn.value = returnTo
+    goTo('disable-confirm')
   }
 
   const isUpdating = ref({
@@ -486,6 +498,7 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     sharedViewUrl,
     persistCustomUrl,
     toggleShare,
+    confirmDisableLink,
     disableLink,
     regenerateLink,
     togglePasswordProtected,

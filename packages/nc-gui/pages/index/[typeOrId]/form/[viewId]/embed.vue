@@ -4,8 +4,7 @@ definePageMeta({
   requiresAuth: false,
   pageType: 'shared-view',
   // Forms have a parent <NuxtLayout> wrapper that double-applies the
-  // shared-view layout — opt out and render an inline topbar inside the
-  // shared embed component.
+  // shared-view layout — opt out so the embed page renders standalone.
   layout: false,
   hasSidebar: false,
 })
@@ -43,11 +42,9 @@ onMounted(async () => {
 <template>
   <ShareCommonEmbedPage
     :title="sharedView?.title || t('general.untitled')"
-    :view="sharedView ?? null"
     :base-url="baseUrl"
-    header-label="activity.shareView"
+    header-label="activity.embedView"
     header-tooltip="activity.shareViewTooltip"
     :show-options="false"
-    inline-topbar
   />
 </template>

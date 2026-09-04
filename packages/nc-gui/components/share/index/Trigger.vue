@@ -41,21 +41,27 @@ const triggerLabel = computed(() =>
       overlay-class-name="nc-share-view-popover-overlay"
       :overlay-style="{ width: '420px' }"
     >
-      <NcButton
-        v-e="['c:toolbar:share']"
-        class="nc-toolbar-btn nc-share-view-trigger !border-0 !h-7"
-        :class="{
-          '!bg-nc-bg-purple-light !hover:bg-nc-bg-purple-dark !text-nc-content-purple-dark': !!activeView?.uuid,
-        }"
-        size="small"
-        type="secondary"
-        data-testid="nc-toolbar-share-view-btn"
-      >
-        <div class="flex items-center gap-1 pointer-events-none">
-          <GeneralIcon icon="ncExternalLink" class="!h-4 !w-4" />
-          <span v-if="!isToolbarIconMode">{{ triggerLabel }}</span>
-        </div>
-      </NcButton>
+      <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
+        <template #title>
+          {{ triggerLabel }}
+        </template>
+
+        <NcButton
+          v-e="['c:toolbar:share']"
+          class="nc-toolbar-btn nc-share-view-trigger !border-0 !h-7"
+          :class="{
+            '!bg-nc-bg-blue-light !hover:bg-nc-bg-blue-dark': !!activeView?.uuid,
+          }"
+          size="small"
+          type="secondary"
+          data-testid="nc-toolbar-share-view-btn"
+        >
+          <div class="flex items-center gap-2 min-h-5 pointer-events-none">
+            <GeneralIcon icon="ncExternalLink" class="h-4 w-4" />
+            <span v-if="!isToolbarIconMode" class="!text-[13px] font-medium">{{ triggerLabel }}</span>
+          </div>
+        </NcButton>
+      </NcTooltip>
 
       <template #overlay>
         <ShareView v-if="isOpen" />

@@ -19,7 +19,9 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true' || isFullScreen.value)
+const disableTopbar = computed(
+  () => route.value.query?.disableTopbar === 'true' || isFullScreen.value || /\/embed\/?$/.test(route.value.path),
+)
 
 const ncNotFound = computed(() => route.value.query?.ncNotFound === 'true')
 

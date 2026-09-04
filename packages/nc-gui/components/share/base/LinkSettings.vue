@@ -12,6 +12,7 @@ const {
   onRoleToggle,
   copyCustomUrl,
   createShareBase,
+  confirmDisableLink,
 } = modal
 
 const { showEEFeatures } = useEeConfig()
@@ -29,7 +30,7 @@ const onGenerateNewLink = () => {
 
 const onDisableLink = () => {
   if (isPrivateBase.value) return
-  goTo('disable-confirm')
+  confirmDisableLink('link-settings')
 }
 </script>
 

@@ -41,7 +41,7 @@ onMounted(async () => {
   <ShareCommonEmbedPage
     :title="sharedView?.title || t('general.untitled')"
     :base-url="baseUrl"
-    header-label="activity.shareView"
+    header-label="activity.embedView"
     header-tooltip="activity.shareViewTooltip"
   />
 </template>

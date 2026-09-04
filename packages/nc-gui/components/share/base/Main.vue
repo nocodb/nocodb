@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const popover = useShareBaseModal()!
 
-const { isSharedBaseEnabled, isPrivateBase, isToggleBaseLoading, url, toggleSharedBase, goTo } = popover
+const { isSharedBaseEnabled, isPrivateBase, isToggleBaseLoading, url, toggleSharedBase, confirmDisableLink, goTo } = popover
 
 const embedUrl = computed(() => (url.value ? `${url.value.replace(/\/$/, '')}/embed` : ''))
 
@@ -17,11 +17,22 @@ const toggleDescription = computed(() => {
   return t('activity.shareBase.shareToWebDescription')
 })
 
+// Enabling shares immediately; disabling an active link routes through the same
+// confirmation screen as the "Disable link" button in Link settings.
+function onToggle() {
+  if (isPrivateBase.value || isToggleBaseLoading.value) return
+  if (isSharedBaseEnabled.value) {
+    confirmDisableLink('main')
+  } else {
+    toggleSharedBase()
+  }
+}
+
 const onRowClick = (event: MouseEvent) => {
   if (isPrivateBase.value || isToggleBaseLoading.value) return
   const target = event.target as HTMLElement | null
   if (target?.closest('button, .ant-switch')) return
-  toggleSharedBase()
+  onToggle()
 }
 </script>
 
@@ -42,7 +53,7 @@ const onRowClick = (event: MouseEvent) => {
         size="small"
         class="!mt-1 flex-none"
         data-testid="nc-share-base-toggle"
-        @change="toggleSharedBase"
+        @change="onToggle"
       />
       <div class="flex flex-col flex-1 min-w-0 gap-0.5">
         <span class="text-nc-content-gray-extreme text-body font-weight-600">{{ $t('activity.shareToWeb') }}</span>
@@ -64,7 +75,7 @@ const onRowClick = (event: MouseEvent) => {
         <ShareCommonMenuItem
           icon="settings"
           :label="$t('activity.linkSettings')"
-          :hint="$t('activity.linkSettingsHint')"
+          :hint="$t('activity.linkSettingsBaseHint')"
           trailing="chevron"
           ve-key="c:share:base:open-link-settings"
           testid="nc-share-base-link-settings"

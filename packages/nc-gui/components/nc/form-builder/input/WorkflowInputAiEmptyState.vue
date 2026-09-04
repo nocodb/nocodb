@@ -101,14 +101,14 @@ async function generate() {
     <!-- State A: resting -->
     <div v-if="!promptOpen" class="nc-email-ai-empty-card">
       <div class="nc-email-ai-empty-tile">
-        <GeneralIcon icon="lucideSparkles" class="w-5 h-5" />
+        <GeneralIcon icon="ncAutoAwesome" class="w-5 h-5" />
       </div>
       <div class="nc-email-ai-empty-title">{{ $t('labels.aiEmptyTitle') }}</div>
       <div class="nc-email-ai-empty-desc">{{ $t('labels.aiEmptyDescription') }}</div>
       <div class="flex items-center gap-2 mt-2.5">
         <NcButton size="small" type="primary" theme="ai" data-testid="nc-workflow-richtext-ai-empty-write" @click="openPrompt">
           <span class="inline-flex items-center gap-1.5">
-            <GeneralIcon icon="lucideSparkles" class="w-4 h-4" />
+            <GeneralIcon icon="ncAutoAwesome" class="w-4 h-4" />
             {{ $t('labels.writeWithAi') }}
           </span>
         </NcButton>
@@ -122,7 +122,7 @@ async function generate() {
     <template v-else>
       <div class="nc-email-ai-prompt">
         <div class="flex items-start gap-2.5 flex-1">
-          <GeneralIcon icon="lucideSparkles" class="w-4 h-4 flex-none mt-0.5 text-nc-content-purple-dark" />
+          <GeneralIcon icon="ncAutoAwesome" class="w-4 h-4 flex-none mt-0.5 text-nc-content-purple-dark" />
           <textarea
             ref="inputRef"
             v-model="prompt"
@@ -149,7 +149,7 @@ async function generate() {
             @click="generate"
           >
             <span class="inline-flex items-center gap-1.5">
-              <GeneralIcon v-if="!loading" icon="lucideSparkles" class="w-3.5 h-3.5" />
+              <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-3.5 h-3.5" />
               {{ $t('general.generate') }}
             </span>
           </NcButton>
@@ -180,6 +180,12 @@ async function generate() {
 <style lang="scss" scoped>
 .nc-email-ai-empty {
   @apply flex items-center justify-center p-4 h-full min-h-65;
+
+  // In the tall compose modal a dead-centre card reads as "low"; sit it in the upper third.
+  :global(.nc-email-shell.is-expanded) &:not(.is-prompt) {
+    @apply items-start;
+    padding-top: 72px;
+  }
 
   &.is-prompt {
     @apply flex-col items-stretch justify-start gap-3;

@@ -487,7 +487,6 @@ import NcLucideAtSign from '~icons/nc-icons-v2/lucide-at-sign.svg'
 import NcLucidePaperclip from '~icons/nc-icons-v2/lucide-paperclip.svg'
 import LcBraces from '~icons/lucide/braces'
 import LcUndo2 from '~icons/lucide/undo-2'
-import LcSparkles from '~icons/lucide/sparkles'
 import LcRedo2 from '~icons/lucide/redo-2'
 import LcRemoveFormatting from '~icons/lucide/remove-formatting'
 import LcAlignLeft from '~icons/lucide/align-left'
@@ -1624,7 +1623,6 @@ export const iconMap = {
   'lucideBold': NcLucideBold,
   'lucideBraces': LcBraces,
   'lucideUndo2': LcUndo2,
-  'lucideSparkles': LcSparkles,
   'lucideRedo2': LcRedo2,
   'lucideRemoveFormatting': LcRemoveFormatting,
   'lucideAlignLeft': LcAlignLeft,

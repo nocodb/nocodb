@@ -5,6 +5,7 @@ import {
   getFirstNonPersonalView,
   isCrossBaseLink,
   isLinksOrLTAR,
+  isAllowedLmtTrackedField,
   isMMOrMMLike,
   isSystemColumn,
   isVirtualCol,
@@ -787,8 +788,18 @@ export class ExportService {
               meta: columnData.meta,
               ...(columnData.tracked_field_ids?.length && {
                 // export-format ids, like every other cross-column
-                // reference — the import remaps them via getIdOrExternalId
+                // reference — the import remaps them via getIdOrExternalId.
+                // Ids whose column is no longer trackable (converted to a
+                // derived type) are dropped rather than carried over: the
+                // source already ignores them on read, and columnAdd would
+                // reject them, failing the whole duplicate job.
                 tracked_field_ids: columnData.tracked_field_ids
+                  .filter((trackedId: string) => {
+                    const tracked = model.columns.find(
+                      (c) => c.id === trackedId,
+                    );
+                    return tracked && isAllowedLmtTrackedField(tracked);
+                  })
                   .map((trackedId: string) => idMap.get(trackedId))
                   .filter(Boolean),
               }),

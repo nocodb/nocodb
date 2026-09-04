@@ -15,6 +15,12 @@ import Noco from '~/Noco';
  * tracked column is deleted its junction rows become orphans — drop them.
  * The LMT/LMB column itself stays (its value degrades gracefully when the
  * tracked set shrinks/empties).
+ *
+ * Trashing a field is a *soft* delete (`nc_columns.deleted = true`, set before
+ * this event fires) and is undoable, so the rows are kept: the read path
+ * already skips ids that no longer resolve, so the column reads NULL for that
+ * field while it sits in the trash and starts tracking it again on restore.
+ * Dropping them here would make restore silently lose the tracking.
  */
 @Injectable()
 export class ColumnDeleteLmtTrackedDependencyHandler
@@ -29,6 +35,7 @@ export class ColumnDeleteLmtTrackedDependencyHandler
   ): Promise<AffectedDependencyResult | undefined> {
     const id = param.oldEntity?.id;
     if (!id) return undefined;
+    if (await this.isSoftDelete(context, id, ncMeta)) return undefined;
 
     const rows = await ncMeta.metaList2(
       context.workspace_id,
@@ -48,6 +55,22 @@ export class ColumnDeleteLmtTrackedDependencyHandler
   ): Promise<void> {
     const id = param.oldEntity?.id;
     if (!id) return;
+    if (await this.isSoftDelete(context, id, ncMeta)) return;
     await LmtTrackedField.deleteByTrackedColumnId(context, id, ncMeta);
+  }
+
+  /** The column row survives a trash with `deleted = true`; a real delete removes it. */
+  private async isSoftDelete(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const row = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      { id: columnId },
+    );
+    return !!row?.deleted;
   }
 }

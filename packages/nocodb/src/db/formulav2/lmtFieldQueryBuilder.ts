@@ -5,6 +5,8 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type Column from '~/models/Column';
 import type Model from '~/models/Model';
 
+export { lmbFieldQueryBuilder } from './lmbFieldQueryBuilder';
+
 /**
  * Builds the select expression for a LastModifiedTime column configured to
  * track specific fields (`meta.fields_mode === 'specific'`).

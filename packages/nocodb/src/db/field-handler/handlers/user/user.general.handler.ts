@@ -1,3 +1,4 @@
+import { isFieldTrackingLmbCol } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -9,6 +10,7 @@ import type { FilterOptions, SortOptions } from '../../field-handler.interface';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { getColumnName } from '~/helpers/dbHelpers';
+import { lmbFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
@@ -75,7 +77,18 @@ export class UserGeneralHandler extends GenericFieldHandler {
     // from `column.column_name` (auto-magic columns). Resolve into a local —
     // never mutate the shared/cached `Column`, which would overwrite its
     // metadata for the rest of the request (legacy sortV2 never mutated).
-    const columnName = await getColumnName(context, column);
+    // A LastModifiedBy column tracking specific fields has no physical
+    // column — sort on its latest-tracked-editor expression instead.
+    const columnName: any = isFieldTrackingLmbCol(column)
+      ? (
+          await lmbFieldQueryBuilder({
+            baseModel: options.baseModel,
+            column,
+            model: await column.getModel(context),
+            tableAlias: options.alias,
+          })
+        ).builder
+      : await getColumnName(context, column);
 
     const baseUsers = await BaseUser.getUsersList(context, {
       base_id: column.base_id,
@@ -99,7 +112,20 @@ export class UserGeneralHandler extends GenericFieldHandler {
     let val = filter.value;
     const field =
       options.customWhereClause ??
-      (alias ? `${alias}.${column.column_name}` : column.column_name);
+      (isFieldTrackingLmbCol(column)
+        ? // a LastModifiedBy column tracking specific fields has no
+          // physical column — filter on its latest-tracked-editor expression
+          (
+            await lmbFieldQueryBuilder({
+              baseModel: options.baseModel,
+              column,
+              model: await column.getModel(context),
+              tableAlias: alias,
+            })
+          ).builder
+        : alias
+        ? `${alias}.${column.column_name}`
+        : column.column_name);
 
     handleCurrentUserFilter(context, {
       column,

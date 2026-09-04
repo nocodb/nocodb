@@ -1,6 +1,7 @@
 import {
   ButtonActionsType,
   isBtLikeV2Junction,
+  isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
   NC_ERROR_SENTINEL,
   UITypes,
@@ -18,7 +19,10 @@ import type {
 } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Logger } from '@nestjs/common';
-import { lmtFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
+import {
+  lmbFieldQueryBuilder,
+  lmtFieldQueryBuilder,
+} from '~/db/formulav2/lmtFieldQueryBuilder';
 import { Column, View } from '~/models';
 import {
   checkColumnRequired,
@@ -651,6 +655,21 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
         case UITypes.CreatedBy:
         case UITypes.LastModifiedBy: {
+          // a LastModifiedBy column tracking specific fields is computed
+          // from the row-meta column — select its latest-tracked-editor
+          // expression; the value stays a user id, so the regular
+          // LastModifiedBy read expansion applies
+          if (isFieldTrackingLmbCol(column)) {
+            res[sanitize(getAs(column))] = (
+              await lmbFieldQueryBuilder({
+                baseModel,
+                column,
+                model: await column.getModel(baseModel.context),
+                tableAlias: alias,
+              })
+            ).builder;
+            break;
+          }
           const columnName = await getColumnName(
             baseModel.context,
             column,

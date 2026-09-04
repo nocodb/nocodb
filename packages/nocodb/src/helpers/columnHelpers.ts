@@ -3,6 +3,7 @@ import {
   AppEvents,
   getAvailableRollupForUiType,
   isAllowedLmtTrackedField,
+  isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -699,9 +700,10 @@ export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
 
 /**
  * Validates the `meta.fields_mode === 'specific'` configuration of a
- * LastModifiedTime column: the table must have a row-meta column (EE + PG
- * internal tables only) and every tracked id must resolve to a trackable
- * (user-editable, incl. links) column. No-op for any other column/meta.
+ * LastModifiedTime/LastModifiedBy column: the table must have a row-meta
+ * column (EE + PG internal tables only) and every tracked id must resolve
+ * to a trackable (user-editable, incl. links) column. No-op for any other
+ * column/meta.
  */
 export const validateLmtTrackedFields = (
   context: NcContext,
@@ -713,7 +715,11 @@ export const validateLmtTrackedFields = (
     columns: Column[];
   },
 ) => {
-  if (columnBody.uidt !== UITypes.LastModifiedTime) return;
+  if (
+    columnBody.uidt !== UITypes.LastModifiedTime &&
+    columnBody.uidt !== UITypes.LastModifiedBy
+  )
+    return;
   const meta = parseProp(columnBody.meta);
   if (meta?.fields_mode !== 'specific') return;
 
@@ -763,10 +769,12 @@ export const getRefColumnIfAlias = async (
   )
     return column;
 
-  // a LastModifiedTime column tracking specific fields is not an alias of
-  // the system updated_at column — its value is computed from the row-meta
-  // column, so callers must keep the original column (and its meta) intact
-  if (isFieldTrackingLmtCol(column)) return column;
+  // a LastModifiedTime/LastModifiedBy column tracking specific fields is
+  // not an alias of the system updated_at/updated_by column — its value is
+  // computed from the row-meta column, so callers must keep the original
+  // column (and its meta) intact
+  if (isFieldTrackingLmtCol(column) || isFieldTrackingLmbCol(column))
+    return column;
 
   return (
     (

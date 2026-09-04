@@ -47,6 +47,7 @@ export {
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,
   isFieldTrackingLmtCol,
+  isFieldTrackingLmbCol,
   getLmtTrackedFieldIds,
   isAllowedLmtTrackedField,
   type LastModifiedTimeColMeta,

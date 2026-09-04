@@ -422,10 +422,7 @@ export interface LastModifiedTimeColMeta {
   tracked_field_ids?: string[];
 }
 
-export function isFieldTrackingLmtCol(
-  col: { readonly uidt: UITypes | string; meta?: any } | ColumnType
-): boolean {
-  if (col?.uidt !== UITypes.LastModifiedTime) return false;
+function hasSpecificFieldsMeta(col: { meta?: any }): boolean {
   const meta = parseProp((col as any)?.meta) as LastModifiedTimeColMeta;
   return (
     meta?.fields_mode === 'specific' &&
@@ -434,10 +431,22 @@ export function isFieldTrackingLmtCol(
   );
 }
 
+export function isFieldTrackingLmtCol(
+  col: { readonly uidt: UITypes | string; meta?: any } | ColumnType
+): boolean {
+  return col?.uidt === UITypes.LastModifiedTime && hasSpecificFieldsMeta(col);
+}
+
+export function isFieldTrackingLmbCol(
+  col: { readonly uidt: UITypes | string; meta?: any } | ColumnType
+): boolean {
+  return col?.uidt === UITypes.LastModifiedBy && hasSpecificFieldsMeta(col);
+}
+
 export function getLmtTrackedFieldIds(
   col: { readonly uidt: UITypes | string; meta?: any } | ColumnType
 ): string[] {
-  if (!isFieldTrackingLmtCol(col)) return [];
+  if (!isFieldTrackingLmtCol(col) && !isFieldTrackingLmbCol(col)) return [];
   return (parseProp((col as any)?.meta) as LastModifiedTimeColMeta)
     .tracked_field_ids;
 }
@@ -445,14 +454,16 @@ export function getLmtTrackedFieldIds(
 /**
  * Whether a column may be selected as a tracked field of a
  * field-tracking LastModifiedTime column: any user-editable field,
- * including links, but no derived (lookup/rollup/formula/…) or
- * system columns — those never receive per-field entries in the
- * row-meta column.
+ * including links, but no derived (lookup/rollup/formula/…),
+ * auto-generated (pk/autonumber/uuid) or system columns — those are
+ * never directly edited, so they never receive per-field entries in
+ * the row-meta column.
  */
 export function isAllowedLmtTrackedField(col: ColumnType): boolean {
   if (!col || col.system) return false;
   if (col.uidt === UITypes.Meta) return false;
   if (isLinksOrLTAR(col)) return true;
+  if (isReadOnlyColumn(col)) return false;
   return !isVirtualCol(col);
 }
 

@@ -2,6 +2,7 @@ import {
   extractFilterFromXwhere,
   FormulaDataTypes,
   isBtLikeV2Junction,
+  isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
   UITypes,
 } from 'nocodb-sdk';
@@ -18,7 +19,10 @@ import type {
 import { DBQueryClient } from '~/dbQueryClient';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
-import { lmtFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
+import {
+  lmbFieldQueryBuilder,
+  lmtFieldQueryBuilder,
+} from '~/db/formulav2/lmtFieldQueryBuilder';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { NcError } from '~/helpers/catchError';
@@ -404,11 +408,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         default: {
-          const defaultColumnName = await getColumnName(
-            baseModel.context,
-            column,
-            columns,
-          );
+          // a LastModifiedBy column tracking specific fields has no
+          // physical column — group on its latest-tracked-editor expression
+          const defaultColumnName: any = isFieldTrackingLmbCol(column)
+            ? (await lmbFieldQueryBuilder({ baseModel, column })).builder
+            : await getColumnName(baseModel.context, column, columns);
           const defaultColumnNameQb = sqlNullIfBlank({
             columnName: defaultColumnName,
             baseModel,
@@ -1053,11 +1057,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           default:
             {
-              const columnName = await getColumnName(
-                baseModel.context,
-                column,
-                columns,
-              );
+              // a LastModifiedBy column tracking specific fields has no
+              // physical column — group on its latest-tracked-editor
+              // expression
+              const columnName: any = isFieldTrackingLmbCol(column)
+                ? (await lmbFieldQueryBuilder({ baseModel, column })).builder
+                : await getColumnName(baseModel.context, column, columns);
               selectors.push(
                 baseModel.dbDriver.raw('?? as ??', [
                   sqlNullIfBlank({ columnName, baseModel }),

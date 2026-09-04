@@ -67,7 +67,7 @@ setAdditionalValidations({
 </script>
 
 <template>
-  <div v-if="supportsFieldTracking" class="flex flex-col gap-2">
+  <div v-if="supportsFieldTracking" class="nc-lmt-fields-options flex flex-col gap-2">
     <a-form-item>
       <a-radio-group v-model:value="fieldsMode" class="nc-lmt-fields-mode !flex !flex-col gap-1">
         <a-radio value="all" data-testid="nc-lmt-fields-mode-all">
@@ -164,6 +164,10 @@ setAdditionalValidations({
 
 <style scoped lang="scss">
 .nc-lmt-tracked-fields-list {
+  // NcList hardcodes w-64 on its root; stretch it to the dropdown overlay,
+  // which already matches the trigger button width
+  @apply !w-full;
+
   :deep(.nc-list-item) {
     .ant-checkbox-checked .ant-checkbox-inner {
       background-color: var(--nc-brand-accent) !important;
@@ -177,6 +181,18 @@ setAdditionalValidations({
     .nc-icon {
       @apply mx-0;
     }
+  }
+
+  :deep(.nc-cell-icon),
+  :deep(.nc-virtual-cell-icon) {
+    @apply w-3.5 h-3.5 mx-0 flex-none;
+  }
+}
+
+.nc-lmt-fields-options {
+  :deep(.nc-cell-icon),
+  :deep(.nc-virtual-cell-icon) {
+    @apply w-3.5 h-3.5 mx-0 flex-none;
   }
 }
 </style>

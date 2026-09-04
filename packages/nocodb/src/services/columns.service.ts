@@ -1116,6 +1116,10 @@ export class ColumnsService implements IColumnsService {
                 ),
           },
           columns: await table.getColumns(context),
+          existingTrackedIds: await LmtTrackedField.getTrackedFieldIds(
+            context,
+            param.columnId,
+          ),
         });
       }
 
@@ -1706,6 +1710,10 @@ export class ColumnsService implements IColumnsService {
                 tracked_field_ids: colBody.tracked_field_ids,
               },
               columns: await table.getColumns(context),
+              existingTrackedIds: await LmtTrackedField.getTrackedFieldIds(
+                context,
+                param.columnId,
+              ),
             });
 
             await Column.updateMeta(context, {
@@ -2046,6 +2054,10 @@ export class ColumnsService implements IColumnsService {
             tracked_field_ids: colBody.tracked_field_ids,
           },
           columns: await table.getColumns(context),
+          existingTrackedIds: await LmtTrackedField.getTrackedFieldIds(
+            context,
+            param.columnId,
+          ),
         });
       }
 

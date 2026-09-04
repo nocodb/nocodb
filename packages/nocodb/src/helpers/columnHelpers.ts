@@ -711,9 +711,18 @@ export const validateLmtTrackedFields = (
     columnBody,
     columns,
     allowEmptyTrackedSet = false,
+    existingTrackedIds = [],
   }: {
     columnBody: { uidt?: string; meta?: any; tracked_field_ids?: string[] };
     columns: Column[];
+    /**
+     * Ids already tracked by this column. They are accepted without resolving:
+     * a tracked field that has been trashed stays in the set so restoring it
+     * resumes tracking, and the field editor round-trips the set verbatim —
+     * rejecting it would make the column unsaveable until the field comes back.
+     * Ids being added still have to resolve.
+     */
+    existingTrackedIds?: string[];
     /**
      * Import only: a tracked set whose columns all failed to resolve stays
      * `specific` with zero entries, so the column keeps reading NULL instead
@@ -746,9 +755,11 @@ export const validateLmtTrackedFields = (
     ncError.badRequest('At least one field to track is required');
   }
 
+  const alreadyTracked = new Set(existingTrackedIds);
   for (const id of trackedIds) {
     const tracked = columns.find((c) => c.id === id);
     if (!tracked) {
+      if (alreadyTracked.has(id)) continue;
       ncError.fieldNotFound(id);
     }
     if (!isAllowedLmtTrackedField(tracked)) {

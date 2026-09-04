@@ -7,8 +7,11 @@ import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3
 import type { VariableDefinition } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
+import type { WorkflowInputTool } from './WorkflowInputTools.vue'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
+import { Highlight } from '~/helpers/tiptap-markdown/extensions/marks/highlight'
+import { TextColor } from '~/helpers/tiptap-markdown/extensions/marks/textColor'
 
 interface NodeGroup {
   nodeId: string
@@ -251,6 +254,8 @@ const editor = useEditor({
     ...(isRichText.value
       ? [
           Underline,
+          TextColor,
+          Highlight,
           Link.configure({
             openOnClick: false,
             autolink: false,
@@ -454,25 +459,6 @@ function recomputeWordCount() {
   wordCount.value = text ? text.split(/\s+/).length : 0
 }
 
-// Design shows the 4 most relevant variables inline; the rest live behind "All variables".
-const quickVariables = computed(() => props.variables.slice(0, 4))
-
-function insertVariable(variable: VariableDefinition) {
-  if (!editor.value) return
-
-  editor.value
-    .chain()
-    .focus()
-    .insertContent([
-      {
-        type: 'workflowExpression',
-        attrs: { id: variable.key, label: variable.name, expression: `{{ ${variable.key} }}` },
-      },
-      { type: 'text', text: ' ' },
-    ])
-    .run()
-}
-
 // ── Rich-text formatting toolbar ──
 
 const showLinkMenu = ref(false)
@@ -520,90 +506,108 @@ function toggleCode() {
 }
 
 // One tool list drives both the modal toolbar and the selection bubble.
-const formatGroups = computed(() => [
-  [
-    {
-      key: 'bold',
-      icon: 'lucideBold' as const,
-      label: 'labels.bold',
-      isActive: () => !!editor.value?.isActive('bold'),
-      action: toggleBold,
-    },
-    {
-      key: 'italic',
-      icon: 'lucideItalic' as const,
-      label: 'labels.italic',
-      isActive: () => !!editor.value?.isActive('italic'),
-      action: toggleItalic,
-    },
-    {
-      key: 'underline',
-      icon: 'lucideUnderline' as const,
-      label: 'labels.underline',
-      isActive: () => !!editor.value?.isActive('underline'),
-      action: toggleUnderline,
-    },
-    {
-      key: 'strike',
-      icon: 'lucideStrikethrough' as const,
-      label: 'labels.strike',
-      isActive: () => !!editor.value?.isActive('strike'),
-      action: toggleStrike,
-    },
-  ],
-  headingLevels.map((h) => ({
-    key: `h${h.level}`,
-    icon: h.icon,
-    label: h.label,
-    isActive: () => !!editor.value?.isActive('heading', { level: h.level }),
-    action: () => toggleHeading(h.level),
-  })),
-  [
-    {
-      key: 'bulletList',
-      icon: 'lucideList' as const,
-      label: 'labels.bulletList',
-      isActive: () => !!editor.value?.isActive('bulletList'),
-      action: toggleBulletList,
-    },
-    {
-      key: 'orderedList',
-      icon: 'lucideListOrdered' as const,
-      label: 'labels.numberedList',
-      isActive: () => !!editor.value?.isActive('orderedList'),
-      action: toggleOrderedList,
-    },
-    {
-      key: 'blockquote',
-      icon: 'lucideQuote' as const,
-      label: 'labels.blockQuote',
-      isActive: () => !!editor.value?.isActive('blockquote'),
-      action: toggleBlockquote,
-    },
-    {
-      key: 'code',
-      icon: 'lucideCode' as const,
-      label: 'general.code',
-      isActive: () => !!editor.value?.isActive('code'),
-      action: toggleCode,
-    },
-  ],
-  [
-    {
-      key: 'link',
-      icon: 'lucideLink' as const,
-      label: 'general.link',
-      isActive: () => !!editor.value?.isActive('link'),
-      action: openLinkMenu,
-    },
-  ],
-])
+const formatGroups = computed<WorkflowInputTool[][]>(() => {
+  const groups: WorkflowInputTool[][] = [
+    [
+      {
+        key: 'bold',
+        icon: 'lucideBold',
+        label: 'labels.bold',
+        isActive: () => !!editor.value?.isActive('bold'),
+        action: toggleBold,
+      },
+      {
+        key: 'italic',
+        icon: 'lucideItalic',
+        label: 'labels.italic',
+        isActive: () => !!editor.value?.isActive('italic'),
+        action: toggleItalic,
+      },
+      {
+        key: 'underline',
+        icon: 'lucideUnderline',
+        label: 'labels.underline',
+        isActive: () => !!editor.value?.isActive('underline'),
+        action: toggleUnderline,
+      },
+      {
+        key: 'strike',
+        icon: 'lucideStrikethrough',
+        label: 'labels.strike',
+        isActive: () => !!editor.value?.isActive('strike'),
+        action: toggleStrike,
+      },
+      { key: 'color', type: 'color' },
+    ],
+    headingLevels.map((h) => ({
+      key: `h${h.level}`,
+      icon: h.icon,
+      label: h.label,
+      isActive: () => !!editor.value?.isActive('heading', { level: h.level }),
+      action: () => toggleHeading(h.level),
+    })),
+    [
+      {
+        key: 'bulletList',
+        icon: 'lucideList',
+        label: 'labels.bulletList',
+        isActive: () => !!editor.value?.isActive('bulletList'),
+        action: toggleBulletList,
+      },
+      {
+        key: 'orderedList',
+        icon: 'lucideListOrdered',
+        label: 'labels.numberedList',
+        isActive: () => !!editor.value?.isActive('orderedList'),
+        action: toggleOrderedList,
+      },
+      {
+        key: 'blockquote',
+        icon: 'lucideQuote',
+        label: 'labels.blockQuote',
+        isActive: () => !!editor.value?.isActive('blockquote'),
+        action: toggleBlockquote,
+      },
+      {
+        key: 'code',
+        icon: 'lucideCode',
+        label: 'general.code',
+        isActive: () => !!editor.value?.isActive('code'),
+        action: toggleCode,
+      },
+    ],
+    [
+      {
+        key: 'link',
+        icon: 'lucideLink',
+        label: 'general.link',
+        isActive: () => !!editor.value?.isActive('link'),
+        action: openLinkMenu,
+      },
+      { key: 'clear', icon: 'lucideRemoveFormatting', label: 'labels.clearFormatting', action: clearFormatting },
+    ],
+  ]
+
+  // Undo/redo earn a slot only on the persistent toolbar; the bubble is for the selection.
+  if (expanded.value) {
+    groups.unshift([
+      { key: 'undo', icon: 'lucideUndo2', label: 'general.undo', action: () => editor.value?.chain().focus().undo().run() },
+      { key: 'redo', icon: 'lucideRedo2', label: 'general.redo', action: () => editor.value?.chain().focus().redo().run() },
+    ])
+  }
+
+  return groups
+})
 
 // Selection bubble only in the sidebar; the modal has a persistent toolbar.
 const shouldShowBubble = ({ editor: e }: { editor: { state: { selection: { empty: boolean } }; isEditable: boolean } }) =>
   !expanded.value && !readOnly.value && e.isEditable && !e.state.selection.empty
 
 const bubbleTippyOptions = { duration: 100, maxWidth: 600, placement: 'top' as const, appendTo: () => document.body }
+
+function clearFormatting() {
+  editor.value?.chain().focus().unsetAllMarks().clearNodes().run()
+}
 
 function toggleBulletList() {
   editor.value?.chain().focus().toggleBulletList().run()
@@ -711,21 +715,7 @@ watch(readOnly, (newValue) => {
 
           <!-- Modal: full toolbar -->
           <div v-else-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
-            <template v-for="(group, gi) in formatGroups" :key="gi">
-              <div v-if="gi > 0" class="nc-email-format-divider" />
-              <NcTooltip v-for="tool in group" :key="tool.key" :title="$t(tool.label)">
-                <NcButton
-                  size="xs"
-                  type="text"
-                  class="nc-workflow-format-btn"
-                  :class="{ 'is-active': tool.isActive() }"
-                  :data-testid="`nc-workflow-richtext-${tool.key}-btn`"
-                  @click.stop="tool.action"
-                >
-                  <GeneralIcon :icon="tool.icon" class="w-4 h-4" />
-                </NcButton>
-              </NcTooltip>
-            </template>
+            <NcFormBuilderInputWorkflowInputTools v-if="editor" :editor="editor" :groups="formatGroups" />
 
             <div class="flex-1" />
 
@@ -774,44 +764,11 @@ watch(readOnly, (newValue) => {
             :tippy-options="bubbleTippyOptions"
           >
             <div class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
-              <template v-for="(group, gi) in formatGroups" :key="gi">
-                <div v-if="gi > 0" class="nc-email-format-divider" />
-                <NcTooltip v-for="tool in group" :key="tool.key" :title="$t(tool.label)">
-                  <NcButton
-                    size="xs"
-                    type="text"
-                    class="nc-workflow-format-btn"
-                    :class="{ 'is-active': tool.isActive() }"
-                    @click.stop="tool.action"
-                  >
-                    <GeneralIcon :icon="tool.icon" class="w-4 h-4" />
-                  </NcButton>
-                </NcTooltip>
-              </template>
+              <NcFormBuilderInputWorkflowInputTools :editor="editor" :groups="formatGroups" />
             </div>
           </BubbleMenu>
         </div>
       </Teleport>
-
-      <!-- Quick variable chips (panel only) -->
-      <div v-if="!readOnly && quickVariables.length" class="nc-email-quickvars">
-        <div class="nc-email-quickvars-caption">{{ $t('labels.insertFromPreviousSteps') }}</div>
-        <div class="nc-email-quickvars-row">
-          <button
-            v-for="variable in quickVariables"
-            :key="variable.key"
-            class="nc-email-chip"
-            @mousedown.prevent
-            @click.stop="insertVariable(variable)"
-          >
-            {{ variable.name }}
-          </button>
-          <button class="nc-email-chip is-all" @mousedown.prevent @click.stop="insertExpression">
-            <GeneralIcon icon="search" class="w-3.5 h-3.5 flex-none" />
-            {{ $t('labels.allVariables') }}
-          </button>
-        </div>
-      </div>
 
       <NcModal
         v-model:visible="expanded"
@@ -1007,40 +964,6 @@ watch(readOnly, (newValue) => {
 
   .nc-email-wordcount-num {
     font-family: 'DM Mono', monospace;
-  }
-}
-
-.nc-email-quickvars {
-  @apply flex flex-col gap-2 mt-2;
-
-  .nc-email-quickvars-caption {
-    @apply text-small text-nc-content-gray-muted;
-  }
-
-  .nc-email-quickvars-row {
-    @apply flex flex-wrap gap-1.5;
-  }
-}
-
-.nc-email-chip {
-  @apply inline-flex items-center gap-1 h-6.5 px-2 rounded-md cursor-pointer whitespace-nowrap;
-  @apply border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-gray;
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-
-  &:hover {
-    @apply border-nc-border-brand bg-nc-bg-brand text-nc-content-brand;
-  }
-
-  &.is-all {
-    @apply bg-transparent text-nc-content-gray-subtle font-semibold;
-    border-style: dashed;
-    font-family: inherit;
-
-    &:hover {
-      @apply bg-nc-bg-gray-light text-nc-content-gray border-nc-border-gray-medium;
-    }
   }
 }
 

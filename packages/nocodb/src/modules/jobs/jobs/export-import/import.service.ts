@@ -1684,6 +1684,13 @@ export class ImportService {
             .map((a: string) => getIdOrExternalId(a))
             .filter(Boolean);
           if (!importTrackedFieldIds.length) {
+            // None of the tracked columns made it into this import. Specific
+            // mode needs >=1 tracked field (validateLmtTrackedFields), so fall
+            // back to tracking all fields rather than failing the whole import
+            // — but log it, since it silently changes what the column tracks.
+            this.logger.warn(
+              `LMT/LMB column "${flatCol.title}" imported with fields_mode='all': none of its tracked fields were included in the import`,
+            );
             importMeta = { ...parseProp(importMeta), fields_mode: 'all' };
             importTrackedFieldIds = undefined;
           }

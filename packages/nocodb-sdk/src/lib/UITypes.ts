@@ -415,6 +415,47 @@ export function isCreatedOrLastModifiedTimeCol(
   );
 }
 
+export interface LastModifiedTimeColMeta {
+  /** absent or 'all' → track every editable field (aliases updated_at) */
+  fields_mode?: 'all' | 'specific';
+  /** column ids tracked when fields_mode === 'specific' */
+  tracked_field_ids?: string[];
+}
+
+export function isFieldTrackingLmtCol(
+  col: { readonly uidt: UITypes | string; meta?: any } | ColumnType
+): boolean {
+  if (col?.uidt !== UITypes.LastModifiedTime) return false;
+  const meta = parseProp((col as any)?.meta) as LastModifiedTimeColMeta;
+  return (
+    meta?.fields_mode === 'specific' &&
+    Array.isArray(meta?.tracked_field_ids) &&
+    meta.tracked_field_ids.length > 0
+  );
+}
+
+export function getLmtTrackedFieldIds(
+  col: { readonly uidt: UITypes | string; meta?: any } | ColumnType
+): string[] {
+  if (!isFieldTrackingLmtCol(col)) return [];
+  return (parseProp((col as any)?.meta) as LastModifiedTimeColMeta)
+    .tracked_field_ids;
+}
+
+/**
+ * Whether a column may be selected as a tracked field of a
+ * field-tracking LastModifiedTime column: any user-editable field,
+ * including links, but no derived (lookup/rollup/formula/…) or
+ * system columns — those never receive per-field entries in the
+ * row-meta column.
+ */
+export function isAllowedLmtTrackedField(col: ColumnType): boolean {
+  if (!col || col.system) return false;
+  if (col.uidt === UITypes.Meta) return false;
+  if (isLinksOrLTAR(col)) return true;
+  return !isVirtualCol(col);
+}
+
 export function isCreatedOrLastModifiedByCol(
   col:
     | UITypes

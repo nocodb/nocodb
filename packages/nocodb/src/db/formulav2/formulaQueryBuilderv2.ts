@@ -3,6 +3,7 @@ import {
   CircularRefContext,
   FormulaDataTypes,
   isBtLikeV2Junction,
+  isFieldTrackingLmtCol,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
@@ -12,6 +13,7 @@ import {
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
+import { getLmtSyntheticFormula } from './lmtSyntheticFormula';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
@@ -226,6 +228,26 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.LastModifiedTime:
       case UITypes.DateTime:
         {
+          // a LastModifiedTime column tracking specific fields has no
+          // physical column — resolve it to its synthetic
+          // LAST_MODIFIED_TIME({colId}, …) expression instead of the
+          // system updated_at column
+          if (isFieldTrackingLmtCol(col)) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              const synthetic = getLmtSyntheticFormula(col, columns);
+              if (!synthetic) return { builder: knex.raw('NULL') };
+              const { builder } = await formulaQueryBuilderv2({
+                baseModel: baseModelSqlv2,
+                tree: synthetic,
+                model,
+                column: col,
+                tableAlias,
+                parentColumns: params.parentColumns,
+              });
+              return { builder: knex.raw(builder).wrap('(', ')') };
+            };
+            break;
+          }
           const refCol = await getRefColumnIfAlias(context, col, columns);
 
           if (refCol.id in aliasToColumn) {

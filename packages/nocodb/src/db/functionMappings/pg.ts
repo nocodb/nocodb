@@ -801,6 +801,14 @@ END`,
         );
       }
 
+      // resolve the meta column through the identifier path so the
+      // reference is qualified with the table alias/name — an unqualified
+      // nc_row_meta is ambiguous in joined contexts (e.g. lookups), since
+      // every EE+PG table has one
+      const rowMetaRef = (
+        await args.fn({ type: 'Identifier', name: rowMetaColumn.id })
+      ).builder;
+
       // extract columns by params
       const columnQueries = pt.arguments
         .map((arg) => {
@@ -811,8 +819,8 @@ END`,
           if (!column) return;
 
           return knex.raw(
-            `(COALESCE(??::jsonb-> ?,'{}'::jsonb)->>'modifiedTime')::timestamp`,
-            [rowMetaColumn.column_name, column?.id],
+            `(COALESCE((??)::jsonb-> ?,'{}'::jsonb)->>'modifiedTime')::timestamp`,
+            [rowMetaRef, column?.id],
           );
         })
         .filter(Boolean);

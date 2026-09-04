@@ -1445,6 +1445,7 @@ const unique = computed({
         <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
         <SmartsheetColumnAutoNumberOptions v-if="formState.uidt === UITypes.AutoNumber" v-model:value="formState" />
         <SmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
+        <SmartsheetColumnLastModifiedTimeOptions v-if="formState.uidt === UITypes.LastModifiedTime" v-model:value="formState" />
         <SmartsheetColumnDateTimeOptions
           v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
           v-model:value="formState"

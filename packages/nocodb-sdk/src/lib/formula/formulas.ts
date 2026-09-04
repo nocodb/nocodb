@@ -6,7 +6,7 @@ import {
   FormulaMeta,
   FormulaMetaCustomValidation,
 } from './types';
-import UITypes, { isVirtualCol } from '~/lib/UITypes';
+import UITypes, { isLinksOrLTAR, isVirtualCol } from '~/lib/UITypes';
 import { isSystemColumn } from '~/lib/helperFunctions';
 export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
 
@@ -1365,10 +1365,12 @@ export const formulas: Record<string, FormulaMeta> = {
             );
           }
           // now check if the column allows LAST_MODIFIED_TIME
+          // links are editable and tracked in the row-meta column, so they
+          // are valid arguments even though they are virtual
           const virtualOrSystemColRef = columns.find(
             (c) =>
               (c.title === arg.name || c.id === arg.name) &&
-              (isSystemColumn(c) || isVirtualCol(c))
+              (isSystemColumn(c) || (isVirtualCol(c) && !isLinksOrLTAR(c)))
           );
           if (virtualOrSystemColRef) {
             throw new FormulaError(

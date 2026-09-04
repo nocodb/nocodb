@@ -1,6 +1,7 @@
 import {
   ButtonActionsType,
   isBtLikeV2Junction,
+  isFieldTrackingLmtCol,
   NC_ERROR_SENTINEL,
   UITypes,
 } from 'nocodb-sdk';
@@ -17,6 +18,7 @@ import type {
 } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Logger } from '@nestjs/common';
+import { lmtFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
 import { Column, View } from '~/models';
 import {
   checkColumnRequired,
@@ -26,7 +28,10 @@ import {
 } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NC_MAX_TEXT_LENGTH } from '~/constants';
-import { logFormulaBuildError } from '~/db/formulav2/formulaQueryBuilderv2';
+import {
+  FORMULA_DRY_RUN_SKIPPED_MESSAGE,
+  logFormulaBuildError,
+} from '~/db/formulav2/formulaQueryBuilderv2';
 
 export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   return async ({
@@ -128,6 +133,50 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         case UITypes.LastModifiedTime:
         case UITypes.DateTime:
           {
+            // a LastModifiedTime column tracking specific fields is computed
+            // from the row-meta column — select its synthetic formula
+            // expression instead of the physical updated_at column
+            if (isFieldTrackingLmtCol(column)) {
+              try {
+                const selectQb = await lmtFieldQueryBuilder({
+                  baseModel,
+                  column,
+                  // the column may belong to a related model when reached
+                  // through a lookup traversal
+                  model: await column.getModel(baseModel.context),
+                  tableAlias: alias,
+                  validateFormula,
+                  aliasToColumn: aliasToColumnBuilder,
+                });
+                if ('toQuery' in selectQb.builder) {
+                  const selectQbQuery = selectQb.builder.toQuery();
+                  qb.select(
+                    baseModel.dbDriver.raw(
+                      `${selectQbQuery.replaceAll('?', '\\?')} as ??`,
+                      [getAs(column)],
+                    ),
+                  );
+                } else {
+                  qb.select(
+                    baseModel.dbDriver.raw(`?? as ??`, [
+                      selectQb.builder,
+                      getAs(column),
+                    ]),
+                  );
+                }
+              } catch (e) {
+                if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE)
+                  logger.log(e);
+                // return dummy select
+                qb.select(
+                  baseModel.dbDriver.raw(`? as ??`, [
+                    NC_ERROR_SENTINEL,
+                    getAs(column),
+                  ]),
+                );
+              }
+              break;
+            }
             const columnName = await getColumnName(
               baseModel.context,
               column,

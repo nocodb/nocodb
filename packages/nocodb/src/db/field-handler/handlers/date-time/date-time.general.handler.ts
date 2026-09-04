@@ -4,6 +4,7 @@ import utc from 'dayjs/plugin/utc.js';
 import {
   getNodejsTimezone,
   isDateTimeStringHasTimezone,
+  isFieldTrackingLmtCol,
   parseDateTimeValue,
   parseProp,
 } from 'nocodb-sdk';
@@ -15,6 +16,7 @@ import type {
   FilterOperationResult,
   FilterOptions,
   FilterVerificationResult,
+  SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Filter } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
@@ -22,6 +24,7 @@ import type { Knex } from '~/db/CustomKnex';
 import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { lmtFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -305,6 +308,30 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     );
   }
 
+  override async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions,
+  ): Promise<void> {
+    // a LastModifiedTime column tracking specific fields has no physical
+    // column — sort on its synthetic formula expression
+    if (isFieldTrackingLmtCol(column)) {
+      const { alias, nulls, baseModel, context } = options;
+      const builder = (
+        await lmtFieldQueryBuilder({
+          baseModel,
+          column,
+          model: await column.getModel(context),
+          tableAlias: alias,
+        })
+      ).builder;
+      qb.orderBy(builder, direction, nulls);
+      return;
+    }
+    return super.applySort(qb, column, direction, options);
+  }
+
   override async filter(
     knex: CustomKnex,
     filter: Filter & { groupby?: boolean },
@@ -314,7 +341,20 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     const { alias } = options;
     const field =
       options.customWhereClause ??
-      (alias ? `${alias}.${column.column_name}` : column.column_name);
+      (isFieldTrackingLmtCol(column)
+        ? // a LastModifiedTime column tracking specific fields has no
+          // physical column — filter on its synthetic formula expression
+          (
+            await lmtFieldQueryBuilder({
+              baseModel: options.baseModel,
+              column,
+              model: await column.getModel(options.context),
+              tableAlias: alias,
+            })
+          ).builder
+        : alias
+        ? `${alias}.${column.column_name}`
+        : column.column_name);
 
     // `in` with an array value is an internal raw-value batch (e.g. the
     // BelongsTo DataLoader keyed on raw values) — pass it through untouched.

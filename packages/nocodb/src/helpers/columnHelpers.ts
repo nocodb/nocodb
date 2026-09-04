@@ -2,10 +2,13 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isAllowedLmtTrackedField,
+  isFieldTrackingLmtCol,
   isLinksOrLTAR,
   isMMOrMMLike,
   isRollupAggregatableColumn,
   OperationSource,
+  parseProp,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -694,6 +697,52 @@ export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
   return columnName;
 };
 
+/**
+ * Validates the `meta.fields_mode === 'specific'` configuration of a
+ * LastModifiedTime column: the table must have a row-meta column (EE + PG
+ * internal tables only) and every tracked id must resolve to a trackable
+ * (user-editable, incl. links) column. No-op for any other column/meta.
+ */
+export const validateLmtTrackedFields = (
+  context: NcContext,
+  {
+    columnBody,
+    columns,
+  }: {
+    columnBody: { uidt?: string; meta?: any };
+    columns: Column[];
+  },
+) => {
+  if (columnBody.uidt !== UITypes.LastModifiedTime) return;
+  const meta = parseProp(columnBody.meta);
+  if (meta?.fields_mode !== 'specific') return;
+
+  const ncError = NcError.get(context);
+
+  if (!columns.find((c) => c.uidt === UITypes.Meta)) {
+    ncError.badRequest(
+      'Tracking specific fields is not supported for this table',
+    );
+  }
+
+  const trackedIds = meta.tracked_field_ids;
+  if (!Array.isArray(trackedIds) || !trackedIds.length) {
+    ncError.badRequest('At least one field to track is required');
+  }
+
+  for (const id of trackedIds) {
+    const tracked = columns.find((c) => c.id === id);
+    if (!tracked) {
+      ncError.fieldNotFound(id);
+    }
+    if (!isAllowedLmtTrackedField(tracked)) {
+      ncError.badRequest(
+        `Field '${tracked.title}' cannot be tracked by a last modified time field`,
+      );
+    }
+  }
+};
+
 // if column is an alias column then return the original column
 // for example CreatedTime is an alias column for CreatedTime system column
 export const getRefColumnIfAlias = async (
@@ -713,6 +762,11 @@ export const getRefColumnIfAlias = async (
     ).includes(column.uidt)
   )
     return column;
+
+  // a LastModifiedTime column tracking specific fields is not an alias of
+  // the system updated_at column — its value is computed from the row-meta
+  // column, so callers must keep the original column (and its meta) intact
+  if (isFieldTrackingLmtCol(column)) return column;
 
   return (
     (

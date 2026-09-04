@@ -1671,12 +1671,29 @@ export class ImportService {
         col.uidt === UITypes.LastModifiedBy
       ) {
         if (col.system) continue;
+
+        // remap the tracked field ids of a field-tracking LastModifiedTime
+        // column; ids that don't resolve in the target (e.g. partial column
+        // import) are dropped, and when none survive the column degrades to
+        // tracking all fields instead of failing the whole import
+        let importMeta = flatCol.meta;
+        const parsedMeta = parseProp(importMeta);
+        if (parsedMeta?.fields_mode === 'specific') {
+          const trackedFieldIds = (parsedMeta.tracked_field_ids || [])
+            .map((a: string) => getIdOrExternalId(a))
+            .filter(Boolean);
+          importMeta = trackedFieldIds.length
+            ? { ...parsedMeta, tracked_field_ids: trackedFieldIds }
+            : { ...parsedMeta, fields_mode: 'all', tracked_field_ids: [] };
+        }
+
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
             tableId: getIdOrExternalId(getParentIdentifier(col.id)),
             column: withoutId({
               ...flatCol,
+              meta: importMeta,
               // provide column_name to avoid ajv error
               // it will be ignored by the service
               column_name: 'system',

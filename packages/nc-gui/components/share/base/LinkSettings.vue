@@ -7,11 +7,11 @@ const {
   sharedBase,
   isRoleToggleLoading,
   isToggleBaseLoading,
+  isCustomUrlSaving,
   isPrivateBase,
   onRoleToggle,
   copyCustomUrl,
   createShareBase,
-  disableLink,
 } = modal
 
 const { showEEFeatures } = useEeConfig()
@@ -26,11 +26,16 @@ const onGenerateNewLink = () => {
   if (isPrivateBase.value) return
   goTo('regenerate-confirm')
 }
+
+const onDisableLink = () => {
+  if (isPrivateBase.value) return
+  goTo('disable-confirm')
+}
 </script>
 
 <template>
   <div class="flex flex-col">
-    <ShareCommonPopoverHeader :title="$t('activity.manageLinkSettings')" show-back @back="goBack" />
+    <ShareCommonPopoverHeader :title="$t('activity.linkSettings')" show-back @back="goBack" />
 
     <NcDivider class="!my-0" />
 
@@ -39,6 +44,7 @@ const onGenerateNewLink = () => {
         v-if="!appInfo.ee"
         v-model="editingAccessEnabled"
         :label="$t('activity.editingAccess')"
+        :description="$t('activity.editingAccessDescription')"
         :loading="isRoleToggleLoading"
         :disabled="isPrivateBase"
         ve-key="c:share:base:role:toggle"
@@ -51,6 +57,7 @@ const onGenerateNewLink = () => {
         :backend-url="appInfo.ncSiteUrl"
         :copy-custom-url="copyCustomUrl"
         :disabled="isPrivateBase"
+        :is-saving="isCustomUrlSaving"
         @update-custom-url="createShareBase(undefined, $event)"
       />
     </div>
@@ -60,6 +67,7 @@ const onGenerateNewLink = () => {
     <div class="py-1">
       <ShareCommonMenuItem
         icon="refresh"
+        :icon-badge="false"
         :label="$t('activity.generateNewLink')"
         :disabled="isPrivateBase"
         ve-key="c:share:base:regenerate"
@@ -68,13 +76,14 @@ const onGenerateNewLink = () => {
       />
       <ShareCommonMenuItem
         icon="close"
+        :icon-badge="false"
         :label="$t('activity.disableLink')"
         danger
         :disabled="isPrivateBase"
         :loading="isToggleBaseLoading"
         ve-key="c:share:base:disable"
         testid="nc-share-base-disable-link"
-        @click="disableLink"
+        @click="onDisableLink"
       />
     </div>
   </div>

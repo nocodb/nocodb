@@ -39,6 +39,7 @@ onMounted(() => {
         </div>
         <ShareBaseLinkSettings v-else-if="screen === 'link-settings'" key="link-settings" />
         <ShareBaseRegenerateConfirm v-else-if="screen === 'regenerate-confirm'" key="regenerate-confirm" />
+        <ShareBaseDisableConfirm v-else-if="screen === 'disable-confirm'" key="disable-confirm" />
       </Transition>
     </div>
   </div>

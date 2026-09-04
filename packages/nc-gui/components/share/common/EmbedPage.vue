@@ -99,7 +99,7 @@ const copyEmbedCode = async () => {
     </div>
 
     <div class="border-b-1 border-nc-border-gray-medium">
-      <div class="max-w-[1280px] mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="max-w-[1440px] mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="flex flex-col gap-3">
           <div class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle">
             <span>{{ t(headerLabel) }}</span>
@@ -157,7 +157,7 @@ const copyEmbedCode = async () => {
     </div>
 
     <div class="flex-1 bg-nc-bg-gray-extralight">
-      <div class="max-w-[1280px] mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+      <div class="max-w-[1440px] mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
         <div class="flex flex-col gap-3">
           <div class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle">
             <GeneralIcon icon="ncMonitor" class="!w-3.5 !h-3.5" />

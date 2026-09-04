@@ -51,6 +51,7 @@ const transitionName = computed(() => (direction.value === 'forward' ? 'slide-le
         </div>
         <ShareViewLinkSettings v-else-if="screen === 'link-settings'" key="link-settings" />
         <ShareViewRegenerateConfirm v-else-if="screen === 'regenerate-confirm'" key="regenerate-confirm" />
+        <ShareViewDisableConfirm v-else-if="screen === 'disable-confirm'" key="disable-confirm" />
         <ShareViewChangePassword v-else-if="screen === 'change-password'" key="change-password" />
       </Transition>
     </div>

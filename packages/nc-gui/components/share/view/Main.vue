@@ -20,11 +20,33 @@ const openEmbed = async () => {
     isOpeningEmbed.value = false
   }
 }
+
+const { t } = useI18n()
+
+const toggleDescription = computed(() => {
+  if (isPublicShared.value) {
+    return isFormView.value ? t('activity.shareFormToWebDescriptionOn') : t('activity.shareViewToWebDescriptionOn')
+  }
+  return isFormView.value ? t('activity.shareFormToWebDescription') : t('activity.shareViewToWebDescription')
+})
+
+const onRowClick = (event: MouseEvent) => {
+  if (isReadOnly.value || isUpdating.value.public) return
+  const target = event.target as HTMLElement | null
+  if (target?.closest('button, .ant-switch')) return
+  toggleShare()
+}
 </script>
 
 <template>
   <div class="flex flex-col">
-    <div class="flex items-start gap-3 px-4 py-2.5">
+    <div
+      class="flex items-start gap-3 px-4 py-2.5 transition-colors"
+      :class="{
+        'cursor-pointer hover:bg-nc-bg-gray-extralight': !isReadOnly && !isUpdating.public,
+      }"
+      @click="onRowClick"
+    >
       <NcSwitch
         v-e="['c:share:view:enable:toggle']"
         :checked="isPublicShared"
@@ -33,14 +55,17 @@ const openEmbed = async () => {
         size="small"
         class="!mt-1 flex-none"
         data-testid="share-view-toggle"
-        @click="toggleShare"
+        role="switch"
+        :aria-checked="isPublicShared ? 'true' : 'false'"
+        @click.stop="toggleShare"
       />
       <div class="flex flex-col flex-1 min-w-0 gap-0.5">
-        <span class="text-nc-content-gray-extreme text-body">{{ $t('activity.shareToWeb') }}</span>
-        <div v-if="!isPublicShared" class="text-bodySm text-nc-content-gray-subtle leading-snug">
-          {{ isFormView ? $t('activity.shareFormToWebDescription') : $t('activity.shareViewToWebDescription') }}
+        <span class="text-nc-content-gray-extreme text-body font-weight-600">{{ $t('activity.shareToWeb') }}</span>
+        <div class="text-bodySm text-nc-content-gray-subtle leading-snug">
+          {{ toggleDescription }}
         </div>
       </div>
+      <ShareCommonStatusChip v-if="isPublicShared" :label="$t('activity.publicStatus')" class="flex-none mt-1.5" />
     </div>
 
     <template v-if="isPublicShared">
@@ -51,6 +76,7 @@ const openEmbed = async () => {
         <ShareCommonMenuItem
           icon="settings"
           :label="$t('activity.linkSettings')"
+          :hint="$t('activity.linkSettingsHint')"
           trailing="chevron"
           ve-key="c:share:view:open-link-settings"
           testid="nc-share-view-link-settings"
@@ -64,6 +90,7 @@ const openEmbed = async () => {
       <ShareCommonMenuItem
         icon="ncCode"
         :label="$t('activity.embedThisView')"
+        :hint="$t('activity.embedThisViewHint')"
         :loading="isOpeningEmbed"
         :disabled="isReadOnly"
         trailing="chevron"

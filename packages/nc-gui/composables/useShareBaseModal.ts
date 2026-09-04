@@ -12,7 +12,7 @@ export enum ShareBaseRole {
   Viewer = 'viewer',
 }
 
-export type ShareBaseModalScreen = 'main' | 'link-settings' | 'regenerate-confirm'
+export type ShareBaseModalScreen = 'main' | 'link-settings' | 'regenerate-confirm' | 'disable-confirm'
 
 const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
   const { dashboardUrl } = useDashboard()
@@ -32,7 +32,7 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
 
   function goBack() {
     direction.value = 'backward'
-    if (screen.value === 'regenerate-confirm') {
+    if (screen.value === 'regenerate-confirm' || screen.value === 'disable-confirm') {
       screen.value = 'link-settings'
     } else {
       screen.value = 'main'
@@ -43,6 +43,7 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
   const isToggleBaseLoading = ref(false)
   const isRoleToggleLoading = ref(false)
   const isRegeneratingLink = ref(false)
+  const isCustomUrlSaving = ref(false)
 
   const url = computed(() => {
     if (!sharedBase.value || !sharedBase.value.uuid) return ''
@@ -70,24 +71,28 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
   }
 
   const createShareBase = async (role = ShareBaseRole.Viewer, custUrl = undefined) => {
+    const isCustomUrlUpdate = custUrl !== undefined
+    if (isCustomUrlUpdate) isCustomUrlSaving.value = true
     try {
       if (!base.value.id) return
       const res = await $api.base.sharedBaseUpdate(base.value.id, {
         roles: role,
         original_url: url.value,
-        ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
+        ...(isCustomUrlUpdate ? { custom_url_path: custUrl ?? null } : {}),
       })
 
       sharedBase.value = res ?? {}
       sharedBase.value!.role = role
       base.value.uuid = res.uuid
 
-      if (custUrl !== undefined) {
+      if (isCustomUrlUpdate) {
         sharedBase.value!.fk_custom_url_id = res.fk_custom_url_id
         base.value.fk_custom_url_id = res.fk_custom_url_id
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      if (isCustomUrlUpdate) isCustomUrlSaving.value = false
     }
 
     $e('a:shared-base:enable', { role })
@@ -144,7 +149,9 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
     isToggleBaseLoading.value = true
     try {
       await disableSharedBase()
-      goBack()
+      // After disable the link-settings screen no longer applies — return to main.
+      direction.value = 'backward'
+      screen.value = 'main'
     } finally {
       isToggleBaseLoading.value = false
     }
@@ -199,6 +206,7 @@ const [useProvideShareBaseModal, useShareBaseModal] = useInjectionState(() => {
     isToggleBaseLoading,
     isRoleToggleLoading,
     isRegeneratingLink,
+    isCustomUrlSaving,
     url,
     isSharedBaseEnabled,
     isPrivateBase,

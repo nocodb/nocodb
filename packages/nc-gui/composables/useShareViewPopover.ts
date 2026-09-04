@@ -1,7 +1,7 @@
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, ViewTypes } from 'nocodb-sdk'
 
-export type ShareViewPopoverScreen = 'main' | 'link-settings' | 'regenerate-confirm' | 'change-password'
+export type ShareViewPopoverScreen = 'main' | 'link-settings' | 'regenerate-confirm' | 'disable-confirm' | 'change-password'
 
 const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() => {
   const { $api } = useSmartsheetStoreOrThrow()
@@ -16,8 +16,6 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
 
   const screen = ref<ShareViewPopoverScreen>('main')
   const direction = ref<'forward' | 'backward'>('forward')
-  const isPopoverOpen = ref(false)
-  const isChangePasswordModalOpen = ref(false)
 
   function goTo(target: ShareViewPopoverScreen) {
     direction.value = 'forward'
@@ -28,7 +26,7 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     direction.value = 'backward'
     // Navigate up one level — sub-confirmation screens hang off link-settings,
     // link-settings hangs off main.
-    if (screen.value === 'regenerate-confirm' || screen.value === 'change-password') {
+    if (screen.value === 'regenerate-confirm' || screen.value === 'disable-confirm' || screen.value === 'change-password') {
       screen.value = 'link-settings'
     } else {
       screen.value = 'main'
@@ -41,6 +39,7 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     download: false,
     customUrl: false,
     language: false,
+    theme: false,
     regenerate: false,
   })
 
@@ -257,6 +256,9 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
 
   async function persistCustomUrl(custUrl: string | null) {
     if (!activeView.value?.id) return false
+    if (isUpdating.value.customUrl) return false
+
+    isUpdating.value.customUrl = true
     try {
       const metaInfo = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
       const res = await $api.internal.postOperation(
@@ -275,6 +277,8 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       return false
+    } finally {
+      isUpdating.value.customUrl = false
     }
   }
 
@@ -335,7 +339,9 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
   async function disableLink() {
     if (!isPublicShared.value) return
     await toggleShare()
-    goBack()
+    // After disable the link-settings screen no longer applies — return to main.
+    direction.value = 'backward'
+    screen.value = 'main'
   }
 
   async function regenerateLink(): Promise<boolean> {
@@ -434,13 +440,13 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
   async function toggleThemeSet() {
     themeSetLocal.value = !themeSet.value
     if (!activeView.value) return
-    if (isUpdating.value.language) return
+    if (isUpdating.value.theme) return
 
-    isUpdating.value.language = true
+    isUpdating.value.theme = true
     try {
       await patchMeta({ defaultTheme: themeSetLocal.value ? 'light' : null })
     } finally {
-      isUpdating.value.language = false
+      isUpdating.value.theme = false
     }
   }
 
@@ -453,8 +459,6 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     direction,
     goTo,
     goBack,
-    isPopoverOpen,
-    isChangePasswordModalOpen,
     isUpdating,
     activeView,
     restrictedSharing,

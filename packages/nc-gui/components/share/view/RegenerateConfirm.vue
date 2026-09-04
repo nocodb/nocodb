@@ -15,6 +15,8 @@ const onOk = async () => {
     :description="$t('activity.regenerateLinkConfirmDescription')"
     :ok-text="$t('activity.generateNewLink')"
     :ok-loading="isUpdating.regenerate"
+    tone="warning"
+    icon="ncAlertTriangle"
     testid="nc-share-view-regenerate-confirm"
     ve-key="c:share:view:regenerate-confirm"
     @cancel="goBack"

@@ -3488,7 +3488,7 @@
     "selectFields": "Select fields",
     "allEditableFields": "All editable fields",
     "specificFields": "Specific fields",
-    "specificFieldsHelpText": "The field will show the last time any of the selected fields were edited.",
+    "changeSelectedFields": "Change selected fields",
     "inputFields": "Input fields",
     "selectRecord": "- Select Record -",
     "previewChecklist": "Preview checklist",

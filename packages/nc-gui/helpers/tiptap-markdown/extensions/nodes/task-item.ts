@@ -19,28 +19,35 @@ export interface TaskItemOptions {
 
 export const inputRegex = /^\s*\[( |x)?\]\s$/i
 
+/** Shape of a node in a ProseMirror JSON document. */
+export interface PmJsonNode {
+  type?: string
+  attrs?: Record<string, any> | null
+  content?: PmJsonNode[]
+  [key: string]: unknown
+}
+
 /**
  * Clear task attribution from a ProseMirror JSON document, in place of the
  * paste-time strip for flows that copy content as JSON (page duplicate).
  * Returns a new document; the input is left untouched.
+ *
+ * Takes parsed PM JSON — run `parseDocContent` first where the value can still
+ * be a stringified column (SQLite text vs PG jsonb), or the strip is a no-op
+ * and the copy keeps the original actor ids.
  */
-export function stripTaskAttribution<T>(content: T): T {
-  if (Array.isArray(content)) {
-    return content.map((child) => stripTaskAttribution(child)) as unknown as T
-  }
-
-  if (!content || typeof content !== 'object') return content
-
-  const node = content as Record<string, any>
-  const next: Record<string, any> = { ...node }
+export function stripTaskAttribution(node: PmJsonNode): PmJsonNode {
+  const next: PmJsonNode = { ...node }
 
   if (node.type === 'taskItem' && node.attrs) {
     next.attrs = { ...node.attrs, checkedBy: null, checkedAt: null }
   }
 
-  if (node.content) next.content = stripTaskAttribution(node.content)
+  if (Array.isArray(node.content)) {
+    next.content = node.content.map(stripTaskAttribution)
+  }
 
-  return next as T
+  return next
 }
 
 // TODO: Extend from tiptap extension
@@ -250,6 +257,25 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
   addProseMirrorPlugins() {
     const taskItemType = this.type
 
+    // `transformPasted` also runs for drops in the pinned prosemirror-view,
+    // which has no separate `transformDragged`. A drag within the document is a
+    // move, so the row keeps the attribution it already had. `dragend` fires
+    // after the drop, so the flag is still set while the slice is transformed.
+    let isDragging = false
+
+    const hasAttribution = (fragment: Fragment): boolean => {
+      let found = false
+
+      fragment.forEach((node) => {
+        if (found) return
+
+        if (node.type === taskItemType && (node.attrs.checkedBy || node.attrs.checkedAt)) found = true
+        else if (node.content.size) found = hasAttribution(node.content)
+      })
+
+      return found
+    }
+
     // Attribution is about who ticked a box *in this document*. Pasted content
     // was ticked somewhere else, so drop the actor rather than credit them for
     // a copy they never saw. The checked state itself is kept.
@@ -273,7 +299,23 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
       new Plugin({
         key: new PluginKey('taskItemAttributionPaste'),
         props: {
-          transformPasted: (slice) => new Slice(stripAttribution(slice.content), slice.openStart, slice.openEnd),
+          handleDOMEvents: {
+            dragstart: () => {
+              isDragging = true
+              return false
+            },
+            dragend: () => {
+              isDragging = false
+              return false
+            },
+          },
+          transformPasted: (slice) => {
+            // Skip the rebuild entirely when there is nothing to strip — this
+            // hook runs on every paste in every rich-text surface.
+            if (isDragging || !hasAttribution(slice.content)) return slice
+
+            return new Slice(stripAttribution(slice.content), slice.openStart, slice.openEnd)
+          },
         },
       }),
     ]

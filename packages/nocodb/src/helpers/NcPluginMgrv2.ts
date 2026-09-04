@@ -174,6 +174,7 @@ class NcPluginMgrv2 {
           from: process.env.NC_SMTP_FROM,
           host: process.env.NC_SMTP_HOST,
           port: process.env.NC_SMTP_PORT,
+          name: process.env.NC_SMTP_FROM_DOMAIN,
           username: process.env.NC_SMTP_USERNAME,
           password: process.env.NC_SMTP_PASSWORD,
           secure: process.env.NC_SMTP_SECURE === 'true',

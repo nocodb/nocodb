@@ -1,19 +1,36 @@
-import { isFieldTrackingLmbCol, isFieldTrackingLmtCol } from 'nocodb-sdk';
+import {
+  DependencyTableType,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
+} from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type Column from '~/models/Column';
+import DependencyTracker from '~/models/DependencyTracker';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
 /**
- * Junction rows for LastModifiedTime / LastModifiedBy columns tracking
- * specific fields (`meta.fields_mode === 'specific'`): one row per
- * (lmt column, tracked column) pair. Mirrors the webhook trigger-fields
- * pattern (`nc_hook_trigger_fields`) — the tracked-field id set lives in
- * dedicated rows so the meta-dependency delete cascade and import
- * id-remap can see the references.
+ * Tracked-field set of a LastModifiedTime / LastModifiedBy column configured
+ * with `meta.fields_mode === 'specific'`.
+ *
+ * Stored as ordinary rows in `nc_dependency_tracker`: the LMT/LMB column is
+ * the *dependent* and each tracked column is a *source*, both of type
+ * `column`. Reusing that table means the set travels with a base for free —
+ * it is already registered for serialization, id-remap and base-delete
+ * scoping, which a bespoke junction table has to earn one list at a time.
+ *
+ * Column→column is currently exclusive to this feature; every other producer
+ * of dependency rows uses a non-column dependent (widget, workflow, bookmark,
+ * date-dependency, interface page), so scoping reads and deletes to
+ * `dependent_type = column` cannot disturb them.
  */
 export default class LmtTrackedField {
+  private static readonly EDGE = {
+    source_type: DependencyTableType.Column,
+    dependent_type: DependencyTableType.Column,
+  };
+
   /** Tracked column ids of a field-tracking LMT/LMB column. */
   static async getTrackedFieldIds(
     context: NcContext,
@@ -23,16 +40,16 @@ export default class LmtTrackedField {
     const rows = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.COL_LMT_TRACKED_FIELDS,
-      { condition: { fk_column_id: lmtColumnId } },
+      MetaTable.DEPENDENCY_TRACKER,
+      { condition: { ...this.EDGE, dependent_id: lmtColumnId } },
     );
-    return rows.map((row) => row.fk_tracked_column_id);
+    return rows.map((row) => row.source_id);
   }
 
   /**
    * Hydrate `tracked_field_ids` onto field-tracking LMT/LMB columns
-   * (mirrors `hook.trigger_fields`) — one batched junction read for the
-   * whole column list. Used on meta-serving paths so clients see the set.
+   * (mirrors `hook.trigger_fields`) — one batched read for the whole column
+   * list. Used on meta-serving paths so clients see the set.
    */
   static async hydrateColumns(
     context: NcContext,
@@ -47,15 +64,16 @@ export default class LmtTrackedField {
     const rows = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.COL_LMT_TRACKED_FIELDS,
+      MetaTable.DEPENDENCY_TRACKER,
       {
-        xcCondition: { fk_column_id: { in: targets.map((t) => t.id) } },
+        condition: this.EDGE,
+        xcCondition: { dependent_id: { in: targets.map((t) => t.id) } },
       },
     );
     for (const col of targets) {
       col.tracked_field_ids = rows
-        .filter((r) => r.fk_column_id === col.id)
-        .map((r) => r.fk_tracked_column_id);
+        .filter((r) => r.dependent_id === col.id)
+        .map((r) => r.source_id);
     }
   }
 
@@ -66,26 +84,13 @@ export default class LmtTrackedField {
     trackedFieldIds: string[],
     ncMeta: MetaService = Noco.ncMeta,
   ) {
-    await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_LMT_TRACKED_FIELDS,
-      { fk_column_id: lmtColumnId },
+    await DependencyTracker.trackDependencies(
+      context,
+      DependencyTableType.Column,
+      lmtColumnId,
+      { columns: [...new Set(trackedFieldIds)].map((id) => ({ id })) },
+      ncMeta,
     );
-
-    const deduped = [...new Set(trackedFieldIds)];
-    if (deduped.length) {
-      await ncMeta.bulkMetaInsert(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_LMT_TRACKED_FIELDS,
-        deduped.map((trackedColumnId) => ({
-          fk_column_id: lmtColumnId,
-          fk_tracked_column_id: trackedColumnId,
-        })),
-        true,
-      );
-    }
   }
 
   /** Cleanup when a tracked column is deleted (meta-dependency handler). */
@@ -97,8 +102,8 @@ export default class LmtTrackedField {
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.COL_LMT_TRACKED_FIELDS,
-      { fk_tracked_column_id: trackedColumnId },
+      MetaTable.DEPENDENCY_TRACKER,
+      { ...this.EDGE, source_id: trackedColumnId },
     );
   }
 
@@ -108,11 +113,11 @@ export default class LmtTrackedField {
     lmtColumnId: string,
     ncMeta: MetaService = Noco.ncMeta,
   ) {
-    await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_LMT_TRACKED_FIELDS,
-      { fk_column_id: lmtColumnId },
+    await DependencyTracker.clearDependencies(
+      context,
+      DependencyTableType.Column,
+      lmtColumnId,
+      ncMeta,
     );
   }
 }

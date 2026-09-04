@@ -44,7 +44,6 @@ export enum MetaTable {
   HOOKS = 'nc_hooks_v2',
   HOOK_LOGS = 'nc_hook_logs_v2',
   HOOK_TRIGGER_FIELDS = 'nc_hook_trigger_fields',
-  COL_LMT_TRACKED_FIELDS = 'nc_col_lmt_tracked_fields',
   PLUGIN = 'nc_plugins_v2',
   PROJECT_USERS = 'nc_base_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
@@ -159,7 +158,6 @@ export enum MetaTable {
 }
 
 export const BaseRelatedMetaTables = [
-  MetaTable.COL_LMT_TRACKED_FIELDS,
   MetaTable.CALENDAR_VIEW_COLUMNS,
   MetaTable.CALENDAR_VIEW_RANGE,
   MetaTable.CALENDAR_VIEW,
@@ -327,7 +325,6 @@ export const orderedMetaTables = [
   MetaTable.FILTER_EXP,
   MetaTable.HOOK_LOGS,
   MetaTable.HOOK_TRIGGER_FIELDS,
-  MetaTable.COL_LMT_TRACKED_FIELDS,
   MetaTable.HOOKS,
   MetaTable.VIEWS,
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MetaEventType } from 'nocodb-sdk';
+import { DependencyTableType, MetaEventType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
@@ -40,8 +40,15 @@ export class ColumnDeleteLmtTrackedDependencyHandler
     const rows = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.COL_LMT_TRACKED_FIELDS,
-      { condition: { fk_tracked_column_id: id }, limit: 1 },
+      MetaTable.DEPENDENCY_TRACKER,
+      {
+        condition: {
+          source_type: DependencyTableType.Column,
+          dependent_type: DependencyTableType.Column,
+          source_id: id,
+        },
+        limit: 1,
+      },
     );
     return rows.length ? {} : undefined;
   }

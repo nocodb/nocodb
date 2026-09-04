@@ -480,8 +480,14 @@ watch(
   },
 )
 
-const insertExpression = () => {
+const insertExpression = async () => {
   if (!editor.value) return
+
+  // The AI empty state hides the editor, and a hidden element can't take focus.
+  if (showAiEmptyState.value) {
+    aiEmptyDismissed.value = true
+    await nextTick()
+  }
 
   // Synchronous DOM focus: the suggestion popup is gated on `isFocused` at dispatch time,
   // and the focus command only focuses on the next animation frame.

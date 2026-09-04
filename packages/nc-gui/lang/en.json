@@ -1987,6 +1987,7 @@
     "referencedTextRemoved": "Referenced text was removed",
     "copyOfDocument": "Copy of {title}",
     "taskProgress": "{completed} of {total} tasks",
+    "taskProgressShort": "{completed}/{total}",
     "docAiImproveWriting": "Improve writing",
     "docAiFixGrammar": "Fix grammar",
     "docAiSummarize": "Summarize",

@@ -350,6 +350,8 @@
     "scrollToBottom": "Scroll to bottom",
     "undo": "Undo",
     "redo": "Redo",
+    "normal": "Normal",
+    "huge": "Huge",
     "optional": "Optional",
     "none": "None",
     "light": "Light",
@@ -4083,7 +4085,11 @@
     "insertFromPreviousSteps": "Insert from previous steps",
     "emailBody": "Email body",
     "emailBody": "Email body",
-    "clearFormatting": "Clear formatting"
+    "clearFormatting": "Clear formatting",
+    "font": "Font",
+    "fontSize": "Font size",
+    "textAlign": "Alignment",
+    "justify": "Justify"
   },
   "activity": {
     "useTemplate": "Use template",

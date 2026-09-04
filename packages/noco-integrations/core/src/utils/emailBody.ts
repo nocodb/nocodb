@@ -32,7 +32,7 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
     'h5',
     'h6',
   ],
-  ALLOWED_ATTR: ['href', 'target', 'rel', 'style'],
+  ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'align'],
   // Editor marks carry data-* mirrors of their styles; recipients never need them.
   ALLOW_DATA_ATTR: false,
   FORBID_TAGS: [
@@ -54,7 +54,7 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
   ],
   ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
   // A custom URI regexp is applied to every non-URI-safe attribute, which would eat target/rel.
-  ADD_URI_SAFE_ATTR: ['target', 'rel'],
+  ADD_URI_SAFE_ATTR: ['target', 'rel', 'align'],
 };
 
 /**
@@ -129,14 +129,17 @@ let applyBaseStyles = false;
 DOMPurify.addHook('uponSanitizeElement', (node, data) => {
   if (!emailSanitizeActive || !applyBaseStyles) return;
   if (node.nodeType !== 1) return;
-  const base = EMAIL_BASE_STYLES[data.tagName];
-  if (!base) return;
   // No DOM lib in this package's tsconfig; the node is a jsdom Element at runtime.
   const el = node as unknown as {
     getAttribute(name: string): string | null;
     setAttribute(name: string, value: string): void;
   };
   const own = el.getAttribute('style');
+  // Outlook's Word engine ignores text-align on blocks but honours the align attribute.
+  const align = own && /text-align:\s*(center|right|justify)/i.exec(own)?.[1];
+  if (align) el.setAttribute('align', align.toLowerCase());
+  const base = EMAIL_BASE_STYLES[data.tagName];
+  if (!base) return;
   // Base first so the author's own declarations win.
   el.setAttribute('style', own ? `${base}; ${own}` : base);
 });

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
 import type { VariableDefinition } from 'nocodb-sdk'
+import WorkflowInputAi from './WorkflowInputAi.vue'
 import { useWorkflowEmailAi } from '#imports'
 import { EMAIL_FONTS } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
 import { EMAIL_FONT_SIZES } from '~/helpers/tiptap-markdown/extensions/marks/fontSize'
@@ -240,12 +241,7 @@ function applyHighlight(color: string) {
         </template>
       </NcDropdown>
 
-      <NcFormBuilderInputWorkflowInputAi
-        v-else-if="tool.type === 'ai'"
-        :editor="editor"
-        :variables="variables"
-        @result="emits('aiResult', $event)"
-      >
+      <WorkflowInputAi v-else-if="tool.type === 'ai'" :editor="editor" :variables="variables" @result="emits('aiResult', $event)">
         <template #default="{ open, loading, toggle }">
           <NcTooltip :title="$t('labels.writeWithAi')">
             <NcButton
@@ -262,7 +258,7 @@ function applyHighlight(color: string) {
             </NcButton>
           </NcTooltip>
         </template>
-      </NcFormBuilderInputWorkflowInputAi>
+      </WorkflowInputAi>
 
       <NcTooltip v-else :title="$t(tool.label!)">
         <NcButton

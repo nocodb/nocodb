@@ -8,6 +8,7 @@ import type { VariableDefinition } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
+import WorkflowInputAi from './WorkflowInputAi.vue'
 import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
 import { useWorkflowEmailAi } from '#imports'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
@@ -847,12 +848,7 @@ watch(readOnly, (newValue) => {
 
         <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
 
-        <NcFormBuilderInputWorkflowInputAi
-          v-if="showAiCta && editor"
-          :editor="editor"
-          :variables="variables"
-          @result="applyAiResult"
-        >
+        <WorkflowInputAi v-if="showAiCta && editor" :editor="editor" :variables="variables" @result="applyAiResult">
           <template #default="{ toggle, loading }">
             <button class="nc-email-ai-cta" data-testid="nc-workflow-richtext-ai-cta" @mousedown.prevent @click.stop="toggle">
               <GeneralIcon icon="ncAutoAwesome" class="w-4 h-4 flex-none" />
@@ -860,7 +856,7 @@ watch(readOnly, (newValue) => {
               {{ loading ? $t('general.generating') : $t('labels.writeWithAi') }}
             </button>
           </template>
-        </NcFormBuilderInputWorkflowInputAi>
+        </WorkflowInputAi>
 
         <BubbleMenu
           v-if="editor"

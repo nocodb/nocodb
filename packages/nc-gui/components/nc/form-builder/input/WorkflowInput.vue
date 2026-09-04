@@ -1047,8 +1047,9 @@ watch(readOnly, (newValue) => {
 
 // While the AI empty state shows it takes the editor's slot in the flex column; the editor
 // stays mounted (just not displayed) so focus/typing works the moment it is dismissed.
+// !important: the modal's .is-expanded rule sets display:flex on the editor at equal specificity.
 .nc-email-shell.has-ai-empty .nc-email-editor {
-  display: none;
+  display: none !important;
 }
 
 .nc-email-ai-empty-host {

@@ -185,10 +185,15 @@ function deriveExpressionMeta(expression: string): { id: string; label: string }
   }
 }
 
+// Parse without executing: a stored body is untrusted, and a detached div still fires
+// <img onerror> on innerHTML assignment. DOMParser documents are inert.
+function parseInert(html: string): HTMLElement {
+  return new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body
+}
+
 // Turn expression chips produced by editor.getHTML() back into {{ }}} tokens for storage / runtime interpolation.
 function expressionSpansToTokens(html: string): string {
-  const container = document.createElement('div')
-  container.innerHTML = html
+  const container = parseInert(html)
   container.querySelectorAll('span[data-type="workflowExpression"]').forEach((el) => {
     el.replaceWith(document.createTextNode(el.getAttribute('data-expression') || ''))
   })
@@ -197,8 +202,7 @@ function expressionSpansToTokens(html: string): string {
 
 // Turn stored {{ }} tokens into expression chip spans (only within text nodes, never inside attributes).
 function tokensToExpressionSpans(html: string): string {
-  const container = document.createElement('div')
-  container.innerHTML = html
+  const container = parseInert(html)
 
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
   const textNodes: Text[] = []
@@ -957,7 +961,7 @@ watch(readOnly, (newValue) => {
 }
 
 .nc-email-toolbar {
-  @apply relative flex flex-wrap items-center gap-0.5 px-1.5 py-1 flex-none;
+  @apply relative flex flex-nowrap items-center gap-0.5 px-1.5 py-1 flex-none overflow-x-auto;
   @apply bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-light;
 }
 
@@ -974,7 +978,12 @@ watch(readOnly, (newValue) => {
   }
 
   .nc-email-format-divider {
-    @apply flex-none w-px h-4.5 mx-1 bg-nc-border-gray-medium;
+    @apply flex-none w-px h-4.5 mx-0.5 bg-nc-border-gray-medium;
+  }
+
+  // Square icon buttons; the font-name button opts out with its own width.
+  .nc-workflow-format-btn:not(.nc-email-typo-btn) {
+    @apply !w-7 !min-w-7 !px-0;
   }
 }
 
@@ -1122,10 +1131,10 @@ watch(readOnly, (newValue) => {
   }
 
   .nc-email-editor {
-    @apply flex-1 min-h-0 px-1 py-3;
+    @apply flex-1 min-h-0 px-1 py-3 flex flex-col;
 
     .ProseMirror {
-      @apply p-0 min-h-full;
+      @apply p-0 flex-1;
       line-height: 1.6;
     }
   }

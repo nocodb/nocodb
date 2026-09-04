@@ -489,7 +489,6 @@ import LcBraces from '~icons/lucide/braces'
 import LcUndo2 from '~icons/lucide/undo-2'
 import LcRedo2 from '~icons/lucide/redo-2'
 import LcRemoveFormatting from '~icons/lucide/remove-formatting'
-import LcALargeSmall from '~icons/lucide/a-large-small'
 import LcAlignLeft from '~icons/lucide/align-left'
 import LcAlignCenter from '~icons/lucide/align-center'
 import LcAlignRight from '~icons/lucide/align-right'
@@ -1626,7 +1625,6 @@ export const iconMap = {
   'lucideUndo2': LcUndo2,
   'lucideRedo2': LcRedo2,
   'lucideRemoveFormatting': LcRemoveFormatting,
-  'lucideALargeSmall': LcALargeSmall,
   'lucideAlignLeft': LcAlignLeft,
   'lucideAlignCenter': LcAlignCenter,
   'lucideAlignRight': LcAlignRight,

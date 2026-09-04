@@ -800,6 +800,7 @@
     "filter": "filter",
     "filters": "filters",
     "variable": "Variable",
+    "variables": "Variables",
     "words": "words"
   },
   "objects": {
@@ -4086,6 +4087,9 @@
     "clearFormatting": "Clear formatting",
     "font": "Font",
     "ccBcc": "Cc, Bcc",
+    "writeWithAi": "Write with AI",
+    "rewriteSelection": "Rewrite selection",
+    "aiTone": "Tone",
     "inputs": "Inputs",
     "textAlign": "Alignment",
     "justify": "Justify"
@@ -4741,6 +4745,7 @@
     "searchConnectionsOrIntegrations": "Search connections or integrations...",
     "searchLanguages": "Search languages...",
     "enterUrl": "Enter URL...",
+    "describeEmail": "Describe the email you want, e.g. \"confirm the order and say when it ships\"",
     "enterALink": "Enter a link",
     "writeCaption": "Write a caption",
     "enterTitle": "Enter title",

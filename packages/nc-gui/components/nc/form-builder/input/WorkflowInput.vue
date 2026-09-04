@@ -622,6 +622,7 @@ const formatGroups = computed<WorkflowInputTool[][]>(() => {
       },
       { key: 'clear', icon: 'lucideRemoveFormatting', label: 'labels.clearFormatting', action: clearFormatting },
     ],
+    [{ key: 'ai', type: 'ai' }],
   ]
 
   return groups
@@ -639,7 +640,19 @@ const toolbarGroups = computed<WorkflowInputTool[][]>(() => [
 const shouldShowBubble = ({ editor: e }: { editor: { state: { selection: { empty: boolean } }; isEditable: boolean } }) =>
   !readOnly.value && e.isEditable && !e.state.selection.empty
 
-const bubbleTippyOptions = { duration: 100, maxWidth: 600, placement: 'top' as const, appendTo: () => document.body }
+// No max width: the full tool set is wider than tippy's default cap and would clip.
+const bubbleTippyOptions = { duration: 100, maxWidth: 'none' as const, placement: 'top' as const, appendTo: () => document.body }
+
+// AI output arrives as HTML with {{ }} tokens; chips are rebuilt the same way stored bodies are.
+function applyAiResult({ html, mode }: { html: string; mode: 'write' | 'rewrite' }) {
+  if (!editor.value) return
+  const content = tokensToExpressionSpans(html)
+  const chain = editor.value.chain().focus()
+  // "write" is given the current body as context and returns a complete replacement;
+  // "rewrite" only ever touches the selection. Both are single undo steps.
+  if (mode === 'rewrite') chain.deleteSelection().insertContent(content).run()
+  else chain.setContent(content, true).run()
+}
 
 function clearFormatting() {
   editor.value?.chain().focus().unsetAllMarks().clearNodes().run()
@@ -772,7 +785,13 @@ watch(readOnly, (newValue) => {
 
         <!-- Modal: full toolbar -->
         <div v-else-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
-          <NcFormBuilderInputWorkflowInputTools v-if="editor" :editor="editor" :groups="toolbarGroups" />
+          <NcFormBuilderInputWorkflowInputTools
+            v-if="editor"
+            :editor="editor"
+            :groups="toolbarGroups"
+            :variables="variables"
+            @ai-result="applyAiResult"
+          />
 
           <div class="flex-1" />
 
@@ -830,7 +849,12 @@ watch(readOnly, (newValue) => {
           :tippy-options="bubbleTippyOptions"
         >
           <div class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
-            <NcFormBuilderInputWorkflowInputTools :editor="editor" :groups="formatGroups" />
+            <NcFormBuilderInputWorkflowInputTools
+              :editor="editor"
+              :groups="formatGroups"
+              :variables="variables"
+              @ai-result="applyAiResult"
+            />
           </div>
         </BubbleMenu>
       </div>

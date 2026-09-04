@@ -39,7 +39,7 @@ const onClick = (event: MouseEvent) => {
     type="button"
     :disabled="disabled || comingSoon || loading"
     :data-testid="testid"
-    class="nc-share-menu-item w-full flex items-center gap-2 px-3 py-2 mx-1.5 rounded-md text-sm text-left transition-colors"
+    class="nc-share-menu-item w-full flex items-center gap-2 px-3 py-2 mx-1.5 rounded-md text-bodyDefaultSm text-left transition-colors"
     :class="{
       'cursor-pointer hover:bg-nc-bg-gray-light': !disabled && !comingSoon && !danger && !loading,
       'cursor-pointer hover:bg-nc-bg-red-light': danger && !disabled && !loading,

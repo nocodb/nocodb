@@ -289,6 +289,9 @@ function triggerToolbarControl(selector: string) {
         v-if="isEeUI && isGrid && isUIAllowed('viewOperations') && !isPublic && !isSharedBase && !isMobileMode"
         class="hidden sr-only"
       />
+      <ShareIndexTrigger
+        v-if="!isMobileSearchActive && (isGrid || isGallery || isKanban || isMap || isList || isCalendar || isForm)"
+      />
       <NcFullScreenToggleButton v-if="showFullScreenToggle && !isMobileMode" />
     </template>
   </div>

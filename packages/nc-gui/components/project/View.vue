@@ -407,7 +407,7 @@ watch(
              without it the avatars vanish the moment a user steps off a table. -->
         <LazySmartsheetTopbarCollaboratorPresence v-if="!isSharedBase && isEeUI" />
         <LazySmartsheetTopbarHistory />
-        <LazyGeneralShareProject v-if="!props.tab" />
+        <LazyShareIndexBaseTrigger v-if="!props.tab" />
       </div>
     </div>
     <div

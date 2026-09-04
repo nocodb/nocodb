@@ -16,6 +16,8 @@ const isToolbarIconMode = inject(
 
 const { view: activeView } = useSmartsheetStoreOrThrow()
 
+const { t } = useI18n()
+
 const isOpen = ref(false)
 
 const isVisible = computed(() => {
@@ -25,6 +27,10 @@ const isVisible = computed(() => {
   if (isPrivateBase.value && activeView.value?.type !== ViewTypes.FORM) return false
   return true
 })
+
+const triggerLabel = computed(() =>
+  activeView.value?.type === ViewTypes.FORM ? t('activity.shareForm') : t('activity.shareView'),
+)
 </script>
 
 <template>
@@ -37,14 +43,17 @@ const isVisible = computed(() => {
   >
     <NcButton
       v-e="['c:toolbar:share']"
-      class="nc-toolbar-btn nc-share-view-trigger !h-7"
+      class="nc-toolbar-btn nc-share-view-trigger !border-0 !h-7"
+      :class="{
+        '!bg-nc-bg-purple-light !hover:bg-nc-bg-purple-dark !text-nc-content-purple-dark': !!activeView?.uuid,
+      }"
       size="small"
       type="secondary"
       data-testid="nc-toolbar-share-view-btn"
     >
       <div class="flex items-center gap-1">
-        <GeneralIcon :icon="activeView?.uuid ? 'ncGlobe' : 'share'" class="!h-4 !w-4" />
-        <span v-if="!isToolbarIconMode">{{ $t('activity.share') }}</span>
+        <GeneralIcon icon="ncExternalLink" class="!h-4 !w-4" />
+        <span v-if="!isToolbarIconMode">{{ triggerLabel }}</span>
       </div>
     </NcButton>
 

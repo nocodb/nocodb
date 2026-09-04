@@ -60,7 +60,7 @@ const checked = computed({
       />
     </div>
     <Transition mode="out-in" name="layout">
-      <div v-if="checked && $slots.default" class="mt-2 pl-7">
+      <div v-if="checked && $slots.default" class="mt-2">
         <slot />
       </div>
     </Transition>

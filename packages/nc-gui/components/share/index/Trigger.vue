@@ -34,33 +34,34 @@ const triggerLabel = computed(() =>
 </script>
 
 <template>
-  <NcDropdown
-    v-if="isVisible"
-    v-model:visible="isOpen"
-    placement="bottomRight"
-    overlay-class-name="nc-share-view-popover-overlay"
-    :overlay-style="{ width: '420px' }"
-  >
-    <NcButton
-      v-e="['c:toolbar:share']"
-      class="nc-toolbar-btn nc-share-view-trigger !border-0 !h-7"
-      :class="{
-        '!bg-nc-bg-purple-light !hover:bg-nc-bg-purple-dark !text-nc-content-purple-dark': !!activeView?.uuid,
-      }"
-      size="small"
-      type="secondary"
-      data-testid="nc-toolbar-share-view-btn"
+  <div v-if="isVisible" class="nc-share-view-trigger-wrapper flex-none flex flex-col justify-center">
+    <NcDropdown
+      v-model:visible="isOpen"
+      placement="bottomRight"
+      overlay-class-name="nc-share-view-popover-overlay"
+      :overlay-style="{ width: '420px' }"
     >
-      <div class="flex items-center gap-1">
-        <GeneralIcon icon="ncExternalLink" class="!h-4 !w-4" />
-        <span v-if="!isToolbarIconMode">{{ triggerLabel }}</span>
-      </div>
-    </NcButton>
+      <NcButton
+        v-e="['c:toolbar:share']"
+        class="nc-toolbar-btn nc-share-view-trigger !border-0 !h-7"
+        :class="{
+          '!bg-nc-bg-purple-light !hover:bg-nc-bg-purple-dark !text-nc-content-purple-dark': !!activeView?.uuid,
+        }"
+        size="small"
+        type="secondary"
+        data-testid="nc-toolbar-share-view-btn"
+      >
+        <div class="flex items-center gap-1 pointer-events-none">
+          <GeneralIcon icon="ncExternalLink" class="!h-4 !w-4" />
+          <span v-if="!isToolbarIconMode">{{ triggerLabel }}</span>
+        </div>
+      </NcButton>
 
-    <template #overlay>
-      <ShareView v-if="isOpen" />
-    </template>
-  </NcDropdown>
+      <template #overlay>
+        <ShareView v-if="isOpen" />
+      </template>
+    </NcDropdown>
+  </div>
 </template>
 
 <style lang="scss">

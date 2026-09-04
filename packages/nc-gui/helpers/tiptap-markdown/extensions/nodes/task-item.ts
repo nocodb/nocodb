@@ -143,9 +143,8 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
       })
 
       listItem.dataset.checked = node.attrs.checked
-      if (node.attrs.checked) {
-        checkbox.setAttribute('checked', 'checked')
-      }
+      // Set the property, not the attribute: the attribute stops reflecting once the checkbox has been clicked
+      checkbox.checked = node.attrs.checked
 
       checkboxWrapper.append(checkbox, checkboxStyler)
       listItem.append(checkboxWrapper, content)
@@ -163,11 +162,7 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
           }
 
           listItem.dataset.checked = updatedNode.attrs.checked
-          if (updatedNode.attrs.checked) {
-            checkbox.setAttribute('checked', 'checked')
-          } else {
-            checkbox.removeAttribute('checked')
-          }
+          checkbox.checked = updatedNode.attrs.checked
 
           return true
         },

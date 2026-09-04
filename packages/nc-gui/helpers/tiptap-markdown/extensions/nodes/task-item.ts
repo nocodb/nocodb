@@ -1,6 +1,8 @@
 import type { KeyboardShortcutCommand } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
+import { Fragment, Slice } from '@tiptap/pm/model'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import type { MarkdownNodeSpec } from '../../types'
 
 export interface TaskItemOptions {
@@ -8,9 +10,45 @@ export interface TaskItemOptions {
   nested: boolean
   HTMLAttributes: Record<string, any>
   taskListTypeName: string
+  /**
+   * Id of the user to credit when this editor toggles an item. Returning null
+   * (public reader, unresolved session) records the toggle without an actor.
+   */
+  getActorId?: () => string | null | undefined
 }
 
 export const inputRegex = /^\s*\[( |x)?\]\s$/i
+
+/** Shape of a node in a ProseMirror JSON document. */
+export interface PmJsonNode {
+  type?: string
+  attrs?: Record<string, any> | null
+  content?: PmJsonNode[]
+  [key: string]: unknown
+}
+
+/**
+ * Clear task attribution from a ProseMirror JSON document, in place of the
+ * paste-time strip for flows that copy content as JSON (page duplicate).
+ * Returns a new document; the input is left untouched.
+ *
+ * Takes parsed PM JSON — run `parseDocContent` first where the value can still
+ * be a stringified column (SQLite text vs PG jsonb), or the strip is a no-op
+ * and the copy keeps the original actor ids.
+ */
+export function stripTaskAttribution(node: PmJsonNode): PmJsonNode {
+  const next: PmJsonNode = { ...node }
+
+  if (node.type === 'taskItem' && node.attrs) {
+    next.attrs = { ...node.attrs, checkedBy: null, checkedAt: null }
+  }
+
+  if (Array.isArray(node.content)) {
+    next.content = node.content.map(stripTaskAttribution)
+  }
+
+  return next
+}
 
 // TODO: Extend from tiptap extension
 export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpec }>({
@@ -40,6 +78,20 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
         renderHTML: (attributes) => ({
           'data-checked': attributes.checked,
         }),
+      },
+      // Attribution for the most recent toggle — who and when. Only the last
+      // one is kept; there is no per-item history.
+      checkedBy: {
+        default: null,
+        keepOnSplit: false,
+        parseHTML: (element) => element.getAttribute('data-checked-by') || null,
+        renderHTML: (attributes) => (attributes.checkedBy ? { 'data-checked-by': attributes.checkedBy } : {}),
+      },
+      checkedAt: {
+        default: null,
+        keepOnSplit: false,
+        parseHTML: (element) => element.getAttribute('data-checked-at') || null,
+        renderHTML: (attributes) => (attributes.checkedAt ? { 'data-checked-at': attributes.checkedAt } : {}),
       },
     }
   },
@@ -124,6 +176,8 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
               tr.setNodeMarkup(position, undefined, {
                 ...currentNode?.attrs,
                 checked,
+                checkedBy: this.options.getActorId?.() ?? null,
+                checkedAt: new Date().toISOString(),
               })
 
               return true
@@ -142,7 +196,24 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
         listItem.setAttribute(key, value)
       })
 
+      // Attribution is read off the DOM by the hover overlay, so it has to be
+      // re-applied on every update — unlike the create-time HTMLAttributes,
+      // which go stale the moment someone toggles the box.
+      const syncAttribution = (attrs: ProseMirrorNode['attrs']) => {
+        if (attrs.checkedBy) listItem.dataset.checkedBy = attrs.checkedBy
+        else delete listItem.dataset.checkedBy
+
+        if (attrs.checkedAt) listItem.dataset.checkedAt = attrs.checkedAt
+        else delete listItem.dataset.checkedAt
+      }
+
+      // `renderHTML` stamps this, but the node view builds its own element and
+      // bypasses it — leaving the live DOM without the marker that `parseHTML`
+      // (and anything selecting task rows) keys on.
+      listItem.dataset.type = this.name
+
       listItem.dataset.checked = node.attrs.checked
+      syncAttribution(node.attrs)
       // Set the property, not the attribute: the attribute stops reflecting once the checkbox has been clicked
       checkbox.checked = node.attrs.checked
 
@@ -162,6 +233,7 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
           }
 
           listItem.dataset.checked = updatedNode.attrs.checked
+          syncAttribution(updatedNode.attrs)
           checkbox.checked = updatedNode.attrs.checked
 
           return true
@@ -178,6 +250,73 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
         getAttributes: (match) => ({
           checked: match[match.length - 1]?.toLowerCase() === 'x',
         }),
+      }),
+    ]
+  },
+
+  addProseMirrorPlugins() {
+    const taskItemType = this.type
+
+    // `transformPasted` also runs for drops in the pinned prosemirror-view,
+    // which has no separate `transformDragged`. A drag within the document is a
+    // move, so the row keeps the attribution it already had. `dragend` fires
+    // after the drop, so the flag is still set while the slice is transformed.
+    let isDragging = false
+
+    const hasAttribution = (fragment: Fragment): boolean => {
+      let found = false
+
+      fragment.forEach((node) => {
+        if (found) return
+
+        if (node.type === taskItemType && (node.attrs.checkedBy || node.attrs.checkedAt)) found = true
+        else if (node.content.size) found = hasAttribution(node.content)
+      })
+
+      return found
+    }
+
+    // Attribution is about who ticked a box *in this document*. Pasted content
+    // was ticked somewhere else, so drop the actor rather than credit them for
+    // a copy they never saw. The checked state itself is kept.
+    const stripAttribution = (fragment: Fragment): Fragment => {
+      const nodes: ProseMirrorNode[] = []
+
+      fragment.forEach((node) => {
+        const content = stripAttribution(node.content)
+
+        if (node.type === taskItemType && (node.attrs.checkedBy || node.attrs.checkedAt)) {
+          nodes.push(node.type.create({ ...node.attrs, checkedBy: null, checkedAt: null }, content, node.marks))
+        } else {
+          nodes.push(node.copy(content))
+        }
+      })
+
+      return Fragment.fromArray(nodes)
+    }
+
+    return [
+      new Plugin({
+        key: new PluginKey('taskItemAttributionPaste'),
+        props: {
+          handleDOMEvents: {
+            dragstart: () => {
+              isDragging = true
+              return false
+            },
+            dragend: () => {
+              isDragging = false
+              return false
+            },
+          },
+          transformPasted: (slice) => {
+            // Skip the rebuild entirely when there is nothing to strip — this
+            // hook runs on every paste in every rich-text surface.
+            if (isDragging || !hasAttribution(slice.content)) return slice
+
+            return new Slice(stripAttribution(slice.content), slice.openStart, slice.openEnd)
+          },
+        },
       }),
     ]
   },

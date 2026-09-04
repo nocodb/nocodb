@@ -119,7 +119,7 @@ export default class Column<T = any> implements ColumnType {
   public internal_meta?: ColumnInternalMeta;
 
   // tracked-field set of a field-tracking LMT/LMB column — persisted as
-  // nc_col_lmt_tracked_fields junction rows and hydrated on demand
+  // column→column edges in nc_dependency_tracker and hydrated on demand
   // (LmtTrackedField.hydrateColumns), mirroring hook.trigger_fields
   public tracked_field_ids?: string[];
 

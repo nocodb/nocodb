@@ -33,7 +33,7 @@ export function lmtUtcText(baseModel: IBaseModelSqlV2, expr: string): string {
  * Delegates to the formula engine via the synthetic
  * `LAST_MODIFIED_TIME({colId}, …)` formula — the same
  * `greatest()`-over-`nc_row_meta` SQL users get from that formula function.
- * The tracked ids are read from the `nc_col_lmt_tracked_fields` junction.
+ * The tracked ids are read from the `nc_dependency_tracker` edges.
  */
 export async function lmtFieldQueryBuilder({
   baseModel,

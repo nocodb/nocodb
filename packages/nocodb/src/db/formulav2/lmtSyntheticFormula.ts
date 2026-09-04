@@ -5,7 +5,7 @@ import type Column from '~/models/Column';
  * Synthesizes the formula equivalent of a LastModifiedTime column that
  * tracks specific fields: `LAST_MODIFIED_TIME({colId1}, {colId2}, …)`.
  *
- * `trackedIds` come from the `nc_col_lmt_tracked_fields` junction rows.
+ * `trackedIds` come from the `nc_dependency_tracker` column→column edges.
  * Ids whose column was deleted or converted to a non-trackable type are
  * skipped. Returns null when nothing valid remains or when the table has
  * no row-meta column (non EE+PG table) — callers must then emit NULL

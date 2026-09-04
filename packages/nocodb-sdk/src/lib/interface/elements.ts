@@ -109,6 +109,8 @@ export interface InterfaceButtonExternalUrl extends InterfaceButtonBase {
 export interface InterfaceButtonInterfacePage extends InterfaceButtonBase {
   action: InterfaceButtonActionTypes.INTERFACE_PAGE;
   fk_page_id: string;
+  /** Owning interface of `fk_page_id` — absent on pre-existing same-interface buttons. */
+  fk_interface_id?: string;
   open_in_new_tab?: boolean;
 }
 

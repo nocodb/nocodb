@@ -54,9 +54,9 @@ const trackedFieldIds = computed<string[]>({
   },
 })
 
-const selectedFields = computed(
-  () => trackedFieldIds.value.map((id) => trackableFields.value.find((c) => c.id === id)).filter(Boolean) as ColumnType[],
-)
+// render in the table's field order — the tracked ids come back from the
+// junction table unordered, so keying off them directly reshuffles the chips
+const selectedFields = computed(() => trackableFields.value.filter((c) => trackedFieldIds.value.includes(c.id!)) as ColumnType[])
 
 function removeFieldId(colId: string) {
   trackedFieldIds.value = trackedFieldIds.value.filter((id) => id !== colId)
@@ -115,7 +115,9 @@ setAdditionalValidations({
           </div>
         </div>
 
-        <NcDropdown v-model:visible="isDropdownOpen" :disabled="!isSpecificFields" overlay-class-name="!pt-0">
+        <!-- open upward: the trigger sits just above the modal's save button,
+             which a downward overlay covers -->
+        <NcDropdown v-model:visible="isDropdownOpen" :disabled="!isSpecificFields" placement="topLeft" overlay-class-name="!pt-0">
           <NcButton
             v-e="['c:field:lmt:select-tracked-fields']"
             size="small"
@@ -152,7 +154,8 @@ setAdditionalValidations({
             >
               <template #headerExtraRight>
                 <NcBadge :border="false" color="brand" class="mr-2">
-                  {{ trackedFieldIds.length }} {{ $t('objects.fields').toLowerCase() }}
+                  {{ trackedFieldIds.length }}
+                  {{ $t(`objects.${trackedFieldIds.length === 1 ? 'field' : 'fields'}`).toLowerCase() }}
                 </NcBadge>
               </template>
 

@@ -9,6 +9,7 @@ import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
 import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
+import { useWorkflowEmailAi } from '#imports'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { FontFamily } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
@@ -76,6 +77,8 @@ const { readOnly } = toRefs(props)
 const compose = inject(WorkflowComposeInj, null)
 
 const expanded = inject(WorkflowComposeModeInj, ref(false))
+
+const { available: aiAvailable } = useWorkflowEmailAi()
 
 // In the sidebar the picker flies out over the canvas; inside the expand modal the caret is
 // mid-screen, so it drops below the caret instead.
@@ -444,6 +447,9 @@ function loadContent() {
 
   editor.value.commands.setContent(htmlContent || vModel.value)
 }
+
+// Empty body: surface "Write with AI" where the user is looking, not just in the toolbar.
+const showAiCta = computed(() => isRichText.value && aiAvailable.value && !readOnly.value && !!editor.value?.isEmpty)
 
 onMounted(loadContent)
 
@@ -841,6 +847,21 @@ watch(readOnly, (newValue) => {
 
         <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
 
+        <NcFormBuilderInputWorkflowInputAi
+          v-if="showAiCta && editor"
+          :editor="editor"
+          :variables="variables"
+          @result="applyAiResult"
+        >
+          <template #default="{ toggle, loading }">
+            <button class="nc-email-ai-cta" data-testid="nc-workflow-richtext-ai-cta" @mousedown.prevent @click.stop="toggle">
+              <GeneralIcon icon="ncAutoAwesome" class="w-4 h-4 flex-none" />
+
+              {{ loading ? $t('general.generating') : $t('labels.writeWithAi') }}
+            </button>
+          </template>
+        </NcFormBuilderInputWorkflowInputAi>
+
         <BubbleMenu
           v-if="editor"
           :editor="editor"
@@ -1011,6 +1032,23 @@ watch(readOnly, (newValue) => {
   // Square icon buttons; the font-name button opts out with its own width.
   .nc-workflow-format-btn:not(.nc-email-typo-btn) {
     @apply !w-7 !min-w-7 !px-0;
+  }
+}
+
+.nc-email-ai-cta {
+  @apply absolute inline-flex items-center gap-1.5 h-7 pl-2 pr-2.5 rounded-md cursor-pointer text-small font-medium;
+  @apply border-1 border-dashed border-nc-border-brand bg-nc-bg-brand text-nc-content-brand;
+  left: 14px;
+  top: 80px; // below the placeholder line in the sidebar (36px strip + 12px padding + one line)
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    @apply border-solid;
+  }
+
+  .nc-email-shell.is-expanded & {
+    left: 4px;
+    top: 84px;
   }
 }
 

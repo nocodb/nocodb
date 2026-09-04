@@ -54,9 +54,9 @@ const copyEmbedCode = async () => {
 </script>
 
 <template>
-  <div class="nc-share-embed-page nc-h-screen overflow-y-auto bg-nc-bg-default">
+  <div class="nc-share-embed-page nc-h-screen overflow-y-auto flex flex-col bg-nc-bg-default">
     <!-- Top configuration section: logo, then label + title + options (left) and embed code (right) -->
-    <div class="border-b-1 border-nc-border-gray-medium">
+    <div class="border-b-1 border-nc-border-gray-medium shrink-0">
       <div class="max-w-[1440px] mx-auto px-8 py-8">
         <a
           href="https://github.com/nocodb/nocodb"
@@ -137,17 +137,16 @@ const copyEmbedCode = async () => {
       </div>
     </div>
 
-    <!-- Preview section: desktop + mobile -->
-    <div class="bg-nc-bg-gray-extralight">
-      <div class="max-w-[1440px] mx-auto px-8 pt-8 pb-12 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle">
+    <!-- Preview section: desktop + mobile — grows to fill remaining viewport height -->
+    <div class="bg-nc-bg-gray-extralight flex-1 flex flex-col">
+      <div class="max-w-[1440px] w-full mx-auto px-8 pt-8 pb-12 flex flex-col lg:flex-row gap-8 flex-1">
+        <div class="flex flex-col gap-3 flex-1">
+          <div class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle shrink-0">
             <GeneralIcon icon="ncMonitor" class="!w-3.5 !h-3.5" />
             <span>{{ t('activity.shareBase.desktopPreview') }}</span>
           </div>
           <div
-            class="bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-md overflow-hidden shadow-sm"
-            style="height: 540px"
+            class="flex-1 min-h-[480px] bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-md overflow-hidden shadow-sm"
           >
             <iframe
               v-if="embedSrc"
@@ -159,14 +158,13 @@ const copyEmbedCode = async () => {
           </div>
         </div>
 
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle">
+        <div class="flex flex-col gap-3 w-full lg:w-[360px] shrink-0">
+          <div class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle shrink-0">
             <GeneralIcon icon="ncSmartphone" class="!w-3.5 !h-3.5" />
             <span>{{ t('activity.shareBase.mobilePreview') }}</span>
           </div>
           <div
-            class="bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-md overflow-hidden shadow-sm mx-auto w-full"
-            style="height: 540px; max-width: 360px"
+            class="flex-1 min-h-[480px] mx-auto w-full max-w-[360px] bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-md overflow-hidden shadow-sm"
           >
             <iframe
               v-if="embedSrc"

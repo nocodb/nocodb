@@ -254,7 +254,7 @@ function applyHighlight(color: string) {
               @mousedown.prevent
               @click.stop="toggle"
             >
-              <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-4 h-4 text-nc-content-brand" />
+              <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-4 h-4" />
             </NcButton>
           </NcTooltip>
         </template>
@@ -277,6 +277,17 @@ function applyHighlight(color: string) {
 </template>
 
 <style lang="scss">
+// Same tile as the body's AI empty state, so the two AI entry points read as one thing.
+.nc-workflow-format-btn.nc-email-ai-btn {
+  background: var(--nc-bg-coloured-purple) !important;
+  color: var(--nc-content-purple-dark) !important;
+
+  &:hover,
+  &.is-active {
+    background: var(--nc-bg-coloured-purple-dark) !important;
+  }
+}
+
 .nc-email-typo-btn {
   @apply !w-auto !px-2 gap-1;
 

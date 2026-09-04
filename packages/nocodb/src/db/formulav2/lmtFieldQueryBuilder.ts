@@ -9,6 +9,24 @@ import LmtTrackedField from '~/models/LmtTrackedField';
 export { lmbFieldQueryBuilder } from './lmbFieldQueryBuilder';
 
 /**
+ * Wraps a field-tracking LastModifiedTime expression so it is emitted as text
+ * with an explicit `+00:00`, matching the physical-column DateTime selects.
+ *
+ * The stored `nc_row_meta.modifiedTime` is already UTC wall time, so no zone
+ * conversion is applied — only the suffix. Without it the value loses its
+ * offset when it passes through `json_agg` (lookups, JSON-built objects) and
+ * downstream consumers render UTC as if it were local. Select paths only:
+ * filters/sorts/group-by must keep comparing timestamps, not text.
+ */
+export function lmtUtcText(baseModel: IBaseModelSqlV2, expr: string): string {
+  if (!baseModel.isPg) return expr;
+  // the ::timestamp cast pins the TO_CHAR overload — the expression degrades to
+  // a bare NULL when no tracked ids survive, and to_char(unknown, unknown) is
+  // ambiguous in pg
+  return `TO_CHAR((${expr})::timestamp, 'YYYY-MM-DD HH24:MI:SS"+00:00"')`;
+}
+
+/**
  * Builds the select expression for a LastModifiedTime column configured to
  * track specific fields (`meta.fields_mode === 'specific'`).
  *

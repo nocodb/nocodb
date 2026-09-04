@@ -786,7 +786,11 @@ export class ExportService {
               column_name: columnData.column_name,
               meta: columnData.meta,
               ...(columnData.tracked_field_ids?.length && {
-                tracked_field_ids: columnData.tracked_field_ids,
+                // export-format ids, like every other cross-column
+                // reference — the import remaps them via getIdOrExternalId
+                tracked_field_ids: columnData.tracked_field_ids
+                  .map((trackedId: string) => idMap.get(trackedId))
+                  .filter(Boolean),
               }),
               pk: columnData.pk,
               pv: columnData.pv,

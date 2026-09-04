@@ -22,6 +22,7 @@ import type { Logger } from '@nestjs/common';
 import {
   lmbFieldQueryBuilder,
   lmtFieldQueryBuilder,
+  lmtUtcText,
 } from '~/db/formulav2/lmtFieldQueryBuilder';
 import { Column, View } from '~/models';
 import {
@@ -156,16 +157,19 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   const selectQbQuery = selectQb.builder.toQuery();
                   qb.select(
                     baseModel.dbDriver.raw(
-                      `${selectQbQuery.replaceAll('?', '\\?')} as ??`,
+                      `${lmtUtcText(
+                        baseModel,
+                        selectQbQuery.replaceAll('?', '\\?'),
+                      )} as ??`,
                       [getAs(column)],
                     ),
                   );
                 } else {
                   qb.select(
-                    baseModel.dbDriver.raw(`?? as ??`, [
-                      selectQb.builder,
-                      getAs(column),
-                    ]),
+                    baseModel.dbDriver.raw(
+                      `${lmtUtcText(baseModel, '??')} as ??`,
+                      [selectQb.builder, getAs(column)],
+                    ),
                   );
                 }
               } catch (e) {

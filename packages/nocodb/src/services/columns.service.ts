@@ -1673,9 +1673,12 @@ export class ColumnsService implements IColumnsService {
               meta: colBody.meta,
             });
 
-            // Persist the tracked set only in 'specific' mode; switching to any
-            // other mode drops the rows so they can't leak (or resurrect on a
-            // later tracked-column delete when isFieldTrackingLmtCol is false).
+            // Persist the tracked set only in 'specific' mode. `meta` is
+            // written wholesale, so any other incoming meta — including one
+            // that simply omits fields_mode — means the column no longer
+            // tracks specific fields: drop the rows so they can't leak, or
+            // resurrect on a later tracked-column delete once
+            // isFieldTrackingLmtCol is false.
             if (parseProp(colBody.meta)?.fields_mode === 'specific') {
               if (Array.isArray(colBody.tracked_field_ids)) {
                 await LmtTrackedField.set(
@@ -1684,7 +1687,7 @@ export class ColumnsService implements IColumnsService {
                   colBody.tracked_field_ids,
                 );
               }
-            } else if (parseProp(colBody.meta)?.fields_mode) {
+            } else {
               await LmtTrackedField.deleteByColumnId(context, param.columnId);
             }
           }
@@ -2013,18 +2016,23 @@ export class ColumnsService implements IColumnsService {
         ...('meta' in colBody ? { meta: colBody.meta } : {}),
       });
 
-      // Persist the tracked set only in 'specific' mode; switching to any other
-      // mode drops the rows so they can't leak or resurrect on a later delete.
-      if (parseProp(colBody.meta)?.fields_mode === 'specific') {
-        if (Array.isArray(colBody.tracked_field_ids)) {
-          await LmtTrackedField.set(
-            context,
-            param.columnId,
-            colBody.tracked_field_ids,
-          );
+      // Persist the tracked set only in 'specific' mode. Scoped to writes that
+      // carry `meta` (it is replaced wholesale) — a title-only update must
+      // leave the tracked set alone. Any other incoming meta, including one
+      // that simply omits fields_mode, drops the rows so they can't leak or
+      // resurrect on a later delete.
+      if ('meta' in colBody) {
+        if (parseProp(colBody.meta)?.fields_mode === 'specific') {
+          if (Array.isArray(colBody.tracked_field_ids)) {
+            await LmtTrackedField.set(
+              context,
+              param.columnId,
+              colBody.tracked_field_ids,
+            );
+          }
+        } else {
+          await LmtTrackedField.deleteByColumnId(context, param.columnId);
         }
-      } else if (parseProp(colBody.meta)?.fields_mode) {
-        await LmtTrackedField.deleteByColumnId(context, param.columnId);
       }
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)

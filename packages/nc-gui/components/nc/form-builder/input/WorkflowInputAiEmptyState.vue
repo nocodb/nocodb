@@ -184,12 +184,6 @@ async function generate() {
 .nc-email-ai-empty {
   @apply flex items-center justify-center p-4 h-full min-h-65;
 
-  // In the tall compose modal a dead-centre card reads as "low"; sit it in the upper third.
-  :global(.nc-email-shell.is-expanded) &:not(.is-prompt) {
-    @apply items-start;
-    padding-top: 72px;
-  }
-
   &.is-prompt {
     @apply flex-col items-stretch justify-start gap-3;
   }

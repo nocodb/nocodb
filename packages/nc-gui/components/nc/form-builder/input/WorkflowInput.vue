@@ -1056,6 +1056,13 @@ watch(readOnly, (newValue) => {
   @apply flex flex-col flex-1 min-h-0 overflow-auto;
 }
 
+// In the tall compose modal a dead-centre card reads as "low"; sit it in the upper third.
+// (Lives here, unscoped and fully qualified — a scoped `:global(...) &` version leaked onto the shell.)
+.nc-email-shell.is-expanded .nc-email-ai-empty:not(.is-prompt) {
+  align-items: flex-start;
+  padding-top: 72px;
+}
+
 .nc-email-var-btn {
   @apply flex-none inline-flex items-center gap-1 h-7 pl-1.5 pr-2 rounded-md cursor-pointer;
   @apply border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-brand text-small font-medium;

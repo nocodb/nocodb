@@ -26,7 +26,7 @@ const onSave = async () => {
       <a-input-password
         v-model:value="passwordInput"
         :placeholder="$t('placeholder.password.enter')"
-        class="!rounded-md !py-1"
+        class="nc-input-sm nc-input-shadow"
         data-testid="nc-change-view-password-input"
         size="small"
         autofocus

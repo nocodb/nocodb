@@ -4284,6 +4284,7 @@
     "shareViewTitle": "Share \"{name}\"",
     "shareViewTooltip": "Share this view as a read-only link.",
     "shareViewToWebDescription": "Turn on read-only access to this view",
+    "shareFormToWebDescription": "Turn on a public form to collect responses",
     "linkSettings": "Link settings",
     "embedThisView": "Embed this view",
     "embedThisBase": "Embed this base",

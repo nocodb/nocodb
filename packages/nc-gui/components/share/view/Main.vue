@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const popover = useShareViewPopover()!
 
-const { isPublicShared, url, isUpdating, isReadOnly, toggleShare, goTo } = popover
+const { isPublicShared, url, isUpdating, isReadOnly, isFormView, toggleShare, goTo } = popover
 
 const isOpeningEmbed = ref(false)
 
@@ -25,7 +25,7 @@ const openEmbed = async () => {
 <template>
   <div class="flex flex-col">
     <div class="flex items-start gap-3 px-4 py-2.5">
-      <a-switch
+      <NcSwitch
         v-e="['c:share:view:enable:toggle']"
         :checked="isPublicShared"
         :loading="isUpdating.public"
@@ -36,9 +36,9 @@ const openEmbed = async () => {
         @click="toggleShare"
       />
       <div class="flex flex-col flex-1 min-w-0 gap-0.5">
-        <span class="text-nc-content-gray-extreme font-medium">{{ $t('activity.shareToWeb') }}</span>
+        <span class="text-nc-content-gray-extreme text-body">{{ $t('activity.shareToWeb') }}</span>
         <div v-if="!isPublicShared" class="text-bodySm text-nc-content-gray-subtle leading-snug">
-          {{ $t('activity.shareViewToWebDescription') }}
+          {{ isFormView ? $t('activity.shareFormToWebDescription') : $t('activity.shareViewToWebDescription') }}
         </div>
       </div>
     </div>

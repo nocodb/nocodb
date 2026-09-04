@@ -85,8 +85,8 @@ const copyEmbedCode = async () => {
           <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
         </a>
 
-        <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">
-          <div class="text-sm font-semibold truncate flex gap-2 items-center">
+        <div class="flex items-center gap-2 text-nc-content-gray-emphasis truncate">
+          <div class="text-bodyBold truncate flex gap-2 items-center">
             <GeneralViewIcon v-if="view" class="h-4 w-4 ml-0.5" :meta="view" />
             <span class="truncate">{{ title }}</span>
           </div>
@@ -108,19 +108,19 @@ const copyEmbedCode = async () => {
               <GeneralIcon icon="info" class="!w-3.5 !h-3.5 cursor-pointer" />
             </NcTooltip>
           </div>
-          <div class="text-heading3 font-semibold text-nc-content-gray-emphasis truncate">
+          <div class="text-heading3 text-nc-content-gray-emphasis truncate">
             {{ title || t('general.untitled') }}
           </div>
 
           <div v-if="showOptions" class="flex flex-col gap-2 mt-2">
             <label class="flex items-center gap-2 cursor-pointer w-fit">
-              <a-switch v-model:checked="hideToolbar" size="small" data-testid="nc-embed-hide-toolbar" />
+              <NcSwitch v-model:checked="hideToolbar" size="small" data-testid="nc-embed-hide-toolbar" />
               <span class="text-bodyDefaultSm text-nc-content-gray-extreme">
                 {{ t('activity.shareBase.embedHideToolbar') }}
               </span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer w-fit">
-              <a-switch v-model:checked="hideTopbar" size="small" data-testid="nc-embed-hide-topbar" />
+              <NcSwitch v-model:checked="hideTopbar" size="small" data-testid="nc-embed-hide-topbar" />
               <span class="text-bodyDefaultSm text-nc-content-gray-extreme">
                 {{ t('activity.shareBase.embedHideTopbar') }}
               </span>

@@ -64,7 +64,7 @@ const copySharedBase = async () => {
       v-model:visible="isOpen"
       placement="bottomRight"
       overlay-class-name="nc-share-base-popover-overlay"
-      :overlay-style="{ width: '420px', minWidth: '420px' }"
+      :overlay-style="{ width: '420px' }"
     >
       <NcButton
         v-e="['c:share:open']"

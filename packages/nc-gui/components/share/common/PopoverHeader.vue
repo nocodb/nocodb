@@ -25,7 +25,7 @@ const emits = defineEmits<{
     >
       <GeneralIcon icon="ncArrowLeft" class="!w-4 !h-4" />
     </button>
-    <div class="text-nc-content-gray-emphasis font-semibold text-base truncate">
+    <div class="text-nc-content-gray-emphasis text-subHeading2 truncate">
       {{ title }}
     </div>
   </div>

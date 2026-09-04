@@ -13,7 +13,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="nc-share-base-popover flex flex-col bg-nc-bg-default rounded-lg overflow-hidden" style="width: 420px">
+  <div class="nc-share-base-popover flex flex-col bg-nc-bg-default rounded-lg overflow-hidden">
     <div
       v-if="isPrivateBase"
       class="mx-3 my-2 flex items-center gap-2 px-3 py-2 bg-nc-bg-gray-light rounded-md text-nc-content-gray-subtle2"
@@ -26,7 +26,7 @@ onMounted(() => {
       <Transition :name="transitionName" mode="out-in">
         <div v-if="screen === 'main'" key="main">
           <div class="flex items-center gap-1.5 px-4 pt-3 pb-3 select-none">
-            <div class="text-nc-content-gray-emphasis font-semibold text-base truncate">
+            <div class="text-nc-content-gray-emphasis text-subHeading2 truncate">
               {{ $t('activity.shareBase.title', { name: base?.title }) }}
             </div>
             <NcTooltip class="flex items-center">

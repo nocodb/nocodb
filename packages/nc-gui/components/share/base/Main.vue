@@ -14,7 +14,7 @@ const openEmbed = () => {
 <template>
   <div class="flex flex-col">
     <div class="flex items-start gap-3 px-4 py-2.5">
-      <a-switch
+      <NcSwitch
         v-if="!isPrivateBase"
         v-e="['c:share:base:enable:toggle']"
         :checked="isSharedBaseEnabled"
@@ -25,7 +25,7 @@ const openEmbed = () => {
         @click="toggleSharedBase"
       />
       <div class="flex flex-col flex-1 min-w-0 gap-0.5">
-        <span class="text-nc-content-gray-extreme font-medium">{{ $t('activity.shareToWeb') }}</span>
+        <span class="text-nc-content-gray-extreme text-body">{{ $t('activity.shareToWeb') }}</span>
         <div v-if="!isSharedBaseEnabled" class="text-bodySm text-nc-content-gray-subtle leading-snug">
           {{ $t('activity.shareBase.shareToWebDescription') }}
         </div>

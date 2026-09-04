@@ -49,14 +49,13 @@ const checked = computed({
           {{ description }}
         </div>
       </div>
-      <a-switch
+      <NcSwitch
         v-model:checked="checked"
         v-e="veKey ? [veKey] : undefined"
         :loading="loading"
         :disabled="disabled"
         :data-testid="testid"
         size="small"
-        class="!mt-0.25"
       />
     </div>
     <Transition mode="out-in" name="layout">

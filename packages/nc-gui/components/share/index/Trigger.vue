@@ -39,7 +39,7 @@ const triggerLabel = computed(() =>
     v-model:visible="isOpen"
     placement="bottomRight"
     overlay-class-name="nc-share-view-popover-overlay"
-    :overlay-style="{ width: '420px', minWidth: '420px' }"
+    :overlay-style="{ width: '420px' }"
   >
     <NcButton
       v-e="['c:toolbar:share']"
@@ -66,9 +66,5 @@ const triggerLabel = computed(() =>
 <style lang="scss">
 .nc-share-view-popover-overlay {
   @apply !p-0;
-
-  .ant-dropdown-menu {
-    @apply !p-0;
-  }
 }
 </style>

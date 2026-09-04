@@ -96,7 +96,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <div v-if="isLegacyPlaintextPassword" class="flex items-center gap-2">
           <a-input-password
             :value="activeView?.password"
-            class="!rounded-lg !py-1 !bg-nc-bg-default flex-1"
+            class="nc-input-sm nc-input-shadow !bg-nc-bg-default flex-1"
             data-testid="nc-share-view-password-legacy"
             size="small"
             readonly
@@ -118,7 +118,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <!-- Stored password (bcrypt-hashed): show masked locked state + change action -->
         <div v-else-if="hasStoredPassword" class="flex items-center gap-2">
           <div
-            class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium"
+            class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium shadow-default"
             data-testid="nc-share-view-password-locked"
           >
             <GeneralIcon icon="ncLock" class="text-nc-content-gray-subtle !w-3.5 !h-3.5" />
@@ -142,7 +142,7 @@ const copyCustomUrl = async (custUrl = '') => {
             <a-input-password
               v-model:value="newPasswordDraft"
               :placeholder="$t('placeholder.password.enter')"
-              class="!rounded-lg !py-1 !bg-nc-bg-default flex-1"
+              class="nc-input-sm nc-input-shadow !bg-nc-bg-default flex-1"
               data-testid="nc-modal-share-view__password"
               size="small"
               type="password"
@@ -200,7 +200,7 @@ const copyCustomUrl = async (custUrl = '') => {
       <!-- Form-specific options -->
       <template v-if="isFormView">
         <NcDivider class="!my-1" />
-        <div class="px-3 py-1 text-bodySm font-medium text-nc-content-gray-subtle uppercase tracking-wide">
+        <div class="px-3 py-1 text-bodySm text-nc-content-gray-subtle uppercase tracking-wide">
           {{ $t('objects.viewType.form') }}
         </div>
 

@@ -2,6 +2,8 @@ import {
   CircularRefContext,
   ClientType,
   isBtLikeV2Junction,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
   isMMOrMMLike,
   RelationTypes,
   UITypes,
@@ -30,6 +32,10 @@ import {
   loadLookupSortAndLimit,
 } from '~/db/lookupSortLimit';
 import { getRefColumnIfAlias } from '~/helpers';
+import {
+  lmbFieldQueryBuilder,
+  lmtFieldQueryBuilder,
+} from '~/db/formulav2/lmtFieldQueryBuilder';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
@@ -784,6 +790,44 @@ export const lookupOrLtarBuilder =
         case UITypes.LastModifiedBy:
         case UITypes.CreatedTime:
         case UITypes.LastModifiedTime: {
+          // A LastModifiedTime/By tracking specific fields is computed from the
+          // row-meta column, not an alias for a physical one — getRefColumnIfAlias
+          // returns it unchanged and its column_name is null. Select its
+          // expression, the way the Formula/Rollup cases above do.
+          const trackingLmt = isFieldTrackingLmtCol(lookupColumn);
+          if (trackingLmt || isFieldTrackingLmbCol(lookupColumn)) {
+            const lookupModel = await lookupColumn.getModel(context);
+            const { builder } = trackingLmt
+              ? await lmtFieldQueryBuilder({
+                  baseModel: baseModelSqlv2,
+                  column: lookupColumn,
+                  model: lookupModel,
+                  tableAlias: prevAlias,
+                })
+              : await lmbFieldQueryBuilder({
+                  baseModel: baseModelSqlv2,
+                  column: lookupColumn,
+                  model: lookupModel,
+                  tableAlias: prevAlias,
+                });
+            if (isArray) {
+              const qb = selectQb;
+              selectQb = (fn) =>
+                knex
+                  .raw(
+                    getAggregateFn(fn)({
+                      qb,
+                      knex,
+                      cn: knex.raw(builder).wrap('(', ')'),
+                    }),
+                  )
+                  .wrap('(', ')');
+            } else {
+              selectQb.select(builder);
+            }
+            break;
+          }
+
           const refCol = await getRefColumnIfAlias(context, lookupColumn);
           if (isArray) {
             const qb = selectQb;

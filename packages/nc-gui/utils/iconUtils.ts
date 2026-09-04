@@ -30,6 +30,7 @@ import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
 import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
+import MsDataObject from '~icons/material-symbols/data-object-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
 import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
@@ -1505,6 +1506,7 @@ export const iconMap = {
   'ncMove': NcMoveIcon,
   'ncMoveHorizontal': NcMoveHorizontalIcon,
   'ncMaximize': NcMaximizeIcon,
+  'ncDataObject': MsDataObject,
   'ncChevronUp': NcChevronUpIcon,
   'ncArrowDownLeft': NcArrowDownLeftIcon,
   'ncFileText': NcFileTextIcon,

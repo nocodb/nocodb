@@ -8,7 +8,7 @@ import type { VariableDefinition } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
-import WorkflowInputAi from './WorkflowInputAi.vue'
+import WorkflowInputAiEmptyState from './WorkflowInputAiEmptyState.vue'
 import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
 import { useWorkflowEmailAi } from '#imports'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
@@ -449,8 +449,24 @@ function loadContent() {
   editor.value.commands.setContent(htmlContent || vModel.value)
 }
 
-// Empty body: surface "Write with AI" where the user is looking, not just in the toolbar.
-const showAiCta = computed(() => isRichText.value && aiAvailable.value && !readOnly.value && !!editor.value?.isEmpty)
+// Empty body: the editor area shows an AI empty state instead of a bare placeholder.
+// "Start blank" dismisses it until the body has had content again.
+const aiEmptyDismissed = ref(false)
+
+const isEditorEmpty = computed(() => !!editor.value?.isEmpty)
+
+const showAiEmptyState = computed(
+  () => isRichText.value && aiAvailable.value && !readOnly.value && isEditorEmpty.value && !aiEmptyDismissed.value,
+)
+
+watch(isEditorEmpty, (empty) => {
+  if (!empty) aiEmptyDismissed.value = false
+})
+
+function startBlank() {
+  aiEmptyDismissed.value = true
+  nextTick(() => editor.value?.commands.focus('start'))
+}
 
 onMounted(loadContent)
 
@@ -757,7 +773,11 @@ watch(readOnly, (newValue) => {
   >
     <!-- ── Rich-text (email body) shell: toolbar + editor + footer in one bordered box ── -->
     <template v-if="isRichText">
-      <div class="nc-email-shell" :class="{ 'is-expanded': expanded }" data-testid="nc-workflow-richtext-shell">
+      <div
+        class="nc-email-shell"
+        :class="{ 'is-expanded': expanded, 'has-ai-empty': showAiEmptyState }"
+        data-testid="nc-workflow-richtext-shell"
+      >
         <!-- Sidebar: status strip. Formatting lives in the selection bubble. -->
         <div v-if="!expanded" class="nc-email-head">
           <div class="nc-email-wordcount">
@@ -848,15 +868,9 @@ watch(readOnly, (newValue) => {
 
         <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
 
-        <WorkflowInputAi v-if="showAiCta && editor" :editor="editor" :variables="variables" @result="applyAiResult">
-          <template #default="{ toggle, loading }">
-            <button class="nc-email-ai-cta" data-testid="nc-workflow-richtext-ai-cta" @mousedown.prevent @click.stop="toggle">
-              <GeneralIcon icon="ncAutoAwesome" class="w-4 h-4 flex-none" />
-
-              {{ loading ? $t('general.generating') : $t('labels.writeWithAi') }}
-            </button>
-          </template>
-        </WorkflowInputAi>
+        <div v-if="showAiEmptyState && editor" class="nc-email-ai-empty-host">
+          <WorkflowInputAiEmptyState :editor="editor" :variables="variables" @result="applyAiResult" @start-blank="startBlank" />
+        </div>
 
         <BubbleMenu
           v-if="editor"
@@ -1031,20 +1045,24 @@ watch(readOnly, (newValue) => {
   }
 }
 
-.nc-email-ai-cta {
-  @apply absolute inline-flex items-center gap-1.5 h-7 pl-2 pr-2.5 rounded-md cursor-pointer text-small font-medium;
-  @apply border-1 border-dashed border-nc-border-brand bg-nc-bg-brand text-nc-content-brand;
-  left: 14px;
-  top: 80px; // below the placeholder line in the sidebar (36px strip + 12px padding + one line)
-  transition: background 0.15s, border-color 0.15s;
-
-  &:hover {
-    @apply border-solid;
+// AI empty state sits over the editor area; the editor keeps its size so focus/typing works
+// the moment it is dismissed.
+.nc-email-shell.has-ai-empty {
+  .nc-email-editor {
+    min-height: 260px;
   }
 
+  .tiptap p.is-editor-empty:first-child::before {
+    display: none;
+  }
+}
+
+.nc-email-ai-empty-host {
+  @apply absolute inset-x-0 bottom-0 flex flex-col;
+  top: 36px; // below the status strip
+
   .nc-email-shell.is-expanded & {
-    left: 4px;
-    top: 84px;
+    top: 40px; // below the toolbar
   }
 }
 

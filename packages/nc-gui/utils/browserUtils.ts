@@ -99,10 +99,47 @@ export const isActiveElementInsideInterfacePanel = () =>
   ['.nc-interface-properties-panel', '.nc-interface-page-description'].some((selector) =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
-/** Interface record-detail sheet overlays the viz — while it is open the grid
- *  behind it must not react to keyboard at all (presence, not focus: the sheet
- *  only exists inside interface contexts, so classic grids are unaffected). */
-export const isInterfaceRecordSheetOpen = () => !!document.querySelector('.nc-interface-record-form-sheet')
+// Interface record sheet — same intent tracking as the expanded-form panel:
+// the canvas grid isn't focusable, so "the user is working in the sheet" is
+// focus inside it OR the last click having landed inside it.
+let _lastClickInInterfaceRecordSheet = false
+if (typeof document !== 'undefined') {
+  document.addEventListener(
+    'click',
+    (e) => {
+      const t = e.target as HTMLElement | null
+      if (!t) return
+      if (t.closest('.ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .ant-dropdown')) return
+      const inSheet = !!t.closest('.nc-interface-record-form-sheet')
+      _lastClickInInterfaceRecordSheet = inSheet
+
+      // Clicked back onto the viz while a sheet input still holds focus — blur
+      // it so keystrokes reach the grid instead of the stale input.
+      if (!inSheet) {
+        const sheet = document.querySelector('.nc-interface-record-form-sheet')
+        const active = document.activeElement as HTMLElement | null
+        if (sheet && active && sheet.contains(active) && typeof active.blur === 'function') active.blur()
+      }
+    },
+    true,
+  )
+}
+
+/** Interface record-detail sheet owns the keyboard: always for the full-screen
+ *  page variant (the viz is hidden), otherwise only while the user is working
+ *  inside it (focus / last click) — so the grid behind a side sheet keeps its
+ *  arrow navigation and the sheet follows the active row. The sheet only
+ *  exists inside interface contexts, so classic grids are unaffected. */
+export const isInterfaceRecordSheetOpen = () => {
+  const sheet = document.querySelector('.nc-interface-record-form-sheet')
+  if (!sheet) {
+    _lastClickInInterfaceRecordSheet = false
+    return false
+  }
+  if (sheet.classList.contains('nc-rf-sheet-full')) return true
+  const active = document.activeElement
+  return (!!active && sheet.contains(active)) || _lastClickInInterfaceRecordSheet
+}
 /** Interface builder chrome: the right-side config panel, the topbars, a page
  *  toolbar (the user-filter tab strip lives inside it) and the page sidebar.
  *  Clicking any of it is a context switch, so the mounted grid/list drops its

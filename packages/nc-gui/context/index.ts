@@ -443,6 +443,14 @@ export interface InterfaceExpandRecordCtx {
   tableMeta?: TableType
   /** Pre-resolved primary key (leveled rows carry it; spares a column lookup). */
   pk?: string
+  /**
+   * The viz's active row moved (keyboard / click) while its record sheet is
+   * open — rebind the sheet to this row instead of treating it as a fresh
+   * open. `index`/`total` (ungrouped only) seed the sheet's prev/next position.
+   */
+  fromActiveRow?: boolean
+  index?: number
+  total?: number
 }
 
 /**
@@ -456,6 +464,27 @@ export interface InterfaceExpandRecordCtx {
  */
 export const InterfaceExpandRecordInj: InjectionKey<((row: Row, ctx?: InterfaceExpandRecordCtx) => boolean) | undefined> =
   Symbol('interface-expand-record')
+
+/**
+ * Interface pages: true while the record sheet is open on THIS viz's record —
+ * the grid then reports active-row changes through `InterfaceExpandRecordInj`
+ * (`fromActiveRow`) so the sheet follows keyboard navigation, like the classic
+ * expanded-form panel. Undefined outside interface contexts.
+ */
+export const InterfaceSheetFollowsActiveRowInj: InjectionKey<Ref<boolean> | undefined> = Symbol(
+  'interface-sheet-follows-active-row',
+)
+
+/**
+ * Interface pages: the active viz's live-row lookup, REGISTERED UP by the viz
+ * (the grid sets it from its row caches). The record sheet's prev/next
+ * navigation rebinds to this object instead of the sibling fetch's copy, so
+ * inline edits keep writing through to the viz behind the sheet by reference.
+ * Null when the mounted viz doesn't register one — the sheet then refetches
+ * the viz after each inline save instead.
+ */
+export const InterfaceRowResolverInj: InjectionKey<Ref<((rowId: string) => Record<string, any> | null) | null>> =
+  Symbol('interface-row-resolver')
 
 /**
  * Interface pages: whether the active viz opens records (its "Click into

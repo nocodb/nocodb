@@ -913,6 +913,31 @@ describe('validateRowFilters', () => {
       ).toBe(false);
     });
 
+    it('should evaluate "gb_eq" (group-by key) against the linked record primary value', () => {
+      const filters: FilterType[] = [
+        { fk_column_id: '6', comparison_op: 'gb_eq' as any, value: 'RecordA' },
+      ];
+      // belongs-to links are a single object, not an array
+      expect(
+        validateRowFilters({
+          filters,
+          data: { RelatedRecords: { Primary: 'RecordA' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+      expect(
+        validateRowFilters({
+          filters,
+          data: { RelatedRecords: { Primary: 'RecordB' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(false);
+    });
+
     it('should correctly evaluate "like" for linked record primary value', () => {
       const filters: FilterType[] = [
         { fk_column_id: '6', comparison_op: 'like', value: 'record' },

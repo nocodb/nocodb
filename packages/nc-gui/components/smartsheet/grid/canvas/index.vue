@@ -3188,11 +3188,26 @@ watch(
 // those so clicking outside a column doesn't close the panel.
 const expandedFormPanelStore = useExpandedFormPanel()
 
+// Interface pages: the record sheet follows the active row the same way.
+const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
+const interfaceSheetFollowsActiveRow = inject(InterfaceSheetFollowsActiveRowInj, undefined)
+
 watch([() => activeCell.value.row, () => activeCell.value.path], ([newRow, newPath]) => {
-  if (!expandedFormPanelStore?.isOpen.value) return
+  const followsSheet = !!interfaceExpandRecord && !!interfaceSheetFollowsActiveRow?.value
+  if (!expandedFormPanelStore?.isOpen.value && !followsSheet) return
   if (ncIsNullOrUndefined(newRow) || newRow! < 0) return
 
   const path = newPath ?? []
+
+  if (followsSheet) {
+    const row = getDataCache(path)?.cachedRows.value.get(newRow!)
+    if (!row || row.rowMeta?.new) return
+    // Grouped rows don't share the sheet's flat sibling order — let it locate itself.
+    const position = path.length ? {} : { index: newRow!, total: totalRows.value }
+    interfaceExpandRecord!(row, { fromActiveRow: true, ...position })
+    return
+  }
+
   const sameRow = newRow === expandedFormPanelStore.activeRowIndex.value
   const samePath = path.join('-') === (expandedFormPanelStore.activePath.value ?? []).join('-')
   if (sameRow && samePath) return

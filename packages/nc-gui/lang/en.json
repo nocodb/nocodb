@@ -5808,6 +5808,8 @@
       "twoFactorRequired": "Two-factor authentication is now required for this workspace",
       "twoFactorRequirementRemoved": "Two-factor authentication requirement has been removed",
       "createdRecords": "Created {count} record | Created {count} records",
+      "recordLinked": "Record linked",
+      "recordUnlinked": "Record unlinked",
       "workflowDisabled": "Workflow de-activated successfully",
       "workflowEnabled": "Workflow activated successfully",
       "workflowDuplicated": "Workflow duplicated successfully",

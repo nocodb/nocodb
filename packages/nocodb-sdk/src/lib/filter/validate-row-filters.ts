@@ -10,7 +10,7 @@ import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
-import UITypes from '~/lib/UITypes';
+import UITypes, { isBtLikeV2Junction } from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
@@ -266,9 +266,13 @@ export class RowFilterValidator {
             default:
               res = false; // Unsupported operation for User fields
           }
-        } else if (column.uidt === UITypes.LinkToAnotherRecord) {
-          // LTAR holds the related records themselves (Links, by contrast, is a
-          // numeric count and falls through to the scalar path).
+        } else if (
+          column.uidt === UITypes.LinkToAnotherRecord ||
+          (column.uidt === UITypes.Links && isBtLikeV2Junction(column))
+        ) {
+          // LTAR (and single-record V2 Links) hold the related records
+          // themselves; many-record Links is a numeric count and falls
+          // through to the scalar path.
           let linkData = rawVal;
 
           linkData = Array.isArray(linkData) ? linkData : [linkData];
@@ -300,6 +304,7 @@ export class RowFilterValidator {
 
               switch (filter.comparison_op as any) {
                 case 'eq':
+                case 'gb_eq':
                   res = childValues.includes(ncToString(filter.value));
                   break;
                 case 'neq':

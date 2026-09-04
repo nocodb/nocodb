@@ -1772,7 +1772,11 @@ export function useInfiniteData(args: {
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
       const groupByFilter = await callbacks?.getWhereFilterArr?.(row.rowMeta?.path)
-      const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
+      // Inserts carry no `property`; -1 would point onGroupRowChange at the parent level.
+      const index = Math.max(
+        groupByColumns.value.findIndex((c) => c.column.title === property),
+        0,
+      )
 
       row.rowMeta.isGroupChanged = !validateRowFilters(
         [...(groupByFilter ?? [])],

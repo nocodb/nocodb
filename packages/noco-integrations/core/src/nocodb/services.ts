@@ -216,10 +216,12 @@ export interface ITablesService {
       tableId: string;
       user: NocoSDK.UserType;
     },
-  ): Promise<NocoSDK.TableType & {
-    views: Array<NocoSDK.ViewType>
-    columns: Array<NocoSDK.ColumnType>
-  }>;
+  ): Promise<
+    NocoSDK.TableType & {
+      views: Array<NocoSDK.ViewType>;
+      columns: Array<NocoSDK.ColumnType>;
+    }
+  >;
 
   getAccessibleTables(
     context: NocoSDK.NcContext,
@@ -274,13 +276,12 @@ interface XcEmailAttachment {
 interface RawMailParams {
   to: string;
   subject: string;
-  html: string;
+  html?: string;
   text?: string;
   attachments?: XcEmailAttachment[];
   cc?: string | string[];
   bcc?: string | string[];
 }
-
 
 export interface IMailService {
   sendMailRaw(param: RawMailParams): Promise<boolean>;

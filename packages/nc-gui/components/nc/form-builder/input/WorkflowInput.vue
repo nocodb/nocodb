@@ -9,6 +9,7 @@ import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import TextStyle from '@tiptap/extension-text-style'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
+import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { FontFamily } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
@@ -71,7 +72,10 @@ const vModel = computed({
 const { readOnly } = toRefs(props)
 
 // Custom suggestion render to pass groupedItems
-const expanded = ref(false)
+// The panel (if any) owns the compose modal; inside it the body renders its full toolbar.
+const compose = inject(WorkflowComposeInj, null)
+
+const expanded = inject(WorkflowComposeModeInj, ref(false))
 
 // In the sidebar the picker flies out over the canvas; inside the expand modal the caret is
 // mid-screen, so it drops below the caret instead.
@@ -238,6 +242,12 @@ function tokensToExpressionSpans(html: string): string {
   return container.innerHTML
 }
 
+// Two renderings of one form (sidebar + compose modal) mean this instance may be
+// updated from the outside; track what we emitted/loaded so only real changes reload.
+let lastEmitted: string | undefined
+
+let lastLoaded: string | undefined
+
 const editor = useEditor({
   content: '',
   extensions: [
@@ -299,6 +309,7 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     if (isRichText.value) {
       vModel.value = editor.isEmpty ? '' : expressionSpansToTokens(editor.getHTML())
+      lastEmitted = vModel.value
       recomputeWordCount()
       return
     }
@@ -315,6 +326,7 @@ const editor = useEditor({
     markdown = markdown.replaceAll('\\]', ']')
 
     vModel.value = markdown.trim()
+    lastEmitted = vModel.value
   },
   editable: !readOnly.value,
   autofocus: false,
@@ -332,8 +344,16 @@ const editor = useEditor({
   },
 })
 
-onMounted(() => {
-  if (!editor.value || !vModel.value) return
+function loadContent() {
+  if (!editor.value) return
+
+  lastLoaded = vModel.value
+
+  if (!vModel.value) {
+    editor.value.commands.clearContent()
+    if (isRichText.value) recomputeWordCount()
+    return
+  }
 
   if (isRichText.value) {
     // Legacy plain-text bodies (saved before rich text) get wrapped so line breaks survive.
@@ -416,7 +436,19 @@ onMounted(() => {
   }
 
   editor.value.commands.setContent(htmlContent || vModel.value)
-})
+}
+
+onMounted(loadContent)
+
+watch(
+  () => props.modelValue,
+  () => {
+    const incoming = vModel.value
+    if (incoming === lastEmitted || incoming === lastLoaded) return
+    if (editor.value?.isFocused) return
+    loadContent()
+  },
+)
 
 const insertExpression = () => {
   if (!editor.value) return
@@ -438,27 +470,6 @@ const insertExpression = () => {
 }
 
 // ── Email body shell: expand modal, word count, quick variables ──
-
-// The modal body is only rendered once the modal has opened, so the teleport stays
-// disabled until its target element actually exists.
-const modalBodyRef = ref<HTMLElement>()
-
-const teleportReady = ref(false)
-
-watch(expanded, async (isExpanded) => {
-  if (!isExpanded) {
-    teleportReady.value = false
-    return
-  }
-
-  await nextTick()
-  await nextTick()
-  teleportReady.value = !!modalBodyRef.value
-
-  if (teleportReady.value) editor.value?.commands.focus()
-})
-
-const teleportToModal = computed(() => expanded.value && teleportReady.value)
 
 const wordCount = ref(0)
 
@@ -719,46 +730,15 @@ watch(readOnly, (newValue) => {
   >
     <!-- ── Rich-text (email body) shell: toolbar + editor + footer in one bordered box ── -->
     <template v-if="isRichText">
-      <Teleport :to="modalBodyRef ?? 'body'" :disabled="!teleportToModal">
-        <div class="nc-email-shell" :class="{ 'is-expanded': expanded }" data-testid="nc-workflow-richtext-shell">
-          <!-- Sidebar: status strip. Formatting lives in the selection bubble. -->
-          <div v-if="!expanded" class="nc-email-head">
-            <div class="nc-email-wordcount">
-              <span class="nc-email-wordcount-num">{{ wordCount }}</span>
-              {{ $t('general.words') }}
-            </div>
-            <div class="flex-1" />
-            <template v-if="!readOnly">
-              <NcTooltip :title="$t('general.insert')">
-                <button
-                  class="nc-email-var-btn"
-                  data-testid="nc-workflow-richtext-variable-btn"
-                  @mousedown.prevent
-                  @click.stop="insertExpression"
-                >
-                  <GeneralIcon icon="lucideBraces" class="w-4 h-4 flex-none" />
-                </button>
-              </NcTooltip>
-              <NcTooltip :title="$t('general.expand')">
-                <NcButton
-                  size="xs"
-                  type="text"
-                  class="nc-workflow-format-btn"
-                  data-testid="nc-workflow-richtext-expand-btn"
-                  @click.stop="expanded = true"
-                >
-                  <GeneralIcon icon="ncMaximize" class="w-4 h-4" />
-                </NcButton>
-              </NcTooltip>
-            </template>
+      <div class="nc-email-shell" :class="{ 'is-expanded': expanded }" data-testid="nc-workflow-richtext-shell">
+        <!-- Sidebar: status strip. Formatting lives in the selection bubble. -->
+        <div v-if="!expanded" class="nc-email-head">
+          <div class="nc-email-wordcount">
+            <span class="nc-email-wordcount-num">{{ wordCount }}</span>
+            {{ $t('general.words') }}
           </div>
-
-          <!-- Modal: full toolbar -->
-          <div v-else-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
-            <NcFormBuilderInputWorkflowInputTools v-if="editor" :editor="editor" :groups="toolbarGroups" />
-
-            <div class="flex-1" />
-
+          <div class="flex-1" />
+          <template v-if="!readOnly">
             <NcTooltip :title="$t('general.insert')">
               <button
                 class="nc-email-var-btn"
@@ -767,87 +747,86 @@ watch(readOnly, (newValue) => {
                 @click.stop="insertExpression"
               >
                 <GeneralIcon icon="lucideBraces" class="w-4 h-4 flex-none" />
-                <span>{{ $t('general.variable') }}</span>
               </button>
             </NcTooltip>
-          </div>
-
-          <!-- Stays inside the shell (and so inside the modal's content subtree); fixed-positioned
-               elements escape the shell's overflow:hidden on their own. -->
-          <div
-            v-if="showLinkMenu"
-            ref="linkMenuRef"
-            class="nc-workflow-link-menu"
-            :style="{ top: `${linkMenuPos.top}px`, left: `${linkMenuPos.left}px` }"
-            @click.stop
-          >
-            <input
-              v-model="linkText"
-              class="nc-workflow-link-input"
-              :placeholder="$t('general.text')"
-              data-testid="nc-workflow-richtext-link-text"
-            />
-            <input
-              ref="linkUrlRef"
-              v-model="linkUrl"
-              class="nc-workflow-link-input"
-              :placeholder="$t('placeholder.enterUrl')"
-              data-testid="nc-workflow-richtext-link-url"
-              @keydown.enter.stop.prevent="applyLink"
-            />
-            <div class="flex justify-end gap-2 mt-1">
-              <NcButton size="xs" type="secondary" @click.stop="cancelLink">{{ $t('general.cancel') }}</NcButton>
-              <NcButton size="xs" type="primary" data-testid="nc-workflow-richtext-link-apply" @click.stop="applyLink">
-                {{ $t('general.apply') }}
+            <NcTooltip v-if="compose" :title="$t('general.expand')">
+              <NcButton
+                size="xs"
+                type="text"
+                class="nc-workflow-format-btn"
+                data-testid="nc-workflow-richtext-expand-btn"
+                @click.stop="compose.open()"
+              >
+                <GeneralIcon icon="ncMaximize" class="w-4 h-4" />
               </NcButton>
-            </div>
-          </div>
-
-          <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
-
-          <BubbleMenu
-            v-if="editor"
-            :editor="editor"
-            :should-show="shouldShowBubble"
-            :update-delay="300"
-            :tippy-options="bubbleTippyOptions"
-          >
-            <div class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
-              <NcFormBuilderInputWorkflowInputTools :editor="editor" :groups="formatGroups" />
-            </div>
-          </BubbleMenu>
+            </NcTooltip>
+          </template>
         </div>
-      </Teleport>
 
-      <NcModal
-        v-model:visible="expanded"
-        :destroy-on-close="false"
-        :show-separator="false"
-        width="880px"
-        wrap-class-name="nc-email-modal-wrap"
-        nc-modal-class-name="!p-0"
-      >
-        <div class="nc-email-modal">
-          <div class="nc-email-modal-header">
-            <div class="nc-email-modal-icon">
-              <GeneralIcon icon="ncMail" class="w-4.5 h-4.5" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="nc-email-modal-title">{{ $t('labels.emailBody') }}</div>
-              <div class="nc-email-modal-subtitle">
-                <span class="nc-email-wordcount-num">{{ wordCount }}</span>
-                {{ $t('general.words') }}
-              </div>
-            </div>
-            <NcButton size="small" type="primary" data-testid="nc-workflow-richtext-done-btn" @click="expanded = false">
-              {{ $t('general.done') }}
+        <!-- Modal: full toolbar -->
+        <div v-else-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
+          <NcFormBuilderInputWorkflowInputTools v-if="editor" :editor="editor" :groups="toolbarGroups" />
+
+          <div class="flex-1" />
+
+          <NcTooltip :title="$t('general.insert')">
+            <button
+              class="nc-email-var-btn"
+              data-testid="nc-workflow-richtext-variable-btn"
+              @mousedown.prevent
+              @click.stop="insertExpression"
+            >
+              <GeneralIcon icon="lucideBraces" class="w-4 h-4 flex-none" />
+              <span>{{ $t('general.variable') }}</span>
+            </button>
+          </NcTooltip>
+        </div>
+
+        <!-- Stays inside the shell (and so inside the modal's content subtree); fixed-positioned
+               elements escape the shell's overflow:hidden on their own. -->
+        <div
+          v-if="showLinkMenu"
+          ref="linkMenuRef"
+          class="nc-workflow-link-menu"
+          :style="{ top: `${linkMenuPos.top}px`, left: `${linkMenuPos.left}px` }"
+          @click.stop
+        >
+          <input
+            v-model="linkText"
+            class="nc-workflow-link-input"
+            :placeholder="$t('general.text')"
+            data-testid="nc-workflow-richtext-link-text"
+          />
+          <input
+            ref="linkUrlRef"
+            v-model="linkUrl"
+            class="nc-workflow-link-input"
+            :placeholder="$t('placeholder.enterUrl')"
+            data-testid="nc-workflow-richtext-link-url"
+            @keydown.enter.stop.prevent="applyLink"
+          />
+          <div class="flex justify-end gap-2 mt-1">
+            <NcButton size="xs" type="secondary" @click.stop="cancelLink">{{ $t('general.cancel') }}</NcButton>
+            <NcButton size="xs" type="primary" data-testid="nc-workflow-richtext-link-apply" @click.stop="applyLink">
+              {{ $t('general.apply') }}
             </NcButton>
           </div>
-
-          <!-- Teleport target: the shell above moves in here while expanded -->
-          <div ref="modalBodyRef" class="nc-email-modal-body" />
         </div>
-      </NcModal>
+
+        <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
+
+        <BubbleMenu
+          v-if="editor"
+          :editor="editor"
+          :should-show="shouldShowBubble"
+          :update-delay="300"
+          :tippy-options="bubbleTippyOptions"
+        >
+          <div class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
+            <NcFormBuilderInputWorkflowInputTools :editor="editor" :groups="formatGroups" />
+          </div>
+        </BubbleMenu>
+      </div>
     </template>
 
     <!-- ── Plain / multiline (unchanged) ── -->
@@ -963,6 +942,7 @@ watch(readOnly, (newValue) => {
     @apply border-nc-border-brand !shadow-selected;
   }
 
+  // Compose modal rows are the chrome; the shell itself goes borderless and fills.
   &.is-expanded {
     @apply flex-1 min-h-0 border-0 rounded-none;
 
@@ -1135,64 +1115,18 @@ watch(readOnly, (newValue) => {
   }
 }
 
-// ── Expand modal ──
-
-.nc-email-modal-wrap .ant-modal {
-  max-width: calc(100vw - 80px);
-}
-
-.nc-email-modal {
-  @apply flex flex-col;
-  height: calc(100vh - 96px);
-  max-height: calc(100vh - 96px);
-}
-
-.nc-email-modal-header {
-  @apply flex items-center gap-3 px-5 py-3 flex-none border-b-1 border-nc-border-gray-light;
-
-  .nc-email-modal-icon {
-    @apply flex-none flex items-center justify-center w-8 h-8 rounded-lg bg-nc-bg-brand text-nc-content-brand;
-  }
-
-  .nc-email-modal-title {
-    @apply text-base font-bold text-nc-content-gray leading-6;
-  }
-
-  .nc-email-modal-subtitle {
-    @apply text-small text-nc-content-gray-muted leading-4;
-
-    .nc-email-wordcount-num {
-      font-family: 'DM Mono', monospace;
-    }
-  }
-}
-
-.nc-email-modal-body {
-  @apply flex flex-col flex-1 min-w-0 min-h-0;
-}
-
-// The shell drops its own chrome inside the modal — the dialog already provides it.
+// Inside the compose modal: persistent toolbar, full-width editor that fills the remaining height.
 .nc-email-shell.is-expanded {
   .nc-email-toolbar {
-    @apply px-5 py-1.5;
+    @apply px-1 py-1 rounded-lg border-b-0 mt-1;
   }
 
   .nc-email-editor {
-    @apply px-10 py-7;
+    @apply flex-1 min-h-0 px-1 py-3;
 
     .ProseMirror {
-      @apply p-0 min-h-full max-w-180 mx-auto;
-      // Roomier measure than the cramped panel: the modal exists to make long emails readable.
-      font-size: 15px;
-      line-height: 1.65;
-
-      p + p {
-        @apply mt-2.5;
-      }
-
-      .nc-workflow-expression {
-        font-size: 13px;
-      }
+      @apply p-0 min-h-full;
+      line-height: 1.6;
     }
   }
 }

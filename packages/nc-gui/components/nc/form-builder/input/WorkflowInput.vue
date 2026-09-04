@@ -992,8 +992,12 @@ watch(readOnly, (newValue) => {
 
 .nc-email-var-btn {
   @apply flex-none inline-flex items-center gap-1 h-7 pl-1.5 pr-2 rounded-md cursor-pointer;
-  @apply border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-brand text-small font-semibold;
+  @apply border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-brand text-small font-medium;
   transition: background 0.15s, border-color 0.15s;
+
+  svg {
+    stroke-width: 1.5;
+  }
 
   &:hover {
     @apply bg-nc-bg-brand border-nc-border-brand;

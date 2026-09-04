@@ -95,46 +95,55 @@ setAdditionalValidations({
               </a-radio>
             </a-radio-group>
 
-            <template v-if="isSpecificFields">
+            <template v-if="isSpecificFields || selectedFields.length">
               <div class="pl-6 w-full flex flex-col gap-3">
                 <div v-if="selectedFields.length" class="gap-2 flex flex-wrap min-h-5.5">
                   <div
                     v-for="col of selectedFields"
                     :key="col.id"
-                    class="bg-nc-bg-gray-light text-nc-content-gray-subtle2 px-1 py-0.5 rounded-md flex gap-1 items-center"
+                    class="bg-nc-bg-gray-light px-1 py-0.5 rounded-md flex gap-1 items-center"
+                    :class="isSpecificFields ? 'text-nc-content-gray-subtle2' : 'text-nc-content-gray-muted'"
                   >
-                    <SmartsheetHeaderIcon :column="col" />
+                    <SmartsheetHeaderIcon :column="col" color="text-nc-content-gray-muted" />
 
                     <div class="text-[13px] font-default leading-4.5">
                       {{ col.title }}
                     </div>
 
-                    <div class="w-0.25 h-4 bg-nc-border-gray-dark" />
+                    <template v-if="isSpecificFields">
+                      <div class="w-0.25 h-4 bg-nc-border-gray-dark" />
 
-                    <GeneralIcon
-                      class="cursor-pointer opacity-70 hover:opacity-100"
-                      icon="close"
-                      @click="removeFieldId(col.id!)"
-                    />
+                      <GeneralIcon
+                        class="cursor-pointer opacity-70 hover:opacity-100"
+                        icon="close"
+                        @click="removeFieldId(col.id!)"
+                      />
+                    </template>
                   </div>
                 </div>
 
-                <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
+                <NcDropdown v-model:visible="isDropdownOpen" :disabled="!isSpecificFields" overlay-class-name="!pt-0">
                   <NcButton
                     size="small"
                     type="text"
                     class="self-start"
+                    :disabled="!isSpecificFields"
                     data-testid="nc-lmt-select-tracked-fields"
-                    :class="{
-                      '!bg-nc-bg-gray-light': isDropdownOpen,
-                    }"
                   >
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="pencil" />
-                      {{ selectedFields.length ? $t('labels.changeSelectedFields') : $t('labels.selectFields') }}
+                    <div
+                      class="flex items-center gap-2 text-sm font-normal"
+                      :class="isSpecificFields ? '!text-nc-content-gray-subtle' : ''"
+                    >
+                      <GeneralIcon icon="ncEdit" class="nc-lmt-edit-icon h-4 w-4" />
+
+                      <span>
+                        {{ selectedFields.length ? $t('labels.changeSelectedFields') : $t('labels.selectFields') }}
+                      </span>
                     </div>
                   </NcButton>
                   <template #overlay>
+                    <!-- escape must only close this dropdown — stop it from
+                         bubbling to the field modal's own escape handling -->
                     <NcList
                       v-model:value="trackedFieldIds"
                       v-model:open="isDropdownOpen"
@@ -145,6 +154,7 @@ setAdditionalValidations({
                       variant="small"
                       option-value-key="id"
                       option-label-key="title"
+                      @keydown.esc.stop.prevent="isDropdownOpen = false"
                     >
                       <template #headerExtraRight>
                         <NcBadge :border="false" color="brand" class="mr-2">
@@ -194,6 +204,11 @@ setAdditionalValidations({
 </template>
 
 <style scoped lang="scss">
+// lighten the edit icon stroke to match the font-normal button label
+:deep(.nc-lmt-edit-icon path) {
+  stroke-width: 1;
+}
+
 .nc-lmt-fields-mode {
   // plain radios — neutralize the bordered/box-shadow radio style the field
   // modal applies to ant-radio-wrapper globally

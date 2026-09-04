@@ -326,7 +326,18 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
           tableAlias: alias,
         })
       ).builder;
-      qb.orderBy(builder, direction, nulls);
+      // knex silently drops its `nulls` argument when the order-by target is a
+      // raw expression, which would leave blank rows at the opposite end from
+      // where a physical LastModifiedTime column puts them — spell it out
+      const dir = direction === 'desc' ? 'desc' : 'asc';
+      qb.orderByRaw(
+        `?? ${dir}${
+          nulls === 'FIRST' || nulls === 'LAST'
+            ? ` nulls ${nulls.toLowerCase()}`
+            : ''
+        }`,
+        [builder],
+      );
       return;
     }
     return super.applySort(qb, column, direction, options);

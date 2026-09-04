@@ -215,6 +215,7 @@ export type { AnyInterfacePageConfig, InterfacePageConfigFor };
 
 export * from './enums';
 export * from './elements';
+export * from './buttons';
 export * from './pageConfigs';
 export * from './vizFields';
 export * from './copyFromView';

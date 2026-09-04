@@ -159,7 +159,14 @@ import { isReplay } from '~/helpers/replayScope';
 
 const deepClone = rfdc();
 
-const META_ONLY_COLUMN_PROPS = new Set(['description', 'meta']);
+// `tracked_field_ids` rides along with `meta` for LastModifiedTime/By columns —
+// it configures how the value is computed, not the physical column, so it must
+// not disqualify the meta-only update that system fields are limited to.
+const META_ONLY_COLUMN_PROPS = new Set([
+  'description',
+  'meta',
+  'tracked_field_ids',
+]);
 
 const SIMPLE_COLUMN_PROPS = new Set(['title', 'description']);
 
@@ -1086,15 +1093,48 @@ export class ColumnsService implements IColumnsService {
       });
     }
     if (!payloadHasNonMetaProps) {
+      // meta is MERGED here (unlike the replace-semantics paths below), so the
+      // effective mode can come from either side
+      const mergedMeta = {
+        ...parseProp(column.meta),
+        ...parseProp((param.column as any).meta),
+      };
+      const trackedFieldIds = (param.column as any).tracked_field_ids;
+
+      if ((param.column as any).meta || trackedFieldIds) {
+        validateLmtTrackedFields(context, {
+          columnBody: {
+            uidt: column.uidt,
+            meta: mergedMeta,
+            // only validate the set when the caller actually supplied one —
+            // a formatting-only update must not be rejected for omitting it
+            tracked_field_ids: Array.isArray(trackedFieldIds)
+              ? trackedFieldIds
+              : await LmtTrackedField.getTrackedFieldIds(
+                  context,
+                  param.columnId,
+                ),
+          },
+          columns: await table.getColumns(context),
+        });
+      }
+
       if ((param.column as any).meta) {
-        const existingMeta = parseProp(column.meta);
         await Column.updateMeta(context, {
           colId: param.columnId,
-          meta: {
-            ...existingMeta,
-            ...parseProp((param.column as any).meta),
-          },
+          meta: mergedMeta,
         });
+      }
+
+      if (mergedMeta?.fields_mode === 'specific') {
+        if (Array.isArray(trackedFieldIds)) {
+          await LmtTrackedField.set(context, param.columnId, trackedFieldIds);
+        }
+      } else if (
+        isFieldTrackingLmtCol(column) ||
+        isFieldTrackingLmbCol(column)
+      ) {
+        await LmtTrackedField.deleteByColumnId(context, param.columnId);
       }
 
       await table.getColumns(context);

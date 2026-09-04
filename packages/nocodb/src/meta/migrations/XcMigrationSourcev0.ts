@@ -98,7 +98,6 @@ import * as nc_202608211200_widen_entity_id_columns from './v0/nc_202608211200_w
 import * as nc_202608281200_comment_notification_pref_index from './v0/nc_202608281200_comment_notification_pref_index';
 import * as nc_202609021200_admin_suspend from './v0/nc_202609021200_admin_suspend';
 import * as nc_202609031200_agents from './v0/nc_202609031200_agents';
-import * as nc_202608110658_col_lmt_tracked_fields from './v0/nc_202608110658_col_lmt_tracked_fields';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -208,7 +207,6 @@ export default class XcMigrationSourcev0 {
       'nc_202608281200_comment_notification_pref_index',
       'nc_202609021200_admin_suspend',
       'nc_202609031200_agents',
-      'nc_202608110658_col_lmt_tracked_fields',
     ]);
   }
 
@@ -418,8 +416,6 @@ export default class XcMigrationSourcev0 {
         return nc_202609021200_admin_suspend;
       case 'nc_202609031200_agents':
         return nc_202609031200_agents;
-      case 'nc_202608110658_col_lmt_tracked_fields':
-        return nc_202608110658_col_lmt_tracked_fields;
     }
   }
 }

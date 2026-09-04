@@ -1755,15 +1755,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               const relCol = await Column.get(this.context, {
                 colId: colOptions.fk_relation_column_id,
               });
-              const relColTitle =
-                relCol.uidt === UITypes.Links && !linksAsLtar
-                  ? `_nc_lk_${relCol.title}`
-                  : relCol.title;
-              const { refContext: lookupRefContext } = (
+              const relColOptions =
                 await relCol.getColOptions<LinkToAnotherRecordColumn>(
                   this.context,
-                )
-              ).getRelContext(this.context);
+                );
+              // A V2 junction mo/bt/oo link is a `Links` column, but its
+              // resolver is registered under the bare title (select-object
+              // skips its rollup count), so it must not take the `_nc_lk_`
+              // prefix every other Links relation is served under.
+              const relColTitle =
+                relCol.uidt === UITypes.Links &&
+                !linksAsLtar &&
+                !isBtLikeV2Junction(relCol)
+                  ? `_nc_lk_${relCol.title}`
+                  : relCol.title;
+              const { refContext: lookupRefContext } =
+                relColOptions.getRelContext(this.context);
               proto.__columnAliases[column.title] = {
                 path: [
                   relColTitle,

@@ -491,6 +491,10 @@ const insertExpression = () => {
   const lastChar = editor.value.state.doc.textBetween($from.pos - 1, $from.pos)
 
   if (editor.value.state.doc.textBetween($from.pos - 2, $from.pos) === '{{') {
+    // Already at a trigger whose picker may never have opened (loaded unfocused): re-insert it
+    // as two transactions so the suggestion restarts and the picker shows.
+    editor.value.commands.deleteRange({ from: $from.pos - 2, to: $from.pos })
+    editor.value.commands.insertContent('{{')
     return
   }
 

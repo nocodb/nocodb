@@ -42,9 +42,7 @@ const onRowClick = (event: MouseEvent) => {
         size="small"
         class="!mt-1 flex-none"
         data-testid="nc-share-base-toggle"
-        role="switch"
-        :aria-checked="isSharedBaseEnabled ? 'true' : 'false'"
-        @click.stop="toggleSharedBase"
+        @change="toggleSharedBase"
       />
       <div class="flex flex-col flex-1 min-w-0 gap-0.5">
         <span class="text-nc-content-gray-extreme text-body font-weight-600">{{ $t('activity.shareToWeb') }}</span>

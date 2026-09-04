@@ -55,9 +55,7 @@ const onRowClick = (event: MouseEvent) => {
         size="small"
         class="!mt-1 flex-none"
         data-testid="share-view-toggle"
-        role="switch"
-        :aria-checked="isPublicShared ? 'true' : 'false'"
-        @click.stop="toggleShare"
+        @change="toggleShare"
       />
       <div class="flex flex-col flex-1 min-w-0 gap-0.5">
         <span class="text-nc-content-gray-extreme text-body font-weight-600">{{ $t('activity.shareToWeb') }}</span>

@@ -191,6 +191,67 @@ export class SharedBasesService {
     return `${siteUrl}/base/${base.uuid}`;
   }
 
+  /**
+   * Replace the base share UUID with a fresh one while keeping roles, password,
+   * and any linked custom URL intact. The custom URL's `original_path` is
+   * rewritten to point at the new UUID so existing CustomUrl rows continue to
+   * resolve.
+   */
+  async regenerateSharedBaseLink(
+    context: NcContext,
+    param: {
+      baseId: string;
+      siteUrl: string;
+      req: NcRequest;
+    },
+  ): Promise<any> {
+    const base = await Base.get(context, param.baseId);
+
+    if (!base) {
+      NcError.baseNotFound(param.baseId);
+    }
+
+    if (!base.uuid) {
+      NcError.badRequest(
+        'Cannot regenerate link: base is not currently shared.',
+      );
+    }
+
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Shared links cannot be regenerated on sandbox bases. Share the master base instead.',
+      );
+    }
+
+    const newUuid = uuidv4();
+
+    await Base.update(context, base.id, { uuid: newUuid } as any);
+
+    if (base.fk_custom_url_id) {
+      await CustomUrl.update(base.fk_custom_url_id, {
+        original_path: `/base/${newUuid}`,
+      });
+    }
+
+    const data: any = {
+      uuid: newUuid,
+      roles: base.roles,
+      fk_custom_url_id: base.fk_custom_url_id,
+      url: `${param.siteUrl}/base/${newUuid}`,
+    };
+
+    this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
+      link: data.url,
+      base: { ...base, uuid: newUuid } as any,
+      req: param.req,
+      sharedBaseRole: base.roles,
+      uuid: newUuid,
+      context,
+    });
+
+    return data;
+  }
+
   async disableSharedBaseLink(
     context: NcContext,
     param: {

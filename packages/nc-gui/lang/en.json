@@ -4191,7 +4191,16 @@
       "label": "Share Base",
       "disable": "Disable shared base",
       "enable": "Anyone with the link",
-      "link": "Shared base link"
+      "link": "Shared base link",
+      "title": "Share \"{name}\"",
+      "tooltip": "Share this base including all views.",
+      "shareToWebDescription": "Turn on read-only access to this base",
+      "embedBase": "Embed base",
+      "embedCode": "Embed code",
+      "embedTooltip": "Add this base to a webpage or blog post.",
+      "copyEmbedCode": "Copy embed code",
+      "desktopPreview": "Desktop embed preview",
+      "mobilePreview": "Mobile embed preview"
     },
     "invite": "Invite",
     "inviteMore": "Invite more",

@@ -816,6 +816,44 @@ export class ViewsService {
     return true;
   }
 
+  /**
+   * Generate a new share UUID while keeping password, meta, and custom URL
+   * intact. The previous link stops working as soon as the row is updated.
+   */
+  async shareViewRegenerate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    const view = await View.get(context, param.viewId);
+
+    if (!view) {
+      NcError.get(context).viewNotFound(param.viewId);
+    }
+
+    if (!view.uuid) {
+      NcError.get(context).badRequest(
+        'Cannot regenerate link: view is not currently shared.',
+      );
+    }
+
+    const res = await View.regenerateShareUuid(context, param.viewId);
+
+    this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
+      user: param.user,
+      view,
+      sharedView: { ...view, uuid: res?.uuid },
+      oldSharedView: { ...view },
+      req: param.req,
+      context,
+    });
+
+    return res;
+  }
+
   @TraceCommand(OperationName.showAllColumns)
   async showAllColumns(
     context: NcContext,

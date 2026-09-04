@@ -32,6 +32,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DataImportService } from '~/services/data-import.service';
+import { SharedBasesService } from '~/services/shared-bases.service';
 
 // `ignoreIds` comes from the query string as `ignoreIds[]=...`. Express's `qs` parser turns
 // an array with more than 20 entries into an OBJECT with numeric keys (its default
@@ -75,6 +76,7 @@ export class UiPostOperations
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
     protected dataImportService: DataImportService,
+    protected sharedBasesService: SharedBasesService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -90,6 +92,8 @@ export class UiPostOperations
     'shareView' as const,
     'shareViewUpdate' as const,
     'shareViewDelete' as const,
+    'shareViewRegenerate' as const,
+    'shareBaseRegenerate' as const,
     'showAllColumns' as const,
     'hideAllColumns' as const,
     'viewColumnUpdate' as const,
@@ -279,6 +283,21 @@ export class UiPostOperations
           user: req.user,
           req,
         });
+      case 'shareViewRegenerate':
+        return await this.viewsService.shareViewRegenerate(context, {
+          viewId: req.query.viewId,
+          user: req.user,
+          req,
+        });
+      case 'shareBaseRegenerate':
+        return await this.sharedBasesService.regenerateSharedBaseLink(
+          context,
+          {
+            baseId: context.base_id,
+            siteUrl: req.ncSiteUrl,
+            req,
+          },
+        );
       case 'showAllColumns':
         return await this.viewsService.showAllColumns(context, {
           viewId: req.query.viewId,

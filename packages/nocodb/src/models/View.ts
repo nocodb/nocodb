@@ -1808,6 +1808,35 @@ export default class View implements ViewType {
     return view;
   }
 
+  /**
+   * Swap the view's share UUID for a fresh one while preserving password, meta,
+   * and any linked custom URL. Returns the updated view. No-op if the view
+   * isn't currently shared (no uuid).
+   */
+  static async regenerateShareUuid(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const view = await this.get(context, viewId);
+    if (!view?.uuid) return view;
+
+    const uuid = uuidv4();
+    view.uuid = uuid;
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.VIEWS,
+      { uuid },
+      viewId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.VIEW}:${view.id}`, { uuid });
+
+    return view;
+  }
+
   static async passwordUpdate(
     context: NcContext,
     viewId: string,

@@ -64,6 +64,8 @@ export const OPERATION_SCOPES = {
   shareView: 'base',
   shareViewUpdate: 'base',
   shareViewDelete: 'base',
+  shareViewRegenerate: 'base',
+  shareBaseRegenerate: 'base',
   showAllColumns: 'base',
   hideAllColumns: 'base',
   viewColumnUpdate: 'base',

@@ -30,7 +30,6 @@ import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
 import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
-import MsDataObject from '~icons/material-symbols/data-object-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
 import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
@@ -486,6 +485,14 @@ import NcLucideStrikethrough from '~icons/nc-icons-v2/lucide-strikethrough.svg'
 import NcLucideLink from '~icons/nc-icons-v2/lucide-link.svg'
 import NcLucideAtSign from '~icons/nc-icons-v2/lucide-at-sign.svg'
 import NcLucidePaperclip from '~icons/nc-icons-v2/lucide-paperclip.svg'
+import LcBraces from '~icons/lucide/braces'
+import LcHeading1 from '~icons/lucide/heading-1'
+import LcHeading2 from '~icons/lucide/heading-2'
+import LcHeading3 from '~icons/lucide/heading-3'
+import LcList from '~icons/lucide/list'
+import LcListOrdered from '~icons/lucide/list-ordered'
+import LcQuote from '~icons/lucide/quote'
+import LcCode from '~icons/lucide/code'
 import NcFastForwardIcon from '~icons/nc-icons-v2/fast-forward.svg'
 import NcXSquareIcon from '~icons/nc-icons-v2/x-square.svg'
 import NcAwardIcon from '~icons/nc-icons-v2/award.svg'
@@ -1506,7 +1513,6 @@ export const iconMap = {
   'ncMove': NcMoveIcon,
   'ncMoveHorizontal': NcMoveHorizontalIcon,
   'ncMaximize': NcMaximizeIcon,
-  'ncDataObject': MsDataObject,
   'ncChevronUp': NcChevronUpIcon,
   'ncArrowDownLeft': NcArrowDownLeftIcon,
   'ncFileText': NcFileTextIcon,
@@ -1608,6 +1614,14 @@ export const iconMap = {
   'ncNavigation': NcNavigationIcon,
   'ncPaperclip': NcPaperclipIcon,
   'lucideBold': NcLucideBold,
+  'lucideBraces': LcBraces,
+  'lucideHeading1': LcHeading1,
+  'lucideHeading2': LcHeading2,
+  'lucideHeading3': LcHeading3,
+  'lucideList': LcList,
+  'lucideListOrdered': LcListOrdered,
+  'lucideQuote': LcQuote,
+  'lucideCode': LcCode,
   'lucideItalic': NcLucideItalic,
   'lucideUnderline': NcLucideUnderline,
   'lucideStrikethrough': NcLucideStrikethrough,

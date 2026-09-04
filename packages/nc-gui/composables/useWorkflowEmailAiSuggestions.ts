@@ -25,23 +25,23 @@ export function useWorkflowEmailAiSuggestions(variables: Ref<VariableDefinition[
   // Flatten the upstream variable tree into leaf keys (what the prompts list), capped for prompt size.
   const aiVariables = computed<WorkflowEmailAiVariable[]>(() => {
     const out: WorkflowEmailAiVariable[] = []
-    const walk = (vars: any[], prefix = '') => {
+    const walk = (vars: VariableDefinition[] | undefined, prefix = '') => {
       for (const v of vars || []) {
         const name = prefix ? `${prefix} › ${v.name}` : v.name
         if (v.children?.length) walk(v.children, name)
-        else if (v.key && !String(v.key).includes('.map(')) out.push({ key: v.key, name, type: v.type })
+        else if (v.key && !v.key.includes('.map(')) out.push({ key: v.key, name, type: v.type })
       }
     }
     walk(unref(variables))
     return out.slice(0, 60)
   })
 
-  const triggerTitle = computed(() => (unref(variables)?.[0] as any)?.extra?.sourceNodeTitle as string | undefined)
+  const triggerTitle = computed(() => unref(variables)?.[0]?.extra?.sourceNodeTitle)
 
   async function loadSuggestions() {
     const list = await aiSuggest({ triggerTitle: triggerTitle.value, variables: aiVariables.value })
     if (list?.length) generated.value = list
   }
 
-  return { suggestions, suggestLoading, aiVariables, triggerTitle, loadSuggestions }
+  return { suggestions, suggestLoading, aiVariables, loadSuggestions }
 }

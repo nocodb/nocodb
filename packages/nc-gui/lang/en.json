@@ -4101,6 +4101,10 @@
     "aiSuggestionPaymentReceiptPrompt": "Confirm the payment was received, show the amount and order number, and explain how to get support.",
     "rewriteSelection": "Rewrite selection",
     "aiTone": "Tone",
+    "aiToneProfessional": "Professional",
+    "aiToneFriendly": "Friendly",
+    "aiToneCasual": "Casual",
+    "aiToneConfident": "Confident",
     "inputs": "Inputs",
     "textAlign": "Alignment",
     "justify": "Justify"

@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import { DOMSerializer } from '@tiptap/pm/model'
 import type { DocAiImproveMode, VariableDefinition } from 'nocodb-sdk'
 import { useWorkflowEmailAi, useWorkflowEmailAiSuggestions } from '#imports'
+import { expressionSpansToTokens } from '~/helpers/workflowExpressionHtml'
 
 /**
  * "Write with AI" popover for the email body. The trigger is slotted so the toolbar button
@@ -11,10 +12,9 @@ import { useWorkflowEmailAi, useWorkflowEmailAiSuggestions } from '#imports'
 interface Props {
   editor: Editor
   variables?: VariableDefinition[]
-  placement?: 'bottomLeft' | 'bottomRight' | 'topLeft'
 }
 
-const props = withDefaults(defineProps<Props>(), { variables: () => [], placement: 'bottomLeft' })
+const props = withDefaults(defineProps<Props>(), { variables: () => [] })
 
 const emits = defineEmits<{
   (e: 'result', payload: { html: string; mode: 'write' | 'rewrite' }): void
@@ -41,40 +41,43 @@ const rewriteModes: { mode: DocAiImproveMode; label: string }[] = [
   { mode: 'longer', label: 'labels.docAiMakeLonger' },
 ]
 
-const toneModes: DocAiImproveMode[] = ['professional', 'friendly', 'casual', 'confident']
+const toneModes: { mode: DocAiImproveMode; label: string }[] = [
+  { mode: 'professional', label: 'labels.aiToneProfessional' },
+  { mode: 'friendly', label: 'labels.aiToneFriendly' },
+  { mode: 'casual', label: 'labels.aiToneCasual' },
+  { mode: 'confident', label: 'labels.aiToneConfident' },
+]
 
 watch(open, (isOpen) => {
   if (isOpen) {
     nextTick(() => inputRef.value?.focus())
-    loadSuggestions()
+    // Chips only show without a selection; don't bill a suggestion call that is never rendered.
+    if (!hasSelection.value) loadSuggestions()
   } else {
     abort()
   }
 })
 
-// Selected content as HTML, with variable chips sent as their {{ }} tokens so the model
-// sees (and preserves) the real expression rather than a display label.
+// Editor HTML is sent with variable chips as their {{ }} tokens, so the model sees (and
+// preserves) the real expression rather than a display label.
 function selectionAsHtml(): string {
   const { from, to } = props.editor.state.selection
   const slice = props.editor.state.doc.slice(from, to)
   const container = document.createElement('div')
   container.appendChild(DOMSerializer.fromSchema(props.editor.schema).serializeFragment(slice.content))
-  container.querySelectorAll('span[data-type="workflowExpression"]').forEach((el) => {
-    el.replaceWith(document.createTextNode(el.getAttribute('data-expression') || ''))
-  })
-  return container.innerHTML
+  return expressionSpansToTokens(container.innerHTML)
+}
+
+function bodyAsHtml(): string {
+  return props.editor.isEmpty ? '' : expressionSpansToTokens(props.editor.getHTML())
 }
 
 async function runWrite() {
   const text = instruction.value.trim()
   if (!text || loading.value) return
-  $e('a:workflow:email:ai:write')
-  const html = await aiWrite({
-    instruction: text,
-    currentBody: props.editor.isEmpty ? '' : props.editor.getHTML(),
-    variables: aiVariables.value,
-  })
+  const html = await aiWrite({ instruction: text, currentBody: bodyAsHtml(), variables: aiVariables.value })
   if (!html) return
+  $e('a:workflow:email:ai:write')
   emits('result', { html, mode: 'write' })
   instruction.value = ''
   open.value = false
@@ -82,16 +85,16 @@ async function runWrite() {
 
 async function runRewrite(mode: DocAiImproveMode) {
   if (loading.value || props.editor.state.selection.empty) return
-  $e('a:workflow:email:ai:rewrite', { mode })
   const html = await aiRewrite({ html: selectionAsHtml(), mode, variables: aiVariables.value })
   if (!html) return
+  $e('a:workflow:email:ai:rewrite', { mode })
   emits('result', { html, mode: 'rewrite' })
   open.value = false
 }
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" :placement="placement" :overlay-style="{ zIndex: 10002 }">
+  <NcDropdown v-model:visible="open" placement="bottomLeft" :overlay-style="{ zIndex: 10002 }">
     <slot :open="open" :loading="loading" :toggle="() => (open = !open)" />
 
     <template #overlay>
@@ -112,8 +115,8 @@ async function runRewrite(mode: DocAiImproveMode) {
         />
         <div v-if="!hasSelection" class="flex flex-wrap gap-1" :class="{ 'is-loading': suggestLoading }">
           <button
-            v-for="s in suggestions"
-            :key="s.label"
+            v-for="(s, i) in suggestions"
+            :key="i"
             class="nc-email-ai-chip"
             :disabled="loading"
             @click="instruction = s.prompt"
@@ -156,8 +159,8 @@ async function runRewrite(mode: DocAiImproveMode) {
           </button>
           <div class="nc-email-ai-section">{{ $t('labels.aiTone') }}</div>
           <div class="flex flex-wrap gap-1 px-1 pb-1">
-            <button v-for="m in toneModes" :key="m" class="nc-email-ai-chip" :disabled="loading" @click="runRewrite(m)">
-              {{ m }}
+            <button v-for="m in toneModes" :key="m.mode" class="nc-email-ai-chip" :disabled="loading" @click="runRewrite(m.mode)">
+              {{ $t(m.label) }}
             </button>
           </div>
         </template>
@@ -215,7 +218,7 @@ async function runRewrite(mode: DocAiImproveMode) {
   }
 
   .nc-email-ai-chip {
-    @apply h-6.5 px-2 rounded-md cursor-pointer capitalize text-nc-content-gray-subtle;
+    @apply h-6.5 px-2 rounded-md cursor-pointer text-nc-content-gray-subtle;
     @apply border-1 border-nc-border-gray-medium bg-nc-bg-default;
     font-size: 12px;
 

@@ -9,6 +9,7 @@ import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
 import WorkflowInputAiEmptyState from './WorkflowInputAiEmptyState.vue'
+import { expressionSpansToTokens, parseInertHtml } from '~/helpers/workflowExpressionHtml'
 import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
 import { useWorkflowEmailAi } from '#imports'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
@@ -90,33 +91,45 @@ const suggestionPlacement = () =>
 
 const createSuggestionRender = () => ({
   render: () => {
-    let component: VueRenderer
+    let component: VueRenderer | undefined
     let popup: any
+
+    // The sidebar and compose-modal editors mirror one field, so a `{{` typed in one lands in
+    // the other via loadContent (and a stored body can end in `{{`). Only a focused editor gets
+    // a picker: an unfocused one has no caret to anchor to and may not have its app context yet.
+    const canShow = (suggestionProps: Record<string, any>) => !!suggestionProps.clientRect && !!suggestionProps.editor?.isFocused
+
+    const show = (suggestionProps: Record<string, any>) => {
+      component = new VueRenderer(WorkflowVariablePicker, {
+        props: {
+          ...suggestionProps,
+          groupedItems: props.groupedVariables,
+        },
+        editor: suggestionProps.editor,
+      })
+
+      popup = tippy('body', {
+        getReferenceClientRect: suggestionProps.clientRect,
+        appendTo: () => document.body,
+        content: component.element,
+        showOnCreate: true,
+        interactive: true,
+        trigger: 'manual',
+        ...suggestionPlacement(),
+      })
+    }
 
     return {
       onStart: (suggestionProps: Record<string, any>) => {
-        component = new VueRenderer(WorkflowVariablePicker, {
-          props: {
-            ...suggestionProps,
-            groupedItems: props.groupedVariables,
-          },
-          editor: suggestionProps.editor,
-        })
-
-        if (!suggestionProps.clientRect) return
-
-        popup = tippy('body', {
-          getReferenceClientRect: suggestionProps.clientRect,
-          appendTo: () => document.body,
-          content: component.element,
-          showOnCreate: true,
-          interactive: true,
-          trigger: 'manual',
-          ...suggestionPlacement(),
-        })
+        if (canShow(suggestionProps)) show(suggestionProps)
       },
 
       onUpdate(suggestionProps: Record<string, any>) {
+        if (!component) {
+          if (canShow(suggestionProps)) show(suggestionProps)
+          return
+        }
+
         component.updateProps({
           ...suggestionProps,
           groupedItems: props.groupedVariables,
@@ -132,10 +145,12 @@ const createSuggestionRender = () => ({
 
       onKeyDown(suggestionProps: Record<string, any>) {
         if (suggestionProps.event.key === 'Escape') {
+          // Only dismiss the picker; the same keystroke would otherwise close the compose modal.
+          suggestionProps.event.stopPropagation()
           popup?.[0]?.hide()
           return true
         }
-        return component.ref?.onKeyDown(suggestionProps)
+        return component?.ref?.onKeyDown(suggestionProps)
       },
 
       onExit() {
@@ -189,24 +204,9 @@ function deriveExpressionMeta(expression: string): { id: string; label: string }
   }
 }
 
-// Parse without executing: a stored body is untrusted, and a detached div still fires
-// <img onerror> on innerHTML assignment. DOMParser documents are inert.
-function parseInert(html: string): HTMLElement {
-  return new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body
-}
-
-// Turn expression chips produced by editor.getHTML() back into {{ }}} tokens for storage / runtime interpolation.
-function expressionSpansToTokens(html: string): string {
-  const container = parseInert(html)
-  container.querySelectorAll('span[data-type="workflowExpression"]').forEach((el) => {
-    el.replaceWith(document.createTextNode(el.getAttribute('data-expression') || ''))
-  })
-  return container.innerHTML
-}
-
 // Turn stored {{ }} tokens into expression chip spans (only within text nodes, never inside attributes).
 function tokensToExpressionSpans(html: string): string {
-  const container = parseInert(html)
+  const container = parseInertHtml(html)
 
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
   const textNodes: Text[] = []
@@ -482,6 +482,10 @@ watch(
 
 const insertExpression = () => {
   if (!editor.value) return
+
+  // Synchronous DOM focus: the suggestion popup is gated on `isFocused` at dispatch time,
+  // and the focus command only focuses on the next animation frame.
+  editor.value.view.focus()
 
   const { $from } = editor.value.state.selection
   const lastChar = editor.value.state.doc.textBetween($from.pos - 1, $from.pos)

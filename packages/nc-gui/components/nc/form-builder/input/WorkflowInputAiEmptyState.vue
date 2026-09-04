@@ -23,13 +23,12 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { loading, aiWrite, abort } = useWorkflowEmailAi()
+// Failures render inline below the prompt instead of as a toast.
+const { loading, error: aiError, aiWrite, abort } = useWorkflowEmailAi({ toast: false })
 
 const promptOpen = ref(false)
 
 const prompt = ref('')
-
-const error = ref('')
 
 const inputRef = ref<HTMLTextAreaElement>()
 
@@ -45,10 +44,9 @@ const orStartBlank = computed(() => {
 })
 
 function openPrompt() {
-  error.value = ''
   promptOpen.value = true
   nextTick(() => inputRef.value?.focus())
-  $e('a:workflow:email:ai:suggest')
+  $e('c:workflow:email:ai:prompt-open')
   loadSuggestions()
 }
 
@@ -72,13 +70,9 @@ function autoGrow() {
 async function generate() {
   const instruction = prompt.value.trim()
   if (!instruction || loading.value) return
-  error.value = ''
-  $e('a:workflow:email:ai:write', { source: 'empty-state' })
   const html = await aiWrite({ instruction, variables: aiVariables.value })
-  if (!html) {
-    error.value = t('msg.error.somethingWentWrongTryAgain')
-    return
-  }
+  if (!html) return
+  $e('a:workflow:email:ai:write', { source: 'empty-state' })
   emits('result', { html, mode: 'write' })
 }
 </script>
@@ -123,7 +117,7 @@ async function generate() {
             @keydown.esc.stop.prevent="closePrompt"
           />
         </div>
-        <NcAlert v-if="error" type="error" :message="error" class="!mt-1" />
+        <NcAlert v-if="aiError" type="error" :message="aiError" class="!mt-1" />
         <div class="flex items-center justify-end gap-2">
           <span class="text-tiny text-nc-content-gray-muted">{{ $t('labels.aiShiftEnterHint') }}</span>
           <NcButton
@@ -149,8 +143,8 @@ async function generate() {
         data-testid="nc-workflow-richtext-ai-suggestions"
       >
         <button
-          v-for="s in suggestions"
-          :key="s.label"
+          v-for="(s, i) in suggestions"
+          :key="i"
           class="nc-email-ai-chip"
           :disabled="loading"
           @click="useSuggestion(s.prompt)"

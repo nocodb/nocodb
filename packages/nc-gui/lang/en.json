@@ -5512,6 +5512,7 @@
       "interfaceNoConfiguredForm": "No configured form",
       "interfaceButtonConfirmMessage": "Are you sure you want to continue?",
       "interfaceButtonConfirmExternalUrl": "You'll be redirected away from this page",
+      "interfaceButtonCurrentPage": "This is the current page",
       "interfaceButtonConfirmInterfacePage": "You'll be taken to another page",
       "interfaceButtonConfirmRecordForm": "You'll be taken to the record creation form",
       "interfaceDateRangeRequired": "Select a date field to display this visualization.",

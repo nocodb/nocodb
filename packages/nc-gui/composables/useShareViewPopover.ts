@@ -1,7 +1,13 @@
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, ViewTypes } from 'nocodb-sdk'
 
-export type ShareViewPopoverScreen = 'main' | 'link-settings' | 'regenerate-confirm' | 'disable-confirm' | 'change-password'
+export type ShareViewPopoverScreen =
+  | 'main'
+  | 'link-settings'
+  | 'regenerate-confirm'
+  | 'disable-confirm'
+  | 'change-password'
+  | 'sync'
 
 const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() => {
   const { $api } = useSmartsheetStoreOrThrow()
@@ -53,6 +59,7 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     language: false,
     theme: false,
     regenerate: false,
+    allowSync: false,
   })
 
   const restrictedSharing = computed(() => {
@@ -67,6 +74,8 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
   const isReadOnly = computed(() => isLocked.value || restrictedSharing.value)
 
   const isFormView = computed(() => activeView.value?.type === ViewTypes.FORM)
+
+  const allowSync = computed(() => !!activeView.value?.allow_sync)
 
   const hasDownloadOption = computed(() => {
     if (!activeView.value) return false
@@ -351,6 +360,28 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     }
   }
 
+  // Enabling allow_sync marks the grid view as an internal-sync source. The
+  // backend auto-shares an unshared view when allow_sync is turned on, but the
+  // viewUpdate response doesn't echo the freshly-minted uuid — so share first
+  // here to keep the local uuid/url populated for "Copy shared view link".
+  async function setAllowSync(value: boolean) {
+    if (!activeView.value?.id) return
+    if (isUpdating.value.allowSync) return
+
+    isUpdating.value.allowSync = true
+    try {
+      if (value && !activeView.value.uuid) {
+        await toggleViewShare()
+      }
+      await viewStore.updateView(activeView.value.id, { allow_sync: value })
+      $e(`a:view:share:${value ? 'enable' : 'disable'}-allow-sync`)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isUpdating.value.allowSync = false
+    }
+  }
+
   async function disableLink() {
     if (!isPublicShared.value) return
     await toggleShare()
@@ -481,6 +512,8 @@ const [useProvideShareViewPopover, useShareViewPopover] = useInjectionState(() =
     isReadOnly,
     isLocked,
     isFormView,
+    allowSync,
+    setAllowSync,
     hasDownloadOption,
     hasStoredPassword,
     isLegacyPlaintextPassword,

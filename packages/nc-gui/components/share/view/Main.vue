@@ -1,7 +1,12 @@
 <script lang="ts" setup>
+import { ViewTypes } from 'nocodb-sdk'
+
 const popover = useShareViewPopover()!
 
-const { isPublicShared, url, isUpdating, isReadOnly, isFormView, toggleShare, confirmDisableLink, goTo } = popover
+const { isPublicShared, url, isUpdating, isReadOnly, isFormView, activeView, toggleShare, confirmDisableLink, goTo } = popover
+
+// The internal-sync source feature only applies to grid views.
+const isGridView = computed(() => activeView.value?.type === ViewTypes.GRID)
 
 const isOpeningEmbed = ref(false)
 
@@ -90,6 +95,21 @@ const onRowClick = (event: MouseEvent) => {
           ve-key="c:share:view:open-link-settings"
           testid="nc-share-view-link-settings"
           @click="goTo('link-settings')"
+        />
+      </div>
+    </template>
+
+    <template v-if="isEeUI && isGridView">
+      <NcDivider class="!my-0" />
+      <div class="py-1">
+        <ShareCommonMenuItem
+          icon="ncZap"
+          :label="$t('activity.syncDataToAnotherBase')"
+          :hint="$t('activity.syncDataToAnotherBaseHint')"
+          trailing="chevron"
+          ve-key="c:share:view:sync:open"
+          testid="nc-share-view-sync"
+          @click="goTo('sync')"
         />
       </div>
     </template>

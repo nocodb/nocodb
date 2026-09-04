@@ -39,9 +39,12 @@ const suggestions = [
   { label: 'labels.aiSuggestionPaymentReceipt', prompt: 'labels.aiSuggestionPaymentReceiptPrompt' },
 ]
 
-// "Or {startBlank} instead" — split around the link so the sentence stays translatable.
+// "Or {startBlank} instead" — interpolate a sentinel, then split around it so the link can be
+// an element while the sentence (and word order) stays translatable.
+const LINK_SENTINEL = '\u0000'
+
 const orStartBlank = computed(() => {
-  const [before, after] = t('labels.aiOrStartBlank').split('{startBlank}')
+  const [before, after] = t('labels.aiOrStartBlank', { startBlank: LINK_SENTINEL }).split(LINK_SENTINEL)
   return { before, after: after ?? '' }
 })
 
@@ -223,9 +226,13 @@ async function generate() {
 }
 
 .nc-email-ai-prompt-input {
-  @apply flex-1 w-full bg-transparent border-0 outline-none resize-none p-0 text-sm text-nc-content-gray;
+  @apply flex-1 w-full bg-transparent resize-none p-0 text-sm text-nc-content-gray;
   line-height: 20px;
   min-height: 60px;
+  // The box carries the focus styling; global textarea rules must not add their own.
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
 
   &::placeholder {
     @apply text-nc-content-gray-muted;

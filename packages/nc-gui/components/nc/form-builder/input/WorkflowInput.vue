@@ -1045,25 +1045,14 @@ watch(readOnly, (newValue) => {
   }
 }
 
-// AI empty state sits over the editor area; the editor keeps its size so focus/typing works
-// the moment it is dismissed.
-.nc-email-shell.has-ai-empty {
-  .nc-email-editor {
-    min-height: 260px;
-  }
-
-  .tiptap p.is-editor-empty:first-child::before {
-    display: none;
-  }
+// While the AI empty state shows it takes the editor's slot in the flex column; the editor
+// stays mounted (just not displayed) so focus/typing works the moment it is dismissed.
+.nc-email-shell.has-ai-empty .nc-email-editor {
+  display: none;
 }
 
 .nc-email-ai-empty-host {
-  @apply absolute inset-x-0 bottom-0 flex flex-col;
-  top: 36px; // below the status strip
-
-  .nc-email-shell.is-expanded & {
-    top: 40px; // below the toolbar
-  }
+  @apply flex flex-col flex-1 min-h-0 overflow-auto;
 }
 
 .nc-email-var-btn {

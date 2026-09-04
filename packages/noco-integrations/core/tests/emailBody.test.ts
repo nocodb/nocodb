@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
+  EMAIL_BASE_STYLES,
+  EMAIL_BODY_STYLE,
   htmlToPlainText,
   isLikelyHtml,
   prepareEmailBody,
@@ -30,8 +32,22 @@ describe('prepareEmailBody', () => {
   it('sends rich text as html with a text fallback', () => {
     const r = prepareEmailBody('<p>Hi <strong>there</strong></p><ul><li>one</li><li>two</li></ul>');
     expect(r.isHtml).toBe(true);
-    expect(r.html).toBe('<p>Hi <strong>there</strong></p><ul><li>one</li><li>two</li></ul>');
+    expect(r.html).toBe(
+      `<div style="${EMAIL_BODY_STYLE}">` +
+        `<p style="${EMAIL_BASE_STYLES.p}">Hi <strong>there</strong></p>` +
+        `<ul style="${EMAIL_BASE_STYLES.ul}"><li style="${EMAIL_BASE_STYLES.li}">one</li><li style="${EMAIL_BASE_STYLES.li}">two</li></ul>` +
+        '</div>',
+    );
     expect(r.text).toBe('Hi there\n- one\n- two');
+  });
+
+  it('inlines base styles under the author\'s own', () => {
+    const r = prepareEmailBody('<h1 style="color: #dc2626">T</h1>');
+    expect(r.html).toContain(`<h1 style="${EMAIL_BASE_STYLES.h1}; color: #dc2626">T</h1>`);
+  });
+
+  it('does not leak base styles into a raw sanitize', () => {
+    expect(sanitizeEmailHtml('<p>x</p>')).toBe('<p>x</p>');
   });
 
   it('stringifies non-string values', () => {

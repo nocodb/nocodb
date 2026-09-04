@@ -53,7 +53,7 @@ export default class LmtTrackedField {
       },
     );
     for (const col of targets) {
-      (col as any).tracked_field_ids = rows
+      col.tracked_field_ids = rows
         .filter((r) => r.fk_column_id === col.id)
         .map((r) => r.fk_tracked_column_id);
     }

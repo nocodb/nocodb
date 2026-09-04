@@ -79,10 +79,10 @@ setAdditionalValidations({
 <template>
   <div v-if="supportsFieldTracking" class="nc-lmt-fields-options w-full flex flex-col gap-3">
     <a-radio-group v-model:value="fieldsMode" class="nc-lmt-fields-mode !flex !flex-col gap-3">
-      <a-radio value="all" data-testid="nc-lmt-fields-mode-all">
+      <a-radio v-e="['c:field:lmt:fields-mode', { mode: 'all' }]" value="all" data-testid="nc-lmt-fields-mode-all">
         <span class="text-sm text-nc-content-gray select-none">{{ $t('labels.allEditableFields') }}</span>
       </a-radio>
-      <a-radio value="specific" data-testid="nc-lmt-fields-mode-specific">
+      <a-radio v-e="['c:field:lmt:fields-mode', { mode: 'specific' }]" value="specific" data-testid="nc-lmt-fields-mode-specific">
         <span class="text-sm text-nc-content-gray select-none">{{ $t('labels.specificFields') }}</span>
       </a-radio>
     </a-radio-group>
@@ -105,13 +105,19 @@ setAdditionalValidations({
             <template v-if="isSpecificFields">
               <div class="w-0.25 h-4 bg-nc-border-gray-dark" />
 
-              <GeneralIcon class="cursor-pointer opacity-70 hover:opacity-100" icon="close" @click="removeFieldId(col.id!)" />
+              <GeneralIcon
+                v-e="['c:field:lmt:remove-tracked-field']"
+                class="cursor-pointer opacity-70 hover:opacity-100"
+                icon="close"
+                @click="removeFieldId(col.id!)"
+              />
             </template>
           </div>
         </div>
 
         <NcDropdown v-model:visible="isDropdownOpen" :disabled="!isSpecificFields" overlay-class-name="!pt-0">
           <NcButton
+            v-e="['c:field:lmt:select-tracked-fields']"
             size="small"
             type="text"
             class="self-start"

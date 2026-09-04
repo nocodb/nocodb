@@ -440,22 +440,6 @@ export function isFieldTrackingLmbCol(
 }
 
 /**
- * Tracked column ids of a field-tracking LMT/LMB column. Persisted as
- * junction rows (`nc_col_lmt_tracked_fields`) and hydrated onto the
- * column object as a top-level `tracked_field_ids` property (mirroring
- * webhook `trigger_fields`) — never stored in `meta`.
- */
-export function getLmtTrackedFieldIds(
-  col:
-    | { readonly uidt: UITypes | string; meta?: any; tracked_field_ids?: any }
-    | ColumnType
-): string[] {
-  if (!isFieldTrackingLmtCol(col) && !isFieldTrackingLmbCol(col)) return [];
-  const ids = (col as any)?.tracked_field_ids;
-  return Array.isArray(ids) ? ids : [];
-}
-
-/**
  * Whether a column may be selected as a tracked field of a
  * field-tracking LastModifiedTime column: any user-editable field,
  * including links, but no derived (lookup/rollup/formula/…),

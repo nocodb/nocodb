@@ -1673,12 +1673,19 @@ export class ColumnsService implements IColumnsService {
               meta: colBody.meta,
             });
 
-            if (Array.isArray(colBody.tracked_field_ids)) {
-              await LmtTrackedField.set(
-                context,
-                param.columnId,
-                colBody.tracked_field_ids,
-              );
+            // Persist the tracked set only in 'specific' mode; switching to any
+            // other mode drops the rows so they can't leak (or resurrect on a
+            // later tracked-column delete when isFieldTrackingLmtCol is false).
+            if (parseProp(colBody.meta)?.fields_mode === 'specific') {
+              if (Array.isArray(colBody.tracked_field_ids)) {
+                await LmtTrackedField.set(
+                  context,
+                  param.columnId,
+                  colBody.tracked_field_ids,
+                );
+              }
+            } else if (parseProp(colBody.meta)?.fields_mode) {
+              await LmtTrackedField.deleteByColumnId(context, param.columnId);
             }
           }
 
@@ -2006,12 +2013,18 @@ export class ColumnsService implements IColumnsService {
         ...('meta' in colBody ? { meta: colBody.meta } : {}),
       });
 
-      if (Array.isArray(colBody.tracked_field_ids)) {
-        await LmtTrackedField.set(
-          context,
-          param.columnId,
-          colBody.tracked_field_ids,
-        );
+      // Persist the tracked set only in 'specific' mode; switching to any other
+      // mode drops the rows so they can't leak or resurrect on a later delete.
+      if (parseProp(colBody.meta)?.fields_mode === 'specific') {
+        if (Array.isArray(colBody.tracked_field_ids)) {
+          await LmtTrackedField.set(
+            context,
+            param.columnId,
+            colBody.tracked_field_ids,
+          );
+        }
+      } else if (parseProp(colBody.meta)?.fields_mode) {
+        await LmtTrackedField.deleteByColumnId(context, param.columnId);
       }
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)

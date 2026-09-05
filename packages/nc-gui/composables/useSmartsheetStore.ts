@@ -158,11 +158,32 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         where = whereQueryFromUrl.value
       }
 
+      const searchQuery = search.value.query.trim()
+
+      if (search.value.field === 'all') {
+        if (!searchQuery) {
+          search.value.isValidFieldQuery = true
+          return where
+        }
+
+        const searchableCols = (meta.value as TableType)?.columns?.filter((c) => isSearchableColumn(c)) || []
+        const validQueries = searchableCols
+          .map((c) => getValidSearchQueryForColumn(c, searchQuery, meta.value as TableType, { getWhereQueryAs: 'string' }) as string)
+          .filter(Boolean)
+
+        if (!validQueries.length) {
+          search.value.isValidFieldQuery = false
+          return where
+        }
+
+        search.value.isValidFieldQuery = true
+        const allQuery = `(${validQueries.join('~or')})`
+        return `${where ? `${where}~and` : ''}${allQuery}`
+      }
+
       const col =
         (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
-
-      const searchQuery = search.value.query.trim()
 
       if (!col || !searchQuery) {
         search.value.isValidFieldQuery = true

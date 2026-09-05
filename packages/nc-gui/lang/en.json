@@ -5540,6 +5540,7 @@
       "interfacePageNotShareableShort": "Only table and dashboard pages can be shared publicly",
       "interfaceHeroTitle": "Visualize and act on your data",
       "interfaceHeroSubtitle": "Build easy-to-use interfaces that make even complex workflows simple — for everyone on your team.",
+      "interfaceWorkspaceLimitReached": "This workspace already has {limit} interfaces across its bases, the maximum on your plan.",
       "interfaceNameSubtitle": "Interfaces are meant to be shared, so choose a name your team can reference.",
       "interfaceLayoutSubtitle": "Layouts are an easy way to get started by guiding your design and workflow. They're chosen once, at the start of your workflow.",
       "interfaceConnectTableSubtitle": "Choose the table this interface will read from and write to.",

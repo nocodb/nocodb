@@ -93,7 +93,7 @@ function applyHighlight(color: string) {
 
     <template v-for="tool in group" :key="tool.key">
       <NcDropdown v-if="tool.type === 'color'" v-model:visible="colorOpen" placement="bottomLeft">
-        <NcTooltip :title="$t('general.color')">
+        <NcTooltip :title="$t('labels.textAndBackgroundColor')">
           <NcButton
             size="xs"
             type="text"
@@ -103,14 +103,14 @@ function applyHighlight(color: string) {
             @mousedown.prevent
             @click.stop="colorOpen = !colorOpen"
           >
-            <span
-              class="nc-email-color-preview"
-              :style="{
-                color: activeTextColor || 'currentColor',
-                backgroundColor: activeHighlight || 'transparent',
-              }"
-              >A</span
-            >
+            <span class="nc-email-color-preview">
+              <span
+                class="nc-email-color-preview-letter"
+                :style="{ color: activeTextColor || 'currentColor', backgroundColor: activeHighlight || 'transparent' }"
+                >A</span
+              >
+              <span class="nc-email-color-preview-bar" :style="{ backgroundColor: activeTextColor || 'currentColor' }" />
+            </span>
           </NcButton>
         </NcTooltip>
 
@@ -157,14 +157,14 @@ function applyHighlight(color: string) {
             @mousedown.prevent
             @click.stop="typographyOpen = !typographyOpen"
           >
-            <GeneralIcon icon="lucideType" class="w-4 h-4" />
+            <!-- Optically light glyph; a larger box lands it at the same visual size as the stroke icons -->
+            <GeneralIcon icon="lucideALargeSmall" class="nc-email-typo-icon" />
           </NcButton>
         </NcTooltip>
 
         <template #overlay>
           <div class="nc-email-typo-picker" @mousedown.prevent @click.stop>
             <div class="nc-email-typo-col">
-              <div class="nc-email-color-label">{{ $t('labels.font') }}</div>
               <button
                 v-for="f in EMAIL_FONTS"
                 :key="f.name"
@@ -177,13 +177,12 @@ function applyHighlight(color: string) {
               </button>
             </div>
             <div class="nc-email-typo-col is-sizes">
-              <div class="nc-email-color-label">{{ $t('general.size') }}</div>
               <button
                 v-for="sz in EMAIL_FONT_SIZES"
                 :key="sz.name"
                 class="nc-email-typo-item"
                 :class="{ 'is-active': activeSize === sz.value }"
-                :style="sz.value ? { fontSize: sz.value } : {}"
+                :style="{ fontSize: sz.value || undefined, fontFamily: activeFont || undefined }"
                 @click="applySize(sz.value)"
               >
                 {{ $t(sz.name) }}
@@ -242,8 +241,24 @@ function applyHighlight(color: string) {
 </template>
 
 <style lang="scss">
+// Larger box, lighter stroke: the glyph is optically light, so it needs size, not weight.
+.nc-email-typo-icon {
+  @apply w-5.5 h-5.5;
+  stroke-width: 1.5;
+}
+
+// "A" over a colour bar — the mail-client convention for a text/background colour control.
 .nc-email-color-preview {
-  @apply flex items-center justify-center w-4.5 h-4.5 rounded text-[13px] font-bold leading-none;
+  @apply flex flex-col items-center justify-center w-5 h-5 gap-0.5;
+
+  .nc-email-color-preview-letter {
+    @apply flex items-center justify-center px-0.5 rounded-sm text-[13px] font-bold leading-none;
+  }
+
+  .nc-email-color-preview-bar {
+    @apply block w-3.5;
+    height: 1px;
+  }
 }
 
 // Overlays render in body, so these stay unscoped.

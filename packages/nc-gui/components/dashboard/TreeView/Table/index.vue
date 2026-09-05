@@ -124,6 +124,12 @@ const updateSourceTitle = async (sourceId: string) => {
   }
 }
 
+/** Ignore the Enter that confirms an IME candidate; only commit once composition is done */
+const onSourceTitleKeyEnter = (event: KeyboardEvent, sourceId: string) => {
+  if (isComposingKeyEvent(event)) return
+  updateSourceTitle(sourceId)
+}
+
 /**
  * Opens a dialog to create a new table.
  *
@@ -360,8 +366,7 @@ onKeyStroke('Escape', () => {
                             }"
                             :data-source-rename-input-id="source.id"
                             @click.stop
-                            @keydown.enter.stop.prevent
-                            @keyup.enter="updateSourceTitle(source.id!)"
+                            @keydown.enter.stop.prevent="onSourceTitleKeyEnter($event, source.id!)"
                             @keyup.esc="updateSourceTitle(source.id!)"
                             @blur="updateSourceTitle(source.id!)"
                             @keydown.stop

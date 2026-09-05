@@ -178,6 +178,10 @@ function onKeyDown(event: KeyboardEvent) {
 
 /** Rename view when enter is pressed */
 function onKeyEnter(event: KeyboardEvent) {
+  // Ignore the Enter that confirms an IME (Chinese/Japanese/Korean etc.) candidate --
+  // it must not be treated as "confirm rename" while the user is still composing input.
+  if (isComposingKeyEvent(event)) return
+
   event.stopImmediatePropagation()
   event.preventDefault()
 

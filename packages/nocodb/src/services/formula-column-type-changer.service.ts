@@ -164,7 +164,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       return;
     }
     const formulaColumnOption =
-      await formulaColumn.getColOptions<FormulaColumn>(context);
+      await formulaColumn.getColOptions<FormulaColumn>();
     for (let i = 0; i < rowCount; i += DEFAULT_BATCH_LIMIT) {
       await this.migrateData({
         baseModelSqlV2: baseModel,

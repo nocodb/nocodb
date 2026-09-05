@@ -188,7 +188,7 @@ export class AttachmentMigration {
           return;
         }
 
-        await model.getColumns(context);
+        await model.getColumns();
 
         const attachmentColumns = model.columns.filter(
           (c) => c.uidt === UITypes.Attachment,

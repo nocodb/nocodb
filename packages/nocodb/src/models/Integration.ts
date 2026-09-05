@@ -17,6 +17,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
+import { setModelContext } from '~/helpers/modelContext';
 import {
   parseMetaProp,
   prepareForDb,
@@ -436,13 +437,7 @@ export default class Integration implements IntegrationType {
     const sources = await this.getSources(ncMeta, true);
 
     for (const source of sources) {
-      await source.delete(
-        {
-          workspace_id: this.fk_workspace_id,
-          base_id: source.base_id,
-        },
-        ncMeta,
-      );
+      await source.delete(ncMeta);
     }
 
     // unbind all buttons and long texts associated with this integration
@@ -484,13 +479,7 @@ export default class Integration implements IntegrationType {
     const sources = await this.getSources(ncMeta, true);
 
     for (const source of sources) {
-      await source.softDelete(
-        {
-          workspace_id: this.fk_workspace_id,
-          base_id: source.base_id,
-        },
-        ncMeta,
-      );
+      await source.softDelete(ncMeta);
     }
 
     // unbind all buttons and long texts associated with this integration
@@ -538,6 +527,7 @@ export default class Integration implements IntegrationType {
       .select(`${MetaTable.SOURCES}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
       .select(`${MetaTable.SOURCES}.base_id`)
+      .select(`${MetaTable.SOURCES}.fk_workspace_id`)
       .innerJoin(
         MetaTable.PROJECT,
         `${MetaTable.SOURCES}.base_id`,
@@ -559,7 +549,12 @@ export default class Integration implements IntegrationType {
 
     const sources = await qb;
 
-    return (this.sources = sources.map((src) => new Source(src)));
+    return (this.sources = sources.map((src) =>
+      setModelContext(new Source(src), {
+        workspace_id: src.fk_workspace_id,
+        base_id: src.base_id,
+      }),
+    ));
   }
 
   static async getCategoryDefault(

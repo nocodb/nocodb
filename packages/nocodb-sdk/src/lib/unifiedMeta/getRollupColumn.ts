@@ -21,7 +21,7 @@ export const getRollupColumn = async (
     { column }
   );
   if ('getRollupColumn' in colOptions) {
-    return await colOptions.getRollupColumn(context);
+    return await colOptions.getRollupColumn();
   } else {
     const relationColumn = columns.find(
       (col) =>

@@ -9,6 +9,11 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export default class LinkToAnotherRecordColumn {
   protected _context: {
@@ -76,14 +81,20 @@ export default class LinkToAnotherRecordColumn {
     });
   }
 
-  public async getChildColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { childContext } = await this.getParentChildContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('LinkToAnotherRecordColumn');
+  }
+
+  public async getChildColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { childContext } = await this.getParentChildContext();
     return (this.childColumn = await Column.get(
       childContext,
       {
@@ -93,14 +104,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getMMChildColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getMMChildColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { mmContext } = this.getRelContext();
 
     return (this.mmChildColumn = await Column.get(
       mmContext,
@@ -112,15 +117,16 @@ export default class LinkToAnotherRecordColumn {
   }
 
   // The junction Order column grouped by the child FK (orders parents per child).
+  // mmContext is resolved from this link's own context (see getRelContext), so
+  // a same-base junction (fk_mm_base_id null) is never looked up in a caller's
+  // unrelated base — the legacy `_context` arg is kept for call-site
+  // compatibility and intentionally unused.
   public async getMMChildOrderColumn(
-    context: NcContext,
+    _context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column | null> {
     if (!this.fk_mm_child_order_column_id) return null;
-    const { mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+    const { mmContext } = this.getRelContext();
     return Column.get(
       mmContext,
       { colId: this.fk_mm_child_order_column_id },
@@ -130,14 +136,11 @@ export default class LinkToAnotherRecordColumn {
 
   // The junction Order column grouped by the parent FK (orders children per parent).
   public async getMMParentOrderColumn(
-    context: NcContext,
+    _context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column | null> {
     if (!this.fk_mm_parent_order_column_id) return null;
-    const { mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+    const { mmContext } = this.getRelContext();
     return Column.get(
       mmContext,
       { colId: this.fk_mm_parent_order_column_id },
@@ -145,14 +148,8 @@ export default class LinkToAnotherRecordColumn {
     );
   }
 
-  public async getParentColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { parentContext } = await this.getParentChildContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getParentColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { parentContext } = await this.getParentChildContext();
 
     return (this.parentColumn = await Column.get(
       parentContext,
@@ -163,14 +160,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getMMParentColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getMMParentColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { mmContext } = this.getRelContext();
     return (this.mmParentColumn = await Column.get(
       mmContext,
       {
@@ -180,19 +171,13 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getMMModel(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
-    // Resolve mmContext relative to THIS link's own base (like getRelatedTable /
-    // getMMChildColumn), not the caller's context. Otherwise a caller passing a
-    // different base (e.g. a cross-base lookup chain) plus a same-base junction
-    // (fk_mm_base_id null) would resolve the junction model in the wrong base
-    // and miss it.
-    const { mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getMMModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    // mmContext is resolved relative to THIS link's own base (like
+    // getRelatedTable / getMMChildColumn), never a caller's context. Otherwise
+    // a different base (e.g. a cross-base lookup chain) plus a same-base
+    // junction (fk_mm_base_id null) would resolve the junction model in the
+    // wrong base and miss it.
+    const { mmContext } = this.getRelContext();
     return (this.mmModel = await Model.getByIdOrName(
       mmContext,
       {
@@ -202,14 +187,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getRelatedTable(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
-    const { refContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getRelatedTable(ncMeta = Noco.ncMeta): Promise<Model> {
+    const { refContext } = this.getRelContext();
     return (this.relatedTable = await Model.getByIdOrName(
       refContext,
       {
@@ -257,11 +236,8 @@ export default class LinkToAnotherRecordColumn {
     return this.read(context, data.fk_column_id, ncMeta);
   }
 
-  async getChildView(
-    context: NcContext,
-    table: Model = undefined,
-    ncMeta = Noco.ncMeta,
-  ) {
+  async getChildView(table: Model = undefined, ncMeta = Noco.ncMeta) {
+    const context = table?.context ?? this.context;
     if (this.fk_target_view_id) {
       return View.get(context, this.fk_target_view_id, false, ncMeta);
     }
@@ -297,7 +273,10 @@ export default class LinkToAnotherRecordColumn {
         colData,
       );
     }
-    return colData ? new LinkToAnotherRecordColumn(colData) : null;
+    if (!colData) return null;
+    const instance = new LinkToAnotherRecordColumn(colData);
+    setModelContext(instance, context);
+    return instance;
   }
 
   static async update(
@@ -311,11 +290,12 @@ export default class LinkToAnotherRecordColumn {
     // placeholder method
   }
 
-  getRelContext(context: NcContext) {
+  getRelContext() {
     if (this._context) {
       return this._context;
     }
 
+    const context = this.context;
     let refContext = context;
     let mmContext = context;
 
@@ -359,19 +339,13 @@ export default class LinkToAnotherRecordColumn {
     });
   }
 
-  async getParentChildContext(
-    context: NcContext,
-    column?: Column,
-    ncMeta = Noco.ncMeta,
-  ) {
+  async getParentChildContext(column?: Column, ncMeta = Noco.ncMeta) {
     if (this._parentChildContext) {
       return this._parentChildContext;
     }
 
-    const { refContext, mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+    const context = this.context;
+    const { refContext, mmContext } = this.getRelContext();
 
     let childContext = context;
     let parentContext = context;

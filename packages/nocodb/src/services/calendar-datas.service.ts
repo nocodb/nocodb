@@ -237,7 +237,7 @@ export class CalendarDatasService {
 
     const dates: Array<string> = [];
 
-    const columns = await model.getColumns(context);
+    const columns = await model.getColumns();
 
     ranges?.ranges?.forEach((range: CalendarRangeType) => {
       const fromCol = columns.find(

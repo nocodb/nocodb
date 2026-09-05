@@ -30,10 +30,7 @@ export async function getFormulasReferredTheColumn(
     const columns = await columnsPromise;
     if (c.uidt !== UITypes.Formula && c.uidt !== UITypes.Button) return columns;
 
-    const formula = await c.getColOptions<FormulaColumn | ButtonColumn>(
-      context,
-      ncMeta,
-    );
+    const formula = await c.getColOptions<FormulaColumn | ButtonColumn>(ncMeta);
 
     if (UITypes.Button === c.uidt && (formula as ButtonColumn)?.type !== 'url')
       return columns;

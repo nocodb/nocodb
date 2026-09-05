@@ -10,9 +10,7 @@ const up = async (knex) => {
   await addOrgId(knex);
 
   console.log(
-    `[nc_202604100000_audit_org_id] Migration completed in ${
-      Date.now() - start
-    }ms`,
+    `[nc_202604100000_audit_org_id] Migration completed in ${Date.now() - start}ms`,
   );
 };
 

@@ -400,7 +400,7 @@ export class WebhookInvoker {
       // upstream in CommentHookHandlerService (this `newData` is the comment
       // payload, not a record row), so skip the record-condition check here.
       if (hook.condition && !testHook && (hook.event as any) !== 'comment') {
-        filters = testFilters || (await hook.getFilters(context));
+        filters = testFilters || (await hook.getFilters());
 
         if (isBulkOperation) {
           const filteredData = [];
@@ -424,7 +424,7 @@ export class WebhookInvoker {
             if (
               await validateCondition(
                 context,
-                testFilters || (await hook.getFilters(context)),
+                testFilters || (await hook.getFilters()),
                 data,
                 { client: source?.type },
               )
@@ -451,7 +451,7 @@ export class WebhookInvoker {
           if (
             !(await validateCondition(
               context,
-              testFilters || (await hook.getFilters(context)),
+              testFilters || (await hook.getFilters()),
               newData,
               { client: source?.type },
             ))

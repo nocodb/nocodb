@@ -22,8 +22,7 @@ export class LinksRequestHandler {
       payload.column ??
       (await Column.get(context, { colId: payload.columnId }));
     const model = payload.model ?? (await Model.get(context, payload.modelId));
-    const colOptions =
-      payload.colOptions ?? (await column.getColOptions(context));
+    const colOptions = payload.colOptions ?? (await column.getColOptions());
 
     const baseModel =
       payload.baseModel ??

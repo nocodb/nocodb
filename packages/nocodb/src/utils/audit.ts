@@ -557,7 +557,7 @@ export const extractViewRelatedProps = async ({
     view.calendar_range.length
   ) {
     const model = await Model.get(context, view.fk_model_id);
-    const columns = model ? await model.getColumns(context) : null;
+    const columns = model ? await model.getColumns() : null;
     if (columns) {
       result.calendar_range = view.calendar_range.map(
         (range: { fk_from_column_id: string; fk_to_column_id: string }) => {

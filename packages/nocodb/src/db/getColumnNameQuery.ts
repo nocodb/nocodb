@@ -11,6 +11,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { Column } from '~/models';
+import { setModelContext } from '~/helpers/modelContext';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { checkStoredFormulaError } from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -43,20 +44,19 @@ export async function getColumnNameQuery({
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
     const colOpt = await column.getColOptions<BarcodeColumn | QrCodeColumn>(
-      context,
       ncMeta,
     );
     if (!colOpt || colOpt.error) {
       return { builder: NC_ERROR_SENTINEL };
     }
-    const valueColumn = await colOpt.getValueColumn(context, ncMeta);
+    const valueColumn = await colOpt.getValueColumn(ncMeta);
     if (!valueColumn) {
       return { builder: NC_ERROR_SENTINEL };
     }
-    column = new Column({
+    column = setModelContext(new Column({
       ...valueColumn,
       id: column.id,
-    });
+    }), context);
   }
 
   let column_name_query: any = column.column_name;
@@ -82,10 +82,7 @@ export async function getColumnNameQuery({
   switch (column.uidt) {
     case UITypes.Links:
     case UITypes.Rollup: {
-      const rollupOpt = (await column.getColOptions(
-        context,
-        ncMeta,
-      )) as RollupColumn;
+      const rollupOpt = (await column.getColOptions(ncMeta)) as RollupColumn;
       if (!rollupOpt || rollupOpt.error) break;
       const knex = baseModelSqlv2.dbDriver;
       column_name_query = await genRollupSelectv2({
@@ -97,10 +94,7 @@ export async function getColumnNameQuery({
     }
 
     case UITypes.Formula: {
-      const formula = await column.getColOptions<FormulaColumn>(
-        context,
-        ncMeta,
-      );
+      const formula = await column.getColOptions<FormulaColumn>(ncMeta);
       // a stored error that reads as a stale infra failure gets revalidated
       // rather than silently dropping the expression from the query. Nothing
       // is written here — getSelectQueryBuilderForFormula re-derives the
@@ -117,13 +111,10 @@ export async function getColumnNameQuery({
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup: {
       if (column.uidt === UITypes.Lookup) {
-        const lookupOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const lookupOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (lookupOpt?.error) break;
       }
-      const model = await column.getModel(context, ncMeta);
+      const model = await column.getModel(ncMeta);
       column_name_query = await generateLookupSelectQuery({
         baseModelSqlv2,
         column: column,

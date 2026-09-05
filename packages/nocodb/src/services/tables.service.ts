@@ -362,6 +362,7 @@ export class TablesService {
     // Source of truth for the actor — every caller passes `req`.
     const user = param.req?.user as User;
 
+
     let result;
     let placeholderRefTables: Map<string, Model>;
     let table: Model;
@@ -378,11 +379,10 @@ export class TablesService {
         );
       }
 
-      await table.getColumns(context, ncMeta, undefined, true, true);
+      await table.getColumns(ncMeta, undefined, true, true);
 
       if (table.mm && !param.forceDeleteSyncs) {
         const columns = await table.getColumns(
-          context,
           ncMeta,
           undefined,
           true,
@@ -400,11 +400,7 @@ export class TablesService {
         const relColumns = await Promise.all(
           tables.map((t) => {
             return t
-              .getColumns({
-                ...context,
-                base_id: t.base_id,
-                workspace_id: t.fk_workspace_id,
-              })
+              .getColumns()
               .then((cols) => {
                 return cols.find((c) => {
                   return (
@@ -466,8 +462,8 @@ export class TablesService {
         const referredTables = await Promise.all(
           relationColumns.map(async (c) =>
             c
-              .getColOptions<LinkToAnotherRecordColumn>(context, ncMeta)
-              .then((opt) => opt.getRelatedTable(context, ncMeta))
+              .getColOptions<LinkToAnotherRecordColumn>(ncMeta)
+              .then((opt) => opt.getRelatedTable(ncMeta))
               .then((t) => t?.title),
           ),
         );
@@ -566,7 +562,7 @@ export class TablesService {
         });
       }
 
-      result = await table.delete(context, ncMeta);
+      result = await table.delete(ncMeta);
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(
@@ -613,7 +609,7 @@ export class TablesService {
             workspace_id: refTable.fk_workspace_id,
             base_id: refTable.base_id,
           };
-          await refTable.getColumns(refContext, ncMeta);
+          await refTable.getColumns(ncMeta);
           NocoSocket.broadcastEvent(refContext, {
             event: EventType.META_EVENT,
             payload: {
@@ -671,7 +667,7 @@ export class TablesService {
         ServiceUserType.SYNC_USER,
       ])
     ) {
-      await table.getViews(context);
+      await table.getViews();
       // Mask the bcrypt password hash before returning to the caller.
       if (table.views?.length) {
         table.views = table.views.map((v) =>
@@ -725,7 +721,7 @@ export class TablesService {
     const result = await models.reduce(async (_obj, model) => {
       const obj = await _obj;
 
-      const views = await model.getViews(context);
+      const views = await model.getViews();
       for (const view of views) {
         // Mask the bcrypt password hash — the owner UI never needs the
         // stored value; it sees a sentinel and renders a masked state.

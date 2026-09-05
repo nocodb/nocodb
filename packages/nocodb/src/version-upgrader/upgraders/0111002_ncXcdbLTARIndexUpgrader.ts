@@ -39,13 +39,12 @@ async function upgradeModelRelationsIndex(
   },
 ) {
   // Iterate over each column and upgrade LTAR
-  for (const column of await model.getColumns(context, ncMeta)) {
+  for (const column of await model.getColumns(ncMeta)) {
     if (column.uidt !== UITypes.LinkToAnotherRecord) {
       continue;
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
       ncMeta,
     );
 
@@ -59,10 +58,10 @@ async function upgradeModelRelationsIndex(
       case RelationTypes.BELONGS_TO:
         {
           // const parentCol = await colOptions.getParentColumn(ncMeta);
-          const childCol = await colOptions.getChildColumn(context, ncMeta);
+          const childCol = await colOptions.getChildColumn(ncMeta);
 
           // const parentModel = await parentCol.getModel(ncMeta);
-          const childModel = await childCol.getModel(context, ncMeta);
+          const childModel = await childCol.getModel(ncMeta);
 
           // check index already exists or not
           const indexExists = indexes.find((index) => {
@@ -170,7 +169,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     if (ncMeta.knex.clientType() !== 'pg') {
       continue;
     }
-    const base = await source.getProject(context, ncMeta);
+    const base = await source.getProject(ncMeta);
 
     // skip deleted bases
     if (!base || base.deleted) continue;

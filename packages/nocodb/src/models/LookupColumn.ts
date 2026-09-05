@@ -1,12 +1,20 @@
 import type { LookupType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export default class LookupColumn implements LookupType {
+  fk_workspace_id?: string;
+  base_id?: string;
   fk_relation_column_id: string;
   fk_lookup_column_id: string;
   fk_column_id: string;
@@ -16,14 +24,34 @@ export default class LookupColumn implements LookupType {
     Object.assign(this, data);
   }
 
-  public async getRelationColumn(context: NcContext): Promise<Column> {
-    return await Column.get(context, {
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('LookupColumn');
+  }
+
+  public async getRelationColumn(): Promise<Column> {
+    return await Column.get(this.context, {
       colId: this.fk_relation_column_id,
     });
   }
 
-  public async getLookupColumn(context: NcContext): Promise<Column> {
-    return await Column.get(context, {
+  public async getLookupColumn(): Promise<Column> {
+    // The lookup column lives in the related table, which may be in a different base.
+    // Derive refContext from the relation column's LTAR options.
+    const relationCol = await this.getRelationColumn();
+    const colOpts =
+      await relationCol?.getColOptions<LinkToAnotherRecordColumn>();
+    const refContext = colOpts
+      ? colOpts.getRelContext().refContext
+      : this.context;
+    return await Column.get(refContext, {
       colId: this.fk_lookup_column_id,
     });
   }
@@ -93,7 +121,10 @@ export default class LookupColumn implements LookupType {
         colData,
       );
     }
-    return colData ? new LookupColumn(colData) : null;
+    if (!colData) return null;
+    const instance = new LookupColumn(colData);
+    setModelContext(instance, context);
+    return instance;
   }
 
   id: string;

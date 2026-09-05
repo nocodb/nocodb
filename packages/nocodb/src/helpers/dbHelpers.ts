@@ -50,6 +50,7 @@ import {
 } from '~/models';
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { setModelContext } from '~/helpers/modelContext';
 
 /**
  * Effective schema for metadata introspection (tableList / columnList /
@@ -307,11 +308,11 @@ export async function shouldCascadeLinkCleanup(
   if (relationType === 'mm') {
     const assocModel = await Model.get(mmContext, colOptions.fk_mm_model_id);
     if (!assocModel) return false;
-    await assocModel.getColumns(mmContext);
+    await assocModel.getColumns();
     effectiveDr = undefined;
     for (const c of assocModel.columns) {
       if (!isLinksOrLTAR(c)) continue;
-      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(mmContext);
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>();
       if (
         opts?.type === 'bt' &&
         opts.fk_child_column_id === colOptions.fk_mm_child_column_id
@@ -429,7 +430,7 @@ export async function populatePk(
   model: Model,
   insertObj: any,
 ) {
-  await model.getColumns(context);
+  await model.getColumns();
   for (const pkCol of model.primaryKeys) {
     if (!pkCol.meta?.ag || insertObj[pkCol.title]) continue;
     insertObj[pkCol.title] =
@@ -589,7 +590,7 @@ export function extractSortsObject(
       if (throwErrorIfInvalid && !sort.fk_column_id) {
         NcError.get(context).fieldNotFound(s.field);
       }
-      return new Sort(sort);
+      return setModelContext(new Sort(sort), context);
     });
   }
 
@@ -618,7 +619,7 @@ export function extractSortsObject(
       const fieldNameOrId = s.replace(/^~?[+-]/, '');
       NcError.get(context).fieldNotFound(fieldNameOrId);
     }
-    return new Sort(sort);
+    return setModelContext(new Sort(sort), context);
   });
 }
 
@@ -678,7 +679,7 @@ export async function getAliasedSoftDeleteFilter(
   baseModel: IBaseModelSqlV2,
   tableAlias: string,
 ): Promise<Knex.QueryCallback | null> {
-  const columns = await baseModel.model.getColumns(baseModel.context);
+  const columns = await baseModel.model.getColumns();
   const deletedColumn = columns.find((c) => isDeletedCol(c));
   if (!deletedColumn) return null;
 
@@ -766,7 +767,7 @@ export async function getQueriedColumns(
   ncMeta?: MetaService,
 ) {
   let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
-  const _columns = await model.getColumns(context, ncMeta);
+  const _columns = await model.getColumns(ncMeta);
 
   const viewColumns = view?.id && (await View.getColumns(context, view.id));
   if (viewColumns) {

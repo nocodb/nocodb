@@ -118,7 +118,7 @@ export async function resolveViewVisibleColumns(
   }
 
   if (view && includeSortAndFilterColumns) {
-    const sorts = await view.getSorts(context);
+    const sorts = await view.getSorts();
     const filters = await Filter.allViewFilterList(context, {
       viewId: view.id,
     });
@@ -126,7 +126,7 @@ export async function resolveViewVisibleColumns(
     filterColumnIds = filters.map((f) => f.fk_column_id);
   }
 
-  if (!model.columns?.length) await model.getColumns(context);
+  if (!model.columns?.length) await model.getColumns();
 
   if (includeSortAndFilterColumns) {
     const orderCol = model.columns.find((c) => isOrderCol(c));
@@ -190,7 +190,7 @@ export async function getViewExposedColumnIds(
     view,
   });
 
-  if (!model.columns?.length) await model.getColumns(context);
+  if (!model.columns?.length) await model.getColumns();
 
   const exposed = new Set<string>();
   for (const column of model.columns) {

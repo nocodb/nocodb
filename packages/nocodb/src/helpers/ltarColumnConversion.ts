@@ -69,7 +69,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     try {
       const freshTable = await Model.get(context, param.tableId);
       if (!freshTable) return;
-      await freshTable.getColumns(context);
+      await freshTable.getColumns();
       const column = await Column.get(context, { colId: param.columnId });
       if (!column) return;
 
@@ -140,11 +140,11 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     },
   ) => {
     try {
-      const { refContext } = param.relationColOpt.getRelContext(context);
-      const refTable = await param.relationColOpt.getRelatedTable(context);
+      const { refContext } = param.relationColOpt.getRelContext();
+      const refTable = await param.relationColOpt.getRelatedTable();
       // Skip self-relations — the source-table broadcast already covers them.
       if (!refTable || refTable.id === param.sourceTableId) return;
-      await refTable.getColumns(refContext);
+      await refTable.getColumns();
 
       // The relation can make the loaded column graph circular — build a
       // serialization-safe clone for the wire payload.
@@ -267,7 +267,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     // mutated Model/baseModel instances through their `reuse` pollutes the meta
     // cache and breaks `hash(columns)` in a later `Model.get`. Each sub-op gets
     // a fresh reuse, exactly like a standalone columnAdd/columnDelete.
-    const base = await source.getProject(context);
+    const base = await source.getProject();
     const dbDriver = await NcConnectionMgrv2.get(source);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: table.id,
@@ -280,7 +280,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     // value, so count those rows, not the whole table.
     await assertConvertibleRowCount(context, baseModel, column);
 
-    await table.getColumns(context);
+    await table.getColumns();
     const pkTitles = table.primaryKeys.map((pk) => pk.title);
 
     // Snapshot (pk, text) for every row that has a value, before any schema
@@ -455,7 +455,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
 
     // Notify clients viewing the related table about its new back-link column.
     const ltarColOpt =
-      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>();
     if (ltarColOpt) {
       await broadcastRelatedTableBackLink(context, {
         relationColOpt: ltarColOpt,
@@ -676,7 +676,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     const dvTitle = groupCtx.displayValueColumn.title;
     const relType = groupCtx.colOptions.type as RelationTypes;
 
-    await table.getColumns(context);
+    await table.getColumns();
     // Read ALL pk columns — composite-pk tables need every part so
     // `extractPksValues` builds the full `a___b` key the WHERE clause matches.
     const pkTitles = table.primaryKeys.map((pk) => pk.title);
@@ -849,9 +849,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
 
     // Capture the relation BEFORE the delete clears its cache — needed to
     // notify the related table that its back-link column is being removed.
-    const linkColOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const linkColOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     // Drop the link column (skipTrash so undo can recreate it with the same
     // id), then rename the text column to the original title. Skip the link

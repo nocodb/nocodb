@@ -14,14 +14,14 @@ export class DuplicateDetectionService {
    * Applies soft-delete filter to exclude trashed records from the query.
    */
   private async applySoftDeleteFilter(
-    context: NcContext,
-    model: { getColumns: (ctx: NcContext) => Promise<Column[]> },
+    _context: NcContext,
+    model: { getColumns: () => Promise<Column[]> },
     source: Source,
     qb: any,
   ): Promise<void> {
     if (!source.isMeta()) return;
 
-    const columns = await model.getColumns(context);
+    const columns = await model.getColumns();
     const deletedColumn = columns.find((c) => isDeletedCol(c));
     if (!deletedColumn) return;
 
@@ -43,7 +43,7 @@ export class DuplicateDetectionService {
     column: Column,
     excludeRowId?: string | number,
   ): Promise<{ hasDuplicates: boolean; count: number }> {
-    const model = await column.getModel(context);
+    const model = await column.getModel();
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
 
@@ -179,7 +179,7 @@ export class DuplicateDetectionService {
       return true;
     }
 
-    const model = await column.getModel(context);
+    const model = await column.getModel();
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
 
@@ -270,7 +270,7 @@ export class DuplicateDetectionService {
     column: Column,
     limit: number = 10,
   ): Promise<Array<{ value: any; count: number }>> {
-    const model = await column.getModel(context);
+    const model = await column.getModel();
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
 

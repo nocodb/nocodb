@@ -52,7 +52,6 @@ async function processColumnToSwaggerField(
     case UITypes.LinkToAnotherRecord:
       {
         const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-          context,
           ncMeta,
         );
         if (colOpt) {
@@ -133,12 +132,9 @@ async function processColumnToSwaggerField(
     case UITypes.Lookup:
       if (isLookupHelper) {
         // For recursive lookup resolution, get the underlying column type
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const lookupCol = await colOpt.getLookupColumn(context);
+          const lookupCol = await colOpt.getLookupColumn();
           if (lookupCol) {
             return await processColumnToSwaggerField(
               context,
@@ -156,24 +152,18 @@ async function processColumnToSwaggerField(
         setAsAnyType(field);
       } else {
         // For main lookup processing, determine relation type and structure
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const relationCol = await colOpt.getRelationColumn(context);
+          const relationCol = await colOpt.getRelationColumn();
           if (!relationCol) {
             setAsAnyType(field);
             break;
           }
           const relationColOpt =
-            await relationCol.getColOptions<LinkToAnotherRecordColumn>(
-              context,
-              ncMeta,
-            );
-          const { refContext } = await relationColOpt.getRelContext(context);
+            await relationCol.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+          const { refContext } = await relationColOpt.getRelContext();
 
-          const lookupCol = await colOpt.getLookupColumn(refContext);
+          const lookupCol = await colOpt.getLookupColumn();
 
           const refBase =
             !relationColOpt.fk_related_base_id ||
@@ -228,10 +218,7 @@ async function processColumnToSwaggerField(
       }
       break;
     case UITypes.Rollup: {
-      const colOptions = await column.getColOptions<RollupColumn>(
-        context,
-        ncMeta,
-      );
+      const colOptions = await column.getColOptions<RollupColumn>(ncMeta);
       if (!['max', 'min'].includes(colOptions.rollup_function.toLowerCase())) {
         field.type = 'number';
       } else {

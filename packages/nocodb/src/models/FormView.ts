@@ -19,6 +19,11 @@ import Noco from '~/Noco';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 dayjs.extend(utc);
 
@@ -53,6 +58,18 @@ export default class FormView implements FormViewType {
 
   constructor(data: FormView) {
     Object.assign(this, data);
+  }
+
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('FormView');
   }
 
   public static async get(
@@ -96,7 +113,9 @@ export default class FormView implements FormViewType {
     view.banner_image_url = convertedAttachment.banner_image_url || null;
     view.logo_url = convertedAttachment.logo_url || null;
 
-    return view && new FormView(view);
+    const instance = view && new FormView(view);
+    if (instance) setModelContext(instance, context);
+    return instance;
   }
 
   static async insert(
@@ -231,9 +250,9 @@ export default class FormView implements FormViewType {
     return res;
   }
 
-  async getColumns(context: NcContext, ncMeta = Noco.ncMeta) {
+  async getColumns(ncMeta = Noco.ncMeta) {
     return (this.columns = await FormViewColumn.list(
-      context,
+      this.context,
       this.fk_view_id,
       ncMeta,
     ));
@@ -245,7 +264,7 @@ export default class FormView implements FormViewType {
     ncMeta = Noco.ncMeta,
   ) {
     const form = await this.get(context, formViewId, ncMeta);
-    await form.getColumns(context, ncMeta);
+    await form.getColumns(ncMeta);
     return form;
   }
 

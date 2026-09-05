@@ -344,7 +344,7 @@ export class OrderColumnMigration {
         dbDriver,
       });
 
-      await model.getColumns(context);
+      await model.getColumns();
 
       const tnPath = baseModel.getTnPath(model.table_name);
 

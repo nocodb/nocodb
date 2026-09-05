@@ -68,7 +68,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     const knex: Knex = source.is_meta
       ? ncMeta.knexConnection
       : await NcConnectionMgrv2.get(source);
-    const models = await source.getModels(context, ncMeta);
+    const models = await source.getModels(ncMeta);
 
     // used in timeout error message
     const timeoutErrorInfo = {
@@ -90,7 +90,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         const columns = await (
           await Model.get(context, model.id, false, ncMeta)
         )
-          .getColumns(context, ncMeta)
+          .getColumns(ncMeta)
           .then(async (columns) => {
             const filteredColumns = [];
 

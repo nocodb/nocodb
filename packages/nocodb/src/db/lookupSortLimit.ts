@@ -90,7 +90,7 @@ export async function applyLookupSortLimitToQb(param: {
   const { qb, alias, refBaseModel, sorts, limitVal, takeLast } = param;
 
   if (!refBaseModel.model.columns?.length) {
-    await refBaseModel.model.getColumns(refBaseModel.context);
+    await refBaseModel.model.getColumns();
   }
   const pks = refBaseModel.model.primaryKeys?.length
     ? refBaseModel.model.primaryKeys
@@ -155,7 +155,7 @@ export async function applyLookupPkInLimit(param: {
   if (limitVal <= 0) return;
 
   if (!refBaseModel.model.columns?.length) {
-    await refBaseModel.model.getColumns(refBaseModel.context);
+    await refBaseModel.model.getColumns();
   }
   const cols = refBaseModel.model.columns || [];
   const pks = refBaseModel.model.primaryKeys?.length
@@ -269,7 +269,7 @@ export async function buildNestedLookupLevelLimit(param: {
 
   const knex = nestedRefBaseModel.dbDriver;
   if (!nestedRefBaseModel.model.columns?.length) {
-    await nestedRefBaseModel.model.getColumns(nestedRefBaseModel.context);
+    await nestedRefBaseModel.model.getColumns();
   }
   const cols = nestedRefBaseModel.model.columns || [];
   const pk = nestedRefBaseModel.model.primaryKey;
@@ -357,7 +357,7 @@ export async function applyLookupFilterWindowLimit(param: {
 
   const knex = refBaseModel.dbDriver;
   if (!refBaseModel.model.columns?.length) {
-    await refBaseModel.model.getColumns(refBaseModel.context);
+    await refBaseModel.model.getColumns();
   }
   const cols = refBaseModel.model.columns || [];
   const pk = refBaseModel.model.primaryKey;

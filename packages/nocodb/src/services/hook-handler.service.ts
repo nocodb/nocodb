@@ -56,7 +56,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       view.type === ViewTypes.FORM
     ) {
       try {
-        const formView = await view.getView<FormView>(context);
+        const formView = await view.getView<FormView>();
 
         const emails = Object.entries(JSON.parse(formView?.email) || {})
           .filter((a) => a[1])
@@ -67,7 +67,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             context,
             formView.fk_view_id,
           );
-          const allColumns = await model.getColumns(context);
+          const allColumns = await model.getColumns();
           const fieldById = columns.reduce(
             (o: Record<string, FormColumnType>, f: FormColumnType) => {
               return Object.assign(o, { [f.fk_column_id]: f });
@@ -106,7 +106,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
 
           const source = await Source.get(context, model.source_id);
 
-          const models = await source.getModels(context);
+          const models = await source.getModels();
 
           const metas = models.reduce((o, m) => {
             return Object.assign(o, { [m.id]: m });
@@ -131,7 +131,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           await Promise.all(
             models
               .filter((m) => relatedModelIds.has(m.id))
-              .map((m) => m.getColumns(context)),
+              .map((m) => m.getColumns()),
           );
 
           const formattedData = transformDataForMailRendering(

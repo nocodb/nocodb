@@ -51,13 +51,11 @@ export async function getLtarDisplayValueContext(
     );
   }
 
-  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-    context,
-  );
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
-  const { refContext } = await colOptions.getParentChildContext(context);
-  const relatedModel = await colOptions.getRelatedTable(refContext);
-  await relatedModel.getColumns(refContext);
+  const { refContext } = await colOptions.getParentChildContext();
+  const relatedModel = await colOptions.getRelatedTable();
+  await relatedModel.getColumns();
 
   const customDisplayColId = (colOptions as any).fk_display_value_column_id;
   const customDisplayCol =

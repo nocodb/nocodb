@@ -209,7 +209,7 @@ export async function handleUniqueConstraintError({
 }: HandleUniqueConstraintErrorParams): Promise<void> {
   // Extract data from baseModel
   const context = baseModel.context;
-  const modelColumns = await baseModel.model.getColumns(context);
+  const modelColumns = await baseModel.model.getColumns();
   const clientType = baseModel.dbDriver.clientType();
   const dbDriver = baseModel.dbDriver;
   const tableName = baseModel.tnPath;

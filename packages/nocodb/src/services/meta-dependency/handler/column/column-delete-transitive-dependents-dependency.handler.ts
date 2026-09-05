@@ -138,7 +138,7 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
     });
     for (const column of columns) {
       if (!isLinksOrLTAR(column.uidt)) continue;
-      const colOptions = await column.getColOptions<any>(context, ncMeta);
+      const colOptions = await column.getColOptions<any>(ncMeta);
       if (
         !colOptions?.fk_related_base_id ||
         colOptions.fk_related_base_id === deletedColumn.base_id
@@ -247,7 +247,7 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
     });
     for (const column of columns) {
       if (!isLinksOrLTAR(column.uidt)) continue;
-      const colOptions = await column.getColOptions<any>(context, ncMeta);
+      const colOptions = await column.getColOptions<any>(ncMeta);
       if (
         !colOptions?.fk_related_base_id ||
         colOptions.fk_related_base_id === deletedColumn.base_id
@@ -337,7 +337,7 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
         );
         for (const col of tableColumns) {
           if (!isLinksOrLTAR(col.uidt)) continue;
-          const opts = await col.getColOptions<any>(ctx, ncMeta);
+          const opts = await col.getColOptions<any>(ncMeta);
           if (
             !opts?.fk_related_base_id ||
             opts.fk_related_base_id === ctx.base_id

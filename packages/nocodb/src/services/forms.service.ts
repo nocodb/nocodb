@@ -147,7 +147,7 @@ export class FormsService {
       context,
     });
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo();
 
     NocoSocket.broadcastEvent(
       context,
@@ -218,7 +218,7 @@ export class FormsService {
       owner,
     });
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo();
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeView = View.maskPasswordForResponse(view);

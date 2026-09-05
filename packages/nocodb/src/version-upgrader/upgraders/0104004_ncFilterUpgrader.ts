@@ -106,7 +106,7 @@ const migrateMultiSelectEq = async (
   // options inputted from users
   const options = filter.value.split(',');
   // retrieve the possible col options
-  const colOptions = (await col.getColOptions(context)) as SelectOptionsType;
+  const colOptions = (await col.getColOptions()) as SelectOptionsType;
   // only include valid options as the input value becomes dropdown type now
   const validOptions = [];
   for (const option of options) {

@@ -10,6 +10,11 @@ import {
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   id?: string;
@@ -23,6 +28,18 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
 
   constructor(body: Partial<ModelRoleVisibilityType>) {
     Object.assign(this, body);
+  }
+
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('ModelRoleVisibility');
   }
 
   static async list(
@@ -50,7 +67,9 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         ['fk_view_id', 'role'],
       );
     }
-    return data?.map((baseData) => new ModelRoleVisibility(baseData));
+    return data?.map((baseData) =>
+      setModelContext(new ModelRoleVisibility(baseData), context),
+    );
   }
 
   static async get(
@@ -88,7 +107,9 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         data,
       );
     }
-    return data && new ModelRoleVisibility(data);
+    const instance = data && new ModelRoleVisibility(data);
+    if (instance) setModelContext(instance, context);
+    return instance;
   }
 
   static async update(
@@ -123,9 +144,9 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     return res;
   }
 
-  async delete(context: NcContext, ncMeta = Noco.ncMeta) {
+  async delete(ncMeta = Noco.ncMeta) {
     return await ModelRoleVisibility.delete(
-      context,
+      this.context,
       this.fk_view_id,
       this.role,
       ncMeta,

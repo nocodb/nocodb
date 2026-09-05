@@ -15,10 +15,7 @@ export const getLTARRelatedTable = async (
     return undefined;
   }
   if ('getRelatedTable' in colOptions) {
-    return await colOptions.getRelatedTable({
-      ...context,
-      base_id: colOptions.fk_related_base_id || context.base_id,
-    });
+    return await colOptions.getRelatedTable();
   } else {
     return await getMeta(
       {

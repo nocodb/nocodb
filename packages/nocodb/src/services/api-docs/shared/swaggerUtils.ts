@@ -71,11 +71,11 @@ export async function prepareSwaggerGenerationData({
   for (const model of models) {
     const views: SwaggerView[] = [];
 
-    for (const view of (await model.getViews(context, false, ncMeta)) || []) {
+    for (const view of (await model.getViews(false, ncMeta)) || []) {
       if (view.type !== ViewTypes.GRID) continue;
       views.push({
         view,
-        columns: await view.getColumns(context, ncMeta),
+        columns: await view.getColumns(ncMeta),
       });
     }
 
@@ -161,7 +161,7 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
     const columns = await getSwaggerColumnMetas(
       context,
       {
-        columns: await model.getColumns(context, ncMeta),
+        columns: await model.getColumns(ncMeta),
         model,
         sourcesMap,
         base,

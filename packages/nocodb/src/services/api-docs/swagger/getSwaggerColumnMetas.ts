@@ -42,11 +42,10 @@ async function processColumnToSwaggerField(
     case UITypes.LinkToAnotherRecord:
       {
         const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-          context,
           ncMeta,
         );
         if (colOpt) {
-          const relTable = await colOpt.getRelatedTable(context, ncMeta);
+          const relTable = await colOpt.getRelatedTable(ncMeta);
           if (colOpt.type === RelationTypes.BELONGS_TO) {
             field.type = undefined;
 
@@ -114,12 +113,9 @@ async function processColumnToSwaggerField(
     case UITypes.Lookup:
       if (isLookupHelper) {
         // For recursive lookup resolution, get the underlying column type
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const lookupCol = await colOpt.getLookupColumn(context);
+          const lookupCol = await colOpt.getLookupColumn();
           if (lookupCol) {
             return await processColumnToSwaggerField(
               context,
@@ -138,24 +134,18 @@ async function processColumnToSwaggerField(
         field.type = 'object';
       } else {
         // For main lookup processing, determine relation type and structure
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const relationCol = await colOpt.getRelationColumn(context);
+          const relationCol = await colOpt.getRelationColumn();
           if (!relationCol) {
             field.type = 'object';
             break;
           }
           const relationColOpt =
-            await relationCol.getColOptions<LinkToAnotherRecordColumn>(
-              context,
-              ncMeta,
-            );
-          const { refContext } = await relationColOpt.getRelContext(context);
+            await relationCol.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+          const { refContext } = await relationColOpt.getRelContext();
 
-          const lookupCol = await colOpt.getLookupColumn(refContext);
+          const lookupCol = await colOpt.getLookupColumn();
 
           const refBase =
             !relationColOpt.fk_related_base_id ||

@@ -59,13 +59,10 @@ export class BaseModelDelete {
       permanentDelete?: boolean;
     };
   }) {
-    const columns = await this.baseModel.model.getColumns(
-      this.baseModel.context,
-    );
+    const columns = await this.baseModel.model.getColumns();
     const { where } = this.baseModel._getListArgs(args);
     const qb = this.baseModel.dbDriver(this.baseModel.tnPath);
     const aliasColObjMap = await this.baseModel.model.getAliasColObjMap(
-      this.baseModel.context,
       columns,
     );
 
@@ -127,9 +124,7 @@ export class BaseModelDelete {
       !args.permanentDelete &&
       !!deletedColumn &&
       isMeta &&
-      (await this.baseModel.model.isTrashEnabledForWorkspace(
-        this.baseModel.context,
-      ));
+      (await this.baseModel.model.isTrashEnabledForWorkspace());
 
     if (isSoftDelete) {
       const notDeletedValue = deletedColValue(this.baseModel, false);
@@ -154,9 +149,8 @@ export class BaseModelDelete {
       if (this.baseModel.model.primaryKeys.length > 1) break;
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-        this.baseModel.context,
-      );
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
 
       if (!colOptions) {
         this.logger.warn(
@@ -166,27 +160,27 @@ export class BaseModelDelete {
       }
 
       const { refContext, mmContext, parentContext, childContext } =
-        await colOptions.getParentChildContext(this.baseModel.context);
+        await colOptions.getParentChildContext();
 
       // V1 BT: no FK cleanup (FK is on the deleted record itself),
       // but still collect parent IDs for LMT update
       if (colOptions.type === 'bt' && !isMMOrMMLike(column)) {
-        const btChildColumn = await colOptions.getChildColumn(childContext);
-        const btParentColumn = await colOptions.getParentColumn(parentContext);
+        const btChildColumn = await colOptions.getChildColumn();
+        const btParentColumn = await colOptions.getParentColumn();
         if (!btChildColumn || !btParentColumn) {
           this.logger.warn(
             `prepareBulkDeleteAll: skipping bt link for column ${column.id} — related FK column missing (orphaned link)`,
           );
           continue;
         }
-        const btParentTable = await btParentColumn.getModel(parentContext);
+        const btParentTable = await btParentColumn.getModel();
         if (!btParentTable) {
           this.logger.warn(
             `prepareBulkDeleteAll: skipping bt link for column ${column.id} — related table missing (orphaned link)`,
           );
           continue;
         }
-        await btParentTable.getColumns(parentContext);
+        await btParentTable.getColumns();
         const btParentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: btParentTable,
           dbDriver: this.baseModel.dbDriver,
@@ -223,24 +217,24 @@ export class BaseModelDelete {
 
       if (!shouldCascadeHere) continue;
 
-      const childColumn = await colOptions.getChildColumn(childContext);
-      const parentColumn = await colOptions.getParentColumn(parentContext);
+      const childColumn = await colOptions.getChildColumn();
+      const parentColumn = await colOptions.getParentColumn();
       if (!childColumn || !parentColumn) {
         this.logger.warn(
           `prepareBulkDeleteAll: skipping link cleanup for column ${column.id} — related FK column missing (orphaned link)`,
         );
         continue;
       }
-      const parentTable = await parentColumn.getModel(parentContext);
-      const childTable = await childColumn.getModel(childContext);
+      const parentTable = await parentColumn.getModel();
+      const childTable = await childColumn.getModel();
       if (!childTable || !parentTable) {
         this.logger.warn(
           `prepareBulkDeleteAll: skipping link cleanup for column ${column.id} — related table missing (orphaned link)`,
         );
         continue;
       }
-      await childTable.getColumns(childContext);
-      await parentTable.getColumns(parentContext);
+      await childTable.getColumns();
+      await parentTable.getColumns();
 
       const childBaseModel = await Model.getBaseModelSQL(childContext, {
         model: childTable,
@@ -252,9 +246,9 @@ export class BaseModelDelete {
       switch (relationType) {
         case 'mm':
           {
-            const vChildCol = await colOptions.getMMChildColumn(mmContext);
-            const vParentCol = await colOptions.getMMParentColumn(mmContext);
-            const vTable = await colOptions.getMMModel(mmContext);
+            const vChildCol = await colOptions.getMMChildColumn();
+            const vParentCol = await colOptions.getMMParentColumn();
+            const vTable = await colOptions.getMMModel();
             if (!vChildCol || !vParentCol || !vTable) {
               this.logger.warn(
                 `prepareBulkDeleteAll: skipping mm cleanup for column ${column.id} — junction table missing (orphaned link)`,
@@ -299,7 +293,7 @@ export class BaseModelDelete {
         case 'hm':
           {
             // skip if it's an mm table column
-            const relatedTable = await colOptions.getRelatedTable(refContext);
+            const relatedTable = await colOptions.getRelatedTable();
             if (!relatedTable || relatedTable.mm) {
               break;
             }
@@ -343,15 +337,11 @@ export class BaseModelDelete {
           {
             if (column.meta?.bt) {
               // BT-side: FK on the deleted record — no cleanup, but collect parent IDs for LMT
-              const ooParentColumn = await colOptions.getParentColumn(
-                parentContext,
-              );
+              const ooParentColumn = await colOptions.getParentColumn();
               if (!ooParentColumn) break;
-              const ooParentTable = await ooParentColumn.getModel(
-                parentContext,
-              );
+              const ooParentTable = await ooParentColumn.getModel();
               if (!ooParentTable) break;
-              await ooParentTable.getColumns(parentContext);
+              await ooParentTable.getColumns();
               const ooParentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
                 {
@@ -365,9 +355,7 @@ export class BaseModelDelete {
                 model: ooParentTable,
                 column,
                 getLinkedIds: async (ids) => {
-                  const ooChildCol = await colOptions.getChildColumn(
-                    childContext,
-                  );
+                  const ooChildCol = await colOptions.getChildColumn();
                   const rows = await this.baseModel.execAndParse(
                     this.baseModel
                       .dbDriver(this.baseModel.tnPath)
@@ -385,7 +373,7 @@ export class BaseModelDelete {
               break;
             }
             // HM-side: same cleanup + LMT as HM
-            const ooRelatedTable = await colOptions.getRelatedTable(refContext);
+            const ooRelatedTable = await colOptions.getRelatedTable();
             if (!ooRelatedTable || ooRelatedTable.mm) {
               break;
             }
@@ -793,9 +781,7 @@ export class BaseModelDelete {
     cookie: NcRequest,
     isBulkAllOperation = false,
   ) {
-    const columns = await this.baseModel.model.getColumns(
-      this.baseModel.context,
-    );
+    const columns = await this.baseModel.model.getColumns();
     const source = await this.baseModel.getSource();
     const isMeta = source.isMeta();
 
@@ -806,9 +792,8 @@ export class BaseModelDelete {
       if (!isMeta || this.baseModel.model.primaryKeys.length > 1) break;
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-        this.baseModel.context,
-      );
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
 
       if (!colOptions) {
         this.logger.warn(
@@ -818,7 +803,7 @@ export class BaseModelDelete {
       }
 
       const { refContext, mmContext, parentContext, childContext } =
-        await colOptions.getParentChildContext(this.baseModel.context);
+        await colOptions.getParentChildContext();
 
       // Skip V1 BT — deleted record is the child; parent's FK is unaffected
       // V2 BT uses junction tables (isMMOrMMLike=true), so junction rows need cleanup
@@ -826,24 +811,24 @@ export class BaseModelDelete {
         continue;
       }
 
-      const childColumn = await colOptions.getChildColumn(childContext);
-      const parentColumn = await colOptions.getParentColumn(parentContext);
+      const childColumn = await colOptions.getChildColumn();
+      const parentColumn = await colOptions.getParentColumn();
       if (!childColumn || !parentColumn) {
         this.logger.warn(
           `permanentDeleteByIds: skipping link cleanup for column ${column.id} — related FK column missing (orphaned link)`,
         );
         continue;
       }
-      const parentTable = await parentColumn.getModel(parentContext);
-      const childTable = await childColumn.getModel(childContext);
+      const parentTable = await parentColumn.getModel();
+      const childTable = await childColumn.getModel();
       if (!childTable || !parentTable) {
         this.logger.warn(
           `permanentDeleteByIds: skipping link cleanup for column ${column.id} — related table missing (orphaned link)`,
         );
         continue;
       }
-      await childTable.getColumns(childContext);
-      await parentTable.getColumns(parentContext);
+      await childTable.getColumns();
+      await parentTable.getColumns();
 
       const childBaseModel = await Model.getBaseModelSQL(childContext, {
         model: childTable,
@@ -856,8 +841,8 @@ export class BaseModelDelete {
       switch (relationType) {
         case 'mm':
           {
-            const vChildCol = await colOptions.getMMChildColumn(mmContext);
-            const vTable = await colOptions.getMMModel(mmContext);
+            const vChildCol = await colOptions.getMMChildColumn();
+            const vTable = await colOptions.getMMModel();
             if (!vChildCol || !vTable) {
               this.logger.warn(
                 `permanentDeleteByIds: skipping mm cleanup for column ${column.id} — junction table missing (orphaned link)`,
@@ -877,7 +862,7 @@ export class BaseModelDelete {
           break;
         case 'hm':
           {
-            const relatedTable = await colOptions.getRelatedTable(refContext);
+            const relatedTable = await colOptions.getRelatedTable();
             if (!relatedTable || relatedTable.mm) {
               break;
             }
@@ -904,7 +889,7 @@ export class BaseModelDelete {
               break;
             }
             // HM-side: null FK on child
-            const ooRelatedTable = await colOptions.getRelatedTable(refContext);
+            const ooRelatedTable = await colOptions.getRelatedTable();
             if (!ooRelatedTable || ooRelatedTable.mm) break;
 
             const ooChildColumn = await Column.get(childContext, {

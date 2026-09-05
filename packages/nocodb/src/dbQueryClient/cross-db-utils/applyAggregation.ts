@@ -77,8 +77,8 @@ export async function applyAggregation({
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
     column = new Column({
       ...(await column
-        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
-        .then((col) => col.getValueColumn(context))),
+        .getColOptions<BarcodeColumn | QrCodeColumn>()
+        .then((col) => col.getValueColumn())),
       id: column.id,
     });
   }

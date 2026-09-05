@@ -89,8 +89,8 @@ export default class KanbanView implements KanbanType {
     ncMeta = Noco.ncMeta,
   ) {
     const columns = await View.get(context, view.fk_view_id, false, ncMeta)
-      .then((v) => v?.getModel(context, ncMeta))
-      .then((m) => m.getColumns(context, ncMeta));
+      .then((v) => v?.getModel(ncMeta))
+      .then((m) => m.getColumns(ncMeta));
 
     const insertObj = extractProps(view, [
       'base_id',

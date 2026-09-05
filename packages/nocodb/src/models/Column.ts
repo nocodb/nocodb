@@ -50,6 +50,11 @@ import {
 import { NcCache } from '~/decorators/nc-cache.decorator';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { getReplay, isReplay } from '~/helpers/replayScope';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 const selectColors = enumColors.light;
 
@@ -126,15 +131,24 @@ export default class Column<T = any> implements ColumnType {
   // we create custom index when custom link created using the column
   public custom_index_name?: boolean;
 
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('Column');
+  }
+
   constructor(data: Partial<(ColumnType & { asId?: string }) | Column>) {
     Object.assign(this, data);
   }
 
-  public async getModel(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
-    return Model.get(context, this.fk_model_id, false, ncMeta);
+  public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    return Model.get(this.context, this.fk_model_id, false, ncMeta);
   }
 
   public static async insert<T>(
@@ -596,10 +610,8 @@ export default class Column<T = any> implements ColumnType {
       thisArg.colOptions = result;
     },
   })
-  public async getColOptions<U = T>(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<U> {
+  public async getColOptions<U = T>(ncMeta = Noco.ncMeta): Promise<U> {
+    const context = this.context;
     let res: any;
 
     switch (this.uidt) {
@@ -659,14 +671,10 @@ export default class Column<T = any> implements ColumnType {
     return res;
   }
 
-  async loadModel(
-    context: NcContext,
-    force = false,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
+  async loadModel(force = false, ncMeta = Noco.ncMeta): Promise<Model> {
     if (!this.model || force) {
       this.model = await Model.getByIdOrName(
-        context,
+        this.context,
         {
           // source_id: this.base_id,
           // db_alias: this.db_alias,
@@ -762,7 +770,8 @@ export default class Column<T = any> implements ColumnType {
           };
         }
         const column = new Column(m);
-        await column.getColOptions(context, ncMeta);
+        setModelContext(column, context);
+        await column.getColOptions(ncMeta);
         return column;
       }),
     );
@@ -851,14 +860,12 @@ export default class Column<T = any> implements ColumnType {
 
     if (colData) {
       const column = new Column(colData);
-      await column.getColOptions(
-        {
-          ...context,
-          workspace_id: column.fk_workspace_id,
-          base_id: column.base_id,
-        },
-        ncMeta,
-      );
+      setModelContext(column, {
+        ...context,
+        workspace_id: column.fk_workspace_id,
+        base_id: column.base_id,
+      });
+      await column.getColOptions(ncMeta);
       return column;
     }
     return null;
@@ -961,10 +968,9 @@ export default class Column<T = any> implements ColumnType {
       buttonColumns = buttonColumns.filter((c) => c.uidt === UITypes.Button);
 
       for (const buttonCol of buttonColumns) {
-        const button = await new Column(buttonCol).getColOptions<ButtonColumn>(
-          context,
-          ncMeta,
-        );
+        const buttonColumn = new Column(buttonCol);
+        setModelContext(buttonColumn, context);
+        const button = await buttonColumn.getColOptions<ButtonColumn>(ncMeta);
 
         if (button.type === 'url') {
           if (
@@ -1013,10 +1019,9 @@ export default class Column<T = any> implements ColumnType {
       aiColumns = aiColumns.filter((c) => isAIPromptCol(c));
 
       for (const aiCol of aiColumns) {
-        const ai = await new Column(aiCol).getColOptions<AIColumn>(
-          context,
-          ncMeta,
-        );
+        const aiColumn = new Column(aiCol);
+        setModelContext(aiColumn, context);
+        const ai = await aiColumn.getColOptions<AIColumn>(ncMeta);
 
         if (!ai) continue;
 
@@ -1054,9 +1059,11 @@ export default class Column<T = any> implements ColumnType {
       formulaColumns = formulaColumns.filter((c) => c.uidt === UITypes.Formula);
 
       for (const formulaCol of formulaColumns) {
-        const formula = await new Column(
-          formulaCol,
-        ).getColOptions<FormulaColumn>(context, ncMeta);
+        const formulaColumn = new Column(formulaCol);
+        setModelContext(formulaColumn, context);
+        const formula = await formulaColumn.getColOptions<FormulaColumn>(
+          ncMeta,
+        );
 
         // Orphaned formula column: COLUMNS row carries uidt=Formula but its
         // COL_FORMULA option row is already gone (FormulaColumn.read → null).
@@ -1850,8 +1857,8 @@ export default class Column<T = any> implements ColumnType {
     return null;
   }
 
-  async delete(context: NcContext, ncMeta = Noco.ncMeta) {
-    return await Column.delete(context, this.id, ncMeta);
+  async delete(ncMeta = Noco.ncMeta) {
+    return await Column.delete(this.context, this.id, ncMeta);
   }
 
   static async checkTitleAvailable(

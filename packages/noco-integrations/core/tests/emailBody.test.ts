@@ -46,6 +46,16 @@ describe('prepareEmailBody', () => {
     expect(r.html).toContain(`<h1 style="${EMAIL_BASE_STYLES.h1}; color: #dc2626">T</h1>`);
   });
 
+  it('mirrors text-align to the align attribute for Outlook', () => {
+    const r = prepareEmailBody('<p style="text-align: center">x</p>');
+    expect(r.html).toContain(`<p style="${EMAIL_BASE_STYLES.p}; text-align: center" align="center">x</p>`);
+  });
+
+  it('keeps font-family and font-size spans', () => {
+    const r = prepareEmailBody(`<p><span style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px">x</span></p>`);
+    expect(r.html).toContain(`<span style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px">x</span>`);
+  });
+
   it('does not leak base styles into a raw sanitize', () => {
     expect(sanitizeEmailHtml('<p>x</p>')).toBe('<p>x</p>');
   });

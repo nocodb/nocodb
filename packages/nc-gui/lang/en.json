@@ -349,6 +349,7 @@
     "system": "System",
     "scrollToBottom": "Scroll to bottom",
     "undo": "Undo",
+    "redo": "Redo",
     "optional": "Optional",
     "none": "None",
     "light": "Light",
@@ -4085,7 +4086,9 @@
     "skillPolicyFromOrg": "Set by organization",
     "allVariables": "All variables",
     "insertFromPreviousSteps": "Insert from previous steps",
-    "emailBody": "Email body"
+    "emailBody": "Email body",
+    "emailBody": "Email body",
+    "clearFormatting": "Clear formatting"
   },
   "activity": {
     "useTemplate": "Use template",

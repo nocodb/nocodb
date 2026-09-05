@@ -305,6 +305,11 @@ const editor = useEditor({
         },
         char: '{{',
         allowSpaces: true,
+        // The sidebar and the compose modal render this input twice over one value, so the
+        // unfocused twin also reloads and re-matches `{{`. The plugin itself never checks
+        // focus, so without this both instances open a picker. `isActive` keeps an open
+        // picker alive once focus moves into the popup, which is where clicks land.
+        allow: ({ editor: e, isActive }: { editor: { isFocused: boolean }; isActive: boolean }) => isActive || e.isFocused,
       },
       variables: props.variables,
     }),
@@ -475,12 +480,14 @@ const insertExpression = () => {
     return
   }
 
+  // focus() first: mousedown.prevent keeps existing focus but never creates it, and the
+  // suggestion picker only opens for the focused editor.
   if (lastChar === '{') {
-    editor.value.chain().insertContent('{').run()
+    editor.value.chain().focus().insertContent('{').run()
   } else if (lastChar !== ' ' && $from.pos !== 1) {
-    editor.value.chain().insertContent(' {{').run()
+    editor.value.chain().focus().insertContent(' {{').run()
   } else {
-    editor.value.chain().insertContent('{{').run()
+    editor.value.chain().focus().insertContent('{{').run()
   }
 }
 

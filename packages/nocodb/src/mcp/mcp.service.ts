@@ -207,7 +207,7 @@ export class McpService {
             .array(
               z.object({
                 field: z.string().describe('Field Name'),
-                description: z.enum(['asc', 'desc']).describe('Sort Direction'),
+                direction: z.enum(['asc', 'desc']).describe('Sort Direction'),
               }),
             )
             .optional(),
@@ -227,7 +227,7 @@ export class McpService {
           // Prepare parameters
           const params: any = { pageSize, page };
           if (where) params.where = where;
-          if (sort) params.sort = sort;
+          if (sort) params.sort = JSON.stringify(sort);
           if (fields) params.fields = fields;
 
           const records = await this.datasV3Service.dataList(context, {

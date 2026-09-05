@@ -150,6 +150,7 @@ export const renderAsCellLookupOrLtarValue = [
   UITypes.Lookup,
   UITypes.LinkToAnotherRecord,
   UITypes.Links,
+  UITypes.Formula,
 ]
 
 export const MouseClickType = {

@@ -1,5 +1,6 @@
 import {
   SeparatorType,
+  formatCustomNumber,
   formatNumberWithSeparator,
   getSeparatorChars,
   resolveColumnSeparator,
@@ -15,18 +16,22 @@ export const DecimalCellRenderer: CellRenderer = {
     const meta = parseProp(column?.meta)
 
     if (value !== null && !isNaN(Number(value))) {
-      const separator = resolveColumnSeparator(meta)
-      const precision = meta.precision ?? 1
-      const numValue = Number(roundUpToPrecision(Number(value), precision))
-
-      if (separator === SeparatorType.Locale) {
-        displayValue = numValue.toLocaleString(undefined, {
-          minimumFractionDigits: precision,
-          maximumFractionDigits: precision,
-        })
+      if (meta.custom_format) {
+        displayValue = formatCustomNumber(Number(value), meta.custom_format)
       } else {
-        const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator)
-        displayValue = formatNumberWithSeparator(numValue, thousandSeparator, decimalSeparator, precision)
+        const separator = resolveColumnSeparator(meta)
+        const precision = meta.precision ?? 1
+        const numValue = Number(roundUpToPrecision(Number(value), precision))
+
+        if (separator === SeparatorType.Locale) {
+          displayValue = numValue.toLocaleString(undefined, {
+            minimumFractionDigits: precision,
+            maximumFractionDigits: precision,
+          })
+        } else {
+          const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator)
+          displayValue = formatNumberWithSeparator(numValue, thousandSeparator, decimalSeparator, precision)
+        }
       }
     }
 

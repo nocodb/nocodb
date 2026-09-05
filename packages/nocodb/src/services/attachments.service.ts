@@ -120,6 +120,23 @@ export class AttachmentsService {
             : _destPath;
 
           const originalName = utf8ify(file.originalname);
+
+          // Some clients (e.g. server-to-server / batch upload pipelines) send a
+          // generic or missing Content-Type, which we would otherwise persist
+          // verbatim and also set as the storage object's Content-Type. That makes
+          // browsers refuse to play videos (a <video> source is matched strictly by
+          // MIME, unlike <img> which sniffs bytes). Fall back to the extension-derived
+          // type so previews, thumbnails and the stored mimetype stay correct.
+          const genericMimetypes = ['text/plain', 'application/octet-stream'];
+          if (!file.mimetype || genericMimetypes.includes(file.mimetype)) {
+            const guessedMimetype = mime.getType(
+              path.extname(originalName).slice(1),
+            );
+            if (guessedMimetype) {
+              file.mimetype = guessedMimetype;
+            }
+          }
+
           const fileName = param.scope
             ? `${normalizeFilename(
                 path.parse(originalName).name,

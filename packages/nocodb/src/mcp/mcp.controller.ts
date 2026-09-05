@@ -50,6 +50,15 @@ export class McpController {
       NcError.forbidden('User has no access');
     }
 
+    // MCP authentication happens in this controller, after the global guard
+    // has built the request context. Keep both representations in sync so
+    // downstream data operations can attribute changes to the MCP user.
+    context.user = {
+      id: req.user.id,
+      email: req.user.email,
+      email_verified: req.user.email_verified,
+    };
+
     return await this.mcpService.handleRequest(tokenId, context, req, res);
   }
 }

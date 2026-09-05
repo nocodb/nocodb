@@ -61,14 +61,14 @@ async function requiredLookupTargets(
   ownerModel: Model,
   relationColumnId: string,
 ): Promise<Set<string> | undefined> {
-  const columns = await ownerModel.getColumns(context);
+  const columns = await ownerModel.getColumns();
 
   let targets: Set<string> | undefined;
 
   for (const col of columns) {
     if (col.uidt !== UITypes.Lookup) continue;
 
-    const colOptions = (await col.getColOptions(context)) as LookupColumn;
+    const colOptions = (await col.getColOptions()) as LookupColumn;
 
     if (
       colOptions?.fk_relation_column_id !== relationColumnId ||
@@ -1314,7 +1314,6 @@ export const relationDataFetcher = (param: {
         return [];
       }
 
-      const context = baseModel.context;
       const { refContext, mmContext } = relColOptions.getRelContext();
 
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
@@ -1453,7 +1452,6 @@ export const relationDataFetcher = (param: {
       const relColOptions =
         (await relColumn.getColOptions()) as LinkToAnotherRecordColumn;
 
-      const context = baseModel.context;
       const { refContext } = relColOptions.getRelContext();
 
       const cn = (await relColOptions.getChildColumn()).column_name;

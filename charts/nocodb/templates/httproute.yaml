@@ -1,0 +1,34 @@
+{{- if .Values.httproute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "nocodb.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nocodb.labels" . | nindent 4 }}
+  {{- with include "nocodb.annotations" (dict "context" . "extraAnnotations" .Values.httproute.annotations) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.httproute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.httproute.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- if .Values.httproute.rules }}
+    {{- include "nocodb.tplvalues.render" (dict "value" .Values.httproute.rules "context" $) | nindent 4 }}
+    {{- else }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ include "nocodb.fullname" . }}
+          port: {{ .Values.service.port }}
+    {{- end }}
+{{- end }}

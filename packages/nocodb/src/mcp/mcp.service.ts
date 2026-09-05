@@ -207,7 +207,7 @@ export class McpService {
             .array(
               z.object({
                 field: z.string().describe('Field Name'),
-                description: z.enum(['asc', 'desc']).describe('Sort Direction'),
+                direction: z.enum(['asc', 'desc']).describe('Sort Direction'),
               }),
             )
             .optional(),

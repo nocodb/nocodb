@@ -1743,9 +1743,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_relation_column_id,
               });
               const relColOptions =
-                await relCol.getColOptions<LinkToAnotherRecordColumn>(
-                  this.context,
-                );
+                await relCol.getColOptions<LinkToAnotherRecordColumn>();
               // A V2 junction mo/bt/oo link is a `Links` column, but its
               // resolver is registered under the bare title (select-object
               // skips its rollup count), so it must not take the `_nc_lk_`

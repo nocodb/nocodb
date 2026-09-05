@@ -52,7 +52,16 @@ const {
   showUpgradeForInterfaceFeature,
   blockWorkflows,
   showUpgradeToUseWorkflows,
+  showUpgradeSurface,
+  blockAgents,
+  showUpgradeToUseAgents,
 } = useEeConfig()
+
+// Both ship on the unlicensed on-prem Free tier, so community mode may only drop
+// them where they'd be a pure upsell (blocked tier) — not via `showEEFeatures`.
+const showWorkflowsNav = computed(() => isEeUI && showUpgradeSurface(blockWorkflows.value))
+
+const showInterfacesNav = computed(() => isEeUI && showUpgradeSurface(hideInterfaces.value))
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -166,7 +175,7 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
-  ...(!isMobileMode.value && showEEFeatures.value
+  ...(!isMobileMode.value && showWorkflowsNav.value
     ? [
         {
           key: 'workflows',
@@ -183,7 +192,7 @@ const mainItems = computed<NavItem[]>(() => [
     : []),
   // Paid-only, but the entry stays visible below the tier — clicking upsells
   // (onTabClick) instead of navigating, mirroring Rail.
-  ...(showEEFeatures.value
+  ...(showInterfacesNav.value
     ? [
         {
           key: 'interfaces',

@@ -410,5 +410,18 @@ export default defineNuxtConfig({
     ],
   },
 
+  hooks: {
+    'build:manifest'(manifest) {
+      // Drop prefetch of lazy-loaded chunks. Nuxt prefetches every async chunk
+      // referenced by the entry (incl. the multi-MB Monaco editor) on first load,
+      // which on high-latency / metered links wastes bandwidth, competes with the
+      // resources actually needed, and shows up as large "unused JS" in audits.
+      // Chunks still load on-demand via their import() when the feature is used.
+      for (const key in manifest) {
+        manifest[key].dynamicImports = []
+      }
+    },
+  },
+
   compatibilityDate: '2024-12-04',
 })

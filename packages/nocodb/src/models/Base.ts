@@ -329,8 +329,14 @@ export default class Base implements BaseType {
     includeConfig = true,
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
+    // Deliberately row-derived, NOT this.context: a Base can be fetched
+    // through a root-scoped lookup (Base.getByTitleOrId with
+    // {workspace_id: RootScopes.BASE, base_id: RootScopes.BASE}), and that
+    // scope gets stamped on the instance. Source.list is base-scoped, so
+    // handing it the lookup scope returns an empty list. The base's own ids
+    // are the correct scope here.
     const sources = await Source.list(
-      this.context,
+      { workspace_id: this.fk_workspace_id, base_id: this.id } as NcContext,
       { baseId: this.id },
       ncMeta,
     );

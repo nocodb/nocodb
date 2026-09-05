@@ -37,7 +37,14 @@ const {
   blockTimelineView,
   blockGanttView,
   blockDocs,
+  blockWorkflows,
+  showUpgradeSurface,
+  blockAgents,
 } = useEeConfig()
+
+// Workflows ship on the unlicensed on-prem Free tier — community mode only hides the
+// entry where it'd be a pure upsell (blocked tier). Scripts stay on `showEEFeatures`.
+const showWorkflowCreate = computed(() => isEeUI && showUpgradeSurface(blockWorkflows.value))
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -240,7 +247,7 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <template v-if="showEEFeatures">
+          <template v-if="showWorkflowCreate">
             <NcTooltip
               :title="
                 !isWorkflowsTab
@@ -270,6 +277,7 @@ const hasDocumentCreateAccess = computed(() => {
               </NcMenuItem>
             </NcTooltip>
             <NcTooltip
+              v-if="showEEFeatures"
               :title="
                 !isWorkflowsTab
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })

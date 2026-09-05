@@ -330,7 +330,7 @@ export default class Base implements BaseType {
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
     const sources = await Source.list(
-      { workspace_id: this.fk_workspace_id, base_id: this.id },
+      this.context,
       { baseId: this.id },
       ncMeta,
     );

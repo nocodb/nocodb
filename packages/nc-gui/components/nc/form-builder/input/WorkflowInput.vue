@@ -465,6 +465,14 @@ const showLinkMenu = ref(false)
 
 const linkMenuRef = ref<HTMLElement>()
 
+const linkUrlRef = ref<HTMLInputElement>()
+
+// Fixed-position so the menu can open beside whichever trigger was clicked — toolbar,
+// bubble, or sidebar strip — instead of a slot under the toolbar.
+const linkMenuPos = ref({ top: 0, left: 0 })
+
+const LINK_MENU_SIZE = { width: 260, height: 118 }
+
 const linkUrl = ref('')
 
 const linkText = ref('')
@@ -588,20 +596,20 @@ const formatGroups = computed<WorkflowInputTool[][]>(() => {
     ],
   ]
 
-  // Undo/redo earn a slot only on the persistent toolbar; the bubble is for the selection.
-  if (expanded.value) {
-    groups.unshift([
-      { key: 'undo', icon: 'lucideUndo2', label: 'general.undo', action: () => editor.value?.chain().focus().undo().run() },
-      { key: 'redo', icon: 'lucideRedo2', label: 'general.redo', action: () => editor.value?.chain().focus().redo().run() },
-    ])
-  }
-
   return groups
 })
 
-// Selection bubble only in the sidebar; the modal has a persistent toolbar.
+// Undo/redo earn a slot only on the persistent toolbar; the bubble is for the selection.
+const toolbarGroups = computed<WorkflowInputTool[][]>(() => [
+  [
+    { key: 'undo', icon: 'lucideUndo2', label: 'general.undo', action: () => editor.value?.chain().focus().undo().run() },
+    { key: 'redo', icon: 'lucideRedo2', label: 'general.redo', action: () => editor.value?.chain().focus().redo().run() },
+  ],
+  ...formatGroups.value,
+])
+
 const shouldShowBubble = ({ editor: e }: { editor: { state: { selection: { empty: boolean } }; isEditable: boolean } }) =>
-  !expanded.value && !readOnly.value && e.isEditable && !e.state.selection.empty
+  !readOnly.value && e.isEditable && !e.state.selection.empty
 
 const bubbleTippyOptions = { duration: 100, maxWidth: 600, placement: 'top' as const, appendTo: () => document.body }
 
@@ -617,7 +625,7 @@ function toggleOrderedList() {
   editor.value?.chain().focus().toggleOrderedList().run()
 }
 
-function openLinkMenu() {
+function openLinkMenu(event?: MouseEvent) {
   if (!editor.value) return
 
   // Toggle off an existing link on the current selection.
@@ -629,7 +637,20 @@ function openLinkMenu() {
   const { from, to } = editor.value.state.selection
   linkText.value = editor.value.state.doc.textBetween(from, to, ' ')
   linkUrl.value = ''
+
+  // Anchor under the clicked button; fall back to the caret for keyboard-driven opens.
+  const trigger = (event?.currentTarget as HTMLElement | null)?.getBoundingClientRect()
+  const caret = editor.value.view.coordsAtPos(from)
+  const anchor = trigger ?? { left: caret.left, bottom: caret.bottom, top: caret.top }
+
+  const gap = 6
+  const left = Math.max(8, Math.min(anchor.left, window.innerWidth - LINK_MENU_SIZE.width - 8))
+  const fitsBelow = anchor.bottom + gap + LINK_MENU_SIZE.height <= window.innerHeight
+  const top = fitsBelow ? anchor.bottom + gap : Math.max(8, anchor.top - gap - LINK_MENU_SIZE.height)
+
+  linkMenuPos.value = { top, left }
   showLinkMenu.value = true
+  nextTick(() => linkUrlRef.value?.focus())
 }
 
 function applyLink() {
@@ -715,7 +736,7 @@ watch(readOnly, (newValue) => {
 
           <!-- Modal: full toolbar -->
           <div v-else-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
-            <NcFormBuilderInputWorkflowInputTools v-if="editor" :editor="editor" :groups="formatGroups" />
+            <NcFormBuilderInputWorkflowInputTools v-if="editor" :editor="editor" :groups="toolbarGroups" />
 
             <div class="flex-1" />
 
@@ -732,7 +753,15 @@ watch(readOnly, (newValue) => {
             </NcTooltip>
           </div>
 
-          <div v-if="showLinkMenu" ref="linkMenuRef" class="nc-workflow-link-menu" @click.stop>
+          <!-- Stays inside the shell (and so inside the modal's content subtree); fixed-positioned
+               elements escape the shell's overflow:hidden on their own. -->
+          <div
+            v-if="showLinkMenu"
+            ref="linkMenuRef"
+            class="nc-workflow-link-menu"
+            :style="{ top: `${linkMenuPos.top}px`, left: `${linkMenuPos.left}px` }"
+            @click.stop
+          >
             <input
               v-model="linkText"
               class="nc-workflow-link-input"
@@ -740,6 +769,7 @@ watch(readOnly, (newValue) => {
               data-testid="nc-workflow-richtext-link-text"
             />
             <input
+              ref="linkUrlRef"
               v-model="linkUrl"
               class="nc-workflow-link-input"
               :placeholder="$t('placeholder.enterUrl')"
@@ -1048,17 +1078,6 @@ watch(readOnly, (newValue) => {
 // The shell teleports into the expand modal, so everything it owns is styled at top
 // level rather than nested under .nc-workflow-input.
 .nc-email-shell {
-  .nc-workflow-link-menu {
-    @apply absolute z-50 top-10 left-1.5 flex flex-col gap-1 p-2 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
-    width: 260px;
-    box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
-
-    .nc-workflow-link-input {
-      @apply w-full px-2 py-1 text-small rounded-md border-1 border-nc-border-gray-medium outline-none;
-      @apply focus:border-nc-border-brand;
-    }
-  }
-
   .nc-workflow-expression {
     @apply bg-nc-bg-brand text-nc-content-brand rounded-md px-1.5 cursor-pointer whitespace-nowrap;
     @apply inline-flex items-center hover:bg-nc-brand-100 transition-colors;
@@ -1082,6 +1101,18 @@ watch(readOnly, (newValue) => {
     float: left;
     height: 0;
     pointer-events: none;
+  }
+}
+
+.nc-workflow-link-menu {
+  @apply fixed flex flex-col gap-1 p-2 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  width: 260px;
+  z-index: 10001; // above the modal mask and the tippy bubble
+  box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
+
+  .nc-workflow-link-input {
+    @apply w-full px-2 py-1 text-small rounded-md border-1 border-nc-border-gray-medium outline-none;
+    @apply focus:border-nc-border-brand;
   }
 }
 
@@ -1144,10 +1175,6 @@ watch(readOnly, (newValue) => {
         font-size: 13px;
       }
     }
-  }
-
-  .nc-workflow-link-menu {
-    @apply top-12 left-5;
   }
 }
 </style>

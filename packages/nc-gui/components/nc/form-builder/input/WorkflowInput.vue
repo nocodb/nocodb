@@ -7,7 +7,6 @@ import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3
 import type { VariableDefinition } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
-import TextStyle from '@tiptap/extension-text-style'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
 import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
@@ -17,6 +16,7 @@ import { FontSize } from '~/helpers/tiptap-markdown/extensions/marks/fontSize'
 import { Highlight } from '~/helpers/tiptap-markdown/extensions/marks/highlight'
 import { TextAlign } from '~/helpers/tiptap-markdown/extensions/textAlign'
 import { TextColor } from '~/helpers/tiptap-markdown/extensions/marks/textColor'
+import { EmailTextStyle } from '~/helpers/tiptap-markdown/extensions/marks/textStyle'
 
 interface NodeGroup {
   nodeId: string
@@ -274,7 +274,7 @@ const editor = useEditor({
           Underline,
           TextColor,
           Highlight,
-          TextStyle,
+          EmailTextStyle,
           FontFamily,
           FontSize,
           TextAlign,
@@ -312,8 +312,11 @@ const editor = useEditor({
   ],
   onUpdate: ({ editor }) => {
     if (isRichText.value) {
-      vModel.value = editor.isEmpty ? '' : expressionSpansToTokens(editor.getHTML())
-      lastEmitted = vModel.value
+      // Record what we emit, not the prop: the parent hasn't applied the update yet,
+      // so reading vModel here would return the previous value.
+      const next = editor.isEmpty ? '' : expressionSpansToTokens(editor.getHTML())
+      lastEmitted = next
+      vModel.value = next
       recomputeWordCount()
       return
     }
@@ -329,8 +332,8 @@ const editor = useEditor({
     markdown = markdown.replaceAll('\\[', '[')
     markdown = markdown.replaceAll('\\]', ']')
 
-    vModel.value = markdown.trim()
-    lastEmitted = vModel.value
+    lastEmitted = markdown.trim()
+    vModel.value = lastEmitted
   },
   editable: !readOnly.value,
   autofocus: false,
@@ -1010,6 +1013,13 @@ watch(readOnly, (newValue) => {
     // The shell owns the border and focus ring; the legacy .nc-workflow-input rules
     // put both on the editor itself, so they are overridden rather than out-specified.
     @apply h-auto min-h-35 w-full px-3.5 py-3 outline-none !border-0 !rounded-none !shadow-none;
+
+    // global.css sets font-family on `*`, which resets every nested mark span (colour,
+    // highlight, link) to Inter and hides the author's font. Marks must inherit instead;
+    // inline styles and the code/chip rules below still win.
+    * {
+      font-family: inherit;
+    }
     // Legacy .ProseMirror:not(.multiline) forces nowrap + overflow-hidden; the shell wraps and
     // scrolls at the .nc-email-editor level instead.
     white-space: pre-wrap !important;

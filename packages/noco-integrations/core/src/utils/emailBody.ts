@@ -129,16 +129,16 @@ let applyBaseStyles = false;
 DOMPurify.addHook('uponSanitizeElement', (node, data) => {
   if (!emailSanitizeActive || !applyBaseStyles) return;
   if (node.nodeType !== 1) return;
-  // No DOM lib in this package's tsconfig; the node is a jsdom Element at runtime.
-  const el = node as unknown as {
-    getAttribute(name: string): string | null;
-    setAttribute(name: string, value: string): void;
-  };
+  const el = node as Element;
   const own = el.getAttribute('style');
   // Outlook's Word engine ignores text-align on blocks but honours the align attribute.
   const align = own && /text-align:\s*(center|right|justify)/i.exec(own)?.[1];
   if (align) el.setAttribute('align', align.toLowerCase());
-  const base = EMAIL_BASE_STYLES[data.tagName];
+  // The editor renders `li > p` inline, so a paragraph margin there would add gaps the
+  // author never saw.
+  const isListParagraph =
+    data.tagName === 'p' && el.parentElement?.tagName?.toLowerCase() === 'li';
+  const base = isListParagraph ? undefined : EMAIL_BASE_STYLES[data.tagName];
   if (!base) return;
   // Base first so the author's own declarations win.
   el.setAttribute('style', own ? `${base}; ${own}` : base);
@@ -159,9 +159,10 @@ DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
  */
 export function isLikelyHtml(value: string): boolean {
   if (!value) return false;
-  return /<(?:p|br|strong|b|em|i|u|s|strike|a|span|ul|ol|li|blockquote|code|pre|h[1-6])\b[^>]*>/i.test(
-    value,
-  );
+  // The editor always serialises a block element first. Anchoring here (rather than "contains
+  // any tag") means interpolated record text like `a<b and c>d` can never flip a plain-text
+  // template into HTML mode.
+  return /^\s*<(?:p|h[1-6]|ul|ol|blockquote|pre|div)\b/i.test(value);
 }
 
 /**

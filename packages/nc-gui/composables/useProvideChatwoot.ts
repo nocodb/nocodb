@@ -1,6 +1,8 @@
 export const useProvideChatwoot = () => {
   const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
 
+  const { isDark } = useTheme()
+
   const { $api } = useNuxtApp()
 
   const { user, appInfo } = useGlobal()
@@ -48,6 +50,12 @@ export const useProvideChatwoot = () => {
     chatwootReady.value = true
     initUserCustomerAttributes()
   }
+
+  watch(isDark, (dark) => {
+    if (chatwootReady.value && ncIsFunction(window.$chatwoot?.setColorScheme)) {
+      window.$chatwoot.setColorScheme(dark ? 'dark' : 'light')
+    }
+  })
 
   const loadAggMetaInfo = async () => {
     try {

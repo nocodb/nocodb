@@ -46,6 +46,22 @@ const isGroupByValueEqual = (a: unknown, b: unknown): boolean => {
   return String(a) === String(b)
 }
 
+/**
+ * Runs post-insert UI bookkeeping (cache writes, row-color/button formula
+ * evaluation, aggregate reload) once a row has already been persisted by the
+ * API. A failure here is never an insert failure — the row already exists in
+ * the database — so it must not surface as one (e.g. a "Failed to insert
+ * row" toast on a row that was in fact created successfully, #13002).
+ * Swallows and logs instead of throwing.
+ */
+export const runPostInsertBookkeeping = (bookkeeping: () => void) => {
+  try {
+    bookkeeping()
+  } catch (error) {
+    console.error('Row was inserted successfully but post-insert UI update failed', error)
+  }
+}
+
 const formatData = (
   list: Record<string, any>[],
   pageInfo?: PaginatedType,
@@ -1506,47 +1522,54 @@ export function useInfiniteData(args: {
             { before: beforeRowID },
           )
 
-      currentRow.rowMeta.new = false
+      // The row is now persisted server-side — any failure from here on is local
+      // bookkeeping/rendering (cache shifting, row-color/button formula evaluation,
+      // aggregate reload), not an insert failure. Routing it through the outer
+      // catch would show a false "Failed to insert row" toast for a row that was
+      // in fact created successfully (#13002), so it's isolated and only logged.
+      runPostInsertBookkeeping(() => {
+        currentRow.rowMeta.new = false
 
-      Object.assign(currentRow.row, {
-        ...(currentRow.row ?? {}),
-        ...rowPkData(insertedData, metaValue?.columns as ColumnType[]),
-      })
+        Object.assign(currentRow.row, {
+          ...(currentRow.row ?? {}),
+          ...rowPkData(insertedData, metaValue?.columns as ColumnType[]),
+        })
 
-      const insertIndex = currentRow.rowMeta.rowIndex!
+        const insertIndex = currentRow.rowMeta.rowIndex!
 
-      Object.assign(currentRow.oldRow, insertedData)
+        Object.assign(currentRow.oldRow, insertedData)
 
-      if (dataCache.cachedRows.value.has(insertIndex) && !ignoreShifting) {
-        const rows = Array.from(dataCache.cachedRows.value.entries())
-        const rowsToShift = rows.filter(([index]) => index >= insertIndex)
-        rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
+        if (dataCache.cachedRows.value.has(insertIndex) && !ignoreShifting) {
+          const rows = Array.from(dataCache.cachedRows.value.entries())
+          const rowsToShift = rows.filter(([index]) => index >= insertIndex)
+          rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
 
-        for (const [index, row] of rowsToShift) {
-          row.rowMeta.rowIndex = index + 1
-          dataCache.cachedRows.value.set(index + 1, row)
+          for (const [index, row] of rowsToShift) {
+            row.rowMeta.rowIndex = index + 1
+            dataCache.cachedRows.value.set(index + 1, row)
+          }
         }
-      }
 
-      dataCache.cachedRows.value.set(insertIndex, {
-        row: { ...insertedData, ...currentRow.row },
-        oldRow: { ...insertedData },
-        rowMeta: {
-          ...currentRow.rowMeta,
-          rowIndex: insertIndex,
-          new: false,
-          saving: false,
-          isRlsHidden: !!insertedData?.__nc_rls_hidden,
-          ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
-          buttonDisabled: evaluateButtonVisibility({ ...insertedData, ...currentRow.row }),
-        },
+        dataCache.cachedRows.value.set(insertIndex, {
+          row: { ...insertedData, ...currentRow.row },
+          oldRow: { ...insertedData },
+          rowMeta: {
+            ...currentRow.rowMeta,
+            rowIndex: insertIndex,
+            new: false,
+            saving: false,
+            isRlsHidden: !!insertedData?.__nc_rls_hidden,
+            ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
+            buttonDisabled: evaluateButtonVisibility({ ...insertedData, ...currentRow.row }),
+          },
+        })
+
+        if (!ignoreShifting) {
+          dataCache.totalRows.value++
+        }
+        callbacks?.reloadAggregate?.({ path })
+        callbacks?.syncVisibleData?.()
       })
-
-      if (!ignoreShifting) {
-        dataCache.totalRows.value++
-      }
-      callbacks?.reloadAggregate?.({ path })
-      callbacks?.syncVisibleData?.()
 
       return insertedData
     } catch (error: any) {

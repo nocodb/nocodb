@@ -931,7 +931,11 @@ watch(readOnly, (newValue) => {
 
     &:not(.multiline) {
       @apply overflow-hidden;
-      white-space: nowrap;
+      // `pre`, not `nowrap`: inserting a variable leaves the chip followed by a single space,
+      // and a collapsed trailing space has no box for the caret to sit in — the field then
+      // looks unclickable because nothing is painted. `pre` keeps that space, and still
+      // suppresses wrapping for the single-line fields.
+      white-space: pre;
     }
 
     &.multiline {

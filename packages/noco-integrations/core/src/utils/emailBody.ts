@@ -201,7 +201,25 @@ export function htmlToPlainText(html: string): string {
   if (!html) return '';
   return html
     .replace(/<\s*br\s*\/?>/gi, '\n')
+    // A plain-text reader cannot follow a link whose href was thrown away with the tag.
+    .replace(
+      /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+      (_match, href: string, inner: string) => {
+        const label = inner.replace(/<[^>]+>/g, '').trim();
+        const url = href.replace(/^mailto:/i, '');
+        if (!label) return url;
+        return label === url || label.includes(url) ? label : `${label} (${url})`;
+      },
+    )
+    // Number ordered items before the generic bullet rule flattens every list to dashes.
+    .replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (_match, inner: string) => {
+      let n = 0;
+      return inner.replace(/<\s*li[^>]*>/gi, () => `${(n += 1)}. `);
+    })
     .replace(/<\s*li[^>]*>/gi, '- ')
+    // The editor wraps each item's text in a paragraph; without this every item gains a blank
+    // line from the </p> and again from the </li>.
+    .replace(/<\/\s*p\s*>\s*<\/\s*li\s*>/gi, '</li>')
     .replace(/<\/\s*(?:p|div|li|ul|ol|blockquote|h[1-6]|pre)\s*>/gi, '\n')
     .replace(/<[^>]+>/g, '')
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))

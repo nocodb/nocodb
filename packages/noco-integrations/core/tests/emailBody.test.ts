@@ -127,4 +127,24 @@ describe('htmlToPlainText', () => {
       'T\na&b\nq\nx\ny',
     );
   });
+
+  it('keeps the href, which a plain-text reader has no other way to reach', () => {
+    expect(htmlToPlainText('<p><a href="https://example.com/x">link text</a></p>')).toBe(
+      'link text (https://example.com/x)',
+    );
+    expect(htmlToPlainText('<p><a href="mailto:a@b.com">mail</a></p>')).toBe('mail (a@b.com)');
+  });
+
+  it('does not repeat a url that is already the label', () => {
+    expect(htmlToPlainText('<p><a href="https://example.com">https://example.com</a></p>')).toBe(
+      'https://example.com',
+    );
+  });
+
+  it('numbers ordered items and bullets unordered ones', () => {
+    expect(htmlToPlainText('<ol><li><p>first</p></li><li><p>second</p></li></ol>')).toBe(
+      '1. first\n2. second',
+    );
+    expect(htmlToPlainText('<ul><li><p>one</p></li><li><p>two</p></li></ul>')).toBe('- one\n- two');
+  });
 });

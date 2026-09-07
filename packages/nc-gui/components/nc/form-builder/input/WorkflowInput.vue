@@ -158,7 +158,9 @@ const isMultiline = computed(() => props.plugins?.includes('multiline') || isRic
 // editor always serialises a block element first. Anchoring keeps legacy plain text that merely
 // contains a tag rendering exactly as it will be sent — as literal text.
 function looksLikeHtml(value: string): boolean {
-  return /^\s*<(?:p|h[1-6]|ul|ol|blockquote|pre|div)\b/i.test(value)
+  // Lookahead rather than `\b`, mirroring isLikelyHtml: a boundary also matches
+  // `<pre-approved offer>`, which is plain text a recipient must still receive.
+  return /^\s*<(?:p|h[1-6]|ul|ol|blockquote|pre|div)(?=[\s>/])/i.test(value)
 }
 
 function escapeHtml(value: string): string {

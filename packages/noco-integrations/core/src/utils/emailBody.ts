@@ -9,6 +9,10 @@ import DOMPurify from 'isomorphic-dompurify';
 export const EMAIL_HTML_SANITIZE_CONFIG = {
   ALLOWED_TAGS: [
     'p',
+    // `isLikelyHtml` treats a leading <div> as rich text, so div-structured bodies (API- or
+    // import-authored; TipTap never emits them) must survive here too — otherwise the tags are
+    // stripped and every line runs together in both parts.
+    'div',
     'br',
     'strong',
     'b',
@@ -162,7 +166,9 @@ export function isLikelyHtml(value: string): boolean {
   // The editor always serialises a block element first. Anchoring here (rather than "contains
   // any tag") means interpolated record text like `a<b and c>d` can never flip a plain-text
   // template into HTML mode.
-  return /^\s*<(?:p|h[1-6]|ul|ol|blockquote|pre|div)\b/i.test(value);
+  // The lookahead, not `\b`: a boundary also matches `<pre-approved offer>` or `<p.s. …>`, and
+  // promoting that plain text to HTML deletes it — the sanitizer drops the unknown tag.
+  return /^\s*<(?:p|h[1-6]|ul|ol|blockquote|pre|div)(?=[\s>/])/i.test(value);
 }
 
 /**
@@ -236,6 +242,14 @@ function listToLines(list: Element): string[] {
   let index = 0;
 
   Array.from(list.children).forEach((child) => {
+    // A sub-list authored as a *sibling* of the items (legacy WYSIWYG output) still belongs to
+    // the item above it. Skipping it, as "only LI children" did, dropped its items entirely
+    // while the HTML part kept them — the two MIME parts then disagreed.
+    if (child.tagName === 'UL' || child.tagName === 'OL') {
+      listToLines(child).forEach((line) => lines.push(line ? `  ${line}` : line));
+      return;
+    }
+
     if (child.tagName !== 'LI') return;
 
     const marker = ordered ? `${(index += 1)}. ` : '- ';

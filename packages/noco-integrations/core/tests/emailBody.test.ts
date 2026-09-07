@@ -16,6 +16,23 @@ describe('isLikelyHtml', () => {
     expect(isLikelyHtml('<h2>Title</h2>')).toBe(true);
   });
 
+  it('does not promote plain text whose first word merely starts like a tag', () => {
+    // `\b` matched these, and promoting them deletes the bracketed text: the sanitizer drops
+    // the unknown tag, so the recipient loses it entirely.
+    expect(isLikelyHtml('<pre-approved offer inside> Dear customer')).toBe(false);
+    expect(isLikelyHtml('<p.s. read this> body')).toBe(false);
+    expect(isLikelyHtml("<ol' fashioned> greeting")).toBe(false);
+    expect(isLikelyHtml('<h1-hour sale> today only')).toBe(false);
+    expect(isLikelyHtml('<div-ish thing> text')).toBe(false);
+  });
+
+  it('still detects every shape the editor emits', () => {
+    expect(isLikelyHtml('<p/>')).toBe(true);
+    expect(isLikelyHtml('<p style="margin: 0">x</p>')).toBe(true);
+    expect(isLikelyHtml('   <blockquote>q</blockquote>')).toBe(true);
+    expect(isLikelyHtml('<div>d</div>')).toBe(true);
+  });
+
   it('keeps legacy plain text (even with tag-like content) as text', () => {
     expect(isLikelyHtml('Hello,\nline two')).toBe(false);
     expect(isLikelyHtml('a < b and b > c')).toBe(false);
@@ -172,6 +189,18 @@ describe('htmlToPlainText', () => {
 
   it('nests a bullet list inside an ordered item', () => {
     expect(htmlToPlainText('<ol><li>a<ul><li>b</li></ul></li></ol>')).toBe('1. a\n  - b');
+  });
+
+  it('keeps a sub-list authored as a sibling of the items', () => {
+    // Legacy WYSIWYG output puts the nested list beside the <li>s rather than inside one.
+    // Skipping non-LI children dropped b and c while the HTML part kept them.
+    expect(
+      htmlToPlainText('<ul><li>a</li><ul><li>b</li><li>c</li></ul><li>d</li></ul>'),
+    ).toBe('- a\n  - b\n  - c\n- d');
+  });
+
+  it('keeps div-structured bodies on separate lines', () => {
+    expect(htmlToPlainText('<div>one</div><div>two</div>')).toBe('one\ntwo');
   });
 
   it('indents two levels of nesting by one step each', () => {

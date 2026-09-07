@@ -3282,6 +3282,7 @@
     "coverImageArea": "Cover image",
     "hideEmptySections": "Hide empty sections",
     "enableNestedRecords": "Enable nested records",
+    "createLinkedRecordField": "Create a linked record field",
     "nestBy": "Nest by",
     "wrapHeaders": "Wrap headers",
     "collapseAllByDefault": "Collapse all by default",
@@ -5648,6 +5649,7 @@
     "error": {
       "interfaceButtonFieldMissing": "This button refers to a field that no longer exists",
       "duplicateAutomationName": "An automation with this name already exists",
+      "nestingLinkNeedsPrimaryKey": "Both tables need a primary key to create a linked record field",
       "noResultReturned": "No result returned",
       "somethingWentWrongTryAgain": "Something went wrong. Please try again.",
       "failedToCreateSync": "Failed to create sync",

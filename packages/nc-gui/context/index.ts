@@ -194,6 +194,9 @@ export const TemplateBreadcrumbsInj: InjectionKey<Ref<string[]>> = Symbol('templ
 /** Opens the node's compose modal (rich-text nodes only); absent when no panel provides it. */
 export const WorkflowComposeInj: InjectionKey<{ open: () => void }> = Symbol('workflow-compose')
 
+/** Per-group label overrides for a form-builder rendering, keyed by field group. */
+export const FormBuilderGroupLabelsInj: InjectionKey<Ref<Record<string, string>>> = Symbol('form-builder-group-labels')
+
 /** True inside the compose modal, where the body editor shows its full toolbar. */
 export const WorkflowComposeModeInj: InjectionKey<Ref<boolean>> = Symbol('workflow-compose-mode')
 

@@ -13,12 +13,14 @@ describe('isLikelyHtml', () => {
   it('detects rich-text bodies', () => {
     expect(isLikelyHtml('<p>Hi</p>')).toBe(true);
     expect(isLikelyHtml('<h2>Title</h2>')).toBe(true);
-    expect(isLikelyHtml('Hi <strong>there</strong>')).toBe(true);
   });
 
-  it('keeps legacy plain text (even with angle brackets) as text', () => {
+  it('keeps legacy plain text (even with tag-like content) as text', () => {
     expect(isLikelyHtml('Hello,\nline two')).toBe(false);
     expect(isLikelyHtml('a < b and b > c')).toBe(false);
+    expect(isLikelyHtml('if a<b and c>d')).toBe(false);
+    expect(isLikelyHtml('Total: 5<b>')).toBe(false);
+    expect(isLikelyHtml('Hi <strong>there</strong>')).toBe(false);
     expect(isLikelyHtml('')).toBe(false);
   });
 });
@@ -39,6 +41,11 @@ describe('prepareEmailBody', () => {
         '</div>',
     );
     expect(r.text).toBe('Hi there\n- one\n- two');
+  });
+
+  it('does not add paragraph margins inside list items', () => {
+    const r = prepareEmailBody('<ul><li><p>one</p></li></ul>');
+    expect(r.html).toContain(`<li style="${EMAIL_BASE_STYLES.li}"><p>one</p></li>`);
   });
 
   it('inlines base styles under the author\'s own', () => {

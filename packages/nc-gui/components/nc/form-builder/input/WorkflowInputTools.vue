@@ -1,5 +1,3 @@
-<script lang="ts"></script>
-
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
 import { EMAIL_FONTS } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
@@ -47,6 +45,9 @@ const activeHighlight = computed(
 const activeFont = computed(() => props.editor.getAttributes('textStyle').fontFamily ?? '')
 
 const activeSize = computed(() => props.editor.getAttributes('textStyle').fontSize ?? '')
+
+// Fonts pasted in from elsewhere won't be in the list; show them as the default rather than nothing.
+const activeFontName = computed(() => EMAIL_FONTS.find((f) => f.value === activeFont.value)?.name ?? EMAIL_FONTS[0].name)
 
 const activeAlign = computed<EmailTextAlign>(
   () => ALIGNMENTS.find((a) => a.value !== 'left' && props.editor.isActive({ textAlign: a.value }))?.value ?? 'left',
@@ -151,14 +152,15 @@ function applyHighlight(color: string) {
           <NcButton
             size="xs"
             type="text"
-            class="nc-workflow-format-btn"
+            class="nc-workflow-format-btn nc-email-typo-btn"
             :class="{ 'is-active': typographyOpen || activeFont || activeSize }"
             data-testid="nc-workflow-richtext-typography-btn"
             @mousedown.prevent
             @click.stop="typographyOpen = !typographyOpen"
           >
-            <!-- Optically light glyph; a larger box lands it at the same visual size as the stroke icons -->
-            <GeneralIcon icon="lucideALargeSmall" class="nc-email-typo-icon" />
+            <!-- The current font, set in itself — the clearest label a font control can have -->
+            <span class="nc-email-typo-name" :style="{ fontFamily: activeFont || undefined }">{{ activeFontName }}</span>
+            <GeneralIcon icon="ncChevronDown" class="w-3.5 h-3.5 flex-none text-nc-content-gray-muted" />
           </NcButton>
         </NcTooltip>
 
@@ -241,10 +243,13 @@ function applyHighlight(color: string) {
 </template>
 
 <style lang="scss">
-// Larger box, lighter stroke: the glyph is optically light, so it needs size, not weight.
-.nc-email-typo-icon {
-  @apply w-5.5 h-5.5;
-  stroke-width: 1.5;
+.nc-email-typo-btn {
+  @apply !w-auto !px-2 gap-1;
+
+  .nc-email-typo-name {
+    @apply whitespace-nowrap max-w-28 truncate;
+    font-size: 13px;
+  }
 }
 
 // "A" over a colour bar — the mail-client convention for a text/background colour control.

@@ -154,10 +154,11 @@ const isRichText = computed(() => props.plugins?.includes('richText') || false)
 
 const isMultiline = computed(() => props.plugins?.includes('multiline') || isRichText.value)
 
-// Minimal HTML detection — the rich-text editor always wraps content in these tags,
-// while legacy plain-text values contain none.
+// Same rule as the backend's isLikelyHtml (noco-integrations core/utils/emailBody.ts): the
+// editor always serialises a block element first. Anchoring keeps legacy plain text that merely
+// contains a tag rendering exactly as it will be sent — as literal text.
 function looksLikeHtml(value: string): boolean {
-  return /<(?:p|br|strong|b|em|i|u|s|strike|a|span|ul|ol|li|blockquote|code|pre|h[1-6])\b[^>]*>/i.test(value)
+  return /^\s*<(?:p|h[1-6]|ul|ol|blockquote|pre|div)\b/i.test(value)
 }
 
 function escapeHtml(value: string): string {

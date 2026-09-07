@@ -382,6 +382,8 @@ const editor = useEditor({
 function loadContent() {
   if (!editor.value) return
 
+  syncAiEmptyEligibility()
+
   // Both trackers move together: a lastEmitted left over from an earlier edit would later be
   // mistaken for an echo of this instance's own emit and swallow a real external change.
   lastLoaded = vModel.value
@@ -482,20 +484,35 @@ function loadContent() {
 }
 
 // Empty body: the editor area shows an AI empty state instead of a bare placeholder.
-// "Start blank" dismisses it until the body has had content again.
+// "Start blank" dismisses it for this body.
 const aiEmptyDismissed = ref(false)
 
 const aiEmptyRef = ref<{ openPrompt: () => void }>()
 
 const isEditorEmpty = computed(() => !!editor.value?.isEmpty)
 
+// A load-time affordance, not a live empty state. Gating on `isEditorEmpty` re-asserted the
+// card whenever the body went empty again, and the card takes the editor's slot by
+// `display: none` — which blurs the focused ProseMirror, so select-all + Delete ejected the
+// caret and the field vanished mid-edit.
+const aiEmptyEligible = ref(false)
+
 const showAiEmptyState = computed(
-  () => isRichText.value && aiAvailable.value && !readOnly.value && isEditorEmpty.value && !aiEmptyDismissed.value,
+  () => isRichText.value && aiAvailable.value && !readOnly.value && aiEmptyEligible.value && !aiEmptyDismissed.value,
 )
 
+// Once the body has content the card is done for this body; clearing it later just shows the
+// placeholder, exactly as it did before the card existed.
 watch(isEditorEmpty, (empty) => {
-  if (!empty) aiEmptyDismissed.value = false
+  if (!empty) aiEmptyEligible.value = false
 })
+
+// Called from loadContent, so a body that arrives empty (mount, or a node whose config loads
+// later) offers the card again.
+function syncAiEmptyEligibility() {
+  aiEmptyEligible.value = !vModel.value
+  aiEmptyDismissed.value = false
+}
 
 function startBlank() {
   aiEmptyDismissed.value = true

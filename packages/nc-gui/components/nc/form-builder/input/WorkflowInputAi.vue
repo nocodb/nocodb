@@ -105,7 +105,7 @@ async function runRewrite(mode: DocAiImproveMode) {
     <template #overlay>
       <div class="nc-email-ai-menu" @mousedown.stop @click.stop>
         <div class="nc-email-ai-title">
-          <GeneralIcon icon="ncAutoAwesome" class="w-3.5 h-3.5 text-nc-content-brand" />
+          <GeneralIcon icon="ncAutoAwesome" class="w-3.5 h-3.5 text-nc-content-purple-dark" />
           {{ $t('labels.writeWithAi') }}
         </div>
         <textarea
@@ -126,12 +126,16 @@ async function runRewrite(mode: DocAiImproveMode) {
           <NcButton
             size="xs"
             type="primary"
+            theme="ai"
             :disabled="!instruction.trim() || loading"
             :loading="loading"
             data-testid="nc-workflow-richtext-ai-generate"
             @click="runWrite"
           >
-            {{ $t('general.generate') }}
+            <span class="inline-flex items-center gap-1.5">
+              <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-3.5 h-3.5" />
+              {{ $t('general.generate') }}
+            </span>
           </NcButton>
         </div>
 
@@ -172,8 +176,13 @@ async function runRewrite(mode: DocAiImproveMode) {
 
   .nc-email-ai-input {
     @apply w-full px-2.5 py-2 text-small rounded-md border-1 border-nc-border-gray-medium outline-none resize-none;
-    @apply focus:border-nc-border-brand;
     line-height: 1.5;
+
+    // Purple focus, matching the body's AI prompt box.
+    &:focus {
+      border-color: var(--nc-border-coloured-purple);
+      box-shadow: 0 0 0 2px var(--nc-bg-coloured-purple);
+    }
   }
 
   .nc-email-ai-divider {

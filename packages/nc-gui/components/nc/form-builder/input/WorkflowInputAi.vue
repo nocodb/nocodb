@@ -2,7 +2,7 @@
 import type { Editor } from '@tiptap/vue-3'
 import { DOMSerializer } from '@tiptap/pm/model'
 import type { DocAiImproveMode, VariableDefinition } from 'nocodb-sdk'
-import { useWorkflowEmailAi } from '#imports'
+import { useWorkflowEmailAi, useWorkflowEmailAiSuggestions } from '#imports'
 
 /**
  * "Write with AI" popover for the email body. The trigger is slotted so the toolbar button
@@ -24,6 +24,8 @@ const { $e } = useNuxtApp()
 
 const { loading, aiWrite, aiRewrite, abort } = useWorkflowEmailAi()
 
+const { suggestions, suggestLoading, aiVariables, loadSuggestions } = useWorkflowEmailAiSuggestions(toRef(props, 'variables'))
+
 const open = ref(false)
 
 const instruction = ref('')
@@ -41,23 +43,13 @@ const rewriteModes: { mode: DocAiImproveMode; label: string }[] = [
 
 const toneModes: DocAiImproveMode[] = ['professional', 'friendly', 'casual', 'confident']
 
-// Flatten the upstream variable tree into what the prompt lists (leaf keys only).
-const aiVariables = computed(() => {
-  const out: { key: string; name: string; type?: string }[] = []
-  const walk = (vars: any[], prefix = '') => {
-    for (const v of vars || []) {
-      const name = prefix ? `${prefix} › ${v.name}` : v.name
-      if (v.children?.length) walk(v.children, name)
-      else if (v.key && !String(v.key).includes('.map(')) out.push({ key: v.key, name, type: v.type })
-    }
-  }
-  walk(props.variables)
-  return out.slice(0, 60)
-})
-
 watch(open, (isOpen) => {
-  if (isOpen) nextTick(() => inputRef.value?.focus())
-  else abort()
+  if (isOpen) {
+    nextTick(() => inputRef.value?.focus())
+    loadSuggestions()
+  } else {
+    abort()
+  }
 })
 
 // Selected content as HTML, with variable chips sent as their {{ }} tokens so the model
@@ -118,6 +110,17 @@ async function runRewrite(mode: DocAiImproveMode) {
           @keydown.enter.exact.prevent="runWrite"
           @keydown.esc.stop.prevent="open = false"
         />
+        <div v-if="!hasSelection" class="flex flex-wrap gap-1" :class="{ 'is-loading': suggestLoading }">
+          <button
+            v-for="s in suggestions"
+            :key="s.label"
+            class="nc-email-ai-chip"
+            :disabled="loading"
+            @click="instruction = s.prompt"
+          >
+            {{ s.label }}
+          </button>
+        </div>
         <div class="flex items-center justify-between gap-2">
           <span v-if="aiVariables.length" class="text-tiny text-nc-content-gray-muted">
             {{ aiVariables.length }} {{ $t('general.variables').toLowerCase() }}
@@ -205,6 +208,10 @@ async function runRewrite(mode: DocAiImproveMode) {
     &:disabled {
       @apply opacity-50 cursor-default;
     }
+  }
+
+  .is-loading .nc-email-ai-chip {
+    @apply opacity-60;
   }
 
   .nc-email-ai-chip {

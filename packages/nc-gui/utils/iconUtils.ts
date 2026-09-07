@@ -485,6 +485,21 @@ import NcLucideStrikethrough from '~icons/nc-icons-v2/lucide-strikethrough.svg'
 import NcLucideLink from '~icons/nc-icons-v2/lucide-link.svg'
 import NcLucideAtSign from '~icons/nc-icons-v2/lucide-at-sign.svg'
 import NcLucidePaperclip from '~icons/nc-icons-v2/lucide-paperclip.svg'
+import LcBraces from '~icons/lucide/braces'
+import LcUndo2 from '~icons/lucide/undo-2'
+import LcRedo2 from '~icons/lucide/redo-2'
+import LcRemoveFormatting from '~icons/lucide/remove-formatting'
+import LcAlignLeft from '~icons/lucide/align-left'
+import LcAlignCenter from '~icons/lucide/align-center'
+import LcAlignRight from '~icons/lucide/align-right'
+import LcAlignJustify from '~icons/lucide/align-justify'
+import LcHeading1 from '~icons/lucide/heading-1'
+import LcHeading2 from '~icons/lucide/heading-2'
+import LcHeading3 from '~icons/lucide/heading-3'
+import LcList from '~icons/lucide/list'
+import LcListOrdered from '~icons/lucide/list-ordered'
+import LcQuote from '~icons/lucide/quote'
+import LcCode from '~icons/lucide/code'
 import NcFastForwardIcon from '~icons/nc-icons-v2/fast-forward.svg'
 import NcXSquareIcon from '~icons/nc-icons-v2/x-square.svg'
 import NcAwardIcon from '~icons/nc-icons-v2/award.svg'
@@ -1606,6 +1621,21 @@ export const iconMap = {
   'ncNavigation': NcNavigationIcon,
   'ncPaperclip': NcPaperclipIcon,
   'lucideBold': NcLucideBold,
+  'lucideBraces': LcBraces,
+  'lucideUndo2': LcUndo2,
+  'lucideRedo2': LcRedo2,
+  'lucideRemoveFormatting': LcRemoveFormatting,
+  'lucideAlignLeft': LcAlignLeft,
+  'lucideAlignCenter': LcAlignCenter,
+  'lucideAlignRight': LcAlignRight,
+  'lucideAlignJustify': LcAlignJustify,
+  'lucideHeading1': LcHeading1,
+  'lucideHeading2': LcHeading2,
+  'lucideHeading3': LcHeading3,
+  'lucideList': LcList,
+  'lucideListOrdered': LcListOrdered,
+  'lucideQuote': LcQuote,
+  'lucideCode': LcCode,
   'lucideItalic': NcLucideItalic,
   'lucideUnderline': NcLucideUnderline,
   'lucideStrikethrough': NcLucideStrikethrough,

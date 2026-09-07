@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { type FormBuilderElement, type FormBuilderResponsiveSpan, type IntegrationType, ncIsArray } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
+import { FormBuilderGroupLabelsInj } from '~/context'
 
 const emit = defineEmits(['change'])
 
 const workflowContext = inject(WorkflowVariableInj, null)
+
+const groupLabels = inject(FormBuilderGroupLabelsInj, ref<Record<string, string>>({}))
 
 const { activeBreakpoint } = useGlobal()
 
@@ -298,7 +301,7 @@ watch(
                       />
                       <span>{{
                         isGroupCollapsed(`${category}-${field.group}`, getGroupDefaultCollapsed(category, field.group))
-                          ? field.groupLabel || $t('general.showMore')
+                          ? groupLabels[field.group] || field.groupLabel || $t('general.showMore')
                           : $t('general.showLess')
                       }}</span>
                     </div>

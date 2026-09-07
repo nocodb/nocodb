@@ -3,7 +3,7 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
-import { EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
+import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
 import type { VariableDefinition } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
@@ -109,7 +109,7 @@ const createSuggestionRender = () => ({
 
         if (!suggestionProps.clientRect) return
 
-        popup[0].setProps({
+        popup?.[0]?.setProps({
           getReferenceClientRect: suggestionProps.clientRect,
           ...suggestionPlacement(),
         })
@@ -124,8 +124,10 @@ const createSuggestionRender = () => ({
       },
 
       onExit() {
-        popup[0].destroy()
-        component.destroy()
+        // onStart skips the popup when there is no clientRect (editor detached / teleporting),
+        // so neither handle is guaranteed here.
+        popup?.[0]?.destroy()
+        component?.destroy()
       },
     }
   },
@@ -497,10 +499,12 @@ function toggleStrike() {
   editor.value?.chain().focus().toggleStrike().run()
 }
 
+// Whole toolbar uses the lucide family (same as the comment box) so every glyph
+// shares one stroke weight and optical size.
 const headingLevels = [
-  { level: 1 as const, icon: 'ncHeading1' as const, label: 'labels.heading1' },
-  { level: 2 as const, icon: 'ncHeading2' as const, label: 'labels.heading2' },
-  { level: 3 as const, icon: 'ncHeading3' as const, label: 'labels.heading3' },
+  { level: 1 as const, icon: 'lucideHeading1' as const, label: 'labels.heading1' },
+  { level: 2 as const, icon: 'lucideHeading2' as const, label: 'labels.heading2' },
+  { level: 3 as const, icon: 'lucideHeading3' as const, label: 'labels.heading3' },
 ]
 
 function toggleHeading(level: 1 | 2 | 3) {
@@ -515,46 +519,91 @@ function toggleCode() {
   editor.value?.chain().focus().toggleCode().run()
 }
 
-// Formatting that lives inline when expanded and behind the "more" menu when compact.
-const moreOpen = ref(false)
-
-const overflowTools = computed(() => [
-  {
-    key: 'strike',
-    icon: 'strike' as const,
-    label: 'labels.strike',
-    isActive: () => !!editor.value?.isActive('strike'),
-    action: toggleStrike,
-  },
-  {
-    key: 'bulletList',
-    icon: 'ncList' as const,
-    label: 'labels.bulletList',
-    isActive: () => !!editor.value?.isActive('bulletList'),
-    action: toggleBulletList,
-  },
-  {
-    key: 'orderedList',
-    icon: 'ncNumberList' as const,
-    label: 'labels.numberedList',
-    isActive: () => !!editor.value?.isActive('orderedList'),
-    action: toggleOrderedList,
-  },
-  {
-    key: 'blockquote',
-    icon: 'ncQuote' as const,
-    label: 'labels.blockQuote',
-    isActive: () => !!editor.value?.isActive('blockquote'),
-    action: toggleBlockquote,
-  },
-  {
-    key: 'code',
-    icon: 'code' as const,
-    label: 'general.code',
-    isActive: () => !!editor.value?.isActive('code'),
-    action: toggleCode,
-  },
+// One tool list drives both the modal toolbar and the selection bubble.
+const formatGroups = computed(() => [
+  [
+    {
+      key: 'bold',
+      icon: 'lucideBold' as const,
+      label: 'labels.bold',
+      isActive: () => !!editor.value?.isActive('bold'),
+      action: toggleBold,
+    },
+    {
+      key: 'italic',
+      icon: 'lucideItalic' as const,
+      label: 'labels.italic',
+      isActive: () => !!editor.value?.isActive('italic'),
+      action: toggleItalic,
+    },
+    {
+      key: 'underline',
+      icon: 'lucideUnderline' as const,
+      label: 'labels.underline',
+      isActive: () => !!editor.value?.isActive('underline'),
+      action: toggleUnderline,
+    },
+    {
+      key: 'strike',
+      icon: 'lucideStrikethrough' as const,
+      label: 'labels.strike',
+      isActive: () => !!editor.value?.isActive('strike'),
+      action: toggleStrike,
+    },
+  ],
+  headingLevels.map((h) => ({
+    key: `h${h.level}`,
+    icon: h.icon,
+    label: h.label,
+    isActive: () => !!editor.value?.isActive('heading', { level: h.level }),
+    action: () => toggleHeading(h.level),
+  })),
+  [
+    {
+      key: 'bulletList',
+      icon: 'lucideList' as const,
+      label: 'labels.bulletList',
+      isActive: () => !!editor.value?.isActive('bulletList'),
+      action: toggleBulletList,
+    },
+    {
+      key: 'orderedList',
+      icon: 'lucideListOrdered' as const,
+      label: 'labels.numberedList',
+      isActive: () => !!editor.value?.isActive('orderedList'),
+      action: toggleOrderedList,
+    },
+    {
+      key: 'blockquote',
+      icon: 'lucideQuote' as const,
+      label: 'labels.blockQuote',
+      isActive: () => !!editor.value?.isActive('blockquote'),
+      action: toggleBlockquote,
+    },
+    {
+      key: 'code',
+      icon: 'lucideCode' as const,
+      label: 'general.code',
+      isActive: () => !!editor.value?.isActive('code'),
+      action: toggleCode,
+    },
+  ],
+  [
+    {
+      key: 'link',
+      icon: 'lucideLink' as const,
+      label: 'general.link',
+      isActive: () => !!editor.value?.isActive('link'),
+      action: openLinkMenu,
+    },
+  ],
 ])
+
+// Selection bubble only in the sidebar; the modal has a persistent toolbar.
+const shouldShowBubble = ({ editor: e }: { editor: { state: { selection: { empty: boolean } }; isEditable: boolean } }) =>
+  !expanded.value && !readOnly.value && e.isEditable && !e.state.selection.empty
+
+const bubbleTippyOptions = { duration: 100, maxWidth: 600, placement: 'top' as const, appendTo: () => document.body }
 
 function toggleBulletList() {
   editor.value?.chain().focus().toggleBulletList().run()
@@ -628,130 +677,55 @@ watch(readOnly, (newValue) => {
     <template v-if="isRichText">
       <Teleport :to="modalBodyRef ?? 'body'" :disabled="!teleportToModal">
         <div class="nc-email-shell" :class="{ 'is-expanded': expanded }" data-testid="nc-workflow-richtext-shell">
-          <div v-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
-            <NcTooltip :title="$t('labels.bold')">
-              <NcButton
-                size="xs"
-                type="text"
-                class="nc-workflow-format-btn"
-                :class="{ 'is-active': editor?.isActive('bold') }"
-                @click.stop="toggleBold"
-              >
-                <GeneralIcon icon="bold" class="w-4 h-4" />
-              </NcButton>
-            </NcTooltip>
-            <NcTooltip :title="$t('labels.italic')">
-              <NcButton
-                size="xs"
-                type="text"
-                class="nc-workflow-format-btn"
-                :class="{ 'is-active': editor?.isActive('italic') }"
-                @click.stop="toggleItalic"
-              >
-                <GeneralIcon icon="italic" class="w-4 h-4" />
-              </NcButton>
-            </NcTooltip>
-            <NcTooltip :title="$t('labels.underline')">
-              <NcButton
-                size="xs"
-                type="text"
-                class="nc-workflow-format-btn"
-                :class="{ 'is-active': editor?.isActive('underline') }"
-                @click.stop="toggleUnderline"
-              >
-                <GeneralIcon icon="underline" class="w-4 h-4" />
-              </NcButton>
-            </NcTooltip>
-            <NcTooltip :title="$t('general.link')">
-              <NcButton
-                size="xs"
-                type="text"
-                class="nc-workflow-format-btn"
-                :class="{ 'is-active': editor?.isActive('link') }"
-                data-testid="nc-workflow-richtext-link-btn"
-                @click.stop="openLinkMenu"
-              >
-                <GeneralIcon icon="link2" class="w-4 h-4" />
-              </NcButton>
-            </NcTooltip>
-
-            <!-- Expanded: the rest of the formatting set inline -->
-            <template v-if="expanded">
-              <div class="nc-workflow-format-divider" />
-
-              <NcTooltip v-for="h in headingLevels" :key="h.level" :title="$t(h.label)">
+          <!-- Sidebar: status strip. Formatting lives in the selection bubble. -->
+          <div v-if="!expanded" class="nc-email-head">
+            <div class="nc-email-wordcount">
+              <span class="nc-email-wordcount-num">{{ wordCount }}</span>
+              {{ $t('general.words') }}
+            </div>
+            <div class="flex-1" />
+            <template v-if="!readOnly">
+              <NcTooltip :title="$t('general.insert')">
+                <button
+                  class="nc-email-var-btn"
+                  data-testid="nc-workflow-richtext-variable-btn"
+                  @mousedown.prevent
+                  @click.stop="insertExpression"
+                >
+                  <GeneralIcon icon="lucideBraces" class="w-4 h-4 flex-none" />
+                </button>
+              </NcTooltip>
+              <NcTooltip :title="$t('general.expand')">
                 <NcButton
                   size="xs"
                   type="text"
                   class="nc-workflow-format-btn"
-                  :class="{ 'is-active': editor?.isActive('heading', { level: h.level }) }"
-                  @click.stop="toggleHeading(h.level)"
+                  data-testid="nc-workflow-richtext-expand-btn"
+                  @click.stop="expanded = true"
                 >
-                  <GeneralIcon :icon="h.icon" class="w-4 h-4" />
+                  <GeneralIcon icon="ncMaximize" class="w-4 h-4" />
                 </NcButton>
               </NcTooltip>
+            </template>
+          </div>
 
-              <div class="nc-workflow-format-divider" />
-
-              <NcTooltip v-for="tool in overflowTools" :key="tool.key" :title="$t(tool.label)">
+          <!-- Modal: full toolbar -->
+          <div v-else-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
+            <template v-for="(group, gi) in formatGroups" :key="gi">
+              <div v-if="gi > 0" class="nc-email-format-divider" />
+              <NcTooltip v-for="tool in group" :key="tool.key" :title="$t(tool.label)">
                 <NcButton
                   size="xs"
                   type="text"
                   class="nc-workflow-format-btn"
                   :class="{ 'is-active': tool.isActive() }"
+                  :data-testid="`nc-workflow-richtext-${tool.key}-btn`"
                   @click.stop="tool.action"
                 >
                   <GeneralIcon :icon="tool.icon" class="w-4 h-4" />
                 </NcButton>
               </NcTooltip>
             </template>
-
-            <!-- Compact: everything else behind an overflow menu -->
-            <NcDropdown v-else v-model:visible="moreOpen" placement="bottomLeft">
-              <NcTooltip :title="$t('general.more')">
-                <NcButton
-                  size="xs"
-                  type="text"
-                  class="nc-workflow-format-btn"
-                  :class="{ 'is-active': moreOpen }"
-                  data-testid="nc-workflow-richtext-more-btn"
-                  @click.stop
-                >
-                  <GeneralIcon icon="threeDotHorizontal" class="w-4 h-4" />
-                </NcButton>
-              </NcTooltip>
-
-              <template #overlay>
-                <div class="nc-email-more-menu" @click.stop>
-                  <div class="nc-email-more-row">
-                    <NcTooltip v-for="h in headingLevels" :key="h.level" :title="$t(h.label)">
-                      <NcButton
-                        size="xs"
-                        type="text"
-                        class="nc-workflow-format-btn"
-                        :class="{ 'is-active': editor?.isActive('heading', { level: h.level }) }"
-                        @click.stop="toggleHeading(h.level)"
-                      >
-                        <GeneralIcon :icon="h.icon" class="w-4 h-4" />
-                      </NcButton>
-                    </NcTooltip>
-                  </div>
-                  <div class="nc-email-more-row">
-                    <NcTooltip v-for="tool in overflowTools" :key="tool.key" :title="$t(tool.label)">
-                      <NcButton
-                        size="xs"
-                        type="text"
-                        class="nc-workflow-format-btn"
-                        :class="{ 'is-active': tool.isActive() }"
-                        @click.stop="tool.action"
-                      >
-                        <GeneralIcon :icon="tool.icon" class="w-4 h-4" />
-                      </NcButton>
-                    </NcTooltip>
-                  </div>
-                </div>
-              </template>
-            </NcDropdown>
 
             <div class="flex-1" />
 
@@ -762,51 +736,60 @@ watch(readOnly, (newValue) => {
                 @mousedown.prevent
                 @click.stop="insertExpression"
               >
-                <GeneralIcon icon="ncDataObject" class="w-4 h-4 flex-none" />
-                <span v-if="expanded">{{ $t('general.variable') }}</span>
+                <GeneralIcon icon="lucideBraces" class="w-4 h-4 flex-none" />
+                <span>{{ $t('general.variable') }}</span>
               </button>
             </NcTooltip>
+          </div>
 
-            <div v-if="showLinkMenu" ref="linkMenuRef" class="nc-workflow-link-menu" @click.stop>
-              <input
-                v-model="linkText"
-                class="nc-workflow-link-input"
-                :placeholder="$t('general.text')"
-                data-testid="nc-workflow-richtext-link-text"
-              />
-              <input
-                v-model="linkUrl"
-                class="nc-workflow-link-input"
-                :placeholder="$t('placeholder.enterUrl')"
-                data-testid="nc-workflow-richtext-link-url"
-                @keydown.enter.stop.prevent="applyLink"
-              />
-              <div class="flex justify-end gap-2 mt-1">
-                <NcButton size="xs" type="secondary" @click.stop="cancelLink">{{ $t('general.cancel') }}</NcButton>
-                <NcButton size="xs" type="primary" data-testid="nc-workflow-richtext-link-apply" @click.stop="applyLink">
-                  {{ $t('general.apply') }}
-                </NcButton>
-              </div>
+          <div v-if="showLinkMenu" ref="linkMenuRef" class="nc-workflow-link-menu" @click.stop>
+            <input
+              v-model="linkText"
+              class="nc-workflow-link-input"
+              :placeholder="$t('general.text')"
+              data-testid="nc-workflow-richtext-link-text"
+            />
+            <input
+              v-model="linkUrl"
+              class="nc-workflow-link-input"
+              :placeholder="$t('placeholder.enterUrl')"
+              data-testid="nc-workflow-richtext-link-url"
+              @keydown.enter.stop.prevent="applyLink"
+            />
+            <div class="flex justify-end gap-2 mt-1">
+              <NcButton size="xs" type="secondary" @click.stop="cancelLink">{{ $t('general.cancel') }}</NcButton>
+              <NcButton size="xs" type="primary" data-testid="nc-workflow-richtext-link-apply" @click.stop="applyLink">
+                {{ $t('general.apply') }}
+              </NcButton>
             </div>
           </div>
 
           <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
 
-          <div v-if="!expanded" class="nc-email-footer">
-            <div class="nc-email-wordcount">
-              <span class="nc-email-wordcount-num">{{ wordCount }}</span>
-              {{ $t('general.words') }}
+          <BubbleMenu
+            v-if="editor"
+            :editor="editor"
+            :should-show="shouldShowBubble"
+            :update-delay="300"
+            :tippy-options="bubbleTippyOptions"
+          >
+            <div class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
+              <template v-for="(group, gi) in formatGroups" :key="gi">
+                <div v-if="gi > 0" class="nc-email-format-divider" />
+                <NcTooltip v-for="tool in group" :key="tool.key" :title="$t(tool.label)">
+                  <NcButton
+                    size="xs"
+                    type="text"
+                    class="nc-workflow-format-btn"
+                    :class="{ 'is-active': tool.isActive() }"
+                    @click.stop="tool.action"
+                  >
+                    <GeneralIcon :icon="tool.icon" class="w-4 h-4" />
+                  </NcButton>
+                </NcTooltip>
+              </template>
             </div>
-            <button
-              class="nc-email-expand-btn"
-              :class="{ 'is-collapse': expanded }"
-              data-testid="nc-workflow-richtext-expand-btn"
-              @click.stop="expanded = !expanded"
-            >
-              <GeneralIcon :icon="expanded ? 'ncMinimize' : 'ncMaximize'" class="w-4 h-4 flex-none" />
-              {{ expanded ? $t('general.collapse') : $t('general.expand') }}
-            </button>
-          </div>
+          </BubbleMenu>
         </div>
       </Teleport>
 
@@ -983,29 +966,29 @@ watch(readOnly, (newValue) => {
   }
 }
 
+.nc-email-head {
+  @apply flex items-center gap-0.5 pl-3.5 pr-1.5 h-9 flex-none border-b-1 border-nc-border-gray-light;
+}
+
 .nc-email-toolbar {
   @apply relative flex flex-wrap items-center gap-0.5 px-1.5 py-1 flex-none;
   @apply bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-light;
-
-  .nc-workflow-format-btn.is-active {
-    @apply bg-nc-bg-gray-light text-nc-content-brand;
-  }
-
-  .nc-workflow-format-divider {
-    @apply flex-none w-px h-4.5 mx-1 bg-nc-border-gray-medium;
-  }
 }
 
-.nc-email-more-menu {
-  @apply flex flex-col gap-1 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium;
+.nc-email-bubble {
+  @apply flex items-center gap-0.5 p-1 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
   box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
+}
 
-  .nc-email-more-row {
-    @apply flex items-center gap-0.5;
-  }
-
+.nc-email-head,
+.nc-email-toolbar,
+.nc-email-bubble {
   .nc-workflow-format-btn.is-active {
     @apply bg-nc-bg-gray-light text-nc-content-brand;
+  }
+
+  .nc-email-format-divider {
+    @apply flex-none w-px h-4.5 mx-1 bg-nc-border-gray-medium;
   }
 }
 
@@ -1019,33 +1002,11 @@ watch(readOnly, (newValue) => {
   }
 }
 
-.nc-email-footer {
-  @apply flex items-center justify-between flex-none pl-3.5 pr-1.5 py-1 border-t-1 border-nc-border-gray-light;
-}
-
 .nc-email-wordcount {
   @apply text-small text-nc-content-gray-muted whitespace-nowrap;
 
   .nc-email-wordcount-num {
     font-family: 'DM Mono', monospace;
-  }
-}
-
-.nc-email-expand-btn {
-  @apply inline-flex items-center gap-1 h-7 pl-1.5 pr-2 rounded-md cursor-pointer;
-  @apply border-1 border-transparent bg-transparent text-nc-content-gray-subtle text-small font-semibold;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-
-  &:hover {
-    @apply bg-nc-bg-gray-light text-nc-content-gray;
-  }
-
-  &.is-collapse {
-    @apply border-nc-border-gray-medium bg-nc-bg-default text-nc-content-brand;
-
-    &:hover {
-      @apply bg-nc-bg-brand;
-    }
   }
 }
 
@@ -1165,7 +1126,7 @@ watch(readOnly, (newValue) => {
 // level rather than nested under .nc-workflow-input.
 .nc-email-shell {
   .nc-workflow-link-menu {
-    @apply absolute z-50 top-9 left-1.5 flex flex-col gap-1 p-2 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
+    @apply absolute z-50 top-10 left-1.5 flex flex-col gap-1 p-2 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
     width: 260px;
     box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
 
@@ -1263,7 +1224,7 @@ watch(readOnly, (newValue) => {
   }
 
   .nc-workflow-link-menu {
-    @apply left-5;
+    @apply top-12 left-5;
   }
 }
 </style>

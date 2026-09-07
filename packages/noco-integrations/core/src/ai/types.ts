@@ -77,6 +77,7 @@ export enum AiUseCase {
   DocsSummarize = 'docs_summarize',
   /** Document translation. */
   DocsTranslate = 'docs_translate',
+  /** Workflow send-email body: write, rewrite selection, suggestion chips. */
   WorkflowEmailCompose = 'workflow_email_compose',
   /** Script/code completion. */
   Completion = 'completion',

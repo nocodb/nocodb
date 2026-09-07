@@ -354,10 +354,13 @@ const editor = useEditor({
 function loadContent() {
   if (!editor.value) return
 
+  // Both trackers move together: a lastEmitted left over from an earlier edit would later be
+  // mistaken for an echo of this instance's own emit and swallow a real external change.
   lastLoaded = vModel.value
+  lastEmitted = vModel.value
 
   if (!vModel.value) {
-    editor.value.commands.clearContent()
+    editor.value.chain().clearContent().setMeta('addToHistory', false).run()
     if (isRichText.value) recomputeWordCount()
     return
   }
@@ -366,7 +369,8 @@ function loadContent() {
     // Legacy plain-text bodies (saved before rich text) get wrapped so line breaks survive.
     const source = looksLikeHtml(vModel.value) ? vModel.value : `<p>${escapeHtml(vModel.value).replace(/\n/g, '<br>')}</p>`
 
-    editor.value.commands.setContent(tokensToExpressionSpans(source))
+    // Loading is not a user edit: in history, undo would step back past it and blank the body.
+    editor.value.chain().setContent(tokensToExpressionSpans(source)).setMeta('addToHistory', false).run()
     recomputeWordCount()
     return
   }
@@ -442,7 +446,11 @@ function loadContent() {
     htmlContent += textContent.replace(/\n/g, '<br>')
   }
 
-  editor.value.commands.setContent(htmlContent || vModel.value)
+  editor.value
+    .chain()
+    .setContent(htmlContent || vModel.value)
+    .setMeta('addToHistory', false)
+    .run()
 }
 
 onMounted(loadContent)
@@ -636,8 +644,21 @@ const toolbarGroups = computed<WorkflowInputTool[][]>(() => [
   ...formatGroups.value,
 ])
 
-const shouldShowBubble = ({ editor: e }: { editor: { state: { selection: { empty: boolean } }; isEditable: boolean } }) =>
-  !readOnly.value && e.isEditable && !e.state.selection.empty
+const bubbleEl = ref<HTMLElement>()
+
+// Supplying shouldShow replaces the plugin's default, which is where the focus test lives.
+// Without it the menu re-shows on document.body after the editor blurs with a live selection.
+const shouldShowBubble = ({
+  editor: e,
+  view,
+}: {
+  editor: { state: { selection: { empty: boolean } }; isEditable: boolean }
+  view: { hasFocus: () => boolean }
+}) =>
+  !readOnly.value &&
+  e.isEditable &&
+  !e.state.selection.empty &&
+  (view.hasFocus() || !!bubbleEl.value?.contains(document.activeElement))
 
 const bubbleTippyOptions = { duration: 100, maxWidth: 600, placement: 'top' as const, appendTo: () => document.body }
 
@@ -829,7 +850,7 @@ watch(readOnly, (newValue) => {
           :update-delay="300"
           :tippy-options="bubbleTippyOptions"
         >
-          <div class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
+          <div ref="bubbleEl" class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
             <NcFormBuilderInputWorkflowInputTools :editor="editor" :groups="formatGroups" />
           </div>
         </BubbleMenu>
@@ -1029,6 +1050,12 @@ watch(readOnly, (newValue) => {
     // inline styles and the code/chip rules below still win.
     * {
       font-family: inherit;
+    }
+
+    // Highlights are light pastels picked for the email's white body, and the mark carries no
+    // foreground. Pin the email's ink so dark mode doesn't put light text on a light swatch.
+    span[data-highlight] {
+      color: #1f293a;
     }
 
     p {

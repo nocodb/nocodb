@@ -21,6 +21,10 @@ interface Props {
 
 const props = defineProps<Props>()
 
+// The email body's ink. Highlight pastels are picked against it, so the preview must not
+// fall back to theme text, which goes light in dark mode and vanishes on the swatch.
+const EMAIL_INK = '#1f293a'
+
 const colorOpen = ref(false)
 
 const typographyOpen = ref(false)
@@ -107,7 +111,10 @@ function applyHighlight(color: string) {
             <span class="nc-email-color-preview">
               <span
                 class="nc-email-color-preview-letter"
-                :style="{ color: activeTextColor || 'currentColor', backgroundColor: activeHighlight || 'transparent' }"
+                :style="{
+                  color: activeTextColor || (activeHighlight ? EMAIL_INK : 'currentColor'),
+                  backgroundColor: activeHighlight || 'transparent',
+                }"
                 >A</span
               >
               <span class="nc-email-color-preview-bar" :style="{ backgroundColor: activeTextColor || 'currentColor' }" />
@@ -124,7 +131,7 @@ function applyHighlight(color: string) {
                 :key="c.color"
                 class="nc-email-color-swatch"
                 :class="{ 'is-active': c.color !== TEXT_COLORS[0].color && activeTextColor === c.color }"
-                :style="{ borderColor: `color-mix(in srgb, ${c.color} 30%, transparent)` }"
+                :style="{ '--nc-swatch-tint': `color-mix(in srgb, ${c.color} 30%, transparent)` }"
                 :title="c.name"
                 @click="applyTextColor(c.color)"
               >
@@ -138,7 +145,7 @@ function applyHighlight(color: string) {
                 :key="c.color || 'none'"
                 class="nc-email-color-swatch"
                 :class="{ 'is-active': c.color && activeHighlight === c.color, 'is-none': !c.color }"
-                :style="c.color ? { backgroundColor: c.color, borderColor: c.color } : {}"
+                :style="c.color ? { 'backgroundColor': c.color, '--nc-swatch-tint': c.color } : {}"
                 :title="c.name"
                 @click="applyHighlight(c.color)"
               />
@@ -322,8 +329,11 @@ function applyHighlight(color: string) {
   }
 
   .nc-email-color-swatch {
-    @apply flex items-center justify-center w-7 h-7 p-0 rounded-md cursor-pointer bg-nc-bg-default;
-    border: 1.5px solid var(--nc-border-gray-medium);
+    @apply flex items-center justify-center w-7 h-7 p-0 rounded-md cursor-pointer;
+    // The palette is absolute email hex on the mail's white body. Following the theme surface
+    // here would hide the dark inks in dark mode, so the swatch face stays white in both.
+    background-color: #fff;
+    border: 1.5px solid var(--nc-swatch-tint, var(--nc-border-gray-medium));
     transition: border-color 0.1s, transform 0.1s;
 
     &:hover {
@@ -337,7 +347,7 @@ function applyHighlight(color: string) {
     }
 
     &.is-none {
-      background: linear-gradient(
+      background-image: linear-gradient(
         to top left,
         transparent calc(50% - 1px),
         var(--nc-border-gray-medium) calc(50% - 1px),

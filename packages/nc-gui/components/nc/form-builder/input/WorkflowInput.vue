@@ -1018,17 +1018,18 @@ watch(readOnly, (newValue) => {
     // put both on the editor itself, so they are overridden rather than out-specified.
     @apply h-auto min-h-35 w-full px-3.5 py-3 outline-none !border-0 !rounded-none !shadow-none;
 
+    // Legacy .ProseMirror:not(.multiline) forces nowrap + overflow-hidden; the shell wraps and
+    // scrolls at the .nc-email-editor level instead.
+    white-space: pre-wrap !important;
+    overflow: visible !important;
+    overflow-wrap: break-word;
+
     // global.css sets font-family on `*`, which resets every nested mark span (colour,
     // highlight, link) to Inter and hides the author's font. Marks must inherit instead;
     // inline styles and the code/chip rules below still win.
     * {
       font-family: inherit;
     }
-    // Legacy .ProseMirror:not(.multiline) forces nowrap + overflow-hidden; the shell wraps and
-    // scrolls at the .nc-email-editor level instead.
-    white-space: pre-wrap !important;
-    overflow: visible !important;
-    overflow-wrap: break-word;
 
     p {
       @apply block m-0;

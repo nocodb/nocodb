@@ -329,8 +329,18 @@ function applyHighlight(color: string) {
   @apply !w-auto !px-2 gap-1;
 
   .nc-email-typo-name {
-    @apply whitespace-nowrap max-w-28 truncate;
+    // No `truncate`: `activeFontName` is always one of the EMAIL_FONTS names, and the longest
+    // ("Comic Sans MS") clears max-w-28, so its overflow:hidden never truncated anything — it only
+    // clipped descenders, since NcButton sets line-height 0.95 on button children and faces vary
+    // a lot in content area (Georgia and Comic Sans MS are the deepest here).
+    @apply whitespace-nowrap max-w-28;
     font-size: 13px;
+    // The label previews the font in itself, so it must render at 400. NcButton applies
+    // `font-medium`, which uno.config maps to 600 (the scale is shifted +100 for Inter's axis),
+    // and a target above 500 matches heavier faces first — so the web-safe stacks here, which
+    // ship only 400/700, snap to real bold.
+    font-weight: 400;
+    line-height: 1.35;
   }
 }
 
@@ -363,9 +373,14 @@ function applyHighlight(color: string) {
   }
 
   .nc-email-typo-item {
-    @apply flex items-center h-7.5 px-2 rounded-md cursor-pointer text-left whitespace-nowrap;
+    // min-height, not height: the size column previews at its real size, and 24px "Huge"
+    // overflows a fixed 30px row.
+    @apply flex items-center min-h-7.5 py-1 px-2 rounded-md cursor-pointer text-left whitespace-nowrap;
     @apply bg-transparent border-0 text-nc-content-gray;
     font-size: 13px;
+    // Same reason as the trigger: previews must render at the face's own weight.
+    font-weight: 400;
+    line-height: 1.35;
 
     &:hover {
       @apply bg-nc-bg-gray-light;

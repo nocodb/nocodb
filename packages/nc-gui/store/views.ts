@@ -988,7 +988,20 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  const onViewsTabChange = (page: ViewPageType) => {
+  const onViewsTabChange = async (page: ViewPageType) => {
+    // Both params below are built from state that is empty until the view
+    // store settles: `activeViewTitleOrId` falls back to
+    // getFirstNonPersonalView(views) — undefined while `views` is still
+    // loading — and `activeViewReadableUrlSlug` is '' until `activeView`
+    // resolves. Pushing then yields a route that mounts nothing and the click
+    // is silently lost: no error, no log, the panel just never opens. Wait for
+    // the state the route depends on, the way loadViews waits for tables.
+    await until(() => !!activeViewTitleOrId.value && !!activeView.value).toBeTruthy({ timeout: 10000 })
+
+    // `toBeTruthy` resolves rather than throws when the timeout elapses, so
+    // re-check instead of pushing a route with unresolved params anyway.
+    if (!activeViewTitleOrId.value || !activeView.value) return
+
     router.push({
       name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
       params: {

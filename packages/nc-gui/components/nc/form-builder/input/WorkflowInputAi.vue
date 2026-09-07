@@ -124,7 +124,7 @@ async function runRewrite(mode: DocAiImproveMode) {
             v-for="(s, i) in suggestions"
             :key="i"
             class="nc-email-ai-chip"
-            :disabled="loading"
+            :disabled="loading || suggestLoading"
             @click="instruction = s.prompt"
           >
             {{ s.label }}

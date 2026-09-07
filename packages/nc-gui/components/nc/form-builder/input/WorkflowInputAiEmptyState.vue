@@ -151,7 +151,7 @@ defineExpose({ openPrompt })
           v-for="(s, i) in suggestions"
           :key="i"
           class="nc-email-ai-chip"
-          :disabled="loading"
+          :disabled="loading || suggestLoading"
           @click="useSuggestion(s.prompt)"
         >
           {{ s.label }}

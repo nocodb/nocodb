@@ -191,6 +191,12 @@ export const BlueprintParentTableIdInj: InjectionKey<Ref<string | undefined>> = 
 /** Breadcrumb trail for nested sub-record forms (e.g., ['Project Template', 'Tasks']) */
 export const TemplateBreadcrumbsInj: InjectionKey<Ref<string[]>> = Symbol('template-breadcrumbs-injection')
 
+/** Opens the node's compose modal (rich-text nodes only); absent when no panel provides it. */
+export const WorkflowComposeInj: InjectionKey<{ open: () => void }> = Symbol('workflow-compose')
+
+/** True inside the compose modal, where the body editor shows its full toolbar. */
+export const WorkflowComposeModeInj: InjectionKey<Ref<boolean>> = Symbol('workflow-compose-mode')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]

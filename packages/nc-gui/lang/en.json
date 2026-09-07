@@ -3250,6 +3250,7 @@
     "appearanceSettings": "Appearance settings",
     "backgroundColor": "Background color",
     "textColor": "Text color",
+    "textAndBackgroundColor": "Text & background color",
     "recentlyUsed": "Recently used",
     "hideNocodbBranding": "Hide NocoDB Branding",
     "hideBranding": "Hide Branding",

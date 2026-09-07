@@ -32,7 +32,9 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
     'h5',
     'h6',
   ],
-  ALLOWED_ATTR: ['href', 'target', 'rel'],
+  ALLOWED_ATTR: ['href', 'target', 'rel', 'style'],
+  // Editor marks carry data-* mirrors of their styles; recipients never need them.
+  ALLOW_DATA_ATTR: false,
   FORBID_TAGS: [
     'form',
     'input',
@@ -51,7 +53,50 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
     'base',
   ],
   ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+  // A custom URI regexp is applied to every non-URI-safe attribute, which would eat target/rel.
+  ADD_URI_SAFE_ATTR: ['target', 'rel'],
 };
+
+/**
+ * Inline styles are the only styling mail clients honour, so `style` is allowed — but
+ * only these declarations survive. Everything else (url(), position, behavior, …) is dropped.
+ */
+export const EMAIL_ALLOWED_CSS_PROPS = new Set([
+  'color',
+  'background-color',
+  'font-family',
+  'font-size',
+  'font-weight',
+  'font-style',
+  'text-decoration',
+  'text-align',
+  'margin-left',
+]);
+
+const SAFE_CSS_VALUE = /^[\w\s#,.%()'"-]+$/;
+
+export function sanitizeInlineStyle(style: string): string {
+  return style
+    .split(';')
+    .map((decl) => {
+      const idx = decl.indexOf(':');
+      if (idx === -1) return '';
+      const prop = decl.slice(0, idx).trim().toLowerCase();
+      const value = decl.slice(idx + 1).trim();
+      if (!EMAIL_ALLOWED_CSS_PROPS.has(prop)) return '';
+      if (!value || !SAFE_CSS_VALUE.test(value)) return '';
+      if (/url\s*\(|expression\s*\(|\\/i.test(value)) return '';
+      return `${prop}: ${value}`;
+    })
+    .filter(Boolean)
+    .join('; ');
+}
+
+DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
+  if (data.attrName !== 'style') return;
+  data.attrValue = sanitizeInlineStyle(data.attrValue);
+  if (!data.attrValue) data.keepAttr = false;
+});
 
 /**
  * Heuristic to detect whether a stored email body is HTML (authored with the

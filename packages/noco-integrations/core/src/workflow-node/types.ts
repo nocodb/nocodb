@@ -25,6 +25,12 @@ export interface WorkflowNodeRunContext<TConfig = any> {
     title?: string;
   };
   /**
+   * Config paths (dot-notation, e.g. `config.body`) whose stored template was rich text, so
+   * their interpolated values were HTML-escaped. Decided once on the template: a node must not
+   * re-derive it from the interpolated result, or a record value can flip the mode.
+   */
+  htmlInputPaths?: string[];
+  /**
    * Load an integration by ID (AI, Auth, or any other integration type).
    * Returns an Integration wrapper containing the integration.
    *

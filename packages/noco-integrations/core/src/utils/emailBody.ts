@@ -184,14 +184,107 @@ export function sanitizeEmailHtml(
   }
 }
 
-const HTML_ENTITIES: Record<string, string> = {
-  '&amp;': '&',
-  '&lt;': '<',
-  '&gt;': '>',
-  '&quot;': '"',
-  '&#39;': "'",
-  '&nbsp;': ' ',
-};
+const PLAIN_TEXT_BLOCK_TAGS = new Set([
+  'P',
+  'DIV',
+  'BLOCKQUOTE',
+  'PRE',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+]);
+
+/** One inline run: text, `<br>`, and links with the href a plain-text reader cannot click through to. */
+function inlineToText(node: Node): string {
+  if (node.nodeType === 3) return node.nodeValue ?? '';
+  if (node.nodeType !== 1) return '';
+
+  const el = node as Element;
+
+  if (el.tagName === 'BR') return '\n';
+
+  if (el.tagName === 'A') {
+    const label = childrenToText(el).trim();
+    const url = (el.getAttribute('href') ?? '').replace(/^mailto:/i, '');
+    if (!url) return label;
+    if (!label) return url;
+    return label === url || label.includes(url) ? label : `${label} (${url})`;
+  }
+
+  return childrenToText(el);
+}
+
+function childrenToText(node: Node): string {
+  let out = '';
+  node.childNodes.forEach((child) => {
+    out += inlineToText(child);
+  });
+  return out;
+}
+
+/**
+ * Lines for one list, recursing into nested lists with a deeper indent. A single regex cannot
+ * do this: a lazy `<ol>([\s\S]*?)<\/ol>` ends at the *first* nested `</ol>`, so inner items
+ * get numbered as siblings and the outer list's remaining items fall through to bullets.
+ */
+function listToLines(list: Element): string[] {
+  const ordered = list.tagName === 'OL';
+  const lines: string[] = [];
+  let index = 0;
+
+  Array.from(list.children).forEach((child) => {
+    if (child.tagName !== 'LI') return;
+
+    const marker = ordered ? `${(index += 1)}. ` : '- ';
+    const [first = '', ...rest] = blocksToLines(child);
+
+    lines.push(`${marker}${first}`);
+    // Continuations sit under the item's text; a nested list arrives already indented by its
+    // own level, so each level adds exactly two spaces.
+    rest.forEach((line) => lines.push(line ? `  ${line}` : line));
+  });
+
+  return lines;
+}
+
+function blocksToLines(parent: Node): string[] {
+  const lines: string[] = [];
+  let run = '';
+
+  const flush = () => {
+    if (!run) return;
+    lines.push(...run.split('\n'));
+    run = '';
+  };
+
+  parent.childNodes.forEach((child) => {
+    if (child.nodeType === 1) {
+      const el = child as Element;
+
+      if (el.tagName === 'UL' || el.tagName === 'OL') {
+        flush();
+        lines.push(...listToLines(el));
+        return;
+      }
+
+      if (PLAIN_TEXT_BLOCK_TAGS.has(el.tagName)) {
+        flush();
+        const inner = blocksToLines(el);
+        // An empty block is a deliberate spacer; keep the blank line it authored.
+        lines.push(...(inner.length ? inner : ['']));
+        return;
+      }
+    }
+
+    run += inlineToText(child);
+  });
+
+  flush();
+  return lines;
+}
 
 /**
  * Derive a readable plain-text fallback from an HTML email body, used as the
@@ -199,36 +292,19 @@ const HTML_ENTITIES: Record<string, string> = {
  */
 export function htmlToPlainText(html: string): string {
   if (!html) return '';
-  return html
-    .replace(/<\s*br\s*\/?>/gi, '\n')
-    // A plain-text reader cannot follow a link whose href was thrown away with the tag.
-    .replace(
-      /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
-      (_match, href: string, inner: string) => {
-        const label = inner.replace(/<[^>]+>/g, '').trim();
-        const url = href.replace(/^mailto:/i, '');
-        if (!label) return url;
-        return label === url || label.includes(url) ? label : `${label} (${url})`;
-      },
-    )
-    // Number ordered items before the generic bullet rule flattens every list to dashes.
-    .replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (_match, inner: string) => {
-      let n = 0;
-      return inner.replace(/<\s*li[^>]*>/gi, () => `${(n += 1)}. `);
-    })
-    .replace(/<\s*li[^>]*>/gi, '- ')
-    // The editor wraps each item's text in a paragraph; without this every item gains a blank
-    // line from the </p> and again from the </li>.
-    .replace(/<\/\s*p\s*>\s*<\/\s*li\s*>/gi, '</li>')
-    .replace(/<\/\s*(?:p|div|li|ul|ol|blockquote|h[1-6]|pre)\s*>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(
-      /&amp;|&lt;|&gt;|&quot;|&#39;|&nbsp;/gi,
-      (entity) => HTML_ENTITIES[entity.toLowerCase()] ?? entity,
-    )
-    .replace(/\n{3,}/g, '\n\n')
+
+  // Walk the markup rather than rewriting it: nesting is structural, and the DOM decodes
+  // entities on the way. Callers pass already-sanitized HTML, so this parse is idempotent.
+  const root = DOMPurify.sanitize(html, {
+    ...EMAIL_HTML_SANITIZE_CONFIG,
+    RETURN_DOM: true,
+  }) as unknown as HTMLElement;
+
+  return blocksToLines(root)
+    .join('\n')
+    .replace(/\u00a0/g, ' ')
     .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
@@ -253,7 +329,10 @@ export interface PreparedEmailBody {
  */
 export const MAX_EMAIL_HTML_BODY_LENGTH = 100_000;
 
-export function prepareEmailBody(rawBody: unknown): PreparedEmailBody {
+export function prepareEmailBody(
+  rawBody: unknown,
+  opts: { isHtml: boolean },
+): PreparedEmailBody {
   const body =
     typeof rawBody === 'string'
       ? rawBody
@@ -263,7 +342,10 @@ export function prepareEmailBody(rawBody: unknown): PreparedEmailBody {
           ? JSON.stringify(rawBody)
           : String(rawBody);
 
-  if (!isLikelyHtml(body)) {
+  // The caller decides from the stored template, which is the same string the backend used to
+  // decide whether to escape interpolated values. Sniffing the interpolated body here instead
+  // let a record value flip an unescaped plain body into the HTML part.
+  if (!opts.isHtml) {
     return { isHtml: false, text: body };
   }
 

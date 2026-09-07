@@ -28,12 +28,14 @@ describe('isLikelyHtml', () => {
 
 describe('prepareEmailBody', () => {
   it('passes legacy plain text through untouched', () => {
-    const r = prepareEmailBody('Hi,\n\nThanks');
+    const r = prepareEmailBody('Hi,\n\nThanks', { isHtml: false });
     expect(r).toEqual({ isHtml: false, text: 'Hi,\n\nThanks' });
   });
 
   it('sends rich text as html with a text fallback', () => {
-    const r = prepareEmailBody('<p>Hi <strong>there</strong></p><ul><li>one</li><li>two</li></ul>');
+    const r = prepareEmailBody('<p>Hi <strong>there</strong></p><ul><li>one</li><li>two</li></ul>', {
+      isHtml: true,
+    });
     expect(r.isHtml).toBe(true);
     expect(r.html).toBe(
       `<div style="${EMAIL_BODY_STYLE}">` +
@@ -45,22 +47,25 @@ describe('prepareEmailBody', () => {
   });
 
   it('does not add paragraph margins inside list items', () => {
-    const r = prepareEmailBody('<ul><li><p>one</p></li></ul>');
+    const r = prepareEmailBody('<ul><li><p>one</p></li></ul>', { isHtml: true });
     expect(r.html).toContain(`<li style="${EMAIL_BASE_STYLES.li}"><p>one</p></li>`);
   });
 
   it('inlines base styles under the author\'s own', () => {
-    const r = prepareEmailBody('<h1 style="color: #dc2626">T</h1>');
+    const r = prepareEmailBody('<h1 style="color: #dc2626">T</h1>', { isHtml: true });
     expect(r.html).toContain(`<h1 style="${EMAIL_BASE_STYLES.h1}; color: #dc2626">T</h1>`);
   });
 
   it('mirrors text-align to the align attribute for Outlook', () => {
-    const r = prepareEmailBody('<p style="text-align: center">x</p>');
+    const r = prepareEmailBody('<p style="text-align: center">x</p>', { isHtml: true });
     expect(r.html).toContain(`<p style="${EMAIL_BASE_STYLES.p}; text-align: center" align="center">x</p>`);
   });
 
   it('keeps font-family and font-size spans', () => {
-    const r = prepareEmailBody(`<p><span style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px">x</span></p>`);
+    const r = prepareEmailBody(
+      `<p><span style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px">x</span></p>`,
+      { isHtml: true },
+    );
     expect(r.html).toContain(`<span style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px">x</span>`);
   });
 
@@ -68,10 +73,18 @@ describe('prepareEmailBody', () => {
     expect(sanitizeEmailHtml('<p>x</p>')).toBe('<p>x</p>');
   });
 
+  it('never sniffs: a plain-mode body that looks like html stays text', () => {
+    // The P0 seam: a template starting with `{{ }}` is plain, so the backend does not escape
+    // the interpolated value. If that value happens to start with a block tag, sniffing here
+    // would route unescaped record markup into the HTML part.
+    const body = '<p>from a record</p>\n\nRegards';
+    expect(prepareEmailBody(body, { isHtml: false })).toEqual({ isHtml: false, text: body });
+  });
+
   it('stringifies non-string values', () => {
-    expect(prepareEmailBody(null).text).toBe('');
-    expect(prepareEmailBody(42).text).toBe('42');
-    expect(prepareEmailBody({ a: 1 }).text).toBe('{"a":1}');
+    expect(prepareEmailBody(null, { isHtml: false }).text).toBe('');
+    expect(prepareEmailBody(42, { isHtml: false }).text).toBe('42');
+    expect(prepareEmailBody({ a: 1 }, { isHtml: false }).text).toBe('{"a":1}');
   });
 });
 
@@ -148,16 +161,34 @@ describe('htmlToPlainText', () => {
     );
     expect(htmlToPlainText('<ul><li><p>one</p></li><li><p>two</p></li></ul>')).toBe('- one\n- two');
   });
+
+  it('indents nested lists and keeps the outer numbering', () => {
+    expect(
+      htmlToPlainText(
+        '<ol><li><p>outer1</p><ol><li><p>inner-a</p></li><li><p>inner-b</p></li></ol></li><li><p>outer2</p></li></ol>',
+      ),
+    ).toBe('1. outer1\n  1. inner-a\n  2. inner-b\n2. outer2');
+  });
+
+  it('nests a bullet list inside an ordered item', () => {
+    expect(htmlToPlainText('<ol><li>a<ul><li>b</li></ul></li></ol>')).toBe('1. a\n  - b');
+  });
+
+  it('indents two levels of nesting by one step each', () => {
+    expect(
+      htmlToPlainText('<ul><li>a<ul><li>b<ul><li>c</li></ul></li></ul></li></ul>'),
+    ).toBe('- a\n  - b\n    - c');
+  });
 });
 
 describe('body size cap', () => {
   it('rejects oversized html before it reaches the sanitizer', () => {
     const huge = '<p>' + 'x'.repeat(MAX_EMAIL_HTML_BODY_LENGTH) + '</p>';
-    expect(() => prepareEmailBody(huge)).toThrow(/100 KB limit/);
+    expect(() => prepareEmailBody(huge, { isHtml: true })).toThrow(/100 KB limit/);
   });
 
   it('leaves oversized plain text alone', () => {
     const text = 'x'.repeat(MAX_EMAIL_HTML_BODY_LENGTH + 1);
-    expect(prepareEmailBody(text)).toEqual({ isHtml: false, text });
+    expect(prepareEmailBody(text, { isHtml: false })).toEqual({ isHtml: false, text });
   });
 });

@@ -43,6 +43,16 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'workflow_email_ai',
+    title: 'AI email composing',
+    description: 'Draft and rewrite the body of a workflow send-email node with AI.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isAdvanced: true,
+    isEE: true,
+  },
+  {
     id: 'integrations',
     get title() {
       return getI18n().global.t('general.integrations')

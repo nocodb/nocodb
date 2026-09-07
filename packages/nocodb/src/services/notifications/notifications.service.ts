@@ -154,7 +154,9 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (!notification) {
-      NcError.unauthorized('Unauthorized to update notification');
+      NcError.insufficientPrivilege(
+        'You can only update your own notifications.',
+      );
     }
     await Notification.update(param.notificationId, param.body);
 
@@ -168,7 +170,9 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (!notification) {
-      NcError.unauthorized('Unauthorized to delete notification');
+      NcError.insufficientPrivilege(
+        'You can only delete your own notifications.',
+      );
     }
 
     await Notification.update(param.notificationId, {

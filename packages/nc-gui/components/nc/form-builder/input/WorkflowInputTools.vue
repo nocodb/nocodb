@@ -10,7 +10,7 @@ export interface WorkflowInputTool {
   icon?: IconMapKey
   label?: string
   isActive?: () => boolean
-  action?: () => void
+  action?: (event?: MouseEvent) => void
 }
 
 interface Props {

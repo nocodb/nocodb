@@ -101,7 +101,9 @@ export class CommentsService {
     const comment = await Comment.get(context, param.commentId);
 
     if (comment.created_by !== param.user.id || comment.is_deleted) {
-      NcError.get(context).unauthorized('Unauthorized access');
+      NcError.get(context).insufficientPrivilege(
+        'Only the user who wrote this comment can delete it.',
+      );
     }
 
     const res = await Comment.delete(context, param.commentId);
@@ -178,7 +180,9 @@ export class CommentsService {
     const comment = await Comment.get(context, param.commentId);
 
     if (comment.created_by !== param.user.id || comment.is_deleted) {
-      NcError.get(context).unauthorized('Unauthorized access');
+      NcError.get(context).insufficientPrivilege(
+        'Only the user who wrote this comment can edit it.',
+      );
     }
 
     const sanitizedComment = sanitizeCommentBody(param.body.comment);

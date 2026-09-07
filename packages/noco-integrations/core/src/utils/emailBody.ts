@@ -246,6 +246,13 @@ export interface PreparedEmailBody {
  * sanitized and paired with a plain-text fallback; legacy plain-text bodies
  * pass through unchanged.
  */
+/**
+ * Upper bound on an HTML body handed to the sanitizer. DOMPurify parses synchronously on the
+ * send path, and deeply nested markup a few hundred KB long can stall the event loop for tens
+ * of seconds — no real email body comes close to this.
+ */
+export const MAX_EMAIL_HTML_BODY_LENGTH = 100_000;
+
 export function prepareEmailBody(rawBody: unknown): PreparedEmailBody {
   const body =
     typeof rawBody === 'string'
@@ -258,6 +265,12 @@ export function prepareEmailBody(rawBody: unknown): PreparedEmailBody {
 
   if (!isLikelyHtml(body)) {
     return { isHtml: false, text: body };
+  }
+
+  if (body.length > MAX_EMAIL_HTML_BODY_LENGTH) {
+    throw new Error(
+      `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content`,
+    );
   }
 
   const sanitized = sanitizeEmailHtml(body, { baseStyles: true });

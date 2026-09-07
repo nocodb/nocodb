@@ -4,6 +4,7 @@ import {
   EMAIL_BODY_STYLE,
   htmlToPlainText,
   isLikelyHtml,
+  MAX_EMAIL_HTML_BODY_LENGTH,
   prepareEmailBody,
   sanitizeEmailHtml,
   sanitizeInlineStyle,
@@ -146,5 +147,17 @@ describe('htmlToPlainText', () => {
       '1. first\n2. second',
     );
     expect(htmlToPlainText('<ul><li><p>one</p></li><li><p>two</p></li></ul>')).toBe('- one\n- two');
+  });
+});
+
+describe('body size cap', () => {
+  it('rejects oversized html before it reaches the sanitizer', () => {
+    const huge = '<p>' + 'x'.repeat(MAX_EMAIL_HTML_BODY_LENGTH) + '</p>';
+    expect(() => prepareEmailBody(huge)).toThrow(/100 KB limit/);
+  });
+
+  it('leaves oversized plain text alone', () => {
+    const text = 'x'.repeat(MAX_EMAIL_HTML_BODY_LENGTH + 1);
+    expect(prepareEmailBody(text)).toEqual({ isHtml: false, text });
   });
 });

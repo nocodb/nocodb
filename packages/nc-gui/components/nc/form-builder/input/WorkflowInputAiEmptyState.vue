@@ -57,6 +57,16 @@ function closePrompt() {
   promptOpen.value = false
 }
 
+// Scoped to this surface rather than the textarea: focus may sit on a chip, and an unhandled
+// Escape closes the compose modal. Untouched while the card is resting, where that is correct.
+function onEscape(event: KeyboardEvent) {
+  if (!promptOpen.value) return
+
+  event.stopPropagation()
+  event.preventDefault()
+  closePrompt()
+}
+
 function useSuggestion(text: string) {
   prompt.value = text
   inputRef.value?.focus()
@@ -83,7 +93,13 @@ defineExpose({ openPrompt })
 </script>
 
 <template>
-  <div class="nc-email-ai-empty" :class="{ 'is-prompt': promptOpen }" data-testid="nc-workflow-richtext-ai-empty">
+  <div
+    class="nc-email-ai-empty"
+    :class="{ 'is-prompt': promptOpen }"
+    tabindex="-1"
+    data-testid="nc-workflow-richtext-ai-empty"
+    @keydown.esc="onEscape"
+  >
     <!-- State A: resting -->
     <div v-if="!promptOpen" class="nc-email-ai-empty-card">
       <div class="nc-email-ai-empty-tile">
@@ -119,7 +135,6 @@ defineExpose({ openPrompt })
             data-testid="nc-workflow-richtext-ai-empty-input"
             @input="autoGrow"
             @keydown.enter.exact.prevent="generate"
-            @keydown.esc.stop.prevent="closePrompt"
           />
         </div>
         <NcAlert v-if="aiError" type="error" :message="aiError" class="!mt-1" />

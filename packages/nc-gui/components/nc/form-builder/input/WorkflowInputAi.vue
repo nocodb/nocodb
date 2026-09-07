@@ -54,13 +54,42 @@ const toneModes: { mode: DocAiImproveMode; label: string }[] = [
 
 watch(open, (isOpen) => {
   if (isOpen) {
-    nextTick(() => inputRef.value?.focus())
+    focusInput()
     // Chips only show without a selection; don't bill a suggestion call that is never rendered.
     if (!hasSelection.value) loadSuggestions()
   } else {
     abort()
   }
 })
+
+// Escape must not depend on where focus ended up: the popup is portaled out of the compose
+// modal's subtree, so a keystroke that misses the textarea closes the whole modal. Capture
+// phase runs before the modal's own handler.
+useEventListener(
+  document,
+  'keydown',
+  (event: KeyboardEvent) => {
+    if (!open.value || event.key !== 'Escape') return
+
+    event.stopPropagation()
+    event.preventDefault()
+    open.value = false
+  },
+  { capture: true },
+)
+
+// The popup is mounted lazily and animates in, so an immediate focus() lands while an ancestor
+// is still display:none and the browser drops it. Retry across frames until it sticks.
+function focusInput(attempt = 0) {
+  const el = inputRef.value
+
+  if (el) {
+    el.focus()
+    if (document.activeElement === el) return
+  }
+
+  if (attempt < 10) requestAnimationFrame(() => focusInput(attempt + 1))
+}
 
 // Editor HTML is sent with variable chips as their {{ }} tokens, so the model sees (and
 // preserves) the real expression rather than a display label.
@@ -102,7 +131,7 @@ async function runRewrite(mode: DocAiImproveMode) {
     <slot :open="open" :loading="loading" :toggle="() => (open = !open)" />
 
     <template #overlay>
-      <div class="nc-email-ai-menu" @mousedown.stop @click.stop>
+      <div class="nc-email-ai-menu" tabindex="-1" @mousedown.stop @click.stop>
         <div class="nc-email-ai-title">
           <GeneralIcon icon="ncAutoAwesome" class="w-3.5 h-3.5 text-nc-content-purple-dark" />
           {{ $t('labels.writeWithAi') }}
@@ -115,7 +144,6 @@ async function runRewrite(mode: DocAiImproveMode) {
           :placeholder="$t('placeholder.describeEmail')"
           data-testid="nc-workflow-richtext-ai-input"
           @keydown.enter.exact.prevent="runWrite"
-          @keydown.esc.stop.prevent="open = false"
         />
         <NcAlert v-if="aiError" type="error" :message="aiError" />
         <div class="text-tiny text-nc-content-gray-muted">{{ $t('labels.aiEnterHint') }}</div>
@@ -178,9 +206,11 @@ async function runRewrite(mode: DocAiImproveMode) {
 <style lang="scss">
 // Overlay renders in body, so this stays unscoped.
 .nc-email-ai-menu {
-  @apply flex flex-col gap-2 p-3 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  // Border, radius and shadow come from NcDropdown's overlay wrapper — repeating them here
+  // draws a second, concentric border around the menu. Radius is kept so the background
+  // corners follow the wrapper's.
+  @apply flex flex-col gap-2 p-3 rounded-lg bg-nc-bg-default;
   width: 320px;
-  box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
 
   .nc-email-ai-title {
     @apply flex items-center gap-1.5 text-small font-semibold text-nc-content-gray;
@@ -190,10 +220,10 @@ async function runRewrite(mode: DocAiImproveMode) {
     @apply w-full px-2.5 py-2 text-small rounded-md border-1 border-nc-border-gray-medium outline-none resize-none;
     line-height: 1.5;
 
-    // Border only — the menu's own border and shadow already enclose this, so the
-    // empty state's halo would read as a second border around the field.
+    // Purple focus, matching the body's AI prompt box.
     &:focus {
       border-color: var(--nc-border-coloured-purple);
+      box-shadow: 0 0 0 2px var(--nc-bg-coloured-purple);
     }
   }
 

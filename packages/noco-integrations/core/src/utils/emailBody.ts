@@ -70,8 +70,37 @@ export const EMAIL_ALLOWED_CSS_PROPS = new Set([
   'font-style',
   'text-decoration',
   'text-align',
+  'line-height',
+  'margin',
+  'margin-top',
+  'margin-right',
+  'margin-bottom',
   'margin-left',
+  'padding',
+  'padding-left',
+  'border-left',
+  'border-radius',
 ]);
+
+/**
+ * Mail clients ignore <style> blocks and apply their own defaults (Times, browser heading
+ * sizes…), so the editor's look is inlined per element at send time. Mirrors the editor CSS.
+ */
+export const EMAIL_BODY_STYLE =
+  "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #1f293a";
+
+export const EMAIL_BASE_STYLES: Record<string, string> = {
+  p: 'margin: 0 0 10px',
+  h1: 'font-size: 20px; font-weight: 700; line-height: 1.3; margin: 16px 0 8px',
+  h2: 'font-size: 18px; font-weight: 700; line-height: 1.3; margin: 14px 0 8px',
+  h3: 'font-size: 16px; font-weight: 700; line-height: 1.3; margin: 12px 0 6px',
+  blockquote: 'margin: 0 0 10px; padding-left: 12px; border-left: 2px solid #e7e7e9; color: #4a5268',
+  ul: 'margin: 0 0 10px; padding-left: 20px',
+  ol: 'margin: 0 0 10px; padding-left: 20px',
+  li: 'margin: 2px 0',
+  code: "font-family: SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; background-color: #f4f4f5; padding: 1px 4px; border-radius: 4px",
+  a: 'color: #3366ff; text-decoration: underline',
+};
 
 const SAFE_CSS_VALUE = /^[\w\s#,.%()'"-]+$/;
 
@@ -92,8 +121,28 @@ export function sanitizeInlineStyle(style: string): string {
     .join('; ');
 }
 
+// DOMPurify hooks are global on the shared instance and the backend has other callers
+// (comments, table names…), so both hooks only act while an email sanitize is running.
+let emailSanitizeActive = false;
+let applyBaseStyles = false;
+
+DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+  if (!emailSanitizeActive || !applyBaseStyles) return;
+  if (node.nodeType !== 1) return;
+  const base = EMAIL_BASE_STYLES[data.tagName];
+  if (!base) return;
+  // No DOM lib in this package's tsconfig; the node is a jsdom Element at runtime.
+  const el = node as unknown as {
+    getAttribute(name: string): string | null;
+    setAttribute(name: string, value: string): void;
+  };
+  const own = el.getAttribute('style');
+  // Base first so the author's own declarations win.
+  el.setAttribute('style', own ? `${base}; ${own}` : base);
+});
+
 DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
-  if (data.attrName !== 'style') return;
+  if (!emailSanitizeActive || data.attrName !== 'style') return;
   data.attrValue = sanitizeInlineStyle(data.attrValue);
   if (!data.attrValue) data.keepAttr = false;
 });
@@ -116,9 +165,19 @@ export function isLikelyHtml(value: string): boolean {
  * Sanitize an HTML email body against {@link EMAIL_HTML_SANITIZE_CONFIG}.
  * Runs after variable interpolation, so record-driven content is scrubbed too.
  */
-export function sanitizeEmailHtml(input: unknown): string {
+export function sanitizeEmailHtml(
+  input: unknown,
+  options: { baseStyles?: boolean } = {},
+): string {
   if (input == null) return '';
-  return DOMPurify.sanitize(String(input), EMAIL_HTML_SANITIZE_CONFIG);
+  emailSanitizeActive = true;
+  applyBaseStyles = !!options.baseStyles;
+  try {
+    return DOMPurify.sanitize(String(input), EMAIL_HTML_SANITIZE_CONFIG);
+  } finally {
+    emailSanitizeActive = false;
+    applyBaseStyles = false;
+  }
 }
 
 const HTML_ENTITIES: Record<string, string> = {
@@ -179,6 +238,7 @@ export function prepareEmailBody(rawBody: unknown): PreparedEmailBody {
     return { isHtml: false, text: body };
   }
 
-  const html = sanitizeEmailHtml(body);
-  return { isHtml: true, html, text: htmlToPlainText(html) };
+  const sanitized = sanitizeEmailHtml(body, { baseStyles: true });
+  const html = `<div style="${EMAIL_BODY_STYLE}">${sanitized}</div>`;
+  return { isHtml: true, html, text: htmlToPlainText(sanitized) };
 }

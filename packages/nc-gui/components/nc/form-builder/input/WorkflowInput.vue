@@ -653,8 +653,17 @@ function openLinkMenu(event?: MouseEvent) {
   nextTick(() => linkUrlRef.value?.focus())
 }
 
+// Scheme-less URLs are the norm when typing; the sanitizer only lets http(s)/mailto through.
+function normalizeHref(raw: string): string {
+  const value = raw.trim()
+  if (!value) return ''
+  if (/^(?:https?|mailto):/i.test(value)) return value
+  if (/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(value)) return `mailto:${value}`
+  return `https://${value.replace(/^\/+/, '')}`
+}
+
 function applyLink() {
-  const href = linkUrl.value.trim()
+  const href = normalizeHref(linkUrl.value)
   if (!href || !editor.value) {
     showLinkMenu.value = false
     return

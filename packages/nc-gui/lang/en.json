@@ -4091,9 +4091,11 @@
     "insertFromPreviousSteps": "Insert from previous steps",
     "emailBody": "Email body",
     "emailBody": "Email body",
+
     "clearFormatting": "Clear formatting",
     "font": "Font",
-    "fontSize": "Font size",
+    "ccBcc": "Cc, Bcc",
+    "inputs": "Inputs",
     "textAlign": "Alignment",
     "justify": "Justify"
   },

@@ -74,6 +74,10 @@ useEventListener(
     event.stopPropagation()
     event.preventDefault()
     open.value = false
+
+    // Focus was inside the portaled popup, which sits outside the modal's subtree — leaving it
+    // to fall to <body> means the modal never sees the next Escape and cannot be closed.
+    nextTick(() => props.editor.commands.focus())
   },
   { capture: true },
 )

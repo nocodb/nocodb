@@ -32,6 +32,8 @@ const prompt = ref('')
 
 const inputRef = ref<HTMLTextAreaElement>()
 
+const rootRef = ref<HTMLElement>()
+
 const { suggestions, suggestLoading, aiVariables, loadSuggestions } = useWorkflowEmailAiSuggestions(toRef(props, 'variables'))
 
 // "Or {startBlank} instead" — interpolate a sentinel, then split around it so the link can be
@@ -65,6 +67,10 @@ function onEscape(event: KeyboardEvent) {
   event.stopPropagation()
   event.preventDefault()
   closePrompt()
+
+  // The textarea goes with the prompt and the editor is display:none behind the card, so
+  // without this focus lands on <body> — outside the modal, which then cannot see Escape.
+  nextTick(() => rootRef.value?.focus())
 }
 
 function useSuggestion(text: string) {
@@ -94,6 +100,7 @@ defineExpose({ openPrompt })
 
 <template>
   <div
+    ref="rootRef"
     class="nc-email-ai-empty"
     :class="{ 'is-prompt': promptOpen }"
     tabindex="-1"

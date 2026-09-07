@@ -31,6 +31,27 @@ const typographyOpen = ref(false)
 
 const alignOpen = ref(false)
 
+// Escape dismisses our own overlay. Capture phase on purpose: the editor stops this key
+// propagating (so it never closes the compose modal), which would keep a bubbling listener
+// from ever running.
+useEventListener(
+  document,
+  'keydown',
+  (e: KeyboardEvent) => {
+    if (e.key !== 'Escape') return
+    if (!colorOpen.value && !typographyOpen.value && !alignOpen.value) return
+    colorOpen.value = false
+    typographyOpen.value = false
+    alignOpen.value = false
+    // Swallow it here too. Leaving that to the editor only works while the editor holds focus,
+    // and the compose modal closes on any Escape that reaches it.
+    e.preventDefault()
+    e.stopPropagation()
+    e.stopImmediatePropagation()
+  },
+  { capture: true },
+)
+
 const ALIGNMENTS: { value: EmailTextAlign; icon: IconMapKey; label: string }[] = [
   { value: 'left', icon: 'lucideAlignLeft', label: 'labels.alignLeft' },
   { value: 'center', icon: 'lucideAlignCenter', label: 'labels.alignCenter' },
@@ -275,8 +296,9 @@ function applyHighlight(color: string) {
 
 // Overlays render in body, so these stay unscoped.
 .nc-email-typo-picker {
-  @apply flex gap-3 p-3 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
-  box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
+  // NcDropdown's overlay already draws the border, radius and shadow; repeating them here is
+  // what doubled the outline.
+  @apply flex gap-3 p-3 rounded-lg bg-nc-bg-default;
 
   .nc-email-typo-col {
     @apply flex flex-col gap-0.5 w-40;
@@ -302,8 +324,7 @@ function applyHighlight(color: string) {
 }
 
 .nc-email-align-picker {
-  @apply flex items-center gap-0.5 p-1 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
-  box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
+  @apply flex items-center gap-0.5 p-1 rounded-lg bg-nc-bg-default;
 
   .nc-workflow-format-btn.is-active {
     @apply bg-nc-bg-gray-light text-nc-content-brand;
@@ -311,9 +332,8 @@ function applyHighlight(color: string) {
 }
 
 .nc-email-color-picker {
-  @apply p-3 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  @apply p-3 rounded-lg bg-nc-bg-default;
   width: 196px;
-  box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
 
   .nc-email-color-label {
     @apply text-[11px] font-semibold text-nc-content-gray-subtle mb-1.5 mt-2.5;

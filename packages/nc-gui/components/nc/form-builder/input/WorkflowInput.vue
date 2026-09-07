@@ -145,13 +145,11 @@ const createSuggestionRender = () => ({
 
       onKeyDown(suggestionProps: Record<string, any>) {
         if (suggestionProps.event.key === 'Escape') {
-          // Only dismiss the picker; the same keystroke would otherwise close the compose modal.
-          suggestionProps.event.stopPropagation()
-          popup?.[0]?.hide()
-          // Returning true only tells the plugin we handled it; the DOM event still travels on
-          // and the compose modal closes on it.
+          // Returning true only tells the plugin we handled it; the DOM event would still travel
+          // on to the compose modal and close the whole thing.
           suggestionProps.event.preventDefault()
           suggestionProps.event.stopPropagation()
+          popup?.[0]?.hide()
           return true
         }
         return component?.ref?.onKeyDown(suggestionProps)

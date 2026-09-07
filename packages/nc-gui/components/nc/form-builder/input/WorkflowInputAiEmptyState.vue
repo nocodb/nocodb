@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
 import type { VariableDefinition } from 'nocodb-sdk'
-import { useWorkflowEmailAi } from '#imports'
+import { useWorkflowEmailAi, useWorkflowEmailAiSuggestions } from '#imports'
 
 /**
  * Empty-body state for the email editor: a card offering "Write with AI" or "Start blank",
@@ -33,11 +33,7 @@ const error = ref('')
 
 const inputRef = ref<HTMLTextAreaElement>()
 
-const suggestions = [
-  { label: 'labels.aiSuggestionOrderConfirmation', prompt: 'labels.aiSuggestionOrderConfirmationPrompt' },
-  { label: 'labels.aiSuggestionShippingUpdate', prompt: 'labels.aiSuggestionShippingUpdatePrompt' },
-  { label: 'labels.aiSuggestionPaymentReceipt', prompt: 'labels.aiSuggestionPaymentReceiptPrompt' },
-]
+const { suggestions, suggestLoading, aiVariables, loadSuggestions } = useWorkflowEmailAiSuggestions(toRef(props, 'variables'))
 
 // "Or {startBlank} instead" — interpolate a sentinel, then split around it so the link can be
 // an element while the sentence (and word order) stays translatable.
@@ -48,24 +44,12 @@ const orStartBlank = computed(() => {
   return { before, after: after ?? '' }
 })
 
-// Flatten the upstream variable tree into what the prompt lists (leaf keys only).
-const aiVariables = computed(() => {
-  const out: { key: string; name: string; type?: string }[] = []
-  const walk = (vars: any[], prefix = '') => {
-    for (const v of vars || []) {
-      const name = prefix ? `${prefix} › ${v.name}` : v.name
-      if (v.children?.length) walk(v.children, name)
-      else if (v.key && !String(v.key).includes('.map(')) out.push({ key: v.key, name, type: v.type })
-    }
-  }
-  walk(props.variables)
-  return out.slice(0, 60)
-})
-
 function openPrompt() {
   error.value = ''
   promptOpen.value = true
   nextTick(() => inputRef.value?.focus())
+  $e('a:workflow:email:ai:suggest')
+  loadSuggestions()
 }
 
 function closePrompt() {
@@ -73,8 +57,8 @@ function closePrompt() {
   promptOpen.value = false
 }
 
-function useSuggestion(key: string) {
-  prompt.value = t(key)
+function useSuggestion(text: string) {
+  prompt.value = text
   inputRef.value?.focus()
 }
 
@@ -159,7 +143,11 @@ async function generate() {
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-1.5">
+      <div
+        class="flex flex-wrap gap-1.5"
+        :class="{ 'is-loading': suggestLoading }"
+        data-testid="nc-workflow-richtext-ai-suggestions"
+      >
         <button
           v-for="s in suggestions"
           :key="s.label"
@@ -167,7 +155,7 @@ async function generate() {
           :disabled="loading"
           @click="useSuggestion(s.prompt)"
         >
-          {{ $t(s.label) }}
+          {{ s.label }}
         </button>
       </div>
 
@@ -233,10 +221,15 @@ async function generate() {
   }
 }
 
+.is-loading .nc-email-ai-chip {
+  @apply opacity-60;
+}
+
 .nc-email-ai-chip {
   @apply rounded-md cursor-pointer text-nc-content-gray-subtle bg-nc-bg-default border-1 border-nc-border-gray-medium;
   font-size: 12px;
   padding: 4px 10px;
+  transition: opacity 0.15s;
 
   &:hover {
     @apply bg-nc-bg-gray-light;

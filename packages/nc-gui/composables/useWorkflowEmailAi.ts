@@ -6,6 +6,11 @@ export interface WorkflowEmailAiVariable {
   type?: string
 }
 
+export interface WorkflowEmailAiSuggestion {
+  label: string
+  prompt: string
+}
+
 // CE has no AI; the EE overlay (ee/composables/useWorkflowEmailAi.ts) provides the real thing.
 export const useWorkflowEmailAi = () => ({
   available: computed(() => false),
@@ -21,5 +26,11 @@ export const useWorkflowEmailAi = () => ({
     mode: DocAiImproveMode
     variables?: WorkflowEmailAiVariable[]
   }): Promise<string | undefined> => undefined,
+  aiSuggest: async (_input: {
+    triggerTitle?: string
+    subject?: string
+    variables?: WorkflowEmailAiVariable[]
+  }): Promise<WorkflowEmailAiSuggestion[] | undefined> => undefined,
+  suggestLoading: ref(false),
   abort: () => {},
 })

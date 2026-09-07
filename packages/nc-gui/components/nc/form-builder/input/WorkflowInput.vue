@@ -7,10 +7,14 @@ import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3
 import type { VariableDefinition } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
+import TextStyle from '@tiptap/extension-text-style'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
+import { FontFamily } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
+import { FontSize } from '~/helpers/tiptap-markdown/extensions/marks/fontSize'
 import { Highlight } from '~/helpers/tiptap-markdown/extensions/marks/highlight'
+import { TextAlign } from '~/helpers/tiptap-markdown/extensions/textAlign'
 import { TextColor } from '~/helpers/tiptap-markdown/extensions/marks/textColor'
 
 interface NodeGroup {
@@ -256,6 +260,10 @@ const editor = useEditor({
           Underline,
           TextColor,
           Highlight,
+          TextStyle,
+          FontFamily,
+          FontSize,
+          TextAlign,
           Link.configure({
             openOnClick: false,
             autolink: false,
@@ -546,6 +554,7 @@ const formatGroups = computed<WorkflowInputTool[][]>(() => {
         action: toggleStrike,
       },
       { key: 'color', type: 'color' },
+      { key: 'typography', type: 'typography' },
     ],
     headingLevels.map((h) => ({
       key: `h${h.level}`,
@@ -583,6 +592,7 @@ const formatGroups = computed<WorkflowInputTool[][]>(() => {
         isActive: () => !!editor.value?.isActive('code'),
         action: toggleCode,
       },
+      { key: 'align', type: 'align' },
     ],
     [
       {

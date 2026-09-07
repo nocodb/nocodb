@@ -2,6 +2,7 @@
 import type { Editor } from '@tiptap/vue-3'
 import { DOMSerializer } from '@tiptap/pm/model'
 import type { DocAiImproveMode, VariableDefinition } from 'nocodb-sdk'
+import { useWorkflowEmailAi } from '~/composables/useWorkflowEmailAi'
 import { EMAIL_FONTS } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
 import { EMAIL_FONT_SIZES } from '~/helpers/tiptap-markdown/extensions/marks/fontSize'
 import { HIGHLIGHT_COLORS } from '~/helpers/tiptap-markdown/extensions/marks/highlight'

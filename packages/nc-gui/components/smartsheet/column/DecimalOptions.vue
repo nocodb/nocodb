@@ -71,4 +71,6 @@ if (!vModel.value.meta.separator) {
     :disabled="disableConfiguration"
     dropdown-class-name="nc-dropdown-decimal-separator-format"
   />
+
+  <SmartsheetColumnCustomNumberFormatOptions v-model:value="vModel" class="mt-4" />
 </template>

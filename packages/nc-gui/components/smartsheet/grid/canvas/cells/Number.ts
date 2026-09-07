@@ -1,4 +1,4 @@
-import { parseIntValue } from 'nocodb-sdk'
+import { parseIntValue, parseProp, formatCustomNumber } from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const FloatCellRenderer: CellRenderer = {
@@ -12,7 +12,9 @@ export const FloatCellRenderer: CellRenderer = {
         y,
       }
     }
-    const text = numericValue.toString()
+
+    const customFormat = parseProp(column?.meta)?.custom_format
+    const text = customFormat ? formatCustomNumber(numericValue, customFormat) : numericValue.toString()
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })

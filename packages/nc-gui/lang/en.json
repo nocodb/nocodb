@@ -2858,6 +2858,7 @@
     "durationFormat": "Duration Format",
     "dateFormat": "Date format",
     "pickDateFormat": "Pick a format — example uses today",
+    "customNumberFormat": "Custom format",
     "timeFormat": "Time format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",

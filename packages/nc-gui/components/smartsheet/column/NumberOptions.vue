@@ -30,4 +30,6 @@ if (!vModel.value.meta.separator) {
     integer
     dropdown-class-name="nc-dropdown-number-separator-format"
   />
+
+  <SmartsheetColumnCustomNumberFormatOptions v-model:value="vModel" class="mt-4" />
 </template>

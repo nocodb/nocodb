@@ -11,6 +11,8 @@ import AbstractColumnHelper, {
 import { populateFillHandleStringNumber } from '../utils/fill-handler';
 import { ColumnType } from '~/lib/Api';
 import { ncIsNaN } from '~/lib/is';
+import { parseProp } from '~/lib/helperFunctions';
+import { formatCustomNumber } from '../utils/customNumberFormat';
 
 export class DecimalHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -43,6 +45,12 @@ export class DecimalHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
+
+    const customFormat = parseProp(params.col?.meta)?.custom_format;
+    if (customFormat) {
+      return formatCustomNumber(value, customFormat);
+    }
+
     return parseDecimalValue(value, params.col);
   }
 
@@ -52,6 +60,11 @@ export class DecimalHelper extends AbstractColumnHelper {
   ): string {
     if (params.isAggregation && ncIsNaN(value)) {
       value = 0;
+    }
+
+    const customFormat = parseProp(params.col?.meta)?.custom_format;
+    if (customFormat) {
+      return formatCustomNumber(value, customFormat);
     }
 
     return `${parseDecimalValue(value, params.col) ?? ''}`;

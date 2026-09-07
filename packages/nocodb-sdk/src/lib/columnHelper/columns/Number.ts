@@ -3,10 +3,11 @@ import { parseIntValue, SeparatorType, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { toSafeInteger } from '~/lib/helperFunctions';
+import { toSafeInteger, parseProp } from '~/lib/helperFunctions';
 import { ColumnType } from '~/lib/Api';
 import { populateFillHandleStringNumber } from '../utils/fill-handler';
 import { ncIsNaN } from '~/lib/is';
+import { formatCustomNumber } from '../utils/customNumberFormat';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -38,6 +39,12 @@ export class NumberHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
+
+    const customFormat = parseProp(params.col?.meta)?.custom_format;
+    if (customFormat) {
+      return formatCustomNumber(value, customFormat);
+    }
+
     return parseIntValue(value, params.col);
   }
 
@@ -47,6 +54,11 @@ export class NumberHelper extends AbstractColumnHelper {
   ): string {
     if (params.isAggregation && ncIsNaN(value)) {
       value = 0;
+    }
+
+    const customFormat = parseProp(params.col?.meta)?.custom_format;
+    if (customFormat) {
+      return formatCustomNumber(value, customFormat);
     }
 
     return `${parseIntValue(value, params.col) ?? ''}`;

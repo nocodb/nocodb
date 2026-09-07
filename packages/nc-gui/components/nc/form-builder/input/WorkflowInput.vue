@@ -129,6 +129,10 @@ const createSuggestionRender = () => ({
       onKeyDown(suggestionProps: Record<string, any>) {
         if (suggestionProps.event.key === 'Escape') {
           popup?.[0]?.hide()
+          // Returning true only tells the plugin we handled it; the DOM event still travels on
+          // and the compose modal closes on it.
+          suggestionProps.event.preventDefault()
+          suggestionProps.event.stopPropagation()
           return true
         }
         return component.ref?.onKeyDown(suggestionProps)
@@ -248,6 +252,8 @@ function tokensToExpressionSpans(html: string): string {
 
 // Two renderings of one form (sidebar + compose modal) mean this instance may be
 // updated from the outside; track what we emitted/loaded so only real changes reload.
+const showLinkMenu = ref(false)
+
 let lastEmitted: string | undefined
 
 let lastLoaded: string | undefined
@@ -351,6 +357,18 @@ const editor = useEditor({
         event.preventDefault()
         return true
       }
+
+      // Escape belongs to whatever is layered over the editor. Left alone it reaches the
+      // compose modal, which closes the whole thing when the user only meant to dismiss a popover.
+      if (event.key === 'Escape') {
+        if (showLinkMenu.value) {
+          cancelLink()
+          event.preventDefault()
+          event.stopPropagation()
+          return true
+        }
+      }
+
       return false
     },
   },
@@ -501,8 +519,6 @@ function recomputeWordCount() {
 }
 
 // ── Rich-text formatting toolbar ──
-
-const showLinkMenu = ref(false)
 
 const linkMenuRef = ref<HTMLElement>()
 
@@ -663,6 +679,9 @@ const shouldShowBubble = ({
   view: { hasFocus: () => boolean }
 }) =>
   !readOnly.value &&
+  // The compose modal carries a permanent toolbar; the bubble is the sidebar's stand-in for it.
+  // Showing both there is redundant, and the bubble sits over the toolbar and swallows its clicks.
+  !expanded.value &&
   e.isEditable &&
   !e.state.selection.empty &&
   (view.hasFocus() || !!bubbleEl.value?.contains(document.activeElement))
@@ -729,11 +748,18 @@ function applyLink() {
   const selectedText = editor.value.state.doc.textBetween(from, to, ' ')
   const label = linkText.value.trim() || selectedText || href
 
-  editor.value
-    .chain()
-    .focus()
-    .insertContentAt({ from, to }, { type: 'text', text: label, marks: [{ type: 'link', attrs: { href } }] })
-    .run()
+  const chain = editor.value.chain().focus()
+
+  if (from !== to && label === selectedText.trim()) {
+    // Mark the selection in place. Replacing it flattens the range to one plain text node,
+    // dropping every other mark and any variable chip inside it — silent data loss.
+    chain.setLink({ href })
+  } else {
+    // The label was edited (or there is no selection), so replacing is what was asked for.
+    chain.insertContentAt({ from, to }, { type: 'text', text: label, marks: [{ type: 'link', attrs: { href } }] })
+  }
+
+  chain.run()
 
   showLinkMenu.value = false
   linkUrl.value = ''
@@ -825,6 +851,7 @@ watch(readOnly, (newValue) => {
           class="nc-workflow-link-menu"
           :style="{ top: `${linkMenuPos.top}px`, left: `${linkMenuPos.left}px` }"
           @click.stop
+          @keydown.esc.stop.prevent="cancelLink"
         >
           <input
             v-model="linkText"

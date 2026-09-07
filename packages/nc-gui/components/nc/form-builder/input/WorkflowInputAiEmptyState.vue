@@ -44,8 +44,10 @@ const orStartBlank = computed(() => {
 })
 
 function openPrompt() {
+  const wasOpen = promptOpen.value
   promptOpen.value = true
   nextTick(() => inputRef.value?.focus())
+  if (wasOpen) return
   $e('c:workflow:email:ai:prompt-open')
   loadSuggestions()
 }
@@ -75,6 +77,9 @@ async function generate() {
   $e('a:workflow:email:ai:write', { source: 'empty-state' })
   emits('result', { html, mode: 'write' })
 }
+
+// The toolbar's AI button focuses this prompt instead of opening a second one.
+defineExpose({ openPrompt })
 </script>
 
 <template>
@@ -93,7 +98,7 @@ async function generate() {
             {{ $t('labels.writeWithAi') }}
           </span>
         </NcButton>
-        <NcButton size="small" type="text" data-testid="nc-workflow-richtext-ai-empty-blank" @click="emits('startBlank')">
+        <NcButton size="small" type="secondary" data-testid="nc-workflow-richtext-ai-empty-blank" @click="emits('startBlank')">
           {{ $t('labels.startBlank') }}
         </NcButton>
       </div>
@@ -119,7 +124,7 @@ async function generate() {
         </div>
         <NcAlert v-if="aiError" type="error" :message="aiError" class="!mt-1" />
         <div class="flex items-center justify-end gap-2">
-          <span class="text-tiny text-nc-content-gray-muted">{{ $t('labels.aiShiftEnterHint') }}</span>
+          <span class="text-tiny text-nc-content-gray-muted">{{ $t('labels.aiEnterHint') }}</span>
           <NcButton
             size="xs"
             type="primary"
@@ -155,7 +160,8 @@ async function generate() {
 
       <div class="nc-email-ai-empty-escape">
         {{ orStartBlank.before
-        }}<span class="nc-email-ai-empty-link" @click="emits('startBlank')">{{ $t('labels.startBlank').toLowerCase() }}</span
+        }}<button type="button" class="nc-email-ai-empty-link" @click="emits('startBlank')">
+          {{ $t('labels.startBlankLink') }}</button
         >{{ orStartBlank.after }}
       </div>
     </template>
@@ -240,6 +246,10 @@ async function generate() {
 }
 
 .nc-email-ai-empty-link {
-  @apply text-nc-content-brand font-semibold cursor-pointer;
+  @apply p-0 bg-transparent border-0 font-semibold cursor-pointer underline text-nc-content-gray-subtle;
+
+  &:hover {
+    @apply text-nc-content-gray;
+  }
 }
 </style>

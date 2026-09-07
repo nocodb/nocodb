@@ -485,6 +485,8 @@ function loadContent() {
 // "Start blank" dismisses it until the body has had content again.
 const aiEmptyDismissed = ref(false)
 
+const aiEmptyRef = ref<{ openPrompt: () => void }>()
+
 const isEditorEmpty = computed(() => !!editor.value?.isEmpty)
 
 const showAiEmptyState = computed(
@@ -498,6 +500,10 @@ watch(isEditorEmpty, (empty) => {
 function startBlank() {
   aiEmptyDismissed.value = true
   nextTick(() => editor.value?.commands.focus('start'))
+}
+
+function focusAiPrompt() {
+  aiEmptyRef.value?.openPrompt()
 }
 
 onMounted(loadContent)
@@ -886,7 +892,9 @@ watch(readOnly, (newValue) => {
             :editor="editor"
             :groups="toolbarGroups"
             :variables="variables"
+            :ai-prompt-in-body="showAiEmptyState"
             @ai-result="applyAiResult"
+            @ai-prompt="focusAiPrompt"
           />
 
           <div class="flex-1" />
@@ -939,7 +947,13 @@ watch(readOnly, (newValue) => {
         <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
 
         <div v-if="showAiEmptyState && editor" class="nc-email-ai-empty-host">
-          <WorkflowInputAiEmptyState :editor="editor" :variables="variables" @result="applyAiResult" @start-blank="startBlank" />
+          <WorkflowInputAiEmptyState
+            ref="aiEmptyRef"
+            :editor="editor"
+            :variables="variables"
+            @result="applyAiResult"
+            @start-blank="startBlank"
+          />
         </div>
 
         <BubbleMenu

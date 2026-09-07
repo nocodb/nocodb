@@ -6,15 +6,18 @@ import { useWorkflowEmailAi, useWorkflowEmailAiSuggestions } from '#imports'
 import { expressionSpansToTokens } from '~/helpers/workflowExpressionHtml'
 
 /**
- * "Write with AI" popover for the email body. The trigger is slotted so the toolbar button
- * and the empty-body call-to-action share one menu and one request pipeline.
+ * "Write with AI" popover for the email body, opened from the toolbar and the selection bubble.
+ * An empty body shows its own inline prompt instead (WorkflowInputAiEmptyState), so this menu is
+ * disabled while that one is on screen — one prompt surface at a time.
  */
 interface Props {
   editor: Editor
   variables?: VariableDefinition[]
+  /** The body owns the prompt (empty-state) — the trigger focuses that instead of opening this menu. */
+  disabled?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), { variables: () => [] })
+const props = withDefaults(defineProps<Props>(), { variables: () => [], disabled: false })
 
 const emits = defineEmits<{
   (e: 'result', payload: { html: string; mode: 'write' | 'rewrite' }): void
@@ -22,7 +25,8 @@ const emits = defineEmits<{
 
 const { $e } = useNuxtApp()
 
-const { loading, aiWrite, aiRewrite, abort } = useWorkflowEmailAi()
+// Failures render inline below the prompt instead of as a toast, matching the empty state.
+const { loading, error: aiError, aiWrite, aiRewrite, abort } = useWorkflowEmailAi({ toast: false })
 
 const { suggestions, suggestLoading, aiVariables, loadSuggestions } = useWorkflowEmailAiSuggestions(toRef(props, 'variables'))
 
@@ -94,7 +98,7 @@ async function runRewrite(mode: DocAiImproveMode) {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" placement="bottomLeft" :overlay-style="{ zIndex: 10002 }">
+  <NcDropdown v-model:visible="open" placement="bottomRight" :disabled="disabled" :overlay-style="{ zIndex: 10002 }">
     <slot :open="open" :loading="loading" :toggle="() => (open = !open)" />
 
     <template #overlay>
@@ -113,6 +117,8 @@ async function runRewrite(mode: DocAiImproveMode) {
           @keydown.enter.exact.prevent="runWrite"
           @keydown.esc.stop.prevent="open = false"
         />
+        <NcAlert v-if="aiError" type="error" :message="aiError" />
+        <div class="text-tiny text-nc-content-gray-muted">{{ $t('labels.aiEnterHint') }}</div>
         <div v-if="!hasSelection" class="flex flex-wrap gap-1" :class="{ 'is-loading': suggestLoading }">
           <button
             v-for="(s, i) in suggestions"
@@ -126,7 +132,7 @@ async function runRewrite(mode: DocAiImproveMode) {
         </div>
         <div class="flex items-center justify-between gap-2">
           <span v-if="aiVariables.length" class="text-tiny text-nc-content-gray-muted">
-            {{ aiVariables.length }} {{ $t('general.variables').toLowerCase() }}
+            {{ $t('labels.aiVariableCount', { count: aiVariables.length }, aiVariables.length) }}
           </span>
           <span v-else />
           <NcButton
@@ -184,10 +190,10 @@ async function runRewrite(mode: DocAiImproveMode) {
     @apply w-full px-2.5 py-2 text-small rounded-md border-1 border-nc-border-gray-medium outline-none resize-none;
     line-height: 1.5;
 
-    // Purple focus, matching the body's AI prompt box.
+    // Border only — the menu's own border and shadow already enclose this, so the
+    // empty state's halo would read as a second border around the field.
     &:focus {
       border-color: var(--nc-border-coloured-purple);
-      box-shadow: 0 0 0 2px var(--nc-bg-coloured-purple);
     }
   }
 

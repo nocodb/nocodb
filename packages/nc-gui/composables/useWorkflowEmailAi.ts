@@ -11,13 +11,18 @@ export interface WorkflowEmailAiSuggestion {
   prompt: string
 }
 
+export interface WorkflowEmailAiOptions {
+  /** Show failures as a toast (default). Callers with an inline error slot pass `false`. */
+  toast?: boolean
+}
+
 // CE has no AI; the EE overlay (ee/composables/useWorkflowEmailAi.ts) provides the real thing.
-export const useWorkflowEmailAi = () => ({
+export const useWorkflowEmailAi = (_options: WorkflowEmailAiOptions = {}) => ({
   available: computed(() => false),
   loading: ref(false),
+  error: ref(''),
   aiWrite: async (_input: {
     instruction: string
-    subject?: string
     currentBody?: string
     variables?: WorkflowEmailAiVariable[]
   }): Promise<string | undefined> => undefined,
@@ -28,7 +33,6 @@ export const useWorkflowEmailAi = () => ({
   }): Promise<string | undefined> => undefined,
   aiSuggest: async (_input: {
     triggerTitle?: string
-    subject?: string
     variables?: WorkflowEmailAiVariable[]
   }): Promise<WorkflowEmailAiSuggestion[] | undefined> => undefined,
   suggestLoading: ref(false),

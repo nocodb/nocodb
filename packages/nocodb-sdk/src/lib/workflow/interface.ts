@@ -78,6 +78,10 @@ interface VariableDefinition {
     // Port identifier for multi-port nodes (e.g., 'body', 'output' for iterate node)
     // Used to filter variables based on which port is being accessed
     port?: string;
+
+    // Upstream node the variable comes from (stamped by the config panel when grouping)
+    sourceNodeId?: string;
+    sourceNodeTitle?: string;
   };
 
   // Nested variables for objects/arrays

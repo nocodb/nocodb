@@ -21,12 +21,15 @@ interface Props {
   editor: Editor
   groups: WorkflowInputTool[][]
   variables?: VariableDefinition[]
+  /** An empty body shows its own AI prompt; the button focuses that one instead of opening a second. */
+  aiPromptInBody?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), { variables: () => [] })
+const props = withDefaults(defineProps<Props>(), { variables: () => [], aiPromptInBody: false })
 
 const emits = defineEmits<{
   (e: 'aiResult', payload: { html: string; mode: 'write' | 'rewrite' }): void
+  (e: 'aiPrompt'): void
 }>()
 
 const { available: aiAvailable } = useWorkflowEmailAi()
@@ -269,7 +272,13 @@ function applyHighlight(color: string) {
         </template>
       </NcDropdown>
 
-      <WorkflowInputAi v-else-if="tool.type === 'ai'" :editor="editor" :variables="variables" @result="emits('aiResult', $event)">
+      <WorkflowInputAi
+        v-else-if="tool.type === 'ai'"
+        :editor="editor"
+        :variables="variables"
+        :disabled="aiPromptInBody"
+        @result="emits('aiResult', $event)"
+      >
         <template #default="{ open, loading, toggle }">
           <NcTooltip :title="$t('labels.writeWithAi')">
             <NcButton
@@ -280,7 +289,7 @@ function applyHighlight(color: string) {
               :loading="loading"
               data-testid="nc-workflow-richtext-ai-btn"
               @mousedown.prevent
-              @click.stop="toggle"
+              @click.stop="aiPromptInBody ? emits('aiPrompt') : toggle()"
             >
               <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-4 h-4" />
             </NcButton>

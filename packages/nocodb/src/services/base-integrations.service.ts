@@ -253,10 +253,11 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
-    // Only the creator can update from base context
+    // Only the creator can update from base context. Must not be a 401 — the
+    // frontend interceptor reads that as an expired session and signs the user out.
     if (integration.created_by !== param.req.user?.id) {
-      NcError.get(context).unauthorized(
-        'Only the creator can update this integration.',
+      NcError.get(context).insufficientPrivilege(
+        'Only the user who created this integration can update it.',
       );
     }
 

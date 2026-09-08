@@ -1,5 +1,6 @@
 import dns from 'dns/promises';
 import { isIP } from 'net';
+import { URL } from 'url';
 import { OperationSource } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { isSsrfProtectionEnabled } from '~/utils/ssrf';
@@ -46,6 +47,55 @@ export function validateDbConnectionSslPaths(ssl: unknown): void {
     NcError.badRequest(
       'SSL certificate file paths are not allowed; provide the certificate contents instead',
     );
+  }
+}
+
+/**
+ * Pull the target host out of a connection config, whichever shape it arrives
+ * in: `{ connection: { host } }`, a string DSN (`postgres://u:p@host/db`), a
+ * `connectionString`, or a nested `{ connection: { connection: … } }`.
+ *
+ * Callers used to read `config.connection?.host` directly, which is `undefined`
+ * for every non-object form — so a DSN reached the driver unvalidated.
+ */
+export function extractDbConnectionHosts(config: unknown): string[] {
+  const hosts: string[] = [];
+
+  const visit = (node: unknown, depth: number) => {
+    if (!node || depth > 3) return;
+
+    if (typeof node === 'string') {
+      const host = hostFromDsn(node);
+      if (host) hosts.push(host);
+      return;
+    }
+    if (typeof node !== 'object') return;
+
+    const n = node as Record<string, unknown>;
+    if (typeof n.host === 'string') hosts.push(n.host);
+    if (typeof n.connectionString === 'string')
+      visit(n.connectionString, depth);
+    if (n.connection) visit(n.connection, depth + 1);
+  };
+
+  visit((config as any)?.connection, 0);
+
+  return hosts;
+}
+
+/** Host of a DB URL, or undefined when it isn't parseable as one. */
+function hostFromDsn(dsn: string): string | undefined {
+  const trimmed = dsn.trim().replace(/^jdbc:/i, '');
+  if (!trimmed.includes('://')) return undefined;
+
+  try {
+    // `hostname` (not `host`) drops the port. It keeps the IPv6 brackets for a
+    // non-special protocol like `postgres:`, and `isIP('[::1]')` is 0 — a
+    // bracketed literal would skip the range check and fall through to DNS.
+    const hostname = new URL(trimmed).hostname;
+    return hostname.replace(/^\[|\]$/g, '') || undefined;
+  } catch {
+    return undefined;
   }
 }
 

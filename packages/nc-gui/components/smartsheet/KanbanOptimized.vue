@@ -2767,7 +2767,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
               placement="right"
             >
               <template #default="{ isAllowed }">
-                <NcMenuItem v-e="['a:kanban:delete-record']" danger :disabled="!isAllowed" @click="deleteRow(contextMenuTarget)">
+                <NcMenuItem
+                  v-e="['a:kanban:delete-record']"
+                  danger
+                  data-testid="nc-kanban-context-menu-delete"
+                  :disabled="!isAllowed"
+                  @click="deleteRow(contextMenuTarget)"
+                >
                   <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                     <GeneralIcon icon="delete" class="flex" />
                     <!-- Delete Record -->

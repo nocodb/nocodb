@@ -144,14 +144,6 @@ const FEATURES = [
   //   isEngineering: true,
   //   isEE: true,
   // },
-  {
-    id: 'kanban_opt',
-    title: 'Optimized Kanban View',
-    description: 'Optimized Kanban view with optimised API for better performance.',
-    enabled: false,
-    version: 3,
-    isEE: true,
-  },
   // {
   //   id: 'templates',
   //   get title() {

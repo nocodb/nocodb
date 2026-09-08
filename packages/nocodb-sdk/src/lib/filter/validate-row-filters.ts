@@ -273,9 +273,12 @@ export class RowFilterValidator {
           // LTAR (and single-record V2 Links) hold the related records
           // themselves; many-record Links is a numeric count and falls
           // through to the scalar path.
-          let linkData = rawVal;
-
-          linkData = Array.isArray(linkData) ? linkData : [linkData];
+          // A single-record link (bt/oo) is an object, or null/undefined when
+          // nothing is linked — wrapping that bare would yield `[null]`, which
+          // reads as one linked record and inverts every emptiness op below.
+          const linkData = (Array.isArray(rawVal) ? rawVal : [rawVal]).filter(
+            (v) => v !== null && v !== undefined
+          );
 
           const colOptions = column.colOptions as LinkToAnotherRecordType;
 

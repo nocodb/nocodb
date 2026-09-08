@@ -120,3 +120,12 @@ export const extensionClassNames = {
 export const erdNodeClassNames = {
   node: 'rounded-lg border-1 border-nc-border-gray-medium shadow-lg',
 }
+
+/**
+ * Action button inside a toast. The toast ground is dark in both themes, so the
+ * text button's own light-surface hover (grey fill, dark label) reads as washed
+ * out — override both. Lives here because uno only scans `.vue` plus this
+ * file's siblings; the composable that builds the toast isn't scanned, so the
+ * classes would never be generated if written inline there.
+ */
+export const toastActionBtnClass = '!text-white hover:!bg-white/15'

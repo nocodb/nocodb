@@ -7,7 +7,9 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const undo = () => {}
   const redo = () => {}
-  const toastWithUndo = (content: string) => message.toast(content)
+  // Signature mirrors the EE impl; CE has no undo, so the options are inert.
+  const toastWithUndo = (content: string, _opts?: { undoable?: boolean; event?: string; plainDuration?: number }) =>
+    message.toast(content)
 
   return {
     undo,

@@ -420,6 +420,7 @@ const {
   handleFreezeDividerMouseDown,
   isFreezeDividerDragging,
 } = useCanvasTable({
+  anchorActiveCell: anchorActiveCellToSheet,
   rowHeightEnum,
   cachedRows,
   mousePosition,
@@ -3217,6 +3218,44 @@ watch([() => activeCell.value.row, () => activeCell.value.path], ([newRow, newPa
 
   expandForm(row, undefined, false, path)
 })
+
+// The sheet's record anchors the grid's selection (deep link, expand icon,
+// sheet chevrons) so arrow keys step from it instead of from row 0.
+const interfaceSheetRowId = inject(InterfaceSheetRowIdInj, undefined)
+
+function findCachedRowLocation(rowId: string): { index: number; path: number[] } | null {
+  const cols = meta.value?.columns as ColumnType[] | undefined
+  if (!cols) return null
+  for (const [idx, row] of cachedRows.value) {
+    if (extractPkFromRow(row.row, cols) === rowId) return { index: idx, path: [] }
+  }
+  for (const [key, cache] of groupDataCache.value) {
+    for (const [idx, row] of cache.cachedRows.value) {
+      if (extractPkFromRow(row.row, cols) === rowId) {
+        return {
+          index: idx,
+          path: key
+            .split('-')
+            .map(Number)
+            .filter((n) => !Number.isNaN(n)),
+        }
+      }
+    }
+  }
+  return null
+}
+
+function anchorActiveCellToSheet() {
+  const rowId = interfaceSheetRowId?.value
+  if (!rowId) return
+  const location = findCachedRowLocation(rowId)
+  if (!location) return
+  if (activeCell.value.row === location.index && comparePath(activeCell.value.path ?? [], location.path)) return
+  activeCell.value = { row: location.index, column: Math.max(activeCell.value.column, 1), path: location.path }
+  selectCell()
+}
+
+watch(() => interfaceSheetRowId?.value, anchorActiveCellToSheet)
 
 function selectCell() {
   editEnabled.value = null

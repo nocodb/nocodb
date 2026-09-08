@@ -485,6 +485,13 @@ export const InterfaceSheetFollowsActiveRowInj: InjectionKey<Ref<boolean> | unde
 )
 
 /**
+ * Interface pages: the row id the sheet is bound to while it follows THIS viz
+ * (null otherwise). The grid anchors its selection there, so arrow keys step
+ * from the sheet's record after a deep link / expand-icon open / sheet chevron.
+ */
+export const InterfaceSheetRowIdInj: InjectionKey<Ref<string | null> | undefined> = Symbol('interface-sheet-row-id')
+
+/**
  * Interface pages: the active viz's live-row lookup, REGISTERED UP by the viz
  * (the grid sets it from its row caches). The record sheet's prev/next
  * navigation rebinds to this object instead of the sibling fetch's copy, so

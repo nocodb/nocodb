@@ -55,6 +55,7 @@ import { useRowReorder } from './useRowReOrder'
 import { type BulkLtarOp, useCopyPaste } from './useCopyPaste'
 
 export function useCanvasTable({
+  anchorActiveCell,
   rowHeightEnum,
   cachedRows,
   clearCache,
@@ -115,6 +116,8 @@ export function useCanvasTable({
   selectedHeaderColumnIds: Ref<Set<string>>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
+  /** Interface pages: select the record-sheet's row when nothing is selected (see useKeyboardNavigation). */
+  anchorActiveCell?: () => void
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
@@ -1441,6 +1444,7 @@ export function useCanvasTable({
   })
 
   const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
+    hostEl: canvasRef,
     activeCell,
     selection,
     columns,
@@ -1646,6 +1650,8 @@ export function useCanvasTable({
   )
 
   useKeyboardNavigation({
+    anchorActiveCell,
+    hostEl: canvasRef,
     activeCell,
     triggerReRender: triggerRefreshCanvas,
     columns,

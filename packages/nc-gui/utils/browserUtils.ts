@@ -103,6 +103,10 @@ export const isActiveElementInsideInterfacePanel = () =>
 // the canvas grid isn't focusable, so "the user is working in the sheet" is
 // focus inside it OR the last click having landed inside it.
 let _lastClickInInterfaceRecordSheet = false
+// The LTAR embed (view mode) the last click landed in — embeds inside the sheet
+// take turns owning the keyboard the same way the sheet does against the page.
+const INTERFACE_EMBED_HOST_SELECTOR = '.nc-interface-ltar-viz-host'
+let _lastClickEmbedHost: Element | null = null
 if (typeof document !== 'undefined') {
   document.addEventListener(
     'click',
@@ -112,6 +116,7 @@ if (typeof document !== 'undefined') {
       if (t.closest('.ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .ant-dropdown')) return
       const inSheet = !!t.closest('.nc-interface-record-form-sheet')
       _lastClickInInterfaceRecordSheet = inSheet
+      _lastClickEmbedHost = t.closest(INTERFACE_EMBED_HOST_SELECTOR)
 
       // Clicked back onto the viz while a sheet input still holds focus — blur
       // it so keystrokes reach the grid instead of the stale input.
@@ -129,15 +134,25 @@ if (typeof document !== 'undefined') {
  *  page variant (the viz is hidden), otherwise only while the user is working
  *  inside it (focus / last click) — so the grid behind a side sheet keeps its
  *  arrow navigation and the sheet follows the active row. The sheet only
- *  exists inside interface contexts, so classic grids are unaffected. */
-export const isInterfaceRecordSheetOpen = () => {
+ *  exists inside interface contexts, so classic grids are unaffected.
+ *
+ *  `hostEl` = the calling grid/list's own element. A viz embedded IN the sheet
+ *  is never blocked by the sheet itself — it owns the keyboard while the last
+ *  click landed in its embed and focus isn't in a sheet input elsewhere. */
+export const isInterfaceRecordSheetOpen = (hostEl?: Element | null) => {
   const sheet = document.querySelector('.nc-interface-record-form-sheet')
   if (!sheet) {
     _lastClickInInterfaceRecordSheet = false
+    _lastClickEmbedHost = null
     return false
   }
-  if (sheet.classList.contains('nc-rf-sheet-full')) return true
   const active = document.activeElement
+  if (hostEl && sheet.contains(hostEl)) {
+    const embed = hostEl.closest(INTERFACE_EMBED_HOST_SELECTOR)
+    if (!embed || embed !== _lastClickEmbedHost) return true
+    return !!active && active !== document.body && !embed.contains(active)
+  }
+  if (sheet.classList.contains('nc-rf-sheet-full')) return true
   return (!!active && sheet.contains(active)) || _lastClickInInterfaceRecordSheet
 }
 /** Interface builder chrome: the right-side config panel, the topbars, a page

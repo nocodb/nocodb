@@ -55,6 +55,7 @@ function isOoOrOm(col: ColumnType): boolean {
 }
 
 export function useCopyPaste({
+  hostEl,
   activeCell,
   columns,
   scrollToCell,
@@ -138,6 +139,8 @@ export function useCopyPaste({
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
   actionManager: ActionManager
+  /** This grid's element — see isInterfaceRecordSheetOpen. */
+  hostEl?: Ref<HTMLElement | null>
 }) {
   const { $api } = useNuxtApp()
   const { internalGet } = useInternalBatch()
@@ -272,7 +275,7 @@ export function useCopyPaste({
       isActiveElementInsideScriptPane() ||
       isActiveElementInsideSmartTextPanel() ||
       isActiveElementInsideInterfacePanel() ||
-      isInterfaceRecordSheetOpen() ||
+      isInterfaceRecordSheetOpen(hostEl?.value) ||
       isCmdJActive() ||
       cmdKActive()
     ) {

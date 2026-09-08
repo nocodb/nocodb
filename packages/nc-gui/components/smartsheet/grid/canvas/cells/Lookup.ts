@@ -369,6 +369,8 @@ export const LookupCellRenderer: CellRenderer = {
       if (flag && count < arrValue.length) {
         handleRenderEllipsis()
       }
+
+      return { x, y }
     }
 
     const handleRenderDefault = () => {
@@ -426,7 +428,15 @@ export const LookupCellRenderer: CellRenderer = {
       if (flag && count < arrValue.length) {
         handleRenderEllipsis()
       }
+
+      return { x, y }
     }
+
+    // A nested lookup (Lookup -> Lookup) dispatches each value back through this
+    // renderer, so it must report where it stopped drawing like every other cell
+    // renderer does — otherwise the caller's loop reads a missing point as "wrap"
+    // and burns one line per value, showing only `maxLines` of them (#10336).
+    let renderResult: void | { x?: number; y?: number; nextLine?: boolean }
 
     if (attachmentLeafColumn && ncIsObject(arrValue[0])) {
       // Nested lookup whose leaf is an Attachment — render the flattened
@@ -446,9 +456,9 @@ export const LookupCellRenderer: CellRenderer = {
           (isBtLikeV2Junction(lookupColumn) ||
             [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type)))
       ) {
-        handleRenderVirtualCol()
+        renderResult = handleRenderVirtualCol()
       } else {
-        lookupRenderer({
+        renderResult = lookupRenderer({
           ...renderProps,
           tag: { ...renderProps.tag, renderAsTag: false },
         })
@@ -460,7 +470,7 @@ export const LookupCellRenderer: CellRenderer = {
           tag: { ...renderProps.tag, renderAsTag: false },
         })
       } else {
-        handleRenderDefault()
+        renderResult = handleRenderDefault()
       }
     }
 
@@ -476,6 +486,8 @@ export const LookupCellRenderer: CellRenderer = {
         setCursor?.('pointer')
       }
     }
+
+    return renderResult
   },
   async handleClick(ctx) {
     const { selected, isDoubleClick, mousePosition, cellRenderStore } = ctx

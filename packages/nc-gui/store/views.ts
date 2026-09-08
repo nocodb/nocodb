@@ -802,12 +802,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
     updates: Partial<ViewType>,
     extra?: {
       is_default_view?: boolean
+      workspaceId?: string
+      baseId?: string
     },
   ): Promise<ViewType | null> => {
     try {
       const updatedView = await $api.internal.postOperation(
-        activeWorkspaceId.value!,
-        openedProject.value!.id!,
+        extra?.workspaceId ?? activeWorkspaceId.value!,
+        extra?.baseId ?? openedProject.value!.id!,
         {
           operation: 'viewUpdate',
           viewId,

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
+import { useElementVisibility } from '@vueuse/core'
 import { LockType, isDefaultBase } from '#imports'
 
 interface Props {
@@ -51,6 +52,9 @@ const { meta: metaKey, control } = useMagicKeys()
 const { basesUser } = storeToRefs(useBases())
 
 const table = computed(() => props.table)
+const nodeRef = ref<HTMLElement>()
+const isNodeVisible = useElementVisibility(nodeRef)
+const { count: recordCount, settings: recordCountSettings } = useViewRecordCount(vModel, table, isNodeVisible)
 const injectedTable = ref(table.value)
 
 provide(ActiveViewInj, vModel)
@@ -324,6 +328,7 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <div
+    ref="nodeRef"
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray) cursor-pointer"
     :style="indentStyle"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
@@ -415,9 +420,9 @@ watch(isDropdownOpen, async () => {
         />
         <NcTooltip
           v-else
-          class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full"
+          class="nc-sidebar-node-title min-w-0 select-none max-w-full"
           :class="{
-            'w-full': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!)
+            'flex-1': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!)
           }"
           show-on-truncate-only
           disabled
@@ -425,13 +430,21 @@ watch(isDropdownOpen, async () => {
           <template #title> {{ vModel.alias || vModel.title }}</template>
           <div
             data-testid="sidebar-view-title"
+            class="flex min-w-0 items-center gap-1"
             :class="{
               'font-medium text-nc-content-brand-disabled': activeView?.id === vModel.id,
+              '!font-bold': recordCountSettings.boldWhenNonEmpty && recordCount !== undefined && recordCount > 0,
             }"
-            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onDblClick"
           >
-            {{ vModel.alias || vModel.title }}
+            <span class="truncate">{{ vModel.alias || vModel.title }}</span>
+            <span
+              v-if="recordCountSettings.showCount && recordCount !== undefined"
+              class="shrink-0"
+              data-testid="sidebar-view-record-count"
+            >
+              ({{ recordCount }})
+            </span>
           </div>
         </NcTooltip>
         <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex mx-0.5">

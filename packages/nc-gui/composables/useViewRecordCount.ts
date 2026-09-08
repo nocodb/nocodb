@@ -1,10 +1,11 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, extractRolesObj } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useDocumentVisibility } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { normalizeViewRecordCountSettings, viewRecordCountKey, viewRecordCountRefreshMs } from '~/utils/viewRecordCount'
 import { useViewRecordCountsStore } from '~/store/viewRecordCounts'
+import { useViewRecordCountRoles } from '~/composables/useViewRecordCountRoles'
 
 /** Fetch only for displayed sidebar nodes, and count the saved view rather than the active view's transient filters. */
 export function useViewRecordCount(view: Ref<ViewType>, table: Ref<TableType>, visible: Ref<boolean>) {
@@ -12,12 +13,11 @@ export function useViewRecordCount(view: Ref<ViewType>, table: Ref<TableType>, v
   const { identity, revision } = storeToRefs(state)
   const { user, token } = useGlobal()
   const { isUIAllowed } = useRoles()
-  const baseRole = inject(ProjectRoleInj, ref())
   const isPublic = inject(IsPublicInj, ref(false))
   const documentVisibility = useDocumentVisibility()
   const settings = computed(() => normalizeViewRecordCountSettings(view.value?.meta))
   const interval = computed(() => viewRecordCountRefreshMs(settings.value))
-  const roles = computed(() => extractRolesObj(baseRole.value || {}) ?? {})
+  const roles = useViewRecordCountRoles(computed(() => table.value?.base_id))
   const roleKey = computed(() =>
     JSON.stringify(
       Object.keys(roles.value)

@@ -18,7 +18,10 @@ const props = withDefaults(
 const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate', 'changeIcon'])
 
 const { isUIAllowed, isDataReadOnly, baseRoles } = useRoles()
-const recordCountRoles = inject(ProjectRoleInj, baseRoles)
+const recordCountRoles = useViewRecordCountRoles(
+  computed(() => props.table?.base_id),
+  computed(() => (props.inSidebar ? undefined : baseRoles.value)),
+)
 
 const isPublicView = inject(IsPublicInj, ref(false))
 

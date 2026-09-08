@@ -4,10 +4,11 @@ import { computed, defineComponent, h, inject, nextTick, onScopeDispose, ref, wa
 import { createPinia, disposePinia, setActivePinia } from 'pinia'
 import type { Ref } from 'vue'
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { OrgUserRoles, ViewTypes, WorkspaceUserRoles } from 'nocodb-sdk'
 import { useViewRecordCount } from '~/composables/useViewRecordCount'
 
 const projectRoleKey = Symbol('ProjectRoleInj')
+const projectKey = Symbol('ProjectInj')
 const publicKey = Symbol('IsPublicInj')
 const mounted: ReturnType<typeof mount>[] = []
 let countApi: ReturnType<typeof vi.fn>
@@ -20,6 +21,8 @@ let table: Ref<TableType>
 let visible: Ref<boolean>
 let pinia: ReturnType<typeof createPinia>
 let token: Ref<string>
+let orgRoles: Ref<Record<string, boolean>>
+let base: Ref<{ id: string; workspace_role?: string }>
 
 function renderCount() {
   const wrapper = mount(
@@ -29,7 +32,7 @@ function renderCount() {
         return () => h('span', count.value === undefined ? 'unknown' : String(count.value))
       },
     }),
-    { global: { provide: { [projectRoleKey]: role, [publicKey]: isPublic } } },
+    { global: { provide: { [projectRoleKey]: role, [projectKey]: base, [publicKey]: isPublic } } },
   )
   mounted.push(wrapper)
   return wrapper
@@ -44,6 +47,8 @@ beforeEach(() => {
   countApi = vi.fn().mockResolvedValue({ count: 2 })
   allowed = ref(true)
   role = ref({ viewer: true })
+  orgRoles = ref({})
+  base = ref({ id: 'crm' })
   user = ref({ id: 'reader-1', roles: {}, base_roles: { viewer: true } })
   token = ref('test-session')
   isPublic = ref(false)
@@ -54,11 +59,12 @@ beforeEach(() => {
     vi.stubGlobal(name, implementation)
   }
   vi.stubGlobal('ProjectRoleInj', projectRoleKey)
+  vi.stubGlobal('ProjectInj', projectKey)
   vi.stubGlobal('IsPublicInj', publicKey)
   vi.stubGlobal('NOCO', 'noco')
   vi.stubGlobal('useNuxtApp', () => ({ $api: { dbViewRow: { count: countApi } } }))
   vi.stubGlobal('useGlobal', () => ({ user, token }))
-  vi.stubGlobal('useRoles', () => ({ isUIAllowed: () => allowed.value }))
+  vi.stubGlobal('useRoles', () => ({ isUIAllowed: () => allowed.value, orgRoles }))
 })
 
 afterEach(() => {
@@ -118,6 +124,32 @@ describe('sidebar view count lifecycle', () => {
     await flushPromises()
     expect(countApi).not.toHaveBeenCalled()
     expect(wrapper.text()).toBe('unknown')
+  })
+
+  it('counts for a superadmin with role-less sidebar data and hides the result when that privilege is removed', async () => {
+    role.value = undefined
+    orgRoles.value = { [OrgUserRoles.SUPER_ADMIN]: true }
+    const wrapper = renderCount()
+    await flushPromises()
+    expect(countApi).toHaveBeenCalledExactlyOnceWith('noco', 'crm', 'jobs', 'missing-invoice')
+    expect(wrapper.text()).toBe('2')
+    orgRoles.value = {}
+    await flushPromises()
+    expect(wrapper.text()).toBe('unknown')
+    await vi.advanceTimersByTimeAsync(48 * 60 * 60 * 1000)
+    expect(countApi).toHaveBeenCalledTimes(1)
+  })
+
+  it('counts inherited permissions only from the target base workspace', async () => {
+    role.value = undefined
+    base.value = { id: 'another-base', workspace_role: WorkspaceUserRoles.OWNER }
+    const wrapper = renderCount()
+    await flushPromises()
+    expect(countApi).not.toHaveBeenCalled()
+    base.value.id = 'crm'
+    await flushPromises()
+    expect(wrapper.text()).toBe('2')
+    expect(countApi).toHaveBeenCalledTimes(1)
   })
 
   it('shares a request across consumers and refreshes after one day by default', async () => {

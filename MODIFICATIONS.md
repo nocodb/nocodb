@@ -20,7 +20,14 @@ change. Numeric counts are never persisted in view metadata. Temporary failures
 hide the count and retry after five minutes; denied or removed views stop
 retrying until their session or permission scope changes.
 
-Validation: 30 focused Vitest tests, compilation of five changed Vue components,
+The count menu and sidebar resolve permission roles for their own base. Explicit
+base permissions take precedence over roles inherited from that base's workspace.
+The instance super administrator remains authorized even when the base-list API
+omits per-user roles; active roles from another base or workspace are not used.
+
+Validation includes focused Vitest tests, compilation of changed Vue components,
 strict TypeScript checking of the pure cache/settings helper, Prettier formatting,
-and whitespace checks. A full application build, live backend integration test,
-and end-to-end browser test have not been run.
+and whitespace checks. The SDKs and full production frontend have built on hosted
+runners. A Chromium smoke test against a disposable local backend exercises the
+saved filter, menu settings, count, bold style, and reload persistence; its final
+result is recorded in the associated workflow run.

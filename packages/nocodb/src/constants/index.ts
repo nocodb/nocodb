@@ -22,6 +22,14 @@ if (!NC_REFRESH_TOKEN_EXP_IN_DAYS || NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
 
 export const NC_MAX_TEXT_LENGTH = +process.env['NC_MAX_TEXT_LENGTH'] || 100000;
 
+// Ceiling on a single external-source query result buffered into this process.
+// Uncapped, one wide page of large text columns can reach hundreds of MB, and
+// V8 aborts the process (`Fatal process out of memory: Zone`) before the heap
+// limit is ever reached. axios aborts mid-stream at this size, so the bytes are
+// never accumulated.
+export const NC_EXTERNAL_QUERY_MAX_RESPONSE_SIZE =
+  +process.env['NC_EXTERNAL_QUERY_MAX_RESPONSE_SIZE'] || 64 * 1024 * 1024; // 64 MB
+
 export const NC_EMAIL_ASSETS_BASE_URL = 'https://cdn.nocodb.com/emails/v2';
 
 export const NC_RECURSIVE_MAX_DEPTH = 7;

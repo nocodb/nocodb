@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
   extractRolesObj,
+  isServiceUser,
   NcAccessSource,
   NcApiVersion,
   OrgUserRoles,
@@ -31,6 +32,7 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 import { resolveShareAccessSource } from '~/helpers/accessSource';
+import { hasModelRoleVisibilityAccess } from '~/helpers/tableHelpers';
 import {
   Base,
   AutomationSection,
@@ -1281,6 +1283,25 @@ export class AclMiddleware implements NestInterceptor {
       //     Object.keys(roles).filter((k) => roles[k]),
       //   )} : Not allowed`,
       // );
+    }
+
+    // Per-view role visibility, applied to routes that resolve a table or view
+    // by id. `ncTableId` was being stored for exactly this check but nothing
+    // consumed it, so hiding every view only removed the table from the list.
+    if (
+      req.context?.ncTableId &&
+      req.user &&
+      !isServiceUser(req.user) &&
+      req.ncBaseId &&
+      !(await hasModelRoleVisibilityAccess(
+        req.context,
+        req.context.ncTableId,
+        roles,
+      ))
+    ) {
+      // 404, not 403 — matches `getTableWithAccessibleViews` and keeps the id
+      // from confirming that a hidden table exists.
+      NcError.get(req.context).tableNotFound(req.context.ncTableId);
     }
 
     // check if permission have source level permission restriction

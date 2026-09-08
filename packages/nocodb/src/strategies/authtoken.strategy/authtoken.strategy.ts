@@ -23,6 +23,17 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           return callback({ msg: 'Invalid token' });
         }
 
+        // `enabled`/`expiry` were surfaced to the UI as revocation controls but
+        // never consulted here, so disabling or expiring a token did nothing.
+        // Same checks the EE strategy already applies.
+        if (!apiToken.enabled) {
+          return callback({ msg: 'Token is disabled' });
+        }
+
+        if (apiToken.expiry && new Date(apiToken.expiry) < new Date()) {
+          return callback({ msg: 'Token has expired' });
+        }
+
         // Enforce the token's base scope. A token minted through a base-scoped
         // endpoint carries a `base_id` and must only operate within that base;
         // reject any request that targets a different base. Account-wide

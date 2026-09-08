@@ -90,7 +90,7 @@ const {
   updateAllStacksProperty,
 } = useKanbanViewStoreOrThrow()
 
-const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisible } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()
 
@@ -246,6 +246,12 @@ const STACK_WIDTH = 274 // w-68.5 = 274px (17.125rem * 16)
 const STACK_GAP = 12 // gap-3 = 12px
 const STACK_WIDTH_WITH_GAP = STACK_WIDTH + STACK_GAP
 
+// Boards at or below this many stacks render every stack — the legacy board always did, so this is
+// never more expensive than before, and it keeps ordinary boards fully in the DOM (browser find,
+// a11y, no scroll-to-render) regardless of how narrow the container is. Windowing exists for
+// high-cardinality grouping fields (a SingleSelect with thousands of options), which stay above it.
+const STACK_VIRTUALIZATION_MIN = 25
+
 const horizontalScrollLeft = ref(0)
 const horizontalContainerWidth = ref(0)
 
@@ -354,6 +360,9 @@ const calculateStackSlice = () => {
 const stackWindow = computed(() => {
   const total = groupingFieldColOptions.value.length
   if (!total) return { start: 0, end: 0 }
+
+  // Small board — render the lot, no measurement and no spacers.
+  if (total <= STACK_VIRTUALIZATION_MIN) return { start: 0, end: total }
 
   // While a card or stack drag is in progress, return the window frozen at drag start so nothing
   // mounts/unmounts mid-drag (Sortable silently fails to complete the drop otherwise).
@@ -1296,9 +1305,6 @@ const handleHorizontalScroll = () => {
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
 onBeforeUnmount(() => {
-  // Reset so a store instance reused by the legacy Kanban falls back to its full load.
-  useWindowedKanbanLoad.value = false
-
   openNewRecordFormHook.off(openNewRecordFormHookHandler)
   eventBus.off(smartsheetEventHandler)
   reloadViewMetaHook?.off(reloadViewMetaListener)
@@ -1748,6 +1754,25 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 const resetPointerEvent = (record: RowType, col: ColumnType) => {
   return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
 }
+
+// Skip blank fields entirely (label included) when the view meta opts in —
+// leave field types that render something meaningful while empty (AI, button).
+const hideEmptyCardFields = computed(() => !!parseProp(kanbanMetaData.value?.meta)?.hide_empty_card_fields)
+
+// Interface pages read the label toggle LIVE off the synthetic view meta (the
+// store computed can hold a stale sharedView ref across in-session remounts —
+// same local pattern as hideEmptyCardFields above).
+const isActiveViewFieldHeaderVisible = computed(() => {
+  if (interfacePageDataApi) return parseProp(kanbanMetaData.value?.meta)?.is_field_header_visible ?? true
+
+  return storeFieldHeaderVisible.value
+})
+
+const cardFields = (record: RowType) => {
+  if (!hideEmptyCardFields.value) return fieldsWithoutDisplay.value
+
+  return fieldsWithoutDisplay.value.filter((col) => !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col))
+}
 </script>
 
 <template>
@@ -2123,7 +2148,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <SmartsheetRow v-if="isCardVisible(stack.title, index)" :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                                  class="relative !rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
                                   :body-style="{
                                     padding: cardBodyPadding,
                                     flex: 1,
@@ -2140,6 +2165,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
                                 >
+                                  <SmartsheetRecordPresenceBadge
+                                    v-if="isEeUI"
+                                    :row="record"
+                                    class="absolute top-2 right-2 z-10"
+                                  />
                                   <!--
                                       Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
                                       could reference a non-existent column. This is a workaround to handle such scenarios properly.
@@ -2266,7 +2296,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       </div>
 
                                       <div
-                                        v-for="col in fieldsWithoutDisplay"
+                                        v-for="col in cardFields(record)"
                                         :key="`record-${record.row.id}-${col.id}`"
                                         class="nc-card-col-wrapper"
                                         :class="{
@@ -2767,7 +2797,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
               placement="right"
             >
               <template #default="{ isAllowed }">
-                <NcMenuItem v-e="['a:kanban:delete-record']" danger :disabled="!isAllowed" @click="deleteRow(contextMenuTarget)">
+                <NcMenuItem
+                  v-e="['a:kanban:delete-record']"
+                  danger
+                  data-testid="nc-kanban-context-menu-delete"
+                  :disabled="!isAllowed"
+                  @click="deleteRow(contextMenuTarget)"
+                >
                   <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                     <GeneralIcon icon="delete" class="flex" />
                     <!-- Delete Record -->

@@ -154,10 +154,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // }
     const countByStack = ref<Map<string | null, number>>(new Map<string | null, number>())
 
-    // When true (set by the optimised Kanban), the board loads grouped data one visible window of
-    // stacks at a time via loadKanbanDataForStacks() instead of fetching every group upfront. The
-    // legacy Kanban leaves this false and keeps using loadKanbanData() unchanged.
-    const useWindowedKanbanLoad = ref(false)
+    // Windowed loading is the default: the Kanban board loads grouped data one visible window of
+    // stacks at a time via loadKanbanDataForStacks() instead of fetching every group upfront, so the
+    // `watch(groupingFieldColumn)` below never fires a bulk load before the board mounts.
+    // KanbanOptimized flips it off for public/shared boards (the shared-view endpoint can't filter
+    // groups). Stores provided dormantly by non-kanban views never load either way — their view has
+    // no `fk_grp_col_id`, so that watcher has nothing to fire on.
+    const useWindowedKanbanLoad = ref(true)
 
     // Stack titles whose grouped data (rows + count) has been fetched, so windowed loads can skip them.
     const loadedStacks = ref<Set<string | null>>(new Set<string | null>())

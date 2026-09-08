@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
+import type { VariableDefinition } from 'nocodb-sdk'
+import WorkflowInputAi from './WorkflowInputAi.vue'
+import { useWorkflowEmailAi } from '#imports'
 import { EMAIL_FONTS } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
 import { EMAIL_FONT_SIZES } from '~/helpers/tiptap-markdown/extensions/marks/fontSize'
 import { HIGHLIGHT_COLORS } from '~/helpers/tiptap-markdown/extensions/marks/highlight'
@@ -7,7 +10,7 @@ import { TEXT_COLORS } from '~/helpers/tiptap-markdown/extensions/marks/textColo
 import type { EmailTextAlign } from '~/helpers/tiptap-markdown/extensions/textAlign'
 export interface WorkflowInputTool {
   key: string
-  type?: 'color' | 'typography' | 'align'
+  type?: 'color' | 'typography' | 'align' | 'ai'
   icon?: IconMapKey
   label?: string
   isActive?: () => boolean
@@ -17,9 +20,24 @@ export interface WorkflowInputTool {
 interface Props {
   editor: Editor
   groups: WorkflowInputTool[][]
+  variables?: VariableDefinition[]
+  /** An empty body shows its own AI prompt; the button focuses that one instead of opening a second. */
+  aiPromptInBody?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { variables: () => [], aiPromptInBody: false })
+
+const emits = defineEmits<{
+  (e: 'aiResult', payload: { html: string; mode: 'write' | 'rewrite' }): void
+  (e: 'aiPrompt'): void
+}>()
+
+const { available: aiAvailable } = useWorkflowEmailAi()
+
+// A group whose only tool is unavailable must not leave a stray divider behind.
+const visibleGroups = computed(() =>
+  props.groups.map((group) => group.filter((tool) => tool.type !== 'ai' || aiAvailable.value)).filter((group) => group.length),
+)
 
 // The email body's ink. Highlight pastels are picked against it, so the preview must not
 // fall back to theme text, which goes light in dark mode and vanishes on the swatch.
@@ -114,7 +132,7 @@ function applyHighlight(color: string) {
 </script>
 
 <template>
-  <template v-for="(group, gi) in groups" :key="gi">
+  <template v-for="(group, gi) in visibleGroups" :key="gi">
     <div v-if="gi > 0" class="nc-email-format-divider" />
 
     <template v-for="tool in group" :key="tool.key">
@@ -254,6 +272,31 @@ function applyHighlight(color: string) {
         </template>
       </NcDropdown>
 
+      <WorkflowInputAi
+        v-else-if="tool.type === 'ai'"
+        :editor="editor"
+        :variables="variables"
+        :disabled="aiPromptInBody"
+        @result="emits('aiResult', $event)"
+      >
+        <template #default="{ open, loading, toggle }">
+          <NcTooltip :title="$t('labels.writeWithAi')">
+            <NcButton
+              size="xs"
+              type="text"
+              class="nc-workflow-format-btn nc-email-ai-btn"
+              :class="{ 'is-active': open || loading }"
+              :loading="loading"
+              data-testid="nc-workflow-richtext-ai-btn"
+              @mousedown.prevent
+              @click.stop="aiPromptInBody ? emits('aiPrompt') : toggle()"
+            >
+              <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+        </template>
+      </WorkflowInputAi>
+
       <NcTooltip v-else :title="$t(tool.label!)">
         <NcButton
           size="xs"
@@ -271,12 +314,33 @@ function applyHighlight(color: string) {
 </template>
 
 <style lang="scss">
+// Same tile as the body's AI empty state, so the two AI entry points read as one thing.
+.nc-workflow-format-btn.nc-email-ai-btn {
+  background: var(--nc-bg-coloured-purple) !important;
+  color: var(--nc-content-purple-dark) !important;
+
+  &:hover,
+  &.is-active {
+    background: var(--nc-bg-coloured-purple-dark) !important;
+  }
+}
+
 .nc-email-typo-btn {
   @apply !w-auto !px-2 gap-1;
 
   .nc-email-typo-name {
-    @apply whitespace-nowrap max-w-28 truncate;
+    // No `truncate`: `activeFontName` is always one of the EMAIL_FONTS names, and the longest
+    // ("Comic Sans MS") clears max-w-28, so its overflow:hidden never truncated anything — it only
+    // clipped descenders, since NcButton sets line-height 0.95 on button children and faces vary
+    // a lot in content area (Georgia and Comic Sans MS are the deepest here).
+    @apply whitespace-nowrap max-w-28;
     font-size: 13px;
+    // The label previews the font in itself, so it must render at 400. NcButton applies
+    // `font-medium`, which uno.config maps to 600 (the scale is shifted +100 for Inter's axis),
+    // and a target above 500 matches heavier faces first — so the web-safe stacks here, which
+    // ship only 400/700, snap to real bold.
+    font-weight: 400;
+    line-height: 1.35;
   }
 }
 
@@ -309,9 +373,14 @@ function applyHighlight(color: string) {
   }
 
   .nc-email-typo-item {
-    @apply flex items-center h-7.5 px-2 rounded-md cursor-pointer text-left whitespace-nowrap;
+    // min-height, not height: the size column previews at its real size, and 24px "Huge"
+    // overflows a fixed 30px row.
+    @apply flex items-center min-h-7.5 py-1 px-2 rounded-md cursor-pointer text-left whitespace-nowrap;
     @apply bg-transparent border-0 text-nc-content-gray;
     font-size: 13px;
+    // Same reason as the trigger: previews must render at the face's own weight.
+    font-weight: 400;
+    line-height: 1.35;
 
     &:hover {
       @apply bg-nc-bg-gray-light;

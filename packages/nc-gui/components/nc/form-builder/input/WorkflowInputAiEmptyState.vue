@@ -1,0 +1,277 @@
+<script setup lang="ts">
+import type { Editor } from '@tiptap/vue-3'
+import type { VariableDefinition } from 'nocodb-sdk'
+import { useWorkflowEmailAi, useWorkflowEmailAiSuggestions } from '#imports'
+
+/**
+ * Empty-body state for the email editor: a card offering "Write with AI" or "Start blank",
+ * swapping in place for an inline prompt box. Replaces the placeholder while the body is empty.
+ */
+interface Props {
+  editor: Editor
+  variables?: VariableDefinition[]
+}
+
+const props = withDefaults(defineProps<Props>(), { variables: () => [] })
+
+const emits = defineEmits<{
+  (e: 'result', payload: { html: string; mode: 'write' }): void
+  (e: 'startBlank'): void
+}>()
+
+const { $e } = useNuxtApp()
+
+const { t } = useI18n()
+
+// Failures render inline below the prompt instead of as a toast.
+const { loading, error: aiError, aiWrite, abort } = useWorkflowEmailAi({ toast: false })
+
+const promptOpen = ref(false)
+
+const prompt = ref('')
+
+const inputRef = ref<HTMLTextAreaElement>()
+
+const rootRef = ref<HTMLElement>()
+
+const { suggestions, suggestLoading, aiVariables, loadSuggestions } = useWorkflowEmailAiSuggestions(toRef(props, 'variables'))
+
+// "Or {startBlank} instead" — interpolate a sentinel, then split around it so the link can be
+// an element while the sentence (and word order) stays translatable.
+const LINK_SENTINEL = '\u0000'
+
+const orStartBlank = computed(() => {
+  const [before, after] = t('labels.aiOrStartBlank', { startBlank: LINK_SENTINEL }).split(LINK_SENTINEL)
+  return { before, after: after ?? '' }
+})
+
+function openPrompt() {
+  const wasOpen = promptOpen.value
+  promptOpen.value = true
+  nextTick(() => inputRef.value?.focus())
+  if (wasOpen) return
+  $e('c:workflow:email:ai:prompt-open')
+  loadSuggestions()
+}
+
+function closePrompt() {
+  abort()
+  promptOpen.value = false
+}
+
+// Scoped to this surface rather than the textarea: focus may sit on a chip, and an unhandled
+// Escape closes the compose modal. Untouched while the card is resting, where that is correct.
+function onEscape(event: KeyboardEvent) {
+  if (!promptOpen.value) return
+
+  event.stopPropagation()
+  event.preventDefault()
+  closePrompt()
+
+  // The textarea goes with the prompt and the editor is display:none behind the card, so
+  // without this focus lands on <body> — outside the modal, which then cannot see Escape.
+  nextTick(() => rootRef.value?.focus())
+}
+
+function useSuggestion(text: string) {
+  prompt.value = text
+  inputRef.value?.focus()
+}
+
+function autoGrow() {
+  const el = inputRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
+async function generate() {
+  const instruction = prompt.value.trim()
+  if (!instruction || loading.value) return
+  const html = await aiWrite({ instruction, variables: aiVariables.value })
+  if (!html) return
+  $e('a:workflow:email:ai:write', { source: 'empty-state' })
+  emits('result', { html, mode: 'write' })
+}
+
+// The toolbar's AI button focuses this prompt instead of opening a second one.
+defineExpose({ openPrompt })
+</script>
+
+<template>
+  <div
+    ref="rootRef"
+    class="nc-email-ai-empty"
+    :class="{ 'is-prompt': promptOpen }"
+    tabindex="-1"
+    data-testid="nc-workflow-richtext-ai-empty"
+    @keydown.esc="onEscape"
+  >
+    <!-- State A: resting -->
+    <div v-if="!promptOpen" class="nc-email-ai-empty-card">
+      <div class="nc-email-ai-empty-tile">
+        <GeneralIcon icon="ncAutoAwesome" class="w-5 h-5" />
+      </div>
+      <div class="nc-email-ai-empty-title">{{ $t('labels.aiEmptyTitle') }}</div>
+      <div class="nc-email-ai-empty-desc">{{ $t('labels.aiEmptyDescription') }}</div>
+      <div class="flex items-center gap-2 mt-2.5">
+        <NcButton size="small" type="primary" theme="ai" data-testid="nc-workflow-richtext-ai-empty-write" @click="openPrompt">
+          <span class="inline-flex items-center gap-1.5">
+            <GeneralIcon icon="ncAutoAwesome" class="w-4 h-4" />
+            {{ $t('labels.writeWithAi') }}
+          </span>
+        </NcButton>
+        <NcButton size="small" type="secondary" data-testid="nc-workflow-richtext-ai-empty-blank" @click="emits('startBlank')">
+          {{ $t('labels.startBlank') }}
+        </NcButton>
+      </div>
+    </div>
+
+    <!-- State B: prompt open -->
+    <template v-else>
+      <div class="nc-email-ai-prompt">
+        <div class="flex items-start gap-2.5 flex-1">
+          <GeneralIcon icon="ncAutoAwesome" class="w-4 h-4 flex-none mt-0.5 text-nc-content-purple-dark" />
+          <textarea
+            ref="inputRef"
+            v-model="prompt"
+            class="nc-email-ai-prompt-input"
+            rows="3"
+            :placeholder="$t('placeholder.describeEmail')"
+            :disabled="loading"
+            data-testid="nc-workflow-richtext-ai-empty-input"
+            @input="autoGrow"
+            @keydown.enter.exact.prevent="generate"
+          />
+        </div>
+        <NcAlert v-if="aiError" type="error" :message="aiError" class="!mt-1" />
+        <div class="flex items-center justify-end gap-2">
+          <span class="text-tiny text-nc-content-gray-muted">{{ $t('labels.aiEnterHint') }}</span>
+          <NcButton
+            size="xs"
+            type="primary"
+            theme="ai"
+            :disabled="!prompt.trim() || loading"
+            :loading="loading"
+            data-testid="nc-workflow-richtext-ai-empty-generate"
+            @click="generate"
+          >
+            <span class="inline-flex items-center gap-1.5">
+              <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-3.5 h-3.5" />
+              {{ $t('general.generate') }}
+            </span>
+          </NcButton>
+        </div>
+      </div>
+
+      <div
+        class="flex flex-wrap gap-1.5"
+        :class="{ 'is-loading': suggestLoading }"
+        data-testid="nc-workflow-richtext-ai-suggestions"
+      >
+        <button
+          v-for="(s, i) in suggestions"
+          :key="i"
+          class="nc-email-ai-chip"
+          :disabled="loading || suggestLoading"
+          @click="useSuggestion(s.prompt)"
+        >
+          {{ s.label }}
+        </button>
+      </div>
+
+      <div class="nc-email-ai-empty-escape">
+        {{ orStartBlank.before
+        }}<button type="button" class="nc-email-ai-empty-link" @click="emits('startBlank')">
+          {{ $t('labels.startBlankLink') }}</button
+        >{{ orStartBlank.after }}
+      </div>
+    </template>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-email-ai-empty {
+  @apply flex items-center justify-center p-4 h-full min-h-65;
+
+  &.is-prompt {
+    @apply flex-col items-stretch justify-start gap-3;
+  }
+}
+
+.nc-email-ai-empty-card {
+  @apply flex flex-col items-center gap-1.5 text-center;
+  max-width: 320px;
+}
+
+.nc-email-ai-empty-tile {
+  @apply flex items-center justify-center w-10 h-10 mb-1.5 text-nc-content-purple-dark;
+  border-radius: 10px;
+  background: var(--nc-bg-coloured-purple);
+}
+
+.nc-email-ai-empty-title {
+  @apply text-sm font-bold text-nc-content-gray;
+}
+
+.nc-email-ai-empty-desc {
+  @apply text-nc-content-gray-subtle;
+  font-size: 13px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.nc-email-ai-prompt {
+  @apply flex flex-col gap-2 rounded-lg bg-nc-bg-default;
+  min-height: 112px;
+  padding: 10px 10px 8px 12px;
+  border: 1px solid var(--nc-border-coloured-purple);
+  box-shadow: 0 0 0 2px var(--nc-bg-coloured-purple);
+}
+
+.nc-email-ai-prompt-input {
+  @apply flex-1 w-full bg-transparent resize-none p-0 text-sm text-nc-content-gray;
+  line-height: 20px;
+  min-height: 60px;
+  // The box carries the focus styling; global textarea rules must not add their own.
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+
+  &::placeholder {
+    @apply text-nc-content-gray-muted;
+  }
+}
+
+.is-loading .nc-email-ai-chip {
+  @apply opacity-60;
+}
+
+.nc-email-ai-chip {
+  @apply rounded-md cursor-pointer text-nc-content-gray-subtle bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  font-size: 12px;
+  padding: 4px 10px;
+  transition: opacity 0.15s;
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
+
+  &:disabled {
+    @apply opacity-50 cursor-default;
+  }
+}
+
+.nc-email-ai-empty-escape {
+  @apply text-nc-content-gray-muted mt-1;
+  font-size: 13px;
+}
+
+.nc-email-ai-empty-link {
+  @apply p-0 bg-transparent border-0 font-semibold cursor-pointer underline text-nc-content-gray-subtle;
+
+  &:hover {
+    @apply text-nc-content-gray;
+  }
+}
+</style>

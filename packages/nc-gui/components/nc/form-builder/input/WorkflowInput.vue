@@ -8,7 +8,10 @@ import type { VariableDefinition } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
+import WorkflowInputAiEmptyState from './WorkflowInputAiEmptyState.vue'
+import { expressionSpansToTokens, parseInertHtml } from '~/helpers/workflowExpressionHtml'
 import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
+import { useWorkflowEmailAi } from '#imports'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { FontFamily } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
@@ -77,6 +80,8 @@ const compose = inject(WorkflowComposeInj, null)
 
 const expanded = inject(WorkflowComposeModeInj, ref(false))
 
+const { available: aiAvailable } = useWorkflowEmailAi()
+
 // In the sidebar the picker flies out over the canvas; inside the expand modal the caret is
 // mid-screen, so it drops below the caret instead.
 const suggestionPlacement = () =>
@@ -86,33 +91,45 @@ const suggestionPlacement = () =>
 
 const createSuggestionRender = () => ({
   render: () => {
-    let component: VueRenderer
+    let component: VueRenderer | undefined
     let popup: any
+
+    // The sidebar and compose-modal editors mirror one field, so a `{{` typed in one lands in
+    // the other via loadContent (and a stored body can end in `{{`). Only a focused editor gets
+    // a picker: an unfocused one has no caret to anchor to and may not have its app context yet.
+    const canShow = (suggestionProps: Record<string, any>) => !!suggestionProps.clientRect && !!suggestionProps.editor?.isFocused
+
+    const show = (suggestionProps: Record<string, any>) => {
+      component = new VueRenderer(WorkflowVariablePicker, {
+        props: {
+          ...suggestionProps,
+          groupedItems: props.groupedVariables,
+        },
+        editor: suggestionProps.editor,
+      })
+
+      popup = tippy('body', {
+        getReferenceClientRect: suggestionProps.clientRect,
+        appendTo: () => document.body,
+        content: component.element,
+        showOnCreate: true,
+        interactive: true,
+        trigger: 'manual',
+        ...suggestionPlacement(),
+      })
+    }
 
     return {
       onStart: (suggestionProps: Record<string, any>) => {
-        component = new VueRenderer(WorkflowVariablePicker, {
-          props: {
-            ...suggestionProps,
-            groupedItems: props.groupedVariables,
-          },
-          editor: suggestionProps.editor,
-        })
-
-        if (!suggestionProps.clientRect) return
-
-        popup = tippy('body', {
-          getReferenceClientRect: suggestionProps.clientRect,
-          appendTo: () => document.body,
-          content: component.element,
-          showOnCreate: true,
-          interactive: true,
-          trigger: 'manual',
-          ...suggestionPlacement(),
-        })
+        if (canShow(suggestionProps)) show(suggestionProps)
       },
 
       onUpdate(suggestionProps: Record<string, any>) {
+        if (!component) {
+          if (canShow(suggestionProps)) show(suggestionProps)
+          return
+        }
+
         component.updateProps({
           ...suggestionProps,
           groupedItems: props.groupedVariables,
@@ -128,14 +145,14 @@ const createSuggestionRender = () => ({
 
       onKeyDown(suggestionProps: Record<string, any>) {
         if (suggestionProps.event.key === 'Escape') {
-          popup?.[0]?.hide()
-          // Returning true only tells the plugin we handled it; the DOM event still travels on
-          // and the compose modal closes on it.
+          // Returning true only tells the plugin we handled it; the DOM event would still travel
+          // on to the compose modal and close the whole thing.
           suggestionProps.event.preventDefault()
           suggestionProps.event.stopPropagation()
+          popup?.[0]?.hide()
           return true
         }
-        return component.ref?.onKeyDown(suggestionProps)
+        return component?.ref?.onKeyDown(suggestionProps)
       },
 
       onExit() {
@@ -192,24 +209,9 @@ function deriveExpressionMeta(expression: string): { id: string; label: string }
   }
 }
 
-// Parse without executing: a stored body is untrusted, and a detached div still fires
-// <img onerror> on innerHTML assignment. DOMParser documents are inert.
-function parseInert(html: string): HTMLElement {
-  return new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body
-}
-
-// Turn expression chips produced by editor.getHTML() back into {{ }}} tokens for storage / runtime interpolation.
-function expressionSpansToTokens(html: string): string {
-  const container = parseInert(html)
-  container.querySelectorAll('span[data-type="workflowExpression"]').forEach((el) => {
-    el.replaceWith(document.createTextNode(el.getAttribute('data-expression') || ''))
-  })
-  return container.innerHTML
-}
-
 // Turn stored {{ }} tokens into expression chip spans (only within text nodes, never inside attributes).
 function tokensToExpressionSpans(html: string): string {
-  const container = parseInert(html)
+  const container = parseInertHtml(html)
 
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
   const textNodes: Text[] = []
@@ -380,6 +382,8 @@ const editor = useEditor({
 function loadContent() {
   if (!editor.value) return
 
+  syncAiEmptyEligibility()
+
   // Both trackers move together: a lastEmitted left over from an earlier edit would later be
   // mistaken for an echo of this instance's own emit and swallow a real external change.
   lastLoaded = vModel.value
@@ -479,6 +483,46 @@ function loadContent() {
     .run()
 }
 
+// Empty body: the editor area shows an AI empty state instead of a bare placeholder.
+// "Start blank" dismisses it for this body.
+const aiEmptyDismissed = ref(false)
+
+const aiEmptyRef = ref<{ openPrompt: () => void }>()
+
+const isEditorEmpty = computed(() => !!editor.value?.isEmpty)
+
+// A load-time affordance, not a live empty state. Gating on `isEditorEmpty` re-asserted the
+// card whenever the body went empty again, and the card takes the editor's slot by
+// `display: none` — which blurs the focused ProseMirror, so select-all + Delete ejected the
+// caret and the field vanished mid-edit.
+const aiEmptyEligible = ref(false)
+
+const showAiEmptyState = computed(
+  () => isRichText.value && aiAvailable.value && !readOnly.value && aiEmptyEligible.value && !aiEmptyDismissed.value,
+)
+
+// Once the body has content the card is done for this body; clearing it later just shows the
+// placeholder, exactly as it did before the card existed.
+watch(isEditorEmpty, (empty) => {
+  if (!empty) aiEmptyEligible.value = false
+})
+
+// Called from loadContent, so a body that arrives empty (mount, or a node whose config loads
+// later) offers the card again.
+function syncAiEmptyEligibility() {
+  aiEmptyEligible.value = !vModel.value
+  aiEmptyDismissed.value = false
+}
+
+function startBlank() {
+  aiEmptyDismissed.value = true
+  nextTick(() => editor.value?.commands.focus('start'))
+}
+
+function focusAiPrompt() {
+  aiEmptyRef.value?.openPrompt()
+}
+
 onMounted(loadContent)
 
 watch(
@@ -491,13 +535,27 @@ watch(
   },
 )
 
-const insertExpression = () => {
+const insertExpression = async () => {
   if (!editor.value) return
+
+  // The AI empty state hides the editor, and a hidden element can't take focus.
+  if (showAiEmptyState.value) {
+    aiEmptyDismissed.value = true
+    await nextTick()
+  }
+
+  // Synchronous DOM focus: the suggestion popup is gated on `isFocused` at dispatch time,
+  // and the focus command only focuses on the next animation frame.
+  editor.value.view.focus()
 
   const { $from } = editor.value.state.selection
   const lastChar = editor.value.state.doc.textBetween($from.pos - 1, $from.pos)
 
   if (editor.value.state.doc.textBetween($from.pos - 2, $from.pos) === '{{') {
+    // Already at a trigger whose picker may never have opened (loaded unfocused): re-insert it
+    // as two transactions so the suggestion restarts and the picker shows.
+    editor.value.commands.deleteRange({ from: $from.pos - 2, to: $from.pos })
+    editor.value.commands.insertContent('{{')
     return
   }
 
@@ -656,6 +714,7 @@ const formatGroups = computed<WorkflowInputTool[][]>(() => {
       },
       { key: 'clear', icon: 'lucideRemoveFormatting', label: 'labels.clearFormatting', action: clearFormatting },
     ],
+    [{ key: 'ai', type: 'ai' }],
   ]
 
   return groups
@@ -689,7 +748,19 @@ const shouldShowBubble = ({
   !e.state.selection.empty &&
   (view.hasFocus() || !!bubbleEl.value?.contains(document.activeElement))
 
-const bubbleTippyOptions = { duration: 100, maxWidth: 600, placement: 'top' as const, appendTo: () => document.body }
+// No max width: the full tool set is wider than tippy's default cap and would clip.
+const bubbleTippyOptions = { duration: 100, maxWidth: 'none' as const, placement: 'top' as const, appendTo: () => document.body }
+
+// AI output arrives as HTML with {{ }} tokens; chips are rebuilt the same way stored bodies are.
+function applyAiResult({ html, mode }: { html: string; mode: 'write' | 'rewrite' }) {
+  if (!editor.value) return
+  const content = tokensToExpressionSpans(html)
+  const chain = editor.value.chain().focus()
+  // "write" is given the current body as context and returns a complete replacement;
+  // "rewrite" only ever touches the selection. Both are single undo steps.
+  if (mode === 'rewrite') chain.deleteSelection().insertContent(content).run()
+  else chain.setContent(content, true).run()
+}
 
 function clearFormatting() {
   editor.value?.chain().focus().unsetAllMarks().clearNodes().run()
@@ -794,7 +865,11 @@ watch(readOnly, (newValue) => {
   >
     <!-- ── Rich-text (email body) shell: toolbar + editor + footer in one bordered box ── -->
     <template v-if="isRichText">
-      <div class="nc-email-shell" :class="{ 'is-expanded': expanded }" data-testid="nc-workflow-richtext-shell">
+      <div
+        class="nc-email-shell"
+        :class="{ 'is-expanded': expanded, 'has-ai-empty': showAiEmptyState }"
+        data-testid="nc-workflow-richtext-shell"
+      >
         <!-- Sidebar: status strip. Formatting lives in the selection bubble. -->
         <div v-if="!expanded" class="nc-email-head">
           <div class="nc-email-wordcount">
@@ -829,7 +904,15 @@ watch(readOnly, (newValue) => {
 
         <!-- Modal: full toolbar -->
         <div v-else-if="!readOnly" class="nc-email-toolbar" data-testid="nc-workflow-richtext-toolbar">
-          <NcFormBuilderInputWorkflowInputTools v-if="editor" :editor="editor" :groups="toolbarGroups" />
+          <NcFormBuilderInputWorkflowInputTools
+            v-if="editor"
+            :editor="editor"
+            :groups="toolbarGroups"
+            :variables="variables"
+            :ai-prompt-in-body="showAiEmptyState"
+            @ai-result="applyAiResult"
+            @ai-prompt="focusAiPrompt"
+          />
 
           <div class="flex-1" />
 
@@ -880,6 +963,16 @@ watch(readOnly, (newValue) => {
 
         <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
 
+        <div v-if="showAiEmptyState && editor" class="nc-email-ai-empty-host">
+          <WorkflowInputAiEmptyState
+            ref="aiEmptyRef"
+            :editor="editor"
+            :variables="variables"
+            @result="applyAiResult"
+            @start-blank="startBlank"
+          />
+        </div>
+
         <BubbleMenu
           v-if="editor"
           :editor="editor"
@@ -888,7 +981,12 @@ watch(readOnly, (newValue) => {
           :tippy-options="bubbleTippyOptions"
         >
           <div ref="bubbleEl" class="nc-email-bubble" data-testid="nc-workflow-richtext-bubble" @mousedown.prevent>
-            <NcFormBuilderInputWorkflowInputTools :editor="editor" :groups="formatGroups" />
+            <NcFormBuilderInputWorkflowInputTools
+              :editor="editor"
+              :groups="formatGroups"
+              :variables="variables"
+              @ai-result="applyAiResult"
+            />
           </div>
         </BubbleMenu>
       </div>
@@ -1050,6 +1148,24 @@ watch(readOnly, (newValue) => {
   .nc-workflow-format-btn:not(.nc-email-typo-btn) {
     @apply !w-7 !min-w-7 !px-0;
   }
+}
+
+// While the AI empty state shows it takes the editor's slot in the flex column; the editor
+// stays mounted (just not displayed) so focus/typing works the moment it is dismissed.
+// !important: the modal's .is-expanded rule sets display:flex on the editor at equal specificity.
+.nc-email-shell.has-ai-empty .nc-email-editor {
+  display: none !important;
+}
+
+.nc-email-ai-empty-host {
+  @apply flex flex-col flex-1 min-h-0 overflow-auto;
+}
+
+// In the tall compose modal a dead-centre card reads as "low"; sit it in the upper third.
+// (Lives here, unscoped and fully qualified — a scoped `:global(...) &` version leaked onto the shell.)
+.nc-email-shell.is-expanded .nc-email-ai-empty:not(.is-prompt) {
+  align-items: flex-start;
+  padding-top: 72px;
 }
 
 .nc-email-var-btn {

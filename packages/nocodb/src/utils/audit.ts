@@ -39,15 +39,12 @@ import { columnBuilder } from '~/utils/data-transformation.builder';
 export function fromEntries<T = any>(
   entries: [string, T][],
 ): { [key: string]: T } {
-  return entries.reduce(
-    (acc, entry) => {
-      if (!entry) return acc;
-      const [key, value] = entry;
-      acc[key] = value;
-      return acc;
-    },
-    {} as { [key: string]: T },
-  );
+  return entries.reduce((acc, entry) => {
+    if (!entry) return acc;
+    const [key, value] = entry;
+    acc[key] = value;
+    return acc;
+  }, {} as { [key: string]: T });
 }
 
 // Properties that must never end up in nc_audit.details, regardless of which
@@ -1097,18 +1094,15 @@ export const extractColsMetaForAudit = (
 ) => {
   return columns
     .filter((col) => !isSystemColumn(col))
-    .reduce(
-      (acc, col) => {
-        if (
-          !datas.length ||
-          datas.some((data) => data[col.title] !== undefined)
-        ) {
-          acc[col.title] = extractColMetaForAudit(col, datas) as ColumnMeta;
-        }
-        return acc;
-      },
-      {} as Record<string, ColumnMeta>,
-    );
+    .reduce((acc, col) => {
+      if (
+        !datas.length ||
+        datas.some((data) => data[col.title] !== undefined)
+      ) {
+        acc[col.title] = extractColMetaForAudit(col, datas) as ColumnMeta;
+      }
+      return acc;
+    }, {} as Record<string, ColumnMeta>);
 };
 
 export const extractExcludedColumnNames = (columns: ColumnType[]) => {

@@ -267,7 +267,7 @@ export function isTransientError(error: any): boolean {
   // name that merely appears inside a table or column name.
   if (
     /(^|[^A-Z0-9_])(ECONNREFUSED|ETIMEDOUT|ECONNRESET|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|ECONNABORTED|EHOSTDOWN|EAI_AGAIN|SQLITE_BUSY|SQLITE_LOCKED|ER_LOCK_WAIT_TIMEOUT|ER_CON_COUNT_ERROR|ER_TOO_MANY_USER_CONNECTIONS|NJS-(?:500|501|503|510|511|518|521)|ORA-0*(?:1033|1034|3113|3114|12170|12514|12537|12541))([^A-Z0-9_]|$)/i.test(
-      stripQuoted(typeof error === 'string' ? error : (error?.message ?? '')),
+      stripQuoted(typeof error === 'string' ? error : error?.message ?? ''),
     )
   ) {
     return true;

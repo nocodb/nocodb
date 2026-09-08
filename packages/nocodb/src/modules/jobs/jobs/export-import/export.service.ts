@@ -1,4 +1,4 @@
-import { Readable } from 'stream';
+import { Readable, Writable } from 'stream';
 import { Injectable } from '@nestjs/common';
 import debug from 'debug';
 import {
@@ -17,7 +17,7 @@ import {
   type WidgetType,
 } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { elapsedTime, initTime } from '../../helpers';
 import type { LookupType, NcRequest, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -1771,120 +1771,93 @@ export class ExportService {
     });
 
     const limit = 200;
-    const offset = 0;
+
+    // Streamed, not accumulated. The previous implementation collected every
+    // row into one `allRows` array, then built a worksheet and serialised a
+    // Buffer from it — three copies of the dataset alive at once and all
+    // reachable, which is what exhausted the JS heap (~2.5 KB per row at 20
+    // columns, so a few hundred thousand rows is enough). Peak memory here is
+    // one page.
+    //
+    // SheetJS cannot do this: 0.20.3 streams only to_json/to_html/to_csv/
+    // to_xlml, never xlsx. ExcelJS (already a dependency, already used for
+    // streaming Excel *import*) writes rows out as they are committed.
+    //
+    // Formula-injection note: the CSV path escapes leading =/+/-/@, this one
+    // deliberately does not — verified that ExcelJS types these values as
+    // strings, exactly like the `json_to_sheet` behaviour that made
+    // GHSA-4hcr-28g4-m9pm N/A here. Escaping would only corrupt values like
+    // "-", "+1-555-…" and "@handle".
+    const sink = new Writable({
+      // `dataStream` is a Readable the caller is already draining
+      // (`fileCreateByStream` is attached before this runs, and the export
+      // processor skips `setEncoding` for excel so the binary survives).
+      // Backpressure is not plumbed back through it: if the uploader lags, the
+      // Readable buffers. That bound is the *compressed workbook*, not the
+      // dataset, so it is orders of magnitude below what this replaces.
+      write(chunk, _enc, cb) {
+        dataStream.push(chunk);
+        cb();
+      },
+      final(cb) {
+        dataStream.push(null);
+        cb();
+      },
+    });
+
+    const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
+      stream: sink,
+      // A shared-string table retains every distinct cell value for the whole
+      // write — the same unbounded growth this change removes.
+      useSharedStrings: false,
+      useStyles: false,
+    });
+    const worksheet = workbook.addWorksheet('Data');
 
     try {
-      await this.recursiveReadForExcel(
-        context,
-        formatAndSerialize,
-        baseModel,
-        dataStream,
-        model,
-        view,
-        offset,
-        limit,
-        fields,
-        {
-          filterArrJson: param.filterArrJson,
-          sortArrJson: param.sortArrJson,
-        },
-      );
+      let headers: string[] | null = null;
+      let offset = 0;
+
+      for (;;) {
+        const result = await this.datasService.dataList(context, {
+          model,
+          view,
+          query: {
+            limit,
+            offset,
+            fields,
+            nested: this.buildNestedLinkLimitQuery(model),
+            filterArrJson: param.filterArrJson,
+            sortArrJson: param.sortArrJson,
+          },
+          baseModel,
+          ignoreViewFilterAndSort: false,
+          limitOverride: limit,
+          skipSortBasedOnOrderCol: true,
+        });
+
+        const { data } = await formatAndSerialize(result.list);
+
+        if (!headers) {
+          // First batch fixes the column order, as `json_to_sheet({ header })`
+          // did; an empty export still gets the view's fields as a header row.
+          headers = data.length ? Object.keys(data[0]) : fields;
+          worksheet.addRow(headers).commit();
+        }
+
+        for (const row of data) {
+          worksheet.addRow(headers.map((h) => row[h])).commit();
+        }
+
+        if (result.pageInfo.isLastPage) break;
+        offset += limit;
+      }
+
+      await worksheet.commit();
+      await workbook.commit();
     } catch (e) {
       this.debugLog(e);
       throw e;
-    }
-  }
-
-  async recursiveReadForExcel(
-    context: NcContext,
-    formatter: (data: any) => Promise<{ data: any }>,
-    baseModel: BaseModelSqlv2,
-    stream: Readable,
-    model: Model,
-    view: View,
-    offset: number,
-    limit: number,
-    fields: string[],
-    param?: {
-      filterArrJson: any;
-      sortArrJson: any;
-    },
-    allRows: Record<string, any>[] = [],
-    headers: string[] = [],
-  ): Promise<void> {
-    const result = await this.datasService.dataList(context, {
-      model,
-      view,
-      query: {
-        limit,
-        offset,
-        fields,
-        nested: this.buildNestedLinkLimitQuery(model),
-        filterArrJson: param?.filterArrJson,
-        sortArrJson: param?.sortArrJson,
-      },
-      baseModel,
-      ignoreViewFilterAndSort: false,
-      limitOverride: limit,
-      skipSortBasedOnOrderCol: true,
-    });
-
-    if (result.list.length === 0 && offset === 0) {
-      // Empty result - generate Excel with just headers
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.aoa_to_sheet([fields]);
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-      const excelBuffer = XLSX.write(workbook, {
-        type: 'buffer',
-        bookType: 'xlsx',
-      });
-      stream.push(excelBuffer);
-      stream.push(null);
-      return;
-    }
-
-    const { data } = await formatter(result.list);
-
-    // Capture headers from the first batch (preserves view column order)
-    if (offset === 0 && data.length > 0) {
-      headers.push(...Object.keys(data[0]));
-    }
-
-    allRows.push(...data);
-
-    if (result.pageInfo.isLastPage) {
-      // All data collected — generate Excel workbook
-      // No CWE-1236 escaping here, unlike the CSV path: json_to_sheet emits typed
-      // text cells (`t:"s"`, no `f`), which spreadsheet apps never evaluate.
-      // Escaping would only corrupt values like "-", "+1-555-…" and "@handle".
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(allRows, {
-        header: headers,
-      });
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-
-      const excelBuffer = XLSX.write(workbook, {
-        type: 'buffer',
-        bookType: 'xlsx',
-      });
-
-      stream.push(excelBuffer);
-      stream.push(null);
-    } else {
-      await this.recursiveReadForExcel(
-        context,
-        formatter,
-        baseModel,
-        stream,
-        model,
-        view,
-        offset + limit,
-        limit,
-        fields,
-        param,
-        allRows,
-        headers,
-      );
     }
   }
 

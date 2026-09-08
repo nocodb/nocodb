@@ -202,6 +202,7 @@ const rolePermissions = {
   },
   [ProjectRoles.VIEWER]: {
     include: {
+      viewRecordCount: true,
       baseSettings: true,
       expandedForm: true,
       apiDocs: true,

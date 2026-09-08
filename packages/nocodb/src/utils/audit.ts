@@ -39,12 +39,15 @@ import { columnBuilder } from '~/utils/data-transformation.builder';
 export function fromEntries<T = any>(
   entries: [string, T][],
 ): { [key: string]: T } {
-  return entries.reduce((acc, entry) => {
-    if (!entry) return acc;
-    const [key, value] = entry;
-    acc[key] = value;
-    return acc;
-  }, {} as { [key: string]: T });
+  return entries.reduce(
+    (acc, entry) => {
+      if (!entry) return acc;
+      const [key, value] = entry;
+      acc[key] = value;
+      return acc;
+    },
+    {} as { [key: string]: T },
+  );
 }
 
 // Properties that must never end up in nc_audit.details, regardless of which
@@ -264,6 +267,18 @@ const extractReqPropsFromColOpt = (colOptions: ColumnType['colOptions']) => {
   }, {});
 };
 
+// A select cell is normally a string (or an array once split), but a numeric
+// option title arrives from the API as a number — and `.includes` on it threw,
+// failing the request *after* the row was written (public forms then retried
+// and duplicated it).
+const cellReferencesOption = (value: unknown, optionTitle: string) => {
+  if (Array.isArray(value)) return value.includes(optionTitle);
+  if (value === null || value === undefined || typeof value === 'object') {
+    return false;
+  }
+  return String(value).includes(optionTitle);
+};
+
 /**
  * Extracts metadata for a column to render in audit logs.
  * Handles specific column types such as MultiSelect and SingleSelect,
@@ -290,7 +305,9 @@ export const extractColMetaForAudit = (column: ColumnType, datas?: any[]) => {
             .filter((opt) => {
               return (
                 !datas?.length ||
-                datas.some((d) => d[column.title]?.includes(opt.title))
+                datas.some((d) =>
+                  cellReferencesOption(d[column.title], opt.title),
+                )
               );
             })
             .map((opt) => ({
@@ -1080,15 +1097,18 @@ export const extractColsMetaForAudit = (
 ) => {
   return columns
     .filter((col) => !isSystemColumn(col))
-    .reduce((acc, col) => {
-      if (
-        !datas.length ||
-        datas.some((data) => data[col.title] !== undefined)
-      ) {
-        acc[col.title] = extractColMetaForAudit(col, datas) as ColumnMeta;
-      }
-      return acc;
-    }, {} as Record<string, ColumnMeta>);
+    .reduce(
+      (acc, col) => {
+        if (
+          !datas.length ||
+          datas.some((data) => data[col.title] !== undefined)
+        ) {
+          acc[col.title] = extractColMetaForAudit(col, datas) as ColumnMeta;
+        }
+        return acc;
+      },
+      {} as Record<string, ColumnMeta>,
+    );
 };
 
 export const extractExcludedColumnNames = (columns: ColumnType[]) => {

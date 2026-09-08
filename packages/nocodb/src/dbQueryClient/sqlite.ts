@@ -1,9 +1,11 @@
 import { ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
-import type { Knex } from 'knex';
+import type { Knex, XKnex } from '~/db/CustomKnex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
+
+const SQLITE_TEMP_TABLE_COLUMN_PREFIX = 'column';
 
 export class SqliteDBQueryClient
   extends GenericDBQueryClient
@@ -17,6 +19,37 @@ export class SqliteDBQueryClient
   }
   simpleCast(field: string, asType: string) {
     return `CAST(${field} as ${asType})`;
+  }
+
+  temporaryTableRaw({
+    knex,
+    data,
+    fields,
+    alias,
+  }: {
+    data: Record<string, any>[];
+    fields: string[];
+    alias: string;
+    knex: XKnex;
+  }): Knex.Raw {
+    const selectColumns = fields.map(() => '?? as ??').join(', ');
+    const rowPlaceholder = `(${fields.map(() => '?').join(',')})`;
+    const valuesPlaceholder = data.map(() => rowPlaceholder).join(', ');
+    const columnBindings = fields.reduce<any[]>((acc, field, index) => {
+      acc.push(`${SQLITE_TEMP_TABLE_COLUMN_PREFIX}${index + 1}`, field);
+      return acc;
+    }, []);
+    const rowBindings = data.reduce<any[]>((acc, row) => {
+      for (const field of fields) {
+        acc.push(row[field]);
+      }
+      return acc;
+    }, [] as any[]);
+
+    return knex.raw(
+      `(select ${selectColumns} from (values ${valuesPlaceholder})) as ??`,
+      [...columnBindings, ...rowBindings, alias],
+    );
   }
 
   bulkAggregateRowSelector(

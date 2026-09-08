@@ -68,7 +68,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <div v-if="!isSharedBase && !isMobileMode && !activeScriptId && !activeDashboardId && !activeWorkflowId">
         <SmartsheetTopbarSelectMode />
       </div>
-      <div v-else-if="activeDashboardId || activeWorkflowId">
+      <div v-else-if="activeDashboardId || activeWorkflowId || activeAgentId" class="min-w-0 shrink">
         <SmartsheetTopbarEditingState />
       </div>
 

@@ -174,7 +174,10 @@ import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { StageTimer } from '~/helpers/stageTimer';
-import { isTransientError } from '~/helpers/db-error/utils';
+import {
+  isExternalSourceError,
+  isTransientError,
+} from '~/helpers/db-error/utils';
 import {
   captureForTrace,
   isTraceActive,
@@ -477,10 +480,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipPublicRedaction,
       });
     } catch (e) {
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
       if (
-        isTransient ||
+        skipFormulaRetry ||
         validateFormula ||
         !haveFormulaColumn(await this.model.getColumns(this.context))
       )
@@ -531,7 +534,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await model.getCachedColumns(context);
 
     if (extractDisplayValueData) {
-      return data ? data[model.displayValue.title] ?? null : '';
+      return data ? (data[model.displayValue.title] ?? null) : '';
     }
 
     return data;
@@ -575,7 +578,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
         if (extractDisplayValueData) {
           const titleKey = displayColumn?.title ?? model.displayValue?.title;
-          results.push(data ? data[titleKey] ?? null : '');
+          results.push(data ? (data[titleKey] ?? null) : '');
         } else {
           results.push(data);
         }
@@ -637,7 +640,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const record = recordsByKey.get(key)?.get(String(id));
         if (extractDisplayValueData) {
           const titleKey = displayColumn?.title ?? model.displayValue?.title;
-          return record ? record[titleKey] ?? null : '';
+          return record ? (record[titleKey] ?? null) : '';
         }
         return record ?? null;
       },
@@ -810,9 +813,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
         throw e;
       logger.log(e);
       return this.findOne(args, true);
@@ -1070,10 +1073,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {
-      // Check if this is a transient error (connection/timeout issue)
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
         throw e;
       logger.log(e);
       return this.list(args, {
@@ -2463,15 +2465,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (column.meta?.bt) {
                 // BT-side: FK is on the deleted record — no cleanup needed
                 // Collect parent IDs for LMT from deleted record's FK
-                const btChildColumn = await colOptions.getChildColumn(
-                  childContext,
-                );
-                const btParentColumn = await colOptions.getParentColumn(
-                  parentContext,
-                );
-                const btParentTable = await btParentColumn.getModel(
-                  parentContext,
-                );
+                const btChildColumn =
+                  await colOptions.getChildColumn(childContext);
+                const btParentColumn =
+                  await colOptions.getParentColumn(parentContext);
+                const btParentTable =
+                  await btParentColumn.getModel(parentContext);
                 await btParentTable.getColumns(parentContext);
                 const btParentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
@@ -2505,9 +2504,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 break;
               }
               // HM-side: FK on child table needs nulling (same as HM)
-              const ooRelatedTable = await colOptions.getRelatedTable(
-                refContext,
-              );
+              const ooRelatedTable =
+                await colOptions.getRelatedTable(refContext);
 
               if (ooRelatedTable.mm) {
                 break;
@@ -2572,15 +2570,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           case 'bt':
             {
               // Collect parent IDs for LMT from deleted record's FK
-              const btChildColumn = await colOptions.getChildColumn(
-                childContext,
-              );
-              const btParentColumn = await colOptions.getParentColumn(
-                parentContext,
-              );
-              const btParentTable = await btParentColumn.getModel(
-                parentContext,
-              );
+              const btChildColumn =
+                await colOptions.getChildColumn(childContext);
+              const btParentColumn =
+                await colOptions.getParentColumn(parentContext);
+              const btParentTable =
+                await btParentColumn.getModel(parentContext);
               await btParentTable.getColumns(parentContext);
               const btParentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
@@ -3959,7 +3954,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const result: any = await trx.raw(sql);
                 const rows: any[] = Array.isArray(result)
                   ? result
-                  : result?.rows ?? result?.recordset ?? [];
+                  : (result?.rows ?? result?.recordset ?? []);
                 responses.push(...rows);
               }
             }
@@ -4252,8 +4247,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         let val = !ncIsUndefined(d?.[col.column_name])
           ? d?.[col.column_name]
           : !ncIsUndefined(d?.[col.title])
-          ? d?.[col.title]
-          : d?.[col.id];
+            ? d?.[col.title]
+            : d?.[col.id];
         if (val !== undefined && this.context.api_version !== NcApiVersion.V3) {
           if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
             val = JSON.stringify(val);
@@ -5043,9 +5038,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               {
                 if (!shouldCascadeHere) break;
                 // skip if it's an mm table column
-                const relatedTable = await colOptions.getRelatedTable(
-                  refContext,
-                );
+                const relatedTable =
+                  await colOptions.getRelatedTable(refContext);
                 if (relatedTable.mm) {
                   break;
                 }
@@ -5108,15 +5102,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               {
                 if (column.meta?.bt) {
                   // BT-side: collect parent IDs from deleted records' FKs
-                  const btChildColumn = await colOptions.getChildColumn(
-                    childContext,
-                  );
-                  const btParentColumn = await colOptions.getParentColumn(
-                    parentContext,
-                  );
-                  const btParentTable = await btParentColumn.getModel(
-                    parentContext,
-                  );
+                  const btChildColumn =
+                    await colOptions.getChildColumn(childContext);
+                  const btParentColumn =
+                    await colOptions.getParentColumn(parentContext);
+                  const btParentTable =
+                    await btParentColumn.getModel(parentContext);
                   await btParentTable.getColumns(parentContext);
                   const btParentBaseModel = await Model.getBaseModelSQL(
                     parentContext,
@@ -5155,9 +5146,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   break;
                 }
                 // HM-side: same as HM
-                const ooRelatedTable = await colOptions.getRelatedTable(
-                  refContext,
-                );
+                const ooRelatedTable =
+                  await colOptions.getRelatedTable(refContext);
                 if (ooRelatedTable.mm) break;
 
                 const ooChildColumn = await Column.get(childContext, {
@@ -5217,15 +5207,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             case 'bt':
               {
                 // Collect parent IDs from deleted records' FKs
-                const btChildColumn = await colOptions.getChildColumn(
-                  childContext,
-                );
-                const btParentColumn = await colOptions.getParentColumn(
-                  parentContext,
-                );
-                const btParentTable = await btParentColumn.getModel(
-                  parentContext,
-                );
+                const btChildColumn =
+                  await colOptions.getChildColumn(childContext);
+                const btParentColumn =
+                  await colOptions.getParentColumn(parentContext);
+                const btParentTable =
+                  await btParentColumn.getModel(parentContext);
                 await btParentTable.getColumns(parentContext);
                 const btParentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
@@ -5682,8 +5669,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const parentAuditId = reuseParent
       ? req.ncParentAuditId
       : isBulk || isBulkAllOperation
-      ? await Noco.ncAudit.genNanoid(MetaTable.AUDIT)
-      : undefined;
+        ? await Noco.ncAudit.genNanoid(MetaTable.AUDIT)
+        : undefined;
 
     if (
       !reuseParent &&
@@ -7466,13 +7453,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // keyless `{}` (e.g. a number → `{}`), so guard on object-ness.
             d[key] =
               value && typeof value === 'object'
-                ? (
+                ? ((
                     await this.substituteColumnIdsWithColumnTitles(
                       [value],
                       dependencyColumns,
                       aliasColumns,
                     )
-                  )[0] ?? value
+                  )[0] ?? value)
                 : value;
           }
           return d;
@@ -8585,9 +8572,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return data;
 
     const columns = this.model?.columns.concat(dependencyColumns ?? []);
-    const formulaColumns = columns?.filter(
-      (c) => c.uidt === UITypes.Formula,
-    );
+    const formulaColumns = columns?.filter((c) => c.uidt === UITypes.Formula);
     if (!formulaColumns?.length) return data;
 
     const apply = (d: Record<string, any>) => {
@@ -9435,10 +9420,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // this base — is accepted.
                 const diskResolvableRefs = extra?.skipAttachmentOwnershipCheck
                   ? []
-                  : [
-                      sanitizedAttachment.path,
-                      sanitizedAttachment.url,
-                    ].filter((ref) => attachmentRefResolvesToStorage(ref));
+                  : [sanitizedAttachment.path, sanitizedAttachment.url].filter(
+                      (ref) => attachmentRefResolvesToStorage(ref),
+                    );
 
                 for (const ref of diskResolvableRefs) {
                   const accessible =

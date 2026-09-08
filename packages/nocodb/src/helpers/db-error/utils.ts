@@ -267,11 +267,35 @@ export function isTransientError(error: any): boolean {
   // name that merely appears inside a table or column name.
   if (
     /(^|[^A-Z0-9_])(ECONNREFUSED|ETIMEDOUT|ECONNRESET|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|ECONNABORTED|EHOSTDOWN|EAI_AGAIN|SQLITE_BUSY|SQLITE_LOCKED|ER_LOCK_WAIT_TIMEOUT|ER_CON_COUNT_ERROR|ER_TOO_MANY_USER_CONNECTIONS|NJS-(?:500|501|503|510|511|518|521)|ORA-0*(?:1033|1034|3113|3114|12170|12514|12537|12541))([^A-Z0-9_]|$)/i.test(
-      stripQuoted(typeof error === 'string' ? error : error?.message ?? ''),
+      stripQuoted(typeof error === 'string' ? error : (error?.message ?? '')),
     )
   ) {
     return true;
   }
 
   return false;
+}
+
+/**
+ * True when the read failed at the external source rather than in a formula.
+ *
+ * The read path retries a failed read with `validateFormula` on to find out
+ * *which* formula is broken. When the source itself is the thing that failed,
+ * that retry can learn nothing: it dry-runs every formula against the same
+ * failing source, one query and one logged stack per formula per record. On a
+ * base whose source is down that turns a single read into an unbounded fan-out
+ * — the amplifier behind the 2026-09-08 pod OOMs.
+ *
+ * `isTransientError` covers the timeout half; this covers the other half, where
+ * the source answers but the query cannot run (wrong schema, missing table,
+ * result too large to buffer).
+ */
+export function isExternalSourceError(error: any): boolean {
+  return (
+    error instanceof NcBaseErrorv2 &&
+    [
+      NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE,
+      NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT,
+    ].includes(error.error)
+  );
 }

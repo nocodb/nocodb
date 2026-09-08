@@ -144,15 +144,19 @@ const getAst = async (
     includeSortAndFilterColumns,
   });
 
+  // A row-colour or button-visibility condition forces its column into the
+  // payload so the client can compute the colour / evaluate the button — which
+  // on a shared view hands an anonymous caller the values of a column the owner
+  // hid. Authenticated callers can unhide the field anyway, so only the public
+  // surface is narrowed: the colour / button state is lost rather than the
+  // hidden values disclosed. Both loops read the same query bag
+  // (`include_row_color`, `include_button_filter_columns`) and feed the same
+  // `rowColorButtonFieldStrategy` bypass, so both must gate.
+  const publicSurface = isSharedViewAccess(context);
+
   const rowColoringColumnIds = new Set<string>();
   if (view && includeRowColorColumns) {
     const addingColumns = await getViewRowColorFields({ context, view });
-    // A row-color condition forces its column into the payload so the client can
-    // compute the colour — which on a shared view hands an anonymous caller the
-    // values of a column the owner hid. Authenticated callers can unhide the
-    // field anyway, so only the public surface is narrowed: the colour is lost
-    // rather than the hidden values disclosed.
-    const publicSurface = isSharedViewAccess(context);
     for (const addColumn of addingColumns) {
       if (publicSurface && allowedCols && !allowedCols[addColumn]) continue;
       rowColoringColumnIds.add(addColumn);
@@ -163,6 +167,7 @@ const getAst = async (
   if (view && includeButtonFilterColumns) {
     const addingColumns = await getButtonFilterFields({ context, model, view });
     for (const addColumn of addingColumns) {
+      if (publicSurface && allowedCols && !allowedCols[addColumn]) continue;
       buttonFilterColumnIds.add(addColumn);
     }
   }

@@ -538,6 +538,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (!model) {
           NcError.get(context).tableNotFound(params.tableId || params.modelId);
         }
+
+        // Extract table ID for permission check at the end — this branch owns
+        // routes carrying both :baseId and :tableId, which the base-id arm of
+        // the if/else chain below short-circuits before it can set this.
+        tableIdToCheck = model.id;
       }
     }
 
@@ -586,8 +591,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
 
-      // Extract table ID for permission check at the end
-      tableIdToCheck = view?.fk_model_id;
+      // Extract table ID for permission check at the end. This slot also
+      // resolves a Model (the `|| Model.get` above) — several data routes pass
+      // a table id here — and a Model has no `fk_model_id`, so fall back to its
+      // own id or the visibility gate never runs for those routes.
+      tableIdToCheck = view?.fk_model_id ?? view?.id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -948,6 +956,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           }
 
           req.ncSourceId = model?.source_id;
+
+          // Extract table ID for permission check at the end — the whole
+          // /:baseName/:tableName alias family resolves its model here and
+          // never set this, so the visibility gate never ran for it.
+          tableIdToCheck = model?.id;
         }
       } else {
         NcError.baseNotFound(params.baseId ?? params.baseName);

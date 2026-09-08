@@ -83,16 +83,30 @@ export function extractDbConnectionHosts(config: unknown): string[] {
   return hosts;
 }
 
-/** Host of a DB URL, or undefined when it isn't parseable as one. */
+/**
+ * Effective network host of a DB URL — the one the driver actually dials — or
+ * undefined when it isn't parseable as one.
+ *
+ * `pg-connection-string` copies every query param onto the config, then fills
+ * `host` from the URL ONLY when no `host`/`hostaddr` param is present (verified
+ * against the vendored 2.9.0 copy). So a `?host=`/`?hostaddr=` param WINS over
+ * the URL host: `postgres://public.example.com/db?host=169.254.169.254` reaches
+ * the URL host through validation while pg connects to the param. `hostaddr` is
+ * the literal address pg dials, so it outranks `host`. A comma-separated
+ * failover list is left intact for {@link validateDbConnectionHost} to split.
+ */
 function hostFromDsn(dsn: string): string | undefined {
   const trimmed = dsn.trim().replace(/^jdbc:/i, '');
   if (!trimmed.includes('://')) return undefined;
 
   try {
+    const url = new URL(trimmed);
+    const paramHost =
+      url.searchParams.get('hostaddr') ?? url.searchParams.get('host');
     // `hostname` (not `host`) drops the port. It keeps the IPv6 brackets for a
     // non-special protocol like `postgres:`, and `isIP('[::1]')` is 0 — a
     // bracketed literal would skip the range check and fall through to DNS.
-    const hostname = new URL(trimmed).hostname;
+    const hostname = paramHost ?? url.hostname;
     return hostname.replace(/^\[|\]$/g, '') || undefined;
   } catch {
     return undefined;
@@ -114,7 +128,21 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
     return;
   if (typeof host !== 'string' || host.length === 0) return;
 
-  const trimmed = host.trim();
+  // pg/mysql accept a comma-separated failover list and connect to each host in
+  // turn, so validate every entry. A combined `"127.0.0.1,10.0.0.1"` is not an
+  // IP and doesn't resolve, so it would otherwise fail open at the `dns.lookup`
+  // catch below — letting one private target hide inside the list.
+  const hostList = host
+    .split(',')
+    .map((h) => h.trim())
+    .filter(Boolean);
+  if (hostList.length === 0) return;
+  if (hostList.length > 1) {
+    for (const h of hostList) await validateDbConnectionHost(h);
+    return;
+  }
+
+  const trimmed = hostList[0];
   if (
     trimmed === '0.0.0.0' ||
     trimmed === '::' ||

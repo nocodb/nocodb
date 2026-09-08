@@ -15,6 +15,7 @@ import {
   ErrorReportReqType,
   getTestDatabaseName,
   IntegrationsType,
+  OperationSource,
   OrgUserRoles,
 } from 'nocodb-sdk';
 import {
@@ -23,6 +24,8 @@ import {
   validateDbConnectionHost,
 } from '~/helpers/validateDbConnectionHost';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
+import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 import {
   SSL_FILE_PATH_TEST_MIN_RESPONSE_MS,
   withMinResponseTime,
@@ -160,6 +163,17 @@ export class UtilsController {
         config.client,
       );
     }
+
+    // Authoritative, TOCTOU-free check for the object-connection shape: hook the
+    // driver's socket so the host it ACTUALLY resolves and dials is range-checked
+    // at connect time (a short-TTL DNS flip or a `?host=` override can't slip
+    // past it). The pre-flight above stays as save-time fail-fast; this is what
+    // makes the plain-knex test path as safe as the CustomKnex data path. No-op
+    // for string DSNs (covered by the pre-flight) and non-pg/mysql clients.
+    applyDbSsrfProtection(
+      config,
+      isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
+    );
 
     const runTest = () => this.utilsService.testConnection({ body: config });
 

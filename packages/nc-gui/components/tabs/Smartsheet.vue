@@ -108,15 +108,7 @@ const activeSource = computed(() => {
   return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
 })
 
-const { useWindowedKanbanLoad } = useProvideKanbanViewStore(meta, activeView)
-
-// Enable the Kanban board's windowed (per-visible-stack) data loading as early as the store is
-// created. KanbanOptimized sets this too, but only after its async chunk resolves — by then the
-// store's `watch(groupingFieldColumn)` has already fired a full loadKanbanData() that fetches every
-// stack upfront (the freeze the windowed path exists to avoid). Setting it here, before that watcher
-// can run, lets the bulk load be skipped. This tab is never a public/shared view, so windowed mode
-// is always safe here.
-useWindowedKanbanLoad.value = true
+useProvideKanbanViewStore(meta, activeView)
 
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)

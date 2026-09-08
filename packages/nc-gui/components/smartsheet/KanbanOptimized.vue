@@ -1305,9 +1305,6 @@ const handleHorizontalScroll = () => {
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
 onBeforeUnmount(() => {
-  // Reset so a store instance reused by the legacy Kanban falls back to its full load.
-  useWindowedKanbanLoad.value = false
-
   openNewRecordFormHook.off(openNewRecordFormHookHandler)
   eventBus.off(smartsheetEventHandler)
   reloadViewMetaHook?.off(reloadViewMetaListener)

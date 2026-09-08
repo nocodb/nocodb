@@ -28,6 +28,7 @@ import {
   resolveColumnAst,
 } from '~/helpers/getAstColumnStrategy';
 import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 
 const logger = new Logger('getAst');
 
@@ -146,7 +147,14 @@ const getAst = async (
   const rowColoringColumnIds = new Set<string>();
   if (view && includeRowColorColumns) {
     const addingColumns = await getViewRowColorFields({ context, view });
+    // A row-color condition forces its column into the payload so the client can
+    // compute the colour — which on a shared view hands an anonymous caller the
+    // values of a column the owner hid. Authenticated callers can unhide the
+    // field anyway, so only the public surface is narrowed: the colour is lost
+    // rather than the hidden values disclosed.
+    const publicSurface = isSharedViewAccess(context);
     for (const addColumn of addingColumns) {
+      if (publicSurface && allowedCols && !allowedCols[addColumn]) continue;
       rowColoringColumnIds.add(addColumn);
     }
   }

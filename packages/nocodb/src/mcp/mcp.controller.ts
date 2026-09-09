@@ -6,17 +6,13 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import {
-  extractRolesObj,
-  NcContext,
-  NcRequest,
-  ProjectRoles,
-} from 'nocodb-sdk';
+import { NcContext, NcRequest, ProjectRoles } from 'nocodb-sdk';
 import { MCPToken, User } from '~/models';
 import { McpService } from '~/mcp/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { hasMinimumRole } from '~/utils/roleHelper';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard)
@@ -45,8 +41,9 @@ export class McpController {
       workspaceId: mcpToken.fk_workspace_id,
     })) as typeof req.user;
 
-    // Check if user base_role is not no_access
-    if (extractRolesObj(req.user.base_roles)[ProjectRoles.NO_ACCESS]) {
+    User.assertNotBlocked(req.user);
+
+    if (!hasMinimumRole(req.user, ProjectRoles.VIEWER)) {
       NcError.forbidden('User has no access');
     }
 

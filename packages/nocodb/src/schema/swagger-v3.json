@@ -10198,7 +10198,7 @@
             "show"
           ]
         },
-        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown.\n- In case of partial list, fields not included in the list will be excluded from the view."
+        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown.\n- In case of partial list, fields not included in the list will be excluded from the view.\n- A `field_id` that does not exist on the table is rejected with `404`."
       },
       "ViewRowColour": {
         "type": "object",

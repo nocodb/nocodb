@@ -21,7 +21,7 @@ import { hasMinimumRole } from '~/utils/roleHelper';
 import { strictRegistrar } from '~/mcp/tools/strict-schema';
 import {
   callScopedRegistrar,
-  scopeParentAuditIdPerCall,
+  scopeAuditFieldsPerCall,
 } from '~/mcp/tools/call-scope';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -48,7 +48,7 @@ export class McpService {
   ) {
     // Before any tool registers: handlers close over `req`, and a JSON-RPC
     // batch runs them concurrently over that one object.
-    scopeParentAuditIdPerCall(req);
+    scopeAuditFieldsPerCall(req);
 
     const server = await this.createServer({ context, user: req.user, req });
 
@@ -591,7 +591,11 @@ export class McpService {
         {
           title: 'Aggregate',
           description:
-            'Perform aggregations on a table with a filter condition',
+            'Perform aggregations on a table with a filter condition. Result ' +
+            'keys are field titles: one aggregation on a field keys by the ' +
+            'bare title ("Amount"), two or more on the same field key as ' +
+            '"<title>.<type>" ("Amount.sum") so they do not collide. Read a ' +
+            'value as result[title] ?? result[`${title}.${type}`].',
           annotations: {
             readOnlyHint: true,
             idempotentHint: true,

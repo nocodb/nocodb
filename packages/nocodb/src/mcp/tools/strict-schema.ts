@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-function isZodSchema(value: unknown): value is z.ZodTypeAny {
+export function isZodSchema(value: unknown): value is z.ZodTypeAny {
   return typeof (value as any)?.safeParseAsync === 'function';
 }
 
@@ -17,10 +17,16 @@ function isZodSchema(value: unknown): value is z.ZodTypeAny {
  *
  * Accepts either form `registerTool` takes — a raw shape or an already-built
  * object schema — and is idempotent, so normalizing twice is harmless.
+ *
+ * An empty shape is returned untouched. The SDK's `normalizeObjectSchema`
+ * bails on a zero-key shape, so a no-arg tool skips input validation
+ * entirely; tightening it would start rejecting the filler clients send for
+ * zero-parameter tools (Cursor sends `{"random_string":"dummy"}`), and there
+ * is no misspelled parameter to catch where no parameter exists.
  */
 export function toStrictInputSchema(
   inputSchema: Record<string, z.ZodTypeAny> | z.ZodTypeAny | undefined,
-): z.ZodTypeAny | undefined {
+): Record<string, z.ZodTypeAny> | z.ZodTypeAny | undefined {
   if (!inputSchema) return undefined;
 
   if (isZodSchema(inputSchema)) {
@@ -30,7 +36,11 @@ export function toStrictInputSchema(
       : inputSchema;
   }
 
-  return z.object(inputSchema as Record<string, z.ZodTypeAny>).strict();
+  const shape = inputSchema as Record<string, z.ZodTypeAny>;
+
+  if (!Object.keys(shape).length) return shape;
+
+  return z.object(shape).strict();
 }
 
 /**

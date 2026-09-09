@@ -576,6 +576,9 @@ export default class Filter implements FilterType {
         condition: {
           fk_column_id: columnId,
         },
+        orderBy: {
+          order: 'asc',
+        },
       },
     );
 
@@ -986,7 +989,9 @@ export default class Filter implements FilterType {
       context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.VIEW, viewId],
-      // Ordering the DB read alone would only fix a cache miss.
+      // Ordering the DB read alone would only fix a cache miss. Affects the
+      // v3 filter tree and filterList?includeAllFilters=true response order —
+      // record filtering reads through rootFilterList, already ordered.
       { key: 'order' },
     );
     let { list: filterObjs } = cachedList;
@@ -999,10 +1004,6 @@ export default class Filter implements FilterType {
         MetaTable.FILTER_EXP,
         {
           condition: { fk_view_id: viewId },
-          // The only Filter list helper that was missing this. Every sibling
-          // orders by `order`, and the query builder reads through one of
-          // those — so a filter tree written in one order read back in
-          // another and never round-tripped.
           orderBy: {
             order: 'asc',
           },
@@ -1024,10 +1025,12 @@ export default class Filter implements FilterType {
     { hookId }: { hookId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
-      FilterCacheScope.HOOK,
-      hookId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.FILTER_EXP,
+      [FilterCacheScope.HOOK, hookId],
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -1038,6 +1041,9 @@ export default class Filter implements FilterType {
         MetaTable.FILTER_EXP,
         {
           condition: { fk_hook_id: hookId },
+          orderBy: {
+            order: 'asc',
+          },
         },
       );
       await NocoCache.setList(
@@ -1437,10 +1443,12 @@ export default class Filter implements FilterType {
     { linkColumnId }: { linkColumnId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
-      FilterCacheScope.LINK_COL,
-      linkColumnId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.FILTER_EXP,
+      [FilterCacheScope.LINK_COL, linkColumnId],
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -1451,6 +1459,9 @@ export default class Filter implements FilterType {
         MetaTable.FILTER_EXP,
         {
           condition: { fk_link_col_id: linkColumnId },
+          orderBy: {
+            order: 'asc',
+          },
         },
       );
       await NocoCache.setList(
@@ -1535,10 +1546,12 @@ export default class Filter implements FilterType {
     { buttonColId }: { buttonColId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
-      FilterCacheScope.BUTTON_COLUMN,
-      buttonColId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.FILTER_EXP,
+      [FilterCacheScope.BUTTON_COLUMN, buttonColId],
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -1549,6 +1562,9 @@ export default class Filter implements FilterType {
         MetaTable.FILTER_EXP,
         {
           condition: { fk_button_col_id: buttonColId },
+          orderBy: {
+            order: 'asc',
+          },
         },
       );
       await NocoCache.setList(

@@ -19,6 +19,10 @@ import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { hasMinimumRole } from '~/utils/roleHelper';
 import { strictRegistrar } from '~/mcp/tools/strict-schema';
+import {
+  callScopedRegistrar,
+  scopeParentAuditIdPerCall,
+} from '~/mcp/tools/call-scope';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
@@ -42,12 +46,11 @@ export class McpService {
     req: NcRequest,
     res: Response,
   ) {
-    const server = new McpServer({
-      name: `NoocDB MCP Server`,
-      version: '1.0.0',
-    });
+    // Before any tool registers: handlers close over `req`, and a JSON-RPC
+    // batch runs them concurrently over that one object.
+    scopeParentAuditIdPerCall(req);
 
-    await this.registerTools({ context, user: req.user, server, req });
+    const server = await this.createServer({ context, user: req.user, req });
 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
@@ -76,7 +79,10 @@ export class McpService {
       version: '1.0.0',
     });
 
-    await this.registerTools({ ...opts, server: strictRegistrar(server) });
+    await this.registerTools({
+      ...opts,
+      server: strictRegistrar(callScopedRegistrar(server)),
+    });
 
     return server;
   }

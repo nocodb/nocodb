@@ -1,5 +1,9 @@
 import { InterfacePageLayoutTypes } from './enums';
-import type { InterfaceButtonConfig, InterfaceButtonScope } from './elements';
+import type {
+  InterfaceButtonConfig,
+  InterfaceButtonScope,
+  InterfaceFieldGroupConfig,
+} from './elements';
 import type {
   AnyInterfacePageConfig,
   InterfaceDashboardPageConfig,
@@ -16,10 +20,33 @@ export interface InterfaceButtonPlacement {
   fk_model_id?: string | null;
 }
 
+/** The button-bearing slots of a record-detail layout (title side + field groups). */
+export interface InterfaceRecordDetailButtonSource {
+  user_actions?: { buttons?: InterfaceButtonConfig[] };
+  groups?: Pick<InterfaceFieldGroupConfig, 'user_actions'>[];
+}
+
 /**
- * Every button a page config carries, across all of its placements. Field-group
- * and custom-page buttons are accepted by the schema but have no builder or
- * renderer yet, so they are not listed.
+ * Every record-scoped button of a record-detail layout: the title-side list
+ * first, then each field group's own buttons in group order.
+ */
+export function collectRecordDetailButtons(
+  detail: InterfaceRecordDetailButtonSource | null | undefined
+): InterfaceButtonConfig[] {
+  if (!detail) return [];
+
+  return [
+    ...(detail.user_actions?.buttons ?? []),
+    ...(detail.groups ?? []).flatMap(
+      (group) => group.user_actions?.buttons ?? []
+    ),
+  ];
+}
+
+/**
+ * Every button a page config carries, across all of its placements. Custom-page
+ * buttons are accepted by the schema but have no builder or renderer yet, so
+ * they are not listed.
  */
 export function collectInterfaceButtonPlacements(
   layout: InterfacePageLayoutTypes | string,
@@ -29,8 +56,8 @@ export function collectInterfaceButtonPlacements(
 
   switch (layout) {
     case InterfacePageLayoutTypes.RECORD_DETAIL:
-      return (
-        (config as InterfaceRecordDetailPageConfig).user_actions?.buttons ?? []
+      return collectRecordDetailButtons(
+        config as InterfaceRecordDetailPageConfig
       ).map((button) => ({ button, scope: 'record' }));
     case InterfacePageLayoutTypes.RECORD_REVIEW: {
       const review = config as InterfaceRecordReviewPageConfig;
@@ -39,7 +66,7 @@ export function collectInterfaceButtonPlacements(
           button,
           scope: 'page' as const,
         })),
-        ...(review.detail?.user_actions?.buttons ?? []).map((button) => ({
+        ...collectRecordDetailButtons(review.detail).map((button) => ({
           button,
           scope: 'record' as const,
         })),

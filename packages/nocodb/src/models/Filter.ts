@@ -982,10 +982,13 @@ export default class Filter implements FilterType {
     { viewId }: { viewId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
-      FilterCacheScope.VIEW,
-      viewId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.FILTER_EXP,
+      [FilterCacheScope.VIEW, viewId],
+      // Ordering the DB read alone would only fix a cache miss.
+      { key: 'order' },
+    );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -996,6 +999,13 @@ export default class Filter implements FilterType {
         MetaTable.FILTER_EXP,
         {
           condition: { fk_view_id: viewId },
+          // The only Filter list helper that was missing this. Every sibling
+          // orders by `order`, and the query builder reads through one of
+          // those — so a filter tree written in one order read back in
+          // another and never round-tripped.
+          orderBy: {
+            order: 'asc',
+          },
         },
       );
       await NocoCache.setList(

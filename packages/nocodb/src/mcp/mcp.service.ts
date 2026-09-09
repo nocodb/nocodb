@@ -18,6 +18,8 @@ import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { hasMinimumRole } from '~/utils/roleHelper';
+import { strictRegistrar } from '~/mcp/tools/strict-schema';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
 import { AuditsService } from '~/services/audits.service';
@@ -57,6 +59,26 @@ export class McpService {
     });
     await server.connect(transport);
     await transport.handleRequest(req as Request, res, req.body);
+  }
+
+  // CE lists every tool it has, so it advertises no discovery instructions —
+  // EE overrides this to add them only when something actually deferred.
+  protected async createServer(opts: {
+    context: NcContext;
+    user: UserType & {
+      base_roles?: Record<string, boolean>;
+      workspace_roles?: Record<string, boolean>;
+    };
+    req: NcRequest;
+  }): Promise<McpServer> {
+    const server = new McpServer({
+      name: `NocoDB MCP Server`,
+      version: '1.0.0',
+    });
+
+    await this.registerTools({ ...opts, server: strictRegistrar(server) });
+
+    return server;
   }
 
   protected async registerTools({
@@ -197,7 +219,11 @@ export class McpService {
           pageSize: z
             .number()
             .optional()
-            .describe('Number of records to fetch (default: 50)'),
+            .describe(
+              'Number of records to fetch (default: 50). Capped at 200 here, ' +
+                'and further by the deployment limit — the response reports ' +
+                'the `page_size` actually applied.',
+            ),
           page: z
             .number()
             .optional()
@@ -223,6 +249,7 @@ export class McpService {
       },
       async ({ tableId, pageSize = 50, page = 1, where, sort, fields }) => {
         try {
+          const requestedPageSize = pageSize;
           pageSize = Math.max(1, Math.min(pageSize || 25, 200));
           // Prepare parameters
           const params: any = { pageSize, page };
@@ -237,8 +264,39 @@ export class McpService {
             req: req,
           });
 
+          // The deployment clamps the limit again via NC_DB_QUERY_LIMIT_MAX
+          // (1000 by default, 100 on shared/cloud), and `pageInfo` carries only
+          // next/prev URLs — which echo the *requested* size. A caller sizing
+          // its paging loop off the value it passed therefore skipped rows
+          // silently. State the size that was actually applied.
+          const effectivePageSize = Math.min(
+            pageSize,
+            defaultLimitConfig.limitMax,
+          );
+
           return {
-            content: [{ type: 'text', text: JSON.stringify(records, null, 2) }],
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    ...records,
+                    page,
+                    page_size: effectivePageSize,
+                    ...(effectivePageSize < requestedPageSize
+                      ? {
+                          page_size_note:
+                            `pageSize ${requestedPageSize} was clamped to ` +
+                            `${effectivePageSize} by this deployment. Page ` +
+                            `offsets follow the clamped size.`,
+                        }
+                      : {}),
+                  },
+                  null,
+                  2,
+                ),
+              },
+            ],
           };
         } catch (error) {
           return {

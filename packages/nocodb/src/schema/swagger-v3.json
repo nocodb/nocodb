@@ -9503,7 +9503,6 @@
           },
           "field_id": {
             "type": "string",
-            "format": "uuid",
             "description": "Identifier for the field being sorted."
           },
           "direction": {
@@ -9550,7 +9549,6 @@
           },
           "field_id": {
             "type": "string",
-            "format": "uuid",
             "description": "Identifier for the field being sorted."
           },
           "direction": {
@@ -9972,7 +9970,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
             "description": "Unique identifier for the view."
           },
           "title": {

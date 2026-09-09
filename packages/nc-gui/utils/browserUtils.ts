@@ -6,54 +6,73 @@ export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
 export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
 
-// EE side-panel is inline (sibling of the grid) — both surfaces can be active
-// simultaneously. The panel "blocks" grid-level keyboard handling only when the
-// user is actually interacting with the panel — meaning focus (or the most
-// recent click) is inside it. Once the user clicks a grid cell, they've
-// explicitly switched intent to the grid, so grid Tab/Enter/Arrows/Backspace
-// should resume working even while the panel is still visible.
-//
-// We track click intent in a module-level flag, set in the capture-phase click
-// listener below. Focus-only tracking isn't enough on its own because the
-// canvas grid isn't focusable — clicking a grid cell leaves activeElement on
-// BODY rather than inside the grid wrapper.
-let _lastClickInExpandedFormPanel = false
-if (typeof document !== 'undefined') {
-  document.addEventListener(
-    'click',
-    (e) => {
-      const t = e.target as HTMLElement | null
-      if (!t) return
-      // Ignore clicks on dropdowns/popovers that overlay the page — they
-      // can land outside the panel DOM but were triggered from within it.
-      if (t.closest('.ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .ant-dropdown')) return
-      const inPanel = !!t.closest('.nc-expanded-form-panel')
-      _lastClickInExpandedFormPanel = inPanel
+/** Portalled overlays belong to the surface that opened them, wherever they render. */
+const PORTALLED_OVERLAY_SELECTOR = '.ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .ant-dropdown'
 
-      // If the user clicked OUT of the panel (e.g. on a grid cell), but a
-      // panel descendant still holds keyboard focus from a prior interaction,
-      // explicitly blur it. Without this, subsequent keypresses (Enter,
-      // letter keys) still fire on the focused panel input — ant-select on a
-      // focused input would open its dropdown on Enter even though the user
-      // visually clicked away.
-      if (!inPanel) {
-        const panel = document.querySelector('.nc-expanded-form-panel')
-        const active = document.activeElement as HTMLElement | null
-        if (panel && active && panel.contains(active) && typeof active.blur === 'function') {
-          active.blur()
+/**
+ * Track whether the user's intent sits on an overlay surface (the EE side
+ * panel, the interface record sheet). Both are inline siblings of the grid, so
+ * both can be active at once and focus alone can't answer it — the canvas grid
+ * isn't focusable, so clicking a cell leaves activeElement on BODY rather than
+ * inside the grid wrapper. Hence the most recent click is remembered too, in
+ * a capture-phase listener.
+ *
+ * Clicking OUT of the surface while one of its inputs still holds focus blurs
+ * that input: without it the next keystroke fires on the stale input — Enter
+ * on a focused ant-select opens its dropdown long after the user visually
+ * clicked away.
+ */
+function trackClickIntent(
+  surfaceSelector: string,
+  {
+    ignoreSelector = PORTALLED_OVERLAY_SELECTOR,
+    onClick,
+  }: { ignoreSelector?: string; onClick?: (target: HTMLElement) => void } = {},
+) {
+  let lastClickInside = false
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener(
+      'click',
+      (e) => {
+        const t = e.target as HTMLElement | null
+        if (!t || t.closest(ignoreSelector)) return
+
+        const inside = !!t.closest(surfaceSelector)
+        lastClickInside = inside
+        onClick?.(t)
+
+        if (!inside) {
+          const surface = document.querySelector(surfaceSelector)
+          const active = document.activeElement as HTMLElement | null
+          if (surface && active && surface.contains(active) && typeof active.blur === 'function') active.blur()
         }
-      }
+      },
+      true,
+    )
+  }
+
+  return {
+    clickedInside: () => lastClickInside,
+    markInside: () => {
+      lastClickInside = true
     },
-    true,
-  )
+    reset: () => {
+      lastClickInside = false
+    },
+  }
 }
+
+// The panel "blocks" grid-level keyboard handling only while the user is
+// actually interacting with it. Once they click a grid cell they've explicitly
+// switched intent, so grid Tab/Enter/Arrows/Backspace resume working even
+// while the panel is still visible.
+const expandedFormPanelIntent = trackClickIntent('.nc-expanded-form-panel')
 
 // Reset to "intent on panel" when the panel mounts — so opening EFP via the
 // grid expand-row icon (which is technically a grid click) doesn't leave grid
 // keyboard active afterwards. Called from ExpandedFormPanel.vue on mount.
-export const markExpandedFormPanelFocus = () => {
-  _lastClickInExpandedFormPanel = true
-}
+export const markExpandedFormPanelFocus = () => expandedFormPanelIntent.markInside()
 
 const isFocusInsideExpandedFormPanel = () => {
   const panel = document.querySelector('.nc-expanded-form-panel')
@@ -66,7 +85,8 @@ const isFocusInsideExpandedFormPanel = () => {
 // inside it, or their most recent click landed inside it. Grid keyboard
 // handlers check this and bail.
 export const isExpandedFormPanelOpen = () =>
-  !!document.querySelector('.nc-expanded-form-panel') && (isFocusInsideExpandedFormPanel() || _lastClickInExpandedFormPanel)
+  !!document.querySelector('.nc-expanded-form-panel') &&
+  (isFocusInsideExpandedFormPanel() || expandedFormPanelIntent.clickedInside())
 
 export const isDrawerOrModalExist = () =>
   !!document.querySelector('.ant-modal.active, .ant-drawer-open') || isExpandedFormPanelOpen()
@@ -99,10 +119,45 @@ export const isActiveElementInsideInterfacePanel = () =>
   ['.nc-interface-properties-panel', '.nc-interface-page-description'].some((selector) =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
-/** Interface record-detail sheet overlays the viz — while it is open the grid
- *  behind it must not react to keyboard at all (presence, not focus: the sheet
- *  only exists inside interface contexts, so classic grids are unaffected). */
-export const isInterfaceRecordSheetOpen = () => !!document.querySelector('.nc-interface-record-form-sheet')
+// The LTAR embed (view mode) the last click landed in — embeds inside the sheet
+// take turns owning the keyboard the same way the sheet does against the page.
+const INTERFACE_EMBED_HOST_SELECTOR = '.nc-interface-ltar-viz-host'
+let _lastClickEmbedHost: Element | null = null
+
+const interfaceRecordSheetIntent = trackClickIntent('.nc-interface-record-form-sheet', {
+  // A modal, drawer or expanded cell editor opened FROM a sheet field renders
+  // outside the sheet — working inside one is still working in the sheet.
+  ignoreSelector: `${PORTALLED_OVERLAY_SELECTOR}, .ant-modal, .ant-drawer, .expanded-cell-input`,
+  onClick: (t) => {
+    _lastClickEmbedHost = t.closest(INTERFACE_EMBED_HOST_SELECTOR)
+  },
+})
+
+/** Interface record-detail sheet owns the keyboard: always for the full-screen
+ *  page variant (the viz is hidden), otherwise only while the user is working
+ *  inside it (focus / last click) — so the grid behind a side sheet keeps its
+ *  arrow navigation and the sheet follows the active row. The sheet only
+ *  exists inside interface contexts, so classic grids are unaffected.
+ *
+ *  `hostEl` = the calling grid/list's own element. A viz embedded IN the sheet
+ *  is never blocked by the sheet itself — it owns the keyboard while the last
+ *  click landed in its embed and focus isn't in a sheet input elsewhere. */
+export const isInterfaceRecordSheetOpen = (hostEl?: Element | null) => {
+  const sheet = document.querySelector('.nc-interface-record-form-sheet')
+  if (!sheet) {
+    interfaceRecordSheetIntent.reset()
+    _lastClickEmbedHost = null
+    return false
+  }
+  const active = document.activeElement
+  if (hostEl && sheet.contains(hostEl)) {
+    const embed = hostEl.closest(INTERFACE_EMBED_HOST_SELECTOR)
+    if (!embed || embed !== _lastClickEmbedHost) return true
+    return !!active && active !== document.body && !embed.contains(active)
+  }
+  if (sheet.classList.contains('nc-rf-sheet-full')) return true
+  return (!!active && sheet.contains(active)) || interfaceRecordSheetIntent.clickedInside()
+}
 /** Interface builder chrome: the right-side config panel, the topbars, a page
  *  toolbar (the user-filter tab strip lives inside it) and the page sidebar.
  *  Clicking any of it is a context switch, so the mounted grid/list drops its

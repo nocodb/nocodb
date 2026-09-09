@@ -12,6 +12,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     shared = false,
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
+    /**
+     * Interface LTAR "Show as = View" embeds mount a smartsheet tree INSIDE
+     * another (the table page behind the record sheet). The bus is app-global
+     * by default, so the embed toolbar's reload events (group/filter/search)
+     * would also reload the page behind it. An isolated bus keeps the embed's
+     * own events to itself while still receiving app-wide broadcasts.
+     */
+    isolatedEventBus = false,
   ) => {
     /**
      * In shared view mode, `isPublic` will still be false because both
@@ -59,7 +67,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
-    const eventBus = $eventBus.smartsheetStoreEventBus
+    const globalEventBus = $eventBus.smartsheetStoreEventBus
+    const eventBus = isolatedEventBus ? useEventBus<SmartsheetStoreEvents>(Symbol('nc-smartsheet-store')) : globalEventBus
+
+    if (isolatedEventBus) {
+      const forward = (event: SmartsheetStoreEvents, payload?: any) => eventBus.emit(event, payload)
+      globalEventBus.on(forward)
+      onScopeDispose(() => globalEventBus.off(forward))
+    }
 
     const isLocked = computed(
       () =>

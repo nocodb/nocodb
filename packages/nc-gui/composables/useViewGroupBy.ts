@@ -31,6 +31,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
      * same-instance `provide()` — so it must pass the adapter explicitly.
      */
     interfaceDataApiParam?: InterfacePageDataApi,
+    /** Same-instance-provide workaround as the adapter — the interface hosts' own reload hook. */
+    reloadData?: () => void,
   ) => {
     const groupByLimit = 3
 
@@ -125,7 +127,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
-    const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+    const injectedReloadHook = inject(ReloadViewDataHookInj, createEventHook())
+    const reloadViewData = reloadData ?? (() => injectedReloadHook?.trigger())
 
     const groupByGroupLimit = computed(() => {
       return appInfo.value.defaultGroupByLimit?.limitGroup || 25
@@ -673,7 +676,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       () => groupBy.value.length,
       async () => {
         if (!groupBy.value.length) {
-          nextTick(() => reloadViewDataHook?.trigger())
+          nextTick(() => reloadViewData())
           return
         }
 
@@ -690,7 +693,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
         rootGroup.value.column = {} as any
         refreshNested()
-        nextTick(() => reloadViewDataHook?.trigger())
+        nextTick(() => reloadViewData())
       },
     )
 

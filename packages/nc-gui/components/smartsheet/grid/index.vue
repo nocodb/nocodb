@@ -636,6 +636,20 @@ expandedFormPanelRowNavigator.value = {
   },
 }
 
+// Interface pages: hand the record sheet our live row objects (see InterfaceRowResolverInj).
+const interfaceRowResolver = inject(InterfaceRowResolverInj, undefined)
+if (interfaceRowResolver) {
+  const resolveLiveRow = (rowId: string) => {
+    const navigator = expandedFormPanelRowNavigator.value
+    const location = navigator?.findRowLocation?.(rowId)
+    return location ? navigator?.getRow(location.index, location.path)?.row.row ?? null : null
+  }
+  interfaceRowResolver.value = resolveLiveRow
+  onBeforeUnmount(() => {
+    if (interfaceRowResolver.value === resolveLiveRow) interfaceRowResolver.value = null
+  })
+}
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {

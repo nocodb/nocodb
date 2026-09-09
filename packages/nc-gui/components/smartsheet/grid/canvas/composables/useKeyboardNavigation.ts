@@ -30,6 +30,8 @@ export function useKeyboardNavigation({
   getDataCache,
   removeInlineAddRecord,
   maxSelectionLimit,
+  anchorActiveCell,
+  hostEl,
 }: {
   isGroupBy: ComputedRef<boolean>
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
@@ -80,6 +82,10 @@ export function useKeyboardNavigation({
   }
   removeInlineAddRecord: Ref<boolean>
   maxSelectionLimit: ComputedRef<number>
+  /** Interface pages: select the record-sheet's row when nothing is selected. */
+  anchorActiveCell?: () => void
+  /** This grid's element — lets the record-sheet guard tell an embedded grid from the one behind the sheet. */
+  hostEl?: Ref<HTMLElement | null>
 }) {
   const { isDataReadOnly } = useRoles()
   const { $e } = useNuxtApp()
@@ -94,7 +100,7 @@ export function useKeyboardNavigation({
       return
     // Interface editor: keystrokes belong to the properties panel's inputs,
     // not the grid canvas mounted in the page preview.
-    if (isActiveElementInsideInterfacePanel() || isInterfaceRecordSheetOpen()) return
+    if (isActiveElementInsideInterfacePanel() || isInterfaceRecordSheetOpen(hostEl?.value)) return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
@@ -122,6 +128,9 @@ export function useKeyboardNavigation({
     let group: CanvasGroup
 
     let defaultData = {}
+
+    // No selection yet (sheet opened by deep link / expand icon) — arrows step from the sheet's record.
+    if (activeCell.value.row === -1 && e.key.startsWith('Arrow')) anchorActiveCell?.()
 
     if (isGroupBy.value) {
       if (activeCell.value.path?.length) {

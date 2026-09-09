@@ -913,6 +913,109 @@ describe('validateRowFilters', () => {
       ).toBe(false);
     });
 
+    it('should evaluate "gb_eq" (group-by key) against the linked record primary value', () => {
+      const filters: FilterType[] = [
+        { fk_column_id: '6', comparison_op: 'gb_eq' as any, value: 'RecordA' },
+      ];
+      // belongs-to links are a single object, not an array
+      expect(
+        validateRowFilters({
+          filters,
+          data: { RelatedRecords: { Primary: 'RecordA' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+      expect(
+        validateRowFilters({
+          filters,
+          data: { RelatedRecords: { Primary: 'RecordB' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(false);
+    });
+
+    it('should treat an unlinked belongs-to as blank, not as one record', () => {
+      // An unlinked bt/oo arrives as null — the group-by "empty" bucket sends
+      // `gb_null`, and every emptiness op has to agree with it.
+      for (const op of ['gb_null', 'empty', 'blank']) {
+        expect(
+          validateRowFilters({
+            filters: [{ fk_column_id: '6', comparison_op: op as any }],
+            data: { RelatedRecords: null },
+            columns: mockColumns,
+            client: mockClient,
+            metas: mockMetas,
+          })
+        ).toBe(true);
+      }
+
+      for (const op of ['notempty', 'notblank']) {
+        expect(
+          validateRowFilters({
+            filters: [{ fk_column_id: '6', comparison_op: op as any }],
+            data: { RelatedRecords: null },
+            columns: mockColumns,
+            client: mockClient,
+            metas: mockMetas,
+          })
+        ).toBe(false);
+      }
+
+      // …and a linked one still reads as present.
+      expect(
+        validateRowFilters({
+          filters: [{ fk_column_id: '6', comparison_op: 'gb_null' as any }],
+          data: { RelatedRecords: { Primary: 'RecordA' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(false);
+    });
+
+    it('should route a bt-like V2 Links column through the linked-record path', () => {
+      // V2 MO/OO/BT are `Links` columns that still hold the record itself.
+      const columns: ColumnType[] = [
+        ...mockColumns,
+        {
+          id: '10',
+          title: 'RelatedRecords',
+          uidt: UITypes.Links,
+          colOptions: {
+            fk_related_model_id: 'relatedModel',
+            version: 2,
+            type: 'bt',
+          } as LinkToAnotherRecordType,
+        },
+      ];
+
+      expect(
+        validateRowFilters({
+          filters: [
+            { fk_column_id: '10', comparison_op: 'gb_eq' as any, value: 'RecordA' },
+          ],
+          data: { RelatedRecords: { Primary: 'RecordA' } },
+          columns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+
+      expect(
+        validateRowFilters({
+          filters: [{ fk_column_id: '10', comparison_op: 'gb_null' as any }],
+          data: { RelatedRecords: null },
+          columns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+    });
+
     it('should correctly evaluate "like" for linked record primary value', () => {
       const filters: FilterType[] = [
         { fk_column_id: '6', comparison_op: 'like', value: 'record' },

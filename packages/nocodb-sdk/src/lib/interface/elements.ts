@@ -188,12 +188,17 @@ export type InterfaceButtonConfig =
 /** Node id of the workflow trigger an interface button connects to. */
 export const INTERFACE_BUTTON_TRIGGER_NODE_TYPE = 'core.trigger.button';
 
+/** Where a Run-automation button sits: on an open record (sheet) or on page chrome (no record). */
+export type InterfaceButtonScope = 'record' | 'page';
+
 /** `data.config` of a `core.trigger.button` node — set by the interface, read-only in the editor. */
 export interface InterfaceButtonTriggerConfig {
   modelId?: string;
   interfaceId?: string;
   pageId?: string;
   buttonId?: string;
+  /** Absent = 'record' (bindings written before page-level buttons existed). */
+  scope?: InterfaceButtonScope;
 }
 
 /** Navigation-only button actions — the subset allowed outside record scope. */
@@ -201,6 +206,14 @@ export const INTERFACE_NAV_BUTTON_ACTIONS = [
   InterfaceButtonActionTypes.EXTERNAL_URL,
   InterfaceButtonActionTypes.INTERFACE_PAGE,
   InterfaceButtonActionTypes.OPEN_RECORD_FORM,
+] as const;
+
+/** Actions offered on page chrome (table header, record-review list, dashboard group) — nav + a record-less automation run. */
+export const INTERFACE_PAGE_BUTTON_ACTIONS = [
+  InterfaceButtonActionTypes.OPEN_RECORD_FORM,
+  InterfaceButtonActionTypes.INTERFACE_PAGE,
+  InterfaceButtonActionTypes.EXTERNAL_URL,
+  InterfaceButtonActionTypes.RUN_WORKFLOW,
 ] as const;
 
 // ────────────────────────────────────────────────────────────────────────────

@@ -332,6 +332,11 @@ const editor = useEditor({
     Markdown.configure({ breaks: true, transformPastedText: false }),
   ],
   onUpdate: ({ editor }) => {
+    // Any doc change invalidates the link range the popovers captured — the caret stays in
+    // the editor while they are open, so typing would shift the text out from under them and
+    // Apply/Remove would rewrite the wrong span (or throw, once the positions fall off the end).
+    closeLinkPopovers()
+
     if (isRichText.value) {
       // Record what we emit, not the prop: the parent hasn't applied the update yet,
       // so reading vModel here would return the previous value.
@@ -986,6 +991,18 @@ onClickOutside(linkMenuRef, () => {
 onClickOutside(linkViewRef, () => {
   if (showLinkView.value) closeLinkPopovers()
 })
+
+// Both popovers are fixed-positioned against a rect measured on open, so scrolling (the compose
+// modal's body does) leaves them stranded over unrelated content. Only the read-only bubble is
+// dismissed — doing the same to the edit form would discard a half-typed URL.
+useEventListener(
+  window,
+  ['scroll', 'resize'],
+  () => {
+    if (showLinkView.value) closeLinkPopovers()
+  },
+  { capture: true, passive: true },
+)
 
 watch(readOnly, (newValue) => {
   editor.value?.setEditable(!newValue)

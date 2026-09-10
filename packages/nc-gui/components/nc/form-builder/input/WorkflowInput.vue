@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getMarkRange } from '@tiptap/core'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
@@ -259,6 +260,10 @@ function tokensToExpressionSpans(html: string): string {
 // updated from the outside; track what we emitted/loaded so only real changes reload.
 const showLinkMenu = ref(false)
 
+// Clicking a link opens a read-only bubble first (Gmail's pattern) — the edit form is
+// one step behind it, so a stray click can't silently rewrite or drop a link.
+const showLinkView = ref(false)
+
 let lastEmitted: string | undefined
 
 let lastLoaded: string | undefined
@@ -357,6 +362,20 @@ const editor = useEditor({
     attributes: {
       class: 'nc-workflow-input-editor',
     },
+    // `openOnClick: false` keeps the click from navigating; it lands here instead and
+    // raises the view bubble. Returns false so the caret still moves where it was clicked.
+    handleClick(_view, pos, event) {
+      if (readOnly.value) return false
+
+      const anchorEl = (event.target as HTMLElement | null)?.closest?.('a')
+      if (!anchorEl) {
+        closeLinkPopovers()
+        return false
+      }
+
+      openLinkView(pos, anchorEl)
+      return false
+    },
     handleKeyDown(_view, event) {
       if (event.key === 'Enter' && !isMultiline.value) {
         event.preventDefault()
@@ -366,8 +385,8 @@ const editor = useEditor({
       // Escape belongs to whatever is layered over the editor. Left alone it reaches the
       // compose modal, which closes the whole thing when the user only meant to dismiss a popover.
       if (event.key === 'Escape') {
-        if (showLinkMenu.value) {
-          cancelLink()
+        if (showLinkMenu.value || showLinkView.value) {
+          closeLinkPopovers()
           event.preventDefault()
           event.stopPropagation()
           return true
@@ -583,17 +602,40 @@ function recomputeWordCount() {
 
 const linkMenuRef = ref<HTMLElement>()
 
+const linkViewRef = ref<HTMLElement>()
+
 const linkUrlRef = ref<HTMLInputElement>()
 
 // Fixed-position so the menu can open beside whichever trigger was clicked — toolbar,
 // bubble, or sidebar strip — instead of a slot under the toolbar.
 const linkMenuPos = ref({ top: 0, left: 0 })
 
+const linkViewPos = ref({ top: 0, left: 0 })
+
 const LINK_MENU_SIZE = { width: 260, height: 118 }
+
+const LINK_VIEW_SIZE = { width: 420, height: 36 }
 
 const linkUrl = ref('')
 
 const linkText = ref('')
+
+/** href of the link the view bubble is describing. */
+const linkViewHref = ref('')
+
+/**
+ * Rect of the clicked link itself. Both popovers anchor to THIS, so Change swaps the form in
+ * where the bubble was — anchoring the form to the bubble instead stacked it a second step
+ * down the page, far from the link it belongs to.
+ */
+let linkAnchorRect: DOMRect | null = null
+
+/**
+ * Document range of the link being viewed/edited. Editing has to target the whole mark,
+ * not the caret: the click lands mid-word, so applying to the selection would leave the
+ * rest of the link behind under the old href.
+ */
+const editingLinkRange = ref<{ from: number; to: number } | null>(null)
 
 function toggleBold() {
   editor.value?.chain().focus().toggleBold().run()
@@ -774,30 +816,115 @@ function toggleOrderedList() {
   editor.value?.chain().focus().toggleOrderedList().run()
 }
 
+/** Clamp a popover of `size` to the viewport, preferring just below `anchor`. */
+function popoverPos(anchor: { left: number; top: number; bottom: number }, size: { width: number; height: number }) {
+  const gap = 6
+  const left = Math.max(8, Math.min(anchor.left, window.innerWidth - size.width - 8))
+  const fitsBelow = anchor.bottom + gap + size.height <= window.innerHeight
+  const top = fitsBelow ? anchor.bottom + gap : Math.max(8, anchor.top - gap - size.height)
+
+  return { top, left }
+}
+
+/** The full extent + href of the link mark covering `pos`, or null when there is none. */
+function linkRangeAt(pos: number) {
+  if (!editor.value) return null
+
+  const markType = editor.value.schema.marks.link
+  if (!markType) return null
+
+  const doc = editor.value.state.doc
+
+  // getMarkRange looks BEHIND a position that sits exactly on a node boundary, so a click on
+  // the link's first character resolves to the unlinked text before it. Retry one char in.
+  const range =
+    getMarkRange(doc.resolve(pos), markType) ?? getMarkRange(doc.resolve(Math.min(pos + 1, doc.content.size)), markType)
+  if (!range) return null
+
+  // Read the mark off the node the range starts at rather than off the resolved position,
+  // for the same boundary reason.
+  const href = doc.nodeAt(range.from)?.marks.find((m) => m.type === markType)?.attrs?.href ?? ''
+
+  return { ...range, href }
+}
+
+/** Read-only bubble: the href plus Go to link / Change / Remove. */
+function openLinkView(pos: number, anchorEl: HTMLElement) {
+  const range = linkRangeAt(pos)
+  if (!range) return
+
+  editingLinkRange.value = { from: range.from, to: range.to }
+  linkViewHref.value = range.href
+  linkAnchorRect = anchorEl.getBoundingClientRect()
+  linkViewPos.value = popoverPos(linkAnchorRect, LINK_VIEW_SIZE)
+
+  showLinkMenu.value = false
+  showLinkView.value = true
+}
+
+/** Edit form over an existing link — prefilled, so the label and URL can both be checked. */
+function openLinkEditor(range: { from: number; to: number }, href: string, anchor?: DOMRect) {
+  if (!editor.value) return
+
+  editingLinkRange.value = range
+  linkText.value = editor.value.state.doc.textBetween(range.from, range.to, ' ')
+  linkUrl.value = href
+
+  const caret = editor.value.view.coordsAtPos(range.from)
+  linkMenuPos.value = popoverPos(anchor ?? { left: caret.left, top: caret.top, bottom: caret.bottom }, LINK_MENU_SIZE)
+
+  showLinkView.value = false
+  showLinkMenu.value = true
+  nextTick(() => linkUrlRef.value?.focus())
+}
+
+/** View bubble → edit form, on the same link. */
+function changeLink() {
+  const range = editingLinkRange.value
+  if (!range) return
+
+  openLinkEditor(range, linkViewHref.value, linkAnchorRect ?? undefined)
+}
+
+function removeLink() {
+  const range = editingLinkRange.value
+  if (!range || !editor.value) return
+
+  editor.value.chain().focus().setTextSelection(range).unsetLink().run()
+  closeLinkPopovers()
+}
+
+function openLinkTarget() {
+  if (!linkViewHref.value) return
+
+  window.open(linkViewHref.value, '_blank', 'noopener,noreferrer')
+}
+
 function openLinkMenu(event?: MouseEvent) {
   if (!editor.value) return
 
-  // Toggle off an existing link on the current selection.
+  const trigger = (event?.currentTarget as HTMLElement | null)?.getBoundingClientRect()
+
+  // Caret sits in a link: edit it. This used to unset the mark outright, which left no way
+  // to inspect or correct a link — the only fix was to delete it and type it again.
   if (editor.value.isActive('link')) {
-    editor.value.chain().focus().extendMarkRange('link').unsetLink().run()
-    return
+    const range = linkRangeAt(editor.value.state.selection.from)
+    if (range) {
+      openLinkEditor({ from: range.from, to: range.to }, range.href, trigger)
+      return
+    }
   }
 
   const { from, to } = editor.value.state.selection
+  editingLinkRange.value = null
   linkText.value = editor.value.state.doc.textBetween(from, to, ' ')
   linkUrl.value = ''
 
   // Anchor under the clicked button; fall back to the caret for keyboard-driven opens.
-  const trigger = (event?.currentTarget as HTMLElement | null)?.getBoundingClientRect()
   const caret = editor.value.view.coordsAtPos(from)
-  const anchor = trigger ?? { left: caret.left, bottom: caret.bottom, top: caret.top }
 
-  const gap = 6
-  const left = Math.max(8, Math.min(anchor.left, window.innerWidth - LINK_MENU_SIZE.width - 8))
-  const fitsBelow = anchor.bottom + gap + LINK_MENU_SIZE.height <= window.innerHeight
-  const top = fitsBelow ? anchor.bottom + gap : Math.max(8, anchor.top - gap - LINK_MENU_SIZE.height)
-
-  linkMenuPos.value = { top, left }
+  linkMenuPos.value = popoverPos(trigger ?? { left: caret.left, top: caret.top, bottom: caret.bottom }, LINK_MENU_SIZE)
+  showLinkView.value = false
   showLinkMenu.value = true
   nextTick(() => linkUrlRef.value?.focus())
 }
@@ -814,18 +941,20 @@ function normalizeHref(raw: string): string {
 function applyLink() {
   const href = normalizeHref(linkUrl.value)
   if (!href || !editor.value) {
-    showLinkMenu.value = false
+    closeLinkPopovers()
     return
   }
 
-  const { from, to } = editor.value.state.selection
+  // Editing an existing link works over the whole mark; the caret landed mid-word, so the
+  // bare selection would re-point only part of it.
+  const { from, to } = editingLinkRange.value ?? editor.value.state.selection
   const selectedText = editor.value.state.doc.textBetween(from, to, ' ')
   const label = linkText.value.trim() || selectedText || href
 
-  const chain = editor.value.chain().focus()
+  const chain = editor.value.chain().focus().setTextSelection({ from, to })
 
   if (from !== to && label === selectedText.trim()) {
-    // Mark the selection in place. Replacing it flattens the range to one plain text node,
+    // Mark the range in place. Replacing it flattens the range to one plain text node,
     // dropping every other mark and any variable chip inside it — silent data loss.
     chain.setLink({ href })
   } else {
@@ -835,19 +964,27 @@ function applyLink() {
 
   chain.run()
 
-  showLinkMenu.value = false
-  linkUrl.value = ''
-  linkText.value = ''
+  closeLinkPopovers()
 }
 
-function cancelLink() {
+function closeLinkPopovers() {
   showLinkMenu.value = false
+  showLinkView.value = false
+  editingLinkRange.value = null
+  linkViewHref.value = ''
+  linkAnchorRect = null
   linkUrl.value = ''
   linkText.value = ''
 }
 
 onClickOutside(linkMenuRef, () => {
-  if (showLinkMenu.value) cancelLink()
+  if (showLinkMenu.value) closeLinkPopovers()
+})
+
+// Safe against the click that opens it: onClickOutside listens in the capture phase, so it
+// runs before ProseMirror's handleClick, while the bubble is still unrendered and it no-ops.
+onClickOutside(linkViewRef, () => {
+  if (showLinkView.value) closeLinkPopovers()
 })
 
 watch(readOnly, (newValue) => {
@@ -929,6 +1066,50 @@ watch(readOnly, (newValue) => {
           </NcTooltip>
         </div>
 
+        <!-- Read-only first stop after clicking a link: check where it points, then choose. -->
+        <div
+          v-if="showLinkView"
+          ref="linkViewRef"
+          class="nc-workflow-link-view"
+          :style="{ top: `${linkViewPos.top}px`, left: `${linkViewPos.left}px` }"
+          data-testid="nc-workflow-richtext-link-view"
+          @click.stop
+          @keydown.esc.stop.prevent="closeLinkPopovers"
+        >
+          <span class="flex-none text-nc-content-gray-subtle2">{{ $t('labels.goToLink') }}:</span>
+
+          <NcTooltip class="flex-1 min-w-0 truncate" show-on-truncate-only>
+            <template #title>{{ linkViewHref }}</template>
+            <button
+              class="nc-workflow-link-view-href truncate w-full text-left"
+              data-testid="nc-workflow-richtext-link-view-open"
+              @click.stop="openLinkTarget"
+            >
+              {{ linkViewHref }}
+            </button>
+          </NcTooltip>
+
+          <span class="flex-none text-nc-border-gray-medium">|</span>
+
+          <button
+            class="nc-workflow-link-view-action flex-none"
+            data-testid="nc-workflow-richtext-link-view-change"
+            @click.stop="changeLink"
+          >
+            {{ $t('general.change') }}
+          </button>
+
+          <span class="flex-none text-nc-border-gray-medium">|</span>
+
+          <button
+            class="nc-workflow-link-view-action flex-none"
+            data-testid="nc-workflow-richtext-link-view-remove"
+            @click.stop="removeLink"
+          >
+            {{ $t('general.remove') }}
+          </button>
+        </div>
+
         <!-- Stays inside the shell (and so inside the modal's content subtree); fixed-positioned
                elements escape the shell's overflow:hidden on their own. -->
         <div
@@ -937,7 +1118,7 @@ watch(readOnly, (newValue) => {
           class="nc-workflow-link-menu"
           :style="{ top: `${linkMenuPos.top}px`, left: `${linkMenuPos.left}px` }"
           @click.stop
-          @keydown.esc.stop.prevent="cancelLink"
+          @keydown.esc.stop.prevent="closeLinkPopovers"
         >
           <input
             v-model="linkText"
@@ -954,7 +1135,7 @@ watch(readOnly, (newValue) => {
             @keydown.enter.stop.prevent="applyLink"
           />
           <div class="flex justify-end gap-2 mt-1">
-            <NcButton size="xs" type="secondary" @click.stop="cancelLink">{{ $t('general.cancel') }}</NcButton>
+            <NcButton size="xs" type="secondary" @click.stop="closeLinkPopovers">{{ $t('general.cancel') }}</NcButton>
             <NcButton size="xs" type="primary" data-testid="nc-workflow-richtext-link-apply" @click.stop="applyLink">
               {{ $t('general.apply') }}
             </NcButton>
@@ -1308,6 +1489,24 @@ watch(readOnly, (newValue) => {
     float: left;
     height: 0;
     pointer-events: none;
+  }
+}
+
+.nc-workflow-link-view {
+  @apply fixed flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-small;
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  max-width: 420px; // keep in sync with LINK_VIEW_SIZE.width
+  z-index: 10001; // above the modal mask and the tippy bubble
+  box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
+
+  // NOT `hover:text-nc-content-brand-hover` — that token resolves to gray-300 (see
+  // variables.css), which fades the text out on hover instead of darkening it.
+  .nc-workflow-link-view-href {
+    @apply text-nc-content-brand underline underline-offset-2 hover:text-nc-content-brand-disabled;
+  }
+
+  .nc-workflow-link-view-action {
+    @apply text-nc-content-brand hover:text-nc-content-brand-disabled;
   }
 }
 

@@ -446,7 +446,7 @@ EOF
     cat >> "$f" <<EOF
 
   db:
-    image: postgres:17.10
+    image: postgres:18.6
     environment:
       POSTGRES_USER: ${PG_USER}
       POSTGRES_PASSWORD: ${PG_PASSWORD}

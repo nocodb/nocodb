@@ -10,6 +10,7 @@ import type {
   DataInsertRequest,
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
+import type { McpToolRegistrar } from '~/mcp/tools/annotations';
 import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -70,7 +71,8 @@ export class McpService {
       base_roles?: Record<string, boolean>;
       workspace_roles?: Record<string, boolean>;
     };
-    server: McpServer;
+    // EE passes the registry proxy here, which implements only registerTool.
+    server: McpToolRegistrar;
     req: NcRequest;
   }) {
     const isEditorPlus = hasMinimumRole(user, ProjectRoles.EDITOR);
@@ -83,7 +85,9 @@ export class McpService {
         description: 'Fetch information about current base',
         annotations: {
           readOnlyHint: true,
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
         },
       }, // No parameters needed
       async () => {
@@ -113,7 +117,9 @@ export class McpService {
         title: 'List Tables',
         annotations: {
           readOnlyHint: true,
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
         },
         description: 'List tables accessible by user',
       },
@@ -153,7 +159,9 @@ export class McpService {
         },
         annotations: {
           readOnlyHint: true,
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
         },
       },
       async ({ tableId }) => {
@@ -219,6 +227,8 @@ export class McpService {
         },
         annotations: {
           readOnlyHint: true,
+          destructiveHint: false,
+          openWorldHint: false,
         },
       },
       async ({ tableId, pageSize = 50, page = 1, where, sort, fields }) => {
@@ -265,6 +275,8 @@ export class McpService {
         },
         annotations: {
           readOnlyHint: true,
+          destructiveHint: false,
+          openWorldHint: false,
         },
       },
       async ({ tableId, recordId, fields }) => {
@@ -303,6 +315,8 @@ export class McpService {
         },
         annotations: {
           readOnlyHint: true,
+          destructiveHint: false,
+          openWorldHint: false,
         },
       },
       async ({ tableId, where }) => {
@@ -387,6 +401,8 @@ export class McpService {
         },
         annotations: {
           readOnlyHint: true,
+          destructiveHint: false,
+          openWorldHint: false,
         },
       },
       async ({ files }) => {
@@ -530,7 +546,9 @@ export class McpService {
             'Perform aggregations on a table with a filter condition',
           annotations: {
             readOnlyHint: true,
+            destructiveHint: false,
             idempotentHint: true,
+            openWorldHint: false,
           },
           inputSchema: {
             tableId: z.string().describe('Table ID'),
@@ -618,8 +636,11 @@ export class McpService {
           title: 'Create Records',
           description: 'Create records in a table',
           annotations: {
-            readOnlyHint: true,
-            idempotentHint: true,
+            title: 'Create Records',
+            readOnlyHint: false,
+            destructiveHint: false,
+            idempotentHint: false,
+            openWorldHint: false,
           },
           inputSchema: {
             tableId: z.string().describe('Table ID'),
@@ -682,6 +703,7 @@ export class McpService {
           },
           annotations: {
             destructiveHint: true,
+            openWorldHint: false,
           },
         },
         async ({ tableId, records }) => {
@@ -717,6 +739,7 @@ export class McpService {
           description: 'Delete records in a table',
           annotations: {
             destructiveHint: true,
+            openWorldHint: false,
           },
           inputSchema: {
             tableId: z.string().describe('Table ID'),

@@ -353,6 +353,12 @@ export const pollUntil = <T>(conditionFn: () => T | null | undefined | false, in
   })
 }
 
+/**
+ * `itemKey` for a vuedraggable list of filters / row-colour conditions. Saved rows carry `id`,
+ * drafts carry `tmp_id` — the same identity pair the reorder handlers match on.
+ */
+export const draggableItemKey = (item: { id?: string; tmp_id?: string }) => item?.id ?? item?.tmp_id
+
 export const getDraggableAutoScrollOptions = (
   params: Partial<AutoScrollOptions & { direction: SortableOptions['direction'] }> = {},
 ): Partial<AutoScrollOptions & { direction: SortableOptions['direction'] }> => {

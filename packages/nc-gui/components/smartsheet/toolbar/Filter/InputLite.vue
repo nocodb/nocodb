@@ -40,7 +40,16 @@ const readOnly = ref(props.filter.readOnly || props.disabled)
 
 provide(ColumnInj, column)
 
-provide(EditModeInj, readonly(editEnabled))
+// Cell components reset edit mode on blur, but a filter input must stay editable.
+// A writable computed with a no-op setter swallows those writes; `readonly()` would
+// make every blur log "Set operation on key 'value' failed: target is readonly".
+provide(
+  EditModeInj,
+  computed({
+    get: () => editEnabled.value,
+    set: () => {},
+  }),
+)
 
 provide(ReadonlyInj, readOnly)
 

@@ -35,35 +35,35 @@ const textareaValue = computed({
 </script>
 
 <template>
-  <template v-if="!readOnly && editEnabled">
-    <!-- eslint-disable vue/use-v-on-exact -->
-    <input
-      v-if="!isExpandedFormOpen"
-      :ref="focus"
-      v-model="vModel"
-      class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
-      @blur="editEnabled = false"
-      @keydown.down.stop
-      @keydown.left.stop
-      @keydown.right.stop
-      @keydown.up.stop
-      @keydown.delete.stop
-      @keydown.alt.stop
-      @selectstart.capture.stop
-      @mousedown.stop
-    />
+  <!-- eslint-disable vue/use-v-on-exact -->
+  <!-- Every branch is a single element/component: a <template> branch would make the root a
+       fragment, so attrs and listeners from the parent could not be inherited. -->
+  <input
+    v-if="!readOnly && editEnabled && !isExpandedFormOpen"
+    :ref="focus"
+    v-model="vModel"
+    class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
+    @blur="editEnabled = false"
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+    @keydown.delete.stop
+    @keydown.alt.stop
+    @selectstart.capture.stop
+    @mousedown.stop
+  />
 
-    <NcAutoSizeTextarea
-      v-else
-      :ref="focus"
-      v-model:model-value="textareaValue"
-      :hide-scrollbar="false"
-      :bordered="false"
-      class="!px-2 !py-1 !min-h-7 !max-h-7.5rem resize-none nc-scrollbar-thin"
-      style="color: inherit"
-      @keydown.enter.prevent
-    />
-  </template>
+  <NcAutoSizeTextarea
+    v-else-if="!readOnly && editEnabled"
+    :ref="focus"
+    v-model:model-value="textareaValue"
+    :hide-scrollbar="false"
+    :bordered="false"
+    class="!px-2 !py-1 !min-h-7 !max-h-7.5rem resize-none nc-scrollbar-thin"
+    style="color: inherit"
+    @keydown.enter.prevent
+  />
 
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 

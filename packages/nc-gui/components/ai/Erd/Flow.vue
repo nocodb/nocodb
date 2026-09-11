@@ -21,7 +21,7 @@ const {
   onNodeDoubleClick,
   zoomIn: internalZoomIn,
   zoomOut: internalZoomOut,
-} = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
+} = useVueFlow()
 
 const { layout, elements } = useErdElements(aiBaseSchema, config)
 
@@ -81,7 +81,7 @@ onScopeDispose($destroy)
 </script>
 
 <template>
-  <VueFlow v-model="elements" class="nc-erd-flow">
+  <VueFlow v-model="elements" :min-zoom="0.05" :max-zoom="2" class="nc-erd-flow">
     <Controls
       class="bg-transparent rounded-lg shadow-md border-1 border-nc-border-gray-medium !right-13 flex items-center"
       :position="PanelPosition.TopRight"

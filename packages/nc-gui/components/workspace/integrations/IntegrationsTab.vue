@@ -154,7 +154,7 @@ const getIntegrationsByCategory = (category: IntegrationCategoryType, query: str
       isOssOnlyAllowed &&
       filterIntegration(i) &&
       i.type === category &&
-      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      integrationLabel(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }
@@ -514,8 +514,10 @@ watch(activeViewTab, (value) => {
                                 <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                               </div>
                               <div class="flex-1">
-                                <div class="name">{{ $t(integration.title) }}</div>
-                                <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
+                                <div class="name">{{ integrationLabel(integration.title) }}</div>
+                                <div v-if="integration.subtitle" class="subtitle flex-1">
+                                  {{ integrationLabel(integration.subtitle) }}
+                                </div>
                               </div>
                               <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
                               <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">

@@ -69,8 +69,8 @@ const onSearch = (value: string) => {
     :show-search="showSearch"
     :max-tag-count="maxTagCount"
     class="nc-select nc-select-shadow"
+    :on-search="showSearch ? onSearch : undefined"
     @change="onChange as any"
-    @search="onSearch"
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />

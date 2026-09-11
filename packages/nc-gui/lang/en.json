@@ -999,6 +999,8 @@
     },
     "integrationCategories": {
       "allIntegrations": "All Integrations",
+      "authProvider": "Auth Provider",
+      "authProviderSubtitle": "Auth",
       "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
       "communication": "Communication",
       "communicationSubtitle": "Get notified on changes and streamline team communication with NocoDB.",

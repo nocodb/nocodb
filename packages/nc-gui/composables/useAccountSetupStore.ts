@@ -26,7 +26,6 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
   const emailConfigured = computed(() => emailApps.value.find((app) => app.active))
   const storageConfigured = computed(() => storageApps.value.find((app) => app.active))
 
-  const listModalDlg = ref(false)
   const configModalDlg = ref(false)
 
   const categorizeApps = computed(() => {
@@ -158,7 +157,6 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     loadingAction,
     emailConfigured,
     storageConfigured,
-    listModalDlg,
     configModalDlg,
     showPluginUninstallModal,
     resetPlugin,

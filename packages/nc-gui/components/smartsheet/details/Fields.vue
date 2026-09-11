@@ -15,7 +15,7 @@ import {
 } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
-import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
+import type { RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 
@@ -1622,64 +1622,59 @@ const rightPanelWidth = computed(() => {
   return oldRightPanelWidth.value
 })
 
-const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedGeneric, next: NavigationGuardNext) => {
+// Resolves true to allow the navigation, false to cancel it (the modern
+// return-value form of a navigation guard — `next()` is deprecated).
+const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedGeneric): boolean | Promise<boolean> => {
   if (!hasUnsavedChanges.value || !(ncIsArray(from.params?.slugs) && from.params?.slugs?.[1] === 'field')) {
-    next()
-    return
+    return true
   }
 
-  const isOpen = ref(true)
+  return new Promise<boolean>((resolve) => {
+    const isOpen = ref(true)
 
-  const okProps = ref({ loading: false })
+    const okProps = ref({ loading: false })
 
-  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
-    'visible': isOpen,
-    'title': t('msg.info.unsavedChanges'),
-    'content': t('activity.doYouWantToSaveTheChanges'),
-    'okText': t('tooltip.saveChanges'),
-    'cancelText': t('labels.discard'),
-    'onCancel': closeDialog,
-    'onOk': async () => {
-      okProps.value.loading = true
+    const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+      'visible': isOpen,
+      'title': t('msg.info.unsavedChanges'),
+      'content': t('activity.doYouWantToSaveTheChanges'),
+      'okText': t('tooltip.saveChanges'),
+      'cancelText': t('labels.discard'),
+      'onCancel': closeDialog,
+      'onOk': async () => {
+        okProps.value.loading = true
 
-      const res = await saveChanges()
+        const res = await saveChanges()
 
-      okProps.value.loading = false
+        okProps.value.loading = false
 
-      if (res) {
-        next()
-      } else {
-        next(false)
+        resolve(!!res)
+
+        closeDialog(false)
+      },
+      'okProps': okProps,
+      'update:visible': closeDialog,
+      'showIcon': false,
+      'keyboard': false,
+      'loading': loading.value,
+      'maskClosable': false,
+    })
+
+    function closeDialog(discardAndLeave: boolean = true) {
+      if (discardAndLeave) {
+        clearChanges()
+        resolve(true)
       }
 
-      closeDialog(false)
-    },
-    'okProps': okProps,
-    'update:visible': closeDialog,
-    'showIcon': false,
-    'keyboard': false,
-    'loading': loading.value,
-    'maskClosable': false,
-  })
-
-  function closeDialog(executeNext: boolean = true) {
-    if (executeNext) {
-      clearChanges()
-      next()
+      isOpen.value = false
+      close(1000)
     }
-
-    isOpen.value = false
-    close(1000)
-  }
+  })
 }
 
-onBeforeRouteLeave((_to, from, next) => {
-  confirmUnsavedChangesBeforeLeaving(from, next)
-})
+onBeforeRouteLeave((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
 
-onBeforeRouteUpdate((_to, from, next) => {
-  confirmUnsavedChangesBeforeLeaving(from, next)
-})
+onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
 </script>
 
 <template>

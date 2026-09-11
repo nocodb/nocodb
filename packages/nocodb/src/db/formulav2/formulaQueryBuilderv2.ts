@@ -602,7 +602,7 @@ async function persistFormulaColumnError(
   let type = (column.colOptions as { type?: ButtonActionsType })?.type;
   if (!type) {
     try {
-      type = (await column.getColOptions<ButtonColumn>(context))?.type;
+      type = (await column.getColOptions<ButtonColumn>())?.type;
     } catch {
       // this path is usually reached because the source is unreachable — the
       // lookup must not replace the error being reported

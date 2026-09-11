@@ -659,7 +659,7 @@ export async function hasFlaggedFormulaColumn(
   for (const col of columns) {
     if (col.uidt !== UITypes.Formula && col.uidt !== UITypes.Button) continue;
     try {
-      const colOptions = await col.getColOptions<{ error?: string }>(context);
+      const colOptions = await col.getColOptions<{ error?: string }>();
       if (colOptions?.error) return true;
     } catch {
       // a missing colOptions row is not a reason to skip caching

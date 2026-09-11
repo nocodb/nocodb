@@ -268,9 +268,7 @@ export async function assertLinkColOptions(
 ): Promise<LinkToAnotherRecordColumn | undefined> {
   if (!column || !isLinksOrLTAR(column)) return undefined;
 
-  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-    context,
-  );
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
   if (!colOptions) {
     NcError.get(context).internalServerError(

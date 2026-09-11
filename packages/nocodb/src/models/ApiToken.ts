@@ -135,6 +135,22 @@ export default class ApiToken implements ApiTokenType {
     }
   }
 
+  // Remove tokens confined to a base (base_id set at creation) so a hard-deleted
+  // base leaves no token pointing at it.
+  static async deleteByBaseId(baseId: string, ncMeta = Noco.ncMeta) {
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        condition: { base_id: baseId },
+      },
+    );
+    for (const token of tokens) {
+      await this.delete(token.id, ncMeta);
+    }
+  }
+
   static async getByToken(token, ncMeta = Noco.ncMeta) {
     let data =
       token &&

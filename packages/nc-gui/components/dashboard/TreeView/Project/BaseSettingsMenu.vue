@@ -229,6 +229,16 @@ onMounted(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('baseSkillList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:skills']"
+      icon="ncScript"
+      data-testid="base-skills"
+      :active="activeBaseSettingsTab === 'skills'"
+      @click="navigateToBaseSettings('skills')"
+    >
+      {{ $t('labels.aiSkills') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
       v-if="!isMobileMode && showEEFeatures"
       v-e="['c:settings:base:variables']"
       icon="ncSettings"

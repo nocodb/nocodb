@@ -54,6 +54,10 @@ export interface ChatSessionMetaType {
     completed: string[];
     remaining: string[];
   }>;
+  /** The session's paused compute instance, resumed by the next turn. */
+  computeId?: string;
+  /** @deprecated `computeId` since the AI layer stopped calling it a sandbox.
+   *  Read-only, so sessions paused before the rename still resolve. */
   sandboxId?: string;
   /**
    * Follow-up prompts generated at turn end, persisted so reopening the
@@ -121,6 +125,7 @@ export type ChatContentBlock =
     };
 
 export interface ChatAttachmentType {
+  id?: string;
   title: string;
   mimetype: string;
   size: number;
@@ -131,6 +136,29 @@ export interface ChatAttachmentType {
   icon?: string;
 }
 
+/** A published web artifact (see publish_web_artifact) — tracked separately
+ *  from ChatMessageType.created_files (nc_chat_artifacts, not a JSON blob
+ *  field), so it has a real, stable `id` to mint/serve against. Rendered live
+ *  in a sandboxed iframe via a separate, isolated route (chatArtifactRead). */
+export interface ChatArtifactType {
+  id: string;
+  title: string;
+  mimetype: string;
+  size: number;
+  /** Groups versions of the same published project — the root version's own
+   *  id, shared by every later version of it. */
+  rootId?: string;
+  /** 1-based, incrementing per republish of the same project. */
+  version?: number;
+  /** Share-link id — the page lives at `/nc/artifact/<uuid>`. */
+  uuid?: string;
+  /** Whether that link serves without sign-in. */
+  isPublic?: boolean;
+  created_at?: string;
+}
+
+export const WEB_ARTIFACT_MIMETYPE = 'text/vnd.nocodb.web-artifact+html';
+
 export interface ChatMessageType {
   id?: string;
   fk_session_id: string;
@@ -139,6 +167,7 @@ export interface ChatMessageType {
   parts?: ChatContentBlock[];
   files?: ChatAttachmentType[];
   created_files?: ChatAttachmentType[];
+  artifacts?: ChatArtifactType[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;

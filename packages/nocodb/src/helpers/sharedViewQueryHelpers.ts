@@ -31,7 +31,11 @@ const SANITIZED_QUERY_KEYS = [
 ];
 
 /** Query keys `restrictSharedViewColumnReferences` inspects. */
-const GROUP_BY_QUERY_KEYS = ['column_name', 'groupByColumnName'];
+const GROUP_BY_QUERY_KEYS = [
+  'column_name',
+  'groupByColumnName',
+  'subGroupColumnName',
+];
 const COLUMN_REFERENCE_QUERY_KEYS = [...GROUP_BY_QUERY_KEYS, 'aggregation'];
 
 /**

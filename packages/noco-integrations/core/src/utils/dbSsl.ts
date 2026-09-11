@@ -34,12 +34,16 @@ export type KnexSqlSslValue =
  * Resolve the knex `connection.ssl` value for a SQL auth integration, mirroring
  * the built-in "Database" data-source form's behaviour:
  *
- * - `No` / unset            → no TLS (plain connection)
- * - `Required` (no CA)      → TLS, verified against the system/public CA bundle
- *                             — what managed providers such as Neon, Supabase,
- *                             Amazon RDS and Azure require
- * - `Required-CA` + CA PEM  → TLS, verified against the supplied CA (self-signed
- *                             / private-CA servers)
+ * - `No` / unset             → no TLS (plain connection)
+ * - `Allowed` / `Preferred`  → TLS **without** verifying the server certificate
+ *                              (`rejectUnauthorized: false`) — lets servers with
+ *                              self-signed / private certs connect, matching
+ *                              libpq's `allow`/`prefer` modes
+ * - `Required` (no CA)       → TLS, verified against the system/public CA bundle
+ *                              — what managed providers such as Neon, Supabase,
+ *                              Amazon RDS and Azure require
+ * - `Required-CA` + CA PEM   → TLS, verified against the supplied CA (self-signed
+ *                              / private-CA servers)
  *
  * A pasted CA always implies verification regardless of the exact mode, so a
  * private-CA server works without a separate toggle. Client certificates

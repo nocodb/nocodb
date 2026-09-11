@@ -284,6 +284,12 @@ export interface CaptureBag {
     entity: 'workflow' | 'script';
     order?: number;
   }>;
+  /** Agents that lived in an agent section at delete time — carries `order`
+   *  for the same gap-fill reason as automationSectionChildren. */
+  agentSectionChildren: ReadonlyArray<{
+    id: string;
+    order?: number;
+  }>;
   /** Filter ids created as side-effects of `rowColorConditionAdd` (the
    *  inner filter tree).
    */

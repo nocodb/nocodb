@@ -25,8 +25,10 @@ import type { Column, FormView, Hook, Model, Source, View } from '~/models';
 import { Filter } from '~/models';
 import { populateUpdatePayloadDiff } from '~/utils';
 import { WebhookInvoker } from '~/utils/webhook-invoker';
+import { hardenHandlebarsPathHelpers } from '~/helpers/handlebarsProtoGuard';
 
 handlebarsHelpers({ handlebars: Handlebars });
+hardenHandlebarsPathHelpers(Handlebars);
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);

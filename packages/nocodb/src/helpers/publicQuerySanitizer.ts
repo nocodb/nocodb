@@ -7,7 +7,24 @@
 // `restrictSharedViewColumnReferences` — they strip per leaf/term rather than
 // deleting the key, so a multi-field search degrades instead of returning
 // everything. See the DESIGN NOTE in public-datas.service.ts.
-export const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'] as const;
+export const PUBLIC_QUERY_BLOCKED_KEYS = [
+  'getHiddenColumn',
+  'nested',
+  // Service-level options of `DatasService.getDataList`, not query params. Any
+  // public route that spreads the raw query into a service call (the calendar
+  // one did) lets an anonymous caller set them by name — each individually
+  // defeats hidden-column masking, the view filter, or pagination.
+  'getHiddenColumns',
+  'ignoreViewFilterAndSort',
+  'ignorePagination',
+  'includeSortAndFilterColumns',
+  'includeRowColorColumns',
+  'includeButtonFilterColumns',
+  'limitOverride',
+  'customConditions',
+  'baseModel',
+  'apiVersion',
+] as const;
 
 export function sanitizePublicQuery<T extends Record<string, any>>(
   query: T,

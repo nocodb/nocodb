@@ -47,6 +47,12 @@ export default class Base implements BaseType {
   public default_role?: 'no-access';
   public is_snapshot?: boolean;
   public version?: BaseVersion;
+  // Declared on CE Base (like default_role) so the shared PROJECT column is
+  // readable through the CE-typed Base.get/getWithInfo.
+  public suspended?: boolean;
+  public suspended_reason?: string;
+  public suspended_at?: Date | string | number;
+  public suspended_by?: string;
 
   // shared base props
   uuid?: string;

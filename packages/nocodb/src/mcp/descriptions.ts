@@ -109,6 +109,14 @@ EXAMPLES:
   Multiple segments & countries: (Segment,in,Government,Enterprise)~and(Country,in,Germany,France)
 `;
 
+// Same syntax as `whereDescription`, without the 5.5KB operator manual. That
+// manual is carried once, by queryRecords.where; every other filter param
+// points here. All the tools involved are read-only, so they are always listed
+// together and the reference always resolves.
+export const whereDescriptionRef = `Filter records using NocoDB query syntax, e.g. (status,eq,active)~and(amount,gte,100).
+
+For the complete operator list, date sub-operators, quoting rules and examples, see the \`where\` parameter of the \`queryRecords\` tool — the syntax is identical.`;
+
 export const aggregationDescription = `Aggregation type:
        • Numerical: sum, min, max, avg, median, std_dev, range (for numbers)
        • Common: count, count_empty, count_filled, count_unique, percent_empty, percent_filled, percent_unique (for all types)

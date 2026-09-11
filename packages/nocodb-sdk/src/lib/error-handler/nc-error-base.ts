@@ -54,6 +54,20 @@ export class NcErrorBase {
     });
   }
 
+  workspaceSuspended(reason?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WORKSPACE_SUSPENDED, {
+      params: reason,
+      ...args,
+    });
+  }
+
+  baseSuspended(reason?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_BASE_SUSPENDED, {
+      params: reason,
+      ...args,
+    });
+  }
+
   orgNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_ORG_NOT_FOUND, {
       params: id,
@@ -161,11 +175,64 @@ export class NcErrorBase {
     );
   }
 
+  chatArtifactNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_CHAT_ARTIFACT_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
   workflowNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
       params: id,
       ...args,
     });
+  }
+
+  agentNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  skillNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SKILL_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  /** A malformed `owner/repo` or `owner/repo/skillName`. */
+  skillSourceInvalid(ref: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SKILL_SOURCE_INVALID, {
+      params: ref,
+      ...args,
+    });
+  }
+
+  /** The upstream catalog could not be read — missing repo, or GitHub is down. */
+  skillCatalogUnavailable(repo: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SKILL_CATALOG_UNAVAILABLE,
+      {
+        params: repo,
+        ...args,
+      },
+    );
+  }
+
+  agentSessionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_AGENT_SESSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
   }
 
   widgetNotFound(id: string, args?: NcErrorArgs): never {
@@ -203,6 +270,13 @@ export class NcErrorBase {
         ...args,
       }
     );
+  }
+
+  agentSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_SECTION_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
   }
 
   apiClientNotFound(id: string, args?: NcErrorArgs): never {

@@ -178,7 +178,7 @@ export class ViewsController {
     @Param('viewId') viewId: string,
     @Body()
     body: ViewUpdateReqType & {
-      custom_url_path?: string;
+      custom_url_path?: string | null;
     },
     @Req() req: NcRequest,
   ) {

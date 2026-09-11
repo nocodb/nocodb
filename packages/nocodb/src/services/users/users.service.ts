@@ -493,6 +493,8 @@ export class UsersService {
         NcError.unauthorized(`Invalid refresh token`);
       }
 
+      User.assertNotBlocked(user);
+
       const refreshToken = randomTokenString();
 
       // Rotation is a compare-and-swap: 0 rows means this token was already
@@ -672,6 +674,10 @@ export class UsersService {
   }
 
   async login(user: UserType & { provider?: string }, req: any) {
+    // Reject at signin so a blocked user gets a clear failure instead of a
+    // successful login followed by 401s on every subsequent request.
+    User.assertNotBlocked(user);
+
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
       req,

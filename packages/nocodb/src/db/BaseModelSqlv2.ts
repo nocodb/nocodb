@@ -174,7 +174,10 @@ import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { StageTimer } from '~/helpers/stageTimer';
-import { isTransientError } from '~/helpers/db-error/utils';
+import {
+  isExternalSourceError,
+  isTransientError,
+} from '~/helpers/db-error/utils';
 import {
   captureForTrace,
   isTraceActive,
@@ -477,10 +480,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipPublicRedaction,
       });
     } catch (e) {
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
       if (
-        isTransient ||
+        skipFormulaRetry ||
         validateFormula ||
         !haveFormulaColumn(await this.model.getColumns(this.context))
       )
@@ -810,9 +813,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
         throw e;
       logger.log(e);
       return this.findOne(args, true);
@@ -1070,10 +1073,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {
-      // Check if this is a transient error (connection/timeout issue)
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
         throw e;
       logger.log(e);
       return this.list(args, {
@@ -9520,6 +9522,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             include_ws_deleted: true,
             include_internal_user: true,
             include_team_users: true,
+            include_agents: true,
           });
 
           if (typeof data[column.column_name] === 'object') {

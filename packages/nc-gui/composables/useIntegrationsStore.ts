@@ -523,6 +523,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       const integration: IntegrationItemType = {
         title: di.manifest.title || di.sub_type,
+        subtitle: di.manifest.description,
         sub_type: di.sub_type,
         icon,
         type: di.type,

@@ -798,6 +798,7 @@ export class UiPostOperations
           importType: payload.importType || 'csv',
           attachment: payload.attachment,
           parserConfig: payload.parserConfig,
+          req,
         });
       case 'dataImportFile':
         return await this.dataImportService.importFile(context, {

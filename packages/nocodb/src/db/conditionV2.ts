@@ -46,7 +46,13 @@ export default async function conditionV2(
   );
   const filterOperationResult = await parseConditionV2(
     baseModelSqlv2,
-    conditionObj,
+    // A group no longer applies its own logical op (see the group branch in
+    // parseConditionV2) — the caller that joins it in does. A lone group has
+    // no such caller, so wrap it in an array to keep the array branch as its
+    // joiner; without this a root-level `not` group would lose its negation.
+    !Array.isArray(conditionObj) && (conditionObj as Filter)?.is_group
+      ? [conditionObj as Filter]
+      : conditionObj,
     { count: 0 },
     alias,
     undefined,
@@ -224,8 +230,13 @@ const parseConditionV2 = async (
           qb1?.rootApply?.(qbP);
         }
       },
+      // A group's own logical op is applied by whoever joins it in (the array
+      // branch above, or the sibling loop here) — never here as well. Applying
+      // it at both ends is harmless for `and`/`or`, which are idempotent, but
+      // it makes `not` cancel itself: `~not((A)~or(B))` compiled to
+      // `not (not (A or B))` and silently returned the un-negated rows.
       clause: (qbP) => {
-        qbP[getLogicalOpMethod(filter)]((qb) => {
+        qbP.where((qb) => {
           for (const [i, qb1] of Object.entries(qbs)) {
             if (qb1) {
               qb[getLogicalOpMethod(children[i])](qb1.clause);

@@ -6,7 +6,7 @@ import {
 } from 'ai';
 import { devToolsMiddleware } from '@ai-sdk/devtools';
 import { IntegrationWrapper } from '../integration';
-import type { ModelMessage, ToolSet } from 'ai';
+import type { EmbeddingModel, ModelMessage, ToolSet } from 'ai';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 /**
@@ -81,6 +81,8 @@ export enum AiUseCase {
   WorkflowEmailCompose = 'workflow_email_compose',
   /** Script/code completion. */
   Completion = 'completion',
+  /** Text embeddings — agent knowledge indexing and retrieval. */
+  Embedding = 'embedding',
   /** Fallback when no specific use case applies. */
   Default = 'default',
 }
@@ -174,6 +176,8 @@ export function resolveReasoningEffort(
  *   gpt-5.x "-instant"/"-thinking": no data → omitted (no reasoning)
  *   gpt-5.1             : none | low | medium | high       (no minimal/xhigh)
  *   gpt-5.2/5.3/5.4/5.5 (+ -mini/-nano): none | low | medium | high | xhigh (no minimal)
+ *   gpt-5.6 (sol/terra/luna): none | low | medium | high | xhigh | max (no minimal) —
+ *     adds a genuine ceiling above xhigh, so `max` claims it and `high` shifts to xhigh
  *   gpt-5 (Aug-2025)    : minimal | low | medium | high     (no none/xhigh)
  *   gpt-5-mini/-nano, o-series, gpt-4o/4.1: no configurable effort → omitted
  */
@@ -217,6 +221,18 @@ export const OPENAI_REASONING_TABLE: ReasoningModelTable = [
       medium: 'medium',
       high: 'high',
       max: 'high',
+    },
+  },
+  {
+    // GPT-5.6 (Sol/Terra/Luna): adds a genuine ceiling above xhigh.
+    match: /^gpt-5\.6/,
+    efforts: {
+      off: 'none',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'xhigh',
+      max: 'max',
     },
   },
   {
@@ -306,6 +322,24 @@ export abstract class AiIntegration<
    */
   protected webSearchTool(): ToolSet | undefined {
     return undefined;
+  }
+
+  /**
+   * `null` when the provider has none (e.g. Anthropic) — callers must treat that
+   * as "keyword search only", never as an error.
+   */
+  public getEmbeddingModel(_args?: {
+    useCase?: AiUseCase;
+  }): EmbeddingModel | null {
+    return null;
+  }
+
+  /**
+   * The embedding model id {@link getEmbeddingModel} would use — for storing
+   * alongside vectors so stale embeddings are detectable after a model change.
+   */
+  public getEmbeddingModelRef(_args?: { useCase?: AiUseCase }): string | null {
+    return null;
   }
 
   /**
@@ -449,6 +483,26 @@ export abstract class AiIntegration<
       },
       data: response.output as T,
     };
+  }
+
+  /**
+   * An unlisted model is assumed capable, so a stale catalogue never cripples a
+   * newly-released id. A listed one is trusted, turning "image to a text-only
+   * model" into a fallback here rather than a provider error.
+   */
+  public supportsCapability(
+    capability: ModelCapability,
+    args?: AiGetModelArgs,
+  ): boolean {
+    let modelId: string;
+    try {
+      modelId = this.resolveModel(args);
+    } catch {
+      return false;
+    }
+
+    const known = this.supportedModels.find((m) => m.value === modelId);
+    return known ? known.capabilities.includes(capability) : true;
   }
 
   /**

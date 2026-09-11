@@ -238,6 +238,11 @@ interface WorkflowGeneralEdge {
   label?: string; // Optional label for display (e.g., "True", "For Each Item")
   sourcePortId?: string; // Source node's output port ID for routing
   targetPortId?: string; // Target node's input port ID
+  // Vue Flow's own name for the source port, persisted alongside
+  // `sourcePortId` and kept equal to it (see nc-gui useWorkflow). Routing reads
+  // sourcePortId; the editor renders from sourceHandle, so an edge carrying
+  // only one of the two is either unroutable or invisible.
+  sourceHandle?: string;
 }
 
 /**

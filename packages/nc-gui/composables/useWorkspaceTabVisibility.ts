@@ -46,6 +46,14 @@ export function useWorkspaceTabVisibility(
         (isPaymentEnabled.value || creditsEnabled.value) &&
         isBaseRolesLoaded.value &&
         isUIAllowed('workspaceBilling'),
+      // Org-linked (enterprise) workspaces have no Billing tab — Usage shows their
+      // plan limits instead. Also visible to org admins drilling into a workspace.
+      usage:
+        !isMobileMode.value &&
+        isEeUI &&
+        !!ws.value?.fk_org_id &&
+        isBaseRolesLoaded.value &&
+        (isAdmin.value || isUIAllowed('workspaceBilling')),
       audits:
         !isMobileMode.value &&
         !isAdmin.value &&
@@ -70,7 +78,7 @@ export function useWorkspaceTabVisibility(
   const visibleAdminTabKeys = computed(() => {
     const visibility = wsTabVisibility.value
 
-    return (['settings', 'billing', 'audits', 'sso'] as const).filter((key) => visibility[key])
+    return (['settings', 'billing', 'usage', 'audits', 'sso'] as const).filter((key) => visibility[key])
   })
 
   /**

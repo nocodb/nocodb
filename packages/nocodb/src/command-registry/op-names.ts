@@ -157,6 +157,13 @@ export const OperationName = {
   automationSectionCreate: 'automationSectionCreate',
   automationSectionUpdate: 'automationSectionUpdate',
   automationSectionDelete: 'automationSectionDelete',
+  agentCreate: 'agentCreate',
+  agentUpdate: 'agentUpdate',
+  agentDelete: 'agentDelete',
+  agentDuplicate: 'agentDuplicate',
+  agentSectionCreate: 'agentSectionCreate',
+  agentSectionUpdate: 'agentSectionUpdate',
+  agentSectionDelete: 'agentSectionDelete',
 
   // Record templates
   recordTemplateCreate: 'recordTemplateCreate',

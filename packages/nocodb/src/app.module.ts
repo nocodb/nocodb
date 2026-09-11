@@ -16,6 +16,7 @@ import { JobsModule } from '~/modules/jobs/jobs.module';
 
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { SignedBodyMiddleware } from '~/middlewares/signed-body.middleware';
 import { RawBodyMiddleware } from '~/middlewares/raw-body.middleware';
 import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
@@ -67,6 +68,11 @@ export class AppModule {
 
     consumer.apply(RawBodyMiddleware).forRoutes({
       path: '/api/payment/webhook',
+      method: RequestMethod.POST,
+    });
+
+    consumer.apply(SignedBodyMiddleware).forRoutes({
+      path: '/api/v3/agents/*',
       method: RequestMethod.POST,
     });
 

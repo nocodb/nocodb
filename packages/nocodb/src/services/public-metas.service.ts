@@ -33,6 +33,7 @@ import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { projectRelatedMetas } from '~/helpers/relatedMetaProjection';
+import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
 
 @Injectable()
 export class PublicMetasService {
@@ -165,6 +166,7 @@ export class PublicMetasService {
     // Some times related metas are null, so we need to filter them out
     for (const key in relatedMetas) {
       if (relatedMetas[key] == null) delete relatedMetas[key];
+      else relatedMetas[key] = withoutViewSecrets(relatedMetas[key]);
     }
 
     // `extractRelatedMetas` above attaches each related/junction table's FULL
@@ -211,6 +213,10 @@ export class PublicMetasService {
         password: undefined,
       },
     );
+
+    // The strip above only covers the requested view — `getModelWithInfo` also
+    // attaches every sibling view on the table.
+    publicView.model = withoutViewSecrets(publicView.model);
 
     // Form views store an `email` recipient map (which base collaborators get
     // submission emails) — builder-only config that must never reach the

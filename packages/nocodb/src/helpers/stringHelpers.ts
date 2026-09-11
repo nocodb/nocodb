@@ -95,6 +95,19 @@ export function deepReplaceStrings<T>(
   return result as T;
 }
 
+/**
+ * Lowercase, hyphen-separated, ASCII-only — safe for directory names, URL
+ * segments, storage keys. Empty in, empty out; callers supply their own
+ * fallback for that case.
+ */
+export function slugify(value: string): string {
+  return (value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
 // get base 64 file string size, without buffer
 export function getBase64FileSize(base64String: string) {
   const len = base64String.length;

@@ -98,6 +98,10 @@ export class NcError {
     return NcError._.automationSectionNotFound(id, args);
   }
 
+  static agentSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.agentSectionNotFound(id, args);
+  }
+
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.sourceNotFound(id, args);
   }
@@ -132,6 +136,18 @@ export class NcError {
     args?: NcErrorArgs,
   ): never {
     return NcError._.genericNotFound(resource, id, args);
+  }
+
+  static skillNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.skillNotFound(id, args);
+  }
+
+  static skillSourceInvalid(ref: string, args?: NcErrorArgs): never {
+    return NcError._.skillSourceInvalid(ref, args);
+  }
+
+  static skillCatalogUnavailable(repo: string, args?: NcErrorArgs): never {
+    return NcError._.skillCatalogUnavailable(repo, args);
   }
 
   static requiredFieldMissing(field: string, args?: NcErrorArgs): never {

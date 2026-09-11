@@ -1,3 +1,5 @@
+import { WEB_ARTIFACT_MIMETYPE } from 'nocodb-sdk'
+
 const imageExt = [
   'jpeg',
   'gif',
@@ -111,11 +113,117 @@ const isZip = (name: string, _mimetype?: string) => {
   return zipExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
 }
 
+/** Broader than `text/*`: a `.sh` or `.sql` is usually served as
+ *  `application/octet-stream`, so the extension decides. */
+const textExt = [
+  'txt',
+  'md',
+  'markdown',
+  'log',
+  'json',
+  'jsonl',
+  'yaml',
+  'yml',
+  'toml',
+  'ini',
+  'env',
+  'xml',
+  'sh',
+  'bash',
+  'zsh',
+  'fish',
+  'ps1',
+  'bat',
+  'sql',
+  'py',
+  'rb',
+  'go',
+  'rs',
+  'java',
+  'kt',
+  'swift',
+  'php',
+  'pl',
+  'lua',
+  'r',
+  'c',
+  'h',
+  'cpp',
+  'hpp',
+  'cs',
+  'ts',
+  'tsx',
+  'js',
+  'jsx',
+  'vue',
+  'svelte',
+  'css',
+  'scss',
+  'less',
+  'html',
+  'htm',
+  'conf',
+  'cfg',
+  'diff',
+  'patch',
+]
+
+const isDelimited = (name: string, mimetype?: string) => {
+  return /\.(csv|tsv)$/i.test(name ?? '') || /csv|tab-separated/i.test(mimetype ?? '')
+}
+
+const isText = (name: string, mimetype?: string) => {
+  if (textExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))) return true
+  return /^text\/|json|xml|yaml|x-sh|javascript/i.test(mimetype ?? '')
+}
+
+/** A published web artifact (see publish_web_artifact) — its mimetype is a marker,
+ *  not a real content type, so it must be checked before the generic `isText`
+ *  match (which would otherwise catch it and render it as source, not a page). */
+const isWebArtifact = (_name: string, mimetype?: string) => mimetype === WEB_ARTIFACT_MIMETYPE
+
+/**
+ * What a chat can open in place. Order matters: `.csv` answers to delimited,
+ * text (`text/csv`) and office alike, and many code extensions are also in
+ * `officeExt` — the earlier branch is the better renderer in both cases.
+ * `webArtifact` must come before `text` for the same reason.
+ */
+const chatPreviewKind = (
+  name: string,
+  mimetype?: string,
+): 'image' | 'pdf' | 'video' | 'sheet' | 'text' | 'office' | 'webArtifact' | null => {
+  if (isImage(name, mimetype)) return 'image'
+  if (isPdf(name, mimetype)) return 'pdf'
+  if (isVideo(name, mimetype)) return 'video'
+  if (isWebArtifact(name, mimetype)) return 'webArtifact'
+  if (isDelimited(name, mimetype)) return 'sheet'
+  if (isText(name, mimetype)) return 'text'
+  if (isOffice(name, mimetype)) return 'office'
+  return null
+}
+
 const isPreviewSupportedFile = (name: string, mimetype?: string) => {
   return isImage(name, mimetype) || isVideo(name, mimetype) || isAudio(name, mimetype) || isPdf(name, mimetype)
 }
 
-export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation, isPreviewSupportedFile }
+export {
+  isImage,
+  imageExt,
+  isVideo,
+  isPdf,
+  isOffice,
+  isAudio,
+  isZip,
+  isWord,
+  isExcel,
+  isPresentation,
+  isPreviewSupportedFile,
+  isText,
+  textExt,
+  chatPreviewKind,
+  isDelimited,
+  isWebArtifact,
+}
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
@@ -187,6 +295,10 @@ export const getAttachmentIcon = (
     return 'ncFileTypeImage'
   }
 
+  if (isWebArtifact(toValue(title) || '', toValue(mimetype))) {
+    return 'ncGlobe'
+  }
+
   if (isPdf(toValue(title) || '', toValue(mimetype))) {
     return 'ncFileTypePdf'
   }
@@ -219,6 +331,7 @@ export const getAttachmentIcon = (
 }
 
 export const getFileTypeLabel = (fileName: string, mimeType?: string): string => {
+  if (isWebArtifact(fileName, mimeType)) return 'Web app'
   if (isPdf(fileName, mimeType)) return 'PDF'
   if (isExcel(fileName, mimeType)) return 'Excel'
   if (isWord(fileName, mimeType)) return 'Word'

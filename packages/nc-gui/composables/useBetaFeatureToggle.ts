@@ -192,6 +192,17 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'agents',
+    get title() {
+      return getI18n().global.t('general.agents')
+    },
+    description: 'Enable the Agents section in the sidebar.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'presence_visibility_toggle',
     title: 'Presence Visibility Toggle',
     description: 'Allow users to hide their own presence from other collaborators.',

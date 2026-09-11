@@ -32,6 +32,7 @@ import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
 import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loaders/BaseRoleLoader'
+import type { IconMapKey } from '../utils/iconUtils'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 import type Record from '~icons/*'
@@ -779,6 +780,8 @@ interface CanvasGroup {
   path?: Array<number>
   nestedIn: GroupNestedIn[]
   aggregations: Record<string, any>
+  /** Lazy aggregation fetch state — unset means not requested yet (fetched when the group becomes visible) */
+  aggregationState?: 'loading' | 'loaded'
 }
 
 interface CloudFeaturesType {
@@ -790,11 +793,25 @@ interface CloudFeaturesType {
 
 type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
 
+/** Topbar identity for a shared page that is not a view — see `useSharedView().sharedPageTitle`. */
+interface SharedPageTitle {
+  title: string
+  icon?: IconMapKey
+  /** Small muted suffix after the title, e.g. an artifact's version. */
+  badge?: string
+  /** Standing caveat about the page's content, shown on the right of the topbar. */
+  notice?: string
+  /** Link beside the notice — `href` is used verbatim, so encode it at the source. */
+  report?: { label: string; href: string }
+}
+
 interface PermissionConfig {
   entity: PermissionEntity
   entityId: string
   entityTitle?: string
   permission: PermissionKey
+  /** Overrides the PermissionMeta label, for hosts too narrow for the full one. */
+  label?: string
   disabled?: boolean
   tooltip?: string
   /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
@@ -815,7 +832,7 @@ interface PermissionSelectorUser {
   id: string
   email?: string
   display_name?: string | null
-  type?: 'user' | 'team'
+  type?: 'user' | 'team' | 'agent'
   hierarchy_scope?: 'self_only' | 'self_and_descendants'
 }
 
@@ -1225,6 +1242,7 @@ export type {
   CanvasGroup,
   CloudFeaturesType,
   CanvasScrollToCellFn,
+  SharedPageTitle,
   PermissionConfig,
   PermissionSelectorUser,
   NcListProps,

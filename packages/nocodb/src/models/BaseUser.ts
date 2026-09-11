@@ -244,6 +244,7 @@ export default class BaseUser {
       include_internal_user?: boolean;
       user_ids?: string[];
       include_team_users?: boolean;
+      include_agents?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & BaseUser & { deleted?: boolean })[]> {

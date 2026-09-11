@@ -94,13 +94,10 @@ export class OauthAuthorizationService {
     // code-minting path is never reachable without it.
     await this.assertRegisteredRedirectUri(clientId, redirectUri);
 
-    // Validate state inline
+    // RFC 6749 Appendix A.5: state = 1*VSCHAR (printable ASCII 0x20-0x7E).
+    // Max matches the `state` column width; the RFC sets no minimum.
     if (state) {
-      if (state.length < 16 || state.length > 1024) {
-        NcError.badRequest('invalid_state');
-      }
-      const allowedChars = /^[a-zA-Z0-9._-]+$/;
-      if (!allowedChars.test(state)) {
+      if (state.length > 1024 || !/^[\x20-\x7E]+$/.test(state)) {
         NcError.badRequest('invalid_state');
       }
     }

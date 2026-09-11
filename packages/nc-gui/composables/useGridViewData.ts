@@ -47,6 +47,7 @@ export function useGridViewData(
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
     updateGroupAggregations,
+    fetchMissingGroupAggregations,
     toggleExpandAll,
   } = useInfiniteGroups(viewMeta, meta, where, {
     syncVisibleData,
@@ -782,6 +783,7 @@ export function useGridViewData(
     isGroupBy,
     groupSyncCount,
     fetchMissingGroupChunks,
+    fetchMissingGroupAggregations,
     clearGroupCache,
     toggleExpandAll,
   }

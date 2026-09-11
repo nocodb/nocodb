@@ -140,6 +140,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
         return 'interfaces'
       }
 
+      if (name.startsWith('index-typeOrId-baseId-index-agents')) {
+        return 'agents'
+      }
+
       // All other routes resolve to data tab (table, dashboard, document, etc.)
       return 'data'
     }

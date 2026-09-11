@@ -17,7 +17,9 @@ import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
+import { NcError } from '~/helpers/catchError';
+import Job from '~/models/Job';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
@@ -50,6 +52,27 @@ export class JobsController implements OnModuleDestroy {
   private localJobs = {};
   private closedJobs = [];
 
+  /**
+   * `GlobalGuard` falls back to a guest user instead of rejecting, so this route
+   * is reachable with no credentials — and job messages carry presigned export
+   * download URLs. Bind the poll to the job's owner, and 404 rather than 403 so
+   * a job's existence isn't confirmed either.
+   *
+   * A public-share export job is created by an anonymous caller and so has no
+   * owner to match; its unguessable id is the only capability that caller holds,
+   * so ownerless jobs stay readable.
+   */
+  private async assertJobReadable(jobId: string, req: NcRequest) {
+    const job = await Job.get(
+      { workspace_id: RootScopes.ROOT, base_id: RootScopes.ROOT },
+      jobId,
+    );
+
+    if (job?.fk_user_id && job.fk_user_id !== req.user?.id) {
+      NcError.get().genericNotFound('Job', jobId);
+    }
+  }
+
   @Post('/jobs/listen')
   @HttpCode(200)
   async listen(
@@ -60,6 +83,8 @@ export class JobsController implements OnModuleDestroy {
     const { _mid = 0, data } = body;
 
     const jobId = data.id;
+
+    await this.assertJobReadable(jobId, req);
 
     res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     res.resId = nanoidv2();

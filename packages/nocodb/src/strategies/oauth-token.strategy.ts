@@ -69,6 +69,8 @@ export class OAuthTokenStrategy extends PassportStrategy(
         return callback({ msg: 'User not found for OAuth token' });
       }
 
+      User.assertNotBlocked(dbUser);
+
       // Enforce route restriction: OAuth tokens can only access allowed routes
       // Individual endpoints can further block OAuth via @Acl('x', { blockOAuthTokenAccess: true })
       const oauthAllowedPaths = ['/mcp', '/api/v3/', '/auth/user/me'];

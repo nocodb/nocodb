@@ -49,12 +49,17 @@ function isPublicShareApi(path: string): boolean {
   );
 }
 
+function isWebArtifactServeRoute(path: string): boolean {
+  return path.startsWith('/api/v2/agent-web-artifacts/');
+}
+
 function isEmbeddablePath(path: string): boolean {
   return (
     EMBEDDABLE_SHARE_ROUTE.test(path) ||
     isCustomUrlRedirect(path) ||
     isLegacyHashShell(path) ||
-    isPublicShareApi(path)
+    isPublicShareApi(path) ||
+    isWebArtifactServeRoute(path)
   );
 }
 

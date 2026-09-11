@@ -31,6 +31,7 @@ export enum PlanLimitTypes {
   LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
+  LIMIT_AGENT_PER_WORKSPACE = 'limit_agent',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_INTERFACE_PER_WORKSPACE = 'limit_interface',
   LIMIT_INTERFACE_PAGE_PER_INTERFACE = 'limit_interface_page',
@@ -84,6 +85,8 @@ export enum PlanFeatureTypes {
   FEATURE_API_DASHBOARD_V3 = 'feature_api_dashboard_v3',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_API_WEBHOOK_V3 = 'feature_api_webhook_v3',
+  FEATURE_MCP_SCRIPT = 'feature_mcp_script',
+  FEATURE_MCP_WEBHOOK = 'feature_mcp_webhook',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
@@ -98,6 +101,7 @@ export enum PlanFeatureTypes {
   FEATURE_TABLE_SYNC = 'feature_table_sync',
   FEATURE_TABLE_SYNC_AUTO = 'feature_table_sync_auto',
   FEATURE_CUSTOM_SYNC = 'feature_custom_sync',
+  FEATURE_SYNC_15_MIN = 'feature_sync_15_min',
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_LOOKUP_SORT_LIMIT = 'feature_lookup_sort_limit',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
@@ -170,6 +174,14 @@ export enum PlanFeatureTypes {
    * Does not gate inbound import — that is FEATURE_EE_CORE.
    */
   FEATURE_MIGRATE_BASE_EXPORT = 'feature_migrate_base_export',
+
+  /** Configured, autonomous agents in a base — the Agents vertical. */
+  FEATURE_AGENTS = 'feature_agents',
+
+  /** Editing a workspace's skills policy: which repos, and whether personal catalogs load. */
+  FEATURE_SKILLS_GOVERNANCE = 'feature_skills_governance',
+  /** Org-scope skills, org policy over every workspace, inventory and load reporting. */
+  FEATURE_SKILLS_ORG = 'feature_skills_org',
 }
 
 export enum PlanAddonTypes {
@@ -401,6 +413,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more attachments in a cell.',
   [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]:
     'to add more scripts in a workspace.',
+  [PlanLimitTypes.LIMIT_AGENT_PER_WORKSPACE]:
+    'to add more agents in a workspace.',
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
   [PlanLimitTypes.LIMIT_INTERFACE_PER_WORKSPACE]:
@@ -476,6 +490,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_WEBHOOK_V3]: 'to use webhook api.',
   [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: 'to use script api.',
   [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: 'to use dashboard api.',
+  [PlanFeatureTypes.FEATURE_MCP_SCRIPT]: 'to use script tools over MCP.',
+  [PlanFeatureTypes.FEATURE_MCP_WEBHOOK]: 'to use webhook tools over MCP.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
@@ -496,6 +512,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_TABLE_SYNC]: 'to use NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: 'to use automatic NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: 'to use Custom Sync.',
+  [PlanFeatureTypes.FEATURE_SYNC_15_MIN]: 'to sync every 15 minutes.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT]:
     'to sort and limit lookup field values.',
@@ -580,6 +597,11 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to show interface buttons conditionally.',
   [PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT]:
     'to migrate a base to another NocoDB instance.',
+  [PlanFeatureTypes.FEATURE_AGENTS]: 'to use agents.',
+  [PlanFeatureTypes.FEATURE_SKILLS_GOVERNANCE]:
+    'to control which skills your workspace can install.',
+  [PlanFeatureTypes.FEATURE_SKILLS_ORG]:
+    'to manage skills across every workspace in your organization.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

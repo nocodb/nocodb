@@ -5,8 +5,10 @@ const config: AppConfig = {
     calc_execution_time: false,
   },
   basicAuth: {
-    username: process.env.NC_HTTP_BASIC_USER ?? 'defaultusername',
-    password: process.env.NC_HTTP_BASIC_PASS ?? 'defaultpassword',
+    // No insecure fallback: when these env vars are unset the Basic strategy
+    // fails closed rather than accepting well-known default credentials.
+    username: process.env.NC_HTTP_BASIC_USER,
+    password: process.env.NC_HTTP_BASIC_PASS,
   },
   auth: {
     emailPattern:

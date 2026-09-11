@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { NcRequest } from 'nocodb-sdk';
+import { NcBaseError, NcBaseErrorv2, NcRequest } from 'nocodb-sdk';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { OAuthClient } from '~/models';
 import { NcError } from '~/helpers/ncError';
@@ -129,11 +129,24 @@ export class OAuthController {
       return { redirect_url: successRedirectUrl };
     } catch (e) {
       logger.error(e?.message, e);
+
+      // Surface client errors instead of masking them as server_error; the
+      // redirect URI was already validated above, so redirecting is safe.
+      let error = 'server_error';
+      let error_description = 'Authorization server encountered an error';
+      if (e instanceof NcBaseError) {
+        error =
+          e instanceof NcBaseErrorv2 && e.code === 403
+            ? 'access_denied'
+            : 'invalid_request';
+        error_description = e.message;
+      }
+
       const errorRedirectUrl = this.oauthAuthorizationService.buildRedirectUrl(
         redirect_uri,
         {
-          error: 'server_error',
-          error_description: 'Authorization server encountered an error',
+          error,
+          error_description,
           ...(state && { state }),
         },
       );

@@ -147,14 +147,25 @@ export enum MetaTable {
   VIEW_SECTIONS = 'nc_view_sections',
   BASE_SECTIONS = 'nc_base_sections',
   AUTOMATION_SECTIONS = 'nc_automation_sections',
+  AGENT_SECTIONS = 'nc_agent_sections',
   CHAT_SESSIONS = 'nc_chat_sessions',
   CHAT_MESSAGES = 'nc_chat_messages',
+  CHAT_ARTIFACTS = 'nc_chat_artifacts',
   /** @deprecated Documents now live in nc_models_v2 (type='document'). Kept for legacy data cleanup. */
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
   DOC_REVISIONS = 'nc_doc_revisions_v2',
   API_TOKEN_SCOPES = 'nc_api_token_scopes',
   TRASH = 'nc_trash',
+
+  // Agents — base-scop
+  AGENTS = 'nc_agents',
+  AGENT_SESSIONS = 'nc_agent_sessions',
+  AGENT_CHANNELS = 'nc_agent_channels',
+  AGENT_CHANNEL_THREADS = 'nc_agent_channel_threads',
+  AGENT_MESSAGES = 'nc_agent_messages',
+  SKILLS = 'nc_skills',
+  SKILL_POLICIES = 'nc_skill_policies',
 }
 
 export const BaseRelatedMetaTables = [
@@ -225,6 +236,15 @@ export const BaseRelatedMetaTables = [
   MetaTable.DOCS,
   MetaTable.DOC_CONTENT,
   MetaTable.DOC_REVISIONS,
+  MetaTable.CHAT_SESSIONS,
+  MetaTable.CHAT_MESSAGES,
+  MetaTable.CHAT_ARTIFACTS,
+  MetaTable.AGENTS,
+  MetaTable.AGENT_SECTIONS,
+  MetaTable.AGENT_SESSIONS,
+  MetaTable.AGENT_CHANNELS,
+  MetaTable.AGENT_CHANNEL_THREADS,
+  MetaTable.AGENT_MESSAGES,
   MetaTable.TRASH,
 ];
 
@@ -378,6 +398,16 @@ export const orderedMetaTables = [
   MetaTable.DATA_REFLECTION,
   MetaTable.SOURCES,
   MetaTable.PROJECT,
+
+  // Agents (children before parents)
+  MetaTable.AGENT_MESSAGES,
+  MetaTable.AGENT_SESSIONS,
+  MetaTable.AGENTS,
+  MetaTable.AGENT_SECTIONS,
+
+  // Skills
+  MetaTable.SKILLS,
+  MetaTable.SKILL_POLICIES,
 
   // Automations
   MetaTable.AUTOMATION_SUBSCRIBERS,
@@ -592,11 +622,21 @@ export enum CacheScope {
   VIEW_SECTION = 'viewSection',
   BASE_SECTION = 'baseSection',
   AUTOMATION_SECTION = 'automationSection',
+  AGENT_SECTION = 'agentSection',
   CHAT_SESSION = 'chatSession',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',
   TRASH = 'trash',
+
+  // Agents
+  AGENT = 'agent',
+  AGENT_SESSION = 'agentSession',
+  AGENT_CHANNEL = 'agentChannel',
+  AGENT_MESSAGE = 'agentMessage',
+  SKILL = 'skill',
+  SKILL_CATALOG = 'skillCatalog',
+  SKILL_POLICY = 'skillPolicy',
 }
 
 export enum CacheGetType {
@@ -659,6 +699,8 @@ export const RootScopeTables = {
     MetaTable.BOOKMARK_GROUPS,
     MetaTable.BOOKMARKS,
     MetaTable.MAIL_SENDS,
+    MetaTable.SKILLS,
+    MetaTable.SKILL_POLICIES,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,
@@ -718,4 +760,5 @@ export enum PrincipalType {
   BOT = 'bot',
   GROUP = 'group',
   SERVICE = 'service',
+  AGENT = 'agent',
 }

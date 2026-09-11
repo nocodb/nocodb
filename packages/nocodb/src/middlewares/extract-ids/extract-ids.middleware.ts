@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
   extractRolesObj,
+  isServiceUser,
   NcAccessSource,
   NcApiVersion,
   OrgUserRoles,
@@ -31,6 +32,7 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 import { resolveShareAccessSource } from '~/helpers/accessSource';
+import { hasModelRoleVisibilityAccess } from '~/helpers/tableHelpers';
 import {
   Base,
   AutomationSection,
@@ -157,7 +159,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       // `view` so a shared view never reaches `markPersonalViewIfNeeded`.
       let shareViewType: ViewTypes | undefined;
 
-      const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
+      // Query-string only: no route pairs :mcpTokenId with :baseId, and the MCP
+      // operations read `tokenId` instead — so accepting it here only let a
+      // caller re-anchor the role lookup onto another base's token.
+      const mcpTokenId = params.mcpTokenId;
       const integrationId = params.integrationId || query.integrationId;
       const tableId =
         params.tableId || params.modelId || params.tableName || query.tableId;
@@ -538,6 +543,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (!model) {
           NcError.get(context).tableNotFound(params.tableId || params.modelId);
         }
+
+        // Extract table ID for permission check at the end — this branch owns
+        // routes carrying both :baseId and :tableId, which the base-id arm of
+        // the if/else chain below short-circuits before it can set this.
+        tableIdToCheck = model.id;
       }
     }
 
@@ -586,8 +596,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
 
-      // Extract table ID for permission check at the end
-      tableIdToCheck = view?.fk_model_id;
+      // Extract table ID for permission check at the end. This slot also
+      // resolves a Model (the `|| Model.get` above) — several data routes pass
+      // a table id here — and a Model has no `fk_model_id`, so fall back to its
+      // own id or the visibility gate never runs for those routes.
+      tableIdToCheck = view?.fk_model_id ?? view?.id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -948,6 +961,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           }
 
           req.ncSourceId = model?.source_id;
+
+          // Extract table ID for permission check at the end — the whole
+          // /:baseName/:tableName alias family resolves its model here and
+          // never set this, so the visibility gate never ran for it.
+          tableIdToCheck = model?.id;
         }
       } else {
         NcError.baseNotFound(params.baseId ?? params.baseName);
@@ -1268,6 +1286,25 @@ export class AclMiddleware implements NestInterceptor {
       //     Object.keys(roles).filter((k) => roles[k]),
       //   )} : Not allowed`,
       // );
+    }
+
+    // Per-view role visibility, applied to routes that resolve a table or view
+    // by id. `ncTableId` was being stored for exactly this check but nothing
+    // consumed it, so hiding every view only removed the table from the list.
+    if (
+      req.context?.ncTableId &&
+      req.user &&
+      !isServiceUser(req.user) &&
+      req.ncBaseId &&
+      !(await hasModelRoleVisibilityAccess(
+        req.context,
+        req.context.ncTableId,
+        roles,
+      ))
+    ) {
+      // 404, not 403 — matches `getTableWithAccessibleViews` and keeps the id
+      // from confirming that a hidden table exists.
+      NcError.get(req.context).tableNotFound(req.context.ncTableId);
     }
 
     // check if permission have source level permission restriction

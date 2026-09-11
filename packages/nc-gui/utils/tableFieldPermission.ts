@@ -1,4 +1,10 @@
-import { type EvaluablePermission, PermissionGrantedType, evaluatePermission, matchesTeamSubjectByPaths } from 'nocodb-sdk'
+import {
+  type EvaluablePermission,
+  PermissionGrantedType,
+  SubjectType,
+  evaluatePermission,
+  matchesTeamSubjectByPaths,
+} from 'nocodb-sdk'
 
 /**
  * Frontend decision for a table/field permission check.
@@ -39,6 +45,7 @@ export function evaluateTableFieldPermission(
 
   return evaluatePermission(permissionObj, {
     userId: ctx.userId,
+    subjectType: SubjectType.USER,
     permissionRole: ctx.permissionRole,
     matchedTeamSubject,
   })

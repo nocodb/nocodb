@@ -19,7 +19,10 @@ import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
 import { Model, View } from '~/models';
 import Base from '~/models/Base';
-import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
+import {
+  NC_GRID_MAX_SELECTION_LIMIT,
+  V1_V2_DATA_PAYLOAD_LIMIT,
+} from '~/constants';
 
 export interface PathParams {
   baseName: string;
@@ -305,11 +308,17 @@ export const validateV1V2DataPayloadLimit = (
   context: NcContext,
   param: { body: any },
 ) => {
-  if (
-    context.is_api_token &&
-    Array.isArray(param.body) &&
-    param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
-  ) {
-    NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+  if (!Array.isArray(param.body)) return;
+
+  // The api-token cap is the programmatic budget. Sessions were left uncapped on
+  // the assumption the grid's 1000-row selection limit bound them, but that is
+  // client-side only — so enforce it here. Never below the token cap, or a
+  // custom NC_API_BULK_OPERATION_MAX_RECORDS would tighten the UI by surprise.
+  const limit = context.is_api_token
+    ? V1_V2_DATA_PAYLOAD_LIMIT
+    : Math.max(NC_GRID_MAX_SELECTION_LIMIT, V1_V2_DATA_PAYLOAD_LIMIT);
+
+  if (param.body.length > limit) {
+    NcError.get(context).maxPayloadLimitExceeded(limit);
   }
 };

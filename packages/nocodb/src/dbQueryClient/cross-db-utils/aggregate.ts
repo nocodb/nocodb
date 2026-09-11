@@ -16,6 +16,48 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 export interface AggregateColumnSpec {
   col: Column;
   aggregation: string;
+  /**
+   * SQL-side key for this aggregate. The column id alone when the field
+   * carries a single aggregation (so the existing id→title rewrite still
+   * applies), suffixed with the aggregation when it carries several.
+   *
+   * Deliberately free of dots and of the column title: it is interpolated
+   * into SQL both as a knex `??` identifier (which splits on `.`) and, on the
+   * bulk path, as a single-quoted JSON key.
+   */
+  resultKey: string;
+  /**
+   * Response label, set only when the field carries more than one
+   * aggregation — otherwise the field title is the label, as before.
+   */
+  displayKey?: string;
+}
+
+/**
+ * Assign each spec its SQL key and response label.
+ *
+ * Aggregates used to be keyed by column id all the way through, so two
+ * aggregations on one field collided: the request `Amount/sum, Amount/avg,
+ * Amount/count_filled` came back as a single `{"Amount": <count>}` — a
+ * well-formed answer to a question nobody asked.
+ */
+function withResultKeys(specs: AggregateColumnSpec[]): AggregateColumnSpec[] {
+  const perColumn = new Map<string, number>();
+  for (const { col } of specs) {
+    perColumn.set(col.id, (perColumn.get(col.id) ?? 0) + 1);
+  }
+
+  return specs.map((spec) => {
+    if ((perColumn.get(spec.col.id) ?? 0) < 2) {
+      return { ...spec, resultKey: spec.col.id };
+    }
+
+    return {
+      ...spec,
+      resultKey: `${spec.col.id}__${spec.aggregation}`,
+      displayKey: `${spec.col.title}.${spec.aggregation}`,
+    };
+  });
 }
 
 /**
@@ -107,12 +149,12 @@ export const aggregate =
       const selectors: Knex.Raw[] = [];
 
       await Promise.all(
-        aggregateColumns.map(async ({ col, aggregation: agg }) => {
+        aggregateColumns.map(async ({ col, aggregation: agg, resultKey }) => {
           const aggSql = await applyAggregation({
             baseModelSqlv2: baseModel,
             aggregation: agg,
             column: col,
-            alias: col.id,
+            alias: resultKey,
             baseQuery: qb,
           });
           if (aggSql) selectors.push(baseModel.dbDriver.raw(aggSql));
@@ -137,13 +179,16 @@ export const aggregate =
         return {};
       }
 
-      const idToTitle = new Map(
-        aggregateColumns.map(({ col }) => [col.id, col.title]),
+      const keyToLabel = new Map(
+        aggregateColumns.map((spec) => [
+          spec.resultKey,
+          spec.displayKey ?? spec.col.title,
+        ]),
       );
 
       const result: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(aggregated)) {
-        result[idToTitle.get(key) ?? key] = value;
+        result[keyToLabel.get(key) ?? key] = value;
       }
 
       return result;
@@ -174,9 +219,16 @@ export async function resolveAggregateColumns({
   aggregation?: Array<{ field: string; type: string }>;
 }): Promise<AggregateColumnSpec[]> {
   const aggregateColumns: AggregateColumnSpec[] = [];
-  const overrideMap = new Map<string, string>(
-    (aggregation ?? []).map((a) => [a.field, a.type]),
-  );
+  // A field may legitimately appear more than once — `sum` and `avg` of the
+  // same column is the obvious case. Keyed by field alone this Map kept only
+  // the last type, so every earlier aggregation on that field was dropped
+  // before a single line of SQL was built.
+  const overrideMap = new Map<string, string[]>();
+  for (const a of aggregation ?? []) {
+    const types = overrideMap.get(a.field);
+    if (types) types.push(a.type);
+    else overrideMap.set(a.field, [a.type]);
+  }
   const overrideMode = !!aggregation?.length;
 
   if (baseModel.viewId) {
@@ -190,19 +242,22 @@ export async function resolveAggregateColumns({
       if (!gc.show) continue;
       if (!view?.show_system_fields && isSystemColumn(col)) continue;
 
-      let aggType: string | undefined;
+      let aggTypes: string[];
       if (overrideMode) {
         if (!overrideMap.has(gc.fk_column_id)) continue;
-        aggType = overrideMap.get(gc.fk_column_id);
+        aggTypes = overrideMap.get(gc.fk_column_id);
       } else {
-        aggType = gc.aggregation;
+        aggTypes = gc.aggregation ? [gc.aggregation] : [];
       }
-      if (!aggType) continue;
+      if (!aggTypes.length) continue;
       if (isLinksOrLTAR(col) && col.system) continue;
 
-      aggregateColumns.push({ col, aggregation: aggType });
+      for (const aggType of aggTypes) {
+        if (!aggType) continue;
+        aggregateColumns.push({ col, aggregation: aggType, resultKey: col.id });
+      }
     }
-    return aggregateColumns;
+    return withResultKeys(aggregateColumns);
   }
 
   if (overrideMode) {
@@ -210,9 +265,13 @@ export async function resolveAggregateColumns({
       const col = baseModel.model.columnsById[agg.field];
       if (!col) continue;
       if (isLinksOrLTAR(col) && col.system) continue;
-      aggregateColumns.push({ col, aggregation: agg.type });
+      aggregateColumns.push({
+        col,
+        aggregation: agg.type,
+        resultKey: col.id,
+      });
     }
   }
 
-  return aggregateColumns;
+  return withResultKeys(aggregateColumns);
 }

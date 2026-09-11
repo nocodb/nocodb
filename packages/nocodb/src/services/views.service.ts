@@ -693,7 +693,9 @@ export class ViewsService {
     param: {
       viewId: string;
       sharedView: SharedViewReqType & {
-        custom_url_path?: string;
+        // `null` deletes the vanity path; `undefined` leaves it untouched — the
+        // branches below distinguish the two.
+        custom_url_path?: string | null;
       };
       user: UserType;
       req: NcRequest;

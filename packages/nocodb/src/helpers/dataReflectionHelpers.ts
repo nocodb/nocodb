@@ -115,6 +115,11 @@ const dropDatabaseUser = async (knex, username, database) => {
     DO $$
     BEGIN
       IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = ${usernameLit}) THEN
+        -- DROP USER doesn't close existing sessions; terminate them first.
+        PERFORM pg_terminate_backend(pid)
+          FROM pg_stat_activity
+          WHERE usename = ${usernameLit} AND pid <> pg_backend_pid();
+
         -- Drop all dependent grants in the current DB before DROP USER so
         -- there are no remaining references in this database.
         -- RESTRICT (the default) is defense-in-depth: our readonly role has

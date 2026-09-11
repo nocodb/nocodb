@@ -14,16 +14,28 @@ import type { McpToolRegistrar } from '~/mcp/tools/annotations';
 import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { V3_DATA_PAYLOAD_LIMIT } from '~/constants';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { hasMinimumRole } from '~/utils/roleHelper';
+import { strictRegistrar } from '~/mcp/tools/strict-schema';
+import {
+  callScopedRegistrar,
+  scopeAuditFieldsPerCall,
+} from '~/mcp/tools/call-scope';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
 import { AuditsService } from '~/services/audits.service';
 import { isEE } from '~/utils';
-import { aggregationDescription, whereDescription } from '~/mcp/descriptions';
+import {
+  aggregationDescription,
+  whereDescription,
+  whereDescriptionRef,
+} from '~/mcp/descriptions';
+import { serializeSort, sortSchema } from '~/mcp/data-schemas';
 
 @Injectable()
 export class McpService {
@@ -41,12 +53,11 @@ export class McpService {
     req: NcRequest,
     res: Response,
   ) {
-    const server = new McpServer({
-      name: `NoocDB MCP Server`,
-      version: '1.0.0',
-    });
+    // Before any tool registers: handlers close over `req`, and a JSON-RPC
+    // batch runs them concurrently over that one object.
+    scopeAuditFieldsPerCall(req);
 
-    await this.registerTools({ context, user: req.user, server, req });
+    const server = await this.createServer({ context, user: req.user, req });
 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
@@ -58,6 +69,29 @@ export class McpService {
     });
     await server.connect(transport);
     await transport.handleRequest(req as Request, res, req.body);
+  }
+
+  // CE lists every tool it has, so it advertises no discovery instructions —
+  // EE overrides this to add them only when something actually deferred.
+  protected async createServer(opts: {
+    context: NcContext;
+    user: UserType & {
+      base_roles?: Record<string, boolean>;
+      workspace_roles?: Record<string, boolean>;
+    };
+    req: NcRequest;
+  }): Promise<McpServer> {
+    const server = new McpServer({
+      name: `NocoDB MCP Server`,
+      version: '1.0.0',
+    });
+
+    await this.registerTools({
+      ...opts,
+      server: strictRegistrar(callScopedRegistrar(server)),
+    });
+
+    return server;
   }
 
   protected async registerTools({
@@ -84,6 +118,7 @@ export class McpService {
         title: 'Get Base Info',
         description: 'Fetch information about current base',
         annotations: {
+          title: 'Get Base Info',
           readOnlyHint: true,
           destructiveHint: false,
           idempotentHint: true,
@@ -116,6 +151,7 @@ export class McpService {
       {
         title: 'List Tables',
         annotations: {
+          title: 'List Tables',
           readOnlyHint: true,
           destructiveHint: false,
           idempotentHint: true,
@@ -158,6 +194,7 @@ export class McpService {
           tableId: z.string().describe('Table Id'),
         },
         annotations: {
+          title: 'Get the table schema',
           readOnlyHint: true,
           destructiveHint: false,
           idempotentHint: true,
@@ -205,20 +242,17 @@ export class McpService {
           pageSize: z
             .number()
             .optional()
-            .describe('Number of records to fetch (default: 50)'),
+            .describe(
+              'Number of records to fetch (default: 50). Capped at 200 here, ' +
+                'and further by the deployment limit — the response reports ' +
+                'the `page_size` actually applied.',
+            ),
           page: z
             .number()
             .optional()
             .describe('Page number for pagination (default: 1)'),
           where: z.string().optional().describe(whereDescription),
-          sort: z
-            .array(
-              z.object({
-                field: z.string().describe('Field Name'),
-                description: z.enum(['asc', 'desc']).describe('Sort Direction'),
-              }),
-            )
-            .optional(),
+          sort: sortSchema.optional(),
           fields: z
             .array(z.string())
             .optional()
@@ -226,6 +260,7 @@ export class McpService {
             .optional(),
         },
         annotations: {
+          title: 'Query Records',
           readOnlyHint: true,
           destructiveHint: false,
           openWorldHint: false,
@@ -233,11 +268,12 @@ export class McpService {
       },
       async ({ tableId, pageSize = 50, page = 1, where, sort, fields }) => {
         try {
+          const requestedPageSize = pageSize;
           pageSize = Math.max(1, Math.min(pageSize || 25, 200));
           // Prepare parameters
           const params: any = { pageSize, page };
           if (where) params.where = where;
-          if (sort) params.sort = sort;
+          if (sort) params.sort = serializeSort(sort);
           if (fields) params.fields = fields;
 
           const records = await this.datasV3Service.dataList(context, {
@@ -247,8 +283,39 @@ export class McpService {
             req: req,
           });
 
+          // The deployment clamps the limit again via NC_DB_QUERY_LIMIT_MAX
+          // (1000 by default, 100 on shared/cloud), and `pageInfo` carries only
+          // next/prev URLs — which echo the *requested* size. A caller sizing
+          // its paging loop off the value it passed therefore skipped rows
+          // silently. State the size that was actually applied.
+          const effectivePageSize = Math.min(
+            pageSize,
+            defaultLimitConfig.limitMax,
+          );
+
           return {
-            content: [{ type: 'text', text: JSON.stringify(records, null, 2) }],
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    ...records,
+                    page,
+                    page_size: effectivePageSize,
+                    ...(effectivePageSize < requestedPageSize
+                      ? {
+                          page_size_note:
+                            `pageSize ${requestedPageSize} was clamped to ` +
+                            `${effectivePageSize} by this deployment. Page ` +
+                            `offsets follow the clamped size.`,
+                        }
+                      : {}),
+                  },
+                  null,
+                  2,
+                ),
+              },
+            ],
           };
         } catch (error) {
           return {
@@ -274,6 +341,7 @@ export class McpService {
             .describe('Comma-separated list of fields to include'),
         },
         annotations: {
+          title: 'Get Record',
           readOnlyHint: true,
           destructiveHint: false,
           openWorldHint: false,
@@ -311,9 +379,10 @@ export class McpService {
         description: 'Count Records in a Table',
         inputSchema: {
           tableId: z.string().describe('Table ID'),
-          where: z.string().optional().describe(whereDescription),
+          where: z.string().optional().describe(whereDescriptionRef),
         },
         annotations: {
+          title: 'Count Records',
           readOnlyHint: true,
           destructiveHint: false,
           openWorldHint: false,
@@ -400,6 +469,7 @@ export class McpService {
             .describe('Array of attachment objects from NocoDB'),
         },
         annotations: {
+          title: 'Read Attachments',
           readOnlyHint: true,
           destructiveHint: false,
           openWorldHint: false,
@@ -543,8 +613,13 @@ export class McpService {
         {
           title: 'Aggregate',
           description:
-            'Perform aggregations on a table with a filter condition',
+            'Perform aggregations on a table with a filter condition. Result ' +
+            'keys are field titles: one aggregation on a field keys by the ' +
+            'bare title ("Amount"), two or more on the same field key as ' +
+            '"<title>.<type>" ("Amount.sum") so they do not collide. Read a ' +
+            'value as result[title] ?? result[`${title}.${type}`].',
           annotations: {
+            title: 'Aggregate',
             readOnlyHint: true,
             destructiveHint: false,
             idempotentHint: true,
@@ -591,7 +666,7 @@ export class McpService {
                 }),
               )
               .describe('Array of aggregations to perform'),
-            where: z.string().optional().describe(whereDescription),
+            where: z.string().optional().describe(whereDescriptionRef),
             viewId: z
               .string()
               .optional()
@@ -634,7 +709,7 @@ export class McpService {
         'createRecords',
         {
           title: 'Create Records',
-          description: 'Create records in a table',
+          description: `Create records in a table. Up to ${V3_DATA_PAYLOAD_LIMIT} per call`,
           annotations: {
             title: 'Create Records',
             readOnlyHint: false,
@@ -653,7 +728,9 @@ export class McpService {
                   ),
                 }),
               )
-              .describe('Array of records with fields as key-value pairs'),
+              .describe(
+                `Array of records with fields as key-value pairs. At most ${V3_DATA_PAYLOAD_LIMIT} per call — a longer array is rejected outright, so split larger writes into batches.`,
+              ),
           },
         },
         async ({ tableId, records }) => {
@@ -686,7 +763,11 @@ export class McpService {
         'updateRecords',
         {
           title: 'Update Records',
-          description: 'Update records in a table',
+          description:
+            `Update records in a table. Up to ${V3_DATA_PAYLOAD_LIMIT} per call. ` +
+            'A link field is replaced, not appended to: pass the complete list of ' +
+            'linked records you want, and `[]` to clear it. `null` clears nothing ' +
+            'and is silently ignored.',
           inputSchema: {
             tableId: z.string().describe('Table ID'),
             records: z
@@ -699,9 +780,13 @@ export class McpService {
                   ),
                 }),
               )
-              .describe('Array of records with ID and fields to update'),
+              .describe(
+                `Array of records with ID and fields to update. At most ${V3_DATA_PAYLOAD_LIMIT} per call — a longer array is rejected outright, so split larger writes into batches.`,
+              ),
           },
           annotations: {
+            title: 'Update Records',
+            readOnlyHint: false,
             destructiveHint: true,
             openWorldHint: false,
           },
@@ -736,8 +821,10 @@ export class McpService {
         'deleteRecords',
         {
           title: 'Delete Records',
-          description: 'Delete records in a table',
+          description: `Delete records in a table. Up to ${V3_DATA_PAYLOAD_LIMIT} per call`,
           annotations: {
+            title: 'Delete Records',
+            readOnlyHint: false,
             destructiveHint: true,
             openWorldHint: false,
           },
@@ -749,7 +836,9 @@ export class McpService {
                   id: z.union([z.string(), z.number()]).describe('Record ID'),
                 }),
               )
-              .describe('Array of records with IDs to delete'),
+              .describe(
+                `Array of records with IDs to delete. At most ${V3_DATA_PAYLOAD_LIMIT} per call — a longer array is rejected outright, so split larger writes into batches.`,
+              ),
           },
         },
         async ({ tableId, records }) => {

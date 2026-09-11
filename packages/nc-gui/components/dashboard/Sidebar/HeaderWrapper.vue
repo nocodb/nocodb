@@ -53,6 +53,7 @@ const showSidebarBtn = computed(() => {
             size="small"
             class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
             data-testid="nc-sidebar-search-btn"
+            data-tour="sidebar-search"
             @click="openCommandPalette"
           >
             <GeneralIcon icon="search" class="!text-current" />

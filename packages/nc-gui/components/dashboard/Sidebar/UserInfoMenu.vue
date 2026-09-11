@@ -24,6 +24,10 @@ const openThemeConfig = () => {
   emits('closeMenu')
 }
 
+const { availableTours } = useTours()
+
+const { isExperimentalFeatureModalOpen, isFeatureEnabled } = useBetaFeatureToggle()
+
 const themeLabel = computed(
   () =>
     ({
@@ -42,9 +46,9 @@ const themeIcon = computed(
     }[selectedTheme.value] as IconMapKey),
 )
 
-const { isExperimentalFeatureModalOpen, isFeatureEnabled } = useBetaFeatureToggle()
-
 const isThemeConfigEnabled = computed(() => isThemeEnabled.value && isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
+
+const showTourMenu = computed(() => isFeatureEnabled(FEATURE_FLAG.PRODUCT_TOURS_MENU) && availableTours.value.length > 0)
 
 const auditsStore = useAuditsStore()
 
@@ -148,6 +152,16 @@ const openKeyboardShortcutDialog = () => {
           </span>
         </div>
       </NcMenuItem>
+      <NcSubMenu v-if="showTourMenu" title-class="flex-1" data-testid="nc-sidebar-product-tours">
+        <template #title>
+          <!-- v-e must sit on an element — on NcSubMenu it silently never fires -->
+          <span v-e="['c:tour:menu-open']" class="flex items-center gap-2">
+            <GeneralIcon icon="ncCompass" class="menu-icon" />
+            {{ $t('title.productTours') }}
+          </span>
+        </template>
+        <TourLauncherMenu @close-menu="emits('closeMenu')" />
+      </NcSubMenu>
 
       <!-- Admin Panel (EE) -->
       <DashboardSidebarEEMenuOption v-if="isEeUI" />

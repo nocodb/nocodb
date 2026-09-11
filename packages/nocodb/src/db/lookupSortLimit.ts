@@ -6,6 +6,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import Sort from '~/models/Sort';
 import sortV2 from '~/db/sortV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
+import { setModelContext } from '~/helpers/modelContext';
 import { isLookupSortLimitLicensed } from '~/helpers/lookupSortLimitGate';
 
 /**
@@ -87,7 +88,20 @@ export async function applyLookupSortLimitToQb(param: {
   limitVal: number;
   takeLast: boolean;
 }): Promise<void> {
-  const { qb, alias, refBaseModel, sorts, limitVal, takeLast } = param;
+  const { qb, alias, refBaseModel, limitVal, takeLast } = param;
+
+  // The sort rows live in the base that owns the LOOKUP column, so
+  // Sort.listByLookupColumn stamps them with that (root) context — but
+  // `fk_column_id` points at a column of the RELATED table, which for a
+  // cross-base lookup is a different base. sortV2 only stamps a sort that is
+  // not already stamped, so without this re-stamp `sort.getColumn()` would look
+  // the sort key up in the root base, find nothing, and silently drop the sort
+  // (`sortV2` continues on a null column). Re-stamp against refBaseModel — the
+  // "sort-key resolution context" its callers document it as. The spread drops
+  // the old stamp (non-enumerable symbol), so setModelContext cannot double-stamp.
+  const sorts = param.sorts.map((s) =>
+    setModelContext(new Sort({ ...s }), refBaseModel.context),
+  );
 
   if (!refBaseModel.model.columns?.length) {
     await refBaseModel.model.getColumns();

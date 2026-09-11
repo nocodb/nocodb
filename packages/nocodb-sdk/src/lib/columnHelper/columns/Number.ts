@@ -1,5 +1,10 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parseIntValue, SeparatorType, serializeIntValue } from '..';
+import {
+  NumberAbbreviationType,
+  parseIntValue,
+  SeparatorType,
+  serializeIntValue,
+} from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -11,6 +16,7 @@ import { ncIsNaN } from '~/lib/is';
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     separator: SeparatorType.NonePeriod,
+    abbreviate: NumberAbbreviationType.None,
   };
 
   serializeValue(
@@ -38,7 +44,9 @@ export class NumberHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
-    return parseIntValue(value, params.col);
+    return parseIntValue(value, params.col, {
+      skipAbbreviation: params.skipAbbreviation,
+    });
   }
 
   parsePlainCellValue(
@@ -49,7 +57,11 @@ export class NumberHelper extends AbstractColumnHelper {
       value = 0;
     }
 
-    return `${parseIntValue(value, params.col) ?? ''}`;
+    return `${
+      parseIntValue(value, params.col, {
+        skipAbbreviation: params.skipAbbreviation,
+      }) ?? ''
+    }`;
   }
 
   // using string number fill handler

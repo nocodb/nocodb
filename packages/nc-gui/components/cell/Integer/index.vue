@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { SeparatorType, formatNumberWithSeparator, getSeparatorChars, resolveColumnSeparator } from 'nocodb-sdk'
+import {
+  SeparatorType,
+  abbreviateNumber,
+  formatNumberWithSeparator,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  shouldAbbreviateNumber,
+} from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -41,7 +48,13 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
-  const separator = resolveColumnSeparator(parseProp(column.value.meta))
+  const colMeta = parseProp(column.value.meta)
+
+  if (shouldAbbreviateNumber(colMeta)) {
+    return abbreviateNumber(Number(_vModel.value), colMeta)
+  }
+
+  const separator = resolveColumnSeparator(colMeta)
 
   if (separator === SeparatorType.Locale) {
     return Number(_vModel.value).toLocaleString()

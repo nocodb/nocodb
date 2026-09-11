@@ -23,6 +23,11 @@ import {
   getSeparatorChars,
   resolveColumnSeparator,
 } from './separator';
+import {
+  abbreviateNumber,
+  formatCurrencyValue,
+  shouldAbbreviateNumber,
+} from './abbreviation';
 
 export const parseDefault = (value: any) => {
   try {
@@ -39,7 +44,11 @@ export const parseDefault = (value: any) => {
 export const parseIntValue = (
   value: string | null | number,
   col?: ColumnType,
-  options?: { skipThousandSeparator?: boolean; locale?: string }
+  options?: {
+    skipThousandSeparator?: boolean;
+    skipAbbreviation?: boolean;
+    locale?: string;
+  }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -52,6 +61,12 @@ export const parseIntValue = (
 
   if (options?.skipThousandSeparator) {
     return Number(value);
+  }
+
+  if (!options?.skipAbbreviation && shouldAbbreviateNumber(columnMeta)) {
+    return abbreviateNumber(Number(value), columnMeta, {
+      locale: options?.locale,
+    });
   }
 
   if (separator === SeparatorType.Locale) {
@@ -70,7 +85,11 @@ export const parseIntValue = (
 export const parseDecimalValue = (
   value: string | null | number,
   col: ColumnType,
-  options?: { skipThousandSeparator?: boolean; locale?: string }
+  options?: {
+    skipThousandSeparator?: boolean;
+    skipAbbreviation?: boolean;
+    locale?: string;
+  }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -88,6 +107,13 @@ export const parseDecimalValue = (
     const rounded = Number(roundUpToPrecision(Number(value), precision));
 
     return formatNumberWithSeparator(rounded, '', decimalSeparator, precision);
+  }
+
+  if (!options?.skipAbbreviation && shouldAbbreviateNumber(columnMeta)) {
+    return abbreviateNumber(Number(value), columnMeta, {
+      precision,
+      locale: options?.locale,
+    });
   }
 
   if (separator === SeparatorType.Locale) {
@@ -170,7 +196,11 @@ export const parseJsonValue = (value) => {
   }
 };
 
-export const parseCurrencyValue = (value: any, col: ColumnType) => {
+export const parseCurrencyValue = (
+  value: any,
+  col: ColumnType,
+  options?: { skipAbbreviation?: boolean }
+) => {
   if (ncIsNaN(value)) {
     return null;
   }
@@ -184,12 +214,7 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
       columnMeta.precision ?? 2
     );
 
-    return new Intl.NumberFormat(columnMeta.currency_locale || 'en-US', {
-      style: 'currency',
-      currency: columnMeta.currency_code || 'USD',
-      minimumFractionDigits: columnMeta.precision ?? 2,
-      maximumFractionDigits: columnMeta.precision ?? 2,
-    }).format(+roundedValue);
+    return formatCurrencyValue(+roundedValue, columnMeta, options);
   } catch {
     return value;
   }

@@ -2,10 +2,12 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import {
   SeparatorType,
+  abbreviateNumber,
   formatNumberWithSeparator,
   getSeparatorChars,
   resolveColumnSeparator,
   roundUpToPrecision,
+  shouldAbbreviateNumber,
 } from 'nocodb-sdk'
 
 interface Props {
@@ -50,6 +52,10 @@ const displayValue = computed(() => {
   const separator = resolveColumnSeparator(meta.value)
   const precision = meta.value.precision ?? 1
   const numValue = Number(roundUpToPrecision(Number(_vModel.value), precision))
+
+  if (shouldAbbreviateNumber(meta.value)) {
+    return abbreviateNumber(numValue, meta.value, { precision })
+  }
 
   if (separator === SeparatorType.Locale) {
     return numValue.toLocaleString(undefined, {

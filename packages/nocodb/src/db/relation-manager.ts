@@ -326,7 +326,6 @@ export class RelationManager {
   }): Promise<Record<string, number>> {
     const {
       relationColOptions: colOptions,
-      mmContext,
       parentColumn,
       childColumn,
       parentTable,
@@ -338,8 +337,8 @@ export class RelationManager {
     } = this.relationContext;
     const { runner, vTn, vChildCol, vParentCol } = params;
 
-    const childOrderCol = await colOptions.getMMChildOrderColumn(mmContext);
-    const parentOrderCol = await colOptions.getMMParentOrderColumn(mmContext);
+    const childOrderCol = await colOptions.getMMChildOrderColumn();
+    const parentOrderCol = await colOptions.getMMParentOrderColumn();
     const out: Record<string, number> = {};
     if (!childOrderCol && !parentOrderCol) return out;
 

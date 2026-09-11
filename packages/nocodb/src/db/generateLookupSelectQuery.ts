@@ -378,7 +378,7 @@ export default async function generateLookupSelectQuery({
         if (baseModelSqlv2.isPg) {
           const lookupCfg = await loadLookupSortAndLimit(rootContext, column);
           if (!lookupCfg.hasConfig) {
-            const linkOrderCol = await relation.getMMChildOrderColumn(context);
+            const linkOrderCol = await relation.getMMChildOrderColumn();
             if (linkOrderCol) {
               mmLinkOrderRef = `${mmTableAlias}.${linkOrderCol.column_name}`;
             }

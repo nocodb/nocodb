@@ -119,10 +119,8 @@ export default class LinkToAnotherRecordColumn {
   // The junction Order column grouped by the child FK (orders parents per child).
   // mmContext is resolved from this link's own context (see getRelContext), so
   // a same-base junction (fk_mm_base_id null) is never looked up in a caller's
-  // unrelated base — the legacy `_context` arg is kept for call-site
-  // compatibility and intentionally unused.
+  // unrelated base.
   public async getMMChildOrderColumn(
-    _context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column | null> {
     if (!this.fk_mm_child_order_column_id) return null;
@@ -136,7 +134,6 @@ export default class LinkToAnotherRecordColumn {
 
   // The junction Order column grouped by the parent FK (orders children per parent).
   public async getMMParentOrderColumn(
-    _context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column | null> {
     if (!this.fk_mm_parent_order_column_id) return null;

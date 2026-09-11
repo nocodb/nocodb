@@ -446,9 +446,7 @@ export const relationDataFetcher = (param: {
         // Per-link ordering is Postgres-only (the Order column exists on any
         // isMeta source, but ordering by it is only wired/valid on pg).
         if (!childSorts?.length && baseModel.isPg) {
-          const linkOrderCol = await relColOptions.getMMChildOrderColumn(
-            mmContext,
-          );
+          const linkOrderCol = await relColOptions.getMMChildOrderColumn();
           if (linkOrderCol) {
             // Drop the default related-table order applied above (the related
             // model's own `nc_order`/PK sort). Without this the per-link order is
@@ -1218,24 +1216,6 @@ export const relationDataFetcher = (param: {
       });
 
       const childView = await relColOptions.getChildView(childTable);
-      let listArgs: any = {};
-      if (childView) {
-        const { dependencyFields } = await getAst(childBaseModel.context, {
-          model: childTable,
-          query: {},
-          view: childView,
-          throwErrorIfInvalidParams: false,
-        });
-
-        listArgs = dependencyFields;
-        try {
-          listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-        } catch (e) {}
-        try {
-          listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-        } catch (e) {}
-      }
-
       const parentTable = await (
         await relColOptions.getChildColumn()
       ).getModel();
@@ -1284,7 +1264,12 @@ export const relationDataFetcher = (param: {
 
       await childBaseModel.getCustomConditionsAndApply({
         column: relColumn,
-        view: childView,
+        // Guarded exactly as the matching LIST does. develop passed no table to
+        // getChildView here, so it returned a view only when fk_target_view_id was
+        // set; dropping the context arg shifted the optional table into the first
+        // slot and enabled the default-collaborative-view fallback, which applies
+        // that view's filters to the COUNT while the LIST stays unfiltered.
+        view: relColOptions.fk_target_view_id ? childView : null,
         filters: filterObj,
         args,
         qb,
@@ -1608,7 +1593,12 @@ export const relationDataFetcher = (param: {
 
       await refBaseModel.getCustomConditionsAndApply({
         column: relColumn,
-        view: refView,
+        // Guarded exactly as the matching LIST does. develop passed no table to
+        // getChildView here, so it returned a view only when fk_target_view_id was
+        // set; dropping the context arg shifted the optional table into the first
+        // slot and enabled the default-collaborative-view fallback, which applies
+        // that view's filters to the COUNT while the LIST stays unfiltered.
+        view: relColOptions.fk_target_view_id ? refView : null,
         filters: filterObj,
         args,
         qb,
@@ -1826,7 +1816,12 @@ export const relationDataFetcher = (param: {
 
       await parentBaseModel.getCustomConditionsAndApply({
         column: relColumn,
-        view: targetView,
+        // Guarded exactly as the matching LIST does. develop passed no table to
+        // getChildView here, so it returned a view only when fk_target_view_id was
+        // set; dropping the context arg shifted the optional table into the first
+        // slot and enabled the default-collaborative-view fallback, which applies
+        // that view's filters to the COUNT while the LIST stays unfiltered.
+        view: relColOptions.fk_target_view_id ? targetView : null,
         filters: filterObj,
         args,
         qb,
@@ -1866,6 +1861,11 @@ export const relationDataFetcher = (param: {
         await relColOptions.getChildColumn()
       ).getModel();
 
+      // NOTE: the list sibling resolves this from `isBt ? parentTable :
+      // childTable`. Leaving it as childTable here is inert because the guard
+      // below nulls the view unless fk_target_view_id is set, and in that case
+      // getChildView takes the View.get branch and ignores the table. Aligning
+      // it would need isBt hoisted above this call (it is declared later).
       const childView = await relColOptions.getChildView(childTable);
       const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
         dbDriver: baseModel.dbDriver,
@@ -1922,7 +1922,12 @@ export const relationDataFetcher = (param: {
 
       await refBaseModel.getCustomConditionsAndApply({
         column: relColumn,
-        view: childView,
+        // Guarded exactly as the matching LIST does. develop passed no table to
+        // getChildView here, so it returned a view only when fk_target_view_id was
+        // set; dropping the context arg shifted the optional table into the first
+        // slot and enabled the default-collaborative-view fallback, which applies
+        // that view's filters to the COUNT while the LIST stays unfiltered.
+        view: relColOptions.fk_target_view_id ? childView : null,
         filters: filterObj,
         args,
         qb,

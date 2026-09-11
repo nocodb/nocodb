@@ -336,7 +336,7 @@ export default class Base implements BaseType {
     // handing it the lookup scope returns an empty list. The base's own ids
     // are the correct scope here.
     const sources = await Source.list(
-      { workspace_id: this.fk_workspace_id, base_id: this.id },
+      { workspace_id: this.fk_workspace_id, base_id: this.id } as NcContext,
       { baseId: this.id },
       ncMeta,
     );

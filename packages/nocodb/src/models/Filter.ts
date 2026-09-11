@@ -1215,7 +1215,7 @@ export default class Filter implements FilterType {
     );
 
     return linkFilterRowsIntoTree(
-      (filterObjs ?? []).map((f) => this.castType(f)),
+      (filterObjs ?? []).map((f) => this.castType(f, context)),
     );
   }
 

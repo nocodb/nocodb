@@ -71,9 +71,6 @@ export const extractCorrespondingLinkColumn = async (
   for (const column of columnsInReferencedTable) {
     if (!isLinksOrLTAR(column)) continue;
 
-    const passContext =
-      column.base_id === refContext.base_id ? refContext : context;
-
     const refColOptions = await column.getColOptions();
 
     // Check if this column links back to the source table
@@ -642,12 +639,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           // groups by vChildCol (the current record's side) so all new links go
           // after the current record's existing links; parentOrderCol groups by
           // vParentCol (each linked record's side), appended per linked record.
-          const childOrderCol = await colOptions.getMMChildOrderColumn(
-            mmContext,
-          );
-          const parentOrderCol = await colOptions.getMMParentOrderColumn(
-            mmContext,
-          );
+          const childOrderCol = await colOptions.getMMChildOrderColumn();
+          const parentOrderCol = await colOptions.getMMParentOrderColumn();
           if (childOrderCol || parentOrderCol) {
             const currentSideVal =
               dataWrapper(row).getByColumnNameTitleOrId(childColumn);
@@ -1517,7 +1510,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     // junction-based links on NocoDB-managed sources. Its absence gates out
     // hm/bt, v1 links, and external junctions with a clear error.
     const { mmContext } = colOptions.getRelContext();
-    const orderCol = await colOptions.getMMChildOrderColumn(mmContext);
+    const orderCol = await colOptions.getMMChildOrderColumn();
     if (!orderCol) {
       NcError.get(context).unprocessableEntity(
         'This link does not support ordering',

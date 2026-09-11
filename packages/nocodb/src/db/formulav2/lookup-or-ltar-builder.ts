@@ -240,7 +240,7 @@ export const lookupOrLtarBuilder =
               const lookupCfg = await loadLookupSortAndLimit(context, column);
               const linkOrderCol = lookupCfg.hasConfig
                 ? null
-                : await relation.getMMChildOrderColumn(context);
+                : await relation.getMMChildOrderColumn();
               if (linkOrderCol) {
                 (selectQb as any)._ncLinkOrderRef = knex.raw('??', [
                   `${assocAlias}.${linkOrderCol.column_name}`,

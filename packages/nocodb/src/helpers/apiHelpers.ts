@@ -11,6 +11,18 @@ import {
 } from '~/helpers/ajvErrorFormatter';
 import swagger, { swaggerV3Validation } from '~/schema';
 
+// Express's `qs` parser turns `key[]=a&key[]=b` into an array only up to 20
+// entries (its default `arrayLimit`); beyond that it yields an object with
+// numeric keys, and a single value arrives as a bare string.
+export function normalizeArrayQueryParam(value: unknown): string[] | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (Array.isArray(value)) return value as string[];
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, string>);
+  }
+  return [String(value)];
+}
+
 export function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
   return milliseconds;

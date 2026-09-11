@@ -7,6 +7,7 @@ import type {
 } from '~/utils/internal-type';
 import { DataTableService } from '~/services/data-table.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { ViewsService } from '~/services/views.service';
@@ -233,21 +234,11 @@ export class UiGetOperations
             },
           }),
         );
-      case 'commentCount': {
-        // qs parses ids[]=a&ids[]=b as an array, but when >20 elements
-        // (qs arrayLimit default) it produces a plain object instead.
-        let ids = req.query.ids;
-        if (!Array.isArray(ids)) {
-          ids =
-            typeof ids === 'object' && ids !== null
-              ? Object.values(ids)
-              : [ids];
-        }
+      case 'commentCount':
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,
-          ids,
+          ids: normalizeArrayQueryParam(req.query.ids) ?? [],
         });
-      }
       case 'dataList':
         context.cache = true;
         return await this.dataTableService.dataList(context, {

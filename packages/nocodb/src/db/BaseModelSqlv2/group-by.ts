@@ -697,6 +697,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             return qbReplace.toQuery();
           }, groupedColQb.toQuery());
         }
+        // `finalStatement` is re-wrapped in `.raw()` below with no bindings; a
+        // `?` from a stored display_name would otherwise be re-read as a binding
+        // (second-order SQLi, GHSA-2j77). Every `?` here is literal — escape it.
+        finalStatement = finalStatement.replace(/\?/g, '\\?');
         if (!['asc', 'desc'].includes(sort.direction)) {
           outerQb.orderBy(
             'g.count',
@@ -822,6 +826,20 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     const columns = await baseModel.model.getColumns(baseModel.context);
 
+    // On a shared view, a hidden column's physical name must not resolve here
+    // any more than in `list()` — otherwise `/groupby/count` is a hidden-column
+    // existence / cardinality oracle (GHSA-rmxc, GHSA-r95v).
+    let exposedColumnIds: Set<string> | null = null;
+    if (isSharedViewAccess(baseModel.context) && baseModel.viewId) {
+      const view = await View.get(baseModel.context, baseModel.viewId);
+      if (view) {
+        exposedColumnIds = await getViewExposedColumnIds(baseModel.context, {
+          model: baseModel.model,
+          view,
+        });
+      }
+    }
+
     // todo: refactor and avoid duplicate code
     await Promise.all(
       args.column_name.split(',').map(async (col) => {
@@ -829,6 +847,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           (c) => c.column_name === col || c.title === col,
         );
         if (!column) {
+          NcError.get(baseModel.context).fieldNotFound(col);
+        }
+
+        // Same response as an unknown field — hidden stays indistinguishable
+        // from non-existent.
+        if (exposedColumnIds && !exposedColumnIds.has(column.id)) {
           NcError.get(baseModel.context).fieldNotFound(col);
         }
 

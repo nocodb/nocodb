@@ -97,13 +97,19 @@ export function validateAndNormalizeSqliteConfig(
   if (!config || typeof config !== 'object') return;
   const c: any = config;
 
-  const inner = c?.connection?.connection;
-  if (inner && typeof inner === 'object' && inner.filename != null) {
-    inner.filename = validateSqliteFilename(inner.filename);
-    return;
-  }
+  // Validate *every* filename key present, not just the first one found. The
+  // consumer (`Source.getConnectionConfig`) opens the OUTER key
+  // (`connection.filename`, falling back to `connection.connection.filename`),
+  // so a config carrying both keys was validated on the inner key and opened on
+  // the never-validated outer one — a bypass straight to the metadata DB.
   const conn = c?.connection;
-  if (conn && typeof conn === 'object' && conn.filename != null) {
-    conn.filename = validateSqliteFilename(conn.filename);
+  if (conn && typeof conn === 'object') {
+    if (conn.filename != null) {
+      conn.filename = validateSqliteFilename(conn.filename);
+    }
+    const inner = conn.connection;
+    if (inner && typeof inner === 'object' && inner.filename != null) {
+      inner.filename = validateSqliteFilename(inner.filename);
+    }
   }
 }

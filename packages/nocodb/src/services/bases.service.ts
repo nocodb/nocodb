@@ -347,6 +347,12 @@ export class BasesService {
       }
 
       for (const source of baseBody.sources || []) {
+        // `is_meta`/`is_local` make the source resolve its connection from
+        // NocoDB's own internal config (Source.getConnectionConfig) instead of
+        // `config`, pointing it at the metadata DB. Both are server-determined —
+        // never accept them from an inline source in the request body.
+        delete (source as any).is_meta;
+        delete (source as any).is_local;
         if (!source.fk_integration_id) {
           validateAndNormalizeSqliteConfig(source.config, source.type);
           const integration = await Integration.createIntegration(

@@ -46,7 +46,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
     needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder,
     users: Awaited<ReturnType<typeof BaseUser.getUsersList>>,
   ): Promise<string> {
-    return this.replaceDelimitedWithKeyValue({
+    const expr = this.replaceDelimitedWithKeyValue({
       knex,
       needleColumn,
       stack: users.map((user) => ({
@@ -54,6 +54,12 @@ export class UserGeneralHandler extends GenericFieldHandler {
         value: user.display_name || user.email,
       })),
     });
+    // Callers re-wrap this rendered string in `knex.raw(expr)` with no bindings.
+    // `.toQuery()` has already inlined every real placeholder, so any remaining
+    // `?` is literal data (e.g. from a stored `display_name`) — left unescaped
+    // it is re-read as a binding and steals the filter value (second-order SQLi,
+    // GHSA-2j77). Escape to a knex literal `?`, as parsed-tree-builder.ts does.
+    return expr.replace(/\?/g, '\\?');
   }
 
   /**

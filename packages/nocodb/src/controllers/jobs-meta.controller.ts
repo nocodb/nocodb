@@ -13,7 +13,9 @@ export class JobsMetaController {
   constructor(private readonly jobsMetaService: JobsMetaService) {}
 
   @Post(['/api/v2/jobs/:baseId'])
-  @Acl('jobList')
+  // blockPublicBaseAccess: an anonymous shared-base link holder must not be able
+  // to enumerate every user's job rows (ids + fk_user_id) for the base.
+  @Acl('jobList', { blockPublicBaseAccess: true })
   async jobList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

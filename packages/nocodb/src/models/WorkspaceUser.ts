@@ -80,7 +80,9 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
         `${MetaTable.WORKSPACE_USER}.fk_user_id`,
         `${MetaTable.WORKSPACE_USER}.roles`,
-        `${MetaTable.WORKSPACE_USER}.invite_token`,
+        // NEVER select `invite_token` into the roster — `workspaceUserList` is
+        // granted to viewers, and the same uuid is what signup validates, so
+        // exposing it here lets any member redeem a pending invite (GHSA-hm8p).
         `${MetaTable.WORKSPACE_USER}.deleted`,
       )
       .innerJoin(MetaTable.WORKSPACE_USER, function () {

@@ -433,7 +433,11 @@ export class PublicDatasService {
       includeRowColorColumns: query.include_row_color === 'true',
     });
 
-    const listArgs: any = { ...query };
+    // Sanitise before spreading into the service call: the raw query still
+    // carries `ignoreViewFilterAndSort` (a truthy string disables the view
+    // filter in both the group-key DISTINCT and the row query), plus the other
+    // service-option keys. `getAst` above was already sanitised; this was not.
+    const listArgs: any = sanitizePublicQuery({ ...query });
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}

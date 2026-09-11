@@ -29,7 +29,13 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
+import {
+  ApiToken,
+  OAuthToken,
+  PresignedUrl,
+  User,
+  UserRefreshToken,
+} from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { isTokenExpired } from '~/helpers/isTokenExpired';
@@ -271,6 +277,9 @@ export class UsersService {
     // delete all refresh token and populate a new one
     await UserRefreshToken.deleteAllUserToken(user.id);
     await this.revokeAllOAuthTokensByUser(user.id);
+    // API tokens (`xc-token`) carry full account capability and are not tied to
+    // `token_version`, so they survive a password change unless deleted here.
+    await ApiToken.deleteByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
@@ -325,8 +334,11 @@ export class UsersService {
         );
       }
 
-      await UserRefreshToken.deleteAllUserToken(user.id);
-      await this.revokeAllOAuthTokensByUser(user.id);
+      // Do NOT revoke refresh/OAuth tokens here — this endpoint is
+      // unauthenticated, so revoking at reset-REQUEST time lets an attacker
+      // repeatedly destroy a known user's long-lived credentials (denial of
+      // authentication, CWE-400/640). Revocation happens at reset COMPLETION
+      // in `passwordReset`, per the comment above.
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
         user: user,
@@ -415,6 +427,9 @@ export class UsersService {
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
     await this.revokeAllOAuthTokensByUser(user.id);
+    // API tokens survive password reset otherwise — a recovering user (likely
+    // reacting to a compromise) would keep every pre-existing `xc-token` valid.
+    await ApiToken.deleteByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,

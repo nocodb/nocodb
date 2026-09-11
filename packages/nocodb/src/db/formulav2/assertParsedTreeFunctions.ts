@@ -1,6 +1,25 @@
-import { formulas, JSEPNode } from 'nocodb-sdk';
+import {
+  ArithmeticOperators,
+  ComparisonOperators,
+  formulas,
+  JSEPNode,
+  StringOperators,
+} from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { getMappedFunctionNames } from '~/db/mapFunctionName';
+
+// A BinaryExpression's `operator` is interpolated verbatim into `knex.raw`
+// (parsed-tree-builder.ts: `${left} ${pt.operator} ${right}`) and is never
+// revalidated on a reused stored tree. The builder only ever *compares* it
+// against known operators, so a poisoned tree carrying
+// `operator: "; DROP ... --"` reaches raw SQL (GHSA-frqc, one field over from
+// the callee-name sink). Assert it against the exhaustive canonical set the
+// SDK defines for binary expressions.
+const ALLOWED_OPERATORS: ReadonlySet<string> = new Set<string>([
+  ...StringOperators,
+  ...ArithmeticOperators,
+  ...ComparisonOperators,
+]);
 
 // A saved formula's parsed_tree is produced by `validateFormulaAndExtractTreeWithType`,
 // which rejects any call whose function name is not in `formulas`
@@ -52,6 +71,14 @@ export function assertParsedTreeFunctions(node: unknown): void {
     if (!getAllowedFunctionNames().has(calleeName)) {
       NcError.formulaError(`Function ${calleeName} is not available`);
     }
+  }
+
+  if (
+    record.type === JSEPNode.BINARY_EXP &&
+    typeof record.operator === 'string' &&
+    !ALLOWED_OPERATORS.has(record.operator)
+  ) {
+    NcError.formulaError(`Operator ${record.operator} is not available`);
   }
 
   for (const key of Object.keys(record)) {

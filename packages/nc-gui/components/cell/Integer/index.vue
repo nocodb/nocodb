@@ -51,7 +51,7 @@ const displayValue = computed(() => {
   const colMeta = parseProp(column.value.meta)
 
   if (shouldAbbreviateNumber(colMeta)) {
-    return abbreviateNumber(Number(_vModel.value))
+    return abbreviateNumber(Number(_vModel.value), colMeta)
   }
 
   const separator = resolveColumnSeparator(colMeta)

@@ -72,16 +72,9 @@ if (!vModel.value.meta.separator) {
     dropdown-class-name="nc-dropdown-decimal-separator-format"
   />
 
-  <a-form-item>
-    <div class="flex items-center gap-1">
-      <NcSwitch
-        v-model:checked="vModel.meta.abbreviate"
-        v-e="['c:column:decimal:abbreviate:toggle']"
-        :disabled="disableConfiguration"
-        data-testid="nc-decimal-abbreviate"
-      >
-        <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.abbreviateNumbers') }}</div>
-      </NcSwitch>
-    </div>
-  </a-form-item>
+  <SmartsheetColumnAbbreviationSelect
+    v-model:value="vModel.meta.abbreviate"
+    :disabled="disableConfiguration"
+    dropdown-class-name="nc-dropdown-decimal-abbreviation-format"
+  />
 </template>

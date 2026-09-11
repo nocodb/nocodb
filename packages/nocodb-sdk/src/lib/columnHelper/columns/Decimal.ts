@@ -1,5 +1,6 @@
 import { SilentTypeConversionError } from '~/lib/error';
 import {
+  NumberAbbreviationType,
   parseDecimalValue,
   precisionFormats,
   SeparatorType,
@@ -16,7 +17,7 @@ export class DecimalHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[1],
     separator: SeparatorType.NonePeriod,
-    abbreviate: false,
+    abbreviate: NumberAbbreviationType.None,
   };
 
   serializeValue(

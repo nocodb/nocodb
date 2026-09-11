@@ -1,5 +1,6 @@
 import { SilentTypeConversionError } from '~/lib/error';
 import {
+  NumberAbbreviationType,
   parseCurrencyValue,
   precisionFormats,
   serializeCurrencyValue,
@@ -16,7 +17,7 @@ export class CurrencyHelper extends AbstractColumnHelper {
     currency_locale: 'en-US',
     currency_code: 'USD',
     precision: precisionFormats[2],
-    abbreviate: false,
+    abbreviate: NumberAbbreviationType.None,
   };
 
   serializeValue(

@@ -22,7 +22,7 @@ export const DecimalCellRenderer: CellRenderer = {
       const numValue = Number(roundUpToPrecision(Number(value), precision))
 
       if (shouldAbbreviateNumber(meta)) {
-        displayValue = abbreviateNumber(numValue, { precision })
+        displayValue = abbreviateNumber(numValue, meta, { precision })
       } else if (separator === SeparatorType.Locale) {
         displayValue = numValue.toLocaleString(undefined, {
           minimumFractionDigits: precision,

@@ -25,7 +25,7 @@ import {
 } from './separator';
 import {
   abbreviateNumber,
-  getCurrencyFormatOptions,
+  formatCurrencyValue,
   shouldAbbreviateNumber,
 } from './abbreviation';
 
@@ -60,7 +60,9 @@ export const parseIntValue = (
   }
 
   if (shouldAbbreviateNumber(columnMeta)) {
-    return abbreviateNumber(Number(value), { locale: options?.locale });
+    return abbreviateNumber(Number(value), columnMeta, {
+      locale: options?.locale,
+    });
   }
 
   if (separator === SeparatorType.Locale) {
@@ -100,7 +102,7 @@ export const parseDecimalValue = (
   }
 
   if (shouldAbbreviateNumber(columnMeta)) {
-    return abbreviateNumber(Number(value), {
+    return abbreviateNumber(Number(value), columnMeta, {
       precision,
       locale: options?.locale,
     });
@@ -200,10 +202,7 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
       columnMeta.precision ?? 2
     );
 
-    return new Intl.NumberFormat(
-      columnMeta.currency_locale || 'en-US',
-      getCurrencyFormatOptions(columnMeta)
-    ).format(+roundedValue);
+    return formatCurrencyValue(+roundedValue, columnMeta);
   } catch {
     return value;
   }

@@ -54,7 +54,7 @@ const displayValue = computed(() => {
   const numValue = Number(roundUpToPrecision(Number(_vModel.value), precision))
 
   if (shouldAbbreviateNumber(meta.value)) {
-    return abbreviateNumber(numValue, { precision })
+    return abbreviateNumber(numValue, meta.value, { precision })
   }
 
   if (separator === SeparatorType.Locale) {

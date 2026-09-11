@@ -172,18 +172,11 @@ const onPrecisionChange = (value: number) => {
     </a-col>
 
     <a-col :span="24" class="mt-4">
-      <a-form-item>
-        <div class="flex items-center gap-1">
-          <NcSwitch
-            v-model:checked="vModel.meta.abbreviate"
-            v-e="['c:column:currency:abbreviate:toggle']"
-            :disabled="isMoney && isPg"
-            data-testid="nc-currency-abbreviate"
-          >
-            <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.abbreviateNumbers') }}</div>
-          </NcSwitch>
-        </div>
-      </a-form-item>
+      <SmartsheetColumnAbbreviationSelect
+        v-model:value="vModel.meta.abbreviate"
+        :disabled="isMoney && isPg"
+        dropdown-class-name="nc-dropdown-currency-abbreviation-format"
+      />
     </a-col>
 
     <a-col v-if="isMoney && isPg">

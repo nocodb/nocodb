@@ -1,5 +1,10 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parseIntValue, SeparatorType, serializeIntValue } from '..';
+import {
+  NumberAbbreviationType,
+  parseIntValue,
+  SeparatorType,
+  serializeIntValue,
+} from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -11,7 +16,7 @@ import { ncIsNaN } from '~/lib/is';
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     separator: SeparatorType.NonePeriod,
-    abbreviate: false,
+    abbreviate: NumberAbbreviationType.None,
   };
 
   serializeValue(

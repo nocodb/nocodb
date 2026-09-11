@@ -3324,6 +3324,7 @@
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection",
     "jumpToSelected": "Jump to selected",
+    "abbreviateNumbers": "Abbreviate large numbers",
     "displayAsProgress": "Display as progress",
     "progressBarShape": "Progress bar shape",
     "progressShapeBar": "Bar",

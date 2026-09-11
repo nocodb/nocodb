@@ -16,6 +16,7 @@ export class DecimalHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[1],
     separator: SeparatorType.NonePeriod,
+    abbreviate: false,
   };
 
   serializeValue(

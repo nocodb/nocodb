@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import {
   SeparatorType,
+  abbreviateNumber,
   formatNumberWithSeparator,
   getSeparatorChars,
   resolveColumnSeparator,
   roundUpToPrecision,
+  shouldAbbreviateNumber,
 } from 'nocodb-sdk'
 
 interface Props {
@@ -30,6 +32,10 @@ const displayValue = computed(() => {
   const separator = resolveColumnSeparator(meta.value)
   const precision = meta.value.precision ?? 1
   const numValue = Number(roundUpToPrecision(Number(props.modelValue), precision))
+
+  if (shouldAbbreviateNumber(meta.value)) {
+    return abbreviateNumber(numValue, { precision })
+  }
 
   if (separator === SeparatorType.Locale) {
     return numValue.toLocaleString(undefined, {

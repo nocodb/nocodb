@@ -16,6 +16,7 @@ export class CurrencyHelper extends AbstractColumnHelper {
     currency_locale: 'en-US',
     currency_code: 'USD',
     precision: precisionFormats[2],
+    abbreviate: false,
   };
 
   serializeValue(

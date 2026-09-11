@@ -11,6 +11,7 @@ import { ncIsNaN } from '~/lib/is';
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     separator: SeparatorType.NonePeriod,
+    abbreviate: false,
   };
 
   serializeValue(

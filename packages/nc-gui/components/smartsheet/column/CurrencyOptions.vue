@@ -171,6 +171,21 @@ const onPrecisionChange = (value: number) => {
       </a-form-item>
     </a-col>
 
+    <a-col :span="24" class="mt-4">
+      <a-form-item>
+        <div class="flex items-center gap-1">
+          <NcSwitch
+            v-model:checked="vModel.meta.abbreviate"
+            v-e="['c:column:currency:abbreviate:toggle']"
+            :disabled="isMoney && isPg"
+            data-testid="nc-currency-abbreviate"
+          >
+            <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.abbreviateNumbers') }}</div>
+          </NcSwitch>
+        </div>
+      </a-form-item>
+    </a-col>
+
     <a-col v-if="isMoney && isPg">
       <span class="text-[#FB8C00]">{{ message }}</span>
     </a-col>

@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { SeparatorType, formatNumberWithSeparator, getSeparatorChars, resolveColumnSeparator } from 'nocodb-sdk'
+import {
+  SeparatorType,
+  abbreviateNumber,
+  formatNumberWithSeparator,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  shouldAbbreviateNumber,
+} from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -17,7 +24,13 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(props.modelValue))) return null
 
-  const separator = resolveColumnSeparator(parseProp(column.value.meta))
+  const colMeta = parseProp(column.value.meta)
+
+  if (shouldAbbreviateNumber(colMeta)) {
+    return abbreviateNumber(Number(props.modelValue))
+  }
+
+  const separator = resolveColumnSeparator(colMeta)
 
   if (separator === SeparatorType.Locale) {
     return Number(props.modelValue).toLocaleString()

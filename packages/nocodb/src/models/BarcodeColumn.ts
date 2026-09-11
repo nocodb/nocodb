@@ -14,7 +14,7 @@ import {
 export default class BarcodeColumn {
   id: string;
   fk_workspace_id?: string;
-  fk_base_id?: string;
+  base_id?: string;
   fk_column_id: string;
   fk_barcode_value_column_id: string;
   barcode_format: string;
@@ -27,10 +27,10 @@ export default class BarcodeColumn {
   get context(): NcContext {
     const ctx = getModelContext(this);
     if (ctx) return ctx;
-    if (this.fk_workspace_id && this.fk_base_id) {
+    if (this.fk_workspace_id && this.base_id) {
       return {
         workspace_id: this.fk_workspace_id,
-        base_id: this.fk_base_id,
+        base_id: this.base_id,
       } as NcContext;
     }
     throwMissingContext('BarcodeColumn');

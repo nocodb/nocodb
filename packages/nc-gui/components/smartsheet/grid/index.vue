@@ -954,7 +954,6 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :fetch-missing-group-aggregations="fetchMissingGroupAggregations"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
         :toggle-expand-all="toggleExpandAll"
-        @toggle-optimised-query="toggleOptimisedQuery"
         @bulk-update-dlg="bulkUpdateTrigger"
       />
 
@@ -988,7 +987,6 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :selected-rows="selectedRows"
         :row-sort-required-rows="isRowSortRequiredRows"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
-        @toggle-optimised-query="toggleOptimisedQuery"
         @bulk-update-dlg="bulkUpdateDlg = true"
       />
 

@@ -133,15 +133,17 @@ const isOptionVisible = computed(() => {
     <NcSubMenu
       v-if="isOptionVisible.apiDocs"
       key="api"
-      v-e="['e:api-docs']"
       data-testid="nc-sidebar-base-rest-apis"
       class="py-0"
       variant="small"
       @click.stop
     >
       <template #title>
-        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
-        {{ $t('activity.account.swagger') }}
+        <!-- v-e sits on the title element: NcSubMenu resolves to a fragment root, so a directive on it never runs -->
+        <div v-e="['e:api-docs']" class="flex flex-row items-center gap-x-2">
+          <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+          {{ $t('activity.account.swagger') }}
+        </div>
       </template>
 
       <NcMenuItem

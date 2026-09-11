@@ -1,6 +1,7 @@
 import type { FormDefinition, IntegrationsType, SyncCategory } from 'nocodb-sdk'
 import type { VNode } from '@vue/runtime-dom'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
+import { getI18n } from '~/plugins/a.i18n'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '#imports'
 
 export const integrationsInitialized = ref(false)
@@ -43,8 +44,8 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     isAvailable: true,
   },
   {
-    title: 'Auth Provider',
-    subtitle: 'Auth',
+    title: 'objects.integrationCategories.authProvider',
+    subtitle: 'objects.integrationCategories.authProviderSubtitle',
     value: IntegrationCategoryType.AUTH,
     isAvailable: true,
   },
@@ -468,3 +469,15 @@ export const allIntegrationsMapBySubType = allIntegrations.reduce((acc, integrat
 
   return acc
 }, {} as Record<(typeof allIntegrations)[number]['sub_type'], IntegrationItemType>)
+
+/**
+ * Static integrations carry an i18n key as their title/subtitle; dynamically registered ones
+ * (from an integration manifest) carry the display string itself. Translate only the former.
+ */
+export const integrationLabel = (value?: string) => {
+  if (!value) return ''
+
+  const { t, te } = getI18n().global
+
+  return te(value) ? t(value) : value
+}

@@ -919,8 +919,8 @@ interface NcListItemProps {
  * Props interface for the List component
  */
 interface NcListProps {
-  /** The currently selected value */
-  value: RawValueType
+  /** The currently selected value — absent/null while nothing is selected */
+  value?: RawValueType | null
   /** The list of items to display */
   list: NcListItemType[]
   /**

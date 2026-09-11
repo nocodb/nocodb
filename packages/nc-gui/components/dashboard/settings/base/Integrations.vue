@@ -122,7 +122,7 @@ const integrationsMap = computed(() => {
           (cat.value !== IntegrationCategoryType.AUTH ||
             !isSyncFeatureEnabled.value ||
             availableSyncAuthIntegrationSubtypes.value.includes(i.sub_type)) &&
-          (!query || t(i.title).toLowerCase().includes(query)),
+          (!query || integrationLabel(i.title).toLowerCase().includes(query)),
       ),
     }
   }
@@ -380,8 +380,8 @@ watch(baseId, reload)
                           <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                         </div>
                         <div class="flex-1">
-                          <div class="name">{{ $t(integration.title) }}</div>
-                          <div v-if="integration.subtitle" class="subtitle">{{ $t(integration.subtitle) }}</div>
+                          <div class="name">{{ integrationLabel(integration.title) }}</div>
+                          <div v-if="integration.subtitle" class="subtitle">{{ integrationLabel(integration.subtitle) }}</div>
                         </div>
                         <NcButton type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
                           <div class="flex items-center gap-2">

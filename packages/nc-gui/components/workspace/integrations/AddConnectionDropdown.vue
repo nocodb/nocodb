@@ -98,7 +98,7 @@ const integrationListItems = computed(() => {
     for (const integration of categoryIntegrations) {
       items.push({
         value: integration.sub_type,
-        label: t(integration.title),
+        label: integrationLabel(integration.title),
         ncGroupHeaderLabel: t(cat.title),
         integration,
         connectedCount: connectedCountMap.value[integration.sub_type] || 0,

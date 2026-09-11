@@ -1,11 +1,9 @@
 <script setup lang="ts">
 const { t } = useI18n()
 
-const { loadSetupApps, emailConfigured, storageConfigured, listModalDlg } = useAccountSetupStoreOrThrow()
+const { loadSetupApps, emailConfigured, storageConfigured } = useAccountSetupStoreOrThrow()
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
-
-const openedCategory = ref<string | null>(null)
 
 const navigateToSetup = (category: 'email' | 'storage', app?: string) => {
   if (isAdminPanel.value) {
@@ -122,7 +120,5 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-
-    <LazyAccountSetupListModal v-if="openedCategory" v-model="listModalDlg" :category="openedCategory" />
   </div>
 </template>

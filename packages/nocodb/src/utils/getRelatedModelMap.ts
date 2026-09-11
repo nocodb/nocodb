@@ -21,7 +21,7 @@ async function processColumn(
 
   if (!relatedModels.has(column.fk_model_id)) {
     const model = await Model.get(context, column.fk_model_id);
-    await model.getColumns(context);
+    await model.getColumns();
     relatedModels.set(column.fk_model_id, model);
   }
 
@@ -37,7 +37,7 @@ async function processColumn(
         targetContext,
         column.colOptions.fk_related_model_id,
       );
-      await relatedModel.getColumns(targetContext);
+      await relatedModel.getColumns();
       relatedModels.set(column.colOptions.fk_related_model_id, relatedModel);
     }
 
@@ -54,22 +54,17 @@ async function processColumn(
         targetContext,
         column.colOptions.fk_mm_model_id,
       );
-      await relatedModel.getColumns(targetContext);
+      await relatedModel.getColumns();
       relatedModels.set(column.colOptions.fk_mm_model_id, relatedModel);
     }
   }
   // Handle Lookup columns - traverse the entire lookup chain
   else if (column.uidt === UITypes.Lookup) {
-    const colOptions = await column.getColOptions<LookupColumn>(context);
+    const colOptions = await column.getColOptions<LookupColumn>();
     if (colOptions?.error) return;
-    const relationColOpt = await colOptions
-      .getRelationColumn(context)
-      .then((col) => {
-        return (
-          col?.colOptions ??
-          col?.getColOptions<LinkToAnotherRecordColumn>(context)
-        );
-      });
+    const relationColOpt = await colOptions.getRelationColumn().then((col) => {
+      return col?.colOptions ?? col?.getColOptions<LinkToAnotherRecordColumn>();
+    });
 
     // related model
     if (!relatedModels.has(relationColOpt.fk_related_model_id)) {
@@ -81,14 +76,14 @@ async function processColumn(
         targetContext,
         relationColOpt.fk_related_model_id,
       );
-      await relatedModel.getColumns(targetContext);
+      await relatedModel.getColumns();
       relatedModels.set(relationColOpt.fk_related_model_id, relatedModel);
     }
 
-    const { refContext } = relationColOpt.getRelContext(context);
+    const { refContext } = relationColOpt.getRelContext();
     await processColumn(
       refContext,
-      await colOptions?.getLookupColumn(refContext),
+      await colOptions?.getLookupColumn(),
       relatedModels,
     );
   }
@@ -100,7 +95,7 @@ export async function getRelatedModelMap(
 ): Promise<Map<string, Model>> {
   const relatedModels: Map<string, Model> = new Map();
 
-  await table.getColumns(context);
+  await table.getColumns();
 
   relatedModels.set(table.id, table);
 

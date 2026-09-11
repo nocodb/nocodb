@@ -54,7 +54,7 @@ export class ModelVisibilitiesService {
               });
             }
           } else {
-            await dataInDb.delete(context);
+            await dataInDb.delete();
           }
         } else if (d.disabled[role]) {
           await ModelRoleVisibility.insert(context, {
@@ -113,7 +113,7 @@ export class ModelVisibilitiesService {
     const result = await models.reduce(async (_obj, model) => {
       const obj = await _obj;
 
-      const views = await model.getViews(context);
+      const views = await model.getViews();
       for (const view of views) {
         obj[view.id] = {
           ptn: model.table_name,

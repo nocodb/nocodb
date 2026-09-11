@@ -59,7 +59,7 @@ export class GenericFieldHandler
     const columnName = await getColumnName(
       context,
       column,
-      await baseModel.model.getColumns(context),
+      await baseModel.model.getColumns(),
     );
 
     const tableName = alias || tnPath || '';

@@ -110,7 +110,7 @@ export class SourcesService {
         context,
         source.fk_integration_id,
       );
-      await source.delete(context, ncMeta);
+      await source.delete(ncMeta);
       this.appHooksService.emit(AppEvents.SOURCE_DELETE, {
         source: {
           ...source,
@@ -136,7 +136,7 @@ export class SourcesService {
   ) {
     try {
       const source = await Source.get(context, param.sourceId, false, ncMeta);
-      await source.softDelete(context, ncMeta);
+      await source.softDelete(ncMeta);
 
       source.config = undefined;
       source.integration_config = undefined;

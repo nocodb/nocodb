@@ -20,6 +20,7 @@ import {
   stripNaNSql,
 } from '~/db/formulav2/pg-ieee';
 import { Column, Filter } from '~/models';
+import { setModelContext } from '~/helpers/modelContext';
 
 // NaN satisfies no ordering comparison, but pg ranks it above every number, so
 // an unguarded `> 0` matches it. Only these operators need it filtered out —
@@ -41,11 +42,11 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     direction: 'asc' | 'desc',
     options: SortOptions,
   ): Promise<void> {
-    const { alias, nulls, baseModel: baseModelSqlv2, context } = options;
+    const { alias, nulls, baseModel: baseModelSqlv2 } = options;
     const knex = options.knex as CustomKnex;
-    const model = await column.getModel(context);
+    const model = await column.getModel();
 
-    const formulaOptions = await column.getColOptions<FormulaColumn>(context);
+    const formulaOptions = await column.getColOptions<FormulaColumn>();
 
     const parsedTree = formulaOptions.getParsedTree();
     // Pure literal — `ORDER BY '<literal>'` is meaningless and some
@@ -86,14 +87,13 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     options: FilterOptions,
   ) {
     const {
-      context,
       conditionParser: parseConditionV2,
       baseModel: baseModelSqlv2,
       alias,
       depth: aliasCount,
     } = options;
-    const model = await column.getModel(context);
-    const formula = await column.getColOptions<FormulaColumn>(context);
+    const model = await column.getModel();
+    const formula = await column.getColOptions<FormulaColumn>();
     const parsedTree: ParsedFormulaNode = formula.getParsedTree();
     const isIeeeCapable = isPgNumericFormula(baseModelSqlv2, parsedTree);
     let builder = (
@@ -149,22 +149,20 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
   ) {
     const uidt = parseProp(column.meta).display_type;
     if (uidt) {
-      const updatedColumn = new Column({
+      const updatedColumn = setModelContext(new Column({
         ...column,
         uidt: uidt,
-      } as ColumnType);
+      } as ColumnType), column.context);
       return options.fieldHandler.verifyFilter(filter, updatedColumn, options);
     } else {
-      const formulaCol = await column.getColOptions<FormulaColumn>(
-        options.context,
-      );
+      const formulaCol = await column.getColOptions<FormulaColumn>();
       const parsedTree = await formulaCol.getParsedTree();
 
       const setColumnTypeAndVerify = (type: UITypes) => {
-        const updatedColumn = new Column({
+        const updatedColumn = setModelContext(new Column({
           ...column,
           uidt: type,
-        } as ColumnType);
+        } as ColumnType), column.context);
         return options.fieldHandler.verifyFilter(
           filter,
           updatedColumn,

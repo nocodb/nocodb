@@ -61,7 +61,7 @@ export class MigrateService {
       NcError.get(context).sourceNotFound('Source not found!');
     }
 
-    const models = (await source.getModels(context)).filter(
+    const models = (await source.getModels()).filter(
       (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );
 

@@ -421,7 +421,7 @@ export class DataTableService {
     },
   ) {
     const pkColumns = await model
-      .getColumns(context)
+      .getColumns()
       .then((cols) => cols.filter((col) => col.pk));
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
@@ -448,7 +448,7 @@ export class DataTableService {
       return;
     }
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     const keys = new Set();
 
@@ -518,9 +518,9 @@ export class DataTableService {
     // projection in the related table's own context — otherwise `getAst` loads its
     // columns under the parent base, resolves none, and `nocoExecute` below strips
     // every field (returning empty `{}` records). Mirrors `getLinkedDataList`.
-    const { refContext } = colOptions.getRelContext(context);
+    const { refContext } = colOptions.getRelContext();
 
-    const relatedModel = await colOptions.getRelatedTable(refContext);
+    const relatedModel = await colOptions.getRelatedTable();
 
     // Strip caller-supplied where/sort references to columns the link doesn't expose
     // (cross-base / visibility-limited related tables). This is NOT the view-`show`
@@ -915,10 +915,10 @@ export class DataTableService {
 
     const colOptions = await assertLinkColOptions(context, column);
 
-    const { refContext } = await colOptions.getParentChildContext(context);
+    const { refContext } = await colOptions.getParentChildContext();
 
-    const relatedModel = await colOptions.getRelatedTable(refContext);
-    await relatedModel.getColumns(refContext);
+    const relatedModel = await colOptions.getRelatedTable();
+    await relatedModel.getColumns();
 
     if (!colOptions.fk_mm_model_id) {
       return { swapEntry: null, feResponse: undefined };
@@ -1656,7 +1656,7 @@ export class DataTableService {
 
     const colOptions = await assertLinkColOptions(context, relationColumn);
 
-    const { refContext } = colOptions.getRelContext(context);
+    const { refContext } = colOptions.getRelContext();
 
     return this.dataList(refContext, {
       query: {

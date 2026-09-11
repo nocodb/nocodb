@@ -138,7 +138,7 @@ export const bulkAggregate =
 
       const { where, aggregation } = baseModel._getListArgs(args);
 
-      const columns = await baseModel.model.getColumns(baseModel.context);
+      const columns = await baseModel.model.getColumns();
 
       const aggregateColumns = await resolveAggregateColumns({
         baseModel,
@@ -149,10 +149,33 @@ export const bulkAggregate =
         return {};
       }
 
-      const aliasColObjMap = await baseModel.model.getAliasColObjMap(
-        baseModel.context,
-        columns,
+      // execAndParse's `bulkAggregate` pass rewrites bare column-id keys to
+      // field titles; a suffixed key (a field asked for more than one
+      // aggregation) matches no column and is relabelled here instead.
+      const suffixedLabels = new Map(
+        aggregateColumns
+          .filter((spec) => spec.displayKey)
+          .map((spec) => [spec.resultKey, spec.displayKey]),
       );
+      const relabel = <T>(buckets: T): T => {
+        if (!suffixedLabels.size || !buckets || typeof buckets !== 'object') {
+          return buckets;
+        }
+        for (const bucket of Object.values(
+          buckets as Record<string, unknown>,
+        )) {
+          if (!bucket || typeof bucket !== 'object') continue;
+          const row = bucket as Record<string, unknown>;
+          for (const [key, label] of suffixedLabels) {
+            if (!(key in row)) continue;
+            row[label] = row[key];
+            delete row[key];
+          }
+        }
+        return buckets;
+      };
+
+      const aliasColObjMap = await baseModel.model.getAliasColObjMap(columns);
 
       const qb = baseModel.dbDriver(baseModel.tnPath);
 

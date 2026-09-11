@@ -26,7 +26,10 @@ import {
   getAs,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { BaseUser, Column, Filter, Sort } from '~/models';
+import { BaseUser, Column, Filter, Sort, View } from '~/models';
+import { isSharedViewAccess } from '~/helpers/accessSource';
+import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
+import { setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
 
@@ -162,7 +165,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
     const subGroupColumnName = args.subGroupColumnName;
 
-    const columns = await baseModel.model.getColumns(baseModel.context);
+    const columns = await baseModel.model.getColumns();
     const groupByColumns: Record<string, Column> = {};
 
     const selectors = [];
@@ -189,12 +192,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
       // if qrCode or Barcode replace it with value column nd keep the alias
       if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
-        column = new Column({
-          ...(await column
-            .getColOptions<BarcodeColumn | QrCodeColumn>(baseModel.context)
-            .then((col) => col.getValueColumn(baseModel.context))),
-          asId: column.id,
-        });
+        column = setModelContext(
+          new Column({
+            ...(await column
+              .getColOptions<BarcodeColumn | QrCodeColumn>()
+              .then((col) => col.getValueColumn())),
+            asId: column.id,
+          }),
+          baseModel.context,
+        );
       }
 
       const alias = getAs(column);
@@ -228,9 +234,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             await genRollupSelectv2({
               baseModelSqlv2: baseModel,
               knex: baseModel.dbDriver,
-              columnOptions: (await column.getColOptions(
-                baseModel.context,
-              )) as RollupColumn,
+              columnOptions: (await column.getColOptions()) as RollupColumn,
             })
           ).builder;
           if (!isSubGroup) {
@@ -492,10 +496,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       await baseModel.shuffle({ qb });
     }
 
-    const aliasColObjMap = await baseModel.model.getAliasColObjMap(
-      baseModel.context,
-      columns,
-    );
+    const aliasColObjMap = await baseModel.model.getAliasColObjMap(columns);
 
     let sorts = extractSortsObject(
       baseModel.context,
@@ -795,7 +796,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
 
-    const columns = await baseModel.model.getColumns(baseModel.context);
+    const columns = await baseModel.model.getColumns();
 
     // todo: refactor and avoid duplicate code
     await Promise.all(
@@ -809,12 +810,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         // if qrCode or Barcode replace it with value column nd keep the alias
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
-          column = new Column({
-            ...(await column
-              .getColOptions<BarcodeColumn | QrCodeColumn>(baseModel.context)
-              .then((col) => col.getValueColumn(baseModel.context))),
-            asId: column.id,
-          });
+          column = setModelContext(
+            new Column({
+              ...(await column
+                .getColOptions<BarcodeColumn | QrCodeColumn>()
+                .then((col) => col.getValueColumn())),
+              asId: column.id,
+            }),
+            baseModel.context,
+          );
 
         // See the equivalent normalization in `list` — V2 MO/OO group on the
         // linked display value, not on a link count.
@@ -836,9 +840,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           case UITypes.Rollup:
           case UITypes.Links: {
-            const rollupColOptions = (await column.getColOptions(
-              baseModel.context,
-            )) as RollupColumn;
+            const rollupColOptions =
+              (await column.getColOptions()) as RollupColumn;
             if (rollupColOptions?.error) {
               selectors.push(
                 baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
@@ -1069,10 +1072,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
     qb.select(...selectors);
 
-    const aliasColObjMap = await baseModel.model.getAliasColObjMap(
-      baseModel.context,
-      columns,
-    );
+    const aliasColObjMap = await baseModel.model.getAliasColObjMap(columns);
 
     const { filters: filterObj } = extractFilterFromXwhere(
       baseModel.context,

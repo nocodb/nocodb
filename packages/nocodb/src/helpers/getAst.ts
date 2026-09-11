@@ -217,8 +217,8 @@ const getAst = async (
   if (fields && fields !== '*') {
     fields = Array.isArray(fields) ? fields : fields.split(',');
     if (throwErrorIfInvalidParams) {
-      const colAliasMap = await model.getColAliasMapping(context);
-      const aliasColMap = await model.getAliasColObjMap(context);
+      const colAliasMap = await model.getColAliasMapping();
+      const aliasColMap = await model.getAliasColObjMap();
       const invalidFields = fields.filter(
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );
@@ -287,9 +287,7 @@ const getAst = async (
         col.uidt === UITypes.LinkToAnotherRecord ||
         (col.uidt === UITypes.Links && linksAsLtar)
       ) {
-        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-          context,
-        );
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
 
         if (!colOpt) {
           logger.warn(
@@ -299,7 +297,7 @@ const getAst = async (
           continue;
         }
 
-        const model = await colOpt.getRelatedTable(context);
+        const model = await colOpt.getRelatedTable();
 
         if (!model) {
           // Skip this column - related table not found
@@ -311,7 +309,7 @@ const getAst = async (
           continue;
         }
 
-        const { refContext: refTableContext } = colOpt.getRelContext(context);
+        const { refContext: refTableContext } = colOpt.getRelContext();
 
         const { ast: childAst } = await getAst(refTableContext, {
           model,
@@ -340,9 +338,7 @@ const getAst = async (
       col.uidt === UITypes.LinkToAnotherRecord ||
       (col.uidt === UITypes.Links && linksAsLtar)
     ) {
-      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-      );
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
 
       if (!colOpt) {
         logger.warn(
@@ -352,9 +348,9 @@ const getAst = async (
         continue;
       }
 
-      const { refContext: refTableContext } = colOpt.getRelContext(context);
+      const { refContext: refTableContext } = colOpt.getRelContext();
 
-      const model = await colOpt.getRelatedTable(context);
+      const model = await colOpt.getRelatedTable();
 
       if (!model) {
         // Skip this column - related table not found
@@ -458,8 +454,7 @@ const getButtonFilterFields = async (params: {
   const ncMeta = params.ncMeta ?? Noco.ncMeta;
 
   // Find all button columns in this table
-  if (!params.model.columns?.length)
-    await params.model.getColumns(params.context);
+  if (!params.model.columns?.length) await params.model.getColumns();
 
   let buttonColIds = params.model.columns
     .filter((col) => col.uidt === UITypes.Button)
@@ -543,14 +538,14 @@ const extractLookupDependencies = async (
   },
   _visited: Set<string> = new Set(),
 ) => {
-  const lookupColumnOpts = await lookUpColumn.getColOptions(context);
+  const lookupColumnOpts = await lookUpColumn.getColOptions();
   if (lookupColumnOpts?.error) return;
-  const relationColumn = await lookupColumnOpts.getRelationColumn(context);
+  const relationColumn = await lookupColumnOpts.getRelationColumn();
   if (!relationColumn) return;
   const relationColumnOpts =
-    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
   if (!relationColumnOpts) return;
-  const { refContext } = relationColumnOpts.getRelContext(context);
+  const { refContext } = relationColumnOpts.getRelContext();
   await extractRelationDependencies(context, relationColumn, dependencyFields);
 
   // Reuse the nested bucket for the relation column if one already exists. It
@@ -568,7 +563,7 @@ const extractLookupDependencies = async (
 
   await extractDependencies(
     refContext,
-    await lookupColumnOpts.getLookupColumn(refContext),
+    await lookupColumnOpts.getLookupColumn(),
     nestedDependencyFields,
     _visited,
   );
@@ -582,37 +577,29 @@ const extractRelationDependencies = async (
     fieldsSet: new Set(),
   },
 ) => {
-  const relationColumnOpts = await relationColumn.getColOptions(context);
+  const relationColumnOpts = await relationColumn.getColOptions();
   if (!relationColumnOpts) return;
 
   switch (relationColumnOpts.type) {
     case RelationTypes.HAS_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts
-          .getParentColumn(context)
-          .then((col) => col.title),
+        await relationColumnOpts.getParentColumn().then((col) => col.title),
       );
       break;
     case RelationTypes.BELONGS_TO:
     case RelationTypes.MANY_TO_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts
-          .getChildColumn(context)
-          .then((col) => col.title),
+        await relationColumnOpts.getChildColumn().then((col) => col.title),
       );
       break;
     case RelationTypes.ONE_TO_ONE:
       if (relationColumn.meta?.bt) {
         dependencyFields.fieldsSet.add(
-          await relationColumnOpts
-            .getChildColumn(context)
-            .then((col) => col.title),
+          await relationColumnOpts.getChildColumn().then((col) => col.title),
         );
       } else {
         dependencyFields.fieldsSet.add(
-          await relationColumnOpts
-            .getParentColumn(context)
-            .then((col) => col.title),
+          await relationColumnOpts.getParentColumn().then((col) => col.title),
         );
       }
       break;

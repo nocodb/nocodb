@@ -155,9 +155,7 @@ export class HooksService {
           hookId: hook.id,
         });
         const walk = async (f: Filter): Promise<Record<string, unknown>> => {
-          const children = f.is_group
-            ? (await f.getChildren(context)) ?? []
-            : [];
+          const children = f.is_group ? (await f.getChildren()) ?? [] : [];
           const childNodes = await Promise.all(
             children.map((c) => walk(c as Filter)),
           );
@@ -537,9 +535,7 @@ export class HooksService {
       includeUser?: boolean;
     },
   ) {
-    const model = new Model(
-      await Model.getByIdOrName(context, { id: param.tableId }),
-    );
+    const model = await Model.getByIdOrName(context, { id: param.tableId });
 
     if (param.version === 'v1') {
       return await populateSamplePayload(

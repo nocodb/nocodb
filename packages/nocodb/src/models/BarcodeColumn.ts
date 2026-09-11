@@ -5,6 +5,11 @@ import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { Column } from '~/models/index';
 import { NcError } from '~/helpers/catchError';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export default class BarcodeColumn {
   id: string;
@@ -17,6 +22,18 @@ export default class BarcodeColumn {
 
   constructor(data: Partial<BarcodeColumn>) {
     Object.assign(this, data);
+  }
+
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.fk_base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.fk_base_id,
+      } as NcContext;
+    }
+    throwMissingContext('BarcodeColumn');
   }
 
   public static async insert(
@@ -79,12 +96,15 @@ export default class BarcodeColumn {
       );
     }
 
-    return column ? new BarcodeColumn(column) : null;
+    if (!column) return null;
+    const instance = new BarcodeColumn(column);
+    setModelContext(instance, context);
+    return instance;
   }
 
-  async getValueColumn(context: NcContext, ncMeta = Noco.ncMeta) {
+  async getValueColumn(ncMeta = Noco.ncMeta) {
     return Column.get(
-      context,
+      this.context,
       {
         colId: this.fk_barcode_value_column_id,
       },

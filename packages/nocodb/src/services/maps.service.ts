@@ -124,7 +124,7 @@ export class MapsService {
       owner,
     });
 
-    await view.getView(context, ncMeta);
+    await view.getView(ncMeta);
 
     // Strip the stored bcrypt password hash from the outbound response.
     return View.maskPasswordForResponse(view);

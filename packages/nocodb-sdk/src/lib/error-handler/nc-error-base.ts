@@ -458,6 +458,12 @@ export class NcErrorBase {
     });
   }
 
+  contextAlreadySet(modelName: string): never {
+    return this.internalServerError(
+      `${modelName} instance already has context — setModelContext called twice`,
+    );
+  }
+
   systemMisconfigured(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_SYSTEM_MISCONFIGURED, {
       params: message,

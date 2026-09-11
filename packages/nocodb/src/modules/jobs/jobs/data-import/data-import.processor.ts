@@ -396,7 +396,7 @@ export class DataImportProcessor {
     const model = await Model.get(context, tableId);
     if (!model) NcError.tableNotFound(tableId);
     if (!tableName) tableName = model.title;
-    await model.getColumns(context);
+    await model.getColumns();
 
     // ── Create any user-requested new columns on the existing table before
     // resolving the map, then refresh so they're picked up below.
@@ -413,7 +413,7 @@ export class DataImportProcessor {
         req,
         log,
       });
-      await model.getColumns(context);
+      await model.getColumns();
     }
 
     // ── Build source-col → dest-col map
@@ -572,7 +572,7 @@ export class DataImportProcessor {
 
     const model = await Model.get(context, tableId);
     if (!model) NcError.tableNotFound(tableId);
-    await model.getColumns(context);
+    await model.getColumns();
 
     // Existing titles — a create request matching one of these maps to the
     // existing field instead of creating a duplicate.
@@ -626,7 +626,7 @@ export class DataImportProcessor {
 
     const created = new Map<string, ColumnType>();
     if (createdTitleBySource.size) {
-      await model.getColumns(context);
+      await model.getColumns();
       const byTitle = new Map<string, any>();
       for (const c of model.columns as any[]) {
         if (c.title) byTitle.set(c.title, c);
@@ -758,7 +758,7 @@ export class DataImportProcessor {
           (c) => c.id === ltarColMap[srcCol].colId,
         );
         if (!col) continue;
-        const colOpt = (await col.getColOptions(context)) as {
+        const colOpt = (await col.getColOptions()) as {
           fk_related_model_id?: string;
         } | null;
         if (colOpt?.fk_related_model_id === model.id) {

@@ -62,7 +62,7 @@ export async function resolveSharedViewQueryScope(
     view,
   });
   const columns = await Column.list(context, { fk_model_id: model.id });
-  const aliasColObjMap = await model.getAliasColObjMap(context, columns);
+  const aliasColObjMap = await model.getAliasColObjMap(columns);
 
   return { exposedColumnIds, columns, aliasColObjMap };
 }

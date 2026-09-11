@@ -41,7 +41,7 @@ export const aggregate =
 
       const { where, aggregation } = baseModel._getListArgs(args);
 
-      const columns = await baseModel.model.getColumns(baseModel.context);
+      const columns = await baseModel.model.getColumns();
 
       const aggregateColumns = await resolveAggregateColumns({
         baseModel,
@@ -52,10 +52,7 @@ export const aggregate =
         return {};
       }
 
-      const aliasColObjMap = await baseModel.model.getAliasColObjMap(
-        baseModel.context,
-        columns,
-      );
+      const aliasColObjMap = await baseModel.model.getAliasColObjMap(columns);
 
       const qb = baseModel.dbDriver(baseModel.tnPath);
 

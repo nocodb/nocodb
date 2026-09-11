@@ -17,6 +17,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
+import { setModelContext } from '~/helpers/modelContext';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
@@ -117,24 +118,22 @@ export async function nestedConditionJoin({
     const relationColumn =
       lookupColumn.uidt === UITypes.Lookup
         ? await (
-            await lookupColumn.getColOptions<LookupColumn>(context)
-          ).getRelationColumn(context)
+            await lookupColumn.getColOptions<LookupColumn>()
+          ).getRelationColumn()
         : lookupColumn;
     const relationColOptions =
-      await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+      await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
     const relAlias = `__nc${aliasCount.count++}`;
 
     const { parentContext, childContext, mmContext, refContext } =
-      await relationColOptions.getParentChildContext(context);
+      await relationColOptions.getParentChildContext();
 
-    const childColumn = await relationColOptions.getChildColumn(childContext);
-    const parentColumn = await relationColOptions.getParentColumn(
-      parentContext,
-    );
-    const childModel = await childColumn.getModel(childContext);
-    await childModel.getColumns(childContext);
-    const parentModel = await parentColumn.getModel(parentContext);
-    await parentModel.getColumns(parentContext);
+    const childColumn = await relationColOptions.getChildColumn();
+    const parentColumn = await relationColOptions.getParentColumn();
+    const childModel = await childColumn.getModel();
+    await childModel.getColumns();
+    const parentModel = await parentColumn.getModel();
+    await parentModel.getColumns();
 
     const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentModel,
@@ -246,13 +245,9 @@ export async function nestedConditionJoin({
           break;
         case 'mm':
           {
-            const mmModel = await relationColOptions.getMMModel(mmContext);
-            const mmParentColumn = await relationColOptions.getMMParentColumn(
-              mmContext,
-            );
-            const mmChildColumn = await relationColOptions.getMMChildColumn(
-              mmContext,
-            );
+            const mmModel = await relationColOptions.getMMModel();
+            const mmParentColumn = await relationColOptions.getMMParentColumn();
+            const mmChildColumn = await relationColOptions.getMMChildColumn();
 
             const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
               model: mmModel,
@@ -330,8 +325,8 @@ export async function nestedConditionJoin({
         baseModelSqlv2,
         filter,
         lookupColumn: await (
-          await lookupColumn.getColOptions<LookupColumn>(context)
-        ).getLookupColumn(refContext),
+          await lookupColumn.getColOptions<LookupColumn>()
+        ).getLookupColumn(),
         knex,
         alias: relAlias,
         aliasCount,
@@ -353,11 +348,14 @@ export async function nestedConditionJoin({
         case RelationTypes.HAS_MANY: {
           const filterOperationResult = await parseConditionV2(
             childBaseModel,
-            new Filter({
-              ...filter,
-              fk_model_id: childModel.id,
-              fk_column_id: displayCol?.id,
-            }),
+            setModelContext(
+              new Filter({
+                ...filter,
+                fk_model_id: childModel.id,
+                fk_column_id: displayCol?.id,
+              }),
+              context,
+            ),
             aliasCount,
             relAlias,
             undefined,
@@ -370,11 +368,14 @@ export async function nestedConditionJoin({
         case RelationTypes.BELONGS_TO: {
           const filterOperationResult = await parseConditionV2(
             parentBaseModel,
-            new Filter({
-              ...filter,
-              fk_model_id: parentModel.id,
-              fk_column_id: displayCol?.id,
-            }),
+            setModelContext(
+              new Filter({
+                ...filter,
+                fk_model_id: parentModel.id,
+                fk_column_id: displayCol?.id,
+              }),
+              context,
+            ),
             aliasCount,
             relAlias,
             undefined,
@@ -387,11 +388,14 @@ export async function nestedConditionJoin({
         case 'mm': {
           const filterOperationResult = await parseConditionV2(
             parentBaseModel,
-            new Filter({
-              ...filter,
-              fk_model_id: parentModel.id,
-              fk_column_id: displayCol?.id,
-            }),
+            setModelContext(
+              new Filter({
+                ...filter,
+                fk_model_id: parentModel.id,
+                fk_column_id: displayCol?.id,
+              }),
+              context,
+            ),
             aliasCount,
             relAlias,
             undefined,
@@ -406,11 +410,14 @@ export async function nestedConditionJoin({
   } else {
     const filterOperationResult = await parseConditionV2(
       baseModelSqlv2,
-      new Filter({
-        ...filter,
-        fk_model_id: (await lookupColumn.getModel(context)).id,
-        fk_column_id: lookupColumn?.id,
-      }),
+      setModelContext(
+        new Filter({
+          ...filter,
+          fk_model_id: (await lookupColumn.getModel()).id,
+          fk_column_id: lookupColumn?.id,
+        }),
+        context,
+      ),
       aliasCount,
       alias,
       undefined,

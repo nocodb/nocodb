@@ -157,7 +157,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
     const relationColumnOptions =
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
     // const relationModel = await relationColumn.getModel();
-    const { refContext, parentContext, childContext, mmContext } =
+    const { parentContext, childContext, mmContext } =
       await relationColumnOptions.getParentChildContext();
     const lookupColumn = await colOptions.getLookupColumn();
     const alias = getAlias(aliasCount);

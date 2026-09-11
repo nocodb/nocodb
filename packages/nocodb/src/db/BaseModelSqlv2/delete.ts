@@ -159,7 +159,7 @@ export class BaseModelDelete {
         continue;
       }
 
-      const { refContext, mmContext, parentContext, childContext } =
+      const { mmContext, parentContext, childContext } =
         await colOptions.getParentChildContext();
 
       // V1 BT: no FK cleanup (FK is on the deleted record itself),
@@ -802,7 +802,7 @@ export class BaseModelDelete {
         continue;
       }
 
-      const { refContext, mmContext, parentContext, childContext } =
+      const { mmContext, childContext } =
         await colOptions.getParentChildContext();
 
       // Skip V1 BT — deleted record is the child; parent's FK is unaffected

@@ -67,7 +67,9 @@ export default class Integration implements IntegrationType {
     setExternalDbSsrfEnforcement(isCloud);
   }
 
-  protected static castType(integration: Partial<IntegrationType>): Integration {
+  protected static castType(
+    integration: Partial<IntegrationType>,
+  ): Integration {
     return integration && new Integration(integration);
   }
 

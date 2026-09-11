@@ -39,7 +39,6 @@ export interface SwaggerGenerationResult {
  * - Prepares views data for each model
  */
 export async function prepareSwaggerGenerationData({
-  context,
   models,
   sourcesMap,
   ncMeta = Noco.ncMeta,

@@ -125,7 +125,7 @@ export async function nestedConditionJoin({
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
     const relAlias = `__nc${aliasCount.count++}`;
 
-    const { parentContext, childContext, mmContext, refContext } =
+    const { parentContext, childContext, mmContext } =
       await relationColOptions.getParentChildContext();
 
     const childColumn = await relationColOptions.getChildColumn();

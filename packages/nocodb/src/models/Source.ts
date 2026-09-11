@@ -540,12 +540,7 @@ export default class Source implements SourceType {
     };
 
     for (const model of models) {
-      for (const col of await model.getColumns(
-        ncMeta,
-        undefined,
-        true,
-        true,
-      )) {
+      for (const col of await model.getColumns(ncMeta, undefined, true, true)) {
         let colOptionTableName = null;
         let cacheScopeName = null;
         switch (col.uidt) {

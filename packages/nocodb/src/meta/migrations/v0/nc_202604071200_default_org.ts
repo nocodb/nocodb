@@ -182,7 +182,9 @@ export async function up(knex: Knex) {
   }
 
   console.log(
-    `[nc_202604071200_default_org] Step 1 completed in ${Date.now() - step1Start}ms`,
+    `[nc_202604071200_default_org] Step 1 completed in ${
+      Date.now() - step1Start
+    }ms`,
   );
 
   // Step 2: Create default org for on-prem / CE (idempotent)
@@ -249,7 +251,9 @@ export async function up(knex: Knex) {
   }
 
   console.log(
-    `[nc_202604071200_default_org] Step 2 completed in ${Date.now() - step2Start}ms`,
+    `[nc_202604071200_default_org] Step 2 completed in ${
+      Date.now() - step2Start
+    }ms`,
   );
 
   // Step 3: Backfill cloud orgs — add workspace users to nc_org_users
@@ -287,11 +291,15 @@ export async function up(knex: Knex) {
   }
 
   console.log(
-    `[nc_202604071200_default_org] Step 3 completed in ${Date.now() - step3Start}ms`,
+    `[nc_202604071200_default_org] Step 3 completed in ${
+      Date.now() - step3Start
+    }ms`,
   );
 
   console.log(
-    `[nc_202604071200_default_org] Migration completed in ${Date.now() - migrationStart}ms`,
+    `[nc_202604071200_default_org] Migration completed in ${
+      Date.now() - migrationStart
+    }ms`,
   );
 }
 

@@ -718,7 +718,6 @@ export const getRefColumnIfAlias = async (
 };
 
 export const travelLookupColumn = async ({
-  context,
   column,
 }: {
   context: NcContext;

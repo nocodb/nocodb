@@ -149,20 +149,26 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
   ) {
     const uidt = parseProp(column.meta).display_type;
     if (uidt) {
-      const updatedColumn = setModelContext(new Column({
-        ...column,
-        uidt: uidt,
-      } as ColumnType), column.context);
+      const updatedColumn = setModelContext(
+        new Column({
+          ...column,
+          uidt: uidt,
+        } as ColumnType),
+        column.context,
+      );
       return options.fieldHandler.verifyFilter(filter, updatedColumn, options);
     } else {
       const formulaCol = await column.getColOptions<FormulaColumn>();
       const parsedTree = await formulaCol.getParsedTree();
 
       const setColumnTypeAndVerify = (type: UITypes) => {
-        const updatedColumn = setModelContext(new Column({
-          ...column,
-          uidt: type,
-        } as ColumnType), column.context);
+        const updatedColumn = setModelContext(
+          new Column({
+            ...column,
+            uidt: type,
+          } as ColumnType),
+          column.context,
+        );
         return options.fieldHandler.verifyFilter(
           filter,
           updatedColumn,

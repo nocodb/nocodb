@@ -53,10 +53,13 @@ export async function getColumnNameQuery({
     if (!valueColumn) {
       return { builder: NC_ERROR_SENTINEL };
     }
-    column = setModelContext(new Column({
-      ...valueColumn,
-      id: column.id,
-    }), context);
+    column = setModelContext(
+      new Column({
+        ...valueColumn,
+        id: column.id,
+      }),
+      context,
+    );
   }
 
   let column_name_query: any = column.column_name;

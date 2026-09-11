@@ -362,7 +362,6 @@ export class TablesService {
     // Source of truth for the actor — every caller passes `req`.
     const user = param.req?.user as User;
 
-
     let result;
     let placeholderRefTables: Map<string, Model>;
     let table: Model;
@@ -382,12 +381,7 @@ export class TablesService {
       await table.getColumns(ncMeta, undefined, true, true);
 
       if (table.mm && !param.forceDeleteSyncs) {
-        const columns = await table.getColumns(
-          ncMeta,
-          undefined,
-          true,
-          true,
-        );
+        const columns = await table.getColumns(ncMeta, undefined, true, true);
 
         // get table names of the relation which uses the current table as junction table
         const tables = await Promise.all(
@@ -399,19 +393,17 @@ export class TablesService {
         // get relation column names
         const relColumns = await Promise.all(
           tables.map((t) => {
-            return t
-              .getColumns()
-              .then((cols) => {
-                return cols.find((c) => {
-                  return (
-                    isLinksOrLTAR(c) &&
-                    (c.colOptions as LinkToAnotherRecordColumn).type ===
-                      RelationTypes.MANY_TO_MANY &&
-                    (c.colOptions as LinkToAnotherRecordColumn)
-                      .fk_mm_model_id === table.id
-                  );
-                });
+            return t.getColumns().then((cols) => {
+              return cols.find((c) => {
+                return (
+                  isLinksOrLTAR(c) &&
+                  (c.colOptions as LinkToAnotherRecordColumn).type ===
+                    RelationTypes.MANY_TO_MANY &&
+                  (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
+                    table.id
+                );
               });
+            });
           }),
         );
 

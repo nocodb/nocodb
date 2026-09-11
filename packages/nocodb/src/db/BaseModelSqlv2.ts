@@ -118,8 +118,8 @@ import {
   extractLinkFieldsByTitle,
   extractSortsObject,
   formatDataForAudit,
-  getBaseModelSqlFromModelId,
   getAs,
+  getBaseModelSqlFromModelId,
   getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
@@ -2297,7 +2297,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>();
 
-        const { mmContext, refContext, parentContext, childContext } =
+        const { mmContext, refContext, parentContext } =
           await colOptions.getParentChildContext();
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
@@ -2643,7 +2643,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const colOptions =
         (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
-      const { childContext, parentContext, mmContext } =
+      const { childContext, mmContext } =
         await colOptions.getParentChildContext();
 
       const childColumn = await colOptions.getChildColumn();
@@ -8109,7 +8109,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return d;
   }
 
-  public async getNestedColumn(column: Column, context = this.context) {
+  public async getNestedColumn(column: Column, _context = this.context) {
     if (!column)
       return {
         uidt: UITypes.SingleLineText,

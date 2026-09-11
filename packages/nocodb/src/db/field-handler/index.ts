@@ -654,8 +654,6 @@ export class FieldHandler implements IFieldHandler {
     // can be executed when awaited
   }): Promise<void> {
     const baseModel = params.options?.baseModel ?? this.info.baseModel;
-    const context =
-      params.options?.context ?? this.info.context ?? baseModel.context;
     const knex = baseModel.dbDriver;
     const dbClientType = (knex.clientType?.() ??
       knex.client.config.client) as ClientType;

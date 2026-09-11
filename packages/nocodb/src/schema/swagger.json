@@ -21998,6 +21998,7 @@
           "auth",
           "sync",
           "communication",
+          "channel",
           "spread-sheet",
           "project-management",
           "crm",
@@ -25736,17 +25737,29 @@
           },
           "dependency_linkrow_role": {
             "type": "string",
-            "enum": ["predecessors", "successors"],
+            "enum": [
+              "predecessors",
+              "successors"
+            ],
             "description": "Whether the linkrow field links to predecessors or successors"
           },
           "dependency_connection_type": {
             "type": "string",
-            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"],
+            "enum": [
+              "end-to-start",
+              "end-to-end",
+              "start-to-end",
+              "start-to-start"
+            ],
             "description": "Which date from predecessor drives which date in successor"
           },
           "dependency_buffer_type": {
             "type": "string",
-            "enum": ["flexible", "fixed", "none"],
+            "enum": [
+              "flexible",
+              "fixed",
+              "none"
+            ],
             "description": "Type of buffer between predecessor end and successor start"
           },
           "dependency_buffer_days": {
@@ -25786,15 +25799,27 @@
           },
           "dependency_linkrow_role": {
             "type": "string",
-            "enum": ["predecessors", "successors"]
+            "enum": [
+              "predecessors",
+              "successors"
+            ]
           },
           "dependency_connection_type": {
             "type": "string",
-            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"]
+            "enum": [
+              "end-to-start",
+              "end-to-end",
+              "start-to-end",
+              "start-to-start"
+            ]
           },
           "dependency_buffer_type": {
             "type": "string",
-            "enum": ["flexible", "fixed", "none"]
+            "enum": [
+              "flexible",
+              "fixed",
+              "none"
+            ]
           },
           "dependency_buffer_days": {
             "type": "integer",
@@ -29063,6 +29088,14 @@
             "description": "Access token version",
             "type": "string"
           },
+          "blocked": {
+            "type": "boolean",
+            "description": "Set to true when the user has been blocked by an administrator."
+          },
+          "blocked_reason": {
+            "type": "string",
+            "description": "Operator-facing reason a user was blocked. Never echoed to the blocked user."
+          },
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Meta data for user"
@@ -30502,7 +30535,12 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["daily", "weekly", "monthly", "cron"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "cron"
+            ],
             "description": "Schedule frequency preset or custom cron"
           },
           "config": {
@@ -31124,7 +31162,18 @@
           "resource_type": {
             "type": "string",
             "description": "Type of the trashed resource",
-            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook"]
+            "enum": [
+              "table",
+              "view",
+              "field",
+              "dashboard",
+              "widget",
+              "script",
+              "workflow",
+              "extension",
+              "record",
+              "hook"
+            ]
           },
           "resource_id": {
             "$ref": "#/components/schemas/Id",

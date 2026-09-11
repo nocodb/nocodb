@@ -275,3 +275,46 @@ export function isTransientError(error: any): boolean {
 
   return false;
 }
+
+// The messages `NcError._.externalError` / `externalTimeOut` raise for a failed
+// external query, as they are persisted on a formula column. Matched on text
+// because that is all a stored error keeps.
+const EXTERNAL_SOURCE_MESSAGES = [
+  /error running query on external source/i,
+  /external source is not reachable/i,
+  /external source taking long to respond/i,
+  /response from the external source is too large/i,
+];
+
+/**
+ * True when the read failed at the external source rather than in a formula.
+ *
+ * The read path retries a failed read with `validateFormula` on to find out
+ * *which* formula is broken. When the source itself is the thing that failed,
+ * that retry can learn nothing: it dry-runs every formula against the same
+ * failing source, one query and one logged stack per formula per record. On a
+ * base whose source is down that turns a single read into an unbounded fan-out
+ * — the amplifier behind the 2026-09-08 pod OOMs.
+ *
+ * `isTransientError` covers the timeout half; this covers the other half, where
+ * the source answers but the query cannot run (wrong schema, missing table,
+ * result too large to buffer).
+ *
+ * Accepts a bare message too: a column's persisted `error` is a string, and it
+ * is the only thing left to classify once the throw is long gone.
+ */
+export function isExternalSourceError(error: any): boolean {
+  if (
+    error instanceof NcBaseErrorv2 &&
+    [
+      NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE,
+      NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT,
+    ].includes(error.error)
+  ) {
+    return true;
+  }
+
+  const message = typeof error === 'string' ? error : error?.message;
+
+  return EXTERNAL_SOURCE_MESSAGES.some((pattern) => pattern.test(`${message}`));
+}

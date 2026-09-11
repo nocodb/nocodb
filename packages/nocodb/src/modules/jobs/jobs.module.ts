@@ -116,7 +116,14 @@ export const JobsModuleMetadata = {
     PgSourceSearchPathBackfillMigration,
     CreditPlanBackfillMigration,
   ],
-  exports: ['JobsService', JobsLogService, DuplicateProcessor],
+  exports: [
+    'JobsService',
+    JobsLogService,
+    DuplicateProcessor,
+    // The MCP server lives in NocoModule, which imports JobsModule — it can
+    // only resolve what JobsModule exports.
+    DuplicateService,
+  ],
 };
 
 @Module(JobsModuleMetadata)

@@ -80,6 +80,7 @@ export { default as Widget } from './Widget';
 export { default as Interface } from './Interface';
 export { default as InterfacePage } from './InterfacePage';
 export { default as Workflow } from './Workflow';
+export { default as Agent } from './Agent';
 export { default as ChatSession } from './ChatSession';
 export { default as ChatMessage } from './ChatMessage';
 export { default as DateDependency } from './DateDependency';

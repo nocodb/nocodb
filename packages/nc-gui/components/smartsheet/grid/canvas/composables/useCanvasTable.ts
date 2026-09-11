@@ -92,6 +92,7 @@ export function useCanvasTable({
   groupSyncCount: syncGroupCount,
   groupByColumns,
   fetchMissingGroupChunks,
+  fetchMissingGroupAggregations,
   getDataCache,
   maxSelectionLimit,
 }: {
@@ -183,6 +184,7 @@ export function useCanvasTable({
   toggleExpand: (group: CanvasGroup) => void
   groupSyncCount: (group?: CanvasGroup) => Promise<void>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
+  fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -1396,6 +1398,7 @@ export function useCanvasTable({
     totalColumnsWidth,
     getDataCache,
     fetchMissingGroupChunks,
+    fetchMissingGroupAggregations,
     getRows,
     draggedRowGroupPath,
     isAddingEmptyRowAllowed,

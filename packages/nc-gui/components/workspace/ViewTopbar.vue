@@ -37,7 +37,7 @@ const activeTabLabel = computed(() => {
     case 'integrations':
       return t('general.integrations')
     case 'admin':
-      return t('labels.admin')
+      return t('labels.settings')
     default:
       return t('objects.projects')
   }

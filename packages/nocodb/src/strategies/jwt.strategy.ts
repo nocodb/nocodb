@@ -29,6 +29,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       NcError.get().unauthorized('Token Expired. Please login again.');
     }
 
+    User.assertNotBlocked(user);
+
     if (
       !user.token_version ||
       !jwtPayload.token_version ||

@@ -5,7 +5,7 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 
-const roleScopes = {
+export const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
@@ -25,7 +25,7 @@ const roleScopes = {
 };
 
 // todo: convert to enum
-const permissionScopes = {
+export const permissionScopes = {
   org: [
     // API Tokens
     'apiTokenList',
@@ -54,6 +54,8 @@ const permissionScopes = {
     // Plugin
     'isPluginActive',
     'pluginList',
+    'aggregatedMetaInfo',
+    'webhookPluginList',
     'pluginTest',
     'pluginRead',
     'pluginUpdate',
@@ -120,7 +122,6 @@ const permissionScopes = {
 
     // Misc
     'duplicateSharedBase',
-    'webhookPluginList',
 
     // AI
     'aiSchema',
@@ -414,7 +415,6 @@ const rolePermissions:
     include: {
       baseCreate: true,
       duplicateSharedBase: true,
-      webhookPluginList: true,
       integrationGet: true,
       integrationCreate: true,
       integrationDelete: true,
@@ -508,8 +508,6 @@ const rolePermissions:
       commentCount: true,
       recordAuditList: true,
 
-      userInvite: true,
-
       // MCP CRUD
       mcpList: true,
       mcpCreate: true,
@@ -526,6 +524,11 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
+      // Expanding base membership is not a read-only action; Viewer and
+      // Commenter must not reach it. `include` inherits forward, so Creator
+      // and Owner still get it from here.
+      userInvite: true,
+
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -845,6 +848,7 @@ const permissionDescriptions: Record<string, string> = {
   orgWorkspaceAdd: 'add a new workspace',
   orgGet: 'view organization details',
   orgWorkspaceList: 'view list of workspaces in the organization',
+  orgUsageList: 'view per-workspace usage across the organization',
   orgUserList: 'view list of users in the organization',
   orgBaseList: 'view list of bases in the organization',
   orgSsoClientList: 'view list of SSO clients in the organization',
@@ -877,6 +881,7 @@ const permissionDescriptions: Record<string, string> = {
 
   isPluginActive: 'check if a plugin is active',
   pluginList: 'view list of plugins',
+  aggregatedMetaInfo: 'view instance-wide aggregated metadata',
   pluginTest: 'test a plugin',
   pluginRead: 'read plugin configuration',
   pluginUpdate: 'update plugin configuration',

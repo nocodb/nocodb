@@ -55,6 +55,8 @@ import { NcCache } from '~/decorators/nc-cache.decorator';
 import {
   modelOrViewNotDeletedXcCondition,
   modelOrViewXcCondition,
+  tableBackedModelNotDeletedXcCondition,
+  tableBackedModelXcCondition,
 } from '~/utils/trashUtils';
 
 const logger = new Logger('Model');
@@ -429,6 +431,10 @@ export default class Model implements TableType {
       }
     }
 
+    modelList = modelList.filter(
+      (m) => m.type === ModelTypes.TABLE || m.type === ModelTypes.VIEW,
+    );
+
     if (!includeDeleted) {
       modelList = modelList.filter((m) => !m.deleted);
     }
@@ -465,7 +471,7 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         id,
         undefined,
-        modelOrViewXcCondition,
+        tableBackedModelXcCondition,
       );
 
       if (modelData) {
@@ -573,7 +579,7 @@ export default class Model implements TableType {
           table_name,
         },
         undefined,
-        modelOrViewNotDeletedXcCondition,
+        tableBackedModelNotDeletedXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);

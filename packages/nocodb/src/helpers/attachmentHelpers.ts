@@ -105,13 +105,55 @@ export const imageMimeTypes = [
   'image/x-emf',
   'image/x-wmf',
 ];
-const previewableMimeTypes = [...imageMimeTypes, 'pdf', 'video', 'audio'];
+// Lower-cased: lookups normalize case, and a few entries (`image/jxrA`,
+// `image/jxrS`) carry uppercase letters that would otherwise never match.
+const previewableImageMimeTypes = new Set(
+  imageMimeTypes.map((type) => type.toLowerCase()),
+);
+
+/**
+ * Decide whether an attachment may be served inline (previewed) in the browser.
+ *
+ * Security-critical: a positive result causes the file to be served with
+ * `Content-Disposition: inline` and its (client-supplied) content type, so it
+ * MUST NOT accept anything the browser could render as an active document
+ * (e.g. `text/html`, `image/svg+xml`, JS). We match on the exact media type —
+ * NOT a substring — because the stored mimetype is attacker-controlled and a
+ * substring match let a compound value such as `text/html; image/png` (or
+ * `text/html;pdf`) pass while the browser parses the leading `text/html`.
+ */
+function isPreviewableMimeType(mimetype: unknown): boolean {
+  // The stored value is client-supplied and not guaranteed to be a string (a
+  // repeated query param arrives as an array), so narrow before splitting.
+  if (typeof mimetype !== 'string') return false;
+
+  // Consider only the media type, dropping any parameters (`; charset=...`).
+  // Reject compound values (comma / whitespace) outright — a legitimate media
+  // type never contains them, but they are how the substring bypass smuggled
+  // `text/html` past this check.
+  const mediaType = mimetype.split(';')[0].trim().toLowerCase();
+
+  if (!mediaType || /[\s,]/.test(mediaType)) return false;
+
+  const topLevel = mediaType.split('/')[0];
+
+  if (topLevel === 'image') {
+    // SVG is intentionally excluded — it can carry active script.
+    return (
+      mediaType !== 'image/svg+xml' && previewableImageMimeTypes.has(mediaType)
+    );
+  }
+
+  if (mediaType === 'application/pdf') return true;
+
+  return topLevel === 'video' || topLevel === 'audio';
+}
 
 export function isPreviewAllowed(args: { mimetype?: string; path?: string }) {
   const { mimetype, path } = args;
 
   if (mimetype) {
-    return previewableMimeTypes.some((type) => mimetype.includes(type));
+    return isPreviewableMimeType(mimetype);
   } else if (path) {
     const ext = path.split('.').pop();
 
@@ -120,7 +162,7 @@ export function isPreviewAllowed(args: { mimetype?: string; path?: string }) {
 
     if (extWithoutQuery) {
       const mimeType = mime.getType(extWithoutQuery);
-      return previewableMimeTypes.some((type) => mimeType?.includes(type));
+      return mimeType ? isPreviewableMimeType(mimeType) : false;
     }
   }
 
@@ -135,6 +177,23 @@ export function validateAndNormaliseLocalPath(
   fileOrFolderPath = slash(fileOrFolderPath);
 
   const toolDir = getToolDir();
+
+  // Defense-in-depth only: every caller today reaches this via `path.join(...)`,
+  // which already collapses `..` before we see it. It still guards the storage
+  // adapters (`Local.ts`), which take a raw `key` straight from the caller.
+  // Legitimate storage keys never contain `..`.
+  if (
+    fileOrFolderPath
+      .replace(toolDir, '')
+      .split('/')
+      .some((segment) => segment === '..')
+  ) {
+    if (throw404) {
+      NcError.notFound();
+    } else {
+      NcError.badRequest('Invalid path');
+    }
+  }
 
   // Get the absolute path to the base directory
   const absoluteBasePath = path.resolve(toolDir, 'nc');
@@ -380,6 +439,7 @@ export async function serveStoredAttachment(
     }
 
     res.setHeader('Cache-Control', opts.cacheControl);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
     if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
       res.sendFile(file.path);

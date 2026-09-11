@@ -50,6 +50,8 @@ export default class User implements UserType {
   blocked?: boolean;
   blocked_reason?: string;
 
+  created_at?: string;
+
   is_new_user?: boolean;
   canonical_email?: string;
 
@@ -144,6 +146,8 @@ export default class User implements UserType {
       'totp_secret',
       'totp_enabled',
       'totp_backup_codes',
+      'blocked',
+      'blocked_reason',
     ]);
 
     if (updateObj.email) {
@@ -586,6 +590,13 @@ export default class User implements UserType {
     );
 
     await this.clearCache(userId, ncMeta);
+  }
+
+  // Called from auth-resolution paths only (not getWithRoles, whose callers
+  // resolve target users). Never echoes blocked_reason to the subject.
+  static assertNotBlocked(user: { blocked?: boolean }): void {
+    if (!user?.blocked) return;
+    NcError.unauthorized('User is blocked. Please contact administrator.');
   }
 
   static async getWithRoles(

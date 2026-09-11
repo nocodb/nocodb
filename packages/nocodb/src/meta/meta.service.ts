@@ -127,6 +127,8 @@ export class MetaService {
       case MetaTable.AUDIT:
         return Noco._ncAudit?.knexInstance;
       case MetaTable.CHAT_MESSAGES:
+      case MetaTable.CHAT_ARTIFACTS:
+      case MetaTable.AGENT_MESSAGES:
         return Noco._ncChatMessages?.knexInstance;
       case MetaTable.DOC_CONTENT:
       case MetaTable.DOC_REVISIONS:
@@ -204,6 +206,7 @@ export class MetaService {
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.BASE_SECTIONS]: 'sec',
       [MetaTable.AUTOMATION_SECTIONS]: 'asec',
+      [MetaTable.AGENT_SECTIONS]: 'agsec',
       [MetaTable.WIDGETS]: 'wgt',
       [MetaTable.INTERFACES]: 'itf',
       [MetaTable.INTERFACE_PAGES]: 'pag',
@@ -227,6 +230,14 @@ export class MetaService {
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
       [MetaTable.CHAT_SESSIONS]: 'cs',
       [MetaTable.CHAT_MESSAGES]: 'cm',
+      [MetaTable.CHAT_ARTIFACTS]: 'cha',
+      [MetaTable.AGENTS]: 'agt',
+      [MetaTable.AGENT_SESSIONS]: 'agss',
+      [MetaTable.AGENT_CHANNELS]: 'agch',
+      [MetaTable.AGENT_CHANNEL_THREADS]: 'agct',
+      [MetaTable.AGENT_MESSAGES]: 'agms',
+      [MetaTable.SKILLS]: 'skl',
+      [MetaTable.SKILL_POLICIES]: 'sklp',
       [MetaTable.RECORD_TEMPLATES]: 'rt',
       [MetaTable.AUTOMATION_SUBSCRIBERS]: 'as',
       [MetaTable.DOCS]: 'doc',

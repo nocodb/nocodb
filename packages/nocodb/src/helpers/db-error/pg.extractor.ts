@@ -224,16 +224,23 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         // for <object> X`. Surface a clear, actionable message so users stop
         // blindly retrying the same operation.
         const raw = pgRawMessage(error) || '';
+        // Quoted and bare identifiers need separate alternatives: PG quotes
+        // anything that isn't lowercase-simple, and a single `[^"\s]+` capture
+        // stops at the space inside `"Order Items"` — naming a table that does
+        // not exist is worse than naming none.
         const objectMatch = raw.match(
-          /(?:permission denied for|must be owner of)\s+(?:table|relation|view|schema|sequence|database)\s+"?([^"\s]+)"?/i,
+          /(?:permission denied for|must be owner of)\s+(?:table|relation|view|schema|sequence|database)\s+(?:"([^"]+)"|(\S+))/i,
         );
+        const objectName = objectMatch
+          ? objectMatch[1] ?? objectMatch[2]
+          : undefined;
         if (/must be owner/i.test(raw)) {
-          message = objectMatch
-            ? `The database user is not the owner of '${objectMatch[1]}' and cannot alter it.`
+          message = objectName
+            ? `The database user is not the owner of '${objectName}' and cannot alter it.`
             : 'The database user is not the owner of this table and cannot alter it.';
         } else {
-          message = objectMatch
-            ? `The database user does not have permission to access '${objectMatch[1]}'.`
+          message = objectName
+            ? `The database user does not have permission to access '${objectName}'.`
             : 'The database user does not have permission to perform this operation.';
         }
         httpStatus = 403;

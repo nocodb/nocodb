@@ -14,14 +14,16 @@
     "@ai-sdk/devtools": "^0.0.19",
     "@ai-sdk/provider": "^3.0.0",
     "ai": "^6.0.3",
+    "ipaddr.js": "^2.3.0",
+    "isomorphic-dompurify": "^2.25.0",
     "nocodb-sdk": "file:../../nocodb-sdk",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^20.17.46",
-    "@vitest/coverage-v8": "^3.1.4",
+    "@vitest/coverage-v8": "^4.1.0",
     "rimraf": "^5.0.10",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "vitest": "^4.1.0"
   }
 }

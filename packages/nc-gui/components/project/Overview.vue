@@ -23,6 +23,7 @@ const { activeSidebarTab } = storeToRefs(useSidebarStore())
 const tabActionLabel = computed(() => {
   const labels: Record<string, string> = {
     workflows: t('objects.workflow'),
+    agents: t('objects.agent'),
     docs: t('objects.document'),
   }
   return labels[activeSidebarTab.value] ?? t('general.data')
@@ -173,6 +174,10 @@ const onCreateBaseClick = () => {
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />
+        </template>
+        <!-- Agent actions (shown on Agents tab) -->
+        <template v-if="activeSidebarTab === 'agents' && !isMobileMode && showEEFeatures">
+          <ProjectActionCreateEmptyAgent />
         </template>
       </template>
     </div>

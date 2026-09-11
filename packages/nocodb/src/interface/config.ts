@@ -319,8 +319,10 @@ export interface AppConfig {
     calc_execution_time: boolean;
   };
   basicAuth: {
-    username: string;
-    password: string;
+    // Undefined when NC_HTTP_BASIC_USER / NC_HTTP_BASIC_PASS are not set — the
+    // Basic strategy fails closed in that case (no insecure default credentials).
+    username?: string;
+    password?: string;
   };
   auth: {
     emailPattern?: RegExp | null;

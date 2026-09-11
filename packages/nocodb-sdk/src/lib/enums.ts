@@ -397,6 +397,9 @@ export enum AppEvents {
   AUTOMATION_SECTION_CREATE = 'automationSection.create',
   AUTOMATION_SECTION_UPDATE = 'automationSection.update',
   AUTOMATION_SECTION_DELETE = 'automationSection.delete',
+  AGENT_SECTION_CREATE = 'agentSection.create',
+  AGENT_SECTION_UPDATE = 'agentSection.update',
+  AGENT_SECTION_DELETE = 'agentSection.delete',
 
   CHAT_SESSION_CREATE = 'chat.session.create',
   CHAT_SESSION_UPDATE = 'chat.session.update',
@@ -446,6 +449,20 @@ export enum AppEvents {
   CREDIT_GRANT = 'credit.grant',
   CREDIT_TOPUP = 'credit.topup',
   CREDITS_EXHAUSTED = 'credit.exhausted',
+
+  AGENT_CREATE = 'agent.create',
+  AGENT_UPDATE = 'agent.update',
+  AGENT_DELETE = 'agent.delete',
+  AGENT_PUBLISH = 'agent.publish',
+  AGENT_ROLE_UPDATE = 'agent.role.update',
+  AGENT_SESSION_CREATE = 'agent.session.create',
+  AGENT_SESSION_DELETE = 'agent.session.delete',
+
+  SKILL_CREATE = 'skill.create',
+  SKILL_UPDATE = 'skill.update',
+  SKILL_DELETE = 'skill.delete',
+  SKILL_IMPORT = 'skill.import',
+  SKILL_POLICY_UPDATE = 'skill.policy.update',
 }
 
 export enum ClickhouseTables {

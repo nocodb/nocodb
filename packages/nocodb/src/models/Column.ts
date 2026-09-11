@@ -1224,10 +1224,12 @@ export default class Column<T = any> implements ColumnType {
         { fk_self_link_column_id: null, enable_nested_records: false },
         level.id,
       );
-      await NocoCache.deepDel(
+      // Patched, not evicted: `deepDel` would unlink the level from its view's
+      // list, which `ListViewLevel.list` only rebuilds once that list is empty.
+      await NocoCache.update(
         context,
         `${CacheScope.LIST_VIEW_LEVEL}:${level.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
+        { fk_self_link_column_id: null, enable_nested_records: false },
       );
     }
 

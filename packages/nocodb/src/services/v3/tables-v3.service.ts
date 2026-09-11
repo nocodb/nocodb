@@ -10,10 +10,10 @@ import type {
   TableV3Type,
   UserType,
 } from 'nocodb-sdk';
-import type { Model, User } from '~/models';
+import type { User } from '~/models';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
-import { Base, Column } from '~/models';
+import { Base, Column, Model, Source } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -72,13 +72,35 @@ export class TablesV3Service {
       tableUpdateReq.table_name = tableUpdateReq.title;
     }
 
+    // `TablesService.tableUpdate` branches exclusively on `'meta' in table ||
+    // 'description' in table`: that branch early-returns after Model.updateMeta,
+    // which only persists description/meta — a sibling title/table_name rename
+    // in the same payload is silently dropped. Split into two calls so a v3
+    // `{title, description}` (or `{title, meta}`) update renames AND persists
+    // the meta, instead of losing the rename.
+    const { description, meta, ...renameReq } = tableUpdateReq;
+    const metaReq: Partial<TableReqType> = {
+      ...(description !== undefined ? { description } : {}),
+      ...(meta !== undefined ? { meta } : {}),
+    };
+
     // Only call the underlying table update when there is a non-display-field
     // change — on a display-field-only request the underlying service would
     // reject the payload for a missing table name.
-    if (Object.keys(tableUpdateReq).length) {
+    if (Object.keys(renameReq).length) {
       await this.tablesService.tableUpdate(context, {
         tableId: param.tableId,
-        table: tableUpdateReq,
+        table: renameReq,
+        baseId: param.baseId,
+        user: param.user,
+        req: param.req,
+      });
+    }
+
+    if (Object.keys(metaReq).length) {
+      await this.tablesService.tableUpdate(context, {
+        tableId: param.tableId,
+        table: metaReq,
         baseId: param.baseId,
         user: param.user,
         req: param.req,
@@ -131,6 +153,21 @@ export class TablesV3Service {
       req: NcRequest;
     },
   ) {
+    // Schema-readonly sources reject structural changes. The REST path enforces
+    // this via the sourceRestrictions ACL middleware, which MCP bypasses — so
+    // re-check here (the shared entry point for both) before deleting.
+    const table = await Model.getByIdOrName(context, { id: param.tableId });
+    if (!table) {
+      NcError.get(context).tableNotFound(param.tableId);
+    }
+    const source = await Source.get(context, table.source_id);
+    if (!source) {
+      NcError.get(context).sourceNotFound(table.source_id);
+    }
+    if (source.is_schema_readonly) {
+      NcError.get(context).sourceMetaReadOnly(source.alias);
+    }
+
     await this.tablesService.tableDelete(context, param);
     return {};
   }
@@ -254,6 +291,20 @@ export class TablesV3Service {
   ) {
     let tableCreateOutput: Model | undefined;
     try {
+      // Schema-readonly sources reject structural changes. The REST path
+      // enforces this via the sourceRestrictions ACL middleware, which MCP
+      // bypasses — so re-check here before creating.
+      const base = await Base.getWithInfo(context, param.baseId);
+      const source = param.sourceId
+        ? base.sources.find((s) => s.id === param.sourceId)
+        : base.sources[0];
+      if (param.sourceId && !source) {
+        NcError.get(context).sourceNotFound(param.sourceId);
+      }
+      if (source?.is_schema_readonly) {
+        NcError.get(context).sourceMetaReadOnly(source.alias);
+      }
+
       validatePayload(
         'swagger-v3.json#/components/schemas/TableCreate',
         param.table,

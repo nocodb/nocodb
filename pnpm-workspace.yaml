@@ -12,6 +12,10 @@ packages:
 # Blocks fast-acting attacks (Axios 1.14.1 was live ~3h, Shai-Hulud ~12h).
 # Use minimumReleaseAgeExclude to bypass for emergency security patches.
 minimumReleaseAge: 10080
+# undici 6.28.1 / 7.29.1 / 8.10.2 fix CVE-2026-84961 and CVE-2026-85152 (CVSS 9.1)
+# plus three WebSocket / retry-interceptor issues; released 2026-09-04.
+minimumReleaseAgeExclude:
+  - undici
 
 # Detect when a package loses its provenance guarantees (e.g. previously
 # published via CI, now published from a local machine — signals account compromise).

@@ -75,9 +75,13 @@ export class CalendarDatasService {
       id: view.fk_model_id,
     });
 
+    // Deliberately no `...query` here. `dataList` reads query params from
+    // `param.query` and takes its service options (getHiddenColumns,
+    // ignoreViewFilterAndSort, ignorePagination, limitOverride…) as named
+    // siblings — so flattening the caller's query to this level let an anonymous
+    // shared-calendar visitor set those options by name.
     return await this.datasService.dataList(context, {
       ...param,
-      ...query,
       viewName: view.id,
       baseName: model.base_id,
       tableName: model.id,

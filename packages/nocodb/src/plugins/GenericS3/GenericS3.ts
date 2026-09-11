@@ -6,6 +6,7 @@ import axios from 'axios';
 import { OperationSource } from 'nocodb-sdk';
 import {
   GetObjectCommand,
+  HeadObjectCommand,
   type PutObjectCommandInput,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -208,11 +209,17 @@ export default class GenericS3 implements IStorageAdapterV2 {
     }
   }
 
-  async fileReadByStream(key: string): Promise<Readable> {
+  async fileReadByStream(
+    key: string,
+    options?: { encoding?: string; start?: number; end?: number },
+  ): Promise<Readable> {
     try {
       const command = new GetObjectCommand({
         Key: this.patchKey(key),
         Bucket: this.input.bucket,
+        ...(options?.start !== undefined && {
+          Range: `bytes=${options.start}-${options.end ?? ''}`,
+        }),
       });
 
       const { Body } = await this.s3Client.send(command);
@@ -227,6 +234,21 @@ export default class GenericS3 implements IStorageAdapterV2 {
       return stream;
     } catch (error) {
       NcError._.storageFileStreamError(error.message);
+    }
+  }
+
+  public async fileSize(key: string): Promise<number> {
+    try {
+      const { ContentLength } = await this.s3Client.send(
+        new HeadObjectCommand({
+          Key: this.patchKey(key),
+          Bucket: this.input.bucket,
+        }),
+      );
+
+      return ContentLength ?? 0;
+    } catch (error) {
+      NcError._.storageFileReadError(error.message);
     }
   }
 

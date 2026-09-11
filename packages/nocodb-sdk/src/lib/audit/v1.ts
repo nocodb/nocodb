@@ -273,6 +273,12 @@ enum AuditV1OperationTypes {
 
   DATE_DEPENDENCY_UPDATE = 'DATE_DEPENDENCY_UPDATE',
   DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
+
+  SKILL_CREATE = 'SKILL_CREATE',
+  SKILL_UPDATE = 'SKILL_UPDATE',
+  SKILL_DELETE = 'SKILL_DELETE',
+  SKILL_IMPORT = 'SKILL_IMPORT',
+  SKILL_POLICY_UPDATE = 'SKILL_POLICY_UPDATE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -434,6 +440,13 @@ export const auditV1OperationsCategory: Record<
     value: 'DASHBOARD',
     types: Object.values(AuditV1OperationTypes).filter(
       (key) => key.startsWith('DASHBOARD_') || key.startsWith('WIDGET_')
+    ),
+  },
+  SKILL: {
+    label: 'general.skill',
+    value: 'SKILL',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SKILL_')
     ),
   },
   INTERFACE: {
@@ -1557,6 +1570,32 @@ export interface DocAiCompletionPayload {
   operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
 }
 
+export interface SkillPayload {
+  skill_id: string;
+  skill_title: string;
+  /** `org` | `workspace` | `base` | `user` — which catalog it was filed in. */
+  scope: string;
+  scope_id: string;
+  source_type?: string;
+  /** Present for imports: the repo and the exact commit installed. */
+  source_ref?: string;
+  source_commit?: string;
+  content_hash?: string;
+}
+
+export interface SkillPolicyUpdatePayload {
+  scope: string;
+  scope_id: string;
+  community: string;
+  allowlist: string[];
+  personal: string;
+  previous?: {
+    community: string;
+    allowlist: string[];
+    personal: string;
+  } | null;
+}
+
 export interface DocumentCreatePayload {
   document_title: string;
   document_id: string;
@@ -2257,6 +2296,20 @@ const descriptionTemplates = {
     audit.details.gantt_view_title
       ? `Date dependency deleted from Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
       : `Date dependency deleted from table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.SKILL_CREATE]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been created in ${audit.details.scope} scope`,
+  [AuditV1OperationTypes.SKILL_UPDATE]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been updated`,
+  [AuditV1OperationTypes.SKILL_DELETE]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been deleted`,
+  [AuditV1OperationTypes.SKILL_IMPORT]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been installed from ${
+      audit.details.source_ref ?? 'a repository'
+    }`,
+  [AuditV1OperationTypes.SKILL_POLICY_UPDATE]: (
+    audit: AuditV1<SkillPolicyUpdatePayload>
+  ) =>
+    `Skills policy updated for ${audit.details.scope}: community '${audit.details.community}', personal '${audit.details.personal}'`,
 };
 
 function auditDescription(audit: AuditV1) {

@@ -80,4 +80,32 @@ const isServiceUser = (
   );
 };
 
-export { ServiceUserType, NOCO_SERVICE_USERS, isServiceUser };
+/**
+ * Email for an agent's synthetic actor. Agents are *per-instance* principals —
+ * one identity per agent row — unlike the singletons in NOCO_SERVICE_USERS.
+ * Never reuse WORKFLOW_USER for an agent: attribution has to name the agent.
+ */
+const agentUserEmail = (agentId: string) => `agent+${agentId}@nocodb.com`;
+
+/**
+ * True when the actor is an agent rather than a person or a service singleton.
+ * Prefer the explicit `is_agent` flag the executor sets; the email is a fallback
+ * for actors rehydrated from stored rows.
+ */
+const isAgentUser = (user: any): boolean => {
+  if (!user) return false;
+  if (user.is_agent === true) return true;
+  return (
+    typeof user.email === 'string' &&
+    typeof user.id === 'string' &&
+    user.email === agentUserEmail(user.id)
+  );
+};
+
+export {
+  ServiceUserType,
+  NOCO_SERVICE_USERS,
+  isServiceUser,
+  isAgentUser,
+  agentUserEmail,
+};

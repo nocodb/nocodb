@@ -33,6 +33,16 @@ export interface WidgetDependencyFields {
   path?: string;
 }
 
+/**
+ * Agents index only their record-event triggers. There is no `nextSyncAt` —
+ * cron schedules live on nc_agent_triggers.next_run_at, keeping agent
+ * scheduling independent of the workflow scheduler.
+ */
+export interface AgentDependencyFields {
+  nodeType?: string;
+  triggerId?: string;
+}
+
 export interface GeneralDependencyFields {}
 
 /**
@@ -47,6 +57,7 @@ export type DependencyFieldsMap = {
   [DependencyTableType.DateDependency]: GeneralDependencyFields;
   [DependencyTableType.Bookmark]: GeneralDependencyFields;
   [DependencyTableType.InterfacePage]: WidgetDependencyFields;
+  [DependencyTableType.Agent]: AgentDependencyFields;
 };
 
 /**
@@ -84,6 +95,27 @@ export interface WorkflowDependencies {
   models?: WorkflowDependencyInfo[];
   views?: WorkflowDependencyInfo[];
   workflows?: WorkflowDependencyInfo[];
+}
+
+export interface AgentDependencyInfo extends DependencyInfo {
+  nodeType?: string;
+  /** `config.triggers[].id` — indexed, for webhook routing. */
+  triggerId?: string;
+  /** Cron only: next due time, polled by the agent scheduler. */
+  nextSyncAt?: Date | string;
+  /** Cron only: expression + timezone, needed to advance nextSyncAt. */
+  activationState?: Record<string, any>;
+}
+
+/**
+ * Agents bind record-event triggers to a table (and, for enters-view /
+ * form-submitted, a view). Cron schedules are self-referencing Agent→Agent
+ * rows carrying nextSyncAt — the same layout workflows use.
+ */
+export interface AgentDependencies {
+  models?: AgentDependencyInfo[];
+  views?: AgentDependencyInfo[];
+  agents?: AgentDependencyInfo[];
 }
 
 export default class DependencyTracker implements DependencyTrackerType {
@@ -151,9 +183,22 @@ export default class DependencyTracker implements DependencyTrackerType {
 
   public static async trackDependencies(
     context: NcContext,
+    dependentType: DependencyTableType.Agent,
+    dependentId: string,
+    dependencies: AgentDependencies,
+    ncMeta?: any,
+    ignoreClear?: boolean,
+  ): Promise<void>;
+
+  public static async trackDependencies(
+    context: NcContext,
     dependentType: DependencyTableType,
     dependentId: string,
-    dependencies: Dependencies | WidgetDependencies | WorkflowDependencies,
+    dependencies:
+      | Dependencies
+      | WidgetDependencies
+      | WorkflowDependencies
+      | AgentDependencies,
     ncMeta = Noco.ncMeta,
     ignoreClear?: boolean,
   ): Promise<void> {
@@ -164,7 +209,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     const deps: any[] = [];
 
     const sourceTypes: Array<{
-      key: 'columns' | 'models' | 'views' | 'workflows' | 'pages';
+      key: 'columns' | 'models' | 'views' | 'workflows' | 'agents' | 'pages';
       type: DependencyTableType;
     }> = [
       { key: 'columns', type: DependencyTableType.Column },
@@ -174,6 +219,7 @@ export default class DependencyTracker implements DependencyTrackerType {
       },
       { key: 'views', type: DependencyTableType.View },
       { key: 'workflows', type: DependencyTableType.Workflow },
+      { key: 'agents', type: DependencyTableType.Agent },
       { key: 'pages', type: DependencyTableType.InterfacePage },
     ];
 
@@ -266,6 +312,18 @@ export default class DependencyTracker implements DependencyTrackerType {
     context: NcContext,
     sourceType: T,
     sourceId: string,
+    options: {
+      dependentType: DependencyTableType.Agent;
+      dependentId?: string;
+      nodeType?: string;
+    },
+    ncMeta?: any,
+  ): Promise<HydratedDependencyTrackerType<T>[]>;
+
+  public static async getDependentsBySource<T extends DependencyTableType>(
+    context: NcContext,
+    sourceType: T,
+    sourceId: string,
     options?: {
       dependentType?: DependencyTableType;
       dependentId?: string;
@@ -281,18 +339,16 @@ export default class DependencyTracker implements DependencyTrackerType {
     if (options?.dependentType) {
       condition.dependent_type = options.dependentType;
 
-      if (options.dependentType === DependencyTableType.Workflow) {
-        if (options.dependentId) {
-          condition.dependent_id = options.dependentId;
-        }
+      if (options.dependentId) {
+        condition.dependent_id = options.dependentId;
+      }
 
-        if (options.nodeType) {
-          const slotId = dependencySlotMapper.getSlotId(
-            options.dependentType,
-            'nodeType',
-          );
-          if (slotId) condition[slotId] = options.nodeType;
-        }
+      if (options.nodeType) {
+        const slotId = dependencySlotMapper.getSlotId(
+          options.dependentType,
+          'nodeType',
+        );
+        if (slotId) condition[slotId] = options.nodeType;
       }
     }
 

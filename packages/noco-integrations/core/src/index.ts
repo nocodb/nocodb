@@ -23,3 +23,4 @@ export type {
   TicketingCommentRecord,
   TicketingTeamRecord,
 } from './sync/schema-ticketing';
+export * from './channel';

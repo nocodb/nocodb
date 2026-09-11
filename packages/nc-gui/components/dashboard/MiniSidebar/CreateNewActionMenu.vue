@@ -17,6 +17,8 @@ const { openNewScriptModal } = useScriptStore()
 
 const { openNewWorkflowModal } = useWorkflowStore()
 
+const { openNewAgentModal } = useAgentStore()
+
 const { openNewDashboardModal } = useDashboardStore()
 
 const { createDocument } = useDocumentsStore()
@@ -51,6 +53,8 @@ const { activeSidebarTab } = storeToRefs(useSidebarStore())
 const isDataTab = computed(() => activeSidebarTab.value === 'data')
 
 const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
+
+const isAgentsTab = computed(() => activeSidebarTab.value === 'agents')
 
 const isVisibleCreateNew = ref(false)
 
@@ -175,6 +179,12 @@ const hasWorkflowCreateAccess = computed(() => {
   return isUIAllowed('workflowCreateOrEdit')
 })
 
+const hasAgentCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('agentCreate')
+})
+
 const hasDashboardCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
@@ -195,6 +205,16 @@ const workflowCreateReason = computed(() => {
   if (!base.value || !isBaseHomePage.value) return null
 
   return sandboxRestrictionReason('workflowCreateOrEdit', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    base: base.value,
+  })
+})
+
+const agentCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('agentCreate', {
     roles: base.value?.project_role || base.value.workspace_role,
     source: base.value?.sources?.[0],
     base: base.value,
@@ -304,6 +324,35 @@ const hasDocumentCreateAccess = computed(() => {
                 </div>
 
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+              </NcMenuItem>
+            </NcTooltip>
+            <NcTooltip
+              :title="
+                !isAgentsTab
+                  ? $t('tooltip.switchToAgentsTab', { type: $t('general.agent').toLowerCase() })
+                  : !isBaseHomePage
+                  ? $t('tooltip.navigateToBaseToCreateAgent')
+                  : agentCreateReason
+                  ? $t(agentCreateReason)
+                  : !hasAgentCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewAgent')
+                  : ''
+              "
+              :disabled="isAgentsTab && isBaseHomePage && hasAgentCreateAccess"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--agent-create"
+                :disabled="!isAgentsTab || !isBaseHomePage || !hasAgentCreateAccess"
+                inner-class="w-full"
+                @click="openNewAgentModal({ baseId: openedProject?.id, e: 'c:agent:create:mini-sidebar' })"
+              >
+                <GeneralIcon icon="ncAgent" />
+                <div class="flex-1">
+                  {{ $t('general.agent') }}
+                </div>
+
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockAgents" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
             <NcDivider />
@@ -539,6 +588,7 @@ const hasDocumentCreateAccess = computed(() => {
             v-if="isEeUI"
             :is-data-tab="isDataTab"
             :is-workflows-tab="isWorkflowsTab"
+            :is-agents-tab="isAgentsTab"
             :is-base-home-page="isBaseHomePage"
             :base-id="openedProject?.id"
           />

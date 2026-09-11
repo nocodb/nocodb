@@ -97,7 +97,15 @@ export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.n
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
 export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
-export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
+// `GeneralOverlay` toggles with `v-show`, so its element stays mounted while
+// closed — presence alone would report every page carrying one (the chat
+// panel's file preview) as permanently overlaid, and the grid's keyboard
+// handlers, which bail on this, would never fire again.
+export const isGeneralOverlayActive = () =>
+  Array.from(document.querySelectorAll<HTMLElement>('.nc-general-overlay')).some((el) => {
+    const style = window.getComputedStyle(el)
+    return style.display !== 'none' && style.visibility !== 'hidden'
+  })
 export const isSelectActive = () => {
   const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
   return Array.from(els).some((el) => {

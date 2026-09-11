@@ -259,9 +259,41 @@ export default class Minio implements IStorageAdapterV2 {
     }
   }
 
-  // TODO - implement
-  fileReadByStream(_key: string): Promise<Readable> {
-    return Promise.resolve(undefined);
+  public async fileReadByStream(
+    key: string,
+    options?: { encoding?: string; start?: number; end?: number },
+  ): Promise<Readable> {
+    try {
+      if (options?.start === undefined) {
+        return await this.minioClient.getObject(this.input.bucket, key);
+      }
+
+      // `end` is inclusive here, as it is for a Range header; minio takes a
+      // length, and treats 0 as "to the end of the object".
+      const length =
+        options.end === undefined ? 0 : options.end - options.start + 1;
+
+      return await this.minioClient.getPartialObject(
+        this.input.bucket,
+        key,
+        options.start,
+        length,
+      );
+    } catch (e) {
+      NcError._.storageFileStreamError(e.message);
+    }
+  }
+
+  public async fileSize(key: string): Promise<number> {
+    try {
+      const { size } = await this.minioClient.statObject(
+        this.input.bucket,
+        key,
+      );
+      return size;
+    } catch (e) {
+      NcError._.storageFileReadError(e.message);
+    }
   }
 
   // TODO - implement

@@ -60,6 +60,31 @@ export const validateScriptName = {
   },
 }
 
+export const validateAgentName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        return reject(new Error(t('msg.error.agentNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.agentNameExceedsCharacters', { value: 256 })))
+      }
+
+      // exclude . / \ — rest all characters allowed
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
 export const validateWorkflowName = {
   validator: (_: unknown, value: string) => {
     return new Promise((resolve, reject) => {

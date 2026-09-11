@@ -844,7 +844,6 @@ export const deleteColumnSystemPropsFromRequest = (
   opts?: { operationSource?: OperationSource },
 ) => {
   // remove all properties not in documentations
-  delete col.dt;
   delete col.np;
   delete col.ns;
   delete col.clen;
@@ -855,11 +854,19 @@ export const deleteColumnSystemPropsFromRequest = (
   delete col.ai;
   delete col.cc;
   delete col.csn;
-  delete col.dtx;
   // dtxs is scale, used in decimal uidt
   // delete col.dtxs;
   delete col.au;
   delete col.validate;
+
+  // The physical type normally follows the UIType — a caller must not be able
+  // to name a raw db type. Agent knowledge tables are the exception: the server
+  // builds them from a fixed constant, and they need `tsvector`/`vector`, which
+  // no UIType maps to.
+  {
+    delete col.dt;
+    delete col.dtx;
+  }
   switch (opts?.operationSource) {
     case OperationSource.AT_IMPORT: {
       const isNcRecordColumn =

@@ -4,8 +4,10 @@ import {
   type NcContext,
   type NcRequest,
   ProjectStatus,
+  readonlyMetaAllowedTypes,
 } from 'nocodb-sdk';
-import { Base, Source } from '~/models';
+import { Base, Column, Model, Source } from '~/models';
+import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
 import Noco from '~/Noco';
 import { MetaTable } from '~/cli';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
@@ -138,6 +140,144 @@ export class DuplicateService {
     });
 
     return { id: job.id, base_id: dupProject.id };
+  }
+
+  async duplicateModel({
+    context,
+    req,
+    baseId,
+    modelId,
+    body,
+  }: {
+    context: NcContext;
+    req: NcRequest;
+    baseId: string;
+    modelId?: string;
+    body?: {
+      title?: string;
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+        targetWorkspaceId?: string;
+        targetBaseId?: string;
+      };
+    };
+  }) {
+    const { sourceBase, sourceModel, sourceSource, targetSource, uniqueTitle } =
+      await DuplicateModelUtils._.getDuplicateModelTaskInfo({
+        baseId,
+        body,
+        context,
+        modelId,
+      });
+
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+    this.appHooksService.emit(AppEvents.TABLE_DUPLICATE_START, {
+      sourceTable: sourceModel,
+      user: req.user,
+      req,
+      context,
+      id: parentAuditId,
+      title: body?.title,
+      options: body?.options,
+    });
+
+    req.ncParentAuditId = parentAuditId;
+
+    const job = await this.jobsService.add(JobTypes.DuplicateModel, {
+      context,
+      user: req.user,
+      baseId: sourceBase.id,
+      sourceId: sourceSource.id,
+      targetSourceId: targetSource.id,
+      modelId: sourceModel.id,
+      title: uniqueTitle,
+      options: body?.options ?? {},
+      req,
+    });
+
+    return { id: job.id };
+  }
+
+  async duplicateColumn({
+    context,
+    req,
+    baseId,
+    columnId,
+    body,
+  }: {
+    context: NcContext;
+    req: NcRequest;
+    baseId: string;
+    columnId?: string;
+    body?: {
+      options?: { excludeData?: boolean };
+      extra?: any;
+    };
+  }) {
+    const base = await Base.get(context, baseId);
+
+    if (!base) {
+      NcError.get(context).baseNotFound(baseId);
+    }
+
+    const column = await Column.get(context, {
+      source_id: base.id,
+      colId: columnId,
+    });
+
+    if (!column) {
+      NcError.get(context).fieldNotFound(columnId);
+    }
+
+    const model = await Model.get(context, column.fk_model_id);
+
+    if (!model) {
+      NcError.get(context).tableNotFound(column?.fk_model_id);
+    }
+
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+    this.appHooksService.emit(AppEvents.COLUMN_DUPLICATE_START, {
+      table: model,
+      sourceColumn: column,
+      user: req.user,
+      req,
+      context,
+      id: parentAuditId,
+      options: body?.options,
+    });
+    req.ncParentAuditId = parentAuditId;
+
+    const source = await Source.get(context, model.source_id);
+
+    // check if source is readonly and column type is not allowed
+    if (!readonlyMetaAllowedTypes.includes(column.uidt)) {
+      if (source.is_schema_readonly) {
+        NcError.get(context).sourceMetaReadOnly(source.alias);
+      }
+      if (source.is_data_readonly) {
+        NcError.get(context).sourceDataReadOnly(source.alias);
+      }
+    }
+
+    req.ncParentAuditId = parentAuditId;
+    req.ncBaseId = baseId;
+    req.ncSourceId = source.id;
+
+    const job = await this.jobsService.add(JobTypes.DuplicateColumn, {
+      context,
+      user: req.user,
+      baseId: base.id,
+      sourceId: column.source_id,
+      modelId: model.id,
+      columnId: column.id,
+      options: body?.options ?? {},
+      extra: body?.extra ?? {},
+      req,
+    });
+
+    return { id: job.id };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

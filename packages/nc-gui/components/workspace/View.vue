@@ -112,6 +112,7 @@ const tabTitleMap: Record<string, string> = {
   teams: t('general.teams'),
   integrations: t('general.integrations'),
   billing: t('general.billing'),
+  usage: t('general.usage'),
   audits: t('title.audits'),
   sso: t('title.sso'),
   settings: t('labels.settings'),
@@ -351,6 +352,19 @@ if (!props.isNewWsPage) {
             </template>
 
             <PaymentBillingPage />
+          </a-tab-pane>
+        </template>
+
+        <template v-if="wsTabVisibility.usage">
+          <a-tab-pane key="usage" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-usage">
+                <GeneralIcon icon="ncBarChart2" class="flex-none h-4 w-4" />
+                {{ $t('general.usage') }}
+              </div>
+            </template>
+
+            <WorkspaceUsage :workspace-id="currentWorkspace.id" />
           </a-tab-pane>
         </template>
 

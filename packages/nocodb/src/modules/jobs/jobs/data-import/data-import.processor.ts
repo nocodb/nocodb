@@ -31,7 +31,7 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
-import { Audit, Hook, Model, Source, Workflow } from '~/models';
+import { Agent, Audit, Hook, Model, Source, Workflow } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import Noco from '~/Noco';
@@ -321,7 +321,10 @@ export class DataImportProcessor {
     } finally {
       if (opts.cleanupAttachment !== false) {
         try {
-          await deleteImportAttachment(attachment);
+          await deleteImportAttachment(attachment, {
+            context: data.context,
+            userId: user?.id,
+          });
         } catch (e) {
           this.logger.warn(`Failed to cleanup temp file: ${e.message}`);
         }
@@ -680,6 +683,7 @@ export class DataImportProcessor {
     const readStream = await openImportAttachmentStream(
       importType,
       attachment,
+      { context, userId: req?.user?.id },
       parserConfig.encoding,
     );
     const handler = getImportHandler(importType);
@@ -690,28 +694,40 @@ export class DataImportProcessor {
     // and per-row audit that hooks cost are then paid only where they're wanted.
     // Resolved once per sheet. Best-effort: a metadata hiccup here must not
     // abort the sheet — fall back to the pre-existing skip-hooks behavior.
-    const [hasRecordWorkflows, insertHooks] = await Promise.all([
-      Workflow.hasRecordInsertTriggers(context, tableId).catch((e) => {
-        this.logger.warn(
-          `Failed to resolve record-insert workflow triggers for model ${tableId}: ${e?.message}`,
-        );
-        return false;
-      }),
-      // Same lookup handleHooks itself performs for 'after.bulkInsert', so the
-      // gate can't drift from what would actually be dispatched.
-      Hook.list(context, {
-        fk_model_id: tableId,
-        event: 'after',
-        operation: 'bulkInsert' as HookType['operation'][0],
-      }).catch((e) => {
-        this.logger.warn(
-          `Failed to resolve after-insert hooks for model ${tableId}: ${e?.message}`,
-        );
-        return [];
-      }),
-    ]);
+    const [hasRecordWorkflows, hasRecordAgents, insertHooks] =
+      await Promise.all([
+        Workflow.hasRecordInsertTriggers(context, tableId).catch((e) => {
+          this.logger.warn(
+            `Failed to resolve record-insert workflow triggers for model ${tableId}: ${e?.message}`,
+          );
+          return false;
+        }),
+        // Agents subscribe to the same record events workflows do, through
+        // their own dependency rows — asking only about workflows meant an
+        // agent watching for new records never woke up on a file import.
+        Agent.hasRecordInsertTriggers(context, tableId).catch((e) => {
+          this.logger.warn(
+            `Failed to resolve record-insert agent triggers for model ${tableId}: ${e?.message}`,
+          );
+          return false;
+        }),
+        // Same lookup handleHooks itself performs for 'after.bulkInsert', so
+        // the gate can't drift from what would actually be dispatched.
+        Hook.list(context, {
+          fk_model_id: tableId,
+          event: 'after',
+          operation: 'bulkInsert' as HookType['operation'][0],
+        }).catch((e) => {
+          this.logger.warn(
+            `Failed to resolve after-insert hooks for model ${tableId}: ${e?.message}`,
+          );
+          return [];
+        }),
+      ]);
     const skipHooks = !(
-      hasRecordWorkflows || insertHooks.some((hook) => hook.active)
+      hasRecordWorkflows ||
+      hasRecordAgents ||
+      insertHooks.some((hook) => hook.active)
     );
 
     const stats = {

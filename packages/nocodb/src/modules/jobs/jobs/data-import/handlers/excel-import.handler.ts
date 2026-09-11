@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs';
-import type { Readable } from 'stream';
+import { Readable } from 'stream';
 import type {
   FileImportColumn,
   FileImportParserConfig,
@@ -10,6 +10,20 @@ import type {
   ImportRow,
 } from '~/modules/jobs/jobs/data-import/handlers/data-import-handler.interface';
 import { detectColumnTypesFromObjects } from '~/modules/jobs/jobs/data-import/csv-type-detector';
+import {
+  assertXlsxNotDecompressionBomb,
+  readStreamToBuffer,
+} from '~/modules/jobs/jobs/data-import/handlers/xlsx-bomb-guard';
+import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
+
+// Buffer the upload (already capped upstream) so its declared decompressed sizes
+// can be screened before exceljs caches sharedStrings into memory, then hand a
+// fresh stream to the reader.
+async function toGuardedWorkbookStream(readStream: Readable): Promise<Readable> {
+  const buf = await readStreamToBuffer(readStream, NC_DATA_IMPORT_FILE_SIZE);
+  assertXlsxNotDecompressionBomb(buf);
+  return Readable.from(buf);
+}
 
 const WORKBOOK_READER_OPTIONS = {
   entries: 'emit',
@@ -57,7 +71,7 @@ export class ExcelImportHandler implements DataImportHandler {
     const firstRowAsHeaders = parserConfig.firstRowAsHeaders !== false;
 
     const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(
-      readStream,
+      await toGuardedWorkbookStream(readStream),
       WORKBOOK_READER_OPTIONS,
     );
 
@@ -147,7 +161,7 @@ export class ExcelImportHandler implements DataImportHandler {
     }
 
     const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(
-      readStream,
+      await toGuardedWorkbookStream(readStream),
       WORKBOOK_READER_OPTIONS,
     );
 

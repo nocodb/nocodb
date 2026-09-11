@@ -8,8 +8,12 @@
  * the tab and executes it as `javascript:` in the nocodb origin (stored XSS).
  *
  * This rejects any URL containing ASCII control chars and allows only http(s)
- * schemed URLs (judged on the normalized protocol) plus scheme-less (relative)
- * URLs. Mirrors the frontend guard in `nc-gui/utils/redirectUrl.ts`.
+ * schemed URLs (judged on the normalized protocol) plus scheme-less URLs.
+ * Mirrors the frontend guard in `nc-gui/utils/redirectUrl.ts`.
+ *
+ * Scheme allowlist only — no host policy, so `http://169.254.169.254/` and
+ * `http://localhost:8080/` pass. Fine for a client-side navigation sink; not an
+ * SSRF guard, so do not reuse it to vet a URL the server itself will fetch.
  */
 export function isSafeRedirectUrl(rawUrl: unknown): boolean {
   if (typeof rawUrl !== 'string') return false;
@@ -24,7 +28,9 @@ export function isSafeRedirectUrl(rawUrl: unknown): boolean {
     if (code <= 0x1f || code === 0x7f) return false;
   }
 
-  // Scheme-less (relative) URLs are allowed — they stay on the current origin.
+  // Scheme-less URLs are allowed, but do NOT imply same-origin: `//host`,
+  // `/\host` and `\\host` all resolve off-origin. A caller needing
+  // same-origin must check that itself (frontend: `isSameOriginUrl`).
   if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return true;
 
   // Schemed URLs: allow only http(s), judged on the normalized protocol.

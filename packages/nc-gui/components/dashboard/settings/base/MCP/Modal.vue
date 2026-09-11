@@ -56,7 +56,7 @@ const closeModal = () => {
   modalVisible.value = false
 }
 
-const activeTab = ref<'claude' | 'cursor' | 'windsurf' | 'antigravity'>('claude')
+const activeTab = ref<'claude' | 'cursor' | 'windsurf' | 'antigravity' | 'codex'>('claude')
 
 const serverName = computed(() => {
   let title = ''
@@ -76,6 +76,11 @@ const serverName = computed(() => {
   return title
 })
 
+// Codex reads TOML, and a table key has to be a bare key.
+const codexServerName = computed(() => serverName.value.replace(/[^A-Za-z0-9_-]+/g, '_'))
+
+// The server accepts the token in `x-api-key` as well, for clients that can only
+// set that header.
 const code = computed(
   () => `
 {
@@ -91,6 +96,14 @@ const code = computed(
     }
   }
 }
+`,
+)
+
+// Codex talks to the MCP endpoint over HTTP directly, so it needs no `mcp-remote` bridge.
+const codexCode = computed(
+  () => `[mcp_servers.${codexServerName.value}]
+url = "${appInfo.value.ncSiteUrl}/mcp/${token.value.id}"
+http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'}" }
 `,
 )
 </script>
@@ -284,6 +297,41 @@ const code = computed(
                 </NcButton>
 
                 <DashboardSettingsBaseMCPCode :code="code" />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="codex" class="!h-full">
+              <template #tab>
+                <span
+                  :class="{
+                    'text-nc-content-brand font-medium': activeTab === 'codex',
+                    'text-nc-content-gray-subtle': activeTab !== 'codex',
+                  }"
+                  class="text-sm"
+                >
+                  Codex
+                </span>
+              </template>
+              <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
+                Get started with the NocoDB MCP with Codex CLI in 3 simple steps
+
+                <ol class="list-decimal pl-5">
+                  <li>Open <code>~/.codex/config.toml</code>, creating it if it doesn’t exist.</li>
+                  <li>Add the TOML configuration that’s provided after creating a token.</li>
+                  <li>Run <code>codex mcp list</code> to confirm the server is connected.</li>
+                </ol>
+
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
+                  {{ $t('labels.regenerateToken') }}
+                </NcButton>
+
+                <DashboardSettingsBaseMCPCode :code="codexCode" lang="ini" />
               </div>
             </a-tab-pane>
           </NcTabs>

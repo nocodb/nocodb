@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
+import { EnterpriseOrgUserRoles, NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
 import type { RequestParams, UserType } from 'nocodb-sdk'
 
 const { api, isLoading } = useApi()
@@ -14,6 +14,8 @@ const { t } = useI18n()
 const { dashboardUrl } = useDashboard()
 
 const { appInfo, user: loggedInUser } = useGlobal()
+
+const { isEEFeatureBlocked } = useEeConfig()
 
 const { copy } = useCopy()
 
@@ -57,14 +59,38 @@ const isOpen = ref(false)
 
 const searchText = ref<string>('')
 
+// Backend only reports billable seat data on EE (on-prem/cloud); stays false
+// in CE, where the billable column & seat count are hidden.
+const hasBillableData = ref(false)
+
+// Unlicensed on-prem counts editor seats but bills for none — say "editor
+// seat" there, matching the workspace members list.
+const showBillableLabel = computed(() => !isEEFeatureBlocked.value)
+
+const orgId = computed(() => appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID)
+
+const seatDetailUser = ref<UserType | null>(null)
+
+const isSeatDetailModalOpen = ref(false)
+
+function openSeatDetail(user: UserType) {
+  seatDetailUser.value = user
+  isSeatDetailModalOpen.value = true
+}
+
+const pageSizeOptions = ['10', '25', '50', '100']
+
+const minPageSize = Number(pageSizeOptions[0])
+
 const pagination = reactive({
   total: 0,
-  pageSize: 10,
+  billableCount: 0,
   position: ['bottomCenter'],
 })
 
 const loadUsers = useDebounceFn(async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
+  currentLimit.value = limit
   try {
     const response: any = await api.orgUsers.list({
       query: {
@@ -78,13 +104,25 @@ const loadUsers = useDebounceFn(async (page = currentPage.value, limit = current
 
     pagination.total = response.pageInfo.totalRows ?? 0
 
-    pagination.pageSize = 10
+    if (typeof response.pageInfo.billableCount === 'number') {
+      pagination.billableCount = response.pageInfo.billableCount
+      hasBillableData.value = true
+    }
 
     users.value = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }, 500)
+
+// "from–to of total" for the current page, so the count can be reconciled
+// against the invoice / SQL query.
+const shownRange = computed(() => {
+  if (!pagination.total) return { from: 0, to: 0 }
+  const from = (currentPage.value - 1) * currentLimit.value + 1
+  const to = Math.min(currentPage.value * currentLimit.value, pagination.total)
+  return { from, to }
+})
 
 onMounted(() => {
   loadUsers()
@@ -218,6 +256,15 @@ const columns = computed(() => {
     })
   }
 
+  if (hasBillableData.value) {
+    cols.push({
+      key: 'billable',
+      title: showBillableLabel.value ? t('general.billable') : t('labels.editorSeat'),
+      width: showBillableLabel.value ? 120 : 150,
+      minWidth: showBillableLabel.value ? 120 : 150,
+    })
+  }
+
   cols.push({
     key: 'created_at',
     title: t('title.dateJoined'),
@@ -257,13 +304,36 @@ const columns = computed(() => {
               v-model:value="searchText"
               class="!max-w-90 !rounded-md"
               :placeholder="$t('title.searchMembers')"
-              @change="loadUsers()"
+              @change="loadUsers(1)"
             >
               <template #prefix>
                 <PhMagnifyingGlassBold class="!h-3.5 text-nc-content-gray-muted" />
               </template>
             </a-input>
             <div class="flex gap-3 items-center justify-center">
+              <template v-if="hasBillableData">
+                <NcTooltip
+                  :title="showBillableLabel ? $t('msg.info.billableSeatExplainer') : $t('msg.info.editorSeatExplainer')"
+                  :tooltip-style="{ width: '230px' }"
+                  :overlay-inner-style="{ width: '230px' }"
+                >
+                  <div
+                    class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap"
+                    data-testid="nc-super-user-seat-count"
+                  >
+                    <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
+                    <template v-if="showBillableLabel">
+                      {{ pagination.billableCount }} {{ $t('general.paid') }}
+                      {{ pagination.billableCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
+                    </template>
+                    <template v-else>
+                      {{ pagination.billableCount }}
+                      {{ pagination.billableCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+                    </template>
+                  </div>
+                </NcTooltip>
+                <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
+              </template>
               <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers(currentPage, currentLimit)" />
               <NcButton data-testid="nc-super-user-invite" size="small" type="primary" @click="openInviteModal">
                 <div class="flex items-center gap-1" data-rec="true">
@@ -325,6 +395,35 @@ const columns = computed(() => {
                   class="cursor-pointer"
                   data-testid="nc-org-role-select"
                 />
+              </div>
+              <div v-if="column.key === 'billable'" class="flex items-center">
+                <NcTooltip
+                  v-if="el.billable"
+                  class="flex items-center"
+                  :tooltip-style="{ width: '230px' }"
+                  :overlay-inner-style="{ width: '230px' }"
+                >
+                  <template #title>
+                    <div>
+                      {{ showBillableLabel ? $t('tooltip.paidUserBadgeTooltip') : $t('msg.info.editorSeatExplainer') }}
+                    </div>
+                    <div class="mt-2">{{ $t('tooltip.clickToSeeDetails') }}</div>
+                  </template>
+                  <button
+                    v-e="['c:admin:user:billable-detail']"
+                    class="nc-billable-badge flex items-center border-none p-0 bg-transparent cursor-pointer"
+                    data-testid="nc-billable-badge"
+                    @click="openSeatDetail(el)"
+                  >
+                    <NcBadge
+                      :border="false"
+                      color="green"
+                      class="text-nc-content-green-dark dark:!bg-nc-bg-green-light text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                    >
+                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
+                    </NcBadge>
+                  </button>
+                </NcTooltip>
               </div>
               <div v-if="column.key === 'created_at'">
                 <NcTooltip class="max-w-full">
@@ -407,12 +506,22 @@ const columns = computed(() => {
             </template>
 
             <template #tableFooter>
-              <div v-if="pagination.total > 10" class="px-4 py-2 flex items-center justify-center">
+              <div v-if="pagination.total" class="px-4 py-2 flex items-center justify-between gap-3">
+                <span class="text-nc-content-gray-subtle2 text-small flex-none" data-testid="nc-super-user-range">
+                  {{ $t('labels.showingRangeOfTotal', { from: shownRange.from, to: shownRange.to, total: pagination.total }) }}
+                </span>
+                <!-- Gate on the smallest option, not currentLimit: a-pagination hosts
+                     the size changer, so hiding it at total <= currentLimit would strand
+                     the user on a large page size with no way back. -->
                 <a-pagination
+                  v-if="pagination.total > minPageSize"
                   v-model:current="currentPage"
                   :total="pagination.total"
+                  :page-size="currentLimit"
+                  :page-size-options="pageSizeOptions"
+                  show-size-changer
                   show-less-items
-                  @change="loadUsers(currentPage, currentLimit)"
+                  @change="(page, size) => loadUsers(page, size)"
                 />
               </div>
             </template>
@@ -437,6 +546,13 @@ const columns = computed(() => {
           </GeneralDeleteModal>
 
           <AccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+
+          <AccountOrgBillableDetailModal
+            v-if="isEeUI && seatDetailUser"
+            v-model:visible="isSeatDetailModalOpen"
+            :org-id="orgId"
+            :user="seatDetailUser"
+          />
         </div>
       </div>
     </div>

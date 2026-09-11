@@ -12,6 +12,7 @@ declare module 'express-serve-static-core' {
       workspace_roles?: Record<string, boolean>;
       provider?: string;
       direct_teams?: { team_id: string; path: string }[];
+      is_agent?: boolean;
     };
     ncSiteUrl: string;
     clientIp: string;

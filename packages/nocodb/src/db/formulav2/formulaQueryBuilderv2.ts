@@ -12,6 +12,7 @@ import {
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
+import { assertParsedTreeFunctions } from './assertParsedTreeFunctions';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
@@ -37,7 +38,10 @@ import type {
   TAliasToColumnParam,
 } from './formula-query-builder.types';
 import { DBQueryClient } from '~/dbQueryClient';
-import { isTransientError } from '~/helpers/db-error/utils';
+import {
+  isExternalSourceError,
+  isTransientError,
+} from '~/helpers/db-error/utils';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn, View } from '~/models';
@@ -76,6 +80,12 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const context = baseModelSqlv2.context;
 
   let tree = parsedTree;
+  if (tree) {
+    // A reused stored tree skips the validation below, so re-check its function
+    // names against the same whitelist — a poisoned tree (GHSA-frqc) is the only
+    // way an invalid callee reaches the unbound knex.raw sink downstream.
+    assertParsedTreeFunctions(tree);
+  }
   if (!tree) {
     const relatedModels: Map<string, Model> = await getRelatedModelMap(
       context,
@@ -647,7 +657,10 @@ export async function checkStoredFormulaError(
 ): Promise<{ blocking: boolean; revalidate: boolean }> {
   if (!colOptions?.error) return { blocking: false, revalidate: false };
 
-  if (!isTransientError(colOptions.error)) {
+  if (
+    !isTransientError(colOptions.error) &&
+    !isExternalSourceError(colOptions.error)
+  ) {
     return { blocking: true, revalidate: false };
   }
 
@@ -876,21 +889,22 @@ export default async function formulaQueryBuilderv2({
       context.cacheMap?.clear();
     }
   } catch (e) {
-    // Check if this is a transient error (connection/timeout issue)
-    const isTransient = isTransientError(e);
+    // A failure at the source says nothing about the formula, whether it is a
+    // connection/timeout issue or a query the source refused to run.
+    const isSourceFailure = isTransientError(e) || isExternalSourceError(e);
 
     // The dry-run short-circuit above re-throws a sentinel error only because an
-    // earlier transient failure set `formulaDryRunFailed` (the flag's sole write
-    // site is guarded by `isTransient`), and no real validation runs once it's
-    // set. That sentinel is not a real formula error, so it must never be
+    // earlier source failure set `formulaDryRunFailed` (the flag's sole write
+    // site is guarded by `isSourceFailure`), and no real validation runs once
+    // it's set. That sentinel is not a real formula error, so it must never be
     // persisted as the column's `error` — doing so poisons every later read with
     // ERR_FORMULA and never self-heals.
     const skipMarkingColumn =
-      isTransient || !!baseModelSqlv2.formulaDryRunFailed;
+      isSourceFailure || !!baseModelSqlv2.formulaDryRunFailed;
 
     // Mark formula error if formula validation is invoked
     // or if a circular reference error occurs and a column is provided
-    // BUT skip marking for transient errors (and the transient-induced
+    // BUT skip marking for source failures (and the failure-induced
     // dry-run short-circuit, see skipMarkingColumn above)
     if (
       !skipMarkingColumn &&
@@ -908,7 +922,7 @@ export default async function formulaQueryBuilderv2({
     } else {
       // Mark dry-run as failed so subsequent formula validations on the same
       // base model short-circuit instead of hammering an unreachable source
-      if (isTransient && validateFormula) {
+      if (isSourceFailure && validateFormula) {
         baseModelSqlv2.formulaDryRunFailed = true;
       }
       throw e;

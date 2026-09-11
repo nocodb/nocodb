@@ -132,3 +132,5 @@ antd.variable.css
 scripts/.payment-dev-secrets.env
 scripts/.onprem-dev-secrets.env
 scripts/.onprem-dev-keys/
+# Northwind runbook demo receiver log
+.demo-receiver.jsonl

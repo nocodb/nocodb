@@ -93,11 +93,11 @@
     "dagre": "^0.8.5",
     "dayjs": "^1.11.19",
     "deep-object-diff": "^1.1.9",
-    "diff": "^7.0.0",
+    "diff": "^8.0.4",
     "echarts": "^5.6.0",
     "embla-carousel-vue": "^8.5.2",
     "emoji-mart-vue-fast": "^15.0.4",
-    "esbuild-wasm": "^0.25.5",
+    "esbuild-wasm": "^0.27.2",
     "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
@@ -206,7 +206,7 @@
     "@types/tinycolor2": "^1.4.6",
     "@types/validator": "^13.12.2",
     "@types/vue-barcode-reader": "^0.0.3",
-    "@vitest/ui": "^3.0.7",
+    "@vitest/ui": "^4.1.1",
     "@vue/compiler-sfc": "^3.5.13",
     "@vue/test-utils": "^2.4.6",
     "@julr/unocss-preset-forms": "^2.0.0",
@@ -230,6 +230,6 @@
     "unplugin-vue-components": "^0.26.0",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-purge-icons": "^0.10.0",
-    "vitest": "^3.0.7"
+    "vitest": "^4.1.1"
   }
 }

@@ -1,12 +1,18 @@
 import { NotificationType, UserType } from '~/lib/Api';
 import { ChatEventAction } from '~/lib/chat';
 import type {
+  ChatArtifactType,
   ChatAttachmentType,
   ChatContentBlock,
   ChatMessageType,
   ChatSessionType,
   ChatToolProgress,
 } from '~/lib/chat';
+import type {
+  AgentMessageType,
+  AgentSessionType,
+  AgentType,
+} from '~/lib/agent';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -33,6 +39,7 @@ export enum EventType {
   DOCUMENT_SYNC_EVENT = 'event-document-sync',
   SMART_TEXT_EVENT = 'event-smart-text',
   CREDIT_EVENT = 'event-credit',
+  AGENT_EVENT = 'event-agent',
 }
 
 /** Client→server socket events for collaborative doc editing (binary Yjs frames). */
@@ -181,6 +188,9 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'automation_section_create'
     | 'automation_section_update'
     | 'automation_section_delete'
+    | 'agent_section_create'
+    | 'agent_section_update'
+    | 'agent_section_delete'
     | 'record_template_create'
     | 'record_template_update'
     | 'record_template_delete'
@@ -218,6 +228,7 @@ export interface NotificationPayload extends BaseSocketPayload {
 export enum PresencePageType {
   TABLE = 'table',
   AUTOMATION = 'automation',
+  AGENT = 'agent',
   DASHBOARD = 'dashboard',
   SCRIPT = 'script',
   DOCUMENT = 'document',
@@ -396,9 +407,18 @@ export type FocusPayload =
   | FocusLeavePayload
   | FocusBatchPayload;
 
+/**
+ * Which chat a streamed turn belongs to. Agent turns ride this same wire, so
+ * every agent frame carries the tag and chat frames stay unmarked — each store
+ * keeps only what is its own.
+ */
+export type StreamScope = 'chat' | 'agent';
+
 export interface ChatEventPayload extends BaseSocketPayload {
   action: ChatEventAction;
   sessionId: string;
+  /** Set on agent turns only; absent means the assistant chat. */
+  scope?: StreamScope;
   /**
    * Monotonic per-turn sequence, for replay dedup — drop anything <= the
    * highest seq already applied for the same turnId. Absent on HEARTBEAT and
@@ -425,6 +445,8 @@ export interface ChatEventPayload extends BaseSocketPayload {
   parts?: ChatContentBlock[];
   /** Files the assistant generated this turn (sandbox output → storage). */
   createdFiles?: ChatAttachmentType[];
+  /** Web artifacts published this turn (nc_chat_artifacts, not created_files). */
+  artifacts?: ChatArtifactType[];
   /** Braintrust span ID — used for thumbs up/down feedback submission. */
   btSpanId?: string | null;
   /** Follow-up suggestions generated after the assistant response */
@@ -480,6 +502,67 @@ export interface ChatStreamStateType {
   draftMessage?: ChatMessageType;
 }
 
+/**
+ * Configuration-lifecycle events only. Turn streaming rides the assistant
+ * chat's `CHAT_EVENT` wire (`ChatEventAction` + seq-stamped journal), so both
+ * chats share one streaming protocol.
+ */
+export enum AgentEventAction {
+  USER_MESSAGE = 'user-message',
+  // ── session lifecycle ──
+  SESSION_CREATE = 'session-create',
+  SESSION_UPDATE = 'session-update',
+  SESSION_DELETE = 'session-delete',
+  // ── agent lifecycle (base-scoped: every collaborator on the base) ──
+  AGENT_CREATE = 'agent-create',
+  AGENT_UPDATE = 'agent-update',
+  AGENT_DELETE = 'agent-delete',
+  AGENT_DUPLICATE = 'agent-duplicate',
+  AGENT_PUBLISH = 'agent-publish',
+}
+
+interface AgentEventBase extends BaseSocketPayload {
+  agentId: string;
+  /**
+   * Present on every base-scoped agent event. Handlers must scope by this, not
+   * by the active base — the user may have navigated away.
+   */
+  baseId?: string;
+}
+
+export interface AgentLifecycleEventPayload extends AgentEventBase {
+  action:
+    | AgentEventAction.AGENT_CREATE
+    | AgentEventAction.AGENT_UPDATE
+    | AgentEventAction.AGENT_DELETE
+    | AgentEventAction.AGENT_DUPLICATE
+    | AgentEventAction.AGENT_PUBLISH;
+  /** Absent on delete — `agentId` identifies the row. */
+  agent?: AgentType;
+}
+
+export interface AgentSessionEventPayload extends AgentEventBase {
+  action:
+    | AgentEventAction.SESSION_CREATE
+    | AgentEventAction.SESSION_UPDATE
+    | AgentEventAction.SESSION_DELETE;
+  sessionId: string;
+  /** Absent on delete. */
+  session?: AgentSessionType;
+}
+
+export interface AgentMessageEventPayload extends AgentEventBase {
+  action: AgentEventAction.USER_MESSAGE;
+  sessionId: string;
+  message: AgentMessageType;
+}
+
+/** Narrows on `action`. Turn streaming is not here — it rides `CHAT_EVENT`. */
+export type AgentEventPayload =
+  | AgentLifecycleEventPayload
+  | AgentSessionEventPayload
+  | AgentMessageEventPayload;
+
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
@@ -491,6 +574,7 @@ export type SocketEventPayload =
   | PresencePayload
   | FocusPayload
   | ChatEventPayload
+  | AgentEventPayload
   | SmartTextPayload;
 
 // Type mapping for event types to their corresponding payloads
@@ -506,6 +590,7 @@ export type SocketEventPayloadMap = {
   [EventType.PRESENCE_EVENT]: PresencePayload;
   [EventType.FOCUS_EVENT]: FocusPayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
+  [EventType.AGENT_EVENT]: AgentEventPayload;
   [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;
 };

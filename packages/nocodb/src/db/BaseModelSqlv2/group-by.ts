@@ -26,7 +26,9 @@ import {
   getAs,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { BaseUser, Column, Filter, Sort } from '~/models';
+import { BaseUser, Column, Filter, Sort, View } from '~/models';
+import { isSharedViewAccess } from '~/helpers/accessSource';
+import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
 import { getAliasGenerator } from '~/utils';
 import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
 
@@ -173,11 +175,34 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         c.title === subGroupColumnName || c.column_name === subGroupColumnName,
     );
 
+    // A shared-view caller must not group by a column the view hides — grouping
+    // emits the column's distinct values, and sub-grouping emits them via
+    // COUNT(DISTINCT ...). `restrictSharedViewColumnReferences` resolves refs
+    // through `aliasColObjMap` (title/id only), so a `column_name` reference
+    // falls through it as "unknown"; enforce here, where resolution matches the
+    // title-OR-column_name lookup the builder actually uses.
+    let exposedColumnIds: Set<string> | null = null;
+    if (isSharedViewAccess(baseModel.context) && baseModel.viewId) {
+      const view = await View.get(baseModel.context, baseModel.viewId);
+      if (view) {
+        exposedColumnIds = await getViewExposedColumnIds(baseModel.context, {
+          model: baseModel.model,
+          view,
+        });
+      }
+    }
+
     const processColumn = async (col: string, isSubGroup: boolean = false) => {
       let column = columns.find(
         (c) => c.column_name === col || c.title === col,
       );
       if (!column) {
+        NcError.get(baseModel.context).fieldNotFound(col);
+      }
+
+      // Same response as an unknown field, so a hidden column stays
+      // indistinguishable from one that does not exist.
+      if (exposedColumnIds && !exposedColumnIds.has(column.id)) {
         NcError.get(baseModel.context).fieldNotFound(col);
       }
 

@@ -15,6 +15,14 @@ export class McpGetOperations
   operations = ['mcpList' as const, 'mcpGet' as const, 'mcpRootList' as const];
   httpMethod = 'GET' as const;
 
+  // See McpPostOperations — the same borrowed `viewer` role would otherwise let
+  // a shared-base session enumerate the base's MCP tokens.
+  publicBaseBlockedOperations = [
+    'mcpList' as const,
+    'mcpGet' as const,
+    'mcpRootList' as const,
+  ];
+
   async handle(
     context: NcContext,
     {

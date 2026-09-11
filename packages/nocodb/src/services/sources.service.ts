@@ -51,6 +51,12 @@ export class SourcesService {
 
     const baseBody = param.source;
 
+    // Same server-determined flags as in baseCreate — `Source.update` also
+    // extracts them, so without this an existing source could be flipped onto the
+    // metadata connection after the fact.
+    delete (baseBody as any).is_meta;
+    delete (baseBody as any).is_local;
+
     validateAndNormalizeSqliteConfig(
       baseBody?.config,
       baseBody?.type ?? oldSource?.type,
@@ -182,6 +188,14 @@ export class SourcesService {
     // type | base | baseId
     const baseBody = param.source;
     baseBody.alias = baseBody.alias?.trim();
+
+    // `is_meta`/`is_local` make Source resolve the connection from NocoDB's own
+    // internal config instead of `config` (Source.ts:336), so accepting them from
+    // the request body handed a Base Creator a source pointed at the metadata
+    // database. Both are server-determined: the only legitimate `is_meta` source
+    // is the one Base.insert builds at base creation.
+    delete (baseBody as any).is_meta;
+    delete (baseBody as any).is_local;
     const base = await Base.getWithInfo(context, param.baseId);
 
     let error;

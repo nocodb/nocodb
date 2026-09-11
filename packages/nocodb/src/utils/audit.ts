@@ -264,6 +264,18 @@ const extractReqPropsFromColOpt = (colOptions: ColumnType['colOptions']) => {
   }, {});
 };
 
+// A select cell is normally a string (or an array once split), but a numeric
+// option title arrives from the API as a number — and `.includes` on it threw,
+// failing the request *after* the row was written (public forms then retried
+// and duplicated it).
+const cellReferencesOption = (value: unknown, optionTitle: string) => {
+  if (Array.isArray(value)) return value.includes(optionTitle);
+  if (value === null || value === undefined || typeof value === 'object') {
+    return false;
+  }
+  return String(value).includes(optionTitle);
+};
+
 /**
  * Extracts metadata for a column to render in audit logs.
  * Handles specific column types such as MultiSelect and SingleSelect,
@@ -290,7 +302,9 @@ export const extractColMetaForAudit = (column: ColumnType, datas?: any[]) => {
             .filter((opt) => {
               return (
                 !datas?.length ||
-                datas.some((d) => d[column.title]?.includes(opt.title))
+                datas.some((d) =>
+                  cellReferencesOption(d[column.title], opt.title),
+                )
               );
             })
             .map((opt) => ({

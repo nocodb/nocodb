@@ -2,6 +2,17 @@ import { ProjectRoles, WorkspaceUserRoles } from '../enums';
 
 export type SubjectHierarchyScope = 'self_only' | 'self_and_descendants';
 
+/**
+ * Kinds of principal that can be named as a permission subject.
+ * `AGENT` matches by id exactly as `USER` does — an agent is a real principal,
+ * not a role.
+ */
+export enum SubjectType {
+  USER = 'user',
+  TEAM = 'team',
+  AGENT = 'agent',
+}
+
 export enum PermissionKey {
   TABLE_VISIBILITY = 'TABLE_VISIBILITY',
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',
@@ -11,6 +22,7 @@ export enum PermissionKey {
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
   DASHBOARD_VISIBILITY = 'DASHBOARD_VISIBILITY',
   DASHBOARD_EDIT = 'DASHBOARD_EDIT',
+  CHAT_ARTIFACT_VISIBILITY = 'CHAT_ARTIFACT_VISIBILITY',
 }
 
 export enum PermissionGrantedType {
@@ -24,6 +36,7 @@ export enum PermissionEntity {
   FIELD = 'field',
   DOCUMENT = 'document',
   DASHBOARD = 'dashboard',
+  CHAT_ARTIFACT = 'chat_artifact',
 }
 
 export enum PermissionRole {
@@ -173,6 +186,13 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to edit this dashboard.',
   },
+  [PermissionKey.CHAT_ARTIFACT_VISIBILITY]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can view this artifact',
+    description: 'can view this artifact',
+    userSelectorDescription:
+      'Only members selected here will be able to view this artifact.',
+  },
 };
 
 // Restrictiveness order for document permission inheritance (lower = more permissive).
@@ -260,9 +280,9 @@ export const getPermissionOptionValue = (
   return PermissionOptionValue.EDITORS_AND_UP;
 };
 
-/** A permission subject — a user or a team, optionally with a team hierarchy scope. */
+/** A permission subject — a user, team or agent, optionally with a team hierarchy scope. */
 export interface PermissionSubject {
-  type: 'user' | 'team' | string;
+  type: SubjectType | string;
   id: string;
   hierarchy_scope?: SubjectHierarchyScope;
 }
@@ -309,15 +329,23 @@ export const matchesTeamSubjectByPaths = (
  * resolves its own team match and passes the boolean as `matchedTeamSubject`.
  *
  * @param permission the resolved permission (null/undefined ⇒ allowed)
- * @param principal.userId caller's user id (for `user` subject matching)
+ * @param principal.userId caller's id — a user id, or an agent id when
+ *   `subjectType` is AGENT
+ * @param principal.subjectType which kind of principal `userId` names.
+ *   Defaults to USER, so existing callers keep their exact behaviour. A
+ *   principal only ever matches a subject of its OWN type: an agent id must
+ *   never satisfy a `user` grant, nor a user id an `agent` grant, even on the
+ *   (impossible) chance the two id spaces collide.
  * @param principal.permissionRole caller's role ALREADY mapped through
  *   `PermissionRoleMap` (a `PermissionRole` key) — used for ROLE grants
- * @param principal.matchedTeamSubject caller-resolved team-subject match
+ * @param principal.matchedTeamSubject caller-resolved team-subject match.
+ *   Always false for agents: an agent has no team memberships.
  */
 export const evaluatePermission = (
   permission: EvaluablePermission | null | undefined,
   principal: {
     userId?: string;
+    subjectType?: SubjectType;
     permissionRole?: PermissionRole | string;
     matchedTeamSubject?: boolean;
   }
@@ -325,10 +353,11 @@ export const evaluatePermission = (
   if (!permission) return true;
 
   if (permission.granted_type === PermissionGrantedType.USER) {
-    const userMatch = permission.subjects?.some(
-      (s) => s.type === 'user' && s.id === principal.userId
+    const principalType = principal.subjectType ?? SubjectType.USER;
+    const subjectMatch = permission.subjects?.some(
+      (s) => s.type === principalType && s.id === principal.userId
     );
-    if (userMatch) return true;
+    if (subjectMatch) return true;
     return !!principal.matchedTeamSubject;
   }
 

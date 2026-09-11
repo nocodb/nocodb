@@ -87,6 +87,12 @@ export const useEeConfig = createSharedComposable(() => {
   const blockInterfaceIframeWidget = computed(() => true)
   const blockInterfaceUserFilters = computed(() => true)
   const blockCopyViewSettingFromOther = computed(() => true)
+
+  // Skills governance is EE-only; CE has no plan concept at all.
+  const blockSkillsGovernance = computed(() => true)
+  const blockSkillsOrg = computed(() => true)
+  const showUpgradeToUseSkillsGovernance = (..._args: any[]) => {}
+  const showUpgradeToUseSkillsOrg = (..._args: any[]) => {}
   const blockInterfaceToolbarToggles = computed(() => true)
   const blockInterfaceDrafts = computed(() => true)
   const blockInterfacePreviewAs = computed(() => true)
@@ -104,6 +110,8 @@ export const useEeConfig = createSharedComposable(() => {
   const blockGanttView = computed(() => true)
 
   const blockAddNewScript = computed(() => true)
+
+  const blockAddNewAgent = computed(() => true)
 
   const showUserMayChargeAlert = computed(() => false)
 
@@ -279,6 +287,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const showAgentPlanLimitExceededModal = (..._args: any[]) => {}
+
   const showUpgradeToUseCalendarRange = (..._args: any[]) => {}
 
   const showUpgradeToUseTimelineView = (..._args: any[]) => {}
@@ -424,6 +434,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockWorkflows = computed(() => true)
 
+  const blockAgents = computed(() => true)
+
+  const showUpgradeToUseAgents = (..._args: any[]) => {}
+
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
   const isWorkflowLimitReached = (_count: number) => false
@@ -522,12 +536,18 @@ export const useEeConfig = createSharedComposable(() => {
     requiredPlanForRevisionAge,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
+    showAgentPlanLimitExceededModal,
+    blockAddNewAgent,
     blockAddNewDashboard,
     hideInterfaces,
     blockAddNewInterface,
     isInterfacePageLimitReached,
     blockInterfaceMultiViz,
     blockCopyViewSettingFromOther,
+    blockSkillsGovernance,
+    blockSkillsOrg,
+    showUpgradeToUseSkillsGovernance,
+    showUpgradeToUseSkillsOrg,
     blockInterfaceMetricColorConditions,
     blockInterfacePivotWidget,
     blockInterfaceViewWidget,
@@ -643,6 +663,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseWorkflows,
     isWorkflowLimitReached,
     showWorkflowPlanLimitExceededModal,
+    blockAgents,
+    showUpgradeToUseAgents,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

@@ -183,7 +183,10 @@ export default class Gcs implements IStorageAdapterV2 {
     }
   }
 
-  public async fileReadByStream(key: string): Promise<Readable> {
+  public async fileReadByStream(
+    key: string,
+    options?: { encoding?: string; start?: number; end?: number },
+  ): Promise<Readable> {
     const file = this.storageClient
       .bucket(this.bucketName)
       .file(this.patchKey(key));
@@ -196,7 +199,23 @@ export default class Gcs implements IStorageAdapterV2 {
       );
     }
 
-    return file.createReadStream();
+    return file.createReadStream({
+      ...(options?.start !== undefined && { start: options.start }),
+      ...(options?.end !== undefined && { end: options.end }),
+    });
+  }
+
+  public async fileSize(key: string): Promise<number> {
+    try {
+      const [metadata] = await this.storageClient
+        .bucket(this.bucketName)
+        .file(this.patchKey(key))
+        .getMetadata();
+
+      return Number(metadata.size ?? 0);
+    } catch (e) {
+      NcError._.storageFileReadError(e.message);
+    }
   }
 
   public async getDirectoryList(path: string): Promise<string[]> {

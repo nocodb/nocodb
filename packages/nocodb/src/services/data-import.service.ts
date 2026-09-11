@@ -10,7 +10,10 @@ import type {
 } from 'nocodb-sdk';
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
-import { openImportAttachmentStream } from '~/modules/jobs/jobs/data-import/attachment-stream';
+import {
+  assertImportAttachmentOwned,
+  openImportAttachmentStream,
+} from '~/modules/jobs/jobs/data-import/attachment-stream';
 import { getImportHandler } from '~/modules/jobs/jobs/data-import/handlers';
 import { JobTypes } from '~/interface/Jobs';
 import { NcError } from '~/helpers/catchError';
@@ -28,19 +31,21 @@ export class DataImportService {
    * return a single sheet; Excel returns one per worksheet in the workbook.
    */
   async preview(
-    _context: NcContext,
+    context: NcContext,
     param: {
       importType?: FileImportType;
       attachment: Pick<AttachmentReqType, 'path' | 'url'>;
       parserConfig: FileImportParserConfig;
+      req: NcRequest;
     },
   ): Promise<ImportPreviewResponse> {
-    const { attachment, parserConfig } = param;
+    const { attachment, parserConfig, req } = param;
     const importType = param.importType || 'csv';
 
     const readStream = await openImportAttachmentStream(
       importType,
       attachment,
+      { context, userId: req?.user?.id },
       parserConfig?.encoding,
     );
 
@@ -79,6 +84,13 @@ export class DataImportService {
     if (!body.attachment?.path && !body.attachment?.url) {
       NcError.badRequest('Attachment path or url is required');
     }
+
+    // The job re-checks at the storage read/delete, but by then it may already
+    // have created tables — reject an unowned reference before queueing.
+    await assertImportAttachmentOwned(body.attachment, {
+      context,
+      userId: req?.user?.id,
+    });
 
     if (!body.sheets?.length) {
       NcError.badRequest('At least one sheet is required');

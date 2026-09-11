@@ -41,7 +41,9 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, toggleChatPanel } = useChatPanel()
+const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, cycleChatPanel } = useChatPanel()
+
+const { isAgentsEnabled } = storeToRefs(useAgentStore())
 
 const {
   blockAiChat,
@@ -86,7 +88,7 @@ onClickOutside(
 )
 
 const handleChatToggle = () => {
-  toggleChatPanel()
+  cycleChatPanel()
 }
 
 const isBaseOpen = computed(() => {
@@ -138,8 +140,13 @@ const onTabClick = async (tabKey: string) => {
       return
     }
     await navigateTo(`${basePath}/workflows`)
+  } else if (tabKey === 'agents') {
+    if (blockAgents.value) {
+      showUpgradeToUseAgents({ triggerSource: 'minisidebar-agents' })
+      return
+    }
+    await navigateTo(`${basePath}/agents`)
   } else if (tabKey === 'interfaces') {
-    // Plan-blocked: upsell instead of navigating (mirrors Rail)
     if (hideInterfaces.value) {
       showUpgradeForInterfaceFeature(PlanFeatureTypes.FEATURE_INTERFACES, 'minisidebar-interfaces')
       return
@@ -204,6 +211,21 @@ const mainItems = computed<NavItem[]>(() => [
               roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
             }),
           onClick: () => onTabClick('interfaces'),
+        },
+      ]
+    : []),
+  ...(!isMobileMode.value && isAgentsEnabled.value
+    ? [
+        {
+          key: 'agents',
+          icon: 'ncAgent',
+          label: t('general.agents'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('agentList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('agents'),
         },
       ]
     : []),

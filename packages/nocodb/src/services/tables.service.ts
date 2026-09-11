@@ -64,6 +64,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import { OperationName } from '~/command-registry/op-names';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 @Injectable()
 export class TablesService {
@@ -847,6 +848,7 @@ export class TablesService {
       req: NcRequest;
       synced?: boolean;
       mm?: boolean;
+      type?: ModelTypes;
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
       operationSource?: OperationSource;
@@ -878,7 +880,16 @@ export class TablesService {
       ...param.table,
       ...(param.synced ? { synced: true } : {}),
       ...(param.mm ? { mm: true } : {}),
+      ...(param.type ? { type: param.type } : {}),
     };
+
+    // Model ids are only unique per base, and several lookups key on the bare
+    // id — so a caller-chosen id lets an attacker mint a decoy table carrying
+    // another base's model id. Sandbox merge replay is the one path that must
+    // keep the original id (`sandbox.id_field` injects it).
+    if (!isReplay()) {
+      delete (tableCreatePayLoad as { id?: string }).id;
+    }
 
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
@@ -1272,17 +1283,19 @@ export class TablesService {
       context,
     });
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'table_create',
-          payload: result,
+    if (result.type === ModelTypes.TABLE) {
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_create',
+            payload: result,
+          },
         },
-      },
-      context.socket_id,
-    );
+        context.socket_id,
+      );
+    }
 
     return result;
   }

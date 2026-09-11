@@ -23,6 +23,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'record-trash': 'record-trash',
   'variables': 'variables',
   'snapshots': 'snapshots',
+  'skills': 'skills',
 }
 
 // Workspace settings: internal tab name → URL slug

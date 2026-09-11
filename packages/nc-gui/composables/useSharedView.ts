@@ -44,6 +44,8 @@ export function useSharedView() {
     () => undefined,
   )
 
+  const sharedPageTitle = useState<SharedPageTitle | undefined>('sharedPageTitle', () => undefined)
+
   const sorts = ref<SortType[]>([])
 
   const password = useState<string | undefined>('password', () => undefined)
@@ -445,6 +447,7 @@ export function useSharedView() {
 
   return {
     sharedView,
+    sharedPageTitle,
     loadSharedView,
     meta,
     nestedFilters,

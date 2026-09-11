@@ -14,6 +14,7 @@ export interface NcContext {
     workspace_roles?: Record<string, boolean>;
     provider?: string;
     direct_teams?: { team_id: string; path: string }[];
+    is_agent?: boolean;
   };
   fk_model_id?: string;
   socket_id?: string;
@@ -94,6 +95,7 @@ export interface NcRequest extends Partial<Request> {
     provider?: string;
     is_api_token?: boolean;
     direct_teams?: { team_id: string; path: string }[];
+    is_agent?: boolean;
   };
   ncSiteUrl: string;
   dashboardUrl: string;

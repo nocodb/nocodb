@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
+  AGENT_ASSIGNABLE_ROLES,
   OrderedProjectRoles,
   OrgUserRoles,
   ProjectRoles,
@@ -29,6 +30,13 @@ const basesStore = useBases()
 const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate, baseTeamRemove } =
   basesStore
 const { activeProjectId, bases, basesUser, basesTeams } = storeToRefs(basesStore)
+
+// An agent is a base principal like a user or a team: it holds a base role via
+// its PrincipalAssignment row, so it belongs in this list. CE's store stub
+// returns an empty map, which collapses every agent branch below to a no-op.
+const agentStore = useAgentStore()
+const { loadAgents, updateAgent } = agentStore
+const { agents } = storeToRefs(agentStore)
 
 const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
 
@@ -93,6 +101,13 @@ const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(
 const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
   let filteredRoles = roles
 
+  // An agent's role is a direct grant with no inheritance chain, and it is
+  // capped at EDITOR server-side — mirror that cap here so the selector can't
+  // offer a role the API will reject.
+  if (record?.isAgent) {
+    return roles.filter((r) => (AGENT_ASSIGNABLE_ROLES as readonly string[]).includes(r))
+  }
+
   if (record?.isTeam && isEeUI) {
     // EE teams: allow INHERIT, filter out OWNER
     filteredRoles = roles.filter((r) => r !== ProjectRoles.OWNER)
@@ -130,25 +145,47 @@ const baseTeamsToCollaborators = computed(() => {
   }))
 })
 
-const filteredCollaborators = computed(() => {
-  if (!userSearchText.value) return collaborators.value.concat(baseTeamsToCollaborators.value)
+const baseAgentsToCollaborators = computed(() => {
+  if (!currentBase.value?.id) return []
 
-  return collaborators.value
-    .concat(baseTeamsToCollaborators.value)
-    .filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+  return (agents.value.get(currentBase.value.id) || []).map((agent: Record<string, any>) => ({
+    ...agent,
+    isAgent: true,
+    display_name: agent.title,
+    // Agents have no mailbox; the row's secondary line shows the description
+    // instead, and `email` still backs search and email-column sorting.
+    email: agent.description || '',
+    roles: agent.role ?? ProjectRoles.VIEWER,
+    base_roles: agent.role ?? ProjectRoles.VIEWER,
+  }))
+})
+
+const filteredCollaborators = computed(() => {
+  const all = collaborators.value.concat(baseTeamsToCollaborators.value).concat(baseAgentsToCollaborators.value)
+
+  if (!userSearchText.value) return all
+
+  return all.filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
 })
 
 const sortedCollaborators = computed(() => {
   return handleGetSortedData(
     filteredCollaborators.value,
     sorts.value,
-    baseTeamsToCollaborators.value.length ? { field: 'created_at', direction: 'asc' } : undefined,
+    baseTeamsToCollaborators.value.length || baseAgentsToCollaborators.value.length
+      ? { field: 'created_at', direction: 'asc' }
+      : undefined,
   )
 })
 
 const loadCollaborators = async () => {
   try {
     if (!currentBase.value) return
+
+    // Agents are base principals too, and the sidebar tree may not have loaded
+    // them yet when this page is opened directly. Failure is non-fatal: the
+    // members list still renders its users and teams.
+    loadAgents({ baseId: currentBase.value.id!, force: true }).catch(() => {})
 
     const { users } = await getBaseUsers({
       baseId: currentBase.value.id!,
@@ -191,6 +228,13 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
 
   try {
+    if (collab?.isAgent) {
+      // The agent store patches its own cached row, which `agents` — and so
+      // this table — reads straight through.
+      await updateAgent(currentBase.value!.id!, collab.id, { role: roles })
+      return
+    }
+
     if (collab?.isTeam) {
       // When role is INHERIT, delete the base team assignment
       if (roles === ProjectRoles.INHERIT) {
@@ -717,6 +761,39 @@ onBeforeUnmount(() => {
               </NcBadge>
             </template>
 
+            <div v-else-if="column.key === 'email' && record.isAgent" class="w-full flex gap-3 items-center users-email-grid">
+              <div class="nc-agent-member-icon flex-none">
+                <LazyGeneralEmojiPicker :key="record.meta?.icon" :emoji="record.meta?.icon" size="small" readonly>
+                  <template #default>
+                    <GeneralIcon icon="ncAgent" class="nc-agent-icon w-4 text-nc-content-gray-subtle !text-[16px]" />
+                  </template>
+                </LazyGeneralEmojiPicker>
+              </div>
+              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                <div class="flex gap-2 items-center">
+                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                    <template #title>
+                      {{ record.title }}
+                    </template>
+                    {{ record.title }}
+                  </NcTooltip>
+                  <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
+                    {{ $t('general.agent') }}
+                  </NcBadge>
+                </div>
+                <NcTooltip
+                  v-if="record.email"
+                  class="truncate max-w-full text-xs text-nc-content-gray-subtle2"
+                  show-on-truncate-only
+                >
+                  <template #title>
+                    {{ record.email }}
+                  </template>
+                  {{ record.email }}
+                </NcTooltip>
+              </div>
+            </div>
+
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
               <GeneralUserIcon size="base" :user="record" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
@@ -791,9 +868,17 @@ onBeforeUnmount(() => {
                   <NcMenu variant="small">
                     <NcMenuItemCopyId
                       :id="record.id"
-                      :tooltip="record.isTeam ? $t(`labels.clickToCopyTeamID`) : $t(`labels.clickToCopyUserID`)"
+                      :tooltip="
+                        record.isAgent
+                          ? $t(`labels.clickToCopyAgentID`)
+                          : record.isTeam
+                          ? $t(`labels.clickToCopyTeamID`)
+                          : $t(`labels.clickToCopyUserID`)
+                      "
                       :label="
-                        record.isTeam
+                        record.isAgent
+                          ? $t(`labels.agentIdColon`, { agentId: record.id })
+                          : record.isTeam
                           ? $t(`labels.teamIdColon`, { teamId: record.id })
                           : $t(`labels.userIdColon`, { userId: record.id })
                       "

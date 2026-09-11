@@ -2015,6 +2015,11 @@ export class ExportService {
       customConditions?: Filter[];
     },
   ): Promise<void> {
+    // A consumer that stops early (a capped export) destroys the stream, but
+    // `push()` after destroy just returns false — so without this the recursion
+    // keeps paging the whole table and discarding every result.
+    if (stream.destroyed) return;
+
     return new Promise<void>((resolve, reject) => {
       this.datasService
         .dataList(context, {

@@ -194,6 +194,8 @@ watch(
         projectPageTab.value = 'snapshots'
       } else if (newVal === 'record-trash' && showEEFeatures.value) {
         projectPageTab.value = 'record-trash'
+      } else if (newVal === 'skills' && showEEFeatures.value) {
+        projectPageTab.value = 'skills'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -213,6 +215,18 @@ const { navigateToProjectPage } = useBase()
 
 const { t } = useI18n()
 
+// The overview tab is the landing page for whichever sidebar vertical is active
+const overviewTabMeta = computed(() => {
+  switch (activeSidebarTab.value) {
+    case 'workflows':
+      return { icon: 'ncAutomation', title: t('objects.workflows') }
+    case 'agents':
+      return { icon: 'ncAgent', title: t('objects.agents') }
+    default:
+      return { icon: 'ncMultiCircle', title: t('general.data') }
+  }
+})
+
 const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     'collaborator': t('labels.addUserToBase'),
@@ -224,12 +238,13 @@ const settingsPageTitle = computed(() => {
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
     'record-trash': t('trash.settings'),
+    'skills': t('labels.aiSkills'),
     'data-source': t('labels.addDataSource'),
     'integrations': t('labels.baseIntegrations'),
     'base-settings': t('general.general'),
     'audits': t('title.audits'),
     'workflows': t('objects.workflows'),
-    'overview': activeSidebarTab.value === 'workflows' ? t('objects.workflows') : t('general.data'),
+    'overview': overviewTabMeta.value.title,
   }
   return tabTitles[projectPageTab.value] || ''
 })
@@ -433,8 +448,8 @@ watch(
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__overview">
-              <GeneralIcon :icon="activeSidebarTab === 'workflows' ? 'ncAutomation' : 'ncMultiCircle'" />
-              <div>{{ activeSidebarTab === 'workflows' ? $t('objects.workflows') : $t('general.data') }}</div>
+              <GeneralIcon :icon="overviewTabMeta.icon" />
+              <div>{{ overviewTabMeta.title }}</div>
             </div>
           </template>
           <ProjectOverview />
@@ -592,6 +607,17 @@ watch(
           </template>
           <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseVariables />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseSkillList') && base.id && !isMobileMode" key="skills">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__skills">
+              <GeneralIcon icon="ncScript" />
+              <div>{{ $t('labels.aiSkills') }}</div>
+            </div>
+          </template>
+          <div class="py-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseSkills />
           </div>
         </a-tab-pane>
         <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode" key="record-trash">

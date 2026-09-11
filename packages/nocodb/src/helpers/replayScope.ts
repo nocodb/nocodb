@@ -21,6 +21,10 @@ export interface ReplayBag {
     entity: 'workflow' | 'script';
     order?: number;
   }>;
+  agentSectionRestoreChildren: ReadonlyArray<{
+    id: string;
+    order?: number;
+  }>;
   rowColorFilterIds: ReadonlyArray<string>;
   interfaceDuplicatePageIds: ReadonlyArray<string>;
 }

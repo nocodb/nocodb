@@ -49,6 +49,20 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Workspace '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_WORKSPACE_SUSPENDED]: {
+    message: (reason?: string) =>
+      reason
+        ? `This workspace has been suspended: ${reason}`
+        : 'This workspace has been suspended',
+    code: 403,
+  },
+  [NcErrorType.ERR_BASE_SUSPENDED]: {
+    message: (reason?: string) =>
+      reason
+        ? `This base has been suspended: ${reason}`
+        : 'This base has been suspended',
+    code: 403,
+  },
   [NcErrorType.ERR_ORG_NOT_FOUND]: {
     message: (id: string) => `Org '${id}' not found`,
     code: 404,
@@ -158,6 +172,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Folder '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_AGENT_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_TRASH_NOT_FOUND]: {
     message: (id: string) => `Trash entry '${id}' not found`,
     code: 404,
@@ -191,9 +209,35 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Chat message '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_CHAT_ARTIFACT_NOT_FOUND]: {
+    message: (id: string) => `Web artifact '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_WORKFLOW_NOT_FOUND]: {
     message: (id: string) => `Workflow '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.ERR_AGENT_NOT_FOUND]: {
+    message: (id: string) => `Agent '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_AGENT_SESSION_NOT_FOUND]: {
+    message: (id: string) => `Agent session '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SKILL_NOT_FOUND]: {
+    message: (id: string) => `Skill '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SKILL_SOURCE_INVALID]: {
+    message: (ref: string) =>
+      `'${ref}' is not a valid skill source — expected 'owner/repo' or 'owner/repo/skillName'`,
+    code: 400,
+  },
+  [NcErrorType.ERR_SKILL_CATALOG_UNAVAILABLE]: {
+    message: (repo: string) =>
+      `Could not read skills from '${repo}' — check the repository exists and is public`,
+    code: 502,
   },
   [NcErrorType.ERR_SCRIPT_NOT_FOUND]: {
     message: (id: string) => `Script '${id}' not found`,

@@ -17,7 +17,8 @@ const props = withDefaults(
 
 const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate', 'changeIcon'])
 
-const { isUIAllowed, isDataReadOnly } = useRoles()
+const { isUIAllowed, isDataReadOnly, baseRoles } = useRoles()
+const recordCountRoles = inject(ProjectRoleInj, baseRoles)
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -272,6 +273,18 @@ const onToggleFieldHeaderVisibility = async () => {
 // View ownership, personal/locked state and derived permission checks all
 // come from usePersonalViewPermissions to avoid drift with other components.
 const { isPersonalView, isLockedView, isPersonalViewOwner, canModifyView, canDeleteView } = usePersonalViewPermissions(view)
+const { canModifyView: canModifyRecordCount } = usePersonalViewPermissions(view, recordCountRoles)
+
+const onRecordCountClick = () => {
+  if (!canModifyRecordCount.value || isPublicView.value || view.value.type === ViewTypes.FORM) return
+  const { close } = useDialog(resolveComponent('DlgViewRecordCount'), {
+    'modelValue': ref(true),
+    'onUpdate:modelValue': () => close(),
+    view,
+    'roles': recordCountRoles,
+  })
+  emits('closeModal')
+}
 
 // Tooltip shown when a modify-view action is disabled (rename, change icon, edit description).
 const modifyViewDisabledReason = computed(() => {
@@ -419,6 +432,14 @@ defineOptions({
       "
     />
     <template v-if="!showOnlyCopyId">
+      <NcMenuItem
+        v-show="view.type !== ViewTypes.FORM && !isPublicView && canModifyRecordCount"
+        data-testid="view-record-count-menu"
+        @click="onRecordCountClick"
+      >
+        <GeneralIcon icon="ncSettings2" class="opacity-80" />
+        {{ $t('labels.viewRecordCount') }}
+      </NcMenuItem>
       <template v-if="isUIAllowed('viewCreateOrEdit')">
         <NcDivider />
         <template v-if="inSidebar">

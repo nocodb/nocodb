@@ -1,11 +1,18 @@
 import {
   abbreviateNumber,
+  applyNumberAbbreviation,
+  extractNumberAbbreviation,
   formatCurrencyValue,
   NumberAbbreviationType,
   resolveNumberAbbreviation,
   shouldAbbreviateNumber,
 } from './abbreviation';
 import { parseCurrencyValue, parseDecimalValue, parseIntValue } from './parser';
+import {
+  serializeCurrencyValue,
+  serializeDecimalValue,
+  serializeIntValue,
+} from './serializer';
 import { SeparatorType } from './common';
 
 // Intl emits NBSP/NNBSP between number and symbol in some locales
@@ -250,5 +257,142 @@ describe('parser skipAbbreviation option', () => {
     expect(parseIntValue(1234567, col, { skipAbbreviation: true })).toBe(
       '1,234,567'
     );
+  });
+});
+
+describe('extractNumberAbbreviation', () => {
+  it('splits a unit that follows the number', () => {
+    expect(extractNumberAbbreviation('1.2M')).toEqual({
+      text: '1.2',
+      multiplier: 1e6,
+    });
+    expect(extractNumberAbbreviation('2.5B')).toEqual({
+      text: '2.5',
+      multiplier: 1e9,
+    });
+    expect(extractNumberAbbreviation('-1,000K')).toEqual({
+      text: '-1,000',
+      multiplier: 1e3,
+    });
+    expect(extractNumberAbbreviation('1.5 T')).toEqual({
+      text: '1.5',
+      multiplier: 1e12,
+    });
+  });
+
+  it('keeps the rest of the string, so currency parsing still runs', () => {
+    expect(extractNumberAbbreviation('$1.23M')).toEqual({
+      text: '$1.23',
+      multiplier: 1e6,
+    });
+    // de-DE renders the symbol after the number
+    expect(extractNumberAbbreviation('1,23M €')).toEqual({
+      text: '1,23 €',
+      multiplier: 1e6,
+    });
+  });
+
+  it('leaves a unit-suffixed amount alone', () => {
+    // 'Ft' would otherwise read as Trillion, 'BTC' as Billion
+    expect(extractNumberAbbreviation('1 234 Ft')).toEqual({
+      text: '1 234 Ft',
+      multiplier: 1,
+    });
+    expect(extractNumberAbbreviation('1.5 BTC')).toEqual({
+      text: '1.5 BTC',
+      multiplier: 1,
+    });
+    expect(extractNumberAbbreviation('1.2Mio')).toEqual({
+      text: '1.2Mio',
+      multiplier: 1,
+    });
+    expect(extractNumberAbbreviation('1.2m')).toEqual({
+      text: '1.2m',
+      multiplier: 1,
+    });
+    expect(extractNumberAbbreviation('1,234.56')).toEqual({
+      text: '1,234.56',
+      multiplier: 1,
+    });
+  });
+});
+
+describe('applyNumberAbbreviation', () => {
+  it('trims the float noise a power-of-ten multiply introduces', () => {
+    // 8580.69 * 1e6 lands on 8580690000.000001 unrounded
+    expect(applyNumberAbbreviation(8580.69, 1e6)).toBe(8580690000);
+    expect(applyNumberAbbreviation(4360.56, 1e12)).toBe(4360560000000000);
+    expect(applyNumberAbbreviation(1.2, 1e6)).toBe(1200000);
+  });
+
+  it('passes the value through when there is no unit', () => {
+    expect(applyNumberAbbreviation(1.2, 1)).toBe(1.2);
+  });
+});
+
+describe('serializer expands abbreviated input', () => {
+  const abbreviated = (extra: Record<string, any> = {}) =>
+    ({
+      meta: JSON.stringify({
+        abbreviate: NumberAbbreviationType.Auto,
+        separator: SeparatorType.CommaPeriod,
+        ...extra,
+      }),
+    } as any);
+
+  const plain = {
+    meta: JSON.stringify({ separator: SeparatorType.CommaPeriod }),
+  } as any;
+
+  it('expands the notation the column displays', () => {
+    expect(serializeIntValue('1.2M', { col: abbreviated() } as any)).toBe(
+      1200000
+    );
+    expect(
+      serializeDecimalValue('2.5B', undefined, { col: abbreviated() } as any)
+    ).toBe(2500000000);
+    expect(
+      serializeDecimalValue('-1.2M', undefined, { col: abbreviated() } as any)
+    ).toBe(-1200000);
+  });
+
+  it('round-trips a fixed-unit display', () => {
+    const col = abbreviated({
+      abbreviate: NumberAbbreviationType.Thousand,
+      precision: 1,
+    });
+    expect(parseDecimalValue(1234567.89, col)).toBe('1,234.6K');
+    expect(
+      serializeDecimalValue('1,234.6K', undefined, { col } as any)
+    ).toBe(1234600);
+  });
+
+  it('expands through currency locale parsing', () => {
+    const usd = abbreviated({ currency_code: 'USD', currency_locale: 'en-US' });
+    expect(serializeCurrencyValue('$1.23M', { col: usd } as any)).toBe(1230000);
+
+    const eur = abbreviated({ currency_code: 'EUR', currency_locale: 'de-DE' });
+    expect(serializeCurrencyValue('1,23M €', { col: eur } as any)).toBe(1230000);
+  });
+
+  it('accepts the legacy boolean meta', () => {
+    expect(
+      serializeIntValue('1.2M', { col: abbreviated({ abbreviate: true }) } as any)
+    ).toBe(1200000);
+  });
+
+  it('leaves a column without abbreviation on its old behaviour', () => {
+    expect(serializeIntValue('1.2M', { col: plain } as any)).toBe(1);
+    expect(serializeDecimalValue('1.2M', undefined, { col: plain } as any)).toBe(
+      1.2
+    );
+  });
+
+  it('still parses an unabbreviated value', () => {
+    expect(
+      serializeDecimalValue('1,234,567.89', undefined, {
+        col: abbreviated(),
+      } as any)
+    ).toBe(1234567.89);
   });
 });

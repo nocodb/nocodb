@@ -17,6 +17,11 @@ import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 import { getGroupDecimalSymbolFromLocale } from '~/lib/currencyHelpers';
 import { getSeparatorChars, resolveColumnSeparator } from './separator';
+import {
+  applyNumberAbbreviation,
+  extractNumberAbbreviation,
+  shouldAbbreviateNumber,
+} from './abbreviation';
 
 /**
  * Remove outer quotes & unescape
@@ -66,6 +71,14 @@ export const serializeDecimalValue = (
     // our own cells and pasting it back dropped the sign. Normalize to ASCII '-'
     // before the strips below, which treat U+2212 as noise.
     value = value.replace(/\u2212/g, '-');
+
+    // a column that displays abbreviated values also accepts them: "1.2M" -> 1200000
+    let multiplier = 1;
+    if (params?.col && shouldAbbreviateNumber(parseProp(params.col.meta))) {
+      const extracted = extractNumberAbbreviation(value);
+      value = extracted.text;
+      multiplier = extracted.multiplier;
+    }
 
     let cleanedValue: string;
     if (ncIsFunction(callback)) {
@@ -128,7 +141,7 @@ export const serializeDecimalValue = (
 
     // If it's a valid number, return it
     if (!isNaN(numberValue)) {
-      return numberValue;
+      return applyNumberAbbreviation(numberValue, multiplier);
     }
   }
 

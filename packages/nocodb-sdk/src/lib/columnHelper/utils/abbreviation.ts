@@ -45,6 +45,45 @@ const AUTO_UNIT_ORDER: AbbreviationUnit[] = [
   UNIT_THOUSAND,
 ];
 
+const INPUT_UNIT_MULTIPLIERS: Record<string, number> = {
+  K: UNIT_THOUSAND.divisor,
+  M: UNIT_MILLION.divisor,
+  B: UNIT_BILLION.divisor,
+  T: UNIT_TRILLION.divisor,
+};
+
+/**
+ * Split abbreviated input ("1.2M") into the text minus its unit and the magnitude
+ * that unit names, leaving the caller's own separator/locale parsing to read the number.
+ */
+export function extractNumberAbbreviation(value: string): {
+  text: string;
+  multiplier: number;
+} {
+  // the unit must follow a digit and be the only letter there, so a unit-suffixed
+  // amount ("1 234 Ft", "1.5 BTC", "1.2Mio") is left alone
+  const match = /(\d)\s*([KMBT])(?![A-Za-z0-9])/.exec(value);
+
+  if (!match) return { text: value, multiplier: 1 };
+
+  return {
+    text:
+      value.slice(0, match.index + 1) +
+      value.slice(match.index + match[0].length),
+    multiplier: INPUT_UNIT_MULTIPLIERS[match[2]],
+  };
+}
+
+/** Scale a parsed number by an extracted multiplier — 8580.69 * 1e6 otherwise lands on ...0000.000001. */
+export function applyNumberAbbreviation(
+  value: number,
+  multiplier: number
+): number {
+  if (multiplier === 1) return value;
+
+  return Number((value * multiplier).toPrecision(15));
+}
+
 /** Normalize `meta.abbreviate` — legacy boolean `true` maps to Auto. */
 export function resolveNumberAbbreviation(
   meta: Record<string, any> | undefined | null

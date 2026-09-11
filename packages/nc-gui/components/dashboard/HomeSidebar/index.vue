@@ -140,6 +140,7 @@ function onNavClick(item: NavItem) {
               'hover:bg-nc-bg-gray-medium': !isUserMenuOpen,
             }"
             data-testid="nc-sidebar-userinfo"
+            data-tour="sidebar-userinfo"
             :data-email="user?.email"
           >
             <GeneralUserIcon :user="user" size="medium" :initials-length="1" class="flex-none" />

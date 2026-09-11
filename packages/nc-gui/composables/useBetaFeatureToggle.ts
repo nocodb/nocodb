@@ -255,6 +255,15 @@ const FEATURES = [
     version: 1,
     isEngineering: true,
   },
+  {
+    id: 'product_tours_menu',
+    title: 'Product tours menu',
+    description: 'Show the Product Tours entry in the account menu, for replaying onboarding and feature tours.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 // Retired flags: FEATURES entries commented out above, but kept in FEATURE_FLAG

@@ -57,12 +57,7 @@ interface Props {
   isColourFilter?: boolean
   isTempFilters?: boolean
   hideCheckbox?: boolean
-  /**
-   * The host supplies the padding. Drops the dropdown chrome this component
-   * carries for its own popover — the min-width floor, the outer padding, and
-   * the add-condition row's trailing space — so an embedded editor sits flush
-   * with its container and hugs its rows. Used by the interface filter modal.
-   */
+  /** Host supplies the padding: drops this component's min-width floor, outer padding and trailing space. */
   flush?: boolean
 }
 
@@ -1224,10 +1219,6 @@ defineExpose({
     data-testid="nc-filter"
     class="menu-filter-dropdown"
     :class="{
-      // Flush hosts size the container themselves (the modal is `max-content`
-      // over these rows), so fill it — `w-min` would leave the editor narrower
-      // than its host whenever the host has a floor, floating the right-pinned
-      // footer actions away from the rows' edge.
       'w-min': !isMobileMode && !flush,
       'w-full': isMobileMode || flush,
       'min-w-122 py-2 pl-4': !nested && !widget && !isMobileMode && !flush,
@@ -1925,8 +1916,6 @@ defineExpose({
     </Draggable>
 
     <template v-if="!nested">
-      <!-- `nc-filter-footer-row` carries no styles — it's a stable hook for
-           hosts/tests that need to reach this row from outside. -->
       <div class="nc-filter-footer-row flex items-center">
         <template v-if="appInfo.ee && !isPublic">
           <div
@@ -2023,8 +2012,7 @@ defineExpose({
           </div>
         </template>
 
-        <!-- Right-pinned actions on the add-condition row (interface filter
-             copy/paste). Renders even when the add buttons are hidden. -->
+        <!-- Renders even when the add buttons are hidden. -->
         <div v-if="$slots['footer-actions']" class="ml-auto flex-none flex items-center">
           <slot name="footer-actions" />
         </div>

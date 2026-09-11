@@ -55,7 +55,7 @@
       "protobufjs@<=7.6.0": "^7.6.1",
       "@protobufjs/utf8@<=1.1.0": ">=1.1.1",
       "@babel/plugin-transform-modules-systemjs@>=7.12.0 <=7.29.3": ">=7.29.4",
-      "hono@<4.12.34": "4.13.1",
+      "hono@<4.13.5": ">=4.13.5",
       "basic-ftp@<=5.3.0": "^5.3.1",
       "simple-git@<3.36.0": "^3.36.0",
       "fast-xml-parser@<5.7.0": ">=5.7.0",
@@ -197,7 +197,8 @@
       "browserslist@<4.28.8": ">=4.28.8",
       "toml@<4.2.0": "^4.2.0",
       "unhead@<2.1.13": "^2.1.13",
-      "uuid@>=12.0.0 <12.0.1": "^12.0.1"
+      "uuid@>=12.0.0 <12.0.1": "^12.0.1",
+      "smol-toml@<1.7.1": ">=1.7.1"
     },
     "onlyBuiltDependencies": [
       "@biomejs/biome",

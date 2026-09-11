@@ -50,7 +50,6 @@ import {
 } from '~/models';
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { setModelContext } from '~/helpers/modelContext';
 
 /**
  * Effective schema for metadata introspection (tableList / columnList /
@@ -590,7 +589,11 @@ export function extractSortsObject(
       if (throwErrorIfInvalid && !sort.fk_column_id) {
         NcError.get(context).fieldNotFound(s.field);
       }
-      return setModelContext(new Sort(sort), context);
+      // Deliberately UNSTAMPED. The alias map may describe a related table in
+      // another base, and sortV2 stamps an unstamped Sort with the context of
+      // the base model it is applied to — which is the base the sort key must
+      // resolve in. Stamping here would win over that and silently drop it.
+      return new Sort(sort);
     });
   }
 
@@ -619,7 +622,11 @@ export function extractSortsObject(
       const fieldNameOrId = s.replace(/^~?[+-]/, '');
       NcError.get(context).fieldNotFound(fieldNameOrId);
     }
-    return setModelContext(new Sort(sort), context);
+    // Deliberately UNSTAMPED. The alias map may describe a related table in
+    // another base, and sortV2 stamps an unstamped Sort with the context of
+    // the base model it is applied to — which is the base the sort key must
+    // resolve in. Stamping here would win over that and silently drop it.
+    return new Sort(sort);
   });
 }
 

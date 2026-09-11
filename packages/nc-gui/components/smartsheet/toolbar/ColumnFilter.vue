@@ -1925,6 +1925,8 @@ defineExpose({
     </Draggable>
 
     <template v-if="!nested">
+      <!-- `nc-filter-footer-row` carries no styles — it's a stable hook for
+           hosts/tests that need to reach this row from outside. -->
       <div class="nc-filter-footer-row flex items-center">
         <template v-if="appInfo.ee && !isPublic">
           <div

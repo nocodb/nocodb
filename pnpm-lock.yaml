@@ -1143,9 +1143,6 @@ importers:
       iconv-lite:
         specifier: ^0.6.3
         version: 0.6.3
-      image-size:
-        specifier: 2.0.2
-        version: 2.0.2
       import-fresh:
         specifier: ^3.3.1
         version: 3.3.1

@@ -57,6 +57,8 @@ interface Props {
   isColourFilter?: boolean
   isTempFilters?: boolean
   hideCheckbox?: boolean
+  /** Host supplies the padding: drops this component's min-width floor, outer padding and trailing space. */
+  flush?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -87,6 +89,7 @@ const props = withDefaults(defineProps<Props>(), {
   isColourFilter: false,
   isTempFilters: false,
   hideCheckbox: false,
+  flush: false,
 })
 
 const emit = defineEmits([
@@ -130,6 +133,7 @@ const {
   visibilityError,
   disableAddNewFilter,
   isViewFilter,
+  flush,
 } = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
@@ -1215,10 +1219,10 @@ defineExpose({
     data-testid="nc-filter"
     class="menu-filter-dropdown"
     :class="{
-      'w-min': !isMobileMode,
-      'w-full': isMobileMode,
-      'min-w-122 py-2 pl-4': !nested && !widget && !isMobileMode,
-      'py-2 pl-4': !nested && !widget && isMobileMode,
+      'w-min': !isMobileMode && !flush,
+      'w-full': isMobileMode || flush,
+      'min-w-122 py-2 pl-4': !nested && !widget && !isMobileMode && !flush,
+      'py-2 pl-4': !nested && !widget && isMobileMode && !flush,
       'xs:(h-full max-h-full flex flex-col) max-h-[max(80vh,500px)]': !nested && !link,
       'xs:(max-h-full) max-h-[max(50vh,400px)]': !nested && link,
       '!min-w-127.5': isForm && !webHook && !isMobileMode,
@@ -1912,13 +1916,15 @@ defineExpose({
     </Draggable>
 
     <template v-if="!nested">
-      <div class="flex">
+      <div class="nc-filter-footer-row flex items-center">
         <template v-if="appInfo.ee && !isPublic">
           <div
             v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW) && !hiddenAddNewFilter"
-            class="flex gap-2 xs:(justify-between items-start) w-full pr-4"
+            class="flex gap-2 xs:(justify-between items-start) flex-1 min-w-0"
             :class="{
-              'mt-1 mb-2': filters.length,
+              'mt-1 mb-2': filters.length && !flush,
+              'mt-1': filters.length && flush,
+              'pr-4': !flush,
             }"
           >
             <NcWrap :wrap="!!isMobileMode" class="flex flex-col items-start gap-y-2">
@@ -1969,7 +1975,8 @@ defineExpose({
             ref="addFiltersRowDomRef"
             class="flex gap-2 xs:(flex-col items-start)"
             :class="{
-              'mt-1 mb-2': filters.length,
+              'mt-1 mb-2': filters.length && !flush,
+              'mt-1': filters.length && flush,
             }"
           >
             <NcButton
@@ -2004,6 +2011,11 @@ defineExpose({
             </NcButton>
           </div>
         </template>
+
+        <!-- Renders even when the add buttons are hidden. -->
+        <div v-if="$slots['footer-actions']" class="ml-auto flex-none flex items-center">
+          <slot name="footer-actions" />
+        </div>
       </div>
     </template>
     <div

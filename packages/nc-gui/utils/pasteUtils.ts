@@ -129,6 +129,8 @@ export const valueToCopy = (
     meta,
     metas,
     rowId: isMMOrMMLike(columnObj) ? result.rowId : null,
+    // abbreviated text ("1.2M") doesn't survive paste-back — serializers strip the suffix
+    skipAbbreviation: true,
   })
 
   // For a top-level-URL formula cell, override text/plain with markdown and (single-column only) add a

@@ -45,7 +45,9 @@ export class DecimalHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
-    return parseDecimalValue(value, params.col);
+    return parseDecimalValue(value, params.col, {
+      skipAbbreviation: params.skipAbbreviation,
+    });
   }
 
   parsePlainCellValue(
@@ -56,7 +58,11 @@ export class DecimalHelper extends AbstractColumnHelper {
       value = 0;
     }
 
-    return `${parseDecimalValue(value, params.col) ?? ''}`;
+    return `${
+      parseDecimalValue(value, params.col, {
+        skipAbbreviation: params.skipAbbreviation,
+      }) ?? ''
+    }`;
   }
 
   // using string number fill handler

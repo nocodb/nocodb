@@ -71,6 +71,26 @@ export function shouldAbbreviateNumber(
 }
 
 /**
+ * Auto mode: pick the unit by magnitude, then re-check after rounding so a
+ * boundary value promotes (999999 @ precision 1 → 1M, not 1000K).
+ */
+function pickAutoUnit(
+  value: number,
+  precision: number
+): AbbreviationUnit | undefined {
+  const index = AUTO_UNIT_ORDER.findIndex((u) => Math.abs(value) >= u.divisor);
+  const unit = index === -1 ? undefined : AUTO_UNIT_ORDER[index];
+
+  const rounded = Number(
+    (unit ? value / unit.divisor : value).toFixed(precision)
+  );
+  if (Math.abs(rounded) < 1000) return unit;
+
+  if (!unit) return UNIT_THOUSAND;
+  return AUTO_UNIT_ORDER[index - 1] ?? unit;
+}
+
+/**
  * Abbreviate a number per the column meta's `abbreviate` mode, honouring the
  * column's thousands/decimal separator config for the scaled value
  * (e.g. Period-and-comma + Thousand → `1.234,6K`). Trailing zeros are dropped.
@@ -87,7 +107,7 @@ export function abbreviateNumber(
 
   let unit = ABBREVIATION_UNITS[type];
   if (!unit && type === NumberAbbreviationType.Auto) {
-    unit = AUTO_UNIT_ORDER.find((u) => Math.abs(value) >= u.divisor);
+    unit = pickAutoUnit(value, precision);
   }
 
   const scaled = unit ? value / unit.divisor : value;
@@ -123,18 +143,22 @@ export function abbreviateNumber(
  */
 export function formatCurrencyValue(
   value: number,
-  meta: Record<string, any> | undefined | null
+  meta: Record<string, any> | undefined | null,
+  options?: { skipAbbreviation?: boolean }
 ): string {
   const precision = meta?.precision ?? 2;
   const locale = meta?.currency_locale || 'en-US';
-  const type = resolveNumberAbbreviation(meta);
+  const type = options?.skipAbbreviation
+    ? NumberAbbreviationType.None
+    : resolveNumberAbbreviation(meta);
 
   const currencyOptions: Intl.NumberFormatOptions = {
     style: 'currency',
     currency: meta?.currency_code || 'USD',
   };
 
-  if (type === NumberAbbreviationType.None) {
+  // non-finite can't be scaled — fall back to the plain currency format
+  if (type === NumberAbbreviationType.None || !isFinite(value)) {
     return new Intl.NumberFormat(locale, {
       ...currencyOptions,
       minimumFractionDigits: precision,
@@ -142,24 +166,35 @@ export function formatCurrencyValue(
     }).format(value);
   }
 
-  const fractionOptions: Intl.NumberFormatOptions = {
+  const fractionDigits = Math.min(precision, 2);
+
+  // Auto uses the same K/M/B/T ladder as plain numbers — not Intl compact
+  // notation, whose units vary by locale and contradict the dropdown label.
+  const unit = ABBREVIATION_UNITS[type] ?? pickAutoUnit(value, fractionDigits);
+
+  const parts = new Intl.NumberFormat(locale, {
+    ...currencyOptions,
     minimumFractionDigits: 0,
-    maximumFractionDigits: Math.min(precision, 2),
-  };
+    maximumFractionDigits: fractionDigits,
+  }).formatToParts(unit ? value / unit.divisor : value);
 
-  const unit = ABBREVIATION_UNITS[type];
+  if (!unit) return parts.map((p) => p.value).join('');
 
-  if (!unit) {
-    return new Intl.NumberFormat(locale, {
-      ...currencyOptions,
-      ...fractionOptions,
-      notation: 'compact',
-      compactDisplay: 'short',
-    }).format(value);
+  // Attach the suffix to the numeric portion so postfix-symbol locales render
+  // `1,23M €`, not `1,23 €M`.
+  const numericTypes = ['integer', 'group', 'decimal', 'fraction'];
+  let lastNumeric = -1;
+  for (let i = 0; i < parts.length; i++) {
+    if (numericTypes.includes(parts[i].type)) lastNumeric = i;
   }
 
-  return `${new Intl.NumberFormat(locale, {
-    ...currencyOptions,
-    ...fractionOptions,
-  }).format(value / unit.divisor)}${unit.suffix}`;
+  if (lastNumeric === -1) {
+    return parts.map((p) => p.value).join('') + unit.suffix;
+  }
+
+  return parts
+    .map((part, i) =>
+      i === lastNumeric ? part.value + unit.suffix : part.value
+    )
+    .join('');
 }

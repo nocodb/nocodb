@@ -45,7 +45,9 @@ export class CurrencyHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
-    return parseCurrencyValue(value, params.col);
+    return parseCurrencyValue(value, params.col, {
+      skipAbbreviation: params.skipAbbreviation,
+    });
   }
 
   parsePlainCellValue(

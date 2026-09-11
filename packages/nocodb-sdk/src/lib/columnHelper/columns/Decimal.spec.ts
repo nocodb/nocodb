@@ -1,6 +1,7 @@
 import { DecimalHelper } from './Decimal';
 import { SilentTypeConversionError } from '~/lib/error';
 import { SeparatorType } from '../utils/common';
+import { NumberAbbreviationType } from '../utils/abbreviation';
 
 describe('DecimalHelper', () => {
   const helper = new DecimalHelper();
@@ -28,6 +29,7 @@ describe('DecimalHelper', () => {
       expect(helper.columnDefaultMeta).toEqual({
         precision: 1,
         separator: SeparatorType.NonePeriod,
+        abbreviate: NumberAbbreviationType.None,
       });
     });
   });

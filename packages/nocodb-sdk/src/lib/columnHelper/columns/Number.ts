@@ -44,7 +44,9 @@ export class NumberHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
-    return parseIntValue(value, params.col);
+    return parseIntValue(value, params.col, {
+      skipAbbreviation: params.skipAbbreviation,
+    });
   }
 
   parsePlainCellValue(
@@ -55,7 +57,11 @@ export class NumberHelper extends AbstractColumnHelper {
       value = 0;
     }
 
-    return `${parseIntValue(value, params.col) ?? ''}`;
+    return `${
+      parseIntValue(value, params.col, {
+        skipAbbreviation: params.skipAbbreviation,
+      }) ?? ''
+    }`;
   }
 
   // using string number fill handler

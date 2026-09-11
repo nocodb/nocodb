@@ -44,7 +44,11 @@ export const parseDefault = (value: any) => {
 export const parseIntValue = (
   value: string | null | number,
   col?: ColumnType,
-  options?: { skipThousandSeparator?: boolean; locale?: string }
+  options?: {
+    skipThousandSeparator?: boolean;
+    skipAbbreviation?: boolean;
+    locale?: string;
+  }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -59,7 +63,7 @@ export const parseIntValue = (
     return Number(value);
   }
 
-  if (shouldAbbreviateNumber(columnMeta)) {
+  if (!options?.skipAbbreviation && shouldAbbreviateNumber(columnMeta)) {
     return abbreviateNumber(Number(value), columnMeta, {
       locale: options?.locale,
     });
@@ -81,7 +85,11 @@ export const parseIntValue = (
 export const parseDecimalValue = (
   value: string | null | number,
   col: ColumnType,
-  options?: { skipThousandSeparator?: boolean; locale?: string }
+  options?: {
+    skipThousandSeparator?: boolean;
+    skipAbbreviation?: boolean;
+    locale?: string;
+  }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -101,7 +109,7 @@ export const parseDecimalValue = (
     return formatNumberWithSeparator(rounded, '', decimalSeparator, precision);
   }
 
-  if (shouldAbbreviateNumber(columnMeta)) {
+  if (!options?.skipAbbreviation && shouldAbbreviateNumber(columnMeta)) {
     return abbreviateNumber(Number(value), columnMeta, {
       precision,
       locale: options?.locale,
@@ -188,7 +196,11 @@ export const parseJsonValue = (value) => {
   }
 };
 
-export const parseCurrencyValue = (value: any, col: ColumnType) => {
+export const parseCurrencyValue = (
+  value: any,
+  col: ColumnType,
+  options?: { skipAbbreviation?: boolean }
+) => {
   if (ncIsNaN(value)) {
     return null;
   }
@@ -202,7 +214,7 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
       columnMeta.precision ?? 2
     );
 
-    return formatCurrencyValue(+roundedValue, columnMeta);
+    return formatCurrencyValue(+roundedValue, columnMeta, options);
   } catch {
     return value;
   }

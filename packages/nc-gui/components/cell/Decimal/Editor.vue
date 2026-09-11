@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { getSeparatorChars, resolveColumnSeparator } from 'nocodb-sdk'
+import {
+  abbreviateNumber,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  roundUpToPrecision,
+  shouldAbbreviateNumber,
+} from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -27,13 +33,22 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const inputRef = ref<HTMLInputElement>()
 const vModel = useVModel(props, 'modelValue', emits)
 
+const colMeta = computed(() => parseProp(column?.value.meta))
+
 const precision = computed(() => {
-  return parseProp(column?.value.meta).precision ?? 1
+  return colMeta.value.precision ?? 1
 })
 
 const separatorChars = computed(() => {
-  const separator = resolveColumnSeparator(parseProp(column?.value.meta))
+  const separator = resolveColumnSeparator(colMeta.value)
   return getSeparatorChars(separator)
+})
+
+const idleFormatter = computed(() => {
+  if (!shouldAbbreviateNumber(colMeta.value)) return undefined
+
+  return (value: number) =>
+    abbreviateNumber(Number(roundUpToPrecision(value, precision.value)), colMeta.value, { precision: precision.value })
 })
 
 onMounted(() => {
@@ -57,6 +72,7 @@ onMounted(() => {
     :precision="precision"
     :decimal-separator="separatorChars.decimalSeparator"
     :thousand-separator="separatorChars.thousandSeparator"
+    :idle-formatter="idleFormatter"
     @blur="editEnabled = false"
   />
 </template>

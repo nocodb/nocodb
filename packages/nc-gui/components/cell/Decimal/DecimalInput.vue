@@ -11,6 +11,8 @@ interface Props {
   isFocusOnMounted?: boolean
   decimalSeparator?: string
   thousandSeparator?: string | null
+  // overrides the idle (unfocused) display; focused editing always shows the bare number
+  idleFormatter?: (value: number) => string
 }
 
 interface Emits {
@@ -90,6 +92,9 @@ const getFormattedModelValue = (format = true) => {
       // Focused/editing: bare number with only the decimal separator so the
       // user can type/paste cleanly.
       if (format) {
+        if (props.idleFormatter) {
+          return props.idleFormatter(numValue)
+        }
         return formatNumberWithSeparator(numValue, props.thousandSeparator ?? null, decSep, props.precision)
       }
       const result = numValue.toString()

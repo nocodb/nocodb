@@ -71,11 +71,14 @@ export async function serializeCellValue(
     column,
     siteUrl,
     locale,
+    rawNumbers,
   }: {
     column?: Column;
     value: any;
     siteUrl: string;
     locale?: string;
+    // For sinks that type cells themselves and carry the format separately (xlsx)
+    rawNumbers?: boolean;
   },
 ) {
   if (!column) {
@@ -190,6 +193,8 @@ export async function serializeCellValue(
     case UITypes.Currency: {
       if (isNaN(Number(value))) return null;
 
+      if (rawNumbers) return Number(value);
+
       const currencyMeta = parseProp(column.meta);
 
       try {
@@ -211,6 +216,8 @@ export async function serializeCellValue(
     case UITypes.Decimal:
       {
         if (isNaN(Number(value))) return null;
+
+        if (rawNumbers) return Number(value);
 
         return parseDecimalValue(value, column, {
           skipThousandSeparator: true,

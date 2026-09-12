@@ -288,7 +288,6 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEngineering: true,
-    isEE: true,
   },
 ] as const
 

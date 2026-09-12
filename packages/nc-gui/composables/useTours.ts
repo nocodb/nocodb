@@ -153,12 +153,7 @@ export const useTours = createSharedComposable(() => {
 
   const isActive = computed(() => !!activeTour.value)
 
-  /**
-   * The global gate. The whole feature is behind the `product_tours_menu` beta
-   * flag (off by default), so with it off the engine stays dormant — no tour
-   * fires, no beacon shows, nothing logs. Reactive: `isFeatureEnabled` reads
-   * `appInfo` (the EE gate), which arrives async.
-   */
+  // Global gate — with the flag off nothing new fires; a tour already running isn't re-checked.
   const isProductToursEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PRODUCT_TOURS_MENU))
 
   const state = computed<TourStateMap>(() => ({
@@ -703,9 +698,7 @@ export const useTours = createSharedComposable(() => {
     // out of `availableTours`. Run `__ncTours()` in the console to see every
     // tour with its verdict.
     if (import.meta.dev) {
-      // Debug helpers stay available even when the feature is off, so a tour can
-      // be previewed without enabling the beta-flagged Help menu. `start('debug')`
-      // bypasses eligibility.
+      // Available with the feature off too — `start('debug')` bypasses eligibility.
       ;(window as any).__ncStartTour = (id: string) => start(id, 'debug')
       // Jump straight to a step, for reproducing one without walking the tour.
       ;(window as any).__ncTourGoTo = (index: number) => driverObj?.moveTo(index)
@@ -720,9 +713,8 @@ export const useTours = createSharedComposable(() => {
           })),
         )
 
-      // Verdict logging, gated on the feature: a disabled engine stays silent
-      // rather than spamming the console on load and every navigation. When on, a
-      // tour vanishing from the Help menu says why instead of just disappearing.
+      // Verdict on every change to the eligible set, so a tour vanishing from the Help
+      // menu says why. Gated on the flag: a disabled engine doesn't log on navigation.
       let loggedRegistry = false
 
       watch(

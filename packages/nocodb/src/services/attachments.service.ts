@@ -25,7 +25,10 @@ import { NcBaseError, NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
-import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
+import {
+  normalizeFilename,
+  validateAndNormaliseLocalPath,
+} from '~/helpers/attachmentHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { UseWorker } from '~/decorators/use-worker.decorator';
@@ -40,11 +43,6 @@ interface AttachmentObject {
   signedPath?: string;
   signedUrl?: string;
 }
-
-// ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
-const normalizeFilename = (filename: string) => {
-  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
-};
 
 @Injectable()
 export class AttachmentsService {

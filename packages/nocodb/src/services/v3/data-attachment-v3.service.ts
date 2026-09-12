@@ -24,6 +24,7 @@ import {
 } from '~/constants';
 import {
   constructFilePath,
+  normalizeFilename,
   validateNumberOfFilesInCell,
 } from '~/helpers/attachmentHelpers';
 import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
@@ -38,11 +39,6 @@ import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { RootScopes } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
-
-// ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
-const normalizeFilename = (filename: string) => {
-  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
-};
 
 const mb = 1024 * 1024;
 

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import debug from 'debug';
 import {
   getFirstNonPersonalView,
+  isAllowedLmtTrackedField,
   isCrossBaseLink,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -49,6 +50,7 @@ import {
   Dashboard,
   Filter,
   Hook,
+  LmtTrackedField,
   Model,
   Permission,
   Script,
@@ -763,6 +765,10 @@ export class ExportService {
         }
       }
 
+      // tracked-field sets of field-tracking LMT/LMB columns live in
+      // junction rows — hydrate so they serialize with the column
+      await LmtTrackedField.hydrateColumns(context, model.columns);
+
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
@@ -780,6 +786,23 @@ export class ExportService {
               ai: columnData.ai,
               column_name: columnData.column_name,
               meta: columnData.meta,
+              ...(columnData.tracked_field_ids?.length && {
+                // export-format ids, like every other cross-column
+                // reference — the import remaps them via getIdOrExternalId.
+                // Ids whose column is no longer trackable (converted to a
+                // derived type) are dropped rather than carried over: the
+                // source already ignores them on read, and columnAdd would
+                // reject them, failing the whole duplicate job.
+                tracked_field_ids: columnData.tracked_field_ids
+                  .filter((trackedId: string) => {
+                    const tracked = model.columns.find(
+                      (c) => c.id === trackedId,
+                    );
+                    return tracked && isAllowedLmtTrackedField(tracked);
+                  })
+                  .map((trackedId: string) => idMap.get(trackedId))
+                  .filter(Boolean),
+              }),
               pk: columnData.pk,
               pv: columnData.pv,
               order: columnData.order,

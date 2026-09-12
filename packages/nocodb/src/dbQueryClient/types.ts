@@ -14,7 +14,7 @@ export interface AggregationGeneratorParams {
   column: Column;
   baseModelSqlv2: IBaseModelSqlV2;
   aggregation: string;
-  column_query: string | Knex.QueryBuilder;
+  column_query: string | Knex.QueryBuilder | Knex.Raw;
   parsedFormulaType?: FormulaDataTypes;
   aggType: AggregationCategory;
   alias?: string;

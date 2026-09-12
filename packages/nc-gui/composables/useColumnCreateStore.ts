@@ -3,6 +3,7 @@ import {
   ButtonActionsType,
   UITypes,
   isAIPromptCol,
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -404,11 +405,14 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           let updateData: typeof formState.value = formState.value
 
-          // For system datetime fields, only send meta and description
-          // to avoid triggering the system field non-modifiable check
-          if (isSystem.value && isCreatedOrLastModifiedTimeCol(column.value)) {
+          // For system created/last-modified fields (time AND by), only send
+          // meta, tracked fields and description to avoid triggering the system
+          // field non-modifiable check — the tracked-fields picker renders for
+          // LastModifiedBy too.
+          if (isSystem.value && (isCreatedOrLastModifiedTimeCol(column.value) || isCreatedOrLastModifiedByCol(column.value))) {
             updateData = {
               meta: updateData.meta,
+              tracked_field_ids: (updateData as any).tracked_field_ids,
               description: updateData.description,
             } as typeof updateData
           }

@@ -3,6 +3,8 @@ import {
   CircularRefContext,
   FormulaDataTypes,
   isBtLikeV2Junction,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
@@ -13,6 +15,8 @@ import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import { assertParsedTreeFunctions } from './assertParsedTreeFunctions';
+import { getLmtSyntheticFormula } from './lmtSyntheticFormula';
+import { lmbFieldQueryBuilder } from './lmbFieldQueryBuilder';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
@@ -46,6 +50,7 @@ import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn, View } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
+import LmtTrackedField from '~/models/LmtTrackedField';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
@@ -236,6 +241,30 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.LastModifiedTime:
       case UITypes.DateTime:
         {
+          // a LastModifiedTime column tracking specific fields has no
+          // physical column — resolve it to its synthetic
+          // LAST_MODIFIED_TIME({colId}, …) expression instead of the
+          // system updated_at column
+          if (isFieldTrackingLmtCol(col)) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              const trackedIds = await LmtTrackedField.getTrackedFieldIds(
+                context,
+                col.id,
+              );
+              const synthetic = getLmtSyntheticFormula(trackedIds, columns);
+              if (!synthetic) return { builder: knex.raw('NULL') };
+              const { builder } = await formulaQueryBuilderv2({
+                baseModel: baseModelSqlv2,
+                tree: synthetic,
+                model,
+                column: col,
+                tableAlias,
+                parentColumns: params.parentColumns,
+              });
+              return { builder: knex.raw(builder).wrap('(', ')') };
+            };
+            break;
+          }
           const refCol = await getRefColumnIfAlias(context, col, columns);
 
           if (refCol.id in aliasToColumn) {
@@ -308,7 +337,18 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
 
             // CreatedBy and LastModifiedBy with system = false has no column_name
             // need to get it from siblings
-            const columnName = await getColumnName(context, col, columns);
+            // a LastModifiedBy column tracking specific fields resolves to
+            // its latest-tracked-editor expression from the row-meta column
+            const columnName: any = isFieldTrackingLmbCol(col)
+              ? (
+                  await lmbFieldQueryBuilder({
+                    baseModel: baseModelSqlv2,
+                    column: col,
+                    model,
+                    tableAlias,
+                  })
+                ).builder
+              : await getColumnName(context, col, columns);
 
             // create nested replace statement for each user
             if (knex.clientType() === 'pg' || knex.clientType() === 'sqlite3') {

@@ -14,7 +14,7 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const baseRole = inject(ProjectRoleInj)!
 
-const { isMobileMode, appInfo } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isUIAllowed, baseRoles, loadRoles } = useRoles()
 
@@ -26,16 +26,35 @@ const {
   showUpgradeToUseDocumentPermissions,
   showUpgradeToUseSync,
   showUpgradeToUseSnapshots,
+  showUpgradeToUseTrashSettings,
+  showUpgradeToUseBaseVariables,
+  blockTrashSettings,
+  blockBaseVariables,
   isEEFeatureBlocked,
   showEEFeatures,
+  hideInterfaces,
+  blockWorkflows,
 } = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
-  if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
-  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions()) return
-  if (page === 'syncs' && showUpgradeToUseSync()) return
+  if (
+    page === 'permissions' &&
+    showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'base-settings-table-field-permissions' })
+  )
+    return
+  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions({ triggerSource: 'base-settings-doc-permissions' }))
+    return
+  if (page === 'syncs' && showUpgradeToUseSync({ triggerSource: 'base-settings-sync' })) return
   if (page === 'snapshots' && isEEFeatureBlocked.value) {
-    showUpgradeToUseSnapshots()
+    showUpgradeToUseSnapshots({ triggerSource: 'base-settings-snapshots' })
+    return
+  }
+  if (page === 'record-trash' && blockTrashSettings.value) {
+    showUpgradeToUseTrashSettings({ triggerSource: 'base-settings-trash' })
+    return
+  }
+  if (page === 'variables' && blockBaseVariables.value) {
+    showUpgradeToUseBaseVariables({ triggerSource: 'base-settings-base-variables' })
     return
   }
 
@@ -86,6 +105,16 @@ onMounted(() => {
       {{ $t('labels.addUserToBase') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('interfaceUsersMatrix', { roles: effectiveRoles }) && showEEFeatures && !hideInterfaces"
+      v-e="['c:settings:base:interface-members']"
+      icon="ncUsers"
+      data-testid="base-interface-members"
+      :active="activeBaseSettingsTab === 'interface-members'"
+      @click="navigateToBaseSettings('interface-members')"
+    >
+      {{ $t('labels.addUserToInterface') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
       v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && showEEFeatures"
       v-e="['c:settings:base:permissions']"
       icon="ncLock"
@@ -99,7 +128,7 @@ onMounted(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && showEEFeatures"
       v-e="['c:settings:base:docs-permissions']"
       icon="ncFileText"
       data-testid="base-docs-permissions"
@@ -159,7 +188,7 @@ onMounted(() => {
     <NcSidebarMenuItem
       v-if="
         isEeUI &&
-        appInfo?.ee &&
+        !blockWorkflows &&
         showEEFeatures &&
         isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles }) &&
         isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
@@ -182,6 +211,48 @@ onMounted(() => {
       @click="navigateToBaseSettings('mcp')"
     >
       {{ $t('title.mcpServer') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('baseTrashSettingsList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:record-trash']"
+      icon="ncTrash2"
+      data-testid="base-record-trash"
+      :active="activeBaseSettingsTab === 'record-trash'"
+      @click="navigateToBaseSettings('record-trash')"
+    >
+      {{ $t('trash.settings') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
+          :feature-enabled-callback="() => !blockTrashSettings"
+        />
+      </template>
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('baseSkillList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:skills']"
+      icon="ncScript"
+      data-testid="base-skills"
+      :active="activeBaseSettingsTab === 'skills'"
+      @click="navigateToBaseSettings('skills')"
+    >
+      {{ $t('labels.aiSkills') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="!isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:variables']"
+      icon="ncSettings"
+      data-testid="base-variables"
+      :active="activeBaseSettingsTab === 'variables'"
+      @click="navigateToBaseSettings('variables')"
+    >
+      {{ $t('title.baseVariables') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+          :feature-enabled-callback="() => !blockBaseVariables"
+        />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="

@@ -1,11 +1,17 @@
 import dayjs from 'dayjs';
+import { ClientType, JSEPNode } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
+  extractDatetimeFormat,
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
-import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {
+  getWeekdayByText,
+  getWeekStartOffsetSunday,
+} from '~/helpers/formulaFnHelper';
+import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const mysql2 = {
   ...commonFns,
@@ -121,6 +127,15 @@ const mysql2 = {
       ),
     };
   },
+  DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const format = extractDatetimeFormat(pt);
+    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        getDatetimeFormatHandler(ClientType.MYSQL).build(`${dateExpr}`, format),
+      ),
+    };
+  },
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return {
@@ -132,6 +147,22 @@ const mysql2 = {
               )}'`
             : (await fn(pt.arguments[0])).builder
         }) - ${getWeekdayByText(pt?.arguments[1]?.value)} % 7 + 7) % 7`,
+      ),
+    };
+  },
+  WEEKNUM: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Excel-compatible WEEKNUM: week 1 is the week containing Jan 1, weeks start
+    // on Sunday by default. DAYOFWEEK() is 1 (Sunday) .. 7 (Saturday).
+    const source =
+      pt.arguments[0].type === 'Literal'
+        ? `'${dayjs((await fn(pt.arguments[0])).builder).format('YYYY-MM-DD')}'`
+        : `(${(await fn(pt.arguments[0])).builder})`;
+    const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
+    const doy = `DAYOFYEAR(${source})`;
+    const dow = `(DAYOFWEEK(${source}) - 1)`;
+    return {
+      builder: knex.raw(
+        `(FLOOR(((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7) + 1)`,
       ),
     };
   },
@@ -189,6 +220,24 @@ const mysql2 = {
       ]),
     };
   },
+  MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`MD5(?)`, [source]),
+    };
+  },
+  SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`SHA2(?, 256)`, [source]),
+    };
+  },
+  SHA512: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`SHA2(?, 512)`, [source]),
+    };
+  },
   XOR: async ({ fn, knex, pt }: MapFnArgs) => {
     const args = await Promise.all(
       pt.arguments.map(async (arg) => {
@@ -223,7 +272,27 @@ END)`,
   },
   JSON_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
-    const needle = (await fn(pt.arguments[1])).builder;
+
+    // When the path is a string literal we prebuild the full jsonpath and
+    // bind it once — the naive `CONCAT('$', ?)` rendering leaves `'$',`
+    // adjacent in the resulting SQL, and the `$'` pair is interpreted by
+    // JS's String.prototype.replace as "rest of string after match" when
+    // knex inlines this raw under named-binding wrappers like VALUE().
+    // See nocodb/nocodb#12695.
+    const pathArg = pt.arguments[1];
+    if (
+      pathArg?.type === JSEPNode.LITERAL &&
+      typeof pathArg.value === 'string'
+    ) {
+      return {
+        builder: knex.raw(
+          `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, ?) ELSE NULL END`,
+          [source, source, `$${pathArg.value}`],
+        ),
+      };
+    }
+
+    const needle = (await fn(pathArg)).builder;
     return {
       builder: knex.raw(
         `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, CONCAT('$', ?)) ELSE NULL END`,

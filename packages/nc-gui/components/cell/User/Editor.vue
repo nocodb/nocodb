@@ -2,7 +2,7 @@
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
-import { getOptions, getSelectedUsers } from './utils'
+import { getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -83,14 +83,16 @@ const isFormListView = computed(() => !isEditColumn.value && isForm.value && par
 
 const options = computed(() => {
   const currentUserField: any[] = []
-  if (isEeUI && isInFilter.value && showEEFeatures.value) {
+  if (isEeUI && (isInFilter.value || isEditColumn.value) && showEEFeatures.value) {
     currentUserField.push({
       id: CURRENT_USER_TOKEN,
       display_name: t('title.currentUser'),
       email: CURRENT_USER_TOKEN,
     })
   }
-  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
+  const systemUsers = isInFilter.value ? getSystemUserFilterOptions(column.value) : []
+
+  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)), ...systemUsers]
 })
 
 const nonDeletedOptions = computed(() => {
@@ -125,7 +127,12 @@ const vModel = computed({
   },
   set: (val) => {
     // @ts-expect-error antd select returns string[] instead of { label: string, value: string }[]
-    if (isEeUI && val.includes(CURRENT_USER_TOKEN) && showUpgradeToUseCurrentUserFilter()) return
+    if (
+      isEeUI &&
+      val.includes(CURRENT_USER_TOKEN) &&
+      showUpgradeToUseCurrentUserFilter({ triggerSource: 'cell-user-current-user-filter' })
+    )
+      return
 
     // Clear search query after selection is made
     searchVal.value = ''
@@ -405,10 +412,18 @@ onMounted(() => {
                       placement="bottom"
                     >
                       <template #title>
-                        {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                        {{
+                          op.email === CURRENT_USER_TOKEN
+                            ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                            : op.email
+                        }}
                       </template>
 
-                      {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                      {{
+                        op.email === CURRENT_USER_TOKEN
+                          ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                          : op.email
+                      }}
                     </NcTooltip>
                   </div>
                 </div>
@@ -509,10 +524,18 @@ onMounted(() => {
                 placement="bottom"
               >
                 <template #title>
-                  {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                  {{
+                    op.email === CURRENT_USER_TOKEN
+                      ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                      : op.email
+                  }}
                 </template>
 
-                {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                {{
+                  op.email === CURRENT_USER_TOKEN
+                    ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                    : op.email
+                }}
               </NcTooltip>
             </div>
             <GeneralIcon
@@ -569,7 +592,7 @@ onMounted(() => {
               :class="{
                 'text-nc-content-gray-muted': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
                 'text-nc-content-brand': val === CURRENT_USER_TOKEN,
-                'font-600': isInFilter,
+                'font-600': isInFilter || isEditColumn,
               }"
             >
               {{ label }}
@@ -618,7 +641,8 @@ onMounted(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[1px];
+  /* keep in sync with .rounded-tag above */
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px] my-[1px];
 }
 
 :deep(.ant-select-selection-overflow-item) {

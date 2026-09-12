@@ -50,7 +50,7 @@ const copySharedBase = async () => {
       !isSharedBase &&
       !isManagedAppMaster &&
       !isSandbox &&
-      isUIAllowed('baseShare') &&
+      (isUIAllowed('baseShare') || isUIAllowed('viewShare')) &&
       visibility !== 'hidden' &&
       (activeTable || base)
     "

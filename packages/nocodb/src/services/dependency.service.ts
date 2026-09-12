@@ -3,7 +3,14 @@ import { DependencyTableType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import DependencyTracker from '~/models/DependencyTracker';
 import { NcError } from '~/helpers/catchError';
-import { Dashboard, DateDependency, Model, Widget, Workflow } from '~/models';
+import {
+  Dashboard,
+  DateDependency,
+  InterfacePage,
+  Model,
+  Widget,
+  Workflow,
+} from '~/models';
 import { processConcurrently } from '~/utils';
 
 @Injectable()
@@ -34,6 +41,7 @@ export class DependencyService {
     const dashboardIds = new Set<string>();
     const workflowIds = new Set<string>();
     const dateDependencyIds = new Set<string>();
+    const interfacePageIds = new Set<string>();
 
     for (const dep of breakingChanges.dependents) {
       if (dep.dependent_type === DependencyTableType.Widget) {
@@ -45,28 +53,34 @@ export class DependencyService {
         workflowIds.add(dep.dependent_id);
       } else if (dep.dependent_type === DependencyTableType.DateDependency) {
         dateDependencyIds.add(dep.dependent_id);
+      } else if (dep.dependent_type === DependencyTableType.InterfacePage) {
+        interfacePageIds.add(dep.dependent_id);
       }
     }
 
-    const [dashboards, workflows, dateDependencyTables] = await Promise.all([
-      processConcurrently(Array.from(dashboardIds), (id) =>
-        Dashboard.get(context, id),
-      ),
-      processConcurrently(Array.from(workflowIds), (id) =>
-        Workflow.get(context, id),
-      ),
-      processConcurrently(Array.from(dateDependencyIds), async (id) => {
-        const rule = await DateDependency.get(context, id);
-        if (rule?.fk_model_id) {
-          return Model.get(context, rule.fk_model_id);
-        }
-        return null;
-      }),
-    ]);
+    const [dashboards, workflows, dateDependencyTables, interfacePages] =
+      await Promise.all([
+        processConcurrently(Array.from(dashboardIds), (id) =>
+          Dashboard.get(context, id),
+        ),
+        processConcurrently(Array.from(workflowIds), (id) =>
+          Workflow.get(context, id),
+        ),
+        processConcurrently(Array.from(dateDependencyIds), async (id) => {
+          const rule = await DateDependency.get(context, id);
+          if (rule?.fk_model_id) {
+            return Model.get(context, rule.fk_model_id);
+          }
+          return null;
+        }),
+        processConcurrently(Array.from(interfacePageIds), (id) =>
+          InterfacePage.get(context, id),
+        ),
+      ]);
 
     const entities: Array<{
       type: DependencyTableType;
-      entity: Dashboard | Workflow | Model;
+      entity: Dashboard | Workflow | Model | InterfacePage;
     }> = [];
 
     for (const dashboard of dashboards.filter(Boolean)) {
@@ -87,6 +101,13 @@ export class DependencyService {
       entities.push({
         type: DependencyTableType.DateDependency,
         entity: table,
+      });
+    }
+
+    for (const page of interfacePages.filter(Boolean)) {
+      entities.push({
+        type: DependencyTableType.InterfacePage,
+        entity: page,
       });
     }
 

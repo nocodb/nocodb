@@ -9,6 +9,8 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { t } = useI18n()
+
 // Set default meta values from column helper
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Colour),
@@ -16,14 +18,14 @@ vModel.value.meta = {
 }
 
 const displayFormatOptions = [
-  { value: 'swatch_hex', label: 'Swatch & Hex' },
-  { value: 'swatch_only', label: 'Swatch only' },
-  { value: 'hex_only', label: 'Hex only' },
+  { value: 'swatch_hex', label: t('labels.swatchAndHex') },
+  { value: 'swatch_only', label: t('labels.swatchOnly') },
+  { value: 'hex_only', label: t('labels.hexOnly') },
 ]
 
 const swatchStyleOptions = [
-  { value: 'circle', label: 'Circle' },
-  { value: 'square', label: 'Square' },
+  { value: 'circle', label: t('labels.progressShapeCircle') },
+  { value: 'square', label: t('labels.square') },
 ]
 </script>
 

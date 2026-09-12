@@ -23,8 +23,10 @@ export default async function getColumnPropsFromUIDT(
     ...colProp,
   };
 
-  newColumn.dtxp = sqlUi.getDefaultLengthForDatatype(newColumn.dt);
-  newColumn.dtxs = sqlUi.getDefaultScaleForDatatype(newColumn.dt);
+  newColumn.dtxp =
+    colProp.dtxp ?? sqlUi.getDefaultLengthForDatatype(newColumn.dt);
+  newColumn.dtxs =
+    colProp.dtxs ?? sqlUi.getDefaultScaleForDatatype(newColumn.dt);
 
   const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
   if (column && selectTypes.includes(column.uidt as UITypes)) {

@@ -3,9 +3,13 @@ import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
 import type { AttachmentReqType } from 'nocodb-sdk'
-import type { ImageCropperProps } from '#imports'
+// Imported by path, not '#imports': the SFC compiler has to resolve the type to
+// generate runtime props and cannot follow Nuxt's virtual module.
+import type { ImageCropperProps } from '../../lib/types'
 
-const { imageConfig, uploadConfig, ...props } = defineProps<ImageCropperProps>()
+// Kept as a single object: a rest-element destructure would yield a plain (non-reactive)
+// props object, breaking useVModel and toRefs below.
+const props = defineProps<ImageCropperProps>()
 
 const emit = defineEmits(['update:showCropper', 'submit'])
 
@@ -29,7 +33,7 @@ const previewImage = ref({
 const fileSize = ref<number>(0)
 
 const isValidFileSize = computed(() => {
-  return uploadConfig?.maxFileSize ? !!fileSize.value && fileSize.value <= uploadConfig?.maxFileSize : true
+  return props.uploadConfig?.maxFileSize ? !!fileSize.value && fileSize.value <= props.uploadConfig?.maxFileSize : true
 })
 
 const handleCropImage = () => {
@@ -39,20 +43,20 @@ const handleCropImage = () => {
 
   previewImage.value = {
     canvas,
-    src: canvas.toDataURL(imageConfig.type),
+    src: canvas.toDataURL(props.imageConfig.type),
   }
   ;(canvas as any).toBlob((blob: Blob) => {
     fileSize.value = blob.size
-  }, imageConfig.type)
+  }, props.imageConfig.type)
 }
 
 const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
-  if (uploadConfig?.path) {
+  if (props.uploadConfig?.path) {
     try {
       const uploadResult = await api.storage.uploadByUrl(
         {
-          path: uploadConfig?.path as string,
-          scope: uploadConfig?.scope,
+          path: props.uploadConfig?.path as string,
+          scope: props.uploadConfig?.scope,
         },
         fileToUpload,
       )
@@ -79,9 +83,9 @@ const handleSaveImage = async () => {
   if (previewImage.value.canvas) {
     await handleUploadImage([
       {
-        title: imageConfig.name,
-        fileName: imageConfig.name,
-        mimetype: imageConfig.type,
+        title: props.imageConfig.name,
+        fileName: props.imageConfig.name,
+        mimetype: props.imageConfig.type,
         size: fileSize.value,
         url: previewImage.value.src,
         data: previewImage.value.src,
@@ -151,7 +155,9 @@ watch(
     </div>
     <div class="flex justify-between items-center space-x-4 mt-4">
       <div class="flex items-center space-x-4">
-        <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false"> Cancel </NcButton>
+        <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
       </div>
       <div class="flex items-center space-x-4">
         <NcButton type="secondary" size="small" :disabled="isLoading" @click="handleCropImage">
@@ -163,7 +169,7 @@ watch(
           <template #title> Cropped file size is greater than max file size </template>
 
           <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src || !isValidFileSize" @click="handleSaveImage">
-            Save
+            {{ $t('general.save') }}
           </NcButton>
         </NcTooltip>
       </div>

@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
+import { abstractTypeToMetaUIType } from './metaUiDataType';
 import { IDType } from './index';
-import { ColumnType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
 import { SqlUi } from '~/lib/sqlUi/SqlUI.types';
 
 const dbTypes = [
@@ -189,6 +190,30 @@ export class SqliteUi implements SqlUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.Order,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'boolean',
+        dtx: 'specificType',
+        ct: 'boolean',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: '0',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
         uip: '',
         uicn: '',
         system: true,
@@ -551,6 +576,54 @@ export class SqliteUi implements SqlUi {
     return 'string';
   }
 
+  // Introspection UIType for meta-sync — exact port of the removed
+  // ModelXcMetaSqlite.getUIDataType (+ its getAbstractType). Distinct from
+  // getUIType (column-creation default). See metaUiDataType.ts.
+  static getMetaUIDataType(col): any {
+    return abstractTypeToMetaUIType(this.getMetaAbstractType(col), {
+      jsonAsLongText: true,
+    });
+  }
+
+  static getMetaAbstractType(col): any {
+    // remove length value from datatype (for ex. varchar(45) => varchar)
+    // (for ex. decimal(13,2) => decimal)
+    switch (col.dt?.replace(/\(\d+\)|\(\d+,\d+\)$/, '').toLowerCase()) {
+      case 'date':
+        return 'date';
+      case 'datetime':
+      case 'timestamp':
+        return 'datetime';
+      case 'integer':
+      case 'int':
+      case 'tinyint':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'int2':
+      case 'int8':
+        return 'integer';
+      case 'text':
+        return 'text';
+      case 'boolean':
+        return 'boolean';
+      case 'real':
+      case 'decimal':
+      case 'double':
+      case 'double precision':
+      case 'float':
+      case 'numeric':
+        return 'float';
+
+      case 'blob sub_type text':
+      case 'blob':
+        return 'blob';
+      case 'character':
+      case 'varchar':
+        return 'string';
+    }
+  }
+
   static getUIType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
@@ -718,6 +791,9 @@ export class SqliteUi implements SqlUi {
         break;
       case 'Order':
         colProp.dt = 'real';
+        break;
+      case UITypes.Deleted:
+        colProp.dt = 'boolean';
         break;
       default:
         colProp.dt = 'varchar';
@@ -936,6 +1012,8 @@ export class SqliteUi implements SqlUi {
         return ['text'];
       case 'JSON':
         return ['text'];
+      case UITypes.Deleted:
+        return ['boolean', 'integer'];
       default:
         return dbTypes;
     }
@@ -955,6 +1033,11 @@ export class SqliteUi implements SqlUi {
       'ARRAYUNIQUE',
       'ARRAYSLICE',
       'ARRAYCOMPACT',
+      // node-sqlite3 has no built-in hash functions and does not support
+      // user-defined functions, so checksum functions are unsupported.
+      'MD5',
+      'SHA256',
+      'SHA512',
     ];
   }
 
@@ -1048,6 +1131,9 @@ export class SqliteUi implements SqlUi {
   }
   getUIType(col: ColumnType): string {
     return SqliteUi.getUIType(col);
+  }
+  getMetaUIDataType(col: ColumnType): UITypes {
+    return SqliteUi.getMetaUIDataType(col);
   }
   getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     return SqliteUi.getDataTypeForUiType(col, idType);

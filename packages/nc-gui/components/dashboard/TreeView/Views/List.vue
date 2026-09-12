@@ -43,6 +43,16 @@ const emits = defineEmits<Emits>()
 const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
+/** Extra indent when the owning table sits inside a base-level folder — view
+ *  rows step in by the same amount (Views/Node.vue). */
+const sectionIndentPx = inject(SidebarSectionIndentInj, ref(0))
+
+const { isRtl } = useRtl()
+
+const emptyPlaceholderIndentStyle = computed(() =>
+  isRtl.value ? { marginRight: `${sectionIndentPx.value}px` } : { marginLeft: `${sectionIndentPx.value}px` },
+)
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $api } = useNuxtApp()
@@ -67,8 +77,6 @@ const views = computed(() => {
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { addUndo, defineModelScope } = useUndoRedo()
-
 const { navigateToView, loadViews, isUserViewOwner, updateView } = useViewsStore()
 
 /** Selected view(s) for menu */
@@ -80,6 +88,15 @@ const dragging = ref(false)
 const menuRef = useTemplateRef('menuRef')
 
 const isMarked = ref<string | false>(false)
+
+/** Keys the list so a drop can re-mount it: Sortable moves the row's DOM node
+ *  into the target section's container, which desyncs Vue's vdom and can leave
+ *  the same view rendered under two sections until reload. */
+const renderKey = ref(0)
+
+function forceRerender() {
+  renderKey.value++
+}
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
@@ -188,7 +205,10 @@ const initSortable = (el: Element) => {
       const itemEl = evt.item as HTMLElement
       const currentItem = views.value.find((v) => v.id === itemEl.dataset.id)
 
-      if (!currentItem || !currentItem.id) return
+      if (!currentItem || !currentItem.id) {
+        forceRerender()
+        return
+      }
 
       const firstCollaborativeView = getFirstNonPersonalView(views.value, {
         includeViewType: ViewTypes.GRID,
@@ -197,7 +217,10 @@ const initSortable = (el: Element) => {
       const isFirstCollaborativeView = firstCollaborativeView?.id === currentItem.id
 
       const newOrder = computeNewOrder(evt, newIndex)
-      if (newOrder == null) return
+      if (newOrder == null) {
+        forceRerender()
+        return
+      }
 
       currentItem.order = newOrder
 
@@ -256,6 +279,10 @@ const initSortable = (el: Element) => {
           }
         }
       }
+
+      // onEnd fires on the source list, whose vdom still owns the node Sortable
+      // moved into the target container — re-mounting here drops that orphan.
+      forceRerender()
     },
     animation: 150,
     revertOnSpill: true,
@@ -287,7 +314,7 @@ async function changeView(view: ViewType) {
 }
 
 /** Rename a view */
-async function onRename(view: ViewType, originalTitle?: string, undo = false) {
+async function onRename(view: ViewType) {
   try {
     await $api.internal.postOperation(
       view.fk_workspace_id!,
@@ -312,27 +339,6 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
 
     refreshCommandPalette()
 
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (v: ViewType, title: string) => {
-            const tempTitle = v.title
-            v.title = title
-            onRename(v, tempTitle, true)
-          },
-          args: [view, view.title],
-        },
-        undo: {
-          fn: (v: ViewType, title: string) => {
-            const tempTitle = v.title
-            v.title = title
-            onRename(v, tempTitle, true)
-          },
-          args: [view, originalTitle],
-        },
-        scope: defineModelScope({ view: activeView.value }),
-      })
-    }
     // update view name in recent views
     allRecentViews.value = allRecentViews.value.map((rv) => {
       if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
@@ -481,6 +487,7 @@ const filteredViews = computed(() => {
     <div
       v-if="filteredViews.length || !!sectionId"
       ref="menuRef"
+      :key="`views-${renderKey}`"
       :data-section-id="sectionId"
       :data-table-id="table?.id"
       :class="{ dragging, 'min-h-6': !!sectionId && !filteredViews.length }"
@@ -493,6 +500,7 @@ const filteredViews = computed(() => {
           'pl-14.5 xs:(pl-16) rtl:(pr-14.5 pl-0) rtl:xs:(pr-16 pl-0)': isDefaultSource,
           'pl-21.5 xs:(pl-23) rtl:(pr-21.5 pl-0) rtl:xs:(pr-23 pl-0)': !isDefaultSource,
         }"
+        :style="emptyPlaceholderIndentStyle"
       >
         {{ $t('general.empty') }}
       </div>

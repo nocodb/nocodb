@@ -63,7 +63,7 @@ const { toggleRead, deleteNotification } = notificationStore
           <NcMenu variant="small">
             <NcMenuItem @click.stop="() => toggleRead(item)"> Mark as unread </NcMenuItem>
             <NcDivider />
-            <NcMenuItem danger @click.stop="deleteNotification(item)"> Delete </NcMenuItem>
+            <NcMenuItem danger @click.stop="deleteNotification(item)"> {{ $t('general.delete') }} </NcMenuItem>
           </NcMenu>
         </template>
       </NcDropdown>

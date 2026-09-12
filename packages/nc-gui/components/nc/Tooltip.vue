@@ -38,6 +38,12 @@ interface NcTooltipProps {
    * Key to be pressed on hover to trigger the tooltip
    */
   modifierKey?: string
+  /**
+   * Tooltip text. When omitted (and no `#title` slot is provided), the default slot content
+   * is reused as the tooltip — handy for `show-on-truncate-only` cases where the trigger and
+   * the tooltip share the same string.
+   */
+  title?: string
   tooltipStyle?: CSSProperties
   attrs?: Record<string, unknown>
   color?: 'dark' | 'light'
@@ -46,6 +52,13 @@ interface NcTooltipProps {
   disableInMobile?: boolean
   placement?: TooltipPlacement | undefined
   showOnTruncateOnly?: boolean
+  /**
+   * Used with `showOnTruncateOnly`. A CSS selector for a descendant (queried within the tooltip's
+   * own wrapper) to measure for truncation instead of the wrapper itself. Use when the text clips
+   * inside a nested element rather than directly in the wrapper — e.g. a smartsheet cell's
+   * `.nc-cell-field`.
+   */
+  truncateSelector?: string
   hideOnClick?: boolean
   overlayClassName?: string
   wrapChild?: keyof HTMLElementTagNameMap
@@ -143,16 +156,21 @@ watchDebounced(
   [isOverlayHovering, isHovering, () => modifierKey.value, () => disabled.value],
   ([overlayHovering, hovering, key, isDisabled]) => {
     if (showOnTruncateOnly?.value) {
-      const targetElement = el?.value
+      // When `truncateSelector` is set, measure that descendant instead of the wrapper itself —
+      // for cases where the text clips inside a nested element (e.g. a cell's `.nc-cell-field`).
+      const targetElement = (props.truncateSelector ? el?.value?.querySelector(props.truncateSelector) : el?.value) as
+        | HTMLElement
+        | null
+        | undefined
 
       let isElementTruncated = false
 
       if (props.lineClamp) {
         // Multi-line `line-clamp`
-        isElementTruncated = targetElement && isLineClamped(targetElement)
+        isElementTruncated = !!targetElement && isLineClamped(targetElement)
       } else {
         // Single line `truncate`
-        isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
+        isElementTruncated = !!targetElement && targetElement.scrollWidth > targetElement.clientWidth
       }
 
       if (!isElementTruncated) {
@@ -224,7 +242,11 @@ const onClick = () => {
   >
     <template #title>
       <div ref="element">
-        <slot name="title" />
+        <!-- Priority: #title slot → title prop → default slot -->
+        <slot name="title">
+          <template v-if="title">{{ title }}</template>
+          <slot v-else />
+        </slot>
       </div>
     </template>
 
@@ -248,12 +270,19 @@ const onClick = () => {
 }
 .nc-tooltip-dark {
   .ant-tooltip-inner {
-    @apply !px-2 !py-1 !rounded-lg !bg-gray-800 dark:!bg-[#3a3f4b];
+    @apply !px-2 !py-1 !rounded-lg !bg-gray-800;
   }
 
   .ant-tooltip-arrow-content {
-    @apply !bg-gray-800 dark:!bg-[#3a3f4b];
+    @apply !bg-gray-800;
   }
+}
+
+/* dark: tooltip surface comes from the palette's tooltip token (classic keeps the
+   historical #3a3f4b) — plain CSS so it can't be dropped by a utility variant */
+[theme='dark'] .nc-tooltip-dark .ant-tooltip-inner,
+[theme='dark'] .nc-tooltip-dark .ant-tooltip-arrow-content {
+  background-color: var(--nc-bg-tooltip) !important;
 }
 
 .nc-tooltip-light {
@@ -262,6 +291,14 @@ const onClick = () => {
   }
   .ant-tooltip-arrow-content {
     @apply !bg-nc-bg-gray-medium;
+  }
+}
+
+.nc-tooltip-scrollable {
+  .ant-tooltip-inner {
+    max-height: 60vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 

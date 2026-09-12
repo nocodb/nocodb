@@ -40,7 +40,19 @@ export class PluginsService {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
 
     const pluginInfo = await Plugin.get(param.pluginId);
-    if (pluginInfo?.title && pluginInfo.category && !isPlayWrightNode()) {
+
+    // Only run the adapter connection test when the plugin is being activated
+    // with a non-empty input. Deactivating/resetting a plugin sends
+    // `{ input: null, active: false }` (e.g. when switching storage providers),
+    // and running the test in that case would instantiate the adapter with a
+    // null config and crash (e.g. `Cannot read properties of null (reading 'region')`).
+    if (
+      param.plugin.active &&
+      param.plugin.input &&
+      pluginInfo?.title &&
+      pluginInfo.category &&
+      !isPlayWrightNode()
+    ) {
       await NcPluginMgrv2.test({
         title: pluginInfo.title,
         category: pluginInfo.category,

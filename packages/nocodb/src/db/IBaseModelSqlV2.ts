@@ -22,11 +22,15 @@ import type {
   NestedLinkAuditEntry,
   NestedLinkLastModifiedEntry,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
+import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
+import type { DisplacedRecord } from '~/command-registry/types';
+import type PQueue from 'p-queue';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
   model: Model;
   tnPath: string | Knex.Raw<any>;
+  queryQueue: PQueue;
 
   readByPk(
     id: undefined | any,
@@ -43,19 +47,14 @@ export interface IBaseModelSqlV2 {
   ): Promise<any>;
   execAndParse(
     qb: Knex.QueryBuilder | string,
-    dependencyColumns?: Column[],
-    options?: {
-      skipDateConversion?: boolean;
-      skipAttachmentConversion?: boolean;
-      skipSubstitutingColumnIds?: boolean;
-      skipUserConversion?: boolean;
-      skipJsonConversion?: boolean;
-      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
-      first?: boolean;
-      bulkAggregate?: boolean;
-      apiVersion?: NcApiVersion;
-    },
-  ): Promise<any>;
+    dependencyColumns: Column[] | undefined | null,
+    options: ExecAndParseOptions & { first: true },
+  ): Promise<Record<string, any>>;
+  execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[] | null,
+    options?: ExecAndParseOptions,
+  ): Promise<Record<string, any>[]>;
 
   prepareNocoData(
     data,
@@ -68,6 +67,12 @@ export interface IBaseModelSqlV2 {
       ncOrder?: BigNumber;
       before?: string;
       undo?: boolean;
+      allowSystemColumn?: boolean;
+      // Consumed by the EE override to skip per-field edit-permission checks
+      // on trusted internal data-load paths (duplication / snapshot / import).
+      skipPermissionCheck?: boolean;
+      // Skip the attachment ownership check on those same trusted paths.
+      skipAttachmentOwnershipCheck?: boolean;
     },
   ): Promise<void>;
 
@@ -92,13 +97,23 @@ export interface IBaseModelSqlV2 {
     knex?: XKnex;
     baseModel?: IBaseModelSqlV2;
     updatedColIds: string[];
+    timestamp?: string;
   }): Promise<void>;
   readOnlyPrimariesByPkFromModel(
-    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+    props: {
+      model: Model;
+      id: any;
+      extractDisplayValueData?: boolean;
+      displayColumn?: Column;
+    }[],
   ): Promise<any[]>;
   fetchDisplayValueMap(
-    props: { model: Model; id: any }[],
+    props: { model: Model; id: any; displayColumn?: Column }[],
   ): Promise<Map<string, any>>;
+  getLtarDisplayColumnOverride(
+    ltarColumn: Column,
+    model: Model,
+  ): Promise<Column | undefined>;
   extractPksValues(data: any, asString?: boolean): any;
   readByPk(
     id?: any,
@@ -127,16 +142,14 @@ export interface IBaseModelSqlV2 {
 
   beforeInsert(
     data: any,
-    _trx: any,
     req,
     params?: {
       allowSystemColumn?: boolean;
     },
   ): Promise<void>;
-  beforeUpdate(data: any, _trx: any, req): Promise<void>;
+  beforeUpdate(data: any, req): Promise<void>;
   beforeBulkInsert(
     data: any,
-    _trx: any,
     req,
     params?: {
       allowSystemColumn?: boolean;
@@ -185,31 +198,41 @@ export interface IBaseModelSqlV2 {
   afterInsert({
     data,
     insertData,
-    trx,
     req,
   }: {
     data: any;
     insertData: any;
-    trx: any;
     req: NcRequest;
   }): Promise<void>;
 
   afterUpdate(
     prevData: any,
     newData: any,
-    _trx: any,
     req,
     updateObj?: Record<string, any>,
   ): Promise<void>;
 
-  afterBulkInsert(data: any[], _trx: any, req): Promise<void>;
+  afterBulkInsert(data: any[], req): Promise<void>;
 
   afterBulkDelete(
     data: any,
-    _trx: any,
+    req: any,
+    isBulkAllOperation?: boolean,
+    bulkEventType?: AuditV1OperationTypes,
+    rowEventType?: AuditV1OperationTypes,
+  ): Promise<void>;
+
+  afterBulkRestore(
+    data: any,
     req: any,
     isBulkAllOperation?: boolean,
   ): Promise<void>;
+
+  permanentDeleteByIds(
+    rowIds: string[],
+    cookie: any,
+    isBulkAllOperation?: boolean,
+  ): Promise<any[]>;
 
   applySortAndFilter(param: {
     table: Model;
@@ -262,8 +285,8 @@ export interface IBaseModelSqlV2 {
     aliasToColumnBuilder?: any,
   ): Promise<any>;
 
-  errorInsert(_e, _data, _trx, _cookie): void | Promise<void>;
-  errorUpdate(_e, _data, _trx, _cookie): void | Promise<void>;
+  errorInsert(_e, _data, _cookie): void | Promise<void>;
+  errorUpdate(_e, _data, _cookie): void | Promise<void>;
 
   prepareNestedLinkQb(param: {
     nestedCols: Column[];
@@ -271,10 +294,14 @@ export interface IBaseModelSqlV2 {
     insertObj: Record<string, any>;
     req: NcRequest;
   }): Promise<{
-    postInsertOps: ((rowId: any) => Promise<string>)[];
-    preInsertOps: (() => Promise<string>)[];
+    postInsertOps: ((
+      rowId: any,
+      trx?: Knex | Knex.Transaction,
+    ) => Promise<string>)[];
+    preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[];
     postInsertAuditEntries: NestedLinkAuditEntry[];
     postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[];
+    displacedRecords: DisplacedRecord[];
   }>;
 
   handleValidateBulkInsert(
@@ -319,7 +346,7 @@ export interface IBaseModelSqlV2 {
   ): Promise<void>;
 
   sanitizeQuery(query: string | string[]): any;
-  getNestedColumn(column: Column): Promise<Column | any>;
+  getNestedColumn(column: Column, context?: NcContext): Promise<Column | any>;
 
   checkPermission(params: {
     entity: PermissionEntity;
@@ -335,6 +362,7 @@ export interface IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: any;
     extractOnlyPrimaries?: boolean;
+    deletedOnly?: boolean;
   }): Promise<any[]>;
 
   list(
@@ -371,6 +399,7 @@ export interface IBaseModelSqlV2 {
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
     linksAsLtar?: boolean;
+    fk_display_value_column_id?: string | null;
   }): Promise<void>;
   getProto(param?: {
     apiVersion?: NcApiVersion;
@@ -405,6 +434,8 @@ export interface IBaseModelSqlV2 {
   get isSqlite(): boolean;
   get isPg(): boolean;
   get isMySQL(): boolean;
+  get isMssql(): boolean;
+  get isOracle(): boolean;
   get isSnowflake(): boolean;
   get isDatabricks(): boolean;
   get clientType(): string;
@@ -412,6 +443,8 @@ export interface IBaseModelSqlV2 {
     isSqlite: boolean;
     isPg: boolean;
     isMySQL: boolean;
+    isMssql: boolean;
+    isOracle: boolean;
   };
 
   /**
@@ -421,4 +454,10 @@ export interface IBaseModelSqlV2 {
    */
   formulaDryRunFailed?: boolean;
   getRlsConditions(): Promise<Filter[]>;
+  getSoftDeleteFilter(): Promise<Knex.QueryCallback | null>;
+  updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any): Promise<void>;
+  afterSoftDeleteCompleted(params: {
+    cookie: NcRequest;
+    operationNow: string;
+  }): Promise<void>;
 }

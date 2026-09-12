@@ -21,6 +21,8 @@ const { hooks } = useNuxtApp()
 
 const isDashboard = computed(() => !!route.params.typeOrId)
 
+const { productName, logoUrl, faviconUrl, isWhiteLabelled } = useBranding()
+
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
 hooks.hook('page:finish', () => {
   if (sidebar.value) {
@@ -49,8 +51,21 @@ hooks.hook('page:finish', () => {
               {{ currentVersion }}
             </template>
             <div class="flex items-center gap-2">
-              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
-              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+              <template v-if="isWhiteLabelled && logoUrl">
+                <img
+                  :width="isDashboard ? 25 : 120"
+                  :alt="productName"
+                  :src="logoUrl"
+                  :class="isDashboard ? 'h-6 object-contain' : 'max-h-10 object-contain'"
+                />
+              </template>
+              <template v-else-if="isWhiteLabelled && isDashboard && faviconUrl">
+                <img width="25" :alt="productName" :src="faviconUrl" class="object-contain" />
+              </template>
+              <template v-else>
+                <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
+                <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+              </template>
             </div>
           </a-tooltip>
         </div>
@@ -64,6 +79,8 @@ hooks.hook('page:finish', () => {
         </div>
 
         <div class="flex-1" />
+
+        <DashboardMiniSidebarTheme placement="bottom" render-as-btn button-class="h-8 w-8" class="mr-3" />
 
         <GeneralReleaseInfo />
 
@@ -93,8 +110,8 @@ hooks.hook('page:finish', () => {
                     :to="appInfo.isCloud ? '/account/users' : '/admin?tab=users-list'"
                   >
                     <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
-                    <div class="prose group-hover:text-primary">
-                      <div>Account</div>
+                    <div class="prose dark:prose-invert group-hover:text-primary">
+                      <div>{{ $t('labels.account') }}</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
                     </div>
                   </nuxt-link>
@@ -108,7 +125,7 @@ hooks.hook('page:finish', () => {
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-                    <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
+                    <span class="prose dark:prose-invert group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
                 </a-menu-item>
 
@@ -118,7 +135,7 @@ hooks.hook('page:finish', () => {
                   <div v-e="['a:navbar:user:sign-out']" class="nc-base-menu-item group" @click="logout">
                     <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
 
-                    <span class="prose group-hover:text-primary">
+                    <span class="prose dark:prose-invert group-hover:text-primary">
                       {{ $t('general.signOut') }}
                     </span>
                   </div>

@@ -15,8 +15,21 @@ import {
   ErrorReportReqType,
   getTestDatabaseName,
   IntegrationsType,
+  OperationSource,
   OrgUserRoles,
 } from 'nocodb-sdk';
+import {
+  extractDbConnectionHosts,
+  hasSslFilePath,
+  validateDbConnectionHost,
+} from '~/helpers/validateDbConnectionHost';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
+import { isSsrfProtectionEnabled } from '~/utils/ssrf';
+import {
+  SSL_FILE_PATH_TEST_MIN_RESPONSE_MS,
+  withMinResponseTime,
+} from '~/helpers/withMinResponseTime';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -83,12 +96,23 @@ export class UtilsController {
         NcError.integrationNotFound(body.fk_integration_id);
       }
 
+      // Integration must belong to the caller's current workspace.
+      const callerWorkspaceId = (req as any).ncWorkspaceId;
+      if (
+        integration.fk_workspace_id &&
+        callerWorkspaceId &&
+        integration.fk_workspace_id !== callerWorkspaceId
+      ) {
+        NcError.forbidden('Integration belongs to a different workspace');
+      }
+
       if (integration.is_private && integration.created_by !== req.user.id) {
         NcError.forbidden('You do not have access to this integration');
       }
 
       if (!req.user.roles[OrgUserRoles.CREATOR]) {
-        // check if user have owner/creator role in any of the base in the workspace
+        // Caller must hold owner/creator on a base inside the integration's
+        // workspace, not just any workspace they belong to.
         const baseWithPermission = await Noco.ncMeta
           .knex(MetaTable.PROJECT_USERS)
           .innerJoin(
@@ -97,6 +121,10 @@ export class UtilsController {
             `${MetaTable.PROJECT_USERS}.base_id`,
           )
           .where(`${MetaTable.PROJECT_USERS}.fk_user_id`, req.user.id)
+          .where(
+            `${MetaTable.PROJECT}.fk_workspace_id`,
+            integration.fk_workspace_id,
+          )
           .where((qb) => {
             qb.where(
               `${MetaTable.PROJECT_USERS}.roles`,
@@ -117,6 +145,17 @@ export class UtilsController {
       }
     }
 
+    // Every host shape, not just `connection.host` — a string DSN used to skip
+    // the check entirely, and this endpoint builds a plain knex (no CustomKnex),
+    // so there is no connect-time lookup behind it to catch the miss.
+    for (const host of extractDbConnectionHosts(config)) {
+      await validateDbConnectionHost(host);
+    }
+
+    // Same internal-DB guard the source/integration write paths apply: without
+    // it this endpoint is an open/exists oracle for NocoDB's own SQLite state.
+    validateAndNormalizeSqliteConfig(config, config.client);
+
     if (config.connection?.ssl) {
       config.connection.ssl = validateAndExtractSSLProp(
         config.connection,
@@ -125,7 +164,25 @@ export class UtilsController {
       );
     }
 
-    return await this.utilsService.testConnection({ body: config });
+    // Authoritative, TOCTOU-free check for the object-connection shape: hook the
+    // driver's socket so the host it ACTUALLY resolves and dials is range-checked
+    // at connect time (a short-TTL DNS flip or a `?host=` override can't slip
+    // past it). The pre-flight above stays as save-time fail-fast; this is what
+    // makes the plain-knex test path as safe as the CustomKnex data path. No-op
+    // for string DSNs (covered by the pre-flight) and non-pg/mysql clients.
+    applyDbSsrfProtection(
+      config,
+      isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
+    );
+
+    const runTest = () => this.utilsService.testConnection({ body: config });
+
+    // Flatten the SSL file-path timing oracle: when the request reads a cert
+    // from disk, pad the response to a common floor so file-existence can't be
+    // inferred from response time. Plain connections are not penalised.
+    return hasSslFilePath(config.connection?.ssl)
+      ? await withMinResponseTime(SSL_FILE_PATH_TEST_MIN_RESPONSE_MS, runTest)
+      : await runTest();
   }
 
   @UseGuards(PublicApiLimiterGuard)
@@ -164,8 +221,15 @@ export class UtilsController {
     });
   }
 
-  @UseGuards(PublicApiLimiterGuard)
+  // Enumerates every base on the instance with per-source row counts — a
+  // cross-tenant read, and a per-source COUNT fan-out, that was reachable with
+  // no credentials at all. `aggregatedMetaInfo` is granted to no role, so it
+  // resolves only through the SUPER_ADMIN wildcard.
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Get('/api/v1/aggregated-meta-info')
+  @Acl('aggregatedMetaInfo', {
+    scope: 'org',
+  })
   async aggregatedMetaInfo() {
     // todo: refactor
     return (await this.utilsService.aggregatedMetaInfo()) as any;

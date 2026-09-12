@@ -24,6 +24,12 @@ import { NcContext, NcRequest } from '~/interface/config';
 export class CommentsController {
   constructor(protected readonly commentsService: CommentsService) {}
 
+  // INTENTIONALLY NOT gated with `blockPublicBaseAccess` — do not add it.
+  // Comments are a shared-base collaboration feature: public shared-base
+  // sessions (VIEWER) are meant to read them, and the UI shows the author's
+  // `created_by_email` by design. Only AUDIT is blocked for shared bases
+  // (recordAuditList — GHSA-6297-qpqf-235w), not comments (see cef84cab10).
+  // Adding the gate would 403 `loadComments` and break the feature.
   @Get(['/api/v1/db/meta/comments', '/api/v2/meta/comments'])
   @Acl('commentList')
   async commentList(@TenantContext() context: NcContext, @Req() req: any) {
@@ -83,6 +89,7 @@ export class CommentsController {
     });
   }
 
+  // Intentionally NOT gated with `blockPublicBaseAccess` — see commentList above.
   @Get(['/api/v1/db/meta/comments/count', '/api/v2/meta/comments/count'])
   @Acl('commentCount')
   async commentsCount(

@@ -346,9 +346,9 @@ onMounted(() => {
               <template #icon>
                 <GeneralIcon icon="ncPlus" class="w-4 h-4" />
               </template>
-              Add condition
+              {{ $t('activity.addCondition') }}
             </NcButton>
-            <div class="text-nc-content-gray-muted mt-2 ml-0.5">No conditions added</div>
+            <div class="text-nc-content-gray-muted mt-2 ml-0.5">{{ $t('title.noConditionsAdded') }}</div>
           </div>
 
           <!-- Conditions list -->
@@ -358,7 +358,9 @@ onMounted(() => {
                 <!-- Single connected row like If node -->
                 <div class="flex flex-nowrap gap-0 nc-filter-wrapper">
                   <!-- Where / AND / OR -->
-                  <div v-if="index === 0" class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label">Where</div>
+                  <div v-if="index === 0" class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label">
+                    {{ $t('labels.where') }}
+                  </div>
                   <NcSelect
                     v-else
                     :value="combinator"
@@ -471,7 +473,7 @@ onMounted(() => {
                   >
                     <NcFormBuilderInputWorkflowInput
                       :model-value="condition.rightValue || ''"
-                      placeholder="Enter value"
+                      :placeholder="$t('placeholder.variableValue')"
                       :variables="workflowVariables"
                       :grouped-variables="groupedVariables"
                       :read-only="disabled"
@@ -501,7 +503,7 @@ onMounted(() => {
                 <template #icon>
                   <GeneralIcon icon="ncPlus" class="w-4 h-4" />
                 </template>
-                Add condition
+                {{ $t('activity.addCondition') }}
               </NcButton>
             </div>
           </div>

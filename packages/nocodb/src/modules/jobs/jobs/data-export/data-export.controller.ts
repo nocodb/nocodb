@@ -39,7 +39,7 @@ export class DataExportController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
-    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel',
+    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel' | 'ics',
     @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.get(context, viewId);
@@ -58,6 +58,8 @@ export class DataExportController {
       user: req.user,
       exportAs,
       ncSiteUrl: req.ncSiteUrl,
+      locale:
+        (req.headers?.['accept-language'] || '').split(',')[0] || undefined,
     });
 
     const table = await Model.get(context, view.fk_model_id);

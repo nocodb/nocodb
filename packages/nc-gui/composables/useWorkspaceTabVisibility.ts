@@ -18,9 +18,11 @@ export function useWorkspaceTabVisibility(
   const { isUIAllowed, isBaseRolesLoaded } = useRoles()
   const { isTeamsEnabled } = storeToRefs(useWorkspace())
   const { isPaymentEnabled, getFeature, showEEFeatures } = useEeConfig()
+  const { creditsEnabled } = storeToRefs(useCredits())
 
+  // Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO)
   const isWorkspaceSsoAvail = computed(() => {
-    return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && !!getFeature(PlanFeatureTypes.FEATURE_SSO)
+    return isEeUI && appInfo.value?.isCloud && !!getFeature(PlanFeatureTypes.FEATURE_SSO)
   })
 
   const hasTeamsEditPermission = computed(() => {
@@ -34,30 +36,63 @@ export function useWorkspaceTabVisibility(
 
     return {
       collaborators: isAdmin.value || isUIAllowed('workspaceCollaborators'),
-      teams: isEeUI && hasTeamsEditPermission.value && showEEFeatures.value,
+      teams: hasTeamsEditPermission.value && showEEFeatures.value,
       integrations: !isMobileMode.value && isUIAllowed('workspaceIntegrations'),
       billing:
         !isMobileMode.value &&
         !isAdmin.value &&
         isEeUI &&
         !ws.value?.fk_org_id &&
-        isPaymentEnabled.value &&
+        (isPaymentEnabled.value || creditsEnabled.value) &&
         isBaseRolesLoaded.value &&
         isUIAllowed('workspaceBilling'),
-      audits: !isMobileMode.value && !isAdmin.value && isEeUI && isBaseRolesLoaded.value && isUIAllowed('workspaceAuditList'),
+      // Org-linked (enterprise) workspaces have no Billing tab — Usage shows their
+      // plan limits instead. Also visible to org admins drilling into a workspace.
+      usage:
+        !isMobileMode.value &&
+        isEeUI &&
+        !!ws.value?.fk_org_id &&
+        isBaseRolesLoaded.value &&
+        (isAdmin.value || isUIAllowed('workspaceBilling')),
+      audits:
+        !isMobileMode.value &&
+        !isAdmin.value &&
+        showEEFeatures.value &&
+        isBaseRolesLoaded.value &&
+        isUIAllowed('workspaceAuditList'),
       sso:
         !isMobileMode.value &&
         isWorkspaceSsoAvail.value &&
         !ws.value?.fk_org_id &&
         isBaseRolesLoaded.value &&
         isUIAllowed('workspaceSSO'),
-      settings: showEEFeatures.value,
+      settings: isEeUI,
     }
   })
+
+  /**
+   * Tabs that render under the "Admin" section on the workspace home, in display order.
+   * Single source of truth for the Admin nav item, its sub-tab bar, and any page that
+   * needs to know whether that 44px bar is on screen.
+   */
+  const visibleAdminTabKeys = computed(() => {
+    const visibility = wsTabVisibility.value
+
+    return (['settings', 'billing', 'usage', 'audits', 'sso'] as const).filter((key) => visibility[key])
+  })
+
+  /**
+   * The Admin sub-tab bar only renders when there's more than one tab to switch between —
+   * with a single tab, landing on the Admin page already *is* the destination. Pages sized
+   * against the viewport must not reserve its height when it's absent.
+   */
+  const hasAdminTabBar = computed(() => visibleAdminTabKeys.value.length > 1)
 
   return {
     isWorkspaceSsoAvail,
     hasTeamsEditPermission,
     wsTabVisibility,
+    visibleAdminTabKeys,
+    hasAdminTabBar,
   }
 }

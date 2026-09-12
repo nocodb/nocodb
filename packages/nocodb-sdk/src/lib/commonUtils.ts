@@ -22,6 +22,41 @@ export function extractProps<T extends Record<string, any>>(
 }
 
 /**
+ * Type-preserving `Pick`. Iterates a typed key list and copies each value
+ * across — keeps the source's property types (no `as unknown` widening).
+ *
+ * Why a helper: writing `out[k] = src[k]` inline with `k: K1 | K2 | ...`
+ * trips TS — the LHS write type collapses to the intersection of value
+ * types (often `never`). Inside this helper K is a single bound type
+ * variable, so `out[k]` and `obj[k]` resolve to the same `T[K]`.
+ */
+export function pickFields<T extends object, K extends keyof T>(
+  obj: T,
+  keys: readonly K[]
+): Pick<T, K> {
+  const out = {} as Pick<T, K>;
+  for (const k of keys) out[k] = obj[k];
+  return out;
+}
+
+/**
+ * Like `pickFields`, but only copies keys that are present in `presence`.
+ * Used for snapshot-update flows where the inverse should restore only the
+ * fields the forward call actually mutated.
+ */
+export function pickFieldsIfPresent<
+  T extends object,
+  K extends keyof T,
+  P extends object
+>(obj: T, keys: readonly K[], presence: P): Partial<Pick<T, K>> {
+  const out: Partial<Pick<T, K>> = {};
+  for (const k of keys) {
+    if (k in presence) out[k] = obj[k];
+  }
+  return out;
+}
+
+/**
  * Removes all `undefined` values and empty objects (`{}`) from an object.
  * Can optionally run recursively with the `deep` flag.
  *

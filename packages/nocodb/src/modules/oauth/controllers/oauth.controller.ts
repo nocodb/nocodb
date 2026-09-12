@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { NcRequest } from 'nocodb-sdk';
+import { NcBaseError, NcBaseErrorv2, NcRequest } from 'nocodb-sdk';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { OAuthClient } from '~/models';
 import { NcError } from '~/helpers/ncError';
@@ -19,6 +19,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { toPublicOAuthClient } from '~/modules/oauth/helpers/sanitizeOAuthClient';
 
 const logger = new Logger('OAuthController');
 
@@ -38,7 +39,7 @@ export class OAuthController {
       NcError.notFound('Oauth Client');
     }
 
-    return client;
+    return toPublicOAuthClient(client);
   }
 
   @Get('/api/v2/oauth/authorize')
@@ -55,6 +56,17 @@ export class OAuthController {
   @Post('/api/v2/oauth/authorize')
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async authorize(@Body() body, @Req() req: NcRequest) {
+    // GlobalGuard is authentication-OPTIONAL and this route has no @Acl, so
+    // without this an anonymous caller reaches createAuthorizationCode with an
+    // undefined user id. `isAuthorized` is set at runtime by the auth strategies
+    // (see aclFn in extract-ids.middleware) and is not on the base user type.
+    if (
+      !(req.user as (typeof req.user & { isAuthorized?: boolean }) | undefined)
+        ?.isAuthorized
+    ) {
+      NcError.unauthorized('Invalid token');
+    }
+
     const {
       client_id,
       redirect_uri,
@@ -73,6 +85,16 @@ export class OAuthController {
         'Missing required parameters: client_id, redirect_uri',
       );
     }
+
+    // Per RFC 6749 §4.1.2.1 an invalid redirect_uri must NOT be redirected to —
+    // and "invalid" covers unregistered, not just a bad scheme. Validate before
+    // building ANY redirect (deny and server_error included) and surface the
+    // error on-site. Deliberately outside the try below, which would otherwise
+    // turn the rejection into the very redirect we are refusing to make.
+    await this.oauthAuthorizationService.assertRegisteredRedirectUri(
+      client_id,
+      redirect_uri,
+    );
 
     try {
       if (!approved) {
@@ -107,11 +129,24 @@ export class OAuthController {
       return { redirect_url: successRedirectUrl };
     } catch (e) {
       logger.error(e?.message, e);
+
+      // Surface client errors instead of masking them as server_error; the
+      // redirect URI was already validated above, so redirecting is safe.
+      let error = 'server_error';
+      let error_description = 'Authorization server encountered an error';
+      if (e instanceof NcBaseError) {
+        error =
+          e instanceof NcBaseErrorv2 && e.code === 403
+            ? 'access_denied'
+            : 'invalid_request';
+        error_description = e.message;
+      }
+
       const errorRedirectUrl = this.oauthAuthorizationService.buildRedirectUrl(
         redirect_uri,
         {
-          error: 'server_error',
-          error_description: 'Authorization server encountered an error',
+          error,
+          error_description,
           ...(state && { state }),
         },
       );

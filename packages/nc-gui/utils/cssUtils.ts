@@ -101,6 +101,17 @@ export const getTableAndFieldPermissionsColors = (color: string) => {
   }
 }
 
+/**
+ * Strips spaces from a title so it can be used inside a CSS class name or a `data-testid`.
+ *
+ * Uses `replace(/ /g, '')` rather than `String.prototype.replaceAll`, which is only available
+ * from Chrome 85 / Safari 13.4 and throws a TypeError on older mobile browsers.
+ *
+ * Playwright selectors are built from the same rule — keep `toSafeClassName` in
+ * `tests/playwright/tests/utils/general.ts` in sync with this.
+ */
+export const toSafeClassName = (name?: string | null): string => (name ?? '').replace(/ /g, '')
+
 export const extensionClassNames = {
   pageDesignerRemovable:
     'absolute w-5 h-5 px-2 bg-nc-bg-default rounded-md hover:bg-nc-bg-gray-light border-1 cursor-pointer border-nc-border-gray-medium justify-center items-center gap-2 inline-flex',
@@ -109,3 +120,12 @@ export const extensionClassNames = {
 export const erdNodeClassNames = {
   node: 'rounded-lg border-1 border-nc-border-gray-medium shadow-lg',
 }
+
+/**
+ * Action button inside a toast. The toast ground is dark in both themes, so the
+ * text button's own light-surface hover (grey fill, dark label) reads as washed
+ * out — override both. Lives here because uno only scans `.vue` plus this
+ * file's siblings; the composable that builds the toast isn't scanned, so the
+ * classes would never be generated if written inline there.
+ */
+export const toastActionBtnClass = '!text-white hover:!bg-white/15'

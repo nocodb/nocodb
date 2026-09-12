@@ -33,6 +33,12 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_model_id?: string;
   fk_mm_child_column_id?: string;
   fk_mm_parent_column_id?: string;
+  // Per-link ordering (v2 links only). Two system Order columns on the junction
+  // table, one grouped by each FK: the "child order" column orders rows within
+  // each child (i.e. orders the parents linked to a child), the "parent order"
+  // column orders rows within each parent. Null for v1 links / external sources.
+  fk_mm_child_order_column_id?: string;
+  fk_mm_parent_order_column_id?: string;
   fk_related_model_id?: string;
 
   // following columns will be only used for cross base link and for normal link, these will be null
@@ -42,6 +48,7 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_source_id?: string;
 
   fk_target_view_id?: string | null;
+  fk_display_value_column_id?: string | null;
 
   dr?: string;
   ur?: string;
@@ -104,6 +111,40 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
+  // The junction Order column grouped by the child FK (orders parents per child).
+  public async getMMChildOrderColumn(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Column | null> {
+    if (!this.fk_mm_child_order_column_id) return null;
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
+    return Column.get(
+      mmContext,
+      { colId: this.fk_mm_child_order_column_id },
+      ncMeta,
+    );
+  }
+
+  // The junction Order column grouped by the parent FK (orders children per parent).
+  public async getMMParentOrderColumn(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Column | null> {
+    if (!this.fk_mm_parent_order_column_id) return null;
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
+    return Column.get(
+      mmContext,
+      { colId: this.fk_mm_parent_order_column_id },
+      ncMeta,
+    );
+  }
+
   public async getParentColumn(
     context: NcContext,
     ncMeta = Noco.ncMeta,
@@ -143,7 +184,15 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    const { mmContext } = this.getRelContext(context);
+    // Resolve mmContext relative to THIS link's own base (like getRelatedTable /
+    // getMMChildColumn), not the caller's context. Otherwise a caller passing a
+    // different base (e.g. a cross-base lookup chain) plus a same-base junction
+    // (fk_mm_base_id null) would resolve the junction model in the wrong base
+    // and miss it.
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.mmModel = await Model.getByIdOrName(
       mmContext,
       {
@@ -183,7 +232,10 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_model_id',
       'fk_mm_child_column_id',
       'fk_mm_parent_column_id',
+      'fk_mm_child_order_column_id',
+      'fk_mm_parent_order_column_id',
       'fk_target_view_id',
+      'fk_display_value_column_id',
       'ur',
       'dr',
       'fk_index_name',
@@ -210,10 +262,14 @@ export default class LinkToAnotherRecordColumn {
     table: Model = undefined,
     ncMeta = Noco.ncMeta,
   ) {
-    await table?.getViews(context);
-    const viewId = this.fk_target_view_id ?? table?.views?.[0]?.id ?? '';
-    if (!viewId) return;
-    return await View.get(context, viewId, ncMeta);
+    if (this.fk_target_view_id) {
+      return View.get(context, this.fk_target_view_id, false, ncMeta);
+    }
+    if (!table?.id) return;
+    // Fall back to the table's default view — the first collaborative GRID
+    // view (cached) — not the raw index-0 view, which is unordered and can be
+    // another user's personal view.
+    return View.getFirstCollaborativeView(context, table.id, ncMeta);
   }
 
   public static async read(
@@ -247,7 +303,10 @@ export default class LinkToAnotherRecordColumn {
   static async update(
     _context: NcContext,
     _fk_column_id: string,
-    _param: { fk_target_view_id: string | null },
+    _param: {
+      fk_target_view_id?: string | null;
+      fk_display_value_column_id?: string | null;
+    },
   ) {
     // placeholder method
   }
@@ -268,6 +327,13 @@ export default class LinkToAnotherRecordColumn {
       refContext = {
         ...context,
         base_id: this.fk_related_base_id,
+        // `permissions` is base-scoped (the request base's, preloaded by
+        // middleware). Drop it so visibility checks against the related table
+        // resolve the related base's own permissions instead of silently
+        // inheriting the request base's — otherwise a cross-base
+        // TABLE_VISIBILITY restriction is read against the wrong base, finds no
+        // matching rule, and defaults to accessible (leaking the related table).
+        permissions: undefined,
       };
     }
 
@@ -276,6 +342,8 @@ export default class LinkToAnotherRecordColumn {
       mmContext = {
         ...context,
         base_id: this.fk_mm_base_id,
+        // base-scoped — see the refContext note above
+        permissions: undefined,
       };
     }
 

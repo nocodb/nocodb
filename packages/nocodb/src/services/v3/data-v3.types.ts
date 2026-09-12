@@ -55,6 +55,7 @@ export interface DataInsertParams {
   modelId: string;
   body: DataInsertRequest | DataInsertRequest[];
   cookie: any;
+  maxPayloadOverride?: number;
 }
 
 export interface DataUpdateParams {
@@ -63,6 +64,7 @@ export interface DataUpdateParams {
   viewId?: string;
   body: DataUpdateRequest | DataUpdateRequest[];
   cookie: any;
+  maxPayloadOverride?: number;
 }
 
 export interface DataDeleteParams {
@@ -89,4 +91,24 @@ export interface DataReadParams {
   query: any;
   viewId?: string;
   req: NcRequest;
+}
+
+export interface DataUpsertRecordRequest {
+  fields: RecordField;
+}
+
+export interface DataUpsertRequest {
+  fieldsToMergeOn: string[];
+  records: DataUpsertRecordRequest | DataUpsertRecordRequest[];
+}
+
+export interface DataUpsertRecordResponse extends DataRecord {
+  status: 'inserted' | 'updated';
+}
+
+export interface DataUpsertParams {
+  baseId?: string;
+  modelId: string;
+  body: DataUpsertRequest;
+  cookie: any;
 }

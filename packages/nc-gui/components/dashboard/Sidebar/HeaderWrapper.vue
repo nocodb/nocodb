@@ -36,7 +36,7 @@ const showSidebarBtn = computed(() => {
   <div class="nc-sidebar-header nc-active-project" :data-workspace-title="activeWorkspace?.title">
     <template v-if="!isWorkspacesLoading && !isLoading">
       <div class="nc-sidebar-header-content text-subHeading2 truncate">
-        <slot> Bases </slot>
+        <slot> {{ $t('objects.projects') }} </slot>
       </div>
 
       <div class="flex items-center gap-0.5">
@@ -53,6 +53,7 @@ const showSidebarBtn = computed(() => {
             size="small"
             class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
             data-testid="nc-sidebar-search-btn"
+            data-tour="sidebar-search"
             @click="openCommandPalette"
           >
             <GeneralIcon icon="search" class="!text-current" />

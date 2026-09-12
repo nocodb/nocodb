@@ -1,10 +1,12 @@
 import type { CSSProperties } from '@vue/runtime-dom'
+import type { Ref } from 'vue'
 
 import {
   type BaseType,
   type BaseVersion,
   type ColumnType,
   type FilterType,
+  type FocusValue,
   type MetaType,
   type PaginatedType,
   type PermissionEntity,
@@ -30,6 +32,7 @@ import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
 import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loaders/BaseRoleLoader'
+import type { IconMapKey } from '../utils/iconUtils'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 import type Record from '~icons/*'
@@ -52,11 +55,13 @@ interface User {
   roles: RolesObj
   base_roles: RolesObj
   workspace_roles: RolesObj
+  org_roles?: RolesObj
   invite_token?: string
   base_id?: string
   display_name?: string | null
   featureFlags?: Record<string, boolean>
   meta?: MetaType
+  is_new_user?: boolean
 }
 
 interface ProjectMetaInfo {
@@ -131,6 +136,9 @@ interface Row {
     commentCount?: number
     changed?: boolean
     saving?: boolean
+    // Buffered links for a NEW (not-yet-created) record — persisted via the create
+    // payload on save. Existing-row deferred edits use the row store's pendingLtarOps
+    // queue instead (#14013, #14058).
     ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
     fromExpandedForm?: boolean
     // Row is hidden by RLS policy after insert
@@ -149,11 +157,44 @@ interface Row {
     dayIndex?: number
     overLapIteration?: number
     numberOfOverlaps?: number
+    // Calendar week/3-day: this overlapping sliver is packed beyond the readable-width cap,
+    // so it is not drawn (its events are reached via the dense-cluster "View all N" overlay).
+    capHidden?: boolean
     minutes?: number
     recordIndex?: number // For week spanning records in month view
     maxSpanning?: number
+    // Calendar all-day week view: stacking order + natural card height (px) +
+    // spanned column range, used to pack variable-height multi-field cards.
+    suitableRow?: number
+    cardHeight?: number
+    startCol?: number
+    spanCols?: number
     /** Per-button-column visibility: true = button disabled for this row */
     buttonDisabled?: Record<string, boolean>
+    /**
+     * Buffered SmartText (LongText + smartMode) ProseMirror drafts for a NEW
+     * (not-yet-created) record, keyed by column id. The SmartText editor persists
+     * via a rowId-keyed backend op which doesn't exist until the record is created,
+     * so edits are staged here and flushed on save (see useExpandedFormStore.save).
+     * Drafts whose flush fails stay buffered so the SmartText modal can restore
+     * and re-save them.
+     */
+    smartTextDrafts?: Record<string, Record<string, any> | null>
+    /**
+     * Optimistic-row save failure marker. Set when a frontend pre-check
+     * (currently: missing required NOT-NULL fields) blocks the insert before
+     * the row reaches the backend. The row stays in the local cache with this
+     * flag so the canvas/grid can render a ⚠️ marker; clearing it (e.g. once
+     * the missing fields are filled) re-enables the auto-retry path.
+     */
+    saveError?: {
+      reason: 'missingRequired'
+      // Column titles that were required-and-null on the failed insert.
+      // UI consumers can cross-reference against FieldsInj to decide whether
+      // any are hidden in the current view (in which case the marker should
+      // prompt the user to open the expanded form).
+      missingFields: string[]
+    }
   } & RowMetaRowColorInfo
 }
 
@@ -240,12 +281,12 @@ type NcProject = BaseType & {
   managed_app_published_at?: string
   auto_update?: boolean
   managed_app_schema_locked?: boolean
-}
-
-interface UndoRedoAction {
-  undo: { fn: Function; args: any[] }
-  redo: { fn: Function; args: any[] }
-  scope?: { key: string; param: string | string[] }[]
+  // Set only for sandbox bases — the production base this sandbox belongs to.
+  // Used to decide whether to surface a sandbox base in the base list.
+  production_base_id?: string
+  // True when the base has a published interface the current user can open.
+  // Drives the base card default ("Open interface" + a "Go to data" button).
+  has_published_interface?: boolean
 }
 
 interface ImportWorkerPayload {
@@ -289,6 +330,7 @@ interface Users {
 type ProjectPageType =
   | 'overview'
   | 'collaborator'
+  | 'interface-members'
   | 'data-source'
   | 'base-settings'
   | 'syncs'
@@ -297,6 +339,7 @@ type ProjectPageType =
   | 'audits'
   | 'workflows'
   | 'mcp'
+  | 'record-trash'
   | 'snapshots'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
@@ -310,7 +353,7 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles' | 'title' | 'id' | 'memberCount' | 'baseCount' | 'workspaceCount' | 'created_at'
+  field?: 'email' | 'roles' | 'title' | 'id' | 'memberCount' | 'baseCount' | 'workspaceCount' | 'created_at' | 'billable'
   direction?: 'asc' | 'desc'
 }
 
@@ -443,6 +486,9 @@ interface CellRendererOptions {
   meta?: TableType
   metas?: { [idOrTitle: string]: TableType | any }
   baseRoles?: Record<string, any>
+  // Bound at grid setup and threaded through so cell click handlers can run
+  // permission checks without calling useRoles() outside a component setup.
+  isUIAllowed?: (permission: string, args?: { roles?: string | Record<string, boolean> | string[] | null }) => boolean
   x: number
   y: number
   width: number
@@ -487,6 +533,8 @@ interface CellRendererOptions {
   }
   sqlUis?: Record<string, any>
   skipRender?: boolean
+  /** interface inline edit (simple link picker): LTAR cells draw a select-style chevron instead of plus/expand icons */
+  isSimpleLinkRecordList?: boolean
   setCursor: SetCursorType
   getColor: GetColorType
   isDark?: boolean
@@ -579,6 +627,7 @@ interface CellRenderer {
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    openSmartText?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => void
     formula?: boolean
     allowLocalUrl?: boolean
     t: Composer['t']
@@ -605,6 +654,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    openSmartText?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => void
     allowLocalUrl?: boolean
     t: Composer['t']
   }) => Promise<boolean | void>
@@ -633,6 +683,8 @@ interface CellRenderer {
     setCursor: SetCursorType
     path: Array<number>
     baseUsers?: (Partial<UserType> | Partial<User>)[]
+    /** Interface pages suppress collaborator-facing hover chrome (user cell name/email/role card). */
+    isInterface?: boolean
     t: Composer['t']
   }) => Promise<void>
   [key: string]: any
@@ -659,10 +711,18 @@ interface CanvasGridColumn {
   }
   readonly: boolean
   isCellEditable?: boolean
+  /** Interface builder: this column's inline-edit was turned off in its Field
+   *  pane. Read-only like a permission denial, but the renderer skips the
+   *  "Edit restricted" tooltip/border — it's an element config choice. */
+  inlineEditDisabled?: boolean
   isSyncedColumn?: boolean
   aggregation: string
   agg_fn: string
   agg_prefix: string
+  /** True when a cell selection is active and this field is either out-of-scope
+   *  (blank) or in-scope but has no aggregator configured. Renderer should
+   *  skip both the value and the "Summary" hover affordance. */
+  aggregationSuppressed?: boolean
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
   isInvalidColumn?: {
@@ -709,7 +769,7 @@ interface CanvasGroup {
   groupIndex?: number
   column: ColumnType
   groups: Map<number, CanvasGroup>
-  chunkStates: Array<'loading' | 'loaded' | undefined>
+  chunkStates: Array<'loading' | 'loaded' | 'failed' | undefined>
   count: number
   isExpanded: boolean
   value: any
@@ -721,6 +781,8 @@ interface CanvasGroup {
   path?: Array<number>
   nestedIn: GroupNestedIn[]
   aggregations: Record<string, any>
+  /** Lazy aggregation fetch state — unset means not requested yet (fetched when the group becomes visible) */
+  aggregationState?: 'loading' | 'loaded'
 }
 
 interface CloudFeaturesType {
@@ -732,11 +794,25 @@ interface CloudFeaturesType {
 
 type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
 
+/** Topbar identity for a shared page that is not a view — see `useSharedView().sharedPageTitle`. */
+interface SharedPageTitle {
+  title: string
+  icon?: IconMapKey
+  /** Small muted suffix after the title, e.g. an artifact's version. */
+  badge?: string
+  /** Standing caveat about the page's content, shown on the right of the topbar. */
+  notice?: string
+  /** Link beside the notice — `href` is used verbatim, so encode it at the source. */
+  report?: { label: string; href: string }
+}
+
 interface PermissionConfig {
   entity: PermissionEntity
   entityId: string
   entityTitle?: string
   permission: PermissionKey
+  /** Overrides the PermissionMeta label, for hosts too narrow for the full one. */
+  label?: string
   disabled?: boolean
   tooltip?: string
   /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
@@ -745,13 +821,19 @@ interface PermissionConfig {
   parentEffectiveValue?: string
   /** Current visibility value — editing options more permissive than this are disabled. */
   visibilityValue?: string
+  /**
+   * Multi-entity bulk mode. When set and length > 1, the underlying
+   * usePermissionSelector composable fans the set/drop API call out over every
+   * id. entityId is still used as the initial-state probe.
+   */
+  entityIds?: string[]
 }
 
 interface PermissionSelectorUser {
   id: string
   email?: string
   display_name?: string | null
-  type?: 'user' | 'team'
+  type?: 'user' | 'team' | 'agent'
   hierarchy_scope?: 'self_only' | 'self_and_descendants'
 }
 
@@ -838,8 +920,8 @@ interface NcListItemProps {
  * Props interface for the List component
  */
 interface NcListProps {
-  /** The currently selected value */
-  value: RawValueType
+  /** The currently selected value — absent/null while nothing is selected */
+  value?: RawValueType | null
   /** The list of items to display */
   list: NcListItemType[]
   /**
@@ -899,6 +981,13 @@ interface NcListProps {
    * Whether the list is locked and cannot be interacted with
    */
   isLocked?: boolean
+
+  /**
+   * Show a loading spinner in place of the list body while data is being fetched.
+   * Search input and header/footer slots stay visible.
+   * @default false
+   */
+  isLoading?: boolean
 
   /**
    * Whether input should have border
@@ -983,6 +1072,10 @@ interface NcListProps {
 
 // NcList type ends here
 
+/** Which UI the LTAR cells render inside `LinkRecordDropdown` — the classic
+ * card modal or the compact single-list picker used by interface inline edit. */
+type LinkRecordDropdownVariant = 'classic' | 'simple'
+
 type NcDropdownPlacement =
   | 'bottom'
   | 'top'
@@ -993,6 +1086,11 @@ type NcDropdownPlacement =
   | 'topCenter'
   | 'bottomCenter'
   | 'right'
+  | 'rightTop'
+  | 'rightBottom'
+  | 'left'
+  | 'leftTop'
+  | 'leftBottom'
 
 interface CreateViewForm {
   title: string
@@ -1039,6 +1137,14 @@ interface AttachmentCellDropOverType {
 interface GroupKeysStorage {
   [viewId: string]: {
     keys: Array<string>
+    lastAccessed: number // timestamp
+  }
+}
+
+interface ViewScrollPositionStorage {
+  [viewId: string]: {
+    scrollTop: number
+    scrollLeft: number
     lastAccessed: number // timestamp
   }
 }
@@ -1101,7 +1207,6 @@ export type {
   streamImportFileList,
   Nullable,
   NcProject,
-  UndoRedoAction,
   ImportWorkerPayload,
   Group,
   GroupNestedIn,
@@ -1138,6 +1243,7 @@ export type {
   CanvasGroup,
   CloudFeaturesType,
   CanvasScrollToCellFn,
+  SharedPageTitle,
   PermissionConfig,
   PermissionSelectorUser,
   NcListProps,
@@ -1146,6 +1252,7 @@ export type {
   NcListSearchBasisOptionType,
   MultiSelectRawValueType,
   RawValueType,
+  LinkRecordDropdownVariant,
   NcDropdownPlacement,
   MakeCellEditableFn,
   CreateViewForm,
@@ -1153,7 +1260,70 @@ export type {
   NcClipboardDataItemType,
   AttachmentCellDropOverType,
   GroupKeysStorage,
+  ViewScrollPositionStorage,
   OAuthAuthorization,
   SupportedDocsType,
   TeamType,
+}
+
+export interface GridRemoteFocus {
+  userId: string
+  presenceId: string
+  color: string
+  /** Collaborator display name, shown as a label on the focused cell. */
+  name: string
+  editing: boolean
+  /** An attachment upload is in flight on this cell. */
+  uploading?: boolean
+}
+
+/** rowPk → fieldId → focuses (one entry per remote connection on that cell). */
+export type GridRemoteFocusMap = Map<string, Map<string, GridRemoteFocus[]>>
+
+/** rowPk → connections with that record open (expanded form / card). */
+export type GridRemoteRecordMap = Map<string, GridRemoteFocus[]>
+
+/** fieldId → connections with that field's config editor open. */
+export type GridRemoteFieldMap = Map<string, GridRemoteFocus[]>
+
+/** The followed collaborator's focused cell in the current view (drives follow-scroll). */
+export interface GridFollowedFocus {
+  rowPk: string
+  fieldId: string
+}
+
+/**
+ * One remote connection's focus on a table, resolved for display.
+ *
+ * `active` folds the freshness check on the activity flags (`editing` /
+ * `typing` / `uploading`) so consumers render a boolean rather than each
+ * re-deriving staleness.
+ */
+export interface RemoteFocusEntry {
+  userId: string
+  presenceId: string
+  color: string
+  name: string
+  focus: NonNullable<FocusValue>
+  active: boolean
+}
+
+/** A user rendered in a presence avatar stack (topbar / doc / expanded record). */
+export interface PresenceStackUser {
+  userId: string
+  email?: string
+  display_name?: string
+  meta?: Record<string, any> | null
+  color?: string
+}
+
+export interface FocusPresenceParams {
+  view: Ref<ViewType | undefined>
+  activeCell: Ref<{ row?: number; column?: number; path?: Array<number> }>
+  /** Truthy while a cell is in edit mode (typed `unknown` to decouple from the canvas edit type). */
+  editEnabled: Ref<unknown>
+  /** `readonly` is the rolled-up "can this user edit this cell" — used to avoid broadcasting
+   *  "editing" when the grid opens a read-only/computed/synced cell in view mode. */
+  columns: Ref<Array<{ id?: string; columnObj?: ColumnType; readonly?: boolean }>>
+  getRowPk: (rowIndex: number, path?: Array<number>) => string | null
 }

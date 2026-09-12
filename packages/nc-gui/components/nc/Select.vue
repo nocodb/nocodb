@@ -16,6 +16,12 @@ const props = withDefaults(
     loading?: boolean
     suffixIcon?: keyof typeof iconMap
     maxTagCount?: number
+    /**
+     * Which option prop to render for the *selected* value. Without it antd
+     * reuses the option's full slot content, so rich options (label + a
+     * description line) render inside the closed input too.
+     */
+    optionLabelProp?: string
   }>(),
   {
     suffixIcon: 'arrowDown',
@@ -58,6 +64,7 @@ const onSearch = (value: string) => {
     :filter-option="filterOption"
     :loading="loading"
     :mode="mode"
+    :option-label-prop="optionLabelProp"
     :placeholder="placeholder"
     :show-search="showSearch"
     :max-tag-count="maxTagCount"
@@ -72,6 +79,9 @@ const onSearch = (value: string) => {
 
     <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">
       <slot name="dropdownRender" :menu-node="menuNode" />
+    </template>
+    <template v-if="$slots.notFoundContent" #notFoundContent>
+      <slot name="notFoundContent" />
     </template>
     <slot />
   </a-select>
@@ -148,9 +158,6 @@ const onSearch = (value: string) => {
     &::-webkit-scrollbar-thumb {
       width: 4px;
       @apply bg-nc-bg-gray-dark rounded-md;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      @apply bg-nc-bg-gray-extra-dark;
     }
   }
 }

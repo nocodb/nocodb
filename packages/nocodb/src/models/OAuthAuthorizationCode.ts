@@ -10,6 +10,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
+import { NcError } from '~/helpers/catchError';
 
 export default class OAuthAuthorizationCode {
   code: string;
@@ -117,6 +118,27 @@ export default class OAuthAuthorizationCode {
     return true;
   }
 
+  /**
+   * Atomically transition an authorization code from unused -> used.
+   * Returns true only if this caller won the CAS; false if the code was
+   * already claimed or does not exist. Enforces single-use semantics on
+   * the token exchange.
+   */
+  static async claimByCode(
+    code: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (!code) return false;
+    const updated = await ncMeta
+      .knex(MetaTable.OAUTH_AUTHORIZATION_CODES)
+      .where({ code, is_used: false })
+      .update({ is_used: true });
+    if (!updated) return false;
+
+    await NocoCache.del('root', `${CacheScope.OAUTH_AUTH_CODE}:${code}`);
+    return true;
+  }
+
   static async delete(code: string, ncMeta = Noco.ncMeta) {
     if (!code) {
       return false;
@@ -165,15 +187,21 @@ export default class OAuthAuthorizationCode {
         );
       }
 
+      // See OAuthToken.deleteAllByClient: `{ code: { in: [...] } }` as the simple
+      // condition is a no-op. Use whereIn and verify the affected-row count.
       const codesToDelete = codes.map((c) => c.code);
-      await ncMeta.metaDelete(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.OAUTH_AUTHORIZATION_CODES,
-        { code: { in: codesToDelete } },
-      );
+      const affected = await ncMeta
+        .knexConnection(MetaTable.OAUTH_AUTHORIZATION_CODES)
+        .whereIn('code', codesToDelete)
+        .del();
 
-      deletedCount += codes.length;
+      if (affected !== codesToDelete.length) {
+        NcError.internalServerError(
+          'Failed to delete all OAuth authorization codes for the client',
+        );
+      }
+
+      deletedCount += affected;
 
       // If we got fewer than BATCH_SIZE, we're done
       if (codes.length < BATCH_SIZE) {

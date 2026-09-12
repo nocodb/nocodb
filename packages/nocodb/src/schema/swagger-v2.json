@@ -12743,6 +12743,10 @@
         "title": "Attachment Model",
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "FileReference ID for the attachment"
+          },
           "data": {
             "description": "Data for uploading"
           },
@@ -12924,6 +12928,13 @@
             "type": "string",
             "example": "2020-05-20T12:00:00.000000Z",
             "description": "Updated At"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
           }
         }
       },
@@ -13789,6 +13800,13 @@
             "type": "string",
             "description": "Row ID",
             "example": "3"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
           }
         },
         "required": [
@@ -13823,6 +13841,13 @@
             "type": "string",
             "description": "Foreign Key to Model",
             "example": "md_ehn5izr99m7d45"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
           }
         },
         "required": [
@@ -14358,6 +14383,7 @@
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
+            "save_draft_to_browser": 1,
             "show_blank_form": 0,
             "subheading": "My Form Subheading",
             "submit_another_form": 0,
@@ -14434,6 +14460,10 @@
             "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
           },
+          "save_draft_to_browser": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit."
+          },
           "show_blank_form": {
             "$ref": "#/components/schemas/Bool",
             "description": "Show `Blank Form` after 5 seconds"
@@ -14477,6 +14507,7 @@
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
+            "save_draft_to_browser": 1,
             "show_blank_form": 0,
             "subheading": "My Form Subheading",
             "submit_another_form": 0,
@@ -14529,6 +14560,10 @@
           "redirect_url": {
             "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
+          },
+          "save_draft_to_browser": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit."
           },
           "show_blank_form": {
             "$ref": "#/components/schemas/Bool",
@@ -18845,9 +18880,9 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Indicates if the base is a sandbox"
           },
-          "is_sandbox_master": {
+          "is_sandbox_production": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Indicates if the base is a sandbox master"
+            "description": "Indicates if the base is a sandbox production base (has at least one sandbox derived from it)"
           }
         },
         "x-stoplight": {
@@ -19640,6 +19675,10 @@
             "description": "Base ID",
             "example": "p_9sx43moxhqtjm3",
             "readOnly": true
+          },
+          "fk_lookup_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "When set, scopes this sort to a lookup column (it orders that lookup's relation sub-query) instead of a view"
           }
         },
         "x-stoplight": {

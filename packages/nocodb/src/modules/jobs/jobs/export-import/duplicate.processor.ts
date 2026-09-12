@@ -6,12 +6,14 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
+  NOCO_SERVICE_USERS,
   parseProp,
   RelationTypes,
+  ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
 import { Injectable, NotImplementedException } from '@nestjs/common';
-import type { Job } from 'bull';
+import { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DuplicateBaseJobData,
@@ -37,6 +39,7 @@ import { TablesService } from '~/services/tables.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { Untraced } from '~/decorators/trace-command.decorator';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -67,12 +70,14 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
       excludeDashboards?: boolean;
+      excludeInterfaces?: boolean;
       excludeWorkflows?: boolean;
     };
   }) {
     throw new NotImplementedException();
   }
 
+  @Untraced()
   async duplicateBaseJob({
     sourceBase,
     targetBase,
@@ -97,7 +102,9 @@ export class DuplicateProcessor {
       excludeUsers?: boolean;
       excludeScripts?: boolean;
       excludeDashboards?: boolean;
+      excludeInterfaces?: boolean;
       excludeWorkflows?: boolean;
+      excludeDocuments?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -184,6 +191,20 @@ export class DuplicateProcessor {
         );
       }
 
+      let exportedDocuments = null;
+
+      if (!options?.excludeDocuments) {
+        exportedDocuments = await this.exportService.serializeDocuments(
+          context,
+        );
+
+        elapsedTime(
+          hrTime,
+          `serialize documents for ${dataSource.base_id}`,
+          operation,
+        );
+      }
+
       let exportedDashboards = null;
 
       if (!options.excludeDashboards) {
@@ -201,6 +222,21 @@ export class DuplicateProcessor {
           operation,
         );
       }
+
+      // Interfaces are serialized last: their page configs reference models,
+      // columns and views, so every alias must already be in the map.
+      const exportedInterfaces = options.excludeInterfaces
+        ? []
+        : await this.exportService.serializeInterfaces(context, {
+            idMap: exportModelMap,
+            req,
+          });
+
+      elapsedTime(
+        hrTime,
+        `serialize interfaces schema for ${dataSource.base_id}`,
+        operation,
+      );
 
       if (!exportedModels) {
         throw new Error(`Export failed for source '${dataSource.id}'`);
@@ -228,6 +264,15 @@ export class DuplicateProcessor {
         });
       }
 
+      if (exportedDocuments?.length) {
+        await this.importService.importDocuments(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedDocuments,
+          req: req,
+        });
+      }
+
       if (exportedDashboards?.length) {
         idMap = await this.importService.importDashboards(targetContext, {
           user,
@@ -243,6 +288,15 @@ export class DuplicateProcessor {
           user,
           baseId: targetBase.id,
           data: exportedWorkflows,
+          req,
+          idMap,
+        });
+      }
+
+      if (exportedInterfaces?.length) {
+        idMap = await this.importService.importInterfaces(targetContext, {
+          user,
+          data: exportedInterfaces,
           req,
           idMap,
         });
@@ -326,9 +380,13 @@ export class DuplicateProcessor {
 
     const baseId = context.base_id;
 
-    // workspace templates placeholder user
+    // Workspace-template seeding runs under a placeholder user (id '1') that
+    // has no real identity/email. Attribute the duplication's audits to the
+    // system service user instead of leaving them with a NULL actor.
     if (req.user?.id === '1') {
-      delete req.user;
+      req.user = {
+        ...NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER],
+      } as typeof req.user;
     }
 
     const excludeData = options?.excludeData || false;
@@ -338,6 +396,7 @@ export class DuplicateProcessor {
     const excludeUsers = options?.excludeUsers || false;
     const excludeScripts = options?.excludeScripts || false;
     const excludeDashboards = options?.excludeDashboards || false;
+    const excludeInterfaces = options?.excludeInterfaces || false;
     const excludeWorkflows = options?.excludeWorkflows || false;
 
     const base = await Base.get(context, baseId);
@@ -356,7 +415,11 @@ export class DuplicateProcessor {
       dataSource: source,
       req,
       context,
+      // Spread original options first so EE-only flags (excludeDocuments,
+      // excludePersonalViews, excludePermissions, excludeRls, etc.) reach the
+      // processor. Normalized CE flags override after.
       options: {
+        ...(options ?? {}),
         excludeData,
         excludeHooks,
         excludeViews,
@@ -364,6 +427,7 @@ export class DuplicateProcessor {
         excludeUsers,
         excludeScripts,
         excludeDashboards,
+        excludeInterfaces,
         excludeWorkflows,
       },
       operation: JobTypes.DuplicateBase,
@@ -372,6 +436,7 @@ export class DuplicateProcessor {
     return { id: dupProject.id };
   }
 
+  @Untraced()
   async duplicateModel(job: Job<DuplicateModelJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
 
@@ -543,7 +608,6 @@ export class DuplicateProcessor {
         for (const modelId of createdModels) {
           await this.tablesService.tableDelete(context, {
             tableId: modelId,
-            user: req.user,
             forceDeleteRelations: true,
             req,
           });
@@ -568,6 +632,7 @@ export class DuplicateProcessor {
     }
   }
 
+  @Untraced()
   async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
     const hrTime = initTime();
@@ -802,7 +867,14 @@ export class DuplicateProcessor {
         excludeHooks?: boolean;
         excludeComments?: boolean;
         excludeUsers?: boolean;
+        crossBaseLinkMmModelIds?: string[];
       };
+      /**
+       * Junctions already imported, carried in and out so a caller invoking this
+       * per source base does not write a shared junction twice — the composite
+       * primary key makes the second write fatal.
+       */
+      handledLinks?: string[];
       req: any;
     },
   ) {
@@ -816,7 +888,7 @@ export class DuplicateProcessor {
       req,
     } = param;
 
-    let handledLinks = [];
+    let handledLinks = param.handledLinks ?? [];
     let error = null;
 
     // For same-ID duplication, we need to handle the :: notation properly
@@ -869,6 +941,7 @@ export class DuplicateProcessor {
           modelId: sourceModel.id,
           handledMmList: handledLinks,
           excludeUsers: options?.excludeUsers,
+          crossBaseLinkMmModelIds: options?.crossBaseLinkMmModelIds,
         })
         .catch((e) => {
           this.debugLog(e);
@@ -908,6 +981,8 @@ export class DuplicateProcessor {
     }
 
     if (error) throw error;
+
+    return handledLinks;
   }
 
   async importModelsData(

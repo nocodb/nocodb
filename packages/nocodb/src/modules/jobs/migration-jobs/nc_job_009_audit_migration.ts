@@ -30,38 +30,25 @@ export class AuditMigration {
         return true;
       }
 
+      // Resume from the highest legacy id already migrated. We paginate the
+      // legacy table by its primary key `id` (see the batch query below), so
+      // any row with id greater than this has not been processed yet.
       const lastMigratedRecord = await ncMeta
         .knexConnection(MetaTable.AUDIT)
         .whereNotNull('old_id')
-        .orderBy('created_at', 'desc')
         .orderBy('old_id', 'desc')
         .first();
 
-      let lastProcessedTimestamp =
-        lastMigratedRecord?.created_at || new Date(0);
-      let lastProcessedId = lastMigratedRecord?.old_id || 0;
+      let lastProcessedId = lastMigratedRecord?.old_id || '';
 
-      this.logger.log(
-        `Starting from timestamp: ${lastProcessedTimestamp}, last ID: ${lastProcessedId}`,
-      );
+      this.logger.log(`Starting from last migrated id: ${lastProcessedId}`);
 
-      // Use compound cursor (timestamp + id) to handle duplicate timestamps correctly
       const totalRemainingRecords = await ncMeta.knexConnection
         .from(`${MetaTable.AUDIT}_old as old`)
         .leftJoin(`${MetaTable.AUDIT} as new`, 'old.id', 'new.old_id')
         .whereNull('new.old_id')
         .where('old.op_type', '!=', AuditOperationTypes.COMMENT)
-        .where(function () {
-          this.where('old.created_at', '>', lastProcessedTimestamp).orWhere(
-            function () {
-              this.where(
-                'old.created_at',
-                '=',
-                lastProcessedTimestamp,
-              ).andWhere('old.id', '>', lastProcessedId);
-            },
-          );
-        })
+        .where('old.id', '>', lastProcessedId)
         .count('old.id as count')
         .first();
 
@@ -81,22 +68,19 @@ export class AuditMigration {
       let hasMoreRecords = true;
 
       while (hasMoreRecords) {
-        // Use compound cursor to avoid infinite loops with duplicate timestamps
+        // Keyset-paginate by the primary key `id`: `WHERE id > ? ORDER BY id`
+        // is a range-seek on the existing PK index on every supported database
+        // (no extra index needed, and fully portable — no row-value syntax), so
+        // each batch is O(log N) instead of the full table scan + sort the
+        // previous created_at-based, unindexed cursor did. That full scan per
+        // batch is the cause of the days-long migration in issue #12379.
+        // Processing in id order (rather than chronological) is irrelevant:
+        // each row's UUIDv7 is derived from its own created_at below, not from
+        // the order in which rows are copied.
         const batch = await ncMeta.knexConnection
           .select('*')
           .from(`${MetaTable.AUDIT}_old`)
-          .where(function () {
-            this.where('created_at', '>', lastProcessedTimestamp).orWhere(
-              function () {
-                this.where('created_at', '=', lastProcessedTimestamp).andWhere(
-                  'id',
-                  '>',
-                  lastProcessedId,
-                );
-              },
-            );
-          })
-          .orderBy('created_at', 'asc')
+          .where('id', '>', lastProcessedId)
           .orderBy('id', 'asc')
           .limit(batchSize);
 
@@ -183,9 +167,8 @@ export class AuditMigration {
           });
         }
 
-        // Update cursor to last record in batch
+        // Advance the cursor to the last id in the batch.
         const lastRecord = batch[batch.length - 1];
-        lastProcessedTimestamp = lastRecord.created_at;
         lastProcessedId = lastRecord.id;
 
         processedCount += batch.length;

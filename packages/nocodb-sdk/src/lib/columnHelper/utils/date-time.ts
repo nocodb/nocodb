@@ -5,9 +5,11 @@ import {
   constructDateTimeFormat,
   getDateFormat,
   getDateTimeFormat,
+  parseDateWithFormat,
 } from '~/lib/dateTimeHelper';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
+import { isJalaliFormat, parseJalaliToGregorian } from '~/lib/jalali';
 
 export const DATE_SCALE_LABEL_TO_DIFF_MAP = {
   Y: 'year',
@@ -24,6 +26,47 @@ export const DATE_DIFF_TO_SCALE_LABEL_MAP = {
   hour: 'H',
   minute: 'm',
   second: 's',
+};
+
+/**
+ * Parse a display string that may be in a Jalali (Persian) format into a
+ * Gregorian dayjs. The Jalali dayjs plugin only makes `.format()` Jalali-aware —
+ * parsing (`dayjs(str, format)`) still treats `j`-prefixed tokens as Gregorian,
+ * so a Jalali display string like `1405/04/23` would otherwise be misread as the
+ * Gregorian year 1405. For Jalali formats we convert the Jalali date portion to
+ * Gregorian while preserving any time-of-day; for every other format we defer to
+ * dayjs' normal parsing so behaviour is unchanged.
+ */
+export const parseDayjsWithJalaliSupport = (
+  value: string,
+  format: string
+): dayjs.Dayjs => {
+  if (!isJalaliFormat(format)) {
+    // parseDateWithFormat also accepts the same value without zero-padding on
+    // month/day/hour (e.g. "5/5/2026" for an MM/DD/YYYY column).
+    return parseDateWithFormat(value, format);
+  }
+
+  const gregorian = parseJalaliToGregorian(value, format);
+  if (!gregorian) {
+    return dayjs(NaN);
+  }
+
+  // Once the `j` prefixes are stripped, customParseFormat reads the time tokens
+  // correctly; its (mis-read) date tokens are ignored since we take the date
+  // from the Jalali conversion above.
+  const gregorianFormat = format.replace(
+    /j(YYYY|YY|MMMM|MMM|MM|M|DD|D)/g,
+    '$1'
+  );
+  const timeParse = dayjs(value, gregorianFormat);
+  const time = timeParse.isValid() ? timeParse.format('HH:mm:ss') : '00:00:00';
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return dayjs(
+    `${gregorian.y}-${pad(gregorian.m)}-${pad(gregorian.d)} ${time}`,
+    'YYYY-MM-DD HH:mm:ss'
+  );
 };
 
 export const parseDateValue = (
@@ -89,6 +132,14 @@ export const serializeDateOrDateTimeValue = (
   let isDateOnly = false;
   if (typeof value === 'string' && value.length < 11) {
     isDateOnly = true;
+  } else if (
+    params.col.uidt === UITypes.Date &&
+    isJalaliFormat(parseProp(params.col.meta)?.date_format)
+  ) {
+    // A Jalali date display string (esp. a Persian month name like
+    // "23 تیر 1405") can exceed the length heuristic; a Date column is always
+    // date-only, so parse it with the (Jalali) date_format.
+    isDateOnly = true;
   }
 
   let parsedDateOrDateTime;
@@ -114,7 +165,13 @@ export const serializeDateOrDateTimeValue = (
       ? parseProp(params.col.meta).date_format ?? 'YYYY-MM-DD'
       : constructDateTimeFormat(params.col);
 
-    parsedDateOrDateTime = dayjs(value, formatting);
+    // Jalali-aware: a Jalali display string (e.g. `1405/04/23`) must be
+    // converted from Jalali, not misread as the Gregorian year 1405. For
+    // non-Jalali formats this also accepts unpadded month/day input (e.g.
+    // "5/5/2026" for an MM/DD/YYYY column) via parseDateWithFormat, so pasting
+    // an unpadded date normalizes correctly instead of failing validation and
+    // silently wiping the existing cell value.
+    parsedDateOrDateTime = parseDayjsWithJalaliSupport(value, formatting);
   }
 
   if (!parsedDateOrDateTime.isValid()) {

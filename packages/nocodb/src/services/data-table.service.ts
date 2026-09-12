@@ -8,19 +8,35 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
-import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
-import type { NcContext } from '~/interface/config';
-import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
+import type { NcApiVersion } from 'nocodb-sdk';
+import type { NcRequest } from 'nocodb-sdk';
+import type { LtarDisplayValueContext } from '~/helpers/ltarDisplayValueResolver';
+import { DBQueryClient } from '~/dbQueryClient';
+import { NcContext } from '~/interface/config';
+import {
+  assertLinkColOptions,
+  validateV1V2DataPayloadLimit,
+} from '~/helpers/dataHelpers';
+import { restrictNestedLinkQuery } from '~/helpers/nestedLinkQueryHelpers';
+import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
+import {
+  getLtarDisplayValueContext,
+  resolveLtarDisplayValuesToPks,
+} from '~/helpers/ltarDisplayValueResolver';
 
 @Injectable()
 export class DataTableService {
@@ -37,6 +53,7 @@ export class DataTableService {
       ignorePagination?: boolean;
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
+      getHiddenColumns?: boolean;
       user?: any;
     },
   ) {
@@ -53,6 +70,7 @@ export class DataTableService {
       view,
       apiVersion: param.apiVersion,
       includeSortAndFilterColumns: param?.includeSortAndFilterColumns,
+      getHiddenColumns: param?.getHiddenColumns,
     });
   }
 
@@ -105,13 +123,6 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
     if (view && view.type !== ViewTypes.GRID) {
       NcError.get(context).badRequest(
         'Aggregation is only supported on grid views',
@@ -128,11 +139,19 @@ export class DataTableService {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
-    const data = await baseModel.aggregate(listArgs, view);
-
-    return data;
+    return await DBQueryClient.get(source.type).aggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+    });
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body)
+      ? OperationName.recordBulkInsert
+      : OperationName.recordInsert,
+  )
   async dataInsert(
     context: NcContext,
     param: {
@@ -148,12 +167,20 @@ export class DataTableService {
         skipHooks?: boolean;
       };
       user?: any;
+      req?: NcRequest;
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
 
     const { model, view } = await this.getModelAndView(context, param);
     const source = await Source.get(context, model.source_id);
+
+    // Defense in depth: the source-level read-only restriction is enforced by
+    // the ACL middleware, but re-assert it against the actually-resolved target
+    // source so a caller that reaches this service with a mismatched
+    // authorization context (e.g. via the internal batch envelope) still cannot
+    // write to a data-read-only source.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
@@ -179,6 +206,7 @@ export class DataTableService {
     return Array.isArray(param.body) ? result : result[0];
   }
 
+  @TraceCommand(OperationName.recordMove)
   async dataMove(
     context: NcContext,
     param: {
@@ -209,6 +237,11 @@ export class DataTableService {
     return true;
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body) && (p.body as any[]).length > 1
+      ? OperationName.recordBulkUpdate
+      : OperationName.recordUpdate,
+  )
   async dataUpdate(
     context: NcContext,
     param: {
@@ -236,6 +269,10 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
+    // Defense in depth — see dataInsert. Re-assert data-read-only against the
+    // resolved target source regardless of how authorization was reached.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -260,6 +297,11 @@ export class DataTableService {
     return result;
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body) && (p.body as any[]).length > 1
+      ? OperationName.recordBulkDelete
+      : OperationName.recordDelete,
+  )
   async dataDelete(
     context: NcContext,
     param: {
@@ -270,6 +312,9 @@ export class DataTableService {
       cookie: any;
       body: any;
       user?: any;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+      };
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -279,6 +324,11 @@ export class DataTableService {
     await this.checkForDuplicateRow(context, { rows: param.body, model });
 
     const source = await Source.get(context, model.source_id);
+
+    // Defense in depth — see dataInsert. Re-assert data-read-only against the
+    // resolved target source regardless of how authorization was reached.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -291,6 +341,7 @@ export class DataTableService {
         cookie: param.cookie,
         throwExceptionIfNotExist: true,
         isSingleRecordDeletion: !Array.isArray(param.body),
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
       },
     );
 
@@ -319,9 +370,7 @@ export class DataTableService {
     });
 
     const countArgs: any = { ...param.query };
-    try {
-      countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
-    } catch (e) {}
+    countArgs.filterArr = parseFilterArrJson(context, countArgs.filterArrJson);
 
     const count: number = await baseModel.count(countArgs, false, true);
 
@@ -463,16 +512,34 @@ export class DataTableService {
 
     const column = await this.getColumn(context, param);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+    const colOptions = await assertLinkColOptions(context, column);
+
+    // The related table may live in another base (cross-base link). Build the
+    // projection in the related table's own context — otherwise `getAst` loads its
+    // columns under the parent base, resolves none, and `nocoExecute` below strips
+    // every field (returning empty `{}` records). Mirrors `getLinkedDataList`.
+    const { refContext } = colOptions.getRelContext(context);
+
+    const relatedModel = await colOptions.getRelatedTable(refContext);
+
+    // Strip caller-supplied where/sort references to columns the link doesn't expose
+    // (cross-base / visibility-limited related tables). This is NOT the view-`show`
+    // dimension (view-hidden columns stay queryable) — it's the cross-base isolation
+    // / table-visibility ACL boundary. Both the data fetch and the count read from
+    // `param.query`, so sanitizing it here covers both surfaces.
+    await restrictNestedLinkQuery(
       context,
+      colOptions,
+      relatedModel,
+      param.query,
     );
 
-    const relatedModel = await colOptions.getRelatedTable(context);
-
-    const { ast, dependencyFields } = await getAst(context, {
+    const { ast, dependencyFields } = await getAst(refContext, {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+      fk_display_value_column_id: (colOptions as any)
+        .fk_display_value_column_id,
     });
 
     const listArgs: any = dependencyFields;
@@ -488,7 +555,7 @@ export class DataTableService {
     ) {
       listArgs.nestedLimit = param.query.limit;
     }
-    let data: any[];
+    let data: Record<string, any>[] | Record<string, any>;
     let count: number;
 
     // V2 single-target relations (MO/OO) — junction table with LIMIT 1
@@ -564,7 +631,7 @@ export class DataTableService {
 
     if (colOptions.type === RelationTypes.BELONGS_TO) return data;
 
-    return new PagedResponseImpl(data, {
+    return new PagedResponseImpl(data as Record<string, any>[], {
       count,
       ...param.query,
     });
@@ -586,6 +653,7 @@ export class DataTableService {
     return column;
   }
 
+  @TraceCommand(OperationName.recordLinkAdd)
   async nestedLink(
     context: NcContext,
     param: {
@@ -630,6 +698,47 @@ export class DataTableService {
     return true;
   }
 
+  // Move an existing link (`refRowId`) within `rowId`'s ordered list for a v2
+  // junction link, placing it before `before` (another linked record) or at the
+  // end when `before` is null.
+  @TraceCommand(OperationName.recordLinkReorder)
+  async nestedReorder(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      rowId: string;
+      refRowId: string | number;
+      before?: string | number | null;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.getColumn(context, param);
+
+    await baseModel.reorderLink({
+      colId: column.id,
+      rowId: param.rowId,
+      childId: param.refRowId,
+      before: param.before ?? null,
+      cookie: param.cookie,
+    });
+    return true;
+  }
+
+  @TraceCommand(OperationName.recordLinkRemove)
   async nestedUnlink(
     context: NcContext,
     param: {
@@ -688,6 +797,59 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    const { swapEntry, feResponse } =
+      await this.computeListCopyPasteOrDeleteAllDiff(context, param);
+
+    // Deposit the computed diff for an OUTER trace scope (the interface
+    // page-scoped swap contract builds its inverse from it — its own params
+    // never carry the diff). No-op when no outer scope is active.
+    captureForTrace(
+      'linkSwapEntry',
+      swapEntry ? { ...swapEntry, rowId: String(swapEntry.rowId) } : null,
+    );
+
+    if (swapEntry) {
+      await this._traceApplyLinkSwap(context, {
+        modelId: param.modelId,
+        viewId: param.viewId,
+        columnId: swapEntry.columnId,
+        rowId: swapEntry.rowId,
+        link: swapEntry.link,
+        unlink: swapEntry.unlink,
+        cookie: param.cookie,
+      });
+    }
+    return feResponse;
+  }
+
+  /** Resolves the link/unlink diff for a single LTAR copy/paste/deleteAll
+   *  request without applying it. Used directly by the bulk path so a
+   *  multi-column paste records as a single `recordLinkSwapBulk` op
+   *  instead of one `recordLinkSwap` per column. */
+  private async computeListCopyPasteOrDeleteAllDiff(
+    context: NcContext,
+    param: {
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      data: {
+        operation: 'copy' | 'paste' | 'deleteAll';
+        rowId: string;
+        columnId: string;
+        fk_related_model_id: string;
+      }[];
+      user?: any;
+    },
+  ): Promise<{
+    swapEntry: {
+      columnId: string;
+      rowId: string;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    } | null;
+    feResponse: { link: any[]; unlink: any[] } | undefined;
+  }> {
     validatePayload(
       'swagger.json#/components/schemas/nestedListCopyPasteOrDeleteAllReq',
       param.data,
@@ -720,9 +882,7 @@ export class DataTableService {
     }
 
     const { model, view } = await this.getModelAndView(context, param);
-
     const source = await Source.get(context, model.source_id);
-
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -752,35 +912,49 @@ export class DataTableService {
     }
 
     const column = await this.getColumn(context, param);
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+
+    const colOptions = await assertLinkColOptions(context, column);
 
     const { refContext } = await colOptions.getParentChildContext(context);
 
     const relatedModel = await colOptions.getRelatedTable(refContext);
     await relatedModel.getColumns(refContext);
 
-    if (!colOptions.fk_mm_model_id) return;
+    if (!colOptions.fk_mm_model_id) {
+      return { swapEntry: null, feResponse: undefined };
+    }
+
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The copy/paste/deleteAll diff returns the
+    // matched related records, so an unsanitized predicate on a non-exposed column
+    // would be the same one-bit oracle the list path closes — sanitize before the
+    // query reaches getAst/mmList.
+    await restrictNestedLinkQuery(
+      context,
+      colOptions,
+      relatedModel,
+      param.query,
+    );
 
     const { dependencyFields } = await getAst(refContext, {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+      fk_display_value_column_id: (colOptions as any)
+        .fk_display_value_column_id,
     });
 
     const listArgs: any = dependencyFields;
-
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
-
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
     if (operationMap.deleteAll) {
-      let deleteCellNestedList = await baseModel.mmList(
+      const deleteCellNestedList = await baseModel.mmList(
         {
           colId: column.id,
           parentId: operationMap.deleteAll.rowId,
@@ -789,30 +963,45 @@ export class DataTableService {
         true,
       );
 
-      if (deleteCellNestedList && Array.isArray(deleteCellNestedList)) {
-        await baseModel.removeLinks({
-          colId: column.id,
-          childIds: deleteCellNestedList.map((nestedList) =>
-            dataWrapper(nestedList).extractPksValue(relatedModel),
-          ),
-          rowId: operationMap.deleteAll.rowId,
-          cookie: param.cookie,
-        });
-
-        // extract only pk row data
-        deleteCellNestedList = deleteCellNestedList.map((nestedList) => {
-          return relatedModel.primaryKeys.reduce((acc, col) => {
-            acc[col.title || col.column_name] =
-              nestedList[col.title || col.column_name];
-            return acc;
-          }, {});
-        });
-      } else {
-        deleteCellNestedList = [];
+      if (
+        !Array.isArray(deleteCellNestedList) ||
+        !deleteCellNestedList.length
+      ) {
+        return { swapEntry: null, feResponse: { link: [], unlink: [] } };
       }
 
-      return { link: [], unlink: deleteCellNestedList };
-    } else if (operationMap.copy && operationMap.paste) {
+      const childPks = deleteCellNestedList
+        .map(
+          (nestedList) =>
+            dataWrapper(nestedList).extractPksValue(relatedModel) as
+              | string
+              | number
+              | null,
+        )
+        .filter((v): v is string | number => v != null);
+
+      const unlinkRowsForReturn = deleteCellNestedList.map((nestedList) =>
+        relatedModel.primaryKeys.reduce((acc, col) => {
+          acc[col.title || col.column_name] =
+            nestedList[col.title || col.column_name];
+          return acc;
+        }, {} as Record<string, any>),
+      );
+
+      return {
+        swapEntry: childPks.length
+          ? {
+              columnId: column.id,
+              rowId: operationMap.deleteAll.rowId,
+              link: [],
+              unlink: childPks,
+            }
+          : null,
+        feResponse: { link: [], unlink: unlinkRowsForReturn },
+      };
+    }
+
+    if (operationMap.copy && operationMap.paste) {
       const [copiedCellNestedList, pasteCellNestedList] = await Promise.all([
         baseModel.mmList(
           {
@@ -832,37 +1021,149 @@ export class DataTableService {
         ),
       ]);
 
-      const filteredRowsToLink = this.filterAndMapRows(
+      const link = this.filterAndMapRows(
         copiedCellNestedList,
         pasteCellNestedList,
         relatedModel,
-      );
-
-      const filteredRowsToUnlink = this.filterAndMapRows(
+      ) as Array<string | number>;
+      const unlink = this.filterAndMapRows(
         pasteCellNestedList,
         copiedCellNestedList,
         relatedModel,
-      );
+      ) as Array<string | number>;
 
-      if (filteredRowsToUnlink.length) {
-        await baseModel.removeLinks({
-          colId: column.id,
-          childIds: filteredRowsToUnlink,
-          rowId: operationMap.paste.rowId,
-          cookie: param.cookie,
-        });
-      }
-      if (filteredRowsToLink.length) {
-        await baseModel.addLinks({
-          colId: column.id,
-          childIds: filteredRowsToLink,
-          rowId: operationMap.paste.rowId,
-          cookie: param.cookie,
-        });
-      }
-
-      return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };
+      return {
+        swapEntry:
+          link.length || unlink.length
+            ? {
+                columnId: column.id,
+                rowId: operationMap.paste.rowId,
+                link,
+                unlink,
+              }
+            : null,
+        feResponse: { link, unlink },
+      };
     }
+
+    return { swapEntry: null, feResponse: { link: [], unlink: [] } };
+  }
+
+  /** Decorated internal substrate for `recordLinkSwap`. Receives a
+   *  resolved `(rowId, columnId)` link diff (link[] = pks to add,
+   *  unlink[] = pks to remove) and applies it via `removeLinks` then
+   *  `addLinks`. Self-inverse — undo dispatches the same op with the
+   *  link/unlink lists swapped. Higher-level user-facing methods
+   *  (`nestedListCopyPasteOrDeleteAll` etc.) compute the diff first
+   *  then funnel through here so the recorded op carries the resolved
+   *  pks (replay can't drift). */
+  @TraceCommand(OperationName.recordLinkSwap)
+  async _traceApplyLinkSwap(
+    context: NcContext,
+    param: {
+      modelId: string;
+      baseId?: string;
+      viewId?: string;
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+      cookie: any;
+    },
+  ): Promise<{ link: Array<string | number>; unlink: Array<string | number> }> {
+    if (!param.link.length && !param.unlink.length) {
+      return { link: [], unlink: [] };
+    }
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    if (param.unlink.length) {
+      await baseModel.removeLinks({
+        colId: param.columnId,
+        childIds: param.unlink,
+        rowId: String(param.rowId),
+        cookie: param.cookie,
+      });
+    }
+    if (param.link.length) {
+      await baseModel.addLinks({
+        colId: param.columnId,
+        childIds: param.link,
+        rowId: String(param.rowId),
+        cookie: param.cookie,
+      });
+    }
+    return { link: param.link, unlink: param.unlink };
+  }
+
+  /** Decorated bulk variant for `recordLinkSwapBulk` — applies multiple
+   *  per-(rowId, columnId) diffs in a single recorded op. */
+  @TraceCommand(OperationName.recordLinkSwapBulk)
+  async _traceApplyLinkSwapBulk(
+    context: NcContext,
+    param: {
+      modelId: string;
+      baseId?: string;
+      viewId?: string;
+      entries: Array<{
+        columnId: string;
+        rowId: string | number;
+        link: Array<string | number>;
+        unlink: Array<string | number>;
+      }>;
+      cookie: any;
+    },
+  ): Promise<
+    Array<{ link: Array<string | number>; unlink: Array<string | number> }>
+  > {
+    const out: Array<{
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }> = [];
+    // Inner per-entry calls auto-skip recording via ALS re-entrancy —
+    // only this outer bulk op records.
+    for (const entry of param.entries) {
+      const r = await this._traceApplyLinkSwap(context, {
+        modelId: param.modelId,
+        baseId: param.baseId,
+        viewId: param.viewId,
+        columnId: entry.columnId,
+        rowId: entry.rowId,
+        link: entry.link,
+        unlink: entry.unlink,
+        cookie: param.cookie,
+      });
+      out.push(r);
+    }
+    return out;
+  }
+
+  /** Decorated bulk-link-by-display-value substrate. Same shape as
+   *  `_traceApplyLinkSwapBulk` (entries[] of resolved pk diffs) — kept
+   *  as a separate op so audit/UI can distinguish the two flows. */
+  @TraceCommand(OperationName.recordLinkByDisplay)
+  async _traceApplyLinkByDisplay(
+    context: NcContext,
+    param: {
+      modelId: string;
+      baseId?: string;
+      viewId?: string;
+      entries: Array<{
+        columnId: string;
+        rowId: string | number;
+        link: Array<string | number>;
+        unlink: Array<string | number>;
+      }>;
+      cookie: any;
+    },
+  ): Promise<
+    Array<{ link: Array<string | number>; unlink: Array<string | number> }>
+  > {
+    return await this._traceApplyLinkSwapBulk(context, param);
   }
 
   async nestedListBulkCopyPasteOrDeleteAll(
@@ -889,6 +1190,12 @@ export class DataTableService {
     }
 
     const results: { link: any[]; unlink: any[] }[] = [];
+    const swapEntries: Array<{
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }> = [];
 
     for (const entry of param.data) {
       if (!entry.columnId || !Array.isArray(entry.data)) {
@@ -897,16 +1204,301 @@ export class DataTableService {
         );
       }
 
-      const result = await this.nestedListCopyPasteOrDeleteAll(context, {
-        ...param,
-        columnId: entry.columnId,
-        data: entry.data,
-      });
+      const { swapEntry, feResponse } =
+        await this.computeListCopyPasteOrDeleteAllDiff(context, {
+          ...param,
+          columnId: entry.columnId,
+          data: entry.data,
+        });
 
-      results.push(result ?? { link: [], unlink: [] });
+      if (swapEntry) swapEntries.push(swapEntry);
+      results.push(feResponse ?? { link: [], unlink: [] });
+    }
+
+    // Same deposit as the single-cell path — the interface bulk swap
+    // contract reads it for its page-scoped inverse.
+    captureForTrace(
+      'linkSwapBulkEntries',
+      swapEntries.map((e) => ({ ...e, rowId: String(e.rowId) })),
+    );
+
+    if (swapEntries.length) {
+      await this._traceApplyLinkSwapBulk(context, {
+        modelId: param.modelId,
+        viewId: param.viewId,
+        entries: swapEntries,
+        cookie: param.cookie,
+      });
     }
 
     return results;
+  }
+
+  async nestedBulkLinkByDisplayValue(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      query: any;
+      data: {
+        columnId: string;
+        rowId: string;
+        displayValues: string[];
+      }[];
+      user?: any;
+    },
+  ) {
+    validatePayload(
+      'swagger.json#/components/schemas/nestedBulkLinkByDisplayValueReq',
+      param.data,
+    );
+
+    // Resolve main table once — all entries target the same parent table
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const groups = this.groupEntriesByColumn(param.data);
+
+    const results: { link: any[]; unlink: any[] }[] = new Array(
+      param.data.length,
+    );
+
+    // Accumulate per-entry resolved diffs across all column groups, then
+    // funnel through `_traceApplyLinkByDisplay` ONCE so the whole bulk
+    // op records as a single `recordLinkByDisplay` log entry. Inverse
+    // is mechanical link↔unlink swap per entry.
+    const linkSwapEntries: Array<{
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }> = [];
+
+    for (const [columnId, entries] of groups) {
+      const groupCtx = await this.resolveColumnGroupContext(
+        context,
+        param,
+        columnId,
+      );
+
+      // No junction model — nothing to link for this column group
+      if (!groupCtx) {
+        for (const { index } of entries) {
+          results[index] = { link: [], unlink: [] };
+        }
+        continue;
+      }
+
+      const valueToPk = await this.resolveDisplayValuesToPks(groupCtx, entries);
+
+      const { dependencyFields } = await getAst(groupCtx.refContext, {
+        model: groupCtx.relatedModel,
+        query: param.query,
+        extractOnlyPrimaries: true,
+        fk_display_value_column_id: (groupCtx.colOptions as any)
+          .fk_display_value_column_id,
+      });
+
+      const listArgs: any = dependencyFields;
+      try {
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      } catch (e) {}
+
+      await this.collectLinkDiffsForGroup(
+        context,
+        baseModel,
+        groupCtx,
+        entries,
+        valueToPk,
+        listArgs,
+        results,
+        linkSwapEntries,
+      );
+    }
+
+    // Deposit the resolved diffs for an OUTER trace scope (the interface
+    // by-display contract builds its page-scoped inverse from them — its own
+    // params only carry display strings). No-op without an outer scope.
+    captureForTrace(
+      'linkSwapBulkEntries',
+      linkSwapEntries.map((e) => ({ ...e, rowId: String(e.rowId) })),
+    );
+
+    if (linkSwapEntries.length) {
+      await this._traceApplyLinkByDisplay(context, {
+        modelId: param.modelId,
+        viewId: param.viewId,
+        entries: linkSwapEntries,
+        cookie: param.cookie,
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Groups bulk link entries by columnId, preserving each entry's original
+   * index so results can be written back in the correct order.
+   */
+  private groupEntriesByColumn(
+    data: { columnId: string; rowId: string; displayValues: string[] }[],
+  ) {
+    const groups = new Map<
+      string,
+      { index: number; entry: (typeof data)[number] }[]
+    >();
+    data.forEach((entry, index) => {
+      const list = groups.get(entry.columnId);
+      if (list) {
+        list.push({ index, entry });
+      } else {
+        groups.set(entry.columnId, [{ index, entry }]);
+      }
+    });
+    return groups;
+  }
+
+  /**
+   * Resolves all shared context for a column group: validates the column is an
+   * LTAR type, fetches colOptions, related model, related source, and the
+   * display-value column. Returns `null` when there is no junction model
+   * (nothing to link).
+   */
+  private async resolveColumnGroupContext(
+    context: NcContext,
+    param: { viewId: string; modelId: string; query: any; user?: any },
+    columnId: string,
+  ): Promise<LtarDisplayValueContext | null> {
+    const column = await this.getColumn(context, {
+      ...param,
+      columnId,
+    });
+
+    const groupCtx = await getLtarDisplayValueContext(context, column);
+
+    // Paste resolves links by replacing the junction set (`mmList` diff), so
+    // it only services junction-backed relations. A column with no junction
+    // model (e.g. a v1 belongs-to handled via the FK column elsewhere) has
+    // nothing to link here.
+    if (!groupCtx.colOptions.fk_mm_model_id) {
+      return null;
+    }
+
+    return groupCtx;
+  }
+
+  /**
+   * Batch-resolves display values to primary keys for the related table.
+   *
+   * Uses a two-step strategy shared across all entries in a column group:
+   *  1. Case-sensitive exact match (`eq` operator) — one query for all values.
+   *  2. Case-insensitive fallback (`like` operator) for any values the first
+   *     step didn't match, with post-filter lowercase equality to avoid
+   *     partial/wildcard matches.
+   *
+   * Returns a Map from submitted display value → matched primary key.
+   */
+  private async resolveDisplayValuesToPks(
+    groupCtx: LtarDisplayValueContext,
+    entries: { index: number; entry: { displayValues: string[] } }[],
+  ) {
+    const allUniqueValues = new Set<string>();
+    for (const { entry } of entries) {
+      for (const v of entry.displayValues) {
+        allUniqueValues.add(v);
+      }
+    }
+
+    return resolveLtarDisplayValuesToPks(groupCtx, allUniqueValues);
+  }
+
+  /** For each entry in the column group: verifies the parent row exists,
+   *  resolves display values to PKs via the pre-built map, computes the
+   *  link/unlink diff against existing links, and writes the result into
+   *  `results[index]`. Diffs are pushed onto `linkSwapEntries` so the
+   *  caller can dispatch the whole bulk op as a single
+   *  `recordLinkByDisplay` log entry — this function does NOT call
+   *  `addLinks`/`removeLinks`. */
+  private async collectLinkDiffsForGroup(
+    context: NcContext,
+    baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
+    groupCtx: LtarDisplayValueContext,
+    entries: {
+      index: number;
+      entry: { rowId: string; displayValues: string[] };
+    }[],
+    valueToPk: Map<string, string | number>,
+    listArgs: any,
+    results: { link: any[]; unlink: any[] }[],
+    linkSwapEntries: Array<{
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }>,
+  ) {
+    const { column, relatedModel, isSingleLink } = groupCtx;
+
+    for (const { index, entry } of entries) {
+      if (!(await baseModel.exist(entry.rowId))) {
+        NcError.get(context).recordNotFound(entry.rowId);
+      }
+
+      const seenPks = new Set<string>();
+      const matchedPks: (string | number)[] = [];
+      for (const value of new Set(entry.displayValues)) {
+        const pk = valueToPk.get(value);
+        if (pk === undefined || pk === null) continue;
+        const pkStr = String(pk);
+        if (seenPks.has(pkStr)) continue;
+        seenPks.add(pkStr);
+        matchedPks.push(pk);
+      }
+
+      if (!matchedPks.length) {
+        results[index] = { link: [], unlink: [] };
+        continue;
+      }
+
+      // For BT/OO: only take the first match
+      const pksToLink = isSingleLink ? [matchedPks[0]] : matchedPks;
+
+      const existingLinkedList = await baseModel.mmList(
+        {
+          colId: column.id,
+          parentId: entry.rowId,
+        },
+        listArgs as any,
+        true,
+      );
+
+      const existingPks = (existingLinkedList || []).map((row) =>
+        dataWrapper(row).extractPksValue(relatedModel, true),
+      );
+
+      const existingPkSet = new Set(existingPks.map(String));
+      const newPkSet = new Set(pksToLink.map(String));
+
+      const toLink = pksToLink.filter((pk) => !existingPkSet.has(String(pk)));
+      const toUnlink = existingPks.filter((pk) => !newPkSet.has(String(pk)));
+
+      results[index] = { link: toLink, unlink: toUnlink };
+
+      if (toLink.length || toUnlink.length) {
+        linkSwapEntries.push({
+          columnId: column.id,
+          rowId: entry.rowId,
+          link: toLink,
+          unlink: toUnlink,
+        });
+      }
+    }
   }
 
   validateIds(context: NcContext, rowIds: any[] | any) {
@@ -973,6 +1565,14 @@ export class DataTableService {
       NcError.get(context).badRequest('Invalid bulkFilterList');
     }
 
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
     const results = await processConcurrently(
       bulkFilterList,
       async (dF: any) => {
@@ -980,6 +1580,7 @@ export class DataTableService {
           query: { ...dF },
           model,
           view,
+          baseModel,
           includeRowColorColumns: dF.include_row_color === 'true',
           includeButtonFilterColumns:
             dF.include_button_filter_columns === 'true',
@@ -995,70 +1596,6 @@ export class DataTableService {
     }, {});
   }
 
-  async bulkGroupBy(
-    context: NcContext,
-    param: {
-      baseId?: string;
-      modelId: string;
-      viewId?: string;
-      query: any;
-      body: any;
-      user?: any;
-    },
-  ) {
-    const { model, view } = await this.getModelAndView(context, param);
-
-    const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    let bulkFilterList = param.body;
-
-    const listArgs: any = { ...param.query };
-    try {
-      bulkFilterList = JSON.parse(bulkFilterList);
-    } catch (e) {}
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJSON);
-    } catch (e) {}
-
-    if (!bulkFilterList?.length) {
-      NcError.get(context).badRequest('Invalid bulkFilterList');
-    }
-
-    const [data, count] = await Promise.all([
-      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
-      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
-    ]);
-
-    bulkFilterList.forEach((dF: any) => {
-      // sqlite3 returns data as string. Hence needs to be converted to json object
-      let parsedData = data[dF.alias];
-
-      if (typeof parsedData === 'string') {
-        parsedData = JSON.parse(parsedData);
-      }
-
-      let parsedCount = count[dF.alias];
-
-      if (typeof parsedCount === 'string') {
-        parsedCount = JSON.parse(parsedCount);
-      }
-
-      data[dF.alias] = new PagedResponseImpl(parsedData, {
-        ...dF,
-        count: parsedCount?.count,
-      });
-    });
-
-    return data;
-  }
-
   async bulkAggregate(
     context: NcContext,
     param: {
@@ -1072,12 +1609,6 @@ export class DataTableService {
     const { model, view } = await this.getModelAndView(context, param);
 
     const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
 
     if (view && view.type !== ViewTypes.GRID) {
       NcError.badRequest('Aggregation is only supported on grid views');
@@ -1099,7 +1630,13 @@ export class DataTableService {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
+    return await DBQueryClient.get(source.type).bulkAggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+      bulkFilterList,
+    });
   }
 
   async getLinkedDataList(
@@ -1117,9 +1654,9 @@ export class DataTableService {
       NcError.get(context).fieldNotFound(linkColumnId);
     }
 
-    const { refContext } = (
-      relationColumn.colOptions as LinkToAnotherRecordColumn
-    ).getRelContext(context);
+    const colOptions = await assertLinkColOptions(context, relationColumn);
+
+    const { refContext } = colOptions.getRelContext(context);
 
     return this.dataList(refContext, {
       query: {
@@ -1128,10 +1665,8 @@ export class DataTableService {
         linkColumnId,
         linkBaseId: context.base_id,
       },
-      modelId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
-        .fk_related_model_id,
-      viewId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
-        .fk_target_view_id,
+      modelId: colOptions.fk_related_model_id,
+      viewId: colOptions.fk_target_view_id,
       includeSortAndFilterColumns:
         req.query.includeSortAndFilterColumns === 'true',
       user: req.user,

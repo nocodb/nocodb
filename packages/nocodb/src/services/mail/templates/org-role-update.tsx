@@ -12,10 +12,12 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 import {
   ContentWrapper,
   Footer,
+  resolveProductName,
   RootWrapper,
 } from '~/services/mail/templates/components';
 
@@ -25,6 +27,7 @@ interface OrganizationRoleUpdateTemplateProps {
   name: string;
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const OrganizationRoleUpdate = ({
@@ -33,13 +36,14 @@ export const OrganizationRoleUpdate = ({
   email,
   name,
   link,
+  branding,
 }: OrganizationRoleUpdateTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Your organization role has been updated</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 !mb-0 text-center font-bold m-auto text-xl md:text-2xl">
             Your organization role has been updated
           </Heading>
@@ -61,7 +65,7 @@ export const OrganizationRoleUpdate = ({
             </Row>
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
-            Your access in NocoDB has been updated to
+            Your access in {resolveProductName(branding)} has been updated to
             <span className="font-bold text-gray-800 capitalize">
               {' '}
               {newRole}{' '}
@@ -72,10 +76,12 @@ export const OrganizationRoleUpdate = ({
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]">Go to NocoDB</Text>
+            <Text className="!my-[8px]">
+              Go to {resolveProductName(branding)}
+            </Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

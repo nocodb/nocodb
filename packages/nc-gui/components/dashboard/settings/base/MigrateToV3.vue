@@ -8,7 +8,7 @@ const baseStore = useBase()
 const basesStore = useBases()
 const { base } = storeToRefs(baseStore)
 
-const { navigateToProject } = useGlobal()
+const route = useRoute()
 
 const _projectId = inject(ProjectIdInj, undefined)
 
@@ -28,20 +28,14 @@ const migrateToV3 = async () => {
       version: BaseVersion.V3,
     })
 
-    message.success(t('msg.success.baseUpgradedToV3'))
+    message.toast(t('msg.success.baseUpgradedToV3'))
 
     // Reload the base after migration
     await basesStore.loadProject(baseId.value, true)
 
     isModalVisible.value = false
 
-    await navigateToProject({
-      workspaceId: base.value?.fk_workspace_id,
-      baseId: baseId.value,
-      query: {
-        page: 'overview',
-      },
-    })
+    await navigateTo(`/${route.params.typeOrId}/${baseId.value}/settings/settings?tab=baseType`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -52,11 +46,13 @@ const migrateToV3 = async () => {
 
 <template>
   <div data-testid="nc-settings-subtab-migrate-to-v3" class="item-card flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">Migrate to v3</div>
+    <div class="text-nc-content-gray-emphasis font-semibold text-lg">{{ $t('labels.migrateToV3') }}</div>
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
       Upgrade this base to v3 to unlock the latest platform capabilities and future-ready APIs.
-      <a href="https://docs.nocodb.com/" target="_blank" rel="noopener noreferrer" class="text-nc-content-brand"> Learn more </a>
+      <a href="https://docs.nocodb.com/" target="_blank" rel="noopener noreferrer" class="text-nc-content-brand">
+        {{ $t('msg.learnMore') }}
+      </a>
     </div>
 
     <div class="mt-6">
@@ -104,14 +100,16 @@ const migrateToV3 = async () => {
 
       <div class="flex gap-2">
         <NcButton size="medium" type="primary" data-testid="nc-migrate-to-v3-button" @click="isModalVisible = true">
-          Migrate to v3
+          {{ $t('labels.migrateToV3') }}
         </NcButton>
       </div>
     </div>
 
     <GeneralModal v-model:visible="isModalVisible" size="small" centered>
       <div class="flex flex-col p-4 md:p-6">
-        <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">Migrate to V3</div>
+        <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">
+          {{ $t('labels.migrateToV3') }}
+        </div>
 
         <div class="mb-2 text-nc-content-gray-emphasis font-medium">Are you sure you want to migrate this base to v3?</div>
 
@@ -138,7 +136,7 @@ const migrateToV3 = async () => {
         </div>
 
         <div class="flex flex-row gap-x-2 mt-2 pt-4 border-t border-nc-border-gray-medium justify-end">
-          <NcButton type="secondary" size="small" @click="isModalVisible = false"> Cancel </NcButton>
+          <NcButton type="secondary" size="small" @click="isModalVisible = false"> {{ $t('general.cancel') }} </NcButton>
 
           <NcButton
             key="submit"

@@ -1,0 +1,26 @@
+NocoDB has been deployed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+{{- if not (include "nocodb.redisConfigured" .) }}
+
+WARNING: Redis is not configured. This deployment is limited to a single replica.
+Set externalRedis.host (or externalRedis.existingSecret) before scaling.
+{{- end }}
+{{- if or (gt (int .Values.replicaCount) 1) .Values.autoscaling.enabled }}
+
+NOTE: Configure object storage (S3-compatible) for attachments from the NocoDB
+admin panel (App Store > Storage) after install. Until you do, attachments are
+written to local pod storage and will NOT be consistent across replicas.
+{{- end }}
+
+Access:
+{{- if .Values.ingress.enabled }}
+  {{- range .Values.ingress.hosts }}
+  {{ ternary "https" "http" (gt (len $.Values.ingress.tls) 0) }}://{{ .host }}
+  {{- end }}
+{{- else }}
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "nocodb.fullname" . }} 8080:{{ .Values.service.port }}
+  Then open http://localhost:8080
+{{- end }}
+
+Verify health:
+  kubectl -n {{ .Release.Namespace }} exec deploy/{{ include "nocodb.fullname" . }} -- wget -qO- http://localhost:8080/api/v1/health

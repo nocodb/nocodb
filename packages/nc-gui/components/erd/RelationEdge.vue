@@ -72,7 +72,7 @@ export default {
       v-if="selected || isHovering"
       style="color: blue"
       color="blue"
-      stroke="#3366FF"
+      stroke="var(--nc-brand-accent, #3366FF)"
       :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 3) / (selected || isHovering ? 2 : 1)"
       fill="none"
       :d="edgePath[0]"

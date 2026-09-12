@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import debug from 'debug';
 import PQueue from 'p-queue';
 import { UITypes } from 'nocodb-sdk';
@@ -9,7 +9,6 @@ import type CustomKnex from '~/db/CustomKnex';
 import { Column, Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import SimpleLRUCache from '~/utils/cache';
-import { isEE } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -52,8 +51,9 @@ const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
 @Injectable()
 export class OrderColumnMigration {
   private readonly debugLog = debug('nc:migration-jobs:order-column');
+  private readonly logger = new Logger(OrderColumnMigration.name);
   private readonly log = (...msgs: string[]) =>
-    console.log('[nc_job_005_order_column]: ', ...msgs);
+    this.logger.log(`${msgs.join(' ')}`);
 
   private processingModels = [{ fk_model_id: 'placeholder', processing: true }];
   private processedModelsCount = 0;
@@ -138,8 +138,10 @@ export class OrderColumnMigration {
         try {
           await this.processModel(model, ncMeta);
         } catch (e) {
-          this.log(`Error processing model ${model.id}:`);
-          console.error(e);
+          this.logger.error(
+            `Error processing model ${model.id}: ${e.message}`,
+            e.stack,
+          );
           await this.updateModelStatus(Noco.ncMeta, model.id, false, e.message);
         } finally {
           const item = this.processingModels.find(
@@ -185,8 +187,10 @@ export class OrderColumnMigration {
           queue
             .add(() => wrapper(model))
             .catch((e) => {
-              this.log(`Error processing model ${model.fk_model_id}`);
-              console.error(e);
+              this.logger.error(
+                `Error processing model ${model.fk_model_id}: ${e.message}`,
+                e.stack,
+              );
             });
         }
       }
@@ -201,8 +205,7 @@ export class OrderColumnMigration {
 
       return true;
     } catch (error) {
-      this.log('Migration failed:');
-      console.error(error);
+      this.logger.error(`Migration failed: ${error.message}`, error.stack);
       await ncMeta.disableUpgraderMode();
       return false;
     }
@@ -401,23 +404,7 @@ export class OrderColumnMigration {
         } as any),
       );
 
-      const queries = source.upgraderQueries.splice(0);
-
-      if (isEE) {
-        await realDbDriver.raw(queries.join(';'));
-      } else {
-        const trans = await realDbDriver.transaction();
-
-        try {
-          for (const query of queries) {
-            await trans.raw(query);
-          }
-          await trans.commit();
-        } catch (e) {
-          await trans.rollback();
-          throw e;
-        }
-      }
+      await Upgrader.flushSourceQueries(source, realDbDriver);
 
       await ncMeta.runUpgraderQueries();
     } catch (error) {
@@ -432,7 +419,7 @@ export class OrderColumnMigration {
         `${MetaTable.MODELS}.id`,
         'source_id',
         `${MetaTable.MODELS}.base_id`,
-        ...(isEE ? [`${MetaTable.MODELS}.fk_workspace_id`] : []),
+        `${MetaTable.MODELS}.fk_workspace_id`,
       ])
       .where(`${MetaTable.MODELS}.mm`, false)
       .join(

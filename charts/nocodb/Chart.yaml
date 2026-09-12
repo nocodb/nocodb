@@ -1,0 +1,19 @@
+apiVersion: v2
+name: nocodb
+description: NocoDB — A Free & Self-hostable Airtable Alternative. Production-ready chart for external Postgres and Redis.
+type: application
+version: 1.0.0
+appVersion: "2026.06.1"
+home: https://nocodb.com
+icon: https://github.com/nocodb/nocodb/raw/develop/packages/nc-gui/assets/img/icons/512x512.png
+sources:
+  - https://github.com/nocodb/nocodb
+keywords:
+  - nocodb
+  - airtable
+  - database
+  - no-code
+maintainers:
+  - name: NocoDB
+    url: https://github.com/nocodb/nocodb
+dependencies: []

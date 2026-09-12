@@ -72,7 +72,7 @@ const formattedPayload = computed(() => {
         </div>
       </div>
       <div v-if="params && Object.keys(params).length" class="detail-params">
-        <span class="text-nc-content-gray-muted font-weight-bold text-small1">Parameter</span>
+        <span class="text-nc-content-gray-muted font-weight-bold text-small1">{{ $t('title.parameter') }}</span>
         <div class="log-details">
           <div v-for="(value, key) in params" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>

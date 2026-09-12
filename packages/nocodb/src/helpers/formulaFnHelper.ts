@@ -15,6 +15,20 @@ export function getWeekdayByText(v: string) {
   }[v?.toLowerCase() || 'monday'];
 }
 
+// Start-of-week offset expressed on a Sunday-based scale (Sunday = 0 … Saturday = 6).
+// Used by WEEKNUM, which defaults to a Sunday week start to match Excel's WEEKNUM().
+export function getWeekStartOffsetSunday(v?: string) {
+  return {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+  }[v?.toLowerCase() || 'sunday'];
+}
+
 export function getWeekdayByIndex(idx: number): string {
   return {
     0: 'monday',
@@ -60,6 +74,11 @@ export async function convertDateFormatForConcat(
         meta.date_format,
         clientType,
       )}', ${query})`;
+    } else if (clientType === 'mssql') {
+      query = `FORMAT(${query}, '${convertDateFormat(
+        meta.date_format,
+        clientType,
+      )}')`;
     }
   }
   return query;

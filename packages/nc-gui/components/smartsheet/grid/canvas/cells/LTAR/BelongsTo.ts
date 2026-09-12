@@ -1,4 +1,4 @@
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isBoxHovered } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
@@ -20,13 +20,21 @@ export const BelongsToCellRenderer: CellRenderer = {
       selected,
       cellRenderStore,
       getColor,
+      column,
+      isSimpleLinkRecordList,
     } = props
 
+    const fkDisplayValueColumnId = (column?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
+
+    const displayValueCol = fkDisplayValueColumnId
+      ? relatedTableMeta?.columns?.find((c) => c.id === fkDisplayValueColumnId)
+      : undefined
+
     const relatedTableDisplayValueProp =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
+      displayValueCol?.title || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
     const relatedTableDisplayValuePropId =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
+      displayValueCol?.id || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
 
     const btColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType
@@ -36,7 +44,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     let returnData
 
     if (isValidValue(value)) {
-      const cellWidth = width - (!readonly && selected ? 34 : 0)
+      const cellWidth = width - (isSimpleLinkRecordList ? 26 : !readonly && selected ? 34 : 0)
 
       const cellValue =
         value && !Array.isArray(value) && typeof value === 'object'
@@ -124,13 +132,18 @@ export const BelongsToCellRenderer: CellRenderer = {
       }
     }
 
-    if (selected && !readonly) {
+    // Simple link picker: select-style chevron on hover/selection (edit-only —
+    // classic readonly bt shows no trailing icon either)
+    const isCellHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+    if (!readonly && (selected || (isSimpleLinkRecordList && isCellHovered))) {
       spriteLoader.renderIcon(ctx, {
         x: x + width - 26,
         y: y + 7,
-        icon: 'ncPlus',
+        icon: isSimpleLinkRecordList ? 'chevronDown' : 'ncPlus',
         size: 16,
-        color: getColor(themeVariables.content['nc-content-gray'].subtle),
+        color: isSimpleLinkRecordList
+          ? getColor(themeV4Colors.gray['500'])
+          : getColor(themeVariables.content['nc-content-gray'].subtle),
       })
 
       if (isBoxHovered({ x: x + width - 26, y: y + 7, width: 16, height: 16 }, mousePosition)) {
@@ -210,15 +223,18 @@ export const BelongsToCellRenderer: CellRenderer = {
       const rowId = extractPkFromRow(value, (column.relatedTableMeta?.columns || []) as ColumnType[])
 
       if (rowId) {
-        openDetachedExpandedForm({
-          isOpen: true,
-          row: { row: value, rowMeta: {}, oldRow: { ...value } },
-          meta: column.relatedTableMeta || ({} as TableType),
-          rowId,
-          useMetaFields: true,
-          maintainDefaultViewOrder: true,
-          loadRow: !isPublic,
-        })
+        openDetachedExpandedForm(
+          {
+            isOpen: true,
+            row: { row: value, rowMeta: {}, oldRow: { ...value } },
+            meta: column.relatedTableMeta || ({} as TableType),
+            rowId,
+            useMetaFields: true,
+            maintainDefaultViewOrder: true,
+            loadRow: !isPublic,
+          },
+          column.columnObj,
+        )
       }
 
       /**

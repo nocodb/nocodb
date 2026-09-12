@@ -3,6 +3,7 @@ export {
   responseHeaders as initializeHeader,
 } from './initialize';
 export { responseData as readResponse } from './read';
+export { responseData as displayValueReadResponse } from './readDisplayValue';
 import readView_viw5f7BhLA3OkthNv from './readView_viw5f7BhLA3OkthNv.json';
 import readView_viw9HVTL3HmZ3NCDd from './readView_viw9HVTL3HmZ3NCDd.json';
 import readView_viwsF12Zep2IrUQ4L from './readView_viwsF12Zep2IrUQ4L.json';
@@ -18,6 +19,9 @@ import readView_viwXfVqIcM25FVTbd from './readView_viwXfVqIcM25FVTbd.json';
 import readView_viw8Xse051lREItSC from './readView_viw8Xse051lREItSC.json';
 import readView_viwRRK2UljiQB3kko from './readView_viwRRK2UljiQB3kko.json';
 import readView_viwZnwvKkOBnDqpul from './readView_viwZnwvKkOBnDqpul.json';
+import readView_viwDvNoEligible from './readView_viwDvNoEligible.json';
+import readView_viwDvFormulaPrim from './readView_viwDvFormulaPrim.json';
+import readView_viwDvTitleTaken from './readView_viwDvTitleTaken.json';
 
 export const viewsResponse = {
   viw5f7BhLA3OkthNv: { data: readView_viw5f7BhLA3OkthNv },
@@ -35,4 +39,9 @@ export const viewsResponse = {
   viw8Xse051lREItSC: { data: readView_viw8Xse051lREItSC },
   viwRRK2UljiQB3kko: { data: readView_viwRRK2UljiQB3kko },
   viwZnwvKkOBnDqpul: { data: readView_viwZnwvKkOBnDqpul },
+
+  // display-value fixture (share id `shrDisplayValueMock`)
+  viwDvNoEligible: { data: readView_viwDvNoEligible },
+  viwDvFormulaPrim: { data: readView_viwDvFormulaPrim },
+  viwDvTitleTaken: { data: readView_viwDvTitleTaken },
 };

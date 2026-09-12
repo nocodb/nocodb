@@ -109,7 +109,10 @@ const props = withDefaults(defineProps<NcConfirmModalProps>(), {
 
 const emits = defineEmits<Emits>()
 
-const { visible: _visible, showOkBtn: _showOkBtn, showCancelBtn: _showCancelBtn, ...restProps } = props
+const restProps = computed(() => {
+  const { visible: _visible, showOkBtn: _showOkBtn, showCancelBtn: _showCancelBtn, ...rest } = props
+  return rest
+})
 
 const initialFocus = ref<boolean>(false)
 
@@ -242,7 +245,7 @@ useSelectedCellKeydownListener(
       </div>
       <slot name="extraContent"></slot>
 
-      <div class="flex flex-row w-full justify-end gap-2">
+      <div class="flex flex-row w-full justify-end gap-2 empty:hidden">
         <NcButton
           v-if="showCancelBtn"
           ref="cancelBtnRef"

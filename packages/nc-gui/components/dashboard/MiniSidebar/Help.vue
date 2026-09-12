@@ -27,6 +27,11 @@ const { isChatWootEnabled } = useProvideChatwoot()
 
 const { isModalVisible: isChatVisible } = useChatWoot()
 
+// White-label may override the help-menu support email (falls back to NocoDB
+// support when unset); the rest of the help menu is unchanged — enterprise
+// support/docs continue to route through NocoDB.
+const { isWhiteLabelled, config } = useBranding()
+
 const visible = ref(false)
 
 const copyBtnRef = ref()
@@ -41,6 +46,9 @@ const toggleChatSupport = () => {
 }
 
 const helpItems = computed<CategoryItemType[]>(() => {
+  const isWl = isWhiteLabelled.value
+  const supportEmail = config.value?.supportEmail || ''
+
   return [
     {
       category: t('general.resources'),
@@ -113,10 +121,13 @@ const helpItems = computed<CategoryItemType[]>(() => {
           e: 'c:nocodb:chat-support',
           link: '',
           onClick: toggleChatSupport,
+          // isChatWootEnabled is already false when white-labelled.
           hidden: !isChatWootEnabled.value,
         },
         {
-          title: 'support@nocodb.com',
+          // White-label may override the support contact; otherwise fall back to
+          // NocoDB support — enterprise support routes through NocoDB regardless.
+          title: isWl && supportEmail ? supportEmail : 'support@nocodb.com',
           icon: 'ncMail',
           e: 'c:nocodb:contact-us-mail-copy',
           link: '',

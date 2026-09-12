@@ -79,7 +79,7 @@ onMounted(async () => {
                   class="flex flex-col gap-5.5"
                 >
                   <div class="nc-form-section">
-                    <div class="nc-form-section-title">General</div>
+                    <div class="nc-form-section-title">{{ $t('general.general') }}</div>
                     <div class="nc-form-section-body">
                       <a-row :gutter="24">
                         <a-col :span="12">
@@ -119,12 +119,12 @@ onMounted(async () => {
 
                       <a-row :gutter="24">
                         <a-col :span="12">
-                          <a-form-item label="Username">
+                          <a-form-item :label="$t('labels.username')">
                             <LazyGeneralCopyInput v-model="connectionDetails.username" class="nc-connection-username" />
                           </a-form-item>
                         </a-col>
                         <a-col :span="12">
-                          <a-form-item label="Password">
+                          <a-form-item :label="$t('labels.password')">
                             <LazyGeneralCopyInput v-model="connectionDetails.password" password class="nc-connection-password" />
                           </a-form-item>
                         </a-col>
@@ -132,12 +132,12 @@ onMounted(async () => {
 
                       <a-row :gutter="24">
                         <a-col :span="12">
-                          <a-form-item label="Database">
+                          <a-form-item :label="$t('labels.database')">
                             <LazyGeneralCopyInput v-model="connectionDetails.database" class="nc-connection-database" />
                           </a-form-item>
                         </a-col>
                         <a-col :span="12">
-                          <a-form-item label="Schema">
+                          <a-form-item :label="$t('labels.schema')">
                             <LazyWorkspaceIntegrationsConnectSchemaInput v-model="selectedBase" class="nc-connection-schema" />
                           </a-form-item>
                         </a-col>

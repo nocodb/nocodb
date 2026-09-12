@@ -1,5 +1,29 @@
-import type { FilterReqType, HookReqType, HookType } from 'nocodb-sdk'
+import { pickFields } from 'nocodb-sdk'
+import type { FilterReqType, FilterType, HookReqType, HookType, TableType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+
+const HOOK_API_FIELDS = [
+  'title',
+  'description',
+  'env',
+  'event',
+  'operation',
+  'fk_model_id',
+  'type',
+  'async',
+  'active',
+  'condition',
+  'trigger_field',
+  'trigger_fields',
+  'retries',
+  'retry_interval',
+  'timeout',
+  'version',
+  'url',
+  'headers',
+  'payload',
+  'id',
+] as const
 
 export const useWebhooksStore = defineStore('webhooksStore', () => {
   const hooks = ref<HookType[]>([])
@@ -15,13 +39,23 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     return hooks.value.some((hook) => hook.version === 'v2')
   })
 
-  async function loadHooksList() {
+  async function loadHooksList(table?: Pick<TableType, 'id' | 'base_id' | 'fk_workspace_id'>) {
+    // Hosts without a route-level active table (e.g. the interface builder's
+    // field editor) pass their own table; a missing table is an empty list,
+    // not a crash.
+    const targetTable = table ?? activeTable.value
+
+    if (!targetTable?.id) {
+      hooks.value = []
+      return
+    }
+
     isHooksLoading.value = true
     try {
       const hookList = (
-        await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+        await $api.internal.getOperation(targetTable.fk_workspace_id!, targetTable.base_id!, {
           operation: 'hookList',
-          tableId: activeTable.value?.id as string,
+          tableId: targetTable.id,
         })
       ).list
 
@@ -67,6 +101,29 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   async function copyHook(hook: HookType) {
     try {
+      const fetchSubtree = async (filter: FilterType): Promise<any> => {
+        const stripId = ({ id: _id, ...rest }: any) => rest
+        if (!filter.is_group || !filter.id) {
+          return stripId(filter)
+        }
+        const childList = (
+          await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+            operation: 'filterChildrenList',
+            filterId: filter.id,
+          })
+        ).list as FilterType[]
+        const children = await Promise.all(childList.map(fetchSubtree))
+        return { ...stripId(filter), children }
+      }
+
+      const sourceRoots = (
+        await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+          operation: 'hookFilterList',
+          hookId: hook.id!,
+        })
+      ).list as FilterType[]
+      const filters = await Promise.all(sourceRoots.map(fetchSubtree))
+
       const newHook = await $api.internal.postOperation(
         activeTable.value!.fk_workspace_id!,
         activeTable.value!.base_id!,
@@ -75,41 +132,17 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
           tableId: hook.fk_model_id!,
         },
         {
-          ...hook,
+          ...pickFields(hook, HOOK_API_FIELDS as unknown as readonly (keyof typeof hook)[]),
+          id: undefined,
           trigger_field: !!hook.trigger_field,
           title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
           active: hook.event === 'manual',
+          ...(filters.length ? { filters } : {}),
         } as HookReqType,
       )
 
       if (newHook) {
         $e('a:webhook:copy')
-        // create the corresponding filters
-        const hookFilters = (
-          await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
-            operation: 'hookFilterList',
-            hookId: hook.id!,
-          })
-        ).list
-        for (const hookFilter of hookFilters) {
-          await $api.internal.postOperation(
-            activeTable.value!.fk_workspace_id!,
-            activeTable.value!.base_id!,
-            {
-              operation: 'hookFilterCreate',
-              hookId: newHook.id!,
-            },
-            {
-              comparison_op: hookFilter.comparison_op,
-              comparison_sub_op: hookFilter.comparison_sub_op,
-              fk_column_id: hookFilter.fk_column_id,
-              fk_parent_id: hookFilter.fk_parent_id,
-              is_group: hookFilter.is_group,
-              logical_op: hookFilter.logical_op,
-              value: hookFilter.value,
-            } as FilterReqType,
-          )
-        }
         newHook.notification = parseProp(newHook.notification)
         hooks.value = [newHook, ...hooks.value]
       }
@@ -120,7 +153,15 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     }
   }
 
-  async function saveHooks({ hook: _hook, ogHook }: { hook: HookType; ogHook: HookType }) {
+  async function saveHooks({
+    hook: _hook,
+    ogHook,
+    filters,
+  }: {
+    hook: HookType
+    ogHook: HookType
+    filters?: Array<FilterReqType | FilterType>
+  }) {
     if (!activeTable.value) throw new Error('activeTable is not defined')
 
     _hook.trigger_field = !!_hook.trigger_field
@@ -145,11 +186,12 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
             hookId: hook.id,
           },
           {
-            ...hook,
+            ...pickFields(hook, HOOK_API_FIELDS as unknown as readonly (keyof typeof hook)[]),
             notification: {
               ...hook.notification,
               payload: hook.notification.payload,
             },
+            ...(filters !== undefined ? { filters } : {}),
           },
         )
       } else {
@@ -161,11 +203,12 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
             tableId: activeTable.value!.id!,
           },
           {
-            ...hook,
+            ...pickFields(hook, HOOK_API_FIELDS as unknown as readonly (keyof typeof hook)[]),
             notification: {
               ...hook.notification,
               payload: hook.notification.payload,
             },
+            ...(filters !== undefined ? { filters } : {}),
           } as HookReqType,
         )
 

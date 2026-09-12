@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
+import { dateFormats, isJalaliFormat, isSystemColumn, parseJalaliToGregorian, timeFormats } from 'nocodb-sdk'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
@@ -61,7 +61,21 @@ const dateTimeFormat = computed(() => {
 const dateFormat = computed(() => parseProp(column?.value?.meta)?.date_format ?? dateFormats[0])
 const timeFormat = computed(() => parseProp(column?.value?.meta)?.time_format ?? timeFormats[0])
 
+const isJalali = computed(() => isJalaliFormat(dateFormat.value))
+
 const { dayjsTz, timezonize: timezonizeDayjs } = withTimezone(column.value?.meta?.timezone)
+
+// Parse a user-typed date part into a Gregorian dayjs, honouring the Jalali
+// calendar when the column format is Jalali. Returns null when it can't be parsed.
+function parseTypedDate(str: string): dayjs.Dayjs | null {
+  if (isJalali.value) {
+    const g = parseJalaliToGregorian(str, dateFormat.value)
+    if (!g) return null
+    return dayjsTz(`${g.y}-${String(g.m).padStart(2, '0')}-${String(g.d).padStart(2, '0')}`)
+  }
+  const parsed = dayjs(str, dateFormat.value)
+  return parsed.isValid() ? dayjsTz(str, dateFormat.value) : null
+}
 
 let localModelValue = modelValue ? timezonizeDayjs(dayjs(modelValue)) : undefined
 
@@ -199,9 +213,9 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
       return
     }
 
-    if (dayjs(targetValue, dateFormat.value).isValid()) {
-      const date = dayjsTz(targetValue, dateFormat.value)
+    const date = parseTypedDate(targetValue)
 
+    if (date?.isValid()) {
       if (localState.value) {
         tempDate.value = dayjsTz(`${date.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
       } else {
@@ -586,6 +600,7 @@ const minimizeMaxWidth = computed(() => {
             v-model:page-date="tempDate"
             :selected-date="localState"
             :is-open="isOpen"
+            :is-jalali="isJalali"
             type="date"
             size="medium"
             :timezone="column?.meta?.timezone"

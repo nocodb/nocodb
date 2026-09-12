@@ -11,6 +11,8 @@ export enum ChatEventAction {
   TOKEN = 'token',
   TOOL_START = 'tool-start',
   TOOL_CALL = 'tool-call',
+  /** Live step update from a long-running tool (e.g. "Creating page 3/7"). */
+  TOOL_PROGRESS = 'tool-progress',
   TOOL_RESULT = 'tool-result',
   MESSAGE_DONE = 'message-done',
   MESSAGE_UPDATE = 'message-update',
@@ -21,6 +23,18 @@ export enum ChatEventAction {
   USER_MESSAGE = 'user-message',
   AGENT_SWITCH = 'agent-switch',
   FOLLOW_UPS = 'follow-ups',
+  HEARTBEAT = 'heartbeat',
+}
+
+/**
+ * Payload of a TOOL_PROGRESS event — a live step update from a long-running
+ * tool call ("Designing table 3: Deals…", "Creating page 2/7: Pipeline").
+ * Transient: streamed for UX only, never persisted on the message.
+ */
+export interface ChatToolProgress {
+  label: string;
+  current?: number;
+  total?: number;
 }
 
 export enum ChatToolCallStatus {
@@ -40,6 +54,20 @@ export interface ChatSessionMetaType {
     completed: string[];
     remaining: string[];
   }>;
+  /** The session's paused compute instance, resumed by the next turn. */
+  computeId?: string;
+  /** @deprecated `computeId` since the AI layer stopped calling it a sandbox.
+   *  Read-only, so sessions paused before the rename still resolve. */
+  sandboxId?: string;
+  /**
+   * Follow-up prompts generated at turn end, persisted so reopening the
+   * session serves them from storage instead of re-generating (a model call).
+   * `messageId` pins them to the assistant message they were generated for.
+   */
+  followUps?: {
+    messageId: string;
+    items: string[];
+  };
 }
 
 export interface ChatSessionType {
@@ -93,11 +121,11 @@ export type ChatContentBlock =
       is_error?: boolean;
       agent?: string;
       visibility?: ChatToolVisibility;
-      user_visible_plan?: string;
       metadata?: ChatToolMetadata;
     };
 
 export interface ChatAttachmentType {
+  id?: string;
   title: string;
   mimetype: string;
   size: number;
@@ -108,6 +136,29 @@ export interface ChatAttachmentType {
   icon?: string;
 }
 
+/** A published web artifact (see publish_web_artifact) — tracked separately
+ *  from ChatMessageType.created_files (nc_chat_artifacts, not a JSON blob
+ *  field), so it has a real, stable `id` to mint/serve against. Rendered live
+ *  in a sandboxed iframe via a separate, isolated route (chatArtifactRead). */
+export interface ChatArtifactType {
+  id: string;
+  title: string;
+  mimetype: string;
+  size: number;
+  /** Groups versions of the same published project — the root version's own
+   *  id, shared by every later version of it. */
+  rootId?: string;
+  /** 1-based, incrementing per republish of the same project. */
+  version?: number;
+  /** Share-link id — the page lives at `/nc/artifact/<uuid>`. */
+  uuid?: string;
+  /** Whether that link serves without sign-in. */
+  isPublic?: boolean;
+  created_at?: string;
+}
+
+export const WEB_ARTIFACT_MIMETYPE = 'text/vnd.nocodb.web-artifact+html';
+
 export interface ChatMessageType {
   id?: string;
   fk_session_id: string;
@@ -115,11 +166,14 @@ export interface ChatMessageType {
   content?: string | null;
   parts?: ChatContentBlock[];
   files?: ChatAttachmentType[];
+  created_files?: ChatAttachmentType[];
+  artifacts?: ChatArtifactType[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;
   bt_span_id?: string | null;
   created_at?: string;
+  uiContextRecord?: { tableId: string; recordId: string; recordTitle?: string };
 }
 
 export const NC_NEW_SESSION = 'NC_SESSION';
@@ -130,6 +184,8 @@ export interface ChatUIContext {
   viewId?: string;
   dashboardId?: string;
   documentId?: string;
+  recordId?: string;
+  recordTitle?: string;
 }
 
 export interface ChatSendMessageType {

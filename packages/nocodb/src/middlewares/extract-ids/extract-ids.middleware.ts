@@ -3,6 +3,8 @@ import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
   extractRolesObj,
+  isServiceUser,
+  NcAccessSource,
   NcApiVersion,
   OrgUserRoles,
   ProjectRoles,
@@ -20,6 +22,7 @@ import {
   personalViewOwnerOnlyOps,
   VIEW_KEY,
 } from './extract-ids.helpers';
+import type { ViewTypes } from 'nocodb-sdk';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -28,8 +31,12 @@ import type {
   NestInterceptor,
   NestMiddleware,
 } from '@nestjs/common';
+import { resolveShareAccessSource } from '~/helpers/accessSource';
+import { hasModelRoleVisibilityAccess } from '~/helpers/tableHelpers';
 import {
   Base,
+  AutomationSection,
+  BaseSection,
   Column,
   Comment,
   Extension,
@@ -100,6 +107,8 @@ const getApiVersionFromUrl = (url: string) => {
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
+  constructor(protected readonly reflector: Reflector) {}
+
   async use(req, res, next): Promise<any> {
     const { params, query } = req;
 
@@ -140,13 +149,20 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         base_id: req.ncBaseId,
         api_version: req.ncApiVersion,
         socket_id: req.ncSocketId,
+        tab_id: req.ncTabId,
         nc_site_url: req.ncSiteUrl,
         permissions: [],
       };
 
       let view;
+      // See the note on the same binding in `legacyExtractIds` — kept apart from
+      // `view` so a shared view never reaches `markPersonalViewIfNeeded`.
+      let shareViewType: ViewTypes | undefined;
 
-      const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
+      // Query-string only: no route pairs :mcpTokenId with :baseId, and the MCP
+      // operations read `tokenId` instead — so accepting it here only let a
+      // caller re-anchor the role lookup onto another base's token.
+      const mcpTokenId = params.mcpTokenId;
       const integrationId = params.integrationId || query.integrationId;
       const tableId =
         params.tableId || params.modelId || params.tableName || query.tableId;
@@ -174,6 +190,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const filterParentId = params.filterParentId || query.filterParentId;
       const widgetId = params.widgetId || query.widgetId;
       const sectionId = params.sectionId || query.sectionId;
+      const baseSectionId = params.baseSectionId || query.baseSectionId;
+      const automationSectionId =
+        params.automationSectionId || query.automationSectionId;
       const sortId = params.sortId || query.sortId;
       const syncId = params.syncId || query.syncId;
       const extensionId = params.extensionId || query.extensionId;
@@ -252,6 +271,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.get(context).viewNotFound(publicDataUuid);
         }
 
+        shareViewType = view?.type;
         req.ncSourceId = view?.source_id;
       } else if (sharedViewUuid) {
         const view = await View.getByUUID(context, sharedViewUuid);
@@ -260,6 +280,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.get(context).viewNotFound(sharedViewUuid);
         }
 
+        shareViewType = view.type;
         req.ncSourceId = view.source_id;
       } else if (sharedBaseUuid) {
         const base = await Base.getByUuid(context, sharedBaseUuid);
@@ -389,6 +410,25 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = section.source_id;
+      } else if (baseSectionId) {
+        // Base-level sections are base-scoped, so there is no source to pin.
+        // This branch exists only to 404 an unknown id before the handler runs.
+        const baseSection = await BaseSection.get(context, baseSectionId);
+
+        if (!baseSection) {
+          NcError.baseSectionNotFound(baseSectionId);
+        }
+      } else if (automationSectionId) {
+        // Automation sections are base-scoped, so there is no source to pin.
+        // This branch exists only to 404 an unknown id before the handler runs.
+        const automationSection = await AutomationSection.get(
+          context,
+          automationSectionId,
+        );
+
+        if (!automationSection) {
+          NcError.automationSectionNotFound(automationSectionId);
+        }
       } else if (sortId) {
         const sort = await Sort.get(context, sortId);
 
@@ -418,6 +458,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       markPersonalViewIfNeeded(req, view);
+
+      if (publicDataUuid || sharedViewUuid || sharedBaseUuid) {
+        req.context.is_public = true;
+        req.context.access_source = resolveShareAccessSource(
+          { publicDataUuid, sharedViewUuid, sharedBaseUuid },
+          shareViewType,
+        );
+      }
     } else {
       await this.legacyExtractIds(req);
     }
@@ -428,11 +476,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    await this.use(
-      context.switchToHttp().getRequest(),
-      context.switchToHttp().getResponse(),
-      () => {},
-    );
+    const req = context.switchToHttp().getRequest();
+    // @Acl scope gates the default-workspace fallback in use() (undefined = no @Acl)
+    req.ncAclScope = this.reflector.get<string>('scope', context.getHandler());
+    await this.use(req, context.switchToHttp().getResponse(), () => {});
     return true;
   }
 
@@ -448,6 +495,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   protected async legacyExtractIds(req) {
     const { params } = req;
     let view;
+    // Type of the view behind a share uuid, for the `access_source` refinement
+    // where `req.context` is built. Deliberately NOT the `view` binding above:
+    // that one feeds `markPersonalViewIfNeeded`, and attaching a locked or
+    // personal view to an anonymous request would change its ACL evaluation.
+    let shareViewType: ViewTypes | undefined;
     let tableIdToCheck: string | null = null; // Store table ID for permission check at the end
 
     const context = {
@@ -491,6 +543,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (!model) {
           NcError.get(context).tableNotFound(params.tableId || params.modelId);
         }
+
+        // Extract table ID for permission check at the end — this branch owns
+        // routes carrying both :baseId and :tableId, which the base-id arm of
+        // the if/else chain below short-circuits before it can set this.
+        tableIdToCheck = model.id;
       }
     }
 
@@ -539,8 +596,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
 
-      // Extract table ID for permission check at the end
-      tableIdToCheck = view?.fk_model_id;
+      // Extract table ID for permission check at the end. This slot also
+      // resolves a Model (the `|| Model.get` above) — several data routes pass
+      // a table id here — and a Model has no `fk_model_id`, so fall back to its
+      // own id or the visibility gate never runs for those routes.
+      tableIdToCheck = view?.fk_model_id ?? view?.id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -576,6 +636,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).viewNotFound(req.params.publicDataUuid);
       }
 
+      shareViewType = view?.type;
       req.ncBaseId = view?.base_id;
       req.ncSourceId = view?.source_id;
     } else if (params.sharedViewUuid) {
@@ -585,6 +646,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).viewNotFound(req.params.sharedViewUuid);
       }
 
+      shareViewType = view.type;
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
     } else if (params.sharedBaseUuid) {
@@ -899,6 +961,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           }
 
           req.ncSourceId = model?.source_id;
+
+          // Extract table ID for permission check at the end — the whole
+          // /:baseName/:tableName alias family resolves its model here and
+          // never set this, so the visibility gate never ran for it.
+          tableIdToCheck = model?.id;
         }
       } else {
         NcError.baseNotFound(params.baseId ?? params.baseName);
@@ -981,7 +1048,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     markPersonalViewIfNeeded(req, view);
 
-    if (!req.ncWorkspaceId) {
+    // Workspace/base routes with no resolved workspace fall back to the default
+    // one so their ACL resolves; org/no-scope routes stay above workspace.
+    if (
+      !req.ncWorkspaceId &&
+      (req.ncAclScope === 'workspace' || req.ncAclScope === 'base')
+    ) {
       req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
     }
 
@@ -991,10 +1063,19 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: req.ncBaseId,
       api_version: context.api_version,
       socket_id: req.headers['xc-socket-id'],
+      tab_id: req.ncTabId,
       nc_site_url: req.ncSiteUrl,
       timezone: context.timezone,
       is_api_token: req.user?.is_api_token,
       permissions: [],
+      ...(params.publicDataUuid ||
+      params.sharedViewUuid ||
+      params.sharedBaseUuid
+        ? {
+            is_public: true,
+            access_source: resolveShareAccessSource(params, shareViewType),
+          }
+        : {}),
     };
 
     // Store table ID to check in context for ACL middleware to perform table visibility check
@@ -1057,6 +1138,13 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Invalid token');
     }
 
+    if (req.user?.isPublicBase && req.context) {
+      req.context.is_public = true;
+      // `xc-shared-base-id`: BaseViewStrategy resolved it into a pseudo-user, so
+      // the request took the authenticated routes, not the share-uuid branch.
+      req.context.access_source = NcAccessSource.SHARED_BASE;
+    }
+
     // Block non-owners from modifying filters/sorts on someone else's personal view
     if (
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
@@ -1075,10 +1163,19 @@ export class AclMiddleware implements NestInterceptor {
       !userBaseRoles?.[ProjectRoles.CREATOR] &&
       !userBaseRoles?.[ProjectRoles.OWNER];
 
+    // This gate applies ONLY when the view is a personal view: editors can
+    // perform sort/filter/view-column/layout ops on collaborative views (ACL
+    // already grants them the permission) but are restricted on:
+    //   - personal views they don't own
+    //   - locked views (creator+ only)
+    // On collaborative views VIEW_KEY is unset → the check short-circuits
+    // and the caller proceeds to the normal role-based ACL check.
     if (
       isEditor &&
       editorPersonalViewOnlyPermissions.includes(permissionName) &&
-      !isPersonalViewOwner
+      ((req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
+        !isPersonalViewOwner) ||
+        req[VIEW_KEY]?.lock_type === ViewLockType.Locked)
     ) {
       NcError.forbidden('Unauthorized access');
     }
@@ -1189,6 +1286,25 @@ export class AclMiddleware implements NestInterceptor {
       //     Object.keys(roles).filter((k) => roles[k]),
       //   )} : Not allowed`,
       // );
+    }
+
+    // Per-view role visibility, applied to routes that resolve a table or view
+    // by id. `ncTableId` was being stored for exactly this check but nothing
+    // consumed it, so hiding every view only removed the table from the list.
+    if (
+      req.context?.ncTableId &&
+      req.user &&
+      !isServiceUser(req.user) &&
+      req.ncBaseId &&
+      !(await hasModelRoleVisibilityAccess(
+        req.context,
+        req.context.ncTableId,
+        roles,
+      ))
+    ) {
+      // 404, not 403 — matches `getTableWithAccessibleViews` and keeps the id
+      // from confirming that a hidden table exists.
+      NcError.get(req.context).tableNotFound(req.context.ncTableId);
     }
 
     // check if permission have source level permission restriction

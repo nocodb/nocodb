@@ -1,5 +1,5 @@
 import { NcErrorType } from 'nocodb-sdk';
-import { DBError } from './utils';
+import { DBError, DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
@@ -16,6 +16,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
     let message: string;
     let _extra: Record<string, any>;
     let _type: DBError;
+    let _kind: DBErrorKind;
     let httpStatus = 422;
 
     // todo: handle not null constraint error for all databases
@@ -96,7 +97,10 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
         break;
       case 'ER_PARSE_ERROR':
-        message = 'There was a syntax error in your SQL query.';
+        message =
+          "This request couldn't be processed by the database. Please review your input and try again.";
+        // our generated SQL is malformed — see the pg 42601 note
+        _kind = DBErrorKind.UNKNOWN;
         break;
       case 'ER_NO_DEFAULT_FOR_FIELD':
         message = 'A value is required for this field.';
@@ -119,6 +123,22 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         break;
       case 'ER_DATA_TOO_LONG':
         message = 'The data entered is too long for this field.';
+        break;
+      case 'ER_WARN_DATA_OUT_OF_RANGE':
+      case 'ER_DATA_OUT_OF_RANGE':
+        message = 'Number is out of range for this field.';
+        if (error.message) {
+          const outOfRangeMatch = error.message.match(
+            /Out of range value for column '(\w+)'/i,
+          );
+          if (outOfRangeMatch && outOfRangeMatch[1]) {
+            message = `Number is out of range for column '${outOfRangeMatch[1]}'.`;
+            _type = DBError.DATA_TYPE_MISMATCH;
+            _extra = {
+              column: outOfRangeMatch[1],
+            };
+          }
+        }
         break;
       case 'ER_BAD_FIELD_ERROR':
         {
@@ -156,6 +176,10 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       case 'ER_TOO_MANY_ROWS':
         message = 'Query returned too many rows.';
         break;
+      case 'EACCES':
+        message = 'Connection to internal hosts is not allowed';
+        httpStatus = 403;
+        break;
       default:
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database mysql`,
@@ -170,6 +194,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       message,
       code: error.code,
       httpStatus,
+      ...(_kind && { kind: _kind }),
     };
   }
 }

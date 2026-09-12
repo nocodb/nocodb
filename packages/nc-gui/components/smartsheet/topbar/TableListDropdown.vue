@@ -5,7 +5,7 @@ const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
@@ -22,6 +22,13 @@ const activeTableSourceIndex = computed(() => base.value?.sources?.findIndex((s)
 const filteredTableList = computed(() => {
   return activeTables.value.filter((t: TableType) => t?.source_id === activeTable.value?.source_id) || []
 })
+
+const tableCreateReason = computed(() =>
+  sandboxRestrictionReason('tableCreate', {
+    roles: base.value?.project_role || base.value?.workspace_role,
+    source: base.value?.sources?.[activeTableSourceIndex.value] || {},
+  }),
+)
 
 /**
  * Handles navigation to a selected table.
@@ -59,7 +66,7 @@ function openTableCreateDialog() {
         :list="filteredTableList"
         option-value-key="id"
         option-label-key="title"
-        search-input-placeholder="Search tables"
+        :search-input-placeholder="$t('placeholder.searchProjectTree')"
         class="min-w-64 !w-auto"
         variant="medium"
         @change="handleNavigateToTable"
@@ -93,30 +100,42 @@ function openTableCreateDialog() {
         <template
           v-if="
             !isMobileMode &&
-            isUIAllowed('tableCreate', {
+            (isUIAllowed('tableCreate', {
               roles: base?.project_role || base?.workspace_role,
               source: base?.sources?.[activeTableSourceIndex] || {},
-            })
+            }) ||
+              !!tableCreateReason)
           "
           #listFooter
         >
           <NcDivider class="!mt-0 !mb-2" />
-          <div class="px-2 mb-2" @click="openTableCreateDialog()">
+          <NcTooltip :title="tableCreateReason ? $t(tableCreateReason) : ''" :disabled="!tableCreateReason">
             <div
-              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
+              class="px-2 mb-2"
+              :class="tableCreateReason ? 'cursor-not-allowed' : ''"
+              @click="tableCreateReason ? undefined : openTableCreateDialog()"
             >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="plus" />
-                <div>
-                  {{
-                    $t('general.createEntity', {
-                      entity: $t('objects.table'),
-                    })
-                  }}
+              <div
+                class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 rounded-md"
+                :class="
+                  tableCreateReason
+                    ? '!text-nc-content-gray-disabled cursor-not-allowed'
+                    : '!text-nc-content-brand hover:bg-nc-bg-gray-light cursor-pointer'
+                "
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  <div>
+                    {{
+                      $t('general.createEntity', {
+                        entity: $t('objects.table'),
+                      })
+                    }}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </NcTooltip>
         </template>
       </LazyNcList>
     </template>

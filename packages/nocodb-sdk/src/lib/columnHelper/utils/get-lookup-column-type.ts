@@ -2,7 +2,13 @@ import { ColumnType, LookupType } from '~/lib/Api';
 import UITypes from '~/lib/UITypes';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
 
-export function getLookupColumnType({
+/**
+ * Resolve the leaf column a Lookup ultimately points at, following nested Lookup
+ * chains (Lookup -> Lookup -> … -> X). Returns the first non-Lookup target column
+ * (which may itself be a Formula/Rollup/etc.), or null when it cannot be resolved
+ * (e.g. external base, missing meta, circular chain).
+ */
+export function resolveLookupLeafColumn({
   col,
   meta,
   metas,
@@ -10,11 +16,11 @@ export function getLookupColumnType({
   visitedIds = new Set<string>(),
 }: {
   col: ColumnType;
-  meta: { columns: ColumnType[]; base_id?: string };
+  meta: { columns?: ColumnType[]; base_id?: string };
   metas: Record<string, any>;
   baseId?: string;
   visitedIds?: Set<string>;
-}): UITypes | null | undefined {
+}): ColumnType | null | undefined {
   const currentBaseId = baseId || meta?.base_id;
 
   const colOptions = col.colOptions as LookupType;
@@ -34,8 +40,8 @@ export function getLookupColumnType({
     (c: ColumnType) => c.id === colOptions.fk_lookup_column_id
   ) as ColumnType | undefined;
 
-  // if child column is lookup column, then recursively find the column type
-  // and check for circular dependency
+  // if child column is a lookup column, recurse to find the leaf column while
+  // guarding against circular dependencies
   if (
     childColumn &&
     childColumn.uidt === UITypes.Lookup &&
@@ -43,14 +49,24 @@ export function getLookupColumnType({
     relatedTableMeta?.columns
   ) {
     visitedIds.add(childColumn.id);
-    return getLookupColumnType({
+    return resolveLookupLeafColumn({
       col: childColumn,
       meta: relatedTableMeta as { columns: ColumnType[]; base_id?: string },
-      metas: metas,
+      metas,
       baseId: relatedTableMeta?.base_id || baseId,
-      visitedIds: visitedIds,
+      visitedIds,
     });
   }
 
-  return (childColumn?.uidt as UITypes) || null;
+  return childColumn ?? null;
+}
+
+export function getLookupColumnType(params: {
+  col: ColumnType;
+  meta: { columns?: ColumnType[]; base_id?: string };
+  metas: Record<string, any>;
+  baseId?: string;
+  visitedIds?: Set<string>;
+}): UITypes | null | undefined {
+  return (resolveLookupLeafColumn(params)?.uidt as UITypes) || null;
 }

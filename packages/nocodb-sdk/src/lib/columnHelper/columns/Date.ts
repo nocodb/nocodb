@@ -5,6 +5,7 @@ import {
   DATE_SCALE_LABEL_TO_DIFF_MAP,
   isNumberRound,
   parseDateValue,
+  parseDayjsWithJalaliSupport,
   serializeDateOrDateTimeValue,
 } from '..';
 import AbstractColumnHelper, {
@@ -97,7 +98,13 @@ export class DateHelper extends AbstractColumnHelper {
       ) {
         return populateFillHandleStrictCopy(params);
       }
-      const currentData = dayjs(date + ' 00:00:00', dateFormat);
+      // Jalali-aware parse: the highlighted values are display strings, which
+      // for a Jalali column are Jalali (e.g. `1405/04/23`) and must be converted
+      // from Jalali rather than misread as Gregorian year 1405.
+      const currentData = parseDayjsWithJalaliSupport(
+        date + ' 00:00:00',
+        dateFormat
+      );
       // unlikely on normal case
       if (!currentData.isValid()) {
         return populateFillHandleStrictCopy(params);

@@ -2,7 +2,7 @@ import type { WatchStopHandle } from 'vue'
 import type { TableType } from 'nocodb-sdk'
 
 export const useMetas = createSharedComposable(() => {
-  const { $api } = useNuxtApp()
+  const { internalGet } = useInternalBatch()
 
   const { ncNavigateTo } = useGlobal()
 
@@ -12,10 +12,19 @@ export const useMetas = createSharedComposable(() => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { baseTables } = storeToRefs(useTablesStore())
+  const { baseTables, activeTableId } = storeToRefs(useTablesStore())
 
-  // keep a temporary state of deleted tables to avoid get api calls
-  const deletedTableIds = new Set<string>()
+  // keep a temporary state of deleted tables per base to avoid get api calls
+  const deletedTableIdsByBase = new Map<string, Set<string>>()
+
+  const getDeletedTableIds = (baseId: string): Set<string> => {
+    let set = deletedTableIdsByBase.get(baseId)
+    if (!set) {
+      set = new Set<string>()
+      deletedTableIdsByBase.set(baseId, set)
+    }
+    return set
+  }
 
   // Helper function to create composite key: baseId:tableIdOrTitle
   const getMetaKey = (baseId: string, tableIdOrTitle: string) => `${baseId}:${tableIdOrTitle}`
@@ -49,11 +58,21 @@ export const useMetas = createSharedComposable(() => {
   const setMeta = async (model: any) => {
     if (!model.base_id) return
 
-    metas.value = {
+    // Clean up stale title key when table is renamed
+    const idKey = getMetaKey(model.base_id, model.id!)
+    const existingMeta = metas.value[idKey]
+
+    const updated = {
       ...metas.value,
-      [getMetaKey(model.base_id, model.id!)]: model,
+      [idKey]: model,
       [getMetaKey(model.base_id, model.title)]: model,
     }
+
+    if (existingMeta && existingMeta.title !== model.title) {
+      delete updated[getMetaKey(model.base_id, existingMeta.title)]
+    }
+
+    metas.value = updated
   }
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
@@ -75,10 +94,18 @@ export const useMetas = createSharedComposable(() => {
     const metaKey = getMetaKey(baseId, tableIdOrTitle)
     const loadingKey = metaKey
 
-    // if already deleted return null
-    if (deletedTableIds.has(tableIdOrTitle)) return null
-
     const tables = baseTables.value.get(baseId) ?? []
+
+    // if marked as deleted, verify it's actually still gone
+    // (e.g., table restored from trash re-appears in baseTables)
+    const deletedSet = deletedTableIdsByBase.get(baseId)
+    if (deletedSet?.has(tableIdOrTitle)) {
+      if (tables.some((t) => t.id === tableIdOrTitle)) {
+        deletedSet.delete(tableIdOrTitle)
+      } else {
+        return null
+      }
+    }
 
     /** wait until loading is finished if requesting same meta
      * use while to recheck loading state since it can be changed by other requests
@@ -117,18 +144,30 @@ export const useMetas = createSharedComposable(() => {
     // return null if cache miss
     if (skipIfCacheMiss) return null
 
+    // Cache hit must return BEFORE touching the reactive loading flag: getMeta runs
+    // inside reactive effects (e.g. computedAsync) that track `loadingState`, and a
+    // write here retriggers every sibling effect tracking the same key — two such
+    // effects then ping-pong each other into "Maximum recursive updates exceeded".
+    if (!force && metas.value[metaKey]) {
+      return metas.value[metaKey]
+    }
+
     loadingState.value[loadingKey] = true
 
     try {
-      if (!force && metas.value[metaKey]) {
-        return metas.value[metaKey]
-      }
       const modelId =
         (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
 
-      const model = await $api.internal.getOperation(activeWorkspaceId.value!, baseId, {
+      // Related-table metas (Links/Lookup fan-out — one tableGet per linked
+      // table on grid mount) coalesce into the batch envelope; the active
+      // table dispatches immediately so navigation latency is unchanged.
+      // `activeTableId` derives synchronously from the route param, so it is
+      // always current before a navigation-triggered fetch reaches here.
+      // tableGet stays OFF the SDK allowlist — this is a per-call opt-in.
+      const model = await internalGet(activeWorkspaceId.value!, baseId, {
         operation: 'tableGet',
         tableId: modelId,
+        _batch: modelId !== activeTableId.value,
       })
 
       // Ensure base_id is set on the model
@@ -162,7 +201,17 @@ export const useMetas = createSharedComposable(() => {
 
   const clearAllMeta = () => {
     metas.value = {}
-    deletedTableIds.clear()
+    deletedTableIdsByBase.clear()
+  }
+
+  /** Clear cached meta for a single base and reset deleted-table tracking. */
+  const clearBaseMeta = (baseId: string) => {
+    deletedTableIdsByBase.delete(baseId)
+    for (const key of Object.keys(metas.value)) {
+      if (key.startsWith(`${baseId}:`)) {
+        delete metas.value[key]
+      }
+    }
   }
 
   const removeMeta = (baseId: string, idOrTitle: string, deleted = false) => {
@@ -170,15 +219,42 @@ export const useMetas = createSharedComposable(() => {
     const meta = metas.value[metaKey]
 
     if (meta) {
-      if (deleted) deletedTableIds.add(meta.id)
+      if (deleted) getDeletedTableIds(baseId).add(meta.id)
       delete metas.value[getMetaKey(baseId, meta.id)]
       delete metas.value[getMetaKey(baseId, meta.title)]
     }
   }
 
-  // return partial metadata for related table of a meta service
-  const getPartialMeta = async (baseId: string, linkColumnId: string, tableIdOrTitle: string): Promise<TableType | null> => {
-    if (!tableIdOrTitle || !linkColumnId || deletedTableIds.has(tableIdOrTitle)) return null
+  const clearDeletedTableId = (baseId: string, tableId: string) => {
+    deletedTableIdsByBase.get(baseId)?.delete(tableId)
+  }
+
+  /**
+   * Partial metadata (pk + display value only) for the related table of a link column.
+   *
+   * `baseId` is the RELATED table's base — used for the cache key and stamped on the model.
+   * `linkColumnScope` is where the LINK COLUMN itself lives; the internal API is base-scoped,
+   * so the request has to be addressed to the column's own workspace/base for the backend to
+   * resolve it (the legacy bypass scope only matched v2 bases). The two differ only for
+   * cross-base links.
+   */
+  const getPartialMeta = async (
+    baseId: string,
+    linkColumnId: string,
+    tableIdOrTitle: string,
+    linkColumnScope?: { workspaceId?: string; baseId?: string },
+  ): Promise<TableType | null> => {
+    if (!tableIdOrTitle || !linkColumnId) return null
+
+    const deletedSet = deletedTableIdsByBase.get(baseId)
+    if (deletedSet?.has(tableIdOrTitle)) {
+      const tables = baseTables.value.get(baseId) ?? []
+      if (tables.some((t) => t.id === tableIdOrTitle)) {
+        deletedSet.delete(tableIdOrTitle)
+      } else {
+        return null
+      }
+    }
 
     const metaKey = getMetaKey(baseId, tableIdOrTitle)
     const loadingKey = metaKey
@@ -194,7 +270,18 @@ export const useMetas = createSharedComposable(() => {
 
     try {
       loadingState.value[loadingKey] = true
-      const model = await $api.dbLinks.tableRead(linkColumnId, tableIdOrTitle)
+      // Related-table partial metas fan out one call per link column on grid
+      // mount — always coalesce them into the batch envelope.
+      const model = await internalGet(
+        linkColumnScope?.workspaceId ?? activeWorkspaceId.value!,
+        linkColumnScope?.baseId ?? baseId,
+        {
+          operation: 'refTableGet',
+          columnId: linkColumnId,
+          refTableId: tableIdOrTitle,
+          _batch: true,
+        },
+      )
       model.title = 'Private Table'
 
       // Ensure base_id is set on the model
@@ -215,9 +302,11 @@ export const useMetas = createSharedComposable(() => {
   return {
     getMeta,
     clearAllMeta,
+    clearBaseMeta,
     metas,
     metasWithIdAsKey,
     removeMeta,
+    clearDeletedTableId,
     setMeta,
     getPartialMeta,
     getMetaByKey,

@@ -50,7 +50,7 @@ const handleShowInput = () => {
     <NcTooltip :disabled="!vModel.unique" placement="right">
       <template #title>
         <div class="max-w-xs">
-          Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value
+          {{ $t('tooltip.cannotSetDefaultValueWithUnique') }}
         </div>
       </template>
       <NcButton

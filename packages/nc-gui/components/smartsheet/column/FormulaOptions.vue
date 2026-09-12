@@ -5,6 +5,7 @@ import {
   FormulaError,
   UITypes,
   getUITypesForFormulaDataType,
+  isColumnInError,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
@@ -52,6 +53,10 @@ const supportedColumns = computed(
         return false
       }
 
+      if (isColumnInError(col)) {
+        return false
+      }
+
       if (isHiddenCol(col, meta.value)) {
         return false
       }
@@ -67,7 +72,7 @@ const validators = {
       required: true,
       validator: (_: any, formula: any) => {
         return (async () => {
-          if (!formula?.trim()) throw new Error('Required')
+          if (!formula?.trim()) throw new Error(t('general.required'))
           try {
             await validateFormulaAndExtractTreeWithType({
               column: column.value as UnifiedMetaType.IColumn,
@@ -278,7 +283,7 @@ watch(
                     :is="iconMap.check"
                     v-if="option.value === vModel.meta?.display_type"
                     id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
+                    class="text-nc-content-brand w-4 h-4"
                   />
                 </div>
               </a-select-option>

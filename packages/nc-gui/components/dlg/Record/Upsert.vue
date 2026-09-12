@@ -98,7 +98,7 @@ const close = () => {
             :disabled="!isAddingEmptyRowPermitted"
           >
             <div class="nc-content-gray">
-              <span class="font-semibold"> Expand </span>
+              <span class="font-semibold"> {{ $t('title.expand') }} </span>
               table to accommodate all pasted cells
             </div>
           </a-radio>

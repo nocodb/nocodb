@@ -143,4 +143,19 @@ export default class CommentReaction {
 
     return { added: true, reaction: newReaction };
   }
+
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COMMENTS_REACTIONS,
+      {
+        base_id: baseId,
+      },
+    );
+  }
 }

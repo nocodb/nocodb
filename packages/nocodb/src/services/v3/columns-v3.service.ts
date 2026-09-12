@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  enumColors,
   isLinksOrLTAR,
   LinksVersion,
   NcApiVersion,
@@ -8,6 +9,8 @@ import {
 } from 'nocodb-sdk';
 import type {
   ColumnReqType,
+  FieldOptionAddItemV3Type,
+  FieldOptionDeleteItemV3Type,
   FieldUpdateV3Type,
   FieldV3Type,
   UserType,
@@ -33,6 +36,8 @@ type ColumnReqWithMeta = ColumnReqType & {
   colOptions?: any;
   dtxp?: string;
 };
+
+type SelectChoiceV3 = { id?: string; title: string; color?: string };
 
 const META_ONLY_PROPS = new Set(['description']);
 
@@ -242,9 +247,8 @@ export class ColumnsV3Service {
   async columnDelete(
     context: NcContext,
     param: {
-      req?: any;
+      req: NcRequest;
       columnId: string;
-      user: UserType;
       forceDeleteSystem?: boolean;
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
@@ -254,5 +258,185 @@ export class ColumnsV3Service {
     await this.columnsService.columnDelete(context, param, ncMeta);
 
     return {};
+  }
+
+  // Read the current select choices from the v3 read representation so they
+  // carry their stable `id`s — passing those ids back through columnUpdate is
+  // what makes the underlying option diff preserve them (no data loss).
+  private getSelectColumnChoices(
+    context: NcContext,
+    columnId: string,
+    column: Column,
+  ): { current: FieldV3Type; choices: SelectChoiceV3[] } {
+    if (![UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+      NcError.get(context).invalidRequestBody(
+        'Options can only be managed on SingleSelect or MultiSelect fields.',
+      );
+    }
+
+    const current = columnBuilder().build(column) as FieldV3Type;
+    const choices =
+      (current as { options?: { choices?: SelectChoiceV3[] } }).options
+        ?.choices ?? [];
+
+    return { current, choices };
+  }
+
+  // A choice added without an explicit `color` is persisted with `color: null`.
+  // On the NEXT options mutation, that choice is read back and re-fed to
+  // `columnUpdate`, whose FieldOptions_Select schema requires `color` to be a
+  // string — so the second add/delete would fail with "'color' must be a
+  // string". Assign a palette color to any choice missing one (matching how the
+  // UI colors new select options) before the choices are persisted, so colors
+  // are never null and repeated add/remove stays retry-safe. Existing string
+  // colors are preserved.
+  private ensureChoiceColors(choices: SelectChoiceV3[]): SelectChoiceV3[] {
+    return choices.map((choice, index) => ({
+      ...choice,
+      color:
+        typeof choice.color === 'string' && choice.color
+          ? choice.color
+          : enumColors.get('light', index),
+    }));
+  }
+
+  async columnOptionsAdd(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      columnId: string;
+      choices: FieldOptionAddItemV3Type[];
+      user: UserType;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FieldOptionsAddReq',
+      { choices: param.choices },
+      true,
+      context,
+    );
+
+    const column = await Column.get(context, { colId: param.columnId }, ncMeta);
+
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const { current, choices: existingChoices } = this.getSelectColumnChoices(
+      context,
+      param.columnId,
+      column,
+    );
+
+    // Reject duplicate titles *within* the request body. The schema's
+    // `uniqueItems` only dedupes identical objects, not same-title-different-color.
+    const seenTitles = new Set<string>();
+    for (const choice of param.choices) {
+      const title = choice.title.trim();
+      if (seenTitles.has(title)) {
+        NcError.get(context).invalidRequestBody(
+          `Duplicate choice title in request: '${title}'`,
+        );
+      }
+      seenTitles.add(title);
+    }
+
+    // Idempotent add: skip incoming titles that already exist on the field.
+    const existingTitles = new Set(existingChoices.map((c) => c.title));
+    const choicesToAdd = param.choices
+      .filter((choice) => !existingTitles.has(choice.title.trim()))
+      .map((choice) => ({
+        title: choice.title.trim(),
+        ...(choice.color ? { color: choice.color } : {}),
+      }));
+
+    // Every incoming title already exists — idempotent no-op, return as-is
+    // (also avoids a needless column rebuild).
+    if (choicesToAdd.length === 0) {
+      return current;
+    }
+
+    const mergedChoices = this.ensureChoiceColors([
+      ...existingChoices,
+      ...choicesToAdd,
+    ]);
+
+    return this.columnUpdate(
+      context,
+      {
+        req: param.req,
+        columnId: param.columnId,
+        column: {
+          type: current.type,
+          options: { choices: mergedChoices },
+        } as FieldUpdateV3Type,
+        user: param.user,
+      },
+      ncMeta,
+    );
+  }
+
+  async columnOptionsDelete(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      columnId: string;
+      choices: FieldOptionDeleteItemV3Type[];
+      user: UserType;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FieldOptionsDeleteReq',
+      { choices: param.choices },
+      true,
+      context,
+    );
+
+    const column = await Column.get(context, { colId: param.columnId }, ncMeta);
+
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const { current, choices: existingChoices } = this.getSelectColumnChoices(
+      context,
+      param.columnId,
+      column,
+    );
+
+    // Idempotent delete: ignore titles that aren't present on the field.
+    // Titles are matched exactly (no trim / case-folding) — the caller passes
+    // back verbatim whatever title the read response returned. If a column
+    // somehow holds duplicate titles (the v3 add path forbids them, but the v2
+    // API / UI can create them), every choice matching the title is removed.
+    const titlesToRemove = new Set(param.choices.map((choice) => choice.title));
+    const mergedChoices = this.ensureChoiceColors(
+      existingChoices.filter((choice) => !titlesToRemove.has(choice.title)),
+    );
+
+    // No title matched an existing choice — idempotent no-op, return as-is.
+    if (mergedChoices.length === existingChoices.length) {
+      return current;
+    }
+
+    if (mergedChoices.length === 0) {
+      NcError.get(context).badRequest('At least one option is required.');
+    }
+
+    return this.columnUpdate(
+      context,
+      {
+        req: param.req,
+        columnId: param.columnId,
+        column: {
+          type: current.type,
+          options: { choices: mergedChoices },
+        } as FieldUpdateV3Type,
+        user: param.user,
+      },
+      ncMeta,
+    );
   }
 }

@@ -10,6 +10,8 @@ const { hideSidebar } = storeToRefs(useSidebarStore())
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const tabs: Array<{
   key: string
   icon: keyof typeof iconMap
@@ -31,7 +33,7 @@ const tabs: Array<{
   {
     key: 'github',
     icon: 'ncList',
-    title: 'Changelog',
+    title: t('general.changelog'),
     container: FeedChangelog,
   },
   /*  {
@@ -43,7 +45,7 @@ const tabs: Array<{
   {
     key: 'youtube',
     icon: 'ncYoutube',
-    title: 'Youtube',
+    title: t('general.youtube'),
     container: FeedYoutube,
   },
   /*  {

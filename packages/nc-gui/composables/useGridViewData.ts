@@ -1,11 +1,4 @@
-import {
-  type ColumnType,
-  type TableType,
-  type ViewType,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { type ColumnType, type TableType, type ViewType, isVirtualCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import { findGroupByPath } from '../components/smartsheet/grid/canvas/utils/groupby'
@@ -31,15 +24,15 @@ export function useGridViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { getMeta } = useMetas()
+  // Interface pages route bulk row ops through the page-scoped adapter — the
+  // synthetic view id is unknown to the plain data ops.
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
-  const { addUndo, clone, defineViewScope } = useUndoRedo()
-
   const { base } = storeToRefs(useBase())
 
-  const { $api } = useNuxtApp()
+  const { $api, $ncSocket } = useNuxtApp()
 
   const isBulkOperationInProgress = ref(false)
 
@@ -54,6 +47,7 @@ export function useGridViewData(
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
     updateGroupAggregations,
+    fetchMissingGroupAggregations,
     toggleExpandAll,
   } = useInfiniteGroups(viewMeta, meta, where, {
     syncVisibleData,
@@ -74,7 +68,6 @@ export function useGridViewData(
     removeRowIfNew,
     syncCount,
     fetchChunk,
-    recoverLTARRefs,
     getChunkIndex,
     selectedRows,
     chunkStates,
@@ -178,8 +171,23 @@ export function useGridViewData(
 
   reloadAggregate?.on(reloadAggregateListener)
 
+  // While the socket is disconnected (e.g. tab left idle for hours) every realtime
+  // data event is missed — peers moving records between groups, deletes, updates —
+  // so group counts and cached rows go stale and moved-out records linger as loading
+  // placeholders. A page reload fixes it; so does resyncing the view on reconnect.
+  // Only on an actual reconnect, not the first handshake (data is already fresh then).
+  const offSocketReady = $ncSocket.onReady(({ reconnected }) => {
+    if (!reconnected) return
+    reloadViewDataHook?.trigger()
+    // Footer/column aggregations aren't re-fetched by the data reload above (group
+    // aggregations reload with their chunks, but the view-level footer only reloads
+    // on view switch), so refresh them too or they'd stay stale after reconnect.
+    reloadAggregate?.trigger(undefined)
+  })
+
   onBeforeUnmount(() => {
     reloadAggregate?.off(reloadAggregateListener)
+    offSocketReady?.()
   })
 
   function getCount(path?: Array<number>) {
@@ -281,7 +289,7 @@ export function useGridViewData(
         removedRowsData.push({
           [compositePrimaryKey]: compositePkValue as string,
           pkData,
-          row: clone(rowData),
+          row: deepClone(rowData),
           rowMeta,
         })
       }
@@ -290,28 +298,32 @@ export function useGridViewData(
     if (!removedRowsData.length) return
 
     try {
-      const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-        operation: 'dataList',
-        tableId: meta.value?.id as string,
-        pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
-        getHiddenColumns: true,
-        limit: removedRowsData.length,
-      })
-
-      removedRowsData = removedRowsData.map((row) => {
-        const rowObj = row.row
-        const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
-
-        const fullRecord = list.find((r: Record<string, any>) => {
-          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+      // Full-record enrichment uses the PLAIN data ops — interface pages skip
+      // it (cached rows already hold every field the page may serve).
+      if (!interfaceDataApi) {
+        const { list = [] } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'dataList',
+          tableId: meta.value?.id as string,
+          pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
+          getHiddenColumns: true,
+          limit: removedRowsData.length,
         })
 
-        if (!fullRecord) return { ...row }
-        return {
-          ...row,
-          row: { ...fullRecord },
-        }
-      })
+        removedRowsData = removedRowsData.map((row) => {
+          const rowObj = row.row
+          const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
+
+          const fullRecord = list.find((r: Record<string, any>) => {
+            return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+          })
+
+          if (!fullRecord) return { ...row }
+          return {
+            ...row,
+            row: { ...fullRecord },
+          }
+        })
+      }
 
       await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
     } catch (e: any) {
@@ -322,164 +334,15 @@ export function useGridViewData(
 
     await updateCacheAfterDelete(removedRowsData, false, path)
 
-    addUndo({
-      undo: {
-        fn: async (removedRowsData: Record<string, any>[], path: Array<number>) => {
-          const rowsToInsert = removedRowsData.reverse()
-
-          const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true, path)
-
-          if (Array.isArray(insertedRowIds)) {
-            await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
-          }
-        },
-        args: [removedRowsData, clone(path)],
-      },
-      redo: {
-        fn: async (toBeRemovedData: Record<string, any>[], path: Array<number>) => {
-          try {
-            isBulkOperationInProgress.value = true
-
-            await bulkDeleteRows(toBeRemovedData.map((row) => row.pkData))
-
-            await updateCacheAfterDelete(toBeRemovedData, false, path)
-
-            await syncCount(path)
-          } finally {
-            isBulkOperationInProgress.value = false
-          }
-        },
-        args: [removedRowsData, clone(path)],
-      },
-      scope: defineViewScope({ view: viewMeta.value }),
-    })
     isBulkOperationInProgress.value = false
 
     await syncCount(path)
-  }
-
-  async function bulkInsertRows(
-    rows: Row[],
-    {
-      metaValue = meta.value,
-      viewMetaValue = viewMeta.value,
-    }: {
-      metaValue?: TableType
-      viewMetaValue?: ViewType
-    } = {},
-    undo = false,
-    path: Array<number> = [],
-  ): Promise<string[]> {
-    if (!metaValue || !viewMetaValue) {
-      throw new Error('Meta value or view meta value is undefined')
-    }
-
-    const dataCache = getDataCache(path)
-
-    isBulkOperationInProgress.value = true
-
-    const autoGeneratedKeys = new Set(
-      metaValue.columns
-        ?.filter((c) => !c.pk && (isCreatedOrLastModifiedTimeCol(c) || isCreatedOrLastModifiedByCol(c)))
-        .map((c) => c.title!),
-    )
-
-    try {
-      const rowsToInsert = await Promise.all(
-        rows.map(async (currentRow) => {
-          const { missingRequiredColumns, insertObj } = await populateInsertObject({
-            meta: metaValue,
-            ltarState: {},
-            getMeta,
-            row: currentRow.row,
-            undo,
-          })
-
-          if (missingRequiredColumns.size === 0) {
-            const newInsertObj = { ...insertObj }
-            for (const key of autoGeneratedKeys) {
-              delete newInsertObj[key]
-            }
-            return {
-              insertObj: newInsertObj,
-              rowIndex: currentRow.rowMeta.rowIndex,
-            }
-          }
-          return null
-        }),
-      )
-
-      const validRowsToInsert = rowsToInsert.filter(Boolean) as { insertObj: Record<string, any>; rowIndex: number }[]
-
-      const bulkInsertedIds = await $api.dbDataTableRow.create(
-        metaValue.id!,
-        validRowsToInsert.map((row) => row!.insertObj),
-        {
-          viewId: viewMetaValue.id,
-          undo,
-        },
-      )
-
-      validRowsToInsert.sort((a, b) => (a!.rowIndex ?? 0) - (b!.rowIndex ?? 0))
-
-      const newCachedRows = new Map<number, Row>()
-
-      for (const [index, row] of dataCache.cachedRows.value) {
-        newCachedRows.set(index, { ...row, rowMeta: { ...row.rowMeta, rowIndex: index } })
-      }
-
-      for (const { insertObj, rowIndex } of validRowsToInsert) {
-        // If there's already a row at this index, shift it and all subsequent rows
-        if (newCachedRows.has(rowIndex!)) {
-          const rowsToShift = Array.from(newCachedRows.entries())
-            .filter(([index]) => index >= rowIndex!)
-            .sort((a, b) => b[0] - a[0]) // Sort in descending order
-
-          for (const [index, row] of rowsToShift) {
-            const newIndex = index + 1
-            newCachedRows.set(newIndex, { ...row, rowMeta: { ...row.rowMeta, rowIndex: newIndex } })
-          }
-        }
-
-        const newRow = {
-          row: { ...insertObj, id: bulkInsertedIds[validRowsToInsert.indexOf({ insertObj, rowIndex })] },
-          oldRow: {},
-          rowMeta: { rowIndex: rowIndex!, new: false, path },
-        }
-        newCachedRows.set(rowIndex!, newRow)
-      }
-
-      const indices = new Set<number>()
-      for (const [_, row] of newCachedRows) {
-        if (indices.has(row.rowMeta.rowIndex)) {
-          console.error(`Op: bulkInsertRows ${undo}:  Duplicate index detected:`, row.rowMeta.rowIndex)
-          break
-        }
-        indices.add(row.rowMeta.rowIndex)
-      }
-
-      dataCache.cachedRows.value = newCachedRows
-
-      dataCache.totalRows.value += validRowsToInsert.length
-
-      await syncCount(path, true, false)
-      syncVisibleData()
-
-      return bulkInsertedIds
-    } catch (error: any) {
-      const errorMessage = await extractSdkResponseErrorMsg(error)
-      message.error(`Failed to bulk insert rows: ${errorMessage}`)
-      throw error
-    } finally {
-      isBulkOperationInProgress.value = false
-    }
   }
 
   async function bulkUpdateRows(
     rows: Row[],
     props: string[],
     { metaValue = meta.value, onError }: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void } = {},
-    undo = false,
     path: Array<number> = [],
   ): Promise<void> {
     isBulkOperationInProgress.value = true
@@ -508,12 +371,29 @@ export function useGridViewData(
     })
 
     try {
-      const newRows = (await $api.dbTableRow.bulkUpdate(
-        NOCO,
-        metaValue?.base_id as string,
-        metaValue?.id as string,
-        updateArray,
-      )) as Record<string, any>
+      let newRows: Record<string, any>
+
+      if (interfaceDataApi?.bulkUpdateRows) {
+        // Interface pages — the page-scoped bulk update (grant-authorized;
+        // the raw bulk endpoint 403s for interface collaborators). It
+        // returns no rows; local optimistic values stand and the page-scoped
+        // realtime updates reconcile.
+        const pkTitles = ((metaValue?.columns ?? []) as ColumnType[]).filter((c) => c.pk).map((c) => c.title!)
+        await interfaceDataApi.bulkUpdateRows(
+          rows.map((row) => ({
+            rowId: extractPkFromRow(row.row, metaValue?.columns as ColumnType[]) as string,
+            data: props.reduce(
+              (acc, prop) => (pkTitles.includes(prop) ? acc : { ...acc, [prop]: row.row[prop] }),
+              {} as Record<string, any>,
+            ),
+          })),
+        )
+        newRows = []
+      } else {
+        newRows = (await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray, {
+          typecast: 'true',
+        })) as Record<string, any>
+      }
 
       triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
 
@@ -548,34 +428,6 @@ export function useGridViewData(
         if (row.rowMeta) row.rowMeta.saving = false
       })
     }
-    if (!undo) {
-      addUndo({
-        undo: {
-          fn: async (undoRows: Row[], props: string[], path: Array<number>) => {
-            await bulkUpdateRows(
-              undoRows.map((r) => ({
-                ...r,
-                row: r.oldRow,
-                oldRow: r.row,
-              })),
-              props,
-              undefined,
-              true,
-              path,
-            )
-          },
-          args: [clone(rows), props, clone(path)],
-        },
-        redo: {
-          fn: async (redoRows: Row[], props: string[], path: Array<number>) => {
-            await bulkUpdateRows(redoRows, props, undefined, true, path)
-          },
-          args: [clone(rows), props, clone(path)],
-        },
-        scope: defineViewScope({ view: viewMeta.value }),
-      })
-    }
-
     applySorting(rows)
     syncVisibleData()
     reloadViewDataHook?.trigger()
@@ -588,21 +440,16 @@ export function useGridViewData(
     props: string[],
     {
       metaValue = meta.value,
-      viewMetaValue = viewMeta.value,
     }: {
       metaValue?: TableType
-      viewMetaValue?: ViewType
     } = {},
     columns: Partial<ColumnType>[],
-    undo = false,
     path: Array<number> = [],
   ) {
     const dataCache = getDataCache(path)
 
     try {
       isBulkOperationInProgress.value = true
-      const newCols = (meta.value.columns ?? []).filter((col: ColumnType) => columns.some((c) => c.title === col.title))
-
       const rowsToFetch = updateRows.filter((row) => !dataCache.cachedRows.value.has(row.rowMeta.rowIndex!))
       const chunksToFetch = new Set(rowsToFetch.map((row) => Math.floor(row.rowMeta.rowIndex! / CHUNK_SIZE)))
 
@@ -610,20 +457,13 @@ export function useGridViewData(
 
       const getPk = (row: Row) => extractPkFromRow(row.row, metaValue?.columns as ColumnType[])
 
-      const ogUpdateRows = updateRows.map((_row) => {
-        const row = _row ?? dataCache.cachedRows.value.get((_row as Row).rowMeta.rowIndex!)
-
-        newCols.forEach((col: ColumnType) => {
-          row.oldRow[col.title!] = undefined
-        })
-
-        return clone(row)
-      })
-
       const cleanRow = (row: any) => {
         const cleanedRow = { ...row }
         metaValue?.columns?.forEach((col) => {
-          if (col.system || isVirtualCol(col)) delete cleanedRow[col.title!]
+          // Strip system, virtual and readonly (e.g. AutoNumber) columns — the backend
+          // rejects readonly columns in insert/update payloads. Keep pk so upsert can
+          // still match existing rows for updates.
+          if (col.system || isVirtualCol(col) || (col.readonly && !col.pk)) delete cleanedRow[col.title!]
         })
         return cleanedRow
       }
@@ -645,7 +485,7 @@ export function useGridViewData(
         metaValue?.base_id ?? (base.value?.id as string),
         metaValue?.id as string,
         [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
-        {},
+        { typecast: 'true' },
       )
 
       const existingPks = new Set(Array.from(dataCache.cachedRows.value.values()).map((row) => getPk(row)))
@@ -676,105 +516,6 @@ export function useGridViewData(
 
       dataCache.totalRows.value += insertedRows.length
 
-      if (!undo) {
-        addUndo({
-          undo: {
-            fn: async (insertedRows: Row[], ogUpdateRows: Row[], path: Array<number>) => {
-              try {
-                isBulkOperationInProgress.value = true
-
-                await bulkDeleteRows(
-                  insertedRows.map((row) => rowPkData(row.row, metaValue?.columns as ColumnType[]) as Record<string, any>),
-                )
-                await bulkUpdateRows(
-                  ogUpdateRows.map((r) => ({
-                    ...r,
-                    row: r.oldRow,
-                    oldRow: r.row,
-                  })),
-                  props,
-                  { metaValue },
-                  true,
-                  path,
-                )
-                isBulkOperationInProgress.value = true
-
-                const columnsHash = (
-                  await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-                    operation: 'columnsHash',
-                    tableId: meta.value?.id as string,
-                  })
-                ).hash
-
-                await $api.internal.postOperation(
-                  meta.value!.fk_workspace_id!,
-                  meta.value!.base_id!,
-                  { operation: 'columnsBulk', tableId: meta.value?.id as string },
-                  {
-                    hash: columnsHash,
-                    ops: newCols.map((col: ColumnType) => ({
-                      op: 'delete',
-                      column: col,
-                    })),
-                  },
-                )
-
-                insertedRows.forEach((row) => {
-                  dataCache.cachedRows.value.delete(row.rowMeta.rowIndex!)
-                })
-
-                dataCache.totalRows.value = dataCache.totalRows.value - insertedRows.length
-
-                syncVisibleData()
-
-                await getMeta(meta.value!.base_id!, meta.value?.id as string, true)
-              } catch (e) {
-              } finally {
-                isBulkOperationInProgress.value = false
-              }
-            },
-            args: [clone(insertedRows), clone(ogUpdateRows), clone(path)],
-          },
-          redo: {
-            fn: async (insertRows: Row[], updateRows: Row[], path: Array<number>) => {
-              try {
-                isBulkOperationInProgress.value = true
-                const columnsHash = (
-                  await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-                    operation: 'columnsHash',
-                    tableId: meta.value?.id as string,
-                  })
-                ).hash
-
-                await $api.internal.postOperation(
-                  meta.value!.fk_workspace_id!,
-                  meta.value!.base_id!,
-                  { operation: 'columnsBulk', tableId: meta.value?.id as string },
-                  {
-                    hash: columnsHash,
-                    ops: newCols.map((col: ColumnType) => ({
-                      op: 'add',
-                      column: col,
-                    })),
-                  },
-                )
-
-                await bulkUpsertRows(insertRows, updateRows, props, { metaValue, viewMetaValue }, columns, true, path)
-                isBulkOperationInProgress.value = true
-
-                await getMeta(meta.value!.base_id!, meta.value?.id as string, true)
-
-                syncVisibleData()
-              } finally {
-                isBulkOperationInProgress.value = false
-              }
-            },
-            args: [clone(insertedRows), clone(updatedRows), clone(path)],
-          },
-
-          scope: defineViewScope({ view: viewMeta.value }),
-        })
-      }
       reloadViewDataHook?.trigger()
       syncVisibleData()
       await syncCount(path, true, false)
@@ -888,30 +629,33 @@ export function useGridViewData(
 
     if (!rowsToDelete.length) return
 
-    const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-      operation: 'dataList',
-      tableId: meta.value?.id as string,
-      pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
-      getHiddenColumns: 'true',
-      limit: rowsToDelete.length,
-    })
-
     try {
-      rowsToDelete = rowsToDelete.map((row) => {
-        const rowObj = row.row
-        const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
-
-        const fullRecord = list.find((r: Record<string, any>) => {
-          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+      // Same interface skip as `deleteSelectedRows` — plain-op enrichment only.
+      if (!interfaceDataApi) {
+        const { list = [] } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'dataList',
+          tableId: meta.value?.id as string,
+          pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
+          getHiddenColumns: 'true',
+          limit: rowsToDelete.length,
         })
 
-        if (!fullRecord) {
-          console.warn(`Full record not found for row with index ${row.rowMeta.rowIndex}`)
+        rowsToDelete = rowsToDelete.map((row) => {
+          const rowObj = row.row
+          const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
+
+          const fullRecord = list.find((r: Record<string, any>) => {
+            return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+          })
+
+          if (!fullRecord) {
+            console.warn(`Full record not found for row with index ${row.rowMeta.rowIndex}`)
+            return row
+          }
+          row.row = fullRecord
           return row
-        }
-        row.row = fullRecord
-        return row
-      })
+        })
+      }
 
       await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
     } catch (e: any) {
@@ -921,28 +665,6 @@ export function useGridViewData(
       throw e
     }
 
-    addUndo({
-      undo: {
-        fn: async (deletedRows: Record<string, any>[], path: Array<number>) => {
-          const rowsToInsert = deletedRows.reverse()
-
-          const insertedRowIds = await bulkInsertRows(rowsToInsert, undefined, true, path)
-
-          if (Array.isArray(insertedRowIds)) {
-            await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
-          }
-        },
-        args: [rowsToDelete, clone(path)],
-      },
-      redo: {
-        fn: async (rowsToDelete: Record<string, any>[], path: Array<number>) => {
-          await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
-          await updateCacheAfterDelete(rowsToDelete, false, path)
-        },
-        args: [rowsToDelete, clone(path)],
-      },
-      scope: defineViewScope({ view: viewMeta.value }),
-    })
     await updateCacheAfterDelete(rowsToDelete, false, path)
     isBulkOperationInProgress.value = false
   }
@@ -957,6 +679,17 @@ export function useGridViewData(
       viewMetaValue?: ViewType
     } = {},
   ): Promise<any> {
+    // Let adapter failures propagate — the callers toast and leave the row
+    // cache intact (the shared catch below swallows, which would evict rows
+    // that were never deleted).
+    if (interfaceDataApi) {
+      await interfaceDataApi.bulkDeleteRows(rows.map((pkData) => Object.values(pkData).join('___')))
+
+      triggerAggregateReload({ path: [] })
+
+      return rows
+    }
+
     try {
       const bulkDeletedRowsData = await $api.internal.postOperation(
         (metaValue as any).fk_workspace_id!,
@@ -1050,6 +783,7 @@ export function useGridViewData(
     isGroupBy,
     groupSyncCount,
     fetchMissingGroupChunks,
+    fetchMissingGroupAggregations,
     clearGroupCache,
     toggleExpandAll,
   }

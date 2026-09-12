@@ -1,14 +1,87 @@
 import { arrDetailedDiff, type NcContext } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type CustomKnex from '~/db/CustomKnex';
+import type { Knex } from '~/db/CustomKnex';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
 import { NcError } from '~/helpers/catchError';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { extractProps } from '~/helpers/extractProps';
-import { type Column, FileReference } from '~/models';
+import { type Column, FileReference, type Filter } from '~/models';
 import { validateNumberOfFilesInCell } from '~/helpers/attachmentHelpers';
 
 export class AttachmentGeneralHandler extends ComputedFieldHandler {
+  override async filterBlank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          nestedQb
+            .whereNull(args.sourceField as any)
+            .orWhere(args.sourceField as any, '[]')
+            .orWhere(args.sourceField as any, 'null');
+        });
+      },
+    };
+  }
+
+  override async filterNotblank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereNotNull(args.sourceField as any)
+          .whereNot(args.sourceField as any, '[]')
+          .whereNot(args.sourceField as any, 'null');
+      },
+    };
+  }
+
+  // Empty-value `like` / `nlike` on attachment behaves like blank/notblank
+  // (UX convention from the filter sidebar's blank chip). With a value, fall
+  // back to the generic text-pattern behavior.
+  override async filterLike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    if (!args.val) {
+      return this.filterBlank(args, rootArgs, options);
+    }
+    return super.filterLike(args, rootArgs, options);
+  }
+
+  override async filterNlike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    if (!args.val) {
+      return this.filterNotblank(args, rootArgs, options);
+    }
+    return super.filterNlike(args, rootArgs, options);
+  }
+
   override async parseUserInput(params: {
     value: any;
     row: any;

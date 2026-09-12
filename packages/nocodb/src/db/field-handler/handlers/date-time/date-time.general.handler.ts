@@ -63,6 +63,20 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         ],
       } as FilterVerificationResult;
     }
+    // `is`/`isnot` with a blank/null keyword maps to a NULL check, not a date
+    // comparison — accept it as-is instead of trying to parse the keyword
+    // (e.g. 'null') as a date value.
+    if (
+      ['is', 'isnot'].includes(filter.comparison_op) &&
+      ['blank', 'notblank', 'null', 'notnull', 'empty', 'notempty'].includes(
+        filter.value,
+      )
+    ) {
+      return {
+        isValid: true,
+      } as FilterVerificationResult;
+    }
+
     if (filter.comparison_sub_op === 'exactDate' || !filter.comparison_sub_op) {
       // check if value is not null or empty
       if (
@@ -302,8 +316,57 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       options.customWhereClause ??
       (alias ? `${alias}.${column.column_name}` : column.column_name);
 
-    // `in` uses raw values (e.g. BelongsTo DataLoader batch) — skip date parsing
+    // `in` with an array value is an internal raw-value batch (e.g. the
+    // BelongsTo DataLoader keyed on raw values) — pass it through untouched.
+    // A string value is a user filter of comma-separated datetimes: normalize
+    // each entry to the offset-less UTC wall-clock form used by eq/between
+    // (`dateValueFormat`) before building the IN list. Without this the raw
+    // values keep their `+00:00` offset token, which dialects that pin a
+    // session datetime format — Oracle's NLS formats — reject outright
+    // (ORA-01830 / ORA-01861), turning the read into a 400. Non-date entries
+    // are left as-is so the clause still works for malformed input.
     if (filter.comparison_op === 'in') {
+      let inValue: string | string[] = filter.value;
+      if (typeof inValue === 'string') {
+        inValue = inValue.split(',').map((raw) => {
+          const trimmed = raw.trim();
+          const parsed = dayjs.utc(trimmed);
+          return parsed.isValid()
+            ? parsed.format(this.dateValueFormat)
+            : trimmed;
+        });
+      }
+      return await this.handleFilter(
+        { val: inValue, sourceField: field },
+        { knex, filter, column },
+        options,
+      );
+    }
+
+    // `is`/`isnot` with a blank/null keyword is a NULL check — route straight to
+    // the generic handler so the keyword (e.g. 'null') is not parsed as a date,
+    // which previously yielded an empty clause and silently returned all rows.
+    if (
+      ['is', 'isnot'].includes(filter.comparison_op) &&
+      ['blank', 'notblank', 'null', 'notnull', 'empty', 'notempty'].includes(
+        filter.value,
+      )
+    ) {
+      return await this.handleFilter(
+        { val: filter.value, sourceField: field },
+        { knex, filter, column },
+        options,
+      );
+    }
+
+    // top-level NULL-check operators carry no date value — route straight to the
+    // generic handler. Otherwise they fall through to the date-parsing path below
+    // where the missing anchorDate short-circuits to an empty clause (all rows).
+    if (
+      ['blank', 'notblank', 'null', 'notnull', 'empty', 'notempty'].includes(
+        filter.comparison_op,
+      )
+    ) {
       return await this.handleFilter(
         { val: filter.value, sourceField: field },
         { knex, filter, column },
@@ -401,6 +464,9 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       if (!anchorDate.isValid()) {
         return emptyResult;
       }
+    }
+    if (!anchorDate) {
+      return emptyResult;
     }
     if (filter.comparison_op === 'isWithin') {
       return await this.filterIsWithin(

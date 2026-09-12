@@ -110,9 +110,27 @@ antd.variable.css
 # Claude - per-branch working memory (ephemeral, local only)
 .claude/branches/
 
+# Claude - durable reference material for skills (large/third-party assets, local only)
+.claude/refs/
+
 # nocodb-api skill runtime state
 .claude/skills/nocodb-dev-api/.state.json
 /.claude/worktrees/
 .playwright-mcp
 .playwright-cli
 .claude/skills/nocodb-dev-api/.credentials.json
+.claude/**.lock
+
+# nc-dev
+.nc-dev-config.json
+.nc-dev-registry.json
+.nc-dev-proxy.pid
+.nc-dev-proxy.log
+.nc-dev-logs/
+
+# Local-only payment-dev secrets (license-server private key, etc.) — never commit
+scripts/.payment-dev-secrets.env
+scripts/.onprem-dev-secrets.env
+scripts/.onprem-dev-keys/
+# Northwind runbook demo receiver log
+.demo-receiver.jsonl

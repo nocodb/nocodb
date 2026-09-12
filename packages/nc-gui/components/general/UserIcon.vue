@@ -115,7 +115,7 @@ const usernameInitials = computed(() => {
     return ''
   }
 
-  return getSafeInitials(user.value.display_name?.trim() || user.value.email?.split('@')[0], props.initialsLength, true)
+  return getSafeInitials(extractUserDisplayNameOrEmail(user.value), props.initialsLength, true)
 })
 </script>
 
@@ -198,6 +198,7 @@ const usernameInitials = computed(() => {
       v-else-if="usernameInitials"
       class="font-semibold"
       :class="{
+        '!text-[8px]': size === 'small',
         '!text-md': size === 'base',
         '!text-3xl': size === 'large',
         '!text-4xl': size === 'xlarge',

@@ -45,6 +45,7 @@ export default class Permission {
     _user: {
       id: string;
       role: ProjectRoles | WorkspaceUserRoles;
+      is_agent?: boolean;
     },
   ): Promise<boolean> {
     return true;

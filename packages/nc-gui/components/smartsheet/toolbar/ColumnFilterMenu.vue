@@ -2,7 +2,19 @@
 import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
+interface Props {
+  /**
+   * Keep the "Filter" text label on mobile. Interface toolbars hide the icon
+   * (plain-text controls), so the default mobile icon-only collapse would
+   * leave the button empty.
+   */
+  keepLabelOnMobile?: boolean
+}
+
+const props = defineProps<Props>()
+
 const isLocked = inject(IsLockedInj, ref(false))
+const isPublic = inject(IsPublicInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -10,6 +22,9 @@ const isToolbarIconMode = inject(
   IsToolbarIconMode,
   computed(() => false),
 )
+
+// Interface pages restyle the popover to the panel vocabulary via this class.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -42,25 +57,18 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
   true,
 )
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const filtersLength = ref(0)
-// If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
-const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
+// If view is locked OR user lacks permission to sync filters (Editor), show restricted UI.
+// Public/shared views AND shared bases always get the interactive UI — their
+// changes are local-only. A shared base sets isSharedBase (isPublic stays false).
+const isRestrictedEditor = computed(() => !isPublic.value && !isSharedBase.value && (isLocked.value || !canSyncFilter.value))
 
 // True when user is viewing a personal view they don't own
 const isPersonalViewNonOwner = computed(
   () => activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value),
 )
-
-// Show temp filters only for collaborative views, not for personal views
-// For personal views, non-assigned users should not see temp filters at all
-const showTempFilters = computed(() => {
-  // If user has full access, don't need temp filters section (they have full editor)
-  if (!isRestrictedEditor.value) return false
-  // If restricted AND it's a personal view, hide temp filters (non-assigned user)
-  if (activeView.value?.lock_type === 'personal') return false
-  // If restricted AND it's NOT a personal view, show temp filters (editor on collaborative view)
-  return true
-})
 
 watch(
   () => activeView?.value?.id,
@@ -79,22 +87,6 @@ watch(
 
 const existingFilters = computed(() => {
   return (nestedFilters.value || []).filter((f) => f.id && f.status !== 'delete')
-})
-
-// We need to cast nestedFilters to any to avoid type check errors in setter for now
-const localFilters = computed({
-  get: () => {
-    // Strictly return new/local filters (no ID)
-    return (nestedFilters.value || []).filter((f) => !f.id)
-  },
-  set: (val: any[]) => {
-    // Merge logic: keep existing (with ID), replace local (no ID)
-    const existing = (nestedFilters.value || []).filter((f) => f.id)
-    // Ensure we don't duplicate if val somehow contains IDs (shouldn't happen)
-    const newLocal = val.filter((f) => !f.id)
-
-    nestedFilters.value = [...existing, ...newLocal]
-  },
 })
 
 const open = ref(false)
@@ -136,18 +128,25 @@ const activeFilterTab = ref<FilterTab>('filters')
 const filterTabs = computed(() => {
   const tabs: { key: FilterTab; label: string; count?: number; tooltip?: string }[] = []
 
-  // For restricted editors: view filters tab (read-only persisted filters)
-  if (isRestrictedEditor.value && filtersLength.value) {
-    tabs.push({ key: 'viewFilters', label: t('title.viewFilters'), count: filtersLength.value, tooltip: t('msg.viewFilter') })
+  // Restricted editor (locked view / non-owned personal view):
+  // one read-only list of the view's saved filters — no local/temp tab.
+  if (isRestrictedEditor.value) {
+    if (filtersLength.value) {
+      tabs.push({
+        key: 'viewFilters',
+        label: t('title.viewFilters'),
+        count: filtersLength.value,
+        tooltip: t('msg.viewFilter'),
+      })
+    }
+  } else {
+    // Full editor — a single, editable view filters tab.
+    tabs.push({
+      key: 'filters',
+      label: t('activity.filters'),
+      count: filtersLength.value,
+    })
   }
-
-  // Main filters tab — always present
-  // For full editors: editable view filters. For restricted: temp/local filters.
-  tabs.push({
-    key: 'filters',
-    label: t('activity.filters'),
-    count: isRestrictedEditor.value ? localFilters.value?.length || 0 : filtersLength.value,
-  })
 
   // URL filters tab — only when URL params have filters
   if (filtersFromUrlParams.value) {
@@ -190,10 +189,36 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
   }
 
   const column = payload?.column as ColumnType | undefined
-
-  if (!column) return
+  const columns = payload?.columns as ColumnType[] | undefined
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
+    // Bulk path: a list of columns from the multi-field menu. We stage each
+    // as a draft sequentially, waiting for the watcher inside ColumnFilter
+    // to commit (it resets draftFilter to {} when done) before staging the
+    // next — otherwise drafts get overwritten and only the last one lands.
+    if (columns?.length) {
+      open.value = true
+      for (const col of columns) {
+        if (!col?.id) continue
+        draftFilter.value = { fk_column_id: col.id }
+        await new Promise<void>((resolve) => {
+          const stop = watch(
+            draftFilter,
+            (v) => {
+              if (!v || !Object.keys(v).length) {
+                stop()
+                resolve()
+              }
+            },
+            { deep: true },
+          )
+        })
+      }
+      return
+    }
+
+    if (!column) return
+
     draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
@@ -205,12 +230,7 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEventListener)
 })
 
-const combinedFilterLength = computed(() => {
-  if (isRestrictedEditor.value) {
-    return (filtersLength.value || 0) + (localFilters.value?.length || 0)
-  }
-  return filtersLength.value
-})
+const combinedFilterLength = computed(() => filtersLength.value)
 
 const isCurrentUserFilterPresent = ref(false)
 
@@ -281,10 +301,10 @@ watch(
     v-model:visible="open"
     :scrollable-body="false"
     drawer-body-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown !px-0 !pb-0 h-full"
-    overlay-class-name="nc-dropdown-filter-menu overflow-hidden"
+    :overlay-class-name="`nc-dropdown-filter-menu overflow-hidden${interfacePageDataApi ? ' nc-interface-toolbar-filter' : ''}`"
   >
     <template #default="{ onClick }">
-      <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
+      <NcTooltip :disabled="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode">
         <template #title>
           {{ $t('activity.filter') }}
         </template>
@@ -304,9 +324,12 @@ watch(
             <div class="flex items-center gap-2">
               <component :is="iconMap.filter" class="h-4 w-4" />
               <!-- Filter -->
-              <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-                $t('activity.filter')
-              }}</span>
+              <span
+                v-if="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
+                class="text-capitalize !text-[13px] font-medium"
+              >
+                {{ $t('activity.filter') }}
+              </span>
             </div>
 
             <NcTooltip v-if="combinedFilterLength" :disabled="!isCurrentUserFilterPresent" class="flex">
@@ -353,49 +376,35 @@ watch(
           <SmartsheetToolbarColumnFilterTabs v-model:active-key="activeFilterTab" :tabs="filterTabs" />
         </div>
 
-        <!-- Section: Main Filters (full editor or temp filters) -->
+        <!-- Section: Main Filters (editable — full editors only) -->
         <div
+          v-if="!isRestrictedEditor"
           v-show="!showFilterTabs || activeFilterTab === 'filters'"
           class="xs:(overflow-y-auto nc-scrollbar-thin)"
           :style="{ height: sectionHeight }"
         >
-          <template v-if="!isRestrictedEditor">
-            <SmartsheetToolbarColumnFilter
-              ref="filterComp"
-              v-model:draft-filter="draftFilter"
-              v-model:is-open="open"
-              class="nc-table-toolbar-menu"
-              :auto-save="true"
-              data-testid="nc-filter-menu"
-              :is-view-filter="true"
-              @update:filters-length="filtersLength = $event"
-            >
-            </SmartsheetToolbarColumnFilter>
-          </template>
-          <template v-else-if="showTempFilters">
-            <SmartsheetToolbarColumnFilter
-              ref="filterComp"
-              v-model="localFilters"
-              v-model:draft-filter="draftFilter"
-              v-model:is-open="open"
-              class="nc-table-toolbar-menu"
-              :auto-save="false"
-              data-testid="nc-filter-menu"
-              :is-view-filter="false"
-              :is-temp-filters="true"
-            >
-            </SmartsheetToolbarColumnFilter>
-          </template>
+          <SmartsheetToolbarColumnFilter
+            ref="filterComp"
+            v-model:draft-filter="draftFilter"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="true"
+            data-testid="nc-filter-menu"
+            :is-view-filter="true"
+            @update:filters-length="filtersLength = $event"
+          >
+          </SmartsheetToolbarColumnFilter>
         </div>
 
         <!-- Section: View Filters (read-only, restricted editors) -->
         <div
-          v-if="isRestrictedEditor && !!filtersLength"
+          v-if="isRestrictedEditor"
           v-show="!showFilterTabs || activeFilterTab === 'viewFilters'"
           class="xs:(overflow-y-auto nc-scrollbar-thin)"
           :style="{ height: sectionHeight }"
         >
           <SmartsheetToolbarColumnFilter
+            v-if="filtersLength"
             :key="`existing-${filterKey}`"
             v-model:is-open="open"
             class="nc-table-toolbar-menu !w-full"
@@ -406,6 +415,9 @@ watch(
             @update:filters-length="filtersLength = $event || 0"
           >
           </SmartsheetToolbarColumnFilter>
+          <div v-else class="px-4 py-6 text-center text-xs text-nc-content-gray-subtle2">
+            {{ $t('msg.info.noFiltersApplied') }}
+          </div>
         </div>
 
         <!-- Section: URL Filters -->
@@ -432,7 +444,7 @@ watch(
           <div v-else-if="filtersFromUrlParams?.errors?.length">
             <NcAlert
               type="error"
-              message="Error"
+              :message="$t('objects.ncMessage.error')"
               :description="$t('msg.urlFilterError')"
               :copy-text="filtersFromUrlParamsReadableErrors"
               :copy-btn-tooltip="$t('tooltip.copyErrorMessage')"

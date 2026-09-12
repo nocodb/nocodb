@@ -11,8 +11,10 @@ import {
   NcBaseError,
   OrgUserRoles,
   SqlUiFactory,
+  validateEntityName,
 } from 'nocodb-sdk';
 import type {
+  BaseReqType,
   NcApiVersion,
   ProjectReqType,
   ProjectUpdateReqType,
@@ -24,10 +26,13 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { sanitizeBase } from '~/helpers/sanitizeBase';
 import syncMigration from '~/helpers/syncMigration';
 import { Base, BaseUser, Integration, IntegrationLink } from '~/models';
 import Noco from '~/Noco';
 import { getToolDir } from '~/utils/nc-config';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
@@ -51,16 +56,25 @@ export class BasesService {
     param: {
       user: { id: string; roles?: string | Record<string, boolean> };
       query?: any;
+      req?: NcRequest;
     },
   ) {
+    // Pass workspaceId even for super admin: EE's Base.list override returns
+    // [] when called without one (cloud safety — see ee/models/Base.ts), so
+    // unlicensed on-prem (which falls back here via @EEOnly) would get an
+    // empty list. In true CE there is only one workspace, so filtering by
+    // it is equivalent to listing all.
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
-      ? await Base.list()
+      ? await Base.list(Noco.ncDefaultWorkspaceId)
       : await BaseUser.getProjectsList(param.user.id, {
           ...param.query,
           workspaceId: Noco.ncDefaultWorkspaceId,
         });
 
-    return bases;
+    // `getProjectsList` selects `nc_bases.*`, so the row carries `password`
+    // (a legacy stored value — no shared-base password feature exists). Strip it
+    // here too, not just on baseGet.
+    return bases.map((base) => sanitizeBase(base));
   }
 
   async getProject(context: NcContext, param: { baseId: string }) {
@@ -78,11 +92,8 @@ export class BasesService {
   }
 
   sanitizeProject(base: any) {
-    const sanitizedProject = { ...base };
-    sanitizedProject.sources?.forEach((b: any) => {
-      ['config'].forEach((k) => delete b[k]);
-    });
-    return sanitizedProject;
+    // Returns a NEW object — callers must use the return value.
+    return sanitizeBase(base);
   }
 
   async baseUpdate(
@@ -119,6 +130,13 @@ export class BasesService {
       'default_role',
       'version',
     ]);
+    if (data.title) {
+      const nameValidation = validateEntityName(data.title, 'Base name');
+      if (!nameValidation.valid) {
+        NcError.badRequest(nameValidation.error);
+      }
+    }
+
     await this.validateProjectTitle(context, data, base);
 
     if (data?.order !== undefined) {
@@ -280,6 +298,10 @@ export class BasesService {
         }
         const dbId = nanoidv2();
         const baseTitle = DOMPurify.sanitize(baseBody.title);
+        // Restrict path component to safe characters so a title cannot
+        // escape the nc_minimal_dbs/ directory via traversal sequences.
+        const filenameSlug =
+          baseTitle.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || 'db';
         baseBody.prefix = '';
         baseBody.sources = [
           {
@@ -292,7 +314,7 @@ export class BasesService {
                 client: 'sqlite3',
                 database: baseTitle,
                 connection: {
-                  filename: `${toolDir}/nc_minimal_dbs/${baseTitle}_${dbId}.db`,
+                  filename: `${toolDir}/nc_minimal_dbs/${filenameSlug}_${dbId}.db`,
                 },
               },
             },
@@ -301,10 +323,17 @@ export class BasesService {
           },
         ];
       } else {
-        const db = Noco.getConfig().meta?.db;
+        // Use `getDataConfig()` (not `meta?.db` directly) so the source's
+        // `type` reflects the DATA DB's client when the data DB diverges
+        // from the meta DB. In EE, `getDataConfig` reads `NC_DATA_DB_JSON`
+        // / `NC_DATA_DB` first — without this, an is_meta source on a
+        // PG-meta + MSSQL-data deployment would persist `type='pg'` and
+        // downstream dispatchers (`getSingleQueryReadFn`,
+        // `DataOptService.read`) would route to the wrong dialect path.
+        const db = await NcConnectionMgrv2.getDataConfig();
         baseBody.sources = [
           {
-            type: db?.client,
+            type: db?.client as BaseReqType['type'],
             config: null,
             is_meta: true,
             inflection_column: 'camelize',
@@ -319,6 +348,7 @@ export class BasesService {
 
       for (const source of baseBody.sources || []) {
         if (!source.fk_integration_id) {
+          validateAndNormalizeSqliteConfig(source.config, source.type);
           const integration = await Integration.createIntegration(
             {
               title: source.alias || baseBody.title,
@@ -341,9 +371,9 @@ export class BasesService {
       baseBody.is_meta = false;
     }
 
-    if (baseBody?.title.length > 50) {
-      // Limited for consistent behaviour across identifier names for table, view, columns
-      NcError.badRequest('Base title exceeds 50 characters');
+    const nameValidation = validateEntityName(baseBody?.title, 'Base name');
+    if (!nameValidation.valid) {
+      NcError.badRequest(nameValidation.error);
     }
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);

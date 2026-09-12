@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { IntegrationCategoryType } from 'nocodb-sdk'
+import { IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 
 import { type IntegrationItemType, SyncDataType } from '#imports'
@@ -42,7 +42,7 @@ const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations, showEEFeatures } = useEeConfig()
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
@@ -136,14 +136,25 @@ const isDataReflectionEnabled = computed(() => {
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
-    const isOssOnly = isEeUI ? !i?.isOssOnly : true
+    // OSS-only integrations (e.g. SQLite) are available only on free, self-hosted deployments
+    // (CE + unlicensed On-Prem) — hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is
+    // true exactly for that free non-cloud case. Gate on it — NOT isEeUI — since the self-hosted
+    // one-docker image is an EE build (isEeUI === true) regardless of license.
+    const isOssOnlyAllowed = isEEFeatureBlocked.value || !i?.isOssOnly
 
     if (!isDataReflectionEnabled.value && i.sub_type === SyncDataType.NOCODB) return false
 
     if (i.hidden) return false
 
+    // EE-only data sources (e.g. MSSQL, Oracle) are hidden in CE; in EE they're gated by their paid add-on.
+    // EE-only sources (MSSQL, Oracle) are hidden in CE and in community mode.
+    if (!showEEFeatures.value && i.isEeOnly) return false
+
     return (
-      isOssOnly && filterIntegration(i) && i.type === category && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnlyAllowed &&
+      filterIntegration(i) &&
+      i.type === category &&
+      integrationLabel(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }
@@ -238,6 +249,11 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
     return
   }
 
+  if (category === IntegrationCategoryType.AI && blockAiIntegrations.value) {
+    showUpgradeToUseAiIntegrations({ triggerSource: 'integrations-ai-integrations' })
+    return
+  }
+
   await addIntegration(integration)
 }
 
@@ -314,7 +330,7 @@ watch(activeViewTab, (value) => {
             <GeneralIcon icon="arrowLeft" />
           </NcButton>
           <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5" />
-          <div class="flex-1 text-base font-weight-700">New Connection</div>
+          <div class="flex-1 text-base font-weight-700">{{ $t('labels.newConnection') }}</div>
           <div class="flex items-center gap-3">
             <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
               <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
@@ -328,7 +344,7 @@ watch(activeViewTab, (value) => {
             'h-full': !isModal,
           }"
         >
-          <div v-if="integrationListContainerWidth" class="px-8 pt-6">
+          <div v-if="integrationListContainerWidth" class="px-6 pt-4">
             <div
               class="flex justify-end flex-wrap gap-3 m-auto nc-content-max-w"
               :class="{
@@ -425,7 +441,7 @@ watch(activeViewTab, (value) => {
 
           <div
             ref="integrationListRef"
-            class="flex-1 px-8 pb-8 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
+            class="flex-1 px-6 pb-8 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
           >
             <div
               v-if="integrationListContainerWidth"
@@ -464,8 +480,14 @@ watch(activeViewTab, (value) => {
                     >
                       <div class="category-type-title flex gap-2">
                         {{ $t(category.title) }}
+                        <LazyPaymentUpgradeBadge
+                          v-if="category.value === IntegrationCategoryType.AI && blockAiIntegrations"
+                          :feature="PlanFeatureTypes.FEATURE_AI_INTEGRATIONS"
+                          :feature-enabled-callback="() => !blockAiIntegrations"
+                          remove-click
+                        />
                         <NcBadge
-                          v-if="!category.isAvailable"
+                          v-else-if="!category.isAvailable"
                           :border="false"
                           class="text-nc-content-brand !h-5 bg-nc-bg-brand text-xs font-normal px-2"
                           >{{ $t('msg.toast.futureRelease') }}</NcBadge
@@ -492,8 +514,10 @@ watch(activeViewTab, (value) => {
                                 <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                               </div>
                               <div class="flex-1">
-                                <div class="name">{{ $t(integration.title) }}</div>
-                                <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
+                                <div class="name">{{ integrationLabel(integration.title) }}</div>
+                                <div v-if="integration.subtitle" class="subtitle flex-1">
+                                  {{ integrationLabel(integration.subtitle) }}
+                                </div>
                               </div>
                               <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
                               <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">

@@ -1,0 +1,4 @@
+{{- range .Values.extraDeploy }}
+---
+{{ include "nocodb.tplvalues.render" (dict "value" . "context" $) }}
+{{- end }}

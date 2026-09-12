@@ -69,10 +69,15 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
   watch(
     state.token,
     (newToken) => {
+      // Never let the session token go out over plaintext http. `location` is
+      // the only source of truth here — the backend's own Set-Cookie can't
+      // retro-fit `Secure` onto a cookie JS already wrote.
+      const secure = window.location.protocol === 'https:' ? '; secure' : ''
+
       if (newToken) {
-        document.cookie = `nc_token=${newToken}; path=/api; max-age=${10 * 60 * 60}; samesite=lax`
+        document.cookie = `nc_token=${newToken}; path=/api; max-age=${10 * 60 * 60}; samesite=lax${secure}`
       } else {
-        document.cookie = 'nc_token=; path=/api; max-age=0; samesite=lax'
+        document.cookie = `nc_token=; path=/api; max-age=0; samesite=lax${secure}`
       }
     },
     { immediate: true },

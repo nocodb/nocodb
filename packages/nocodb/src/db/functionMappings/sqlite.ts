@@ -1,12 +1,22 @@
 import dayjs from 'dayjs';
-import { convertToTargetFormat, getDateFormat } from 'nocodb-sdk';
+import {
+  ClientType,
+  convertToTargetFormat,
+  getDateFormat,
+  JSEPNode,
+} from 'nocodb-sdk';
 import commonFns, {
+  extractDatetimeFormat,
   safeDateAddUnitSQL,
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
-import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {
+  getWeekdayByText,
+  getWeekStartOffsetSunday,
+} from '~/helpers/formulaFnHelper';
+import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const sqlite3 = {
   ...commonFns,
@@ -201,6 +211,18 @@ const sqlite3 = {
     }
     return { builder: knex.raw(`ROUND(${sql})`) };
   },
+  DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const format = extractDatetimeFormat(pt);
+    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        getDatetimeFormatHandler(ClientType.SQLITE).build(
+          `(${dateExpr})`,
+          format,
+        ),
+      ),
+    };
+  },
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {
     // strftime('%w', date) - day of week 0 - 6 with Sunday == 0
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
@@ -213,6 +235,23 @@ const sqlite3 = {
               )}'`
             : (await fn(pt.arguments[0])).builder
         }) - 1 - ${getWeekdayByText(pt?.arguments[1]?.value)} % 7 + 7) % 7`,
+      ),
+    };
+  },
+  WEEKNUM: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Excel-compatible WEEKNUM: week 1 is the week containing Jan 1, weeks start
+    // on Sunday by default. strftime('%w') is 0 (Sunday) .. 6 (Saturday);
+    // strftime('%j') is the 1-based day of the year.
+    const source =
+      pt.arguments[0].type === 'Literal'
+        ? `'${dayjs((await fn(pt.arguments[0])).builder).format('YYYY-MM-DD')}'`
+        : `(${(await fn(pt.arguments[0])).builder})`;
+    const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
+    const doy = `CAST(strftime('%j', ${source}) AS INTEGER)`;
+    const dow = `CAST(strftime('%w', ${source}) AS INTEGER)`;
+    return {
+      builder: knex.raw(
+        `CAST((((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7) + 1 AS INTEGER)`,
       ),
     };
   },
@@ -300,7 +339,27 @@ const sqlite3 = {
   },
   async JSON_EXTRACT(args: MapFnArgs) {
     const source = (await args.fn(args.pt.arguments[0])).builder;
-    const needle = (await args.fn(args.pt.arguments[1])).builder;
+
+    // When the path is a string literal, prebuild the full jsonpath and bind
+    // as a single parameter — avoids leaving `'$' ||` adjacent in the SQL,
+    // which gets corrupted by JS String.prototype.replace special patterns
+    // (the `$'` and `` $` `` pairs) when knex inlines this raw inside named-
+    // binding wrappers like VALUE(). See nocodb/nocodb#12695.
+    const pathArg = args.pt.arguments[1];
+    if (
+      pathArg?.type === JSEPNode.LITERAL &&
+      typeof pathArg.value === 'string'
+    ) {
+      const path = `$${pathArg.value}`;
+      return {
+        builder: args.knex.raw(
+          `CASE WHEN json_valid(?) = 1 AND ? NOT LIKE '%[-%' THEN json_extract(?, ?) ELSE NULL END`,
+          [source, path, source, path],
+        ),
+      };
+    }
+
+    const needle = (await args.fn(pathArg)).builder;
     return {
       builder: args.knex.raw(
         `CASE WHEN json_valid(?) = 1 AND ('$' || ?) NOT LIKE '%[-%' THEN json_extract(?, '$' || ?) ELSE NULL END`,

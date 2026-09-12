@@ -2,6 +2,8 @@
 interface Props {
   modelValue?: string | null
   disabled?: boolean
+  /** Forwarded to the picker — see AdvanceColorPicker's `palette`. */
+  palette?: 'full' | 'chip'
 }
 
 interface Emits {
@@ -54,7 +56,7 @@ const onColorChange = (value: string) => {
       </button>
     </template>
     <template #overlay>
-      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" @input="onColorChange">
+      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" :palette="palette" @input="onColorChange">
       </GeneralAdvanceColorPicker>
     </template>
   </NcDropdown>

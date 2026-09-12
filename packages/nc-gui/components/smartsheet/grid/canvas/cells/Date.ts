@@ -84,9 +84,18 @@ export const DateCellRenderer: CellRenderer = {
     let text = ''
 
     if (value) {
-      const date = dayjs(/^\d+$/.test(value) ? +value : value, dateFormat)
+      // Stored value is Gregorian ISO — parse with the default format, then
+      // format with the column format (mirrors render()). Parsing with a Jalali
+      // dateFormat here yields an invalid date, so the click area is never
+      // computed and the cell can't be opened by mouse.
+      const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
       if (date.isValid()) {
         text = date.format(dateFormat)
+      } else {
+        const parsedDate = parseFlexibleDate(value)
+        if (parsedDate) {
+          text = parsedDate.format(dateFormat)
+        }
       }
     } else {
       text = dateFormat

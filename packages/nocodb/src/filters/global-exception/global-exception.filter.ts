@@ -2,18 +2,17 @@ import { Catch, Logger, NotFoundException } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 
 import { ThrottlerException } from '@nestjs/throttler';
-import hash from 'object-hash';
 import {
   NcApiVersion,
   NcErrorType,
   NcSDKError,
-  NcSDKErrorV2,
   BadRequest as SdkBadRequest,
 } from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
+import { throttlerLogger } from '~/helpers/throttlerLogger';
+import { DBErrorKind } from '~/helpers/db-error/utils';
+import { mapExceptionToResponse } from '~/filters/global-exception/exception-mapper';
 import {
   AjvError,
   BadRequest,
@@ -24,13 +23,20 @@ import {
   NcBaseErrorv2,
   NcError,
   NotFound,
-  OptionsNotExistsError,
   SsoError,
   TestConnectionError,
   Unauthorized,
-  UniqueConstraintViolationError,
   UnprocessableEntity,
 } from '~/helpers/catchError';
+
+// NcBaseErrorv2 types that stand for a server-side failure, not caller error.
+// The mapper marks them handled (they carry a safe user message), but there's a
+// real bug underneath — so they must both log AND reach Sentry.
+const SERVER_SIDE_NC_ERROR_TYPES = [
+  NcErrorType.ERR_INTERNAL_SERVER,
+  NcErrorType.ERR_DATABASE_OP_FAILED,
+  NcErrorType.ERR_UNKNOWN,
+];
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -57,15 +63,25 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       );
     }
 
-    // try to extract db error for unknown errors
+    // try to extract db error for unknown errors — kept here (in addition
+    // to the mapper) so logging / SSO branches below can branch on it.
     const dbError =
       exception instanceof NcBaseError ? null : extractDBError(exception);
+
+    // Only a user-caused db error is quiet. Infra errors (connection loss,
+    // pool exhaustion) are logged so operators see an outage, and unknown
+    // ones — any failure carrying a `code` that no dialect matched — are
+    // logged and reported.
+    const quietDbError =
+      (dbError?.kind ?? DBErrorKind.EXPECTED) === DBErrorKind.EXPECTED
+        ? dbError
+        : null;
 
     // skip unnecessary error logging
     if (
       process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
       !(
-        dbError ||
+        quietDbError ||
         exception instanceof BadRequest ||
         exception instanceof AjvError ||
         exception instanceof Unauthorized ||
@@ -80,74 +96,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof SdkBadRequest ||
         exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
-          ![
-            NcErrorType.ERR_INTERNAL_SERVER,
-            NcErrorType.ERR_DATABASE_OP_FAILED,
-            NcErrorType.ERR_UNKNOWN,
-          ].includes(exception.error))
+          !SERVER_SIDE_NC_ERROR_TYPES.includes(exception.error))
       )
     )
       this.logError(exception, request);
 
     if (exception instanceof ThrottlerException) {
-      const key = hash({
-        ip: request.ip,
-        baseId: (request as any).ncBaseId,
+      throttlerLogger.record({
         workspaceId: (request as any).ncWorkspaceId,
-        path: request.path,
+        baseId: (request as any).ncBaseId,
       });
-
-      const cacheKey = `throttler:${key}`;
-
-      NocoCache.get('root', cacheKey, CacheGetType.TYPE_OBJECT)
-        .then((data) => {
-          if (!data) {
-            this.logger.warn(
-              `ThrottlerException: ${exception.message}, Path: ${
-                request.path
-              }, Workspace ID: ${(request as any).ncWorkspaceId}, Base ID: ${
-                (request as any).ncBaseId
-              }`,
-            );
-
-            NocoCache.setExpiring(
-              'root',
-              cacheKey,
-              { value: true, count: 1, timestamp: Date.now() },
-              300,
-            ).catch((err) => {
-              this.logger.error(err);
-            });
-          } else {
-            data.count += 1;
-
-            const ttlInSeconds = Math.floor(
-              (data.timestamp + 300000 - Date.now()) / 1000,
-            );
-
-            if (ttlInSeconds > 0) {
-              NocoCache.setExpiring('root', cacheKey, data, ttlInSeconds).catch(
-                (err) => {
-                  this.logger.error(err);
-                },
-              );
-            }
-
-            // log every 50th request in last 5 minutes after first
-            if (data.count % 50 === 0) {
-              this.logger.warn(
-                `ThrottlerException: ${exception.message}, Path: ${
-                  request.path
-                }, Workspace ID: ${(request as any).ncWorkspaceId}, Base ID: ${
-                  (request as any).ncBaseId
-                }, Requests in last 5 minutes: ${data.count}`,
-              );
-            }
-          }
-        })
-        .catch((err) => {
-          this.logger.error(err);
-        });
     }
 
     // if sso error then redirect to ui with error in query parameter
@@ -169,133 +127,35 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.redirect(redirectUrl);
     }
 
-    // API not found
     if (exception instanceof NotFoundException) {
+      // debug-level log instead of error-level (a 404 from a wrong URL
+      // isn't a server bug). The mapper still returns the 404 body below.
       this.logger.debug(exception.message, exception.stack);
-
-      return response.status(404).json({ msg: exception.message });
     }
 
-    if (dbError) {
-      const { httpStatus: httpStatus, ...responsePayload } = dbError;
-      if (apiVersion === NcApiVersion.V3) {
-        return response.status(httpStatus).json(responsePayload);
-      } else {
-        return response.status(400).json(responsePayload);
-      }
-    }
+    const mapped = mapExceptionToResponse(exception, apiVersion);
 
+    // A raw throw maps unhandled; a server-side NcBaseErrorv2 (e.g.
+    // internalServerError) maps handled but is still a real bug. Both must page
+    // Sentry — mirrors the log gate above so logging and capture never diverge.
     if (
-      exception instanceof OptionsNotExistsError &&
-      apiVersion === NcApiVersion.V3
+      mapped.unhandled ||
+      (exception instanceof NcBaseErrorv2 &&
+        SERVER_SIDE_NC_ERROR_TYPES.includes(exception.error))
     ) {
-      return response.status(422).json({
-        message: `Invalid option(s) "${exception.options.join(
-          ', ',
-        )}" provided for column "${exception.columnTitle}"`,
-        error: 'ERR_INVALID_VALUE_FOR_FIELD',
-      });
-    } else if (
-      UniqueConstraintViolationError &&
-      typeof UniqueConstraintViolationError === 'function' &&
-      exception instanceof UniqueConstraintViolationError
-    ) {
-      const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
-      return response.status(httpStatus).json({
-        error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
-        message: exception.message,
-        fieldName: exception.fieldName,
-        value: exception.value,
-      });
-    } else if (
-      exception &&
-      typeof exception === 'object' &&
-      'fieldName' in exception &&
-      'value' in exception &&
-      exception.constructor?.name === 'UniqueConstraintViolationError'
-    ) {
-      // Fallback check in case the class is not properly imported
-      const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
-      return response.status(httpStatus).json({
-        error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
-        message: exception.message,
-        fieldName: (exception as any).fieldName,
-        value: (exception as any).value,
-      });
-    } else if (
-      exception instanceof BadRequest ||
-      exception.getStatus?.() === 400
-    ) {
-      return response.status(400).json({ msg: exception.message });
-    } else if (
-      exception instanceof Unauthorized ||
-      (exception.getStatus?.() === 401 && !(exception instanceof NcBaseErrorv2))
-    ) {
-      return response.status(401).json({ msg: exception.message });
-    } else if (
-      exception instanceof Forbidden ||
-      (exception.getStatus?.() === 403 && !(exception instanceof NcBaseErrorv2))
-    ) {
-      return response.status(403).json({ msg: exception.message });
-    } else if (
-      exception instanceof NotFound ||
-      (exception.getStatus?.() === 404 && !(exception instanceof NcBaseErrorv2))
-    ) {
-      return response.status(404).json({ msg: exception.message });
-    } else if (exception instanceof AjvError) {
-      if (exception.humanReadableError) {
-        return response
-          .status(400)
-          .json({ msg: exception.message, errors: exception.errors });
-      }
-
-      return response
-        .status(400)
-        .json({ msg: exception.message, errors: exception.errors });
-    } else if (
-      exception instanceof UnprocessableEntity ||
-      exception instanceof SdkBadRequest ||
-      exception instanceof NcSDKError
-    ) {
-      return response.status(422).json({ msg: exception.message });
-    } else if (exception instanceof NcSDKErrorV2) {
-      return response.status(exception.getStatus?.() ?? 422).json({
-        error: exception.errorType,
-        message: exception.message,
-      });
-    } else if (exception instanceof TestConnectionError) {
-      return response
-        .status(422)
-        .json({ msg: exception.message, sql_code: exception.sql_code });
-    } else if (exception instanceof NcBaseErrorv2) {
-      return response.status(exception.code).json({
-        error: exception.error,
-        message: exception.message,
-        details: exception.details,
-      });
-    }
-
-    // handle different types of exceptions
-    if (exception.getStatus?.()) {
-      response.status(exception.getStatus()).json(exception.getResponse());
-    } else {
       this.captureException(exception, request);
-
-      const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
-      const responsePayload: any = {
-        [msgProp]: `Something didn't work as expected. Please try again. If the problem persists, contact support.`,
-      };
-
-      // Include actual error message only in development
-      if (process.env.NODE_ENV !== 'production') {
-        responsePayload.innerError = {
-          [msgProp]: exception?.message || 'An unexpected error occurred',
-          stack: exception?.stack,
-        };
-      }
-
-      response.status(500).json(responsePayload);
     }
+
+    // Include actual error message only in development
+    if (mapped.unhandled && process.env.NODE_ENV !== 'production') {
+      const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
+      mapped.body.innerError = {
+        [msgProp]: exception?.message || 'An unexpected error occurred',
+        stack: exception?.stack,
+      };
+    }
+
+    return response.status(mapped.status).json(mapped.body);
   }
 
   protected captureException(exception: any, _request: any) {

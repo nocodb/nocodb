@@ -1,6 +1,8 @@
 import {
   checkboxIconList,
   durationOptions,
+  getCurrencyFormatExample,
+  getCurrencySymbol,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
@@ -291,7 +293,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
     metaProps: ['meta'],
     mappings: {
       is12hrFormat: '12hr_format',
-      isLocaleString: 'locale_string',
+      separator: 'separator',
       showAsProgress: 'show_as_progress',
       // duration: 'duration_format',
     },
@@ -374,6 +376,20 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
       if (durationFormat !== undefined && durationFormat !== null) {
         options.duration_format = durationOptions[durationFormat]?.title;
       }
+    } else if (data.type === UITypes.Currency) {
+      // `currency_code` + `currency_locale` are stored; the symbol is a derived,
+      // locale-dependent projection the cell renderer computes at paint time.
+      // Surface it (and a format example) here so schema consumers that only
+      // receive the config — the v3 field API and the MCP connector — don't have
+      // to re-derive it or guess. Compute-on-read; nothing new is persisted.
+      const currencyCode = options.currency_code || 'USD';
+      const currencyLocale = options.currency_locale || 'en-US';
+      options.currency_symbol = getCurrencySymbol(currencyCode, currencyLocale);
+      options.currency_format_example = getCurrencyFormatExample(
+        currencyCode,
+        currencyLocale,
+        options.precision ?? 2,
+      );
     }
 
     return {
@@ -425,7 +441,10 @@ export const columnV3ToV2Builder = builderGenerator({
     metaProps: ['options'],
     mappings: {
       '12hr_format': 'is12hrFormat',
+      // legacy V3 field — preserved so older clients sending locale_string
+      // still resolve via resolveColumnSeparator on read
       locale_string: 'isLocaleString',
+      separator: 'separator',
       show_as_progress: 'showAsProgress',
       // duration_format: 'duration',
     },

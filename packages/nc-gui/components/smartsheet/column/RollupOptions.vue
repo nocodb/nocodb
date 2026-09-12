@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
+  FormulaDataTypes,
   PlanFeatureTypes,
   PlanTitles,
   UITypes,
   getAvailableRollupForColumn,
-  getRenderAsTextFunForUiType,
+  integerPreservingRollupFunctions,
+  integerRollupFunctions,
+  resolveColumnSeparator,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -27,7 +30,6 @@ const {
   isEdit,
   disableSubmitBtn,
   updateFieldName,
-  setPostSaveOrUpdateCbk,
 } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -134,15 +136,16 @@ onMounted(() => {
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
   }
-
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
 })
 
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 
 const getNextColumnId = () => {
   const usedLookupColumnIds = (meta.value?.columns || [])
@@ -252,10 +255,15 @@ vModel.value.meta = {
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
+// Backward compat: resolve isLocaleString to separator if separator is not yet set
+if (!vModel.value.meta.separator) {
+  vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+}
+
 const enableFormattingOptions = computed(() => {
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
 
-  if (!relatedCol) return false
+  if (!relatedCol || !vModel.value.rollup_function) return false
 
   let uidt = relatedCol.uidt
 
@@ -264,12 +272,33 @@ const enableFormattingOptions = computed(() => {
 
     if (colMeta?.display_type) {
       uidt = colMeta?.display_type
+    } else if ((relatedCol.colOptions as FormulaType)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC) {
+      uidt = UITypes.Decimal
     }
   }
-  const validFunctions = getRenderAsTextFunForUiType(uidt)
+  // count/countDistinct always return integers — precision is not applicable
+  if (integerRollupFunctions.includes(vModel.value.rollup_function)) return false
 
-  return validFunctions.includes(vModel.value.rollup_function)
+  // Integer-based types — only avg/avgDistinct can produce decimals
+  if (isIntegerUiType({ uidt } as ColumnType) && integerPreservingRollupFunctions.includes(vModel.value.rollup_function))
+    return false
+
+  // Column types that can produce decimal results
+  return isIntegerUiType({ uidt } as ColumnType) || [UITypes.Decimal, UITypes.Currency, UITypes.Percent].includes(uidt as UITypes)
 })
+
+watch(
+  enableFormattingOptions,
+  (enabled) => {
+    if (enabled && vModel.value.meta?.precision == null) {
+      vModel.value.meta = {
+        ...vModel.value.meta,
+        ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+      }
+    }
+  },
+  { immediate: true },
+)
 
 const onFilterLabelClick = () => {
   if (!selectedTable.value) return
@@ -296,7 +325,7 @@ const handleScrollIntoView = () => {
       >
         <a-select
           v-model:value="vModel.fk_relation_column_id"
-          placeholder="-select-"
+          :placeholder="$t('placeholder.select')"
           dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
           @change="onRelationColChange"
         >
@@ -325,7 +354,7 @@ const handleScrollIntoView = () => {
                   :is="iconMap.check"
                   v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
                   id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
+                  class="text-nc-content-brand w-4 h-4"
                 />
               </div>
             </div>
@@ -341,7 +370,7 @@ const handleScrollIntoView = () => {
         <a-select
           v-model:value="vModel.fk_rollup_column_id"
           name="fk_rollup_column_id"
-          placeholder="-select-"
+          :placeholder="$t('placeholder.select')"
           :disabled="!vModel.fk_relation_column_id"
           show-search
           :filter-option="antSelectFilterOption"
@@ -362,7 +391,7 @@ const handleScrollIntoView = () => {
                 :is="iconMap.check"
                 v-if="vModel.fk_rollup_column_id === column.id"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -377,7 +406,7 @@ const handleScrollIntoView = () => {
       <a-select
         v-model:value="vModel.rollup_function"
         :disabled="!vModel.fk_relation_column_id"
-        placeholder="-select-"
+        :placeholder="$t('placeholder.select')"
         dropdown-class-name="nc-dropdown-rollup-function"
         class="!mt-0.5"
         @change="onRollupFunctionChange"
@@ -386,13 +415,13 @@ const handleScrollIntoView = () => {
           <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
         <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
-          <div class="flex gap-2 justify-between items-center">
+          <div class="w-full flex gap-2 justify-between items-center">
             {{ func.text }}
             <component
               :is="iconMap.check"
               v-if="vModel.rollup_function === func.value"
               id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
+              class="text-nc-content-brand w-4 h-4"
             />
           </div>
         </a-select-option>
@@ -400,7 +429,6 @@ const handleScrollIntoView = () => {
     </a-form-item>
     <a-form-item v-if="enableFormattingOptions" :label="$t('placeholder.precision')">
       <a-select
-        v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
         dropdown-class-name="nc-dropdown-rollup-precision-format"
         @change="onPrecisionChange"
@@ -415,21 +443,19 @@ const handleScrollIntoView = () => {
               :is="iconMap.check"
               v-if="vModel.meta.precision === format"
               id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
+              class="text-nc-content-brand w-4 h-4"
             />
           </div>
         </a-select-option>
       </a-select>
     </a-form-item>
-    <a-form-item v-if="enableFormattingOptions">
-      <div class="flex items-center gap-1">
-        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
-        </NcSwitch>
-      </div>
-    </a-form-item>
+    <SmartsheetColumnSeparatorSelect
+      v-if="enableFormattingOptions"
+      v-model:value="vModel.meta.separator"
+      dropdown-class-name="nc-dropdown-rollup-separator-format"
+    />
 
-    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
+    <div v-if="showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">
@@ -483,7 +509,7 @@ const handleScrollIntoView = () => {
   <div v-else>
     <a-alert type="warning" show-icon>
       <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
-      <template #message> Alert </template>
+      <template #message> {{ $t('objects.ncMessage.warning') }} </template>
       <template #description>
         {{
           $t('msg.linkColumnClearNotSupportedYet', {

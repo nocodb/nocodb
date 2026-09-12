@@ -1251,12 +1251,17 @@ abstract class BaseModel {
       limit = 20,
       offset = 0,
       sort = '',
-    }: { limit?: number | string; offset?: number | string; sort?: string },
+    }: {
+      limit?: number | string;
+      offset?: number | string;
+      sort?: string | string[];
+    },
   ) {
     query.offset(offset).limit(limit);
 
     if (sort) {
-      sort.split(',').forEach((o) => {
+      const sortItems = Array.isArray(sort) ? sort : sort.split(',');
+      sortItems.forEach((o) => {
         if (o[0] === '-') {
           query.orderBy(o.slice(1), 'desc');
         } else {
@@ -1521,7 +1526,7 @@ export interface XcFilter {
   limit?: string | number;
   shuffle?: string | number;
   offset?: string | number;
-  sort?: string;
+  sort?: string | string[];
   fields?: string;
   filterArr?: Filter[];
   sortArr?: Sort[];
@@ -1542,6 +1547,8 @@ export interface XcFilterWithAlias extends XcFilter {
   s?: string;
   f?: string;
   p?: string | number;
+  /** Allow extra properties — callers pass custom fields that _getListArgs ignores. */
+  [key: string]: any;
 }
 
 export default BaseModel;

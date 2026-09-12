@@ -1,8 +1,82 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
 import dayjs from 'dayjs'
-import { type FilterType, type LinkToAnotherRecordType, type TableType, UITypes, isDateMonthFormat } from 'nocodb-sdk'
+import {
+  type FilterType,
+  type LinkToAnotherRecordType,
+  type LookupType,
+  type TableType,
+  UITypes,
+  isBtLikeV2Junction,
+  isDateMonthFormat,
+  isLTAR,
+  isLink,
+} from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
+
+/**
+ * Build the set of columns that can be used as a "Show on conditions" source in a
+ * form view. This is the rendered form columns plus any Lookup column whose relation
+ * link field is itself a form field — those resolve to a value client-side from the
+ * linked record the user selects while filling the form (mirroring how LTAR sources
+ * are evaluated), so visibility can be driven by a value pulled through a link.
+ *
+ * The synthesized Lookup entry inherits its form position (`order`), `show` and edit
+ * `permissions` from the link field it resolves through (the lookup itself is never
+ * rendered as an editable form input), and keeps a back-reference to that link column
+ * so cascading visibility can follow the link field's computed visibility.
+ */
+export function buildFormConditionSourceColumns(formColumns: FormViewColumn[], metaColumns?: ColumnType[]): FormViewColumn[] {
+  if (!metaColumns?.length) return formColumns
+
+  const formColByColId = new Map<string, FormViewColumn>()
+  for (const c of formColumns) {
+    if (c.fk_column_id) formColByColId.set(c.fk_column_id, c)
+  }
+
+  const lookupSources: FormViewColumn[] = []
+  for (const col of metaColumns) {
+    if (col.uidt !== UITypes.Lookup) continue
+
+    // Already a rendered form field — it's in the map keyed by its own fk_column_id
+    // with its real order/show. Don't append a synthesized entry with the same
+    // fk_column_id, which would override it in localColumnsMapByFkColumnId.
+    if (col.id && formColByColId.has(col.id)) continue
+
+    const relationColId = (col.colOptions as LookupType | undefined)?.fk_relation_column_id
+    if (!relationColId) continue
+
+    // the link field the lookup resolves through must be present in the form so its
+    // selected record (and hence the looked-up value) is available client-side
+    const relationFormCol = formColByColId.get(relationColId)
+    if (!relationFormCol) continue
+
+    lookupSources.push({
+      ...(col as FormViewColumn),
+      fk_column_id: col.id,
+      order: relationFormCol.order,
+      show: relationFormCol.show,
+      visible: relationFormCol.visible ?? true,
+      permissions: relationFormCol.permissions,
+      isFormConditionLookup: true,
+      fk_relation_column_id: relationColId,
+    })
+  }
+
+  if (!lookupSources.length) return formColumns
+
+  return [...formColumns, ...lookupSources]
+}
+
+// Shallow-compare two visibility-error maps so validateVisibility can skip
+// reassigning `column.meta` when nothing changed (a no-op reassignment still
+// invalidates the validators/rules computeds and re-renders the cell).
+function isSameVisibilityErrors(a: Record<string, string>, b: Record<string, string>): boolean {
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+  if (aKeys.length !== bKeys.length) return false
+  return aKeys.every((key) => a[key] === b[key])
+}
 
 export class FormFilters {
   allViewFilters: FilterType[]
@@ -117,33 +191,104 @@ export class FormFilters {
     return column.order < parentColumn.order
   }
 
-  async getOoOrBtColVal(column: FormViewColumn) {
-    const fk_related_model_id = (column?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+  // Extract display value(s) from an LTAR cell for filter comparisons.
+  // Handles both single-row objects (bt / oo / mo) and arrays of rows (hm / mm / om).
+  async getLtarDisplayValue(column: FormViewColumn): Promise<string | null> {
+    const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
+    const fk_related_model_id = colOptions?.fk_related_model_id
 
     if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
 
-    const relatedTableMeta = await this.getMeta(this.baseId, fk_related_model_id)
+    const relatedBaseId = colOptions?.fk_related_base_id || this.baseId
+    const relatedTableMeta = await this.getMeta(relatedBaseId, fk_related_model_id)
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 
-    const displayValTitle = (relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+    const customDisplayColId = colOptions?.fk_display_value_column_id
+    const customDisplayCol = customDisplayColId ? relatedTableMeta.columns.find((c) => c.id === customDisplayColId) : undefined
+    const displayValTitle =
+      (customDisplayCol || relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
 
-    if (
-      !displayValTitle ||
-      !this.formState[column.title] ||
-      !ncIsObject(this.formState[column.title]) ||
-      this.formState[column.title][displayValTitle] === undefined
-    ) {
-      return null
+    if (!displayValTitle) return null
+
+    const value = this.formState[column.title] as Record<string, any> | Record<string, any>[] | null | undefined
+
+    if (value === null || value === undefined) return null
+
+    // Multi-record relations (mm / om) — value is an array of linked rows
+    if (Array.isArray(value)) {
+      const displayValues = value
+        .map((row) => (row && typeof row === 'object' ? row[displayValTitle] : undefined))
+        .filter((v): v is string | number | boolean => v !== undefined && v !== null)
+        .map((v) => `${v}`)
+
+      return displayValues.length ? displayValues.join(', ') : null
     }
 
-    return this.formState[column.title][displayValTitle]
+    // Single-record relations (mo / oo) — value is a single linked row
+    if (typeof value === 'object' && value[displayValTitle] !== undefined && value[displayValTitle] !== null) {
+      return `${value[displayValTitle]}`
+    }
+
+    return null
+  }
+
+  // Resolve a Lookup column's value for a form condition from the linked record(s)
+  // selected in the form. The lookup's relation link field is read from `formState`,
+  // then the lookup target column is pulled out of the linked row(s). Single-record
+  // relations (bt / oo / mo) return the raw value (so numeric comparisons work);
+  // multi-record relations (hm / mm / om) return the joined display values.
+  async getLookupValue(column: FormViewColumn): Promise<any> {
+    const colOptions = column?.colOptions as LookupType | undefined
+    const relationColId = colOptions?.fk_relation_column_id
+    const lookupColId = colOptions?.fk_lookup_column_id
+
+    if (!relationColId || !lookupColId) return null
+
+    const relationCol = this.formViewColumnsMapByFkColumnId[relationColId]
+    if (!relationCol) return null
+
+    const relColOptions = relationCol.colOptions as LinkToAnotherRecordType | undefined
+    const fk_related_model_id = relColOptions?.fk_related_model_id
+
+    if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
+
+    const relatedBaseId = relColOptions?.fk_related_base_id || this.baseId
+    const relatedTableMeta = await this.getMeta(relatedBaseId, fk_related_model_id)
+
+    if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
+
+    const targetCol = relatedTableMeta.columns.find((c) => c.id === lookupColId)
+    const targetTitle = targetCol?.title
+    if (!targetTitle) return null
+
+    const value = this.formState[relationCol.title] as Record<string, any> | Record<string, any>[] | null | undefined
+
+    if (value === null || value === undefined) return null
+
+    // Multi-record relations — value is an array of linked rows
+    if (Array.isArray(value)) {
+      const lookedUpValues = value
+        .map((row) => (row && typeof row === 'object' ? row[targetTitle] : undefined))
+        .filter((v) => v !== undefined && v !== null)
+        .map((v) => `${v}`)
+
+      return lookedUpValues.length ? lookedUpValues.join(', ') : null
+    }
+
+    // Single-record relation — value is a single linked row
+    if (typeof value === 'object') {
+      return value[targetTitle] ?? null
+    }
+
+    return null
   }
 
   async validateCondition(
     filters: FilterType[] = [],
     parentCol: FormViewColumn,
     errors: Record<string, string>,
+    visibilityState?: Record<string, boolean>,
   ): Promise<boolean | undefined> {
     if (!filters.length) {
       return true
@@ -155,13 +300,14 @@ export class FormFilters {
       let res
 
       if (filter.is_group) {
-        res = await this.validateCondition(filter.children, parentCol, errors)
-      } else {
-        if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) {
-          res = false
+        res = await this.validateCondition(filter.children, parentCol, errors, visibilityState)
+      } else if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) {
+        if (filter.fk_column_id) {
+          errors[filter.fk_column_id] = `Condition references a field that no longer exists in the form.`
         }
-
-        const column = this.formViewColumnsMapByFkColumnId[filter.fk_column_id]
+        res = false
+      } else {
+        const column = this.formViewColumnsMapByFkColumnId[filter.fk_column_id]!
         // If the filter condition col is below parent column then this will be invalid condition so return false
         if (!this.isFieldAboveParentColumn(column, parentCol)) {
           errors[column.fk_column_id] = `Condition references a field (${column.title}) that comes later in the form.`
@@ -182,7 +328,16 @@ export class FormFilters {
           res = true
         }
 
-        if (!column?.visible) {
+        // Read the freshly-computed visibility from the in-progress local map
+        // when available (so cascading conditions are correct), falling back to
+        // the reactive value outside a validateVisibility pass. A Lookup source is
+        // not iterated itself, so follow the visibility of the link field it
+        // resolves through — if that link field is conditionally hidden, the lookup
+        // value can't be filled and the condition must not hold.
+        const visibilityKey =
+          column.uidt === UITypes.Lookup && column.fk_relation_column_id ? column.fk_relation_column_id : column.fk_column_id
+        const isReferencedColVisible = visibilityState ? visibilityState[visibilityKey] ?? !!column.visible : column.visible
+        if (!isReferencedColVisible) {
           res = false
         }
 
@@ -331,17 +486,17 @@ export class FormFilters {
                 break
             }
 
-            switch (column.uidt) {
-              case UITypes.Links:
-                if (isMm(column) || isHm(column)) {
-                  val = (this.formState[field] ?? []).length
-                }
-                break
-              case UITypes.LinkToAnotherRecord:
-                if (isOo(column) || isBt(column)) {
-                  val = await this.getOoOrBtColVal(column)
-                }
-                break
+            // Lookup source → value resolved from the linked record selected in the form.
+            // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
+            // uidt=Links → count cell; everything else LTAR → linked-row display value(s).
+            if (column.uidt === UITypes.Lookup) {
+              val = await this.getLookupValue(column)
+            } else if (isBtLikeV2Junction(column)) {
+              val = await this.getLtarDisplayValue(column)
+            } else if (isLink(column)) {
+              val = (this.formState[field] ?? []).length
+            } else if (isLTAR(column.uidt, column.colOptions)) {
+              val = await this.getLtarDisplayValue(column)
             }
 
             switch (filter.comparison_op) {
@@ -445,25 +600,52 @@ export class FormFilters {
   async validateVisibility() {
     const res: Record<string, boolean> = {}
 
+    // Phase 1 (async, NO reactive writes): evaluate each column's conditions in
+    // form order, tracking the result in a local map so cascading conditions
+    // still observe the freshly-computed visibility of earlier fields. Writing to
+    // reactive `column.visible`/`column.meta` here — interleaved with the `await`s
+    // inside validateCondition — would flush Vue between every column and trigger
+    // an O(n²) validators/rules rebuild storm.
+    const localVisible: Record<string, boolean> = {}
+    for (const column of this.formViewColumns) {
+      localVisible[column.fk_column_id] = !!column.visible
+    }
+
+    const evaluated: Array<{ column: FormViewColumn; nextVisible: boolean; errors: Record<string, string> }> = []
     for (const column of this.formViewColumns) {
       const columnFilters = this.nestedGroupedFilters[column.fk_column_id] ?? []
 
       const errors: Record<string, string> = {}
 
-      const isValid = await this.validateCondition(columnFilters, column, errors)
+      const isValid = await this.validateCondition(columnFilters, column, errors, localVisible)
 
+      const nextVisible = !!isValid
+      localVisible[column.fk_column_id] = nextVisible
+      evaluated.push({ column, nextVisible, errors })
+    }
+
+    // Phase 2 (synchronous, batched): apply only the values that actually
+    // changed. Skipping no-op writes avoids re-rendering unaffected cells; doing
+    // it in one synchronous pass lets Vue batch the dependent computeds into a
+    // single rebuild instead of one rebuild per column.
+    for (const { column, nextVisible, errors } of evaluated) {
       if (this.isSharedForm) {
-        if (!column.meta?.preFilledHiddenField) {
-          column.visible = !!isValid
+        if (!column.meta?.preFilledHiddenField && column.visible !== nextVisible) {
+          column.visible = nextVisible
         }
       } else {
-        column.visible = !!isValid
+        if (column.visible !== nextVisible) {
+          column.visible = nextVisible
+        }
 
-        column.meta = {
-          ...parseProp(column.meta),
-          visibility: {
-            errors,
-          },
+        const prevErrors = parseProp(column.meta)?.visibility?.errors ?? {}
+        if (!isSameVisibilityErrors(prevErrors, errors)) {
+          column.meta = {
+            ...parseProp(column.meta),
+            visibility: {
+              errors,
+            },
+          }
         }
       }
     }

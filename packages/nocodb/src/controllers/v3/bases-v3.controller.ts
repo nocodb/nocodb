@@ -43,6 +43,7 @@ export class BasesV3Controller {
       user: req.user,
       query: queryParams,
       workspaceId,
+      req,
     });
     return { list: bases };
   }

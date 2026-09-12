@@ -2,6 +2,10 @@ import moment from 'moment';
 import {
   AuditV1OperationTypes,
   generateUniqueCopyName,
+  isCreatedOrLastModifiedTimeCol,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
+  OperationSource,
   SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
@@ -761,6 +765,7 @@ export class AtImportProcessor {
           table: tables[idx],
           user: syncDB.user,
           req,
+          operationSource: OperationSource.AT_IMPORT,
         });
         recordPerfStats(_perfStart, 'dbTable.create');
 
@@ -816,7 +821,6 @@ export class AtImportProcessor {
         await this.viewsService.viewUpdate(context, {
           viewId: view.list[0].id,
           view: { title: aTbl_grid.name },
-          user: syncDB.user,
           req,
         });
         recordPerfStats(_perfStart, 'dbView.update');
@@ -914,6 +918,7 @@ export class AtImportProcessor {
                 },
                 req,
                 user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1140,6 +1145,7 @@ export class AtImportProcessor {
               },
               req,
               user: syncDB.user,
+              operationSource: OperationSource.AT_IMPORT,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1226,6 +1232,7 @@ export class AtImportProcessor {
               clientIp: '',
             } as any,
             user: syncDB.user,
+            operationSource: OperationSource.AT_IMPORT,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1390,6 +1397,7 @@ export class AtImportProcessor {
                 },
                 req,
                 user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1457,6 +1465,7 @@ export class AtImportProcessor {
           },
           req,
           user: syncDB.user,
+          operationSource: OperationSource.AT_IMPORT,
         });
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1477,6 +1486,23 @@ export class AtImportProcessor {
       }
     };
 
+    // Airtable allows primary field types NocoDB cannot use as a display value
+    // (long text), and every imported formula lands as a `""` placeholder - the
+    // real expression survives only in the field description - so a formula
+    // display value would render blank on every record. Mirrors
+    // mapDefaultDisplayValue's checks, which already ran at tableCreate.
+    const isEligibleDisplayValue = (col) =>
+      !!col &&
+      !col.pk &&
+      !isSystemColumn(col) &&
+      isSupportedDisplayValueColumn(col) &&
+      !isCreatedOrLastModifiedTimeCol(col) &&
+      !(
+        col.uidt === UITypes.Formula &&
+        (col.colOptions?.formula === '""' ||
+          col.colOptions?.formula_raw === '""')
+      );
+
     const nocoSetPrimary = async (aTblSchema) => {
       for (let idx = 0; idx < aTblSchema.length; idx++) {
         logDetailed(
@@ -1485,22 +1511,98 @@ export class AtImportProcessor {
           }`,
         );
 
-        const pColId = aTblSchema[idx].primaryColumnId;
-        const ncColId = await sMap.getNcIdFromAtId(pColId);
+        const aTbl = aTblSchema[idx];
+        const ncTblId = await sMap.getNcIdFromAtId(aTbl.id);
+        if (!ncTblId) continue;
 
-        // skip primary column configuration if we field not migrated
-        if (ncColId) {
+        // a display value is a nice-to-have: a throw here reaches the job's
+        // outer catch, which drops every table created so far
+        try {
+          // refresh - link/lookup/rollup columns were added after tableCreate
+          await updateNcTblSchemaById(ncTblId);
+          const table = ncSchema.tablesById[ncTblId];
+
+          const aTblPCol = aTbl.columns?.find(
+            (x) => x.id === aTbl.primaryColumnId,
+          );
+          const ncPColId = await sMap.getNcIdFromAtId(aTbl.primaryColumnId);
+          const aTblPrimary = table.columns.find((x) => x.id === ncPColId);
+
+          let displayValue = isEligibleDisplayValue(aTblPrimary)
+            ? aTblPrimary
+            : null;
+
+          if (!displayValue) {
+            const label = aTblPCol
+              ? `'${aTblPCol.name}' (${aTblPCol.type})`
+              : 'the Airtable primary field';
+            const reason = aTblPrimary
+              ? `${label} cannot be used as display value`
+              : `${label} was not imported`;
+
+            displayValue = table.columns.find(isEligibleDisplayValue);
+
+            if (displayValue) {
+              logWarning(
+                `${aTbl.name} :: ${reason} :: using '${displayValue.title}' as display value`,
+              );
+            } else {
+              // no field in the table qualifies - add one to label records
+              // with. nc_getSanitizedColumnName is no use here: its name
+              // generator is keyed by the pre-create table name, and
+              // tableCreate prefixes table_name, so it would hand back a title
+              // the table already has. 'Title' needs no sanitizing.
+              const taken = new Set(
+                table.columns
+                  .flatMap((x) => [x.title, x.column_name])
+                  .filter(Boolean)
+                  .map((name) => name.toLowerCase()),
+              );
+              let title = 'Title';
+              for (let i = 1; taken.has(title.toLowerCase()); i++) {
+                title = `Title_${i}`;
+              }
+
+              logWarning(
+                `${aTbl.name} :: ${reason} and no other field can be used :: adding '${title}' as display value`,
+              );
+
+              const _perfStart = recordPerfStart();
+              const ncTbl: any = await this.columnsService.columnAdd(context, {
+                tableId: ncTblId,
+                column: {
+                  uidt: UITypes.SingleLineText,
+                  title,
+                  column_name: title,
+                },
+                req,
+                user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
+              });
+              recordPerfStats(_perfStart, 'dbTableColumn.create');
+
+              updateNcTblSchema(ncTbl);
+              displayValue = ncTbl.columns.find((x) => x.title === title);
+            }
+          }
+
+          // mapDefaultDisplayValue may already have picked this one at create
+          if (!displayValue || displayValue.pv) continue;
+
           logDetailed(`NC API: dbTableColumn.primaryColumnSet`);
           const _perfStart = recordPerfStart();
           await this.columnsService.columnSetAsPrimary(context, {
-            columnId: ncColId,
+            columnId: displayValue.id,
             req,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.primaryColumnSet');
 
           // update schema
-          const ncTblId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
           await updateNcTblSchemaById(ncTblId);
+        } catch (e) {
+          logWarning(
+            `Failed to configure display value for ${aTbl.name} :: ${e.message}`,
+          );
         }
       }
     };
@@ -2584,8 +2686,8 @@ export class AtImportProcessor {
         for (const table of tables) {
           await this.tablesService.tableDelete(context, {
             tableId: table.id,
-            user: syncDB.user,
             forceDeleteRelations: true,
+            req,
           });
         }
       }
@@ -2798,8 +2900,8 @@ export class AtImportProcessor {
       for (const table of ncSchema.tables) {
         await this.tablesService.tableDelete(context, {
           tableId: table.id,
-          user: syncDB.user,
           forceDeleteRelations: true,
+          req,
         });
       }
       if (e.message) {

@@ -1,17 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/cli';
 import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards';
 import { Column, GridViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
@@ -29,6 +34,7 @@ export class GridColumnsService {
     return await GridViewColumn.list(context, param.gridViewId, ncMeta);
   }
 
+  @TraceCommand(OperationName.gridColumnUpdate)
   async gridColumnUpdate(
     context: NcContext,
     param: {
@@ -50,6 +56,17 @@ export class GridColumnsService {
       ncMeta,
     );
 
+    if (!oldGridViewColumn) {
+      NcError.get(context).fieldNotFound(param.gridViewColumnId);
+    }
+
+    if (oldGridViewColumn?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(
+        context,
+        oldGridViewColumn.fk_view_id,
+      );
+    }
+
     const column = await Column.get(
       context,
       {
@@ -58,7 +75,12 @@ export class GridColumnsService {
       ncMeta,
     );
 
-    const view = await View.get(context, oldGridViewColumn.fk_view_id, ncMeta);
+    const view = await View.get(
+      context,
+      oldGridViewColumn.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -84,6 +106,7 @@ export class GridColumnsService {
       'group_by',
       'group_by_order',
       'group_by_sort',
+      'group_by_enabled',
       'aggregation',
     ]);
 
@@ -131,6 +154,7 @@ export class GridColumnsService {
         group_by: null,
         group_by_order: null,
         group_by_sort: null,
+        group_by_enabled: null,
         aggregation: 'none',
       });
     if (context.workspace_id) {
@@ -139,7 +163,7 @@ export class GridColumnsService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (

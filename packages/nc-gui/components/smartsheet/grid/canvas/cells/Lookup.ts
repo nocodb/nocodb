@@ -1,7 +1,16 @@
-import { RelationTypes, UITypes, getMetaWithCompositeKey, isBtLikeV2Junction, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  NC_ERROR_SENTINEL,
+  RelationTypes,
+  UITypes,
+  getEffectiveLookupColumn,
+  getMetaWithCompositeKey,
+  isBtLikeV2Junction,
+  isLinksOrLTAR,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
-import { renderSingleLineText } from '../utils/canvas'
+import { isBoxHovered, renderCellError, renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links]
@@ -24,10 +33,24 @@ export const LookupCellRenderer: CellRenderer = {
       tableMetaLoader,
       row,
       getColor,
+      cellRenderStore,
+      mousePosition,
+      selected,
+      setCursor,
     } = props
     let x = _x
     let y = _y
     let width = _width - ellipsisWidth
+
+    // cellRenderStore persists per cell across frames, so the link boxes must be dropped up
+    // front — every early return below would otherwise leave the previous frame's boxes
+    // clickable on a cell that no longer paints them.
+    if (cellRenderStore) cellRenderStore.links = []
+
+    if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
+      renderCellError(ctx, { x, y, width: _width, height, padding, getColor })
+      return
+    }
 
     // If it is empty text then no need to render
     if (!metas) return
@@ -52,7 +75,7 @@ export const LookupCellRenderer: CellRenderer = {
       const relatedModelId = relatedColOptions.fk_related_model_id
       if (!relatedModelId) return
 
-      if (tableMetaLoader.isLoading(relatedModelId, relatedBaseId)) return
+      if (!tableMetaLoader || tableMetaLoader.isLoading(relatedModelId, relatedBaseId)) return
 
       tableMetaLoader.getTableMeta(relatedModelId, relatedBaseId)
 
@@ -62,6 +85,12 @@ export const LookupCellRenderer: CellRenderer = {
     const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
 
     if (!lookupColumn || lookupColumn?.uidt === UITypes.Button) return
+
+    // Apply the lookup column's own formatting override (meta.display_type +
+    // meta.display_column_meta) on top of the resolved child column. For number/date
+    // result types this swaps in the chosen display type + format meta; otherwise the
+    // child column is returned unchanged so its native formatting is inherited.
+    const effectiveLookupColumn = getEffectiveLookupColumn(parseProp(column.meta), lookupColumn)
 
     y =
       y +
@@ -74,6 +103,59 @@ export const LookupCellRenderer: CellRenderer = {
     } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(lookupColumn.uidt)) {
       lookupColumn.extra = getUserColOptions(lookupColumn, props.baseUsers || [])
     }
+
+    // Resolve the leaf of a nested lookup chain (Lookup -> Lookup -> ... -> X).
+    // When the chain ultimately points to an Attachment, the value reaching
+    // here is already a flat array of attachment objects, so it must render as
+    // a single attachment strip rather than one stacked nested cell per file.
+    // When it points to a URL, the intermediate Lookup hop would otherwise drop
+    // the URL type and render the value as a plain string, so capture the leaf
+    // to render it through the URL renderer (a clickable link) instead.
+    let attachmentLeafColumn: ColumnType | undefined
+    let nestedLeafColumn: ColumnType | undefined
+    if (lookupColumn.uidt === UITypes.Lookup) {
+      let nextCol: ColumnType | undefined = lookupColumn
+      let ownMeta: TableType | undefined = relatedTableMeta
+      let guard = 0
+      while (nextCol && nextCol.uidt === UITypes.Lookup && guard++ < 20) {
+        const lkOpt = nextCol.colOptions as LookupType
+        const relCol = ownMeta?.columns?.find((c) => c.id === lkOpt.fk_relation_column_id)
+        const relOpt = relCol?.colOptions as LinkToAnotherRecordType | undefined
+        if (!relCol || !relOpt?.fk_related_model_id) {
+          nextCol = undefined
+          break
+        }
+
+        const leafBaseId = getRelatedBaseId(relCol, ownMeta?.base_id || '')
+        const leafMeta = getMetaWithCompositeKey(metas, leafBaseId, relOpt.fk_related_model_id)
+
+        // Leaf meta not loaded yet — request it and bail (before any clipping).
+        if (!leafMeta) {
+          if (tableMetaLoader && !tableMetaLoader.isLoading(relOpt.fk_related_model_id, leafBaseId)) {
+            tableMetaLoader.getTableMeta(relOpt.fk_related_model_id, leafBaseId)
+          }
+          return
+        }
+
+        ownMeta = leafMeta
+        nextCol = leafMeta.columns?.find((c) => c.id === lkOpt.fk_lookup_column_id)
+      }
+
+      nestedLeafColumn = nextCol
+
+      if (nextCol && isAttachment(nextCol)) {
+        attachmentLeafColumn = nextCol
+      }
+    }
+
+    // The URL column to render each value with — a single-level URL lookup, or the
+    // resolved leaf of a nested chain ending in a URL. Rendered as a clickable link
+    // (like a plain URL field) rather than a generic string.
+    const urlLeafColumn: ColumnType | undefined =
+      lookupColumn.uidt === UITypes.URL ? lookupColumn : nestedLeafColumn?.uidt === UITypes.URL ? nestedLeafColumn : undefined
+
+    // Clickable link boxes recorded during render for handleClick / cursor.
+    const urlLinkBoxes: { x: number; y: number; width: number; height: number; url: string }[] = []
 
     const getArrValue = () => {
       const relatedColType = (relatedColObj.colOptions as LinkToAnotherRecordType)?.type
@@ -92,7 +174,7 @@ export const LookupCellRenderer: CellRenderer = {
 
       if (ncIsNullOrUndefined(value)) return []
 
-      if (lookupColumn.uidt === UITypes.Attachment) {
+      if (lookupColumn.uidt === UITypes.Attachment || attachmentLeafColumn) {
         if (relatedColType && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColType as RelationTypes)) {
           return ncIsArray(value) ? value : [value]
         }
@@ -151,7 +233,7 @@ export const LookupCellRenderer: CellRenderer = {
         // Restore canvas context before returning — ctx.save()/ctx.clip() was already called above
         ctx.restore()
 
-        if (tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
+        if (!tableMetaLoader || tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
 
         tableMetaLoader.getTableMeta(lkRelatedModelId, lkRelatedBaseId)
 
@@ -161,7 +243,7 @@ export const LookupCellRenderer: CellRenderer = {
 
     const renderProps: CellRendererOptions = {
       ...props,
-      column: lookupColumn,
+      column: effectiveLookupColumn,
       relatedColObj: undefined,
       relatedTableMeta: lkRelatedTableMeta,
       isUnderLookup: true,
@@ -181,7 +263,40 @@ export const LookupCellRenderer: CellRenderer = {
       textColor: getColor(themeV4Colors.gray['700']),
     }
 
+    // getEffectiveDisplayColumn returns a new object only when an override is active.
+    const hasDisplayOverride = effectiveLookupColumn !== lookupColumn
+
     const lookupRenderer = (options: CellRendererOptions) => {
+      // With a formatting override the result is always a scalar number/date type
+      // (even for computed Formula/Rollup children), so render it as a plain value
+      // using the effective column carried in options.column.
+      if (hasDisplayOverride) {
+        return PlainCellRenderer.render(ctx, options)
+      }
+
+      // Render a URL value (direct or resolved from a nested lookup chain) as a
+      // clickable link, and record its box so handleClick can open it.
+      if (urlLeafColumn) {
+        const point = renderCell(ctx, urlLeafColumn, {
+          ...options,
+          column: urlLeafColumn,
+          tag: { ...options.tag, renderAsTag: false },
+        })
+
+        const urlText = addMissingUrlSchma(options.value?.toString() ?? '')
+        if (urlText && isValidURL(urlText)) {
+          urlLinkBoxes.push({
+            x: options.x,
+            y: options.y,
+            width: Math.max((point?.x ?? options.x) - options.x, 0),
+            height: rowHeightInPx['1']!,
+            url: urlText,
+          })
+        }
+
+        return point
+      }
+
       return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
         ? renderCell(ctx, lookupColumn, options)
         : PlainCellRenderer.render(ctx, options)
@@ -254,6 +369,8 @@ export const LookupCellRenderer: CellRenderer = {
       if (flag && count < arrValue.length) {
         handleRenderEllipsis()
       }
+
+      return { x, y }
     }
 
     const handleRenderDefault = () => {
@@ -311,18 +428,37 @@ export const LookupCellRenderer: CellRenderer = {
       if (flag && count < arrValue.length) {
         handleRenderEllipsis()
       }
+
+      return { x, y }
     }
 
-    if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
+    // A nested lookup (Lookup -> Lookup) dispatches each value back through this
+    // renderer, so it must report where it stopped drawing like every other cell
+    // renderer does — otherwise the caller's loop reads a missing point as "wrap"
+    // and burns one line per value, showing only `maxLines` of them (#10336).
+    let renderResult: void | { x?: number; y?: number; nextLine?: boolean }
+
+    if (attachmentLeafColumn && ncIsObject(arrValue[0])) {
+      // Nested lookup whose leaf is an Attachment — render the flattened
+      // attachment array as a single strip instead of one cell per file.
+      renderCell(ctx, attachmentLeafColumn, {
+        ...renderProps,
+        column: attachmentLeafColumn,
+        value: arrValue,
+        height,
+        textAlign: 'center',
+        tag: { ...renderProps.tag, renderAsTag: false },
+      })
+    } else if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
       if (
         lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
           (isBtLikeV2Junction(lookupColumn) ||
             [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type)))
       ) {
-        handleRenderVirtualCol()
+        renderResult = handleRenderVirtualCol()
       } else {
-        lookupRenderer({
+        renderResult = lookupRenderer({
           ...renderProps,
           tag: { ...renderProps.tag, renderAsTag: false },
         })
@@ -334,12 +470,42 @@ export const LookupCellRenderer: CellRenderer = {
           tag: { ...renderProps.tag, renderAsTag: false },
         })
       } else {
-        handleRenderDefault()
+        renderResult = handleRenderDefault()
       }
     }
 
     // Restore context after clipping
     ctx.restore()
+
+    // Expose the clickable URL link boxes for handleClick and show a pointer
+    // cursor when hovering one (only meaningful once the cell is selected).
+    if (urlLeafColumn && cellRenderStore) {
+      cellRenderStore.links = urlLinkBoxes
+
+      if (selected && mousePosition && urlLinkBoxes.some((box) => isBoxHovered(box, mousePosition))) {
+        setCursor?.('pointer')
+      }
+    }
+
+    return renderResult
+  },
+  async handleClick(ctx) {
+    const { selected, isDoubleClick, mousePosition, cellRenderStore } = ctx
+
+    // Open a lookup URL value when the (selected) cell's link is clicked. Anything
+    // else returns false so the default handling (e.g. double-click opens the
+    // lookup value overlay) still runs.
+    const links = cellRenderStore?.links
+    if ((selected || isDoubleClick) && mousePosition && ncIsArray(links) && links.length) {
+      for (const link of links) {
+        if (isBoxHovered(link, mousePosition)) {
+          confirmPageLeavingRedirect(link.url, '_blank')
+          return true
+        }
+      }
+    }
+
+    return false
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

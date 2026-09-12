@@ -3,23 +3,26 @@ const route = useRoute()
 
 const router = useRouter()
 
-const isHttpUrl = (url: string) => {
-  if (!url) return false
-  const trimmed = url.trim()
-  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
-    return /^https?:\/\//i.test(trimmed)
-  }
-  return true
-}
+const { isDark } = useTheme()
 
+const { isWhiteLabelled, productName, logoUrl, logoDarkUrl, faviconUrl } = useBranding()
+
+const brandIcon = computed(() => {
+  if (!isWhiteLabelled.value) return null
+  return faviconUrl.value || (isDark.value ? logoDarkUrl.value || logoUrl.value : logoUrl.value)
+})
+
+// Both sinks (the <a :href> and window.location.href) must use the shared
+// guard — the previous bespoke isHttpUrl() was bypassed by scheme smuggling
+// (e.g. `j\tavascript:`, which browsers strip back to javascript:).
 const redirectUrl = computed(() => {
   const url = (route.query.ncRedirectUrl as string) ?? ''
-  return isHttpUrl(url) ? url : ''
+  return isSafeRedirectUrl(url) ? url : ''
 })
 
 const backUrl = computed(() => {
   const url = (route.query.ncBackUrl as string) ?? ''
-  return isHttpUrl(url) && isSameOriginUrl(url, true) ? url : ''
+  return isSafeRedirectUrl(url) && isSameOriginUrl(url, true) ? url : ''
 })
 
 if (!redirectUrl.value || !backUrl.value) {
@@ -41,7 +44,15 @@ const handleRedirect = (proceedToLink = false) => {
 <template>
   <div class="flex flex-col items-center justify-center gap-3 max-w-[420px] mx-auto text-center">
     <div>
-      <img class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      <img
+        v-if="isWhiteLabelled && brandIcon"
+        width="56px"
+        height="56px"
+        :alt="productName"
+        :src="brandIcon"
+        class="object-contain"
+      />
+      <img v-else class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
     </div>
     <div class="text-xl font-bold text-nc-content-gray">{{ $t('title.youAreLeavingNocoDB') }}</div>
     <div class="text-sm font-weight-500 text-nc-content-gray-subtle2">{{ $t('title.onlyProceedIfYouTrustThisLink') }}</div>

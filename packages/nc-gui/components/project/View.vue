@@ -24,6 +24,8 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
+const { productName } = useBranding()
+
 const { $e, $api } = useNuxtApp()
 
 const {
@@ -34,6 +36,8 @@ const {
   isWsAuditEnabled,
   isEEFeatureBlocked,
   showEEFeatures,
+  hideInterfaces,
+  blockWorkflows,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -59,7 +63,7 @@ const { base } = storeToRefs(useBase())
 
 const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 
-const { isMobileMode, appInfo } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
@@ -84,15 +88,14 @@ const userCount = computed(() => {
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(
-  () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
+  () => !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
 )
 
 const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
 
 const isWorkflowsTabVisible = computed(
   () =>
-    isEeUI &&
-    appInfo.value?.ee &&
+    !blockWorkflows.value &&
     isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
     isUIAllowed('workflowCreateOrEdit') &&
     !isMobileMode.value &&
@@ -114,11 +117,15 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (value === 'permissions' && showEEFeatures.value && showUpgradeToUseTableAndFieldPermissions()) {
+    if (
+      value === 'permissions' &&
+      showEEFeatures.value &&
+      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'project-table-field-permissions' })
+    ) {
       return
     }
 
-    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync()) {
+    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync({ triggerSource: 'project-sync' })) {
       return
     }
 
@@ -179,8 +186,16 @@ watch(
         projectPageTab.value = 'workflows'
       } else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
-      } else if (newVal === 'snapshots' && isEeUI) {
+      } else if (newVal === 'variables' && showEEFeatures.value) {
+        projectPageTab.value = 'variables'
+      } else if (newVal === 'interface-members' && showEEFeatures.value && !hideInterfaces.value) {
+        projectPageTab.value = 'interface-members'
+      } else if (newVal === 'snapshots' && showEEFeatures.value) {
         projectPageTab.value = 'snapshots'
+      } else if (newVal === 'record-trash' && showEEFeatures.value) {
+        projectPageTab.value = 'record-trash'
+      } else if (newVal === 'skills' && showEEFeatures.value) {
+        projectPageTab.value = 'skills'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -200,20 +215,36 @@ const { navigateToProjectPage } = useBase()
 
 const { t } = useI18n()
 
+// The overview tab is the landing page for whichever sidebar vertical is active
+const overviewTabMeta = computed(() => {
+  switch (activeSidebarTab.value) {
+    case 'workflows':
+      return { icon: 'ncAutomation', title: t('objects.workflows') }
+    case 'agents':
+      return { icon: 'ncAgent', title: t('objects.agents') }
+    default:
+      return { icon: 'ncMultiCircle', title: t('general.data') }
+  }
+})
+
 const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     'collaborator': t('labels.addUserToBase'),
+    'interface-members': t('labels.addUserToInterface'),
     'permissions': t('labels.dataPermissions'),
     'docs-permissions': t('labels.docsPermissions'),
     'mcp': t('title.mcpServer'),
+    'variables': t('title.baseVariables'),
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
+    'record-trash': t('trash.settings'),
+    'skills': t('labels.aiSkills'),
     'data-source': t('labels.addDataSource'),
     'integrations': t('labels.baseIntegrations'),
     'base-settings': t('general.general'),
     'audits': t('title.audits'),
     'workflows': t('objects.workflows'),
-    'overview': activeSidebarTab.value === 'workflows' ? t('objects.workflows') : t('general.data'),
+    'overview': overviewTabMeta.value.title,
   }
   return tabTitles[projectPageTab.value] || ''
 })
@@ -229,7 +260,10 @@ watch(projectPageTab, () => {
     const wsId = route.value.params.typeOrId
 
     const baseId = route.value.params.baseId
-    navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
+    navigateTo({
+      path: `/${wsId}/${baseId}/settings/${slug}`,
+      query: route.value.query,
+    })
     return
   }
 
@@ -259,7 +293,7 @@ watch(
   () => {
     if (activeTable.value?.title) return
 
-    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
+    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? productName.value ?? 'NocoDB'}`)
   },
   {
     immediate: true,
@@ -350,6 +384,7 @@ watch(
           <template v-else>
             <GeneralProjectIcon
               :color="parseProp(currentBase?.meta).iconColor"
+              :icon="parseProp(currentBase?.meta).icon"
               :type="currentBase?.type"
               :managed-app="{
                 managed_app_master: currentBase?.managed_app_master,
@@ -380,8 +415,13 @@ watch(
         </div>
       </div>
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
+        <SmartsheetTopbarVariableSetupWarning />
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
+        <!-- Base-level presence: this topbar backs base home, settings and docs, so
+             without it the avatars vanish the moment a user steps off a table. -->
+        <LazySmartsheetTopbarCollaboratorPresence v-if="!isSharedBase && isEeUI" />
+        <LazySmartsheetTopbarHistory />
         <LazyGeneralShareProject v-if="!props.tab" />
       </div>
     </div>
@@ -408,8 +448,8 @@ watch(
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__overview">
-              <GeneralIcon :icon="activeSidebarTab === 'workflows' ? 'ncAutomation' : 'ncMultiCircle'" />
-              <div>{{ activeSidebarTab === 'workflows' ? $t('objects.workflows') : $t('general.data') }}</div>
+              <GeneralIcon :icon="overviewTabMeta.icon" />
+              <div>{{ overviewTabMeta.title }}</div>
             </div>
           </template>
           <ProjectOverview />
@@ -436,6 +476,18 @@ watch(
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
+        <a-tab-pane
+          v-if="showEEFeatures && !hideInterfaces && isUIAllowed('interfaceUsersMatrix', { roles: baseRoles }) && base.id"
+          key="interface-members"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__interface-members">
+              <GeneralIcon icon="ncUsers" />
+              <div>{{ $t('labels.addUserToInterface') }}</div>
+            </div>
+          </template>
+          <ProjectInterfaceMembers />
+        </a-tab-pane>
         <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__workflows">
@@ -455,7 +507,7 @@ watch(
           </template>
           <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
@@ -469,10 +521,7 @@ watch(
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures"
-          key="docs-permissions"
-        >
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__docs-permissions">
               <GeneralIcon icon="ncFileText" />
@@ -514,11 +563,11 @@ watch(
           </template>
           <DashboardSettingsBaseIntegrations :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
-              <div>Syncs</div>
+              <div>{{ $t('labels.manageSyncs') }}</div>
               <LazyPaymentUpgradeBadge
                 :feature="PlanFeatureTypes.FEATURE_SYNC"
                 :feature-enabled-callback="() => !isEEFeatureBlocked"
@@ -549,15 +598,41 @@ watch(
             <DashboardSettingsBaseMCP />
           </div>
         </a-tab-pane>
+        <a-tab-pane v-if="showEEFeatures && base.id && !isMobileMode" key="variables">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__variables">
+              <GeneralIcon icon="ncSettings" />
+              <div>{{ $t('title.baseVariables') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseVariables />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseSkillList') && base.id && !isMobileMode" key="skills">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__skills">
+              <GeneralIcon icon="ncScript" />
+              <div>{{ $t('labels.aiSkills') }}</div>
+            </div>
+          </template>
+          <div class="py-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseSkills />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode" key="record-trash">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__record-trash">
+              <GeneralIcon icon="ncTrash2" />
+              <div>{{ $t('trash.settings') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseTrash />
+          </div>
+        </a-tab-pane>
         <a-tab-pane
-          v-if="
-            isEeUI &&
-            isUIAllowed('baseMiscSettings') &&
-            isUIAllowed('manageSnapshot') &&
-            base.id &&
-            !isMobileMode &&
-            showEEFeatures
-          "
+          v-if="isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode && showEEFeatures"
           key="snapshots"
         >
           <template #tab>

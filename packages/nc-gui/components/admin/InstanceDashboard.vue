@@ -3,6 +3,8 @@ const { stats, isLoading, fetchStats } = useInstanceAdmin()
 
 const { appInfo } = useGlobal()
 
+const { isWhiteLabelled, productName, faviconUrl } = useBranding()
+
 const instanceName = computed(() => {
   try {
     return appInfo.value.ncSiteUrl ? new URL(appInfo.value.ncSiteUrl).hostname : 'NocoDB'
@@ -38,7 +40,13 @@ onMounted(async () => {
         </span>
         <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-5">
           <div class="flex items-center gap-5">
-            <img src="~/assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="h-12 w-12 rounded-lg" />
+            <img
+              v-if="isWhiteLabelled && faviconUrl"
+              :src="faviconUrl"
+              :alt="productName"
+              class="h-12 w-12 rounded-lg object-contain"
+            />
+            <img v-else src="~/assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="h-12 w-12 rounded-lg" />
             <span class="text-nc-content-gray-emphasis text-2xl font-semibold">
               {{ instanceName }}
             </span>
@@ -52,8 +60,11 @@ onMounted(async () => {
             </div>
             <div class="flex-1 px-4 border-r-1 py-3">
               <div class="text-[40px] font-semibold">{{ isLoading ? '-' : stats.totalUsers }}</div>
-              <div class="text-nc-content-gray-subtle2 mt-2">
+              <div class="text-nc-content-gray-subtle2 mt-2 flex items-center gap-1">
                 {{ $t('objects.users') }}
+                <NcTooltip :title="$t('msg.info.instanceTotalUsersExplainer')" class="flex items-center">
+                  <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                </NcTooltip>
               </div>
             </div>
             <div class="flex-1 px-4 border-r-1 py-3">
@@ -64,7 +75,12 @@ onMounted(async () => {
             </div>
             <div class="flex-1 px-4 py-3">
               <div class="text-[40px] font-semibold">{{ isLoading ? '-' : stats.editorCount }}</div>
-              <div class="text-nc-content-gray-subtle2 mt-2">{{ $t('title.editors') }}</div>
+              <div class="text-nc-content-gray-subtle2 mt-2 flex items-center gap-1">
+                {{ $t('title.editors') }}
+                <NcTooltip :title="$t('msg.info.billableSeatExplainer')" class="flex items-center">
+                  <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                </NcTooltip>
+              </div>
             </div>
           </div>
         </div>

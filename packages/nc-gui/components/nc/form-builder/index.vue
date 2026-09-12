@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { type FormBuilderElement, type FormBuilderResponsiveSpan, type IntegrationType, ncIsArray } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
+import { FormBuilderGroupLabelsInj } from '~/context'
 
 const emit = defineEmits(['change'])
 
 const workflowContext = inject(WorkflowVariableInj, null)
+
+const groupLabels = inject(FormBuilderGroupLabelsInj, ref<Record<string, string>>({}))
 
 const { activeBreakpoint } = useGlobal()
 
@@ -40,6 +43,8 @@ const {
   setFormState,
   loadOptions,
   getFieldOptions,
+  getFieldOptionsError,
+  getFieldOptionsBlockedBy,
   getIsLoadingFieldOptions,
   toggleGroup,
   isGroupCollapsed,
@@ -296,7 +301,7 @@ watch(
                       />
                       <span>{{
                         isGroupCollapsed(`${category}-${field.group}`, getGroupDefaultCollapsed(category, field.group))
-                          ? field.groupLabel || $t('general.showMore')
+                          ? groupLabels[field.group] || field.groupLabel || $t('general.showMore')
                           : $t('general.showLess')
                       }}</span>
                     </div>
@@ -374,6 +379,17 @@ watch(
                       </template> -->
                     </a-input>
                   </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Date">
+                    <a-date-picker
+                      class="!w-full !rounded-lg"
+                      :disabled="disabled"
+                      :value="deepReference(field.model)"
+                      :placeholder="field.placeholder"
+                      format="YYYY-MM-DD"
+                      value-format="YYYY-MM-DD"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </template>
                   <template v-else-if="field.type === FormBuilderInputType.Textarea">
                     <a-textarea
                       class="!w-full !rounded-lg !text-sm !min-h-[90px] max-h-[500px] nc-scrollbar-thin"
@@ -414,6 +430,7 @@ watch(
                         :value="getSelectValue(field)"
                         :mode="selectMode(field)"
                         :max-tag-count="field.selectMode === 'singleWithInput' ? 1 : undefined"
+                        dropdown-class-name="nc-form-builder-select-dropdown"
                         show-search
                         :placeholder="field.placeholder"
                         :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
@@ -446,6 +463,29 @@ watch(
                             />
                           </div>
                         </a-select-option>
+
+                        <template v-if="field.fetchOptionsKey" #notFoundContent>
+                          <div
+                            v-if="getFieldOptionsError(field.model)"
+                            class="flex flex-col gap-2 items-start p-2 text-bodySm text-nc-content-gray-subtle"
+                            data-testid="nc-form-builder-options-error"
+                          >
+                            <span>{{ getFieldOptionsError(field.model) }}</span>
+                            <NcButton size="xsmall" type="secondary" @mousedown.prevent="loadOptions(field)">
+                              {{ $t('general.retry') }}
+                            </NcButton>
+                          </div>
+                          <div
+                            v-else-if="getFieldOptionsBlockedBy(field)"
+                            class="p-2 text-bodySm text-nc-content-gray-subtle"
+                            data-testid="nc-form-builder-options-blocked"
+                          >
+                            {{ $t('msg.info.selectFieldFirst', { field: getFieldOptionsBlockedBy(field) }) }}
+                          </div>
+                          <div v-else class="p-2 text-bodySm text-nc-content-gray-subtle">
+                            {{ $t('labels.noResults') }}
+                          </div>
+                        </template>
                       </NcSelect>
                     </NcFormBuilderInputMountedWrapper>
                   </template>
@@ -793,9 +833,13 @@ watch(
   @apply mt-2 mb-2;
 
   button {
-    @apply hover: !text-nc-content-brand;
+    @apply hover:!text-nc-content-brand;
   }
 }
 </style>
 
-<style lang="scss"></style>
+<style lang="scss">
+.nc-form-builder-select-dropdown .ant-select-item-option-state {
+  @apply !hidden;
+}
+</style>

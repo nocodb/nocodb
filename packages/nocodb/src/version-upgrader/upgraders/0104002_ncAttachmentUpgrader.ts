@@ -87,7 +87,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
         // get all attachment & primary key columns
         // and filter out the columns that are missing in database
-        const columns = await (await Model.get(context, model.id, ncMeta))
+        const columns = await (
+          await Model.get(context, model.id, false, ncMeta)
+        )
           .getColumns(context, ncMeta)
           .then(async (columns) => {
             const filteredColumns = [];

@@ -1,6 +1,6 @@
 import { IntegrationWrapper } from '../integration';
 import { NocoSDK } from '../sdk';
-import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
+import type { NocoDBContext } from '../nocodb';
 import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, TriggerTestMode, LoopContext } from 'nocodb-sdk'
 
 
@@ -24,6 +24,12 @@ export interface WorkflowNodeRunContext<TConfig = any> {
     config: TConfig;
     title?: string;
   };
+  /**
+   * Config paths (dot-notation, e.g. `config.body`) whose stored template was rich text, so
+   * their interpolated values were HTML-escaped. Decided once on the template: a node must not
+   * re-derive it from the interpolated result, or a record value can flip the mode.
+   */
+  htmlInputPaths?: string[];
   /**
    * Load an integration by ID (AI, Auth, or any other integration type).
    * Returns an Integration wrapper containing the integration.
@@ -113,16 +119,6 @@ export interface WorkflowNodeValidationResult {
   warnings?: { path?: string; message: string }[];
 }
 
-export interface NocoDBContext {
-  context: NocoSDK.NcContext;
-  dataService: IDataV3Service;
-  tablesService: ITablesService;
-  user: NocoSDK.UserType;
-  mailService: IMailService;
-  getBaseSchema: () => Promise<any>;
-  getAccessToken: () => string;
-}
-
 export interface WorkflowNodeConfig {
   _nocodb: NocoDBContext;
 }
@@ -137,7 +133,7 @@ export {
 
 export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig = WorkflowNodeConfig> extends IntegrationWrapper<TConfig> {
   protected get nocodb(): NocoDBContext {
-    return this.config._nocodb;
+    return this._config._nocodb;
   }
 
   /**

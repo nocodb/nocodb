@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
+import type { ColumnType } from 'nocodb-sdk'
+import { getAttachmentAnnotationKey } from 'nocodb-sdk'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 
@@ -74,15 +76,59 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const showAllAttachments = ref(false)
 
+// Host-tuned card display (interface record layouts) — all cards, larger tiles.
+const attachmentDisplay = inject(AttachmentCellDisplayInj, ref(null))
+
 const { width: sortableRefWidth } = useElementSize(sortableRef)
 
+/** Below two of these side by side, the large tiles go one per row. */
+const LARGE_CARD_MIN_WIDTH = 200
+
+// Record layouts cap at TWO tiles per row — comment badges + hover actions and
+// captions need the room, and the 2-up scale matches hero/carousel. A field
+// cell too narrow for two (a side-label row, the record-review detail column)
+// drops to ONE full-width tile instead of halving: the preview keeps its tall
+// crop either way, so a half-width tile in a narrow cell renders as a sliver.
+// Unmeasured (0) stays 2-up — the roomy case is the common one, so only
+// genuinely narrow cells reflow after the first measurement.
+const cardsPerRow = computed(() => {
+  if (attachmentDisplay.value?.largeTiles) {
+    return sortableRefWidth.value && sortableRefWidth.value < LARGE_CARD_MIN_WIDTH * 2 + 8 ? 1 : 2
+  }
+
+  return Math.floor((sortableRefWidth.value + 8) / (124 + 8))
+})
+
+const cardWidthStyle = computed(() => {
+  if (!attachmentDisplay.value?.largeTiles) return '124px'
+
+  return cardsPerRow.value === 1 ? '100%' : 'calc(50% - 4px)'
+})
+
+// Per-attachment comment counts (annotation threads: root + replies) — only
+// where the host allows viewer comments (record layouts with Comments on) and
+// a row-comments scope exists in the tree.
+const rowCommentsCtx = useRowComments()
+
+const attachmentCommentCounts = computed(() =>
+  attachmentDisplay.value?.allowComments && rowCommentsCtx ? buildAttachmentCommentCounts(rowCommentsCtx.comments.value) : null,
+)
+
+function attachmentCommentCount(item: any): number {
+  const key = getAttachmentAnnotationKey(item)
+
+  return (key && attachmentCommentCounts.value?.get(key)) || 0
+}
+
 const maxVisibleCards = computed(() => {
-  // min of total visible items and max cards per row * 2
-  return Math.min(visibleItems.value.length, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2)
+  // min of total visible items and two rows of cards — floored at 1 so a
+  // host narrower than one card (record-review's detail column) still shows
+  // the first attachment instead of only a "+ N more" button
+  return Math.min(visibleItems.value.length, Math.max(1, cardsPerRow.value * 2))
 })
 
 const expandedFormVisibelItems = computed(() => {
-  if (showAllAttachments.value) {
+  if (showAllAttachments.value || attachmentDisplay.value?.showAll) {
     return visibleItems.value
   }
 
@@ -98,6 +144,23 @@ const meta = inject(MetaInj, ref())
 if (!isPublic.value && !isForm.value && meta.value) {
   useProvideRowComments(meta, row)
 }
+
+// A comment list outside the carousel (expanded record sidebar) can request
+// focus on an annotated attachment — open this cell's carousel when the
+// request targets our row and one of our files.
+const { request: annotationFocusRequest } = useAnnotationFocusRequest()
+
+watch(annotationFocusRequest, (req) => {
+  if (!req || selectedFile.value) return
+
+  const rowId = extractPkFromRow(row.value?.row, (meta.value?.columns ?? []) as ColumnType[])
+  if (!rowId || rowId !== req.rowId) return
+
+  const match = visibleItems.value.find((item: any) => getAttachmentAnnotationKey(item) === req.attachmentKey)
+  if (match) {
+    selectedFile.value = { ...match }
+  }
+})
 
 const onDropAction = function (...args: any[]) {
   const draggingBool = unref(dragging)
@@ -338,20 +401,22 @@ onUnmounted(() => {
         v-for="(item, i) in expandedFormVisibelItems"
         :key="`${item?.title}-${i}`"
         v-model:dragging="dragging"
-        class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative w-[124px] overflow-hidden"
+        class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative overflow-hidden"
+        :style="{ width: cardWidthStyle }"
         :attachment="item"
         :index="i"
         :allow-selection="false"
         :allow-rename="isEditAllowed"
         :allow-delete="!isReadonly"
-        preview-class-override="!h-20"
+        :comment-count="attachmentCommentCount(item)"
+        :preview-class-override="attachmentDisplay?.largeTiles ? '!h-48' : '!h-20'"
         :rename-inline="false"
         :confirm-to-delete="true"
         @clicked="onFileClick(item)"
         @on-delete="onRemoveFileClick(item.title, i)"
       />
     </div>
-    <div v-if="visibleItems.length > maxVisibleCards" class="mb-2">
+    <div v-if="!attachmentDisplay?.showAll && visibleItems.length > maxVisibleCards" class="mb-2">
       <NcButton type="text" size="small" @click="showAllAttachments = !showAllAttachments">
         {{
           showAllAttachments

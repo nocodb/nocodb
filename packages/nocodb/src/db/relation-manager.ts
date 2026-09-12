@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import {
   AuditOperationSubTypes,
+  isDeletedCol,
   isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
@@ -8,9 +9,11 @@ import {
 } from 'nocodb-sdk';
 import { extractCorrespondingLinkColumn } from './BaseModelSqlv2/add-remove-links';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
+import type { Column } from '~/models';
+import { deletedColValue, displayValueMapKey } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { NcError } from '~/helpers/catchError';
@@ -71,6 +74,19 @@ export class RelationManager {
 
   getRelationContext() {
     return this.relationContext;
+  }
+
+  // Returns the LTAR display column override for `model`. Forwards to the
+  // BaseModelSqlv2 instance which caches per (ltarColumn, model) for the
+  // request — so multiple RelationManagers in the same bulk request don't
+  // each pay extractCorrespondingLinkColumn + getColOptions from cold.
+  protected async getDisplayColForModel(
+    model: Model,
+  ): Promise<Column | undefined> {
+    return this.relationContext.baseModel.getLtarDisplayColumnOverride(
+      this.relationContext.relationColumn,
+      model,
+    );
   }
 
   // for M2M and Belongs to relation, the relation stored in column option is reversed
@@ -237,26 +253,37 @@ export class RelationManager {
     const {
       childBaseModel: baseModel,
       childTn,
+      childTable,
       parentTn,
       childColumn,
       parentColumn,
       parentTable,
       parentId,
     } = this.relationContext;
-    return await baseModel.execAndParse(
-      baseModel.dbDriver(childTn).where({
-        [childColumn.column_name]: baseModel.dbDriver.from(
-          baseModel
-            .dbDriver(parentTn)
-            .select(parentColumn.column_name)
-            .where(_wherePk(parentTable.primaryKeys, parentId))
-            .first()
-            .as('___cn_alias'),
-        ),
-      }),
-      null,
-      { raw: true, first: true },
-    );
+    const qb = baseModel.dbDriver(childTn).where({
+      [childColumn.column_name]: baseModel.dbDriver.from(
+        baseModel
+          .dbDriver(parentTn)
+          .select(parentColumn.column_name)
+          .where(_wherePk(parentTable.primaryKeys, parentId))
+          .first()
+          .as('___cn_alias'),
+      ),
+    });
+
+    // Exclude soft-deleted rows — they should not block new OO links.
+    const softDeleteCol = childTable.columns?.find((c) => isDeletedCol(c));
+    if (softDeleteCol) {
+      const notDeletedValue = deletedColValue(baseModel, false);
+      qb.where(function () {
+        this.whereNull(softDeleteCol.column_name).orWhere(
+          softDeleteCol.column_name,
+          notDeletedValue,
+        );
+      });
+    }
+
+    return await baseModel.execAndParse(qb, null, { raw: true, first: true });
   }
 
   /**
@@ -285,6 +312,65 @@ export class RelationManager {
   }
 
   /**
+   * Per-link ordering for v2 junctions carrying Order columns: compute the
+   * append-at-end order value(s) for the single new junction row this addChild
+   * inserts. childOrderCol partitions by vChildCol (the child-side FK) and
+   * parentOrderCol by vParentCol (the parent-side FK) — each new row lands after
+   * the current max within its own partition. Mirrors the batch logic in
+   * add-remove-links `addLinks` for the single-row (v1 mm API) path. Returns an
+   * empty object for v1 links / external junctions (no Order columns).
+   */
+  private async computeJunctionAppendOrder(params: {
+    runner: any;
+    vTn: string | Knex.Raw;
+    vChildCol: Column;
+    vParentCol: Column;
+  }): Promise<Record<string, number>> {
+    const {
+      relationColOptions: colOptions,
+      mmContext,
+      parentColumn,
+      childColumn,
+      parentTable,
+      childTable,
+      parentTn,
+      childTn,
+      parentId,
+      childId,
+    } = this.relationContext;
+    const { runner, vTn, vChildCol, vParentCol } = params;
+
+    const childOrderCol = await colOptions.getMMChildOrderColumn(mmContext);
+    const parentOrderCol = await colOptions.getMMParentOrderColumn(mmContext);
+    const out: Record<string, number> = {};
+    if (!childOrderCol && !parentOrderCol) return out;
+
+    if (childOrderCol) {
+      const childValSub = runner(childTn)
+        .select(childColumn.column_name)
+        .where(_wherePk(childTable.primaryKeys, childId))
+        .first();
+      const res = await runner(vTn)
+        .max(`${childOrderCol.column_name} as m`)
+        .where(vChildCol.column_name, childValSub)
+        .first();
+      out[childOrderCol.column_name] = (Number(res?.m ?? 0) || 0) + 1;
+    }
+    if (parentOrderCol) {
+      const parentValSub = runner(parentTn)
+        .select(parentColumn.column_name)
+        .where(_wherePk(parentTable.primaryKeys, parentId))
+        .first();
+      const res = await runner(vTn)
+        .max(`${parentOrderCol.column_name} as m`)
+        .where(vParentCol.column_name, parentValSub)
+        .first();
+      out[parentOrderCol.column_name] = (Number(res?.m ?? 0) || 0) + 1;
+    }
+    return out;
+  }
+
+  /**
    * Batch delete junction rows by a filter column value (using a subquery).
    * Returns the FK pairs that were deleted for audit log generation.
    *
@@ -302,6 +388,10 @@ export class RelationManager {
         qb: Knex.QueryBuilder | string,
         opts?: { first?: boolean },
       ) => Promise<any>;
+      /** Table + path for the "other side" of the junction — used to skip soft-deleted rows */
+      otherSideTable?: Model;
+      otherSideColName?: string;
+      otherSideTn?: string | Knex.Raw;
     },
   ): Promise<Array<{ childFk: any; parentFk: any }>> {
     const {
@@ -311,6 +401,9 @@ export class RelationManager {
       filterColName,
       filterSubquery,
       execQb,
+      otherSideTable,
+      otherSideColName,
+      otherSideTn,
     } = params;
 
     // 1. SELECT existing junction rows (just FK columns)
@@ -323,12 +416,51 @@ export class RelationManager {
       return [];
     }
 
-    // 2. Batch DELETE all matching junction rows
-    const deleteQb = trx(vTn).where(filterColName, filterSubquery).delete();
+    // 2. DELETE — skip rows where the other side is soft-deleted so that the
+    //    junction entry is preserved for restore conflict detection.
+    const deleteQb = trx(vTn).where(filterColName, filterSubquery);
+    const softDeleteCol = otherSideTable?.columns?.find((c) => isDeletedCol(c));
+    if (softDeleteCol && otherSideColName && otherSideTn) {
+      deleteQb.whereNotExists(
+        trx(otherSideTn)
+          .select(1)
+          .where(softDeleteCol.column_name, deletedColValue(trx, true))
+          .whereRaw('?? = ??', [
+            otherSideTable.primaryKey.column_name,
+            `${vTn}.${otherSideColName}`,
+          ]),
+      );
+    }
+    deleteQb.delete();
     if (execQb) {
       await execQb(deleteQb);
     } else {
       await deleteQb;
+    }
+    // Return only the rows that were actually deleted (not preserved for soft-deleted other side)
+    if (softDeleteCol && otherSideColName) {
+      const deletedRowsQb = trx(vTn)
+        .select(vChildCol.column_name, vParentCol.column_name)
+        .where(filterColName, filterSubquery);
+      const deletedRows = execQb
+        ? await execQb(deletedRowsQb)
+        : await deletedRowsQb;
+      const deletedSet = new Set(
+        deletedRows.map(
+          (r) => `${r[vChildCol.column_name]}:${r[vParentCol.column_name]}`,
+        ),
+      );
+      return existingRows
+        .filter(
+          (row) =>
+            !deletedSet.has(
+              `${row[vChildCol.column_name]}:${row[vParentCol.column_name]}`,
+            ),
+        )
+        .map((row) => ({
+          childFk: row[vChildCol.column_name],
+          parentFk: row[vParentCol.column_name],
+        }));
     }
 
     return existingRows.map((row) => ({
@@ -351,19 +483,44 @@ export class RelationManager {
 
     const { baseModel } = this.relationContext;
 
-    // Batch-fetch display values for all evicted rows
+    // Batch-fetch display values for all evicted rows. Thread the LTAR's
+    // custom display column (fk_display_value_column_id) per side via
+    // getDisplayColForModel — returns the override only for the related side
+    // and undefined otherwise (so the source side falls back to default PV).
+    const [parentDisplayColumn, childDisplayColumn] = await Promise.all([
+      this.getDisplayColForModel(parentTable),
+      this.getDisplayColForModel(childTable),
+    ]);
     const dvMap = await baseModel.fetchDisplayValueMap(
       removedPairs.flatMap((pair) => [
-        { model: parentTable, id: pair.parentFk },
-        { model: childTable, id: pair.childFk },
+        {
+          model: parentTable,
+          id: pair.parentFk,
+          displayColumn: parentDisplayColumn,
+        },
+        {
+          model: childTable,
+          id: pair.childFk,
+          displayColumn: childDisplayColumn,
+        },
       ]),
     );
 
     for (const pair of removedPairs) {
       const parentDisplayValue = dvMap.get(
-        `${parentTable.id}:${pair.parentFk}`,
+        displayValueMapKey({
+          model: parentTable,
+          id: pair.parentFk,
+          displayColumn: parentDisplayColumn,
+        }),
       );
-      const childDisplayValue = dvMap.get(`${childTable.id}:${pair.childFk}`);
+      const childDisplayValue = dvMap.get(
+        displayValueMapKey({
+          model: childTable,
+          id: pair.childFk,
+          displayColumn: childDisplayColumn,
+        }),
+      );
 
       this.auditUpdateObj.push({
         rowId: pair.parentFk,
@@ -436,7 +593,7 @@ export class RelationManager {
     // Wrap cardinality enforcement + insert in a single transaction.
     // External mux sources don't support PG transactions over HTTP — skip
     // the transaction wrapper but still execute queries through execAndParse.
-    const isExternal = (baseModel.dbDriver as any).isExternal;
+    const isExternal = !!baseModel.dbDriver.isExternal;
     const trx: any = isExternal
       ? baseModel.dbDriver
       : await baseModel.dbDriver.transaction();
@@ -456,6 +613,9 @@ export class RelationManager {
           filterColName: vChildCol.column_name,
           filterSubquery: childFkSubquery,
           execQb: isExternal ? execQb : undefined,
+          otherSideTable: parentTable,
+          otherSideColName: vParentCol.column_name,
+          otherSideTn: parentTn,
         });
 
         for (const pair of moRemovedPairs) {
@@ -484,6 +644,9 @@ export class RelationManager {
           vParentCol,
           filterColName: vParentCol.column_name,
           filterSubquery: parentFkSubquery,
+          otherSideTable: childTable,
+          otherSideColName: vChildCol.column_name,
+          otherSideTn: childTn,
           execQb: isExternal ? execQb : undefined,
         });
 
@@ -521,6 +684,12 @@ export class RelationManager {
           await insertQb;
         }
       } else {
+        const orderVals = await this.computeJunctionAppendOrder({
+          runner: trx,
+          vTn,
+          vChildCol,
+          vParentCol,
+        });
         const insertObj = {
           [vParentCol.column_name]: trx(parentTn)
             .select(parentColumn.column_name)
@@ -530,6 +699,7 @@ export class RelationManager {
             .select(childColumn.column_name)
             .where(_wherePk(childTable.primaryKeys, childId))
             .first(),
+          ...orderVals,
         };
         const insertQb = trx(vTn).insert(insertObj);
         if (isExternal) {
@@ -694,6 +864,12 @@ export class RelationManager {
                 { raw: true },
               );
             } else {
+              const orderVals = await this.computeJunctionAppendOrder({
+                runner: baseModel.dbDriver,
+                vTn,
+                vChildCol,
+                vParentCol,
+              });
               await assocBaseModel.execAndParse(
                 baseModel.dbDriver(vTn).insert({
                   [vParentCol.column_name]: baseModel
@@ -706,6 +882,7 @@ export class RelationManager {
                     .select(childColumn.column_name)
                     .where(_wherePk(childTable.primaryKeys, childId))
                     .first(),
+                  ...orderVals,
                 }),
                 null,
                 { raw: true },
@@ -744,10 +921,24 @@ export class RelationManager {
 
           if (oldRowId) {
             await webhookHandler.addAffectedParentId(oldRowId);
+            const [childDisplayColumn, parentDisplayColumn] = await Promise.all(
+              [
+                this.getDisplayColForModel(childTable),
+                this.getDisplayColForModel(parentTable),
+              ],
+            );
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: childTable, id: childId },
-                { model: parentTable, id: oldRowId },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: childDisplayColumn,
+                },
+                {
+                  model: parentTable,
+                  id: oldRowId,
+                  displayColumn: parentDisplayColumn,
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -827,10 +1018,24 @@ export class RelationManager {
             : null;
           if (oldParentRowId) {
             await webhookHandler.addAffectedParentId(oldParentRowId);
+            const [parentDisplayColumn, childDisplayColumn] = await Promise.all(
+              [
+                this.getDisplayColForModel(parentTable),
+                this.getDisplayColForModel(childTable),
+              ],
+            );
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: parentTable, id: oldParentRowId },
-                { model: childTable, id: childId },
+                {
+                  model: parentTable,
+                  id: oldParentRowId,
+                  displayColumn: parentDisplayColumn,
+                },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: childDisplayColumn,
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -923,10 +1128,23 @@ export class RelationManager {
 
             if (oldChildRowId) {
               await webhookHandler.addAffectedChildId(oldChildRowId);
+              const [childDisplayColumn, parentDisplayColumn] =
+                await Promise.all([
+                  this.getDisplayColForModel(childTable),
+                  this.getDisplayColForModel(parentTable),
+                ]);
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await baseModel.readOnlyPrimariesByPkFromModel([
-                  { model: childTable, id: oldChildRowId },
-                  { model: parentTable, id: parentId },
+                  {
+                    model: childTable,
+                    id: oldChildRowId,
+                    displayColumn: childDisplayColumn,
+                  },
+                  {
+                    model: parentTable,
+                    id: parentId,
+                    displayColumn: parentDisplayColumn,
+                  },
                 ]);
 
               this.auditUpdateObj.push({
@@ -966,10 +1184,24 @@ export class RelationManager {
             : null;
           if (oldRowId) {
             await webhookHandler.addAffectedParentId(oldRowId);
+            const [childDisplayColumn, parentDisplayColumn] = await Promise.all(
+              [
+                this.getDisplayColForModel(childTable),
+                this.getDisplayColForModel(parentTable),
+              ],
+            );
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: childTable, id: childId },
-                { model: parentTable, id: oldRowId },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: childDisplayColumn,
+                },
+                {
+                  model: parentTable,
+                  id: oldRowId,
+                  displayColumn: parentDisplayColumn,
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -999,10 +1231,10 @@ export class RelationManager {
               updatedColIds: [refTableLinkColumnId],
             });
           }
-          // todo: unlink if it's already mapped
-          // unlink already mapped record if any
-          await childBaseModel.execAndParse(
-            baseModel
+          // Unlink existing child records — but preserve FK on soft-deleted
+          // rows so restore conflict detection can detect the OO violation.
+          {
+            const unlinkQb = baseModel
               .dbDriver(childTn)
               .where({
                 [childColumn.column_name]: baseModel.dbDriver.from(
@@ -1014,10 +1246,23 @@ export class RelationManager {
                     .as('___cn_alias'),
                 ),
               })
-              .update({ [childColumn.column_name]: null }),
-            null,
-            { raw: true },
-          );
+              .update({ [childColumn.column_name]: null });
+
+            const softDeleteCol = childTable.columns?.find((c) =>
+              isDeletedCol(c),
+            );
+            if (softDeleteCol) {
+              const notDeletedValue = deletedColValue(baseModel, false);
+              unlinkQb.where(function () {
+                this.whereNull(softDeleteCol.column_name).orWhere(
+                  softDeleteCol.column_name,
+                  notDeletedValue,
+                );
+              });
+            }
+
+            await childBaseModel.execAndParse(unlinkQb, null, { raw: true });
+          }
 
           await childBaseModel.execAndParse(
             baseModel
@@ -1331,18 +1576,41 @@ export class RelationManager {
         )
       : null;
 
-    const [childRelatedPkValue] =
-      await baseModel.readOnlyPrimariesByPkFromModel([
-        { model: childTable, id: childId },
-      ]);
+    // Re-fetch the old parent's display value via readOnlyPrimariesByPkFromModel
+    // rather than reading from prevData[column.title] — the upstream readByPk
+    // that produced prevData doesn't thread fk_display_value_column_id, so the
+    // nested LTAR object only has pk+pv and never carries the override column.
+    const [childDisplayColumn, parentDisplayColumn] = await Promise.all([
+      this.getDisplayColForModel(childTable),
+      oldChildRowId
+        ? this.getDisplayColForModel(parentTable)
+        : Promise.resolve(undefined),
+    ]);
+    const dvProps = [
+      {
+        model: childTable,
+        id: childId,
+        displayColumn: childDisplayColumn,
+      },
+      ...(oldChildRowId
+        ? [
+            {
+              model: parentTable,
+              id: oldChildRowId,
+              displayColumn: parentDisplayColumn,
+            },
+          ]
+        : []),
+    ];
+    const [childRelatedPkValue, oldParentDisplayValue = null] =
+      await baseModel.readOnlyPrimariesByPkFromModel(dvProps);
 
     if (oldChildRowId) {
       this.auditUpdateObj.push({
         rowId: parentId,
         refRowId: oldChildRowId as string,
         opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-        displayValue:
-          prevData[column.title]?.[parentTable.displayValue.title] ?? null,
+        displayValue: oldParentDisplayValue,
         refDisplayValue: childRelatedPkValue,
         direction: 'parent_child',
         type: colOptions.type as RelationTypes,
@@ -1353,8 +1621,7 @@ export class RelationManager {
         refRowId: parentId,
         opSubType: AuditOperationSubTypes.UNLINK_RECORD,
         displayValue: childRelatedPkValue,
-        refDisplayValue:
-          prevData[column.title]?.[parentTable.displayValue.title] ?? null,
+        refDisplayValue: oldParentDisplayValue,
         direction: 'child_parent',
         type: getOppositeRelationType(colOptions.type),
       });

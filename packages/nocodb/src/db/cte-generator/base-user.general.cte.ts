@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 import type { ClientType, NcContext } from 'nocodb-sdk';
 import type { ICteBlock, ICTEGenerator } from './types';
+import { buildBaseUserCteSelect } from '~/db/cte-generator/base-user.cte.utils';
 import { BaseUser } from '~/models';
 
 export class BaseUserGeneralCte {
@@ -28,12 +29,7 @@ export class BaseUserGeneralCte {
     return {
       alias: alias,
       applyCte: (qb: Knex.QueryInterface, { knex }) => {
-        const selectUnionQuery = baseUsers
-          .map((u) => {
-            return `SELECT '${u.fk_user_id}' as id, '${u.email}' as email`;
-          })
-          .join(' UNION ALL ');
-        qb.with(alias, knex.raw(selectUnionQuery));
+        qb.with(alias, buildBaseUserCteSelect(knex, baseUsers));
       },
     } as ICteBlock;
   }

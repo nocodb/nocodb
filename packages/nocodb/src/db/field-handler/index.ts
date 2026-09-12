@@ -20,6 +20,7 @@ import type {
   FilterOptions,
   FilterVerificationResult,
   IFieldHandler,
+  SortOptions,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
 import type { Filter } from '~/models';
@@ -46,12 +47,16 @@ import { YearGeneralHandler } from '~/db/field-handler/handlers/year/year.genera
 import { UserGeneralHandler } from '~/db/field-handler/handlers/user/user.general.handler';
 import { DurationGeneralHandler } from '~/db/field-handler/handlers/duration/duration.general.handler';
 import { CheckboxSqliteHandler } from '~/db/field-handler/handlers/checkbox/checkbox.sqlite.handler';
+import { CheckboxMssqlHandler } from '~/db/field-handler/handlers/checkbox/checkbox.mssql.handler';
 import { LongTextGeneralHandler } from '~/db/field-handler/handlers/long-text/long-text.general.handler';
+import { LongTextMysqlHandler } from '~/db/field-handler/handlers/long-text/long-text.mysql.handler';
 import { SingleLineTextGeneralHandler } from '~/db/field-handler/handlers/single-line-text/single-line-text.general.handler';
+import { LongTextPgHandler } from '~/db/field-handler/handlers/long-text/long-text.pg.handler';
 import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
 import { DateTimeSQLiteHandler } from '~/db/field-handler/handlers/date-time/date-time.sqlite.handler';
 import { DateTimeMySQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mysql.handler';
 import { DateTimePGHandler } from '~/db/field-handler/handlers/date-time/date-time.pg.handler';
+import { DateTimeMssqlHandler } from '~/db/field-handler/handlers/date-time/date-time.mssql.handler';
 import { DecimalMysqlHandler } from '~/db/field-handler/handlers/decimal/decimal.mysql.handler';
 import { DecimalSqliteHandler } from '~/db/field-handler/handlers/decimal/decimal.sqlite.handler';
 import { NumberPgHandler } from '~/db/field-handler/handlers/number/number.pg.handler';
@@ -66,15 +71,35 @@ import { PercentPgHandler } from '~/db/field-handler/handlers/percent/percent.pg
 import { PercentSqliteHandler } from '~/db/field-handler/handlers/percent/percent.sqlite.handler';
 import { UserPgHandler } from '~/db/field-handler/handlers/user/user.pg.handler';
 import { UserSqliteHandler } from '~/db/field-handler/handlers/user/user.sqlite.handler';
+import { GenericPgFieldHandler } from '~/db/field-handler/handlers/generic.pg';
+import { GenericSqliteFieldHandler } from '~/db/field-handler/handlers/generic.sqlite';
+import { MultiSelectMysqlHandler } from '~/db/field-handler/handlers/multi-select/multi-select.mysql.handler';
+import {
+  CreatedByGeneralHandler,
+  CreatedByPgHandler,
+  CreatedBySqliteHandler,
+  LastModifiedByGeneralHandler,
+  LastModifiedByPgHandler,
+  LastModifiedBySqliteHandler,
+} from '~/db/field-handler/handlers/user/created-modified-by.handlers';
 import { PhoneNumberGeneralHandler } from '~/db/field-handler/handlers/phone-number/phone-number.general.handler';
 import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
+import { JsonMssqlHandler } from '~/db/field-handler/handlers/json/json.mssql.handler';
 import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
 import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
 import { TimeGeneralHandler } from '~/db/field-handler/handlers/time/time.general.handler';
 import { TimeMysqlHandler } from '~/db/field-handler/handlers/time/time.mysql.handler';
+import { TimeMssqlHandler } from '~/db/field-handler/handlers/time/time.mssql.handler';
 import { UuidPgHandler } from '~/db/field-handler/handlers/uuid/uuid.pg.handler';
+import { UuidMssqlHandler } from '~/db/field-handler/handlers/uuid/uuid.mssql.handler';
+import { CheckboxOracleHandler } from '~/db/field-handler/handlers/checkbox/checkbox.oracle.handler';
+import { DateTimeOracleHandler } from '~/db/field-handler/handlers/date-time/date-time.oracle.handler';
+import { TimeOracleHandler } from '~/db/field-handler/handlers/time/time.oracle.handler';
+import { LongTextOracleHandler } from '~/db/field-handler/handlers/long-text/long-text.oracle.handler';
+import { JsonOracleHandler } from '~/db/field-handler/handlers/json/json.oracle.handler';
+import { AttachmentOracleHandler } from '~/db/field-handler/handlers/attachment/attachment.oracle.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -104,19 +129,31 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.LongText]: {
     [CLIENT_DEFAULT]: LongTextGeneralHandler,
+    [ClientType.PG]: LongTextPgHandler,
+    [ClientType.MYSQL]: LongTextMysqlHandler,
+    [ClientType.ORACLE]: LongTextOracleHandler,
   },
   [UITypes.Attachment]: {
     [CLIENT_DEFAULT]: AttachmentGeneralHandler,
+    [ClientType.ORACLE]: AttachmentOracleHandler,
   },
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
     [ClientType.SQLITE]: CheckboxSqliteHandler,
+    [ClientType.MSSQL]: CheckboxMssqlHandler,
+    [ClientType.ORACLE]: CheckboxOracleHandler,
   },
   [UITypes.MultiSelect]: {
     [CLIENT_DEFAULT]: MultiSelectGeneralHandler,
+    [ClientType.PG]: GenericPgFieldHandler,
+    [ClientType.MYSQL]: MultiSelectMysqlHandler,
+    [ClientType.SQLITE]: GenericSqliteFieldHandler,
   },
   [UITypes.SingleSelect]: {
     [CLIENT_DEFAULT]: SingleSelectGeneralHandler,
+    [ClientType.PG]: GenericPgFieldHandler,
+    [ClientType.MYSQL]: MultiSelectMysqlHandler,
+    [ClientType.SQLITE]: GenericSqliteFieldHandler,
   },
   [UITypes.Date]: {
     [CLIENT_DEFAULT]: DateGeneralHandler,
@@ -127,6 +164,8 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Time]: {
     [CLIENT_DEFAULT]: TimeGeneralHandler,
     [ClientType.MYSQL]: TimeMysqlHandler,
+    [ClientType.MSSQL]: TimeMssqlHandler,
+    [ClientType.ORACLE]: TimeOracleHandler,
   },
   [UITypes.PhoneNumber]: {
     [CLIENT_DEFAULT]: PhoneNumberGeneralHandler,
@@ -141,6 +180,7 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.UUID]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,
     [ClientType.PG]: UuidPgHandler,
+    [ClientType.MSSQL]: UuidMssqlHandler,
   },
   [UITypes.Number]: {
     [CLIENT_DEFAULT]: NumberGeneralHandler,
@@ -189,24 +229,32 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMssqlHandler,
+    [ClientType.ORACLE]: DateTimeOracleHandler,
   },
   [UITypes.CreatedTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMssqlHandler,
+    [ClientType.ORACLE]: DateTimeOracleHandler,
   },
   [UITypes.LastModifiedTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMssqlHandler,
+    [ClientType.ORACLE]: DateTimeOracleHandler,
   },
   [UITypes.AutoNumber]: {},
   [UITypes.Geometry]: {},
   [UITypes.JSON]: {
     [ClientType.PG]: JsonPgHandler,
     [ClientType.MYSQL]: JsonMySqlHandler,
+    [ClientType.MSSQL]: JsonMssqlHandler,
+    [ClientType.ORACLE]: JsonOracleHandler,
     [CLIENT_DEFAULT]: JsonGeneralHandler,
   },
   [UITypes.SpecificDBType]: {},
@@ -228,10 +276,14 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.SQLITE]: UserSqliteHandler,
   },
   [UITypes.CreatedBy]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: CreatedByGeneralHandler,
+    [ClientType.PG]: CreatedByPgHandler,
+    [ClientType.SQLITE]: CreatedBySqliteHandler,
   },
   [UITypes.LastModifiedBy]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: LastModifiedByGeneralHandler,
+    [ClientType.PG]: LastModifiedByPgHandler,
+    [ClientType.SQLITE]: LastModifiedBySqliteHandler,
   },
 };
 
@@ -326,7 +378,11 @@ export class FieldHandler implements IFieldHandler {
       logicalOps?: string;
     }[] = [];
     let index = 0;
-    for (const filter of filters) {
+    for (const filter of filters ?? []) {
+      // a null/undefined entry carries no condition — skip it
+      if (!filter) {
+        continue;
+      }
       if (filter.is_group) {
         qbHandlers.push({
           handler: await this.applyFilterGroup(filter, options),
@@ -389,6 +445,32 @@ export class FieldHandler implements IFieldHandler {
       knex,
       fieldHandler: this,
       ...this.info,
+      ...options,
+    });
+  }
+
+  /**
+   * Dispatch ORDER BY for a column through the type's handler. Each handler
+   * decides how its column should be sorted (User by display name, Formula
+   * by compiled SQL, etc.). Falls back to GenericFieldHandler.applySort
+   * (plain `qb.orderBy(column_name)`) when no type-specific handler is
+   * registered.
+   */
+  async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions = {},
+  ): Promise<void> {
+    const knex = options.knex ?? this.info.knex;
+    const dbClient = (knex.clientType?.() ??
+      knex.client.config.client) as ClientType;
+    const handler =
+      this.getHandler(column.uidt, dbClient) ?? new GenericFieldHandler();
+    return handler.applySort(qb, column, direction, {
+      knex,
+      context: this.info.context,
+      baseModel: this.info.baseModel,
       ...options,
     });
   }
@@ -471,7 +553,11 @@ export class FieldHandler implements IFieldHandler {
     handler: <T>(filter: Filter) => Promise<void | T>,
   ) {
     return Promise.all(
-      (filters ?? []).map(async (filter) => {
+      (Array.isArray(filters) ? filters : []).map(async (filter) => {
+        // a null/undefined entry carries no condition — skip it
+        if (!filter) {
+          return;
+        }
         // somehow filters is an array of array
         if (Array.isArray(filter)) {
           return this.traverseFilters(filter, handler);

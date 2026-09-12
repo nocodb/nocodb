@@ -9,6 +9,8 @@ import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { IntegrationsService } from '~/services/integrations.service';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { partialExtract } from '~/utils/dataUtils';
+import { decryptPropIfRequired } from '~/utils/encryptDecrypt';
 
 @Injectable()
 export class BaseIntegrationsService {
@@ -50,6 +52,7 @@ export class BaseIntegrationsService {
         `${MetaTable.INTEGRATIONS}.is_global`,
         `${MetaTable.INTEGRATIONS}.is_restricted`,
         `${MetaTable.INTEGRATIONS}.created_by`,
+        `${MetaTable.INTEGRATIONS}.config`,
         `${MetaTable.INTEGRATIONS}.meta`,
         `${MetaTable.INTEGRATIONS}.created_at`,
       )
@@ -76,7 +79,7 @@ export class BaseIntegrationsService {
 
     // Filter: available if unrestricted OR explicitly linked OR global
     // Also exclude private integrations not created by the current user
-    return integrations.filter((integration) => {
+    const available = integrations.filter((integration) => {
       if (
         integration.is_private &&
         param.userId &&
@@ -88,6 +91,29 @@ export class BaseIntegrationsService {
       if (!integration.is_restricted) return true;
       return linkedIntegrationIds.has(integration.id);
     });
+
+    // Expose only the non-sensitive DB info (client, database, schema) the
+    // create/edit source form needs — never host/user/password. Mirrors the
+    // includeDatabaseInfo subset in Integration.list; without it the base-scoped
+    // list drops config entirely and the PG schema field never renders.
+    for (const integration of available) {
+      if (integration.type === IntegrationsTypeEnum.Database) {
+        integration.config = partialExtract(
+          decryptPropIfRequired({ data: integration }),
+          [
+            'client',
+            ['connection', 'database'],
+            ['connection', 'filepath'],
+            ['connection', 'connection', 'filepath'],
+            ['searchPath'],
+          ],
+        );
+      } else {
+        integration.config = undefined;
+      }
+    }
+
+    return available;
   }
 
   /**
@@ -121,15 +147,21 @@ export class BaseIntegrationsService {
       );
     }
 
-    if (param.includeConfig) {
-      // Only the creator can see config
-      if (integration.is_private && param.userId !== integration.created_by) {
-        integration.config = undefined;
-      } else {
-        integration.config = await integration.getConnectionConfig();
-      }
+    // Clear config unless the caller explicitly requested it AND is allowed to
+    // see it. The safe behavior must NOT depend on `includeConfig` being present
+    // — otherwise omitting it leaks the raw stored config. Mirrors the
+    // workspace-scoped read in integrations.controller.ts.
+    if (
+      !param.includeConfig ||
+      (integration.is_private && param.userId !== integration.created_by)
+    ) {
+      integration.config = undefined;
+    } else {
+      integration.config = await integration.getConnectionConfig();
     }
 
+    // Runs only on the decrypted config object (or `undefined`) — never on the
+    // raw stored string, so the DB password mask actually takes effect.
     if (integration.type === IntegrationsTypeEnum.Database) {
       maskKnexConfig(integration);
     }
@@ -221,10 +253,11 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
-    // Only the creator can update from base context
+    // Only the creator can update from base context. Must not be a 401 — the
+    // frontend interceptor reads that as an expired session and signs the user out.
     if (integration.created_by !== param.req.user?.id) {
-      NcError.get(context).unauthorized(
-        'Only the creator can update this integration.',
+      NcError.get(context).insufficientPrivilege(
+        'Only the user who created this integration can update it.',
       );
     }
 
@@ -390,6 +423,14 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
+    // Validate before opening a transaction — otherwise falling through to
+    // the bad-request throw below would leak an open trx.
+    if (!param.allBases && !param.baseIds?.length) {
+      NcError.get(context).badRequest(
+        'Either all_bases or base_ids must be provided.',
+      );
+    }
+
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
@@ -410,36 +451,30 @@ export class BaseIntegrationsService {
         return { all_bases: true };
       }
 
-      if (param.baseIds?.length) {
-        // Set restricted + replace links
-        await Integration.updateIntegration(
-          context,
-          param.integrationId,
-          { is_restricted: true },
-          ncMeta,
-        );
-        await IntegrationLink.replaceLinksForIntegration(
-          context,
-          {
-            integrationId: param.integrationId,
-            baseIds: param.baseIds,
-            workspaceId: integration.fk_workspace_id,
-            userId: param.userId,
-          },
-          ncMeta,
-        );
-        await ncMeta.commit();
-        return { all_bases: false, base_ids: param.baseIds };
-      }
+      // Set restricted + replace links
+      await Integration.updateIntegration(
+        context,
+        param.integrationId,
+        { is_restricted: true },
+        ncMeta,
+      );
+      await IntegrationLink.replaceLinksForIntegration(
+        context,
+        {
+          integrationId: param.integrationId,
+          baseIds: param.baseIds,
+          workspaceId: integration.fk_workspace_id,
+          userId: param.userId,
+        },
+        ncMeta,
+      );
+      await ncMeta.commit();
+      return { all_bases: false, base_ids: param.baseIds };
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to update linked bases');
     }
-
-    NcError.get(context).badRequest(
-      'Either all_bases or base_ids must be provided.',
-    );
   }
 }

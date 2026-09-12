@@ -5,13 +5,107 @@ import { ncIsArray } from 'nocodb-sdk'
 export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
 export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
-export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.active, .ant-drawer-open')
-export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
+
+/** Portalled overlays belong to the surface that opened them, wherever they render. */
+const PORTALLED_OVERLAY_SELECTOR = '.ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .ant-dropdown'
+
+/**
+ * Track whether the user's intent sits on an overlay surface (the EE side
+ * panel, the interface record sheet). Both are inline siblings of the grid, so
+ * both can be active at once and focus alone can't answer it — the canvas grid
+ * isn't focusable, so clicking a cell leaves activeElement on BODY rather than
+ * inside the grid wrapper. Hence the most recent click is remembered too, in
+ * a capture-phase listener.
+ *
+ * Clicking OUT of the surface while one of its inputs still holds focus blurs
+ * that input: without it the next keystroke fires on the stale input — Enter
+ * on a focused ant-select opens its dropdown long after the user visually
+ * clicked away.
+ */
+function trackClickIntent(
+  surfaceSelector: string,
+  {
+    ignoreSelector = PORTALLED_OVERLAY_SELECTOR,
+    onClick,
+  }: { ignoreSelector?: string; onClick?: (target: HTMLElement) => void } = {},
+) {
+  let lastClickInside = false
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener(
+      'click',
+      (e) => {
+        const t = e.target as HTMLElement | null
+        if (!t || t.closest(ignoreSelector)) return
+
+        const inside = !!t.closest(surfaceSelector)
+        lastClickInside = inside
+        onClick?.(t)
+
+        if (!inside) {
+          const surface = document.querySelector(surfaceSelector)
+          const active = document.activeElement as HTMLElement | null
+          if (surface && active && surface.contains(active) && typeof active.blur === 'function') active.blur()
+        }
+      },
+      true,
+    )
+  }
+
+  return {
+    clickedInside: () => lastClickInside,
+    markInside: () => {
+      lastClickInside = true
+    },
+    reset: () => {
+      lastClickInside = false
+    },
+  }
+}
+
+// The panel "blocks" grid-level keyboard handling only while the user is
+// actually interacting with it. Once they click a grid cell they've explicitly
+// switched intent, so grid Tab/Enter/Arrows/Backspace resume working even
+// while the panel is still visible.
+const expandedFormPanelIntent = trackClickIntent('.nc-expanded-form-panel')
+
+// Reset to "intent on panel" when the panel mounts — so opening EFP via the
+// grid expand-row icon (which is technically a grid click) doesn't leave grid
+// keyboard active afterwards. Called from ExpandedFormPanel.vue on mount.
+export const markExpandedFormPanelFocus = () => expandedFormPanelIntent.markInside()
+
+const isFocusInsideExpandedFormPanel = () => {
+  const panel = document.querySelector('.nc-expanded-form-panel')
+  if (!panel) return false
+  const el = document.activeElement
+  return !!el && panel.contains(el)
+}
+
+// True when the user is currently interacting with the panel — either focus is
+// inside it, or their most recent click landed inside it. Grid keyboard
+// handlers check this and bail.
+export const isExpandedFormPanelOpen = () =>
+  !!document.querySelector('.nc-expanded-form-panel') &&
+  (isFocusInsideExpandedFormPanel() || expandedFormPanelIntent.clickedInside())
+
+export const isDrawerOrModalExist = () =>
+  !!document.querySelector('.ant-modal.active, .ant-drawer-open') || isExpandedFormPanelOpen()
+
+export const isExpandedFormOpenExist = () =>
+  !!document.querySelector('.nc-drawer-expanded-form.active') || isExpandedFormPanelOpen()
 export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.nc-drawer-expanded-form.active')?.length > 1
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
 export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
-export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
+// `GeneralOverlay` toggles with `v-show`, so its element stays mounted while
+// closed — presence alone would report every page carrying one (the chat
+// panel's file preview) as permanently overlaid, and the grid's keyboard
+// handlers, which bail on this, would never fire again.
+export const isGeneralOverlayActive = () =>
+  Array.from(document.querySelectorAll<HTMLElement>('.nc-general-overlay')).some((el) => {
+    const style = window.getComputedStyle(el)
+    return style.display !== 'none' && style.visibility !== 'hidden'
+  })
 export const isSelectActive = () => {
   const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
   return Array.from(els).some((el) => {
@@ -27,6 +121,68 @@ export const isActiveElementInsideExtension = () =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
 export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
+export const isActiveElementInsideSmartTextPanel = () =>
+  document.querySelector('.nc-smart-text-panel')?.contains(document.activeElement)
+export const isActiveElementInsideInterfacePanel = () =>
+  ['.nc-interface-properties-panel', '.nc-interface-page-description'].some((selector) =>
+    document.querySelector(selector)?.contains(document.activeElement),
+  )
+// The LTAR embed (view mode) the last click landed in — embeds inside the sheet
+// take turns owning the keyboard the same way the sheet does against the page.
+const INTERFACE_EMBED_HOST_SELECTOR = '.nc-interface-ltar-viz-host'
+let _lastClickEmbedHost: Element | null = null
+
+const interfaceRecordSheetIntent = trackClickIntent('.nc-interface-record-form-sheet', {
+  // A modal, drawer or expanded cell editor opened FROM a sheet field renders
+  // outside the sheet — working inside one is still working in the sheet.
+  ignoreSelector: `${PORTALLED_OVERLAY_SELECTOR}, .ant-modal, .ant-drawer, .expanded-cell-input`,
+  onClick: (t) => {
+    _lastClickEmbedHost = t.closest(INTERFACE_EMBED_HOST_SELECTOR)
+  },
+})
+
+/** Interface record-detail sheet owns the keyboard: always for the full-screen
+ *  page variant (the viz is hidden), otherwise only while the user is working
+ *  inside it (focus / last click) — so the grid behind a side sheet keeps its
+ *  arrow navigation and the sheet follows the active row. The sheet only
+ *  exists inside interface contexts, so classic grids are unaffected.
+ *
+ *  `hostEl` = the calling grid/list's own element. A viz embedded IN the sheet
+ *  is never blocked by the sheet itself — it owns the keyboard while the last
+ *  click landed in its embed and focus isn't in a sheet input elsewhere. */
+export const isInterfaceRecordSheetOpen = (hostEl?: Element | null) => {
+  const sheet = document.querySelector('.nc-interface-record-form-sheet')
+  if (!sheet) {
+    interfaceRecordSheetIntent.reset()
+    _lastClickEmbedHost = null
+    return false
+  }
+  const active = document.activeElement
+  if (hostEl && sheet.contains(hostEl)) {
+    const embed = hostEl.closest(INTERFACE_EMBED_HOST_SELECTOR)
+    if (!embed || embed !== _lastClickEmbedHost) return true
+    return !!active && active !== document.body && !embed.contains(active)
+  }
+  if (sheet.classList.contains('nc-rf-sheet-full')) return true
+  return (!!active && sheet.contains(active)) || interfaceRecordSheetIntent.clickedInside()
+}
+/** Interface builder chrome: the right-side config panel, the topbars, a page
+ *  toolbar (the user-filter tab strip lives inside it) and the page sidebar.
+ *  Clicking any of it is a context switch, so the mounted grid/list drops its
+ *  cell selection — which in turn hands Tab back to native focus traversal.
+ *
+ *  Deliberately a `closest` test on the CLICK TARGET rather than an outside-click:
+ *  cell editors portal their dropdowns and modals to `<body>`, so an outside-click
+ *  test counts those as "outside" and would deselect mid-edit. */
+export const INTERFACE_CONFIG_CHROME_SELECTOR = [
+  '.nc-interface-properties-panel',
+  '.nc-interface-editor-topbar',
+  '.nc-interface-table-topbar',
+  '.nc-interface-table-toolbar',
+  '.nc-interface-app-sidebar',
+].join(',')
+export const isInterfaceConfigChromeTarget = (target: EventTarget | null) =>
+  !!(target as HTMLElement | null)?.closest?.(INTERFACE_CONFIG_CHROME_SELECTOR)
 export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }

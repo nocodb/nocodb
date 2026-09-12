@@ -13,5 +13,6 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   message.config({
     duration: ANT_MESSAGE_DURATION,
+    maxCount: ANT_MESSAGE_MAX_COUNT,
   })
 })

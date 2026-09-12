@@ -444,7 +444,7 @@ async function openNewRecordHandler() {
                       >
                         <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                           <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                          <span v-else class="text-nc-content-gray-disabled">No mapped value</span>
+                          <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.noMappedValue') }}</span>
                         </template>
                       </div>
                       <a-tag
@@ -500,20 +500,20 @@ async function openNewRecordHandler() {
                         <NcMenu variant="small">
                           <NcMenuItem v-if="activeGroups.includes(grp.key.toString())" @click="collapseGroup(grp.key)">
                             <GeneralIcon icon="minimize" />
-                            Collapse group
+                            {{ $t('labels.collapseGroup') }}
                           </NcMenuItem>
                           <NcMenuItem v-else @click="expandGroup(grp.key)">
                             <GeneralIcon icon="maximize" />
-                            Expand group
+                            {{ $t('labels.expandGroup') }}
                           </NcMenuItem>
                           <!--
                           <NcMenuItem @click="expandAllGroup">
                             <GeneralIcon icon="maximizeAll" />
-                            Expand all
+                            {{ $t('labels.expandAll') }}
                           </NcMenuItem>
                           <NcMenuItem @click="collapseAllGroup">
                             <GeneralIcon icon="minimizeAll" />
-                            Collapse all
+                            {{ $t('labels.collapseAll') }}
                           </NcMenuItem>
                           -->
                         </NcMenu>
@@ -610,7 +610,7 @@ async function openNewRecordHandler() {
     >
       <div class="flex items-center gap-2">
         <GeneralIcon icon="plus" />
-        New Record
+        {{ $t('activity.newRecord') }}
       </div>
     </NcButton>
   </div>

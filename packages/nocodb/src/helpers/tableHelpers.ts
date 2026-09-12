@@ -3,15 +3,15 @@ import {
   extractRolesObj,
   getProjectRole,
   type NcContext,
+  type OperationSource,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
   PermissionRole,
   ProjectRoles,
 } from 'nocodb-sdk';
-import type { UITypes, UserType } from 'nocodb-sdk';
-import type { User } from '~/models';
-import { Permission } from '~/models';
+import type { NcRequest, UITypes } from 'nocodb-sdk';
+import { Model, ModelRoleVisibility, Permission, View } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
   TableSystemColumns,
@@ -22,16 +22,25 @@ import {
 } from '~/helpers/getUniqueName';
 import { DriverClient } from '~/utils/nc-config';
 import { isEE } from '~/utils';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 
 export const repopulateCreateTableSystemColumns = (
   _context: NcContext,
   {
     columns,
     clientType,
-  }: { columns: (ColumnType & { cn?: string })[]; clientType: DriverClient },
+    isMeta = true,
+    operationSource,
+  }: {
+    columns: (ColumnType & { cn?: string })[];
+    clientType: DriverClient;
+    isMeta?: boolean;
+    operationSource?: OperationSource;
+  },
 ) => {
   const tableSystemColumns = TableSystemColumns(
     isEE && clientType === DriverClient.PG,
+    isMeta,
   );
 
   // check meta column support and filter out
@@ -79,7 +88,7 @@ export const repopulateCreateTableSystemColumns = (
         col.cn = col.column_name;
       }
     }
-    deleteColumnSystemPropsFromRequest(col);
+    deleteColumnSystemPropsFromRequest(col, { operationSource });
   }
   return result;
 };
@@ -142,7 +151,7 @@ export function hasViewersAndUpTableVisibility(
 export async function hasTableVisibilityAccess(
   context: NcContext,
   tableId: string,
-  user: User | UserType,
+  user: NcRequest['user'],
   permissions?: Permission[],
 ): Promise<boolean> {
   // Get permissions if not provided
@@ -197,5 +206,91 @@ export async function hasTableVisibilityAccess(
   return await Permission.isAllowed(context, visibilityPermission, {
     id: user.id,
     role: userRole,
+    is_agent: user?.is_agent,
   });
+}
+
+/**
+ * Whether the caller's role still reaches a table under the CE per-view
+ * visibility rules (`ModelRoleVisibility`, the "UI ACL" screen).
+ *
+ * `getAccessibleTables` drops a table from the LIST once every one of its views
+ * is disabled for the role, but the routes that take a table or view id
+ * directly never re-applied that decision — so an id learned while access was
+ * legitimate (or read off a Link column's `fk_related_model_id`) kept working.
+ * Same rule as the list: reachable while ANY view is still enabled for ANY role
+ * the caller holds — except a model with no views at all, which the list drops
+ * but this grants. That divergence is deliberately fail-open: a viewless model
+ * is mid-create or partially deleted, not an access decision to enforce.
+ */
+export async function hasModelRoleVisibilityAccess(
+  context: NcContext,
+  tableId: string,
+  roles: Record<string, boolean>,
+): Promise<boolean> {
+  if (roles?.[ProjectRoles.OWNER]) return true;
+
+  // Cheapest gate first — most bases have no UI-ACL rows at all, and this list
+  // is cached, so the common request never loads the model or its views.
+  const disabledRolesByView = new Map<string, Set<string>>();
+  for (const entry of await ModelRoleVisibility.list(
+    context,
+    context.base_id,
+  )) {
+    if (!entry.disabled) continue;
+    const disabled = disabledRolesByView.get(entry.fk_view_id) ?? new Set();
+    disabled.add(entry.role);
+    disabledRolesByView.set(entry.fk_view_id, disabled);
+  }
+  if (!disabledRolesByView.size) return true;
+
+  const callerRoles = Object.values(ProjectRoles).filter(
+    (role) => roles?.[role],
+  );
+  // No ProjectRole in the caller's set — fail open, consistent with every other
+  // unknown here (`!model`, `!views.length`). The set can legitimately lack one
+  // (a non-`base` scope that still resolves a table id, or access granted purely
+  // via `extendedScope`), and UI-ACL is keyed on ProjectRoles, so it has nothing
+  // to say about such a caller. The main ACL gate already ran.
+  if (!callerRoles.length) return true;
+
+  const model = await Model.get(context, tableId);
+  // Unknown table — leave the 404 to the route rather than masking it as a 403.
+  if (!model) return true;
+
+  // Only view ids are needed, and this runs in extract-ids on every request
+  // that resolves a table or view id — so use the cheap cached id list, not
+  // `model.getViews` (a per-view `getViewWithInfo`, i.e. N fetches per request).
+  const views = await View.list(context, tableId);
+  if (!views.length) return true;
+
+  return views.some((view) => {
+    const disabled = disabledRolesByView.get(view.id);
+    return callerRoles.some((role) => !disabled?.has(role));
+  });
+}
+
+/**
+ * Whether a nested-link fetch must collapse the RELATED table to what the link
+ * exposes (pk + primary value + the link's custom display column). Two
+ * independent access boundaries: the caller lacks TABLE_VISIBILITY on the
+ * related table, or the request came through a shared VIEW/form — which
+ * publishes one view of one table, so the tables it links to are not published.
+ *
+ * The second needs its own check: with no user `hasTableVisibilityAccess` falls
+ * back to `hasDefaultTableVisibility`, `true` whenever no TABLE_VISIBILITY row
+ * exists, so a same-base link on a shared view used to expose the full table.
+ * Shared BASE is excluded — authenticated pseudo-user, normal access.
+ */
+export async function hasLimitedRelatedTableAccess(
+  context: NcContext,
+  relatedTableId: string,
+): Promise<boolean> {
+  if (isSharedViewAccess(context)) return true;
+
+  return !(await hasTableVisibilityAccess(
+    context,
+    relatedTableId,
+    context.user,
+  ));
 }

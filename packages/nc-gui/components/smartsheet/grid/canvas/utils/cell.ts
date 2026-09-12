@@ -62,8 +62,14 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
   colOptions.options = selectColOptions.options
     .filter((op) => op.title !== '')
     .map((op) => {
-      if (op.order !== null) {
-        op.title = op.title?.replace(/^'/, '').replace(/'$/, '')
+      // malformed colOptions can carry non-string titles (e.g. numbers) — normalize so
+      // the optionsMap keys below match the stringified cell values used by renderers
+      if (!ncIsString(op.title) && !ncIsNullOrUndefined(op.title)) {
+        op.title = String(op.title)
+      }
+
+      if (op.order !== null && ncIsString(op.title)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '')
       }
 
       op.value = op.title

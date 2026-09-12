@@ -9,6 +9,13 @@ const useAttachment = () => {
   // `useAttachment` is used inside normal function of canvas table so we have to use `getI18n().global` instead of `useI18n`
   const { t } = getI18n().global
 
+  const joinSiteUrl = (path: string) => {
+    // Resolve ncSiteUrl against the page origin first so a relative value
+    // like '/' (production default) becomes an absolute base URL.
+    const base = new URL(appInfo.value.ncSiteUrl || '/', window.location.origin)
+    return new URL(path, base).toString()
+  }
+
   const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small') => {
     const res: string[] = []
 
@@ -17,9 +24,9 @@ const useAttachment = () => {
     }
     if (item?.data) res.push(item.data)
     if (item?.file) res.push(window.URL.createObjectURL(item.file))
-    if (item?.signedPath) res.push(`${appInfo.value.ncSiteUrl}/${encodeURI(item.signedPath)}`)
+    if (item?.signedPath) res.push(joinSiteUrl(encodeURI(item.signedPath)))
     if (item?.signedUrl) res.push(item.signedUrl)
-    if (item?.path) res.push(`${appInfo.value.ncSiteUrl}/${encodeURI(item.path)}`)
+    if (item?.path) res.push(joinSiteUrl(encodeURI(item.path)))
     if (item?.url) res.push(item.url)
     return res
   }

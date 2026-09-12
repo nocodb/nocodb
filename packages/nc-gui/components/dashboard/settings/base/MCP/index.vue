@@ -206,7 +206,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
             ref="newTokenInputRef"
             v-model:value="newMcpTokenTitle"
             class="new-token-title"
-            placeholder="Token name"
+            :placeholder="$t('title.tokenName')"
             @keydown.enter="createTokenWithExpiry(token)"
             @keydown.esc="cancelNewMcpToken"
           />

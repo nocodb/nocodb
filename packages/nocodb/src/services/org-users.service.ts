@@ -32,6 +32,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class OrgUsersService {
@@ -111,19 +112,15 @@ export class OrgUsersService {
       req: param.req,
     });
 
-    // Also update workspace role in the default workspace
-    if (Noco.ncDefaultWorkspaceId && updateBody.roles) {
-      const wsRole =
-        updateBody.roles === OrgUserRoles.CREATOR
-          ? WorkspaceUserRoles.CREATOR
-          : WorkspaceUserRoles.VIEWER;
-      try {
-        await WorkspaceUser.update(Noco.ncDefaultWorkspaceId, param.userId, {
-          roles: wsRole,
-        });
-      } catch {
-        // User might not have a workspace entry yet — ignore
-      }
+    // The org role gates org-scoped operations only — upload, uploadViaURL,
+    // genericGPT, testConnection, api tokens, bookmarks. It no longer cascades
+    // to the default-workspace role, so changing it neither grants nor revokes
+    // access to any workspace or base; workspace membership roles are the
+    // enforced dimension there.
+    if (updateBody.roles) {
+      this.logger.warn(
+        `Org role updated for user ${param.userId} — org roles do not grant or revoke workspace or base access; use workspace membership roles for that`,
+      );
     }
 
     return result;
@@ -238,7 +235,7 @@ export class OrgUsersService {
     const emails = (param.user.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     // check for invalid emails
@@ -251,10 +248,10 @@ export class OrgUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const invite_token = uuidv4();
     const error = [];
 
     for (const email of emails) {
+      const invite_token = uuidv4();
       // add user to base if user already exist
       let user = await User.getByCanonicalEmail(email);
 
@@ -333,7 +330,7 @@ export class OrgUsersService {
         msg: 'success',
       };
     } else {
-      return { invite_token, emails, error };
+      return { msg: 'success', emails, error };
     }
   }
 

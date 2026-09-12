@@ -21,7 +21,7 @@ export const parseUserMention = (
         display_name: match[1]?.split('|')?.[2],
       } as User)
 
-    const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
+    const processedContent = extractUserDisplayNameOrEmail(bUser)
 
     let className = 'mention'
     if (bUser.id === currentUser?.id) {
@@ -84,7 +84,7 @@ export const UserMention = TipTapMention.extend<MentionOptions<any, MentionNodeA
     // an object. Fallback to empty string to avoid passing undefined to ProseMirror's
     // renderSpec, which would crash with "Cannot read properties of undefined (reading 'nodeType')".
     const innerText = ncIsObject(attributes)
-      ? (attributes.name && attributes.name.length > 0 ? attributes.name : attributes.email) || ''
+      ? extractUserDisplayNameOrEmail({ display_name: attributes.name, email: attributes.email })
       : ''
 
     const styles =

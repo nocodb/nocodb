@@ -3,11 +3,13 @@ import { promisify } from 'util';
 import { Readable } from 'stream';
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 interface GoogleCloudStorageInput {
   client_email: string;
@@ -157,9 +159,9 @@ export default class Gcs implements IStorageAdapterV2 {
   ): Promise<{ url: string; data: any }> {
     try {
       const response = await axios.get(url, {
-        httpAgent: useAgent(url),
-        httpsAgent: useAgent(url),
+        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
         responseType: buffer ? 'arraybuffer' : 'stream',
+        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       });
 
       const file = this.storageClient.bucket(this.bucketName).file(destPath);
@@ -181,7 +183,10 @@ export default class Gcs implements IStorageAdapterV2 {
     }
   }
 
-  public async fileReadByStream(key: string): Promise<Readable> {
+  public async fileReadByStream(
+    key: string,
+    options?: { encoding?: string; start?: number; end?: number },
+  ): Promise<Readable> {
     const file = this.storageClient
       .bucket(this.bucketName)
       .file(this.patchKey(key));
@@ -194,7 +199,23 @@ export default class Gcs implements IStorageAdapterV2 {
       );
     }
 
-    return file.createReadStream();
+    return file.createReadStream({
+      ...(options?.start !== undefined && { start: options.start }),
+      ...(options?.end !== undefined && { end: options.end }),
+    });
+  }
+
+  public async fileSize(key: string): Promise<number> {
+    try {
+      const [metadata] = await this.storageClient
+        .bucket(this.bucketName)
+        .file(this.patchKey(key))
+        .getMetadata();
+
+      return Number(metadata.size ?? 0);
+    } catch (e) {
+      NcError._.storageFileReadError(e.message);
+    }
   }
 
   public async getDirectoryList(path: string): Promise<string[]> {

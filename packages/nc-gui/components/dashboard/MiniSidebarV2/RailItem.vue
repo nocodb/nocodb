@@ -30,6 +30,11 @@ const emits = defineEmits<{
   (e: 'click'): void
 }>()
 
+const slots = useSlots()
+
+// Labels render beside icons only at ≥1280px (see media query in styles) — the tooltip is redundant then
+const isLabelVisible = useMediaQuery('(min-width: 1280px)')
+
 const tooltipText = computed(() => props.tooltip || props.label)
 
 const currentIcon = computed(() => {
@@ -37,16 +42,15 @@ const currentIcon = computed(() => {
   return props.icon
 })
 
-const disableTooltipForNewSidebar = true
+const isTooltipDisabled = computed(() => {
+  if (!tooltipText.value || props.disableTooltip) return true
+
+  return !!(props.label || slots.label) && isLabelVisible.value
+})
 </script>
 
 <template>
-  <NcTooltip
-    class="w-full flex justify-center relative"
-    placement="right"
-    :arrow="false"
-    :disabled="!tooltipText || disableTooltip || disableTooltipForNewSidebar"
-  >
+  <NcTooltip class="w-full flex justify-center relative" placement="right" :arrow="false" :disabled="isTooltipDisabled">
     <template #title>{{ tooltipText }}</template>
 
     <div
@@ -98,7 +102,6 @@ const disableTooltipForNewSidebar = true
   }
 
   &:hover:not(.active):not(.disabled) {
-    @apply text-nc-content-subtle2;
     background: rgba(0, 0, 0, 0.05);
 
     :root[theme='dark'] & {
@@ -111,7 +114,9 @@ const disableTooltipForNewSidebar = true
     @apply text-nc-content-brand;
     background: rgba(0, 0, 0, 0.08);
 
+    // brand-500 on the dark pill is only ~3.5:1 — lift to brand-600 for AA
     :root[theme='dark'] & {
+      @apply text-nc-brand-600;
       background: rgba(255, 255, 255, 0.08);
     }
 

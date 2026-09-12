@@ -1,9 +1,42 @@
-import { ColumnHelper, type ColumnType, FormulaDataTypes, type TableType, UITypes, isNumericCol, isVirtualCol } from 'nocodb-sdk'
+import {
+  ClientType,
+  ColumnHelper,
+  type ColumnType,
+  FormulaDataTypes,
+  SqlUiFactory,
+  type TableType,
+  UITypes,
+  isNumericCol,
+  isVirtualCol,
+  ncIsNaN,
+} from 'nocodb-sdk'
 
 export interface FieldQueryType {
   field: string
   query: string
   isValidFieldQuery?: boolean
+}
+
+export interface FieldQueryScope {
+  search: Ref<FieldQueryType>
+  searchMap: Ref<Record<string, FieldQueryType>>
+}
+
+/**
+ * Tree-scoped override for `useFieldQuery` — provided by hosts that mount a
+ * SECOND live search surface beside the page's own (the LTAR embedded viz),
+ * so their SearchData + smartsheet store read an isolated state instead of
+ * the app-global "current view" search (typing in one box would otherwise
+ * show up — and filter — in the other).
+ */
+export const FieldQueryScopeInj: InjectionKey<FieldQueryScope> = Symbol('field-query-scope')
+
+/** Fresh isolated state for `FieldQueryScopeInj` providers. */
+export function createFieldQueryScope(): FieldQueryScope {
+  return {
+    search: ref({ field: '', query: '', isValidFieldQuery: true }),
+    searchMap: ref({}),
+  }
 }
 
 export interface ValidSearchQueryForColumnReturnType {
@@ -28,13 +61,20 @@ export function useFieldQuery() {
     isValidFieldQuery: true,
   }
 
+  // Tree-scoped override (see FieldQueryScopeInj) — null keeps the app-global
+  // state below. Guarded: callers are all setup-context composables, but a
+  // future non-setup call must not warn.
+  const scope = getCurrentInstance() ? inject(FieldQueryScopeInj, null) : null
+
   // mapping view id (key) to corresponding emptyFieldQueryObj (value)
-  const searchMap = useState<Record<string, FieldQueryType>>('field-query-search-map', () => ({}))
+  const searchMap = scope?.searchMap ?? useState<Record<string, FieldQueryType>>('field-query-search-map', () => ({}))
 
   // the fieldQueryObj under the current view
-  const search = useState<FieldQueryType>('field-query-search', () => ({
-    ...emptyFieldQueryObj,
-  }))
+  const search =
+    scope?.search ??
+    useState<FieldQueryType>('field-query-search', () => ({
+      ...emptyFieldQueryObj,
+    }))
 
   // retrieve the fieldQueryObj of the given view id
   // if it is not found in `searchMap`, init with emptyFieldQueryObj
@@ -59,7 +99,7 @@ export function useFieldQuery() {
     col: ColumnType,
     query?: string,
     tableMeta?: TableType,
-    params: { getWhereQueryAs?: 'string' | 'object' } = {},
+    params: { getWhereQueryAs?: 'string' | 'object'; serializeLinkRecordSearchQuery?: boolean } = {},
   ): string | ValidSearchQueryForColumnReturnType => {
     if (!isValidValue(query)) return ''
 
@@ -76,6 +116,7 @@ export function useFieldQuery() {
         meta: tableMeta,
         metas: metas.value,
         serializeSearchQuery: true,
+        serializeLinkRecordSearchQuery: params.serializeLinkRecordSearchQuery,
       })
     } catch (_err: any) {
       /**
@@ -100,7 +141,15 @@ export function useFieldQuery() {
 
     if (!params.getWhereQueryAs) return searchQuery ?? ''
 
-    const sqlUi = tableMeta?.source_id ? sqlUis.value[tableMeta.source_id] : Object.values(sqlUis.value)[0]
+    // The base store normally resolves a SqlUi per source; on public/interface-only
+    // surfaces it seeds one from the shared-interface meta's real client (see
+    // `sqlUis` in ee/store/base.ts). The MySQL default is a last resort for the
+    // narrow window before that meta loads — without any SqlUi the abstract-type
+    // check below fails and every text column falls through to `eq` instead of `like`.
+    const sqlUi =
+      (tableMeta?.source_id && sqlUis.value[tableMeta.source_id]) ||
+      Object.values(sqlUis.value)[0] ||
+      SqlUiFactory.create({ client: ClientType.MYSQL })
 
     if (
       (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
@@ -120,6 +169,13 @@ export function useFieldQuery() {
       return `(${col.title},like,%${searchQuery}%)`
     }
 
+    const isNumericSearchTarget =
+      isNumericCol(col) ||
+      col.dt === 'bigint' ||
+      (col.uidt === UITypes.Formula && getFormulaColDataType(col) === FormulaDataTypes.NUMERIC)
+
+    if (isNumericSearchTarget && ncIsNaN(searchQuery)) return ''
+
     if (params.getWhereQueryAs === 'object') {
       return {
         fk_column_id: col.id!,
@@ -131,5 +187,11 @@ export function useFieldQuery() {
     return `(${col.title},eq,${searchQuery})`
   }
 
-  return { search, loadFieldQuery, getValidSearchQueryForColumn }
+  return {
+    search,
+    loadFieldQuery,
+    getValidSearchQueryForColumn,
+    /** True inside a `FieldQueryScopeInj` subtree — its search state is its own. */
+    isScoped: !!scope,
+  }
 }

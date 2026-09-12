@@ -17,7 +17,16 @@ const { user, signOut, isMobileMode } = useGlobal()
 
 const { toggleMode } = useMiniSidebarMode()
 
-const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen } = useTheme()
+
+const openThemeConfig = () => {
+  isThemeConfigOpen.value = true
+  emits('closeMenu')
+}
+
+const { availableTours } = useTours()
+
+const { isExperimentalFeatureModalOpen, isFeatureEnabled } = useBetaFeatureToggle()
 
 const themeLabel = computed(
   () =>
@@ -37,7 +46,9 @@ const themeIcon = computed(
     }[selectedTheme.value] as IconMapKey),
 )
 
-const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
+const isThemeConfigEnabled = computed(() => isThemeEnabled.value && isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
+
+const showTourMenu = computed(() => isFeatureEnabled(FEATURE_FLAG.PRODUCT_TOURS_MENU) && availableTours.value.length > 0)
 
 const auditsStore = useAuditsStore()
 
@@ -115,7 +126,7 @@ const openKeyboardShortcutDialog = () => {
 
       <!-- Dock Mode -->
       <NcMenuItem v-if="isMiniSidebar" @click="toggleMode">
-        <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
+        <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon" />
         <span class="menu-btn">Dock Mode</span>
         <NcBadgeBeta />
       </NcMenuItem>
@@ -141,6 +152,16 @@ const openKeyboardShortcutDialog = () => {
           </span>
         </div>
       </NcMenuItem>
+      <NcSubMenu v-if="showTourMenu" title-class="flex-1" data-testid="nc-sidebar-product-tours">
+        <template #title>
+          <!-- v-e must sit on an element — on NcSubMenu it silently never fires -->
+          <span v-e="['c:tour:menu-open']" class="flex items-center gap-2">
+            <GeneralIcon icon="ncCompass" class="menu-icon" />
+            {{ $t('title.productTours') }}
+          </span>
+        </template>
+        <TourLauncherMenu @close-menu="emits('closeMenu')" />
+      </NcSubMenu>
 
       <!-- Admin Panel (EE) -->
       <DashboardSidebarEEMenuOption v-if="isEeUI" />
@@ -184,7 +205,19 @@ const openKeyboardShortcutDialog = () => {
       <NcMenuItem v-if="isThemeEnabled" v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
         <GeneralIcon :icon="themeIcon" class="menu-icon" />
         <span class="menu-btn">{{ themeLabel }}</span>
-        <span class="text-nc-content-gray-muted text-xs ml-auto">Appearance</span>
+        <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
+      </NcMenuItem>
+
+      <!-- Theme settings -->
+      <NcMenuItem
+        v-if="isThemeConfigEnabled"
+        v-e="['c:theme:config-open']"
+        data-testid="nc-sidebar-user-theme-config"
+        @click="openThemeConfig"
+      >
+        <GeneralIcon icon="palette" class="menu-icon" />
+        <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
+        <NcBadgeBeta />
       </NcMenuItem>
 
       <!-- Account Settings -->
@@ -234,7 +267,16 @@ const openKeyboardShortcutDialog = () => {
         <NcMenuItem v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
           <GeneralIcon :icon="themeIcon" class="menu-icon" />
           <span class="menu-btn">{{ themeLabel }}</span>
-          <span class="text-nc-content-gray-muted text-xs ml-auto">Appearance</span>
+          <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
+        </NcMenuItem>
+        <NcMenuItem
+          v-if="isThemeConfigEnabled"
+          v-e="['c:theme:config-open']"
+          data-testid="nc-sidebar-user-theme-config"
+          @click="openThemeConfig"
+        >
+          <GeneralIcon icon="palette" class="menu-icon" />
+          <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
         </NcMenuItem>
       </template>
 

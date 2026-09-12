@@ -1,0 +1,81 @@
+services:
+
+  nocodb:
+    image: nocodb/nocodb:latest
+    env_file: docker.env
+    deploy:
+      mode: replicated
+      replicas: 1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - nocodb_data:/usr/app/data
+      - ./nocodb/db.json:/usr/app/data/db.json
+    networks:
+      - nocodb-network
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --tries=1 --spider http://localhost:8080/api/v1/health || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ports:
+      - '80:8080'
+
+  worker:
+    image: nocodb/nocodb:latest
+    env_file: docker.env
+    environment:
+      NC_WORKER_CONTAINER: 'true'
+    depends_on:
+      nocodb:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - nocodb_data:/usr/app/data
+      - ./nocodb/db.json:/usr/app/data/db.json
+    networks:
+      - nocodb-network
+
+  db:
+    image: postgres:17.10
+    environment:
+      POSTGRES_USER: nocodb
+      POSTGRES_PASSWORD: __PASSWORD__
+      POSTGRES_DB: nocodb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nocodb -d nocodb']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nocodb-network
+
+  redis:
+    image: redis:7
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nocodb-network
+
+networks:
+  nocodb-network:
+    driver: bridge
+
+volumes:
+  nocodb_data:
+  postgres_data:
+  redis_data:

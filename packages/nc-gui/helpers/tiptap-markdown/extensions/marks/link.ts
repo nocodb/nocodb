@@ -50,8 +50,11 @@ export const Link = TiptapLink.extend<LinkOptions>({
     }
 
     // We use this as a workaround to show a tooltip on the content
-    // We use the href to store the tooltip content
-    if (!attr.href?.includes('~~~###~~~')) {
+    // We use the href to store the tooltip content.
+    // `href` can be a non-string (e.g. a number) from imported/pasted doc JSON,
+    // and `.includes`/`.split` are string-only — guard the type to avoid
+    // "includes is not a function".
+    if (!ncIsString(attr.href) || !attr.href.includes('~~~###~~~')) {
       return ['a', attr, 0]
     }
 
@@ -208,7 +211,18 @@ export const Link = TiptapLink.extend<LinkOptions>({
   addStorage() {
     return {
       markdown: {
-        serialize: defaultMarkdownSerializer.marks.link,
+        // Reuse prosemirror's default link serialiser, but force the markdown
+        // `[text](url)` form for every link — including plain URLs where the text
+        // equals the href. By default the serialiser emits the autolink `<url>` form
+        // (via isPlainURL); the backend comment sanitiser then runs DOMPurify over the
+        // markdown and strips `<url>` as an unknown HTML tag, wiping the link (and the
+        // whole comment when it's the only content). Overriding `open` to '[' leaves
+        // `inAutolink` unset, so the default `close` falls through to its bracketed
+        // `](url)` branch. See nocodb#14083.
+        serialize: {
+          ...defaultMarkdownSerializer.marks.link,
+          open: '[',
+        },
         parse: {
           // handled by markdown-it
         },

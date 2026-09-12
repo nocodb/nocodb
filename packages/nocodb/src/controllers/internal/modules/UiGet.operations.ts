@@ -7,6 +7,7 @@ import type {
 } from '~/utils/internal-type';
 import { DataTableService } from '~/services/data-table.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { ViewsService } from '~/services/views.service';
@@ -20,6 +21,7 @@ import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
+
 @Injectable()
 export class UiGetOperations
   implements InternalApiModule<InternalGETResponseType>
@@ -43,6 +45,7 @@ export class UiGetOperations
   operations = [
     'nestedDataList' as const,
     'tableGet' as const,
+    'refTableGet' as const,
     'columnsHash' as const,
     'viewList' as const,
     'viewColumnList' as const,
@@ -50,6 +53,7 @@ export class UiGetOperations
     'filterList' as const,
     'filterChildrenList' as const,
     'sortList' as const,
+    'lookupSortList' as const,
     'hookList' as const,
     'hookLogList' as const,
     'hookFilterList' as const,
@@ -102,6 +106,19 @@ export class UiGetOperations
           tableId: req.query.tableId,
           user: req.user,
         });
+      // Partial meta (pk + display value only) of a table reached through a
+      // link column — used when the caller can't read the related table
+      // directly. Base-scoped so the link column resolves against its own
+      // base; `getRelContext` then hops to the related base for cross-base
+      // links. The related table rides on `refTableId`, NOT `tableId`:
+      // extract-ids resolves a `tableId` against the request base, which
+      // 404s for a cross-base related table.
+      case 'refTableGet':
+        return await this.columnsService.getLinkColumnRefTable(context, {
+          columnId: req.query.columnId as string,
+          tableId: req.query.refTableId as string,
+          user: req.user,
+        });
       case 'columnsHash':
         return await this.columnsService.columnsHash(
           context,
@@ -121,10 +138,9 @@ export class UiGetOperations
           }),
         );
       case 'viewRowColorInfo':
-        return (await this.viewRowColorService.getByViewId({
-          context,
+        return await this.viewRowColorService.getByViewId(context, {
           fk_view_id: req.query.viewId as string,
-        })) as any;
+        });
       case 'filterList':
         return new PagedResponseImpl(
           await this.filtersService.filterList(context, {
@@ -136,12 +152,19 @@ export class UiGetOperations
         return new PagedResponseImpl(
           await this.filtersService.filterChildrenList(context, {
             filterId: req.query.filterId as string,
+            req,
           }),
         );
       case 'sortList':
         return new PagedResponseImpl(
           await this.sortsService.sortList(context, {
             viewId: req.query.viewId as string,
+          }),
+        );
+      case 'lookupSortList':
+        return new PagedResponseImpl(
+          await this.sortsService.lookupSortList(context, {
+            columnId: req.query.columnId as string,
           }),
         );
       case 'hookList':
@@ -211,21 +234,11 @@ export class UiGetOperations
             },
           }),
         );
-      case 'commentCount': {
-        // qs parses ids[]=a&ids[]=b as an array, but when >20 elements
-        // (qs arrayLimit default) it produces a plain object instead.
-        let ids = req.query.ids;
-        if (!Array.isArray(ids)) {
-          ids =
-            typeof ids === 'object' && ids !== null
-              ? Object.values(ids)
-              : [ids];
-        }
+      case 'commentCount':
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,
-          ids,
+          ids: normalizeArrayQueryParam(req.query.ids) ?? [],
         });
-      }
       case 'dataList':
         context.cache = true;
         return await this.dataTableService.dataList(context, {

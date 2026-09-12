@@ -17,7 +17,9 @@ const email = computed(() => user.value?.email ?? '---')
 
 const refreshSidebar = ref(false)
 
-useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : 'NocoDB')
+const { productName, logoUrl, isWhiteLabelled } = useBranding()
+
+useTitle(computed(() => (route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : productName.value)))
 
 const isPublic = computed(() => route.meta?.public)
 
@@ -50,14 +52,15 @@ export default {
       <div class="flex w-full h-full items-center nc-header-content">
         <div class="flex-1 min-w-0 w-50">
           <nuxt-link :to="isPublic ? '' : '/'">
-            <img src="~/assets/img/brand/nocodb-full.png" class="h-11" />
+            <img v-if="isWhiteLabelled && logoUrl" :src="logoUrl" :alt="productName" class="h-11 max-w-[180px] object-contain" />
+            <img v-else src="~/assets/img/brand/nocodb-full.png" class="h-11" />
           </nuxt-link>
         </div>
 
         <div v-if="$route.name === 'index-index'" class="flex gap-1">
           <!-- <a-button class="!text-inherit" data-testid="nc-dash-nav-workspaces"> Projects</a-button -->
-          <!-- <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> Template</a-button>
-          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> Help</a-button> -->
+          <!-- <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> {{ $t('general.template') }}</a-button>
+          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> {{ $t('general.help') }}</a-button> -->
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
           <div class="flex flex-row flex-grow">
@@ -93,7 +96,7 @@ export default {
                     :to="appInfo.isCloud ? '/account/users' : '/admin?tab=users-list'"
                   >
                     <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
-                    <div class="prose group-hover:text-primary">
+                    <div class="prose dark:prose-invert group-hover:text-primary">
                       <div>{{ $t('labels.account') }}</div>
                       <div class="text-xs text-nc-content-gray-muted">{{ email }}</div>
                     </div>
@@ -108,7 +111,7 @@ export default {
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-                    <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
+                    <span class="prose dark:prose-invert group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
                 </a-menu-item> -->
 
@@ -123,7 +126,7 @@ export default {
                   >
                     <MdiLogout class="group-hover:text-accent" />&nbsp;
 
-                    <span class="prose group-hover:text-primary">
+                    <span class="prose dark:prose-invert group-hover:text-primary">
                       {{ $t('general.signOut') }}
                     </span>
                   </div>

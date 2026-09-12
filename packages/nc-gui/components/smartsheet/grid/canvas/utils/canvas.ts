@@ -1,5 +1,6 @@
 import { LRUCache } from 'lru-cache'
 import JsBarcode from 'jsbarcode'
+import DOMPurify from 'isomorphic-dompurify'
 import type { ColumnType, UserType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { type MarkdownLoader, markdownTextCache } from '../loaders/markdownLoader'
@@ -335,7 +336,7 @@ export const renderCheckbox = (
     ctx.fillStyle = getColor('#FFFFFF', themeV4Colors.base.white)
     ctx.fill()
 
-    ctx.strokeStyle = strokeColor ?? getColor('#D1D5DB')
+    ctx.strokeStyle = strokeColor ?? getColor('#D1D5DB', themeV4Colors.gray['200'])
     ctx.lineWidth = 1
     ctx.stroke()
   }
@@ -404,6 +405,29 @@ export const drawStraightLine = (
 
   ctx.lineWidth = lineWidth
   ctx.stroke()
+}
+
+export const renderCellError = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  params: {
+    x: number
+    y: number
+    width: number
+    height: number
+    padding: number
+    getColor: GetColorType
+  },
+) => {
+  const { x, y, width, height, padding, getColor } = params
+  renderMultiLineText(ctx, {
+    x: x + padding,
+    y,
+    text: 'ERR!',
+    maxWidth: width - padding * 2,
+    fontFamily: '500 13px Inter',
+    fillStyle: getColor(themeV4Colors.orange['700']),
+    height,
+  })
 }
 
 export const renderSingleLineText = (
@@ -1027,6 +1051,7 @@ export function renderBarcode(
     spriteLoader,
     isDark = false,
     getColor,
+    textAlign,
   }: {
     x: number
     y: number
@@ -1038,6 +1063,8 @@ export function renderBarcode(
     spriteLoader: SpriteLoader
     isDark?: boolean
     getColor: GetColorType
+    /** 'left' is an opt-in left anchor (interface list pages); default centers. */
+    textAlign?: string
   },
 ) {
   if (!value) return
@@ -1095,8 +1122,10 @@ export function renderBarcode(
 
     // Calculate the final height to maintain the aspect ratio
     const finalHeight = renderAsTag ? height - padding * 2 : finalWidth / aspectRatio // Adjust the height to maintain the aspect ratio
-    // Determine the xPos for centering the barcode (if not rendering as a tag)
-    const xPos = renderAsTag ? x + padding : x + (width - finalWidth) / 2
+    // Determine the xPos for centering the barcode (if not rendering as a tag).
+    // The 'left' opt-in anchors at the standard 10px cell padding (not this
+    // renderer's internal 4px) so the code lines up with the header/text cells.
+    const xPos = renderAsTag ? x + padding : textAlign === 'left' ? x + 10 : x + (width - finalWidth) / 2
 
     ctx.drawImage(tempCanvas, xPos, y + height / 2 - finalHeight / 2, finalWidth, finalHeight)
 
@@ -1593,7 +1622,7 @@ export function renderIconButton(
 export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>) => {
   if (!column || !sqlUis) return
 
-  const cacheKey = `${column.source_id}-${column.dt}-${column.dtxp}`
+  const cacheKey = `${column.source_id}-${column.uidt}-${column.dt}-${column.dtxp}`
   const cachedValue = abstractTypeCache.get(cacheKey)
 
   if (cachedValue) {
@@ -1601,6 +1630,11 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
   }
 
   const sqlUi = column.source_id && sqlUis[column.source_id] ? sqlUis[column.source_id] : Object.values(sqlUis)[0]
+
+  // Anonymous public interface grids carry no base sources, so `sqlUis` can be
+  // an empty map — bail like the `!sqlUis` guard rather than dereferencing an
+  // unresolved sqlUi (this was crashing the whole canvas render).
+  if (!sqlUi) return
 
   const abstractType = sqlUi.getAbstractType(column)
 
@@ -1648,7 +1682,10 @@ export function renderFormulaURL(
   const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
 
   const container = document.createElement('div')
-  container.innerHTML = htmlText
+  // Defense in depth: even though the formula-URL HTML is now built with
+  // encoded labels upstream, sanitize before assigning to innerHTML so a
+  // detached-node <img onerror>/<svg onload> payload can never execute here.
+  container.innerHTML = DOMPurify.sanitize(htmlText)
 
   let currentLine = 0
   let currentX = x

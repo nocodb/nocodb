@@ -113,8 +113,6 @@ const rolePermissions = {
       fieldDelete: true,
       fieldAdd: true,
       tableIconEdit: true,
-      viewCreateOrEdit: true,
-      viewShare: true,
       baseShare: true,
       baseMiscSettings: true,
       csvImport: true,
@@ -125,20 +123,11 @@ const rolePermissions = {
       // Base-scoped integrations
       baseIntegrationCreate: true,
 
-      // Row colouring
-      rowColourUpdate: true,
-
       projectOverviewTab: true,
 
       // Extensions
       extensionCreate: true,
       extensionDelete: true,
-
-      // Creator specific permissions (previously inherited from Editor)
-      sortSync: true,
-      filterSync: true,
-      groupBySync: true,
-      viewFieldEdit: true,
 
       // Documents — creators can create and delete documents
       documentCreate: true,
@@ -156,17 +145,45 @@ const rolePermissions = {
       excelTableImport: true,
       hookTrigger: true,
 
+      // Editors can directly edit view filters / sorts / group-by / field
+      // visibility & order / row coloring on collaborative views (backend
+      // grants this via the middleware gate now requiring
+      // lock_type=Personal). `isLocked` in the smartsheet store still
+      // blocks the write UI on locked + non-owned personal views,
+      // falling back to the read-only list there.
+      sortSync: true,
+      filterSync: true,
+      groupBySync: true,
+      viewFieldEdit: true,
+      rowColourUpdate: true,
+
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,
       sortList: true,
       filterList: true,
 
+      // View CRUD — editors can create/update/delete views.
+      // Locked views and others' personal views are restricted at a finer
+      // level via usePersonalViewPermissions + backend guards.
+      viewCreateOrEdit: true,
+
+      // Share — editors can create/update share links on collaborative
+      // views they have access to. Matches Airtable behaviour.
+      viewShare: true,
+
       // Extensions
       extensionUpdate: true,
+
+      // Undo / redo — editor is the min role since undo/redo only reverts
+      // mutations, and editors are the lowest role allowed to mutate.
+      // Inherited by CREATOR + OWNER via the role-scope cascade below.
+      undo: true,
+      redo: true,
 
       // Documents — editors can update and reorder, but NOT create/delete
       documentUpdate: true,
       documentReorder: true,
+      documentRevisionRestore: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -201,6 +218,8 @@ const rolePermissions = {
       // Documents — read-only for viewers
       documentList: true,
       documentGet: true,
+      documentRevisionList: true,
+      documentRevisionGet: true,
 
       // Document Comments — read-only for viewers
       documentCommentList: true,

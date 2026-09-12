@@ -27,7 +27,7 @@ const themeIcon = computed(
 <template>
   <NcTooltip v-if="isThemeEnabled" :placement="placement" :arrow="false">
     <template #title>
-      <div class="capitalize">Appearance (beta): {{ selectedTheme }}</div>
+      <div class="capitalize">Appearance: {{ selectedTheme }}</div>
     </template>
     <div
       v-e="['c:nocodb:theme']"
@@ -59,7 +59,7 @@ const themeIcon = computed(
     @apply text-nc-content-gray-subtle rounded-lg flex-none flex justify-center items-center cursor-pointer hover:bg-nc-bg-gray-medium transition-all duration-200;
 
     .nc-mini-sidebar-btn {
-      @apply !p-1.5 flex items-center justify-center children:flex-none text-nc-content-gray-muted;
+      @apply !p-1.5 flex items-center justify-center children:flex-none text-nc-content-gray-muted h-full w-full;
     }
   }
 }

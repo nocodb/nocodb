@@ -28,8 +28,8 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           class="nc-time-form-layout"
           :disabled="isSystem"
         >
-          <a-radio :value="true">12 Hrs</a-radio>
-          <a-radio :value="false">24 Hrs</a-radio>
+          <a-radio :value="true">{{ $t('labels.hours12') }}</a-radio>
+          <a-radio :value="false">{{ $t('labels.hours24') }}</a-radio>
         </a-radio-group>
       </a-form-item>
     </div>

@@ -70,7 +70,12 @@ export default class MapView implements MapType {
       meta: view.meta,
     };
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+    const viewRef = await View.get(
+      context,
+      insertObj.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;
@@ -101,14 +106,9 @@ export default class MapView implements MapType {
         (mapViewColumn) =>
           mapViewColumn.fk_column_id === body.fk_geo_data_col_id,
       );
-      await View.updateColumn(
-        context,
-        body.fk_view_id,
-        mapViewMappedByColumn.id,
-        {
-          show: true,
-        },
-      );
+      await View.updateColumn(context, mapId, mapViewMappedByColumn.id, {
+        show: true,
+      });
     }
 
     // update meta

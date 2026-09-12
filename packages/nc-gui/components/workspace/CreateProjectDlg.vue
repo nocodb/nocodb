@@ -83,7 +83,7 @@ const onInit = () => {
     form.value?.resetFields()
 
     formState.value = {
-      title: 'Base',
+      title: t('objects.project'),
       meta: {
         iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
       },
@@ -108,7 +108,7 @@ watch(dialogShow, (n) => {
     <template #header>
       <!-- Create A New Base -->
       <div class="flex flex-row items-center text-base text-nc-content-gray">
-        <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
+        <GeneralProjectIcon :color="formState.meta.iconColor" :icon="formState.meta.icon" class="mr-2.5" />
         {{
           $t('general.createEntity', {
             entity: 'Base',
@@ -134,7 +134,7 @@ watch(dialogShow, (n) => {
             v-model:value="formState.title"
             name="title"
             class="nc-metadb-base-name nc-input-sm nc-input-shadow"
-            placeholder="Title"
+            :placeholder="$t('general.title')"
           />
         </a-form-item>
       </a-form>

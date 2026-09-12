@@ -118,6 +118,14 @@ export const useBase = defineStore('baseStore', () => {
     return getBaseType(sourceId) === 'pg'
   }
 
+  function isMssql(sourceId?: string) {
+    return getBaseType(sourceId) === ClientType.MSSQL
+  }
+
+  function isOracle(sourceId?: string) {
+    return getBaseType(sourceId) === ClientType.ORACLE
+  }
+
   function isSnowflake(sourceId?: string) {
     return getBaseType(sourceId) === 'snowflake'
   }
@@ -194,9 +202,11 @@ export const useBase = defineStore('baseStore', () => {
 
     await loadTables()
 
-    await basesStore.getBaseUsers({
-      baseId: base.value.id || baseId.value,
-    })
+    if (!isSharedBase.value) {
+      await basesStore.getBaseUsers({
+        baseId: base.value.id || baseId.value,
+      })
+    }
 
     // if (withTheme) setTheme(baseMeta.value?.theme)
 
@@ -326,6 +336,8 @@ export const useBase = defineStore('baseStore', () => {
     loadTables,
     isMysql,
     isPg,
+    isMssql,
+    isOracle,
     isSqlite,
     isSnowflake,
     isDatabricks,

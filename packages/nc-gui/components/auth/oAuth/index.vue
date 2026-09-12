@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
 
+const { productName } = useBranding()
+
 const { api } = useApi()
 const { user } = useGlobal()
 
@@ -91,6 +93,15 @@ async function approveAuthorization() {
 
     const response = await api.oAuth.authorize(authParams)
 
+    // Never assign a non-http(s) URL to window.location — a javascript:/data:
+    // URL echoed back by the server would execute in our origin. An OAuth
+    // redirect_uri is always absolute, so require that rather than the laxer
+    // isSafeRedirectUrl (which allows relative URLs).
+    if (!isHttpRedirectUri(response.redirect_url)) {
+      error.value = 'Invalid redirect URI'
+      return
+    }
+
     window.location.href = response.redirect_url
   } catch (err: any) {
     console.error('Authorization failed:', err)
@@ -101,6 +112,14 @@ async function approveAuthorization() {
 }
 
 function denyAuthorization() {
+  // This redirect is built client-side from the raw query param, never via the
+  // backend, so it needs its own check. Must be the absolute-http(s) variant:
+  // `new URL()` below throws on the relative URLs isSafeRedirectUrl permits.
+  if (!isHttpRedirectUri(redirect_uri.value)) {
+    error.value = 'Invalid redirect URI'
+    return
+  }
+
   const errorUrl = new URL(redirect_uri.value)
   errorUrl.searchParams.set('error', 'access_denied')
   errorUrl.searchParams.set('error_description', 'User denied the request')
@@ -130,7 +149,7 @@ onMounted(() => {
       <GeneralIcon icon="alertTriangle" class="w-12 h-12 text-nc-content-red-medium mx-auto mb-4" />
       <h2 class="text-xl font-semibold text-nc-content-gray-extreme mb-2">Authorization Error</h2>
       <p class="text-nc-content-gray-subtle2 mb-6">{{ error }}</p>
-      <NcButton size="small" type="primary" @click="$router.push('/')"> Back to NocoDB </NcButton>
+      <NcButton size="small" type="primary" @click="$router.push('/')"> Back to {{ productName }} </NcButton>
     </div>
 
     <div v-else class="rounded-xl bg-nc-bg-default shadow-sm border-1 border-nc-border-gray-medium p-8 max-w-lg w-full">
@@ -157,7 +176,7 @@ onMounted(() => {
 
       <div class="flex items-center justify-center my-6 gap-2">
         <GeneralUserIcon :user="user" size="medium" />
-        {{ user.display_name || user.email }}
+        {{ extractUserDisplayNameOrEmail(user) }}
       </div>
 
       <NcDivider />
@@ -189,7 +208,9 @@ onMounted(() => {
       </div>
 
       <div class="flex gap-3 mt-4">
-        <NcButton type="secondary" :disabled="authorizing" class="flex-1" @click="denyAuthorization"> Cancel </NcButton>
+        <NcButton type="secondary" :disabled="authorizing" class="flex-1" @click="denyAuthorization">
+          {{ $t('general.cancel') }}
+        </NcButton>
         <NcButton :disabled="!canAuthorize" :loading="authorizing" class="flex-1" @click="approveAuthorization">
           Authorize
         </NcButton>

@@ -40,8 +40,6 @@ const { t } = useI18n()
 
 const { isMobileMode, user } = useGlobal()
 
-const { isUIAllowed } = useRoles()
-
 const base = inject(ProjectInj, ref())
 
 const { activeView } = storeToRefs(useViewsStore())
@@ -69,6 +67,34 @@ const isDefaultBaseLocal = computed(() => {
   return isDefaultBase(source)
 })
 
+const { isRtl } = useRtl()
+
+/** Extra indent when the owning table sits inside a base-level section — the
+ *  table node provides it, and the views step in by the same amount so they
+ *  stay one level below their table. */
+const sectionIndentPx = inject(SidebarSectionIndentInj, ref(0))
+
+/**
+ * A table row renders a leading chevron on mobile only, which shifts its icon
+ * right by this much. View rows have no chevron, so without matching it they
+ * line up WITH the table icon instead of one level below it.
+ */
+const MOBILE_TABLE_CHEVRON_PX = 20
+
+/**
+ * Left indent by context, in px. A computed style rather than the utility
+ * classes this replaces, because both corrections are dynamic: the section
+ * offset is viewport-dependent (22px desktop, 12px mobile) and the chevron
+ * compensation applies only on mobile.
+ */
+const indentStyle = computed(() => {
+  const base = props.isInSection ? (isDefaultBaseLocal.value ? 54 : 82) : isDefaultBaseLocal.value ? 30 : 56
+
+  const padding = `${base + (isMobileMode.value ? MOBILE_TABLE_CHEVRON_PX : 0) + sectionIndentPx.value}px`
+
+  return isRtl.value ? { paddingRight: padding, paddingLeft: '0px' } : { paddingLeft: padding }
+})
+
 const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
 
 const input = ref<HTMLInputElement>()
@@ -91,6 +117,8 @@ const showViewNodeTooltip = ref(true)
 const isViewOwner = computed(() => {
   return vModel.value?.owned_by === user.value?.id
 })
+
+const { canModifyView } = usePersonalViewPermissions(vModel)
 
 const idUserMap = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).reduce((acc, user) => {
@@ -126,7 +154,7 @@ const focusInput = () => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
-  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+  if (isMobileMode.value || !canModifyView.value) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -171,7 +199,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+  if (isMobileMode.value || !canModifyView.value) return
 
   if (!isEditing.value) {
     // close dropdown when rename menu is clicked and show inline view rename input
@@ -206,7 +234,7 @@ async function onRename() {
   const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {
-    message.error(isValid)
+    message.toast(isValid)
 
     onCancel()
     return
@@ -266,7 +294,7 @@ const viewModeInfo = computed(() => {
         isViewOwner.value
           ? `(${t('general.you')})`
           : vModel.value?.owned_by && idUserMap.value[vModel.value.owned_by]
-          ? `(${idUserMap.value[vModel.value.owned_by]?.display_name || idUserMap.value[vModel.value.owned_by]?.email})`
+          ? `(${extractUserDisplayNameOrEmail(idUserMap.value[vModel.value.owned_by])})`
           : ''
       }`
     case ViewLockType.Locked:
@@ -297,12 +325,7 @@ watch(isDropdownOpen, async () => {
 <template>
   <div
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray) cursor-pointer"
-    :class="{
-      '!pl-7.5 rtl:(!pr-7.5 !pl-0)': isDefaultBaseLocal && !isInSection,
-      '!pl-14 rtl:(!pr-14 !pl-0)': !isDefaultBaseLocal && !isInSection,
-      '!pl-13.5 rtl:(!pr-13.5 !pl-0)': isDefaultBaseLocal && isInSection,
-      '!pl-20.5 rtl:(!pr-20.5 !pl-0)': !isDefaultBaseLocal && isInSection,
-    }"
+    :style="indentStyle"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"
   >
@@ -333,7 +356,7 @@ watch(isDropdownOpen, async () => {
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
                   ? $t('general.you')
-                  : idUserMap[vModel?.created_by]?.display_name || idUserMap[vModel?.created_by]?.email
+                  : extractUserDisplayNameOrEmail(idUserMap[vModel?.created_by])
               }}
             </div>
           </div>
@@ -367,7 +390,7 @@ watch(isDropdownOpen, async () => {
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"
-            :readonly="isLocked || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+            :readonly="isLocked || isMobileMode || !canModifyView"
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>
@@ -442,6 +465,7 @@ watch(isDropdownOpen, async () => {
         <template v-if="!isEditing && !isLocked">
           <NcTooltip
             v-if="vModel.description?.length"
+            overlay-class-name="nc-tooltip-scrollable"
             placement="bottom"
             @mouseenter="showViewNodeTooltip = false"
             @mouseleave="showViewNodeTooltip = true"
@@ -470,7 +494,7 @@ watch(isDropdownOpen, async () => {
               @mouseenter="showViewNodeTooltip = false"
               @mouseleave="showViewNodeTooltip = true"
             >
-              <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+              <GeneralIcon icon="threeDotHorizontal" class="w-4 h-4" />
             </NcButton>
 
             <template #overlay>

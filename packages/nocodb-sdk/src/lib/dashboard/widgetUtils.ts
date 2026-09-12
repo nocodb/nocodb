@@ -5,16 +5,16 @@ import {
   WidgetType,
   WidgetTypes,
 } from '.';
+import { ColumnType } from '~/lib/Api';
+import UITypes from '~/lib/UITypes';
+import { isSystemColumn } from '~/lib/helperFunctions';
+import { AllAggregations } from '~/lib/aggregationHelper';
 import {
-  AllAggregations,
-  ColumnType,
   isBarcode,
-  isButton,
   isLookup,
   isQrCode,
-  isSystemColumn,
-  UITypes,
-} from '~/lib';
+} from '~/lib/columnHelper/utils/virtualCell';
+import { isButton } from '~/lib/columnHelper/utils/cell';
 
 export const calculateNextPosition = (
   existingWidgets: WidgetType[],
@@ -302,6 +302,33 @@ const getDefaultChartConfig = (
         },
         permissions: {
           allowUserToPrint: false,
+          allowUsersToViewRecords: false,
+        },
+      };
+
+    case ChartTypes.TREEMAP:
+      return {
+        ...baseConfig,
+        chartType: ChartTypes.TREEMAP,
+        data: {
+          category: {
+            column_id: getDefaultCategoryColumn(columns),
+            orderBy: 'default' as const,
+            includeEmptyRecords: false,
+            includeOthers: false,
+            categoryLimit: 12,
+          },
+          value: {
+            type: 'count' as const,
+          },
+        },
+        appearance: {
+          size: 'medium' as const,
+          showValueInChart: true,
+          colorSchema: 'default' as const,
+        },
+        permissions: {
+          allowUserToPrint: true,
           allowUsersToViewRecords: false,
         },
       };

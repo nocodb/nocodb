@@ -18,8 +18,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateView } = useViewsStore()
 
-const { addUndo, defineProjectScope } = useUndoRedo()
-
 const inputEl = ref<ComponentPublicInstance>()
 
 const loading = ref(false)
@@ -62,7 +60,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const updateDescription = async (undo = false) => {
+const updateDescription = async () => {
   if (!view?.id) return
 
   if (formState.description) {
@@ -76,26 +74,6 @@ const updateDescription = async (undo = false) => {
     })
 
     dialogShow.value = false
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (t: string) => {
-            formState.description = t
-            updateDescription(true, true)
-          },
-          args: [formState.description],
-        },
-        undo: {
-          fn: (t: string) => {
-            formState.description = t
-            updateDescription(true, true)
-          },
-          args: [view.description],
-        },
-        scope: defineProjectScope({ view }),
-      })
-    }
 
     $e('a:view:description:update')
 
@@ -112,7 +90,7 @@ const updateDescription = async (undo = false) => {
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralViewIcon :meta="view" class="mt-0.5 !text-2xl" />
+        <GeneralViewIcon :meta="view" class="!w-5 !h-5" />
 
         <span class="text-nc-content-gray-emphasis font-semibold">
           {{ view?.title }}

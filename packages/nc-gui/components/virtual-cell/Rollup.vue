@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
+import {
+  UITypes,
+  getEffectiveDisplayColumn,
+  getRenderAsTextFunForUiType,
+  getRollupColumnMeta,
+  integerPreservingRollupFunctions,
+  integerRollupFunctions,
+} from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 
-const { metas } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const value = inject(CellValueInj)
 
@@ -31,6 +38,24 @@ const relatedTableMeta = computed(() => {
   return metas.value?.[metaKey] || metas.value?.[relationColumnOptions.value.fk_related_model_id as string]
 })
 
+// Self-load the related (possibly cross-base) table meta — mirrors Lookup.vue.
+// Unlike the grid canvas (fetchMetaIds) and Calendar/Gantt/Timeline
+// (useLoadLookupMetas, which only walks Lookup chains), non-canvas views
+// (Gallery, Kanban, expanded form) have no rollup preloader, so without this
+// `relatedTableMeta` stays undefined and the cell loses its currency/number
+// formatting (renders a plain number).
+watch(
+  relationColumnOptions,
+  async (relOpt) => {
+    if (!relOpt?.fk_related_model_id) return
+    const relatedBaseId = relOpt.fk_related_base_id || meta.value?.base_id
+    if (!relatedBaseId) return
+    if (getMetaByKey(relatedBaseId, relOpt.fk_related_model_id)) return
+    await getMeta(relatedBaseId, relOpt.fk_related_model_id, false, false, true)
+  },
+  { immediate: true },
+)
+
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
@@ -47,14 +72,17 @@ const childColumn = computed(() => {
     const colMeta = parseProp(col.meta)
     if (colMeta?.display_type) {
       const displayColumnMeta = parseProp(colMeta.display_column_meta)
+      const effectiveCol = getEffectiveDisplayColumn(colMeta, col)
 
       return {
-        ...col,
-        uidt: colMeta.display_type,
-        ...displayColumnMeta,
+        ...effectiveCol,
         meta: {
-          ...parseProp(column.value?.meta),
           ...parseProp(displayColumnMeta?.meta),
+          ...getRollupColumnMeta(
+            column.value?.meta,
+            colMeta.display_type,
+            (colOptions.value as RollupType)?.rollup_function ?? '',
+          ),
         },
       }
     }
@@ -66,11 +94,32 @@ const childColumn = computed(() => {
 const renderAsTextFun = computed(() => {
   return getRenderAsTextFunForUiType(childColumn.value?.uidt || UITypes.SingleLineText)
 })
+
+const isIntegerResult = computed(() => {
+  const fn = (colOptions.value as RollupType)?.rollup_function ?? ''
+
+  return (
+    integerRollupFunctions.includes(fn) ||
+    (isIntegerUiType(childColumn.value as ColumnType) && integerPreservingRollupFunctions.includes(fn))
+  )
+})
 </script>
 
 <template>
-  <div @dblclick="activateShowEditNonEditableFieldWarning">
-    <CellDecimal v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
+  <div v-if="column && column.colOptions && column.colOptions.error" class="nc-cell-field">
+    <NcTooltip placement="bottom" class="text-nc-content-orange-dark">
+      <template #title>
+        <span class="font-bold">{{ column.colOptions.error }}</span>
+      </template>
+      <span>ERR!</span>
+    </NcTooltip>
+  </div>
+  <div v-else @dblclick="activateShowEditNonEditableFieldWarning">
+    <CellInteger
+      v-if="isIntegerResult && renderAsTextFun.includes((colOptions as RollupType).rollup_function!)"
+      :model-value="value"
+    />
+    <CellDecimal v-else-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
     <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
       {{ $t('msg.info.computedFieldEditWarning') }}

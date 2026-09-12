@@ -28,7 +28,7 @@ export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: 
   return value ?? GROUP_BY_VARS.NULL
 }
 
-export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () => string): string => {
+export const findKeyColor = (key: string | undefined, col: ColumnType | undefined, getNextColor: () => string): string => {
   if (col) {
     switch (col.uidt) {
       case UITypes.MultiSelect: {

@@ -26,14 +26,14 @@ const options = computed(() => {
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
     if (op.value) {
-      acc[op.value.trim()] = op
+      acc[ncIsString(op.value) ? op.value.trim() : `${op.value}`] = op
     }
     return acc
   }, {} as Record<string, (typeof options.value)[number]>)
 })
 
 const selectedOpt = computed(() => {
-  return modelValue ? optionsMap.value[modelValue?.trim()] : undefined
+  return typeof modelValue === 'string' ? optionsMap.value[modelValue.trim()] : undefined
 })
 </script>
 
@@ -42,7 +42,16 @@ const selectedOpt = computed(() => {
     class="nc-cell-field h-full w-full flex items-center nc-single-select focus:outline-transparent read-only"
     :class="{ 'max-w-full': isForm }"
   >
-    <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+    <div v-if="isForm && parseProp(column.meta)?.isStepper" class="w-full max-w-full">
+      <CellSingleSelectLayoutStepper
+        :options="options"
+        :model-value="modelValue || undefined"
+        :format="parseProp(column.meta)?.stepperFormat"
+        disabled
+      />
+    </div>
+
+    <div v-else-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <CellSingleSelectLayoutList :options="options" :model-value="modelValue" disabled :row-index="rowIndex" />
     </div>
 
@@ -81,6 +90,7 @@ const selectedOpt = computed(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  /* keep in sync with .rounded-tag above */
+  @apply py-[1px] px-2 rounded-[12px];
 }
 </style>

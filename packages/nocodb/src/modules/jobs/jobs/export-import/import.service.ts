@@ -27,6 +27,7 @@ import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
+import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import { NcError } from '~/helpers/catchError';
 import {
   findWithIdentifier,
@@ -115,6 +116,18 @@ export class ImportService {
     // Not Implemented
   }
 
+  async importDocuments(
+    _context: NcContext,
+    _param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+    },
+  ) {
+    // Not Implemented in CE
+  }
+
   async importDashboards(
     _context: NcContext,
     _param: {
@@ -127,6 +140,19 @@ export class ImportService {
   ) {
     return _param.idMap;
     //  create dashboards
+  }
+
+  async importInterfaces(
+    _context: NcContext,
+    _param: {
+      user: User;
+      data: Array<any>;
+      req: NcRequest;
+      idMap: Map<string, string>;
+    },
+  ) {
+    return _param.idMap;
+    //  create interfaces
   }
 
   async importWorkflows(
@@ -357,27 +383,11 @@ export class ImportService {
             idMap.set(colRef.id, col.id);
           }
 
-          // setval for auto increment column in pg
-          if (source.type === 'pg') {
-            if (modelData.pgSerialLastVal) {
-              if (col.ai) {
-                const baseModel = await Model.getBaseModelSQL(targetContext, {
-                  id: table.id,
-                  viewId: null,
-                  dbDriver: await NcConnectionMgrv2.get(source),
-                });
-                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-                await sqlClient.raw(
-                  `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
-                  [
-                    baseModel.getTnPath(table.table_name),
-                    col.column_name,
-                    modelData.pgSerialLastVal,
-                  ],
-                );
-              }
-            }
-          }
+          // Auto-increment (serial) sequences are realigned after the data is
+          // imported — see resetPgAutoIncrementSequences() — so the reset works
+          // for every source type, not only pg -> pg. (The old pgSerialLastVal
+          // path only fired when the origin was pg, leaving SQLite/MySQL -> pg
+          // migrations with stale sequences and duplicate-id inserts.)
         }
       }
 
@@ -434,6 +444,7 @@ export class ImportService {
           targetContext,
           withoutId({
             ...commentD,
+            comment: sanitizeCommentBody(commentD.comment),
             fk_model_id: table.id,
             parent_comment_id: idMap.get(commentD.parent_comment_id),
           }),
@@ -505,6 +516,11 @@ export class ImportService {
                         childViewId:
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
+                        fk_display_value_column_id:
+                          colOptions.fk_display_value_column_id &&
+                          getIdOrExternalId(
+                            colOptions.fk_display_value_column_id,
+                          ),
                       },
                     }),
                     req: param.req,
@@ -615,6 +631,11 @@ export class ImportService {
                       childViewId:
                         colOptions.fk_target_view_id &&
                         getIdOrExternalId(colOptions.fk_target_view_id),
+                      fk_display_value_column_id:
+                        colOptions.fk_display_value_column_id &&
+                        getIdOrExternalId(
+                          colOptions.fk_display_value_column_id,
+                        ),
                     },
                   }),
                   req: param.req,
@@ -768,6 +789,11 @@ export class ImportService {
                         childViewId:
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
+                        fk_display_value_column_id:
+                          colOptions.fk_display_value_column_id &&
+                          getIdOrExternalId(
+                            colOptions.fk_display_value_column_id,
+                          ),
                       },
                       ...(parseProp(col.meta).custom
                         ? {
@@ -915,6 +941,11 @@ export class ImportService {
                         childViewId:
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
+                        fk_display_value_column_id:
+                          colOptions.fk_display_value_column_id &&
+                          getIdOrExternalId(
+                            colOptions.fk_display_value_column_id,
+                          ),
                       },
                       ...(parseProp(col.meta).custom
                         ? {
@@ -1115,6 +1146,11 @@ export class ImportService {
                         childViewId:
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
+                        fk_display_value_column_id:
+                          colOptions.fk_display_value_column_id &&
+                          getIdOrExternalId(
+                            colOptions.fk_display_value_column_id,
+                          ),
                       },
                       ...(parseProp(col.meta).custom
                         ? {
@@ -1288,24 +1324,50 @@ export class ImportService {
               // create filters
               const filters = colOptions.filter?.children;
 
+              // Track filters that fail to create so descendants can be
+              // skipped too — otherwise a child whose fk_parent_id maps
+              // to undefined would be persisted at root level, leaving
+              // orphan filters that are hard to clean up later.
+              const failedFilterIds = new Set<string>();
+
               for (const fl of filters) {
-                const fg = await this.filtersService.linkFilterCreate(
-                  targetContext,
-                  {
-                    columnId: getIdOrExternalId(col.id),
-                    filter: withoutId({
-                      ...fl,
-                      fk_value_col_id: getIdOrExternalId(fl.fk_value_col_id),
-                      fk_link_col_id: getIdOrExternalId(fl.fk_link_col_id),
-                      fk_column_id: getIdOrExternalId(fl.fk_column_id),
-                      fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
-                    }),
-                    user: param.user,
-                    req: param.req,
-                  },
-                );
-                if (fg) {
-                  idMap.set(fl.id, fg.id);
+                if (fl.fk_parent_id && failedFilterIds.has(fl.fk_parent_id)) {
+                  failedFilterIds.add(fl.id);
+                  this.logger.warn(
+                    `Skipping link filter ${fl.id} on column ${col.id} — parent ${fl.fk_parent_id} failed earlier in this import`,
+                  );
+                  continue;
+                }
+
+                // A single broken link filter (e.g. column lookup resolves
+                // to undefined when the source export references something
+                // outside the duplicated scope) shouldn't abort the entire
+                // base duplication — log and skip.
+                try {
+                  const fg = await this.filtersService.linkFilterCreate(
+                    targetContext,
+                    {
+                      columnId: getIdOrExternalId(col.id),
+                      filter: withoutId({
+                        ...fl,
+                        fk_value_col_id: getIdOrExternalId(fl.fk_value_col_id),
+                        fk_link_col_id: getIdOrExternalId(fl.fk_link_col_id),
+                        fk_column_id: getIdOrExternalId(fl.fk_column_id),
+                        fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+                      }),
+                      user: param.user,
+                      req: param.req,
+                    },
+                  );
+                  if (fg) {
+                    idMap.set(fl.id, fg.id);
+                  }
+                } catch (e) {
+                  failedFilterIds.add(fl.id);
+                  this.logger.warn(
+                    `Skipping link filter ${fl.id} on column ${col.id} during import: ${e?.message}`,
+                    e?.stack,
+                  );
                 }
               }
             });
@@ -1388,8 +1450,37 @@ export class ImportService {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
         // Skip if relation column or lookup column can't be mapped (e.g., cross-base lookups)
-        if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        if (!getIdOrExternalId(colOptions.fk_lookup_column_id)) continue;
+        // but preserve error columns even if references can't be mapped
+        if (
+          !getIdOrExternalId(colOptions.fk_relation_column_id) ||
+          !getIdOrExternalId(colOptions.fk_lookup_column_id)
+        ) {
+          if (colOptions.error) {
+            // NOTE: bypasses `columnsService.columnAdd` (and its `@TraceCommand`)
+            // intentionally — `columnAdd` validates references and would throw
+            // for an unmapped Lookup. Error-state columns are a degraded
+            // outcome of cross-base imports where the lookup target couldn't be
+            // resolved; sandbox-replay won't reproduce them, but the original
+            // column is already broken so this is acceptable.
+            const tableId = getIdOrExternalId(getParentIdentifier(col.id));
+            const insertedColumn = await Column.insert(targetContext, {
+              ...withoutId(flatCol),
+              fk_model_id: tableId,
+              fk_relation_column_id: getIdOrExternalId(
+                colOptions.fk_relation_column_id,
+              ),
+              fk_lookup_column_id: getIdOrExternalId(
+                colOptions.fk_lookup_column_id,
+              ),
+              error: colOptions.error,
+            });
+
+            if (insertedColumn) {
+              idMap.set(col.id, insertedColumn.id);
+            }
+          }
+          continue;
+        }
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
@@ -1419,8 +1510,33 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Rollup) {
         // Skip if relation column or rollup column can't be mapped (e.g., cross-base rollups)
-        if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        if (!getIdOrExternalId(colOptions.fk_rollup_column_id)) continue;
+        // but preserve error columns even if references can't be mapped
+        if (
+          !getIdOrExternalId(colOptions.fk_relation_column_id) ||
+          !getIdOrExternalId(colOptions.fk_rollup_column_id)
+        ) {
+          if (colOptions.error) {
+            // See Lookup branch above — same rationale applies here.
+            const tableId = getIdOrExternalId(getParentIdentifier(col.id));
+            const insertedColumn = await Column.insert(targetContext, {
+              ...withoutId(flatCol),
+              fk_model_id: tableId,
+              fk_relation_column_id: getIdOrExternalId(
+                colOptions.fk_relation_column_id,
+              ),
+              fk_rollup_column_id: getIdOrExternalId(
+                colOptions.fk_rollup_column_id,
+              ),
+              rollup_function: colOptions.rollup_function,
+              error: colOptions.error,
+            });
+
+            if (insertedColumn) {
+              idMap.set(col.id, insertedColumn.id);
+            }
+          }
+          continue;
+        }
         const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
@@ -1589,6 +1705,7 @@ export class ImportService {
                 fk_qr_value_column_id: getIdOrExternalId(
                   colOptions.fk_qr_value_column_id,
                 ),
+                error: colOptions.error,
               },
             }) as any,
             req: param.req,
@@ -1615,6 +1732,7 @@ export class ImportService {
                 fk_barcode_value_column_id: getIdOrExternalId(
                   colOptions.fk_barcode_value_column_id,
                 ),
+                error: colOptions.error,
               },
             }) as any,
             req: param.req,
@@ -1717,8 +1835,14 @@ export class ImportService {
               (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
             );
             if (!fcl) continue;
+            // Calendar, Timeline and Gantt all expose per-column
+            // bold/italic/underline toggles via the Fields menu. Carry
+            // those across on duplicate so the new view inherits the
+            // source's formatting.
             const calendarColProperties =
-              vw.type === ViewTypes.CALENDAR
+              vw.type === ViewTypes.CALENDAR ||
+              vw.type === ViewTypes.TIMELINE ||
+              vw.type === ViewTypes.GANTT
                 ? {
                     bold: fcl.bold,
                     italic: fcl.italic,
@@ -1736,6 +1860,8 @@ export class ImportService {
 
           switch (vw.type) {
             case ViewTypes.GRID:
+            case ViewTypes.TIMELINE:
+            case ViewTypes.GANTT:
               for (const cl of vwColumns) {
                 const fcl = view.columns.find(
                   (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
@@ -1780,7 +1906,6 @@ export class ImportService {
               view: {
                 order: view.order,
               },
-              user: param.user,
               req: param.req,
             });
           }
@@ -2196,6 +2321,63 @@ export class ImportService {
     }
   }
 
+  /**
+   * Realign a Postgres target's auto-increment (serial) sequences with the
+   * imported data.
+   *
+   * The importer inserts rows with their original ids (to keep relationships
+   * intact). Postgres only advances a serial's sequence when *it* generates the
+   * value — an explicit id does not bump it — so after an import the sequence
+   * is left at its old position and the next user insert reuses a low id and
+   * fails with a duplicate-key error (the "id increment" issue reported on
+   * SQLite/MySQL -> Postgres migrations). Set each auto-increment column's
+   * sequence to `MAX(id)` so the next generated id is `MAX(id) + 1`.
+   *
+   * Works for any source. No-op for non-pg targets, non-ai columns, and empty
+   * tables. Best-effort: a failure on one column is logged, not fatal.
+   */
+  private async resetPgAutoIncrementSequences(
+    context: NcContext,
+    model: Model,
+    source: Source,
+  ) {
+    if (source.type !== 'pg') return;
+
+    await model.getColumns(context);
+    const aiColumns = model.columns.filter((c) => c.ai);
+    if (!aiColumns.length) return;
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: null,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    const tnPath = baseModel.getTnPath(model.table_name);
+
+    for (const col of aiColumns) {
+      try {
+        const maxRes = await sqlClient.raw(`SELECT MAX(??) AS max FROM ??;`, [
+          col.column_name,
+          tnPath,
+        ]);
+        const maxId = maxRes?.rows?.[0]?.max;
+
+        // empty table -> leave the sequence at its default (next id = 1)
+        if (maxId === null || maxId === undefined) continue;
+
+        await sqlClient.raw(
+          `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+          [tnPath, col.column_name, maxId],
+        );
+      } catch (e) {
+        this.logger.warn(
+          `Failed to reset pg sequence for ${model.table_name}.${col.column_name}: ${e.message}`,
+        );
+      }
+    }
+  }
+
   importDataFromCsvStream(
     context: NcContext,
     param: {
@@ -2303,8 +2485,24 @@ export class ImportService {
                     chunkSize: chunk.length + 1,
                     foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
+                    // Row copy, not a user write — no webhooks, workflows or audit.
+                    skip_hooks: true,
                     // this is to avoid skipping autoincrement column
                     undo: true,
+                    // import/duplication copies rows verbatim — not user field
+                    // edits — so bypass per-field edit-permission enforcement
+                    skipPermissionCheck: true,
+                    // attachments are carried over from the source base, so
+                    // they belong to neither the destination base nor (in
+                    // general) the acting user — the ownership check can never
+                    // pass here
+                    // TODO: this also relaxes the guard for cross-instance
+                    // remote import, whose refs arrive in the request body
+                    // rather than from an ACL-checked base. Thread the flag
+                    // per-caller once remote import transfers attachment files
+                    // instead of passing refs through verbatim.
+                    // github.com/nocodb/nocohub/pull/10063#discussion_r3773398681
+                    skipAttachmentOwnershipCheck: true,
                   });
                 } catch (e) {
                   // stop the stream
@@ -2329,8 +2527,15 @@ export class ImportService {
                 chunkSize: chunk.length + 1,
                 foreign_key_checks: !!destBase.isMeta(),
                 raw: true,
+                // Row copy, not a user write — no webhooks, workflows or audit.
+                skip_hooks: true,
                 // this is to avoid skipping autoincrement column
                 undo: true,
+                // import/duplication copies rows verbatim — not user field
+                // edits — so bypass per-field edit-permission enforcement
+                skipPermissionCheck: true,
+                // see the chunked insert above
+                skipAttachmentOwnershipCheck: true,
               });
             } catch (e) {
               // stop the stream
@@ -2339,6 +2544,21 @@ export class ImportService {
             }
             chunk = [];
           }
+
+          // Rows were imported with their original ids, which does NOT advance
+          // a pg serial sequence — realign it with the data just written so the
+          // next user insert gets MAX(id)+1 instead of colliding on a low id.
+          // Best-effort; never fail the import over a sequence reset.
+          try {
+            await this.resetPgAutoIncrementSequences(
+              context,
+              destModel,
+              destBase,
+            );
+          } catch (e) {
+            this.debugLog(e);
+          }
+
           resolve(null);
         },
       });
@@ -2372,8 +2592,15 @@ export class ImportService {
             chunkSize: 1000,
             foreign_key_checks: !!destBase.isMeta(),
             raw: true,
+            // Junction row copy, not a user write — no webhooks or audit.
+            skip_hooks: true,
             // this is to avoid skipping autoincrement column
             undo: true,
+            // Junction rows are an internal link copy, not user edits. The null
+            // cookie already makes beforeBulkInsert's permission check inert, but
+            // declare the bypass explicitly (matching the data copy above) so the
+            // guarantee survives if a real cookie is ever threaded here.
+            skipPermissionCheck: true,
           });
           lChunks[k] = [];
         } catch (e) {

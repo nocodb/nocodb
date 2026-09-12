@@ -64,6 +64,17 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
         type: params.column.uidt,
       });
     }
+
+    // Normalize Date values to YYYY-MM-DD to prevent timezone conversion
+    // from shifting the date by ±1 day (e.g. "2026-04-23 00:00:00+07:00"
+    // stored as-is would become "2026-04-22" when read back on a UTC server)
+    if (typeof params.value === 'string') {
+      const dateMatch = params.value.match(/^\d{4}-\d{2}-\d{2}/);
+      if (dateMatch) {
+        return { value: dateMatch[0] };
+      }
+    }
+
     return { value: params.value };
   }
 

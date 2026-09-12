@@ -66,29 +66,35 @@ export class LRUMap<V> {
   /**
    * Like delete(), but awaits onEvict if it returns a Promise.
    * Use for intentional teardown where callers need to wait for cleanup.
+   *
+   * Removes the entry from the map BEFORE awaiting onEvict so concurrent
+   * get(key) calls during teardown can't return a value whose cleanup is
+   * already in progress.
    */
   async asyncDelete(key: string): Promise<boolean> {
-    if (this.onEvict) {
-      const value = this.map.get(key);
-      if (value !== undefined) {
-        await this.onEvict(value);
-      }
+    const value = this.map.get(key);
+    const deleted = this.map.delete(key);
+    if (value !== undefined && this.onEvict) {
+      await this.onEvict(value);
     }
-    return this.map.delete(key);
+    return deleted;
   }
 
   /**
    * Like clear(), but awaits onEvict for every entry if it returns a Promise.
    * Use for intentional teardown (shutdown, cleanup) where callers
    * need all resources fully released before proceeding.
+   *
+   * Snapshots and clears the map BEFORE awaiting onEvict so concurrent
+   * get() calls during teardown can't return values whose cleanup is
+   * already in progress.
    */
   async asyncClear(): Promise<void> {
-    if (this.onEvict) {
-      for (const value of this.map.values()) {
-        await this.onEvict(value);
-      }
-    }
+    const values = this.onEvict ? [...this.map.values()] : [];
     this.map.clear();
+    for (const value of values) {
+      await this.onEvict!(value);
+    }
   }
 
   get size(): number {

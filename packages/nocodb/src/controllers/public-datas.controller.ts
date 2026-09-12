@@ -182,6 +182,8 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/ln/:columnId',
     '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/ln/:columnId',
+    '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/om/:columnId',
+    '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/om/:columnId',
   ])
   async publicMmList(
     @TenantContext() context: NcContext,
@@ -306,22 +308,6 @@ export class PublicDatasController {
     @Param('sharedViewUuid') sharedViewUuid: string,
   ) {
     const response = await this.publicDatasService.bulkAggregate(context, {
-      query: req.query,
-      password: req.headers?.['xc-password'] as string,
-      sharedViewUuid,
-      body: req.body,
-    });
-
-    return response;
-  }
-
-  @Post(['/api/v2/public/shared-view/:sharedViewUuid/bulk/group'])
-  async bulkGroupBy(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('sharedViewUuid') sharedViewUuid: string,
-  ) {
-    const response = await this.publicDatasService.bulkGroupBy(context, {
       query: req.query,
       password: req.headers?.['xc-password'] as string,
       sharedViewUuid,

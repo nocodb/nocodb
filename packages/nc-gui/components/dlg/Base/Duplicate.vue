@@ -13,7 +13,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { navigateToProject, user, appInfo } = useGlobal()
 
-const isEeActive = computed(() => isEeUI && appInfo.value?.ee)
+const isEeActive = computed(() => !!appInfo.value?.ee)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -39,9 +39,11 @@ const options = ref({
   includeViews: true,
   includeHooks: true,
   includeComments: true,
-  includeScripts: isEeUI && !!appInfo.value?.ee,
-  includeDashboards: isEeUI && !!appInfo.value?.ee,
-  includeWorkflows: isEeUI && !!appInfo.value?.ee,
+  includeScripts: !!appInfo.value?.ee,
+  includeDashboards: !!appInfo.value?.ee,
+  includeInterfaces: !!appInfo.value?.ee,
+  includeWorkflows: !!appInfo.value?.ee,
+  includeDocuments: !!appInfo.value?.ee,
 })
 const targetWorkspace = ref(workspacesList.find((ws) => ws.id === props.base.fk_workspace_id) ?? activeWorkspace)
 
@@ -57,14 +59,27 @@ const isEaster = ref(false)
 const dropdownOpen = ref(false)
 
 const optionsToExclude = computed(() => {
-  const { includeData, includeViews, includeHooks, includeComments, includeScripts, includeWorkflows } = options.value
+  const {
+    includeData,
+    includeViews,
+    includeHooks,
+    includeComments,
+    includeScripts,
+    includeDashboards,
+    includeInterfaces,
+    includeWorkflows,
+    includeDocuments,
+  } = options.value
   return {
     excludeData: !includeData,
     excludeViews: !includeViews,
     excludeHooks: !includeHooks,
     excludeComments: !includeComments,
     excludeScripts: !includeScripts,
+    excludeDashboards: !includeDashboards,
+    excludeInterfaces: !includeInterfaces,
     excludeWorkflows: !includeWorkflows,
+    excludeDocuments: !includeDocuments,
   }
 })
 
@@ -296,10 +311,28 @@ onKeyStroke('Enter', () => {
           <div
             v-if="isEeActive"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+            @click="options.includeInterfaces = !options.includeInterfaces"
+          >
+            <NcSwitch :checked="options.includeInterfaces" />
+            {{ $t('labels.includeInterfaces') }}
+          </div>
+
+          <div
+            v-if="isEeActive"
+            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeWorkflows = !options.includeWorkflows"
           >
             <NcSwitch :checked="options.includeWorkflows" />
             {{ $t('labels.includeWorkflows') }}
+          </div>
+
+          <div
+            v-if="isEeActive"
+            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+            @click="options.includeDocuments = !options.includeDocuments"
+          >
+            <NcSwitch :checked="options.includeDocuments" />
+            {{ $t('labels.includeDocuments') }}
           </div>
         </div>
 

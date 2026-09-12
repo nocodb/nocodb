@@ -37,7 +37,7 @@ const onCancel = async () => {
   if (!nonSsoWorkspace) {
     // create a default workspace with username and navigate
     const defaultWorkspace = {
-      title: user.value?.display_name || user.value?.email?.split('@')[0] || 'Default Workspace',
+      title: extractUserDisplayNameOrEmail(user.value) || 'Default Workspace',
     }
 
     nonSsoWorkspace = await workspaceStore.createWorkspace(defaultWorkspace)

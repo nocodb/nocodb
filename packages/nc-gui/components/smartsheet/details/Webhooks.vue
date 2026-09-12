@@ -200,6 +200,13 @@ const eventList = ref<Record<string, any>[]>([
     { text: [t('objects.field'), t('general.create').toLowerCase()], value: ['field', 'insert'] },
     { text: [t('objects.field'), t('general.update').toLowerCase()], value: ['field', 'update'] },
     { text: [t('objects.field'), t('general.delete').toLowerCase()], value: ['field', 'delete'] },
+    // Comment add/edit/delete reuse the insert/update/delete operation tokens
+    // (same as records/fields/views); resolve/reopen are comment-specific.
+    { text: [t('general.comment'), t('labels.commentAdded')], value: ['comment', 'insert'] },
+    { text: [t('general.comment'), t('labels.commentEdited')], value: ['comment', 'update'] },
+    { text: [t('general.comment'), t('labels.commentDeleted')], value: ['comment', 'delete'] },
+    { text: [t('general.comment'), t('labels.commentResolved')], value: ['comment', 'resolved'] },
+    { text: [t('general.comment'), t('labels.commentReopened')], value: ['comment', 'reopened'] },
   ]) ||
     []),
 
@@ -265,8 +272,7 @@ const getHookTypeText = (hook: HookType) => {
 
     const operations = operationsArray
       .map((op) => {
-        const eventData = eventList.value.find((e) => e.value[0] === hook.event)
-        const operationData = eventData?.operations?.[op] || eventData?.[op]
+        const operationData = eventList.value.find((e) => e.value[0] === hook.event && e.value[1] === op)
         return operationData?.text?.[1] || op
       })
       .filter(Boolean)
@@ -283,6 +289,12 @@ const getHookTypeText = (hook: HookType) => {
       }
       case 'view': {
         prefix = `${t('objects.view')} : `
+        break
+      }
+      case 'comment': {
+        // The comment operation labels already include the "comment" noun
+        // (e.g. "comment added"), so no separate prefix is needed here.
+        prefix = ''
       }
     }
 
@@ -299,11 +311,11 @@ const getHookTypeText = (hook: HookType) => {
 
   const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text
 
-  if (result && result.includes('Manual Trigger')) {
-    return 'Manual Trigger'
+  if (result && result.includes(t('labels.manualTrigger'))) {
+    return t('labels.manualTrigger')
   }
 
-  return result?.join(' ') || `Before ${hook.operation}`
+  return result?.join(' ') || t('labels.beforeOperation', { operation: hook.operation })
 }
 </script>
 
@@ -430,7 +442,7 @@ const getHookTypeText = (hook: HookType) => {
                 <NcTooltip v-if="hook.version === 'v2'" class="-mr-2 flex">
                   <GeneralIcon icon="ncAlertTriangle" class="flex-none text-nc-content-orange-dark" />
 
-                  <template #title> Port this webhook from v2 to v3 </template>
+                  <template #title> {{ $t('tooltip.portWebhookV2ToV3') }} </template>
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">

@@ -43,6 +43,61 @@ export {
   deleteFilterWithSub,
 }
 
+// Text-like fields default to the "is like" (substring match) operator since
+// partial matching is the most common intent when filtering free text. All other
+// field types fall back to the first allowed operator in the list.
+const TEXT_LIKE_FILTER_DEFAULT_TYPES = new Set<UITypes>([
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+])
+
+/**
+ * Pick the default comparison operator for a freshly created/retargeted filter.
+ * Filters `ops` through `isAllowed`, then prefers `like` for text-like fields and
+ * otherwise returns the first allowed operator (the historical behaviour).
+ */
+export const getDefaultComparisonOp = (
+  ops: ComparisonOpUiType[],
+  isAllowed: (compOp: ComparisonOpUiType) => boolean,
+  uidt?: UITypes,
+): string | undefined => {
+  const allowed = ops.filter(isAllowed)
+  if (uidt && TEXT_LIKE_FILTER_DEFAULT_TYPES.has(uidt)) {
+    const like = allowed.find((op) => op.value === 'like')
+    if (like) return like.value
+  }
+  return allowed[0]?.value
+}
+
+/**
+ * Strip FE-only transient fields (`tmp_id`, `status`, `dynamic`) and DB
+ * system fields (`source_id`, `base_id`, `fk_workspace_id`, `created_at`,
+ * `updated_at`) from a filter body before sending it to the BE.
+ */
+export const stripFilterApiBody = <T extends Record<string, any>>(filter: T): T => {
+  const {
+    tmp_id: _tmp,
+    status: _status,
+    dynamic: _dynamic,
+    source_id: _sourceId,
+    base_id: _baseId,
+    fk_workspace_id: _fkWs,
+    created_at: _createdAt,
+    updated_at: _updatedAt,
+    children,
+    is_group,
+    ...rest
+  } = filter
+  return {
+    ...rest,
+    ...(is_group != null ? { is_group } : {}),
+    ...(Array.isArray(children) ? { children: children.map((c) => stripFilterApiBody(c)) } : {}),
+  } as T
+}
+
 export const isComparisonSubOpAllowed = (
   filter: ColumnFilterType,
   compOp: {
@@ -235,9 +290,11 @@ export const adjustFilterWhenColumnChange = ({
   } else {
     filter.fk_value_col_id = null
   }
-  filter.comparison_op = comparisonOpList(evalUidt, parseProp(column.meta)?.date_format).find((compOp) =>
-    isComparisonOpAllowed(filter, compOp, evalUidt as UITypes, showNullAndEmptyInFilter),
-  )?.value
+  filter.comparison_op = getDefaultComparisonOp(
+    comparisonOpList(evalUidt, parseProp(column.meta)?.date_format),
+    (compOp) => isComparisonOpAllowed(filter, compOp, evalUidt as UITypes, showNullAndEmptyInFilter),
+    evalUidt,
+  )
 
   if (isDateType(evalUidt) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
@@ -262,4 +319,39 @@ export const adjustFilterWhenColumnChange = ({
 export function getTimezoneFromColumn(col: ColumnType, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {
   const columnMeta = parseProp(col.meta)
   return columnMeta.timezone || defaultValue
+}
+
+// Fields the backend actually persists on a filter row. UI-only fields like
+// `tmp_id`, `children`, and `id` are deliberately excluded so callers can
+// diff/snapshot the persistable subset without reacting to UI noise.
+export const FILTER_PERSISTABLE_FIELDS = [
+  'fk_column_id',
+  'comparison_op',
+  'comparison_sub_op',
+  'value',
+  'fk_parent_id',
+  'is_group',
+  'logical_op',
+  'fk_value_col_id',
+  'meta',
+  'order',
+  'enabled',
+] as const
+
+// Returns true if any persistable field differs between two filter rows.
+// Used to skip redundant `filterUpdate` API calls when nothing the backend
+// would store has changed.
+export function filtersDiffer(a: Record<string, any> | null | undefined, b: Record<string, any> | null | undefined): boolean {
+  if (!a || !b) return true
+  for (const k of FILTER_PERSISTABLE_FIELDS) {
+    if (a[k] !== b[k]) return true
+  }
+  return false
+}
+
+// Extract the persistable subset of a filter for diff/snapshot comparisons.
+export function snapshotFilter(f: Record<string, any>): Record<string, any> {
+  const snap: Record<string, any> = {}
+  for (const k of FILTER_PERSISTABLE_FIELDS) snap[k] = f[k]
+  return snap
 }

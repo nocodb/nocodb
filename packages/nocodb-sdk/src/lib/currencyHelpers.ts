@@ -1,5 +1,63 @@
 import { ncIsNumber } from './is';
 
+/**
+ * Resolve the display symbol for a currency from its ISO code + locale.
+ *
+ * The symbol is a locale-dependent projection of `(currency_code,
+ * currency_locale)` — the same pair the cell renderer feeds to
+ * `Intl.NumberFormat` (see `parseCurrencyValue`). It is derived, never stored,
+ * so consumers that only receive the code/locale (e.g. the v3 field schema, the
+ * MCP connector) can surface a symbol without re-implementing the lookup.
+ *
+ * Falls back to the code itself when the environment lacks `formatToParts` or
+ * the code/locale is invalid.
+ */
+export const getCurrencySymbol = (
+  currencyCode = 'USD',
+  currencyLocale = 'en-US'
+): string => {
+  try {
+    const formatter = new Intl.NumberFormat(currencyLocale || 'en-US', {
+      style: 'currency',
+      currency: currencyCode || 'USD',
+    });
+    if (!(formatter as any).formatToParts) return currencyCode || 'USD';
+    const parts = (formatter as any).formatToParts(0) as Array<{
+      type: string;
+      value: string;
+    }>;
+    return (
+      parts.find((p) => p.type === 'currency')?.value || currencyCode || 'USD'
+    );
+  } catch {
+    return currencyCode || 'USD';
+  }
+};
+
+/**
+ * A rendered example of a currency value — mirrors `parseCurrencyValue` exactly
+ * (same `Intl.NumberFormat` options and precision handling) so the example a
+ * schema consumer sees matches what the app displays. Useful as an unambiguous
+ * formatting template for MCP/AI clients.
+ */
+export const getCurrencyFormatExample = (
+  currencyCode = 'USD',
+  currencyLocale = 'en-US',
+  precision = 2,
+  sampleValue = 1234.56
+): string => {
+  try {
+    return new Intl.NumberFormat(currencyLocale || 'en-US', {
+      style: 'currency',
+      currency: currencyCode || 'USD',
+      minimumFractionDigits: precision ?? 2,
+      maximumFractionDigits: precision ?? 2,
+    }).format(sampleValue);
+  } catch {
+    return `${getCurrencySymbol(currencyCode, currencyLocale)}${sampleValue}`;
+  }
+};
+
 export const getGroupDecimalSymbolFromLocale = (locale?: string) => {
   let group = ',';
   let decimal = '.';

@@ -32,19 +32,19 @@ const collapseAllGroup = () => {
   <NcMenu variant="small">
     <NcMenuItem v-if="group?.isExpanded" @click="toggleExpand(group)">
       <GeneralIcon icon="minimize" />
-      Collapse group
+      {{ $t('labels.collapseGroup') }}
     </NcMenuItem>
     <NcMenuItem v-else @click="toggleExpand(group)">
       <GeneralIcon icon="maximize" />
-      Expand group
+      {{ $t('labels.expandGroup') }}
     </NcMenuItem>
     <NcMenuItem @click="expandAllGroup">
       <GeneralIcon icon="maximizeAll" />
-      Expand all
+      {{ $t('labels.expandAll') }}
     </NcMenuItem>
     <NcMenuItem @click="collapseAllGroup">
       <GeneralIcon icon="minimizeAll" />
-      Collapse all
+      {{ $t('labels.collapseAll') }}
     </NcMenuItem>
   </NcMenu>
 </template>

@@ -20,6 +20,8 @@ const {
   showUpgradeToUseAutoNumberField,
 } = useEeConfig()
 
+const { t } = useI18n()
+
 const searchQuery = ref('')
 
 const searchBasisInfoMap = ref<Record<string, string>>({})
@@ -35,7 +37,7 @@ const filteredOptions = computed(() => {
     return searchCompare([...(UITypesSearchTerms[c.name] || [])], searchQuery.value, (matchKeyword) => {
       if (!matchKeyword) return
 
-      searchBasisInfoMap.value[c.name] = `Matched by keyword: ${matchKeyword}`
+      searchBasisInfoMap.value[c.name] = t('msg.matchedByKeyword', { matchKeyword })
     })
   })
 })
@@ -51,25 +53,25 @@ const isDisabledUIType = (type: UITypes) => {
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
 
-  if (uidt === AIPrompt && showUpgradeToUseAiPromptField()) {
+  if (uidt === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
     return
   }
 
-  if (uidt === AIButton && showUpgradeToUseAiButtonField()) {
+  if (uidt === AIButton && showUpgradeToUseAiButtonField({ triggerSource: 'field-menu-ai-button' })) {
     return
   }
 
-  if (uidt === UITypes.Colour && showUpgradeToUseColourField()) {
+  if (uidt === UITypes.Colour && showUpgradeToUseColourField({ triggerSource: 'field-menu-colour-field' })) {
     return
   }
 
   // EE-only: gate UUID field type behind plan feature flag
-  if (uidt === UITypes.UUID && showUpgradeToUseUuidField()) {
+  if (uidt === UITypes.UUID && showUpgradeToUseUuidField({ triggerSource: 'field-menu-uuid-field' })) {
     return
   }
 
   // EE-only: gate AutoNumber field type behind plan feature flag
-  if (uidt === UITypes.AutoNumber && showUpgradeToUseAutoNumberField()) {
+  if (uidt === UITypes.AutoNumber && showUpgradeToUseAutoNumberField({ triggerSource: 'field-menu-autonumber-field' })) {
     return
   }
 
@@ -140,10 +142,10 @@ const { isSystem } = useColumnCreateStoreOrThrow()
         <img
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
-          alt="No search results found"
+          :alt="$t('title.noSearchResultsFound')"
         />
 
-        {{ options?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
+        {{ options?.length ? $t('title.noResultsMatchedYourSearch') : $t('title.theListIsEmpty') }}
       </div>
       <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"

@@ -1,19 +1,109 @@
 import groupBy from 'lodash/groupBy';
-import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  getFirstNonPersonalView,
+  NcApiVersion,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
-import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
+import {
+  getRelationReadDepth,
+  runAtNextRelationReadDepth,
+} from '~/db/BaseModelSqlv2/relation-read-depth';
 
 const GROUP_COL = '__nc_group_id';
+
+// How many relation levels `postProcessData` expands LTAR/Lookup before falling
+// back to a value-only projection (scalars/Rollup/Links/Formula). Depth 0 is the
+// surfaced relation read; expanding through this many levels means a lookup
+// chain up to one hop deeper than the bound resolves (depth 1 → the two-hop
+// lookup→lookup).
+//
+// Bounded at 1 — the cheapest bound that still fixes #14229's two-level
+// lookup→lookup case. Raising it to 2 (to also resolve a three-hop chain) was
+// tried but pushed the heavy self-referential metaLTAR read over its timeout on
+// hundreds of rows (CI: metaLTAR delete-record test timed out): each extra
+// expanded level turns one relation read into N more. Deeper chains are still
+// resolved — not by raising this bound, but by targeted expansion below, which
+// keeps only the columns an outer lookup actually references. Cyclic chains
+// still terminate here.
+const MAX_NESTED_RELATION_DEPTH = 1;
+
+// Targeted expansion (#14229): past the bound, a bounded nested read still keeps
+// the LTAR/Lookup columns an *outer* lookup chain references (so a deep
+// lookup→lookup→lookup resolves) instead of dropping all relations. That keeps
+// re-entering postProcessData one hop per lookup level, so a self/cyclic lookup
+// chain could recurse without limit. This hard cap severs it: at or ABOVE this
+// depth (`depth < TARGETED_EXPANSION_MAX_DEPTH` stops holding) we stop passing
+// required columns, the AST drops all relations again, and the recursion
+// terminates. Practical lookup chains are far shallower than this.
+const TARGETED_EXPANSION_MAX_DEPTH = 8;
+
+// The target columns on `model`'s related table that outer lookups need from the
+// relation `relationColumnId`: the union of `fk_lookup_column_id` for every
+// Lookup on the owner model that traverses that relation. Passed to getAst as
+// `requiredColumnIds` so exactly those columns survive a bounded nested read —
+// each kept target may itself be a Lookup/LTAR, which resolves one level deeper.
+async function requiredLookupTargets(
+  context: NcContext,
+  ownerModel: Model,
+  relationColumnId: string,
+): Promise<Set<string> | undefined> {
+  const columns = await ownerModel.getColumns(context);
+
+  let targets: Set<string> | undefined;
+
+  for (const col of columns) {
+    if (col.uidt !== UITypes.Lookup) continue;
+
+    const colOptions = (await col.getColOptions(context)) as LookupColumn;
+
+    if (
+      colOptions?.fk_relation_column_id !== relationColumnId ||
+      !colOptions.fk_lookup_column_id
+    ) {
+      continue;
+    }
+
+    (targets ??= new Set<string>()).add(colOptions.fk_lookup_column_id);
+  }
+
+  return targets;
+}
+
+// SQLite AND MSSQL forbid `ORDER BY` (and `TOP`/`LIMIT`) inside a parenthesized
+// `UNION ALL` operand — only pg/mysql accept `(SELECT … ORDER BY … LIMIT …)`
+// branches. For those two dialects we instead wrap each branch in a derived
+// table (`SELECT * FROM (<branch>)`) and tell knex NOT to parenthesize the
+// union members. MSSQL additionally requires the derived table to be aliased.
+//
+// Oracle forbids branch-level ORDER BY too, but intentionally does NOT need
+// the wrap: knex's oracledb dialect compiles `.limit()/.offset()` into a
+// ROWNUM inline-view wrapper, so each compiled branch is already a plain
+// `SELECT * FROM (… ORDER BY …) WHERE ROWNUM <= n` with no top-level
+// ORDER BY/LIMIT — a valid parenthesized UNION ALL operand (live-verified).
+function needsUnionMemberWrap(model: IBaseModelSqlV2): boolean {
+  return (model as any).isSqlite || (model as any).isMssql;
+}
+
+function wrapUnionMember(model: IBaseModelSqlV2, query: any): any {
+  if (!needsUnionMemberWrap(model)) return query;
+  return (model as any).dbDriver
+    .select()
+    .from((model as any).isMssql ? query.as('__nc_u') : query);
+}
 
 export const relationDataFetcher = (param: {
   baseModel: IBaseModelSqlV2;
@@ -27,32 +117,72 @@ export const relationDataFetcher = (param: {
       data,
       model,
       query,
+      relationColumnId,
     }: {
       data: any[];
       model: Model;
       query: any;
+      // The LTAR column on the owner model (`baseModel.model`) that this related
+      // data was read through — lets a bounded nested read keep only the target
+      // columns an outer lookup chain needs (targeted expansion, #14229).
+      relationColumnId?: string;
     },
   ) {
     if (Noco.isEE()) {
       return data;
     }
 
-    const { ast, parsedQuery } = await getAst(context, {
-      model,
-      query,
-      extractOnlyPrimaries:
-        context.cacheMap?.get('relation_postProcessData') ?? false,
-    });
-
+    // Seed the request-scoped cache map. Nothing in THIS function reads it (the
+    // depth counter moved to AsyncLocalStorage), but it is not dead: the EE
+    // `@NcCache` decorator self-seeds only on its first decorated call, while
+    // `LinkToAnotherRecordColumn.getRelContext` propagates the map to the
+    // related contexts *only* `if (context.cacheMap)`. Seeding here means the
+    // nested reads below share the parent's map instead of each starting a
+    // fresh one, so dropping this would cost cache hits across the relation
+    // boundary on unlicensed on-prem (EE build, `Noco.isEE()` false).
     if (!context.cacheMap) {
       context.cacheMap = new Map();
     }
-    // set context.cacheMap `relation_postProcessData` to ensure non-infinite loop
-    context.cacheMap.set('relation_postProcessData', true);
 
-    // nocoexecute
-    const result = await nocoExecute(ast, data, {}, parsedQuery);
-    return result;
+    // Re-resolving a relation's lookups here re-enters this function for the
+    // next relation, so the recursion is bounded by depth. Below the bound the
+    // AST is built normally MINUS LTAR/Lookup (the two columns that re-enter
+    // here) — except the specific target columns an outer lookup chain still
+    // needs, which are kept via requiredColumnIds below (targeted expansion).
+    // Scalars/Rollup/Links/Formula still resolve within the single relation
+    // SELECT, which is what keeps an outer lookup's target (#14229) — dropped
+    // by the old PK+PV projection — while staying cheap. Depth is
+    // per-async-chain (AsyncLocalStorage), not a shared counter, because
+    // nocoExecute resolves sibling relations concurrently — see relation-read-depth.
+    const depth = getRelationReadDepth();
+
+    const skipRelationExpansion = depth >= MAX_NESTED_RELATION_DEPTH;
+
+    // Below the bound, keep the columns an outer lookup chain still needs from
+    // this relation (targeted expansion) instead of dropping every relation.
+    // The cyclic-safety cap stops feeding required columns past a fixed depth so
+    // a self-referential lookup chain terminates — see TARGETED_EXPANSION_MAX_DEPTH.
+    const requiredColumnIds =
+      skipRelationExpansion &&
+      relationColumnId &&
+      depth < TARGETED_EXPANSION_MAX_DEPTH
+        ? await requiredLookupTargets(
+            baseModel.context,
+            baseModel.model,
+            relationColumnId,
+          )
+        : undefined;
+
+    const { ast, parsedQuery } = await getAst(context, {
+      model,
+      query,
+      skipRelationExpansion,
+      requiredColumnIds,
+    });
+
+    return runAtNextRelationReadDepth(() =>
+      nocoExecute(ast, data, {}, parsedQuery),
+    );
   }
 
   return {
@@ -106,17 +236,18 @@ export const relationDataFetcher = (param: {
 
         const qb = childBaseModel.dbDriver(childTn);
 
-        const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        const hasLimitedAccess = await hasLimitedRelatedTableAccess(
           baseModel.context,
           childTable.id,
-          baseModel.context.user,
-        ));
+        );
 
         await childBaseModel.selectObject({
           qb,
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          fk_display_value_column_id:
+            relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
         const view = relationColOpts.fk_target_view_id
@@ -134,6 +265,11 @@ export const relationDataFetcher = (param: {
           skipViewFilter: true,
           prioritizePvSort: true,
         });
+
+        // Exclude soft-deleted records from HM results so they don't leak through links
+        const hmSoftDeleteFilter = await childBaseModel.getSoftDeleteFilter();
+        if (hmSoftDeleteFilter) qb.where(hmSoftDeleteFilter);
+
         const childQb = baseModel.dbDriver.queryBuilder().from(
           baseModel.dbDriver
             .unionAll(
@@ -158,11 +294,9 @@ export const relationDataFetcher = (param: {
                 );
                 query.offset(+rest?.offset || 0);
 
-                return baseModel.isSqlite
-                  ? baseModel.dbDriver.select().from(query)
-                  : query;
+                return wrapUnionMember(baseModel, query);
               }),
-              !baseModel.isSqlite,
+              !needsUnionMemberWrap(baseModel),
             )
             .as('list'),
         );
@@ -199,7 +333,12 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldsSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+      } = {},
       selectAllRecords = false,
     ) {
       const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -266,22 +405,28 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(table.primaryKeys, parentId)),
         );
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        pkAndPvOnly:
+          relColOptions.isCrossBaseLink() ||
+          hasLimitedAccess ||
+          !!args.pkAndPvOnly,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
       });
 
       await refTable.getViews(refContext);
       const viewId =
-        relColumn.colOptions?.fk_target_view_id ?? refTable.views?.[0]?.id;
+        relColumn.colOptions?.fk_target_view_id ??
+        getFirstNonPersonalView([...(refTable.views ?? [])], {
+          includeViewType: ViewTypes.GRID,
+        })?.id;
       let view: View | null = null;
       if (viewId) view = await View.get(refContext, viewId);
 
@@ -299,9 +444,35 @@ export const relationDataFetcher = (param: {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
           : await View.getFirstCollaborativeView(refContext, refTable.id);
+        let childSorts = [];
         if (view) {
-          const childSorts = await view.getSorts(refContext);
-          await sortV2(refBaseModel, childSorts, qb);
+          childSorts = await view.getSorts(refContext);
+          if (childSorts?.length) await sortV2(refBaseModel, childSorts, qb);
+        }
+        // No explicit sort and no view sort → fall back to the per-link order.
+        // The junction Order column grouped by the current side's FK (vcn, i.e.
+        // getMMChildColumn) holds this record's manual arrangement of its links.
+        // v1 links / external junctions have no such column → natural order.
+        // Per-link ordering is Postgres-only (the Order column exists on any
+        // isMeta source, but ordering by it is only wired/valid on pg).
+        if (!childSorts?.length && baseModel.isPg) {
+          const linkOrderCol = await relColOptions.getMMChildOrderColumn(
+            mmContext,
+          );
+          if (linkOrderCol) {
+            // Drop the default related-table order applied above (the related
+            // model's own `nc_order`/PK sort). Without this the per-link order is
+            // only appended as a tiebreaker, so the related table's row order
+            // wins and the manual link arrangement is ignored. Safe here: this
+            // branch runs only when there is NO explicit sort AND no view sort,
+            // so nothing user-intended is discarded.
+            qb.clear('order');
+            qb.orderBy(`${vtn}.${linkOrderCol.column_name}`, 'asc');
+            // Deterministic tiebreak on the related-side junction FK (part of
+            // the junction PK) so equal order values (backfill/manual/concurrent)
+            // never yield a nondeterministic read order.
+            qb.orderBy(`${vtn}.${vrcn}`, 'asc');
+          }
         }
       }
 
@@ -314,6 +485,10 @@ export const relationDataFetcher = (param: {
         );
       }
       qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
+
+      // Exclude soft-deleted records from MM results so they don't leak through links
+      const mmSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      if (mmSoftDeleteFilter) qb.where(mmSoftDeleteFilter);
 
       const children = await refBaseModel.execAndParse(
         qb,
@@ -328,6 +503,7 @@ export const relationDataFetcher = (param: {
         }),
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -398,16 +574,22 @@ export const relationDataFetcher = (param: {
         )
         .limit(1);
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      // Exclude soft-deleted records from MM read results
+      const refSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      if (refSoftDeleteFilter) {
+        qb.where(refSoftDeleteFilter);
+      }
+
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const child = await refBaseModel.execAndParse(
@@ -425,6 +607,7 @@ export const relationDataFetcher = (param: {
         data: [child],
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
 
       return result?.[0] ?? null;
@@ -457,13 +640,17 @@ export const relationDataFetcher = (param: {
 
         await parentTable.getColumns(baseModel.context);
 
-        const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        const childBaseModel = await Model.getBaseModelSQL(refContext, {
           dbDriver: baseModel.dbDriver,
           model: childTable,
         });
 
         const childTn = childBaseModel.getTnPath(childTable);
         const parentTn = baseModel.getTnPath(parentTable);
+
+        // Exclude soft-deleted records from HM count results
+        const hmCountSoftDeleteFilter =
+          await childBaseModel.getSoftDeleteFilter();
 
         const children = await childBaseModel.execAndParse(
           childBaseModel.dbDriver.unionAll(
@@ -481,11 +668,11 @@ export const relationDataFetcher = (param: {
                 )
                 .first();
 
-              return childBaseModel.isSqlite
-                ? childBaseModel.dbDriver.select().from(query)
-                : query;
+              if (hmCountSoftDeleteFilter) query.where(hmCountSoftDeleteFilter);
+
+              return wrapUnionMember(childBaseModel, query);
             }),
-            !childBaseModel.isSqlite,
+            !needsUnionMemberWrap(childBaseModel),
           ),
           null,
           { raw: true },
@@ -510,7 +697,13 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+      } = {},
+      selectAllRecords = false,
     ) {
       try {
         const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -551,7 +744,10 @@ export const relationDataFetcher = (param: {
 
         await childTable.getViews(childBaseModel.context);
         const viewId =
-          relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
+          relColumn.colOptions?.fk_target_view_id ??
+          getFirstNonPersonalView([...(childTable.views ?? [])], {
+            includeViewType: ViewTypes.GRID,
+          })?.id;
         let view: View | null = null;
         if (viewId) view = await View.get(childBaseModel.context, viewId);
 
@@ -564,19 +760,28 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(parentTable.primaryKeys, id)),
         );
         // todo: sanitize
-        qb.limit(+rest?.limit || 25);
-        qb.offset(+rest?.offset || 0);
+        // `selectAllRecords` (set by the text↔link conversion's link read) skips
+        // the limit so every linked child is returned — without it a row with
+        // >25 children would be silently truncated. Mirrors `mmList`.
+        if (!selectAllRecords) {
+          qb.limit(+rest?.limit || 25);
+        }
+        qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
-        const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        const hasLimitedAccess = await hasLimitedRelatedTableAccess(
           baseModel.context,
           childTable.id,
-          baseModel.context.user,
-        ));
+        );
 
         await childBaseModel.selectObject({
           qb,
           fieldsSet: args.fieldSet,
-          pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          pkAndPvOnly:
+            relationColOpts.isCrossBaseLink() ||
+            hasLimitedAccess ||
+            !!args.pkAndPvOnly,
+          fk_display_value_column_id:
+            relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
 
@@ -589,6 +794,10 @@ export const relationDataFetcher = (param: {
           skipViewFilter: true,
           prioritizePvSort: true,
         });
+
+        const hmListSoftDeleteFilter =
+          await childBaseModel.getSoftDeleteFilter();
+        if (hmListSoftDeleteFilter) qb.where(hmListSoftDeleteFilter);
 
         const children = await childBaseModel.execAndParse(
           qb,
@@ -604,6 +813,7 @@ export const relationDataFetcher = (param: {
           }),
           model: childTable,
           query: args,
+          relationColumnId: colId,
         });
       } catch (e) {
         throw e;
@@ -654,6 +864,12 @@ export const relationDataFetcher = (param: {
               .select(parentCol.column_name)
               .where(_wherePk(parentTable.primaryKeys, id)),
           );
+
+        // Exclude soft-deleted records from HM count results
+        const hmCountSoftDeleteFilter =
+          await childBaseModel.getSoftDeleteFilter();
+        if (hmCountSoftDeleteFilter) query.where(hmCountSoftDeleteFilter);
+
         const aliasColObjMap = await childTable.getAliasColObjMap(
           childBaseModel.context,
         );
@@ -760,16 +976,16 @@ export const relationDataFetcher = (param: {
         .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
       });
 
@@ -786,6 +1002,8 @@ export const relationDataFetcher = (param: {
         prioritizePvSort: true,
       });
 
+      const mmListSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+
       const finalQb = refBaseModel.dbDriver.unionAll(
         parentIds.map((id) => {
           const query = qb
@@ -799,17 +1017,18 @@ export const relationDataFetcher = (param: {
                 .where(_wherePk(table.primaryKeys, id)),
             )
             .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
+
+          if (mmListSoftDeleteFilter) query.where(mmListSoftDeleteFilter);
+
           // get one extra record to check if there are more records in case of v3 api and nested
           query.limit(
             (+rest?.limit || 25) +
               (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
           );
           query.offset(+rest?.offset || 0);
-          return baseModel.isSqlite
-            ? baseModel.dbDriver.select().from(query)
-            : query;
+          return wrapUnionMember(baseModel, query);
         }),
-        !baseModel.isSqlite,
+        !needsUnionMemberWrap(baseModel),
       );
 
       const children = await refBaseModel.execAndParse(
@@ -836,6 +1055,14 @@ export const relationDataFetcher = (param: {
         baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
+      // Resolve mm/related contexts so cross-base junction & related tables are
+      // schema-qualified against THEIR base, not the requesting base. Mirrors the
+      // singular mmListCount; without this, cross-base link counts qualify the
+      // junction/related tables with the wrong schema.
+      const { mmContext, refContext } = relColOptions.getRelContext(
+        baseModel.context,
+      );
+
       const mmTable = await relColOptions.getMMModel(baseModel.context);
 
       // if mm table is not present then return
@@ -843,24 +1070,32 @@ export const relationDataFetcher = (param: {
         return parentIds.map(() => 0);
       }
 
-      const vtn = baseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
+      const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+        model: mmTable,
+        dbDriver: baseModel.dbDriver,
+      });
+
+      const vtn = assocBaseModel.getTnPath(mmTable);
+      const vcn = (await relColOptions.getMMChildColumn(mmContext)).column_name;
+      const vrcn = (await relColOptions.getMMParentColumn(mmContext))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
-        .column_name;
-      const rcn = (await relColOptions.getParentColumn(baseModel.context))
-        .column_name;
+      const rcn = (await relColOptions.getParentColumn(refContext)).column_name;
       const cn = (await relColOptions.getChildColumn(baseModel.context))
         .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(baseModel.context)
-      ).getModel(baseModel.context);
+        await relColOptions.getParentColumn(refContext)
+      ).getModel(refContext);
       const parentTable = await (
         await relColOptions.getChildColumn(baseModel.context)
       ).getModel(baseModel.context);
       await parentTable.getColumns(baseModel.context);
 
-      const childTn = baseModel.getTnPath(childTable);
+      const refBaseModel = await Model.getBaseModelSQL(refContext, {
+        dbDriver: baseModel.dbDriver,
+        model: childTable,
+      });
+
+      const childTn = refBaseModel.getTnPath(childTable);
       const parentTn = baseModel.getTnPath(parentTable);
 
       const rtn = childTn;
@@ -872,6 +1107,10 @@ export const relationDataFetcher = (param: {
         //   [`${tn}_${vcn}`]: `${vtn}.${vcn}`
         // })
         .count(`${vtn}.${vcn}`, { as: 'count' });
+
+      // Exclude soft-deleted records from MM count results
+      const mmCountSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      if (mmCountSoftDeleteFilter) qb.where(mmCountSoftDeleteFilter);
 
       // await childBaseModel.selectObject({ qb });
       const children = await baseModel.execAndParse(
@@ -889,11 +1128,9 @@ export const relationDataFetcher = (param: {
               )
               .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
             // baseModel._paginateAndSort(query, { sort, limit, offset }, null, true);
-            return baseModel.isSqlite
-              ? baseModel.dbDriver.select().from(query)
-              : query;
+            return wrapUnionMember(baseModel, query);
           }),
-          !baseModel.isSqlite,
+          !needsUnionMemberWrap(baseModel),
         ),
         null,
         { raw: true },
@@ -969,6 +1206,12 @@ export const relationDataFetcher = (param: {
             // .where(table.primaryKey.cn, id)
             .where(_wherePk(table.primaryKeys, parentId)),
         );
+
+      // Exclude soft-deleted records from MM count results
+      const mmCountSoftDeleteFilter =
+        await childBaseModel.getSoftDeleteFilter();
+      if (mmCountSoftDeleteFilter) qb.where(mmCountSoftDeleteFilter);
+
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
       const { filters: filterObj } = extractFilterFromXwhere(
         refContext,
@@ -1092,6 +1335,11 @@ export const relationDataFetcher = (param: {
           ).orWhereNull(rcn);
         });
 
+      // Exclude soft-deleted records from MM excluded count results
+      const mmExclCountSoftDeleteFilter =
+        await childBaseModel.getSoftDeleteFilter();
+      if (mmExclCountSoftDeleteFilter) qb.where(mmExclCountSoftDeleteFilter);
+
       const aliasColObjMap = await childTable.getAliasColObjMap(
         childBaseModel.context,
       );
@@ -1173,19 +1421,21 @@ export const relationDataFetcher = (param: {
       const refView = await relColOptions.getChildView(refContext, refTable);
       let listArgs: any = {};
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        context.user,
-      ));
+      );
 
       if (refView) {
         const { dependencyFields } = await getAst(refContext, {
           model: refTable,
-          query: {},
+          // Honor explicit `fields` so a view-hidden requested column is still
+          // returned. Limited-access still collapses to pk/pv below.
+          query: { fields: (args as any)?.fields },
           view: hasLimitedAccess ? null : refView,
           throwErrorIfInvalidParams: false,
           extractOnlyPrimaries: hasLimitedAccess,
+          allowRequestedHiddenFields: true,
         });
         listArgs = dependencyFields;
       }
@@ -1216,11 +1466,17 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
+      // Exclude soft-deleted records from MM excluded list results
+      const mmExclListSoftDeleteFilter =
+        await refBaseModel.getSoftDeleteFilter();
+      if (mmExclListSoftDeleteFilter) qb.where(mmExclListSoftDeleteFilter);
+
       await refBaseModel.selectObject({
         qb,
         fieldsSet: listArgs?.fieldsSet,
         viewId: refView?.id,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1264,6 +1520,7 @@ export const relationDataFetcher = (param: {
         }),
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -1319,15 +1576,20 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      // Exclude soft-deleted records from HM excluded list results
+      const hmExclListSoftDeleteFilter =
+        await refBaseModel.getSoftDeleteFilter();
+      if (hmExclListSoftDeleteFilter) qb.where(hmExclListSoftDeleteFilter);
+
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         refTable.id,
-        context.user,
-      ));
+      );
 
       await refBaseModel.selectObject({
         qb,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1370,6 +1632,7 @@ export const relationDataFetcher = (param: {
         }),
         model: refTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -1425,6 +1688,11 @@ export const relationDataFetcher = (param: {
               .where(_wherePk(table.primaryKeys, pid)),
           ).orWhereNull(cn);
         });
+
+      // Exclude soft-deleted records from HM excluded count results
+      const hmExclCountSoftDeleteFilter =
+        await refBaseModel.getSoftDeleteFilter();
+      if (hmExclCountSoftDeleteFilter) qb.where(hmExclCountSoftDeleteFilter);
 
       const aliasColObjMap = await refTable.getAliasColObjMap(
         refBaseModel.context,
@@ -1495,9 +1763,12 @@ export const relationDataFetcher = (param: {
       if (targetView) {
         const { dependencyFields } = await getAst(refContext, {
           model: isBt ? parentTable : childTable,
-          query: {},
+          // Honor explicit `fields` so a view-hidden requested column is still
+          // returned. Limited-access still collapses to pk/pv below.
+          query: { fields: (args as any)?.fields },
           view: targetView,
           throwErrorIfInvalidParams: false,
+          allowRequestedHiddenFields: true,
         });
         listArgs = dependencyFields;
       }
@@ -1526,17 +1797,17 @@ export const relationDataFetcher = (param: {
       await parentTable.getColumns(parentContext);
       await childTable.getColumns(childContext);
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         (isBt ? parentTable : childTable).id,
-        baseModel.context.user,
-      ));
+      );
 
       await refModel.selectObject({
         qb,
         fieldsSet: listArgs.fieldsSet,
         viewId: targetView?.id,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       // extract col-alias map based on the correct relation table
@@ -1570,6 +1841,11 @@ export const relationDataFetcher = (param: {
         prioritizePvSort: true,
       });
 
+      const ooExcludedListSoftDeleteFilter =
+        await refModel.getSoftDeleteFilter();
+      if (ooExcludedListSoftDeleteFilter)
+        qb.where(ooExcludedListSoftDeleteFilter);
+
       applyPaginate(qb, rest);
 
       const proto = await refModel.getProto();
@@ -1585,6 +1861,7 @@ export const relationDataFetcher = (param: {
         }),
         model: isBt ? parentTable : childTable,
         query: args,
+        relationColumnId: colId,
       });
     },
 
@@ -1661,6 +1938,11 @@ export const relationDataFetcher = (param: {
         qb,
         rowId: cid,
       });
+
+      const btExcludedCountSoftDeleteFilter =
+        await parentBaseModel.getSoftDeleteFilter();
+      if (btExcludedCountSoftDeleteFilter)
+        qb.where(btExcludedCountSoftDeleteFilter);
 
       return (
         await parentBaseModel.execAndParse(qb, null, { raw: true, first: true })
@@ -1755,6 +2037,11 @@ export const relationDataFetcher = (param: {
         rowId: cid,
       });
 
+      const ooExcludedCountSoftDeleteFilter =
+        await refBaseModel.getSoftDeleteFilter();
+      if (ooExcludedCountSoftDeleteFilter)
+        qb.where(ooExcludedCountSoftDeleteFilter);
+
       return (
         await refBaseModel.execAndParse(qb, null, { raw: true, first: true })
       )?.count;
@@ -1809,15 +2096,15 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
-      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+      const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
         parentTable.id,
-        baseModel.context.user,
-      ));
+      );
 
       await parentBaseModel.selectObject({
         qb,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await parentTable.getAliasColObjMap(
@@ -1853,6 +2140,11 @@ export const relationDataFetcher = (param: {
         prioritizePvSort: true,
       });
 
+      const btExcludedListSoftDeleteFilter =
+        await parentBaseModel.getSoftDeleteFilter();
+      if (btExcludedListSoftDeleteFilter)
+        qb.where(btExcludedListSoftDeleteFilter);
+
       applyPaginate(qb, rest);
 
       const proto = await parentBaseModel.getProto();
@@ -1868,6 +2160,7 @@ export const relationDataFetcher = (param: {
         }),
         model: parentTable,
         query: args,
+        relationColumnId: colId,
       });
     },
   };

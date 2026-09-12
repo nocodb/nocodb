@@ -10,9 +10,14 @@ import {
   TestConnectionError,
   UnprocessableEntity,
 } from '../error/nc-base.error';
-import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
+import {
+  CreditsExhaustedDetailsType,
+  NcErrorType,
+  PlanLimitExceededDetailsType,
+} from '../globals';
 import {
   HigherPlan,
+  PlanFeatureAddonMessages,
   PlanFeatureTypes,
   PlanFeatureUpgradeMessages,
 } from '../payment';
@@ -49,6 +54,27 @@ export class NcErrorBase {
     });
   }
 
+  workspaceSuspended(reason?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WORKSPACE_SUSPENDED, {
+      params: reason,
+      ...args,
+    });
+  }
+
+  baseSuspended(reason?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_BASE_SUSPENDED, {
+      params: reason,
+      ...args,
+    });
+  }
+
+  orgNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ORG_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_COLUMN_ASSOCIATED_WITH_LINK,
@@ -77,11 +103,56 @@ export class NcErrorBase {
     });
   }
 
+  trashNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TRASH_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  parentInTrash(parentType: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PARENT_IN_TRASH, {
+      params: parentType,
+      ...args,
+    });
+  }
+
   dashboardNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_DASHBOARD_NOT_FOUND, {
       params: id,
       ...args,
     });
+  }
+
+  interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_INTERFACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  /**
+   * Write op attempted while previewing an interface as another USER — the
+   * dedicated type lets the UI tell "you are previewing" apart from a real
+   * permission denial.
+   */
+  interfacePreviewWriteBlocked(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED,
+      {
+        ...args,
+      }
+    );
   }
 
   chatSessionNotFound(id: string, args?: NcErrorArgs): never {
@@ -104,11 +175,64 @@ export class NcErrorBase {
     );
   }
 
+  chatArtifactNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_CHAT_ARTIFACT_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
   workflowNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
       params: id,
       ...args,
     });
+  }
+
+  agentNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  skillNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SKILL_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  /** A malformed `owner/repo` or `owner/repo/skillName`. */
+  skillSourceInvalid(ref: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SKILL_SOURCE_INVALID, {
+      params: ref,
+      ...args,
+    });
+  }
+
+  /** The upstream catalog could not be read — missing repo, or GitHub is down. */
+  skillCatalogUnavailable(repo: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SKILL_CATALOG_UNAVAILABLE,
+      {
+        params: repo,
+        ...args,
+      },
+    );
+  }
+
+  agentSessionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_AGENT_SESSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
   }
 
   widgetNotFound(id: string, args?: NcErrorArgs): never {
@@ -126,6 +250,33 @@ export class NcErrorBase {
         ...args,
       }
     );
+  }
+
+  baseSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_BASE_SECTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  automationSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_AUTOMATION_SECTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  agentSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_SECTION_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
   }
 
   apiClientNotFound(id: string, args?: NcErrorArgs): never {
@@ -176,6 +327,13 @@ export class NcErrorBase {
     });
   }
 
+  filterNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_FILTER_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   hookNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_HOOK_NOT_FOUND, {
       params: id,
@@ -213,15 +371,19 @@ export class NcErrorBase {
       | {
           field: string;
           onSection?: string;
-        },
+        }
+      | null
+      | undefined,
     args?: NcErrorArgs
   ): never {
     let message = '';
     if (typeof param === 'string') {
       message = `'${param}'`;
-    } else {
+    } else if (param && typeof param === 'object') {
       const onSection = param.onSection ? ` on ${param.onSection}` : '';
-      message = `'${param.field}'${onSection}`;
+      message = `'${param.field ?? 'unknown'}'${onSection}`;
+    } else {
+      message = `'unknown'`;
     }
     throw this.errorCodex.generateError(NcErrorType.ERR_FIELD_NOT_FOUND, {
       params: message,
@@ -337,6 +499,15 @@ export class NcErrorBase {
     );
   }
 
+  invalidSharedInterfacePagePassword(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID,
+      {
+        ...args,
+      }
+    );
+  }
+
   invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_INVALID_ATTACHMENT_JSON,
@@ -356,6 +527,13 @@ export class NcErrorBase {
 
   internalServerError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_INTERNAL_SERVER, {
+      params: message,
+      ...args,
+    });
+  }
+
+  systemMisconfigured(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SYSTEM_MISCONFIGURED, {
       params: message,
       ...args,
     });
@@ -422,6 +600,33 @@ export class NcErrorBase {
 
   integrationNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_INTEGRATION_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
+  integrationAuthFailed(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_AUTH_FAILED,
+      {
+        params: message,
+        ...(args || {}),
+      }
+    );
+  }
+
+  integrationRequestFailed(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_REQUEST_FAILED,
+      {
+        params: message,
+        ...(args || {}),
+      }
+    );
+  }
+
+  syncConfigNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND, {
       params: id,
       ...(args || {}),
     });
@@ -503,6 +708,23 @@ export class NcErrorBase {
     });
   }
 
+  creditPackNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_CREDIT_PACK_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  creditsExhausted(
+    details?: CreditsExhaustedDetailsType,
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_CREDITS_EXHAUSTED, {
+      ...args,
+      details,
+    });
+  }
+
   duplicateAlias(
     param: {
       type: 'table' | 'column' | 'view';
@@ -539,6 +761,11 @@ export class NcErrorBase {
         params: ncWorkspaceId,
       }
     );
+  }
+  mfaSetupRequired(ncWorkspaceId: string): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_MFA_SETUP_REQUIRED, {
+      params: ncWorkspaceId,
+    });
   }
   maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
@@ -688,6 +915,21 @@ export class NcErrorBase {
     },
     args?: NcErrorArgs
   ) {
+    // Add-on-only: no plan tier grants it, so skip the upgrade prefix entirely.
+    // On-prem entitlement is signed into the license key, hence sales-assisted.
+    const addonMessage = PlanFeatureAddonMessages[props.feature];
+    if (addonMessage) {
+      throw this.errorCodex.generateError(
+        NcErrorType.ERR_FEATURE_NOT_SUPPORTED,
+        {
+          params: props.isOnPrem
+            ? `${addonMessage} Contact sales to add it to your license.`
+            : `${addonMessage} Add it from your workspace billing settings.`,
+          ...args,
+        }
+      );
+    }
+
     if (props.isOnPrem) {
       throw this.errorCodex.generateError(
         NcErrorType.ERR_FEATURE_NOT_SUPPORTED,
@@ -742,6 +984,13 @@ export class NcErrorBase {
 
   badRequest(message): never {
     throw new BadRequestV2(message);
+  }
+
+  tooManyRequests(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TOO_MANY_REQUESTS, {
+      customMessage: message,
+      ...args,
+    });
   }
 
   optionsNotExists(props: {
@@ -984,6 +1233,49 @@ export class NcErrorBase {
     });
   }
 
+  tableSyncNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TABLE_SYNC_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  tableTrashNotSupported(tableTitle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED,
+      {
+        params: tableTitle,
+        ...args,
+      }
+    );
+  }
+
+  recordRestoreConflict(details: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_RECORD_RESTORE_CONFLICT,
+      {
+        params: details,
+        ...args,
+      }
+    );
+  }
+
+  recordNotTrashed(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_RECORD_NOT_TRASHED, {
+      ...args,
+    });
+  }
+
+  trashBatchLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_TRASH_BATCH_LIMIT_EXCEEDED,
+      {
+        params: limit.toString(),
+        ...args,
+      }
+    );
+  }
+
   methodNotAllowed(method: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_METHOD_NOT_ALLOWED, {
       params: `${method} method not allowed`,
@@ -1000,6 +1292,30 @@ export class NcErrorBase {
 
   licenseSuspended(args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_SUSPENDED, {
+      ...args,
+    });
+  }
+
+  sandboxBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SANDBOX_BLOCKED, {
+      params: message || '',
+      ...args,
+    });
+  }
+
+  sandboxProductionBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED,
+      {
+        params: message || '',
+        ...args,
+      }
+    );
+  }
+
+  snapshotBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SNAPSHOT_BLOCKED, {
+      params: message || '',
       ...args,
     });
   }

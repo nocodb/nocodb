@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
+import { isDateMonthFormat, isSystemColumn, parseDateWithFormat } from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
@@ -123,7 +123,9 @@ const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) =>
     tempDate.value = undefined
     return
   }
-  const value = dayjs(targetValue, dateFormat.value)
+  // Accept unpadded input (e.g. "5/5/2026" for an MM/DD/YYYY column) so typing
+  // an unpadded date normalizes the same way a padded one does.
+  const value = dayjs.isDayjs(targetValue) ? targetValue : parseDateWithFormat(targetValue, dateFormat.value)
 
   if (value.isValid()) {
     tempDate.value = value

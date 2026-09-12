@@ -11,6 +11,7 @@ import {
 import { ViewTypes } from 'nocodb-sdk';
 import type { DataExportJobData } from '~/interface/Jobs';
 import { BasesService } from '~/services/bases.service';
+import { PublicDatasService } from '~/services/public-datas.service';
 import { View } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -18,6 +19,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { restrictSharedViewQueryForView } from '~/helpers/sharedViewQueryHelpers';
 
 @Controller()
 @UseGuards(PublicApiLimiterGuard)
@@ -25,6 +27,7 @@ export class PublicDataExportController {
   constructor(
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
+    protected readonly publicDatasService: PublicDatasService,
   ) {}
 
   @Post(['/api/v2/public/export/:publicDataUuid/:exportAs'])
@@ -33,7 +36,7 @@ export class PublicDataExportController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('publicDataUuid') publicDataUuid: string,
-    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel',
+    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel' | 'ics',
     @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.getByUUID(context, publicDataUuid);
@@ -54,18 +57,34 @@ export class PublicDataExportController {
 
     if (!view) NcError.viewNotFound(publicDataUuid);
 
+    // `options` is an @Body() TS interface, not a class DTO, so nothing upstream
+    // strips unknown keys — `filterArrJson` / `sortArrJson` arrive verbatim and
+    // reach `datasService.dataList` in the export processor. The shared-view UI
+    // legitimately sends the viewer's own filters/sorts here, so confine them to
+    // the view's columns rather than dropping them.
+    const exportOptions = { ...(options ?? {}) };
+    await restrictSharedViewQueryForView(context, {
+      view,
+      query: exportOptions,
+    });
+
     const job = await this.jobsService.add(JobTypes.DataExport, {
       context,
       options: {
-        ...(options ?? {}),
+        ...exportOptions,
         // includeByteOrderMark when export is triggered from controller
         includeByteOrderMark: true,
+        // Anonymous export: the ICS description otherwise builds from all model
+        // columns, including view-hidden ones.
+        isPublicExport: true,
       },
       modelId: view.fk_model_id,
       viewId: view.id,
       user: req.user,
       exportAs,
       ncSiteUrl: req.ncSiteUrl,
+      locale:
+        (req.headers?.['accept-language'] || '').split(',')[0] || undefined,
     });
 
     return {

@@ -61,7 +61,13 @@ const tempSelectedOptState = ref<string>()
 const isFocusing = ref(false)
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
+  () =>
+    !isPublic.value &&
+    !disableOptionCreation &&
+    isUIAllowed('fieldEdit') &&
+    !isMetaReadOnly.value &&
+    !isForm.value &&
+    !column.value?.readonly,
 )
 
 const options = computed(() => {
@@ -71,7 +77,7 @@ const options = computed(() => {
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
     if (op.value) {
-      acc[op.value.trim()] = op
+      acc[ncIsString(op.value) ? op.value.trim() : `${op.value}`] = op
     }
     return acc
   }, {} as Record<string, (typeof options.value)[number]>)
@@ -80,6 +86,8 @@ const optionsMap = computed(() => {
 const isOptionMissing = computed(() => {
   return searchVal.value ? !optionsMap.value[searchVal.value] : false
 })
+
+const isFormStepperView = computed(() => !isEditColumn.value && isForm.value && !!parseProp(column.value?.meta)?.isStepper)
 
 const hasEditRoles = computed(() => isUIAllowed('dataEdit') || isForm.value)
 
@@ -224,6 +232,9 @@ const onSelect = () => {
 }
 
 const toggleMenu = (e: Event) => {
+  // Stepper renders its own control — no dropdown to open.
+  if (isFormStepperView.value) return
+
   // todo: refactor
   // check clicked element is clear icon
   if (
@@ -237,6 +248,14 @@ const toggleMenu = (e: Event) => {
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value
+}
+
+// Stepper options are real buttons — let Enter activate the focused one.
+function onRootEnter(e: KeyboardEvent) {
+  if (isFormStepperView.value) return
+
+  e.preventDefault()
+  toggleMenu(e)
 }
 
 const handleClose = (e: MouseEvent) => {
@@ -293,9 +312,19 @@ onMounted(() => {
     class="nc-cell-field h-full w-full flex items-center nc-single-select focus:outline-transparent"
     :class="{ 'read-only': readOnly, 'max-w-full': isForm }"
     @click="toggleMenu"
-    @keydown.enter.stop.prevent="toggleMenu"
+    @keydown.enter.stop="onRootEnter"
   >
-    <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+    <div v-if="isFormStepperView" class="w-full max-w-full">
+      <CellSingleSelectLayoutStepper
+        :model-value="vModel || undefined"
+        :options="options"
+        :format="parseProp(column.meta)?.stepperFormat"
+        :disabled="readOnly || !editAllowed"
+        @update:model-value="(value) => (vModel = value ?? '')"
+      />
+    </div>
+
+    <div v-else-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <CellSingleSelectLayoutList
         v-model="vModel"
         :options="options"
@@ -391,7 +420,8 @@ onMounted(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  /* keep in sync with .rounded-tag above */
+  @apply py-[1px] px-2 rounded-[12px];
 }
 
 :deep(.ant-select-clear) {

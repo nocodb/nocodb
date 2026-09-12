@@ -108,16 +108,16 @@ const tooltipMsg = computed(() => {
       const mmTableMeta =
         tables.value?.find((t) => t.id === column.value?.colOptions?.fk_mm_model_id) ||
         getMetaByKey(mmBaseId, column.value?.colOptions?.fk_mm_model_id as string)
-      suffix = mmTableMeta ? `\nJunction Table: ${mmTableMeta.title}` : ''
+      suffix = mmTableMeta ? `\n${t('labels.junctionTable', { title: mmTableMeta.title })}` : ''
     } else if (isHm(column.value)) {
       const relatedBaseId = (column.value?.colOptions as any)?.fk_related_base_id || meta.value?.base_id
       const fkColumn = getMetaByKey(relatedBaseId, column.value?.colOptions?.fk_related_model_id as string)?.columns?.find(
         (c) => c.id === column.value?.colOptions?.fk_child_column_id,
       )
-      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
+      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
     } else if (isBt(column.value)) {
       const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
-      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
+      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
     }
   }
 
@@ -135,7 +135,7 @@ const tooltipMsg = computed(() => {
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
     )
-    return `Formula - ${formula}`
+    return t('labels.formulaTooltip', { formula })
   }
   return column?.value?.title || ''
 })
@@ -311,6 +311,11 @@ const onClick = (e: Event) => {
         }"
       />
 
+      <SmartsheetHeaderDescriptionTooltip
+        v-if="column.description?.length && isExpandedForm && !hideMenu"
+        :description="column.description"
+      />
+
       <div class="flex-1" />
       <NcTooltip
         v-if="meta?.synced && column?.readonly && isExpandedForm && !isPublic"
@@ -322,7 +327,10 @@ const onClick = (e: Event) => {
       </NcTooltip>
     </div>
 
-    <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
+    <NcTooltip
+      v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu"
+      overlay-class-name="nc-tooltip-scrollable"
+    >
       <template #title>
         <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>
@@ -352,7 +360,7 @@ const onClick = (e: Event) => {
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active rounded-2xl' : ''}`"
       @visible-change="onVisibleChange"
     >
-      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
+      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="!h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
       <template #overlay>
         <div class="nc-edit-or-add-provider-wrapper">

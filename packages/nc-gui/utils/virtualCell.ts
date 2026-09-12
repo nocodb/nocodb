@@ -1,5 +1,6 @@
 export {
   isLTAR,
+  isLinksOrLTAR,
   isHm,
   isMm,
   isBt,

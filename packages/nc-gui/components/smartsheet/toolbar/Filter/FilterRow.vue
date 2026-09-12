@@ -58,6 +58,8 @@ const meta = inject(MetaInj, ref())
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
 
+const { getFilterOpLabel } = useFilterOperationLabel()
+
 const { appInfo } = useGlobal()
 
 const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
@@ -398,7 +400,7 @@ const onEnabledChange = (val: boolean | Event) => {
 
 const onToggleFilterChange = (val: boolean | Event) => {
   if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
+    showUpgradeToUseToggleFilter({ triggerSource: 'toolbar-toggle-filter' })
     return
   }
   onEnabledChange(val)
@@ -530,7 +532,7 @@ const onChangeToDynamic = async () => {
         <template v-for="compOp of comparisonOps" :key="compOp.value">
           <a-select-option :value="compOp.value">
             <div class="flex items-center w-full justify-between w-full gap-2">
-              <div class="truncate flex-1">{{ compOp.text }}</div>
+              <div class="truncate flex-1">{{ getFilterOpLabel(compOp.i18nKey, compOp.text) }}</div>
               <component
                 :is="iconMap.check"
                 v-if="vModel.comparison_op === compOp.value"
@@ -569,8 +571,8 @@ const onChangeToDynamic = async () => {
               <a-select-option :value="compSubOp.value">
                 <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
                   <NcTooltip show-on-truncate-only class="truncate flex-1">
-                    <template #title>{{ compSubOp.text }}</template>
-                    {{ compSubOp.text }}
+                    <template #title>{{ getFilterOpLabel(compSubOp.i18nKey, compSubOp.text) }}</template>
+                    {{ getFilterOpLabel(compSubOp.i18nKey, compSubOp.text) }}
                   </NcTooltip>
                   <component
                     :is="iconMap.check"
@@ -633,14 +635,16 @@ const onChangeToDynamic = async () => {
                         @click="onResetDynamicField()"
                       >
                         <div class="flex flex-row items-center justify-between w-full">
-                          <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                          <div class="flex flex-row items-center justify-start gap-x-3">{{ $t('labels.staticCondition') }}</div>
                           <GeneralIcon
                             v-if="!vModel.dynamic && !vModel.fk_value_col_id"
                             icon="check"
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                          {{ $t('labels.filterBasedOnStaticValue') }}
+                        </div>
                       </div>
                       <div
                         v-e="['c:filter:dynamic-filter']"
@@ -653,14 +657,18 @@ const onChangeToDynamic = async () => {
                         @click="onChangeToDynamic()"
                       >
                         <div class="flex flex-row items-center justify-between w-full">
-                          <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                          <div class="flex flex-row items-center justify-start gap-x-2.5">
+                            {{ $t('labels.dynamicCondition') }}
+                          </div>
                           <GeneralIcon
                             v-if="vModel.dynamic || vModel.fk_value_col_id"
                             icon="check"
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                          {{ $t('labels.filterBasedOnDynamicValue') }}
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -20,6 +20,10 @@ const picked = computed({
 
 const isOpenColorPicker = ref(false)
 
+// Interface pages get the redesigned colour panel (NcColorPanel); the classic
+// data app keeps the legacy picker.
+const isInterfaceContext = useIsInterfaceUi()
+
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rating),
@@ -70,7 +74,7 @@ watch(
                 :is="iconMap.check"
                 v-if="vModel.meta.iconIdx === i"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -111,7 +115,14 @@ watch(
           </div>
           <template #overlay>
             <div>
+              <LazyNcColorPanel
+                v-if="isInterfaceContext"
+                :model-value="picked"
+                @escape="isOpenColorPicker = false"
+                @update:model-value="(el: string) => (picked = el)"
+              />
               <LazyGeneralAdvanceColorPicker
+                v-else
                 v-model="picked"
                 :is-open="isOpenColorPicker"
                 @input="(el:string)=>vModel.meta.color=el"
@@ -140,7 +151,7 @@ watch(
                 :is="iconMap.check"
                 v-if="vModel.meta.max === v"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>

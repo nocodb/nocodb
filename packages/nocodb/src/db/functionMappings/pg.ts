@@ -1,16 +1,31 @@
 import dayjs from 'dayjs';
 import { customAlphabet } from 'nanoid';
-import { FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
+import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import { sanitize } from 'src/helpers/sqlSanitize';
 import commonFns, {
+  extractDatetimeFormat,
   safeDateAddUnitSQL,
   validateDateAddUnit,
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
+import {
+  ieeeLogBaseSql,
+  ieeeLogSql,
+  ieeeModuloSql,
+  ieeePowerSql,
+  ieeeSqrtSql,
+  isFiniteSql,
+  isPgIeeeEnabled,
+  stripNaNSql,
+} from '~/db/formulav2/pg-ieee';
 import { convertUnits } from '~/helpers/convertUnits';
-import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {
+  getWeekdayByText,
+  getWeekStartOffsetSunday,
+} from '~/helpers/formulaFnHelper';
 import { NcError } from '~/helpers/ncError';
+import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const getArraySourceAttachmentUnnested = async (
   argument: any,
@@ -72,10 +87,72 @@ const pg = {
   ...commonFns,
   LEN: 'length',
   MIN: 'least',
-  MAX: 'greatest',
+  // pg's GREATEST ranks NaN above every number, so MAX(NaN, 5) is NaN — IEEE
+  // maxNum ignores NaN and returns 5. LEAST needs no guard for the same reason
+  // it is already correct: NaN being largest means it never wins a minimum.
+  // `greatest` is the same handler under the name older columns stored: when a
+  // mapping is a plain string alias, mapFunctionName rewrites pt.callee.name and
+  // that rewritten tree is persisted, so a MAX column created before this became
+  // a function still arrives as `greatest` and would otherwise skip the guard.
+  GREATEST: async (args: MapFnArgs) => pg.MAX(args),
+  MAX: async ({ fn, knex, pt }: MapFnArgs) => {
+    const args = await Promise.all(
+      pt.arguments.map(async (arg) => `(${(await fn(arg)).builder})`),
+    );
+    const allNumeric = pt.arguments.every(
+      (arg) => arg.dataType === FormulaDataTypes.NUMERIC,
+    );
+    if (!allNumeric || !isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`greatest(${args.join(', ')})`) };
+    }
+    // Strip NaN from the operands, then fall back to the unstripped form so an
+    // all-NaN argument list still yields NaN instead of blanking.
+    const stripped = args.map((arg) => stripNaNSql(arg));
+    return {
+      builder: knex.raw(
+        `COALESCE(greatest(${stripped.join(', ')}), greatest(${args.join(
+          ', ',
+        )}))`,
+      ),
+    };
+  },
   CEILING: 'ceil',
-  POWER: 'pow',
-  SQRT: 'sqrt',
+  // `pow` is the same handler under the name older columns stored: a plain
+  // string mapping rewrites pt.callee.name and that tree is persisted, so a
+  // POWER column created before this became a function still arrives as `pow`.
+  // Same reason GREATEST exists above. SQRT needs no twin — 'sqrt' uppercases
+  // back to SQRT, so it keeps hitting its own key.
+  POW: async (args: MapFnArgs) => pg.POWER(args),
+  POWER: async ({ fn, knex, pt }: MapFnArgs) => {
+    const base = (await fn(pt.arguments[0])).builder;
+    const exponent = (await fn(pt.arguments[1])).builder;
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`pow(${base}, ${exponent})`) };
+    }
+    return { builder: knex.raw(ieeePowerSql(`${base}`, `${exponent}`)) };
+  },
+  LOG: async ({ fn, knex, pt }: MapFnArgs) => {
+    if (pt.arguments.length > 1) {
+      const base = (await fn(pt.arguments[0])).builder;
+      const value = (await fn(pt.arguments[1])).builder;
+      if (!isPgIeeeEnabled(knex)) {
+        return { builder: knex.raw(`log(${base}, ${value})`) };
+      }
+      return { builder: knex.raw(ieeeLogBaseSql(`${base}`, `${value}`)) };
+    }
+    const source = (await fn(pt.arguments[0])).builder;
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`log(${source})`) };
+    }
+    return { builder: knex.raw(ieeeLogSql(`${source}`)) };
+  },
+  SQRT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`sqrt(${source})`) };
+    }
+    return { builder: knex.raw(ieeeSqrtSql(`${source}`)) };
+  },
   SEARCH: async (args: MapFnArgs) => {
     const needle = (await args.fn(args.pt.arguments[1])).builder;
     const source = (await args.fn(args.pt.arguments[0])).builder;
@@ -108,8 +185,20 @@ const pg = {
       ? (await fn(pt.arguments[1])).builder
       : 0;
 
+    if (!isPgIeeeEnabled(knex)) {
+      return {
+        builder: knex.raw(`ROUND((?)::numeric, ?)`, [source, precision]),
+      };
+    }
+    // ROUND is numeric-only, and casting ±Infinity/NaN to numeric raises on
+    // pg < 14. Rounding a non-finite value is the value itself anyway.
     return {
-      builder: knex.raw(`ROUND((?)::numeric, ?)`, [source, precision]),
+      builder: knex.raw(
+        `(CASE WHEN ${isFiniteSql(
+          `(?)`,
+        )} THEN ROUND((?)::numeric, ?) ELSE (?) END)`,
+        [source, source, precision, source],
+      ),
     };
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
@@ -227,12 +316,42 @@ const pg = {
       ),
     };
   },
+  WEEKNUM: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Excel-compatible WEEKNUM: week 1 is the week containing Jan 1, weeks start
+    // on Sunday by default. DOW is 0 (Sunday) .. 6 (Saturday); DOY is 1-based.
+    const source =
+      pt.arguments[0].type === 'Literal'
+        ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
+            'YYYY-MM-DD',
+          )}'`
+        : `(${(await fn(pt.arguments[0])).builder})::TIMESTAMP`;
+    const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
+    const doy = `EXTRACT(DOY FROM ${source})::INTEGER`;
+    const dow = `EXTRACT(DOW FROM ${source})::INTEGER`;
+    return {
+      builder: knex.raw(
+        `(FLOOR(((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7.0) + 1)::INTEGER`,
+      ),
+    };
+  },
   DATESTR: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `TO_CHAR((${
           (await fn(pt?.arguments[0])).builder
         }), 'YYYY-MM-DD')::text`,
+      ),
+    };
+  },
+  DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const format = extractDatetimeFormat(pt);
+    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `${getDatetimeFormatHandler(ClientType.PG).build(
+          `${dateExpr}`,
+          format,
+        )}::text`,
       ),
     };
   },
@@ -338,9 +457,10 @@ const pg = {
   MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;
     const y = (await fn(pt.arguments[1])).builder;
-    return {
-      builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC)`),
-    };
+    if (!isPgIeeeEnabled(knex)) {
+      return { builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC)`) };
+    }
+    return { builder: knex.raw(ieeeModuloSql(`${x}`, `${y}`)) };
   },
   REGEX_MATCH: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
@@ -376,6 +496,28 @@ const pg = {
         source,
         pattern,
         replacement,
+      ]),
+    };
+  },
+  MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`MD5(?::TEXT)`, [source]),
+    };
+  },
+  SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`ENCODE(SHA256(CONVERT_TO(?::TEXT, 'UTF8')), 'hex')`, [
+        source,
+      ]),
+    };
+  },
+  SHA512: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`ENCODE(SHA512(CONVERT_TO(?::TEXT, 'UTF8')), 'hex')`, [
+        source,
       ]),
     };
   },
@@ -484,12 +626,39 @@ END`,
   },
   JSON_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
-    const needle = (await fn(pt.arguments[1])).builder;
 
     const removeNullUnicode = (source: string) => {
       // use four backspace so it will translate into two backspace in sql query
       return `regexp_replace(${source}, '\\\\u0000', 'u0000', 'g')`;
     };
+    // When the path argument is a string literal, build the full jsonpath at
+    // JS level and bind as a single parameter. The naive `CONCAT('$', ?)`
+    // form leaves `'$',` adjacent in the rendered SQL — the `$'` pair is a
+    // special pattern in JS's String.prototype.replace ("rest of string after
+    // the match"), which knex applies when inlining this raw inside another
+    // raw with named bindings (e.g. the `:value` placeholders in VALUE()).
+    // The result is corrupted SQL like `CONCAT(', '.price')` and a syntax
+    // error. See nocodb/nocodb#12695.
+    const pathArg = pt.arguments[1];
+    if (
+      pathArg?.type === JSEPNode.LITERAL &&
+      typeof pathArg.value === 'string'
+    ) {
+      return {
+        builder: knex.raw(
+          [
+            `CASE WHEN ( ${removeNullUnicode('?')} )::jsonb IS NOT NULL`,
+            `THEN jsonb_path_query_first(( ${removeNullUnicode(
+              '?',
+            )} )::jsonb, ?::jsonpath)`,
+            `ELSE NULL END`,
+          ].join(' '),
+          [source, source, `$${pathArg.value}`],
+        ),
+      };
+    }
+
+    const needle = (await fn(pathArg)).builder;
     return {
       builder: knex.raw(
         [

@@ -5,9 +5,7 @@ const { user } = defineProps<{
   user: UserType
 }>()
 
-const displayName = computed(() => {
-  return user?.display_name?.trim() ? user?.display_name?.trim() : user?.email?.split('@')[0]
-})
+const displayName = computed(() => extractUserDisplayNameOrEmail(user))
 </script>
 
 <template>

@@ -1,0 +1,13 @@
+{
+  "client": "pg",
+  "connection": {
+    "host": "your-managed-db-host.rds.amazonaws.com",
+    "port": "5432",
+    "user": "nocodb",
+    "password": "CHANGE_ME_db_password",
+    "database": "nocodb",
+    "ssl": {
+      "rejectUnauthorized": true
+    }
+  }
+}

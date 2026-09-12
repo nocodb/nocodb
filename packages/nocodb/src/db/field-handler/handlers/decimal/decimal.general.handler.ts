@@ -47,6 +47,15 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       } as FilterVerificationResult;
     }
 
+    // `is`/`isnot` carry a control keyword (null, notnull, blank, ...) as their
+    // value rather than a numeric value, so the numeric check below must not run
+    // for them — otherwise `(field,is,null)` is rejected as an invalid number.
+    if (['is', 'isnot'].includes(filter.comparison_op)) {
+      return {
+        isValid: true,
+      } as FilterVerificationResult;
+    }
+
     if (
       !(
         typeof filter.value === 'undefined' ||

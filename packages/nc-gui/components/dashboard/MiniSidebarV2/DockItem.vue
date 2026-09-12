@@ -112,7 +112,6 @@ const itemStyle = computed(() => ({
   }
 
   &:hover:not(.active):not(.disabled) {
-    @apply text-nc-content-subtle2;
     background: rgba(0, 0, 0, 0.05);
 
     :root[theme='dark'] & {

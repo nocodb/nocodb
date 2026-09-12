@@ -1,6 +1,5 @@
 [
   "/api/v1/db/meta/tables/{tableId}",
-  "/api/v1/db/internal/links/{linkColumnId}/tables/{tableId}",
   "/api/v2/meta/duplicate/{workspaceId}/shared/{sharedBaseId}",
   "/api/v1/db/meta/tables/{tableId}/reorder",
   "/api/v1/db/meta/tables/{tableId}/columns",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, roundUpToPrecision } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, formatCurrencyValue, roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
   modelValue: number | null | undefined
@@ -25,12 +25,7 @@ const currency = computed(() => {
     // Round the value to the specified precision
     const roundedValue = roundUpToPrecision(Number(props.modelValue), currencyMeta.value.precision ?? 2)
 
-    return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
-      style: 'currency',
-      currency: currencyMeta.value.currency_code || 'USD',
-      minimumFractionDigits: currencyMeta.value.precision ?? 2,
-      maximumFractionDigits: currencyMeta.value.precision ?? 2,
-    }).format(roundedValue)
+    return formatCurrencyValue(Number(roundedValue), currencyMeta.value)
   } catch (e) {
     return props.modelValue
   }

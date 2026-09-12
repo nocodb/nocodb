@@ -1,4 +1,4 @@
-import UITypes, { isLinksOrLTAR, isNumericCol } from './UITypes';
+import UITypes, { isLinksOrLTAR, isNumericCol, isVirtualCol } from './UITypes';
 import { RelationTypes, RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
 import {
@@ -66,7 +66,7 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 const getAvailableRollupForColumn = (column: ColumnType) => {
   if ([UITypes.Formula].includes(column.uidt as UITypes)) {
     return getAvailableRollupForFormulaType(
-      (column.colOptions as FormulaType as any).parsed_tree?.dataType ??
+      (column.colOptions as FormulaType as any)?.parsed_tree?.dataType ??
         FormulaDataTypes.UNKNOWN
     );
   } else {
@@ -165,6 +165,77 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
   }
 };
 
+/**
+ * Whether a column in the linked table can be the target of a Rollup.
+ * The listed virtual types are the ones `genRollupSelectv2` lowers to a
+ * correlated subquery; every other virtual type has no column to aggregate,
+ * so rolling it up emits broken SQL.
+ */
+const isRollupAggregatableColumn = (
+  col: UITypes | { uidt: UITypes | string }
+) => {
+  const uidt = (typeof col === 'object' ? col?.uidt : col) as UITypes;
+  return (
+    !isVirtualCol(uidt) ||
+    [
+      UITypes.Formula,
+      UITypes.Rollup,
+      UITypes.CreatedTime,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedTime,
+      UITypes.LastModifiedBy,
+    ].includes(uidt)
+  );
+};
+
+/** Rollup functions that always return integer values — no decimal precision needed */
+const integerRollupFunctions: string[] = ['count', 'countDistinct'];
+
+/** Rollup functions that preserve the source column type (integer in → integer out) */
+const integerPreservingRollupFunctions: string[] = [
+  'sum',
+  'min',
+  'max',
+  'sumDistinct',
+];
+
+/** Check if a column UIType stores integer values */
+const isIntegerUiType = (column: ColumnType) =>
+  [
+    UITypes.Number,
+    UITypes.ID,
+    UITypes.AutoNumber,
+    UITypes.Rating,
+    UITypes.Links,
+  ].includes(column.uidt as UITypes);
+
+/**
+ * Returns parsed rollup column meta with `precision` stripped when the
+ * source column type + rollup function combination doesn't support it.
+ * Prevents stale precision from old column configs affecting rendering.
+ */
+const getRollupColumnMeta = (
+  rollupMeta: any,
+  childUidt: UITypes,
+  rollupFunction: string
+) => {
+  const meta = parseProp(rollupMeta);
+
+  if (meta.precision != null) {
+    const isInteger =
+      integerRollupFunctions.includes(rollupFunction) ||
+      (isIntegerUiType({ uidt: childUidt } as ColumnType) &&
+        integerPreservingRollupFunctions.includes(rollupFunction));
+
+    if (isInteger) {
+      const { precision: _, ...rest } = meta;
+      return rest;
+    }
+  }
+
+  return meta;
+};
+
 const getRenderAsTextFunForUiType = (type: UITypes) => {
   if (
     [
@@ -175,6 +246,7 @@ const getRenderAsTextFunForUiType = (type: UITypes) => {
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Currency,
+      UITypes.Percent,
       UITypes.Duration,
     ].includes(type)
   ) {
@@ -247,6 +319,11 @@ export {
   getAvailableRollupForUiType,
   getAvailableRollupForFormulaType,
   getRenderAsTextFunForUiType,
+  isRollupAggregatableColumn,
+  integerRollupFunctions,
+  integerPreservingRollupFunctions,
+  isIntegerUiType,
+  getRollupColumnMeta,
   populateUniqueFileName,
   roundUpToPrecision,
 };
@@ -262,7 +339,11 @@ export const getTestDatabaseName = (db: {
   client: ClientType;
   connection?: { database?: string };
 }) => {
-  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE)
+  if (
+    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(
+      db.client,
+    )
+  )
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
 };

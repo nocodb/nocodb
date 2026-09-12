@@ -40,6 +40,7 @@ import * as nc_202603090001_chat_session_meta from './v0/nc_202603090001_chat_se
 import * as nc_202603110001_chat_session_base_id from './v0/nc_202603110001_chat_session_base_id';
 import * as nc_202603170000_form_view_expires_at from './v0/nc_202603170000_form_view_expires_at';
 import * as nc_202603170001_workflow_draft_reminder from './v0/nc_202603170001_workflow_draft_reminder';
+import * as nc_202603180000_user_mfa from './v0/nc_202603180000_user_mfa';
 import * as nc_202603090002_date_dependency from './v0/nc_202603090002_date_dependency';
 import * as nc_202603230000_subscription_last_paid_seat_count from './v0/nc_202603230000_subscription_last_paid_seat_count';
 import * as nc_202603301109_fine_grained_api_tokens from './v0/nc_202603301109_fine_grained_api_tokens';
@@ -49,6 +50,54 @@ import * as nc_202604040000_gcp_marketplace from './v0/nc_202604040000_gcp_marke
 import * as nc_202604071200_default_org from './v0/nc_202604071200_default_org';
 import * as nc_202604071201_scim_config_default_role from './v0/nc_202604071201_scim_config_default_role';
 import * as nc_202604100000_audit_org_id from './v0/nc_202604100000_audit_org_id';
+import * as nc_202604160000_docs_in_data from './v0/nc_202604160000_docs_in_data';
+import * as nc_202604200002_trash_cleanup_due_at from './v0/nc_202604200002_trash_cleanup_due_at';
+import * as nc_202604220000_uuid_readonly from './v0/nc_202604220000_uuid_readonly';
+import * as nc_202604270000_base_trash from './v0/nc_202604270000_base_trash';
+import * as nc_202604290000_base_variables_and_sandbox_changelog from './v0/nc_202604290000_base_variables_and_sandbox_changelog';
+import * as nc_202605040000_form_view_columns_row_id from './v0/nc_202605040000_form_view_columns_row_id';
+import * as nc_202605050000_ltar_display_value_column from './v0/nc_202605050000_ltar_display_value_column';
+import * as nc_202605060000_smart_text from './v0/nc_202605060000_smart_text';
+import * as nc_202605090000_bookmarks from './v0/nc_202605090000_bookmarks';
+import * as nc_202605120000_mail_sends from './v0/nc_202605120000_mail_sends';
+import * as nc_202605140000_operation_logs from './v0/nc_202605140000_operation_logs';
+import * as nc_202605160000_cleanup_orphan_base_users from './v0/nc_202605160000_cleanup_orphan_base_users';
+import * as nc_202605181000_gantt_view from './v0/nc_202605181000_gantt_view';
+import * as nc_202605271200_add_group_by_enabled from './v0/nc_202605271200_add_group_by_enabled';
+import * as nc_202605281200_doc_revisions from './v0/nc_202605281200_doc_revisions';
+import * as nc_202605180000_table_syncs from './v0/nc_202605180000_table_syncs';
+import * as nc_202605200000_table_sync_column_mappings from './v0/nc_202605200000_table_sync_column_mappings';
+import * as nc_202606021300_doc_yjs_state from './v0/nc_202606021300_doc_yjs_state';
+import * as nc_202606040000_soft_delete_syncs from './v0/nc_202606040000_soft_delete_syncs';
+import * as nc_202606091200_addons from './v0/nc_202606091200_addons';
+import * as nc_202606121400_detach_suspended_sync_mappings from './v0/nc_202606121400_detach_suspended_sync_mappings';
+import * as nc_202606161200_add_enabled_to_sort from './v0/nc_202606161200_add_enabled_to_sort';
+import * as nc_202606180000_form_view_email_text from './v0/nc_202606180000_form_view_email_text';
+import * as nc_202606181200_add_group_by_enabled_to_gantt from './v0/nc_202606181200_add_group_by_enabled_to_gantt';
+import * as nc_202606191200_sandbox_production_readiness from './v0/nc_202606191200_sandbox_production_readiness';
+import * as nc_202606230001_chat_created_files from './v0/nc_202606230001_chat_created_files';
+import * as nc_202606240001_chat_ui_context_record from './v0/nc_202606240001_chat_ui_context_record';
+import * as nc_202606251200_form_save_draft_to_browser from './v0/nc_202606251200_form_save_draft_to_browser';
+import * as nc_202606260000_plans_license_type from './v0/nc_202606260000_plans_license_type';
+import * as nc_202606260001_dedupe_user_emails from './v0/nc_202606260001_dedupe_user_emails';
+import * as nc_202606271200_hook_comment_config from './v0/nc_202606271200_hook_comment_config';
+import * as nc_202606290001_sort_lookup_col from './v0/nc_202606290001_sort_lookup_col';
+import * as nc_202607030001_ltar_order_columns from './v0/nc_202607030001_ltar_order_columns';
+import * as nc_202607071200_comment_attachments from './v0/nc_202607071200_comment_attachments';
+import * as nc_202607090505_snapshot_schedule from './v0/nc_202607090505_snapshot_schedule';
+import * as nc_202607091000_comments_meta from './v0/nc_202607091000_comments_meta';
+import * as nc_202607251200_interfaces from './v0/nc_202607251200_interfaces';
+import * as nc_202607271818_composite_pk_missing_tables_2 from './v0/nc_202607271818_composite_pk_missing_tables_2';
+import * as nc_202607281200_snapshot_schedule_daily_floor from './v0/nc_202607281200_snapshot_schedule_daily_floor';
+import * as nc_202607121506_credit_system from './v0/nc_202607121506_credit_system';
+import * as nc_202608071500_ai_col_global_model_reset from './v0/nc_202608071500_ai_col_global_model_reset';
+import * as nc_202608121200_base_sections from './v0/nc_202608121200_base_sections';
+import * as nc_202608191200_credit_hold_ref_scoped from './v0/nc_202608191200_credit_hold_ref_scoped';
+import * as nc_202608201200_automation_sections from './v0/nc_202608201200_automation_sections';
+import * as nc_202608211200_widen_entity_id_columns from './v0/nc_202608211200_widen_entity_id_columns';
+import * as nc_202608281200_comment_notification_pref_index from './v0/nc_202608281200_comment_notification_pref_index';
+import * as nc_202609021200_admin_suspend from './v0/nc_202609021200_admin_suspend';
+import * as nc_202609031200_agents from './v0/nc_202609031200_agents';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -105,11 +154,59 @@ export default class XcMigrationSourcev0 {
       'nc_202603301109_fine_grained_api_tokens',
       'nc_202603310000_integration_links',
       'nc_202604030000_installations_add_fk_user_id',
-
       'nc_202604040000_gcp_marketplace',
       'nc_202604071200_default_org',
       'nc_202604071201_scim_config_default_role',
       'nc_202604100000_audit_org_id',
+      'nc_202604160000_docs_in_data',
+      'nc_202604200002_trash_cleanup_due_at',
+      'nc_202603180000_user_mfa',
+      'nc_202604220000_uuid_readonly',
+      'nc_202604270000_base_trash',
+      'nc_202604290000_base_variables_and_sandbox_changelog',
+      'nc_202605040000_form_view_columns_row_id',
+      'nc_202605050000_ltar_display_value_column',
+      'nc_202605060000_smart_text',
+      'nc_202605090000_bookmarks',
+      'nc_202605120000_mail_sends',
+      'nc_202605140000_operation_logs',
+      'nc_202605160000_cleanup_orphan_base_users',
+      'nc_202605181000_gantt_view',
+      'nc_202605271200_add_group_by_enabled',
+      'nc_202605281200_doc_revisions',
+      'nc_202605180000_table_syncs',
+      'nc_202605200000_table_sync_column_mappings',
+      'nc_202606021300_doc_yjs_state',
+      'nc_202606040000_soft_delete_syncs',
+      'nc_202606091200_addons',
+      'nc_202606121400_detach_suspended_sync_mappings',
+      'nc_202606161200_add_enabled_to_sort',
+      'nc_202606180000_form_view_email_text',
+      'nc_202606181200_add_group_by_enabled_to_gantt',
+      'nc_202606191200_sandbox_production_readiness',
+      'nc_202606230001_chat_created_files',
+      'nc_202606240001_chat_ui_context_record',
+      'nc_202606251200_form_save_draft_to_browser',
+      'nc_202606260000_plans_license_type',
+      'nc_202606260001_dedupe_user_emails',
+      'nc_202606271200_hook_comment_config',
+      'nc_202606290001_sort_lookup_col',
+      'nc_202607030001_ltar_order_columns',
+      'nc_202607071200_comment_attachments',
+      'nc_202607090505_snapshot_schedule',
+      'nc_202607091000_comments_meta',
+      'nc_202607251200_interfaces',
+      'nc_202607271818_composite_pk_missing_tables_2',
+      'nc_202607281200_snapshot_schedule_daily_floor',
+      'nc_202607121506_credit_system',
+      'nc_202608071500_ai_col_global_model_reset',
+      'nc_202608121200_base_sections',
+      'nc_202608191200_credit_hold_ref_scoped',
+      'nc_202608201200_automation_sections',
+      'nc_202608211200_widen_entity_id_columns',
+      'nc_202608281200_comment_notification_pref_index',
+      'nc_202609021200_admin_suspend',
+      'nc_202609031200_agents',
     ]);
   }
 
@@ -213,7 +310,6 @@ export default class XcMigrationSourcev0 {
         return nc_202603310000_integration_links;
       case 'nc_202604030000_installations_add_fk_user_id':
         return nc_202604030000_installations_add_fk_user_id;
-
       case 'nc_202604040000_gcp_marketplace':
         return nc_202604040000_gcp_marketplace;
       case 'nc_202604071200_default_org':
@@ -222,6 +318,104 @@ export default class XcMigrationSourcev0 {
         return nc_202604071201_scim_config_default_role;
       case 'nc_202604100000_audit_org_id':
         return nc_202604100000_audit_org_id;
+      case 'nc_202604160000_docs_in_data':
+        return nc_202604160000_docs_in_data;
+      case 'nc_202604200002_trash_cleanup_due_at':
+        return nc_202604200002_trash_cleanup_due_at;
+      case 'nc_202603180000_user_mfa':
+        return nc_202603180000_user_mfa;
+      case 'nc_202604220000_uuid_readonly':
+        return nc_202604220000_uuid_readonly;
+      case 'nc_202604270000_base_trash':
+        return nc_202604270000_base_trash;
+      case 'nc_202604290000_base_variables_and_sandbox_changelog':
+        return nc_202604290000_base_variables_and_sandbox_changelog;
+      case 'nc_202605040000_form_view_columns_row_id':
+        return nc_202605040000_form_view_columns_row_id;
+      case 'nc_202605050000_ltar_display_value_column':
+        return nc_202605050000_ltar_display_value_column;
+      case 'nc_202605060000_smart_text':
+        return nc_202605060000_smart_text;
+      case 'nc_202605090000_bookmarks':
+        return nc_202605090000_bookmarks;
+      case 'nc_202605120000_mail_sends':
+        return nc_202605120000_mail_sends;
+      case 'nc_202605140000_operation_logs':
+        return nc_202605140000_operation_logs;
+      case 'nc_202605160000_cleanup_orphan_base_users':
+        return nc_202605160000_cleanup_orphan_base_users;
+      case 'nc_202605181000_gantt_view':
+        return nc_202605181000_gantt_view;
+      case 'nc_202605271200_add_group_by_enabled':
+        return nc_202605271200_add_group_by_enabled;
+      case 'nc_202605281200_doc_revisions':
+        return nc_202605281200_doc_revisions;
+      case 'nc_202605180000_table_syncs':
+        return nc_202605180000_table_syncs;
+      case 'nc_202605200000_table_sync_column_mappings':
+        return nc_202605200000_table_sync_column_mappings;
+      case 'nc_202606021300_doc_yjs_state':
+        return nc_202606021300_doc_yjs_state;
+      case 'nc_202606040000_soft_delete_syncs':
+        return nc_202606040000_soft_delete_syncs;
+      case 'nc_202606091200_addons':
+        return nc_202606091200_addons;
+      case 'nc_202606121400_detach_suspended_sync_mappings':
+        return nc_202606121400_detach_suspended_sync_mappings;
+      case 'nc_202606161200_add_enabled_to_sort':
+        return nc_202606161200_add_enabled_to_sort;
+      case 'nc_202606180000_form_view_email_text':
+        return nc_202606180000_form_view_email_text;
+      case 'nc_202606181200_add_group_by_enabled_to_gantt':
+        return nc_202606181200_add_group_by_enabled_to_gantt;
+      case 'nc_202606191200_sandbox_production_readiness':
+        return nc_202606191200_sandbox_production_readiness;
+      case 'nc_202606230001_chat_created_files':
+        return nc_202606230001_chat_created_files;
+      case 'nc_202606240001_chat_ui_context_record':
+        return nc_202606240001_chat_ui_context_record;
+      case 'nc_202606251200_form_save_draft_to_browser':
+        return nc_202606251200_form_save_draft_to_browser;
+      case 'nc_202606260000_plans_license_type':
+        return nc_202606260000_plans_license_type;
+      case 'nc_202606260001_dedupe_user_emails':
+        return nc_202606260001_dedupe_user_emails;
+      case 'nc_202606271200_hook_comment_config':
+        return nc_202606271200_hook_comment_config;
+      case 'nc_202606290001_sort_lookup_col':
+        return nc_202606290001_sort_lookup_col;
+      case 'nc_202607030001_ltar_order_columns':
+        return nc_202607030001_ltar_order_columns;
+      case 'nc_202607071200_comment_attachments':
+        return nc_202607071200_comment_attachments;
+      case 'nc_202607090505_snapshot_schedule':
+        return nc_202607090505_snapshot_schedule;
+      case 'nc_202607091000_comments_meta':
+        return nc_202607091000_comments_meta;
+      case 'nc_202607251200_interfaces':
+        return nc_202607251200_interfaces;
+      case 'nc_202607271818_composite_pk_missing_tables_2':
+        return nc_202607271818_composite_pk_missing_tables_2;
+      case 'nc_202607281200_snapshot_schedule_daily_floor':
+        return nc_202607281200_snapshot_schedule_daily_floor;
+      case 'nc_202607121506_credit_system':
+        return nc_202607121506_credit_system;
+      case 'nc_202608071500_ai_col_global_model_reset':
+        return nc_202608071500_ai_col_global_model_reset;
+      case 'nc_202608121200_base_sections':
+        return nc_202608121200_base_sections;
+      case 'nc_202608191200_credit_hold_ref_scoped':
+        return nc_202608191200_credit_hold_ref_scoped;
+      case 'nc_202608201200_automation_sections':
+        return nc_202608201200_automation_sections;
+      case 'nc_202608211200_widen_entity_id_columns':
+        return nc_202608211200_widen_entity_id_columns;
+      case 'nc_202608281200_comment_notification_pref_index':
+        return nc_202608281200_comment_notification_pref_index;
+      case 'nc_202609021200_admin_suspend':
+        return nc_202609021200_admin_suspend;
+      case 'nc_202609031200_agents':
+        return nc_202609031200_agents;
     }
   }
 }

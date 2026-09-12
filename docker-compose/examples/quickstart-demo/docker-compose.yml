@@ -1,0 +1,82 @@
+services:
+
+  nocodb:
+    image: nocodb/nocodb:latest
+    environment:
+      NC_DB: 'pg://db:5432?u=nocodb&p=quickstart_demo_pw_change_me&d=nocodb'
+      NC_REDIS_URL: 'redis://redis:6379'
+      NC_SITE_URL: 'http://localhost:8080'
+      NC_DISABLE_MUX: 'true'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - nocodb_data:/usr/app/data
+    networks:
+      - nocodb-network
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --tries=1 --spider http://localhost:8080/api/v1/health || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  worker:
+    image: nocodb/nocodb:latest
+    environment:
+      NC_DB: 'pg://db:5432?u=nocodb&p=quickstart_demo_pw_change_me&d=nocodb'
+      NC_REDIS_URL: 'redis://redis:6379'
+      NC_SITE_URL: 'http://localhost:8080'
+      NC_WORKER_CONTAINER: 'true'
+    depends_on:
+      nocodb:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - nocodb_data:/usr/app/data
+    networks:
+      - nocodb-network
+
+  db:
+    image: postgres:17.10
+    environment:
+      POSTGRES_USER: nocodb
+      POSTGRES_PASSWORD: quickstart_demo_pw_change_me
+      POSTGRES_DB: nocodb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nocodb -d nocodb']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nocodb-network
+
+  redis:
+    image: redis:7
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nocodb-network
+
+networks:
+  nocodb-network:
+    driver: bridge
+
+volumes:
+  nocodb_data:
+  postgres_data:
+  redis_data:

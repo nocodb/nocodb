@@ -1,5 +1,7 @@
 import UITypes from '../UITypes';
-import { ColumnType, IDType } from '~/lib';
+import { abstractTypeToMetaUIType } from './metaUiDataType';
+import { ColumnType } from '~/lib/Api';
+import { IDType } from './index';
 import { SqlUi } from './SqlUI.types';
 import { numberize } from '../numberUtils';
 
@@ -208,6 +210,30 @@ export class MysqlUi implements SqlUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.Order,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'tinyint',
+        dtx: 'specificType',
+        ct: 'tinyint(1)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: '0',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '1',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
         uip: '',
         uicn: '',
         system: true,
@@ -911,6 +937,86 @@ export class MysqlUi implements SqlUi {
     return true;
   }
 
+  // Introspection UIType for meta-sync — exact port of the removed
+  // ModelXcMetaMysql.getUIDataType (+ its getAbstractType). Distinct from
+  // getUIType (column-creation default). See metaUiDataType.ts.
+  static getMetaUIDataType(col): any {
+    return abstractTypeToMetaUIType(this.getMetaAbstractType(col));
+  }
+
+  static getMetaAbstractType(col): any {
+    switch ((col.dt || col.dt).toLowerCase()) {
+      case 'int':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'bit':
+        return 'integer';
+
+      case 'boolean':
+        return 'boolean';
+
+      case 'float':
+      case 'decimal':
+      case 'double':
+      case 'serial':
+        return 'float';
+      case 'tinyint':
+        if (col.dtxp == '1') {
+          return 'boolean';
+        } else {
+          return 'integer';
+        }
+      case 'date':
+        return 'date';
+      case 'datetime':
+      case 'timestamp':
+        return 'datetime';
+      case 'time':
+        return 'time';
+      case 'year':
+        return 'year';
+      case 'char':
+      case 'varchar':
+      case 'nchar':
+        return 'string';
+      case 'text':
+      case 'tinytext':
+      case 'mediumtext':
+      case 'longtext':
+        return 'text';
+
+      // todo: use proper type
+      case 'binary':
+        return 'string';
+      case 'varbinary':
+        return 'text';
+
+      case 'blob':
+      case 'tinyblob':
+      case 'mediumblob':
+      case 'longblob':
+        return 'blob';
+
+      case 'enum':
+        return 'enum';
+      case 'set':
+        return 'set';
+
+      case 'geometry':
+      case 'point':
+      case 'linestring':
+      case 'polygon':
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+        return 'geometry';
+
+      case 'json':
+        return 'json';
+    }
+  }
+
   static getUIType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
@@ -1163,6 +1269,10 @@ export class MysqlUi implements SqlUi {
       case 'Order':
         colProp.dt = 'decimal';
         break;
+      case UITypes.Deleted:
+        colProp.dt = 'tinyint';
+        colProp.dtxp = '1';
+        break;
       default:
         colProp.dt = 'varchar';
         break;
@@ -1357,6 +1467,9 @@ export class MysqlUi implements SqlUi {
           'multipolygon',
         ];
 
+      case UITypes.Deleted:
+        return ['tinyint', 'boolean'];
+
       default:
         return dbTypes;
     }
@@ -1478,6 +1591,9 @@ export class MysqlUi implements SqlUi {
   }
   getUIType(col: ColumnType): string {
     return MysqlUi.getUIType(col);
+  }
+  getMetaUIDataType(col: ColumnType): UITypes {
+    return MysqlUi.getMetaUIDataType(col);
   }
   getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     return MysqlUi.getDataTypeForUiType(col, idType);

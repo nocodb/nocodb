@@ -10,7 +10,7 @@ const isNewBaseModalOpen = ref(false)
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const { $e } = useNuxtApp()
 
@@ -23,6 +23,7 @@ const { activeSidebarTab } = storeToRefs(useSidebarStore())
 const tabActionLabel = computed(() => {
   const labels: Record<string, string> = {
     workflows: t('objects.workflow'),
+    agents: t('objects.agent'),
     docs: t('objects.document'),
   }
   return labels[activeSidebarTab.value] ?? t('general.data')
@@ -70,6 +71,8 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   }
 }
 
+const tableCreateReason = computed(() => sandboxRestrictionReason('tableCreate', { source: base.value?.sources?.[0] }))
+
 const onCreateBaseClick = () => {
   if (showExternalSourcePlanLimitExceededModal() || isDataSourceLimitReached.value) return
 
@@ -93,17 +96,23 @@ const onCreateBaseClick = () => {
       <template v-else>
         <!-- Data actions (shown on Data tab) -->
         <template v-if="activeSidebarTab === 'data'">
-          <ProjectActionItem
-            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-            :label="$t('dashboards.create_new_table')"
-            :subtext="$t('msg.subText.startFromScratch')"
-            data-testid="proj-view-btn__add-new-table"
-            @click="openTableCreateDialog()"
+          <NcTooltip
+            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] }) || !!tableCreateReason"
+            :title="tableCreateReason ? $t(tableCreateReason) : ''"
+            :disabled="!tableCreateReason"
           >
-            <template #icon>
-              <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
-            </template>
-          </ProjectActionItem>
+            <ProjectActionItem
+              :disabled="!!tableCreateReason"
+              :label="$t('dashboards.create_new_table')"
+              :subtext="$t('msg.subText.startFromScratch')"
+              data-testid="proj-view-btn__add-new-table"
+              @click="tableCreateReason ? undefined : openTableCreateDialog()"
+            >
+              <template #icon>
+                <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
+              </template>
+            </ProjectActionItem>
+          </NcTooltip>
 
           <ProjectActionItem
             v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
@@ -117,6 +126,8 @@ const onCreateBaseClick = () => {
               <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-nc-content-orange-dark" />
             </template>
           </ProjectActionItem>
+
+          <ProjectActionCreateNewDocument v-if="isEeUI" :base-id="base?.id" />
 
           <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
 
@@ -158,16 +169,15 @@ const onCreateBaseClick = () => {
           </NcTooltip>
         </template>
 
-        <!-- Docs tab actions -->
-        <template v-if="activeSidebarTab === 'docs' && showEEFeatures">
-          <ProjectActionCreateNewDocument :base-id="base?.id" />
-        </template>
-
         <!-- Automation actions (shown on Automation tab) -->
         <template v-if="activeSidebarTab === 'workflows' && !isMobileMode && showEEFeatures">
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />
+        </template>
+        <!-- Agent actions (shown on Agents tab) -->
+        <template v-if="activeSidebarTab === 'agents' && !isMobileMode && showEEFeatures">
+          <ProjectActionCreateEmptyAgent />
         </template>
       </template>
     </div>

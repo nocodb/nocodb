@@ -1,5 +1,10 @@
 import { ColumnType, FilterType } from './Api';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import {
+  InterfaceRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from './enums';
 import { OnPremPlanTitles, PlanTitles } from './payment';
 
 export const enumColors = {
@@ -42,6 +47,7 @@ export enum ViewTypes {
   CALENDAR = 6,
   LIST = 7,
   TIMELINE = 8,
+  GANTT = 9,
 }
 
 export const viewTypeAlias: Record<ViewTypes, string> = {
@@ -53,6 +59,7 @@ export const viewTypeAlias: Record<ViewTypes, string> = {
   [ViewTypes.CALENDAR]: 'calendar',
   [ViewTypes.LIST]: 'list',
   [ViewTypes.TIMELINE]: 'timeline',
+  [ViewTypes.GANTT]: 'gantt',
 };
 
 export const viewTypeToStringMap: Record<ViewTypes, string> = {
@@ -103,6 +110,7 @@ export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
   JSON = 'json',
+  ICS = 'ics',
 }
 
 export enum PluginCategory {
@@ -114,6 +122,7 @@ export enum ModelTypes {
   TABLE = 'table',
   VIEW = 'view',
   DASHBOARD = 'dashboard',
+  DOCUMENT = 'document',
 }
 
 export enum AutomationTypes {
@@ -166,17 +175,40 @@ export enum NcDataErrorCodes {
   NC_ERR_MM_MODEL_NOT_FOUND = 'NC_ERR_MM_MODEL_NOT_FOUND',
 }
 
+/**
+ * Coarse buckets for SSO sign-in failures, surfaced to the browser as
+ * `/sso?error=<code>`. Deliberately coarse — the precise reason stays in the
+ * server log, since the redirect endpoint is unauthenticated.
+ */
+export enum SsoFailureCode {
+  SSO_STATE_INVALID = 'SSO_STATE_INVALID',
+  SSO_TOKEN_INVALID = 'SSO_TOKEN_INVALID',
+  SSO_PROVIDER_ERROR = 'SSO_PROVIDER_ERROR',
+  SSO_ACCOUNT_NOT_ALLOWED = 'SSO_ACCOUNT_NOT_ALLOWED',
+  SSO_FAILED = 'SSO_FAILED',
+}
+
+export const NC_ERROR_SENTINEL = '_____NC_ERROR_____';
+
 export enum NcErrorType {
   ERR_AUTHENTICATION_REQUIRED = 'ERR_AUTHENTICATION_REQUIRED',
   ERR_FORBIDDEN = 'ERR_FORBIDDEN',
   ERR_API_TOKEN_NOT_ALLOWED = 'ERR_API_TOKEN_NOT_ALLOWED',
   ERR_WORKSPACE_NOT_FOUND = 'ERR_WORKSPACE_NOT_FOUND',
+  ERR_WORKSPACE_SUSPENDED = 'ERR_WORKSPACE_SUSPENDED',
+  ERR_BASE_SUSPENDED = 'ERR_BASE_SUSPENDED',
+  ERR_ORG_NOT_FOUND = 'ERR_ORG_NOT_FOUND',
   ERR_BASE_NOT_FOUND = 'ERR_BASE_NOT_FOUND',
   ERR_SOURCE_NOT_FOUND = 'ERR_SOURCE_NOT_FOUND',
   ERR_TABLE_NOT_FOUND = 'ERR_TABLE_NOT_FOUND',
   ERR_VIEW_NOT_FOUND = 'ERR_VIEW_NOT_FOUND',
   ERR_FIELD_NOT_FOUND = 'ERR_FIELD_NOT_FOUND',
+  ERR_FILTER_NOT_FOUND = 'ERR_FILTER_NOT_FOUND',
   ERR_RECORD_NOT_FOUND = 'ERR_RECORD_NOT_FOUND',
+  ERR_TABLE_TRASH_NOT_SUPPORTED = 'ERR_TABLE_TRASH_NOT_SUPPORTED',
+  ERR_RECORD_RESTORE_CONFLICT = 'ERR_RECORD_RESTORE_CONFLICT',
+  ERR_RECORD_NOT_TRASHED = 'ERR_RECORD_NOT_TRASHED',
+  ERR_TRASH_BATCH_LIMIT_EXCEEDED = 'ERR_TRASH_BATCH_LIMIT_EXCEEDED',
   ERR_GENERIC_NOT_FOUND = 'ERR_GENERIC_NOT_FOUND',
   ERR_HOOK_NOT_FOUND = 'ERR_HOOK_NOT_FOUND',
   ERR_REQUIRED_FIELD_MISSING = 'ERR_REQUIRED_FIELD_MISSING',
@@ -199,6 +231,10 @@ export enum NcErrorType {
   ERR_TABLE_ASSOCIATED_WITH_LINK = 'ERR_TABLE_ASSOCIATED_WITH_LINK',
   ERR_INTEGRATION_NOT_FOUND = 'ERR_INTEGRATION_NOT_FOUND',
   ERR_INTEGRATION_LINKED_WITH_BASES = 'ERR_INTEGRATION_LINKED_WITH_BASES',
+  // Connection credentials are no longer usable — only the user can fix it (reconnect).
+  ERR_INTEGRATION_AUTH_FAILED = 'ERR_INTEGRATION_AUTH_FAILED',
+  // Upstream call failed for a reason retrying may fix (rate limit, network, unknown).
+  ERR_INTEGRATION_REQUEST_FAILED = 'ERR_INTEGRATION_REQUEST_FAILED',
   ERR_FORMULA = 'ERR_FORMULA',
   ERR_CIRCULAR_REF_IN_FORMULA = 'ERR_CIRCULAR_REF_IN_FORMULA',
   ERR_PERMISSION_DENIED = 'ERR_PERMISSION_DENIED',
@@ -209,20 +245,37 @@ export enum NcErrorType {
   ERR_FEATURE_NOT_SUPPORTED = 'ERR_FEATURE_NOT_SUPPORTED',
   ERR_SSO_LOGIN_REQUIRED = 'ERR_SSO_LOGIN_REQUIRED',
   ERR_SSO_GENERATED_TOKEN_REQUIRED = 'ERR_SSO_GENERATED_TOKEN_REQUIRED',
+  ERR_MFA_SETUP_REQUIRED = 'ERR_MFA_SETUP_REQUIRED',
   ERR_MAX_PAYLOAD_LIMIT_EXCEEDED = 'ERR_MAX_PAYLOAD_LIMIT_EXCEEDED',
   ERR_INVALID_VALUE_FOR_FIELD = 'ERR_INVALID_VALUE_FOR_FIELD',
   ERR_MAX_WORKSPACE_LIMIT_REACHED = 'ERR_MAX_WORKSPACE_LIMIT_REACHED',
   ERR_BASE_COLLABORATION = 'ERR_BASE_COLLABORATION',
   ERR_ORG_USER = 'ERR_ORG_USER',
   ERR_SYNC_TABLE_OPERATION_PROHIBITED = 'ERR_SYNC_TABLE_OPERATION_PROHIBITED',
+  ERR_SYNC_CONFIG_NOT_FOUND = 'ERR_SYNC_CONFIG_NOT_FOUND',
   ERR_INVALID_REQUEST_BODY = 'ERR_INVALID_REQUEST_BODY',
+  ERR_TRASH_NOT_FOUND = 'ERR_TRASH_NOT_FOUND',
+  ERR_PARENT_IN_TRASH = 'ERR_PARENT_IN_TRASH',
   ERR_DASHBOARD_NOT_FOUND = 'ERR_DASHBOARD_NOT_FOUND',
+  ERR_INTERFACE_NOT_FOUND = 'ERR_INTERFACE_NOT_FOUND',
+  ERR_INTERFACE_PAGE_NOT_FOUND = 'ERR_INTERFACE_PAGE_NOT_FOUND',
+  ERR_INTERFACE_PREVIEW_WRITE_BLOCKED = 'ERR_INTERFACE_PREVIEW_WRITE_BLOCKED',
   ERR_WORKFLOW_NOT_FOUND = 'ERR_WORKFLOW_NOT_FOUND',
+  ERR_AGENT_NOT_FOUND = 'ERR_AGENT_NOT_FOUND',
+  ERR_AGENT_SESSION_NOT_FOUND = 'ERR_AGENT_SESSION_NOT_FOUND',
+  ERR_SKILL_NOT_FOUND = 'ERR_SKILL_NOT_FOUND',
+  ERR_SKILL_SOURCE_INVALID = 'ERR_SKILL_SOURCE_INVALID',
+  ERR_SKILL_CATALOG_UNAVAILABLE = 'ERR_SKILL_CATALOG_UNAVAILABLE',
   ERR_WIDGET_NOT_FOUND = 'ERR_WIDGET_NOT_FOUND',
   ERR_CHAT_SESSION_NOT_FOUND = 'ERR_CHAT_SESSION_NOT_FOUND',
   ERR_CHAT_MESSAGE_NOT_FOUND = 'ERR_CHAT_MESSAGE_NOT_FOUND',
+  ERR_CHAT_ARTIFACT_NOT_FOUND = 'ERR_CHAT_ARTIFACT_NOT_FOUND',
   ERR_VIEW_SECTION_NOT_FOUND = 'ERR_VIEW_SECTION_NOT_FOUND',
+  ERR_BASE_SECTION_NOT_FOUND = 'ERR_BASE_SECTION_NOT_FOUND',
+  ERR_AUTOMATION_SECTION_NOT_FOUND = 'ERR_AUTOMATION_SECTION_NOT_FOUND',
+  ERR_AGENT_SECTION_NOT_FOUND = 'ERR_AGENT_SECTION_NOT_FOUND',
   ERR_SHARED_DASHBOARD_PASSWORD_INVALID = 'ERR_SHARED_DASHBOARD_PASSWORD_INVALID',
+  ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID = 'ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID',
   ERR_DUPLICATE_IN_ALIAS = 'ERR_DUPLICATE_IN_ALIAS',
   ERR_OUT_OF_SYNC = 'ERR_OUT_OF_SYNC',
   ERR_FILTER_VERIFICATION_FAILED = 'ERR_FILTER_VERIFICATION_FAILED',
@@ -259,6 +312,7 @@ export enum NcErrorType {
   ERR_EXTENSION_NOT_FOUND = 'ERR_EXTENSION_NOT_FOUND',
   ERR_SCRIPT_NOT_FOUND = 'ERR_SCRIPT_NOT_FOUND',
   ERR_RLS_POLICY_NOT_FOUND = 'ERR_RLS_POLICY_NOT_FOUND',
+  ERR_TABLE_SYNC_NOT_FOUND = 'ERR_TABLE_SYNC_NOT_FOUND',
   FIELD_UNIQUE_CONSTRAINT_VIOLATION = 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
   ERR_METHOD_NOT_ALLOWED = 'ERR_METHOD_NOT_ALLOWED',
 
@@ -277,6 +331,21 @@ export enum NcErrorType {
   ERR_LICENSE_SUSPENDED = 'ERR_LICENSE_SUSPENDED',
 
   ERR_SYSTEM_FIELD_NON_MODIFIABLE = 'ERR_SYSTEM_FIELD_NON_MODIFIABLE',
+
+  // System configuration errors
+  ERR_SYSTEM_MISCONFIGURED = 'ERR_SYSTEM_MISCONFIGURED',
+  ERR_TOO_MANY_REQUESTS = 'ERR_TOO_MANY_REQUESTS',
+
+  // Sandbox errors
+  ERR_SANDBOX_BLOCKED = 'ERR_SANDBOX_BLOCKED',
+  ERR_SANDBOX_PRODUCTION_BLOCKED = 'ERR_SANDBOX_PRODUCTION_BLOCKED',
+
+  // Snapshot errors
+  ERR_SNAPSHOT_BLOCKED = 'ERR_SNAPSHOT_BLOCKED',
+
+  // Credit system errors
+  ERR_CREDITS_EXHAUSTED = 'ERR_CREDITS_EXHAUSTED',
+  ERR_CREDIT_PACK_NOT_FOUND = 'ERR_CREDIT_PACK_NOT_FOUND',
 }
 
 export enum ROW_COLORING_MODE {
@@ -290,6 +359,8 @@ export enum COLORING_TYPE {
 }
 
 export const LongTextAiMetaProp = 'ai';
+export const LongTextRichModeMetaProp = 'richMode';
+export const LongTextSmartModeMetaProp = 'smartMode';
 
 export const NO_SCOPE = 'nc';
 
@@ -302,6 +373,9 @@ export const NON_SEAT_ROLES = [
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,
   ProjectRoles.COMMENTER,
+  InterfaceRoles.NO_ACCESS,
+  InterfaceRoles.VIEWER,
+  InterfaceRoles.COMMENTER,
 ];
 
 export const DURATION_TYPE_MAP = {
@@ -351,6 +425,11 @@ export type RowColoringInfoFilter = {
 export type RowColoringInfo = {
   fk_model_id: string;
   fk_view_id: string;
+  /**
+   * Background tint strength when colouring is set as background.
+   * Absent = 'light' (the historical tint).
+   */
+  background_intensity?: 'light' | 'medium' | 'bold';
 } & (RowColoringInfoSelect | RowColoringInfoFilter);
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
@@ -366,7 +445,18 @@ interface PlanLimitExceededDetailsType {
   higherPlan?: PlanTitles | OnPremPlanTitles;
 }
 
-export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
+interface CreditsExhaustedDetailsType {
+  available_credits?: number;
+  period_end?: string;
+}
+
+export {
+  Roles,
+  RolesObj,
+  RolesType,
+  PlanLimitExceededDetailsType,
+  CreditsExhaustedDetailsType,
+};
 
 export type RowColoringMode = null | 'SELECT' | 'FILTER';
 
@@ -395,6 +485,9 @@ export enum DependencyTableType {
   Widget = 'widget',
   Workflow = 'workflow',
   DateDependency = 'date_dependency',
+  Bookmark = 'bookmark',
+  InterfacePage = 'interface_page',
+  Agent = 'agent',
 }
 
 export enum BaseVersion {
@@ -424,3 +517,20 @@ export enum DeploymentType {
   INSTALL = 'install',
   UPDATE = 'update',
 }
+
+export enum BaseVariableInheritance {
+  FIXED = 'fixed',
+  EDITABLE = 'editable',
+  REQUIRED = 'required',
+}
+
+export enum BaseVariableValueType {
+  TEXT = 'text',
+  SECRET = 'secret',
+}
+
+/**
+ * Maximum nesting depth for List view self-link trees. Shared so the backend's
+ * recursive CTE bound and the frontend's drop-target guard can never drift.
+ */
+export const LIST_VIEW_NESTED_MAX_DEPTH = 7;

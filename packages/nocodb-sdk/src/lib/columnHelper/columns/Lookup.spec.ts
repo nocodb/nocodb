@@ -1,4 +1,6 @@
 import { LookupHelper } from './Lookup';
+import { ColumnHelper } from '../column-helper';
+import { SeparatorType } from '../utils';
 import { ComputedTypePasteError } from '~/lib/error';
 import UITypes from '~/lib/UITypes';
 import {
@@ -557,6 +559,133 @@ describe('LookupHelper', () => {
       expect(helper.parseValue(['value1', 'value2', 'value3'], params)).toBe(
         'value1, value2, value3'
       );
+    });
+  });
+
+  describe('parseValue with display_type override (Lookup formatting)', () => {
+    const buildParams = (childColumn: ColumnType, lookupMeta?: any) => {
+      const lookupColumn = {
+        id: 'col1',
+        uidt: UITypes.Lookup,
+        meta: lookupMeta,
+        colOptions: {
+          fk_relation_column_id: 'rel_col1',
+          fk_lookup_column_id: childColumn.id,
+        } as LookupType,
+      } as ColumnType;
+
+      const relationColumn = {
+        id: 'rel_col1',
+        uidt: UITypes.LinkToAnotherRecord,
+        colOptions: {
+          fk_related_model_id: 'related_table_id',
+        } as LinkToAnotherRecordType,
+      } as ColumnType;
+
+      const meta = {
+        id: 'table1',
+        base_id: 'base1',
+        columns: [lookupColumn, relationColumn],
+      } as TableType;
+
+      const relatedMeta = {
+        id: 'related_table_id',
+        base_id: 'base1',
+        columns: [childColumn],
+      } as TableType;
+
+      return {
+        col: lookupColumn,
+        meta,
+        metas: { 'base1:related_table_id': relatedMeta },
+      } as any;
+    };
+
+    it('overrides a number child with the configured Decimal formatting', () => {
+      const childColumn = { id: 'c', uidt: UITypes.Number } as ColumnType;
+      const params = buildParams(childColumn, {
+        display_type: UITypes.Decimal,
+        display_column_meta: {
+          meta: { precision: 2, separator: SeparatorType.NonePeriod },
+          custom: {},
+        },
+      });
+
+      const expected = ColumnHelper.parseValue(1234.5, {
+        ...params,
+        col: {
+          uidt: UITypes.Decimal,
+          meta: { precision: 2, separator: SeparatorType.NonePeriod },
+        } as ColumnType,
+      });
+
+      expect(helper.parseValue(1234.5, params)).toBe(expected);
+    });
+
+    it('inherits the child rendering when no display_type is set', () => {
+      const childColumn = { id: 'c', uidt: UITypes.Number } as ColumnType;
+      const params = buildParams(childColumn);
+
+      const expected = ColumnHelper.parseValue(1234.5, {
+        ...params,
+        col: childColumn,
+      });
+
+      expect(helper.parseValue(1234.5, params)).toBe(expected);
+    });
+
+    it('applies the override to each value of a multi-value lookup', () => {
+      const childColumn = { id: 'c', uidt: UITypes.Number } as ColumnType;
+      const params = buildParams(childColumn, {
+        display_type: UITypes.Decimal,
+        display_column_meta: {
+          meta: { precision: 1, separator: SeparatorType.NonePeriod },
+          custom: {},
+        },
+      });
+
+      const single = (v: number) =>
+        ColumnHelper.parseValue(v, {
+          ...params,
+          col: {
+            uidt: UITypes.Decimal,
+            meta: { precision: 1, separator: SeparatorType.NonePeriod },
+          } as ColumnType,
+        });
+
+      expect(helper.parseValue([1, 2], params)).toBe(
+        `${single(1)}, ${single(2)}`
+      );
+    });
+
+    it('lets the lookup override win over a computed (Formula) child', () => {
+      const formulaChild = {
+        id: 'c',
+        uidt: UITypes.Formula,
+        meta: {
+          display_type: UITypes.Decimal,
+          display_column_meta: { meta: { precision: 0 }, custom: {} },
+        },
+        colOptions: { parsed_tree: { dataType: 'numeric' } },
+      } as unknown as ColumnType;
+
+      const params = buildParams(formulaChild, {
+        display_type: UITypes.Decimal,
+        display_column_meta: {
+          meta: { precision: 3, separator: SeparatorType.NonePeriod },
+          custom: {},
+        },
+      });
+
+      const expected = ColumnHelper.parseValue(1.23456, {
+        ...params,
+        col: {
+          uidt: UITypes.Decimal,
+          meta: { precision: 3, separator: SeparatorType.NonePeriod },
+        } as ColumnType,
+      });
+
+      expect(helper.parseValue(1.23456, params)).toBe(expected);
     });
   });
 

@@ -10,6 +10,7 @@ export default class LookupColumn implements LookupType {
   fk_relation_column_id: string;
   fk_lookup_column_id: string;
   fk_column_id: string;
+  error: string;
 
   constructor(data: Partial<LookupColumn>) {
     Object.assign(this, data);
@@ -36,6 +37,7 @@ export default class LookupColumn implements LookupType {
       'fk_column_id',
       'fk_relation_column_id',
       'fk_lookup_column_id',
+      'error',
     ]);
 
     await ncMeta.metaInsert2(
@@ -95,4 +97,34 @@ export default class LookupColumn implements LookupType {
   }
 
   id: string;
+
+  public static async update(
+    context: NcContext,
+    columnId: string,
+    data: Partial<LookupColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(data, [
+      'fk_column_id',
+      'fk_relation_column_id',
+      'fk_lookup_column_id',
+      'error',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_LOOKUP,
+      updateObj,
+      {
+        fk_column_id: columnId,
+      },
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.COL_LOOKUP}:${columnId}`,
+      updateObj,
+    );
+  }
 }

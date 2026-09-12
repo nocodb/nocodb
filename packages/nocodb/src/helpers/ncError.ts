@@ -4,6 +4,7 @@ import { NcErrorV3 } from './ncErrorV3';
 import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
+  CreditsExhaustedDetailsType,
   NcErrorArgs,
   PlanLimitExceededDetailsType,
   SourceType,
@@ -37,6 +38,10 @@ export class NcError {
     return NcError._.workspaceNotFound(id, args);
   }
 
+  static orgNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.orgNotFound(id, args);
+  }
+
   static columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
     return NcError._.columnAssociatedWithLink(_id, args);
   }
@@ -53,8 +58,24 @@ export class NcError {
     return NcError._.widgetNotFound(id, args);
   }
 
+  static trashNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.trashNotFound(id, args);
+  }
+
+  static parentInTrash(parentType: string, args?: NcErrorArgs): never {
+    return NcError._.parentInTrash(parentType, args);
+  }
+
   static dashboardNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.dashboardNotFound(id, args);
+  }
+
+  static interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfaceNotFound(id, args);
+  }
+
+  static interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfacePageNotFound(id, args);
   }
 
   static chatSessionNotFound(id: string, args?: NcErrorArgs): never {
@@ -67,6 +88,18 @@ export class NcError {
 
   static viewSectionNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.viewSectionNotFound(id, args);
+  }
+
+  static baseSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.baseSectionNotFound(id, args);
+  }
+
+  static automationSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.automationSectionNotFound(id, args);
+  }
+
+  static agentSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.agentSectionNotFound(id, args);
   }
 
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
@@ -89,6 +122,10 @@ export class NcError {
     return NcError._.viewNotFound(id, args);
   }
 
+  static filterNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.filterNotFound(id, args);
+  }
+
   static hookNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.hookNotFound(id, args);
   }
@@ -99,6 +136,18 @@ export class NcError {
     args?: NcErrorArgs,
   ): never {
     return NcError._.genericNotFound(resource, id, args);
+  }
+
+  static skillNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.skillNotFound(id, args);
+  }
+
+  static skillSourceInvalid(ref: string, args?: NcErrorArgs): never {
+    return NcError._.skillSourceInvalid(ref, args);
+  }
+
+  static skillCatalogUnavailable(repo: string, args?: NcErrorArgs): never {
+    return NcError._.skillCatalogUnavailable(repo, args);
   }
 
   static requiredFieldMissing(field: string, args?: NcErrorArgs): never {
@@ -171,6 +220,10 @@ export class NcError {
     return NcError._.internalServerError(message, args);
   }
 
+  static systemMisconfigured(message: string, args?: NcErrorArgs): never {
+    return NcError._.systemMisconfigured(message, args);
+  }
+
   static formulaError(message: string, args?: NcErrorArgs): never {
     return NcError._.formulaError(message, args);
   }
@@ -203,6 +256,10 @@ export class NcError {
     return NcError._.integrationNotFound(id, args);
   }
 
+  static syncConfigNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.syncConfigNotFound(id, args);
+  }
+
   static cannotCalculateIntermediateOrderError(): never {
     return NcError._.cannotCalculateIntermediateOrderError();
   }
@@ -231,11 +288,25 @@ export class NcError {
     return NcError._.planLimitExceeded(message, details, args);
   }
 
+  static creditPackNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.creditPackNotFound(id, args);
+  }
+
+  static creditsExhausted(
+    details?: CreditsExhaustedDetailsType,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.creditsExhausted(details, args);
+  }
+
   static allowedOnlySSOAccess(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOAccess(ncWorkspaceId);
   }
   static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
+  }
+  static mfaSetupRequired(ncWorkspaceId: string): never {
+    return NcError._.mfaSetupRequired(ncWorkspaceId);
   }
   static maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     return NcError._.maxPayloadLimitExceeded(limit, args);

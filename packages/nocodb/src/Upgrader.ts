@@ -1,5 +1,7 @@
 import NocoCache from './cache/NocoCache';
 import type { Condition } from '~/db/CustomKnex';
+import type CustomKnex from '~/db/CustomKnex';
+import type { Source } from '~/models';
 import Noco from '~/Noco';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
@@ -396,18 +398,18 @@ export default class Upgrader extends MetaService {
     return await query;
   }
 
-  enableUpgraderMode?() {
+  enableUpgraderMode() {
     NocoCache.disableCache();
     this._upgrader_mode = true;
   }
 
-  async disableUpgraderMode?() {
+  async disableUpgraderMode() {
     NocoCache.enableCache();
     await NocoCache.destroy();
     this._upgrader_mode = false;
   }
 
-  async pushUpgraderQuery(query: string | string[]) {
+  pushUpgraderQuery(query: string | string[]) {
     if (Array.isArray(query)) {
       this._upgrader_queries.push(...query);
     } else {
@@ -423,6 +425,24 @@ export default class Upgrader extends MetaService {
     if (!queries.length) return [];
 
     const trans = await this.knexConnection.transaction();
+
+    try {
+      for (const query of queries) {
+        await trans.raw(query);
+      }
+      await trans.commit();
+    } catch (e) {
+      await trans.rollback();
+      throw e;
+    }
+  }
+
+  static async flushSourceQueries(source: Source, dbDriver: CustomKnex) {
+    const queries = source.upgraderQueries?.splice(0) ?? [];
+
+    if (!queries.length) return;
+
+    const trans = await dbDriver.transaction();
 
     try {
       for (const query of queries) {

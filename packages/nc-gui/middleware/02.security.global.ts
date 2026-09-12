@@ -1,6 +1,17 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   // avoid non-embeddable paths within an iframe
   if (self !== top) {
+    // A legacy hash-fragment embed (`/dashboard/#/nc/view/<uuid>`) arrives with
+    // the share route in the fragment, so `to.path` is still the bare shell.
+    // plugins/hashRedirect.client.ts rewrites those, but it races this guard —
+    // whichever wins, the destination is the same share route, so resolve it
+    // here rather than 403-ing the intermediate shell. This guard then re-runs
+    // on the resulting navigation and applies the checks below to it.
+    const legacyHashRoute = extractLegacyHashRoute()
+    if (legacyHashRoute && legacyHashRoute !== to.fullPath) {
+      return navigateTo(legacyHashRoute, { replace: true })
+    }
+
     // allow for shared base
     if (to.path.startsWith('/base/')) {
       return

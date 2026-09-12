@@ -44,6 +44,8 @@ export function useSharedView() {
     () => undefined,
   )
 
+  const sharedPageTitle = useState<SharedPageTitle | undefined>('sharedPageTitle', () => undefined)
+
   const sorts = ref<SortType[]>([])
 
   const password = useState<string | undefined>('password', () => undefined)
@@ -155,10 +157,13 @@ export function useSharedView() {
 
     if (!param.offset) {
       const page = paginationData.value.page || 1
+      // For grouped loads, honor an explicit `param.limit` when the caller asks
+      // for a specific size (e.g. Gantt/Timeline load the whole group via
+      // pageSize=count) — otherwise fall back to the default group-by record limit.
       const pageSize = opts?.isInfiniteScroll
         ? param.limit
         : opts?.isGroupBy
-        ? appInfo.value.defaultGroupByLimit?.limitRecord || 10
+        ? param.limit ?? (appInfo.value.defaultGroupByLimit?.limitRecord || 10)
         : paginationData.value.pageSize || appInfoDefaultLimit
       param.offset = (page - 1) * pageSize
       param.limit = sharedView.value?.type === ViewTypes.MAP ? 1000 : pageSize
@@ -290,29 +295,11 @@ export function useSharedView() {
   ) => {
     if (!sharedView.value) return {}
 
-    return await $api.public.dataTableBulkDataList(sharedView.value.uuid!, bulkFilterList, {
-      ...param,
-    } as any)
-  }
-
-  const fetchBulkGroupData = async (
-    param: {
-      filtersArr?: FilterType[]
-      where?: string
-    },
-    bulkFilterList: Array<{
-      where: string
-      alias: string
-    }>,
-  ) => {
-    if (!sharedView.value) return {}
-
-    return await $api.public.dataTableBulkGroup(
+    return await $api.public.dataTableBulkDataList(
       sharedView.value.uuid!,
       bulkFilterList,
       {
         ...param,
-        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
         headers: {
@@ -460,6 +447,7 @@ export function useSharedView() {
 
   return {
     sharedView,
+    sharedPageTitle,
     loadSharedView,
     meta,
     nestedFilters,
@@ -470,7 +458,6 @@ export function useSharedView() {
     fetchAggregatedData,
     fetchBulkAggregatedData,
     fetchSharedViewAttachment,
-    fetchBulkGroupData,
     fetchBulkListData,
     paginationData,
     sorts,

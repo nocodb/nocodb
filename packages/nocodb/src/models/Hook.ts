@@ -23,6 +23,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class Hook implements HookType {
   id?: string;
@@ -50,22 +51,35 @@ export default class Hook implements HookType {
   version?: 'v1' | 'v2' | 'v3';
   trigger_field?: boolean;
   trigger_fields?: string[];
+  comment_config?: HookType['comment_config'];
+  deleted?: BoolType;
 
   constructor(
     hook: Partial<Hook | HookReqType> & {
       version?: string;
       operation?: string | string[];
+      comment_config?: HookType['comment_config'] | string;
     },
   ) {
     Object.assign(this, hook);
     if (hook.version === 'v3' && typeof hook.operation === 'string') {
       this.operation = operationCodeToArr(hook.operation);
     }
+    // `comment_config` is persisted as serialized JSON (like `notification`);
+    // expose it as a parsed object to consumers.
+    if (typeof hook.comment_config === 'string') {
+      try {
+        this.comment_config = JSON.parse(hook.comment_config);
+      } catch {
+        this.comment_config = null;
+      }
+    }
   }
 
   public static async get(
     context: NcContext,
     hookId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     let hook =
@@ -95,6 +109,7 @@ export default class Hook implements HookType {
       }
       await NocoCache.set(context, `${CacheScope.HOOK}:${hookId}`, hook);
     }
+    if (hook?.deleted && !includeDeleted) return null;
     return hook && new Hook(hook);
   }
 
@@ -113,6 +128,7 @@ export default class Hook implements HookType {
       event?: HookType['event'];
       operation?: HookType['operation'][0];
       affectedColumns?: string[];
+      includeDeleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -164,6 +180,9 @@ export default class Hook implements HookType {
         hooks,
       );
     }
+    if (!param.includeDeleted) {
+      hooks = hooks.filter((h) => !h.deleted);
+    }
     // filter event & operation
     if (param.event) {
       hooks = hooks.filter(
@@ -189,6 +208,7 @@ export default class Hook implements HookType {
         hooks = hooks.filter((hook) => {
           return (
             !hook.trigger_field ||
+            !param.affectedColumns ||
             hook.trigger_fields?.some((field) =>
               param.affectedColumns?.includes(field),
             )
@@ -225,10 +245,25 @@ export default class Hook implements HookType {
         'base_id',
         'source_id',
         'trigger_field',
+        'comment_config',
       ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
+    }
+
+    if (
+      insertObj.comment_config &&
+      typeof insertObj.comment_config === 'object'
+    ) {
+      insertObj.comment_config = JSON.stringify(
+        insertObj.comment_config,
+      ) as any;
+    }
+
+    // Replay-only: preserve sandbox entity ID for idempotent merge
+    if (isReplay() && hook.id) {
+      insertObj.id = hook.id;
     }
 
     const model = await Model.getByIdOrName(
@@ -273,7 +308,7 @@ export default class Hook implements HookType {
       1,
     );
 
-    return this.get(context, id, ncMeta).then(async (hook) => {
+    return this.get(context, id, false, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
         context,
         CacheScope.HOOK,
@@ -313,10 +348,25 @@ export default class Hook implements HookType {
         'version',
         'source_id',
         'trigger_field',
+        'comment_config',
       ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
+    }
+
+    if (
+      insertObj.comment_config &&
+      typeof insertObj.comment_config === 'object'
+    ) {
+      insertObj.comment_config = JSON.stringify(
+        insertObj.comment_config,
+      ) as any;
+    }
+
+    // Replay-only: preserve sandbox entity ID for idempotent merge
+    if (isReplay() && hook.id) {
+      insertObj.id = hook.id;
     }
 
     const model = await Model.getByIdOrName(
@@ -357,7 +407,7 @@ export default class Hook implements HookType {
       1,
     );
 
-    return this.get(context, id, ncMeta).then(async (hook) => {
+    return this.get(context, id, false, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
         context,
         CacheScope.HOOK,
@@ -394,6 +444,7 @@ export default class Hook implements HookType {
         'active',
         'version',
         'trigger_field',
+        'comment_config',
       ]);
 
     if (
@@ -409,6 +460,15 @@ export default class Hook implements HookType {
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {
       updateObj.notification = JSON.stringify(updateObj.notification);
+    }
+
+    if (
+      updateObj.comment_config &&
+      typeof updateObj.comment_config === 'object'
+    ) {
+      (updateObj as any).comment_config = JSON.stringify(
+        updateObj.comment_config,
+      );
     }
 
     // [DEPRECATED]: should not need to check for v3
@@ -454,7 +514,33 @@ export default class Hook implements HookType {
 
     await NocoCache.update(context, `${CacheScope.HOOK}:${hookId}`, updateObj);
 
-    return this.get(context, hookId, ncMeta);
+    return this.get(context, hookId, false, ncMeta);
+  }
+
+  static async softDelete(
+    context: NcContext,
+    hookId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOKS,
+      { deleted },
+      hookId,
+    );
+    await NocoCache.update(context, `${CacheScope.HOOK}:${hookId}`, {
+      deleted,
+    });
+
+    // Adjust workspace resource stats cache: -1 on trash, +1 on restore.
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      deleted ? -1 : 1,
+    );
   }
 
   static async delete(context: NcContext, hookId: any, ncMeta = Noco.ncMeta) {

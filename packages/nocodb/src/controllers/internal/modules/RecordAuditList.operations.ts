@@ -15,6 +15,12 @@ export class RecordAuditListOperations
   operations = ['recordAuditList' as const];
   httpMethod = 'GET' as const;
 
+  // Security improvement: `recordAuditList` returns raw audit rows (admin email,
+  // IP, user-agent, full old/new cell-edit history). It must never be reachable
+  // by a public shared-base session, so the internal dispatcher denies it the
+  // same way the REST controllers deny their sensitive endpoints.
+  publicBaseBlockedOperations = ['recordAuditList' as const];
+
   async handle(
     context: NcContext,
     {

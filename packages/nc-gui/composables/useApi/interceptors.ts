@@ -1,4 +1,5 @@
 import type { Api } from 'nocodb-sdk'
+
 const DbNotFoundMsg = 'Database config not found'
 
 const TIMEOUT_RETRY_COUNT = 1
@@ -15,6 +16,9 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
   axiosInstance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
     config.headers['xc-socket-id'] = skipSocket ? null : $ncSocket.id() || null
+
+    const tabId = getTabId()
+    if (tabId) config.headers['x-nc-tab-id'] = tabId
 
     if (state.token.value && !config.headers['xc-short-token']) {
       config.headers['xc-auth'] = state.token.value

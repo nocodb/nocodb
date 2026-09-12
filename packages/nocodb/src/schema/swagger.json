@@ -990,6 +990,16 @@
                       "type": "boolean",
                       "description": "Status of invite only signup",
                       "example": true
+                    },
+                    "restrict_workspace_creation": {
+                      "type": "boolean",
+                      "description": "Restrict workspace creation to super admin only",
+                      "example": false
+                    },
+                    "allow_email_signin_with_sso": {
+                      "type": "boolean",
+                      "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
+                      "example": false
                     }
                   }
                 },
@@ -1066,6 +1076,16 @@
                     "type": "boolean",
                     "description": "Status of invite only signup",
                     "example": true
+                  },
+                  "restrict_workspace_creation": {
+                    "type": "boolean",
+                    "description": "Restrict workspace creation to super admin only",
+                    "example": false
+                  },
+                  "allow_email_signin_with_sso": {
+                    "type": "boolean",
+                    "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
+                    "example": false
                   }
                 }
               },
@@ -3935,156 +3955,6 @@
           "DB Table"
         ],
         "description": "List all tables in a given base"
-      }
-    },
-    "/api/v1/db/internal/links/{linkColumnId}/tables/{tableId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "cl_w9gpnaousnfss1",
-            "type": "string"
-          },
-          "name": "linkColumnId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Link Columns ID"
-        },
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "md_w9gpnaousnfss1",
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Table ID"
-        }
-      ],
-      "get": {
-        "summary": "Read Partial Linked Table",
-        "operationId": "db-links-table-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "id": "md_rsu68aqjsbyqtl",
-                      "source_id": "ds_g4ccx6e77h1dmi",
-                      "base_id": "p_xm3thidrblw4n7",
-                      "table_name": "nc_vm5q___Table1",
-                      "title": "Table1",
-                      "type": "table",
-                      "meta": null,
-                      "schema": null,
-                      "enabled": 1,
-                      "mm": 0,
-                      "tags": null,
-                      "pinned": null,
-                      "deleted": null,
-                      "order": 1,
-                      "created_at": "2023-03-02 17:04:06",
-                      "updated_at": "2023-03-02 17:04:08",
-                      "columns": [
-                        {
-                          "id": "cl_phvuuwjrzcdo0g",
-                          "source_id": "ds_g4ccx6e77h1dmi",
-                          "base_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Id",
-                          "column_name": "id",
-                          "uidt": "ID",
-                          "dt": "int",
-                          "np": "10",
-                          "ns": "0",
-                          "clen": null,
-                          "cop": "1",
-                          "pk": 1,
-                          "pv": null,
-                          "rqd": 1,
-                          "un": 1,
-                          "ct": "int unsigned",
-                          "ai": 1,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "",
-                          "dtxs": "0",
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_c5knoi4xs4sfpt",
-                          "source_id": "ds_g4ccx6e77h1dmi",
-                          "base_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Title",
-                          "column_name": "title",
-                          "uidt": "SingleLineText",
-                          "dt": "varchar",
-                          "np": null,
-                          "ns": null,
-                          "clen": "45",
-                          "cop": "2",
-                          "pk": 0,
-                          "pv": 1,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "varchar(45)",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": "utf8mb4",
-                          "dtx": "specificType",
-                          "dtxp": "45",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 2,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Links"
-        ],
-        "description": "Read the table metadata by linked column ID and  table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
       }
     },
     "/api/v1/db/meta/tables/{tableId}": {
@@ -11859,6 +11729,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -12115,6 +11993,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -12295,63 +12181,6 @@
         }
       }
     },
-    "/api/v2/tables/{tableId}/bulk/group": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true,
-          "description": "Table ID"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "required": true,
-          "name": "viewId",
-          "in": "query",
-          "description": "View ID is required"
-        }
-      ],
-      "post": {
-        "summary": "Read Bulk Group Data",
-        "operationId": "db-data-table-bulk-group-list",
-        "description": "Read bulk group data from a given table with given filters",
-        "tags": [
-          "DB Data Table Bulk Group List"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/upsert": {
       "parameters": [
         {
@@ -12476,6 +12305,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       }
@@ -12687,6 +12524,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -13719,89 +13564,6 @@
         "summary": "Read Shared View Bulk Data List",
         "operationId": "public-data-table-bulk-data-list",
         "description": "Read bulk data from a given table with provided filters",
-        "tags": [
-          "Public"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where",
-            "description": "Extra filtering"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "alias": {
-                        "Id": 1,
-                        "Title": "90",
-                        "SingleSelect": "50"
-                      },
-                      "alias2": {
-                        "Id": 2,
-                        "Title": "50",
-                        "SingleSelect": "30"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
-    "/api/v2/public/shared-view/{sharedViewUuid}/bulk/group": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
-          },
-          "name": "sharedViewUuid",
-          "in": "path",
-          "required": true,
-          "description": "Shared View UUID"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "header",
-          "name": "xc-password",
-          "description": "Shared view password"
-        }
-      ],
-      "post": {
-        "summary": "Read Shared View Bulk Group Data",
-        "operationId": "public-data-table-bulk-group",
-        "description": "Read bulk group data from a given table with provided filters",
         "tags": [
           "Public"
         ],
@@ -16036,7 +15798,8 @@
               "view",
               "after",
               "before",
-              "manual"
+              "manual",
+              "comment"
             ]
           },
           "name": "event",
@@ -16703,6 +16466,8 @@
                       "enum": [
                         "mysql",
                         "mysql2",
+                        "mssql",
+                        "oracledb",
                         "pg",
                         "snowflake",
                         "sqlite3",
@@ -21018,6 +20783,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "userId",
+          "in": "query",
+          "description": "User ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "clientId",
           "in": "query",
           "description": "Client ID",
@@ -21066,6 +20840,51 @@
           "name": "teamId",
           "in": "query",
           "description": "Team ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "modelId",
+          "in": "query",
+          "description": "Model ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "query",
+          "description": "Row ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "urlOrPath",
+          "in": "query",
+          "description": "URL or Path of the attachment",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "docId",
+          "in": "query",
+          "description": "Document ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "revisionId",
+          "in": "query",
+          "description": "Document Revision ID",
           "required": false
         }
       ]
@@ -21479,6 +21298,10 @@
         "title": "Attachment Model",
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "FileReference ID for the attachment"
+          },
           "data": {
             "description": "Data for uploading"
           },
@@ -21906,6 +21729,8 @@
             "enum": [
               "mysql",
               "mysql2",
+              "mssql",
+              "oracledb",
               "pg",
               "snowflake",
               "sqlite3",
@@ -22145,6 +21970,8 @@
             "enum": [
               "mysql",
               "mysql2",
+              "mssql",
+              "oracledb",
               "pg",
               "snowflake",
               "sqlite3",
@@ -22171,6 +21998,7 @@
           "auth",
           "sync",
           "communication",
+          "channel",
           "spread-sheet",
           "project-management",
           "crm",
@@ -22537,7 +22365,8 @@
               "Order",
               "Meta",
               "Colour",
-              "UUID"
+              "UUID",
+              "Deleted"
             ],
             "type": "string"
           },
@@ -22792,7 +22621,7 @@
             "type": "string",
             "description": "Description for the target row",
             "example": "This is the comment for the row",
-            "maxLength": 3000
+            "maxLength": 10000
           },
           "fk_model_id": {
             "type": "string",
@@ -22803,6 +22632,17 @@
             "type": "string",
             "description": "Row ID",
             "example": "3"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         },
         "required": [
@@ -22831,12 +22671,23 @@
             "type": "string",
             "description": "Description for the target row",
             "example": "This is the comment for the row",
-            "maxLength": 3000
+            "maxLength": 10000
           },
           "fk_model_id": {
             "type": "string",
             "description": "Foreign Key to Model",
             "example": "md_ehn5izr99m7d45"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         }
       },
@@ -23415,6 +23266,7 @@
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
+            "save_draft_to_browser": 1,
             "show_blank_form": 0,
             "subheading": "My Form Subheading",
             "submit_another_form": 0,
@@ -23444,7 +23296,7 @@
             }
           },
           "email": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Email to sned after form is submitted"
           },
           "fk_model_id": {
@@ -23490,6 +23342,10 @@
           "redirect_url": {
             "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
+          },
+          "save_draft_to_browser": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit."
           },
           "show_blank_form": {
             "$ref": "#/components/schemas/Bool",
@@ -23542,6 +23398,7 @@
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
+            "save_draft_to_browser": 1,
             "show_blank_form": 0,
             "subheading": "My Form Subheading",
             "submit_another_form": 0,
@@ -23563,7 +23420,7 @@
             "description": "Banner Image URL"
           },
           "email": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Email to sned after form is submitted"
           },
           "heading": {
@@ -23594,6 +23451,10 @@
           "redirect_url": {
             "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
+          },
+          "save_draft_to_browser": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit."
           },
           "show_blank_form": {
             "$ref": "#/components/schemas/Bool",
@@ -23697,6 +23558,18 @@
             "description": "The order among all the columns in the form",
             "example": 1
           },
+          "row_id": {
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped.",
+            "example": "fr_12ab34cd",
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^fr_[a-z0-9]+$",
+                "maxLength": 32
+              },
+              { "type": "null" }
+            ]
+          },
           "required": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this form column required in submission?"
@@ -23772,6 +23645,17 @@
           "order": {
             "type": "number",
             "description": "The order among all the columns in the form"
+          },
+          "row_id": {
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped.",
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^fr_[a-z0-9]+$",
+                "maxLength": 32
+              },
+              { "type": "null" }
+            ]
           },
           "required": {
             "$ref": "#/components/schemas/Bool",
@@ -24492,6 +24376,7 @@
             "group_by": 0,
             "group_by_order": null,
             "group_by_sort": null,
+            "group_by_enabled": true,
             "aggregation": null
           }
         ],
@@ -24573,6 +24458,10 @@
             "description": "Group By Sort",
             "example": "asc"
           },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this group-by is enabled. Disabled group-bys retain their config but are not applied."
+          },
           "aggregation": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Aggregation Type",
@@ -24619,7 +24508,6 @@
             "description": "Group By"
           },
           "group_by_order": {
-            "type": "number",
             "description": "Group By Order",
             "example": 1
           },
@@ -24627,6 +24515,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this group-by is enabled. Disabled group-bys retain their config but are not applied."
           },
           "aggregation": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -24668,6 +24560,52 @@
               "id": "dugbkhe9iupqu"
             },
             "description": "Meta Info for grid view"
+          }
+        }
+      },
+      "CommentHookConfig": {
+        "description": "Comment-source webhook filters (only used when event = 'comment'). Stored as JSON on the hook.",
+        "title": "Comment Hook Config",
+        "type": "object",
+        "properties": {
+          "mention": {
+            "type": "object",
+            "description": "Only fire for comments that @mention a user.",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "scope": {
+                "type": "string",
+                "enum": ["anyone", "specific"],
+                "description": "anyone = any mention; specific = only mentions of user_ids"
+              },
+              "user_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "commenter": {
+            "type": "object",
+            "description": "Include or exclude comments authored by specific users (e.g. exclude API/automation accounts to prevent loops).",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "mode": {
+                "type": "string",
+                "enum": ["include", "exclude"]
+              },
+              "user_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -24727,7 +24665,8 @@
               "field",
               "after",
               "before",
-              "manual"
+              "manual",
+              "comment"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -24756,7 +24695,12 @@
                 "insert",
                 "update",
                 "delete",
-                "trigger"
+                "trigger",
+                "added",
+                "edited",
+                "deleted",
+                "resolved",
+                "reopened"
               ],
               "type": "string"
             },
@@ -24809,6 +24753,17 @@
             "items": {
               "type": "string"
             }
+          },
+          "comment_config": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CommentHookConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Comment-source filters (mention / commenter). Only used when event = 'comment'."
           }
         }
       },
@@ -24862,7 +24817,8 @@
               "field",
               "after",
               "before",
-              "manual"
+              "manual",
+              "comment"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -24891,7 +24847,12 @@
                 "insert",
                 "update",
                 "delete",
-                "trigger"
+                "trigger",
+                "added",
+                "edited",
+                "deleted",
+                "resolved",
+                "reopened"
               ],
               "type": "string"
             },
@@ -24941,6 +24902,24 @@
             "items": {
               "type": "string"
             }
+          },
+          "filters": {
+            "type": "array",
+            "description": "Optional list of filter rows to attach to this hook in the same call. Useful for atomic save (one op = hook + filters) so undo restores both as one unit.",
+            "items": {
+              "$ref": "#/components/schemas/FilterReq"
+            }
+          },
+          "comment_config": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CommentHookConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Comment-source filters (mention / commenter). Only used when event = 'comment'."
           }
         },
         "required": [
@@ -25089,7 +25068,8 @@
               "view",
               "after",
               "before",
-              "manual"
+              "manual",
+              "comment"
             ]
           },
           "execution_time": {
@@ -25116,7 +25096,12 @@
               "insert",
               "update",
               "delete",
-              "trigger"
+              "trigger",
+              "added",
+              "edited",
+              "deleted",
+              "resolved",
+              "reopened"
             ],
             "example": "insert"
           },
@@ -25752,17 +25737,29 @@
           },
           "dependency_linkrow_role": {
             "type": "string",
-            "enum": ["predecessors", "successors"],
+            "enum": [
+              "predecessors",
+              "successors"
+            ],
             "description": "Whether the linkrow field links to predecessors or successors"
           },
           "dependency_connection_type": {
             "type": "string",
-            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"],
+            "enum": [
+              "end-to-start",
+              "end-to-end",
+              "start-to-end",
+              "start-to-start"
+            ],
             "description": "Which date from predecessor drives which date in successor"
           },
           "dependency_buffer_type": {
             "type": "string",
-            "enum": ["flexible", "fixed", "none"],
+            "enum": [
+              "flexible",
+              "fixed",
+              "none"
+            ],
             "description": "Type of buffer between predecessor end and successor start"
           },
           "dependency_buffer_days": {
@@ -25802,15 +25799,27 @@
           },
           "dependency_linkrow_role": {
             "type": "string",
-            "enum": ["predecessors", "successors"]
+            "enum": [
+              "predecessors",
+              "successors"
+            ]
           },
           "dependency_connection_type": {
             "type": "string",
-            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"]
+            "enum": [
+              "end-to-start",
+              "end-to-end",
+              "start-to-end",
+              "start-to-start"
+            ]
           },
           "dependency_buffer_type": {
             "type": "string",
-            "enum": ["flexible", "fixed", "none"]
+            "enum": [
+              "flexible",
+              "fixed",
+              "none"
+            ]
           },
           "dependency_buffer_days": {
             "type": "integer",
@@ -26020,7 +26029,8 @@
             "type": "string",
             "ur": "string",
             "virtual": true,
-            "version": 2
+            "version": 2,
+            "fk_display_value_column_id": "string"
           }
         ],
         "properties": {
@@ -26091,6 +26101,10 @@
           },
           "version": {
             "type": "number"
+          },
+          "fk_display_value_column_id": {
+            "type": "string",
+            "nullable": true
           }
         },
         "title": "LinkToAnotherRecord Model",
@@ -26133,6 +26147,10 @@
             "type": "number",
             "description": "The order among the list",
             "example": 1
+          },
+          "error": {
+            "description": "Error Message",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -26568,6 +26586,7 @@
               "LastModifiedBy",
               "AI",
               "Order",
+              "Deleted",
               "Meta",
               "Colour",
               "UUID"
@@ -27164,9 +27183,9 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Indicates if the base is a sandbox"
           },
-          "is_sandbox_master": {
+          "is_sandbox_production": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Indicates if the base is a sandbox master"
+            "description": "Indicates if the base is a sandbox production base (has at least one sandbox derived from it)"
           }
         },
         "x-stoplight": {
@@ -27313,7 +27332,7 @@
           "title": {
             "description": "Base Title",
             "example": "My Base",
-            "maxLength": 50,
+            "maxLength": 150,
             "minLength": 1,
             "type": "string"
           },
@@ -27380,7 +27399,7 @@
           "title": {
             "description": "Base Title",
             "example": "My Base",
-            "maxLength": 128,
+            "maxLength": 150,
             "minLength": 1,
             "type": "string"
           },
@@ -27539,6 +27558,10 @@
               "sumDistinct",
               "avgDistinct"
             ]
+          },
+          "error": {
+            "description": "Error Message",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -28004,6 +28027,15 @@
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to List View Level"
+          },
+          "fk_lookup_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "When set, scopes this sort to a lookup column (it orders that lookup's relation sub-query) instead of a view"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation.",
+            "nullable": true
           }
         },
         "x-stoplight": {
@@ -28121,6 +28153,16 @@
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to List View Level"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation.",
+            "nullable": true
+          },
+          "order": {
+            "type": "number",
+            "description": "The order in which the sort is applied relative to other sorts on the view.",
+            "nullable": true
           }
         },
         "x-stoplight": {
@@ -28589,6 +28631,11 @@
             "description": "Unique Source ID",
             "type": "string"
           },
+          "fk_base_section_id": {
+            "description": "ID of the base-level section this table is grouped under, if any",
+            "type": "string",
+            "nullable": true
+          },
           "date_dependency": {
             "description": "Date dependency rule for this table",
             "nullable": true,
@@ -28670,6 +28717,15 @@
           "synced": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this table synced?"
+          },
+          "trash_disabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is record trash disabled for this table?"
+          },
+          "trash_retention_days": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Custom trash retention period in days. null = use default."
           }
         },
         "required": [
@@ -29032,6 +29088,14 @@
             "description": "Access token version",
             "type": "string"
           },
+          "blocked": {
+            "type": "boolean",
+            "description": "Set to true when the user has been blocked by an administrator."
+          },
+          "blocked_reason": {
+            "type": "string",
+            "description": "Operator-facing reason a user was blocked. Never echoed to the blocked user."
+          },
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Meta data for user"
@@ -29305,6 +29369,10 @@
             "$ref": "#/components/schemas/Id",
             "description": "ID of view owner user"
           },
+          "allow_sync": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this view can be used as a source for internal sync."
+          },
           "row_coloring_mode": {
             "type": "string",
             "enum": [
@@ -29546,6 +29614,16 @@
             "$ref": "#/components/schemas/TextOrNull",
             "description": "Description of the view.",
             "example": "This is a grid view."
+          },
+          "lock_type": {
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
+            "type": "string",
+            "description": "Lock type of View. Applied as the initial mode on create.",
+            "example": "collaborative"
           }
         },
         "required": [
@@ -29627,6 +29705,10 @@
           "owned_by": {
             "$ref": "#/components/schemas/Id",
             "description": "ID of view owner user"
+          },
+          "allow_sync": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this view can be used as a source for internal sync."
           }
         }
       },
@@ -30014,6 +30096,35 @@
           ]
         }
       },
+      "nestedBulkLinkByDisplayValueReq": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 100,
+        "items": {
+          "type": "object",
+          "properties": {
+            "columnId": {
+              "type": "string"
+            },
+            "rowId": {
+              "type": "string"
+            },
+            "displayValues": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 1000
+            }
+          },
+          "required": [
+            "columnId",
+            "rowId",
+            "displayValues"
+          ]
+        }
+      },
       "KanbanColumnReq": {
         "description": "Model for Kanban Column Request",
         "examples": [
@@ -30210,6 +30321,17 @@
           "is_deleted": {
             "type": "boolean",
             "description": "Whether the comment has been deleted by the user or not"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         }
       },
@@ -30244,13 +30366,13 @@
             "example": "mod0Adp9PMG9o7uJy",
             "description": "Model ID"
           },
-          "preference": {
+          "preferences": {
             "type": "string",
             "enum": [
-              "ALL_COMMENTS",
-              "ONLY_MENTIONS"
+              "all",
+              "mentions"
             ],
-            "description": "Is Read"
+            "description": "Comment notification preference for the record"
           },
           "created_at": {
             "type": "string",
@@ -30384,6 +30506,102 @@
           "status": {
             "type": "string",
             "description": "Status of the Snapshot"
+          },
+          "is_auto": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the snapshot was created by a schedule"
+          }
+        }
+      },
+      "SnapshotSchedule": {
+        "description": "Model for Snapshot Schedule",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Base"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Workspace"
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the schedule is active"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "cron"
+            ],
+            "description": "Schedule frequency preset or custom cron"
+          },
+          "config": {
+            "type": "object",
+            "description": "Frequency-specific configuration",
+            "properties": {
+              "time": {
+                "type": "string",
+                "description": "Time of day HH:mm (daily/weekly/monthly)"
+              },
+              "dayOfWeek": {
+                "type": "integer",
+                "description": "Day of week 0-6, Sunday=0 (weekly)"
+              },
+              "dayOfMonth": {
+                "type": "integer",
+                "description": "Day of month 1-31 (monthly)"
+              },
+              "cron": {
+                "type": "string",
+                "description": "Custom cron expression (cron frequency)"
+              }
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone the schedule is evaluated in"
+          },
+          "cron_expression": {
+            "type": "string",
+            "description": "Normalized cron expression (server-computed)"
+          },
+          "keep_last": {
+            "type": "integer",
+            "description": "Retention: number of automatic snapshots to keep"
+          },
+          "delete_after_days": {
+            "type": "integer",
+            "description": "Retention: delete automatic snapshots older than this many days"
+          },
+          "next_run_at": {
+            "type": "string",
+            "description": "Next scheduled run time (ISO, UTC)"
+          },
+          "last_run_at": {
+            "type": "string",
+            "description": "Last scheduled run time (ISO, UTC)"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "created_at": {
+            "format": "date",
+            "type": "string",
+            "description": "Date of creation"
+          },
+          "updated_at": {
+            "format": "date",
+            "type": "string",
+            "description": "Date of last update"
           }
         }
       },
@@ -30415,6 +30633,11 @@
           "order": {
             "type": "number",
             "description": "Order of the Script"
+          },
+          "fk_automation_section_id": {
+            "description": "ID of the automation folder this script is grouped under, if any",
+            "type": "string",
+            "nullable": true
           },
           "base_id": {
             "$ref": "#/components/schemas/Id",
@@ -30510,6 +30733,11 @@
             "description": "The order of the workflow in the list",
             "type": "number"
           },
+          "fk_automation_section_id": {
+            "description": "ID of the automation folder this workflow is grouped under, if any",
+            "type": "string",
+            "nullable": true
+          },
           "updated_at": {
             "type": "string",
             "description": "Last updated time"
@@ -30531,10 +30759,6 @@
       "ExtensionReq": {
         "type": "object",
         "properties": {
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique Base ID"
-          },
           "title": {
             "type": "string",
             "description": "Extension Title"
@@ -30906,6 +31130,100 @@
             "uniqueItems": true,
             "items": {
               "$ref": "#/components/schemas/Integration"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Pagination Info"
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ]
+      },
+      "BaseTrash": {
+        "description": "Model for Base Trash Entry",
+        "title": "Base Trash Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Trash Entry ID"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID"
+          },
+          "resource_type": {
+            "type": "string",
+            "description": "Type of the trashed resource",
+            "enum": [
+              "table",
+              "view",
+              "field",
+              "dashboard",
+              "widget",
+              "script",
+              "workflow",
+              "extension",
+              "record",
+              "hook"
+            ]
+          },
+          "resource_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of the trashed resource"
+          },
+          "parent_type": {
+            "type": "string",
+            "description": "Type of the parent entity"
+          },
+          "parent_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of the parent entity"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the trashed resource"
+          },
+          "parent_name": {
+            "type": "string",
+            "description": "Display name of the parent entity"
+          },
+          "deleted_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of the user who deleted"
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of deletion"
+          },
+          "related_items": {
+            "type": "string",
+            "description": "JSON string tracking cascade effects"
+          },
+          "meta": {
+            "description": "Resource-specific metadata for UI rendering (e.g. view type, table icon, field uidt)",
+            "type": "object"
+          }
+        }
+      },
+      "BaseTrashList": {
+        "description": "Model for Base Trash List",
+        "title": "Base Trash List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "description": "List of Base Trash Entries",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BaseTrash"
             }
           },
           "pageInfo": {

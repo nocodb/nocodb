@@ -1,9 +1,17 @@
 import {
   convertMS2Duration,
+  getEffectiveLookupColumn,
+  isLinksOrLTAR,
+  isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
+  parseDecimalValue,
   parseHelper,
+  parseIntValue,
+  parseProp,
+  roundUpToPrecision,
   UITypes,
 } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
@@ -11,7 +19,10 @@ import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
 import { Model, View } from '~/models';
 import Base from '~/models/Base';
-import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
+import {
+  NC_GRID_MAX_SELECTION_LIMIT,
+  V1_V2_DATA_PAYLOAD_LIMIT,
+} from '~/constants';
 
 export interface PathParams {
   baseName: string;
@@ -59,10 +70,12 @@ export async function serializeCellValue(
     value,
     column,
     siteUrl,
+    locale,
   }: {
     column?: Column;
     value: any;
     siteUrl: string;
+    locale?: string;
   },
 ) {
   if (!column) {
@@ -109,25 +122,42 @@ export async function serializeCellValue(
       } catch {}
 
       return (data ? (Array.isArray(data) ? data : [data]) : [])
-        .map((user) => `${user.email}`)
+        .map((user) => user.display_name || user.email || '')
         .join(', ');
     }
     case UITypes.Lookup:
       {
         const colOptions = await column.getColOptions<LookupColumn>(context);
-        const relationColOptions = await colOptions
-          .getRelationColumn(context)
-          .then((col) => col.getColOptions<LinkToAnotherRecordColumn>(context));
+        if (colOptions?.error) return value?.toString?.() ?? '';
+
+        const relationCol = await colOptions.getRelationColumn(context);
+        if (!relationCol) return value?.toString?.() ?? '';
+
+        const relationColOptions =
+          await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
         const { refContext } = relationColOptions.getRelContext(context);
 
         const lookupColumn = await colOptions.getLookupColumn(refContext);
+        if (!lookupColumn) return value?.toString?.() ?? '';
+
+        // Apply the lookup column's own formatting override (meta.display_type +
+        // meta.display_column_meta) so export/webhook payloads honour the configured
+        // number/date format — but only when the override is still valid for the
+        // child's current result type; falls back to the child column otherwise (no
+        // override set, or a stale override after the looked-up field changed type).
+        const effectiveColumn = getEffectiveLookupColumn(
+          parseProp(column.meta),
+          lookupColumn as unknown as ColumnType,
+        ) as unknown as Column;
+
         return (
           await Promise.all(
             [...(Array.isArray(value) ? value : [value])].map(async (v) =>
               serializeCellValue(refContext, {
                 value: v,
-                column: lookupColumn,
+                column: effectiveColumn,
                 siteUrl,
+                locale,
               }),
             ),
           )
@@ -141,18 +171,62 @@ export async function serializeCellValue(
         const { refContext } = await colOptions.getRelContext(context);
         const relatedModel = await colOptions.getRelatedTable(refContext);
         await relatedModel.getColumns(refContext);
+        // Honor the per-LTAR custom display value override — the grid shows
+        // that column, so exports must print the same value.
+        const overrideCol = colOptions.fk_display_value_column_id
+          ? relatedModel.columns?.find(
+              (c) =>
+                c.id === colOptions.fk_display_value_column_id &&
+                isSupportedDisplayValueColumn(c),
+            )
+          : undefined;
+        const displayCol = overrideCol ?? relatedModel.displayValue;
         return [...(Array.isArray(value) ? value : [value])]
           .map((v) => {
-            return v[relatedModel.displayValue?.title];
+            return v[displayCol?.title] ?? v[displayCol?.id];
           })
           .join(', ');
       }
       break;
+    case UITypes.Currency: {
+      if (isNaN(Number(value))) return null;
+
+      const currencyMeta = parseProp(column.meta);
+
+      try {
+        const roundedValue = roundUpToPrecision(
+          Number(value),
+          currencyMeta.precision ?? 2,
+        );
+
+        return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
+          style: 'currency',
+          currency: currencyMeta.currency_code || 'USD',
+          minimumFractionDigits: currencyMeta.precision ?? 2,
+          maximumFractionDigits: currencyMeta.precision ?? 2,
+        }).format(+roundedValue);
+      } catch {
+        return value;
+      }
+    }
     case UITypes.Decimal:
       {
         if (isNaN(Number(value))) return null;
 
-        return Number(value).toFixed(column.meta?.precision ?? 1);
+        return parseDecimalValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
+      }
+      break;
+    case UITypes.Number:
+      {
+        if (isNaN(Number(value))) return null;
+
+        return parseIntValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
       }
       break;
     case UITypes.Duration: {
@@ -180,6 +254,39 @@ export async function serializeCellValue(
   }
 }
 
+/**
+ * A link column whose `nc_col_relations_v2` row is orphaned (Column.delete2 drops
+ * it before the COLUMNS row, non-transactionally) passes every uidt check, so the
+ * nested-link read paths would deref null. Fail naming the column instead.
+ *
+ * Returns the resolved relation metadata so callers can reuse it instead of
+ * re-fetching — in CE `getColOptions` is a real `NocoCache` round-trip, not a
+ * per-request memo.
+ *
+ * No-op (returns `undefined`) for a missing or non-link column — `getColOptions`
+ * returning null is legitimate there, and those callers own that validation.
+ */
+export async function assertLinkColOptions(
+  context: NcContext,
+  column: Column,
+): Promise<LinkToAnotherRecordColumn | undefined> {
+  if (!column || !isLinksOrLTAR(column)) return undefined;
+
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+    context,
+  );
+
+  if (!colOptions) {
+    NcError.get(context).internalServerError(
+      `Link field '${
+        column.title || column.column_name
+      }' is missing its relation metadata`,
+    );
+  }
+
+  return colOptions;
+}
+
 export async function getColumnByIdOrName(
   context: NcContext,
   columnNameOrId: string,
@@ -201,11 +308,17 @@ export const validateV1V2DataPayloadLimit = (
   context: NcContext,
   param: { body: any },
 ) => {
-  if (
-    context.is_api_token &&
-    Array.isArray(param.body) &&
-    param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
-  ) {
-    NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+  if (!Array.isArray(param.body)) return;
+
+  // The api-token cap is the programmatic budget. Sessions were left uncapped on
+  // the assumption the grid's 1000-row selection limit bound them, but that is
+  // client-side only — so enforce it here. Never below the token cap, or a
+  // custom NC_API_BULK_OPERATION_MAX_RECORDS would tighten the UI by surprise.
+  const limit = context.is_api_token
+    ? V1_V2_DATA_PAYLOAD_LIMIT
+    : Math.max(NC_GRID_MAX_SELECTION_LIMIT, V1_V2_DATA_PAYLOAD_LIMIT);
+
+  if (param.body.length > limit) {
+    NcError.get(context).maxPayloadLimitExceeded(limit);
   }
 };

@@ -293,6 +293,6 @@ whenever(isOpen, () => {
 }
 .record-picker-active {
   @apply !border-nc-fill-primary;
-  box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
+  box-shadow: 0px 0px 0px 2px rgba(var(--nc-brand-accent-rgb), 0.24) !important;
 }
 </style>

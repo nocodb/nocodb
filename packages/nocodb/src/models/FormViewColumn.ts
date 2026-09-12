@@ -28,6 +28,7 @@ export default class FormViewColumn implements FormColumnType {
   uuid?: StringOrNullType;
   show?: BoolType;
   order?: number;
+  row_id?: string;
   meta?: MetaType;
 
   constructor(data: FormViewColumn) {
@@ -87,6 +88,7 @@ export default class FormViewColumn implements FormColumnType {
       'description',
       'required',
       'enable_scanner',
+      'row_id',
       'meta',
     ]);
 
@@ -102,7 +104,12 @@ export default class FormViewColumn implements FormColumnType {
     }
 
     if (!insertObj.source_id) {
-      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+      const viewRef = await View.get(
+        context,
+        insertObj.fk_view_id,
+        false,
+        ncMeta,
+      );
       insertObj.source_id = viewRef.source_id;
     }
 
@@ -183,6 +190,7 @@ export default class FormViewColumn implements FormColumnType {
       'required',
       'show',
       'order',
+      'row_id',
       'meta',
       'enable_scanner',
     ]);

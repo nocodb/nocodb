@@ -13,6 +13,45 @@ export function swaggerSanitizeSchemaName(name: string) {
 }
 
 /**
+ * Strip a matching pair of surrounding quote characters — straight, curly, or
+ * backtick — looping to handle doubled quotes (`""title""`). Only matched pairs
+ * are removed, so a legitimate one-sided quote in the text is left untouched.
+ *
+ * Useful for cleaning up LLM output, which frequently wraps a value in quotes
+ * (e.g. `"My title"`) despite the prompt instructing otherwise.
+ */
+export function stripWrappingQuotes(value: string): string {
+  let result = value.trim();
+
+  // Opening → closing quote characters the model may emit.
+  const quotePairs: ReadonlyArray<readonly [string, string]> = [
+    ['"', '"'],
+    ["'", "'"],
+    ['`', '`'],
+    ['“', '”'], // “ ”
+    ['‘', '’'], // ‘ ’
+  ];
+
+  let stripped = true;
+  while (stripped) {
+    stripped = false;
+    for (const [open, close] of quotePairs) {
+      if (
+        result.length >= open.length + close.length &&
+        result.startsWith(open) &&
+        result.endsWith(close)
+      ) {
+        result = result.slice(open.length, result.length - close.length).trim();
+        stripped = true;
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
  * Recursively walks any JS value and replaces exact-string matches
  * using a provided Map<string, string>.
  *
@@ -54,6 +93,19 @@ export function deepReplaceStrings<T>(
   }
 
   return result as T;
+}
+
+/**
+ * Lowercase, hyphen-separated, ASCII-only — safe for directory names, URL
+ * segments, storage keys. Empty in, empty out; callers supply their own
+ * fallback for that case.
+ */
+export function slugify(value: string): string {
+  return (value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
 }
 
 // get base 64 file string size, without buffer

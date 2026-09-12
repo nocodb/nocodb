@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NC_ERROR_SENTINEL } from 'nocodb-sdk'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
 import { IsCanvasInjectionInj } from '../../context'
@@ -28,7 +29,11 @@ const isExpandedFormOpen = computed(() => {
 
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
-const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== 'ERR!')
+const hasColError = computed(() => !!column?.value?.colOptions?.error)
+
+const showQrCode = computed(
+  () => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== NC_ERROR_SENTINEL && !hasColError.value,
+)
 
 const compressedQrValue = computed(() => {
   if (qrValue.value.length > maxNumberOfAllowedCharsForQrValue) {
@@ -52,12 +57,19 @@ const qrCode = useQRCode(compressedQrValue, {
   width: 150,
 })
 
-const qrCodeLarge = useQRCode(compressedQrValue, {
+const modalVisible = ref(false)
+
+// The 600px QR renders only inside the click-to-open modal (download + preview).
+// Computing it for every inline cell rasterizes a 600px canvas (`toDataURL`) per
+// cell, which pins the main thread when many QR cells mount at once (e.g. an
+// interface list preview over a table with a QR field). Defer it until the modal
+// is actually open.
+const qrCodeLargeValue = computed(() => (modalVisible.value ? compressedQrValue.value : ''))
+
+const qrCodeLarge = useQRCode(qrCodeLargeValue, {
   ...qrCodeOptions,
   width: 600,
 })
-
-const modalVisible = ref(false)
 
 const showQrModal = (ev?: Event) => {
   if (!showQrCode.value) return
@@ -215,12 +227,18 @@ onMounted(() => {
   <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
-  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
+  <NcTooltip v-else-if="hasColError" placement="bottom" class="text-nc-content-orange-dark">
+    <template #title>
+      <span class="font-bold">{{ column?.colOptions?.error }}</span>
+    </template>
+    <span>ERR!</span>
+  </NcTooltip>
+  <NcTooltip v-else-if="!showQrCode && qrValue === NC_ERROR_SENTINEL" placement="bottom" class="text-nc-content-orange-dark">
     <template #title>
       <span class="font-bold">Please select a target field!</span>
     </template>
     <span>ERR!</span>
-  </a-tooltip>
+  </NcTooltip>
 </template>
 
 <style lang="scss">

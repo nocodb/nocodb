@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
+import { FormulaDataTypes, getEffectiveDisplayColumn, handleTZ, isFormulaNonFiniteValue } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
@@ -69,11 +69,7 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const updatedColumn = computed(() => {
   if (column.value.meta?.display_type) {
-    return {
-      ...column.value,
-      uidt: column.value.meta?.display_type,
-      ...column.value.meta?.display_column_meta,
-    }
+    return getEffectiveDisplayColumn(column.value.meta, column.value)
   } else if (column.value.colOptions?.parsed_tree?.referencedColumn) {
     return {
       ...column.value,
@@ -99,7 +95,7 @@ const renderAsCell = computed(() => {
     </div>
   </template>
   <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
-    <a-tooltip
+    <NcTooltip
       v-if="column && column.colOptions && column.colOptions.error"
       placement="bottom"
       class="text-nc-content-orange-dark"
@@ -108,7 +104,14 @@ const renderAsCell = computed(() => {
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
       <span>ERR!</span>
-    </a-tooltip>
+    </NcTooltip>
+
+    <!-- pg IEEE value for this row. No tooltip: unlike colOptions.error above,
+         a row-level error carries no message. Numeric formulas only — a string
+         formula returning the literal "Infinity" is an ordinary result. -->
+    <span v-else-if="isNumber && isFormulaNonFiniteValue(cellValue)" class="nc-formula-non-finite text-nc-content-orange-dark">
+      {{ cellValue }}
+    </span>
 
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
       <div

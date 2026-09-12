@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UITypes } from 'nocodb-sdk';
+import { isDeletedCol, UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column } from '~/models';
@@ -10,6 +10,27 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DuplicateDetectionService {
+  /**
+   * Applies soft-delete filter to exclude trashed records from the query.
+   */
+  private async applySoftDeleteFilter(
+    context: NcContext,
+    model: { getColumns: (ctx: NcContext) => Promise<Column[]> },
+    source: Source,
+    qb: any,
+  ): Promise<void> {
+    if (!source.isMeta()) return;
+
+    const columns = await model.getColumns(context);
+    const deletedColumn = columns.find((c) => isDeletedCol(c));
+    if (!deletedColumn) return;
+
+    const cn = deletedColumn.column_name;
+    qb.where(function () {
+      this.whereNull(cn).orWhere(cn, false);
+    });
+  }
+
   /**
    * Checks for duplicate non-empty values in a column
    * @param context - NocoDB context
@@ -39,6 +60,12 @@ export class DuplicateDetectionService {
       if (schema) {
         tableName = `${schema}.${tableName}`;
       }
+    } else if (source.type === 'mssql') {
+      const schema =
+        source.getConfig()?.schema ||
+        source.getConfig()?.searchPath?.[0] ||
+        'dbo';
+      tableName = `${schema}.${tableName}`;
     } else if (source.type === 'snowflake') {
       // For Snowflake, include database and schema
       const config = source.getConfig()?.connection || source.getConfig();
@@ -80,6 +107,9 @@ export class DuplicateDetectionService {
         .limit(1);
     }
 
+    // Exclude soft-deleted records
+    await this.applySoftDeleteFilter(context, model, source, query);
+
     const results = await query;
     const hasDuplicates = results.length > 0;
 
@@ -102,6 +132,10 @@ export class DuplicateDetectionService {
         totalQuery.where(primaryKey.column_name, '!=', excludeRowId);
         distinctQuery.where(primaryKey.column_name, '!=', excludeRowId);
       }
+
+      // Exclude soft-deleted records
+      await this.applySoftDeleteFilter(context, model, source, totalQuery);
+      await this.applySoftDeleteFilter(context, model, source, distinctQuery);
 
       const [totalResult, distinctResult] = await Promise.all([
         totalQuery.first(),
@@ -162,6 +196,12 @@ export class DuplicateDetectionService {
       if (schema) {
         tableName = `${schema}.${tableName}`;
       }
+    } else if (source.type === 'mssql') {
+      const schema =
+        source.getConfig()?.schema ||
+        source.getConfig()?.searchPath?.[0] ||
+        'dbo';
+      tableName = `${schema}.${tableName}`;
     } else if (source.type === 'snowflake') {
       // For Snowflake, include database and schema
       const config = source.getConfig()?.connection || source.getConfig();
@@ -209,6 +249,9 @@ export class DuplicateDetectionService {
       query = query.where(primaryKey.column_name, '!=', excludeRowId);
     }
 
+    // Exclude soft-deleted records
+    await this.applySoftDeleteFilter(context, model, source, query);
+
     const result = await query.first();
     const count = parseInt(String(result?.count || '0'), 10);
 
@@ -244,6 +287,12 @@ export class DuplicateDetectionService {
       if (schema) {
         tableName = `${schema}.${tableName}`;
       }
+    } else if (source.type === 'mssql') {
+      const schema =
+        source.getConfig()?.schema ||
+        source.getConfig()?.searchPath?.[0] ||
+        'dbo';
+      tableName = `${schema}.${tableName}`;
     } else if (source.type === 'snowflake') {
       // For Snowflake, include database and schema
       const config = source.getConfig()?.connection || source.getConfig();
@@ -262,6 +311,9 @@ export class DuplicateDetectionService {
       .having('count', '>', 1)
       .orderBy('count', 'desc')
       .limit(limit);
+
+    // Exclude soft-deleted records
+    await this.applySoftDeleteFilter(context, model, source, query);
 
     const results = await query;
 

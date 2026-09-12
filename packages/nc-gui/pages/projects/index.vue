@@ -40,7 +40,7 @@ const deleteProject = (base: BaseType) => {
     title: t('msg.info.deleteProject'),
     // icon: createVNode(ExclamationCircleOutlined),
     content: 'Some descriptions',
-    okText: 'Yes',
+    okText: t('general.yes'),
     okType: 'danger',
     cancelText: 'No',
     async onOk() {

@@ -20,8 +20,14 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { blockListView, blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } =
-  useEeConfig()
+const {
+  blockListView,
+  blockTimelineView,
+  blockGanttView,
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseGanttView,
+} = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -199,17 +205,13 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
+          v-if="isEeUI"
           inner-class="w-full"
           data-testid="sidebar-view-create-map"
           @click="
             () => {
               isOpen = false
-              showUpgradeToUseMapView({
-                successCallback: () => {
-                  onOpenModal({ type: ViewTypes.MAP })
-                },
-              })
+              onOpenModal({ type: ViewTypes.MAP })
             }
           "
         >
@@ -219,17 +221,7 @@ async function onOpenModal({
               <div>{{ $t('objects.viewType.map') }}</div>
             </div>
 
-            <template v-if="blockMapView">
-              <PaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                :plan-title="PlanTitles.BUSINESS"
-                remove-click
-                show-as-lock
-              />
-            </template>
-            <template v-else>
-              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
-            </template>
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
           </div>
         </NcMenuItem>
         <NcTooltip
@@ -249,6 +241,7 @@ async function onOpenModal({
                   successCallback: () => {
                     onOpenModal({ type: ViewTypes.LIST })
                   },
+                  triggerSource: 'treeview-list',
                 })
             "
           >
@@ -273,7 +266,7 @@ async function onOpenModal({
           </NcMenuItem>
         </NcTooltip>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
+          v-if="showEEFeatures"
           inner-class="w-full"
           data-testid="sidebar-view-create-timeline"
           @click="
@@ -283,6 +276,7 @@ async function onOpenModal({
                 successCallback: () => {
                   onOpenModal({ type: ViewTypes.TIMELINE })
                 },
+                triggerSource: 'treeview-timeline',
               })
             }
           "
@@ -306,8 +300,43 @@ async function onOpenModal({
             </template>
           </div>
         </NcMenuItem>
+        <NcMenuItem
+          v-if="showEEFeatures"
+          inner-class="w-full"
+          data-testid="sidebar-view-create-gantt"
+          @click="
+            () => {
+              isOpen = false
+              showUpgradeToUseGanttView({
+                successCallback: () => {
+                  onOpenModal({ type: ViewTypes.GANTT })
+                },
+                triggerSource: 'treeview-gantt',
+              })
+            }
+          "
+        >
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
+              <div>{{ $t('objects.viewType.gantt') }}</div>
+            </div>
 
-        <template v-if="isEeUI && showEEFeatures">
+            <template v-if="blockGanttView">
+              <PaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_GANTT_VIEW"
+                :plan-title="PlanTitles.BUSINESS"
+                show-as-lock
+                remove-click
+              />
+            </template>
+            <template v-else>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.GANTT && isViewListLoading" />
+            </template>
+          </div>
+        </NcMenuItem>
+
+        <template v-if="showEEFeatures">
           <!-- Section -->
           <NcDivider />
 

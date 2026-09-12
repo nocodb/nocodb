@@ -16,7 +16,9 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+
+const hookCreateReason = computed(() => sandboxRestrictionReason('hookCreate'))
 
 const isWebHookSelectionDropdownOpen = ref(false)
 
@@ -88,7 +90,7 @@ watch(isWebhookModal, (newVal) => {
         href="https://nocodb.com/docs/product-docs/fields/field-types/custom-types/button#create-a-button-field"
         target="_blank"
       >
-        Docs
+        {{ $t('title.docs') }}
       </a>
     </div>
     <div class="flex rounded-lg">
@@ -107,14 +109,22 @@ watch(isWebhookModal, (newVal) => {
             show-selected-option
             @selected="onSelectWebhook"
           >
-            <template v-if="isUIAllowed('hookCreate')" #bottom>
+            <template v-if="isUIAllowed('hookCreate') || !!hookCreateReason" #bottom>
               <a-divider style="margin: 4px 0" />
-              <div class="flex items-center text-nc-content-brand text-sm cursor-pointer" @click="newWebhook">
-                <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-nc-bg-gray-light">
-                  {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
-                  <GeneralIcon icon="plus" class="flex-none" />
+              <NcTooltip :title="hookCreateReason ? $t(hookCreateReason) : ''" :disabled="!hookCreateReason">
+                <div
+                  class="flex items-center text-sm"
+                  :class="
+                    hookCreateReason ? 'text-nc-content-gray-muted cursor-not-allowed' : 'text-nc-content-brand cursor-pointer'
+                  "
+                  @click="!hookCreateReason && newWebhook()"
+                >
+                  <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-nc-bg-gray-light">
+                    {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
+                    <GeneralIcon icon="plus" class="flex-none" />
+                  </div>
                 </div>
-              </div>
+              </NcTooltip>
             </template>
           </NcListWithSearch>
         </template>

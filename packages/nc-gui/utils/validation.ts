@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { validateEmail } from 'nocodb-sdk'
+import { validateEmail, validateEntityName } from 'nocodb-sdk'
 import validator from 'validator'
 import { getI18n } from '../plugins/a.i18n'
 import { TypeConversionError } from '../error/type-conversion.error'
@@ -51,6 +51,31 @@ export const validateScriptName = {
       const m = value.match(/[./\\]/g)
       if (m) {
         // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
+export const validateAgentName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        return reject(new Error(t('msg.error.agentNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.agentNameExceedsCharacters', { value: 256 })))
+      }
+
+      // exclude . / \ — rest all characters allowed
+      const m = value.match(/[./\\]/g)
+      if (m) {
         return reject(
           new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
         )
@@ -180,33 +205,32 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = (title: string = 'objects.project') => {
+export const baseTitleValidator = (entityName: string = 'Base name') => {
   return {
-    validator: (rule: any, value: any) => {
-      const { t } = getI18n().global
-
+    validator: (_rule: any, value: any) => {
       return new Promise((resolve, reject) => {
-        if (value?.length > 50) {
-          reject(
-            new Error(
-              t('msg.error.projectNameExceeds50Characters', {
-                title: t(title),
-              }),
-            ),
-          )
+        const result = validateEntityName(value, entityName)
+        if (!result.valid) {
+          return reject(new Error(result.error))
         }
+        return resolve(true)
+      })
+    },
+  }
+}
 
-        if (value[0] === ' ') {
-          reject(
-            new Error(
-              t('msg.error.projectNameCannotStartWithSpace', {
-                title: t(title),
-              }),
-            ),
-          )
+export const sourceAliasValidator = () => {
+  return {
+    validator: (_rule: any, value: any) => {
+      return new Promise((resolve, reject) => {
+        if (value == null || value.trim().length === 0) {
+          return resolve(true)
         }
-
-        resolve(true)
+        const result = validateEntityName(value, 'Data source name')
+        if (!result.valid) {
+          return reject(new Error(result.error))
+        }
+        return resolve(true)
       })
     },
   }

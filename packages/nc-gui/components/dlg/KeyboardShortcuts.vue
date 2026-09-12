@@ -5,6 +5,8 @@ const { modelValue } = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const dialogShow = computed({
   get: () => modelValue,
   set: (v) => emit('update:modelValue', v),
@@ -12,7 +14,7 @@ const dialogShow = computed({
 
 const shortcutList = [
   {
-    title: 'General',
+    title: t('general.general'),
     shortcuts: [
       {
         keys: [renderCmdOrCtrlKey(), 'K'],
@@ -144,7 +146,7 @@ const shortcutList = [
     ],
   },
   {
-    title: 'Single Select',
+    title: t('datatype.SingleSelect'),
     shortcuts: [
       {
         keys: ['↑'],
@@ -161,7 +163,7 @@ const shortcutList = [
     ],
   },
   {
-    title: 'Multi Select',
+    title: t('datatype.MultiSelect'),
     shortcuts: [
       {
         keys: ['↑'],
@@ -178,7 +180,7 @@ const shortcutList = [
     ],
   },
   {
-    title: 'Link To Another Record',
+    title: t('labels.linkToAnotherRecord'),
     shortcuts: [
       {
         keys: ['Tab'],

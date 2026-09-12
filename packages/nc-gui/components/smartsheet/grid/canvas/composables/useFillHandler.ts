@@ -35,7 +35,6 @@ export function useFillHandler({
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   meta: Ref<TableType>
@@ -51,6 +50,8 @@ export function useFillHandler({
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
 }) {
   const { isMysql, isPg } = useBase()
+
+  const { metas } = useMetas()
 
   const { fillRows } = useNocoAi()
 
@@ -219,22 +220,37 @@ export function useFillHandler({
         }
 
         for (const [colIndex, cpCol] of cpCols.entries()) {
-          const pasteValue = convertCellData(
-            {
-              value: fillValuesByCols[colIndex!]![incrementIndex],
-              to: cpCol.uidt as UITypes,
-              column: cpCol,
-              appInfo: unref(appInfo),
-              maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
-              showUpgradeToAddMoreAttachmentsInCell,
-              isInfoShown: isColInfoShown[cpCol.title!],
-              markInfoShown: () => {
-                isColInfoShown[cpCol.title!] = true
+          let pasteValue: any
+
+          try {
+            pasteValue = convertCellData(
+              {
+                value: fillValuesByCols[colIndex!]![incrementIndex],
+                to: cpCol.uidt as UITypes,
+                column: cpCol,
+                appInfo: unref(appInfo),
+                maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                showUpgradeToAddMoreAttachmentsInCell,
+                isInfoShown: isColInfoShown[cpCol.title!],
+                markInfoShown: () => {
+                  isColInfoShown[cpCol.title!] = true
+                },
               },
-            },
-            isMysql(meta.value?.source_id),
-            true,
-          )
+              isMysql(meta.value?.source_id),
+              true,
+            )
+          } catch (ex) {
+            // Only conversion failures are per-column recoverable; anything else
+            // still aborts so it stays visible.
+            if (!(ex instanceof TypeConversionError) || ex instanceof ComputedTypePasteError) throw ex
+
+            // A column the serializer rejects (link cells, whose clipboard text
+            // is the display value) must not take the whole fill down with it.
+            // Leave the cell untouched rather than writing null — the title is
+            // still sent to bulkUpdateRows below.
+            continue
+          }
+
           rowObj.row[cpCol.title] = pasteValue
         }
         rowsToPaste.push(rowObj)
@@ -247,7 +263,6 @@ export function useFillHandler({
       rowsToPaste,
       cpCols.map((k) => k.title!),
       { onError },
-      undefined,
       groupPath,
     )
   }
@@ -319,6 +334,7 @@ export function useFillHandler({
               isPg,
               isMysql,
               meta: unref(meta),
+              metas: metas.value,
             },
             {
               skipUidt: [UITypes.Percent, UITypes.Currency],
@@ -581,19 +597,15 @@ export function useFillHandler({
                   }
                 }
 
-                bulkUpdateRows?.(
-                  rowsToPaste.concat(rowsToFill),
-                  propsToPaste.concat(propsToFill),
-                  { onError },
-                  undefined,
-                  groupPath,
-                ).then(() => {
-                  // Reset active cell, fill range, and fill mode after successful update
-                  activeCell.value.column = tempActiveCell.col
-                  activeCell.value.row = tempActiveCell.row
-                  fillStartRange.value = null
-                  isFillMode.value = false
-                })
+                bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill), { onError }, groupPath).then(
+                  () => {
+                    // Reset active cell, fill range, and fill mode after successful update
+                    activeCell.value.column = tempActiveCell.col
+                    activeCell.value.row = tempActiveCell.row
+                    fillStartRange.value = null
+                    isFillMode.value = false
+                  },
+                )
               })
               .catch((_e) => {
                 selection.value.clear()
@@ -604,7 +616,7 @@ export function useFillHandler({
           }
 
           // If not in AI fill mode, perform a regular bulk update
-          bulkUpdateRows?.(rowsToPaste, propsToPaste, { onError }, undefined, groupPath)
+          bulkUpdateRows?.(rowsToPaste, propsToPaste, { onError }, groupPath)
 
           // Reset active cell, fill range, and fill mode after successful update
           activeCell.value.column = tempActiveCell.col

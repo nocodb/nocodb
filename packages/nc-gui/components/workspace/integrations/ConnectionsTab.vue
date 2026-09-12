@@ -59,7 +59,15 @@ const isLoadingGetLinkedSources = ref(false)
 const isBaseAssignmentOpen = ref(false)
 const baseAssignmentIntegration = ref<IntegrationType | null>(null)
 
+// The NocoDB row is injected client-side with a placeholder id (`nc-data-reflection`) and has no
+// integration record, so the base-assignment endpoints 404 on it.
+function canManageBaseAccess(integration: IntegrationType) {
+  return integration.sub_type !== SyncDataType.NOCODB
+}
+
 function openBaseAssignment(integration: IntegrationType) {
+  if (!canManageBaseAccess(integration)) return
+
   baseAssignmentIntegration.value = integration
   isBaseAssignmentOpen.value = true
 }
@@ -482,7 +490,7 @@ const customRow = (record: Record<string, any>) => ({
             size="xs"
             color="green"
             :border="false"
-            class="cursor-pointer"
+            :class="{ 'cursor-pointer': canManageBaseAccess(integration) }"
             @click.stop="openBaseAssignment(integration)"
           >
             {{ $t('activity.allBases') }}
@@ -492,7 +500,7 @@ const customRow = (record: Record<string, any>) => ({
             size="xs"
             color="gray"
             :border="false"
-            class="cursor-pointer"
+            :class="{ 'cursor-pointer': canManageBaseAccess(integration) }"
             @click.stop="openBaseAssignment(integration)"
           >
             {{ $t('labels.restricted') }}

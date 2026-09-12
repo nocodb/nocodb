@@ -84,7 +84,7 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 Auto-upstall does the following: 🕊
 - 🐳 Automatically installs all pre-requisites like docker, docker-compose
-- 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
+- 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
 - 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.
 - 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
 > install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh)
@@ -167,7 +167,7 @@ Our mission is to provide the most powerful no-code interface for databases, acc
 # License
 
 <p>
-This project is licensed under <a href="./LICENSE">Sustainable Use License</a>.
+This project is licensed under <a href="./LICENSE.md">Sustainable Use License</a>.
 </p>
 
 # Contributors

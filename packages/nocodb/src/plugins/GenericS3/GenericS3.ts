@@ -3,17 +3,20 @@ import { promisify } from 'util';
 import { Readable } from 'stream';
 import path from 'path';
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import {
   GetObjectCommand,
+  HeadObjectCommand,
   type PutObjectCommandInput,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 interface GenericObjectStorageInput {
   bucket: string;
@@ -144,15 +147,15 @@ export default class GenericS3 implements IStorageAdapterV2 {
   ): Promise<any> {
     try {
       const response = await axios.get(url, {
-        httpAgent: useAgent(url),
-        httpsAgent: useAgent(url),
+        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
         responseType: buffer ? 'arraybuffer' : 'stream',
+        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       });
       const uploadParams: PutObjectRequest = {
         ...this.defaultParams,
         Body: response.data,
         Key: key,
-        ContentType: response.headers['content-type'],
+        ContentType: response.headers['content-type'] as string,
       };
 
       const data = await this.upload(uploadParams);
@@ -206,11 +209,17 @@ export default class GenericS3 implements IStorageAdapterV2 {
     }
   }
 
-  async fileReadByStream(key: string): Promise<Readable> {
+  async fileReadByStream(
+    key: string,
+    options?: { encoding?: string; start?: number; end?: number },
+  ): Promise<Readable> {
     try {
       const command = new GetObjectCommand({
         Key: this.patchKey(key),
         Bucket: this.input.bucket,
+        ...(options?.start !== undefined && {
+          Range: `bytes=${options.start}-${options.end ?? ''}`,
+        }),
       });
 
       const { Body } = await this.s3Client.send(command);
@@ -225,6 +234,21 @@ export default class GenericS3 implements IStorageAdapterV2 {
       return stream;
     } catch (error) {
       NcError._.storageFileStreamError(error.message);
+    }
+  }
+
+  public async fileSize(key: string): Promise<number> {
+    try {
+      const { ContentLength } = await this.s3Client.send(
+        new HeadObjectCommand({
+          Key: this.patchKey(key),
+          Bucket: this.input.bucket,
+        }),
+      );
+
+      return ContentLength ?? 0;
+    } catch (error) {
+      NcError._.storageFileReadError(error.message);
     }
   }
 

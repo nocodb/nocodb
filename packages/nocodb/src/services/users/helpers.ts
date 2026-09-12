@@ -4,6 +4,7 @@ import type User from '~/models/User';
 import type { NcConfig } from '~/interface/config';
 import type { Response } from 'express';
 import { NC_REFRESH_TOKEN_EXP_IN_DAYS } from '~/constants';
+import { ncSiteUrl } from '~/utils/envs';
 
 export function genJwt(
   user: User & { extra?: Record<string, any> },
@@ -37,7 +38,7 @@ export function setTokenCookie(res: Response, token, req?: any): void {
     sameSite: 'lax' as const,
     secure: req?.ncSiteUrl
       ? req.ncSiteUrl.startsWith('https')
-      : !!process.env.NC_PUBLIC_URL?.startsWith('https'),
+      : !!ncSiteUrl?.startsWith('https'),
     expires: new Date(
       Date.now() + NC_REFRESH_TOKEN_EXP_IN_DAYS * 24 * 60 * 60 * 1000,
     ),
@@ -50,7 +51,7 @@ export function setAuthCookie(res: Response, token: string): void {
   res.cookie('nc_token', token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: !!process.env.NC_PUBLIC_URL?.startsWith('https'),
+    secure: !!ncSiteUrl?.startsWith('https'),
     path: '/api',
     maxAge: 10 * 60 * 60 * 1000, // 10 hours — match JWT expiry
   });
@@ -60,7 +61,7 @@ export function clearAuthCookie(res: Response): void {
   res.clearCookie('nc_token', {
     httpOnly: true,
     sameSite: 'lax',
-    secure: !!process.env.NC_PUBLIC_URL?.startsWith('https'),
+    secure: !!ncSiteUrl?.startsWith('https'),
     path: '/api',
   });
 }

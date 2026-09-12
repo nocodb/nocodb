@@ -439,3 +439,92 @@ async function getSampleColumnValue(
       break;
   }
 }
+
+// Sample payload for comment-source webhooks (event = 'comment'). Mirrors the
+// envelope produced at fire time by CommentHookHandlerService +
+// WebhookInvoker.constructCommentWebHookData so the modal preview and the
+// "Test Webhook" output match a real delivery.
+export async function populateSampleCommentPayload(
+  context: NcContext,
+  model: Model,
+  operation = 'insert',
+  version = 'v3',
+  includeUser = false,
+  user?: SampleUser,
+) {
+  await model.getColumns(context);
+
+  const pvColumn =
+    model.columns?.find((c) => c.pv) ?? model.columns?.[0] ?? null;
+  const displayValue = pvColumn
+    ? await getSampleColumnValue(context, pvColumn)
+    : 'Sample record';
+
+  const sampleUser = user || {
+    id: 'usr_sample_user_id',
+    email: 'user@example.com',
+    display_name: 'Sample User',
+    user_name: 'sample_user',
+    roles: 'user',
+  };
+
+  const now = new Date().toISOString();
+
+  const data: Record<string, any> = {
+    table_id: model.id,
+    base_id: model.base_id,
+    comment: {
+      id: 'cmt_sample_comment_id',
+      body: 'Looks good @(usr_sample_user_id|user@example.com|Sample User)',
+      body_plain: 'Looks good @Sample User',
+      author: {
+        id: sampleUser.id,
+        name: sampleUser.display_name,
+        email: sampleUser.email,
+      },
+      created_at: now,
+      updated_at: now,
+    },
+    parent_comment_id: null,
+    record: {
+      id: 1,
+      display_value: displayValue,
+    },
+    mentions: [
+      {
+        id: sampleUser.id,
+        name: sampleUser.display_name,
+        email: sampleUser.email,
+      },
+    ],
+  };
+
+  if (operation === 'update') {
+    data.previous = {
+      body: 'Looks ok @(usr_sample_user_id|user@example.com|Sample User)',
+      body_plain: 'Looks ok @Sample User',
+    };
+  }
+
+  if (operation === 'resolved' || operation === 'reopened') {
+    data.resolution = {
+      state: operation,
+      actor: {
+        id: sampleUser.id,
+        name: sampleUser.display_name,
+        email: sampleUser.email,
+      },
+      timestamp: now,
+    };
+  }
+
+  return {
+    type: `comment.${operation}`,
+    id: uuidv4(),
+    ...(includeUser && isEE && sampleUser
+      ? { user: sanitizeUserForHook(sampleUser) }
+      : {}),
+    version,
+    data,
+  };
+}

@@ -98,7 +98,7 @@ const inputTextEl: VNodeRef = (el) => {
     size="large"
     hide-details
     data-testid="create-workspace-title-input"
-    placeholder="Workspace name"
+    :placeholder="$t('labels.workspaceName')"
   />
 </template>
 

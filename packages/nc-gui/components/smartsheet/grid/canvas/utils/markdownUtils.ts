@@ -1,4 +1,5 @@
 import type { UserType } from 'nocodb-sdk'
+import { decode as decodeHtmlEntities } from 'html-entities'
 
 type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link' | 'mention'
 
@@ -24,7 +25,10 @@ export interface Marker {
 
 const markers: Marker[] = [
   { open: '**', close: '**', style: 'bold' },
+  // '*' must come after '**' so '**bold**' resolves to bold, not italic-italic.
+  { open: '*', close: '*', style: 'italic' },
   { open: '_', close: '_', style: 'italic' },
+  { open: '~~', close: '~~', style: 'strikethrough' },
   { open: '<u>', close: '</u>', style: 'underline' },
   { open: '<s>', close: '</s>', style: 'strikethrough' },
   {
@@ -63,7 +67,11 @@ const markers: Marker[] = [
 
         activeStyles.push('link')
 
-        return { tokens: [{ styles: activeStyles, value: mergedText, url }], newIndex: index }
+        // markdown-it also decodes entities in link destinations (`&amp;` -> `&`)
+        return {
+          tokens: [{ styles: activeStyles, value: mergedText, url: decodeHtmlEntities(url, { scope: 'strict' }) }],
+          newIndex: index,
+        }
       } else {
         return {
           tokens: [{ styles: activeStyles, value: `[${linkTextTokens.map((t) => t.value).join('')}]` }],
@@ -96,7 +104,7 @@ const markers: Marker[] = [
 
       const newStyles: MarkdownStyle[] = [...activeStyles, 'mention']
 
-      const displayValue = displayName && displayName.length > 0 ? displayName : email
+      const displayValue = extractUserDisplayNameOrEmail({ display_name: displayName, email })
 
       return {
         tokens: [
@@ -128,7 +136,11 @@ function parseTokens(
 
   const flushText = () => {
     if (currentText) {
-      tokens.push({ styles: [...activeStyles], value: currentText })
+      // markdown-it (used by the DOM/expand renderer) decodes HTML character
+      // references such as `&#39;` -> `'` in text. Mirror that here so the
+      // canvas grid preview doesn't show raw entities for rich-mode values.
+      // `scope: 'strict'` requires the trailing `;`, same as CommonMark/markdown-it.
+      tokens.push({ styles: [...activeStyles], value: decodeHtmlEntities(currentText, { scope: 'strict' }) })
       currentText = ''
     }
   }
@@ -271,6 +283,12 @@ export const getFontForToken = (
 ): string => {
   const { baseFontSize, fontFamily } = props
 
+  // Callers may pass a full font shorthand (e.g. '500 13px Inter') instead of
+  // just a family name. Strip any leading weight + size so the recombined
+  // string below stays a valid CSS font shorthand — otherwise canvas silently
+  // rejects the assignment and bold/italic never apply.
+  const familyOnly = fontFamily.replace(/^(?:\d+\s+)?\d+(?:\.\d+)?(?:px|pt|em|rem)\s+/, '')
+
   const fontParts: string[] = []
   const fontSize = baseFontSize
 
@@ -283,7 +301,7 @@ export const getFontForToken = (
   }
 
   fontParts.push(`${fontSize}px`)
-  fontParts.push(fontFamily)
+  fontParts.push(familyOnly)
   return fontParts.join(' ')
 }
 
@@ -300,7 +318,7 @@ function updateMentionsWithUserData(
       if (foundUser) {
         return {
           ...token,
-          value: `${foundUser.display_name || foundUser.email || id}`,
+          value: `${extractUserDisplayNameOrEmail(foundUser) || id}`,
           mentionData: {
             ...token.mentionData,
             email: foundUser.email,

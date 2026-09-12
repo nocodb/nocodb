@@ -1,0 +1,48 @@
+{{- if .Values.pdb.create -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nocodb.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nocodb.labels" . | nindent 4 }}
+  {{- with include "nocodb.annotations" (dict "context" . "extraAnnotations" dict) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable }}
+  {{- else }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nocodb.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: app
+{{- if .Values.worker.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nocodb.fullname" . }}-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nocodb.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+  {{- with include "nocodb.annotations" (dict "context" . "extraAnnotations" dict) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable }}
+  {{- else }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nocodb.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+{{- end }}
+{{- end }}

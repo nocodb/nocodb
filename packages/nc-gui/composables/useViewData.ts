@@ -61,6 +61,8 @@ export function useViewData(
 
   const { $api } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const {
     sorts,
     nestedFilters,
@@ -160,7 +162,7 @@ export function useViewData(
     if (!ids?.length || ids?.some((id) => !id)) return
 
     try {
-      aggCommentCount.value = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      aggCommentCount.value = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
         operation: 'commentCount',
         fk_model_id: metaId.value as string,
         ids,
@@ -371,7 +373,7 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = await $api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+      const { columns, ...view } = await internalGet(base.value!.fk_workspace_id!, base.value!.id!, {
         operation: 'formViewGet',
         formViewId: viewMeta.value.id,
       })
@@ -422,7 +424,24 @@ export function useViewData(
     if (!viewMeta?.value?.id || !view || !isUIAllowed('viewFieldEdit')) return
 
     try {
-      await updateViewMeta(viewMeta.value.id, ViewTypes.FORM, view)
+      const {
+        source_id: _sourceId,
+        base_id: _baseId,
+        fk_view_id: fkViewId,
+        fk_workspace_id: _fkWs,
+        created_at: _createdAt,
+        updated_at: _updatedAt,
+        ...body
+      } = view as Record<string, any>
+
+      // Persist against the form view this data actually belongs to (`fk_view_id`),
+      // not the currently-active view. The save is debounced, so it can fire after
+      // the user has switched to another form view of the same table but before that
+      // view's data has finished (re)loading — at that point `viewMeta` already points
+      // at the new view while `view` still holds the previous form's data. Keying off
+      // the data's own `fk_view_id` stops one form's heading/subheading from
+      // overwriting another's. See nocodb/nocodb#14153.
+      await updateViewMeta(fkViewId ?? viewMeta.value.id, ViewTypes.FORM, body)
     } catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }

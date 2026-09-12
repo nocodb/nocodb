@@ -6,8 +6,6 @@ definePageMeta({
 
 const { showOnboardingFlow } = useOnboardingFlow()
 
-const { isSharedBase, isSharedErd } = storeToRefs(useBase())
-
 const basesStore = useBases()
 
 const workspaceStore = useWorkspace()
@@ -28,6 +26,10 @@ const { basesList } = storeToRefs(basesStore)
 
 const isHomeSidebarRoute = computed(() => {
   return isWsHomeRoute(route.value)
+})
+
+const isAdminRoute = computed(() => {
+  return isWsAdminRoute(route.value)
 })
 
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
@@ -141,16 +143,6 @@ onMounted(() => {
     }
   })
 })
-
-watch(
-  [() => isSharedFormView.value, () => isSharedView.value, () => isSharedBase.value, () => isSharedErd.value],
-  (arr) => {
-    addConfirmPageLeavingRedirectToWindow(!arr.some(Boolean))
-  },
-  {
-    immediate: true,
-  },
-)
 </script>
 
 <template>
@@ -171,9 +163,9 @@ watch(
       </template>
       <template #content>
         <!-- Workspace home: stable header + tabs + dynamic page content -->
-        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
+        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full" :style="{ '--topbar-height': '3.5rem' }">
           <WorkspaceViewTopbar />
-          <WorkspaceViewTabs />
+          <WorkspaceAdminTabs v-if="isAdminRoute" />
           <div class="flex-1 overflow-auto">
             <NuxtPage :transition="false" />
           </div>

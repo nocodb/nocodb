@@ -47,7 +47,7 @@ export const useMcpSettings = createSharedComposable(() => {
           return {
             ...token,
             isNew: false,
-            created_display_name: user?.display_name ?? user?.email ?? '',
+            created_display_name: extractUserDisplayNameOrEmail(user),
           }
         })
       }
@@ -93,7 +93,7 @@ export const useMcpSettings = createSharedComposable(() => {
           mcpTokens.value[index] = {
             ...createdToken,
             isNew: false,
-            created_display_name: user?.display_name ?? user?.email ?? '',
+            created_display_name: extractUserDisplayNameOrEmail(user),
           }
         }
       }

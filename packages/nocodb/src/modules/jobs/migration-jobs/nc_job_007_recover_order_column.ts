@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import { OrderColumnMigration } from './nc_job_005_order_column';
 import type CustomKnex from '~/db/CustomKnex';
-import { isEE } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -16,6 +15,7 @@ const dropColumnSql = {
   mysql: 'ALTER TABLE ?? DROP COLUMN ??',
   pg: 'ALTER TABLE ?? DROP COLUMN ?? CASCADE',
   sqlite3: 'ALTER TABLE ?? DROP COLUMN ??',
+  mssql: 'ALTER TABLE ?? DROP COLUMN ??',
 };
 
 @Injectable()
@@ -114,7 +114,7 @@ export class RecoverOrderColumnMigration {
             `${MetaTable.MODELS}.source_id`,
             `${MetaTable.MODELS}.table_name`,
             `${MetaTable.MODELS}.base_id`,
-            ...(isEE ? [`${MetaTable.MODELS}.fk_workspace_id`] : []),
+            `${MetaTable.MODELS}.fk_workspace_id`,
           ])
           .join(
             MetaTable.SOURCES,

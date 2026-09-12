@@ -1,6 +1,16 @@
-import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  ColumnType,
+  FilterType,
+  InterfaceGalleryVizTheme,
+  InterfaceKanbanVizTheme,
+  SourceType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
+import type { InterfacePageDataApi, InterfacePublicPageState, InterfaceRecordSidebarApi } from '../lib/interfaceData'
+import type { LinkRecordDropdownVariant, Row } from '../lib/types'
 import type { PageSidebarNode } from '#imports'
 
 export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : never
@@ -16,8 +26,10 @@ export const CanvasColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('canvas-col
 export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
+export const FormFieldAutocompleteInj: InjectionKey<Ref<string | undefined>> = Symbol('form-field-autocomplete-injection')
 export const IsCalendarInj: InjectionKey<Ref<boolean>> = Symbol('is-calendar-injection')
 export const IsTimelineInj: InjectionKey<Ref<boolean>> = Symbol('is-timeline-injection')
+export const IsGanttInj: InjectionKey<Ref<boolean>> = Symbol('is-gantt-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
 export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-injection')
@@ -35,6 +47,19 @@ export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injectio
 export const IsAllowedInj: InjectionKey<Ref<boolean>> = Symbol('is-allowed-injection')
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
+/** Host-tuned attachment-card display (interface record layouts): show every
+ *  attachment (no "+N more" pager), the larger tile size, and whether the
+ *  full-screen viewer may offer comments/annotations (false = the host's
+ *  Comments setting is off; absent = the viewer's own gates decide). */
+export const AttachmentCellDisplayInj: InjectionKey<
+  Ref<{ showAll?: boolean; largeTiles?: boolean; allowComments?: boolean } | null>
+> = Symbol('attachment-cell-display-injection')
+/** The attachment currently open in the full-screen viewer — the comments side
+ *  panel tags new comments with it (pin-less annotation) so they count toward
+ *  that image's badge. Absent/null = plain record comments. */
+export const AttachmentViewerCommentAnchorInj: InjectionKey<Ref<{ path?: string; url?: string; title?: string } | null>> = Symbol(
+  'attachment-viewer-comment-anchor-injection',
+)
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 export const isWorkflowInj: InjectionKey<Ref<boolean>> = Symbol('is-workflow-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
@@ -96,13 +121,13 @@ export const TreeViewInj: InjectionKey<{
     title: string,
     orignalTitle: string,
     updateTitle: (title: string) => void,
-    undo?: boolean,
     disableTitleDiffCheck?: boolean,
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
   openScriptDescriptionDialog?: (script: any) => void
   openDashboardDescriptionDialog?: (dashboard: any) => void
   openWorkflowDescriptionDialog?: (workflow: any) => void
+  openAgentDescriptionDialog?: (agent: any) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>
@@ -123,6 +148,14 @@ export const ActiveSourceInj: InjectionKey<
     }
   >
 > = Symbol('active-source-injection')
+
+/**
+ * Extra left indent (px) carried by a sidebar row nested inside a base-level
+ * section, provided by the table node so its view rows shift with it. The
+ * indent lives on each row's own padding — indenting a container instead would
+ * inset the rows' hover background away from the sidebar edge.
+ */
+export const SidebarSectionIndentInj: InjectionKey<Ref<number> | ComputedRef<number>> = Symbol('sidebar-section-indent-injection')
 
 export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('toolbar-icon-mode-injection')
 export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>> =
@@ -159,6 +192,15 @@ export const BlueprintParentTableIdInj: InjectionKey<Ref<string | undefined>> = 
 /** Breadcrumb trail for nested sub-record forms (e.g., ['Project Template', 'Tasks']) */
 export const TemplateBreadcrumbsInj: InjectionKey<Ref<string[]>> = Symbol('template-breadcrumbs-injection')
 
+/** Opens the node's compose modal (rich-text nodes only); absent when no panel provides it. */
+export const WorkflowComposeInj: InjectionKey<{ open: () => void }> = Symbol('workflow-compose')
+
+/** Per-group label overrides for a form-builder rendering, keyed by field group. */
+export const FormBuilderGroupLabelsInj: InjectionKey<Ref<Record<string, string>>> = Symbol('form-builder-group-labels')
+
+/** True inside the compose modal, where the body editor shows its full toolbar. */
+export const WorkflowComposeModeInj: InjectionKey<Ref<boolean>> = Symbol('workflow-compose-mode')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]
@@ -170,3 +212,339 @@ export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-ba
 export const IsSettingsSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-settings-sidebar-injection')
 
 export const DocIdInj: InjectionKey<Ref<string>> = Symbol('doc-id-injection')
+
+/**
+ * Whether real-time collaborative editing (Yjs) currently owns the document
+ * body. When true, attachment uploads must create their FileReference eagerly
+ * (the lazy REST reconcile is skipped in collab mode). Defaults to `false`.
+ */
+export const DocCollabActiveInj: InjectionKey<Ref<boolean>> = Symbol('doc-collab-active-injection')
+
+/**
+ * Cell-keyed attachment context for SmartText fields. When present, image and
+ * file attachment nodes resolve their URLs via the cell-keyed proxy endpoint
+ * (table+column+row triple) instead of the doc-keyed one.
+ */
+export const SmartTextCellAttachmentInj: InjectionKey<Ref<{ tableId: string; columnId: string; rowId: string } | null>> = Symbol(
+  'smart-text-cell-attachment-injection',
+)
+
+/**
+ * Public-share attachment context. Provided by the anonymous shared-doc reader
+ * page so attachment nodes know to build URLs against the public endpoint
+ * (gated by sharedDocUuid) instead of the auth-protected proxy. Null in
+ * normal (authenticated) editor contexts.
+ */
+export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId: string } | null>> =
+  Symbol('public-doc-share-injection')
+
+/**
+ * Data adapter for smartsheet components mounted inside an interface page.
+ * Provided by the interface-page wrappers (EE); when present, the smartsheet
+ * data composables route list/count/CRUD calls through it instead of the
+ * view / shared-view endpoints. Undefined in normal dashboard contexts.
+ */
+export const InterfacePageDataInj: InjectionKey<InterfacePageDataApi | undefined> = Symbol('interface-page-data')
+
+/**
+ * Marks an interface surface that sits OUTSIDE the viz tree, so it has no
+ * `InterfacePageDataInj` ancestor to be recognised by — the builder's
+ * properties panel, whose "Edit field" hosts the same column editor the canvas
+ * does. Read it through `useIsInterfaceUi()` rather than injecting directly.
+ */
+export const IsInterfaceUiInj: InjectionKey<Ref<boolean>> = Symbol('is-interface-ui')
+
+/**
+ * Marks a visualization EMBEDDED as a dashboard view widget (a card inside a
+ * group grid) rather than filling its own page — space-constrained renderers
+ * adapt (e.g. kanban auto-collapses empty stacks). Provided by the interface
+ * view-widget host; absent everywhere else.
+ */
+export const IsEmbeddedVizInj: InjectionKey<Ref<boolean>> = Symbol('is-embedded-viz')
+
+/**
+ * Which UI the LTAR cells render inside `LinkRecordDropdown` — `'classic'`
+ * (default; the full card modal) or `'simple'` (the compact single-list
+ * picker). Provided as `'simple'` by the interface grid/list viz hosts (EE);
+ * `useLinkRecordDropdownVariant` additionally keeps forms, expanded records
+ * and lookups on the classic UI regardless of the provided value.
+ */
+export const LinkRecordDropdownVariantInj: InjectionKey<Ref<LinkRecordDropdownVariant>> = Symbol('link-record-dropdown-variant')
+
+/**
+ * Per-column "Click into record details" for Links/LTAR cells — expands a
+ * linked/unlinked record into the LINKED table's record-detail surface.
+ * Provided by the interface viz hosts (EE) which resolve the per-column
+ * config; `null`/absent = no expand affordance (the CE default everywhere).
+ */
+export interface LinkRecordExpandApi {
+  /**
+   * Whether the LTAR column has click-into-details configured (with a valid
+   * layout). `elementId` names the record-form element the click came from —
+   * pass it whenever the caller knows it: resolving by COLUMN alone is
+   * ambiguous once a sheet carries two elements on the same LTAR column (a
+   * pills field plus a Show-as-View embed), and the loser inherits the other's
+   * config and opener hop.
+   */
+  isEnabled: (column: ColumnType, elementId?: string) => boolean
+  /** Open the record's detail surface — the picker passes the linked table's meta it already holds. */
+  expand: (params: {
+    column: ColumnType
+    row: Record<string, any>
+    relatedTableMeta: TableType
+    /** See `isEnabled`. */
+    elementId?: string
+  }) => void
+  /**
+   * Builder-only: `isEnabled` is false and the host can offer the enable
+   * prompt, so the affordance stays live and the click configures instead of
+   * doing nothing. Absent on consumer surfaces — a viewer can't configure, so
+   * there the click is genuinely inert.
+   */
+  configure?: (params: {
+    column: ColumnType
+    row: Record<string, any>
+    relatedTableMeta: TableType
+    /** See `isEnabled` — the prompt must configure the element that was clicked. */
+    elementId?: string
+  }) => void
+}
+
+export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')
+
+/**
+ * Element addressing for LTAR picker calls made from inside a record-form
+ * FIELD — an overlay record sheet fetches through its ORIGIN viz's adapter,
+ * so an unaddressed picker call resolves against that viz and inherits its
+ * per-column "Limit record selection". Addressed, the server reads THIS
+ * element's own "Link/unlink records" selection instead. Provided per-field
+ * by the interface record-form field row (EE); absent on viz inline cells,
+ * which genuinely are the viz's own surface.
+ */
+export const InterfaceFieldElementInj: InjectionKey<Ref<{ fieldElementId: string; fieldPageId?: string } | null> | undefined> =
+  Symbol('interface-field-element')
+
+/**
+ * Row-level "Unlink record" for renderers mounted over a link scope (the LTAR
+ * embedded viz): removes the LINK between the host record and the row, never
+ * the row itself. Provided by the embed host when the element's "Link/unlink
+ * records" option is on; `null`/absent hides the context-menu item.
+ */
+export const InterfaceUnlinkRecordInj: InjectionKey<Ref<((row: Record<string, any>) => void) | null>> =
+  Symbol('interface-unlink-record')
+
+/**
+ * Record-sidebar adapter for the comment + revision-history panels of an
+ * interface record overlay — the record-scoped sibling of `InterfacePageDataInj`.
+ * Provided by the overlay (EE); when present, the base comment/revision
+ * composables (`useRowComments`, `useExpandedFormStore`) route their network
+ * calls through it (the interface-scoped, grant + builder-toggle + record-scope
+ * gated ops) instead of the base ops, so interface-only consumers can use them.
+ * Undefined outside an interface record overlay.
+ */
+export const InterfaceRecordSidebarInj: InjectionKey<InterfaceRecordSidebarApi | undefined> = Symbol('interface-record-sidebar')
+
+/**
+ * "This record panel is an interface surface" — presentation only, for the CE
+ * comment/revision panels that restyle themselves inside an interface (no field
+ * icons, no hover fill, 10px caps labels).
+ *
+ * Deliberately separate from `InterfaceRecordSidebarInj`: that adapter is
+ * absent on public interface pages (the ops are gated), but a public record
+ * sheet is still an interface surface and must keep the same look.
+ */
+export const IsInterfaceRecordSurfaceInj: InjectionKey<boolean> = Symbol('is-interface-record-surface')
+
+/**
+ * Kanban surface theme for interface-mounted kanbans. Provided by the interface
+ * hosts (EE) from the kanban viz config; undefined outside interface pages —
+ * the renderer then keeps the data-app's default (`board`) treatment.
+ */
+export const InterfaceKanbanThemeInj: InjectionKey<Ref<InterfaceKanbanVizTheme> | undefined> = Symbol('interface-kanban-theme')
+
+/**
+ * Gallery surface theme for interface-mounted galleries. Provided by the
+ * interface hosts (EE) from the gallery viz config; undefined outside interface
+ * pages — the renderer then keeps the data-app's default (`card`) treatment.
+ */
+export const InterfaceGalleryThemeInj: InjectionKey<Ref<InterfaceGalleryVizTheme> | undefined> = Symbol('interface-gallery-theme')
+
+/**
+ * Public share-to-web consumer context for interface pages. Provided by the
+ * anonymous shared-page route (EE `interface/consumer/PublicPage.vue`); when
+ * present, the interface page renderers prefer its page/meta over the builder
+ * store and the data adapter routes through the public REST endpoints. Null in
+ * normal (authenticated) contexts.
+ */
+export const InterfacePublicPageInj: InjectionKey<Ref<InterfacePublicPageState | null>> = Symbol(
+  'interface-public-page-injection',
+)
+
+/**
+ * Scoped UI-ACL override for interface preview-as. Provided by the editor's
+ * preview host (EE `interface/editor/AppPreview.vue`) with the previewed
+ * principal's base-role object (`{ editor: true }` …) while a preview-as
+ * target is active; `useRoles().isUIAllowed` then evaluates against it for
+ * every component in the preview subtree, so the canvas gates its UI exactly
+ * as the previewed user/role — while the editor chrome outside the subtree
+ * keeps the builder's real roles. Null when not previewing.
+ */
+export const UiRolesOverrideInj: InjectionKey<Ref<Record<string, boolean> | null>> = Symbol('ui-roles-override')
+
+/**
+ * Companion to `UiRolesOverrideInj` for base table/field permission checks
+ * (`usePermissions.isAllowed`): the previewed PRINCIPAL, not just its role.
+ * User-subject grants need the previewed user's id — evaluating the builder's
+ * own id would show a field as editable merely because the BUILDER is in the
+ * grant's subject list. `userId` is unset for bare-role targets (a generic
+ * principal of that role). Null when not previewing.
+ */
+export const PermissionPrincipalOverrideInj: InjectionKey<Ref<{ userId?: string; role?: string } | null>> =
+  Symbol('permission-principal-override')
+
+/**
+ * Explanation for WHY the surface under it is read-only, surfaced as a toast
+ * when the user attempts an edit that the read-only state silently swallows
+ * (e.g. the interface editor's read-only "Preview as" — selection still works,
+ * so the blue cell border reads as editable). Null when the read-only state
+ * needs no callout.
+ */
+export const ReadonlyEditNoticeInj: InjectionKey<Ref<string | null>> = Symbol('readonly-edit-notice')
+
+/**
+ * Interface EDITOR only: a callback that selects the mounted visualization
+ * element — moving the properties panel to its `Page › <Viz>` pane, exactly like
+ * clicking a button element opens its pane. Provided by the interface page
+ * wrapper (EE) while editing, bound to the mounted viz; null in the published
+ * view and outside interface pages. Consumed today by the calendar sub-views so
+ * a date click selects the element instead of highlighting the date / adding a
+ * record.
+ */
+export const InterfaceVizEditSelectInj: InjectionKey<Ref<(() => void) | null>> = Symbol('interface-viz-edit-select')
+
+/**
+ * Interface EDITOR only: called when a double-click (or Enter) tries to edit a
+ * cell while the element's "Edit records inline" option is off — the wrapper
+ * surfaces guidance toward that option instead of letting the attempt die
+ * silently. Provided by the interface page wrapper (EE) while editing; null in
+ * the published view and outside interface pages, so every other readonly
+ * context (locked views, shared views) stays silent.
+ */
+export const InterfaceInlineEditHintInj: InjectionKey<Ref<(() => void) | null>> = Symbol('interface-inline-edit-hint')
+
+/**
+ * Interface pages with a "new record" FORM configured (an OPEN_RECORD_FORM
+ * button → RECORD_DETAIL page) route the calendar's inline add through this
+ * handler instead of the default expanded-record form. Provided by the interface
+ * page wrapper (EE) when such a form is set; null otherwise and outside interface
+ * pages. The handler opens the configured form seeded with `prefill` (the clicked
+ * date / filter context) and returns true when it handled the add.
+ */
+export const InterfaceNewRecordFormInj: InjectionKey<Ref<((prefill: Record<string, any>) => boolean) | null>> =
+  Symbol('interface-new-record-form')
+
+/**
+ * Leveled-list rows may belong to a PARENT table, not the page's source table —
+ * the list passes the row's table so the wrapper can open that table's
+ * record-detail page (per-level "Click into record details" config).
+ */
+export interface InterfaceExpandRecordCtx {
+  modelId?: string
+  tableMeta?: TableType
+  /** Pre-resolved primary key (leveled rows carry it; spares a column lookup). */
+  pk?: string
+  /**
+   * The viz's active row moved (keyboard / click) while its record sheet is
+   * open — rebind the sheet to this row instead of treating it as a fresh
+   * open. `index`/`total` (ungrouped only) seed the sheet's prev/next position.
+   */
+  fromActiveRow?: boolean
+  index?: number
+  total?: number
+}
+
+/**
+ * Row-expansion intercept for smartsheet components mounted inside an
+ * interface page. Provided by the interface viz wrapper (EE); the components'
+ * expand handlers call it FIRST — true means the interface handled the click
+ * (record-detail sheet opened, or the viz has "Click into record details"
+ * disabled and the click is inert), false falls through to the classic
+ * expanded-record flow (new-row drafts keep their dialog). Undefined in
+ * normal dashboard contexts.
+ */
+export const InterfaceExpandRecordInj: InjectionKey<((row: Row, ctx?: InterfaceExpandRecordCtx) => boolean) | undefined> =
+  Symbol('interface-expand-record')
+
+/**
+ * Interface pages: true while the record sheet is open on THIS viz's record —
+ * the grid then reports active-row changes through `InterfaceExpandRecordInj`
+ * (`fromActiveRow`) so the sheet follows keyboard navigation, like the classic
+ * expanded-form panel. Undefined outside interface contexts.
+ */
+export const InterfaceSheetFollowsActiveRowInj: InjectionKey<Ref<boolean> | undefined> = Symbol(
+  'interface-sheet-follows-active-row',
+)
+
+/**
+ * Interface pages: the row id the sheet is bound to while it follows THIS viz
+ * (null otherwise). The grid anchors its selection there, so arrow keys step
+ * from the sheet's record after a deep link / expand-icon open / sheet chevron.
+ */
+export const InterfaceSheetRowIdInj: InjectionKey<Ref<string | null> | undefined> = Symbol('interface-sheet-row-id')
+
+/**
+ * Interface pages: the active viz's live-row lookup, REGISTERED UP by the viz
+ * (the grid sets it from its row caches). The record sheet's prev/next
+ * navigation rebinds to this object instead of the sibling fetch's copy, so
+ * inline edits keep writing through to the viz behind the sheet by reference.
+ * Null when the mounted viz doesn't register one — the sheet then refetches
+ * the viz after each inline save instead.
+ */
+export const InterfaceRowResolverInj: InjectionKey<Ref<((rowId: string) => Record<string, any> | null) | null>> =
+  Symbol('interface-row-resolver')
+
+/**
+ * Interface pages: whether the active viz opens records (its "Click into
+ * record details" toggle) — context-menu Expand items hide when off.
+ * Non-interface hosts inject the default (true) and are unaffected.
+ */
+export const InterfaceClickIntoDetailsInj: InjectionKey<Ref<boolean>> = Symbol('interface-click-into-details')
+
+/**
+ * Whether smartsheet renderers mounted inside an interface page should show the
+ * row-expand (maximize) affordance. Provided by the interface viz wrapper (EE):
+ * true when "Click into record details" is on, OR while the builder is editing
+ * (a click then surfaces the enable prompt — see InterfaceExpandRecordInj).
+ * False on the launched/published page when the toggle is off, so the otherwise
+ * inert expand arrow is hidden. Defaults to true everywhere else — ordinary
+ * grids always expand.
+ */
+export const InterfaceShowRowExpandInj: InjectionKey<Ref<boolean>> = Symbol('interface-show-row-expand')
+
+/**
+ * Compact presentation for the toolbar field-list dropdown (panel-density
+ * text, no field icons) — provided by side-panel filter/sort hosts.
+ */
+export const FieldListCompactInj: InjectionKey<Ref<boolean>> = Symbol('field-list-compact-injection')
+
+/**
+ * Mark filter rows whose `fk_column_id` no longer resolves to a live column as
+ * "orphaned" (a greyed indicator instead of a blank field picker). Provided by
+ * the interface filter editor so that only interface config filters — where a
+ * table/field delete leaves a stale id in the persisted tree — surface the cue;
+ * grid-view filter rows keep their existing rendering.
+ */
+export const MarkOrphanFilterInj: InjectionKey<Ref<boolean>> = Symbol('mark-orphan-filter-injection')
+
+/**
+ * Resolved download context for an attachment rendered under a Lookup cell.
+ * A lookup swaps MetaInj to the related table while RowInj stays the parent
+ * row, so the attachment cell's own (model, row) no longer address the
+ * attachment. Lookup.vue provides the parent table's modelId + the parent
+ * row's pk + the lookup columnId here, and the attachment cell uses it to
+ * download/sign the file via the parent row's lookup column. Null when not
+ * under a lookup.
+ */
+export const LookupAttachmentDownloadInj: InjectionKey<
+  Ref<{ workspaceId?: string; baseId?: string; modelId: string; columnId: string; rowId: string } | null>
+> = Symbol('lookup-attachment-download-injection')

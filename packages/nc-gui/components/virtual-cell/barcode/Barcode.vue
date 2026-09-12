@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NC_ERROR_SENTINEL, isColumnInError } from 'nocodb-sdk'
 import type { ComputedRef } from 'vue'
 import { IsCanvasInjectionInj } from '../../../context'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
@@ -40,8 +41,14 @@ const barcodeMeta = computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
+const hasColError = computed(() => isColumnInError(column?.value))
+
 const showBarcode = computed(
-  () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!',
+  () =>
+    barcodeValue?.value.length > 0 &&
+    !tooManyCharsForBarcode.value &&
+    barcodeValue?.value !== NC_ERROR_SENTINEL &&
+    !hasColError.value,
 )
 
 const showBarcodeModal = () => {
@@ -148,12 +155,22 @@ onMounted(() => {
         </div>
       </template>
     </JsBarcodeWrapper>
-    <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
+    <NcTooltip v-else-if="hasColError" placement="bottom" class="text-nc-content-orange-dark">
+      <template #title>
+        <span class="font-bold">{{ column?.colOptions?.error }}</span>
+      </template>
+      <span>ERR!</span>
+    </NcTooltip>
+    <NcTooltip
+      v-else-if="!showBarcode && barcodeValue === NC_ERROR_SENTINEL"
+      placement="bottom"
+      class="text-nc-content-orange-dark"
+    >
       <template #title>
         <span class="font-bold">Please select a target field!</span>
       </template>
       <span>ERR!</span>
-    </a-tooltip>
+    </NcTooltip>
   </div>
 
   <div v-if="tooManyCharsForBarcode" class="nc-cell-field text-left text-wrap text-[#e65100] text-xs">

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { encodeOnPremCheckoutState } from '~/lib/onPremCheckoutState'
+
 const { api, isLoading } = useApi()
 
 const { t } = useI18n()
@@ -15,16 +17,33 @@ const isEEActive = computed(() => appInfo.value.ee === true)
 
 const isPostgresRequired = computed(() => appInfo.value.isOnPrem && appInfo.value.isPostgres === false)
 
+const isLicenseKeySetByEnv = computed(() => !!appInfo.value.isLicenseKeySetByEnv)
+
 const licenseStatus = computed(() => {
+  // When key is managed via env var, DB may be empty — derive from appInfo directly
+  if (isLicenseKeySetByEnv.value) {
+    return isEEActive.value ? 'active' : 'expired'
+  }
+
   if (!savedKey.value) return 'none'
 
   return isEEActive.value ? 'active' : 'expired'
 })
 
-const buyLicenseUrl = computed(() => {
-  const instanceUrl = window.location.origin
-  return `${NC_CLOUD_URL}/#/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
-})
+const buildBuyLicenseUrl = (seatCount?: number, instanceId?: string) => {
+  // Prefer the backend-computed site URL — it's derived from the actual
+  // request headers (incl. X-Forwarded-Host) and is more reliable behind
+  // proxies than window.location.origin.
+  const instanceUrl = appInfo.value.ncSiteUrl || window.location.origin
+  const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
+  const state = encodeOnPremCheckoutState({
+    v: 1,
+    instance_url: instanceUrl,
+    ...(seatCount && seatCount > 0 ? { seat_count: seatCount } : {}),
+    ...(instanceId ? { instance_id: instanceId } : {}),
+  })
+  return `${licenseServerUrl}/account/self-hosted?state=${state}`
+}
 
 const loadLicense = async () => {
   try {
@@ -116,9 +135,43 @@ const copyLicenseKey = async () => {
   }
 }
 
-const onBuyLicense = () => {
+const onBuyLicense = async () => {
   $e('c:account:license:buy')
-  window.open(buyLicenseUrl.value, '_blank')
+
+  // Best-effort: fetch the seat-consuming user count (editor+, matching how
+  // billing reseats) and a stable instance_id so the cloud side can pre-fill
+  // seats on checkout and locate this instance's license when managing.
+  let seatCount: number | undefined
+  let instanceId: string | undefined
+  try {
+    const baseURL = $api.instance.defaults.baseURL
+    const status = await $fetch<{ seatCount?: number; instanceId?: string }>('/api/v1/license/status', {
+      baseURL,
+      method: 'GET',
+      headers: { 'xc-auth': token.value as string },
+    })
+    if (typeof status?.seatCount === 'number' && status.seatCount > 0) {
+      seatCount = status.seatCount
+    }
+    if (typeof status?.instanceId === 'string' && status.instanceId) {
+      instanceId = status.instanceId
+    }
+  } catch {
+    // Ignore — fall back to the URL without instance hints.
+  }
+
+  // Manage license: skip checkout state and go straight to the cloud
+  // self-hosted page; instance_id deep-links to this license's detail.
+  if (licenseStatus.value !== 'none') {
+    const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
+    window.open(
+      `${licenseServerUrl}/account/self-hosted${instanceId ? `?instance_id=${encodeURIComponent(instanceId)}` : ''}`,
+      '_blank',
+    )
+    return
+  }
+
+  window.open(buildBuyLicenseUrl(seatCount, instanceId), '_blank')
 }
 
 loadLicense()
@@ -160,7 +213,8 @@ loadLicense()
                   target="_blank"
                   rel="noopener noreferrer"
                   class="!text-nc-content-brand !no-underline hover:underline"
-                >{{ $t('msg.learnMore') }}</a>
+                  >{{ $t('msg.learnMore') }}</a
+                >
               </span>
             </div>
 
@@ -170,8 +224,8 @@ loadLicense()
                 licenseStatus === 'active'
                   ? 'bg-nc-bg-green-light border-nc-border-green'
                   : licenseStatus === 'expired'
-                    ? 'bg-nc-bg-red-light border-nc-border-red'
-                    : 'bg-nc-bg-gray-light border-nc-border-gray-medium'
+                  ? 'bg-nc-bg-red-light border-nc-border-red'
+                  : 'bg-nc-bg-gray-light border-nc-border-gray-medium'
               "
             >
               <GeneralIcon
@@ -181,68 +235,94 @@ loadLicense()
                   licenseStatus === 'active'
                     ? 'text-nc-content-green-dark'
                     : licenseStatus === 'expired'
-                      ? 'text-nc-content-red-dark'
-                      : 'text-nc-content-gray-subtle'
+                    ? 'text-nc-content-red-dark'
+                    : 'text-nc-content-gray-subtle'
                 "
               />
               <span class="text-sm font-medium">
-                {{
-                  licenseStatus === 'active'
-                    ? $t('title.licenseActive')
-                    : licenseStatus === 'expired'
-                      ? $t('title.licenseInvalid')
-                      : $t('title.licenseNone')
-                }}
+                <template v-if="licenseStatus === 'active'">
+                  {{
+                    appInfo.onPremPlanTitle
+                      ? $t('title.licenseActiveWithPlan', { plan: appInfo.onPremPlanTitle })
+                      : $t('title.licenseActive')
+                  }}
+                </template>
+                <template v-else-if="licenseStatus === 'expired'">
+                  {{ $t('title.licenseInvalid') }}
+                </template>
+                <template v-else>
+                  {{ $t('title.licenseNone') }}
+                </template>
               </span>
             </div>
 
-            <a-input
-              v-model:value="key"
-              :placeholder="$t('labels.enterLicenseKey')"
-              class="!rounded-lg nc-license-key-input"
-              spellcheck="false"
-              size="large"
-              data-testid="nc-license-key-input"
-            >
-              <template v-if="key" #suffix>
-                <NcTooltip :title="$t('general.copy')">
-                  <NcButton type="text" size="xs" @click="copyLicenseKey">
-                    <GeneralIcon :icon="isCopied ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+            <template v-if="isLicenseKeySetByEnv">
+              <NcAlert visible type="warning" background>
+                <template #description>
+                  {{ $t('labels.licenseKeySetByEnv') }}
+                  <a
+                    href="https://nocodb.com/docs/self-hosting/license-activation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="!text-nc-content-brand !no-underline hover:underline"
+                    >{{ $t('msg.learnMore') }}</a
+                  >
+                </template>
+              </NcAlert>
+            </template>
+
+            <template v-else>
+              <a-input
+                v-model:value="key"
+                :placeholder="$t('labels.enterLicenseKey')"
+                class="!rounded-lg nc-license-key-input"
+                spellcheck="false"
+                size="large"
+                data-testid="nc-license-key-input"
+              >
+                <template v-if="key" #suffix>
+                  <NcTooltip :title="$t('general.copy')">
+                    <NcButton type="text" size="xs" @click="copyLicenseKey">
+                      <GeneralIcon :icon="isCopied ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+                    </NcButton>
+                  </NcTooltip>
+                </template>
+              </a-input>
+
+              <div class="flex gap-3">
+                <NcButton
+                  type="primary"
+                  size="small"
+                  :disabled="!key?.trim() || key.trim() === savedKey.trim()"
+                  :loading="isLoading"
+                  data-testid="nc-license-save-btn"
+                  @click="setLicense"
+                >
+                  {{ $t('general.save') }}
+                </NcButton>
+                <NcTooltip v-if="savedKey" :title="$t('labels.removeLicenseTooltip')">
+                  <NcButton type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
+                    {{ $t('labels.removeLicense') }}
                   </NcButton>
                 </NcTooltip>
-              </template>
-            </a-input>
-
-            <div class="flex gap-3">
-              <NcButton
-                type="primary"
-                size="small"
-                :disabled="!key?.trim() || key.trim() === savedKey.trim()"
-                :loading="isLoading"
-                data-testid="nc-license-save-btn"
-                @click="setLicense"
-              >
-                {{ $t('general.save') }}
-              </NcButton>
-              <NcTooltip v-if="savedKey" :title="$t('labels.removeLicenseTooltip')">
-                <NcButton type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
-                  {{ $t('labels.removeLicense') }}
-                </NcButton>
-              </NcTooltip>
-              <NcTooltip v-if="savedKey && isEEActive" :title="$t('labels.refreshLicenseTooltip')">
-                <NcButton
-                  v-e="['c:account:license:refresh']"
-                  type="secondary"
-                  size="small"
-                  :loading="isRefreshing"
-                  data-testid="nc-license-refresh-btn"
-                  @click="refreshLicense"
-                >
-                  {{ $t('upgrade.refreshLicense') }}
-                </NcButton>
-              </NcTooltip>
-            </div>
+                <!-- Shown while expired too — refreshing is what picks up a renewal -->
+                <NcTooltip v-if="savedKey" :title="$t('labels.refreshLicenseTooltip')">
+                  <NcButton
+                    v-e="['c:account:license:refresh']"
+                    type="secondary"
+                    size="small"
+                    :loading="isRefreshing"
+                    data-testid="nc-license-refresh-btn"
+                    @click="refreshLicense"
+                  >
+                    {{ $t('upgrade.refreshLicense') }}
+                  </NcButton>
+                </NcTooltip>
+              </div>
+            </template>
           </div>
+
+          <AccountLicenseCredits v-if="isEeUI" />
 
           <!-- Buy / Manage License card -->
           <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
@@ -283,4 +363,3 @@ loadLicense()
   font-size: 14px !important;
 }
 </style>
-

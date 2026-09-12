@@ -193,6 +193,19 @@ async function retryImport() {
   listeningImport.value = false
 }
 
+function goToBase() {
+  const workspaceId = activeWorkspace.value?.id ?? 'nc'
+
+  // newBase / workspaceMode create base(s) elsewhere — land on the workspace
+  // dashboard. Otherwise go to the base that received the migration.
+  const path = syncOptions.value.workspaceMode || syncOptions.value.newBase ? `/${workspaceId}` : `/${workspaceId}/${baseId}`
+
+  // Full document load (not a router push) so every per-base store — docs tree,
+  // dashboards, scripts, workflows, … — is rebuilt from the server. A targeted
+  // store refresh would silently miss any newly migratable entity type.
+  window.location.href = path
+}
+
 const isInProgress = computed(() => {
   return !lastProgress.value || ![JobStatus.COMPLETED, JobStatus.FAILED].includes(lastProgress.value?.status)
 })
@@ -237,7 +250,7 @@ onUnmounted(() => {
         target="_blank"
         rel="noopener"
       >
-        Docs
+        {{ $t('title.docs') }}
       </a>
       <NcButton v-else-if="step === 2" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
         {{ detailsIsShown ? 'Hide' : 'Show' }} Details
@@ -249,7 +262,7 @@ onUnmounted(() => {
       <div class="text-nc-content-gray-subtle2 text-sm px-2">
         <p class="mb-2">Easily migrate your base with the following steps:</p>
         <ol class="list-decimal list-inside mt-2 pl-1">
-          <li>Open <strong>settings</strong> in your NocoDB base</li>
+          <li>{{ $t('general.open') }} <strong>settings</strong> in your NocoDB base</li>
           <li>Navigate to <strong>Migrate</strong> tab</li>
           <li>Paste the <strong>URL</strong></li>
           <li>Click <strong>Migrate</strong></li>
@@ -279,7 +292,7 @@ onUnmounted(() => {
         <a-collapse v-if="!listeningImport" v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
             <div class="mb-2">
-              <a-checkbox v-model:checked="syncOptions.newBase"> New Base </a-checkbox>
+              <a-checkbox v-model:checked="syncOptions.newBase"> {{ $t('title.newProj') }} </a-checkbox>
             </div>
 
             <div class="mt-2">
@@ -313,7 +326,7 @@ onUnmounted(() => {
             <template #message>
               <div class="flex flex-row items-center gap-2 mb-2">
                 <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
-                <span class="font-weight-700 text-[14px]">Import error</span>
+                <span class="font-weight-700 text-[14px]">{{ $t('msg.error.importError') }}</span>
               </div>
             </template>
             <template #description>
@@ -331,7 +344,7 @@ onUnmounted(() => {
 
       <div v-if="!isInProgress" class="text-right mt-4">
         <NcButton v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport"> Retry import </NcButton>
-        <NcButton v-else size="small" @click="dialogShow = false">
+        <NcButton v-else size="small" @click="goToBase">
           {{ syncOptions.workspaceMode || syncOptions.newBase ? 'Go To Dashboard' : 'Go To Base' }}
         </NcButton>
       </div>

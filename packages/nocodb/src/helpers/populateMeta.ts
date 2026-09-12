@@ -4,13 +4,14 @@ import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
 import type { UserType } from 'nocodb-sdk';
-import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
-import type Source from '~/models/Source';
 import type Base from '~/models/Base';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
+import Source from '~/models/Source';
 import { META_COL_NAME } from '~/constants';
+import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
+import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -19,7 +20,6 @@ import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
-import { GridViewColumn } from '~/models';
 
 export const IGNORE_TABLES = [
   'nc_models',
@@ -129,6 +129,13 @@ export async function extractAndGenerateManyToManyRelations(
       );
 
       if (!isRelationAvailInA) {
+        const fkChildColA = assocModel.columns.find(
+          (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+        );
+        const fkParentColA = assocModel.columns.find(
+          (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+        );
+
         await Column.insert<LinkToAnotherRecordColumn>(context, {
           title: getUniqueColumnAliasName(
             modelA.columns,
@@ -143,14 +150,32 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[1].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.Links,
+          // mm has a junction table (fk_mm_model_id set), so the version
+          // heuristic resolves LinkToAnotherRecord to LTAR v2.
+          uidt: UITypes.LinkToAnotherRecord,
           meta: {
             plural: pluralize(modelB.title),
             singular: singularize(modelB.title),
           },
+          description:
+            fkChildColA && fkParentColA
+              ? formatLinkDbMapping({
+                  kind: 'mm',
+                  junctionTable: assocModel.table_name,
+                  fkChildColumn: fkChildColA.column_name,
+                  fkParentColumn: fkParentColA.column_name,
+                })
+              : undefined,
         });
       }
       if (!isRelationAvailInB) {
+        const fkChildColB = assocModel.columns.find(
+          (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+        );
+        const fkParentColB = assocModel.columns.find(
+          (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+        );
+
         await Column.insert<LinkToAnotherRecordColumn>(context, {
           title: getUniqueColumnAliasName(
             modelB.columns,
@@ -165,11 +190,22 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[0].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.Links,
+          // mm has a junction table (fk_mm_model_id set), so the version
+          // heuristic resolves LinkToAnotherRecord to LTAR v2.
+          uidt: UITypes.LinkToAnotherRecord,
           meta: {
             plural: pluralize(modelA.title),
             singular: singularize(modelA.title),
           },
+          description:
+            fkChildColB && fkParentColB
+              ? formatLinkDbMapping({
+                  kind: 'mm',
+                  junctionTable: assocModel.table_name,
+                  fkChildColumn: fkChildColB.column_name,
+                  fkParentColumn: fkParentColB.column_name,
+                })
+              : undefined,
         });
       }
 
@@ -231,6 +267,20 @@ export async function populateMeta(
 
   const t = process.hrtime();
   const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+
+  if (!source.is_meta) {
+    try {
+      const dbVersion = (await sqlClient.version())?.data?.object?.version;
+      if (dbVersion && source.meta?.dbVersion !== dbVersion) {
+        const meta = { ...(source.meta || {}), dbVersion };
+        source.meta = meta;
+        await Source.update(context, source.id, { meta });
+      }
+    } catch (e) {
+      logger?.(`Could not determine source DB version: ${e?.message}`);
+    }
+  }
+
   let order = 1;
   const models2: { [tableName: string]: Model } = {};
 
@@ -238,13 +288,15 @@ export async function populateMeta(
 
   /* Get all relations */
   const relations = (
-    await sqlClient.relationListAll({ schema: source.getConfig()?.schema })
+    await sqlClient.relationListAll({
+      schema: getSourceIntrospectionSchema(source),
+    })
   )?.data?.list;
 
   info.relationsCount = relations.length;
 
   let tables = (
-    await sqlClient.tableList({ schema: source.getConfig()?.schema })
+    await sqlClient.tableList({ schema: getSourceIntrospectionSchema(source) })
   )?.data?.list
     ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
     ?.map((t) => {
@@ -312,7 +364,7 @@ export async function populateMeta(
       > = (
         await sqlClient.columnList({
           tn: table.tn,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 
@@ -346,7 +398,10 @@ export async function populateMeta(
       const virtualColumns = [
         ...hasMany.map((hm) => {
           return {
-            uidt: UITypes.Links,
+            // External-source relations use LinkToAnotherRecord (LTAR), not the
+            // deprecated Links uidt. hm has no junction table, so the version
+            // heuristic in Column.insertColOption resolves this to LTAR v1.
+            uidt: UITypes.LinkToAnotherRecord,
             type: 'hm',
             hm,
             title: pluralize(hm.title),
@@ -397,6 +452,18 @@ export async function populateMeta(
       for (const column of columns) {
         if (source.type === 'databricks') {
           if (column.pk && !column.cdf) {
+            column.meta = {
+              ag: 'nc',
+            };
+          }
+        }
+
+        // MSSQL: a PK that is neither IDENTITY (auto-increment → AI) nor backed
+        // by a DB default (e.g. NEWID()) must be NocoDB-generated (AG). Identity
+        // columns report no column_default, so the !ai guard is required to
+        // avoid mis-tagging them as AG.
+        if (source.type === 'mssql') {
+          if (column.pk && !column.cdf && !column.ai) {
             column.meta = {
               ag: 'nc',
             };
@@ -458,11 +525,30 @@ export async function populateMeta(
               fk_parent_column_id: ref_rel_column_id,
               fk_index_name: rel.cstn,
               ur: rel.ur,
-              dr: rel.dr,
+              // persist raw ON DELETE rule from DB
+              // (e.g. 'NO ACTION', 'RESTRICT', 'CASCADE', 'SET NULL', 'SET DEFAULT')
+              dr: normalizeDr(rel.dr),
               order: colOrder++,
               fk_related_model_id: column.hm ? tnId : rtnId,
               system: column.system,
               meta: column.meta,
+              description: formatLinkDbMapping(
+                column.hm
+                  ? {
+                      kind: 'hm',
+                      childTable: rel.tn,
+                      fkColumn: rel.cn,
+                      parentTable: rel.rtn,
+                      parentPk: rel.rcn,
+                    }
+                  : {
+                      kind: 'bt',
+                      childTable: rel.tn,
+                      fkColumn: rel.cn,
+                      parentTable: rel.rtn,
+                      parentPk: rel.rcn,
+                    },
+              ),
             });
 
             // nested relations data apis
@@ -486,7 +572,7 @@ export async function populateMeta(
 
   let views: Array<{ order: number; table_name: string; title: string }> = (
     await sqlClient.viewList({
-      schema: source.getConfig()?.schema,
+      schema: getSourceIntrospectionSchema(source),
     })
   )?.data?.list
     // ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
@@ -511,7 +597,7 @@ export async function populateMeta(
       const columns = (
         await sqlClient.columnList({
           tn: table.table_name,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 
@@ -576,56 +662,4 @@ export async function populateMeta(
   logger?.(`Populating meta completed in ${t2.toFixed(1)}s`);
 
   return info;
-}
-
-export async function populateRollupColumnAndHideLTAR(
-  context: NcContext,
-  source: Source,
-  base: Base,
-) {
-  for (const model of await Model.list(context, {
-    base_id: base.id,
-    source_id: source.id,
-  })) {
-    const columns = await model.getColumns(context);
-    const hmAndMmLTARColumns = columns.filter(
-      (c) =>
-        c.uidt === UITypes.LinkToAnotherRecord &&
-        c.colOptions.type !== RelationTypes.BELONGS_TO &&
-        !c.system,
-    );
-
-    const views = await model.getViews(context);
-
-    for (const column of hmAndMmLTARColumns) {
-      const relatedModel = await column
-        .getColOptions<LinkToAnotherRecordColumn>(context)
-        .then((colOpt) => colOpt.getRelatedTable(context));
-      await relatedModel.getColumns(context);
-      const pkId =
-        relatedModel.primaryKey?.id ||
-        (await relatedModel.getColumns(context))[0]?.id;
-
-      await Column.insert<RollupColumn>(context, {
-        uidt: UITypes.Links,
-        title: getUniqueColumnAliasName(
-          await model.getColumns(context),
-          `${relatedModel.title}`,
-        ),
-        fk_rollup_column_id: pkId,
-        fk_model_id: model.id,
-        rollup_function: 'count',
-        fk_relation_column_id: column.id,
-        meta: {
-          singular: singularize(relatedModel.title),
-          plural: pluralize(relatedModel.title),
-        },
-      });
-
-      const viewCol = await GridViewColumn.list(context, views[0].id).then(
-        (cols) => cols.find((c) => c.fk_column_id === column.id),
-      );
-      await GridViewColumn.update(context, viewCol.id, { show: false });
-    }
-  }
 }

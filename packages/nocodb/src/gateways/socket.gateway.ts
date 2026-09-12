@@ -10,14 +10,14 @@ import type { Socket } from 'socket.io';
 import { T } from '~/utils';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { TelemetryService } from '~/services/telemetry.service';
+import { ncSiteUrl } from '~/utils/envs';
 
 function getHash(str) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
 const url = new URL(
-  process.env.NC_PUBLIC_URL ||
-    `http://localhost:${process.env.PORT || '8080'}/`,
+  ncSiteUrl || `http://localhost:${process.env.PORT || '8080'}/`,
 );
 let namespace = url.pathname;
 namespace += namespace.endsWith('/') ? '' : '/';
@@ -48,6 +48,12 @@ export class SocketGateway implements OnModuleInit {
   server: Server;
 
   async onModuleInit() {
+    // This socket exposes only telemetry beacons (`page`, `event`) — no data
+    // subscriptions, rooms, or privileged operations are registered below, so an
+    // unauthenticated connection cannot reach any sensitive surface. The JWT step
+    // is best-effort attribution only: on success the client's `user` is attached
+    // to the handshake, and on failure the connection is still accepted so
+    // anonymous telemetry pings work. This is intentional, not an auth bypass.
     this.server
       .use(async (socket, next) => {
         try {

@@ -267,7 +267,6 @@ class PGClient extends KnexClient {
       });
       try {
         await tempSqlClient.raw('SELECT 1+1 as data');
-        await tempSqlClient.destroy();
       } catch (e) {
         if (!/^database "[\w\d_]+" does not exist$/.test(e.message)) {
           log.ppe(e);
@@ -275,6 +274,8 @@ class PGClient extends KnexClient {
           // send back original error message
           result.message = e1.message;
         }
+      } finally {
+        await tempSqlClient.destroy();
       }
     } finally {
       log.api(`${_func}:result:`, result);
@@ -535,12 +536,13 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
+    let tempSqlClient;
     try {
       const connectionParamsWithoutDb = deepClone(this.connectionConfig);
       connectionParamsWithoutDb.connection.password =
         this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex({
+      tempSqlClient = knex({
         ...connectionParamsWithoutDb,
         pool: { min: 0, max: 1 },
       });
@@ -556,10 +558,13 @@ class PGClient extends KnexClient {
 
       log.debug('dropping database:', args);
       await tempSqlClient.raw(`DROP DATABASE ??;`, [args.database]);
-      await tempSqlClient.destroy();
     } catch (e) {
       log.ppe(e, _func);
       // throw e;
+    } finally {
+      if (tempSqlClient) {
+        await tempSqlClient.destroy();
+      }
     }
 
     log.api(`${_func}: result`, result);
@@ -840,6 +845,7 @@ class PGClient extends KnexClient {
                     -- c.collation_name as clnn,
                     pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
                     c.udt_name,
+                    c.udt_schema,
                     ${identitySelector}
 
        (SELECT count(*)
@@ -856,8 +862,13 @@ class PGClient extends KnexClient {
         FROM "pg_enum" "e"
         INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-                ) enum_values
+        WHERE "n"."nspname" = c.udt_schema AND "t"."typname"=c.udt_name
+                ) enum_values,
+                (SELECT t.typtype
+        FROM "pg_type" "t"
+        INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+        WHERE "n"."nspname" = c.udt_schema AND "t"."typname"=c.udt_name
+                ) udt_typtype
 
 
             from information_schema.columns c
@@ -933,8 +944,25 @@ class PGClient extends KnexClient {
         column.dtxs = response.rows[i].ns;
         column.au = response.rows[i].au;
         column.data_type_custom = response.rows[i].udt_name;
+        column.udt_typtype = response.rows[i].udt_typtype;
         if (column.dt === 'USER-DEFINED') {
           column.dtxp = response.rows[i].enum_values;
+          // Bind the column to its native PG enum type so columnUpdate can
+          // emit ALTER TYPE for option add/rename instead of touching cell
+          // data. Both name and schema are captured (the enum can live in a
+          // different schema from the table) and we require both — partial
+          // metadata would force callers to guess the schema later.
+          if (
+            column.udt_typtype === 'e' &&
+            response.rows[i].udt_name &&
+            response.rows[i].udt_schema
+          ) {
+            column.internal_meta = {
+              ...(column.internal_meta || {}),
+              pg_enum_type_name: response.rows[i].udt_name,
+              pg_enum_schema_name: response.rows[i].udt_schema,
+            };
+          }
         }
 
         // handle identity column
@@ -957,6 +985,70 @@ class PGClient extends KnexClient {
 
     return result;
   }
+
+  /**
+   * Find columns referencing a given user-defined type. Used to decide
+   * whether mutating a native enum in place is safe (sole owner) vs.
+   * requires forking into a new type (shared with other columns).
+   *
+   * @param args.typeSchema    Schema the type lives in (e.g. 'public').
+   * @param args.typeName      Type name (e.g. 'mood').
+   * @param args.excludeTableSchema  Optional — schema of a column to exclude.
+   * @param args.excludeTableName    Optional — table of a column to exclude.
+   * @param args.excludeColumnName   Optional — name of a column to exclude.
+   *                                 The three excludeX args go together: pass
+   *                                 all three to skip the calling column, or
+   *                                 none to list every reference.
+   * @returns Array of {table_schema, table_name, column_name} references.
+   */
+  async findColumnsUsingType(args: {
+    typeSchema: string;
+    typeName: string;
+    excludeTableSchema?: string;
+    excludeTableName?: string;
+    excludeColumnName?: string;
+  }): Promise<
+    {
+      table_schema: string;
+      table_name: string;
+      column_name: string;
+    }[]
+  > {
+    const hasExclude =
+      !!args.excludeTableSchema &&
+      !!args.excludeTableName &&
+      !!args.excludeColumnName;
+    const excludeClause = hasExclude
+      ? 'AND NOT (n_tbl.nspname = ? AND cls.relname = ? AND attr.attname = ?)'
+      : '';
+    const params: any[] = [args.typeSchema, args.typeName];
+    if (hasExclude) {
+      params.push(
+        args.excludeTableSchema,
+        args.excludeTableName,
+        args.excludeColumnName,
+      );
+    }
+    const { rows } = await this.sqlClient.raw(
+      `SELECT n_tbl.nspname AS table_schema,
+              cls.relname     AS table_name,
+              attr.attname    AS column_name
+       FROM pg_attribute attr
+       JOIN pg_class cls ON cls.oid = attr.attrelid
+       JOIN pg_namespace n_tbl ON n_tbl.oid = cls.relnamespace
+       JOIN pg_type typ ON typ.oid = attr.atttypid
+       JOIN pg_namespace n_typ ON n_typ.oid = typ.typnamespace
+       WHERE n_typ.nspname = ?
+         AND typ.typname = ?
+         AND cls.relkind IN ('r', 'p')
+         AND attr.attnum > 0
+         AND NOT attr.attisdropped
+         ${excludeClause}`,
+      params,
+    );
+    return rows;
+  }
+
   /**
    *
    * @param {Object} - args - Input arguments
@@ -2478,6 +2570,10 @@ class PGClient extends KnexClient {
       let upQuery = '';
       let downQuery = '';
 
+      // Detect soft-delete column for partial unique index support
+      const deletedCol = args.columns.find((c) => c.uidt === UITypes.Deleted);
+      const softDeleteColumnName = deletedCol?.cn || deletedCol?.column_name;
+
       for (let i = 0; i < args.columns.length; ++i) {
         // Set table name on column object (needed for functions that don't take table parameter)
         args.columns[i].tn = args.table;
@@ -2554,6 +2650,7 @@ class PGClient extends KnexClient {
             oldColumn,
             args.columns[i],
             downQuery,
+            softDeleteColumnName,
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
@@ -2561,11 +2658,13 @@ class PGClient extends KnexClient {
             args.columns[i],
             oldColumn,
             upQuery,
+            softDeleteColumnName,
           );
           downQuery += this.alterTableChangeColumn(
             oldColumn,
             args.columns[i],
             downQuery,
+            softDeleteColumnName,
           );
         } else if (args.columns[i].altered & 1) {
           // col addition
@@ -2573,6 +2672,7 @@ class PGClient extends KnexClient {
             args.columns[i],
             oldColumn,
             upQuery,
+            softDeleteColumnName,
           );
           downQuery += this.alterTableRemoveColumn(
             args.columns[i],
@@ -2734,9 +2834,14 @@ class PGClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
+      // IF EXISTS keeps the drop idempotent — a table already gone (out-of-band
+      // drop or a prior partial cleanup) must not abort, otherwise trash-cleanup
+      // retries loop forever on the missing table.
       await this.sqlClient.raw(
         this.sqlClient.schema
-          .dropTable(args.schema ? `${args.schema}.${args.tn}` : args.tn)
+          .dropTableIfExists(
+            args.schema ? `${args.schema}.${args.tn}` : args.tn,
+          )
           .toQuery(),
       );
 
@@ -3010,24 +3115,28 @@ class PGClient extends KnexClient {
     const shouldSanitize = true;
     const tableName = n.tn;
     let query = existingQuery ? ',' : '';
+    // IF EXISTS makes the drop idempotent — a column already removed out-of-band
+    // (manual ALTER, prior partial cleanup, or never physically created) must
+    // not abort the statement. Mirrors the `drop constraint IF EXISTS` above and
+    // unblocks trash-cleanup retries that loop forever on a missing column.
     query += this.genQuery(
-      `ALTER TABLE ?? DROP COLUMN ??`,
+      `ALTER TABLE ?? DROP COLUMN IF EXISTS ??`,
       [tableName, n.cn],
       shouldSanitize,
     );
     return query;
   }
 
-  createTableColumn(n, o, existingQuery) {
-    return this.alterTableColumn(n, o, existingQuery, 0);
+  createTableColumn(n, o, existingQuery, softDeleteColumnName?: string) {
+    return this.alterTableColumn(n, o, existingQuery, 0, softDeleteColumnName);
   }
 
-  alterTableAddColumn(n, o, existingQuery) {
-    return this.alterTableColumn(n, o, existingQuery, 1);
+  alterTableAddColumn(n, o, existingQuery, softDeleteColumnName?: string) {
+    return this.alterTableColumn(n, o, existingQuery, 1, softDeleteColumnName);
   }
 
-  alterTableChangeColumn(n, o, existingQuery) {
-    return this.alterTableColumn(n, o, existingQuery, 2);
+  alterTableChangeColumn(n, o, existingQuery, softDeleteColumnName?: string) {
+    return this.alterTableColumn(n, o, existingQuery, 2, softDeleteColumnName);
   }
 
   createTable(table, args) {
@@ -3045,7 +3154,13 @@ class PGClient extends KnexClient {
     return query;
   }
 
-  alterTableColumn(n, o, existingQuery, change = 2) {
+  alterTableColumn(
+    n,
+    o,
+    existingQuery,
+    change = 2,
+    softDeleteColumnName?: string,
+  ) {
     // Get table name from column object (like MySQL pattern)
     const t = n.tn || o?.tn;
     let query = '';
@@ -3117,7 +3232,13 @@ class PGClient extends KnexClient {
         shouldSanitize,
       );
       // For change === 1, use addUniqueConstraintToQuery
-      query = this.addUniqueConstraintToQuery(n, t, query, shouldSanitize);
+      query = this.addUniqueConstraintToQuery(
+        n,
+        t,
+        query,
+        shouldSanitize,
+        softDeleteColumnName,
+      );
     } else {
       // Ensure column name is set - use n.cn if available, otherwise fall back to o.cn or o.cno
       // This ensures all subsequent operations have a valid column name
@@ -3184,13 +3305,14 @@ class PGClient extends KnexClient {
             o.uidt,
           );
           const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
-          const castQuery = generateCastQuery(
-            n.uidt,
-            n.dt,
-            castedColumn,
+          const castQuery = generateCastQuery({
+            uidt: n.uidt,
+            dt: n.dt,
+            source: castedColumn,
             limit,
-            n.meta?.date_format || 'YYYY-MM-DD',
-          );
+            format: n.meta?.date_format || 'YYYY-MM-DD',
+            durationType: n.meta?.duration ?? 0,
+          });
 
           query += this.genQuery(castQuery, [], shouldSanitize);
         }
@@ -3243,6 +3365,18 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize,
         );
+        // `serial` is `NOT NULL DEFAULT nextval(...)`, but it is added via the
+        // `n.ai` branch which never emits a NOT NULL clause — so metadata keeps
+        // rqd=false and the `n.rqd !== o.rqd` diff above can't see the
+        // constraint. Dropping the default without it leaves a NOT NULL column
+        // that nothing populates, breaking every insert on the table.
+        if (!n.rqd) {
+          query += this.genQuery(
+            `\nALTER TABLE ?? ALTER COLUMN ?? DROP NOT NULL;\n`,
+            [t, n.cn],
+            shouldSanitize,
+          );
+        }
       }
 
       // Handle unique constraint changes
@@ -3261,15 +3395,34 @@ class PGClient extends KnexClient {
             n.cn = columnName;
           }
 
-          query = this.addUniqueConstraintToQuery(n, t, query, shouldSanitize);
+          query = this.addUniqueConstraintToQuery(
+            n,
+            t,
+            query,
+            shouldSanitize,
+            softDeleteColumnName,
+          );
         } else {
-          // Dropping unique constraint
+          // Dropping unique constraint (may be a constraint or a partial index)
           const constraintName = this.getUniqueConstraintName(o, t);
 
-          // Use DROP CONSTRAINT IF EXISTS to avoid errors if constraint doesn't exist
+          // Drop both constraint and index to handle both cases. Qualify the
+          // DROP INDEX with the table's schema — an unqualified drop only
+          // searches the current search_path and silently misses the index
+          // when the table lives in a workspace schema, causing the next
+          // CREATE INDEX to fail with "already exists".
+          const dropIndexSchema = t.includes('.') ? t.split('.')[0] : null;
+          const qualifiedIndexName = dropIndexSchema
+            ? `${dropIndexSchema}.${constraintName}`
+            : constraintName;
           query += this.genQuery(
             `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
             [t, constraintName],
+            shouldSanitize,
+          );
+          query += this.genQuery(
+            `\nDROP INDEX IF EXISTS ??;\n`,
+            [qualifiedIndexName],
             shouldSanitize,
           );
         }
@@ -3384,11 +3537,14 @@ class PGClient extends KnexClient {
   }
 
   /**
-   * Adds unique constraint SQL to the query
+   * Adds unique constraint SQL to the query.
+   * When softDeleteColumnName is provided, creates a partial unique index
+   * that excludes soft-deleted rows so trashed records don't block active values.
    * @param n - Column object
    * @param tableName - Optional table name (can be extracted from n.tn)
    * @param query - Existing query string
    * @param shouldSanitize - Whether to sanitize the query
+   * @param softDeleteColumnName - Name of the soft-delete boolean column (e.g. __nc_deleted)
    * @returns Updated query string
    */
   private addUniqueConstraintToQuery(
@@ -3396,6 +3552,7 @@ class PGClient extends KnexClient {
     tableName?: string,
     query: string = '',
     shouldSanitize: boolean = true,
+    softDeleteColumnName?: string,
   ): string {
     // Check n.unique for unique constraint
     if (!n.unique) {
@@ -3419,17 +3576,48 @@ class PGClient extends KnexClient {
     // Store constraint name in internal_meta
     this.storeUniqueConstraintName(n, constraintName);
 
-    // Add DROP CONSTRAINT and ADD CONSTRAINT to query
+    // Drop existing constraint/index first
     query += this.genQuery(
       `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
       [t, constraintName],
       shouldSanitize,
     );
+    // Also drop index in case it was created as a partial unique index.
+    // Qualify with the table's schema — see comment in the drop-branch
+    // above; unqualified DROP INDEX silently misses indexes in non-default
+    // schemas and causes the subsequent CREATE to fail.
+    const dropIndexSchema = t.includes('.') ? t.split('.')[0] : null;
+    const qualifiedIndexName = dropIndexSchema
+      ? `${dropIndexSchema}.${constraintName}`
+      : constraintName;
     query += this.genQuery(
-      `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
-      [t, constraintName, columnName],
+      `\nDROP INDEX IF EXISTS ??;\n`,
+      [qualifiedIndexName],
       shouldSanitize,
     );
+
+    // If table has a soft-delete column, use a partial unique index
+    // so that deleted records don't block unique values for active records.
+    // PK and auto-increment columns keep unconditional unique constraints.
+    if (softDeleteColumnName && !n.pk && !n.ai) {
+      query += this.genQuery(
+        `\nCREATE UNIQUE INDEX ?? ON ?? (??) WHERE (?? IS NULL OR ?? = false);\n`,
+        [
+          constraintName,
+          t,
+          columnName,
+          softDeleteColumnName,
+          softDeleteColumnName,
+        ],
+        shouldSanitize,
+      );
+    } else {
+      query += this.genQuery(
+        `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
+        [t, constraintName, columnName],
+        shouldSanitize,
+      );
+    }
 
     return query;
   }

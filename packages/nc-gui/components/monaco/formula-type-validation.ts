@@ -933,6 +933,31 @@ export class FormulaTypeValidator {
         }
         break
 
+      case 'DATETIME_FORMAT':
+        // First argument should be a date
+        if (
+          node.arguments[0] &&
+          node.arguments[0].dataType !== FormulaDataTypes.DATE &&
+          node.arguments[0].dataType !== FormulaDataTypes.NULL &&
+          node.arguments[0].dataType !== FormulaDataTypes.UNKNOWN
+        ) {
+          errors.push({
+            message: `First argument of DATETIME_FORMAT should be a Date`,
+            severity: MarkerSeverity.Warning,
+            ...this.findNodePosition(node.arguments[0], formula),
+          })
+        }
+
+        // Second argument (format) should be a string literal when provided
+        if (node.arguments[1] && node.arguments[1].type === JSEPNode.LITERAL && typeof node.arguments[1].value !== 'string') {
+          errors.push({
+            message: `Second argument of DATETIME_FORMAT should be a text format`,
+            severity: MarkerSeverity.Error,
+            ...this.findNodePosition(node.arguments[1], formula),
+          })
+        }
+        break
+
       case 'DATESTR':
       case 'DAY':
       case 'MONTH':
@@ -963,6 +988,37 @@ export class FormulaTypeValidator {
         ) {
           errors.push({
             message: `First argument of WEEKDAY should be a Date`,
+            severity: MarkerSeverity.Warning,
+            ...this.findNodePosition(node.arguments[0], formula),
+          })
+        }
+
+        // Check if second argument is a valid start day
+        if (node.arguments[1] && node.arguments[1].type === JSEPNode.LITERAL) {
+          const startDay = node.arguments[1].value
+          if (
+            typeof startDay === 'string' &&
+            !['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].includes(startDay.toLowerCase())
+          ) {
+            errors.push({
+              message: `Invalid start day: "${startDay}". Use a day name like "monday"`,
+              severity: MarkerSeverity.Error,
+              ...this.findNodePosition(node.arguments[1], formula),
+            })
+          }
+        }
+        break
+
+      case 'WEEKNUM':
+        // Check if first argument is a date
+        if (
+          node.arguments[0] &&
+          node.arguments[0].dataType !== FormulaDataTypes.DATE &&
+          node.arguments[0].dataType !== FormulaDataTypes.NULL &&
+          node.arguments[0].dataType !== FormulaDataTypes.UNKNOWN
+        ) {
+          errors.push({
+            message: `First argument of WEEKNUM should be a Date`,
             severity: MarkerSeverity.Warning,
             ...this.findNodePosition(node.arguments[0], formula),
           })
@@ -1135,7 +1191,7 @@ export class FormulaTypeValidator {
       if (
         typeof value === 'string' &&
         /^\d{4}-\d{2}-\d{2}/.test(value) &&
-        !['DATEADD', 'DATESTR', 'DAY', 'MONTH', 'YEAR'].includes(node.parentFunction)
+        !['DATEADD', 'DATESTR', 'DATETIME_FORMAT', 'DAY', 'MONTH', 'YEAR'].includes(node.parentFunction)
       ) {
         errors.push({
           message: `"${value}" looks like a date but is used as Text. Use a date function if date operations are intended.`,

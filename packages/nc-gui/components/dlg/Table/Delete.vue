@@ -67,14 +67,21 @@ const onDelete = async () => {
           return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
         }),
       )
-      message.info(
-        h('div', {
-          innerHTML: `<div style="padding:10px 4px">Unable to delete tables because of the following.
-              <br><br>${refColMsgs.join('<br>')}<br><br>
-              Delete them & try again</div>`,
-        }),
-      )
+      message.info({ content: buildTableDeleteDependencyMessage(refColMsgs) })
       return
+    }
+
+    // Collect related table IDs before delete so we can evict their cached
+    // metas afterwards. The backend replaces the reverse LTAR in each with an
+    // SLT placeholder; without evicting, stale meta would survive and the
+    // placeholder wouldn't appear on next navigation.
+    const relatedTableIds = new Set<string>()
+    for (const c of relationColumns ?? []) {
+      const opt = c.colOptions as LinkToAnotherRecordType
+      const relModelId = opt?.fk_related_model_id
+      if (relModelId && relModelId !== toBeDeletedTable.id) {
+        relatedTableIds.add(relModelId as string)
+      }
     }
 
     await $api.internal.postOperation(
@@ -93,6 +100,10 @@ const onDelete = async () => {
     removeFromRecentViews({ baseId: props.baseId, tableId: toBeDeletedTable.id as string })
 
     removeMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)
+
+    for (const relTableId of relatedTableIds) {
+      removeMeta(toBeDeletedTable.base_id as string, relTableId)
+    }
     refreshCommandPalette()
     // Deleted table successfully
     $e('a:table:delete')

@@ -9,6 +9,7 @@ import {
   getFirstNonPersonalView,
 } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
+import { JobStatus } from '#imports'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',

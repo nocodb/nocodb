@@ -26,6 +26,7 @@ import { PublicDataExportController } from '~/modules/jobs/jobs/data-export/publ
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
+import { DataImportProcessor } from '~/modules/jobs/jobs/data-import/data-import.processor';
 
 // Job Map
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
@@ -38,6 +39,13 @@ import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_o
 import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
+import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
+import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-jobs/nc_job_011_normalize_soft_delete_sqlite';
+import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
+import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
+import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
+import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
+import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -87,6 +95,7 @@ export const JobsModuleMetadata = {
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
     AttachmentUrlUploadProcessor,
+    DataImportProcessor,
 
     // Migration Jobs
     InitMigrationJobs,
@@ -99,8 +108,22 @@ export const JobsModuleMetadata = {
     RecoverOrderColumnMigration,
     RecoverDisconnectedTableNames,
     AuditMigration,
+    SoftDeleteColumnMigration,
+    NormalizeSoftDeleteSqliteMigration,
+    RecordTrashBackfillMigration,
+    CleanupOrphanCrossBaseLinksMigration,
+    CleanupOrphanViewColumnsMigration,
+    PgSourceSearchPathBackfillMigration,
+    CreditPlanBackfillMigration,
   ],
-  exports: ['JobsService', JobsLogService, DuplicateProcessor],
+  exports: [
+    'JobsService',
+    JobsLogService,
+    DuplicateProcessor,
+    // The MCP server lives in NocoModule, which imports JobsModule — it can
+    // only resolve what JobsModule exports.
+    DuplicateService,
+  ],
 };
 
 @Module(JobsModuleMetadata)

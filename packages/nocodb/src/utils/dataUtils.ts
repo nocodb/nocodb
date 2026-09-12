@@ -1,5 +1,5 @@
-import { ncIsUndefined } from 'nocodb-sdk';
-import type { Knex } from 'knex';
+import { isLinksOrLTAR } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 import { MAX_CONCURRENT_TRANSFORMS } from '~/constants';
 
 export function getAliasGenerator(prefix = '__nc_') {
@@ -9,6 +9,17 @@ export function getAliasGenerator(prefix = '__nc_') {
 }
 
 export const ROOT_ALIAS = '__nc_root';
+
+/**
+ * Alias used by nested-list paths (hmList / mmList / btList) when they
+ * wrap a pre-filtered base query as `qb.as(SOURCE_ALIAS)` to give
+ * `listQueryEnrichment` a derived-table source. Wrapping isolates the
+ * pagination/outer-sort layer from the inner filter/formula scope on
+ * dialects that accept ORDER BY inside a derived table (pg, mysql,
+ * sqlite). Mssql doesn't accept that and skips the wrap entirely —
+ * see the caller in `data-alias-nested.service.ts`.
+ */
+export const SOURCE_ALIAS = 'source_qb';
 
 /**
  * Calculate a 32 bit FNV-1a hash
@@ -128,72 +139,6 @@ export const partialExtract = (obj: any, path: (string[] | string)[]) => {
   return result;
 };
 
-/**
- * Generates a batch update query using case statements
- * @param kn knex instance
- * @param tn table name or raw query for table
- * @param data array of objects to update (must include primary key)
- * @param pk primary key column name
- * @returns knex query object
- *
- * Generates queries in the format (supported by PostgreSQL, MySQL and SQLite):
- * UPDATE table SET
- *   col1 = CASE id WHEN 1 THEN 'val1' WHEN 2 THEN 'val2' ELSE col1 END,
- *   col2 = CASE id WHEN 1 THEN 'val3' WHEN 2 THEN 'val4' ELSE col2 END
- * WHERE id IN (1,2)
- */
-export function batchUpdate(
-  kn: Knex,
-  tn: string | Knex.Raw<any>,
-  data: Record<string, any>[],
-  pk: string,
-) {
-  if (!data.length) return null;
-
-  // Extract all unique primary keys
-  const pks = [...new Set(data.map((row) => row[pk]))];
-
-  // Get all columns except primary key that need to be updated
-  const allColumns = new Set<string>();
-  data.forEach((row) => {
-    Object.keys(row).forEach((col) => {
-      if (col !== pk) allColumns.add(col);
-    });
-  });
-
-  // return null if no fields updated
-  if (allColumns.size === 0) {
-    return null;
-  }
-
-  const columns = Array.from(allColumns);
-
-  // Build update object with CASE statements for each column
-  const updateObj: Record<string, Knex.Raw> = {};
-
-  columns.forEach((column) => {
-    const filteredData = data.filter((row) => !ncIsUndefined(row[column]));
-    updateObj[column] = kn.raw(
-      `CASE ?? ${filteredData
-        .map(() => 'WHEN ? THEN ?')
-        .join(' ')} ELSE ?? END`,
-      [
-        pk,
-        ...filteredData.flatMap((row) => [
-          row[pk],
-          typeof row[column] === 'object' || typeof row[column] === 'boolean'
-            ? row[column]
-            : `${row[column]}`,
-        ]),
-        column,
-      ],
-    );
-  });
-
-  // Build and return the query
-  return kn(tn).update(updateObj).whereIn(pk, pks);
-}
-
 // Reusable params interface for caching expensive operations
 export interface ReusableParams {
   [key: string]: any;
@@ -212,6 +157,45 @@ export async function reuseOrSave(
   const res = await get();
   params[tp] = res;
   return res;
+}
+
+/**
+ * For `recordUpdate` capture: narrow a full-row snapshot down to ONLY
+ * the keys touched by the update body, plus all pk titles (so the row
+ * can still be located on undo even when no non-pk field changed).
+ *
+ * Body keys may arrive as titles, column_names, or column ids — match
+ * any of the three. LTAR keys are skipped entirely; their pre-state
+ * lives in `displacedRecords` (junction rows + FK overwrites), not in
+ * `prev`. Including a stale link list under the column title would
+ * confuse the undo path's `dataUpdate` re-write.
+ */
+export function pickChangedFieldsForUpdatePrev(
+  prev: Record<string, any>,
+  body: Record<string, any>,
+  columns: ReadonlyArray<ColumnType>,
+  primaryKeys: ReadonlyArray<{ title?: string }>,
+): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const pk of primaryKeys) {
+    if (pk.title && prev[pk.title] !== undefined) {
+      out[pk.title] = prev[pk.title];
+    }
+  }
+  const byKey = new Map<string, ColumnType>();
+  for (const c of columns) {
+    if (c.title) byKey.set(c.title, c);
+    if (c.column_name) byKey.set(c.column_name, c);
+    if (c.id) byKey.set(c.id, c);
+  }
+  for (const k of Object.keys(body)) {
+    const col = byKey.get(k);
+    if (!col || !col.title) continue;
+    if (isLinksOrLTAR(col)) continue;
+    if (col.title in out) continue;
+    if (prev[col.title] !== undefined) out[col.title] = prev[col.title];
+  }
+  return out;
 }
 
 // Helper function to process arrays with concurrency control

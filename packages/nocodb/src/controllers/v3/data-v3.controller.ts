@@ -20,6 +20,7 @@ import type {
   DataRecord,
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
+import { DataUpsertRequest } from '~/services/v3/data-v3.types';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -61,6 +62,23 @@ export class Datav3Controller {
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(responseData);
+  }
+
+  @Post(`${PREFIX_APIV3_DATA}/:modelId/records/upsert`)
+  @HttpCode(200)
+  @Acl('dataUpsert')
+  async dataUpsert(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Body() body: DataUpsertRequest,
+  ) {
+    context.cache = true;
+    return await this.dataV3Service.dataUpsert(context, {
+      modelId: modelId,
+      body: body,
+      cookie: req,
+    });
   }
 
   @Post(`${PREFIX_APIV3_DATA}/:modelId/records`)

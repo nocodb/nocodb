@@ -18,6 +18,13 @@ import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_o
 import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
+import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
+import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-jobs/nc_job_011_normalize_soft_delete_sqlite';
+import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
+import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
+import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
+import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
+import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -68,6 +75,41 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.AuditMigration,
       service: this.auditMigration,
     },
+    {
+      version: '10',
+      job: MigrationJobTypes.SoftDeleteColumnMigration,
+      service: this.softDeleteColumnMigration,
+    },
+    {
+      version: '11',
+      job: MigrationJobTypes.NormalizeSoftDeleteSqliteMigration,
+      service: this.normalizeSoftDeleteSqliteMigration,
+    },
+    {
+      version: '12',
+      job: MigrationJobTypes.RecordTrashBackfill,
+      service: this.recordTrashBackfillMigration,
+    },
+    {
+      version: '13',
+      job: MigrationJobTypes.CleanupOrphanCrossBaseLinks,
+      service: this.cleanupOrphanCrossBaseLinksMigration,
+    },
+    {
+      version: '14',
+      job: MigrationJobTypes.CleanupOrphanViewColumns,
+      service: this.cleanupOrphanViewColumnsMigration,
+    },
+    {
+      version: '15',
+      job: MigrationJobTypes.PgSourceSearchPathBackfill,
+      service: this.pgSourceSearchPathBackfillMigration,
+    },
+    {
+      version: '16',
+      job: MigrationJobTypes.CreditPlanBackfill,
+      service: this.creditPlanBackfillMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -84,6 +126,13 @@ export class InitMigrationJobs {
     private readonly recoverDisconnectedTableNames: RecoverDisconnectedTableNames,
     private readonly noOpMigration: NoOpMigration,
     private readonly auditMigration: AuditMigration,
+    private readonly softDeleteColumnMigration: SoftDeleteColumnMigration,
+    private readonly normalizeSoftDeleteSqliteMigration: NormalizeSoftDeleteSqliteMigration,
+    private readonly recordTrashBackfillMigration: RecordTrashBackfillMigration,
+    private readonly cleanupOrphanCrossBaseLinksMigration: CleanupOrphanCrossBaseLinksMigration,
+    private readonly cleanupOrphanViewColumnsMigration: CleanupOrphanViewColumnsMigration,
+    private readonly pgSourceSearchPathBackfillMigration: PgSourceSearchPathBackfillMigration,
+    private readonly creditPlanBackfillMigration: CreditPlanBackfillMigration,
   ) {}
 
   log = (...msgs: string[]) => {

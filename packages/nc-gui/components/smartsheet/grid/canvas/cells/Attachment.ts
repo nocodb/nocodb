@@ -197,8 +197,10 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
 
       const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
+      // An explicit `textAlign: 'left'` anchors the tiles at the left padding —
+      // opt-in for hosts like interface list pages; nothing passes it by default.
       const rowStartX =
-        isUnderLookup && textAlign !== 'center'
+        textAlign === 'left' || (isUnderLookup && textAlign !== 'center')
           ? x + horizontalPadding
           : x + horizontalPadding + Math.max(0, (width - horizontalPadding * 2 - currentRowWidth) / 2)
       const itemX = rowStartX + col * (itemSize + gap)

@@ -5,6 +5,9 @@ import { parseProp } from '~/lib/helperFunctions';
 
 export interface ComparisonOpUiType {
   text: string;
+  // i18n key for the label so the frontend can render it in the active locale,
+  // falling back to `text` (e.g. symbol operators like '=', '>' have no key).
+  i18nKey?: string;
   value: string;
   ignoreVal: boolean;
   includedTypes?: UITypes[];
@@ -12,6 +15,10 @@ export interface ComparisonOpUiType {
   semanticType?: string; // Semantic category for compatibility checking
   typeSpecificSemantic?: (fieldUiType: UITypes) => string; // Type-specific semantic function
 }
+
+// Type-specific label (text + i18n key) for operators whose wording depends on
+// the field type. Symbol operators ('=', '>', …) intentionally omit `i18nKey`.
+type ComparisonOpLabel = { text: string; i18nKey?: string };
 
 export interface FilterGroupChangeEvent {
   filters: ColumnFilterType[];
@@ -56,9 +63,9 @@ export function isDateType(uidt: UITypes) {
   ].includes(uidt);
 }
 
-const getEqText = (fieldUiType: UITypes) => {
+const getEqText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
-    return '=';
+    return { text: '=' };
   } else if (
     [
       UITypes.SingleSelect,
@@ -70,14 +77,14 @@ const getEqText = (fieldUiType: UITypes) => {
       UITypes.DateTime,
     ].includes(fieldUiType)
   ) {
-    return 'is';
+    return { text: 'is', i18nKey: 'filterOperation.is' };
   }
-  return 'is equal';
+  return { text: 'is equal', i18nKey: 'filterOperation.isEqual' };
 };
 
-const getNeqText = (fieldUiType: UITypes) => {
+const getNeqText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
-    return '!=';
+    return { text: '!=' };
   } else if (
     [
       UITypes.SingleSelect,
@@ -89,26 +96,33 @@ const getNeqText = (fieldUiType: UITypes) => {
       UITypes.DateTime,
     ].includes(fieldUiType)
   ) {
-    return 'is not';
+    return { text: 'is not', i18nKey: 'filterOperation.isNot' };
   }
-  return 'is not equal';
+  return { text: 'is not equal', i18nKey: 'filterOperation.isNotEqual' };
 };
 
-const getLikeText = (fieldUiType: UITypes) => {
+const getLikeText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (fieldUiType === UITypes.Attachment) {
-    return 'filenames contain';
+    return {
+      text: 'filenames contain',
+      i18nKey: 'filterOperation.filenamesContain',
+    };
   }
-  return 'is like';
+  return { text: 'is like', i18nKey: 'filterOperation.isLike' };
 };
 
-const getNotLikeText = (fieldUiType: UITypes) => {
+const getNotLikeText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (fieldUiType === UITypes.Attachment) {
-    return "filenames don't contain";
+    return {
+      text: "filenames don't contain",
+      i18nKey: 'filterOperation.filenamesDoNotContain',
+    };
   }
-  return 'is not like';
+  // legacy key name kept (with the space) so existing locale translations resolve
+  return { text: 'is not like', i18nKey: 'filterOperation.isNot like' };
 };
 
-const getGtText = (fieldUiType: UITypes) => {
+const getGtText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (
     [
       UITypes.Date,
@@ -117,12 +131,12 @@ const getGtText = (fieldUiType: UITypes) => {
       UITypes.LastModifiedTime,
     ].includes(fieldUiType)
   ) {
-    return 'is after';
+    return { text: 'is after', i18nKey: 'filterOperation.isAfter' };
   }
-  return '>';
+  return { text: '>' };
 };
 
-const getLtText = (fieldUiType: UITypes) => {
+const getLtText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (
     [
       UITypes.Date,
@@ -131,12 +145,12 @@ const getLtText = (fieldUiType: UITypes) => {
       UITypes.LastModifiedTime,
     ].includes(fieldUiType)
   ) {
-    return 'is before';
+    return { text: 'is before', i18nKey: 'filterOperation.isBefore' };
   }
-  return '<';
+  return { text: '<' };
 };
 
-const getGteText = (fieldUiType: UITypes) => {
+const getGteText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (
     [
       UITypes.Date,
@@ -145,12 +159,12 @@ const getGteText = (fieldUiType: UITypes) => {
       UITypes.LastModifiedTime,
     ].includes(fieldUiType)
   ) {
-    return 'is on or after';
+    return { text: 'is on or after', i18nKey: 'filterOperation.isOnOrAfter' };
   }
-  return '>=';
+  return { text: '>=' };
 };
 
-const getLteText = (fieldUiType: UITypes) => {
+const getLteText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (
     [
       UITypes.Date,
@@ -159,9 +173,9 @@ const getLteText = (fieldUiType: UITypes) => {
       UITypes.LastModifiedTime,
     ].includes(fieldUiType)
   ) {
-    return 'is on or before';
+    return { text: 'is on or before', i18nKey: 'filterOperation.isOnOrBefore' };
   }
-  return '<=';
+  return { text: '<=' };
 };
 
 // Helper functions for type-specific semantic types
@@ -213,6 +227,7 @@ export const comparisonOpList = (
 ): ComparisonOpUiType[] => [
   {
     text: 'is checked',
+    i18nKey: 'filterOperation.isChecked',
     value: 'checked',
     ignoreVal: true,
     includedTypes: [UITypes.Checkbox],
@@ -222,6 +237,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is not checked',
+    i18nKey: 'filterOperation.isNotChecked',
     value: 'notchecked',
     ignoreVal: true,
     includedTypes: [UITypes.Checkbox],
@@ -230,7 +246,7 @@ export const comparisonOpList = (
       getTypeSpecificSemantic('inequality', fieldUiType),
   },
   {
-    text: getEqText(fieldUiType),
+    ...getEqText(fieldUiType),
     value: 'eq',
     ignoreVal: false,
     excludedTypes: [
@@ -246,7 +262,7 @@ export const comparisonOpList = (
       getTypeSpecificSemantic('equality', fieldUiType),
   },
   {
-    text: getNeqText(fieldUiType),
+    ...getNeqText(fieldUiType),
     value: 'neq',
     ignoreVal: false,
     excludedTypes: [
@@ -262,7 +278,7 @@ export const comparisonOpList = (
       getTypeSpecificSemantic('inequality', fieldUiType),
   },
   {
-    text: getLikeText(fieldUiType),
+    ...getLikeText(fieldUiType),
     value: 'like',
     ignoreVal: false,
     excludedTypes: [
@@ -286,7 +302,7 @@ export const comparisonOpList = (
       getTypeSpecificSemantic('pattern_match', fieldUiType),
   },
   {
-    text: getNotLikeText(fieldUiType),
+    ...getNotLikeText(fieldUiType),
     value: 'nlike',
     ignoreVal: false,
     excludedTypes: [
@@ -311,6 +327,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is empty',
+    i18nKey: 'filterOperation.isEmpty',
     value: 'empty',
     ignoreVal: true,
     excludedTypes: [
@@ -335,6 +352,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is not empty',
+    i18nKey: 'filterOperation.isNotEmpty',
     value: 'notempty',
     ignoreVal: true,
     excludedTypes: [
@@ -359,6 +377,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is null',
+    i18nKey: 'filterOperation.isNull',
     value: 'null',
     ignoreVal: true,
     excludedTypes: [
@@ -383,6 +402,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is not null',
+    i18nKey: 'filterOperation.isNotNull',
     value: 'notnull',
     ignoreVal: true,
     excludedTypes: [
@@ -407,6 +427,7 @@ export const comparisonOpList = (
   },
   {
     text: 'contains all of',
+    i18nKey: 'filterOperation.containsAllOf',
     value: 'allof',
     ignoreVal: false,
     includedTypes: [
@@ -419,6 +440,7 @@ export const comparisonOpList = (
   },
   {
     text: 'contains any of',
+    i18nKey: 'filterOperation.containsAnyOf',
     value: 'anyof',
     ignoreVal: false,
     includedTypes: [
@@ -432,6 +454,7 @@ export const comparisonOpList = (
   },
   {
     text: 'does not contain all of',
+    i18nKey: 'filterOperation.doesNotContainAllOf',
     value: 'nallof',
     ignoreVal: false,
     includedTypes: [
@@ -444,6 +467,7 @@ export const comparisonOpList = (
   },
   {
     text: 'does not contain any of',
+    i18nKey: 'filterOperation.doesNotContainAnyOf',
     value: 'nanyof',
     ignoreVal: false,
     includedTypes: [
@@ -456,7 +480,7 @@ export const comparisonOpList = (
     semanticType: 'not_contains_any',
   },
   {
-    text: getGtText(fieldUiType),
+    ...getGtText(fieldUiType),
     value: 'gt',
     ignoreVal: false,
     includedTypes: [
@@ -472,7 +496,7 @@ export const comparisonOpList = (
       getTypeSpecificSemantic('greater_than', fieldUiType),
   },
   {
-    text: getLtText(fieldUiType),
+    ...getLtText(fieldUiType),
     value: 'lt',
     ignoreVal: false,
     includedTypes: [
@@ -488,7 +512,7 @@ export const comparisonOpList = (
       getTypeSpecificSemantic('less_than', fieldUiType),
   },
   {
-    text: getGteText(fieldUiType),
+    ...getGteText(fieldUiType),
     value: 'gte',
     ignoreVal: false,
     includedTypes: [
@@ -504,7 +528,7 @@ export const comparisonOpList = (
       getTypeSpecificSemantic('greater_than_or_equal', fieldUiType),
   },
   {
-    text: getLteText(fieldUiType),
+    ...getLteText(fieldUiType),
     value: 'lte',
     ignoreVal: false,
     includedTypes: [
@@ -521,6 +545,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is within',
+    i18nKey: 'filterOperation.isWithin',
     value: 'isWithin',
     ignoreVal: true,
     includedTypes: [
@@ -533,6 +558,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is blank',
+    i18nKey: 'filterOperation.isBlank',
     value: 'blank',
     ignoreVal: true,
     // UUID excluded: auto-generated on insert, never blank
@@ -546,6 +572,7 @@ export const comparisonOpList = (
   },
   {
     text: 'is not blank',
+    i18nKey: 'filterOperation.isNotBlank',
     value: 'notblank',
     ignoreVal: true,
     // UUID excluded: auto-generated on insert, never blank
@@ -570,6 +597,7 @@ export const comparisonSubOpList = (
     return [
       {
         text: 'the past week',
+        i18nKey: 'filterOperation.subOp.pastWeek',
         value: 'pastWeek',
         ignoreVal: true,
         includedTypes: [
@@ -581,6 +609,7 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the past month',
+        i18nKey: 'filterOperation.subOp.pastMonth',
         value: 'pastMonth',
         ignoreVal: true,
         includedTypes: [
@@ -592,6 +621,7 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the past year',
+        i18nKey: 'filterOperation.subOp.pastYear',
         value: 'pastYear',
         ignoreVal: true,
         includedTypes: [
@@ -603,6 +633,7 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the next week',
+        i18nKey: 'filterOperation.subOp.nextWeek',
         value: 'nextWeek',
         ignoreVal: true,
         includedTypes: [
@@ -614,6 +645,7 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the next month',
+        i18nKey: 'filterOperation.subOp.nextMonth',
         value: 'nextMonth',
         ignoreVal: true,
         includedTypes: [
@@ -625,6 +657,7 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the next year',
+        i18nKey: 'filterOperation.subOp.nextYear',
         value: 'nextYear',
         ignoreVal: true,
         includedTypes: [
@@ -636,6 +669,7 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the next number of days',
+        i18nKey: 'filterOperation.subOp.nextNumberOfDays',
         value: 'nextNumberOfDays',
         ignoreVal: false,
         includedTypes: [
@@ -647,6 +681,7 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the past number of days',
+        i18nKey: 'filterOperation.subOp.pastNumberOfDays',
         value: 'pastNumberOfDays',
         ignoreVal: false,
         includedTypes: [
@@ -661,6 +696,7 @@ export const comparisonSubOpList = (
   return [
     {
       text: 'today',
+      i18nKey: 'filterOperation.subOp.today',
       value: 'today',
       ignoreVal: true,
       includedTypes: [
@@ -676,6 +712,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'tomorrow',
+      i18nKey: 'filterOperation.subOp.tomorrow',
       value: 'tomorrow',
       ignoreVal: true,
       includedTypes: [
@@ -691,6 +728,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'yesterday',
+      i18nKey: 'filterOperation.subOp.yesterday',
       value: 'yesterday',
       ignoreVal: true,
       includedTypes: [
@@ -706,6 +744,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'one week ago',
+      i18nKey: 'filterOperation.subOp.oneWeekAgo',
       value: 'oneWeekAgo',
       ignoreVal: true,
       includedTypes: [
@@ -721,6 +760,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'one week from now',
+      i18nKey: 'filterOperation.subOp.oneWeekFromNow',
       value: 'oneWeekFromNow',
       ignoreVal: true,
       includedTypes: [
@@ -736,6 +776,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'one month ago',
+      i18nKey: 'filterOperation.subOp.oneMonthAgo',
       value: 'oneMonthAgo',
       ignoreVal: true,
       includedTypes: [
@@ -747,6 +788,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'one month from now',
+      i18nKey: 'filterOperation.subOp.oneMonthFromNow',
       value: 'oneMonthFromNow',
       ignoreVal: true,
       includedTypes: [
@@ -758,6 +800,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'number of days ago',
+      i18nKey: 'filterOperation.subOp.daysAgo',
       value: 'daysAgo',
       ignoreVal: false,
       includedTypes: [
@@ -773,6 +816,7 @@ export const comparisonSubOpList = (
     },
     {
       text: 'number of days from now',
+      i18nKey: 'filterOperation.subOp.daysFromNow',
       value: 'daysFromNow',
       ignoreVal: false,
       includedTypes: [
@@ -788,6 +832,9 @@ export const comparisonSubOpList = (
     },
     {
       text: isDateMonth ? 'exact month' : 'exact date',
+      i18nKey: isDateMonth
+        ? 'filterOperation.subOp.exactMonth'
+        : 'filterOperation.subOp.exactDate',
       value: 'exactDate',
       ignoreVal: false,
       includedTypes: [
@@ -865,7 +912,10 @@ export const getPlaceholderNewRow = (
           ['allof'].includes(eachFilter.comparison_op)
         ) {
           const isMulti = parseProp(column.meta)?.is_multi;
-          if (isMulti || eachFilter.value?.indexOf?.(',') < 0) {
+          if (
+            eachFilter.value &&
+            (isMulti || eachFilter.value.indexOf(',') < 0)
+          ) {
             const assignedValue = eachFilter.value
               .split(',')
               .map((k) => (k === '@me' ? option?.currentUser?.id : k))
@@ -932,15 +982,28 @@ export const getFilterCount = (filters: FilterType[]) => {
 };
 export const deleteFilterWithSub = async (
   $api: Api<unknown>,
+  workspaceId: string,
+  baseId: string,
   filter: FilterType
 ) => {
   let result: string[] = [];
   if (filter.is_group && filter.children?.length > 0) {
     for (const child of filter.children) {
-      result = [...result, ...(await deleteFilterWithSub($api, child))];
+      result = [
+        ...result,
+        ...(await deleteFilterWithSub($api, workspaceId, baseId, child)),
+      ];
     }
   }
-  await $api.dbTableFilter.delete(filter.id);
+  await $api.internal.postOperation(
+    workspaceId,
+    baseId,
+    {
+      operation: 'filterDelete',
+      filterId: filter.id as string,
+    },
+    {}
+  );
   result.push(filter.id);
   return result;
 };

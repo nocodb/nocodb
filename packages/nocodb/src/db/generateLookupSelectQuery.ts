@@ -1,10 +1,13 @@
 import {
   isBtLikeV2Junction,
   isMMOrMMLike,
+  isSupportedDisplayValueColumn,
+  NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
+import type { ClientType } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { QueryWithCte } from '~/helpers/dbHelpers';
 import type { NcContext } from '~/interface/config';
@@ -20,10 +23,17 @@ import type {
 import type LookupColumn from '../models/LookupColumn';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import {
+  applyLookupPkInLimit,
+  applyNestedLookupLevelLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
+import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { NcError } from '~/helpers/catchError';
-import { getAs } from '~/helpers/dbHelpers';
-import { Model } from '~/models';
+import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
+import { Model, View } from '~/models';
 import { getAliasGenerator } from '~/utils';
+import { DBQueryClient } from '~/dbQueryClient';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -39,7 +49,76 @@ export async function getDisplayValueOfRefTable(
   const model = await colOpt.getRelatedTable(context);
   const modelContext = { ...context, base_id: model.base_id };
   const cols = await model.getColumns(modelContext);
+
+  // Honor per-LTAR-column override. Defensive fallback to PV if the override
+  // points to a stale/unsupported column (e.g. deleted mid-session before
+  // Column.delete2 cleanup commits).
+  const overrideId = (colOpt as LinkToAnotherRecordColumn)
+    .fk_display_value_column_id;
+  if (overrideId) {
+    const override = cols.find((c) => c.id === overrideId);
+    if (override && isSupportedDisplayValueColumn(override)) return override;
+  }
+
   return cols.find((col) => col.pv) || cols[0];
+}
+
+/**
+ * Like getDisplayValueOfRefTable but supports filtering by the related record's
+ * primary key when ltarSubField is 'id' (case-insensitive).
+ *
+ * Only 'id' is supported as a sub-field — generic title-based column lookup is
+ * excluded to prevent accessing columns that may be hidden in the related
+ * table's view.
+ *
+ * The PK column is checked against the LTAR's target view (fk_target_view_id,
+ * falling back to the first collaborative view). If the PK column is hidden in
+ * that view, this falls back to the display value so the filter still works but
+ * does not expose data the view owner intended to restrict.
+ *
+ * Falls back to the display value when ltarSubField is absent or not 'id'.
+ */
+export async function getRefTableColumnForFilter(
+  context: NcContext,
+  relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
+  ltarSubField?: string,
+) {
+  if (!ltarSubField) {
+    return getDisplayValueOfRefTable(context, relationCol);
+  }
+
+  // Only 'id' (case-insensitive) is permitted.
+  if (ltarSubField.toLowerCase() !== 'id') {
+    return getDisplayValueOfRefTable(context, relationCol);
+  }
+
+  const colOpt = await relationCol.getColOptions<
+    LinkToAnotherRecordColumn | LinksColumn
+  >({ ...context, base_id: relationCol.base_id });
+  const model = await colOpt.getRelatedTable(context);
+  const modelContext = { ...context, base_id: model.base_id };
+  const cols = await model.getColumns(modelContext);
+
+  const pkCol = cols.find((col) => col.pk);
+  if (!pkCol) return null;
+
+  // Resolve the target view: use the LTAR-configured view if set, otherwise
+  // fall back to the first collaborative (grid) view of the related table.
+  const targetViewId = (colOpt as LinkToAnotherRecordColumn).fk_target_view_id;
+  const targetView = targetViewId
+    ? await View.get(modelContext, targetViewId)
+    : await View.getFirstCollaborativeView(modelContext, model.id);
+
+  if (targetView) {
+    const viewCols = await View.getColumns(modelContext, targetView.id);
+    const pkViewCol = viewCols.find((vc) => vc.fk_column_id === pkCol.id);
+    // If PK is explicitly hidden in the target view, fall back to display value.
+    if (pkViewCol && !pkViewCol.show) {
+      return getDisplayValueOfRefTable(context, relationCol);
+    }
+  }
+
+  return pkCol;
 }
 
 // this function will generate the query for lookup column
@@ -64,12 +143,22 @@ export default async function generateLookupSelectQuery({
 }): Promise<QueryWithCte> {
   const knex = baseModelSqlv2.dbDriver;
 
+  const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
+
   const context = baseModelSqlv2.context;
+
+  // Captured before the inner `context`/`baseModelSqlv2` shadows — the lookup's
+  // sort+limit config lives under the root base; the feature is PG-only.
+  const rootContext = context;
+  const rootIsPg = baseModelSqlv2.isPg;
 
   const rootAlias = alias;
 
   {
     let selectQb: Knex.QueryBuilder;
+    // Per-link ordering (PG only): junction Order column ref for the current
+    // side, set for ordered mm links so the json_agg below can ORDER BY it.
+    let mmLinkOrderRef: string | undefined;
     const alias = getAlias();
     let lookupColOpt: LookupColumn;
     let isBtLookup = true;
@@ -78,6 +167,12 @@ export default async function generateLookupSelectQuery({
 
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
+      if (lookupColOpt?.error) {
+        return {
+          builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
     } else if (
       column.uidt !== UITypes.LinkToAnotherRecord &&
       column.uidt !== UITypes.Links
@@ -87,10 +182,23 @@ export default async function generateLookupSelectQuery({
 
     await column.getColOptions<LookupColumn>(context);
     let refContext: NcContext;
+    // The related table (aliased `alias`) that the outer lookup's own link
+    // conditions filter on — captured per relation type so those conditions can
+    // be applied to the relation sub-query (mirrors the display path in
+    // ee/dbQueryClient/pg.ts). Nested-lookup levels apply theirs in the loop.
+    let firstLevelRefBaseModel: IBaseModelSqlV2;
     {
       const relationCol = lookupColOpt
         ? await lookupColOpt.getRelationColumn(context)
         : column;
+
+      if (!relationCol) {
+        return {
+          builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
+
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
@@ -129,12 +237,14 @@ export default async function generateLookupSelectQuery({
           model: parentModel,
           dbDriver: knex,
         });
+        firstLevelRefBaseModel = parentBaseModel;
 
         selectQb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             parentBaseModel.getTnPath(parentModel.table_name),
             alias,
-          ]),
+          ),
         ).where(
           `${alias}.${parentColumn.column_name}`,
           knex.raw(`??`, [
@@ -143,6 +253,15 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
+
+        // Exclude soft-deleted parent records from BT lookup
+        const btSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          alias,
+        );
+        if (btSoftDeleteFilter) {
+          selectQb.where(btSoftDeleteFilter);
+        }
       } else if (relationType === RelationTypes.HAS_MANY && !isMMLike) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
@@ -161,12 +280,14 @@ export default async function generateLookupSelectQuery({
           model: parentModel,
           dbDriver: knex,
         });
+        firstLevelRefBaseModel = childBaseModel;
 
         selectQb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             childBaseModel.getTnPath(childModel.table_name),
             alias,
-          ]),
+          ),
         ).where(
           `${alias}.${childColumn.column_name}`,
           knex.raw(`??`, [
@@ -175,6 +296,15 @@ export default async function generateLookupSelectQuery({
             }.${parentColumn.column_name}`,
           ]),
         );
+
+        // Exclude soft-deleted child records from HM lookup
+        const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          childBaseModel,
+          alias,
+        );
+        if (hmSoftDeleteFilter) {
+          selectQb.where(hmSoftDeleteFilter);
+        }
       } else if (relationType === RelationTypes.MANY_TO_MANY || isMMLike) {
         const isSingleTargetV2 = isBtLikeV2Junction(relationCol);
         if (!isSingleTargetV2) {
@@ -196,12 +326,14 @@ export default async function generateLookupSelectQuery({
           model: parentModel,
           dbDriver: knex,
         });
+        firstLevelRefBaseModel = parentBaseModel;
 
         selectQb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             parentBaseModel.getTnPath(parentModel.table_name),
             alias,
-          ]),
+          ),
         );
 
         const mmTableAlias = getAlias();
@@ -232,14 +364,60 @@ export default async function generateLookupSelectQuery({
             ),
           );
 
+        // Exclude soft-deleted referenced records from MM lookup
+        const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          alias,
+        );
+        if (mmSoftDeleteFilter) {
+          selectQb.where(mmSoftDeleteFilter);
+        }
+
         if (isSingleTargetV2) {
           selectQb.limit(1);
         }
+
+        // Capture the junction Order column (current side) for ordered json_agg
+        // — but only as the DEFAULT order. If this lookup has its own sort/limit
+        // config, that ordering wins (applied elsewhere), so leave the link order
+        // off to avoid it overriding the lookup sort.
+        if (baseModelSqlv2.isPg) {
+          const lookupCfg = await loadLookupSortAndLimit(rootContext, column);
+          if (!lookupCfg.hasConfig) {
+            const linkOrderCol = await relation.getMMChildOrderColumn(context);
+            if (linkOrderCol) {
+              mmLinkOrderRef = `${mmTableAlias}.${linkOrderCol.column_name}`;
+            }
+          }
+        }
       }
     }
+
+    // Apply the outer lookup's own link conditions ("limit record by filter")
+    // to the first-level relation sub-query. Without this, sort/group-by/rollup
+    // over a filtered lookup ignore its conditions. No-op for LTAR columns or
+    // when conditions are disabled (and a no-op stub in CE).
+    if (column.uidt === UITypes.Lookup && firstLevelRefBaseModel) {
+      await extractLinkRelFiltersAndApply({
+        qb: selectQb,
+        column,
+        alias,
+        table: firstLevelRefBaseModel.model,
+        baseModel: firstLevelRefBaseModel,
+        context: firstLevelRefBaseModel.context,
+      });
+    }
+
     let lookupColumn = lookupColOpt
       ? await lookupColOpt.getLookupColumn(refContext)
       : await getDisplayValueOfRefTable(refContext, column);
+
+    if (!lookupColumn) {
+      return {
+        builder: NC_ERROR_SENTINEL,
+        applyCte: () => {},
+      };
+    }
 
     // if lookup column is qr code or barcode extract the referencing column
     if ([UITypes.QrCode, UITypes.Barcode].includes(lookupColumn.uidt)) {
@@ -247,13 +425,44 @@ export default async function generateLookupSelectQuery({
       const lookupColContext = lookupColumn.base_id
         ? { ...context, base_id: lookupColumn.base_id }
         : context;
-      lookupColumn = await lookupColumn
-        .getColOptions<BarcodeColumn | QrCodeColumn>(lookupColContext)
-        .then((barcode) => barcode.getValueColumn(refContext));
+      const colOpt = await lookupColumn.getColOptions<
+        BarcodeColumn | QrCodeColumn
+      >(lookupColContext);
+      lookupColumn = colOpt ? await colOpt.getValueColumn(refContext) : null;
+      if (!lookupColumn) {
+        return {
+          builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
     }
     {
       let prevAlias = alias;
       let context = refContext;
+
+      // Per-lookup Limit — OUTER level (PG): restrict the first-level relation
+      // rows to the configured top-N BEFORE any nested joins, correlated to the
+      // root row. Applies to single-level lookups and the outer level of nested
+      // ones (the pk-IN survives the nested joins added below).
+      if (column.uidt === UITypes.Lookup && rootIsPg) {
+        const cfg = await loadLookupSortAndLimit(rootContext, column);
+        if (cfg.hasConfig && cfg.limitVal > 0) {
+          const outerRefModel = await lookupColumn.getModel(context);
+          const outerRefBaseModel = await Model.getBaseModelSQL(context, {
+            model: outerRefModel,
+            dbDriver: knex,
+          });
+          await applyLookupPkInLimit({
+            qb: selectQb,
+            alias: prevAlias,
+            refBaseModel: outerRefBaseModel,
+            sorts: cfg.sorts,
+            limitVal: cfg.limitVal,
+            takeLast: cfg.takeLast,
+          });
+        }
+      }
+
       while (
         lookupColumn.uidt === UITypes.Lookup ||
         lookupColumn.uidt === UITypes.LinkToAnotherRecord
@@ -262,14 +471,30 @@ export default async function generateLookupSelectQuery({
 
         let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
         let nestedLookupColOpt: LookupColumn;
+        // Related table (aliased `nestedAlias`) whose columns this nested
+        // lookup's own conditions filter on — captured per relation type below.
+        let nestedLevelRefBaseModel: IBaseModelSqlV2;
 
         if (lookupColumn.uidt === UITypes.Lookup) {
           nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>(
             context,
           );
+          if (nestedLookupColOpt?.error) {
+            return {
+              builder: NC_ERROR_SENTINEL,
+              applyCte: () => {},
+            };
+          }
           relationCol = await nestedLookupColOpt.getRelationColumn(context);
         } else {
           relationCol = lookupColumn;
+        }
+
+        if (!relationCol) {
+          return {
+            builder: NC_ERROR_SENTINEL,
+            applyCte: () => {},
+          };
         }
 
         const relation =
@@ -304,15 +529,45 @@ export default async function generateLookupSelectQuery({
             model: parentModel,
             dbDriver: knex,
           });
+          nestedLevelRefBaseModel = parentBaseModel;
 
           selectQb.join(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               parentBaseModel.getTnPath(parentModel.table_name),
               nestedAlias,
-            ]),
+            ),
             `${nestedAlias}.${parentColumn.column_name}`,
             `${prevAlias}.${childColumn.column_name}`,
           );
+
+          // Exclude soft-deleted parent records from nested BT lookup
+          const nestedBtSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+            parentBaseModel,
+            nestedAlias,
+          );
+          if (nestedBtSoftDeleteFilter) {
+            selectQb.where(nestedBtSoftDeleteFilter);
+          }
+
+          // INNER-level limit for a nested lookup (BT): restrict this level's
+          // joined rows to the top-N per the previous level's row.
+          if (rootIsPg && nestedLookupColOpt) {
+            const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+            if (cfg.hasConfig && cfg.limitVal > 0) {
+              await applyNestedLookupLevelLimit({
+                qb: selectQb,
+                nestedAlias,
+                nestedRefBaseModel: parentBaseModel,
+                corrColName: parentColumn.column_name,
+                prevAlias,
+                prevCorrColName: childColumn.column_name,
+                sorts: cfg.sorts,
+                limitVal: cfg.limitVal,
+                takeLast: cfg.takeLast,
+              });
+            }
+          }
         } else if (relationType === RelationTypes.HAS_MANY) {
           isBtLookup = false;
           const childColumn = await relation.getChildColumn(context);
@@ -325,15 +580,45 @@ export default async function generateLookupSelectQuery({
             model: childModel,
             dbDriver: knex,
           });
+          nestedLevelRefBaseModel = childBaseModel;
 
           selectQb.join(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               childBaseModel.getTnPath(childModel.table_name),
               nestedAlias,
-            ]),
+            ),
             `${nestedAlias}.${childColumn.column_name}`,
             `${prevAlias}.${parentColumn.column_name}`,
           );
+
+          // Exclude soft-deleted child records from nested HM lookup
+          const nestedHmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+            childBaseModel,
+            nestedAlias,
+          );
+          if (nestedHmSoftDeleteFilter) {
+            selectQb.where(nestedHmSoftDeleteFilter);
+          }
+
+          // INNER-level limit for a nested lookup (HM): restrict this level's
+          // joined rows to the top-N per the previous level's row.
+          if (rootIsPg && nestedLookupColOpt) {
+            const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+            if (cfg.hasConfig && cfg.limitVal > 0) {
+              await applyNestedLookupLevelLimit({
+                qb: selectQb,
+                nestedAlias,
+                nestedRefBaseModel: childBaseModel,
+                corrColName: childColumn.column_name,
+                prevAlias,
+                prevCorrColName: parentColumn.column_name,
+                sorts: cfg.sorts,
+                limitVal: cfg.limitVal,
+                takeLast: cfg.takeLast,
+              });
+            }
+          }
         } else if (relationType === RelationTypes.MANY_TO_MANY) {
           const nestedIsSingleTargetV2 = isBtLikeV2Junction(relationCol);
           if (!nestedIsSingleTargetV2) {
@@ -366,6 +651,7 @@ export default async function generateLookupSelectQuery({
             model: mmModel,
             dbDriver: knex,
           });
+          nestedLevelRefBaseModel = parentBaseModel;
 
           selectQb
             .innerJoin(
@@ -375,10 +661,11 @@ export default async function generateLookupSelectQuery({
               knex.ref(`${prevAlias}.${childColumn.column_name}`) as any,
             )
             .innerJoin(
-              knex.raw('?? as ??', [
+              dbQueryClient.tableAlias(
+                knex,
                 parentBaseModel.getTnPath(parentModel.table_name),
                 nestedAlias,
-              ]),
+              ),
               knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`) as any,
               '=',
               knex.ref(`${nestedAlias}.${parentColumn.column_name}`) as any,
@@ -393,9 +680,33 @@ export default async function generateLookupSelectQuery({
               ),
             );
 
+          // Exclude soft-deleted referenced records from nested MM lookup
+          const nestedMmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+            parentBaseModel,
+            nestedAlias,
+          );
+          if (nestedMmSoftDeleteFilter) {
+            selectQb.where(nestedMmSoftDeleteFilter);
+          }
+
           if (nestedIsSingleTargetV2) {
             selectQb.limit(1);
           }
+        }
+
+        // Apply this intermediate lookup's own link conditions to its joined
+        // rows — the fix for #10150: a lookup over a filtered lookup dropped the
+        // inner lookup's conditions. Only for nested Lookup levels (not plain
+        // LTAR hops); no-op when conditions are disabled / in CE.
+        if (nestedLookupColOpt && nestedLevelRefBaseModel) {
+          await extractLinkRelFiltersAndApply({
+            qb: selectQb,
+            column: lookupColumn,
+            alias: nestedAlias,
+            table: nestedLevelRefBaseModel.model,
+            baseModel: nestedLevelRefBaseModel,
+            context: nestedLevelRefBaseModel.context,
+          });
         }
 
         if (lookupColumn.uidt === UITypes.Lookup)
@@ -407,6 +718,14 @@ export default async function generateLookupSelectQuery({
             nestedRefContext,
             relationCol,
           );
+
+        if (!lookupColumn) {
+          return {
+            builder: NC_ERROR_SENTINEL,
+            applyCte: () => {},
+          };
+        }
+
         prevAlias = nestedAlias;
         context = nestedRefContext;
       }
@@ -498,6 +817,25 @@ export default async function generateLookupSelectQuery({
       const subQueryAlias = getAlias();
 
       if (baseModelSqlv2.isPg) {
+        // Per-link ordering (opt-in): when an mm junction Order column is present
+        // (set above), select it into the subquery and ORDER the json_agg by it
+        // so the aggregated value reflects link order. Unchanged otherwise.
+        if (mmLinkOrderRef) {
+          selectQb.select(
+            knex.raw('?? as ??', [mmLinkOrderRef, '__nc_lorder']),
+          );
+          return {
+            builder: knex
+              .select(
+                knex.raw('json_agg(?? ORDER BY ??)::text', [
+                  lookupColumn.id,
+                  '__nc_lorder',
+                ]),
+              )
+              .from(selectQb.as(subQueryAlias)),
+            applyCte,
+          };
+        }
         // alternate approach with array_agg
         return {
           builder: knex
@@ -554,6 +892,66 @@ export default async function generateLookupSelectQuery({
                 lookupColumn.id,
                 LOOKUP_VAL_SEPARATOR,
               ]),
+            )
+            .from(selectQb.as(subQueryAlias)),
+          applyCte,
+        };
+      } else if (baseModelSqlv2.isMssql) {
+        return {
+          builder: knex
+            .select(
+              // Emit a JSON array string (`["English","English"]`) to match
+              // the shape pg's `json_agg(col)::text` / mysql's
+              // `JSON_ARRAYAGG(col)` return. The legacy `STRING_AGG(.., '___')`
+              // form was a delimited string, awkward to JSON.parse on the
+              // consumer side.
+              //
+              // Steps:
+              //   • RTRIM    — strip trailing-space padding T-SQL preserves on
+              //                fixed-length char/nchar columns (no-op on
+              //                varchar/nvarchar/numeric).
+              //   • CAST     — every value is rendered as a string for JSON
+              //                quoting; T-SQL has no auto-type-preserving JSON
+              //                aggregate so numeric lookups become quoted
+              //                strings ("1" not 1). Acceptable tradeoff —
+              //                lookups are display-oriented values.
+              //   • STRING_ESCAPE — JSON-escapes embedded quotes/backslashes.
+              //   • STRING_AGG — joins with `,` between the quoted elements.
+              //   • COALESCE — STRING_AGG returns NULL for an empty/all-NULL
+              //                input set; default to `''` so the wrapper
+              //                yields `[]` rather than `[NULL]`.
+              //   • JSON_QUERY — tells SQL Server the result IS JSON, so a
+              //                parent `FOR JSON PATH` won't double-escape it.
+              knex.raw(
+                `JSON_QUERY('[' + COALESCE(STRING_AGG('"' + STRING_ESCAPE(RTRIM(CAST(?? AS NVARCHAR(MAX))), 'json') + '"', ','), '') + ']')`,
+                [lookupColumn.id],
+              ),
+            )
+            .from(selectQb.as(subQueryAlias)),
+          applyCte,
+        };
+      } else if (baseModelSqlv2.isOracle) {
+        // Match the JSON-array-string shape of pg's `json_agg(col)::text` /
+        // mysql's `JSON_ARRAYAGG(col)`. `NULL ON NULL` keeps null elements
+        // for pg parity (Oracle defaults to ABSENT ON NULL). RETURNING
+        // VARCHAR2(4000) keeps the result usable as a sort/group key — CLOB
+        // output can't be a comparison key (ORA-22848); an oversized
+        // aggregate surfaces Oracle's own ORA-40478 rather than silently
+        // truncating. CLOB-backed lookup values (LongText) are pre-shortened
+        // via DBMS_LOB.SUBSTR — JSON_ARRAYAGG rejects LOB inputs when
+        // returning VARCHAR2.
+        const aggInput =
+          (lookupColumn.dt ?? '').toLowerCase() === 'clob' ||
+          (lookupColumn.dt ?? '').toLowerCase() === 'nclob'
+            ? knex.raw('DBMS_LOB.SUBSTR(??, 2000, 1)', [lookupColumn.id])
+            : knex.raw('??', [lookupColumn.id]);
+        return {
+          builder: knex
+            .select(
+              knex.raw(
+                'JSON_ARRAYAGG(? NULL ON NULL RETURNING VARCHAR2(4000))',
+                [aggInput],
+              ),
             )
             .from(selectQb.as(subQueryAlias)),
           applyCte,

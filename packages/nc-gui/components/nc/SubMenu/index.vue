@@ -2,16 +2,20 @@
 const props = withDefaults(
   defineProps<{
     popupOffset?: number[]
+    popupClassName?: string
     variant?: 'default' | 'small' | 'medium' | 'large'
     titleClass?: string
   }>(),
   {
     variant: 'default',
     titleClass: '',
+    popupClassName: '',
   },
 )
 
 const { isMobileMode } = useGlobal()
+
+const { isRtl } = useRtl()
 
 const responsiveVariant = computed(() => {
   if (isMobileMode.value && ['small', 'medium'].includes(props.variant)) {
@@ -20,6 +24,8 @@ const responsiveVariant = computed(() => {
 
   return props.variant
 })
+
+const chevronIcon = computed(() => (isRtl.value ? 'ncChevronLeft' : 'ncChevronRight'))
 </script>
 
 <template>
@@ -27,7 +33,7 @@ const responsiveVariant = computed(() => {
     :popup-offset="props.popupOffset"
     class="nc-sub-menu"
     :class="`nc-variant-${responsiveVariant}`"
-    :popup-class-name="`nc-variant-${responsiveVariant} nc-submenu-popup`"
+    :popup-class-name="`nc-variant-${responsiveVariant} nc-submenu-popup ${popupClassName}`"
   >
     <template #title>
       <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group" :class="titleClass">
@@ -36,7 +42,7 @@ const responsiveVariant = computed(() => {
         </div>
 
         <slot v-if="$slots.expandIcon" name="expandIcon" />
-        <GeneralIcon v-else icon="ncChevronRight" class="nc-submenu-arrow !opacity-60" />
+        <GeneralIcon v-else :icon="chevronIcon" class="nc-submenu-arrow !opacity-60" />
       </div>
     </template>
 
@@ -49,7 +55,7 @@ const responsiveVariant = computed(() => {
 
 <style lang="scss">
 .ant-dropdown-menu-submenu.nc-sub-menu {
-  @apply flex mx-1.5 rounded-md overflow-hidden !hover:bg-nc-bg-gray-light;
+  @apply flex-none flex mx-1.5 rounded-md overflow-hidden !hover:bg-nc-bg-gray-light;
 
   &:not(.ant-dropdown-menu-submenu-disabled) {
     .nc-submenu-title {

@@ -79,18 +79,32 @@ const currentTitle = computed(() => {
   return 'Choose data'
 })
 
+const matchesQuery = (v: VariableDefinition, query: string) =>
+  v.name.toLowerCase().includes(query) ||
+  v.key.toLowerCase().includes(query) ||
+  !!v.extra?.description?.toLowerCase().includes(query)
+
+// A search walks the whole subtree: "email" should find Record › Fields › Email without
+// drilling in first. Nested matches show their path as the description and inherit the
+// top-level group so they land under the same heading they would when browsed.
+const searchVariables = (vars: VariableDefinition[], query: string, path: string[] = [], groupKey?: string) => {
+  const out: VariableDefinition[] = []
+  for (const v of vars) {
+    const group = groupKey ?? v.groupKey
+    if (matchesQuery(v, query)) {
+      out.push(path.length ? { ...v, groupKey: group, extra: { ...v.extra, description: path.join(' › ') } } : v)
+    }
+    if (v.children?.length) out.push(...searchVariables(v.children, query, [...path, v.name], group))
+  }
+  return out
+}
+
 const filteredVariables = computed(() => {
   if (!searchQuery.value) {
     return currentVariables.value
   }
 
-  const query = searchQuery.value.toLowerCase()
-  return currentVariables.value.filter(
-    (v) =>
-      v.name.toLowerCase().includes(query) ||
-      v.key.toLowerCase().includes(query) ||
-      v.extra?.description?.toLowerCase().includes(query),
-  )
+  return searchVariables(currentVariables.value, searchQuery.value.toLowerCase())
 })
 
 // Group variables by groupKey (fields, meta, iteration, etc.)
@@ -389,7 +403,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
 
@@ -421,7 +437,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
 
@@ -452,7 +470,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
 
@@ -483,7 +503,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
         </template>

@@ -63,6 +63,7 @@ const { getPlanTitle } = useEeConfig()
                 })
               "
               :on-click-callback="() => emit('cancel')"
+              show-as-lock
             />
             <span v-else />
           </template>

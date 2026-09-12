@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string
@@ -17,9 +17,13 @@ const { navigateToProject, isMobileMode } = useGlobal()
 
 const { $e: _$e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
+
+const { isWhiteLabelled, productName, faviconUrl } = useBranding()
 
 const basesStore = useBases()
 
@@ -37,20 +41,56 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const {
-  isPanelExpanded: isChatPanelExpanded,
-  isFullScreen: isChatFullScreen,
-  hasWorkspaceContext: hasChatWorkspaceContext,
-  hasBaseContext: hasChatBaseContext,
-  toggleChatPanel,
-} = useChatPanel()
+const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, cycleChatPanel } = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { isAgentsEnabled } = storeToRefs(useAgentStore())
+
+const {
+  blockAiChat,
+  showEEFeatures,
+  isEEFeatureBlocked,
+  showUpgradeToUseBookmarks,
+  hideInterfaces,
+  showUpgradeForInterfaceFeature,
+  blockWorkflows,
+  showUpgradeToUseWorkflows,
+  showUpgradeSurface,
+  blockAgents,
+  showUpgradeToUseAgents,
+} = useEeConfig()
+
+// Both ship on the unlicensed on-prem Free tier, so community mode may only drop
+// them where they'd be a pure upsell (blocked tier) — not via `showEEFeatures`.
+const showWorkflowsNav = computed(() => isEeUI && showUpgradeSurface(blockWorkflows.value))
+
+const showInterfacesNav = computed(() => isEeUI && showUpgradeSurface(hideInterfaces.value))
+
+const isBookmarksFlyoutOpen = ref(false)
+
+const bookmarksContainerRef = ref<HTMLElement | null>(null)
+
+onClickOutside(
+  bookmarksContainerRef,
+  () => {
+    isBookmarksFlyoutOpen.value = false
+  },
+  {
+    ignore: [
+      '.nc-bookmark-add-dropdown',
+      '.nc-bookmark-context-menu',
+      '.nc-bookmark-group-menu',
+      '.nc-bookmark-settings-menu',
+      '.nc-modal-wrapper',
+      '.nc-bookmark-bulk-more-dropdown-move-to',
+      '.nc-bookmark-bulk-more-dropdown',
+    ],
+  },
+)
 
 const { isRtl } = useRtl()
 
 const handleChatToggle = () => {
-  toggleChatPanel()
+  cycleChatPanel()
 }
 
 const isBaseOpen = computed(() => {
@@ -111,9 +151,24 @@ const onTabClick = async (tabKey: string) => {
   if (!basePath) return
 
   if (tabKey === 'workflows') {
+    if (blockWorkflows.value) {
+      showUpgradeToUseWorkflows({ triggerSource: 'minisidebar-workflows' })
+      return
+    }
     await navigateTo(`${basePath}/workflows`)
-  } else if (tabKey === 'docs') {
-    await navigateTo(`${basePath}/docs`)
+  } else if (tabKey === 'agents') {
+    if (blockAgents.value) {
+      showUpgradeToUseAgents({ triggerSource: 'minisidebar-agents' })
+      return
+    }
+    await navigateTo(`${basePath}/agents`)
+  } else if (tabKey === 'interfaces') {
+    // Plan-blocked: upsell instead of navigating (mirrors bookmarks)
+    if (hideInterfaces.value) {
+      showUpgradeForInterfaceFeature(PlanFeatureTypes.FEATURE_INTERFACES, 'minisidebar-interfaces')
+      return
+    }
+    await navigateTo(`${basePath}/interfaces`)
   } else {
     await navigateTo(basePath)
   }
@@ -150,7 +205,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || blockAiChat.value) return
+  if (!isEeUI || blockAiChat.value || !hasChatBaseContext.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -170,18 +225,18 @@ const mainItems = computed<NavItem[]>(() => [
   {
     key: 'data',
     icon: 'ncTable',
-    label: 'Data',
+    label: t('general.data'),
     disabled: !hasAvailableBases.value,
     onClick: () => {
       onTabClick('data')
     },
   },
-  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
+  ...(!isMobileMode.value && showWorkflowsNav.value
     ? [
         {
           key: 'workflows',
           icon: 'ncAutomation',
-          label: 'Workflows',
+          label: t('general.workflows'),
           disabled:
             !hasAvailableBases.value ||
             !isUIAllowed('scriptList', {
@@ -193,20 +248,47 @@ const mainItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
-  ...(isEeUI && showEEFeatures.value
+  // Paid-only, but the entry stays visible below the tier — clicking upsells
+  // (onTabClick) instead of navigating, mirroring bookmarks.
+  ...(showInterfacesNav.value
     ? [
         {
-          key: 'docs',
-          icon: 'ncFileText',
-          label: 'Docs',
-          disabled: !hasAvailableBases.value,
-          onClick: () => {
-            onTabClick('docs')
-          },
+          key: 'interfaces',
+          icon: 'ncLayout',
+          label: t('general.interfaces'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('interfaceList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('interfaces'),
+        },
+      ]
+    : []),
+  ...(isAgentsEnabled.value
+    ? [
+        {
+          key: 'agents',
+          icon: 'ncAgent',
+          label: t('general.agents'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('agentList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('agents'),
         },
       ]
     : []),
 ])
+
+const handleOpenBookmarkPanel = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToUseBookmarks({ triggerSource: 'minisidebar-bookmarks' })
+  } else {
+    isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+  }
+}
 </script>
 
 <template>
@@ -221,19 +303,13 @@ const mainItems = computed<NavItem[]>(() => [
           :data-workspace-title="activeWorkspace?.title"
           @click="navigateTo(`/${activeWorkspaceId}`)"
         >
-          <GeneralProjectIcon
-            class="!h-7 !w-7 nc-logo-icon"
-            :color="parseProp(resolvedProject?.meta).iconColor"
-            :type="resolvedProject?.type"
-            :managed-app="
-              resolvedProject
-                ? {
-                    managed_app_master: resolvedProject?.managed_app_master,
-                    managed_app_id: resolvedProject?.managed_app_id,
-                  }
-                : undefined
-            "
+          <img
+            v-if="isWhiteLabelled && faviconUrl"
+            :src="faviconUrl"
+            :alt="productName"
+            class="!h-7 !w-7 nc-logo-icon object-contain"
           />
+          <GeneralNocodbLogo v-else class="!h-7 !w-7 nc-logo-icon" />
           <div class="nc-back-icon">
             <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
           </div>
@@ -253,34 +329,15 @@ const mainItems = computed<NavItem[]>(() => [
       :panel-key="item.key"
       :active="activeSidebarTab === item.key && !isChatFullScreen"
       :disabled="item.disabled"
-      :disable-tooltip="true"
       @click="item.onClick?.()"
     />
-
-    <!-- AI Chat -->
-    <DashboardMiniSidebarV2RailItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
-      v-e="['c:chat:toggle']"
-      label="Chat"
-      panel-key="chat"
-      data-testid="nc-sidebar-chat-btn"
-      :active="isChatPanelExpanded"
-      :disable-tooltip="true"
-      :plain-active="!isChatFullScreen"
-      @click="handleChatToggle"
-    >
-      <template #icon>
-        <GeneralIcon icon="ncAutoAwesome" class="nc-rail-item-icon !text-nc-content-brand" />
-      </template>
-    </DashboardMiniSidebarV2RailItem>
 
     <!-- Settings -->
     <DashboardMiniSidebarV2RailItem
       icon="ncSettings"
-      label="Settings"
+      :label="$t('labels.settings')"
       panel-key="settings"
       :active="activeSidebarTab === 'settings' && !isChatFullScreen"
-      :disable-tooltip="true"
       @click="onTabClick('settings')"
     />
 
@@ -288,13 +345,28 @@ const mainItems = computed<NavItem[]>(() => [
     <div class="nc-rail-bottom-group">
       <!-- Help -->
       <DashboardMiniSidebarHelp>
-        <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />
+        <DashboardMiniSidebarV2RailItem icon="ncHelp" :label="$t('general.help')" panel-key="help" is-dropdown />
       </DashboardMiniSidebarHelp>
     </div>
 
     <NcDivider class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium" />
 
     <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
+
+    <!-- Bookmarks -->
+    <div v-if="showEEFeatures" ref="bookmarksContainerRef" class="relative">
+      <DashboardMiniSidebarV2RailItem
+        icon="ncBookmark"
+        :tooltip="$t('tooltip.bookmarks')"
+        :label="$t('labels.bookmarks')"
+        :active="isBookmarksFlyoutOpen"
+        is-dropdown
+        data-testid="nc-rail-bookmarks"
+        @click="handleOpenBookmarkPanel"
+      />
+
+      <LazyBookmarksFlyout v-if="isBookmarksFlyoutOpen" @close="isBookmarksFlyoutOpen = false" />
+    </div>
 
     <!-- Activity / Notifications -->
     <NcDropdown
@@ -305,8 +377,8 @@ const mainItems = computed<NavItem[]>(() => [
       :trigger="['click']"
     >
       <DashboardMiniSidebarV2RailItem
-        label="Activity"
-        tooltip="Activity"
+        :label="$t('labels.activity')"
+        :tooltip="$t('labels.activity')"
         panel-key="notification"
         data-testid="nc-sidebar-notification-btn"
         :active="isNotificationOpen"
@@ -365,7 +437,7 @@ const mainItems = computed<NavItem[]>(() => [
     z-index: 1;
 
     :root[theme='dark'] & {
-      border-color: #161616;
+      border-color: var(--color-minisidebar-bg);
     }
   }
 }

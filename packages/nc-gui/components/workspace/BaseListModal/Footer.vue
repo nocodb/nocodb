@@ -7,7 +7,7 @@
       <span>{{ $t('labels.navigate') }}</span>
     </div>
     <div class="flex items-center gap-1">
-      <kbd class="nc-keyboard-shortcut">Enter</kbd>
+      <kbd class="nc-keyboard-shortcut">{{ $t('general.enter') }}</kbd>
       <span>{{ $t('labels.select') }}</span>
     </div>
     <div class="flex items-center gap-1">

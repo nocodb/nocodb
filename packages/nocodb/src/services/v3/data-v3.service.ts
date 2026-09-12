@@ -18,12 +18,19 @@ import type {
   DataRecord,
   DataRecordWithDeleted,
   DataUpdateParams,
+  DataUpsertParams,
+  DataUpsertRecordResponse,
   NestedDataListParams,
 } from '~/services/v3/data-v3.types';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
+import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import {
+  getLtarDisplayValueContext,
+  resolveLtarDisplayValuesToPks,
+} from '~/helpers/ltarDisplayValueResolver';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -51,6 +58,25 @@ interface RelatedModelInfo {
   primaryKey: Column;
   primaryKeys: Column[];
 }
+
+const UPSERT_MAX_MERGE_FIELDS = 3;
+const UPSERT_DISALLOWED_UITYPES = new Set([
+  UITypes.ID,
+  UITypes.Attachment,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Links,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  UITypes.AutoNumber,
+  UITypes.Barcode,
+  UITypes.QrCode,
+  UITypes.Button,
+]);
 
 @Injectable()
 export class DataV3Service {
@@ -479,6 +505,106 @@ export class DataV3Service {
   /**
    * Transform LTAR fields from v3 format to internal format
    */
+  /**
+   * Resolves link targets supplied as display values into `{ id }` form,
+   * in place, so the rest of the write path only ever sees record ids.
+   *
+   * A link entry is treated as a display value when it is a bare string or
+   * number; an object carrying `id` is left alone. Both forms may be mixed in
+   * one array:
+   *
+   *   "Brand":  "Acme"                     → single (belongs-to / one-to-one)
+   *   "Cities": ["Paris", "Lyon"]          → many
+   *   "Cities": ["Paris", { id: 5 }]       → mixed
+   *   "Cities": [] | null                  → untouched (unlink)
+   *
+   * Matching reuses `resolveLtarDisplayValuesToPks`, shared with grid paste,
+   * file import and text→link conversion, so "which column counts as the
+   * display value" stays one answer across the product: the link's
+   * `fk_display_value_column_id` if set, else the related table's primary
+   * value.
+   *
+   * Two ways this is deliberately stricter than grid paste:
+   *
+   *  - Matching is **exact** (`caseInsensitiveFallback: false`). Paste is
+   *    lenient because a human pasting "paris" means the row titled "Paris";
+   *    an API caller sending the same payload twice should get the same rows
+   *    both times, whatever the database collation says. It also skips the
+   *    `like` query, an unindexed scan on the related table.
+   *  - Values that match no row raise a 400 naming them, rather than being
+   *    skipped silently. An unattended sync should hear about a brand it could
+   *    not find instead of writing a record with the link quietly missing —
+   *    and this matches how an unresolvable *id* already behaves on the
+   *    validated link path.
+   *
+   * Known divergence: a display value matching more than one row resolves to
+   * the first row, inherited from the shared resolver. Reporting ambiguity
+   * would change paste and import behaviour too, so it is left alone here.
+   */
+  private async resolveLinkDisplayValues(
+    context: NcContext,
+    records: { fields: Record<string, any> }[],
+    ltarColumns: Column[],
+  ): Promise<void> {
+    if (!ltarColumns.length) return;
+
+    const isDisplayValue = (entry: any) =>
+      typeof entry === 'string' || typeof entry === 'number';
+
+    for (const column of ltarColumns) {
+      // Collect every display value for this column across the whole request,
+      // so each link column costs one resolution query rather than one per row.
+      const pending: { fields: Record<string, any>; key: string }[] = [];
+      const uniqueValues = new Set<string>();
+
+      for (const record of records) {
+        if (!record?.fields) continue;
+
+        const key = dataWrapper(record.fields).getColumnKeyName(column);
+        const value = record.fields[key];
+        if (value === null || value === undefined) continue;
+
+        const entries = Array.isArray(value) ? value : [value];
+        if (!entries.some(isDisplayValue)) continue;
+
+        pending.push({ fields: record.fields, key });
+        for (const entry of entries) {
+          if (isDisplayValue(entry)) uniqueValues.add(String(entry));
+        }
+      }
+
+      if (!pending.length) continue;
+
+      const groupCtx = await getLtarDisplayValueContext(context, column);
+      const valueToPk = await resolveLtarDisplayValuesToPks(
+        groupCtx,
+        uniqueValues,
+        { caseInsensitiveFallback: false },
+      );
+
+      const unmatched = [...uniqueValues].filter((v) => !valueToPk.has(v));
+      if (unmatched.length) {
+        NcError.get(context).invalidRequestBody(
+          `Link field '${column.title}': no record in '${
+            groupCtx.relatedModel.title
+          }' has an exact ${
+            groupCtx.displayValueColumn.title
+          } match for ${unmatched.map((v) => `'${v}'`).join(', ')}`,
+        );
+      }
+
+      for (const { fields, key } of pending) {
+        const value = fields[key];
+        const entries = Array.isArray(value) ? value : [value];
+        const resolved = entries.map((entry) =>
+          isDisplayValue(entry) ? { id: valueToPk.get(String(entry)) } : entry,
+        );
+
+        fields[key] = Array.isArray(value) ? resolved : resolved[0];
+      }
+    }
+  }
+
   private async transformLTARFieldsToInternal(
     context: NcContext,
     fields: any,
@@ -640,8 +766,10 @@ export class DataV3Service {
           ),
         ];
 
-    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const insertPayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (transformedBody.length > insertPayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(insertPayloadLimit);
     }
 
     const result = await this.dataTableService.dataInsert(context, {
@@ -655,23 +783,6 @@ export class DataV3Service {
       return { records: [] };
     }
 
-    const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey.id in obj || primaryKey.title in obj;
-    };
-
-    // Extract inserted record IDs
-    const insertedIds = Array.isArray(result)
-      ? result
-          .map((record) => record[primaryKey.id] ?? record[primaryKey.title])
-          .filter((id) => id != null)
-      : hasPrimaryKey(result)
-      ? [result[primaryKey.id] ?? result[primaryKey.title]]
-      : [];
-
-    if (insertedIds.length === 0) {
-      return { records: [] };
-    }
-
     // Fetch full records using baseModel.chunkList() for better performance
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -680,32 +791,55 @@ export class DataV3Service {
       source,
     });
 
-    // Convert IDs to strings for chunkList
-    const idsAsStrings = insertedIds.map((id) => String(id));
+    // extractPksValues reads baseModel.model.primaryKeys, which is null until
+    // columns are loaded. The fresh model from getBaseModelSQL isn't hydrated in
+    // CE, so load columns before the first extractPksValues call below (the
+    // sibling nestedLink path does the same).
+    await baseModel.model.getColumns(baseModel.context);
+
+    // Extract inserted record PK values via extractPksValues (NOT the single
+    // primaryKey) so composite-PK tables get the full `___`-joined string. This
+    // keeps the chunkList lookup and the recordMap keys consistent — keying by
+    // only `id` would never match the composite map keys built below.
+    const insertedPks = (Array.isArray(result) ? result : [result])
+      .map((record) => baseModel.extractPksValues(record, true))
+      .filter((pk) => pk != null && pk !== 'N/A');
+
+    if (insertedPks.length === 0) {
+      return { records: [] };
+    }
 
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // Fetch all records in bulk
+    // Fetch all records in bulk.
+    // ignoreRls: the caller just created these rows and must get them back as the
+    // creation confirmation, even when the new row falls outside the caller's own
+    // RLS policy (e.g. an "Assigned To = me" policy and an unset Assigned-To on
+    // insert). This mirrors every other post-write read-back in BaseModelSqlv2
+    // (single insert / bulkInsert). Without it, a caller subject to RLS — which,
+    // since the owner-exemption removal, now includes base owners — gets an empty
+    // `records: []` and the insert looks like it silently failed.
     const fullRecords = await baseModel.chunkList({
-      pks: idsAsStrings,
+      pks: insertedPks.map((pk) => String(pk)),
       apiVersion: NcApiVersion.V3,
+      ignoreRls: true,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },
     });
 
-    // Create a map for quick lookup by ID
+    // Create a map for quick lookup by PK
     const recordMap = new Map();
     for (const record of fullRecords) {
       const recordId = baseModel.extractPksValues(record, true);
       recordMap.set(String(recordId), record);
     }
 
-    // Maintain the original order of insertedIds
+    // Maintain the original order of inserted records
     const orderedRecords = [];
-    for (const id of insertedIds) {
-      const record = recordMap.get(String(id));
+    for (const pk of insertedPks) {
+      const record = recordMap.get(String(pk));
       if (record) {
         orderedRecords.push(record);
       }
@@ -728,6 +862,193 @@ export class DataV3Service {
         linksAsLtar,
       }),
     };
+  }
+
+  async dataUpsert(
+    context: NcContext,
+    param: DataUpsertParams,
+  ): Promise<{ records: DataUpsertRecordResponse[] }> {
+    const { body } = param;
+
+    // 1. Validate top-level request structure
+    if (!body.records) {
+      NcError.get(context).invalidRequestBody("Property 'records' is required");
+    }
+
+    const records = Array.isArray(body.records) ? body.records : [body.records];
+
+    if (records.length === 0) {
+      NcError.get(context).invalidRequestBody("'records' must not be empty");
+    }
+
+    // Validate each record has 'fields'
+    for (const [index, record] of records.entries()) {
+      if (!record.fields || typeof record.fields !== 'object') {
+        NcError.get(context).invalidRequestBody(
+          `Property 'fields' is required on record at index ${index}`,
+        );
+      }
+      const otherProps = Object.keys(record).filter(
+        (prop) => prop !== 'fields',
+      );
+      if (otherProps.length) {
+        NcError.get(context).invalidRequestBody(
+          `Properties ${otherProps
+            .map((f) => `'${f}'`)
+            .join(
+              ',',
+            )} on record at index ${index} are not allowed. Only 'fields' is accepted.`,
+        );
+      }
+    }
+
+    if (records.length > V3_DATA_PAYLOAD_LIMIT) {
+      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    }
+
+    // 2. Get model info
+    const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
+      context,
+      param.modelId,
+    );
+
+    // 2b. Validate that records do not contain primary key fields
+    const pkTitles = new Set(primaryKeys.map((pk) => pk.title));
+
+    for (const [index, record] of records.entries()) {
+      const pkFieldsInRecord = Object.keys(record.fields).filter((key) =>
+        pkTitles.has(key),
+      );
+      if (pkFieldsInRecord.length) {
+        NcError.get(context).invalidRequestBody(
+          `Record at index ${index} contains primary key field${
+            pkFieldsInRecord.length > 1 ? 's' : ''
+          } ${pkFieldsInRecord
+            .map((f) => `'${f}'`)
+            .join(
+              ', ',
+            )} in 'fields'. Primary key fields are not allowed in upsert records.`,
+        );
+      }
+    }
+
+    // 3. Resolve merge fields to columns
+    if (!body.fieldsToMergeOn?.length) {
+      NcError.get(context).invalidRequestBody(
+        `fieldsToMergeOn is required and must contain at least one field`,
+      );
+    }
+
+    if (body.fieldsToMergeOn.length > UPSERT_MAX_MERGE_FIELDS) {
+      NcError.get(context).invalidRequestBody(
+        `fieldsToMergeOn exceeds maximum of ${UPSERT_MAX_MERGE_FIELDS} fields`,
+      );
+    }
+
+    const mergeColumns: Column[] = [];
+    for (const fieldRef of body.fieldsToMergeOn) {
+      // Support both field title and column id
+      const col = columns.find(
+        (c) => c.title === fieldRef || c.id === fieldRef,
+      );
+      if (!col) {
+        NcError.get(context).invalidRequestBody(
+          `fieldsToMergeOn: field '${fieldRef}' does not exist in table`,
+        );
+      }
+      if (UPSERT_DISALLOWED_UITYPES.has(col.uidt as UITypes)) {
+        NcError.get(context).invalidRequestBody(
+          `fieldsToMergeOn: field '${col.title}' has unsupported type '${col.uidt}' for merge matching`,
+        );
+      }
+      mergeColumns.push(col);
+    }
+
+    // Validate that every record provides values for all merge fields
+    for (const [index, record] of records.entries()) {
+      for (const mergeCol of mergeColumns) {
+        // Check by both title and id to support either key format in record fields
+        if (
+          record.fields[mergeCol.title] === undefined &&
+          record.fields[mergeCol.id] === undefined
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Record at index ${index} is missing value for merge field '${mergeCol.title}'`,
+          );
+        }
+      }
+    }
+
+    // 4. Transform LTAR fields
+    const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
+
+    // Resolve any link targets given as display values into {id} form before
+    // the normal transform runs, so everything downstream still sees ids.
+    await this.resolveLinkDisplayValues(context, records, ltarColumns);
+
+    const transformedBody = await Promise.all(
+      records.map(async (record) =>
+        this.transformLTARFieldsToInternal(context, record.fields, ltarColumns),
+      ),
+    );
+
+    // 5. Get base model
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    // 6. Call bulkUpsert with merge columns. It resolves the insert/update
+    // split internally and reports it back, so there's no second merge-field
+    // lookup here — and no risk of the two disagreeing.
+    let updatedPkSet = new Set<string>();
+
+    const allRecords = await baseModel.bulkUpsert(transformedBody, {
+      cookie: param.cookie,
+      mergeColumns,
+      throwOnDuplicate: true,
+      apiVersion: NcApiVersion.V3,
+      onUpsertSplit: ({ updatedPks }) => {
+        updatedPkSet = new Set(updatedPks);
+      },
+    });
+
+    // 7. Build ID-to-status mapping
+    const statusMap = new Map<string, 'inserted' | 'updated'>();
+
+    for (const record of allRecords) {
+      const pk = String(baseModel.extractPksValues(record, true));
+      statusMap.set(pk, updatedPkSet.has(pk) ? 'updated' : 'inserted');
+    }
+
+    const linksAsLtar =
+      param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
+    // 8. Transform to V3 format
+    const v3Records = await this.transformRecordsToV3Format({
+      context,
+      records: allRecords,
+      primaryKey,
+      primaryKeys,
+      requestedFields: undefined,
+      columns,
+      nestedLimit: undefined,
+      skipSubstitutingColumnIds:
+        param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      reuse: {},
+      depth: 0,
+      linksAsLtar,
+    });
+
+    // 9. Attach status to each record
+    const result: DataUpsertRecordResponse[] = v3Records.map((record) => ({
+      ...record,
+      status: statusMap.get(String(record.id)) ?? 'inserted',
+    }));
+
+    return { records: result };
   }
 
   async dataDelete(
@@ -821,8 +1142,10 @@ export class DataV3Service {
         ];
     profiler.log(`transformLTARFieldsToInternal done`);
 
-    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const updatePayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (transformedBody.length > updatePayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(updatePayloadLimit);
     }
 
     await this.dataTableService.dataUpdate(context, {
@@ -856,7 +1179,13 @@ export class DataV3Service {
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // Fetch all records in bulk
+    // Fetch all records in bulk.
+    // NOTE: deliberately RLS-applied here (unlike the insert read-back). updatedIds
+    // are the client-supplied ids, not the post-RLS actually-updated set, so an
+    // ignoreRls read-back could echo back a row the caller referenced but cannot
+    // see. Keeping RLS on means a row edited out of the caller's own policy is
+    // omitted from the response, but that is the safe trade-off for an endpoint
+    // whose whole purpose here is not to leak RLS-restricted rows.
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
       apiVersion: context.api_version,
@@ -916,6 +1245,21 @@ export class DataV3Service {
       ? param.body
       : [param.body]
     ).entries()) {
+      // Reject non-object records before any property access. Without this,
+      // a client sending `[ "{'Name': 'x'}" ]` (a Python repr or any other
+      // stringified payload) makes it all the way to BaseModelSqlv2.bulkInsert,
+      // where `'Id' in d` throws `Cannot use 'in' operator to search for 'Id'
+      // in {'Name': 'x'}` — the V8 in-error format shows the primitive's value,
+      // which is what surfaced in prod. Same shielding for `null` / arrays.
+      if (!row || typeof row !== 'object' || Array.isArray(row)) {
+        NcError.get(context).invalidRequestBody(
+          `Record at index ${index} must be a JSON object${
+            param.validateAdditionalProp ? ` with a 'fields' property` : ''
+          }; got ${
+            row === null ? 'null' : Array.isArray(row) ? 'array' : typeof row
+          }`,
+        );
+      }
       if (param.validateId) {
         if (!row.id) {
           NcError.get(context).invalidRequestBody(
@@ -924,6 +1268,25 @@ export class DataV3Service {
         }
       }
       if (param.validateAdditionalProp) {
+        // `fields` must be an object — a string here would be returned as-is
+        // by transformLTARFieldsToInternal and reach bulkInsert as a primitive,
+        // producing the same 'Id' in <string> crash. null and arrays are also
+        // invalid envelopes.
+        if (
+          !row.fields ||
+          typeof row.fields !== 'object' ||
+          Array.isArray(row.fields)
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Property 'fields' on index ${index} must be a JSON object; got ${
+              row.fields === null
+                ? 'null'
+                : Array.isArray(row.fields)
+                ? 'array'
+                : typeof row.fields
+            }`,
+          );
+        }
         const otherProps = Object.keys(row).filter(
           (prop) => !['id', 'fields'].includes(prop),
         );
@@ -1039,12 +1402,15 @@ export class DataV3Service {
           };
     }
 
-    const pagedResponse = new PagedResponseV3Impl(response, {
-      context,
-      tableId: param.modelId,
-      baseUrl: param.req.ncSiteUrl,
-      queryParams: param.query,
-    });
+    const pagedResponse = new PagedResponseV3Impl(
+      response as PagedResponseImpl<Record<string, any>>,
+      {
+        context,
+        tableId: param.modelId,
+        baseUrl: param.req.ncSiteUrl,
+        queryParams: param.query,
+      },
+    );
 
     // Extract requested fields from query parameters for nested data
     const requestedFields = this.getRequestedFields(param.query);

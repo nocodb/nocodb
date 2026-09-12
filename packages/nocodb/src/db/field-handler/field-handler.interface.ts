@@ -59,6 +59,23 @@ export interface FilterOperationHandlers {
   filterNlike: FilterOperation;
   filterBlank: FilterOperation;
   filterNotblank: FilterOperation;
+  /**
+   * `null` / `notnull` — match strictly on `IS NULL` / `IS NOT NULL`. Distinct
+   * from `blank` / `notblank`, which also fold empty-string `''` into the
+   * predicate. Splitting these out preserves the pre-FieldHandler semantics
+   * that the legacy conditionV2 path still keeps for SingleLineText/Email/etc.
+   * Collapsing all three into `filterBlank` made `null`/`empty`/`blank`
+   * behave identically and broke the filter parity tests for LongText /
+   * SingleSelect / MultiSelect on PG.
+   */
+  filterNull: FilterOperation;
+  filterNotnull: FilterOperation;
+  /**
+   * `empty` / `notempty` — match strictly on `= ''` / `<> '' OR IS NULL`.
+   * Distinct from `blank` / `notblank` (see above).
+   */
+  filterEmpty: FilterOperation;
+  filterNotempty: FilterOperation;
   filterIs: FilterOperation;
   filterIsnot: FilterOperation;
   filterGt: FilterOperation;
@@ -78,6 +95,15 @@ export interface FilterVerificationResult {
   isValid: boolean;
   errors?: string[];
 }
+
+export interface SortOptions {
+  alias?: string;
+  /** 'FIRST' or 'LAST' — controls SQL NULLS positioning. */
+  nulls?: 'FIRST' | 'LAST';
+  context?: NcContext;
+  knex?: Knex;
+  baseModel?: IBaseModelSqlV2;
+}
 export interface FieldHandlerInterface {
   select(qb: Knex.QueryBuilder, column: Column, options: FilterOptions): void;
   filter(
@@ -86,6 +112,17 @@ export interface FieldHandlerInterface {
     column: Column,
     options?: FilterOptions,
   ): Promise<FilterOperationResult>;
+  /**
+   * Apply ORDER BY for a column. Each column type owns its sort expression
+   * — text columns sort the raw column, User columns sort by display name,
+   * Formula columns sort by compiled SQL, etc.
+   */
+  applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options?: SortOptions,
+  ): Promise<void>;
   verifyFilter(
     filter: Filter,
     column: Column,
@@ -140,6 +177,13 @@ export interface IFieldHandler {
     qb: Knex.QueryBuilder,
     column: Column,
     options?: FilterOptions,
+  ): Promise<void>;
+
+  applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options?: SortOptions,
   ): Promise<void>;
 
   verifyFilter(

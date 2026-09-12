@@ -16,7 +16,14 @@ dayjs.extend(utc);
 
 export class TimeGeneralHandler extends GenericFieldHandler {
   getTimeFormat() {
-    return 'YYYY-MM-DD HH:mm:ssZ';
+    // A `Time` column is time-of-day only. Emitting a full `YYYY-MM-DD HH:mm:ssZ`
+    // value breaks comparison against a real `time` column on PG ("invalid input
+    // syntax for type time") and date-mismatches on sqlite (a filter value like
+    // "02:02:00" defaults to today while stored rows carry 1999-01-01). Compare
+    // on the bare time portion — the same shape the MSSQL handler already uses.
+    // `getTimeFormat()` drives both parseUserInput (write) and filter, so write
+    // and filter stay consistent.
+    return 'HH:mm:ss';
   }
 
   override async parseUserInput(params: {

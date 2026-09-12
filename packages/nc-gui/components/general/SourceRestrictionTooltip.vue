@@ -34,7 +34,7 @@ defineProps<{
           href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source#configuring-permissions"
           target="_blank"
         >
-          Learn more
+          {{ $t('msg.learnMore') }}
         </a>
       </slot>
     </template>

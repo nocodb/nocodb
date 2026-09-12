@@ -65,7 +65,13 @@ const { isPg, isMysql } = useBase()
 const tempSelectedOptsState = reactive<SelectInputOptionType[]>([])
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
+  () =>
+    !isPublic.value &&
+    !disableOptionCreation &&
+    isUIAllowed('fieldEdit') &&
+    !isMetaReadOnly.value &&
+    !isForm.value &&
+    !column.value?.readonly,
 )
 
 const options = computed(() => {
@@ -75,7 +81,7 @@ const options = computed(() => {
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
     if (op.title) {
-      acc[op.title.trim()] = op
+      acc[ncIsString(op.title) ? op.title.trim() : `${op.title}`] = op
     }
     return acc
   }, {} as Record<string, (typeof options.value)[number]>)
@@ -502,7 +508,8 @@ onMounted(() => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[1px];
+  /* keep in sync with .rounded-tag above */
+  @apply py-[0.5px] px-2 rounded-[12px] my-[1px];
 }
 
 :deep(.ant-select-selection-overflow-item) {

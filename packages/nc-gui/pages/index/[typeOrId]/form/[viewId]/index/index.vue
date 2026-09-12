@@ -17,6 +17,11 @@ const {
   validateInfos,
   validate,
   fieldMappings,
+  meta,
+  draftWasRestored,
+  draftRestoredAt,
+  discardDraft,
+  dismissDraftBanner,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -97,6 +102,8 @@ const validateField = async (title: string) => {
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => sharedFormView?.value?.success_msg),
   computed(() => formState.value),
+  formColumns,
+  meta,
 )
 </script>
 
@@ -106,6 +113,14 @@ const { message: templatedMessage } = useTemplatedMessage(
       v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
       :banner-image-url="sharedFormView.banner_image_url"
       class="flex-none"
+    />
+
+    <SmartsheetFormDraftRestoredBanner
+      v-if="sharedFormView && !submitted && !notFound && draftWasRestored"
+      :restored-at="draftRestoredAt"
+      class="w-full mt-6 -mb-3"
+      @discard="discardDraft"
+      @close="dismissDraftBanner"
     />
 
     <div
@@ -202,7 +217,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     v-for="(field, index) in formColumns"
                     :key="index"
                     class="flex flex-col gap-2"
-                    :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
+                    :data-testid="`nc-shared-form-item-${toSafeClassName(field.title)}`"
                   >
                     <div class="nc-form-column-label text-sm font-semibold text-nc-content-gray">
                       <span>
@@ -237,7 +252,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               :model-value="null"
                               class="mt-0 nc-input nc-cell"
                               :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :class="[`nc-form-input-${toSafeClassName(field.title)}`, { readonly: field?.read_only }]"
                               :column="field"
                               :read-only="field?.read_only"
                             />
@@ -248,7 +263,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="nc-input truncate"
                               :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                               :class="[
-                                `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                                `nc-form-input-${toSafeClassName(field.title)}`,
                                 { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
                               ]"
                               :column="field"

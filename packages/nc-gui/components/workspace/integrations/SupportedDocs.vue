@@ -2,10 +2,12 @@
 import { IntegrationsType } from 'nocodb-sdk'
 const { activeIntegrationItem } = useIntegrationStore()
 
+const { t } = useI18n()
+
 const supportedDocs = computed(() => {
   const docs = [
     {
-      title: 'Integrations',
+      title: t('general.integrations'),
       href: 'https://nocodb.com/docs/product-docs/integrations',
     },
     {

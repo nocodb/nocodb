@@ -33,6 +33,16 @@ const isAllowed = toRef(props, 'isAllowed', true)
 
 provide(ColumnInj, column)
 
+provide(
+  FormFieldAutocompleteInj,
+  computed(() => {
+    const val = parseProp(column.value.meta)?.autocomplete as string | undefined
+    // Chrome ignores autocomplete="off" for fields it recognises (name, email, address, etc.)
+    // Using a non-standard value like "nope" forces all browsers to actually disable autofill
+    return val === 'off' ? 'nope' : val
+  }),
+)
+
 const editEnabled = useVModel(props, 'editEnabled', emit)
 
 const localEditEnabled = ref(false)
@@ -225,8 +235,11 @@ const cellType = computed(() => {
   if (isMultiSelect(column.value)) return 'multiSelect'
   if (isDate(column.value, abstractType.value)) return 'datePicker'
   if (isYear(column.value, abstractType.value)) return 'yearPicker'
-  if (isDateTime(column.value, abstractType.value)) return 'dateTimePicker'
+  // Check Time before DateTime: a lookup formatting override sets uidt=Time but
+  // keeps the source's `datetime` abstract type, so isDateTime would otherwise win
+  // and render a datetime picker instead of a time one. uidt is authoritative.
   if (isTime(column.value, abstractType.value)) return 'timePicker'
+  if (isDateTime(column.value, abstractType.value)) return 'dateTimePicker'
   if (isRating(column.value)) return 'rating'
   if (isDuration(column.value)) return 'duration'
   if (isEmail(column.value)) return 'email'
@@ -332,16 +345,16 @@ const cellClassName = computed(() => {
     className += ' nc-grid-numeric-cell-right'
   }
 
-  if (
+  // One height utility only — h-10 and h-full tie on specificity, so emission order would decide.
+  const isFormFixedHeight =
     !isEditColumnMenu.value &&
     isForm.value &&
     !props.virtual &&
     cellType.value !== 'attachment' &&
     cellType.value !== 'textarea' &&
     cellType.value !== 'ai'
-  ) {
-    className += ' h-10'
-  }
+
+  className += isFormFixedHeight ? ' h-10' : ' h-full'
 
   if ((isForm.value && isNumericField.value && isExpandedFormOpen.value) || isEditColumnMenu.value) {
     className += ' nc-grid-numeric-cell-left'
@@ -362,7 +375,7 @@ const cellClassName = computed(() => {
 <template>
   <div
     :class="[cellClassName, { 'nc-under-ltar': isUnderLTAR }]"
-    class="nc-cell w-full h-full relative"
+    class="nc-cell w-full relative"
     @contextmenu="onContextmenu"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"

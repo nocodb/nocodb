@@ -88,9 +88,12 @@ export interface SerializerOrParserFnProps {
     rowId?: string | null;
     isMultipleCellPaste?: boolean;
     serializeSearchQuery?: boolean;
+    serializeLinkRecordSearchQuery?: boolean;
     t?: (key: string, params?: Record<string, any>) => string;
     isAggregation?: boolean;
     clipboardItem?: NcClipboardItemType;
+    // skip display-only `meta.abbreviate` — copy paths need text that survives paste-back
+    skipAbbreviation?: boolean;
   };
 }
 

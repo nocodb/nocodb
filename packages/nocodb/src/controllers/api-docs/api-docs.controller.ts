@@ -16,6 +16,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
+import { ncSiteUrl } from '~/utils/envs';
 
 @Controller()
 export class ApiDocsController {
@@ -60,7 +61,7 @@ export class ApiDocsController {
   swaggerHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getSwaggerHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: ncSiteUrl || '',
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -71,7 +72,7 @@ export class ApiDocsController {
   redocHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getRedocHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: ncSiteUrl || '',
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -82,7 +83,7 @@ export class ApiDocsController {
   swaggerHtmlV2(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getSwaggerHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: ncSiteUrl || '',
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -93,7 +94,7 @@ export class ApiDocsController {
   redocHtmlV2(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getRedocHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: ncSiteUrl || '',
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -121,7 +122,7 @@ export class ApiDocsController {
   swaggerHtmlV3(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getSwaggerHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: ncSiteUrl || '',
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -132,7 +133,7 @@ export class ApiDocsController {
   redocHtmlV3(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getRedocHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: ncSiteUrl || '',
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );

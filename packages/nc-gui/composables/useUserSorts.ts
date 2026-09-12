@@ -1,4 +1,3 @@
-import rfdc from 'rfdc'
 import { OrderedOrgRoles, OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import type { UsersSortType } from '~/lib/types'
@@ -12,8 +11,6 @@ import type { UsersSortType } from '~/lib/types'
 export function useUserSorts(
   roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook' | 'Teams' | 'OAuthAuthorization' | 'OAuthClients',
 ) {
-  const clone = rfdc()
-
   const { user } = useGlobal()
 
   const sorts = ref<UsersSortType>({})
@@ -125,7 +122,7 @@ export function useUserSorts(
       userRoleOrder = Object.values(OrderedOrgRoles)
     }
 
-    data = clone(data)
+    data = deepClone(data)
 
     const superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
     const superUser = sortsConfig.field === 'roles' && superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
@@ -150,6 +147,13 @@ export function useUserSorts(
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
+          }
+        }
+        case 'billable': {
+          if (sortsConfig.direction === 'asc') {
+            return Number(!!a.billable) - Number(!!b.billable)
+          } else {
+            return Number(!!b.billable) - Number(!!a.billable)
           }
         }
         case 'baseCount':

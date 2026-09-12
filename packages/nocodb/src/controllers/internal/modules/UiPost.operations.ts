@@ -28,9 +28,11 @@ import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
 import { SyncSource, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { DataImportService } from '~/services/data-import.service';
 
 @Injectable()
 export class UiPostOperations
@@ -59,6 +61,7 @@ export class UiPostOperations
     protected syncService: SyncService,
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
+    protected dataImportService: DataImportService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -77,9 +80,11 @@ export class UiPostOperations
     'showAllColumns' as const,
     'hideAllColumns' as const,
     'viewColumnUpdate' as const,
+    'viewColumnsBulkSetVisibility' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
     'timelineColumnUpdate' as const,
+    'ganttColumnUpdate' as const,
     'listColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
@@ -89,9 +94,11 @@ export class UiPostOperations
     'filterCreate' as const,
     'filterUpdate' as const,
     'filterDelete' as const,
+    'filterBulkLogicalOpUpdate' as const,
     'sortCreate' as const,
     'sortUpdate' as const,
     'sortDelete' as const,
+    'lookupSortCreate' as const,
     'hookCreate' as const,
     'hookUpdate' as const,
     'hookDelete' as const,
@@ -106,18 +113,23 @@ export class UiPostOperations
     'mapViewCreate' as const,
     'calendarViewCreate' as const,
     'timelineViewCreate' as const,
+    'ganttViewCreate' as const,
     'gridViewUpdate' as const,
     'formViewUpdate' as const,
     'formColumnUpdate' as const,
+    'formColumnBulkUpdate' as const,
     'galleryViewUpdate' as const,
     'kanbanViewUpdate' as const,
     'mapViewUpdate' as const,
     'calendarViewUpdate' as const,
     'timelineViewUpdate' as const,
+    'ganttViewUpdate' as const,
     'nestedDataLink' as const,
     'nestedDataUnlink' as const,
+    'nestedDataReorder' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
     'nestedDataBulkCopyPasteOrDeleteAll' as const,
+    'nestedDataBulkLinkByDisplayValue' as const,
     'linkFilterCreate' as const,
     'widgetFilterCreate' as const,
     'rowColorConditionsFilterCreate' as const,
@@ -126,6 +138,7 @@ export class UiPostOperations
     'dataInsert' as const,
     'dataUpdate' as const,
     'dataDelete' as const,
+    'dataMove' as const,
     'bulkDataDeleteAll' as const,
     'commentRow' as const,
     'commentUpdate' as const,
@@ -142,6 +155,8 @@ export class UiPostOperations
     'listViewCreate' as const,
     'listViewUpdate' as const,
     'convertLinkToV2' as const,
+    'dataImportPreview' as const,
+    'dataImportFile' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -170,14 +185,18 @@ export class UiPostOperations
       case 'tableDelete':
         return await this.tablesService.tableDelete(context, {
           tableId: req.query.tableId,
-          user: req.user,
-          forceDeleteRelations: payload?.forceDeleteRelations,
           req,
+          forceDeleteRelations: payload?.forceDeleteRelations,
         });
       case 'tableReorder':
         return await this.tablesService.reorderTable(context, {
           tableId: req.query.tableId,
           order: payload.order,
+          // EE base-level sections: optional membership move riding along
+          // with the reorder (null = top level, absent = untouched).
+          ...('fk_base_section_id' in (payload ?? {})
+            ? { fk_base_section_id: payload.fk_base_section_id }
+            : {}),
           req,
         });
       case 'columnAdd':
@@ -197,7 +216,6 @@ export class UiPostOperations
       case 'columnDelete':
         return await this.columnsService.columnDelete(context, {
           columnId: req.query.columnId,
-          user: req.user,
           req,
         });
       case 'columnSetAsPrimary':
@@ -206,12 +224,13 @@ export class UiPostOperations
           req,
         });
       case 'columnsBulk':
-        return await this.columnsService.columnBulk(
-          context,
-          req.query.tableId,
-          payload,
+        return await this.columnsService.columnsBulk(context, {
+          tableId: req.query.tableId,
+          hash: payload?.hash,
+          ops: payload?.ops,
+          visibility: payload?.visibility,
           req,
-        );
+        });
       case 'convertLinkToV2':
         return await this.columnsService.convertLinkToV2(context, {
           columnId: req.query.columnId,
@@ -221,13 +240,11 @@ export class UiPostOperations
         return await this.viewsService.viewUpdate(context, {
           viewId: req.query.viewId,
           view: payload,
-          user: req.user,
           req,
         });
       case 'viewDelete':
         return await this.viewsService.viewDelete(context, {
           viewId: req.query.viewId,
-          user: req.user,
           req,
         });
       case 'shareView':
@@ -252,14 +269,22 @@ export class UiPostOperations
       case 'showAllColumns':
         return await this.viewsService.showAllColumns(context, {
           viewId: req.query.viewId,
-          ignoreIds: req.query.ignoreIds,
+          ignoreIds: normalizeArrayQueryParam(req.query.ignoreIds) ?? [],
           levelId: req.query.levelId,
+          req,
         });
       case 'hideAllColumns':
         return await this.viewsService.hideAllColumns(context, {
           viewId: req.query.viewId,
-          ignoreIds: req.query.ignoreIds,
+          ignoreIds: normalizeArrayQueryParam(req.query.ignoreIds) ?? [],
           levelId: req.query.levelId,
+          req,
+        });
+      case 'viewColumnsBulkSetVisibility':
+        return await this.viewsService.viewColumnsBulkSetVisibility(context, {
+          viewId: req.query.viewId,
+          columnVisibility: payload?.columnVisibility,
+          req,
         });
       case 'viewColumnUpdate':
         return await this.viewColumnsService.columnUpdate(context, {
@@ -281,44 +306,54 @@ export class UiPostOperations
           req,
         });
       case 'viewRowColorConditionAdd':
-        return await this.viewRowColorService.addRowColoringCondition({
-          context,
+        return await this.viewRowColorService.addRowColoringCondition(context, {
           fk_view_id: req.query.viewId,
-          color: payload.color,
-          is_set_as_background: payload.is_set_as_background,
-          nc_order: payload.nc_order,
-          type: payload.type,
-          fk_target_column_id: payload.fk_target_column_id,
+          condition: {
+            color: payload.color,
+            is_set_as_background: payload.is_set_as_background,
+            nc_order: payload.nc_order,
+            type: payload.type,
+            fk_target_column_id: payload.fk_target_column_id,
+          },
           filter: payload.filter,
+          req,
         });
       case 'viewRowColorConditionUpdate':
-        return await this.viewRowColorService.updateRowColoringCondition({
+        return await this.viewRowColorService.updateRowColoringCondition(
           context,
-          fk_view_id: req.query.viewId,
-          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
-          color: payload.color,
-          is_set_as_background: payload.is_set_as_background,
-          nc_order: payload.nc_order,
-          type: payload.type,
-          fk_target_column_id: payload.fk_target_column_id,
-        });
+          {
+            fk_view_id: req.query.viewId,
+            fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+            condition: {
+              color: payload.color,
+              is_set_as_background: payload.is_set_as_background,
+              nc_order: payload.nc_order,
+              type: payload.type,
+              fk_target_column_id: payload.fk_target_column_id,
+            },
+            req,
+          },
+        );
       case 'viewRowColorConditionDelete':
-        return await this.viewRowColorService.deleteRowColoringCondition({
+        return await this.viewRowColorService.deleteRowColoringCondition(
           context,
-          fk_view_id: req.query.viewId,
-          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
-        });
+          {
+            fk_view_id: req.query.viewId,
+            fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+            req,
+          },
+        );
       case 'viewRowColorSelectAdd':
-        return await this.viewRowColorService.setRowColoringSelect({
-          context,
+        return await this.viewRowColorService.setRowColoringSelect(context, {
           fk_view_id: req.query.viewId,
           fk_column_id: payload.fk_column_id,
           is_set_as_background: payload.is_set_as_background,
+          req,
         });
       case 'viewRowColorInfoDelete':
-        return await this.viewRowColorService.removeRowColorInfo({
-          context,
+        return await this.viewRowColorService.removeRowColorInfo(context, {
           fk_view_id: req.query.viewId,
+          req,
         });
       case 'filterCreate':
         return await this.filtersService.filterCreate(context, {
@@ -339,6 +374,11 @@ export class UiPostOperations
           filterId: req.query.filterId,
           req,
         });
+      case 'filterBulkLogicalOpUpdate':
+        return await this.filtersService.filterBulkLogicalOpUpdate(context, {
+          filters: payload?.filters,
+          req,
+        });
       case 'sortCreate':
         return await this.sortsService.sortCreate(context, {
           viewId: req.query.viewId,
@@ -354,6 +394,12 @@ export class UiPostOperations
       case 'sortDelete':
         return await this.sortsService.sortDelete(context, {
           sortId: req.query.sortId,
+          req,
+        });
+      case 'lookupSortCreate':
+        return await this.sortsService.lookupSortCreate(context, {
+          columnId: req.query.columnId,
+          sort: payload,
           req,
         });
       case 'hookCreate':
@@ -457,6 +503,12 @@ export class UiPostOperations
           formViewColumn: payload,
           req,
         });
+      case 'formColumnBulkUpdate':
+        return await this.formColumnsService.columnBulkUpdate(context, {
+          formViewId: req.query.viewId,
+          updates: payload?.updates ?? [],
+          req,
+        });
       case 'galleryViewUpdate':
         return await this.galleriesService.galleryViewUpdate(context, {
           galleryViewId: req.query.viewId,
@@ -503,6 +555,18 @@ export class UiPostOperations
           cookie: req,
           user: req.user,
         });
+      case 'nestedDataReorder':
+        return await this.dataTableService.nestedReorder(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          query: req.query,
+          viewId: req.query.viewId as string,
+          columnId: req.query.columnId as string,
+          refRowId: req.query.refRowId as string,
+          before: (req.query.before as string) ?? null,
+          cookie: req,
+          user: req.user,
+        });
       case 'nestedDataListCopyPasteOrDeleteAll':
         return await this.dataTableService.nestedListCopyPasteOrDeleteAll(
           context,
@@ -518,6 +582,18 @@ export class UiPostOperations
         );
       case 'nestedDataBulkCopyPasteOrDeleteAll':
         return await this.dataTableService.nestedListBulkCopyPasteOrDeleteAll(
+          context,
+          {
+            modelId: req.query.tableId as string,
+            query: req.query,
+            viewId: req.query.viewId as string,
+            data: payload,
+            cookie: req,
+            user: req.user,
+          },
+        );
+      case 'nestedDataBulkLinkByDisplayValue':
+        return await this.dataTableService.nestedBulkLinkByDisplayValue(
           context,
           {
             modelId: req.query.tableId as string,
@@ -594,6 +670,14 @@ export class UiPostOperations
           cookie: req,
           viewId: req.query.viewId as string,
           body: payload,
+          user: req.user,
+        });
+      case 'dataMove':
+        return await this.dataTableService.dataMove(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          beforeRowId: req.query.before as string | undefined,
+          cookie: req,
           user: req.user,
         });
       case 'bulkDataDeleteAll':
@@ -696,6 +780,31 @@ export class UiPostOperations
           extensionId: req.query.extensionId,
           req,
         });
+      case 'dataImportPreview':
+        return await this.dataImportService.preview(context, {
+          importType: payload.importType || 'csv',
+          attachment: payload.attachment,
+          parserConfig: payload.parserConfig,
+          req,
+        });
+      case 'dataImportFile':
+        return await this.dataImportService.importFile(context, {
+          baseId: req.query.baseId as string,
+          body: payload,
+          req,
+        });
+      default:
+        // Some op names are registered in CE's `operations` (so their type is
+        // visible to the SDK / typed clients) but only EE has a real handler —
+        // ganttView/ganttColumn/timelineView/timelineColumn/listView/listColumn.
+        // In a pure-CE deployment, the EE override never wires those handlers,
+        // and falling through silently used to return `undefined` while the
+        // ACL had already accepted the request — the frontend's optimistic
+        // create then thought the entity existed until the next page reload
+        // proved otherwise. Fail loudly instead.
+        NcError.notImplemented(
+          `Operation '${operation}' is not available in this edition`,
+        );
     }
   }
 }

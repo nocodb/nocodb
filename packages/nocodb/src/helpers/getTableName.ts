@@ -1,6 +1,17 @@
 import inflection from 'inflection';
 import type Source from '~/models/Source';
 
+function normalizeForInflection(name: string, source: Source): string {
+  if (
+    source?.type === 'oracledb' &&
+    name === name.toUpperCase() &&
+    name !== name.toLowerCase()
+  ) {
+    return name.toLowerCase();
+  }
+  return name;
+}
+
 export default function getTableNameAlias(
   tableName: string,
   prefix,
@@ -12,7 +23,10 @@ export default function getTableNameAlias(
   }
 
   return (
-    (source?.inflection_table && inflection[source?.inflection_table]?.(tn)) ||
+    (source?.inflection_table &&
+      inflection[source?.inflection_table]?.(
+        normalizeForInflection(tn, source),
+      )) ||
     tn
   );
 }
@@ -20,7 +34,9 @@ export default function getTableNameAlias(
 export function getColumnNameAlias(columnName: string, source: Source): string {
   return (
     (source?.inflection_column &&
-      inflection[source?.inflection_column]?.(columnName)) ||
+      inflection[source?.inflection_column]?.(
+        normalizeForInflection(columnName, source),
+      )) ||
     columnName
   );
 }

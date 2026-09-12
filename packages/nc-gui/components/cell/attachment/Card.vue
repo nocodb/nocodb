@@ -15,6 +15,8 @@ const props = withDefaults(
     confirmToDelete?: boolean
     iconWidth?: number
     iconHeight?: number
+    /** Comments anchored to this attachment — >0 shows the persistent badge. */
+    commentCount?: number
   }>(),
   {
     selected: false,
@@ -96,6 +98,17 @@ const handleFileDeleteStart = () => {
       class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100) opacity-0 z-50"
       :class="{ '!opacity-100': isSelected }"
     />
+
+    <!-- Persistent comment-count badge — this image carries a conversation.
+         pointer-events-none: the click still opens the card's viewer. -->
+    <div
+      v-if="commentCount"
+      class="nc-attachment-card-comment-badge absolute top-1.5 right-1.5 z-10 flex items-center gap-1 h-6 px-2 rounded-full bg-nc-bg-default shadow-sm border-1 border-nc-border-gray-light text-bodySm text-nc-content-gray pointer-events-none"
+      data-testid="nc-attachment-card-comment-count"
+    >
+      {{ commentCount }}
+      <GeneralIcon icon="messageCircle" class="w-3.5 h-3.5" />
+    </div>
     <div
       :class="{
         'cursor-move': isDragging,
@@ -117,7 +130,7 @@ const handleFileDeleteStart = () => {
 
     <div class="relative px-1 pb-1 items-center flex" :title="attachment.title">
       <div
-        class="flex w-full text-[12px] items-center text-nc-content-gray-subtle cursor-default h-5"
+        class="nc-attachment-card-title flex w-full text-[12px] items-center text-nc-content-gray-subtle cursor-default h-5"
         :class="{ truncate: !isRenamingFile }"
         @dblclick.stop="allowRename && isEditAllowed && handleFileRenameStart()"
       >
@@ -140,7 +153,7 @@ const handleFileDeleteStart = () => {
         />
       </div>
       <div
-        class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-nc-bg-default"
+        class="nc-attachment-card-actions flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-nc-bg-default"
         :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile }"
       >
         <NcTooltip placement="bottom">

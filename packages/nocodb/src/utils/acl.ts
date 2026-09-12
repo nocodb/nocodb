@@ -5,7 +5,7 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 
-const roleScopes = {
+export const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
@@ -25,7 +25,7 @@ const roleScopes = {
 };
 
 // todo: convert to enum
-const permissionScopes = {
+export const permissionScopes = {
   org: [
     // API Tokens
     'apiTokenList',
@@ -43,12 +43,19 @@ const permissionScopes = {
     'userUpdate',
     'userDelete',
     'passwordChange',
+    'mfaSetup',
+    'mfaVerifySetup',
+    'mfaDisable',
+    'mfaStatus',
+    'mfaRegenerateBackupCodes',
     'userInviteResend',
     'generateResetUrl',
 
     // Plugin
     'isPluginActive',
     'pluginList',
+    'aggregatedMetaInfo',
+    'webhookPluginList',
     'pluginTest',
     'pluginRead',
     'pluginUpdate',
@@ -77,6 +84,18 @@ const permissionScopes = {
 
     'getUserProfile',
 
+    // Bookmarks
+    'bookmarkList',
+    'bookmarkCheck',
+    'bookmarkGroupList',
+    'bookmarkCreate',
+    'bookmarkUpdate',
+    'bookmarkRefresh',
+    'bookmarkDelete',
+    'bookmarkGroupCreate',
+    'bookmarkGroupUpdate',
+    'bookmarkGroupDelete',
+
     // Connection + upload (matches EE org scope)
     'testConnection',
     'upload',
@@ -103,7 +122,6 @@ const permissionScopes = {
 
     // Misc
     'duplicateSharedBase',
-    'webhookPluginList',
 
     // AI
     'aiSchema',
@@ -117,9 +135,12 @@ const permissionScopes = {
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
     'nestedDataBulkCopyPasteOrDeleteAll',
+    'nestedDataBulkLinkByDisplayValue',
     'formViewGet',
     'baseGet',
     'tableGet',
+    'refTableGet',
+    'attachmentDownload',
     'dataList',
     'linkDataList',
     'bulkDataList',
@@ -131,17 +152,25 @@ const permissionScopes = {
     'exportCsv',
     'exportExcel',
     'sortList',
+    'lookupSortList',
     'filterList',
     'baseInfoGet',
     'baseUserMetaUpdate',
     'galleryViewGet',
     'kanbanViewGet',
+    'gridViewCreate',
     'gridViewUpdate',
+    'formViewCreate',
     'formViewUpdate',
     'formColumnUpdate',
+    'formColumnBulkUpdate',
+    'galleryViewCreate',
     'galleryViewUpdate',
+    'kanbanViewCreate',
     'kanbanViewUpdate',
+    'mapViewCreate',
     'mapViewUpdate',
+    'calendarViewCreate',
     'calendarViewGet',
     'mapViewGet',
     'calendarViewUpdate',
@@ -152,6 +181,13 @@ const permissionScopes = {
     'baseCost',
     'tableList',
     'viewList',
+    'viewCreate',
+    'viewUpdate',
+    'viewDelete',
+    'shareView',
+    'shareViewUpdate',
+    'shareViewDelete',
+    'shareViewList',
     'functionList',
     'sequenceList',
     'procedureList',
@@ -176,14 +212,19 @@ const permissionScopes = {
     'dataUpdate',
     'dataDelete',
     'dataInsert',
+    'dataMove',
+    'dataUpsert',
     'bulkDataUpsert',
     'viewColumnUpdate',
+    'viewColumnsBulkSetVisibility',
     'sortCreate',
+    'lookupSortCreate',
     'sortUpdate',
     'sortDelete',
     'filterCreate',
     'filterUpdate',
     'filterDelete',
+    'filterBulkLogicalOpUpdate',
     'filterGet',
     'filterChildrenList',
     'buttonFilterList',
@@ -205,6 +246,7 @@ const permissionScopes = {
     'nestedDataList',
     'nestedDataLink',
     'nestedDataUnlink',
+    'nestedDataReorder',
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
     'sourceCreate',
@@ -233,6 +275,9 @@ const permissionScopes = {
 
     'userInvite',
 
+    // Migration
+    'migrateBase',
+
     // AI
     'aiUtils',
     'aiData',
@@ -247,6 +292,25 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
+    // Table Sync
+    'tableSyncList',
+    'tableSyncGet',
+    'tableSyncSourceSchema',
+    'tableSyncCreate',
+    'tableSyncUpdate',
+    'tableSyncDelete',
+    'tableSyncResync',
+    'tableSyncFreeze',
+    'tableSyncResume',
+    'tableSyncResolveLink',
+
+    // Data Import
+    'dataImportPreview',
+    'dataImportFile',
+
+    // Web Bookmark (doc editor)
+    'webBookmarkFetch',
+
     // etc
     'fetchViaUrl',
 
@@ -258,6 +322,9 @@ const permissionScopes = {
     'baseIntegrationUpdate',
     'baseIntegrationLink',
     'baseIntegrationUnlink',
+
+    // Generic batch envelope (per-sub-op ACL runs inside the handler).
+    'batch',
   ],
 };
 
@@ -281,6 +348,11 @@ const rolePermissions:
       apiTokenUpdate: true,
       apiTokenDelete: true,
       passwordChange: true,
+      mfaSetup: true,
+      mfaVerifySetup: true,
+      mfaDisable: true,
+      mfaStatus: true,
+      mfaRegenerateBackupCodes: true,
       commandPalette: true,
       baseListAll: true,
       testConnection: true,
@@ -298,6 +370,18 @@ const rolePermissions:
 
       mcpRootList: true,
       getUserProfile: true,
+
+      // Bookmarks
+      bookmarkList: true,
+      bookmarkCheck: true,
+      bookmarkGroupList: true,
+      bookmarkCreate: true,
+      bookmarkUpdate: true,
+      bookmarkRefresh: true,
+      bookmarkDelete: true,
+      bookmarkGroupCreate: true,
+      bookmarkGroupUpdate: true,
+      bookmarkGroupDelete: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -331,7 +415,6 @@ const rolePermissions:
     include: {
       baseCreate: true,
       duplicateSharedBase: true,
-      webhookPluginList: true,
       integrationGet: true,
       integrationCreate: true,
       integrationDelete: true,
@@ -353,11 +436,18 @@ const rolePermissions:
   // ── Base roles (unchanged) ──
   [ProjectRoles.VIEWER]: {
     include: {
+      // batch envelope — per-sub-op ACL is enforced inside the handler,
+      // so the envelope itself is granted to everyone with base access.
+      batch: true,
+
       formViewGet: true,
       // base
       baseGet: true,
       //table
       tableGet: true,
+      refTableGet: true,
+      // attachment
+      attachmentDownload: true,
       // data
       dataList: true,
       linkDataList: true,
@@ -373,6 +463,7 @@ const rolePermissions:
 
       // sort & filter
       sortList: true,
+      lookupSortList: true,
       filterList: true,
       baseInfoGet: true,
       baseUserMetaUpdate: true,
@@ -417,8 +508,6 @@ const rolePermissions:
       commentCount: true,
       recordAuditList: true,
 
-      userInvite: true,
-
       // MCP CRUD
       mcpList: true,
       mcpCreate: true,
@@ -435,12 +524,20 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
+      // Expanding base membership is not a read-only action; Viewer and
+      // Commenter must not reach it. `include` inherits forward, so Creator
+      // and Owner still get it from here.
+      userInvite: true,
+
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
+      dataMove: true,
+      dataUpsert: true,
       bulkDataUpsert: true,
       nestedDataListCopyPasteOrDeleteAll: true,
       nestedDataBulkCopyPasteOrDeleteAll: true,
+      nestedDataBulkLinkByDisplayValue: true,
       filterGet: true,
       filterChildrenList: true,
       mmExcludedList: true,
@@ -455,8 +552,12 @@ const rolePermissions:
       relationDataRemove: true,
       relationDataAdd: true,
 
+      dataImportPreview: true,
+      dataImportFile: true,
+
       nestedDataLink: true,
       nestedDataUnlink: true,
+      nestedDataReorder: true,
       nestedListCopyPasteOrDeleteAll: true,
       // TODO add ACL with base scope
       // upload: true,
@@ -478,31 +579,59 @@ const rolePermissions:
 
       // etc
       fetchViaUrl: true,
+      webBookmarkFetch: true,
 
       // Sort/Filter/ViewColumn/View operations for personal views (middleware handles ownership check)
       sortCreate: true,
+      lookupSortCreate: true,
       sortUpdate: true,
       sortDelete: true,
       filterCreate: true,
       filterUpdate: true,
       filterDelete: true,
+      filterBulkLogicalOpUpdate: true,
       buttonFilterList: true,
       buttonFilterCreate: true,
       viewColumnUpdate: true,
+      viewColumnsBulkSetVisibility: true,
       hideAllColumns: true,
       showAllColumns: true,
       gridColumnUpdate: true,
       listColumnUpdate: true,
+      gridViewCreate: true,
       gridViewUpdate: true,
+      formViewCreate: true,
+      formViewUpdate: true,
+      formColumnUpdate: true,
+      formColumnBulkUpdate: true,
+      galleryViewCreate: true,
       galleryViewUpdate: true,
+      kanbanViewCreate: true,
       kanbanViewUpdate: true,
+      mapViewCreate: true,
       mapViewUpdate: true,
+      calendarViewCreate: true,
       calendarViewUpdate: true,
+
+      // View CRUD — editor restrictions (locked views, ownership on personal)
+      // are enforced in middleware + views.service.ts
+      viewCreate: true,
+      viewUpdate: true,
+      viewDelete: true,
+
+      // Share view — editors can create/update/delete share links on
+      // collaborative views they have access to. Base-level sharing is
+      // still gated by `baseShare` (creator+).
+      shareView: true,
+      shareViewUpdate: true,
+      shareViewDelete: true,
+      shareViewList: true,
     },
   },
   [ProjectRoles.CREATOR]: {
     exclude: {
       baseDelete: true,
+      migrateBase: true,
     },
   },
   [ProjectRoles.OWNER]: {
@@ -681,6 +810,8 @@ export const sourceRestrictions = {
     dataUpdate: true,
     dataDelete: true,
     dataInsert: true,
+    dataMove: true,
+    dataUpsert: true,
     bulkDataInsert: true,
     bulkDataUpdate: true,
     bulkDataUpdateAll: true,
@@ -690,8 +821,10 @@ export const sourceRestrictions = {
     relationDataAdd: true,
     nestedDataListCopyPasteOrDeleteAll: true,
     nestedDataBulkCopyPasteOrDeleteAll: true,
+    nestedDataBulkLinkByDisplayValue: true,
     nestedDataUnlink: true,
     nestedDataLink: true,
+    nestedDataReorder: true,
   },
 };
 
@@ -715,6 +848,7 @@ const permissionDescriptions: Record<string, string> = {
   orgWorkspaceAdd: 'add a new workspace',
   orgGet: 'view organization details',
   orgWorkspaceList: 'view list of workspaces in the organization',
+  orgUsageList: 'view per-workspace usage across the organization',
   orgUserList: 'view list of users in the organization',
   orgBaseList: 'view list of bases in the organization',
   orgSsoClientList: 'view list of SSO clients in the organization',
@@ -727,18 +861,27 @@ const permissionDescriptions: Record<string, string> = {
   ssoClientGet: 'view SSO client details',
   ssoClientTest: 'test an SSO client',
 
+  whiteLabelGet: 'view white-label configuration',
+  whiteLabelUpdate: 'update white-label configuration',
+
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
   apiTokenUpdate: 'update an API token',
   apiTokenDelete: 'delete an API token',
 
   passwordChange: 'change your password',
+  mfaSetup: 'set up two-factor authentication',
+  mfaVerifySetup: 'verify two-factor authentication setup',
+  mfaDisable: 'disable two-factor authentication',
+  mfaStatus: 'check two-factor authentication status',
+  mfaRegenerateBackupCodes: 'regenerate two-factor backup codes',
 
   workspaceList: 'view list of workspaces',
   workspaceCreate: 'create a new workspace',
 
   isPluginActive: 'check if a plugin is active',
   pluginList: 'view list of plugins',
+  aggregatedMetaInfo: 'view instance-wide aggregated metadata',
   pluginTest: 'test a plugin',
   pluginRead: 'read plugin configuration',
   pluginUpdate: 'update plugin configuration',
@@ -781,10 +924,14 @@ const permissionDescriptions: Record<string, string> = {
   baseIntegrationLink: 'link an integration to a base',
   baseIntegrationUnlink: 'unlink an integration from a base',
 
+  batch: 'bundle multiple internal-API operations into a single request',
+
   // base permissions
   formViewGet: 'view forms',
   baseGet: 'view base details',
   tableGet: 'view table details',
+  refTableGet: 'view minimal details of a linked table',
+  attachmentDownload: 'download attachments',
   dataList: 'view data',
   linkDataList: 'view data',
   bulkDataList: 'view data',
@@ -795,6 +942,7 @@ const permissionDescriptions: Record<string, string> = {
   exportCsv: 'export data to CSV',
   exportExcel: 'export data to Excel',
   sortList: 'view list of sorts',
+  lookupSortList: 'view the sort config of a lookup field',
   filterList: 'view list of filters',
   baseInfoGet: 'view base information',
   baseUserMetaUpdate: 'update user metadata for the base',
@@ -805,6 +953,11 @@ const permissionDescriptions: Record<string, string> = {
   gridViewUpdate: 'update grid view',
   formViewUpdate: 'update form view',
   formColumnUpdate: 'update form columns',
+  formColumnBulkUpdate: 'bulk update form column layout',
+  galleryViewUpdate: 'update gallery view',
+  kanbanViewUpdate: 'update kanban view',
+  mapViewUpdate: 'update map view',
+  calendarViewUpdate: 'update calendar view',
   groupedDataList: 'view grouped data',
   mmList: 'view many-to-many relationships',
   hmList: 'view hierarchical relationships',
@@ -813,6 +966,19 @@ const permissionDescriptions: Record<string, string> = {
   baseCost: 'view base cost',
   tableList: 'view list of tables',
   viewList: 'view list of views',
+  viewCreate: 'create a view',
+  viewUpdate: 'update a view',
+  viewDelete: 'delete a view',
+  shareView: 'create a share link for a view',
+  shareViewUpdate: 'update a view share link',
+  shareViewDelete: 'remove a view share link',
+  shareViewList: 'list share links of views',
+  gridViewCreate: 'create a grid view',
+  formViewCreate: 'create a form view',
+  galleryViewCreate: 'create a gallery view',
+  kanbanViewCreate: 'create a kanban view',
+  mapViewCreate: 'create a map view',
+  calendarViewCreate: 'create a calendar view',
   functionList: 'view list of functions',
   sequenceList: 'view list of sequences',
   procedureList: 'view list of procedures',
@@ -837,13 +1003,18 @@ const permissionDescriptions: Record<string, string> = {
   dataUpdate: 'update data',
   dataDelete: 'delete data',
   dataInsert: 'insert new data',
+  dataMove: 'reorder a row',
+  dataUpsert: 'upsert data (insert or update)',
   viewColumnUpdate: 'update view columns',
+  viewColumnsBulkSetVisibility: 'bulk update view column visibility',
   sortCreate: 'create a new sort',
+  lookupSortCreate: 'add a sort to a lookup field',
   sortUpdate: 'update an existing sort',
   sortDelete: 'delete a sort',
   filterCreate: 'create a new filter',
   filterUpdate: 'update an existing filter',
   filterDelete: 'delete a filter',
+  filterBulkLogicalOpUpdate: 'update logical operator across sibling filters',
   filterGet: 'view filter details',
   filterChildrenList: 'view child filters',
   buttonFilterList: 'list button visibility filters',
@@ -861,6 +1032,7 @@ const permissionDescriptions: Record<string, string> = {
   bulkDataDeleteAll: 'bulk delete all data',
   relationDataRemove: 'remove related data',
   relationDataAdd: 'add related data',
+  nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
   baseUserList: 'view list of users in the base',
 
   baseApiTokenList: 'view list of base API tokens',
@@ -877,10 +1049,39 @@ const permissionDescriptions: Record<string, string> = {
 
   hookTrigger: 'trigger a webhook',
 
+  migrateBase: 'migrate a base to another instance',
+
   mcpList: 'view list of MCP tokens',
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
+
+  tableSyncList: 'view list of table syncs',
+  tableSyncGet: 'view table sync details',
+  tableSyncSourceSchema: 'view a table sync source schema',
+  tableSyncCreate: 'create a table sync',
+  tableSyncUpdate: 'update a table sync',
+  tableSyncDelete: 'delete a table sync',
+  tableSyncResync: 'manually resync a table sync',
+  tableSyncFreeze: 'pause a table sync',
+  tableSyncResume: 'resume a paused table sync',
+  tableSyncResolveLink: 'resolve a source share link for a table sync',
+
+  dataImportPreview: 'preview file for import',
+  dataImportFile: 'import file into a table',
+
+  webBookmarkFetch: 'fetch link metadata for a doc bookmark block',
+
+  bookmarkList: 'view list of bookmarks',
+  bookmarkCheck: 'check bookmark status of items',
+  bookmarkGroupList: 'view list of bookmark groups',
+  bookmarkCreate: 'create a new bookmark',
+  bookmarkUpdate: 'update a bookmark',
+  bookmarkRefresh: 'refresh bookmark metadata from target entity',
+  bookmarkDelete: 'delete a bookmark',
+  bookmarkGroupCreate: 'create a new bookmark group',
+  bookmarkGroupUpdate: 'update a bookmark group',
+  bookmarkGroupDelete: 'delete a bookmark group',
 };
 
 // Human-readable descriptions for roles

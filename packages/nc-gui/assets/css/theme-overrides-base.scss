@@ -1,0 +1,130 @@
+// WindiCSS hoisted these out of theme-overrides.scss into its `base` layer, ahead of every
+// utility. Kept in a separate file loaded before 'uno.css' so `[theme='dark'] *` (0,1,0) does
+// not win same-specificity ties against border/text utilities in dark mode.
+
+[theme='dark'] {
+  [type='text'],
+  [type='email'],
+  [type='url'],
+  [type='password'],
+  [type='number'],
+  [type='date'],
+  [type='datetime-local'],
+  [type='month'],
+  [type='search'],
+  [type='tel'],
+  [type='time'],
+  [type='week'],
+  [multiple],
+  textarea,
+  select {
+    @apply bg-nc-bg-default border-nc-border-gray-medium;
+  }
+
+  [type='checkbox'],
+  [type='radio'] {
+    @apply bg-nc-bg-default border-nc-border-gray-medium;
+  }
+
+  [type='checkbox']:focus,
+  [type='radio']:focus {
+    @apply border-nc-border-gray-medium;
+  }
+
+  *,
+  ::before,
+  ::after {
+    @apply border-nc-border-gray-medium;
+  }
+
+  * {
+    --un-ring-offset-color: var(--nc-bg-default);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+
+  .ant-btn-text {
+    color: rgba(var(--rgb-base), 0.85);
+
+    &:focus,
+    &:hover {
+      color: rgba(var(--rgb-base), 0.85);
+      background-color: rgba(var(--rgb-base), 0.018);
+    }
+  }
+
+  // Ant rate
+  .ant-rate-star-first,
+  .ant-rate-star-second {
+    @apply text-nc-bg-gray-medium;
+  }
+
+  .ant-card-bordered {
+    @apply border-nc-border-gray-medium;
+  }
+
+  .ant-upload.ant-upload-drag {
+    &:not(:disabled) {
+      @apply border-nc-border-gray-medium;
+    }
+  }
+
+  .ant-checkbox-disabled + span {
+    @apply text-nc-content-gray-disabled;
+  }
+
+  // Checkbox
+  .ant-checkbox {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+  .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+  .ant-checkbox:hover .ant-checkbox-inner,
+  .ant-checkbox-input:focus + .ant-checkbox-inner {
+    border-color: var(--ant-primary-color);
+  }
+  .ant-checkbox-inner {
+    background-color: var(--nc-bg-default);
+    border: 1px solid var(--nc-border-gray-medium);
+  }
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: var(--ant-primary-color);
+    border-color: var(--ant-primary-color);
+  }
+  .ant-checkbox-disabled.ant-checkbox-checked .ant-checkbox-inner::after {
+    border-color: rgba(var(--rgb-base), 0.25);
+  }
+  .ant-checkbox-disabled .ant-checkbox-inner {
+    background-color: var(--nc-bg-gray-medium);
+    border-color: var(--nc-bg-gray-dark) !important;
+  }
+  .ant-checkbox-disabled .ant-checkbox-inner::after {
+    border-color: var(--nc-bg-gray-extra-dark);
+  }
+  .ant-checkbox-disabled + span {
+    color: rgba(var(--rgb-base), 0.25);
+  }
+  .ant-checkbox-wrapper {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+  .ant-checkbox-group {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+  .ant-checkbox-indeterminate .ant-checkbox-inner {
+    background-color: var(--nc-bg-default);
+    border-color: var(--nc-border-gray-medium);
+  }
+  .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+    background-color: var(--ant-primary-color);
+  }
+  .ant-checkbox-indeterminate.ant-checkbox-disabled .ant-checkbox-inner::after {
+    background-color: rgba(var(--rgb-base), 0.25);
+    border-color: rgba(var(--rgb-base), 0.25);
+  }
+}

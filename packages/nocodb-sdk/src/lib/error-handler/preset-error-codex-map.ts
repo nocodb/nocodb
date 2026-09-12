@@ -49,6 +49,24 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Workspace '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_WORKSPACE_SUSPENDED]: {
+    message: (reason?: string) =>
+      reason
+        ? `This workspace has been suspended: ${reason}`
+        : 'This workspace has been suspended',
+    code: 403,
+  },
+  [NcErrorType.ERR_BASE_SUSPENDED]: {
+    message: (reason?: string) =>
+      reason
+        ? `This base has been suspended: ${reason}`
+        : 'This base has been suspended',
+    code: 403,
+  },
+  [NcErrorType.ERR_ORG_NOT_FOUND]: {
+    message: (id: string) => `Org '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_BASE_NOT_FOUND]: {
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
@@ -65,9 +83,27 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Connection '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND]: {
+    message: (id: string) => `Sync '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_INTEGRATION_LINKED_WITH_BASES]: {
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
+  },
+  [NcErrorType.ERR_INTEGRATION_AUTH_FAILED]: {
+    message: (message: string) =>
+      message ||
+      'This connection is no longer valid. Reconnect it and try again.',
+    // Deliberately not 401 — the frontend interceptor treats 401 as an expired
+    // NocoDB session and would kick off a token refresh.
+    code: 400,
+  },
+  [NcErrorType.ERR_INTEGRATION_REQUEST_FAILED]: {
+    message: (message: string) =>
+      message ||
+      "Couldn't reach the connected service. Try again, and if it keeps happening contact support.",
+    code: 400,
   },
   [NcErrorType.ERR_TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
@@ -81,6 +117,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Field ${id} not found`,
     code: 404,
   },
+  [NcErrorType.ERR_FILTER_NOT_FOUND]: {
+    message: (id: string) => `Filter '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_HOOK_NOT_FOUND]: {
     message: (id: string) => `Hook '${id}' not found`,
     code: 404,
@@ -92,6 +132,26 @@ export const presetErrorCodexMap: Partial<
     },
     code: 404,
   },
+  [NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED]: {
+    message: (tableTitle: string) =>
+      `Record trash is not supported for table '${tableTitle || 'unknown'}'`,
+    code: 422,
+  },
+  [NcErrorType.ERR_RECORD_RESTORE_CONFLICT]: {
+    message: (details: string) =>
+      `Cannot restore record — link conflict: ${details || 'unknown conflict'}`,
+    code: 409,
+  },
+  [NcErrorType.ERR_RECORD_NOT_TRASHED]: {
+    message: () =>
+      `Cannot permanently delete active records that are not in trash`,
+    code: 422,
+  },
+  [NcErrorType.ERR_TRASH_BATCH_LIMIT_EXCEEDED]: {
+    message: (limit: string) =>
+      `Cannot process more than ${limit} records at a time`,
+    code: 422,
+  },
   [NcErrorType.ERR_GENERIC_NOT_FOUND]: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,
@@ -101,12 +161,45 @@ export const presetErrorCodexMap: Partial<
     code: 404,
   },
   [NcErrorType.ERR_VIEW_SECTION_NOT_FOUND]: {
-    message: (id: string) => `View section '${id}' not found`,
+    message: (id: string) => `View folder '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.ERR_BASE_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_AUTOMATION_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_AGENT_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_TRASH_NOT_FOUND]: {
+    message: (id: string) => `Trash entry '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_PARENT_IN_TRASH]: {
+    message: (parentType: string) =>
+      `Cannot restore — parent ${parentType} is in trash. Restore it first.`,
+    code: 400,
   },
   [NcErrorType.ERR_DASHBOARD_NOT_FOUND]: {
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_NOT_FOUND]: {
+    message: (id: string) => `Interface '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND]: {
+    message: (id: string) => `Interface page '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED]: {
+    message: () => 'Writes are disabled while previewing as another user',
+    code: 403,
   },
   [NcErrorType.ERR_CHAT_SESSION_NOT_FOUND]: {
     message: (id: string) => `Chat session '${id}' not found`,
@@ -116,9 +209,35 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Chat message '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_CHAT_ARTIFACT_NOT_FOUND]: {
+    message: (id: string) => `Web artifact '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_WORKFLOW_NOT_FOUND]: {
     message: (id: string) => `Workflow '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.ERR_AGENT_NOT_FOUND]: {
+    message: (id: string) => `Agent '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_AGENT_SESSION_NOT_FOUND]: {
+    message: (id: string) => `Agent session '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SKILL_NOT_FOUND]: {
+    message: (id: string) => `Skill '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SKILL_SOURCE_INVALID]: {
+    message: (ref: string) =>
+      `'${ref}' is not a valid skill source — expected 'owner/repo' or 'owner/repo/skillName'`,
+    code: 400,
+  },
+  [NcErrorType.ERR_SKILL_CATALOG_UNAVAILABLE]: {
+    message: (repo: string) =>
+      `Could not read skills from '${repo}' — check the repository exists and is public`,
+    code: 502,
   },
   [NcErrorType.ERR_SCRIPT_NOT_FOUND]: {
     message: (id: string) => `Script '${id}' not found`,
@@ -126,6 +245,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.ERR_RLS_POLICY_NOT_FOUND]: {
     message: (id: string) => `RLS Policy '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_TABLE_SYNC_NOT_FOUND]: {
+    message: (id: string) => `Table sync '${id}' not found`,
     code: 404,
   },
   [NcErrorType.ERR_REQUIRED_FIELD_MISSING]: {
@@ -191,6 +314,10 @@ export const presetErrorCodexMap: Partial<
     message: 'Invalid shared dashboard password',
     code: 403,
   },
+  [NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID]: {
+    message: 'Invalid shared interface page password',
+    code: 403,
+  },
   [NcErrorType.ERR_INVALID_ATTACHMENT_JSON]: {
     message: (payload: string) =>
       `Invalid JSON for attachment field: ${payload}`,
@@ -251,6 +378,11 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_SSO_GENERATED_TOKEN_REQUIRED]: {
     message: (_workspaceId: string) =>
       'This workspace requires SSO-authenticated tokens. Please generate a new token after signing in with SSO',
+    code: 403,
+  },
+  [NcErrorType.ERR_MFA_SETUP_REQUIRED]: {
+    message: (_workspaceId: string) =>
+      'Two-factor authentication setup required for this workspace',
     code: 403,
   },
   [NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED]: {
@@ -438,5 +570,41 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE]: {
     message: 'System field cannot be modified',
     code: 422,
+  },
+  [NcErrorType.ERR_SYSTEM_MISCONFIGURED]: {
+    message: (message: string) =>
+      message || 'System is not configured correctly',
+    code: 500,
+  },
+  [NcErrorType.ERR_TOO_MANY_REQUESTS]: {
+    message: (message: string) =>
+      message || 'Too many requests. Please try again later.',
+    code: 429,
+  },
+  [NcErrorType.ERR_SANDBOX_BLOCKED]: {
+    message: (message: string) =>
+      message || 'This operation is not allowed in a sandbox base.',
+    code: 403,
+  },
+  [NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
+    code: 403,
+  },
+  [NcErrorType.ERR_SNAPSHOT_BLOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This base is a snapshot and cannot be accessed directly. Restore the snapshot to a new base to view or edit its contents.',
+    code: 403,
+  },
+  [NcErrorType.ERR_CREDIT_PACK_NOT_FOUND]: {
+    message: (id: string) => `Credit pack '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_CREDITS_EXHAUSTED]: {
+    message: (message: string) =>
+      message || 'You have run out of credits. Top up to continue.',
+    code: 402,
   },
 };

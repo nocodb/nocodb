@@ -62,6 +62,8 @@ export const useExtensions = createSharedComposable(() => {
 
   const { $api, $e } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const { user } = useGlobal()
 
   const { isUIAllowed } = useRoles()
@@ -72,11 +74,13 @@ export const useExtensions = createSharedComposable(() => {
 
   const { isSharedBase } = storeToRefs(useWorkspace())
 
+  const { isInterfaceOnlyUser } = useInterfacePermissions()
+
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
   const extensionAccess = computed(() => {
     return {
-      list: isUIAllowed('extensionList') && !isSharedBase.value,
+      list: isUIAllowed('extensionList') && !isSharedBase.value && !isInterfaceOnlyUser.value,
       create: isUIAllowed('extensionCreate'),
       delete: isUIAllowed('extensionDelete'),
       update: isUIAllowed('extensionUpdate'),
@@ -152,7 +156,7 @@ export const useExtensions = createSharedComposable(() => {
 
   const addExtension = async (extension: any) => {
     if (blockExtensions.value) {
-      showUpgradeToUseExtensions()
+      showUpgradeToUseExtensions({ triggerSource: 'extensions' })
       return
     }
 
@@ -161,7 +165,6 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     const extensionReq = {
-      base_id: base.value.id,
       title: extension.title,
       extension_id: extension.id,
       meta: {
@@ -284,7 +287,7 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { id: _id, order: _order, ...extensionData } = extension.serialize()
+    const { id: _id, order: _order, base_id: _baseId, fk_user_id: _fkUserId, ...extensionData } = extension.serialize()
 
     const newExtension = await $api.internal.postOperation(
       base.value!.fk_workspace_id!,
@@ -299,6 +302,8 @@ export const useExtensions = createSharedComposable(() => {
     )
 
     if (newExtension) {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
+
       const duplicatedExtension = new Extension(newExtension)
       baseExtensions.value[base.value.id].extensions.push(duplicatedExtension)
       eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExtension.id)
@@ -340,7 +345,7 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     try {
-      const { list } = await $api.internal.getOperation(base.value!.fk_workspace_id!, baseId, {
+      const { list } = await internalGet(base.value!.fk_workspace_id!, baseId, {
         operation: 'extensionList',
       })
 

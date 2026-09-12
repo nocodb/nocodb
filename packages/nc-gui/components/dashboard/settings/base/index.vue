@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import { BaseVersion } from 'nocodb-sdk'
+import { BaseVersion, PlanFeatureTypes } from 'nocodb-sdk'
 
 const { isUIAllowed } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showEEFeatures } = useEeConfig()
+const { showEEFeatures, getFeature } = useEeConfig()
 
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
 const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType') && showEEFeatures.value)
 
-const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
+// No upgrade badge — migrating a base out isn't purchasable on cloud, it's granted
+// per deal, so an upgrade CTA would lead nowhere. Hide the tab instead.
+const hasPermissionForMigrate = computed(
+  () => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase') && getFeature(PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT),
+)
 
 const hasPermissionForVisibility = computed(() => isUIAllowed('baseMiscSettings'))
 

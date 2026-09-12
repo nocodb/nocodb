@@ -1,4 +1,4 @@
-import { AttachmentResType } from '~/lib';
+import { AttachmentResType } from '~/lib/Api';
 
 export enum OAuthClientType {
   CONFIDENTIAL = 'confidential',

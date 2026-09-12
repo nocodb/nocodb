@@ -346,7 +346,7 @@ const collapseKey = ref('')
           target="_blank"
           rel="noopener"
         >
-          Docs
+          {{ $t('title.docs') }}
         </a>
       </template>
 
@@ -495,7 +495,7 @@ const collapseKey = ref('')
 
       <div v-if="!isInProgress" class="text-right mt-5">
         <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
-        <nc-button v-else size="small" @click="dialogShow = false"> Go to base </nc-button>
+        <nc-button v-else size="small" @click="dialogShow = false"> {{ $t('labels.goToBase') }} </nc-button>
       </div>
     </div>
 

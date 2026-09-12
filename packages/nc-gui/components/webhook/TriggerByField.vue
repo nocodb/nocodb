@@ -117,8 +117,8 @@ const removeColumnId = (colId: string) => {
 .nc-list-field {
   :deep(.nc-list-item) {
     .ant-checkbox-checked .ant-checkbox-inner {
-      background-color: #3366ff !important;
-      border-color: #3366ff !important;
+      background-color: var(--nc-brand-accent) !important;
+      border-color: var(--nc-brand-accent) !important;
     }
 
     .ant-checkbox {

@@ -14,12 +14,38 @@ import Noco from '~/Noco';
 import { BaseUser, User } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { randomTokenString } from '~/services/users/helpers';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
 
 export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
+  // An empty/whitespace NC_ADMIN_PASSWORD used to fall through this truthy gate
+  // and skip bootstrap silently, leaving the instance to hand super-admin to
+  // whoever signed up first. Operator intent is clear from the email alone, so
+  // fail closed and loudly instead.
+  if (
+    process.env.NC_ADMIN_EMAIL?.trim() &&
+    !process.env.NC_ADMIN_PASSWORD?.trim()
+  ) {
+    console.log(
+      '\n',
+      boxen(
+        'NC_ADMIN_EMAIL is set but NC_ADMIN_PASSWORD is empty, so the admin account cannot be created.\n\nSet NC_ADMIN_PASSWORD, or unset NC_ADMIN_EMAIL to intentionally use first-signup setup.',
+        {
+          title: 'Missing admin password',
+          padding: 1,
+          borderStyle: 'double',
+          titleAlignment: 'center',
+          borderColor: 'red',
+        },
+      ),
+      '\n',
+    );
+    process.exit(1);
+  }
+
   if (process.env.NC_ADMIN_EMAIL && process.env.NC_ADMIN_PASSWORD) {
-    if (!isEmail(process.env.NC_ADMIN_EMAIL?.trim())) {
+    if (!isEmail(sanitizeEmail(process.env.NC_ADMIN_EMAIL))) {
       console.log(
         '\n',
         boxen(
@@ -58,7 +84,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
     let ncMeta;
     try {
       ncMeta = await _ncMeta.startTransaction();
-      const email = process.env.NC_ADMIN_EMAIL.toLowerCase().trim();
+      const email = sanitizeEmail(process.env.NC_ADMIN_EMAIL).toLowerCase();
 
       const salt = await promisify(bcrypt.genSalt)(10);
       const password = await promisify(bcrypt.hash)(

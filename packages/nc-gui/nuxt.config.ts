@@ -4,7 +4,6 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
-import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
@@ -16,8 +15,14 @@ export default defineNuxtConfig({
 
   ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground/**/*'] : [])],
 
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,
+
+  // 'uno.css' is imported from the `css` array instead, so it keeps WindiCSS's position.
+  unocss: { autoImport: false },
+
+  // Nuxt 4 defaults srcDir to `app/`; this project keeps the flat v3 layout.
+  srcDir: '.',
 
   router: {
     options: {
@@ -37,12 +42,9 @@ export default defineNuxtConfig({
   spaLoadingTemplate: false,
 
   app: {
-    pageTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
-      ? false
-      : {
-          name: 'page',
-          mode: 'out-in',
-        },
+    // out-in page transitions permanently blank the outlet on Nuxt 4: a re-keyed page <Suspense>
+    // makes Transition wait for an afterLeave that Vue never fires for Suspense children
+    pageTransition: false,
     // layoutTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
     //   ? false
     //   : {
@@ -131,8 +133,11 @@ export default defineNuxtConfig({
 
   css: [
     ...(process.env.NC_CDN_URL ? [] : ['~/assets/style/fonts-new.css']),
-    'virtual:windi.css',
-    'virtual:windi-devtools',
+    // Where 'virtual:windi.css' sat. @unocss/nuxt's own injection is a plugin, which lands after
+    // every entry below — that would put the base reset on top of the app's global stylesheets
+    // and flip every utility-vs-global tie. Paired with `unocss.autoImport: false`.
+    '~/assets/css/theme-overrides-base.scss',
+    'uno.css',
     '~/assets/css/global.css',
     '~/assets/style.scss',
     '~/assets/css/theme-overrides.scss',
@@ -230,6 +235,10 @@ export default defineNuxtConfig({
       'process.env.DEBUG': 'false',
       'process.nextTick': 'globalThis.setImmediate',
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
+      // CJS deps referencing bare `global` used to be rewritten by rollup's commonjs plugin.
+      // Rolldown's CJS interop leaves the identifier alone, so the app threw
+      // "global is not defined" at boot in production builds.
+      'global': 'globalThis',
     },
     server: {
       watch: {
@@ -242,6 +251,29 @@ export default defineNuxtConfig({
         util: 'rollup-plugin-node-polyfills/polyfills/util',
         url: 'rollup-plugin-node-polyfills/polyfills/url',
       },
+      // Collaborative editing: TipTap (via @tiptap/pm/* → bare prosemirror-*) and
+      // y-prosemirror both import the same bare prosemirror-*/yjs packages. pnpm
+      // hoisting leaves multiple physical copies (e.g. prosemirror-view 1.37.1 vs
+      // 1.37.2), so y-prosemirror builds decorations with a different
+      // prosemirror-view class than TipTap's EditorView renders with → runtime
+      // "Cannot read properties of undefined (reading 'localsInner')". Force a
+      // single copy of each across the bundle.
+      dedupe: [
+        'yjs',
+        'y-prosemirror',
+        'y-protocols',
+        'lib0',
+        'prosemirror-view',
+        'prosemirror-state',
+        'prosemirror-model',
+        'prosemirror-transform',
+        'prosemirror-keymap',
+        'prosemirror-commands',
+        'prosemirror-schema-list',
+        'prosemirror-history',
+        'prosemirror-gapcursor',
+        'prosemirror-dropcursor',
+      ],
     },
     optimizeDeps: {
       include: [
@@ -296,9 +328,12 @@ export default defineNuxtConfig({
         'markdown-it-regexp',
         'markdown-it-task-lists',
         'marked',
+        'mermaid',
         'monaco-editor',
         'monaco-editor/esm/vs/basic-languages/javascript/javascript',
         'papaparse',
+        'prosemirror-changeset',
+        'y-prosemirror',
         'rehype-sanitize',
         'rehype-stringify',
         'remark-parse',
@@ -331,13 +366,24 @@ export default defineNuxtConfig({
         'leaflet',
         'leaflet.markercluster',
         'uuid',
+        '@tiptap/extension-collaboration',
+        '@tiptap/extension-collaboration-cursor',
+        'yjs',
+        'lib0/encoding',
+        'lib0/decoding',
+        'y-protocols/sync',
+        'y-protocols/awareness',
+        'lib0/buffer',
+        'nocodb-sdk',
+        '@tiptap/extension-task-item',
       ],
-      esbuildOptions: {
+      // Vite 8 pre-bundles with rolldown, so the esbuild polyfill plugin no longer loads.
+      // Node builtins the app actually reaches are aliased in `resolve.alias` above, which
+      // applies to prod too — dropping the plugin removes a dev-only divergence.
+      rolldownOptions: {
         define: {
           global: 'globalThis',
         },
-        // Enable esbuild polyfill plugins
-        plugins: [NodeModulesPolyfillPlugin()],
       },
     },
   },
@@ -355,10 +401,10 @@ export default defineNuxtConfig({
     dirs: ['./context', './utils/**', './lib', './composables/**', './store/**', './helpers'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
-      { name: 'message', from: 'ant-design-vue/es' },
-      { name: 'Modal', from: 'ant-design-vue/es' },
-      { name: 'Empty', from: 'ant-design-vue/es' },
-      { name: 'Form', from: 'ant-design-vue/es' },
+      { name: 'message', from: 'ant-design-vue/es/index.js' },
+      { name: 'Modal', from: 'ant-design-vue/es/index.js' },
+      { name: 'Empty', from: 'ant-design-vue/es/index.js' },
+      { name: 'Form', from: 'ant-design-vue/es/index.js' },
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
       { name: 'storeToRefs', from: 'pinia' },
     ],

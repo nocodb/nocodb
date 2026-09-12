@@ -4,7 +4,9 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { isBt, isMm, isOo, parseLinksValue } from '../utils';
 import { ncIsNaN, ncIsObject } from '~/lib/is';
-import { LinkToAnotherRecordType } from '~/lib/Api';
+import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
+import { isBtLikeV2Junction, isMMOrMMLike } from '~/lib/UITypes';
+import { LookupHelper } from './Lookup';
 
 export class LinksHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -16,6 +18,27 @@ export class LinksHelper extends AbstractColumnHelper {
     if (params.serializeSearchQuery) return null;
 
     if (!isMm(params.col)) throw new SilentTypeConversionError();
+
+    // In-app copies carry the source row/column identity on the clipboard
+    // item — the text is the human-readable value. The legacy JSON-envelope
+    // text (older copies) is still accepted below.
+    const item = params.clipboardItem;
+    if (
+      item?.rowId != null &&
+      item.column?.id &&
+      isMMOrMMLike(item.column as ColumnType) &&
+      (item.column.colOptions as LinkToAnotherRecordType)
+        ?.fk_related_model_id ===
+        (params.col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+    ) {
+      return {
+        rowId: item.rowId,
+        columnId: item.column.id,
+        fk_related_model_id: (item.column.colOptions as LinkToAnotherRecordType)
+          .fk_related_model_id,
+        value: item.dbCellValue,
+      };
+    }
 
     let parsedVal = value;
 
@@ -41,24 +64,22 @@ export class LinksHelper extends AbstractColumnHelper {
   }
 
   parseValue(value: any, params: SerializerOrParserFnProps['params']) {
-    if (isMm(params.col)) {
-      return JSON.stringify({
-        rowId: params.rowId,
-        columnId: params.col.id,
-        fk_related_model_id: (params.col.colOptions as LinkToAnotherRecordType)
-          .fk_related_model_id,
-        value: !ncIsNaN(value) ? +value : 0,
-      });
-    } else if (isBt(params.col) || isOo(params.col)) {
-      // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
-      return JSON.stringify({
-        fk_related_model_id: (params.col.colOptions as LinkToAnotherRecordType)
-          .fk_related_model_id,
-        value: value || null,
-      });
+    // Clipboard text is what the cell renders — the lossless envelope rides the
+    // clipboard item instead (see serializeValue). Split on the SAME predicate
+    // the grid renderer uses to pick a renderer for a Links column
+    // (`isBtLikeV2Junction`, canvas/cells/index.ts), so copy and display can't
+    // drift apart:
+    //   record-shaped (v1 bt/oo, v2 bt/mo/oo) → the related record's display value
+    //   count-shaped  (hm, mm, om)            → "N Links"
+    if (
+      isBt(params.col) ||
+      isOo(params.col) ||
+      isBtLikeV2Junction(params.col)
+    ) {
+      return new LookupHelper().parsePlainCellValue(value, params) ?? '';
     }
 
-    return value ?? '';
+    return parseLinksValue(!ncIsNaN(value) ? +value : 0, params);
   }
 
   parsePlainCellValue(

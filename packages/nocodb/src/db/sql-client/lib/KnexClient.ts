@@ -13,10 +13,54 @@ import * as dataHelp from './data.helper';
 import SqlClient from './SqlClient';
 import type { Knex } from 'knex';
 import { T } from '~/utils';
+import { NcError } from '~/helpers/ncError';
 
 const evt = new Emit();
 
 const log = new Debug('KnexClient');
+
+// Allowlist of zero-argument SQL functions that are safe to pass through as a
+// column default verbatim. Restricted to date/time helpers and UUID generators
+// across the supported dialects — deliberately excludes information-disclosing
+// functions (version(), current_user(), current_database(), inet_server_addr(),
+// txid_current(), pg_backend_pid(), …). A generic `/^\w+\(\)$/` match would let
+// any zero-arg function in the server catalog execute during INSERT and surface
+// its result through the API. Compared case-insensitively after trimming.
+const allowedDefaultFunctions = new Set<string>([
+  // date / time
+  'now()',
+  'current_timestamp()',
+  'localtimestamp()',
+  'current_date()',
+  'current_time()',
+  'getdate()',
+  'sysdatetime()',
+  'sysdatetimeoffset()',
+  'systimestamp()',
+  'sysdate()',
+  // pg date / time variants
+  'clock_timestamp()',
+  'statement_timestamp()',
+  'transaction_timestamp()',
+  'timeofday()',
+  // mysql date / time variants
+  'curdate()',
+  'curtime()',
+  'utc_timestamp()',
+  'utc_date()',
+  'utc_time()',
+  'unix_timestamp()',
+  // random (non-information-disclosing) generators
+  'rand()',
+  'random()',
+  // uuid / guid generators
+  'uuid()',
+  'uuid_generate_v4()',
+  'gen_random_uuid()',
+  'newid()',
+  'sys_guid()',
+]);
+
 // TODO: Im sure there are more types to handle here
 const strTypes = [
   'varchar',
@@ -1874,9 +1918,18 @@ abstract class KnexClient extends SqlClient {
       // if value is a number, return as is
       if (/^\d+(\.\d+)?$/.test(value)) return value;
 
-      // if value is a function, return as is
-      // for example: CURRENT_TIMESTAMP(), NOW(), UUID(), etc
-      if (/^\w+\(\)$/.test(value)) return value;
+      // if value is a zero-arg function call, only pass it through when it is
+      // on the allowlist — for example: CURRENT_TIMESTAMP(), NOW(), UUID(), etc.
+      // An arbitrary `\w+()` match would let e.g. version()/current_user() run
+      // during INSERT and leak through the API (SQL injection via column
+      // default), so reject any unlisted function outright.
+      if (/^\w+\(\)$/.test(value.trim())) {
+        if (allowedDefaultFunctions.has(value.trim().toLowerCase()))
+          return value;
+        // Reject unlisted zero-arg functions with a clean 400 (not a raw 500)
+        // so the schema editor gets an actionable validation error.
+        NcError.badRequest(`Invalid default value: ${value}`);
+      }
 
       // if value is a CURRENT_TIMESTAMP, return as is
       if (

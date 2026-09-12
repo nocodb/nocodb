@@ -4,6 +4,7 @@ import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class SyncSource {
   id?: string;
@@ -36,12 +37,13 @@ export default class SyncSource {
       MetaTable.SYNC_SOURCE,
       syncSourceId,
     );
+    if (!syncSource) return null;
     if (syncSource.details && typeof syncSource.details === 'string') {
       try {
         syncSource.details = JSON.parse(syncSource.details);
       } catch {}
     }
-    return syncSource && new SyncSource(syncSource);
+    return new SyncSource(syncSource);
   }
 
   static async list(
@@ -81,7 +83,6 @@ export default class SyncSource {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(syncSource, [
-      'id',
       'title',
       'type',
       'details',
@@ -89,6 +90,11 @@ export default class SyncSource {
       'source_id',
       'fk_user_id',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (isReplay() && syncSource.id) {
+      insertObj.id = syncSource.id;
+    }
 
     if (insertObj.details && typeof insertObj.details === 'object') {
       insertObj.details = JSON.stringify(insertObj.details);

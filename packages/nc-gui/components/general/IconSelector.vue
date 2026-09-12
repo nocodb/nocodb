@@ -240,14 +240,14 @@ function focusInput() {
 const tabs = computed(() => {
   return [
     {
-      title: 'Icon',
+      title: t('labels.icon'),
       value: IconType.ICON,
       icon: 'ncPlaceholderIcon',
     },
     ...(!isMobileMode.value
       ? [
           {
-            title: 'Upload',
+            title: t('general.upload'),
             value: IconType.IMAGE,
             icon: 'ncUpload',
           },
@@ -313,7 +313,9 @@ watch(isOpen, (newValue) => {
             </template>
             <template #rightExtra>
               <div>
-                <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon"> Remove </NcButton>
+                <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon">
+                  {{ $t('general.remove') }}
+                </NcButton>
               </div>
             </template>
             <a-tab-pane v-for="tabItem of tabs" :key="tabItem.value" class="w-full" :disabled="isLoading">
@@ -324,7 +326,7 @@ watch(isOpen, (newValue) => {
                 </div>
               </template>
 
-              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
+              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-y-auto nc-scrollbar-visible flex flex-col">
                 <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
@@ -533,16 +535,35 @@ watch(isOpen, (newValue) => {
   }
 
   .emoji-mart-scroll {
-    @apply mt-1 px-1 overflow-x-hidden;
+    /* Replaces the library's `overflow: overlay`, which keeps the bar hidden until the user
+       scrolls. Spelled out rather than `@apply nc-scrollbar-visible` because the utility's
+       ::-webkit-scrollbar rules cannot be inlined into a declaration list — keep in sync with
+       ncScrollbarPreset. */
+    @apply mt-1 px-1 overflow-x-hidden overflow-y-auto;
+
+    scrollbar-gutter: stable;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 9999px;
+      background-color: rgba(156, 163, 175, 0.7);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(107, 114, 128, 0.9);
+    }
 
     h3.emoji-mart-category-label {
       @apply text-xs text-nc-content-gray-muted mb-0 bg-nc-bg-default;
     }
-  }
-
-  .emoji-mart-scroll {
-    @apply nc-scrollbar-thin;
-    overflow-y: overlay;
   }
 
   .emoji-mart-emoji {

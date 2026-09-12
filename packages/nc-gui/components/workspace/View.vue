@@ -28,7 +28,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams } = useEeConfig()
 
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
@@ -87,10 +87,12 @@ const tab = computed({
           plan: PlanTitles.ENTERPRISE,
         }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+        triggerSource: 'ws-home-audit',
       })
     }
 
-    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-home-teams' }))
+      return
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
@@ -110,6 +112,7 @@ const tabTitleMap: Record<string, string> = {
   teams: t('general.teams'),
   integrations: t('general.integrations'),
   billing: t('general.billing'),
+  usage: t('general.usage'),
   audits: t('title.audits'),
   sso: t('title.sso'),
   settings: t('labels.settings'),
@@ -164,7 +167,7 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
+    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && isEeUI) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -292,7 +295,10 @@ if (!props.isNewWsPage) {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] nc-content-max-w mx-auto">
+          <div
+            class="nc-integrations-layout nc-content-max-w mx-auto"
+            :class="isNewWsPage ? 'h-[calc(100vh-var(--topbar-height))]' : 'h-[calc(100vh-var(--topbar-height)-44px)]'"
+          >
             <!-- Main integrations page -->
             <template v-if="integrationsViewMode === 'main'">
               <div class="h-full">
@@ -349,6 +355,19 @@ if (!props.isNewWsPage) {
           </a-tab-pane>
         </template>
 
+        <template v-if="wsTabVisibility.usage">
+          <a-tab-pane key="usage" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-usage">
+                <GeneralIcon icon="ncBarChart2" class="flex-none h-4 w-4" />
+                {{ $t('general.usage') }}
+              </div>
+            </template>
+
+            <WorkspaceUsage :workspace-id="currentWorkspace.id" />
+          </a-tab-pane>
+        </template>
+
         <template v-if="wsTabVisibility.audits">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
@@ -376,7 +395,7 @@ if (!props.isNewWsPage) {
               </div>
             </template>
 
-            <WorkspaceSso class="!h-[calc(100vh-92px)]" />
+            <WorkspaceSso :class="isNewWsPage ? '!h-[calc(100vh-var(--topbar-height)-44px)]' : '!h-[calc(100vh-92px)]'" />
           </a-tab-pane>
         </template>
       </template>

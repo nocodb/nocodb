@@ -6,6 +6,8 @@ import type { NcContext } from '~/interface/config';
 import { CalendarRange, Column, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
+import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
+import { restrictSharedViewQueryForView } from '~/helpers/sharedViewQueryHelpers';
 
 @Injectable()
 export class CalendarDatasService {
@@ -73,9 +75,13 @@ export class CalendarDatasService {
       id: view.fk_model_id,
     });
 
+    // Deliberately no `...query` here. `dataList` reads query params from
+    // `param.query` and takes its service options (getHiddenColumns,
+    // ignoreViewFilterAndSort, ignorePagination, limitOverride…) as named
+    // siblings — so flattening the caller's query to this level let an anonymous
+    // shared-calendar visitor set those options by name.
     return await this.datasService.dataList(context, {
       ...param,
-      ...query,
       viewName: view.id,
       baseName: model.base_id,
       tableName: model.id,
@@ -95,7 +101,9 @@ export class CalendarDatasService {
       prev_date: string;
     },
   ) {
-    const { sharedViewUuid, password, query = {} } = param;
+    const { sharedViewUuid, password } = param;
+    // Strip response-shape keys before forwarding an anonymous caller's query.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
@@ -106,6 +114,11 @@ export class CalendarDatasService {
     if (!(await View.verifyPassword(view, password))) {
       return NcError.get(context).invalidSharedViewPassword();
     }
+
+    // Before `getCalendarRecordCount` merges the date window into
+    // `filterArrJson` — after that the caller's entries are indistinguishable
+    // from the server's.
+    await restrictSharedViewQueryForView(context, { view, query });
 
     return this.getCalendarRecordCount(context, {
       viewId: view.id,
@@ -129,7 +142,9 @@ export class CalendarDatasService {
       prev_date: string;
     },
   ) {
-    const { sharedViewUuid, password, query = {} } = param;
+    const { sharedViewUuid, password } = param;
+    // Strip response-shape keys before forwarding an anonymous caller's query.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
@@ -140,6 +155,10 @@ export class CalendarDatasService {
     if (!(await View.verifyPassword(view, password))) {
       return NcError.get(context).invalidSharedViewPassword();
     }
+
+    // Before `getCalendarDataList` merges the date window into `filterArrJson` —
+    // after that the caller's entries are indistinguishable from the server's.
+    await restrictSharedViewQueryForView(context, { view, query });
 
     return this.getCalendarDataList(context, {
       viewId: view.id,
@@ -248,6 +267,7 @@ export class CalendarDatasService {
     context: NcContext,
     {
       viewId,
+      from_date,
       next_date,
       prev_date,
       isDate,
@@ -273,7 +293,10 @@ export class CalendarDatasService {
     if (isDate) {
       const regex = /^\d{4}-\d{2}-\d{2}/;
       next_date = next_date.match(regex)?.[0] || next_date;
-      prev_date = prev_date.match(regex)?.[0] || prev_date;
+      // Date-only columns lose the time portion when stripped, so `>= prev_date`
+      // would include the entire day BEFORE the visible range. Use the stripped
+      // from_date (first day of the range) as the inclusive lower bound instead.
+      prev_date = from_date.match(regex)?.[0] || from_date;
     }
 
     calendarRange?.ranges.forEach((range: CalendarRange) => {

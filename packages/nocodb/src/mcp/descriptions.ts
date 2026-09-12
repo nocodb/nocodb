@@ -48,6 +48,12 @@ DATE/TIME FILTERING (for Date, DateTime, CreatedTime, LastModifiedTime fields):
 
   Date fields require a sub-operator. Syntax: (field,operator,sub_operator) or (field,operator,sub_operator,value)
 
+  CRITICAL: To filter by a specific calendar date you MUST use the "exactDate" sub-operator and put the
+  date in the value slot — NEVER place a YYYY-MM-DD date directly after the operator.
+    CORRECT:   (due_date,eq,exactDate,2026-06-01)    WRONG: (due_date,eq,2026-06-01)
+    CORRECT:   (due_date,gt,exactDate,2026-06-01)    WRONG: (due_date,gt,2026-06-01)
+  A bare date with no sub-operator is read as the sub-operator and rejected ("'2026-06-01' is not supported").
+
   isWithin - Check if date falls within a time range:
     Sub-operators (no value): pastWeek, pastMonth, pastYear, nextWeek, nextMonth, nextYear
     Sub-operators (value = days): pastNumberOfDays, nextNumberOfDays
@@ -102,6 +108,14 @@ EXAMPLES:
   Updated recently, not archived: (updated_at,isWithin,pastNumberOfDays,14)~and~not(is_archived,checked)
   Multiple segments & countries: (Segment,in,Government,Enterprise)~and(Country,in,Germany,France)
 `;
+
+// Same syntax as `whereDescription`, without the 5.5KB operator manual. That
+// manual is carried once, by queryRecords.where; every other filter param
+// points here. All the tools involved are read-only, so they are always listed
+// together and the reference always resolves.
+export const whereDescriptionRef = `Filter records using NocoDB query syntax, e.g. (status,eq,active)~and(amount,gte,100).
+
+For the complete operator list, date sub-operators, quoting rules and examples, see the \`where\` parameter of the \`queryRecords\` tool — the syntax is identical.`;
 
 export const aggregationDescription = `Aggregation type:
        • Numerical: sum, min, max, avg, median, std_dev, range (for numbers)

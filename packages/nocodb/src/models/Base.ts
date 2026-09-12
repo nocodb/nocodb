@@ -47,9 +47,16 @@ export default class Base implements BaseType {
   public default_role?: 'no-access';
   public is_snapshot?: boolean;
   public version?: BaseVersion;
+  // Declared on CE Base (like default_role) so the shared PROJECT column is
+  // readable through the CE-typed Base.get/getWithInfo.
+  public suspended?: boolean;
+  public suspended_reason?: string;
+  public suspended_at?: Date | string | number;
+  public suspended_by?: string;
 
   // shared base props
   uuid?: string;
+  // Never verified. Base share is uuid-only; writable via update(), never read.
   password?: string;
   roles?: string;
   fk_custom_url_id?: string;
@@ -65,7 +72,7 @@ export default class Base implements BaseType {
   managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
 
   // sandbox props
-  is_sandbox_master?: boolean; // Is this base a master base that has sandbox(es)?
+  is_sandbox_production?: boolean; // Is this base a production base that has sandbox(es) derived from it?
   is_sandbox?: boolean; // Is this base a sandbox base?
 
   constructor(base: Partial<Base>) {
@@ -99,7 +106,7 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 
@@ -482,7 +489,7 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 

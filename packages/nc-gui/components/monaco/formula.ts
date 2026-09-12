@@ -122,10 +122,12 @@ const languageConfiguration: languages.LanguageConfiguration = {
     ['(', ')'],
   ],
   autoClosingPairs: [
-    { open: '{', close: '}' },
-    { open: '(', close: ')' },
-    { open: '"', close: '"' },
-    { open: "'", close: "'" },
+    // Don't auto-close brackets while typing inside a string literal — a "(" typed
+    // between quotes is plain text, not a formula bracket. See issue #9572.
+    { open: '{', close: '}', notIn: ['string'] },
+    { open: '(', close: ')', notIn: ['string'] },
+    { open: '"', close: '"', notIn: ['string'] },
+    { open: "'", close: "'", notIn: ['string'] },
   ],
 }
 

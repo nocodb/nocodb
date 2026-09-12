@@ -72,6 +72,7 @@ export function useTableNew(param: {
 
     const navigateToTable = async () => {
       if (navigate && openedViewsTab.value === 'view') {
+        // TODO: use getFirstNonPersonalView(table?.views ?? [], { includeViewType: ViewTypes.GRID }) so we don't default to a personal or non-grid view
         let defaultView = table?.views?.[0]
 
         if (!defaultView && table.base_id) {
@@ -238,13 +239,7 @@ export function useTableNew(param: {
                 return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
               }),
             )
-            message.info(
-              h('div', {
-                innerHTML: `<div style="padding:10px 4px">Unable to delete tables because of the following.
-              <br><br>${refColMsgs.join('<br>')}<br><br>
-              Delete them & try again</div>`,
-              }),
-            )
+            message.info({ content: buildTableDeleteDependencyMessage(refColMsgs) })
             return
           }
 

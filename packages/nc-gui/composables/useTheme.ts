@@ -7,6 +7,14 @@ export const useTheme = createSharedComposable(() => {
   const selectedTheme = ref<ThemeMode>('system')
   const systemPreference = ref<'light' | 'dark'>('light')
 
+  /**
+   * Surface-scoped override: a published interface can pin its own
+   * appearance (meta.theme.mode) — the interface shell sets this while
+   * mounted and clears it on leave. Wins over the user's selection so the
+   * whole document (including body-portaled popups) follows the app.
+   */
+  const forcedTheme = ref<'light' | 'dark' | null>(null)
+
   const router = useRouter()
   const route = router.currentRoute
 
@@ -22,6 +30,9 @@ export const useTheme = createSharedComposable(() => {
   const isDark = computed(() => {
     if (!isThemeEnabled.value) {
       return false
+    }
+    if (forcedTheme.value) {
+      return forcedTheme.value === 'dark'
     }
     if (selectedTheme.value === 'system') {
       return systemPreference.value === 'dark'
@@ -225,6 +236,136 @@ export const useTheme = createSharedComposable(() => {
     colorCache.clear()
   }
 
+  /** ————— dark palette (presets + per-token overrides) ————— */
+
+  const DARK_PALETTE_STORAGE_KEY = 'nc-dark-palette'
+
+  const isThemeConfigOpen = ref(false)
+
+  /** bumped whenever resolved theme colors change (mode toggle or palette change) — canvas renderers watch this to repaint */
+  const themeRepaintVersion = ref(0)
+
+  const darkPalette = ref<DarkPaletteState>({ preset: DEFAULT_DARK_PRESET, overrides: {} })
+
+  // beta-gated; read off `features` because `isFeatureEnabled` pulls useEeConfig (and the workspace store) in with it
+  const isDarkPaletteConfigurable = computed(
+    () => useBetaFeatureToggle().features.value.find((f) => f.id === FEATURE_FLAG.THEME_SETTINGS)?.enabled ?? false,
+  )
+
+  /** what renders: the stored choice while the flag is on, the shipped default otherwise (the choice is kept, not cleared) */
+  const effectiveDarkPalette = computed<DarkPaletteState>(() =>
+    isDarkPaletteConfigurable.value ? darkPalette.value : { preset: DEFAULT_DARK_PRESET, overrides: {} },
+  )
+
+  /** preset values with any per-token overrides applied on top */
+  const activeDarkPaletteValues = computed(() => resolveDarkPalette(effectiveDarkPalette.value))
+
+  /**
+   * `default` (classic) IS variables.css, so it needs no injected block. This is
+   * deliberately not the same question as "is this the app default" — since the
+   * shipped default became cobalt the two answers differ, and conflating them
+   * would drop the stored value of anyone who picked classic.
+   */
+  const isVariablesCssPalette = computed(
+    () =>
+      effectiveDarkPalette.value.preset === VARIABLES_CSS_DARK_PRESET &&
+      !Object.keys(effectiveDarkPalette.value.overrides).length,
+  )
+
+  /** nothing worth persisting when the state already matches the shipped default */
+  const isDefaultDarkPalette = computed(
+    () => darkPalette.value.preset === DEFAULT_DARK_PRESET && !Object.keys(darkPalette.value.overrides).length,
+  )
+
+  /**
+   * Applies the palette as a `<style>` scoped to `[theme='dark']` so light mode
+   * is never touched. The default preset with no overrides removes the style
+   * entirely (pure variables.css values).
+   */
+  const applyDarkPalette = () => {
+    if (typeof document === 'undefined') return
+
+    let styleEl = document.getElementById('nc-dark-palette') as HTMLStyleElement | null
+
+    if (isVariablesCssPalette.value) {
+      styleEl?.remove()
+    } else {
+      const values = activeDarkPaletteValues.value
+      const lines: string[] = []
+      for (const token of DARK_PALETTE_TOKENS) {
+        const value = values[token.key]
+        if (!value) continue
+        lines.push(`${token.cssVar}: ${value};`)
+        if (token.rgb && value.startsWith('#')) {
+          lines.push(`--rgb-${token.cssVar.slice(2)}: ${hexToRgb(value)};`)
+        }
+      }
+      if (!styleEl) {
+        styleEl = document.createElement('style')
+        styleEl.id = 'nc-dark-palette'
+        document.head.appendChild(styleEl)
+      }
+      styleEl.textContent = `[theme='dark'] {\n  ${lines.join('\n  ')}\n}`
+    }
+
+    // canvas grid resolves CSS vars through cached getColor() — flush + repaint
+    barcodeCache.clear()
+    clearColorCache()
+    themeRepaintVersion.value++
+  }
+
+  const persistDarkPalette = () => {
+    if (typeof localStorage === 'undefined') return
+    if (isDefaultDarkPalette.value) {
+      localStorage.removeItem(DARK_PALETTE_STORAGE_KEY)
+    } else {
+      localStorage.setItem(DARK_PALETTE_STORAGE_KEY, JSON.stringify({ v: DARK_PALETTE_STATE_VERSION, ...darkPalette.value }))
+    }
+  }
+
+  const setDarkPreset = (presetId: string) => {
+    darkPalette.value = { preset: presetId, overrides: {} }
+    applyDarkPalette()
+    persistDarkPalette()
+  }
+
+  const setDarkPaletteToken = (key: string, value: string) => {
+    darkPalette.value = {
+      ...darkPalette.value,
+      overrides: { ...darkPalette.value.overrides, [key]: value },
+    }
+    applyDarkPalette()
+    persistDarkPalette()
+  }
+
+  const resetDarkPalette = () => setDarkPreset(DEFAULT_DARK_PRESET)
+
+  const loadDarkPalette = () => {
+    if (typeof localStorage === 'undefined') return
+    let migrated = false
+    try {
+      const saved = localStorage.getItem(DARK_PALETTE_STORAGE_KEY)
+      const parsed = saved ? JSON.parse(saved) : null
+      if (parsed && typeof parsed.preset === 'string') {
+        // a pre-v2 payload wrote `default` meaning classic — read it as classic,
+        // not as today's default, or the choice silently flips
+        const preset = migratePresetId(parsed.preset, parsed.v)
+        darkPalette.value = { preset, overrides: parsed.overrides ?? {} }
+        if (preset !== parsed.preset) migrated = true
+      }
+    } catch {
+      localStorage.removeItem(DARK_PALETTE_STORAGE_KEY)
+    }
+
+    // Unconditional: the shipped default is no longer the variables.css palette,
+    // so a user with nothing stored still needs the block injected. Bailing
+    // early here left the picker showing Default while classic rendered.
+    applyDarkPalette()
+
+    // rewrite once at the new version so the mapping never runs twice
+    if (migrated) persistDarkPalette()
+  }
+
   let initialized = false
 
   const init = () => {
@@ -252,6 +393,8 @@ export const useTheme = createSharedComposable(() => {
     mediaQuery.addEventListener('change', (e) => {
       systemPreference.value = e.matches ? 'dark' : 'light'
     })
+
+    loadDarkPalette()
   }
 
   // Update selectedTheme when nc-theme is changed in another tab
@@ -262,16 +405,36 @@ export const useTheme = createSharedComposable(() => {
         selectedTheme.value = newTheme
       }
     }
+
+    if (event.key === DARK_PALETTE_STORAGE_KEY) {
+      try {
+        const parsed = event.newValue ? JSON.parse(event.newValue) : { preset: DEFAULT_DARK_PRESET, overrides: {} }
+        if (parsed && typeof parsed.preset === 'string') {
+          darkPalette.value = { preset: parsed.preset, overrides: parsed.overrides ?? {} }
+          applyDarkPalette()
+        }
+      } catch {
+        // ignore malformed cross-tab payloads
+      }
+    }
   }
 
   useEventListener(window, 'storage', handleStorageChange)
 
   watch(isDark, applyTheme, { immediate: true })
 
+  // toggling the beta flag swaps the rendered palette without touching the stored choice
+  watch(isDarkPaletteConfigurable, (enabled) => {
+    if (!enabled) isThemeConfigOpen.value = false
+    applyDarkPalette()
+  })
+
   watch(isDark, () => {
     barcodeCache.clear()
 
     clearColorCache()
+
+    themeRepaintVersion.value++
   })
 
   init()
@@ -280,6 +443,7 @@ export const useTheme = createSharedComposable(() => {
 
   return {
     selectedTheme,
+    forcedTheme,
     isDark,
     setTheme,
     toggleTheme,
@@ -287,5 +451,14 @@ export const useTheme = createSharedComposable(() => {
     isThemeEnabled,
     getColor,
     clearColorCache,
+    isThemeConfigOpen,
+    themeRepaintVersion,
+    darkPalette,
+    activeDarkPaletteValues,
+    isDefaultDarkPalette,
+    isVariablesCssPalette,
+    setDarkPreset,
+    setDarkPaletteToken,
+    resetDarkPalette,
   }
 })

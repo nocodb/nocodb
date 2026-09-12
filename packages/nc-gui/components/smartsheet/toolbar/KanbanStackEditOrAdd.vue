@@ -35,8 +35,8 @@ provide(IsKanbanInj, ref(true))
           <component :is="iconMap.edit" v-if="groupingFieldColumn" />
           <component :is="iconMap.plus" v-else />
           <span class="capitalize ml-1 text-sm">
-            {{ groupingFieldColumn ? 'Edit' : 'Add' }}
-            Stack
+            {{ groupingFieldColumn ? $t('general.edit') : $t('general.add') }}
+            {{ $t('general.stack') }}
           </span>
         </div>
       </a-button>

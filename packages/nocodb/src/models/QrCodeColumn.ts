@@ -11,6 +11,7 @@ export default class QrCodeColumn {
   fk_workspace_id?: string;
   fk_column_id: string;
   fk_qr_value_column_id: string;
+  error: string;
 
   constructor(data: Partial<QrCodeColumn>) {
     Object.assign(this, data);
@@ -24,6 +25,7 @@ export default class QrCodeColumn {
     const insertObj = extractProps(qrCode, [
       'fk_column_id',
       'fk_qr_value_column_id',
+      'error',
     ]);
 
     const column = await Column.get(
@@ -82,5 +84,34 @@ export default class QrCodeColumn {
     return Column.get(context, {
       colId: this.fk_qr_value_column_id,
     });
+  }
+
+  public static async update(
+    context: NcContext,
+    columnId: string,
+    data: Partial<QrCodeColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(data, [
+      'fk_column_id',
+      'fk_qr_value_column_id',
+      'error',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_QRCODE,
+      updateObj,
+      {
+        fk_column_id: columnId,
+      },
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.COL_QRCODE}:${columnId}`,
+      updateObj,
+    );
   }
 }

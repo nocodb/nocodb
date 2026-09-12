@@ -53,7 +53,7 @@ const handleNavigateToProject = async (base: NcProject) => {
         :list="basesList"
         option-value-key="id"
         option-label-key="title"
-        search-input-placeholder="Search bases"
+        :search-input-placeholder="$t('placeholder.searchBases')"
         class="min-w-64 !w-auto"
         variant="medium"
         @change="handleNavigateToProject"
@@ -62,6 +62,7 @@ const handleNavigateToProject = async (base: NcProject) => {
           <GeneralBaseIconColorPicker
             :type="option?.type"
             :model-value="parseProp(option.meta).iconColor"
+            :icon="parseProp(option.meta).icon"
             :managed-app="{
               managed_app_master: option?.managed_app_master,
               managed_app_id: option?.managed_app_id,

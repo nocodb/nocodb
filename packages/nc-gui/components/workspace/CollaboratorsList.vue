@@ -54,6 +54,7 @@ const {
   blockWorkspaceMembers,
   showUpgradeToManageWorkspaceMembers,
   showEEFeatures,
+  isEEFeatureBlocked,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -107,14 +108,16 @@ const workspaceTeamsToCollaborators = computed(() => {
 })
 
 const filterCollaborators = computed(() => {
-  if (!userSearchText.value) return (collaborators.value ?? []).concat(workspaceTeamsToCollaborators.value)
-
-  return (collaborators.value || [])
+  const list = (collaborators.value ?? [])
+    .map((collab) => ({ ...collab, billable: !!parseProp(collab.meta).billable }))
     .concat(workspaceTeamsToCollaborators.value)
-    .filter(
-      (collab) =>
-        searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
-    )
+
+  if (!userSearchText.value) return list
+
+  return list.filter(
+    (collab) =>
+      searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
+  )
 })
 
 const selected = reactive<{
@@ -201,6 +204,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
         role: roles,
         workspaceId: currentWorkspace.value.id,
         isAdminPanel: isAdminPanel.value,
+        triggerSource: 'collaborators-members',
       })
     }
   }
@@ -253,6 +257,26 @@ const onConfirmRoleChangeConfirmationModal = () => {
 }
 
 const isSuperAdmin = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+const showBillableColumn = computed(() => isPaymentEnabled.value || !!appInfo.value.isOnPrem)
+
+// Unlicensed on-prem has no billing — use seat wording and hide seat detail
+const showBillableLabel = computed(() => !isEEFeatureBlocked.value)
+
+// Billing detail is owner-only (matches backend `workspaceUserSeatDetail` ACL);
+// `isWsOwner` is absent from the CE useEeConfig stub, hence the optional read.
+const canOpenSeatDetail = computed(() => !!(isWsOwner?.value || isSuperAdmin.value))
+
+const seatDetailUser = ref<WorkspaceUserType | null>(null)
+
+const isSeatDetailModalOpen = ref(false)
+
+function openSeatDetail(record: any) {
+  if (!canOpenSeatDetail.value || record?.isTeam) return
+
+  seatDetailUser.value = record
+  isSeatDetailModalOpen.value = true
+}
 
 const isOwnerOrCreator = computed(() => {
   return (
@@ -308,7 +332,7 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const columns = [
+const columns = computed<NcTableColumnProps[]>(() => [
   // // Enable this select row column once we introduce bulk action
   // {
   //   key: 'select',
@@ -325,12 +349,24 @@ const columns = [
   },
   {
     key: 'role',
-    title: t('general.access'),
+    title: t('labels.workspaceRole'),
     basis: '25%',
     minWidth: 252,
     dataIndex: 'roles',
     showOrderBy: true,
   },
+  ...(showBillableColumn.value
+    ? [
+        {
+          key: 'billable',
+          title: showBillableLabel.value ? t('general.billable') : t('labels.editorSeat'),
+          width: showBillableLabel.value ? 110 : 150,
+          minWidth: showBillableLabel.value ? 110 : 150,
+          dataIndex: 'billable',
+          showOrderBy: true,
+        } as NcTableColumnProps,
+      ]
+    : []),
   {
     key: 'created_at',
     title: t('title.dateJoined'),
@@ -344,7 +380,7 @@ const columns = [
     minWidth: 110,
     justify: 'justify-end',
   },
-] as NcTableColumnProps[]
+])
 
 const customRow = (_record: Record<string, any>, recordIndex: number) => ({
   class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0 !cursor-default`,
@@ -450,7 +486,7 @@ watch(inviteDlg, (newVal) => {
     </div>
 
     <div
-      class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-4 md:py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0"
+      class="nc-collaborator-table-wrapper h-full nc-content-max-w mx-auto pt-4 pb-4 md:pb-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0"
     >
       <div class="w-full flex items-center justify-between gap-3">
         <a-input
@@ -482,6 +518,14 @@ watch(inviteDlg, (newVal) => {
                 {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
               </div>
             </NcTooltip>
+            <div
+              v-else-if="appInfo.isOnPrem && !appInfo.ee"
+              class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap"
+            >
+              <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
+
+              {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+            </div>
             <div v-else class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
               <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 
@@ -506,6 +550,7 @@ watch(inviteDlg, (newVal) => {
                     isInviteTeamDlg = true
                     inviteDlg = true
                   },
+                  triggerSource: 'collaborators-teams',
                 })
               "
             >
@@ -520,7 +565,11 @@ watch(inviteDlg, (newVal) => {
               type="primary"
               :disabled="isCollaboratorsLoading"
               data-testid="nc-add-member-btn"
-              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
+              @click="
+                blockWorkspaceMembers
+                  ? showUpgradeToManageWorkspaceMembers({ triggerSource: 'collaborators-members' })
+                  : (inviteDlg = true)
+              "
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
@@ -614,28 +663,9 @@ watch(inviteDlg, (newVal) => {
                 <div class="flex items-center gap-1">
                   <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
-                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                      {{ extractUserDisplayNameOrEmail(record) }}
                     </template>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
-                  </NcTooltip>
-                  <NcTooltip
-                    v-if="(isPaymentEnabled || appInfo.isOnPrem) && parseProp(record.meta).billable"
-                    :title="$t('tooltip.paidUserBadgeTooltip')"
-                    class="flex items-center"
-                    :tooltip-style="{ width: '180px' }"
-                    :overlay-inner-style="{ width: '180px' }"
-                  >
-                    <div v-if="activePlanTitle === PlanTitles.FREE && !appInfo.isOnPrem" class="text-nc-content-gray-default">
-                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
-                    </div>
-                    <NcBadge
-                      v-else
-                      :border="false"
-                      color="green"
-                      class="text-nc-content-green-dark dark:!bg-nc-bg-green-light text-[10px] leading-[14px] !h-[18px] font-semibold"
-                    >
-                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
-                    </NcBadge>
+                    {{ extractUserDisplayNameOrEmail(record) }}
                   </NcTooltip>
                   <NcTooltip
                     v-if="isScimManaged(record)"
@@ -708,6 +738,39 @@ watch(inviteDlg, (newVal) => {
                   </NcTooltip>
                 </div>
               </template>
+            </div>
+            <div v-if="column.key === 'billable'" class="flex items-center">
+              <NcTooltip
+                v-if="record.billable"
+                class="flex items-center"
+                :tooltip-style="{ width: '230px' }"
+                :overlay-inner-style="{ width: '230px' }"
+              >
+                <template #title>
+                  <div>{{ $t('tooltip.paidUserBadgeTooltip') }}</div>
+                  <div v-if="canOpenSeatDetail && !record.isTeam" class="mt-2">{{ $t('tooltip.clickToSeeDetails') }}</div>
+                </template>
+                <component
+                  :is="canOpenSeatDetail && !record.isTeam ? 'button' : 'div'"
+                  v-e="['c:workspace:member:billable-detail']"
+                  class="nc-billable-badge flex items-center border-none p-0 bg-transparent"
+                  :class="{ 'cursor-pointer': canOpenSeatDetail && !record.isTeam }"
+                  data-testid="nc-billable-badge"
+                  @click="openSeatDetail(record)"
+                >
+                  <div v-if="activePlanTitle === PlanTitles.FREE && !appInfo.isOnPrem" class="text-nc-content-gray-default">
+                    <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
+                  </div>
+                  <NcBadge
+                    v-else
+                    :border="false"
+                    color="green"
+                    class="text-nc-content-green-dark dark:!bg-nc-bg-green-light text-[10px] leading-[14px] !h-[18px] font-semibold"
+                  >
+                    <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
+                  </NcBadge>
+                </component>
+              </NcTooltip>
             </div>
             <div v-if="column.key === 'created_at'">
               <NcTooltip class="max-w-full">
@@ -797,7 +860,7 @@ watch(inviteDlg, (newVal) => {
               <div class="text-sm text-nc-content-gray-subtle">
                 {{ $t('placeholder.inviteYourTeamLabel') }}
               </div>
-              <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
+              <img src="~assets/img/placeholder/invite-team.png" :alt="$t('activity.inviteTeam')" class="!w-[30rem] flex-none" />
             </div>
           </template>
         </NcTable>
@@ -814,6 +877,13 @@ watch(inviteDlg, (newVal) => {
       />
 
       <WorkspaceTeamsEdit v-if="isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
+
+      <WorkspaceBillableDetailModal
+        v-if="isEeUI && currentWorkspace?.id && seatDetailUser"
+        v-model:visible="isSeatDetailModalOpen"
+        :workspace-id="currentWorkspace.id"
+        :user="seatDetailUser"
+      />
 
       <NcModalConfirm
         v-if="currentWorkspace"
@@ -887,11 +957,13 @@ watch(inviteDlg, (newVal) => {
     }
   }
 
+  // Workspace home: Members is not an Admin route, so no sub-tab bar is on screen
+  // and there is nothing to subtract beyond the topbar.
   &.nc-is-ws-members-list {
-    @apply h-[calc(100vh-var(--topbar-height)-44px)];
+    @apply h-[calc(100vh-var(--topbar-height))];
 
     @supports (height: 100dvh) {
-      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 

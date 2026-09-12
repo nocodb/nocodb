@@ -1,4 +1,7 @@
-export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
+export function convertUnits(
+  unit: string,
+  type: 'mysql' | 'pg' | 'sqlite' | 'mssql',
+) {
   switch (unit) {
     case 'milliseconds':
     case 'ms': {
@@ -10,6 +13,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
         case 'pg':
         case 'sqlite':
           return 'milliseconds';
+        case 'mssql':
+          return 'millisecond';
         default:
           return unit;
       }
@@ -23,6 +28,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'SECOND';
         case 'sqlite':
           return 'seconds';
+        case 'mssql':
+          return 'second';
         default:
           return unit;
       }
@@ -36,6 +43,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'MINUTE';
         case 'sqlite':
           return 'minutes';
+        case 'mssql':
+          return 'minute';
         default:
           return unit;
       }
@@ -49,6 +58,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'HOUR';
         case 'sqlite':
           return 'hours';
+        case 'mssql':
+          return 'hour';
         default:
           return unit;
       }
@@ -62,6 +73,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'DAY';
         case 'sqlite':
           return 'days';
+        case 'mssql':
+          return 'day';
         default:
           return unit;
       }
@@ -75,6 +88,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'WEEK';
         case 'sqlite':
           return 'weeks';
+        case 'mssql':
+          return 'week';
         default:
           return unit;
       }
@@ -88,6 +103,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'MONTH';
         case 'sqlite':
           return 'months';
+        case 'mssql':
+          return 'month';
         default:
           return unit;
       }
@@ -101,6 +118,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'QUARTER';
         case 'sqlite':
           return 'quarters';
+        case 'mssql':
+          return 'quarter';
         default:
           return unit;
       }
@@ -114,6 +133,8 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
           return 'YEAR';
         case 'sqlite':
           return 'years';
+        case 'mssql':
+          return 'year';
         default:
           return unit;
       }

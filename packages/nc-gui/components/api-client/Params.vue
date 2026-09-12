@@ -10,7 +10,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const addParamRow = () =>
   vModel.value.push({
-    enabled: false,
+    enabled: true,
     name: '',
     value: '',
   })

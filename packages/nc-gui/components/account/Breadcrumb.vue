@@ -12,7 +12,7 @@ const { t } = useI18n()
 const breadcrumb = computed<BreadcrumbType[]>(() => {
   const payload: BreadcrumbType[] = [
     {
-      title: 'Account',
+      title: t('labels.account'),
     },
   ]
 

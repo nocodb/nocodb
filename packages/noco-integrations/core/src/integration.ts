@@ -16,7 +16,12 @@ export class IntegrationWrapper<T = any> {
   }
 
   get config(): Readonly<T> {
-    const { _vars, ...rest } = this._config;
+    // Strip framework-injected non-persistable slots:
+    //   - `_vars` : runtime variable bag, persisted separately via saveVars
+    //   - `_nocodb`: live NocoDB service handles + request context injected
+    //     into sync/workflow wrappers at runtime; not safe to JSON-serialise
+    //     into the integration record.
+    const { _vars, _nocodb, ...rest } = this._config as any;
     return { ...rest } as Readonly<T>;
   }
   getVars(): any | undefined {

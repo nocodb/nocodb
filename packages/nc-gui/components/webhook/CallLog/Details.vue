@@ -90,7 +90,7 @@ const hookType = (item: HookLogType) => {
       <div class="request-response-wrapper">
         <div class="request-wrapper">
           <WebhookCallLogReqResDetailCard
-            title="Request"
+            :title="$t('general.request')"
             :headers="parsedPayload.headers"
             :payload="parsedPayload.data"
             :params="parsedPayload.params"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { IntegrationCategoryType, type IntegrationType } from 'nocodb-sdk'
+import { IntegrationCategoryType, type IntegrationType, IntegrationsType } from 'nocodb-sdk'
 import type { IntegrationItemType, NcTableColumnProps } from '#imports'
 
 interface Props {
@@ -36,7 +36,7 @@ const {
   availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
@@ -61,19 +61,26 @@ const connectionsSearchQuery = ref('')
 const mainSearchInputRef = ref<HTMLInputElement>()
 const connectionsSearchInputRef = ref<HTMLInputElement>()
 
+// Integrations that have their own management surface are excluded from the
+// connection lists: syncs live in Manage Syncs, channels in an agent's Channels
+// settings. Listing them here would offer a second, weaker place to edit them.
+const nonSyncLinkedIntegrations = computed(() =>
+  linkedIntegrations.value.filter((i) => i.type !== IntegrationsType.Sync && i.type !== IntegrationsType.Channel),
+)
+
 const filteredAllConnections = computed(() => {
-  if (!connectionsSearchQuery.value.trim()) return linkedIntegrations.value
+  if (!connectionsSearchQuery.value.trim()) return nonSyncLinkedIntegrations.value
 
   const query = connectionsSearchQuery.value.trim().toLowerCase()
-  return linkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
+  return nonSyncLinkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
 })
 
 // Filtered linked integrations based on search
 const filteredLinkedIntegrations = computed(() => {
-  if (!searchQuery.value.trim()) return linkedIntegrations.value
+  if (!searchQuery.value.trim()) return nonSyncLinkedIntegrations.value
 
   const query = searchQuery.value.trim().toLowerCase()
-  return linkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
+  return nonSyncLinkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
 })
 
 // Build category map for the card grid
@@ -105,13 +112,17 @@ const integrationsMap = computed(() => {
         (i) =>
           i.type === cat.value &&
           i.isAvailable &&
-          (isEeUI ? !i.isOssOnly : true) &&
+          // OSS-only (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem)
+          (isEEFeatureBlocked.value || !i.isOssOnly) &&
+          // EE-only (e.g. MSSQL, Oracle) hidden in CE and in community mode; in a
+          // normal EE build gated by their paid add-on.
+          (showEEFeatures.value || !i.isEeOnly) &&
           i.sub_type !== SyncDataType.NOCODB &&
           // AUTH category: only show integrations available for sync auth
           (cat.value !== IntegrationCategoryType.AUTH ||
             !isSyncFeatureEnabled.value ||
             availableSyncAuthIntegrationSubtypes.value.includes(i.sub_type)) &&
-          (!query || t(i.title).toLowerCase().includes(query)),
+          (!query || integrationLabel(i.title).toLowerCase().includes(query)),
       ),
     }
   }
@@ -147,7 +158,7 @@ const collaboratorsMap = computed<Map<string, any>>(() => {
 const getUserName = (userId: string) => {
   const user = collaboratorsMap.value.get(userId)
   if (!user) return userId
-  return user.display_name || user.email?.split('@')[0] || userId
+  return extractUserDisplayNameOrEmail(user) || userId
 }
 
 const linkedColumns = computed<NcTableColumnProps[]>(
@@ -369,8 +380,8 @@ watch(baseId, reload)
                           <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                         </div>
                         <div class="flex-1">
-                          <div class="name">{{ $t(integration.title) }}</div>
-                          <div v-if="integration.subtitle" class="subtitle">{{ $t(integration.subtitle) }}</div>
+                          <div class="name">{{ integrationLabel(integration.title) }}</div>
+                          <div v-if="integration.subtitle" class="subtitle">{{ integrationLabel(integration.subtitle) }}</div>
                         </div>
                         <NcButton type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
                           <div class="flex items-center gap-2">

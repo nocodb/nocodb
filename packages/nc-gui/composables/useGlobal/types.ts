@@ -2,7 +2,7 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
-import type { MapProvider } from 'nocodb-sdk'
+import type { MapProvider, WhiteLabelConfig } from 'nocodb-sdk'
 import type { NcBreakpoint } from '~/lib/constants'
 
 export interface AppInfo {
@@ -27,12 +27,16 @@ export interface AppInfo {
   teleEnabled: boolean
   errorReportingEnabled: boolean
   auditEnabled: boolean
+  undoRedoEnabled: boolean
+  docsRealtimeEnabled?: boolean
   type: string
   version: string
   ee?: boolean
   ncAttachmentFieldSize: number
   ncMaxAttachmentsAllowed: number
   ncMaxTextLength: number
+  ncDataImportFileSize: number
+  ncGridMaxSelectionLimit: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
@@ -41,15 +45,19 @@ export interface AppInfo {
   dashboardPath: string
   inviteOnlySignup: boolean
   restrictWorkspaceCreation: boolean
+  allowEmailSigninWithSso: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  licenseServerUrl?: string
   isPostgres: boolean
   isAirgapped: boolean
+  managedGatewayEnabled: boolean
   onPremPlan: Record<string, any> | null
+  onPremPlanTitle?: string | null
   seatLimit: number | null
   isTrial: boolean
   isTrialExpired: boolean
@@ -61,11 +69,14 @@ export interface AppInfo {
   openReplayKey?: string | null
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
+  disableTours: boolean
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number
   mapProvider?: MapProvider
   defaultOrgId?: string
+  /** Sanitized white-label config — null when disabled or not licensed */
+  whiteLabel?: WhiteLabelConfig | null
 }
 
 export interface StoredState {
@@ -148,6 +159,14 @@ export interface Actions {
     dashboardTitle?: string
     workflowId?: string
     workflowTitle?: string
+    interfaceId?: string
+    interfacePageId?: string
+    /** Append `/edit` — the interface builder. Omit for the viewer. */
+    interfaceEdit?: boolean
+    /** Append `/preview` — the builder's in-place consumer rendering (EE; ignored when interfaceEdit is set). */
+    interfacePreview?: boolean
+    /** Navigate to the interfaces list (no specific interface). */
+    interfaces?: boolean
     replace?: boolean
     newTab?: boolean
   }) => void

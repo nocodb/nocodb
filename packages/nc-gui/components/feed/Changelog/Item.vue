@@ -138,11 +138,11 @@ const handleOpenUrl = (url: string) => {
       </span>
     </div>
     <div class="flex flex-1 px-4 pb-3 justify-between flex-col gap-2">
-      <div class="prose max-w-none" v-html="renderedText"></div>
+      <div class="prose dark:prose-invert max-w-none" v-html="renderedText"></div>
     </div>
     <NcButton v-if="truncate" size="small" class="w-29 mx-4 mb-3" type="text" @click="expand">
       <div class="gap-2 flex items-center">
-        Show more
+        {{ $t('general.showMore') }}
         <GeneralIcon icon="arrowDown" />
       </div>
     </NcButton>

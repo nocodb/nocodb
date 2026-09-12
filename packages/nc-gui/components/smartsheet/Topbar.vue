@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-const router = useRouter()
-const route = router.currentRoute
+const route = useRoute()
 
 const { isUIAllowed } = useRoles()
 
@@ -11,6 +10,8 @@ const { activeScriptId } = storeToRefs(useScriptStore())
 const { activeDashboardId, isEditingDashboard } = storeToRefs(useDashboardStore())
 
 const { activeWorkflowId, activeWorkflowHasDraftChanges } = storeToRefs(useWorkflowStore())
+
+const { activeAgentId } = storeToRefs(useAgentStore())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -26,9 +27,9 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
+const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions, communityMode, blockWorkflows } = useEeConfig()
 
-const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
+const isSharedBase = computed(() => route.params.typeOrId === 'base')
 
 const topbarBreadcrumbItemWidth = computed(() => {
   if (!isSharedBase.value && !isMobileMode.value) {
@@ -49,7 +50,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
     class="nc-table-topbar py-2 border-b-1 border-nc-border-gray-medium flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
   >
-    <template v-if="isViewsLoading && !activeScriptId && !activeDashboardId && !activeWorkflowId">
+    <template v-if="isViewsLoading && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
@@ -60,21 +61,27 @@ const topbarBreadcrumbItemWidth = computed(() => {
         }"
       >
         <GeneralOpenLeftSidebarBtn />
-        <LazySmartsheetToolbarViewInfo v-if="!isPublic && !activeScriptId && !activeDashboardId && !activeWorkflowId" />
+        <LazySmartsheetToolbarViewInfo
+          v-if="!isPublic && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId"
+        />
         <LazySmartsheetTopbarScriptInfo v-if="!isPublic && activeScriptId" />
         <LazySmartsheetTopbarDashboardInfo v-if="!isPublic && activeDashboardId" />
         <LazySmartsheetTopbarWorkflowInfo v-if="!isPublic && activeWorkflowId" />
+        <LazySmartsheetTopbarAgentInfo v-if="!isPublic && activeAgentId" />
       </div>
 
-      <div v-if="!isSharedBase && !isMobileMode && !activeScriptId && !activeDashboardId && !activeWorkflowId">
+      <div v-if="!isSharedBase && !isMobileMode && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId">
         <SmartsheetTopbarSelectMode />
       </div>
-      <div v-else-if="activeDashboardId || activeWorkflowId">
+      <div v-else-if="activeDashboardId || activeWorkflowId || activeAgentId" class="min-w-0 shrink">
         <SmartsheetTopbarEditingState />
       </div>
 
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
+
+        <!-- Variable Setup Warning -->
+        <SmartsheetTopbarVariableSetupWarning v-if="!isSharedBase && !isMobileMode" />
 
         <!-- Managed App Status -->
         <LazySmartsheetTopbarManagedAppStatus v-if="!isSharedBase && !isMobileMode" />
@@ -82,45 +89,42 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <!-- Sandbox Status -->
         <LazySmartsheetTopbarSandboxStatus v-if="!isSharedBase && !isMobileMode" />
 
-        <LazySmartsheetTopbarCollaboratorPresence
-          v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
-        />
+        <!-- isEeUI, not appInfo.ee: presence ships on unlicensed on-prem too, where appInfo.ee is false. -->
+        <LazySmartsheetTopbarCollaboratorPresence v-if="!isPublic && !isSharedBase && !isMobileMode && isEeUI" />
 
-        <NcButton
+        <LazySmartsheetTopbarHistory v-if="!isSharedBase && !isMobileMode && isEeUI" />
+
+        <NcTooltip
           v-if="
             (isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            !communityMode &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&
             !activeWorkflowId &&
+            !activeAgentId &&
             openedViewsTab === 'view' &&
             !isMobileMode
           "
-          v-e="['c:extension-toggle']"
-          type="secondary"
-          size="small"
-          class="nc-topbar-extension-btn"
-          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
-          data-testid="nc-topbar-extension-btn"
-          @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
+          placement="bottom"
         >
-          <div class="flex items-center justify-center min-w-[28.69px]">
-            <GeneralIcon
-              :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
-              class="w-4 h-4 !stroke-transparent"
-              :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
-            />
-            <span
-              class="overflow-hidden transition-all duration-200"
-              :class="{
-                'w-[0px] invisible': isPanelExpanded || isChatPanelExpanded,
-                'ml-1 w-[74px]': !isPanelExpanded && !isChatPanelExpanded,
-              }"
-            >
-              {{ $t('general.extensions') }}
-            </span>
-          </div>
-        </NcButton>
+          <template #title>{{ $t('general.extensions') }}</template>
+          <NcButton
+            v-e="['c:extension-toggle']"
+            type="text"
+            size="small"
+            class="nc-topbar-extension-btn"
+            :class="{ '!bg-nc-bg-brand !text-nc-content-brand': isPanelExpanded }"
+            data-testid="nc-topbar-extension-btn"
+            @click="
+              blockExtensions && !isPanelExpanded
+                ? showUpgradeToUseExtensions({ triggerSource: 'toolbar-extensions' })
+                : toggleExtensionPanel()
+            "
+          >
+            <GeneralIcon :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'" class="w-4 h-4 !stroke-transparent" />
+          </NcButton>
+        </NcTooltip>
 
         <NcButton
           v-if="
@@ -128,6 +132,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeScriptId &&
             !activeDashboardId &&
             !activeWorkflowId &&
+            !activeAgentId &&
             openedViewsTab === 'view' &&
             !isMobileMode &&
             isViewActionsEnabled &&
@@ -162,12 +167,15 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
           <LazySmartsheetTopbarDashboardState v-if="activeDashboardId && isUIAllowed('dashboardEdit')" />
           <LazySmartsheetTopbarScriptAction v-if="activeScriptId && appInfo.ee" />
-          <LazySmartsheetTopbarWorkflowAction v-if="activeWorkflowId && appInfo.ee" />
+          <!-- Not `appInfo.ee`: workflows are a capped Free feature on unlicensed
+               on-prem, and this holds the only Publish / revert affordance. -->
+          <LazySmartsheetTopbarWorkflowAction v-if="activeWorkflowId && !blockWorkflows" />
+          <LazySmartsheetTopbarAgentAction v-if="activeAgentId && appInfo.ee" />
         </div>
 
         <DashboardMiniSidebarTheme v-if="isSharedBase" placement="bottom" render-as-btn button-class="h-8 w-8" />
 
-        <LazySmartsheetTopbarShareProject v-if="!activeScriptId && !activeWorkflowId" />
+        <LazySmartsheetTopbarShareProject v-if="!activeScriptId && !activeWorkflowId && !activeAgentId" />
 
         <div v-if="isSharedBase">
           <LazyGeneralLanguage

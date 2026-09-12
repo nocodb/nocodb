@@ -606,7 +606,7 @@ defineExpose({
                           <div
                             class="bg-nc-bg-gray-medium text-nc-content-gray-subtle2 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
                           >
-                            Enter
+                            {{ $t('general.enter') }}
                             <div
                               class="bg-nc-bg-default border-1 items-center flex justify-center border-nc-border-gray-dark text-nc-content-gray-subtle rounded h-5 w-5 px-0.25"
                             >
@@ -638,7 +638,7 @@ defineExpose({
   --cmdk-icon-color: var(--cmdk-secondary-text-color);
   --cmdk-icon-size: 1.2em;
 
-  --cmdk-modal-background: var(--nc-bg-default);
+  --cmdk-modal-background: var(--nc-bg-elevated);
 }
 
 .dark .cmdk-modal {
@@ -702,9 +702,9 @@ defineExpose({
     appearance: none;
     background: transparent;
     outline: none;
-    box-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
+    box-shadow: var(--un-ring-inset) 0 0 0 calc(0px + var(--un-ring-offset-width)) var(--un-ring-color) !important;
 
-    caret-color: #3366ff;
+    caret-color: var(--nc-brand-accent);
     color: rgb(60, 65, 73);
   }
 

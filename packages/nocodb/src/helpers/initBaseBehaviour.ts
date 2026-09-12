@@ -43,8 +43,9 @@ async function isSchemaCreateAllowed(
 export async function initBaseBehavior() {
   const dataConfig = await NcConnectionMgrv2.getDataConfig();
 
-  // return if client is not postgres
-  if (dataConfig.client !== 'pg') {
+  // return if no data config or client is not postgres (this reflection is
+  // postgres-only)
+  if (!dataConfig || dataConfig.client !== 'pg') {
     return;
   }
 

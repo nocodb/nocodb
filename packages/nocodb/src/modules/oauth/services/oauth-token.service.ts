@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { OAuthClientType } from 'nocodb-sdk';
 import {
   OAuthAuthorizationCode,
   OAuthClient,
@@ -10,6 +11,7 @@ import {
   User,
 } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import { buildOAuthAccessTokenClaims } from '~/modules/oauth/services/oauth-token.claims';
 import Noco from '~/Noco';
 
 export interface TokenResponse {
@@ -68,17 +70,14 @@ export class OauthTokenService {
     const now = Math.floor(Date.now() / 1000);
 
     return jwt.sign(
-      {
-        sub: payload.userId,
-        email: user.email,
-        client_id: payload.clientId,
+      buildOAuthAccessTokenClaims({
+        userId: payload.userId,
+        clientId: payload.clientId,
         scope: payload.scope,
-        iat: now,
-        exp: now + this.ACCESS_TOKEN_EXPIRES_IN,
-        id: user.id,
-        roles: user.roles,
-        token_version: user.token_version,
-      },
+        user,
+        nowSeconds: now,
+        expiresInSeconds: this.ACCESS_TOKEN_EXPIRES_IN,
+      }),
       Noco.config.auth.jwt.secret,
       {
         algorithm: 'HS256',
@@ -89,9 +88,8 @@ export class OauthTokenService {
   private async authenticateClient(params: {
     clientId: string;
     clientSecret?: string;
-    isPKCEFlow?: boolean;
   }): Promise<OAuthClient> {
-    const { clientId, clientSecret, isPKCEFlow = false } = params;
+    const { clientId, clientSecret } = params;
 
     const client = await OAuthClient.getByClientId(clientId);
 
@@ -99,46 +97,30 @@ export class OauthTokenService {
       throw new Error('invalid_client: Client not found');
     }
 
-    // Confidential clients: require client_secret OR valid PKCE
-    if (client.client_secret) {
-      // If PKCE is used, client_secret is optional
-      if (isPKCEFlow) {
-        // If client_secret is provided with PKCE, validate it using bcrypt
-        if (clientSecret) {
-          const isValidSecret = await promisify(bcrypt.compare)(
-            clientSecret,
-            client.client_secret,
-          );
-          if (!isValidSecret) {
-            throw new Error('invalid_client: Invalid client credentials');
-          }
-        }
-        // PKCE validation will happen separately, so we're good here
-      } else {
-        // Non-PKCE flow: client_secret is required
-        if (!clientSecret) {
-          throw new Error(
-            'invalid_client: Client secret required for confidential clients without PKCE',
-          );
-        }
-
-        // Validate client_secret using bcrypt
-        const isValidSecret = await promisify(bcrypt.compare)(
-          clientSecret,
-          client.client_secret,
-        );
-        if (!isValidSecret) {
-          throw new Error('invalid_client: Invalid client credentials');
-        }
-      }
-    } else {
-      // Public clients (no client_secret)
-      // PKCE is required for public clients, but they don't need a secret
-      if (clientSecret) {
+    // PKCE proves the token request came from whoever started the flow; it does
+    // not authenticate the client. A confidential client must present its secret
+    // on every grant (RFC 6749 §4.1.3) — a client that cannot hold one registers
+    // as public instead.
+    if (client.client_type === OAuthClientType.CONFIDENTIAL) {
+      if (!clientSecret || !client.client_secret) {
         throw new Error(
-          'invalid_client: Client secret not expected for public clients',
+          'invalid_client: Client secret required for confidential clients',
         );
       }
+
+      const isValidSecret = await promisify(bcrypt.compare)(
+        clientSecret,
+        client.client_secret,
+      );
+      if (!isValidSecret) {
+        throw new Error('invalid_client: Invalid client credentials');
+      }
+    } else if (clientSecret) {
+      // Public clients hold no secret — a supplied one signals a misconfigured
+      // or spoofed client.
+      throw new Error(
+        'invalid_client: Client secret not expected for public clients',
+      );
     }
 
     return client;
@@ -169,14 +151,13 @@ export class OauthTokenService {
       );
     }
 
-    // Check if code is already used
+    // Fast-path reject before CAS.
     if (authCode.is_used) {
       throw new Error(
         'invalid_grant: Authorization code has already been used',
       );
     }
 
-    // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
       throw new Error('invalid_grant: Authorization code has expired');
     }
@@ -208,11 +189,9 @@ export class OauthTokenService {
       }
     }
 
-    // Authenticate client - PKCE makes client_secret optional for confidential clients
     await this.authenticateClient({
       clientId: authCode.fk_client_id,
       clientSecret,
-      isPKCEFlow,
     });
 
     const now = Date.now();
@@ -245,9 +224,19 @@ export class OauthTokenService {
       resource: authCode.resource,
     };
 
+    // Atomic single-use claim deferred until all preconditions pass so a
+    // failing redirect_uri / PKCE / client auth check does not consume the code.
+    const claimed = await OAuthAuthorizationCode.claimByCode(code);
+    if (!claimed) {
+      throw new Error(
+        'invalid_grant: Authorization code has already been used',
+      );
+    }
+
     await OAuthToken.insert(insertObj);
 
-    // Mark authorization code as used
+    // markAsUsed is a safety net — claimByCode above already won the
+    // single-use race.
     await OAuthAuthorizationCode.markAsUsed(code);
 
     return {
@@ -269,6 +258,12 @@ export class OauthTokenService {
   }): Promise<TokenResponse> {
     const { refreshToken, clientId, clientSecret } = params;
 
+    // TODO: refresh-grant failures below reject via NcError.badRequest, while the
+    // authorization-code grant throws RFC-6749 `invalid_grant: …` codes. Align the
+    // whole refresh flow on RFC-6749 error codes in a dedicated change (kept out of
+    // the GHSA-353r advisory fix to avoid altering response shapes here).
+    // https://github.com/nocodb/nocohub/pull/9337#discussion_r3435641193
+
     // Get token by refresh token
     const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
     if (!tokenRecord) {
@@ -288,12 +283,9 @@ export class OauthTokenService {
       NcError.badRequest('Refresh token has expired');
     }
 
-    // For refresh token flow, require client authentication
-    // Note: Refresh tokens don't use PKCE, so client_secret is required for confidential clients
     await this.authenticateClient({
       clientId,
       clientSecret,
-      isPKCEFlow: false, // Refresh token flow doesn't use PKCE
     });
 
     // Validate client ID
@@ -320,8 +312,17 @@ export class OauthTokenService {
     // Rotate refresh tokens for security
     const newRefreshToken = randomBytes(64).toString('base64url');
 
-    // Revoke old token
-    await OAuthToken.revoke(tokenRecord.id);
+    // Atomically revoke the presented refresh token, gating issuance of the new
+    // chain. This compare-and-swap is the single-use guard: two concurrent
+    // refreshes presenting the same token both pass the is_revoked check above,
+    // but only one wins revokeIfActive — the loser is rejected here instead of
+    // minting a second valid token chain. Done after token generation so a
+    // generateAccessToken failure does not burn the still-valid refresh token
+    // (GHSA-353r).
+    const revoked = await OAuthToken.revokeIfActive(tokenRecord.id);
+    if (!revoked) {
+      NcError.badRequest('Refresh token has been revoked');
+    }
 
     // Create new token record
     await OAuthToken.insert({
@@ -354,12 +355,9 @@ export class OauthTokenService {
   }): Promise<boolean> {
     const { token, clientId, clientSecret, tokenTypeHint } = params;
 
-    // For token revocation, require client authentication
-    // Note: Revocation doesn't use PKCE, so client_secret is required for confidential clients
     await this.authenticateClient({
       clientId,
       clientSecret,
-      isPKCEFlow: false, // Revocation doesn't use PKCE
     });
 
     let tokenRecord: OAuthToken | null = null;

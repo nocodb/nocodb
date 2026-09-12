@@ -1,9 +1,10 @@
+import { ClientType } from 'nocodb-sdk';
 import { GenericPgFieldHandler } from '../generic.pg';
 import { UserGeneralHandler } from './user.general.handler';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Knex } from '~/db/CustomKnex';
 import type { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
-import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export class UserLikeNLikePgHandler extends UserGeneralHandler {
   override singleLineTextHandler: GenericFieldHandler =
@@ -15,21 +16,25 @@ export class UserLikeNLikePgHandler extends UserGeneralHandler {
     needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder;
     delimiter?: string;
   }) {
-    const { knex, needleColumn, stack } = param;
-    return `(${replaceDelimitedWithKeyValuePg({
-      knex,
-      needleColumn,
-      stack,
-    })})`;
+    return `(${DBQueryClient.get(ClientType.PG).replaceDelimitedWithKeyValue(
+      param,
+    )})`;
   }
 }
 
 export class UserPgHandler extends GenericPgFieldHandler {
   userHandler = new UserLikeNLikePgHandler();
 
-  override filter = this.userHandler.filter;
-  override filterLike = this.userHandler.filterLikeNlike;
-  override filterNlike = this.userHandler.filterLikeNlike;
+  override filter = (...args: Parameters<UserGeneralHandler['filter']>) =>
+    this.userHandler.filter(...args);
+  override filterLike = (
+    ...args: Parameters<UserGeneralHandler['filterLikeNlike']>
+  ) => this.userHandler.filterLikeNlike(...args);
+  override filterNlike = (
+    ...args: Parameters<UserGeneralHandler['filterLikeNlike']>
+  ) => this.userHandler.filterLikeNlike(...args);
+  override applySort = (...args: Parameters<UserGeneralHandler['applySort']>) =>
+    this.userHandler.applySort(...args);
   override parseUserInput = this.userHandler.parseUserInput;
   singleLineTextHandler = this.userHandler.singleLineTextHandler;
   replaceDelimitedWithKeyValue = this.userHandler.replaceDelimitedWithKeyValue;

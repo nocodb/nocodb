@@ -97,7 +97,7 @@ export const getNocoConfig = async (
       process.env.DATABASE_URL_FILE,
   });
 
-  // create NocoConfig using utility method which works similar to Nocodb NcConfig with only meta db config
+  // create NocoConfig using utility method which works similar to NocoDB NcConfig with only meta db config
   return NcConfig.create({
     meta: {
       metaUrl: process.env.NC_DB || options.ncDb,

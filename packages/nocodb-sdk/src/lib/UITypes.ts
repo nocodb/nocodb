@@ -8,6 +8,7 @@ import {
 import { FormulaDataTypes } from './formula/enums';
 import { LinksVersion, LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
+import { SYNC_SYSTEM_COLUMN_TITLES } from './sync';
 
 enum UITypes {
   ID = 'ID',
@@ -53,6 +54,7 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  Deleted = 'Deleted',
   Meta = 'Meta',
   UUID = 'UUID',
 }
@@ -66,6 +68,7 @@ export const UITypesName = {
   [UITypes.SingleLineText]: 'Single line text',
   [UITypes.LongText]: 'Long text',
   RichText: 'Rich text',
+  SmartText: 'Smart Text',
   [UITypes.Attachment]: 'Attachment',
   [UITypes.Checkbox]: 'Checkbox',
   [UITypes.MultiSelect]: 'Multi select',
@@ -102,6 +105,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
   AIButton: 'AI Button',
@@ -143,6 +147,7 @@ export const UITypesSearchTerms = {
     'formatted text',
     'styled text',
     'html text',
+    'Smart text',
   ],
   [UITypes.Attachment]: ['Attachment', 'file', 'document', 'image', 'upload'],
   [UITypes.Checkbox]: ['Checkbox', 'yes/no', 'true/false', 'completed', 'done'],
@@ -264,6 +269,10 @@ export const columnTypeName = (column?: ColumnType) => {
         return UITypesName.RichText;
       }
 
+      if (parseProp(column.meta)?.smartMode) {
+        return UITypesName.SmartText;
+      }
+
       if (parseProp(column.meta)[LongTextAiMetaProp]) {
         return UITypesName.AIPrompt;
       }
@@ -330,6 +339,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
+  [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
 };
@@ -429,6 +439,18 @@ export function isOrderCol(
   );
 }
 
+export function isDeletedCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.Deleted].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
 export function isActionButtonCol(
   col: (ColumnReqType | ColumnType) & {
     colOptions?: any;
@@ -448,10 +470,19 @@ export function isHiddenCol(
   col: (ColumnReqType | ColumnType) & {
     colOptions?: any;
     system?: number | boolean;
+    title?: string;
   },
   tableMeta: Partial<TableType>
 ) {
   if (!col.system) return false;
+
+  if (
+    tableMeta?.synced &&
+    col.title &&
+    SYNC_SYSTEM_COLUMN_TITLES.includes(col.title)
+  ) {
+    return true;
+  }
 
   // hide belongs to column in mm tables only
   if (col.uidt === UITypes.LinkToAnotherRecord) {
@@ -462,7 +493,11 @@ export function isHiddenCol(
     return col.colOptions?.type === RelationTypes.HAS_MANY;
   }
 
-  if (col.uidt === UITypes.Order || col.uidt === UITypes.Meta) {
+  if (
+    col.uidt === UITypes.Order ||
+    col.uidt === UITypes.Meta ||
+    col.uidt === UITypes.Deleted
+  ) {
     return true;
   }
 
@@ -481,6 +516,15 @@ export function isLinksOrLTAR(
 
 // Alias for isLinksOrLTAR
 export const isLTARType = isLinksOrLTAR;
+
+/**
+ * True when the column is a custom-built link (created via `is_custom_link`
+ * on column creation — the framework persists this as `meta.custom = true`).
+ * Currently emitted by the sync framework when wiring synced-table relations.
+ */
+export function isCustomLink(col: ColumnType | { meta?: any }): boolean {
+  return parseProp((col as { meta?: any })?.meta)?.custom === true;
+}
 
 export function isLinkV2(
   col:
@@ -558,6 +602,45 @@ export function isBtLikeV2Junction(
       RelationTypes.BELONGS_TO,
     ].includes(opts.type as RelationTypes);
   }
+  return false;
+}
+
+/**
+ * Whether an LTAR/Links column resolves to an array of related records (`[]`
+ * when unlinked) vs a single record / null (object-shape).
+ *
+ * This is the single source of truth for the rule, used by:
+ *   - V3 record-transform `recordsV2ToV3` (decides unlinked-shape: `[]` vs `null`)
+ *   - EE BaseModel `preProcessMssqlRows` (decides LTAR bucket: array vs object)
+ *
+ * Priority order:
+ *   1. `isBtLikeV2Junction` — V2 MO / OO / BT-through-junction. These have
+ *      `colOptions.type === MANY_TO_MANY` on the wire (so `isMMOrMMLike`
+ *      would say true) but semantically return a single record. Caught first.
+ *   2. `isMMOrMMLike` — V2 (anything else) and V1 MANY_TO_MANY → array.
+ *   3. V1 HAS_MANY → array.
+ *   4. V1 MANY_TO_MANY → array.
+ *   5. V1 ONE_TO_ONE with `meta.bt` unset → OO-forward → array;
+ *      with `meta.bt` set → BT-style → object.
+ *   6. Default → object.
+ */
+export function isArrayShapeLtar(
+  col:
+    | ColumnType
+    | {
+        uidt: UITypes | string;
+        colOptions?: any;
+        type?: RelationTypes;
+        meta?: any;
+      }
+): boolean {
+  if (isBtLikeV2Junction(col)) return false;
+  if (isMMOrMMLike(col)) return true;
+  const relType = (col as any).colOptions?.type as RelationTypes | undefined;
+  if (relType === RelationTypes.HAS_MANY) return true;
+  if (relType === RelationTypes.MANY_TO_MANY) return true;
+  if (relType === RelationTypes.ONE_TO_ONE && !(col as any).meta?.bt)
+    return true;
   return false;
 }
 
@@ -684,17 +767,17 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
     case UITypes.Percent:
     case UITypes.Duration:
     case UITypes.Decimal:
+    case UITypes.AutoNumber:
     case UITypes.Formula: {
       return true;
     }
     case UITypes.LongText: {
-      if (
-        parseProp(column.meta)?.richMode ||
-        parseProp(column.meta)[LongTextAiMetaProp]
-      ) {
-        return false;
-      }
-      return true;
+      // Long Text and its variants (RichText, SmartText, AI) render poorly in
+      // the single-line surfaces that consume the display value (LTAR chips,
+      // breadcrumbs, audit lines, search). Block as a new selection. Existing
+      // PV columns of this type are honoured by the backend service and not
+      // forced off — this only gates *new* selections.
+      return false;
     }
 
     default: {
@@ -873,6 +956,7 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
     isCreatedOrLastModifiedTimeCol(column) ||
     // Check if the column is used for row ordering
     isOrderCol(column) ||
+    isDeletedCol(column) ||
     // if primary key and auto generated then treat as readonly
     (column.pk && (column.ai || parseProp(column.meta)?.ag))
   );
@@ -886,6 +970,22 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
  */
 export const isAutoNumber = (column: ColumnType): boolean =>
   column.uidt === UITypes.AutoNumber;
+
+/**
+ * Whether a column's value is produced by the DB or backend without user
+ * input — AutoNumber (PG BIGSERIAL), UUID (gen_random_uuid()), and any
+ * future auto-filled identity fields.
+ *
+ * These columns are `readonly: true` but are locally owned (not pulled
+ * from an external sync). Used to exempt them from synced-column
+ * predicates and to disable operations like duplicate/paste/clear that
+ * don't make sense for auto-generated values.
+ *
+ * To add a new auto-generated type, extend this membership list — every
+ * call site benefits automatically.
+ */
+export const isAutoGeneratedColumn = (column: ColumnType): boolean =>
+  column.uidt === UITypes.AutoNumber || column.uidt === UITypes.UUID;
 
 /**
  * Determines whether a given column type represents a Date or DateTime field.
@@ -929,7 +1029,11 @@ export const customLinkSupportedTypes: UITypes[] = [
 ];
 
 // column types that are not shown in the GUI
-export const hiddenColumnTypes: UITypes[] = [UITypes.Meta];
+export const hiddenColumnTypes: UITypes[] = [
+  UITypes.Meta,
+  UITypes.Deleted,
+  UITypes.Order,
+];
 
 // Re-export LinksVersion from globals for backward compatibility
 export { LinksVersion } from '~/lib/globals';

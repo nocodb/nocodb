@@ -8,13 +8,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { MigrateService } from 'src/modules/jobs/jobs/export-import/migrate.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
 import { Base } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { MigrateService } from '~/modules/jobs/jobs/export-import/migrate.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
@@ -52,7 +52,16 @@ export class MigrateController {
       NcError.get(context).noSourcesFound();
     }
 
-    const url = new URL(body.migrationUrl);
+    let url: URL;
+    try {
+      url = new URL(body.migrationUrl);
+    } catch {
+      NcError.get(context).badRequest('Invalid migration url');
+    }
+
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      NcError.get(context).badRequest('Invalid migration url protocol');
+    }
 
     const instanceUrl = url.origin;
 

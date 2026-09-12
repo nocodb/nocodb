@@ -4,6 +4,8 @@ import { Injectable } from '@nestjs/common';
 import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { injectBrandingMeta } from '~/helpers/brandingHtml';
+import { setFrameGuardHeaders } from '~/helpers/frameGuard';
 
 @Injectable()
 export class GuiMiddleware implements NestMiddleware {
@@ -38,23 +40,36 @@ export class GuiMiddleware implements NestMiddleware {
     }
   }
 
-  use(req: Request, res: Response, next: () => void) {
-    if (!this.staticRouter) return next();
+  async use(req: Request, res: Response, next: () => void) {
+    if (!this.staticRouter || !this.indexHtml) return next();
 
-    // Try serving a static asset (JS, CSS, images, fonts).
-    // express.static handles real files; if nothing matched, the
-    // callback below runs as the SPA fallback.
-    this.staticRouter(req, res, () => {
-      // No static file found. For browser navigation requests
-      // (Accept: text/html), serve index.html so the frontend
-      // router handles the path. No extension check needed —
-      // express.static already proved this isn't a real file.
-      if (this.indexHtml && req.headers.accept?.includes('text/html')) {
-        res.setHeader('Content-Type', 'text/html');
-        return res.send(this.indexHtml);
-      }
-      next();
-    });
+    // Set before branching: this middleware terminates the request, so
+    // GlobalMiddleware never runs for anything served here — including the shell
+    // the static branch returns for `/`, which `<object>`/`<embed>` fetch with
+    // `Accept: */*`.
+    setFrameGuardHeaders(req, res);
+
+    // Non-HTML requests (JS, CSS, images, fonts) are real static files — let
+    // express.static serve them, falling through to `next()` when nothing
+    // matched. We gate on Accept the same way the SPA fallback always has.
+    const wantsHtml = req.headers.accept?.includes('text/html');
+    if (!wantsHtml) {
+      return this.staticRouter(req, res, next);
+    }
+
+    // Browser navigation (incl. the root `/`): serve the index shell. White-
+    // label instances get their brand injected into <head> so crawlers / link
+    // unfurlers — which never run our JS — see the configured brand instead of
+    // the build-time NocoDB defaults. CE / non-white-label is a no-op passthru.
+    // Any injection error falls back to the unmodified shell.
+    let html = this.indexHtml;
+    try {
+      html = await injectBrandingMeta(html, req);
+    } catch {
+      html = this.indexHtml;
+    }
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
   }
 
   /**

@@ -1,5 +1,6 @@
 import type { Api, ButtonType, TableType } from 'nocodb-sdk'
 import type { UserObject } from 'packages/nc-gui/composables/useUserSync'
+import type { InterfacePageDataApi } from '~/lib/interfaceData'
 
 interface ActionState {
   status: 'loading' | 'success' | 'error' | 'queued'
@@ -25,6 +26,7 @@ export class ActionManager {
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
   private baseInfo: { baseId: string; workspaceId: string } | null = null
+  private interfaceDataApi: InterfacePageDataApi | undefined
   private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -76,6 +78,10 @@ export class ActionManager {
 
   setBaseInfo(baseId: string, workspaceId: string) {
     this.baseInfo = { baseId, workspaceId }
+  }
+
+  setInterfaceDataApi(interfaceDataApi: InterfacePageDataApi | undefined) {
+    this.interfaceDataApi = interfaceDataApi
   }
 
   private eventMap = {
@@ -310,8 +316,14 @@ export class ActionManager {
           const webhookId = colOptions.fk_webhook_id
           if (!webhookId) throw new Error('No webhook configured')
 
+          const triggerButtonHook = this.interfaceDataApi?.triggerButtonHook
+
           for (const rowId of rowIds) {
             await this.executeAction(rowId, column.id, [], async () => {
+              if (triggerButtonHook) {
+                return triggerButtonHook({ rowId, columnId: column.columnObj.id! })
+              }
+
               if (!this.baseInfo) {
                 throw new Error('Base information not available. Call setBaseInfo() first.')
               }
@@ -332,6 +344,8 @@ export class ActionManager {
         }
 
         case 'script': {
+          if (this.interfaceDataApi) return
+
           const script = await this.loadScript(colOptions.fk_script_id)
 
           for (let i = 0; i < rowIds.length; i++) {

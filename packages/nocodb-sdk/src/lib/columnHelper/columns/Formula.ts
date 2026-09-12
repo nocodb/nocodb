@@ -3,8 +3,10 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { parseProp } from '~/lib/helperFunctions';
 import { ColumnHelper } from '../column-helper';
+import { getEffectiveDisplayColumn } from '../utils/get-effective-display-column';
 import { ComputedTypePasteError } from '~/lib/error';
 import { FormulaDataTypes } from '~/lib/formula/enums';
+import { isFormulaNonFiniteValue } from '~/lib/formula/non-finite';
 import { ncIsNaN } from '~/lib/is';
 
 export class FormulaHelper extends AbstractColumnHelper {
@@ -43,11 +45,7 @@ export class FormulaHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
-    const columnMeta = parseProp(params.col?.meta);
-    const childColumn = {
-      uidt: columnMeta.display_type,
-      ...columnMeta.display_column_meta,
-    };
+    const childColumn = getEffectiveDisplayColumn(parseProp(params.col?.meta));
 
     return ColumnHelper.parseValue(value, {
       ...params,
@@ -59,6 +57,10 @@ export class FormulaHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    // pg IEEE error values arrive as strings in a NUMERIC formula column; the
+    // display column's parser would mangle them. Governs CSV export too.
+    if (isFormulaNonFiniteValue(value)) return value;
+
     return this.parseValue(value, params) ?? '';
   }
 }

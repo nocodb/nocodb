@@ -1,15 +1,8 @@
-import rfdc from 'rfdc'
+import { getI18n } from '~/plugins/a.i18n'
 
-const deepClone = rfdc()
 const FEATURES = [
-  {
-    id: 'sandbox',
-    title: 'Sandbox',
-    description: 'Allow users to create sandbox environments for testing schema changes before merging.',
-    enabled: false,
-    isEngineering: true,
-    isAdvanced: true,
-  },
+  // Commented-out entries are retired from the experimental-features UI but
+  // kept for revival; isFeatureEnabled resolves them via RETIRED_FEATURES below.
   {
     id: 'managed_apps',
     title: 'Managed Apps',
@@ -50,8 +43,20 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'workflow_email_ai',
+    title: 'AI email composing',
+    description: 'Draft and rewrite the body of a workflow send-email node with AI.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isAdvanced: true,
+    isEE: true,
+  },
+  {
     id: 'integrations',
-    title: 'Integrations',
+    get title() {
+      return getI18n().global.t('general.integrations')
+    },
     description: 'Enable dynamic integrations.',
     enabled: true,
     version: 2,
@@ -69,36 +74,35 @@ const FEATURES = [
   {
     id: 'sync_beta_feature',
     title: 'Advanced Sync Features',
-    description: 'Enable sync beta features like custom sync, multi source sync, etc.',
+    description: 'Enable sync beta features like multi source sync, etc.',
     enabled: false,
     version: 1,
     isEngineering: true,
     isEE: true,
   },
-  {
-    id: 'form_support_column_scanning',
-    title: 'Scanner for filling data in forms',
-    description: 'Enable scanner to fill data in forms.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-  },
-  {
-    id: 'extensions',
-    title: 'Extensions beta features',
-    description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
-    enabled: ncIsPlaywright(),
-    version: 4,
-    isEngineering: true,
-  },
-  {
-    id: 'attachment_carousel_comments',
-    title: 'Comments in attachment carousel',
-    description: 'Enable comments in attachment carousel.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-  },
+  // {
+  //   id: 'form_support_column_scanning',
+  //   title: 'Scanner for filling data in forms',
+  //   description: 'Enable scanner to fill data in forms.',
+  //   enabled: false,
+  //   version: 1,
+  //   isEngineering: true,
+  // },
+  // {
+  //   id: 'extensions',
+  //   title: 'Extensions beta features',
+  //   description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
+  //   enabled: ncIsPlaywright(),
+  //   version: 4,
+  //   isEngineering: true,
+  // },
+  // {
+  //   id: 'attachment_carousel_comments',
+  //   title: 'Comments in attachment carousel',
+  //   description: 'Enable comments in attachment carousel.',
+  //   enabled: true,
+  //   version: 2,
+  // },
   {
     id: 'cross_base_link',
     title: 'Cross Base Link',
@@ -106,6 +110,9 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEE: true,
+    // Licensed-only: hidden on self-hosted free (CE / unlicensed on-prem),
+    // available on licensed on-prem and cloud.
+    isLicensed: true,
   },
   {
     id: 'custom_link',
@@ -113,57 +120,64 @@ const FEATURES = [
     description: 'Allows user to create custom links using existing fields.',
     enabled: false,
     version: 1,
-    isEE: true,
-  },
-  {
-    id: 'view_actions',
-    title: 'View Actions',
-    description: 'Execute scripts and webhooks to all records in a view.',
-    enabled: false,
-    version: 1,
     isEngineering: true,
     isEE: true,
+    // Licensed-only: hidden on self-hosted free (CE / unlicensed on-prem),
+    // available on licensed on-prem and cloud.
+    isLicensed: true,
   },
+  // {
+  //   id: 'view_actions',
+  //   title: 'View Actions',
+  //   description: 'Execute scripts and webhooks to all records in a view.',
+  //   enabled: false,
+  //   version: 1,
+  //   isEngineering: true,
+  //   isEE: true,
+  // },
+  // {
+  //   id: 'show_everyones_personal_views',
+  //   title: "Show Everyone's Personal Views",
+  //   description: 'With this feature we can avoid showing other users personal views in left sidebar',
+  //   enabled: false,
+  //   version: 1,
+  //   isEngineering: true,
+  //   isEE: true,
+  // },
+  // {
+  //   id: 'templates',
+  //   get title() {
+  //     return getI18n().global.t('general.templates')
+  //   },
+  //   description: 'Enable templates feature to browse and use templates.',
+  //   enabled: true,
+  //   version: 3,
+  //   isEE: true,
+  //   isOnPrem: false,
+  // },
+  // {
+  //   id: 'ai_fill_handle',
+  //   title: 'AI Fill Handle',
+  //   description: 'Use AI to fill data in cells based on existing data patterns.',
+  //   enabled: false,
+  //   version: 1,
+  //   isEngineering: true,
+  //   isEE: true,
+  // },
+  // {
+  //   id: 'gauge_widget',
+  //   title: 'Gauge Widget',
+  //   description: 'A visual indicator that displays real-time values, limits, and performance levels at a glance.',
+  //   isEngineering: true,
+  //   enabled: false,
+  //   version: 1,
+  // },
   {
-    id: 'show_everyones_personal_views',
-    title: "Show Everyone's Personal Views",
-    description: 'With this feature we can avoid showing other users personal views in left sidebar',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
-    id: 'templates',
-    title: 'Templates',
-    description: 'Enable templates feature to browse and use templates.',
+    id: 'hide_chat_suggestions',
+    title: 'Hide chat suggestions',
+    description:
+      'Hide the suggestion prompts on the empty chat screen (follow-ups are unaffected). No suggestion API calls are made while hidden.',
     enabled: true,
-    version: 3,
-    isEngineering: false,
-    isEE: true,
-    isOnPrem: false,
-  },
-  {
-    id: 'gauge_widget',
-    title: 'Gauge Widget',
-    description: 'A visual indicator that displays real-time values, limits, and performance levels at a glance.',
-    isEngineering: true,
-    enabled: false,
-    version: 1,
-  },
-  {
-    id: 'kanban_opt',
-    title: 'Optimized Kanban View',
-    description: 'Optimized Kanban view with optimised API for better performance.',
-    enabled: false,
-    version: 3,
-    isEE: true,
-  },
-  {
-    id: 'ai_fill_handle',
-    title: 'AI Fill Handle',
-    description: 'Use AI to fill data in cells based on existing data patterns.',
-    enabled: false,
     version: 1,
     isEngineering: true,
     isEE: true,
@@ -178,6 +192,17 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'agents',
+    get title() {
+      return getI18n().global.t('general.agents')
+    },
+    description: 'Enable the Agents section in the sidebar.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'presence_visibility_toggle',
     title: 'Presence Visibility Toggle',
     description: 'Allow users to hide their own presence from other collaborators.',
@@ -186,15 +211,92 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'presence_follow',
+    title: 'Follow Collaborator',
+    description: 'Follow a collaborator: track them across views and keep their cursor scrolled into view in the grid.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  // {
+  //   id: 'expanded_record_panel',
+  //   title: 'Expanded record side panel',
+  //   description: 'Open expanded records in a resizable side panel beside the grid instead of a centered modal.',
+  //   enabled: false,
+  //   version: 3,
+  //   isEngineering: true,
+  // },
+  {
+    id: 'credit_usage_overview',
+    title: 'Credit usage overview',
+    description: 'Show the credit usage chart and activity list on the billing page.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  // {
+  //   id: 'minimal_base_sections',
+  //   title: 'Minimal folder style',
+  //   description: 'Render sidebar folders as plain text headers — no icon, no member indentation.',
+  //   enabled: false,
+  //   version: 1,
+  //   isEE: true,
+  // },
+  {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'theme_settings',
+    title: 'Theme settings',
+    description: 'Pick a dark mode palette from the theme settings drawer in the user menu.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+  },
+  {
+    id: 'product_tours_menu',
+    title: 'Product tours menu',
+    description: 'Show the Product Tours entry in the account menu, for replaying onboarding and feature tours.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
-export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
-  Uppercase<(typeof FEATURES)[number]['id']>,
-  (typeof FEATURES)[number]['id']
->
+// Retired flags: FEATURES entries commented out above, but kept in FEATURE_FLAG
+// so dormant consumer code still compiles — isFeatureEnabled resolves them to
+// the fixed state below. Revive one by uncommenting its entry and removing it here.
+const RETIRED_FEATURES = {
+  extensions: ncIsPlaywright(), // e2e builds keep beta extensions available
+  form_support_column_scanning: false,
+  view_actions: false,
+  show_everyones_personal_views: false,
+  ai_fill_handle: false,
+  gauge_widget: false,
+  expanded_record_panel: false,
+  minimal_base_sections: false,
+}
+
+export type RetiredFeatureId = keyof typeof RETIRED_FEATURES
+
+export const FEATURE_FLAG = {
+  ...(Object.fromEntries(Object.keys(RETIRED_FEATURES).map((id) => [id.toUpperCase(), id])) as Record<
+    Uppercase<RetiredFeatureId>,
+    RetiredFeatureId
+  >),
+  ...(Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
+    Uppercase<(typeof FEATURES)[number]['id']>,
+    (typeof FEATURES)[number]['id']
+  >),
+}
 
 export type BetaFeatureId = (typeof FEATURES)[number]['id']
 export type BetaFeatureType = (typeof FEATURES)[number]
+
+const RETIRED_FEATURE_STATES: Partial<Record<BetaFeatureId | RetiredFeatureId, boolean>> = RETIRED_FEATURES
 
 const STORAGE_KEY = 'featureToggleStates'
 
@@ -205,7 +307,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     features.value.reduce((acc, f) => {
       acc[f.id] = f
       return acc
-    }, {} as Record<BetaFeatureId, BetaFeatureType>),
+    }, {} as Partial<Record<BetaFeatureId | RetiredFeatureId, BetaFeatureType>>),
   )
 
   const { appInfo } = useGlobal()
@@ -218,7 +320,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
       acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled && isCloudFeatureEnabled
       return acc
-    }, {} as Record<BetaFeatureId, boolean>)
+    }, {} as Partial<Record<BetaFeatureId | RetiredFeatureId, boolean>>)
   })
 
   const { $e } = useNuxtApp()
@@ -260,17 +362,24 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     }
   }
 
-  const isFeatureEnabled = (id: BetaFeatureId) => {
+  const isFeatureEnabled = (id: BetaFeatureId | RetiredFeatureId) => {
     // useEeConfig is called inside this function (not at the top level of the composable), to avoid a recursive call
-    const { showEEFeatures } = useEeConfig()
+    const { showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
     const feature = featureMap.value[id]
 
-    if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+    if (feature && 'isEE' in feature && feature.isEE && !showEEFeatures.value) {
       return false
     }
 
-    return featureStates.value[id] ?? false
+    // Licensed-only features are unavailable on self-hosted free (CE / unlicensed
+    // on-prem). `isEEFeatureBlocked` is true exactly there; false on licensed
+    // on-prem and cloud.
+    if (feature && 'isLicensed' in feature && feature.isLicensed && isEEFeatureBlocked.value) {
+      return false
+    }
+
+    return featureStates.value[id] ?? RETIRED_FEATURE_STATES[id] ?? false
   }
 
   const initializeFeatures = () => {

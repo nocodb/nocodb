@@ -31,7 +31,6 @@ export const LtarCellRenderer: CellRenderer = {
 
     if (colOption?.fk_related_base_id && colOption.fk_related_base_id !== colOption.base_id) {
       const relatedBaseId = colOption?.fk_related_base_id
-      const { isUIAllowed } = useRoles()
       const baseRoles = props.baseRoles?.[relatedBaseId]
 
       // Load related table meta if not present
@@ -41,9 +40,12 @@ export const LtarCellRenderer: CellRenderer = {
         props.baseRoleLoader.loadBaseRole(relatedBaseId)
         return
       }
+      // isUIAllowed is bound at the grid's setup and threaded through props —
+      // calling useRoles() here (inside a raw click handler) runs outside any
+      // component setup, where its inject()s resolve to undefined and it throws.
       props = {
         ...props,
-        readonly: props.readonly || !isUIAllowed('dataEdit', baseRoles),
+        readonly: props.readonly || !props.isUIAllowed?.('dataEdit', { roles: baseRoles }),
       }
     }
 

@@ -58,6 +58,7 @@ export interface ILinkToAnotherRecordColumn extends LinkToAnotherRecordType {
   fk_mm_source_id?: string;
 
   fk_target_view_id?: string | null;
+  fk_display_value_column_id?: string | null;
 
   dr?: string;
   ur?: string;

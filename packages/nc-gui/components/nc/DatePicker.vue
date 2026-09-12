@@ -11,6 +11,7 @@ interface Props {
   showCurrentDateOption?: boolean | 'disabled'
   isMondayFirst?: boolean
   timezone?: string
+  isJalali?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
@@ -20,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'date',
   isOpen: false,
   isMondayFirst: true,
+  isJalali: false,
 })
 
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'currentDate'])
@@ -104,15 +106,17 @@ const localStateSelectedDate = computed({
     }
 
     if (['date', 'month'].includes(type.value)) {
+      const anchor = dayjsTz(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjsTz())
+
       if (pickerType.value === 'year') {
-        localSelectedDate.value = dayjsTz(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjsTz()).year(
-          +value.format('YYYY'),
-        )
+        localSelectedDate.value = props.isJalali
+          ? jalaliSet(anchor, { jy: jalaliPartsOf(value).jy })
+          : anchor.year(+value.format('YYYY'))
       }
       if (type.value !== 'month' && pickerType.value === 'month') {
-        localSelectedDate.value = dayjsTz(
-          localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjsTz(),
-        ).month(+value.format('MM') - 1)
+        localSelectedDate.value = props.isJalali
+          ? jalaliSet(anchor, { jm: jalaliPartsOf(value).jm })
+          : anchor.month(+value.format('MM') - 1)
       }
 
       localPageDate.value = localSelectedDate.value
@@ -151,6 +155,7 @@ onMounted(() => {
     v-model:selected-date="localStateSelectedDate"
     :picker-type="pickerType"
     :is-monday-first="props.isMondayFirst"
+    :is-jalali="props.isJalali"
     is-cell-input-field
     size="medium"
     :show-current-date-option="showCurrentDateOption"
@@ -163,6 +168,7 @@ onMounted(() => {
     v-model:selected-date="localStateSelectedDate"
     :picker-type="pickerType"
     :is-year-picker="tempPickerType === 'year'"
+    :is-jalali="props.isJalali"
     is-cell-input-field
     size="medium"
     :show-current-date-option="showCurrentDateOption"

@@ -1,4 +1,4 @@
-import UITypes from '~/lib/UITypes';
+import UITypes, { isArrayShapeLtar } from '~/lib/UITypes';
 import type { ColumnType } from '~/lib/Api';
 
 const DEFAULT_MAX_DEPTH = 3;
@@ -18,6 +18,7 @@ export type RecordColumnMeta = Pick<
   | 'system'
   | 'order'
   | 'meta'
+  | 'colOptions'
 >;
 
 /**
@@ -230,8 +231,7 @@ export function recordV2ToV3(
             depth: depth + 1,
           });
         } else if (value == null) {
-          // Unlinked BT / OO — preserve null
-          transformedFields[key] = null;
+          transformedFields[key] = isArrayShapeLtar(column) ? [] : null;
         }
 
         // Skip LTAR fields with missing related meta — don't pass raw nested data

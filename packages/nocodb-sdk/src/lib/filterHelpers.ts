@@ -66,7 +66,10 @@ export function extractFilterFromXwhere(
 ): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (context.api_version === NcApiVersion.V3) {
     return parserExtract(context, {
-      str,
+      // Strip leading '@' — it's a v1/v2 escape prefix to opt into the new
+      // parser and has no meaning in the V3 context where the new parser is
+      // always used. Passing it through causes a CST parse error.
+      str: typeof str === 'string' && str.startsWith('@') ? str.substring(1) : str,
       aliasColObjMap,
       throwErrorIfInvalid,
       errors,

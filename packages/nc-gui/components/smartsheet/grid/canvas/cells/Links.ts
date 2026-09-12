@@ -17,6 +17,7 @@ export const LinksCellRenderer: CellRenderer = {
       setCursor,
       selected,
       getColor,
+      isSimpleLinkRecordList,
     } = props
 
     const parsedValue = +value || 0
@@ -60,13 +61,17 @@ export const LinksCellRenderer: CellRenderer = {
         setCursor('pointer')
       }
 
-      if (selected && !readonly) {
+      // Simple link picker (interface inline edit) reads as a select — a chevron on
+      // hover/selection, in readonly too (there it opens the linked-records browse,
+      // like the classic expand button)
+      const isCellHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+      if (isSimpleLinkRecordList ? selected || isCellHovered : selected && !readonly) {
         spriteLoader.renderIcon(ctx, {
-          icon: 'ncPlus',
+          icon: isSimpleLinkRecordList ? 'chevronDown' : 'ncPlus',
           x: x + width - 16 - padding,
           y: y + 7,
           size: 16,
-          color: getColor(themeV4Colors.gray['700']),
+          color: getColor(themeV4Colors.gray[isSimpleLinkRecordList ? '500' : '700']),
         })
 
         if (isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {

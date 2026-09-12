@@ -398,7 +398,7 @@ onKeyStroke('Escape', () => {
                               size="xxsmall"
                               @click.stop="isBasesOptionsOpen[source!.id!] = !isBasesOptionsOpen[source!.id!]"
                             >
-                              <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+                              <GeneralIcon icon="threeDotHorizontal" class="w-4 h-4" />
                             </NcButton>
                             <template #overlay>
                               <NcMenu

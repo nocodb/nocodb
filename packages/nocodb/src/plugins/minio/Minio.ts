@@ -2,9 +2,11 @@ import fs from 'fs';
 import { Readable } from 'stream';
 import { Client as MinioClient } from 'minio';
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { NcError } from '~/helpers/ncError';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 interface MinioObjectStorageInput {
   bucket: string;
@@ -177,9 +179,9 @@ export default class Minio implements IStorageAdapterV2 {
   ): Promise<any> {
     try {
       const response = await axios.get(url, {
-        httpAgent: useAgent(url),
-        httpsAgent: useAgent(url),
+        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
         responseType: buffer ? 'arraybuffer' : 'stream',
+        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       });
 
       const uploadParams = {
@@ -187,7 +189,7 @@ export default class Minio implements IStorageAdapterV2 {
         Key: key,
         Body: response.data,
         metaData: {
-          ContentType: response.headers['content-type'],
+          ContentType: response.headers['content-type'] as string,
         },
       };
 
@@ -257,9 +259,41 @@ export default class Minio implements IStorageAdapterV2 {
     }
   }
 
-  // TODO - implement
-  fileReadByStream(_key: string): Promise<Readable> {
-    return Promise.resolve(undefined);
+  public async fileReadByStream(
+    key: string,
+    options?: { encoding?: string; start?: number; end?: number },
+  ): Promise<Readable> {
+    try {
+      if (options?.start === undefined) {
+        return await this.minioClient.getObject(this.input.bucket, key);
+      }
+
+      // `end` is inclusive here, as it is for a Range header; minio takes a
+      // length, and treats 0 as "to the end of the object".
+      const length =
+        options.end === undefined ? 0 : options.end - options.start + 1;
+
+      return await this.minioClient.getPartialObject(
+        this.input.bucket,
+        key,
+        options.start,
+        length,
+      );
+    } catch (e) {
+      NcError._.storageFileStreamError(e.message);
+    }
+  }
+
+  public async fileSize(key: string): Promise<number> {
+    try {
+      const { size } = await this.minioClient.statObject(
+        this.input.bucket,
+        key,
+      );
+      return size;
+    } catch (e) {
+      NcError._.storageFileReadError(e.message);
+    }
   }
 
   // TODO - implement

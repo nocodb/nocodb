@@ -42,6 +42,7 @@ export class BasesController {
     const bases = await this.projectsService.baseList(context, {
       user: req.user,
       query: queryParams,
+      req,
     });
     return new PagedResponseImpl(bases as BaseType[], {
       count: bases.length,
@@ -76,9 +77,8 @@ export class BasesController {
       includeConfig: false,
     });
 
-    this.projectsService.sanitizeProject(base);
-
-    return base;
+    // Returns a copy — the original still carries the password.
+    return this.projectsService.sanitizeProject(base);
   }
 
   @Acl('baseUpdate')

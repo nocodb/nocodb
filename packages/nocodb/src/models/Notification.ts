@@ -1,4 +1,4 @@
-import type { AppEvents } from 'nocodb-sdk';
+import type { NotificationKind } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -12,7 +12,7 @@ export default class Notification {
   fk_user_id?: string;
   created_at?: string | Date;
   updated_at?: string | Date;
-  type?: AppEvents;
+  type?: NotificationKind;
 
   constructor(notification: Partial<Notification>) {
     Object.assign(this, notification);

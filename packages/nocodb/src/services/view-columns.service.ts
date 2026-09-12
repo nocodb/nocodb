@@ -26,7 +26,13 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { CalendarViewColumn, Column, View } from '~/models';
+import {
+  CalendarViewColumn,
+  Column,
+  GanttViewColumn,
+  TimelineViewColumn,
+  View,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
@@ -35,7 +41,7 @@ import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 @Injectable()
 export class ViewColumnsService {
   private logger = new Logger(ViewColumnsService.name);
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(protected appHooksService: AppHooksService) {}
 
   async columnList(
     context: NcContext,
@@ -60,7 +66,7 @@ export class ViewColumnsService {
       param.column,
     );
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
@@ -131,7 +137,7 @@ export class ViewColumnsService {
       param.column,
     );
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
@@ -255,27 +261,30 @@ export class ViewColumnsService {
 
     const view = await View.get(context, viewId);
 
-    const updateOrInsertOptions: Promise<any>[] = [];
-
-    let result: any;
-    const ncMeta = await Noco.ncMeta.startTransaction();
-
     if (!view) {
       NcError.get(context).viewNotFound('View not found');
     }
 
+    // Build the webhook manager before opening the transaction — its async
+    // builder chain can throw on transient DB errors, which would otherwise
+    // leak an open trx between startTransaction and the try block.
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
       viewWebhookManager =
         param.viewWebhookManager ??
         (
           await (
-            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            await new ViewWebhookManagerBuilder(context).withModelId(
               view.fk_model_id,
             )
           ).withViewId(view.id)
         ).forUpdate();
     }
+
+    const updateOrInsertOptions: Promise<any>[] = [];
+
+    let result: any;
+    const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
       const table = View.extractViewColumnsTableName(view);
@@ -442,6 +451,55 @@ export class ViewColumnsService {
                   context,
                   {
                     ...(column as CalendarColumnReqType),
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                  },
+                  ncMeta,
+                ),
+              );
+            }
+            break;
+          case ViewTypes.TIMELINE:
+            // Timeline shares the Calendar-style column model (show/order +
+            // bold/italic/underline). Bulk import via columnsUpdate needs
+            // to reach the right column row; without this case, B/I/U +
+            // visibility silently get dropped on table duplicate.
+            if (existingCol) {
+              updateOrInsertOptions.push(
+                TimelineViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                ),
+              );
+            } else {
+              updateOrInsertOptions.push(
+                TimelineViewColumn.insert(
+                  context,
+                  {
+                    ...(column as any),
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                  },
+                  ncMeta,
+                ),
+              );
+            }
+            break;
+          case ViewTypes.GANTT:
+            // Gantt mirrors Timeline — same column model shape. Same
+            // motivation: keep duplicate carrying B/I/U + visibility.
+            if (existingCol) {
+              updateOrInsertOptions.push(
+                GanttViewColumn.update(context, existingCol.id, column, ncMeta),
+              );
+            } else {
+              updateOrInsertOptions.push(
+                GanttViewColumn.insert(
+                  context,
+                  {
+                    ...(column as any),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
                   },

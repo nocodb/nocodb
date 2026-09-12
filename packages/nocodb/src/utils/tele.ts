@@ -6,6 +6,7 @@ import isDocker from 'is-docker';
 import { packageVersion } from '~/utils/packageVersion';
 import TeleBatchProcessor from '~/utils/TeleBatchProcessor';
 import { getRedisURL } from '~/helpers/redisHelpers';
+import { ncSiteUrl } from '~/utils/envs';
 
 const isDisabled = !!process.env.NC_DISABLE_TELE;
 const cache = !!getRedisURL();
@@ -298,11 +299,11 @@ async function waitForMachineId(teleData) {
 }
 
 // this is to keep the server alive
-if (process.env.NC_PUBLIC_URL) {
+if (ncSiteUrl) {
   setInterval(() => {
     axios({
       method: 'get',
-      url: process.env.NC_PUBLIC_URL,
+      url: ncSiteUrl,
     })
       .then(() => {})
       .catch(() => {});

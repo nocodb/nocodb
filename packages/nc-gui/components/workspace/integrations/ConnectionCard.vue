@@ -42,10 +42,16 @@ const formattedDate = computed(() => {
   return dayjs(props.integration.created_at).local().format('DD MMM YYYY')
 })
 
+// Base mode hides Edit from non-creators, but the card body opened the same form
+// anyway — and the save then failed on the backend's creator-only check.
+const canOpenEdit = computed(() => {
+  if (!props.canEdit) return false
+
+  return isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) || props.integration.sub_type !== SyncDataType.NOCODB
+})
+
 const handleCardClick = () => {
-  if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && props.integration.sub_type === SyncDataType.NOCODB) {
-    return
-  }
+  if (!canOpenEdit.value) return
 
   emits('edit', props.integration)
 }
@@ -55,6 +61,7 @@ const handleCardClick = () => {
   <div
     v-e="['c:integration:connection-card:click']"
     class="nc-connection-card"
+    :class="{ 'nc-connection-card-static': !canOpenEdit }"
     data-testid="nc-connection-card"
     @click="handleCardClick"
   >
@@ -112,10 +119,17 @@ const handleCardClick = () => {
 .nc-connection-card {
   @apply flex items-center justify-between gap-3 border-1 border-nc-border-gray-medium rounded-xl p-3 cursor-pointer transition-all duration-200;
 
-  &:hover {
+  // Scoped to interactive cards: a static card must not lift on hover, or it
+  // still reads as clickable. The `.nc-connection-card-actions` reveal below
+  // stays unscoped — a static card can still carry an unlink-only menu.
+  &:not(.nc-connection-card-static):hover {
     @apply bg-nc-bg-gray-extralight;
 
     box-shadow: 0px 4px 8px -2px rgba(var(--rgb-base), 0.08), 0px 2px 4px -2px rgba(var(--rgb-base), 0.04);
+  }
+
+  &.nc-connection-card-static {
+    @apply cursor-default;
   }
 
   .nc-connection-card-icon {

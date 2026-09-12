@@ -69,6 +69,8 @@ const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.val
 const showClicableLink = computed(() => {
   return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && validPhoneNumber.value
 })
+
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 </script>
 
 <template>
@@ -83,6 +85,7 @@ const showClicableLink = computed(() => {
     }"
     :disabled="readOnly"
     inputmode="tel"
+    :autocomplete="formFieldAutocomplete"
     @blur="onBlur"
     @focus="isFocused = true"
     @keydown.down.stop

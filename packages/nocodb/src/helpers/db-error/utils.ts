@@ -1,5 +1,19 @@
 import { NcBaseErrorv2, NcErrorType } from 'nocodb-sdk';
 
+/**
+ * How noisy an extracted DB error should be. Mapping quality and
+ * observability are independent: a unique-constraint violation is mapped and
+ * uninteresting, while pool exhaustion is mapped and very interesting.
+ */
+export enum DBErrorKind {
+  /** Caused by user input. Mapped message, no log, no Sentry. */
+  EXPECTED = 'EXPECTED',
+  /** Connection / timeout / capacity. Logged for operators, but not paged on. */
+  INFRA = 'INFRA',
+  /** No dialect matched — likely a bug rather than a DB error. Logged + Sentry. */
+  UNKNOWN = 'UNKNOWN',
+}
+
 export type DBErrorExtractResult =
   | {
       message: string;
@@ -7,6 +21,8 @@ export type DBErrorExtractResult =
       details?: any;
       code?: string;
       httpStatus: number;
+      /** Defaults to EXPECTED when a dialect extractor doesn't say otherwise. */
+      kind?: DBErrorKind;
     }
   | undefined;
 export interface IClientDbErrorExtractor {
@@ -93,15 +109,119 @@ export function isTransientError(error: any): boolean {
     // SQLite errors
     if (['SQLITE_BUSY', 'SQLITE_LOCKED'].includes(code)) return true;
 
+    // MSSQL / tedious driver-level transport errors. `EREQUEST` is
+    // omitted intentionally — it wraps server errors that include
+    // permanent ones (e.g. constraint violations) where retry is wrong.
+    if (
+      ['ETIMEOUT', 'ESOCKET', 'EABORT', 'ECANCEL', 'EINVALIDSTATE'].includes(
+        code,
+      )
+    ) {
+      return true;
+    }
+
     // File system errors (relevant for SQLite and file-based operations)
     if (['EACCES', 'EROFS', 'ENOSPC'].includes(code)) return true;
+
+    // Oracle — node-oracledb driver-level connection failures (NJS-xxx,
+    // raised before any SQL runs). NJS-518 (service not registered) is
+    // included: it fires while the DB/PDB is starting up or restarting.
+    if (
+      [
+        'NJS-500', // connection pool closed
+        'NJS-501', // connection to host terminated
+        'NJS-503', // connection could not be established (ECONNREFUSED)
+        'NJS-510', // connection establishment timed out
+        'NJS-511', // connection to listener refused
+        'NJS-518', // service is not registered with the listener
+        'NJS-521', // connection closed by host
+      ].includes(code)
+    ) {
+      return true;
+    }
+
+    // Oracle server-side transient errors — connection/instance
+    // availability, session limits, and lock/deadlock contention.
+    const oraNum = code.match(/^ORA-(\d+)$/)
+      ? Number(code.slice(4))
+      : undefined;
+    if (oraNum !== undefined) {
+      const oracleTransientNums = new Set([
+        18, // maximum number of sessions exceeded
+        28, // your session has been killed
+        54, // resource busy and acquire with NOWAIT specified
+        60, // deadlock detected while waiting for resource
+        1033, // ORACLE initialization or shutdown in progress
+        1034, // ORACLE not available
+        2049, // distributed lock timeout
+        3113, // end-of-file on communication channel
+        3114, // not connected to ORACLE
+        4021, // timeout occurred while waiting to lock object
+        30006, // resource busy; acquire with WAIT timeout expired
+        12170, // TNS: connect timeout occurred
+        12514, // listener does not currently know of service
+        12537, // TNS: connection closed
+        12541, // TNS: no listener
+      ]);
+      if (oracleTransientNums.has(oraNum)) return true;
+    }
+  }
+
+  // node-oracledb marks errors where a retry on a fresh connection may
+  // succeed (instance failover, killed session) with `isRecoverable`.
+  if (error?.isRecoverable === true) return true;
+
+  // MSSQL server-side transient error numbers — deadlock / lock timeout,
+  // snapshot-isolation conflicts, DB-in-transition, and the Azure SQL
+  // "service busy / session killed" family.
+  if (typeof error?.number === 'number') {
+    const mssqlTransientNumbers = new Set([
+      952, // Database is in transition
+      1205, // Transaction was deadlocked
+      1222, // Lock request time-out exceeded
+      3960, // Snapshot isolation transaction aborted (serialization conflict)
+      40197, // Service has encountered an error processing your request
+      40501, // Service is currently busy
+      40613, // Database is unavailable (Azure SQL)
+      49918, // Cannot process request — too many operations in progress
+      49919, // Cannot process create or update request
+      49920, // Cannot process request — too many operations
+    ]);
+    if (mssqlTransientNumbers.has(error.number)) return true;
   }
 
   // 4. Check error message for specific connection-related patterns
   // Note: Using specific phrases to minimize false positives
   // Handle both error objects with .message property and plain strings
-  const errorMessage = (
-    typeof error === 'string' ? error : error?.message || ''
+  // Drivers quote user data and identifiers back in the message (`invalid input
+  // syntax for type numeric: "ECONNREFUSED"`, `ORA-00904: "ETIMEDOUT": invalid
+  // identifier`). A token inside those quotes is a value the query touched, not
+  // the driver's own code, so a real formula error would read as infra — and a
+  // wrongly-transient error is never persisted, leaving the column showing ERR
+  // with no diagnostic. Strip quoted spans before matching; no transient
+  // pattern below quotes anything.
+  //
+  // All three quote styles: Postgres quotes *identifiers* with double quotes
+  // but *values* with single quotes (`invalid input value for enum foo: 'x'`),
+  // and MySQL quotes identifiers with backticks (``Unknown column
+  // 'ECONNREFUSED' in `ETIMEDOUT` ``), so covering only one leaves a
+  // code-shaped cell value or column name exposed.
+  //
+  // A prose apostrophe (`can't`, `the server's pool`) is indistinguishable from
+  // an opening quote to a left-to-right scan, so two of them would delete the
+  // text between — including the transient phrase we are looking for. Drop
+  // those first. Heuristic, not an invariant: a letter-adjacent apostrophe is
+  // rarely a quote delimiter, but it can be (MSSQL's `'Employee's Name'`),
+  // and dropping one shifts how the remaining quotes pair. Real driver
+  // messages all classify correctly; the exact fix is the schema-backed
+  // classification planned as a follow-up.
+  const stripQuoted = (text: string) =>
+    text
+      .replace(/(\p{L})'(\p{L})/gu, '$1$2')
+      .replace(/"[^"]*"|'[^']*'|`[^`]*`/g, '""');
+
+  const errorMessage = stripQuoted(
+    typeof error === 'string' ? error : error?.message || '',
   ).toLowerCase();
 
   // Only check messages with reasonable length to avoid matching generic errors
@@ -122,6 +242,16 @@ export function isTransientError(error: any): boolean {
       'lost connection',
       'connection was killed',
       'timeout acquiring a connection', // Knex connection pool timeout
+      // Managed-Postgres control planes / poolers reject the connection before
+      // any SQL runs and report it as a bare message with no driver code or
+      // SQLSTATE, so the checks above can't catch them.
+      'control plane request failed',
+      'connection terminated',
+      'server closed the connection',
+      'terminating connection due to',
+      'database system is starting up',
+      'database system is shutting down',
+      'too many clients already',
     ];
 
     if (specificPatterns.some((pattern) => errorMessage.includes(pattern))) {
@@ -129,5 +259,62 @@ export function isTransientError(error: any): boolean {
     }
   }
 
+  // 5. Driver codes embedded in the message text. Drivers prefix the code
+  // (`connect ECONNREFUSED 10.0.0.5:5432`, `ORA-12541: TNS:no listener`), and
+  // some callers only keep the message — a persisted column error, a
+  // serialized error forwarded by the sql-executor — so the `error.code`
+  // checks above have nothing to match on. Anchored to avoid matching a code
+  // name that merely appears inside a table or column name.
+  if (
+    /(^|[^A-Z0-9_])(ECONNREFUSED|ETIMEDOUT|ECONNRESET|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|ECONNABORTED|EHOSTDOWN|EAI_AGAIN|SQLITE_BUSY|SQLITE_LOCKED|ER_LOCK_WAIT_TIMEOUT|ER_CON_COUNT_ERROR|ER_TOO_MANY_USER_CONNECTIONS|NJS-(?:500|501|503|510|511|518|521)|ORA-0*(?:1033|1034|3113|3114|12170|12514|12537|12541))([^A-Z0-9_]|$)/i.test(
+      stripQuoted(typeof error === 'string' ? error : error?.message ?? ''),
+    )
+  ) {
+    return true;
+  }
+
   return false;
+}
+
+// The messages `NcError._.externalError` / `externalTimeOut` raise for a failed
+// external query, as they are persisted on a formula column. Matched on text
+// because that is all a stored error keeps.
+const EXTERNAL_SOURCE_MESSAGES = [
+  /error running query on external source/i,
+  /external source is not reachable/i,
+  /external source taking long to respond/i,
+  /response from the external source is too large/i,
+];
+
+/**
+ * True when the read failed at the external source rather than in a formula.
+ *
+ * The read path retries a failed read with `validateFormula` on to find out
+ * *which* formula is broken. When the source itself is the thing that failed,
+ * that retry can learn nothing: it dry-runs every formula against the same
+ * failing source, one query and one logged stack per formula per record. On a
+ * base whose source is down that turns a single read into an unbounded fan-out
+ * — the amplifier behind the 2026-09-08 pod OOMs.
+ *
+ * `isTransientError` covers the timeout half; this covers the other half, where
+ * the source answers but the query cannot run (wrong schema, missing table,
+ * result too large to buffer).
+ *
+ * Accepts a bare message too: a column's persisted `error` is a string, and it
+ * is the only thing left to classify once the throw is long gone.
+ */
+export function isExternalSourceError(error: any): boolean {
+  if (
+    error instanceof NcBaseErrorv2 &&
+    [
+      NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE,
+      NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT,
+    ].includes(error.error)
+  ) {
+    return true;
+  }
+
+  const message = typeof error === 'string' ? error : error?.message;
+
+  return EXTERNAL_SOURCE_MESSAGES.some((pattern) => pattern.test(`${message}`));
 }

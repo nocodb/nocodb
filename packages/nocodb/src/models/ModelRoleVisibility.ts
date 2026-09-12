@@ -154,6 +154,26 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     return res;
   }
 
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const rows = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODEL_ROLE_VISIBILITY,
+      {
+        condition: { base_id: baseId },
+      },
+    );
+
+    // reuse the per-row delete so the per-(view,role) cache is evicted
+    for (const row of rows) {
+      await this.delete(context, row.fk_view_id, row.role, ncMeta);
+    }
+  }
+
   static async insert(
     context: NcContext,
     body: Partial<ModelRoleVisibilityType>,
@@ -167,7 +187,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       'source_id',
     ]);
 
-    const view = await View.get(context, body.fk_view_id, ncMeta);
+    const view = await View.get(context, body.fk_view_id, false, ncMeta);
 
     if (!insertObj.source_id) {
       insertObj.source_id = view.source_id;

@@ -7,7 +7,9 @@ const { isDark } = useTheme()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
-const { sharedView, allowCSVDownload } = useSharedView()
+const { sharedView, sharedPageTitle, allowCSVDownload } = useSharedView()
+
+const { productName, logoUrl, logoDarkUrl, isWhiteLabelled, config } = useBranding()
 
 const { isFullScreen } = storeToRefs(useSidebarStore())
 
@@ -52,11 +54,7 @@ onMounted(() => {
   }
 
   // handle meta title
-  if (sharedView.value?.title) {
-    document.title = `${sharedView.value.title}`
-  } else {
-    document.title = 'NocoDB'
-  }
+  document.title = sharedView.value?.title || sharedPageTitle.value?.title || productName.value
 })
 </script>
 
@@ -75,15 +73,20 @@ export default {
           v-if="!disableTopbar"
           class="nc-table-topbar flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-nc-border-gray-medium !h-[46px]"
         >
-          <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
+          <div class="flex items-center gap-6 h-7 flex-1 min-w-0">
             <a
               class="transition-all duration-200 cursor-pointer transform hover:scale-105"
-              href="https://github.com/nocodb/nocodb"
-              target="_blank"
+              :href="isWhiteLabelled ? config?.email?.footerUrl || undefined : 'https://github.com/nocodb/nocodb'"
+              :target="isWhiteLabelled && !config?.email?.footerUrl ? undefined : '_blank'"
               rel="noopener noreferrer"
             >
-              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
-              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+              <template v-if="isWhiteLabelled && (isDark ? logoDarkUrl : logoUrl)">
+                <img :src="(isDark ? logoDarkUrl : logoUrl) ?? ''" :alt="productName" class="h-7 max-w-[120px] object-contain" />
+              </template>
+              <template v-else-if="!isWhiteLabelled">
+                <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
+                <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+              </template>
             </a>
 
             <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">
@@ -95,9 +98,18 @@ export default {
 
               <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
                 <GeneralViewIcon v-if="sharedView" class="h-4 w-4 ml-0.5" :meta="sharedView" />
+                <GeneralIcon
+                  v-else-if="sharedPageTitle?.icon"
+                  :icon="sharedPageTitle.icon"
+                  class="h-4 w-4 ml-0.5 flex-none text-nc-content-gray-subtle2"
+                />
 
                 <span class="truncate">
-                  {{ sharedView?.title }}
+                  {{ sharedView?.title ?? sharedPageTitle?.title }}
+                </span>
+
+                <span v-if="sharedPageTitle?.badge" class="flex-none text-captionSm text-nc-content-gray-muted">
+                  {{ sharedPageTitle.badge }}
                 </span>
 
                 <NcTooltip v-if="sharedView?.description?.length" placement="bottom">
@@ -113,7 +125,24 @@ export default {
             </div>
           </div>
 
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-none">
+            <div
+              v-if="sharedPageTitle?.notice || sharedPageTitle?.report"
+              class="flex items-center gap-2 flex-none whitespace-nowrap text-bodySm text-nc-content-gray-muted"
+              data-testid="nc-shared-page-notice"
+            >
+              <span v-if="sharedPageTitle?.notice" class="hidden lg:inline">{{ sharedPageTitle.notice }}</span>
+              <a
+                v-if="sharedPageTitle?.report"
+                :href="sharedPageTitle.report.href"
+                class="!text-nc-content-gray-subtle underline hover:!text-nc-content-brand"
+                data-testid="nc-shared-page-report"
+                rel="noopener noreferrer"
+              >
+                {{ sharedPageTitle.report.label }}
+              </a>
+            </div>
+
             <DashboardMiniSidebarTheme placement="bottom" render-as-btn />
 
             <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />

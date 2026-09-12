@@ -26,6 +26,7 @@ export default class RollupColumn implements RollupType {
   fk_relation_column_id;
   fk_rollup_column_id;
   rollup_function: (typeof ROLLUP_FUNCTIONS)[number];
+  error: string;
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);
@@ -41,6 +42,7 @@ export default class RollupColumn implements RollupType {
       'fk_relation_column_id',
       'fk_rollup_column_id',
       'rollup_function',
+      'error',
     ]);
 
     const column = await Column.get(
@@ -123,5 +125,36 @@ export default class RollupColumn implements RollupType {
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
     return Column.get(context, { colId: this.fk_relation_column_id }, ncMeta);
+  }
+
+  public static async update(
+    context: NcContext,
+    columnId: string,
+    data: Partial<RollupColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(data, [
+      'fk_column_id',
+      'fk_relation_column_id',
+      'fk_rollup_column_id',
+      'rollup_function',
+      'error',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_ROLLUP,
+      updateObj,
+      {
+        fk_column_id: columnId,
+      },
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.COL_ROLLUP}:${columnId}`,
+      updateObj,
+    );
   }
 }

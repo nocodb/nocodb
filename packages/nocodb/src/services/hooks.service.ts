@@ -1,21 +1,39 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AppEvents, NcBaseError, WebhookEvents } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  MetaEventType,
+  NcBaseError,
+  WebhookEvents,
+} from 'nocodb-sdk';
 import View from '../models/View';
-import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import type {
+  FilterReqType,
+  HookReqType,
+  HookTestReqType,
+  HookType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
+import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
+  populateSampleCommentPayload,
   populateSamplePayload,
   populateSamplePayloadV2,
   populateSamplePayloadView,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
-import { ButtonColumn, Hook, HookLog, Model } from '~/models';
+import { isEE } from '~/utils';
+import { ButtonColumn, Filter, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { isReplay } from '~/helpers/replayScope';
 
 const SUPPORTED_HOOK_VERSION = ['v3'];
 
@@ -25,7 +43,19 @@ export class HooksService {
     protected readonly appHooksService: AppHooksService,
     protected readonly dataService: DatasService,
     @Inject('JobsService') protected readonly jobsService: IJobsService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {}
+
+  // Comment-source webhooks are an EE-only trigger (the firing handler lives in
+  // the EE layer). Reject creating/updating one on a CE backend so a hook that
+  // can never fire isn't silently persisted.
+  validateCommentEvent(context: NcContext, hook: HookReqType) {
+    if (hook?.event === WebhookEvents.COMMENT && !isEE) {
+      NcError.get(context).badRequest(
+        'Comment webhooks are only available in NocoDB Enterprise',
+      );
+    }
+  }
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};
@@ -89,6 +119,7 @@ export class HooksService {
     if (!option?.isTableDuplicate) {
       validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
     }
+    this.validateCommentEvent(context, param.hook);
     this.validateHookPayload(param.hook.notification);
 
     // if version is not in SUPPORTED_HOOK_VERSION, that means it's a duplicate table activity
@@ -104,6 +135,44 @@ export class HooksService {
           fk_model_id: param.tableId,
         } as any);
 
+    const bundledFilters = (param.hook as any)?.filters as
+      | FilterReqType[]
+      | undefined;
+    if (bundledFilters?.length) {
+      for (const filter of bundledFilters) {
+        await Filter.insert(context, {
+          ...filter,
+          fk_hook_id: hook.id,
+        });
+      }
+
+      // Snapshot the inserted tree so `HookCreateContract.extraCommandMeta`
+      // can surface it as `meta.extra.filters` for downstream changelog
+      // ops. Skipped during replay — `recordCommand` early-exits when
+      // `isReplay()` is true, so this would just be wasted I/O.
+      if (!isReplay()) {
+        const roots = await Filter.rootFilterListByHook(context, {
+          hookId: hook.id,
+        });
+        const walk = async (f: Filter): Promise<Record<string, unknown>> => {
+          const children = f.is_group
+            ? (await f.getChildren(context)) ?? []
+            : [];
+          const childNodes = await Promise.all(
+            children.map((c) => walk(c as Filter)),
+          );
+          return {
+            ...(f as unknown as Record<string, unknown>),
+            ...(childNodes.length ? { children: childNodes } : {}),
+          };
+        };
+        captureForTrace(
+          'filters',
+          await Promise.all(roots.map((r) => walk(r as Filter))),
+        );
+      }
+    }
+
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,
       req: param.req,
@@ -111,35 +180,48 @@ export class HooksService {
       tableId: hook.fk_model_id,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_create',
+          payload: hook,
+        },
+      },
+      context.socket_id,
+    );
+
     return hook;
   }
 
   async hookDelete(
     context: NcContext,
-    param: { hookId: string; req: NcRequest },
+    param: { hookId: string; req: NcRequest; skipTrash?: boolean },
+    ncMeta?: MetaService,
   ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const hook = await Hook.get(context, param.hookId);
+    const hook = await Hook.get(context, param.hookId, false, ncMeta);
 
     if (!hook) {
       NcError.get(context).hookNotFound(param.hookId);
     }
 
-    const buttonCols = await Hook.hookUsages(context, param.hookId);
+    await Hook.delete(context, param.hookId, ncMeta);
 
-    if (buttonCols.length) {
-      for (const button of buttonCols) {
-        await ButtonColumn.update(context, button.fk_column_id, {
-          fk_webhook_id: null,
-        });
-      }
-      await View.clearSingleQueryCache(context, hook.fk_model_id);
-    }
-
-    await Hook.delete(context, param.hookId);
+    // Button-column FK cleanup + single-query cache clear are handled by
+    // `HookDeleteButtonRefDependencyHandler` via the `HOOK_DELETED` meta event.
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.HOOK_DELETED,
+        oldEntity: hook,
+      },
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
       hook,
@@ -147,6 +229,19 @@ export class HooksService {
       context,
       tableId: hook.fk_model_id,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_delete',
+          payload: { id: hook.id, fk_model_id: hook.fk_model_id },
+        },
+      },
+      context.socket_id,
+    );
+
     return true;
   }
 
@@ -176,6 +271,7 @@ export class HooksService {
       NcError.get(context).hookNotFound(param.hookId);
     }
 
+    this.validateCommentEvent(context, param.hook);
     this.validateHookPayload(param.hook.notification);
 
     // If the webhook is being changed to manual trigger, set it to active
@@ -200,6 +296,27 @@ export class HooksService {
 
     const res = await Hook.update(context, param.hookId, param.hook);
 
+    const bundledFilters = (param.hook as any)?.filters as
+      | FilterReqType[]
+      | undefined;
+    if (bundledFilters !== undefined) {
+      const existing = await Filter.rootFilterListByHook(context, {
+        hookId: param.hookId,
+      });
+      for (const f of existing) {
+        await Filter.delete(context, f.id);
+      }
+      // Insert new tree. `Filter.insert` recurses through `children` and
+      // propagates `fk_hook_id`. Pre-set ids are honored only under
+      // `is_replay` (so undo→redo round-trips).
+      for (const filter of bundledFilters) {
+        await Filter.insert(context, {
+          ...filter,
+          fk_hook_id: param.hookId,
+        });
+      }
+    }
+
     this.appHooksService.emit(AppEvents.WEBHOOK_UPDATE, {
       hook: {
         ...hook,
@@ -211,7 +328,32 @@ export class HooksService {
       context,
     });
 
+    const updatedHook = await Hook.get(context, param.hookId);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_update',
+          payload: {
+            ...updatedHook,
+            had_filters_replaced: bundledFilters !== undefined,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return res;
+  }
+
+  async hookRestore(
+    _context: NcContext,
+    _param: { hookId: string; req: NcRequest },
+    _ncMeta?: MetaService,
+  ) {
+    return false;
   }
 
   async hookTrigger(
@@ -224,7 +366,7 @@ export class HooksService {
   ) {
     const hook = await Hook.get(context, param.hookId);
 
-    if (!hook && hook.event !== 'manual') {
+    if (!hook || hook.event !== 'manual') {
       NcError.get(context).badRequest('Hook not found');
     }
 
@@ -297,13 +439,17 @@ export class HooksService {
         (hook.notification as any).trigger_form_id,
       );
     }
+
+    // Comment webhooks carry the comment envelope directly as `newData`
+    // (constructCommentWebHookData wraps it) — there are no record `rows`.
+    const isCommentHook = (hook?.event as any) === WebhookEvents.COMMENT;
     try {
       await invokeWebhook(context, {
         hook: new Hook(hook),
         model: model,
         view: view,
-        prevData: data?.previous_rows ?? null,
-        newData: data.rows,
+        prevData: isCommentHook ? null : data?.previous_rows ?? null,
+        newData: isCommentHook ? data : data.rows,
         user: user,
         testFilters: (hook as any)?.filters,
         throwErrorOnFailure: true,
@@ -359,6 +505,16 @@ export class HooksService {
         version: param.version,
       });
     }
+    if (param.event === WebhookEvents.COMMENT) {
+      return await populateSampleCommentPayload(
+        context,
+        model,
+        param.operation,
+        param.version,
+        param.includeUser,
+        param.user,
+      );
+    }
 
     return await populateSamplePayloadV2(
       context,
@@ -401,6 +557,16 @@ export class HooksService {
         user: undefined,
         version: param.version,
       });
+    }
+    if (param.event === WebhookEvents.COMMENT) {
+      return await populateSampleCommentPayload(
+        context,
+        model,
+        param.operation as string,
+        param.version,
+        param.includeUser,
+        undefined,
+      );
     }
 
     return await populateSamplePayloadV2(

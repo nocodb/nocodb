@@ -184,7 +184,7 @@ watch(
               <NcButton v-if="extensionAccess.delete" size="small" type="danger" @click="extension.delete()">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="delete" />
-                  Delete
+                  {{ $t('general.delete') }}
                 </div>
               </NcButton>
             </template>

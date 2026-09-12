@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { URL } from 'url';
 import { promisify } from 'util';
 import parseDbUrl from 'parse-database-url';
@@ -303,22 +304,34 @@ export async function metaUrlToDbConfig(urlString): Promise<DbConfig> {
     dbConfig?.connection?.ssl &&
     typeof dbConfig?.connection?.ssl === 'object'
   ) {
+    // Bootstrap config comes from operator-controlled env/config files; file
+    // paths are trusted here. Errors are normalised to a single message.
+    const readSslFile = async (filePath: string): Promise<string> => {
+      try {
+        return (
+          await promisify(fs.readFile)(path.resolve(String(filePath)))
+        ).toString();
+      } catch {
+        throw new Error('Invalid SSL configuration.');
+      }
+    };
+
     if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
-      dbConfig.connection.ssl.ca = (
-        await promisify(fs.readFile)(dbConfig.connection.ssl.caFilePath)
-      ).toString();
+      dbConfig.connection.ssl.ca = await readSslFile(
+        dbConfig.connection.ssl.caFilePath,
+      );
       delete dbConfig.connection.ssl.caFilePath;
     }
     if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
-      dbConfig.connection.ssl.key = (
-        await promisify(fs.readFile)(dbConfig.connection.ssl.keyFilePath)
-      ).toString();
+      dbConfig.connection.ssl.key = await readSslFile(
+        dbConfig.connection.ssl.keyFilePath,
+      );
       delete dbConfig.connection.ssl.keyFilePath;
     }
     if (dbConfig.connection.ssl.certFilePath && !dbConfig.connection.ssl.cert) {
-      dbConfig.connection.ssl.cert = (
-        await promisify(fs.readFile)(dbConfig.connection.ssl.certFilePath)
-      ).toString();
+      dbConfig.connection.ssl.cert = await readSslFile(
+        dbConfig.connection.ssl.certFilePath,
+      );
       delete dbConfig.connection.ssl.certFilePath;
     }
   }

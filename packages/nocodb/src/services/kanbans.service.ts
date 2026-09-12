@@ -11,16 +11,21 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
 import type { SelectOption } from '~/models';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { NcError } from '~/helpers/catchError';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { KanbanView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
@@ -28,7 +33,7 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class KanbansService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async kanbanViewGet(
     context: NcContext,
@@ -38,6 +43,7 @@ export class KanbansService {
     return await KanbanView.get(context, param.kanbanViewId, ncMeta);
   }
 
+  @TraceCommand(OperationName.kanbanViewCreate)
   async kanbanViewCreate(
     context: NcContext,
     param: {
@@ -50,6 +56,13 @@ export class KanbansService {
     },
     ncMeta?: MetaService,
   ) {
+    if (param?.ownedBy) {
+      await assertNotSandbox(
+        context,
+        'Personal views cannot be created in a sandbox. Create them on the production base.',
+      );
+    }
+
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.kanban,
@@ -59,7 +72,9 @@ export class KanbansService {
       NcError.get(context).schemaLocked();
     }
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    await assertPersonalViewAllowed(context, param.kanban.lock_type);
+
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     let fk_cover_image_col_id =
       (param.kanban as KanbanView).fk_cover_image_col_id ?? null;
@@ -128,7 +143,7 @@ export class KanbansService {
       ncMeta,
     );
 
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
     await NocoCache.appendToList(
       context,
       CacheScope.VIEW,
@@ -176,6 +191,7 @@ export class KanbansService {
     return view;
   }
 
+  @TraceCommand(OperationName.kanbanViewUpdate)
   async kanbanViewUpdate(
     context: NcContext,
     param: {
@@ -191,7 +207,7 @@ export class KanbansService {
       param.kanban,
     );
 
-    const view = await View.get(context, param.kanbanViewId, ncMeta);
+    const view = await View.get(context, param.kanbanViewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.kanbanViewId);
@@ -219,7 +235,12 @@ export class KanbansService {
     await KanbanView.update(context, param.kanbanViewId, param.kanban, ncMeta);
 
     if (groupingColumnChanged) {
-      const updatedView = await View.get(context, param.kanbanViewId, ncMeta);
+      const updatedView = await View.get(
+        context,
+        param.kanbanViewId,
+        false,
+        ncMeta,
+      );
       await this.initializeKanbanMetaForGroupingColumn(
         context,
         updatedView,
@@ -250,13 +271,16 @@ export class KanbansService {
 
     await view.getView<ViewTypes.KANBAN>(context);
 
+    // Strip the stored bcrypt password hash from every outbound payload.
+    const safeView = View.maskPasswordForResponse(view);
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: view,
+          payload: safeView,
         },
       },
       context.socket_id,
@@ -265,7 +289,7 @@ export class KanbansService {
     if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
-    return view;
+    return safeView;
   }
 
   /**
@@ -282,7 +306,7 @@ export class KanbansService {
       return; // No grouping column set
     }
 
-    const model = await Model.get(context, view.fk_model_id, ncMeta);
+    const model = await Model.get(context, view.fk_model_id, false, ncMeta);
     const column = (await model.getColumns(context, ncMeta)).find(
       (col) => col.id === kanbanView.fk_grp_col_id,
     );
@@ -378,7 +402,12 @@ export class KanbansService {
     ncMeta?: MetaService,
   ) {
     const kanbanView = await this.kanbanViewGet(context, param, ncMeta);
-    const modelView = await View.get(context, kanbanView.fk_view_id, ncMeta);
+    const modelView = await View.get(
+      context,
+      kanbanView.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -390,7 +419,12 @@ export class KanbansService {
         ).withViewId(modelView.id)
       ).forUpdate();
 
-    const model = await Model.get(context, modelView.fk_model_id, ncMeta);
+    const model = await Model.get(
+      context,
+      modelView.fk_model_id,
+      false,
+      ncMeta,
+    );
     const column = (await model.getColumns(context, ncMeta)).find(
       (col) => col.id === kanbanView.fk_grp_col_id,
     );

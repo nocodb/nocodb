@@ -19,6 +19,8 @@ export default class Dashboard {
     return null;
   }
 
+  static async softDelete(..._args) {}
+
   static async delete(..._args) {
     return null;
   }

@@ -21,6 +21,7 @@ import {
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
+import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -39,9 +40,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   ) => {
     const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const { t } = useI18n()
 
     const isPublic = inject(IsPublicInj, ref(false))
+
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
+    // Interface record overlay: route revision history through the injected
+    // record-sidebar adapter (grant + revision_history-toggle + record-scope
+    // gated) so consumers without base ACL can view it.
+    const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
 
     const audits = ref<Array<AuditTypeExtended>>([])
 
@@ -51,7 +61,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const saveRowAndStay = ref(0)
 
-    const changedColumns = ref<Set<string>>(new Set<string>())
+    const isSaving = ref(false)
+
+    const changedColumns = shallowRef<Set<string>>(new Set<string>())
 
     const localOnlyChanges = ref<Record<string, any>>({})
 
@@ -59,7 +71,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const { basesUser } = storeToRefs(basesStore)
 
-    const { base } = storeToRefs(useBase())
+    const { base, isSharedBase } = storeToRefs(useBase())
+
+    // Record audit is unavailable in public/shared bases — the backend blocks
+    // `recordAuditList` there (CVE GHSA-6297-qpqf-235w). Drives the audit tab
+    // visibility, the discussion-mode feed, and the fetch guard so the UI
+    // never offers audit (and never fires a request that would 403).
+    const isAuditEnabled = computed(() => !isPublic.value && !isSharedBase.value)
 
     const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
@@ -74,21 +92,25 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
     )
 
+    // Ensure `.row` is always a plain object — a caller passing a non-object
+    // (or a non-object surviving from a prior load) would make cell edits throw
+    // `can't assign to property ... not an object` (#9365).
+    if (!row.value.row || typeof row.value.row !== 'object' || Array.isArray(row.value.row)) {
+      row.value.row = {}
+    }
+
     if (row.value?.rowMeta?.fromExpandedForm) {
       row.value.rowMeta.fromExpandedForm = true
     }
     const rowStore = useProvideSmartsheetRowStore(row, changedColumns)
 
     const activeView = inject(ActiveViewInj, ref())
-
-    const { addUndo, clone, defineViewScope } = useUndoRedo()
-
-    const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
-
     const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
       useProvideRowComments(meta, row)
 
     const { isUIAllowed } = useRoles()
+
+    const { flushSmartTextDrafts } = useSmartTextDraftFlush()
 
     const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
@@ -231,7 +253,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const hasMoreAudits = ref(false)
 
     const loadAudits = async (_rowId?: string, showLoading = true) => {
-      if (!isUIAllowed('recordAuditList') || (!row.value && !_rowId)) return
+      // No audit in public/shared bases — the backend 403s recordAuditList
+      // there, and the audit tab + discussion entries are hidden accordingly.
+      if (!isAuditEnabled.value) return
+      // Interface consumers lack base ACL — the adapter's op is grant/toggle gated.
+      if ((!ifaceSidebar && !isUIAllowed('recordAuditList')) || (!row.value && !_rowId)) return
 
       const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -242,16 +268,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           isAuditLoading.value = true
         }
 
-        const response = await $api.internal.getOperation(
-          base.value.fk_workspace_id ?? NO_SCOPE,
-          (meta.value.base_id as string) ?? (base.value.id as string),
-          {
-            operation: 'recordAuditList',
-            fk_model_id: meta.value.id as string,
-            row_id: rowId,
-            cursor: currentAuditCursor.value,
-          },
-        )
+        const response = ifaceSidebar
+          ? await ifaceSidebar.recordAuditList(rowId, currentAuditCursor.value)
+          : await internalGet(
+              base.value.fk_workspace_id ?? NO_SCOPE,
+              (meta.value.base_id as string) ?? (base.value.id as string),
+              {
+                operation: 'recordAuditList',
+                fk_model_id: meta.value.id as string,
+                row_id: rowId,
+                cursor: currentAuditCursor.value,
+              },
+            )
 
         const lastRecord = response.list?.[response.list.length - 1]
 
@@ -265,11 +293,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         audits.value.unshift(
           ...res.map((audit) => {
-            const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
+            const user =
+              baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user) ??
+              findServiceUser(audit.fk_user_id) ??
+              findServiceUser(audit.user)
             return {
               ...audit,
               created_display_name: user?.display_name,
-              created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
+              created_display_name_short: extractUserDisplayNameOrEmail(user),
               created_by_email: user?.email,
               created_by_meta: user?.meta,
             }
@@ -289,7 +320,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
               plan: details.higherPlan,
               period: formatDurationFromDays(+(details.limit ?? 14)),
             }),
-            limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+            limitOrFeature: PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION,
+            triggerSource: 'record-audit',
           })
         } else {
           message.error(errorInfo.message)
@@ -336,16 +368,41 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       return $state.user?.value?.email === email
     }
 
-    const loadKanbanData = async () => {
-      if (activeView.value?.type === ViewTypes.KANBAN) {
-        const { loadKanbanData: _loadKanbanData } = useKanbanViewStoreOrThrow()
-        await _loadKanbanData()
+    // Replay queued relation (LTAR) edits for an existing record on save, using the nested
+    // link/unlink API — the deferred counterpart of useLTARStore's immediate calls (#14013/#14058).
+    // Drained one-by-one so a mid-way failure leaves the rest queued (and the record dirty) for
+    // retry, while already-applied ops are not re-sent.
+    const applyPendingLtarOps = async () => {
+      const queue = rowStore.pendingLtarOps
+      while (queue.value.length) {
+        const op = queue.value[0]
+        if (op.op === 'link') {
+          await $api.dbTableRow.nestedAdd(
+            NOCO,
+            op.baseId,
+            op.tableId,
+            encodeURIComponent(op.rowId),
+            op.type,
+            op.columnId,
+            encodeURIComponent(op.relatedRowId),
+          )
+        } else {
+          await $api.dbTableRow.nestedRemove(
+            NOCO,
+            op.baseId,
+            op.tableId,
+            encodeURIComponent(op.rowId),
+            op.type,
+            op.columnId,
+            encodeURIComponent(op.relatedRowId),
+          )
+        }
+        queue.value.shift()
       }
     }
 
     const save = async (
       ltarState: Record<string, any> = {},
-      undo = false,
       // TODO: Hack. Remove this when kanban injection store issue is resolved
       {
         kanbanClbk,
@@ -378,102 +435,87 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           ...(ltarState || {}),
         })
 
+        // Persist any SmartText (LongText + smartMode) drafts that were staged while
+        // the record was still new — the editor's rowId-keyed backend op couldn't run
+        // until the row existed (#9954). Awaited here so it completes before the form
+        // closes/reloads. Drafts whose flush fails are kept buffered so the SmartText
+        // modal can restore and re-save them instead of the rich content being lost.
+        const smartTextDrafts = row.value.rowMeta?.smartTextDrafts
+        let unflushedSmartTextDrafts: Record<string, Record<string, any> | null> = {}
+        if (smartTextDrafts && Object.keys(smartTextDrafts).length) {
+          const newRowId = extractPkFromRow(data, meta.value.columns as ColumnType[])
+          unflushedSmartTextDrafts = newRowId
+            ? await flushSmartTextDrafts(meta.value, newRowId, smartTextDrafts, data)
+            : smartTextDrafts
+        }
+
         Object.assign(row.value, {
           row: data,
           rowMeta: {
             ...row.value.rowMeta,
             new: false,
+            // Links were persisted via the create payload — clear the buffer so the
+            // record is no longer flagged as having unsaved relational changes (#14013).
+            ltarState: {},
+            // SmartText drafts have been flushed to the backend — drop the buffer,
+            // keeping only drafts whose flush failed (recovered via the modal).
+            smartTextDrafts: unflushedSmartTextDrafts,
           },
           oldRow: { ...data },
         })
-
-        if (!undo) {
-          const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
-          const pkData = rowPkData(row.value.row, meta.value?.columns as ColumnType[])
-
-          // TODO remove linked record
-          addUndo({
-            redo: {
-              fn: async (rowData: any) => {
-                await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, { ...pkData, ...rowData })
-                await loadKanbanData()
-                reloadTrigger?.trigger()
-              },
-              args: [clone(insertObj)],
-            },
-            undo: {
-              fn: async (id: string) => {
-                const res: any = await $api.dbViewRow.delete(
-                  'noco',
-                  meta.value?.base_id ?? (base.value.id as string),
-                  meta.value?.id as string,
-                  activeView.value?.id as string,
-                  encodeURIComponent(id),
-                )
-                if (res.message) {
-                  throw new Error(res.message)
-                }
-
-                await loadKanbanData()
-                reloadTrigger?.trigger()
-              },
-              args: [id],
-            },
-            scope: defineViewScope({ view: activeView.value }),
-          })
-        }
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]
           return obj
         }, {} as Record<string, any>)
 
-        if (Object.keys(updateOrInsertObj).length) {
+        // SmartText columns are persisted via their own rowId-keyed op below (#10261) —
+        // strip their interim markdown preview from the payload so a failed flush
+        // can't leave the client-derived preview as the stored value.
+        const smartTextDrafts = row.value.rowMeta?.smartTextDrafts ?? {}
+        const hasSmartTextDrafts = Object.values(smartTextDrafts).some(Boolean)
+        for (const [columnId, draft] of Object.entries(smartTextDrafts)) {
+          if (!draft) continue
+          const colTitle = (meta.value.columns as ColumnType[])?.find((c) => c.id === columnId)?.title
+          if (colTitle) delete updateOrInsertObj[colTitle]
+        }
+
+        // Relational fields queue their changes (#14013/#14058) and are persisted here on
+        // save, not on each link/unlink. A record can be "modified" via links alone.
+        const hasLtarChanges = rowStore.hasLtarChanges.value
+
+        if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts) {
           const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
           if (!id) {
             return message.info(t('msg.info.updateNotAllowedWithoutPK'))
           }
 
-          const updatedData = await $api.dbTableRow.update(
-            NOCO,
-            meta.value.base_id ?? (base.value.id as string),
-            meta.value.id,
-            encodeURIComponent(id),
-            updateOrInsertObj,
-          )
+          if (Object.keys(updateOrInsertObj).length) {
+            const updatedData = await $api.dbTableRow.update(
+              NOCO,
+              meta.value.base_id ?? (base.value.id as string),
+              meta.value.id,
+              encodeURIComponent(id),
+              updateOrInsertObj,
+            )
 
-          // If the updated row is now hidden by RLS policy, mark it
-          if (updatedData?.__nc_rls_hidden) {
-            row.value.row.__nc_rls_hidden = true
+            // If the updated row is now hidden by RLS policy, mark it
+            if (updatedData?.__nc_rls_hidden) {
+              row.value.row.__nc_rls_hidden = true
+            }
           }
 
-          if (!undo) {
-            const undoObject = [...changedColumns.value].reduce((obj, col) => {
-              obj[col] = row.value.oldRow[col]
-              return obj
-            }, {} as Record<string, any>)
+          // Persist buffered SmartText drafts — deferred to the form's Save (#10261).
+          // Failed flushes stay buffered so the modal can restore and re-save them.
+          if (hasSmartTextDrafts) {
+            const unflushedSmartTextDrafts = await flushSmartTextDrafts(meta.value, id, smartTextDrafts, row.value.row)
+            if (row.value.rowMeta) row.value.rowMeta.smartTextDrafts = unflushedSmartTextDrafts
+          }
 
-            addUndo({
-              redo: {
-                fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id!, encodeURIComponent(id), data)
-                  await loadKanbanData()
-
-                  reloadTrigger?.trigger()
-                },
-                args: [id, clone(updateOrInsertObj)],
-              },
-              undo: {
-                fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id!, encodeURIComponent(id), data)
-                  await loadKanbanData()
-                  reloadTrigger?.trigger()
-                },
-                args: [id, clone(undoObject)],
-              },
-              scope: defineViewScope({ view: activeView.value }),
-            })
+          // Persist queued link/unlink changes after the row update.
+          if (hasLtarChanges) {
+            await applyPendingLtarOps()
           }
 
           if (commentsDrawer.value) {
@@ -493,6 +535,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       changedColumns.value = new Set()
       $e('a:row-expand:add')
       return data
+    }
+
+    /**
+     * Build the save-failure toast message — same copy used by both modal and panel.
+     * Centralised here so all callers stay in sync if the wording or i18n keys change.
+     */
+    const formatSaveError = async (e: any, isNewRow = rowStore.isNew.value) => {
+      const detail = await extractSdkResponseErrorMsg(e)
+      return isNewRow ? `Add row failed: ${detail}` : `${t('msg.error.rowUpdateFailed')}: ${detail}`
     }
 
     const clearColumns = () => {
@@ -529,6 +580,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         } else {
           message.error(`${await extractSdkResponseErrorMsg(err)}`)
         }
+      }
+
+      // Guard against a non-object response body (e.g. an empty 200/204 yields
+      // "" from the HTTP client). Assigning it to `row.value.row` would later
+      // make cell edits throw `can't assign to property ... not an object` (#9365).
+      if (!record || typeof record !== 'object' || Array.isArray(record)) {
+        record = {}
       }
 
       try {
@@ -827,7 +885,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           }
 
           activeDataListener.value = $ncSocket.onMessage(
-            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            dataEventSubscriptionKey(newMeta, interfaceDataApi),
             (data: DataPayload) => {
               const { id, action, payload } = data
 
@@ -880,7 +938,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 const finalPayload = {
                   ...payload,
                   created_display_name: user?.display_name,
-                  created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
+                  created_display_name_short: extractUserDisplayNameOrEmail(user),
                   created_by_email: user?.email,
                   created_by_meta: user?.meta,
                 }
@@ -918,6 +976,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       loadComments,
       deleteComment,
       loadAudits,
+      isAuditEnabled,
       comments,
       audits,
       isAuditLoading,
@@ -936,7 +995,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       deleteRowById,
       displayValue,
       save,
+      isSaving,
+      formatSaveError,
       changedColumns,
+      hasLtarChanges: rowStore.hasLtarChanges,
+      pendingLtarOps: rowStore.pendingLtarOps,
       localOnlyChanges,
       loadRow,
       primaryKey,
@@ -954,7 +1017,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   'expanded-form-store',
 )
 
-export { useProvideExpandedFormStore }
+// The non-throw consumer is exported too: hosts that may mount OUTSIDE an
+// expanded form (e.g. the comment typing indicator inside the interface
+// record sidebar) probe for the store and degrade gracefully.
+export { useProvideExpandedFormStore, useExpandedFormStore }
 
 export function useExpandedFormStoreOrThrow() {
   const expandedFormStore = useExpandedFormStore()

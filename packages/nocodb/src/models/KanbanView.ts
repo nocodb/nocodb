@@ -88,7 +88,7 @@ export default class KanbanView implements KanbanType {
     view: Partial<KanbanView>,
     ncMeta = Noco.ncMeta,
   ) {
-    const columns = await View.get(context, view.fk_view_id, ncMeta)
+    const columns = await View.get(context, view.fk_view_id, false, ncMeta)
       .then((v) => v?.getModel(context, ncMeta))
       .then((m) => m.getColumns(context, ncMeta));
 
@@ -112,7 +112,12 @@ export default class KanbanView implements KanbanType {
 
     insertObj.meta = stringifyMetaProp(insertObj);
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+    const viewRef = await View.get(
+      context,
+      insertObj.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;

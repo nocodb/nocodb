@@ -10,8 +10,8 @@ export class SpriteLoader {
 
   constructor(private onSettled?: () => void) {}
 
-  private getCacheKey(icon: IconMapKey | VNode, size: number, color: string): string {
-    return `${typeof icon === 'string' ? icon : JSON.stringify(icon)}-${size}-${color}`
+  private getCacheKey(icon: IconMapKey | VNode, size: number, color: string, dpr: number): string {
+    return `${typeof icon === 'string' ? icon : JSON.stringify(icon)}-${size}-${color}-${dpr}`
   }
 
   private async loadSvg(icon: IconMapKey | VNode): Promise<string> {
@@ -47,7 +47,7 @@ export class SpriteLoader {
     },
   ): Promise<void> {
     const scale = window.devicePixelRatio || 1
-    const cacheKey = this.getCacheKey(icon, size, color)
+    const cacheKey = this.getCacheKey(icon, size, color, scale)
 
     const cachedSprite = this.spriteCache.get(cacheKey)
     if (cachedSprite) {

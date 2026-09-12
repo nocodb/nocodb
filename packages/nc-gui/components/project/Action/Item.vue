@@ -47,14 +47,15 @@ defineProps<{
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex-none flex flex-col gap-y-3 p-4 bg-nc-bg-gray-extralight rounded-xl border-1 border-nc-border-gray-light min-w-[230px] max-w-[245px] text-nc-content-gray transition-all duration-300;
+  @apply flex-none flex flex-col gap-y-3 p-4 bg-nc-bg-card rounded-xl border-1 border-nc-border-gray-light min-w-[230px] max-w-[245px] text-nc-content-gray transition-all duration-300;
 
   &.disabled {
-    @apply bg-nc-bg-gray-extralight text-nc-content-gray-disabled hover:bg-nc-bg-gray-extralight cursor-not-allowed;
+    @apply bg-nc-bg-card text-nc-content-gray-disabled hover:bg-nc-bg-card cursor-not-allowed;
   }
 
   &:hover:not(.loading) {
-    @apply bg-nc-bg-gray-light border-nc-border-gray-medium;
+    @apply border-nc-border-gray-medium;
+    background-color: var(--nc-bg-card-hover);
     box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ExportTypes } from 'nocodb-sdk'
+import { ExportTypes, ViewTypes } from 'nocodb-sdk'
 
 const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
+
+const { t } = useI18n()
 
 const meta = inject(MetaInj)!
 
@@ -54,7 +56,22 @@ const { sorts, nestedFilters, isLocked } = useSmartsheetStore() || {
   nestedFilters: ref([]),
   isLocked: ref(false),
 }
+
+// In a shared view the top-bar Download button lives outside the grid's smartsheet store tree
+// (it has its own provider via ExportWithProvider), so `nestedFilters`/`sorts` above stay empty.
+// The grid mirrors the viewer-applied filters/sorts to these global refs, so read from them for
+// public views to ensure the export honours the currently configured filters and sorts.
+const { activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
+
+const effectiveSorts = computed(() => (isPublicView.value ? activeSorts.value : sorts.value))
+
+const effectiveNestedFilters = computed(() => (isPublicView.value ? activeNestedFilters.value : nestedFilters.value))
+
 const { isUIAllowed } = useRoles()
+
+// `.ics` export only makes sense for calendar views, which carry the date range
+// fields used to build the calendar events.
+const isCalendarView = computed(() => selectedView.value?.type === ViewTypes.CALENDAR)
 
 const exportFile = async (exportType: ExportTypes) => {
   try {
@@ -69,12 +86,12 @@ const exportFile = async (exportType: ExportTypes) => {
     const extraParams = {
       ...(!isUIAllowed('sortSync') || isLocked.value
         ? {
-            sortArrJson: stringifyFilterOrSortArr(sorts.value.filter((s: any) => !s.id)),
+            sortArrJson: stringifyFilterOrSortArr(effectiveSorts.value.filter((s: any) => !s.id)),
           }
         : {}),
       ...(!isUIAllowed('filterSync') || isLocked.value
         ? {
-            filterArrJson: stringifyFilterOrSortArr(nestedFilters.value.filter((f: any) => !f.id)),
+            filterArrJson: stringifyFilterOrSortArr(effectiveNestedFilters.value.filter((f: any) => !f.id)),
           }
         : {}),
     }
@@ -109,7 +126,7 @@ const exportFile = async (exportType: ExportTypes) => {
       )
     }
 
-    message.toast(`Preparing ${exportType.toUpperCase()} for download...`)
+    message.toast(t('msg.info.preparingForDownload', { type: exportType.toUpperCase() }))
 
     $poller.subscribe(
       { id: jobData.id },
@@ -127,13 +144,13 @@ const exportFile = async (exportType: ExportTypes) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             // Export completed successfully
-            message.toast('Successfully exported data!')
+            message.toast(t('msg.success.dataExported'))
 
             handleDownload(data.data?.result?.url)
 
             activeExportType.value = null
           } else if (data.status === JobStatus.FAILED) {
-            message.error('Failed to export data!')
+            message.error(t('msg.error.dataExportFailed'))
 
             activeExportType.value = null
           }
@@ -175,7 +192,21 @@ const exportFile = async (exportType: ExportTypes) => {
       <GeneralLoader v-if="activeExportType === ExportTypes.EXCEL" size="regular" />
       <GeneralIcon v-else icon="ncFileTypeExcel" class="w-4" />
       <!-- Download as Excel -->
-      Excel
+      {{ $t('labels.excel') }}
+    </div>
+  </NcMenuItem>
+
+  <NcMenuItem
+    v-if="isCalendarView"
+    v-e="['a:download:ics']"
+    data-testid="nc-export-ics"
+    @click.stop="exportFile(ExportTypes.ICS)"
+  >
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="activeExportType === ExportTypes.ICS" size="regular" />
+      <GeneralIcon v-else icon="calendar" class="w-4" />
+      <!-- Download as iCalendar (.ics) -->
+      {{ $t('labels.icsCalendar') }}
     </div>
   </NcMenuItem>
 </template>

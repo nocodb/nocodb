@@ -1,10 +1,36 @@
-import { UniqueConstraintViolationError } from 'nocodb-sdk';
+import { isDeletedCol, UniqueConstraintViolationError } from 'nocodb-sdk';
 import { ViewTypes } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { XKnex } from '~/db/CustomKnex';
 import View from '~/models/View';
 import FormViewColumn from '~/models/FormViewColumn';
+import { deletedColValue } from '~/helpers/dbHelpers';
+
+/**
+ * Is this driver error a unique-constraint violation?
+ *
+ * For callers that use a unique index as a concurrency primitive — insert and
+ * treat a collision as "someone else already did this" — rather than to report
+ * a validation failure to a user. See {@link handleUniqueConstraintError} for
+ * the latter, which resolves the offending column for an NcError.
+ *
+ * The message-matching fallback is deliberate: wrapper layers sometimes lose
+ * the driver code, and a missed detection turns an idempotent no-op into a
+ * thrown error.
+ */
+export function isUniqueViolation(e: any): boolean {
+  if (!e) return false;
+
+  const code = e.code ?? e.originalError?.code ?? e.cause?.code;
+
+  return (
+    code === '23505' || // postgres
+    code === 'ER_DUP_ENTRY' || // mysql
+    code === 'SQLITE_CONSTRAINT' ||
+    /unique|duplicate/i.test(e.message ?? '')
+  );
+}
 
 /**
  * Extracts column name from database error message
@@ -37,6 +63,16 @@ function extractColumnNameFromError(
     const columnName = pgMatch[1].split(',')[0].trim();
     // Remove surrounding double or single quotes
     return columnName.replace(/^["']|["']$/g, '');
+  }
+
+  // Oracle (23ai+):
+  // "ORA-00001: unique constraint (S.NAME) violated on table S.T columns (COL[, COL2])"
+  // Older Oracle versions omit the table/columns suffix — no column to extract.
+  const oracleColumnsMatch = errorMessage.match(
+    /violated on table \S+ columns \(([^)]+)\)/i,
+  );
+  if (oracleColumnsMatch) {
+    return oracleColumnsMatch[1].split(',')[0].trim();
   }
 
   // Try to extract from constraint name pattern: "table_column_name_key" or "table_column_name_unique"
@@ -105,6 +141,7 @@ async function findDuplicateColumnByQuery(
   tableName: string | any,
   uniqueColumns: Column[],
   insertData: Record<string, any>,
+  deletedColumnName?: string,
 ): Promise<{ column: Column; value: any } | null> {
   // Check each unique column that has a value in the payload
   for (const column of uniqueColumns) {
@@ -121,6 +158,18 @@ async function findDuplicateColumnByQuery(
       const query = dbDriver(tableName)
         .where(column.column_name, value)
         .limit(1);
+
+      // Exclude soft-deleted records
+      if (deletedColumnName) {
+        const notDeletedValue = deletedColValue(dbDriver, false);
+        query.where(function () {
+          this.whereNull(deletedColumnName).orWhere(
+            deletedColumnName,
+            notDeletedValue,
+          );
+        });
+      }
+
       const existing = await query.first();
 
       if (existing) {
@@ -165,6 +214,10 @@ export async function handleUniqueConstraintError({
   const dbDriver = baseModel.dbDriver;
   const tableName = baseModel.tnPath;
   const viewId = baseModel.viewId;
+
+  // Get soft-delete column name to exclude trashed records from duplicate checks
+  const deletedCol = modelColumns.find((c) => isDeletedCol(c));
+  const deletedColumnName = deletedCol?.column_name;
   // ULTRA-EARLY CHECK: If we see error code 23505 ANYWHERE, handle it immediately
   // This check happens before any other logic to ensure we never miss it
   // Check ALL possible locations and formats - be extremely thorough
@@ -294,6 +347,7 @@ export async function handleUniqueConstraintError({
           tableName,
           uniqueColumns,
           insertData,
+          deletedColumnName,
         );
         if (duplicateInfo) {
           column = duplicateInfo.column;
@@ -419,10 +473,36 @@ export async function handleUniqueConstraintError({
   const hasUniqueConstraintMessage =
     /unique constraint|duplicate key|duplicate entry/i.test(errorMessage);
 
+  // T-SQL unique constraint violations surface through tedious's
+  // `RequestError` as numeric error codes:
+  //   2601 — Cannot insert duplicate key row in object 'X' with unique index 'Y'
+  //   2627 — Violation of UNIQUE KEY (or PRIMARY KEY) constraint 'Y' on table 'X'
+  // Both are emitted on `code === 'EREQUEST'` with `number` set to the
+  // corresponding numeric value.
+  const mssqlErrorNumber =
+    error?.number ?? error?.original?.number ?? error?.nativeError?.number;
+  const isMssqlUniqueViolation =
+    (clientType === 'mssql' || clientType === 'mssql2') &&
+    (mssqlErrorNumber === 2601 || mssqlErrorNumber === 2627);
+
+  // Oracle unique constraint violations surface as ORA-00001. node-oracledb
+  // 6+ sets `code: 'ORA-00001'`; older driver shapes only set `errorNum: 1`.
+  const oracleErrorNum =
+    error?.errorNum ??
+    error?.original?.errorNum ??
+    error?.nativeError?.errorNum;
+  const isOracleUniqueViolation =
+    (clientType === 'oracledb' || clientType === 'oracle') &&
+    (errorCode === 'ORA-00001' ||
+      oracleErrorNum === 1 ||
+      /ORA-00001/i.test(errorMessage));
+
   const isUniqueViolation =
     errorCode === '23505' || // PostgreSQL
     errorCode === 'ER_DUP_ENTRY' || // MySQL
     (errorCode === 'SQLITE_CONSTRAINT' && /UNIQUE/i.test(errorMessage)) || // SQLite
+    isMssqlUniqueViolation || // SQL Server (2601 / 2627)
+    isOracleUniqueViolation || // Oracle (ORA-00001)
     isExtractedDbError || // Error already processed by extractor
     (hasUniqueConstraintMessage &&
       (clientType === 'pg' || clientType === 'postgres')); // Fallback for PostgreSQL
@@ -758,6 +838,17 @@ export async function handleUniqueConstraintError({
     }
   }
 
+  // Oracle (23ai+): detail line
+  // "ORA-03301: (ORA-00001 details) row with column values (COL:'value') already exists"
+  if (!value) {
+    const oracleValueMatch = errorMessage.match(
+      /row with column values \([^:()]+:'([^']*)'/i,
+    );
+    if (oracleValueMatch) {
+      value = oracleValueMatch[1];
+    }
+  }
+
   // SQLite: Extract from error message if available
   // SQLite doesn't always include the value, so we may not extract it
 
@@ -843,6 +934,7 @@ export async function handleUniqueConstraintError({
         tableName,
         uniqueColumns,
         insertData,
+        deletedColumnName,
       );
       if (duplicateInfo) {
         finalColumn = duplicateInfo.column;

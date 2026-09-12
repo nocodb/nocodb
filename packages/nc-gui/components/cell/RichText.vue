@@ -59,6 +59,12 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isGallery = inject(IsGalleryInj, ref(false))
 const isKanban = inject(IsKanbanInj, ref(false))
 const isFocused = ref(false)
+
+// Tracks whether the user has actually typed into this editor since it was last synced from the
+// bound value. Used to decide whether an external (collaborative) value change may be pushed into
+// a focused editor: a focused-but-idle viewer has no local edits to protect, so it must still sync.
+const hasLocalEdits = ref(false)
+
 const keys = useMagicKeys()
 const meta = inject(MetaInj)!
 
@@ -149,6 +155,7 @@ const editor = useEditor({
   content: vModel.value,
   extensions: getTiptapExtensions(),
   onUpdate: ({ editor }) => {
+    hasLocalEdits.value = true
     vModel.value = editor.storage.markdown.getMarkdown()
   },
   editable: !props.readOnly,
@@ -189,11 +196,30 @@ const onFocusWrapper = () => {
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    setEditorContent(
-      isFormField.value ? (vModel.value || '')?.replace(/(<br\s*\/?>)+$/g, '') : vModel.value,
-    )
+    // Skip while the user has uncommitted local input that re-running `setContent` would destroy —
+    // either they're actively typing (`hasLocalEdits`, keystrokes already flow out via `onUpdate` →
+    // `vModel`) or they're mid-IME/CJK composition (`view.composing`; ProseMirror defers transactions
+    // until `compositionend`, so `onUpdate` hasn't fired yet and `hasLocalEdits` is still false).
+    // Applying an external change in either case would reset the document and jump/corrupt the caret.
+    // We still push external value changes in when the editor is NOT focused (e.g. switching which
+    // record/field this editor is bound to) OR when it's focused but idle — e.g. someone opened the
+    // long-text editor merely to read it while another user updated the same field. Without this, the
+    // open editor keeps showing stale content and the concurrent change appears to "disappear".
+    if (isFocused.value && (hasLocalEdits.value || editor.value?.view?.composing)) return
+
+    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br\s*\/?>)+$/g, '') : vModel.value)
+
+    // Content now mirrors the bound value again — clear the dirty flag so subsequent external
+    // changes keep syncing.
+    hasLocalEdits.value = false
   })
 }
+
+// Reset the local-edits flag whenever the editor loses focus so the next external value change is
+// applied even if the user had typed earlier.
+watch(isFocused, (focused) => {
+  if (!focused) hasLocalEdits.value = false
+})
 
 if (isFormField.value) {
   watch([props, editor], () => {
@@ -290,7 +316,7 @@ onClickOutside(editorDom, (e) => {
         :class="{
           'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
           'max-w-[calc(100%_-_198px)]': fullMode,
-          'justify-start left-0.5 max-w-[calc(100%_-_8px)]': isForm,
+          'justify-start !left-0 !right-0 !max-w-full !rounded-none': isForm,
           'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
         }"
       >
@@ -380,13 +406,13 @@ onClickOutside(editorDom, (e) => {
     }
     &.readonly {
       ul[data-type='taskList'] li input[type='checkbox'] {
-        background-color: #d5d5d9 !important;
+        background-color: var(--nc-bg-gray-dark) !important;
         &:not(:checked) {
           @apply !border-nc-border-gray-extradark;
         }
         &:focus {
           box-shadow: none !important;
-          background-color: #d5d5d9 !important;
+          background-color: var(--nc-bg-gray-dark) !important;
         }
       }
     }

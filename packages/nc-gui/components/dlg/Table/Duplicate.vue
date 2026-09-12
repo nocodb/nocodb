@@ -372,11 +372,7 @@ onMounted(() => {
               :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS"
               :plan-title="PlanTitles.ENTERPRISE"
               :content="$t('upgrade.upgradeToDuplicateTableToOtherWs')"
-              :on-click-callback="
-                () => {
-                  dialogShow = false
-                }
-              "
+              :on-click-callback="() => (dialogShow = false)"
             />
           </div>
         </div>
@@ -403,6 +399,7 @@ onMounted(() => {
                   <div class="flex-1 capitalize truncate flex gap-1">
                     <GeneralProjectIcon
                       :color="parseProp(targetBase?.meta ?? {}).iconColor"
+                      :icon="parseProp(targetBase?.meta ?? {}).icon"
                       :managed-app="{
                         managed_app_master: targetBase?.managed_app_master,
                         managed_app_id: targetBase?.managed_app_id,
@@ -455,6 +452,7 @@ onMounted(() => {
                     <template #listItemExtraLeft="{ option: optionItem }">
                       <GeneralProjectIcon
                         :color="parseProp(optionItem.meta).iconColor"
+                        :icon="parseProp(optionItem.meta).icon"
                         :managed-app="{
                           managed_app_master: optionItem.managed_app_master,
                           managed_app_id: optionItem.managed_app_id,
@@ -475,11 +473,7 @@ onMounted(() => {
               class="mt-2"
               :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE"
               :content="$t('upgrade.upgradeToDuplicateTableToOtherBase')"
-              :on-click-callback="
-                () => {
-                  dialogShow = false
-                }
-              "
+              :on-click-callback="() => (dialogShow = false)"
             />
           </div>
         </div>

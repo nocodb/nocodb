@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
-import { getOptions, getSelectedUsers } from './utils'
+import { getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
 
 interface Props {
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
@@ -61,7 +61,9 @@ const options = computed(() => {
     })
   }
 
-  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
+  const systemUsers = isInFilter.value ? getSystemUserFilterOptions(column.value) : []
+
+  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)), ...systemUsers]
 })
 
 const optionsMap = computed(() => {
@@ -122,7 +124,7 @@ const isCollaborator = (userIdOrEmail) => {
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
-                    {{ op.display_name?.trim() || op.email }}
+                    {{ extractUserDisplayNameOrEmail(op) }}
                   </template>
                   <span
                     :class="{
@@ -135,7 +137,7 @@ const isCollaborator = (userIdOrEmail) => {
                     }"
                     class="text-ellipsis overflow-hidden"
                   >
-                    {{ op.display_name?.trim() || op.email }}
+                    {{ extractUserDisplayNameOrEmail(op) }}
                   </span>
                 </NcTooltip>
               </span>
@@ -201,7 +203,7 @@ const isCollaborator = (userIdOrEmail) => {
             </div>
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
               <template #title>
-                {{ selectedOpt.label }}
+                {{ selectedOpt.value === CURRENT_USER_TOKEN ? selectedOpt.label : extractUserDisplayNameOrEmail(selectedOpt) }}
               </template>
               <span
                 :class="{
@@ -216,7 +218,7 @@ const isCollaborator = (userIdOrEmail) => {
                 }"
                 class="text-ellipsis overflow-hidden"
               >
-                {{ selectedOpt.label }}
+                {{ selectedOpt.value === CURRENT_USER_TOKEN ? selectedOpt.label : extractUserDisplayNameOrEmail(selectedOpt) }}
               </span>
             </NcTooltip>
           </span>
@@ -263,7 +265,8 @@ const isCollaborator = (userIdOrEmail) => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[1px];
+  /* keep in sync with .rounded-tag above */
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px] my-[1px];
 }
 
 :deep(.nc-user-avatar) {

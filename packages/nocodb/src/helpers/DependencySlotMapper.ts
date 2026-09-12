@@ -51,6 +51,13 @@ export class DependencySlotMapper {
           required: false,
         },
       },
+      [DependencyTableType.InterfacePage]: {
+        path: {
+          id: DependencyFields.META,
+          type: DependencySlotTypes.STRING,
+          required: false,
+        },
+      },
       [DependencyTableType.Workflow]: {
         nodeType: {
           id: DependencyFields.QUERYABLE_FIELD_0, // Indexed - node type (e.g., "core.trigger.cron")
@@ -84,10 +91,34 @@ export class DependencySlotMapper {
           required: false,
         },
       },
+      [DependencyTableType.Agent]: {
+        nodeType: {
+          id: DependencyFields.QUERYABLE_FIELD_0, // Indexed - trigger type (e.g. "nocodb.trigger.after_insert")
+          type: DependencySlotTypes.STRING,
+          required: false,
+        },
+        triggerId: {
+          id: DependencyFields.QUERYABLE_FIELD_1, // Indexed - for webhook routing (e.g., "trg_abc123")
+          type: DependencySlotTypes.STRING,
+          required: false,
+        },
+        nextSyncAt: {
+          id: DependencyFields.QUERYABLE_FIELD_2, // Indexed - cron schedule state
+          type: DependencySlotTypes.TIMESTAMP,
+          required: false,
+        },
+        // Cron expression + timezone, needed to advance nextSyncAt.
+        activationState: {
+          id: DependencyFields.META,
+          type: DependencySlotTypes.OBJECT,
+          required: false,
+        },
+      },
       [DependencyTableType.Column]: {},
       [DependencyTableType.Model]: {},
       [DependencyTableType.View]: {},
       [DependencyTableType.DateDependency]: {},
+      [DependencyTableType.Bookmark]: {},
     };
   }
 

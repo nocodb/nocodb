@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
-import type { NcListProps } from '#imports'
+// Imported by path, not '#imports': the SFC compiler has to resolve the type to
+// generate runtime props and cannot follow Nuxt's virtual module.
+import type { NcListProps } from '../../../lib/types'
 
 interface Emits {
   (e: 'update:value', value: RawValueType): void
@@ -21,6 +23,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   variant: 'default',
   isMultiSelect: false,
   minItemsForSearch: 4,
+  isLoading: false,
   listWrapperClassName: '',
   containerClassName: '',
   wrapperClassName: '',
@@ -388,11 +391,15 @@ const handleKeydownEnter = (event: KeyboardEvent) => {
  * Focuses the input box when the list is opened
  */
 const focusInputBox = () => {
-  if (!vOpen.value) return
+  if (!vOpen.value || !isSearchEnabled.value) return
 
-  setTimeout(() => {
-    inputRef.value?.focus()
-  }, 100)
+  until(() => !!inputRef.value?.input)
+    .toBeTruthy()
+    .then(() => {
+      forcedNextTick(() => {
+        inputRef.value?.focus()
+      })
+    })
 }
 
 /**
@@ -523,7 +530,13 @@ const handleResetHoverEffectOnMouseLeave = () => {
         },
       ]"
     >
-      <template v-if="list.length">
+      <template v-if="!list.length && isLoading">
+        <div class="flex flex-col justify-center items-center gap-2 py-6 text-nc-content-gray-muted">
+          <a-spin />
+          <span class="text-center">{{ $t('general.loading') }}</span>
+        </div>
+      </template>
+      <template v-else-if="list.length">
         <div class="h-auto !max-h-[247px]">
           <div
             v-bind="containerProps"
@@ -582,7 +595,7 @@ const handleResetHoverEffectOnMouseLeave = () => {
           </div>
         </div>
       </template>
-      <template v-if="!list.length">
+      <template v-else>
         <slot name="emptyState">
           <div class="h-full text-center flex items-center justify-center gap-3 mt-4">
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="emptyDescription || $t('labels.noData')" class="!my-0" />

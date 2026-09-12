@@ -13,7 +13,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const { isMobileMode, getResponsiveValue } = useGlobal()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -65,7 +65,7 @@ const isAddingColumnAllowed = computed(
 )
 
 const addFieldReason = computed(() =>
-  !readOnly.value && !isSqlView.value && !isMobileMode.value ? sandboxRestrictionReason('fieldAdd') : null,
+  !readOnly.value && !isSqlView.value && !isMobileMode.value ? environmentRestrictionReason('fieldAdd') : null,
 )
 
 const viewStore = useViewsStore()

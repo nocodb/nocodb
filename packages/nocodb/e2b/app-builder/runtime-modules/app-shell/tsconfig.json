@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./types",
+    // app-ctx ships hand-written .d.ts beside its source and is never installed
+    // from a registry. The two packages are always materialized side by side, so
+    // resolve its types from the sibling directory.
+    "paths": {
+      "@nocodb/app-ctx": ["../app-ctx/index.d.ts"],
+      "@nocodb/app-ctx/react": ["../app-ctx/react.d.ts"],
+      "@nocodb/app-ctx/agent": ["../app-ctx/agent.d.ts"],
+      "@nocodb/app-ctx/server": ["../app-ctx/server.d.ts"]
+    }
+  },
+  "include": ["index.tsx", "appShell.tsx", "agentShell.tsx"]
+}

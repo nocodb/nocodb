@@ -1,4 +1,6 @@
-import type { SourceType } from 'nocodb-sdk'
+import type { BaseType, SourceType } from 'nocodb-sdk'
+import { ManagedAppCategory, parseProp } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
 
 const isDefaultBase = (source: SourceType) => source.is_meta
 
@@ -105,6 +107,24 @@ export const extractAiBaseCreateQueryParams = (query: any) => {
   return searchQuery
 }
 
+/** Display label for a stored category key. Legacy freeform values fall back to the raw text. */
+export const managedAppCategoryLabel = (key: string) => {
+  const trimmed = key.trim()
+  if (!trimmed) return ''
+
+  if (!(Object.values(ManagedAppCategory) as string[]).includes(trimmed.toLowerCase())) return trimmed
+
+  const { t } = getI18n().global
+  return t(`objects.appCategories.${trimmed.toLowerCase()}`)
+}
+
+/** `ManagedAppType.categories` → display labels. */
+export const managedAppCategoryLabels = (categories?: ManagedAppCategory[] | null) =>
+  (categories || []).map(managedAppCategoryLabel).filter(Boolean)
+
+export const managedAppCategoryOptions = () =>
+  Object.values(ManagedAppCategory).map((value) => ({ value, label: managedAppCategoryLabel(value) }))
+
 export const suggestManagedAppNextVersion = (currentVersion?: string) => {
   if (!currentVersion) {
     return '1.0.0'
@@ -121,3 +141,12 @@ export const suggestManagedAppNextVersion = (currentVersion?: string) => {
     return ''
   }
 }
+
+/**
+ * `base.meta.appFirst` — the base was created through the App or Website build
+ * flow, so its app leads the mini sidebar instead of trailing Data/Workflows/Interfaces.
+ * Written once at creation; users reorder nothing.
+ */
+export const BASE_META_APP_FIRST = 'appFirst'
+
+export const isAppFirstBase = (base?: Pick<BaseType, 'meta'> | null) => !!parseProp(base?.meta)?.[BASE_META_APP_FIRST]

@@ -3,6 +3,7 @@ import * as nc_002_base_id from '~/meta/migrations/chat-messages/nc_002_base_id'
 import * as nc_003_created_files from '~/meta/migrations/chat-messages/nc_003_created_files';
 import * as nc_004_ui_context_record from '~/meta/migrations/chat-messages/nc_004_ui_context_record';
 import * as nc_005_agents from '~/meta/migrations/chat-messages/nc_005_agents';
+import * as nc_006_agent_app from '~/meta/migrations/chat-messages/nc_006_agent_app';
 
 export default class XcMigrationSourceChatMessages {
   public getMigrations(): Promise<any> {
@@ -12,6 +13,7 @@ export default class XcMigrationSourceChatMessages {
       'nc_003_created_files',
       'nc_004_ui_context_record',
       'nc_005_agents',
+      'nc_006_agent_app',
     ]);
   }
 
@@ -31,6 +33,8 @@ export default class XcMigrationSourceChatMessages {
         return nc_004_ui_context_record;
       case 'nc_005_agents':
         return nc_005_agents;
+      case 'nc_006_agent_app':
+        return nc_006_agent_app;
     }
   }
 }

@@ -36,7 +36,7 @@ const { gridViewCols, fieldsMap, hidingViewColumnsMap, adjustFrozenFieldsOnBulkH
 
 const { fieldsToGroupBy, groupByLimit, groupBy } = useViewGroupByOrThrow()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { appInfo } = useGlobal()
 
@@ -53,7 +53,7 @@ const columnCount = computed(() => props.columns.length)
 // pv (display value) column cannot be hidden or deleted.
 const nonPvColumns = computed(() => props.columns.filter((col) => !col.pv))
 
-const fieldDeleteReason = computed(() => sandboxRestrictionReason('fieldDelete'))
+const fieldDeleteReason = computed(() => environmentRestrictionReason('fieldDelete'))
 
 const closeAndClear = () => {
   isOpen.value = false

@@ -35,24 +35,28 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
   return msg || 'Some error occurred'
 }
 
-export async function extractSdkResponseErrorMsgv2(e: Error & { response: any }): Promise<{
+export async function extractSdkResponseErrorMsgv2(e: unknown): Promise<{
   error: NcErrorType
   message: string
   details?: any
 }> {
+  // Callers hand over whatever `catch` gave them, so the shape is narrowed once
+  // here rather than cast at every call site.
+  const err = (e ?? {}) as { response?: { data?: any } }
+
   const unknownError = {
     error: NcErrorType.ERR_UNKNOWN,
-    // TODO: `e.response?.data?.msg` is fallback for v1 error messages, remove after migrating all error messages to v2 format
-    message: e.response?.data?.msg || 'Something went wrong',
+    // TODO: `response?.data?.msg` is fallback for v1 error messages, remove after migrating all error messages to v2 format
+    message: err.response?.data?.msg || 'Something went wrong',
   }
 
-  if (!e || !e.response) {
+  if (!err.response) {
     return unknownError
   }
 
-  if (e.response.data instanceof Blob) {
+  if (err.response.data instanceof Blob) {
     try {
-      const parsedError = JSON.parse(await e.response.data.text())
+      const parsedError = JSON.parse(await err.response.data.text())
       if (parsedError.error && parsedError.error in NcErrorType) {
         return parsedError
       }
@@ -61,8 +65,8 @@ export async function extractSdkResponseErrorMsgv2(e: Error & { response: any })
       return unknownError
     }
   } else {
-    if (e.response.data.error && e.response.data.error in NcErrorType) {
-      return e.response.data
+    if (err.response.data?.error && err.response.data.error in NcErrorType) {
+      return err.response.data
     }
     return unknownError
   }

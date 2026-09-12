@@ -148,7 +148,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockCardFieldHeaderVisibility = computed(() => true)
 
-  const blockAddNewSandbox = computed(() => true)
+  const blockAddNewEnvironmentInstance = computed(() => true)
 
   const blockSync = computed(() => true)
 
@@ -269,6 +269,22 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const blockStagingEnvironment = computed(() => true)
+
+  const blockPerUserCredentials = computed(() => true)
+
+  const blockCustomEnvironment = computed(() => true)
+
+  const isEnvironmentBlocked = (..._args: any[]) => true
+
+  const environmentUpgradeFeature = (..._args: any[]) => undefined
+
+  const showUpgradeToUseStagingEnvironment = (..._args: any[]) => {}
+
+  const showUpgradeToUsePerUserCredentials = (..._args: any[]) => {}
+
+  const showUpgradeToUseCustomEnvironment = (..._args: any[]) => {}
+
   const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
 
   const showUpgradeToUseDocsInlineComments = (..._args: any[]) => {}
@@ -355,7 +371,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseBaseVariables = (..._args: any[]) => {}
 
-  const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
+  const showEnvironmentPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
 
   const showUpgradeToUseMapView = (..._args: any[]) => {}
@@ -439,6 +455,22 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseAgents = (..._args: any[]) => {}
 
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
+
+  const blockApps = computed(() => true)
+
+  const showUpgradeToUseApps = (..._args: any[]) => {}
+
+  const blockAppVanityUrl = computed(() => true)
+
+  const showUpgradeToUseAppVanityUrl = (..._args: any[]) => {}
+
+  const blockAppCustomDomain = computed(() => true)
+
+  const showUpgradeToUseAppCustomDomain = (..._args: any[]) => {}
+
+  const blockAppApi = computed(() => true)
+
+  const showUpgradeToUseAppApi = (..._args: any[]) => {}
 
   const isWorkflowLimitReached = (_count: number) => false
 
@@ -526,6 +558,14 @@ export const useEeConfig = createSharedComposable(() => {
     blockDocShare,
     showUpgradeToShareDoc,
     showDashboardPlanLimitExceededModal,
+    blockStagingEnvironment,
+    blockPerUserCredentials,
+    blockCustomEnvironment,
+    isEnvironmentBlocked,
+    environmentUpgradeFeature,
+    showUpgradeToUseStagingEnvironment,
+    showUpgradeToUsePerUserCredentials,
+    showUpgradeToUseCustomEnvironment,
     showDocumentPagePlanLimitExceededModal,
     showUpgradeToUseDocsInlineComments,
     showUpgradeToUseDocsResolveComments,
@@ -612,8 +652,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAutoNumberField,
     showUpgradeToDuplicateTableToOtherWs,
     showUpgradeToDuplicateTableToOtherBase,
-    blockAddNewSandbox,
-    showSandboxPlanLimitExceededModal,
+    blockAddNewEnvironmentInstance,
+    showEnvironmentPlanLimitExceededModal,
     blockRecordTemplates,
     showUpgradeToUseRecordTemplates,
     blockFormScheduling,
@@ -661,10 +701,18 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockWorkflows,
     showUpgradeToUseWorkflows,
-    isWorkflowLimitReached,
-    showWorkflowPlanLimitExceededModal,
+    blockApps,
+    showUpgradeToUseApps,
+    blockAppVanityUrl,
+    showUpgradeToUseAppVanityUrl,
+    blockAppCustomDomain,
+    showUpgradeToUseAppCustomDomain,
+    blockAppApi,
+    showUpgradeToUseAppApi,
     blockAgents,
     showUpgradeToUseAgents,
+    isWorkflowLimitReached,
+    showWorkflowPlanLimitExceededModal,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

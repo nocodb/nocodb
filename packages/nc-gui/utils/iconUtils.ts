@@ -358,6 +358,7 @@ import NcGitlabIcon from '~icons/nc-icons-v2/gitlab.svg'
 import NcSmartphoneIcon from '~icons/nc-icons-v2/smartphone.svg'
 import NcMoreHorizontalIcon from '~icons/nc-icons-v2/more-horizontal.svg'
 import NcSlidersIcon from '~icons/nc-icons-v2/sliders.svg'
+import NcSlidersHorizontalIcon from '~icons/nc-icons-v2/sliders-horizontal.svg'
 import NcArrowUpLeftIcon from '~icons/nc-icons-v2/arrow-up-left.svg'
 import NcChevronDownIcon from '~icons/nc-icons-v2/chevron-down.svg'
 import NcHexagonIcon from '~icons/nc-icons-v2/hexagon.svg'
@@ -435,8 +436,8 @@ import NcUserMinusIcon from '~icons/nc-icons-v2/user-minus.svg'
 import NcBellIcon from '~icons/nc-icons-v2/bell.svg'
 import NcBellRingIcon from '~icons/nc-icons-v2/bell-ring.svg'
 import NcGitBranchIcon from '~icons/nc-icons-v2/git-branch.svg'
-import NcSandboxIcon from '~icons/nc-icons-v2/sandbox.svg'
-import NcSandboxPlusIcon from '~icons/nc-icons-v2/sandbox-plus.svg'
+import NcEnvironmentIcon from '~icons/nc-icons-v2/environment.svg'
+import NcEnvironmentPlusIcon from '~icons/nc-icons-v2/environment-plus.svg'
 import NcCodeIcon from '~icons/nc-icons-v2/code.svg'
 import NcCodeBlockIcon from '~icons/nc-icons-v2/code-block.svg'
 import NcCastIcon from '~icons/nc-icons-v2/cast.svg'
@@ -580,6 +581,7 @@ import NcCloudIcon from '~icons/nc-icons-v2/cloud.svg'
 import NcDownloadCloudIcon from '~icons/nc-icons-v2/download-cloud.svg'
 import NcShuffleIcon from '~icons/nc-icons-v2/shuffle.svg'
 import NcRewindIcon from '~icons/nc-icons-v2/rewind.svg'
+import NcRocketIcon from '~icons/nc-icons-v2/rocket.svg'
 import NcUploadIcon from '~icons/nc-icons-v2/upload.svg'
 import NcTrendingDownIcon from '~icons/nc-icons-v2/trending-down.svg'
 import NcPauseIcon from '~icons/nc-icons-v2/pause.svg'
@@ -672,6 +674,7 @@ import NcPlusAi from '~icons/nc-icons/plus-ai'
 import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
 import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
 import NcDashboards from '~icons/nc-icons/dashboards'
+import NcApp from '~icons/nc-icons-v2/app.svg'
 
 /* file types */
 
@@ -727,6 +730,9 @@ import NcLogoBoxLogo from '~icons/nc-icons-v2/box-logo.svg'
 import NcLogoChromeColored from '~icons/nc-icons-v2/chrome-colored.svg'
 import NcLogoClaudeAiColored from '~icons/nc-icons-v2/claude-ai-colored.svg'
 import NcLogoClaudeAi from '~icons/nc-icons-v2/claude-ai.svg'
+import NcLogoAzureColored from '~icons/nc-icons-v2/azure.svg'
+import NcLogoDeepseekColored from '~icons/nc-icons-v2/deepseek.svg'
+import NcLogoRedis from '~icons/nc-icons-v2/redis.svg'
 import NcLogoDiscordColored from '~icons/nc-icons-v2/discord-colored.svg'
 import NcLogoDiscord from '~icons/nc-icons-v2/discord.svg'
 import NcLogoDropboxColored from '~icons/nc-icons-v2/dropbox-colored.svg'
@@ -1501,6 +1507,7 @@ export const iconMap = {
   'ncMoreHorizontal': NcMoreHorizontalIcon,
   'ncSliders': NcSlidersIcon,
   'sliders': NcSlidersIcon,
+  'ncSlidersHorizontal': NcSlidersHorizontalIcon,
   'ncArrowUpLeft': NcArrowUpLeftIcon,
   'ncChevronDown': NcChevronDownIcon,
   'ncHexagon': NcHexagonIcon,
@@ -1577,8 +1584,8 @@ export const iconMap = {
   'ncBell': NcBellIcon,
   'ncBellRing': NcBellRingIcon,
   'ncGitBranch': NcGitBranchIcon,
-  'ncSandbox': NcSandboxIcon,
-  'ncSandboxPlus': NcSandboxPlusIcon,
+  'ncEnvironment': NcEnvironmentIcon,
+  'ncEnvironmentPlus': NcEnvironmentPlusIcon,
   'ncCode': NcCodeIcon,
   'ncCodeBlock': NcCodeBlockIcon,
   'ncCast': NcCastIcon,
@@ -1723,6 +1730,7 @@ export const iconMap = {
   'ncDownloadCloud': NcDownloadCloudIcon,
   'ncShuffle': NcShuffleIcon,
   'ncRewind': NcRewindIcon,
+  'ncRocket': NcRocketIcon,
   'ncUpload': NcUploadIcon,
   'ncTrendingDown': NcTrendingDownIcon,
   'ncPause': NcPauseIcon,
@@ -1783,6 +1791,7 @@ export const iconMap = {
   'ncImagePlaceholderIcon': h(NcImagePlaceholderIcon, { stroke: 'transparent' }),
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
+  'ncApp': NcApp,
   'youtube': NcYoutube2Icon,
   'ncEnter': NcEnter,
   'NcAmazonAws': h(NcAmazonAws, { stroke: 'transparent' }),
@@ -1829,6 +1838,9 @@ export const iconMap = {
   'ncLogoChromeColored': h(NcLogoChromeColored, { stroke: 'transparent' }),
   'ncLogoClaudeAiColored': h(NcLogoClaudeAiColored, { stroke: 'transparent' }),
   'ncLogoClaudeAi': h(NcLogoClaudeAi, { stroke: 'transparent' }),
+  'ncLogoAzureColored': h(NcLogoAzureColored, { stroke: 'transparent' }),
+  'ncLogoDeepseekColored': h(NcLogoDeepseekColored, { stroke: 'transparent' }),
+  'ncLogoRedis': h(NcLogoRedis, { stroke: 'transparent' }),
   'ncLogoDiscord': h(NcLogoDiscord, { stroke: 'transparent' }),
   'ncLogoDiscordColored': h(NcLogoDiscordColored, { stroke: 'transparent' }),
   'ncLogoDropboxColored': h(NcLogoDropboxColored, { stroke: 'transparent' }),

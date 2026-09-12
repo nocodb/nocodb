@@ -128,7 +128,12 @@ const focusOnDiv = () => {
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
-      const rolesArr = Object.values(orderedRoles.value)
+      let rolesArr = Object.values(orderedRoles.value)
+
+      // App User is a per-person external status — not assignable to a team, and
+      // only surfaced in EE (CE has no app feature, so hide it there too).
+      if (props.isTeam || !isEeUI) rolesArr = rolesArr.filter((role) => role !== ProjectRoles.APP_USER)
+
       let currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
 
       if (currentRoleIndex !== -1) {

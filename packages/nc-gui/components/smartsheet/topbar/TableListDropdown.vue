@@ -5,7 +5,7 @@ const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
@@ -24,7 +24,7 @@ const filteredTableList = computed(() => {
 })
 
 const tableCreateReason = computed(() =>
-  sandboxRestrictionReason('tableCreate', {
+  environmentRestrictionReason('tableCreate', {
     roles: base.value?.project_role || base.value?.workspace_role,
     source: base.value?.sources?.[activeTableSourceIndex.value] || {},
   }),

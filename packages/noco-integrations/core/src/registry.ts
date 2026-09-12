@@ -18,6 +18,10 @@ export class IntegrationRegistry {
     this.plugins.set(key, integration);
   }
 
+  unregister(type: IntegrationType, subType: string): boolean {
+    return this.plugins.delete(this.getKey(type, subType));
+  }
+
   get(type: IntegrationType, subType: string): IntegrationEntry | undefined {
     const key = this.getKey(type, subType);
     return this.plugins.get(key);

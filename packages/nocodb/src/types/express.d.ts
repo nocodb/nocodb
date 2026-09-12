@@ -17,5 +17,18 @@ declare module 'express-serve-static-core' {
     ncSiteUrl: string;
     clientIp: string;
     dashboardUrl: string;
+    // Set by AppOriginMiddleware when the request Host is an app origin —
+    // `<slug>.<NC_APPS_BASE_DOMAIN>` or a registered custom domain. Carries the
+    // resolved app identity so the invoke/auth controller (B-3 / C-2) never
+    // reads it from request input. `origin` is the serving origin of THIS
+    // request's host (scheme://host), the value session `aud` and the invoke
+    // CSRF origin check are pinned to.
+    ncAppOrigin?: {
+      slug: string;
+      appId: string;
+      baseId: string;
+      fkWorkspaceId: string;
+      origin: string;
+    };
   }
 }

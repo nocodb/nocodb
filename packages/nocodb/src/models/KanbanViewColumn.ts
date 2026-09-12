@@ -4,6 +4,7 @@ import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import { replayedViewColumnId } from '~/helpers/viewColumnReplay';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class KanbanViewColumn implements KanbanColumnType {
@@ -63,6 +64,11 @@ export default class KanbanViewColumn implements KanbanColumnType {
       'base_id',
       'source_id',
     ]);
+    const replayId = replayedViewColumnId(
+      insertObj.fk_view_id,
+      insertObj.fk_column_id,
+    );
+    if (replayId) insertObj.id = replayId;
 
     insertObj.order = await ncMeta.metaGetNextOrder(
       MetaTable.KANBAN_VIEW_COLUMNS,

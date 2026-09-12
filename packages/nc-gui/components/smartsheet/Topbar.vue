@@ -81,13 +81,10 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
 
         <!-- Variable Setup Warning -->
-        <SmartsheetTopbarVariableSetupWarning v-if="!isSharedBase && !isMobileMode" />
+        <SmartsheetTopbarManagedAppSetupWarning v-if="!isSharedBase && !isMobileMode" />
 
         <!-- Managed App Status -->
         <LazySmartsheetTopbarManagedAppStatus v-if="!isSharedBase && !isMobileMode" />
-
-        <!-- Sandbox Status -->
-        <LazySmartsheetTopbarSandboxStatus v-if="!isSharedBase && !isMobileMode" />
 
         <!-- isEeUI, not appInfo.ee: presence ships on unlicensed on-prem too, where appInfo.ee is false. -->
         <LazySmartsheetTopbarCollaboratorPresence v-if="!isPublic && !isSharedBase && !isMobileMode && isEeUI" />

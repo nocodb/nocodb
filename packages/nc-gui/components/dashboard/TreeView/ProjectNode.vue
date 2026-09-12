@@ -58,7 +58,7 @@ const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = use
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -378,7 +378,7 @@ const getSource = (sourceId: string) => {
 }
 
 function tableActionReason(perm: string) {
-  return sandboxRestrictionReason(perm, { source: getSource(contextMenuTarget.value?.source_id) })
+  return environmentRestrictionReason(perm, { source: getSource(contextMenuTarget.value?.source_id) })
 }
 
 const labelEl = ref()

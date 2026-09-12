@@ -40,8 +40,6 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
-
 const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations, showEEFeatures } = useEeConfig()
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
@@ -62,7 +60,6 @@ const {
   integrationsCategoryFilter,
   activeViewTab,
   loadDynamicIntegrations,
-  availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
@@ -269,13 +266,8 @@ const toggleShowOrHideAllCategory = () => {
   }
 }
 
-const isIntegrationVisible = (integration: IntegrationItemType, category: any) => {
+const isIntegrationVisible = (integration: IntegrationItemType, _category: any) => {
   if (!showComingSoonIntegrations.value && !integration.isAvailable) return false
-
-  // AUTH category: always filter by available sync auth subtypes, even when easterEggToggle is on
-  if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {
-    return availableSyncAuthIntegrationSubtypes.value.includes(integration.sub_type)
-  }
 
   if (easterEggToggle.value) return true
 
@@ -471,7 +463,7 @@ watch(activeViewTab, (value) => {
                       v-if="
                         (easterEggToggle ||
                           category.value === IntegrationCategoryType.DATABASE ||
-                          (isSyncFeatureEnabled && category.value === IntegrationCategoryType.AUTH)) &&
+                          category.value === IntegrationCategoryType.AUTH) &&
                         category.list.length
                       "
                       :key="key"

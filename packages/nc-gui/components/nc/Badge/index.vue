@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<NcBadgeProps>(), {
       'border-nc-maroon-500 bg-nc-bg-maroon': props.color === 'maroon',
       'border-nc-gray-500 bg-nc-bg-gray-extralight': props.color === 'gray',
       'bg-nc-bg-brand text-nc-content-brand': props.color === 'brand',
-      'bg-nc-bg-coloured-purple text-nc-content-purple-medium': props.color === 'ai',
+      'bg-nc-bg-purple-light text-nc-content-purple-medium': props.color === 'ai',
       'border-nc-border-gray-dark': !props.color,
       'border-1': props.border,
       'h-5': props.size === 'xs',

@@ -6,7 +6,7 @@ import type { UIAclEvent } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { Base, Model, ModelRoleVisibility, View } from '~/models';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class ModelVisibilitiesService {
       req: NcRequest;
     },
   ) {
-    await assertNotSandbox(context);
+    await assertNotLaneInstance(context);
 
     validatePayload(
       'swagger.json#/components/schemas/VisibilityRuleReq',
@@ -54,7 +54,7 @@ export class ModelVisibilitiesService {
               });
             }
           } else {
-            await dataInDb.delete(context);
+            await dataInDb.delete();
           }
         } else if (d.disabled[role]) {
           await ModelRoleVisibility.insert(context, {
@@ -113,7 +113,7 @@ export class ModelVisibilitiesService {
     const result = await models.reduce(async (_obj, model) => {
       const obj = await _obj;
 
-      const views = await model.getViews(context);
+      const views = await model.getViews();
       for (const view of views) {
         obj[view.id] = {
           ptn: model.table_name,

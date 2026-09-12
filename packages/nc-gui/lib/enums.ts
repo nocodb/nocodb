@@ -212,6 +212,9 @@ export enum ExtensionsEvents {
 
 export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
+  /** The caller connected/disconnected their own account on a per-user
+   * integration — payload: `{ id, connected_environment_ids }`. */
+  USER_CONNECTION_UPDATE = 'user-connection-update',
 }
 
 export enum WorkspaceIconType {

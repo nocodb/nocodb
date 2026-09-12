@@ -1,5 +1,9 @@
 import { RelationTypes } from '~/lib/globals';
 import UITypes from '~/lib/UITypes';
+import type {
+  ActionInvokeAuditDetail,
+  RoutineInvokeAuditDetail,
+} from '../app/routine';
 
 enum AuditV1OperationTypes {
   USER_SIGNUP = 'USER_SIGNUP',
@@ -274,6 +278,65 @@ enum AuditV1OperationTypes {
   DATE_DEPENDENCY_UPDATE = 'DATE_DEPENDENCY_UPDATE',
   DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
 
+  ACTION_INVOKE = 'ACTION_INVOKE',
+  /** @deprecated Superseded by ACTION_INVOKE; kept so existing rows still render. */
+  ROUTINE_INVOKE = 'ROUTINE_INVOKE',
+  ROUTINE_GRANT = 'ROUTINE_GRANT',
+
+  APP_PUBLISH = 'APP_PUBLISH',
+  APP_ROLLBACK = 'APP_ROLLBACK',
+  APP_TOKEN_CREATE = 'APP_TOKEN_CREATE',
+  APP_TOKEN_UPDATE = 'APP_TOKEN_UPDATE',
+  APP_TOKEN_DELETE = 'APP_TOKEN_DELETE',
+
+  APP_CREATE = 'APP_CREATE',
+  APP_UPDATE = 'APP_UPDATE',
+  APP_DELETE = 'APP_DELETE',
+
+  ACTION_CREATE = 'ACTION_CREATE',
+  ACTION_UPDATE = 'ACTION_UPDATE',
+  ACTION_DELETE = 'ACTION_DELETE',
+  ACTION_ROLLOUT = 'ACTION_ROLLOUT',
+
+  AGENT_CREATE = 'AGENT_CREATE',
+  AGENT_UPDATE = 'AGENT_UPDATE',
+  AGENT_DELETE = 'AGENT_DELETE',
+  AGENT_ROLE_UPDATE = 'AGENT_ROLE_UPDATE',
+  AGENT_SECTION_CREATE = 'AGENT_SECTION_CREATE',
+  AGENT_SECTION_UPDATE = 'AGENT_SECTION_UPDATE',
+  AGENT_SECTION_DELETE = 'AGENT_SECTION_DELETE',
+
+  CHAT_SESSION_CREATE = 'CHAT_SESSION_CREATE',
+  CHAT_SESSION_UPDATE = 'CHAT_SESSION_UPDATE',
+  CHAT_SESSION_DELETE = 'CHAT_SESSION_DELETE',
+
+  MANAGED_APP_CREATE = 'MANAGED_APP_CREATE',
+  MANAGED_APP_UPDATE = 'MANAGED_APP_UPDATE',
+  MANAGED_APP_DELETE = 'MANAGED_APP_DELETE',
+  MANAGED_APP_PUBLISH = 'MANAGED_APP_PUBLISH',
+  MANAGED_APP_INSTALL = 'MANAGED_APP_INSTALL',
+  MANAGED_APP_UNINSTALL = 'MANAGED_APP_UNINSTALL',
+  MANAGED_APP_UPDATE_COMPLETE = 'MANAGED_APP_UPDATE_COMPLETE',
+  MANAGED_APP_UPDATE_FAIL = 'MANAGED_APP_UPDATE_FAIL',
+  MANAGED_APP_ROLLOUT_HALT = 'MANAGED_APP_ROLLOUT_HALT',
+  MANAGED_APP_ROLLOUT_RESUME = 'MANAGED_APP_ROLLOUT_RESUME',
+
+  MARKETPLACE_LISTING_DELIST = 'MARKETPLACE_LISTING_DELIST',
+  MARKETPLACE_LISTING_SUSPEND = 'MARKETPLACE_LISTING_SUSPEND',
+  MARKETPLACE_LISTING_REPORT = 'MARKETPLACE_LISTING_REPORT',
+  MARKETPLACE_PUBLISHER_VERIFY = 'MARKETPLACE_PUBLISHER_VERIFY',
+  MARKETPLACE_PUBLISHER_DELIST = 'MARKETPLACE_PUBLISHER_DELIST',
+  MARKETPLACE_CURATION_UPDATE = 'MARKETPLACE_CURATION_UPDATE',
+
+  ENVIRONMENT_CREATE = 'ENVIRONMENT_CREATE',
+  ENVIRONMENT_UPDATE = 'ENVIRONMENT_UPDATE',
+  ENVIRONMENT_DELETE = 'ENVIRONMENT_DELETE',
+  ENVIRONMENT_OPEN = 'ENVIRONMENT_OPEN',
+  ENVIRONMENT_CLOSE = 'ENVIRONMENT_CLOSE',
+  ENVIRONMENT_DISCARD = 'ENVIRONMENT_DISCARD',
+  ENVIRONMENT_PROMOTE = 'ENVIRONMENT_PROMOTE',
+  ENVIRONMENT_PROMOTE_FAILED = 'ENVIRONMENT_PROMOTE_FAILED',
+  ENVIRONMENT_REFRESH = 'ENVIRONMENT_REFRESH',
   SKILL_CREATE = 'SKILL_CREATE',
   SKILL_UPDATE = 'SKILL_UPDATE',
   SKILL_DELETE = 'SKILL_DELETE',
@@ -1497,7 +1560,7 @@ export interface PermissionCreatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team' | 'appTeam' | 'agent'; id: string }>;
 }
 
 export interface PermissionUpdatePayload {
@@ -1509,7 +1572,7 @@ export interface PermissionUpdatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team' | 'appTeam' | 'agent'; id: string }>;
 }
 
 export interface PermissionDeletePayload {
@@ -1654,6 +1717,234 @@ export interface DocumentCommentUpdatePayload {
 export interface DocumentCommentDeletePayload {
   document_id: string;
   comment_id: string;
+}
+
+export interface ActionInvokePayload {
+  appId: string;
+  appVersionId: string;
+  /** The dotted wire id — `POST /api/v1/:appId/:actionId`. */
+  actionId: string;
+  actionVersionId: string;
+  /** The capability the action required, which the caller's grants had to match. */
+  capability: string;
+  kind: string;
+  bodyHash?: string;
+  status: 'success' | 'error';
+  durationMs: number;
+  actorRole: string;
+  /**
+   * Which caller class invoked. The bearer (external API / MCP) path builds an
+   * `AppLiveScope` identical to the cookie path's, so without this an external
+   * call is indistinguishable from the app's own frontend. Absent on rows
+   * written before the external surface existed; read those as `app_session`.
+   *
+   * `app_public` is the anonymous surface: no session, no account, and the
+   * `public` team's grant as the whole access decision.
+   */
+  callerClass?: 'app_session' | 'app_token' | 'app_public';
+  /** The `nc_app_tokens` row that authenticated the call. Set only for
+   *  `callerClass: 'app_token'`. */
+  appTokenId?: string;
+  auditDetail?: ActionInvokeAuditDetail;
+}
+
+/** @deprecated Emitted by the removed routine registry; kept for existing rows. */
+export interface RoutineInvokePayload {
+  appId: string;
+  appVersionId?: string;
+  routineName: string;
+  routineVersionId: string;
+  bodyHash: string;
+  sourceType: string;
+  status: 'success' | 'error';
+  durationMs: number;
+  actorRole: string;
+  auditDetail?: RoutineInvokeAuditDetail;
+}
+
+export interface RoutineGrantPayload {
+  appId: string;
+  integrationId: string;
+  action: 'request' | 'approve' | 'revoke' | 'remove';
+  status: 'pending' | 'active' | 'revoked';
+  grantId?: string;
+  reason?: string;
+}
+
+export interface AppPublishAuditDetails {
+  app_id: string;
+  app_title?: string;
+  version_id: string;
+  version_number: number;
+  git_sha: string;
+  pinned_actions: string[];
+}
+
+export interface AppRollbackAuditDetails {
+  app_id: string;
+  app_title?: string;
+  from_version_id?: string;
+  to_version_id: string;
+  to_version_number: number;
+}
+
+/** Minting and revoking an app token. The plaintext is never in an audit row —
+ *  only which token, on which app, for whose persona. */
+export interface AppTokenAuditDetails {
+  app_id: string;
+  token_id: string;
+  token_prefix?: string;
+  title?: string;
+  /** The persona the token acts as — always its creator in v1. */
+  fk_user_id: string;
+  expires_at?: string | null;
+}
+
+/** The app itself, as the maker sees it — distinct from APP_PUBLISH, which is a version. */
+export interface AppLifecycleAuditDetails {
+  app_id?: string;
+  app_title?: string;
+}
+
+/** A change to what an action DOES, as opposed to ACTION_INVOKE's record of it running. */
+export interface ActionLifecycleAuditDetails {
+  action_id?: string;
+  action_title?: string;
+  app_id?: string;
+  /** Present when the change cut a new action version. */
+  action_version_id?: string;
+}
+
+/** Pinning an action version into app versions — what installers will actually run. */
+export interface ActionRolloutAuditDetails {
+  action_id: string;
+  action_version_id: string;
+  app_version_ids: string[];
+}
+
+export interface AgentLifecycleAuditDetails {
+  agent_id?: string;
+  agent_title?: string;
+  /** Only on a role change. */
+  role?: string;
+}
+
+export interface AgentSectionAuditDetails {
+  agent_section_id?: string;
+  agent_section_title?: string;
+}
+
+export interface ChatSessionAuditDetails {
+  session_id: string;
+}
+
+export interface ManagedAppLifecycleAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  /** The production base the listing was cut from. */
+  base_id?: string;
+}
+
+export interface ManagedAppPublishAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  base_id?: string;
+  version_id?: string;
+  version?: string;
+}
+
+/** An install, and the deployment outcomes that follow an installed app forward. */
+export interface ManagedAppDeploymentAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  installed_base_id: string;
+  version_id?: string;
+  version?: string;
+  /** Only on a failed deployment. */
+  error?: string;
+}
+
+/** Removing an installed app. The base deletion audits separately as BASE_DELETE;
+ *  this row is what names the app and the version that was running. */
+export interface ManagedAppUninstallAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  installed_base_id: string;
+  version_id?: string;
+}
+
+/** Overriding a halted rollout — an operator decision, so the reason being
+ *  cleared is the part a reader needs. */
+/** The breaker tripping, not a person acting — `remaining` is the blast radius it prevented. */
+export interface ManagedAppRolloutHaltAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  version_id?: string;
+  version?: string;
+  reason: string;
+  attempted: number;
+  failed: number;
+  remaining: number;
+}
+
+export interface ManagedAppRolloutResumeAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  version_id?: string;
+  version?: string;
+  cleared_reason?: string | null;
+}
+
+/** Both toggles carry the new state — one route delists and relists, so without
+ *  the boolean the trail cannot tell a takedown from its reversal. */
+export interface MarketplaceListingModerationAuditDetails {
+  listing_id: string;
+  listing_title: string;
+  /** The workspace that owns the listing — the publisher's own copy of this row. */
+  listing_workspace_id?: string;
+  delisted?: boolean;
+  suspended?: boolean;
+  /** Null when the whole app was suspended rather than one version. */
+  version_id?: string | null;
+  reason?: string;
+}
+
+export interface MarketplaceListingReportAuditDetails {
+  listing_id: string;
+  listing_title: string;
+  reason: string;
+  detail?: string;
+}
+
+export interface MarketplacePublisherModerationAuditDetails {
+  publisher_id: string;
+  publisher_handle: string;
+  publisher_name: string;
+  verified?: boolean;
+  delisted?: boolean;
+  reason?: string;
+}
+
+export interface MarketplaceCurationAuditDetails {
+  slot: string;
+  listing_ids: string[];
+}
+
+/** The environment definition (a workspace-level name and colour), not a copy of a base. */
+export interface EnvironmentConfigAuditDetails {
+  environment_id?: string;
+  environment_title?: string;
+  environment_key?: string;
+}
+
+/** One copy of one base, through its whole life: open → promote/discard → close. */
+export interface EnvironmentLaneAuditDetails {
+  base_environment_id: string;
+  base_id: string;
+  lane_base_id: string;
+  /** Only on a failed promote. */
+  error?: string;
+  counts?: { applied: number; skipped: number; failed: number };
 }
 
 export interface TeamCreatePayload {
@@ -2296,6 +2587,147 @@ const descriptionTemplates = {
     audit.details.gantt_view_title
       ? `Date dependency deleted from Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
       : `Date dependency deleted from table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.ACTION_INVOKE]: (
+    audit: AuditV1<ActionInvokePayload>
+  ) =>
+    `Action '${audit.details.actionId}' invoked with status '${audit.details.status}'`,
+  [AuditV1OperationTypes.ROUTINE_INVOKE]: (
+    audit: AuditV1<RoutineInvokePayload>
+  ) =>
+    `Routine '${audit.details.routineName}' invoked with status '${audit.details.status}'`,
+  [AuditV1OperationTypes.ROUTINE_GRANT]: (
+    audit: AuditV1<RoutineGrantPayload>
+  ) =>
+    `Integration access ${audit.details.action} (status '${audit.details.status}') for app '${audit.details.appId}'`,
+  [AuditV1OperationTypes.APP_PUBLISH]: (
+    audit: AuditV1<AppPublishAuditDetails>
+  ) =>
+    `App '${audit.details.app_title ?? audit.details.app_id}' published as version ${audit.details.version_number}`,
+  [AuditV1OperationTypes.APP_ROLLBACK]: (
+    audit: AuditV1<AppRollbackAuditDetails>
+  ) =>
+    `App '${audit.details.app_title ?? audit.details.app_id}' rolled back to version ${audit.details.to_version_number}`,
+  [AuditV1OperationTypes.APP_TOKEN_CREATE]: (
+    audit: AuditV1<AppTokenAuditDetails>
+  ) =>
+    `App token '${audit.details.title ?? audit.details.token_id}' created for app '${audit.details.app_id}'`,
+  [AuditV1OperationTypes.APP_TOKEN_UPDATE]: (
+    audit: AuditV1<AppTokenAuditDetails>
+  ) =>
+    `App token '${audit.details.title ?? audit.details.token_id}' updated on app '${audit.details.app_id}'`,
+  [AuditV1OperationTypes.APP_TOKEN_DELETE]: (
+    audit: AuditV1<AppTokenAuditDetails>
+  ) =>
+    `App token '${audit.details.title ?? audit.details.token_id}' deleted on app '${audit.details.app_id}'`,
+
+  [AuditV1OperationTypes.APP_CREATE]: (audit: AuditV1<AppLifecycleAuditDetails>) =>
+    `App '${audit.details.app_title ?? audit.details.app_id}' created`,
+  [AuditV1OperationTypes.APP_UPDATE]: (audit: AuditV1<AppLifecycleAuditDetails>) =>
+    `App '${audit.details.app_title ?? audit.details.app_id}' updated`,
+  [AuditV1OperationTypes.APP_DELETE]: (audit: AuditV1<AppLifecycleAuditDetails>) =>
+    `App '${audit.details.app_title ?? audit.details.app_id}' deleted`,
+  [AuditV1OperationTypes.ACTION_CREATE]: (audit: AuditV1<ActionLifecycleAuditDetails>) =>
+    `Action '${audit.details.action_title ?? audit.details.action_id}' created`,
+  [AuditV1OperationTypes.ACTION_UPDATE]: (audit: AuditV1<ActionLifecycleAuditDetails>) =>
+    `Action '${audit.details.action_title ?? audit.details.action_id}' updated`,
+  [AuditV1OperationTypes.ACTION_DELETE]: (audit: AuditV1<ActionLifecycleAuditDetails>) =>
+    `Action '${audit.details.action_title ?? audit.details.action_id}' deleted`,
+  [AuditV1OperationTypes.ACTION_ROLLOUT]: (audit: AuditV1<ActionRolloutAuditDetails>) =>
+    `Action '${audit.details.action_id}' rolled out to ${audit.details.app_version_ids.length} app version(s)`,
+  [AuditV1OperationTypes.AGENT_CREATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
+    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' created`,
+  [AuditV1OperationTypes.AGENT_UPDATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
+    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' updated`,
+  [AuditV1OperationTypes.AGENT_DELETE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
+    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' deleted`,
+  [AuditV1OperationTypes.AGENT_ROLE_UPDATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
+    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' role set to '${audit.details.role}'`,
+  [AuditV1OperationTypes.AGENT_SECTION_CREATE]: (audit: AuditV1<AgentSectionAuditDetails>) =>
+    `Agent section '${audit.details.agent_section_title ?? audit.details.agent_section_id}' created`,
+  [AuditV1OperationTypes.AGENT_SECTION_UPDATE]: (audit: AuditV1<AgentSectionAuditDetails>) =>
+    `Agent section '${audit.details.agent_section_title ?? audit.details.agent_section_id}' updated`,
+  [AuditV1OperationTypes.AGENT_SECTION_DELETE]: (audit: AuditV1<AgentSectionAuditDetails>) =>
+    `Agent section '${audit.details.agent_section_title ?? audit.details.agent_section_id}' deleted`,
+  [AuditV1OperationTypes.CHAT_SESSION_CREATE]: (audit: AuditV1<ChatSessionAuditDetails>) =>
+    `Chat session '${audit.details.session_id}' created`,
+  [AuditV1OperationTypes.CHAT_SESSION_UPDATE]: (audit: AuditV1<ChatSessionAuditDetails>) =>
+    `Chat session '${audit.details.session_id}' updated`,
+  [AuditV1OperationTypes.CHAT_SESSION_DELETE]: (audit: AuditV1<ChatSessionAuditDetails>) =>
+    `Chat session '${audit.details.session_id}' deleted`,
+  [AuditV1OperationTypes.MANAGED_APP_CREATE]: (audit: AuditV1<ManagedAppLifecycleAuditDetails>) =>
+    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' created`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE]: (audit: AuditV1<ManagedAppLifecycleAuditDetails>) =>
+    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' updated`,
+  [AuditV1OperationTypes.MANAGED_APP_DELETE]: (audit: AuditV1<ManagedAppLifecycleAuditDetails>) =>
+    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' deleted`,
+  [AuditV1OperationTypes.MANAGED_APP_PUBLISH]: (audit: AuditV1<ManagedAppPublishAuditDetails>) =>
+    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' published version ${audit.details.version ?? audit.details.version_id}`,
+  [AuditV1OperationTypes.MANAGED_APP_INSTALL]: (audit: AuditV1<ManagedAppDeploymentAuditDetails>) =>
+    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' installed into base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UNINSTALL]: (audit: AuditV1<ManagedAppUninstallAuditDetails>) =>
+    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' uninstalled from base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE_COMPLETE]: (audit: AuditV1<ManagedAppDeploymentAuditDetails>) =>
+    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' updated to version ${audit.details.version ?? audit.details.version_id} on base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE_FAIL]: (audit: AuditV1<ManagedAppDeploymentAuditDetails>) =>
+    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' failed to update on base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_ROLLOUT_HALT]: (
+    audit: AuditV1<ManagedAppRolloutHaltAuditDetails>
+  ) =>
+    `Rollout of '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' version ${
+      audit.details.version ?? audit.details.version_id
+    } halted after ${audit.details.failed} of ${
+      audit.details.attempted
+    } installs failed (${audit.details.reason}), ${
+      audit.details.remaining
+    } not attempted`,
+  [AuditV1OperationTypes.MANAGED_APP_ROLLOUT_RESUME]: (
+    audit: AuditV1<ManagedAppRolloutResumeAuditDetails>
+  ) =>
+    `Rollout resumed for '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' version ${audit.details.version ?? audit.details.version_id}`,
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_DELIST]: (audit: AuditV1<MarketplaceListingModerationAuditDetails>) =>
+    `Listing '${audit.details.listing_title}' ${
+      audit.details.delisted ? 'delisted' : 'relisted'
+    }`,
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_SUSPEND]: (audit: AuditV1<MarketplaceListingModerationAuditDetails>) =>
+    `Listing '${audit.details.listing_title}'${
+      audit.details.version_id ? ` version ${audit.details.version_id}` : ''
+    } ${audit.details.suspended ? 'suspended' : 'reinstated'}`,
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_REPORT]: (audit: AuditV1<MarketplaceListingReportAuditDetails>) =>
+    `Listing '${audit.details.listing_title}' reported for '${audit.details.reason}'`,
+  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_VERIFY]: (audit: AuditV1<MarketplacePublisherModerationAuditDetails>) =>
+    `Publisher '@${audit.details.publisher_handle}' ${
+      audit.details.verified ? 'verified' : 'unverified'
+    }`,
+  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_DELIST]: (audit: AuditV1<MarketplacePublisherModerationAuditDetails>) =>
+    `Publisher '@${audit.details.publisher_handle}' ${
+      audit.details.delisted ? 'delisted' : 'relisted'
+    }`,
+  [AuditV1OperationTypes.MARKETPLACE_CURATION_UPDATE]: (audit: AuditV1<MarketplaceCurationAuditDetails>) =>
+    `Curation slot '${audit.details.slot}' set to ${audit.details.listing_ids.length} listing(s)`,
+  [AuditV1OperationTypes.ENVIRONMENT_CREATE]: (audit: AuditV1<EnvironmentConfigAuditDetails>) =>
+    `Environment '${audit.details.environment_title ?? audit.details.environment_key ?? audit.details.environment_id}' created`,
+  [AuditV1OperationTypes.ENVIRONMENT_UPDATE]: (audit: AuditV1<EnvironmentConfigAuditDetails>) =>
+    `Environment '${audit.details.environment_title ?? audit.details.environment_key ?? audit.details.environment_id}' updated`,
+  [AuditV1OperationTypes.ENVIRONMENT_DELETE]: (audit: AuditV1<EnvironmentConfigAuditDetails>) =>
+    `Environment '${audit.details.environment_title ?? audit.details.environment_key ?? audit.details.environment_id}' deleted`,
+  [AuditV1OperationTypes.ENVIRONMENT_OPEN]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+    `Base '${audit.details.base_id}' opened in an environment as '${audit.details.lane_base_id}'`,
+  [AuditV1OperationTypes.ENVIRONMENT_CLOSE]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+    `Environment copy '${audit.details.lane_base_id}' closed`,
+  [AuditV1OperationTypes.ENVIRONMENT_DISCARD]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+    `Environment copy '${audit.details.lane_base_id}' discarded without promoting`,
+  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+    `Environment copy '${audit.details.lane_base_id}' promoted to base '${audit.details.base_id}'`,
+  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE_FAILED]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+    `Promote failed for environment copy '${audit.details.lane_base_id}'${
+      audit.details.counts ? ` (${audit.details.counts.failed} failed)` : ''
+    }`,
+  [AuditV1OperationTypes.ENVIRONMENT_REFRESH]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+    `Environment copy '${audit.details.lane_base_id}' refreshed from base '${audit.details.base_id}'`,
   [AuditV1OperationTypes.SKILL_CREATE]: (audit: AuditV1<SkillPayload>) =>
     `Skill '${audit.details.skill_title}' has been created in ${audit.details.scope} scope`,
   [AuditV1OperationTypes.SKILL_UPDATE]: (audit: AuditV1<SkillPayload>) =>

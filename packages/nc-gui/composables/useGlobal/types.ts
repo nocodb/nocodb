@@ -40,6 +40,8 @@ export interface AppInfo {
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
+  /** Public base domain published apps are served under (`<slug>.<domain>`); null when app serving isn't configured. */
+  appsBaseDomain?: string | null
   disableEmailAuth: boolean
   mainSubDomain?: string
   dashboardPath: string

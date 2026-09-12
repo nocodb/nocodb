@@ -1,6 +1,6 @@
 import UITypes, { isLinksOrLTAR, isNumericCol, isVirtualCol } from './UITypes';
 import { RelationTypes, RolesObj, RolesType } from './globals';
-import { ClientType } from './enums';
+import { ClientType, IntegrationCategoryType } from './enums';
 import {
   ColumnType,
   FormulaType,
@@ -340,9 +340,7 @@ export const getTestDatabaseName = (db: {
   connection?: { database?: string };
 }) => {
   if (
-    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(
-      db.client,
-    )
+    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(db.client)
   )
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
@@ -350,6 +348,39 @@ export const getTestDatabaseName = (db: {
 
 export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
+};
+
+/**
+ * Per-environment config overrides are only meaningful for integrations whose
+ * config is a set of credentials that legitimately differs between production and
+ * staging/custom environments — i.e. Auth and AI integrations. Database sources,
+ * Sync connectors and workflow nodes do NOT support environments.
+ *
+ * Accepts either enum since the two share identical string values ('auth', 'ai');
+ * the runtime comparison is on those values.
+ */
+export const integrationSupportsEnvironments = (
+  category?: IntegrationsType | IntegrationCategoryType
+): boolean => {
+  return category === IntegrationsType.Auth || category === IntegrationsType.Ai;
+};
+
+/**
+ * Whether an integration can be switched to per-user credentials
+ * (`credential_mode: 'per_user'`). Two-level opt-in: only AUTH integrations
+ * qualify (the credential must BE a user identity at the provider), and the
+ * integration package must declare `allowsPerUserCredentials` on its manifest
+ * (effectively OAuth2 authorization-code providers only — API-key auth has no
+ * user identity). The instance-level oauth check (`config.type === 'oauth'`)
+ * is enforced server-side at mode-set time, not here.
+ */
+export const integrationSupportsPerUserCredentials = (
+  category?: IntegrationsType | IntegrationCategoryType,
+  manifest?: { allowsPerUserCredentials?: boolean }
+): boolean => {
+  return (
+    category === IntegrationsType.Auth && !!manifest?.allowsPerUserCredentials
+  );
 };
 
 export function parseProp(v: any, fallbackVal = {}): any {

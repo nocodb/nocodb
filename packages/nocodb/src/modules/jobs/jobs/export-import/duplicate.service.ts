@@ -57,9 +57,9 @@ export class DuplicateService {
       NcError.get(context).baseNotFound(baseId);
     }
 
-    if (base.is_sandbox) {
+    if (base.is_lane_instance) {
       NcError.get(context).badRequest(
-        'Sandbox bases cannot be duplicated. Duplicate the master base instead.',
+        'Environment instances cannot be duplicated. Duplicate the production base instead.',
       );
     }
 

@@ -110,8 +110,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const isLoadedIntegrations = ref(false)
 
-  const availableSyncAuthIntegrationSubtypes = ref<string[]>([])
-
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
   const { $api, $e } = useNuxtApp()
@@ -570,7 +568,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     successConfirmModal,
     searchQuery,
     integrationsCategoryFilter,
-    availableSyncAuthIntegrationSubtypes,
     addIntegration,
     loadIntegrations,
     deleteIntegration,

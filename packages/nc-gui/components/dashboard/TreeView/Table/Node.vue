@@ -23,7 +23,7 @@ const { openTable: _openTable } = useTableNew({
 
 const route = useRoute()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -420,26 +420,26 @@ async function onRename() {
 
 const restrictionReasons = computed(() => {
   return {
-    tableRename: sandboxRestrictionReason('tableRename', { roles: baseRole?.value, source: source.value }),
-    tableDescriptionEdit: sandboxRestrictionReason('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
+    tableRename: environmentRestrictionReason('tableRename', { roles: baseRole?.value, source: source.value }),
+    tableDescriptionEdit: environmentRestrictionReason('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
     tableDuplicate:
       source.value?.is_meta || source.value?.is_local
-        ? sandboxRestrictionReason('tableDuplicate', { source: source.value })
+        ? environmentRestrictionReason('tableDuplicate', { source: source.value })
         : null,
     tablePermission:
       isEeUI && table.value?.type === 'table' && showEEFeatures.value
-        ? sandboxRestrictionReason('tablePermission', { roles: baseRole?.value, source: source.value })
+        ? environmentRestrictionReason('tablePermission', { roles: baseRole?.value, source: source.value })
         : null,
     tableRowLevelSecurity:
       isEeUI && table.value?.type === 'table' && showEEFeatures.value
-        ? sandboxRestrictionReason('rlsManage', { roles: baseRole?.value, source: source.value })
+        ? environmentRestrictionReason('rlsManage', { roles: baseRole?.value, source: source.value })
         : null,
-    tableDelete: sandboxRestrictionReason('tableDelete', { roles: baseRole?.value, source: source.value }),
+    tableDelete: environmentRestrictionReason('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })
 
 const tableIconEditReason = computed(() =>
-  sandboxRestrictionReason('tableIconEdit', { roles: baseRole?.value, source: source.value }),
+  environmentRestrictionReason('tableIconEdit', { roles: baseRole?.value, source: source.value }),
 )
 
 const enabledOptions = computed(() => {

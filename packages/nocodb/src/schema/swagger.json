@@ -20886,6 +20886,60 @@
           "in": "query",
           "description": "Document Revision ID",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "appId",
+          "in": "query",
+          "description": "App ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "appTeamId",
+          "in": "query",
+          "description": "App Team ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "pageId",
+          "in": "query",
+          "description": "App Page ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "routineId",
+          "in": "query",
+          "description": "App Routine ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "threadId",
+          "in": "query",
+          "description": "App Chat Thread ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "persona",
+          "in": "query",
+          "description": "App Team handle to preview the app as",
+          "required": false
         }
       ]
     },
@@ -21791,6 +21845,21 @@
           "is_private": {
             "$ref": "#/components/schemas/Bool"
           },
+          "credential_mode": {
+            "description": "Credential sharing mode for AUTH integrations",
+            "enum": [
+              "shared",
+              "per_user"
+            ],
+            "type": "string"
+          },
+          "connected_environment_ids": {
+            "description": "EE only. On per-user integrations: environment ids the REQUESTING user has connected (attached to list/read responses; empty when unconnected).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "is_default": {
             "$ref": "#/components/schemas/Bool"
           },
@@ -21806,6 +21875,22 @@
             "description": "DB Type",
             "example": "mysql2",
             "type": "string"
+          },
+          "environments": {
+            "description": "EE only. Per-environment config overrides for this integration. Each entry's `config` is decrypted only when the caller may also see the integration's own config (same gate); otherwise it is omitted. Absent/empty in CE.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fk_environment_id": {
+                  "description": "The environment this override belongs to",
+                  "type": "string"
+                },
+                "config": {
+                  "description": "The per-environment config (decrypted for authorized callers, omitted otherwise)"
+                }
+              }
+            }
           }
         },
         "x-stoplight": {
@@ -22009,7 +22094,8 @@
           "ticketing",
           "storage",
           "others",
-          "workflow-node"
+          "workflow-node",
+          "actions"
         ]
       },
       "IntegrationReq": {
@@ -22048,6 +22134,34 @@
           "is_restricted": {
             "$ref": "#/components/schemas/Bool",
             "description": "Whether the integration is restricted to specific bases"
+          },
+          "is_private": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the integration is visible only to its creator. Not combinable with credential_mode 'per_user'."
+          },
+          "credential_mode": {
+            "description": "EE only. Credential sharing mode for AUTH integrations: 'shared' (default \u2014 one credential everyone uses) or 'per_user' (each user connects their own account). Ignored in CE.",
+            "enum": [
+              "shared",
+              "per_user"
+            ],
+            "type": "string"
+          },
+          "environments": {
+            "description": "EE only. Per-environment config overrides to apply when creating the integration. Each entry's `config` is persisted as that environment's override (production is skipped — it uses the integration's own config). Ignored in CE.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fk_environment_id": {
+                  "description": "The environment this override belongs to",
+                  "type": "string"
+                },
+                "config": {
+                  "description": "The per-environment config override"
+                }
+              }
+            }
           }
         },
         "title": "Source Request",
@@ -23567,7 +23681,9 @@
                 "pattern": "^fr_[a-z0-9]+$",
                 "maxLength": 32
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ]
           },
           "required": {
@@ -23654,7 +23770,9 @@
                 "pattern": "^fr_[a-z0-9]+$",
                 "maxLength": 32
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ]
           },
           "required": {
@@ -24577,7 +24695,10 @@
               },
               "scope": {
                 "type": "string",
-                "enum": ["anyone", "specific"],
+                "enum": [
+                  "anyone",
+                  "specific"
+                ],
                 "description": "anyone = any mention; specific = only mentions of user_ids"
               },
               "user_ids": {
@@ -24597,7 +24718,10 @@
               },
               "mode": {
                 "type": "string",
-                "enum": ["include", "exclude"]
+                "enum": [
+                  "include",
+                  "exclude"
+                ]
               },
               "user_ids": {
                 "type": "array",
@@ -27155,7 +27279,9 @@
                         "type": "string",
                         "enum": [
                           "user",
-                          "team"
+                          "team",
+                          "appTeam",
+                          "agent"
                         ],
                         "description": "Type of the subject"
                       },
@@ -27179,13 +27305,13 @@
               ]
             }
           },
-          "is_sandbox": {
+          "is_lane_instance": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Indicates if the base is a sandbox"
+            "description": "Indicates if the base is an environment instance"
           },
-          "is_sandbox_production": {
+          "has_lane_instances": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Indicates if the base is a sandbox production base (has at least one sandbox derived from it)"
+            "description": "Indicates if the base is a production base (has at least one environment instance derived from it)"
           }
         },
         "x-stoplight": {
@@ -31162,18 +31288,7 @@
           "resource_type": {
             "type": "string",
             "description": "Type of the trashed resource",
-            "enum": [
-              "table",
-              "view",
-              "field",
-              "dashboard",
-              "widget",
-              "script",
-              "workflow",
-              "extension",
-              "record",
-              "hook"
-            ]
+            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook", "app"]
           },
           "resource_id": {
             "$ref": "#/components/schemas/Id",

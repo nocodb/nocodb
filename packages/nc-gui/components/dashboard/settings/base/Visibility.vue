@@ -14,6 +14,10 @@ const showNullAndEmptyInFilter = ref()
 
 const { includeM2M, showNull } = useGlobal()
 
+// Only this switch writes base meta — the two above are per-user preferences. A copy
+// shows production's meta, so a change made here would be discarded on the next read.
+const isLaneInstance = computed(() => !!basesStore.bases.get(baseId.value!)?.is_lane_instance)
+
 watch(includeM2M, async () => await loadTables())
 
 onMounted(async () => {
@@ -87,19 +91,24 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 
       <div class="flex w-full px-3 py-2 border-t-1 border-nc-border-gray-medium gap-2 flex-col">
         <div class="flex w-full gap-1 items-center">
-          <NcSwitch
-            v-model:checked="showNullAndEmptyInFilter"
-            v-e="['c:settings:show-null-and-empty-in-filter']"
-            class="nc-settings-show-null-and-empty-in-filter"
-            @change="showNullAndEmptyInFilterOnChange"
-          >
-            <span class="text-nc-content-gray font-semibold flex-1">
-              {{ $t('msg.info.showNullAndEmptyInFilter') }}
-            </span>
-          </NcSwitch>
+          <NcTooltip :title="isLaneInstance ? $t('tooltip.featureOnProductionOnly') : ''" :disabled="!isLaneInstance">
+            <NcSwitch
+              v-model:checked="showNullAndEmptyInFilter"
+              v-e="['c:settings:show-null-and-empty-in-filter']"
+              class="nc-settings-show-null-and-empty-in-filter"
+              :disabled="isLaneInstance"
+              @change="showNullAndEmptyInFilterOnChange"
+            >
+              <span class="text-nc-content-gray font-semibold flex-1">
+                {{ $t('msg.info.showNullAndEmptyInFilter') }}
+              </span>
+            </NcSwitch>
+          </NcTooltip>
         </div>
         <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
       </div>
+
+      <DashboardSettingsBaseAppOrder v-if="isEeUI" />
     </div>
   </div>
 </template>

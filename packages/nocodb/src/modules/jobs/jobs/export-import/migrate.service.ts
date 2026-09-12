@@ -7,7 +7,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Model, Source } from '~/models';
 import { getFilteredAgents } from '~/utils/ssrf';
 import { NcError } from '~/helpers/ncError';
-import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 
 @Injectable()
@@ -48,9 +48,9 @@ export class MigrateService {
     instanceUrl: string;
     req: NcRequest;
   }) {
-    await assertNotSandbox(
+    await assertNotLaneInstance(
       context,
-      'Migrating a base is not allowed from a sandbox. Run the migration on the production base.',
+      'Migrating a base is not allowed from an environment instance. Run the migration on the production base.',
     );
 
     if (!base) {
@@ -61,7 +61,7 @@ export class MigrateService {
       NcError.get(context).sourceNotFound('Source not found!');
     }
 
-    const models = (await source.getModels(context)).filter(
+    const models = (await source.getModels()).filter(
       (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );
 

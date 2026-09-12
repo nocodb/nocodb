@@ -43,7 +43,7 @@ const handleNavigateToProject = async (base: NcProject) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-64">
+  <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-80">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList

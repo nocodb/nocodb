@@ -16,12 +16,28 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
+    // Principals that are not console sessions and never came off the wire.
+    // GlobalGuard.authenticate() calls this method directly with a payload IT
+    // built — the anonymous guest, and the shared-base pseudo-user — and
+    // neither carries an email. Passport can never produce either: it only
+    // reaches here with a payload that verified against the console secret.
     if (
-      !jwtPayload?.email ||
       jwtPayload?.is_api_token ||
-      jwtPayload?.is_oauth_token
-    )
+      jwtPayload?.is_oauth_token ||
+      jwtPayload?.roles?.guest ||
+      jwtPayload?.isPublicBase
+    ) {
       return jwtPayload;
+    }
+
+    // Everything else here IS a verified console token, and a console session
+    // always carries an email. One that does not is a token from another realm
+    // reaching the wrong door, so it is refused rather than returned as the
+    // principal — returning it authenticated the request with the payload
+    // standing in for a user.
+    if (!jwtPayload?.email) {
+      NcError.get().unauthorized('Invalid token');
+    }
 
     const user = await User.getByEmail(jwtPayload?.email);
 

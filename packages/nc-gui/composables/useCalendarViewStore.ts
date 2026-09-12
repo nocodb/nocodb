@@ -750,7 +750,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     async function loadMoreSidebarData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !calendarRange.value?.length)
+      // Interface pages fetch through the adapter — `base` resolves from route
+      // params / activeProjectId, both absent on the app-embed route, so the
+      // id guard would silently skip every fetch there (same as kanban's).
+      if (
+        ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value && !interfaceDataApi) ||
+        !calendarRange.value?.length
+      )
         return
       if (isSidebarLoading.value) return
       try {
@@ -800,7 +806,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         return
       }
 
-      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
+      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !interfaceDataApi) || !calendarRange.value?.length)
+        return
       let prevDate: string | null | dayjs.Dayjs = null
       let fromDate: dayjs.Dayjs | null | string = null
       let toDate: dayjs.Dayjs | null | string = null
@@ -840,7 +847,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       fromDate = timezoneDayjs.dayjsTz(fromDate)!.format('YYYY-MM-DD HH:mm:ssZ')
       toDate = timezoneDayjs.dayjsTz(toDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
-      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !interfaceDataApi) return
 
       try {
         const res = interfaceDataApi
@@ -969,7 +976,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     async function loadCalendarData(showLoading = true) {
-      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) || !calendarRange.value?.length)
+      if (
+        ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value && !interfaceDataApi) ||
+        !calendarRange.value?.length
+      )
         return
 
       if (activeCalendarView.value === 'year') {
@@ -1300,7 +1310,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const loadSidebarData = async (showLoading = true) => {
-      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
+      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !interfaceDataApi) || !calendarRange.value?.length)
+        return
 
       try {
         if (showLoading) isSidebarLoading.value = true

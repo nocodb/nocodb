@@ -49,6 +49,14 @@ function isPublicShareApi(path: string): boolean {
   );
 }
 
+// App builder-preview serve — framed by the console canvas, which in dev may
+// sit on a different origin than the API. Auth is the short-lived JWT in the
+// path, and the HTML response carries its own `sandbox` CSP (opaque origin),
+// so framing it never exposes the console session.
+function isAppPreviewServe(path: string): boolean {
+  return path.startsWith('/api/internal/app-preview/');
+}
+
 function isWebArtifactServeRoute(path: string): boolean {
   return path.startsWith('/api/v2/agent-web-artifacts/');
 }
@@ -59,6 +67,7 @@ function isEmbeddablePath(path: string): boolean {
     isCustomUrlRedirect(path) ||
     isLegacyHashShell(path) ||
     isPublicShareApi(path) ||
+    isAppPreviewServe(path) ||
     isWebArtifactServeRoute(path)
   );
 }

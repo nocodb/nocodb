@@ -22,6 +22,8 @@ export enum PermissionKey {
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
   DASHBOARD_VISIBILITY = 'DASHBOARD_VISIBILITY',
   DASHBOARD_EDIT = 'DASHBOARD_EDIT',
+  ROUTINE_INVOKE = 'ROUTINE_INVOKE',
+  APP_USE = 'APP_USE',
   CHAT_ARTIFACT_VISIBILITY = 'CHAT_ARTIFACT_VISIBILITY',
 }
 
@@ -36,6 +38,7 @@ export enum PermissionEntity {
   FIELD = 'field',
   DOCUMENT = 'document',
   DASHBOARD = 'dashboard',
+  APP = 'app',
   CHAT_ARTIFACT = 'chat_artifact',
 }
 
@@ -122,6 +125,8 @@ export const PermissionRoleMap = {
   [ProjectRoles.EDITOR]: PermissionRole.EDITOR,
   [ProjectRoles.COMMENTER]: PermissionRole.COMMENTER,
   [ProjectRoles.VIEWER]: PermissionRole.VIEWER,
+  // ProjectRoles.APP_USER is deliberately unmapped — an app_user has no
+  // permission-role power on the direct data API.
   [WorkspaceUserRoles.OWNER]: PermissionRole.OWNER,
   [WorkspaceUserRoles.CREATOR]: PermissionRole.CREATOR,
   [WorkspaceUserRoles.EDITOR]: PermissionRole.EDITOR,
@@ -186,6 +191,22 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to edit this dashboard.',
   },
+  [PermissionKey.ROUTINE_INVOKE]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can run this routine',
+    description: 'can run routine',
+    userSelectorDescription:
+      'Only members selected here will be able to run this routine.',
+  },
+  [PermissionKey.APP_USE]: {
+    // VIEWER floor (mirrors DOCUMENT_VISIBILITY): an app can be opened by
+    // viewers — the write-gate ensures a viewer only reads.
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can use this app',
+    description: 'can use app',
+    userSelectorDescription:
+      'Only members selected here will be able to use this app.',
+  },
   [PermissionKey.CHAT_ARTIFACT_VISIBILITY]: {
     minimumRole: PermissionRole.VIEWER,
     label: 'Who can view this artifact',
@@ -241,6 +262,10 @@ export const DASHBOARD_PERMISSION_KEYS = [
   PermissionKey.DASHBOARD_VISIBILITY,
   PermissionKey.DASHBOARD_EDIT,
 ];
+
+export const ROUTINE_PERMISSION_KEYS = [PermissionKey.ROUTINE_INVOKE];
+
+export const APP_PERMISSION_KEYS = [PermissionKey.APP_USE];
 
 // Utility functions for permission management
 export const getPermissionOption = (

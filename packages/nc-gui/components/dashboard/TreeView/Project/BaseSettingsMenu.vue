@@ -16,7 +16,7 @@ const baseRole = inject(ProjectRoleInj)!
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed, baseRoles, loadRoles } = useRoles()
+const { isUIAllowed, environmentRestrictionReason, baseRoles, loadRoles } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -79,6 +79,60 @@ const activeBaseSettingsTab = computed(() => {
 
 // Use injected base role for immediate permission checks; load full roles in background
 const effectiveRoles = computed(() => baseRoles.value ?? baseRole.value)
+
+const { apps, isAppsEnabled } = storeToRefs(useAppStore())
+
+// The base's app, if it has one. Empty in CE (stub store), so the section drops
+// out there without a second gate.
+const baseApp = computed(() => (resolvedProject.value?.id ? apps.value.get(resolvedProject.value.id) : undefined))
+
+// An install locks `appCreateOrEdit` — the app definition is the publisher's —
+// but its owner still has to address, staff and connect their own instance.
+const isAppInstall = computed(() => !!resolvedProject.value?.managed_app_id && !resolvedProject.value?.managed_app_master)
+
+const isAppListing = computed(() => !!resolvedProject.value?.managed_app_id && !!resolvedProject.value?.managed_app_master)
+
+// A listing on its own is enough: a base can be published with nothing to serve,
+// and its store page is still the publisher's to edit.
+//
+// Publishing opens a lane, and an open lane restricts `appCreateOrEdit` on
+// Production — so without the restriction check this section disappears from
+// exactly the bases that have a store page. Same compensation `project/View.vue`
+// makes; the panes themselves stay read-only there.
+const isAppSettingsVisible = computed(
+  () =>
+    isAppsEnabled.value &&
+    (!!baseApp.value || isAppListing.value) &&
+    !isMobileMode.value &&
+    (isUIAllowed('appCreateOrEdit', { roles: effectiveRoles.value }) ||
+      !!environmentRestrictionReason('appCreateOrEdit', { roles: effectiveRoles.value, base: resolvedProject.value }) ||
+      (isAppInstall.value && isUIAllowed('baseMiscSettings', { roles: effectiveRoles.value }))),
+)
+
+const appSettingsItems = computed(() =>
+  appSettingsNavFor(
+    isAppInstall.value && !isUIAllowed('appCreateOrEdit', { roles: effectiveRoles.value }),
+    isAppListing.value,
+    !!baseApp.value,
+    isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
+  ),
+)
+
+const isIntegrationsMenuVisible = computed(() => {
+  if (isMobileMode.value) return false
+  // Managers (sourceCreate) get the full surface; viewers get the linked
+  // connections list, where per-user integrations offer their connect action.
+  return (
+    isUIAllowed('sourceCreate', {
+      roles: effectiveRoles.value,
+      skipBaseCheck: !!resolvedProject.value?.is_lane_instance,
+    }) ||
+    isUIAllowed('baseIntegrationList', {
+      roles: effectiveRoles.value,
+      skipBaseCheck: !!resolvedProject.value?.is_lane_instance,
+    })
+  )
+})
 
 // Load base roles in background if not already loaded
 onMounted(() => {
@@ -151,7 +205,7 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-if="isIntegrationsMenuVisible"
       v-e="['c:settings:base:integrations']"
       icon="integration"
       data-testid="base-integrations"
@@ -239,7 +293,7 @@ onMounted(() => {
       {{ $t('labels.aiSkills') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="!isMobileMode && showEEFeatures"
+      v-if="isUIAllowed('baseVariableList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
       v-e="['c:settings:base:variables']"
       icon="ncSettings"
       data-testid="base-variables"
@@ -285,6 +339,25 @@ onMounted(() => {
     >
       {{ $t('general.general') }}
     </NcSidebarMenuItem>
+
+    <!-- App settings — one app per base, so its settings are a second section
+         here rather than a separate surface inside the app console. -->
+    <template v-if="isAppSettingsVisible">
+      <div class="nc-settings-section-header nc-settings-section-header-app">
+        {{ $t('labels.appSettings') }}
+      </div>
+      <NcSidebarMenuItem
+        v-for="item in appSettingsItems"
+        :key="item.tab"
+        v-e="[`c:settings:${item.tab}`]"
+        :icon="item.icon"
+        :data-testid="`base-${item.testId}`"
+        :active="activeBaseSettingsTab === item.tab"
+        @click="navigateToBaseSettings(item.tab)"
+      >
+        {{ $t(item.label) }}
+      </NcSidebarMenuItem>
+    </template>
   </div>
 </template>
 
@@ -292,5 +365,10 @@ onMounted(() => {
 .nc-settings-section-header {
   @apply px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
   font-size: 13px;
+}
+
+// Second section in the same scroll column — a rule separates it from the base's.
+.nc-settings-section-header-app {
+  @apply mt-3 pt-4 border-t border-nc-border-gray-medium;
 }
 </style>

@@ -35,5 +35,14 @@
     "typeRoots": ["node_modules/@types"]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
+  /* src/run/cloud.ts is the entry for the ee-cloud and ee-on-prem rspack
+     builds only — the CE entry is src/run/docker.ts — so it resolves `~/`
+     through the EE overlay and is typechecked by those programs, not this one. */
+  "exclude": [
+    "src/ee",
+    "src/ee-on-prem",
+    "src/ee-cloud",
+    "src/run/cloud.ts",
+    "**/*.spec.ts"
+  ]
 }

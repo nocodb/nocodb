@@ -12,6 +12,7 @@ export * from './auth';
 export * from './ai';
 export * from './sdk';
 export * from './workflow-node';
+export * from './actions';
 export { SCHEMA_TICKETING } from './sync/schema-ticketing';
 export { SCHEMA_HRIS } from './sync/schema-hris';
 export { SCHEMA_CRM } from './sync/schema-crm';

@@ -16,6 +16,7 @@ export const roleScopes = {
     WorkspaceUserRoles.OWNER,
   ],
   base: [
+    ProjectRoles.APP_USER,
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -434,6 +435,11 @@ const rolePermissions:
   },
 
   // ── Base roles (unchanged) ──
+  // App User: app-only collaborator, no ambient product-channel access.
+  // Empty include inherits NO_ACCESS parity via scope ordering.
+  [ProjectRoles.APP_USER]: {
+    include: {},
+  },
   [ProjectRoles.VIEWER]: {
     include: {
       // batch envelope — per-sub-op ACL is enforced inside the handler,
@@ -1094,6 +1100,7 @@ const roleDescriptions: Record<string, string> = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
   [WorkspaceUserRoles.OWNER]: 'Owner',
   // Base roles
+  [ProjectRoles.APP_USER]: 'App User',
   [ProjectRoles.VIEWER]: 'Viewer',
   [ProjectRoles.COMMENTER]: 'Commenter',
   [ProjectRoles.EDITOR]: 'Editor',

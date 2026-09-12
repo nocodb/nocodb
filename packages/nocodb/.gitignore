@@ -42,6 +42,7 @@ export/**
 
 # test dbs
 test_sakila_?.db
+test_meta.db
 
 # local/CI-generated MSSQL data-DB config for the pg-meta+mssql-data PW lane
 mssql-data-db.json

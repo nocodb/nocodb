@@ -25,6 +25,7 @@ import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-j
 import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
 import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
 import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
+import { StoreLaneBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_017_store_lane_backfill';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -110,6 +111,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.CreditPlanBackfill,
       service: this.creditPlanBackfillMigration,
     },
+    {
+      version: '17',
+      job: MigrationJobTypes.StoreLaneBackfill,
+      service: this.storeLaneBackfillMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -133,6 +139,7 @@ export class InitMigrationJobs {
     private readonly cleanupOrphanViewColumnsMigration: CleanupOrphanViewColumnsMigration,
     private readonly pgSourceSearchPathBackfillMigration: PgSourceSearchPathBackfillMigration,
     private readonly creditPlanBackfillMigration: CreditPlanBackfillMigration,
+    private readonly storeLaneBackfillMigration: StoreLaneBackfillMigration,
   ) {}
 
   log = (...msgs: string[]) => {

@@ -24,8 +24,12 @@ export enum ChatEventAction {
   AGENT_SWITCH = 'agent-switch',
   FOLLOW_UPS = 'follow-ups',
   HEARTBEAT = 'heartbeat',
+  STATUS = 'status',
+  PREVIEW_READY = 'preview-ready',
 }
 
+/** `ChatMessageType.agent` value for messages produced by the App Builder (sandbox build turns). */
+export const CHAT_AGENT_APP_BUILDER = 'app_builder';
 /**
  * Payload of a TOOL_PROGRESS event — a live step update from a long-running
  * tool call ("Designing table 3: Deals…", "Creating page 2/7: Pipeline").
@@ -59,6 +63,15 @@ export interface ChatSessionMetaType {
   /** @deprecated `computeId` since the AI layer stopped calling it a sandbox.
    *  Read-only, so sessions paused before the rename still resolve. */
   sandboxId?: string;
+  /**
+   * Per-app build continuity for this conversation. One conversation can
+   * build/edit any number of apps; each entry tracks the sandbox Claude
+   * session to `--resume` and the last draft sha this conversation saw.
+   */
+  appBuilds?: Record<
+    string,
+    { claudeSessionId?: string; lastSeenSha?: string }
+  >;
   /**
    * Follow-up prompts generated at turn end, persisted so reopening the
    * session serves them from storage instead of re-generating (a model call).
@@ -122,7 +135,18 @@ export type ChatContentBlock =
       agent?: string;
       visibility?: ChatToolVisibility;
       metadata?: ChatToolMetadata;
-    };
+    }
+  /** A durable turn failure (e.g. an app build that failed) rendered as an error bubble. */
+  | { type: 'error'; text: string }
+  /**
+   * `@` mentions the user attached to a USER message, persisted verbatim (see
+   * {@link ChatMentionRef}) so an approval resume — which can happen long after
+   * the turn that created them, even after a reload — can re-derive them by
+   * re-reading this message. Never rendered by the UI and never fed to the
+   * model as-is: the resolver re-reads every name from the DB and
+   * re-authorizes every id at the point of use.
+   */
+  | { type: 'mention_refs'; refs: ChatMentionRef[] };
 
 export interface ChatAttachmentType {
   id?: string;
@@ -174,9 +198,38 @@ export interface ChatMessageType {
   bt_span_id?: string | null;
   created_at?: string;
   uiContextRecord?: { tableId: string; recordId: string; recordTitle?: string };
+  /** Producing persona — absent for the assistant, {@link CHAT_AGENT_APP_BUILDER} for build turns. */
+  agent?: string;
+  /** The app a build turn targeted — set only when `agent` is the App Builder. */
+  fk_app_id?: string;
 }
 
 export const NC_NEW_SESSION = 'NC_SESSION';
+
+/**
+ * What a first-run onboarding build should produce. The landing page's target
+ * picker sends this across the origin boundary as `buildScope`; absent or
+ * unrecognized means `app`, so a hand-off link minted before this existed keeps
+ * working.
+ *
+ * `website` runs the same phases as `app` and differs only in the brief: its pages
+ * are declared public. `interfaces` stops at NocoDB's own interface pages and never
+ * reaches the app builder. `workflow` stops at the automation plus the tables it
+ * acts on, since the workflow itself is the deliverable.
+ */
+export const BUILD_SCOPES = [
+  'app',
+  'website',
+  'interfaces',
+  'table',
+  'form',
+  'workflow',
+] as const;
+
+export type BuildScope = (typeof BUILD_SCOPES)[number];
+
+export const isBuildScope = (value: unknown): value is BuildScope =>
+  typeof value === 'string' && (BUILD_SCOPES as readonly string[]).includes(value);
 
 /** UI navigation context sent with each chat message. */
 export interface ChatUIContext {
@@ -186,6 +239,13 @@ export interface ChatUIContext {
   documentId?: string;
   recordId?: string;
   recordTitle?: string;
+  /** The app whose canvas the user is currently viewing — biases build-turn routing. */
+  appId?: string;
+  appTitle?: string;
+  /** First-run onboarding turn — the agent should perform a complete one-shot build. */
+  onboarding?: boolean;
+  /** What that build should produce. Absent means a full app. */
+  buildScope?: BuildScope;
 }
 
 export interface ChatSendMessageType {
@@ -195,8 +255,45 @@ export interface ChatSendMessageType {
   title?: string;
   /** The user's current UI navigation context (active table/view/dashboard/document). */
   uiContext?: ChatUIContext;
+  /** Entities the user @-mentioned in this message. Resolved server-side by id. */
+  mentions?: ChatMentionRef[];
 }
 
 export interface ChatSendMessageResponseType {
   session?: ChatSessionType;
 }
+
+export enum ChatMentionType {
+  TABLE = 'table',
+  VIEW = 'view',
+  FIELD = 'field',
+  INTEGRATION = 'integration',
+  INTERFACE = 'interface',
+  INTERFACE_PAGE = 'interfacePage',
+  DASHBOARD = 'dashboard',
+  SCRIPT = 'script',
+  DOCUMENT = 'document',
+}
+
+/**
+ * One entity the user pointed at with `@` in a chat message.
+ *
+ * Persisted on the triggering USER message (a `mention_refs` block in `parts`) so
+ * a paused tool-call approval can re-derive it on resume — which can happen long
+ * after the turn that created it, even after a reload, by which point nothing else
+ * about the original request survives. Every consumer re-resolves and
+ * re-authorizes from this raw ref against the caller's live `NcContext`, never
+ * trusting a name or a decision cached from the original turn.
+ *
+ * Carries NO display name on purpose: the server re-resolves every name from `id`,
+ * so a client-supplied string can never reach the agent's prompt.
+ */
+export interface ChatMentionRef {
+  type: ChatMentionType;
+  id: string;
+  /** Table id for view/field; interface id for interfacePage. */
+  parentId?: string;
+}
+
+/** Max mentions carried by one message — enforced client- and server-side. */
+export const CHAT_MENTION_LIMIT = 20;

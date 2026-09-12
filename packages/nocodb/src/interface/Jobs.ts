@@ -2,6 +2,7 @@ import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
   AttachmentReqType,
   AttachmentResType,
+  ChatMentionRef,
   ChatUIContext,
   FileImportOptions,
   FileImportParserConfig,
@@ -34,6 +35,7 @@ export enum MigrationJobTypes {
   CleanupOrphanViewColumns = 'cleanup-orphan-view-columns',
   PgSourceSearchPathBackfill = 'pg-source-searchpath-backfill',
   CreditPlanBackfill = 'credit-plan-backfill',
+  StoreLaneBackfill = 'store-lane-backfill',
 }
 
 export enum JobTypes {
@@ -88,8 +90,9 @@ export enum JobTypes {
   ChatApproval = 'chat-approval',
   BaseTrashCleanUp = 'base-trash-clean-up',
   DataImport = 'data-import',
-  SandboxMerge = 'sandbox-merge',
-  SandboxDelete = 'sandbox-delete',
+  EnvironmentPromote = 'environment-promote',
+  EnvironmentClose = 'environment-close',
+  EnvironmentDataSync = 'environment-data-sync',
   ManagedAppUpdate = 'managed-app-update',
   MailDispatch = 'mail-dispatch',
   MailOutboxRecovery = 'mail-outbox-recovery',
@@ -97,6 +100,7 @@ export enum JobTypes {
   OperationCleanup = 'operation-cleanup',
   CreditReaper = 'credit-reaper',
   CreditMeteringAudit = 'credit-metering-audit',
+  AppRuntimePoolRefill = 'app-runtime-pool-refill',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -116,6 +120,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.BaseTrashCleanUp,
   JobTypes.OperationCleanup,
   JobTypes.CreditReaper,
+  JobTypes.AppRuntimePoolRefill,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
   JobTypes.PollWorkflow,
@@ -277,20 +282,39 @@ export interface DuplicateDashboardJobData extends JobData {
   options: never;
 }
 
-export interface SandboxMergeJobData extends JobData {
-  sandboxBaseId: string;
-  productionBaseId: string;
-  sandboxId: string;
+export interface EnvironmentPromoteJobData extends JobData {
+  laneBaseId: string;
+  baseId: string;
+  baseEnvironmentId: string;
   req: NcRequest;
   selectedChangelogIds?: string[];
 }
 
-export interface SandboxDeleteJobData extends JobData {
+export interface EnvironmentDataSyncJobData extends JobData {
   context: NcContext;
-  sandboxId: string;
-  sandboxBaseId: string;
-  productionBaseId: string;
+  baseEnvironmentId: string;
+  laneBaseId: string;
+  baseId: string;
   req: NcRequest;
+}
+
+export interface EnvironmentCloseJobData extends JobData {
+  context: NcContext;
+  baseEnvironmentId: string;
+  laneBaseId: string;
+  baseId: string;
+  req: NcRequest;
+  // Set by environmentRefresh: reopen the same (base, environment) once the
+  // close has torn the instance down.
+  reopen?: {
+    environmentId: string;
+    dataMode: 'full' | 'empty';
+    windowDays?: number;
+    // Carried so a refresh of the store lane comes back AS the store lane;
+    // without it the reopened lane loses the mark and the listed app is left
+    // publishing from a copy nothing recognises.
+    storeLane?: boolean;
+  };
 }
 
 export interface ManagedAppUpdateJobData extends JobData {
@@ -434,6 +458,8 @@ export interface TestWorkflowNodeJobData extends JobData {
   nodeId: string;
   testTriggerData?: any;
   testMode?: string; // Force specific test mode: SAMPLE_DATA, LISTEN_WEBHOOK, TRIGGER_EVENT
+  /** 'validate' checks the node without running it; 'run' really runs it. */
+  mode?: 'validate' | 'run';
   timeoutMs?: number;
   req?: NcRequest;
 }
@@ -456,6 +482,8 @@ export interface ChatMessageJobData extends JobData {
   uiContext?: ChatUIContext;
   /** Identifies this turn on streamed events and in the stream journal (the triggering user message id). */
   turnId?: string;
+  /** Entities the user @-mentioned in this message. Resolved server-side by id. */
+  mentions?: ChatMentionRef[];
 }
 
 export interface ChatApprovalJobData extends JobData {

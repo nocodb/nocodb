@@ -131,10 +131,20 @@ export class QueueService {
   }
 
   add(
-    name: string,
+    name: string | Record<string, any>,
     data: any,
     opts?: { jobId?: string; delay?: number; repeat?: { cron: string } },
   ) {
+    // Bull's Queue#add supports the two-arg form add(data, opts), and the
+    // repeat-job registrations (workflow + agent pollers) use it. On this
+    // fallback the payload then lands in `name` and the options in `data`,
+    // silently dropping `repeat` — normalize instead of dropping.
+    if (typeof name === 'object' && name !== null) {
+      opts = data;
+      data = name;
+      name = (data as any)?.jobName;
+    }
+
     const id = opts?.jobId || `${this.queueIndex++}`;
     const existingJob = this.queueMemory.find((q) => q.id === id);
 

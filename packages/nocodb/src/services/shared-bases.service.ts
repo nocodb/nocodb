@@ -38,9 +38,9 @@ export class SharedBasesService {
       NcError.baseNotFound(param.baseId);
     }
 
-    if (base.is_sandbox) {
+    if (base.is_lane_instance) {
       NcError.badRequest(
-        'Shared links cannot be created on sandbox bases. Share the master base instead.',
+        'Shared links cannot be created on environment instances. Share the production base instead.',
       );
     }
 
@@ -99,9 +99,9 @@ export class SharedBasesService {
       NcError.baseNotFound(param.baseId);
     }
 
-    if (base.is_sandbox) {
+    if (base.is_lane_instance) {
       NcError.badRequest(
-        'Shared links cannot be updated on sandbox bases. Share the master base instead.',
+        'Shared links cannot be updated on environment instances. Share the production base instead.',
       );
     }
 

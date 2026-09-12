@@ -26,12 +26,12 @@ const base = inject(ProjectInj)!
 
 const { appInfo } = useGlobal()
 
-const { orgRoles, isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { orgRoles, isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const baseDuplicateReason = computed(() =>
-  sandboxRestrictionReason('baseDuplicate', {
+  environmentRestrictionReason('baseDuplicate', {
     roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join(),
     base,
   }),

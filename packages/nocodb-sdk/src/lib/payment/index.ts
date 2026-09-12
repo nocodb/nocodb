@@ -16,6 +16,8 @@ export enum PlanLimitTypes {
   // were merged in here). Retention governs the automation_executions log.
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
+  // App routine (sql/http external-data) invocation budget — mirrors automation runs.
+  LIMIT_APP_ROUTINE_RUN = 'limit_app_routine_run',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -46,6 +48,7 @@ export enum PlanLimitTypes {
   LIMIT_AI_INTEGRATIONS = 'limit_ai_integrations',
   LIMIT_CREDITS = 'limit_credits',
   LIMIT_CREDITS_PER_SEAT = 'limit_credits_per_seat',
+  LIMIT_ENVIRONMENTS_PER_BASE = 'limit_environments_per_base',
 }
 
 export enum PlanFeatureTypes {
@@ -136,6 +139,8 @@ export enum PlanFeatureTypes {
   FEATURE_WORKFLOWS = 'feature_workflows',
   FEATURE_BASE_VARIABLES = 'feature_base_variables',
   /** Sandbox (branch & merge for a base). Cloud: Scale+. On-prem: Enterprise add-on only. */
+  // Stored key — persisted in every plan row's meta. Renaming it is a data
+  // migration for zero gain; only the display copy uses Environments wording.
   FEATURE_SANDBOX = 'feature_sandbox',
   /** On-prem: core EE capability flag — true for all paid plans, false for free */
   FEATURE_EE_CORE = 'feature_ee_core',
@@ -166,6 +171,20 @@ export enum PlanFeatureTypes {
   FEATURE_WHITE_LABEL = 'feature_white_label',
   /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
   FEATURE_SCHEDULED_SNAPSHOTS = 'feature_scheduled_snapshots',
+  FEATURE_APP = 'feature_app',
+  FEATURE_APP_EXTERNAL_DATA = 'feature_app_external_data',
+  /** Clean app URL without the random suffix (`<slug>` vs `<slug>-<suffix>`). Enterprise-only. */
+  FEATURE_APP_VANITY_URL = 'feature_app_vanity_url',
+  /** Serving a published app on the publisher's own domain (`app.acme.com`). */
+  FEATURE_APP_CUSTOM_DOMAIN = 'feature_app_custom_domain',
+  /** The app's own external API + MCP server, and the tokens that reach them. */
+  FEATURE_APP_API = 'feature_app_api',
+  /** Use of the built-in Staging environment (Production is always free). */
+  FEATURE_STAGING_ENVIRONMENT = 'feature_staging_environment',
+  /** Creating custom environments (beyond Production/Staging). */
+  FEATURE_CUSTOM_ENVIRONMENT = 'feature_custom_environment',
+  /** Per-user credentials on OAuth auth integrations (each user connects their own account). */
+  FEATURE_PER_USER_CREDENTIALS = 'feature_per_user_credentials',
   /**
    * Migrating a base OUT to another NocoDB instance (POST /api/v2/meta/migrate/:baseId).
    * On-prem: enabled on every tier including Free — self-hosted users own their data.
@@ -392,6 +411,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:
     'to increase automation retention.',
+  [PlanLimitTypes.LIMIT_APP_ROUTINE_RUN]: 'to run more app routines.',
   [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 'to add more webhooks.',
   [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 'to add more extensions.',
   [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]:
@@ -437,6 +457,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 'to add more AI integrations.',
   [PlanLimitTypes.LIMIT_CREDITS]: 'to get more credits.',
   [PlanLimitTypes.LIMIT_CREDITS_PER_SEAT]: 'to get more credits per seat.',
+  [PlanLimitTypes.LIMIT_ENVIRONMENTS_PER_BASE]:
+    'to add more environments in a base.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -552,7 +574,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
   [PlanFeatureTypes.FEATURE_WORKFLOWS]: 'to build workflows.',
   [PlanFeatureTypes.FEATURE_BASE_VARIABLES]: 'to use base variables.',
-  [PlanFeatureTypes.FEATURE_SANDBOX]: 'to use Sandboxes.',
+  [PlanFeatureTypes.FEATURE_SANDBOX]: 'to use Environments.',
   [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
   [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]:
     'to configure per-table trash settings.',
@@ -569,6 +591,21 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to white-label this instance with your own logo, product name, and brand color.',
   [PlanFeatureTypes.FEATURE_SCHEDULED_SNAPSHOTS]:
     'to schedule automatic snapshots.',
+  [PlanFeatureTypes.FEATURE_APP]: 'to build Apps.',
+  [PlanFeatureTypes.FEATURE_APP_EXTERNAL_DATA]:
+    'to use external data sources in apps.',
+  [PlanFeatureTypes.FEATURE_APP_VANITY_URL]:
+    'to use a clean app URL without a random suffix.',
+  [PlanFeatureTypes.FEATURE_APP_CUSTOM_DOMAIN]:
+    'to serve apps on your own custom domain.',
+  [PlanFeatureTypes.FEATURE_APP_API]:
+    "to expose your app's API and MCP server.",
+  [PlanFeatureTypes.FEATURE_STAGING_ENVIRONMENT]:
+    'to use the Staging environment.',
+  [PlanFeatureTypes.FEATURE_CUSTOM_ENVIRONMENT]:
+    'to create custom environments.',
+  [PlanFeatureTypes.FEATURE_PER_USER_CREDENTIALS]:
+    'to let each user connect their own account.',
   [PlanFeatureTypes.FEATURE_INTERFACES]: 'to build interfaces.',
   [PlanFeatureTypes.FEATURE_INTERFACE_TABLE_MULTI_VIZ]:
     'to add multiple visualizations to an interface page.',

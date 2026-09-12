@@ -7,6 +7,7 @@ import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { NcError } from '~/helpers/catchError';
+import { claimObjectTitle } from '~/helpers/customObjects';
 import { MapView, Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { CacheScope } from '~/utils/globals';
@@ -45,6 +46,12 @@ export class MapsService {
     await assertPersonalViewAllowed(context, param.map.lock_type);
 
     const model = await Model.get(context, param.tableId, false, ncMeta);
+
+    param.map.title = await claimObjectTitle(context, 'view', param.map.title, {
+      baseId: model.base_id,
+      insideTable: model.table_name,
+      ncMeta,
+    });
 
     const { id } = await View.insertMetaOnly(
       context,
@@ -124,7 +131,7 @@ export class MapsService {
       owner,
     });
 
-    await view.getView(context, ncMeta);
+    await view.getView(ncMeta);
 
     // Strip the stored bcrypt password hash from the outbound response.
     return View.maskPasswordForResponse(view);

@@ -8,6 +8,8 @@ import type {
   ChatSessionType,
   ChatToolProgress,
 } from '~/lib/chat';
+import type { AppBuildLockPayload } from '~/lib/app/build';
+import type { AppStatus, AppType } from '~/lib/app';
 import type {
   AgentMessageType,
   AgentSessionType,
@@ -25,6 +27,7 @@ export enum EventType {
   META_EVENT = 'event-meta',
   COMMENT_EVENT = 'event-comment',
   DASHBOARD_EVENT = 'event-dashboard',
+  BASE_VARIABLE_EVENT = 'event-base-variable',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',
   TEAM_EVENT = 'event-team',
@@ -34,6 +37,8 @@ export enum EventType {
   PRESENCE_EVENT = 'event-presence',
   FOCUS_EVENT = 'event-focus',
   CHAT_EVENT = 'event-chat',
+  APP_EVENT = 'event-app',
+  APP_BUILD_EVENT = 'event-app-build',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
   DOCUMENT_SYNC_EVENT = 'event-document-sync',
@@ -469,7 +474,41 @@ export interface ChatEventPayload extends BaseSocketPayload {
   agentLabel?: string;
   /** Tool visibility level for filtering in the UI */
   visibility?: 'hidden' | 'action' | 'data' | 'ui';
+  // App Builder turns (agent === CHAT_AGENT_APP_BUILDER) — all actions carry `appId`
+  /** The app a build turn targets. */
+  appId?: string;
+  // action: 'status'
+  /** App-build lifecycle state (building / ready / failed). */
+  status?: AppStatus;
+  // action: 'preview-ready'
+  /** Token-authed relative URL of the freshly built app preview. */
+  previewUrl?: string;
 }
+
+/** App lifecycle (create / rename / settings-update / delete) — keeps the base's
+ *  Apps list live across tabs and users, and surfaces apps the App Builder
+ *  creates server-side (no originating client to update its store locally). */
+export interface AppLifecyclePayload extends BaseSocketPayload {
+  id: string;
+  action: 'create' | 'update' | 'delete' | 'restore';
+  payload: AppType;
+}
+
+/** The app-scoped collections a client caches by appId and cannot otherwise
+ *  know are stale. */
+export type AppMetadataScope = 'teams' | 'actions' | 'connections';
+
+/** An app's authored metadata changed. The App Builder declares teams, actions
+ *  and connections from inside a build turn — that runs on the MCP callback,
+ *  which has no originating client socket, so nothing tells a viewer its cached
+ *  copy is stale. Carries the scope, not the new rows: the client refetches. */
+export interface AppMetadataPayload extends BaseSocketPayload {
+  id: string;
+  action: 'metadata';
+  scope: AppMetadataScope;
+}
+
+export type AppPayload = AppLifecyclePayload | AppMetadataPayload;
 
 /**
  * Server-derived state of a chat session's in-flight turn, served by
@@ -574,6 +613,8 @@ export type SocketEventPayload =
   | PresencePayload
   | FocusPayload
   | ChatEventPayload
+  | AppPayload
+  | AppBuildLockPayload
   | AgentEventPayload
   | SmartTextPayload;
 
@@ -590,6 +631,8 @@ export type SocketEventPayloadMap = {
   [EventType.PRESENCE_EVENT]: PresencePayload;
   [EventType.FOCUS_EVENT]: FocusPayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
+  [EventType.APP_EVENT]: AppPayload;
+  [EventType.APP_BUILD_EVENT]: AppBuildLockPayload;
   [EventType.AGENT_EVENT]: AgentEventPayload;
   [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;

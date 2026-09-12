@@ -20,8 +20,14 @@ export const useTheme = createSharedComposable(() => {
 
   /**
    * Some pages are used in iframe which don't support dark theme yet, so disable dark theme for them.
+   * The app-embed page is always light: it renders inside a published app's own
+   * theme, where the console's dark palette would clash with any app look.
    */
-  const disabledDarkThemeRouteNames = ['index-typeOrId-pricing', 'index-typeOrId-checkout-planId']
+  const disabledDarkThemeRouteNames = [
+    'index-typeOrId-pricing',
+    'index-typeOrId-checkout-planId',
+    'interface-embed-interfaceId-pageId',
+  ]
 
   const isThemeEnabled = computed(() => {
     return !disabledDarkThemeRouteNames.includes(route.value.name as string)

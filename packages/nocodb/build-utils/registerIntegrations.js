@@ -70,9 +70,6 @@ async function registerIntegrations(EE = false) {
         continue;
       }
 
-      const packageName = dirent.name;
-      integrationDeps[packageName] = `@noco-local-integrations/${packageName}`;
-
       // check if the dependencies of local integrations are present in the package.json
       const integrationPackageJsonPath = path.join(
         localIntegrationsPath,
@@ -82,6 +79,13 @@ async function registerIntegrations(EE = false) {
       const integrationPackageJson = JSON.parse(
         await fs.readFile(integrationPackageJsonPath, 'utf-8'),
       );
+
+      // A shared library under packages/ default-exports nothing, so registering
+      // it would put `undefined` in the array every integration lookup iterates.
+      if (integrationPackageJson.ncIntegration !== false) {
+        integrationDeps[dirent.name] =
+          `@noco-local-integrations/${dirent.name}`;
+      }
 
       const dependencies = integrationPackageJson.dependencies;
 

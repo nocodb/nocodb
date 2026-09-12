@@ -26,6 +26,8 @@ const { isTeamsEnabled, activeWorkspaceId, teamsMap } = storeToRefs(useWorkspace
 
 const { isPrivateBase, base } = storeToRefs(useBase())
 
+const { isAppsEnabled } = storeToRefs(useAppStore())
+
 const basesStore = useBases()
 const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate, baseTeamRemove } =
   basesStore
@@ -356,9 +358,9 @@ onMounted(async () => {
       (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
     if (isSuper.value) {
-      accessibleRoles.value = OrderedProjectRoles.slice(0)
+      accessibleRoles.value = filterAssignableRoles(OrderedProjectRoles.slice(0))
     } else if (currentRoleIndex !== -1) {
-      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
+      accessibleRoles.value = filterAssignableRoles(OrderedProjectRoles.slice(currentRoleIndex))
     }
 
     moveInheritRole()
@@ -373,10 +375,16 @@ onMounted(async () => {
 
 watch(baseRoles, (br) => {
   const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
-  accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
+  accessibleRoles.value = filterAssignableRoles(OrderedProjectRoles.slice(currentRoleIndex))
 
   moveInheritRole()
 })
+
+// APP_USER is assignable only where apps exist (EE) — hide it in CE.
+function filterAssignableRoles(roles: ProjectRoles[]) {
+  if (isEeUI) return roles
+  return roles.filter((role) => role !== ProjectRoles.APP_USER)
+}
 
 function moveInheritRole() {
   // move INHERIT role to the end of the list
@@ -719,121 +727,123 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <NcTable
-          v-model:order-by="orderBy"
-          :is-data-loading="isLoading"
-          :columns="columns"
-          :data="sortedCollaborators"
-          :bordered="false"
-          :custom-row="customRow"
-          class="flex-1 nc-collaborators-list max-w-full"
-          body-row-class-name="!cursor-default"
-          :pagination="true"
-          :pagination-offset="25"
-        >
-          <template #emptyText>
-            <a-empty :description="$t('title.noMembersFound')" />
-          </template>
-
-          <template #headerCell="{ column }">
-            <template v-if="column.key === 'select'">
-              <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
-            </template>
-            <template v-else>
-              {{ column.title }}
-            </template>
-          </template>
-
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'select'">
-              <NcCheckbox v-model:checked="selected[record.id]" />
+        <div class="flex-1 w-full min-h-0 flex flex-col gap-6 overflow-y-auto nc-scrollbar-thin">
+          <NcTable
+            v-model:order-by="orderBy"
+            :is-data-loading="isLoading"
+            :columns="columns"
+            :data="sortedCollaborators"
+            :bordered="false"
+            :custom-row="customRow"
+            disable-table-scroll
+            force-sticky-header
+            class="nc-collaborators-list max-w-full"
+            body-row-class-name="!cursor-default"
+            :pagination="true"
+            :pagination-offset="25"
+          >
+            <template #emptyText>
+              <a-empty :description="$t('title.noMembersFound')" />
             </template>
 
-            <template v-if="column.key === 'email' && record.isTeam">
-              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
-              <NcBadge
-                v-if="teamsMap[record.id]?.scope === 'org'"
-                :border="false"
-                color="blue"
-                class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-              >
-                {{ $t('general.orgBadge') }}
-              </NcBadge>
-            </template>
-
-            <div v-else-if="column.key === 'email' && record.isAgent" class="w-full flex gap-3 items-center users-email-grid">
-              <div class="nc-agent-member-icon flex-none">
-                <LazyGeneralEmojiPicker :key="record.meta?.icon" :emoji="record.meta?.icon" size="small" readonly>
-                  <template #default>
-                    <GeneralIcon icon="ncAgent" class="nc-agent-icon w-4 text-nc-content-gray-subtle !text-[16px]" />
-                  </template>
-                </LazyGeneralEmojiPicker>
-              </div>
-              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-                <div class="flex gap-2 items-center">
-                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
-                    <template #title>
-                      {{ record.title }}
-                    </template>
-                    {{ record.title }}
-                  </NcTooltip>
-                  <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
-                    {{ $t('general.agent') }}
-                  </NcBadge>
-                </div>
-                <NcTooltip
-                  v-if="record.email"
-                  class="truncate max-w-full text-xs text-nc-content-gray-subtle2"
-                  show-on-truncate-only
-                >
-                  <template #title>
-                    {{ record.email }}
-                  </template>
-                  {{ record.email }}
-                </NcTooltip>
-              </div>
-            </div>
-
-            <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
-              <GeneralUserIcon size="base" :user="record" class="flex-none" />
-              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-                <div class="flex gap-3">
-                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
-                    <template #title>
-                      {{ extractUserDisplayNameOrEmail(record) }}
-                    </template>
-                    {{ extractUserDisplayNameOrEmail(record) }}
-                  </NcTooltip>
-                </div>
-                <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
-                  <template #title>
-                    {{ record.email }}
-                  </template>
-                  {{ record.email }}
-                </NcTooltip>
-              </div>
-            </div>
-            <div v-if="column.key === 'role'">
-              <template
-                v-if="
-                  isDeleteOrUpdateAllowed(record) &&
-                  isOwnerOrCreator &&
-                  (getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles) ||
-                    record.roles === ProjectRoles.INHERIT)
-                "
-              >
-                <RolesSelectorV2
-                  :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
-                  :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
-                  :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
-                  :inherit-source="getInheritanceInfo(record)?.source"
-                  :effective-role="getInheritanceInfo(record)?.effectiveRole"
-                  :show-inherit="!!getInheritanceInfo(record)"
-                  :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
-                />
+            <template #headerCell="{ column }">
+              <template v-if="column.key === 'select'">
+                <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
               </template>
               <template v-else>
-                <div class="flex flex-col gap-1">
+                {{ column.title }}
+              </template>
+            </template>
+
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'select'">
+                <NcCheckbox v-model:checked="selected[record.id]" />
+              </template>
+
+              <template v-if="column.key === 'email' && record.isTeam">
+                <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
+                <NcBadge
+                  v-if="teamsMap[record.id]?.scope === 'org'"
+                  :border="false"
+                  color="blue"
+                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                >
+                  {{ $t('general.orgBadge') }}
+                </NcBadge>
+              </template>
+
+              <div v-else-if="column.key === 'email' && record.isAgent" class="w-full flex gap-3 items-center users-email-grid">
+                <div class="nc-agent-member-icon flex-none">
+                  <LazyGeneralEmojiPicker :key="record.meta?.icon" :emoji="record.meta?.icon" size="small" readonly>
+                    <template #default>
+                      <GeneralIcon icon="ncAgent" class="nc-agent-icon w-4 text-nc-content-gray-subtle !text-[16px]" />
+                    </template>
+                  </LazyGeneralEmojiPicker>
+                </div>
+                <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                  <div class="flex gap-2 items-center">
+                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                      <template #title>
+                        {{ record.title }}
+                      </template>
+                      {{ record.title }}
+                    </NcTooltip>
+                    <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
+                      {{ $t('general.agent') }}
+                    </NcBadge>
+                  </div>
+                  <NcTooltip
+                    v-if="record.email"
+                    class="truncate max-w-full text-xs text-nc-content-gray-subtle2"
+                    show-on-truncate-only
+                  >
+                    <template #title>
+                      {{ record.email }}
+                    </template>
+                    {{ record.email }}
+                  </NcTooltip>
+                </div>
+              </div>
+
+              <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
+                <GeneralUserIcon size="base" :user="record" class="flex-none" />
+                <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                  <div class="flex gap-3">
+                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                      <template #title>
+                        {{ extractUserDisplayNameOrEmail(record) }}
+                      </template>
+                      {{ extractUserDisplayNameOrEmail(record) }}
+                    </NcTooltip>
+                  </div>
+                  <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
+                    <template #title>
+                      {{ record.email }}
+                    </template>
+                    {{ record.email }}
+                  </NcTooltip>
+                </div>
+              </div>
+              <div v-if="column.key === 'role'" class="flex flex-col gap-1">
+                <template
+                  v-if="
+                    isDeleteOrUpdateAllowed(record) &&
+                    isOwnerOrCreator &&
+                    (getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles) ||
+                      record.roles === ProjectRoles.INHERIT)
+                  "
+                >
+                  <RolesSelectorV2
+                    :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
+                    :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
+                    :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
+                    :inherit-source="getInheritanceInfo(record)?.source"
+                    :effective-role="getInheritanceInfo(record)?.effectiveRole"
+                    :show-inherit="!!getInheritanceInfo(record)"
+                    :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
+                  />
+                </template>
+                <template v-else>
                   <RolesBadge
                     :border="false"
                     :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
@@ -846,49 +856,51 @@ onBeforeUnmount(() => {
                         : $t('tooltip.roleInheritedFromWorkspace')
                     }}</span>
                   </div>
-                </div>
-              </template>
-            </div>
-            <div v-if="column.key === 'created_at'">
-              <NcTooltip class="max-w-full">
-                <template #title>
-                  {{ parseStringDateTime(record.created_at) }}
                 </template>
-                <span>
-                  {{ timeAgo(record.created_at) }}
-                </span>
-              </NcTooltip>
-            </div>
-            <div v-if="column.key === 'action'">
-              <NcDropdown placement="bottomRight">
-                <NcButton size="small" type="secondary">
-                  <component :is="iconMap.ncMoreVertical" />
-                </NcButton>
-                <template #overlay>
-                  <NcMenu variant="small">
-                    <NcMenuItemCopyId
-                      :id="record.id"
-                      :tooltip="
-                        record.isAgent
-                          ? $t(`labels.clickToCopyAgentID`)
-                          : record.isTeam
-                          ? $t(`labels.clickToCopyTeamID`)
-                          : $t(`labels.clickToCopyUserID`)
-                      "
-                      :label="
-                        record.isAgent
-                          ? $t(`labels.agentIdColon`, { agentId: record.id })
-                          : record.isTeam
-                          ? $t(`labels.teamIdColon`, { teamId: record.id })
-                          : $t(`labels.userIdColon`, { userId: record.id })
-                      "
-                    />
-                  </NcMenu>
-                </template>
-              </NcDropdown>
-            </div>
-          </template>
-        </NcTable>
+              </div>
+              <div v-if="column.key === 'created_at'">
+                <NcTooltip class="max-w-full">
+                  <template #title>
+                    {{ parseStringDateTime(record.created_at) }}
+                  </template>
+                  <span>
+                    {{ timeAgo(record.created_at) }}
+                  </span>
+                </NcTooltip>
+              </div>
+              <div v-if="column.key === 'action'">
+                <NcDropdown placement="bottomRight">
+                  <NcButton size="small" type="secondary">
+                    <component :is="iconMap.ncMoreVertical" />
+                  </NcButton>
+                  <template #overlay>
+                    <NcMenu variant="small">
+                      <NcMenuItemCopyId
+                        :id="record.id"
+                        :tooltip="
+                          record.isAgent
+                            ? $t(`labels.clickToCopyAgentID`)
+                            : record.isTeam
+                            ? $t(`labels.clickToCopyTeamID`)
+                            : $t(`labels.clickToCopyUserID`)
+                        "
+                        :label="
+                          record.isAgent
+                            ? $t(`labels.agentIdColon`, { agentId: record.id })
+                            : record.isTeam
+                            ? $t(`labels.teamIdColon`, { teamId: record.id })
+                            : $t(`labels.userIdColon`, { userId: record.id })
+                        "
+                      />
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
+              </div>
+            </template>
+          </NcTable>
+
+          <ProjectAppTeamsSection v-if="isAppsEnabled && baseId" :base-id="baseId" />
+        </div>
       </div>
 
       <LazyDlgInviteDlg

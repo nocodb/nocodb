@@ -7,6 +7,7 @@ import {
   type ColumnType,
   type FilterType,
   type FocusValue,
+  type ManagedAppInstallSurface,
   type MetaType,
   type PaginatedType,
   type PermissionEntity,
@@ -281,9 +282,16 @@ type NcProject = BaseType & {
   managed_app_published_at?: string
   auto_update?: boolean
   managed_app_schema_locked?: boolean
-  // Set only for sandbox bases — the production base this sandbox belongs to.
-  // Used to decide whether to surface a sandbox base in the base list.
-  production_base_id?: string
+  /** What the publisher handed this install's owner. Null on an install from
+   *  before the column — read it through `resolveInstallSurface`. */
+  managed_app_surface?: ManagedAppInstallSurface
+  /** An operator's kill switch. 'app' stops every install of the listing;
+   *  'version' only the installs pinned to that release. Unset while it runs. */
+  managed_app_suspended_scope?: 'app' | 'version'
+  managed_app_suspended_reason?: string | null
+  // Set only for lane bases — the production base this environment instance
+  // belongs to. Used to decide whether to surface a lane base in the base list.
+  fk_base_id?: string
   // True when the base has a published interface the current user can open.
   // Drives the base card default ("Open interface" + a "Go to data" button).
   has_published_interface?: boolean
@@ -833,7 +841,7 @@ interface PermissionSelectorUser {
   id: string
   email?: string
   display_name?: string | null
-  type?: 'user' | 'team' | 'agent'
+  type?: 'user' | 'team' | 'appTeam' | 'agent'
   hierarchy_scope?: 'self_only' | 'self_and_descendants'
 }
 

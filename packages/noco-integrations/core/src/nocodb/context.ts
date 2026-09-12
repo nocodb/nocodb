@@ -1,10 +1,20 @@
 import type { NocoSDK } from '../sdk';
 import type {
+  IAgentsService,
   ICommentsService,
   IDataV3Service,
   IMailService,
   ITablesService,
 } from './services';
+
+/** An env-resolved base variable exposed to script runtimes. */
+export interface ResolvedBaseVariable {
+  key: string;
+  /** Resolved value — undefined when unset. Secrets arrive DECRYPTED: this
+   * shape is for server-side sandboxes only and must never reach a client. */
+  value?: string;
+  secret: boolean;
+}
 
 /**
  * Bag of in-process NocoDB handles passed to integration wrappers that need
@@ -38,6 +48,14 @@ export interface NocoDBContext {
    * through it).
    */
   commentsService: ICommentsService;
+  /**
+   * Agents of the current base — list them for a picker, and hand one work.
+   * A run goes through the same funnel every other trigger source uses, so the
+   * loop guard and the one-run-at-a-time queue apply to a workflow too.
+   */
+  agentsService: IAgentsService;
+  /** Env-resolved base variables (incl. decrypted secrets) for the script node. */
+  getVariables?: () => Promise<ResolvedBaseVariable[]>;
   /**
    * Sandboxed code execution, metered and torn down by the host.
    *
@@ -103,6 +121,13 @@ export interface IComputeRunCommandResult {
 export interface IComputeInstance {
   /** TLS (https/wss) vs plain (http/ws) — build urls from this, don't assume. */
   readonly secure: boolean;
+
+  /**
+   * Credential for the instance's per-port hostnames. Send it on every request
+   * to a `getHost()` url — HTTP and the WebSocket upgrade alike — or the
+   * provider's edge answers 403 before the sandbox is reached.
+   */
+  readonly trafficToken?: string;
 
   runCode(
     code: string,

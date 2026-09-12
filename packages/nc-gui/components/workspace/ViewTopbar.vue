@@ -30,6 +30,8 @@ const activeTabKey = computed(() => {
 
 const activeTabLabel = computed(() => {
   switch (activeTabKey.value) {
+    case 'home':
+      return t('general.home')
     case 'collaborators':
       return t('labels.members')
     case 'teams':

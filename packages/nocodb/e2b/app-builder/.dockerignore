@@ -1,0 +1,8 @@
+# The image builds its OWN deps (`pnpm install` at build time, from the
+# committed lockfiles); rebuild.sh smoke-builds the template separately, outside
+# this context. Never bake the host's local copies: an in-place install leaves a
+# large node_modules/dist here that would bloat the build context + image, could
+# mask the real from-lockfile install, and makes the e2b builder's own COPY fail
+# to extract (which .dockerignore alone does not prevent — see rebuild.sh).
+**/node_modules
+**/dist

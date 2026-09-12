@@ -123,6 +123,24 @@ export interface WorkflowNodeConfig {
   _nocodb: NocoDBContext;
 }
 
+/**
+ * One capability invoke, as a node asks for it. The two halves stay separated
+ * all the way to the provider: `authored` is bound when the node is authored,
+ * `input` is what varies per run.
+ */
+export interface CapabilityDispatchRequest {
+  /** The auth integration the capability runs against. */
+  integrationId: string;
+  /** Fully qualified `<provider>.<capability id>`. */
+  action: string;
+  authored?: Record<string, unknown>;
+  input?: Record<string, unknown>;
+}
+
+export type CapabilityDispatcher = (
+  request: CapabilityDispatchRequest,
+) => Promise<unknown>;
+
 export {
   WorkflowNodeCategory,
   WorkflowNodeCategoryType,
@@ -190,6 +208,41 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
     return this._integrationLoader<T>(integrationId);
   }
 
+  /**
+   * Stored capability dispatcher from execution context.
+   * Set by the workflow executor before node execution.
+   * @internal
+   */
+  protected _capabilityDispatcher?: CapabilityDispatcher;
+
+  /**
+   * Set the capability dispatcher for this node instance.
+   * Called by the workflow executor before node execution.
+   * @internal
+   */
+  public setCapabilityDispatcher(dispatcher: CapabilityDispatcher) {
+    this._capabilityDispatcher = dispatcher;
+  }
+
+  /**
+   * Run one capability of an actions integration. The host owns resolution,
+   * credentials and the plan gate; a node states which capability with which
+   * values and nothing else, so capability execution keeps one set of semantics
+   * whether an app action or a workflow node asked for it.
+   *
+   * @throws Error if the dispatcher is not available
+   */
+  protected async dispatchCapability(
+    request: CapabilityDispatchRequest,
+  ): Promise<unknown> {
+    if (!this._capabilityDispatcher) {
+      throw new Error(
+        'Capability dispatcher not available. This node must be executed within a workflow context.',
+      );
+    }
+    return this._capabilityDispatcher(request);
+  }
+
   public abstract definition(): Promise<WorkflowNodeDefinition>;
 
   public async validate(_config: TConfig): Promise<WorkflowNodeValidationResult> {
@@ -197,6 +250,25 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
   }
 
   public abstract run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult>;
+
+  /**
+   * Prove the node would work without doing what it does.
+   *
+   * Only the Validate path calls this, never a real run. A probe may talk to
+   * the provider, but only in ways that change nothing: resolve the chat,
+   * resolve the table, GET the endpoint. Return `status: 'error'` with the
+   * same message a failing run would give.
+   *
+   * Leave it out and Validate falls back to the node's declared output
+   * variables, which is enough to author the next step against.
+   */
+  public async probe?(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult>;
+
+  /**
+   * There is nothing to check short of running it — a script, a request whose
+   * whole meaning is its side effect. Validate refuses and says so.
+   */
+  declare public readonly requiresRun?: boolean;
 
   public async fetchOptions(
     _key: string,

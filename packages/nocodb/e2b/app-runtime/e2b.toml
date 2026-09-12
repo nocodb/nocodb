@@ -1,0 +1,17 @@
+# The handler-action runtime image. Built once and rarely again — nothing
+# NocoDB-owned is baked in, so unlike the app-builder template there is no stamp
+# to keep in sync and no CI check watching it.
+#
+# Build with:
+#   e2b template create nocodb-app-runtime --cpu-count 1 --memory-mb 1024
+#
+# Rebuilding mints a new id — put it in `DEFAULT_TEMPLATES` in the e2b provider,
+# which is the only place the backend reads it from.
+template_name = "nocodb-app-runtime"
+template_id = "1ruz6wglzj1139633f3x"
+dockerfile = "Dockerfile"
+# One invocation of one bundle. The builder image needs 2/4096 for claude; this
+# runs a single node process. cpu_count/memory_mb below are v1 keys, ignored by
+# v2 — pass them as CLI flags instead.
+cpu_count = 1
+memory_mb = 1024

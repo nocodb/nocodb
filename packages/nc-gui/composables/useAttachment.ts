@@ -60,8 +60,9 @@ const useAttachment = () => {
 
     const chunkSize = 10
 
-    // Convert FileList to Array if necessary
-    const fileArray: File[] = ncIsArray(files) ? files : Array.from(files)
+    // Copy — the chunking below splices this array, and mutating the caller's
+    // array empties it out from under any post-upload bookkeeping.
+    const fileArray: File[] = ncIsArray(files) ? [...files] : Array.from(files)
 
     const uploadedFiles: AttachmentType[] = []
 

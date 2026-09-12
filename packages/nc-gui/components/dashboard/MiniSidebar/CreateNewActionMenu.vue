@@ -3,7 +3,7 @@ import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias 
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, orgRoles, workspaceRoles, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, orgRoles, workspaceRoles, environmentRestrictionReason, managedAppRestrictionReason } = useRoles()
 
 const { openedProject } = storeToRefs(useBases())
 
@@ -145,96 +145,76 @@ const hasTableCreateAccess = computed(() => {
   return isUIAllowed('tableCreate', {
     roles: base.value?.project_role || base.value.workspace_role,
     source: base.value?.sources?.[0],
-  })
-})
-
-const tableCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
-
-  return sandboxRestrictionReason('tableCreate', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    // ProjectInj is not provided in the MiniSidebar tree, so the useRoles
-    // wrapper's injected-base fallback is empty here — pass base explicitly or
-    // the reason is always null (the gate would be inert on a sandbox-master).
     base: base.value,
   })
 })
 
+// ProjectInj is not provided in the MiniSidebar tree, so the useRoles wrapper's
+// injected-base fallback is empty here — pass base explicitly or the reason is
+// always null (the gate would be inert on a locked base).
+const restrictionArgs = computed(() => ({
+  roles: base.value?.project_role || base.value?.workspace_role,
+  source: base.value?.sources?.[0],
+  base: base.value,
+}))
+
+// This menu lists every kind of object whichever base you are in, so both locks have
+// to speak here. Each answers only when the user would otherwise have been allowed,
+// so a viewer is still told about their role rather than about a publisher.
+function restrictionReason(permission: string) {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  const args = restrictionArgs.value
+
+  return environmentRestrictionReason(permission, args) ?? managedAppRestrictionReason(permission, args)
+}
+
+const tableCreateReason = computed(() => restrictionReason('tableCreate'))
+
 const hasViewCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('viewCreateOrEdit')
+  return isUIAllowed('viewCreateOrEdit', { base: base.value })
 })
 
 const hasScriptCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('scriptCreateOrEdit')
+  return isUIAllowed('scriptCreateOrEdit', { base: base.value })
 })
 
 const hasWorkflowCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('workflowCreateOrEdit')
+  return isUIAllowed('workflowCreateOrEdit', { base: base.value })
 })
 
 const hasAgentCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('agentCreate')
+  return isUIAllowed('agentCreate', { base: base.value })
 })
 
 const hasDashboardCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('dashboardCreate')
+  return isUIAllowed('dashboardCreate', { base: base.value })
 })
 
-const dashboardCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
+const dashboardCreateReason = computed(() => restrictionReason('dashboardCreate'))
 
-  return sandboxRestrictionReason('dashboardCreate', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    base: base.value,
-  })
-})
+const workflowCreateReason = computed(() => restrictionReason('workflowCreateOrEdit'))
 
-const workflowCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
+const agentCreateReason = computed(() => restrictionReason('agentCreate'))
 
-  return sandboxRestrictionReason('workflowCreateOrEdit', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    base: base.value,
-  })
-})
+const scriptCreateReason = computed(() => restrictionReason('scriptCreateOrEdit'))
 
-const agentCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
-
-  return sandboxRestrictionReason('agentCreate', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    base: base.value,
-  })
-})
-
-const scriptCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
-
-  return sandboxRestrictionReason('scriptCreateOrEdit', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    base: base.value,
-  })
-})
+const viewCreateReason = computed(() => restrictionReason('viewCreateOrEdit'))
 
 const hasDocumentCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('documentCreate')
+  return isUIAllowed('documentCreate', { base: base.value })
 })
 </script>
 
@@ -367,6 +347,8 @@ const hasDocumentCreateAccess = computed(() => {
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.view').toLowerCase() })
                 : !base || !activeTable
                 ? $t('tooltip.navigateToTableToCreateView')
+                : viewCreateReason
+                ? $t(viewCreateReason)
                 : !hasViewCreateAccess
                 ? $t('tooltip.youDontHaveAccessToCreateNewView')
                 : ''

@@ -258,6 +258,65 @@ export default abstract class CacheMgr {
     return res === 'OK';
   }
 
+  /**
+   * Atomic take-one-from-a-set.
+   *
+   * `setIfNotExist` claims ONE known key; this claims one of N interchangeable
+   * members without knowing which. Read-then-remove cannot substitute: two
+   * nodes would read the same member before either removed it, and both would
+   * believe they own it exclusively.
+   */
+  async spop(key: string): Promise<string | null> {
+    const res = await this.client.spop(key);
+    return typeof res === 'string' ? res : null;
+  }
+
+  async sadd(key: string, members: string[]): Promise<number> {
+    if (!members.length) return 0;
+    return this.client.sadd(key, ...members);
+  }
+
+  async srem(key: string, members: string[]): Promise<number> {
+    if (!members.length) return 0;
+    return this.client.srem(key, ...members);
+  }
+
+  async scard(key: string): Promise<number> {
+    return this.client.scard(key);
+  }
+
+  async smembers(key: string): Promise<string[]> {
+    return this.client.smembers(key);
+  }
+
+  /**
+   * Sorted-set ops, for windows that have to survive a caller dying.
+   *
+   * A plain counter cannot: a process killed between increment and decrement
+   * leaks a count that nothing gives back, and nothing can tell a leak apart
+   * from real load. Scoring each entry by timestamp makes the leak age out on
+   * its own — dropping the window's tail is the repair.
+   */
+  async zadd(key: string, score: number, member: string): Promise<number> {
+    return this.client.zadd(key, String(score), member);
+  }
+
+  async zrem(key: string, member: string): Promise<number> {
+    return this.client.zrem(key, member);
+  }
+
+  async zcard(key: string): Promise<number> {
+    return this.client.zcard(key);
+  }
+
+  async zremrangebyscore(
+    key: string,
+    min: number | string,
+    max: number | string,
+  ): Promise<number> {
+    return this.client.zremrangebyscore(key, min, max);
+  }
+
   async getList(
     scope: string,
     subKeys: string[],

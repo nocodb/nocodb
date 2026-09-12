@@ -303,8 +303,12 @@ export const validateNumberOfFilesInCell = async (
 ) => {};
 
 // ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
-const normalizeFilename = (filename: string) => {
-  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
+// Control chars (\x00-\x1f, \x7f) are stripped too: multer >=2.3.0 decodes the
+// WHATWG %0A/%0D/%22 escapes, so a CR/LF in a filename now arrives raw rather
+// than percent-escaped and would otherwise land in the storage key verbatim.
+export const normalizeFilename = (filename: string) => {
+  // eslint-disable-next-line no-control-regex
+  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^\x00-\x1f\x7f]/g, '_');
 };
 
 export const getFileNameFromUrl = (param: { url: string; scope?: string }) => {

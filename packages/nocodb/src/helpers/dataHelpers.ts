@@ -208,6 +208,10 @@ export async function serializeCellValue(
           currency: currencyMeta.currency_code || 'USD',
           minimumFractionDigits: currencyMeta.precision ?? 2,
           maximumFractionDigits: currencyMeta.precision ?? 2,
+          // Matches Number/Decimal, which already skip it here: a group separator
+          // makes "1.234" ambiguous across locales, and fr-* use U+202F, which
+          // Excel cannot render (nocodb/nocodb#14563).
+          useGrouping: false,
         }).format(+roundedValue);
       } catch {
         return value;

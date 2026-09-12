@@ -313,6 +313,11 @@ export function useCanvasRender({
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
+  // The row-number gutter is always present, so `columns` is never empty while
+  // view columns load. Chrome positioned from column geometry has to wait for a
+  // real field or it paints against the gutter and then jumps.
+  const hasFieldColumns = computed(() => columns.value.some((c) => c.id !== 'row_number'))
+
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
 
   // Pre-compute column id → index map to avoid O(n) findIndex per cell in fixed cols rendering
@@ -692,7 +697,7 @@ export function useCanvasRender({
       }
     }
 
-    if (isAddingColumnAllowed.value && !isMobileMode.value) {
+    if (isAddingColumnAllowed.value && !isMobileMode.value && hasFieldColumns.value) {
       ctx.fillStyle = getColor(themeV4Colors.gray['50'])
       ctx.fillRect(xOffset - _scrollLeft, 0, plusColumnWidth, _headerRowHeight)
       spriteLoader.renderIcon(ctx, {
@@ -2702,7 +2707,10 @@ export function useCanvasRender({
   // the last row) one shade darker than column borders, so the frozen region
   // reads without hovering or scrolling. Scroll adds the elevation tint.
   const renderFreezeBoundary = (ctx: CanvasRenderingContext2D) => {
-    if (!fixedCols.value.length) return
+    // The row-number gutter is always fixed, so `fixedCols` is never empty. Wait
+    // for a frozen *field* — otherwise the line paints at the gutter edge while
+    // view columns load, then jumps right once they land.
+    if (!fixedCols.value.some((col) => col.id !== 'row_number')) return
 
     // +0.5 keeps the 1px stroke crisp on non-retina displays
     const x = fixedColsWidth.value - 1 + 0.5

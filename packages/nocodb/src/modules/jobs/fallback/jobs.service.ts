@@ -17,15 +17,14 @@ export class JobsService implements OnModuleInit {
   constructor(private readonly fallbackQueueService: QueueService) {}
 
   async onModuleInit() {
-    // await this.fallbackQueueService.add(
-    //   JobTypes.DataExportCleanUp,
-    //   {},
-    //   {
-    //     jobId: JobTypes.DataExportCleanUp,
-    //     // run every 5 hours
-    //     repeat: { cron: '* * * * *' },
-    //   },
-    // );
+    await this.fallbackQueueService.add(
+      JobTypes.AttachmentCleanUp,
+      {},
+      {
+        jobId: JobTypes.AttachmentCleanUp,
+        repeat: { cron: '0 */5 * * *' },
+      },
+    );
 
     await this.add(JobTypes.InitMigrationJobs, {});
   }
@@ -40,6 +39,7 @@ export class JobsService implements OnModuleInit {
     options?: {
       jobId?: string;
       delay?: number; // delay in ms
+      repeat?: { cron: string };
     },
   ) {
     const context = {

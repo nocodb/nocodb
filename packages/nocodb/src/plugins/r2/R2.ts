@@ -21,6 +21,42 @@ export default class R2 extends GenericS3 implements IStorageAdapterV2 {
     super(input as R2ObjectStorageInput);
   }
 
+  private get endpoint(): URL {
+    const hostname = this.input.hostname.trim();
+    return new URL(
+      /^https?:\/\//i.test(hostname) ? hostname : `https://${hostname}`,
+    );
+  }
+
+  private getObjectKey(key: string): string {
+    let pathname = key;
+
+    try {
+      pathname = new URL(key).pathname;
+    } catch {}
+
+    try {
+      pathname = decodeURI(pathname);
+    } catch {}
+    pathname = pathname.replace(/^\/+/, '');
+
+    const bucketPrefix = `${this.input.bucket}/`;
+    return pathname.startsWith(bucketPrefix)
+      ? pathname.slice(bucketPrefix.length)
+      : pathname;
+  }
+
+  private getObjectUrl(key: string): string {
+    const endpoint = this.endpoint;
+    if (!endpoint.hostname.startsWith(`${this.input.bucket}.`)) {
+      endpoint.hostname = `${this.input.bucket}.${endpoint.hostname}`;
+    }
+    endpoint.pathname = `/${this.getObjectKey(key)}`;
+    endpoint.search = '';
+    endpoint.hash = '';
+    return endpoint.toString();
+  }
+
   protected get defaultParams() {
     return {
       Bucket: this.input.bucket,
@@ -30,18 +66,17 @@ export default class R2 extends GenericS3 implements IStorageAdapterV2 {
   }
 
   protected patchKey(key: string): string {
-    return decodeURI(key);
+    return this.getObjectKey(key);
   }
 
   protected patchUploadReturnKey(key: string): string {
-    // R2 by default encodes the key. But we expect the key to be decoded.
-    return decodeURI(key);
+    return this.getObjectUrl(key);
   }
 
   public async init(): Promise<any> {
     const s3Options: S3ClientConfigType = {
       region: 'auto',
-      endpoint: this.input.hostname,
+      endpoint: this.endpoint.origin,
       credentials: {
         accessKeyId: this.input.access_key,
         secretAccessKey: this.input.access_secret,
@@ -53,8 +88,7 @@ export default class R2 extends GenericS3 implements IStorageAdapterV2 {
 
   override getUploadedPath(path: string): { path?: string; url?: string } {
     return {
-      // bucket in path should already be included in hostname
-      url: `${this.input.hostname}/${path}`,
+      url: this.getObjectUrl(path),
     };
   }
 }

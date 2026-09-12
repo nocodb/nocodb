@@ -231,6 +231,9 @@ export enum NcErrorType {
   ERR_TABLE_ASSOCIATED_WITH_LINK = 'ERR_TABLE_ASSOCIATED_WITH_LINK',
   ERR_INTEGRATION_NOT_FOUND = 'ERR_INTEGRATION_NOT_FOUND',
   ERR_INTEGRATION_LINKED_WITH_BASES = 'ERR_INTEGRATION_LINKED_WITH_BASES',
+  ERR_ENVIRONMENT_NOT_FOUND = 'ERR_ENVIRONMENT_NOT_FOUND',
+  ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED = 'ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED',
+  ERR_INTEGRATION_PER_USER_NOT_ALLOWED = 'ERR_INTEGRATION_PER_USER_NOT_ALLOWED',
   // Connection credentials are no longer usable — only the user can fix it (reconnect).
   ERR_INTEGRATION_AUTH_FAILED = 'ERR_INTEGRATION_AUTH_FAILED',
   // Upstream call failed for a reason retrying may fix (rate limit, network, unknown).
@@ -336,9 +339,9 @@ export enum NcErrorType {
   ERR_SYSTEM_MISCONFIGURED = 'ERR_SYSTEM_MISCONFIGURED',
   ERR_TOO_MANY_REQUESTS = 'ERR_TOO_MANY_REQUESTS',
 
-  // Sandbox errors
-  ERR_SANDBOX_BLOCKED = 'ERR_SANDBOX_BLOCKED',
-  ERR_SANDBOX_PRODUCTION_BLOCKED = 'ERR_SANDBOX_PRODUCTION_BLOCKED',
+  // Environment errors
+  ERR_ENVIRONMENT_LANE_BLOCKED = 'ERR_ENVIRONMENT_LANE_BLOCKED',
+  ERR_ENVIRONMENT_PRODUCTION_LOCKED = 'ERR_ENVIRONMENT_PRODUCTION_LOCKED',
 
   // Snapshot errors
   ERR_SNAPSHOT_BLOCKED = 'ERR_SNAPSHOT_BLOCKED',
@@ -373,6 +376,8 @@ export const NON_SEAT_ROLES = [
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,
   ProjectRoles.COMMENTER,
+  // app_user base role is free for now (per-app editor-tier seat counting is a follow-up).
+  ProjectRoles.APP_USER,
   InterfaceRoles.NO_ACCESS,
   InterfaceRoles.VIEWER,
   InterfaceRoles.COMMENTER,
@@ -495,15 +500,44 @@ export enum BaseVersion {
   V3 = 3,
 }
 
-export enum ManagedAppVersionStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published',
+export enum ManagedAppVisibility {
+  /** Listed in the store for everyone, reachable and installable by everyone. */
+  PUBLIC = 'public',
+  /** Listed for the publisher's org when the workspace belongs to one,
+   *  otherwise for the publisher's workspace. Same scope for reach and
+   *  install. */
+  INTERNAL = 'internal',
+  /** Listed for nobody. Reachable and installable by any authenticated user
+   *  holding the id — the id is the bearer secret. Link sharing. */
+  UNLISTED = 'unlisted',
+  /** Owners only: `created_by`, or an effective base OWNER. */
+  PRIVATE = 'private',
 }
 
-export enum ManagedAppVisibility {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  UNLISTED = 'unlisted',
+/**
+ * What an install hands the person who installed it. The publisher decides, because
+ * only they know which one their app is.
+ *
+ * One question, two answers: does the base underneath come with the app, or not.
+ * There was a third — visible but schema-locked — and it made the publisher answer
+ * two questions instead of one for a middle nobody could describe in a sentence.
+ *
+ * Neither is a boundary. The only person `APP` withholds the dashboard from is the
+ * owner of the workspace the data already lives in, and ejecting is a platform
+ * guarantee offered at both. A publisher picking `APP` is saying "the tables are my
+ * plumbing, don't lead with them".
+ */
+export enum ManagedAppInstallSurface {
+  /** The app, and nothing else. Tables, fields and views are the publisher's
+   *  implementation detail; the owner administers the install — setup,
+   *  connections, their own team, upgrades — and is never shown the dashboard.
+   *  What a finished product looks like. */
+  APP = 'app',
+  /** The app plus the base, unlocked. The owner may add their own tables,
+   *  fields, views and agents; everything they add is named into their own half
+   *  of the namespace (`__c`) and survives every upgrade. A starting point
+   *  rather than a product. */
+  FULL = 'full',
 }
 
 export enum DeploymentStatus {
@@ -516,6 +550,7 @@ export enum DeploymentStatus {
 export enum DeploymentType {
   INSTALL = 'install',
   UPDATE = 'update',
+  UNINSTALL = 'uninstall',
 }
 
 export enum BaseVariableInheritance {

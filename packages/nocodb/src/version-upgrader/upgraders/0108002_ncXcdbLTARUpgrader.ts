@@ -39,13 +39,12 @@ async function upgradeModelRelations(
   },
 ) {
   // Iterate over each column and upgrade LTAR
-  for (const column of await model.getColumns(context, ncMeta)) {
+  for (const column of await model.getColumns(ncMeta)) {
     if (column.uidt !== UITypes.LinkToAnotherRecord) {
       continue;
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
       ncMeta,
     );
 
@@ -62,11 +61,11 @@ async function upgradeModelRelations(
             break;
           }
 
-          const parentCol = await colOptions.getParentColumn(context, ncMeta);
-          const childCol = await colOptions.getChildColumn(context, ncMeta);
+          const parentCol = await colOptions.getParentColumn(ncMeta);
+          const childCol = await colOptions.getChildColumn(ncMeta);
 
-          const parentModel = await parentCol.getModel(context, ncMeta);
-          const childModel = await childCol.getModel(context, ncMeta);
+          const parentModel = await parentCol.getModel(ncMeta);
+          const childModel = await childCol.getModel(ncMeta);
 
           // delete the foreign key constraint if exists
           const relation = relations.find((r) => {

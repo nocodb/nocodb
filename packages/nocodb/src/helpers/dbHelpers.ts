@@ -307,11 +307,11 @@ export async function shouldCascadeLinkCleanup(
   if (relationType === 'mm') {
     const assocModel = await Model.get(mmContext, colOptions.fk_mm_model_id);
     if (!assocModel) return false;
-    await assocModel.getColumns(mmContext);
+    await assocModel.getColumns();
     effectiveDr = undefined;
     for (const c of assocModel.columns) {
       if (!isLinksOrLTAR(c)) continue;
-      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(mmContext);
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>();
       if (
         opts?.type === 'bt' &&
         opts.fk_child_column_id === colOptions.fk_mm_child_column_id
@@ -429,7 +429,7 @@ export async function populatePk(
   model: Model,
   insertObj: any,
 ) {
-  await model.getColumns(context);
+  await model.getColumns();
   for (const pkCol of model.primaryKeys) {
     if (!pkCol.meta?.ag || insertObj[pkCol.title]) continue;
     insertObj[pkCol.title] =
@@ -589,6 +589,10 @@ export function extractSortsObject(
       if (throwErrorIfInvalid && !sort.fk_column_id) {
         NcError.get(context).fieldNotFound(s.field);
       }
+      // Deliberately UNSTAMPED. The alias map may describe a related table in
+      // another base, and sortV2 stamps an unstamped Sort with the context of
+      // the base model it is applied to — which is the base the sort key must
+      // resolve in. Stamping here would win over that and silently drop it.
       return new Sort(sort);
     });
   }
@@ -618,6 +622,10 @@ export function extractSortsObject(
       const fieldNameOrId = s.replace(/^~?[+-]/, '');
       NcError.get(context).fieldNotFound(fieldNameOrId);
     }
+    // Deliberately UNSTAMPED. The alias map may describe a related table in
+    // another base, and sortV2 stamps an unstamped Sort with the context of
+    // the base model it is applied to — which is the base the sort key must
+    // resolve in. Stamping here would win over that and silently drop it.
     return new Sort(sort);
   });
 }
@@ -658,7 +666,7 @@ export async function hasFlaggedFormulaColumn(
   for (const col of columns) {
     if (col.uidt !== UITypes.Formula && col.uidt !== UITypes.Button) continue;
     try {
-      const colOptions = await col.getColOptions<{ error?: string }>(context);
+      const colOptions = await col.getColOptions<{ error?: string }>();
       if (colOptions?.error) return true;
     } catch {
       // a missing colOptions row is not a reason to skip caching
@@ -678,7 +686,7 @@ export async function getAliasedSoftDeleteFilter(
   baseModel: IBaseModelSqlV2,
   tableAlias: string,
 ): Promise<Knex.QueryCallback | null> {
-  const columns = await baseModel.model.getColumns(baseModel.context);
+  const columns = await baseModel.model.getColumns();
   const deletedColumn = columns.find((c) => isDeletedCol(c));
   if (!deletedColumn) return null;
 
@@ -766,7 +774,7 @@ export async function getQueriedColumns(
   ncMeta?: MetaService,
 ) {
   let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
-  const _columns = await model.getColumns(context, ncMeta);
+  const _columns = await model.getColumns(ncMeta);
 
   const viewColumns = view?.id && (await View.getColumns(context, view.id));
   if (viewColumns) {

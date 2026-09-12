@@ -209,8 +209,11 @@ export const useRolesShared = createSharedComposable(() => {
 
   const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)
 
-  // CE has no sandbox concept — always returns null so CE behavior is identical to before.
-  const sandboxRestrictionReason = (..._args: any[]): string | null => null
+  // CE has no environments concept — always returns null so CE behavior is identical to before.
+  const environmentRestrictionReason = (..._args: any[]): string | null => null
+
+  // CE has no App User role.
+  const isAppUserOnly = computed(() => false)
 
   return {
     allRoles,
@@ -218,10 +221,11 @@ export const useRolesShared = createSharedComposable(() => {
     isOrgAdmin,
     workspaceRoles,
     baseRoles,
+    isAppUserOnly,
     loadRoles,
     isUIAllowed,
     isBaseRolesLoaded,
-    sandboxRestrictionReason,
+    environmentRestrictionReason,
   }
 })
 
@@ -252,7 +256,10 @@ export const useRoles = () => {
     isUIAllowed: (...args: IsUIAllowedParams) => {
       return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
     },
-    sandboxRestrictionReason: (..._args: any[]): string | null => null,
+    environmentRestrictionReason: (..._args: any[]): string | null => null,
+    // CE has no managed apps, so no base is ever locked by a publisher.
+    managedAppRestrictionReason: (..._args: any[]): string | null => null,
+    isManagedAppLocked: (..._args: any[]): boolean => false,
     isDataReadOnly,
     isMetaReadOnly,
   }

@@ -1399,6 +1399,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
               :label-attachment="recordLabelAttachment(record)"
+              :force-tooltip="!!interfacePageDataApi"
               @resize-start="onResizeStart"
               @jump-start="jumpToRecordEdge(record, 'start')"
               @jump-end="jumpToRecordEdge(record, 'end')"

@@ -184,7 +184,16 @@ if (stopEventPropogation.value) {
 <style lang="scss">
 .nc-modal-wrapper {
   .ant-modal-content {
-    @apply !p-0 overflow-hidden;
+    @apply !p-0;
+    // Use `clip`, not `hidden`: an `overflow: hidden` box is still a scroll
+    // container, so a focus / scrollIntoView originating from a nested modal or
+    // dropdown can scroll THIS chrome box (its content can slightly exceed the
+    // fixed modal height) and shove the whole modal body out of view — the box
+    // stays centered but its content ends up scrolled ~300px up, leaving a blank
+    // modal. `clip` clips identically (border-radius included) but never becomes
+    // a scroll container, so scrollTop is pinned at 0. The intended inner scroll
+    // areas keep their own `overflow: auto` and are unaffected.
+    overflow: clip;
   }
 }
 </style>

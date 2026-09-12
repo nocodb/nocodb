@@ -26,6 +26,7 @@ import { Filter } from '~/models';
 import { populateUpdatePayloadDiff } from '~/utils';
 import { WebhookInvoker } from '~/utils/webhook-invoker';
 import { hardenHandlebarsPathHelpers } from '~/helpers/handlebarsProtoGuard';
+import { getModelContext, setModelContext } from '~/helpers/modelContext';
 
 handlebarsHelpers({ handlebars: Handlebars });
 hardenHandlebarsPathHelpers(Handlebars);
@@ -84,19 +85,20 @@ export async function validateCondition(
   let isValid = null;
   for (const _filter of filters) {
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
+    if (!getModelContext(filter)) setModelContext(filter, context);
     let res;
     if (filter.is_group) {
       // If skipFetchingChildren is true, only use children from the object
       // This is useful for filters stored in JSON (like workflow configs) that aren't in the database
       filter.children = skipFetchingChildren
         ? filter.children || []
-        : filter.children || (await filter.getChildren(context));
+        : filter.children || (await filter.getChildren());
       res = await validateCondition(context, filter.children, data, {
         client,
         skipFetchingChildren,
       });
     } else {
-      const column = await filter.getColumn(context);
+      const column = await filter.getColumn();
       const field = column.title;
       let val = data[field];
       if (
@@ -645,7 +647,7 @@ export async function getAffectedColumns(
   }
   if (affectedCols.length) {
     affectedCols = [...new Set(affectedCols)];
-    const columns = await model.getColumns(context);
+    const columns = await model.getColumns();
     return affectedCols
       .map((title) => columns.find((col) => col.title === title)?.id)
       .filter(Boolean);

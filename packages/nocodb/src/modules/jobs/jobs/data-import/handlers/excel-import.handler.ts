@@ -19,7 +19,9 @@ import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 // Buffer the upload (already capped upstream) so its declared decompressed sizes
 // can be screened before exceljs caches sharedStrings into memory, then hand a
 // fresh stream to the reader.
-async function toGuardedWorkbookStream(readStream: Readable): Promise<Readable> {
+async function toGuardedWorkbookStream(
+  readStream: Readable,
+): Promise<Readable> {
   const buf = await readStreamToBuffer(readStream, NC_DATA_IMPORT_FILE_SIZE);
   assertXlsxNotDecompressionBomb(buf);
   return Readable.from(buf);

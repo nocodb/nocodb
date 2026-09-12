@@ -240,7 +240,7 @@ export async function restrictNestedLinkQuery(
 
   // The related table may live in another base — resolve its own context for the
   // column lookup below.
-  const { refContext } = colOptions.getRelContext(context);
+  const { refContext } = colOptions.getRelContext();
 
   // Gate the restriction to the fetch's actual SELECT exposure (see fn docs):
   //  - a shared view/form ALWAYS restricts — the related table is not published.
@@ -280,7 +280,6 @@ export async function restrictNestedLinkQuery(
     columns,
     query,
     exposedColumnIds,
-    modelContext: refContext,
   });
 }
 
@@ -304,7 +303,6 @@ export async function restrictQueryToExposedColumns(
     columns,
     query,
     exposedColumnIds,
-    modelContext = context,
     aliasColObjMap: preResolvedAliasColObjMap,
   }: {
     model: Model;
@@ -313,8 +311,6 @@ export async function restrictQueryToExposedColumns(
     /** Mutated in place — both the data fetch and the count read from it. */
     query: Record<string, any>;
     exposedColumnIds: Set<string>;
-    /** Context the columns belong to; differs from `context` for cross-base. */
-    modelContext?: NcContext;
     /** Pre-resolved alias map for `model`; derived from `columns` if absent. */
     aliasColObjMap?: Record<string, Column>;
   },
@@ -325,8 +321,7 @@ export async function restrictQueryToExposedColumns(
   if (!whereKeys.length && !sortKeys.length) return;
 
   const aliasColObjMap =
-    preResolvedAliasColObjMap ??
-    (await model.getAliasColObjMap(modelContext, columns));
+    preResolvedAliasColObjMap ?? (await model.getAliasColObjMap(columns));
 
   // Drop only the offending leaves and re-emit the survivors: dropping the whole
   // `where` would turn a multi-field search into "return every record".
@@ -373,12 +368,10 @@ export async function restrictNestedLinkQueryForColumn(
 ): Promise<void> {
   if (!query || !column || !isLinksOrLTAR(column)) return;
 
-  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-    context,
-  );
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
   if (!colOptions) return;
 
-  const relatedModel = await colOptions.getRelatedTable(context);
+  const relatedModel = await colOptions.getRelatedTable();
   await restrictNestedLinkQuery(
     context,
     colOptions,

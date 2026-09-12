@@ -112,7 +112,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'workflows' | 'interfaces' | 'agents' | 'settings'
+  type SidebarTab = 'data' | 'workflows' | 'interfaces' | 'agents' | 'settings' | 'app' | 'store'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
@@ -136,10 +136,14 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
         return 'workflows'
       }
 
+      // App routes own their highlight via the rail App tiles — keep the main tabs (Data/Workflows/Settings) inactive.
+      if (name.startsWith('index-typeOrId-baseId-index-apps')) return 'app'
+
       if (name.startsWith('index-typeOrId-baseId-index-interfaces')) {
         return 'interfaces'
       }
 
+      if (name.startsWith('index-typeOrId-baseId-index-store')) return 'store'
       if (name.startsWith('index-typeOrId-baseId-index-agents')) {
         return 'agents'
       }

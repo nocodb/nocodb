@@ -181,8 +181,13 @@ function looksLikeHtml(value: string): boolean {
   return /^\s*<(?:p|h[1-6]|ul|ol|blockquote|pre|div)(?=[\s>/])/i.test(value)
 }
 
+/**
+ * Also escapes `"`: the result is interpolated into attributes below, where
+ * `$("Node title")` would otherwise close the attribute it sits in and the
+ * expression would render as raw markup.
+ */
 function escapeHtml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 // Resolve the {{ expression }} token to the id + display label used by the expression chip.
@@ -440,7 +445,7 @@ function loadContent() {
 
     if (match.index > lastIndex) {
       const textContent = vModel.value.slice(lastIndex, match.index)
-      htmlContent += textContent.replace(/\n/g, '<br>')
+      htmlContent += escapeHtml(textContent).replace(/\n/g, '<br>')
     }
 
     if (!expression) {
@@ -488,16 +493,16 @@ function loadContent() {
       }
     }
 
-    htmlContent += `<span data-type="workflowExpression" data-id="${
-      variable?.key || trimmedExpression
-    }" data-label="${displayLabel}" data-expression="${fullMatch}"></span>`
+    htmlContent += `<span data-type="workflowExpression" data-id="${escapeHtml(
+      variable?.key || trimmedExpression,
+    )}" data-label="${escapeHtml(displayLabel)}" data-expression="${escapeHtml(fullMatch)}"></span>`
 
     lastIndex = match.index + fullMatch.length
   }
 
   if (lastIndex < vModel.value.length) {
     const textContent = vModel.value.slice(lastIndex)
-    htmlContent += textContent.replace(/\n/g, '<br>')
+    htmlContent += escapeHtml(textContent).replace(/\n/g, '<br>')
   }
 
   editor.value

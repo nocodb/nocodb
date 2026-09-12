@@ -400,10 +400,10 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
   )
 }
 
-const { isUIAllowed, isDataReadOnly, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, isDataReadOnly, environmentRestrictionReason } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
-const addColumnReason = computed(() => (!readOnly.value && !isSqlView.value ? sandboxRestrictionReason('fieldAdd') : null))
+const addColumnReason = computed(() => (!readOnly.value && !isSqlView.value ? environmentRestrictionReason('fieldAdd') : null))
 
 const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,

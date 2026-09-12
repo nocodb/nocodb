@@ -199,6 +199,19 @@ export default class Noco {
     this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;
 
+    // Node closes an idle keep-alive connection after 5s while a reverse proxy
+    // pools it far longer (Caddy 2m, ALB 60s), so the proxy keeps handing
+    // requests to sockets Node is closing underneath it — an ECONNRESET the
+    // proxy reports as a 502. It surfaces as published apps intermittently
+    // failing to load a lazy route chunk. Must stay ABOVE the fronting proxy's
+    // idle timeout so the proxy is always the side that closes first.
+    httpServer.keepAliveTimeout = Number(
+      process.env.NC_KEEP_ALIVE_TIMEOUT ?? 130_000,
+    );
+    // Node requires this to exceed keepAliveTimeout, or a request arriving on a
+    // connection about to expire is cut off mid-headers.
+    httpServer.headersTimeout = httpServer.keepAliveTimeout + 10_000;
+
     // Constrain proxy trust to an explicitly-configured topology (default off).
     // The bootstrap entry files historically call `server.enable('trust proxy')`
     // unconditionally; override that here so `req.ip` cannot be spoofed via
@@ -222,6 +235,12 @@ export default class Noco {
     await redisIoAdapter.connectToRedis();
     nestApp.useWebSocketAdapter(redisIoAdapter);
     NcDebug.log('Websocket adapter initialized');
+
+    // Ahead of nestApp.init(): that starts the queue consumers, and a job
+    // picked up before the global integrations are registered fails with
+    // "No AI integration configured".
+    await Integration.init();
+    NcDebug.log('Integration initialized');
 
     await nestApp.init();
     NcDebug.log('Nest app initialized');
@@ -258,9 +277,6 @@ export default class Noco {
         res.sendStatus(200);
       });
     }
-
-    await Integration.init();
-    NcDebug.log('Integration initialized');
 
     if (process.env.NC_WORKER_CONTAINER !== 'true') {
       await DataReflection.init();

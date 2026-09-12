@@ -57,6 +57,22 @@ const defaultPlugins = [
   R2PluginConfig,
 ];
 
+/**
+ * Process-local memo for the built storage adapter. `storageAdapter()` runs on
+ * every published-asset request (per file), and building an adapter — for the
+ * S3 family that means constructing a fresh S3 client — is expensive. The plugin
+ * row itself is tiny + ROOT-scoped, so we still read it each call (cheap) and
+ * skip only the rebuild while the row's signature is unchanged. Every
+ * reconfiguration goes through `Plugin.update` → `metaUpdate`, which bumps
+ * `updated_at`, so the signature changes on reconfiguration (and cross-pod,
+ * since the read hits the shared DB row) and the adapter is rebuilt — no
+ * explicit invalidation hook needed.
+ */
+let storageAdapterMemo: {
+  signature: string;
+  adapter: IStorageAdapterV2;
+} | null = null;
+
 class NcPluginMgrv2 {
   /* active plugins */
 
@@ -198,7 +214,18 @@ class NcPluginMgrv2 {
       },
     );
 
-    if (!pluginData) return new Local();
+    if (!pluginData) {
+      // No active storage plugin → fall back to Local and drop any stale memo.
+      storageAdapterMemo = null;
+      return new Local();
+    }
+
+    // Rebuild only when the plugin row's identity or config changes; `updated_at`
+    // is bumped by every `metaUpdate`, so any reconfiguration invalidates this.
+    const signature = `${pluginData.id}:${pluginData.version}:${pluginData.updated_at}`;
+    if (storageAdapterMemo && storageAdapterMemo.signature === signature) {
+      return storageAdapterMemo.adapter;
+    }
 
     const pluginConfig = defaultPlugins.find(
       (c) =>
@@ -211,7 +238,9 @@ class NcPluginMgrv2 {
     }
 
     await plugin.init(pluginData?.input);
-    return plugin.getAdapter();
+    const adapter = plugin.getAdapter();
+    storageAdapterMemo = { signature, adapter };
+    return adapter;
   }
 
   public static async emailAdapter(

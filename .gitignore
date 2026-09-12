@@ -116,6 +116,7 @@ antd.variable.css
 # nocodb-api skill runtime state
 .claude/skills/nocodb-dev-api/.state.json
 /.claude/worktrees/
+/worktrees/
 .playwright-mcp
 .playwright-cli
 .claude/skills/nocodb-dev-api/.credentials.json
@@ -134,3 +135,12 @@ scripts/.onprem-dev-secrets.env
 scripts/.onprem-dev-keys/
 # Northwind runbook demo receiver log
 .demo-receiver.jsonl
+# SDD execution scratch (ledger, briefs, review packages) — never commit
+.superpowers/
+# Local-only dev notes; may hold provider credentials — never commit
+GCP.md
+GUIDE.md
+# Local-only: holds a basic-auth credential for a live deployment — never commit
+/script.sh
+# One-off screenshot harness, machine-specific paths
+/.nc-shot.cjs

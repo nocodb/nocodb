@@ -12,7 +12,7 @@ const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { base, isSharedBase, isManagedAppMaster, isSandbox } = storeToRefs(useBase())
+const { base, isSharedBase } = storeToRefs(useBase())
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
@@ -47,12 +47,7 @@ const copySharedBase = async () => {
 <template>
   <div
     v-if="
-      !isSharedBase &&
-      !isManagedAppMaster &&
-      !isSandbox &&
-      (isUIAllowed('baseShare') || isUIAllowed('viewShare')) &&
-      visibility !== 'hidden' &&
-      (activeTable || base)
+      !isSharedBase && (isUIAllowed('baseShare') || isUIAllowed('viewShare')) && visibility !== 'hidden' && (activeTable || base)
     "
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"

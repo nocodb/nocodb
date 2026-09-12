@@ -6,17 +6,14 @@ import type { LtarSideEffectIds } from '~/services/columns.service.type';
 import type { OperationName } from './op-names';
 
 /**
- * Versioned, typed declaration of one state-mutating operation. Three
- * orthogonal concerns:
- *
- *  - `entry` (always relevant) — what gets recorded on the changelog row.
- *  - `undo`  (opt-in)          — only set if the op is undoable.
- *  - `sandbox` (opt-in)        — only set if the op flows through sandbox replay.
+ * Versioned, typed declaration of one state-mutating operation. `entry` is always
+ * relevant (what gets recorded on the changelog row); `undo` and `sandbox` are
+ * opt-in, set only for an op that is undoable or flows through sandbox replay.
  *
  * `name@version` is the registry lookup key and the `event` column in
- * `nc_sandbox_changelog`. Bump `version` when the schema or replay semantics
- * change in a way old changelog rows can't replay against the new contract;
- * v1 and v2 coexist until v1 rows drain.
+ * `nc_environment_changelog`. Bump `version` when the schema or replay semantics
+ * change in a way old changelog rows cannot replay against; v1 and v2 coexist until
+ * v1 rows drain.
  */
 export interface OperationContract<
   S extends ZodTypeAny = ZodTypeAny,
@@ -212,7 +209,7 @@ export interface TraceCommandDep {
  * appends one of these for every nested @TraceCommand call. On replay
  * the macro's registered handler iterates the transcript and re-invokes
  * each child via the OperationRegistry — same dispatch loop as
- * `SandboxCommandReplayService`.
+ * `EnvironmentCommandReplayService`.
  */
 export interface MacroTranscriptEntry {
   /** Child op's contract name (an OperationName value). */
@@ -265,6 +262,24 @@ export interface CaptureBag {
   }>;
   /** Default-view id captured at table-create. */
   sandboxDefaultViewId: string;
+  /** View-column join-row ids fanned out by a view/column create, keyed
+   *  `<fk_view_id>::<fk_column_id>`. No command owns these rows, so without
+   *  this capture later `*ColumnUpdate` ops address a lane-only id. */
+  viewColumnIds: Record<string, string>;
+  /** Draft `nc_app_versions` row id captured at app-create. */
+  draftVersionId: string;
+  /** `nc_app_action_versions` row id captured at action-create/update. */
+  appActionVersionId: string;
+  /** Handle allocated at app-team create. The id replays verbatim (the table is
+   *  keyed `['base_id','id']`), but the handle does not: it is allocated against
+   *  the handles already taken in THIS base, so production could mint
+   *  `clinicians-2` where the lane minted `clinicians` — and grants are frozen
+   *  by handle (`nc_app_version_grants`). Captured forward, forced on replay. */
+  appTeamHandle: string;
+  /** Ids of the Admin/Members teams seeded inside app-create. No command of
+   *  their own creates them, and RLS policies and permissions bind to them as
+   *  `appTeam` subjects, so a fresh id on replay would dangle every such rule. */
+  seededTeamIds: { admin?: string; members?: string };
   /** View ids that lived in a section at delete time — needed to re-link
    *  child views when the section is recreated on undo. */
   viewSectionViewIds: ReadonlyArray<string>;

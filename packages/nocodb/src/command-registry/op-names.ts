@@ -112,6 +112,12 @@ export const OperationName = {
   scriptDelete: 'scriptDelete',
   scriptDuplicate: 'scriptDuplicate',
 
+  // Apps
+  appCreate: 'appCreate',
+  appUpdate: 'appUpdate',
+  appDelete: 'appDelete',
+  appBuildCommit: 'appBuildCommit',
+
   // Workflows
   workflowCreate: 'workflowCreate',
   workflowUpdate: 'workflowUpdate',
@@ -184,6 +190,17 @@ export const OperationName = {
   tableSyncConfigUpdate: 'tableSyncConfigUpdate',
   tableSyncDetachTable: 'tableSyncDetachTable',
   tableSyncAttachTable: 'tableSyncAttachTable',
+
+  // App Actions
+  appActionCreate: 'appActionCreate',
+  appActionUpdate: 'appActionUpdate',
+  appActionDelete: 'appActionDelete',
+
+  // App Teams. Membership is not here on purpose: a lane's roster is not
+  // production's, so assignments are made on production and never replay.
+  appTeamCreate: 'appTeamCreate',
+  appTeamUpdate: 'appTeamUpdate',
+  appTeamDelete: 'appTeamDelete',
 
   // App Sync (integration-based SyncConfig)
   appSyncCreate: 'appSyncCreate',

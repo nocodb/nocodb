@@ -119,9 +119,9 @@ const { baseId: activeBaseId } = storeToRefs(baseStore)
 
 const basesStore = useBases()
 
-const isSandboxProduction = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox_production)
+const hasLaneInstances = computed(() => !!basesStore.bases.get(props.baseId)?.has_lane_instances)
 
-const isSandbox = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox)
+const isLaneInstance = computed(() => !!basesStore.bases.get(props.baseId)?.is_lane_instance)
 
 const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature } = useEeConfig()
 
@@ -254,12 +254,12 @@ const canLockView = computed(() => isUIAllowed('fieldAdd'))
 
 // Personal views are an EE-only concept — CE has only Collaborative
 // and the legacy Locked lock_types.
-// Locked views cannot be created on a sandbox master — make the change in the sandbox instead.
-// Personal views cannot be created on a sandbox — they belong to the master base.
+// Locked views cannot be created on a locked production base — make the change in the environment copy.
+// Personal views cannot be created in an environment copy — they belong to the production base.
 const lockTypeOptions = computed(() => {
   const options: Array<{ value: ViewLockType; disabled?: boolean }> = [{ value: ViewLockType.Collaborative }]
-  if (showEEFeatures.value) options.push({ value: ViewLockType.Personal, disabled: isSandbox.value })
-  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: isSandboxProduction.value })
+  if (showEEFeatures.value) options.push({ value: ViewLockType.Personal, disabled: isLaneInstance.value })
+  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: hasLaneInstances.value })
   return options
 })
 
@@ -1105,12 +1105,12 @@ watch(activeBaseId, () => {
               <template v-for="option in lockTypeOptions" :key="option.value">
                 <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
                      the radio shows an upgrade badge and clicks open the upgrade
-                     modal instead of setting lock_type. On a sandbox base, personal
+                     modal instead of setting lock_type. On a lane base, personal
                      views are disabled — they must be created on the master base. -->
                 <NcTooltip
                   v-if="option.value === ViewLockType.Personal && showEEFeatures"
                   :disabled="!option.disabled"
-                  :title="$t('tooltip.personalViewDisabledOnSandbox')"
+                  :title="$t('tooltip.personalViewDisabledOnEnvironment')"
                 >
                   <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
                     <template #default="{ click }">
@@ -1150,7 +1150,7 @@ watch(activeBaseId, () => {
                 <NcTooltip
                   v-else
                   :disabled="!option.disabled || option.value !== ViewLockType.Locked"
-                  :title="$t('tooltip.lockedViewDisabledOnSandboxMaster')"
+                  :title="$t('tooltip.lockedViewDisabledOnProduction')"
                 >
                   <a-radio
                     :value="option.value"

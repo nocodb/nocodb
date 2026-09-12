@@ -3,6 +3,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { FieldHandler } from '~/db/field-handler';
 import { Sort } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { getRefColumnIfAlias } from '~/helpers';
 
@@ -44,15 +45,19 @@ export default async function sortV2(
   const oracleUnsortableDt = new Set(['clob', 'nclob']);
 
   for (const _sort of sortList) {
-    const sort = _sort instanceof Sort ? _sort : new Sort(_sort);
+    let sort: Sort;
+    if (_sort instanceof Sort) {
+      sort = _sort;
+    } else {
+      sort = new Sort(_sort);
+    }
+    // Same guard as conditionV2 — a caller-constructed instance may be unstamped
+    if (!getModelContext(sort)) setModelContext(sort, context);
 
     // skip disabled sorts (enabled === false or enabled === 0)
     if (sort.enabled === false || (sort.enabled as any) === 0) continue;
 
-    const column = await getRefColumnIfAlias(
-      context,
-      await sort.getColumn(context),
-    );
+    const column = await getRefColumnIfAlias(context, await sort.getColumn());
 
     if (!column) {
       if (throwErrorIfInvalid) {

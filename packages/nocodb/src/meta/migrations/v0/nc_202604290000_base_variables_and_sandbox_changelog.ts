@@ -30,7 +30,7 @@ const up = async (knex: Knex) => {
     );
   });
 
-  await knex.schema.createTable(MetaTable.SANDBOX_CHANGELOG, (table) => {
+  await knex.schema.createTable('nc_sandbox_changelog', (table) => {
     table.string('id', 20).notNullable().primary();
     // App-managed monotonic counter (microseconds + intra-tick increment).
     // Replay iterates in seq-ASC order. created_at has only second precision
@@ -52,7 +52,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.alterTable(MetaTable.SANDBOX_CHANGELOG, (table) => {
+  await knex.schema.alterTable('nc_sandbox_changelog', (table) => {
     table.index(['fk_sandbox_id', 'seq'], 'nc_scl_sandbox_seq_index');
     table.index(['base_id'], 'nc_scl_base_id_index');
     table.index(['entity_type', 'entity_id'], 'nc_scl_entity_type_id_index');
@@ -77,13 +77,13 @@ const up = async (knex: Knex) => {
   // Sandbox terminology: rename "master" → "production" on sandbox-related
   // tables. Managed-app `managed_app_master` is a separate concept (template
   // vs installed instance) and is left unchanged.
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.dropIndex(['master_base_id'], 'nc_sandboxes_v2_master_base_id_idx');
   });
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.renameColumn('master_base_id', 'production_base_id');
   });
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.index(
       ['production_base_id'],
       'nc_sandboxes_v2_production_base_id_idx',
@@ -119,16 +119,16 @@ const down = async (knex: Knex) => {
     table.index(['is_sandbox_master'], 'nc_bases_is_sandbox_master_idx');
   });
 
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.dropIndex(
       ['production_base_id'],
       'nc_sandboxes_v2_production_base_id_idx',
     );
   });
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.renameColumn('production_base_id', 'master_base_id');
   });
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.index(['master_base_id'], 'nc_sandboxes_v2_master_base_id_idx');
   });
 
@@ -145,7 +145,7 @@ const down = async (knex: Knex) => {
     });
   });
 
-  await knex.schema.dropTableIfExists(MetaTable.SANDBOX_CHANGELOG);
+  await knex.schema.dropTableIfExists('nc_sandbox_changelog');
   await knex.schema.dropTableIfExists(MetaTable.BASE_VARIABLES);
 };
 

@@ -5,6 +5,15 @@ export interface TokenData {
   expires_at?: string;
 }
 
+/**
+ * A stored auth config as `maskConfig()` receives it: the package's own
+ * config shape, plus token material the core OAuth machinery persists after
+ * an exchange/refresh, plus the transient (pre-exchange) `oauth` payload —
+ * which implementations must DROP, not mask.
+ */
+export type MaskableAuthConfig<TConfig> = TConfig &
+  Partial<TokenData> & { oauth?: Record<string, unknown> };
+
 export interface TestConnectionResponse {
   success: boolean;
   message?: string;

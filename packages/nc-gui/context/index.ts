@@ -1,6 +1,7 @@
 import type {
   ColumnType,
   FilterType,
+  IntegrationCredentialMode,
   InterfaceGalleryVizTheme,
   InterfaceKanbanVizTheme,
   SourceType,
@@ -17,6 +18,12 @@ export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : n
 export type ExtractInjectedReactive<T> = T extends InjectionKey<Reactive<infer U>> ? U : never
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
+export const IntegrationPerUserStateInj: InjectionKey<{
+  perUserEnabled: Ref<boolean>
+  isEligible: ComputedRef<boolean>
+  /** Non-null when the caller fixed the mode and the creator has no choice. */
+  requiredMode: ComputedRef<IntegrationCredentialMode | null>
+} | null> = Symbol('integration-per-user-state')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const IsInFilterInj: InjectionKey<Ref<boolean>> = Symbol('is-in-filter')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')

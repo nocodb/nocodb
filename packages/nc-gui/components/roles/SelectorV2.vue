@@ -56,7 +56,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
   return (props.disabledRoles || []).concat(props.roles || []).map((role: keyof typeof RoleLabels): NcListItemType => {
     return {
       value: role,
-      label: t(`objects.roleType.${RoleLabels[role]}`),
+      label: t(`objects.roleType.${RoleLabels[role] ?? role}`, role),
       description: t(`objects.roleDescription.${role}`),
       icon: RoleIcons[role],
       color: RoleColors[role],

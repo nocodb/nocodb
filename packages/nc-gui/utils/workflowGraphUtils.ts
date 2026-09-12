@@ -55,11 +55,18 @@ export function getNodeOutgoingEdges(nodeId: string, edges: Edge[]): Edge[] {
   return edges.filter((e) => e.source === nodeId)
 }
 
+/** Which output port an edge leaves by. `sourceHandle` is Vue Flow's field and
+ * `sourcePortId` the backend's; this canvas writes both, everything else writes
+ * only the latter. */
+export function edgeSourcePort(edge: Edge): string | undefined {
+  return edge.sourceHandle ?? (edge as { sourcePortId?: string }).sourcePortId
+}
+
 /**
  * Get edges from a specific output port of a node
  */
 export function getPortOutgoingEdges(nodeId: string, portId: string, edges: Edge[]): Edge[] {
-  return edges.filter((e) => e.source === nodeId && e.sourceHandle === portId)
+  return edges.filter((e) => e.source === nodeId && edgeSourcePort(e) === portId)
 }
 
 /**
@@ -230,4 +237,91 @@ export function findParentNodesNeedingPlusNodes(
   })
 
   return parentNodesWithEmptyPorts
+}
+
+/**
+ * Presentation belongs to the canvas, not to whoever wrote the graph. An edge
+ * with no `type` renders as Vue Flow's default, which draws no insert button —
+ * so a workflow authored by the API, an agent or an import cannot be edited at
+ * all until this runs.
+ */
+export function withCanvasEdgeDefaults(edges: Array<Edge>): Array<Edge> {
+  return edges.map((edge) => {
+    const port = edgeSourcePort(edge)
+
+    return {
+      ...edge,
+      type: 'custom',
+      animated: false,
+      // Give Vue Flow the handle it renders from when only the backend's field
+      // is set, or a branch hangs off the node's default handle.
+      ...(edge.sourceHandle || !port ? {} : { sourceHandle: port }),
+    }
+  })
+}
+
+/**
+ * Rebuild the plus nodes a graph is missing.
+ *
+ * Plus nodes are persisted alongside real ones, so a workflow written by
+ * anything other than this canvas — the API, an agent, an import — arrives
+ * with none, and its last node has no "Add Action" to click. Sweeping on load
+ * gives those graphs the affordance back without a migration.
+ *
+ * Pure and idempotent: a port that already leads somewhere is not an empty
+ * port, so re-running finds nothing to do.
+ */
+export function withRecoveredPlusNodes(
+  nodes: Array<Node>,
+  edges: Array<Edge>,
+  getNodeMetaByIdFn: (id?: string) => WorkflowNodeDefinition | null,
+  generateNodeId: (nodes: Array<Node>) => string,
+): { nodes: Array<Node>; edges: Array<Edge> } {
+  const nextNodes = [...nodes]
+
+  const nextEdges = [...edges]
+
+  for (const node of nodes) {
+    if (Object.values(GeneralNodeID).includes(node.type as any)) continue
+
+    const nodeMeta = getNodeMetaByIdFn(node.type)
+    const isMultiPort = getNodeOutputPorts(nodeMeta).length > 1
+
+    for (const port of findEmptyOutputPorts(node.id, nodeMeta, nextEdges)) {
+      const plusNode: Node = {
+        id: generateNodeId(nextNodes),
+        type: GeneralNodeID.PLUS,
+        position: { x: 250, y: 200 },
+        data: {
+          title: 'Add Action / Condition',
+        },
+      }
+
+      const edge: Edge = {
+        id: `e:${node.id}->${plusNode.id}`,
+        source: node.id,
+        target: plusNode.id,
+        animated: false,
+        type: 'custom',
+        zIndex: 2,
+      }
+
+      if (port.label) {
+        edge.label = port.label
+        edge.labelStyle = { fill: '#6b7280', fontWeight: 600, fontSize: 12 }
+        edge.labelBgStyle = { fill: 'white' }
+      }
+
+      // Single-output edges carry no handle, matching what addPlusNode writes.
+      if (isMultiPort) {
+        edge.sourceHandle = port.id
+        ;(edge as any).sourcePortId = port.id
+      }
+
+      nextNodes.push(plusNode)
+      nextEdges.push(edge)
+    }
+  }
+
+  return { nodes: nextNodes, edges: nextEdges }
 }

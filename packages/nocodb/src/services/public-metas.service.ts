@@ -30,6 +30,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
+import { setModelContext } from '~/helpers/modelContext';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { projectRelatedMetas } from '~/helpers/relatedMetaProjection';
@@ -60,12 +61,12 @@ export class PublicMetasService {
 
     view.lock_type = ViewLockType.Collaborative;
 
-    await view.getFilters(context);
-    await view.getSorts(context);
+    await view.getFilters();
+    await view.getSorts();
 
-    await view.getViewWithInfo(context);
-    await view.getColumns(context);
-    await view.getModelWithInfo(context);
+    await view.getViewWithInfo();
+    await view.getColumns();
+    await view.getModelWithInfo();
 
     // A shared view can outlive its table: trashing a table soft-deletes only
     // the model row (Model.softDelete), leaving the view + its share UUID intact.
@@ -80,7 +81,7 @@ export class PublicMetasService {
       NcError.get(context).tableNotFound(view.fk_model_id);
     }
 
-    await view.model.getColumns(context);
+    await view.model.getColumns();
 
     const source = await Source.get(context, view.model.source_id);
     view.client = source.type;
@@ -148,12 +149,14 @@ export class PublicMetasService {
           )
         );
       })
-      .map(
-        (c) =>
+      .map((c) =>
+        setModelContext(
           new Column({
             ...c,
             ...view.model.columnsById[c.fk_column_id],
           } as any),
+          context,
+        ),
       ) as any;
 
     const relatedMetas = {};
@@ -241,13 +244,11 @@ export class PublicMetasService {
   ) {
     if (isLinksOrLTAR(col.uidt)) {
       await this.extractLTARRelatedMetas(context, {
-        ltarColOption: await col.getColOptions<LinkToAnotherRecordColumn>(
-          context,
-        ),
+        ltarColOption: await col.getColOptions<LinkToAnotherRecordColumn>(),
         relatedMetas,
       });
     } else if (UITypes.Lookup === col.uidt) {
-      const lookupColOption = await col.getColOptions<LookupColumn>(context);
+      const lookupColOption = await col.getColOptions<LookupColumn>();
       if (lookupColOption?.error) return;
       await this.extractLookupRelatedMetas(context, {
         lookupColOption,
@@ -266,7 +267,7 @@ export class PublicMetasService {
       relatedMetas: { [key: string]: Model };
     },
   ) {
-    const { refContext, mmContext } = ltarColOption.getRelContext(context);
+    const { refContext, mmContext } = ltarColOption.getRelContext();
 
     relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo(
       refContext,
@@ -330,9 +331,9 @@ export class PublicMetasService {
     if (!relationCol) return;
 
     const { refContext = context } =
-      (relationCol.colOptions as LinkToAnotherRecordColumn)?.getRelContext?.(
-        context,
-      ) || {};
+      (
+        relationCol.colOptions as LinkToAnotherRecordColumn
+      )?.getRelContext?.() || {};
 
     const lookedUpCol = await Column.get(refContext, {
       colId: lookupColOption.fk_lookup_column_id,

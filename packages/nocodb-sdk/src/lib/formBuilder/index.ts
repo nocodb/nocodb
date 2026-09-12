@@ -314,6 +314,8 @@ interface FormBuilderElementBase {
    * @note: Use required field validator along with this to ensure field is required
    * */
   required?: boolean;
+  /** Render the field read-only (visible but not editable) */
+  disabled?: boolean;
   /** Validators for field validation */
   validators?: FormBuilderValidator[];
   /** Model path(s) this field depends on - when dependency changes, options are reloaded */

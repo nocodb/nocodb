@@ -15,8 +15,9 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
-import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
+import { claimObjectTitle } from '~/helpers/customObjects';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { FormView, Model, Source, User, View } from '~/models';
@@ -46,9 +47,9 @@ export class FormsService {
     ncMeta?: MetaService,
   ) {
     if (param?.ownedBy) {
-      await assertNotSandbox(
+      await assertNotLaneInstance(
         context,
-        'Personal views cannot be created in a sandbox. Create them on the production base.',
+        'Personal views cannot be created in an environment instance. Create them on the production base.',
       );
     }
 
@@ -79,6 +80,17 @@ export class FormsService {
     }
 
     param.body.title = param.body.title?.trim();
+
+    param.body.title = await claimObjectTitle(
+      context,
+      'view',
+      param.body.title,
+      {
+        baseId: model.base_id,
+        insideTable: model.table_name,
+        ncMeta,
+      },
+    );
     const existingView = await View.getByTitleOrId(
       context,
       {
@@ -147,7 +159,7 @@ export class FormsService {
       context,
     });
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo();
 
     NocoSocket.broadcastEvent(
       context,
@@ -218,7 +230,7 @@ export class FormsService {
       owner,
     });
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo();
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeView = View.maskPasswordForResponse(view);

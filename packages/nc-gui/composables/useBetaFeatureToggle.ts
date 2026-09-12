@@ -10,6 +10,7 @@ const FEATURES = [
     enabled: false,
     isEngineering: true,
     isAdvanced: true,
+    requires: 'apps',
   },
   {
     id: 'bases_v3',
@@ -256,6 +257,31 @@ const FEATURES = [
     isEngineering: true,
   },
   {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'apps',
+    title: 'Apps',
+    description:
+      'Build, publish and install apps: the app tile in the sidebar, App Settings, the App target on the workspace home, and the /apps routes.',
+    enabled: false,
+    version: 1,
+    isAdvanced: true,
+    isEE: true,
+  },
+  {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'marketplace',
+    title: 'Marketplace',
+    description: 'Add a catalog of showcase demo apps to the App Store, alongside your own published apps.',
+    enabled: false,
+    version: 1,
+    isEngineering: false,
+    isAdvanced: true,
+    isEE: true,
+    requires: 'apps',
+  },
+  {
     id: 'product_tours_menu',
     title: 'Product tours menu',
     description: 'Show the Product Tours entry in the account menu, for replaying onboarding and feature tours.',
@@ -376,6 +402,12 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     // on-prem). `isEEFeatureBlocked` is true exactly there; false on licensed
     // on-prem and cloud.
     if (feature && 'isLicensed' in feature && feature.isLicensed && isEEFeatureBlocked.value) {
+      return false
+    }
+
+    // A sub-feature of something that is itself behind a flag: off whenever its
+    // parent is. One level of recursion per hop and FEATURES declares no cycle.
+    if (feature && 'requires' in feature && feature.requires && !isFeatureEnabled(feature.requires)) {
       return false
     }
 

@@ -83,5 +83,5 @@ export function nextCronRun(
   opts: CronOptions = {},
 ): Date | null {
   const { valid, nextRun } = validateCronExpression(expression, opts);
-  return valid ? (nextRun ?? null) : null;
+  return valid ? nextRun ?? null : null;
 }

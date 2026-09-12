@@ -220,6 +220,10 @@ export class NcError {
     return NcError._.internalServerError(message, args);
   }
 
+  static contextAlreadySet(modelName: string): never {
+    return NcError._.contextAlreadySet(modelName);
+  }
+
   static systemMisconfigured(message: string, args?: NcErrorArgs): never {
     return NcError._.systemMisconfigured(message, args);
   }
@@ -254,6 +258,10 @@ export class NcError {
 
   static integrationNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.integrationNotFound(id, args);
+  }
+
+  static environmentNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.environmentNotFound(id, args);
   }
 
   static syncConfigNotFound(id: string, args?: NcErrorArgs): never {

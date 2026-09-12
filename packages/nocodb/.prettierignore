@@ -3,3 +3,9 @@
 # up fighting over formatting — keep these files out of Prettier.
 src/integrations/index.ts
 src/ee/integrations/index.ts
+
+# The app-builder image's baked sources. They are APP code (double quotes, no
+# semicolons — the starter template's own prettier style) and the backend's
+# prettier would rewrite them into backend style; worse, every byte here feeds
+# the template hash, so a stray format demands an image rebuild.
+e2b/app-builder/

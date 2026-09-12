@@ -69,61 +69,11 @@ const viewModeInfo = computed(() => {
     <template v-if="!isMobileMode">
       <SmartsheetTopbarProjectListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
-          <div
-            class="rounded-lg h-8 px-2 text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer max-w-1/3"
-            :class="{
-              '!max-w-none': isSharedBase && !isMobileMode,
-              '': !isMobileMode && isLeftSidebarOpen,
-            }"
-          >
-            <NcTooltip :disabled="isSharedBase || isOpen">
-              <template #title>
-                <span class="capitalize">
-                  {{ base?.title }}
-                </span>
-              </template>
-
-              <GeneralProjectIcon
-                :type="base?.type"
-                :color="parseProp(base.meta).iconColor"
-                :icon="parseProp(base.meta).icon"
-                :managed-app="{
-                  managed_app_master: base?.managed_app_master,
-                  managed_app_id: base?.managed_app_id,
-                }"
-                class="!grayscale min-w-4"
-              />
-            </NcTooltip>
-            <template v-if="isSharedBase">
-              <NcTooltip
-                class="ml-1 truncate nc-active-base-title max-w-full !leading-5 !hidden lg:!block"
-                show-on-truncate-only
-                :disabled="isOpen"
-              >
-                <template #title>
-                  <span class="capitalize">
-                    {{ base?.title }}
-                  </span>
-                </template>
-
-                <span
-                  class="text-ellipsis capitalize"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                >
-                  {{ base?.title }}
-                </span>
-              </NcTooltip>
-              <GeneralIcon
-                icon="chevronDown"
-                class="!text-current opacity-70 flex-none transform transition-transform duration-25 w-3.5 h-3.5 !hidden lg:!block"
-                :class="{ '!rotate-180': isOpen }"
-              />
-            </template>
-          </div>
+          <SmartsheetTopbarBaseTitle
+            :is-open="isOpen"
+            class="max-w-1/3"
+            :class="{ '!max-w-none': isSharedBase && !isMobileMode }"
+          />
         </template>
       </SmartsheetTopbarProjectListDropdown>
 

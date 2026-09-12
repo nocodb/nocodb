@@ -45,6 +45,8 @@ const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, cycl
 
 const { isAgentsEnabled } = storeToRefs(useAgentStore())
 
+const { isAppsEnabled } = storeToRefs(useAppStore())
+
 const {
   blockAiChat,
   showEEFeatures,
@@ -52,11 +54,11 @@ const {
   showUpgradeToUseBookmarks,
   hideInterfaces,
   showUpgradeForInterfaceFeature,
-  blockWorkflows,
-  showUpgradeToUseWorkflows,
   showUpgradeSurface,
   blockAgents,
   showUpgradeToUseAgents,
+  blockWorkflows,
+  showUpgradeToUseWorkflows,
 } = useEeConfig()
 
 // Both ship on the unlicensed on-prem Free tier, so community mode may only drop
@@ -106,6 +108,10 @@ watch(
 const isBaseListModalOpen = ref(false)
 
 const hasAvailableBases = computed(() => !!basesList.value?.length)
+
+const showAppTile = computed(() => isAppsEnabled.value && hasAvailableBases.value)
+
+const isAppFirst = computed(() => isAppFirstBase(resolvedProject.value))
 
 const getBasePath = () => {
   const wsId = route.value.params.typeOrId || activeWorkspaceId.value
@@ -394,6 +400,14 @@ const handleOpenBookmarkPanel = () => {
 
     <NcDivider class="!w-8 !min-w-8 !mb-0 !border-nc-border-gray-medium !-mt-1.5" />
 
+    <!-- Apps — leads the group for a base built through the App flow -->
+    <DashboardMiniSidebarV2AppTiles
+      v-if="showAppTile && isAppFirst"
+      :ref="(el: any) => setItemRef('app', el)"
+      variant="dock"
+      :scale="getScale('app')"
+    />
+
     <!-- Main nav items -->
     <DashboardMiniSidebarV2DockItem
       v-for="(item, idx) of mainItems"
@@ -406,6 +420,13 @@ const handleOpenBookmarkPanel = () => {
       :disabled="item.disabled"
       :scale="getScale(item.key)"
       @click="item.onClick?.()"
+    />
+
+    <DashboardMiniSidebarV2AppTiles
+      v-if="showAppTile && !isAppFirst"
+      :ref="(el: any) => setItemRef('app', el)"
+      variant="dock"
+      :scale="getScale('app')"
     />
 
     <!-- Settings -->

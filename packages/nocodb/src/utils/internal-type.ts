@@ -128,6 +128,7 @@ export type InternalPOSTResponseType = Promise<
   | { deleted: number; failed: { id: string; error: string }[] }
   | { id: string; name?: string }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
+  | { logged: number }
   | WebBookmarkMetadata
 >;
 

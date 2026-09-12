@@ -65,6 +65,7 @@ export const wsHomeRouteNames = new Set([
   'index',
   'index-index',
   'index-typeOrId',
+  'index-typeOrId-home',
   'index-typeOrId-index',
   'index-typeOrId-members',
   'index-typeOrId-teams',
@@ -91,6 +92,7 @@ export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
  * navigates to `'index-typeOrId'`, which is the intended parent route for the bases tab.
  */
 export const routeNameToWsTab: Record<string, string> = {
+  'index-typeOrId-home': 'home',
   'index-typeOrId-index': 'bases',
   'index-typeOrId': 'bases',
   'index-typeOrId-members': 'collaborators',

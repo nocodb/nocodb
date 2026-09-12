@@ -14,6 +14,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
   const { maybeNavigateToInterfaceOnlyBase, navigateToBaseInterface, baseOpensInterfaceByDefault } = useInterfacePermissions()
 
+  const { isAppInstall, navigateToApp } = useManagedAppInstalls()
+
   // Dialog state - consolidated into single reactive object
   const dialogState = reactive({
     duplicate: {
@@ -167,6 +169,14 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     // straight to the interface consumer shell — the base route would 403.
     if (await maybeNavigateToInterfaceOnlyBase(base)) return
 
+    // An install opens the app that was installed — that is the thing the user
+    // added. Only a FULL-surface install offers "Go to data" (onOpenData) back
+    // to the base under it.
+    if (isAppInstall(base)) {
+      navigateToApp(base)
+      return
+    }
+
     // A base with a published interface the user can open defaults to the
     // interface — the card's "Go to data" button (onOpenData) is the escape
     // hatch to the data view.
@@ -181,7 +191,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     })
   }
 
-  /** Force-open the data view — the "Go to data" action on an interface-default card. */
+  /** Force-open the data view — the "Go to data" action on a card that opens an interface or an app. */
   const onOpenData = async (base: NcProject) => {
     if (workspaceStore.isWorkspaceCeLocked(base.fk_workspace_id)) return
 

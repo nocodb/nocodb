@@ -9,11 +9,11 @@ export async function generateBaseIdMap(
 ) {
   idMap.set(source.base_id, source.base_id);
   idMap.set(source.id, `${source.base_id}::${source.id}`);
-  const models = await source.getModels(context);
+  const models = await source.getModels();
 
   for (const md of models) {
     idMap.set(md.id, `${source.base_id}::${source.id}::${md.id}`);
-    await md.getColumns(context);
+    await md.getColumns();
     for (const column of md.columns) {
       idMap.set(column.id, `${idMap.get(md.id)}::${column.id}`);
     }

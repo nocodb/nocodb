@@ -1,7 +1,7 @@
 import {
   type ColumnType,
   extractRolesObj,
-  getProjectRole,
+  getStandingRole,
   type NcContext,
   type OperationSource,
   PermissionEntity,
@@ -192,10 +192,8 @@ export async function hasTableVisibilityAccess(
     return true;
   }
 
-  // Get the user's project role (base role)
-  // Use getProjectRole from nocodb-sdk which extracts the role from user object
-  // It looks at user.base_roles and returns the most powerful role
-  const userRole = getProjectRole(user) as ProjectRoles;
+  // Real standing, not an app runner's capability floor.
+  const userRole = getStandingRole(user);
 
   // If no role found, user doesn't have access
   if (!userRole) {

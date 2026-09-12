@@ -97,6 +97,9 @@ import * as nc_202608201200_automation_sections from './v0/nc_202608201200_autom
 import * as nc_202608211200_widen_entity_id_columns from './v0/nc_202608211200_widen_entity_id_columns';
 import * as nc_202608281200_comment_notification_pref_index from './v0/nc_202608281200_comment_notification_pref_index';
 import * as nc_202609021200_admin_suspend from './v0/nc_202609021200_admin_suspend';
+import * as nc_202609021200_apps from './v0/nc_202609021200_apps';
+import * as nc_202609021201_environments from './v0/nc_202609021201_environments';
+import * as nc_202609021202_marketplace from './v0/nc_202609021202_marketplace';
 import * as nc_202609031200_agents from './v0/nc_202609031200_agents';
 
 // Create a custom migration source class
@@ -206,6 +209,9 @@ export default class XcMigrationSourcev0 {
       'nc_202608211200_widen_entity_id_columns',
       'nc_202608281200_comment_notification_pref_index',
       'nc_202609021200_admin_suspend',
+      'nc_202609021200_apps',
+      'nc_202609021201_environments',
+      'nc_202609021202_marketplace',
       'nc_202609031200_agents',
     ]);
   }
@@ -414,6 +420,12 @@ export default class XcMigrationSourcev0 {
         return nc_202608281200_comment_notification_pref_index;
       case 'nc_202609021200_admin_suspend':
         return nc_202609021200_admin_suspend;
+      case 'nc_202609021200_apps':
+        return nc_202609021200_apps;
+      case 'nc_202609021201_environments':
+        return nc_202609021201_environments;
+      case 'nc_202609021202_marketplace':
+        return nc_202609021202_marketplace;
       case 'nc_202609031200_agents':
         return nc_202609031200_agents;
     }

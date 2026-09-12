@@ -46,20 +46,19 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       conditionParser: parseConditionV2,
     } = options;
     const isMMLike = isMMOrMMLike(column);
-    const colOptions = (await column.getColOptions(
-      context,
-    )) as LinkToAnotherRecordColumn;
+    const colOptions =
+      (await column.getColOptions()) as LinkToAnotherRecordColumn;
     let rootApply: ((qb: Knex.QueryBuilder) => void) | undefined = undefined;
 
     const { parentContext, childContext, mmContext } =
-      await colOptions.getParentChildContext(context, column);
+      await colOptions.getParentChildContext(column);
 
-    const childColumn = await colOptions.getChildColumn(context);
-    const parentColumn = await colOptions.getParentColumn(context);
-    const childModel = await childColumn.getModel(childContext);
-    await childModel.getColumns(childContext);
-    const parentModel = await parentColumn.getModel(parentContext);
-    await parentModel.getColumns(parentContext);
+    const childColumn = await colOptions.getChildColumn();
+    const parentColumn = await colOptions.getParentColumn();
+    const childModel = await childColumn.getModel();
+    await childModel.getColumns();
+    const parentModel = await parentColumn.getModel();
+    await parentModel.getColumns();
 
     let relationType = isMMLike ? RelationTypes.MANY_TO_MANY : colOptions.type;
 
@@ -281,9 +280,9 @@ export class LtarGeneralHandler extends GenericFieldHandler {
         dbDriver: baseModelSqlv2.dbDriver,
       });
 
-      const mmModel = await colOptions.getMMModel(context);
-      const mmParentColumn = await colOptions.getMMParentColumn(context);
-      const mmChildColumn = await colOptions.getMMChildColumn(context);
+      const mmModel = await colOptions.getMMModel();
+      const mmParentColumn = await colOptions.getMMParentColumn();
+      const mmChildColumn = await colOptions.getMMChildColumn();
 
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmModel,

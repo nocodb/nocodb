@@ -9,6 +9,7 @@ import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { IntegrationsService } from '~/services/integrations.service';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { resolveAccessBaseId } from '~/helpers/environmentGuards';
 import { partialExtract } from '~/utils/dataUtils';
 import { decryptPropIfRequired } from '~/utils/encryptDecrypt';
 
@@ -51,11 +52,20 @@ export class BaseIntegrationsService {
         `${MetaTable.INTEGRATIONS}.is_private`,
         `${MetaTable.INTEGRATIONS}.is_global`,
         `${MetaTable.INTEGRATIONS}.is_restricted`,
+        `${MetaTable.INTEGRATIONS}.credential_mode`,
         `${MetaTable.INTEGRATIONS}.created_by`,
         `${MetaTable.INTEGRATIONS}.config`,
         `${MetaTable.INTEGRATIONS}.meta`,
         `${MetaTable.INTEGRATIONS}.created_at`,
+        // Usage column — same workspace-wide semantics as the workspace list.
+        knex.raw(`count(${MetaTable.SOURCES}.id) as source_count`),
       )
+      .leftJoin(
+        MetaTable.SOURCES,
+        `${MetaTable.INTEGRATIONS}.id`,
+        `${MetaTable.SOURCES}.fk_integration_id`,
+      )
+      .groupBy(`${MetaTable.INTEGRATIONS}.id`)
       .where(`${MetaTable.INTEGRATIONS}.fk_workspace_id`, workspaceId)
       .where((qb) => {
         qb.where(`${MetaTable.INTEGRATIONS}.deleted`, false).orWhereNull(
@@ -71,10 +81,14 @@ export class BaseIntegrationsService {
         }
       });
 
+    // Integration links live on production bases — a sandbox inherits its
+    // production base's access.
+    const accessBaseId = await resolveAccessBaseId(context, param.baseId);
+
     // Get integration IDs explicitly linked to this base
     const linkedIntegrationIds = await knex(MetaTable.INTEGRATION_LINKS)
       .select('fk_integration_id')
-      .where('base_id', param.baseId)
+      .where('base_id', accessBaseId)
       .then((rows) => new Set(rows.map((r) => r.fk_integration_id)));
 
     // Filter: available if unrestricted OR explicitly linked OR global
@@ -134,10 +148,12 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
-    // Verify integration is available to this base
+    // Verify integration is available to this base (a sandbox inherits its
+    // production base's access).
+    const accessBaseId = await resolveAccessBaseId(context, param.baseId);
     const isAvailable = await IntegrationLink.isAvailable(context, {
       fk_integration_id: param.integrationId,
-      base_id: param.baseId,
+      base_id: accessBaseId,
       is_restricted: !!integration.is_restricted,
     });
 
@@ -210,12 +226,14 @@ export class BaseIntegrationsService {
         ncMeta,
       );
 
-      // Auto-link to this base
+      // Auto-link to this base. From a sandbox this targets the production base
+      // so the link persists past sandbox teardown and production gets access.
+      const accessBaseId = await resolveAccessBaseId(context, param.baseId);
       await IntegrationLink.insert(
         context,
         {
           fk_integration_id: integration.id,
-          base_id: param.baseId,
+          base_id: accessBaseId,
           fk_workspace_id: workspaceId,
           created_by: userId,
         },
@@ -261,10 +279,12 @@ export class BaseIntegrationsService {
       );
     }
 
-    // Verify integration is available to this base
+    // Verify integration is available to this base (a sandbox inherits its
+    // production base's access).
+    const accessBaseId = await resolveAccessBaseId(context, param.baseId);
     const isAvailable = await IntegrationLink.isAvailable(context, {
       fk_integration_id: param.integrationId,
-      base_id: param.baseId,
+      base_id: accessBaseId,
       is_restricted: !!integration.is_restricted,
     });
 
@@ -316,18 +336,21 @@ export class BaseIntegrationsService {
       );
     }
 
+    // Links are anchored to the production base — a sandbox links to production.
+    const accessBaseId = await resolveAccessBaseId(context, param.baseId);
+
     // Check if already linked
     const links = await IntegrationLink.listByIntegration(
       context,
       param.integrationId,
     );
-    if (links.some((l) => l.base_id === param.baseId)) {
+    if (links.some((l) => l.base_id === accessBaseId)) {
       return { linked: true };
     }
 
     await IntegrationLink.insert(context, {
       fk_integration_id: param.integrationId,
-      base_id: param.baseId,
+      base_id: accessBaseId,
       fk_workspace_id: base.fk_workspace_id,
       created_by: param.userId,
     });
@@ -345,10 +368,12 @@ export class BaseIntegrationsService {
       integrationId: string;
     },
   ) {
+    // Unlink from the production base — a sandbox operates on production's links.
+    const accessBaseId = await resolveAccessBaseId(context, param.baseId);
     const deleted = await IntegrationLink.deleteByIntegrationAndBase(
       context,
       param.integrationId,
-      param.baseId,
+      accessBaseId,
     );
 
     if (!deleted) {

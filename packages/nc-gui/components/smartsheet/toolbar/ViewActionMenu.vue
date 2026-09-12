@@ -280,16 +280,16 @@ const modifyViewDisabledReason = computed(() => {
   return ''
 })
 
-// Collaborative views cannot be deleted on a sandbox master base — backend guard mirrors this.
+// Collaborative views cannot be deleted on a locked production base — backend guard mirrors this.
 // Personal views (owned_by set) can still be deleted by their owner.
-const isSandboxProductionCollaborativeDelete = computed(() => {
-  return !!base.value?.is_sandbox_production && !view.value?.owned_by
+const isProductionLockedCollaborativeDelete = computed(() => {
+  return !!base.value?.has_lane_instances && !view.value?.owned_by
 })
 
 // Tooltip shown when Delete is disabled.
 const deleteDisabledReason = computed(() => {
   if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
-  if (isSandboxProductionCollaborativeDelete.value) return t('msg.info.disabledAsSandboxMasterCollabDelete')
+  if (isProductionLockedCollaborativeDelete.value) return t('msg.info.disabledAsProductionCollabDelete')
   if (blockViewOperations.value && !isPersonalView.value) return t('msg.info.cantDeleteLastGridView')
   if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyViewOwnerCanDeletePersonalView')
   return ''
@@ -299,7 +299,7 @@ const deleteDisabledReason = computed(() => {
 // (which is enforced for everyone, including creators+).
 const isDeleteDisabled = computed(() => {
   if (!canDeleteView.value) return true
-  if (isSandboxProductionCollaborativeDelete.value) return true
+  if (isProductionLockedCollaborativeDelete.value) return true
   if (blockViewOperations.value && !isPersonalView.value) return true
   return false
 })

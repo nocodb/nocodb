@@ -1,9 +1,8 @@
 // src/meta/migrations/v0/nc_202606191200_sandbox_production_readiness.ts
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.string('merge_state', 20).notNullable().defaultTo('idle');
     table.text('merge_error');
     table.timestamp('merge_started_at');
@@ -17,7 +16,7 @@ const up = async (knex: Knex) => {
   // beats a cryptic boot-blocking constraint error, and we never silently drop
   // a sandbox row (it may hold unmerged work). Multiple NULLs are fine (Postgres
   // treats them as distinct), so only real duplicates are flagged.
-  const duplicateProductionBases = await knex(MetaTable.SANDBOXES)
+  const duplicateProductionBases = await knex('nc_sandboxes_v2')
     .select('production_base_id')
     .whereNotNull('production_base_id')
     .groupBy('production_base_id')
@@ -27,19 +26,19 @@ const up = async (knex: Knex) => {
       .map((r) => r.production_base_id)
       .join(', ');
     throw new Error(
-      `${MetaTable.SANDBOXES}: cannot add unique(production_base_id) — multiple ` +
+      `nc_sandboxes_v2: cannot add unique(production_base_id) — multiple ` +
         `sandbox rows exist for production base(s): ${ids}. Keep one sandbox per ` +
         `listed base (remove the extras), then re-run the migration.`,
     );
   }
 
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.unique(['production_base_id'], 'nc_sandboxes_production_base_unique');
   });
 
   // Renumber any duplicate seq per sandbox before adding the unique constraint.
   // Ordered by (seq, created_at, id) to preserve existing intended order.
-  const rows = await knex(MetaTable.SANDBOX_CHANGELOG)
+  const rows = await knex('nc_sandbox_changelog')
     .select('id', 'fk_sandbox_id', 'seq', 'created_at')
     .orderBy([
       { column: 'fk_sandbox_id', order: 'asc' },
@@ -52,22 +51,22 @@ const up = async (knex: Knex) => {
     const next = (counters[r.fk_sandbox_id] ?? 0) + 1;
     counters[r.fk_sandbox_id] = next;
     if (Number(r.seq) !== next) {
-      await knex(MetaTable.SANDBOX_CHANGELOG)
+      await knex('nc_sandbox_changelog')
         .where('id', r.id)
         .update({ seq: next });
     }
   }
 
-  await knex.schema.alterTable(MetaTable.SANDBOX_CHANGELOG, (table) => {
+  await knex.schema.alterTable('nc_sandbox_changelog', (table) => {
     table.unique(['fk_sandbox_id', 'seq'], 'nc_scl_sandbox_seq_unique');
   });
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.SANDBOX_CHANGELOG, (table) => {
+  await knex.schema.alterTable('nc_sandbox_changelog', (table) => {
     table.dropUnique(['fk_sandbox_id', 'seq'], 'nc_scl_sandbox_seq_unique');
   });
-  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.alterTable('nc_sandboxes_v2', (table) => {
     table.dropUnique(
       ['production_base_id'],
       'nc_sandboxes_production_base_unique',

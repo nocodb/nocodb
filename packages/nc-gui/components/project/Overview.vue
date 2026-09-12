@@ -10,7 +10,7 @@ const isNewBaseModalOpen = ref(false)
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { $e } = useNuxtApp()
 
@@ -71,7 +71,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   }
 }
 
-const tableCreateReason = computed(() => sandboxRestrictionReason('tableCreate', { source: base.value?.sources?.[0] }))
+const tableCreateReason = computed(() => environmentRestrictionReason('tableCreate', { source: base.value?.sources?.[0] }))
 
 const onCreateBaseClick = () => {
   if (showExternalSourcePlanLimitExceededModal() || isDataSourceLimitReached.value) return

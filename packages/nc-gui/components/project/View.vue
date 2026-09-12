@@ -57,9 +57,9 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 const router = useRouter()
 const route = router.currentRoute
 
-const { isUIAllowed, baseRoles, isBaseRolesLoaded } = useRoles()
+const { isUIAllowed, baseRoles, isBaseRolesLoaded, environmentRestrictionReason } = useRoles()
 
-const { base } = storeToRefs(useBase())
+const { base, listingManagedAppId } = storeToRefs(useBase())
 
 const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 
@@ -85,13 +85,63 @@ const userCount = computed(() => {
   return 0
 })
 
+const { apps, isAppsEnabled } = storeToRefs(useAppStore())
+
+// The base's app, if it has one. Empty in CE (stub store), so the whole App
+// Settings section drops out without a second gate.
+const baseApp = computed(() => (base.value?.id ? apps.value.get(base.value.id) : undefined))
+
+// An install locks `appCreateOrEdit` — the app definition is the publisher's —
+// but its owner still has to address, staff and connect their own instance.
+const isAppInstall = computed(() => !!base.value?.managed_app_id && !base.value?.managed_app_master)
+
+// Resolved through Production when standing in a lane: a listing locks
+// Production, so the lane is where the publisher works and the lane's own row
+// carries no `managed_app_id`.
+const isAppListing = computed(() => !!listingManagedAppId.value)
+
+// An open environment restricts `appCreateOrEdit` on Production, and a listed
+// app is always open in its store lane — so without the restriction check the
+// whole section, listing settings included, disappears exactly for the apps that
+// have a store page to edit. Same compensation every other App surface makes.
+//
+// A listing on its own is enough: a base can be published with nothing to serve,
+// and its store page is still the publisher's to edit.
+const isAppSettingsVisible = computed(
+  () =>
+    isAppsEnabled.value &&
+    (!!baseApp.value || isAppListing.value) &&
+    !isMobileMode.value &&
+    (isUIAllowed('appCreateOrEdit') ||
+      !!environmentRestrictionReason('appCreateOrEdit') ||
+      (isAppInstall.value && isUIAllowed('baseMiscSettings'))),
+)
+
+const appSettingsItems = computed(() =>
+  isAppSettingsVisible.value
+    ? appSettingsNavFor(
+        isAppInstall.value && !isUIAllowed('appCreateOrEdit'),
+        isAppListing.value,
+        !!baseApp.value,
+        isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
+      )
+    : [],
+)
+
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(
   () => !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
 )
 
-const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
+const isIntegrationsTabVisible = computed(() => {
+  if (isMobileMode.value) return false
+  // Managers (sourceCreate) get the full surface; viewers get the linked
+  // connections list, where per-user integrations offer their connect action.
+  if (base.value?.is_lane_instance)
+    return isUIAllowed('sourceCreate', { skipBaseCheck: true }) || isUIAllowed('baseIntegrationList', { skipBaseCheck: true })
+  return isUIAllowed('sourceCreate') || isUIAllowed('baseIntegrationList')
+})
 
 const isWorkflowsTabVisible = computed(
   () =>
@@ -194,6 +244,8 @@ watch(
         projectPageTab.value = 'snapshots'
       } else if (newVal === 'record-trash' && showEEFeatures.value) {
         projectPageTab.value = 'record-trash'
+      } else if (newVal?.startsWith('app-') && appSettingsItems.value.some((item) => item.tab === newVal)) {
+        projectPageTab.value = newVal
       } else if (newVal === 'skills' && showEEFeatures.value) {
         projectPageTab.value = 'skills'
       } else {
@@ -246,8 +298,20 @@ const settingsPageTitle = computed(() => {
     'workflows': t('objects.workflows'),
     'overview': overviewTabMeta.value.title,
   }
+
+  // App tabs share one breadcrumb — "App Settings · Theme" — so the header says
+  // which app is being configured, not just which pane.
+  const appTab = appSettingsNav.find((item) => item.tab === projectPageTab.value)
+  if (appTab) return `${t('labels.appSettings')} · ${t(appTab.label)}`
+
   return tabTitles[projectPageTab.value] || ''
 })
+
+// A stale link to an App Settings tab while Apps is behind its flag has no pane
+// to activate — the tab bar would show nothing selected and an empty body.
+function resolveSettingsTab(tab: ProjectPageType) {
+  return !isAppsEnabled.value && String(tab).startsWith('app-') ? 'collaborator' : tab
+}
 
 watch(projectPageTab, () => {
   if (props.showOverviewTab) return
@@ -280,7 +344,7 @@ watch(
   () => props.tab,
   (newTab) => {
     if (newTab) {
-      projectPageTab.value = newTab
+      projectPageTab.value = resolveSettingsTab(newTab)
     }
   },
   {
@@ -320,7 +384,7 @@ provide(IsSettingsSidebarInj, isSettingsSidebar)
 onMounted(async () => {
   await until(() => !!currentBase.value?.id).toBeTruthy()
   if (props.tab) {
-    projectPageTab.value = props.tab
+    projectPageTab.value = resolveSettingsTab(props.tab)
   }
 })
 
@@ -415,9 +479,8 @@ watch(
         </div>
       </div>
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
-        <SmartsheetTopbarVariableSetupWarning />
+        <SmartsheetTopbarManagedAppSetupWarning />
         <SmartsheetTopbarManagedAppStatus />
-        <SmartsheetTopbarSandboxStatus />
         <!-- Base-level presence: this topbar backs base home, settings and docs, so
              without it the avatars vanish the moment a user steps off a table. -->
         <LazySmartsheetTopbarCollaboratorPresence v-if="!isSharedBase && isEeUI" />
@@ -653,6 +716,15 @@ watch(
             </div>
           </template>
           <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane v-for="item in appSettingsItems" :key="item.tab">
+          <template #tab>
+            <div class="tab-title" :data-testid="`proj-view-tab__${item.testId}`">
+              <GeneralIcon :icon="item.icon" />
+              <div>{{ $t(item.label) }}</div>
+            </div>
+          </template>
+          <ProjectAppSettings :tab="item.tab" class="h-full max-h-full" />
         </a-tab-pane>
       </NcTabs>
     </div>

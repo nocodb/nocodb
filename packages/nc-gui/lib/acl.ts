@@ -12,6 +12,7 @@ const roleScopes = {
   ],
   base: [
     ProjectRoles.NO_ACCESS,
+    ProjectRoles.APP_USER,
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -51,6 +52,7 @@ const rolePermissions = {
       workspaceSettings: true,
       workspaceAuditList: true,
       workspaceIntegrations: true,
+      integrationManage: true,
       workspaceManage: true,
       baseDelete: true,
     },
@@ -203,6 +205,8 @@ const rolePermissions = {
   [ProjectRoles.VIEWER]: {
     include: {
       baseSettings: true,
+      // Base integrations inventory (mirrors the backend viewer+ floor).
+      baseIntegrationList: true,
       expandedForm: true,
       apiDocs: true,
 
@@ -228,6 +232,11 @@ const rolePermissions = {
     },
   },
   [ProjectRoles.NO_ACCESS]: {
+    include: {},
+  },
+  // App User: no base product permissions — capability is entirely per-app via
+  // the app's APP_USE assignment role, not this ACL matrix.
+  [ProjectRoles.APP_USER]: {
     include: {},
   },
 } as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>

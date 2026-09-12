@@ -208,6 +208,9 @@ export default defineConfig({
       sans: 'Vazirmatn, sans-serif',
       serif: 'Vazirmatn, serif',
       mono: 'Inter, mono',
+      // The real monospace face, loaded in fonts-new.css. `mono` above is Inter
+      // and is left alone — too much already leans on it.
+      dmmono: "'DM Mono', ui-monospace, SFMono-Regular, monospace",
       default: 'Inter, Manrope, sans-serif',
     },
 

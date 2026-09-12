@@ -22,4 +22,8 @@ export const backendRouteExcludePatterns = [
   // /nc is a frontend route prefix (/nc/{baseId}, /nc/integrations, /nc/feed, etc.)
   // but old-datas controller has API endpoints at /nc/:baseId/api/v1/* — exclude only those.
   '/nc/:baseId/api/v1/:path*',
+  // The per-app MCP endpoint. Not under any backend prefix, so without this the
+  // GUI middleware answers `POST /mcp` on an app origin with the console SPA
+  // shell.
+  '/mcp',
 ];

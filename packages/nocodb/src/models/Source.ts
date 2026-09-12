@@ -10,6 +10,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -29,6 +30,11 @@ import {
   isEncryptionRequired,
 } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export default class Source implements SourceType {
   id?: string;
@@ -57,12 +63,26 @@ export default class Source implements SourceType {
   upgraderMode?: boolean;
   upgraderQueries?: string[] = [];
 
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('Source');
+  }
+
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
   }
 
-  protected static castType(source: Source): Source {
-    return source && new Source(source);
+  protected static castType(source: Source, context?: NcContext): Source {
+    const instance = source && new Source(source);
+    if (instance && context) setModelContext(instance, context);
+    return instance;
   }
 
   protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
@@ -284,7 +304,7 @@ export default class Source implements SourceType {
     );
 
     return sourceDataList?.map((sourceData) => {
-      return this.castType(sourceData);
+      return this.castType(sourceData, context);
     });
   }
 
@@ -329,7 +349,7 @@ export default class Source implements SourceType {
 
       await NocoCache.set(context, `${CacheScope.SOURCE}:${id}`, sourceData);
     }
-    return this.castType(sourceData);
+    return this.castType(sourceData, context);
   }
 
   public async getConnectionConfig(): Promise<any> {
@@ -478,8 +498,8 @@ export default class Source implements SourceType {
     return this.getConfig(true);
   }
 
-  getProject(context: NcContext, ncMeta = Noco.ncMeta): Promise<Base> {
-    return Base.get(context, this.base_id, ncMeta);
+  getProject(ncMeta = Noco.ncMeta): Promise<Base> {
+    return Base.get(this.context, this.base_id, ncMeta);
   }
 
   async sourceCleanup(_ncMeta = Noco.ncMeta) {
@@ -489,11 +509,9 @@ export default class Source implements SourceType {
     await NcConnectionMgrv2.bumpSourceVersion(this);
   }
 
-  async delete(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-    { force }: { force?: boolean } = {},
-  ) {
+  async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
+    const context = this.context;
+
     const sources = await Source.list(
       context,
       { baseId: this.base_id },
@@ -523,13 +541,7 @@ export default class Source implements SourceType {
     };
 
     for (const model of models) {
-      for (const col of await model.getColumns(
-        context,
-        ncMeta,
-        undefined,
-        true,
-        true,
-      )) {
+      for (const col of await model.getColumns(ncMeta, undefined, true, true)) {
         let colOptionTableName = null;
         let cacheScopeName = null;
         switch (col.uidt) {
@@ -574,7 +586,7 @@ export default class Source implements SourceType {
     }
 
     for (const model of models) {
-      await model.delete(context, ncMeta, true);
+      await model.delete(ncMeta, true);
     }
 
     const syncSources = await SyncSource.list(
@@ -605,11 +617,9 @@ export default class Source implements SourceType {
     return res;
   }
 
-  async softDelete(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-    { force }: { force?: boolean } = {},
-  ) {
+  async softDelete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
+    const context = this.context;
+
     const sources = await Source.list(
       context,
       { baseId: this.base_id },
@@ -632,15 +642,17 @@ export default class Source implements SourceType {
     );
   }
 
-  async getModels(context: NcContext, ncMeta = Noco.ncMeta) {
+  async getModels(ncMeta = Noco.ncMeta) {
     return await Model.list(
-      context,
+      this.context,
       { base_id: this.base_id, source_id: this.id },
       ncMeta,
     );
   }
 
-  async shareErd(context: NcContext, ncMeta = Noco.ncMeta) {
+  async shareErd(ncMeta = Noco.ncMeta) {
+    const context = this.context;
+
     if (!this.erd_uuid) {
       const uuid = uuidv4();
       this.erd_uuid = uuid;
@@ -663,7 +675,9 @@ export default class Source implements SourceType {
     return this;
   }
 
-  async disableShareErd(context: NcContext, ncMeta = Noco.ncMeta) {
+  async disableShareErd(ncMeta = Noco.ncMeta) {
+    const context = this.context;
+
     if (this.erd_uuid) {
       this.erd_uuid = null;
 
@@ -694,6 +708,66 @@ export default class Source implements SourceType {
     } else {
       return this.is_meta || this.is_local;
     }
+  }
+
+  /**
+   * Reverse lookup: the sources referencing an integration — a THIN,
+   * response-safe projection (id, alias, base_id, project title only), used by
+   * the integration read (`includeSources`, feeds the delete-confirmation
+   * dialog), the integration delete/soft-delete cascades, and user-deletion
+   * collection. Lives here because "which sources point at X" is a Source
+   * concern; only Database integrations are ever referenced, so other types
+   * yield []. Workspace scoping applies whenever the context carries a real
+   * workspace id (EE) and is skipped for CE/BYPASS contexts.
+   */
+  static async listByIntegration(
+    context: Omit<NcContext, 'base_id'>,
+    integrationId: string,
+    { force = false }: { force?: boolean } = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<Source[]> {
+    const qb = ncMeta.knex(MetaTable.SOURCES);
+
+    qb.select(`${MetaTable.SOURCES}.id`)
+      .select(`${MetaTable.SOURCES}.alias`)
+      .select(`${MetaTable.PROJECT}.title as project_title`)
+      .select(`${MetaTable.SOURCES}.base_id`)
+      .select(`${MetaTable.SOURCES}.fk_workspace_id`)
+      .innerJoin(
+        MetaTable.PROJECT,
+        `${MetaTable.SOURCES}.base_id`,
+        `${MetaTable.PROJECT}.id`,
+      )
+      .where(`${MetaTable.SOURCES}.fk_integration_id`, integrationId);
+
+    if (
+      context.workspace_id &&
+      context.workspace_id !== RootScopes.BYPASS &&
+      context.workspace_id !== RootScopes.FULL_BYPASS
+    ) {
+      qb.where(`${MetaTable.SOURCES}.fk_workspace_id`, context.workspace_id);
+    }
+
+    if (!force) {
+      qb.where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.SOURCES}.deleted`, false)
+          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
+      }).where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.PROJECT}.deleted`, false)
+          .orWhereNull(`${MetaTable.PROJECT}.deleted`);
+      });
+    }
+
+    const sources = await qb;
+
+    return sources.map((src) =>
+      this.castType(src, {
+        workspace_id: src.fk_workspace_id,
+        base_id: src.base_id,
+      } as NcContext),
+    );
   }
 
   protected static extendQb(qb: any, _context: NcContext) {

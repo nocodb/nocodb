@@ -1,4 +1,4 @@
-import type { FormDefinition, IntegrationsType, SyncCategory } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationCredentialMode, IntegrationsType, SyncCategory } from 'nocodb-sdk'
 import type { VNode } from '@vue/runtime-dom'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 import { getI18n } from '~/plugins/a.i18n'
@@ -20,6 +20,11 @@ export interface IntegrationItemType {
   hidden?: boolean
   form?: FormDefinition
   sync_category?: SyncCategory
+  /** AUTH packages that support per-user credentials (each user connects their own account). */
+  allowsPerUserCredentials?: boolean
+  /** Set only by a caller with no choice to offer — an app-store install whose
+   *  release refuses a bind across the axis. Absent everywhere else. */
+  requiredCredentialMode?: IntegrationCredentialMode
 }
 
 export interface IntegrationCategoryItemType {

@@ -63,20 +63,17 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     let fields: string[];
 
     if (fieldsSet?.size) {
-      viewOrTableColumns =
-        _columns || (await baseModel.model.getColumns(baseModel.context));
+      viewOrTableColumns = _columns || (await baseModel.model.getColumns());
     } else {
       view = await View.get(baseModel.context, viewId);
       const viewColumns =
         viewId && (await View.getColumns(baseModel.context, viewId));
       fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
 
-      // const columns = _columns ?? (await baseModel.model.getColumns(baseModel.context));
+      // const columns = _columns ?? (await baseModel.model.getColumns());
       // for (const column of columns) {
       viewOrTableColumns =
-        viewColumns ||
-        _columns ||
-        (await baseModel.model.getColumns(baseModel.context));
+        viewColumns || _columns || (await baseModel.model.getColumns());
     }
     for (const viewOrTableColumn of viewOrTableColumns) {
       const column =
@@ -131,7 +128,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             const columnName = await getColumnName(
               baseModel.context,
               column,
-              _columns || (await baseModel.model.getColumns(baseModel.context)),
+              _columns || (await baseModel.model.getColumns()),
             );
             // Emit DateTime as text with a +00:00 suffix at the SQL layer so the value
             // round-trips through JSON aggregation (json_agg / JSON_ARRAYAGG / jsonb_build_object)
@@ -212,7 +209,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             const columnName = await getColumnName(
               baseModel.context,
               column,
-              _columns || (await baseModel.model.getColumns(baseModel.context)),
+              _columns || (await baseModel.model.getColumns()),
             );
             res[sanitize(getAs(column) || columnName)] = baseModel.dbDriver.raw(
               `TO_CHAR(??, 'HH24:MI:SS')`,
@@ -228,9 +225,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         case UITypes.LinkToAnotherRecord:
           break;
         case UITypes.Lookup: {
-          const lookupOpt = await column.getColOptions<LookupColumn>(
-            baseModel.context,
-          );
+          const lookupOpt = await column.getColOptions<LookupColumn>();
           if (lookupOpt?.error) {
             qb.select(
               baseModel.dbDriver.raw(`? as ??`, [
@@ -242,9 +237,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         case UITypes.QrCode: {
-          const qrCodeColumn = await column.getColOptions<QrCodeColumn>(
-            baseModel.context,
-          );
+          const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
 
           if (qrCodeColumn.error) {
             qb.select(
@@ -301,9 +294,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         case UITypes.Barcode: {
-          const barcodeColumn = await column.getColOptions<BarcodeColumn>(
-            baseModel.context,
-          );
+          const barcodeColumn = await column.getColOptions<BarcodeColumn>();
 
           if (barcodeColumn.error) {
             qb.select(
@@ -577,9 +568,8 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             // skip the rollup count select so getProto resolves nested data under column.title
             break;
           }
-          const rollupColOptions = (await column.getColOptions(
-            baseModel.context,
-          )) as RollupColumn;
+          const rollupColOptions =
+            (await column.getColOptions()) as RollupColumn;
 
           // Errored rollup/link (e.g. its relation was cascade-deleted):
           // emit a NULL dummy select instead of attempting the rollup.
@@ -605,7 +595,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           const columnName = await getColumnName(
             baseModel.context,
             column,
-            _columns || (await baseModel.model.getColumns(baseModel.context)),
+            _columns || (await baseModel.model.getColumns()),
           );
 
           res[sanitize(getAs(column) || columnName)] = sanitize(

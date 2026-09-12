@@ -91,6 +91,20 @@ export const presetErrorCodexMap: Partial<
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
   },
+  [NcErrorType.ERR_ENVIRONMENT_NOT_FOUND]: {
+    message: (id: string) => `Environment '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED]: {
+    message: (title: string) =>
+      `'${title}' requires you to connect your own account`,
+    code: 400,
+  },
+  [NcErrorType.ERR_INTEGRATION_PER_USER_NOT_ALLOWED]: {
+    message: (title: string, consumerPhrase: string) =>
+      `'${title}' uses per-user credentials and cannot be used ${consumerPhrase} — switch it to shared credentials`,
+    code: 400,
+  },
   [NcErrorType.ERR_INTEGRATION_AUTH_FAILED]: {
     message: (message: string) =>
       message ||
@@ -581,15 +595,16 @@ export const presetErrorCodexMap: Partial<
       message || 'Too many requests. Please try again later.',
     code: 429,
   },
-  [NcErrorType.ERR_SANDBOX_BLOCKED]: {
-    message: (message: string) =>
-      message || 'This operation is not allowed in a sandbox base.',
-    code: 403,
-  },
-  [NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED]: {
+  [NcErrorType.ERR_ENVIRONMENT_LANE_BLOCKED]: {
     message: (message: string) =>
       message ||
-      'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
+      'This operation is not allowed in an environment instance. Perform it on the production base instead.',
+    code: 403,
+  },
+  [NcErrorType.ERR_ENVIRONMENT_PRODUCTION_LOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This operation is locked while the base is open in an environment. Make the change there instead.',
     code: 403,
   },
   [NcErrorType.ERR_SNAPSHOT_BLOCKED]: {

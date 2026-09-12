@@ -69,7 +69,7 @@ const { gridViewCols, fieldsMap, hidingViewColumnsMap, adjustFrozenFieldsOnVisib
 
 const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByOrThrow()
 
-const { isUIAllowed, isMetaReadOnly, isDataReadOnly, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, isMetaReadOnly, isDataReadOnly, environmentRestrictionReason } = useRoles()
 
 const { showEEFeatures } = useEeConfig()
 
@@ -527,9 +527,9 @@ const isColumnEditAllowed = computed(() => {
   return true
 })
 
-const fieldAlterReason = computed(() => (!isSqlView.value ? sandboxRestrictionReason('fieldAlter') : null))
+const fieldAlterReason = computed(() => (!isSqlView.value ? environmentRestrictionReason('fieldAlter') : null))
 
-const fieldDeleteReason = computed(() => (!column.value?.pv ? sandboxRestrictionReason('fieldDelete') : null))
+const fieldDeleteReason = computed(() => (!column.value?.pv ? environmentRestrictionReason('fieldDelete') : null))
 
 // check if the column is associated as foreign key in any of the link column
 const linksAssociated = computed(() => {

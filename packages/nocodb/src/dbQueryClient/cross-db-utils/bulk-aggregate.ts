@@ -143,7 +143,7 @@ export const bulkAggregate =
 
       const { where, aggregation } = baseModel._getListArgs(args);
 
-      const columns = await baseModel.model.getColumns(baseModel.context);
+      const columns = await baseModel.model.getColumns();
 
       const aggregateColumns = await resolveAggregateColumns({
         baseModel,
@@ -180,10 +180,7 @@ export const bulkAggregate =
         return buckets;
       };
 
-      const aliasColObjMap = await baseModel.model.getAliasColObjMap(
-        baseModel.context,
-        columns,
-      );
+      const aliasColObjMap = await baseModel.model.getAliasColObjMap(columns);
 
       const qb = baseModel.dbDriver(baseModel.tnPath);
 
@@ -530,7 +527,15 @@ export const bulkAggregate =
 
       const selectors: Knex.Raw[] = [];
 
-      for (const f of bulkFilterList) {
+      // The caller's alias is not safe as an identifier: knex splits `??` on
+      // dots, so a bucket called "Dr. Amara Chen" builds a two-part name and
+      // the whole statement is lost to the catch below as an empty result.
+      // Select under a generated name and put the caller's back afterwards.
+      const callerAliasBySafe = new Map<string, string>();
+
+      for (const [index, f] of bulkFilterList.entries()) {
+        const safeAlias = `nc_bulk_agg_${index}`;
+        callerAliasBySafe.set(safeAlias, f.alias);
         const tQb = baseModel.dbDriver(baseModel.tnPath);
         const { filters: aggFilter } = extractFilterFromXwhere(
           baseModel.context,
@@ -609,14 +614,14 @@ export const bulkAggregate =
           // swallows that to `{}` and the client re-fires in a tight loop.
           // Emit the empty-object literal rather than SQL NULL — NULL survives
           // the parser as JS null and crashes AliasMapper's Object.keys().
-          selectors.push(baseModel.dbDriver.raw('? as ??', ['{}', f.alias]));
+          selectors.push(baseModel.dbDriver.raw('? as ??', ['{}', safeAlias]));
         } else {
           selectors.push(
             client.bulkAggregateRowSelector(
               baseModel,
               tQb,
               expressions,
-              f.alias,
+              safeAlias,
             ),
           );
         }
@@ -625,12 +630,24 @@ export const bulkAggregate =
       qb.select(...selectors);
       qb.limit(1);
 
-      return relabel(
-        await baseModel.execAndParse(qb, null, {
-          first: true,
-          bulkAggregate: true,
-        }),
-      );
+      const row = await baseModel.execAndParse(qb, null, {
+        first: true,
+        bulkAggregate: true,
+      });
+
+      if (!row || typeof row !== 'object') return {};
+
+      // Two independent relabellings, at different levels: `relabel` rewrites
+      // the aggregation keys inside each bucket, and the map below restores the
+      // caller's own alias on the bucket itself.
+      relabel(row);
+
+      return Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [
+          callerAliasBySafe.get(key) ?? key,
+          value,
+        ]),
+      ) as Record<string, Record<string, unknown>>;
     } catch (err) {
       logger.error((err as Error).message, (err as Error).stack);
       return {};

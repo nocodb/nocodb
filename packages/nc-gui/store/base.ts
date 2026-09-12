@@ -26,6 +26,9 @@ export const useBase = defineStore('baseStore', () => {
 
   const isManagedAppMaster = ref(false)
 
+  /** EE-only: store listings do not exist in CE. */
+  const listingManagedAppId = computed<string | undefined>(() => undefined)
+
   const isManagedAppInstaller = ref(false)
 
   const baseId = computed(() => {
@@ -363,6 +366,7 @@ export const useBase = defineStore('baseStore', () => {
     isPrivateBase,
     showBaseAccessRequestOverlay,
     isManagedAppMaster,
+    listingManagedAppId,
     isManagedAppInstaller,
     managedApp,
     loadManagedApp,

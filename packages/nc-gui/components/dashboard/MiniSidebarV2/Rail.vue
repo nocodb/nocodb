@@ -45,6 +45,8 @@ const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, cycl
 
 const { isAgentsEnabled } = storeToRefs(useAgentStore())
 
+const { isAppsEnabled } = storeToRefs(useAppStore())
+
 const {
   blockAiChat,
   showEEFeatures,
@@ -52,11 +54,11 @@ const {
   showUpgradeToUseBookmarks,
   hideInterfaces,
   showUpgradeForInterfaceFeature,
-  blockWorkflows,
-  showUpgradeToUseWorkflows,
   showUpgradeSurface,
   blockAgents,
   showUpgradeToUseAgents,
+  blockWorkflows,
+  showUpgradeToUseWorkflows,
 } = useEeConfig()
 
 // Both ship on the unlicensed on-prem Free tier, so community mode may only drop
@@ -122,6 +124,12 @@ const navigateToProjectPage = () => {
 }
 
 const hasAvailableBases = computed(() => !!basesList.value?.length)
+
+const showAppTile = computed(() => isAppsEnabled.value && hasAvailableBases.value)
+
+const isAppFirst = computed(() => isAppFirstBase(resolvedProject.value))
+
+const { isActiveBaseAppOnlyInstall } = useManagedAppInstalls()
 
 const getBasePath = () => {
   const wsId = route.value.params.typeOrId || activeWorkspaceId.value
@@ -221,66 +229,72 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 })
 
 // ── Main nav items (add/remove/reorder here) ──
-const mainItems = computed<NavItem[]>(() => [
-  {
-    key: 'data',
-    icon: 'ncTable',
-    label: t('general.data'),
-    disabled: !hasAvailableBases.value,
-    onClick: () => {
-      onTabClick('data')
-    },
-  },
-  ...(!isMobileMode.value && showWorkflowsNav.value
-    ? [
+const mainItems = computed<NavItem[]>(() =>
+  // An app-only install has no base to navigate: every one of these routes
+  // resolves straight back to the app, so offering them is offering dead ends.
+  isActiveBaseAppOnlyInstall.value
+    ? []
+    : [
         {
-          key: 'workflows',
-          icon: 'ncAutomation',
-          label: t('general.workflows'),
-          disabled:
-            !hasAvailableBases.value ||
-            !isUIAllowed('scriptList', {
-              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
-            }),
+          key: 'data',
+          icon: 'ncTable',
+          label: t('general.data'),
+          disabled: !hasAvailableBases.value,
           onClick: () => {
-            onTabClick('workflows')
+            onTabClick('data')
           },
         },
-      ]
-    : []),
-  // Paid-only, but the entry stays visible below the tier — clicking upsells
-  // (onTabClick) instead of navigating, mirroring bookmarks.
-  ...(showInterfacesNav.value
-    ? [
-        {
-          key: 'interfaces',
-          icon: 'ncLayout',
-          label: t('general.interfaces'),
-          disabled:
-            !hasAvailableBases.value ||
-            !isUIAllowed('interfaceList', {
-              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
-            }),
-          onClick: () => onTabClick('interfaces'),
-        },
-      ]
-    : []),
-  ...(isAgentsEnabled.value
-    ? [
-        {
-          key: 'agents',
-          icon: 'ncAgent',
-          label: t('general.agents'),
-          disabled:
-            !hasAvailableBases.value ||
-            !isUIAllowed('agentList', {
-              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
-            }),
-          onClick: () => onTabClick('agents'),
-        },
-      ]
-    : []),
-])
+        ...(!isMobileMode.value && showWorkflowsNav.value
+          ? [
+              {
+                key: 'workflows',
+                icon: 'ncAutomation',
+                label: t('general.workflows'),
+                disabled:
+                  !hasAvailableBases.value ||
+                  !isUIAllowed('scriptList', {
+                    roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+                  }),
+                onClick: () => {
+                  onTabClick('workflows')
+                },
+              },
+            ]
+          : []),
+        // Paid-only, but the entry stays visible below the tier — clicking upsells
+        // (onTabClick) instead of navigating, mirroring bookmarks.
+        ...(showInterfacesNav.value
+          ? [
+              {
+                key: 'interfaces',
+                icon: 'ncLayout',
+                label: t('general.interfaces'),
+                disabled:
+                  !hasAvailableBases.value ||
+                  !isUIAllowed('interfaceList', {
+                    roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+                  }),
+                onClick: () => onTabClick('interfaces'),
+              },
+            ]
+          : []),
+        ...(isAgentsEnabled.value
+          ? [
+              {
+                key: 'agents',
+                icon: 'ncAgent',
+                label: t('general.agents'),
+                disabled:
+                  !hasAvailableBases.value ||
+                  !isUIAllowed('agentList', {
+                    roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+                  }),
+                onClick: () => onTabClick('agents'),
+              },
+            ]
+          : []),
+      ],
+)
 
 const handleOpenBookmarkPanel = () => {
   if (isEEFeatureBlocked.value) {
@@ -320,6 +334,9 @@ const handleOpenBookmarkPanel = () => {
       </div>
     </div>
 
+    <!-- Apps — leads the group for a base built through the App flow -->
+    <DashboardMiniSidebarV2AppTiles v-if="showAppTile && isAppFirst" variant="rail" />
+
     <!-- Main nav items -->
     <DashboardMiniSidebarV2RailItem
       v-for="(item, idx) of mainItems"
@@ -332,8 +349,11 @@ const handleOpenBookmarkPanel = () => {
       @click="item.onClick?.()"
     />
 
+    <DashboardMiniSidebarV2AppTiles v-if="showAppTile && !isAppFirst" variant="rail" />
+
     <!-- Settings -->
     <DashboardMiniSidebarV2RailItem
+      v-if="!isActiveBaseAppOnlyInstall"
       icon="ncSettings"
       :label="$t('labels.settings')"
       panel-key="settings"

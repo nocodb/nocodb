@@ -25,9 +25,9 @@ const { isDataSourceLimitReached, bases } = storeToRefs(basesStore)
 
 const base = computed(() => bases.value.get(props.baseId) ?? {})
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
-const sourceCreateReason = computed(() => (!isDataSourceLimitReached.value ? sandboxRestrictionReason('sourceCreate') : null))
+const sourceCreateReason = computed(() => (!isDataSourceLimitReached.value ? environmentRestrictionReason('sourceCreate') : null))
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 

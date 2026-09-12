@@ -1,8 +1,9 @@
 import type { Component } from 'vue'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
+import type { Placement } from 'tippy.js'
 
-export default (comp: Component) => ({
+export default (comp: Component, opts?: { placement?: Placement }) => ({
   render: () => {
     let component: VueRenderer
     let popup: any
@@ -25,7 +26,7 @@ export default (comp: Component) => ({
           showOnCreate: true,
           interactive: true,
           trigger: 'manual',
-          placement: 'bottom-start',
+          placement: opts?.placement ?? 'bottom-start',
         })
       },
 

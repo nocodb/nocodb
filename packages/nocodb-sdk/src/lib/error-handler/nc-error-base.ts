@@ -532,6 +532,12 @@ export class NcErrorBase {
     });
   }
 
+  contextAlreadySet(modelName: string): never {
+    return this.internalServerError(
+      `${modelName} instance already has context — setModelContext called twice`,
+    );
+  }
+
   systemMisconfigured(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_SYSTEM_MISCONFIGURED, {
       params: message,
@@ -603,6 +609,75 @@ export class NcErrorBase {
       params: id,
       ...(args || {}),
     });
+  }
+
+  environmentNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ENVIRONMENT_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
+  /**
+   * A per-user integration was used by a user who hasn't connected their own
+   * account (for the effective environment). Deliberately NOT a fallback to
+   * the shared credential — that would silently escalate to the admin's
+   * account. `details` carries what the client needs to render the
+   * "Connect your account" prompt.
+   */
+  integrationUserCredentialRequired(
+    param: {
+      integrationId: string;
+      title: string;
+      sub_type?: string;
+      environmentId?: string;
+    },
+    args?: NcErrorArgs,
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED,
+      {
+        params: param.title,
+        details: {
+          integrationId: param.integrationId,
+          sub_type: param.sub_type,
+          environmentId: param.environmentId,
+        },
+        ...(args || {}),
+      }
+    );
+  }
+
+  /**
+   * A per-user integration was referenced by a consumer that executes as a
+   * configured identity rather than a real user (sync, workflows) — such
+   * consumers must use shared-credential integrations. `details` carries what
+   * the client needs to render a targeted fix-it (open the integration editor
+   * / switch to shared).
+   */
+  integrationPerUserNotAllowed(
+    param: {
+      integrationId: string;
+      title: string;
+      sub_type?: string;
+      consumer: 'sync' | 'workflows';
+    },
+    args?: NcErrorArgs,
+  ): never {
+    const consumerPhrase =
+      param.consumer === 'sync' ? 'for sync' : 'in workflows';
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_PER_USER_NOT_ALLOWED,
+      {
+        params: [param.title, consumerPhrase],
+        details: {
+          integrationId: param.integrationId,
+          sub_type: param.sub_type,
+          consumer: param.consumer,
+        },
+        ...(args || {}),
+      }
+    );
   }
 
   integrationAuthFailed(message?: string, args?: NcErrorArgs): never {
@@ -1296,16 +1371,19 @@ export class NcErrorBase {
     });
   }
 
-  sandboxBlocked(message?: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.ERR_SANDBOX_BLOCKED, {
-      params: message || '',
-      ...args,
-    });
+  environmentLaneBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_ENVIRONMENT_LANE_BLOCKED,
+      {
+        params: message || '',
+        ...args,
+      }
+    );
   }
 
-  sandboxProductionBlocked(message?: string, args?: NcErrorArgs): never {
+  environmentProductionLocked(message?: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
-      NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED,
+      NcErrorType.ERR_ENVIRONMENT_PRODUCTION_LOCKED,
       {
         params: message || '',
         ...args,

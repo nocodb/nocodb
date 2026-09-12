@@ -69,7 +69,10 @@ function findCentralDirectory(
   if (entries === 0xffff || cdOffset === UINT32_MAX) {
     // ZIP64: the locator precedes the EOCD and points at the ZIP64 EOCD.
     const locator = eocd - 20;
-    if (locator < 0 || buf.readUInt32LE(locator) !== ZIP64_EOCD_LOCATOR_SIGNATURE)
+    if (
+      locator < 0 ||
+      buf.readUInt32LE(locator) !== ZIP64_EOCD_LOCATOR_SIGNATURE
+    )
       return null;
 
     const z64 = Number(buf.readBigUInt64LE(locator + 8));

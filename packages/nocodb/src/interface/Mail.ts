@@ -16,6 +16,7 @@ enum MailEvent {
   COMMENT_UPDATE = 'COMMENT_UPDATE',
   BASE_ROLE_UPDATE = 'BASE_ROLE_UPDATE',
   BASE_INVITE = 'BASE_INVITE',
+  APP_INVITE = 'APP_INVITE',
   WELCOME = 'WELCOME',
   FORM_SUBMISSION = 'FORM_SUBMISSION',
   RESET_PASSWORD = 'RESET_PASSWORD', //OSS
@@ -90,6 +91,14 @@ interface BaseInvitePayload {
   token?: string;
 }
 
+// Structural app shape — the App model is EE-only, so CE stays decoupled.
+interface AppInvitePayload {
+  app: { id?: string; title?: string; slug?: string | null };
+  user: UserType;
+  req: NcRequest;
+  token?: string;
+}
+
 interface ResetPasswordPayload {
   req: NcRequest;
   user: UserType;
@@ -159,6 +168,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.BASE_INVITE;
       payload: BaseInvitePayload;
+    }
+  | {
+      mailEvent: MailEvent.APP_INVITE;
+      payload: AppInvitePayload;
     }
   | {
       mailEvent: MailEvent.WELCOME;

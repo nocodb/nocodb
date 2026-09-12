@@ -56,6 +56,13 @@ export class IntegrationsController {
 
     if (integration.type === IntegrationsType.Database) {
       maskKnexConfig(integration);
+    } else if (
+      integration.type === IntegrationsType.Auth ||
+      integration.type === IntegrationsType.Ai
+    ) {
+      // Masking these lives in the integration packages, and CE registers none —
+      // with nothing able to mask them, hide the config rather than echo secrets.
+      integration.config = undefined;
     }
 
     return integration;

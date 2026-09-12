@@ -381,3 +381,29 @@ export function toReadableUrlSlug(parts: (string | undefined)[] = []): string {
       .join('-') ?? ''
   )
 }
+
+/**
+ * Like {@link toReadableUrlSlug}, but strips URL-unsafe characters instead of
+ * percent-encoding them. Percent-encoding inside the slug gets double-encoded when
+ * the slug passes through vue-router params ("S&M" -> `s%26m` -> `s%2526m`); here
+ * every run of non-letter/non-digit characters collapses to a single dash instead
+ * ("S&M" -> "s-m"). Unicode titles are preserved. Returns '' when nothing
+ * survives — callers keep the URL slugless.
+ *
+ * @example
+ * ```ts
+ * toPlainUrlSlug(['Sales & Marketing']); // "sales-marketing"
+ * toPlainUrlSlug(['Hello, world!']); // "hello-world"
+ * ```
+ */
+export function toPlainUrlSlug(parts: (string | undefined)[] = []): string {
+  return parts
+    .map((part) =>
+      (part ?? '')
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, '-')
+        .replace(/^-+|-+$/g, ''),
+    )
+    .filter(Boolean)
+    .join('-')
+}

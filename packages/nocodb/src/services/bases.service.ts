@@ -394,36 +394,47 @@ export class BasesService {
       base_id: base.id,
     };
 
-    // TODO: create n:m instances here
-    await BaseUser.insert(
-      context,
-      {
-        fk_user_id: (param as any).user.id,
-        base_id: base.id,
-        roles: 'owner',
-      },
-      ncMeta,
-    );
+    // The base row is already committed, so anything that fails from here on
+    // leaves it orphaned — unreachable (no owner) but still counted and listed.
+    try {
+      // TODO: create n:m instances here
+      await BaseUser.insert(
+        context,
+        {
+          fk_user_id: (param as any).user.id,
+          base_id: base.id,
+          roles: 'owner',
+        },
+        ncMeta,
+      );
 
-    await syncMigration(base);
+      await syncMigration(base);
 
-    // populate metadata if existing table
-    for (const source of await base.getSources(undefined, ncMeta)) {
-      if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
-        const info = await populateMeta(context, {
-          source,
-          base,
-          user: param.user,
-        });
+      // populate metadata if existing table
+      for (const source of await base.getSources(undefined, ncMeta)) {
+        if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
+          const info = await populateMeta(context, {
+            source,
+            base,
+            user: param.user,
+          });
 
-        this.appHooksService.emit(AppEvents.APIS_CREATED, {
-          info,
-          req: param.req,
-          context,
-        });
+          this.appHooksService.emit(AppEvents.APIS_CREATED, {
+            info,
+            req: param.req,
+            context,
+          });
 
-        source.config = undefined;
+          source.config = undefined;
+        }
       }
+    } catch (e) {
+      try {
+        await Base.delete(context, base.id, ncMeta);
+      } catch (cleanupError) {
+        this.logger.error(cleanupError.message, cleanupError.stack);
+      }
+      throw e;
     }
 
     this.appHooksService.emit(AppEvents.PROJECT_CREATE, {

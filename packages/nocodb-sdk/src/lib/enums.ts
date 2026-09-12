@@ -38,6 +38,9 @@ export enum ProjectRoles {
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
   NO_ACCESS = 'no-access',
+  // External app-only collaborator: no ambient base access; capability is
+  // per-app via nc_principal_assignments(resource_type='app').
+  APP_USER = 'app-user',
 }
 
 export enum WorkspaceUserRoles {
@@ -334,6 +337,17 @@ export enum AppEvents {
   WIDGET_DELETE = 'widget.delete',
   WIDGET_DUPLICATE = 'widget.duplicate',
 
+  ACTION_CREATE = 'action.create',
+  ACTION_UPDATE = 'action.update',
+  ACTION_DELETE = 'action.delete',
+  ACTION_ROLLOUT = 'action.rollout',
+  ACTION_INVOKE = 'action.invoke',
+  // App -> workspace-integration access. Named for routines historically; it is
+  // the integration grant channel and has nothing to do with the retired
+  // routine registry. Left alone because AuditV1OperationTypes.ROUTINE_GRANT
+  // has persisted rows.
+  ROUTINE_GRANT = 'routine.grant',
+
   INTERFACE_CREATE = 'interface.create',
   INTERFACE_UPDATE = 'interface.update',
   INTERFACE_DELETE = 'interface.delete',
@@ -371,11 +385,12 @@ export enum AppEvents {
   BOOKMARK_GROUP_CREATE = 'bookmark.group.create',
   BOOKMARK_GROUP_DELETE = 'bookmark.group.delete',
 
-  SANDBOX_CREATE = 'sandbox.create',
-  SANDBOX_DELETE = 'sandbox.delete',
-  SANDBOX_DISCARD = 'sandbox.discard',
-  SANDBOX_MERGE = 'sandbox.merge',
-  SANDBOX_MERGE_FAILED = 'sandbox.merge_failed',
+  ENVIRONMENT_OPEN = 'environment.open',
+  ENVIRONMENT_CLOSE = 'environment.close',
+  ENVIRONMENT_DISCARD = 'environment.discard',
+  ENVIRONMENT_PROMOTE = 'environment.promote',
+  ENVIRONMENT_PROMOTE_FAILED = 'environment.promote_failed',
+  ENVIRONMENT_REFRESH = 'environment.refresh',
 
   RECORD_TEMPLATE_CREATE = 'record.template.create',
   RECORD_TEMPLATE_UPDATE = 'record.template.update',
@@ -437,14 +452,38 @@ export enum AppEvents {
   BASE_VARIABLE_UPDATE = 'baseVariable.update',
   BASE_VARIABLE_DELETE = 'baseVariable.delete',
 
+  ENVIRONMENT_CREATE = 'environment.create',
+  ENVIRONMENT_UPDATE = 'environment.update',
+  ENVIRONMENT_DELETE = 'environment.delete',
+
   MANAGED_APP_CREATE = 'managedApp.create',
   MANAGED_APP_UPDATE = 'managedApp.update',
   MANAGED_APP_DELETE = 'managedApp.delete',
   MANAGED_APP_PUBLISH = 'managedApp.publish',
   MANAGED_APP_INSTALL = 'managedApp.install',
+  MANAGED_APP_UNINSTALL = 'managedApp.uninstall',
   MANAGED_APP_UPDATE_START = 'managedApp.update.start',
   MANAGED_APP_UPDATE_COMPLETE = 'managedApp.update.complete',
   MANAGED_APP_UPDATE_FAIL = 'managedApp.update.fail',
+  MANAGED_APP_ROLLOUT_HALT = 'managedApp.rollout.halt',
+  MANAGED_APP_ROLLOUT_RESUME = 'managedApp.rollout.resume',
+
+  MARKETPLACE_LISTING_DELIST = 'marketplace.listing.delist',
+  /** The kill switch, not the takedown: stops execution, not distribution. */
+  MARKETPLACE_LISTING_SUSPEND = 'marketplace.listing.suspend',
+  MARKETPLACE_PUBLISHER_VERIFY = 'marketplace.publisher.verify',
+  MARKETPLACE_PUBLISHER_DELIST = 'marketplace.publisher.delist',
+  MARKETPLACE_CURATION_UPDATE = 'marketplace.curation.update',
+  MARKETPLACE_LISTING_REPORT = 'marketplace.listing.report',
+
+  APP_CREATE = 'app.create',
+  APP_UPDATE = 'app.update',
+  APP_DELETE = 'app.delete',
+  APP_PUBLISH = 'app.publish',
+  APP_ROLLBACK = 'app.rollback',
+  APP_TOKEN_CREATE = 'app.token.create',
+  APP_TOKEN_UPDATE = 'app.token.update',
+  APP_TOKEN_DELETE = 'app.token.delete',
 
   CREDIT_GRANT = 'credit.grant',
   CREDIT_TOPUP = 'credit.topup',
@@ -503,6 +542,7 @@ export const RoleLabels = {
   [ProjectRoles.VIEWER]: 'viewer',
   [ProjectRoles.INHERIT]: 'inherit',
   [ProjectRoles.NO_ACCESS]: 'noaccess',
+  [ProjectRoles.APP_USER]: 'appUser',
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
@@ -527,6 +567,7 @@ export const RoleColors = {
   [ProjectRoles.INHERIT]: 'gray',
   [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
+  [ProjectRoles.APP_USER]: 'maroon',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
   [CloudOrgUserRoles.OWNER]: 'purple',
@@ -558,6 +599,8 @@ export const RoleDescriptions = {
   [ProjectRoles.INHERIT]:
     'Inherits role from base-level team, or workspace level if no base-level team',
   [ProjectRoles.NO_ACCESS]: 'No access to this base',
+  [ProjectRoles.APP_USER]:
+    'Can use published apps only; capability is assigned per app',
 
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
   [OrgUserRoles.CREATOR]: 'Can fully configure and edit bases',
@@ -584,6 +627,7 @@ export const RoleIcons = {
   [ProjectRoles.VIEWER]: 'role_viewer',
   [ProjectRoles.INHERIT]: 'role_inherit',
   [ProjectRoles.NO_ACCESS]: 'role_no_access',
+  [ProjectRoles.APP_USER]: 'role_no_access',
   [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
@@ -626,6 +670,7 @@ export const OrderedProjectRoles = [
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
+  ProjectRoles.APP_USER,
   ProjectRoles.NO_ACCESS,
 ];
 
@@ -836,6 +881,7 @@ export enum PublicAttachmentScope {
   ORGANIZATIONPICS = 'organizationPics',
   OAUTHCLIENTS = 'oauthClients',
   WHITELABEL = 'whiteLabel',
+  MARKETPLACE = 'marketplacePics',
 }
 
 export enum IconType {

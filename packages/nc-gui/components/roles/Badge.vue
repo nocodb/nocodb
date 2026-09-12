@@ -28,6 +28,8 @@ const props = withDefaults(
   },
 )
 
+const { t } = useI18n()
+
 const roleRef = toRef(props, 'role')
 const clickableRef = toRef(props, 'clickable')
 const borderRef = toRef(props, 'border')
@@ -52,10 +54,17 @@ const roleProperties = computed(() => {
     label,
   }
 })
+
+// Roles outside RoleLabels fall back to the raw value instead of rendering the key path.
+const roleLabel = computed(() => {
+  const key = roleProperties.value.label ?? roleRef.value
+  return key ? t(`objects.roleType.${key}`, key) : ''
+})
 </script>
 
 <template>
   <NcTooltip
+    v-if="role"
     :disabled="!showTooltip"
     class="flex items-start rounded-md w-[fit-content] nc-role-badge"
     :class="{
@@ -63,8 +72,8 @@ const roleProperties = computed(() => {
     }"
   >
     <template #title>
-      <slot name="tooltip" :label="roleProperties.label">
-        {{ $t(`objects.roleType.${roleProperties.label}`) }}
+      <slot name="tooltip" :label="roleLabel">
+        {{ roleLabel }}
       </slot>
     </template>
 
@@ -87,7 +96,7 @@ const roleProperties = computed(() => {
           <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />
           <span v-if="!iconOnly" class="flex whitespace-nowrap">
             <slot name="label">
-              {{ $t(`objects.roleType.${roleProperties.label}`) }}
+              {{ roleLabel }}
             </slot>
           </span>
         </div>

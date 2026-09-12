@@ -6,6 +6,7 @@ import {
 } from 'ai';
 import { devToolsMiddleware } from '@ai-sdk/devtools';
 import { IntegrationWrapper } from '../integration';
+import { maskSecret } from '../auth/sensitive';
 import type { EmbeddingModel, ModelMessage, ToolSet } from 'ai';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
@@ -81,6 +82,15 @@ export enum AiUseCase {
   WorkflowEmailCompose = 'workflow_email_compose',
   /** Script/code completion. */
   Completion = 'completion',
+  /** App builder turn — Claude Code in a sandbox, sub-agents inherit the model. */
+  AppBuild = 'app_build',
+  /**
+   * In-app assistant turn — the widget a PUBLISHED app serves to its end users.
+   * Distinct from every `chat_*` case: those run in the console against a base
+   * role, this one runs on the app origin with the app's own actions as its
+   * only tools.
+   */
+  AppAgent = 'app_agent',
   /** Text embeddings — agent knowledge indexing and retrieval. */
   Embedding = 'embedding',
   /** Fallback when no specific use case applies. */
@@ -91,6 +101,101 @@ export interface ModelInfo {
   value: string;
   label: string;
   capabilities: ModelCapability[];
+}
+
+/** The AI-SDK usage fields billing needs, in either SDK spelling. */
+export interface AiSdkUsageLike {
+  inputTokens?: number;
+  outputTokens?: number;
+  /** @deprecated SDK alias for cacheRead ONLY — never includes cache writes. */
+  cachedInputTokens?: number;
+  inputTokenDetails?: {
+    noCacheTokens?: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+  };
+}
+
+/** The same usage in the provider-level (`LanguageModelV3`) nested spelling. */
+export interface AiSdkNestedUsageLike {
+  inputTokens?: {
+    total?: number;
+    noCache?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+  };
+  outputTokens?: { total?: number };
+}
+
+/** Token counts split into the buckets billing prices separately. */
+export interface AiUsageBuckets {
+  /** TOTAL input, recomputed as `noCache + cacheRead + cacheWrite` so the
+   *  buckets always re-sum — billing subtracts from this. */
+  inputTokens: number;
+  /** Input EXCLUDING both cache buckets: what the full input rate applies to. */
+  noCacheTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  outputTokens: number;
+  /** The provider's OWN reported total, untouched — `undefined` when it didn't
+   *  report one. Differs from `inputTokens` only if the provider contradicts
+   *  the SDK invariant; kept so that can be asserted on rather than absorbed. */
+  reportedInputTokens?: number;
+}
+
+/**
+ * Split an AI-SDK usage into the buckets billing prices separately.
+ *
+ * `usage.inputTokens` is the TOTAL — the SDK's invariant is
+ * `total = noCache + cacheRead + cacheWrite`. The cached parts MUST come off before
+ * the remainder is billed at the full input rate, or every cached token is charged
+ * twice.
+ *
+ * `cachedInputTokens` is deprecated AND covers cacheRead only, so
+ * `inputTokenDetails` is read first: relying on the deprecated field alone bills
+ * cache writes as plain input today, and bills EVERYTHING at full price the day the
+ * SDK drops it.
+ *
+ * One implementation on purpose — this arithmetic decides what customers pay.
+ */
+export function splitAiUsage(usage?: AiSdkUsageLike | null): AiUsageBuckets {
+  const details = usage?.inputTokenDetails;
+  const cacheReadTokens =
+    details?.cacheReadTokens ?? usage?.cachedInputTokens ?? 0;
+  const cacheWriteTokens = details?.cacheWriteTokens ?? 0;
+  const total = usage?.inputTokens ?? 0;
+  // Prefer the provider's own non-cached count; otherwise net the buckets off.
+  const noCacheTokens =
+    details?.noCacheTokens ??
+    Math.max(0, total - cacheReadTokens - cacheWriteTokens);
+
+  return {
+    inputTokens: noCacheTokens + cacheReadTokens + cacheWriteTokens,
+    noCacheTokens,
+    cacheReadTokens,
+    cacheWriteTokens,
+    outputTokens: usage?.outputTokens ?? 0,
+    reportedInputTokens: usage?.inputTokens,
+  };
+}
+
+/**
+ * `splitAiUsage` for the provider-level nested shape (`LanguageModelV3Usage`),
+ * which `doGenerate`/`doStream` return. Normalises and delegates so the netting
+ * itself has exactly one implementation — the gateway paths bill from this.
+ */
+export function splitLanguageModelUsage(
+  usage?: AiSdkNestedUsageLike | null,
+): AiUsageBuckets {
+  return splitAiUsage({
+    inputTokens: usage?.inputTokens?.total,
+    outputTokens: usage?.outputTokens?.total,
+    inputTokenDetails: {
+      noCacheTokens: usage?.inputTokens?.noCache,
+      cacheReadTokens: usage?.inputTokens?.cacheRead,
+      cacheWriteTokens: usage?.inputTokens?.cacheWrite,
+    },
+  });
 }
 
 /**
@@ -275,6 +380,31 @@ export abstract class AiIntegration<
   protected temperature = 0.5;
 
   /**
+   * The config keys holding THIS provider's credentials. Override where the
+   * credential shape differs (e.g. Bedrock's access keys); a provider whose
+   * only secret is `apiKey` — nearly all of them — needs nothing.
+   */
+  protected secretConfigKeys: string[] = ['apiKey'];
+
+  /**
+   * Response-safe config view — replaces {@link secretConfigKeys} with
+   * CREDENTIAL_MASK. Unlike auth integrations (where the credential shape is
+   * per-provider and masking is abstract), an AI provider's credential is a
+   * plain top-level key, so this default covers every package but the
+   * NocoDB-managed aggregator. Hosts run configs through this before
+   * serialising them into any API response and restore echoed sentinels from
+   * the stored config on update — never persist the result.
+   */
+  public maskConfig(config: T = this.config): Partial<T> {
+    if (!config || typeof config !== 'object') return config;
+    const masked: any = { ...config };
+    for (const key of this.secretConfigKeys) {
+      if (masked[key]) masked[key] = maskSecret(masked[key]);
+    }
+    return masked;
+  }
+
+  /**
    * Build the provider-bound model factory — validates credentials and constructs
    * the underlying `@ai-sdk/*` provider. This is the only mandatory provider hook.
    */
@@ -412,20 +542,14 @@ export abstract class AiIntegration<
 
     // Cache reads/writes split out of input so billing prices each bucket at
     // its own rate; reasoning is already inside outputTokens.
-    const cacheRead =
-      response.usage.inputTokenDetails?.cacheReadTokens ??
-      response.usage.cachedInputTokens ??
-      0;
-    const cacheWrite = response.usage.inputTokenDetails?.cacheWriteTokens ?? 0;
+    const buckets = splitAiUsage(response.usage);
     const reasoning = response.usage.outputTokenDetails?.reasoningTokens ?? 0;
 
     return {
       usage: {
-        input_tokens:
-          response.usage.inputTokenDetails?.noCacheTokens ??
-          Math.max(0, (response.usage.inputTokens ?? 0)),
-        cache_read_tokens: cacheRead,
-        cache_write_tokens: cacheWrite,
+        input_tokens: buckets.noCacheTokens,
+        cache_read_tokens: buckets.cacheReadTokens,
+        cache_write_tokens: buckets.cacheWriteTokens,
         output_tokens: response.usage.outputTokens,
         reasoning_tokens: reasoning,
         total_tokens: response.usage.totalTokens,
@@ -458,20 +582,14 @@ export abstract class AiIntegration<
 
     // Cache reads/writes split out of input so billing prices each bucket at
     // its own rate; reasoning is already inside outputTokens.
-    const cacheRead =
-      response.usage.inputTokenDetails?.cacheReadTokens ??
-      response.usage.cachedInputTokens ??
-      0;
-    const cacheWrite = response.usage.inputTokenDetails?.cacheWriteTokens ?? 0;
+    const buckets = splitAiUsage(response.usage);
     const reasoning = response.usage.outputTokenDetails?.reasoningTokens ?? 0;
 
     return {
       usage: {
-        input_tokens:
-          response.usage.inputTokenDetails?.noCacheTokens ??
-          Math.max(0, (response.usage.inputTokens ?? 0) - cacheRead - cacheWrite),
-        cache_read_tokens: cacheRead,
-        cache_write_tokens: cacheWrite,
+        input_tokens: buckets.noCacheTokens,
+        cache_read_tokens: buckets.cacheReadTokens,
+        cache_write_tokens: buckets.cacheWriteTokens,
         output_tokens: response.usage.outputTokens,
         reasoning_tokens: reasoning,
         total_tokens: response.usage.totalTokens,

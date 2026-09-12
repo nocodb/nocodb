@@ -370,7 +370,7 @@ export class FieldHandler implements IFieldHandler {
   async applyFilters(filters: Filter[], options: FilterOptions = {}) {
     const model = options.baseModel?.model ?? this.info.baseModel.model;
     if (!model.columns) {
-      await model.getColumns(options.context ?? this.info.context);
+      await model.getColumns();
     }
     const qbHandlers: {
       handler: FilterOperationResult;
@@ -495,7 +495,7 @@ export class FieldHandler implements IFieldHandler {
     const context = options.context ?? this.info.context;
     const model = baseModel.model;
     if (!model.columns) {
-      await model.getColumns(context);
+      await model.getColumns();
     }
     const traverseResult: FilterVerificationResult[] = [];
     await this.traverseFilters(filters, async (filter: Filter) => {
@@ -654,13 +654,11 @@ export class FieldHandler implements IFieldHandler {
     // can be executed when awaited
   }): Promise<void> {
     const baseModel = params.options?.baseModel ?? this.info.baseModel;
-    const context =
-      params.options?.context ?? this.info.context ?? baseModel.context;
     const knex = baseModel.dbDriver;
     const dbClientType = (knex.clientType?.() ??
       knex.client.config.client) as ClientType;
     const data = Array.isArray(params.data) ? params.data : [params.data];
-    for (const column of (await baseModel.model.getColumns(context)).concat(
+    for (const column of (await baseModel.model.getColumns()).concat(
       params.options?.additionalColumns || [],
     )) {
       const handler = this.getHandler(column.uidt, dbClientType);

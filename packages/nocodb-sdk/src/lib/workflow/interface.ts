@@ -107,6 +107,15 @@ interface NodeExecutionResult {
   }>;
   metrics?: Record<string, number>;
   isStale?: boolean;
+
+  // The node was checked, not run. A probe or its declared output produced this.
+  simulated?: boolean;
+
+  // Validate refused: this node can only be checked by doing it. A structured
+  // flag because callers BRANCH on it — publish_workflow has to tell "a person
+  // must run this" apart from "this is broken", and matching on the error text
+  // would break the first time the copy is edited or localised.
+  needsRun?: boolean;
   inputVariables?: VariableDefinition[];
   outputVariables?: VariableDefinition[];
 

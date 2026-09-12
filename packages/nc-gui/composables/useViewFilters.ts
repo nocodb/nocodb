@@ -11,6 +11,7 @@ import {
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
 
 export type ColumnFilterType = FilterType & {
   status?: string
@@ -498,6 +499,13 @@ export function useViewFilters(
             ).list as ColumnFilterType[]
           } else {
             if (!canListFilter.value) {
+              return
+            }
+
+            // Synthetic interface views live only client-side — there is
+            // nothing to load, and the server would 404/403 the unknown view
+            // id. The interface runtime seeds/edits filters locally.
+            if (isInterfaceSyntheticViewId(view.value?.id)) {
               return
             }
 

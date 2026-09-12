@@ -12,6 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import { DBQueryClient } from '~/dbQueryClient';
+import { setModelContext } from '~/helpers/modelContext';
 
 export interface ApplyAggregationParams {
   baseModelSqlv2: IBaseModelSqlV2;
@@ -75,12 +76,15 @@ export async function applyAggregation({
 
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
-    column = new Column({
-      ...(await column
-        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
-        .then((col) => col.getValueColumn(context))),
-      id: column.id,
-    });
+    column = setModelContext(
+      new Column({
+        ...(await column
+          .getColOptions<BarcodeColumn | QrCodeColumn>()
+          .then((col) => col.getValueColumn())),
+        id: column.id,
+      }),
+      context,
+    );
   }
 
   /* The following column types require special handling:

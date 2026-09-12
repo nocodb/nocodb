@@ -51,6 +51,11 @@ const onChange = (value: string) => {
 const onSearch = (value: string) => {
   emits('search', value)
 }
+
+// antd warns whenever `onSearch` is bound without a mode that can actually
+// search, so the listener is attached only when one is — otherwise every plain
+// NcSelect in the app logs "`onSearch` should work with `showSearch`".
+const searchable = computed(() => !!showSearch.value || mode.value === 'combobox' || mode.value === 'tags')
 </script>
 
 <template>
@@ -69,8 +74,8 @@ const onSearch = (value: string) => {
     :show-search="showSearch"
     :max-tag-count="maxTagCount"
     class="nc-select nc-select-shadow"
+    v-bind="searchable ? { onSearch } : {}"
     @change="onChange as any"
-    @search="onSearch"
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />

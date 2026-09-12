@@ -58,7 +58,7 @@ Run it from the avatar menu → **Product Tours**, or wait for its trigger.
 tours/
   types.ts             the contract — defineTour, NcTour, NcTourStep, TourTrigger
   index.ts             anchor resolution, event bus, collectTours()
-  anchors.catalog.md   generated — every anchor and where it lives
+  anchors.catalog.md   generated, gitignored — every anchor and where it lives
   defs/*.ts            ← tours live here
 ee/tours/defs/         ← EE-only tours
 

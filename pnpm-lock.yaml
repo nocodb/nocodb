@@ -388,6 +388,9 @@ importers:
       diff:
         specifier: ^8.0.4
         version: 8.0.4
+      driver.js:
+        specifier: ^1.8.0
+        version: 1.8.0
       echarts:
         specifier: ^5.6.0
         version: 5.6.0
@@ -857,7 +860,7 @@ importers:
         version: 5.0.8(eslint@8.57.1)(typescript@5.8.3)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.31.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)
+        version: 2.31.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)
       eslint-plugin-prettier:
         specifier: ^4.2.1
         version: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)
@@ -1527,7 +1530,7 @@ importers:
         version: 8.3.4
       axios:
         specifier: ^1.18.0
-        version: 1.18.0
+        version: 1.18.0(debug@4.4.1)
       chevrotain:
         specifier: ^10.5.0
         version: 10.5.0
@@ -1624,7 +1627,7 @@ importers:
     dependencies:
       axios:
         specifier: 1.18.0
-        version: 1.18.0
+        version: 1.18.0(debug@4.4.1)
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.4
@@ -11263,6 +11266,9 @@ packages:
     resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
     engines: {node: '>=10'}
 
+  driver.js@1.8.0:
+    resolution: {integrity: sha512-+8/IO7h1v14IzWh2GP60N7T3PFZweXwdn5e5POuxRSBoCYUojsBxzqawPeXh3YZIibRy7EehYNEyxe7slwwtdg==}
+
   dt-sql-parser@4.3.0:
     resolution: {integrity: sha512-k3G9xga1F4Y4KKj+6Up9G/4BK4dM6rjISISln+s8FaV8qmMfmCJOmzfJQkY9/9xrqLFKCesBi1HYDK9FcIHoKA==}
     engines: {node: '>=18'}
@@ -19654,7 +19660,7 @@ snapshots:
   '@aws-amplify/api-rest@3.5.15(encoding@0.1.13)(react-native@0.83.1(@babel/core@7.29.7)(react@19.1.0))':
     dependencies:
       '@aws-amplify/core': 5.8.14(encoding@0.1.13)(react-native@0.83.1(@babel/core@7.29.7)(react@19.1.0))
-      axios: 1.18.0
+      axios: 1.18.0(debug@4.4.1)
       tslib: 1.14.1
       url: 0.11.0
     transitivePeerDependencies:
@@ -29656,7 +29662,7 @@ snapshots:
       vue-demi: 0.14.10(vue@3.5.14(typescript@5.8.3))
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.18.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
+      axios: 1.18.1
       change-case: 4.1.2
       fuse.js: 6.6.2
       jwt-decode: 3.1.2
@@ -30371,16 +30377,6 @@ snapshots:
 
   aws4fetch@1.0.20: {}
 
-  axios@1.18.0:
-    dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@7.2.0))
-      form-data: 4.0.6
-      https-proxy-agent: 5.0.1(supports-color@7.2.0)
-      proxy-from-env: 2.1.0
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-
   axios@1.18.0(debug@4.4.1):
     dependencies:
       follow-redirects: 1.16.0(debug@4.4.1)
@@ -30401,9 +30397,20 @@ snapshots:
       - debug
       - supports-color
 
+  axios@1.18.1:
+    dependencies:
+      follow-redirects: 1.16.0(debug@4.4.1)
+      form-data: 4.0.6
+      https-proxy-agent: 5.0.1(supports-color@7.2.0)
+      proxy-from-env: 2.1.0
+    transitivePeerDependencies:
+      - debug
+      - supports-color
+    optional: true
+
   axios@1.18.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@7.2.0))
+      follow-redirects: 1.16.0(debug@4.4.3)
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@7.2.0)
       proxy-from-env: 2.1.0
@@ -32059,6 +32066,8 @@ snapshots:
 
   dotenv@8.6.0: {}
 
+  driver.js@1.8.0: {}
+
   dt-sql-parser@4.3.0(antlr4ng-cli@1.0.7):
     dependencies:
       antlr4-c3: 3.3.7(antlr4ng-cli@1.0.7)
@@ -33188,10 +33197,6 @@ snapshots:
   follow-redirects@1.16.0(debug@4.4.1):
     optionalDependencies:
       debug: 4.4.1(supports-color@5.5.0)
-
-  follow-redirects@1.16.0(debug@4.4.3(supports-color@7.2.0)):
-    optionalDependencies:
-      debug: 4.4.3(supports-color@7.2.0)
 
   follow-redirects@1.16.0(debug@4.4.3):
     optionalDependencies:
@@ -37259,7 +37264,7 @@ snapshots:
       escape-string-regexp: 1.0.5
       figures: 3.2.0
       flat: 5.0.2
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@7.2.0))
+      follow-redirects: 1.16.0(debug@4.4.3)
       form-data: 4.0.6
       fs-constants: 1.0.0
       function-bind: 1.1.2
@@ -40724,7 +40729,7 @@ snapshots:
   typesense@2.0.3(@babel/runtime@7.27.3):
     dependencies:
       '@babel/runtime': 7.27.3
-      axios: 1.18.0
+      axios: 1.18.0(debug@4.4.1)
       loglevel: 1.9.2
       tslib: 2.8.1
     transitivePeerDependencies:

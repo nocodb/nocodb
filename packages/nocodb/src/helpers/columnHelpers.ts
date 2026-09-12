@@ -2,10 +2,14 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isAllowedLmtTrackedField,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
   isLinksOrLTAR,
   isMMOrMMLike,
   isRollupAggregatableColumn,
   OperationSource,
+  parseProp,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -689,6 +693,78 @@ export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
   return columnName;
 };
 
+/**
+ * Validates the `meta.fields_mode === 'specific'` configuration of a
+ * LastModifiedTime/LastModifiedBy column: the table must have a row-meta
+ * column (EE + PG internal tables only) and every tracked id must resolve
+ * to a trackable (user-editable, incl. links) column. No-op for any other
+ * column/meta.
+ */
+export const validateLmtTrackedFields = (
+  context: NcContext,
+  {
+    columnBody,
+    columns,
+    allowEmptyTrackedSet = false,
+    existingTrackedIds = [],
+  }: {
+    columnBody: { uidt?: string; meta?: any; tracked_field_ids?: string[] };
+    columns: Column[];
+    /**
+     * Ids already tracked by this column. They are accepted without resolving:
+     * a tracked field that has been trashed stays in the set so restoring it
+     * resumes tracking, and the field editor round-trips the set verbatim —
+     * rejecting it would make the column unsaveable until the field comes back.
+     * Ids being added still have to resolve.
+     */
+    existingTrackedIds?: string[];
+    /**
+     * Import only: a tracked set whose columns all failed to resolve stays
+     * `specific` with zero entries, so the column keeps reading NULL instead
+     * of degrading to `all` and surfacing the row's `updated_at`.
+     */
+    allowEmptyTrackedSet?: boolean;
+  },
+) => {
+  if (
+    columnBody.uidt !== UITypes.LastModifiedTime &&
+    columnBody.uidt !== UITypes.LastModifiedBy
+  )
+    return;
+  const meta = parseProp(columnBody.meta);
+  if (meta?.fields_mode !== 'specific') return;
+
+  const ncError = NcError.get(context);
+
+  if (!columns.find((c) => c.uidt === UITypes.Meta)) {
+    ncError.badRequest(
+      'Tracking specific fields is not supported for this table',
+    );
+  }
+
+  const trackedIds = columnBody.tracked_field_ids;
+  if (
+    !Array.isArray(trackedIds) ||
+    (!trackedIds.length && !allowEmptyTrackedSet)
+  ) {
+    ncError.badRequest('At least one field to track is required');
+  }
+
+  const alreadyTracked = new Set(existingTrackedIds);
+  for (const id of trackedIds) {
+    const tracked = columns.find((c) => c.id === id);
+    if (!tracked) {
+      if (alreadyTracked.has(id)) continue;
+      ncError.fieldNotFound(id);
+    }
+    if (!isAllowedLmtTrackedField(tracked)) {
+      ncError.badRequest(
+        `Field '${tracked.title}' cannot be tracked by a last modified time field`,
+      );
+    }
+  }
+};
+
 // if column is an alias column then return the original column
 // for example CreatedTime is an alias column for CreatedTime system column
 export const getRefColumnIfAlias = async (
@@ -707,6 +783,13 @@ export const getRefColumnIfAlias = async (
       ] as UITypes[]
     ).includes(column.uidt)
   )
+    return column;
+
+  // a LastModifiedTime/LastModifiedBy column tracking specific fields is
+  // not an alias of the system updated_at/updated_by column — its value is
+  // computed from the row-meta column, so callers must keep the original
+  // column (and its meta) intact
+  if (isFieldTrackingLmtCol(column) || isFieldTrackingLmbCol(column))
     return column;
 
   return (

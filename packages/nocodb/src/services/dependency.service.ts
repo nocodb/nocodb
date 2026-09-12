@@ -111,8 +111,13 @@ export class DependencyService {
       });
     }
 
+    // Report a breaking change only for dependents this endpoint can actually
+    // name. The tracker also holds column→column edges (a LastModifiedTime/By
+    // column and the fields it tracks) and rows whose entity has since gone —
+    // neither is bucketed above, so taking the raw flag would answer
+    // "something breaks" while listing nothing.
     return {
-      hasBreakingChanges: breakingChanges.hasBreakingChanges,
+      hasBreakingChanges: entities.length > 0,
       entities,
     };
   }

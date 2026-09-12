@@ -43,6 +43,7 @@ import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import {
   Base,
   Column,
+  LmtTrackedField,
   Model,
   ModelRoleVisibility,
   Permission,
@@ -679,6 +680,10 @@ export class TablesService {
         );
       });
     }
+
+    // expose tracked-field sets of field-tracking LMT/LMB columns
+    // (persisted as junction rows, not in column meta)
+    await LmtTrackedField.hydrateColumns(context, table.columns);
 
     return table;
   }

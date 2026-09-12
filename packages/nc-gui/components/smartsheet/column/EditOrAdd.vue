@@ -1445,8 +1445,12 @@ const unique = computed({
         <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
         <SmartsheetColumnAutoNumberOptions v-if="formState.uidt === UITypes.AutoNumber" v-model:value="formState" />
         <SmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
+        <!-- LastModifiedTime renders its own Fields/Formatting tabs and embeds DateTimeOptions -->
+        <SmartsheetColumnLastModifiedTimeOptions v-if="formState.uidt === UITypes.LastModifiedTime" v-model:value="formState" />
+        <!-- LastModifiedBy has no formatting options — only the tracked-fields section -->
+        <SmartsheetColumnTrackedFieldsOptions v-if="formState.uidt === UITypes.LastModifiedBy" v-model:value="formState" />
         <SmartsheetColumnDateTimeOptions
-          v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
+          v-if="[UITypes.DateTime, UITypes.CreatedTime].includes(formState.uidt)"
           v-model:value="formState"
         />
         <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />

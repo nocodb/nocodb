@@ -2,6 +2,8 @@ import {
   extractFilterFromXwhere,
   FormulaDataTypes,
   isBtLikeV2Junction,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
   UITypes,
 } from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
@@ -17,6 +19,10 @@ import type {
 import { DBQueryClient } from '~/dbQueryClient';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
+import {
+  lmbFieldQueryBuilder,
+  lmtFieldQueryBuilder,
+} from '~/db/formulav2/lmtFieldQueryBuilder';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { NcError } from '~/helpers/catchError';
@@ -330,10 +336,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             column,
             columns,
           );
+          // a LastModifiedTime column tracking specific fields has no
+          // physical column — bucket its synthetic formula expression
+          const columnRef = isFieldTrackingLmtCol(column)
+            ? (await lmtFieldQueryBuilder({ baseModel, column })).builder
+            : columnName;
           if (baseModel.dbDriver.clientType() === 'pg') {
             columnQuery = baseModel.dbDriver.raw(
               "date_trunc('minute', ??) + interval '0 seconds'",
-              [columnName],
+              [columnRef],
             );
           } else if (
             baseModel.dbDriver.clientType() === 'mysql' ||
@@ -341,12 +352,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           ) {
             columnQuery = baseModel.dbDriver.raw(
               "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND)",
-              [columnName, columnName],
+              [columnRef, columnRef],
             );
           } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
             columnQuery = baseModel.dbDriver.raw(
               `strftime('%Y-%m-%d %H:%M:00', ??)`,
-              [columnName],
+              [columnRef],
             );
           } else if (baseModel.isMssql) {
             // SQL Server 2022 (major version 16) introduced native DATETRUNC;
@@ -424,11 +435,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         default: {
-          const defaultColumnName = await getColumnName(
-            baseModel.context,
-            column,
-            columns,
-          );
+          // a LastModifiedBy column tracking specific fields has no
+          // physical column — group on its latest-tracked-editor expression
+          const defaultColumnName: any = isFieldTrackingLmbCol(column)
+            ? (await lmbFieldQueryBuilder({ baseModel, column })).builder
+            : await getColumnName(baseModel.context, column, columns);
           const defaultColumnNameQb = sqlNullIfBlank({
             columnName: defaultColumnName,
             baseModel,
@@ -951,12 +962,17 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 column,
                 columns,
               );
+              // a LastModifiedTime column tracking specific fields has no
+              // physical column — bucket its synthetic formula expression
+              const columnRef = isFieldTrackingLmtCol(column)
+                ? (await lmtFieldQueryBuilder({ baseModel, column })).builder
+                : columnName;
               // ignore seconds part in datetime and group
               if (baseModel.dbDriver.clientType() === 'pg') {
                 selectors.push(
                   baseModel.dbDriver.raw(
                     "date_trunc('minute', ??) + interval '0 seconds' as ??",
-                    [columnName, getAs(column)],
+                    [columnRef, getAs(column)],
                   ),
                 );
               } else if (
@@ -1067,11 +1083,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           default:
             {
-              const columnName = await getColumnName(
-                baseModel.context,
-                column,
-                columns,
-              );
+              // a LastModifiedBy column tracking specific fields has no
+              // physical column — group on its latest-tracked-editor
+              // expression
+              const columnName: any = isFieldTrackingLmbCol(column)
+                ? (await lmbFieldQueryBuilder({ baseModel, column })).builder
+                : await getColumnName(baseModel.context, column, columns);
               selectors.push(
                 baseModel.dbDriver.raw('?? as ??', [
                   sqlNullIfBlank({ columnName, baseModel }),

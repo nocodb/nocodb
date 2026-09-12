@@ -20,6 +20,7 @@ export { default as GalleryViewColumn } from './GalleryViewColumn';
 export { default as GridView } from './GridView';
 export { default as GridViewColumn } from './GridViewColumn';
 export { default as Hook } from './Hook';
+export { default as LmtTrackedField } from './LmtTrackedField';
 export { default as HookFilter } from './HookFilter';
 export { default as HookLog } from './HookLog';
 export { default as KanbanView } from './KanbanView';

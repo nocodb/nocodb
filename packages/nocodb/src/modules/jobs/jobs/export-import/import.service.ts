@@ -45,6 +45,7 @@ import {
   Comment,
   Hook,
   LinkToAnotherRecordColumn,
+  LmtTrackedField,
   Model,
   Source,
   View,
@@ -1670,13 +1671,66 @@ export class ImportService {
         col.uidt === UITypes.CreatedBy ||
         col.uidt === UITypes.LastModifiedBy
       ) {
-        if (col.system) continue;
+        if (col.system) {
+          // A *system* LMT/LMB column can also track specific fields, and the
+          // duplicate carries its `meta` across — but the target column already
+          // exists, so none of the columnAdd path below runs and the junction
+          // rows never get written. Without this the copy sits in 'specific'
+          // mode with an empty set and reads NULL on every row while the source
+          // shows timestamps. Persist the remapped set onto the mapped column.
+          const targetColId = getIdOrExternalId(col.id);
+          if (
+            targetColId &&
+            parseProp(flatCol.meta)?.fields_mode === 'specific'
+          ) {
+            const trackedIds = ((col as any).tracked_field_ids || [])
+              .map((a: string) => getIdOrExternalId(a))
+              .filter(Boolean);
+            if (trackedIds.length) {
+              await LmtTrackedField.set(targetContext, targetColId, trackedIds);
+            } else {
+              this.logger.warn(
+                `system LMT/LMB column "${flatCol.title}" imported with an empty tracked set: none of its tracked fields were included in the import`,
+              );
+            }
+          }
+          continue;
+        }
+
+        // remap the tracked field ids of a field-tracking LMT/LMB column
+        // (exported top-level, persisted as junction rows by columnAdd);
+        // ids that don't resolve in the target (e.g. partial column import)
+        // are dropped
+        const importMeta = flatCol.meta;
+        let importTrackedFieldIds: string[] | undefined;
+        if (parseProp(importMeta)?.fields_mode === 'specific') {
+          importTrackedFieldIds = ((col as any).tracked_field_ids || [])
+            .map((a: string) => getIdOrExternalId(a))
+            .filter(Boolean);
+          if (!importTrackedFieldIds.length) {
+            // None of the tracked columns made it into this import. Stay in
+            // 'specific' mode with an empty set so the column keeps reading
+            // NULL, matching the source: degrading to 'all' would make the
+            // copy surface the row's updated_at, i.e. edits to fields it was
+            // never meant to track.
+            this.logger.warn(
+              `LMT/LMB column "${flatCol.title}" imported with an empty tracked set: none of its tracked fields were included in the import`,
+            );
+          }
+        }
+
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
+            // a fully-unresolved tracked set must not become an all-fields column
+            allowEmptyLmtTrackedSet: true,
             tableId: getIdOrExternalId(getParentIdentifier(col.id)),
             column: withoutId({
               ...flatCol,
+              meta: importMeta,
+              ...(importTrackedFieldIds && {
+                tracked_field_ids: importTrackedFieldIds,
+              }),
               // provide column_name to avoid ajv error
               // it will be ignored by the service
               column_name: 'system',

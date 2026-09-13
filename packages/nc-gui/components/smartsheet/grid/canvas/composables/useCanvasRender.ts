@@ -313,6 +313,11 @@ export function useCanvasRender({
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
+  // The row-number gutter is always present, so `columns` is never empty while
+  // view columns load. Chrome positioned from column geometry has to wait for a
+  // real field or it paints against the gutter and then jumps.
+  const hasFieldColumns = computed(() => columns.value.some((c) => c.id !== 'row_number'))
+
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
 
   // Pre-compute column id → index map to avoid O(n) findIndex per cell in fixed cols rendering
@@ -692,7 +697,7 @@ export function useCanvasRender({
       }
     }
 
-    if (isAddingColumnAllowed.value && !isMobileMode.value) {
+    if (isAddingColumnAllowed.value && !isMobileMode.value && hasFieldColumns.value) {
       ctx.fillStyle = getColor(themeV4Colors.gray['50'])
       ctx.fillRect(xOffset - _scrollLeft, 0, plusColumnWidth, _headerRowHeight)
       spriteLoader.renderIcon(ctx, {

@@ -240,7 +240,7 @@ export function useCanvasTable({
   const { $api } = useNuxtApp()
   const { t } = useI18n()
   const { currentUser } = useUserSync()
-  const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
+  const { gridViewCols, metaColumnById, updateGridViewColumn, isViewColumnsLoading } = useViewColumnsOrThrow()
   const {
     eventBus,
     isDefaultView,
@@ -428,6 +428,11 @@ export function useCanvasTable({
   // `columnIds` snapshots the co-resize set so it survives the selection being
   // cleared by the canvas-level mouseup that fires alongside the resize mouseup.
   const resizeMarker = ref<{ x: number; columnIds: Set<string> } | null>(null)
+
+  // Until view columns land, `_columnsBase` holds nothing but the row-number
+  // gutter, so painting the real frame would flash a field-less grid (and a
+  // freeze boundary at the gutter edge) on every view open.
+  const showSkeleton = computed(() => isViewColumnsLoading.value || !meta.value?.base_id)
 
   const _columnsBase = computed<CanvasGridColumn[]>(() => {
     // Early return if meta is not available yet
@@ -1382,6 +1387,7 @@ export function useCanvasTable({
     renderCell,
     updateFrameTimestamp,
     meta,
+    showSkeleton,
     editEnabled,
     totalWidth,
     totalRows,
@@ -2014,6 +2020,10 @@ export function useCanvasTable({
       renderCanvas()
     })
   }
+
+  // Rendering is imperative, so the skeleton -> real-frame handoff needs its own
+  // repaint; on an empty view nothing else fires once the columns land.
+  watch(showSkeleton, () => triggerRefreshCanvas())
 
   // Wrapper that renders immediately and cancels any pending deferred render.
   // Used by the scroll handler to avoid the 2-frame lag that triggerRefreshCanvas causes.

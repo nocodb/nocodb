@@ -32,7 +32,6 @@ import {
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
-  ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
 import { getColumnDropTargetIndex } from '../utils/headerUtils'
@@ -94,7 +93,6 @@ export function useCanvasRender({
   renderCell,
   updateFrameTimestamp,
   meta,
-  showSkeleton,
   editEnabled,
   totalWidth,
   totalRows,
@@ -176,7 +174,6 @@ export function useCanvasRender({
   renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options: any) => void
   updateFrameTimestamp: () => void
   meta: ComputedRef<TableType>
-  showSkeleton: ComputedRef<boolean>
   editEnabled: Ref<CanvasEditEnabledType>
   totalRows: Ref<number>
   actualTotalRows: Ref<number>
@@ -4318,65 +4315,6 @@ export function useCanvasRender({
   // Track DPR to detect display changes (e.g. dragging window between monitors)
   let lastDpr = 0
 
-  // Placeholder frame for the window where view columns are still loading.
-  // Real column geometry isn't known yet, so this paints an evenly spaced grid
-  // rather than anything derived from `columns`.
-  const SKELETON_COLUMN_WIDTH = 180
-  const SKELETON_BAR_HEIGHT = 8
-  const SKELETON_BAR_INSET = 16
-
-  const renderSkeleton = (ctx: CanvasRenderingContext2D, _width: number, _height: number) => {
-    const _headerRowHeight = headerRowHeight.value
-    const _rowHeight = rowHeight.value
-
-    ctx.save()
-
-    ctx.fillStyle = getColor(themeV4Colors.base.white)
-    ctx.fillRect(0, _headerRowHeight, _width, _height - _headerRowHeight)
-
-    ctx.fillStyle = getColor(themeV4Colors.gray['100'])
-    ctx.fillRect(0, 0, _width, _headerRowHeight)
-
-    // Column edges start after the row-number gutter, which is the one width we
-    // do know before columns land.
-    const columnEdges: number[] = []
-    for (let x = ROW_META_COLUMN_WIDTH; x < _width; x += SKELETON_COLUMN_WIDTH) columnEdges.push(x)
-
-    ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    for (const x of columnEdges) {
-      ctx.moveTo(x + 0.5, 0)
-      ctx.lineTo(x + 0.5, _height)
-    }
-    for (let y = _headerRowHeight; y < _height; y += _rowHeight) {
-      ctx.moveTo(0, y + 0.5)
-      ctx.lineTo(_width, y + 0.5)
-    }
-    ctx.stroke()
-
-    const headerBar = getColor(themeV4Colors.gray['200'])
-    const bodyBar = getColor(themeV4Colors.gray['100'])
-    const barWidth = SKELETON_COLUMN_WIDTH - SKELETON_BAR_INSET * 2
-
-    for (const x of columnEdges) {
-      // Skip the trailing partial column so a bar never runs past the viewport
-      if (x + SKELETON_BAR_INSET + barWidth > _width) continue
-
-      roundedRect(ctx, x + SKELETON_BAR_INSET, (_headerRowHeight - SKELETON_BAR_HEIGHT) / 2, barWidth, SKELETON_BAR_HEIGHT, 4, {
-        backgroundColor: headerBar,
-      })
-
-      for (let y = _headerRowHeight; y < _height; y += _rowHeight) {
-        roundedRect(ctx, x + SKELETON_BAR_INSET, y + (_rowHeight - SKELETON_BAR_HEIGHT) / 2, barWidth, SKELETON_BAR_HEIGHT, 4, {
-          backgroundColor: bodyBar,
-        })
-      }
-    }
-
-    ctx.restore()
-  }
-
   function renderCanvas() {
     // Update shared frame timestamp (avoids per-cell Date.now() calls in getCellRenderStore)
     updateFrameTimestamp()
@@ -4436,11 +4374,6 @@ export function useCanvasRender({
       // dark: recede behind the data rows (--nc-bg-canvas); light: unchanged gray-50
       ctx.fillStyle = getColor(themeV4Colors.gray['50'], 'var(--nc-bg-canvas)')
       ctx.fillRect(0, 0, _width, _height)
-
-      if (showSkeleton.value) {
-        renderSkeleton(ctx, _width, _height)
-        return
-      }
 
       let activeState
 

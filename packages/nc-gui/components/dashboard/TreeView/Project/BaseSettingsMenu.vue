@@ -134,6 +134,90 @@ const isIntegrationsMenuVisible = computed(() => {
   )
 })
 
+// Nav item gates, lifted out of the template so a group heading can hide itself
+// when everything under it is gated off (roles, edition and mobile all prune items).
+const canSeeMembers = computed(() => isUIAllowed('newUser', { roles: effectiveRoles.value }))
+
+const canSeeInterfaceMembers = computed(
+  () =>
+    isEeUI &&
+    isUIAllowed('interfaceUsersMatrix', { roles: effectiveRoles.value }) &&
+    showEEFeatures.value &&
+    !hideInterfaces.value,
+)
+
+const canSeePermissions = computed(
+  () => isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles.value }) && showEEFeatures.value,
+)
+
+const canSeeDataSources = computed(() => isUIAllowed('sourceCreate', { roles: effectiveRoles.value }) && !isMobileMode.value)
+
+const canSeeSyncs = computed(
+  () => isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles.value }) && !isMobileMode.value && showEEFeatures.value,
+)
+
+const canSeeAutomations = computed(
+  () =>
+    isEeUI &&
+    !blockWorkflows.value &&
+    showEEFeatures.value &&
+    isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles.value }) &&
+    isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
+    !isMobileMode.value,
+)
+
+const canSeeAiSkills = computed(
+  () => isEeUI && isUIAllowed('baseSkillList', { roles: effectiveRoles.value }) && !isMobileMode.value && showEEFeatures.value,
+)
+
+const canSeeMcp = computed(() => isUIAllowed('manageMCP', { roles: effectiveRoles.value }) && !isMobileMode.value)
+
+const canSeeVariables = computed(
+  () => isUIAllowed('baseVariableList', { roles: effectiveRoles.value }) && !isMobileMode.value && showEEFeatures.value,
+)
+
+const canSeeAuditLog = computed(
+  () =>
+    isEeUI &&
+    isUIAllowed('baseAuditList', { roles: effectiveRoles.value }) &&
+    isWsAuditEnabled.value &&
+    !isMobileMode.value &&
+    showEEFeatures.value,
+)
+
+const canSeeTrashRetention = computed(
+  () =>
+    isEeUI &&
+    isUIAllowed('baseTrashSettingsList', { roles: effectiveRoles.value }) &&
+    !isMobileMode.value &&
+    showEEFeatures.value,
+)
+
+const canSeeSnapshots = computed(
+  () =>
+    isEeUI &&
+    showEEFeatures.value &&
+    isUIAllowed('baseMiscSettings', { roles: effectiveRoles.value }) &&
+    isUIAllowed('manageSnapshot', { roles: effectiveRoles.value }) &&
+    !isMobileMode.value,
+)
+
+const canSeeGeneral = computed(
+  () => !isSharedBase.value && isUIAllowed('baseMiscSettings', { roles: effectiveRoles.value }) && !isMobileMode.value,
+)
+
+const showAccessGroup = computed(() => canSeeMembers.value || canSeeInterfaceMembers.value || canSeePermissions.value)
+
+const showDataGroup = computed(() => canSeeDataSources.value || isIntegrationsMenuVisible.value || canSeeSyncs.value)
+
+const showAutomationGroup = computed(
+  () => canSeeAutomations.value || canSeeAiSkills.value || canSeeMcp.value || canSeeVariables.value,
+)
+
+const showAdminGroup = computed(
+  () => canSeeAuditLog.value || canSeeTrashRetention.value || canSeeSnapshots.value || canSeeGeneral.value,
+)
+
 // Load base roles in background if not already loaded
 onMounted(() => {
   const baseId = resolvedProject.value?.id
@@ -145,200 +229,195 @@ onMounted(() => {
 
 <template>
   <div class="nc-project-home-section">
-    <div class="nc-settings-section-header">
-      {{ $t('labels.baseSettings') }}
-    </div>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('newUser', { roles: effectiveRoles })"
-      v-e="['c:settings:base:add-user']"
-      icon="users"
-      data-testid="base-collaborator"
-      :active="activeBaseSettingsTab === 'collaborator'"
-      @click="navigateToBaseSettings('collaborator')"
-    >
-      {{ $t('labels.addUserToBase') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('interfaceUsersMatrix', { roles: effectiveRoles }) && showEEFeatures && !hideInterfaces"
-      v-e="['c:settings:base:interface-members']"
-      icon="ncUsers"
-      data-testid="base-interface-members"
-      :active="activeBaseSettingsTab === 'interface-members'"
-      @click="navigateToBaseSettings('interface-members')"
-    >
-      {{ $t('labels.addUserToInterface') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && showEEFeatures"
-      v-e="['c:settings:base:permissions']"
-      icon="ncLock"
-      data-testid="base-permissions"
-      :active="activeBaseSettingsTab === 'permissions'"
-      @click="navigateToBaseSettings('permissions')"
-    >
-      {{ $t('labels.dataPermissions') }}
-      <template #extraRight>
-        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS" remove-click />
-      </template>
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && showEEFeatures"
-      v-e="['c:settings:base:docs-permissions']"
-      icon="ncFileText"
-      data-testid="base-docs-permissions"
-      :active="activeBaseSettingsTab === 'docs-permissions'"
-      @click="navigateToBaseSettings('docs-permissions')"
-    >
-      {{ $t('labels.docsPermissions') }}
-      <template #extraRight>
-        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
-      </template>
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
-      v-e="['c:settings:base:add-data-source']"
-      icon="ncDatabase"
-      data-testid="base-data-source"
-      :active="activeBaseSettingsTab === 'data-source'"
-      @click="navigateToBaseSettings('data-source')"
-    >
-      {{ $t('labels.addDataSource') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isIntegrationsMenuVisible"
-      v-e="['c:settings:base:integrations']"
-      icon="integration"
-      data-testid="base-integrations"
-      :active="activeBaseSettingsTab === 'integrations'"
-      @click="navigateToBaseSettings('integrations')"
-    >
-      {{ $t('labels.baseIntegrations') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
-      v-e="['c:settings:base:syncs']"
-      icon="ncZap"
-      data-testid="base-syncs"
-      :active="activeBaseSettingsTab === 'syncs'"
-      @click="navigateToBaseSettings('syncs')"
-    >
-      {{ $t('labels.manageSyncs') }}
-      <template #extraRight>
-        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_SYNC" remove-click />
-      </template>
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="
-        isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled && !isMobileMode && showEEFeatures
-      "
-      v-e="['c:settings:base:audits']"
-      icon="audit"
-      data-testid="base-audit"
-      :active="activeBaseSettingsTab === 'audits'"
-      @click="navigateToBaseSettings('audits')"
-    >
-      {{ $t('title.audits') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="
-        isEeUI &&
-        !blockWorkflows &&
-        showEEFeatures &&
-        isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles }) &&
-        isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
-        !isMobileMode
-      "
-      v-e="['c:settings:base:workflows']"
-      icon="ncAutomation"
-      data-testid="base-workflows"
-      :active="activeBaseSettingsTab === 'workflows'"
-      @click="navigateToBaseSettings('workflows')"
-    >
-      {{ $t('objects.workflows') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('manageMCP', { roles: effectiveRoles }) && !isMobileMode"
-      v-e="['c:settings:base:mcp']"
-      icon="mcp"
-      data-testid="base-mcp"
-      :active="activeBaseSettingsTab === 'mcp'"
-      @click="navigateToBaseSettings('mcp')"
-    >
-      {{ $t('title.mcpServer') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('baseTrashSettingsList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
-      v-e="['c:settings:base:record-trash']"
-      icon="ncTrash2"
-      data-testid="base-record-trash"
-      :active="activeBaseSettingsTab === 'record-trash'"
-      @click="navigateToBaseSettings('record-trash')"
-    >
-      {{ $t('trash.settings') }}
-      <template #extraRight>
-        <LazyPaymentUpgradeBadge
-          :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
-          :feature-enabled-callback="() => !blockTrashSettings"
-        />
-      </template>
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('baseSkillList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
-      v-e="['c:settings:base:skills']"
-      icon="ncScript"
-      data-testid="base-skills"
-      :active="activeBaseSettingsTab === 'skills'"
-      @click="navigateToBaseSettings('skills')"
-    >
-      {{ $t('labels.aiSkills') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('baseVariableList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
-      v-e="['c:settings:base:variables']"
-      icon="ncSettings"
-      data-testid="base-variables"
-      :active="activeBaseSettingsTab === 'variables'"
-      @click="navigateToBaseSettings('variables')"
-    >
-      {{ $t('title.baseVariables') }}
-      <template #extraRight>
-        <LazyPaymentUpgradeBadge
-          :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
-          :feature-enabled-callback="() => !blockBaseVariables"
-        />
-      </template>
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="
-        isEeUI &&
-        showEEFeatures &&
-        isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) &&
-        isUIAllowed('manageSnapshot', { roles: effectiveRoles }) &&
-        !isMobileMode
-      "
-      v-e="['c:settings:base:snapshots']"
-      icon="camera"
-      data-testid="base-snapshots"
-      :active="activeBaseSettingsTab === 'snapshots'"
-      @click="navigateToBaseSettings('snapshots')"
-    >
-      {{ $t('labels.manageSnapshots') }}
+    <template v-if="showAccessGroup">
+      <div class="nc-settings-section-header">{{ $t('labels.baseNav.groupAccess') }}</div>
+      <NcSidebarMenuItem
+        v-if="canSeeMembers"
+        v-e="['c:settings:base:add-user']"
+        icon="users"
+        data-testid="base-collaborator"
+        :active="activeBaseSettingsTab === 'collaborator'"
+        @click="navigateToBaseSettings('collaborator')"
+      >
+        {{ $t('labels.baseNav.members') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeInterfaceMembers"
+        v-e="['c:settings:base:interface-members']"
+        icon="ncUsers"
+        data-testid="base-interface-members"
+        :active="activeBaseSettingsTab === 'interface-members'"
+        @click="navigateToBaseSettings('interface-members')"
+      >
+        {{ $t('labels.baseNav.interfaceMembers') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeePermissions"
+        v-e="['c:settings:base:permissions']"
+        icon="ncLock"
+        data-testid="base-permissions"
+        :active="activeBaseSettingsTab === 'permissions'"
+        @click="navigateToBaseSettings('permissions')"
+      >
+        {{ $t('labels.baseNav.dataPermissions') }}
+        <template #extraRight>
+          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS" remove-click />
+        </template>
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeePermissions"
+        v-e="['c:settings:base:docs-permissions']"
+        icon="ncFileText"
+        data-testid="base-docs-permissions"
+        :active="activeBaseSettingsTab === 'docs-permissions'"
+        @click="navigateToBaseSettings('docs-permissions')"
+      >
+        {{ $t('labels.baseNav.docsPermissions') }}
+        <template #extraRight>
+          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
+        </template>
+      </NcSidebarMenuItem>
+    </template>
 
-      <template #extraRight>
-        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
-      </template>
-    </NcSidebarMenuItem>
+    <template v-if="showDataGroup">
+      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupData') }}</div>
+      <NcSidebarMenuItem
+        v-if="canSeeDataSources"
+        v-e="['c:settings:base:add-data-source']"
+        icon="ncDatabase"
+        data-testid="base-data-source"
+        :active="activeBaseSettingsTab === 'data-source'"
+        @click="navigateToBaseSettings('data-source')"
+      >
+        {{ $t('labels.baseNav.dataSources') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="isIntegrationsMenuVisible"
+        v-e="['c:settings:base:integrations']"
+        icon="integration"
+        data-testid="base-integrations"
+        :active="activeBaseSettingsTab === 'integrations'"
+        @click="navigateToBaseSettings('integrations')"
+      >
+        {{ $t('labels.baseNav.integrations') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeSyncs"
+        v-e="['c:settings:base:syncs']"
+        icon="ncZap"
+        data-testid="base-syncs"
+        :active="activeBaseSettingsTab === 'syncs'"
+        @click="navigateToBaseSettings('syncs')"
+      >
+        {{ $t('labels.baseNav.syncs') }}
+        <template #extraRight>
+          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_SYNC" remove-click />
+        </template>
+      </NcSidebarMenuItem>
+    </template>
 
-    <NcSidebarMenuItem
-      v-if="!isSharedBase && isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) && !isMobileMode"
-      v-e="['c:settings:base:more']"
-      icon="ncMoreHorizontal"
-      data-testid="base-settings"
-      :active="activeBaseSettingsTab === 'base-settings'"
-      @click="navigateToBaseSettings('base-settings')"
-    >
-      {{ $t('general.general') }}
-    </NcSidebarMenuItem>
+    <template v-if="showAutomationGroup">
+      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupAutomation') }}</div>
+      <NcSidebarMenuItem
+        v-if="canSeeAutomations"
+        v-e="['c:settings:base:workflows']"
+        icon="ncAutomation"
+        data-testid="base-workflows"
+        :active="activeBaseSettingsTab === 'workflows'"
+        @click="navigateToBaseSettings('workflows')"
+      >
+        {{ $t('labels.baseNav.automations') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeAiSkills"
+        v-e="['c:settings:base:skills']"
+        icon="ncScript"
+        data-testid="base-skills"
+        :active="activeBaseSettingsTab === 'skills'"
+        @click="navigateToBaseSettings('skills')"
+      >
+        {{ $t('labels.baseNav.aiSkills') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeMcp"
+        v-e="['c:settings:base:mcp']"
+        icon="mcp"
+        data-testid="base-mcp"
+        :active="activeBaseSettingsTab === 'mcp'"
+        @click="navigateToBaseSettings('mcp')"
+      >
+        {{ $t('labels.baseNav.mcpServer') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeVariables"
+        v-e="['c:settings:base:variables']"
+        icon="ncSettings"
+        data-testid="base-variables"
+        :active="activeBaseSettingsTab === 'variables'"
+        @click="navigateToBaseSettings('variables')"
+      >
+        {{ $t('labels.baseNav.variables') }}
+        <template #extraRight>
+          <LazyPaymentUpgradeBadge
+            :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+            :feature-enabled-callback="() => !blockBaseVariables"
+          />
+        </template>
+      </NcSidebarMenuItem>
+    </template>
+
+    <template v-if="showAdminGroup">
+      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupAdmin') }}</div>
+      <NcSidebarMenuItem
+        v-if="canSeeAuditLog"
+        v-e="['c:settings:base:audits']"
+        icon="audit"
+        data-testid="base-audit"
+        :active="activeBaseSettingsTab === 'audits'"
+        @click="navigateToBaseSettings('audits')"
+      >
+        {{ $t('labels.baseNav.auditLog') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeTrashRetention"
+        v-e="['c:settings:base:record-trash']"
+        icon="ncTrash2"
+        data-testid="base-record-trash"
+        :active="activeBaseSettingsTab === 'record-trash'"
+        @click="navigateToBaseSettings('record-trash')"
+      >
+        {{ $t('labels.baseNav.trashRetention') }}
+        <template #extraRight>
+          <LazyPaymentUpgradeBadge
+            :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
+            :feature-enabled-callback="() => !blockTrashSettings"
+          />
+        </template>
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeSnapshots"
+        v-e="['c:settings:base:snapshots']"
+        icon="camera"
+        data-testid="base-snapshots"
+        :active="activeBaseSettingsTab === 'snapshots'"
+        @click="navigateToBaseSettings('snapshots')"
+      >
+        {{ $t('labels.baseNav.snapshots') }}
+        <template #extraRight>
+          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
+        </template>
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeGeneral"
+        v-e="['c:settings:base:more']"
+        icon="ncMoreHorizontal"
+        data-testid="base-settings"
+        :active="activeBaseSettingsTab === 'base-settings'"
+        @click="navigateToBaseSettings('base-settings')"
+      >
+        {{ $t('labels.baseNav.general') }}
+      </NcSidebarMenuItem>
+    </template>
 
     <!-- App settings — one app per base, so its settings are a second section
          here rather than a separate surface inside the app console. -->
@@ -363,8 +442,13 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .nc-settings-section-header {
-  @apply px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
+  @apply px-3 pt-3 pb-1 font-semibold text-nc-content-gray-muted uppercase tracking-wide;
   font-size: 13px;
+}
+
+// Groups after the first need air between them and the previous group's last item.
+.nc-settings-section-header-group {
+  @apply mt-2;
 }
 
 // Second section in the same scroll column — a rule separates it from the base's.

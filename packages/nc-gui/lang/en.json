@@ -4971,7 +4971,6 @@
     "orgSkillsInventoryTab": "Inventory",
     "skillOverridden": "Overridden",
     "skillPolicyFromOrg": "Set by organization",
-
     "clearFormatting": "Clear formatting",
     "font": "Font",
     "ccBcc": "Cc, Bcc",
@@ -4997,7 +4996,28 @@
     "aiToneConfident": "Confident",
     "inputs": "Inputs",
     "textAlign": "Alignment",
-    "justify": "Justify"
+    "justify": "Justify",
+    "baseNav": {
+      "groupAccess": "Access",
+      "groupData": "Data",
+      "groupAutomation": "Automation",
+      "groupAdmin": "Admin",
+      "members": "Members",
+      "interfaceMembers": "Interface Members",
+      "dataPermissions": "Data Permissions",
+      "docsPermissions": "Docs Permissions",
+      "dataSources": "Data Sources",
+      "integrations": "Integrations",
+      "syncs": "Syncs",
+      "automations": "Automations",
+      "aiSkills": "AI Skills",
+      "mcpServer": "MCP Server",
+      "variables": "Variables",
+      "auditLog": "Audit Log",
+      "trashRetention": "Trash Retention",
+      "snapshots": "Snapshots",
+      "general": "General"
+    }
   },
   "activity": {
     "useTemplate": "Use template",

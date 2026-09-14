@@ -206,9 +206,11 @@ const canSeeGeneral = computed(
   () => !isSharedBase.value && isUIAllowed('baseMiscSettings', { roles: effectiveRoles.value }) && !isMobileMode.value,
 )
 
-const showAccessGroup = computed(() => canSeeMembers.value || canSeeInterfaceMembers.value || canSeePermissions.value)
+const showInviteGroup = computed(() => canSeeMembers.value || canSeeInterfaceMembers.value)
 
-const showDataGroup = computed(() => canSeeDataSources.value || isIntegrationsMenuVisible.value || canSeeSyncs.value)
+const showPermissionsGroup = computed(() => canSeePermissions.value)
+
+const showConnectManageGroup = computed(() => canSeeDataSources.value || isIntegrationsMenuVisible.value || canSeeSyncs.value)
 
 const showAutomationGroup = computed(
   () => canSeeAutomations.value || canSeeAiSkills.value || canSeeMcp.value || canSeeVariables.value,
@@ -229,8 +231,8 @@ onMounted(() => {
 
 <template>
   <div class="nc-project-home-section">
-    <template v-if="showAccessGroup">
-      <div class="nc-settings-section-header">{{ $t('labels.baseNav.groupAccess') }}</div>
+    <template v-if="showInviteGroup">
+      <div class="nc-settings-section-header">{{ $t('labels.baseNav.groupInvite') }}</div>
       <NcSidebarMenuItem
         v-if="canSeeMembers"
         v-e="['c:settings:base:add-user']"
@@ -251,6 +253,10 @@ onMounted(() => {
       >
         {{ $t('labels.baseNav.interfaceMembers') }}
       </NcSidebarMenuItem>
+    </template>
+
+    <template v-if="showPermissionsGroup">
+      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupPermissions') }}</div>
       <NcSidebarMenuItem
         v-if="canSeePermissions"
         v-e="['c:settings:base:permissions']"
@@ -279,8 +285,8 @@ onMounted(() => {
       </NcSidebarMenuItem>
     </template>
 
-    <template v-if="showDataGroup">
-      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupData') }}</div>
+    <template v-if="showConnectManageGroup">
+      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupConnectManage') }}</div>
       <NcSidebarMenuItem
         v-if="canSeeDataSources"
         v-e="['c:settings:base:add-data-source']"

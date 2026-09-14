@@ -4998,8 +4998,9 @@
     "textAlign": "Alignment",
     "justify": "Justify",
     "baseNav": {
-      "groupAccess": "Access",
-      "groupData": "Data",
+      "groupInvite": "Invite",
+      "groupPermissions": "Permissions",
+      "groupConnectManage": "Connect & Manage",
       "groupAutomation": "Automation",
       "groupAdmin": "Admin",
       "members": "Members",

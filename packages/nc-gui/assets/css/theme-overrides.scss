@@ -404,3 +404,11 @@ body {
     fill: #4fd1c5;
   }
 }
+
+/* Open instantly. Clearing `transitionName` instead sends ant down its `css: false` branch, where the popup never reaches `stable`. */
+.ant-slide-up-enter,
+.ant-slide-up-appear,
+.ant-slide-down-enter,
+.ant-slide-down-appear {
+  animation-duration: 0.01s !important;
+}

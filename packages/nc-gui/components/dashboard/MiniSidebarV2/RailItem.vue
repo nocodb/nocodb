@@ -178,6 +178,24 @@ const isTooltipDisabled = computed(() => {
   &.disabled {
     @apply opacity-40 cursor-not-allowed;
   }
+
+  // Touch primary input: the 40x26 target clears WCAG 2.5.8 (AA, 24px) but not
+  // 2.5.5 (AAA, 44px) or the Apple/Material minimums, which only matters for
+  // fingers. Grow the target, not the icon. The rail stays one width — 46px
+  // leaves a 45px content box, so 44 fits without a second rail size.
+  @media (pointer: coarse) {
+    width: 44px;
+    height: 44px;
+
+    .nc-rail-item-chip {
+      width: 40px;
+      height: 40px;
+    }
+
+    .nc-rail-item-indicator {
+      @apply h-[24px];
+    }
+  }
 }
 </style>
 

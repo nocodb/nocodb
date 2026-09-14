@@ -247,22 +247,7 @@ const navGroups = computed(() => {
       ].filter((i) => i.visible),
     },
     {
-      key: 'interfaces',
-      label: t('labels.baseNav.groupInterfaces'),
-      items: [
-        {
-          tab: 'interface-members',
-          ev: 'interface-members',
-          icon: 'ncUsers',
-          testId: 'base-interface-members',
-          label: t('labels.baseNav.interfaceMembers'),
-          keywords: 'invite interface app users members roles access',
-          visible: canSeeInterfaceMembers.value,
-        },
-      ].filter((i) => i.visible),
-    },
-    {
-      key: 'connectivity',
+      key: 'connect',
       label: t('labels.baseNav.groupConnect'),
       items: [
         {
@@ -282,6 +267,21 @@ const navGroups = computed(() => {
           label: t('labels.baseNav.mcpServer'),
           keywords: 'mcp agent ai token endpoint claude',
           visible: canSeeMcp.value,
+        },
+      ].filter((i) => i.visible),
+    },
+    {
+      key: 'interfaces',
+      label: t('labels.baseNav.groupInterfaces'),
+      items: [
+        {
+          tab: 'interface-members',
+          ev: 'interface-members',
+          icon: 'ncUsers',
+          testId: 'base-interface-members',
+          label: t('labels.baseNav.interfaceMembers'),
+          keywords: 'invite interface app users members roles access',
+          visible: canSeeInterfaceMembers.value,
         },
       ].filter((i) => i.visible),
     },

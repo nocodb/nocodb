@@ -232,8 +232,9 @@ const navGroups = computed(() => {
           icon: 'ncDatabase',
           testId: 'base-data-source',
           label: t('labels.baseNav.databases'),
-          keywords: 'data source database postgres mysql sqlite snowflake external connection schema',
+          keywords: 'data source database postgres mysql sqlite snowflake sql server external connection schema',
           info: t('labels.baseNav.databasesInfo'),
+          logos: ['postgreSql', 'mysql', 'mssqlServer'],
           visible: canSeeDataSources.value,
         },
         {

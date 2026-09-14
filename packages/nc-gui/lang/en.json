@@ -4999,7 +4999,7 @@
     "justify": "Justify",
     "baseNav": {
       "groupInvite": "Invite",
-      "groupData": "Manage Data",
+      "groupData": "Manage",
       "groupInterfaces": "Interfaces",
       "groupConnectivity": "Connectivity",
       "groupAdmin": "Admin",
@@ -5007,7 +5007,7 @@
       "interfaceMembers": "Members",
       "dataPermissions": "Tables & Fields",
       "docsPermissions": "Docs",
-      "databases": "Data Sources",
+      "databases": "External Database",
       "databasesInfo": "Connect an external database. Its tables appear in Data through a live connection.",
       "integrations": "Integrations",
       "sync": "Sync",

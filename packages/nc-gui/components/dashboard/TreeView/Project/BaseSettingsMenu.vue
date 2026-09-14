@@ -510,10 +510,11 @@ onMounted(() => {
   --nc-nav-chip-surface: var(--color-gray-200);
 }
 
-// Overlap is held at the chip's own padding (22px chip, 13px mark = 4.5px each
-// side), so neighbours tuck behind without cropping the mark itself.
+// Marks match the row's own leading icon at 16px. Overlap is held at the chip's
+// own padding (26px chip, 16px mark = 5px each side), so neighbours tuck behind
+// without cropping the mark itself.
 .nc-nav-logo {
-  @apply relative flex items-center justify-center h-[22px] w-[22px] rounded-full -ml-1;
+  @apply relative flex items-center justify-center h-[26px] w-[26px] rounded-full -ml-1.5;
   background: var(--nc-nav-chip-surface);
   box-shadow: 0 0 0 1px var(--nc-nav-chip-surface);
 
@@ -522,7 +523,7 @@ onMounted(() => {
   }
 
   :deep(svg) {
-    @apply h-[13px] w-[13px];
+    @apply h-4 w-4;
   }
 }
 

@@ -173,7 +173,6 @@ const isTooltipDisabled = computed(() => {
 
   // Expanded layout with labels when sidebar is 64px
   @media (min-width: 1280px) {
-    @apply gap-1 pt-1 pb-1.5;
     width: 40px;
     height: auto;
 
@@ -187,9 +186,7 @@ const isTooltipDisabled = computed(() => {
     }
 
     .nc-rail-item-indicator {
-      // Centred on the chip (pt-1 + half its 26px) rather than on the item,
-      // whose midpoint the label drags down past the icon.
-      @apply h-[22px] top-[17px];
+      @apply h-[22px];
     }
   }
 }

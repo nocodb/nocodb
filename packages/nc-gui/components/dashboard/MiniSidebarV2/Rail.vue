@@ -430,7 +430,7 @@ const handleOpenBookmarkPanel = () => {
 
 <style lang="scss" scoped>
 .nc-rail {
-  @apply flex flex-col gap-1.5 items-center h-full w-full;
+  @apply flex flex-col gap-2 items-center h-full w-full;
 }
 
 .nc-rail-logo {

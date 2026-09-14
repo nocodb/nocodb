@@ -76,4 +76,26 @@ function isScrollbarAlwaysVisible() {
   return scrollbarWidth > 0
 }
 
-export { isElementInvisible, waitForScrollEnd, isScrollbarAlwaysVisible }
+/**
+ * Move focus into an `a-modal` identified by its `wrap-class-name`.
+ *
+ * A modal mounted through `useDialog` is already visible on its first render, so
+ * its enter transition never runs and ant never focuses it. Ant binds the Escape
+ * handler to the wrap element, so until focus is in there Escape does nothing.
+ */
+const focusModalWrap = async (wrapClassName: string) => {
+  // The wrap is teleported to body a frame or two after mount, so one tick is
+  // not enough to catch it reliably.
+  for (let i = 0; i < 10; i++) {
+    const wrap = document.querySelector<HTMLElement>(`.${wrapClassName}`)
+
+    if (wrap) {
+      wrap.focus()
+      if (wrap.contains(document.activeElement)) return
+    }
+
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+  }
+}
+
+export { isElementInvisible, waitForScrollEnd, isScrollbarAlwaysVisible, focusModalWrap }

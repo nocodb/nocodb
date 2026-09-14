@@ -306,6 +306,8 @@ onMounted(async () => {
     listenForUpdates()
   }
   await loadSyncSrc()
+
+  await focusModalWrap('nc-modal-airtable-import')
 })
 
 const isInProgress = computed(() => {

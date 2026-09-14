@@ -461,11 +461,13 @@ const onChange = () => {
   isError.value = false
 }
 
-onMounted(() => {
+onMounted(async () => {
   // When importing into an existing table we want exact column names from the
   // source so the user-supplied mapping wins — skip type auto-detection.
   importState.parserConfig.autoSelectFieldTypes = !importDataOnly
   importState.options.importDataOnly = importDataOnly
+
+  await focusModalWrap('nc-modal-quick-import')
 })
 
 const onCancelImport = () => {

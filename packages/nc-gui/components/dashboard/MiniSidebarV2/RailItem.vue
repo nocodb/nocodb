@@ -174,7 +174,7 @@ const isTooltipDisabled = computed(() => {
   // Expanded layout with labels when sidebar is 64px
   @media (min-width: 1280px) {
     @apply gap-1 pt-1 pb-1.5;
-    width: 44px;
+    width: 40px;
     height: auto;
 
     .nc-rail-item-chip {

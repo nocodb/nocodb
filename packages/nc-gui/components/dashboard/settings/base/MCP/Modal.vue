@@ -160,15 +160,18 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
           <NcTabs v-model:active-key="activeTab">
             <a-tab-pane key="claude" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'claude',
-                    'text-nc-content-gray-subtle': activeTab !== 'claude',
-                  }"
-                  class="text-sm"
-                >
-                  Claude
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncLogoClaudeAiColored" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'claude',
+                      'text-nc-content-gray-subtle': activeTab !== 'claude',
+                    }"
+                    class="text-sm"
+                  >
+                    Claude
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
                 Get started with the NocoDB MCP with Claude Desktop in 3 simple steps
@@ -195,15 +198,18 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
             </a-tab-pane>
             <a-tab-pane key="cursor" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'cursor',
-                    'text-nc-content-gray-subtle': activeTab !== 'cursor',
-                  }"
-                  class="text-sm"
-                >
-                  Cursor
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncCode" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'cursor',
+                      'text-nc-content-gray-subtle': activeTab !== 'cursor',
+                    }"
+                    class="text-sm"
+                  >
+                    Cursor
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
                 Get started with the NocoDB MCP with Cursor in 3 simple steps
@@ -229,15 +235,18 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
             </a-tab-pane>
             <a-tab-pane key="windsurf" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'windsurf',
-                    'text-nc-content-gray-subtle': activeTab !== 'windsurf',
-                  }"
-                  class="text-sm"
-                >
-                  Windsurf
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncCode" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'windsurf',
+                      'text-nc-content-gray-subtle': activeTab !== 'windsurf',
+                    }"
+                    class="text-sm"
+                  >
+                    Windsurf
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
                 Get started with the NocoDB MCP with Windsurf in 4 simple steps
@@ -265,15 +274,18 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
             </a-tab-pane>
             <a-tab-pane key="antigravity" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'antigravity',
-                    'text-nc-content-gray-subtle': activeTab !== 'antigravity',
-                  }"
-                  class="text-sm"
-                >
-                  AntiGravity
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncLogoGeminiAiColored" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'antigravity',
+                      'text-nc-content-gray-subtle': activeTab !== 'antigravity',
+                    }"
+                    class="text-sm"
+                  >
+                    AntiGravity
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
                 Get started with the NocoDB MCP with AntiGravity in 4 simple steps
@@ -301,15 +313,18 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
             </a-tab-pane>
             <a-tab-pane key="codex" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'codex',
-                    'text-nc-content-gray-subtle': activeTab !== 'codex',
-                  }"
-                  class="text-sm"
-                >
-                  Codex
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncLogoOpenAiColored" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'codex',
+                      'text-nc-content-gray-subtle': activeTab !== 'codex',
+                    }"
+                    class="text-sm"
+                  >
+                    Codex
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
                 Get started with the NocoDB MCP with Codex CLI in 3 simple steps

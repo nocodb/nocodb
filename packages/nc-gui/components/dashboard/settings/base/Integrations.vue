@@ -354,11 +354,11 @@ watch(baseId, reload)
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
       <div class="h-full w-full overflow-y-auto nc-scrollbar-thin">
-        <div class="px-8 pt-6 pb-8 flex flex-col nc-workspace-settings-integrations-list">
-          <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
-            {{ $t('msg.manageBaseIntegrations') }}
-          </div>
-
+        <!-- px-6 pt-3 matches the other base settings pages, which puts the search
+             box on the same line as the settings sidebar's own search. The page
+             blurb used to sit above it and pushed the search 52px down; it now
+             follows the search rather than displacing it. -->
+        <div class="px-6 pt-3 pb-8 flex flex-col nc-workspace-settings-integrations-list">
           <a-input
             ref="mainSearchInputRef"
             v-model:value="searchQuery"
@@ -371,6 +371,10 @@ watch(baseId, reload)
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
+
+          <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4 -mt-1">
+            {{ $t('msg.manageBaseIntegrations') }}
+          </div>
 
           <div class="flex flex-col space-y-6 w-full">
             <!-- Full-page skeleton during initial load -->

@@ -646,7 +646,8 @@ onBeforeUnmount(() => {
         </NcPageHeader>
       </div>
 
-      <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-4 md:px-6 pt-6">
+      <!-- pt-3, not pt-6: lines the search box up with the settings sidebar's own search. -->
+      <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-4 md:px-6 pt-3">
         <NcAlert v-if="isEeUI && isPrivateBase" type="info" :message="$t('title.privateBase')" class="bg-nc-bg-gray-extralight">
           <template #icon>
             <GeneralIcon icon="ncUser" class="w-6 h-6 text-nc-content-gray-subtle" />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  value: boolean
+  visible: boolean
   token: MCPTokenExtendedType
   showRegenerateButton?: boolean
   showWorkspaceBaseInfo?: boolean
@@ -13,9 +13,9 @@ const props = withDefaults(defineProps<Props>(), {
   isAccountLevel: false,
 })
 
-const emits = defineEmits(['close', 'update:value', 'update:token'])
+const emits = defineEmits(['close', 'update:visible', 'update:token'])
 
-const modalVisible = useVModel(props, 'value')
+const modalVisible = useVModel(props, 'visible')
 
 const { appInfo } = useGlobal()
 

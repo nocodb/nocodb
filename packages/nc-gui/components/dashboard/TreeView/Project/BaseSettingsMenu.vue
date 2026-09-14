@@ -143,8 +143,12 @@ const canSeeAiSkills = computed(
 
 const canSeeMcp = computed(() => isUIAllowed('manageMCP', { roles: effectiveRoles.value }) && !isMobileMode.value)
 
+// Only where fine-grained (base-scoped) tokens actually work — licensed on-prem
+// and cloud. On CE / unlicensed on-prem tokens are org-wide only, so a
+// base-level token surface would be meaningless (isEEFeatureBlocked mirrors the
+// wizard's isFineGrainedEnabled).
 const canSeeBaseApiTokens = computed(
-  () => isUIAllowed('manageBaseApiTokens', { roles: effectiveRoles.value }) && !isMobileMode.value,
+  () => !isEEFeatureBlocked.value && isUIAllowed('manageBaseApiTokens', { roles: effectiveRoles.value }) && !isMobileMode.value,
 )
 
 const canSeeVariables = computed(

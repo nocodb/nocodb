@@ -45,10 +45,10 @@
 
   /* Surface tokens (dark-mode refactor) — dedicated backgrounds for chrome,
      overlays and inputs. Light values match the pre-refactor look exactly. */
-  --color-sidebar-bg: #f9f9fa;
-  --rgb-color-sidebar-bg: 249, 249, 250;
-  --color-minisidebar-bg: #f4f4f5;
-  --rgb-color-minisidebar-bg: 244, 244, 245;
+  --color-sidebar-bg: #ffffff;
+  --rgb-color-sidebar-bg: 255, 255, 255;
+  --color-minisidebar-bg: #ffffff;
+  --rgb-color-minisidebar-bg: 255, 255, 255;
   --nc-bg-elevated: #ffffff;
   --rgb-nc-bg-elevated: 255, 255, 255;
   --nc-bg-canvas: #f9f9fa;

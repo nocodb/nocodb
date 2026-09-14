@@ -32,7 +32,11 @@ const emits = defineEmits<{
 
 const slots = useSlots()
 
-/** Experiment: rail labels off — icons only, tooltips carry the names. */
+/**
+ * Experiment: rail labels off — icons only, tooltips carry the names.
+ * TODO: cleanup — drop this flag and the label path (span, `label` slot,
+ * `.nc-rail-item-label` styles) once the rail design is settled.
+ */
 const showRailLabels = false
 
 const tooltipText = computed(() => props.tooltip || props.label)

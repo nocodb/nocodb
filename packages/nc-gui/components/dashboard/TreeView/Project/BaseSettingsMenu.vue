@@ -212,12 +212,16 @@ const showPermissionsGroup = computed(() => canSeePermissions.value)
 
 const showConnectManageGroup = computed(() => canSeeDataSources.value || isIntegrationsMenuVisible.value || canSeeSyncs.value)
 
-const showAutomationGroup = computed(
-  () => canSeeAutomations.value || canSeeAiSkills.value || canSeeMcp.value || canSeeVariables.value,
-)
+const showAutomationGroup = computed(() => canSeeAutomations.value || canSeeMcp.value)
 
 const showAdminGroup = computed(
-  () => canSeeAuditLog.value || canSeeTrashRetention.value || canSeeSnapshots.value || canSeeGeneral.value,
+  () =>
+    canSeeAuditLog.value ||
+    canSeeTrashRetention.value ||
+    canSeeSnapshots.value ||
+    canSeeAiSkills.value ||
+    canSeeVariables.value ||
+    canSeeGeneral.value,
 )
 
 // Load base roles in background if not already loaded
@@ -335,16 +339,6 @@ onMounted(() => {
         {{ $t('labels.baseNav.automations') }}
       </NcSidebarMenuItem>
       <NcSidebarMenuItem
-        v-if="canSeeAiSkills"
-        v-e="['c:settings:base:skills']"
-        icon="ncScript"
-        data-testid="base-skills"
-        :active="activeBaseSettingsTab === 'skills'"
-        @click="navigateToBaseSettings('skills')"
-      >
-        {{ $t('labels.baseNav.aiSkills') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
         v-if="canSeeMcp"
         v-e="['c:settings:base:mcp']"
         icon="mcp"
@@ -353,22 +347,6 @@ onMounted(() => {
         @click="navigateToBaseSettings('mcp')"
       >
         {{ $t('labels.baseNav.mcpServer') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeVariables"
-        v-e="['c:settings:base:variables']"
-        icon="ncSettings"
-        data-testid="base-variables"
-        :active="activeBaseSettingsTab === 'variables'"
-        @click="navigateToBaseSettings('variables')"
-      >
-        {{ $t('labels.baseNav.variables') }}
-        <template #extraRight>
-          <LazyPaymentUpgradeBadge
-            :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
-            :feature-enabled-callback="() => !blockBaseVariables"
-          />
-        </template>
       </NcSidebarMenuItem>
     </template>
 
@@ -411,6 +389,32 @@ onMounted(() => {
         {{ $t('labels.baseNav.snapshots') }}
         <template #extraRight>
           <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
+        </template>
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeAiSkills"
+        v-e="['c:settings:base:skills']"
+        icon="ncScript"
+        data-testid="base-skills"
+        :active="activeBaseSettingsTab === 'skills'"
+        @click="navigateToBaseSettings('skills')"
+      >
+        {{ $t('labels.baseNav.aiSkills') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="canSeeVariables"
+        v-e="['c:settings:base:variables']"
+        icon="ncSettings"
+        data-testid="base-variables"
+        :active="activeBaseSettingsTab === 'variables'"
+        @click="navigateToBaseSettings('variables')"
+      >
+        {{ $t('labels.baseNav.variables') }}
+        <template #extraRight>
+          <LazyPaymentUpgradeBadge
+            :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+            :feature-enabled-callback="() => !blockBaseVariables"
+          />
         </template>
       </NcSidebarMenuItem>
       <NcSidebarMenuItem

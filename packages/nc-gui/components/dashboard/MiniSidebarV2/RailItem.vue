@@ -98,7 +98,7 @@ const isTooltipDisabled = computed(() => {
   }
 
   .nc-rail-item-indicator {
-    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[3px] h-[28px] opacity-0 pointer-events-none rounded-r-sm;
+    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[4px] h-[16px] opacity-0 pointer-events-none rounded-r-[3px];
     @apply bg-nc-content-brand;
     transition: opacity 0.2s;
   }
@@ -179,7 +179,9 @@ const isTooltipDisabled = computed(() => {
     }
 
     .nc-rail-item-indicator {
-      @apply h-[36px];
+      // Centred on the chip (pt-1 + half its 26px) rather than on the item,
+      // whose midpoint the label drags down past the icon.
+      @apply h-[18px] top-[17px];
     }
   }
 }

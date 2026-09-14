@@ -299,7 +299,15 @@ if (!props.isNewWsPage) {
             </div>
           </template>
 
-          <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
+          <PaymentUpgradeFeatureCard
+            v-if="blockTeamsManagement"
+            :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+            :title="$t('labels.baseNav.upgradeTitleTeams')"
+            :detail="$t('labels.baseNav.upgradeDescTeams')"
+            icon="ncBuilding"
+            trigger-source="ws-teams-page"
+          />
+          <WorkspaceTeams v-else :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">

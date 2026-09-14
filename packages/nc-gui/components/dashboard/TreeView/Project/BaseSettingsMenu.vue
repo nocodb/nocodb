@@ -319,7 +319,7 @@ const navGroups = computed(() => {
         {
           tab: 'record-trash',
           ev: 'record-trash',
-          icon: 'ncTrash2',
+          icon: 'ncHistory',
           testId: 'base-record-trash',
           label: t('labels.baseNav.trashRetention'),
           keywords: 'trash deleted records retention days recover restore',

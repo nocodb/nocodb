@@ -708,7 +708,7 @@ watch(
             :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
             :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
             :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
-            icon="ncTrash2"
+            icon="ncHistory"
           />
           <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseTrash />

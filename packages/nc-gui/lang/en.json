@@ -5023,7 +5023,7 @@
       "searchPlaceholder": "Search settings",
       "searchEmpty": "No settings match “{query}”",
       "upgradeAvailableOn": "Available on the {plan} plan.",
-      "upgradeCta": "Upgrade Now",
+      "upgradeCta": "Upgrade to {plan} Now",
       "upgradeTitlePermissionsTablesFields": "Permissions for Tables & Fields",
       "upgradeTitlePermissionsDocs": "Permissions for Docs",
       "upgradeTitleSync": "Sync",

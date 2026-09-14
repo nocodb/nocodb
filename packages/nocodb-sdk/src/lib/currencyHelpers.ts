@@ -93,6 +93,48 @@ export const getGroupDecimalSymbolFromLocale = (locale?: string) => {
   };
 };
 
+const escapeForRegExp = (char: string) =>
+  char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Normalize a locale-formatted number into a dot-decimal string.
+ *
+ * The locale's decimal character settles the reading whenever it is present, so
+ * `1.234` in en-US stays 1.234. Only when it is absent does the group character
+ * have to be judged on its own, and then it is grouping only when it actually
+ * groups — exactly three digits behind it. A lone one that does not (`1234.56`
+ * in de-DE, where `.` is the group character) is a decimal point, not something
+ * to delete; deleting it multiplied the value by 100.
+ *
+ * Leaves `-` in place for the caller's sign pass.
+ */
+export const normalizeLocaleNumericString = (
+  value: string,
+  locale?: string
+): string => {
+  const { group, decimal } = getGroupDecimalSymbolFromLocale(locale);
+  const stripNoise = (s: string) => s.replace(/[^\d.-]/g, '');
+
+  if (decimal !== group && value.includes(decimal)) {
+    return stripNoise(value.split(group).join('').split(decimal).join('.'));
+  }
+
+  if (!value.includes(group)) return stripNoise(value);
+
+  // Drop only the occurrences that sit in a real grouping position.
+  const withoutGroups = value.replace(
+    new RegExp(`${escapeForRegExp(group)}(?=\\d{3}(?!\\d))`, 'g'),
+    ''
+  );
+
+  const leftover = withoutGroups.split(group);
+
+  // Exactly one survivor was never grouping — it is the decimal point.
+  return stripNoise(
+    leftover.length === 2 ? leftover.join('.') : leftover.join('')
+  );
+};
+
 export const getNumericValue = (value: string, locale?: string) => {
   // accept valid decimal string as well, like '9.123', '9.1234', '9.123456789'
   if (/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(value)) {

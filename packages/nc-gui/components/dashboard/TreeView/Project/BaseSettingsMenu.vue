@@ -461,11 +461,7 @@ onMounted(() => {
         allow-clear
       >
         <template #prefix>
-          <GeneralIcon
-            icon="search"
-            class="nc-search-icon h-3.5 w-3.5 mr-1"
-            :class="{ 'text-nc-content-brand': searchQuery?.length }"
-          />
+          <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 text-nc-content-gray-muted" />
         </template>
       </a-input>
     </div>

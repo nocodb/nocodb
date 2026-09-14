@@ -528,9 +528,11 @@ onMounted(() => {
 }
 
 // Always visible, but quiet enough to sit beside the brand marks without
-// competing — disabled-grey at 14px, lifting slightly on hover.
+// competing — disabled-grey at 12px, lifting slightly on hover.
 :deep(.nc-nav-info) {
-  @apply transition-opacity duration-150 opacity-80;
+  // Pulls back against the row's own gap-2, so the hint sits close to the marks
+  // it annotates rather than drifting toward the row edge.
+  @apply -ml-1 transition-opacity duration-150 opacity-80;
 }
 
 .nc-sidebar-menu-item:hover :deep(.nc-nav-info) {
@@ -538,7 +540,7 @@ onMounted(() => {
 }
 
 .nc-nav-info-icon {
-  @apply h-3.5 w-3.5 text-nc-content-gray-disabled;
+  @apply h-3 w-3 text-nc-content-gray-disabled;
 }
 
 .nc-settings-search {

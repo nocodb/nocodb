@@ -2898,6 +2898,7 @@
     },
     "expiresOn": "Expires on",
     "expires": "Expires",
+    "copyToken": "Copy token",
     "expiresInDays": "{count} day left | {count} days left",
     "expiresToday": "Expires today",
     "noExpiration": "No expiration",

@@ -592,7 +592,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
     @keydown.esc="dialogShow = false"
   >
     <template #header>
-      <div class="flex flex-row text-2xl font-bold items-center gap-x-2">
+      <div class="flex flex-row text-xl font-semibold items-center gap-x-2">
         {{
           type === 'organization'
             ? 'Invite Members to Workspaces'
@@ -608,15 +608,16 @@ const onTeamChange = async (_teamIds: RawValueType) => {
     </template>
     <div class="flex items-center justify-between gap-3 mt-2">
       <div class="flex w-full gap-4 flex-col">
-        <div class="flex flex-col gap-3 w-full">
-          <div v-if="!isTeam" class="relative w-full">
+        <div class="flex flex-col gap-4 w-full">
+          <div v-if="!isTeam" class="relative w-full flex flex-col gap-1.5">
+            <span class="nc-invite-field-label">{{ $t('labels.email') }}</span>
             <div
               ref="divRef"
               :class="{
-                'border-primary/100 shadow-selected': isDivFocused,
-                'p-1': emailBadges?.length > 0,
+                'p-1 items-start': emailBadges?.length > 0,
+                'items-center': !emailBadges?.length,
               }"
-              class="flex items-start content-start flex-wrap border-1 gap-1 w-full min-h-10 max-h-[104px] overflow-y-auto nc-scrollbar-thin rounded-lg"
+              class="nc-invite-email-box flex content-start flex-wrap border-1 gap-1 w-full min-h-10 max-h-[176px] overflow-y-auto nc-scrollbar-thin rounded-lg"
               tabindex="0"
               @blur="isDivFocused = false"
               @click="focusOnDiv"
@@ -646,6 +647,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 :disabled="isLoading"
                 :placeholder="$t('activity.enterEmail')"
                 class="flex-1 md:min-w-36 outline-none px-2"
+                :class="{ 'basis-full': emailBadges?.length > 0 }"
                 data-testid="email-input"
                 @blur="isDivFocused = false"
                 @click="hasUserInteracted = true"
@@ -693,18 +695,18 @@ const onTeamChange = async (_teamIds: RawValueType) => {
             placement="bottomLeft"
           />
 
-          <!-- Its own line: side by side, the pill stayed pinned to the top while
-               the email field grew taller beneath it. -->
-          <div class="flex items-center gap-3">
-            <span class="text-bodyDefaultSm text-nc-content-gray-muted">{{ $t('labels.selectRole') }}</span>
+          <!-- Its own block, label above: side by side, the control stayed pinned to
+               the top while the email field grew taller beside it. -->
+          <div class="flex flex-col gap-1.5 w-full">
+            <span class="nc-invite-field-label">{{ $t('labels.inviteAs') }}</span>
             <RolesSelectorV2
               :on-role-change="onRoleChange"
               :role="inviteData.roles"
               :disabled-roles="disabledRoles"
               :disabled-roles-tooltip="disabledRolesTooltip"
               :roles="allowedRoles"
-              :description="false"
-              class="!min-w-[152px] nc-invite-role-selector"
+              trigger-variant="detail"
+              class="nc-invite-role-selector -ml-1.5"
               size="lg"
               placement="bottomLeft"
             />
@@ -795,9 +797,11 @@ const onTeamChange = async (_teamIds: RawValueType) => {
       class="mt-5"
     />
 
-    <div class="flex mt-8 justify-end">
-      <div class="flex gap-2">
-        <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }}</NcButton>
+    <div class="nc-invite-footer-divider mt-6 -mx-4 md:-mx-6 border-t-1 border-nc-border-gray-medium" />
+
+    <div class="flex mt-4 justify-end">
+      <div class="flex gap-2 items-center">
+        <NcButton type="text" @click="dialogShow = false"> {{ $t('labels.cancel') }}</NcButton>
         <NcButton
           :disabled="isInviteButtonDisabled || emailValidation.isError || isLoading || !!warningMsg"
           :loading="isLoading"
@@ -848,6 +852,23 @@ const onTeamChange = async (_teamIds: RawValueType) => {
 }
 
 :deep(.nc-invite-role-selector .nc-role-badge) {
+  @apply w-full;
+}
+
+.nc-invite-field-label {
+  @apply text-bodyDefaultSm text-nc-content-gray-muted;
+}
+
+// :focus-within rather than a tracked flag — the flag was cleared by the blur
+// that fires when adding a chip re-renders the row, killing the ring mid-typing.
+.nc-invite-email-box:focus-within {
+  @apply border-primary/100 shadow-selected;
+}
+
+// NcListDropdown wraps the trigger in a plain div; without this the detail row
+// collapses to its content width and the hover surface stops short of the label.
+:deep(.nc-invite-role-selector .nc-roles-selector),
+:deep(.nc-invite-role-selector .ant-dropdown-trigger) {
   @apply w-full;
 }
 </style>

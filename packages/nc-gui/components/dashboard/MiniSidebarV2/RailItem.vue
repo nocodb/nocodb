@@ -200,14 +200,16 @@ const isTooltipDisabled = computed(() => {
 </style>
 
 <style lang="scss">
+// Held just off full ink so the selected item stays the only thing at full
+// strength, without the rest reading as disabled.
 .nc-rail-item:not(.active) .nc-rail-item-label,
 .nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(0, 0, 0, 0.7);
+  color: rgba(0, 0, 0, 0.6);
 }
 
 [theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-label,
 [theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .rtl .nc-rail-item .nc-rail-item-indicator {

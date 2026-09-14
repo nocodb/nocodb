@@ -5019,7 +5019,9 @@
       "auditLog": "Audit Log",
       "trashRetention": "Trash Retention",
       "snapshots": "Snapshots",
-      "general": "General"
+      "general": "General",
+      "searchPlaceholder": "Search settings",
+      "searchEmpty": "No settings match “{query}”"
     }
   },
   "activity": {

@@ -16,6 +16,8 @@ const baseRole = inject(ProjectRoleInj)!
 
 const { isMobileMode } = useGlobal()
 
+const { t } = useI18n()
+
 const { isUIAllowed, environmentRestrictionReason, baseRoles, loadRoles } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -206,23 +208,237 @@ const canSeeGeneral = computed(
   () => !isSharedBase.value && isUIAllowed('baseMiscSettings', { roles: effectiveRoles.value }) && !isMobileMode.value,
 )
 
-const showInviteGroup = computed(() => canSeeMembers.value || canSeeInterfaceMembers.value)
+const searchQuery = ref('')
 
-const showPermissionsGroup = computed(() => canSeePermissions.value)
+// The nav as data, so one filter can drive search across every group including
+// the app section. `keywords` carry what a page contains but does not say in its
+// label — searching "null" or "private" has to land on General.
+const navGroups = computed(() => {
+  const groups: {
+    key: string
+    label: string
+    divider?: boolean
+    items: {
+      tab: string
+      ev: string
+      icon: string
+      testId: string
+      label: string
+      keywords?: string
+      info?: string
+      badge?: { feature?: PlanFeatureTypes; removeClick?: boolean; enabled?: () => boolean }
+    }[]
+  }[] = [
+    {
+      key: 'invite',
+      label: t('labels.baseNav.groupInvite'),
+      items: [
+        {
+          tab: 'collaborator',
+          ev: 'add-user',
+          icon: 'users',
+          testId: 'base-collaborator',
+          label: t('labels.baseNav.members'),
+          keywords: 'invite people users collaborators teams roles access',
+          visible: canSeeMembers.value,
+        },
+        {
+          tab: 'interface-members',
+          ev: 'interface-members',
+          icon: 'ncUsers',
+          testId: 'base-interface-members',
+          label: t('labels.baseNav.interfaceMembers'),
+          keywords: 'invite interface app users roles',
+          visible: canSeeInterfaceMembers.value,
+        },
+      ].filter((i) => i.visible),
+    },
+    {
+      key: 'permissions',
+      label: t('labels.baseNav.groupPermissions'),
+      items: [
+        {
+          tab: 'permissions',
+          ev: 'permissions',
+          icon: 'ncLock',
+          testId: 'base-permissions',
+          label: t('labels.baseNav.dataPermissions'),
+          keywords: 'table field column visibility restrict lock',
+          badge: { feature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, removeClick: true },
+          visible: canSeePermissions.value,
+        },
+        {
+          tab: 'docs-permissions',
+          ev: 'docs-permissions',
+          icon: 'ncFileText',
+          testId: 'base-docs-permissions',
+          label: t('labels.baseNav.docsPermissions'),
+          keywords: 'document docs restrict lock',
+          badge: { feature: PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, removeClick: true },
+          visible: canSeePermissions.value,
+        },
+      ].filter((i) => i.visible),
+    },
+    {
+      key: 'connected-data',
+      label: t('labels.baseNav.groupConnectedData'),
+      items: [
+        {
+          tab: 'data-source',
+          ev: 'add-data-source',
+          icon: 'ncDatabase',
+          testId: 'base-data-source',
+          label: t('labels.baseNav.databases'),
+          keywords: 'data source postgres mysql sqlite snowflake external connection schema',
+          info: t('labels.baseNav.databasesInfo'),
+          visible: canSeeDataSources.value,
+        },
+        {
+          tab: 'syncs',
+          ev: 'syncs',
+          icon: 'ncZap',
+          testId: 'base-syncs',
+          label: t('labels.baseNav.sync'),
+          keywords: 'sync import pull schedule one-way external app',
+          info: t('labels.baseNav.syncInfo'),
+          badge: { feature: PlanFeatureTypes.FEATURE_SYNC, removeClick: true },
+          visible: canSeeSyncs.value,
+        },
+      ].filter((i) => i.visible),
+    },
+    {
+      key: 'automation',
+      label: t('labels.baseNav.groupAutomation'),
+      items: [
+        {
+          tab: 'workflows',
+          ev: 'workflows',
+          icon: 'ncAutomation',
+          testId: 'base-workflows',
+          label: t('labels.baseNav.automations'),
+          keywords: 'workflow trigger action script run',
+          visible: canSeeAutomations.value,
+        },
+        {
+          tab: 'integrations',
+          ev: 'integrations',
+          icon: 'integration',
+          testId: 'base-integrations',
+          label: t('labels.baseNav.integrations'),
+          keywords: 'credentials connection oauth api key slack google openai',
+          visible: isIntegrationsMenuVisible.value,
+        },
+        {
+          tab: 'mcp',
+          ev: 'mcp',
+          icon: 'mcp',
+          testId: 'base-mcp',
+          label: t('labels.baseNav.mcpServer'),
+          keywords: 'mcp agent ai token endpoint claude',
+          visible: canSeeMcp.value,
+        },
+      ].filter((i) => i.visible),
+    },
+    {
+      key: 'admin',
+      label: t('labels.baseNav.groupAdmin'),
+      items: [
+        {
+          tab: 'audits',
+          ev: 'audits',
+          icon: 'audit',
+          testId: 'base-audit',
+          label: t('labels.baseNav.auditLog'),
+          keywords: 'audit history activity log who changed',
+          visible: canSeeAuditLog.value,
+        },
+        {
+          tab: 'record-trash',
+          ev: 'record-trash',
+          icon: 'ncTrash2',
+          testId: 'base-record-trash',
+          label: t('labels.baseNav.trashRetention'),
+          keywords: 'trash deleted records retention days recover restore',
+          badge: { feature: PlanFeatureTypes.FEATURE_TRASH_SETTINGS, enabled: () => !blockTrashSettings.value },
+          visible: canSeeTrashRetention.value,
+        },
+        {
+          tab: 'snapshots',
+          ev: 'snapshots',
+          icon: 'camera',
+          testId: 'base-snapshots',
+          label: t('labels.baseNav.snapshots'),
+          keywords: 'snapshot backup restore point in time',
+          badge: { enabled: () => !isEEFeatureBlocked.value },
+          visible: canSeeSnapshots.value,
+        },
+        {
+          tab: 'skills',
+          ev: 'skills',
+          icon: 'ncScript',
+          testId: 'base-skills',
+          label: t('labels.baseNav.aiSkills'),
+          keywords: 'ai skill prompt assistant',
+          visible: canSeeAiSkills.value,
+        },
+        {
+          tab: 'variables',
+          ev: 'variables',
+          icon: 'ncSettings',
+          testId: 'base-variables',
+          label: t('labels.baseNav.variables'),
+          keywords: 'variable environment secret value master inherited',
+          badge: { feature: PlanFeatureTypes.FEATURE_BASE_VARIABLES, enabled: () => !blockBaseVariables.value },
+          visible: canSeeVariables.value,
+        },
+        {
+          tab: 'base-settings',
+          ev: 'more',
+          icon: 'ncMoreHorizontal',
+          testId: 'base-settings',
+          label: t('labels.baseNav.general'),
+          keywords: 'general base type private public data display null m2m junction empty filter',
+          visible: canSeeGeneral.value,
+        },
+      ].filter((i) => i.visible),
+    },
+  ]
 
-const showConnectedDataGroup = computed(() => canSeeDataSources.value || canSeeSyncs.value)
+  if (isAppSettingsVisible.value) {
+    groups.push({
+      key: 'app',
+      label: t('labels.appSettings'),
+      divider: true,
+      items: appSettingsItems.value.map((item) => ({
+        tab: item.tab,
+        ev: item.tab,
+        icon: item.icon,
+        testId: item.testId,
+        label: t(item.label),
+        keywords: 'app',
+      })),
+    })
+  }
 
-const showAutomationGroup = computed(() => canSeeAutomations.value || isIntegrationsMenuVisible.value || canSeeMcp.value)
+  return groups.filter((g) => g.items.length)
+})
 
-const showAdminGroup = computed(
-  () =>
-    canSeeAuditLog.value ||
-    canSeeTrashRetention.value ||
-    canSeeSnapshots.value ||
-    canSeeAiSkills.value ||
-    canSeeVariables.value ||
-    canSeeGeneral.value,
-)
+const filteredGroups = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return navGroups.value
+
+  return navGroups.value
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) =>
+          item.label.toLowerCase().includes(q) || group.label.toLowerCase().includes(q) || (item.keywords ?? '').includes(q),
+      ),
+    }))
+    .filter((group) => group.items.length)
+})
+
+const hasResults = computed(() => filteredGroups.value.length > 0)
 
 // Load base roles in background if not already loaded
 onMounted(() => {
@@ -235,230 +451,74 @@ onMounted(() => {
 
 <template>
   <div class="nc-project-home-section">
-    <template v-if="showInviteGroup">
-      <div class="nc-settings-section-header">{{ $t('labels.baseNav.groupInvite') }}</div>
-      <NcSidebarMenuItem
-        v-if="canSeeMembers"
-        v-e="['c:settings:base:add-user']"
-        icon="users"
-        data-testid="base-collaborator"
-        :active="activeBaseSettingsTab === 'collaborator'"
-        @click="navigateToBaseSettings('collaborator')"
+    <div class="nc-settings-search">
+      <a-input
+        v-model:value="searchQuery"
+        type="text"
+        :placeholder="$t('labels.baseNav.searchPlaceholder')"
+        class="nc-input-sm nc-input-shadow"
+        data-testid="nc-settings-search"
+        allow-clear
       >
-        {{ $t('labels.baseNav.members') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeInterfaceMembers"
-        v-e="['c:settings:base:interface-members']"
-        icon="ncUsers"
-        data-testid="base-interface-members"
-        :active="activeBaseSettingsTab === 'interface-members'"
-        @click="navigateToBaseSettings('interface-members')"
-      >
-        {{ $t('labels.baseNav.interfaceMembers') }}
-      </NcSidebarMenuItem>
-    </template>
-
-    <template v-if="showPermissionsGroup">
-      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupPermissions') }}</div>
-      <NcSidebarMenuItem
-        v-if="canSeePermissions"
-        v-e="['c:settings:base:permissions']"
-        icon="ncLock"
-        data-testid="base-permissions"
-        :active="activeBaseSettingsTab === 'permissions'"
-        @click="navigateToBaseSettings('permissions')"
-      >
-        {{ $t('labels.baseNav.dataPermissions') }}
-        <template #extraRight>
-          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS" remove-click />
-        </template>
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeePermissions"
-        v-e="['c:settings:base:docs-permissions']"
-        icon="ncFileText"
-        data-testid="base-docs-permissions"
-        :active="activeBaseSettingsTab === 'docs-permissions'"
-        @click="navigateToBaseSettings('docs-permissions')"
-      >
-        {{ $t('labels.baseNav.docsPermissions') }}
-        <template #extraRight>
-          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
-        </template>
-      </NcSidebarMenuItem>
-    </template>
-
-    <template v-if="showConnectedDataGroup">
-      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupConnectedData') }}</div>
-      <NcSidebarMenuItem
-        v-if="canSeeDataSources"
-        v-e="['c:settings:base:add-data-source']"
-        icon="ncDatabase"
-        data-testid="base-data-source"
-        :active="activeBaseSettingsTab === 'data-source'"
-        @click="navigateToBaseSettings('data-source')"
-      >
-        {{ $t('labels.baseNav.databases') }}
-        <template #extraRight>
-          <NcTooltip :title="$t('labels.baseNav.databasesInfo')" placement="right" :arrow="false">
-            <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
-          </NcTooltip>
-        </template>
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeSyncs"
-        v-e="['c:settings:base:syncs']"
-        icon="ncZap"
-        data-testid="base-syncs"
-        :active="activeBaseSettingsTab === 'syncs'"
-        @click="navigateToBaseSettings('syncs')"
-      >
-        {{ $t('labels.baseNav.sync') }}
-        <template #extraRight>
-          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_SYNC" remove-click />
-          <NcTooltip :title="$t('labels.baseNav.syncInfo')" placement="right" :arrow="false">
-            <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
-          </NcTooltip>
-        </template>
-      </NcSidebarMenuItem>
-    </template>
-
-    <template v-if="showAutomationGroup">
-      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupAutomation') }}</div>
-      <NcSidebarMenuItem
-        v-if="canSeeAutomations"
-        v-e="['c:settings:base:workflows']"
-        icon="ncAutomation"
-        data-testid="base-workflows"
-        :active="activeBaseSettingsTab === 'workflows'"
-        @click="navigateToBaseSettings('workflows')"
-      >
-        {{ $t('labels.baseNav.automations') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="isIntegrationsMenuVisible"
-        v-e="['c:settings:base:integrations']"
-        icon="integration"
-        data-testid="base-integrations"
-        :active="activeBaseSettingsTab === 'integrations'"
-        @click="navigateToBaseSettings('integrations')"
-      >
-        {{ $t('labels.baseNav.integrations') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeMcp"
-        v-e="['c:settings:base:mcp']"
-        icon="mcp"
-        data-testid="base-mcp"
-        :active="activeBaseSettingsTab === 'mcp'"
-        @click="navigateToBaseSettings('mcp')"
-      >
-        {{ $t('labels.baseNav.mcpServer') }}
-      </NcSidebarMenuItem>
-    </template>
-
-    <template v-if="showAdminGroup">
-      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupAdmin') }}</div>
-      <NcSidebarMenuItem
-        v-if="canSeeAuditLog"
-        v-e="['c:settings:base:audits']"
-        icon="audit"
-        data-testid="base-audit"
-        :active="activeBaseSettingsTab === 'audits'"
-        @click="navigateToBaseSettings('audits')"
-      >
-        {{ $t('labels.baseNav.auditLog') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeTrashRetention"
-        v-e="['c:settings:base:record-trash']"
-        icon="ncTrash2"
-        data-testid="base-record-trash"
-        :active="activeBaseSettingsTab === 'record-trash'"
-        @click="navigateToBaseSettings('record-trash')"
-      >
-        {{ $t('labels.baseNav.trashRetention') }}
-        <template #extraRight>
-          <LazyPaymentUpgradeBadge
-            :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
-            :feature-enabled-callback="() => !blockTrashSettings"
+        <template #prefix>
+          <GeneralIcon
+            icon="search"
+            class="nc-search-icon h-3.5 w-3.5 mr-1"
+            :class="{ 'text-nc-content-brand': searchQuery?.length }"
           />
         </template>
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeSnapshots"
-        v-e="['c:settings:base:snapshots']"
-        icon="camera"
-        data-testid="base-snapshots"
-        :active="activeBaseSettingsTab === 'snapshots'"
-        @click="navigateToBaseSettings('snapshots')"
-      >
-        {{ $t('labels.baseNav.snapshots') }}
-        <template #extraRight>
-          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
-        </template>
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeAiSkills"
-        v-e="['c:settings:base:skills']"
-        icon="ncScript"
-        data-testid="base-skills"
-        :active="activeBaseSettingsTab === 'skills'"
-        @click="navigateToBaseSettings('skills')"
-      >
-        {{ $t('labels.baseNav.aiSkills') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeVariables"
-        v-e="['c:settings:base:variables']"
-        icon="ncSettings"
-        data-testid="base-variables"
-        :active="activeBaseSettingsTab === 'variables'"
-        @click="navigateToBaseSettings('variables')"
-      >
-        {{ $t('labels.baseNav.variables') }}
-        <template #extraRight>
-          <LazyPaymentUpgradeBadge
-            :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
-            :feature-enabled-callback="() => !blockBaseVariables"
-          />
-        </template>
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="canSeeGeneral"
-        v-e="['c:settings:base:more']"
-        icon="ncMoreHorizontal"
-        data-testid="base-settings"
-        :active="activeBaseSettingsTab === 'base-settings'"
-        @click="navigateToBaseSettings('base-settings')"
-      >
-        {{ $t('labels.baseNav.general') }}
-      </NcSidebarMenuItem>
-    </template>
+      </a-input>
+    </div>
 
-    <!-- App settings — one app per base, so its settings are a second section
-         here rather than a separate surface inside the app console. -->
-    <template v-if="isAppSettingsVisible">
-      <div class="nc-settings-section-header nc-settings-section-header-app">
-        {{ $t('labels.appSettings') }}
+    <template v-for="group in filteredGroups" :key="group.key">
+      <div
+        class="nc-settings-section-header"
+        :class="{
+          'nc-settings-section-header-group': group.key !== filteredGroups[0].key && !group.divider,
+          'nc-settings-section-header-app': group.divider,
+        }"
+      >
+        {{ group.label }}
       </div>
       <NcSidebarMenuItem
-        v-for="item in appSettingsItems"
+        v-for="item in group.items"
         :key="item.tab"
-        v-e="[`c:settings:${item.tab}`]"
+        v-e="[`c:settings:base:${item.ev}`]"
         :icon="item.icon"
         :data-testid="`base-${item.testId}`"
         :active="activeBaseSettingsTab === item.tab"
         @click="navigateToBaseSettings(item.tab)"
       >
-        {{ $t(item.label) }}
+        {{ item.label }}
+        <template v-if="item.badge || item.info" #extraRight>
+          <LazyPaymentUpgradeBadge
+            v-if="item.badge"
+            :feature="item.badge.feature"
+            :remove-click="item.badge.removeClick"
+            :feature-enabled-callback="item.badge.enabled"
+          />
+          <NcTooltip v-if="item.info" :title="item.info" placement="right" :arrow="false">
+            <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
+          </NcTooltip>
+        </template>
       </NcSidebarMenuItem>
     </template>
+
+    <div v-if="!hasResults" class="nc-settings-no-results" data-testid="nc-settings-search-empty">
+      {{ $t('labels.baseNav.searchEmpty', { query: searchQuery }) }}
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.nc-settings-search {
+  @apply px-3 pt-2 pb-1;
+}
+
+.nc-settings-no-results {
+  @apply px-3 py-6 text-center text-nc-content-gray-muted text-bodySm;
+}
+
 .nc-settings-section-header {
   @apply px-3 pt-3 pb-1 font-semibold text-nc-content-gray-muted uppercase tracking-wide;
   font-size: 13px;

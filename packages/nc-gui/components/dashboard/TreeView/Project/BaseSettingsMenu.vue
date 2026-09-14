@@ -210,9 +210,9 @@ const showInviteGroup = computed(() => canSeeMembers.value || canSeeInterfaceMem
 
 const showPermissionsGroup = computed(() => canSeePermissions.value)
 
-const showConnectManageGroup = computed(() => canSeeDataSources.value || isIntegrationsMenuVisible.value || canSeeSyncs.value)
+const showConnectManageGroup = computed(() => canSeeDataSources.value || canSeeSyncs.value)
 
-const showAutomationGroup = computed(() => canSeeAutomations.value || canSeeMcp.value)
+const showAutomationGroup = computed(() => canSeeAutomations.value || isIntegrationsMenuVisible.value || canSeeMcp.value)
 
 const showAdminGroup = computed(
   () =>
@@ -302,16 +302,6 @@ onMounted(() => {
         {{ $t('labels.baseNav.dataSources') }}
       </NcSidebarMenuItem>
       <NcSidebarMenuItem
-        v-if="isIntegrationsMenuVisible"
-        v-e="['c:settings:base:integrations']"
-        icon="integration"
-        data-testid="base-integrations"
-        :active="activeBaseSettingsTab === 'integrations'"
-        @click="navigateToBaseSettings('integrations')"
-      >
-        {{ $t('labels.baseNav.integrations') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
         v-if="canSeeSyncs"
         v-e="['c:settings:base:syncs']"
         icon="ncZap"
@@ -337,6 +327,16 @@ onMounted(() => {
         @click="navigateToBaseSettings('workflows')"
       >
         {{ $t('labels.baseNav.automations') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="isIntegrationsMenuVisible"
+        v-e="['c:settings:base:integrations']"
+        icon="integration"
+        data-testid="base-integrations"
+        :active="activeBaseSettingsTab === 'integrations'"
+        @click="navigateToBaseSettings('integrations')"
+      >
+        {{ $t('labels.baseNav.integrations') }}
       </NcSidebarMenuItem>
       <NcSidebarMenuItem
         v-if="canSeeMcp"

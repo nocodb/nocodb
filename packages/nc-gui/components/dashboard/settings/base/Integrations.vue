@@ -440,9 +440,18 @@ watch(baseId, reload)
                         <div class="integration-icon-wrapper">
                           <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                         </div>
-                        <div class="flex-1">
-                          <div class="name">{{ integrationLabel(integration.title) }}</div>
-                          <div v-if="integration.subtitle" class="subtitle">{{ integrationLabel(integration.subtitle) }}</div>
+                        <div class="flex-1 min-w-0">
+                          <NcTooltip class="name text-sm font-semibold text-nc-content-gray truncate" show-on-truncate-only>
+                            {{ integrationLabel(integration.title) }}
+                          </NcTooltip>
+                          <NcTooltip
+                            v-if="integration.subtitle"
+                            class="subtitle text-xs text-nc-content-gray-subtle2 truncate"
+                            show-on-truncate-only
+                            placement="bottom"
+                          >
+                            {{ integrationLabel(integration.subtitle) }}
+                          </NcTooltip>
                         </div>
                         <NcButton type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
                           <div class="flex items-center gap-2">
@@ -729,14 +738,6 @@ watch(baseId, reload)
           }
         }
 
-        .name {
-          @apply text-base font-bold;
-        }
-
-        .subtitle {
-          @apply text-xs text-nc-content-gray-muted;
-        }
-
         .action-btn {
           @apply hidden;
         }
@@ -749,10 +750,6 @@ watch(baseId, reload)
             .action-btn {
               @apply inline-block;
             }
-          }
-
-          .name {
-            @apply text-nc-content-gray;
           }
         }
       }

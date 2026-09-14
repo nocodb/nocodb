@@ -1,5 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isLinksOrLTAR, isLinkV2, NcSDKErrorV2, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isLinkV2,
+  NcSDKError,
+  NcSDKErrorV2,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
@@ -323,7 +329,12 @@ export class DatasService {
             listArgs,
           );
         } catch (e) {
-          if (e instanceof NcBaseError || e instanceof NcSDKErrorV2) throw e;
+          if (
+            e instanceof NcBaseError ||
+            e instanceof NcSDKError ||
+            e instanceof NcSDKErrorV2
+          )
+            throw e;
           this.logger.error(`Error fetching data: ${e?.message}`, e?.stack);
           NcError.get(context).internalServerError(
             'Please check server log for more details',

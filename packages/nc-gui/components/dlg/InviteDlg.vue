@@ -63,10 +63,13 @@ const userRoles = computed(() => {
   return props.type === 'base' ? baseRoles?.value : workspaceRoles?.value
 })
 
+// Editor, not No Access: inviting someone is an act of granting access, so the
+// default should be the role that lets them do the thing they were invited for.
+// Both enums (ProjectRoles / WorkspaceUserRoles) define EDITOR.
 const inviteData = reactive({
   email: '',
   selectedTeamIds: [],
-  roles: orderedRoles.value.NO_ACCESS,
+  roles: orderedRoles.value.EDITOR,
 })
 
 const warningMsg = ref<string>()
@@ -191,7 +194,7 @@ watch(dialogShow, async (newVal) => {
   } else {
     emailBadges.value = []
     inviteData.email = ''
-    inviteData.roles = orderedRoles.value.NO_ACCESS
+    inviteData.roles = orderedRoles.value.EDITOR
     singleEmailValue.value = ''
     inviteData.selectedTeamIds = []
     warningMsg.value = ''

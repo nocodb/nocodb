@@ -263,7 +263,7 @@ const navGroups = computed(() => {
     },
     {
       key: 'connectivity',
-      label: t('labels.baseNav.groupConnectivity'),
+      label: t('labels.baseNav.groupConnect'),
       items: [
         {
           tab: 'integrations',

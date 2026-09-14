@@ -91,9 +91,10 @@ tours enabled? → nothing running? → not already seen?
   → trigger.when() passes? → eligible?
 ```
 
-**4. `explain()` — is this relevant to this viewer?** Deployment mode, roles,
-beta flag, route, `audience.when`. It holds **no gating rules of its own** — it
-only calls gates the app already enforces.
+**4. `explain()` — is this relevant to this viewer?** The `product_tours_menu`
+flag first (off ⇒ nothing is eligible), then deployment mode, roles, the tour's
+own beta flag, route, `audience.when`. It holds **no gating rules of its own** —
+it only calls gates the app already enforces.
 
 **5. `start()`.** Filters steps by `when`, navigates to step 0's `goto`, warns
 about unresolved anchors, lazily imports driver.js, and drives.
@@ -450,6 +451,10 @@ This is the whole measurement story — there is no server-side tour analytics t
 
 ## Debugging
 
+Turn on the `product_tours_menu` beta flag first (engineering mode → beta features).
+With it off nothing is eligible, so the recipes below list and fire nothing —
+`__ncStartTour(id)` is the one thing that still works.
+
 ```js
 // Both keys are { [userId]: value }. The signed-in id isn't in localStorage —
 // read it off the JWT the app already stores:
@@ -467,8 +472,9 @@ localStorage.removeItem('nc-tours-auto-fired')
 - Avatar menu → **Product Tours** lists eligible tours and replays them (`reset()`
   clears both seen-state and the auto-fired record).
 - Tours are hard-disabled under `NODE_ENV=test` so overlays can't intercept
-  Playwright clicks, and can be switched off with `NC_DISABLE_TOURS=true`. They
-  stay **enabled** in development so you can author them.
+  Playwright clicks, and can be switched off with `NC_DISABLE_TOURS=true`. In
+  development they follow the `product_tours_menu` flag like everywhere else —
+  off until you enable it.
 
 ---
 
@@ -478,10 +484,11 @@ localStorage.removeItem('nc-tours-auto-fired')
   codebase, but not that it renders on the page the step runs on, nor that a CE component's
   `ee/` override carries it. A job that drives every tour and asserts its anchors resolve would
   close that gap — both anchor bugs found so far would have been caught by it.
-- **The launcher is behind a flag.** The Product Tours menu is gated on the
-  `product_tours_menu` beta flag (`isEngineering`, `isEE`), off by default. Consequence: with
-  it off, a user who dismisses a tour has **no way to get it back**. Fine while this is
-  internal; needs another re-entry point before tours ship broadly.
+- **The whole engine is behind a flag.** `product_tours_menu` (`isEngineering`, off by
+  default) gates the launcher, every trigger and every beacon. Consequence: with it off
+  nothing fires at all, and with it on a user who dismisses a tour has **no way to get it
+  back**. Fine while this is internal; needs another re-entry point before tours ship
+  broadly.
 - **No announcement inbox.** `/nc/feed` is unmaintained and must not be built on, so a tour is
   only discoverable if the user is on the page holding its beacon. There is no "I was away when
   that shipped" surface.

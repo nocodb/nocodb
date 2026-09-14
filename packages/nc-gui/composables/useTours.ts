@@ -153,6 +153,9 @@ export const useTours = createSharedComposable(() => {
 
   const isActive = computed(() => !!activeTour.value)
 
+  // Global gate — with the flag off nothing new fires; a tour already running isn't re-checked.
+  const isProductToursEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PRODUCT_TOURS_MENU))
+
   const state = computed<TourStateMap>(() => ({
     ...((parseProp(user.value?.meta)?.[USER_META_KEY] as TourStateMap) ?? {}),
     ...localState.value,
@@ -198,6 +201,10 @@ export const useTours = createSharedComposable(() => {
    * it only composes gates the app already enforces, so nothing can drift.
    */
   function explain(tour: NcTour): TourEligibility {
+    if (!isProductToursEnabled.value) {
+      return { eligible: false, reason: 'product tours feature flag is off' }
+    }
+
     if (appInfo.value?.disableTours) {
       return { eligible: false, reason: 'tours disabled (appInfo.disableTours)' }
     }
@@ -691,31 +698,7 @@ export const useTours = createSharedComposable(() => {
     // out of `availableTours`. Run `__ncTours()` in the console to see every
     // tour with its verdict.
     if (import.meta.dev) {
-      console.log(
-        `[tours] registry loaded ${allTours.length} tour(s):`,
-        allTours.map((t) => t.id),
-      )
-
-      // Log the verdict for every tour whenever the eligible set changes, so a
-      // tour vanishing from the Help menu says why instead of just disappearing.
-      watch(
-        availableTours,
-        (listed) => {
-          console.log(
-            `[tours] eligible here (${route.path}):`,
-            listed.map((t) => t.id),
-          )
-
-          for (const tour of allTours) {
-            const verdict = explain(tour)
-
-            if (!verdict.eligible) console.log(`[tours]   ✕ ${tour.id} — ${verdict.reason}`)
-          }
-        },
-        { immediate: true },
-      )
-      // Start any tour by id, bypassing eligibility — for testing without the
-      // beta-flagged Help menu.
+      // Available with the feature off too — `start('debug')` bypasses eligibility.
       ;(window as any).__ncStartTour = (id: string) => start(id, 'debug')
       // Jump straight to a step, for reproducing one without walking the tour.
       ;(window as any).__ncTourGoTo = (index: number) => driverObj?.moveTo(index)
@@ -729,6 +712,38 @@ export const useTours = createSharedComposable(() => {
             trigger: t.trigger.type,
           })),
         )
+
+      // Verdict on every change to the eligible set, so a tour vanishing from the Help
+      // menu says why. Gated on the flag: a disabled engine doesn't log on navigation.
+      let loggedRegistry = false
+
+      watch(
+        [isProductToursEnabled, availableTours] as const,
+        ([enabled, listed]) => {
+          if (!enabled) return
+
+          if (!loggedRegistry) {
+            loggedRegistry = true
+
+            console.log(
+              `[tours] registry loaded ${allTours.length} tour(s):`,
+              allTours.map((t) => t.id),
+            )
+          }
+
+          console.log(
+            `[tours] eligible here (${route.path}):`,
+            listed.map((t) => t.id),
+          )
+
+          for (const tour of allTours) {
+            const verdict = explain(tour)
+
+            if (!verdict.eligible) console.log(`[tours]   ✕ ${tour.id} — ${verdict.reason}`)
+          }
+        },
+        { immediate: true },
+      )
     }
 
     if (appInfo.value?.disableTours) return
@@ -802,10 +817,11 @@ export const useTours = createSharedComposable(() => {
       })
     }
 
-    // appInfo and user arrive async — an `auto` tour gated on either would
-    // otherwise be evaluated against empty state.
+    // appInfo and user arrive async, and the feature flag can be toggled on after
+    // mount — an `auto` tour gated on any of these would otherwise be evaluated
+    // against empty state, or never re-checked once the flag flips on.
     watch(
-      () => !!user.value?.id && !!appInfo.value,
+      () => isProductToursEnabled.value && !!user.value?.id && !!appInfo.value,
       (ready, wasReady) => {
         if (!ready || wasReady) return
 

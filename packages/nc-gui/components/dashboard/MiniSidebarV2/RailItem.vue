@@ -110,6 +110,13 @@ const isTooltipDisabled = computed(() => {
     @apply h-4 w-4 flex items-center justify-center;
   }
 
+  // ncTable is a filled glyph drawn edge-to-edge in its 16px box, while every
+  // other rail icon is an outline inset by ~2px — at a matching box it reads
+  // oversized, so bring its ink in line with theirs.
+  &[data-panel='data'] .nc-rail-item-icon {
+    @apply h-[13px] w-[13px];
+  }
+
   .nc-rail-item-label {
     @apply select-none text-captionXsBold leading-tight tracking-tight hidden;
   }

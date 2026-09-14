@@ -3247,6 +3247,7 @@
     "onDelete": "On delete",
     "account": "Account",
     "language": "Language",
+    "changeLanguage": "Change Language",
     "primaryColor": "Primary Color",
     "accentColor": "Accent Color",
     "customTheme": "Custom Theme",

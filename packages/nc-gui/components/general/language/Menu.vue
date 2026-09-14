@@ -21,6 +21,13 @@ async function changeLanguage(lang: string) {
 </script>
 
 <template>
+  <!-- The caveat belongs with the list it applies to, not stapled to the menu
+       item that opens it. -->
+  <div class="nc-lang-note">
+    <GeneralIcon icon="ncAutoAwesome" class="w-3.5 h-3.5 flex-none" />
+    {{ $t('labels.community.communityTranslated') }}
+  </div>
+
   <a-menu-item class="group rounded-md !my-0.5">
     <a
       href="https://nocodb.com/docs/product-docs/engineering/translation#how-to-contribute--for-community-members"
@@ -47,3 +54,10 @@ async function changeLanguage(lang: string) {
     </div>
   </a-menu-item>
 </template>
+
+<style lang="scss" scoped>
+.nc-lang-note {
+  @apply flex items-center gap-1.5 px-3 pt-1 pb-2 select-none
+    text-[11px] font-semibold uppercase tracking-wide text-nc-content-gray-muted;
+}
+</style>

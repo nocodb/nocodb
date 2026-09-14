@@ -186,10 +186,7 @@ const openKeyboardShortcutDialog = () => {
         <NcMenuItem inner-class="w-full">
           <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
             <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
-            {{ $t('labels.language') }}
-            <div class="flex items-center text-nc-content-gray-disabled text-xs">
-              {{ $t('labels.community.communityTranslated') }}
-            </div>
+            {{ $t('labels.changeLanguage') }}
             <div class="flex-1" />
             <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
           </div>

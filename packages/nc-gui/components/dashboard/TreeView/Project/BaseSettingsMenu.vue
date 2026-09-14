@@ -453,7 +453,14 @@ onMounted(() => {
         {{ item.label }}
         <template v-if="item.info || item.logos" #extraRight>
           <div v-if="item.logos" class="nc-nav-logos">
-            <GeneralIcon v-for="logo in item.logos" :key="logo" :icon="logo" />
+            <span
+              v-for="(logo, logoIdx) in item.logos"
+              :key="logo"
+              class="nc-nav-logo"
+              :style="{ zIndex: item.logos.length - logoIdx }"
+            >
+              <GeneralIcon :icon="logo" />
+            </span>
           </div>
           <NcTooltip v-if="item.info" :title="item.info" placement="right" :arrow="false" class="nc-nav-info">
             <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
@@ -472,10 +479,44 @@ onMounted(() => {
 // The client marks sit at the row's right edge as an invitation to connect, so
 // they stay visible at rest and come up to full strength on hover.
 .nc-nav-logos {
-  @apply flex items-center gap-1 flex-none opacity-75 transition-opacity duration-150;
+  @apply flex items-center flex-none opacity-80 transition-opacity duration-150;
+}
+
+// Each mark gets its own chip so the overlap reads as a stack — these logos are
+// not circular, so overlapping the bare glyphs would crop them into each other.
+//
+// The chip is filled with the row's own surface rather than a fixed colour, so
+// it carves the mark out of the row instead of sitting on it as a light block.
+// That surface changes with the row's state, hence the variable.
+.nc-sidebar-menu-item {
+  --nc-nav-chip-surface: var(--color-sidebar-bg);
+
+  &:hover {
+    --nc-nav-chip-surface: var(--color-gray-200);
+  }
+
+  &.active {
+    --nc-nav-chip-surface: var(--color-brand-50);
+  }
+}
+
+[theme='dark'] .nc-sidebar-menu-item.active {
+  --nc-nav-chip-surface: var(--color-gray-200);
+}
+
+// Overlap is held at the chip's own padding (22px chip, 13px mark = 4.5px each
+// side), so neighbours tuck behind without cropping the mark itself.
+.nc-nav-logo {
+  @apply relative flex items-center justify-center h-[22px] w-[22px] rounded-full -ml-1;
+  background: var(--nc-nav-chip-surface);
+  box-shadow: 0 0 0 1px var(--nc-nav-chip-surface);
+
+  &:first-child {
+    @apply ml-0;
+  }
 
   :deep(svg) {
-    @apply h-3.5 w-3.5;
+    @apply h-[13px] w-[13px];
   }
 }
 

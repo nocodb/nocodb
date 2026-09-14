@@ -5021,7 +5021,19 @@
       "snapshots": "Snapshots",
       "general": "General",
       "searchPlaceholder": "Search settings",
-      "searchEmpty": "No settings match “{query}”"
+      "searchEmpty": "No settings match “{query}”",
+      "upgradeAvailableOn": "Available on the {plan} plan.",
+      "upgradeCta": "Upgrade Now",
+      "upgradeTitlePermissionsTablesFields": "Permissions for Tables & Fields",
+      "upgradeTitlePermissionsDocs": "Permissions for Docs",
+      "upgradeTitleSync": "Sync",
+      "upgradeTitleTrashRetention": "Trash Retention",
+      "upgradeTitleVariables": "Variables",
+      "upgradeDescPermissionsTablesFields": "Restrict who can view or edit each table and field.",
+      "upgradeDescPermissionsDocs": "Restrict who can view or edit each doc.",
+      "upgradeDescSync": "Pull data from external apps on a schedule.",
+      "upgradeDescTrashRetention": "Choose how long deleted records are kept.",
+      "upgradeDescVariables": "Define reusable values scoped to this base."
     }
   },
   "activity": {

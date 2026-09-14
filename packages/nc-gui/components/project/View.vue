@@ -574,7 +574,8 @@ watch(
           <PaymentUpgradeFeatureCard
             v-if="blockTableAndFieldPermissions"
             :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
-            :title="$t('labels.baseNav.dataPermissions')"
+            :title="$t('labels.baseNav.upgradeTitlePermissionsTablesFields')"
+            :detail="$t('labels.baseNav.upgradeDescPermissionsTablesFields')"
             icon="ncLock"
           />
           <DashboardSettingsPermissions v-else v-model:state="baseSettingsState" :base-id="base.id" />
@@ -594,7 +595,8 @@ watch(
           <PaymentUpgradeFeatureCard
             v-if="blockDocumentPermissions"
             :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
-            :title="$t('labels.baseNav.docsPermissions')"
+            :title="$t('labels.baseNav.upgradeTitlePermissionsDocs')"
+            :detail="$t('labels.baseNav.upgradeDescPermissionsDocs')"
             icon="ncFileText"
           />
           <DashboardSettingsDocsPermissions v-else v-model:state="baseSettingsState" :base-id="base.id" />
@@ -642,7 +644,8 @@ watch(
           <PaymentUpgradeFeatureCard
             v-if="blockSync"
             :feature="PlanFeatureTypes.FEATURE_SYNC"
-            :title="$t('labels.baseNav.sync')"
+            :title="$t('labels.baseNav.upgradeTitleSync')"
+            :detail="$t('labels.baseNav.upgradeDescSync')"
             icon="ncZap"
           />
           <ProjectSync v-else :base-id="base.id" class="max-h-full" />
@@ -678,7 +681,8 @@ watch(
           <PaymentUpgradeFeatureCard
             v-if="blockBaseVariables"
             :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
-            :title="$t('labels.baseNav.variables')"
+            :title="$t('labels.baseNav.upgradeTitleVariables')"
+            :detail="$t('labels.baseNav.upgradeDescVariables')"
             icon="ncSettings"
           />
           <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
@@ -706,7 +710,8 @@ watch(
           <PaymentUpgradeFeatureCard
             v-if="blockTrashSettings"
             :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
-            :title="$t('labels.baseNav.trashRetention')"
+            :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
+            :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
             icon="ncTrash2"
           />
           <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">

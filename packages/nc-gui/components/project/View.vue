@@ -667,7 +667,7 @@ watch(
             :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
             :title="$t('labels.baseNav.upgradeTitleVariables')"
             :detail="$t('labels.baseNav.upgradeDescVariables')"
-            icon="ncSettings"
+            icon="ncCode"
           />
           <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseVariables />

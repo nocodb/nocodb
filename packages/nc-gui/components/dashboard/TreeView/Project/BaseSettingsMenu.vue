@@ -337,7 +337,7 @@ const navGroups = computed(() => {
         {
           tab: 'variables',
           ev: 'variables',
-          icon: 'ncSettings',
+          icon: 'ncCode',
           testId: 'base-variables',
           label: t('labels.baseNav.variables'),
           keywords: 'variable environment secret value master inherited',

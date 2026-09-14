@@ -15,7 +15,10 @@ import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
-import { normalizeLocaleNumericString } from '~/lib/currencyHelpers';
+import {
+  getCurrencyDecimalSymbol,
+  normalizeLocaleNumericString,
+} from '~/lib/currencyHelpers';
 import { getSeparatorChars, resolveColumnSeparator } from './separator';
 import {
   applyNumberAbbreviation,
@@ -297,10 +300,14 @@ export const serializeCurrencyValue = (
     (value) => {
       const columnMeta = parseProp(params.col.meta);
 
-      // Keeps '-' for the sign pass in serializeDecimalValue.
+      // Keeps '-' for the sign pass in serializeDecimalValue. The separator has
+      // to come from the currency formatter, which is what rendered the cell.
       return normalizeLocaleNumericString(
         value,
-        columnMeta?.currency_locale || 'en-US'
+        getCurrencyDecimalSymbol(
+          columnMeta?.currency_code,
+          columnMeta?.currency_locale
+        )
       );
     },
     params

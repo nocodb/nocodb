@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes } from 'nocodb-sdk'
-
 const router = useRouter()
 const route = router.currentRoute
 
@@ -22,41 +20,11 @@ const { isUIAllowed, environmentRestrictionReason, baseRoles, loadRoles } = useR
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const {
-  isWsAuditEnabled,
-  showUpgradeToUseTableAndFieldPermissions,
-  showUpgradeToUseDocumentPermissions,
-  showUpgradeToUseSync,
-  showUpgradeToUseSnapshots,
-  showUpgradeToUseTrashSettings,
-  showUpgradeToUseBaseVariables,
-  blockTrashSettings,
-  blockBaseVariables,
-  isEEFeatureBlocked,
-  showEEFeatures,
-  hideInterfaces,
-  blockWorkflows,
-} = useEeConfig()
+const { isWsAuditEnabled, isEEFeatureBlocked, showEEFeatures, hideInterfaces, blockWorkflows } = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
-  if (
-    page === 'permissions' &&
-    showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'base-settings-table-field-permissions' })
-  )
-    return
-  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions({ triggerSource: 'base-settings-doc-permissions' }))
-    return
-  if (page === 'syncs' && showUpgradeToUseSync({ triggerSource: 'base-settings-sync' })) return
   if (page === 'snapshots' && isEEFeatureBlocked.value) {
     showUpgradeToUseSnapshots({ triggerSource: 'base-settings-snapshots' })
-    return
-  }
-  if (page === 'record-trash' && blockTrashSettings.value) {
-    showUpgradeToUseTrashSettings({ triggerSource: 'base-settings-trash' })
-    return
-  }
-  if (page === 'variables' && blockBaseVariables.value) {
-    showUpgradeToUseBaseVariables({ triggerSource: 'base-settings-base-variables' })
     return
   }
 
@@ -226,7 +194,6 @@ const navGroups = computed(() => {
       label: string
       keywords?: string
       info?: string
-      badge?: { feature?: PlanFeatureTypes; removeClick?: boolean; enabled?: () => boolean }
     }[]
   }[] = [
     {
@@ -264,7 +231,6 @@ const navGroups = computed(() => {
           testId: 'base-permissions',
           label: t('labels.baseNav.dataPermissions'),
           keywords: 'table field column visibility restrict lock',
-          badge: { feature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, removeClick: true },
           visible: canSeePermissions.value,
         },
         {
@@ -274,7 +240,6 @@ const navGroups = computed(() => {
           testId: 'base-docs-permissions',
           label: t('labels.baseNav.docsPermissions'),
           keywords: 'document docs restrict lock',
-          badge: { feature: PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, removeClick: true },
           visible: canSeePermissions.value,
         },
       ].filter((i) => i.visible),
@@ -301,7 +266,6 @@ const navGroups = computed(() => {
           label: t('labels.baseNav.sync'),
           keywords: 'sync import pull schedule one-way external app',
           info: t('labels.baseNav.syncInfo'),
-          badge: { feature: PlanFeatureTypes.FEATURE_SYNC, removeClick: true },
           visible: canSeeSyncs.value,
         },
       ].filter((i) => i.visible),
@@ -359,7 +323,6 @@ const navGroups = computed(() => {
           testId: 'base-record-trash',
           label: t('labels.baseNav.trashRetention'),
           keywords: 'trash deleted records retention days recover restore',
-          badge: { feature: PlanFeatureTypes.FEATURE_TRASH_SETTINGS, enabled: () => !blockTrashSettings.value },
           visible: canSeeTrashRetention.value,
         },
         {
@@ -369,7 +332,6 @@ const navGroups = computed(() => {
           testId: 'base-snapshots',
           label: t('labels.baseNav.snapshots'),
           keywords: 'snapshot backup restore point in time',
-          badge: { enabled: () => !isEEFeatureBlocked.value },
           visible: canSeeSnapshots.value,
         },
         {
@@ -388,7 +350,6 @@ const navGroups = computed(() => {
           testId: 'base-variables',
           label: t('labels.baseNav.variables'),
           keywords: 'variable environment secret value master inherited',
-          badge: { feature: PlanFeatureTypes.FEATURE_BASE_VARIABLES, enabled: () => !blockBaseVariables.value },
           visible: canSeeVariables.value,
         },
         {
@@ -486,14 +447,8 @@ onMounted(() => {
         @click="navigateToBaseSettings(item.tab)"
       >
         {{ item.label }}
-        <template v-if="item.badge || item.info" #extraRight>
-          <LazyPaymentUpgradeBadge
-            v-if="item.badge"
-            :feature="item.badge.feature"
-            :remove-click="item.badge.removeClick"
-            :feature-enabled-callback="item.badge.enabled"
-          />
-          <NcTooltip v-if="item.info" :title="item.info" placement="right" :arrow="false">
+        <template v-if="item.info" #extraRight>
+          <NcTooltip :title="item.info" placement="right" :arrow="false">
             <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
           </NcTooltip>
         </template>

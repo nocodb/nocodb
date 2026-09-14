@@ -30,9 +30,10 @@ const { $e, $api } = useNuxtApp()
 
 const {
   blockTableAndFieldPermissions,
-  showUpgradeToUseTableAndFieldPermissions,
+  blockDocumentPermissions,
+  blockTrashSettings,
+  blockBaseVariables,
   blockSync,
-  showUpgradeToUseSync,
   isWsAuditEnabled,
   isEEFeatureBlocked,
   showEEFeatures,
@@ -167,18 +168,6 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (
-      value === 'permissions' &&
-      showEEFeatures.value &&
-      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'project-table-field-permissions' })
-    ) {
-      return
-    }
-
-    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync({ triggerSource: 'project-sync' })) {
-      return
-    }
-
     if (value === 'audits' && !isAuditsTabVisible.value) {
       return
     }
@@ -218,7 +207,7 @@ watch(
     }
 
     if (newVal && newVal !== oldVal) {
-      if (isEeUI && newVal === 'syncs' && !blockSync.value) {
+      if (isEeUI && newVal === 'syncs') {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
@@ -226,7 +215,7 @@ watch(
         projectPageTab.value = 'integrations'
       } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
-      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
+      } else if (newVal === 'permissions' && isEeUI) {
         projectPageTab.value = 'permissions'
       } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
@@ -582,7 +571,13 @@ watch(
               />
             </div>
           </template>
-          <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
+          <PaymentUpgradeFeatureCard
+            v-if="blockTableAndFieldPermissions"
+            :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+            :title="$t('labels.baseNav.dataPermissions')"
+            icon="ncLock"
+          />
+          <DashboardSettingsPermissions v-else v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
           <template #tab>
@@ -596,7 +591,13 @@ watch(
               />
             </div>
           </template>
-          <DashboardSettingsDocsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
+          <PaymentUpgradeFeatureCard
+            v-if="blockDocumentPermissions"
+            :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
+            :title="$t('labels.baseNav.docsPermissions')"
+            icon="ncFileText"
+          />
+          <DashboardSettingsDocsPermissions v-else v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
           <template #tab>
@@ -638,7 +639,13 @@ watch(
               />
             </div>
           </template>
-          <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />
+          <PaymentUpgradeFeatureCard
+            v-if="blockSync"
+            :feature="PlanFeatureTypes.FEATURE_SYNC"
+            :title="$t('labels.baseNav.sync')"
+            icon="ncZap"
+          />
+          <ProjectSync v-else :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane v-if="isAuditsTabVisible" key="audits" class="w-full">
           <template #tab>
@@ -668,7 +675,13 @@ watch(
               <div>{{ $t('title.baseVariables') }}</div>
             </div>
           </template>
-          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+          <PaymentUpgradeFeatureCard
+            v-if="blockBaseVariables"
+            :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+            :title="$t('labels.baseNav.variables')"
+            icon="ncSettings"
+          />
+          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseVariables />
           </div>
         </a-tab-pane>
@@ -690,7 +703,13 @@ watch(
               <div>{{ $t('trash.settings') }}</div>
             </div>
           </template>
-          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+          <PaymentUpgradeFeatureCard
+            v-if="blockTrashSettings"
+            :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
+            :title="$t('labels.baseNav.trashRetention')"
+            icon="ncTrash2"
+          />
+          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseTrash />
           </div>
         </a-tab-pane>

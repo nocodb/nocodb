@@ -4999,7 +4999,7 @@
     "justify": "Justify",
     "baseNav": {
       "groupInvite": "Invite",
-      "groupData": "Data",
+      "groupData": "Manage Data",
       "groupInterfaces": "Interfaces",
       "groupConnectivity": "Connectivity",
       "groupAdmin": "Admin",
@@ -5007,7 +5007,7 @@
       "interfaceMembers": "Members",
       "dataPermissions": "Tables & Fields",
       "docsPermissions": "Docs",
-      "databases": "Databases",
+      "databases": "Data Sources",
       "databasesInfo": "Connect an external database. Its tables appear in Data through a live connection.",
       "integrations": "Integrations",
       "sync": "Sync",
@@ -5036,7 +5036,7 @@
       "upgradeDescVariables": "Define reusable values scoped to this base.",
       "membersPage": "Base Members",
       "interfaceMembersPage": "Interface Members",
-      "dataPermissionsNav": "Data Permissions"
+      "dataPermissionsNav": "Permissions"
     }
   },
   "activity": {

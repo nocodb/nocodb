@@ -216,12 +216,21 @@ const navGroups = computed(() => {
       label: t('labels.baseNav.groupData'),
       items: [
         {
+          tab: 'permissions',
+          ev: 'permissions',
+          icon: 'ncLock',
+          testId: 'base-permissions',
+          label: t('labels.baseNav.dataPermissionsNav'),
+          keywords: 'permission table field column document docs visibility restrict lock access',
+          visible: canSeePermissions.value,
+        },
+        {
           tab: 'data-source',
           ev: 'add-data-source',
           icon: 'ncDatabase',
           testId: 'base-data-source',
           label: t('labels.baseNav.databases'),
-          keywords: 'data source postgres mysql sqlite snowflake external connection schema',
+          keywords: 'data source database postgres mysql sqlite snowflake external connection schema',
           info: t('labels.baseNav.databasesInfo'),
           visible: canSeeDataSources.value,
         },
@@ -234,15 +243,6 @@ const navGroups = computed(() => {
           keywords: 'sync import pull schedule one-way external app',
           info: t('labels.baseNav.syncInfo'),
           visible: canSeeSyncs.value,
-        },
-        {
-          tab: 'permissions',
-          ev: 'permissions',
-          icon: 'ncLock',
-          testId: 'base-permissions',
-          label: t('labels.baseNav.dataPermissionsNav'),
-          keywords: 'permission table field column document docs visibility restrict lock access',
-          visible: canSeePermissions.value,
         },
       ].filter((i) => i.visible),
     },
@@ -439,7 +439,7 @@ onMounted(() => {
       >
         {{ item.label }}
         <template v-if="item.info" #extraRight>
-          <NcTooltip :title="item.info" placement="right" :arrow="false">
+          <NcTooltip :title="item.info" placement="right" :arrow="false" class="nc-nav-info">
             <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
           </NcTooltip>
         </template>
@@ -453,6 +453,17 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+// Supplementary, so it stays out of the way until the row is hovered. Opacity
+// rather than v-if, so revealing it never shifts the row's layout. :deep is
+// required — NcTooltip's root element carries no scope attribute.
+:deep(.nc-nav-info) {
+  @apply opacity-0 transition-opacity duration-150;
+}
+
+.nc-sidebar-menu-item:hover :deep(.nc-nav-info) {
+  @apply opacity-100;
+}
+
 .nc-settings-search {
   @apply px-3 pt-2 pb-1;
 }

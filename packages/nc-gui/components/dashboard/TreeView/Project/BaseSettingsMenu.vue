@@ -210,7 +210,7 @@ const showInviteGroup = computed(() => canSeeMembers.value || canSeeInterfaceMem
 
 const showPermissionsGroup = computed(() => canSeePermissions.value)
 
-const showConnectManageGroup = computed(() => canSeeDataSources.value || canSeeSyncs.value)
+const showConnectedDataGroup = computed(() => canSeeDataSources.value || canSeeSyncs.value)
 
 const showAutomationGroup = computed(() => canSeeAutomations.value || isIntegrationsMenuVisible.value || canSeeMcp.value)
 
@@ -289,8 +289,8 @@ onMounted(() => {
       </NcSidebarMenuItem>
     </template>
 
-    <template v-if="showConnectManageGroup">
-      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupConnectManage') }}</div>
+    <template v-if="showConnectedDataGroup">
+      <div class="nc-settings-section-header nc-settings-section-header-group">{{ $t('labels.baseNav.groupConnectedData') }}</div>
       <NcSidebarMenuItem
         v-if="canSeeDataSources"
         v-e="['c:settings:base:add-data-source']"
@@ -299,7 +299,12 @@ onMounted(() => {
         :active="activeBaseSettingsTab === 'data-source'"
         @click="navigateToBaseSettings('data-source')"
       >
-        {{ $t('labels.baseNav.dataSources') }}
+        {{ $t('labels.baseNav.databases') }}
+        <template #extraRight>
+          <NcTooltip :title="$t('labels.baseNav.databasesInfo')" placement="right" :arrow="false">
+            <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
+          </NcTooltip>
+        </template>
       </NcSidebarMenuItem>
       <NcSidebarMenuItem
         v-if="canSeeSyncs"
@@ -309,9 +314,12 @@ onMounted(() => {
         :active="activeBaseSettingsTab === 'syncs'"
         @click="navigateToBaseSettings('syncs')"
       >
-        {{ $t('labels.baseNav.syncs') }}
+        {{ $t('labels.baseNav.sync') }}
         <template #extraRight>
           <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_SYNC" remove-click />
+          <NcTooltip :title="$t('labels.baseNav.syncInfo')" placement="right" :arrow="false">
+            <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
+          </NcTooltip>
         </template>
       </NcSidebarMenuItem>
     </template>

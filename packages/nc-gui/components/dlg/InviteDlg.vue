@@ -608,7 +608,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
     </template>
     <div class="flex items-center justify-between gap-3 mt-2">
       <div class="flex w-full gap-4 flex-col">
-        <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
+        <div class="flex flex-col gap-3 w-full">
           <div v-if="!isTeam" class="relative w-full">
             <div
               ref="divRef"
@@ -616,23 +616,28 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 'border-primary/100 shadow-selected': isDivFocused,
                 'p-1': emailBadges?.length > 0,
               }"
-              class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg md:!min-w-96"
+              class="flex items-start content-start flex-wrap border-1 gap-1 w-full min-h-10 max-h-[104px] overflow-y-auto nc-scrollbar-thin rounded-lg"
               tabindex="0"
               @blur="isDivFocused = false"
               @click="focusOnDiv"
             >
-              <span
-                v-for="(email, index) in emailBadges"
-                :key="email"
-                class="border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 whitespace-nowrap"
-              >
-                {{ email }}
-                <component
-                  :is="iconMap.close"
-                  class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
-                  @click="removeEmail(index)"
-                />
-              </span>
+              <TransitionGroup name="nc-invite-chip">
+                <span
+                  v-for="(email, index) in emailBadges"
+                  :key="email"
+                  class="nc-invite-chip border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 max-w-full"
+                >
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>{{ email }}</template>
+                    {{ email }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.close"
+                    class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
+                    @click="removeEmail(index)"
+                  />
+                </span>
+              </TransitionGroup>
               <input
                 id="email"
                 ref="focusRef"
@@ -688,20 +693,21 @@ const onTeamChange = async (_teamIds: RawValueType) => {
             placement="bottomLeft"
           />
 
-          <div class="flex items-center justify-between gap-4">
-            <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
-            <div class="flex items-center">
-              <RolesSelectorV2
-                :on-role-change="onRoleChange"
-                :role="inviteData.roles"
-                :disabled-roles="disabledRoles"
-                :disabled-roles-tooltip="disabledRolesTooltip"
-                :roles="allowedRoles"
-                class="!min-w-[152px] nc-invite-role-selector"
-                size="lg"
-                placement="bottomRight"
-              />
-            </div>
+          <!-- Its own line: side by side, the pill stayed pinned to the top while
+               the email field grew taller beneath it. -->
+          <div class="flex items-center gap-3">
+            <span class="text-bodyDefaultSm text-nc-content-gray-muted">{{ $t('labels.selectRole') }}</span>
+            <RolesSelectorV2
+              :on-role-change="onRoleChange"
+              :role="inviteData.roles"
+              :disabled-roles="disabledRoles"
+              :disabled-roles-tooltip="disabledRolesTooltip"
+              :roles="allowedRoles"
+              :description="false"
+              class="!min-w-[152px] nc-invite-role-selector"
+              size="lg"
+              placement="bottomLeft"
+            />
           </div>
         </div>
         <!-- show warning if validation fails and warningMsg defined -->
@@ -816,6 +822,31 @@ const onTeamChange = async (_teamIds: RawValueType) => {
 </template>
 
 <style lang="scss" scoped>
+// Chips settle in and collapse out rather than snapping, and the leaving chip is
+// taken out of flow so the others close the gap in the same frame.
+.nc-invite-chip-enter-active,
+.nc-invite-chip-leave-active {
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.nc-invite-chip-enter-from {
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+}
+
+.nc-invite-chip-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.nc-invite-chip-leave-active {
+  position: absolute;
+}
+
+.nc-invite-chip-move {
+  transition: transform 150ms ease;
+}
+
 :deep(.nc-invite-role-selector .nc-role-badge) {
   @apply w-full;
 }

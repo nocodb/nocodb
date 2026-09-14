@@ -89,11 +89,14 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
       </div>
 
       <template #overlay="{ onEsc }">
+        <!-- Compact rows are 36, not 48: NcList caps itself at 247px, and at 48 a
+             seven-role list (Owner…App User) overflowed it by a row. -->
         <NcList
           v-model:open="isDropdownOpen"
           :value="role"
           :list="roleSelectorOptions"
-          :item-height="!description ? 48 : 72"
+          :item-height="!description ? 36 : 72"
+          :min-items-for-search="8"
           class="!w-auto max-w-80"
           :class="{
             'min-w-50': !description,
@@ -102,47 +105,50 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           :is-locked="!!newRole"
           variant="default"
           :focus-search-on-open="getResponsiveValue(false, true)"
-          item-class-name="nc-role-select-dropdown !px-3"
+          :item-class-name="`nc-role-select-dropdown !px-3 ${description ? '' : '!py-1'}`"
           :wrapper-class-name="`!h-auto nc-role-selector-dropdown ${!!newRole ? '!cursor-wait' : ''}`"
           @update:value="onChangeRole"
           @escape="onEsc"
         >
           <template #listItem="{ option }">
-            <div class="w-full flex flex-col rounded-md" :class="[`nc-role-select-${option.value}`]">
-              <div class="w-full flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon
-                    :icon="(option.icon as IconMapKey)"
-                    class="flex-none h-4 w-4"
-                    :class="roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover'"
-                  />
-                  <span
-                    class="text-captionDropdownDefault"
-                    :class="[
-                      roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover',
-                      {
-                        '!font-semibold': !description,
-                      },
-                    ]"
-                  >
-                    {{ option.label }}
-                  </span>
+            <NcTooltip :disabled="description || !option.description" placement="right" :arrow="false">
+              <template #title>{{ option.description }}</template>
+              <div class="w-full flex flex-col rounded-md" :class="[`nc-role-select-${option.value}`]">
+                <div class="w-full flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon
+                      :icon="(option.icon as IconMapKey)"
+                      class="flex-none h-4 w-4"
+                      :class="roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover'"
+                    />
+                    <span
+                      class="text-captionDropdownDefault"
+                      :class="[
+                        roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover',
+                        {
+                          '!font-semibold': !description,
+                        },
+                      ]"
+                    >
+                      {{ option.label }}
+                    </span>
+                  </div>
+                  <GeneralLoader v-if="option.value === newRole" size="medium" />
+                  <GeneralIcon v-else-if="!newRole && option.value === role" icon="check" class="text-nc-content-brand h-4 w-4" />
                 </div>
-                <GeneralLoader v-if="option.value === newRole" size="medium" />
-                <GeneralIcon v-else-if="!newRole && option.value === role" icon="check" class="text-nc-content-brand h-4 w-4" />
+                <div
+                  v-if="description"
+                  class="text-bodySm !font-light ml-6"
+                  :class="
+                    option.value === ProjectRoles.INHERIT
+                      ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
+                      : 'text-nc-content-gray-muted'
+                  "
+                >
+                  {{ option.description }}
+                </div>
               </div>
-              <div
-                v-if="description"
-                class="text-bodySm !font-light ml-6"
-                :class="
-                  option.value === ProjectRoles.INHERIT
-                    ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
-                    : 'text-nc-content-gray-muted'
-                "
-              >
-                {{ option.description }}
-              </div>
-            </div>
+            </NcTooltip>
           </template>
         </NcList>
       </template>

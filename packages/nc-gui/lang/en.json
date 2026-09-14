@@ -3528,6 +3528,8 @@
     "clickToOpenInNewTabToEnterFullscreen": "Click to open in new tab to enter fullscreen",
     "selectRole": "Select Role",
     "inviteAs": "Invite as",
+    "evaluationLicense": "Evaluation license",
+    "evaluationLicenseSubtitle": "For staging/test/trial environments only.",
     "copyConfiguration": "Copy configuration",
     "backToHome": "Back to home",
     "editPages": "Edit pages",

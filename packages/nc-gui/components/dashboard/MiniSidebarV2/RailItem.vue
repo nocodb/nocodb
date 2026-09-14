@@ -35,6 +35,9 @@ const slots = useSlots()
 // Labels render beside icons only at ≥1280px (see media query in styles) — the tooltip is redundant then
 const isLabelVisible = useMediaQuery('(min-width: 1280px)')
 
+/** Experiment: rail labels off — icons only, tooltips carry the names. */
+const showRailLabels = false
+
 const tooltipText = computed(() => props.tooltip || props.label)
 
 const currentIcon = computed(() => {
@@ -45,7 +48,7 @@ const currentIcon = computed(() => {
 const isTooltipDisabled = computed(() => {
   if (!tooltipText.value || props.disableTooltip) return true
 
-  return !!(props.label || slots.label) && isLabelVisible.value
+  return showRailLabels && !!(props.label || slots.label) && isLabelVisible.value
 })
 </script>
 
@@ -72,7 +75,7 @@ const isTooltipDisabled = computed(() => {
         </template>
       </span>
 
-      <span v-if="label || $slots.label" class="nc-rail-item-label">
+      <span v-if="showRailLabels && (label || $slots.label)" class="nc-rail-item-label">
         <slot name="label">{{ label }}</slot>
       </span>
     </div>

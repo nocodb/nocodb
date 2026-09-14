@@ -161,7 +161,7 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
             <a-tab-pane key="claude" class="!h-full">
               <template #tab>
                 <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncLogoClaudeAi" class="h-4 w-4 flex-none" />
+                  <GeneralIcon icon="ncLogoClaude" class="h-4 w-4 flex-none" />
                   <span
                     :class="{
                       'text-nc-content-brand font-medium': activeTab === 'claude',

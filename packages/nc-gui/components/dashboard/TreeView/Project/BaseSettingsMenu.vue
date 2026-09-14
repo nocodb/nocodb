@@ -527,11 +527,10 @@ onMounted(() => {
   @apply opacity-100;
 }
 
-// Supplementary, so it stays out of the way until the row is hovered. Opacity
-// rather than v-if, so revealing it never shifts the row's layout. :deep is
-// required — NcTooltip's root element carries no scope attribute.
+// Always visible, but quiet enough to sit beside the brand marks without
+// competing — disabled-grey at 14px, lifting slightly on hover.
 :deep(.nc-nav-info) {
-  @apply opacity-0 transition-opacity duration-150;
+  @apply transition-opacity duration-150 opacity-80;
 }
 
 .nc-sidebar-menu-item:hover :deep(.nc-nav-info) {

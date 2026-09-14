@@ -15,11 +15,13 @@ import {
   type SerializedAiViewType,
   type TableType,
   type TimelineType,
+  type ViewType,
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
 import { PlanTitles, UITypes, ViewLockType, ViewTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
+import { mergeViewRecordCountSettings, normalizeViewRecordCountSettings } from '~/utils/viewRecordCount'
 
 const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
@@ -184,6 +186,8 @@ const form = reactive<Form>({
   description: props.description || '',
   lock_type: ViewLockType.Collaborative,
 })
+
+const recordCountSettings = ref(normalizeViewRecordCountSettings(undefined))
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
 
@@ -356,15 +360,35 @@ async function onSubmit() {
       const data = await viewStore.createView(tableId.value, createPayload)
 
       if (data) {
-        // Apply selected view mode (Personal / Locked). Views are created
-        // as Collaborative by default; a follow-up updateView sets the
-        // lock_type. Backend enforces ACL + ownership rules.
-        if (data.id && selectedLockType && selectedLockType !== ViewLockType.Collaborative) {
+        // View metadata is saved with the existing post-create mode update.
+        // The view-create endpoint does not expose generic view metadata.
+        const updates: Partial<ViewType> = {}
+        if (selectedLockType && selectedLockType !== ViewLockType.Collaborative) updates.lock_type = selectedLockType
+        if (
+          form.type !== ViewTypes.FORM &&
+          (recordCountSettings.value.showCount || recordCountSettings.value.boldWhenNonEmpty || parseProp(data.meta).recordCount)
+        ) {
+          updates.meta = mergeViewRecordCountSettings(data.meta, recordCountSettings.value)
+        }
+        if (data.id && Object.keys(updates).length) {
           try {
-            await updateViewInStore(data.id, { lock_type: selectedLockType })
-            data.lock_type = selectedLockType
+            const scopedView = data as ViewType & { fk_workspace_id?: string; attachment_mode_column_id?: string | null }
+            const updated = await updateViewInStore(
+              data.id,
+              {
+                ...updates,
+                ...(scopedView.attachment_mode_column_id
+                  ? { attachment_mode_column_id: scopedView.attachment_mode_column_id }
+                  : {}),
+              },
+              {
+                workspaceId: scopedView.fk_workspace_id,
+                baseId: data.base_id,
+              },
+            )
+            Object.assign(data, updated)
           } catch (e: any) {
-            console.error('Failed to apply view mode after create', e)
+            console.error('Failed to apply view settings after create', e)
             message.toast(await extractSdkResponseErrorMsg(e))
           }
         }
@@ -1875,6 +1899,13 @@ watch(activeBaseId, () => {
           :placeholder="$t('msg.info.enterViewDescription')"
         />
       </a-form-item>
+
+      <DlgViewRecordCountFields
+        v-if="!aiMode && form.type !== ViewTypes.FORM && isNecessaryColumnsPresent"
+        v-model="recordCountSettings"
+        :disabled="isViewCreating"
+        class="px-5 py-4"
+      />
 
       <div
         class="flex flex-row w-full justify-between gap-x-2 px-5"

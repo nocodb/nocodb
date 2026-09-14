@@ -128,7 +128,7 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "워크플로우를 추가하려면 업그레이드하세요",
     "upgradeToAddMoreScriptsSubtitle": "현재 무료 플랜을 사용 중이시며, 작업 공간당 스크립트는 하나만 허용됩니다. 업그레이드하시면 스크립트가 무제한으로 제공됩니다.",
-    "upgradeToAddMoreWorkflowsSubtitle": "You're currently on the {activePlan} plan, which allows {limit} workflows per base. Upgrade to {plan} for more.",
+    "upgradeToAddMoreWorkflowsSubtitle": "현재 {activePlan} 요금제를 사용 중이며, 베이스당 {limit}개의 워크플로를 사용할 수 있습니다. 더 사용하려면 {plan} 요금제로 업그레이드하세요.",
     "upgradeToAddMoreDashboardsSubtitle": "현재 하나의 대시보드만 허용하는 무료 요금제를 사용하고 있습니다. 작업공간당 무제한 대시보드를 사용하려면 업그레이드하세요.",
     "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",

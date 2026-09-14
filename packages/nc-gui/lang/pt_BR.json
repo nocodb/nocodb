@@ -128,7 +128,7 @@
     "upgradeToAddMoreDocumentPages": "Atualize para adicionar mais páginas de documento",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Atualmente você está no plano gratuito, que permite apenas um script por espaço de trabalho. Faça upgrade para desbloquear scripts ilimitados.",
-    "upgradeToAddMoreWorkflowsSubtitle": "You're currently on the {activePlan} plan, which allows {limit} workflows per base. Upgrade to {plan} for more.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Você está atualmente no plano {activePlan}, que permite {limit} fluxos de trabalho por base. Faça upgrade para {plan} para obter mais.",
     "upgradeToAddMoreDashboardsSubtitle": "Atualmente você está no plano gratuito, que permite apenas um painel por espaço de trabalho. Faça upgrade para desbloquear painéis ilimitados.",
     "upgradeToAddMoreDocumentPagesSubtitle": "O plano {activePlan} permite até as páginas de documentos {limit} por base. Atualize para o plano {plan} para adicionar mais.",
     "upgradeToUseBookmarks": "Atualize para usar os favoritos",

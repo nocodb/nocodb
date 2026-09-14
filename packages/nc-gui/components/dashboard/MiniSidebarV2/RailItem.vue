@@ -62,13 +62,15 @@ const isTooltipDisabled = computed(() => {
       <!-- Active indicator bar -->
       <span v-if="!plainActive" class="nc-rail-item-indicator" />
 
-      <slot v-if="$slots.default" />
+      <span class="nc-rail-item-chip">
+        <slot v-if="$slots.default" />
 
-      <template v-else>
-        <slot name="icon">
-          <GeneralIcon v-if="currentIcon" :icon="(currentIcon as any)" class="nc-rail-item-icon" />
-        </slot>
-      </template>
+        <template v-else>
+          <slot name="icon">
+            <GeneralIcon v-if="currentIcon" :icon="(currentIcon as any)" class="nc-rail-item-icon" />
+          </slot>
+        </template>
+      </span>
 
       <span v-if="label || $slots.label" class="nc-rail-item-label">
         <slot name="label">{{ label }}</slot>
@@ -79,9 +81,17 @@ const isTooltipDisabled = computed(() => {
 
 <style lang="scss" scoped>
 .nc-rail-item {
-  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150 rounded-lg;
+  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150;
   width: 36px;
   height: 36px;
+
+  // The hover/active fill lives on this chip rather than the whole item, so it
+  // hugs the icon instead of boxing in the label beneath it.
+  .nc-rail-item-chip {
+    @apply flex items-center justify-center rounded-lg transition-all duration-150;
+    width: 32px;
+    height: 32px;
+  }
 
   &:not(.active) {
     @apply text-nc-content-gray-muted;
@@ -101,7 +111,7 @@ const isTooltipDisabled = computed(() => {
     @apply select-none text-captionXsBold leading-tight tracking-tight hidden;
   }
 
-  &:hover:not(.active):not(.disabled) {
+  &:hover:not(.active):not(.disabled) .nc-rail-item-chip {
     background: rgba(0, 0, 0, 0.05);
 
     :root[theme='dark'] & {
@@ -112,12 +122,18 @@ const isTooltipDisabled = computed(() => {
   // Normal active state: brand color text + indicator
   &.active:not(.is-dropdown) {
     @apply text-nc-content-brand;
-    background: rgba(0, 0, 0, 0.08);
+
+    .nc-rail-item-chip {
+      background: rgba(0, 0, 0, 0.08);
+    }
 
     // brand-500 on the dark pill is only ~3.5:1 — lift to brand-600 for AA
     :root[theme='dark'] & {
       @apply text-nc-brand-600;
-      background: rgba(255, 255, 255, 0.08);
+
+      .nc-rail-item-chip {
+        background: rgba(255, 255, 255, 0.08);
+      }
     }
 
     .nc-rail-item-indicator {
@@ -126,16 +142,19 @@ const isTooltipDisabled = computed(() => {
   }
 
   // Plain active: no background, no indicator — text color preserved from slot content
-  &.plain-active.active {
+  &.plain-active.active .nc-rail-item-chip {
     background: transparent;
   }
 
   // Dropdown active state: hover bg only, no indicator or text color change
   &.is-dropdown.active {
     @apply text-nc-content-gray-muted;
-    background: rgba(0, 0, 0, 0.05);
 
-    :root[theme='dark'] & {
+    .nc-rail-item-chip {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    :root[theme='dark'] & .nc-rail-item-chip {
       background: rgba(255, 255, 255, 0.05);
     }
   }
@@ -146,9 +165,14 @@ const isTooltipDisabled = computed(() => {
 
   // Expanded layout with labels when sidebar is 64px
   @media (min-width: 1280px) {
-    @apply gap-1.5 pt-2.5 pb-1.5 rounded-[10px];
+    @apply gap-1 pt-1 pb-1.5;
     width: 53px;
     height: auto;
+
+    .nc-rail-item-chip {
+      width: 36px;
+      height: 26px;
+    }
 
     .nc-rail-item-label {
       display: block;

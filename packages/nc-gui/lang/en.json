@@ -5005,7 +5005,7 @@
       "groupAdmin": "Admin",
       "members": "Members",
       "interfaceMembers": "Members",
-      "dataPermissions": "Table & Field",
+      "dataPermissions": "Tables & Fields",
       "docsPermissions": "Docs",
       "databases": "Databases",
       "databasesInfo": "Connect an external database. Its tables appear in Data through a live connection.",

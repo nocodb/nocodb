@@ -203,7 +203,7 @@ const navGroups = computed(() => {
         {
           tab: 'collaborator',
           ev: 'add-user',
-          icon: 'users',
+          icon: 'ncUserPlus',
           testId: 'base-collaborator',
           label: t('labels.baseNav.members'),
           keywords: 'invite people users collaborators teams roles base access',

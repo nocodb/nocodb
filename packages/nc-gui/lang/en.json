@@ -2897,6 +2897,9 @@
       "usersDesc": "Base members, workspace members, and invitations"
     },
     "expiresOn": "Expires on",
+    "expires": "Expires",
+    "expiresInDays": "{count} day left | {count} days left",
+    "expiresToday": "Expires today",
     "noExpiration": "No expiration",
     "expired": "Expired",
     "expiration": "Expiration",

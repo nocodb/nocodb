@@ -614,10 +614,10 @@ const onTeamChange = async (_teamIds: RawValueType) => {
             <div
               ref="divRef"
               :class="{
-                'p-1 items-start': emailBadges?.length > 0,
-                'items-center': !emailBadges?.length,
+                'p-1 items-start content-start': emailBadges?.length > 0,
+                'items-center content-center': !emailBadges?.length,
               }"
-              class="nc-invite-email-box flex content-start flex-wrap border-1 gap-1 w-full min-h-10 max-h-[176px] overflow-y-auto nc-scrollbar-thin rounded-lg"
+              class="nc-invite-email-box flex flex-wrap border-1 gap-1 w-full min-h-10 max-h-[176px] overflow-y-auto nc-scrollbar-thin rounded-lg"
               tabindex="0"
               @blur="isDivFocused = false"
               @click="focusOnDiv"

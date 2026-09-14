@@ -5036,7 +5036,7 @@
       "upgradeDescVariables": "Define reusable values scoped to this base.",
       "membersPage": "Base Members",
       "interfaceMembersPage": "Interface Members",
-      "dataPermissionsNav": "Permissions"
+      "dataPermissionsNav": "Data Permissions"
     }
   },
   "activity": {

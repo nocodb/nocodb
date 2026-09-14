@@ -728,6 +728,8 @@ import NcLogoBitbucket from '~icons/nc-icons-v2/bitbucket.svg'
 import NcLogoBoxLogoColored from '~icons/nc-icons-v2/box-logo-colored.svg'
 import NcLogoBoxLogo from '~icons/nc-icons-v2/box-logo.svg'
 import NcLogoChromeColored from '~icons/nc-icons-v2/chrome-colored.svg'
+import NcLogoClaudeColored from '~icons/nc-icons-v2/claude-logo-colored.svg'
+import NcLogoClaude from '~icons/nc-icons-v2/claude-logo.svg'
 import NcLogoClaudeAiColored from '~icons/nc-icons-v2/claude-ai-colored.svg'
 import NcLogoClaudeAi from '~icons/nc-icons-v2/claude-ai.svg'
 import NcLogoAzureColored from '~icons/nc-icons-v2/azure.svg'
@@ -1836,6 +1838,9 @@ export const iconMap = {
   'ncLogoBoxLogoColored': h(NcLogoBoxLogoColored, { stroke: 'transparent' }),
   'ncLogoBoxLogo': h(NcLogoBoxLogo, { stroke: 'transparent' }),
   'ncLogoChromeColored': h(NcLogoChromeColored, { stroke: 'transparent' }),
+  // Claude's own mark. ncLogoClaudeAi* are the Anthropic "A" letterform.
+  'ncLogoClaude': NcLogoClaude,
+  'ncLogoClaudeColored': NcLogoClaudeColored,
   'ncLogoClaudeAiColored': h(NcLogoClaudeAiColored, { stroke: 'transparent' }),
   'ncLogoClaudeAi': h(NcLogoClaudeAi, { stroke: 'transparent' }),
   'ncLogoAzureColored': h(NcLogoAzureColored, { stroke: 'transparent' }),

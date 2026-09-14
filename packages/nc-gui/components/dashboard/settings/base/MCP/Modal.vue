@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  value: boolean
+  visible: boolean
   token: MCPTokenExtendedType
   showRegenerateButton?: boolean
   showWorkspaceBaseInfo?: boolean
@@ -13,9 +13,9 @@ const props = withDefaults(defineProps<Props>(), {
   isAccountLevel: false,
 })
 
-const emits = defineEmits(['close', 'update:value', 'update:token'])
+const emits = defineEmits(['close', 'update:visible', 'update:token'])
 
-const modalVisible = useVModel(props, 'value')
+const modalVisible = useVModel(props, 'visible')
 
 const { appInfo } = useGlobal()
 
@@ -160,15 +160,18 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
           <NcTabs v-model:active-key="activeTab">
             <a-tab-pane key="claude" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'claude',
-                    'text-nc-content-gray-subtle': activeTab !== 'claude',
-                  }"
-                  class="text-sm"
-                >
-                  Claude
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncLogoClaude" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'claude',
+                      'text-nc-content-gray-subtle': activeTab !== 'claude',
+                    }"
+                    class="text-sm"
+                  >
+                    Claude
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
                 Get started with the NocoDB MCP with Claude Desktop in 3 simple steps
@@ -193,60 +196,28 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
                 <DashboardSettingsBaseMCPCode :key="code" :code="code" />
               </div>
             </a-tab-pane>
-            <a-tab-pane key="cursor" class="!h-full">
+            <a-tab-pane key="codex" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'cursor',
-                    'text-nc-content-gray-subtle': activeTab !== 'cursor',
-                  }"
-                  class="text-sm"
-                >
-                  Cursor
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncLogoOpenAiColored" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'codex',
+                      'text-nc-content-gray-subtle': activeTab !== 'codex',
+                    }"
+                    class="text-sm"
+                  >
+                    Codex
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
-                Get started with the NocoDB MCP with Cursor in 3 simple steps
+                Get started with the NocoDB MCP with Codex CLI in 3 simple steps
 
                 <ol class="list-decimal pl-5">
-                  <li>Open Cursor Settings (press Shift+Cmd+J)</li>
-                  <li>Select the "MCP" tab and click "Add Custom MCP" .</li>
-                  <li>Add the JSON configuration that’s provided after creating a token.</li>
-                </ol>
-
-                <NcButton
-                  v-if="showRegenerateButton"
-                  type="secondary"
-                  class="w-44"
-                  size="small"
-                  :loading="token.loading"
-                  @click="regenerateToken(token)"
-                >
-                  {{ $t('labels.regenerateToken') }}
-                </NcButton>
-                <DashboardSettingsBaseMCPCode :key="code" :code="code" />
-              </div>
-            </a-tab-pane>
-            <a-tab-pane key="windsurf" class="!h-full">
-              <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'windsurf',
-                    'text-nc-content-gray-subtle': activeTab !== 'windsurf',
-                  }"
-                  class="text-sm"
-                >
-                  Windsurf
-                </span>
-              </template>
-              <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
-                Get started with the NocoDB MCP with Windsurf in 4 simple steps
-
-                <ol class="list-decimal pl-5">
-                  <li>Access Windsurf settings and Select Cascade Tab in the left sidebar</li>
-                  <li>Click on Manage MCP.</li>
-                  <li>Now click on View raw config.</li>
-                  <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
+                  <li>Open <code>~/.codex/config.toml</code>, creating it if it doesn’t exist.</li>
+                  <li>Add the TOML configuration that’s provided after creating a token.</li>
+                  <li>Run <code>codex mcp list</code> to confirm the server is connected.</li>
                 </ol>
 
                 <NcButton
@@ -260,20 +231,23 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 
-                <DashboardSettingsBaseMCPCode :code="code" />
+                <DashboardSettingsBaseMCPCode :code="codexCode" lang="ini" />
               </div>
             </a-tab-pane>
             <a-tab-pane key="antigravity" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'antigravity',
-                    'text-nc-content-gray-subtle': activeTab !== 'antigravity',
-                  }"
-                  class="text-sm"
-                >
-                  AntiGravity
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncLogoGeminiAiColored" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'antigravity',
+                      'text-nc-content-gray-subtle': activeTab !== 'antigravity',
+                    }"
+                    class="text-sm"
+                  >
+                    AntiGravity
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
                 Get started with the NocoDB MCP with AntiGravity in 4 simple steps
@@ -299,25 +273,66 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
                 <DashboardSettingsBaseMCPCode :code="code" />
               </div>
             </a-tab-pane>
-            <a-tab-pane key="codex" class="!h-full">
+            <a-tab-pane key="cursor" class="!h-full">
               <template #tab>
-                <span
-                  :class="{
-                    'text-nc-content-brand font-medium': activeTab === 'codex',
-                    'text-nc-content-gray-subtle': activeTab !== 'codex',
-                  }"
-                  class="text-sm"
-                >
-                  Codex
-                </span>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncCode" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'cursor',
+                      'text-nc-content-gray-subtle': activeTab !== 'cursor',
+                    }"
+                    class="text-sm"
+                  >
+                    Cursor
+                  </span>
+                </div>
               </template>
               <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
-                Get started with the NocoDB MCP with Codex CLI in 3 simple steps
+                Get started with the NocoDB MCP with Cursor in 3 simple steps
 
                 <ol class="list-decimal pl-5">
-                  <li>Open <code>~/.codex/config.toml</code>, creating it if it doesn’t exist.</li>
-                  <li>Add the TOML configuration that’s provided after creating a token.</li>
-                  <li>Run <code>codex mcp list</code> to confirm the server is connected.</li>
+                  <li>Open Cursor Settings (press Shift+Cmd+J)</li>
+                  <li>Select the "MCP" tab and click "Add Custom MCP" .</li>
+                  <li>Add the JSON configuration that’s provided after creating a token.</li>
+                </ol>
+
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
+                  {{ $t('labels.regenerateToken') }}
+                </NcButton>
+                <DashboardSettingsBaseMCPCode :key="code" :code="code" />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="windsurf" class="!h-full">
+              <template #tab>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncCode" class="h-4 w-4 flex-none" />
+                  <span
+                    :class="{
+                      'text-nc-content-brand font-medium': activeTab === 'windsurf',
+                      'text-nc-content-gray-subtle': activeTab !== 'windsurf',
+                    }"
+                    class="text-sm"
+                  >
+                    Windsurf
+                  </span>
+                </div>
+              </template>
+              <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
+                Get started with the NocoDB MCP with Windsurf in 4 simple steps
+
+                <ol class="list-decimal pl-5">
+                  <li>Access Windsurf settings and Select Cascade Tab in the left sidebar</li>
+                  <li>Click on Manage MCP.</li>
+                  <li>Now click on View raw config.</li>
+                  <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
                 </ol>
 
                 <NcButton
@@ -331,7 +346,7 @@ http_headers = { "xc-mcp-token" = "${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxx
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 
-                <DashboardSettingsBaseMCPCode :code="codexCode" lang="ini" />
+                <DashboardSettingsBaseMCPCode :code="code" />
               </div>
             </a-tab-pane>
           </NcTabs>

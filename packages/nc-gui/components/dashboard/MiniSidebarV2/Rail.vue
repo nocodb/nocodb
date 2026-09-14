@@ -371,8 +371,6 @@ const handleOpenBookmarkPanel = () => {
 
     <NcDivider class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium" />
 
-    <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
-
     <!-- Bookmarks -->
     <div v-if="showEEFeatures" ref="bookmarksContainerRef" class="relative">
       <DashboardMiniSidebarV2RailItem
@@ -430,7 +428,7 @@ const handleOpenBookmarkPanel = () => {
 
 <style lang="scss" scoped>
 .nc-rail {
-  @apply flex flex-col gap-1.5 items-center h-full w-full;
+  @apply flex flex-col gap-2 items-center h-full w-full;
 }
 
 .nc-rail-logo {

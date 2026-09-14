@@ -59,7 +59,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 <template>
   <div data-testid="nc-settings-subtab-visibility" class="item-card flex flex-col w-full">
     <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-      {{ $t('labels.visibilityAndDataHandling') }}
+      {{ $t('labels.dataDisplay') }}
     </div>
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">

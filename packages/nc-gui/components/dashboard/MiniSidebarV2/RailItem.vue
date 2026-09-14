@@ -32,8 +32,12 @@ const emits = defineEmits<{
 
 const slots = useSlots()
 
-// Labels render beside icons only at ≥1280px (see media query in styles) — the tooltip is redundant then
-const isLabelVisible = useMediaQuery('(min-width: 1280px)')
+/**
+ * Experiment: rail labels off — icons only, tooltips carry the names.
+ * TODO: cleanup — drop this flag and the label path (span, `label` slot,
+ * `.nc-rail-item-label` styles) once the rail design is settled.
+ */
+const showRailLabels = false
 
 const tooltipText = computed(() => props.tooltip || props.label)
 
@@ -45,7 +49,7 @@ const currentIcon = computed(() => {
 const isTooltipDisabled = computed(() => {
   if (!tooltipText.value || props.disableTooltip) return true
 
-  return !!(props.label || slots.label) && isLabelVisible.value
+  return showRailLabels && !!(props.label || slots.label)
 })
 </script>
 
@@ -62,15 +66,17 @@ const isTooltipDisabled = computed(() => {
       <!-- Active indicator bar -->
       <span v-if="!plainActive" class="nc-rail-item-indicator" />
 
-      <slot v-if="$slots.default" />
+      <span class="nc-rail-item-chip">
+        <slot v-if="$slots.default" />
 
-      <template v-else>
-        <slot name="icon">
-          <GeneralIcon v-if="currentIcon" :icon="(currentIcon as any)" class="nc-rail-item-icon" />
-        </slot>
-      </template>
+        <template v-else>
+          <slot name="icon">
+            <GeneralIcon v-if="currentIcon" :icon="(currentIcon as any)" class="nc-rail-item-icon" />
+          </slot>
+        </template>
+      </span>
 
-      <span v-if="label || $slots.label" class="nc-rail-item-label">
+      <span v-if="showRailLabels && (label || $slots.label)" class="nc-rail-item-label">
         <slot name="label">{{ label }}</slot>
       </span>
     </div>
@@ -79,16 +85,26 @@ const isTooltipDisabled = computed(() => {
 
 <style lang="scss" scoped>
 .nc-rail-item {
-  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150 rounded-lg;
-  width: 36px;
-  height: 36px;
+  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150;
+  width: 40px;
+  height: auto;
 
+  // The hover/active fill lives on this chip rather than the whole item, so it
+  // hugs the icon instead of boxing in the label beneath it.
+  .nc-rail-item-chip {
+    @apply flex items-center justify-center rounded-lg transition-all duration-150;
+    width: 36px;
+    height: 26px;
+  }
+
+  // Idle state. Kept on a token rather than an rgba literal so every dark
+  // palette gets its own value instead of one alpha over twelve grounds.
   &:not(.active) {
     @apply text-nc-content-gray-muted;
   }
 
   .nc-rail-item-indicator {
-    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[3px] h-[28px] opacity-0 pointer-events-none rounded-r-sm;
+    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[4px] h-[22px] opacity-0 pointer-events-none rounded-r-[3px];
     @apply bg-nc-content-brand;
     transition: opacity 0.2s;
   }
@@ -97,11 +113,25 @@ const isTooltipDisabled = computed(() => {
     @apply h-4 w-4 flex items-center justify-center;
   }
 
+  // ncTable is a filled glyph drawn edge-to-edge in its 16px box, while every
+  // other rail icon is an outline inset by ~2px — at a matching box it reads
+  // oversized, so bring its ink in line with theirs.
+  &[data-panel='data'] .nc-rail-item-icon {
+    @apply h-[13px] w-[13px];
+  }
+
   .nc-rail-item-label {
     @apply select-none text-captionXsBold leading-tight tracking-tight hidden;
   }
 
-  &:hover:not(.active):not(.disabled) {
+  // One step down from the active label, so the selected item reads as the
+  // heavier of the two without the rest shouting.
+  &:not(.active) .nc-rail-item-label {
+    // font-semibold resolves to 550 here, which is a bigger drop than intended
+    font-weight: 600;
+  }
+
+  &:hover:not(.active):not(.disabled) .nc-rail-item-chip {
     background: rgba(0, 0, 0, 0.05);
 
     :root[theme='dark'] & {
@@ -112,12 +142,18 @@ const isTooltipDisabled = computed(() => {
   // Normal active state: brand color text + indicator
   &.active:not(.is-dropdown) {
     @apply text-nc-content-brand;
-    background: rgba(0, 0, 0, 0.08);
+
+    .nc-rail-item-chip {
+      // The palette's selection token, so the tint tracks whichever dark preset
+      // is applied rather than sitting as a fixed blue on an arbitrary ground.
+      // Pushed toward the brand accent because the raw token is nearly white in
+      // light mode; mixing rather than hardcoding keeps all 12 palettes in step.
+      background: color-mix(in srgb, var(--nc-content-brand) 15%, var(--color-brand-50));
+    }
 
     // brand-500 on the dark pill is only ~3.5:1 — lift to brand-600 for AA
     :root[theme='dark'] & {
       @apply text-nc-brand-600;
-      background: rgba(255, 255, 255, 0.08);
     }
 
     .nc-rail-item-indicator {
@@ -126,16 +162,19 @@ const isTooltipDisabled = computed(() => {
   }
 
   // Plain active: no background, no indicator — text color preserved from slot content
-  &.plain-active.active {
+  &.plain-active.active .nc-rail-item-chip {
     background: transparent;
   }
 
   // Dropdown active state: hover bg only, no indicator or text color change
   &.is-dropdown.active {
     @apply text-nc-content-gray-muted;
-    background: rgba(0, 0, 0, 0.05);
 
-    :root[theme='dark'] & {
+    .nc-rail-item-chip {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    :root[theme='dark'] & .nc-rail-item-chip {
       background: rgba(255, 255, 255, 0.05);
     }
   }
@@ -144,34 +183,27 @@ const isTooltipDisabled = computed(() => {
     @apply opacity-40 cursor-not-allowed;
   }
 
-  // Expanded layout with labels when sidebar is 64px
-  @media (min-width: 1280px) {
-    @apply gap-1.5 pt-2.5 pb-1.5 rounded-[10px];
-    width: 53px;
-    height: auto;
+  // Touch primary input: the 40x26 target clears WCAG 2.5.8 (AA, 24px) but not
+  // 2.5.5 (AAA, 44px) or the Apple/Material minimums, which only matters for
+  // fingers. Grow the target, not the icon. The rail stays one width — 46px
+  // leaves a 45px content box, so 44 fits without a second rail size.
+  @media (pointer: coarse) {
+    width: 44px;
+    height: 44px;
 
-    .nc-rail-item-label {
-      display: block;
+    .nc-rail-item-chip {
+      width: 40px;
+      height: 40px;
     }
 
     .nc-rail-item-indicator {
-      @apply h-[36px];
+      @apply h-[24px];
     }
   }
 }
 </style>
 
 <style lang="scss">
-.nc-rail-item:not(.active) .nc-rail-item-label,
-.nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(0, 0, 0, 0.7);
-}
-
-[theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-label,
-[theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(255, 255, 255, 0.95);
-}
-
 .rtl .nc-rail-item .nc-rail-item-indicator {
   left: auto;
   right: 0;

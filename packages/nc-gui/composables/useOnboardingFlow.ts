@@ -540,7 +540,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
             value: 'Claude',
             icons: [
               {
-                icon: 'claude',
+                icon: 'ncLogoClaude',
               },
             ],
           },

@@ -213,6 +213,10 @@ const isInProgress = computed(() => {
 const detailsIsShown = ref(false)
 const collapseKey = ref('')
 
+onMounted(async () => {
+  await focusModalWrap('nc-modal-nocodb-import')
+})
+
 onUnmounted(() => {
   if (listeningJobId.value) {
     $poller.unsubscribe({ id: listeningJobId.value })

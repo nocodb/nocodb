@@ -63,10 +63,13 @@ const userRoles = computed(() => {
   return props.type === 'base' ? baseRoles?.value : workspaceRoles?.value
 })
 
+// Editor, not No Access: inviting someone is an act of granting access, so the
+// default should be the role that lets them do the thing they were invited for.
+// Both enums (ProjectRoles / WorkspaceUserRoles) define EDITOR.
 const inviteData = reactive({
   email: '',
   selectedTeamIds: [],
-  roles: orderedRoles.value.NO_ACCESS,
+  roles: orderedRoles.value.EDITOR,
 })
 
 const warningMsg = ref<string>()
@@ -191,7 +194,7 @@ watch(dialogShow, async (newVal) => {
   } else {
     emailBadges.value = []
     inviteData.email = ''
-    inviteData.roles = orderedRoles.value.NO_ACCESS
+    inviteData.roles = orderedRoles.value.EDITOR
     singleEmailValue.value = ''
     inviteData.selectedTeamIds = []
     warningMsg.value = ''
@@ -589,7 +592,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
     @keydown.esc="dialogShow = false"
   >
     <template #header>
-      <div class="flex flex-row text-2xl font-bold items-center gap-x-2">
+      <div class="flex flex-row text-xl font-semibold items-center gap-x-2">
         {{
           type === 'organization'
             ? 'Invite Members to Workspaces'
@@ -605,31 +608,37 @@ const onTeamChange = async (_teamIds: RawValueType) => {
     </template>
     <div class="flex items-center justify-between gap-3 mt-2">
       <div class="flex w-full gap-4 flex-col">
-        <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
-          <div v-if="!isTeam" class="relative w-full">
+        <div class="flex flex-col gap-4 w-full">
+          <div v-if="!isTeam" class="relative w-full flex flex-col gap-1.5">
+            <span class="nc-invite-field-label">{{ $t('labels.email') }}</span>
             <div
               ref="divRef"
               :class="{
-                'border-primary/100 shadow-selected': isDivFocused,
-                'p-1': emailBadges?.length > 0,
+                'p-1 items-start content-start': emailBadges?.length > 0,
+                'items-center content-center': !emailBadges?.length,
               }"
-              class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg md:!min-w-96"
+              class="nc-invite-email-box flex flex-wrap border-1 gap-1 w-full min-h-10 max-h-[176px] overflow-y-auto nc-scrollbar-thin rounded-lg"
               tabindex="0"
               @blur="isDivFocused = false"
               @click="focusOnDiv"
             >
-              <span
-                v-for="(email, index) in emailBadges"
-                :key="email"
-                class="border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 whitespace-nowrap"
-              >
-                {{ email }}
-                <component
-                  :is="iconMap.close"
-                  class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
-                  @click="removeEmail(index)"
-                />
-              </span>
+              <TransitionGroup name="nc-invite-chip">
+                <span
+                  v-for="(email, index) in emailBadges"
+                  :key="email"
+                  class="nc-invite-chip border-1 border-nc-border-brand-medium text-nc-content-brand bg-nc-bg-brand rounded-md flex items-center px-1 max-w-full"
+                >
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>{{ email }}</template>
+                    {{ email }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.close"
+                    class="nc-invite-chip-close ml-0.5 hover:cursor-pointer mt-0.5 w-4 h-4 text-nc-content-brand"
+                    @click="removeEmail(index)"
+                  />
+                </span>
+              </TransitionGroup>
               <input
                 id="email"
                 ref="focusRef"
@@ -638,6 +647,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 :disabled="isLoading"
                 :placeholder="$t('activity.enterEmail')"
                 class="flex-1 md:min-w-36 outline-none px-2"
+                :class="{ 'basis-full': emailBadges?.length > 0 }"
                 data-testid="email-input"
                 @blur="isDivFocused = false"
                 @click="hasUserInteracted = true"
@@ -685,20 +695,21 @@ const onTeamChange = async (_teamIds: RawValueType) => {
             placement="bottomLeft"
           />
 
-          <div class="flex items-center justify-between gap-4">
-            <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
-            <div class="flex items-center">
-              <RolesSelectorV2
-                :on-role-change="onRoleChange"
-                :role="inviteData.roles"
-                :disabled-roles="disabledRoles"
-                :disabled-roles-tooltip="disabledRolesTooltip"
-                :roles="allowedRoles"
-                class="!min-w-[152px] nc-invite-role-selector"
-                size="lg"
-                placement="bottomRight"
-              />
-            </div>
+          <!-- Its own block, label above: side by side, the control stayed pinned to
+               the top while the email field grew taller beside it. -->
+          <div class="flex flex-col gap-1.5 w-full">
+            <span class="nc-invite-field-label">{{ $t('labels.inviteAs') }}</span>
+            <RolesSelectorV2
+              :on-role-change="onRoleChange"
+              :role="inviteData.roles"
+              :disabled-roles="disabledRoles"
+              :disabled-roles-tooltip="disabledRolesTooltip"
+              :roles="allowedRoles"
+              trigger-variant="detail"
+              class="nc-invite-role-selector -ml-1.5"
+              size="lg"
+              placement="bottomLeft"
+            />
           </div>
         </div>
         <!-- show warning if validation fails and warningMsg defined -->
@@ -786,9 +797,11 @@ const onTeamChange = async (_teamIds: RawValueType) => {
       class="mt-5"
     />
 
-    <div class="flex mt-8 justify-end">
-      <div class="flex gap-2">
-        <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }}</NcButton>
+    <div class="nc-invite-footer-divider mt-6 -mx-4 md:-mx-6 border-t-1 border-nc-border-gray-medium" />
+
+    <div class="flex mt-4 justify-end">
+      <div class="flex gap-2 items-center">
+        <NcButton type="text" @click="dialogShow = false"> {{ $t('labels.cancel') }}</NcButton>
         <NcButton
           :disabled="isInviteButtonDisabled || emailValidation.isError || isLoading || !!warningMsg"
           :loading="isLoading"
@@ -813,7 +826,59 @@ const onTeamChange = async (_teamIds: RawValueType) => {
 </template>
 
 <style lang="scss" scoped>
+// Chips settle in and collapse out rather than snapping, and the leaving chip is
+// taken out of flow so the others close the gap in the same frame.
+.nc-invite-chip-enter-active,
+.nc-invite-chip-leave-active {
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.nc-invite-chip-enter-from {
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+}
+
+.nc-invite-chip-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.nc-invite-chip-leave-active {
+  position: absolute;
+}
+
+.nc-invite-chip-move {
+  transition: transform 150ms ease;
+}
+
 :deep(.nc-invite-role-selector .nc-role-badge) {
+  @apply w-full;
+}
+
+// Brand tint rather than a literal: --color-brand-50 is a dark-palette token, so
+// all 12 palettes follow it instead of inheriting one hardcoded blue.
+.nc-invite-chip-close {
+  @apply opacity-60 transition-opacity duration-150;
+
+  &:hover {
+    @apply opacity-100;
+  }
+}
+
+.nc-invite-field-label {
+  @apply text-bodyDefaultSm text-nc-content-gray-muted;
+}
+
+// :focus-within rather than a tracked flag — the flag was cleared by the blur
+// that fires when adding a chip re-renders the row, killing the ring mid-typing.
+.nc-invite-email-box:focus-within {
+  @apply border-primary/100 shadow-selected;
+}
+
+// NcListDropdown wraps the trigger in a plain div; without this the detail row
+// collapses to its content width and the hover surface stops short of the label.
+:deep(.nc-invite-role-selector .nc-roles-selector),
+:deep(.nc-invite-role-selector .ant-dropdown-trigger) {
   @apply w-full;
 }
 </style>

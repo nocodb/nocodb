@@ -107,7 +107,9 @@ onMounted(() => {
         <template #prefix>
           <div class="flex items-center gap-1 mr-1">
             <GeneralLoader v-if="isBaseListAllLoading" size="regular" class="h-4 w-4" />
-            <GeneralIcon v-else icon="search" class="h-4 w-4 text-nc-content-gray-muted" />
+            <!-- gray-400, not -muted: the placeholder beside it is #bfbfbf, and at
+                 gray-500 the icon read heavier than the text it labels. -->
+            <GeneralIcon v-else icon="search" class="h-4 w-4 text-nc-content-gray-disabled" />
           </div>
         </template>
         <template #suffix>

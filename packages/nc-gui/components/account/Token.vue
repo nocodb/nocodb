@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
 
+interface Props {
+  /** Embedded in a base's settings. CE has no token scopes, so it is accepted and ignored. */
+  lockedBaseId?: string
+}
+
+withDefaults(defineProps<Props>(), {
+  lockedBaseId: undefined,
+})
+
 const { api } = useApi()
 const { $e } = useNuxtApp()
 const { copy } = useCopy()

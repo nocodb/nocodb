@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanLimitTypes, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -29,16 +29,21 @@ const { productName } = useBranding()
 const { $e, $api } = useNuxtApp()
 
 const {
-  blockTableAndFieldPermissions,
-  showUpgradeToUseTableAndFieldPermissions,
+  blockTrashSettings,
+  blockBaseVariables,
   blockSync,
-  showUpgradeToUseSync,
   isWsAuditEnabled,
   isEEFeatureBlocked,
   showEEFeatures,
   hideInterfaces,
   blockWorkflows,
+  getLimit,
 } = useEeConfig()
+
+// Snapshots is limit-gated rather than feature-gated: a plan that grants none
+// gets the upgrade card in place of the page. A plan that grants some but has
+// them all used is a different case — the page stays, and creating one prompts.
+const blockSnapshotsPage = computed(() => getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0)
 
 const currentBase = computedAsync(async () => {
   let base
@@ -167,18 +172,6 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (
-      value === 'permissions' &&
-      showEEFeatures.value &&
-      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'project-table-field-permissions' })
-    ) {
-      return
-    }
-
-    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync({ triggerSource: 'project-sync' })) {
-      return
-    }
-
     if (value === 'audits' && !isAuditsTabVisible.value) {
       return
     }
@@ -218,7 +211,7 @@ watch(
     }
 
     if (newVal && newVal !== oldVal) {
-      if (isEeUI && newVal === 'syncs' && !blockSync.value) {
+      if (isEeUI && newVal === 'syncs') {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
@@ -226,7 +219,7 @@ watch(
         projectPageTab.value = 'integrations'
       } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
-      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
+      } else if (newVal === 'permissions' && isEeUI) {
         projectPageTab.value = 'permissions'
       } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
@@ -236,6 +229,8 @@ watch(
         projectPageTab.value = 'workflows'
       } else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
+      } else if (newVal === 'api-tokens') {
+        projectPageTab.value = 'api-tokens'
       } else if (newVal === 'variables' && showEEFeatures.value) {
         projectPageTab.value = 'variables'
       } else if (newVal === 'interface-members' && showEEFeatures.value && !hideInterfaces.value) {
@@ -281,21 +276,22 @@ const overviewTabMeta = computed(() => {
 
 const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
-    'collaborator': t('labels.addUserToBase'),
-    'interface-members': t('labels.addUserToInterface'),
-    'permissions': t('labels.dataPermissions'),
-    'docs-permissions': t('labels.docsPermissions'),
-    'mcp': t('title.mcpServer'),
-    'variables': t('title.baseVariables'),
-    'syncs': t('labels.manageSyncs'),
-    'snapshots': t('labels.manageSnapshots'),
-    'record-trash': t('trash.settings'),
-    'skills': t('labels.aiSkills'),
-    'data-source': t('labels.addDataSource'),
-    'integrations': t('labels.baseIntegrations'),
-    'base-settings': t('general.general'),
-    'audits': t('title.audits'),
-    'workflows': t('objects.workflows'),
+    'collaborator': t('labels.baseNav.membersPage'),
+    'interface-members': t('labels.baseNav.interfaceMembersPage'),
+    'permissions': t('labels.baseNav.dataPermissionsNav'),
+    'docs-permissions': t('labels.baseNav.dataPermissionsNav'),
+    'mcp': t('labels.baseNav.mcpServer'),
+    'api-tokens': t('labels.baseNav.apiTokens'),
+    'variables': t('labels.baseNav.variables'),
+    'syncs': t('labels.baseNav.sync'),
+    'snapshots': t('labels.baseNav.snapshots'),
+    'record-trash': t('labels.baseNav.trashRetention'),
+    'skills': t('labels.baseNav.aiSkills'),
+    'data-source': t('labels.baseNav.databases'),
+    'integrations': t('labels.baseNav.integrations'),
+    'base-settings': t('labels.baseNav.general'),
+    'audits': t('labels.baseNav.auditLog'),
+    'workflows': t('labels.baseNav.automations'),
     'overview': overviewTabMeta.value.title,
   }
 
@@ -582,7 +578,7 @@ watch(
               />
             </div>
           </template>
-          <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
+          <DashboardSettingsDataPermissions v-model:state="baseSettingsState" :base-id="base.id" initial-tab="tables" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
           <template #tab>
@@ -596,7 +592,7 @@ watch(
               />
             </div>
           </template>
-          <DashboardSettingsDocsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
+          <DashboardSettingsDataPermissions v-model:state="baseSettingsState" :base-id="base.id" initial-tab="docs" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
           <template #tab>
@@ -638,7 +634,14 @@ watch(
               />
             </div>
           </template>
-          <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />
+          <PaymentUpgradeFeatureCard
+            v-if="blockSync"
+            :feature="PlanFeatureTypes.FEATURE_SYNC"
+            :title="$t('labels.baseNav.upgradeTitleSync')"
+            :detail="$t('labels.baseNav.upgradeDescSync')"
+            icon="ncZap"
+          />
+          <ProjectSync v-else :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane v-if="isAuditsTabVisible" key="audits" class="w-full">
           <template #tab>
@@ -661,6 +664,19 @@ watch(
             <DashboardSettingsBaseMCP />
           </div>
         </a-tab-pane>
+        <a-tab-pane v-if="!isEEFeatureBlocked && isUIAllowed('manageBaseApiTokens') && base.id && !isMobileMode" key="api-tokens">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__api-tokens">
+              <GeneralIcon icon="ncKey" />
+              <div>{{ $t('labels.baseNav.apiTokens') }}</div>
+            </div>
+          </template>
+          <!-- Height-bounded so the surface's own overflow-auto has something to
+               resolve h-full against; padding stays inside AccountToken. -->
+          <div class="h-full max-h-full">
+            <DashboardSettingsBaseApiTokens :base-id="base.id!" />
+          </div>
+        </a-tab-pane>
         <a-tab-pane v-if="showEEFeatures && base.id && !isMobileMode" key="variables">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__variables">
@@ -668,7 +684,14 @@ watch(
               <div>{{ $t('title.baseVariables') }}</div>
             </div>
           </template>
-          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+          <PaymentUpgradeFeatureCard
+            v-if="blockBaseVariables"
+            :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+            :title="$t('labels.baseNav.upgradeTitleVariables')"
+            :detail="$t('labels.baseNav.upgradeDescVariables')"
+            icon="ncCode"
+          />
+          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseVariables />
           </div>
         </a-tab-pane>
@@ -690,7 +713,14 @@ watch(
               <div>{{ $t('trash.settings') }}</div>
             </div>
           </template>
-          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+          <PaymentUpgradeFeatureCard
+            v-if="blockTrashSettings"
+            :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
+            :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
+            :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
+            icon="ncHistory"
+          />
+          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseTrash />
           </div>
         </a-tab-pane>
@@ -700,11 +730,18 @@ watch(
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__snapshots">
-              <GeneralIcon icon="camera" />
+              <GeneralIcon icon="ncLayers" />
               <div>{{ $t('general.snapshots') }}</div>
             </div>
           </template>
-          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+          <PaymentUpgradeFeatureCard
+            v-if="blockSnapshotsPage"
+            :feature="PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE"
+            :title="$t('labels.baseNav.upgradeTitleSnapshots')"
+            :detail="$t('labels.baseNav.upgradeDescSnapshots')"
+            icon="ncLayers"
+          />
+          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseSnapshots />
           </div>
         </a-tab-pane>
@@ -762,7 +799,9 @@ watch(
 }
 
 .hide-tabs {
-  :deep(.ant-tabs-nav) {
+  // Direct child only: :deep() otherwise reaches every nested tab bar too, which
+  // silently hid Data Permissions' own tabs inside the pane.
+  :deep(> .ant-tabs-nav) {
     @apply !hidden;
   }
 

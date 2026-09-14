@@ -397,7 +397,10 @@ const focusInputBox = () => {
     .toBeTruthy()
     .then(() => {
       forcedNextTick(() => {
-        inputRef.value?.focus()
+        // preventScroll: the overlay may still be at its pre-align position,
+        // overflowing the viewport — focusing it would scroll the page there
+        // and back as soon as the trigger re-aligns.
+        inputRef.value?.focus({ preventScroll: true })
       })
     })
 }
@@ -413,7 +416,7 @@ const focusListWrapper = () => {
   if (!vOpen.value || isSearchEnabled.value) return
 
   setTimeout(() => {
-    listRef.value?.focus()
+    listRef.value?.focus({ preventScroll: true })
   }, 100)
 }
 

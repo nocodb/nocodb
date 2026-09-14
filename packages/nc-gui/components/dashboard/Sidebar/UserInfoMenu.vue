@@ -11,11 +11,7 @@ const emits = defineEmits<{
   (e: 'closeMenu'): void
 }>()
 
-const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
-
 const { user, signOut, isMobileMode } = useGlobal()
-
-const { toggleMode } = useMiniSidebarMode()
 
 const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen } = useTheme()
 
@@ -124,13 +120,6 @@ const openKeyboardShortcutDialog = () => {
 
       <NcDivider />
 
-      <!-- Dock Mode -->
-      <NcMenuItem v-if="isMiniSidebar" @click="toggleMode">
-        <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon" />
-        <span class="menu-btn">Dock Mode</span>
-        <NcBadgeBeta />
-      </NcMenuItem>
-
       <!-- Experimental Features -->
       <NcMenuItem @click="openExperimentationMenu">
         <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
@@ -186,10 +175,7 @@ const openKeyboardShortcutDialog = () => {
         <NcMenuItem inner-class="w-full">
           <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
             <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
-            {{ $t('labels.language') }}
-            <div class="flex items-center text-nc-content-gray-disabled text-xs">
-              {{ $t('labels.community.communityTranslated') }}
-            </div>
+            {{ $t('labels.changeLanguage') }}
             <div class="flex-1" />
             <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
           </div>

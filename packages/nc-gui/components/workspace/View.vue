@@ -28,7 +28,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement } = useEeConfig()
 
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
@@ -105,9 +105,6 @@ const tab = computed({
         triggerSource: 'ws-home-audit',
       })
     }
-
-    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-home-teams' }))
-      return
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
@@ -186,7 +183,9 @@ watch(
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
-      ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
+      // blockTeamsManagement deliberately absent: a blocked plan now renders the
+      // upgrade card on the teams tab rather than being bounced to collaborators
+      ((!isEeUI || !hasTeamsEditPermission.value) && newTab === 'teams')
     ) {
       tab.value = 'collaborators'
     }
@@ -299,7 +298,15 @@ if (!props.isNewWsPage) {
             </div>
           </template>
 
-          <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
+          <PaymentUpgradeFeatureCard
+            v-if="blockTeamsManagement"
+            :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+            :title="$t('labels.baseNav.upgradeTitleTeams')"
+            :detail="$t('labels.baseNav.upgradeDescTeams')"
+            icon="ncBuilding"
+            trigger-source="ws-teams-page"
+          />
+          <WorkspaceTeams v-else :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">

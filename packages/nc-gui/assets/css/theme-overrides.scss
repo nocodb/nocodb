@@ -404,3 +404,17 @@ body {
     fill: #4fd1c5;
   }
 }
+
+/* Menus and selects open and close instantly — ant's 0.2s slide costs ~200ms each way.
+   Clearing `transitionName` instead sends ant down its `css: false` branch. */
+.ant-dropdown,
+.ant-select-dropdown {
+  &.ant-slide-up-enter,
+  &.ant-slide-up-appear,
+  &.ant-slide-up-leave,
+  &.ant-slide-down-enter,
+  &.ant-slide-down-appear,
+  &.ant-slide-down-leave {
+    animation-duration: 0s !important;
+  }
+}

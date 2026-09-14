@@ -2492,7 +2492,7 @@
     "scheduledSnapshotAutoBadge": "AUTO",
     "snapshotLimitDescription": "You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.",
     "confirmRestore": "Confirm Restore",
-    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "dataDisplay": "Data Display",
     "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
     "migrateToV3": "Migrate to V3",
     "managedApp": "Managed App",

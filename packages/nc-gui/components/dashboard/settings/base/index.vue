@@ -119,7 +119,7 @@ watch(
         >
           <GeneralIcon icon="ncEye" />
           <span>
-            {{ $t('labels.visibilityAndDataHandling') }}
+            {{ $t('labels.dataDisplay') }}
           </span>
         </div>
         <div

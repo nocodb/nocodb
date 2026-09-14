@@ -194,6 +194,8 @@ const navGroups = computed(() => {
       label: string
       keywords?: string
       info?: string
+      /** Client marks shown at the row's right edge — an invitation to connect. */
+      logos?: string[]
     }[]
   }[] = [
     {
@@ -266,6 +268,7 @@ const navGroups = computed(() => {
           testId: 'base-mcp',
           label: t('labels.baseNav.mcpServer'),
           keywords: 'mcp agent ai token endpoint claude',
+          logos: ['ncLogoClaudeColored', 'ncLogoOpenAiColored', 'ncLogoGeminiAiColored'],
           visible: canSeeMcp.value,
         },
         {
@@ -447,8 +450,11 @@ onMounted(() => {
         @click="navigateToBaseSettings(item.tab)"
       >
         {{ item.label }}
-        <template v-if="item.info" #extraRight>
-          <NcTooltip :title="item.info" placement="right" :arrow="false" class="nc-nav-info">
+        <template v-if="item.info || item.logos" #extraRight>
+          <div v-if="item.logos" class="nc-nav-logos">
+            <GeneralIcon v-for="logo in item.logos" :key="logo" :icon="logo" />
+          </div>
+          <NcTooltip v-if="item.info" :title="item.info" placement="right" :arrow="false" class="nc-nav-info">
             <GeneralIcon icon="ncInfo" class="flex-none text-nc-content-gray-muted" />
           </NcTooltip>
         </template>
@@ -462,6 +468,21 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+// The client marks sit at the row's right edge as an invitation to connect, so
+// they stay visible at rest and come up to full strength on hover.
+.nc-nav-logos {
+  @apply flex items-center gap-1 flex-none opacity-75 transition-opacity duration-150;
+
+  :deep(svg) {
+    @apply h-3.5 w-3.5;
+  }
+}
+
+.nc-sidebar-menu-item:hover .nc-nav-logos,
+.nc-sidebar-menu-item.active .nc-nav-logos {
+  @apply opacity-100;
+}
+
 // Supplementary, so it stays out of the way until the row is hovered. Opacity
 // rather than v-if, so revealing it never shifts the row's layout. :deep is
 // required — NcTooltip's root element carries no scope attribute.

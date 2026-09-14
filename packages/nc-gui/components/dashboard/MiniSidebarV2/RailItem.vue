@@ -204,7 +204,7 @@ const isTooltipDisabled = computed(() => {
 // strength, without the rest reading as disabled.
 .nc-rail-item:not(.active) .nc-rail-item-label,
 .nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(0, 0, 0, 0.48);
+  color: rgba(0, 0, 0, 0.56);
 }
 
 [theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-label,

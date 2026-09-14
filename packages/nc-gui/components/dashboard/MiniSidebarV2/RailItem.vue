@@ -32,9 +32,6 @@ const emits = defineEmits<{
 
 const slots = useSlots()
 
-// Labels render beside icons only at ≥1280px (see media query in styles) — the tooltip is redundant then
-const isLabelVisible = useMediaQuery('(min-width: 1280px)')
-
 /** Experiment: rail labels off — icons only, tooltips carry the names. */
 const showRailLabels = false
 
@@ -48,7 +45,7 @@ const currentIcon = computed(() => {
 const isTooltipDisabled = computed(() => {
   if (!tooltipText.value || props.disableTooltip) return true
 
-  return showRailLabels && !!(props.label || slots.label) && isLabelVisible.value
+  return showRailLabels && !!(props.label || slots.label)
 })
 </script>
 
@@ -85,15 +82,15 @@ const isTooltipDisabled = computed(() => {
 <style lang="scss" scoped>
 .nc-rail-item {
   @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: auto;
 
   // The hover/active fill lives on this chip rather than the whole item, so it
   // hugs the icon instead of boxing in the label beneath it.
   .nc-rail-item-chip {
     @apply flex items-center justify-center rounded-lg transition-all duration-150;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 26px;
   }
 
   // Idle state. Kept on a token rather than an rgba literal so every dark
@@ -103,7 +100,7 @@ const isTooltipDisabled = computed(() => {
   }
 
   .nc-rail-item-indicator {
-    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[4px] h-[19px] opacity-0 pointer-events-none rounded-r-[3px];
+    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[4px] h-[22px] opacity-0 pointer-events-none rounded-r-[3px];
     @apply bg-nc-content-brand;
     transition: opacity 0.2s;
   }
@@ -180,25 +177,6 @@ const isTooltipDisabled = computed(() => {
 
   &.disabled {
     @apply opacity-40 cursor-not-allowed;
-  }
-
-  // Expanded layout with labels when sidebar is 64px
-  @media (min-width: 1280px) {
-    width: 40px;
-    height: auto;
-
-    .nc-rail-item-chip {
-      width: 36px;
-      height: 26px;
-    }
-
-    .nc-rail-item-label {
-      display: block;
-    }
-
-    .nc-rail-item-indicator {
-      @apply h-[22px];
-    }
   }
 }
 </style>

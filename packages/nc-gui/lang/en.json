@@ -6467,7 +6467,7 @@
       "tokenNameMaxLength": "Token name should not be more than 255 characters",
       "tokenNameVisibleInHistory": "The token's name will be visible in record revision history.",
       "tokenScopeDescription": "Choose what this token is allowed to do.",
-      "tokenAccessDescription": "Where this token can reach. You can only grant access you have yourself.",
+      "tokenAccessDescription": "Where this token can reach. You can also grant access to certain bases.",
       "tokenCreatedSuccessfully": "Token created successfully",
       "tokenCopyWarning": "Copy your token now. For security, it won't be shown again.",
       "tokenWontBeDisplayedAgain": "This token will not be displayed again after you close this dialog.",

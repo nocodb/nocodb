@@ -665,7 +665,11 @@ watch(
               <div>{{ $t('labels.baseNav.apiTokens') }}</div>
             </div>
           </template>
-          <DashboardSettingsBaseApiTokens :base-id="base.id!" />
+          <!-- Height-bounded so the surface's own overflow-auto has something to
+               resolve h-full against; padding stays inside AccountToken. -->
+          <div class="h-full max-h-full">
+            <DashboardSettingsBaseApiTokens :base-id="base.id!" />
+          </div>
         </a-tab-pane>
         <a-tab-pane v-if="showEEFeatures && base.id && !isMobileMode" key="variables">
           <template #tab>

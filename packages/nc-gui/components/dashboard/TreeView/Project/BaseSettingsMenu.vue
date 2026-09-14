@@ -20,7 +20,8 @@ const { isUIAllowed, environmentRestrictionReason, baseRoles, loadRoles } = useR
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isWsAuditEnabled, isEEFeatureBlocked, showEEFeatures, hideInterfaces, blockWorkflows } = useEeConfig()
+const { isWsAuditEnabled, isEEFeatureBlocked, showEEFeatures, hideInterfaces, blockWorkflows, showUpgradeToUseSnapshots } =
+  useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
   if (page === 'snapshots' && isEEFeatureBlocked.value) {

@@ -4999,14 +4999,14 @@
     "justify": "Justify",
     "baseNav": {
       "groupInvite": "Invite",
-      "groupPermissions": "Permissions",
-      "groupConnectedData": "Connected Data",
-      "groupAutomation": "Automation",
+      "groupData": "Data",
+      "groupInterfaces": "Interfaces",
+      "groupConnectivity": "Connectivity",
       "groupAdmin": "Admin",
-      "members": "Members to Base",
-      "interfaceMembers": "Members to Interface",
-      "dataPermissions": "Tables & Fields",
-      "docsPermissions": "Docs",
+      "members": "Members",
+      "interfaceMembers": "Members",
+      "dataPermissions": "Table & Field Access",
+      "docsPermissions": "Doc Access",
       "databases": "Databases",
       "databasesInfo": "Connect an external database. Its tables appear in Data through a live connection.",
       "integrations": "Integrations",
@@ -5033,7 +5033,9 @@
       "upgradeDescPermissionsDocs": "Restrict who can view or edit each doc.",
       "upgradeDescSync": "Pull data from external apps on a schedule.",
       "upgradeDescTrashRetention": "Choose how long deleted records are kept.",
-      "upgradeDescVariables": "Define reusable values scoped to this base."
+      "upgradeDescVariables": "Define reusable values scoped to this base.",
+      "membersPage": "Base Members",
+      "interfaceMembersPage": "Interface Members"
     }
   },
   "activity": {

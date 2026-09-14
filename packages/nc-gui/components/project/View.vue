@@ -270,8 +270,8 @@ const overviewTabMeta = computed(() => {
 
 const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
-    'collaborator': t('labels.baseNav.members'),
-    'interface-members': t('labels.baseNav.interfaceMembers'),
+    'collaborator': t('labels.baseNav.membersPage'),
+    'interface-members': t('labels.baseNav.interfaceMembersPage'),
     'permissions': t('labels.baseNav.dataPermissions'),
     'docs-permissions': t('labels.baseNav.docsPermissions'),
     'mcp': t('labels.baseNav.mcpServer'),

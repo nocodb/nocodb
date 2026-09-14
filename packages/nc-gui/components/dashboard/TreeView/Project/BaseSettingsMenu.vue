@@ -478,10 +478,14 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-// The client marks sit at the row's right edge as an invitation to connect, so
-// they stay visible at rest and come up to full strength on hover.
+// The client marks sit at the row's right edge as an invitation to connect.
+// Grey at rest so a row full of brand colour doesn't shout over its own label,
+// then they bloom into colour when the row is hovered or open.
 .nc-nav-logos {
-  @apply flex items-center flex-none opacity-80 transition-opacity duration-150;
+  @apply flex items-center flex-none;
+  filter: grayscale(1);
+  opacity: 0.7;
+  transition: filter 150ms ease, opacity 150ms ease;
 }
 
 // Each mark gets its own chip so the overlap reads as a stack — these logos are
@@ -524,7 +528,8 @@ onMounted(() => {
 
 .nc-sidebar-menu-item:hover .nc-nav-logos,
 .nc-sidebar-menu-item.active .nc-nav-logos {
-  @apply opacity-100;
+  filter: grayscale(0);
+  opacity: 1;
 }
 
 // Always visible, but quiet enough to sit beside the brand marks without
@@ -539,7 +544,9 @@ onMounted(() => {
   @apply opacity-100;
 }
 
-.nc-nav-info-icon {
+// Nested inside :deep() on purpose: NcSidebarMenuItem sizes every descendant
+// svg at 16px from its own scoped block, which outranks a bare class selector.
+:deep(.nc-nav-info .nc-nav-info-icon) {
   @apply h-3 w-3 text-nc-content-gray-disabled;
 }
 

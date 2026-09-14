@@ -720,7 +720,7 @@ watch(
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__snapshots">
-              <GeneralIcon icon="camera" />
+              <GeneralIcon icon="ncLayers" />
               <div>{{ $t('general.snapshots') }}</div>
             </div>
           </template>

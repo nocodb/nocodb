@@ -328,7 +328,7 @@ const navGroups = computed(() => {
         {
           tab: 'snapshots',
           ev: 'snapshots',
-          icon: 'camera',
+          icon: 'ncLayers',
           testId: 'base-snapshots',
           label: t('labels.baseNav.snapshots'),
           keywords: 'snapshot backup restore point in time',

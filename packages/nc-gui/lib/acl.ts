@@ -91,6 +91,9 @@ const rolePermissions = {
   },
   [ProjectRoles.CREATOR]: {
     include: {
+      // Base-scoped API tokens are a base-administration surface, so they get
+      // their own permission rather than riding on `manageMCP`.
+      manageBaseApiTokens: true,
       baseCreate: true,
       fieldUpdate: true,
       hookList: true,

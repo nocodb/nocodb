@@ -658,7 +658,7 @@ watch(
             <DashboardSettingsBaseMCP />
           </div>
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('manageMCP') && base.id && !isMobileMode" key="api-tokens">
+        <a-tab-pane v-if="isUIAllowed('manageBaseApiTokens') && base.id && !isMobileMode" key="api-tokens">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__api-tokens">
               <GeneralIcon icon="ncKey" />

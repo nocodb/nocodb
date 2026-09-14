@@ -143,6 +143,10 @@ const canSeeAiSkills = computed(
 
 const canSeeMcp = computed(() => isUIAllowed('manageMCP', { roles: effectiveRoles.value }) && !isMobileMode.value)
 
+const canSeeBaseApiTokens = computed(
+  () => isUIAllowed('manageBaseApiTokens', { roles: effectiveRoles.value }) && !isMobileMode.value,
+)
+
 const canSeeVariables = computed(
   () => isUIAllowed('baseVariableList', { roles: effectiveRoles.value }) && !isMobileMode.value && showEEFeatures.value,
 )
@@ -262,7 +266,7 @@ const navGroups = computed(() => {
           testId: 'base-api-tokens',
           label: t('labels.baseNav.apiTokens'),
           keywords: 'api token key secret rest automation external app',
-          visible: canSeeMcp.value,
+          visible: canSeeBaseApiTokens.value,
         },
         {
           tab: 'mcp',

@@ -96,6 +96,8 @@ const isTooltipDisabled = computed(() => {
     height: 32px;
   }
 
+  // Idle state. Kept on a token rather than an rgba literal so every dark
+  // palette gets its own value instead of one alpha over twelve grounds.
   &:not(.active) {
     @apply text-nc-content-gray-muted;
   }
@@ -200,18 +202,6 @@ const isTooltipDisabled = computed(() => {
 </style>
 
 <style lang="scss">
-// Held just off full ink so the selected item stays the only thing at full
-// strength, without the rest reading as disabled.
-.nc-rail-item:not(.active) .nc-rail-item-label,
-.nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(0, 0, 0, 0.56);
-}
-
-[theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-label,
-[theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(255, 255, 255, 0.56);
-}
-
 .rtl .nc-rail-item .nc-rail-item-indicator {
   left: auto;
   right: 0;

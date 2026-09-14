@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanLimitTypes, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -37,7 +37,13 @@ const {
   showEEFeatures,
   hideInterfaces,
   blockWorkflows,
+  getLimit,
 } = useEeConfig()
+
+// Snapshots is limit-gated rather than feature-gated: a plan that grants none
+// gets the upgrade card in place of the page. A plan that grants some but has
+// them all used is a different case — the page stays, and creating one prompts.
+const blockSnapshotsPage = computed(() => getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0)
 
 const currentBase = computedAsync(async () => {
   let base
@@ -728,7 +734,14 @@ watch(
               <div>{{ $t('general.snapshots') }}</div>
             </div>
           </template>
-          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+          <PaymentUpgradeFeatureCard
+            v-if="blockSnapshotsPage"
+            :feature="PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE"
+            :title="$t('labels.baseNav.upgradeTitleSnapshots')"
+            :detail="$t('labels.baseNav.upgradeDescSnapshots')"
+            icon="ncLayers"
+          />
+          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseSnapshots />
           </div>
         </a-tab-pane>

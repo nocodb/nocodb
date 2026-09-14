@@ -5046,12 +5046,14 @@
       "upgradeDescSync": "Pull data from external apps on a schedule.",
       "upgradeDescTrashRetention": "Choose how long deleted records are kept.",
       "upgradeDescVariables": "Define reusable values scoped to this base.",
-    "upgradeTitleTeams": "Teams",
-    "upgradeDescTeams": "Group people and manage their access in one place.",
+      "upgradeTitleTeams": "Teams",
+      "upgradeDescTeams": "Group people and manage their access in one place.",
       "membersPage": "Base Members",
       "interfaceMembersPage": "Interface Members",
       "dataPermissionsNav": "Data Permissions",
-      "apiTokens": "API Tokens"
+      "apiTokens": "API Tokens",
+      "upgradeTitleSnapshots": "Snapshots",
+      "upgradeDescSnapshots": "Save a restorable copy of this base at a point in time."
     }
   },
   "activity": {

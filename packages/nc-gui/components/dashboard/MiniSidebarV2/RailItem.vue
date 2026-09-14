@@ -111,6 +111,13 @@ const isTooltipDisabled = computed(() => {
     @apply select-none text-captionXsBold leading-tight tracking-tight hidden;
   }
 
+  // One step down from the active label, so the selected item reads as the
+  // heavier of the two without the rest shouting.
+  &:not(.active) .nc-rail-item-label {
+    // font-semibold resolves to 550 here, which is a bigger drop than intended
+    font-weight: 600;
+  }
+
   &:hover:not(.active):not(.disabled) .nc-rail-item-chip {
     background: rgba(0, 0, 0, 0.05);
 

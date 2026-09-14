@@ -209,12 +209,14 @@ export default class ApiToken implements ApiTokenType {
       fk_user_id,
       includeUnmappedToken = false,
       ssoClientId,
+      tokenIds,
     }: {
       limit: number;
       offset: number;
       fk_user_id?: string;
       includeUnmappedToken: boolean;
       ssoClientId?: string;
+      tokenIds?: string[];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -244,6 +246,10 @@ export default class ApiToken implements ApiTokenType {
           )
           .as('created_by'),
       );
+
+    if (tokenIds) {
+      queryBuilder.whereIn(`${MetaTable.API_TOKENS}.id`, tokenIds);
+    }
 
     if (fk_user_id) {
       queryBuilder.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);

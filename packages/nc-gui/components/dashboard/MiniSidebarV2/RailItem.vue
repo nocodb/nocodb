@@ -209,7 +209,7 @@ const isTooltipDisabled = computed(() => {
 
 [theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-label,
 [theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-icon {
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(255, 255, 255, 0.56);
 }
 
 .rtl .nc-rail-item .nc-rail-item-indicator {

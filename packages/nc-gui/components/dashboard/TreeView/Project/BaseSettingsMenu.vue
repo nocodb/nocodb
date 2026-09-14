@@ -380,7 +380,7 @@ const navGroups = computed(() => {
         tab: item.tab,
         ev: item.tab,
         icon: item.icon,
-        testId: item.testId,
+        testId: `base-${item.testId}`,
         label: t(item.label),
         keywords: 'app',
       })),
@@ -448,7 +448,7 @@ onMounted(() => {
         :key="item.tab"
         v-e="[`c:settings:base:${item.ev}`]"
         :icon="item.icon"
-        :data-testid="`base-${item.testId}`"
+        :data-testid="item.testId"
         :active="activeBaseSettingsTab === item.tab"
         @click="navigateToBaseSettings(item.tab)"
       >

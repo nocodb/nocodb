@@ -5005,8 +5005,8 @@
       "groupAdmin": "Admin",
       "members": "Members",
       "interfaceMembers": "Members",
-      "dataPermissions": "Table & Field Access",
-      "docsPermissions": "Doc Access",
+      "dataPermissions": "Table & Field",
+      "docsPermissions": "Docs",
       "databases": "Databases",
       "databasesInfo": "Connect an external database. Its tables appear in Data through a live connection.",
       "integrations": "Integrations",
@@ -5035,7 +5035,8 @@
       "upgradeDescTrashRetention": "Choose how long deleted records are kept.",
       "upgradeDescVariables": "Define reusable values scoped to this base.",
       "membersPage": "Base Members",
-      "interfaceMembersPage": "Interface Members"
+      "interfaceMembersPage": "Interface Members",
+      "dataPermissionsNav": "Data Permissions"
     }
   },
   "activity": {

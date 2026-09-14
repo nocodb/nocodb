@@ -29,8 +29,6 @@ const { productName } = useBranding()
 const { $e, $api } = useNuxtApp()
 
 const {
-  blockTableAndFieldPermissions,
-  blockDocumentPermissions,
   blockTrashSettings,
   blockBaseVariables,
   blockSync,
@@ -272,8 +270,8 @@ const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     'collaborator': t('labels.baseNav.membersPage'),
     'interface-members': t('labels.baseNav.interfaceMembersPage'),
-    'permissions': t('labels.baseNav.dataPermissions'),
-    'docs-permissions': t('labels.baseNav.docsPermissions'),
+    'permissions': t('labels.baseNav.dataPermissionsNav'),
+    'docs-permissions': t('labels.baseNav.dataPermissionsNav'),
     'mcp': t('labels.baseNav.mcpServer'),
     'variables': t('labels.baseNav.variables'),
     'syncs': t('labels.baseNav.sync'),
@@ -571,14 +569,7 @@ watch(
               />
             </div>
           </template>
-          <PaymentUpgradeFeatureCard
-            v-if="blockTableAndFieldPermissions"
-            :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
-            :title="$t('labels.baseNav.upgradeTitlePermissionsTablesFields')"
-            :detail="$t('labels.baseNav.upgradeDescPermissionsTablesFields')"
-            icon="ncLock"
-          />
-          <DashboardSettingsPermissions v-else v-model:state="baseSettingsState" :base-id="base.id" />
+          <DashboardSettingsDataPermissions v-model:state="baseSettingsState" :base-id="base.id" initial-tab="tables" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
           <template #tab>
@@ -592,14 +583,7 @@ watch(
               />
             </div>
           </template>
-          <PaymentUpgradeFeatureCard
-            v-if="blockDocumentPermissions"
-            :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
-            :title="$t('labels.baseNav.upgradeTitlePermissionsDocs')"
-            :detail="$t('labels.baseNav.upgradeDescPermissionsDocs')"
-            icon="ncFileText"
-          />
-          <DashboardSettingsDocsPermissions v-else v-model:state="baseSettingsState" :base-id="base.id" />
+          <DashboardSettingsDataPermissions v-model:state="baseSettingsState" :base-id="base.id" initial-tab="docs" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
           <template #tab>
@@ -786,7 +770,9 @@ watch(
 }
 
 .hide-tabs {
-  :deep(.ant-tabs-nav) {
+  // Direct child only: :deep() otherwise reaches every nested tab bar too, which
+  // silently hid Data Permissions' own tabs inside the pane.
+  :deep(> .ant-tabs-nav) {
     @apply !hidden;
   }
 

@@ -488,7 +488,9 @@ onMounted(() => {
   @apply flex items-center flex-none;
   filter: grayscale(1);
   opacity: 0.7;
-  transition: filter 150ms ease, opacity 150ms ease;
+  // 200ms matches NcSidebarMenuItem's own transition-all, so the marks bloom in
+  // step with the row surface instead of arriving ahead of it.
+  transition: filter 200ms ease, opacity 200ms ease;
 }
 
 // Each mark gets its own chip so the overlap reads as a stack — these logos are
@@ -500,12 +502,16 @@ onMounted(() => {
 .nc-sidebar-menu-item {
   --nc-nav-chip-surface: var(--color-sidebar-bg);
 
-  &:hover {
-    --nc-nav-chip-surface: var(--color-gray-200);
-  }
-
   &.active {
     --nc-nav-chip-surface: var(--color-brand-50);
+  }
+
+  // Same selector shape as NcSidebarMenuItem's own hover rule on purpose: there
+  // `:hover:not(.disabled)` outranks `.active`, so a hovered selected row goes
+  // grey. A plain `:hover` here ties with `.active` and loses to it, leaving
+  // brand-tinted chips sitting on a grey row.
+  &:hover:not(.disabled) {
+    --nc-nav-chip-surface: var(--color-gray-200);
   }
 }
 
@@ -513,13 +519,17 @@ onMounted(() => {
   --nc-nav-chip-surface: var(--color-gray-200);
 }
 
-// Marks match the row's own leading icon at 16px. Overlap is held at the chip's
-// own padding (26px chip, 16px mark = 5px each side), so neighbours tuck behind
-// without cropping the mark itself.
+// 22px chip around a 16px mark leaves 3px each side, and the overlap has to stay
+// under that or the next chip's fill bites into the previous glyph — the brand
+// marks' white backplate used to hide that, and no longer does. At -0.5 (2px)
+// there is 1px of clearance and the group spans 62px against the 26px chip's 70.
 .nc-nav-logo {
-  @apply relative flex items-center justify-center h-[26px] w-[26px] rounded-full -ml-1.5;
+  @apply relative flex items-center justify-center h-[22px] w-[22px] rounded-full -ml-0.5;
   background: var(--nc-nav-chip-surface);
-  box-shadow: 0 0 0 1px var(--nc-nav-chip-surface);
+  // The row fades its own surface over 200ms (NcSidebarMenuItem's transition-all).
+  // Without this the chip swapped colour on the first frame, so for the rest of
+  // the fade it sat on the row as a visibly different disc.
+  transition: background-color 200ms ease;
 
   &:first-child {
     @apply ml-0;
@@ -527,6 +537,12 @@ onMounted(() => {
 
   :deep(svg) {
     @apply h-4 w-4;
+  }
+
+  // Most brand marks ship an opaque white backplate (a full-canvas
+  // `<rect rx="2" fill="white">`) which reads as a square tile inside the chip.
+  :deep(svg > rect:first-child) {
+    fill: transparent;
   }
 }
 

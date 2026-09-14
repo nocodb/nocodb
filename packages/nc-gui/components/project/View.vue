@@ -223,6 +223,8 @@ watch(
         projectPageTab.value = 'workflows'
       } else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
+      } else if (newVal === 'api-tokens') {
+        projectPageTab.value = 'api-tokens'
       } else if (newVal === 'variables' && showEEFeatures.value) {
         projectPageTab.value = 'variables'
       } else if (newVal === 'interface-members' && showEEFeatures.value && !hideInterfaces.value) {
@@ -273,6 +275,7 @@ const settingsPageTitle = computed(() => {
     'permissions': t('labels.baseNav.dataPermissionsNav'),
     'docs-permissions': t('labels.baseNav.dataPermissionsNav'),
     'mcp': t('labels.baseNav.mcpServer'),
+    'api-tokens': t('labels.baseNav.apiTokens'),
     'variables': t('labels.baseNav.variables'),
     'syncs': t('labels.baseNav.sync'),
     'snapshots': t('labels.baseNav.snapshots'),
@@ -654,6 +657,15 @@ watch(
           <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseMCP />
           </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('manageMCP') && base.id && !isMobileMode" key="api-tokens">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__api-tokens">
+              <GeneralIcon icon="ncKey" />
+              <div>{{ $t('labels.baseNav.apiTokens') }}</div>
+            </div>
+          </template>
+          <DashboardSettingsBaseApiTokens :base-id="base.id!" />
         </a-tab-pane>
         <a-tab-pane v-if="showEEFeatures && base.id && !isMobileMode" key="variables">
           <template #tab>

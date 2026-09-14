@@ -268,6 +268,15 @@ const navGroups = computed(() => {
           keywords: 'mcp agent ai token endpoint claude',
           visible: canSeeMcp.value,
         },
+        {
+          tab: 'api-tokens',
+          ev: 'api-tokens',
+          icon: 'ncKey',
+          testId: 'base-api-tokens',
+          label: t('labels.baseNav.apiTokens'),
+          keywords: 'api token key secret rest automation external app',
+          visible: canSeeMcp.value,
+        },
       ].filter((i) => i.visible),
     },
     {

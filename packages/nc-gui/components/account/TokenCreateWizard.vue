@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 interface Props {
   editToken?: null
+  /** Pin the token to one base. CE has no scopes, so it is accepted and ignored. */
+  lockedBaseId?: string
 }
 
 withDefaults(defineProps<Props>(), {
   editToken: null,
+  lockedBaseId: undefined,
 })
 
 const emit = defineEmits(['created', 'saved', 'cancel'])

@@ -145,7 +145,9 @@ const isTooltipDisabled = computed(() => {
     .nc-rail-item-chip {
       // The palette's selection token, so the tint tracks whichever dark preset
       // is applied rather than sitting as a fixed blue on an arbitrary ground.
-      background: var(--color-brand-50);
+      // Pushed toward the brand accent because the raw token is nearly white in
+      // light mode; mixing rather than hardcoding keeps all 12 palettes in step.
+      background: color-mix(in srgb, var(--nc-content-brand) 15%, var(--color-brand-50));
     }
 
     // brand-500 on the dark pill is only ~3.5:1 — lift to brand-600 for AA

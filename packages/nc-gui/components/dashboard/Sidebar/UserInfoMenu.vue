@@ -11,11 +11,7 @@ const emits = defineEmits<{
   (e: 'closeMenu'): void
 }>()
 
-const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
-
 const { user, signOut, isMobileMode } = useGlobal()
-
-const { toggleMode } = useMiniSidebarMode()
 
 const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen } = useTheme()
 
@@ -123,13 +119,6 @@ const openKeyboardShortcutDialog = () => {
       </NcMenuItem>
 
       <NcDivider />
-
-      <!-- Dock Mode -->
-      <NcMenuItem v-if="isMiniSidebar" @click="toggleMode">
-        <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon" />
-        <span class="menu-btn">Dock Mode</span>
-        <NcBadgeBeta />
-      </NcMenuItem>
 
       <!-- Experimental Features -->
       <NcMenuItem @click="openExperimentationMenu">

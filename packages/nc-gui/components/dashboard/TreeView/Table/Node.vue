@@ -499,7 +499,7 @@ const isMmTable = computed(() => !!table.value?.mm)
         class="w-full"
         trigger="hover"
         placement="right"
-        :disabled="!table?.synced || isEditing || isOptionsOpen || !showTableNodeTooltip || isMobileMode"
+        :disabled="!table?.synced || isEditing || isOptionsOpen || isCreateViewMenuOpen || !showTableNodeTooltip || isMobileMode"
       >
         <template #title>
           <DashboardTreeViewTableSyncStatusBadge :table="table" />
@@ -894,7 +894,7 @@ const isMmTable = computed(() => !!table.value?.mm)
               :align-left-level="undefined"
               :source="source"
               placement="bottomRight"
-              @update:visible="isCreateViewMenuOpen = $event"
+              @visible-change="isCreateViewMenuOpen = $event"
             >
               <NcButton
                 v-e="['c:table:create-view']"

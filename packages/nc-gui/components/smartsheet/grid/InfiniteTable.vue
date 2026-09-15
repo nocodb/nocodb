@@ -2972,18 +2972,30 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 </div>
               </NcMenuItem>
             </template>
-            <NcMenuItem
-              v-if="vSelectedAllRecords"
-              class="nc-base-menu-item"
-              danger
-              data-testid="nc-delete-all-row"
-              @click="deleteAllRecords([])"
+            <!-- Same gates as the canvas renderer: interface pages ride the
+                 add_delete_inline opt-in via `canAddDeleteRows`. -->
+            <PermissionsTooltip
+              v-if="vSelectedAllRecords && canAddDeleteRows && !isDataReadOnly && !meta?.synced"
+              :entity="PermissionEntity.TABLE"
+              :entity-id="meta?.id"
+              :permission="PermissionKey.TABLE_RECORD_DELETE"
+              placement="right"
             >
-              <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
-                <GeneralIcon icon="delete" />
-                {{ $t('activity.deleteAllRecords') }}
-              </div>
-            </NcMenuItem>
+              <template #default="{ isAllowed }">
+                <NcMenuItem
+                  class="nc-base-menu-item"
+                  danger
+                  data-testid="nc-delete-all-row"
+                  :disabled="!isAllowed"
+                  @click="deleteAllRecords([])"
+                >
+                  <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
+                    <GeneralIcon icon="delete" />
+                    {{ $t('activity.deleteAllRecords') }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </PermissionsTooltip>
             <template v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly && isPkAvail">
               <NcMenuItem
                 v-if="contextMenuTarget"

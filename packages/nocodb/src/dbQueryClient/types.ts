@@ -101,6 +101,17 @@ export interface DBQueryClient {
     params: AggregationGeneratorParams,
   ): string | undefined;
 
+  /**
+   * Like `generateAggregateQuery`, but returns the bare aggregate expression
+   * (BEFORE the COALESCE/alias wrap) plus its category, so grouped callers —
+   * the Timeline/Gantt date-axis summary — can embed it under their own
+   * GROUP BY and choose empty-cell handling per aggregation (COUNT/SUM → 0,
+   * AVG/MIN/MAX → null).
+   */
+  generateAggregateExpression(params: AggregationGeneratorParams):
+    | { sql: Knex.Raw; aggType: AggregationCategory; aggregation: string }
+    | undefined;
+
   /** Single-filter-set view-footer aggregation. */
   aggregate(
     context: NcContext,

@@ -195,6 +195,22 @@ export interface InterfacePageDataApi {
     filtersArr?: FilterType[]
   }): Promise<{ list: Record<string, any>[]; pageInfo: PaginatedType }>
   /**
+   * Timeline "Summarize" bar values over the same scope — per-bucket, optional
+   * per-group breakdown, and the dedup grand total. The caller sends the exact
+   * bucket boundaries it renders; the range columns come from the viz config.
+   * Resolves `null` where the surface has no summary endpoint (public share).
+   */
+  fetchTimelineSummary(params: {
+    from_date: string
+    to_date: string
+    buckets: Array<{ start: string; end: string }>
+    summary_field: string
+    summary_fn: string
+    group_by_col_id?: string | null
+    where?: string
+    filtersArr?: FilterType[]
+  }): Promise<any | null>
+  /**
    * Gantt viz rows — windowless calls page by offset/limit in chronological
    * (start-date) order; passing `from/to` adds the bar-overlap predicate
    * (same modes as the per-view gantt data endpoint).

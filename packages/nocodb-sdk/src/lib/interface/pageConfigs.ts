@@ -258,6 +258,32 @@ export interface InterfaceDateRangeConfig {
   end_field_id?: string | null;
 }
 
+/**
+ * Date-axis "Summarize" config — a single (calculation field, aggregation)
+ * pair rendered as a per-time-bucket bottom bar (+ per-group summaries when
+ * grouped). Shared shape between the interface viz configs below and the
+ * native Timeline/Gantt view `meta.summary` blob, so the frontend picker and
+ * summary-bar renderer are identical across both surfaces.
+ */
+export interface DateAxisSummaryConfig {
+  /** "Calculation field" — the column being aggregated. */
+  fk_column_id: string;
+  /** One of the aggregation enums (see `aggregationHelper` in nocodb-sdk). */
+  aggregation: string;
+  /** `function` → show the aggregation's name; `custom` → show `custom_label`. */
+  label?: 'function' | 'custom';
+  custom_label?: string;
+  /**
+   * Where the summary is rendered. An omitted key means `true`, so summaries
+   * saved before this option existed keep showing in both places. Per-group
+   * output only materializes when the view is also grouped.
+   */
+  show_in?: {
+    bottom_bar?: boolean;
+    groups?: boolean;
+  };
+}
+
 export interface InterfaceCalendarVizConfig
   extends InterfaceVizCommon,
     InterfaceVizEditability {
@@ -299,6 +325,8 @@ export interface InterfaceTimelineVizConfig
   wrap_labels?: boolean;
   record_width?: 'timescale_filled' | 'fixed';
   group_by?: Array<{ fk_column_id: string; direction?: 'asc' | 'desc' }>;
+  /** Per-time-bucket summary bar config (+ per-group summaries when grouped). */
+  summary?: DateAxisSummaryConfig | null;
   initial_view?: {
     position?: 'today' | 'earliest' | 'latest';
     timescale?: 'day' | 'week' | 'two_weeks' | 'month' | 'quarter' | 'year';
@@ -320,6 +348,8 @@ export interface InterfaceGanttVizConfig
   >;
   row_height?: 'small' | 'medium' | 'large' | 'extra_large';
   group_by?: Array<{ fk_column_id: string; direction?: 'asc' | 'desc' }>;
+  /** Per-time-bucket summary bar config (+ per-group summaries when grouped). */
+  summary?: DateAxisSummaryConfig | null;
   /** Render dependency arrows from the table-level DateDependency rule. */
   show_dependencies?: boolean;
   initial_view?: {

@@ -21,6 +21,17 @@ export interface AggregationHandlerInterface {
    * no expression (e.g. `none`).
    */
   generate(params: AggregationGeneratorParams): string | undefined;
+
+  /**
+   * Build the bare aggregate expression (post dialect-processing, BEFORE the
+   * COALESCE/alias wrap) plus its resolved context. Used by grouped callers —
+   * e.g. the Timeline/Gantt date-axis summary — that embed the aggregate inside
+   * their own `GROUP BY`/alias. Returns `undefined` when no expression is
+   * produced (e.g. `none`).
+   */
+  buildExpression(
+    params: AggregationGeneratorParams,
+  ): { ctx: AggregationSqlContext; sql: Knex.Raw } | undefined;
 }
 
 /**

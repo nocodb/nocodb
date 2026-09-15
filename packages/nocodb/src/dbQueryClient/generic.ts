@@ -7,6 +7,7 @@ import {
   ncIsObject,
   ncIsUndefined,
 } from 'nocodb-sdk';
+import type { AggregationCategory } from 'nocodb-sdk';
 import type {
   AggregateCtx,
   AggregationGeneratorParams,
@@ -213,6 +214,18 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
     params: AggregationGeneratorParams,
   ): string | undefined {
     return getAggregationHandler(this.clientType).generate(params);
+  }
+
+  generateAggregateExpression(params: AggregationGeneratorParams):
+    | { sql: Knex.Raw; aggType: AggregationCategory; aggregation: string }
+    | undefined {
+    const built = getAggregationHandler(this.clientType).buildExpression(params);
+    if (!built) return undefined;
+    return {
+      sql: built.sql,
+      aggType: built.ctx.aggType,
+      aggregation: built.ctx.aggregation,
+    };
   }
 
   aggregate(

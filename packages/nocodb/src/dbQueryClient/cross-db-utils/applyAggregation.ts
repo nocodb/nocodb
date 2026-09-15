@@ -4,8 +4,10 @@ import {
   UITypes,
   validateAggregationColType,
 } from 'nocodb-sdk';
+import type { AggregationCategory } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { AggregationGeneratorParams } from '~/dbQueryClient/types';
 import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -23,26 +25,22 @@ export interface ApplyAggregationParams {
 }
 
 /**
- * Per-column aggregation SQL builder shared across widget handlers, group-by,
- * and the `client.{aggregate, bulkAggregate}` orchestrations.
- *
- * The prelude is dialect-agnostic — validate the (column, aggregation) pair
- * via SDK, unwrap barcode / QR-code virtual columns, and resolve the column's
- * SELECT expression via `getColumnNameQuery`. Then dispatch to the dialect's
- * `gen{Pg,Mysql2,Sqlite3,Mssql}AggregateQuery` through the
- * `DBQueryClient.fromKnex(...)` factory.
- *
- * Returns `undefined` when the column has no aggregation or carries a stored
- * `colOptions.error`. Throws `NcError.notImplemented` for aggregation × UIType
- * combinations the SDK validator rejects.
+ * Dialect-agnostic prelude shared by `applyAggregation` and
+ * `applyAggregationExpression` — validate the (column, aggregation) pair via
+ * SDK, unwrap barcode / QR-code virtual columns, and resolve the column's
+ * SELECT expression via `getColumnNameQuery`. Returns the resolved
+ * `AggregationGeneratorParams`, or `undefined` when the column has no
+ * aggregation or carries a stored `colOptions.error`. Throws
+ * `NcError.notImplemented` for aggregation × UIType combinations the SDK
+ * validator rejects.
  */
-export async function applyAggregation({
+async function resolveAggregationParams({
   baseModelSqlv2,
   aggregation,
   column,
   alias,
   baseQuery,
-}: ApplyAggregationParams): Promise<string | undefined> {
+}: ApplyAggregationParams): Promise<AggregationGeneratorParams | undefined> {
   if (!aggregation || !column) {
     return;
   }
@@ -125,18 +123,56 @@ export async function applyAggregation({
     ]) as any;
   }
 
-  return DBQueryClient.fromKnex(baseModelSqlv2.dbDriver).generateAggregateQuery(
-    {
-      column,
-      baseModelSqlv2,
-      aggregation,
-      column_query: column_name_query,
-      parsedFormulaType,
-      aggType,
-      alias,
-      baseQuery,
-    },
-  );
+  return {
+    column,
+    baseModelSqlv2,
+    aggregation,
+    column_query: column_name_query,
+    parsedFormulaType,
+    aggType,
+    alias,
+    baseQuery,
+  };
+}
+
+/**
+ * Per-column aggregation SQL builder shared across widget handlers, group-by,
+ * and the `client.{aggregate, bulkAggregate}` orchestrations. Returns the
+ * flat, COALESCE-wrapped + aliased scalar expression via the dialect's
+ * `generateAggregateQuery`.
+ */
+export async function applyAggregation(
+  params: ApplyAggregationParams,
+): Promise<string | undefined> {
+  const generatorParams = await resolveAggregationParams(params);
+  if (!generatorParams) {
+    return;
+  }
+
+  return DBQueryClient.fromKnex(
+    params.baseModelSqlv2.dbDriver,
+  ).generateAggregateQuery(generatorParams);
+}
+
+/**
+ * Like `applyAggregation`, but returns the bare aggregate expression (before
+ * the COALESCE/alias wrap) plus its category. Used by grouped callers — the
+ * Timeline/Gantt date-axis summary — that embed the aggregate under their own
+ * GROUP BY and choose empty-cell handling per aggregation.
+ */
+export async function applyAggregationExpression(
+  params: ApplyAggregationParams,
+): Promise<
+  { sql: Knex.Raw; aggType: AggregationCategory; aggregation: string } | undefined
+> {
+  const generatorParams = await resolveAggregationParams(params);
+  if (!generatorParams) {
+    return;
+  }
+
+  return DBQueryClient.fromKnex(
+    params.baseModelSqlv2.dbDriver,
+  ).generateAggregateExpression(generatorParams);
 }
 
 export default applyAggregation;

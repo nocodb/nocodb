@@ -28,6 +28,10 @@ export function useGridViewData(
   // synthetic view id is unknown to the plain data ops.
   const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
+  // Ad-hoc toolbar filters (not folded into `where`/xWhere) — the interface
+  // delete-all forwards them so its scope matches the select-all count.
+  const smartsheetStore = useSmartsheetStore()
+
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
   const { base } = storeToRefs(useBase())
@@ -711,29 +715,55 @@ export function useGridViewData(
     }
   }
 
+  /** Resolves false when the delete failed, so the caller can keep the selection. */
   async function bulkDeleteAll(path: Array<number> = []) {
+    let succeeded = false
+
     try {
       isBulkOperationInProgress.value = true
 
-      await $api.internal.postOperation(
-        (meta.value as any).fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'bulkDataDeleteAll',
-          tableId: meta.value.id!,
+      const skipPks = Object.values(selectedAllRecordsSkipPks.value).join(',')
+
+      if (interfaceDataApi) {
+        // The interface has no persisted view for the server to re-apply filters
+        // from, so forward the live search (`where`) + ad-hoc toolbar filters —
+        // the same narrowing select-all counted; the viz scope bounds it server-side.
+        if (!interfaceDataApi.bulkDeleteAll) {
+          throw new Error('Delete all records is not available on this surface')
+        }
+
+        await interfaceDataApi.bulkDeleteAll({
           where: where?.value,
-          viewId: viewMeta.value?.id,
-          skipPks: Object.values(selectedAllRecordsSkipPks.value).join(','),
-        },
-        {},
-      )
-    } catch (error) {
+          filtersArr: smartsheetStore?.nestedFilters?.value ?? [],
+          skipPks,
+        })
+      } else {
+        await $api.internal.postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'bulkDataDeleteAll',
+            tableId: meta.value.id!,
+            where: where?.value,
+            viewId: viewMeta.value?.id,
+            skipPks,
+          },
+          {},
+        )
+      }
+
+      succeeded = true
+    } catch (error: any) {
+      message.error(`Bulk delete failed: ${await extractSdkResponseErrorMsg(error)}`)
     } finally {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
       await syncCount(path)
       syncVisibleData?.()
+      triggerAggregateReload({ path })
       isBulkOperationInProgress.value = false
     }
+
+    return succeeded
   }
 
   return {

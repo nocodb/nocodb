@@ -182,8 +182,13 @@ async function deleteAllRecords() {
     'isSelectedAll': totalRows.value === allSelectedRecordCount,
     'onUpdate:modelValue': closeDlg,
     'onDeleteAll': async () => {
-      await bulkDeleteAll?.([])
+      const succeeded = await bulkDeleteAll?.([])
       closeDlg()
+
+      // Keep the selection on failure — the toast is otherwise the only sign
+      // anything went wrong, and the user has nothing left to retry with.
+      if (!succeeded) return
+
       vSelectedAllRecordsSkipPks.value = {}
       vSelectedAllRecords.value = false
     },
@@ -340,11 +345,43 @@ const execBulkAction = async (path: Array<number>) => {
          data-app vocabulary and stay out of interfaces. Duplicate/delete ride
          the add_delete_inline opt-in (canAddDeleteRows), like the "+" affordances. -->
     <template v-if="interfacePageDataApi">
+      <!-- Select-all delete — the where-scoped bulk op (interfaceTableDataBulkDeleteAll)
+           deletes every record in the page scope minus the deselected rows. -->
+      <template v-if="vSelectedAllRecords && canAddDeleteRows && !isDataReadOnly && !isSyncedTable && !isGroupBy">
+        <PermissionsTooltip
+          :entity="PermissionEntity.TABLE"
+          :entity-id="meta?.id"
+          :permission="PermissionKey.TABLE_RECORD_DELETE"
+          placement="right"
+        >
+          <template #default="{ isAllowed }">
+            <NcMenuItem
+              key="interface-delete-all-records"
+              class="nc-base-menu-item"
+              danger
+              data-testid="context-menu-item-interface-delete-all"
+              :disabled="!isAllowed"
+              @click="deleteAllRecords()"
+            >
+              <div v-e="['c:interface:grid:record:delete-all']" class="text-bodyDefaultSm flex gap-2 items-center">
+                <GeneralIcon icon="delete" />
+                {{
+                  ncIsEmptyObject(vSelectedAllRecordsSkipPks)
+                    ? $t('activity.deleteAllRecords')
+                    : $t('activity.deleteAllSelectedRecords')
+                }}
+              </div>
+            </NcMenuItem>
+          </template>
+        </PermissionsTooltip>
+      </template>
       <!-- Multi-record selection: single-record actions would ambiguously
-           target the right-clicked row — offer only the bulk delete. -->
-      <!-- Select-ALL-records delete needs a where-scoped server op the interface
-           doesn't have yet — only checkbox selections get the bulk action. -->
-      <template v-if="selectedRows.length > 1 && !vSelectedAllRecords && canAddDeleteRows && !isDataReadOnly && !isSyncedTable">
+           target the right-clicked row — offer only the bulk delete.
+           `!vSelectedAllRecords` is explicit, not implied by the `v-else-if`:
+           the branch above also requires `!isGroupBy`. -->
+      <template
+        v-else-if="!vSelectedAllRecords && selectedRows.length > 1 && canAddDeleteRows && !isDataReadOnly && !isSyncedTable"
+      >
         <NcMenuItem
           key="interface-delete-selected-records"
           class="nc-base-menu-item"

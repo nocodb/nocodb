@@ -715,7 +715,10 @@ export function useGridViewData(
     }
   }
 
+  /** Resolves false when the delete failed, so the caller can keep the selection. */
   async function bulkDeleteAll(path: Array<number> = []) {
+    let succeeded = false
+
     try {
       isBulkOperationInProgress.value = true
 
@@ -748,6 +751,8 @@ export function useGridViewData(
           {},
         )
       }
+
+      succeeded = true
     } catch (error: any) {
       message.error(`Bulk delete failed: ${await extractSdkResponseErrorMsg(error)}`)
     } finally {
@@ -757,6 +762,8 @@ export function useGridViewData(
       triggerAggregateReload({ path })
       isBulkOperationInProgress.value = false
     }
+
+    return succeeded
   }
 
   return {

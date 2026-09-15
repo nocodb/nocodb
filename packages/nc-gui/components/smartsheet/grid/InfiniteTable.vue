@@ -763,8 +763,12 @@ async function deleteAllRecords() {
     'rows': totalRows.value,
     'onUpdate:modelValue': closeDlg,
     'onDeleteAll': async () => {
-      await bulkDeleteAll?.()
+      const succeeded = await bulkDeleteAll?.()
       closeDlg()
+
+      // Keep the selection on failure — see the canvas renderer's twin.
+      if (!succeeded) return
+
       vSelectedAllRecords.value = false
     },
   })

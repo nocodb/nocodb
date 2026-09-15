@@ -182,8 +182,13 @@ async function deleteAllRecords() {
     'isSelectedAll': totalRows.value === allSelectedRecordCount,
     'onUpdate:modelValue': closeDlg,
     'onDeleteAll': async () => {
-      await bulkDeleteAll?.([])
+      const succeeded = await bulkDeleteAll?.([])
       closeDlg()
+
+      // Keep the selection on failure — the toast is otherwise the only sign
+      // anything went wrong, and the user has nothing left to retry with.
+      if (!succeeded) return
+
       vSelectedAllRecordsSkipPks.value = {}
       vSelectedAllRecords.value = false
     },

@@ -273,6 +273,15 @@ export interface DateAxisSummaryConfig {
   /** `function` → show the aggregation's name; `custom` → show `custom_label`. */
   label?: 'function' | 'custom';
   custom_label?: string;
+  /**
+   * Where the summary is rendered. An omitted key means `true`, so summaries
+   * saved before this option existed keep showing in both places. Per-group
+   * output only materializes when the view is also grouped.
+   */
+  show_in?: {
+    bottom_bar?: boolean;
+    groups?: boolean;
+  };
 }
 
 export interface InterfaceCalendarVizConfig

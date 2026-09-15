@@ -5206,6 +5206,7 @@
     },
     "info": {
       "noFieldForSummaryFunction": "No field in this table can be summarized with this function",
+      "noVisibleFieldForSummaryFunction": "No field shown on this visualization can be summarized with this function — add one in Fields first",
       "groupViewToSummarizePerGroup": "Group the view to summarize per group",
       "summaryNeedsOnePlace": "A summary has to show in at least one place",
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",

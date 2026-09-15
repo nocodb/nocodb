@@ -163,7 +163,8 @@ export async function applyAggregation(
 export async function applyAggregationExpression(
   params: ApplyAggregationParams,
 ): Promise<
-  { sql: Knex.Raw; aggType: AggregationCategory; aggregation: string } | undefined
+  | { sql: Knex.Raw; aggType: AggregationCategory; aggregation: string }
+  | undefined
 > {
   const generatorParams = await resolveAggregationParams(params);
   if (!generatorParams) {

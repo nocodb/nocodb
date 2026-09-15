@@ -326,7 +326,7 @@ export interface InterfaceTimelineVizConfig
   record_width?: 'timescale_filled' | 'fixed';
   group_by?: Array<{ fk_column_id: string; direction?: 'asc' | 'desc' }>;
   /** Per-time-bucket summary bar config (+ per-group summaries when grouped). */
-  summary?: DateAxisSummaryConfig;
+  summary?: DateAxisSummaryConfig | null;
   initial_view?: {
     position?: 'today' | 'earliest' | 'latest';
     timescale?: 'day' | 'week' | 'two_weeks' | 'month' | 'quarter' | 'year';
@@ -349,7 +349,7 @@ export interface InterfaceGanttVizConfig
   row_height?: 'small' | 'medium' | 'large' | 'extra_large';
   group_by?: Array<{ fk_column_id: string; direction?: 'asc' | 'desc' }>;
   /** Per-time-bucket summary bar config (+ per-group summaries when grouped). */
-  summary?: DateAxisSummaryConfig;
+  summary?: DateAxisSummaryConfig | null;
   /** Render dependency arrows from the table-level DateDependency rule. */
   show_dependencies?: boolean;
   initial_view?: {

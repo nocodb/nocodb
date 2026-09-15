@@ -9,6 +9,10 @@ const props = defineProps<{
   placement?: NcDropdownPlacement
 }>()
 
+const emit = defineEmits<{
+  'update:visible': [boolean]
+}>()
+
 const { $e } = useNuxtApp()
 
 const alignLeftLevel = toRef(props, 'alignLeftLevel')
@@ -117,6 +121,11 @@ async function onOpenModal({
     sourceId: table.value?.source_id,
   })
 }
+
+// Let the parent table node keep its action buttons visible while this menu is open
+watch(isOpen, (val) => {
+  emit('update:visible', val)
+})
 </script>
 
 <template>
@@ -363,7 +372,6 @@ async function onOpenModal({
 
 <style lang="scss">
 .nc-view-create-dropdown {
-  @apply !min-w-43;
   .item {
     @apply flex flex-row items-center w-full justify-between gap-x-1.75;
   }

@@ -86,6 +86,8 @@ const isTableDateDependencyDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
+const isCreateViewMenuOpen = ref(false)
+
 const showTableNodeTooltip = ref(true)
 
 const emojiPickerRef = ref<HTMLElement>()
@@ -636,7 +638,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                 v-e="['c:table:option']"
                 class="nc-sidebar-node-btn nc-tbl-context-menu text-nc-content-gray-subtle hover:text-nc-content-gray"
                 :class="{
-                  '!opacity-100 !inline-block': isOptionsOpen,
+                  '!opacity-100 !inline-block': isOptionsOpen || isCreateViewMenuOpen,
                 }"
                 data-testid="nc-sidebar-table-context-menu"
                 type="text"
@@ -892,6 +894,7 @@ const isMmTable = computed(() => !!table.value?.mm)
               :align-left-level="undefined"
               :source="source"
               placement="bottomRight"
+              @update:visible="isCreateViewMenuOpen = $event"
             >
               <NcButton
                 v-e="['c:table:create-view']"
@@ -899,7 +902,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                 size="xxsmall"
                 class="nc-sidebar-node-btn nc-sidebar-expand text-nc-content-gray-subtle2 hover:text-nc-content-gray"
                 :class="{
-                  '!opacity-100 !visible': isOptionsOpen,
+                  '!opacity-100 !visible': isOptionsOpen || isCreateViewMenuOpen,
                 }"
                 data-testid="nc-sidebar-table-create-view-btn"
                 @click.stop

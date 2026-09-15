@@ -11,14 +11,29 @@ const emit = defineEmits(['cancel', 'update:modelValue', 'deleteAll'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+// The delete is a server-side sweep — on a large table it runs for many
+// seconds, and every extra click fires another one.
+const isDeleting = ref(false)
+
 onKeyDown('esc', () => {
+  if (isDeleting.value) return
+
   dialogShow.value = false
   emit('update:modelValue', false)
 })
 
 const close = () => {
+  if (isDeleting.value) return
+
   dialogShow.value = false
   emit('cancel')
+}
+
+const onDeleteAll = () => {
+  if (isDeleting.value) return
+
+  isDeleting.value = true
+  emit('deleteAll')
 }
 </script>
 
@@ -29,7 +44,9 @@ const close = () => {
     :show-separator="false"
     :header="$t('activity.deleteAllRecords')"
     size="small"
-    @keydown.esc="dialogShow = false"
+    :mask-closable="!isDeleting"
+    :keyboard="!isDeleting"
+    @keydown.esc="isDeleting || (dialogShow = false)"
   >
     <div class="flex justify-between w-full text-base font-semibold mb-2 text-nc-content-gray-emphasis items-center">
       {{ isSelectedAll ? $t('activity.deleteAllRecords') : $t('activity.deleteAllSelectedRecords') }}
@@ -44,12 +61,19 @@ const close = () => {
 
     <div class="flex flex-row mt-5 justify-end gap-x-2">
       <div class="flex gap-2 items-center">
-        <NcButton data-testid="nn-record-delete-cancel" type="secondary" size="small" @click="close">
+        <NcButton data-testid="nn-record-delete-cancel" type="secondary" size="small" :disabled="isDeleting" @click="close">
           {{ $t('labels.cancel') }}
         </NcButton>
       </div>
       <div class="flex gap-2 items-center">
-        <NcButton data-testid="nc-record-delete-all" type="danger" size="small" @click="emit('deleteAll')">
+        <NcButton
+          data-testid="nc-record-delete-all"
+          type="danger"
+          size="small"
+          :loading="isDeleting"
+          :disabled="isDeleting"
+          @click="onDeleteAll"
+        >
           {{ $t('general.delete') }}
         </NcButton>
       </div>

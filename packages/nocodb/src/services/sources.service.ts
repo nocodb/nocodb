@@ -147,6 +147,9 @@ export class SourcesService {
       source.config = undefined;
       source.integration_config = undefined;
 
+      source.config = undefined;
+      source.integration_config = undefined;
+
       NocoSocket.broadcastEvent(
         context,
         {

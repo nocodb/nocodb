@@ -72,6 +72,9 @@ const {
   loadMoreKanbanData,
   kanbanMetaData,
   formattedData,
+  canReorderCards,
+  isReorderingCards,
+  updateRecordOrder,
   updateOrSaveRow,
   addEmptyRow,
   groupingFieldColOptions,
@@ -719,7 +722,12 @@ async function onMoveStack(event: any) {
   }
 }
 
-async function onMove(event: any, stackKey: string) {
+async function onMove(event: any, stackKey: string | null) {
+  if (event.moved) {
+    pendingCardMove.value = updateRecordOrder(stackKey, event.moved)
+    await pendingCardMove.value
+    return
+  }
   if (event.added) {
     const ele = event.added.element
     ele.row[groupingField.value] = stackKey
@@ -2136,7 +2144,8 @@ const cardFields = (record: RowType) => {
                             minHeight: `max(${getTotalScrollHeight(stack.title)}px, 100%)`,
                             height: formattedData.get(stack.title)?.length ? 'auto' : '100%',
                           }"
-                          :disabled="isMobileMode"
+                          :disabled="isMobileMode || isReorderingCards"
+                          :sort="canReorderCards && hasEditPermission"
                           :filter="draggableCardFilter"
                           :animation="interfacePageDataApi ? 150 : 0"
                           @start="handleCardDragStart"

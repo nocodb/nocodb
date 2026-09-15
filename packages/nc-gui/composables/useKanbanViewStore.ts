@@ -59,6 +59,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
      * component level, so the inject doesn't see the provided value.
      */
     const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
+    const isReadonly = inject(ReadonlyInj, ref(false))
 
     /**
      * Present when mounted inside an interface page — grouped/list/CRUD calls
@@ -527,7 +528,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
     }
 
-    async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    async function loadMoreKanbanData(stackTitle: string | null, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value && !interfaceDataApi) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
@@ -690,6 +691,82 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         return updatedRowData
       } catch (e: any) {
         message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+      }
+    }
+
+    const canReorderCards = computed(
+      () =>
+        !isPublic.value &&
+        !isReadonly.value &&
+        !interfaceDataApi &&
+        isUIAllowed('dataEdit', {
+          source: base.value?.sources?.find((source) => source.id === (meta.value as TableType)?.source_id),
+        }) &&
+        !sorts.value.length &&
+        !!(meta.value?.columns as ColumnType[] | undefined)?.some((col) => col.pk) &&
+        !!(meta.value?.columns as ColumnType[] | undefined)?.some((col) => col.uidt === UITypes.Order),
+    )
+
+    const isReorderingCards = ref(false)
+
+    async function updateRecordOrder(stackTitle: string | null, moved: { element: Row; oldIndex: number; newIndex: number }) {
+      const { element, oldIndex, newIndex } = moved
+      const restorePosition = () => {
+        const rows = formattedData.value.get(stackTitle)
+        const currentIndex = rows?.indexOf(element) ?? -1
+        if (!rows || currentIndex === -1) return
+        rows.splice(currentIndex, 1)
+        rows.splice(oldIndex, 0, element)
+      }
+
+      if (!canReorderCards.value || isReorderingCards.value) {
+        restorePosition()
+        return
+      }
+      if (oldIndex === newIndex) return
+
+      isReorderingCards.value = true
+      try {
+        const table = meta.value as TableType | undefined
+        const viewId = viewMeta.value?.id
+        const workspaceId = base.value?.fk_workspace_id
+        if (!table?.id || !table.base_id || !workspaceId || !viewId) throw new Error('Table is not available')
+
+        const rowId = extractPkFromRow(element.row, table.columns as ColumnType[])
+        if (!rowId || element.rowMeta.new) throw new Error('Record is not available')
+
+        let rows = formattedData.value.get(stackTitle)!
+        // Draggable has already reordered the loaded list. Its end may only be a page boundary:
+        // dataMove(before: null) appends globally, so first resolve the actual next card.
+        if (!rows[newIndex + 1]) {
+          const total = countByStack.value.get(stackTitle)
+          if (total === undefined) throw new Error('Stack count is not available')
+          if (rows.length < total) {
+            await loadMoreKanbanData(stackTitle, { offset: rows.length })
+            rows = formattedData.value.get(stackTitle)!
+            if (!rows[newIndex + 1]) throw new Error('Could not load the next card')
+          }
+        }
+
+        if (meta.value?.id !== table.id || viewMeta.value?.id !== viewId || !canReorderCards.value) {
+          throw new Error('View changed while reordering cards')
+        }
+        if (rows[newIndex] !== element) throw new Error('Stack changed while reordering cards')
+        const nextRow = rows[newIndex + 1]
+        const before = nextRow ? extractPkFromRow(nextRow.row, table.columns as ColumnType[]) : null
+        if (nextRow && !before) throw new Error('Next record is not available')
+
+        await $api.internal.postOperation(
+          workspaceId,
+          table.base_id,
+          { operation: 'dataMove', tableId: table.id, rowId, before } as any,
+          {},
+        )
+      } catch (e: any) {
+        restorePosition()
+        message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+      } finally {
+        isReorderingCards.value = false
       }
     }
 
@@ -1122,6 +1199,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       groupingField,
       groupingFieldColOptions,
       groupingFieldColumn,
+      canReorderCards,
+      isReorderingCards,
+      updateRecordOrder,
       updateOrSaveRow,
       addEmptyRow,
       addOrEditStackRow,

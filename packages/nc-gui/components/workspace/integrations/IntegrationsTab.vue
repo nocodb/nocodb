@@ -505,11 +505,23 @@ watch(activeViewTab, (value) => {
                               <div class="integration-icon-wrapper">
                                 <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                               </div>
-                              <div class="flex-1">
-                                <div class="name">{{ integrationLabel(integration.title) }}</div>
-                                <div v-if="integration.subtitle" class="subtitle flex-1">
+                              <div class="flex-1 min-w-0">
+                                <NcTooltip
+                                  class="name text-sm font-semibold text-nc-content-gray truncate"
+                                  show-on-truncate-only
+                                  :disabled="!integration?.isAvailable"
+                                >
+                                  {{ integrationLabel(integration.title) }}
+                                </NcTooltip>
+                                <NcTooltip
+                                  v-if="integration.subtitle"
+                                  class="subtitle text-xs text-nc-content-gray-subtle2 truncate"
+                                  show-on-truncate-only
+                                  placement="bottom"
+                                  :disabled="!integration?.isAvailable"
+                                >
                                   {{ integrationLabel(integration.subtitle) }}
-                                </div>
+                                </NcTooltip>
                               </div>
                               <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
                               <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
@@ -719,10 +731,6 @@ watch(activeViewTab, (value) => {
           }
         }
 
-        .name {
-          @apply text-base font-bold;
-        }
-
         .action-btn {
           @apply hidden;
         }
@@ -741,9 +749,6 @@ watch(activeViewTab, (value) => {
           // .integration-icon-wrapper {
           //   @apply bg-nc-bg-gray-light;
           // }
-          .name {
-            @apply text-nc-content-gray;
-          }
         }
         &:not(.is-available) {
           &:not(:hover) {
@@ -755,16 +760,6 @@ watch(activeViewTab, (value) => {
 
               //   filter: grayscale(100%) brightness(115%);
               // }
-            }
-
-            .name {
-              @apply text-nc-content-gray;
-            }
-          }
-
-          &:hover {
-            .name {
-              @apply text-nc-content-gray;
             }
           }
 

@@ -204,6 +204,7 @@ const rolePermissions = {
   },
   [ProjectRoles.VIEWER]: {
     include: {
+      viewRecordCount: true,
       baseSettings: true,
       // Base integrations inventory (mirrors the backend viewer+ floor).
       baseIntegrationList: true,

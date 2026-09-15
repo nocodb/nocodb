@@ -1,14 +1,23 @@
 import type { ViewType } from 'nocodb-sdk'
-import { ViewLockType } from 'nocodb-sdk'
+import { ViewLockType, extractRolesObj } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 /**
  * Shared composable for personal-view / locked-view permission checks.
  * Combines the user's role-based ACL with per-view ownership + lock_type rules.
  */
-export function usePersonalViewPermissions<T extends ViewType | undefined>(view: Ref<T>) {
+export function usePersonalViewPermissions<T extends ViewType | undefined>(
+  view: Ref<T>,
+  roles?: Ref<string | string[] | Record<string, boolean> | null | undefined>,
+) {
   const { isUIAllowed } = useRoles()
   const { user } = useGlobal()
+
+  const isAllowed = (permission: string) => {
+    if (!roles) return isUIAllowed(permission)
+    const scopedRoles = extractRolesObj(roles.value || {}) ?? {}
+    return Object.values(scopedRoles).some(Boolean) && isUIAllowed(permission, { roles: scopedRoles })
+  }
 
   const isPersonalView = computed(() => view.value?.lock_type === ViewLockType.Personal)
   const isLockedView = computed(() => view.value?.lock_type === ViewLockType.Locked)
@@ -46,19 +55,19 @@ export function usePersonalViewPermissions<T extends ViewType | undefined>(view:
     return computed(() => {
       // Read-only perms: role ACL is sufficient, no lock/ownership gate
       if (readOnlyPermissions.has(permission)) {
-        return isUIAllowed(permission) || isPersonalViewOwner.value
+        return isAllowed(permission) || isPersonalViewOwner.value
       }
 
       // Write perms on non-owned personal view — only creator+ bypass
       if (isPersonalView.value && !isPersonalViewOwner.value) {
-        return isUIAllowed('fieldAdd')
+        return isAllowed('fieldAdd')
       }
       // Write perms on locked view — only creator+ bypass
       if (isLockedView.value) {
-        return isUIAllowed('fieldAdd')
+        return isAllowed('fieldAdd')
       }
       // Collab view or own personal — role ACL applies
-      if (isUIAllowed(permission)) return true
+      if (isAllowed(permission)) return true
       // Fallback: personal view owner always gets access
       if (isPersonalViewOwner.value) return true
       return false
@@ -77,13 +86,13 @@ export function usePersonalViewPermissions<T extends ViewType | undefined>(view:
    * an alias. If the rules diverge later, split them.
    */
   const canModifyView = computed(() => {
-    if (!isUIAllowed('viewCreateOrEdit')) return false
+    if (!isAllowed('viewCreateOrEdit')) return false
 
     // Locked views: only creator+ can modify.
-    if (isLockedView.value && !isUIAllowed('fieldAdd')) return false
+    if (isLockedView.value && !isAllowed('fieldAdd')) return false
 
     // Personal views: only the owner or creator+ can modify.
-    if (isPersonalView.value && !isPersonalViewOwner.value && !isUIAllowed('fieldAdd')) return false
+    if (isPersonalView.value && !isPersonalViewOwner.value && !isAllowed('fieldAdd')) return false
 
     return true
   })

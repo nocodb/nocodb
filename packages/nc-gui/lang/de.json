@@ -4301,7 +4301,8 @@
     "workspaceSkills": "Arbeitsbereichs-Skills",
     "writeWithAi": "Mit KI schreiben",
     "calculationField": "Berechnungsfeld",
-    "bottomSummaryBar": "Zusammenfassungsleiste unten"
+    "bottomSummaryBar": "Zusammenfassungsleiste unten",
+    "fieldGroups": "{field}-Gruppen"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",

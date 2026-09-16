@@ -4299,7 +4299,9 @@
     "yAxisLeft": "Y-Achse (links)",
     "yAxisRight": "Y-Achse (rechts)",
     "workspaceSkills": "Arbeitsbereichs-Skills",
-    "writeWithAi": "Mit KI schreiben"
+    "writeWithAi": "Mit KI schreiben",
+    "calculationField": "Berechnungsfeld",
+    "bottomSummaryBar": "Zusammenfassungsleiste unten"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",

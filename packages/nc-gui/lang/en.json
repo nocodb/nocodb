@@ -434,7 +434,7 @@
     "deleteEntity": "Delete {entity}",
     "bulkInsert": "Bulk Insert",
     "bulkDelete": "Bulk Delete",
-    "bulkUpdate": "Bulk update",
+    "bulkUpdate": "Bulk Update",
     "deleting": "Deleting",
     "update": "Update",
     "updating": "Updating",

@@ -185,7 +185,14 @@ export class BulkDataAliasService {
       operation: 'bulkDeleteAll',
       options: [
         param.query,
-        { cookie: param.req, skip_hooks: param.internalFlags?.skipHooks },
+        {
+          cookie: param.req,
+          skip_hooks: param.internalFlags?.skipHooks,
+          // `internalFlags` marks a system sweep (sync cleanup, trash purge).
+          // Those carry the triggering user's req but aren't their delete, so
+          // the record-delete permission applies to the two UI paths only.
+          skipPermissionCheck: !!param.internalFlags?.skipHooks,
+        },
       ],
     });
   }

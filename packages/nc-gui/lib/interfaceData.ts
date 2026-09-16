@@ -260,6 +260,14 @@ export interface InterfacePageDataApi {
   deleteRow(rowId: string): Promise<boolean>
   bulkDeleteRows(rowIds: string[]): Promise<boolean>
   /**
+   * Select-all deletion (grid header checkbox) — deletes every record in the
+   * page scope minus `skipPks` (the deselected rows), server-bounded to the
+   * viz's composed conditions. `where` / `filtersArr` carry the caller's live
+   * search + ad-hoc filters so the delete matches exactly what select-all
+   * counted. Optional on older adapters / public shares.
+   */
+  bulkDeleteAll?(params: { where?: string; filtersArr?: FilterType[]; skipPks?: string }): Promise<boolean>
+  /**
    * Read a single record within the page scope (record expansion). Bounded by
    * the composed page ∧ viz ∧ user-filter conditions and projected to the viz
    * field allow-list — so an interface-only consumer can expand a row without

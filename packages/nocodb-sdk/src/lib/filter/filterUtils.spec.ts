@@ -78,6 +78,60 @@ describe('getPlaceholderNewRow', () => {
     ).toEqual({});
   });
 
+  it('skips the children of a disabled group', () => {
+    // `allFilters` is flattened, so a disabled group and its children arrive as
+    // siblings — only the group row carries `enabled: false`.
+    expect(
+      getPlaceholderNewRow(
+        [
+          { id: 'g1', is_group: true, logical_op: 'and', enabled: false },
+          eq('c1', 'Olivia', { id: 'f1', fk_parent_id: 'g1' }),
+          eq('c2', 94513, { id: 'f2' }),
+        ],
+        columns
+      )
+    ).toEqual({ Code: 94513 });
+  });
+
+  it('skips grandchildren of a disabled group', () => {
+    expect(
+      getPlaceholderNewRow(
+        [
+          { id: 'g1', is_group: true, logical_op: 'and', enabled: false },
+          { id: 'g2', is_group: true, logical_op: 'and', fk_parent_id: 'g1' },
+          eq('c1', 'Olivia', { id: 'f1', fk_parent_id: 'g2' }),
+          eq('c2', 94513, { id: 'f2' }),
+        ],
+        columns
+      )
+    ).toEqual({ Code: 94513 });
+  });
+
+  it('keeps the children of an enabled group', () => {
+    expect(
+      getPlaceholderNewRow(
+        [
+          { id: 'g1', is_group: true, logical_op: 'and' },
+          eq('c1', 'Olivia', { id: 'f1', fk_parent_id: 'g1' }),
+        ],
+        columns
+      )
+    ).toEqual({ Project: 'Olivia' });
+  });
+
+  it('does not let an "or" child of a disabled group suppress the prefill', () => {
+    expect(
+      getPlaceholderNewRow(
+        [
+          { id: 'g1', is_group: true, logical_op: 'and', enabled: false },
+          eq('c3', 'Draft', { id: 'f1', fk_parent_id: 'g1', logical_op: 'or' }),
+          eq('c1', 'Olivia', { id: 'f2' }),
+        ],
+        columns
+      )
+    ).toEqual({ Project: 'Olivia' });
+  });
+
   it('skips group rows', () => {
     expect(
       getPlaceholderNewRow(

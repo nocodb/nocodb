@@ -859,8 +859,28 @@ export const getPlaceholderNewRow = (
 ) => {
   // Disabled filters are skipped by the query, so they must not prefill either
   // (`enabled` is a boolean or a 0/1 int depending on the meta DB).
+  const isDisabled = (filter: Filter) =>
+    filter.enabled === false || filter.enabled === 0;
+
+  // `filters` arrives flattened — useViewFilters pushes every descendant in as
+  // a sibling — so a disabled GROUP shows up next to its still-enabled
+  // children. conditionV2 drops the whole subtree, so walk each row's ancestor
+  // chain and drop it too, otherwise a child of a disabled group prefills.
+  const byId = new Map(
+    filters.filter((filter) => filter.id).map((filter) => [filter.id, filter])
+  );
+  const hasDisabledAncestor = (filter: Filter) => {
+    let parent = filter.fk_parent_id ? byId.get(filter.fk_parent_id) : undefined;
+    // Bounded by the list length so a malformed parent cycle cannot hang.
+    for (let depth = 0; parent && depth < filters.length; depth++) {
+      if (isDisabled(parent)) return true;
+      parent = parent.fk_parent_id ? byId.get(parent.fk_parent_id) : undefined;
+    }
+    return false;
+  };
+
   const enabledFilters = filters.filter(
-    (filter) => filter.enabled !== false && (filter.enabled as any) !== 0
+    (filter) => !isDisabled(filter) && !hasDisabledAncestor(filter)
   );
   if (enabledFilters.some((filter) => filter.logical_op === 'or')) {
     return {};

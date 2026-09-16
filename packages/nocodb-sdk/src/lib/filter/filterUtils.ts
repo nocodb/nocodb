@@ -857,11 +857,19 @@ export const getPlaceholderNewRow = (
     };
   }
 ) => {
-  if (filters.some((filter) => filter.logical_op === 'or')) {
+  // Disabled filters are skipped by the query, so they must not prefill either
+  // (`enabled` is a boolean or a 0/1 int depending on the meta DB).
+  const enabledFilters = filters.filter(
+    (filter) => filter.enabled !== false && (filter.enabled as any) !== 0
+  );
+  if (enabledFilters.some((filter) => filter.logical_op === 'or')) {
     return {};
   }
   const placeholderNewRow: Record<string, any> = {};
-  for (const eachFilter of filters) {
+  for (const eachFilter of enabledFilters) {
+    // Group rows carry no comparison_op; their children are not prefilled.
+    if (eachFilter.is_group) continue;
+
     if (
       ['checked', 'notchecked', 'allof', 'eq'].includes(
         eachFilter.comparison_op as any

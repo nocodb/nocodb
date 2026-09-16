@@ -3448,7 +3448,6 @@
     "notActivatedYet": "Nog niet geactiveerd",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Begin een nieuwe chat om iets over je gegevens te vragen of iets te bouwen.",
-    "mcpApiKeyHeaderInfo": "Het token kan ook in een {apiKeyHeader}-header worden meegestuurd in plaats van {mcpTokenHeader}.",
     "newViewFolder": "Nieuwe weergavemap",
     "noDescription": "Geen beschrijving",
     "noAutomationsYet": "Nog geen automatiseringen in deze base",

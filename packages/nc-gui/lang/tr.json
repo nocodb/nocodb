@@ -3456,7 +3456,6 @@
     "notActivatedYet": "Henüz etkinleştirilmedi",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Verileriniz hakkında soru sormak veya bir şey oluşturmak için yeni bir sohbet başlatın.",
-    "mcpApiKeyHeaderInfo": "Token, {mcpTokenHeader} yerine {apiKeyHeader} başlığıyla da gönderilebilir.",
     "newViewFolder": "Yeni görünüm klasörü",
     "noDescription": "Açıklama yok",
     "noAutomationsYet": "Bu bazda henüz otomasyon yok",

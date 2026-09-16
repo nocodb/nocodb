@@ -3454,7 +3454,6 @@
     "notActivatedYet": "Inte aktiverad ännu",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Starta en ny chatt för att fråga om dina data eller bygga något.",
-    "mcpApiKeyHeaderInfo": "Token kan också skickas i en {apiKeyHeader}-header i stället för {mcpTokenHeader}.",
     "newViewFolder": "Ny vymapp",
     "noDescription": "Ingen beskrivning",
     "noAutomationsYet": "Inga automatiseringar i den här basen ännu",

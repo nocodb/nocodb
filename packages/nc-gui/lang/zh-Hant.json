@@ -3456,7 +3456,6 @@
     "notActivatedYet": "尚未啟用",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "開始新的對話，詢問你的資料或打造點什麼。",
-    "mcpApiKeyHeaderInfo": "權杖也可以放在 {apiKeyHeader} 標頭中傳送，取代 {mcpTokenHeader}。",
     "newViewFolder": "新增檢視資料夾",
     "noDescription": "沒有說明",
     "noAutomationsYet": "此 Base 中還沒有自動化",

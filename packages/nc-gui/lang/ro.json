@@ -3448,7 +3448,6 @@
     "notActivatedYet": "Încă neactivat",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Începe o conversație nouă ca să întrebi despre datele tale sau să construiești ceva.",
-    "mcpApiKeyHeaderInfo": "Tokenul poate fi trimis și într-un antet {apiKeyHeader} în loc de {mcpTokenHeader}.",
     "newViewFolder": "Folder nou de vizualizări",
     "noDescription": "Fără descriere",
     "noAutomationsYet": "Încă nu există automatizări în această bază",

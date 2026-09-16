@@ -3455,7 +3455,6 @@
     "notActivatedYet": "Še ni aktivirano",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Začnite nov klepet, da vprašate o svojih podatkih ali kaj zgradite.",
-    "mcpApiKeyHeaderInfo": "Žeton lahko namesto v {mcpTokenHeader} pošljete tudi v glavi {apiKeyHeader}.",
     "newViewFolder": "Nova mapa pogledov",
     "noDescription": "Brez opisa",
     "noAutomationsYet": "V tej bazi še ni avtomatizacij",

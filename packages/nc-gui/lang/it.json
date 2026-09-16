@@ -3454,7 +3454,6 @@
     "notActivatedYet": "Non ancora attivato",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Avvia una nuova chat per chiedere informazioni sui tuoi dati o creare qualcosa.",
-    "mcpApiKeyHeaderInfo": "Il token può essere inviato anche in un'intestazione {apiKeyHeader} invece di {mcpTokenHeader}.",
     "newViewFolder": "Nuova cartella di viste",
     "noDescription": "Nessuna descrizione",
     "noAutomationsYet": "Ancora nessuna automazione in questa base",

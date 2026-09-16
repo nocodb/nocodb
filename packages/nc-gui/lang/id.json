@@ -3453,7 +3453,6 @@
     "notActivatedYet": "Belum diaktifkan",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Mulai obrolan baru untuk bertanya tentang data Anda atau membuat sesuatu.",
-    "mcpApiKeyHeaderInfo": "Token juga bisa dikirim dalam header {apiKeyHeader} alih-alih {mcpTokenHeader}.",
     "newViewFolder": "Folder tampilan baru",
     "noDescription": "Tidak ada deskripsi",
     "noAutomationsYet": "Belum ada otomatisasi di basis ini",

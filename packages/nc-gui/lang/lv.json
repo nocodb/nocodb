@@ -3453,7 +3453,6 @@
     "notActivatedYet": "Vēl nav aktivizēts",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Sāciet jaunu sarunu, lai jautātu par saviem datiem vai kaut ko izveidotu.",
-    "mcpApiKeyHeaderInfo": "Pilnvaru var nosūtīt arī {apiKeyHeader} galvenē, nevis {mcpTokenHeader}.",
     "newViewFolder": "Jauna skatījumu mape",
     "noDescription": "Nav apraksta",
     "noAutomationsYet": "Šajā bāzē vēl nav automatizāciju",

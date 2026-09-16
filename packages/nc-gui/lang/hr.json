@@ -3455,7 +3455,6 @@
     "notActivatedYet": "Još nije aktivirano",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Pokrenite novi razgovor da biste pitali o svojim podacima ili nešto izgradili.",
-    "mcpApiKeyHeaderInfo": "Token se umjesto u {mcpTokenHeader} može poslati i u zaglavlju {apiKeyHeader}.",
     "newViewFolder": "Nova mapa pogleda",
     "noDescription": "Bez opisa",
     "noAutomationsYet": "U ovoj bazi još nema automatizacija",

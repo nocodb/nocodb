@@ -3456,7 +3456,6 @@
     "notActivatedYet": "এখনো সক্রিয় করা হয়নি",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "আপনার ডেটা সম্পর্কে জানতে বা কিছু তৈরি করতে একটি নতুন চ্যাট শুরু করুন।",
-    "mcpApiKeyHeaderInfo": "টোকেনটি {mcpTokenHeader} এর পরিবর্তে {apiKeyHeader} হেডারেও পাঠানো যায়।",
     "newViewFolder": "নতুন দৃশ্য ফোল্ডার",
     "noDescription": "কোনো বিবরণ নেই",
     "noAutomationsYet": "এই উৎসে এখনো কোনো অটোমেশন নেই",

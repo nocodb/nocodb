@@ -3456,7 +3456,6 @@
     "notActivatedYet": "아직 활성화되지 않음",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "새 채팅을 시작해 데이터에 대해 묻거나 무언가를 만들어 보세요.",
-    "mcpApiKeyHeaderInfo": "토큰은 {mcpTokenHeader} 대신 {apiKeyHeader} 헤더로 보낼 수도 있습니다.",
     "newViewFolder": "새 뷰 폴더",
     "noDescription": "설명 없음",
     "noAutomationsYet": "이 베이스에는 아직 자동화가 없습니다",

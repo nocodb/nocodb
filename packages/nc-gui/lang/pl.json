@@ -3455,7 +3455,6 @@
     "notActivatedYet": "Jeszcze nieaktywowane",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Rozpocznij nowy czat, aby zapytać o swoje dane lub coś zbudować.",
-    "mcpApiKeyHeaderInfo": "Token można też wysłać w nagłówku {apiKeyHeader} zamiast {mcpTokenHeader}.",
     "newViewFolder": "Nowy folder widoków",
     "noDescription": "Brak opisu",
     "noAutomationsYet": "W tej bazie nie ma jeszcze automatyzacji",

@@ -3456,7 +3456,6 @@
     "notActivatedYet": "Chưa kích hoạt",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Bắt đầu cuộc trò chuyện mới để hỏi về dữ liệu của bạn hoặc dựng thứ gì đó.",
-    "mcpApiKeyHeaderInfo": "Token cũng có thể được gửi trong header {apiKeyHeader} thay vì {mcpTokenHeader}.",
     "newViewFolder": "Thư mục chế độ xem mới",
     "noDescription": "Không có mô tả",
     "noAutomationsYet": "Cơ sở này chưa có tự động hóa nào",

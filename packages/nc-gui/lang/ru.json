@@ -3456,7 +3456,6 @@
     "notActivatedYet": "Пока не активировано",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Начните новый чат, чтобы спросить о своих данных или что-нибудь создать.",
-    "mcpApiKeyHeaderInfo": "Токен также можно передать в заголовке {apiKeyHeader} вместо {mcpTokenHeader}.",
     "newViewFolder": "Новая папка представлений",
     "noDescription": "Без описания",
     "noAutomationsYet": "В этой базе пока нет автоматизаций",

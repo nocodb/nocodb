@@ -3456,7 +3456,6 @@
     "notActivatedYet": "Még nincs aktiválva",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Indítson új csevegést, hogy kérdezzen az adatairól vagy építsen valamit.",
-    "mcpApiKeyHeaderInfo": "A token {mcpTokenHeader} helyett {apiKeyHeader} fejlécben is elküldhető.",
     "newViewFolder": "Új nézetmappa",
     "noDescription": "Nincs leírás",
     "noAutomationsYet": "Ebben a bázisban még nincsenek automatizálások",

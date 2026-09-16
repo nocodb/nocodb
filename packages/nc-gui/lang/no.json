@@ -3455,7 +3455,6 @@
     "notActivatedYet": "Ikke aktivert ennå",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Start en ny chat for å spørre om dataene dine eller bygge noe.",
-    "mcpApiKeyHeaderInfo": "Tokenet kan også sendes i en {apiKeyHeader}-header i stedet for {mcpTokenHeader}.",
     "newViewFolder": "Ny visningsmappe",
     "noDescription": "Ingen beskrivelse",
     "noAutomationsYet": "Ingen automatiseringer i denne basen ennå",

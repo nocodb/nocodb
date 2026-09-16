@@ -3431,7 +3431,6 @@
     "notActivatedYet": "Pas encore activé",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Démarrez une nouvelle conversation pour interroger vos données ou créer quelque chose.",
-    "mcpApiKeyHeaderInfo": "Le jeton peut aussi être envoyé dans un en-tête {apiKeyHeader} au lieu de {mcpTokenHeader}.",
     "newViewFolder": "Nouveau dossier de vues",
     "noDescription": "Aucune description",
     "noAutomationsYet": "Aucune automatisation dans cette base pour l'instant",

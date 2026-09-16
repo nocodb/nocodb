@@ -3456,7 +3456,6 @@
     "notActivatedYet": "Ei vielä aktivoitu",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Aloita uusi keskustelu kysyäksesi tiedoistasi tai rakentaaksesi jotain.",
-    "mcpApiKeyHeaderInfo": "Tunnisteen voi lähettää myös {apiKeyHeader}-otsakkeessa {mcpTokenHeader}-otsakkeen sijaan.",
     "newViewFolder": "Uusi näkymäkansio",
     "noDescription": "Ei kuvausta",
     "noAutomationsYet": "Tässä basessa ei ole vielä automaatioita",

@@ -3453,7 +3453,6 @@
     "notActivatedYet": "Zatím neaktivováno",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "Začněte nový chat a zeptejte se na svá data nebo něco vytvořte.",
-    "mcpApiKeyHeaderInfo": "Token lze místo {mcpTokenHeader} odeslat i v hlavičce {apiKeyHeader}.",
     "newViewFolder": "Nová složka pohledů",
     "noDescription": "Bez popisu",
     "noAutomationsYet": "V této bázi zatím nejsou žádné automatizace",

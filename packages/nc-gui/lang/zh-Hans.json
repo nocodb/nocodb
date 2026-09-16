@@ -3456,7 +3456,6 @@
     "notActivatedYet": "尚未激活",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "开始新的对话，向它询问你的数据或搭建点什么。",
-    "mcpApiKeyHeaderInfo": "令牌也可以放在 {apiKeyHeader} 请求头中发送，替代 {mcpTokenHeader}。",
     "newViewFolder": "新建视图文件夹",
     "noDescription": "没有描述",
     "noAutomationsYet": "此 Base 中还没有自动化",

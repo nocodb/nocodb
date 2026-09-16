@@ -3456,7 +3456,6 @@
     "notActivatedYet": "لم يُفعَّل بعد",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "ابدأ محادثة جديدة لتسأل عن بياناتك أو لتبني شيئًا ما.",
-    "mcpApiKeyHeaderInfo": "يمكن أيضًا إرسال الرمز في ترويسة {apiKeyHeader} بدلًا من {mcpTokenHeader}.",
     "newViewFolder": "مجلد عروض جديد",
     "noDescription": "لا يوجد وصف",
     "noAutomationsYet": "لا توجد عمليات أتمتة في هذه القاعدة بعد",

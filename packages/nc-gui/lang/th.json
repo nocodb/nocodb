@@ -3456,7 +3456,6 @@
     "notActivatedYet": "ยังไม่ได้เปิดใช้งาน",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "เริ่มแชทใหม่เพื่อถามเกี่ยวกับข้อมูลของคุณหรือสร้างบางอย่าง",
-    "mcpApiKeyHeaderInfo": "โทเค็นสามารถส่งในส่วนหัว {apiKeyHeader} แทน {mcpTokenHeader} ได้เช่นกัน",
     "newViewFolder": "โฟลเดอร์มุมมองใหม่",
     "noDescription": "ไม่มีคำอธิบาย",
     "noAutomationsYet": "ยังไม่มีระบบอัตโนมัติในเบสนี้",

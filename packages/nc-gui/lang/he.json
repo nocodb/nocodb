@@ -3456,7 +3456,6 @@
     "notActivatedYet": "עדיין לא הופעל",
     "nocoAi": "NocoAI",
     "noChatsYetHint": "התחילו שיחה חדשה כדי לשאול על הנתונים שלכם או לבנות משהו.",
-    "mcpApiKeyHeaderInfo": "אפשר לשלוח את האסימון גם בכותרת {apiKeyHeader} במקום {mcpTokenHeader}.",
     "newViewFolder": "תיקיית תצוגות חדשה",
     "noDescription": "אין תיאור",
     "noAutomationsYet": "אין עדיין אוטומציות בבסיס הזה",

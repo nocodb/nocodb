@@ -696,7 +696,9 @@
     "filters": "筛选条件",
     "permanent": "永久",
     "variable": "变量",
-    "words": "词"
+    "words": "词",
+    "function": "函数",
+    "functions": "函数"
   },
   "objects": {
     "script": "脚本",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "对可关联的记录数量设置上限。",
     "audit": {
       "retention": {
-        "oneYear": "1 年"
+        "oneYear": "1 年",
+        "twoWeeks": "2 周",
+        "twoMonths": "2 个月",
+        "sixMonths": "6 个月"
       }
     },
     "appIsReady": "{app} 已就绪",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "所有访客合计，应用每分钟可处理 {count} 次。",
       "actionsTitle": "访客可以做什么",
       "actionsHint": "未登录者接触您数据的唯一途径。更改会在您下次发布时生效。"
+    },
+    "autoSubmit": "自动提交",
+    "autoIncrement": "自动递增",
+    "autoUpdate": "自动更新",
+    "autoSuggestActions": "自动建议操作",
+    "backToPage": "返回 {page}",
+    "availableLayouts": "可用的 Layout",
+    "backToAssistant": "返回助手",
+    "barOrientation": "条形方向",
+    "baseNav": {
+      "groupInvite": "邀请",
+      "groupData": "管理",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "创建",
+      "groupAdmin": "Admin",
+      "members": "成员",
+      "interfaceMembers": "成员",
+      "dataPermissions": "表与字段",
+      "docsPermissions": "Docs",
+      "databases": "外部数据库",
+      "databasesInfo": "连接一个外部数据库。它的表会通过实时连接显示在「数据」中。",
+      "integrations": "集成",
+      "sync": "Sync",
+      "syncInfo": "按计划将外部应用的数据拉取到该数据库的表中。单向同步，因此在这里所做的修改不会回流。",
+      "automations": "自动化",
+      "aiSkills": "AI 技能",
+      "mcpServer": "MCP 服务器",
+      "auditLog": "审计日志",
+      "trashRetention": "回收站保留期",
+      "snapshots": "Snapshots",
+      "general": "常规",
+      "searchPlaceholder": "搜索设置",
+      "searchEmpty": "没有设置匹配“{query}”",
+      "upgradeAvailableOn": "在 {plan} 方案中可用。",
+      "upgradeCta": "立即升级到 {plan}",
+      "upgradeTitlePermissionsDocs": "Docs 权限",
+      "upgradeDescPermissionsTablesFields": "限制谁可以查看或编辑每个表和字段。",
+      "upgradeDescPermissionsDocs": "限制谁可以查看或编辑每个文档。",
+      "upgradeDescSync": "按计划从外部应用拉取数据。",
+      "upgradeDescTrashRetention": "选择已删除记录的保留时长。",
+      "upgradeDescVariables": "定义仅适用于该数据库的可复用值。",
+      "upgradeDescTeams": "将人员分组，并在一处管理他们的访问权限。",
+      "membersPage": "数据库成员",
+      "interfaceMembersPage": "Interface 成员",
+      "dataPermissionsNav": "数据权限",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "保存该数据库在某一时间点的可恢复副本。"
     }
   },
   "activity": {

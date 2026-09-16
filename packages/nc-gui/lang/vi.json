@@ -696,7 +696,9 @@
     "filters": "bộ lọc",
     "permanent": "Vĩnh viễn",
     "variable": "Biến",
-    "words": "từ"
+    "words": "từ",
+    "function": "Hàm",
+    "functions": "Các hàm"
   },
   "objects": {
     "script": "Script",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Đặt giới hạn cho số bản ghi có thể liên kết.",
     "audit": {
       "retention": {
-        "oneYear": "1 năm"
+        "oneYear": "1 năm",
+        "twoWeeks": "2 tuần",
+        "twoMonths": "2 tháng",
+        "sixMonths": "6 tháng"
       }
     },
     "appIsReady": "{app} đã sẵn sàng",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Tính trên toàn bộ khách truy cập, ứng dụng xử lý được {count} mỗi phút.",
       "actionsTitle": "Khách truy cập có thể làm gì",
       "actionsHint": "Con đường duy nhất để người chưa đăng nhập chạm tới dữ liệu của bạn. Thay đổi có hiệu lực ở lần xuất bản tiếp theo."
+    },
+    "autoSubmit": "Tự động gửi",
+    "autoIncrement": "Tự động tăng",
+    "autoUpdate": "Tự động cập nhật",
+    "autoSuggestActions": "Tự động gợi ý hành động",
+    "backToPage": "Quay lại {page}",
+    "availableLayouts": "Các Layout khả dụng",
+    "backToAssistant": "Quay lại trợ lý",
+    "barOrientation": "Hướng của cột",
+    "baseNav": {
+      "groupInvite": "Mời",
+      "groupData": "Quản lý",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Tạo",
+      "groupAdmin": "Admin",
+      "members": "Thành viên",
+      "interfaceMembers": "Thành viên",
+      "dataPermissions": "Bảng và trường dữ liệu",
+      "docsPermissions": "Docs",
+      "databases": "Cơ sở dữ liệu bên ngoài",
+      "databasesInfo": "Kết nối một cơ sở dữ liệu bên ngoài. Các bảng của nó xuất hiện trong mục Dữ liệu thông qua kết nối trực tiếp.",
+      "integrations": "Tích hợp",
+      "sync": "Sync",
+      "syncInfo": "Kéo dữ liệu từ một app bên ngoài vào các bảng của cơ sở này theo lịch. Một chiều, nên các chỉnh sửa ở đây không chảy ngược lại.",
+      "automations": "Tự động hóa",
+      "aiSkills": "Kỹ năng AI",
+      "mcpServer": "Máy chủ MCP",
+      "auditLog": "Nhật ký kiểm toán",
+      "trashRetention": "Thời gian giữ thùng rác",
+      "snapshots": "Snapshots",
+      "general": "Chung",
+      "searchPlaceholder": "Tìm trong cài đặt",
+      "searchEmpty": "Không có cài đặt nào khớp với “{query}”",
+      "upgradeAvailableOn": "Có trong gói {plan}.",
+      "upgradeCta": "Nâng cấp lên {plan} ngay",
+      "upgradeTitlePermissionsDocs": "Quyền cho Docs",
+      "upgradeDescPermissionsTablesFields": "Giới hạn ai có thể xem hoặc sửa từng bảng và từng trường dữ liệu.",
+      "upgradeDescPermissionsDocs": "Giới hạn ai có thể xem hoặc sửa từng tài liệu.",
+      "upgradeDescSync": "Kéo dữ liệu từ các app bên ngoài theo lịch.",
+      "upgradeDescTrashRetention": "Chọn thời gian giữ các bản ghi đã xóa.",
+      "upgradeDescVariables": "Định nghĩa các giá trị dùng lại được, chỉ trong phạm vi cơ sở này.",
+      "upgradeDescTeams": "Nhóm mọi người lại và quản lý quyền truy cập của họ ở một nơi.",
+      "membersPage": "Thành viên của cơ sở",
+      "interfaceMembersPage": "Thành viên của interface",
+      "dataPermissionsNav": "Quyền với dữ liệu",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Lưu một bản sao có thể khôi phục của cơ sở này tại một thời điểm."
     }
   },
   "activity": {

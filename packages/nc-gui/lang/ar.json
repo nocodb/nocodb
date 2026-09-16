@@ -696,7 +696,9 @@
     "filters": "عوامل التصفية",
     "permanent": "دائم",
     "variable": "متغير",
-    "words": "كلمات"
+    "words": "كلمات",
+    "function": "دالة",
+    "functions": "الدوال"
   },
   "objects": {
     "script": "سكربت",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "ضع حدًا لعدد السجلات التي يمكن ربطها.",
     "audit": {
       "retention": {
-        "oneYear": "سنة واحدة"
+        "oneYear": "سنة واحدة",
+        "twoWeeks": "أسبوعان",
+        "twoMonths": "شهران",
+        "sixMonths": "6 أشهر"
       }
     },
     "appIsReady": "{app} جاهز",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "عبر جميع الزوار مجتمعين، يتحمل التطبيق {count} في الدقيقة.",
       "actionsTitle": "ما يمكن للزوار فعله",
       "actionsHint": "السبيل الوحيد الذي يصل به غير المسجّل إلى بياناتك. تسري التغييرات عند النشر القادم."
+    },
+    "autoSubmit": "إرسال تلقائي",
+    "autoIncrement": "زيادة تلقائية",
+    "autoUpdate": "تحديث تلقائي",
+    "autoSuggestActions": "اقتراح الإجراءات تلقائيًا",
+    "backToPage": "العودة إلى {page}",
+    "availableLayouts": "التخطيطات المتاحة",
+    "backToAssistant": "العودة إلى المساعد",
+    "barOrientation": "اتجاه الأعمدة",
+    "baseNav": {
+      "groupInvite": "دعوة",
+      "groupData": "إدارة",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "إنشاء",
+      "groupAdmin": "Admin",
+      "members": "الأعضاء",
+      "interfaceMembers": "الأعضاء",
+      "dataPermissions": "الجداول والحقول",
+      "docsPermissions": "Docs",
+      "databases": "قاعدة بيانات خارجية",
+      "databasesInfo": "اربط قاعدة بيانات خارجية. ستظهر جداولها ضمن «البيانات» عبر اتصال مباشر.",
+      "integrations": "التكاملات",
+      "sync": "Sync",
+      "syncInfo": "اسحب البيانات من تطبيق خارجي إلى جداول قاعدة البيانات هذه وفق جدول زمني. الاتجاه واحد، لذا فإن التعديلات هنا لا تعود إلى المصدر.",
+      "automations": "الأتمتة",
+      "aiSkills": "مهارات الذكاء الاصطناعي",
+      "mcpServer": "خادم MCP",
+      "auditLog": "سجل التدقيق",
+      "trashRetention": "مدة الاحتفاظ بالمهملات",
+      "snapshots": "Snapshots",
+      "general": "عام",
+      "searchPlaceholder": "البحث في الإعدادات",
+      "searchEmpty": "لا توجد إعدادات تطابق «{query}»",
+      "upgradeAvailableOn": "متاح في خطة {plan}.",
+      "upgradeCta": "الترقية إلى {plan} الآن",
+      "upgradeTitlePermissionsDocs": "أذونات Docs",
+      "upgradeDescPermissionsTablesFields": "حدّد من يمكنه عرض أو تحرير كل جدول وكل حقل.",
+      "upgradeDescPermissionsDocs": "حدّد من يمكنه عرض أو تحرير كل مستند.",
+      "upgradeDescSync": "اسحب البيانات من التطبيقات الخارجية وفق جدول زمني.",
+      "upgradeDescTrashRetention": "اختر المدة التي تُحفظ فيها السجلات المحذوفة.",
+      "upgradeDescVariables": "عرّف قيمًا قابلة لإعادة الاستخدام ضمن نطاق قاعدة البيانات هذه.",
+      "upgradeDescTeams": "اجمع الأشخاص في مجموعات وأدر وصولهم من مكان واحد.",
+      "membersPage": "أعضاء قاعدة البيانات",
+      "interfaceMembersPage": "أعضاء الـ Interface",
+      "dataPermissionsNav": "أذونات البيانات",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "احفظ نسخة قابلة للاستعادة من قاعدة البيانات هذه عند لحظة زمنية معينة."
     }
   },
   "activity": {

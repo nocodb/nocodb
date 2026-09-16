@@ -696,7 +696,9 @@
     "filters": "फ़िल्टर",
     "permanent": "स्थायी",
     "variable": "चर",
-    "words": "शब्द"
+    "words": "शब्द",
+    "function": "फ़ंक्शन",
+    "functions": "फ़ंक्शन"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "जोड़े जा सकने वाले रिकॉर्ड की संख्या पर सीमा लगाएँ।",
     "audit": {
       "retention": {
-        "oneYear": "1 वर्ष"
+        "oneYear": "1 वर्ष",
+        "twoWeeks": "2 सप्ताह",
+        "twoMonths": "2 महीने",
+        "sixMonths": "6 महीने"
       }
     },
     "appIsReady": "{app} तैयार है",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "सभी आगंतुकों को मिलाकर, ऐप प्रति मिनट {count} संभाल सकता है।",
       "actionsTitle": "आगंतुक क्या कर सकते हैं",
       "actionsHint": "बिना साइन इन किए कोई आपके डेटा तक पहुँचने का यही एकमात्र रास्ता है। बदलाव अगली बार प्रकाशित करने पर लागू होंगे।"
+    },
+    "autoSubmit": "स्वतः सबमिट",
+    "autoIncrement": "स्वतः वृद्धि",
+    "autoUpdate": "स्वतः अद्यतन",
+    "autoSuggestActions": "क्रियाएँ स्वतः सुझाएँ",
+    "backToPage": "{page} पर वापस जाएँ",
+    "availableLayouts": "उपलब्ध Layout",
+    "backToAssistant": "सहायक पर वापस जाएँ",
+    "barOrientation": "पट्टियों की दिशा",
+    "baseNav": {
+      "groupInvite": "आमंत्रित करें",
+      "groupData": "प्रबंधित करें",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "बनाएँ",
+      "groupAdmin": "Admin",
+      "members": "सदस्य",
+      "interfaceMembers": "सदस्य",
+      "dataPermissions": "तालिकाएँ और कॉलम",
+      "docsPermissions": "Docs",
+      "databases": "बाहरी डेटाबेस",
+      "databasesInfo": "एक बाहरी डेटाबेस जोड़ें। उसकी तालिकाएँ लाइव कनेक्शन के ज़रिए डेटा में दिखती हैं।",
+      "integrations": "एकीकरण",
+      "sync": "Sync",
+      "syncInfo": "किसी बाहरी ऐप से डेटा को निर्धारित समय पर इस बेस की तालिकाओं में लाएँ। यह एकतरफ़ा है, इसलिए यहाँ किए गए बदलाव वापस नहीं जाते।",
+      "automations": "स्वचालन",
+      "aiSkills": "AI कौशल",
+      "mcpServer": "MCP सर्वर",
+      "auditLog": "ऑडिट लॉग",
+      "trashRetention": "कूड़ेदान की अवधारण अवधि",
+      "snapshots": "Snapshots",
+      "general": "सामान्य",
+      "searchPlaceholder": "सेटिंग्स में खोजें",
+      "searchEmpty": "“{query}” से कोई सेटिंग मेल नहीं खाती",
+      "upgradeAvailableOn": "{plan} योजना में उपलब्ध है।",
+      "upgradeCta": "अभी {plan} में अपग्रेड करें",
+      "upgradeTitlePermissionsDocs": "Docs के लिए अनुमतियाँ",
+      "upgradeDescPermissionsTablesFields": "तय करें कि हर तालिका और कॉलम को कौन देख या संपादित कर सकता है।",
+      "upgradeDescPermissionsDocs": "तय करें कि हर दस्तावेज़ को कौन देख या संपादित कर सकता है।",
+      "upgradeDescSync": "बाहरी ऐप्स से डेटा निर्धारित समय पर लाएँ।",
+      "upgradeDescTrashRetention": "चुनें कि हटाए गए अभिलेख कितने समय तक रखे जाएँ।",
+      "upgradeDescVariables": "इस बेस तक सीमित पुन: प्रयोज्य मान परिभाषित करें।",
+      "upgradeDescTeams": "लोगों को समूहों में रखें और उनकी पहुँच एक ही जगह से प्रबंधित करें।",
+      "membersPage": "बेस के सदस्य",
+      "interfaceMembersPage": "Interface के सदस्य",
+      "dataPermissionsNav": "डेटा अनुमतियाँ",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "इस बेस की किसी समय-बिंदु पर पुनर्स्थापन योग्य प्रति सहेजें।"
     }
   },
   "activity": {

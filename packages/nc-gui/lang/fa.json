@@ -696,7 +696,9 @@
     "filters": "فیلترها",
     "permanent": "دائمی",
     "variable": "متغیر",
-    "words": "واژه"
+    "words": "واژه",
+    "function": "تابع",
+    "functions": "توابع"
   },
   "objects": {
     "script": "اسکریپت",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "برای تعداد رکوردهایی که می‌توان پیوند داد محدودیت بگذارید.",
     "audit": {
       "retention": {
-        "oneYear": "۱ سال"
+        "oneYear": "۱ سال",
+        "twoWeeks": "۲ هفته",
+        "twoMonths": "۲ ماه",
+        "sixMonths": "۶ ماه"
       }
     },
     "appIsReady": "{app} آماده است",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "روی هم برای همهٔ بازدیدکنندگان، برنامه {count} در دقیقه را تاب می‌آورد.",
       "actionsTitle": "بازدیدکنندگان چه کاری می‌توانند بکنند",
       "actionsHint": "تنها راهی که فردِ وارد نشده به داده‌های شما می‌رسد. تغییرها در انتشار بعدی اعمال می‌شوند."
+    },
+    "autoSubmit": "ارسال خودکار",
+    "autoIncrement": "افزایش خودکار",
+    "autoUpdate": "به‌روزرسانی خودکار",
+    "autoSuggestActions": "پیشنهاد خودکار کنش‌ها",
+    "backToPage": "بازگشت به {page}",
+    "availableLayouts": "چیدمان‌های در دسترس",
+    "backToAssistant": "بازگشت به دستیار",
+    "barOrientation": "جهت میله‌ها",
+    "baseNav": {
+      "groupInvite": "دعوت",
+      "groupData": "مدیریت",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "ایجاد",
+      "groupAdmin": "Admin",
+      "members": "اعضا",
+      "interfaceMembers": "اعضا",
+      "dataPermissions": "جدول‌ها و فیلدها",
+      "docsPermissions": "Docs",
+      "databases": "پایگاه دادهٔ بیرونی",
+      "databasesInfo": "یک پایگاه دادهٔ بیرونی متصل کنید. جدول‌های آن از طریق یک اتصال زنده در بخش داده‌ها نمایش داده می‌شوند.",
+      "integrations": "یکپارچه‌سازی‌ها",
+      "sync": "Sync",
+      "syncInfo": "طبق زمان‌بندی، داده‌ها را از یک برنامهٔ بیرونی به جدول‌های این پایگاه بیاورید. یک‌طرفه است، بنابراین ویرایش‌های اینجا به عقب بازنمی‌گردند.",
+      "automations": "خودکارسازی‌ها",
+      "aiSkills": "Skills هوش مصنوعی",
+      "mcpServer": "سرور MCP",
+      "auditLog": "گزارش ممیزی",
+      "trashRetention": "نگهداری سطل زباله",
+      "snapshots": "Snapshots",
+      "general": "عمومی",
+      "searchPlaceholder": "جستجو در تنظیمات",
+      "searchEmpty": "هیچ تنظیمی با «{query}» مطابقت ندارد",
+      "upgradeAvailableOn": "در طرح {plan} در دسترس است.",
+      "upgradeCta": "همین حالا به {plan} ارتقا دهید",
+      "upgradeTitlePermissionsDocs": "مجوزهای Docs",
+      "upgradeDescPermissionsTablesFields": "محدود کنید چه کسی می‌تواند هر جدول و هر فیلد را ببیند یا ویرایش کند.",
+      "upgradeDescPermissionsDocs": "محدود کنید چه کسی می‌تواند هر سند را ببیند یا ویرایش کند.",
+      "upgradeDescSync": "طبق زمان‌بندی، داده‌ها را از برنامه‌های بیرونی بیاورید.",
+      "upgradeDescTrashRetention": "انتخاب کنید رکوردهای حذف‌شده چه مدت نگه داشته شوند.",
+      "upgradeDescVariables": "مقادیر قابل استفادهٔ مجدد را در محدودهٔ این پایگاه تعریف کنید.",
+      "upgradeDescTeams": "افراد را گروه‌بندی کنید و دسترسی آن‌ها را در یک جا مدیریت کنید.",
+      "membersPage": "اعضای پایگاه",
+      "interfaceMembersPage": "اعضای Interface",
+      "dataPermissionsNav": "مجوزهای داده",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "یک نسخهٔ قابل بازیابی از این پایگاه در یک لحظهٔ زمانی ذخیره کنید."
     }
   },
   "activity": {

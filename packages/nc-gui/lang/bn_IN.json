@@ -696,7 +696,9 @@
     "filters": "ফিল্টার",
     "permanent": "স্থায়ী",
     "variable": "চলক",
-    "words": "শব্দ"
+    "words": "শব্দ",
+    "function": "ফাংশন",
+    "functions": "ফাংশন"
   },
   "objects": {
     "script": "স্ক্রিপ্ট",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "কতগুলি রেকর্ড যুক্ত করা যাবে তার উপর সীমা বসান।",
     "audit": {
       "retention": {
-        "oneYear": "1 বছর"
+        "oneYear": "1 বছর",
+        "twoWeeks": "২ সপ্তাহ",
+        "twoMonths": "২ মাস",
+        "sixMonths": "৬ মাস"
       }
     },
     "appIsReady": "{app} প্রস্তুত",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "সব দর্শক মিলিয়ে অ্যাপ মিনিটে {count} সামলাতে পারে।",
       "actionsTitle": "দর্শকরা কী করতে পারেন",
       "actionsHint": "সাইন ইন না করা কেউ আপনার তথ্যে পৌঁছনোর একমাত্র পথ এটাই। পরিবর্তন পরের বার প্রকাশ করলে কার্যকর হবে।"
+    },
+    "autoSubmit": "স্বয়ংক্রিয় জমা",
+    "autoIncrement": "স্বয়ংক্রিয় বৃদ্ধি",
+    "autoUpdate": "স্বয়ংক্রিয় হালনাগাদ",
+    "autoSuggestActions": "স্বয়ংক্রিয়ভাবে ক্রিয়া প্রস্তাব করুন",
+    "backToPage": "{page}-এ ফিরে যান",
+    "availableLayouts": "উপলব্ধ Layout",
+    "backToAssistant": "সহকারীতে ফিরে যান",
+    "barOrientation": "দণ্ডের দিক",
+    "baseNav": {
+      "groupInvite": "আমন্ত্রণ",
+      "groupData": "পরিচালনা",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "তৈরি করুন",
+      "groupAdmin": "Admin",
+      "members": "সদস্য",
+      "interfaceMembers": "সদস্য",
+      "dataPermissions": "টেবিল ও ক্ষেত্র",
+      "docsPermissions": "Docs",
+      "databases": "বাহ্যিক ডেটাবেস",
+      "databasesInfo": "একটি বাহ্যিক ডেটাবেস যুক্ত করুন। এর টেবিলগুলি সরাসরি সংযোগের মাধ্যমে ডেটা বিভাগে দেখা যায়।",
+      "integrations": "ইন্টিগ্রেশন",
+      "sync": "Sync",
+      "syncInfo": "নির্ধারিত সময় অনুযায়ী কোনো বাহ্যিক অ্যাপ থেকে এই বেসের টেবিলে ডেটা আনুন। এটি একমুখী, তাই এখানে করা সম্পাদনা ফিরে যায় না।",
+      "automations": "স্বয়ংক্রিয়করণ",
+      "aiSkills": "AI স্কিল",
+      "mcpServer": "MCP সার্ভার",
+      "auditLog": "নিরীক্ষা লগ",
+      "trashRetention": "আবর্জনা রাখার মেয়াদ",
+      "snapshots": "Snapshots",
+      "general": "সাধারণ",
+      "searchPlaceholder": "সেটিংসে খুঁজুন",
+      "searchEmpty": "“{query}”-এর সঙ্গে কোনো সেটিং মেলে না",
+      "upgradeAvailableOn": "{plan} প্ল্যানে উপলব্ধ।",
+      "upgradeCta": "এখনই {plan}-এ আপগ্রেড করুন",
+      "upgradeTitlePermissionsDocs": "Docs-এর অনুমতি",
+      "upgradeDescPermissionsTablesFields": "কে প্রতিটি টেবিল ও ক্ষেত্র দেখতে বা সম্পাদনা করতে পারবে তা সীমিত করুন।",
+      "upgradeDescPermissionsDocs": "কে প্রতিটি নথি দেখতে বা সম্পাদনা করতে পারবে তা সীমিত করুন।",
+      "upgradeDescSync": "নির্ধারিত সময় অনুযায়ী বাহ্যিক অ্যাপ থেকে ডেটা আনুন।",
+      "upgradeDescTrashRetention": "মুছে ফেলা রেকর্ড কত দিন রাখা হবে তা বেছে নিন।",
+      "upgradeDescVariables": "এই বেসের মধ্যেই সীমিত, পুনর্ব্যবহারযোগ্য মান নির্ধারণ করুন।",
+      "upgradeDescTeams": "মানুষকে দলবদ্ধ করুন এবং তাঁদের অ্যাক্সেস এক জায়গা থেকে পরিচালনা করুন।",
+      "membersPage": "বেসের সদস্য",
+      "interfaceMembersPage": "Interface-এর সদস্য",
+      "dataPermissionsNav": "ডেটার অনুমতি",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "নির্দিষ্ট একটি সময়ে এই বেসের একটি পুনরুদ্ধারযোগ্য অনুলিপি সংরক্ষণ করুন।"
     }
   },
   "activity": {

@@ -696,7 +696,9 @@
     "filters": "ตัวกรอง",
     "permanent": "ถาวร",
     "variable": "ตัวแปร",
-    "words": "คำ"
+    "words": "คำ",
+    "function": "ฟังก์ชัน",
+    "functions": "ฟังก์ชัน"
   },
   "objects": {
     "script": "สคริปต์",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "กำหนดขีดจำกัดจำนวนระเบียนที่สามารถเชื่อมโยงได้",
     "audit": {
       "retention": {
-        "oneYear": "1 ปี"
+        "oneYear": "1 ปี",
+        "twoWeeks": "2 สัปดาห์",
+        "twoMonths": "2 เดือน",
+        "sixMonths": "6 เดือน"
       }
     },
     "appIsReady": "{app} พร้อมแล้ว",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "เมื่อรวมผู้เข้าชมทั้งหมด แอปรองรับได้ {count} ต่อนาที",
       "actionsTitle": "สิ่งที่ผู้เข้าชมทำได้",
       "actionsHint": "ทางเดียวที่ผู้ที่ไม่ได้เข้าสู่ระบบจะเข้าถึงข้อมูลของคุณได้ การเปลี่ยนแปลงจะมีผลเมื่อคุณเผยแพร่ครั้งถัดไป"
+    },
+    "autoSubmit": "ส่งอัตโนมัติ",
+    "autoIncrement": "เพิ่มค่าอัตโนมัติ",
+    "autoUpdate": "อัปเดตอัตโนมัติ",
+    "autoSuggestActions": "แนะนำการดำเนินการโดยอัตโนมัติ",
+    "backToPage": "กลับไปที่ {page}",
+    "availableLayouts": "Layout ที่ใช้ได้",
+    "backToAssistant": "กลับไปที่ผู้ช่วย",
+    "barOrientation": "แนวของแท่ง",
+    "baseNav": {
+      "groupInvite": "เชิญ",
+      "groupData": "จัดการ",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "สร้าง",
+      "groupAdmin": "Admin",
+      "members": "สมาชิก",
+      "interfaceMembers": "สมาชิก",
+      "dataPermissions": "ตารางและฟิลด์",
+      "docsPermissions": "Docs",
+      "databases": "ฐานข้อมูลภายนอก",
+      "databasesInfo": "เชื่อมต่อฐานข้อมูลภายนอก ตารางของฐานข้อมูลนั้นจะปรากฏในส่วนข้อมูลผ่านการเชื่อมต่อแบบสด",
+      "integrations": "การเชื่อมต่อ",
+      "sync": "Sync",
+      "syncInfo": "ดึงข้อมูลจากแอปภายนอกเข้าสู่ตารางของฐานนี้ตามกำหนดเวลา เป็นแบบทางเดียว การแก้ไขที่นี่จึงไม่ไหลย้อนกลับ",
+      "automations": "ระบบอัตโนมัติ",
+      "aiSkills": "ทักษะ AI",
+      "mcpServer": "เซิร์ฟเวอร์ MCP",
+      "auditLog": "บันทึกการตรวจสอบ",
+      "trashRetention": "ระยะเก็บถังขยะ",
+      "snapshots": "Snapshots",
+      "general": "ทั่วไป",
+      "searchPlaceholder": "ค้นหาการตั้งค่า",
+      "searchEmpty": "ไม่มีการตั้งค่าที่ตรงกับ “{query}”",
+      "upgradeAvailableOn": "ใช้ได้ในแผน {plan}",
+      "upgradeCta": "อัปเกรดเป็น {plan} ตอนนี้",
+      "upgradeTitlePermissionsDocs": "สิทธิ์สำหรับ Docs",
+      "upgradeDescPermissionsTablesFields": "จำกัดว่าใครสามารถดูหรือแก้ไขแต่ละตารางและแต่ละฟิลด์ได้",
+      "upgradeDescPermissionsDocs": "จำกัดว่าใครสามารถดูหรือแก้ไขเอกสารแต่ละฉบับได้",
+      "upgradeDescSync": "ดึงข้อมูลจากแอปภายนอกตามกำหนดเวลา",
+      "upgradeDescTrashRetention": "เลือกว่าจะเก็บระเบียนที่ลบแล้วไว้นานเท่าใด",
+      "upgradeDescVariables": "กำหนดค่าที่นำกลับมาใช้ใหม่ได้ ซึ่งจำกัดอยู่เฉพาะฐานนี้",
+      "upgradeDescTeams": "จัดกลุ่มผู้คนและจัดการสิทธิ์เข้าถึงของพวกเขาในที่เดียว",
+      "membersPage": "สมาชิกของฐาน",
+      "interfaceMembersPage": "สมาชิกของ Interface",
+      "dataPermissionsNav": "สิทธิ์ของข้อมูล",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "บันทึกสำเนาของฐานนี้ ณ ช่วงเวลาหนึ่งที่สามารถกู้คืนได้"
     }
   },
   "activity": {

@@ -696,7 +696,9 @@
     "filters": "篩選條件",
     "permanent": "永久",
     "variable": "變數",
-    "words": "字"
+    "words": "字",
+    "function": "函式",
+    "functions": "函式"
   },
   "objects": {
     "script": "指令碼",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "對可連結的記錄數量設定上限。",
     "audit": {
       "retention": {
-        "oneYear": "1 年"
+        "oneYear": "1 年",
+        "twoWeeks": "2 週",
+        "twoMonths": "2 個月",
+        "sixMonths": "6 個月"
       }
     },
     "appIsReady": "{app} 已就緒",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "所有訪客合計，應用程式每分鐘可處理 {count} 次。",
       "actionsTitle": "訪客可以做什麼",
       "actionsHint": "未登入者接觸您資料的唯一途徑。變更會在您下次發布時生效。"
+    },
+    "autoSubmit": "自動提交",
+    "autoIncrement": "自動遞增",
+    "autoUpdate": "自動更新",
+    "autoSuggestActions": "自動建議動作",
+    "backToPage": "返回 {page}",
+    "availableLayouts": "可用的 Layout",
+    "backToAssistant": "返回助理",
+    "barOrientation": "長條方向",
+    "baseNav": {
+      "groupInvite": "邀請",
+      "groupData": "管理",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "建立",
+      "groupAdmin": "Admin",
+      "members": "成員",
+      "interfaceMembers": "成員",
+      "dataPermissions": "資料表與欄位",
+      "docsPermissions": "Docs",
+      "databases": "外部資料庫",
+      "databasesInfo": "連接一個外部資料庫。它的資料表會透過即時連線顯示在「資料」中。",
+      "integrations": "整合",
+      "sync": "Sync",
+      "syncInfo": "依排程將外部應用程式的資料拉進這個資料庫的資料表。單向同步，因此在這裡所做的編輯不會回流。",
+      "automations": "自動化",
+      "aiSkills": "AI 技能",
+      "mcpServer": "MCP 伺服器",
+      "auditLog": "稽核紀錄",
+      "trashRetention": "垃圾桶保留期",
+      "snapshots": "Snapshots",
+      "general": "一般",
+      "searchPlaceholder": "搜尋設定",
+      "searchEmpty": "沒有設定符合「{query}」",
+      "upgradeAvailableOn": "可在 {plan} 方案中使用。",
+      "upgradeCta": "立即升級至 {plan}",
+      "upgradeTitlePermissionsDocs": "Docs 權限",
+      "upgradeDescPermissionsTablesFields": "限制誰可以檢視或編輯每個資料表與欄位。",
+      "upgradeDescPermissionsDocs": "限制誰可以檢視或編輯每份文件。",
+      "upgradeDescSync": "依排程從外部應用程式拉取資料。",
+      "upgradeDescTrashRetention": "選擇已刪除記錄要保留多久。",
+      "upgradeDescVariables": "定義僅適用於這個資料庫的可重複使用值。",
+      "upgradeDescTeams": "將人員分組，並在同一處管理他們的存取權。",
+      "membersPage": "資料庫成員",
+      "interfaceMembersPage": "Interface 成員",
+      "dataPermissionsNav": "資料權限",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "儲存這個資料庫在某個時間點的可還原副本。"
     }
   },
   "activity": {

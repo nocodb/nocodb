@@ -696,7 +696,9 @@
     "filters": "filtri",
     "permanent": "Trajno",
     "variable": "Spremenljivka",
-    "words": "besed"
+    "words": "besed",
+    "function": "Funkcija",
+    "functions": "Funkcije"
   },
   "objects": {
     "script": "Skripta",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Omeji število zapisov, ki jih je mogoče povezati.",
     "audit": {
       "retention": {
-        "oneYear": "1 leto"
+        "oneYear": "1 leto",
+        "twoWeeks": "2 tedna",
+        "twoMonths": "2 meseca",
+        "sixMonths": "6 mesecev"
       }
     },
     "appIsReady": "{app} je pripravljena",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Skupaj za vse obiskovalce aplikacija zmore {count} na minuto.",
       "actionsTitle": "Kaj lahko obiskovalci počnejo",
       "actionsHint": "Edina pot, po kateri nekdo brez prijave pride do vaših podatkov. Spremembe začnejo veljati ob naslednji objavi."
+    },
+    "autoSubmit": "Samodejno pošiljanje",
+    "autoIncrement": "Samodejno povečevanje",
+    "autoUpdate": "Samodejno posodabljanje",
+    "autoSuggestActions": "Samodejno predlagaj dejanja",
+    "backToPage": "Nazaj na {page}",
+    "availableLayouts": "Razpoložljivi layouti",
+    "backToAssistant": "Nazaj na pomočnika",
+    "barOrientation": "Usmerjenost stolpcev",
+    "baseNav": {
+      "groupInvite": "Povabi",
+      "groupData": "Upravljaj",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Ustvari",
+      "groupAdmin": "Admin",
+      "members": "Člani",
+      "interfaceMembers": "Člani",
+      "dataPermissions": "Tabele in polja",
+      "docsPermissions": "Docs",
+      "databases": "Zunanja baza podatkov",
+      "databasesInfo": "Povežite zunanjo bazo podatkov. Njene tabele se prek žive povezave prikažejo v razdelku Podatki.",
+      "integrations": "Integracije",
+      "sync": "Sync",
+      "syncInfo": "Po urniku prenašajte podatke iz zunanje aplikacije v tabele te baze. Enosmerno, zato se urejanja od tu ne vračajo nazaj.",
+      "automations": "Avtomatizacije",
+      "aiSkills": "UI Skills",
+      "mcpServer": "Strežnik MCP",
+      "auditLog": "Revizijski dnevnik",
+      "trashRetention": "Hramba v košu",
+      "snapshots": "Snapshots",
+      "general": "Splošno",
+      "searchPlaceholder": "Iskanje po nastavitvah",
+      "searchEmpty": "Nobena nastavitev se ne ujema z »{query}«",
+      "upgradeAvailableOn": "Na voljo v paketu {plan}.",
+      "upgradeCta": "Preidite na {plan} zdaj",
+      "upgradeTitlePermissionsDocs": "Dovoljenja za Docs",
+      "upgradeDescPermissionsTablesFields": "Omejite, kdo lahko vidi ali ureja posamezno tabelo in polje.",
+      "upgradeDescPermissionsDocs": "Omejite, kdo lahko vidi ali ureja posamezen dokument.",
+      "upgradeDescSync": "Po urniku prenašajte podatke iz zunanjih aplikacij.",
+      "upgradeDescTrashRetention": "Izberite, kako dolgo se hranijo izbrisani zapisi.",
+      "upgradeDescVariables": "Določite večkrat uporabne vrednosti, omejene na to bazo.",
+      "upgradeDescTeams": "Združite ljudi in upravljajte njihov dostop na enem mestu.",
+      "membersPage": "Člani baze",
+      "interfaceMembersPage": "Člani interface",
+      "dataPermissionsNav": "Dovoljenja za podatke",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Shranite obnovljivo kopijo te baze v določenem trenutku."
     }
   },
   "activity": {

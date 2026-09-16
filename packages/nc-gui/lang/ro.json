@@ -694,7 +694,9 @@
     "filters": "filtre",
     "permanent": "Permanent",
     "variable": "Variabilă",
-    "words": "cuvinte"
+    "words": "cuvinte",
+    "function": "Funcție",
+    "functions": "Funcții"
   },
   "objects": {
     "script": "Script",
@@ -2646,7 +2648,10 @@
     "applyLimitLinkedRecordsSubtext": "Aplică o limită pentru numărul de înregistrări care pot fi legate.",
     "audit": {
       "retention": {
-        "oneYear": "1 an"
+        "oneYear": "1 an",
+        "twoWeeks": "2 săptămâni",
+        "twoMonths": "2 luni",
+        "sixMonths": "6 luni"
       }
     },
     "appIsReady": "{app} este gata",
@@ -2816,6 +2821,52 @@
       "meaningRateApp": "Însumat pe toți vizitatorii, aplicația poate duce {count} pe minut.",
       "actionsTitle": "Ce pot face vizitatorii",
       "actionsHint": "Singura cale prin care cineva neautentificat ajunge la datele tale. Modificările intră în vigoare la următoarea publicare."
+    },
+    "autoSubmit": "Trimitere automată",
+    "autoIncrement": "Incrementare automată",
+    "autoUpdate": "Actualizare automată",
+    "autoSuggestActions": "Sugerează acțiuni automat",
+    "backToPage": "Înapoi la {page}",
+    "availableLayouts": "Layouturi disponibile",
+    "backToAssistant": "Înapoi la asistent",
+    "barOrientation": "Orientarea barelor",
+    "baseNav": {
+      "groupInvite": "Invită",
+      "groupData": "Gestionează",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Creează",
+      "groupAdmin": "Admin",
+      "members": "Membri",
+      "interfaceMembers": "Membri",
+      "dataPermissions": "Tabele și câmpuri",
+      "docsPermissions": "Docs",
+      "databases": "Bază de date externă",
+      "databasesInfo": "Conectați o bază de date externă. Tabelele ei apar în secțiunea Date printr-o conexiune în timp real.",
+      "integrations": "Integrări",
+      "sync": "Sync",
+      "syncInfo": "Aduceți periodic date dintr-o aplicație externă în tabelele acestei baze. Este unidirecțional, așa că modificările făcute aici nu se întorc.",
+      "automations": "Automatizări",
+      "aiSkills": "Skills IA",
+      "mcpServer": "Server MCP",
+      "auditLog": "Jurnal de audit",
+      "trashRetention": "Păstrarea în coșul de gunoi",
+      "snapshots": "Snapshots",
+      "searchPlaceholder": "Caută în setări",
+      "searchEmpty": "Nicio setare nu corespunde cu „{query}”",
+      "upgradeAvailableOn": "Disponibil în planul {plan}.",
+      "upgradeCta": "Treceți acum la {plan}",
+      "upgradeTitlePermissionsDocs": "Permisiuni pentru Docs",
+      "upgradeDescPermissionsTablesFields": "Restricționați cine poate vedea sau edita fiecare tabel și fiecare câmp.",
+      "upgradeDescPermissionsDocs": "Restricționați cine poate vedea sau edita fiecare document.",
+      "upgradeDescSync": "Aduceți periodic date din aplicații externe.",
+      "upgradeDescTrashRetention": "Alegeți cât timp sunt păstrate înregistrările șterse.",
+      "upgradeDescVariables": "Definiți valori reutilizabile limitate la această bază.",
+      "upgradeDescTeams": "Grupați oamenii și gestionați-le accesul într-un singur loc.",
+      "membersPage": "Membrii bazei",
+      "interfaceMembersPage": "Membrii interfeței",
+      "dataPermissionsNav": "Permisiuni pentru date",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Salvați o copie restaurabilă a acestei baze la un anumit moment."
     }
   },
   "activity": {

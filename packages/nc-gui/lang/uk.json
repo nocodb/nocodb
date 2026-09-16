@@ -696,7 +696,9 @@
     "filters": "фільтри",
     "permanent": "Постійний",
     "variable": "Змінна",
-    "words": "слів"
+    "words": "слів",
+    "function": "Функція",
+    "functions": "Функції"
   },
   "objects": {
     "script": "Скрипт",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Обмежити кількість записів, які можна пов'язати.",
     "audit": {
       "retention": {
-        "oneYear": "1 рік"
+        "oneYear": "1 рік",
+        "twoWeeks": "2 тижні",
+        "twoMonths": "2 місяці",
+        "sixMonths": "6 місяців"
       }
     },
     "appIsReady": "{app} готовий",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Сумарно за всіма відвідувачами застосунок упорається з {count} за хвилину.",
       "actionsTitle": "Що можуть робити відвідувачі",
       "actionsHint": "Єдиний шлях, яким людина без входу в систему дістається до ваших даних. Зміни наберуть чинності під час наступної публікації."
+    },
+    "autoSubmit": "Автонадсилання",
+    "autoIncrement": "Автоінкремент",
+    "autoUpdate": "Автооновлення",
+    "autoSuggestActions": "Автоматично пропонувати дії",
+    "backToPage": "Назад до {page}",
+    "availableLayouts": "Доступні макети",
+    "backToAssistant": "Назад до асистента",
+    "barOrientation": "Орієнтація стовпчиків",
+    "baseNav": {
+      "groupInvite": "Запросити",
+      "groupData": "Керувати",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Створити",
+      "groupAdmin": "Admin",
+      "members": "Учасники",
+      "interfaceMembers": "Учасники",
+      "dataPermissions": "Таблиці та поля",
+      "docsPermissions": "Docs",
+      "databases": "Зовнішня база даних",
+      "databasesInfo": "Підключіть зовнішню базу даних. Її таблиці з'являться в розділі «Дані» через живе підключення.",
+      "integrations": "Інтеграції",
+      "sync": "Sync",
+      "syncInfo": "За розкладом переносьте дані із зовнішнього застосунку до таблиць цієї бази. Односторонньо, тож правки звідси назад не йдуть.",
+      "automations": "Автоматизації",
+      "aiSkills": "ШІ-навички",
+      "mcpServer": "Сервер MCP",
+      "auditLog": "Журнал аудиту",
+      "trashRetention": "Зберігання у кошику",
+      "snapshots": "Snapshots",
+      "general": "Загальні",
+      "searchPlaceholder": "Пошук у налаштуваннях",
+      "searchEmpty": "Немає налаштувань, що відповідають «{query}»",
+      "upgradeAvailableOn": "Доступно на тарифі {plan}.",
+      "upgradeCta": "Перейти на {plan} зараз",
+      "upgradeTitlePermissionsDocs": "Права для Docs",
+      "upgradeDescPermissionsTablesFields": "Обмежте, хто може переглядати чи редагувати кожну таблицю та кожне поле.",
+      "upgradeDescPermissionsDocs": "Обмежте, хто може переглядати чи редагувати кожен документ.",
+      "upgradeDescSync": "За розкладом переносьте дані із зовнішніх застосунків.",
+      "upgradeDescTrashRetention": "Виберіть, як довго зберігаються видалені записи.",
+      "upgradeDescVariables": "Визначте багаторазові значення в межах цієї бази.",
+      "upgradeDescTeams": "Групуйте людей і керуйте їхнім доступом в одному місці.",
+      "membersPage": "Учасники бази",
+      "interfaceMembersPage": "Учасники інтерфейсу",
+      "dataPermissionsNav": "Права на дані",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Збережіть відновлювану копію цієї бази на певний момент часу."
     }
   },
   "activity": {

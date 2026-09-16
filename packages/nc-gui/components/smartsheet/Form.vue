@@ -371,7 +371,7 @@ async function submitForm() {
 
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
-      formState.value[col.title] = null
+      formState.value[col.title] = col.uidt === UITypes.Checkbox ? false : null
     }
 
     // handle filter out conditionally hidden field data

@@ -4302,7 +4302,8 @@
     "writeWithAi": "Mit KI schreiben",
     "calculationField": "Berechnungsfeld",
     "bottomSummaryBar": "Zusammenfassungsleiste unten",
-    "fieldGroups": "{field}-Gruppen"
+    "fieldGroups": "{field}-Gruppen",
+    "mcpApiKeyHeaderInfo": "Das Token kann statt in {mcpTokenHeader} auch in einem {apiKeyHeader}-Header gesendet werden."
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",

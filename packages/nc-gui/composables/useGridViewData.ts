@@ -725,7 +725,11 @@ export function useGridViewData(
         // The interface has no persisted view for the server to re-apply filters
         // from, so forward the live search (`where`) + ad-hoc toolbar filters —
         // the same narrowing select-all counted; the viz scope bounds it server-side.
-        await interfaceDataApi.bulkDeleteAll?.({
+        if (!interfaceDataApi.bulkDeleteAll) {
+          throw new Error('Delete all records is not available on this surface')
+        }
+
+        await interfaceDataApi.bulkDeleteAll({
           where: where?.value,
           filtersArr: smartsheetStore?.nestedFilters?.value ?? [],
           skipPks,
@@ -744,11 +748,13 @@ export function useGridViewData(
           {},
         )
       }
-    } catch (error) {
+    } catch (error: any) {
+      message.error(`Bulk delete failed: ${await extractSdkResponseErrorMsg(error)}`)
     } finally {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
       await syncCount(path)
       syncVisibleData?.()
+      triggerAggregateReload({ path })
       isBulkOperationInProgress.value = false
     }
   }

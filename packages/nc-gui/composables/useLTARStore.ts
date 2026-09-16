@@ -601,6 +601,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return clauses.join('~or')
     }
 
+    /** New-row picker: hide what the draft already links (nothing is persisted to exclude server-side). */
+    const dropStagedLinks = <T extends { list?: Record<string, any>[] }>(result: T): T => {
+      const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
+      if (result?.list && ids.size) {
+        result.list = result.list.filter((item) => !ids.has(item.Id))
+      }
+      return result
+    }
+
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       // Snapshot the current query session; if the query changes while this load
@@ -653,6 +662,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             },
           )
 
+          // Interface pages — the page-scoped picker op (pk + display value,
+          // server-composed display-value search, grant-authorized). Must win
+          // over the new-row branch below: `linkDataList` is base-scoped and
+          // cannot see the element's "Limit record selection", so a create
+          // form would offer every related record (#10483).
+        } else if (interfaceDataApi?.nestedExcludedList) {
+          result = await interfaceDataApi.nestedExcludedList({
+            // Absent on a new record — nothing is linked to exclude yet.
+            rowId: rowId.value || undefined,
+            columnId: column.value.id,
+            limit: childrenExcludedListPagination.size,
+            offset,
+            search: childrenExcludedListPagination.query || undefined,
+            ...(interfaceFieldElement?.value ?? {}),
+          })
+
+          // A new record's links live in the draft, so the server can't exclude
+          // them — drop them here, as the new-row branch below does.
+          if (isNewRow?.value) result = dropStagedLinks(result)
+
           /** if new row load all records */
         } else if (isNewRow?.value) {
           const linkRowData = await sanitizeRowData(row.value.row)
@@ -665,21 +694,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             columnId: column.value.fk_column_id || column.value.id,
             linkRowData: JSON.stringify(linkRowData),
           })
-          const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
-          if (result.list && ids.size) {
-            result.list = result.list.filter((item: Record<string, any>) => !ids.has(item.Id))
-          }
-        } else if (interfaceDataApi?.nestedExcludedList) {
-          // Interface pages — the page-scoped picker op (pk + display value,
-          // server-composed display-value search, grant-authorized).
-          result = await interfaceDataApi.nestedExcludedList({
-            rowId: rowId.value,
-            columnId: column.value.id,
-            limit: childrenExcludedListPagination.size,
-            offset,
-            search: childrenExcludedListPagination.query || undefined,
-            ...(interfaceFieldElement?.value ?? {}),
-          })
+          result = dropStagedLinks(result)
         } else {
           // extract changed data and include with the api call if any
           let changedRowData
@@ -1373,6 +1388,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             } as RequestParams,
           },
         )
+      } else if (interfaceDataApi?.nestedExcludedList) {
+        // Interface pages — page-scoped picker chunks (see loadChildrenExcludedList).
+        const result = await interfaceDataApi.nestedExcludedList({
+          rowId: rowId.value || undefined,
+          columnId: column.value.id,
+          limit,
+          offset,
+          search: childrenExcludedListPagination.query || undefined,
+          ...(interfaceFieldElement?.value ?? {}),
+        })
+
+        return isNewRow?.value ? dropStagedLinks(result) : result
       } else if (isNewRow?.value) {
         const linkRowData = await sanitizeRowData(row.value.row)
         return await $api.internal.getOperation((column.value as any).fk_workspace_id!, column.value!.base_id!, {
@@ -1382,16 +1409,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           where,
           columnId: column.value.fk_column_id || column.value.id,
           linkRowData: JSON.stringify(linkRowData),
-        })
-      } else if (interfaceDataApi?.nestedExcludedList) {
-        // Interface pages — page-scoped picker chunks (see loadChildrenExcludedList).
-        return await interfaceDataApi.nestedExcludedList({
-          rowId: rowId.value,
-          columnId: column.value.id,
-          limit,
-          offset,
-          search: childrenExcludedListPagination.query || undefined,
-          ...(interfaceFieldElement?.value ?? {}),
         })
       } else {
         let changedRowData

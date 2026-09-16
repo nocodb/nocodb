@@ -340,11 +340,29 @@ const execBulkAction = async (path: Array<number>) => {
          data-app vocabulary and stay out of interfaces. Duplicate/delete ride
          the add_delete_inline opt-in (canAddDeleteRows), like the "+" affordances. -->
     <template v-if="interfacePageDataApi">
+      <!-- Select-all delete — the where-scoped bulk op (interfaceTableDataBulkDeleteAll)
+           deletes every record in the page scope minus the deselected rows. -->
+      <template v-if="vSelectedAllRecords && canAddDeleteRows && !isDataReadOnly && !isSyncedTable && !isGroupBy">
+        <NcMenuItem
+          key="interface-delete-all-records"
+          class="nc-base-menu-item"
+          danger
+          data-testid="context-menu-item-interface-delete-all"
+          @click="deleteAllRecords()"
+        >
+          <div v-e="['c:interface:grid:record:delete-all']" class="text-bodyDefaultSm flex gap-2 items-center">
+            <GeneralIcon icon="delete" />
+            {{
+              ncIsEmptyObject(vSelectedAllRecordsSkipPks)
+                ? $t('activity.deleteAllRecords')
+                : $t('activity.deleteAllSelectedRecords')
+            }}
+          </div>
+        </NcMenuItem>
+      </template>
       <!-- Multi-record selection: single-record actions would ambiguously
            target the right-clicked row — offer only the bulk delete. -->
-      <!-- Select-ALL-records delete needs a where-scoped server op the interface
-           doesn't have yet — only checkbox selections get the bulk action. -->
-      <template v-if="selectedRows.length > 1 && !vSelectedAllRecords && canAddDeleteRows && !isDataReadOnly && !isSyncedTable">
+      <template v-else-if="selectedRows.length > 1 && canAddDeleteRows && !isDataReadOnly && !isSyncedTable">
         <NcMenuItem
           key="interface-delete-selected-records"
           class="nc-base-menu-item"

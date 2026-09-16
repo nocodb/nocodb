@@ -696,7 +696,9 @@
     "filters": "מסננים",
     "permanent": "קבוע לצמיתות",
     "variable": "משתנה",
-    "words": "מילים"
+    "words": "מילים",
+    "function": "פונקציה",
+    "functions": "פונקציות"
   },
   "objects": {
     "script": "סקריפט",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "הגבל את מספר הרשומות שניתן לקשר.",
     "audit": {
       "retention": {
-        "oneYear": "שנה אחת"
+        "oneYear": "שנה אחת",
+        "twoWeeks": "שבועיים",
+        "twoMonths": "חודשיים",
+        "sixMonths": "6 חודשים"
       }
     },
     "appIsReady": "{app} מוכנה",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "בסך כל המבקרים, האפליקציה עומדת ב{count} בדקה.",
       "actionsTitle": "מה מבקרים יכולים לעשות",
       "actionsHint": "הדרך היחידה שבה מישהו שלא נכנס למערכת מגיע לנתונים שלך. השינויים ייכנסו לתוקף בפרסום הבא."
+    },
+    "autoSubmit": "שליחה אוטומטית",
+    "autoIncrement": "הגדלה אוטומטית",
+    "autoUpdate": "עדכון אוטומטי",
+    "autoSuggestActions": "הצעת פעולות אוטומטית",
+    "backToPage": "חזרה אל {page}",
+    "availableLayouts": "פריסות זמינות",
+    "backToAssistant": "חזרה לעוזר",
+    "barOrientation": "כיוון העמודות",
+    "baseNav": {
+      "groupInvite": "הזמנה",
+      "groupData": "ניהול",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "יצירה",
+      "groupAdmin": "Admin",
+      "members": "חברים",
+      "interfaceMembers": "חברים",
+      "dataPermissions": "טבלאות ושדות",
+      "docsPermissions": "Docs",
+      "databases": "מסד נתונים חיצוני",
+      "databasesInfo": "חברו מסד נתונים חיצוני. הטבלאות שלו מופיעות תחת נתונים דרך חיבור חי.",
+      "integrations": "אינטגרציות",
+      "sync": "Sync",
+      "syncInfo": "משכו נתונים מאפליקציה חיצונית אל הטבלאות של הבסיס הזה לפי לוח זמנים. חד-כיווני, כך שעריכות שנעשות כאן לא חוזרות אחורה.",
+      "automations": "אוטומציות",
+      "aiSkills": "Skills של בינה מלאכותית",
+      "mcpServer": "שרת MCP",
+      "auditLog": "יומן ביקורת",
+      "trashRetention": "שמירת האשפה",
+      "snapshots": "Snapshots",
+      "general": "כללי",
+      "searchPlaceholder": "חיפוש בהגדרות",
+      "searchEmpty": "אין הגדרות התואמות ל-“{query}”",
+      "upgradeAvailableOn": "זמין בתוכנית {plan}.",
+      "upgradeCta": "שדרגו ל-{plan} עכשיו",
+      "upgradeTitlePermissionsDocs": "הרשאות ל-Docs",
+      "upgradeDescPermissionsTablesFields": "הגבילו מי יכול לצפות או לערוך כל טבלה וכל שדה.",
+      "upgradeDescPermissionsDocs": "הגבילו מי יכול לצפות או לערוך כל מסמך.",
+      "upgradeDescSync": "משכו נתונים מאפליקציות חיצוניות לפי לוח זמנים.",
+      "upgradeDescTrashRetention": "בחרו כמה זמן נשמרות רשומות שנמחקו.",
+      "upgradeDescVariables": "הגדירו ערכים לשימוש חוזר המוגבלים לבסיס הזה.",
+      "upgradeDescTeams": "קבצו אנשים ונהלו את הגישה שלהם במקום אחד.",
+      "membersPage": "חברי הבסיס",
+      "interfaceMembersPage": "חברי ה-Interface",
+      "dataPermissionsNav": "הרשאות נתונים",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "שמרו עותק ניתן לשחזור של הבסיס הזה בנקודת זמן מסוימת."
     }
   },
   "activity": {

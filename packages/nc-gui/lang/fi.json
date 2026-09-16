@@ -696,7 +696,9 @@
     "filters": "suodattimet",
     "permanent": "Pysyvä",
     "variable": "Muuttuja",
-    "words": "sanaa"
+    "words": "sanaa",
+    "function": "Funktio",
+    "functions": "Funktiot"
   },
   "objects": {
     "script": "Skripti",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Aseta yläraja linkitettävien tietueiden määrälle.",
     "audit": {
       "retention": {
-        "oneYear": "1 vuosi"
+        "oneYear": "1 vuosi",
+        "twoWeeks": "2 viikkoa",
+        "twoMonths": "2 kuukautta",
+        "sixMonths": "6 kuukautta"
       }
     },
     "appIsReady": "{app} on valmis",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Kaikkien vierailijoiden kesken sovellus kestää {count} minuutissa.",
       "actionsTitle": "Mitä vierailijat voivat tehdä",
       "actionsHint": "Ainoa reitti, jota pitkin kirjautumaton henkilö pääsee tietoihisi. Muutokset astuvat voimaan seuraavalla julkaisukerralla."
+    },
+    "autoSubmit": "Automaattinen lähetys",
+    "autoIncrement": "Automaattinen kasvatus",
+    "autoUpdate": "Automaattinen päivitys",
+    "autoSuggestActions": "Ehdota toimintoja automaattisesti",
+    "backToPage": "Takaisin sivulle {page}",
+    "availableLayouts": "Käytettävissä olevat layoutit",
+    "backToAssistant": "Takaisin avustajaan",
+    "barOrientation": "Palkkien suunta",
+    "baseNav": {
+      "groupInvite": "Kutsu",
+      "groupData": "Hallinnoi",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Luo",
+      "groupAdmin": "Admin",
+      "members": "Jäsenet",
+      "interfaceMembers": "Jäsenet",
+      "dataPermissions": "Taulut ja kentät",
+      "docsPermissions": "Docs",
+      "databases": "Ulkoinen tietokanta",
+      "databasesInfo": "Yhdistä ulkoinen tietokanta. Sen taulut näkyvät Tiedot-osiossa live-yhteyden kautta.",
+      "integrations": "Integraatiot",
+      "sync": "Sync",
+      "syncInfo": "Hae aikataulun mukaan tietoja ulkoisesta sovelluksesta tämän kannan tauluihin. Yksisuuntainen, joten täällä tehdyt muokkaukset eivät palaudu takaisin.",
+      "automations": "Automaatiot",
+      "aiSkills": "Tekoälyn Skills",
+      "mcpServer": "MCP-palvelin",
+      "auditLog": "Auditointiloki",
+      "trashRetention": "Roskakorin säilytysaika",
+      "snapshots": "Snapshots",
+      "general": "Yleiset",
+      "searchPlaceholder": "Hae asetuksista",
+      "searchEmpty": "Mikään asetus ei vastaa hakua ”{query}”",
+      "upgradeAvailableOn": "Saatavilla {plan}-paketissa.",
+      "upgradeCta": "Päivitä nyt pakettiin {plan}",
+      "upgradeTitlePermissionsDocs": "Docs-käyttöoikeudet",
+      "upgradeDescPermissionsTablesFields": "Rajaa, kuka voi katsella tai muokata kutakin taulua ja kenttää.",
+      "upgradeDescPermissionsDocs": "Rajaa, kuka voi katsella tai muokata kutakin dokumenttia.",
+      "upgradeDescSync": "Hae aikataulun mukaan tietoja ulkoisista sovelluksista.",
+      "upgradeDescTrashRetention": "Valitse, kuinka kauan poistettuja tietueita säilytetään.",
+      "upgradeDescVariables": "Määritä uudelleenkäytettäviä arvoja, jotka koskevat vain tätä kantaa.",
+      "upgradeDescTeams": "Ryhmittele ihmiset ja hallinnoi heidän käyttöoikeuksiaan yhdessä paikassa.",
+      "membersPage": "Kannan jäsenet",
+      "interfaceMembersPage": "Interface-jäsenet",
+      "dataPermissionsNav": "Tietojen käyttöoikeudet",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Tallenna palautettava kopio tästä kannasta tiettynä ajanhetkenä."
     }
   },
   "activity": {

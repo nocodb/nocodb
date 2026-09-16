@@ -696,7 +696,9 @@
     "filters": "필터",
     "permanent": "영구",
     "variable": "변수",
-    "words": "단어"
+    "words": "단어",
+    "function": "함수",
+    "functions": "함수"
   },
   "objects": {
     "script": "스크립트",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "연결할 수 있는 항목 수에 제한을 둡니다.",
     "audit": {
       "retention": {
-        "oneYear": "1년"
+        "oneYear": "1년",
+        "twoWeeks": "2주",
+        "twoMonths": "2개월",
+        "sixMonths": "6개월"
       }
     },
     "appIsReady": "{app} 준비 완료",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "모든 방문자를 합쳐 앱은 분당 {count}건을 감당할 수 있습니다.",
       "actionsTitle": "방문자가 할 수 있는 일",
       "actionsHint": "로그인하지 않은 사람이 데이터에 닿는 유일한 경로입니다. 변경 사항은 다음 게시 때 적용됩니다."
+    },
+    "autoSubmit": "자동 제출",
+    "autoIncrement": "자동 증가",
+    "autoUpdate": "자동 업데이트",
+    "autoSuggestActions": "작업 자동 제안",
+    "backToPage": "{page}(으)로 돌아가기",
+    "availableLayouts": "사용 가능한 Layout",
+    "backToAssistant": "어시스턴트로 돌아가기",
+    "barOrientation": "막대 방향",
+    "baseNav": {
+      "groupInvite": "초대",
+      "groupData": "관리",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "만들기",
+      "groupAdmin": "Admin",
+      "members": "구성원",
+      "interfaceMembers": "구성원",
+      "dataPermissions": "테이블 및 필드",
+      "docsPermissions": "Docs",
+      "databases": "외부 데이터베이스",
+      "databasesInfo": "외부 데이터베이스를 연결하세요. 해당 테이블은 실시간 연결을 통해 데이터에 표시됩니다.",
+      "integrations": "통합",
+      "sync": "Sync",
+      "syncInfo": "외부 앱의 데이터를 일정에 따라 이 베이스의 테이블로 가져옵니다. 단방향이므로 여기서 한 편집은 되돌아가지 않습니다.",
+      "automations": "자동화",
+      "aiSkills": "AI 스킬",
+      "mcpServer": "MCP 서버",
+      "auditLog": "감사 로그",
+      "trashRetention": "휴지통 보관 기간",
+      "snapshots": "Snapshots",
+      "general": "일반",
+      "searchPlaceholder": "설정 검색",
+      "searchEmpty": "“{query}”와(과) 일치하는 설정이 없습니다",
+      "upgradeAvailableOn": "{plan} 요금제에서 사용할 수 있습니다.",
+      "upgradeCta": "지금 {plan}(으)로 업그레이드",
+      "upgradeTitlePermissionsDocs": "Docs 권한",
+      "upgradeDescPermissionsTablesFields": "각 테이블과 필드를 보거나 편집할 수 있는 사람을 제한합니다.",
+      "upgradeDescPermissionsDocs": "각 문서를 보거나 편집할 수 있는 사람을 제한합니다.",
+      "upgradeDescSync": "외부 앱의 데이터를 일정에 따라 가져옵니다.",
+      "upgradeDescTrashRetention": "삭제된 레코드를 얼마나 오래 보관할지 선택합니다.",
+      "upgradeDescVariables": "이 베이스에만 적용되는 재사용 가능한 값을 정의합니다.",
+      "upgradeDescTeams": "사람들을 그룹으로 묶고 접근 권한을 한곳에서 관리합니다.",
+      "membersPage": "베이스 구성원",
+      "interfaceMembersPage": "Interface 구성원",
+      "dataPermissionsNav": "데이터 권한",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "특정 시점의 이 베이스를 복원 가능한 사본으로 저장합니다."
     }
   },
   "activity": {

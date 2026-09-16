@@ -694,7 +694,9 @@
     "filter": "filter",
     "permanent": "Permanent",
     "variable": "Variabele",
-    "words": "woorden"
+    "words": "woorden",
+    "function": "Functie",
+    "functions": "Functies"
   },
   "objects": {
     "script": "Script",
@@ -2645,7 +2647,10 @@
     "applyLimitLinkedRecordsSubtext": "Een limiet instellen op het aantal records dat gekoppeld mag worden.",
     "audit": {
       "retention": {
-        "oneYear": "1 jaar"
+        "oneYear": "1 jaar",
+        "twoWeeks": "2 weken",
+        "twoMonths": "2 maanden",
+        "sixMonths": "6 maanden"
       }
     },
     "appIsReady": "{app} is klaar",
@@ -2813,6 +2818,53 @@
       "meaningRateApp": "Over alle bezoekers samen kan de app er {count} per minuut aan.",
       "actionsTitle": "Wat bezoekers kunnen doen",
       "actionsHint": "De enige manier waarop iemand die niet is ingelogd bij je gegevens komt. Wijzigingen gaan in zodra je de volgende keer publiceert."
+    },
+    "autoSubmit": "Automatisch verzenden",
+    "autoIncrement": "Automatisch ophogen",
+    "autoUpdate": "Automatisch bijwerken",
+    "autoSuggestActions": "Acties automatisch voorstellen",
+    "backToPage": "Terug naar {page}",
+    "availableLayouts": "Beschikbare layouts",
+    "backToAssistant": "Terug naar de assistent",
+    "barOrientation": "Oriëntatie van de balken",
+    "baseNav": {
+      "groupInvite": "Uitnodigen",
+      "groupData": "Beheren",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Aanmaken",
+      "groupAdmin": "Admin",
+      "members": "Leden",
+      "interfaceMembers": "Leden",
+      "dataPermissions": "Tabellen en velden",
+      "docsPermissions": "Docs",
+      "databases": "Externe database",
+      "databasesInfo": "Verbind een externe database. De tabellen ervan verschijnen in Gegevens via een live verbinding.",
+      "integrations": "Integraties",
+      "sync": "Sync",
+      "syncInfo": "Haal volgens een schema gegevens uit een externe app naar de tabellen van deze base. Eenrichtingsverkeer, dus wijzigingen hier stromen niet terug.",
+      "automations": "Automatiseringen",
+      "aiSkills": "AI-skills",
+      "mcpServer": "MCP-server",
+      "auditLog": "Auditlogboek",
+      "trashRetention": "Bewaartermijn prullenbak",
+      "snapshots": "Snapshots",
+      "general": "Algemeen",
+      "searchPlaceholder": "Zoeken in instellingen",
+      "searchEmpty": "Geen instellingen komen overeen met “{query}”",
+      "upgradeAvailableOn": "Beschikbaar in het {plan}-abonnement.",
+      "upgradeCta": "Nu upgraden naar {plan}",
+      "upgradeTitlePermissionsDocs": "Rechten voor Docs",
+      "upgradeDescPermissionsTablesFields": "Bepaal wie elke tabel en elk veld mag bekijken of bewerken.",
+      "upgradeDescPermissionsDocs": "Bepaal wie elk doc mag bekijken of bewerken.",
+      "upgradeDescSync": "Haal volgens een schema gegevens uit externe apps.",
+      "upgradeDescTrashRetention": "Kies hoe lang verwijderde records bewaard blijven.",
+      "upgradeDescVariables": "Definieer herbruikbare waarden die alleen voor deze base gelden.",
+      "upgradeDescTeams": "Groepeer mensen en beheer hun toegang op één plek.",
+      "membersPage": "Leden van de base",
+      "interfaceMembersPage": "Leden van de interface",
+      "dataPermissionsNav": "Gegevensrechten",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Bewaar een herstelbare kopie van deze base op een bepaald moment."
     }
   },
   "activity": {

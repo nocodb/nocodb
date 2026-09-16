@@ -696,7 +696,9 @@
     "filters": "फिल्टरहरू",
     "permanent": "स्थायी",
     "variable": "चल",
-    "words": "शब्द"
+    "words": "शब्द",
+    "function": "फङ्सन",
+    "functions": "फङ्सनहरू"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "जोड्न सकिने रेकर्डको सङ्ख्यामा सीमा राख्नुहोस्।",
     "audit": {
       "retention": {
-        "oneYear": "1 वर्ष"
+        "oneYear": "1 वर्ष",
+        "twoWeeks": "2 हप्ता",
+        "twoMonths": "2 महिना",
+        "sixMonths": "6 महिना"
       }
     },
     "appIsReady": "{app} तयार छ",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "सबै आगन्तुक जोड्दा, एपले प्रति मिनेट {count} थेग्न सक्छ।",
       "actionsTitle": "आगन्तुकहरूले के गर्न सक्छन्",
       "actionsHint": "साइन इन नगरेको कोही तपाईंको डेटासम्म पुग्ने एक मात्र बाटो यही हो। परिवर्तनहरू अर्को पटक प्रकाशित गर्दा लागू हुनेछन्।"
+    },
+    "autoSubmit": "स्वतः पेस",
+    "autoIncrement": "स्वतः वृद्धि",
+    "autoUpdate": "स्वतः अद्यावधिक",
+    "autoSuggestActions": "कार्यहरू स्वतः सुझाव दिनुहोस्",
+    "backToPage": "{page} मा फर्कनुहोस्",
+    "availableLayouts": "उपलब्ध Layout",
+    "backToAssistant": "सहायकमा फर्कनुहोस्",
+    "barOrientation": "पट्टीको दिशा",
+    "baseNav": {
+      "groupInvite": "निमन्त्रणा",
+      "groupData": "व्यवस्थापन",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "सिर्जना गर्नुहोस्",
+      "groupAdmin": "Admin",
+      "members": "सदस्यहरू",
+      "interfaceMembers": "सदस्यहरू",
+      "dataPermissions": "तालिका र क्षेत्रहरू",
+      "docsPermissions": "Docs",
+      "databases": "बाह्य डाटाबेस",
+      "databasesInfo": "एउटा बाह्य डाटाबेस जोड्नुहोस्। यसका तालिकाहरू प्रत्यक्ष जडानमार्फत डाटा खण्डमा देखिन्छन्।",
+      "integrations": "एकीकरणहरू",
+      "sync": "Sync",
+      "syncInfo": "तालिका अनुसार कुनै बाह्य एपबाट यो आधारका तालिकाहरूमा डाटा ल्याउनुहोस्। यो एकतर्फी हो, त्यसैले यहाँ गरिएका सम्पादनहरू फर्केर जाँदैनन्।",
+      "automations": "स्वचालनहरू",
+      "aiSkills": "AI सीपहरू",
+      "mcpServer": "MCP सर्भर",
+      "auditLog": "लेखापरीक्षण लग",
+      "trashRetention": "रद्दीटोकरी राख्ने अवधि",
+      "snapshots": "Snapshots",
+      "general": "सामान्य",
+      "searchPlaceholder": "सेटिङहरूमा खोज्नुहोस्",
+      "searchEmpty": "“{query}” सँग मिल्ने कुनै सेटिङ छैन",
+      "upgradeAvailableOn": "{plan} योजनामा उपलब्ध छ।",
+      "upgradeCta": "अहिले नै {plan} मा स्तरवृद्धि गर्नुहोस्",
+      "upgradeTitlePermissionsDocs": "Docs का लागि अनुमतिहरू",
+      "upgradeDescPermissionsTablesFields": "कसले प्रत्येक तालिका र क्षेत्र हेर्न वा सम्पादन गर्न सक्छ भन्ने सीमित गर्नुहोस्।",
+      "upgradeDescPermissionsDocs": "कसले प्रत्येक कागजात हेर्न वा सम्पादन गर्न सक्छ भन्ने सीमित गर्नुहोस्।",
+      "upgradeDescSync": "तालिका अनुसार बाह्य एपहरूबाट डाटा ल्याउनुहोस्।",
+      "upgradeDescTrashRetention": "मेटिएका रेकर्डहरू कति समय राख्ने भन्ने छान्नुहोस्।",
+      "upgradeDescVariables": "यो आधारमा मात्र लागू हुने पुन: प्रयोगयोग्य मानहरू परिभाषित गर्नुहोस्।",
+      "upgradeDescTeams": "मानिसहरूलाई समूहमा राख्नुहोस् र तिनीहरूको पहुँच एकै ठाउँबाट व्यवस्थापन गर्नुहोस्।",
+      "membersPage": "आधारका सदस्यहरू",
+      "interfaceMembersPage": "Interface का सदस्यहरू",
+      "dataPermissionsNav": "डाटा अनुमतिहरू",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "कुनै निश्चित समयको यो आधारको पुनःस्थापनायोग्य प्रतिलिपि सुरक्षित गर्नुहोस्।"
     }
   },
   "activity": {

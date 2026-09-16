@@ -696,7 +696,9 @@
     "filters": "ಶೋಧಕಗಳು",
     "permanent": "ಶಾಶ್ವತ",
     "variable": "ಚರ",
-    "words": "ಪದಗಳು"
+    "words": "ಪದಗಳು",
+    "function": "ಕಾರ್ಯ",
+    "functions": "ಕಾರ್ಯಗಳು"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "ಕೊಂಡಿ ಹಾಕಬಹುದಾದ ದಾಖಲೆಗಳ ಸಂಖ್ಯೆಗೆ ಮಿತಿ ವಿಧಿಸಿ.",
     "audit": {
       "retention": {
-        "oneYear": "1 ವರ್ಷ"
+        "oneYear": "1 ವರ್ಷ",
+        "twoWeeks": "2 ವಾರಗಳು",
+        "twoMonths": "2 ತಿಂಗಳು",
+        "sixMonths": "6 ತಿಂಗಳು"
       }
     },
     "appIsReady": "{app} ಸಿದ್ಧವಾಗಿದೆ",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "ಎಲ್ಲ ಭೇಟಿ ನೀಡುವವರನ್ನೂ ಸೇರಿಸಿ, ಅಪ್ಲಿಕೇಶನ್ ನಿಮಿಷಕ್ಕೆ {count} ನಿಭಾಯಿಸಬಲ್ಲದು.",
       "actionsTitle": "ಭೇಟಿ ನೀಡುವವರು ಏನು ಮಾಡಬಹುದು",
       "actionsHint": "ಸೈನ್ ಇನ್ ಮಾಡದವರು ನಿಮ್ಮ ದತ್ತಾಂಶವನ್ನು ತಲುಪುವ ಏಕೈಕ ದಾರಿ ಇದು. ಬದಲಾವಣೆಗಳು ಮುಂದಿನ ಪ್ರಕಟಣೆಯಲ್ಲಿ ಜಾರಿಗೆ ಬರುತ್ತವೆ."
+    },
+    "autoSubmit": "ಸ್ವಯಂ ಸಲ್ಲಿಕೆ",
+    "autoIncrement": "ಸ್ವಯಂ ಹೆಚ್ಚಳ",
+    "autoUpdate": "ಸ್ವಯಂ ನವೀಕರಣ",
+    "autoSuggestActions": "ಕ್ರಿಯೆಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸೂಚಿಸಿ",
+    "backToPage": "{page} ಗೆ ಹಿಂತಿರುಗಿ",
+    "availableLayouts": "ಲಭ್ಯವಿರುವ Layout",
+    "backToAssistant": "ಸಹಾಯಕಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+    "barOrientation": "ಪಟ್ಟಿಗಳ ದಿಕ್ಕು",
+    "baseNav": {
+      "groupInvite": "ಆಹ್ವಾನಿಸಿ",
+      "groupData": "ನಿರ್ವಹಿಸಿ",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "ರಚಿಸಿ",
+      "groupAdmin": "Admin",
+      "members": "ಸದಸ್ಯರು",
+      "interfaceMembers": "ಸದಸ್ಯರು",
+      "dataPermissions": "ಕೋಷ್ಟಕಗಳು ಮತ್ತು ಕ್ಷೇತ್ರಗಳು",
+      "docsPermissions": "Docs",
+      "databases": "ಬಾಹ್ಯ ದತ್ತಸಂಚಯ",
+      "databasesInfo": "ಒಂದು ಬಾಹ್ಯ ದತ್ತಸಂಚಯವನ್ನು ಸಂಪರ್ಕಿಸಿ. ಅದರ ಕೋಷ್ಟಕಗಳು ನೇರ ಸಂಪರ್ಕದ ಮೂಲಕ ಡೇಟಾ ವಿಭಾಗದಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
+      "integrations": "ಸಂಯೋಜನೆಗಳು",
+      "sync": "Sync",
+      "syncInfo": "ವೇಳಾಪಟ್ಟಿಯ ಪ್ರಕಾರ ಬಾಹ್ಯ ಆ್ಯಪ್‌ನಿಂದ ಈ ಆಧಾರದ ಕೋಷ್ಟಕಗಳಿಗೆ ಡೇಟಾ ತನ್ನಿ. ಇದು ಏಕಮುಖವಾಗಿದ್ದು, ಇಲ್ಲಿ ಮಾಡಿದ ಬದಲಾವಣೆಗಳು ಹಿಂತಿರುಗುವುದಿಲ್ಲ.",
+      "automations": "ಸ್ವಯಂಚಾಲನೆಗಳು",
+      "aiSkills": "AI ಕೌಶಲ್ಯಗಳು",
+      "mcpServer": "MCP ಸರ್ವರ್",
+      "auditLog": "ಲೆಕ್ಕಪರಿಶೋಧನಾ ದಾಖಲೆ",
+      "trashRetention": "ಕಸದ ಬುಟ್ಟಿಯ ಧಾರಣ ಅವಧಿ",
+      "snapshots": "Snapshots",
+      "general": "ಸಾಮಾನ್ಯ",
+      "searchPlaceholder": "ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಹುಡುಕಿ",
+      "searchEmpty": "“{query}” ಗೆ ಹೊಂದುವ ಯಾವುದೇ ಸೆಟ್ಟಿಂಗ್ ಇಲ್ಲ",
+      "upgradeAvailableOn": "{plan} ಪ್ಲ್ಯಾನ್‌ನಲ್ಲಿ ಲಭ್ಯವಿದೆ.",
+      "upgradeCta": "ಈಗಲೇ {plan} ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+      "upgradeTitlePermissionsDocs": "Docs ಗಾಗಿ ಅನುಮತಿಗಳು",
+      "upgradeDescPermissionsTablesFields": "ಪ್ರತಿ ಕೋಷ್ಟಕ ಮತ್ತು ಕ್ಷೇತ್ರವನ್ನು ಯಾರು ನೋಡಬಹುದು ಅಥವಾ ಸಂಪಾದಿಸಬಹುದು ಎಂಬುದನ್ನು ಮಿತಿಗೊಳಿಸಿ.",
+      "upgradeDescPermissionsDocs": "ಪ್ರತಿ ದಾಖಲೆಯನ್ನು ಯಾರು ನೋಡಬಹುದು ಅಥವಾ ಸಂಪಾದಿಸಬಹುದು ಎಂಬುದನ್ನು ಮಿತಿಗೊಳಿಸಿ.",
+      "upgradeDescSync": "ವೇಳಾಪಟ್ಟಿಯ ಪ್ರಕಾರ ಬಾಹ್ಯ ಆ್ಯಪ್‌ಗಳಿಂದ ಡೇಟಾ ತನ್ನಿ.",
+      "upgradeDescTrashRetention": "ಅಳಿಸಿದ ದಾಖಲೆಗಳನ್ನು ಎಷ್ಟು ಕಾಲ ಇಡಬೇಕು ಎಂಬುದನ್ನು ಆರಿಸಿ.",
+      "upgradeDescVariables": "ಈ ಆಧಾರಕ್ಕೆ ಮಾತ್ರ ಸೀಮಿತವಾದ ಮರುಬಳಕೆ ಮಾಡಬಹುದಾದ ಮೌಲ್ಯಗಳನ್ನು ವ್ಯಾಖ್ಯಾನಿಸಿ.",
+      "upgradeDescTeams": "ಜನರನ್ನು ಗುಂಪುಗೂಡಿಸಿ ಮತ್ತು ಅವರ ಪ್ರವೇಶವನ್ನು ಒಂದೇ ಕಡೆ ನಿರ್ವಹಿಸಿ.",
+      "membersPage": "ಆಧಾರದ ಸದಸ್ಯರು",
+      "interfaceMembersPage": "Interface ಸದಸ್ಯರು",
+      "dataPermissionsNav": "ಡೇಟಾ ಅನುಮತಿಗಳು",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "ಒಂದು ನಿರ್ದಿಷ್ಟ ಸಮಯದ ಈ ಆಧಾರದ ಮರುಸ್ಥಾಪಿಸಬಹುದಾದ ಪ್ರತಿಯನ್ನು ಉಳಿಸಿ."
     }
   },
   "activity": {

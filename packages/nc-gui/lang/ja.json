@@ -696,7 +696,9 @@
     "filters": "フィルタ",
     "permanent": "恒久的",
     "variable": "変数",
-    "words": "語"
+    "words": "語",
+    "function": "関数",
+    "functions": "関数"
   },
   "objects": {
     "script": "スクリプト",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "リンクできるレコード数に上限を設けます。",
     "audit": {
       "retention": {
-        "oneYear": "1 年"
+        "oneYear": "1 年",
+        "twoWeeks": "2 週間",
+        "twoMonths": "2 か月",
+        "sixMonths": "6 か月"
       }
     },
     "appIsReady": "{app} の準備ができました",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "全訪問者の合計で、アプリは 1 分あたり {count} 件まで処理できます。",
       "actionsTitle": "訪問者ができること",
       "actionsHint": "サインインしていない人があなたのデータに触れる唯一の経路です。変更は次回の公開時に反映されます。"
+    },
+    "autoSubmit": "自動送信",
+    "autoIncrement": "自動採番",
+    "autoUpdate": "自動更新",
+    "autoSuggestActions": "アクションを自動で提案",
+    "backToPage": "{page} に戻る",
+    "availableLayouts": "利用できる Layout",
+    "backToAssistant": "アシスタントに戻る",
+    "barOrientation": "棒の向き",
+    "baseNav": {
+      "groupInvite": "招待",
+      "groupData": "管理",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "作成",
+      "groupAdmin": "Admin",
+      "members": "メンバー",
+      "interfaceMembers": "メンバー",
+      "dataPermissions": "テーブルとフィールド",
+      "docsPermissions": "Docs",
+      "databases": "外部データベース",
+      "databasesInfo": "外部データベースを接続します。そのテーブルはライブ接続を通じて「データ」に表示されます。",
+      "integrations": "連携",
+      "sync": "Sync",
+      "syncInfo": "外部アプリのデータをスケジュールに沿ってこのベースのテーブルに取り込みます。一方向のため、ここでの編集は元には戻りません。",
+      "automations": "オートメーション",
+      "aiSkills": "AI スキル",
+      "mcpServer": "MCP サーバー",
+      "auditLog": "監査ログ",
+      "trashRetention": "ゴミ箱の保持期間",
+      "snapshots": "Snapshots",
+      "general": "一般",
+      "searchPlaceholder": "設定を検索",
+      "searchEmpty": "「{query}」に一致する設定はありません",
+      "upgradeAvailableOn": "{plan} プランでご利用いただけます。",
+      "upgradeCta": "今すぐ {plan} にアップグレード",
+      "upgradeTitlePermissionsDocs": "Docs の権限",
+      "upgradeDescPermissionsTablesFields": "各テーブルとフィールドを閲覧・編集できる人を制限します。",
+      "upgradeDescPermissionsDocs": "各ドキュメントを閲覧・編集できる人を制限します。",
+      "upgradeDescSync": "外部アプリのデータをスケジュールに沿って取り込みます。",
+      "upgradeDescTrashRetention": "削除したレコードを保持する期間を選びます。",
+      "upgradeDescVariables": "このベース内でのみ使える、再利用可能な値を定義します。",
+      "upgradeDescTeams": "人をグループにまとめ、アクセス権を一か所で管理します。",
+      "membersPage": "ベースのメンバー",
+      "interfaceMembersPage": "Interface のメンバー",
+      "dataPermissionsNav": "データ権限",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "このベースの、ある時点の復元可能なコピーを保存します。"
     }
   },
   "activity": {

@@ -693,7 +693,9 @@
     "filters": "filtres",
     "permanent": "Permanent",
     "variable": "Variable",
-    "words": "mots"
+    "words": "mots",
+    "function": "Fonction",
+    "functions": "Fonctions"
   },
   "objects": {
     "script": "Script",
@@ -2643,7 +2645,10 @@
     "applyLimitLinkedRecordsSubtext": "Appliquer une limite au nombre d'enregistrements pouvant être liés.",
     "audit": {
       "retention": {
-        "oneYear": "1 an"
+        "oneYear": "1 an",
+        "twoWeeks": "2 semaines",
+        "twoMonths": "2 mois",
+        "sixMonths": "6 mois"
       }
     },
     "appIsReady": "{app} est prête",
@@ -2806,6 +2811,53 @@
       "meaningRateApp": "Tous visiteurs confondus, l'app peut traiter {count} par minute.",
       "actionsTitle": "Ce que les visiteurs peuvent faire",
       "actionsHint": "Le seul moyen pour une personne non connectée d'atteindre vos données. Les modifications prennent effet à la prochaine publication."
+    },
+    "autoSubmit": "Envoi automatique",
+    "autoIncrement": "Incrément automatique",
+    "autoUpdate": "Mise à jour automatique",
+    "autoSuggestActions": "Suggérer des actions automatiquement",
+    "backToPage": "Retour à {page}",
+    "availableLayouts": "Layouts disponibles",
+    "backToAssistant": "Retour à l'assistant",
+    "barOrientation": "Orientation des barres",
+    "baseNav": {
+      "groupInvite": "Inviter",
+      "groupData": "Gérer",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Créer",
+      "groupAdmin": "Admin",
+      "members": "Membres",
+      "interfaceMembers": "Membres",
+      "dataPermissions": "Tables et champs",
+      "docsPermissions": "Docs",
+      "databases": "Base de données externe",
+      "databasesInfo": "Connectez une base de données externe. Ses tables apparaissent dans Données via une connexion en direct.",
+      "integrations": "Intégrations",
+      "sync": "Sync",
+      "syncInfo": "Importez régulièrement des données d'une app externe dans les tables de cette base. À sens unique : les modifications faites ici ne remontent pas.",
+      "automations": "Automatisations",
+      "aiSkills": "Skills IA",
+      "mcpServer": "Serveur MCP",
+      "auditLog": "Journal d'audit",
+      "trashRetention": "Conservation de la corbeille",
+      "snapshots": "Snapshots",
+      "general": "Général",
+      "searchPlaceholder": "Rechercher dans les paramètres",
+      "searchEmpty": "Aucun paramètre ne correspond à “{query}”",
+      "upgradeAvailableOn": "Disponible avec le plan {plan}.",
+      "upgradeCta": "Passer à {plan} maintenant",
+      "upgradeTitlePermissionsDocs": "Permissions pour les Docs",
+      "upgradeDescPermissionsTablesFields": "Limitez qui peut consulter ou modifier chaque table et chaque champ.",
+      "upgradeDescPermissionsDocs": "Limitez qui peut consulter ou modifier chaque doc.",
+      "upgradeDescSync": "Importez régulièrement des données depuis des apps externes.",
+      "upgradeDescTrashRetention": "Choisissez combien de temps les enregistrements supprimés sont conservés.",
+      "upgradeDescVariables": "Définissez des valeurs réutilisables propres à cette base.",
+      "upgradeDescTeams": "Regroupez les personnes et gérez leurs accès au même endroit.",
+      "membersPage": "Membres de la base",
+      "interfaceMembersPage": "Membres de l'interface",
+      "dataPermissionsNav": "Permissions sur les données",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Enregistrez une copie restaurable de cette base à un instant donné."
     }
   },
   "activity": {

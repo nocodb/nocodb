@@ -696,7 +696,9 @@
     "filters": "filter",
     "permanent": "Permanen",
     "variable": "Variabel",
-    "words": "kata"
+    "words": "kata",
+    "function": "Fungsi",
+    "functions": "Fungsi"
   },
   "objects": {
     "script": "Skrip",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Terapkan batas pada jumlah catatan yang bisa ditautkan.",
     "audit": {
       "retention": {
-        "oneYear": "1 tahun"
+        "oneYear": "1 tahun",
+        "twoWeeks": "2 minggu",
+        "twoMonths": "2 bulan",
+        "sixMonths": "6 bulan"
       }
     },
     "appIsReady": "{app} sudah siap",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Untuk seluruh pengunjung, aplikasi sanggup menangani {count} per menit.",
       "actionsTitle": "Apa yang bisa dilakukan pengunjung",
       "actionsHint": "Satu-satunya jalan bagi orang yang tidak masuk untuk mencapai data Anda. Perubahan berlaku saat Anda menerbitkan berikutnya."
+    },
+    "autoSubmit": "Kirim otomatis",
+    "autoIncrement": "Penambahan otomatis",
+    "autoUpdate": "Pembaruan otomatis",
+    "autoSuggestActions": "Sarankan tindakan secara otomatis",
+    "backToPage": "Kembali ke {page}",
+    "availableLayouts": "Layout yang tersedia",
+    "backToAssistant": "Kembali ke asisten",
+    "barOrientation": "Orientasi batang",
+    "baseNav": {
+      "groupInvite": "Undang",
+      "groupData": "Kelola",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Buat",
+      "groupAdmin": "Admin",
+      "members": "Anggota",
+      "interfaceMembers": "Anggota",
+      "dataPermissions": "Tabel dan bidang",
+      "docsPermissions": "Docs",
+      "databases": "Basis data eksternal",
+      "databasesInfo": "Hubungkan basis data eksternal. Tabelnya muncul di Data melalui koneksi langsung.",
+      "integrations": "Integrasi",
+      "sync": "Sync",
+      "syncInfo": "Tarik data dari app eksternal ke tabel basis ini sesuai jadwal. Satu arah, jadi suntingan di sini tidak mengalir balik.",
+      "automations": "Otomatisasi",
+      "aiSkills": "Skill AI",
+      "mcpServer": "Server MCP",
+      "auditLog": "Log audit",
+      "trashRetention": "Masa simpan sampah",
+      "snapshots": "Snapshots",
+      "general": "Umum",
+      "searchPlaceholder": "Cari pengaturan",
+      "searchEmpty": "Tidak ada pengaturan yang cocok dengan “{query}”",
+      "upgradeAvailableOn": "Tersedia pada paket {plan}.",
+      "upgradeCta": "Tingkatkan ke {plan} sekarang",
+      "upgradeTitlePermissionsDocs": "Izin untuk Docs",
+      "upgradeDescPermissionsTablesFields": "Batasi siapa yang bisa melihat atau menyunting setiap tabel dan bidang.",
+      "upgradeDescPermissionsDocs": "Batasi siapa yang bisa melihat atau menyunting setiap doc.",
+      "upgradeDescSync": "Tarik data dari app eksternal sesuai jadwal.",
+      "upgradeDescTrashRetention": "Pilih berapa lama catatan yang dihapus disimpan.",
+      "upgradeDescVariables": "Tentukan nilai yang dapat dipakai ulang khusus untuk basis ini.",
+      "upgradeDescTeams": "Kelompokkan orang dan kelola akses mereka di satu tempat.",
+      "membersPage": "Anggota basis",
+      "interfaceMembersPage": "Anggota interface",
+      "dataPermissionsNav": "Izin data",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Simpan salinan basis ini yang bisa dipulihkan pada satu titik waktu."
     }
   },
   "activity": {

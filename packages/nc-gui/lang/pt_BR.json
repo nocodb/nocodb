@@ -696,7 +696,9 @@
     "filters": "filtros",
     "permanent": "Permanente",
     "variable": "Variável",
-    "words": "palavras"
+    "words": "palavras",
+    "function": "Função",
+    "functions": "Funções"
   },
   "objects": {
     "script": "Script",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Aplicar um limite ao número de registros que podem ser vinculados.",
     "audit": {
       "retention": {
-        "oneYear": "1 ano"
+        "oneYear": "1 ano",
+        "twoWeeks": "2 semanas",
+        "twoMonths": "2 meses",
+        "sixMonths": "6 meses"
       }
     },
     "appIsReady": "{app} está pronto",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Somando todos os visitantes, o app consegue atender {count} por minuto.",
       "actionsTitle": "O que os visitantes podem fazer",
       "actionsHint": "O único caminho por onde alguém sem login chega aos seus dados. As alterações passam a valer na próxima publicação."
+    },
+    "autoSubmit": "Envio automático",
+    "autoIncrement": "Incremento automático",
+    "autoUpdate": "Atualização automática",
+    "autoSuggestActions": "Sugerir ações automaticamente",
+    "backToPage": "Voltar para {page}",
+    "availableLayouts": "Layouts disponíveis",
+    "backToAssistant": "Voltar ao assistente",
+    "barOrientation": "Orientação das barras",
+    "baseNav": {
+      "groupInvite": "Convidar",
+      "groupData": "Gerenciar",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Criar",
+      "groupAdmin": "Admin",
+      "members": "Membros",
+      "interfaceMembers": "Membros",
+      "dataPermissions": "Tabelas e campos",
+      "docsPermissions": "Docs",
+      "databases": "Banco de dados externo",
+      "databasesInfo": "Conecte um banco de dados externo. As tabelas dele aparecem em Dados por meio de uma conexão ao vivo.",
+      "integrations": "Integrações",
+      "sync": "Sync",
+      "syncInfo": "Traga dados de um app externo para as tabelas desta base de forma programada. É de mão única, então as edições feitas aqui não voltam.",
+      "automations": "Automações",
+      "aiSkills": "Skills de IA",
+      "mcpServer": "Servidor MCP",
+      "auditLog": "Log de auditoria",
+      "trashRetention": "Retenção da lixeira",
+      "snapshots": "Snapshots",
+      "general": "Geral",
+      "searchPlaceholder": "Buscar nas configurações",
+      "searchEmpty": "Nenhuma configuração corresponde a “{query}”",
+      "upgradeAvailableOn": "Disponível no plano {plan}.",
+      "upgradeCta": "Mudar para {plan} agora",
+      "upgradeTitlePermissionsDocs": "Permissões para Docs",
+      "upgradeDescPermissionsTablesFields": "Restrinja quem pode ver ou editar cada tabela e campo.",
+      "upgradeDescPermissionsDocs": "Restrinja quem pode ver ou editar cada doc.",
+      "upgradeDescSync": "Traga dados de apps externos de forma programada.",
+      "upgradeDescTrashRetention": "Escolha por quanto tempo os registros excluídos são mantidos.",
+      "upgradeDescVariables": "Defina valores reutilizáveis restritos a esta base.",
+      "upgradeDescTeams": "Agrupe pessoas e gerencie os acessos delas em um só lugar.",
+      "membersPage": "Membros da base",
+      "interfaceMembersPage": "Membros da interface",
+      "dataPermissionsNav": "Permissões de dados",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Salve uma cópia restaurável desta base em um dado momento."
     }
   },
   "activity": {

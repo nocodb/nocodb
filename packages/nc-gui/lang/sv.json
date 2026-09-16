@@ -696,7 +696,9 @@
     "filters": "filter",
     "permanent": "Permanent",
     "variable": "Variabel",
-    "words": "ord"
+    "words": "ord",
+    "function": "Funktion",
+    "functions": "Funktioner"
   },
   "objects": {
     "script": "Skript",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Sätt en gräns för hur många poster som får länkas.",
     "audit": {
       "retention": {
-        "oneYear": "1 år"
+        "oneYear": "1 år",
+        "twoWeeks": "2 veckor",
+        "twoMonths": "2 månader",
+        "sixMonths": "6 månader"
       }
     },
     "appIsReady": "{app} är klar",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Sammanlagt för alla besökare klarar appen {count} per minut.",
       "actionsTitle": "Vad besökare kan göra",
       "actionsHint": "Den enda vägen någon utan inloggning når dina data. Ändringar börjar gälla nästa gång du publicerar."
+    },
+    "autoSubmit": "Skicka automatiskt",
+    "autoIncrement": "Automatisk uppräkning",
+    "autoUpdate": "Uppdatera automatiskt",
+    "autoSuggestActions": "Föreslå åtgärder automatiskt",
+    "backToPage": "Tillbaka till {page}",
+    "availableLayouts": "Tillgängliga layouter",
+    "backToAssistant": "Tillbaka till assistenten",
+    "barOrientation": "Staplarnas orientering",
+    "baseNav": {
+      "groupInvite": "Bjud in",
+      "groupData": "Hantera",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Skapa",
+      "groupAdmin": "Admin",
+      "members": "Medlemmar",
+      "interfaceMembers": "Medlemmar",
+      "dataPermissions": "Tabeller och fält",
+      "docsPermissions": "Docs",
+      "databases": "Extern databas",
+      "databasesInfo": "Anslut en extern databas. Dess tabeller visas under Data via en liveanslutning.",
+      "integrations": "Integrationer",
+      "sync": "Sync",
+      "syncInfo": "Hämta enligt schema data från en extern app till den här basens tabeller. Enkelriktat, så ändringar här flödar inte tillbaka.",
+      "automations": "Automatiseringar",
+      "aiSkills": "AI-skills",
+      "mcpServer": "MCP-server",
+      "auditLog": "Granskningslogg",
+      "trashRetention": "Bevarandetid för papperskorgen",
+      "snapshots": "Snapshots",
+      "general": "Allmänt",
+      "searchPlaceholder": "Sök bland inställningar",
+      "searchEmpty": "Inga inställningar matchar ”{query}”",
+      "upgradeAvailableOn": "Tillgängligt i paketet {plan}.",
+      "upgradeCta": "Uppgradera till {plan} nu",
+      "upgradeTitlePermissionsDocs": "Behörigheter för Docs",
+      "upgradeDescPermissionsTablesFields": "Begränsa vem som får visa eller redigera varje tabell och fält.",
+      "upgradeDescPermissionsDocs": "Begränsa vem som får visa eller redigera varje doc.",
+      "upgradeDescSync": "Hämta enligt schema data från externa appar.",
+      "upgradeDescTrashRetention": "Välj hur länge borttagna poster sparas.",
+      "upgradeDescVariables": "Definiera återanvändbara värden som bara gäller den här basen.",
+      "upgradeDescTeams": "Gruppera personer och hantera deras åtkomst på ett ställe.",
+      "membersPage": "Basens medlemmar",
+      "interfaceMembersPage": "Medlemmar i interface",
+      "dataPermissionsNav": "Databehörigheter",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Spara en återställningsbar kopia av den här basen vid en viss tidpunkt."
     }
   },
   "activity": {

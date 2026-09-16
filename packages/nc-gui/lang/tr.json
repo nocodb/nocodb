@@ -696,7 +696,9 @@
     "filters": "filtreler",
     "permanent": "Kalıcı",
     "variable": "Değişken",
-    "words": "kelime"
+    "words": "kelime",
+    "function": "İşlev",
+    "functions": "İşlevler"
   },
   "objects": {
     "script": "Script",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Bağlanabilecek kayıt sayısına bir sınır koyun.",
     "audit": {
       "retention": {
-        "oneYear": "1 yıl"
+        "oneYear": "1 yıl",
+        "twoWeeks": "2 hafta",
+        "twoMonths": "2 ay",
+        "sixMonths": "6 ay"
       }
     },
     "appIsReady": "{app} hazır",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Tüm ziyaretçiler toplamında uygulama dakikada {count} isteği kaldırabilir.",
       "actionsTitle": "Ziyaretçiler ne yapabilir",
       "actionsHint": "Oturum açmamış birinin verilerinize ulaşmasının tek yolu. Değişiklikler bir sonraki yayımlamada geçerli olur."
+    },
+    "autoSubmit": "Otomatik gönderme",
+    "autoIncrement": "Otomatik artırma",
+    "autoUpdate": "Otomatik güncelleme",
+    "autoSuggestActions": "Eylemleri otomatik öner",
+    "backToPage": "{page} sayfasına dön",
+    "availableLayouts": "Kullanılabilir layoutlar",
+    "backToAssistant": "Asistana dön",
+    "barOrientation": "Çubuk yönü",
+    "baseNav": {
+      "groupInvite": "Davet et",
+      "groupData": "Yönet",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Oluştur",
+      "groupAdmin": "Admin",
+      "members": "Üyeler",
+      "interfaceMembers": "Üyeler",
+      "dataPermissions": "Tablolar ve alanlar",
+      "docsPermissions": "Docs",
+      "databases": "Harici veritabanı",
+      "databasesInfo": "Harici bir veritabanı bağlayın. Tabloları, canlı bir bağlantı üzerinden Veri bölümünde görünür.",
+      "integrations": "Entegrasyonlar",
+      "sync": "Sync",
+      "syncInfo": "Harici bir uygulamadan bu veritabanının tablolarına zamanlanmış olarak veri çekin. Tek yönlüdür, bu yüzden burada yapılan düzenlemeler geri akmaz.",
+      "automations": "Otomasyonlar",
+      "aiSkills": "Yapay Zekâ Skills",
+      "mcpServer": "MCP sunucusu",
+      "auditLog": "Denetim günlüğü",
+      "trashRetention": "Çöp kutusu saklama süresi",
+      "snapshots": "Snapshots",
+      "general": "Genel",
+      "searchPlaceholder": "Ayarlarda ara",
+      "searchEmpty": "“{query}” ile eşleşen ayar yok",
+      "upgradeAvailableOn": "{plan} planında kullanılabilir.",
+      "upgradeCta": "Şimdi {plan} planına geçin",
+      "upgradeTitlePermissionsDocs": "Docs izinleri",
+      "upgradeDescPermissionsTablesFields": "Her tabloyu ve alanı kimin görüntüleyebileceğini veya düzenleyebileceğini sınırlayın.",
+      "upgradeDescPermissionsDocs": "Her dokümanı kimin görüntüleyebileceğini veya düzenleyebileceğini sınırlayın.",
+      "upgradeDescSync": "Harici uygulamalardan zamanlanmış olarak veri çekin.",
+      "upgradeDescTrashRetention": "Silinen kayıtların ne kadar süre saklanacağını seçin.",
+      "upgradeDescVariables": "Yalnızca bu veritabanı için geçerli, yeniden kullanılabilir değerler tanımlayın.",
+      "upgradeDescTeams": "İnsanları gruplayın ve erişimlerini tek bir yerden yönetin.",
+      "membersPage": "Veritabanı üyeleri",
+      "interfaceMembersPage": "Interface üyeleri",
+      "dataPermissionsNav": "Veri izinleri",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Bu veritabanının belirli bir andaki geri yüklenebilir bir kopyasını kaydedin."
     }
   },
   "activity": {

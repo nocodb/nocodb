@@ -696,7 +696,9 @@
     "filters": "ഫിൽട്ടറുകൾ",
     "permanent": "സ്ഥിരമായത്",
     "variable": "ചരം",
-    "words": "വാക്കുകൾ"
+    "words": "വാക്കുകൾ",
+    "function": "ഫങ്ഷൻ",
+    "functions": "ഫങ്ഷനുകൾ"
   },
   "objects": {
     "script": "സ്‌ക്രിപ്റ്റ്",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "ബന്ധിപ്പിക്കാവുന്ന റെക്കോർഡുകളുടെ എണ്ണത്തിന് പരിധി വയ്ക്കുക.",
     "audit": {
       "retention": {
-        "oneYear": "1 വർഷം"
+        "oneYear": "1 വർഷം",
+        "twoWeeks": "2 ആഴ്ച",
+        "twoMonths": "2 മാസം",
+        "sixMonths": "6 മാസം"
       }
     },
     "appIsReady": "{app} തയ്യാറാണ്",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "എല്ലാ സന്ദർശകരും ചേർന്ന്, ആപ്പിന് മിനിറ്റിൽ {count} കൈകാര്യം ചെയ്യാനാകും.",
       "actionsTitle": "സന്ദർശകർക്ക് എന്തു ചെയ്യാം",
       "actionsHint": "സൈൻ ഇൻ ചെയ്യാത്ത ഒരാൾ നിങ്ങളുടെ ഡാറ്റയിലേക്ക് എത്തുന്ന ഏക വഴി ഇതാണ്. മാറ്റങ്ങൾ അടുത്ത പ്രസിദ്ധീകരണത്തിൽ പ്രാബല്യത്തിൽ വരും."
+    },
+    "autoSubmit": "സ്വയം സമർപ്പിക്കൽ",
+    "autoIncrement": "സ്വയം വർധന",
+    "autoUpdate": "സ്വയം പുതുക്കൽ",
+    "autoSuggestActions": "പ്രവർത്തനങ്ങൾ സ്വയം നിർദേശിക്കുക",
+    "backToPage": "{page} എന്നതിലേക്ക് മടങ്ങുക",
+    "availableLayouts": "ലഭ്യമായ Layout",
+    "backToAssistant": "സഹായിയിലേക്ക് മടങ്ങുക",
+    "barOrientation": "ബാറുകളുടെ ദിശ",
+    "baseNav": {
+      "groupInvite": "ക്ഷണിക്കുക",
+      "groupData": "കൈകാര്യം ചെയ്യുക",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "സൃഷ്ടിക്കുക",
+      "groupAdmin": "Admin",
+      "members": "അംഗങ്ങൾ",
+      "interfaceMembers": "അംഗങ്ങൾ",
+      "dataPermissions": "പട്ടികകളും വിഭാഗങ്ങളും",
+      "docsPermissions": "Docs",
+      "databases": "പുറമേയുള്ള ഡാറ്റാബേസ്",
+      "databasesInfo": "ഒരു പുറമേയുള്ള ഡാറ്റാബേസ് ബന്ധിപ്പിക്കുക. അതിന്റെ പട്ടികകൾ തത്സമയ കണക്ഷനിലൂടെ ഡാറ്റ വിഭാഗത്തിൽ കാണാം.",
+      "integrations": "സംയോജനങ്ങൾ",
+      "sync": "Sync",
+      "syncInfo": "ഒരു സമയക്രമം അനുസരിച്ച് പുറമേയുള്ള ആപ്പിൽ നിന്ന് ഈ ബേസിലെ പട്ടികകളിലേക്ക് ഡാറ്റ കൊണ്ടുവരിക. ഒരു വഴിക്കു മാത്രമാണ്, അതിനാൽ ഇവിടെ വരുത്തുന്ന മാറ്റങ്ങൾ തിരികെ പോകില്ല.",
+      "automations": "ഓട്ടോമേഷനുകൾ",
+      "aiSkills": "AI സ്കില്ലുകൾ",
+      "mcpServer": "MCP സെർവർ",
+      "auditLog": "ഓഡിറ്റ് ലോഗ്",
+      "trashRetention": "ചവറ്റുകുട്ട സൂക്ഷിക്കുന്ന കാലാവധി",
+      "snapshots": "Snapshots",
+      "general": "പൊതുവായത്",
+      "searchPlaceholder": "ക്രമീകരണങ്ങളിൽ തിരയുക",
+      "searchEmpty": "“{query}” എന്നതിനോട് ചേരുന്ന ക്രമീകരണങ്ങളില്ല",
+      "upgradeAvailableOn": "{plan} പ്ലാനിൽ ലഭ്യമാണ്.",
+      "upgradeCta": "ഇപ്പോൾ {plan} ലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക",
+      "upgradeTitlePermissionsDocs": "Docs-നുള്ള അനുമതികൾ",
+      "upgradeDescPermissionsTablesFields": "ഓരോ പട്ടികയും വിഭാഗവും ആർക്കൊക്കെ കാണാനും തിരുത്താനും കഴിയുമെന്ന് പരിമിതപ്പെടുത്തുക.",
+      "upgradeDescPermissionsDocs": "ഓരോ രേഖയും ആർക്കൊക്കെ കാണാനും തിരുത്താനും കഴിയുമെന്ന് പരിമിതപ്പെടുത്തുക.",
+      "upgradeDescSync": "ഒരു സമയക്രമം അനുസരിച്ച് പുറമേയുള്ള ആപ്പുകളിൽ നിന്ന് ഡാറ്റ കൊണ്ടുവരിക.",
+      "upgradeDescTrashRetention": "ഇല്ലാതാക്കിയ രേഖകൾ എത്ര കാലം സൂക്ഷിക്കണമെന്ന് തിരഞ്ഞെടുക്കുക.",
+      "upgradeDescVariables": "ഈ ബേസിൽ മാത്രം ബാധകമായ, വീണ്ടും ഉപയോഗിക്കാവുന്ന മൂല്യങ്ങൾ നിർവചിക്കുക.",
+      "upgradeDescTeams": "ആളുകളെ ഗ്രൂപ്പുകളാക്കി അവരുടെ ആക്സസ് ഒരിടത്തുനിന്ന് കൈകാര്യം ചെയ്യുക.",
+      "membersPage": "ബേസിലെ അംഗങ്ങൾ",
+      "interfaceMembersPage": "Interface അംഗങ്ങൾ",
+      "dataPermissionsNav": "ഡാറ്റ അനുമതികൾ",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "ഒരു നിശ്ചിത സമയത്തെ ഈ ബേസിന്റെ പുനഃസ്ഥാപിക്കാവുന്ന പകർപ്പ് സംരക്ഷിക്കുക."
     }
   },
   "activity": {

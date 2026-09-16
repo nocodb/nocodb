@@ -696,7 +696,9 @@
     "filters": "តម្រង",
     "permanent": "អចិន្ត្រៃយ៍",
     "variable": "អថេរ",
-    "words": "ពាក្យ"
+    "words": "ពាក្យ",
+    "function": "អនុគមន៍",
+    "functions": "អនុគមន៍"
   },
   "objects": {
     "script": "ស្គ្រីប",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "កំណត់ព្រំដែនលើចំនួនកំណត់ត្រាដែលអាចភ្ជាប់បាន។",
     "audit": {
       "retention": {
-        "oneYear": "1 ឆ្នាំ"
+        "oneYear": "1 ឆ្នាំ",
+        "twoWeeks": "2 សប្តាហ៍",
+        "twoMonths": "2 ខែ",
+        "sixMonths": "6 ខែ"
       }
     },
     "appIsReady": "{app} រួចរាល់ហើយ",
@@ -2818,6 +2823,50 @@
       "meaningRateApp": "រួមទាំងអ្នកទស្សនាទាំងអស់ កម្មវិធីអាចទ្រាំបាន {count} ក្នុងមួយនាទី។",
       "actionsTitle": "អ្វីដែលអ្នកទស្សនាអាចធ្វើបាន",
       "actionsHint": "នេះជាផ្លូវតែមួយគត់ដែលអ្នកមិនបានចូលគណនីអាចទៅដល់ទិន្នន័យរបស់អ្នក។ ការផ្លាស់ប្ដូរនឹងមានប្រសិទ្ធភាពនៅពេលផ្សាយលើកក្រោយ។"
+    },
+    "autoSubmit": "ដាក់ស្នើដោយស្វ័យប្រវត្តិ",
+    "autoIncrement": "បង្កើនដោយស្វ័យប្រវត្តិ",
+    "autoUpdate": "ធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ",
+    "autoSuggestActions": "ស្នើសកម្មភាពដោយស្វ័យប្រវត្តិ",
+    "backToPage": "ត្រឡប់ទៅ {page}",
+    "availableLayouts": "Layout ដែលអាចប្រើបាន",
+    "backToAssistant": "ត្រឡប់ទៅជំនួយការ",
+    "barOrientation": "ទិសដៅរបស់របារ",
+    "baseNav": {
+      "groupInvite": "អញ្ជើញ",
+      "groupData": "គ្រប់គ្រង",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "បង្កើត",
+      "groupAdmin": "Admin",
+      "members": "សមាជិក",
+      "interfaceMembers": "សមាជិក",
+      "dataPermissions": "តារាង និងវាល",
+      "docsPermissions": "Docs",
+      "databases": "មូលដ្ឋានទិន្នន័យខាងក្រៅ",
+      "databasesInfo": "ភ្ជាប់មូលដ្ឋានទិន្នន័យខាងក្រៅ។ តារាងរបស់វាបង្ហាញនៅក្នុងផ្នែកទិន្នន័យតាមរយៈការតភ្ជាប់ផ្ទាល់។",
+      "integrations": "ការរួមបញ្ចូល",
+      "sync": "Sync",
+      "automations": "ស្វ័យប្រវត្តិកម្ម",
+      "aiSkills": "ជំនាញ AI",
+      "mcpServer": "ម៉ាស៊ីនបម្រើ MCP",
+      "auditLog": "កំណត់ហេតុសវនកម្ម",
+      "trashRetention": "រយៈពេលរក្សាទុកធុងសំរាម",
+      "snapshots": "Snapshots",
+      "general": "ទូទៅ",
+      "searchPlaceholder": "ស្វែងរកការកំណត់",
+      "searchEmpty": "គ្មានការកំណត់ណាត្រូវនឹង “{query}” ទេ",
+      "upgradeAvailableOn": "មានក្នុងផែនការ {plan}។",
+      "upgradeCta": "ដំឡើងទៅ {plan} ឥឡូវនេះ",
+      "upgradeTitlePermissionsDocs": "សិទ្ធិសម្រាប់ Docs",
+      "upgradeDescPermissionsTablesFields": "កំណត់ថានរណាអាចមើល ឬកែតារាង និងវាលនីមួយៗ។",
+      "upgradeDescPermissionsDocs": "កំណត់ថានរណាអាចមើល ឬកែឯកសារនីមួយៗ។",
+      "upgradeDescSync": "ទាញទិន្នន័យពីកម្មវិធីខាងក្រៅតាមកាលវិភាគ។",
+      "upgradeDescTrashRetention": "ជ្រើសរើសថាកំណត់ត្រាដែលបានលុបត្រូវរក្សាទុករយៈពេលប៉ុន្មាន។",
+      "upgradeDescTeams": "ដាក់មនុស្សជាក្រុម និងគ្រប់គ្រងសិទ្ធិចូលប្រើរបស់ពួកគេនៅកន្លែងតែមួយ។",
+      "membersPage": "សមាជិកមូលដ្ឋាន",
+      "interfaceMembersPage": "សមាជិក Interface",
+      "dataPermissionsNav": "សិទ្ធិលើទិន្នន័យ",
+      "apiTokens": "API Tokens"
     }
   },
   "activity": {

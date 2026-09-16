@@ -696,7 +696,9 @@
     "filters": "фильтры",
     "permanent": "Постоянный",
     "variable": "Переменная",
-    "words": "слов"
+    "words": "слов",
+    "function": "Функция",
+    "functions": "Функции"
   },
   "objects": {
     "script": "Скрипт",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Ограничить количество записей, которые можно связать.",
     "audit": {
       "retention": {
-        "oneYear": "1 год"
+        "oneYear": "1 год",
+        "twoWeeks": "2 недели",
+        "twoMonths": "2 месяца",
+        "sixMonths": "6 месяцев"
       }
     },
     "appIsReady": "{app} готово",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Суммарно по всем посетителям приложение справляется с {count} в минуту.",
       "actionsTitle": "Что могут делать посетители",
       "actionsHint": "Единственный путь, которым человек без входа в систему добирается до ваших данных. Изменения вступят в силу при следующей публикации."
+    },
+    "autoSubmit": "Автоотправка",
+    "autoIncrement": "Автоинкремент",
+    "autoUpdate": "Автообновление",
+    "autoSuggestActions": "Автоматически предлагать действия",
+    "backToPage": "Назад к {page}",
+    "availableLayouts": "Доступные макеты",
+    "backToAssistant": "Назад к ассистенту",
+    "barOrientation": "Ориентация столбцов",
+    "baseNav": {
+      "groupInvite": "Пригласить",
+      "groupData": "Управлять",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Создать",
+      "groupAdmin": "Admin",
+      "members": "Участники",
+      "interfaceMembers": "Участники",
+      "dataPermissions": "Таблицы и поля",
+      "docsPermissions": "Docs",
+      "databases": "Внешняя база данных",
+      "databasesInfo": "Подключите внешнюю базу данных. Её таблицы появятся в разделе «Данные» через живое подключение.",
+      "integrations": "Интеграции",
+      "sync": "Sync",
+      "syncInfo": "По расписанию переносите данные из внешнего приложения в таблицы этой базы. Односторонне, поэтому правки отсюда обратно не уходят.",
+      "automations": "Автоматизации",
+      "aiSkills": "ИИ-навыки",
+      "mcpServer": "Сервер MCP",
+      "auditLog": "Журнал аудита",
+      "trashRetention": "Хранение в корзине",
+      "snapshots": "Snapshots",
+      "general": "Общие",
+      "searchPlaceholder": "Поиск по настройкам",
+      "searchEmpty": "Нет настроек, соответствующих «{query}»",
+      "upgradeAvailableOn": "Доступно на тарифе {plan}.",
+      "upgradeCta": "Перейти на {plan} сейчас",
+      "upgradeTitlePermissionsDocs": "Права для Docs",
+      "upgradeDescPermissionsTablesFields": "Ограничьте, кто может просматривать и редактировать каждую таблицу и каждое поле.",
+      "upgradeDescPermissionsDocs": "Ограничьте, кто может просматривать и редактировать каждый документ.",
+      "upgradeDescSync": "По расписанию переносите данные из внешних приложений.",
+      "upgradeDescTrashRetention": "Выберите, как долго хранятся удалённые записи.",
+      "upgradeDescVariables": "Задайте переиспользуемые значения в пределах этой базы.",
+      "upgradeDescTeams": "Объединяйте людей в группы и управляйте их доступом в одном месте.",
+      "membersPage": "Участники базы",
+      "interfaceMembersPage": "Участники интерфейса",
+      "dataPermissionsNav": "Права на данные",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Сохраните восстанавливаемую копию этой базы на определённый момент времени."
     }
   },
   "activity": {

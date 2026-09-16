@@ -735,7 +735,9 @@
     "filters": "Filter",
     "permanent": "Dauerhaft",
     "variable": "Variable",
-    "words": "Wörter"
+    "words": "Wörter",
+    "function": "Funktion",
+    "functions": "Funktionen"
   },
   "objects": {
     "script": "Skript",

@@ -696,7 +696,9 @@
     "filters": "iragazkiak",
     "permanent": "Iraunkorra",
     "variable": "Aldagaia",
-    "words": "hitz"
+    "words": "hitz",
+    "function": "Funtzioa",
+    "functions": "Funtzioak"
   },
   "objects": {
     "script": "Script",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Ezarri muga bat lotu daitezkeen erregistroen kopuruari.",
     "audit": {
       "retention": {
-        "oneYear": "Urte 1"
+        "oneYear": "Urte 1",
+        "twoWeeks": "2 aste",
+        "twoMonths": "2 hilabete",
+        "sixMonths": "6 hilabete"
       }
     },
     "appIsReady": "{app} prest dago",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Bisitari guztien artean, aplikazioak {count} onar ditzake minutuko.",
       "actionsTitle": "Bisitariek zer egin dezaketen",
       "actionsHint": "Saioa hasi gabeko norbaitek zure datuetara iristeko duen bide bakarra. Aldaketak hurrengo argitalpenean sartuko dira indarrean."
+    },
+    "autoSubmit": "Bidalketa automatikoa",
+    "autoIncrement": "Gehikuntza automatikoa",
+    "autoUpdate": "Eguneratze automatikoa",
+    "autoSuggestActions": "Iradoki ekintzak automatikoki",
+    "backToPage": "Itzuli {page} orrira",
+    "availableLayouts": "Layout erabilgarriak",
+    "backToAssistant": "Itzuli laguntzailera",
+    "barOrientation": "Barren orientazioa",
+    "baseNav": {
+      "groupInvite": "Gonbidatu",
+      "groupData": "Kudeatu",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Sortu",
+      "groupAdmin": "Admin",
+      "members": "Kideak",
+      "interfaceMembers": "Kideak",
+      "dataPermissions": "Taulak eta eremuak",
+      "docsPermissions": "Docs",
+      "databases": "Kanpoko datu-basea",
+      "databasesInfo": "Konektatu kanpoko datu-base bat. Haren taulak Datuak atalean agertzen dira zuzeneko konexio baten bidez.",
+      "integrations": "Integrazioak",
+      "sync": "Sync",
+      "syncInfo": "Ekarri datuak kanpoko app batetik base honetako tauletara, egutegi baten arabera. Norabide bakarrekoa da, beraz hemen egindako aldaketak ez dira itzultzen.",
+      "automations": "Automatizazioak",
+      "aiSkills": "AA Skills",
+      "mcpServer": "MCP zerbitzaria",
+      "auditLog": "Auditoria-erregistroa",
+      "trashRetention": "Zakarrontziaren atxikipena",
+      "snapshots": "Snapshots",
+      "general": "Orokorra",
+      "searchPlaceholder": "Bilatu ezarpenetan",
+      "searchEmpty": "Ezarpenik ez dator bat “{query}” bilaketarekin",
+      "upgradeAvailableOn": "{plan} planean erabilgarri.",
+      "upgradeCta": "Pasatu {plan} planera orain",
+      "upgradeTitlePermissionsDocs": "Docs atalerako baimenak",
+      "upgradeDescPermissionsTablesFields": "Mugatu nork ikus edo edita dezakeen taula eta eremu bakoitza.",
+      "upgradeDescPermissionsDocs": "Mugatu nork ikus edo edita dezakeen doc bakoitza.",
+      "upgradeDescSync": "Ekarri datuak kanpoko appetatik egutegi baten arabera.",
+      "upgradeDescTrashRetention": "Aukeratu zenbat denboraz gordetzen diren ezabatutako erregistroak.",
+      "upgradeDescVariables": "Definitu base honetara mugatutako balio berrerabilgarriak.",
+      "upgradeDescTeams": "Taldekatu jendea eta kudeatu haien sarbidea leku bakarrean.",
+      "membersPage": "Baseko kideak",
+      "interfaceMembersPage": "Interface-ko kideak",
+      "dataPermissionsNav": "Datuen baimenak",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Gorde base honen kopia berreskuragarri bat une jakin batean."
     }
   },
   "activity": {

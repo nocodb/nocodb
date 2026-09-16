@@ -695,7 +695,9 @@
     "filters": "filtri",
     "permanent": "Pastāvīgs",
     "variable": "Mainīgais",
-    "words": "vārdi"
+    "words": "vārdi",
+    "function": "Funkcija",
+    "functions": "Funkcijas"
   },
   "objects": {
     "script": "Skripts",
@@ -2647,7 +2649,10 @@
     "applyLimitLinkedRecordsSubtext": "Noteikt ierobežojumu ierakstu skaitam, kurus var saistīt.",
     "audit": {
       "retention": {
-        "oneYear": "1 gads"
+        "oneYear": "1 gads",
+        "twoWeeks": "2 nedēļas",
+        "twoMonths": "2 mēneši",
+        "sixMonths": "6 mēneši"
       }
     },
     "appIsReady": "{app} ir gatava",
@@ -2817,6 +2822,53 @@
       "meaningRateApp": "Kopā pa visiem apmeklētājiem lietotne spēj apstrādāt {count} minūtē.",
       "actionsTitle": "Ko var darīt apmeklētāji",
       "actionsHint": "Vienīgais ceļš, pa kuru nepieteicies cilvēks nokļūst pie jūsu datiem. Izmaiņas stāsies spēkā nākamajā publicēšanas reizē."
+    },
+    "autoSubmit": "Automātiska iesniegšana",
+    "autoIncrement": "Automātiska palielināšana",
+    "autoUpdate": "Automātiska atjaunināšana",
+    "autoSuggestActions": "Automātiski ieteikt darbības",
+    "backToPage": "Atpakaļ uz {page}",
+    "availableLayouts": "Pieejamie layouti",
+    "backToAssistant": "Atpakaļ pie asistenta",
+    "barOrientation": "Joslu orientācija",
+    "baseNav": {
+      "groupInvite": "Uzaicināt",
+      "groupData": "Pārvaldīt",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Izveidot",
+      "groupAdmin": "Admin",
+      "members": "Dalībnieki",
+      "interfaceMembers": "Dalībnieki",
+      "dataPermissions": "Tabulas un lauki",
+      "docsPermissions": "Docs",
+      "databases": "Ārēja datubāze",
+      "databasesInfo": "Pievienojiet ārēju datubāzi. Tās tabulas parādās sadaļā Dati, izmantojot tiešo savienojumu.",
+      "integrations": "Integrācijas",
+      "sync": "Sync",
+      "syncInfo": "Pēc grafika ievelciet datus no ārējas lietotnes šīs bāzes tabulās. Tas ir vienvirziena, tāpēc šeit veiktie labojumi neatgriežas atpakaļ.",
+      "automations": "Automatizācijas",
+      "aiSkills": "MI Skills",
+      "mcpServer": "MCP serveris",
+      "auditLog": "Audita žurnāls",
+      "trashRetention": "Miskastes glabāšanas ilgums",
+      "snapshots": "Snapshots",
+      "general": "Vispārīgi",
+      "searchPlaceholder": "Meklēt iestatījumos",
+      "searchEmpty": "Neviens iestatījums neatbilst “{query}”",
+      "upgradeAvailableOn": "Pieejams {plan} plānā.",
+      "upgradeCta": "Pāriet uz {plan} tagad",
+      "upgradeTitlePermissionsDocs": "Atļaujas Docs sadaļai",
+      "upgradeDescPermissionsTablesFields": "Ierobežojiet, kas var skatīt vai rediģēt katru tabulu un lauku.",
+      "upgradeDescPermissionsDocs": "Ierobežojiet, kas var skatīt vai rediģēt katru dokumentu.",
+      "upgradeDescSync": "Pēc grafika ievelciet datus no ārējām lietotnēm.",
+      "upgradeDescTrashRetention": "Izvēlieties, cik ilgi tiek glabāti dzēstie ieraksti.",
+      "upgradeDescVariables": "Definējiet atkārtoti lietojamas vērtības, kas attiecas tikai uz šo bāzi.",
+      "upgradeDescTeams": "Grupējiet cilvēkus un pārvaldiet viņu piekļuvi vienuviet.",
+      "membersPage": "Bāzes dalībnieki",
+      "interfaceMembersPage": "Interface dalībnieki",
+      "dataPermissionsNav": "Datu atļaujas",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Saglabājiet atjaunojamu šīs bāzes kopiju noteiktā laika brīdī."
     }
   },
   "activity": {

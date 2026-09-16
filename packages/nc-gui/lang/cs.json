@@ -696,7 +696,9 @@
     "filters": "filtry",
     "permanent": "Trvalý",
     "variable": "Proměnná",
-    "words": "slov"
+    "words": "slov",
+    "function": "Funkce",
+    "functions": "Funkce"
   },
   "objects": {
     "script": "Skript",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Omezit počet záznamů, které lze propojit.",
     "audit": {
       "retention": {
-        "oneYear": "1 rok"
+        "oneYear": "1 rok",
+        "twoWeeks": "2 týdny",
+        "twoMonths": "2 měsíce",
+        "sixMonths": "6 měsíců"
       }
     },
     "appIsReady": "{app} je připravena",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Napříč všemi návštěvníky aplikace zvládne {count} za minutu.",
       "actionsTitle": "Co mohou návštěvníci dělat",
       "actionsHint": "Jediná cesta, kterou se nepřihlášený člověk dostane k vašim datům. Změny se projeví při příští publikaci."
+    },
+    "autoSubmit": "Automatické odeslání",
+    "autoIncrement": "Automatické zvyšování",
+    "autoUpdate": "Automatická aktualizace",
+    "autoSuggestActions": "Automaticky navrhovat akce",
+    "backToPage": "Zpět na {page}",
+    "availableLayouts": "Dostupné layouty",
+    "backToAssistant": "Zpět na asistenta",
+    "barOrientation": "Orientace sloupců",
+    "baseNav": {
+      "groupInvite": "Pozvat",
+      "groupData": "Spravovat",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Vytvořit",
+      "groupAdmin": "Admin",
+      "members": "Členové",
+      "interfaceMembers": "Členové",
+      "dataPermissions": "Tabulky a pole",
+      "docsPermissions": "Docs",
+      "databases": "Externí databáze",
+      "databasesInfo": "Připojte externí databázi. Její tabulky se objeví v sekci Data přes živé připojení.",
+      "integrations": "Integrace",
+      "sync": "Sync",
+      "syncInfo": "Podle plánu stahujte data z externí aplikace do tabulek této databáze. Jednosměrně, takže úpravy provedené zde se zpět nepromítnou.",
+      "automations": "Automatizace",
+      "aiSkills": "AI dovednosti",
+      "mcpServer": "Server MCP",
+      "auditLog": "Auditní záznam",
+      "trashRetention": "Doba uchování koše",
+      "snapshots": "Snapshots",
+      "general": "Obecné",
+      "searchPlaceholder": "Hledat v nastavení",
+      "searchEmpty": "Žádné nastavení neodpovídá „{query}“",
+      "upgradeAvailableOn": "Dostupné v tarifu {plan}.",
+      "upgradeCta": "Přejít na {plan} hned teď",
+      "upgradeTitlePermissionsDocs": "Oprávnění pro Docs",
+      "upgradeDescPermissionsTablesFields": "Omezte, kdo může zobrazit nebo upravit každou tabulku a každé pole.",
+      "upgradeDescPermissionsDocs": "Omezte, kdo může zobrazit nebo upravit každý dokument.",
+      "upgradeDescSync": "Podle plánu stahujte data z externích aplikací.",
+      "upgradeDescTrashRetention": "Zvolte, jak dlouho se uchovávají smazané záznamy.",
+      "upgradeDescVariables": "Definujte znovupoužitelné hodnoty platné jen pro tuto databázi.",
+      "upgradeDescTeams": "Seskupte lidi a spravujte jejich přístupy na jednom místě.",
+      "membersPage": "Členové databáze",
+      "interfaceMembersPage": "Členové interface",
+      "dataPermissionsNav": "Oprávnění k datům",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Uložte obnovitelnou kopii této databáze k určitému okamžiku."
     }
   },
   "activity": {

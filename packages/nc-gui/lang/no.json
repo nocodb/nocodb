@@ -696,7 +696,9 @@
     "filters": "filtre",
     "permanent": "Permanent",
     "variable": "Variabel",
-    "words": "ord"
+    "words": "ord",
+    "function": "Funksjon",
+    "functions": "Funksjoner"
   },
   "objects": {
     "script": "Skript",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Sett en grense for hvor mange poster som kan kobles.",
     "audit": {
       "retention": {
-        "oneYear": "1 år"
+        "oneYear": "1 år",
+        "twoWeeks": "2 uker",
+        "twoMonths": "2 måneder",
+        "sixMonths": "6 måneder"
       }
     },
     "appIsReady": "{app} er klar",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "På tvers av alle besøkende klarer appen {count} i minuttet.",
       "actionsTitle": "Hva besøkende kan gjøre",
       "actionsHint": "Den eneste veien noen uten innlogging kommer til dataene dine. Endringer trer i kraft neste gang du publiserer."
+    },
+    "autoSubmit": "Send inn automatisk",
+    "autoIncrement": "Automatisk opptelling",
+    "autoUpdate": "Oppdater automatisk",
+    "autoSuggestActions": "Foreslå handlinger automatisk",
+    "backToPage": "Tilbake til {page}",
+    "availableLayouts": "Tilgjengelige layouter",
+    "backToAssistant": "Tilbake til assistenten",
+    "barOrientation": "Retning på stolpene",
+    "baseNav": {
+      "groupInvite": "Inviter",
+      "groupData": "Administrer",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Opprett",
+      "groupAdmin": "Admin",
+      "members": "Medlemmer",
+      "interfaceMembers": "Medlemmer",
+      "dataPermissions": "Tabeller og felt",
+      "docsPermissions": "Docs",
+      "databases": "Ekstern database",
+      "databasesInfo": "Koble til en ekstern database. Tabellene dens vises under Data via en live tilkobling.",
+      "integrations": "Integrasjoner",
+      "sync": "Sync",
+      "syncInfo": "Hent data fra en ekstern app inn i tabellene i denne basen etter en tidsplan. Enveis, så endringer gjort her går ikke tilbake.",
+      "automations": "Automatiseringer",
+      "aiSkills": "AI-skills",
+      "mcpServer": "MCP-server",
+      "auditLog": "Revisjonslogg",
+      "trashRetention": "Oppbevaring i papirkurven",
+      "snapshots": "Snapshots",
+      "general": "Generelt",
+      "searchPlaceholder": "Søk i innstillinger",
+      "searchEmpty": "Ingen innstillinger samsvarer med «{query}»",
+      "upgradeAvailableOn": "Tilgjengelig i {plan}-abonnementet.",
+      "upgradeCta": "Oppgrader til {plan} nå",
+      "upgradeTitlePermissionsDocs": "Tillatelser for Docs",
+      "upgradeDescPermissionsTablesFields": "Begrens hvem som kan se eller redigere hver tabell og hvert felt.",
+      "upgradeDescPermissionsDocs": "Begrens hvem som kan se eller redigere hvert doc.",
+      "upgradeDescSync": "Hent data fra eksterne apper etter en tidsplan.",
+      "upgradeDescTrashRetention": "Velg hvor lenge slettede poster beholdes.",
+      "upgradeDescVariables": "Definer gjenbrukbare verdier som bare gjelder denne basen.",
+      "upgradeDescTeams": "Grupper folk og administrer tilgangen deres på ett sted.",
+      "membersPage": "Basens medlemmer",
+      "interfaceMembersPage": "Medlemmer i interface",
+      "dataPermissionsNav": "Datatillatelser",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Lagre en gjenopprettbar kopi av denne basen på et gitt tidspunkt."
     }
   },
   "activity": {

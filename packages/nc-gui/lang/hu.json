@@ -696,7 +696,9 @@
     "filters": "szűrők",
     "permanent": "Állandó",
     "variable": "Változó",
-    "words": "szó"
+    "words": "szó",
+    "function": "Függvény",
+    "functions": "Függvények"
   },
   "objects": {
     "script": "Szkript",
@@ -2648,7 +2650,10 @@
     "applyLimitLinkedRecordsSubtext": "Korlát beállítása az összekapcsolható rekordok számára.",
     "audit": {
       "retention": {
-        "oneYear": "1 év"
+        "oneYear": "1 év",
+        "twoWeeks": "2 hét",
+        "twoMonths": "2 hónap",
+        "sixMonths": "6 hónap"
       }
     },
     "appIsReady": "{app} készen áll",
@@ -2818,6 +2823,53 @@
       "meaningRateApp": "Az összes látogatót együttvéve az alkalmazás {count} hívást bír percenként.",
       "actionsTitle": "Mit tehetnek a látogatók",
       "actionsHint": "Az egyetlen út, amelyen egy be nem jelentkezett ember eléri az adataidat. A változtatások a következő közzétételkor lépnek életbe."
+    },
+    "autoSubmit": "Automatikus beküldés",
+    "autoIncrement": "Automatikus növelés",
+    "autoUpdate": "Automatikus frissítés",
+    "autoSuggestActions": "Műveletek automatikus javaslata",
+    "backToPage": "Vissza ide: {page}",
+    "availableLayouts": "Elérhető layoutok",
+    "backToAssistant": "Vissza az asszisztenshez",
+    "barOrientation": "Oszlopok tájolása",
+    "baseNav": {
+      "groupInvite": "Meghívás",
+      "groupData": "Kezelés",
+      "groupInterfaces": "Interfaces",
+      "groupCreate": "Létrehozás",
+      "groupAdmin": "Admin",
+      "members": "Tagok",
+      "interfaceMembers": "Tagok",
+      "dataPermissions": "Táblák és mezők",
+      "docsPermissions": "Docs",
+      "databases": "Külső adatbázis",
+      "databasesInfo": "Csatlakoztasson egy külső adatbázist. Táblái élő kapcsolaton keresztül jelennek meg az Adatok alatt.",
+      "integrations": "Integrációk",
+      "sync": "Sync",
+      "syncInfo": "Ütemezetten hozzon át adatokat egy külső appból ennek a bázisnak a tábláiba. Egyirányú, így az itt végzett módosítások nem térnek vissza.",
+      "automations": "Automatizálások",
+      "aiSkills": "MI Skills",
+      "mcpServer": "MCP-kiszolgáló",
+      "auditLog": "Auditnapló",
+      "trashRetention": "Kuka megőrzési ideje",
+      "snapshots": "Snapshots",
+      "general": "Általános",
+      "searchPlaceholder": "Keresés a beállításokban",
+      "searchEmpty": "Egyetlen beállítás sem egyezik ezzel: „{query}”",
+      "upgradeAvailableOn": "A(z) {plan} csomagban érhető el.",
+      "upgradeCta": "Váltás most erre: {plan}",
+      "upgradeTitlePermissionsDocs": "Jogosultságok a Docs számára",
+      "upgradeDescPermissionsTablesFields": "Korlátozza, ki tekintheti meg vagy szerkesztheti az egyes táblákat és mezőket.",
+      "upgradeDescPermissionsDocs": "Korlátozza, ki tekintheti meg vagy szerkesztheti az egyes dokumentumokat.",
+      "upgradeDescSync": "Ütemezetten hozzon át adatokat külső appokból.",
+      "upgradeDescTrashRetention": "Válassza ki, meddig őrizzük meg a törölt rekordokat.",
+      "upgradeDescVariables": "Határozzon meg újrafelhasználható értékeket, amelyek csak erre a bázisra vonatkoznak.",
+      "upgradeDescTeams": "Csoportosítsa az embereket, és egy helyen kezelje a hozzáféréseiket.",
+      "membersPage": "A bázis tagjai",
+      "interfaceMembersPage": "Az interface tagjai",
+      "dataPermissionsNav": "Adatjogosultságok",
+      "apiTokens": "API Tokens",
+      "upgradeDescSnapshots": "Mentsen egy visszaállítható másolatot erről a bázisról egy adott időpontban."
     }
   },
   "activity": {

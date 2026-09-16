@@ -5330,7 +5330,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipPks?: string;
       permanentDelete?: boolean;
     } = {},
-    { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
+    {
+      cookie,
+      skip_hooks = false,
+    }: {
+      cookie: NcRequest;
+      skip_hooks?: boolean;
+      // Honored by the EE override (skips the TABLE_RECORD_DELETE check for
+      // system sweeps). No-op in CE.
+      skipPermissionCheck?: boolean;
+    },
   ) {
     return await new BaseModelDelete(this).bulkAll({
       args,

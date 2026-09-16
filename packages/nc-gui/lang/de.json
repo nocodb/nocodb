@@ -735,7 +735,9 @@
     "filters": "Filter",
     "permanent": "Dauerhaft",
     "variable": "Variable",
-    "words": "Wörter"
+    "words": "Wörter",
+    "function": "Funktion",
+    "functions": "Funktionen"
   },
   "objects": {
     "script": "Skript",
@@ -4297,7 +4299,13 @@
     "yAxisLeft": "Y-Achse (links)",
     "yAxisRight": "Y-Achse (rechts)",
     "workspaceSkills": "Arbeitsbereichs-Skills",
-    "writeWithAi": "Mit KI schreiben"
+    "writeWithAi": "Mit KI schreiben",
+    "calculationField": "Berechnungsfeld",
+    "bottomSummaryBar": "Zusammenfassungsleiste unten",
+    "fieldGroups": "{field}-Gruppen",
+    "removeSummary": "Zusammenfassung entfernen",
+    "summarize": "Zusammenfassen",
+    "showIn": "Anzeigen in"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",
@@ -5636,7 +5644,8 @@
       "setupParamPublisherFixed": "Von der Herausgeberin bzw. dem Herausgeber der App festgelegt und hier nicht änderbar.",
       "setupVariablesExplainer": "Legen Sie die Werte fest, die diese App zum Laufen braucht.",
       "setupTeamsExplainer": "Fügen Sie Personen zu den Teams hinzu, die diese App für Sie erstellt hat.",
-      "tooNarrowToAdjustFrozenFields": "Sie haben {saved} fixierte Felder, aber derzeit erscheinen nur {effective} fixiert, weil Ihr Fenster zu schmal ist. Sie können die Anzahl fixierter Felder auf 1 zurücksetzen. Sie können sie auch ändern, indem Sie das Fenster vergrößern oder einzelne Felder schmaler machen."
+      "tooNarrowToAdjustFrozenFields": "Sie haben {saved} fixierte Felder, aber derzeit erscheinen nur {effective} fixiert, weil Ihr Fenster zu schmal ist. Sie können die Anzahl fixierter Felder auf 1 zurücksetzen. Sie können sie auch ändern, indem Sie das Fenster vergrößern oder einzelne Felder schmaler machen.",
+      "groupViewToSummarizePerGroup": "Gruppieren Sie die Ansicht, um pro Gruppe zusammenzufassen"
     },
     "error": {
       "failedToCreateSync": "Fehler beim Erstellen der Synchronisation",

@@ -434,7 +434,7 @@
     "deleteEntity": "Delete {entity}",
     "bulkInsert": "Bulk Insert",
     "bulkDelete": "Bulk Delete",
-    "bulkUpdate": "Bulk Update",
+    "bulkUpdate": "Bulk update",
     "deleting": "Deleting",
     "update": "Update",
     "updating": "Updating",
@@ -1309,6 +1309,7 @@
     "updateSelectedRows": "Update Selected Records",
     "noFiltersAdded": "No filters added",
     "noFieldsSelected": "No fields selected",
+    "updateRecordsCount": "Update {n} record | Update {n} records",
     "editCards": "Edit Cards",
     "setLevels": "Set Levels",
     "levels": "Levels",
@@ -5207,6 +5208,7 @@
       "removeCustomDomain": "{domain} will stop serving this app. The default address keeps working."
     },
     "info": {
+      "bulkUpdateConfirm": "The value of {fields} field will be applied to every selected record. | The values of {fields} fields will be applied to every selected record.",
       "noFieldForSummaryFunction": "No field in this table can be summarized with this function",
       "noVisibleFieldForSummaryFunction": "No field shown on this visualization can be summarized with this function — add one in Fields first",
       "groupViewToSummarizePerGroup": "Group the view to summarize per group",

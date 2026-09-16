@@ -4758,6 +4758,7 @@
     "warningMessageForInvalidInputs": "This warning message will be displayed to form users for invalid inputs.",
     "cannotAddConditionsToFirstField": "Cannot add conditions to the first field in a form.",
     "validationsEnforcedByFieldSchema": "Validations enforced by field schema settings",
+    "requiredEnforcedOnFormSubmit": "Enforced when this page opens as a form to create or edit a record",
     "readOnlyFieldCannotBeEditedInline": "Read-only fields can't be edited inline",
     "editInlineDisabledForElement": "Editing is disabled for this page element. Enable it for the element to allow editing of this column.",
     "cantUploadDataInSyncedTable": "You can't upload data in synced table",

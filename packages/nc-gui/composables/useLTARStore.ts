@@ -1644,6 +1644,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       async () => {
         childrenExcludedListPagination.page = 1
         resetExcludedCache()
+        // The reset empties the list before the debounced load starts — flag the
+        // wait so the pickers show a skeleton instead of "No records match".
+        isChildrenExcludedLoading.value = true
         await debounceLoadChildrenExcludedList(newRowState.state)
       },
     )
@@ -1653,6 +1656,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       async () => {
         childrenListPagination.page = 1
         resetChildrenCache()
+        isChildrenLoading.value = true
         await debounceLoadChildrenList(false, newRowState.state)
       },
     )

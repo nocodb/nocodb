@@ -1306,7 +1306,7 @@
     "creator": "Creator",
     "qrCode": "QR Code",
     "termsOfService": "Terms of Service",
-    "updateSelectedRows": "Update Selected Records",
+    "updateSelectedRows": "Update selected records",
     "noFiltersAdded": "No filters added",
     "noFieldsSelected": "No fields selected",
     "updateRecordsCount": "Update {n} record | Update {n} records",

@@ -2699,11 +2699,13 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 :disabled="
                                   isLocked ||
                                   !isEditable ||
-                                  blockFormRequireSignin ||
-                                  (!hasCreatedByField && !parseProp(formViewData.meta)?.require_signin)
+                                  (!parseProp(formViewData.meta)?.require_signin &&
+                                    (blockFormRequireSignin || !hasCreatedByField))
                                 "
                                 @change="(value: boolean) => {
-                                  if (blockFormRequireSignin) {
+                                  // Turning OFF is always allowed, so a flag stored on a plan
+                                  // that no longer has the feature can still be cleared.
+                                  if (value && blockFormRequireSignin) {
                                     showUpgradeToUseFormRequireSignin()
                                     return
                                   }

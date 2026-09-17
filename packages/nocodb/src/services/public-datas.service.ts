@@ -676,6 +676,14 @@ export class PublicDatasService {
     }
   }
 
+  /** Whether the "require sign-in" form option is active for this view's plan. */
+  protected async isFormRequireSigninEnabled(
+    _context: NcContext,
+    _view: View,
+  ): Promise<boolean> {
+    return true;
+  }
+
   async dataInsert(
     context: NcContext,
     param: {
@@ -707,11 +715,12 @@ export class PublicDatasService {
     // attribution below — that block populates req.user with the anonymous
     // service user, which would otherwise make the require-signin guard think
     // the requester is authenticated and let anonymous submissions through.
-    const requiresSignin = await FormView.validateRequireSignin(
-      context,
-      view.id,
-      param.req,
-    );
+    // Gated on the plan (EE override) so enforcement matches what the public
+    // meta advertises: a stored flag on a plan without the feature is inert
+    // instead of rejecting every submission.
+    const requiresSignin =
+      (await this.isFormRequireSigninEnabled(context, view)) &&
+      (await FormView.validateRequireSignin(context, view.id, param.req));
 
     // An ordinary public form stays anonymous, even when the visitor happens to
     // be logged in. This route runs GlobalGuard so require-sign-in forms can

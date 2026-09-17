@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { ncIsObject } from 'nocodb-sdk';
+import { extractRolesObj, ncIsObject } from 'nocodb-sdk';
 import type {
   AttachmentResType,
   BoolType,
@@ -367,8 +367,11 @@ export default class FormView implements FormViewType {
 
     if (!meta.require_signin) return false;
 
-    if (!req.user?.id || (req.user as any).roles?.guest) {
-      NcError.unauthorized('Sign-in required to submit this form');
+    // `guest` is set by GlobalGuard's fallback user and is not part of the
+    // Roles enum, hence the wider record type.
+    const roles = extractRolesObj(req.user?.roles) as Record<string, boolean>;
+    if (!req.user?.id || roles?.guest) {
+      NcError.get(context).unauthorized('Sign-in required to submit this form');
     }
 
     return true;

@@ -20,6 +20,14 @@ const RECORD_STAMPING_SERVICE_USERS = [
   ServiceUserType.WORKFLOW_USER,
 ] as const
 
+/** Service users stamp records (public forms, automations, syncs, workflows) but are never base members. */
+export const isRecordStampingServiceUser = (idOrEmail?: string | null) =>
+  !!idOrEmail &&
+  RECORD_STAMPING_SERVICE_USERS.some((key) => {
+    const user = NOCO_SERVICE_USERS[key]
+    return user.id === idOrEmail || user.email === idOrEmail
+  })
+
 // Absent from the base-users list (they don't live in nc_users), so expose
 // them as selectable options in the filter dropdown so records created by
 // e.g. "NocoDB Workflow" can be filtered.

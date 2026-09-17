@@ -15,6 +15,7 @@ import type { UserFieldRecordType } from 'nocodb-sdk'
  */
 export const useResolveUsers = createSharedComposable(() => {
   const { $api } = useNuxtApp()
+  const { token } = useGlobal()
 
   const BATCH_SIZE = 50
 
@@ -34,7 +35,10 @@ export const useResolveUsers = createSharedComposable(() => {
   // `tableId` is required by the backend to scope resolution to ids actually
   // present in that table — without it only base collaborators resolve.
   const resolveUsers = async (baseId?: string, tableId?: string, ids: (string | null | undefined)[] = []) => {
-    if (!baseId || !tableId) return
+    // `token` is masked to '' on shared/public routes and empty when signed
+    // out. An unauthenticated call would 401 and the axios interceptor would
+    // sign the visitor out and dispose every Pinia store — so never fire it.
+    if (!baseId || !tableId || !token.value) return
 
     const toFetch = [
       ...new Set(

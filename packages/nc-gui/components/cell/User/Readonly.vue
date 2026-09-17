@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
-import { extractUserKeys, getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
+import { extractUserKeys, getOptions, getSelectedUsers, getSystemUserFilterOptions, isRecordStampingServiceUser } from './utils'
 
 interface Props {
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
@@ -126,13 +126,17 @@ const isCollaborator = (userIdOrEmail) => {
   // The current-user token (filter UI) is always treated as a collaborator.
   if (userIdOrEmail === CURRENT_USER_TOKEN) return true
 
+  // Service users (anonymous form submitter, automation, sync, workflow) are
+  // never base members and must keep rendering as ordinary stamps.
+  if (isRecordStampingServiceUser(userIdOrEmail)) return true
+
   const baseUser = idUserMap.value?.[userIdOrEmail]
+  if (baseUser) return !baseUser.deleted
 
-  // Not in the base collaborator list — either a deleted user or an external
-  // submitter resolved for display only. Render with the "no base access" look.
-  if (!baseUser) return false
-
-  return !baseUser.deleted
+  // Only an external submitter we actually resolved gets the "no base access"
+  // look. An id that is merely unknown yet (collaborators still loading, or
+  // resolution unavailable) renders as before.
+  return !resolvedUsers.value.has(userIdOrEmail)
 }
 </script>
 

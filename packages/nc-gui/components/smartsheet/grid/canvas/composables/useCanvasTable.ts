@@ -287,6 +287,8 @@ export function useCanvasTable({
     return isRowColouringEnabled.value ? ROW_COLOR_BORDER_WIDTH : 0
   })
 
+  const isPublicView = inject(IsPublicInj, ref(false))
+
   const { resolvedUsers, resolveUsers } = useResolveUsers()
 
   const baseCollaborators = computed<(Partial<UserType> | Partial<User>)[]>(() =>
@@ -323,6 +325,9 @@ export function useCanvasTable({
   // Scan loaded rows for user ids that are not base collaborators and resolve
   // them for display. Debounced — re-runs as chunks load / the user scrolls.
   const resolveExternalUsersFromRows = useDebounceFn(() => {
+    // Public/shared views have no session to resolve with.
+    if (isPublicView.value) return
+
     const baseId = meta.value?.base_id
     const tableId = meta.value?.id
     if (!baseId || !tableId || !userColumnTitles.value.length || !cachedRows.value?.size) return
@@ -352,7 +357,6 @@ export function useCanvasTable({
 
   const { hideTooltip } = tooltipStore
 
-  const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
   const interfaceInlineEditHint = inject(InterfaceInlineEditHintInj, ref(null))
   const readonlyEditNotice = inject(ReadonlyEditNoticeInj, ref(null))

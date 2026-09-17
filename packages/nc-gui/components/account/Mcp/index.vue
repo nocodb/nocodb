@@ -2,6 +2,15 @@
 import { ApiTokenPermissionLevel } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
+/**
+ * The account MCP surface. With `lockedBaseId` (base settings → MCP Server)
+ * it lists only connections that reach that base and creates new ones pinned
+ * to it, the way the API-token page does.
+ */
+const props = defineProps<{
+  lockedBaseId?: string
+}>()
+
 const { t } = useI18n()
 
 const { accountMcpTokens, listAccountMcpTokens, regenerateAccountMcpToken, isScopedMcpToken } = useMcpSettings()
@@ -71,7 +80,7 @@ const columns = [
 const loadUserMcpTokens = async () => {
   try {
     isLoading.value = true
-    await listAccountMcpTokens()
+    await listAccountMcpTokens(props.lockedBaseId)
   } catch (error: any) {
     message.error(await extractSdkResponseErrorMsg(error))
     console.error(error)
@@ -219,7 +228,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col h-full">
-    <NcPageHeader>
+    <NcPageHeader v-if="!lockedBaseId">
       <template #icon>
         <GeneralIcon icon="mcp" class="flex-none h-5 w-5" />
       </template>
@@ -238,15 +247,20 @@ onMounted(async () => {
       </template>
     </NcPageHeader>
 
+    <!-- Same shell as the API-token page: one content column, list capped at the same width. -->
     <div
-      class="flex flex-col w-full px-6 py-6 mx-auto max-w-screen-xl"
-      :class="{ 'flex-1 min-h-0 overflow-hidden': isEeUI && viewMode === 'create' }"
+      class="nc-content-max-w p-6 flex flex-col gap-6 nc-scrollbar-thin"
+      :class="[
+        lockedBaseId ? 'h-full' : 'h-[calc(100vh_-_100px)]',
+        isEeUI && viewMode === 'create' ? 'min-h-0 overflow-hidden' : 'overflow-auto',
+      ]"
     >
       <div v-if="isEeUI && viewMode === 'create'" class="w-full h-full min-h-0">
         <AccountMcpCreate
           :key="editingToken?.id || revealToken?.id || 'new'"
           :edit-token="editingToken || undefined"
           :reveal-token="revealToken || undefined"
+          :locked-base-id="lockedBaseId"
           @created="onConnectionCreated"
           @edit="onEditFromReveal"
           @saved="returnToList"
@@ -255,28 +269,51 @@ onMounted(async () => {
         />
       </div>
 
-      <template v-else>
-        <div class="flex items-start gap-4">
-          <div class="flex-1">
-            <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-              {{ $t('labels.activeMcpServers') }}
-            </div>
-
-            <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-              {{ $t('labels.activeMcpServersLabel') }}
-            </div>
-          </div>
-
-          <NcButton v-if="isEeUI" size="small" data-testid="nc-mcp-new-connection" @click="openCreate">
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              {{ $t('labels.newMcpConnection') }}
-            </div>
+      <div v-else class="max-w-202 mx-auto h-full w-full" data-testid="nc-mcp-list">
+        <div class="flex gap-4 items-baseline justify-between">
+          <h6 class="text-xl text-left font-bold my-0 text-nc-content-gray" data-rec="true">
+            {{ $t('labels.mcpConnections') }}
+          </h6>
+          <NcButton
+            v-if="isEeUI"
+            v-e="['c:mcp-connection:create:open']"
+            class="!rounded-md"
+            data-testid="nc-mcp-new-connection"
+            size="middle"
+            type="primary"
+            @click="openCreate"
+          >
+            <span data-rec="true">{{ $t('labels.newMcpConnection') }}</span>
           </NcButton>
         </div>
+        <span data-rec="true">
+          {{ lockedBaseId ? $t('msg.info.mcpConnectionsReachingBase') : $t('labels.mcpConnectionsLabel') }}
+        </span>
 
         <div v-if="isLoading" class="flex items-center justify-center h-96">
           <GeneralLoader size="xlarge" />
+        </div>
+
+        <!-- Empty state, same shape as the API-token page -->
+        <div
+          v-else-if="isEeUI && !sortedMcpTokens.length"
+          class="max-w-[40rem] mx-auto px-3 py-6 flex flex-col items-center justify-center gap-6 text-center"
+          data-testid="nc-mcp-empty"
+        >
+          <img src="~assets/img/placeholder/api-tokens.png" class="!w-[22rem] flex-none" />
+          <div class="text-2xl text-nc-content-gray font-bold">{{ $t('placeholder.noMcpConnections') }}</div>
+          <div class="text-sm text-nc-content-gray-subtle">
+            {{ $t('placeholder.noMcpConnectionsLabel') }}
+          </div>
+          <NcButton
+            v-e="['c:mcp-connection:create:open']"
+            class="!rounded-lg !py-3 !h-10"
+            data-testid="nc-mcp-new-connection-empty"
+            type="primary"
+            @click="openCreate"
+          >
+            <span data-rec="true">{{ $t('labels.newMcpConnection') }}</span>
+          </NcButton>
         </div>
 
         <NcTable
@@ -286,7 +323,7 @@ onMounted(async () => {
           header-row-height="44px"
           row-height="44px"
           :data="sortedMcpTokens"
-          class="h-full mt-5"
+          class="h-full mt-6"
           body-row-class-name="nc-account-mcp-token-item group no-border-last cursor-pointer"
           @row-click="openRow"
         >
@@ -356,7 +393,7 @@ onMounted(async () => {
             </template>
           </template>
         </NcTable>
-      </template>
+      </div>
 
       <DashboardSettingsBaseMCPModal
         v-if="isTokenModalVisible"

@@ -660,7 +660,8 @@ watch(
               <div>{{ $t('title.mcpServer') }}</div>
             </div>
           </template>
-          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+          <!-- Same as the API-token pane: height-bounded, padding inside the surface. -->
+          <div class="h-full max-h-full">
             <DashboardSettingsBaseMCP />
           </div>
         </a-tab-pane>

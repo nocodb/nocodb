@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
+const { activeProjectId } = storeToRefs(useBases())
+
 const newTokenInputRef = ref()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook') // Using 'Webhook' as the sort type since 'MCPToken' isn't defined
@@ -139,7 +141,12 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 </script>
 
 <template>
-  <div v-if="isCreatingMcpToken" class="absolute w-full h-full inset-0 flex items-center justify-center z-90 bg-black/12">
+  <!-- The composable is shared, so the account page's create also flips this
+       flag; the overlay belongs to the CE inline flow only. -->
+  <div
+    v-if="isCreatingMcpToken && !isEeUI"
+    class="absolute w-full h-full inset-0 flex items-center justify-center z-90 bg-black/12"
+  >
     <div
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
       class="bg-nc-bg-default p-6 flex flex-col w-[488px] rounded-2xl dark:(border-1 border-nc-border-gray-medium)"
@@ -155,8 +162,13 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
     </div>
   </div>
 
-  <div class="flex flex-col w-full">
-    <div class="flex items-center justify-end">
+  <!-- One MCP surface: on EE this is the account page pinned to the base, the
+       way base settings → API Tokens reuses the account token page. CE has no
+       scopes, so it keeps its own inline list below. -->
+  <AccountMcp v-if="isEeUI && activeProjectId" :locked-base-id="activeProjectId" />
+
+  <div v-else class="flex flex-col w-full p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+    <div class="flex items-center justify-end gap-3">
       <NcButton
         :disabled="isUnsavedMCPTokenPending"
         type="primary"

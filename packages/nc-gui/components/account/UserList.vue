@@ -302,7 +302,8 @@ const columns = computed(() => {
           <div class="flex gap-4 items-center justify-between">
             <a-input
               v-model:value="searchText"
-              class="!max-w-90 !rounded-md"
+              class="!max-w-90 !rounded-md nc-account-user-search"
+              data-testid="nc-account-user-search"
               :placeholder="$t('title.searchMembers')"
               @change="loadUsers(1)"
             >

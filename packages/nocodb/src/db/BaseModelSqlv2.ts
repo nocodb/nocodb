@@ -9453,7 +9453,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
-        if (!ncIsNullOrUndefined(data[column.column_name])) {
+        if (
+          column.system &&
+          [UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt)
+        ) {
+          // System-captured actor id (created_by / last_modified_by). It was set
+          // above to the authenticated user's id — it is not user input — so we
+          // accept it as-is and skip base-membership validation. The actor may be
+          // an external submitter who is not a base member, which is exactly the
+          // identity a "require sign-in" shared form is meant to capture.
+        } else if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 
           if (

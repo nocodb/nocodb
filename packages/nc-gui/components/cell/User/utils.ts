@@ -96,6 +96,38 @@ export const getOptions = (
   return collaborators
 }
 
+/**
+ * Extract the raw user id/email keys referenced by a User/CreatedBy cell value,
+ * without requiring them to exist in any options map. Used to discover ids that
+ * need resolving (e.g. external form submitters who are not base collaborators).
+ */
+export const extractUserKeys = (modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null): string[] => {
+  if (!modelValue) return []
+
+  let value = modelValue
+
+  if (Array.isArray(value) && !value.filter((k) => typeof k !== 'string').length) {
+    value = arrFlatMap(value.filter((k) => k).map((u: string) => u?.split?.(','))).join(',')
+  }
+
+  if (typeof value === 'string' && /^\s*[{[]/.test(value)) {
+    try {
+      value = JSON.parse(value)
+    } catch (e) {
+      // not json — fall through to string handling
+    }
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((idOrMail) => idOrMail.trim())
+      .filter(Boolean)
+  }
+
+  return (Array.isArray(value) ? value : [value]).map((item) => item?.id || item?.email).filter((k): k is string => !!k)
+}
+
 export interface SelectedUserType {
   label: string
   value: string

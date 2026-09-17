@@ -1798,19 +1798,15 @@ const { message: templatedMessage } = useTemplatedMessage(
                       <!-- Signed-in user indicator in form preview -->
                       <div
                         v-if="isEeUI && parseProp(formViewData?.meta)?.require_signin && user?.email"
-                        class="flex justify-end px-4 lg:px-6"
+                        class="px-4 lg:px-6"
                         data-testid="nc-form-preview-signin-banner"
                       >
-                        <div
-                          class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border-1 border-nc-border-gray-medium text-nc-content-gray-subtle2 text-xs"
-                        >
-                          <GeneralIcon icon="account" class="w-3.5 h-3.5 flex-none" />
-                          <span class="truncate max-w-48">{{ user.email }}</span>
-                          <span class="text-nc-content-gray-subtle2">·</span>
-                          <span class="text-nc-content-brand">
-                            {{ $t('msg.info.switchAccount') }}
-                          </span>
-                        </div>
+                        <SharedViewSignedInUserBanner
+                          preview
+                          :email="user.email"
+                          :display-name="user.display_name"
+                          :user-meta="user.meta"
+                        />
                       </div>
 
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
@@ -2680,9 +2676,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           <div v-if="isEeUI" class="flex items-center justify-between gap-3">
                             <div class="flex flex-col">
                               <span>{{ $t('msg.info.seeWhoSubmitted') }}</span>
-                              <span
-                                class="text-xs text-nc-content-gray-subtle2"
-                              >
+                              <span class="text-xs text-nc-content-gray-subtle2">
                                 {{
                                   hasCreatedByField
                                     ? $t('msg.info.seeWhoSubmittedSubtitle')
@@ -2691,9 +2685,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               </span>
                             </div>
                             <div class="flex items-center gap-2">
-                              <PaymentUpgradeBadge
-                                :feature="PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN"
-                              />
+                              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN" />
                               <a-switch
                                 v-e="[`a:form-view:require-signin`]"
                                 :checked="!!parseProp(formViewData.meta)?.require_signin"

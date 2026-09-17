@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
-import { getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
+import { extractUserKeys, getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
 
 interface Props {
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
@@ -37,6 +37,34 @@ const idUserMap = computed(() => {
   }, {} as Record<string, any>)
 })
 
+const { resolvedUsers, resolveUsers } = useResolveUsers()
+
+// User keys (ids/emails) referenced by this cell that are NOT base collaborators
+// — i.e. external submitters that need resolving for display.
+const unresolvedKeys = computed(() => extractUserKeys(modelValue).filter((key) => !idUserMap.value[key]))
+
+watch(
+  [unresolvedKeys, () => meta.value?.base_id],
+  ([keys, baseId]) => {
+    if (keys.length && baseId) resolveUsers(baseId, keys)
+  },
+  { immediate: true },
+)
+
+// Resolved external submitters for this cell, shaped as user-field options.
+const resolvedOptions = computed<UserFieldRecordType[]>(() =>
+  unresolvedKeys.value
+    .map((key) => resolvedUsers.value.get(key))
+    .filter((u): u is UserFieldRecordType => !!u)
+    .map((u) => ({
+      id: u.id,
+      email: u.email,
+      display_name: u.display_name,
+      meta: u.meta,
+      deleted: false,
+    })),
+)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean; notify: boolean })?.is_multi)
@@ -63,7 +91,12 @@ const options = computed(() => {
 
   const systemUsers = isInFilter.value ? getSystemUserFilterOptions(column.value) : []
 
-  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)), ...systemUsers]
+  return [
+    ...currentUserField,
+    ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)),
+    ...resolvedOptions.value,
+    ...systemUsers,
+  ]
 })
 
 const optionsMap = computed(() => {
@@ -90,7 +123,16 @@ const selectedUsersListLayout = computed(() => {
 
 // check if user is part of the base
 const isCollaborator = (userIdOrEmail) => {
-  return !idUserMap.value?.[userIdOrEmail]?.deleted
+  // The current-user token (filter UI) is always treated as a collaborator.
+  if (userIdOrEmail === CURRENT_USER_TOKEN) return true
+
+  const baseUser = idUserMap.value?.[userIdOrEmail]
+
+  // Not in the base collaborator list — either a deleted user or an external
+  // submitter resolved for display only. Render with the "no base access" look.
+  if (!baseUser) return false
+
+  return !baseUser.deleted
 }
 </script>
 
@@ -201,9 +243,26 @@ const isCollaborator = (userIdOrEmail) => {
                 :show-placeholder-icon="selectedOpt.value === CURRENT_USER_TOKEN"
               />
             </div>
-            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+            <NcTooltip
+              class="truncate max-w-full"
+              :show-on-truncate-only="isCollaborator(selectedOpt.value) || selectedOpt.value === CURRENT_USER_TOKEN"
+            >
               <template #title>
-                {{ selectedOpt.value === CURRENT_USER_TOKEN ? selectedOpt.label : extractUserDisplayNameOrEmail(selectedOpt) }}
+                <template v-if="!isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN">
+                  <div class="flex flex-col gap-0.5 py-0.5">
+                    <span v-if="selectedOpt.display_name?.trim()" class="font-semibold">
+                      {{ selectedOpt.display_name.trim() }}
+                    </span>
+                    <span class="text-nc-content-gray-subtle2">{{ selectedOpt.email }}</span>
+                    <span class="flex items-center gap-1 text-nc-content-gray-muted mt-0.5">
+                      <GeneralIcon icon="ncSlash" class="w-3 h-3 flex-none" />
+                      {{ $t('labels.noBaseAccess') }}
+                    </span>
+                  </div>
+                </template>
+                <template v-else>
+                  {{ selectedOpt.value === CURRENT_USER_TOKEN ? selectedOpt.label : extractUserDisplayNameOrEmail(selectedOpt) }}
+                </template>
               </template>
               <span
                 :class="{

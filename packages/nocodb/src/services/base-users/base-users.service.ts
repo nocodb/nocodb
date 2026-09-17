@@ -57,6 +57,44 @@ export class BaseUsersService {
     });
   }
 
+  /**
+   * Resolve a list of user ids to their minimal public profile
+   * (id, email, display_name, meta). Used to display submitters who are not
+   * base collaborators (e.g. captured via "require sign-in" shared forms) in
+   * CreatedBy / User cells.
+   *
+   * Access is gated to base collaborators via the `baseUserResolve` ACL, and
+   * the request is hard-capped to avoid being used as a user enumeration tool.
+   */
+  async userResolve(
+    context: NcContext,
+    param: { baseId: string; userIds: string[] },
+  ) {
+    const MAX_RESOLVE = 50;
+
+    const userIds = [
+      ...new Set((param.userIds || []).filter((id) => typeof id === 'string' && id.trim())),
+    ].slice(0, MAX_RESOLVE);
+
+    if (!userIds.length) return [];
+
+    const userMap = await User.getByIds(userIds);
+
+    const users = userIds
+      .map((id) => userMap.get(id))
+      .filter((user): user is User => !!user)
+      .map((user) => ({
+        id: user.id,
+        email: user.email,
+        display_name: user.display_name,
+        meta: user.meta,
+      }));
+
+    await PresignedUrl.signMetaIconImage(users);
+
+    return users;
+  }
+
   async userInvite(
     context: NcContext,
     param: {

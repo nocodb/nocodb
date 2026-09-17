@@ -12,6 +12,7 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { PublicDatasService } from '~/services/public-datas.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { GlobalGuard } from '~/guards/global/global.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Column, View } from '~/models';
@@ -123,6 +124,11 @@ export class PublicDatasController {
     return groupedData;
   }
 
+  // Optional auth: when a submitter is signed in, populate req.user (real user)
+  // so require-signin forms can validate them and CreatedBy is captured. Without
+  // a token GlobalGuard sets a guest user, so anonymous submits to public forms
+  // keep working unchanged.
+  @UseGuards(GlobalGuard)
   @Post([
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
     '/api/v2/public/shared-view/:sharedViewUuid/rows',

@@ -1916,6 +1916,8 @@
     "replaceWith": "Replace",
     "replaceAll": "Replace all",
     "noResults": "No results",
+    "noBaseAccess": "No base access",
+    "signedInAs": "Signed in as",
     "noMappedValue": "No mapped value",
     "deleteTable": "Delete table",
     "distributeColumnsEvenly": "Distribute columns evenly",

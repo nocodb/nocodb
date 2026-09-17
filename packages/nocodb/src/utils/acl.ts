@@ -250,6 +250,7 @@ export const permissionScopes = {
     'nestedDataReorder',
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
+    'baseUserResolve',
     'sourceCreate',
     'columnAdd',
 
@@ -504,6 +505,7 @@ const rolePermissions:
 
       nestedDataList: true,
       baseUserList: true,
+      baseUserResolve: true,
 
       // Extensions
       extensionList: true,
@@ -1040,6 +1042,7 @@ const permissionDescriptions: Record<string, string> = {
   relationDataAdd: 'add related data',
   nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
   baseUserList: 'view list of users in the base',
+  baseUserResolve: 'resolve user profiles by id within the base',
 
   baseApiTokenList: 'view list of base API tokens',
   baseApiTokenCreate: 'create a new base API token',

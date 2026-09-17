@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "הפעל תחילה את הסקריפט כדי להציג את התוצאות",
     "print": "הדפס",
     "generatingPDF": "יצירת קובץ PDF...",
-    "activeMcpServersLabel": "הצג ונהל את שרתי Model Context Protocol הפעילים שלך בכל הבסיסים",
-    "activeMcpServers": "שרתי MCP פעילים",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "יצירת לקוח OAuth חדש",

@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "결과물을 보려면 먼저 스크립트를 실행하세요",
     "print": "인쇄",
     "generatingPDF": "PDF 생성 중...",
-    "activeMcpServersLabel": "모든 베이스에서 활성화된 모델 컨텍스트 프로토콜 서버를 보고 관리하세요",
-    "activeMcpServers": "MCP 서버 활성",
     "hideEditor": "편집기 숨기기",
     "showEditor": "편집기 표시",
     "addNewClient": "새로운 OAuth 클라이언트를 생성합니다",

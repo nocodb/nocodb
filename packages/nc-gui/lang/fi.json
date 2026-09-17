@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "Suorita skripti ensin tulostusta varten",
     "print": "Tulosta",
     "generatingPDF": "PDF-tiedostojen tuottaminen...",
-    "activeMcpServersLabel": "Näytä ja hallitse aktiivisia Model Context Protocol -palvelimia kaikissa tukikohdissa.",
-    "activeMcpServers": "Aktiiviset MCP-palvelimet",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Luo uusi OAuth-asiakas",

@@ -1701,8 +1701,6 @@
     "executeScriptToPrint": "Voer het script eerst uit om uitvoer af te drukken",
     "print": "Afdrukken",
     "generatingPDF": "PDF genereren...",
-    "activeMcpServersLabel": "Uw actieve Model Context Protocol-servers op alle bases bekijken en beheren",
-    "activeMcpServers": "Actieve MCP-servers",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Nieuwe OAuth-client maken",

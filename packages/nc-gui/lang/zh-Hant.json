@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "先執行腳本以列印輸出",
     "print": "列印",
     "generatingPDF": "生成 PDF...",
-    "activeMcpServersLabel": "跨所有基地檢視和管理您的作用中模型上下文通訊協定伺服器",
-    "activeMcpServers": "使用中的 MCP 伺服器",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "建立新的 OAuth 用戶端",

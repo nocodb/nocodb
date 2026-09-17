@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "Prvo pokrenite skriptu kako biste ispisali izlaz.",
     "print": "Ispiši",
     "generatingPDF": "Generiranje PDF-a...",
-    "activeMcpServersLabel": "Pregledajte i upravljajte svojim aktivnim Model Context Protocol poslužiteljima na svim bazama.",
-    "activeMcpServers": "Aktivni MCP poslužitelji",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Kreira novi OAuth klijent",

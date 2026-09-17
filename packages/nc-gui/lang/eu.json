@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "Lehenik exekutatu gidoia emaitzak inprimatzeko.",
     "print": "Inprimatu",
     "generatingPDF": "PDFa sortzen...",
-    "activeMcpServersLabel": "Ikusi eta kudeatu zure aktibo dauden Model Context Protocol zerbitzariak oinarri guztietan.",
-    "activeMcpServers": "MCP zerbitzari aktiboak",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "OAuth bezero berri bat sortu",

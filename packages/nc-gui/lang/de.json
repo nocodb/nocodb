@@ -1849,8 +1849,6 @@
     "executeScriptToPrint": "Führen Sie das Skript zuerst aus, um die Ausgabe zu drucken",
     "print": "Drucken",
     "generatingPDF": "Erzeugen von PDF...",
-    "activeMcpServersLabel": "Betrachten und verwalten Sie Ihre aktiven Model Context Protocol-Server auf allen Basen",
-    "activeMcpServers": "Aktive MCP-Server",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Neuen OAuth Client erstellen",

@@ -91,7 +91,24 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
       }
       return null
     } catch (e) {
-      if (state.token.value && state.user.value && !skipSignOut) {
+      // Only sign out when the server actually REJECTED the refresh. A request
+      // that never received a response (connection reset, server momentarily
+      // unresponsive) says nothing about whether the session is still valid,
+      // and signing out on it discards a perfectly good session.
+      //
+      // Found from a CI page snapshot: a test mid-run was sitting on the
+      // sign-in screen showing "Network Error", while the backend process was
+      // still alive and had never restarted — so a single transient refresh
+      // failure had logged the user out. Everything after that fails for
+      // unrelated-looking reasons, which is how `command.spec.ts:61` presented:
+      // a sidebar node that never activates, because there was no longer a
+      // session to load it with.
+      //
+      // A genuine expiry still comes back as a response (401), so that path is
+      // unchanged.
+      const serverRejected = !!(e as any)?.response
+
+      if (serverRejected && state.token.value && state.user.value && !skipSignOut) {
         await signOut({
           skipApiCall: true,
         })

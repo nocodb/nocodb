@@ -4991,7 +4991,10 @@
     "marketplaceSearch": "Apps, Herausgeber oder gesuchte Aufgaben durchsuchen",
     "noAgents": "Keine Agenten",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Skills durchsuchen..."
+    "searchSkills": "Skills durchsuchen...",
+    "searchTools": "Werkzeuge suchen",
+    "skillNamePlaceholder": "Name des Skills",
+    "skillDescriptionPlaceholder": "Was macht dieser Skill, und wann sollte er eingesetzt werden?"
   },
   "msg": {
     "sourceViewNotShared": "Sync ist in dieser Ansicht deaktiviert",

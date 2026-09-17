@@ -358,6 +358,8 @@ export default class FormView implements FormViewType {
     req: NcRequest,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
+    if (!isEE) return false;
+
     const formView = await this.get(context, viewId, ncMeta);
     if (!formView) return false;
 

@@ -676,14 +676,6 @@ export class PublicDatasService {
     }
   }
 
-  /** Whether the "require sign-in" form option is active for this view's plan. */
-  protected async isFormRequireSigninEnabled(
-    _context: NcContext,
-    _view: View,
-  ): Promise<boolean> {
-    return true;
-  }
-
   async dataInsert(
     context: NcContext,
     param: {
@@ -715,11 +707,12 @@ export class PublicDatasService {
     // attribution below — that block populates req.user with the anonymous
     // service user, which would otherwise make the require-signin guard think
     // the requester is authenticated and let anonymous submissions through.
-    // Gated on the plan (EE override) so enforcement matches what the public
-    // meta advertises: a stored flag on a plan without the feature is inert
-    // instead of rejecting every submission.
+    //
+    // Enforcement is gated on the same feature check that gates advertisement
+    // in publicMetasService: after a downgrade the form stops sending the
+    // token, so it must stop demanding one.
     const requiresSignin =
-      (await this.isFormRequireSigninEnabled(context, view)) &&
+      (await this.publicMetasService.isFormRequireSigninEnabled(view)) &&
       (await FormView.validateRequireSignin(context, view.id, param.req));
 
     // An ordinary public form stays anonymous, even when the visitor happens to
@@ -732,6 +725,8 @@ export class PublicDatasService {
     // require-sign-in forms.
     if (!requiresSignin) {
       param.req.user = undefined;
+      // GlobalGuard sets both; `req.context` is what reaches getBaseModelSQL.
+      if (param.req.context) param.req.context.user = undefined;
     }
 
     // Public form submissions are unauthenticated by design, so req.user is

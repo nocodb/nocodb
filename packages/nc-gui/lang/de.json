@@ -5689,7 +5689,8 @@
       "mcpConnectionNeedsTools": "Erlauben Sie mindestens ein Werkzeug.",
       "mcpConnectionNeedsAccess": "Fügen Sie mindestens ein Projekt hinzu oder wählen Sie alle Ressourcen.",
       "mcpLegacyConnection": "Vor Einführung der Geltungsbereiche erstellt und trägt daher Ihren eigenen Zugriff auf dieses eine Projekt. Löschen Sie sie und erstellen Sie eine neue, um sie einzugrenzen.",
-      "interfaceRecordFormNoFields": "Dieses Formular hat noch keine Felder und kann daher keine Einträge erstellen"
+      "interfaceRecordFormNoFields": "Dieses Formular hat noch keine Felder und kann daher keine Einträge erstellen",
+      "summaryNeedsOnePlace": "Eine Zusammenfassung muss an mindestens einer Stelle angezeigt werden"
     },
     "error": {
       "failedToCreateSync": "Fehler beim Erstellen der Synchronisation",

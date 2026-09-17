@@ -1,5 +1,4 @@
 import { ProjectRoles } from 'nocodb-sdk';
-import { serializeMcpError } from '~/mcp/mcp-error';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type {
@@ -175,7 +174,10 @@ export async function runTool(
       ],
     };
   } catch (error) {
-    return serializeMcpError(error);
+    return {
+      content: [{ type: 'text', text: `Error: ${error.message}` }],
+      isError: true,
+    };
   }
 }
 

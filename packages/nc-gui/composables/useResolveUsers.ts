@@ -21,8 +21,9 @@ export const useResolveUsers = createSharedComposable(() => {
   // Resolved profiles keyed by user id (ids are globally unique).
   const resolvedUsers = ref<Map<string, UserFieldRecordType>>(new Map())
 
-  // Ids the backend could not resolve, keyed by `${baseId}:${id}` so a miss in
-  // one base doesn't block resolution in another.
+  // Ids the backend could not resolve, keyed by `${baseId}:${tableId}:${id}` —
+  // resolution is scoped to the table the id was seen in, so a miss in one
+  // table doesn't block resolution in another.
   const missedKeys = ref<Set<string>>(new Set())
 
   // Ids currently being fetched — prevents duplicate in-flight requests.
@@ -30,15 +31,20 @@ export const useResolveUsers = createSharedComposable(() => {
 
   const getResolvedUser = (id?: string | null) => (id ? resolvedUsers.value.get(id.trim()) : undefined)
 
-  const resolveUsers = async (baseId?: string, ids: (string | null | undefined)[] = []) => {
-    if (!baseId) return
+  // `tableId` is required by the backend to scope resolution to ids actually
+  // present in that table — without it only base collaborators resolve.
+  const resolveUsers = async (baseId?: string, tableId?: string, ids: (string | null | undefined)[] = []) => {
+    if (!baseId || !tableId) return
 
     const toFetch = [
       ...new Set(
         ids
           .filter((id): id is string => !!id && typeof id === 'string')
           .map((id) => id.trim())
-          .filter((id) => id && !resolvedUsers.value.has(id) && !missedKeys.value.has(`${baseId}:${id}`) && !inFlight.has(id)),
+          .filter(
+            (id) =>
+              id && !resolvedUsers.value.has(id) && !missedKeys.value.has(`${baseId}:${tableId}:${id}`) && !inFlight.has(id),
+          ),
       ),
     ]
 
@@ -52,6 +58,7 @@ export const useResolveUsers = createSharedComposable(() => {
       try {
         const res = await $api.instance.post(`/api/v2/meta/bases/${baseId}/users/resolve`, {
           user_ids: batch,
+          table_id: tableId,
         })
 
         const users: UserFieldRecordType[] = res?.data?.users ?? []
@@ -70,7 +77,7 @@ export const useResolveUsers = createSharedComposable(() => {
 
         // Tomb-stone ids the backend did not return so we don't keep asking.
         const nextMissed = new Set(missedKeys.value)
-        batch.filter((id) => !found.has(id)).forEach((id) => nextMissed.add(`${baseId}:${id}`))
+        batch.filter((id) => !found.has(id)).forEach((id) => nextMissed.add(`${baseId}:${tableId}:${id}`))
         missedKeys.value = nextMissed
       } catch (e) {
         // Swallow — resolution is best-effort. Leaving ids un-tomb-stoned lets a

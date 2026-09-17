@@ -324,7 +324,8 @@ export function useCanvasTable({
   // them for display. Debounced — re-runs as chunks load / the user scrolls.
   const resolveExternalUsersFromRows = useDebounceFn(() => {
     const baseId = meta.value?.base_id
-    if (!baseId || !userColumnTitles.value.length || !cachedRows.value?.size) return
+    const tableId = meta.value?.id
+    if (!baseId || !tableId || !userColumnTitles.value.length || !cachedRows.value?.size) return
 
     const keys: string[] = []
     for (const row of cachedRows.value.values()) {
@@ -335,7 +336,7 @@ export function useCanvasTable({
     }
 
     const unknown = keys.filter((key) => !collaboratorIds.value.has(key))
-    if (unknown.length) resolveUsers(baseId, unknown)
+    if (unknown.length) resolveUsers(baseId, tableId, unknown)
   }, 300)
 
   watch([() => totalRows.value, () => chunkStates.value, userColumnTitles], () => resolveExternalUsersFromRows(), { deep: true })

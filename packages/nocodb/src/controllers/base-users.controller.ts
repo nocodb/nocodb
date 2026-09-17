@@ -62,11 +62,12 @@ export class BaseUsersController {
   async userResolve(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Body() body: { user_ids?: string[] },
+    @Body() body: { user_ids?: string[]; table_id?: string },
   ): Promise<{ users: any[] }> {
     return {
       users: await this.baseUsersService.userResolve(context, {
         baseId,
+        tableId: body?.table_id,
         userIds: body?.user_ids ?? [],
       }),
     };

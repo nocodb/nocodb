@@ -44,9 +44,9 @@ const { resolvedUsers, resolveUsers } = useResolveUsers()
 const unresolvedKeys = computed(() => extractUserKeys(modelValue).filter((key) => !idUserMap.value[key]))
 
 watch(
-  [unresolvedKeys, () => meta.value?.base_id],
-  ([keys, baseId]) => {
-    if (keys.length && baseId) resolveUsers(baseId, keys)
+  [unresolvedKeys, () => meta.value?.base_id, () => meta.value?.id],
+  ([keys, baseId, tableId]) => {
+    if (keys.length && baseId && tableId) resolveUsers(baseId, tableId, keys)
   },
   { immediate: true },
 )

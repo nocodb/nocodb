@@ -584,6 +584,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
     } catch (e: any) {
       console.error(e)
+
+      // If session expired on a require-signin form, redirect to sign-in
+      if (requireSignin.value && e?.response?.status === 401) {
+        message.error(t('msg.info.formRequiresSignin'))
+        navigateTo(`/signin?continueAfterSignIn=${encodeURIComponent(route.fullPath)}`)
+        return
+      }
+
       await message.error(await extractSdkResponseErrorMsg(e))
     }
     progress.value = false

@@ -89,7 +89,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const formResetHook = createEventHook<void>()
 
-  const { isMobileMode, appInfo, signedIn, user } = useGlobal()
+  // Use the UNMASKED real login identity: `useGlobal().token` (and hence the
+  // masked `signedIn`/`user`) is forced to '' on shared-view routes, so on a
+  // shared form they are always false — which loops the require-sign-in
+  // redirect and hides the signed-in banner. `signedInReal`/`signedInUserReal`
+  // reflect the genuine login session regardless of route.
+  const { isMobileMode, appInfo, signedInReal, signedInUserReal, realToken } = useGlobal()
 
   const { api, isLoading } = useApi()
 
@@ -554,6 +559,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
         headers: {
           'xc-password': password.value,
+          // On a shared-view route `useApi`'s token is masked to '', so the
+          // submit would go out unauthenticated. For a require-sign-in form we
+          // must send the real login token so the backend authenticates the
+          // submitter and records CreatedBy / enforces the sign-in requirement.
+          ...(signedInReal.value && realToken.value ? { 'xc-auth': realToken.value } : {}),
         },
       })
 
@@ -1028,8 +1038,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isFormNotStarted,
     formStartsAt,
     requireSignin,
-    signedIn,
-    user,
+    // Expose the UNMASKED identity under the names the gate/banner consume, so
+    // the require-sign-in flow sees the real login session on the shared route.
+    signedIn: signedInReal,
+    user: signedInUserReal,
     backgroundAndTextColor,
     draftWasRestored,
     draftRestoredAt,

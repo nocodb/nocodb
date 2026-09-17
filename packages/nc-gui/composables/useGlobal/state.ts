@@ -116,6 +116,15 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     },
   })
 
+  /**
+   * Unmasked view of the persisted login token. `token` above is forced to ''
+   * on shared base/erd/view routes so those open as guest — but the
+   * "require sign-in" shared form must recognise a user who has genuinely
+   * logged in (to gate access and record the submitter). Read localStorage
+   * directly so this is route-independent. Read-only: only `token` writes.
+   */
+  const realToken = computed(() => storage.value.token || '')
+
   const config = useRuntimeConfig()
 
   const appInfo = ref<AppInfo>({
@@ -170,6 +179,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** reactive token payload */
   const { payload } = useJwt<JwtPayload & User>(token)
 
+  /** reactive payload of the unmasked (real) login token */
+  const { payload: realPayload } = useJwt<JwtPayload & User>(realToken)
+
   /** currently running requests */
   const runningRequests = useCounter()
 
@@ -187,6 +199,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     storage,
     token,
     jwtPayload: payload,
+    realToken,
+    jwtPayloadReal: realPayload,
     timestamp,
     runningRequests,
     error,

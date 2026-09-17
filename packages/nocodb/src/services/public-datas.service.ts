@@ -707,13 +707,28 @@ export class PublicDatasService {
     // attribution below — that block populates req.user with the anonymous
     // service user, which would otherwise make the require-signin guard think
     // the requester is authenticated and let anonymous submissions through.
-    await FormView.validateRequireSignin(context, view.id, param.req);
+    const requiresSignin = await FormView.validateRequireSignin(
+      context,
+      view.id,
+      param.req,
+    );
 
-    // Public form submissions are unauthenticated by design (the public
-    // controller runs no GlobalGuard), so req.user is empty and the resulting
-    // DATA_INSERT / nested DATA_LINK audits would have a NULL actor. Attribute
-    // them to the anonymous service user and stamp the shared view/form id so
-    // the submission stays traceable.
+    // An ordinary public form stays anonymous, even when the visitor happens to
+    // be logged in. This route runs GlobalGuard so require-sign-in forms can
+    // identify their submitter, but that guard also authenticates from the
+    // `nc_token` cookie, which the browser attaches on its own. Without this,
+    // simply being signed in to NocoDB would silently record your identity
+    // against any public form you filled in — and nothing in the form UI tells
+    // the submitter that, because the signed-in banner only renders for
+    // require-sign-in forms.
+    if (!requiresSignin) {
+      param.req.user = undefined;
+    }
+
+    // Public form submissions are unauthenticated by design, so req.user is
+    // empty and the resulting DATA_INSERT / nested DATA_LINK audits would have
+    // a NULL actor. Attribute them to the anonymous service user and stamp the
+    // shared view/form id so the submission stays traceable.
     if (!param.req.user?.id) {
       param.req.user = {
         ...NOCO_SERVICE_USERS[ServiceUserType.ANONYMOUS_USER],

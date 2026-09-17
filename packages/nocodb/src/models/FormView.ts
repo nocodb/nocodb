@@ -346,23 +346,31 @@ export default class FormView implements FormViewType {
     }
   }
 
+  /**
+   * Throws when the form requires sign-in and the requester is not signed in.
+   *
+   * @returns whether the form requires sign-in — the caller uses this to decide
+   * whether the submitter's identity may be recorded at all.
+   */
   static async validateRequireSignin(
     context: NcContext,
     viewId: string,
     req: NcRequest,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<boolean> {
     const formView = await this.get(context, viewId, ncMeta);
-    if (!formView) return;
+    if (!formView) return false;
 
     const meta = ncIsObject(formView.meta)
       ? (formView.meta as Record<string, any>)
       : {};
 
-    if (meta.require_signin) {
-      if (!req.user?.id || (req.user as any).roles?.guest) {
-        NcError.unauthorized('Sign-in required to submit this form');
-      }
+    if (!meta.require_signin) return false;
+
+    if (!req.user?.id || (req.user as any).roles?.guest) {
+      NcError.unauthorized('Sign-in required to submit this form');
     }
+
+    return true;
   }
 }

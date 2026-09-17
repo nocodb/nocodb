@@ -17,6 +17,46 @@ function safeSetLocalStorage(key: string, value: string) {
   }
 }
 
+/** Read counterpart of `safeSetLocalStorage` — same null/SecurityError hazard. */
+function safeGetLocalStorage(key: string) {
+  try {
+    return localStorage?.getItem(key) ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Remove counterpart of `safeSetLocalStorage` — same null/SecurityError hazard. */
+function safeRemoveLocalStorage(key: string) {
+  try {
+    localStorage?.removeItem(key)
+  } catch {
+    // storage disabled/unavailable — non-critical, ignore
+  }
+}
+
+/**
+ * Only same-origin relative paths may be promoted back into the URL. Browsers
+ * have historically normalised forms like `/\evil.com` into protocol-relative
+ * URLs, so a plain `^https?://` check is not enough.
+ */
+function isSafeContinuePath(path: string) {
+  if (!path.startsWith('/') || path.startsWith('//') || path.startsWith('/\\')) return false
+
+  try {
+    return new URL(path, window.location.origin).origin === window.location.origin
+  } catch {
+    return false
+  }
+}
+
+/** Read-and-remove: an abandoned sign-in must not hijack a later, unrelated one. */
+function consumeStoredContinuePath() {
+  const stored = safeGetLocalStorage('continueAfterSignIn')
+  safeRemoveLocalStorage('continueAfterSignIn')
+  return stored
+}
+
 /** Strip continueAfterSignIn param from a path to prevent recursive nesting */
 function stripContinueParam(fullPath: string) {
   const qIndex = fullPath.indexOf('?')
@@ -196,17 +236,11 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     cleanURL.searchParams.delete('short-token')
     cleanURL.searchParams.delete('continueAfterSignIn')
     // Legacy Google/GitHub sign-in (genTokenByCode) returns no `extra`, so the
-    // return target lives only in localStorage (persisted when the user first
-    // hit /signin). Restore it to the URL before the reload below — otherwise
-    // the reload wipes `isTokenUpdatedTab` and the redirect plugin, seeing
-    // neither the flag nor the query param, never navigates back to the gated
-    // page (e.g. a require-sign-in shared form). OIDC via this path keeps its
-    // `extra` precedence. Reject absolute/protocol-relative URLs to avoid an
-    // open redirect.
-    const continueAfterSignIn =
-      extraProps?.continueAfterSignIn ??
-      (typeof window !== 'undefined' ? window.localStorage.getItem('continueAfterSignIn') : null)
-    if (continueAfterSignIn && !/^(https?:)?\/\//.test(continueAfterSignIn)) {
+    // return target lives only in localStorage. Restore it to the URL before the
+    // reload below — the reload wipes `isTokenUpdatedTab`, so without the query
+    // param the redirect plugin never navigates back to the gated page.
+    const continueAfterSignIn = extraProps?.continueAfterSignIn ?? consumeStoredContinuePath()
+    if (continueAfterSignIn && isSafeContinuePath(continueAfterSignIn)) {
       cleanURL.searchParams.set('continueAfterSignIn', continueAfterSignIn)
     }
     window.history.pushState('object', document.title, cleanURL.toString())
@@ -268,9 +302,13 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    if (extraProps?.continueAfterSignIn) {
+    // `extra` is only populated on the authorization-callback request, never on
+    // this `/auth/long-lived-token` exchange, so SAML and every `/sso/:id` client
+    // type has to fall back to the stored target. Same reload hazard as above.
+    const continueAfterSignIn = extraProps?.continueAfterSignIn ?? consumeStoredContinuePath()
+    if (continueAfterSignIn && isSafeContinuePath(continueAfterSignIn)) {
       const continueURL = new URL(window.location.href)
-      continueURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+      continueURL.searchParams.set('continueAfterSignIn', continueAfterSignIn)
       window.history.pushState('object', document.title, continueURL.toString())
     }
     window.location.reload()

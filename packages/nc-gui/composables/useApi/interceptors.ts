@@ -75,7 +75,11 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
         try {
           const token = await state.refreshToken({
             axiosInstance,
-            skipLogout: true,
+            // NB: the parameter is `skipSignOut`. This used to pass
+            // `skipLogout`, which matches nothing in the signature and was
+            // silently ignored, so refreshToken signed out on its own before
+            // this caller could decide.
+            skipSignOut: true,
           })
 
           if (!token) {
@@ -96,8 +100,15 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
             return Promise.reject(refreshTokenError)
           }
 
+          // A refresh that never got a RESPONSE says nothing about whether the
+          // session is still valid — signing out on it discards a good session
+          // over a momentary blip, dropping the user on the sign-in screen
+          // mid-session. refreshToken now rethrows those instead of returning
+          // falsy, so they land here; fall through to the retry below.
+          const refreshServerRejected = !!(refreshTokenError as any)?.response
+
           // if shared execution error, don't sign out
-          if (!(refreshTokenError instanceof SharedExecutionError)) {
+          if (!(refreshTokenError instanceof SharedExecutionError) && refreshServerRejected) {
             await state.signOut({
               redirectToSignin: !isSharedPage,
               skipApiCall: true,

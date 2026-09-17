@@ -114,6 +114,12 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
         })
         message.error(t('msg.error.youHaveBeenSignedOut'))
       }
+
+      // Let callers tell a dead session from a blip. Returning null for a
+      // transient failure would defeat the guard above: the API interceptor
+      // signs out on a falsy return. Kept identical to the EE copy.
+      if (!serverRejected) throw e
+
       return null
     }
   }

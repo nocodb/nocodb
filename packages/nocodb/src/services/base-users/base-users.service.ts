@@ -149,7 +149,7 @@ export class BaseUsersService {
 
     if (!model || model.base_id !== param.baseId) return allowed;
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     const userColumns = (model.columns || []).filter(
       (column) =>

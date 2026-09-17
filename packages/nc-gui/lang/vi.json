@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "Tác nhân"
+    },
+    "upgradeToSortAndLimitLookupValues": "Để sắp xếp và giới hạn các giá trị hiển thị trong trường Lookup, vui lòng nâng cấp lên gói {plan}.",
+    "upgradeToAddMoreAgents": "Nâng cấp để thêm nhiều tác nhân hơn",
+    "upgradeToAddMoreAgentsSubtitle": "Bạn đang dùng gói {activePlan}, cho phép {limit} tác nhân mỗi không gian làm việc. Hãy nâng cấp lên {plan} để có thêm.",
+    "upgradeToAddMoreInterfaces": "Nâng cấp để thêm nhiều Interfaces hơn",
+    "upgradeToAddMoreInterfacesSubtitle": "Bạn đang dùng gói {activePlan}, cho phép {limit} Interfaces mỗi không gian làm việc. Hãy nâng cấp lên {plan} để có thêm.",
+    "upgradeToAddMoreInterfacePages": "Nâng cấp để thêm nhiều trang hơn",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Bạn đang dùng gói {activePlan}, cho phép {limit} trang mỗi Interface. Hãy nâng cấp lên {plan} để có số trang không giới hạn.",
+    "upgradeToUseTrashSettings": "Nâng cấp để cấu hình cài đặt thùng rác",
+    "upgradeToUseTrashSettingsSubtitle": "Nâng cấp lên gói {plan} để cấu hình cài đặt thùng rác cho từng bảng.",
+    "upgradeToAttachFilesToComments": "Nâng cấp để đính kèm tệp vào bình luận",
+    "upgradeToAttachFilesToCommentsSubtitle": "Nâng cấp lên gói {plan} để đính kèm hình ảnh và tệp vào bình luận của bản ghi.",
+    "upgradeToUseToggleSort": "Nâng cấp để bật tắt từng sắp xếp riêng lẻ",
+    "upgradeToUseToggleSortSubtitle": "Nâng cấp lên gói {plan} để bật hoặc tắt từng sắp xếp mà không cần xóa chúng, giúp bạn kiểm soát các chế độ xem tốt hơn.",
+    "upgradeToUseViewFolders": "Nâng cấp để dùng thư mục chế độ xem",
+    "upgradeToUseViewFoldersSubtitle": "Nâng cấp lên gói {plan} để sắp xếp các chế độ xem vào thư mục.",
+    "upgradeToAccessViewFoldersSubtitle": "Nâng cấp lên gói {plan} để sắp xếp các chế độ xem vào thư mục.",
+    "upgradeToUseFolders": "Nâng cấp để dùng thư mục",
+    "upgradeToUseFoldersSubtitle": "Nâng cấp lên gói {plan} để sắp xếp bảng, tài liệu và Dashboards vào các thư mục.",
+    "upgradeToAccessFoldersSubtitle": "Nâng cấp lên gói {plan} để sắp xếp bảng, tài liệu và Dashboards vào các thư mục.",
+    "upgradeToUseCustomSync": "Nâng cấp để dùng Sync tùy chỉnh",
+    "upgradeToUseCustomSyncSubtitle": "Nâng cấp lên gói {plan} để đồng bộ dữ liệu từ các nguồn dữ liệu khác.",
+    "upgradeToUseAutomaticSyncSubtitle": "Nâng cấp lên gói {plan} để giữ các bảng phản chiếu tự động đồng bộ theo thời gian thực.",
+    "upgradeToUseEnvironments": "Nâng cấp để dùng môi trường",
+    "upgradeToUseEnvironmentsSubtitle": "Môi trường có sẵn từ gói {plan} trở lên.",
+    "upgradeToPlanForFeature": "Nâng cấp lên gói {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "để chạy tự động hóa từ các nút Interface.",
+    "addonFeatureTitle": "Có sẵn dưới dạng Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} có sẵn dưới dạng Add-on trả phí từ gói {plan} trở lên. Hãy liên hệ với chúng tôi để bật tính năng này.",
+    "toAccessCopyViewConfigFromAnotherView": "để dùng tính năng sao chép cấu hình từ một chế độ xem khác.",
+    "toAccessReassignPersonalView": "để dùng tính năng gán lại chế độ xem cá nhân.",
+    "toAccessAssignAsPersonalView": "để dùng tính năng gán làm chế độ xem cá nhân.",
+    "toAccessCardFieldHeaderVisibility": "để dùng tính năng hiển thị tiêu đề trường trên thẻ.",
+    "upgradeToUseStagingEnvironment": "Nâng cấp để dùng môi trường Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Gói {activePlan} của bạn chỉ gồm môi trường Production. Hãy nâng cấp lên {plan} để dùng Staging.",
+    "upgradeToUsePerUserCredentials": "Nâng cấp để dùng thông tin đăng nhập riêng cho từng người",
+    "upgradeToUsePerUserCredentialsSubtitle": "Gói {activePlan} của bạn chỉ dùng thông tin đăng nhập chung. Hãy nâng cấp lên {plan} để mỗi thành viên kết nối tài khoản của riêng mình.",
+    "upgradeToUseCustomEnvironments": "Nâng cấp để tạo môi trường tùy chỉnh",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Môi trường tùy chỉnh không có trong gói {activePlan} của bạn. Hãy nâng cấp lên {plan} để tạo môi trường ngoài Production và Staging."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6346,7 +6385,80 @@
         "description": "Hành động là những gì quy trình thực sự làm khi trình kích hoạt chạy."
       },
       "chooseTable": {
-        "description": "Mỗi hành động cần biết nó làm việc trên cái gì. Hãy chọn bảng để liệt kê bản ghi."
+        "description": "Mỗi hành động cần biết nó làm việc trên cái gì. Hãy chọn bảng để liệt kê bản ghi.",
+        "title": "Chọn một bảng"
+      },
+      "title": "Dựng Workflow đầu tiên của bạn",
+      "overview": {
+        "title": "Dựng một Workflow từ đầu đến cuối",
+        "description": "Tạo nó, chọn một trình kích hoạt, thêm một hành động, xuất bản, bật lên, rồi xem nó chạy."
+      },
+      "create": {
+        "title": "Tạo một Workflow",
+        "description": "Bắt đầu từ đầu — thao tác này mở một biểu mẫu ngắn."
+      },
+      "createSubmit": {
+        "title": "Tạo ngay",
+        "description": "Thao tác này đưa bạn thẳng vào khung làm việc."
+      },
+      "pickManualTrigger": {
+        "title": "Chọn \"Khi kích hoạt thủ công\"",
+        "description": "Cái này do bạn tự kích hoạt, nên bạn có thể cho phần còn lại chạy được trước khi nối nó với các sự kiện thật."
+      },
+      "testTrigger": {
+        "title": "Kiểm thử trình kích hoạt",
+        "description": "Chạy một lần và xem dữ liệu nó tạo ra. Mọi bước sau đều dựa trên kết quả này."
+      },
+      "pickListRecords": {
+        "title": "Chọn \"Liệt kê bản ghi\"",
+        "description": "Nó chỉ đọc, nên bạn có thể chạy bao nhiêu lần tùy thích mà không làm thay đổi dữ liệu nào."
+      },
+      "testAction": {
+        "title": "Kiểm thử cả hành động",
+        "description": "Mỗi nút được kiểm thử riêng. Hãy xác nhận nút này trả về đúng như bạn mong đợi trước khi xuất bản."
+      },
+      "publish": {
+        "title": "Xuất bản thay đổi của bạn",
+        "description": "Các chỉnh sửa được lưu dưới dạng <b>bản nháp</b>. Chính việc xuất bản mới khiến phiên bản này là phiên bản được chạy."
+      },
+      "enable": {
+        "title": "Bật nó lên",
+        "description": "Đã xuất bản không có nghĩa là đang chạy. Workflow vẫn ở trạng thái <b>Tạm dừng</b> cho đến khi bạn bật nó lên — đây là bước mọi người hay bỏ sót."
+      },
+      "run": {
+        "title": "Chạy thử một lần",
+        "description": "Trình kích hoạt thủ công chạy khi được yêu cầu — thử một lần và xem nó thực thi."
+      },
+      "logs": {
+        "title": "Xem nhật ký",
+        "description": "Mọi lần chạy đều được ghi lại ở đây — cái gì đã kích hoạt, mỗi bước trả về gì và có gì thất bại."
+      },
+      "wrapUp": {
+        "title": "Đó là trọn vẹn một vòng",
+        "description": "Trình kích hoạt, hành động, xuất bản, bật, chạy, nhật ký. Mọi Workflow bạn dựng từ đây trở đi đều theo cùng một khuôn."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Làm quen với không gian làm việc của bạn",
+      "welcome": {
+        "title": "Chào mừng bạn đến với NocoDB",
+        "description": "Một vòng nhanh quanh không gian làm việc của bạn. Bạn có thể thoát bất cứ lúc nào — nhấn Bỏ qua."
+      },
+      "createBase": {
+        "title": "Bắt đầu với một Base",
+        "description": "Một Base chứa các bảng, chế độ xem và tự động hóa của bạn. Phần lớn công việc bắt đầu từ đây."
+      },
+      "switchWorkspaces": {
+        "title": "Chuyển không gian làm việc",
+        "description": "Mọi không gian làm việc bạn tham gia đều nằm sau bộ chọn này. Mở ra để xem những nơi còn lại."
+      },
+      "moreWorkspaces": {
+        "title": "Nhiều hơn một không gian làm việc",
+        "description": "Các không gian làm việc giữ cho từng nhóm và dự án tách biệt nhau, mỗi nơi có thành viên riêng."
+      },
+      "account": {
+        "title": "Tài khoản và cài đặt",
+        "description": "Hồ sơ, giao diện, phím tắt và cài đặt tài khoản đều nằm sau ảnh đại diện của bạn."
       }
     }
   }

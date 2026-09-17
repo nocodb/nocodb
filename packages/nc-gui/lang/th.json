@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "เอเจนต์"
+    },
+    "upgradeToSortAndLimitLookupValues": "หากต้องการเรียงลำดับและจำกัดค่าที่แสดงในฟิลด์ Lookup โปรดอัปเกรดเป็นแผน {plan}",
+    "upgradeToAddMoreAgents": "อัปเกรดเพื่อเพิ่มเอเจนต์ได้มากขึ้น",
+    "upgradeToAddMoreAgentsSubtitle": "ขณะนี้คุณใช้แผน {activePlan} ซึ่งอนุญาต {limit} เอเจนต์ต่อพื้นที่ทำงาน อัปเกรดเป็น {plan} เพื่อเพิ่มจำนวน",
+    "upgradeToAddMoreInterfaces": "อัปเกรดเพื่อเพิ่ม Interfaces ได้มากขึ้น",
+    "upgradeToAddMoreInterfacesSubtitle": "ขณะนี้คุณใช้แผน {activePlan} ซึ่งอนุญาต {limit} Interfaces ต่อพื้นที่ทำงาน อัปเกรดเป็น {plan} เพื่อเพิ่มจำนวน",
+    "upgradeToAddMoreInterfacePages": "อัปเกรดเพื่อเพิ่มหน้าได้มากขึ้น",
+    "upgradeToAddMoreInterfacePagesSubtitle": "ขณะนี้คุณใช้แผน {activePlan} ซึ่งอนุญาต {limit} หน้าต่อ Interface อัปเกรดเป็น {plan} เพื่อให้มีหน้าได้ไม่จำกัด",
+    "upgradeToUseTrashSettings": "อัปเกรดเพื่อตั้งค่าถังขยะ",
+    "upgradeToUseTrashSettingsSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าถังขยะแยกตามแต่ละตาราง",
+    "upgradeToAttachFilesToComments": "อัปเกรดเพื่อแนบไฟล์ในความคิดเห็น",
+    "upgradeToAttachFilesToCommentsSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อแนบรูปภาพและไฟล์ในความคิดเห็นของบันทึก",
+    "upgradeToUseToggleSort": "อัปเกรดเพื่อเปิดปิดการเรียงลำดับแต่ละรายการ",
+    "upgradeToUseToggleSortSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อเปิดหรือปิดการเรียงลำดับแต่ละรายการโดยไม่ต้องลบทิ้ง ทำให้คุณควบคุมมุมมองได้ดียิ่งขึ้น",
+    "upgradeToUseViewFolders": "อัปเกรดเพื่อใช้โฟลเดอร์มุมมอง",
+    "upgradeToUseViewFoldersSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อจัดระเบียบมุมมองไว้ในโฟลเดอร์",
+    "upgradeToAccessViewFoldersSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อจัดระเบียบมุมมองไว้ในโฟลเดอร์",
+    "upgradeToUseFolders": "อัปเกรดเพื่อใช้โฟลเดอร์",
+    "upgradeToUseFoldersSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อจัดระเบียบตาราง เอกสาร และ Dashboards ไว้ในโฟลเดอร์",
+    "upgradeToAccessFoldersSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อจัดระเบียบตาราง เอกสาร และ Dashboards ไว้ในโฟลเดอร์",
+    "upgradeToUseCustomSync": "อัปเกรดเพื่อใช้ Sync แบบกำหนดเอง",
+    "upgradeToUseCustomSyncSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อซิงค์ข้อมูลจากแหล่งข้อมูลอื่น",
+    "upgradeToUseAutomaticSyncSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อให้ตารางที่มิเรอร์ไว้ซิงค์กันอัตโนมัติแบบเรียลไทม์",
+    "upgradeToUseEnvironments": "อัปเกรดเพื่อใช้สภาพแวดล้อม",
+    "upgradeToUseEnvironmentsSubtitle": "สภาพแวดล้อมมีให้ใช้งานในแผน {plan} ขึ้นไป",
+    "upgradeToPlanForFeature": "อัปเกรดเป็นแผน {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "เพื่อเรียกใช้ระบบอัตโนมัติจากปุ่มของ Interface",
+    "addonFeatureTitle": "มีให้ใช้งานเป็น Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} มีให้ใช้งานเป็น Add-on แบบเสียค่าใช้จ่ายในแผน {plan} ขึ้นไป ติดต่อเราเพื่อเปิดใช้งาน",
+    "toAccessCopyViewConfigFromAnotherView": "เพื่อใช้ฟีเจอร์คัดลอกการตั้งค่ามุมมองจากมุมมองอื่น",
+    "toAccessReassignPersonalView": "เพื่อใช้ฟีเจอร์กำหนดมุมมองส่วนตัวใหม่",
+    "toAccessAssignAsPersonalView": "เพื่อใช้ฟีเจอร์กำหนดให้เป็นมุมมองส่วนตัว",
+    "toAccessCardFieldHeaderVisibility": "เพื่อใช้ฟีเจอร์การแสดงหัวข้อฟิลด์บนการ์ด",
+    "upgradeToUseStagingEnvironment": "อัปเกรดเพื่อใช้สภาพแวดล้อม Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "แผน {activePlan} ของคุณมีเฉพาะสภาพแวดล้อม Production อัปเกรดเป็น {plan} เพื่อใช้ Staging",
+    "upgradeToUsePerUserCredentials": "อัปเกรดเพื่อใช้ข้อมูลรับรองแยกตามผู้ใช้",
+    "upgradeToUsePerUserCredentialsSubtitle": "แผน {activePlan} ของคุณใช้ข้อมูลรับรองร่วมกันเท่านั้น อัปเกรดเป็น {plan} เพื่อให้สมาชิกแต่ละคนเชื่อมต่อบัญชีของตนเองได้",
+    "upgradeToUseCustomEnvironments": "อัปเกรดเพื่อสร้างสภาพแวดล้อมที่กำหนดเอง",
+    "upgradeToUseCustomEnvironmentsSubtitle": "สภาพแวดล้อมที่กำหนดเองไม่มีในแผน {activePlan} ของคุณ อัปเกรดเป็น {plan} เพื่อสร้างสภาพแวดล้อมนอกเหนือจาก Production และ Staging"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6346,7 +6385,80 @@
         "description": "การกระทำคือสิ่งที่เวิร์กโฟลว์ทำจริงเมื่อทริกเกอร์ทำงาน"
       },
       "chooseTable": {
-        "description": "ทุกการกระทำต้องรู้ว่าทำงานกับอะไร เลือกตารางที่จะดึงระเบียนมาแสดง"
+        "description": "ทุกการกระทำต้องรู้ว่าทำงานกับอะไร เลือกตารางที่จะดึงระเบียนมาแสดง",
+        "title": "เลือกตาราง"
+      },
+      "title": "สร้าง Workflow แรกของคุณ",
+      "overview": {
+        "title": "สร้าง Workflow ตั้งแต่ต้นจนจบ",
+        "description": "สร้างมันขึ้นมา เลือกทริกเกอร์ เพิ่มแอ็กชัน เผยแพร่ เปิดใช้งาน แล้วดูมันทำงาน"
+      },
+      "create": {
+        "title": "สร้าง Workflow",
+        "description": "เริ่มจากศูนย์ — การกดนี้จะเปิดแบบฟอร์มสั้น ๆ"
+      },
+      "createSubmit": {
+        "title": "สร้างเลย",
+        "description": "สิ่งนี้จะพาคุณเข้าสู่พื้นที่ทำงานโดยตรง"
+      },
+      "pickManualTrigger": {
+        "title": "เลือก \"เมื่อสั่งด้วยตนเอง\"",
+        "description": "ตัวนี้คุณเป็นคนสั่งเอง คุณจึงทำส่วนที่เหลือให้ใช้งานได้ก่อนที่จะต่อเข้ากับเหตุการณ์จริง"
+      },
+      "testTrigger": {
+        "title": "ทดสอบทริกเกอร์",
+        "description": "เรียกใช้สักครั้งแล้วดูข้อมูลที่ได้ ทุกขั้นตอนถัดไปล้วนต่อยอดจากผลลัพธ์นี้"
+      },
+      "pickListRecords": {
+        "title": "เลือก \"แสดงรายการบันทึก\"",
+        "description": "มันแค่อ่านข้อมูลเท่านั้น คุณจึงเรียกใช้บ่อยแค่ไหนก็ได้โดยไม่ทำให้ข้อมูลเปลี่ยนแปลง"
+      },
+      "testAction": {
+        "title": "ทดสอบแอ็กชันด้วย",
+        "description": "แต่ละโหนดทดสอบแยกกัน ก่อนเผยแพร่ ให้ยืนยันว่าโหนดนี้คืนค่าตามที่คุณคาดไว้"
+      },
+      "publish": {
+        "title": "เผยแพร่การเปลี่ยนแปลงของคุณ",
+        "description": "การแก้ไขจะถูกบันทึกเป็น <b>ฉบับร่าง</b> การเผยแพร่ต่างหากที่ทำให้เวอร์ชันนี้กลายเป็นเวอร์ชันที่ทำงานจริง"
+      },
+      "enable": {
+        "title": "เปิดใช้งาน",
+        "description": "เผยแพร่แล้วไม่ได้แปลว่ากำลังทำงาน Workflow จะยังคง <b>หยุดชั่วคราว</b> จนกว่าคุณจะเปิดใช้งาน — ขั้นตอนนี้แหละที่คนมักมองข้าม"
+      },
+      "run": {
+        "title": "เรียกใช้สักครั้ง",
+        "description": "ทริกเกอร์แบบสั่งเองจะทำงานเมื่อคุณต้องการ — ลองดูแล้วเฝ้าดูการทำงาน"
+      },
+      "logs": {
+        "title": "ตรวจสอบบันทึก",
+        "description": "ทุกการทำงานจะถูกบันทึกไว้ที่นี่ — อะไรเป็นตัวจุดชนวน แต่ละขั้นตอนคืนค่าอะไร และมีอะไรล้มเหลวบ้าง"
+      },
+      "wrapUp": {
+        "title": "นี่คือวงจรทั้งหมด",
+        "description": "ทริกเกอร์ แอ็กชัน เผยแพร่ เปิดใช้งาน เรียกใช้ บันทึก ทุก Workflow ที่คุณสร้างต่อจากนี้ล้วนมีรูปแบบเดียวกัน"
+      }
+    },
+    "workspaceBasics": {
+      "title": "ทำความรู้จักพื้นที่ทำงานของคุณ",
+      "welcome": {
+        "title": "ยินดีต้อนรับสู่ NocoDB",
+        "description": "พาชมพื้นที่ทำงานของคุณอย่างรวดเร็ว คุณออกเมื่อไหร่ก็ได้ — กดข้าม"
+      },
+      "createBase": {
+        "title": "เริ่มต้นด้วย Base",
+        "description": "Base เก็บตาราง มุมมอง และระบบอัตโนมัติของคุณไว้ งานส่วนใหญ่เริ่มต้นที่นี่"
+      },
+      "switchWorkspaces": {
+        "title": "สลับพื้นที่ทำงาน",
+        "description": "ทุกพื้นที่ทำงานที่คุณเป็นสมาชิกอยู่หลังตัวเลือกนี้ เปิดดูเพื่อเห็นที่เหลือ"
+      },
+      "moreWorkspaces": {
+        "title": "มีได้มากกว่าหนึ่งพื้นที่ทำงาน",
+        "description": "พื้นที่ทำงานช่วยแยกทีมและโครงการต่าง ๆ ออกจากกัน โดยแต่ละแห่งมีสมาชิกของตัวเอง"
+      },
+      "account": {
+        "title": "บัญชีและการตั้งค่า",
+        "description": "โปรไฟล์ ธีม แป้นพิมพ์ลัด และการตั้งค่าบัญชี ทั้งหมดอยู่หลังรูปโปรไฟล์ของคุณ"
       }
     }
   }

@@ -33,7 +33,6 @@ export async function migrateTableInBatches(
     keyColumn = 'id',
   } = options;
 
-  const insertedIds = new Set<string>();
   let cursor: string | number | null = null;
   let migrated = 0;
 
@@ -60,15 +59,9 @@ export async function migrateTableInBatches(
     }
     cursor = last;
 
-    const formattedRows = rows
-      .filter((row) => {
-        if (insertedIds.has(row[keyColumn])) {
-          return false;
-        }
-        insertedIds.add(row[keyColumn]);
-        return true;
-      })
-      .map(transformFn);
+    // No dedup needed: the walk is strictly `> cursor`, so a row can only ever
+    // appear in one page.
+    const formattedRows = rows.map(transformFn);
 
     if (formattedRows.length > 0) {
       await knex.batchInsert(

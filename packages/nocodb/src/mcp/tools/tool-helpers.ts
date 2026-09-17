@@ -8,6 +8,7 @@ import type {
 } from '~/mcp/tools/tool-scope';
 import { hasMinimumRole } from '~/utils/roleHelper';
 import { assertTableVisible, resolveToolTableId } from '~/mcp/tool-guards';
+import { serializeMcpError } from '~/mcp/mcp-error';
 
 export type McpToolUser = UserType & {
   base_roles?: Record<string, boolean>;
@@ -174,10 +175,7 @@ export async function runTool(
       ],
     };
   } catch (error) {
-    return {
-      content: [{ type: 'text', text: `Error: ${error.message}` }],
-      isError: true,
-    };
+    return serializeMcpError(error);
   }
 }
 

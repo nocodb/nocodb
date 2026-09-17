@@ -40,7 +40,28 @@ const up = async (knex: Knex) => {
       updated_at: r.updated_at,
     }),
     logger,
-    { whereConditions: (qb) => qb.whereNotNull('fk_workspace_id') },
+    {
+      whereConditions: (qb) => qb.whereNotNull('fk_workspace_id'),
+      // `parts` carries whole tool outputs, so a default 1000-row page can be
+      // several GB in one await.
+      READ_BATCH_SIZE: 100,
+      selectColumns: [
+        'id',
+        'fk_session_id',
+        'fk_workspace_id',
+        'base_id',
+        'role',
+        'content',
+        'parts',
+        'files',
+        'created_files',
+        'model',
+        'input_tokens',
+        'output_tokens',
+        'created_at',
+        'updated_at',
+      ],
+    },
   );
 };
 

@@ -3009,7 +3009,6 @@
       "actionsTitle": "Was Besucher tun können",
       "actionsHint": "Der einzige Weg, auf dem nicht angemeldete Personen Ihre Daten erreichen. Änderungen werden beim nächsten Veröffentlichen wirksam."
     },
-    "backToAssistant": "Zurück zum Assistenten",
     "barOrientation": "Balkenausrichtung",
     "buildInEnvironmentTitle": "Diese App ist in {environment} geöffnet",
     "baseSkills": "Base-Skills",
@@ -3474,7 +3473,6 @@
     "installingApp": "Ihre Base wird erstellt",
     "installedSkills": "Installierte Skills",
     "filesCount": "{count} Dateien",
-    "goToAgents": "Zu den Agenten",
     "horizontal": "Horizontal",
     "fieldsCount": "{count} Feld | {count} Felder",
     "environmentStaging": "Staging",

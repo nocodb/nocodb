@@ -154,6 +154,8 @@ export const JobVersions: {
   [key in JobTypes]?: number;
 } = {
   [JobTypes.InitMigrationJobs]: 2,
+  [JobTypes.ChatMessage]: 2,
+  [JobTypes.ChatApproval]: 2,
 };
 
 export const JOB_REQUEUED = 'job.requeued';

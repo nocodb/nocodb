@@ -31,13 +31,6 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
       state.token.value = null
       state.user.value = null
 
-      // The `token` setter is a no-op on shared base/erd/view routes (guest
-      // mask), so signing out from e.g. a shared require-sign-in form would
-      // otherwise leave the persisted session intact and immediately bounce the
-      // user back. Clear the stored token directly so sign-out (and "switch
-      // account") actually ends the session on any route.
-      if (state.storage?.value) state.storage.value.token = null
-
       if (redirectToSignin) {
         await navigateTo(signinUrl)
       }

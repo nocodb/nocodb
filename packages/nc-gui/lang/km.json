@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "ដំឡើងដើម្បីប្រើព័ត៌មានសម្គាល់ខ្លួនរៀងៗអ្នកប្រើ",
     "upgradeToUsePerUserCredentialsSubtitle": "គម្រោង {activePlan} របស់អ្នកប្រើតែព័ត៌មានសម្គាល់ខ្លួនរួមប៉ុណ្ណោះ។ ដំឡើងទៅ {plan} ដើម្បីឱ្យសមាជិកនីមួយៗភ្ជាប់គណនីរបស់ខ្លួន។",
     "upgradeToUseCustomEnvironments": "ដំឡើងដើម្បីបង្កើតបរិស្ថានតាមបំណង",
-    "upgradeToUseCustomEnvironmentsSubtitle": "បរិស្ថានតាមបំណងមិនមាននៅលើគម្រោង {activePlan} របស់អ្នកទេ។ ដំឡើងទៅ {plan} ដើម្បីបង្កើតបរិស្ថានក្រៅពី Production និង Staging។"
+    "upgradeToUseCustomEnvironmentsSubtitle": "បរិស្ថានតាមបំណងមិនមាននៅលើគម្រោង {activePlan} របស់អ្នកទេ។ ដំឡើងទៅ {plan} ដើម្បីបង្កើតបរិស្ថានក្រៅពី Production និង Staging។",
+    "upgradeToUseFormRequireSignin": "អាប់ក្រេដដើម្បីតម្រូវឱ្យចូលគណនីលើបែបបទ",
+    "upgradeToUseFormRequireSigninSubtitle": "អាប់ក្រេដទៅផែនការ {plan} ដើម្បីតម្រូវឱ្យអ្នកឆ្លើយតបចូលគណនីមុនពេលដាក់ស្នើបែបបទ។"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4321,7 +4323,10 @@
       "allowShown": "អនុញ្ញាតអ្វីដែលបង្ហាញ",
       "clearShown": "សម្អាតអ្វីដែលបង្ហាញ",
       "shownOf": "បង្ហាញ {shown} ក្នុងចំណោម {total}"
-    }
+    },
+    "noBaseAccess": "គ្មានសិទ្ធិចូលប្រើ Base ទេ",
+    "signedInAs": "បានចូលគណនីជា",
+    "moreAgents": "ភ្នាក់ងារ {count} នាក់ទៀត | ភ្នាក់ងារ {count} នាក់ទៀត"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4973,7 +4978,9 @@
     "marketplaceSearch": "ស្វែងរកកម្មវិធី អ្នកបោះពុម្ពផ្សាយ ឬការងារដែលអ្នកចង់បាន",
     "noAgents": "គ្មានភ្នាក់ងារ",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "ស្វែងរកជំនាញ..."
+    "searchSkills": "ស្វែងរកជំនាញ...",
+    "messageAgent": "ផ្ញើសារទៅ {agent}",
+    "somethingElse": "អ្វីផ្សេងទៀត"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5676,7 +5683,12 @@
       "setupTeamsExplainer": "បន្ថែមមនុស្សទៅក្រុមដែលកម្មវិធីនេះបានបង្កើតឱ្យអ្នក។",
       "tooNarrowToAdjustFrozenFields": "អ្នកមានវាលបង្កកចំនួន {saved} ប៉ុន្តែឥឡូវនេះមានតែ {effective} ប៉ុណ្ណោះដែលបង្ហាញជាបង្កក ព្រោះបង្អួចរបស់អ្នកចង្អៀតពេក។ អ្នកអាចកំណត់ចំនួនវាលបង្កកឡើងវិញទៅ 1។ អ្នកក៏អាចប្ដូរចំនួននេះដោយពង្រីកបង្អួច ឬធ្វើឱ្យវាលនីមួយៗចង្អៀតជាងមុន។",
       "publishWideningConsent": "កំណែថ្មីដែលទៅដល់កន្លែងដែលកម្មវិធីនេះមិនធ្លាប់ទៅដល់ពីមុន — ការរួមបញ្ចូលថ្មី ឬការប្រើម៉ូដែល AI ជាលើកដំបូង — មិនធ្វើបច្ចុប្បន្នភាពការដំឡើងដោយខ្លួនឯងទេ។ អ្នកដំឡើងត្រូវបានសួរជាមុនសិន ហើយគាត់នៅតែប្រើកំណែដែលមានរហូតដល់គាត់ព្រមទទួល។",
-      "publishRolloutStaged": "ការដំឡើងត្រូវបានធ្វើបច្ចុប្បន្នភាពជាដំណាក់កាល ដោយចាប់ផ្ដើមពីក្រុមតូចមួយ ហើយការចេញផ្សាយនឹងឈប់ដោយខ្លួនឯង បើការធ្វើបច្ចុប្បន្នភាពចាប់ផ្ដើមបរាជ័យ។"
+      "publishRolloutStaged": "ការដំឡើងត្រូវបានធ្វើបច្ចុប្បន្នភាពជាដំណាក់កាល ដោយចាប់ផ្ដើមពីក្រុមតូចមួយ ហើយការចេញផ្សាយនឹងឈប់ដោយខ្លួនឯង បើការធ្វើបច្ចុប្បន្នភាពចាប់ផ្ដើមបរាជ័យ។",
+      "seeWhoSubmitted": "មើលថាអ្នកណាបានដាក់ស្នើចម្លើយ",
+      "seeWhoSubmittedSubtitle": "តម្រូវឱ្យចូលគណនី NocoDB។",
+      "seeWhoSubmittedDisabledHint": "បន្ថែមវាល «បង្កើតដោយ» ទៅតារាងរបស់អ្នក ដើម្បីបើកជម្រើសនេះ។",
+      "formRequiresSignin": "ការចូលប្រើបែបបទនេះតម្រូវឱ្យចូលគណនី NocoDB។",
+      "switchAccount": "ប្តូរគណនី"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6170,7 +6182,10 @@
     "skillUpdatedFromSource": "{title} ត្រូវបានធ្វើបច្ចុប្បន្នភាពពីប្រភព",
     "workspaceSkillsSubtitle": "អាចប្រើបាននៅគ្រប់មូលដ្ឋានទាំងអស់នៅទីនេះ និងសម្រាប់ភ្នាក់ងារដែលជ្រើសរើសប្រើ។",
     "skillShadowed": "ជំនាញដែលមានចំណងជើងនេះនៅកម្រិត {scope} មានអាទិភាព ដូច្នេះជំនាញនេះមិនត្រូវបានផ្ដល់ជូនទេ។",
-    "skillsNoMatchBody": "គ្មានអ្វីត្រូវនឹងការស្វែងរកនោះទេ។ សាកល្បងពាក្យផ្សេង ឬសម្អាតតម្រង។"
+    "skillsNoMatchBody": "គ្មានអ្វីត្រូវនឹងការស្វែងរកនោះទេ។ សាកល្បងពាក្យផ្សេង ឬសម្អាតតម្រង។",
+    "chatTooManyFiles": "ឯកសារច្រើនបំផុត {count} ក្នុងមួយសារ",
+    "chatTriggeredReadOnly": "ការសន្ទនានេះត្រូវបានចាប់ផ្តើមដោយកេះ ហើយមិនអាចបន្តបានទេ។",
+    "agentPaused": "ភ្នាក់ងារនេះត្រូវបានផ្អាក ដូច្នេះកេះនឹងមិនដំណើរការទេ។"
   },
   "trash": {
     "restore": "Restore",

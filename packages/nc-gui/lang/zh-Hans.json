@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "升级以使用按用户凭据",
     "upgradeToUsePerUserCredentialsSubtitle": "你的 {activePlan} 方案仅支持共享凭据。升级到 {plan}，即可让每位成员连接自己的账户。",
     "upgradeToUseCustomEnvironments": "升级以创建自定义环境",
-    "upgradeToUseCustomEnvironmentsSubtitle": "你的 {activePlan} 方案不支持自定义环境。升级到 {plan}，即可创建 Production 和 Staging 之外的环境。"
+    "upgradeToUseCustomEnvironmentsSubtitle": "你的 {activePlan} 方案不支持自定义环境。升级到 {plan}，即可创建 Production 和 Staging 之外的环境。",
+    "upgradeToUseFormRequireSignin": "升级以要求在表单中登录",
+    "upgradeToUseFormRequireSigninSubtitle": "升级到 {plan} 方案，即可要求填写者在提交表单前登录。"
   },
   "general": {
     "scrollToBottom": "滚动到底部",
@@ -4341,7 +4343,10 @@
       "allowShown": "允许已显示项",
       "clearShown": "清除已显示项",
       "shownOf": "已显示 {total} 个中的 {shown} 个"
-    }
+    },
+    "noBaseAccess": "无权访问该 Base",
+    "signedInAs": "已登录为",
+    "moreAgents": "另有 {count} 个智能体 | 另有 {count} 个智能体"
   },
   "activity": {
     "useTemplate": "使用模板",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "搜索应用、发布者，或你想完成的事",
     "noAgents": "没有智能体",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "搜索技能..."
+    "searchSkills": "搜索技能...",
+    "messageAgent": "给 {agent} 发消息",
+    "somethingElse": "其他"
   },
   "msg": {
     "sourceViewNotShared": "此视图上禁用同步",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "把成员加入此应用为你创建的团队。",
       "tooNarrowToAdjustFrozenFields": "你冻结了 {saved} 个字段，但由于窗口太窄，目前只有 {effective} 个显示为冻结。你可以把冻结字段数重置为 1，也可以通过放大窗口或缩窄个别字段来更改这个数量。",
       "publishWideningConsent": "如果某个版本触及了此应用以前无法触及的范围——新增集成、首次调用 AI 模型——它不会自行更新已安装的副本。系统会先征求安装者的同意，在他们接受之前，他们仍使用现有版本。",
-      "publishRolloutStaged": "已安装的副本会分批更新，先从一小部分开始；一旦更新开始失败，发布就会自动停止。"
+      "publishRolloutStaged": "已安装的副本会分批更新，先从一小部分开始；一旦更新开始失败，发布就会自动停止。",
+      "seeWhoSubmitted": "查看谁提交了回复",
+      "seeWhoSubmittedSubtitle": "需要登录 NocoDB。",
+      "seeWhoSubmittedDisabledHint": "在表格中添加“创建自”字段以启用此选项。",
+      "formRequiresSignin": "访问此表单需要登录 NocoDB。",
+      "switchAccount": "切换账户"
     },
     "error": {
       "failedToCreateSync": "创建同步失败",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "已从来源更新 {title}",
     "workspaceSkillsSubtitle": "在这里的每个项目中可用，选择启用的智能体也可使用。",
     "skillShadowed": "{scope} 层级有同名技能且优先级更高，因此不提供这一个。",
-    "skillsNoMatchBody": "没有与该搜索匹配的内容。换个关键词试试，或者清除筛选条件。"
+    "skillsNoMatchBody": "没有与该搜索匹配的内容。换个关键词试试，或者清除筛选条件。",
+    "chatTooManyFiles": "每条消息最多 {count} 个文件",
+    "chatTriggeredReadOnly": "此对话由触发器发起，无法继续。",
+    "agentPaused": "该智能体已暂停，因此触发器不会触发。"
   },
   "trash": {
     "restore": "恢复",

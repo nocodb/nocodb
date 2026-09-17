@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Päivitä käyttääksesi käyttäjäkohtaisia tunnuksia",
     "upgradeToUsePerUserCredentialsSubtitle": "{activePlan}-pakettisi käyttää vain jaettuja tunnuksia. Päivitä {plan}-pakettiin, jotta jokainen jäsen voi yhdistää oman tilinsä.",
     "upgradeToUseCustomEnvironments": "Päivitä luodaksesi omia ympäristöjä",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Omat ympäristöt eivät ole käytettävissä {activePlan}-paketissasi. Päivitä {plan}-pakettiin luodaksesi ympäristöjä Productionin ja Stagingin lisäksi."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Omat ympäristöt eivät ole käytettävissä {activePlan}-paketissasi. Päivitä {plan}-pakettiin luodaksesi ympäristöjä Productionin ja Stagingin lisäksi.",
+    "upgradeToUseFormRequireSignin": "Päivitä vaatiaksesi kirjautumista lomakkeisiin",
+    "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä."
   },
   "general": {
     "scrollToBottom": "Siirry alareunaan",
@@ -4341,7 +4343,10 @@
       "allowShown": "Salli näytetyt",
       "clearShown": "Tyhjennä näytetyt",
       "shownOf": "{shown} / {total} näytetty"
-    }
+    },
+    "noBaseAccess": "Ei pääsyä pohjaan",
+    "signedInAs": "Kirjautunut käyttäjänä",
+    "moreAgents": "{count} agentti lisää | {count} agenttia lisää"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "Hae sovelluksia, julkaisijoita tai sitä, mitä haluat tehdä",
     "noAgents": "Ei agentteja",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Hae taitoja..."
+    "searchSkills": "Hae taitoja...",
+    "messageAgent": "Viesti agentille {agent}",
+    "somethingElse": "Jotain muuta"
   },
   "msg": {
     "sourceViewNotShared": "Synkronointi on poistettu käytöstä tässä näkymässä",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "Lisää ihmisiä tiimeihin, jotka tämä sovellus loi sinulle.",
       "tooNarrowToAdjustFrozenFields": "Sinulla on {saved} lukittua kenttää, mutta vain {effective} näkyy juuri nyt lukittuna, koska ikkunasi on liian kapea. Voit palauttaa lukittujen kenttien määrän arvoon 1. Voit myös muuttaa määrää suurentamalla ikkunaa tai kaventamalla yksittäisiä kenttiä.",
       "publishWideningConsent": "Julkaisu, joka ylettyy jonnekin, minne tämä sovellus ei aiemmin ylettynyt — uusi integraatio tai tekoälymallin ensimmäinen käyttö — ei päivitä asennusta itsestään. Asentajalta kysytään ensin, ja hän jatkaa nykyisellä versiollaan, kunnes hyväksyy.",
-      "publishRolloutStaged": "Asennukset päivitetään vaiheittain pienestä ryhmästä alkaen, ja julkaisu pysähtyy itsestään, jos päivitykset alkavat epäonnistua."
+      "publishRolloutStaged": "Asennukset päivitetään vaiheittain pienestä ryhmästä alkaen, ja julkaisu pysähtyy itsestään, jos päivitykset alkavat epäonnistua.",
+      "seeWhoSubmitted": "Katso, kuka lähetti vastauksen",
+      "seeWhoSubmittedSubtitle": "Vaatii kirjautumisen NocoDB:hen.",
+      "seeWhoSubmittedDisabledHint": "Lisää taulukkoosi Luonut-kenttä ottaaksesi tämän asetuksen käyttöön.",
+      "formRequiresSignin": "Tämän lomakkeen käyttö edellyttää kirjautumista NocoDB:hen.",
+      "switchAccount": "Vaihda tiliä"
     },
     "error": {
       "failedToCreateSync": "Synkronoinnin luominen epäonnistui",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} päivitetty lähteestä",
     "workspaceSkillsSubtitle": "Käytettävissä jokaisessa täällä olevassa projektissa sekä agenteille, jotka ottavat ne käyttöön.",
     "skillShadowed": "Tämänniminen taito tasolla {scope} menee edelle, joten tätä ei tarjota.",
-    "skillsNoMatchBody": "Mikään ei vastaa tuota hakua. Kokeile toista hakusanaa tai tyhjennä suodattimet."
+    "skillsNoMatchBody": "Mikään ei vastaa tuota hakua. Kokeile toista hakusanaa tai tyhjennä suodattimet.",
+    "chatTooManyFiles": "Enintään {count} tiedostoa viestiä kohden",
+    "chatTriggeredReadOnly": "Tämän keskustelun aloitti laukaisin, eikä sitä voi jatkaa.",
+    "agentPaused": "Tämä agentti on keskeytetty, joten laukaisimet eivät käynnisty."
   },
   "trash": {
     "restore": "Palauta",

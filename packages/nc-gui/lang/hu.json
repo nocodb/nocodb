@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Válts magasabb csomagra a felhasználónkénti hitelesítő adatokhoz",
     "upgradeToUsePerUserCredentialsSubtitle": "A(z) {activePlan} csomagod csak megosztott hitelesítő adatokat használ. Válts a(z) {plan} csomagra, hogy minden tag a saját fiókját köthesse össze.",
     "upgradeToUseCustomEnvironments": "Válts magasabb csomagra egyéni környezetek létrehozásához",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Az egyéni környezetek nem érhetők el a(z) {activePlan} csomagodban. Válts a(z) {plan} csomagra, hogy a Production és a Staging mellett továbbiakat is létrehozhass."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Az egyéni környezetek nem érhetők el a(z) {activePlan} csomagodban. Válts a(z) {plan} csomagra, hogy a Production és a Staging mellett továbbiakat is létrehozhass.",
+    "upgradeToUseFormRequireSignin": "Frissítsen, hogy bejelentkezést írhasson elő az űrlapokon",
+    "upgradeToUseFormRequireSigninSubtitle": "Frissítsen a(z) {plan} csomagra, hogy a kitöltőknek be kelljen jelentkezniük az űrlap elküldése előtt."
   },
   "general": {
     "scrollToBottom": "Görgessen az aljára",
@@ -4341,7 +4343,10 @@
       "allowShown": "Megjelenítettek engedélyezése",
       "clearShown": "Megjelenítettek törlése",
       "shownOf": "{total} közül {shown} megjelenítve"
-    }
+    },
+    "noBaseAccess": "Nincs hozzáférés a bázishoz",
+    "signedInAs": "Bejelentkezve mint",
+    "moreAgents": "Még {count} ügynök | Még {count} ügynök"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "Keressen alkalmazásokat, közzétevőket vagy azt, amit el szeretne végezni",
     "noAgents": "Nincs ügynök",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Képességek keresése..."
+    "searchSkills": "Képességek keresése...",
+    "messageAgent": "Üzenet neki: {agent}",
+    "somethingElse": "Valami más"
   },
   "msg": {
     "sourceViewNotShared": "A szinkronizálás le van tiltva ezen a nézeten",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "Adjon hozzá embereket azokhoz a csapatokhoz, amelyeket ez az alkalmazás létrehozott Önnek.",
       "tooNarrowToAdjustFrozenFields": "{saved} rögzített mezője van, de jelenleg csak {effective} látszik rögzítettként, mert az ablaka túl keskeny. A rögzített mezők számát visszaállíthatja 1-re. Ezt a számot úgy is módosíthatja, hogy megnöveli az ablakot, vagy keskenyebbre veszi az egyes mezőket.",
       "publishWideningConsent": "Az a kiadás, amely olyan helyre ér el, ahová ez az alkalmazás korábban nem érhetett el — új integráció, egy MI-modell első használata —, nem frissít magától egy telepítést. Előbb megkérdezi azt, aki telepítette, ő pedig a meglévő verzióján fut tovább, amíg el nem fogadja.",
-      "publishRolloutStaged": "A telepítések szakaszokban frissülnek, egy kis csoporttal kezdve, és a kiterjesztés magától leáll, ha a frissítések hibázni kezdenek."
+      "publishRolloutStaged": "A telepítések szakaszokban frissülnek, egy kis csoporttal kezdve, és a kiterjesztés magától leáll, ha a frissítések hibázni kezdenek.",
+      "seeWhoSubmitted": "Nézze meg, ki küldött be választ",
+      "seeWhoSubmittedSubtitle": "Bejelentkezés szükséges a NocoDB-be.",
+      "seeWhoSubmittedDisabledHint": "A beállítás engedélyezéséhez adjon hozzá egy „Létrehozta” mezőt a táblához.",
+      "formRequiresSignin": "Az űrlap eléréséhez be kell jelentkezni a NocoDB-be.",
+      "switchAccount": "Fiókváltás"
     },
     "error": {
       "failedToCreateSync": "Sikertelen szinkronizálás létrehozása",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} frissítve a forrásból",
     "workspaceSkillsSubtitle": "Minden itteni bázisban elérhetők, valamint azoknak az ügynököknek, amelyek bekapcsolják őket.",
     "skillShadowed": "Az ilyen címmel rendelkező képesség a(z) {scope} szinten elsőbbséget élvez, ezért ez nem jelenik meg.",
-    "skillsNoMatchBody": "Semmi sem felel meg ennek a keresésnek. Próbáljon másik kifejezést, vagy törölje a szűrőket."
+    "skillsNoMatchBody": "Semmi sem felel meg ennek a keresésnek. Próbáljon másik kifejezést, vagy törölje a szűrőket.",
+    "chatTooManyFiles": "Üzenetenként legfeljebb {count} fájl",
+    "chatTriggeredReadOnly": "Ezt a beszélgetést egy trigger indította, és nem folytatható.",
+    "agentPaused": "Ez az ügynök szünetel, ezért a triggerek nem futnak le."
   },
   "trash": {
     "restore": "Visszaállítás",

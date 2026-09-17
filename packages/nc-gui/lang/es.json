@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Mejora tu plan para usar credenciales por usuario",
     "upgradeToUsePerUserCredentialsSubtitle": "Tu plan {activePlan} solo usa credenciales compartidas. Cambia a {plan} para que cada miembro conecte su propia cuenta.",
     "upgradeToUseCustomEnvironments": "Mejora tu plan para crear entornos personalizados",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Los entornos personalizados no están disponibles en tu plan {activePlan}. Cambia a {plan} para crear entornos más allá de Producción y Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Los entornos personalizados no están disponibles en tu plan {activePlan}. Cambia a {plan} para crear entornos más allá de Producción y Staging.",
+    "upgradeToUseFormRequireSignin": "Mejora tu plan para exigir inicio de sesión en los formularios",
+    "upgradeToUseFormRequireSigninSubtitle": "Mejora al plan {plan} para exigir que los encuestados inicien sesión antes de enviar un formulario."
   },
   "general": {
     "scrollToBottom": "Desplazar hacia abajo",
@@ -4331,7 +4333,10 @@
       "allowShown": "Permitir las mostradas",
       "clearShown": "Borrar las mostradas",
       "shownOf": "{shown} de {total} mostradas"
-    }
+    },
+    "noBaseAccess": "Sin acceso a la base",
+    "signedInAs": "Sesión iniciada como",
+    "moreAgents": "{count} agente más | {count} agentes más"
   },
   "activity": {
     "useTemplate": "Usar plantilla",
@@ -4984,7 +4989,9 @@
     "marketplaceSearch": "Busca aplicaciones, editores o lo que necesites hacer",
     "noAgents": "Sin agentes",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Buscar habilidades..."
+    "searchSkills": "Buscar habilidades...",
+    "messageAgent": "Mensaje para {agent}",
+    "somethingElse": "Otra cosa"
   },
   "msg": {
     "sourceViewNotShared": "La sincronización está desactivada en esta vista",
@@ -5687,7 +5694,12 @@
       "setupTeamsExplainer": "Añade personas a los equipos que esta app ha creado para ti.",
       "tooNarrowToAdjustFrozenFields": "Tienes {saved} campos fijados, pero ahora mismo solo aparecen fijados {effective} porque tu ventana es demasiado estrecha. Puedes restablecer el número de campos fijados a 1. También puedes cambiar ese número agrandando la ventana o estrechando algunos campos.",
       "publishWideningConsent": "Una versión que llega a algún sitio al que esta app no llegaba antes —una nueva integración, un primer uso de un modelo de IA— no actualiza una instalación por su cuenta. Primero se pregunta a quien la instaló, que sigue usando la versión que tiene hasta que acepte.",
-      "publishRolloutStaged": "Las instalaciones se actualizan por fases, empezando por un grupo pequeño, y el despliegue se detiene solo si las actualizaciones empiezan a fallar."
+      "publishRolloutStaged": "Las instalaciones se actualizan por fases, empezando por un grupo pequeño, y el despliegue se detiene solo si las actualizaciones empiezan a fallar.",
+      "seeWhoSubmitted": "Ver quién envió una respuesta",
+      "seeWhoSubmittedSubtitle": "Se requiere iniciar sesión en NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Añade un campo «Creado por» a tu tabla para habilitar esta opción.",
+      "formRequiresSignin": "Para acceder a este formulario es necesario iniciar sesión en NocoDB.",
+      "switchAccount": "Cambiar de cuenta"
     },
     "error": {
       "failedToCreateSync": "Error al crear la sincronización",
@@ -6181,7 +6193,10 @@
     "skillUpdatedFromSource": "{title} actualizado desde el origen",
     "workspaceSkillsSubtitle": "Disponibles en todos los proyectos de aquí, y para los agentes que las activen.",
     "skillShadowed": "Una habilidad con este título en el nivel {scope} tiene prioridad, así que esta no se ofrece.",
-    "skillsNoMatchBody": "Nada coincide con esa búsqueda. Prueba otro término o borra los filtros."
+    "skillsNoMatchBody": "Nada coincide con esa búsqueda. Prueba otro término o borra los filtros.",
+    "chatTooManyFiles": "Como máximo {count} archivos por mensaje",
+    "chatTriggeredReadOnly": "Esta conversación fue iniciada por un disparador y no se puede continuar.",
+    "agentPaused": "Este agente está en pausa, por lo que los disparadores no se activarán."
   },
   "trash": {
     "restore": "Restaurar",

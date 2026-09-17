@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "שדרגו כדי להשתמש בפרטי גישה לכל משתמש",
     "upgradeToUsePerUserCredentialsSubtitle": "תוכנית {activePlan} שלכם משתמשת בפרטי גישה משותפים בלבד. שדרגו ל-{plan} כדי שכל חבר יוכל לחבר את החשבון שלו.",
     "upgradeToUseCustomEnvironments": "שדרגו כדי ליצור סביבות מותאמות",
-    "upgradeToUseCustomEnvironmentsSubtitle": "סביבות מותאמות אינן זמינות בתוכנית {activePlan} שלכם. שדרגו ל-{plan} כדי ליצור סביבות מעבר ל-Production ו-Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "סביבות מותאמות אינן זמינות בתוכנית {activePlan} שלכם. שדרגו ל-{plan} כדי ליצור סביבות מעבר ל-Production ו-Staging.",
+    "upgradeToUseFormRequireSignin": "שדרג כדי לדרוש התחברות בטפסים",
+    "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס."
   },
   "general": {
     "scrollToBottom": "גלול למטה",
@@ -4341,7 +4343,10 @@
       "allowShown": "אפשר את המוצגים",
       "clearShown": "נקה את המוצגים",
       "shownOf": "{shown} מתוך {total} מוצגים"
-    }
+    },
+    "noBaseAccess": "אין גישה לבסיס",
+    "signedInAs": "מחובר בתור",
+    "moreAgents": "עוד סוכן {count} | עוד {count} סוכנים"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "חפשו אפליקציות, מפרסמים או את מה שצריך לבצע",
     "noAgents": "אין סוכנים",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "חיפוש מיומנויות..."
+    "searchSkills": "חיפוש מיומנויות...",
+    "messageAgent": "הודעה אל {agent}",
+    "somethingElse": "משהו אחר"
   },
   "msg": {
     "sourceViewNotShared": "הסנכרון מושבת בתצוגה זו",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "הוסיפו אנשים לצוותים שהאפליקציה הזו יצרה עבורכם.",
       "tooNarrowToAdjustFrozenFields": "יש לך {saved} שדות מוקפאים, אך כרגע רק {effective} מופיעים כמוקפאים כי החלון שלך צר מדי. אפשר לאפס את מספר השדות המוקפאים ל־1. אפשר גם לשנות את המספר על ידי הגדלת החלון או הצרת שדות בודדים.",
       "publishWideningConsent": "גרסה שמגיעה למקום שהאפליקציה הזו לא הגיעה אליו קודם — אינטגרציה חדשה, שימוש ראשון במודל בינה מלאכותית — לא מעדכנת התקנה מעצמה. קודם שואלים את מי שהתקין אותה, והוא ממשיך להריץ את הגרסה שברשותו עד שיאשר.",
-      "publishRolloutStaged": "ההתקנות מתעדכנות בשלבים, החל מקבוצה קטנה, וההפצה נעצרת מעצמה אם העדכונים מתחילים להיכשל."
+      "publishRolloutStaged": "ההתקנות מתעדכנות בשלבים, החל מקבוצה קטנה, וההפצה נעצרת מעצמה אם העדכונים מתחילים להיכשל.",
+      "seeWhoSubmitted": "ראה מי שלח תשובה",
+      "seeWhoSubmittedSubtitle": "נדרשת התחברות ל-NocoDB.",
+      "seeWhoSubmittedDisabledHint": "הוסף שדה ‘נוצר על ידי’ לטבלה שלך כדי להפעיל אפשרות זו.",
+      "formRequiresSignin": "גישה לטופס זה מחייבת התחברות ל-NocoDB.",
+      "switchAccount": "החלף חשבון"
     },
     "error": {
       "failedToCreateSync": "לא הצליח ליצור סנכרון",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} עודכן מהמקור",
     "workspaceSkillsSubtitle": "זמינות בכל פרויקט כאן, ולסוכנים שבוחרים להפעיל אותן.",
     "skillShadowed": "למיומנות בעלת אותו שם ברמת {scope} יש עדיפות, ולכן זו אינה מוצעת.",
-    "skillsNoMatchBody": "שום דבר לא תואם לחיפוש הזה. נסו מונח אחר או נקו את המסננים."
+    "skillsNoMatchBody": "שום דבר לא תואם לחיפוש הזה. נסו מונח אחר או נקו את המסננים.",
+    "chatTooManyFiles": "לכל היותר {count} קבצים להודעה",
+    "chatTriggeredReadOnly": "שיחה זו נפתחה על ידי טריגר ולא ניתן להמשיך אותה.",
+    "agentPaused": "סוכן זה מושהה, ולכן הטריגרים לא יופעלו."
   },
   "trash": {
     "restore": "שחזור",

@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Nâng cấp để dùng thông tin đăng nhập riêng cho từng người",
     "upgradeToUsePerUserCredentialsSubtitle": "Gói {activePlan} của bạn chỉ dùng thông tin đăng nhập chung. Hãy nâng cấp lên {plan} để mỗi thành viên kết nối tài khoản của riêng mình.",
     "upgradeToUseCustomEnvironments": "Nâng cấp để tạo môi trường tùy chỉnh",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Môi trường tùy chỉnh không có trong gói {activePlan} của bạn. Hãy nâng cấp lên {plan} để tạo môi trường ngoài Production và Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Môi trường tùy chỉnh không có trong gói {activePlan} của bạn. Hãy nâng cấp lên {plan} để tạo môi trường ngoài Production và Staging.",
+    "upgradeToUseFormRequireSignin": "Nâng cấp để yêu cầu đăng nhập trên biểu mẫu",
+    "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4341,7 +4343,10 @@
       "allowShown": "Cho phép mục đang hiển thị",
       "clearShown": "Bỏ chọn mục đang hiển thị",
       "shownOf": "Hiển thị {shown} trên {total}"
-    }
+    },
+    "noBaseAccess": "Không có quyền truy cập cơ sở",
+    "signedInAs": "Đã đăng nhập với tài khoản",
+    "moreAgents": "Thêm {count} tác nhân | Thêm {count} tác nhân"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "Tìm ứng dụng, nhà phát hành hoặc việc bạn cần làm",
     "noAgents": "Không có tác nhân",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Tìm kỹ năng..."
+    "searchSkills": "Tìm kỹ năng...",
+    "messageAgent": "Nhắn tin cho {agent}",
+    "somethingElse": "Điều gì khác"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "Thêm người vào các nhóm mà ứng dụng này đã tạo cho bạn.",
       "tooNarrowToAdjustFrozenFields": "Bạn có {saved} trường được ghim, nhưng hiện chỉ {effective} trường hiện ra dạng ghim vì cửa sổ quá hẹp. Bạn có thể đặt lại số trường được ghim về 1. Bạn cũng có thể thay đổi con số này bằng cách mở rộng cửa sổ hoặc thu hẹp từng trường.",
       "publishWideningConsent": "Một bản phát hành vươn tới nơi mà ứng dụng này trước đây chưa từng chạm tới — một tích hợp mới, lần đầu dùng đến một mô hình AI — sẽ không tự cập nhật bản cài đặt. Người cài đặt được hỏi trước, và họ vẫn chạy phiên bản đang có cho tới khi chấp nhận.",
-      "publishRolloutStaged": "Các bản cài đặt được cập nhật theo từng đợt, bắt đầu từ một nhóm nhỏ, và quá trình triển khai tự dừng lại nếu các bản cập nhật bắt đầu thất bại."
+      "publishRolloutStaged": "Các bản cài đặt được cập nhật theo từng đợt, bắt đầu từ một nhóm nhỏ, và quá trình triển khai tự dừng lại nếu các bản cập nhật bắt đầu thất bại.",
+      "seeWhoSubmitted": "Xem ai đã gửi phản hồi",
+      "seeWhoSubmittedSubtitle": "Cần đăng nhập vào NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Thêm trường “Đã tạo bởi” vào bảng của bạn để bật tùy chọn này.",
+      "formRequiresSignin": "Để truy cập biểu mẫu này, bạn cần đăng nhập vào NocoDB.",
+      "switchAccount": "Chuyển tài khoản"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "Đã cập nhật {title} từ nguồn",
     "workspaceSkillsSubtitle": "Có sẵn trong mọi dự án ở đây, và cho các tác nhân chọn dùng.",
     "skillShadowed": "Một kỹ năng cùng tiêu đề ở cấp {scope} được ưu tiên hơn, nên kỹ năng này không được cung cấp.",
-    "skillsNoMatchBody": "Không có gì khớp với tìm kiếm đó. Hãy thử từ khác hoặc xóa bộ lọc."
+    "skillsNoMatchBody": "Không có gì khớp với tìm kiếm đó. Hãy thử từ khác hoặc xóa bộ lọc.",
+    "chatTooManyFiles": "Tối đa {count} tệp mỗi tin nhắn",
+    "chatTriggeredReadOnly": "Cuộc trò chuyện này được bắt đầu bởi một trình kích hoạt và không thể tiếp tục.",
+    "agentPaused": "Tác nhân này đang tạm dừng nên các trình kích hoạt sẽ không chạy."
   },
   "trash": {
     "restore": "Restore",

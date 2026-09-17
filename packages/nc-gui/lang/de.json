@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Upgraden, um Zugangsdaten je Benutzer zu nutzen",
     "upgradeToUsePerUserCredentialsSubtitle": "Ihr Tarif {activePlan} nutzt ausschließlich gemeinsame Zugangsdaten. Wechseln Sie zu {plan}, damit jedes Mitglied sein eigenes Konto verbinden kann.",
     "upgradeToUseCustomEnvironments": "Upgraden, um eigene Umgebungen zu erstellen",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Eigene Umgebungen sind in Ihrem Tarif {activePlan} nicht verfügbar. Wechseln Sie zu {plan}, um Umgebungen über Produktion und Staging hinaus zu erstellen."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Eigene Umgebungen sind in Ihrem Tarif {activePlan} nicht verfügbar. Wechseln Sie zu {plan}, um Umgebungen über Produktion und Staging hinaus zu erstellen.",
+    "upgradeToUseFormRequireSignin": "Upgraden, um bei Formularen eine Anmeldung zu verlangen",
+    "upgradeToUseFormRequireSigninSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um von Teilnehmenden eine Anmeldung vor dem Absenden eines Formulars zu verlangen."
   },
   "general": {
     "scrollToBottom": "Nach unten scrollen",
@@ -4343,7 +4345,10 @@
       "allowShown": "Angezeigte erlauben",
       "clearShown": "Angezeigte zurücksetzen",
       "shownOf": "{shown} von {total} angezeigt"
-    }
+    },
+    "noBaseAccess": "Kein Zugriff auf die Basis",
+    "signedInAs": "Angemeldet als",
+    "moreAgents": "{count} weiterer Agent | {count} weitere Agenten"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",
@@ -4996,7 +5001,9 @@
     "searchSkills": "Skills durchsuchen...",
     "searchTools": "Werkzeuge suchen",
     "skillNamePlaceholder": "Name des Skills",
-    "skillDescriptionPlaceholder": "Was macht dieser Skill, und wann sollte er eingesetzt werden?"
+    "skillDescriptionPlaceholder": "Was macht dieser Skill, und wann sollte er eingesetzt werden?",
+    "messageAgent": "Nachricht an {agent}",
+    "somethingElse": "Etwas anderes"
   },
   "msg": {
     "sourceViewNotShared": "Sync ist in dieser Ansicht deaktiviert",
@@ -5699,7 +5706,12 @@
       "mcpConnectionNeedsAccess": "Fügen Sie mindestens ein Projekt hinzu oder wählen Sie alle Ressourcen.",
       "mcpLegacyConnection": "Vor Einführung der Geltungsbereiche erstellt und trägt daher Ihren eigenen Zugriff auf dieses eine Projekt. Löschen Sie sie und erstellen Sie eine neue, um sie einzugrenzen.",
       "interfaceRecordFormNoFields": "Dieses Formular hat noch keine Felder und kann daher keine Einträge erstellen",
-      "summaryNeedsOnePlace": "Eine Zusammenfassung muss an mindestens einer Stelle angezeigt werden"
+      "summaryNeedsOnePlace": "Eine Zusammenfassung muss an mindestens einer Stelle angezeigt werden",
+      "seeWhoSubmitted": "Sehen, wer eine Antwort gesendet hat",
+      "seeWhoSubmittedSubtitle": "Anmeldung bei NocoDB erforderlich.",
+      "seeWhoSubmittedDisabledHint": "Fügen Sie Ihrer Tabelle ein Feld „Erstellt von“ hinzu, um diese Option zu aktivieren.",
+      "formRequiresSignin": "Für den Zugriff auf dieses Formular ist eine Anmeldung bei NocoDB erforderlich.",
+      "switchAccount": "Konto wechseln"
     },
     "error": {
       "failedToCreateSync": "Fehler beim Erstellen der Synchronisation",
@@ -6193,7 +6205,10 @@
     "skillsCatalogErrorTitle": "Dieses Repository konnte nicht geladen werden",
     "skillsCommunityTitle": "Aus jedem öffentlichen Repository installieren",
     "skillsCommunityBlocked": "Ihr Arbeitsbereich erlaubt das Installieren von Community-Skills nicht.",
-    "skillsCommunityBlockedOrg": "Ihre Organisation erlaubt das Installieren von Community-Skills nicht."
+    "skillsCommunityBlockedOrg": "Ihre Organisation erlaubt das Installieren von Community-Skills nicht.",
+    "chatTooManyFiles": "Höchstens {count} Dateien pro Nachricht",
+    "chatTriggeredReadOnly": "Diese Unterhaltung wurde durch einen Auslöser gestartet und kann nicht fortgesetzt werden.",
+    "agentPaused": "Dieser Agent ist pausiert, daher werden Auslöser nicht ausgeführt."
   },
   "trash": {
     "restore": "Wiederherstellen",

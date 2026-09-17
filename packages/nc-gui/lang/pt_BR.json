@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Faça upgrade para usar credenciais por usuário",
     "upgradeToUsePerUserCredentialsSubtitle": "Seu plano {activePlan} usa apenas credenciais compartilhadas. Mude para {plan} para que cada membro conecte a própria conta.",
     "upgradeToUseCustomEnvironments": "Faça upgrade para criar ambientes personalizados",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Ambientes personalizados não estão disponíveis no seu plano {activePlan}. Mude para {plan} para criar ambientes além de Produção e Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Ambientes personalizados não estão disponíveis no seu plano {activePlan}. Mude para {plan} para criar ambientes além de Produção e Staging.",
+    "upgradeToUseFormRequireSignin": "Faça upgrade para exigir login nos formulários",
+    "upgradeToUseFormRequireSigninSubtitle": "Faça upgrade para o plano {plan} para exigir que os respondentes entrem antes de enviar um formulário."
   },
   "general": {
     "scrollToBottom": "Rolar para o final",
@@ -4337,7 +4339,10 @@
       "allowShown": "Permitir as exibidas",
       "clearShown": "Limpar as exibidas",
       "shownOf": "{shown} de {total} exibidas"
-    }
+    },
+    "noBaseAccess": "Sem acesso à base",
+    "signedInAs": "Conectado como",
+    "moreAgents": "Mais {count} agente | Mais {count} agentes"
   },
   "activity": {
     "useTemplate": "Usar modelo",
@@ -4990,7 +4995,9 @@
     "marketplaceSearch": "Pesquise apps, publicadores ou o que você precisa resolver",
     "noAgents": "Nenhum agente",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Pesquisar habilidades..."
+    "searchSkills": "Pesquisar habilidades...",
+    "messageAgent": "Mensagem para {agent}",
+    "somethingElse": "Outra coisa"
   },
   "msg": {
     "sourceViewNotShared": "A sincronização está desativada nesta visualização",
@@ -5693,7 +5700,12 @@
       "setupTeamsExplainer": "Adicione pessoas às equipes que este aplicativo criou para você.",
       "tooNarrowToAdjustFrozenFields": "Você tem {saved} colunas congeladas, mas no momento apenas {effective} aparecem congeladas porque sua janela está estreita demais. Você pode redefinir o número de colunas congeladas para 1. Também pode mudar esse número aumentando a janela ou estreitando algumas colunas.",
       "publishWideningConsent": "Uma versão que alcança algo que este aplicativo não alcançava antes — uma nova integração, um primeiro uso de um modelo de IA — não atualiza uma instalação por conta própria. Quem instalou é consultado primeiro e continua usando a versão que tem até aceitar.",
-      "publishRolloutStaged": "As instalações são atualizadas em etapas, começando por um grupo pequeno, e a distribuição para sozinha se as atualizações começarem a falhar."
+      "publishRolloutStaged": "As instalações são atualizadas em etapas, começando por um grupo pequeno, e a distribuição para sozinha se as atualizações começarem a falhar.",
+      "seeWhoSubmitted": "Veja quem enviou uma resposta",
+      "seeWhoSubmittedSubtitle": "É necessário entrar no NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Adicione um campo “Criado por” à sua tabela para habilitar esta opção.",
+      "formRequiresSignin": "O acesso a este formulário exige entrar no NocoDB.",
+      "switchAccount": "Trocar de conta"
     },
     "error": {
       "failedToCreateSync": "Falha ao criar sincronização",
@@ -6187,7 +6199,10 @@
     "skillUpdatedFromSource": "{title} atualizado a partir da origem",
     "workspaceSkillsSubtitle": "Disponíveis em todos os projetos daqui e para os agentes que optarem por elas.",
     "skillShadowed": "Uma habilidade com este título no nível {scope} tem prioridade, então esta não é oferecida.",
-    "skillsNoMatchBody": "Nada corresponde a essa busca. Tente outro termo ou limpe os filtros."
+    "skillsNoMatchBody": "Nada corresponde a essa busca. Tente outro termo ou limpe os filtros.",
+    "chatTooManyFiles": "No máximo {count} arquivos por mensagem",
+    "chatTriggeredReadOnly": "Esta conversa foi iniciada por um gatilho e não pode ser continuada.",
+    "agentPaused": "Este agente está pausado, portanto os gatilhos não serão disparados."
   },
   "trash": {
     "restore": "RESTAURAR",

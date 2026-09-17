@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Nadgradite za poverilnice po uporabniku",
     "upgradeToUsePerUserCredentialsSubtitle": "Vaš paket {activePlan} uporablja samo skupne poverilnice. Nadgradite na {plan}, da lahko vsak član poveže svoj račun.",
     "upgradeToUseCustomEnvironments": "Nadgradite za ustvarjanje lastnih okolij",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Lastna okolja na vašem paketu {activePlan} niso na voljo. Nadgradite na {plan} in ustvarite okolja poleg Productiona in Staginga."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Lastna okolja na vašem paketu {activePlan} niso na voljo. Nadgradite na {plan} in ustvarite okolja poleg Productiona in Staginga.",
+    "upgradeToUseFormRequireSignin": "Nadgradite, da boste lahko pri obrazcih zahtevali prijavo",
+    "upgradeToUseFormRequireSigninSubtitle": "Nadgradite na paket {plan}, da boste od anketirancev zahtevali prijavo pred oddajo obrazca."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4339,7 +4341,10 @@
       "allowShown": "Dovoli prikazana",
       "clearShown": "Počisti prikazana",
       "shownOf": "Prikazanih {shown} od {total}"
-    }
+    },
+    "noBaseAccess": "Ni dostopa do baze",
+    "signedInAs": "Prijavljen kot",
+    "moreAgents": "Še {count} agent | Še {count} agentov"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4992,7 +4997,9 @@
     "marketplaceSearch": "Iščite aplikacije, založnike ali to, kar morate opraviti",
     "noAgents": "Ni agentov",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Iskanje veščin..."
+    "searchSkills": "Iskanje veščin...",
+    "messageAgent": "Sporočilo za {agent}",
+    "somethingElse": "Nekaj drugega"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5695,7 +5702,12 @@
       "setupTeamsExplainer": "Dodajte ljudi v ekipe, ki jih je ta aplikacija ustvarila za vas.",
       "tooNarrowToAdjustFrozenFields": "Imate {saved} zamrznjenih polj, a jih je trenutno kot zamrznjenih videti le {effective}, ker je vaše okno preozko. Število zamrznjenih polj lahko ponastavite na 1. Lahko ga tudi spremenite tako, da povečate okno ali zožite posamezna polja.",
       "publishWideningConsent": "Izdaja, ki seže nekam, kamor ta aplikacija prej ni segla — nova integracija, prva uporaba modela UI —, ne posodobi namestitve sama od sebe. Najprej vpraša tistega, ki jo je namestil, ta pa teče naprej na različici, ki jo ima, dokler ne pristane.",
-      "publishRolloutStaged": "Namestitve se posodabljajo po stopnjah, najprej pri majhni skupini, izvajanje pa se samo ustavi, če posodobitve začnejo spodletavati."
+      "publishRolloutStaged": "Namestitve se posodabljajo po stopnjah, najprej pri majhni skupini, izvajanje pa se samo ustavi, če posodobitve začnejo spodletavati.",
+      "seeWhoSubmitted": "Poglejte, kdo je oddal odgovor",
+      "seeWhoSubmittedSubtitle": "Potrebna je prijava v NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Če želite omogočiti to možnost, tabeli dodajte polje »Ustvaril je«.",
+      "formRequiresSignin": "Za dostop do tega obrazca se je treba prijaviti v NocoDB.",
+      "switchAccount": "Zamenjaj račun"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6189,7 +6201,10 @@
     "skillUpdatedFromSource": "{title} posodobljeno iz vira",
     "workspaceSkillsSubtitle": "Na voljo v vsakem tukajšnjem projektu in agentom, ki jih vklopijo.",
     "skillShadowed": "Prednost ima spretnost z enakim naslovom na ravni {scope}, zato ta ni na voljo.",
-    "skillsNoMatchBody": "Nič se ne ujema s tem iskanjem. Poskusite z drugim izrazom ali počistite filtre."
+    "skillsNoMatchBody": "Nič se ne ujema s tem iskanjem. Poskusite z drugim izrazom ali počistite filtre.",
+    "chatTooManyFiles": "Največ {count} datotek na sporočilo",
+    "chatTriggeredReadOnly": "Ta pogovor je sprožil sprožilec in ga ni mogoče nadaljevati.",
+    "agentPaused": "Ta agent je zaustavljen, zato se sprožilci ne bodo izvedli."
   },
   "trash": {
     "restore": "Restore",

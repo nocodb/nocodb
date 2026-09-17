@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "アップグレードしてユーザーごとの認証情報を使用",
     "upgradeToUsePerUserCredentialsSubtitle": "{activePlan} プランでは共有の認証情報のみ使用できます。メンバーごとに自分のアカウントを接続できるようにするには {plan} にアップグレードしてください。",
     "upgradeToUseCustomEnvironments": "アップグレードしてカスタム環境を作成",
-    "upgradeToUseCustomEnvironmentsSubtitle": "カスタム環境は {activePlan} プランではご利用いただけません。Production と Staging 以外の環境を作成するには {plan} にアップグレードしてください。"
+    "upgradeToUseCustomEnvironmentsSubtitle": "カスタム環境は {activePlan} プランではご利用いただけません。Production と Staging 以外の環境を作成するには {plan} にアップグレードしてください。",
+    "upgradeToUseFormRequireSignin": "アップグレードしてフォームでログインを必須にする",
+    "upgradeToUseFormRequireSigninSubtitle": "{plan} プランにアップグレードすると、フォーム送信前に回答者のログインを必須にできます。"
   },
   "general": {
     "scrollToBottom": "一番下までスクロール",
@@ -4341,7 +4343,10 @@
       "allowShown": "表示中を許可",
       "clearShown": "表示中をクリア",
       "shownOf": "{total} 件中 {shown} 件を表示"
-    }
+    },
+    "noBaseAccess": "ベースへのアクセス権がありません",
+    "signedInAs": "ログイン中のアカウント",
+    "moreAgents": "他 {count} 件のエージェント | 他 {count} 件のエージェント"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "アプリ、公開者、やりたいことを検索",
     "noAgents": "エージェントなし",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "スキルを検索..."
+    "searchSkills": "スキルを検索...",
+    "messageAgent": "{agent} にメッセージを送信",
+    "somethingElse": "その他"
   },
   "msg": {
     "sourceViewNotShared": "このビューでは同期は無効です",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "このアプリがあなたのために作成したチームにメンバーを追加してください。",
       "tooNarrowToAdjustFrozenFields": "固定フィールドは {saved} 件ありますが、ウィンドウが狭すぎるため現在は {effective} 件だけが固定表示されています。固定フィールド数を 1 にリセットできます。ウィンドウを広げるか、個々のフィールドを狭くして数を変更することもできます。",
       "publishWideningConsent": "このアプリがこれまで届かなかった範囲に届くリリース（新しい連携、AI モデルの初回利用など）は、インストール済みの環境を自動では更新しません。まずインストールした人に確認し、その人が承認するまでは現在のバージョンのまま動き続けます。",
-      "publishRolloutStaged": "インストール済みの環境は少人数のグループから段階的に更新され、更新が失敗し始めると展開は自動的に停止します。"
+      "publishRolloutStaged": "インストール済みの環境は少人数のグループから段階的に更新され、更新が失敗し始めると展開は自動的に停止します。",
+      "seeWhoSubmitted": "回答を送信したユーザーを表示する",
+      "seeWhoSubmittedSubtitle": "NocoDB へのログインが必要です。",
+      "seeWhoSubmittedDisabledHint": "このオプションを有効にするには、テーブルに「作成者」フィールドを追加してください。",
+      "formRequiresSignin": "このフォームにアクセスするには NocoDB へのログインが必要です。",
+      "switchAccount": "アカウントを切り替える"
     },
     "error": {
       "failedToCreateSync": "同期を作成できませんでした",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} をソースから更新しました",
     "workspaceSkillsSubtitle": "ここのすべてのプロジェクトと、利用を選んだエージェントで使えます。",
     "skillShadowed": "同じ名前のスキルが {scope} レベルで優先されるため、こちらは表示されません。",
-    "skillsNoMatchBody": "その検索に一致するものはありません。別の語で試すか、フィルターをクリアしてください。"
+    "skillsNoMatchBody": "その検索に一致するものはありません。別の語で試すか、フィルターをクリアしてください。",
+    "chatTooManyFiles": "1 件のメッセージにつき最大 {count} ファイルです",
+    "chatTriggeredReadOnly": "この会話はトリガーによって開始されたため、続行できません。",
+    "agentPaused": "このエージェントは一時停止中のため、トリガーは実行されません。"
   },
   "trash": {
     "restore": "復元",

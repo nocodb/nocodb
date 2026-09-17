@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Kullanıcı başına kimlik bilgileri kullanmak için yükseltin",
     "upgradeToUsePerUserCredentialsSubtitle": "{activePlan} planınız yalnızca paylaşılan kimlik bilgilerini kullanır. Her üyenin kendi hesabını bağlayabilmesi için {plan} planına geçin.",
     "upgradeToUseCustomEnvironments": "Özel ortamlar oluşturmak için yükseltin",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Özel ortamlar {activePlan} planınızda bulunmuyor. Production ve Staging dışında ortamlar oluşturmak için {plan} planına geçin."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Özel ortamlar {activePlan} planınızda bulunmuyor. Production ve Staging dışında ortamlar oluşturmak için {plan} planına geçin.",
+    "upgradeToUseFormRequireSignin": "Formlarda oturum açmayı zorunlu kılmak için yükseltin",
+    "upgradeToUseFormRequireSigninSubtitle": "Yanıtlayanların bir formu göndermeden önce oturum açmasını zorunlu kılmak için {plan} planına yükseltin."
   },
   "general": {
     "scrollToBottom": "En alta kaydır",
@@ -4341,7 +4343,10 @@
       "allowShown": "Gösterilenlere izin ver",
       "clearShown": "Gösterilenleri temizle",
       "shownOf": "{total} içinden {shown} gösteriliyor"
-    }
+    },
+    "noBaseAccess": "Tabana erişim yok",
+    "signedInAs": "Şu hesapla oturum açıldı",
+    "moreAgents": "{count} ajan daha | {count} ajan daha"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "Uygulama, yayıncı ya da yapmak istediğiniz işi arayın",
     "noAgents": "Ajan yok",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Becerilerde ara..."
+    "searchSkills": "Becerilerde ara...",
+    "messageAgent": "{agent} ajanına mesaj",
+    "somethingElse": "Başka bir şey"
   },
   "msg": {
     "sourceViewNotShared": "Bu görünümde senkronizasyon devre dışı",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "Bu uygulamanın sizin için oluşturduğu takımlara kişi ekleyin.",
       "tooNarrowToAdjustFrozenFields": "{saved} dondurulmuş alanınız var ama pencereniz çok dar olduğu için şu anda yalnızca {effective} tanesi dondurulmuş görünüyor. Dondurulmuş alan sayısını 1'e sıfırlayabilirsiniz. Ayrıca pencerenizi büyüterek veya alanları tek tek daraltarak da bu sayıyı değiştirebilirsiniz.",
       "publishWideningConsent": "Bu uygulamanın daha önce erişemediği bir yere erişen bir sürüm — yeni bir entegrasyon, bir yapay zekâ modelinin ilk kullanımı — bir kurulumu kendiliğinden güncellemez. Önce kuran kişiye sorulur ve o kişi kabul edene kadar elindeki sürümü kullanmayı sürdürür.",
-      "publishRolloutStaged": "Kurulumlar küçük bir grupla başlayıp aşamalar hâlinde güncellenir ve güncellemeler başarısız olmaya başlarsa dağıtım kendiliğinden durur."
+      "publishRolloutStaged": "Kurulumlar küçük bir grupla başlayıp aşamalar hâlinde güncellenir ve güncellemeler başarısız olmaya başlarsa dağıtım kendiliğinden durur.",
+      "seeWhoSubmitted": "Yanıtı kimin gönderdiğini görün",
+      "seeWhoSubmittedSubtitle": "NocoDB'de oturum açmanız gerekir.",
+      "seeWhoSubmittedDisabledHint": "Bu seçeneği etkinleştirmek için tablonuza bir “Oluşturan” alanı ekleyin.",
+      "formRequiresSignin": "Bu forma erişmek için NocoDB'de oturum açmanız gerekir.",
+      "switchAccount": "Hesap değiştir"
     },
     "error": {
       "failedToCreateSync": "Senkronizasyon oluşturulamadı",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} kaynaktan güncellendi",
     "workspaceSkillsSubtitle": "Buradaki her projede ve bunları etkinleştiren ajanlarda kullanılabilir.",
     "skillShadowed": "{scope} düzeyinde bu başlığa sahip bir beceri öncelikli olduğu için bu sunulmuyor.",
-    "skillsNoMatchBody": "Bu aramayla eşleşen bir şey yok. Farklı bir terim deneyin ya da filtreleri temizleyin."
+    "skillsNoMatchBody": "Bu aramayla eşleşen bir şey yok. Farklı bir terim deneyin ya da filtreleri temizleyin.",
+    "chatTooManyFiles": "Mesaj başına en fazla {count} dosya",
+    "chatTriggeredReadOnly": "Bu konuşma bir tetikleyici tarafından başlatıldı ve devam ettirilemez.",
+    "agentPaused": "Bu ajan duraklatıldı, bu nedenle tetikleyiciler çalışmayacak."
   },
   "trash": {
     "restore": "Geri Yükle",

@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "प्रति-उपयोगकर्ता क्रेडेंशियल उपयोग करने के लिए अपग्रेड करें",
     "upgradeToUsePerUserCredentialsSubtitle": "आपकी {activePlan} योजना केवल साझा क्रेडेंशियल का उपयोग करती है। हर सदस्य अपना खाता जोड़ सके, इसके लिए {plan} पर जाएँ।",
     "upgradeToUseCustomEnvironments": "कस्टम परिवेश बनाने के लिए अपग्रेड करें",
-    "upgradeToUseCustomEnvironmentsSubtitle": "आपकी {activePlan} योजना में कस्टम परिवेश उपलब्ध नहीं हैं। Production और Staging के अलावा परिवेश बनाने के लिए {plan} पर जाएँ।"
+    "upgradeToUseCustomEnvironmentsSubtitle": "आपकी {activePlan} योजना में कस्टम परिवेश उपलब्ध नहीं हैं। Production और Staging के अलावा परिवेश बनाने के लिए {plan} पर जाएँ।",
+    "upgradeToUseFormRequireSignin": "फ़ॉर्म पर साइन-इन अनिवार्य करने के लिए अपग्रेड करें",
+    "upgradeToUseFormRequireSigninSubtitle": "फ़ॉर्म सबमिट करने से पहले उत्तरदाताओं के लिए साइन इन अनिवार्य करने हेतु {plan} योजना में अपग्रेड करें।"
   },
   "general": {
     "scrollToBottom": "नीचे स्क्रॉल करें",
@@ -4341,7 +4343,10 @@
       "allowShown": "दिखाए गए को अनुमति दें",
       "clearShown": "दिखाए गए हटाएँ",
       "shownOf": "{total} में से {shown} दिखाए गए"
-    }
+    },
+    "noBaseAccess": "बेस तक कोई पहुँच नहीं",
+    "signedInAs": "इस रूप में साइन इन किया गया",
+    "moreAgents": "{count} और एजेंट | {count} और एजेंट"
   },
   "activity": {
     "useTemplate": "टेम्पलेट का उपयोग करें",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "ऐप, प्रकाशक या जो काम करवाना है उसे खोजें",
     "noAgents": "कोई एजेंट नहीं",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "कौशल खोजें..."
+    "searchSkills": "कौशल खोजें...",
+    "messageAgent": "{agent} को संदेश भेजें",
+    "somethingElse": "कुछ और"
   },
   "msg": {
     "sourceViewNotShared": "इस दृश्य पर सिंक अक्षम है।",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "इस ऐप ने आपके लिए जो टीमें बनाई हैं, उनमें लोगों को जोड़ें।",
       "tooNarrowToAdjustFrozenFields": "आपके पास {saved} जमे हुए फ़ील्ड हैं, पर आपकी विंडो बहुत संकरी होने के कारण अभी केवल {effective} ही जमे हुए दिख रहे हैं। आप जमे हुए फ़ील्ड की संख्या 1 पर रीसेट कर सकते हैं। विंडो बड़ी करके या अलग-अलग फ़ील्ड संकरे करके भी यह संख्या बदली जा सकती है।",
       "publishWideningConsent": "ऐसा कोई रिलीज़ जो वहाँ पहुँचे जहाँ यह ऐप पहले नहीं पहुँच सकता था — कोई नया एकीकरण, किसी AI मॉडल का पहला उपयोग — किसी इंस्टॉलेशन को अपने आप अपडेट नहीं करता। पहले उससे पूछा जाता है जिसने इसे इंस्टॉल किया, और वह सहमति देने तक अपने मौजूदा संस्करण पर ही चलता रहता है।",
-      "publishRolloutStaged": "इंस्टॉलेशन चरणों में अपडेट होते हैं, पहले एक छोटे समूह से, और अगर अपडेट विफल होने लगें तो रोलआउट अपने आप रुक जाता है।"
+      "publishRolloutStaged": "इंस्टॉलेशन चरणों में अपडेट होते हैं, पहले एक छोटे समूह से, और अगर अपडेट विफल होने लगें तो रोलआउट अपने आप रुक जाता है।",
+      "seeWhoSubmitted": "देखें कि किसने प्रतिक्रिया भेजी",
+      "seeWhoSubmittedSubtitle": "NocoDB में साइन इन करना आवश्यक है।",
+      "seeWhoSubmittedDisabledHint": "इस विकल्प को सक्षम करने के लिए अपनी तालिका में ‘द्वारा बनाया गया’ फ़ील्ड जोड़ें।",
+      "formRequiresSignin": "इस फ़ॉर्म तक पहुँचने के लिए NocoDB में साइन इन करना आवश्यक है।",
+      "switchAccount": "खाता बदलें"
     },
     "error": {
       "failedToCreateSync": "सिंक बनाने में विफल",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} स्रोत से अपडेट किया गया",
     "workspaceSkillsSubtitle": "यहाँ की हर परियोजना में और उन एजेंटों के लिए उपलब्ध जो इन्हें चुनते हैं।",
     "skillShadowed": "{scope} स्तर पर इसी शीर्षक वाले कौशल को प्राथमिकता मिलती है, इसलिए यह वाला नहीं दिया जा रहा।",
-    "skillsNoMatchBody": "उस खोज से कुछ मेल नहीं खाता। कोई दूसरा शब्द आज़माएँ या फ़िल्टर हटा दें।"
+    "skillsNoMatchBody": "उस खोज से कुछ मेल नहीं खाता। कोई दूसरा शब्द आज़माएँ या फ़िल्टर हटा दें।",
+    "chatTooManyFiles": "प्रति संदेश अधिकतम {count} फ़ाइलें",
+    "chatTriggeredReadOnly": "यह बातचीत एक ट्रिगर द्वारा शुरू की गई थी और इसे जारी नहीं रखा जा सकता।",
+    "agentPaused": "यह एजेंट ठहरा हुआ है, इसलिए ट्रिगर सक्रिय नहीं होंगे।"
   },
   "trash": {
     "restore": "पुनर्स्थापित करें",

@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Faça upgrade para usar credenciais por utilizador",
     "upgradeToUsePerUserCredentialsSubtitle": "O seu plano {activePlan} usa apenas credenciais partilhadas. Mude para {plan} para que cada membro ligue a sua própria conta.",
     "upgradeToUseCustomEnvironments": "Faça upgrade para criar ambientes personalizados",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Os ambientes personalizados não estão disponíveis no seu plano {activePlan}. Mude para {plan} para criar ambientes para além de Produção e Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Os ambientes personalizados não estão disponíveis no seu plano {activePlan}. Mude para {plan} para criar ambientes para além de Produção e Staging.",
+    "upgradeToUseFormRequireSignin": "Faça upgrade para exigir início de sessão nos formulários",
+    "upgradeToUseFormRequireSigninSubtitle": "Faça upgrade para o plano {plan} para exigir que os inquiridos iniciem sessão antes de submeter um formulário."
   },
   "general": {
     "scrollToBottom": "Rolar para o final",
@@ -4337,7 +4339,10 @@
       "allowShown": "Permitir as apresentadas",
       "clearShown": "Limpar as apresentadas",
       "shownOf": "{shown} de {total} apresentadas"
-    }
+    },
+    "noBaseAccess": "Sem acesso à base",
+    "signedInAs": "Sessão iniciada como",
+    "moreAgents": "Mais {count} agente | Mais {count} agentes"
   },
   "activity": {
     "useTemplate": "Usar modelo",
@@ -4990,7 +4995,9 @@
     "marketplaceSearch": "Procure aplicações, editores ou aquilo que precisa de fazer",
     "noAgents": "Sem agentes",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Procurar competências..."
+    "searchSkills": "Procurar competências...",
+    "messageAgent": "Mensagem para {agent}",
+    "somethingElse": "Outra coisa"
   },
   "msg": {
     "sourceViewNotShared": "A sincronização está desativada nesta visualização",
@@ -5693,7 +5700,12 @@
       "setupTeamsExplainer": "Adicione pessoas às equipas que esta aplicação criou para si.",
       "tooNarrowToAdjustFrozenFields": "Tem {saved} campos fixados, mas neste momento só {effective} aparecem fixados porque a sua janela é demasiado estreita. Pode repor o número de campos fixados para 1. Também pode alterar esse número aumentando a janela ou estreitando alguns campos.",
       "publishWideningConsent": "Uma versão que chega a algum lado onde esta aplicação não chegava antes — uma nova integração, um primeiro recurso a um modelo de IA — não atualiza uma instalação por si só. Pergunta-se primeiro a quem a instalou, que continua a usar a versão que tem até aceitar.",
-      "publishRolloutStaged": "As instalações são atualizadas por fases, começando por um grupo pequeno, e a distribuição para sozinha se as atualizações começarem a falhar."
+      "publishRolloutStaged": "As instalações são atualizadas por fases, começando por um grupo pequeno, e a distribuição para sozinha se as atualizações começarem a falhar.",
+      "seeWhoSubmitted": "Ver quem submeteu uma resposta",
+      "seeWhoSubmittedSubtitle": "É necessário iniciar sessão no NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Adicione um campo «Criado por» à sua tabela para ativar esta opção.",
+      "formRequiresSignin": "O acesso a este formulário exige iniciar sessão no NocoDB.",
+      "switchAccount": "Mudar de conta"
     },
     "error": {
       "failedToCreateSync": "Falha ao criar sincronização",
@@ -6187,7 +6199,10 @@
     "skillUpdatedFromSource": "{title} atualizado a partir da origem",
     "workspaceSkillsSubtitle": "Disponíveis em todos os projetos daqui e para os agentes que as ativem.",
     "skillShadowed": "Uma competência com este título ao nível de {scope} tem prioridade, por isso esta não é oferecida.",
-    "skillsNoMatchBody": "Nada corresponde a essa pesquisa. Experimente outro termo ou limpe os filtros."
+    "skillsNoMatchBody": "Nada corresponde a essa pesquisa. Experimente outro termo ou limpe os filtros.",
+    "chatTooManyFiles": "No máximo {count} ficheiros por mensagem",
+    "chatTriggeredReadOnly": "Esta conversa foi iniciada por um acionador e não pode ser continuada.",
+    "agentPaused": "Este agente está em pausa, por isso os acionadores não serão executados."
   },
   "trash": {
     "restore": "RESTAURAR",

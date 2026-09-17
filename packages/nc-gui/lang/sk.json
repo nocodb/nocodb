@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Prejdite na vyšší plán a používajte prihlasovacie údaje pre každého používateľa",
     "upgradeToUsePerUserCredentialsSubtitle": "Váš plán {activePlan} používa len zdieľané prihlasovacie údaje. Prejdite na {plan}, aby si každý člen mohol pripojiť vlastný účet.",
     "upgradeToUseCustomEnvironments": "Prejdite na vyšší plán a vytvárajte vlastné prostredia",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Vlastné prostredia nie sú vo vašom pláne {activePlan} k dispozícii. Prejdite na {plan} a vytvárajte prostredia nad rámec Production a Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Vlastné prostredia nie sú vo vašom pláne {activePlan} k dispozícii. Prejdite na {plan} a vytvárajte prostredia nad rámec Production a Staging.",
+    "upgradeToUseFormRequireSignin": "Inovujte, aby ste mohli vo formulároch vyžadovať prihlásenie",
+    "upgradeToUseFormRequireSigninSubtitle": "Inovujte na plán {plan}, aby ste od respondentov vyžadovali prihlásenie pred odoslaním formulára."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4340,7 +4342,10 @@
       "allowShown": "Povoliť zobrazené",
       "clearShown": "Zrušiť zobrazené",
       "shownOf": "Zobrazené {shown} z {total}"
-    }
+    },
+    "noBaseAccess": "Žiadny prístup k databáze",
+    "signedInAs": "Prihlásený ako",
+    "moreAgents": "Ešte {count} agent | Ešte {count} agentov"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4993,7 +4998,9 @@
     "marketplaceSearch": "Hľadajte aplikácie, vydavateľov alebo to, čo potrebujete vyriešiť",
     "noAgents": "Žiadni agenti",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Hľadať zručnosti..."
+    "searchSkills": "Hľadať zručnosti...",
+    "messageAgent": "Správa pre {agent}",
+    "somethingElse": "Niečo iné"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5696,7 +5703,12 @@
       "setupTeamsExplainer": "Pridajte ľudí do tímov, ktoré pre vás táto aplikácia vytvorila.",
       "tooNarrowToAdjustFrozenFields": "Máte {saved} ukotvených polí, ale práve teraz sa ako ukotvené zobrazujú len {effective}, pretože je vaše okno príliš úzke. Počet ukotvených polí môžete vrátiť na 1. Môžete ho tiež zmeniť zväčšením okna alebo zúžením jednotlivých polí.",
       "publishWideningConsent": "Vydanie, ktoré dosiahne niekam, kam táto aplikácia doteraz nedosiahla — nová integrácia, prvé použitie modelu AI —, neaktualizuje inštaláciu samo od seba. Najprv sa opýta toho, kto ju nainštaloval, a ten beží ďalej na verzii, ktorú má, kým nesúhlasí.",
-      "publishRolloutStaged": "Inštalácie sa aktualizujú po etapách, najprv u malej skupiny, a zavádzanie sa samo zastaví, ak aktualizácie začnú zlyhávať."
+      "publishRolloutStaged": "Inštalácie sa aktualizujú po etapách, najprv u malej skupiny, a zavádzanie sa samo zastaví, ak aktualizácie začnú zlyhávať.",
+      "seeWhoSubmitted": "Zobraziť, kto odoslal odpoveď",
+      "seeWhoSubmittedSubtitle": "Vyžaduje sa prihlásenie do NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Ak chcete túto možnosť povoliť, pridajte do tabuľky pole „Vytvoril“.",
+      "formRequiresSignin": "Prístup k tomuto formuláru vyžaduje prihlásenie do NocoDB.",
+      "switchAccount": "Prepnúť účet"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6190,7 +6202,10 @@
     "skillUpdatedFromSource": "{title} aktualizované zo zdroja",
     "workspaceSkillsSubtitle": "K dispozícii v každom tunajšom projekte a pre agentov, ktorí si ich zapnú.",
     "skillShadowed": "Prednosť má zručnosť s rovnakým názvom na úrovni {scope}, preto sa táto neponúka.",
-    "skillsNoMatchBody": "Tomuto hľadaniu nič nezodpovedá. Skúste iný výraz alebo zrušte filtre."
+    "skillsNoMatchBody": "Tomuto hľadaniu nič nezodpovedá. Skúste iný výraz alebo zrušte filtre.",
+    "chatTooManyFiles": "Najviac {count} súborov na správu",
+    "chatTriggeredReadOnly": "Túto konverzáciu spustil spúšťač a nedá sa v nej pokračovať.",
+    "agentPaused": "Tento agent je pozastavený, takže spúšťače sa nespustia."
   },
   "trash": {
     "restore": "Restore",

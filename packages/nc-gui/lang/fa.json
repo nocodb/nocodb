@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "برای استفاده از گواهی‌های جداگانه هر کاربر ارتقا دهید",
     "upgradeToUsePerUserCredentialsSubtitle": "پلن {activePlan} شما تنها از گواهی‌های مشترک استفاده می‌کند. به {plan} ارتقا دهید تا هر عضو حساب خودش را وصل کند.",
     "upgradeToUseCustomEnvironments": "برای ساخت محیط‌های سفارشی ارتقا دهید",
-    "upgradeToUseCustomEnvironmentsSubtitle": "محیط‌های سفارشی در پلن {activePlan} شما در دسترس نیست. به {plan} ارتقا دهید تا افزون بر Production و Staging محیط بسازید."
+    "upgradeToUseCustomEnvironmentsSubtitle": "محیط‌های سفارشی در پلن {activePlan} شما در دسترس نیست. به {plan} ارتقا دهید تا افزون بر Production و Staging محیط بسازید.",
+    "upgradeToUseFormRequireSignin": "برای الزامی کردن ورود در فرم‌ها ارتقا دهید",
+    "upgradeToUseFormRequireSigninSubtitle": "برای الزامی کردن ورود پاسخ‌دهندگان پیش از ارسال فرم، به پلن {plan} ارتقا دهید."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4341,7 +4343,10 @@
       "allowShown": "اجازه به موارد نمایش‌داده‌شده",
       "clearShown": "پاک‌کردن موارد نمایش‌داده‌شده",
       "shownOf": "{shown} از {total} نمایش داده شد"
-    }
+    },
+    "noBaseAccess": "دسترسی به پایگاه وجود ندارد",
+    "signedInAs": "وارد شده با حساب",
+    "moreAgents": "{count} عامل دیگر | {count} عامل دیگر"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "برنامه‌ها، ناشران یا کاری که می‌خواهید انجام شود را جست‌وجو کنید",
     "noAgents": "عاملی نیست",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "جست‌وجوی مهارت‌ها..."
+    "searchSkills": "جست‌وجوی مهارت‌ها...",
+    "messageAgent": "پیام به {agent}",
+    "somethingElse": "چیز دیگری"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "افراد را به تیم‌هایی که این برنامه برایتان ساخته است اضافه کنید.",
       "tooNarrowToAdjustFrozenFields": "شما {saved} فیلد ثابت دارید، اما اکنون تنها {effective} فیلد ثابت دیده می‌شود چون پنجره‌تان بیش از حد باریک است. می‌توانید شمار فیلدهای ثابت را به ۱ بازنشانی کنید. همچنین می‌توانید با بزرگ‌کردن پنجره یا باریک‌ترکردن فیلدها این شمار را تغییر دهید.",
       "publishWideningConsent": "نسخه‌ای که به جایی می‌رسد که این برنامه پیش‌تر به آن نمی‌رسید — یکپارچه‌سازی تازه یا نخستین استفاده از یک مدل هوش مصنوعی — به‌خودی‌خود نصبی را به‌روز نمی‌کند. نخست از کسی که آن را نصب کرده پرسیده می‌شود و او تا زمان پذیرش، همان نسخهٔ موجود را اجرا می‌کند.",
-      "publishRolloutStaged": "نصب‌ها مرحله‌به‌مرحله و از یک گروه کوچک آغاز می‌شوند و اگر به‌روزرسانی‌ها شکست بخورند، انتشار خودبه‌خود متوقف می‌شود."
+      "publishRolloutStaged": "نصب‌ها مرحله‌به‌مرحله و از یک گروه کوچک آغاز می‌شوند و اگر به‌روزرسانی‌ها شکست بخورند، انتشار خودبه‌خود متوقف می‌شود.",
+      "seeWhoSubmitted": "ببینید چه کسی پاسخ ارسال کرده است",
+      "seeWhoSubmittedSubtitle": "ورود به NocoDB لازم است.",
+      "seeWhoSubmittedDisabledHint": "برای فعال‌سازی این گزینه، یک فیلد «ایجاد شده توسط» به جدول خود اضافه کنید.",
+      "formRequiresSignin": "دسترسی به این فرم نیازمند ورود به NocoDB است.",
+      "switchAccount": "تغییر حساب"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} از منبع به‌روزرسانی شد",
     "workspaceSkillsSubtitle": "در هر پروژهٔ اینجا در دسترس است، و برای عامل‌هایی که آن را فعال می‌کنند.",
     "skillShadowed": "مهارتی با همین عنوان در سطح {scope} اولویت دارد، بنابراین این یکی ارائه نمی‌شود.",
-    "skillsNoMatchBody": "چیزی با این جست‌وجو همخوانی ندارد. واژهٔ دیگری را امتحان کنید یا فیلترها را پاک کنید."
+    "skillsNoMatchBody": "چیزی با این جست‌وجو همخوانی ندارد. واژهٔ دیگری را امتحان کنید یا فیلترها را پاک کنید.",
+    "chatTooManyFiles": "حداکثر {count} فایل در هر پیام",
+    "chatTriggeredReadOnly": "این گفت‌وگو توسط یک راه‌انداز آغاز شده و قابل ادامه نیست.",
+    "agentPaused": "این عامل متوقف شده است، بنابراین راه‌اندازها اجرا نخواهند شد."
   },
   "trash": {
     "restore": "Restore",

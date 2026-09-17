@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Passa a un piano superiore per usare credenziali per singolo utente",
     "upgradeToUsePerUserCredentialsSubtitle": "Il tuo piano {activePlan} usa solo credenziali condivise. Passa a {plan} per consentire a ogni membro di collegare il proprio account.",
     "upgradeToUseCustomEnvironments": "Passa a un piano superiore per creare ambienti personalizzati",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Gli ambienti personalizzati non sono disponibili nel tuo piano {activePlan}. Passa a {plan} per creare ambienti oltre a Produzione e Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Gli ambienti personalizzati non sono disponibili nel tuo piano {activePlan}. Passa a {plan} per creare ambienti oltre a Produzione e Staging.",
+    "upgradeToUseFormRequireSignin": "Esegui l’upgrade per richiedere l’accesso nei moduli",
+    "upgradeToUseFormRequireSigninSubtitle": "Passa al piano {plan} per richiedere ai partecipanti di accedere prima di inviare un modulo."
   },
   "general": {
     "scrollToBottom": "Scorri verso il basso",
@@ -4337,7 +4339,10 @@
       "allowShown": "Consenti quelli mostrati",
       "clearShown": "Azzera quelli mostrati",
       "shownOf": "{shown} di {total} mostrati"
-    }
+    },
+    "noBaseAccess": "Nessun accesso alla base",
+    "signedInAs": "Connesso come",
+    "moreAgents": "{count} altro agente | {count} altri agenti"
   },
   "activity": {
     "useTemplate": "Usa modello",
@@ -4990,7 +4995,9 @@
     "marketplaceSearch": "Cerca app, editori o ciò che ti serve fare",
     "noAgents": "Nessun agente",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Cerca competenze..."
+    "searchSkills": "Cerca competenze...",
+    "messageAgent": "Messaggio per {agent}",
+    "somethingElse": "Qualcos’altro"
   },
   "msg": {
     "sourceViewNotShared": "La sincronizzazione è disabilitata su questa vista",
@@ -5693,7 +5700,12 @@
       "setupTeamsExplainer": "Aggiungi persone ai team che questa app ha creato per te.",
       "tooNarrowToAdjustFrozenFields": "Hai {saved} campi bloccati, ma al momento ne appaiono bloccati solo {effective} perché la finestra è troppo stretta. Puoi riportare a 1 il numero di campi bloccati. Puoi anche cambiarlo allargando la finestra o restringendo singoli campi.",
       "publishWideningConsent": "Una release che arriva dove questa app prima non arrivava — una nuova integrazione, un primo utilizzo di un modello di IA — non aggiorna un'installazione da sola. Prima viene chiesto a chi l'ha installata, che continua a usare la versione che ha finché non accetta.",
-      "publishRolloutStaged": "Le installazioni vengono aggiornate per fasi, partendo da un gruppo ristretto, e la distribuzione si ferma da sola se gli aggiornamenti iniziano a fallire."
+      "publishRolloutStaged": "Le installazioni vengono aggiornate per fasi, partendo da un gruppo ristretto, e la distribuzione si ferma da sola se gli aggiornamenti iniziano a fallire.",
+      "seeWhoSubmitted": "Vedi chi ha inviato una risposta",
+      "seeWhoSubmittedSubtitle": "È necessario accedere a NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Aggiungi un campo «Creato da» alla tua tabella per abilitare questa opzione.",
+      "formRequiresSignin": "Per aprire questo modulo è necessario accedere a NocoDB.",
+      "switchAccount": "Cambia account"
     },
     "error": {
       "failedToCreateSync": "Impossibile creare la sincronizzazione",
@@ -6187,7 +6199,10 @@
     "skillUpdatedFromSource": "{title} aggiornato dalla sorgente",
     "workspaceSkillsSubtitle": "Disponibili in ogni progetto qui e per gli agenti che le attivano.",
     "skillShadowed": "Una competenza con questo titolo a livello {scope} ha la precedenza, quindi questa non viene proposta.",
-    "skillsNoMatchBody": "Nessun risultato per questa ricerca. Prova un altro termine o azzera i filtri."
+    "skillsNoMatchBody": "Nessun risultato per questa ricerca. Prova un altro termine o azzera i filtri.",
+    "chatTooManyFiles": "Al massimo {count} file per messaggio",
+    "chatTriggeredReadOnly": "Questa conversazione è stata avviata da un trigger e non può essere proseguita.",
+    "agentPaused": "Questo agente è in pausa, quindi i trigger non verranno eseguiti."
   },
   "trash": {
     "restore": "Ripristina",

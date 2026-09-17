@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Przejdź na wyższy plan, aby korzystać z poświadczeń dla każdego użytkownika",
     "upgradeToUsePerUserCredentialsSubtitle": "Twój plan {activePlan} korzysta wyłącznie ze wspólnych poświadczeń. Przejdź na {plan}, aby każdy członek mógł podłączyć własne konto.",
     "upgradeToUseCustomEnvironments": "Przejdź na wyższy plan, aby tworzyć własne środowiska",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Własne środowiska nie są dostępne w Twoim planie {activePlan}. Przejdź na {plan}, aby tworzyć środowiska poza Production i Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Własne środowiska nie są dostępne w Twoim planie {activePlan}. Przejdź na {plan}, aby tworzyć środowiska poza Production i Staging.",
+    "upgradeToUseFormRequireSignin": "Uaktualnij, aby wymagać logowania w formularzach",
+    "upgradeToUseFormRequireSigninSubtitle": "Uaktualnij do planu {plan}, aby wymagać od respondentów zalogowania się przed wysłaniem formularza."
   },
   "general": {
     "scrollToBottom": "Przewiń na dół",
@@ -4339,7 +4341,10 @@
       "allowShown": "Zezwól na wyświetlone",
       "clearShown": "Wyczyść wyświetlone",
       "shownOf": "Wyświetlono {shown} z {total}"
-    }
+    },
+    "noBaseAccess": "Brak dostępu do bazy",
+    "signedInAs": "Zalogowano jako",
+    "moreAgents": "Jeszcze {count} agent | Jeszcze {count} agentów"
   },
   "activity": {
     "useTemplate": "Użyj szablonu",
@@ -4992,7 +4997,9 @@
     "marketplaceSearch": "Szukaj aplikacji, wydawców lub tego, co chcesz załatwić",
     "noAgents": "Brak agentów",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Szukaj umiejętności..."
+    "searchSkills": "Szukaj umiejętności...",
+    "messageAgent": "Wiadomość do {agent}",
+    "somethingElse": "Coś innego"
   },
   "msg": {
     "sourceViewNotShared": "Synchronizacja jest wyłączona w tym widoku",
@@ -5695,7 +5702,12 @@
       "setupTeamsExplainer": "Dodaj osoby do zespołów, które ta aplikacja utworzyła dla ciebie.",
       "tooNarrowToAdjustFrozenFields": "Masz {saved} zamrożonych pól, ale w tej chwili jako zamrożone widać tylko {effective}, ponieważ okno jest zbyt wąskie. Możesz zresetować liczbę zamrożonych pól do 1. Możesz też zmienić tę liczbę, powiększając okno albo zwężając poszczególne pola.",
       "publishWideningConsent": "Wydanie, które sięga tam, gdzie ta aplikacja wcześniej nie sięgała — nowa integracja, pierwsze użycie modelu AI — nie aktualizuje instalacji samo z siebie. Najpierw pyta się osobę, która ją zainstalowała, a ta działa dalej na posiadanej wersji, dopóki nie wyrazi zgody.",
-      "publishRolloutStaged": "Instalacje są aktualizowane etapami, zaczynając od niewielkiej grupy, a wdrożenie zatrzymuje się samo, jeśli aktualizacje zaczną zawodzić."
+      "publishRolloutStaged": "Instalacje są aktualizowane etapami, zaczynając od niewielkiej grupy, a wdrożenie zatrzymuje się samo, jeśli aktualizacje zaczną zawodzić.",
+      "seeWhoSubmitted": "Zobacz, kto przesłał odpowiedź",
+      "seeWhoSubmittedSubtitle": "Wymagane zalogowanie do NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Dodaj pole „Stworzony przez” do tabeli, aby włączyć tę opcję.",
+      "formRequiresSignin": "Dostęp do tego formularza wymaga zalogowania się do NocoDB.",
+      "switchAccount": "Przełącz konto"
     },
     "error": {
       "failedToCreateSync": "Nie udało się utworzyć synchronizacji",
@@ -6189,7 +6201,10 @@
     "skillUpdatedFromSource": "{title} zaktualizowano ze źródła",
     "workspaceSkillsSubtitle": "Dostępne w każdym tutejszym projekcie oraz dla agentów, którzy je włączą.",
     "skillShadowed": "Pierwszeństwo ma umiejętność o tym tytule na poziomie {scope}, więc ta nie jest oferowana.",
-    "skillsNoMatchBody": "Nic nie pasuje do tego wyszukiwania. Spróbuj innego hasła albo wyczyść filtry."
+    "skillsNoMatchBody": "Nic nie pasuje do tego wyszukiwania. Spróbuj innego hasła albo wyczyść filtry.",
+    "chatTooManyFiles": "Maksymalnie {count} plików na wiadomość",
+    "chatTriggeredReadOnly": "Ta rozmowa została rozpoczęta przez wyzwalacz i nie można jej kontynuować.",
+    "agentPaused": "Ten agent jest wstrzymany, więc wyzwalacze nie zostaną uruchomione."
   },
   "trash": {
     "restore": "Przywróć",

@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Opgrader for at bruge legitimationsoplysninger pr. bruger",
     "upgradeToUsePerUserCredentialsSubtitle": "Din {activePlan}-plan bruger kun delte legitimationsoplysninger. Opgrader til {plan}, så hvert medlem kan forbinde sin egen konto.",
     "upgradeToUseCustomEnvironments": "Opgrader for at oprette brugerdefinerede miljøer",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Brugerdefinerede miljøer er ikke tilgængelige på din {activePlan}-plan. Opgrader til {plan} for at oprette miljøer ud over Production og Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Brugerdefinerede miljøer er ikke tilgængelige på din {activePlan}-plan. Opgrader til {plan} for at oprette miljøer ud over Production og Staging.",
+    "upgradeToUseFormRequireSignin": "Opgrader for at kræve login på formularer",
+    "upgradeToUseFormRequireSigninSubtitle": "Opgrader til {plan}-planen for at kræve, at respondenter logger ind, før de indsender en formular."
   },
   "general": {
     "scrollToBottom": "Rul til bunden",
@@ -4332,7 +4334,10 @@
       "allowShown": "Tillad de viste",
       "clearShown": "Ryd de viste",
       "shownOf": "{shown} af {total} vist"
-    }
+    },
+    "noBaseAccess": "Ingen adgang til base",
+    "signedInAs": "Logget ind som",
+    "moreAgents": "{count} agent mere | {count} agenter mere"
   },
   "activity": {
     "useTemplate": "Brug skabelon",
@@ -4985,7 +4990,9 @@
     "marketplaceSearch": "Søg efter apps, udgivere eller det, du skal have løst",
     "noAgents": "Ingen agenter",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Søg efter skills..."
+    "searchSkills": "Søg efter skills...",
+    "messageAgent": "Besked til {agent}",
+    "somethingElse": "Noget andet"
   },
   "msg": {
     "sourceViewNotShared": "Synkronisering er deaktiveret i denne visning",
@@ -5688,7 +5695,12 @@
       "setupTeamsExplainer": "Føj folk til de teams, denne app har oprettet til dig.",
       "tooNarrowToAdjustFrozenFields": "Du har {saved} fastfrosne felter, men kun {effective} vises som fastfrosne lige nu, fordi dit vindue er for smalt. Du kan nulstille antallet af fastfrosne felter til 1. Du kan også ændre antallet ved at gøre vinduet større eller ved at gøre enkelte felter smallere.",
       "publishWideningConsent": "En udgivelse, der når et sted, denne app ikke kunne nå før — en ny integration, en første brug af en AI-model — opdaterer ikke en installation af sig selv. Den, der har installeret den, bliver spurgt først og kører videre på den version, de har, indtil de accepterer.",
-      "publishRolloutStaged": "Installationer opdateres i etaper med en lille gruppe først, og udrulningen standser af sig selv, hvis opdateringerne begynder at fejle."
+      "publishRolloutStaged": "Installationer opdateres i etaper med en lille gruppe først, og udrulningen standser af sig selv, hvis opdateringerne begynder at fejle.",
+      "seeWhoSubmitted": "Se hvem der har indsendt et svar",
+      "seeWhoSubmittedSubtitle": "Kræver login på NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Tilføj et »Oprettet af«-felt til din tabel for at aktivere denne indstilling.",
+      "formRequiresSignin": "Adgang til denne formular kræver, at du logger ind på NocoDB.",
+      "switchAccount": "Skift konto"
     },
     "error": {
       "failedToCreateSync": "Kunne ikke oprette synkronisering",
@@ -6182,7 +6194,10 @@
     "skillUpdatedFromSource": "{title} opdateret fra kilden",
     "workspaceSkillsSubtitle": "Tilgængelige i alle projekter her og for agenter, der vælger dem til.",
     "skillShadowed": "En færdighed med denne titel på {scope}-niveau har forrang, så denne bliver ikke tilbudt.",
-    "skillsNoMatchBody": "Intet passer til den søgning. Prøv et andet ord, eller ryd filtrene."
+    "skillsNoMatchBody": "Intet passer til den søgning. Prøv et andet ord, eller ryd filtrene.",
+    "chatTooManyFiles": "Højst {count} filer pr. besked",
+    "chatTriggeredReadOnly": "Denne samtale blev startet af en udløser og kan ikke fortsættes.",
+    "agentPaused": "Denne agent er sat på pause, så udløsere aktiveres ikke."
   },
   "trash": {
     "restore": "Gendan",

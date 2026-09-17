@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Přejděte na vyšší tarif a používejte přihlašovací údaje pro každého uživatele",
     "upgradeToUsePerUserCredentialsSubtitle": "Váš tarif {activePlan} používá jen sdílené přihlašovací údaje. Přejděte na {plan}, aby si každý člen mohl připojit vlastní účet.",
     "upgradeToUseCustomEnvironments": "Přejděte na vyšší tarif a vytvářejte vlastní prostředí",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Vlastní prostředí nejsou ve vašem tarifu {activePlan} k dispozici. Přejděte na {plan} a vytvářejte prostředí nad rámec Production a Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Vlastní prostředí nejsou ve vašem tarifu {activePlan} k dispozici. Přejděte na {plan} a vytvářejte prostředí nad rámec Production a Staging.",
+    "upgradeToUseFormRequireSignin": "Upgradujte, abyste mohli u formulářů vyžadovat přihlášení",
+    "upgradeToUseFormRequireSigninSubtitle": "Upgradujte na tarif {plan}, abyste mohli od respondentů vyžadovat přihlášení před odesláním formuláře."
   },
   "general": {
     "scrollToBottom": "Přejít na konec",
@@ -4337,7 +4339,10 @@
       "allowShown": "Povolit zobrazené",
       "clearShown": "Zrušit zobrazené",
       "shownOf": "Zobrazeno {shown} z {total}"
-    }
+    },
+    "noBaseAccess": "Žádný přístup k databázi",
+    "signedInAs": "Přihlášen jako",
+    "moreAgents": "{count} další agent | {count} dalších agentů"
   },
   "activity": {
     "useTemplate": "Použít šablonu",
@@ -4990,7 +4995,9 @@
     "marketplaceSearch": "Hledejte aplikace, vydavatele nebo to, co potřebujete vyřešit",
     "noAgents": "Žádní agenti",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Hledat dovednosti..."
+    "searchSkills": "Hledat dovednosti...",
+    "messageAgent": "Zpráva pro {agent}",
+    "somethingElse": "Něco jiného"
   },
   "msg": {
     "sourceViewNotShared": "Synchronizace je v tomto zobrazení zakázána",
@@ -5693,7 +5700,12 @@
       "setupTeamsExplainer": "Přidejte lidi do týmů, které pro vás tato aplikace vytvořila.",
       "tooNarrowToAdjustFrozenFields": "Máte {saved} ukotvených polí, ale právě teď se jako ukotvená zobrazují jen {effective}, protože je vaše okno příliš úzké. Počet ukotvených polí můžete vrátit na 1. Můžete jej také změnit zvětšením okna nebo zúžením jednotlivých polí.",
       "publishWideningConsent": "Vydání, které dosáhne někam, kam tato aplikace dosud nedosáhla — nová integrace, první použití modelu AI —, neaktualizuje instalaci samo od sebe. Nejprve se zeptá toho, kdo ji nainstaloval, a on běží dál na verzi, kterou má, dokud nesouhlasí.",
-      "publishRolloutStaged": "Instalace se aktualizují po etapách, nejprve u malé skupiny, a zavádění se samo zastaví, pokud aktualizace začnou selhávat."
+      "publishRolloutStaged": "Instalace se aktualizují po etapách, nejprve u malé skupiny, a zavádění se samo zastaví, pokud aktualizace začnou selhávat.",
+      "seeWhoSubmitted": "Zobrazit, kdo odeslal odpověď",
+      "seeWhoSubmittedSubtitle": "Vyžaduje přihlášení do NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Chcete-li tuto možnost povolit, přidejte do tabulky pole „Vytvořil/a“.",
+      "formRequiresSignin": "Přístup k tomuto formuláři vyžaduje přihlášení do NocoDB.",
+      "switchAccount": "Přepnout účet"
     },
     "error": {
       "failedToCreateSync": "Nepodařilo se vytvořit synchronizaci",
@@ -6187,7 +6199,10 @@
     "skillUpdatedFromSource": "{title} aktualizováno ze zdroje",
     "workspaceSkillsSubtitle": "K dispozici v každé zdejší databázi a pro agenty, kteří si je zapnou.",
     "skillShadowed": "Přednost má dovednost se stejným názvem na úrovni {scope}, proto se tato nenabízí.",
-    "skillsNoMatchBody": "Tomuto hledání nic neodpovídá. Zkuste jiný výraz nebo zrušte filtry."
+    "skillsNoMatchBody": "Tomuto hledání nic neodpovídá. Zkuste jiný výraz nebo zrušte filtry.",
+    "chatTooManyFiles": "Nejvýše {count} souborů na zprávu",
+    "chatTriggeredReadOnly": "Tato konverzace byla zahájena spouštěčem a nelze v ní pokračovat.",
+    "agentPaused": "Tento agent je pozastaven, takže spouštěče se nespustí."
   },
   "trash": {
     "restore": "Obnovit",

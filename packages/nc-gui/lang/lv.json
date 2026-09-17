@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Pārejiet uz augstāku plānu, lai izmantotu atsevišķus lietotāju akreditācijas datus",
     "upgradeToUsePerUserCredentialsSubtitle": "Jūsu plāns {activePlan} izmanto tikai koplietotus akreditācijas datus. Pārejiet uz {plan}, lai katrs dalībnieks varētu pievienot savu kontu.",
     "upgradeToUseCustomEnvironments": "Pārejiet uz augstāku plānu, lai veidotu pielāgotas vides",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Pielāgotas vides jūsu plānā {activePlan} nav pieejamas. Pārejiet uz {plan}, lai veidotu vides papildus Production un Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Pielāgotas vides jūsu plānā {activePlan} nav pieejamas. Pārejiet uz {plan}, lai veidotu vides papildus Production un Staging.",
+    "upgradeToUseFormRequireSignin": "Jauniniet, lai formās pieprasītu pieteikšanos",
+    "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4337,7 +4339,10 @@
       "allowShown": "Atļaut parādītos",
       "clearShown": "Notīrīt parādītos",
       "shownOf": "Parādīti {shown} no {total}"
-    }
+    },
+    "noBaseAccess": "Nav piekļuves bāzei",
+    "signedInAs": "Pieteicies kā",
+    "moreAgents": "Vēl {count} aģents | Vēl {count} aģenti"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4990,7 +4995,9 @@
     "marketplaceSearch": "Meklējiet lietotnes, izdevējus vai to, kas jāpaveic",
     "noAgents": "Nav aģentu",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Meklēt prasmes..."
+    "searchSkills": "Meklēt prasmes...",
+    "messageAgent": "Ziņojums {agent}",
+    "somethingElse": "Kaut kas cits"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5693,7 +5700,12 @@
       "setupTeamsExplainer": "Pievienojiet cilvēkus komandām, ko šī lietotne jums izveidoja.",
       "tooNarrowToAdjustFrozenFields": "Jums ir {saved} iesaldēti lauki, taču pašlaik kā iesaldēti parādās tikai {effective}, jo jūsu logs ir pārāk šaurs. Iesaldēto lauku skaitu varat atiestatīt uz 1. To var mainīt arī, palielinot logu vai sašaurinot atsevišķus laukus.",
       "publishWideningConsent": "Laidiens, kas aizsniedz kaut ko, ko šī lietotne agrāk nevarēja aizsniegt — jauna integrācija, pirmā MI modeļa izmantošana —, pats no sevis instalāciju neatjaunina. Vispirms tiek pajautāts tam, kurš to uzstādīja, un viņš turpina darbu ar esošo versiju, līdz piekrīt.",
-      "publishRolloutStaged": "Instalācijas tiek atjauninātas pakāpeniski, sākot ar nelielu grupu, un izvēršana pati apstājas, ja atjauninājumi sāk neizdoties."
+      "publishRolloutStaged": "Instalācijas tiek atjauninātas pakāpeniski, sākot ar nelielu grupu, un izvēršana pati apstājas, ja atjauninājumi sāk neizdoties.",
+      "seeWhoSubmitted": "Skatīt, kurš iesniedza atbildi",
+      "seeWhoSubmittedSubtitle": "Nepieciešama pieteikšanās NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Lai iespējotu šo opciju, pievienojiet tabulai lauku “Izveidoja”.",
+      "formRequiresSignin": "Lai piekļūtu šai formai, ir jāpiesakās NocoDB.",
+      "switchAccount": "Mainīt kontu"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6187,7 +6199,10 @@
     "skillUpdatedFromSource": "{title} atjaunināts no avota",
     "workspaceSkillsSubtitle": "Pieejamas katrā šejienes projektā un aģentiem, kas tās ieslēdz.",
     "skillShadowed": "Priekšroka ir prasmei ar šo nosaukumu {scope} līmenī, tāpēc šī netiek piedāvāta.",
-    "skillsNoMatchBody": "Nekas neatbilst šim meklējumam. Izmēģiniet citu vārdu vai notīriet filtrus."
+    "skillsNoMatchBody": "Nekas neatbilst šim meklējumam. Izmēģiniet citu vārdu vai notīriet filtrus.",
+    "chatTooManyFiles": "Ne vairāk kā {count} faili vienā ziņojumā",
+    "chatTriggeredReadOnly": "Šo sarunu sāka izraisītājs, un to nevar turpināt.",
+    "agentPaused": "Šis aģents ir apturēts, tāpēc izraisītāji netiks palaisti."
   },
   "trash": {
     "restore": "Restore",

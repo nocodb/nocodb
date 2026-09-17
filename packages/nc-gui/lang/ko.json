@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "업그레이드하고 사용자별 자격 증명 사용하기",
     "upgradeToUsePerUserCredentialsSubtitle": "{activePlan} 요금제는 공유 자격 증명만 사용합니다. 멤버마다 자신의 계정을 연결하게 하려면 {plan}(으)로 업그레이드하세요.",
     "upgradeToUseCustomEnvironments": "업그레이드하고 사용자 지정 환경 만들기",
-    "upgradeToUseCustomEnvironmentsSubtitle": "사용자 지정 환경은 {activePlan} 요금제에서는 사용할 수 없습니다. Production과 Staging 외의 환경을 만들려면 {plan}(으)로 업그레이드하세요."
+    "upgradeToUseCustomEnvironmentsSubtitle": "사용자 지정 환경은 {activePlan} 요금제에서는 사용할 수 없습니다. Production과 Staging 외의 환경을 만들려면 {plan}(으)로 업그레이드하세요.",
+    "upgradeToUseFormRequireSignin": "업그레이드하여 입력폼에 로그인을 요구하세요",
+    "upgradeToUseFormRequireSigninSubtitle": "{plan} 요금제로 업그레이드하면 응답자가 입력폼을 제출하기 전에 로그인하도록 요구할 수 있습니다."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4341,7 +4343,10 @@
       "allowShown": "표시된 항목 허용",
       "clearShown": "표시된 항목 해제",
       "shownOf": "{total}개 중 {shown}개 표시"
-    }
+    },
+    "noBaseAccess": "베이스 접근 권한 없음",
+    "signedInAs": "로그인 계정",
+    "moreAgents": "에이전트 {count}개 더 | 에이전트 {count}개 더"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "앱, 게시자 또는 하고 싶은 일을 검색하세요",
     "noAgents": "에이전트 없음",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "스킬 검색..."
+    "searchSkills": "스킬 검색...",
+    "messageAgent": "{agent}에게 메시지 보내기",
+    "somethingElse": "다른 것"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "이 앱이 만들어 준 팀에 사람을 추가하세요.",
       "tooNarrowToAdjustFrozenFields": "고정된 필드가 {saved}개 있지만 창이 너무 좁아 지금은 {effective}개만 고정으로 표시됩니다. 고정 필드 수를 1로 되돌릴 수 있습니다. 창을 키우거나 개별 필드를 좁혀서 이 수를 바꿀 수도 있습니다.",
       "publishWideningConsent": "이 앱이 이전에는 닿지 못했던 곳에 닿는 릴리스 — 새로운 통합이나 AI 모델의 첫 사용 — 는 설치본을 스스로 업데이트하지 않습니다. 설치한 사람에게 먼저 묻고, 그 사람이 수락할 때까지는 기존 버전을 계속 사용합니다.",
-      "publishRolloutStaged": "설치본은 작은 그룹부터 단계적으로 업데이트되며, 업데이트가 실패하기 시작하면 배포가 알아서 중단됩니다."
+      "publishRolloutStaged": "설치본은 작은 그룹부터 단계적으로 업데이트되며, 업데이트가 실패하기 시작하면 배포가 알아서 중단됩니다.",
+      "seeWhoSubmitted": "누가 응답을 제출했는지 확인",
+      "seeWhoSubmittedSubtitle": "NocoDB 로그인이 필요합니다.",
+      "seeWhoSubmittedDisabledHint": "이 옵션을 사용하려면 테이블에 ‘생성자’ 필드를 추가하세요.",
+      "formRequiresSignin": "이 입력폼에 접근하려면 NocoDB 계정으로 로그인해야 합니다.",
+      "switchAccount": "계정 전환"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title}을(를) 원본에서 업데이트했습니다",
     "workspaceSkillsSubtitle": "여기 모든 베이스에서, 그리고 사용하기로 한 에이전트에서 이용할 수 있습니다.",
     "skillShadowed": "{scope} 수준에 같은 제목의 스킬이 있어 그쪽이 우선하므로, 이 스킬은 제공되지 않습니다.",
-    "skillsNoMatchBody": "해당 검색과 일치하는 항목이 없습니다. 다른 단어로 검색하거나 필터를 지워 보세요."
+    "skillsNoMatchBody": "해당 검색과 일치하는 항목이 없습니다. 다른 단어로 검색하거나 필터를 지워 보세요.",
+    "chatTooManyFiles": "메시지당 최대 {count}개의 파일",
+    "chatTriggeredReadOnly": "이 대화는 트리거로 시작되어 계속할 수 없습니다.",
+    "agentPaused": "이 에이전트는 일시 중지되어 트리거가 실행되지 않습니다."
   },
   "trash": {
     "restore": "Restore",

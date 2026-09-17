@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "升級以使用個別使用者憑證",
     "upgradeToUsePerUserCredentialsSubtitle": "你的 {activePlan} 方案僅支援共用憑證。升級到 {plan}，即可讓每位成員連接自己的帳戶。",
     "upgradeToUseCustomEnvironments": "升級以建立自訂環境",
-    "upgradeToUseCustomEnvironmentsSubtitle": "你的 {activePlan} 方案不支援自訂環境。升級到 {plan}，即可建立 Production 和 Staging 以外的環境。"
+    "upgradeToUseCustomEnvironmentsSubtitle": "你的 {activePlan} 方案不支援自訂環境。升級到 {plan}，即可建立 Production 和 Staging 以外的環境。",
+    "upgradeToUseFormRequireSignin": "升級以要求在表單中登入",
+    "upgradeToUseFormRequireSigninSubtitle": "升級至 {plan} 方案，即可要求填答者在提交表單前登入。"
   },
   "general": {
     "scrollToBottom": "滾動到底部",
@@ -4341,7 +4343,10 @@
       "allowShown": "允許已顯示項目",
       "clearShown": "清除已顯示項目",
       "shownOf": "已顯示 {total} 項中的 {shown} 項"
-    }
+    },
+    "noBaseAccess": "無權存取此 Base",
+    "signedInAs": "已登入為",
+    "moreAgents": "另有 {count} 個代理 | 另有 {count} 個代理"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "搜尋應用程式、發布者，或你想完成的事",
     "noAgents": "沒有代理程式",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "搜尋技能..."
+    "searchSkills": "搜尋技能...",
+    "messageAgent": "傳訊息給 {agent}",
+    "somethingElse": "其他"
   },
   "msg": {
     "sourceViewNotShared": "此檢視已停用同步功能",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "將成員加入此應用程式為您建立的團隊。",
       "tooNarrowToAdjustFrozenFields": "您凍結了 {saved} 個欄位，但由於視窗太窄，目前只有 {effective} 個顯示為凍結。您可以將凍結欄位數重設為 1，也可以透過放大視窗或縮窄個別欄位來變更這個數量。",
       "publishWideningConsent": "若某個版本觸及了此應用程式先前無法觸及的範圍——新增整合、首次呼叫 AI 模型——它不會自行更新已安裝的副本。系統會先徵詢安裝者同意，在他們接受之前仍使用現有版本。",
-      "publishRolloutStaged": "已安裝的副本會分批更新，先從一小群開始；一旦更新開始失敗，推送就會自動停止。"
+      "publishRolloutStaged": "已安裝的副本會分批更新，先從一小群開始；一旦更新開始失敗，推送就會自動停止。",
+      "seeWhoSubmitted": "查看誰提交了回覆",
+      "seeWhoSubmittedSubtitle": "需要登入 NocoDB。",
+      "seeWhoSubmittedDisabledHint": "在表格中新增「創建人」欄位以啟用此選項。",
+      "formRequiresSignin": "存取此表單需要登入 NocoDB。",
+      "switchAccount": "切換帳號"
     },
     "error": {
       "failedToCreateSync": "建立同步失敗",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "已從來源更新 {title}",
     "workspaceSkillsSubtitle": "在這裡的每個項目中可用，選擇啟用的代理程式也能使用。",
     "skillShadowed": "{scope} 層級有同名技能且優先度較高，因此不提供這一個。",
-    "skillsNoMatchBody": "沒有符合該搜尋的內容。換個關鍵字試試，或者清除篩選條件。"
+    "skillsNoMatchBody": "沒有符合該搜尋的內容。換個關鍵字試試，或者清除篩選條件。",
+    "chatTooManyFiles": "每則訊息最多 {count} 個檔案",
+    "chatTriggeredReadOnly": "此對話由觸發啟動，無法繼續。",
+    "agentPaused": "此代理已暫停，因此觸發不會執行。"
   },
   "trash": {
     "restore": "還原",

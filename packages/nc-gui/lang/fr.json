@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Passez à un plan supérieur pour utiliser des identifiants par utilisateur",
     "upgradeToUsePerUserCredentialsSubtitle": "Votre plan {activePlan} n'utilise que des identifiants partagés. Passez à {plan} pour que chaque membre connecte son propre compte.",
     "upgradeToUseCustomEnvironments": "Passez à un plan supérieur pour créer des environnements personnalisés",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Les environnements personnalisés ne sont pas disponibles dans votre plan {activePlan}. Passez à {plan} pour créer des environnements au-delà de Production et Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Les environnements personnalisés ne sont pas disponibles dans votre plan {activePlan}. Passez à {plan} pour créer des environnements au-delà de Production et Staging.",
+    "upgradeToUseFormRequireSignin": "Passez à une offre supérieure pour exiger une connexion sur les formulaires",
+    "upgradeToUseFormRequireSigninSubtitle": "Passez au plan {plan} pour exiger que les répondants se connectent avant d’envoyer un formulaire."
   },
   "general": {
     "scrollToBottom": "Défiler vers le bas",
@@ -4305,7 +4307,10 @@
       "allowShown": "Autoriser les éléments affichés",
       "clearShown": "Effacer les éléments affichés",
       "shownOf": "{shown} sur {total} affichés"
-    }
+    },
+    "noBaseAccess": "Aucun accès à la base",
+    "signedInAs": "Connecté en tant que",
+    "moreAgents": "{count} agent de plus | {count} agents de plus"
   },
   "activity": {
     "useTemplate": "Utiliser le modèle",
@@ -4955,7 +4960,9 @@
     "marketplaceSearch": "Recherchez des applications, des éditeurs ou ce que vous voulez faire",
     "noAgents": "Aucun agent",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Rechercher des compétences..."
+    "searchSkills": "Rechercher des compétences...",
+    "messageAgent": "Message à {agent}",
+    "somethingElse": "Autre chose"
   },
   "msg": {
     "sourceViewNotShared": "La synchronisation est désactivée sur cette vue",
@@ -5658,7 +5665,12 @@
       "setupTeamsExplainer": "Ajoutez des personnes aux équipes que cette app a créées pour vous.",
       "tooNarrowToAdjustFrozenFields": "Vous avez {saved} champs figés, mais seuls {effective} apparaissent figés en ce moment car votre fenêtre est trop étroite. Vous pouvez ramener le nombre de champs figés à 1. Vous pouvez aussi modifier ce nombre en agrandissant votre fenêtre ou en réduisant la largeur de certains champs.",
       "publishWideningConsent": "Une version qui atteint un endroit que cette app ne pouvait pas atteindre auparavant — une nouvelle intégration, un premier recours à un modèle d'IA — ne met pas à jour une installation d'elle-même. On demande d'abord à la personne qui l'a installée, et elle continue d'utiliser la version qu'elle a jusqu'à ce qu'elle accepte.",
-      "publishRolloutStaged": "Les installations sont mises à jour par étapes, en commençant par un petit groupe, et le déploiement s'arrête de lui-même si les mises à jour échouent."
+      "publishRolloutStaged": "Les installations sont mises à jour par étapes, en commençant par un petit groupe, et le déploiement s'arrête de lui-même si les mises à jour échouent.",
+      "seeWhoSubmitted": "Voir qui a envoyé une réponse",
+      "seeWhoSubmittedSubtitle": "Connexion à NocoDB requise.",
+      "seeWhoSubmittedDisabledHint": "Ajoutez un champ « Créé par » à votre tableau pour activer cette option.",
+      "formRequiresSignin": "L’accès à ce formulaire nécessite une connexion à NocoDB.",
+      "switchAccount": "Changer de compte"
     },
     "error": {
       "failedToCreateSync": "Échec de la création de la synchronisation",
@@ -6152,7 +6164,10 @@
     "skillUpdatedFromSource": "{title} mis à jour depuis la source",
     "workspaceSkillsSubtitle": "Disponibles dans tous les projets ici, et pour les agents qui les activent.",
     "skillShadowed": "Une compétence portant ce titre au niveau {scope} est prioritaire, celle-ci n'est donc pas proposée.",
-    "skillsNoMatchBody": "Aucun résultat pour cette recherche. Essayez un autre terme ou effacez les filtres."
+    "skillsNoMatchBody": "Aucun résultat pour cette recherche. Essayez un autre terme ou effacez les filtres.",
+    "chatTooManyFiles": "Au maximum {count} fichiers par message",
+    "chatTriggeredReadOnly": "Cette conversation a été lancée par un déclencheur et ne peut pas être poursuivie.",
+    "agentPaused": "Cet agent est en pause, les déclencheurs ne se déclencheront donc pas."
   },
   "trash": {
     "restore": "Restaurer",

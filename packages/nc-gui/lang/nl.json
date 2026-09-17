@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Upgrade om inloggegevens per gebruiker te gebruiken",
     "upgradeToUsePerUserCredentialsSubtitle": "Je {activePlan}-abonnement gebruikt alleen gedeelde inloggegevens. Stap over naar {plan} zodat elk lid zijn eigen account kan koppelen.",
     "upgradeToUseCustomEnvironments": "Upgrade om eigen omgevingen te maken",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Eigen omgevingen zijn niet beschikbaar in je {activePlan}-abonnement. Stap over naar {plan} om omgevingen naast Productie en Staging te maken."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Eigen omgevingen zijn niet beschikbaar in je {activePlan}-abonnement. Stap over naar {plan} om omgevingen naast Productie en Staging te maken.",
+    "upgradeToUseFormRequireSignin": "Upgrade om aanmelden verplicht te stellen voor formulieren",
+    "upgradeToUseFormRequireSigninSubtitle": "Upgrade naar het {plan}-abonnement om respondenten te verplichten zich aan te melden voordat ze een formulier verzenden."
   },
   "general": {
     "scrollToBottom": "Scroll naar beneden",
@@ -4326,7 +4328,10 @@
       "allowShown": "Getoonde toestaan",
       "clearShown": "Getoonde wissen",
       "shownOf": "{shown} van {total} getoond"
-    }
+    },
+    "noBaseAccess": "Geen toegang tot base",
+    "signedInAs": "Aangemeld als",
+    "moreAgents": "{count} agent meer | {count} agenten meer"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -4976,7 +4981,9 @@
     "marketplaceSearch": "Zoek apps, uitgevers of wat je gedaan wilt krijgen",
     "noAgents": "Geen agents",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Skills zoeken..."
+    "searchSkills": "Skills zoeken...",
+    "messageAgent": "Bericht aan {agent}",
+    "somethingElse": "Iets anders"
   },
   "msg": {
     "sourceViewNotShared": "Synchronisatie is uitgeschakeld in deze weergave",
@@ -5679,7 +5686,12 @@
       "setupTeamsExplainer": "Voeg mensen toe aan de teams die deze app voor u heeft aangemaakt.",
       "tooNarrowToAdjustFrozenFields": "U hebt {saved} bevroren velden, maar er verschijnen er op dit moment maar {effective} bevroren omdat uw venster te smal is. U kunt het aantal bevroren velden terugzetten naar 1. U kunt dat aantal ook wijzigen door uw venster te vergroten of afzonderlijke velden smaller te maken.",
       "publishWideningConsent": "Een release die ergens komt waar deze app eerder niet kwam — een nieuwe integratie, een eerste gebruik van een AI-model — werkt een installatie niet uit zichzelf bij. Aan de installateur wordt eerst gevraagd, en die blijft de versie draaien die hij heeft totdat hij akkoord gaat.",
-      "publishRolloutStaged": "Installaties worden gefaseerd bijgewerkt, te beginnen met een kleine groep, en de uitrol stopt vanzelf als updates beginnen te mislukken."
+      "publishRolloutStaged": "Installaties worden gefaseerd bijgewerkt, te beginnen met een kleine groep, en de uitrol stopt vanzelf als updates beginnen te mislukken.",
+      "seeWhoSubmitted": "Bekijk wie een reactie heeft ingediend",
+      "seeWhoSubmittedSubtitle": "Aanmelden bij NocoDB vereist.",
+      "seeWhoSubmittedDisabledHint": "Voeg een veld ‘Gemaakt door’ toe aan je tabel om deze optie in te schakelen.",
+      "formRequiresSignin": "Voor toegang tot dit formulier moet je je aanmelden bij NocoDB.",
+      "switchAccount": "Account wisselen"
     },
     "error": {
       "failedToCreateSync": "Maken van synchronisatie mislukt",
@@ -6173,7 +6185,10 @@
     "skillUpdatedFromSource": "{title} bijgewerkt vanuit de bron",
     "workspaceSkillsSubtitle": "Beschikbaar in elk project hier, en voor agents die ervoor kiezen.",
     "skillShadowed": "Een vaardigheid met deze titel op het niveau {scope} heeft voorrang, dus deze wordt niet aangeboden.",
-    "skillsNoMatchBody": "Niets komt overeen met die zoekopdracht. Probeer een andere term of wis de filters."
+    "skillsNoMatchBody": "Niets komt overeen met die zoekopdracht. Probeer een andere term of wis de filters.",
+    "chatTooManyFiles": "Maximaal {count} bestanden per bericht",
+    "chatTriggeredReadOnly": "Dit gesprek is gestart door een trigger en kan niet worden voortgezet.",
+    "agentPaused": "Deze agent is gepauzeerd, dus triggers worden niet uitgevoerd."
   },
   "trash": {
     "restore": "Herstellen",

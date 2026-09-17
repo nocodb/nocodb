@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "प्रति-प्रयोगकर्ता प्रमाणहरू प्रयोग गर्न अपग्रेड गर्नुहोस्",
     "upgradeToUsePerUserCredentialsSubtitle": "तपाईंको {activePlan} योजनाले साझा प्रमाणहरू मात्र प्रयोग गर्छ। हरेक सदस्यले आफ्नै खाता जोड्न सकून् भन्नाका लागि {plan} मा जानुहोस्।",
     "upgradeToUseCustomEnvironments": "आफ्नै वातावरण बनाउन अपग्रेड गर्नुहोस्",
-    "upgradeToUseCustomEnvironmentsSubtitle": "तपाईंको {activePlan} योजनामा आफ्नै वातावरण उपलब्ध छैन। Production र Staging बाहेकका वातावरण बनाउन {plan} मा जानुहोस्।"
+    "upgradeToUseCustomEnvironmentsSubtitle": "तपाईंको {activePlan} योजनामा आफ्नै वातावरण उपलब्ध छैन। Production र Staging बाहेकका वातावरण बनाउन {plan} मा जानुहोस्।",
+    "upgradeToUseFormRequireSignin": "फारमहरूमा साइन इन अनिवार्य गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUseFormRequireSigninSubtitle": "फारम पेस गर्नुअघि उत्तरदाताहरूलाई साइन इन गर्न अनिवार्य बनाउन {plan} योजनामा अपग्रेड गर्नुहोस्।"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4341,7 +4343,10 @@
       "allowShown": "देखाइएकालाई अनुमति दिनुहोस्",
       "clearShown": "देखाइएका हटाउनुहोस्",
       "shownOf": "{total} मध्ये {shown} देखाइएको"
-    }
+    },
+    "noBaseAccess": "बेसमा पहुँच छैन",
+    "signedInAs": "यसरी साइन इन गरिएको छ",
+    "moreAgents": "थप {count} एजेन्ट | थप {count} एजेन्टहरू"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "एप, प्रकाशक वा गराउनुपर्ने काम खोज्नुहोस्",
     "noAgents": "कुनै एजेन्ट छैन",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "सीपहरू खोज्नुहोस्..."
+    "searchSkills": "सीपहरू खोज्नुहोस्...",
+    "messageAgent": "{agent} लाई सन्देश पठाउनुहोस्",
+    "somethingElse": "अरू केही"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "यो एपले तपाईंका लागि बनाएका टोलीहरूमा मानिस थप्नुहोस्।",
       "tooNarrowToAdjustFrozenFields": "तपाईंसँग {saved} जमेका क्षेत्र छन्, तर विन्डो निकै साँघुरो भएकाले अहिले {effective} मात्र जमेको देखिन्छ। जमेका क्षेत्रको सङ्ख्या १ मा रिसेट गर्न सक्नुहुन्छ। विन्डो ठूलो पारेर वा छुट्टै क्षेत्रहरू साँघुरो बनाएर पनि यो सङ्ख्या बदल्न सकिन्छ।",
       "publishWideningConsent": "यो एपले पहिले नपुगेको ठाउँमा पुग्ने रिलिजले — नयाँ एकीकरण, कुनै AI मोडेलको पहिलो प्रयोग — कुनै स्थापनालाई आफैँ अद्यावधिक गर्दैन। पहिले स्थापना गर्नेलाई सोधिन्छ, र उनले स्वीकार नगरेसम्म आफूसँग भएकै संस्करणमा चलिरहन्छन्।",
-      "publishRolloutStaged": "स्थापनाहरू चरणबद्ध रूपमा अद्यावधिक हुन्छन्, सानो समूहबाट सुरु गरेर, र अद्यावधिकहरू असफल हुन थाले भने रोलआउट आफैँ रोकिन्छ।"
+      "publishRolloutStaged": "स्थापनाहरू चरणबद्ध रूपमा अद्यावधिक हुन्छन्, सानो समूहबाट सुरु गरेर, र अद्यावधिकहरू असफल हुन थाले भने रोलआउट आफैँ रोकिन्छ।",
+      "seeWhoSubmitted": "कसले प्रतिक्रिया पठायो हेर्नुहोस्",
+      "seeWhoSubmittedSubtitle": "NocoDB मा साइन इन गर्नु आवश्यक छ।",
+      "seeWhoSubmittedDisabledHint": "यो विकल्प सक्षम गर्न आफ्नो तालिकामा ‘द्वारा सिर्जना गरिएको’ फिल्ड थप्नुहोस्।",
+      "formRequiresSignin": "यो फारम प्रयोग गर्न NocoDB मा साइन इन गर्नुपर्छ।",
+      "switchAccount": "खाता फेर्नुहोस्"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "{title} स्रोतबाट अद्यावधिक गरियो",
     "workspaceSkillsSubtitle": "यहाँका हरेक आधारमा र यी रोज्ने एजेन्टहरूका लागि उपलब्ध।",
     "skillShadowed": "{scope} तहमा यही शीर्षकको सीपले प्राथमिकता पाउँछ, त्यसैले यो प्रस्ताव गरिँदैन।",
-    "skillsNoMatchBody": "त्यो खोजसँग केही मिलेन। अर्को शब्द प्रयास गर्नुहोस् वा फिल्टरहरू हटाउनुहोस्।"
+    "skillsNoMatchBody": "त्यो खोजसँग केही मिलेन। अर्को शब्द प्रयास गर्नुहोस् वा फिल्टरहरू हटाउनुहोस्।",
+    "chatTooManyFiles": "प्रति सन्देश बढीमा {count} फाइलहरू",
+    "chatTriggeredReadOnly": "यो कुराकानी ट्रिगरद्वारा सुरु गरिएको थियो र यसलाई जारी राख्न सकिँदैन।",
+    "agentPaused": "यो एजेन्ट रोकिएको छ, त्यसैले ट्रिगरहरू चल्ने छैनन्।"
   },
   "trash": {
     "restore": "Restore",

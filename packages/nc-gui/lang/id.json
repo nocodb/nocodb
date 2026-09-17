@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Tingkatkan untuk memakai kredensial per pengguna",
     "upgradeToUsePerUserCredentialsSubtitle": "Paket {activePlan} Anda hanya memakai kredensial bersama. Tingkatkan ke {plan} agar setiap anggota dapat menghubungkan akunnya sendiri.",
     "upgradeToUseCustomEnvironments": "Tingkatkan untuk membuat lingkungan kustom",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Lingkungan kustom tidak tersedia pada paket {activePlan} Anda. Tingkatkan ke {plan} untuk membuat lingkungan selain Production dan Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Lingkungan kustom tidak tersedia pada paket {activePlan} Anda. Tingkatkan ke {plan} untuk membuat lingkungan selain Production dan Staging.",
+    "upgradeToUseFormRequireSignin": "Tingkatkan untuk mewajibkan masuk pada formulir",
+    "upgradeToUseFormRequireSigninSubtitle": "Tingkatkan ke paket {plan} untuk mewajibkan responden masuk sebelum mengirim formulir."
   },
   "general": {
     "scrollToBottom": "Gulir ke bawah",
@@ -4335,7 +4337,10 @@
       "allowShown": "Izinkan yang ditampilkan",
       "clearShown": "Bersihkan yang ditampilkan",
       "shownOf": "{shown} dari {total} ditampilkan"
-    }
+    },
+    "noBaseAccess": "Tidak ada akses ke basis",
+    "signedInAs": "Masuk sebagai",
+    "moreAgents": "{count} agen lagi | {count} agen lagi"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -4988,7 +4993,9 @@
     "marketplaceSearch": "Cari aplikasi, penerbit, atau hal yang ingin Anda selesaikan",
     "noAgents": "Tidak ada agen",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Cari keterampilan..."
+    "searchSkills": "Cari keterampilan...",
+    "messageAgent": "Pesan untuk {agent}",
+    "somethingElse": "Sesuatu yang lain"
   },
   "msg": {
     "sourceViewNotShared": "Sinkronisasi dinonaktifkan pada tampilan ini",
@@ -5691,7 +5698,12 @@
       "setupTeamsExplainer": "Tambahkan orang ke tim yang dibuat aplikasi ini untuk Anda.",
       "tooNarrowToAdjustFrozenFields": "Anda memiliki {saved} bidang beku, tetapi saat ini hanya {effective} yang tampak beku karena jendela Anda terlalu sempit. Anda bisa mengatur ulang jumlah bidang beku menjadi 1. Anda juga bisa mengubah jumlahnya dengan memperbesar jendela atau mempersempit bidang satu per satu.",
       "publishWideningConsent": "Rilis yang menjangkau sesuatu yang sebelumnya tidak dijangkau aplikasi ini — integrasi baru, penggunaan pertama sebuah model AI — tidak memperbarui pemasangan dengan sendirinya. Pemasangnya ditanya lebih dulu, dan tetap menjalankan versi yang dimilikinya sampai ia menyetujui.",
-      "publishRolloutStaged": "Pemasangan diperbarui secara bertahap, dimulai dari kelompok kecil, dan peluncuran berhenti sendiri jika pembaruan mulai gagal."
+      "publishRolloutStaged": "Pemasangan diperbarui secara bertahap, dimulai dari kelompok kecil, dan peluncuran berhenti sendiri jika pembaruan mulai gagal.",
+      "seeWhoSubmitted": "Lihat siapa yang mengirim tanggapan",
+      "seeWhoSubmittedSubtitle": "Perlu masuk ke NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Tambahkan bidang ‘Dibuat oleh’ ke tabel Anda untuk mengaktifkan opsi ini.",
+      "formRequiresSignin": "Mengakses formulir ini memerlukan masuk ke NocoDB.",
+      "switchAccount": "Ganti akun"
     },
     "error": {
       "failedToCreateSync": "Gagal membuat sinkronisasi",
@@ -6185,7 +6197,10 @@
     "skillUpdatedFromSource": "{title} diperbarui dari sumber",
     "workspaceSkillsSubtitle": "Tersedia di setiap proyek di sini, dan untuk agen yang mengaktifkannya.",
     "skillShadowed": "Keterampilan dengan judul ini di tingkat {scope} lebih diutamakan, jadi yang ini tidak ditawarkan.",
-    "skillsNoMatchBody": "Tidak ada yang cocok dengan pencarian itu. Coba kata lain atau bersihkan filternya."
+    "skillsNoMatchBody": "Tidak ada yang cocok dengan pencarian itu. Coba kata lain atau bersihkan filternya.",
+    "chatTooManyFiles": "Maksimal {count} berkas per pesan",
+    "chatTriggeredReadOnly": "Percakapan ini dimulai oleh pemicu dan tidak dapat dilanjutkan.",
+    "agentPaused": "Agen ini dijeda, sehingga pemicu tidak akan berjalan."
   },
   "trash": {
     "restore": "Mengembalikan",

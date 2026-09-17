@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "อัปเกรดเพื่อใช้ข้อมูลรับรองแยกตามผู้ใช้",
     "upgradeToUsePerUserCredentialsSubtitle": "แผน {activePlan} ของคุณใช้ข้อมูลรับรองร่วมกันเท่านั้น อัปเกรดเป็น {plan} เพื่อให้สมาชิกแต่ละคนเชื่อมต่อบัญชีของตนเองได้",
     "upgradeToUseCustomEnvironments": "อัปเกรดเพื่อสร้างสภาพแวดล้อมที่กำหนดเอง",
-    "upgradeToUseCustomEnvironmentsSubtitle": "สภาพแวดล้อมที่กำหนดเองไม่มีในแผน {activePlan} ของคุณ อัปเกรดเป็น {plan} เพื่อสร้างสภาพแวดล้อมนอกเหนือจาก Production และ Staging"
+    "upgradeToUseCustomEnvironmentsSubtitle": "สภาพแวดล้อมที่กำหนดเองไม่มีในแผน {activePlan} ของคุณ อัปเกรดเป็น {plan} เพื่อสร้างสภาพแวดล้อมนอกเหนือจาก Production และ Staging",
+    "upgradeToUseFormRequireSignin": "อัปเกรดเพื่อกำหนดให้ต้องลงชื่อเข้าใช้ในแบบฟอร์ม",
+    "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -4341,7 +4343,10 @@
       "allowShown": "อนุญาตรายการที่แสดง",
       "clearShown": "ล้างรายการที่แสดง",
       "shownOf": "แสดง {shown} จาก {total}"
-    }
+    },
+    "noBaseAccess": "ไม่มีสิทธิ์เข้าถึงฐาน",
+    "signedInAs": "ลงชื่อเข้าใช้ในชื่อ",
+    "moreAgents": "อีก {count} เอเจนต์ | อีก {count} เอเจนต์"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "ค้นหาแอป ผู้เผยแพร่ หรือสิ่งที่คุณต้องการทำ",
     "noAgents": "ไม่มีเอเจนต์",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "ค้นหาทักษะ..."
+    "searchSkills": "ค้นหาทักษะ...",
+    "messageAgent": "ส่งข้อความถึง {agent}",
+    "somethingElse": "อย่างอื่น"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "เพิ่มผู้คนเข้าไปในทีมที่แอปนี้สร้างไว้ให้คุณ",
       "tooNarrowToAdjustFrozenFields": "คุณตรึงฟิลด์ไว้ {saved} ฟิลด์ แต่ตอนนี้แสดงเป็นแบบตรึงเพียง {effective} ฟิลด์ เพราะหน้าต่างของคุณแคบเกินไป คุณสามารถรีเซ็ตจำนวนฟิลด์ที่ตรึงเป็น 1 ได้ หรือเปลี่ยนจำนวนโดยขยายหน้าต่างหรือทำให้แต่ละฟิลด์แคบลง",
       "publishWideningConsent": "รุ่นที่เข้าถึงสิ่งที่แอปนี้เคยเข้าไม่ถึง — การเชื่อมต่อระบบใหม่ หรือการเรียกใช้โมเดล AI เป็นครั้งแรก — จะไม่อัปเดตการติดตั้งด้วยตัวเอง ระบบจะถามผู้ติดตั้งก่อน และเขาจะยังใช้รุ่นเดิมต่อไปจนกว่าจะยอมรับ",
-      "publishRolloutStaged": "การติดตั้งจะได้รับการอัปเดตเป็นระยะ โดยเริ่มจากกลุ่มเล็ก ๆ และการทยอยปล่อยจะหยุดเองหากการอัปเดตเริ่มล้มเหลว"
+      "publishRolloutStaged": "การติดตั้งจะได้รับการอัปเดตเป็นระยะ โดยเริ่มจากกลุ่มเล็ก ๆ และการทยอยปล่อยจะหยุดเองหากการอัปเดตเริ่มล้มเหลว",
+      "seeWhoSubmitted": "ดูว่าใครเป็นผู้ส่งคำตอบ",
+      "seeWhoSubmittedSubtitle": "ต้องลงชื่อเข้าใช้ NocoDB",
+      "seeWhoSubmittedDisabledHint": "เพิ่มฟิลด์ ‘สร้างโดย’ ลงในตารางของคุณเพื่อเปิดใช้ตัวเลือกนี้",
+      "formRequiresSignin": "การเข้าถึงแบบฟอร์มนี้ต้องลงชื่อเข้าใช้ NocoDB",
+      "switchAccount": "สลับบัญชี"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "อัปเดต {title} จากต้นทางแล้ว",
     "workspaceSkillsSubtitle": "ใช้ได้ในทุกโครงการที่นี่ และสำหรับเอเจนต์ที่เลือกเปิดใช้",
     "skillShadowed": "ทักษะที่ใช้ชื่อนี้ในระดับ {scope} มีความสำคัญเหนือกว่า จึงไม่มีการเสนอทักษะนี้",
-    "skillsNoMatchBody": "ไม่มีอะไรตรงกับการค้นหานั้น ลองใช้คำอื่นหรือล้างตัวกรอง"
+    "skillsNoMatchBody": "ไม่มีอะไรตรงกับการค้นหานั้น ลองใช้คำอื่นหรือล้างตัวกรอง",
+    "chatTooManyFiles": "ไม่เกิน {count} ไฟล์ต่อหนึ่งข้อความ",
+    "chatTriggeredReadOnly": "การสนทนานี้เริ่มต้นโดยทริกเกอร์ และไม่สามารถดำเนินการต่อได้",
+    "agentPaused": "เอเจนต์นี้ถูกหยุดชั่วคราว ทริกเกอร์จึงจะไม่ทำงาน"
   },
   "trash": {
     "restore": "Restore",

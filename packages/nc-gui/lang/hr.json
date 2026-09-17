@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Prijeđite na viši plan za vjerodajnice po korisniku",
     "upgradeToUsePerUserCredentialsSubtitle": "Vaš plan {activePlan} koristi samo zajedničke vjerodajnice. Prijeđite na {plan} kako bi svaki član povezao vlastiti račun.",
     "upgradeToUseCustomEnvironments": "Prijeđite na viši plan za izradu prilagođenih okruženja",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Prilagođena okruženja nisu dostupna na vašem planu {activePlan}. Prijeđite na {plan} kako biste izradili okruženja osim Productiona i Staginga."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Prilagođena okruženja nisu dostupna na vašem planu {activePlan}. Prijeđite na {plan} kako biste izradili okruženja osim Productiona i Staginga.",
+    "upgradeToUseFormRequireSignin": "Nadogradite kako biste na obrascima mogli zahtijevati prijavu",
+    "upgradeToUseFormRequireSigninSubtitle": "Nadogradite na plan {plan} kako biste od ispitanika zahtijevali prijavu prije slanja obrasca."
   },
   "general": {
     "scrollToBottom": "Pomaknite se na dno",
@@ -4340,7 +4342,10 @@
       "allowShown": "Dopusti prikazane",
       "clearShown": "Očisti prikazane",
       "shownOf": "Prikazano {shown} od {total}"
-    }
+    },
+    "noBaseAccess": "Nema pristupa bazi",
+    "signedInAs": "Prijavljeni kao",
+    "moreAgents": "Još {count} agent | Još {count} agenata"
   },
   "activity": {
     "useTemplate": "Koristite predložak",
@@ -4993,7 +4998,9 @@
     "marketplaceSearch": "Tražite aplikacije, izdavače ili ono što trebate obaviti",
     "noAgents": "Nema agenata",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Traži vještine..."
+    "searchSkills": "Traži vještine...",
+    "messageAgent": "Poruka za {agent}",
+    "somethingElse": "Nešto drugo"
   },
   "msg": {
     "sourceViewNotShared": "Sinkronizacija je onemogućena za ovaj prikaz.",
@@ -5696,7 +5703,12 @@
       "setupTeamsExplainer": "Dodajte ljude u timove koje je ova aplikacija stvorila za vas.",
       "tooNarrowToAdjustFrozenFields": "Imate {saved} zamrznutih polja, ali trenutačno se zamrznutima prikazuje samo {effective} jer je vaš prozor preuzak. Broj zamrznutih polja možete vratiti na 1. Možete ga i promijeniti povećanjem prozora ili sužavanjem pojedinih polja.",
       "publishWideningConsent": "Izdanje koje doseže negdje kamo ova aplikacija prije nije dosezala — nova integracija, prva uporaba modela UI — ne ažurira instalaciju samo od sebe. Prvo se pita onoga tko ju je instalirao, a on nastavlja s verzijom koju ima dok ne prihvati.",
-      "publishRolloutStaged": "Instalacije se ažuriraju u fazama, počevši od male skupine, a uvođenje se samo zaustavlja ako ažuriranja počnu padati."
+      "publishRolloutStaged": "Instalacije se ažuriraju u fazama, počevši od male skupine, a uvođenje se samo zaustavlja ako ažuriranja počnu padati.",
+      "seeWhoSubmitted": "Pogledajte tko je poslao odgovor",
+      "seeWhoSubmittedSubtitle": "Potrebna je prijava u NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Dodajte polje „Kreirao/Kreirala“ u svoju tablicu kako biste omogućili ovu opciju.",
+      "formRequiresSignin": "Za pristup ovom obrascu potrebna je prijava u NocoDB.",
+      "switchAccount": "Promijeni račun"
     },
     "error": {
       "failedToCreateSync": "Sinhronizacija nije uspjela",
@@ -6190,7 +6202,10 @@
     "skillUpdatedFromSource": "{title} ažurirano iz izvora",
     "workspaceSkillsSubtitle": "Dostupne u svakom ovdašnjem projektu i agentima koji ih uključe.",
     "skillShadowed": "Prednost ima vještina s ovim naslovom na razini {scope}, pa se ova ne nudi.",
-    "skillsNoMatchBody": "Ništa ne odgovara toj pretrazi. Pokušajte s drugim pojmom ili očistite filtre."
+    "skillsNoMatchBody": "Ništa ne odgovara toj pretrazi. Pokušajte s drugim pojmom ili očistite filtre.",
+    "chatTooManyFiles": "Najviše {count} datoteka po poruci",
+    "chatTriggeredReadOnly": "Ovaj je razgovor pokrenuo okidač i ne može se nastaviti.",
+    "agentPaused": "Ovaj je agent pauziran pa se okidači neće aktivirati."
   },
   "trash": {
     "restore": "Obnovi",

@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Uppgradera för att använda inloggningsuppgifter per användare",
     "upgradeToUsePerUserCredentialsSubtitle": "Din {activePlan}-plan använder bara delade inloggningsuppgifter. Uppgradera till {plan} så att varje medlem kan koppla sitt eget konto.",
     "upgradeToUseCustomEnvironments": "Uppgradera för att skapa egna miljöer",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Egna miljöer finns inte i din {activePlan}-plan. Uppgradera till {plan} för att skapa miljöer utöver Production och Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Egna miljöer finns inte i din {activePlan}-plan. Uppgradera till {plan} för att skapa miljöer utöver Production och Staging.",
+    "upgradeToUseFormRequireSignin": "Uppgradera för att kräva inloggning i formulär",
+    "upgradeToUseFormRequireSigninSubtitle": "Uppgradera till {plan}-planen för att kräva att svarande loggar in innan de skickar in ett formulär."
   },
   "general": {
     "scrollToBottom": "Rulla till botten",
@@ -4335,7 +4337,10 @@
       "allowShown": "Tillåt de visade",
       "clearShown": "Rensa de visade",
       "shownOf": "{shown} av {total} visade"
-    }
+    },
+    "noBaseAccess": "Ingen åtkomst till bas",
+    "signedInAs": "Inloggad som",
+    "moreAgents": "{count} agent till | {count} agenter till"
   },
   "activity": {
     "useTemplate": "Använd mall",
@@ -4988,7 +4993,9 @@
     "marketplaceSearch": "Sök efter appar, utgivare eller det du vill få gjort",
     "noAgents": "Inga agenter",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Sök efter skills..."
+    "searchSkills": "Sök efter skills...",
+    "messageAgent": "Meddelande till {agent}",
+    "somethingElse": "Något annat"
   },
   "msg": {
     "sourceViewNotShared": "Synkronisering är inaktiverad på denna vy",
@@ -5691,7 +5698,12 @@
       "setupTeamsExplainer": "Lägg till personer i de team som den här appen har skapat åt dig.",
       "tooNarrowToAdjustFrozenFields": "Du har {saved} låsta fält, men bara {effective} visas som låsta just nu eftersom fönstret är för smalt. Du kan återställa antalet låsta fält till 1. Du kan också ändra antalet genom att förstora fönstret eller göra enskilda fält smalare.",
       "publishWideningConsent": "En release som når någonstans dit den här appen inte nådde förut — en ny integration, en första användning av en AI-modell — uppdaterar inte en installation av sig själv. Den som installerat den tillfrågas först och fortsätter köra den version de har tills de accepterar.",
-      "publishRolloutStaged": "Installationer uppdateras i etapper med en liten grupp först, och utrullningen stannar av sig själv om uppdateringarna börjar misslyckas."
+      "publishRolloutStaged": "Installationer uppdateras i etapper med en liten grupp först, och utrullningen stannar av sig själv om uppdateringarna börjar misslyckas.",
+      "seeWhoSubmitted": "Se vem som har skickat in ett svar",
+      "seeWhoSubmittedSubtitle": "Inloggning på NocoDB krävs.",
+      "seeWhoSubmittedDisabledHint": "Lägg till fältet ”Skapad av” i tabellen för att aktivera det här alternativet.",
+      "formRequiresSignin": "För att komma åt det här formuläret krävs inloggning på NocoDB.",
+      "switchAccount": "Byt konto"
     },
     "error": {
       "failedToCreateSync": "Det gick inte att skapa synkronisering",
@@ -6185,7 +6197,10 @@
     "skillUpdatedFromSource": "{title} uppdaterad från källan",
     "workspaceSkillsSubtitle": "Tillgängliga i alla projekt här, och för agenter som väljer till dem.",
     "skillShadowed": "En färdighet med den här titeln på nivån {scope} har företräde, så den här erbjuds inte.",
-    "skillsNoMatchBody": "Ingenting matchar den sökningen. Prova ett annat ord eller rensa filtren."
+    "skillsNoMatchBody": "Ingenting matchar den sökningen. Prova ett annat ord eller rensa filtren.",
+    "chatTooManyFiles": "Högst {count} filer per meddelande",
+    "chatTriggeredReadOnly": "Den här konversationen startades av en utlösare och kan inte fortsätta.",
+    "agentPaused": "Den här agenten är pausad, så utlösare körs inte."
   },
   "trash": {
     "restore": "Återställ",

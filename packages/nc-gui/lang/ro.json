@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Treci la un plan superior pentru a folosi credențiale per utilizator",
     "upgradeToUsePerUserCredentialsSubtitle": "Planul tău {activePlan} folosește doar credențiale partajate. Treci la {plan} pentru ca fiecare membru să își conecteze propriul cont.",
     "upgradeToUseCustomEnvironments": "Treci la un plan superior pentru a crea medii personalizate",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Mediile personalizate nu sunt disponibile în planul tău {activePlan}. Treci la {plan} pentru a crea medii dincolo de Production și Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Mediile personalizate nu sunt disponibile în planul tău {activePlan}. Treci la {plan} pentru a crea medii dincolo de Production și Staging.",
+    "upgradeToUseFormRequireSignin": "Fă upgrade pentru a solicita autentificarea la formulare",
+    "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular."
   },
   "general": {
     "scrollToBottom": "Derulează până jos",
@@ -4328,7 +4330,10 @@
       "allowShown": "Permite cele afișate",
       "clearShown": "Golește cele afișate",
       "shownOf": "{shown} din {total} afișate"
-    }
+    },
+    "noBaseAccess": "Fără acces la bază",
+    "signedInAs": "Autentificat ca",
+    "moreAgents": "Încă {count} agent | Încă {count} agenți"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -4978,7 +4983,9 @@
     "marketplaceSearch": "Caută aplicații, editori sau ce ai nevoie să faci",
     "noAgents": "Niciun agent",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Caută competențe..."
+    "searchSkills": "Caută competențe...",
+    "messageAgent": "Mesaj către {agent}",
+    "somethingElse": "Altceva"
   },
   "msg": {
     "sourceViewNotShared": "Sincronizarea este dezactivată în această vizualizare",
@@ -5681,7 +5688,12 @@
       "setupTeamsExplainer": "Adaugă persoane în echipele pe care această aplicație le-a creat pentru tine.",
       "tooNarrowToAdjustFrozenFields": "Ai {saved} câmpuri înghețate, dar în acest moment apar înghețate doar {effective}, pentru că fereastra ta este prea îngustă. Poți readuce numărul de câmpuri înghețate la 1. Îl poți schimba și mărind fereastra sau îngustând anumite câmpuri.",
       "publishWideningConsent": "O versiune care ajunge undeva unde această aplicație nu ajungea înainte — o integrare nouă, o primă folosire a unui model de IA — nu actualizează singură o instalare. Cel care a instalat-o este întrebat mai întâi și rulează mai departe versiunea pe care o are până acceptă.",
-      "publishRolloutStaged": "Instalările se actualizează în etape, începând cu un grup mic, iar lansarea se oprește singură dacă actualizările încep să eșueze."
+      "publishRolloutStaged": "Instalările se actualizează în etape, începând cu un grup mic, iar lansarea se oprește singură dacă actualizările încep să eșueze.",
+      "seeWhoSubmitted": "Vezi cine a trimis un răspuns",
+      "seeWhoSubmittedSubtitle": "Este necesară autentificarea în NocoDB.",
+      "seeWhoSubmittedDisabledHint": "Adaugă un câmp „Creat de” în tabel pentru a activa această opțiune.",
+      "formRequiresSignin": "Accesarea acestui formular necesită autentificarea în NocoDB.",
+      "switchAccount": "Schimbă contul"
     },
     "error": {
       "failedToCreateSync": "Crearea sincronizării a eșuat",
@@ -6175,7 +6187,10 @@
     "skillUpdatedFromSource": "{title} actualizat din sursă",
     "workspaceSkillsSubtitle": "Disponibile în fiecare bază de aici și pentru agenții care le activează.",
     "skillShadowed": "O competență cu acest titlu la nivelul {scope} are prioritate, așa că aceasta nu este oferită.",
-    "skillsNoMatchBody": "Nimic nu se potrivește cu această căutare. Încearcă alt termen sau șterge filtrele."
+    "skillsNoMatchBody": "Nimic nu se potrivește cu această căutare. Încearcă alt termen sau șterge filtrele.",
+    "chatTooManyFiles": "Cel mult {count} fișiere pe mesaj",
+    "chatTriggeredReadOnly": "Această conversație a fost inițiată de un declanșator și nu poate fi continuată.",
+    "agentPaused": "Acest agent este în pauză, așa că declanșatoarele nu vor porni."
   },
   "trash": {
     "restore": "Restaurează",

@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Hobetu plana erabiltzaile bakoitzaren kredentzialak erabiltzeko",
     "upgradeToUsePerUserCredentialsSubtitle": "Zure {activePlan} planak kredentzial partekatuak baino ez ditu erabiltzen. Hobetu {plan} planera kide bakoitzak bere kontua lotu ahal izateko.",
     "upgradeToUseCustomEnvironments": "Hobetu plana zeure inguruneak sortzeko",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Ingurune pertsonalizatuak ez daude eskuragarri zure {activePlan} planean. Hobetu {plan} planera Production eta Staging ez beste ingurune batzuk sortzeko."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Ingurune pertsonalizatuak ez daude eskuragarri zure {activePlan} planean. Hobetu {plan} planera Production eta Staging ez beste ingurune batzuk sortzeko.",
+    "upgradeToUseFormRequireSignin": "Bertsio-berritu inprimakietan saioa hastea eskatzeko",
+    "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko."
   },
   "general": {
     "scrollToBottom": "Behera irristatu",
@@ -4340,7 +4342,10 @@
       "allowShown": "Baimendu erakutsitakoak",
       "clearShown": "Garbitu erakutsitakoak",
       "shownOf": "{total}(e)tik {shown} erakutsita"
-    }
+    },
+    "noBaseAccess": "Ez dago baserako sarbiderik",
+    "signedInAs": "Saioa honela hasita",
+    "moreAgents": "Beste agente {count} | Beste {count} agente"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -4993,7 +4998,9 @@
     "marketplaceSearch": "Bilatu aplikazioak, argitaratzaileak edo egin behar duzuna",
     "noAgents": "Agenterik ez",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Bilatu trebetasunak..."
+    "searchSkills": "Bilatu trebetasunak...",
+    "messageAgent": "Idatzi mezua {agent} agenteari",
+    "somethingElse": "Beste zerbait"
   },
   "msg": {
     "sourceViewNotShared": "Ikuspegi honetan sinkronizazioa desgaituta dago.",
@@ -5696,7 +5703,12 @@
       "setupTeamsExplainer": "Gehitu jendea app honek zuretzat sortu dituen taldeetara.",
       "tooNarrowToAdjustFrozenFields": "{saved} eremu izoztu dituzu, baina une honetan {effective} bakarrik agertzen dira izoztuta, zure leihoa estuegia delako. Izoztutako eremuen kopurua 1era berrezar dezakezu. Kopuru hori alda dezakezu leihoa handituz edo eremuak banaka estutuz ere.",
       "publishWideningConsent": "App honek lehen iristen ez zuen lekuren batera iristen den bertsio batek — integrazio berri bat, AA eredu baten lehen erabilera — ez du instalazio bat bere kabuz eguneratzen. Instalatu zuenari galdetzen zaio lehenik, eta duen bertsioarekin jarraitzen du onartu arte.",
-      "publishRolloutStaged": "Instalazioak urratsez urrats eguneratzen dira, talde txiki batekin hasita, eta zabalkundea bere kabuz gelditzen da eguneraketek huts egiten hasten badira."
+      "publishRolloutStaged": "Instalazioak urratsez urrats eguneratzen dira, talde txiki batekin hasita, eta zabalkundea bere kabuz gelditzen da eguneraketek huts egiten hasten badira.",
+      "seeWhoSubmitted": "Ikusi nork bidali duen erantzuna",
+      "seeWhoSubmittedSubtitle": "NocoDB-n saioa hastea beharrezkoa da.",
+      "seeWhoSubmittedDisabledHint": "Gehitu «Sortzailea» eremua zure taulari aukera hau gaitzeko.",
+      "formRequiresSignin": "Inprimaki hau atzitzeko NocoDB-n saioa hasi behar duzu.",
+      "switchAccount": "Aldatu kontua"
     },
     "error": {
       "failedToCreateSync": "Sinkronizazioa sortzeko huts egin da",
@@ -6190,7 +6202,10 @@
     "skillUpdatedFromSource": "{title} iturritik eguneratua",
     "workspaceSkillsSubtitle": "Hemengo proiektu guztietan eskuragarri, eta horiek aktibatzen dituzten agenteentzat.",
     "skillShadowed": "Izenburu hau duen trebetasun batek lehentasuna du {scope} mailan, beraz hau ez da eskaintzen.",
-    "skillsNoMatchBody": "Ezerk ez du bilaketa horrekin bat egiten. Saiatu beste termino batekin edo garbitu iragazkiak."
+    "skillsNoMatchBody": "Ezerk ez du bilaketa horrekin bat egiten. Saiatu beste termino batekin edo garbitu iragazkiak.",
+    "chatTooManyFiles": "Gehienez {count} fitxategi mezuko",
+    "chatTriggeredReadOnly": "Elkarrizketa hau eraldagailu batek hasi zuen eta ezin da jarraitu.",
+    "agentPaused": "Agente hau etenda dago; beraz, eraldagailuak ez dira abiaraziko."
   },
   "trash": {
     "restore": "Berreskuratu",

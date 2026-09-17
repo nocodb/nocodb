@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "ارتقِ لاستخدام بيانات اعتماد لكل مستخدم",
     "upgradeToUsePerUserCredentialsSubtitle": "تستخدم خطتك {activePlan} بيانات اعتماد مشتركة فقط. ارتقِ إلى {plan} ليربط كل عضو حسابه الخاص.",
     "upgradeToUseCustomEnvironments": "ارتقِ لإنشاء بيئات مخصصة",
-    "upgradeToUseCustomEnvironmentsSubtitle": "البيئات المخصصة غير متاحة في خطتك {activePlan}. ارتقِ إلى {plan} لإنشاء بيئات إلى جانب Production و Staging."
+    "upgradeToUseCustomEnvironmentsSubtitle": "البيئات المخصصة غير متاحة في خطتك {activePlan}. ارتقِ إلى {plan} لإنشاء بيئات إلى جانب Production و Staging.",
+    "upgradeToUseFormRequireSignin": "قم بالترقية لطلب تسجيل الدخول في النماذج",
+    "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج."
   },
   "general": {
     "scrollToBottom": "التمرير إلى الأسفل",
@@ -4341,7 +4343,10 @@
       "allowShown": "السماح بالمعروضة",
       "clearShown": "مسح المعروضة",
       "shownOf": "معروض {shown} من {total}"
-    }
+    },
+    "noBaseAccess": "لا يوجد وصول إلى القاعدة",
+    "signedInAs": "تم تسجيل الدخول باسم",
+    "moreAgents": "{count} وكيل آخر | {count} وكلاء آخرون"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -4994,7 +4999,9 @@
     "marketplaceSearch": "ابحث عن التطبيقات أو الناشرين أو ما تريد إنجازه",
     "noAgents": "لا يوجد وكلاء",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "البحث عن المهارات..."
+    "searchSkills": "البحث عن المهارات...",
+    "messageAgent": "راسل {agent}",
+    "somethingElse": "شيء آخر"
   },
   "msg": {
     "sourceViewNotShared": "تم تعطيل المزامنة في هذا العرض",
@@ -5697,7 +5704,12 @@
       "setupTeamsExplainer": "أضف أشخاصًا إلى الفرق التي أنشأها لك هذا التطبيق.",
       "tooNarrowToAdjustFrozenFields": "لديك {saved} حقول مثبَّتة، لكن لا يظهر مثبَّتًا الآن سوى {effective} لأن نافذتك ضيقة جدًا. يمكنك إعادة عدد الحقول المثبَّتة إلى 1. ويمكنك أيضًا تغيير العدد بتكبير النافذة أو بتضييق حقول بعينها.",
       "publishWideningConsent": "الإصدار الذي يصل إلى موضع لم يكن هذا التطبيق يبلغه من قبل — تكامل جديد، أو أول استخدام لنموذج ذكاء اصطناعي — لا يُحدِّث أي تثبيت من تلقاء نفسه. يُسأل من قام بالتثبيت أولًا، ويظل يعمل بالإصدار الذي لديه حتى يوافق.",
-      "publishRolloutStaged": "تُحدَّث عمليات التثبيت على مراحل، بدءًا بمجموعة صغيرة، ويتوقف الطرح من تلقاء نفسه إذا بدأت التحديثات تفشل."
+      "publishRolloutStaged": "تُحدَّث عمليات التثبيت على مراحل، بدءًا بمجموعة صغيرة، ويتوقف الطرح من تلقاء نفسه إذا بدأت التحديثات تفشل.",
+      "seeWhoSubmitted": "معرفة من أرسل الرد",
+      "seeWhoSubmittedSubtitle": "يلزم تسجيل الدخول إلى NocoDB.",
+      "seeWhoSubmittedDisabledHint": "أضف حقل «انشأ من قبل» إلى جدولك لتفعيل هذا الخيار.",
+      "formRequiresSignin": "يتطلب الوصول إلى هذا النموذج تسجيل الدخول إلى NocoDB.",
+      "switchAccount": "تبديل الحساب"
     },
     "error": {
       "failedToCreateSync": "فشل في إنشاء المزامنة",
@@ -6191,7 +6203,10 @@
     "skillUpdatedFromSource": "تم تحديث {title} من المصدر",
     "workspaceSkillsSubtitle": "متاحة في كل مشروع هنا، وللوكلاء الذين يفعّلونها.",
     "skillShadowed": "لمهارة تحمل هذا العنوان على مستوى {scope} الأسبقية، لذا لا تُعرض هذه المهارة.",
-    "skillsNoMatchBody": "لا شيء يطابق هذا البحث. جرّب كلمة أخرى أو امسح عوامل التصفية."
+    "skillsNoMatchBody": "لا شيء يطابق هذا البحث. جرّب كلمة أخرى أو امسح عوامل التصفية.",
+    "chatTooManyFiles": "{count} ملفات كحد أقصى لكل رسالة",
+    "chatTriggeredReadOnly": "بدأت هذه المحادثة بواسطة مشغل ولا يمكن متابعتها.",
+    "agentPaused": "هذا الوكيل متوقف مؤقتًا، لذا لن يتم تشغيل المشغلات."
   },
   "trash": {
     "restore": "إستعادة",

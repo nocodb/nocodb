@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "แนะนำการดำเนินการโดยอัตโนมัติ",
     "backToPage": "กลับไปที่ {page}",
     "availableLayouts": "Layout ที่ใช้ได้",
-    "backToAssistant": "กลับไปที่ผู้ช่วย",
     "barOrientation": "แนวของแท่ง",
     "baseNav": {
       "groupInvite": "เชิญ",
@@ -3285,7 +3284,6 @@
     "installingApp": "กำลังสร้างเบสของคุณ",
     "installedSkills": "Skills ที่ติดตั้งแล้ว",
     "filesCount": "{count} ไฟล์",
-    "goToAgents": "ไปที่ Agents",
     "horizontal": "แนวนอน",
     "fieldsCount": "{count} ฟิลด์ | {count} ฟิลด์",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "ส่งออกข้อมูลไม่สำเร็จ!",
       "fieldHeaderVisibilityUpdateFailed": "เกิดข้อผิดพลาดขณะอัปเดตการแสดงหัวฟิลด์",
       "appBuildFailed": "เริ่มสร้างแอปไม่ได้",
-      "chatAttachmentLimit": "ไม่เกิน {n} ไฟล์ต่อข้อความ",
       "marketplaceLoadFailed": "โหลดสโตร์ไม่ได้",
       "marketplaceHandleTaken": "แฮนเดิลนี้ถูกใช้ไปแล้ว",
       "marketplaceHandleReserved": "แฮนเดิลนี้ถูกสงวนไว้",

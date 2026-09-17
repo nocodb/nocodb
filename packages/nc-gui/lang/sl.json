@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Samodejno predlagaj dejanja",
     "backToPage": "Nazaj na {page}",
     "availableLayouts": "Razpoložljivi layouti",
-    "backToAssistant": "Nazaj na pomočnika",
     "barOrientation": "Usmerjenost stolpcev",
     "baseNav": {
       "groupInvite": "Povabi",
@@ -3284,7 +3283,6 @@
     "installingApp": "Ustvarjamo vašo bazo",
     "installedSkills": "Nameščene Skills",
     "filesCount": "{count} datotek",
-    "goToAgents": "Pojdi na Agents",
     "horizontal": "Vodoravno",
     "fieldsCount": "{count} polje | {count} polj",
     "environmentStaging": "Staging",
@@ -5404,7 +5402,6 @@
       "dataExportFailed": "Izvoz podatkov ni uspel!",
       "fieldHeaderVisibilityUpdateFailed": "Pri posodabljanju vidnosti glave polja je prišlo do napake",
       "appBuildFailed": "Gradnje aplikacije ni bilo mogoče zagnati",
-      "chatAttachmentLimit": "Največ {n} datotek na sporočilo",
       "marketplaceLoadFailed": "Trgovine ni bilo mogoče naložiti",
       "marketplaceHandleTaken": "Ta identifikator je že zaseden",
       "marketplaceHandleReserved": "Ta identifikator je rezerviran",

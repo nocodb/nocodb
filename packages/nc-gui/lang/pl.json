@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Automatycznie proponuj akcje",
     "backToPage": "Wróć do {page}",
     "availableLayouts": "Dostępne layouty",
-    "backToAssistant": "Wróć do asystenta",
     "barOrientation": "Orientacja słupków",
     "baseNav": {
       "groupInvite": "Zaproś",
@@ -3284,7 +3283,6 @@
     "installingApp": "Tworzenie Twojej bazy",
     "installedSkills": "Zainstalowane Skills",
     "filesCount": "{count} plików",
-    "goToAgents": "Przejdź do Agents",
     "horizontal": "Poziomo",
     "fieldsCount": "{count} pole | {count} pól",
     "environmentStaging": "Staging",
@@ -5404,7 +5402,6 @@
       "dataExportFailed": "Nie udało się wyeksportować danych!",
       "fieldHeaderVisibilityUpdateFailed": "Wystąpił błąd podczas aktualizowania widoczności nagłówka pola",
       "appBuildFailed": "Nie udało się uruchomić kompilacji aplikacji",
-      "chatAttachmentLimit": "Najwyżej {n} plików na wiadomość",
       "marketplaceLoadFailed": "Nie udało się wczytać sklepu",
       "marketplaceHandleTaken": "Ten identyfikator jest już zajęty",
       "marketplaceHandleReserved": "Ten identyfikator jest zarezerwowany",

@@ -2834,7 +2834,6 @@
     "autoSuggestActions": "Automātiski ieteikt darbības",
     "backToPage": "Atpakaļ uz {page}",
     "availableLayouts": "Pieejamie layouti",
-    "backToAssistant": "Atpakaļ pie asistenta",
     "barOrientation": "Joslu orientācija",
     "baseNav": {
       "groupInvite": "Uzaicināt",
@@ -3282,7 +3281,6 @@
     "installingApp": "Tiek izveidota jūsu bāze",
     "installedSkills": "Instalētās Skills",
     "filesCount": "{count} faili",
-    "goToAgents": "Doties uz Agents",
     "horizontal": "Horizontāli",
     "fieldsCount": "{count} lauks | {count} lauki",
     "environmentStaging": "Staging",
@@ -5402,7 +5400,6 @@
       "dataExportFailed": "Neizdevās eksportēt datus!",
       "fieldHeaderVisibilityUpdateFailed": "Atjauninot lauka galvenes redzamību, radās kļūda",
       "appBuildFailed": "Neizdevās sākt lietotnes būvējumu",
-      "chatAttachmentLimit": "Ne vairāk kā {n} faili vienā ziņā",
       "marketplaceLoadFailed": "Neizdevās ielādēt veikalu",
       "marketplaceHandleTaken": "Šis identifikators jau ir aizņemts",
       "marketplaceHandleReserved": "Šis identifikators ir rezervēts",

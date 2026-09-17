@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "कार्यहरू स्वतः सुझाव दिनुहोस्",
     "backToPage": "{page} मा फर्कनुहोस्",
     "availableLayouts": "उपलब्ध Layout",
-    "backToAssistant": "सहायकमा फर्कनुहोस्",
     "barOrientation": "पट्टीको दिशा",
     "baseNav": {
       "groupInvite": "निमन्त्रणा",
@@ -3285,7 +3284,6 @@
     "installingApp": "तपाईंको बेस सिर्जना हुँदै",
     "installedSkills": "स्थापित Skills",
     "filesCount": "{count} फाइल",
-    "goToAgents": "Agents मा जानुहोस्",
     "horizontal": "तेर्सो",
     "fieldsCount": "{count} क्षेत्र | {count} क्षेत्रहरू",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "डेटा निर्यात गर्न सकिएन!",
       "fieldHeaderVisibilityUpdateFailed": "फाँटको शीर्षकको दृश्यता अद्यावधिक गर्दा त्रुटि भयो",
       "appBuildFailed": "एपको बिल्ड सुरु गर्न सकिएन",
-      "chatAttachmentLimit": "प्रति सन्देश बढीमा {n} फाइल",
       "marketplaceLoadFailed": "स्टोर लोड गर्न सकिएन",
       "marketplaceHandleTaken": "यो ह्यान्डल पहिल्यै लिइसकिएको छ",
       "marketplaceHandleReserved": "यो ह्यान्डल सुरक्षित राखिएको छ",

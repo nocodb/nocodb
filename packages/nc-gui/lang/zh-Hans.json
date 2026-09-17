@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "自动建议操作",
     "backToPage": "返回 {page}",
     "availableLayouts": "可用的 Layout",
-    "backToAssistant": "返回助手",
     "barOrientation": "条形方向",
     "baseNav": {
       "groupInvite": "邀请",
@@ -3285,7 +3284,6 @@
     "installingApp": "正在创建你的 Base",
     "installedSkills": "已安装的 Skills",
     "filesCount": "{count} 个文件",
-    "goToAgents": "前往 Agents",
     "horizontal": "横向",
     "fieldsCount": "{count} 个字段 | {count} 个字段",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "导出数据失败！",
       "fieldHeaderVisibilityUpdateFailed": "更新字段标题可见性时出错",
       "appBuildFailed": "无法开始构建应用",
-      "chatAttachmentLimit": "每条消息最多 {n} 个文件",
       "marketplaceLoadFailed": "无法加载商店",
       "marketplaceHandleTaken": "此句柄已被占用",
       "marketplaceHandleReserved": "此句柄已被保留",

@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Föreslå åtgärder automatiskt",
     "backToPage": "Tillbaka till {page}",
     "availableLayouts": "Tillgängliga layouter",
-    "backToAssistant": "Tillbaka till assistenten",
     "barOrientation": "Staplarnas orientering",
     "baseNav": {
       "groupInvite": "Bjud in",
@@ -3283,7 +3282,6 @@
     "installingApp": "Skapar din bas",
     "installedSkills": "Installerade Skills",
     "filesCount": "{count} filer",
-    "goToAgents": "Gå till Agents",
     "horizontal": "Vågrätt",
     "fieldsCount": "{count} fält | {count} fält",
     "environmentStaging": "Staging",
@@ -5400,7 +5398,6 @@
       "dataExportFailed": "Export av data misslyckades!",
       "fieldHeaderVisibilityUpdateFailed": "Ett fel uppstod när fältrubrikens synlighet uppdaterades",
       "appBuildFailed": "Kunde inte starta appbygget",
-      "chatAttachmentLimit": "Högst {n} filer per meddelande",
       "marketplaceLoadFailed": "Kunde inte läsa in butiken",
       "marketplaceHandleTaken": "Det här handle-namnet är redan taget",
       "marketplaceHandleReserved": "Det här handle-namnet är reserverat",

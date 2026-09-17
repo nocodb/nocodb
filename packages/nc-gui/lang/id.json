@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Sarankan tindakan secara otomatis",
     "backToPage": "Kembali ke {page}",
     "availableLayouts": "Layout yang tersedia",
-    "backToAssistant": "Kembali ke asisten",
     "barOrientation": "Orientasi batang",
     "baseNav": {
       "groupInvite": "Undang",
@@ -3284,7 +3283,6 @@
     "installingApp": "Membuat basis Anda",
     "installedSkills": "Skills terpasang",
     "filesCount": "{count} berkas",
-    "goToAgents": "Buka Agents",
     "horizontal": "Horizontal",
     "fieldsCount": "{count} bidang | {count} bidang",
     "environmentStaging": "Staging",
@@ -5401,7 +5399,6 @@
       "dataExportFailed": "Gagal mengekspor data!",
       "fieldHeaderVisibilityUpdateFailed": "Terjadi kesalahan saat memperbarui keterlihatan header bidang",
       "appBuildFailed": "Tidak bisa memulai pembangunan aplikasi",
-      "chatAttachmentLimit": "Maksimal {n} berkas per pesan",
       "marketplaceLoadFailed": "Tidak bisa memuat toko",
       "marketplaceHandleTaken": "Handle ini sudah dipakai",
       "marketplaceHandleReserved": "Handle ini dicadangkan",

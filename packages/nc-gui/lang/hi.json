@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "क्रियाएँ स्वतः सुझाएँ",
     "backToPage": "{page} पर वापस जाएँ",
     "availableLayouts": "उपलब्ध Layout",
-    "backToAssistant": "सहायक पर वापस जाएँ",
     "barOrientation": "पट्टियों की दिशा",
     "baseNav": {
       "groupInvite": "आमंत्रित करें",
@@ -3285,7 +3284,6 @@
     "installingApp": "आपका बेस बनाया जा रहा है",
     "installedSkills": "इंस्टॉल की गई Skills",
     "filesCount": "{count} फ़ाइलें",
-    "goToAgents": "Agents पर जाएँ",
     "horizontal": "क्षैतिज",
     "fieldsCount": "{count} फ़ील्ड | {count} फ़ील्ड",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "डेटा निर्यात नहीं हो सका!",
       "fieldHeaderVisibilityUpdateFailed": "फ़ील्ड हेडर की दृश्यता अपडेट करते समय त्रुटि हुई",
       "appBuildFailed": "ऐप की बिल्ड शुरू नहीं हो सकी",
-      "chatAttachmentLimit": "हर संदेश में ज़्यादा से ज़्यादा {n} फ़ाइलें",
       "marketplaceLoadFailed": "स्टोर लोड नहीं हो सका",
       "marketplaceHandleTaken": "यह हैंडल पहले से लिया जा चुका है",
       "marketplaceHandleReserved": "यह हैंडल आरक्षित है",

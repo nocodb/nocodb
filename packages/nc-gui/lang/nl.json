@@ -2830,7 +2830,6 @@
     "autoSuggestActions": "Acties automatisch voorstellen",
     "backToPage": "Terug naar {page}",
     "availableLayouts": "Beschikbare layouts",
-    "backToAssistant": "Terug naar de assistent",
     "barOrientation": "Oriëntatie van de balken",
     "baseNav": {
       "groupInvite": "Uitnodigen",
@@ -3278,7 +3277,6 @@
     "installingApp": "Je base wordt aangemaakt",
     "installedSkills": "Geïnstalleerde Skills",
     "filesCount": "{count} bestanden",
-    "goToAgents": "Ga naar de Agents",
     "horizontal": "Horizontaal",
     "fieldsCount": "{count} veld | {count} velden",
     "environmentStaging": "Staging",
@@ -5390,7 +5388,6 @@
       "dataExportFailed": "Exporteren van gegevens mislukt!",
       "fieldHeaderVisibilityUpdateFailed": "Er is een fout opgetreden bij het bijwerken van de zichtbaarheid van de veldkop",
       "appBuildFailed": "Kon de app-build niet starten",
-      "chatAttachmentLimit": "Maximaal {n} bestanden per bericht",
       "marketplaceLoadFailed": "Kon de winkel niet laden",
       "marketplaceHandleTaken": "Deze handle is al in gebruik",
       "marketplaceHandleReserved": "Deze handle is gereserveerd",

@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "স্বয়ংক্রিয়ভাবে ক্রিয়া প্রস্তাব করুন",
     "backToPage": "{page}-এ ফিরে যান",
     "availableLayouts": "উপলব্ধ Layout",
-    "backToAssistant": "সহকারীতে ফিরে যান",
     "barOrientation": "দণ্ডের দিক",
     "baseNav": {
       "groupInvite": "আমন্ত্রণ",
@@ -3285,7 +3284,6 @@
     "installingApp": "আপনার বেস তৈরি হচ্ছে",
     "installedSkills": "ইনস্টল করা Skills",
     "filesCount": "{count}টি ফাইল",
-    "goToAgents": "Agents এ যান",
     "horizontal": "অনুভূমিক",
     "fieldsCount": "{count}টি ক্ষেত্র | {count}টি ক্ষেত্র",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "ডেটা রপ্তানি করা যায়নি!",
       "fieldHeaderVisibilityUpdateFailed": "ক্ষেত্রের শিরোনামের দৃশ্যমানতা আপডেট করার সময় ত্রুটি হয়েছে",
       "appBuildFailed": "অ্যাপের বিল্ড শুরু করা যায়নি",
-      "chatAttachmentLimit": "প্রতি বার্তায় সর্বোচ্চ {n}টি ফাইল",
       "marketplaceLoadFailed": "স্টোর লোড করা যায়নি",
       "marketplaceHandleTaken": "এই হ্যান্ডেল আগেই নেওয়া হয়েছে",
       "marketplaceHandleReserved": "এই হ্যান্ডেল সংরক্ষিত",

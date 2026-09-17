@@ -2833,7 +2833,6 @@
     "autoSuggestActions": "Sugerează acțiuni automat",
     "backToPage": "Înapoi la {page}",
     "availableLayouts": "Layouturi disponibile",
-    "backToAssistant": "Înapoi la asistent",
     "barOrientation": "Orientarea barelor",
     "baseNav": {
       "groupInvite": "Invită",
@@ -3279,7 +3278,6 @@
     "installingApp": "Se creează baza ta",
     "installedSkills": "Skills instalate",
     "filesCount": "{count} fișiere",
-    "goToAgents": "Mergi la Agents",
     "horizontal": "Orizontal",
     "fieldsCount": "{count} câmp | {count} câmpuri",
     "environmentStaging": "Staging",
@@ -5389,7 +5387,6 @@
       "dataExportFailed": "Exportul datelor a eșuat!",
       "fieldHeaderVisibilityUpdateFailed": "A apărut o eroare la actualizarea vizibilității antetului câmpului",
       "appBuildFailed": "Nu s-a putut porni construcția aplicației",
-      "chatAttachmentLimit": "Cel mult {n} fișiere pe mesaj",
       "marketplaceLoadFailed": "Nu s-a putut încărca magazinul",
       "marketplaceHandleTaken": "Acest identificator este deja luat",
       "marketplaceHandleReserved": "Acest identificator este rezervat",

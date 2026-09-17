@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Automaticky navrhovat akce",
     "backToPage": "Zpět na {page}",
     "availableLayouts": "Dostupné layouty",
-    "backToAssistant": "Zpět na asistenta",
     "barOrientation": "Orientace sloupců",
     "baseNav": {
       "groupInvite": "Pozvat",
@@ -3282,7 +3281,6 @@
     "installingApp": "Vytváříme vaši bázi",
     "installedSkills": "Nainstalované Skills",
     "filesCount": "{count} souborů",
-    "goToAgents": "Přejít na Agents",
     "horizontal": "Vodorovně",
     "fieldsCount": "{count} pole | {count} polí",
     "environmentStaging": "Staging",
@@ -5402,7 +5400,6 @@
       "dataExportFailed": "Export dat se nezdařil!",
       "fieldHeaderVisibilityUpdateFailed": "Při aktualizaci viditelnosti záhlaví pole došlo k chybě",
       "appBuildFailed": "Sestavení aplikace se nepodařilo spustit",
-      "chatAttachmentLimit": "Nejvýše {n} souborů na zprávu",
       "marketplaceLoadFailed": "Obchod se nepodařilo načíst",
       "marketplaceHandleTaken": "Tento identifikátor je už obsazený",
       "marketplaceHandleReserved": "Tento identifikátor je rezervovaný",

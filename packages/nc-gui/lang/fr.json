@@ -2823,7 +2823,6 @@
     "autoSuggestActions": "Suggérer des actions automatiquement",
     "backToPage": "Retour à {page}",
     "availableLayouts": "Layouts disponibles",
-    "backToAssistant": "Retour à l'assistant",
     "barOrientation": "Orientation des barres",
     "baseNav": {
       "groupInvite": "Inviter",
@@ -3264,7 +3263,6 @@
     "installingApp": "Création de votre base",
     "installedSkills": "Skills installées",
     "filesCount": "{count} fichiers",
-    "goToAgents": "Aller aux Agents",
     "horizontal": "Horizontal",
     "fieldsCount": "{count} champ | {count} champs",
     "environmentStaging": "Staging",
@@ -5368,7 +5366,6 @@
       "dataExportFailed": "Échec de l'export des données !",
       "fieldHeaderVisibilityUpdateFailed": "Une erreur s'est produite lors de la mise à jour de la visibilité de l'en-tête de champ",
       "appBuildFailed": "Impossible de démarrer la compilation de l'application",
-      "chatAttachmentLimit": "Au maximum {n} fichiers par message",
       "marketplaceLoadFailed": "Impossible de charger la boutique",
       "marketplaceHandleTaken": "Cet identifiant est déjà pris",
       "marketplaceHandleReserved": "Cet identifiant est réservé",

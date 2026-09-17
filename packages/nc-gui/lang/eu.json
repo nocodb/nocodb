@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Iradoki ekintzak automatikoki",
     "backToPage": "Itzuli {page} orrira",
     "availableLayouts": "Layout erabilgarriak",
-    "backToAssistant": "Itzuli laguntzailera",
     "barOrientation": "Barren orientazioa",
     "baseNav": {
       "groupInvite": "Gonbidatu",
@@ -3284,7 +3283,6 @@
     "installingApp": "Zure base-a sortzen",
     "installedSkills": "Instalatutako Skills",
     "filesCount": "{count} fitxategi",
-    "goToAgents": "Joan Agents atalera",
     "horizontal": "Horizontala",
     "fieldsCount": "Eremu {count} | {count} eremu",
     "environmentStaging": "Staging",
@@ -5404,7 +5402,6 @@
       "dataExportFailed": "Ezin izan dira datuak esportatu!",
       "fieldHeaderVisibilityUpdateFailed": "Errore bat gertatu da eremuaren goiburuaren ikusgaitasuna eguneratzean",
       "appBuildFailed": "Ezin izan da aplikazioaren eraikuntza abiarazi",
-      "chatAttachmentLimit": "Gehienez {n} fitxategi mezuko",
       "marketplaceLoadFailed": "Ezin izan da denda kargatu",
       "marketplaceHandleTaken": "Identifikatzaile hau hartuta dago jada",
       "marketplaceHandleReserved": "Identifikatzaile hau gordeta dago",

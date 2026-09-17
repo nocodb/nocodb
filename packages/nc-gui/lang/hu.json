@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Műveletek automatikus javaslata",
     "backToPage": "Vissza ide: {page}",
     "availableLayouts": "Elérhető layoutok",
-    "backToAssistant": "Vissza az asszisztenshez",
     "barOrientation": "Oszlopok tájolása",
     "baseNav": {
       "groupInvite": "Meghívás",
@@ -3285,7 +3284,6 @@
     "installingApp": "A bázis létrehozása folyamatban",
     "installedSkills": "Telepített Skills",
     "filesCount": "{count} fájl",
-    "goToAgents": "Ugrás az Agents elemhez",
     "horizontal": "Vízszintes",
     "fieldsCount": "{count} mező | {count} mező",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "Nem sikerült exportálni az adatokat!",
       "fieldHeaderVisibilityUpdateFailed": "Hiba történt a mezőfejléc láthatóságának frissítésekor",
       "appBuildFailed": "Nem sikerült elindítani az alkalmazás buildjét",
-      "chatAttachmentLimit": "Üzenetenként legfeljebb {n} fájl",
       "marketplaceLoadFailed": "Nem sikerült betölteni az áruházat",
       "marketplaceHandleTaken": "Ezt a handle-t már használják",
       "marketplaceHandleReserved": "Ez a handle foglalt",

@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "작업 자동 제안",
     "backToPage": "{page}(으)로 돌아가기",
     "availableLayouts": "사용 가능한 Layout",
-    "backToAssistant": "어시스턴트로 돌아가기",
     "barOrientation": "막대 방향",
     "baseNav": {
       "groupInvite": "초대",
@@ -3285,7 +3284,6 @@
     "installingApp": "베이스를 만드는 중",
     "installedSkills": "설치된 Skills",
     "filesCount": "파일 {count}개",
-    "goToAgents": "Agents 로 이동",
     "horizontal": "가로",
     "fieldsCount": "필드 {count}개 | 필드 {count}개",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "데이터를 내보내지 못했습니다!",
       "fieldHeaderVisibilityUpdateFailed": "필드 헤더 표시 여부를 업데이트하는 중 오류가 발생했습니다",
       "appBuildFailed": "앱 빌드를 시작할 수 없습니다",
-      "chatAttachmentLimit": "메시지당 최대 {n}개 파일",
       "marketplaceLoadFailed": "스토어를 불러오지 못했습니다",
       "marketplaceHandleTaken": "이 핸들은 이미 사용 중입니다",
       "marketplaceHandleReserved": "이 핸들은 예약되어 있습니다",

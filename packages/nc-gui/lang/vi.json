@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Tự động gợi ý hành động",
     "backToPage": "Quay lại {page}",
     "availableLayouts": "Các Layout khả dụng",
-    "backToAssistant": "Quay lại trợ lý",
     "barOrientation": "Hướng của cột",
     "baseNav": {
       "groupInvite": "Mời",
@@ -3285,7 +3284,6 @@
     "installingApp": "Đang tạo cơ sở của bạn",
     "installedSkills": "Skills đã cài",
     "filesCount": "{count} tệp",
-    "goToAgents": "Đi tới Agents",
     "horizontal": "Ngang",
     "fieldsCount": "{count} trường | {count} trường",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "Xuất dữ liệu thất bại!",
       "fieldHeaderVisibilityUpdateFailed": "Đã xảy ra lỗi khi cập nhật hiển thị tiêu đề trường",
       "appBuildFailed": "Không khởi động được quá trình dựng ứng dụng",
-      "chatAttachmentLimit": "Tối đa {n} tệp mỗi tin nhắn",
       "marketplaceLoadFailed": "Không tải được cửa hàng",
       "marketplaceHandleTaken": "Handle này đã có người dùng",
       "marketplaceHandleReserved": "Handle này đã được giữ chỗ",

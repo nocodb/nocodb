@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "اقتراح الإجراءات تلقائيًا",
     "backToPage": "العودة إلى {page}",
     "availableLayouts": "التخطيطات المتاحة",
-    "backToAssistant": "العودة إلى المساعد",
     "barOrientation": "اتجاه الأعمدة",
     "baseNav": {
       "groupInvite": "دعوة",
@@ -3285,7 +3284,6 @@
     "installingApp": "جارٍ إنشاء قاعدتك",
     "installedSkills": "Skills المثبّتة",
     "filesCount": "{count} ملفات",
-    "goToAgents": "الانتقال إلى Agents",
     "horizontal": "أفقي",
     "fieldsCount": "{count} حقل | {count} حقول",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "فشل تصدير البيانات!",
       "fieldHeaderVisibilityUpdateFailed": "حدث خطأ أثناء تحديث ظهور رأس الحقل",
       "appBuildFailed": "تعذّر بدء بناء التطبيق",
-      "chatAttachmentLimit": "بحد أقصى {n} ملفات لكل رسالة",
       "marketplaceLoadFailed": "تعذّر تحميل المتجر",
       "marketplaceHandleTaken": "هذا المعرّف مستخدم بالفعل",
       "marketplaceHandleReserved": "هذا المعرّف محجوز",

@@ -2834,7 +2834,6 @@
     "autoSuggestActions": "Sugerir acciones automáticamente",
     "backToPage": "Volver a {page}",
     "availableLayouts": "Layouts disponibles",
-    "backToAssistant": "Volver al asistente",
     "barOrientation": "Orientación de las barras",
     "baseNav": {
       "groupInvite": "Invitar",
@@ -3280,7 +3279,6 @@
     "installingApp": "Creando tu base",
     "installedSkills": "Skills instaladas",
     "filesCount": "{count} archivos",
-    "goToAgents": "Ir a los agentes",
     "horizontal": "Horizontal",
     "fieldsCount": "{count} campo | {count} campos",
     "environmentStaging": "Staging",
@@ -5396,7 +5394,6 @@
       "dataExportFailed": "¡No se pudieron exportar los datos!",
       "fieldHeaderVisibilityUpdateFailed": "Se produjo un error al actualizar la visibilidad de la cabecera del campo",
       "appBuildFailed": "No se pudo iniciar la compilación de la aplicación",
-      "chatAttachmentLimit": "Como máximo {n} archivos por mensaje",
       "marketplaceLoadFailed": "No se pudo cargar la tienda",
       "marketplaceHandleTaken": "Este identificador ya está en uso",
       "marketplaceHandleReserved": "Este identificador está reservado",

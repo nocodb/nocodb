@@ -1,4 +1,5 @@
 import type { Api } from 'nocodb-sdk'
+import { isAxiosError } from 'axios'
 
 const DbNotFoundMsg = 'Database config not found'
 
@@ -105,7 +106,7 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
           // over a momentary blip, dropping the user on the sign-in screen
           // mid-session. refreshToken now rethrows those instead of returning
           // falsy, so they land here; fall through to the retry below.
-          const refreshServerRejected = !!(refreshTokenError as any)?.response
+          const refreshServerRejected = isAxiosError(refreshTokenError) && !!refreshTokenError.response
 
           // if shared execution error, don't sign out
           if (!(refreshTokenError instanceof SharedExecutionError) && refreshServerRejected) {

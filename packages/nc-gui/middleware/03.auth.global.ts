@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import type { Api } from 'nocodb-sdk'
 import { NcErrorType } from 'nocodb-sdk'
 import type { UseGlobalReturn } from '../composables/useGlobal/types'
@@ -145,10 +146,16 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       await state.refreshToken({})
     } catch (e) {
       console.info('Refresh token failed', (e as Error)?.message)
-      // Clear stale auth state so the next signin starts clean. Without
-      // this, an invalid token persists in storage and can short-circuit
-      // subsequent SSO round-trips into a redirect loop.
-      await state.signOut({ skipApiCall: true })
+      // Only sign out when the SERVER rejected the refresh. `refreshToken` now
+      // rethrows transient failures (no response at all — offline, aborted,
+      // proxy blip) instead of swallowing them, and bouncing those to /signin
+      // mid-session is the bug this PR fixes everywhere else. Mirrors the
+      // interceptor. A genuine expiry still arrives as a 401 response.
+      if (isAxiosError(e) && e.response) {
+        // Clear stale auth state so the next signin starts clean; an invalid
+        // token left in storage can short-circuit SSO into a redirect loop.
+        await state.signOut({ skipApiCall: true })
+      }
     }
 
     /** if user is still not signed in, redirect to signin page */

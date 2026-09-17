@@ -257,8 +257,47 @@
       "workspaceMembers": "ওয়ার্কস্পেস সদস্য",
       "audit": "ওয়ার্কস্পেস অডিট",
       "ltarCustomDisplayValue": "কাস্টম ডিসপ্লে ভ্যালু ফিল্ড",
-      "publicDocShare": "সার্বজনীন ডকুমেন্ট শেয়ারিং"
-    }
+      "publicDocShare": "সার্বজনীন ডকুমেন্ট শেয়ারিং",
+      "agents": "এজেন্ট"
+    },
+    "upgradeToSortAndLimitLookupValues": "Lookup ফিল্ডে দেখানো মানগুলি সাজাতে ও সীমিত করতে অনুগ্রহ করে {plan} প্ল্যানে যান।",
+    "upgradeToAddMoreAgents": "আরও এজেন্ট যোগ করতে আপগ্রেড করুন",
+    "upgradeToAddMoreAgentsSubtitle": "আপনি এখন {activePlan} প্ল্যানে আছেন, যেখানে প্রতি ওয়ার্কস্পেসে {limit}টি এজেন্ট রাখা যায়। আরও পেতে {plan} প্ল্যানে যান।",
+    "upgradeToAddMoreInterfaces": "আরও Interfaces যোগ করতে আপগ্রেড করুন",
+    "upgradeToAddMoreInterfacesSubtitle": "আপনি এখন {activePlan} প্ল্যানে আছেন, যেখানে প্রতি ওয়ার্কস্পেসে {limit}টি Interfaces রাখা যায়। আরও পেতে {plan} প্ল্যানে যান।",
+    "upgradeToAddMoreInterfacePages": "আরও পৃষ্ঠা যোগ করতে আপগ্রেড করুন",
+    "upgradeToAddMoreInterfacePagesSubtitle": "আপনি এখন {activePlan} প্ল্যানে আছেন, যেখানে প্রতি Interface-এ {limit}টি পৃষ্ঠা রাখা যায়। সীমাহীন পৃষ্ঠার জন্য {plan} প্ল্যানে যান।",
+    "upgradeToUseTrashSettings": "আবর্জনার সেটিংস ঠিক করতে আপগ্রেড করুন",
+    "upgradeToUseTrashSettingsSubtitle": "প্রতিটি টেবিলের জন্য আলাদা আবর্জনার সেটিংস ঠিক করতে {plan} প্ল্যানে যান।",
+    "upgradeToAttachFilesToComments": "মন্তব্যে ফাইল যুক্ত করতে আপগ্রেড করুন",
+    "upgradeToAttachFilesToCommentsSubtitle": "রেকর্ডের মন্তব্যে ছবি আর ফাইল যুক্ত করতে {plan} প্ল্যানে যান।",
+    "upgradeToUseToggleSort": "আলাদা আলাদা সাজানো চালু-বন্ধ করতে আপগ্রেড করুন",
+    "upgradeToUseToggleSortSubtitle": "আলাদা আলাদা সাজানো না মুছে চালু বা বন্ধ করতে এবং ভিউয়ের উপর আরও নিয়ন্ত্রণ পেতে {plan} প্ল্যানে যান।",
+    "upgradeToUseViewFolders": "ভিউ ফোল্ডার ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUseViewFoldersSubtitle": "ভিউ ফোল্ডারে সাজাতে {plan} প্ল্যানে যান।",
+    "upgradeToAccessViewFoldersSubtitle": "ভিউ ফোল্ডারে সাজাতে {plan} প্ল্যানে যান।",
+    "upgradeToUseFolders": "ফোল্ডার ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUseFoldersSubtitle": "টেবিল, নথি আর Dashboards ফোল্ডারে সাজাতে {plan} প্ল্যানে যান।",
+    "upgradeToAccessFoldersSubtitle": "টেবিল, নথি আর Dashboards ফোল্ডারে সাজাতে {plan} প্ল্যানে যান।",
+    "upgradeToUseCustomSync": "নিজস্ব Sync ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUseCustomSyncSubtitle": "অন্য ডেটা উৎস থেকে ডেটা সিঙ্ক করতে {plan} প্ল্যানে যান।",
+    "upgradeToUseAutomaticSyncSubtitle": "মিরর করা টেবিলগুলি রিয়েল টাইমে নিজে থেকেই সিঙ্ক রাখতে {plan} প্ল্যানে যান।",
+    "upgradeToUseEnvironments": "পরিবেশ ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUseEnvironmentsSubtitle": "পরিবেশ {plan} প্ল্যান ও তার উপরে পাওয়া যায়।",
+    "upgradeToPlanForFeature": "{plan} প্ল্যানে যান {detail}",
+    "runAutomationFromInterfaceButtonDetail": "যাতে Interface-এর বোতাম থেকে অটোমেশন চালাতে পারেন।",
+    "addonFeatureTitle": "{addon} Add-on হিসেবে উপলব্ধ",
+    "addonFeatureSubtitle": "{addon} {plan} প্ল্যান বা তার উপরে সশুল্ক Add-on হিসেবে পাওয়া যায়। চালু করাতে আমাদের সঙ্গে যোগাযোগ করুন।",
+    "toAccessCopyViewConfigFromAnotherView": "যাতে অন্য ভিউ থেকে ভিউ কনফিগারেশন কপি করার সুবিধা পান।",
+    "toAccessReassignPersonalView": "যাতে ব্যক্তিগত ভিউ আবার বরাদ্দ করার সুবিধা পান।",
+    "toAccessAssignAsPersonalView": "যাতে ব্যক্তিগত ভিউ হিসেবে বরাদ্দ করার সুবিধা পান।",
+    "toAccessCardFieldHeaderVisibility": "যাতে কার্ডে ফিল্ড শিরোনাম দেখানোর সুবিধা পান।",
+    "upgradeToUseStagingEnvironment": "Staging পরিবেশ ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUseStagingEnvironmentSubtitle": "আপনার {activePlan} প্ল্যানে কেবল Production পরিবেশ রয়েছে। Staging ব্যবহার করতে {plan} প্ল্যানে যান।",
+    "upgradeToUsePerUserCredentials": "ব্যবহারকারী-ভিত্তিক শংসাপত্র ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUsePerUserCredentialsSubtitle": "আপনার {activePlan} প্ল্যান কেবল ভাগ করা শংসাপত্র ব্যবহার করে। প্রতিটি সদস্য যাতে নিজের অ্যাকাউন্ট যুক্ত করতে পারেন, সেজন্য {plan} প্ল্যানে যান।",
+    "upgradeToUseCustomEnvironments": "নিজস্ব পরিবেশ তৈরি করতে আপগ্রেড করুন",
+    "upgradeToUseCustomEnvironmentsSubtitle": "আপনার {activePlan} প্ল্যানে নিজস্ব পরিবেশ পাওয়া যায় না। Production ও Staging ছাড়াও পরিবেশ তৈরি করতে {plan} প্ল্যানে যান।"
   },
   "general": {
     "scrollToBottom": "নিচে স্ক্রল করুন",
@@ -6346,7 +6385,80 @@
         "description": "ট্রিগার চালু হওয়ার পর কর্মপ্রবাহ আসলে যা করে, সেটাই ক্রিয়া।"
       },
       "chooseTable": {
-        "description": "প্রতিটি ক্রিয়ার জানা দরকার সে কীসের উপর কাজ করে। রেকর্ড তালিকাভুক্ত করার টেবিল বেছে নিন।"
+        "description": "প্রতিটি ক্রিয়ার জানা দরকার সে কীসের উপর কাজ করে। রেকর্ড তালিকাভুক্ত করার টেবিল বেছে নিন।",
+        "title": "একটি টেবিল বেছে নিন"
+      },
+      "title": "আপনার প্রথম Workflow গড়ুন",
+      "overview": {
+        "title": "শুরু থেকে শেষ পর্যন্ত একটি Workflow গড়ুন",
+        "description": "এটি তৈরি করুন, একটি ট্রিগার বাছুন, একটি ক্রিয়া যোগ করুন, প্রকাশ করুন, চালু করুন, তারপর চলতে দেখুন।"
+      },
+      "create": {
+        "title": "একটি Workflow তৈরি করুন",
+        "description": "একদম শুরু থেকে শুরু করুন — এতে একটি ছোট ফর্ম খুলবে।"
+      },
+      "createSubmit": {
+        "title": "তৈরি করুন",
+        "description": "এটি আপনাকে সোজা ক্যানভাসে নিয়ে যাবে।"
+      },
+      "pickManualTrigger": {
+        "title": "\"যখন হাতে চালানো হয়\" বাছুন",
+        "description": "এটি আপনি নিজেই চালান, তাই সত্যিকারের ইভেন্টের সঙ্গে জোড়ার আগে বাকিটা কাজ করিয়ে নিতে পারেন।"
+      },
+      "testTrigger": {
+        "title": "ট্রিগার পরীক্ষা করুন",
+        "description": "একবার চালিয়ে তৈরি হওয়া ডেটা দেখে নিন। পরের প্রতিটি ধাপ এই ফলাফলের উপরেই দাঁড়ায়।"
+      },
+      "pickListRecords": {
+        "title": "\"রেকর্ডের তালিকা\" বাছুন",
+        "description": "এটি কেবল পড়ে, তাই কোনও ডেটা না বদলে যত খুশি বার চালাতে পারেন।"
+      },
+      "testAction": {
+        "title": "ক্রিয়াটিও পরীক্ষা করুন",
+        "description": "প্রতিটি নোড আলাদাভাবে পরীক্ষা করা যায়। প্রকাশের আগে নিশ্চিত করুন এটি আপনার প্রত্যাশা অনুযায়ী ফল দিচ্ছে।"
+      },
+      "publish": {
+        "title": "আপনার পরিবর্তন প্রকাশ করুন",
+        "description": "সম্পাদনাগুলি <b>খসড়া</b> হিসেবে সংরক্ষিত হয়। প্রকাশ করলেই এই সংস্করণটি চালু সংস্করণ হয়ে ওঠে।"
+      },
+      "enable": {
+        "title": "এটি চালু করুন",
+        "description": "প্রকাশিত মানেই চালু নয়। আপনি সক্রিয় না করা পর্যন্ত Workflow <b>বিরত</b> অবস্থায় থাকে — এই ধাপটিই বেশিরভাগ মানুষ এড়িয়ে যান।"
+      },
+      "run": {
+        "title": "একবার চালান",
+        "description": "হাতে চালানো ট্রিগার চাহিদামতো চলে — একবার চালিয়ে দেখুন কীভাবে কাজ করে।"
+      },
+      "logs": {
+        "title": "লগ দেখে নিন",
+        "description": "প্রতিটি চালানো এখানে নথিভুক্ত হয় — কী চালু হয়েছিল, প্রতিটি ধাপ কী ফিরিয়েছে, আর কী ব্যর্থ হয়েছে।"
+      },
+      "wrapUp": {
+        "title": "এটাই গোটা চক্র",
+        "description": "ট্রিগার, ক্রিয়া, প্রকাশ, সক্রিয়করণ, চালানো, লগ। এরপর আপনি যত Workflow গড়বেন, সবগুলির গড়ন একই।"
+      }
+    },
+    "workspaceBasics": {
+      "title": "নিজের ওয়ার্কস্পেস চিনে নিন",
+      "welcome": {
+        "title": "NocoDB-তে স্বাগতম",
+        "description": "আপনার ওয়ার্কস্পেসে একটি ঝটপট চক্কর। যখন খুশি বেরিয়ে যেতে পারেন — এড়িয়ে যান চাপুন।"
+      },
+      "createBase": {
+        "title": "একটি বেস দিয়ে শুরু করুন",
+        "description": "একটি বেসে আপনার টেবিল, ভিউ আর অটোমেশন থাকে। বেশিরভাগ কাজ এখান থেকেই শুরু হয়।"
+      },
+      "switchWorkspaces": {
+        "title": "ওয়ার্কস্পেস বদলান",
+        "description": "আপনি যে যে ওয়ার্কস্পেসে আছেন, সবই এই নির্বাচকের পিছনে। বাকিগুলি দেখতে এটি খুলুন।"
+      },
+      "moreWorkspaces": {
+        "title": "একাধিক ওয়ার্কস্পেস",
+        "description": "ওয়ার্কস্পেস আলাদা দল আর প্রকল্পকে আলাদা রাখে, প্রতিটির নিজস্ব সদস্য থাকে।"
+      },
+      "account": {
+        "title": "অ্যাকাউন্ট ও সেটিংস",
+        "description": "প্রোফাইল, থিম, কীবোর্ড শর্টকাট আর অ্যাকাউন্ট সেটিংস — সবই আপনার অবতারের পিছনে রয়েছে।"
       }
     }
   }

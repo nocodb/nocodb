@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "एजेन्टहरू"
+    },
+    "upgradeToSortAndLimitLookupValues": "Lookup फिल्डमा देखिने मानहरू क्रमबद्ध गर्न र सीमित गर्न कृपया {plan} योजनामा जानुहोस्।",
+    "upgradeToAddMoreAgents": "थप एजेन्ट थप्न अपग्रेड गर्नुहोस्",
+    "upgradeToAddMoreAgentsSubtitle": "तपाईं अहिले {activePlan} योजनामा हुनुहुन्छ, जसले प्रति कार्य क्षेत्र {limit} एजेन्टसम्म अनुमति दिन्छ। थप चाहिएमा {plan} मा जानुहोस्।",
+    "upgradeToAddMoreInterfaces": "थप Interfaces थप्न अपग्रेड गर्नुहोस्",
+    "upgradeToAddMoreInterfacesSubtitle": "तपाईं अहिले {activePlan} योजनामा हुनुहुन्छ, जसले प्रति कार्य क्षेत्र {limit} Interfaces सम्म अनुमति दिन्छ। थप चाहिएमा {plan} मा जानुहोस्।",
+    "upgradeToAddMoreInterfacePages": "थप पृष्ठ थप्न अपग्रेड गर्नुहोस्",
+    "upgradeToAddMoreInterfacePagesSubtitle": "तपाईं अहिले {activePlan} योजनामा हुनुहुन्छ, जसले प्रति Interface {limit} पृष्ठसम्म अनुमति दिन्छ। असीमित पृष्ठका लागि {plan} मा जानुहोस्।",
+    "upgradeToUseTrashSettings": "रद्दीटोकरीका सेटिङ मिलाउन अपग्रेड गर्नुहोस्",
+    "upgradeToUseTrashSettingsSubtitle": "प्रत्येक तालिकाका लागि छुट्टै रद्दीटोकरी सेटिङ मिलाउन {plan} योजनामा जानुहोस्।",
+    "upgradeToAttachFilesToComments": "टिप्पणीमा फाइल संलग्न गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToAttachFilesToCommentsSubtitle": "रेकर्डका टिप्पणीमा तस्बिर र फाइल संलग्न गर्न {plan} योजनामा जानुहोस्।",
+    "upgradeToUseToggleSort": "छुट्टाछुट्टै क्रमहरू सुरु-बन्द गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUseToggleSortSubtitle": "छुट्टाछुट्टै क्रमहरू नहटाईकनै सक्रिय वा निष्क्रिय पार्न र आफ्ना दृश्यहरूमाथि थप नियन्त्रण पाउन {plan} योजनामा जानुहोस्।",
+    "upgradeToUseViewFolders": "दृश्य फोल्डर प्रयोग गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUseViewFoldersSubtitle": "दृश्यहरूलाई फोल्डरमा मिलाउन {plan} योजनामा जानुहोस्।",
+    "upgradeToAccessViewFoldersSubtitle": "दृश्यहरूलाई फोल्डरमा मिलाउन {plan} योजनामा जानुहोस्।",
+    "upgradeToUseFolders": "फोल्डर प्रयोग गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUseFoldersSubtitle": "तालिका, कागजात र Dashboards लाई फोल्डरमा मिलाउन {plan} योजनामा जानुहोस्।",
+    "upgradeToAccessFoldersSubtitle": "तालिका, कागजात र Dashboards लाई फोल्डरमा मिलाउन {plan} योजनामा जानुहोस्।",
+    "upgradeToUseCustomSync": "आफ्नै Sync प्रयोग गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUseCustomSyncSubtitle": "अन्य डेटा स्रोतबाट डेटा सिंक गर्न {plan} योजनामा जानुहोस्।",
+    "upgradeToUseAutomaticSyncSubtitle": "मिरर गरिएका तालिकाहरू वास्तविक समयमै स्वतः सिंक रहून् भन्नाका लागि {plan} योजनामा जानुहोस्।",
+    "upgradeToUseEnvironments": "वातावरण प्रयोग गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUseEnvironmentsSubtitle": "वातावरणहरू {plan} योजना र सोभन्दा माथि उपलब्ध छन्।",
+    "upgradeToPlanForFeature": "{plan} योजनामा जानुहोस् {detail}",
+    "runAutomationFromInterfaceButtonDetail": "ताकि Interface का बटनबाट स्वचालन चलाउन सकियोस्।",
+    "addonFeatureTitle": "{addon} Add-on का रूपमा उपलब्ध",
+    "addonFeatureSubtitle": "{addon} {plan} योजना वा माथिल्लोमा सशुल्क Add-on का रूपमा उपलब्ध छ। सक्रिय गराउन हामीलाई सम्पर्क गर्नुहोस्।",
+    "toAccessCopyViewConfigFromAnotherView": "ताकि अर्को दृश्यबाट दृश्य कन्फिगरेसन प्रतिलिपि गर्ने सुविधा पाउन सकियोस्।",
+    "toAccessReassignPersonalView": "ताकि व्यक्तिगत दृश्य पुनः तोक्ने सुविधा पाउन सकियोस्।",
+    "toAccessAssignAsPersonalView": "ताकि व्यक्तिगत दृश्यका रूपमा तोक्ने सुविधा पाउन सकियोस्।",
+    "toAccessCardFieldHeaderVisibility": "ताकि कार्डमा फिल्ड शीर्षक देखाउने सुविधा पाउन सकियोस्।",
+    "upgradeToUseStagingEnvironment": "Staging वातावरण प्रयोग गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUseStagingEnvironmentSubtitle": "तपाईंको {activePlan} योजनामा Production वातावरण मात्र छ। Staging प्रयोग गर्न {plan} मा जानुहोस्।",
+    "upgradeToUsePerUserCredentials": "प्रति-प्रयोगकर्ता प्रमाणहरू प्रयोग गर्न अपग्रेड गर्नुहोस्",
+    "upgradeToUsePerUserCredentialsSubtitle": "तपाईंको {activePlan} योजनाले साझा प्रमाणहरू मात्र प्रयोग गर्छ। हरेक सदस्यले आफ्नै खाता जोड्न सकून् भन्नाका लागि {plan} मा जानुहोस्।",
+    "upgradeToUseCustomEnvironments": "आफ्नै वातावरण बनाउन अपग्रेड गर्नुहोस्",
+    "upgradeToUseCustomEnvironmentsSubtitle": "तपाईंको {activePlan} योजनामा आफ्नै वातावरण उपलब्ध छैन। Production र Staging बाहेकका वातावरण बनाउन {plan} मा जानुहोस्।"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6346,7 +6385,80 @@
         "description": "ट्रिगर चलेपछि कार्यप्रवाहले वास्तवमा गर्ने काम नै क्रियाहरू हुन्।"
       },
       "chooseTable": {
-        "description": "हरेक क्रियाले आफू केमा काम गर्छ भन्ने जान्नुपर्छ। रेकर्ड सूचीबद्ध गर्ने तालिका छान्नुहोस्।"
+        "description": "हरेक क्रियाले आफू केमा काम गर्छ भन्ने जान्नुपर्छ। रेकर्ड सूचीबद्ध गर्ने तालिका छान्नुहोस्।",
+        "title": "एउटा तालिका छान्नुहोस्"
+      },
+      "title": "आफ्नो पहिलो Workflow बनाउनुहोस्",
+      "overview": {
+        "title": "सुरुदेखि अन्त्यसम्म एउटा Workflow बनाउनुहोस्",
+        "description": "बनाउनुहोस्, ट्रिगर छान्नुहोस्, कार्य थप्नुहोस्, प्रकाशित गर्नुहोस्, सुरु गर्नुहोस्, अनि चलेको हेर्नुहोस्।"
+      },
+      "create": {
+        "title": "एउटा Workflow बनाउनुहोस्",
+        "description": "सुरुबाटै थाल्नुहोस् — यसले छोटो फारम खोल्छ।"
+      },
+      "createSubmit": {
+        "title": "बनाउनुहोस्",
+        "description": "यसले तपाईंलाई सिधै क्यानभासमा पुर्‍याउँछ।"
+      },
+      "pickManualTrigger": {
+        "title": "\"हातले चलाइँदा\" छान्नुहोस्",
+        "description": "यो तपाईं आफैँले चलाउनुहुन्छ, त्यसैले वास्तविक घटनासँग जोड्नुअघि बाँकी सबै मिलाउन सक्नुहुन्छ।"
+      },
+      "testTrigger": {
+        "title": "ट्रिगर परीक्षण गर्नुहोस्",
+        "description": "एक पटक चलाएर यसले उत्पादन गरेको डेटा हेर्नुहोस्। पछिका सबै चरण यही नतिजामाथि बन्छन्।"
+      },
+      "pickListRecords": {
+        "title": "\"रेकर्डहरू सूचीबद्ध गर्नुहोस्\" छान्नुहोस्",
+        "description": "यसले पढ्ने मात्र गर्छ, त्यसैले कुनै डेटा नबदली जति पटक चाहनुहुन्छ चलाउन सक्नुहुन्छ।"
+      },
+      "testAction": {
+        "title": "कार्य पनि परीक्षण गर्नुहोस्",
+        "description": "हरेक नोड छुट्टै परीक्षण हुन्छ। प्रकाशित गर्नुअघि यसले तपाईंले अपेक्षा गरेकै नतिजा फर्काउँछ भन्ने पुष्टि गर्नुहोस्।"
+      },
+      "publish": {
+        "title": "आफ्ना परिवर्तनहरू प्रकाशित गर्नुहोस्",
+        "description": "सम्पादनहरू <b>मस्यौदा</b> रूपमा सुरक्षित हुन्छन्। प्रकाशन गरेपछि मात्र यो संस्करण चल्ने संस्करण बन्छ।"
+      },
+      "enable": {
+        "title": "यसलाई सुरु गर्नुहोस्",
+        "description": "प्रकाशित हुनु र चल्नु एउटै होइन। तपाईंले सक्रिय नगरेसम्म Workflow <b>रोकिएको</b> नै रहन्छ — यही चरण धेरैले छुटाउँछन्।"
+      },
+      "run": {
+        "title": "एक पटक चलाउनुहोस्",
+        "description": "हातले चलाउने ट्रिगर माग अनुसार चल्छ — एक पटक चलाएर हेर्नुहोस्।"
+      },
+      "logs": {
+        "title": "लगहरू हेर्नुहोस्",
+        "description": "हरेक चलाइ यहाँ अभिलेख हुन्छ — के चल्यो, हरेक चरणले के फर्कायो, र के असफल भयो।"
+      },
+      "wrapUp": {
+        "title": "पूरा चक्र यत्ति नै हो",
+        "description": "ट्रिगर, कार्यहरू, प्रकाशन, सक्रियकरण, चलाइ, लगहरू। अब उप्रान्त तपाईंले बनाउने हरेक Workflow यही ढाँचा पछ्याउँछ।"
+      }
+    },
+    "workspaceBasics": {
+      "title": "आफ्नो कार्य क्षेत्र चिन्नुहोस्",
+      "welcome": {
+        "title": "NocoDB मा स्वागत छ",
+        "description": "तपाईंको कार्य क्षेत्रको छोटो फन्को। जुनसुकै बेला बाहिरिन सक्नुहुन्छ — छोड्नुहोस् थिच्नुहोस्।"
+      },
+      "createBase": {
+        "title": "आधारबाट सुरु गर्नुहोस्",
+        "description": "आधारमा तपाईंका तालिका, दृश्य र स्वचालनहरू रहन्छन्। धेरैजसो काम यहीँबाट सुरु हुन्छ।"
+      },
+      "switchWorkspaces": {
+        "title": "कार्य क्षेत्र फेर्नुहोस्",
+        "description": "तपाईं आबद्ध भएका सबै कार्य क्षेत्र यही चयनकर्ताभित्र छन्। बाँकी हेर्न यसलाई खोल्नुहोस्।"
+      },
+      "moreWorkspaces": {
+        "title": "एकभन्दा बढी कार्य क्षेत्र",
+        "description": "कार्य क्षेत्रहरूले फरक-फरक टोली र परियोजनालाई छुट्याएर राख्छन्, प्रत्येकको आफ्नै सदस्य हुन्छन्।"
+      },
+      "account": {
+        "title": "खाता र सेटिङ",
+        "description": "प्रोफाइल, थिम, किबोर्ड सर्टकट र खाता सेटिङ — सबै तपाईंको अवतारभित्र छन्।"
       }
     }
   }

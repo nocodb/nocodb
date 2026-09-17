@@ -257,8 +257,47 @@
       "workspaceMembers": "कार्यक्षेत्र सदस्य",
       "audit": "कार्यक्षेत्र ऑडिट",
       "ltarCustomDisplayValue": "कस्टम प्रदर्शन मान फ़ील्ड",
-      "publicDocShare": "सार्वजनिक दस्तावेज़ साझाकरण"
-    }
+      "publicDocShare": "सार्वजनिक दस्तावेज़ साझाकरण",
+      "agents": "एजेंट"
+    },
+    "upgradeToSortAndLimitLookupValues": "Lookup फ़ील्ड में दिखाए जाने वाले मानों को क्रमबद्ध और सीमित करने के लिए कृपया {plan} योजना पर जाएँ।",
+    "upgradeToAddMoreAgents": "और एजेंट जोड़ने के लिए अपग्रेड करें",
+    "upgradeToAddMoreAgentsSubtitle": "आप अभी {activePlan} योजना पर हैं, जो प्रति कार्यस्थान {limit} एजेंट की अनुमति देती है। और पाने के लिए {plan} पर जाएँ।",
+    "upgradeToAddMoreInterfaces": "और Interfaces जोड़ने के लिए अपग्रेड करें",
+    "upgradeToAddMoreInterfacesSubtitle": "आप अभी {activePlan} योजना पर हैं, जो प्रति कार्यस्थान {limit} Interfaces की अनुमति देती है। और पाने के लिए {plan} पर जाएँ।",
+    "upgradeToAddMoreInterfacePages": "और पृष्ठ जोड़ने के लिए अपग्रेड करें",
+    "upgradeToAddMoreInterfacePagesSubtitle": "आप अभी {activePlan} योजना पर हैं, जो प्रति Interface {limit} पृष्ठ की अनुमति देती है। असीमित पृष्ठों के लिए {plan} पर जाएँ।",
+    "upgradeToUseTrashSettings": "रद्दी सेटिंग्स विन्यस्त करने के लिए अपग्रेड करें",
+    "upgradeToUseTrashSettingsSubtitle": "प्रत्येक तालिका के लिए अलग रद्दी सेटिंग्स विन्यस्त करने हेतु {plan} योजना पर जाएँ।",
+    "upgradeToAttachFilesToComments": "टिप्पणियों में फ़ाइलें संलग्न करने के लिए अपग्रेड करें",
+    "upgradeToAttachFilesToCommentsSubtitle": "रिकॉर्ड की टिप्पणियों में छवियाँ और फ़ाइलें संलग्न करने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToUseToggleSort": "अलग-अलग क्रमों को चालू-बंद करने के लिए अपग्रेड करें",
+    "upgradeToUseToggleSortSubtitle": "अलग-अलग क्रमों को हटाए बिना चालू या बंद करने और अपने दृश्यों पर बेहतर नियंत्रण पाने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToUseViewFolders": "दृश्य फ़ोल्डर उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUseViewFoldersSubtitle": "दृश्यों को फ़ोल्डरों में व्यवस्थित करने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToAccessViewFoldersSubtitle": "दृश्यों को फ़ोल्डरों में व्यवस्थित करने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToUseFolders": "फ़ोल्डर उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUseFoldersSubtitle": "तालिकाओं, दस्तावेज़ों और Dashboards को फ़ोल्डरों में व्यवस्थित करने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToAccessFoldersSubtitle": "तालिकाओं, दस्तावेज़ों और Dashboards को फ़ोल्डरों में व्यवस्थित करने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToUseCustomSync": "कस्टम Sync उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUseCustomSyncSubtitle": "अन्य डेटा स्रोतों से डेटा समन्वयित करने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToUseAutomaticSyncSubtitle": "मिरर की गई तालिकाओं को वास्तविक समय में अपने आप समन्वयित रखने के लिए {plan} योजना पर जाएँ।",
+    "upgradeToUseEnvironments": "परिवेश उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUseEnvironmentsSubtitle": "परिवेश {plan} योजना और उससे ऊपर उपलब्ध हैं।",
+    "upgradeToPlanForFeature": "{plan} योजना पर जाएँ {detail}",
+    "runAutomationFromInterfaceButtonDetail": "ताकि आप Interface के बटनों से स्वचालन चला सकें।",
+    "addonFeatureTitle": "{addon} Add-on के रूप में उपलब्ध",
+    "addonFeatureSubtitle": "{addon} {plan} योजना या उससे ऊपर सशुल्क Add-on के रूप में उपलब्ध है। इसे चालू कराने के लिए हमसे संपर्क करें।",
+    "toAccessCopyViewConfigFromAnotherView": "ताकि आप किसी दूसरे दृश्य से दृश्य-विन्यास कॉपी करने की सुविधा पा सकें।",
+    "toAccessReassignPersonalView": "ताकि आप व्यक्तिगत दृश्य दोबारा असाइन करने की सुविधा पा सकें।",
+    "toAccessAssignAsPersonalView": "ताकि आप व्यक्तिगत दृश्य के रूप में असाइन करने की सुविधा पा सकें।",
+    "toAccessCardFieldHeaderVisibility": "ताकि आप कार्ड पर फ़ील्ड शीर्षक दिखाने की सुविधा पा सकें।",
+    "upgradeToUseStagingEnvironment": "Staging परिवेश उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUseStagingEnvironmentSubtitle": "आपकी {activePlan} योजना में केवल Production परिवेश शामिल है। Staging उपयोग करने के लिए {plan} पर जाएँ।",
+    "upgradeToUsePerUserCredentials": "प्रति-उपयोगकर्ता क्रेडेंशियल उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUsePerUserCredentialsSubtitle": "आपकी {activePlan} योजना केवल साझा क्रेडेंशियल का उपयोग करती है। हर सदस्य अपना खाता जोड़ सके, इसके लिए {plan} पर जाएँ।",
+    "upgradeToUseCustomEnvironments": "कस्टम परिवेश बनाने के लिए अपग्रेड करें",
+    "upgradeToUseCustomEnvironmentsSubtitle": "आपकी {activePlan} योजना में कस्टम परिवेश उपलब्ध नहीं हैं। Production और Staging के अलावा परिवेश बनाने के लिए {plan} पर जाएँ।"
   },
   "general": {
     "scrollToBottom": "नीचे स्क्रॉल करें",
@@ -6346,7 +6385,80 @@
         "description": "ट्रिगर चलने के बाद कार्यप्रवाह असल में जो करता है, वही क्रियाएँ हैं।"
       },
       "chooseTable": {
-        "description": "हर क्रिया को पता होना चाहिए कि वह किस पर काम करती है। अभिलेख सूचीबद्ध करने के लिए तालिका चुनें।"
+        "description": "हर क्रिया को पता होना चाहिए कि वह किस पर काम करती है। अभिलेख सूचीबद्ध करने के लिए तालिका चुनें।",
+        "title": "एक तालिका चुनें"
+      },
+      "title": "अपना पहला कार्यप्रवाह बनाएँ",
+      "overview": {
+        "title": "शुरू से अंत तक एक कार्यप्रवाह बनाएँ",
+        "description": "इसे बनाएँ, एक ट्रिगर चुनें, एक क्रिया जोड़ें, प्रकाशित करें, चालू करें, और फिर इसे चलते हुए देखें।"
+      },
+      "create": {
+        "title": "एक कार्यप्रवाह बनाएँ",
+        "description": "शुरुआत से शुरू करें — इससे एक छोटा फ़ॉर्म खुलेगा।"
+      },
+      "createSubmit": {
+        "title": "इसे बनाएँ",
+        "description": "यह आपको सीधे कैनवास पर ले जाता है।"
+      },
+      "pickManualTrigger": {
+        "title": "\"जब मैन्युअल रूप से चलाया जाए\" चुनें",
+        "description": "इसे आप खुद चलाते हैं, इसलिए वास्तविक घटनाओं से जोड़ने से पहले आप बाकी सब काम करता हुआ बना सकते हैं।"
+      },
+      "testTrigger": {
+        "title": "ट्रिगर की जाँच करें",
+        "description": "इसे एक बार चलाएँ और देखें कि यह कैसा डेटा बनाता है। आगे का हर चरण इसी आउटपुट पर टिका है।"
+      },
+      "pickListRecords": {
+        "title": "\"रिकॉर्ड सूचीबद्ध करें\" चुनें",
+        "description": "यह केवल पढ़ती है, इसलिए आप इसे जितनी बार चाहें चला सकते हैं, किसी डेटा में बदलाव नहीं होगा।"
+      },
+      "testAction": {
+        "title": "क्रिया की भी जाँच करें",
+        "description": "हर नोड अलग से जाँचा जाता है। प्रकाशित करने से पहले पुष्टि करें कि यह वही लौटाता है जिसकी आप अपेक्षा रखते हैं।"
+      },
+      "publish": {
+        "title": "अपने बदलाव प्रकाशित करें",
+        "description": "बदलाव <b>ड्राफ़्ट</b> के रूप में सहेजे जाते हैं। प्रकाशित करना ही इस संस्करण को वह बनाता है जो चलता है।"
+      },
+      "enable": {
+        "title": "इसे चालू करें",
+        "description": "प्रकाशित होना और चलना एक बात नहीं है। जब तक आप सक्षम नहीं करते, कार्यप्रवाह <b>रुका हुआ</b> ही रहता है — यही वह चरण है जो लोग चूक जाते हैं।"
+      },
+      "run": {
+        "title": "इसे एक बार चलाएँ",
+        "description": "मैन्युअल ट्रिगर माँग पर चलता है — इसे आज़माएँ और चलते हुए देखें।"
+      },
+      "logs": {
+        "title": "लॉग देखें",
+        "description": "हर चलन यहाँ दर्ज होता है — क्या चला, हर चरण ने क्या लौटाया, और क्या विफल रहा।"
+      },
+      "wrapUp": {
+        "title": "यही पूरा चक्र है",
+        "description": "ट्रिगर, क्रियाएँ, प्रकाशन, सक्षम करना, चलाना, लॉग। यहाँ से आप जो भी कार्यप्रवाह बनाएँगे, उसका ढाँचा यही रहेगा।"
+      }
+    },
+    "workspaceBasics": {
+      "title": "अपने कार्यस्थान से परिचित हों",
+      "welcome": {
+        "title": "NocoDB में आपका स्वागत है",
+        "description": "आपके कार्यस्थान का एक त्वरित चक्कर। आप कभी भी बाहर निकल सकते हैं — छोड़ें दबाएँ।"
+      },
+      "createBase": {
+        "title": "एक बेस से शुरू करें",
+        "description": "एक बेस में आपकी तालिकाएँ, दृश्य और स्वचालन रहते हैं। अधिकांश काम यहीं से शुरू होता है।"
+      },
+      "switchWorkspaces": {
+        "title": "कार्यस्थान बदलें",
+        "description": "आप जिन भी कार्यस्थानों से जुड़े हैं, वे सब इस चयनकर्ता के पीछे हैं। बाकी देखने के लिए इसे खोलें।"
+      },
+      "moreWorkspaces": {
+        "title": "एक से अधिक कार्यस्थान",
+        "description": "कार्यस्थान अलग-अलग टीमों और परियोजनाओं को अलग रखते हैं, और हर एक के अपने सदस्य होते हैं।"
+      },
+      "account": {
+        "title": "खाता और सेटिंग्स",
+        "description": "प्रोफ़ाइल, थीम, कीबोर्ड शॉर्टकट और खाता सेटिंग्स — सब कुछ आपके अवतार के पीछे है।"
       }
     }
   }

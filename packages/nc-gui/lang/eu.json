@@ -257,8 +257,47 @@
       "workspaceMembers": "Lan-espazioko kideak",
       "audit": "Lan-espazioaren auditoria",
       "ltarCustomDisplayValue": "Erakustaldiaren balio pertsonalizatuko eremua",
-      "publicDocShare": "Dokumentu Publikoen Partekatzea"
-    }
+      "publicDocShare": "Dokumentu Publikoen Partekatzea",
+      "agents": "Agenteak"
+    },
+    "upgradeToSortAndLimitLookupValues": "Bilaketa-eremu batean erakusten diren balioak ordenatzeko eta mugatzeko, hobetu {plan} planera.",
+    "upgradeToAddMoreAgents": "Hobetu plana agente gehiago gehitzeko",
+    "upgradeToAddMoreAgentsSubtitle": "Une honetan {activePlan} planean zaude, eta horrek {limit} agente onartzen ditu laneko esparru bakoitzeko. Hobetu {plan} planera gehiago izateko.",
+    "upgradeToAddMoreInterfaces": "Hobetu plana interfaze gehiago gehitzeko",
+    "upgradeToAddMoreInterfacesSubtitle": "Une honetan {activePlan} planean zaude, eta horrek {limit} interfaze onartzen ditu laneko esparru bakoitzeko. Hobetu {plan} planera gehiago izateko.",
+    "upgradeToAddMoreInterfacePages": "Hobetu plana orri gehiago gehitzeko",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Une honetan {activePlan} planean zaude, eta horrek {limit} orri onartzen ditu interfaze bakoitzeko. Hobetu {plan} planera orri mugagabeak izateko.",
+    "upgradeToUseTrashSettings": "Hobetu plana zaborrontziaren ezarpenak konfiguratzeko",
+    "upgradeToUseTrashSettingsSubtitle": "Hobetu {plan} planera taula bakoitzeko zaborrontziaren ezarpenak konfiguratzeko.",
+    "upgradeToAttachFilesToComments": "Hobetu plana iruzkinei fitxategiak eransteko",
+    "upgradeToAttachFilesToCommentsSubtitle": "Hobetu {plan} planera erregistroen iruzkinei irudiak eta fitxategiak eransteko.",
+    "upgradeToUseToggleSort": "Hobetu plana ordenatze bakoitza aktibatu eta desaktibatzeko",
+    "upgradeToUseToggleSortSubtitle": "Hobetu {plan} planera ordenatze bakoitza kendu gabe gaitu edo desgaitzeko, zure ikuspegien gaineko kontrol handiagoa izateko.",
+    "upgradeToUseViewFolders": "Hobetu plana ikuspegien karpetak erabiltzeko",
+    "upgradeToUseViewFoldersSubtitle": "Hobetu {plan} planera ikuspegiak karpetetan antolatzeko.",
+    "upgradeToAccessViewFoldersSubtitle": "Hobetu {plan} planera ikuspegiak karpetetan antolatzeko.",
+    "upgradeToUseFolders": "Hobetu plana karpetak erabiltzeko",
+    "upgradeToUseFoldersSubtitle": "Hobetu {plan} planera taulak, dokumentuak eta aginte-panelak karpetetan antolatzeko.",
+    "upgradeToAccessFoldersSubtitle": "Hobetu {plan} planera taulak, dokumentuak eta aginte-panelak karpetetan antolatzeko.",
+    "upgradeToUseCustomSync": "Hobetu plana zeure Sync erabiltzeko",
+    "upgradeToUseCustomSyncSubtitle": "Hobetu {plan} planera beste datu-iturri batzuetako datuak sinkronizatzeko.",
+    "upgradeToUseAutomaticSyncSubtitle": "Hobetu {plan} planera ispilatutako taulak automatikoki eta denbora errealean sinkronizatuta edukitzeko.",
+    "upgradeToUseEnvironments": "Hobetu plana inguruneak erabiltzeko",
+    "upgradeToUseEnvironmentsSubtitle": "Inguruneak {plan} planetik gorakoetan daude eskuragarri.",
+    "upgradeToPlanForFeature": "Hobetu {plan} planera {detail}",
+    "runAutomationFromInterfaceButtonDetail": "interfazeko botoietatik automatizazioak abiarazteko.",
+    "addonFeatureTitle": "{addon} gehigarri gisa eskuragarri",
+    "addonFeatureSubtitle": "{addon} ordainpeko gehigarri gisa dago eskuragarri {plan} planetik gorakoetan. Jarri gurekin harremanetan gaitzeko.",
+    "toAccessCopyViewConfigFromAnotherView": "beste ikuspegi batetik konfigurazioa kopiatzeko funtziora sartzeko.",
+    "toAccessReassignPersonalView": "ikuspegi pertsonala berresleitzeko funtziora sartzeko.",
+    "toAccessAssignAsPersonalView": "ikuspegi pertsonal gisa esleitzeko funtziora sartzeko.",
+    "toAccessCardFieldHeaderVisibility": "txarteletako eremu-goiburuen ikusgaitasunera sartzeko.",
+    "upgradeToUseStagingEnvironment": "Hobetu plana Staging ingurunea erabiltzeko",
+    "upgradeToUseStagingEnvironmentSubtitle": "Zure {activePlan} planak Production ingurunea baino ez du. Hobetu {plan} planera Staging erabiltzeko.",
+    "upgradeToUsePerUserCredentials": "Hobetu plana erabiltzaile bakoitzaren kredentzialak erabiltzeko",
+    "upgradeToUsePerUserCredentialsSubtitle": "Zure {activePlan} planak kredentzial partekatuak baino ez ditu erabiltzen. Hobetu {plan} planera kide bakoitzak bere kontua lotu ahal izateko.",
+    "upgradeToUseCustomEnvironments": "Hobetu plana zeure inguruneak sortzeko",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Ingurune pertsonalizatuak ez daude eskuragarri zure {activePlan} planean. Hobetu {plan} planera Production eta Staging ez beste ingurune batzuk sortzeko."
   },
   "general": {
     "scrollToBottom": "Behera irristatu",
@@ -6345,7 +6384,80 @@
         "description": "Ekintzak dira lan-fluxuak benetan egiten duena abiarazlea aktibatzen denean."
       },
       "chooseTable": {
-        "description": "Ekintza bakoitzak jakin behar du zeren gainean lan egiten duen. Aukeratu erregistroak zerrendatzeko taula."
+        "description": "Ekintza bakoitzak jakin behar du zeren gainean lan egiten duen. Aukeratu erregistroak zerrendatzeko taula.",
+        "title": "Aukeratu taula bat"
+      },
+      "title": "Eraiki zure lehen lan-fluxua",
+      "overview": {
+        "title": "Eraiki lan-fluxu bat hasieratik bukaeraraino",
+        "description": "Sortu, aukeratu abiarazle bat, gehitu ekintza bat, argitaratu, piztu, eta ikusi nola exekutatzen den."
+      },
+      "create": {
+        "title": "Sortu lan-fluxu bat",
+        "description": "Hasi hutsetik — honek inprimaki labur bat irekitzen du."
+      },
+      "createSubmit": {
+        "title": "Sortu",
+        "description": "Honek zuzenean oihalera eramaten zaitu."
+      },
+      "pickManualTrigger": {
+        "title": "Aukeratu \"Eskuz abiarazten denean\"",
+        "description": "Hau zuk zeuk abiarazten duzu, beraz gainerakoa martxan jar dezakezu benetako gertaerekin lotu aurretik."
+      },
+      "testTrigger": {
+        "title": "Probatu abiarazlea",
+        "description": "Exekutatu behin eta begiratu sortzen dituen datuak. Ondorengo urrats guztiak emaitza horretan oinarritzen dira."
+      },
+      "pickListRecords": {
+        "title": "Aukeratu \"Zerrendatu erregistroak\"",
+        "description": "Irakurri baino ez du egiten, beraz nahi adina aldiz exekuta dezakezu daturik aldatu gabe."
+      },
+      "testAction": {
+        "title": "Probatu ekintza ere",
+        "description": "Nodo bakoitza bere aldetik probatzen da. Argitaratu aurretik egiaztatu honek espero duzuna itzultzen duela."
+      },
+      "publish": {
+        "title": "Argitaratu zure aldaketak",
+        "description": "Aldaketak <b>zirriborro</b> gisa gordetzen dira. Argitaratzeak egiten du bertsio hau exekutatzen dena."
+      },
+      "enable": {
+        "title": "Piztu ezazu",
+        "description": "Argitaratua eta martxan ez dira gauza bera. Lan-fluxua <b>pausatuta</b> egongo da piztu arte — jendeak urrats hau ahazten du."
+      },
+      "run": {
+        "title": "Exekutatu behin",
+        "description": "Eskuzko abiarazlea eskatutakoan abiatzen da — probatu eta ikusi nola exekutatzen den."
+      },
+      "logs": {
+        "title": "Begiratu erregistroak",
+        "description": "Exekuzio bakoitza hemen erregistratzen da — zerk abiarazi duen, urrats bakoitzak zer itzuli duen, eta zer huts egin duen."
+      },
+      "wrapUp": {
+        "title": "Hori da begizta osoa",
+        "description": "Abiarazlea, ekintzak, argitaratzea, piztea, exekutatzea, erregistroak. Hemendik aurrera eraikitzen duzun lan-fluxu orok forma bera du."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Molda zaitez zure laneko esparruan",
+      "welcome": {
+        "title": "Ongi etorri NocoDB zerbitzura",
+        "description": "Itzuli azkar bat zure laneko esparruan. Edonoiz utz dezakezu — sakatu Saltatu."
+      },
+      "createBase": {
+        "title": "Hasi proiektu batekin",
+        "description": "Proiektu batek zure taulak, ikuspegiak eta automatizazioak biltzen ditu. Hemen hasten da lan gehiena."
+      },
+      "switchWorkspaces": {
+        "title": "Aldatu laneko esparruz",
+        "description": "Zure laneko esparru guztiak hautatzaile honen atzean daude. Ireki gainerakoak ikusteko."
+      },
+      "moreWorkspaces": {
+        "title": "Laneko esparru bat baino gehiago",
+        "description": "Laneko esparruek talde eta proiektu desberdinak bereizten dituzte, bakoitzak bere kideekin."
+      },
+      "account": {
+        "title": "Kontua eta ezarpenak",
+        "description": "Profila, gaia, teklatuko lasterbideak eta kontuaren ezarpenak zure abatarraren atzean daude denak."
       }
     }
   }

@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "ភ្នាក់ងារ"
+    },
+    "upgradeToSortAndLimitLookupValues": "ដើម្បីតម្រៀប និងកំណត់តម្លៃដែលបង្ហាញក្នុងវាលរកមើល សូមដំឡើងទៅគម្រោង {plan}។",
+    "upgradeToAddMoreAgents": "ដំឡើងដើម្បីបន្ថែមភ្នាក់ងារ",
+    "upgradeToAddMoreAgentsSubtitle": "អ្នកកំពុងនៅលើគម្រោង {activePlan} ដែលអនុញ្ញាតឱ្យមានភ្នាក់ងារ {limit} ក្នុងមួយកន្លែងធ្វើការ។ ដំឡើងទៅ {plan} ដើម្បីបានច្រើនជាងនេះ។",
+    "upgradeToAddMoreInterfaces": "ដំឡើងដើម្បីបន្ថែមចំណុចប្រទាក់",
+    "upgradeToAddMoreInterfacesSubtitle": "អ្នកកំពុងនៅលើគម្រោង {activePlan} ដែលអនុញ្ញាតឱ្យមានចំណុចប្រទាក់ {limit} ក្នុងមួយកន្លែងធ្វើការ។ ដំឡើងទៅ {plan} ដើម្បីបានច្រើនជាងនេះ។",
+    "upgradeToAddMoreInterfacePages": "ដំឡើងដើម្បីបន្ថែមទំព័រ",
+    "upgradeToAddMoreInterfacePagesSubtitle": "អ្នកកំពុងនៅលើគម្រោង {activePlan} ដែលអនុញ្ញាតឱ្យមានទំព័រ {limit} ក្នុងមួយចំណុចប្រទាក់។ ដំឡើងទៅ {plan} ដើម្បីបានទំព័រគ្មានដែនកំណត់។",
+    "upgradeToUseTrashSettings": "ដំឡើងដើម្បីកំណត់ការកំណត់ធុងសំរាម",
+    "upgradeToUseTrashSettingsSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីកំណត់ការកំណត់ធុងសំរាមរៀងៗតារាង។",
+    "upgradeToAttachFilesToComments": "ដំឡើងដើម្បីភ្ជាប់ឯកសារទៅមតិយោបល់",
+    "upgradeToAttachFilesToCommentsSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីភ្ជាប់រូបភាព និងឯកសារទៅមតិយោបល់លើកំណត់ត្រា។",
+    "upgradeToUseToggleSort": "ដំឡើងដើម្បីបិទបើកការតម្រៀបនីមួយៗ",
+    "upgradeToUseToggleSortSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីបើក ឬបិទការតម្រៀបនីមួយៗដោយមិនចាំបាច់លុបវា ដែលផ្តល់ឱ្យអ្នកនូវការគ្រប់គ្រងកាន់តែច្រើនលើទិដ្ឋភាពរបស់អ្នក។",
+    "upgradeToUseViewFolders": "ដំឡើងដើម្បីប្រើថតទិដ្ឋភាព",
+    "upgradeToUseViewFoldersSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីរៀបចំទិដ្ឋភាពទៅក្នុងថត។",
+    "upgradeToAccessViewFoldersSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីរៀបចំទិដ្ឋភាពទៅក្នុងថត។",
+    "upgradeToUseFolders": "ដំឡើងដើម្បីប្រើថត",
+    "upgradeToUseFoldersSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីរៀបចំតារាង ឯកសារ និងផ្ទាំងគ្រប់គ្រងទៅក្នុងថត។",
+    "upgradeToAccessFoldersSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីរៀបចំតារាង ឯកសារ និងផ្ទាំងគ្រប់គ្រងទៅក្នុងថត។",
+    "upgradeToUseCustomSync": "ដំឡើងដើម្បីប្រើ Sync តាមបំណង",
+    "upgradeToUseCustomSyncSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីធ្វើសមកាលកម្មទិន្នន័យពីប្រភពទិន្នន័យផ្សេង។",
+    "upgradeToUseAutomaticSyncSubtitle": "ដំឡើងទៅគម្រោង {plan} ដើម្បីរក្សាតារាងចម្លងឱ្យធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិតាមពេលវេលាជាក់ស្តែង។",
+    "upgradeToUseEnvironments": "ដំឡើងដើម្បីប្រើបរិស្ថាន",
+    "upgradeToUseEnvironmentsSubtitle": "បរិស្ថានមាននៅលើគម្រោង {plan} និងខ្ពស់ជាងនេះ។",
+    "upgradeToPlanForFeature": "ដំឡើងទៅគម្រោង {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "ដើម្បីដំណើរការស្វ័យប្រវត្តិកម្មពីប៊ូតុងចំណុចប្រទាក់។",
+    "addonFeatureTitle": "មានជាកម្មវិធីបន្ថែម {addon}",
+    "addonFeatureSubtitle": "{addon} មានជាកម្មវិធីបន្ថែមបង់ប្រាក់នៅលើគម្រោង {plan} ឬខ្ពស់ជាង។ សូមទាក់ទងមកយើងដើម្បីបើកវា។",
+    "toAccessCopyViewConfigFromAnotherView": "ដើម្បីប្រើមុខងារចម្លងការកំណត់ទិដ្ឋភាពពីទិដ្ឋភាពផ្សេង។",
+    "toAccessReassignPersonalView": "ដើម្បីប្រើមុខងារប្រគល់ទិដ្ឋភាពផ្ទាល់ខ្លួនឡើងវិញ។",
+    "toAccessAssignAsPersonalView": "ដើម្បីប្រើមុខងារប្រគល់ជាទិដ្ឋភាពផ្ទាល់ខ្លួន។",
+    "toAccessCardFieldHeaderVisibility": "ដើម្បីប្រើមុខងារបង្ហាញចំណងជើងវាលនៅលើកាត។",
+    "upgradeToUseStagingEnvironment": "ដំឡើងដើម្បីប្រើបរិស្ថាន Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "គម្រោង {activePlan} របស់អ្នករួមបញ្ចូលតែបរិស្ថាន Production ប៉ុណ្ណោះ។ ដំឡើងទៅ {plan} ដើម្បីប្រើ Staging។",
+    "upgradeToUsePerUserCredentials": "ដំឡើងដើម្បីប្រើព័ត៌មានសម្គាល់ខ្លួនរៀងៗអ្នកប្រើ",
+    "upgradeToUsePerUserCredentialsSubtitle": "គម្រោង {activePlan} របស់អ្នកប្រើតែព័ត៌មានសម្គាល់ខ្លួនរួមប៉ុណ្ណោះ។ ដំឡើងទៅ {plan} ដើម្បីឱ្យសមាជិកនីមួយៗភ្ជាប់គណនីរបស់ខ្លួន។",
+    "upgradeToUseCustomEnvironments": "ដំឡើងដើម្បីបង្កើតបរិស្ថានតាមបំណង",
+    "upgradeToUseCustomEnvironmentsSubtitle": "បរិស្ថានតាមបំណងមិនមាននៅលើគម្រោង {activePlan} របស់អ្នកទេ។ ដំឡើងទៅ {plan} ដើម្បីបង្កើតបរិស្ថានក្រៅពី Production និង Staging។"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6325,7 +6364,80 @@
         "description": "សកម្មភាពគឺជាអ្វីដែលលំហូរការងារពិតជាធ្វើ បន្ទាប់ពីគន្លឹះកេះដំណើរការ។"
       },
       "chooseTable": {
-        "description": "សកម្មភាពនីមួយៗត្រូវដឹងថាវាធ្វើការលើអ្វី។ សូមជ្រើសរើសតារាងដែលត្រូវរាយកំណត់ត្រា។"
+        "description": "សកម្មភាពនីមួយៗត្រូវដឹងថាវាធ្វើការលើអ្វី។ សូមជ្រើសរើសតារាងដែលត្រូវរាយកំណត់ត្រា។",
+        "title": "ជ្រើសរើសតារាងមួយ"
+      },
+      "title": "សាងលំហូរការងារដំបូងរបស់អ្នក",
+      "overview": {
+        "title": "សាងលំហូរការងារពីដើមដល់ចប់",
+        "description": "បង្កើតវា ជ្រើសរើសកត្តាកេះ បន្ថែមសកម្មភាព បោះផ្សាយ បើកវា រួចមើលវាដំណើរការ។"
+      },
+      "create": {
+        "title": "បង្កើតលំហូរការងារ",
+        "description": "ចាប់ផ្តើមពីសូន្យ — វានឹងបើកទម្រង់ខ្លីមួយ។"
+      },
+      "createSubmit": {
+        "title": "បង្កើតវា",
+        "description": "វានាំអ្នកចូលទៅផ្ទាំងធ្វើការដោយផ្ទាល់។"
+      },
+      "pickManualTrigger": {
+        "title": "ជ្រើសរើស \"ពេលកេះដោយដៃ\"",
+        "description": "មួយនេះអ្នកកេះដោយខ្លួនឯង ដូច្នេះអ្នកអាចធ្វើឱ្យផ្នែកផ្សេងដំណើរការមុនពេលភ្ជាប់វាទៅព្រឹត្តិការណ៍ពិត។"
+      },
+      "testTrigger": {
+        "title": "សាកល្បងកត្តាកេះ",
+        "description": "ដំណើរការវាម្តង ហើយមើលទិន្នន័យដែលវាបង្កើត។ រាល់ជំហានក្រោយៗសង់លើលទ្ធផលនេះ។"
+      },
+      "pickListRecords": {
+        "title": "ជ្រើសរើស \"រាយបញ្ជីកំណត់ត្រា\"",
+        "description": "វាគ្រាន់តែអានប៉ុណ្ណោះ ដូច្នេះអ្នកអាចដំណើរការវាបានញឹកញាប់តាមចិត្ត ដោយមិនប្តូរទិន្នន័យណាមួយឡើយ។"
+      },
+      "testAction": {
+        "title": "សាកល្បងសកម្មភាពផងដែរ",
+        "description": "ថ្នាំងនីមួយៗសាកល្បងដោយឡែក។ សូមបញ្ជាក់ថាមួយនេះឆ្លើយតបតាមអ្វីដែលអ្នករំពឹង មុនពេលបោះផ្សាយ។"
+      },
+      "publish": {
+        "title": "បោះផ្សាយការផ្លាស់ប្តូររបស់អ្នក",
+        "description": "ការកែសម្រួលត្រូវបានរក្សាទុកជា <b>សេចក្តីព្រាង</b>។ ការបោះផ្សាយទេដែលធ្វើឱ្យកំណែនេះក្លាយជាកំណែដែលដំណើរការ។"
+      },
+      "enable": {
+        "title": "បើកវា",
+        "description": "ការបោះផ្សាយមិនមែនជាការដំណើរការទេ។ លំហូរការងារនៅតែ <b>ផ្អាក</b> រហូតដល់អ្នកបើកវា — នេះជាជំហានដែលមនុស្សភ្លេច។"
+      },
+      "run": {
+        "title": "ដំណើរការវាម្តង",
+        "description": "កត្តាកេះដោយដៃដំណើរការតាមតម្រូវការ — សាកល្បងវា ហើយមើលវាប្រតិបត្តិ។"
+      },
+      "logs": {
+        "title": "ពិនិត្យកំណត់ហេតុ",
+        "description": "រាល់ការដំណើរការត្រូវបានកត់ត្រានៅទីនេះ — អ្វីដែលបានចាប់ផ្តើមវា អ្វីដែលជំហាននីមួយៗបានឆ្លើយតប និងអ្វីដែលបរាជ័យ។"
+      },
+      "wrapUp": {
+        "title": "នេះជាវដ្តទាំងមូល",
+        "description": "កត្តាកេះ សកម្មភាព បោះផ្សាយ បើក ដំណើរការ កំណត់ហេតុ។ រាល់លំហូរការងារដែលអ្នកសាងចាប់ពីនេះទៅ សុទ្ធតែមានរូបរាងដូចគ្នា។"
+      }
+    },
+    "workspaceBasics": {
+      "title": "ស្គាល់កន្លែងធ្វើការរបស់អ្នក",
+      "welcome": {
+        "title": "សូមស្វាគមន៍មកកាន់ NocoDB",
+        "description": "ដំណើរកម្សាន្តខ្លីជុំវិញកន្លែងធ្វើការរបស់អ្នក។ អ្នកអាចចាកចេញពេលណាក៏បាន — ចុច រំលង។"
+      },
+      "createBase": {
+        "title": "ចាប់ផ្តើមដោយមូលដ្ឋានមួយ",
+        "description": "មូលដ្ឋានមួយផ្ទុកតារាង ទិដ្ឋភាព និងស្វ័យប្រវត្តិកម្មរបស់អ្នក។ ការងារភាគច្រើនចាប់ផ្តើមនៅទីនេះ។"
+      },
+      "switchWorkspaces": {
+        "title": "ប្តូរកន្លែងធ្វើការ",
+        "description": "រាល់កន្លែងធ្វើការដែលអ្នកជាសមាជិក សុទ្ធតែនៅពីក្រោយឧបករណ៍ជ្រើសនេះ។ បើកវាដើម្បីមើលអ្វីដែលនៅសល់។"
+      },
+      "moreWorkspaces": {
+        "title": "ច្រើនជាងកន្លែងធ្វើការមួយ",
+        "description": "កន្លែងធ្វើការបំបែកក្រុម និងគម្រោងផ្សេងគ្នាចេញពីគ្នា ដោយនីមួយៗមានសមាជិករៀងៗខ្លួន។"
+      },
+      "account": {
+        "title": "គណនី និងការកំណត់",
+        "description": "ប្រវត្តិរូប ស្បែក ផ្លូវកាត់ក្តារចុច និងការកំណត់គណនី សុទ្ធតែនៅពីក្រោយរូបតំណាងរបស់អ្នក។"
       }
     }
   }

@@ -340,6 +340,15 @@ export function useCanvasTable({
 
   watch([() => totalRows.value, () => chunkStates.value, userColumnTitles], () => resolveExternalUsersFromRows(), { deep: true })
 
+  // Resolution lands after the rows have already been painted, and updating
+  // `baseUsers` alone does not invalidate the canvas — the cell would stay blank
+  // until some unrelated redraw (scroll, resize) happened to repaint it. Same
+  // pattern the image/sprite loaders use for their async completions.
+  watch(
+    () => resolvedUsers.value,
+    () => triggerRefreshCanvas(),
+  )
+
   const { hideTooltip } = tooltipStore
 
   const isPublicView = inject(IsPublicInj, ref(false))

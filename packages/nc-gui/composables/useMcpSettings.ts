@@ -258,9 +258,9 @@ export const useMcpSettings = createSharedComposable(() => {
 
       const response = await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, { operation: 'mcpRootCreate' }, payload)
 
+      // No toast: the page itself moves to the setup phase, which is the confirmation.
       if (response) {
         accountMcpTokens.value = [{ ...response, isNew: false }, ...accountMcpTokens.value]
-        message.success(t('msg.success.mcpTokenCreated'))
       }
 
       return response
@@ -287,7 +287,7 @@ export const useMcpSettings = createSharedComposable(() => {
       if (res) {
         const index = accountMcpTokens.value.findIndex((t) => t.id === token.id)
         if (index !== -1) accountMcpTokens.value[index] = { ...accountMcpTokens.value[index], ...res }
-        message.success(t('msg.success.mcpTokenUpdated'))
+        message.toast(t('msg.success.mcpTokenUpdated'))
       }
 
       return res
@@ -317,7 +317,7 @@ export const useMcpSettings = createSharedComposable(() => {
       if (res) {
         const index = accountMcpTokens.value.findIndex((t) => t.id === token.id)
         if (index !== -1) accountMcpTokens.value[index] = { ...accountMcpTokens.value[index], ...res }
-        message.success(t('msg.success.mcpTokenUpdated'))
+        message.toast(t('msg.success.mcpTokenUpdated'))
       }
 
       return res

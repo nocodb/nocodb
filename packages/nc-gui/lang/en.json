@@ -2518,6 +2518,7 @@
     "fullAccess": "Full access",
     "newMcpConnection": "New connection",
     "editMcpConnection": "Edit connection",
+    "mcpClientSetup": "Client setup",
     "createMcpConnection": "Create connection",
     "mcpTools": {
       "title": "Tools",
@@ -2532,7 +2533,7 @@
       "shownOf": "{shown} of {total} shown",
       "sections": {
         "account": "Account & workspaces",
-        "accountDesc": "Who you are, your workspaces, and the bases in them",
+        "accountDesc": "Who you are, your workspaces, the bases in them, and links into the app",
         "records": "Records & data",
         "recordsDesc": "Records, comments, import and export",
         "schema": "Schema",
@@ -5436,6 +5437,7 @@
       "tokenAccessDescription": "Where this token can reach. You can also grant access to certain bases.",
       "mcpConnectionCreate": "One credential for one MCP client. Its authority is what you pick here, intersected with your own roles — it can never do more than you can.",
       "mcpConnectionEdit": "Changes apply to the client on its next call. The secret stays the same.",
+      "mcpClientSetupKeyHidden": "The key is shown only when a connection is created or regenerated, so this config carries a placeholder.",
       "mcpScopeDescription": "What this connection may do wherever it reaches.",
       "mcpToolCatalogUnavailable": "Couldn’t load the tool list, so nothing can be allowed yet.",
       "mcpConnectionNeedsName": "Name the connection to continue.",

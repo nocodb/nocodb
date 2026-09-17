@@ -88,16 +88,24 @@ const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
   isTokenModalVisible.value = true
 }
 
-const regenerateToken = async (token: MCPTokenExtendedType) => {
-  const newToken = await regenerateAccountMcpToken(token)
-  if (newToken) {
-    handleOpenTokenModal(newToken)
-  }
-}
-
 const viewMode = ref<'list' | 'create'>('list')
 
 const editingToken = ref<MCPTokenExtendedType | null>(null)
+
+const revealToken = ref<MCPTokenExtendedType | null>(null)
+
+const regenerateToken = async (token: MCPTokenExtendedType) => {
+  const newToken = await regenerateAccountMcpToken(token)
+
+  if (!newToken) return
+
+  // A legacy connection has no page of its own; the modal still shows its config.
+  if (!isScopedMcpToken(newToken)) return handleOpenTokenModal(newToken)
+
+  editingToken.value = null
+  revealToken.value = newToken
+  viewMode.value = 'create'
+}
 
 // Only a per-tool connection has anything to edit; a legacy one carries the
 // creator's own authority in one base and a category-shaped grant cannot be
@@ -106,22 +114,33 @@ const isEditable = (token: MCPTokenExtendedType) => isScopedMcpToken(token) && !
 
 const openCreate = () => {
   editingToken.value = null
+  revealToken.value = null
   viewMode.value = 'create'
 }
 
 const openEdit = (token: MCPTokenExtendedType) => {
   editingToken.value = token
+  revealToken.value = null
   viewMode.value = 'create'
 }
 
+/** Row click: the page for a per-tool connection, the modal for a legacy one. */
+const openRow = (token: MCPTokenExtendedType) => (isEditable(token) ? openEdit(token) : handleOpenTokenModal(token))
+
 const returnToList = () => {
   editingToken.value = null
+  revealToken.value = null
   viewMode.value = 'list'
 }
 
-const onConnectionCreated = async (token: MCPTokenExtendedType) => {
-  returnToList()
-  handleOpenTokenModal(token)
+// The page keeps showing the setup phase; only the header needs to know.
+const onConnectionCreated = (token: MCPTokenExtendedType) => {
+  revealToken.value = token
+}
+
+const onEditFromReveal = (token: MCPTokenExtendedType) => {
+  revealToken.value = null
+  editingToken.value = token
 }
 
 const confirmDeleteToken = (token: MCPTokenExtendedType) => {
@@ -208,7 +227,9 @@ onMounted(async () => {
         <span data-rec="true">
           {{
             viewMode === 'create'
-              ? editingToken
+              ? revealToken
+                ? revealToken.title
+                : editingToken
                 ? $t('labels.editMcpConnection')
                 : $t('labels.newMcpConnection')
               : $t('title.mcpServer')
@@ -223,10 +244,13 @@ onMounted(async () => {
     >
       <div v-if="isEeUI && viewMode === 'create'" class="w-full h-full min-h-0">
         <AccountMcpCreate
-          :key="editingToken?.id || 'new'"
+          :key="editingToken?.id || revealToken?.id || 'new'"
           :edit-token="editingToken || undefined"
+          :reveal-token="revealToken || undefined"
           @created="onConnectionCreated"
+          @edit="onEditFromReveal"
           @saved="returnToList"
+          @done="returnToList"
           @cancel="returnToList"
         />
       </div>
@@ -264,7 +288,7 @@ onMounted(async () => {
           :data="sortedMcpTokens"
           class="h-full mt-5"
           body-row-class-name="nc-account-mcp-token-item group no-border-last cursor-pointer"
-          @row-click="handleOpenTokenModal"
+          @row-click="openRow"
         >
           <template #bodyCell="{ column, record: token }">
             <template v-if="column.key === 'name'">

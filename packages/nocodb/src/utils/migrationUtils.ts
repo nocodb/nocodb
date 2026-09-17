@@ -59,16 +59,16 @@ export async function migrateTableInBatches(
     }
     cursor = last;
 
-    // No dedup needed: the walk is strictly `> cursor`, so a row can only ever
-    // appear in one page.
     const formattedRows = rows.map(transformFn);
 
     if (formattedRows.length > 0) {
-      await knex.batchInsert(
-        targetTable as string,
-        formattedRows,
-        INSERT_BATCH_SIZE,
-      );
+      // Chunked by hand: batchInsert cannot carry an onConflict.
+      for (let i = 0; i < formattedRows.length; i += INSERT_BATCH_SIZE) {
+        await knex(targetTable as string)
+          .insert(formattedRows.slice(i, i + INSERT_BATCH_SIZE))
+          .onConflict()
+          .ignore();
+      }
       migrated += formattedRows.length;
       logger.log(
         `Inserted ${formattedRows.length} rows from ${sourceTable} to ${targetTable}`,

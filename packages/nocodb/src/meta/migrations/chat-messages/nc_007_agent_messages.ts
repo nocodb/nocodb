@@ -42,8 +42,6 @@ const up = async (knex: Knex) => {
     logger,
     {
       whereConditions: (qb) => qb.whereNotNull('fk_workspace_id'),
-      // `parts` carries whole tool outputs, so a default 1000-row page can be
-      // several GB in one await.
       READ_BATCH_SIZE: 100,
       selectColumns: [
         'id',

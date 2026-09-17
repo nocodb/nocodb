@@ -14,11 +14,7 @@ export function mcpErrorResult(text: string): McpErrorResult {
   };
 }
 
-/**
- * V3 is the message-rich variant, so a validation failure arrives with its
- * issues folded in; an unexpected DB or driver failure is reduced to the
- * mapped message rather than its internals.
- */
+/** V3 is the message-rich variant — validation issues arrive folded in. */
 export function mcpErrorMessage(e: unknown): string {
   const mapped = mapExceptionToResponse(e, NcApiVersion.V3);
   const body = mapped.body ?? {};
@@ -30,10 +26,7 @@ export function mcpErrorMessage(e: unknown): string {
   );
 }
 
-/**
- * A thrown error as an MCP tool result. The message comes from
- * `mapExceptionToResponse`, never a raw `error.message`.
- */
+/** A thrown error as an MCP tool result, never a raw `error.message`. */
 export function serializeMcpError(e: unknown): McpErrorResult {
   return mcpErrorResult(mcpErrorMessage(e));
 }

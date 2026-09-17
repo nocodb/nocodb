@@ -23,14 +23,10 @@ const up = async (knex: Knex) => {
     table.string('fk_agent_id', 20);
     table.string('trigger_type', 60).defaultTo('chat');
     table.string('status', 20).defaultTo('active');
-    // The list the UI opens with: base + trigger_type + the caller's own rows,
-    // newest first. `updated_at` ascending is enough — the planner reads it
-    // backwards for the DESC order.
     table.index(
       ['base_id', 'trigger_type', 'fk_user_id', 'updated_at'],
       'nc_chat_sessions_list_idx',
     );
-    // The agent-scoped reads: the agent page's session list and deleteByAgent.
     table.index(
       ['base_id', 'fk_agent_id', 'updated_at'],
       'nc_chat_sessions_agent_idx',
@@ -78,7 +74,10 @@ const up = async (knex: Knex) => {
 const down = async (knex: Knex) => {
   await revertMessages(knex);
 
-  await knex(MetaTable.CHAT_SESSIONS).whereNotNull('fk_agent_id').del();
+  // Only what `up` copied — a session created since then has no source row.
+  await knex(MetaTable.CHAT_SESSIONS)
+    .whereIn('id', knex(MetaTable.AGENT_SESSIONS).select('id'))
+    .del();
 
   await knex.schema.alterTable(MetaTable.CHAT_SESSIONS, (table) => {
     table.dropIndex(

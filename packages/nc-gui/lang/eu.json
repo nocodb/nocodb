@@ -805,7 +805,8 @@
       "org-level-viewer": "Erregistroak ikusi soilik",
       "cloud-org-level-owner": "Erakundearen eta bere lan-espazioen kontrol osoa",
       "cloud-org-level-creator": "Lan-espazioak sortu eta gonbidatutakoetara batu",
-      "cloud-org-level-viewer": "Erakundea eta bere lan-espazioak ikusi"
+      "cloud-org-level-viewer": "Erakundea eta bere lan-espazioak ikusi",
+      "app-user": "Argitaratutako app-ak soilik erabili"
     },
     "sqlView": "SQL Ikuspegia",
     "rowHeight": "Erregistroaren Altuera",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Deskubritu NocoDB esperientzia hobetzeko integrazio mendekotasun gehiago.",
       "ai": "AI",
       "spreadSheet": "Kalkulu-orria",
-      "spreadSheetSubtitle": "Konektatu eta kudeatu zure kalkulu-orriak NocoDB-rekin."
+      "spreadSheetSubtitle": "Konektatu eta kudeatu zure kalkulu-orriak NocoDB-rekin.",
+      "authProvider": "Autentifikazio-hornitzailea",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Arrakasta",
@@ -898,7 +901,8 @@
       "Enterprise": "Enpresa handia",
       "Self-hosted Business": "Negozioa",
       "Self-hosted Scale": "Eskala",
-      "Self-hosted Enterprise": "Enpresa"
+      "Self-hosted Enterprise": "Enpresa",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Automatizazio-exekuzioak",
+      "externalSources": "Kanpoko iturriak"
     },
     "coloring": {
       "usingSingleSelectField": "Aukera bakarreko eremua erabiltzen",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Erregistroak baldintzen arabera koloreztatu",
       "colourRecordsByField": "Erregistroak eremuaren arabera koloreztatu",
       "rowColorDescription": "Aplikatu kolorea erregistroari",
-      "cellColorDescription": "Kolorea eremu zehatz bati aplikatu"
+      "cellColorDescription": "Kolorea eremu zehatz bati aplikatu",
+      "title": "Koloreztatzea",
+      "usingConditionsDescriptionOss": "Koloreztatu erregistroak baldintzen arabera"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Erregistroa sortzea mugatuta",
@@ -974,7 +982,30 @@
         "filterCount": "{count} iragazi | {count} -eko iragazkiak",
         "subjectsRequired": "Mesedez, hautatu gutxienez rol, erabiltzaile edo talde bat.",
         "confirmDeleteTitle": "Ziur al zaude politika hau ezabatu nahi duzula?",
-        "confirmDeleteContent": "Ekintza hau ezin da atzera bota."
+        "confirmDeleteContent": "Ekintza hau ezin da atzera bota.",
+        "groupAgents": "Agenteak",
+        "ownerSubjectNote": "Jabeek RLS arauak alda ditzakete.",
+        "selectDynamicValue": "Hautatu balio dinamiko bat...",
+        "placeholders": {
+          "currentUserId": "Uneko erabiltzailearen IDa",
+          "currentUserIdDescription": "Saioa hasita duen erabiltzailearen IDa.",
+          "currentUserEmail": "Uneko erabiltzailearen helbide elektronikoa",
+          "currentUserEmailDescription": "Saioa hasita duen erabiltzailearen helbide elektronikoa.",
+          "currentUserName": "Uneko erabiltzailearen izena",
+          "currentUserNameDescription": "Saioa hasita duen erabiltzailearen bistaratze-izena.",
+          "currentUserRoles": "Uneko erabiltzailearen rolak",
+          "currentUserRolesDescription": "Saioa hasita duen erabiltzailearen rolak proiektuan.",
+          "currentUserTeams": "Nire taldeak",
+          "currentUserTeamsDescription": "Erabiltzailea zuzenean kide den taldeen IDak.",
+          "currentUserTeamsWithDescendants": "Nire taldeak eta azpitaldeak",
+          "currentUserTeamsWithDescendantsDescription": "Erabiltzailearen taldeen eta haien azpiko talde guztien IDak.",
+          "currentUserTeamNames": "Nire taldeen izenak",
+          "currentUserTeamNamesDescription": "Erabiltzailea zuzenean kide den taldeen izenak.",
+          "currentUserTeamNamesWithDescendants": "Nire taldeen eta azpitaldeen izenak",
+          "currentUserTeamNamesWithDescendantsDescription": "Erabiltzailearen taldeen eta haien azpiko talde guztien izenak.",
+          "currentUserTeamWithDescendantMembers": "Nire taldeetako kideak",
+          "currentUserTeamWithDescendantMembersDescription": "Erabiltzailearen taldeetako eta azpitaldeetako denak — erabili «hauetakoren bat du» baldintzarekin zure menpekoen erregistroak ikusteko."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Inor ez {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Konfigurazioaren ikuspegia arrakastaz kopiatu da",
       "errorOccuredWhileCopyingViewConfiguration": "Ikuspegiaren konfigurazioa kopiatu bitartean akats bat gertatu da.",
       "copyFromAnotherView": "Beste ikuspegi batetik kopiatu",
-      "copyFromAView": "Ikuspegi batetik kopiatu"
+      "copyFromAView": "Ikuspegi batetik kopiatu",
+      "copySettingsFromView": "Kopiatu ezarpenak bistaratze batetik",
+      "chooseSettings": "Aukeratu ezarpenak",
+      "settingsSelected": "{count} hautatuta",
+      "warning": {
+        "dynamic_filters_dropped": "Eremutik eremurako {count} baldintza ezin dira kopiatu — orri honek bistaratzeak baino erregistro gehiago erakutsiko ditu.",
+        "negated_filters_dropped": "Ezeztatutako {count} baldintza ezin dira kopiatu — orri honek bistaratzeak baino erregistro gehiago erakutsiko ditu.",
+        "row_color_background_lost": "Erregistroen koloreak kopiatzen dira, baina haien atzeko planoko betegarria ez.",
+        "grouping_dropped": "Diseinu honek ez du taldekatzea onartzen, beraz ez da kopiatzen."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Ziur al zaude talde hau utzi nahi duzula?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "Ez dago gehitzeko talderik",
       "alreadyAdded": "Jada gehitu da",
       "teamCantBeAssignedOwnerRole": "Taldeari ezin zaio jabe rola esleitu."
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "Kide {count} | {count} kide",
+    "bookmark": "Laster-marka",
+    "interfacePage": "Interfazearen orria",
+    "folder": "Karpeta",
+    "formulas": "Formulak",
+    "audio": "Audio",
+    "app": "App",
+    "apps": "Apps",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Salmentak",
+      "marketing": "Marketing",
+      "finance": "Finantzak",
+      "hr": "Giza baliabideak",
+      "operations": "Eragiketak",
+      "support": "Laguntza",
+      "it": "IT",
+      "product": "Produktua",
+      "data": "Datuak",
+      "other": "Bestelakoak"
+    },
+    "agent": "Agentea",
+    "agents": "Agenteak"
   },
   "datatype": {
     "ID": "IDa",
@@ -4916,7 +4981,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Editatu ari zinen eremua beste erabiltzaile batek eguneratu du. Zure gorde gabeko aldaketak mantentzen dira — gordetzeak besteen aldaketak gainidatziko ditu.",
       "reachedUploadLimit": "Igoera muga lortu da",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Aldi bakoitzean {limit} {type} fitxategi bakarrik igo dezakezu",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Aldi bakoitzean {limit} {type} fitxategi bakarrik igo ditzakezu"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Aldi bakoitzean {limit} {type} fitxategi bakarrik igo ditzakezu",
+      "tableDataImportedLinksUnmatched": "Ondo inportatu da. {links} erregistro-lotura sortu dira, {unmatched} baliok ez zuten erregistrorik topatu eta saltatu egin dira.",
+      "tableDataImportedLinksFailed": "{failed} erregistro-loturak erregistro batekin bat egin zuten baina ezin izan ziren sortu. Ikusi inportazio-erregistroa xehetasunetarako.",
+      "importLinkReassignField": "«{field}» bat-askorekin edo bat-baterekin lotura bat da — hemen balioak inportatzeak erregistroak orain lotuta dauden erregistroetatik alden ditzake.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Ez da «Eguneratua» eremurik ezarri",
+        "description": "Sinkronizazio-exekuzio bakoitzak taula honetako erregistro guztiak berriro eskuratuko ditu. Markatu data-eremu bat «Eguneratua» gisa sinkronizazio inkrementala gaitzeko."
+      },
+      "syncDetachTable": "Sinkronizazioak ez du taula hau gehiago eguneratuko. Bere datuak gorde egiten dira eta eremu guztiak editagarri bihurtzen dira. Iturburu-taula geroago berriro sinkronizaziora gehitzeak taula berri bat sortzen du.",
+      "tableSyncConvertMainTable": "Hau da sinkronizazio honen taula sinkronizatua — bihurtzeak sinkronizazioa bera kentzen du. Sinkronizazioak sortutako taula guztiak taula arrunt eta editagarri gisa gordetzen dira eta sinkronizatzeari uzten diote.",
+      "requiredFieldNotEditable": "Nahitaezko eremu hau ezin da editatu, eta horrek akatsak eragin ditzake inprimakia bidaltzean.",
+      "communityAppInstall": "{title} komunitateko app bat da. NocoDB-k ez du berrikusi ez egiaztatu. Ziurtatu argitaratzailearengan fidatzen zarela zure lan-espazioan instalatu aurretik.",
+      "removeCustomDomain": "{domain} ez da gehiago app hau zerbitzatuko. Lehenetsitako helbideak funtzionatzen jarraitzen du."
     },
     "info": {
       "sourceViewRebindResync": "Iturri-ikuspegia aldatzeak ikuspegi berriaren aurkako sinkronizazio osoa eragiten du.",
@@ -5603,7 +5680,8 @@
       "nCellCopied": "{n} gelaxka kopiatuta",
       "nCellsCopied": "{n} gelaxka kopiatuta",
       "nRecordCreated": "{n} Erregistroa sortu da",
-      "nRecordsCreated": "{n} Sortutako erregistroak"
+      "nRecordsCreated": "{n} Sortutako erregistroak",
+      "interfaceFilterCopied": "Baldintza {count} kopiatu da | {count} baldintza kopiatu dira"
     },
     "success": {
       "restored": "Elementua arrakastaz berreskuratu da",
@@ -5670,7 +5748,24 @@
       "scimDisabled": "SCIM hornidura desgaituta",
       "tokenRegenerated": "Tokena hornitzea arrakastaz berregin da",
       "scimDeleted": "SCIM konfigurazioa arrakastaz ezabatu da",
-      "defaultRoleUpdated": "Lehenetsitako rola arrakastaz eguneratu da"
+      "defaultRoleUpdated": "Lehenetsitako rola arrakastaz eguneratu da",
+      "recordLinked": "Erregistroa lotuta",
+      "recordUnlinked": "Erregistroaren lotura kenduta",
+      "pageSharingEnabled": "Orriaren partekatzea gaituta",
+      "pageSharingDisabled": "Orriaren partekatzea desgaituta",
+      "dataExported": "Datuak ondo esportatu dira!",
+      "recordTemplateUpdated": "Txantiloia eguneratuta",
+      "recordTemplateCreated": "Txantiloia sortuta",
+      "recordTemplateDeleted": "Txantiloia ezabatuta",
+      "accountConnected": "Zure {provider} kontua konektatuta dago.",
+      "appUninstalled": "App-a desinstalatuta",
+      "storeListingSaved": "Dendako zerrendapena gordeta",
+      "publisherProfileSaved": "Argitaratzailearen profila gordeta",
+      "planChanged": "Plana eguneratuta",
+      "planChangeScheduled": "Plan-aldaketa programatuta",
+      "planChangeReverted": "Programatutako plan-aldaketa atzera botata. Zure oraingo planak aldaketarik gabe jarraitzen du.",
+      "appDelisted": "App Store-tik kendua",
+      "appRelisted": "Berriro App Store-n"
     },
     "subText": {
       "startFromScratch": "Hasi hutsetik.",
@@ -5839,7 +5934,24 @@
     "skillsCatalogErrorTitle": "Ezin izan da biltegi hau kargatu",
     "skillsCommunityTitle": "Instalatu edozein biltegi publikotik",
     "skillsCommunityBlocked": "Zure lan-espazioak ez du komunitateko trebetasunak instalatzea onartzen.",
-    "skillsCommunityBlockedOrg": "Zure erakundeak ez du komunitateko trebetasunak instalatzea onartzen."
+    "skillsCommunityBlockedOrg": "Zure erakundeak ez du komunitateko trebetasunak instalatzea onartzen.",
+    "thisSharedPageIsProtected": "Partekatutako orri hau babestuta dago",
+    "sso": {
+      "signInFailed": "Ezin izan dugu zure saioa hasi",
+      "shareCode": "Laguntza behar duzu? Partekatu kode hau zure administratzailearekin",
+      "failure": {
+        "SSO_STATE_INVALID": "Zure saio-hasierako saioa iraungi da edo eten egin da. Saiatu berriro.",
+        "SSO_TOKEN_INVALID": "Ezin izan dugu zure saio-hasierako hornitzailearen erantzuna egiaztatu. Saiatu berriro eta esan administratzaileari gertatzen jarraitzen badu.",
+        "SSO_PROVIDER_ERROR": "Zure saio-hasierako hornitzaileak arazo bat izan du. Saiatu berriro une batez.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Kontu honek ezin du saioa hasi. Eskatu sarbidea zure administratzaileari, edo saiatu beste kontu batekin.",
+        "SSO_FAILED": "Zerbait oker joan da saioa hastean. Saiatu berriro."
+      }
+    },
+    "unsupportedFileType": "Onartzen ez den fitxategi mota",
+    "skillUpdatedFromSource": "{title} iturritik eguneratua",
+    "workspaceSkillsSubtitle": "Hemengo proiektu guztietan eskuragarri, eta horiek aktibatzen dituzten agenteentzat.",
+    "skillShadowed": "Izenburu hau duen trebetasun batek lehentasuna du {scope} mailan, beraz hau ez da eskaintzen.",
+    "skillsNoMatchBody": "Ezerk ez du bilaketa horrekin bat egiten. Saiatu beste termino batekin edo garbitu iragazkiak."
   },
   "trash": {
     "restore": "Berreskuratu",

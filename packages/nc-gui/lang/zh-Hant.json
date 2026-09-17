@@ -805,7 +805,8 @@
       "org-level-viewer": "僅檢視記錄",
       "cloud-org-level-owner": "完全掌控該組織及其工作區",
       "cloud-org-level-creator": "建立工作區並加入受邀的工作區",
-      "cloud-org-level-viewer": "檢視該組織及其工作區"
+      "cloud-org-level-viewer": "檢視該組織及其工作區",
+      "app-user": "僅使用已發佈的應用程式"
     },
     "sqlView": "SQL 檢視",
     "rowHeight": "記錄高度",
@@ -882,7 +883,9 @@
       "othersSubtitle": "探索更多多功能集成以增強您的 NocoDB 體驗。",
       "ai": "AI",
       "spreadSheet": "試算表",
-      "spreadSheetSubtitle": "使用 NocoDB 連接和管理您的試算表。"
+      "spreadSheetSubtitle": "使用 NocoDB 連接和管理您的試算表。",
+      "authProvider": "身分驗證提供者",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "成功",
@@ -898,7 +901,8 @@
       "Enterprise": "企業",
       "Self-hosted Business": "業務",
       "Self-hosted Scale": "規模",
-      "Self-hosted Enterprise": "企業"
+      "Self-hosted Enterprise": "企業",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "自動化執行次數",
+      "externalSources": "外部資料來源"
     },
     "coloring": {
       "usingSingleSelectField": "使用單選欄位",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "依據條件為記錄著色",
       "colourRecordsByField": "依欄位為記錄著色",
       "rowColorDescription": "為記錄塗上顏色",
-      "cellColorDescription": "將顏色套用至特定欄位"
+      "cellColorDescription": "將顏色套用至特定欄位",
+      "title": "上色",
+      "usingConditionsDescriptionOss": "依條件為記錄上色"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "新增記錄受限",
@@ -974,7 +982,30 @@
         "filterCount": "{count} 過濾器 | {count} 過濾器",
         "subjectsRequired": "請至少選擇一個角色、使用者或小組。",
         "confirmDeleteTitle": "您確定要刪除此政策嗎？",
-        "confirmDeleteContent": "此動作無法撤銷。"
+        "confirmDeleteContent": "此動作無法撤銷。",
+        "groupAgents": "代理程式",
+        "ownerSubjectNote": "擁有者可以修改 RLS 規則。",
+        "selectDynamicValue": "選擇一個動態值……",
+        "placeholders": {
+          "currentUserId": "目前使用者的 ID",
+          "currentUserIdDescription": "已登入使用者的 ID。",
+          "currentUserEmail": "目前使用者的電子郵件",
+          "currentUserEmailDescription": "已登入使用者的電子郵件地址。",
+          "currentUserName": "目前使用者的名稱",
+          "currentUserNameDescription": "已登入使用者的顯示名稱。",
+          "currentUserRoles": "目前使用者的角色",
+          "currentUserRolesDescription": "已登入使用者在項目中的角色。",
+          "currentUserTeams": "我的團隊",
+          "currentUserTeamsDescription": "使用者直接隸屬團隊的 ID。",
+          "currentUserTeamsWithDescendants": "我的團隊與子團隊",
+          "currentUserTeamsWithDescendantsDescription": "使用者所屬團隊以及其下所有團隊的 ID。",
+          "currentUserTeamNames": "我的團隊名稱",
+          "currentUserTeamNamesDescription": "使用者直接隸屬團隊的名稱。",
+          "currentUserTeamNamesWithDescendants": "我的團隊與子團隊名稱",
+          "currentUserTeamNamesWithDescendantsDescription": "使用者所屬團隊以及其下所有團隊的名稱。",
+          "currentUserTeamWithDescendantMembers": "我團隊的成員",
+          "currentUserTeamWithDescendantMembersDescription": "使用者所在團隊與子團隊中的所有人——搭配「包含其中任一」使用，即可檢視部屬的記錄。"
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "無人 {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "檢視設定已成功複製",
       "errorOccuredWhileCopyingViewConfiguration": "複製檢視組態時發生錯誤",
       "copyFromAnotherView": "從其他檢視複製",
-      "copyFromAView": "從檢視複製"
+      "copyFromAView": "從檢視複製",
+      "copySettingsFromView": "從檢視複製設定",
+      "chooseSettings": "選擇設定",
+      "settingsSelected": "已選取 {count} 項",
+      "warning": {
+        "dynamic_filters_dropped": "{count} 個欄位對欄位的條件無法複製——此頁面顯示的記錄會比檢視更多。",
+        "negated_filters_dropped": "{count} 個否定條件無法複製——此頁面顯示的記錄會比檢視更多。",
+        "row_color_background_lost": "記錄顏色會被複製，但其背景填色不會。",
+        "grouping_dropped": "此版面配置不支援分組，因此分組不會被複製。"
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "你確定要離開這個團隊嗎？",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "不再新增隊伍",
       "alreadyAdded": "已加入",
       "teamCantBeAssignedOwnerRole": "團隊無法被指派 Owner 角色"
-    }
+    },
+    "chat": "聊天",
+    "addons": "Add-ons",
+    "membersCount": "{count} 位成員 | {count} 位成員",
+    "bookmark": "書籤",
+    "interfacePage": "介面頁面",
+    "folder": "資料夾",
+    "formulas": "公式",
+    "audio": "音訊",
+    "app": "應用程式",
+    "apps": "應用程式",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "銷售",
+      "marketing": "行銷",
+      "finance": "財務",
+      "hr": "人力資源",
+      "operations": "營運",
+      "support": "支援",
+      "it": "IT",
+      "product": "產品",
+      "data": "資料",
+      "other": "其他"
+    },
+    "agent": "代理程式",
+    "agents": "代理程式"
   },
   "datatype": {
     "ID": "ID",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "您正在編輯的欄位已被其他使用者更新。您未儲存的變更會保留 - 儲存會覆蓋他們的變更。",
       "reachedUploadLimit": "已達上傳上限",
       "youCanOnlyUploadMaxLimitFilesAtATime": "您一次最多只能上傳 {limit} 個 {type} 檔案",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "您一次最多只能上傳 {limit} 個 {type} 檔案"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "您一次最多只能上傳 {limit} 個 {type} 檔案",
+      "tableDataImportedLinksUnmatched": "匯入成功。已建立 {links} 筆記錄連結，{unmatched} 個值未比對到任何記錄，已略過。",
+      "tableDataImportedLinksFailed": "{failed} 筆記錄連結比對到了記錄，但無法建立。詳情請查看匯入紀錄。",
+      "importLinkReassignField": "「{field}」是一對多或一對一連結——在此匯入值可能會把記錄從目前連結的記錄上移開。",
+      "syncNoUpdatedAtColumn": {
+        "title": "未設定「更新時間」欄位",
+        "description": "每次同步執行都會重新擷取此表格的所有記錄。請將某個日期欄位標記為「更新時間」，以啟用增量同步。"
+      },
+      "syncDetachTable": "同步將不再更新此表格。其資料會保留，所有欄位將變為可編輯。日後若把來源表重新加入同步，會建立一個新表格。",
+      "tableSyncConvertMainTable": "這是本次同步的同步表格——轉換它會連同步本身一併移除。同步建立的所有表格都會保留為一般的可編輯表格，並停止同步。",
+      "requiredFieldNotEditable": "此必填欄位無法編輯，送出表單時可能因此發生錯誤。",
+      "communityAppInstall": "{title} 是一款社群應用程式，未經 NocoDB 審查或驗證。在將它安裝到您的工作區之前，請確認您信任該發佈者。",
+      "removeCustomDomain": "{domain} 將不再提供此應用程式。預設網址仍可繼續使用。"
     },
     "info": {
       "sourceViewRebindResync": "變更原始檢視會觸發對新檢視的完全重新同步。",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} 個儲存格已複製",
       "nCellsCopied": "{n} 個儲存格已複製",
       "nRecordCreated": "{n} 已建立記錄",
-      "nRecordsCreated": "{n} 建立的記錄"
+      "nRecordsCreated": "{n} 建立的記錄",
+      "interfaceFilterCopied": "已複製 {count} 個條件 | 已複製 {count} 個條件"
     },
     "success": {
       "restored": "項目已成功還原",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "停用 SCIM 佈建",
       "tokenRegenerated": "成功重新生成供應令牌",
       "scimDeleted": "SCIM 設定刪除成功",
-      "defaultRoleUpdated": "預設角色更新成功"
+      "defaultRoleUpdated": "預設角色更新成功",
+      "recordLinked": "記錄已連結",
+      "recordUnlinked": "記錄已取消連結",
+      "pageSharingEnabled": "已開啟頁面分享",
+      "pageSharingDisabled": "已關閉頁面分享",
+      "dataExported": "資料匯出成功！",
+      "recordTemplateUpdated": "範本已更新",
+      "recordTemplateCreated": "範本已建立",
+      "recordTemplateDeleted": "範本已刪除",
+      "accountConnected": "您的 {provider} 帳戶已連結。",
+      "appUninstalled": "應用程式已解除安裝",
+      "storeListingSaved": "商店項目已儲存",
+      "publisherProfileSaved": "發佈者個人檔案已儲存",
+      "planChanged": "方案已更新",
+      "planChangeScheduled": "方案變更已排定",
+      "planChangeReverted": "已撤銷排定的方案變更。您目前的方案維持不變，繼續生效。",
+      "appDelisted": "已自 App Store 下架",
+      "appRelisted": "已重新上架 App Store"
     },
     "subText": {
       "startFromScratch": "從頭開始。",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "無法載入此存放庫",
     "skillsCommunityTitle": "從任何公開存放庫安裝",
     "skillsCommunityBlocked": "您的工作區不允許安裝社群技能。",
-    "skillsCommunityBlockedOrg": "您的組織不允許安裝社群技能。"
+    "skillsCommunityBlockedOrg": "您的組織不允許安裝社群技能。",
+    "thisSharedPageIsProtected": "此分享頁面受保護",
+    "sso": {
+      "signInFailed": "我們無法為您登入",
+      "shareCode": "需要協助嗎？請把此代碼提供給您的管理員",
+      "failure": {
+        "SSO_STATE_INVALID": "您的登入工作階段已逾期或被中斷。請重試。",
+        "SSO_TOKEN_INVALID": "我們無法驗證登入服務提供者的回應。請重試；若持續發生，請告知管理員。",
+        "SSO_PROVIDER_ERROR": "您的登入服務提供者遇到了問題。請稍後重試。",
+        "SSO_ACCOUNT_NOT_ALLOWED": "此帳戶不被允許登入。請向管理員申請權限，或改用其他帳戶。",
+        "SSO_FAILED": "登入過程中出了點問題。請重試。"
+      }
+    },
+    "unsupportedFileType": "不支援的檔案類型",
+    "skillUpdatedFromSource": "已從來源更新 {title}",
+    "workspaceSkillsSubtitle": "在這裡的每個項目中可用，選擇啟用的代理程式也能使用。",
+    "skillShadowed": "{scope} 層級有同名技能且優先度較高，因此不提供這一個。",
+    "skillsNoMatchBody": "沒有符合該搜尋的內容。換個關鍵字試試，或者清除篩選條件。"
   },
   "trash": {
     "restore": "還原",

@@ -805,7 +805,8 @@
       "org-level-viewer": "Csak rekordok megtekintése",
       "cloud-org-level-owner": "Teljes körű felügyelet a szervezet és munkaterületei felett",
       "cloud-org-level-creator": "Munkaterületek létrehozása és csatlakozás azokhoz, ahová meghívták",
-      "cloud-org-level-viewer": "A szervezet és munkaterületeinek megtekintése"
+      "cloud-org-level-viewer": "A szervezet és munkaterületeinek megtekintése",
+      "app-user": "Csak közzétett alkalmazások használata"
     },
     "sqlView": "SQL nézet",
     "rowHeight": "Rekord magassága",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Fedezzen fel további sokoldalú integrációkat a NocoDB élmény fokozására.",
       "ai": "AI",
       "spreadSheet": "Táblázat",
-      "spreadSheetSubtitle": "Csatlakoztassa és kezelje táblázatait a NocoDB-vel."
+      "spreadSheetSubtitle": "Csatlakoztassa és kezelje táblázatait a NocoDB-vel.",
+      "authProvider": "Hitelesítési szolgáltató",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Siker",
@@ -898,7 +901,8 @@
       "Enterprise": "Vállalati",
       "Self-hosted Business": "Üzleti",
       "Self-hosted Scale": "Skála",
-      "Self-hosted Enterprise": "Vállalat"
+      "Self-hosted Enterprise": "Vállalat",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Automatizálási futtatások",
+      "externalSources": "Külső források"
     },
     "coloring": {
       "usingSingleSelectField": "Egyszeres kiválasztó mező használata",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Rekordok színezése feltételek alapján",
       "colourRecordsByField": "Rekordok színezése mező alapján",
       "rowColorDescription": "Alkalmazzon színt a rekordra",
-      "cellColorDescription": "Szín alkalmazása egy adott mezőre"
+      "cellColorDescription": "Szín alkalmazása egy adott mezőre",
+      "title": "Színezés",
+      "usingConditionsDescriptionOss": "Rekordok színezése feltételek alapján"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Rekord létrehozása korlátozott",
@@ -974,7 +982,30 @@
         "filterCount": "{count} szűrő | {count} szűrők",
         "subjectsRequired": "Kérjük, válasszon ki legalább egy szerepet, felhasználót vagy csapatot.",
         "confirmDeleteTitle": "Biztos, hogy törölni szeretné ezt a házirendet?",
-        "confirmDeleteContent": "Ezt a műveletet nem lehet visszacsinálni."
+        "confirmDeleteContent": "Ezt a műveletet nem lehet visszacsinálni.",
+        "groupAgents": "Ügynökök",
+        "ownerSubjectNote": "A tulajdonosok módosíthatják az RLS-szabályokat.",
+        "selectDynamicValue": "Válasszon dinamikus értéket...",
+        "placeholders": {
+          "currentUserId": "Az aktuális felhasználó azonosítója",
+          "currentUserIdDescription": "A bejelentkezett felhasználó azonosítója.",
+          "currentUserEmail": "Az aktuális felhasználó e-mail-címe",
+          "currentUserEmailDescription": "A bejelentkezett felhasználó e-mail-címe.",
+          "currentUserName": "Az aktuális felhasználó neve",
+          "currentUserNameDescription": "A bejelentkezett felhasználó megjelenített neve.",
+          "currentUserRoles": "Az aktuális felhasználó szerepkörei",
+          "currentUserRolesDescription": "A bejelentkezett felhasználó bázisszerepkörei.",
+          "currentUserTeams": "A csapataim",
+          "currentUserTeamsDescription": "Azoknak a csapatoknak az azonosítói, amelyekhez a felhasználó közvetlenül tartozik.",
+          "currentUserTeamsWithDescendants": "A csapataim és alcsapataim",
+          "currentUserTeamsWithDescendantsDescription": "A felhasználó csapatainak, valamint minden alattuk lévő csapatnak az azonosítói.",
+          "currentUserTeamNames": "A csapataim nevei",
+          "currentUserTeamNamesDescription": "Azoknak a csapatoknak a nevei, amelyekhez a felhasználó közvetlenül tartozik.",
+          "currentUserTeamNamesWithDescendants": "A csapataim és alcsapataim nevei",
+          "currentUserTeamNamesWithDescendantsDescription": "A felhasználó csapatainak, valamint minden alattuk lévő csapatnak a nevei.",
+          "currentUserTeamWithDescendantMembers": "A csapataim tagjai",
+          "currentUserTeamWithDescendantMembersDescription": "Mindenki a felhasználó csapataiban és alcsapataiban — a „tartalmazza bármelyiket” feltétellel használja, hogy lássa a beosztottjai rekordjait."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Senki {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "A konfiguráció megtekintése sikeresen másolva",
       "errorOccuredWhileCopyingViewConfiguration": "Hiba történt a nézeti konfiguráció másolása közben",
       "copyFromAnotherView": "Másolat egy másik nézetből",
-      "copyFromAView": "Másolás nézetből"
+      "copyFromAView": "Másolás nézetből",
+      "copySettingsFromView": "Beállítások másolása egy nézetből",
+      "chooseSettings": "Beállítások kiválasztása",
+      "settingsSelected": "{count} kiválasztva",
+      "warning": {
+        "dynamic_filters_dropped": "{count} mezőről mezőre hivatkozó feltételt nem lehet átmásolni — ez az oldal több rekordot fog mutatni, mint a nézet.",
+        "negated_filters_dropped": "{count} tagadott feltételt nem lehet átmásolni — ez az oldal több rekordot fog mutatni, mint a nézet.",
+        "row_color_background_lost": "A rekordszínek átmásolódnak, a háttérkitöltésük azonban nem.",
+        "grouping_dropped": "Ez az elrendezés nem támogatja a csoportosítást, ezért az nem másolódik át."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Biztos, hogy el akarod hagyni ezt a csapatot?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "Nincs több hozzáadandó csapat",
       "alreadyAdded": "Már hozzáadva",
       "teamCantBeAssignedOwnerRole": "A csapat nem kaphat Tulajdonos szerepet"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} tag | {count} tag",
+    "bookmark": "Könyvjelző",
+    "interfacePage": "Felületoldal",
+    "folder": "Mappa",
+    "formulas": "Képletek",
+    "audio": "Audio",
+    "app": "Alkalmazás",
+    "apps": "Alkalmazások",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Értékesítés",
+      "marketing": "Marketing",
+      "finance": "Pénzügy",
+      "hr": "Humánerőforrás",
+      "operations": "Működés",
+      "support": "Support",
+      "it": "IT",
+      "product": "Termék",
+      "data": "Adatok",
+      "other": "Egyéb"
+    },
+    "agent": "Ügynök",
+    "agents": "Ügynökök"
   },
   "datatype": {
     "ID": "ID",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Az Ön által szerkesztett mezőt egy másik felhasználó frissítette. Az Ön el nem mentett módosításai megmaradnak - a mentés felülírja a módosításokat.",
       "reachedUploadLimit": "Elérte a feltöltési limitet",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Egyszerre csak {limit} {type} fájlt tölthet fel",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Egyszerre csak {limit} {type} fájlt tölthet fel"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Egyszerre csak {limit} {type} fájlt tölthet fel",
+      "tableDataImportedLinksUnmatched": "Az importálás sikerült. {links} rekordkapcsolat jött létre, {unmatched} érték egyetlen rekordhoz sem illeszkedett, ezért kimaradt.",
+      "tableDataImportedLinksFailed": "{failed} rekordkapcsolat illeszkedett egy rekordhoz, de nem sikerült létrehozni őket. A részletekért nézze meg az importnaplót.",
+      "importLinkReassignField": "A(z) „{field}” egy-a-többhöz vagy egy-az-egyhez kapcsolat — ha ide értékeket importál, az elszakíthatja a rekordokat azoktól, amelyekhez jelenleg kapcsolódnak.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Nincs beállítva „Frissítve” mező",
+        "description": "Minden szinkronizálási futás újra lekéri ennek a táblának az összes rekordját. Jelöljön meg egy dátummezőt „Frissítve” mezőként a növekményes szinkronizálás engedélyezéséhez."
+      },
+      "syncDetachTable": "A szinkronizálás többé nem frissíti ezt a táblát. Az adatai megmaradnak, és minden mező szerkeszthetővé válik. Ha később újra hozzáadja a forrástáblát a szinkronizáláshoz, új tábla jön létre.",
+      "tableSyncConvertMainTable": "Ez ennek a szinkronizálásnak a szinkronizált táblája — az átalakítása magát a szinkronizálást is megszünteti. A szinkronizálás által létrehozott összes tábla megmarad hagyományos, szerkeszthető táblaként, és többé nem szinkronizálódik.",
+      "requiredFieldNotEditable": "Ez a kötelező mező nem szerkeszthető, ami hibákat okozhat az űrlap beküldésekor.",
+      "communityAppInstall": "A(z) {title} közösségi alkalmazás. A NocoDB nem vizsgálta át és nem hitelesítette. Mielőtt telepíti a munkaterületére, győződjön meg róla, hogy megbízik a közzétevőben.",
+      "removeCustomDomain": "A(z) {domain} többé nem szolgálja ki ezt az alkalmazást. Az alapértelmezett cím továbbra is működik."
     },
     "info": {
       "sourceViewRebindResync": "A forrásnézet megváltoztatása teljes újraszinkronizálást indít el az új nézettel szemben.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} cella másolva",
       "nCellsCopied": "{n} cella másolva",
       "nRecordCreated": "{n} létrehozott rekord",
-      "nRecordsCreated": "{n} létrehozott rekordok"
+      "nRecordsCreated": "{n} létrehozott rekordok",
+      "interfaceFilterCopied": "{count} feltétel másolva | {count} feltétel másolva"
     },
     "success": {
       "restored": "Az elem sikeresen helyreállítva",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM-ellátás letiltva",
       "tokenRegenerated": "Provisioning token sikeresen regenerálódott",
       "scimDeleted": "SCIM konfiguráció sikeresen törölve",
-      "defaultRoleUpdated": "Alapértelmezett szerepkör sikeresen frissítve"
+      "defaultRoleUpdated": "Alapértelmezett szerepkör sikeresen frissítve",
+      "recordLinked": "Rekord összekapcsolva",
+      "recordUnlinked": "Rekordkapcsolat megszüntetve",
+      "pageSharingEnabled": "Oldalmegosztás bekapcsolva",
+      "pageSharingDisabled": "Oldalmegosztás kikapcsolva",
+      "dataExported": "Az adatok exportálása sikerült!",
+      "recordTemplateUpdated": "Sablon frissítve",
+      "recordTemplateCreated": "Sablon létrehozva",
+      "recordTemplateDeleted": "Sablon törölve",
+      "accountConnected": "A(z) {provider} fiókja csatlakoztatva van.",
+      "appUninstalled": "Alkalmazás eltávolítva",
+      "storeListingSaved": "Áruházi tétel mentve",
+      "publisherProfileSaved": "Közzétevői profil mentve",
+      "planChanged": "Csomag frissítve",
+      "planChangeScheduled": "Csomagváltás ütemezve",
+      "planChangeReverted": "Az ütemezett csomagváltás visszavonva. A jelenlegi csomagja változatlanul folytatódik.",
+      "appDelisted": "Eltávolítva az App Store-ból",
+      "appRelisted": "Újra az App Store-ban"
     },
     "subText": {
       "startFromScratch": "Kezdje el a semmiből.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "Nem sikerült betölteni ezt a tárolót",
     "skillsCommunityTitle": "Telepítés bármely nyilvános tárolóból",
     "skillsCommunityBlocked": "A munkaterülete nem engedi közösségi képességek telepítését.",
-    "skillsCommunityBlockedOrg": "A szervezete nem engedi közösségi képességek telepítését."
+    "skillsCommunityBlockedOrg": "A szervezete nem engedi közösségi képességek telepítését.",
+    "thisSharedPageIsProtected": "Ez a megosztott oldal védett",
+    "sso": {
+      "signInFailed": "Nem sikerült bejelentkeztetni",
+      "shareCode": "Segítségre van szüksége? Ossza meg ezt a kódot a rendszergazdájával",
+      "failure": {
+        "SSO_STATE_INVALID": "A bejelentkezési munkamenete lejárt vagy megszakadt. Kérjük, próbálja újra.",
+        "SSO_TOKEN_INVALID": "Nem tudtuk ellenőrizni a bejelentkezési szolgáltatójától érkezett választ. Próbálja újra, és szóljon a rendszergazdájának, ha továbbra is előfordul.",
+        "SSO_PROVIDER_ERROR": "A bejelentkezési szolgáltatójánál probléma merült fel. Kérjük, próbálja újra egy pillanat múlva.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Ez a fiók nem jelentkezhet be. Kérjen hozzáférést a rendszergazdájától, vagy próbáljon másik fiókot.",
+        "SSO_FAILED": "Valami hiba történt a bejelentkezés közben. Kérjük, próbálja újra."
+      }
+    },
+    "unsupportedFileType": "Nem támogatott fájltípus",
+    "skillUpdatedFromSource": "{title} frissítve a forrásból",
+    "workspaceSkillsSubtitle": "Minden itteni bázisban elérhetők, valamint azoknak az ügynököknek, amelyek bekapcsolják őket.",
+    "skillShadowed": "Az ilyen címmel rendelkező képesség a(z) {scope} szinten elsőbbséget élvez, ezért ez nem jelenik meg.",
+    "skillsNoMatchBody": "Semmi sem felel meg ennek a keresésnek. Próbáljon másik kifejezést, vagy törölje a szűrőket."
   },
   "trash": {
     "restore": "Visszaállítás",

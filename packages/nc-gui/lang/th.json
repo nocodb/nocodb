@@ -805,7 +805,8 @@
       "org-level-viewer": "ดูบันทึกได้เท่านั้น",
       "cloud-org-level-owner": "ควบคุมองค์กรและพื้นที่ทำงานทั้งหมดได้เต็มที่",
       "cloud-org-level-creator": "สร้างพื้นที่ทำงานและเข้าร่วมพื้นที่ทำงานที่ได้รับเชิญ",
-      "cloud-org-level-viewer": "ดูองค์กรและพื้นที่ทำงานขององค์กร"
+      "cloud-org-level-viewer": "ดูองค์กรและพื้นที่ทำงานขององค์กร",
+      "app-user": "ใช้ได้เฉพาะแอปที่เผยแพร่แล้ว"
     },
     "sqlView": "มุมมอง SQL",
     "rowHeight": "ความสูงของบันทึก",
@@ -882,7 +883,9 @@
       "othersSubtitle": "ค้นหาการผสานที่หลากหลายเพิ่มเติมเพื่อเพิ่มประสบการณ์ของคุณกับ NocoDB.",
       "ai": "AI",
       "spreadSheet": "สเปรดชีต",
-      "spreadSheetSubtitle": "เชื่อมต่อและจัดการสเปรดชีตของคุณกับ NocoDB."
+      "spreadSheetSubtitle": "เชื่อมต่อและจัดการสเปรดชีตของคุณกับ NocoDB.",
+      "authProvider": "ผู้ให้บริการยืนยันตัวตน",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "สำเร็จ",
@@ -898,7 +901,8 @@
       "Enterprise": "เอนเตอร์ไพรส์",
       "Self-hosted Business": "Business",
       "Self-hosted Scale": "Scale",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "การรันระบบอัตโนมัติ",
+      "externalSources": "แหล่งข้อมูลภายนอก"
     },
     "coloring": {
       "usingSingleSelectField": "ใช้ฟิลด์แบบเลือกเดียว",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "ระบายสีระเบียนตามเงื่อนไข",
       "colourRecordsByField": "ระบายสีระเบียนตามฟิลด์",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "การใส่สี",
+      "usingConditionsDescriptionOss": "ใส่สีระเบียนตามเงื่อนไข"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "จำกัดการสร้างระเบียน",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Please select at least one role, user, or team.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "เอเจนต์",
+        "ownerSubjectNote": "เจ้าของสามารถแก้ไขกฎ RLS ได้",
+        "selectDynamicValue": "เลือกค่าแบบไดนามิก...",
+        "placeholders": {
+          "currentUserId": "ID ของผู้ใช้ปัจจุบัน",
+          "currentUserIdDescription": "ID ของผู้ใช้ที่ลงชื่อเข้าใช้อยู่",
+          "currentUserEmail": "อีเมลของผู้ใช้ปัจจุบัน",
+          "currentUserEmailDescription": "ที่อยู่อีเมลของผู้ใช้ที่ลงชื่อเข้าใช้อยู่",
+          "currentUserName": "ชื่อของผู้ใช้ปัจจุบัน",
+          "currentUserNameDescription": "ชื่อที่แสดงของผู้ใช้ที่ลงชื่อเข้าใช้อยู่",
+          "currentUserRoles": "บทบาทของผู้ใช้ปัจจุบัน",
+          "currentUserRolesDescription": "บทบาทของผู้ใช้ที่ลงชื่อเข้าใช้อยู่ในโครงการ",
+          "currentUserTeams": "ทีมของฉัน",
+          "currentUserTeamsDescription": "ID ของทีมที่ผู้ใช้สังกัดโดยตรง",
+          "currentUserTeamsWithDescendants": "ทีมและทีมย่อยของฉัน",
+          "currentUserTeamsWithDescendantsDescription": "ID ของทีมของผู้ใช้ รวมถึงทุกทีมที่อยู่ใต้ทีมเหล่านั้น",
+          "currentUserTeamNames": "ชื่อทีมของฉัน",
+          "currentUserTeamNamesDescription": "ชื่อทีมที่ผู้ใช้สังกัดโดยตรง",
+          "currentUserTeamNamesWithDescendants": "ชื่อทีมและทีมย่อยของฉัน",
+          "currentUserTeamNamesWithDescendantsDescription": "ชื่อทีมของผู้ใช้ รวมถึงทุกทีมที่อยู่ใต้ทีมเหล่านั้น",
+          "currentUserTeamWithDescendantMembers": "สมาชิกในทีมของฉัน",
+          "currentUserTeamWithDescendantMembersDescription": "ทุกคนในทีมและทีมย่อยของผู้ใช้ — ใช้ร่วมกับ «มีค่าใดค่าหนึ่งใน» เพื่อดูระเบียนของผู้ใต้บังคับบัญชา"
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "คัดลอกการตั้งค่าจากมุมมอง",
+      "chooseSettings": "เลือกการตั้งค่า",
+      "settingsSelected": "เลือกแล้ว {count}",
+      "warning": {
+        "dynamic_filters_dropped": "คัดลอกเงื่อนไขแบบฟิลด์ต่อฟิลด์ {count} รายการไม่ได้ — หน้านี้จะแสดงระเบียนมากกว่ามุมมอง",
+        "negated_filters_dropped": "คัดลอกเงื่อนไขแบบปฏิเสธ {count} รายการไม่ได้ — หน้านี้จะแสดงระเบียนมากกว่ามุมมอง",
+        "row_color_background_lost": "สีของระเบียนถูกคัดลอก แต่สีพื้นหลังของระเบียนไม่ถูกคัดลอก",
+        "grouping_dropped": "เลย์เอาต์นี้ไม่รองรับการจัดกลุ่ม จึงไม่มีการคัดลอกการจัดกลุ่ม"
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "สมาชิก {count} คน | สมาชิก {count} คน",
+    "bookmark": "บุ๊กมาร์ก",
+    "interfacePage": "หน้าอินเทอร์เฟซ",
+    "folder": "โฟลเดอร์",
+    "formulas": "สูตร",
+    "audio": "Audio",
+    "app": "แอป",
+    "apps": "แอป",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "การขาย",
+      "marketing": "Marketing",
+      "finance": "การเงิน",
+      "hr": "ทรัพยากรบุคคล",
+      "operations": "ปฏิบัติการ",
+      "support": "ฝ่ายสนับสนุน",
+      "it": "IT",
+      "product": "ผลิตภัณฑ์",
+      "data": "ข้อมูล",
+      "other": "อื่น ๆ"
+    },
+    "agent": "เอเจนต์",
+    "agents": "เอเจนต์"
   },
   "datatype": {
     "ID": "id",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "ถึงขีดจำกัดการอัปโหลดแล้ว",
       "youCanOnlyUploadMaxLimitFilesAtATime": "คุณสามารถอัปโหลดไฟล์ {type} ได้ครั้งละ {limit} ไฟล์เท่านั้น",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "คุณสามารถอัปโหลดไฟล์ {type} ได้ครั้งละ {limit} ไฟล์เท่านั้น"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "คุณสามารถอัปโหลดไฟล์ {type} ได้ครั้งละ {limit} ไฟล์เท่านั้น",
+      "tableDataImportedLinksUnmatched": "นำเข้าสำเร็จแล้ว สร้างการเชื่อมโยงระเบียน {links} รายการ ส่วนอีก {unmatched} ค่าไม่ตรงกับระเบียนใดเลยจึงถูกข้ามไป",
+      "tableDataImportedLinksFailed": "การเชื่อมโยงระเบียน {failed} รายการตรงกับระเบียนหนึ่ง แต่สร้างไม่สำเร็จ ดูรายละเอียดได้ในบันทึกการนำเข้า",
+      "importLinkReassignField": "«{field}» เป็นการเชื่อมโยงแบบหนึ่ง-ต่อ-หลาย หรือหนึ่ง-ต่อ-หนึ่ง — การนำเข้าค่าที่นี่อาจดึงระเบียนออกจากระเบียนอื่นที่เชื่อมโยงอยู่ในขณะนี้",
+      "syncNoUpdatedAtColumn": {
+        "title": "ยังไม่ได้ตั้งฟิลด์ «อัปเดตเมื่อ»",
+        "description": "การซิงค์ทุกครั้งจะดึงระเบียนทั้งหมดของตารางนี้ใหม่ กรุณาทำเครื่องหมายฟิลด์วันที่เป็น «อัปเดตเมื่อ» เพื่อเปิดใช้การซิงค์แบบเพิ่มทีละส่วน"
+      },
+      "syncDetachTable": "การซิงค์จะหยุดอัปเดตตารางนี้ ข้อมูลของตารางยังถูกเก็บไว้และทุกฟิลด์จะแก้ไขได้ หากภายหลังเพิ่มตารางต้นทางกลับเข้าการซิงค์ ระบบจะสร้างตารางใหม่",
+      "tableSyncConvertMainTable": "นี่คือตารางที่ถูกซิงค์ของการซิงค์นี้ — การแปลงตารางนี้จะลบตัวการซิงค์เองออกไปด้วย ตารางทั้งหมดที่การซิงค์สร้างขึ้นจะยังอยู่ในฐานะตารางปกติที่แก้ไขได้ และจะหยุดซิงค์",
+      "requiredFieldNotEditable": "ฟิลด์ที่จำเป็นนี้แก้ไขไม่ได้ ซึ่งอาจทำให้เกิดข้อผิดพลาดตอนส่งฟอร์ม",
+      "communityAppInstall": "{title} เป็นแอปของชุมชน ยังไม่ได้ผ่านการตรวจสอบหรือรับรองจาก NocoDB กรุณาแน่ใจว่าคุณเชื่อถือผู้เผยแพร่ก่อนติดตั้งลงในพื้นที่ทำงานของคุณ",
+      "removeCustomDomain": "{domain} จะหยุดให้บริการแอปนี้ ที่อยู่เริ่มต้นยังใช้งานได้ต่อไป"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "คัดลอก {n} เซลล์แล้ว",
       "nCellsCopied": "คัดลอก {n} เซลล์แล้ว",
       "nRecordCreated": "{n} record created",
-      "nRecordsCreated": "{n} records created"
+      "nRecordsCreated": "{n} records created",
+      "interfaceFilterCopied": "คัดลอก {count} เงื่อนไขแล้ว | คัดลอก {count} เงื่อนไขแล้ว"
     },
     "success": {
       "restored": "Item restored successfully",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "recordLinked": "เชื่อมโยงระเบียนแล้ว",
+      "recordUnlinked": "ยกเลิกการเชื่อมโยงระเบียนแล้ว",
+      "pageSharingEnabled": "เปิดการแชร์หน้าแล้ว",
+      "pageSharingDisabled": "ปิดการแชร์หน้าแล้ว",
+      "dataExported": "ส่งออกข้อมูลสำเร็จแล้ว!",
+      "recordTemplateUpdated": "อัปเดตเทมเพลตแล้ว",
+      "recordTemplateCreated": "สร้างเทมเพลตแล้ว",
+      "recordTemplateDeleted": "ลบเทมเพลตแล้ว",
+      "accountConnected": "บัญชี {provider} ของคุณเชื่อมต่อแล้ว",
+      "appUninstalled": "ถอนการติดตั้งแอปแล้ว",
+      "storeListingSaved": "บันทึกรายการในร้านแล้ว",
+      "publisherProfileSaved": "บันทึกโปรไฟล์ผู้เผยแพร่แล้ว",
+      "planChanged": "อัปเดตแผนแล้ว",
+      "planChangeScheduled": "ตั้งเวลาเปลี่ยนแผนแล้ว",
+      "planChangeReverted": "ยกเลิกการเปลี่ยนแผนที่ตั้งเวลาไว้แล้ว แผนปัจจุบันของคุณดำเนินต่อไปโดยไม่เปลี่ยนแปลง",
+      "appDelisted": "นำออกจาก App Store แล้ว",
+      "appRelisted": "กลับเข้า App Store แล้ว"
     },
     "subText": {
       "startFromScratch": "เริ่มจากศูนย์",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "ไม่สามารถโหลดที่เก็บนี้ได้",
     "skillsCommunityTitle": "ติดตั้งจากที่เก็บสาธารณะใดก็ได้",
     "skillsCommunityBlocked": "พื้นที่ทำงานของคุณไม่อนุญาตให้ติดตั้งทักษะของชุมชน",
-    "skillsCommunityBlockedOrg": "องค์กรของคุณไม่อนุญาตให้ติดตั้งทักษะของชุมชน"
+    "skillsCommunityBlockedOrg": "องค์กรของคุณไม่อนุญาตให้ติดตั้งทักษะของชุมชน",
+    "thisSharedPageIsProtected": "หน้าที่แชร์นี้มีการป้องกัน",
+    "sso": {
+      "signInFailed": "เราไม่สามารถลงชื่อเข้าใช้ให้คุณได้",
+      "shareCode": "ต้องการความช่วยเหลือไหม แจ้งรหัสนี้แก่ผู้ดูแลระบบของคุณ",
+      "failure": {
+        "SSO_STATE_INVALID": "เซสชันการลงชื่อเข้าใช้ของคุณหมดอายุหรือถูกขัดจังหวะ กรุณาลองอีกครั้ง",
+        "SSO_TOKEN_INVALID": "เราไม่สามารถตรวจสอบคำตอบจากผู้ให้บริการลงชื่อเข้าใช้ของคุณได้ กรุณาลองอีกครั้ง และแจ้งผู้ดูแลระบบหากยังเกิดขึ้นอีก",
+        "SSO_PROVIDER_ERROR": "ผู้ให้บริการลงชื่อเข้าใช้ของคุณพบปัญหา กรุณาลองอีกครั้งในอีกสักครู่",
+        "SSO_ACCOUNT_NOT_ALLOWED": "บัญชีนี้ไม่ได้รับอนุญาตให้ลงชื่อเข้าใช้ กรุณาขอสิทธิ์จากผู้ดูแลระบบ หรือลองใช้บัญชีอื่น",
+        "SSO_FAILED": "มีบางอย่างผิดพลาดขณะลงชื่อเข้าใช้ กรุณาลองอีกครั้ง"
+      }
+    },
+    "unsupportedFileType": "ไม่รองรับชนิดไฟล์นี้",
+    "skillUpdatedFromSource": "อัปเดต {title} จากต้นทางแล้ว",
+    "workspaceSkillsSubtitle": "ใช้ได้ในทุกโครงการที่นี่ และสำหรับเอเจนต์ที่เลือกเปิดใช้",
+    "skillShadowed": "ทักษะที่ใช้ชื่อนี้ในระดับ {scope} มีความสำคัญเหนือกว่า จึงไม่มีการเสนอทักษะนี้",
+    "skillsNoMatchBody": "ไม่มีอะไรตรงกับการค้นหานั้น ลองใช้คำอื่นหรือล้างตัวกรอง"
   },
   "trash": {
     "restore": "Restore",

@@ -805,7 +805,8 @@
       "org-level-viewer": "Kun se poster",
       "cloud-org-level-owner": "Fuld kontrol over organisationen og dens arbejdsområder",
       "cloud-org-level-creator": "Oprette arbejdsområder og deltage i dem, man inviteres til",
-      "cloud-org-level-viewer": "Se organisationen og dens arbejdsområder"
+      "cloud-org-level-viewer": "Se organisationen og dens arbejdsområder",
+      "app-user": "Brug kun udgivne apps"
     },
     "sqlView": "SQL-visning",
     "rowHeight": "Post Højde",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Opdag yderligere alsidige integrationer for at forbedre din NocoDB oplevelse.",
       "ai": "AI",
       "spreadSheet": "Regneark",
-      "spreadSheetSubtitle": "Forbind og administrer dine regneark med NocoDB."
+      "spreadSheetSubtitle": "Forbind og administrer dine regneark med NocoDB.",
+      "authProvider": "Godkendelsesudbyder",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Succes",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Forretning",
       "Self-hosted Scale": "Skaler",
-      "Self-hosted Enterprise": "Virksomhed"
+      "Self-hosted Enterprise": "Virksomhed",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Automatiseringskørsler",
+      "externalSources": "Eksterne kilder"
     },
     "coloring": {
       "usingSingleSelectField": "Bruger enkeltvælgfelt",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Farveoptegnelser/celler baseret på forhold",
       "colourRecordsByField": "Farvelæg poster efter felt",
       "rowColorDescription": "Anvend farve på posten",
-      "cellColorDescription": "Anvend farve på et bestemt felt"
+      "cellColorDescription": "Anvend farve på et bestemt felt",
+      "title": "Farvelægning",
+      "usingConditionsDescriptionOss": "Farvelæg poster ud fra betingelser"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Oprettelse af post er begrænset",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter - {count} filtre",
         "subjectsRequired": "Vælg mindst én rolle, bruger eller team.",
         "confirmDeleteTitle": "Er du sikker på, at du vil slette denne politik?",
-        "confirmDeleteContent": "Denne handling kan ikke fortrydes."
+        "confirmDeleteContent": "Denne handling kan ikke fortrydes.",
+        "groupAgents": "Agenter",
+        "ownerSubjectNote": "Ejere kan ændre RLS-regler.",
+        "selectDynamicValue": "Vælg en dynamisk værdi ...",
+        "placeholders": {
+          "currentUserId": "Den aktuelle brugers ID",
+          "currentUserIdDescription": "Den indloggede brugers ID.",
+          "currentUserEmail": "Den aktuelle brugers e-mail",
+          "currentUserEmailDescription": "Den indloggede brugers e-mailadresse.",
+          "currentUserName": "Den aktuelle brugers navn",
+          "currentUserNameDescription": "Den indloggede brugers viste navn.",
+          "currentUserRoles": "Den aktuelle brugers roller",
+          "currentUserRolesDescription": "Den indloggede brugers projektroller.",
+          "currentUserTeams": "Mine teams",
+          "currentUserTeamsDescription": "ID'er på de teams, brugeren hører direkte til.",
+          "currentUserTeamsWithDescendants": "Mine teams og underteams",
+          "currentUserTeamsWithDescendantsDescription": "ID'er på brugerens teams samt alle teams under dem.",
+          "currentUserTeamNames": "Navne på mine teams",
+          "currentUserTeamNamesDescription": "Navne på de teams, brugeren hører direkte til.",
+          "currentUserTeamNamesWithDescendants": "Navne på mine teams og underteams",
+          "currentUserTeamNamesWithDescendantsDescription": "Navne på brugerens teams samt alle teams under dem.",
+          "currentUserTeamWithDescendantMembers": "Medlemmer af mine teams",
+          "currentUserTeamWithDescendantMembersDescription": "Alle i brugerens teams og underteams — brug det med »indeholder et af« for at se dine medarbejderes poster."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Ingen {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Visningskonfiguration kopieret med succes",
       "errorOccuredWhileCopyingViewConfiguration": "Der opstod en fejl under kopieringen af visningskonfigurationen",
       "copyFromAnotherView": "Kopier fra en anden visning",
-      "copyFromAView": "Kopier fra en visning"
+      "copyFromAView": "Kopier fra en visning",
+      "copySettingsFromView": "Kopiér indstillinger fra en visning",
+      "chooseSettings": "Vælg indstillinger",
+      "settingsSelected": "{count} valgt",
+      "warning": {
+        "dynamic_filters_dropped": "{count} felt-til-felt-betingelse(r) kan ikke kopieres — denne side viser flere poster end visningen.",
+        "negated_filters_dropped": "{count} negeret/negerede betingelse(r) kan ikke kopieres — denne side viser flere poster end visningen.",
+        "row_color_background_lost": "Postfarver kopieres, men ikke deres baggrundsfyld.",
+        "grouping_dropped": "Dette layout understøtter ikke gruppering, så den kopieres ikke."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Er du sikker på, at du vil forlade dette team?",
@@ -1035,7 +1075,31 @@
       "noMoreTeamsToAdd": "Ikke flere hold at tilføje",
       "alreadyAdded": "Allerede tilføjet",
       "teamCantBeAssignedOwnerRole": "Teamet kan ikke tildeles ejerrollen"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} medlem | {count} medlemmer",
+    "bookmark": "Bogmærke",
+    "interfacePage": "Grænsefladeside",
+    "folder": "Mappe",
+    "formulas": "Formler",
+    "audio": "Audio",
+    "app": "App",
+    "apps": "Apps",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Salg",
+      "marketing": "Marketing",
+      "finance": "Økonomi",
+      "hr": "Personale",
+      "operations": "Drift",
+      "support": "Support",
+      "it": "IT",
+      "product": "Produkt",
+      "other": "Andet"
+    },
+    "agent": "Agent",
+    "agents": "Agenter"
   },
   "datatype": {
     "ID": "ID.",
@@ -4909,7 +4973,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Feltet du redigerede blev opdateret af en anden bruger. Dine ikke-gemte ændringer bevares — besparelser vil overskrive deres ændringer.",
       "reachedUploadLimit": "Uploadgrænse nået",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Du kan kun uploade {limit} {type}-fil ad gangen",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Du kan kun uploade {limit} {type}-filer ad gangen"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Du kan kun uploade {limit} {type}-filer ad gangen",
+      "tableDataImportedLinksUnmatched": "Importeret uden problemer. {links} postforbindelser oprettet, {unmatched} værdi(er) matchede ingen post og blev sprunget over.",
+      "tableDataImportedLinksFailed": "{failed} postforbindelse(r) matchede en post, men kunne ikke oprettes. Se importloggen for detaljer.",
+      "importLinkReassignField": "»{field}« er en én-til-mange- eller én-til-én-forbindelse — at importere værdier her kan rive poster væk fra de poster, de er forbundet til lige nu.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Intet felt »Opdateret den« angivet",
+        "description": "Hver synkronisering henter alle poster i denne tabel igen. Markér et datofelt som »Opdateret den« for at gøre trinvis synkronisering mulig."
+      },
+      "syncDetachTable": "Synkroniseringen holder op med at opdatere denne tabel. Dens data bevares, og alle felter bliver redigerbare. Hvis kildetabellen senere føjes til synkroniseringen igen, oprettes der en ny tabel.",
+      "tableSyncConvertMainTable": "Dette er den synkroniserede tabel i denne synkronisering — at konvertere den fjerner selve synkroniseringen. Alle tabeller, som synkroniseringen har oprettet, bevares som almindelige, redigerbare tabeller og holder op med at synkronisere.",
+      "requiredFieldNotEditable": "Dette påkrævede felt kan ikke redigeres, hvilket kan give fejl, når formularen indsendes.",
+      "communityAppInstall": "{title} er en fællesskabs-app. Den er hverken gennemgået eller verificeret af NocoDB. Sørg for, at du har tillid til udgiveren, før du installerer den i dit arbejdsområde.",
+      "removeCustomDomain": "{domain} vil ikke længere levere denne app. Standardadressen bliver ved med at virke."
     },
     "info": {
       "sourceViewRebindResync": "Ændring af kildevisningen udløser en fuld re-synkronisering mod den nye visning.",
@@ -5596,7 +5672,8 @@
       "nCellCopied": "{n} celle kopieret",
       "nCellsCopied": "{n} celler kopieret",
       "nRecordCreated": "{n} arkiv oprettet",
-      "nRecordsCreated": "{n} arkiver oprettet"
+      "nRecordsCreated": "{n} arkiver oprettet",
+      "interfaceFilterCopied": "{count} betingelse kopieret | {count} betingelser kopieret"
     },
     "success": {
       "restored": "Element gendannet succesfuldt",
@@ -5663,7 +5740,24 @@
       "scimDisabled": "SCIM provisionering deaktiveret",
       "tokenRegenerated": "Provisioning token regenereret med succes",
       "scimDeleted": "SCIM-konfigurationen blev slettet",
-      "defaultRoleUpdated": "Standard rolle opdateret"
+      "defaultRoleUpdated": "Standard rolle opdateret",
+      "recordLinked": "Post forbundet",
+      "recordUnlinked": "Postforbindelse fjernet",
+      "pageSharingEnabled": "Sidedeling slået til",
+      "pageSharingDisabled": "Sidedeling slået fra",
+      "dataExported": "Data blev eksporteret!",
+      "recordTemplateUpdated": "Skabelon opdateret",
+      "recordTemplateCreated": "Skabelon oprettet",
+      "recordTemplateDeleted": "Skabelon slettet",
+      "accountConnected": "Din {provider}-konto er forbundet.",
+      "appUninstalled": "App afinstalleret",
+      "storeListingSaved": "Butiksopslag gemt",
+      "publisherProfileSaved": "Udgiverprofil gemt",
+      "planChanged": "Abonnement opdateret",
+      "planChangeScheduled": "Abonnementsændring planlagt",
+      "planChangeReverted": "Planlagt abonnementsændring fortrudt. Dit nuværende abonnement fortsætter uændret.",
+      "appDelisted": "Fjernet fra App Store",
+      "appRelisted": "Tilbage i App Store"
     },
     "subText": {
       "startFromScratch": "Start fra bunden.",
@@ -5832,7 +5926,24 @@
     "skillsCatalogErrorTitle": "Kunne ikke indlæse dette repository",
     "skillsCommunityTitle": "Installer fra ethvert offentligt repository",
     "skillsCommunityBlocked": "Dit arbejdsområde tillader ikke installation af fællesskabsfærdigheder.",
-    "skillsCommunityBlockedOrg": "Din organisation tillader ikke installation af fællesskabsfærdigheder."
+    "skillsCommunityBlockedOrg": "Din organisation tillader ikke installation af fællesskabsfærdigheder.",
+    "thisSharedPageIsProtected": "Denne delte side er beskyttet",
+    "sso": {
+      "signInFailed": "Vi kunne ikke logge dig ind",
+      "shareCode": "Brug for hjælp? Del denne kode med din administrator",
+      "failure": {
+        "SSO_STATE_INVALID": "Din login-session udløb eller blev afbrudt. Prøv igen.",
+        "SSO_TOKEN_INVALID": "Vi kunne ikke bekræfte svaret fra din login-udbyder. Prøv igen, og sig til din administrator, hvis det bliver ved.",
+        "SSO_PROVIDER_ERROR": "Din login-udbyder løb ind i et problem. Prøv igen om lidt.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Denne konto må ikke logge ind. Bed din administrator om adgang, eller prøv en anden konto.",
+        "SSO_FAILED": "Noget gik galt, da du skulle logges ind. Prøv igen."
+      }
+    },
+    "unsupportedFileType": "Filtypen understøttes ikke",
+    "skillUpdatedFromSource": "{title} opdateret fra kilden",
+    "workspaceSkillsSubtitle": "Tilgængelige i alle projekter her og for agenter, der vælger dem til.",
+    "skillShadowed": "En færdighed med denne titel på {scope}-niveau har forrang, så denne bliver ikke tilbudt.",
+    "skillsNoMatchBody": "Intet passer til den søgning. Prøv et andet ord, eller ryd filtrene."
   },
   "trash": {
     "restore": "Gendan",

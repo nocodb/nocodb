@@ -805,7 +805,8 @@
       "org-level-viewer": "Лише перегляд записів",
       "cloud-org-level-owner": "Повний контроль над організацією та її робочими областями",
       "cloud-org-level-creator": "Створювати робочі області та приєднуватися до тих, куди запросили",
-      "cloud-org-level-viewer": "Перегляд організації та її робочих областей"
+      "cloud-org-level-viewer": "Перегляд організації та її робочих областей",
+      "app-user": "Лише користуватися опублікованими застосунками"
     },
     "sqlView": "SQL вигляд",
     "rowHeight": "Висота запису",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Відкрийте для себе додаткові універсальні інтеграції, щоб покращити ваш досвід роботи з NocoDB.",
       "ai": "Штучний інтелект",
       "spreadSheet": "Таблиці",
-      "spreadSheetSubtitle": "Підключайте та керуйте своїми таблицями з NocoDB."
+      "spreadSheetSubtitle": "Підключайте та керуйте своїми таблицями з NocoDB.",
+      "authProvider": "Постачальник автентифікації",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Успіх",
@@ -898,7 +901,8 @@
       "Enterprise": "Корпоративний",
       "Self-hosted Business": "Бізнес",
       "Self-hosted Scale": "Масштаб",
-      "Self-hosted Enterprise": "Компанія"
+      "Self-hosted Enterprise": "Компанія",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Запуски автоматизацій",
+      "externalSources": "Зовнішні джерела"
     },
     "coloring": {
       "usingSingleSelectField": "Використання поля з одним вибором",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Кольорові записи/клітини на основі умов",
       "colourRecordsByField": "Кольорове виділення записів за полем",
       "rowColorDescription": "Застосувати колір до запису",
-      "cellColorDescription": "Застосувати колір до певного поля"
+      "cellColorDescription": "Застосувати колір до певного поля",
+      "title": "Розфарбування",
+      "usingConditionsDescriptionOss": "Забарвлювати записи за умовами"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Створення запису обмежене",
@@ -974,7 +982,30 @@
         "filterCount": "Фільтр {count} | {count} фільтрів",
         "subjectsRequired": "Будь ласка, оберіть хоча б одну роль, користувача або команду.",
         "confirmDeleteTitle": "Ви впевнені, що хочете видалити цю політику?",
-        "confirmDeleteContent": "Цю дію не можна скасувати."
+        "confirmDeleteContent": "Цю дію не можна скасувати.",
+        "groupAgents": "Агенти",
+        "ownerSubjectNote": "Власники можуть змінювати правила RLS.",
+        "selectDynamicValue": "Виберіть динамічне значення...",
+        "placeholders": {
+          "currentUserId": "ID поточного користувача",
+          "currentUserIdDescription": "ID користувача, який увійшов.",
+          "currentUserEmail": "Ел. пошта поточного користувача",
+          "currentUserEmailDescription": "Адреса електронної пошти користувача, який увійшов.",
+          "currentUserName": "Ім'я поточного користувача",
+          "currentUserNameDescription": "Показуване ім'я користувача, який увійшов.",
+          "currentUserRoles": "Ролі поточного користувача",
+          "currentUserRolesDescription": "Ролі користувача, який увійшов, у проєкті.",
+          "currentUserTeams": "Мої команди",
+          "currentUserTeamsDescription": "ID команд, до яких користувач належить безпосередньо.",
+          "currentUserTeamsWithDescendants": "Мої команди й підкоманди",
+          "currentUserTeamsWithDescendantsDescription": "ID команд користувача та всіх команд під ними.",
+          "currentUserTeamNames": "Назви моїх команд",
+          "currentUserTeamNamesDescription": "Назви команд, до яких користувач належить безпосередньо.",
+          "currentUserTeamNamesWithDescendants": "Назви моїх команд і підкоманд",
+          "currentUserTeamNamesWithDescendantsDescription": "Назви команд користувача та всіх команд під ними.",
+          "currentUserTeamWithDescendantMembers": "Учасники моїх команд",
+          "currentUserTeamWithDescendantMembersDescription": "Усі в командах і підкомандах користувача — використовуйте з умовою «містить будь-що з», щоб бачити записи своїх підлеглих."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Ніхто не {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "Скопіювати налаштування з вигляду",
+      "chooseSettings": "Виберіть налаштування",
+      "settingsSelected": "Вибрано: {count}",
+      "warning": {
+        "dynamic_filters_dropped": "{count} умов «поле до поля» скопіювати не можна — ця сторінка покаже більше записів, ніж вигляд.",
+        "negated_filters_dropped": "{count} умов із запереченням скопіювати не можна — ця сторінка покаже більше записів, ніж вигляд.",
+        "row_color_background_lost": "Кольори записів копіюються, а от їхня фонова заливка — ні.",
+        "grouping_dropped": "Це компонування не підтримує групування, тому воно не копіюється."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Чат",
+    "addons": "Add-ons",
+    "membersCount": "{count} учасник | {count} учасників",
+    "bookmark": "Закладка",
+    "interfacePage": "Сторінка інтерфейсу",
+    "folder": "Тека",
+    "formulas": "Формули",
+    "audio": "Аудіо",
+    "app": "Застосунок",
+    "apps": "Застосунки",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Продажі",
+      "marketing": "Маркетинг",
+      "finance": "Фінанси",
+      "hr": "Кадри",
+      "operations": "Операції",
+      "support": "Підтримка",
+      "it": "IT",
+      "product": "Продукт",
+      "data": "Дані",
+      "other": "Інше"
+    },
+    "agent": "Агент",
+    "agents": "Агенти"
   },
   "datatype": {
     "ID": "Ідентифікатор",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Поле, яке ви редагували було оновлено іншим користувачем. Ваші незбережені зміни зберігаються - збереження перезапише їхні зміни.",
       "reachedUploadLimit": "Досягнуто межі завантаження",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Ви можете завантажити лише {limit} файл типу {type} за раз",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Ви можете завантажити лише {limit} файлів типу {type} за раз"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Ви можете завантажити лише {limit} файлів типу {type} за раз",
+      "tableDataImportedLinksUnmatched": "Імпорт виконано успішно. Створено зв'язків записів: {links}; значень без збігів: {unmatched} — їх пропущено.",
+      "tableDataImportedLinksFailed": "{failed} зв'язків записів збіглися із записом, але їх не вдалося створити. Подробиці дивіться в журналі імпорту.",
+      "importLinkReassignField": "«{field}» — зв'язок «один до багатьох» або «один до одного»: імпорт значень сюди може відірвати записи від тих, з якими вони пов'язані зараз.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Поле «Оновлено» не задано",
+        "description": "Під час кожного запуску синхронізація заново отримуватиме всі записи цієї таблиці. Позначте поле з датою як «Оновлено», щоб увімкнути інкрементну синхронізацію."
+      },
+      "syncDetachTable": "Синхронізація перестане оновлювати цю таблицю. Її дані зберігаються, а всі поля стають редагованими. Якщо пізніше знову додати вихідну таблицю до синхронізації, буде створено нову таблицю.",
+      "tableSyncConvertMainTable": "Це синхронізована таблиця цієї синхронізації — її перетворення видаляє саму синхронізацію. Усі створені нею таблиці залишаються як звичайні редаговані таблиці й перестають синхронізуватися.",
+      "requiredFieldNotEditable": "Це обов'язкове поле недоступне для редагування, через що під час надсилання форми можуть виникати помилки.",
+      "communityAppInstall": "{title} — застосунок спільноти. NocoDB його не перевіряла й не підтверджувала. Перш ніж встановлювати його у свою робочу область, переконайтеся, що довіряєте видавцю.",
+      "removeCustomDomain": "{domain} перестане обслуговувати цей застосунок. Типова адреса й далі працюватиме."
     },
     "info": {
       "sourceViewRebindResync": "Зміна вихідного перегляду викликає повну синхронізацію повторно проти нового подання.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "Скопійовано {n} комірку",
       "nCellsCopied": "Скопійовано {n} комірок",
       "nRecordCreated": "Створено {n} запис",
-      "nRecordsCreated": "Створено записи {n}"
+      "nRecordsCreated": "Створено записи {n}",
+      "interfaceFilterCopied": "Скопійовано {count} умову | Скопійовано {count} умов"
     },
     "success": {
       "restored": "Елемент успішно відновлено",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "Заборона SCIM вимкнута",
       "tokenRegenerated": "Виконання токена успішно відновлено",
       "scimDeleted": "Налаштування SCIM успішно видалено",
-      "defaultRoleUpdated": "Роль за замовчуванням успішно оновлена"
+      "defaultRoleUpdated": "Роль за замовчуванням успішно оновлена",
+      "recordLinked": "Запис пов'язано",
+      "recordUnlinked": "Зв'язок запису видалено",
+      "pageSharingEnabled": "Спільний доступ до сторінки увімкнено",
+      "pageSharingDisabled": "Спільний доступ до сторінки вимкнено",
+      "dataExported": "Дані успішно експортовано!",
+      "recordTemplateUpdated": "Шаблон оновлено",
+      "recordTemplateCreated": "Шаблон створено",
+      "recordTemplateDeleted": "Шаблон видалено",
+      "accountConnected": "Ваш обліковий запис {provider} підключено.",
+      "appUninstalled": "Застосунок видалено",
+      "storeListingSaved": "Картку магазину збережено",
+      "publisherProfileSaved": "Профіль видавця збережено",
+      "planChanged": "Тариф оновлено",
+      "planChangeScheduled": "Зміну тарифу заплановано",
+      "planChangeReverted": "Заплановану зміну тарифу скасовано. Ваш поточний тариф діє далі без змін.",
+      "appDelisted": "Вилучено з App Store",
+      "appRelisted": "Знову в App Store"
     },
     "subText": {
       "startFromScratch": "Почати з нуля.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "Не вдалося завантажити цей репозиторій",
     "skillsCommunityTitle": "Встановлення з будь-якого публічного репозиторію",
     "skillsCommunityBlocked": "Ваша робоча область не дозволяє встановлювати навички спільноти.",
-    "skillsCommunityBlockedOrg": "Ваша організація не дозволяє встановлювати навички спільноти."
+    "skillsCommunityBlockedOrg": "Ваша організація не дозволяє встановлювати навички спільноти.",
+    "thisSharedPageIsProtected": "Ця спільна сторінка захищена",
+    "sso": {
+      "signInFailed": "Не вдалося виконати вхід",
+      "shareCode": "Потрібна допомога? Повідомте цей код своєму адміністратору",
+      "failure": {
+        "SSO_STATE_INVALID": "Сеанс входу минув або був перерваний. Будь ласка, спробуйте ще раз.",
+        "SSO_TOKEN_INVALID": "Не вдалося перевірити відповідь вашого постачальника входу. Спробуйте ще раз і повідомте адміністратора, якщо це повторюється.",
+        "SSO_PROVIDER_ERROR": "У вашого постачальника входу виникла проблема. Будь ласка, спробуйте ще раз за мить.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Цьому обліковому запису вхід заборонено. Запитайте доступ в адміністратора або спробуйте інший обліковий запис.",
+        "SSO_FAILED": "Під час входу щось пішло не так. Будь ласка, спробуйте ще раз."
+      }
+    },
+    "unsupportedFileType": "Непідтримуваний тип файлу",
+    "skillUpdatedFromSource": "{title} оновлено з джерела",
+    "workspaceSkillsSubtitle": "Доступні в кожному тутешньому проєкті, а також агентам, які їх увімкнуть.",
+    "skillShadowed": "Навичка з такою назвою на рівні «{scope}» має пріоритет, тому ця не пропонується.",
+    "skillsNoMatchBody": "За цим запитом нічого не знайдено. Спробуйте інше слово або зніміть фільтри."
   },
   "trash": {
     "restore": "Відновити",

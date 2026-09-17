@@ -805,7 +805,8 @@
       "org-level-viewer": "Samo pregled zapisa",
       "cloud-org-level-owner": "Potpuna kontrola nad organizacijom i njezinim radnim prostorima",
       "cloud-org-level-creator": "Stvaranje radnih prostora i pridruživanje onima na koje je pozvan",
-      "cloud-org-level-viewer": "Pregled organizacije i njezinih radnih prostora"
+      "cloud-org-level-viewer": "Pregled organizacije i njezinih radnih prostora",
+      "app-user": "Koristiti samo objavljene aplikacije"
     },
     "sqlView": "SQL Pregled",
     "rowHeight": "Visina retka",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Otkrijte dodatne svestrane integracije kako biste poboljšali svoje iskustvo s NocoDB.",
       "ai": "AI",
       "spreadSheet": "Proračunska tablica",
-      "spreadSheetSubtitle": "Povežite i upravljajte svojim proračunskim tablicama s NocoDB."
+      "spreadSheetSubtitle": "Povežite i upravljajte svojim proračunskim tablicama s NocoDB.",
+      "authProvider": "Davatelj autentifikacije",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Uspjeh",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Poslovanje",
       "Self-hosted Scale": "Skala",
-      "Self-hosted Enterprise": "Poduzeće"
+      "Self-hosted Enterprise": "Poduzeće",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Izvođenja automatizacija",
+      "externalSources": "Vanjski izvori"
     },
     "coloring": {
       "usingSingleSelectField": "Korištenje polja s jednim izborom",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Oboji zapise prema uvjetima",
       "colourRecordsByField": "Oboji zapise po polju",
       "rowColorDescription": "Primijeni boju na zapis",
-      "cellColorDescription": "Primijeni boju na određeno polje"
+      "cellColorDescription": "Primijeni boju na određeno polje",
+      "title": "Bojanje",
+      "usingConditionsDescriptionOss": "Oboji zapise na temelju uvjeta"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Kreiranje zapisa ograničeno",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filteri",
         "subjectsRequired": "Molimo odaberite barem jednu ulogu, korisnika ili tim.",
         "confirmDeleteTitle": "Jeste li sigurni da želite izbrisati ovu politiku?",
-        "confirmDeleteContent": "Ovu radnju nije moguće poništiti."
+        "confirmDeleteContent": "Ovu radnju nije moguće poništiti.",
+        "groupAgents": "Agenti",
+        "ownerSubjectNote": "Vlasnici mogu mijenjati pravila RLS-a.",
+        "selectDynamicValue": "Odaberite dinamičku vrijednost...",
+        "placeholders": {
+          "currentUserId": "ID trenutnog korisnika",
+          "currentUserIdDescription": "ID prijavljenog korisnika.",
+          "currentUserEmail": "E-pošta trenutnog korisnika",
+          "currentUserEmailDescription": "Adresa e-pošte prijavljenog korisnika.",
+          "currentUserName": "Ime trenutnog korisnika",
+          "currentUserNameDescription": "Prikazano ime prijavljenog korisnika.",
+          "currentUserRoles": "Uloge trenutnog korisnika",
+          "currentUserRolesDescription": "Uloge prijavljenog korisnika u projektu.",
+          "currentUserTeams": "Moji timovi",
+          "currentUserTeamsDescription": "ID-ovi timova kojima korisnik izravno pripada.",
+          "currentUserTeamsWithDescendants": "Moji timovi i podtimovi",
+          "currentUserTeamsWithDescendantsDescription": "ID-ovi korisnikovih timova te svih timova ispod njih.",
+          "currentUserTeamNames": "Nazivi mojih timova",
+          "currentUserTeamNamesDescription": "Nazivi timova kojima korisnik izravno pripada.",
+          "currentUserTeamNamesWithDescendants": "Nazivi mojih timova i podtimova",
+          "currentUserTeamNamesWithDescendantsDescription": "Nazivi korisnikovih timova te svih timova ispod njih.",
+          "currentUserTeamWithDescendantMembers": "Članovi mojih timova",
+          "currentUserTeamWithDescendantMembersDescription": "Svi u korisnikovim timovima i podtimovima — upotrijebite s uvjetom „sadrži bilo što od” da biste vidjeli zapise svojih podređenih."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nitko {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Pregled konfiguracije uspješno kopiran.",
       "errorOccuredWhileCopyingViewConfiguration": "Došlo je do pogreške pri kopiranju konfiguracije prikaza.",
       "copyFromAnotherView": "Kopiraj iz drugog pogleda",
-      "copyFromAView": "Kopiraj iz prikaza"
+      "copyFromAView": "Kopiraj iz prikaza",
+      "copySettingsFromView": "Kopiraj postavke iz pogleda",
+      "chooseSettings": "Odaberite postavke",
+      "settingsSelected": "Odabrano: {count}",
+      "warning": {
+        "dynamic_filters_dropped": "{count} uvjeta polje-na-polje nije moguće kopirati — ova će stranica prikazati više zapisa nego pogled.",
+        "negated_filters_dropped": "{count} negiranih uvjeta nije moguće kopirati — ova će stranica prikazati više zapisa nego pogled.",
+        "row_color_background_lost": "Boje zapisa se kopiraju, ali njihova ispuna pozadine ne.",
+        "grouping_dropped": "Ovaj raspored ne podržava grupiranje, pa se ono ne kopira."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Jesi li siguran da želiš napustiti ovaj tim?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "Nema više timova za dodavanje",
       "alreadyAdded": "Već je dodano",
       "teamCantBeAssignedOwnerRole": "Tim se ne može dodijeliti za vlasnika"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} član | {count} članova",
+    "bookmark": "Oznaka",
+    "interfacePage": "Stranica sučelja",
+    "folder": "Mapa",
+    "formulas": "Formule",
+    "audio": "Audio",
+    "app": "Aplikacija",
+    "apps": "Aplikacije",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Prodaja",
+      "marketing": "Marketing",
+      "finance": "Financije",
+      "hr": "Ljudski resursi",
+      "operations": "Operacije",
+      "support": "Podrška",
+      "it": "IT",
+      "product": "Proizvod",
+      "data": "Podaci",
+      "other": "Ostalo"
+    },
+    "agent": "Agent",
+    "agents": "Agenti"
   },
   "datatype": {
     "ID": "iskaznica",
@@ -4916,7 +4981,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Polje koje ste uređivali ažurirao je drugi korisnik. Vaše nepohranjene promjene su sačuvane — spremanjem ćete nadpisati njihove izmjene.",
       "reachedUploadLimit": "Dosegnut je limit prijenosa",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Možete prenijeti samo {limit} {type} datoteku odjednom",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Možete prenijeti samo {limit} {type} datoteku odjednom"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Možete prenijeti samo {limit} {type} datoteku odjednom",
+      "tableDataImportedLinksUnmatched": "Uvoz je uspio. Stvoreno veza zapisa: {links}; vrijednosti bez podudaranja: {unmatched} — one su preskočene.",
+      "tableDataImportedLinksFailed": "{failed} veza zapisa odgovaralo je nekom zapisu, ali ih nije bilo moguće stvoriti. Pojedinosti potražite u zapisniku uvoza.",
+      "importLinkReassignField": "„{field}” je veza jedan-prema-više ili jedan-prema-jedan — uvoz vrijednosti ovdje može otrgnuti zapise od onih s kojima su trenutačno povezani.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Polje „Ažurirano” nije postavljeno",
+        "description": "Svako pokretanje sinkronizacije ponovno će dohvatiti sve zapise ove tablice. Označite neko polje s datumom kao „Ažurirano” da biste omogućili postupnu sinkronizaciju."
+      },
+      "syncDetachTable": "Sinkronizacija će prestati ažurirati ovu tablicu. Njezini se podaci zadržavaju i sva polja postaju uređiva. Ako izvornu tablicu poslije ponovno dodate u sinkronizaciju, nastat će nova tablica.",
+      "tableSyncConvertMainTable": "Ovo je sinkronizirana tablica ove sinkronizacije — njezino pretvaranje uklanja i samu sinkronizaciju. Sve tablice koje je stvorila ostaju kao obične, uređive tablice i prestaju se sinkronizirati.",
+      "requiredFieldNotEditable": "Ovo obavezno polje nije moguće uređivati, što može uzrokovati pogreške pri slanju obrasca.",
+      "communityAppInstall": "{title} je aplikacija zajednice. NocoDB je nije pregledao ni provjerio. Prije nego što je instalirate u svoj radni prostor, uvjerite se da vjerujete izdavaču.",
+      "removeCustomDomain": "{domain} više neće posluživati ovu aplikaciju. Zadana adresa i dalje radi."
     },
     "info": {
       "sourceViewRebindResync": "Promjena prikaza izvora pokreće potpuno ponovno sinkroniziranje s novim prikazom.",
@@ -5603,7 +5680,8 @@
       "nCellCopied": "Kopirana je {n} ćelija",
       "nCellsCopied": "Kopirano {n} ćelija",
       "nRecordCreated": "{n} zabilješka stvorena",
-      "nRecordsCreated": "{n} stvorene zapise"
+      "nRecordsCreated": "{n} stvorene zapise",
+      "interfaceFilterCopied": "Kopiran {count} uvjet | Kopirano {count} uvjeta"
     },
     "success": {
       "restored": "Stavka je uspješno vraćena",
@@ -5670,7 +5748,24 @@
       "scimDisabled": "SCIM postavljanje onemogućeno",
       "tokenRegenerated": "Provisioning token uspješno regeneriran",
       "scimDeleted": "Konfiguracija SCIM-a uspješno izbrisana",
-      "defaultRoleUpdated": "Zadana uloga uspješno ažurirana"
+      "defaultRoleUpdated": "Zadana uloga uspješno ažurirana",
+      "recordLinked": "Zapis povezan",
+      "recordUnlinked": "Veza zapisa uklonjena",
+      "pageSharingEnabled": "Dijeljenje stranice uključeno",
+      "pageSharingDisabled": "Dijeljenje stranice isključeno",
+      "dataExported": "Podaci su uspješno izvezeni!",
+      "recordTemplateUpdated": "Predložak ažuriran",
+      "recordTemplateCreated": "Predložak stvoren",
+      "recordTemplateDeleted": "Predložak izbrisan",
+      "accountConnected": "Vaš račun {provider} je povezan.",
+      "appUninstalled": "Aplikacija deinstalirana",
+      "storeListingSaved": "Oglas u trgovini spremljen",
+      "publisherProfileSaved": "Profil izdavača spremljen",
+      "planChanged": "Plan ažuriran",
+      "planChangeScheduled": "Promjena plana zakazana",
+      "planChangeReverted": "Zakazana promjena plana poništena je. Vaš trenutni plan teče dalje bez promjena.",
+      "appDelisted": "Uklonjeno iz App Storea",
+      "appRelisted": "Ponovno u App Storeu"
     },
     "subText": {
       "startFromScratch": "Počni od nule.",
@@ -5839,7 +5934,24 @@
     "skillsCatalogErrorTitle": "Nije bilo moguće učitati ovaj repozitorij",
     "skillsCommunityTitle": "Instaliraj iz bilo kojeg javnog repozitorija",
     "skillsCommunityBlocked": "Vaš radni prostor ne dopušta instaliranje vještina zajednice.",
-    "skillsCommunityBlockedOrg": "Vaša organizacija ne dopušta instaliranje vještina zajednice."
+    "skillsCommunityBlockedOrg": "Vaša organizacija ne dopušta instaliranje vještina zajednice.",
+    "thisSharedPageIsProtected": "Ova je dijeljena stranica zaštićena",
+    "sso": {
+      "signInFailed": "Nismo vas mogli prijaviti",
+      "shareCode": "Treba vam pomoć? Podijelite ovaj kod sa svojim administratorom",
+      "failure": {
+        "SSO_STATE_INVALID": "Vaša je sesija prijave istekla ili je prekinuta. Pokušajte ponovno.",
+        "SSO_TOKEN_INVALID": "Nismo mogli provjeriti odgovor vašeg davatelja prijave. Pokušajte ponovno i javite administratoru ako se nastavi događati.",
+        "SSO_PROVIDER_ERROR": "Vaš davatelj prijave naišao je na problem. Pokušajte ponovno za koji trenutak.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Ovaj se račun ne smije prijaviti. Zatražite pristup od administratora ili pokušajte s drugim računom.",
+        "SSO_FAILED": "Nešto je pošlo po zlu tijekom prijave. Pokušajte ponovno."
+      }
+    },
+    "unsupportedFileType": "Nepodržana vrsta datoteke",
+    "skillUpdatedFromSource": "{title} ažurirano iz izvora",
+    "workspaceSkillsSubtitle": "Dostupne u svakom ovdašnjem projektu i agentima koji ih uključe.",
+    "skillShadowed": "Prednost ima vještina s ovim naslovom na razini {scope}, pa se ova ne nudi.",
+    "skillsNoMatchBody": "Ništa ne odgovara toj pretrazi. Pokušajte s drugim pojmom ili očistite filtre."
   },
   "trash": {
     "restore": "Obnovi",

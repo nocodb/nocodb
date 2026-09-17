@@ -805,7 +805,8 @@
       "org-level-viewer": "শুধু রেকর্ড দেখা",
       "cloud-org-level-owner": "সংস্থা ও তার ওয়ার্কস্পেসগুলির উপর সম্পূর্ণ নিয়ন্ত্রণ",
       "cloud-org-level-creator": "ওয়ার্কস্পেস তৈরি করা এবং আমন্ত্রিত ওয়ার্কস্পেসে যোগ দেওয়া",
-      "cloud-org-level-viewer": "সংস্থা ও তার ওয়ার্কস্পেসগুলি দেখা"
+      "cloud-org-level-viewer": "সংস্থা ও তার ওয়ার্কস্পেসগুলি দেখা",
+      "app-user": "শুধু প্রকাশিত অ্যাপ ব্যবহার করুন"
     },
     "sqlView": "SQL ভিউ",
     "rowHeight": "রেকর্ড উচ্চতা",
@@ -882,7 +883,9 @@
       "othersSubtitle": "আপনার NocoDB অভিজ্ঞতাকে উন্নত করার জন্য অতিরিক্ত বহুমুখী ইন্টিগ্রেশনগুলি আবিষ্কার করুন।",
       "ai": "এআই",
       "spreadSheet": "স্প্রেডশীট",
-      "spreadSheetSubtitle": "NocoDB এর সাথে আপনার স্প্রেডশীটগুলিকে সংযুক্ত এবং পরিচালনা করুন।"
+      "spreadSheetSubtitle": "NocoDB এর সাথে আপনার স্প্রেডশীটগুলিকে সংযুক্ত এবং পরিচালনা করুন।",
+      "authProvider": "প্রমাণীকরণ সরবরাহকারী",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "সাফল্য",
@@ -898,7 +901,8 @@
       "Enterprise": "এন্টারপ্রাইজ",
       "Self-hosted Business": "বিজনেস",
       "Self-hosted Scale": "স্কেল",
-      "Self-hosted Enterprise": "এন্টারপ্রাইজ"
+      "Self-hosted Enterprise": "এন্টারপ্রাইজ",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "অটোমেশন চালানো",
+      "externalSources": "বাইরের উৎস"
     },
     "coloring": {
       "usingSingleSelectField": "সিঙ্গেল সিলেক্ট ফিল্ড ব্যবহার করা হচ্ছে",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "শর্তের উপর ভিত্তি করে রেকর্ড রঙ করুন",
       "colourRecordsByField": "ফিল্ড অনুযায়ী রেকর্ড রঙ করুন",
       "rowColorDescription": "রেকর্ডে রঙ প্রয়োগ করুন",
-      "cellColorDescription": "নির্দিষ্ট ফিল্ডে রঙ প্রয়োগ করুন"
+      "cellColorDescription": "নির্দিষ্ট ফিল্ডে রঙ প্রয়োগ করুন",
+      "title": "রঙ করা",
+      "usingConditionsDescriptionOss": "শর্ত অনুযায়ী রেকর্ডে রঙ দিন"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "রেকর্ড তৈরি সীমাবদ্ধ",
@@ -974,7 +982,30 @@
         "filterCount": "{count}টি ফিল্টার | {count}টি ফিল্টারসমূহ",
         "subjectsRequired": "অন্তত একটি ভুমিকা, ব্যবহারকারী, অথবা দল নির্বাচন করুন।",
         "confirmDeleteTitle": "আপনি কি নিশ্চিত যে আপনি এই নীতি মুছতে চান?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "এজেন্ট",
+        "ownerSubjectNote": "মালিকেরা RLS নিয়ম বদলাতে পারেন।",
+        "selectDynamicValue": "একটি গতিশীল মান বাছুন...",
+        "placeholders": {
+          "currentUserId": "বর্তমান ব্যবহারকারীর ID",
+          "currentUserIdDescription": "সাইন ইন করা ব্যবহারকারীর ID।",
+          "currentUserEmail": "বর্তমান ব্যবহারকারীর ইমেল",
+          "currentUserEmailDescription": "সাইন ইন করা ব্যবহারকারীর ইমেল ঠিকানা।",
+          "currentUserName": "বর্তমান ব্যবহারকারীর নাম",
+          "currentUserNameDescription": "সাইন ইন করা ব্যবহারকারীর প্রদর্শিত নাম।",
+          "currentUserRoles": "বর্তমান ব্যবহারকারীর ভূমিকা",
+          "currentUserRolesDescription": "সাইন ইন করা ব্যবহারকারীর প্রকল্প-ভূমিকা।",
+          "currentUserTeams": "আমার দলগুলি",
+          "currentUserTeamsDescription": "ব্যবহারকারী সরাসরি যেসব দলের সদস্য তাদের ID।",
+          "currentUserTeamsWithDescendants": "আমার দল ও উপদল",
+          "currentUserTeamsWithDescendantsDescription": "ব্যবহারকারীর দলগুলির এবং তাদের অধীনস্থ সব দলের ID।",
+          "currentUserTeamNames": "আমার দলগুলির নাম",
+          "currentUserTeamNamesDescription": "ব্যবহারকারী সরাসরি যেসব দলের সদস্য তাদের নাম।",
+          "currentUserTeamNamesWithDescendants": "আমার দল ও উপদলের নাম",
+          "currentUserTeamNamesWithDescendantsDescription": "ব্যবহারকারীর দলগুলির এবং তাদের অধীনস্থ সব দলের নাম।",
+          "currentUserTeamWithDescendantMembers": "আমার দলের সদস্যরা",
+          "currentUserTeamWithDescendantMembersDescription": "ব্যবহারকারীর দল ও উপদলের সবাই — অধীনস্থদের রেকর্ড দেখতে «এগুলির যেকোনোটি আছে» শর্তের সঙ্গে ব্যবহার করুন।"
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "কেউ না {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "কোনো ভিউ থেকে সেটিংস অনুলিপি করুন",
+      "chooseSettings": "সেটিংস বাছুন",
+      "settingsSelected": "{count}টি বাছা হয়েছে",
+      "warning": {
+        "dynamic_filters_dropped": "{count}টি ক্ষেত্র-থেকে-ক্ষেত্র শর্ত অনুলিপি করা যাচ্ছে না — এই পৃষ্ঠা ভিউয়ের চেয়ে বেশি রেকর্ড দেখাবে।",
+        "negated_filters_dropped": "{count}টি নেতিবাচক শর্ত অনুলিপি করা যাচ্ছে না — এই পৃষ্ঠা ভিউয়ের চেয়ে বেশি রেকর্ড দেখাবে।",
+        "row_color_background_lost": "রেকর্ডের রং অনুলিপি হয়, কিন্তু তাদের পটভূমির ভরাট হয় না।",
+        "grouping_dropped": "এই বিন্যাস গোষ্ঠীবদ্ধকরণ সমর্থন করে না, তাই সেটি অনুলিপি হয় না।"
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "চ্যাট",
+    "addons": "Add-ons",
+    "membersCount": "{count} জন সদস্য | {count} জন সদস্য",
+    "bookmark": "বুকমার্ক",
+    "interfacePage": "ইন্টারফেস পৃষ্ঠা",
+    "folder": "ফোল্ডার",
+    "formulas": "সূত্র",
+    "audio": "অডিও",
+    "app": "অ্যাপ",
+    "apps": "অ্যাপ",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "বিক্রয়",
+      "marketing": "বিপণন",
+      "finance": "অর্থ",
+      "hr": "মানবসম্পদ",
+      "operations": "পরিচালন",
+      "support": "সহায়তা",
+      "it": "IT",
+      "product": "পণ্য",
+      "data": "ডেটা",
+      "other": "অন্যান্য"
+    },
+    "agent": "এজেন্ট",
+    "agents": "এজেন্ট"
   },
   "datatype": {
     "ID": "আইডি",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "আপনি যে ক্ষেত্রটি সম্পাদনা করছিলেন তা অন্য ব্যবহারকারী আপডেট করেছে। আপনার অপরিবর্তিত পরিবর্তন সংরক্ষিত হয়েছে — সংরক্ষণ করলে অন্যের পরিবর্তন ওভাররাইট হবে।",
       "reachedUploadLimit": "আপলোড সীমায় পৌঁছেছে",
       "youCanOnlyUploadMaxLimitFilesAtATime": "আপনি এক সময়ে সর্বোচ্চ {limit}টি {type} ফাইল আপলোড করতে পারেন",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "আপনি এক সময়ে সর্বোচ্চ {limit}টি {type} ফাইল আপলোড করতে পারেন"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "আপনি এক সময়ে সর্বোচ্চ {limit}টি {type} ফাইল আপলোড করতে পারেন",
+      "tableDataImportedLinksUnmatched": "সফলভাবে আমদানি হয়েছে। {links}টি রেকর্ড সংযোগ তৈরি হয়েছে, {unmatched}টি মান কোনো রেকর্ডের সঙ্গে মেলেনি বলে বাদ দেওয়া হয়েছে।",
+      "tableDataImportedLinksFailed": "{failed}টি রেকর্ড সংযোগ কোনো রেকর্ডের সঙ্গে মিলেছিল কিন্তু তৈরি করা যায়নি। বিস্তারিত জানতে আমদানির লগ দেখুন।",
+      "importLinkReassignField": "«{field}» একটি এক-থেকে-বহু বা এক-থেকে-এক সংযোগ — এখানে মান আমদানি করলে রেকর্ডগুলি এখন যেসব রেকর্ডের সঙ্গে যুক্ত সেগুলি থেকে সরে যেতে পারে।",
+      "syncNoUpdatedAtColumn": {
+        "title": "«আপডেট হয়েছে» ক্ষেত্র নির্ধারণ করা হয়নি",
+        "description": "প্রতিবার সিঙ্ক চললে এই টেবিলের সব রেকর্ড আবার আনা হবে। ক্রমবর্ধমান সিঙ্ক চালু করতে কোনো তারিখ ক্ষেত্রকে «আপডেট হয়েছে» হিসেবে চিহ্নিত করুন।"
+      },
+      "syncDetachTable": "সিঙ্ক আর এই টেবিল আপডেট করবে না। এর ডেটা রাখা হবে এবং সব ক্ষেত্র সম্পাদনাযোগ্য হয়ে যাবে। পরে উৎস টেবিলটি আবার সিঙ্কে যোগ করলে নতুন একটি টেবিল তৈরি হবে।",
+      "tableSyncConvertMainTable": "এটি এই সিঙ্কের সিঙ্ক করা টেবিল — এটি রূপান্তর করলে সিঙ্কটিই সরে যায়। সিঙ্কের তৈরি সব টেবিল সাধারণ, সম্পাদনাযোগ্য টেবিল হিসেবে থেকে যায় এবং সিঙ্ক হওয়া বন্ধ করে।",
+      "requiredFieldNotEditable": "এই আবশ্যক ক্ষেত্রটি সম্পাদনাযোগ্য নয়, ফলে ফর্ম জমা দেওয়ার সময় ত্রুটি হতে পারে।",
+      "communityAppInstall": "{title} একটি সম্প্রদায়ের অ্যাপ। NocoDB এটি পর্যালোচনা বা যাচাই করেনি। আপনার ওয়ার্কস্পেসে এটি ইনস্টল করার আগে নিশ্চিত হোন যে আপনি প্রকাশককে বিশ্বাস করেন।",
+      "removeCustomDomain": "{domain} আর এই অ্যাপ পরিবেশন করবে না। পূর্বনির্ধারিত ঠিকানাটি কাজ করতে থাকবে।"
     },
     "info": {
       "sourceViewRebindResync": "সোর্স ভিউ পরিবর্তনে নতুন ভিউর সাথে সম্পূর্ণ পুনঃসিঙ্ক হবে।",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} সেল কপি করা হয়েছে",
       "nCellsCopied": "{n}টি সেল কপি করা হয়েছে",
       "nRecordCreated": "{n}টি রেকর্ড তৈরি হয়েছে",
-      "nRecordsCreated": "{n}টি রেকর্ড তৈরি হয়েছে"
+      "nRecordsCreated": "{n}টি রেকর্ড তৈরি হয়েছে",
+      "interfaceFilterCopied": "{count}টি শর্ত অনুলিপি হয়েছে | {count}টি শর্ত অনুলিপি হয়েছে"
     },
     "success": {
       "restored": "আইটেম সফলভাবে পুনরুদ্ধার হয়েছে",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM প্রভিশনিং নিষ্ক্রিয় হয়েছে",
       "tokenRegenerated": "প্রভিশনিং টোকেন সফলভাবে পুনর্জন্ম হয়েছে",
       "scimDeleted": "SCIM কনফিগারেশন সফলভাবে মুছে ফেলা হয়েছে",
-      "defaultRoleUpdated": "ডিফল্ট রোল সফলভাবে আপডেট হয়েছে"
+      "defaultRoleUpdated": "ডিফল্ট রোল সফলভাবে আপডেট হয়েছে",
+      "recordLinked": "রেকর্ড যুক্ত হয়েছে",
+      "recordUnlinked": "রেকর্ডের সংযোগ সরানো হয়েছে",
+      "pageSharingEnabled": "পৃষ্ঠা ভাগ করা চালু হয়েছে",
+      "pageSharingDisabled": "পৃষ্ঠা ভাগ করা বন্ধ হয়েছে",
+      "dataExported": "ডেটা সফলভাবে রপ্তানি হয়েছে!",
+      "recordTemplateUpdated": "টেমপ্লেট আপডেট হয়েছে",
+      "recordTemplateCreated": "টেমপ্লেট তৈরি হয়েছে",
+      "recordTemplateDeleted": "টেমপ্লেট মুছে ফেলা হয়েছে",
+      "accountConnected": "আপনার {provider} অ্যাকাউন্ট যুক্ত হয়েছে।",
+      "appUninstalled": "অ্যাপ আনইনস্টল হয়েছে",
+      "storeListingSaved": "স্টোর তালিকা সংরক্ষিত হয়েছে",
+      "publisherProfileSaved": "প্রকাশকের প্রোফাইল সংরক্ষিত হয়েছে",
+      "planChanged": "প্ল্যান আপডেট হয়েছে",
+      "planChangeScheduled": "প্ল্যান পরিবর্তন নির্ধারিত হয়েছে",
+      "planChangeReverted": "নির্ধারিত প্ল্যান পরিবর্তন ফিরিয়ে নেওয়া হয়েছে। আপনার বর্তমান প্ল্যান অপরিবর্তিত থেকে চলতে থাকবে।",
+      "appDelisted": "App Store থেকে সরানো হয়েছে",
+      "appRelisted": "আবার App Store-এ"
     },
     "subText": {
       "startFromScratch": "শূন্য থেকে শুরু করুন।",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "এই রিপোজিটরি লোড করা যায়নি",
     "skillsCommunityTitle": "যেকোনো সর্বজনীন রিপোজিটরি থেকে ইনস্টল করুন",
     "skillsCommunityBlocked": "আপনার ওয়ার্কস্পেস সম্প্রদায়ের দক্ষতা ইনস্টল করার অনুমতি দেয় না।",
-    "skillsCommunityBlockedOrg": "আপনার সংস্থা সম্প্রদায়ের দক্ষতা ইনস্টল করার অনুমতি দেয় না।"
+    "skillsCommunityBlockedOrg": "আপনার সংস্থা সম্প্রদায়ের দক্ষতা ইনস্টল করার অনুমতি দেয় না।",
+    "thisSharedPageIsProtected": "এই ভাগ করা পৃষ্ঠাটি সুরক্ষিত",
+    "sso": {
+      "signInFailed": "আমরা আপনাকে সাইন ইন করাতে পারিনি",
+      "shareCode": "সাহায্য দরকার? এই কোডটি আপনার প্রশাসকের সঙ্গে ভাগ করুন",
+      "failure": {
+        "SSO_STATE_INVALID": "আপনার সাইন-ইন সেশনের মেয়াদ ফুরিয়েছে বা তা থেমে গেছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+        "SSO_TOKEN_INVALID": "আপনার সাইন-ইন সরবরাহকারীর উত্তর যাচাই করা যায়নি। আবার চেষ্টা করুন, আর বারবার হতে থাকলে প্রশাসককে জানান।",
+        "SSO_PROVIDER_ERROR": "আপনার সাইন-ইন সরবরাহকারীর একটি সমস্যা হয়েছে। অনুগ্রহ করে একটু পরে আবার চেষ্টা করুন।",
+        "SSO_ACCOUNT_NOT_ALLOWED": "এই অ্যাকাউন্টের সাইন ইন করার অনুমতি নেই। আপনার প্রশাসকের কাছে অ্যাক্সেস চান, অথবা অন্য অ্যাকাউন্ট ব্যবহার করে দেখুন।",
+        "SSO_FAILED": "আপনাকে সাইন ইন করানোর সময় কিছু ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+      }
+    },
+    "unsupportedFileType": "অসমর্থিত ফাইলের ধরন",
+    "skillUpdatedFromSource": "{title} উৎস থেকে আপডেট হয়েছে",
+    "workspaceSkillsSubtitle": "এখানকার প্রতিটি প্রকল্পে এবং যেসব এজেন্ট বেছে নেয় তাদের জন্য উপলব্ধ।",
+    "skillShadowed": "{scope} স্তরে একই শিরোনামের একটি দক্ষতা অগ্রাধিকার পায়, তাই এটি দেওয়া হচ্ছে না।",
+    "skillsNoMatchBody": "ওই অনুসন্ধানের সঙ্গে কিছুই মেলেনি। অন্য শব্দ চেষ্টা করুন বা ফিল্টারগুলি মুছে দিন।"
   },
   "trash": {
     "restore": "পুনরুদ্ধার করুন",

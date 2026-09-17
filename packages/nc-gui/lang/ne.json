@@ -805,7 +805,8 @@
       "org-level-viewer": "रेकर्डहरू हेर्न मात्र",
       "cloud-org-level-owner": "संस्था र त्यसका कार्य क्षेत्रहरूमाथि पूर्ण नियन्त्रण",
       "cloud-org-level-creator": "कार्य क्षेत्र सिर्जना गर्ने र निम्तो पाएकामा सामेल हुने",
-      "cloud-org-level-viewer": "संस्था र त्यसका कार्य क्षेत्रहरू हेर्ने"
+      "cloud-org-level-viewer": "संस्था र त्यसका कार्य क्षेत्रहरू हेर्ने",
+      "app-user": "प्रकाशित एपहरू मात्र प्रयोग गर्ने"
     },
     "sqlView": "SQL दृश्य",
     "rowHeight": "रेकर्ड उचाइ",
@@ -882,7 +883,9 @@
       "othersSubtitle": "आफ्नो NocoDB अनुभवलाई सुधार गर्न थप बहुप्रयोजनात्मक एकीकरणहरू पत्ता लगाउनुहोस्।",
       "ai": "एआई",
       "spreadSheet": "स्प्रेडशीट",
-      "spreadSheetSubtitle": "NocoDB सँग आफ्नो स्प्रेडशीटहरू जड्नुहोस् र सञ्चालन गर्नुहोस्।"
+      "spreadSheetSubtitle": "NocoDB सँग आफ्नो स्प्रेडशीटहरू जड्नुहोस् र सञ्चालन गर्नुहोस्।",
+      "authProvider": "प्रमाणीकरण प्रदायक",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "सफलता",
@@ -898,7 +901,8 @@
       "Enterprise": "एंटरप्राइज",
       "Self-hosted Business": "Business",
       "Self-hosted Scale": "Scale",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "स्वचालन चलेका पटक",
+      "externalSources": "बाह्य स्रोतहरू"
     },
     "coloring": {
       "usingSingleSelectField": "सिंगल सलेक्ट फिल्ड प्रयोग गर्दै",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "शर्तहरूको आधारमा रेकर्डहरू रंगीन बनाउनुहोस्",
       "colourRecordsByField": "फिल्डद्वारा रेकर्डहरू रंग निर्धारण गर्नुहोस्",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "रङ भर्ने",
+      "usingConditionsDescriptionOss": "सर्तका आधारमा रेकर्डमा रङ भर्नुहोस्"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "रेकर्ड सिर्जना प्रतिबन्धित",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Please select at least one role, user, or team.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "एजेन्टहरू",
+        "ownerSubjectNote": "मालिकहरूले RLS नियम बदल्न सक्छन्।",
+        "selectDynamicValue": "गतिशील मान छान्नुहोस्...",
+        "placeholders": {
+          "currentUserId": "हालको प्रयोगकर्ताको ID",
+          "currentUserIdDescription": "साइन इन गरेको प्रयोगकर्ताको ID।",
+          "currentUserEmail": "हालको प्रयोगकर्ताको इमेल",
+          "currentUserEmailDescription": "साइन इन गरेको प्रयोगकर्ताको इमेल ठेगाना।",
+          "currentUserName": "हालको प्रयोगकर्ताको नाम",
+          "currentUserNameDescription": "साइन इन गरेको प्रयोगकर्ताको प्रदर्शित नाम।",
+          "currentUserRoles": "हालको प्रयोगकर्ताका भूमिका",
+          "currentUserRolesDescription": "साइन इन गरेको प्रयोगकर्ताका आधारसम्बन्धी भूमिका।",
+          "currentUserTeams": "मेरा टोलीहरू",
+          "currentUserTeamsDescription": "प्रयोगकर्ता सिधै आबद्ध भएका टोलीहरूका ID।",
+          "currentUserTeamsWithDescendants": "मेरा टोली र उपटोलीहरू",
+          "currentUserTeamsWithDescendantsDescription": "प्रयोगकर्ताका टोली तथा तिनीहरूमुनिका सबै टोलीका ID।",
+          "currentUserTeamNames": "मेरा टोलीका नाम",
+          "currentUserTeamNamesDescription": "प्रयोगकर्ता सिधै आबद्ध भएका टोलीहरूका नाम।",
+          "currentUserTeamNamesWithDescendants": "मेरा टोली र उपटोलीका नाम",
+          "currentUserTeamNamesWithDescendantsDescription": "प्रयोगकर्ताका टोली तथा तिनीहरूमुनिका सबै टोलीका नाम।",
+          "currentUserTeamWithDescendantMembers": "मेरा टोलीका सदस्यहरू",
+          "currentUserTeamWithDescendantMembersDescription": "प्रयोगकर्ताका टोली र उपटोलीका सबै जना — आफ्ना मातहतका रेकर्ड हेर्न «यीमध्ये कुनै छ» सर्तसँग प्रयोग गर्नुहोस्।"
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "कुनै दृश्यबाट सेटिङ प्रतिलिपि गर्नुहोस्",
+      "chooseSettings": "सेटिङ छान्नुहोस्",
+      "settingsSelected": "{count} छानिएको",
+      "warning": {
+        "dynamic_filters_dropped": "{count} क्षेत्र-देखि-क्षेत्र सर्त प्रतिलिपि गर्न मिल्दैन — यो पृष्ठले दृश्यभन्दा बढी रेकर्ड देखाउनेछ।",
+        "negated_filters_dropped": "{count} नकारात्मक सर्त प्रतिलिपि गर्न मिल्दैन — यो पृष्ठले दृश्यभन्दा बढी रेकर्ड देखाउनेछ।",
+        "row_color_background_lost": "रेकर्डका रङ प्रतिलिपि हुन्छन्, तर तिनका पृष्ठभूमि भराइ हुँदैन।",
+        "grouping_dropped": "यो लेआउटले समूहीकरण समर्थन गर्दैन, त्यसैले त्यो प्रतिलिपि हुँदैन।"
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "च्याट",
+    "addons": "Add-ons",
+    "membersCount": "{count} सदस्य | {count} सदस्यहरू",
+    "bookmark": "बुकमार्क",
+    "interfacePage": "इन्टरफेस पृष्ठ",
+    "folder": "फोल्डर",
+    "formulas": "सूत्रहरू",
+    "audio": "अडियो",
+    "app": "एप",
+    "apps": "एपहरू",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "बिक्री",
+      "marketing": "विपणन",
+      "finance": "वित्त",
+      "hr": "मानव संसाधन",
+      "operations": "सञ्चालन",
+      "support": "सहयोग",
+      "it": "IT",
+      "product": "उत्पादन",
+      "data": "डेटा",
+      "other": "अन्य"
+    },
+    "agent": "एजेन्ट",
+    "agents": "एजेन्टहरू"
   },
   "datatype": {
     "ID": "आईडी",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "अपलोड सीमा पुगेको",
       "youCanOnlyUploadMaxLimitFilesAtATime": "एकै पटकमा तपाईं {limit} वटा {type} फाइल मात्र अपलोड गर्न सक्नुहुन्छ",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "एकै पटकमा तपाईं {limit} वटा {type} फाइलहरू मात्र अपलोड गर्न सक्नुहुन्छ"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "एकै पटकमा तपाईं {limit} वटा {type} फाइलहरू मात्र अपलोड गर्न सक्नुहुन्छ",
+      "tableDataImportedLinksUnmatched": "सफलतापूर्वक आयात भयो। {links} रेकर्ड जोड बने, {unmatched} मान कुनै रेकर्डसँग मिलेनन् र छाडिए।",
+      "tableDataImportedLinksFailed": "{failed} रेकर्ड जोडहरू कुनै रेकर्डसँग मिले तर बनाउन सकिएन। विवरणका लागि आयात लग हेर्नुहोस्।",
+      "importLinkReassignField": "«{field}» एक-देखि-धेरै वा एक-देखि-एक जोड हो — यहाँ मानहरू आयात गर्दा रेकर्डहरू अहिले जोडिएका रेकर्डहरूबाट अलग हुन सक्छन्।",
+      "syncNoUpdatedAtColumn": {
+        "title": "«अद्यावधिक मिति» क्षेत्र तोकिएको छैन",
+        "description": "हरेक सिंक चल्दा यो तालिकाका सबै रेकर्ड फेरि ल्याइनेछन्। क्रमिक सिंक सक्षम पार्न कुनै मिति क्षेत्रलाई «अद्यावधिक मिति» भनी चिन्ह लगाउनुहोस्।"
+      },
+      "syncDetachTable": "सिंकले अब यो तालिका अद्यावधिक गर्दैन। यसको डेटा राखिन्छ र सबै क्षेत्र सम्पादनयोग्य हुन्छन्। पछि स्रोत तालिकालाई फेरि सिंकमा थप्दा नयाँ तालिका बन्छ।",
+      "tableSyncConvertMainTable": "यो यस सिंकको सिंक गरिएको तालिका हो — यसलाई परिवर्तन गर्दा सिंक आफैँ हट्छ। सिंकले बनाएका सबै तालिका साधारण, सम्पादनयोग्य तालिकाका रूपमा रहन्छन् र सिंक हुन छोड्छन्।",
+      "requiredFieldNotEditable": "यो अनिवार्य क्षेत्र सम्पादन गर्न मिल्दैन, जसले फारम पठाउँदा त्रुटि निम्त्याउन सक्छ।",
+      "communityAppInstall": "{title} समुदायको एप हो। NocoDB ले यसको समीक्षा वा प्रमाणीकरण गरेको छैन। आफ्नो कार्य क्षेत्रमा स्थापना गर्नुअघि प्रकाशकमाथि विश्वास छ भन्ने कुरा सुनिश्चित गर्नुहोस्।",
+      "removeCustomDomain": "{domain} ले अब यो एप उपलब्ध गराउने छैन। पूर्वनिर्धारित ठेगाना चलिरहनेछ।"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} कोष प्रतिलिपि गरियो",
       "nCellsCopied": "{n} कोषहरू प्रतिलिपि गरियो",
       "nRecordCreated": "{n} record created",
-      "nRecordsCreated": "{n} records created"
+      "nRecordsCreated": "{n} records created",
+      "interfaceFilterCopied": "{count} सर्त प्रतिलिपि भयो | {count} सर्त प्रतिलिपि भए"
     },
     "success": {
       "restored": "Item restored successfully",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "recordLinked": "रेकर्ड जोडियो",
+      "recordUnlinked": "रेकर्डको जोड हटाइयो",
+      "pageSharingEnabled": "पृष्ठ साझेदारी सुरु गरियो",
+      "pageSharingDisabled": "पृष्ठ साझेदारी बन्द गरियो",
+      "dataExported": "डेटा सफलतापूर्वक निर्यात भयो!",
+      "recordTemplateUpdated": "टेम्प्लेट अद्यावधिक भयो",
+      "recordTemplateCreated": "टेम्प्लेट बनाइयो",
+      "recordTemplateDeleted": "टेम्प्लेट मेटाइयो",
+      "accountConnected": "तपाईंको {provider} खाता जडान भयो।",
+      "appUninstalled": "एप हटाइयो",
+      "storeListingSaved": "पसल सूची सुरक्षित भयो",
+      "publisherProfileSaved": "प्रकाशकको प्रोफाइल सुरक्षित भयो",
+      "planChanged": "योजना अद्यावधिक भयो",
+      "planChangeScheduled": "योजना परिवर्तन तालिकाबद्ध गरियो",
+      "planChangeReverted": "तालिकाबद्ध योजना परिवर्तन फिर्ता लिइयो। तपाईंको हालको योजना नबदली चलिरहनेछ।",
+      "appDelisted": "App Store बाट हटाइयो",
+      "appRelisted": "फेरि App Store मा"
     },
     "subText": {
       "startFromScratch": "शून्यबाट सुरु गर्नुहोस्।",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "यो रिपोजिटरी लोड गर्न सकिएन",
     "skillsCommunityTitle": "कुनै पनि सार्वजनिक रिपोजिटरीबाट स्थापना गर्नुहोस्",
     "skillsCommunityBlocked": "तपाईंको कार्य क्षेत्रले समुदायका सीप स्थापना गर्न अनुमति दिँदैन।",
-    "skillsCommunityBlockedOrg": "तपाईंको सङ्गठनले समुदायका सीप स्थापना गर्न अनुमति दिँदैन।"
+    "skillsCommunityBlockedOrg": "तपाईंको सङ्गठनले समुदायका सीप स्थापना गर्न अनुमति दिँदैन।",
+    "thisSharedPageIsProtected": "यो साझा पृष्ठ सुरक्षित छ",
+    "sso": {
+      "signInFailed": "हामीले तपाईंलाई साइन इन गराउन सकेनौं",
+      "shareCode": "मद्दत चाहियो? यो कोड आफ्नो प्रशासकलाई भन्नुहोस्",
+      "failure": {
+        "SSO_STATE_INVALID": "तपाईंको साइन-इन सत्रको म्याद सकियो वा बीचमै रोकियो। कृपया फेरि प्रयास गर्नुहोस्।",
+        "SSO_TOKEN_INVALID": "तपाईंको साइन-इन प्रदायकको जवाफ प्रमाणित गर्न सकिएन। फेरि प्रयास गर्नुहोस्, र दोहोरिइरहे प्रशासकलाई भन्नुहोस्।",
+        "SSO_PROVIDER_ERROR": "तपाईंको साइन-इन प्रदायकलाई समस्या आयो। कृपया केही बेरपछि फेरि प्रयास गर्नुहोस्।",
+        "SSO_ACCOUNT_NOT_ALLOWED": "यो खातालाई साइन इन गर्न अनुमति छैन। आफ्नो प्रशासकसँग पहुँच माग्नुहोस्, वा अर्को खाता प्रयास गर्नुहोस्।",
+        "SSO_FAILED": "तपाईंलाई साइन इन गराउने क्रममा केही बिग्रियो। कृपया फेरि प्रयास गर्नुहोस्।"
+      }
+    },
+    "unsupportedFileType": "समर्थन नगरिएको फाइल प्रकार",
+    "skillUpdatedFromSource": "{title} स्रोतबाट अद्यावधिक गरियो",
+    "workspaceSkillsSubtitle": "यहाँका हरेक आधारमा र यी रोज्ने एजेन्टहरूका लागि उपलब्ध।",
+    "skillShadowed": "{scope} तहमा यही शीर्षकको सीपले प्राथमिकता पाउँछ, त्यसैले यो प्रस्ताव गरिँदैन।",
+    "skillsNoMatchBody": "त्यो खोजसँग केही मिलेन। अर्को शब्द प्रयास गर्नुहोस् वा फिल्टरहरू हटाउनुहोस्।"
   },
   "trash": {
     "restore": "Restore",

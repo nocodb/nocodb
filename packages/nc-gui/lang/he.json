@@ -805,7 +805,8 @@
       "org-level-viewer": "צפייה ברשומות בלבד",
       "cloud-org-level-owner": "שליטה מלאה בארגון ובמרחבי העבודה שלו",
       "cloud-org-level-creator": "יצירת מרחבי עבודה והצטרפות לאלה שאליהם הוזמן",
-      "cloud-org-level-viewer": "צפייה בארגון ובמרחבי העבודה שלו"
+      "cloud-org-level-viewer": "צפייה בארגון ובמרחבי העבודה שלו",
+      "app-user": "שימוש באפליקציות שפורסמו בלבד"
     },
     "sqlView": "תצוגת SQL",
     "rowHeight": "גובה רשומה",
@@ -882,7 +883,9 @@
       "othersSubtitle": "גלה אינטגרציות נוספות ומגוונות לייעול חוויית NocoDB שלך.",
       "ai": "AI",
       "spreadSheet": "גיליון נתונים",
-      "spreadSheetSubtitle": "חבר ונהל את גיליונות הנתונים שלך עם NocoDB."
+      "spreadSheetSubtitle": "חבר ונהל את גיליונות הנתונים שלך עם NocoDB.",
+      "authProvider": "ספק אימות",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "הצלחה",
@@ -898,7 +901,8 @@
       "Enterprise": "ארגוני",
       "Self-hosted Business": "עסקים",
       "Self-hosted Scale": "סולם",
-      "Self-hosted Enterprise": "ארגון"
+      "Self-hosted Enterprise": "ארגון",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "הרצות אוטומציה",
+      "externalSources": "מקורות חיצוניים"
     },
     "coloring": {
       "usingSingleSelectField": "משתמש בשדה בחירה בודדת",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "צבע רשומות לפי תנאים",
       "colourRecordsByField": "צבע רשומות לפי שדה",
       "rowColorDescription": "הוסף צבע לתעודה",
-      "cellColorDescription": "להחיל צבע על שדה מסוים"
+      "cellColorDescription": "להחיל צבע על שדה מסוים",
+      "title": "צביעה",
+      "usingConditionsDescriptionOss": "צביעת רשומות לפי תנאים"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "הוספת רשומה מוגבלת",
@@ -974,7 +982,30 @@
         "filterCount": "{count} מסנן | {count} מסננים",
         "subjectsRequired": "אנא בחר לפחות תפקיד, משתמש או צוות אחד.",
         "confirmDeleteTitle": "האם אתה בטוח שברצונך למחוק מדיניות זו?",
-        "confirmDeleteContent": "לא ניתן לבטל פעולה זו."
+        "confirmDeleteContent": "לא ניתן לבטל פעולה זו.",
+        "groupAgents": "סוכנים",
+        "ownerSubjectNote": "בעלים יכולים לשנות כללי RLS.",
+        "selectDynamicValue": "בחרו ערך דינמי...",
+        "placeholders": {
+          "currentUserId": "המזהה של המשתמש הנוכחי",
+          "currentUserIdDescription": "המזהה של המשתמש המחובר.",
+          "currentUserEmail": "הדוא\"ל של המשתמש הנוכחי",
+          "currentUserEmailDescription": "כתובת הדוא\"ל של המשתמש המחובר.",
+          "currentUserName": "השם של המשתמש הנוכחי",
+          "currentUserNameDescription": "שם התצוגה של המשתמש המחובר.",
+          "currentUserRoles": "התפקידים של המשתמש הנוכחי",
+          "currentUserRolesDescription": "תפקידי המשתמש המחובר בפרויקט.",
+          "currentUserTeams": "הצוותים שלי",
+          "currentUserTeamsDescription": "המזהים של הצוותים שהמשתמש שייך אליהם ישירות.",
+          "currentUserTeamsWithDescendants": "הצוותים ותתי־הצוותים שלי",
+          "currentUserTeamsWithDescendantsDescription": "המזהים של צוותי המשתמש וכן של כל צוות שמתחתיהם.",
+          "currentUserTeamNames": "שמות הצוותים שלי",
+          "currentUserTeamNamesDescription": "שמות הצוותים שהמשתמש שייך אליהם ישירות.",
+          "currentUserTeamNamesWithDescendants": "שמות הצוותים ותתי־הצוותים שלי",
+          "currentUserTeamNamesWithDescendantsDescription": "שמות הצוותים של המשתמש וכן כל צוות שמתחתיהם.",
+          "currentUserTeamWithDescendantMembers": "חברי הצוותים שלי",
+          "currentUserTeamWithDescendantMembersDescription": "כל מי שנמצא בצוותים ובתתי־הצוותים של המשתמש — השתמשו בזה עם «מכיל אחד מ» כדי לראות את הרשומות של הכפופים לכם."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "אף אחד {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "ההגדרות הועתקו בהצלחה",
       "errorOccuredWhileCopyingViewConfiguration": "אירעה שגיאה בעת העתקת תצורת התצוגה",
       "copyFromAnotherView": "העתק מתצוגה אחרת",
-      "copyFromAView": "העתקה מתצוגה"
+      "copyFromAView": "העתקה מתצוגה",
+      "copySettingsFromView": "העתקת הגדרות מתצוגה",
+      "chooseSettings": "בחרו הגדרות",
+      "settingsSelected": "{count} נבחרו",
+      "warning": {
+        "dynamic_filters_dropped": "לא ניתן להעתיק {count} תנאים בין שדות — העמוד הזה יציג יותר רשומות מהתצוגה.",
+        "negated_filters_dropped": "לא ניתן להעתיק {count} תנאי שלילה — העמוד הזה יציג יותר רשומות מהתצוגה.",
+        "row_color_background_lost": "צבעי הרשומות מועתקים, אך מילוי הרקע שלהם לא.",
+        "grouping_dropped": "הפריסה הזו אינה תומכת בקיבוץ, ולכן הוא לא מועתק."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "האם אתה בטוח שאתה רוצה לעזוב את הקבוצה הזו?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "אין עוד קבוצות להוסיף",
       "alreadyAdded": "כבר הוספה",
       "teamCantBeAssignedOwnerRole": "לא ניתן להקצות לצוות את תפקיד הבעלים"
-    }
+    },
+    "chat": "צ'אט",
+    "addons": "Add-ons",
+    "membersCount": "חבר {count} | {count} חברים",
+    "bookmark": "סימנייה",
+    "interfacePage": "עמוד ממשק",
+    "folder": "תיקייה",
+    "formulas": "נוסחאות",
+    "audio": "אודיו",
+    "app": "אפליקציה",
+    "apps": "אפליקציות",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "מכירות",
+      "marketing": "שיווק",
+      "finance": "כספים",
+      "hr": "משאבי אנוש",
+      "operations": "תפעול",
+      "support": "תמיכה",
+      "it": "IT",
+      "product": "מוצר",
+      "data": "נתונים",
+      "other": "אחר"
+    },
+    "agent": "סוכן",
+    "agents": "סוכנים"
   },
   "datatype": {
     "ID": "תְעוּדַת זֶהוּת",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "השדה שערכת עודכן על ידי משתמש אחר. השינויים שלא נשמרו נשמרו — שמירה תדרוס את השינויים שלהם.",
       "reachedUploadLimit": "הגעת למגבלת ההעלאה",
       "youCanOnlyUploadMaxLimitFilesAtATime": "ניתן להעלות {limit} קובץ {type} בכל פעם",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "ניתן להעלות {limit} קבצי {type} בכל פעם"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "ניתן להעלות {limit} קבצי {type} בכל פעם",
+      "tableDataImportedLinksUnmatched": "הייבוא הצליח. נוצרו {links} קישורי רשומות, ו־{unmatched} ערכים לא תאמו אף רשומה ולכן דולגו.",
+      "tableDataImportedLinksFailed": "{failed} קישורי רשומות תאמו רשומה אך לא ניתן היה ליצור אותם. לפרטים ראו את יומן הייבוא.",
+      "importLinkReassignField": "«{field}» הוא קישור אחד־לרבים או אחד־לאחד — ייבוא ערכים כאן עלול לנתק רשומות מהרשומות שאליהן הן מקושרות כעת.",
+      "syncNoUpdatedAtColumn": {
+        "title": "לא הוגדר שדה «עודכן בתאריך»",
+        "description": "כל הרצת סנכרון תמשוך מחדש את כל הרשומות של הטבלה הזו. סמנו שדה תאריך בתור «עודכן בתאריך» כדי לאפשר סנכרון מצטבר."
+      },
+      "syncDetachTable": "הסנכרון יפסיק לעדכן את הטבלה הזו. הנתונים שלה נשמרים וכל השדות הופכים לניתנים לעריכה. הוספה מחדש של טבלת המקור לסנכרון בהמשך תיצור טבלה חדשה.",
+      "tableSyncConvertMainTable": "זו הטבלה המסונכרנת של הסנכרון הזה — המרתה מסירה את הסנכרון עצמו. כל הטבלאות שהסנכרון יצר נשמרות כטבלאות רגילות הניתנות לעריכה ומפסיקות להסתנכרן.",
+      "requiredFieldNotEditable": "לא ניתן לערוך את שדה החובה הזה, מה שעלול לגרום לשגיאות בעת שליחת הטופס.",
+      "communityAppInstall": "{title} היא אפליקציית קהילה. היא לא נבדקה ולא אומתה על ידי NocoDB. ודאו שאתם סומכים על המפרסם לפני שתתקינו אותה במרחב העבודה שלכם.",
+      "removeCustomDomain": "{domain} יפסיק להגיש את האפליקציה הזו. הכתובת המוגדרת כברירת מחדל ממשיכה לעבוד."
     },
     "info": {
       "sourceViewRebindResync": "שינוי תצוגת המקור מפעיל סנכרון מחדש מלא בהתאם לתצוגה החדשה.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "‎{n}‎ תא הועתק",
       "nCellsCopied": "‎{n}‎ תאים הועתקו",
       "nRecordCreated": "{n} הרשומה נוצרה",
-      "nRecordsCreated": "{n} רשומות שנוצרו"
+      "nRecordsCreated": "{n} רשומות שנוצרו",
+      "interfaceFilterCopied": "הועתק {count} תנאי | הועתקו {count} תנאים"
     },
     "success": {
       "restored": "הפריט שוחזר בהצלחה",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "הגדרת SCIM מושבתת",
       "tokenRegenerated": "אסימון ההקצאה נוצר מחדש בהצלחה",
       "scimDeleted": "תצורת SCIM נמחקה בהצלחה",
-      "defaultRoleUpdated": "תפקיד ברירת המחדל עודכן בהצלחה"
+      "defaultRoleUpdated": "תפקיד ברירת המחדל עודכן בהצלחה",
+      "recordLinked": "הרשומה קושרה",
+      "recordUnlinked": "קישור הרשומה הוסר",
+      "pageSharingEnabled": "שיתוף העמוד הופעל",
+      "pageSharingDisabled": "שיתוף העמוד כובה",
+      "dataExported": "הנתונים יוצאו בהצלחה!",
+      "recordTemplateUpdated": "התבנית עודכנה",
+      "recordTemplateCreated": "התבנית נוצרה",
+      "recordTemplateDeleted": "התבנית נמחקה",
+      "accountConnected": "חשבון {provider} שלכם מחובר.",
+      "appUninstalled": "האפליקציה הוסרה",
+      "storeListingSaved": "רישום החנות נשמר",
+      "publisherProfileSaved": "פרופיל המפרסם נשמר",
+      "planChanged": "התוכנית עודכנה",
+      "planChangeScheduled": "שינוי התוכנית תוזמן",
+      "planChangeReverted": "שינוי התוכנית המתוזמן בוטל. התוכנית הנוכחית שלכם ממשיכה ללא שינוי.",
+      "appDelisted": "הוסר מה־App Store",
+      "appRelisted": "חזר ל־App Store"
     },
     "subText": {
       "startFromScratch": "התחל מאפס.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "לא ניתן היה לטעון את המאגר הזה",
     "skillsCommunityTitle": "התקנה מכל מאגר ציבורי",
     "skillsCommunityBlocked": "מרחב העבודה שלך אינו מתיר התקנת מיומנויות קהילה.",
-    "skillsCommunityBlockedOrg": "הארגון שלך אינו מתיר התקנת מיומנויות קהילה."
+    "skillsCommunityBlockedOrg": "הארגון שלך אינו מתיר התקנת מיומנויות קהילה.",
+    "thisSharedPageIsProtected": "העמוד המשותף הזה מוגן",
+    "sso": {
+      "signInFailed": "לא הצלחנו לחבר אתכם",
+      "shareCode": "צריכים עזרה? שתפו את הקוד הזה עם המנהל שלכם",
+      "failure": {
+        "SSO_STATE_INVALID": "הפעלת ההתחברות שלכם פגה או הופסקה. נסו שוב.",
+        "SSO_TOKEN_INVALID": "לא הצלחנו לאמת את התשובה מספק ההתחברות שלכם. נסו שוב, ואם זה נמשך עדכנו את המנהל שלכם.",
+        "SSO_PROVIDER_ERROR": "ספק ההתחברות שלכם נתקל בבעיה. נסו שוב בעוד רגע.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "לחשבון הזה אין רשות להתחבר. בקשו גישה מהמנהל שלכם, או נסו חשבון אחר.",
+        "SSO_FAILED": "משהו השתבש במהלך ההתחברות. נסו שוב."
+      }
+    },
+    "unsupportedFileType": "סוג קובץ שאינו נתמך",
+    "skillUpdatedFromSource": "{title} עודכן מהמקור",
+    "workspaceSkillsSubtitle": "זמינות בכל פרויקט כאן, ולסוכנים שבוחרים להפעיל אותן.",
+    "skillShadowed": "למיומנות בעלת אותו שם ברמת {scope} יש עדיפות, ולכן זו אינה מוצעת.",
+    "skillsNoMatchBody": "שום דבר לא תואם לחיפוש הזה. נסו מונח אחר או נקו את המסננים."
   },
   "trash": {
     "restore": "שחזור",

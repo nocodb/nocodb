@@ -803,7 +803,8 @@
       "org-level-viewer": "Alleen records bekijken",
       "cloud-org-level-owner": "Volledige controle over de organisatie en haar werkruimtes",
       "cloud-org-level-creator": "Werkruimtes aanmaken en deelnemen aan werkruimtes waarvoor je bent uitgenodigd",
-      "cloud-org-level-viewer": "De organisatie en haar werkruimtes bekijken"
+      "cloud-org-level-viewer": "De organisatie en haar werkruimtes bekijken",
+      "app-user": "Alleen gepubliceerde apps gebruiken"
     },
     "sqlView": "SQL-weergave",
     "rowHeight": "Recordhoogte",
@@ -880,7 +881,9 @@
       "othersSubtitle": "Ontdek aanvullende veelzijdige integraties om uw NocoDB-ervaring te verbeteren.",
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
-      "spreadSheetSubtitle": "Verbind en beheer uw spreadsheets met NocoDB."
+      "spreadSheetSubtitle": "Verbind en beheer uw spreadsheets met NocoDB.",
+      "authProvider": "Authenticatieprovider",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Succes",
@@ -896,7 +899,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Bedrijfsleven",
       "Self-hosted Scale": "Schaal",
-      "Self-hosted Enterprise": "Onderneming"
+      "Self-hosted Enterprise": "Onderneming",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -904,7 +908,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Automatiseringsuitvoeringen",
+      "externalSources": "Externe bronnen"
     },
     "coloring": {
       "usingSingleSelectField": "Met Single select-veld",
@@ -914,7 +920,9 @@
       "usingConditionsDescription": "Kleurenrecords/cellen gebaseerd op omstandigheden",
       "colourRecordsByField": "Records kleuren per veld",
       "rowColorDescription": "Kleuren toepassen op het record",
-      "cellColorDescription": "Kleuren toepassen op een specifiek veld"
+      "cellColorDescription": "Kleuren toepassen op een specifiek veld",
+      "title": "Kleuring",
+      "usingConditionsDescriptionOss": "Records kleuren op basis van voorwaarden"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Aanmaken van record beperkt",
@@ -972,7 +980,30 @@
         "filterCount": "{count} filter ww {count} filters",
         "subjectsRequired": "Selecteer ten minste één rol, gebruiker of team.",
         "confirmDeleteTitle": "Weet u zeker dat u dit beleid wilt verwijderen?",
-        "confirmDeleteContent": "Deze actie kan niet ongedaan worden gemaakt."
+        "confirmDeleteContent": "Deze actie kan niet ongedaan worden gemaakt.",
+        "groupAgents": "Agents",
+        "ownerSubjectNote": "Eigenaars kunnen RLS-regels wijzigen.",
+        "selectDynamicValue": "Selecteer een dynamische waarde...",
+        "placeholders": {
+          "currentUserId": "ID van huidige gebruiker",
+          "currentUserIdDescription": "De ID van de aangemelde gebruiker.",
+          "currentUserEmail": "E-mail van huidige gebruiker",
+          "currentUserEmailDescription": "Het e-mailadres van de aangemelde gebruiker.",
+          "currentUserName": "Naam van huidige gebruiker",
+          "currentUserNameDescription": "De weergavenaam van de aangemelde gebruiker.",
+          "currentUserRoles": "Rollen van huidige gebruiker",
+          "currentUserRolesDescription": "De projectrollen van de aangemelde gebruiker.",
+          "currentUserTeams": "Mijn teams",
+          "currentUserTeamsDescription": "ID's van de teams waartoe de gebruiker rechtstreeks behoort.",
+          "currentUserTeamsWithDescendants": "Mijn teams en subteams",
+          "currentUserTeamsWithDescendantsDescription": "ID's van de teams van de gebruiker plus alle teams daaronder.",
+          "currentUserTeamNames": "Namen van mijn teams",
+          "currentUserTeamNamesDescription": "Namen van de teams waartoe de gebruiker rechtstreeks behoort.",
+          "currentUserTeamNamesWithDescendants": "Namen van mijn teams en subteams",
+          "currentUserTeamNamesWithDescendantsDescription": "Namen van de teams van de gebruiker plus alle teams daaronder.",
+          "currentUserTeamWithDescendantMembers": "Leden van mijn teams",
+          "currentUserTeamWithDescendantMembersDescription": "Iedereen in de teams en subteams van de gebruiker — gebruik dit met „bevat een van” om de records van uw medewerkers te zien."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Niemand {description}",
@@ -1001,7 +1032,16 @@
       "viewConfigurationCopied": "Weergaveconfiguratie met succes gekopieerd",
       "errorOccuredWhileCopyingViewConfiguration": "Er is een fout opgetreden tijdens het kopiëren van de weergaveconfiguratie",
       "copyFromAnotherView": "Kopiëren vanuit een andere weergave",
-      "copyFromAView": "Kopiëren vanuit een weergave"
+      "copyFromAView": "Kopiëren vanuit een weergave",
+      "copySettingsFromView": "Instellingen van een weergave kopiëren",
+      "chooseSettings": "Instellingen kiezen",
+      "settingsSelected": "{count} geselecteerd",
+      "warning": {
+        "dynamic_filters_dropped": "{count} veld-naar-veldvoorwaarde(n) kunnen niet worden gekopieerd — deze pagina toont meer records dan de weergave.",
+        "negated_filters_dropped": "{count} ontkennende voorwaarde(n) kunnen niet worden gekopieerd — deze pagina toont meer records dan de weergave.",
+        "row_color_background_lost": "Recordkleuren worden gekopieerd, maar hun achtergrondvulling niet.",
+        "grouping_dropped": "Deze lay-out ondersteunt geen groepering, dus die wordt niet gekopieerd."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Weet je zeker dat je dit team wilt verlaten?",
@@ -1033,7 +1073,31 @@
       "noMoreTeamsToAdd": "Geen teams meer om toe te voegen",
       "alreadyAdded": "Reeds toegevoegd",
       "teamCantBeAssignedOwnerRole": "Team kan geen eigenaarsrol toegewezen krijgen"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} lid | {count} leden",
+    "bookmark": "Bladwijzer",
+    "interfacePage": "Interfacepagina",
+    "folder": "Map",
+    "formulas": "Formules",
+    "audio": "Audio",
+    "app": "App",
+    "apps": "Apps",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Verkoop",
+      "marketing": "Marketing",
+      "finance": "Financiën",
+      "hr": "Personeelszaken",
+      "operations": "Bedrijfsvoering",
+      "support": "Support",
+      "it": "IT",
+      "data": "Gegevens",
+      "other": "Overig"
+    },
+    "agent": "Agent",
+    "agents": "Agents"
   },
   "datatype": {
     "ID": "ID",
@@ -4901,7 +4965,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Het veld dat u aan het bewerken was werd bijgewerkt door een andere gebruiker. Uw niet-opgeslagen wijzigingen worden bewaard — het opslaan zal hun wijzigingen overschrijven.",
       "reachedUploadLimit": "Uploadlimiet bereikt",
       "youCanOnlyUploadMaxLimitFilesAtATime": "U kunt slechts {limit} {type}-bestand tegelijk uploaden",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "U kunt slechts {limit} {type}-bestanden tegelijk uploaden"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "U kunt slechts {limit} {type}-bestanden tegelijk uploaden",
+      "tableDataImportedLinksUnmatched": "Import geslaagd. {links} recordkoppelingen aangemaakt; {unmatched} waarde(n) kwamen met geen enkel record overeen en zijn overgeslagen.",
+      "tableDataImportedLinksFailed": "{failed} recordkoppeling(en) kwamen overeen met een record, maar konden niet worden aangemaakt. Zie het importlogboek voor details.",
+      "importLinkReassignField": "„{field}” is een één-op-veel- of één-op-één-koppeling — waarden hier importeren kan records losmaken van de records waaraan ze nu gekoppeld zijn.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Geen veld „Bijgewerkt op” ingesteld",
+        "description": "Elke synchronisatie haalt alle records van deze tabel opnieuw op. Markeer een datumveld als „Bijgewerkt op” om incrementele synchronisatie mogelijk te maken."
+      },
+      "syncDetachTable": "De synchronisatie werkt deze tabel niet langer bij. De gegevens blijven behouden en alle velden worden bewerkbaar. Als u de brontabel later opnieuw aan de synchronisatie toevoegt, ontstaat er een nieuwe tabel.",
+      "tableSyncConvertMainTable": "Dit is de gesynchroniseerde tabel van deze synchronisatie — hem omzetten verwijdert de synchronisatie zelf. Alle tabellen die erdoor zijn aangemaakt blijven als gewone, bewerkbare tabellen bestaan en synchroniseren niet meer.",
+      "requiredFieldNotEditable": "Dit verplichte veld is niet bewerkbaar, wat fouten kan veroorzaken bij het versturen van het formulier.",
+      "communityAppInstall": "{title} is een community-app. Hij is niet beoordeeld of geverifieerd door NocoDB. Zorg dat u de uitgever vertrouwt voordat u hem in uw werkruimte installeert.",
+      "removeCustomDomain": "{domain} zal deze app niet langer serveren. Het standaardadres blijft werken."
     },
     "info": {
       "sourceViewRebindResync": "Het wijzigen van de bronweergave activeert een volledige synchronisatie met de nieuwe weergave.",
@@ -5588,7 +5664,8 @@
       "nCellCopied": "{n} cel gekopieerd",
       "nCellsCopied": "{n} cellen gekopieerd",
       "nRecordCreated": "{n} record aangemaakt",
-      "nRecordsCreated": "{n} records aangemaakt"
+      "nRecordsCreated": "{n} records aangemaakt",
+      "interfaceFilterCopied": "{count} voorwaarde gekopieerd | {count} voorwaarden gekopieerd"
     },
     "success": {
       "restored": "Item hersteld",
@@ -5655,7 +5732,24 @@
       "scimDisabled": "SCIM provisioning uitgeschakeld",
       "tokenRegenerated": "Provisie token met succes opnieuw gegenereerd",
       "scimDeleted": "SCIM configuratie succesvol verwijderd",
-      "defaultRoleUpdated": "Standaardrol succesvol bijgewerkt"
+      "defaultRoleUpdated": "Standaardrol succesvol bijgewerkt",
+      "recordLinked": "Record gekoppeld",
+      "recordUnlinked": "Record ontkoppeld",
+      "pageSharingEnabled": "Pagina delen ingeschakeld",
+      "pageSharingDisabled": "Pagina delen uitgeschakeld",
+      "dataExported": "Gegevens met succes geëxporteerd!",
+      "recordTemplateUpdated": "Sjabloon bijgewerkt",
+      "recordTemplateCreated": "Sjabloon aangemaakt",
+      "recordTemplateDeleted": "Sjabloon verwijderd",
+      "accountConnected": "Uw {provider}-account is gekoppeld.",
+      "appUninstalled": "App verwijderd",
+      "storeListingSaved": "Winkelvermelding opgeslagen",
+      "publisherProfileSaved": "Uitgeversprofiel opgeslagen",
+      "planChanged": "Abonnement bijgewerkt",
+      "planChangeScheduled": "Abonnementswijziging ingepland",
+      "planChangeReverted": "Geplande abonnementswijziging teruggedraaid. Uw huidige abonnement loopt ongewijzigd door.",
+      "appDelisted": "Verwijderd uit de App Store",
+      "appRelisted": "Terug in de App Store"
     },
     "subText": {
       "startFromScratch": "Begin helemaal opnieuw.",
@@ -5824,7 +5918,24 @@
     "skillsCatalogErrorTitle": "Kon deze repository niet laden",
     "skillsCommunityTitle": "Installeren vanuit elke openbare repository",
     "skillsCommunityBlocked": "Uw werkruimte staat het installeren van communityvaardigheden niet toe.",
-    "skillsCommunityBlockedOrg": "Uw organisatie staat het installeren van communityvaardigheden niet toe."
+    "skillsCommunityBlockedOrg": "Uw organisatie staat het installeren van communityvaardigheden niet toe.",
+    "thisSharedPageIsProtected": "Deze gedeelde pagina is beveiligd",
+    "sso": {
+      "signInFailed": "We konden u niet aanmelden",
+      "shareCode": "Hulp nodig? Deel deze code met uw beheerder",
+      "failure": {
+        "SSO_STATE_INVALID": "Uw aanmeldsessie is verlopen of werd onderbroken. Probeer het opnieuw.",
+        "SSO_TOKEN_INVALID": "We konden het antwoord van uw aanmeldprovider niet verifiëren. Probeer het opnieuw en laat het uw beheerder weten als het zich blijft voordoen.",
+        "SSO_PROVIDER_ERROR": "Uw aanmeldprovider liep tegen een probleem aan. Probeer het zo meteen opnieuw.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Dit account mag niet aanmelden. Vraag uw beheerder om toegang of probeer een ander account.",
+        "SSO_FAILED": "Er ging iets mis bij het aanmelden. Probeer het opnieuw."
+      }
+    },
+    "unsupportedFileType": "Niet-ondersteund bestandstype",
+    "skillUpdatedFromSource": "{title} bijgewerkt vanuit de bron",
+    "workspaceSkillsSubtitle": "Beschikbaar in elk project hier, en voor agents die ervoor kiezen.",
+    "skillShadowed": "Een vaardigheid met deze titel op het niveau {scope} heeft voorrang, dus deze wordt niet aangeboden.",
+    "skillsNoMatchBody": "Niets komt overeen met die zoekopdracht. Probeer een andere term of wis de filters."
   },
   "trash": {
     "restore": "Herstellen",

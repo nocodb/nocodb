@@ -805,7 +805,8 @@
       "org-level-viewer": "Samo ogled zapisov",
       "cloud-org-level-owner": "Popoln nadzor nad organizacijo in njenimi delovnimi prostori",
       "cloud-org-level-creator": "Ustvarjanje delovnih prostorov in pridruževanje tistim, kamor je povabljen",
-      "cloud-org-level-viewer": "Ogled organizacije in njenih delovnih prostorov"
+      "cloud-org-level-viewer": "Ogled organizacije in njenih delovnih prostorov",
+      "app-user": "Uporabljati samo objavljene aplikacije"
     },
     "sqlView": "Pogled SQL",
     "rowHeight": "Višina zapisa",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Odkrijte dodatne vsestranske integracije, da izboljšate vašo izkušnjo z NocoDB.",
       "ai": "AI",
       "spreadSheet": "Preglednica",
-      "spreadSheetSubtitle": "Povežite in upravljajte svoje preglednice z NocoDB."
+      "spreadSheetSubtitle": "Povežite in upravljajte svoje preglednice z NocoDB.",
+      "authProvider": "Ponudnik overjanja",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Uspeh",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Business",
       "Self-hosted Scale": "Scale",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Zagoni avtomatizacij",
+      "externalSources": "Zunanji viri"
     },
     "coloring": {
       "usingSingleSelectField": "Uporaba polja za enojni izbor",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Barvaj zapise glede na pogoje",
       "colourRecordsByField": "Barvaj zapise po polju",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "Barvanje",
+      "usingConditionsDescriptionOss": "Obarvaj zapise glede na pogoje"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Omejeno ustvarjanje zapisa",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Please select at least one role, user, or team.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "Agenti",
+        "ownerSubjectNote": "Lastniki lahko spreminjajo pravila RLS.",
+        "selectDynamicValue": "Izberite dinamično vrednost ...",
+        "placeholders": {
+          "currentUserId": "ID trenutnega uporabnika",
+          "currentUserIdDescription": "ID prijavljenega uporabnika.",
+          "currentUserEmail": "E-pošta trenutnega uporabnika",
+          "currentUserEmailDescription": "E-poštni naslov prijavljenega uporabnika.",
+          "currentUserName": "Ime trenutnega uporabnika",
+          "currentUserNameDescription": "Prikazno ime prijavljenega uporabnika.",
+          "currentUserRoles": "Vloge trenutnega uporabnika",
+          "currentUserRolesDescription": "Vloge prijavljenega uporabnika v projektu.",
+          "currentUserTeams": "Moje ekipe",
+          "currentUserTeamsDescription": "ID-ji ekip, ki jim uporabnik pripada neposredno.",
+          "currentUserTeamsWithDescendants": "Moje ekipe in podekipe",
+          "currentUserTeamsWithDescendantsDescription": "ID-ji uporabnikovih ekip in vseh ekip pod njimi.",
+          "currentUserTeamNames": "Imena mojih ekip",
+          "currentUserTeamNamesDescription": "Imena ekip, ki jim uporabnik pripada neposredno.",
+          "currentUserTeamNamesWithDescendants": "Imena mojih ekip in podekip",
+          "currentUserTeamNamesWithDescendantsDescription": "Imena uporabnikovih ekip in vseh ekip pod njimi.",
+          "currentUserTeamWithDescendantMembers": "Člani mojih ekip",
+          "currentUserTeamWithDescendantMembersDescription": "Vsi v uporabnikovih ekipah in podekipah — uporabite s pogojem »vsebuje kar koli od«, da vidite zapise svojih podrejenih."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "Kopiraj nastavitve iz pogleda",
+      "chooseSettings": "Izberite nastavitve",
+      "settingsSelected": "Izbranih: {count}",
+      "warning": {
+        "dynamic_filters_dropped": "{count} pogojev med polji ni mogoče kopirati — ta stran bo pokazala več zapisov kot pogled.",
+        "negated_filters_dropped": "{count} zanikanih pogojev ni mogoče kopirati — ta stran bo pokazala več zapisov kot pogled.",
+        "row_color_background_lost": "Barve zapisov se kopirajo, njihova polnila ozadja pa ne.",
+        "grouping_dropped": "Ta postavitev ne podpira združevanja, zato se to ne kopira."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,31 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} član | {count} članov",
+    "bookmark": "Zaznamek",
+    "interfacePage": "Stran vmesnika",
+    "folder": "Mapa",
+    "formulas": "Formule",
+    "audio": "Audio",
+    "app": "Aplikacija",
+    "apps": "Aplikacije",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Prodaja",
+      "marketing": "Marketing",
+      "hr": "Kadri",
+      "operations": "Operacije",
+      "support": "Podpora",
+      "it": "IT",
+      "product": "Izdelek",
+      "data": "Podatki",
+      "other": "Drugo"
+    },
+    "agent": "Agent",
+    "agents": "Agenti"
   },
   "datatype": {
     "ID": "Id",
@@ -4916,7 +4980,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "Dosežena omejitev nalaganja",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Naenkrat lahko naložite le {limit} {type} datoteko",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Naenkrat lahko naložite le {limit} {type} datotek"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Naenkrat lahko naložite le {limit} {type} datotek",
+      "tableDataImportedLinksUnmatched": "Uvoz je uspel. Ustvarjenih povezav zapisov: {links}; vrednosti brez ujemanja: {unmatched} — te so bile preskočene.",
+      "tableDataImportedLinksFailed": "{failed} povezav zapisov se je ujemalo z zapisom, a jih ni bilo mogoče ustvariti. Podrobnosti so v dnevniku uvoza.",
+      "importLinkReassignField": "»{field}« je povezava ena proti mnogo ali ena proti ena — uvoz vrednosti sem lahko odtrga zapise od tistih, s katerimi so trenutno povezani.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Polje »Posodobljeno« ni nastavljeno",
+        "description": "Vsak zagon sinhronizacije bo znova pridobil vse zapise te tabele. Označite polje z datumom kot »Posodobljeno«, da omogočite postopno sinhronizacijo."
+      },
+      "syncDetachTable": "Sinhronizacija te tabele ne bo več posodabljala. Njeni podatki se ohranijo in vsa polja postanejo urejljiva. Če izvorno tabelo pozneje znova dodate v sinhronizacijo, nastane nova tabela.",
+      "tableSyncConvertMainTable": "To je sinhronizirana tabela te sinhronizacije — njena pretvorba odstrani sinhronizacijo samo. Vse tabele, ki jih je ustvarila, ostanejo kot običajne, urejljive tabele in se nehajo sinhronizirati.",
+      "requiredFieldNotEditable": "Tega obveznega polja ni mogoče urejati, kar lahko povzroči napake pri oddaji obrazca.",
+      "communityAppInstall": "{title} je aplikacija skupnosti. NocoDB je ni pregledal niti potrdil. Preden jo namestite v svoj delovni prostor, se prepričajte, da izdajatelju zaupate.",
+      "removeCustomDomain": "{domain} te aplikacije ne bo več stregel. Privzeti naslov še naprej deluje."
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5603,7 +5679,8 @@
       "nCellCopied": "{n} celica kopirana",
       "nCellsCopied": "{n} celic kopiranih",
       "nRecordCreated": "{n} record created",
-      "nRecordsCreated": "{n} records created"
+      "nRecordsCreated": "{n} records created",
+      "interfaceFilterCopied": "Kopiran {count} pogoj | Kopiranih {count} pogojev"
     },
     "success": {
       "restored": "Item restored successfully",
@@ -5670,7 +5747,24 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "recordLinked": "Zapis povezan",
+      "recordUnlinked": "Povezava zapisa odstranjena",
+      "pageSharingEnabled": "Deljenje strani vklopljeno",
+      "pageSharingDisabled": "Deljenje strani izklopljeno",
+      "dataExported": "Podatki uspešno izvoženi!",
+      "recordTemplateUpdated": "Predloga posodobljena",
+      "recordTemplateCreated": "Predloga ustvarjena",
+      "recordTemplateDeleted": "Predloga izbrisana",
+      "accountConnected": "Vaš račun {provider} je povezan.",
+      "appUninstalled": "Aplikacija odstranjena",
+      "storeListingSaved": "Vnos v trgovini shranjen",
+      "publisherProfileSaved": "Profil izdajatelja shranjen",
+      "planChanged": "Paket posodobljen",
+      "planChangeScheduled": "Sprememba paketa načrtovana",
+      "planChangeReverted": "Načrtovana sprememba paketa je preklicana. Vaš trenutni paket teče naprej nespremenjen.",
+      "appDelisted": "Odstranjeno iz trgovine App Store",
+      "appRelisted": "Znova v trgovini App Store"
     },
     "subText": {
       "startFromScratch": "Začni iz nič.",
@@ -5839,7 +5933,24 @@
     "skillsCatalogErrorTitle": "Tega repozitorija ni bilo mogoče naložiti",
     "skillsCommunityTitle": "Nameščanje iz katerega koli javnega repozitorija",
     "skillsCommunityBlocked": "Vaš delovni prostor ne dovoljuje nameščanja spretnosti skupnosti.",
-    "skillsCommunityBlockedOrg": "Vaša organizacija ne dovoljuje nameščanja spretnosti skupnosti."
+    "skillsCommunityBlockedOrg": "Vaša organizacija ne dovoljuje nameščanja spretnosti skupnosti.",
+    "thisSharedPageIsProtected": "Ta deljena stran je zaščitena",
+    "sso": {
+      "signInFailed": "Prijava ni uspela",
+      "shareCode": "Potrebujete pomoč? Sporočite to kodo svojemu skrbniku",
+      "failure": {
+        "SSO_STATE_INVALID": "Vaša prijavna seja je potekla ali bila prekinjena. Poskusite znova.",
+        "SSO_TOKEN_INVALID": "Odgovora vašega ponudnika prijave ni bilo mogoče preveriti. Poskusite znova in obvestite skrbnika, če se to ponavlja.",
+        "SSO_PROVIDER_ERROR": "Vaš ponudnik prijave je naletel na težavo. Poskusite znova čez trenutek.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Ta račun se ne sme prijaviti. Za dostop prosite skrbnika ali poskusite z drugim računom.",
+        "SSO_FAILED": "Med prijavo je šlo nekaj narobe. Poskusite znova."
+      }
+    },
+    "unsupportedFileType": "Nepodprta vrsta datoteke",
+    "skillUpdatedFromSource": "{title} posodobljeno iz vira",
+    "workspaceSkillsSubtitle": "Na voljo v vsakem tukajšnjem projektu in agentom, ki jih vklopijo.",
+    "skillShadowed": "Prednost ima spretnost z enakim naslovom na ravni {scope}, zato ta ni na voljo.",
+    "skillsNoMatchBody": "Nič se ne ujema s tem iskanjem. Poskusite z drugim izrazom ali počistite filtre."
   },
   "trash": {
     "restore": "Restore",

@@ -805,7 +805,8 @@
       "org-level-viewer": "فقط مشاهده رکوردها",
       "cloud-org-level-owner": "کنترل کامل سازمان و فضاهای کاری آن",
       "cloud-org-level-creator": "ایجاد فضای کاری و پیوستن به فضاهایی که به آن‌ها دعوت شده است",
-      "cloud-org-level-viewer": "مشاهده سازمان و فضاهای کاری آن"
+      "cloud-org-level-viewer": "مشاهده سازمان و فضاهای کاری آن",
+      "app-user": "فقط استفاده از برنامه‌های منتشرشده"
     },
     "sqlView": "نمای SQL",
     "rowHeight": "ارتفاع رکورد",
@@ -882,7 +883,9 @@
       "othersSubtitle": "کشف ادغام‌های چندمنظوره اضافی برای بهبود تجربه NocoDB شما.",
       "ai": "هوش مصنوعی",
       "spreadSheet": "صفحه‌گسترده",
-      "spreadSheetSubtitle": "صفحه‌گسترده‌های خود را با NocoDB متصل و مدیریت کنید."
+      "spreadSheetSubtitle": "صفحه‌گسترده‌های خود را با NocoDB متصل و مدیریت کنید.",
+      "authProvider": "ارائه‌دهندهٔ احراز هویت",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "موفق",
@@ -898,7 +901,8 @@
       "Enterprise": "سازمانی",
       "Self-hosted Business": "Business",
       "Self-hosted Scale": "Scale",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "اجراهای خودکارسازی",
+      "externalSources": "منابع بیرونی"
     },
     "coloring": {
       "usingSingleSelectField": "با استفاده از فیلد انتخاب تکی",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "رکوردها را بر اساس شرایط رنگی کنید",
       "colourRecordsByField": "رکوردها را براساس فیلد رنگی کنید",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "رنگ‌آمیزی",
+      "usingConditionsDescriptionOss": "رنگ‌آمیزی رکوردها بر پایهٔ شرط‌ها"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "ایجاد رکورد محدود شده است",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Please select at least one role, user, or team.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "عامل‌ها",
+        "ownerSubjectNote": "مالکان می‌توانند قواعد RLS را تغییر دهند.",
+        "selectDynamicValue": "یک مقدار پویا برگزینید...",
+        "placeholders": {
+          "currentUserId": "شناسهٔ کاربر کنونی",
+          "currentUserIdDescription": "شناسهٔ کاربری که وارد شده است.",
+          "currentUserEmail": "رایانامهٔ کاربر کنونی",
+          "currentUserEmailDescription": "نشانی رایانامهٔ کاربری که وارد شده است.",
+          "currentUserName": "نام کاربر کنونی",
+          "currentUserNameDescription": "نام نمایشی کاربری که وارد شده است.",
+          "currentUserRoles": "نقش‌های کاربر کنونی",
+          "currentUserRolesDescription": "نقش‌های کاربر وارد‌شده در پروژه.",
+          "currentUserTeams": "تیم‌های من",
+          "currentUserTeamsDescription": "شناسهٔ تیم‌هایی که کاربر مستقیماً عضو آن‌هاست.",
+          "currentUserTeamsWithDescendants": "تیم‌ها و زیرتیم‌های من",
+          "currentUserTeamsWithDescendantsDescription": "شناسهٔ تیم‌های کاربر به‌همراه همهٔ تیم‌های زیرمجموعهٔ آن‌ها.",
+          "currentUserTeamNames": "نام تیم‌های من",
+          "currentUserTeamNamesDescription": "نام تیم‌هایی که کاربر مستقیماً عضو آن‌هاست.",
+          "currentUserTeamNamesWithDescendants": "نام تیم‌ها و زیرتیم‌های من",
+          "currentUserTeamNamesWithDescendantsDescription": "نام تیم‌های کاربر به‌همراه همهٔ تیم‌های زیرمجموعهٔ آن‌ها.",
+          "currentUserTeamWithDescendantMembers": "اعضای تیم‌های من",
+          "currentUserTeamWithDescendantMembersDescription": "همهٔ افراد تیم‌ها و زیرتیم‌های کاربر — آن را با «شامل هر یک از» به کار ببرید تا رکوردهای زیردستانتان را ببینید."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "رونوشت تنظیمات از یک نما",
+      "chooseSettings": "تنظیمات را انتخاب کنید",
+      "settingsSelected": "{count} انتخاب‌شده",
+      "warning": {
+        "dynamic_filters_dropped": "{count} شرط فیلد به فیلد را نمی‌توان رونوشت کرد — این صفحه رکوردهای بیشتری از نما نشان خواهد داد.",
+        "negated_filters_dropped": "{count} شرط نفی‌شده را نمی‌توان رونوشت کرد — این صفحه رکوردهای بیشتری از نما نشان خواهد داد.",
+        "row_color_background_lost": "رنگ رکوردها رونوشت می‌شود، اما پُرشدگی پس‌زمینهٔ آن‌ها نه.",
+        "grouping_dropped": "این چیدمان از گروه‌بندی پشتیبانی نمی‌کند، بنابراین رونوشت نمی‌شود."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "گفت‌وگو",
+    "addons": "Add-ons",
+    "membersCount": "{count} عضو | {count} عضو",
+    "bookmark": "نشانک",
+    "interfacePage": "صفحهٔ رابط",
+    "folder": "پوشه",
+    "formulas": "فرمول‌ها",
+    "audio": "صدا",
+    "app": "برنامه",
+    "apps": "برنامه‌ها",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "فروش",
+      "marketing": "بازاریابی",
+      "finance": "مالی",
+      "hr": "منابع انسانی",
+      "operations": "عملیات",
+      "support": "پشتیبانی",
+      "it": "IT",
+      "product": "محصول",
+      "data": "داده",
+      "other": "سایر"
+    },
+    "agent": "عامل",
+    "agents": "عامل‌ها"
   },
   "datatype": {
     "ID": "شناسه (ID)",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "به حد بارگذاری رسیدید",
       "youCanOnlyUploadMaxLimitFilesAtATime": "شما فقط می‌توانید در هر بار {limit} فایل {type} بارگذاری کنید",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "شما فقط می‌توانید در هر بار {limit} فایل {type} بارگذاری کنید"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "شما فقط می‌توانید در هر بار {limit} فایل {type} بارگذاری کنید",
+      "tableDataImportedLinksUnmatched": "با موفقیت درون‌ریزی شد. {links} پیوند رکورد ساخته شد؛ {unmatched} مقدار با هیچ رکوردی مطابقت نداشت و نادیده گرفته شد.",
+      "tableDataImportedLinksFailed": "{failed} پیوند رکورد با رکوردی مطابقت داشت اما ساخته نشد. برای جزئیات، گزارش درون‌ریزی را ببینید.",
+      "importLinkReassignField": "«{field}» یک پیوند یک‌به‌چند یا یک‌به‌یک است — درون‌ریزی مقادیر در اینجا می‌تواند رکوردها را از رکوردهایی که هم‌اکنون به آن‌ها پیوند دارند جدا کند.",
+      "syncNoUpdatedAtColumn": {
+        "title": "هیچ فیلد «به‌روزرسانی در» تنظیم نشده است",
+        "description": "هر اجرای همگام‌سازی همهٔ رکوردهای این جدول را دوباره می‌گیرد. برای فعال‌کردن همگام‌سازی افزایشی، یک فیلد تاریخ را «به‌روزرسانی در» علامت بزنید."
+      },
+      "syncDetachTable": "همگام‌سازی دیگر این جدول را به‌روز نمی‌کند. داده‌های آن نگه داشته می‌شود و همهٔ فیلدها قابل ویرایش می‌شوند. اگر بعداً جدول منبع دوباره به همگام‌سازی افزوده شود، جدول تازه‌ای ساخته می‌شود.",
+      "tableSyncConvertMainTable": "این جدولِ همگام‌شدهٔ همین همگام‌سازی است — تبدیل آن خودِ همگام‌سازی را برمی‌دارد. همهٔ جدول‌هایی که این همگام‌سازی ساخته، به‌عنوان جدول‌های معمولی و قابل ویرایش می‌مانند و دیگر همگام نمی‌شوند.",
+      "requiredFieldNotEditable": "این فیلد اجباری قابل ویرایش نیست و همین می‌تواند هنگام ارسال فرم خطا ایجاد کند.",
+      "communityAppInstall": "{title} یک برنامهٔ جامعه است. NocoDB آن را بررسی و تأیید نکرده است. پیش از نصب آن در فضای کاری خود، مطمئن شوید که به ناشر اعتماد دارید.",
+      "removeCustomDomain": "{domain} دیگر این برنامه را ارائه نخواهد کرد. نشانی پیش‌فرض همچنان کار می‌کند."
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} سلول کپی شد",
       "nCellsCopied": "{n} سلول کپی شدند",
       "nRecordCreated": "{n} record created",
-      "nRecordsCreated": "{n} records created"
+      "nRecordsCreated": "{n} records created",
+      "interfaceFilterCopied": "{count} شرط رونوشت شد | {count} شرط رونوشت شد"
     },
     "success": {
       "restored": "Item restored successfully",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "recordLinked": "رکورد پیوند داده شد",
+      "recordUnlinked": "پیوند رکورد برداشته شد",
+      "pageSharingEnabled": "هم‌رسانی صفحه فعال شد",
+      "pageSharingDisabled": "هم‌رسانی صفحه غیرفعال شد",
+      "dataExported": "داده‌ها با موفقیت برون‌بری شد!",
+      "recordTemplateUpdated": "الگو به‌روزرسانی شد",
+      "recordTemplateCreated": "الگو ساخته شد",
+      "recordTemplateDeleted": "الگو حذف شد",
+      "accountConnected": "حساب {provider} شما متصل است.",
+      "appUninstalled": "برنامه حذف نصب شد",
+      "storeListingSaved": "آگهی فروشگاه ذخیره شد",
+      "publisherProfileSaved": "نمایهٔ ناشر ذخیره شد",
+      "planChanged": "طرح به‌روزرسانی شد",
+      "planChangeScheduled": "تغییر طرح زمان‌بندی شد",
+      "planChangeReverted": "تغییر طرحِ زمان‌بندی‌شده لغو شد. طرح فعلی شما بدون تغییر ادامه می‌یابد.",
+      "appDelisted": "از App Store برداشته شد",
+      "appRelisted": "دوباره در App Store"
     },
     "subText": {
       "startFromScratch": "شروع از ابتدا.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "بارگذاری این مخزن ممکن نشد",
     "skillsCommunityTitle": "نصب از هر مخزن عمومی",
     "skillsCommunityBlocked": "فضای کاری شما اجازهٔ نصب مهارت‌های جامعه را نمی‌دهد.",
-    "skillsCommunityBlockedOrg": "سازمان شما اجازهٔ نصب مهارت‌های جامعه را نمی‌دهد."
+    "skillsCommunityBlockedOrg": "سازمان شما اجازهٔ نصب مهارت‌های جامعه را نمی‌دهد.",
+    "thisSharedPageIsProtected": "این صفحهٔ هم‌رسانی‌شده محافظت‌شده است",
+    "sso": {
+      "signInFailed": "نتوانستیم شما را وارد کنیم",
+      "shareCode": "کمک می‌خواهید؟ این کد را با مدیر خود در میان بگذارید",
+      "failure": {
+        "SSO_STATE_INVALID": "نشست ورود شما منقضی یا قطع شد. لطفاً دوباره تلاش کنید.",
+        "SSO_TOKEN_INVALID": "نتوانستیم پاسخ ارائه‌دهندهٔ ورود شما را تأیید کنیم. دوباره تلاش کنید و اگر تکرار شد به مدیر خود اطلاع دهید.",
+        "SSO_PROVIDER_ERROR": "ارائه‌دهندهٔ ورود شما با مشکلی روبه‌رو شد. لطفاً لحظه‌ای بعد دوباره تلاش کنید.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "این حساب اجازهٔ ورود ندارد. از مدیر خود دسترسی بخواهید، یا حساب دیگری را امتحان کنید.",
+        "SSO_FAILED": "هنگام ورود شما مشکلی پیش آمد. لطفاً دوباره تلاش کنید."
+      }
+    },
+    "unsupportedFileType": "نوع پروندهٔ پشتیبانی‌نشده",
+    "skillUpdatedFromSource": "{title} از منبع به‌روزرسانی شد",
+    "workspaceSkillsSubtitle": "در هر پروژهٔ اینجا در دسترس است، و برای عامل‌هایی که آن را فعال می‌کنند.",
+    "skillShadowed": "مهارتی با همین عنوان در سطح {scope} اولویت دارد، بنابراین این یکی ارائه نمی‌شود.",
+    "skillsNoMatchBody": "چیزی با این جست‌وجو همخوانی ندارد. واژهٔ دیگری را امتحان کنید یا فیلترها را پاک کنید."
   },
   "trash": {
     "restore": "Restore",

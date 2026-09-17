@@ -805,7 +805,8 @@
       "org-level-viewer": "Vain tarkastella tietueita",
       "cloud-org-level-owner": "Täysi hallinta organisaatioon ja sen työtiloihin",
       "cloud-org-level-creator": "Luoda työtiloja ja liittyä niihin, joihin on kutsuttu",
-      "cloud-org-level-viewer": "Tarkastella organisaatiota ja sen työtiloja"
+      "cloud-org-level-viewer": "Tarkastella organisaatiota ja sen työtiloja",
+      "app-user": "Käytä vain julkaistuja sovelluksia"
     },
     "sqlView": "SQL-näkymä",
     "rowHeight": "Tietueen korkeus",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Löydä lisää monipuolisia integraatioita parantaaksesi NocoDB-kokemustasi.",
       "ai": "AI",
       "spreadSheet": "Taulukkolaskenta",
-      "spreadSheetSubtitle": "Yhdistä ja hallitse laskentataulukoitasi NocoDB:llä."
+      "spreadSheetSubtitle": "Yhdistä ja hallitse laskentataulukoitasi NocoDB:llä.",
+      "authProvider": "Todennuspalvelu",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Onnistui",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Liiketoiminta",
       "Self-hosted Scale": "Skaalaa",
-      "Self-hosted Enterprise": "Yritys"
+      "Self-hosted Enterprise": "Yritys",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Automaatioajot",
+      "externalSources": "Ulkoiset lähteet"
     },
     "coloring": {
       "usingSingleSelectField": "Käytetään yksittäistä valintakenttää",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Väritietueet/solut, jotka perustuvat olosuhteisiin",
       "colourRecordsByField": "Värjää tietueet kentän mukaan",
       "rowColorDescription": "Käytä väriä tietueen",
-      "cellColorDescription": "Käytä väriä tiettyyn kenttään"
+      "cellColorDescription": "Käytä väriä tiettyyn kenttään",
+      "title": "Väritys",
+      "usingConditionsDescriptionOss": "Väritä tietueet ehtojen perusteella"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Tietueen lisäys rajoitettu",
@@ -974,7 +982,30 @@
         "filterCount": "{count} suodatin | {count} suodattimet",
         "subjectsRequired": "Valitse vähintään yksi rooli, käyttäjä tai tiimi.",
         "confirmDeleteTitle": "Oletko varma, että haluat poistaa tämän käytännön?",
-        "confirmDeleteContent": "Tätä toimintoa ei voi peruuttaa."
+        "confirmDeleteContent": "Tätä toimintoa ei voi peruuttaa.",
+        "groupAgents": "Agentit",
+        "ownerSubjectNote": "Omistajat voivat muuttaa RLS-sääntöjä.",
+        "selectDynamicValue": "Valitse dynaaminen arvo...",
+        "placeholders": {
+          "currentUserId": "Nykyisen käyttäjän tunnus",
+          "currentUserIdDescription": "Kirjautuneen käyttäjän tunnus.",
+          "currentUserEmail": "Nykyisen käyttäjän sähköposti",
+          "currentUserEmailDescription": "Kirjautuneen käyttäjän sähköpostiosoite.",
+          "currentUserName": "Nykyisen käyttäjän nimi",
+          "currentUserNameDescription": "Kirjautuneen käyttäjän näyttönimi.",
+          "currentUserRoles": "Nykyisen käyttäjän roolit",
+          "currentUserRolesDescription": "Kirjautuneen käyttäjän projektiroolit.",
+          "currentUserTeams": "Tiimini",
+          "currentUserTeamsDescription": "Niiden tiimien tunnukset, joihin käyttäjä kuuluu suoraan.",
+          "currentUserTeamsWithDescendants": "Tiimini ja alatiimini",
+          "currentUserTeamsWithDescendantsDescription": "Käyttäjän tiimien sekä kaikkien niiden alaisten tiimien tunnukset.",
+          "currentUserTeamNames": "Tiimieni nimet",
+          "currentUserTeamNamesDescription": "Niiden tiimien nimet, joihin käyttäjä kuuluu suoraan.",
+          "currentUserTeamNamesWithDescendants": "Tiimieni ja alatiimieni nimet",
+          "currentUserTeamNamesWithDescendantsDescription": "Käyttäjän tiimien sekä kaikkien niiden alaisten tiimien nimet.",
+          "currentUserTeamWithDescendantMembers": "Tiimieni jäsenet",
+          "currentUserTeamWithDescendantMembersDescription": "Kaikki käyttäjän tiimeissä ja alatiimeissä — käytä tätä yhdessä ”sisältää jonkin seuraavista” -ehdon kanssa nähdäksesi alaistesi tietueet."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Kukaan {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Näkymän kokoonpano kopioitu onnistuneesti",
       "errorOccuredWhileCopyingViewConfiguration": "Näkymän kokoonpanon kopioinnissa tapahtui virhe",
       "copyFromAnotherView": "Kopioi toisesta näkymästä",
-      "copyFromAView": "Kopioi näkymästä"
+      "copyFromAView": "Kopioi näkymästä",
+      "copySettingsFromView": "Kopioi asetukset näkymästä",
+      "chooseSettings": "Valitse asetukset",
+      "settingsSelected": "{count} valittu",
+      "warning": {
+        "dynamic_filters_dropped": "{count} kentästä kenttään -ehtoa ei voi kopioida — tämä sivu näyttää enemmän tietueita kuin näkymä.",
+        "negated_filters_dropped": "{count} kiellettyä ehtoa ei voi kopioida — tämä sivu näyttää enemmän tietueita kuin näkymä.",
+        "row_color_background_lost": "Tietueiden värit kopioidaan, mutta niiden taustatäyttö ei.",
+        "grouping_dropped": "Tämä asettelu ei tue ryhmittelyä, joten sitä ei kopioida."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Oletko varma, että haluat jättää tämän joukkueen?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "Ei enää lisää joukkueita",
       "alreadyAdded": "Jo lisätty",
       "teamCantBeAssignedOwnerRole": "Joukkueelle ei voida määrittää Omistaja -roolia"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} jäsen | {count} jäsentä",
+    "bookmark": "Kirjanmerkki",
+    "interfacePage": "Käyttöliittymäsivu",
+    "folder": "Kansio",
+    "formulas": "Kaavat",
+    "audio": "Audio",
+    "app": "Sovellus",
+    "apps": "Sovellukset",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Myynti",
+      "marketing": "Marketing",
+      "finance": "Talous",
+      "hr": "Henkilöstö",
+      "operations": "Operatiivinen toiminta",
+      "support": "Support",
+      "it": "IT",
+      "product": "Tuote",
+      "data": "Tiedot",
+      "other": "Muut"
+    },
+    "agent": "Agentti",
+    "agents": "Agentit"
   },
   "datatype": {
     "ID": "Id",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Toinen käyttäjä päivitti muokkaamaasi kenttää. Tallentamattomat muutokset säilyvät — tallentaminen korvaa niiden muutokset.",
       "reachedUploadLimit": "Latausraja saavutettu",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Voit ladata vain {limit} {type}-tiedoston kerrallaan",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Voit ladata vain {limit} {type}-tiedostoa kerrallaan"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Voit ladata vain {limit} {type}-tiedostoa kerrallaan",
+      "tableDataImportedLinksUnmatched": "Tuonti onnistui. {links} tietuelinkkiä luotiin, {unmatched} arvoa ei vastannut mitään tietuetta ja ne ohitettiin.",
+      "tableDataImportedLinksFailed": "{failed} tietuelinkkiä vastasi tietuetta, mutta niitä ei voitu luoda. Katso lisätiedot tuontilokista.",
+      "importLinkReassignField": "”{field}” on yksi-moneen- tai yksi-yhteen-linkki — arvojen tuonti tähän voi irrottaa tietueita niistä tietueista, joihin ne nyt on linkitetty.",
+      "syncNoUpdatedAtColumn": {
+        "title": "”Päivitetty”-kenttää ei ole asetettu",
+        "description": "Jokainen synkronointiajo hakee tämän taulukon kaikki tietueet uudelleen. Merkitse jokin päivämääräkenttä ”Päivitetty”-kentäksi, jotta lisäävä synkronointi on mahdollista."
+      },
+      "syncDetachTable": "Synkronointi lakkaa päivittämästä tätä taulukkoa. Sen tiedot säilyvät ja kaikki kentät muuttuvat muokattaviksi. Jos lähdetaulukko lisätään synkronointiin myöhemmin uudelleen, syntyy uusi taulukko.",
+      "tableSyncConvertMainTable": "Tämä on tämän synkronoinnin synkronoitu taulukko — sen muuntaminen poistaa itse synkronoinnin. Kaikki sen luomat taulukot säilyvät tavallisina, muokattavina taulukkoina eivätkä enää synkronoidu.",
+      "requiredFieldNotEditable": "Tämä pakollinen kenttä ei ole muokattavissa, mikä voi aiheuttaa virheitä lomaketta lähetettäessä.",
+      "communityAppInstall": "{title} on yhteisön sovellus. NocoDB ei ole tarkastanut tai varmentanut sitä. Varmista, että luotat julkaisijaan, ennen kuin asennat sen työtilaasi.",
+      "removeCustomDomain": "{domain} ei enää tarjoile tätä sovellusta. Oletusosoite toimii edelleen."
     },
     "info": {
       "sourceViewRebindResync": "Lähdenäkymän muuttaminen laukaisee täyden uudelleensynkronoinnin uutta näkymää vastaan.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} solu kopioitu",
       "nCellsCopied": "{n} solua kopioitu",
       "nRecordCreated": "{n} tietue luotu",
-      "nRecordsCreated": "{n} tietuetta luotu"
+      "nRecordsCreated": "{n} tietuetta luotu",
+      "interfaceFilterCopied": "{count} ehto kopioitu | {count} ehtoa kopioitu"
     },
     "success": {
       "restored": "Kohde palautettu onnistuneesti",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM varaus poistettu käytöstä",
       "tokenRegenerated": "Varauksen token luotu onnistuneesti",
       "scimDeleted": "SCIM määritys poistettu onnistuneesti",
-      "defaultRoleUpdated": "Oletusrooli päivitetty onnistuneesti"
+      "defaultRoleUpdated": "Oletusrooli päivitetty onnistuneesti",
+      "recordLinked": "Tietue linkitetty",
+      "recordUnlinked": "Tietueen linkitys poistettu",
+      "pageSharingEnabled": "Sivun jakaminen otettu käyttöön",
+      "pageSharingDisabled": "Sivun jakaminen poistettu käytöstä",
+      "dataExported": "Tiedot vietiin onnistuneesti!",
+      "recordTemplateUpdated": "Malli päivitetty",
+      "recordTemplateCreated": "Malli luotu",
+      "recordTemplateDeleted": "Malli poistettu",
+      "accountConnected": "{provider}-tilisi on yhdistetty.",
+      "appUninstalled": "Sovellus poistettu",
+      "storeListingSaved": "Kaupan ilmoitus tallennettu",
+      "publisherProfileSaved": "Julkaisijan profiili tallennettu",
+      "planChanged": "Paketti päivitetty",
+      "planChangeScheduled": "Paketin vaihto ajastettu",
+      "planChangeReverted": "Ajastettu paketin vaihto peruttu. Nykyinen pakettisi jatkuu ennallaan.",
+      "appDelisted": "Poistettu App Storesta",
+      "appRelisted": "Takaisin App Storessa"
     },
     "subText": {
       "startFromScratch": "Aloita alusta.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "Tätä arkistoa ei voitu ladata",
     "skillsCommunityTitle": "Asenna mistä tahansa julkisesta arkistosta",
     "skillsCommunityBlocked": "Työtilasi ei salli yhteisön taitojen asentamista.",
-    "skillsCommunityBlockedOrg": "Organisaatiosi ei salli yhteisön taitojen asentamista."
+    "skillsCommunityBlockedOrg": "Organisaatiosi ei salli yhteisön taitojen asentamista.",
+    "thisSharedPageIsProtected": "Tämä jaettu sivu on suojattu",
+    "sso": {
+      "signInFailed": "Kirjautuminen ei onnistunut",
+      "shareCode": "Tarvitsetko apua? Kerro tämä koodi ylläpitäjällesi",
+      "failure": {
+        "SSO_STATE_INVALID": "Kirjautumisistuntosi vanheni tai keskeytyi. Yritä uudelleen.",
+        "SSO_TOKEN_INVALID": "Kirjautumispalvelusi vastausta ei voitu varmistaa. Yritä uudelleen ja kerro ylläpitäjällesi, jos tämä toistuu.",
+        "SSO_PROVIDER_ERROR": "Kirjautumispalvelussasi ilmeni ongelma. Yritä hetken kuluttua uudelleen.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Tällä tilillä ei saa kirjautua sisään. Pyydä pääsyä ylläpitäjältäsi tai kokeile toista tiliä.",
+        "SSO_FAILED": "Kirjautumisessa meni jokin pieleen. Yritä uudelleen."
+      }
+    },
+    "unsupportedFileType": "Tiedostotyyppiä ei tueta",
+    "skillUpdatedFromSource": "{title} päivitetty lähteestä",
+    "workspaceSkillsSubtitle": "Käytettävissä jokaisessa täällä olevassa projektissa sekä agenteille, jotka ottavat ne käyttöön.",
+    "skillShadowed": "Tämänniminen taito tasolla {scope} menee edelle, joten tätä ei tarjota.",
+    "skillsNoMatchBody": "Mikään ei vastaa tuota hakua. Kokeile toista hakusanaa tai tyhjennä suodattimet."
   },
   "trash": {
     "restore": "Palauta",

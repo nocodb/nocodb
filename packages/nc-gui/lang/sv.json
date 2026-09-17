@@ -805,7 +805,8 @@
       "org-level-viewer": "Endast visa poster",
       "cloud-org-level-owner": "Full kontroll över organisationen och dess arbetsytor",
       "cloud-org-level-creator": "Skapa arbetsytor och gå med i dem man bjuds in till",
-      "cloud-org-level-viewer": "Visa organisationen och dess arbetsytor"
+      "cloud-org-level-viewer": "Visa organisationen och dess arbetsytor",
+      "app-user": "Använd endast publicerade appar"
     },
     "sqlView": "SQL-vy",
     "rowHeight": "Rad Höjd",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Upptäck ytterligare mångsidiga integreringar för att förbättra din NocoDB-upplevelse.",
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
-      "spreadSheetSubtitle": "Anslut och hantera dina kalkylblad med NocoDB."
+      "spreadSheetSubtitle": "Anslut och hantera dina kalkylblad med NocoDB.",
+      "authProvider": "Autentiseringsleverantör",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Lyckades",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Företag",
       "Self-hosted Scale": "Skala",
-      "Self-hosted Enterprise": "Företag"
+      "Self-hosted Enterprise": "Företag",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Automatiseringskörningar",
+      "externalSources": "Externa källor"
     },
     "coloring": {
       "usingSingleSelectField": "Använder enkelvalsfält",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Färgposter/celler baserade på förhållanden",
       "colourRecordsByField": "Färglägg poster efter fält",
       "rowColorDescription": "Tillämpa färg på posten",
-      "cellColorDescription": "Tillämpa färg på ett specifikt fält"
+      "cellColorDescription": "Tillämpa färg på ett specifikt fält",
+      "title": "Färgläggning",
+      "usingConditionsDescriptionOss": "Färglägg poster utifrån villkor"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Skapande av post begränsat",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter <unk> {count} filter",
         "subjectsRequired": "Välj minst en roll, användare eller team.",
         "confirmDeleteTitle": "Är du säker på att du vill ta bort denna policy?",
-        "confirmDeleteContent": "Denna åtgärd kan inte ångras."
+        "confirmDeleteContent": "Denna åtgärd kan inte ångras.",
+        "groupAgents": "Agenter",
+        "ownerSubjectNote": "Ägare kan ändra RLS-regler.",
+        "selectDynamicValue": "Välj ett dynamiskt värde ...",
+        "placeholders": {
+          "currentUserId": "Aktuell användares ID",
+          "currentUserIdDescription": "Den inloggade användarens ID.",
+          "currentUserEmail": "Aktuell användares e-post",
+          "currentUserEmailDescription": "Den inloggade användarens e-postadress.",
+          "currentUserName": "Aktuell användares namn",
+          "currentUserNameDescription": "Den inloggade användarens visningsnamn.",
+          "currentUserRoles": "Aktuell användares roller",
+          "currentUserRolesDescription": "Den inloggade användarens projektroller.",
+          "currentUserTeams": "Mina team",
+          "currentUserTeamsDescription": "ID:n för de team användaren tillhör direkt.",
+          "currentUserTeamsWithDescendants": "Mina team och underteam",
+          "currentUserTeamsWithDescendantsDescription": "ID:n för användarens team samt alla team under dem.",
+          "currentUserTeamNames": "Namnen på mina team",
+          "currentUserTeamNamesDescription": "Namnen på de team användaren tillhör direkt.",
+          "currentUserTeamNamesWithDescendants": "Namnen på mina team och underteam",
+          "currentUserTeamNamesWithDescendantsDescription": "Namnen på användarens team samt alla team under dem.",
+          "currentUserTeamWithDescendantMembers": "Medlemmar i mina team",
+          "currentUserTeamWithDescendantMembersDescription": "Alla i användarens team och underteam — använd det med ”innehåller något av” för att se posterna som tillhör dem som rapporterar till dig."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Ingen {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "Kopiera inställningar från en vy",
+      "chooseSettings": "Välj inställningar",
+      "settingsSelected": "{count} valda",
+      "warning": {
+        "dynamic_filters_dropped": "{count} fält-till-fält-villkor kan inte kopieras — den här sidan visar fler poster än vyn.",
+        "negated_filters_dropped": "{count} negerade villkor kan inte kopieras — den här sidan visar fler poster än vyn.",
+        "row_color_background_lost": "Postfärger kopieras, men inte deras bakgrundsfyllning.",
+        "grouping_dropped": "Den här layouten stöder inte gruppering, så den kopieras inte."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,31 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} medlem | {count} medlemmar",
+    "bookmark": "Bokmärke",
+    "interfacePage": "Gränssnittssida",
+    "folder": "Mapp",
+    "formulas": "Formler",
+    "audio": "Audio",
+    "app": "App",
+    "apps": "Appar",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Försäljning",
+      "marketing": "Marketing",
+      "finance": "Ekonomi",
+      "hr": "Personal",
+      "operations": "Drift",
+      "support": "Support",
+      "it": "IT",
+      "product": "Produkt",
+      "other": "Övrigt"
+    },
+    "agent": "Agent",
+    "agents": "Agenter"
   },
   "datatype": {
     "ID": "Id",
@@ -4912,7 +4976,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Fältet du redigerade uppdaterades av en annan användare. Dina osparade ändringar bevaras — sparandet kommer att skriva över sina ändringar.",
       "reachedUploadLimit": "Uppladdningsgräns nådd",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Du kan bara ladda upp {limit} {type}-fil åt gången",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Du kan bara ladda upp {limit} {type}-filer åt gången"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Du kan bara ladda upp {limit} {type}-filer åt gången",
+      "tableDataImportedLinksUnmatched": "Importen lyckades. {links} postlänkar skapades, {unmatched} värde(n) matchade ingen post och hoppades över.",
+      "tableDataImportedLinksFailed": "{failed} postlänk(ar) matchade en post men kunde inte skapas. Se importloggen för detaljer.",
+      "importLinkReassignField": "”{field}” är en en-till-många- eller en-till-en-länk — att importera värden här kan slita loss poster från de poster de är länkade till just nu.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Inget fält ”Uppdaterad den” angivet",
+        "description": "Varje synkronisering hämtar alla poster i den här tabellen på nytt. Markera ett datumfält som ”Uppdaterad den” för att möjliggöra inkrementell synkronisering."
+      },
+      "syncDetachTable": "Synkroniseringen slutar uppdatera den här tabellen. Dess data behålls och alla fält blir redigerbara. Om källtabellen läggs till i synkroniseringen igen senare skapas en ny tabell.",
+      "tableSyncConvertMainTable": "Det här är den synkroniserade tabellen i den här synkroniseringen — att konvertera den tar bort själva synkroniseringen. Alla tabeller som synkroniseringen har skapat behålls som vanliga, redigerbara tabeller och slutar synkroniseras.",
+      "requiredFieldNotEditable": "Det här obligatoriska fältet går inte att redigera, vilket kan orsaka fel när formuläret skickas in.",
+      "communityAppInstall": "{title} är en community-app. Den har varken granskats eller verifierats av NocoDB. Se till att du litar på utgivaren innan du installerar den i din arbetsyta.",
+      "removeCustomDomain": "{domain} kommer inte längre att leverera den här appen. Standardadressen fungerar fortfarande."
     },
     "info": {
       "sourceViewRebindResync": "Ändra källvyn aktiverar en fullständig återsynkronisering mot den nya vyn.",
@@ -5599,7 +5675,8 @@
       "nCellCopied": "{n} cell kopierad",
       "nCellsCopied": "{n} celler kopierade",
       "nRecordCreated": "{n} post skapad",
-      "nRecordsCreated": "{n} poster skapade"
+      "nRecordsCreated": "{n} poster skapade",
+      "interfaceFilterCopied": "{count} villkor kopierat | {count} villkor kopierade"
     },
     "success": {
       "restored": "Objektet återställdes framgångsrikt",
@@ -5666,7 +5743,24 @@
       "scimDisabled": "SCIM-provisionering inaktiverad",
       "tokenRegenerated": "Provisioneringstoken har återskapats",
       "scimDeleted": "SCIM-konfigurationen har tagits bort",
-      "defaultRoleUpdated": "Standardrollen har uppdaterats"
+      "defaultRoleUpdated": "Standardrollen har uppdaterats",
+      "recordLinked": "Posten länkad",
+      "recordUnlinked": "Postlänken borttagen",
+      "pageSharingEnabled": "Sidodelning påslagen",
+      "pageSharingDisabled": "Sidodelning avstängd",
+      "dataExported": "Data exporterades!",
+      "recordTemplateUpdated": "Mallen uppdaterad",
+      "recordTemplateCreated": "Mallen skapad",
+      "recordTemplateDeleted": "Mallen borttagen",
+      "accountConnected": "Ditt {provider}-konto är anslutet.",
+      "appUninstalled": "Appen är avinstallerad",
+      "storeListingSaved": "Butiksannonsen sparad",
+      "publisherProfileSaved": "Utgivarprofilen sparad",
+      "planChanged": "Abonnemanget uppdaterat",
+      "planChangeScheduled": "Abonnemangsändring schemalagd",
+      "planChangeReverted": "Den schemalagda abonnemangsändringen är ångrad. Ditt nuvarande abonnemang fortsätter oförändrat.",
+      "appDelisted": "Borttagen från App Store",
+      "appRelisted": "Tillbaka i App Store"
     },
     "subText": {
       "startFromScratch": "Börja från början.",
@@ -5835,7 +5929,24 @@
     "skillsCatalogErrorTitle": "Det gick inte att läsa in det här arkivet",
     "skillsCommunityTitle": "Installera från vilket offentligt arkiv som helst",
     "skillsCommunityBlocked": "Din arbetsyta tillåter inte installation av communityfärdigheter.",
-    "skillsCommunityBlockedOrg": "Din organisation tillåter inte installation av communityfärdigheter."
+    "skillsCommunityBlockedOrg": "Din organisation tillåter inte installation av communityfärdigheter.",
+    "thisSharedPageIsProtected": "Den här delade sidan är skyddad",
+    "sso": {
+      "signInFailed": "Vi kunde inte logga in dig",
+      "shareCode": "Behöver du hjälp? Dela den här koden med din administratör",
+      "failure": {
+        "SSO_STATE_INVALID": "Din inloggningssession gick ut eller avbröts. Försök igen.",
+        "SSO_TOKEN_INVALID": "Vi kunde inte verifiera svaret från din inloggningsleverantör. Försök igen och säg till din administratör om det fortsätter.",
+        "SSO_PROVIDER_ERROR": "Din inloggningsleverantör stötte på ett problem. Försök igen om en stund.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Det här kontot får inte logga in. Be din administratör om åtkomst, eller prova ett annat konto.",
+        "SSO_FAILED": "Något gick fel när du skulle loggas in. Försök igen."
+      }
+    },
+    "unsupportedFileType": "Filtypen stöds inte",
+    "skillUpdatedFromSource": "{title} uppdaterad från källan",
+    "workspaceSkillsSubtitle": "Tillgängliga i alla projekt här, och för agenter som väljer till dem.",
+    "skillShadowed": "En färdighet med den här titeln på nivån {scope} har företräde, så den här erbjuds inte.",
+    "skillsNoMatchBody": "Ingenting matchar den sökningen. Prova ett annat ord eller rensa filtren."
   },
   "trash": {
     "restore": "Återställ",

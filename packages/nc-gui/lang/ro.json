@@ -803,7 +803,8 @@
       "org-level-viewer": "Doar vizualizează înregistrări",
       "cloud-org-level-owner": "Control total asupra organizației și spațiilor sale de lucru",
       "cloud-org-level-creator": "Creează spații de lucru și se alătură celor la care este invitat",
-      "cloud-org-level-viewer": "Vizualizează organizația și spațiile sale de lucru"
+      "cloud-org-level-viewer": "Vizualizează organizația și spațiile sale de lucru",
+      "app-user": "Folosește doar aplicațiile publicate"
     },
     "sqlView": "Vizualizare SQL",
     "rowHeight": "Înregistrare înălțime",
@@ -880,7 +881,9 @@
       "othersSubtitle": "Descoperă integrări suplimentare versatile pentru a îmbunătăți experiența ta cu NocoDB.",
       "ai": "IA",
       "spreadSheet": "Tabel",
-      "spreadSheetSubtitle": "Conectează și gestionează tabelele tale cu NocoDB."
+      "spreadSheetSubtitle": "Conectează și gestionează tabelele tale cu NocoDB.",
+      "authProvider": "Furnizor de autentificare",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Succes",
@@ -896,7 +899,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Afaceri",
       "Self-hosted Scale": "Scala",
-      "Self-hosted Enterprise": "Întreprindere"
+      "Self-hosted Enterprise": "Întreprindere",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -904,7 +908,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Rulări de automatizare",
+      "externalSources": "Surse externe"
     },
     "coloring": {
       "usingSingleSelectField": "Folosind câmpul Selectare unică",
@@ -914,7 +920,9 @@
       "usingConditionsDescription": "Înregistrări/celule colorate pe baza condiţiilor",
       "colourRecordsByField": "Colorează înregistrările după câmp",
       "rowColorDescription": "Aplică culoarea la înregistrare",
-      "cellColorDescription": "Aplică culoarea la un anumit câmp"
+      "cellColorDescription": "Aplică culoarea la un anumit câmp",
+      "title": "Colorare",
+      "usingConditionsDescriptionOss": "Colorează înregistrările în funcție de condiții"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Crearea înregistrărilor restricționată",
@@ -972,7 +980,30 @@
         "filterCount": "{count} filtru <unk> {count} filtre",
         "subjectsRequired": "Vă rugăm să selectaţi cel puţin un rol, un utilizator sau o echipă.",
         "confirmDeleteTitle": "Sunteţi sigur că doriţi să ştergeţi această politică?",
-        "confirmDeleteContent": "Această acțiune nu poate fi anulată."
+        "confirmDeleteContent": "Această acțiune nu poate fi anulată.",
+        "groupAgents": "Agenți",
+        "ownerSubjectNote": "Proprietarii pot modifica regulile RLS.",
+        "selectDynamicValue": "Selectează o valoare dinamică...",
+        "placeholders": {
+          "currentUserId": "ID-ul utilizatorului curent",
+          "currentUserIdDescription": "ID-ul utilizatorului autentificat.",
+          "currentUserEmail": "E-mailul utilizatorului curent",
+          "currentUserEmailDescription": "Adresa de e-mail a utilizatorului autentificat.",
+          "currentUserName": "Numele utilizatorului curent",
+          "currentUserNameDescription": "Numele afișat al utilizatorului autentificat.",
+          "currentUserRoles": "Rolurile utilizatorului curent",
+          "currentUserRolesDescription": "Rolurile utilizatorului autentificat în bază.",
+          "currentUserTeams": "Echipele mele",
+          "currentUserTeamsDescription": "ID-urile echipelor din care utilizatorul face parte direct.",
+          "currentUserTeamsWithDescendants": "Echipele și subechipele mele",
+          "currentUserTeamsWithDescendantsDescription": "ID-urile echipelor utilizatorului plus ale tuturor echipelor de sub ele.",
+          "currentUserTeamNames": "Numele echipelor mele",
+          "currentUserTeamNamesDescription": "Numele echipelor din care utilizatorul face parte direct.",
+          "currentUserTeamNamesWithDescendants": "Numele echipelor și subechipelor mele",
+          "currentUserTeamNamesWithDescendantsDescription": "Numele echipelor utilizatorului plus ale tuturor echipelor de sub ele.",
+          "currentUserTeamWithDescendantMembers": "Membrii echipelor mele",
+          "currentUserTeamWithDescendantMembersDescription": "Toți cei din echipele și subechipele utilizatorului — folosește-l cu „conține oricare dintre” ca să vezi înregistrările subordonaților tăi."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nimeni {description}",
@@ -1001,7 +1032,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "Copiază setările dintr-o vizualizare",
+      "chooseSettings": "Alege setările",
+      "settingsSelected": "{count} selectate",
+      "warning": {
+        "dynamic_filters_dropped": "{count} condiție/condiții de la câmp la câmp nu pot fi copiate — această pagină va afișa mai multe înregistrări decât vizualizarea.",
+        "negated_filters_dropped": "{count} condiție/condiții negate nu pot fi copiate — această pagină va afișa mai multe înregistrări decât vizualizarea.",
+        "row_color_background_lost": "Culorile înregistrărilor sunt copiate, dar umplerea lor de fundal nu.",
+        "grouping_dropped": "Acest aspect nu acceptă gruparea, așa că aceasta nu este copiată."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1033,7 +1073,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} membru | {count} membri",
+    "bookmark": "Marcaj",
+    "interfacePage": "Pagină de interfață",
+    "folder": "Dosar",
+    "formulas": "Formule",
+    "audio": "Audio",
+    "app": "Aplicație",
+    "apps": "Aplicații",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Vânzări",
+      "marketing": "Marketing",
+      "finance": "Finanțe",
+      "hr": "Resurse umane",
+      "operations": "Operațiuni",
+      "support": "Support",
+      "it": "IT",
+      "product": "Produs",
+      "data": "Date",
+      "other": "Altele"
+    },
+    "agent": "Agent",
+    "agents": "Agenți"
   },
   "datatype": {
     "ID": "ID",
@@ -4901,7 +4966,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Câmpul pe care l-ați editat a fost actualizat de un alt utilizator. Modificările nesalvate sunt păstrate - salvarea va suprascrie modificările.",
       "reachedUploadLimit": "S-a atins limita de încărcare",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Puteți încărca doar {limit} fișier {type} odată",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Puteți încărca doar {limit} fișiere {type} odată"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Puteți încărca doar {limit} fișiere {type} odată",
+      "tableDataImportedLinksUnmatched": "Import reușit. {links} legături între înregistrări create, {unmatched} valoare/valori nu s-au potrivit cu nicio înregistrare și au fost omise.",
+      "tableDataImportedLinksFailed": "{failed} legătură/legături între înregistrări s-au potrivit cu o înregistrare, dar nu au putut fi create. Vezi jurnalul de import pentru detalii.",
+      "importLinkReassignField": "„{field}” este o legătură unu-la-mai-mulți sau unu-la-unu — importul de valori aici poate desprinde înregistrări de cele cu care sunt legate în prezent.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Niciun câmp „Actualizat la” setat",
+        "description": "Fiecare rulare a sincronizării va prelua din nou toate înregistrările acestui tabel. Marchează un câmp de tip dată drept „Actualizat la” pentru a activa sincronizarea incrementală."
+      },
+      "syncDetachTable": "Sincronizarea nu va mai actualiza acest tabel. Datele lui se păstrează și toate câmpurile devin editabile. Dacă adaugi mai târziu tabelul sursă înapoi în sincronizare, se creează un tabel nou.",
+      "tableSyncConvertMainTable": "Acesta este tabelul sincronizat al acestei sincronizări — convertirea lui elimină sincronizarea însăși. Toate tabelele create de ea rămân ca tabele obișnuite, editabile, și nu se mai sincronizează.",
+      "requiredFieldNotEditable": "Acest câmp obligatoriu nu poate fi editat, ceea ce poate provoca erori la trimiterea formularului.",
+      "communityAppInstall": "{title} este o aplicație a comunității. Nu a fost analizată sau verificată de NocoDB. Asigură-te că ai încredere în editor înainte de a o instala în spațiul tău de lucru.",
+      "removeCustomDomain": "{domain} nu va mai servi această aplicație. Adresa implicită continuă să funcționeze."
     },
     "info": {
       "sourceViewRebindResync": "Modificarea vizualizării sursă declanşează o re-sincronizare completă împotriva noii vizualizări.",
@@ -5588,7 +5665,8 @@
       "nCellCopied": "S-a copiat {n} celulă",
       "nCellsCopied": "S-au copiat {n} celule",
       "nRecordCreated": "{n} înregistrare creată",
-      "nRecordsCreated": "{n} înregistrări create"
+      "nRecordsCreated": "{n} înregistrări create",
+      "interfaceFilterCopied": "{count} condiție copiată | {count} condiții copiate"
     },
     "success": {
       "restored": "Element restaurat cu succes",
@@ -5655,7 +5733,24 @@
       "scimDisabled": "Provizioane SCIM dezactivate",
       "tokenRegenerated": "Furnizarea token-ului regenerat cu succes",
       "scimDeleted": "Configurare SCIM ştearsă cu succes",
-      "defaultRoleUpdated": "Rolul implicit actualizat cu succes"
+      "defaultRoleUpdated": "Rolul implicit actualizat cu succes",
+      "recordLinked": "Înregistrare legată",
+      "recordUnlinked": "Legătura înregistrării a fost eliminată",
+      "pageSharingEnabled": "Partajarea paginii activată",
+      "pageSharingDisabled": "Partajarea paginii dezactivată",
+      "dataExported": "Datele au fost exportate cu succes!",
+      "recordTemplateUpdated": "Șablon actualizat",
+      "recordTemplateCreated": "Șablon creat",
+      "recordTemplateDeleted": "Șablon șters",
+      "accountConnected": "Contul tău {provider} este conectat.",
+      "appUninstalled": "Aplicație dezinstalată",
+      "storeListingSaved": "Anunțul din magazin a fost salvat",
+      "publisherProfileSaved": "Profilul editorului a fost salvat",
+      "planChanged": "Plan actualizat",
+      "planChangeScheduled": "Schimbare de plan programată",
+      "planChangeReverted": "Schimbarea de plan programată a fost anulată. Planul tău actual continuă neschimbat.",
+      "appDelisted": "Eliminat din App Store",
+      "appRelisted": "Din nou în App Store"
     },
     "subText": {
       "startFromScratch": "Începe de la zero.",
@@ -5824,7 +5919,24 @@
     "skillsCatalogErrorTitle": "Nu s-a putut încărca acest depozit",
     "skillsCommunityTitle": "Instalează din orice depozit public",
     "skillsCommunityBlocked": "Spațiul tău de lucru nu permite instalarea de competențe ale comunității.",
-    "skillsCommunityBlockedOrg": "Organizația ta nu permite instalarea de competențe ale comunității."
+    "skillsCommunityBlockedOrg": "Organizația ta nu permite instalarea de competențe ale comunității.",
+    "thisSharedPageIsProtected": "Această pagină partajată este protejată",
+    "sso": {
+      "signInFailed": "Nu te-am putut autentifica",
+      "shareCode": "Ai nevoie de ajutor? Comunică acest cod administratorului tău",
+      "failure": {
+        "SSO_STATE_INVALID": "Sesiunea ta de autentificare a expirat sau a fost întreruptă. Te rugăm să încerci din nou.",
+        "SSO_TOKEN_INVALID": "Nu am putut verifica răspunsul furnizorului tău de autentificare. Încearcă din nou și spune-i administratorului dacă se repetă.",
+        "SSO_PROVIDER_ERROR": "Furnizorul tău de autentificare a întâmpinat o problemă. Te rugăm să încerci din nou peste un moment.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Acest cont nu are voie să se autentifice. Cere acces administratorului tău sau încearcă alt cont.",
+        "SSO_FAILED": "Ceva n-a mers bine la autentificare. Te rugăm să încerci din nou."
+      }
+    },
+    "unsupportedFileType": "Tip de fișier neacceptat",
+    "skillUpdatedFromSource": "{title} actualizat din sursă",
+    "workspaceSkillsSubtitle": "Disponibile în fiecare bază de aici și pentru agenții care le activează.",
+    "skillShadowed": "O competență cu acest titlu la nivelul {scope} are prioritate, așa că aceasta nu este oferită.",
+    "skillsNoMatchBody": "Nimic nu se potrivește cu această căutare. Încearcă alt termen sau șterge filtrele."
   },
   "trash": {
     "restore": "Restaurează",

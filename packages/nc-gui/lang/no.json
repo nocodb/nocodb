@@ -805,7 +805,8 @@
       "org-level-viewer": "Kun se poster",
       "cloud-org-level-owner": "Full kontroll over organisasjonen og arbeidsområdene dens",
       "cloud-org-level-creator": "Opprette arbeidsområder og bli med i dem man inviteres til",
-      "cloud-org-level-viewer": "Se organisasjonen og arbeidsområdene dens"
+      "cloud-org-level-viewer": "Se organisasjonen og arbeidsområdene dens",
+      "app-user": "Bruk bare publiserte apper"
     },
     "sqlView": "SQL-visning",
     "rowHeight": "Post Høyde",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Oppdag flere allsidige integrasjoner for å forbedre NocoDB-opplevelsen din.",
       "ai": "AI",
       "spreadSheet": "Regneark",
-      "spreadSheetSubtitle": "Koble til og administrer regnearkene dine med NocoDB."
+      "spreadSheetSubtitle": "Koble til og administrer regnearkene dine med NocoDB.",
+      "authProvider": "Autentiseringsleverandør",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Vellykket",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Forretninger",
       "Self-hosted Scale": "Skala",
-      "Self-hosted Enterprise": "Bedrift"
+      "Self-hosted Enterprise": "Bedrift",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Automatiseringskjøringer",
+      "externalSources": "Eksterne kilder"
     },
     "coloring": {
       "usingSingleSelectField": "Bruker enkeltvalgfelt",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Farge-registreringer/-celler basert på betingelser",
       "colourRecordsByField": "Farg poster etter felt",
       "rowColorDescription": "Legg til farge til posten",
-      "cellColorDescription": "Legg til farge på et spesifikt felt"
+      "cellColorDescription": "Legg til farge på et spesifikt felt",
+      "title": "Fargelegging",
+      "usingConditionsDescriptionOss": "Fargelegg poster ut fra betingelser"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Opprett post er begrenset",
@@ -974,7 +982,30 @@
         "filterCount": "{count} -filter ＋ {count} -filtre",
         "subjectsRequired": "Velg minst én rolle, bruker eller gruppe.",
         "confirmDeleteTitle": "Er du sikker på at du vil slette denne policyen?",
-        "confirmDeleteContent": "Denne handlingen kan ikke angres."
+        "confirmDeleteContent": "Denne handlingen kan ikke angres.",
+        "groupAgents": "Agenter",
+        "ownerSubjectNote": "Eiere kan endre RLS-regler.",
+        "selectDynamicValue": "Velg en dynamisk verdi ...",
+        "placeholders": {
+          "currentUserId": "Gjeldende brukers ID",
+          "currentUserIdDescription": "ID-en til den innloggede brukeren.",
+          "currentUserEmail": "Gjeldende brukers e-post",
+          "currentUserEmailDescription": "E-postadressen til den innloggede brukeren.",
+          "currentUserName": "Gjeldende brukers navn",
+          "currentUserNameDescription": "Visningsnavnet til den innloggede brukeren.",
+          "currentUserRoles": "Gjeldende brukers roller",
+          "currentUserRolesDescription": "Prosjektrollene til den innloggede brukeren.",
+          "currentUserTeams": "Teamene mine",
+          "currentUserTeamsDescription": "ID-ene til teamene brukeren hører direkte til.",
+          "currentUserTeamsWithDescendants": "Teamene og underteamene mine",
+          "currentUserTeamsWithDescendantsDescription": "ID-ene til brukerens team samt alle team under dem.",
+          "currentUserTeamNames": "Navnene på teamene mine",
+          "currentUserTeamNamesDescription": "Navnene på teamene brukeren hører direkte til.",
+          "currentUserTeamNamesWithDescendants": "Navnene på teamene og underteamene mine",
+          "currentUserTeamNamesWithDescendantsDescription": "Navnene på brukerens team samt alle team under dem.",
+          "currentUserTeamWithDescendantMembers": "Medlemmer av teamene mine",
+          "currentUserTeamWithDescendantMembersDescription": "Alle i brukerens team og underteam — bruk det med «inneholder én av» for å se postene til dem som rapporterer til deg."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Ingen {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "Kopier innstillinger fra en visning",
+      "chooseSettings": "Velg innstillinger",
+      "settingsSelected": "{count} valgt",
+      "warning": {
+        "dynamic_filters_dropped": "{count} felt-til-felt-betingelse(r) kan ikke kopieres — denne siden viser flere poster enn visningen.",
+        "negated_filters_dropped": "{count} negert(e) betingelse(r) kan ikke kopieres — denne siden viser flere poster enn visningen.",
+        "row_color_background_lost": "Postfarger kopieres, men ikke bakgrunnsfyllet deres.",
+        "grouping_dropped": "Dette oppsettet støtter ikke gruppering, så den kopieres ikke."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,31 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} medlem | {count} medlemmer",
+    "bookmark": "Bokmerke",
+    "interfacePage": "Grensesnittside",
+    "folder": "Mappe",
+    "formulas": "Formler",
+    "audio": "Audio",
+    "app": "App",
+    "apps": "Apper",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Salg",
+      "marketing": "Marketing",
+      "finance": "Økonomi",
+      "hr": "Personal",
+      "operations": "Drift",
+      "support": "Support",
+      "it": "IT",
+      "product": "Produkt",
+      "other": "Annet"
+    },
+    "agent": "Agent",
+    "agents": "Agenter"
   },
   "datatype": {
     "ID": "Id.",
@@ -4913,7 +4977,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Feltet du redigerte ble oppdatert av en annen bruker. Endringene som ikke er lagret lagres — lagringen vil overskrive endringene.",
       "reachedUploadLimit": "Opplastingsgrensen er nådd",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Du kan bare laste opp {limit} {type}-fil om gangen",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Du kan bare laste opp {limit} {type}-filer om gangen"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Du kan bare laste opp {limit} {type}-filer om gangen",
+      "tableDataImportedLinksUnmatched": "Importert uten problemer. {links} postkoblinger opprettet, {unmatched} verdi(er) traff ingen post og ble hoppet over.",
+      "tableDataImportedLinksFailed": "{failed} postkobling(er) traff en post, men kunne ikke opprettes. Se importloggen for detaljer.",
+      "importLinkReassignField": "«{field}» er en én-til-mange- eller én-til-én-kobling — å importere verdier her kan rive poster løs fra postene de er koblet til nå.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Ingen «Oppdatert den»-felt er angitt",
+        "description": "Hver synkronisering henter alle postene i denne tabellen på nytt. Merk et datofelt som «Oppdatert den» for å gjøre trinnvis synkronisering mulig."
+      },
+      "syncDetachTable": "Synkroniseringen slutter å oppdatere denne tabellen. Dataene beholdes, og alle felter blir redigerbare. Hvis kildetabellen senere legges til synkroniseringen igjen, opprettes det en ny tabell.",
+      "tableSyncConvertMainTable": "Dette er den synkroniserte tabellen i denne synkroniseringen — å konvertere den fjerner selve synkroniseringen. Alle tabeller som synkroniseringen har opprettet, beholdes som vanlige, redigerbare tabeller og slutter å synkronisere.",
+      "requiredFieldNotEditable": "Dette påkrevde feltet kan ikke redigeres, noe som kan gi feil når skjemaet sendes inn.",
+      "communityAppInstall": "{title} er en fellesskapsapp. Den er verken gjennomgått eller verifisert av NocoDB. Forsikre deg om at du stoler på utgiveren før du installerer den i arbeidsområdet ditt.",
+      "removeCustomDomain": "{domain} vil ikke lenger levere denne appen. Standardadressen fortsetter å virke."
     },
     "info": {
       "sourceViewRebindResync": "Endre kildevisningen utløser en full re-synkronisering mot ny visning.",
@@ -5600,7 +5676,8 @@
       "nCellCopied": "{n} celle kopiert",
       "nCellsCopied": "{n} celler kopiert",
       "nRecordCreated": "{n} post opprettet",
-      "nRecordsCreated": "{n} poster opprettet"
+      "nRecordsCreated": "{n} poster opprettet",
+      "interfaceFilterCopied": "{count} betingelse kopiert | {count} betingelser kopiert"
     },
     "success": {
       "restored": "Element gjenopprettet",
@@ -5667,7 +5744,24 @@
       "scimDisabled": "SCIM midlertidig deaktivert",
       "tokenRegenerated": "Vellykket generering av token regenerering",
       "scimDeleted": "SCIM-konfigurasjonen ble slettet",
-      "defaultRoleUpdated": "Standard rolle oppdatert"
+      "defaultRoleUpdated": "Standard rolle oppdatert",
+      "recordLinked": "Posten er koblet",
+      "recordUnlinked": "Postkoblingen er fjernet",
+      "pageSharingEnabled": "Sidedeling slått på",
+      "pageSharingDisabled": "Sidedeling slått av",
+      "dataExported": "Dataene ble eksportert!",
+      "recordTemplateUpdated": "Malen er oppdatert",
+      "recordTemplateCreated": "Malen er opprettet",
+      "recordTemplateDeleted": "Malen er slettet",
+      "accountConnected": "{provider}-kontoen din er tilkoblet.",
+      "appUninstalled": "Appen er avinstallert",
+      "storeListingSaved": "Butikkoppføringen er lagret",
+      "publisherProfileSaved": "Utgiverprofilen er lagret",
+      "planChanged": "Abonnementet er oppdatert",
+      "planChangeScheduled": "Abonnementsendring planlagt",
+      "planChangeReverted": "Planlagt abonnementsendring er angret. Det nåværende abonnementet fortsetter uendret.",
+      "appDelisted": "Fjernet fra App Store",
+      "appRelisted": "Tilbake i App Store"
     },
     "subText": {
       "startFromScratch": "Start fra bunnen av.",
@@ -5836,7 +5930,24 @@
     "skillsCatalogErrorTitle": "Kunne ikke laste dette repositoriet",
     "skillsCommunityTitle": "Installer fra ethvert offentlig repositorium",
     "skillsCommunityBlocked": "Arbeidsområdet ditt tillater ikke installasjon av fellesskapsferdigheter.",
-    "skillsCommunityBlockedOrg": "Organisasjonen din tillater ikke installasjon av fellesskapsferdigheter."
+    "skillsCommunityBlockedOrg": "Organisasjonen din tillater ikke installasjon av fellesskapsferdigheter.",
+    "thisSharedPageIsProtected": "Denne delte siden er beskyttet",
+    "sso": {
+      "signInFailed": "Vi klarte ikke å logge deg inn",
+      "shareCode": "Trenger du hjelp? Del denne koden med administratoren din",
+      "failure": {
+        "SSO_STATE_INVALID": "Innloggingsøkten din utløp eller ble avbrutt. Prøv igjen.",
+        "SSO_TOKEN_INVALID": "Vi klarte ikke å bekrefte svaret fra innloggingsleverandøren din. Prøv igjen, og si fra til administratoren din hvis det fortsetter.",
+        "SSO_PROVIDER_ERROR": "Innloggingsleverandøren din støtte på et problem. Prøv igjen om et øyeblikk.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Denne kontoen får ikke logge inn. Be administratoren din om tilgang, eller prøv en annen konto.",
+        "SSO_FAILED": "Noe gikk galt da du skulle logges inn. Prøv igjen."
+      }
+    },
+    "unsupportedFileType": "Filtypen støttes ikke",
+    "skillUpdatedFromSource": "{title} oppdatert fra kilden",
+    "workspaceSkillsSubtitle": "Tilgjengelige i alle prosjekter her, og for agenter som velger dem.",
+    "skillShadowed": "En ferdighet med denne tittelen på {scope}-nivå har forrang, så denne blir ikke tilbudt.",
+    "skillsNoMatchBody": "Ingenting passer med det søket. Prøv et annet ord, eller tøm filtrene."
   },
   "trash": {
     "restore": "Gjenopprett",

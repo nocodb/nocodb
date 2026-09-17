@@ -805,7 +805,8 @@
       "org-level-viewer": "Только просмотр записей",
       "cloud-org-level-owner": "Полный контроль над организацией и её рабочими пространствами",
       "cloud-org-level-creator": "Создавать рабочие пространства и вступать в те, куда пригласили",
-      "cloud-org-level-viewer": "Просмотр организации и её рабочих пространств"
+      "cloud-org-level-viewer": "Просмотр организации и её рабочих пространств",
+      "app-user": "Только пользоваться опубликованными приложениями"
     },
     "sqlView": "Представление SQL",
     "rowHeight": "Высота записи",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Откройте для себя дополнительные универсальные интеграции для улучшения вашего опыта работы с NocoDB.",
       "ai": "ИИ",
       "spreadSheet": "Электронная таблица",
-      "spreadSheetSubtitle": "Подключайте и управляйте вашими электронными таблицами с помощью NocoDB."
+      "spreadSheetSubtitle": "Подключайте и управляйте вашими электронными таблицами с помощью NocoDB.",
+      "authProvider": "Поставщик аутентификации",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Success",
@@ -898,7 +901,8 @@
       "Enterprise": "Корпоративная версия",
       "Self-hosted Business": "Бизнес",
       "Self-hosted Scale": "Масштаб",
-      "Self-hosted Enterprise": "Предприятие"
+      "Self-hosted Enterprise": "Предприятие",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Запуски автоматизаций",
+      "externalSources": "Внешние источники"
     },
     "coloring": {
       "usingSingleSelectField": "Использование поля с одиночным выбором",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Цвет записей/ячеек на основе условий",
       "colourRecordsByField": "Окрашивать записи по полю",
       "rowColorDescription": "Применить цвет к записи",
-      "cellColorDescription": "Применить цвет к определенному полю"
+      "cellColorDescription": "Применить цвет к определенному полю",
+      "title": "Раскраска",
+      "usingConditionsDescriptionOss": "Окрашивать записи по условиям"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Ограничено создание записей",
@@ -974,7 +982,30 @@
         "filterCount": "Фильтр {count} | Фильтры {count}",
         "subjectsRequired": "Пожалуйста, выберите хотя бы одну роль, пользователя или команду.",
         "confirmDeleteTitle": "Вы уверены, что хотите удалить эту политику?",
-        "confirmDeleteContent": "Это действие нельзя отменить."
+        "confirmDeleteContent": "Это действие нельзя отменить.",
+        "groupAgents": "Агенты",
+        "ownerSubjectNote": "Владельцы могут изменять правила RLS.",
+        "selectDynamicValue": "Выберите динамическое значение...",
+        "placeholders": {
+          "currentUserId": "ID текущего пользователя",
+          "currentUserIdDescription": "ID вошедшего пользователя.",
+          "currentUserEmail": "Эл. почта текущего пользователя",
+          "currentUserEmailDescription": "Адрес электронной почты вошедшего пользователя.",
+          "currentUserName": "Имя текущего пользователя",
+          "currentUserNameDescription": "Отображаемое имя вошедшего пользователя.",
+          "currentUserRoles": "Роли текущего пользователя",
+          "currentUserRolesDescription": "Роли вошедшего пользователя в базе.",
+          "currentUserTeams": "Мои команды",
+          "currentUserTeamsDescription": "ID команд, в которые пользователь входит напрямую.",
+          "currentUserTeamsWithDescendants": "Мои команды и подкоманды",
+          "currentUserTeamsWithDescendantsDescription": "ID команд пользователя и всех команд ниже них.",
+          "currentUserTeamNames": "Названия моих команд",
+          "currentUserTeamNamesDescription": "Названия команд, в которые пользователь входит напрямую.",
+          "currentUserTeamNamesWithDescendants": "Названия моих команд и подкоманд",
+          "currentUserTeamNamesWithDescendantsDescription": "Названия команд пользователя и всех команд ниже них.",
+          "currentUserTeamWithDescendantMembers": "Участники моих команд",
+          "currentUserTeamWithDescendantMembersDescription": "Все в командах и подкомандах пользователя — используйте с условием «содержит любое из», чтобы видеть записи своих подчинённых."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Никто не {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Конфигурация представления успешно скопирована",
       "errorOccuredWhileCopyingViewConfiguration": "Произошла ошибка при копировании конфигурации представления",
       "copyFromAnotherView": "Скопировать из другого представления",
-      "copyFromAView": "Скопировать из представления"
+      "copyFromAView": "Скопировать из представления",
+      "copySettingsFromView": "Скопировать настройки из представления",
+      "chooseSettings": "Выберите настройки",
+      "settingsSelected": "Выбрано: {count}",
+      "warning": {
+        "dynamic_filters_dropped": "{count} условий «поле к полю» скопировать нельзя — эта страница покажет больше записей, чем представление.",
+        "negated_filters_dropped": "{count} условий с отрицанием скопировать нельзя — эта страница покажет больше записей, чем представление.",
+        "row_color_background_lost": "Цвета записей копируются, а вот их фоновая заливка — нет.",
+        "grouping_dropped": "Эта раскладка не поддерживает группировку, поэтому она не копируется."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Чат",
+    "addons": "Add-ons",
+    "membersCount": "{count} участник | {count} участников",
+    "bookmark": "Закладка",
+    "interfacePage": "Страница интерфейса",
+    "folder": "Папка",
+    "formulas": "Формулы",
+    "audio": "Аудио",
+    "app": "Приложение",
+    "apps": "Приложения",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Продажи",
+      "marketing": "Маркетинг",
+      "finance": "Финансы",
+      "hr": "Кадры",
+      "operations": "Операции",
+      "support": "Поддержка",
+      "it": "IT",
+      "product": "Продукт",
+      "data": "Данные",
+      "other": "Прочее"
+    },
+    "agent": "Агент",
+    "agents": "Агенты"
   },
   "datatype": {
     "ID": "ID",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Поле которое вы редактировали было обновлено другим пользователем. Ваши несохраненные изменения сохраняются — сохранение перезапишет их изменения.",
       "reachedUploadLimit": "Достигнут лимит загрузки",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Вы можете загрузить только {limit} файл типа {type} за раз",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Вы можете загрузить только {limit} файла(ов) типа {type} за раз"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Вы можете загрузить только {limit} файла(ов) типа {type} за раз",
+      "tableDataImportedLinksUnmatched": "Импорт выполнен успешно. Создано связей записей: {links}; значений без совпадений: {unmatched} — они пропущены.",
+      "tableDataImportedLinksFailed": "{failed} связей записей совпали с записью, но их не удалось создать. Подробности смотрите в журнале импорта.",
+      "importLinkReassignField": "«{field}» — связь «один ко многим» или «один к одному»: импорт значений сюда может оторвать записи от тех, с которыми они связаны сейчас.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Поле «Обновлено» не задано",
+        "description": "При каждом запуске синхронизация будет заново получать все записи этой таблицы. Отметьте поле с датой как «Обновлено», чтобы включить инкрементальную синхронизацию."
+      },
+      "syncDetachTable": "Синхронизация перестанет обновлять эту таблицу. Её данные сохраняются, а все поля становятся редактируемыми. Если позже снова добавить исходную таблицу в синхронизацию, будет создана новая таблица.",
+      "tableSyncConvertMainTable": "Это синхронизируемая таблица данной синхронизации — её преобразование удаляет саму синхронизацию. Все созданные ею таблицы сохраняются как обычные редактируемые таблицы и перестают синхронизироваться.",
+      "requiredFieldNotEditable": "Это обязательное поле недоступно для редактирования, из-за чего при отправке формы могут возникать ошибки.",
+      "communityAppInstall": "{title} — приложение сообщества. NocoDB его не проверяла и не подтверждала. Прежде чем устанавливать его в своё рабочее пространство, убедитесь, что доверяете издателю.",
+      "removeCustomDomain": "{domain} перестанет обслуживать это приложение. Адрес по умолчанию продолжит работать."
     },
     "info": {
       "sourceViewRebindResync": "Изменение вида исходного кода вызывает полную повторную синхронизацию с новым видом.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} Ячейка скопирована",
       "nCellsCopied": "{n} Ячейки скопирована",
       "nRecordCreated": "Создана запись {n}",
-      "nRecordsCreated": "Созданы записи {n}"
+      "nRecordsCreated": "Созданы записи {n}",
+      "interfaceFilterCopied": "Скопировано {count} условие | Скопировано {count} условий"
     },
     "success": {
       "restored": "Элемент успешно восстановлен",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "Подготовка SCIM отключена",
       "tokenRegenerated": "Ключ подготовки успешно регенерирован",
       "scimDeleted": "Конфигурация SCIM удалена",
-      "defaultRoleUpdated": "Роль по умолчанию успешно обновлена"
+      "defaultRoleUpdated": "Роль по умолчанию успешно обновлена",
+      "recordLinked": "Запись связана",
+      "recordUnlinked": "Связь записи удалена",
+      "pageSharingEnabled": "Общий доступ к странице включён",
+      "pageSharingDisabled": "Общий доступ к странице отключён",
+      "dataExported": "Данные успешно экспортированы!",
+      "recordTemplateUpdated": "Шаблон обновлён",
+      "recordTemplateCreated": "Шаблон создан",
+      "recordTemplateDeleted": "Шаблон удалён",
+      "accountConnected": "Ваша учётная запись {provider} подключена.",
+      "appUninstalled": "Приложение удалено",
+      "storeListingSaved": "Карточка магазина сохранена",
+      "publisherProfileSaved": "Профиль издателя сохранён",
+      "planChanged": "Тариф обновлён",
+      "planChangeScheduled": "Смена тарифа запланирована",
+      "planChangeReverted": "Запланированная смена тарифа отменена. Ваш текущий тариф продолжает действовать без изменений.",
+      "appDelisted": "Удалено из App Store",
+      "appRelisted": "Снова в App Store"
     },
     "subText": {
       "startFromScratch": "Начните с нуля.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "Не удалось загрузить этот репозиторий",
     "skillsCommunityTitle": "Установка из любого публичного репозитория",
     "skillsCommunityBlocked": "Ваше рабочее пространство не разрешает устанавливать навыки сообщества.",
-    "skillsCommunityBlockedOrg": "Ваша организация не разрешает устанавливать навыки сообщества."
+    "skillsCommunityBlockedOrg": "Ваша организация не разрешает устанавливать навыки сообщества.",
+    "thisSharedPageIsProtected": "Эта общая страница защищена",
+    "sso": {
+      "signInFailed": "Не удалось выполнить вход",
+      "shareCode": "Нужна помощь? Сообщите этот код своему администратору",
+      "failure": {
+        "SSO_STATE_INVALID": "Сеанс входа истёк или был прерван. Пожалуйста, попробуйте ещё раз.",
+        "SSO_TOKEN_INVALID": "Не удалось проверить ответ вашего поставщика входа. Попробуйте ещё раз и сообщите администратору, если это повторится.",
+        "SSO_PROVIDER_ERROR": "У вашего поставщика входа возникла проблема. Пожалуйста, повторите попытку через мгновение.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Этой учётной записи вход запрещён. Запросите доступ у администратора или попробуйте другую учётную запись.",
+        "SSO_FAILED": "При входе что-то пошло не так. Пожалуйста, попробуйте ещё раз."
+      }
+    },
+    "unsupportedFileType": "Неподдерживаемый тип файла",
+    "skillUpdatedFromSource": "{title} обновлён из источника",
+    "workspaceSkillsSubtitle": "Доступны в каждой здешней базе, а также агентам, которые их подключат.",
+    "skillShadowed": "Навык с таким названием на уровне «{scope}» имеет приоритет, поэтому этот не предлагается.",
+    "skillsNoMatchBody": "По этому запросу ничего не найдено. Попробуйте другое слово или снимите фильтры."
   },
   "trash": {
     "restore": "Восстановить",

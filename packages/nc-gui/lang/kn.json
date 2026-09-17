@@ -805,7 +805,8 @@
       "org-level-viewer": "ದಾಖಲೆಗಳನ್ನು ವೀಕ್ಷಿಸುವುದು ಮಾತ್ರ",
       "cloud-org-level-owner": "ಸಂಸ್ಥೆ ಮತ್ತು ಅದರ ಕಾರ್ಯದ್ವಾರಗಳ ಮೇಲೆ ಸಂಪೂರ್ಣ ನಿಯಂತ್ರಣ",
       "cloud-org-level-creator": "ಕಾರ್ಯದ್ವಾರಗಳನ್ನು ರಚಿಸುವುದು ಮತ್ತು ಆಹ್ವಾನಿತವಾದವುಗಳಿಗೆ ಸೇರುವುದು",
-      "cloud-org-level-viewer": "ಸಂಸ್ಥೆ ಮತ್ತು ಅದರ ಕಾರ್ಯದ್ವಾರಗಳನ್ನು ವೀಕ್ಷಿಸುವುದು"
+      "cloud-org-level-viewer": "ಸಂಸ್ಥೆ ಮತ್ತು ಅದರ ಕಾರ್ಯದ್ವಾರಗಳನ್ನು ವೀಕ್ಷಿಸುವುದು",
+      "app-user": "ಪ್ರಕಟಿತ ಆ್ಯಪ್‌ಗಳನ್ನು ಮಾತ್ರ ಬಳಸಿ"
     },
     "sqlView": "SQL ವೀಕ್ಷಣೆ",
     "rowHeight": "ದಾಖಲೆಯ ಎತ್ತರ",
@@ -882,7 +883,9 @@
       "othersSubtitle": "ನಿಮ್ಮ NocoDB ಅನುಭವವನ್ನು ಸುಧಾರಿಸಲು ಇನ್ನಷ್ಟು ಬದಲಾಯಕ ಹೊಂದಾಣಿಕೆಗಳನ್ನು ಕಂಡುಹಿಡಿಯಿರಿ.",
       "ai": "ಎಐ",
       "spreadSheet": "ಸ್ಪ್ರೆಡ್‌ಶೀಟ್",
-      "spreadSheetSubtitle": "ನಿಮ್ಮ ಸ್ಪ್ರೆಡ್‌ಶೀಟ್‌ಗಳನ್ನು NocoDB ಜೊತೆಗೆ ಸಂಪರ್ಕಿಸಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ."
+      "spreadSheetSubtitle": "ನಿಮ್ಮ ಸ್ಪ್ರೆಡ್‌ಶೀಟ್‌ಗಳನ್ನು NocoDB ಜೊತೆಗೆ ಸಂಪರ್ಕಿಸಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ.",
+      "authProvider": "ದೃಢೀಕರಣ ಪೂರೈಕೆದಾರ",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "ಯಶಸ್ಸು",
@@ -898,7 +901,8 @@
       "Enterprise": "ಎಂಟರ್‌ಪ್ರೈಸ್",
       "Self-hosted Business": "Business",
       "Self-hosted Scale": "Scale",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "ಸ್ವಯಂಚಾಲನೆ ಚಾಲನೆಗಳು",
+      "externalSources": "ಹೊರಗಿನ ಮೂಲಗಳು"
     },
     "coloring": {
       "usingSingleSelectField": "ಏಕ ಆಯ್ಕೆ ಕ್ಷೇತ್ರವನ್ನು ಬಳಸಿ",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "ಶರತ್ತುಗಳ ಆಧಾರದ ಮೇಲೆ ದಾಖಲೆಗಳನ್ನು ಬಣ್ಣಗೊಳಿಸಿ",
       "colourRecordsByField": "ಕ್ಷೇತ್ರದ ಆಧಾರದ ಮೇಲೆ ದಾಖಲೆಗಳನ್ನು ಬಣ್ಣಗೊಳಿಸಿ",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "ಬಣ್ಣ ಹಚ್ಚುವಿಕೆ",
+      "usingConditionsDescriptionOss": "ಷರತ್ತುಗಳ ಆಧಾರದ ಮೇಲೆ ದಾಖಲೆಗಳಿಗೆ ಬಣ್ಣ ಹಚ್ಚಿ"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "ದಾಖಲೆ ಸೃಜನೆ ನಿರ್ಬಂಧಿಸಿದೆ",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Please select at least one role, user, or team.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "ಏಜೆಂಟ್‌ಗಳು",
+        "ownerSubjectNote": "ಮಾಲೀಕರು RLS ನಿಯಮಗಳನ್ನು ಬದಲಾಯಿಸಬಹುದು.",
+        "selectDynamicValue": "ಚಲನಶೀಲ ಮೌಲ್ಯವನ್ನು ಆರಿಸಿ...",
+        "placeholders": {
+          "currentUserId": "ಪ್ರಸ್ತುತ ಬಳಕೆದಾರರ ID",
+          "currentUserIdDescription": "ಸೈನ್ ಇನ್ ಆಗಿರುವ ಬಳಕೆದಾರರ ID.",
+          "currentUserEmail": "ಪ್ರಸ್ತುತ ಬಳಕೆದಾರರ ಇಮೇಲ್",
+          "currentUserEmailDescription": "ಸೈನ್ ಇನ್ ಆಗಿರುವ ಬಳಕೆದಾರರ ಇಮೇಲ್ ವಿಳಾಸ.",
+          "currentUserName": "ಪ್ರಸ್ತುತ ಬಳಕೆದಾರರ ಹೆಸರು",
+          "currentUserNameDescription": "ಸೈನ್ ಇನ್ ಆಗಿರುವ ಬಳಕೆದಾರರ ಪ್ರದರ್ಶನ ಹೆಸರು.",
+          "currentUserRoles": "ಪ್ರಸ್ತುತ ಬಳಕೆದಾರರ ಪಾತ್ರಗಳು",
+          "currentUserRolesDescription": "ಸೈನ್ ಇನ್ ಆಗಿರುವ ಬಳಕೆದಾರರ ಆಧಾರದ ಪಾತ್ರಗಳು.",
+          "currentUserTeams": "ನನ್ನ ತಂಡಗಳು",
+          "currentUserTeamsDescription": "ಬಳಕೆದಾರರು ನೇರವಾಗಿ ಸೇರಿರುವ ತಂಡಗಳ ID.",
+          "currentUserTeamsWithDescendants": "ನನ್ನ ತಂಡಗಳು ಮತ್ತು ಉಪತಂಡಗಳು",
+          "currentUserTeamsWithDescendantsDescription": "ಬಳಕೆದಾರರ ತಂಡಗಳ ಹಾಗೂ ಅವುಗಳ ಕೆಳಗಿನ ಎಲ್ಲ ತಂಡಗಳ ID.",
+          "currentUserTeamNames": "ನನ್ನ ತಂಡಗಳ ಹೆಸರುಗಳು",
+          "currentUserTeamNamesDescription": "ಬಳಕೆದಾರರು ನೇರವಾಗಿ ಸೇರಿರುವ ತಂಡಗಳ ಹೆಸರುಗಳು.",
+          "currentUserTeamNamesWithDescendants": "ನನ್ನ ತಂಡಗಳ ಮತ್ತು ಉಪತಂಡಗಳ ಹೆಸರುಗಳು",
+          "currentUserTeamNamesWithDescendantsDescription": "ಬಳಕೆದಾರರ ತಂಡಗಳ ಹಾಗೂ ಅವುಗಳ ಕೆಳಗಿನ ಎಲ್ಲ ತಂಡಗಳ ಹೆಸರುಗಳು.",
+          "currentUserTeamWithDescendantMembers": "ನನ್ನ ತಂಡಗಳ ಸದಸ್ಯರು",
+          "currentUserTeamWithDescendantMembersDescription": "ಬಳಕೆದಾರರ ತಂಡಗಳು ಮತ್ತು ಉಪತಂಡಗಳಲ್ಲಿನ ಎಲ್ಲರೂ — ನಿಮ್ಮ ಅಧೀನದವರ ದಾಖಲೆಗಳನ್ನು ನೋಡಲು «ಇವುಗಳಲ್ಲಿ ಯಾವುದಾದರೂ ಇದೆ» ಜೊತೆ ಬಳಸಿ."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "copyFromAView": "Copy from a view",
+      "copySettingsFromView": "ವೀಕ್ಷಣೆಯಿಂದ ಸಿದ್ಧತೆಗಳನ್ನು ನಕಲಿಸಿ",
+      "chooseSettings": "ಸಿದ್ಧತೆಗಳನ್ನು ಆರಿಸಿ",
+      "settingsSelected": "{count} ಆಯ್ಕೆಯಾಗಿದೆ",
+      "warning": {
+        "dynamic_filters_dropped": "{count} ಕ್ಷೇತ್ರದಿಂದ ಕ್ಷೇತ್ರಕ್ಕೆ ಇರುವ ಷರತ್ತುಗಳನ್ನು ನಕಲಿಸಲಾಗದು — ಈ ಪುಟ ವೀಕ್ಷಣೆಗಿಂತ ಹೆಚ್ಚು ದಾಖಲೆಗಳನ್ನು ತೋರಿಸುತ್ತದೆ.",
+        "negated_filters_dropped": "{count} ನಿರಾಕರಣಾ ಷರತ್ತುಗಳನ್ನು ನಕಲಿಸಲಾಗದು — ಈ ಪುಟ ವೀಕ್ಷಣೆಗಿಂತ ಹೆಚ್ಚು ದಾಖಲೆಗಳನ್ನು ತೋರಿಸುತ್ತದೆ.",
+        "row_color_background_lost": "ದಾಖಲೆಗಳ ಬಣ್ಣಗಳು ನಕಲಾಗುತ್ತವೆ, ಆದರೆ ಅವುಗಳ ಹಿನ್ನೆಲೆ ತುಂಬುವಿಕೆ ಇಲ್ಲ.",
+        "grouping_dropped": "ಈ ವಿನ್ಯಾಸ ಗುಂಪುಗೂಡಿಸುವಿಕೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ, ಆದ್ದರಿಂದ ಅದನ್ನು ನಕಲಿಸಲಾಗುವುದಿಲ್ಲ."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "ಚಾಟ್",
+    "addons": "Add-ons",
+    "membersCount": "{count} ಸದಸ್ಯ | {count} ಸದಸ್ಯರು",
+    "bookmark": "ಬುಕ್‌ಮಾರ್ಕ್",
+    "interfacePage": "ಸಂಪರ್ಕಸಾಧನ ಪುಟ",
+    "folder": "ಫೋಲ್ಡರ್",
+    "formulas": "ಸೂತ್ರಗಳು",
+    "audio": "ಆಡಿಯೊ",
+    "app": "ಆ್ಯಪ್",
+    "apps": "ಆ್ಯಪ್‌ಗಳು",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "ಮಾರಾಟ",
+      "marketing": "ಮಾರುಕಟ್ಟೆ",
+      "finance": "ಹಣಕಾಸು",
+      "hr": "ಮಾನವ ಸಂಪನ್ಮೂಲ",
+      "operations": "ಕಾರ್ಯಾಚರಣೆ",
+      "support": "ಬೆಂಬಲ",
+      "it": "IT",
+      "product": "ಉತ್ಪನ್ನ",
+      "data": "ದತ್ತಾಂಶ",
+      "other": "ಇತರೆ"
+    },
+    "agent": "ಏಜೆಂಟ್",
+    "agents": "ಏಜೆಂಟ್‌ಗಳು"
   },
   "datatype": {
     "ID": "ಐಡಿ",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "ಅಪ್ಲೋಡ್ ಮಿತಿಯನ್ನು ತಲುಪಿದೆ",
       "youCanOnlyUploadMaxLimitFilesAtATime": "ನೀವು ಒಮ್ಮೆಕ್ಕೆ ಕೇವಲ {limit} {type} ಫೈಲ್ ಅನ್ನು ಮಾತ್ರ ಅಪ್ಲೋಡ್ ಮಾಡಬಹುದು",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "ನೀವು ಒಮ್ಮೆಕ್ಕೆ ಕೇವಲ {limit} {type} ಫೈಲ್‌ಗಳನ್ನು ಮಾತ್ರ ಅಪ್ಲೋಡ್ ಮಾಡಬಹುದು"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "ನೀವು ಒಮ್ಮೆಕ್ಕೆ ಕೇವಲ {limit} {type} ಫೈಲ್‌ಗಳನ್ನು ಮಾತ್ರ ಅಪ್ಲೋಡ್ ಮಾಡಬಹುದು",
+      "tableDataImportedLinksUnmatched": "ಯಶಸ್ವಿಯಾಗಿ ಆಮದು ಮಾಡಲಾಗಿದೆ. {links} ದಾಖಲೆ ಜೋಡಣೆಗಳನ್ನು ಸೃಷ್ಟಿಸಲಾಗಿದೆ, {unmatched} ಮೌಲ್ಯಗಳು ಯಾವ ದಾಖಲೆಗೂ ಹೊಂದಿಕೆಯಾಗದೆ ಬಿಟ್ಟುಬಿಡಲಾಗಿದೆ.",
+      "tableDataImportedLinksFailed": "{failed} ದಾಖಲೆ ಜೋಡಣೆಗಳು ಒಂದು ದಾಖಲೆಗೆ ಹೊಂದಿಕೆಯಾದವು ಆದರೆ ಅವನ್ನು ಸೃಷ್ಟಿಸಲಾಗಲಿಲ್ಲ. ವಿವರಗಳಿಗಾಗಿ ಆಮದು ದಾಖಲೆ ನೋಡಿ.",
+      "importLinkReassignField": "«{field}» ಒಂದು-ಬಹು ಅಥವಾ ಒಂದು-ಒಂದು ಜೋಡಣೆಯಾಗಿದೆ — ಇಲ್ಲಿ ಮೌಲ್ಯಗಳನ್ನು ಆಮದು ಮಾಡಿದರೆ ದಾಖಲೆಗಳು ಈಗ ಜೋಡಿಸಿರುವ ದಾಖಲೆಗಳಿಂದ ಬೇರ್ಪಡಬಹುದು.",
+      "syncNoUpdatedAtColumn": {
+        "title": "«ನವೀಕರಿಸಿದ ದಿನಾಂಕ» ಕ್ಷೇತ್ರ ಹೊಂದಿಸಿಲ್ಲ",
+        "description": "ಪ್ರತಿ ಸಿಂಕ್ ಚಾಲನೆಯೂ ಈ ಕೋಷ್ಟಕದ ಎಲ್ಲ ದಾಖಲೆಗಳನ್ನು ಮತ್ತೆ ತರುತ್ತದೆ. ಹಂತಹಂತದ ಸಿಂಕ್ ಸಕ್ರಿಯಗೊಳಿಸಲು ಯಾವುದಾದರೂ ದಿನಾಂಕ ಕ್ಷೇತ್ರವನ್ನು «ನವೀಕರಿಸಿದ ದಿನಾಂಕ» ಎಂದು ಗುರುತಿಸಿ."
+      },
+      "syncDetachTable": "ಸಿಂಕ್ ಇನ್ನು ಈ ಕೋಷ್ಟಕವನ್ನು ನವೀಕರಿಸುವುದಿಲ್ಲ. ಅದರ ದತ್ತಾಂಶ ಉಳಿಯುತ್ತದೆ ಮತ್ತು ಎಲ್ಲ ಕ್ಷೇತ್ರಗಳು ಸಂಪಾದಿಸಬಹುದಾದವಾಗುತ್ತವೆ. ಮೂಲ ಕೋಷ್ಟಕವನ್ನು ನಂತರ ಮತ್ತೆ ಸಿಂಕ್‌ಗೆ ಸೇರಿಸಿದರೆ ಹೊಸ ಕೋಷ್ಟಕ ಸೃಷ್ಟಿಯಾಗುತ್ತದೆ.",
+      "tableSyncConvertMainTable": "ಇದು ಈ ಸಿಂಕ್‌ನ ಸಿಂಕ್ ಆದ ಕೋಷ್ಟಕ — ಇದನ್ನು ಪರಿವರ್ತಿಸಿದರೆ ಸಿಂಕ್ ಸ್ವತಃ ತೆಗೆದುಹೋಗುತ್ತದೆ. ಸಿಂಕ್ ಸೃಷ್ಟಿಸಿದ ಎಲ್ಲ ಕೋಷ್ಟಕಗಳು ಸಾಮಾನ್ಯ, ಸಂಪಾದಿಸಬಹುದಾದ ಕೋಷ್ಟಕಗಳಾಗಿ ಉಳಿಯುತ್ತವೆ ಮತ್ತು ಸಿಂಕ್ ಆಗುವುದನ್ನು ನಿಲ್ಲಿಸುತ್ತವೆ.",
+      "requiredFieldNotEditable": "ಈ ಕಡ್ಡಾಯ ಕ್ಷೇತ್ರ ಸಂಪಾದಿಸಲಾಗದು, ಇದರಿಂದ ನಮೂನೆ ಸಲ್ಲಿಸುವಾಗ ದೋಷಗಳಾಗಬಹುದು.",
+      "communityAppInstall": "{title} ಸಮುದಾಯದ ಆ್ಯಪ್ ಆಗಿದೆ. NocoDB ಇದನ್ನು ಪರಿಶೀಲಿಸಿಲ್ಲ ಅಥವಾ ದೃಢೀಕರಿಸಿಲ್ಲ. ನಿಮ್ಮ ಕಾರ್ಯದ್ವಾರದಲ್ಲಿ ಸ್ಥಾಪಿಸುವ ಮೊದಲು ಪ್ರಕಾಶಕರನ್ನು ನಂಬುತ್ತೀರಿ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+      "removeCustomDomain": "{domain} ಇನ್ನು ಈ ಆ್ಯಪ್ ಒದಗಿಸುವುದಿಲ್ಲ. ಪೂರ್ವನಿಯೋಜಿತ ವಿಳಾಸ ಕೆಲಸ ಮಾಡುತ್ತಲೇ ಇರುತ್ತದೆ."
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} ಸೆಲ್ ನಕಲಿಸಲಾಗಿದೆ",
       "nCellsCopied": "{n} ಸೆಲ್‌ಗಳನ್ನು ನಕಲಿಸಲಾಗಿದೆ",
       "nRecordCreated": "{n} record created",
-      "nRecordsCreated": "{n} records created"
+      "nRecordsCreated": "{n} records created",
+      "interfaceFilterCopied": "{count} ಷರತ್ತು ನಕಲಿಸಲಾಗಿದೆ | {count} ಷರತ್ತುಗಳನ್ನು ನಕಲಿಸಲಾಗಿದೆ"
     },
     "success": {
       "restored": "Item restored successfully",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "recordLinked": "ದಾಖಲೆ ಜೋಡಿಸಲಾಗಿದೆ",
+      "recordUnlinked": "ದಾಖಲೆಯ ಜೋಡಣೆ ತೆಗೆಯಲಾಗಿದೆ",
+      "pageSharingEnabled": "ಪುಟ ಹಂಚಿಕೆ ಆನ್ ಮಾಡಲಾಗಿದೆ",
+      "pageSharingDisabled": "ಪುಟ ಹಂಚಿಕೆ ಆಫ್ ಮಾಡಲಾಗಿದೆ",
+      "dataExported": "ದತ್ತಾಂಶವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ!",
+      "recordTemplateUpdated": "ಟೆಂಪ್ಲೇಟ್ ನವೀಕರಿಸಲಾಗಿದೆ",
+      "recordTemplateCreated": "ಟೆಂಪ್ಲೇಟ್ ರಚಿಸಲಾಗಿದೆ",
+      "recordTemplateDeleted": "ಟೆಂಪ್ಲೇಟ್ ಅಳಿಸಲಾಗಿದೆ",
+      "accountConnected": "ನಿಮ್ಮ {provider} ಖಾತೆ ಸಂಪರ್ಕಗೊಂಡಿದೆ.",
+      "appUninstalled": "ಆ್ಯಪ್ ಅಸ್ಥಾಪಿಸಲಾಗಿದೆ",
+      "storeListingSaved": "ಅಂಗಡಿ ಪಟ್ಟಿ ಉಳಿಸಲಾಗಿದೆ",
+      "publisherProfileSaved": "ಪ್ರಕಾಶಕರ ಪ್ರೊಫೈಲ್ ಉಳಿಸಲಾಗಿದೆ",
+      "planChanged": "ಪ್ಲ್ಯಾನ್ ನವೀಕರಿಸಲಾಗಿದೆ",
+      "planChangeScheduled": "ಪ್ಲ್ಯಾನ್ ಬದಲಾವಣೆ ನಿಗದಿಯಾಗಿದೆ",
+      "planChangeReverted": "ನಿಗದಿತ ಪ್ಲ್ಯಾನ್ ಬದಲಾವಣೆಯನ್ನು ಹಿಂಪಡೆಯಲಾಗಿದೆ. ನಿಮ್ಮ ಈಗಿನ ಪ್ಲ್ಯಾನ್ ಬದಲಾವಣೆಯಿಲ್ಲದೆ ಮುಂದುವರಿಯುತ್ತದೆ.",
+      "appDelisted": "App Store ನಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ",
+      "appRelisted": "ಮತ್ತೆ App Store ನಲ್ಲಿ"
     },
     "subText": {
       "startFromScratch": "ಶೂನ್ಯದಿಂದ ಆರಂಭಿಸಿ.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "ಈ ರೆಪಾಸಿಟರಿಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ",
     "skillsCommunityTitle": "ಯಾವುದೇ ಸಾರ್ವಜನಿಕ ರೆಪಾಸಿಟರಿಯಿಂದ ಸ್ಥಾಪಿಸಿ",
     "skillsCommunityBlocked": "ನಿಮ್ಮ ಕಾರ್ಯದ್ವಾರ ಸಮುದಾಯದ ಕೌಶಲಗಳನ್ನು ಸ್ಥಾಪಿಸಲು ಅನುಮತಿಸುವುದಿಲ್ಲ.",
-    "skillsCommunityBlockedOrg": "ನಿಮ್ಮ ಸಂಸ್ಥೆ ಸಮುದಾಯದ ಕೌಶಲಗಳನ್ನು ಸ್ಥಾಪಿಸಲು ಅನುಮತಿಸುವುದಿಲ್ಲ."
+    "skillsCommunityBlockedOrg": "ನಿಮ್ಮ ಸಂಸ್ಥೆ ಸಮುದಾಯದ ಕೌಶಲಗಳನ್ನು ಸ್ಥಾಪಿಸಲು ಅನುಮತಿಸುವುದಿಲ್ಲ.",
+    "thisSharedPageIsProtected": "ಈ ಹಂಚಿಕೆಯ ಪುಟ ಸಂರಕ್ಷಿತವಾಗಿದೆ",
+    "sso": {
+      "signInFailed": "ನಿಮ್ಮನ್ನು ಸೈನ್ ಇನ್ ಮಾಡಲಾಗಲಿಲ್ಲ",
+      "shareCode": "ಸಹಾಯ ಬೇಕೆ? ಈ ಕೋಡ್ ಅನ್ನು ನಿಮ್ಮ ನಿರ್ವಾಹಕರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಿ",
+      "failure": {
+        "SSO_STATE_INVALID": "ನಿಮ್ಮ ಸೈನ್-ಇನ್ ಅವಧಿ ಮುಗಿದಿದೆ ಅಥವಾ ಅಡಚಣೆಯಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        "SSO_TOKEN_INVALID": "ನಿಮ್ಮ ಸೈನ್-ಇನ್ ಪೂರೈಕೆದಾರರ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ, ಮತ್ತು ಮತ್ತೆ ಮತ್ತೆ ಆಗುತ್ತಿದ್ದರೆ ನಿಮ್ಮ ನಿರ್ವಾಹಕರಿಗೆ ತಿಳಿಸಿ.",
+        "SSO_PROVIDER_ERROR": "ನಿಮ್ಮ ಸೈನ್-ಇನ್ ಪೂರೈಕೆದಾರರಿಗೆ ಸಮಸ್ಯೆ ಎದುರಾಯಿತು. ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "ಈ ಖಾತೆಗೆ ಸೈನ್ ಇನ್ ಮಾಡಲು ಅನುಮತಿ ಇಲ್ಲ. ನಿಮ್ಮ ನಿರ್ವಾಹಕರಿಂದ ಪ್ರವೇಶ ಕೇಳಿ, ಅಥವಾ ಬೇರೆ ಖಾತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        "SSO_FAILED": "ನಿಮ್ಮನ್ನು ಸೈನ್ ಇನ್ ಮಾಡುವಾಗ ಏನೋ ತಪ್ಪಾಯಿತು. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+      }
+    },
+    "unsupportedFileType": "ಬೆಂಬಲಿಸದ ಕಡತ ಪ್ರಕಾರ",
+    "skillUpdatedFromSource": "{title} ಮೂಲದಿಂದ ನವೀಕರಿಸಲಾಗಿದೆ",
+    "workspaceSkillsSubtitle": "ಇಲ್ಲಿನ ಪ್ರತಿ ಆಧಾರದಲ್ಲಿ ಮತ್ತು ಅವನ್ನು ಆಯ್ದುಕೊಳ್ಳುವ ಏಜೆಂಟ್‌ಗಳಿಗೆ ಲಭ್ಯ.",
+    "skillShadowed": "{scope} ಹಂತದಲ್ಲಿ ಇದೇ ಶೀರ್ಷಿಕೆಯ ಕೌಶಲಕ್ಕೆ ಆದ್ಯತೆ ಇದೆ, ಆದ್ದರಿಂದ ಇದನ್ನು ನೀಡಲಾಗುತ್ತಿಲ್ಲ.",
+    "skillsNoMatchBody": "ಆ ಹುಡುಕಾಟಕ್ಕೆ ಏನೂ ಹೊಂದುತ್ತಿಲ್ಲ. ಬೇರೆ ಪದ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಶೋಧಕಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ."
   },
   "trash": {
     "restore": "Restore",

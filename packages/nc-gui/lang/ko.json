@@ -805,7 +805,8 @@
       "org-level-viewer": "레코드 보기만 가능",
       "cloud-org-level-owner": "조직과 조직의 작업공간에 대한 전체 권한",
       "cloud-org-level-creator": "작업공간 생성 및 초대받은 작업공간 참여",
-      "cloud-org-level-viewer": "조직과 조직의 작업공간 보기"
+      "cloud-org-level-viewer": "조직과 조직의 작업공간 보기",
+      "app-user": "게시된 앱만 사용"
     },
     "sqlView": "SQL 보기",
     "rowHeight": "행 높이",
@@ -882,7 +883,9 @@
       "othersSubtitle": "NocoDB 활용을 더욱 향상시킬 다양한 연동 기능을 확인해 보세요.",
       "ai": "AI",
       "spreadSheet": "스프레드시트",
-      "spreadSheetSubtitle": "NocoDB로 스프레드시트를 연결하고 관리하세요."
+      "spreadSheetSubtitle": "NocoDB로 스프레드시트를 연결하고 관리하세요.",
+      "authProvider": "인증 공급자",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "성공",
@@ -898,7 +901,8 @@
       "Enterprise": "엔터프라이즈",
       "Self-hosted Business": "Business",
       "Self-hosted Scale": "Scale",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "다음 인보이스",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "청구 가능한 사용자",
       "storageUsedGB": "사용된 스토리지",
       "webhookCallsMonthly": "웹훅 호출",
-      "apiCallsMonthly": "API 호출"
+      "apiCallsMonthly": "API 호출",
+      "automationRunsMonthly": "자동화 실행 횟수",
+      "externalSources": "외부 소스"
     },
     "coloring": {
       "usingSingleSelectField": "단일 선택 필드 사용",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "조건에 따른 색상 기록",
       "colourRecordsByField": "필드별 컬러 항목",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "색상 지정",
+      "usingConditionsDescriptionOss": "조건에 따라 항목에 색상 지정"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "항목 생성 제한됨",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Please select at least one role, user, or team.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "에이전트",
+        "ownerSubjectNote": "소유자는 RLS 규칙을 변경할 수 있습니다.",
+        "selectDynamicValue": "동적 값 선택...",
+        "placeholders": {
+          "currentUserId": "현재 사용자 ID",
+          "currentUserIdDescription": "로그인한 사용자의 ID입니다.",
+          "currentUserEmail": "현재 사용자 이메일",
+          "currentUserEmailDescription": "로그인한 사용자의 이메일 주소입니다.",
+          "currentUserName": "현재 사용자 이름",
+          "currentUserNameDescription": "로그인한 사용자의 표시 이름입니다.",
+          "currentUserRoles": "현재 사용자 역할",
+          "currentUserRolesDescription": "로그인한 사용자의 베이스 역할입니다.",
+          "currentUserTeams": "내 팀",
+          "currentUserTeamsDescription": "사용자가 직접 속한 팀의 ID입니다.",
+          "currentUserTeamsWithDescendants": "내 팀과 하위 팀",
+          "currentUserTeamsWithDescendantsDescription": "사용자의 팀과 그 아래 모든 팀의 ID입니다.",
+          "currentUserTeamNames": "내 팀 이름",
+          "currentUserTeamNamesDescription": "사용자가 직접 속한 팀의 이름입니다.",
+          "currentUserTeamNamesWithDescendants": "내 팀과 하위 팀 이름",
+          "currentUserTeamNamesWithDescendantsDescription": "사용자의 팀과 그 아래 모든 팀의 이름입니다.",
+          "currentUserTeamWithDescendantMembers": "내 팀의 멤버",
+          "currentUserTeamWithDescendantMembersDescription": "사용자의 팀과 하위 팀에 속한 모든 사람 — '다음 중 하나라도 포함'과 함께 사용하면 부하 직원의 항목을 볼 수 있습니다."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "뷰 구성 복사에 성공했습니다",
       "errorOccuredWhileCopyingViewConfiguration": "뷰 구성을 복사하는 동안 오류가 발생했습니다",
       "copyFromAnotherView": "다른 뷰에서 복사",
-      "copyFromAView": "뷰에서 복사"
+      "copyFromAView": "뷰에서 복사",
+      "copySettingsFromView": "뷰에서 설정 복사",
+      "chooseSettings": "설정 선택",
+      "settingsSelected": "{count}개 선택됨",
+      "warning": {
+        "dynamic_filters_dropped": "필드 대 필드 조건 {count}개는 복사할 수 없습니다 — 이 페이지는 뷰보다 더 많은 항목을 표시합니다.",
+        "negated_filters_dropped": "부정 조건 {count}개는 복사할 수 없습니다 — 이 페이지는 뷰보다 더 많은 항목을 표시합니다.",
+        "row_color_background_lost": "항목 색상은 복사되지만 배경 채우기는 복사되지 않습니다.",
+        "grouping_dropped": "이 레이아웃은 그룹화를 지원하지 않으므로 복사되지 않습니다."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "정말 이 팀을 떠나고 싶으신 건가요?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "더 이상 추가할 팀이 없습니다",
       "alreadyAdded": "이미 추가되었습니다",
       "teamCantBeAssignedOwnerRole": "팀에 소유자 역할을 할당할 수 없습니다"
-    }
+    },
+    "chat": "채팅",
+    "addons": "Add-ons",
+    "membersCount": "멤버 {count}명 | 멤버 {count}명",
+    "bookmark": "북마크",
+    "interfacePage": "인터페이스 페이지",
+    "folder": "폴더",
+    "formulas": "수식",
+    "audio": "오디오",
+    "app": "앱",
+    "apps": "앱",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "영업",
+      "marketing": "마케팅",
+      "finance": "재무",
+      "hr": "인사",
+      "operations": "운영",
+      "support": "지원",
+      "it": "IT",
+      "product": "제품",
+      "data": "데이터",
+      "other": "기타"
+    },
+    "agent": "에이전트",
+    "agents": "에이전트"
   },
   "datatype": {
     "ID": "ID",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "업로드 제한에 도달했습니다",
       "youCanOnlyUploadMaxLimitFilesAtATime": "한 번에 {limit} {type} 파일만 업로드할 수 있습니다",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "한 번에 {limit} {type}개의 파일만 업로드할 수 있습니다"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "한 번에 {limit} {type}개의 파일만 업로드할 수 있습니다",
+      "tableDataImportedLinksUnmatched": "가져오기에 성공했습니다. 항목 링크 {links}개를 만들었고, {unmatched}개 값은 어떤 항목과도 일치하지 않아 건너뛰었습니다.",
+      "tableDataImportedLinksFailed": "항목 링크 {failed}개가 어떤 항목과 일치했지만 생성하지 못했습니다. 자세한 내용은 가져오기 로그를 확인하세요.",
+      "importLinkReassignField": "'{field}'은(는) 일대다 또는 일대일 링크입니다 — 여기에 값을 가져오면 항목이 현재 연결된 항목에서 떨어져 나갈 수 있습니다.",
+      "syncNoUpdatedAtColumn": {
+        "title": "'업데이트 시각' 필드가 설정되지 않았습니다",
+        "description": "동기화를 실행할 때마다 이 테이블의 모든 항목을 다시 가져옵니다. 증분 동기화를 사용하려면 날짜 필드를 '업데이트 시각'으로 지정하세요."
+      },
+      "syncDetachTable": "동기화가 이 테이블을 더 이상 업데이트하지 않습니다. 데이터는 유지되고 모든 필드가 편집 가능해집니다. 나중에 원본 테이블을 동기화에 다시 추가하면 새 테이블이 생성됩니다.",
+      "tableSyncConvertMainTable": "이것은 이 동기화의 동기화 대상 테이블입니다 — 변환하면 동기화 자체가 제거됩니다. 동기화가 만든 모든 테이블은 일반적인 편집 가능한 테이블로 남고 동기화가 중단됩니다.",
+      "requiredFieldNotEditable": "이 필수 필드는 편집할 수 없어 양식을 제출할 때 오류가 발생할 수 있습니다.",
+      "communityAppInstall": "{title}은(는) 커뮤니티 앱입니다. NocoDB 팀이 검토하거나 검증하지 않았습니다. 작업공간에 설치하기 전에 게시자를 신뢰할 수 있는지 확인하세요.",
+      "removeCustomDomain": "{domain}은(는) 더 이상 이 앱을 제공하지 않습니다. 기본 주소는 계속 작동합니다."
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} 칸 복사됨",
       "nCellsCopied": "{n} 칸 복사됨",
       "nRecordCreated": "{n} record created",
-      "nRecordsCreated": "{n} records created"
+      "nRecordsCreated": "{n} records created",
+      "interfaceFilterCopied": "조건 {count}개를 복사했습니다 | 조건 {count}개를 복사했습니다"
     },
     "success": {
       "restored": "Item restored successfully",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "recordLinked": "항목을 연결했습니다",
+      "recordUnlinked": "항목 연결을 해제했습니다",
+      "pageSharingEnabled": "페이지 공유를 켰습니다",
+      "pageSharingDisabled": "페이지 공유를 껐습니다",
+      "dataExported": "데이터를 내보냈습니다!",
+      "recordTemplateUpdated": "템플릿을 업데이트했습니다",
+      "recordTemplateCreated": "템플릿을 만들었습니다",
+      "recordTemplateDeleted": "템플릿을 삭제했습니다",
+      "accountConnected": "{provider} 계정이 연결되었습니다.",
+      "appUninstalled": "앱을 제거했습니다",
+      "storeListingSaved": "스토어 등록 정보를 저장했습니다",
+      "publisherProfileSaved": "게시자 프로필을 저장했습니다",
+      "planChanged": "요금제를 변경했습니다",
+      "planChangeScheduled": "요금제 변경을 예약했습니다",
+      "planChangeReverted": "예약된 요금제 변경을 취소했습니다. 현재 요금제가 그대로 유지됩니다.",
+      "appDelisted": "App Store에서 내렸습니다",
+      "appRelisted": "App Store에 다시 올렸습니다"
     },
     "subText": {
       "startFromScratch": "처음부터 시작하세요.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "이 저장소를 불러오지 못했습니다",
     "skillsCommunityTitle": "공개 저장소 어디서든 설치",
     "skillsCommunityBlocked": "이 작업공간에서는 커뮤니티 스킬 설치가 허용되지 않습니다.",
-    "skillsCommunityBlockedOrg": "이 조직에서는 커뮤니티 스킬 설치가 허용되지 않습니다."
+    "skillsCommunityBlockedOrg": "이 조직에서는 커뮤니티 스킬 설치가 허용되지 않습니다.",
+    "thisSharedPageIsProtected": "이 공유 페이지는 보호되어 있습니다",
+    "sso": {
+      "signInFailed": "로그인하지 못했습니다",
+      "shareCode": "도움이 필요하신가요? 이 코드를 관리자에게 알려 주세요",
+      "failure": {
+        "SSO_STATE_INVALID": "로그인 세션이 만료되었거나 중단되었습니다. 다시 시도해 주세요.",
+        "SSO_TOKEN_INVALID": "로그인 공급자의 응답을 확인하지 못했습니다. 다시 시도해 보시고, 계속 발생하면 관리자에게 알려 주세요.",
+        "SSO_PROVIDER_ERROR": "로그인 공급자에서 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "이 계정은 로그인할 수 없습니다. 관리자에게 액세스를 요청하거나 다른 계정을 사용해 보세요.",
+        "SSO_FAILED": "로그인 중 문제가 발생했습니다. 다시 시도해 주세요."
+      }
+    },
+    "unsupportedFileType": "지원하지 않는 파일 형식",
+    "skillUpdatedFromSource": "{title}을(를) 원본에서 업데이트했습니다",
+    "workspaceSkillsSubtitle": "여기 모든 베이스에서, 그리고 사용하기로 한 에이전트에서 이용할 수 있습니다.",
+    "skillShadowed": "{scope} 수준에 같은 제목의 스킬이 있어 그쪽이 우선하므로, 이 스킬은 제공되지 않습니다.",
+    "skillsNoMatchBody": "해당 검색과 일치하는 항목이 없습니다. 다른 단어로 검색하거나 필터를 지워 보세요."
   },
   "trash": {
     "restore": "Restore",

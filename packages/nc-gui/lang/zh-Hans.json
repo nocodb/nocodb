@@ -805,7 +805,8 @@
       "org-level-viewer": "仅查看记录",
       "cloud-org-level-owner": "完全掌控该组织及其工作区",
       "cloud-org-level-creator": "创建工作区并加入受邀的工作区",
-      "cloud-org-level-viewer": "查看该组织及其工作区"
+      "cloud-org-level-viewer": "查看该组织及其工作区",
+      "app-user": "仅使用已发布的应用"
     },
     "sqlView": "SQL 视图",
     "rowHeight": "行高",
@@ -882,7 +883,9 @@
       "othersSubtitle": "发现额外的多功能集成来增强您的 NocoDB 体验。",
       "ai": "人工智能",
       "spreadSheet": "电子表格",
-      "spreadSheetSubtitle": "使用 NocoDB 连接和管理电子表格。"
+      "spreadSheetSubtitle": "使用 NocoDB 连接和管理电子表格。",
+      "authProvider": "身份验证提供方",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "成功",
@@ -898,7 +901,8 @@
       "Enterprise": "企业",
       "Self-hosted Business": "业务",
       "Self-hosted Scale": "缩放比例",
-      "Self-hosted Enterprise": "企业"
+      "Self-hosted Enterprise": "企业",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "自动化运行次数",
+      "externalSources": "外部数据源"
     },
     "coloring": {
       "usingSingleSelectField": "使用单选字段",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "基于条件的颜色记录/单元格",
       "colourRecordsByField": "按字段为记录着色",
       "rowColorDescription": "将颜色应用于记录",
-      "cellColorDescription": "将颜色应用到指定字段"
+      "cellColorDescription": "将颜色应用到指定字段",
+      "title": "着色",
+      "usingConditionsDescriptionOss": "根据条件为记录着色"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "创建记录受限",
@@ -974,7 +982,30 @@
         "filterCount": "{count} 过滤器 | {count} 过滤器",
         "subjectsRequired": "请选择至少一个角色、用户或团队。",
         "confirmDeleteTitle": "您确定要删除此政策吗？",
-        "confirmDeleteContent": "此操作不能撤消。"
+        "confirmDeleteContent": "此操作不能撤消。",
+        "groupAgents": "智能体",
+        "ownerSubjectNote": "所有者可以修改 RLS 规则。",
+        "selectDynamicValue": "选择一个动态值……",
+        "placeholders": {
+          "currentUserId": "当前用户 ID",
+          "currentUserIdDescription": "已登录用户的 ID。",
+          "currentUserEmail": "当前用户邮箱",
+          "currentUserEmailDescription": "已登录用户的电子邮件地址。",
+          "currentUserName": "当前用户姓名",
+          "currentUserNameDescription": "已登录用户的显示名称。",
+          "currentUserRoles": "当前用户角色",
+          "currentUserRolesDescription": "已登录用户在项目中的角色。",
+          "currentUserTeams": "我的团队",
+          "currentUserTeamsDescription": "用户直接所属团队的 ID。",
+          "currentUserTeamsWithDescendants": "我的团队及子团队",
+          "currentUserTeamsWithDescendantsDescription": "用户所属团队以及其下所有团队的 ID。",
+          "currentUserTeamNames": "我的团队名称",
+          "currentUserTeamNamesDescription": "用户直接所属团队的名称。",
+          "currentUserTeamNamesWithDescendants": "我的团队及子团队名称",
+          "currentUserTeamNamesWithDescendantsDescription": "用户所属团队以及其下所有团队的名称。",
+          "currentUserTeamWithDescendantMembers": "我团队的成员",
+          "currentUserTeamWithDescendantMembersDescription": "用户所在团队及子团队中的所有人——搭配“包含其中任一”使用，即可查看下属的记录。"
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "无人 {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "查看配置复制成功",
       "errorOccuredWhileCopyingViewConfiguration": "复制视图配置时发生错误",
       "copyFromAnotherView": "从其他视图复制",
-      "copyFromAView": "从视图复制"
+      "copyFromAView": "从视图复制",
+      "copySettingsFromView": "从视图复制设置",
+      "chooseSettings": "选择设置",
+      "settingsSelected": "已选择 {count} 项",
+      "warning": {
+        "dynamic_filters_dropped": "{count} 个字段对字段的条件无法复制——此页面显示的记录会比视图更多。",
+        "negated_filters_dropped": "{count} 个取反条件无法复制——此页面显示的记录会比视图更多。",
+        "row_color_background_lost": "记录颜色会被复制，但其背景填充不会。",
+        "grouping_dropped": "此布局不支持分组，因此分组不会被复制。"
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "你确定要离开这个团队吗？",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "不再增加队伍",
       "alreadyAdded": "已添加",
       "teamCantBeAssignedOwnerRole": "无法为团队分配 \"所有者 \"角色"
-    }
+    },
+    "chat": "聊天",
+    "addons": "Add-ons",
+    "membersCount": "{count} 位成员 | {count} 位成员",
+    "bookmark": "书签",
+    "interfacePage": "界面页面",
+    "folder": "文件夹",
+    "formulas": "公式",
+    "audio": "音频",
+    "app": "应用",
+    "apps": "应用",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "销售",
+      "marketing": "市场",
+      "finance": "财务",
+      "hr": "人力资源",
+      "operations": "运营",
+      "support": "支持",
+      "it": "IT",
+      "product": "产品",
+      "data": "数据",
+      "other": "其他"
+    },
+    "agent": "智能体",
+    "agents": "智能体"
   },
   "datatype": {
     "ID": "ID",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "您正在编辑的字段已被另一个用户更新。您未保存的更改将被保存 — 保存将覆盖他们的更改。",
       "reachedUploadLimit": "已达到上传限制",
       "youCanOnlyUploadMaxLimitFilesAtATime": "每次只能上传 {limit} 个 {type} 文件",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "每次只能上传 {limit} 个 {type} 文件"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "每次只能上传 {limit} 个 {type} 文件",
+      "tableDataImportedLinksUnmatched": "导入成功。已创建 {links} 条记录链接，{unmatched} 个值未匹配到任何记录，已跳过。",
+      "tableDataImportedLinksFailed": "{failed} 条记录链接匹配到了记录，但未能创建。详情请查看导入日志。",
+      "importLinkReassignField": "“{field}”是一对多或一对一链接——在此导入值可能会把记录从当前关联的记录上挪走。",
+      "syncNoUpdatedAtColumn": {
+        "title": "未设置“更新时间”字段",
+        "description": "每次同步运行都会重新拉取此表格的全部记录。请将某个日期字段标记为“更新时间”，以启用增量同步。"
+      },
+      "syncDetachTable": "同步将不再更新此表格。其数据会保留，所有字段将变为可编辑。以后若把源表重新加入同步，会创建一张新表。",
+      "tableSyncConvertMainTable": "这是本次同步的同步表——转换它会连同步本身一起移除。同步创建的所有表格都会保留为普通的可编辑表格，并停止同步。",
+      "requiredFieldNotEditable": "此必填字段不可编辑，提交表单时可能因此出错。",
+      "communityAppInstall": "{title} 是一款社区应用，未经 NocoDB 审核或验证。在把它安装到你的工作区之前，请确认你信任该发布者。",
+      "removeCustomDomain": "{domain} 将不再提供此应用。默认地址仍可继续使用。"
     },
     "info": {
       "sourceViewRebindResync": "更改源视图会触发与新视图完全重新同步。",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "已复制 {n} 个单元格",
       "nCellsCopied": "已复制 {n} 个单元格",
       "nRecordCreated": "{n} 创建的记录",
-      "nRecordsCreated": "{n} 创建的记录"
+      "nRecordsCreated": "{n} 创建的记录",
+      "interfaceFilterCopied": "已复制 {count} 个条件 | 已复制 {count} 个条件"
     },
     "success": {
       "restored": "项目已成功恢复",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM 预配已禁用",
       "tokenRegenerated": "置备令牌重新生成成功",
       "scimDeleted": "SCIM 配置删除成功",
-      "defaultRoleUpdated": "成功更新默认角色"
+      "defaultRoleUpdated": "成功更新默认角色",
+      "recordLinked": "记录已关联",
+      "recordUnlinked": "记录已取消关联",
+      "pageSharingEnabled": "已开启页面分享",
+      "pageSharingDisabled": "已关闭页面分享",
+      "dataExported": "数据导出成功！",
+      "recordTemplateUpdated": "模板已更新",
+      "recordTemplateCreated": "模板已创建",
+      "recordTemplateDeleted": "模板已删除",
+      "accountConnected": "你的 {provider} 账户已连接。",
+      "appUninstalled": "应用已卸载",
+      "storeListingSaved": "商店条目已保存",
+      "publisherProfileSaved": "发布者资料已保存",
+      "planChanged": "方案已更新",
+      "planChangeScheduled": "方案变更已排期",
+      "planChangeReverted": "已撤销预定的方案变更。你当前的方案保持不变，继续生效。",
+      "appDelisted": "已从 App Store 下架",
+      "appRelisted": "已重新上架 App Store"
     },
     "subText": {
       "startFromScratch": "从头开始。",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "无法加载此仓库",
     "skillsCommunityTitle": "从任何公开仓库安装",
     "skillsCommunityBlocked": "你的工作区不允许安装社区技能。",
-    "skillsCommunityBlockedOrg": "你的组织不允许安装社区技能。"
+    "skillsCommunityBlockedOrg": "你的组织不允许安装社区技能。",
+    "thisSharedPageIsProtected": "此分享页面受保护",
+    "sso": {
+      "signInFailed": "我们无法为你登录",
+      "shareCode": "需要帮助吗？把此代码告诉你的管理员",
+      "failure": {
+        "SSO_STATE_INVALID": "你的登录会话已过期或被中断。请重试。",
+        "SSO_TOKEN_INVALID": "我们无法验证登录服务提供方的响应。请重试；如果持续出现，请告知管理员。",
+        "SSO_PROVIDER_ERROR": "你的登录服务提供方遇到了问题。请稍后重试。",
+        "SSO_ACCOUNT_NOT_ALLOWED": "此账户不被允许登录。请向管理员申请权限，或改用其他账户。",
+        "SSO_FAILED": "登录过程中出了点问题。请重试。"
+      }
+    },
+    "unsupportedFileType": "不支持的文件类型",
+    "skillUpdatedFromSource": "已从来源更新 {title}",
+    "workspaceSkillsSubtitle": "在这里的每个项目中可用，选择启用的智能体也可使用。",
+    "skillShadowed": "{scope} 层级有同名技能且优先级更高，因此不提供这一个。",
+    "skillsNoMatchBody": "没有与该搜索匹配的内容。换个关键词试试，或者清除筛选条件。"
   },
   "trash": {
     "restore": "恢复",

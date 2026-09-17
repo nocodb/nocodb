@@ -805,7 +805,8 @@
       "org-level-viewer": "റെക്കോർഡുകൾ കാണാൻ മാത്രം",
       "cloud-org-level-owner": "സ്ഥാപനത്തിന്റെയും അതിന്റെ പ്രവർത്തനസ്ഥലങ്ങളുടെയും പൂർണ നിയന്ത്രണം",
       "cloud-org-level-creator": "പ്രവർത്തനസ്ഥലങ്ങൾ സൃഷ്ടിക്കുക, ക്ഷണിക്കപ്പെട്ടവയിൽ ചേരുക",
-      "cloud-org-level-viewer": "സ്ഥാപനവും അതിന്റെ പ്രവർത്തനസ്ഥലങ്ങളും കാണുക"
+      "cloud-org-level-viewer": "സ്ഥാപനവും അതിന്റെ പ്രവർത്തനസ്ഥലങ്ങളും കാണുക",
+      "app-user": "പ്രസിദ്ധീകരിച്ച ആപ്പുകൾ ഉപയോഗിക്കാൻ മാത്രം"
     },
     "sqlView": "SQL വീവ്",
     "rowHeight": "റെക്കോർഡ് ഉയരം",
@@ -882,7 +883,9 @@
       "othersSubtitle": "നിങ്ങളുടെ NocoDB അനുഭവം മെച്ചപ്പെടുത്താന്‍ കൂടുതല്‍ വൈവിധ്യമാര്‍ന്ന സംയോജനങ്ങള്‍ കണ്ടെത്തൂ.",
       "ai": "AI",
       "spreadSheet": "സ്പ്രെഡ്ഷീറ്റ്",
-      "spreadSheetSubtitle": "NocoDB-യുമായി നിങ്ങളുടെ സ്പ്രെഡ്ഷീറ്റുകൾ കണക്ട് ചെയ്തും നിയന്ത്രിച്ചും നടത്തൂ."
+      "spreadSheetSubtitle": "NocoDB-യുമായി നിങ്ങളുടെ സ്പ്രെഡ്ഷീറ്റുകൾ കണക്ട് ചെയ്തും നിയന്ത്രിച്ചും നടത്തൂ.",
+      "authProvider": "പ്രാമാണീകരണ ദാതാവ്",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "വിജയം",
@@ -898,7 +901,8 @@
       "Enterprise": "എന്റർപ്രൈസ്",
       "Self-hosted Business": "Business",
       "Self-hosted Scale": "Scale",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "ഓട്ടോമേഷൻ പ്രവർത്തനങ്ങൾ",
+      "externalSources": "ബാഹ്യ ഉറവിടങ്ങൾ"
     },
     "coloring": {
       "usingSingleSelectField": "സിംഗിൾ സെലക്ട് ഫീൽഡ് ഉപയോഗിക്കുന്നു",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "വ്യവസ്ഥകളുടെ അടിസ്ഥാനത്തിൽ റെക്കോർഡുകൾ കളർ ചെയ്യുക",
       "colourRecordsByField": "ഫീൽഡുദ്‌വരി റെക്കോർഡുകൾക്ക് വർണ്ണകാലിടുക",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "നിറം നൽകൽ",
+      "usingConditionsDescriptionOss": "സ്ഥിതികൾ അടിസ്ഥാനമാക്കി റെക്കോർഡുകൾക്ക് നിറം നൽകുക"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "റിക്കാർത്ഥവാസം സൃഷ്ടിക്കാൻ നിയന്ത്രിച്ചിരിക്കുന്നു",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Please select at least one role, user, or team.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "groupAgents": "ഏജന്റുകൾ",
+        "ownerSubjectNote": "ഉടമകൾക്ക് RLS നിയമങ്ങൾ മാറ്റാൻ കഴിയും.",
+        "selectDynamicValue": "ഒരു ഡൈനാമിക് മൂല്യം തിരഞ്ഞെടുക്കുക...",
+        "placeholders": {
+          "currentUserId": "നിലവിലെ ഉപയോക്തൃ ഐഡി",
+          "currentUserIdDescription": "സൈൻ ഇൻ ചെയ്ത ഉപയോക്താവിന്റെ ഐഡി.",
+          "currentUserEmail": "നിലവിലെ ഉപയോക്താവിന്റെ ഇമെയിൽ",
+          "currentUserEmailDescription": "സൈൻ ഇൻ ചെയ്ത ഉപയോക്താവിന്റെ ഇമെയിൽ വിലാസം.",
+          "currentUserName": "നിലവിലെ ഉപയോക്തൃ നാമം",
+          "currentUserNameDescription": "സൈൻ ഇൻ ചെയ്ത ഉപയോക്താവിന്റെ പ്രദർശന നാമം.",
+          "currentUserRoles": "നിലവിലെ ഉപയോക്തൃ റോളുകൾ",
+          "currentUserRolesDescription": "സൈൻ ഇൻ ചെയ്ത ഉപയോക്താവിന്റെ മേൽസ്ഥല റോളുകൾ.",
+          "currentUserTeams": "എന്റെ ടീമുകൾ",
+          "currentUserTeamsDescription": "ഉപയോക്താവ് നേരിട്ട് അംഗമായ ടീമുകളുടെ ഐഡികൾ.",
+          "currentUserTeamsWithDescendants": "എന്റെ ടീമുകളും ഉപടീമുകളും",
+          "currentUserTeamsWithDescendantsDescription": "ഉപയോക്താവിന്റെ ടീമുകളുടെയും അവയ്ക്ക് കീഴിലുള്ള എല്ലാ ടീമുകളുടെയും ഐഡികൾ.",
+          "currentUserTeamNames": "എന്റെ ടീമുകളുടെ പേരുകൾ",
+          "currentUserTeamNamesDescription": "ഉപയോക്താവ് നേരിട്ട് അംഗമായ ടീമുകളുടെ പേരുകൾ.",
+          "currentUserTeamNamesWithDescendants": "എന്റെ ടീമുകളുടെയും ഉപടീമുകളുടെയും പേരുകൾ",
+          "currentUserTeamNamesWithDescendantsDescription": "ഉപയോക്താവിന്റെ ടീമുകളുടെയും അവയ്ക്ക് കീഴിലുള്ള എല്ലാ ടീമുകളുടെയും പേരുകൾ.",
+          "currentUserTeamWithDescendantMembers": "എന്റെ ടീമുകളിലെ അംഗങ്ങൾ",
+          "currentUserTeamWithDescendantMembersDescription": "ഉപയോക്താവിന്റെ ടീമുകളിലെയും ഉപടീമുകളിലെയും എല്ലാവരും — നിങ്ങളുടെ കീഴുദ്യോഗസ്ഥരുടെ റെക്കോർഡുകൾ കാണാൻ 'ഇവയിൽ ഏതെങ്കിലും അടങ്ങുന്നു' എന്നതിനൊപ്പം ഉപയോഗിക്കുക."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "വിൻയാസം വിജയകരമായി പകർത്തി",
       "errorOccuredWhileCopyingViewConfiguration": "വ്യൂ കോൺഫിഗറേഷൻ പകർത്തുന്നതിനിടയിൽ ഒരു പിശക് സംഭവിച്ചു",
       "copyFromAnotherView": "മറ്റൊരു കാഴ്ചപ്പാടിൽ നിന്ന് പകർത്തുക",
-      "copyFromAView": "ഒരു വ്യൂവിൽ നിന്ന് പകർത്തുക"
+      "copyFromAView": "ഒരു വ്യൂവിൽ നിന്ന് പകർത്തുക",
+      "copySettingsFromView": "ഒരു കാഴ്ചയിൽ നിന്ന് ക്രമീകരണങ്ങൾ പകർത്തുക",
+      "chooseSettings": "ക്രമീകരണങ്ങൾ തിരഞ്ഞെടുക്കുക",
+      "settingsSelected": "{count} തിരഞ്ഞെടുത്തു",
+      "warning": {
+        "dynamic_filters_dropped": "{count} വിഭാഗം-മുതൽ-വിഭാഗം സ്ഥിതി(കൾ) പകർത്താനാവില്ല — ഈ പേജ് കാഴ്ചയേക്കാൾ കൂടുതൽ റെക്കോർഡുകൾ കാണിക്കും.",
+        "negated_filters_dropped": "{count} നിഷേധിച്ച സ്ഥിതി(കൾ) പകർത്താനാവില്ല — ഈ പേജ് കാഴ്ചയേക്കാൾ കൂടുതൽ റെക്കോർഡുകൾ കാണിക്കും.",
+        "row_color_background_lost": "റെക്കോർഡുകളുടെ നിറങ്ങൾ പകർത്തും, പക്ഷേ അവയുടെ പശ്ചാത്തല നിറം പകർത്തില്ല.",
+        "grouping_dropped": "ഈ ലേഔട്ട് ഗ്രൂപ്പിംഗ് പിന്തുണയ്ക്കുന്നില്ല, അതിനാൽ അത് പകർത്തുന്നില്ല."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "ചാറ്റ്",
+    "addons": "Add-ons",
+    "membersCount": "{count} അംഗം | {count} അംഗങ്ങൾ",
+    "bookmark": "ബുക്ക്മാർക്ക്",
+    "interfacePage": "ഇന്റർഫേസ് പേജ്",
+    "folder": "ഫോൾഡർ",
+    "formulas": "ഫോർമുലകൾ",
+    "audio": "ഓഡിയോ",
+    "app": "ആപ്പ്",
+    "apps": "ആപ്പുകൾ",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "വിൽപ്പന",
+      "marketing": "മാർക്കറ്റിംഗ്",
+      "finance": "ധനകാര്യം",
+      "hr": "മാനവ വിഭവശേഷി",
+      "operations": "പ്രവർത്തനങ്ങൾ",
+      "support": "പിന്തുണ",
+      "it": "IT",
+      "product": "ഉൽപ്പന്നം",
+      "data": "ഡാറ്റ",
+      "other": "മറ്റുള്ളവ"
+    },
+    "agent": "ഏജന്റ്",
+    "agents": "ഏജന്റുകൾ"
   },
   "datatype": {
     "ID": "ഐഡി",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "അപ്‍ലോഡ് പരിധി എത്തി",
       "youCanOnlyUploadMaxLimitFilesAtATime": "ഒരുവേള {limit} {type} ഫയൽ മാത്രമേ അപ്‍ലോഡ് ചെയ്യാന്‍ കഴിയൂ",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "ഒരുവേള {limit} {type} ഫയലുകള്‍ മാത്രം അപ്‍ലോഡ് ചെയ്യാന്‍ കഴിയൂ"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "ഒരുവേള {limit} {type} ഫയലുകള്‍ മാത്രം അപ്‍ലോഡ് ചെയ്യാന്‍ കഴിയൂ",
+      "tableDataImportedLinksUnmatched": "വിജയകരമായി ഇമ്പോര്‍ട്ട് ചെയ്തു. {links} റെക്കോർഡ് കണ്ണികൾ സൃഷ്ടിച്ചു; {unmatched} മൂല്യം(ങ്ങൾ) ഒരു റെക്കോർഡുമായും പൊരുത്തപ്പെട്ടില്ല, അവ ഒഴിവാക്കി.",
+      "tableDataImportedLinksFailed": "{failed} റെക്കോർഡ് കണ്ണി(കൾ) ഒരു റെക്കോർഡുമായി പൊരുത്തപ്പെട്ടു, പക്ഷേ സൃഷ്ടിക്കാനായില്ല. വിശദാംശങ്ങൾക്ക് ഇമ്പോര്‍ട്ട് ലോഗ് കാണുക.",
+      "importLinkReassignField": "“{field}” എന്നത് ഒരു has-many / one-to-one കണ്ണിയാണ് — ഇവിടെ മൂല്യങ്ങൾ ഇമ്പോര്‍ട്ട് ചെയ്യുന്നത് റെക്കോർഡുകളെ അവ ഇപ്പോൾ ബന്ധിപ്പിച്ചിരിക്കുന്ന മറ്റ് റെക്കോർഡുകളിൽ നിന്ന് അകറ്റിയേക്കാം.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Updated At വിഭാഗം സജ്ജമാക്കിയിട്ടില്ല",
+        "description": "ഓരോ സിങ്ക് പ്രവർത്തനവും ഈ പട്ടികയിലെ എല്ലാ റെക്കോർഡുകളും വീണ്ടും എടുക്കും. ഇൻക്രിമെന്റൽ സിങ്ക് പ്രാവർത്തികമാക്കാൻ ഒരു തീയതി വിഭാഗം Updated At ആയി അടയാളപ്പെടുത്തുക."
+      },
+      "syncDetachTable": "സിങ്ക് ഇനി ഈ പട്ടിക നവീകരിക്കില്ല. അതിലെ ഡാറ്റ നിലനിർത്തും, എല്ലാ വിഭാഗങ്ങളും എഡിറ്റ് ചെയ്യാവുന്നതാകും. ഉറവിട പട്ടിക പിന്നീട് സിങ്കിലേക്ക് വീണ്ടും ചേർത്താൽ പുതിയൊരു പട്ടിക സൃഷ്ടിക്കപ്പെടും.",
+      "tableSyncConvertMainTable": "ഇത് ഈ സിങ്കിന്റെ സിങ്ക് ചെയ്ത പട്ടികയാണ് — ഇത് പരിവർത്തനം ചെയ്താൽ സിങ്ക് തന്നെ നീക്കം ചെയ്യപ്പെടും. സിങ്ക് സൃഷ്ടിച്ച എല്ലാ പട്ടികകളും സാധാരണ, എഡിറ്റ് ചെയ്യാവുന്ന പട്ടികകളായി നിലനിൽക്കും, സിങ്ക് ചെയ്യുന്നത് നിർത്തും.",
+      "requiredFieldNotEditable": "ഈ നിർബന്ധിത വിഭാഗം എഡിറ്റ് ചെയ്യാനാവില്ല, ഇത് ഫോം സമർപ്പിക്കുമ്പോൾ പിഴവുകൾക്ക് കാരണമായേക്കാം.",
+      "communityAppInstall": "{title} ഒരു കമ്മ്യൂണിറ്റി ആപ്പാണ്. ഇത് NocoDB അവലോകനം ചെയ്യുകയോ പരിശോധിച്ചുറപ്പിക്കുകയോ ചെയ്തിട്ടില്ല. നിങ്ങളുടെ പ്രവർത്തനസ്ഥലത്ത് ഇത് ഇൻസ്റ്റാൾ ചെയ്യുന്നതിന് മുമ്പ് പ്രസാധകനെ വിശ്വസിക്കുന്നുവെന്ന് ഉറപ്പാക്കുക.",
+      "removeCustomDomain": "{domain} ഇനി ഈ ആപ്പ് നൽകില്ല. സ്ഥിരസ്ഥിതി വിലാസം പ്രവർത്തിക്കുന്നത് തുടരും."
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} സെൽ പകർത്തി",
       "nCellsCopied": "{n} സെലുകൾ പകർത്തി",
       "nRecordCreated": "{n} record created",
-      "nRecordsCreated": "{n} records created"
+      "nRecordsCreated": "{n} records created",
+      "interfaceFilterCopied": "{count} സ്ഥിതി പകർത്തി | {count} സ്ഥിതികൾ പകർത്തി"
     },
     "success": {
       "restored": "Item restored successfully",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "recordLinked": "റെക്കോർഡ് ബന്ധിപ്പിച്ചു",
+      "recordUnlinked": "റെക്കോർഡ് ബന്ധം നീക്കി",
+      "pageSharingEnabled": "പേജ് പങ്കിടൽ പ്രാവർത്തികമാക്കി",
+      "pageSharingDisabled": "പേജ് പങ്കിടൽ അപ്രാപ്തമാക്കി",
+      "dataExported": "ഡാറ്റ വിജയകരമായി എക്സ്പോർട്ട് ചെയ്തു!",
+      "recordTemplateUpdated": "ടെംപ്ലേറ്റ് നവീകരിച്ചു",
+      "recordTemplateCreated": "ടെംപ്ലേറ്റ് സൃഷ്ടിച്ചു",
+      "recordTemplateDeleted": "ടെംപ്ലേറ്റ് ഡിലീറ്റ് ചെയ്തു",
+      "accountConnected": "നിങ്ങളുടെ {provider} അക്കൗണ്ട് ബന്ധിപ്പിച്ചു.",
+      "appUninstalled": "ആപ്പ് അൺഇൻസ്റ്റാൾ ചെയ്തു",
+      "storeListingSaved": "സ്റ്റോർ ലിസ്റ്റിംഗ് സംരക്ഷിച്ചു",
+      "publisherProfileSaved": "പ്രസാധക പ്രൊഫൈൽ സംരക്ഷിച്ചു",
+      "planChanged": "പ്ലാൻ നവീകരിച്ചു",
+      "planChangeScheduled": "പ്ലാൻ മാറ്റം ഷെഡ്യൂൾ ചെയ്തു",
+      "planChangeReverted": "ഷെഡ്യൂൾ ചെയ്ത പ്ലാൻ മാറ്റം പിൻവലിച്ചു. നിങ്ങളുടെ നിലവിലെ പ്ലാൻ മാറ്റമില്ലാതെ തുടരും.",
+      "appDelisted": "App Store-ൽ നിന്ന് നീക്കം ചെയ്തു",
+      "appRelisted": "വീണ്ടും App Store-ൽ"
     },
     "subText": {
       "startFromScratch": "പുതിയത് തുടങ്ങുക.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "ഈ റിപ്പോസിറ്ററി ലോഡ് ചെയ്യാനായില്ല",
     "skillsCommunityTitle": "ഏതു പൊതു റിപ്പോസിറ്ററിയിൽ നിന്നും ഇൻസ്റ്റാൾ ചെയ്യുക",
     "skillsCommunityBlocked": "കമ്മ്യൂണിറ്റി സ്കില്ലുകൾ ഇൻസ്റ്റാൾ ചെയ്യാൻ നിങ്ങളുടെ പ്രവർത്തനസ്ഥലം അനുവദിക്കുന്നില്ല.",
-    "skillsCommunityBlockedOrg": "കമ്മ്യൂണിറ്റി സ്കില്ലുകൾ ഇൻസ്റ്റാൾ ചെയ്യാൻ നിങ്ങളുടെ സ്ഥാപനം അനുവദിക്കുന്നില്ല."
+    "skillsCommunityBlockedOrg": "കമ്മ്യൂണിറ്റി സ്കില്ലുകൾ ഇൻസ്റ്റാൾ ചെയ്യാൻ നിങ്ങളുടെ സ്ഥാപനം അനുവദിക്കുന്നില്ല.",
+    "thisSharedPageIsProtected": "ഈ പങ്കിട്ട പേജ് സംരക്ഷിതമാണ്",
+    "sso": {
+      "signInFailed": "നിങ്ങളെ സൈൻ ഇൻ ചെയ്യാൻ ഞങ്ങൾക്കായില്ല",
+      "shareCode": "സഹായം വേണോ? ഈ കോഡ് നിങ്ങളുടെ അഡ്മിനിസ്ട്രേറ്ററുമായി പങ്കിടുക",
+      "failure": {
+        "SSO_STATE_INVALID": "നിങ്ങളുടെ സൈൻ ഇൻ സെഷൻ കാലഹരണപ്പെട്ടു അല്ലെങ്കിൽ തടസ്സപ്പെട്ടു. ദയവായി വീണ്ടും ശ്രമിക്കുക.",
+        "SSO_TOKEN_INVALID": "നിങ്ങളുടെ സൈൻ ഇൻ ദാതാവിൽ നിന്നുള്ള മറുപടി പരിശോധിക്കാൻ ഞങ്ങൾക്കായില്ല. വീണ്ടും ശ്രമിക്കുക, ഇത് ആവർത്തിക്കുന്നെങ്കിൽ നിങ്ങളുടെ അഡ്മിനിസ്ട്രേറ്ററെ അറിയിക്കുക.",
+        "SSO_PROVIDER_ERROR": "നിങ്ങളുടെ സൈൻ ഇൻ ദാതാവിന് ഒരു പ്രശ്നം നേരിട്ടു. ദയവായി അൽപ്പസമയത്തിനു ശേഷം വീണ്ടും ശ്രമിക്കുക.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "ഈ അക്കൗണ്ടിന് സൈൻ ഇൻ ചെയ്യാൻ അനുമതിയില്ല. നിങ്ങളുടെ അഡ്മിനിസ്ട്രേറ്ററോട് ആക്സസ് ചോദിക്കുക, അല്ലെങ്കിൽ മറ്റൊരു അക്കൗണ്ട് പരീക്ഷിക്കുക.",
+        "SSO_FAILED": "നിങ്ങളെ സൈൻ ഇൻ ചെയ്യുന്നതിനിടെ എന്തോ പിഴവ് സംഭവിച്ചു. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+      }
+    },
+    "unsupportedFileType": "പിന്തുണയ്ക്കാത്ത ഫയൽ തരം",
+    "skillUpdatedFromSource": "{title} ഉറവിടത്തിൽ നിന്ന് നവീകരിച്ചു",
+    "workspaceSkillsSubtitle": "ഇവിടത്തെ എല്ലാ മേൽസ്ഥലത്തിലും, കൂടാതെ ഇത് തിരഞ്ഞെടുക്കുന്ന ഏജന്റുകൾക്കും ലഭ്യമാണ്.",
+    "skillShadowed": "{scope} തലത്തിൽ ഇതേ പേരുള്ള ഒരു സ്കിൽ മുൻഗണന നേടുന്നു, അതിനാൽ ഇത് നൽകുന്നില്ല.",
+    "skillsNoMatchBody": "ആ തിരയലുമായി ഒന്നും പൊരുത്തപ്പെടുന്നില്ല. മറ്റൊരു പദം പരീക്ഷിക്കുക അല്ലെങ്കിൽ ഫിൽട്ടറുകൾ മായ്ക്കുക."
   },
   "trash": {
     "restore": "Restore",

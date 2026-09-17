@@ -805,7 +805,8 @@
       "org-level-viewer": "Apenas ver registros",
       "cloud-org-level-owner": "Controle total da organização e de seus espaços de trabalho",
       "cloud-org-level-creator": "Criar espaços de trabalho e entrar naqueles para os quais for convidado",
-      "cloud-org-level-viewer": "Ver a organização e seus espaços de trabalho"
+      "cloud-org-level-viewer": "Ver a organização e seus espaços de trabalho",
+      "app-user": "Usar somente aplicativos publicados"
     },
     "sqlView": "Exibição SQL",
     "rowHeight": "Altura do Registro",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Descubra integrações adicionais versáteis para melhorar sua experiência com o NocoDB.",
       "ai": "IA",
       "spreadSheet": "Planilha",
-      "spreadSheetSubtitle": "Conecte e gerencie suas planilhas com o NocoDB."
+      "spreadSheetSubtitle": "Conecte e gerencie suas planilhas com o NocoDB.",
+      "authProvider": "Provedor de autenticação",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Sucesso",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Empresas",
       "Self-hosted Scale": "Escala",
-      "Self-hosted Enterprise": "Empresa"
+      "Self-hosted Enterprise": "Empresa",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Armazenamento utilizado",
       "webhookCallsMonthly": "Chamadas de Webhook",
-      "apiCallsMonthly": "Chamadas de API"
+      "apiCallsMonthly": "Chamadas de API",
+      "automationRunsMonthly": "Execuções de automação",
+      "externalSources": "Fontes externas"
     },
     "coloring": {
       "usingSingleSelectField": "Usando campo de seleção única",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Coloridos de registros/células baseadas em condições",
       "colourRecordsByField": "Colorir registros por campo",
       "rowColorDescription": "Aplicar cor ao registro",
-      "cellColorDescription": "Aplicar cor a um campo específico"
+      "cellColorDescription": "Aplicar cor a um campo específico",
+      "title": "Coloração",
+      "usingConditionsDescriptionOss": "Colorir registros com base em condições"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Criação de registro restrita",
@@ -974,7 +982,30 @@
         "filterCount": "Filtro {count} filtros {count}",
         "subjectsRequired": "Por favor, selecione pelo menos um papel, usuário ou equipe.",
         "confirmDeleteTitle": "Tem certeza de que deseja excluir esta política?",
-        "confirmDeleteContent": "Esta ação não pode ser desfeita."
+        "confirmDeleteContent": "Esta ação não pode ser desfeita.",
+        "groupAgents": "Agentes",
+        "ownerSubjectNote": "Proprietários podem alterar as regras de RLS.",
+        "selectDynamicValue": "Selecione um valor dinâmico...",
+        "placeholders": {
+          "currentUserId": "ID do usuário atual",
+          "currentUserIdDescription": "O ID do usuário conectado.",
+          "currentUserEmail": "E-mail do usuário atual",
+          "currentUserEmailDescription": "O endereço de e-mail do usuário conectado.",
+          "currentUserName": "Nome do usuário atual",
+          "currentUserNameDescription": "O nome de exibição do usuário conectado.",
+          "currentUserRoles": "Papéis do usuário atual",
+          "currentUserRolesDescription": "Os papéis de projeto do usuário conectado.",
+          "currentUserTeams": "Minhas equipes",
+          "currentUserTeamsDescription": "IDs das equipes às quais o usuário pertence diretamente.",
+          "currentUserTeamsWithDescendants": "Minhas equipes e subequipes",
+          "currentUserTeamsWithDescendantsDescription": "IDs das equipes do usuário mais todas as que estão abaixo delas.",
+          "currentUserTeamNames": "Nomes das minhas equipes",
+          "currentUserTeamNamesDescription": "Nomes das equipes às quais o usuário pertence diretamente.",
+          "currentUserTeamNamesWithDescendants": "Nomes das minhas equipes e subequipes",
+          "currentUserTeamNamesWithDescendantsDescription": "Nomes das equipes do usuário mais todas as que estão abaixo delas.",
+          "currentUserTeamWithDescendantMembers": "Membros das minhas equipes",
+          "currentUserTeamWithDescendantMembersDescription": "Todo mundo nas equipes e subequipes do usuário — use com «contém algum de» para ver os registros de quem se reporta a você."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Configuração da visualização copiada com sucesso",
       "errorOccuredWhileCopyingViewConfiguration": "Ocorreu um erro ao copiar a configuração da visualização",
       "copyFromAnotherView": "Copiar de outra visualização",
-      "copyFromAView": "Copiar de uma visualização"
+      "copyFromAView": "Copiar de uma visualização",
+      "copySettingsFromView": "Copiar configurações de uma visualização",
+      "chooseSettings": "Escolher configurações",
+      "settingsSelected": "{count} selecionadas",
+      "warning": {
+        "dynamic_filters_dropped": "{count} condição(ões) de coluna para coluna não podem ser copiadas — esta página mostrará mais registros do que a visualização.",
+        "negated_filters_dropped": "{count} condição(ões) negadas não podem ser copiadas — esta página mostrará mais registros do que a visualização.",
+        "row_color_background_lost": "As cores dos registros são copiadas, mas o preenchimento de fundo delas não.",
+        "grouping_dropped": "Este layout não suporta agrupamento, então ele não é copiado."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "No more teams to add",
       "alreadyAdded": "Already added",
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} membro | {count} membros",
+    "bookmark": "Favorito",
+    "interfacePage": "Página de interface",
+    "folder": "Pasta",
+    "formulas": "Fórmulas",
+    "audio": "Áudio",
+    "app": "App",
+    "apps": "Apps",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Vendas",
+      "marketing": "Marketing",
+      "finance": "Finanças",
+      "hr": "RH",
+      "operations": "Operações",
+      "support": "Suporte",
+      "it": "IT",
+      "product": "Produto",
+      "data": "Dados",
+      "other": "Outros"
+    },
+    "agent": "Agente",
+    "agents": "Agentes"
   },
   "datatype": {
     "ID": "ID",
@@ -4913,7 +4978,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "O campo que você estava editando foi atualizado por outro usuário. Suas alterações não salvas são preservadas — salvar irá substituir suas alterações.",
       "reachedUploadLimit": "Limite de upload atingido",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Você só pode enviar {limit} arquivo {type} por vez",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Você só pode enviar {limit} arquivos {type} por vez"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Você só pode enviar {limit} arquivos {type} por vez",
+      "tableDataImportedLinksUnmatched": "Importado com sucesso. {links} vínculos de registro criados; {unmatched} valor(es) não corresponderam a nenhum registro e foram ignorados.",
+      "tableDataImportedLinksFailed": "{failed} vínculo(s) de registro corresponderam a um registro mas não puderam ser criados. Veja o log de importação para detalhes.",
+      "importLinkReassignField": "«{field}» é um vínculo um-para-muitos ou um-para-um — importar valores aqui pode afastar registros daqueles aos quais estão vinculados no momento.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Nenhuma coluna «Atualizado em» definida",
+        "description": "Cada execução da sincronização vai buscar novamente todos os registros desta tabela. Marque uma coluna de data como «Atualizado em» para habilitar a sincronização incremental."
+      },
+      "syncDetachTable": "A sincronização deixará de atualizar esta tabela. Os dados dela são mantidos e todas as colunas passam a ser editáveis. Adicionar a tabela de origem à sincronização mais tarde cria uma tabela nova.",
+      "tableSyncConvertMainTable": "Esta é a tabela sincronizada desta sincronização — convertê-la remove a própria sincronização. Todas as tabelas criadas por ela são mantidas como tabelas normais e editáveis e param de sincronizar.",
+      "requiredFieldNotEditable": "Esta coluna obrigatória não é editável, o que pode causar erros no envio do formulário.",
+      "communityAppInstall": "{title} é um aplicativo da comunidade. Ele não foi analisado nem verificado pela NocoDB. Certifique-se de confiar no publicador antes de instalá-lo no seu espaço de trabalho.",
+      "removeCustomDomain": "{domain} deixará de servir este aplicativo. O endereço padrão continua funcionando."
     },
     "info": {
       "sourceViewRebindResync": "Alterar a visão de origem aciona uma re-sincronização completa com a nova exibição.",
@@ -5600,7 +5677,8 @@
       "nCellCopied": "{n} célula copiada",
       "nCellsCopied": "{n} células copiadas",
       "nRecordCreated": "Registro {n} criado",
-      "nRecordsCreated": "Registros {n} criados"
+      "nRecordsCreated": "Registros {n} criados",
+      "interfaceFilterCopied": "{count} condição copiada | {count} condições copiadas"
     },
     "success": {
       "restored": "Item restaurado com sucesso",
@@ -5667,7 +5745,24 @@
       "scimDisabled": "provisionamento SCIM desativado",
       "tokenRegenerated": "Token de provisionamento regenerado com sucesso",
       "scimDeleted": "Configuração SCIM excluída com sucesso",
-      "defaultRoleUpdated": "Cargo padrão atualizado com sucesso"
+      "defaultRoleUpdated": "Cargo padrão atualizado com sucesso",
+      "recordLinked": "Registro vinculado",
+      "recordUnlinked": "Registro desvinculado",
+      "pageSharingEnabled": "Compartilhamento da página ativado",
+      "pageSharingDisabled": "Compartilhamento da página desativado",
+      "dataExported": "Dados exportados com sucesso!",
+      "recordTemplateUpdated": "Modelo atualizado",
+      "recordTemplateCreated": "Modelo criado",
+      "recordTemplateDeleted": "Modelo excluído",
+      "accountConnected": "Sua conta {provider} está conectada.",
+      "appUninstalled": "Aplicativo desinstalado",
+      "storeListingSaved": "Anúncio da loja salvo",
+      "publisherProfileSaved": "Perfil do publicador salvo",
+      "planChanged": "Plano atualizado",
+      "planChangeScheduled": "Mudança de plano agendada",
+      "planChangeReverted": "Mudança de plano agendada revertida. Seu plano atual continua inalterado.",
+      "appDelisted": "Removido da App Store",
+      "appRelisted": "De volta à App Store"
     },
     "subText": {
       "startFromScratch": "Começar do zero.",
@@ -5836,7 +5931,24 @@
     "skillsCatalogErrorTitle": "Não foi possível carregar este repositório",
     "skillsCommunityTitle": "Instalar de qualquer repositório público",
     "skillsCommunityBlocked": "Seu espaço de trabalho não permite instalar habilidades da comunidade.",
-    "skillsCommunityBlockedOrg": "Sua organização não permite instalar habilidades da comunidade."
+    "skillsCommunityBlockedOrg": "Sua organização não permite instalar habilidades da comunidade.",
+    "thisSharedPageIsProtected": "Esta página compartilhada está protegida",
+    "sso": {
+      "signInFailed": "Não conseguimos fazer seu login",
+      "shareCode": "Precisa de ajuda? Compartilhe este código com seu administrador",
+      "failure": {
+        "SSO_STATE_INVALID": "Sua sessão de login expirou ou foi interrompida. Tente novamente.",
+        "SSO_TOKEN_INVALID": "Não conseguimos verificar a resposta do seu provedor de login. Tente novamente e avise seu administrador se continuar acontecendo.",
+        "SSO_PROVIDER_ERROR": "Seu provedor de login teve um problema. Tente novamente em instantes.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Esta conta não tem permissão para entrar. Peça acesso ao seu administrador ou tente outra conta.",
+        "SSO_FAILED": "Algo deu errado ao fazer seu login. Tente novamente."
+      }
+    },
+    "unsupportedFileType": "Tipo de arquivo não suportado",
+    "skillUpdatedFromSource": "{title} atualizado a partir da origem",
+    "workspaceSkillsSubtitle": "Disponíveis em todos os projetos daqui e para os agentes que optarem por elas.",
+    "skillShadowed": "Uma habilidade com este título no nível {scope} tem prioridade, então esta não é oferecida.",
+    "skillsNoMatchBody": "Nada corresponde a essa busca. Tente outro termo ou limpe os filtros."
   },
   "trash": {
     "restore": "RESTAURAR",

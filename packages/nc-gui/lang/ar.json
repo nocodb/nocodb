@@ -805,7 +805,8 @@
       "org-level-viewer": "عرض السجلات فقط",
       "cloud-org-level-owner": "تحكم كامل في المؤسسة ومساحات العمل التابعة لها",
       "cloud-org-level-creator": "إنشاء مساحات عمل والانضمام إلى ما تتم دعوته إليه",
-      "cloud-org-level-viewer": "عرض المؤسسة ومساحات العمل التابعة لها"
+      "cloud-org-level-viewer": "عرض المؤسسة ومساحات العمل التابعة لها",
+      "app-user": "استخدام التطبيقات المنشورة فقط"
     },
     "sqlView": "عرض SQL",
     "rowHeight": "ارتفاع السجل",
@@ -882,7 +883,9 @@
       "othersSubtitle": "اكتشف عمليات تكامل إضافية متعددة لتحسين تجربتك مع NocoDB.",
       "ai": "الذكاء الاصطناعي",
       "spreadSheet": "جدول البيانات",
-      "spreadSheetSubtitle": "ربط وإدارة جداول البيانات الخاصة بك مع NocoDB."
+      "spreadSheetSubtitle": "ربط وإدارة جداول البيانات الخاصة بك مع NocoDB.",
+      "authProvider": "مزوّد المصادقة",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "نجاح",
@@ -898,7 +901,8 @@
       "Enterprise": "مؤسسة",
       "Self-hosted Business": "الأعمال",
       "Self-hosted Scale": "المقياس",
-      "Self-hosted Enterprise": "المؤسسة"
+      "Self-hosted Enterprise": "المؤسسة",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "عمليات تشغيل الأتمتة",
+      "externalSources": "مصادر خارجية"
     },
     "coloring": {
       "usingSingleSelectField": "استخدام حقل الاختيار الفردي",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "سجلات الألوان/الخلايا حسب الشروط",
       "colourRecordsByField": "تلوين السجلات حسب الحقل",
       "rowColorDescription": "تطبيق اللون على السجل",
-      "cellColorDescription": "تطبيق اللون على حقل معين"
+      "cellColorDescription": "تطبيق اللون على حقل معين",
+      "title": "التلوين",
+      "usingConditionsDescriptionOss": "تلوين السجلات بناءً على شروط"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "إضافة سجل مقيد",
@@ -974,7 +982,30 @@
         "filterCount": "{count} مرشح | {count} المرشحات",
         "subjectsRequired": "الرجاء تحديد دور أو مستخدم أو فريق واحد على الأقل.",
         "confirmDeleteTitle": "هل أنت متأكد من أنك تريد حذف هذه السياسة؟",
-        "confirmDeleteContent": "لا يمكن التراجع عن هذا الإجراء."
+        "confirmDeleteContent": "لا يمكن التراجع عن هذا الإجراء.",
+        "groupAgents": "الوكلاء",
+        "ownerSubjectNote": "يمكن للمالكين تغيير قواعد RLS.",
+        "selectDynamicValue": "اختر قيمة ديناميكية...",
+        "placeholders": {
+          "currentUserId": "معرّف المستخدم الحالي",
+          "currentUserIdDescription": "معرّف المستخدم المسجَّل دخوله.",
+          "currentUserEmail": "بريد المستخدم الحالي",
+          "currentUserEmailDescription": "عنوان البريد الإلكتروني للمستخدم المسجَّل دخوله.",
+          "currentUserName": "اسم المستخدم الحالي",
+          "currentUserNameDescription": "الاسم الظاهر للمستخدم المسجَّل دخوله.",
+          "currentUserRoles": "أدوار المستخدم الحالي",
+          "currentUserRolesDescription": "أدوار المستخدم المسجَّل دخوله في المشروع.",
+          "currentUserTeams": "فرقي",
+          "currentUserTeamsDescription": "معرّفات الفرق التي ينتمي إليها المستخدم مباشرةً.",
+          "currentUserTeamsWithDescendants": "فرقي وفرقي الفرعية",
+          "currentUserTeamsWithDescendantsDescription": "معرّفات فرق المستخدم إضافة إلى كل فريق يقع تحتها.",
+          "currentUserTeamNames": "أسماء فرقي",
+          "currentUserTeamNamesDescription": "أسماء الفرق التي ينتمي إليها المستخدم مباشرةً.",
+          "currentUserTeamNamesWithDescendants": "أسماء فرقي وفرقي الفرعية",
+          "currentUserTeamNamesWithDescendantsDescription": "أسماء فرق المستخدم إضافة إلى كل فريق يقع تحتها.",
+          "currentUserTeamWithDescendantMembers": "أعضاء فرقي",
+          "currentUserTeamWithDescendantMembersDescription": "كل من في فرق المستخدم وفرقه الفرعية — استخدمه مع «يحتوي على أي من» لترى سجلات مرؤوسيك."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "لا أحد {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "تم نسخ الإعدادات بنجاح",
       "errorOccuredWhileCopyingViewConfiguration": "حدث خطأ أثناء نسخ إعدادات العرض",
       "copyFromAnotherView": "نسخ من عرض آخر",
-      "copyFromAView": "نسخ من عرض"
+      "copyFromAView": "نسخ من عرض",
+      "copySettingsFromView": "نسخ الإعدادات من طريقة عرض",
+      "chooseSettings": "اختر الإعدادات",
+      "settingsSelected": "{count} محدد",
+      "warning": {
+        "dynamic_filters_dropped": "تعذّر نسخ {count} من الشروط بين الحقول — ستعرض هذه الصفحة سجلات أكثر مما تعرضه طريقة العرض.",
+        "negated_filters_dropped": "تعذّر نسخ {count} من الشروط المنفية — ستعرض هذه الصفحة سجلات أكثر مما تعرضه طريقة العرض.",
+        "row_color_background_lost": "تُنسخ ألوان السجلات، أما تعبئة خلفيتها فلا.",
+        "grouping_dropped": "هذا التخطيط لا يدعم التجميع، لذا لا يُنسخ."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "هل أنت متأكد من أنك تريد ترك هذا الفريق؟",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "لا مزيد من الفرق لإضافتها",
       "alreadyAdded": "تمت الإضافة بالفعل",
       "teamCantBeAssignedOwnerRole": "لا يمكن تعيين الفريق دور المالك"
-    }
+    },
+    "chat": "محادثة",
+    "addons": "Add-ons",
+    "membersCount": "{count} عضو | {count} أعضاء",
+    "bookmark": "إشارة مرجعية",
+    "interfacePage": "صفحة الواجهة",
+    "folder": "مجلد",
+    "formulas": "الصيغ",
+    "audio": "صوت",
+    "app": "تطبيق",
+    "apps": "التطبيقات",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "المبيعات",
+      "marketing": "التسويق",
+      "finance": "المالية",
+      "hr": "الموارد البشرية",
+      "operations": "العمليات",
+      "support": "الدعم",
+      "it": "IT",
+      "product": "المنتج",
+      "data": "البيانات",
+      "other": "أخرى"
+    },
+    "agent": "وكيل",
+    "agents": "الوكلاء"
   },
   "datatype": {
     "ID": "هوية",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "الحقل الذي كنت بصدد تعديله تم تحديثه من قبل مستخدم آخر. التغييرات غير المحفوظة الخاصة بك محفوظة – حفظ سيتم الكتابة فوق تغييراتها.",
       "reachedUploadLimit": "تم الوصول إلى حد الرفع",
       "youCanOnlyUploadMaxLimitFilesAtATime": "يمكنك رفع {limit} ملف {type} في كل مرة فقط",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "يمكنك رفع {limit} ملفات {type} في كل مرة فقط"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "يمكنك رفع {limit} ملفات {type} في كل مرة فقط",
+      "tableDataImportedLinksUnmatched": "تم الاستيراد بنجاح. أُنشئ {links} من روابط السجلات، ولم تطابق {unmatched} من القيم أي سجل فجرى تخطّيها.",
+      "tableDataImportedLinksFailed": "طابق {failed} من روابط السجلات سجلًا ما لكن تعذّر إنشاؤها. راجع سجل الاستيراد للتفاصيل.",
+      "importLinkReassignField": "«{field}» رابط من نوع واحد-إلى-متعدد أو واحد-إلى-واحد — استيراد القيم هنا قد ينزع السجلات عن السجلات المرتبطة بها حاليًا.",
+      "syncNoUpdatedAtColumn": {
+        "title": "لم يُحدَّد حقل «تاريخ التحديث»",
+        "description": "سيعيد كل تشغيل للمزامنة جلب جميع سجلات هذا الجدول. حدِّد حقل تاريخ باعتباره «تاريخ التحديث» لتمكين المزامنة التزايدية."
+      },
+      "syncDetachTable": "ستتوقف المزامنة عن تحديث هذا الجدول. تُحفظ بياناته وتصبح جميع الحقول قابلة للتحرير. وإذا أُعيدت إضافة جدول المصدر إلى المزامنة لاحقًا، فسيُنشأ جدول جديد.",
+      "tableSyncConvertMainTable": "هذا هو الجدول المتزامن لهذه المزامنة — وتحويله يزيل المزامنة نفسها. وتبقى جميع الجداول التي أنشأتها المزامنة جداول عادية قابلة للتحرير وتتوقف عن المزامنة.",
+      "requiredFieldNotEditable": "هذا الحقل المطلوب غير قابل للتحرير، وقد يسبب ذلك أخطاء عند إرسال الاستمارة.",
+      "communityAppInstall": "{title} تطبيق من المجتمع. لم تراجعه NocoDB ولم تتحقق منه. تأكّد من ثقتك بالناشر قبل تثبيته في مساحة عملك.",
+      "removeCustomDomain": "سيتوقف {domain} عن تقديم هذا التطبيق. أما العنوان الافتراضي فيظل يعمل."
     },
     "info": {
       "sourceViewRebindResync": "تغيير طريقة عرض المصدر يؤدي إلى إعادة مزامنة كاملة مقابل طريقة العرض الجديدة.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "تم نسخ {n} خلية",
       "nCellsCopied": "تم نسخ {n} خلايا",
       "nRecordCreated": "{n} السجل الذي تم إنشاؤه",
-      "nRecordsCreated": "{n} السجلات التي تم إنشاؤها"
+      "nRecordsCreated": "{n} السجلات التي تم إنشاؤها",
+      "interfaceFilterCopied": "نُسخ {count} شرط | نُسخت {count} شروط"
     },
     "success": {
       "restored": "تم إستعادة العنصر بنجاح",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "تم تعطيل حجز SCIM",
       "tokenRegenerated": "تم تجديد رمز التوفير بنجاح",
       "scimDeleted": "تم حذف تكوين SCIM بنجاح",
-      "defaultRoleUpdated": "تم تحديث الدور الافتراضي بنجاح"
+      "defaultRoleUpdated": "تم تحديث الدور الافتراضي بنجاح",
+      "recordLinked": "رُبط السجل",
+      "recordUnlinked": "أُلغي ربط السجل",
+      "pageSharingEnabled": "فُعّلت مشاركة الصفحة",
+      "pageSharingDisabled": "أُوقفت مشاركة الصفحة",
+      "dataExported": "تم تصدير البيانات بنجاح!",
+      "recordTemplateUpdated": "حُدّث القالب",
+      "recordTemplateCreated": "أُنشئ القالب",
+      "recordTemplateDeleted": "حُذف القالب",
+      "accountConnected": "تم ربط حساب {provider} الخاص بك.",
+      "appUninstalled": "أُلغي تثبيت التطبيق",
+      "storeListingSaved": "حُفظ إدراج المتجر",
+      "publisherProfileSaved": "حُفظ ملف الناشر",
+      "planChanged": "حُدّثت الخطة",
+      "planChangeScheduled": "جُدوِل تغيير الخطة",
+      "planChangeReverted": "تم التراجع عن تغيير الخطة المجدول. تستمر خطتك الحالية دون تغيير.",
+      "appDelisted": "أُزيل من App Store",
+      "appRelisted": "عاد إلى App Store"
     },
     "subText": {
       "startFromScratch": "البدء من الصفر.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "تعذّر تحميل هذا المستودع",
     "skillsCommunityTitle": "التثبيت من أي مستودع عام",
     "skillsCommunityBlocked": "لا تسمح مساحة عملك بتثبيت مهارات المجتمع.",
-    "skillsCommunityBlockedOrg": "لا تسمح مؤسستك بتثبيت مهارات المجتمع."
+    "skillsCommunityBlockedOrg": "لا تسمح مؤسستك بتثبيت مهارات المجتمع.",
+    "thisSharedPageIsProtected": "هذه الصفحة المشتركة محمية",
+    "sso": {
+      "signInFailed": "تعذّر تسجيل دخولك",
+      "shareCode": "هل تحتاج مساعدة؟ شارك هذا الرمز مع المسؤول لديك",
+      "failure": {
+        "SSO_STATE_INVALID": "انتهت جلسة تسجيل الدخول أو انقطعت. يُرجى المحاولة مرة أخرى.",
+        "SSO_TOKEN_INVALID": "تعذّر التحقق من رد مزوّد تسجيل الدخول لديك. حاول مرة أخرى، وأبلغ المسؤول لديك إذا استمر الأمر.",
+        "SSO_PROVIDER_ERROR": "واجه مزوّد تسجيل الدخول لديك مشكلة. يُرجى المحاولة مرة أخرى بعد قليل.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "لا يُسمح لهذا الحساب بتسجيل الدخول. اطلب الإذن من المسؤول لديك، أو جرّب حسابًا آخر.",
+        "SSO_FAILED": "حدث خطأ ما أثناء تسجيل دخولك. يُرجى المحاولة مرة أخرى."
+      }
+    },
+    "unsupportedFileType": "نوع ملف غير مدعوم",
+    "skillUpdatedFromSource": "تم تحديث {title} من المصدر",
+    "workspaceSkillsSubtitle": "متاحة في كل مشروع هنا، وللوكلاء الذين يفعّلونها.",
+    "skillShadowed": "لمهارة تحمل هذا العنوان على مستوى {scope} الأسبقية، لذا لا تُعرض هذه المهارة.",
+    "skillsNoMatchBody": "لا شيء يطابق هذا البحث. جرّب كلمة أخرى أو امسح عوامل التصفية."
   },
   "trash": {
     "restore": "إستعادة",

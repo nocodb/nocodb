@@ -805,7 +805,8 @@
       "org-level-viewer": "Yalnızca kayıtları görüntüleme",
       "cloud-org-level-owner": "Kuruluş ve çalışma alanları üzerinde tam denetim",
       "cloud-org-level-creator": "Çalışma alanı oluşturma ve davet edildiklerine katılma",
-      "cloud-org-level-viewer": "Kuruluşu ve çalışma alanlarını görüntüleme"
+      "cloud-org-level-viewer": "Kuruluşu ve çalışma alanlarını görüntüleme",
+      "app-user": "Yalnızca yayımlanmış uygulamaları kullan"
     },
     "sqlView": "SQL Görünümü",
     "rowHeight": "Sütun Yüksekliği",
@@ -882,7 +883,9 @@
       "othersSubtitle": "NocoDB deneyiminizi geliştirmek için ek çeşitli entegrasyonları keşfedin.",
       "ai": "AI",
       "spreadSheet": "Hesap Tablosu",
-      "spreadSheetSubtitle": "Elektronik tablolarınızı NocoDB ile bağlayın ve yönetin."
+      "spreadSheetSubtitle": "Elektronik tablolarınızı NocoDB ile bağlayın ve yönetin.",
+      "authProvider": "Kimlik doğrulama sağlayıcısı",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Başarılı",
@@ -898,7 +901,8 @@
       "Enterprise": "Kurumsal",
       "Self-hosted Business": "İş",
       "Self-hosted Scale": "Ölçek",
-      "Self-hosted Enterprise": "Kurumsal"
+      "Self-hosted Enterprise": "Kurumsal",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Otomasyon çalıştırmaları",
+      "externalSources": "Dış kaynaklar"
     },
     "coloring": {
       "usingSingleSelectField": "Tekli seçim alanı kullanılıyor",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Koşullara göre kayıtları renklendir",
       "colourRecordsByField": "Alanlara göre kayıtları renklendir",
       "rowColorDescription": "Kayıta renk uygula",
-      "cellColorDescription": "Belirli bir alana renk uygula"
+      "cellColorDescription": "Belirli bir alana renk uygula",
+      "title": "Renklendirme",
+      "usingConditionsDescriptionOss": "Kayıtları koşullara göre renklendir"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Kayıt oluşturma kısıtlandı",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filters",
         "subjectsRequired": "Lütfen en az bir rol, kullanıcı veya takım seçin.",
         "confirmDeleteTitle": "Bu kuralı silmek istediğinizden emin misiniz?",
-        "confirmDeleteContent": "Bu işlem geri alınamaz."
+        "confirmDeleteContent": "Bu işlem geri alınamaz.",
+        "groupAgents": "Ajanlar",
+        "ownerSubjectNote": "Sahipler RLS kurallarını değiştirebilir.",
+        "selectDynamicValue": "Dinamik bir değer seçin...",
+        "placeholders": {
+          "currentUserId": "Geçerli kullanıcının kimliği",
+          "currentUserIdDescription": "Oturum açmış kullanıcının kimliği.",
+          "currentUserEmail": "Geçerli kullanıcının e-postası",
+          "currentUserEmailDescription": "Oturum açmış kullanıcının e-posta adresi.",
+          "currentUserName": "Geçerli kullanıcının adı",
+          "currentUserNameDescription": "Oturum açmış kullanıcının görünen adı.",
+          "currentUserRoles": "Geçerli kullanıcının rolleri",
+          "currentUserRolesDescription": "Oturum açmış kullanıcının projedeki rolleri.",
+          "currentUserTeams": "Takımlarım",
+          "currentUserTeamsDescription": "Kullanıcının doğrudan üyesi olduğu takımların kimlikleri.",
+          "currentUserTeamsWithDescendants": "Takımlarım ve alt takımlarım",
+          "currentUserTeamsWithDescendantsDescription": "Kullanıcının takımlarının ve altlarındaki tüm takımların kimlikleri.",
+          "currentUserTeamNames": "Takımlarımın adları",
+          "currentUserTeamNamesDescription": "Kullanıcının doğrudan üyesi olduğu takımların adları.",
+          "currentUserTeamNamesWithDescendants": "Takımlarımın ve alt takımlarımın adları",
+          "currentUserTeamNamesWithDescendantsDescription": "Kullanıcının takımlarının ve altlarındaki tüm takımların adları.",
+          "currentUserTeamWithDescendantMembers": "Takımlarımın üyeleri",
+          "currentUserTeamWithDescendantMembersDescription": "Kullanıcının takımlarındaki ve alt takımlarındaki herkes — size bağlı çalışanların kayıtlarını görmek için «şunlardan herhangi birini içerir» ile birlikte kullanın."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Kimse {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Görünüm yapılandırması başarıyla kopyalandı",
       "errorOccuredWhileCopyingViewConfiguration": "Görünüm yapılandırması kopyalanırken bir hata oluştu",
       "copyFromAnotherView": "Başka bir görünümden kopyala",
-      "copyFromAView": "Bir görünümden kopyala"
+      "copyFromAView": "Bir görünümden kopyala",
+      "copySettingsFromView": "Bir görünümden ayarları kopyala",
+      "chooseSettings": "Ayarları seçin",
+      "settingsSelected": "{count} seçildi",
+      "warning": {
+        "dynamic_filters_dropped": "{count} alandan alana koşul kopyalanamıyor — bu sayfa görünümden daha fazla kayıt gösterecek.",
+        "negated_filters_dropped": "{count} olumsuzlanmış koşul kopyalanamıyor — bu sayfa görünümden daha fazla kayıt gösterecek.",
+        "row_color_background_lost": "Kayıt renkleri kopyalanır, ancak arka plan dolgusu kopyalanmaz.",
+        "grouping_dropped": "Bu düzen gruplamayı desteklemiyor, bu yüzden kopyalanmıyor."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Bu ekipten ayrılmak istediğinizden emin misiniz?",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "Eklenecek başka ekip yok",
       "alreadyAdded": "Zaten eklendi",
       "teamCantBeAssignedOwnerRole": "Ekibe Sahip rolü atanamaz"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} üye | {count} üye",
+    "bookmark": "Yer imi",
+    "interfacePage": "Arayüz sayfası",
+    "folder": "Klasör",
+    "formulas": "Formüller",
+    "audio": "Audio",
+    "app": "Uygulama",
+    "apps": "Uygulamalar",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Satış",
+      "marketing": "Marketing",
+      "finance": "Finans",
+      "hr": "İnsan Kaynakları",
+      "operations": "Operasyon",
+      "support": "Destek",
+      "it": "IT",
+      "product": "Ürün",
+      "data": "Veri",
+      "other": "Diğer"
+    },
+    "agent": "Ajan",
+    "agents": "Ajanlar"
   },
   "datatype": {
     "ID": "ID",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Düzenlemekte olduğunuz alan bir başka kullanıcı tarafından güncellendi. Kaydedilmemiş değişiklikleriniz korundu — kaydedeceğinizde onların değişiklikleri üzerine yazılır.",
       "reachedUploadLimit": "Yükleme sınırına ulaşıldı",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Aynı anda yalnızca {limit} adet {type} dosyası yükleyebilirsiniz",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Aynı anda yalnızca {limit} adet {type} dosyası yükleyebilirsiniz"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Aynı anda yalnızca {limit} adet {type} dosyası yükleyebilirsiniz",
+      "tableDataImportedLinksUnmatched": "Başarıyla içe aktarıldı. {links} kayıt bağlantısı oluşturuldu; {unmatched} değer hiçbir kayıtla eşleşmedi ve atlandı.",
+      "tableDataImportedLinksFailed": "{failed} kayıt bağlantısı bir kayıtla eşleşti ama oluşturulamadı. Ayrıntılar için içe aktarma günlüğüne bakın.",
+      "importLinkReassignField": "«{field}» bir bire-çok veya bire-bir bağlantıdır — buraya değer aktarmak, kayıtları şu anda bağlı oldukları kayıtlardan koparabilir.",
+      "syncNoUpdatedAtColumn": {
+        "title": "«Güncellenme» alanı ayarlanmamış",
+        "description": "Her eşitleme çalıştırması bu tablonun tüm kayıtlarını yeniden getirir. Artımlı eşitlemeyi etkinleştirmek için bir tarih alanını «Güncellenme» olarak işaretleyin."
+      },
+      "syncDetachTable": "Eşitleme bu tabloyu artık güncellemeyecek. Verileri korunur ve tüm alanlar düzenlenebilir hâle gelir. Kaynak tabloyu daha sonra eşitlemeye yeniden eklemek yeni bir tablo oluşturur.",
+      "tableSyncConvertMainTable": "Bu, bu eşitlemenin eşitlenen tablosudur — dönüştürmek eşitlemenin kendisini kaldırır. Eşitlemenin oluşturduğu tüm tablolar normal, düzenlenebilir tablolar olarak kalır ve eşitlenmeyi bırakır.",
+      "requiredFieldNotEditable": "Bu zorunlu alan düzenlenemez; bu da form gönderilirken hatalara yol açabilir.",
+      "communityAppInstall": "{title} bir topluluk uygulamasıdır. NocoDB tarafından incelenmemiş veya doğrulanmamıştır. Çalışma alanınıza kurmadan önce yayıncıya güvendiğinizden emin olun.",
+      "removeCustomDomain": "{domain} bu uygulamayı artık sunmayacak. Varsayılan adres çalışmayı sürdürür."
     },
     "info": {
       "sourceViewRebindResync": "Kaynak görünümünü değiştirmek, yeni görünüme karşı tam bir yeniden senkronizasyon başlatır.",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} hücre kopyalandı",
       "nCellsCopied": "{n} hücre kopyalandı",
       "nRecordCreated": "{n} kayıt oluşturuldu",
-      "nRecordsCreated": "{n} kayıt oluşturuldu"
+      "nRecordsCreated": "{n} kayıt oluşturuldu",
+      "interfaceFilterCopied": "{count} koşul kopyalandı | {count} koşul kopyalandı"
     },
     "success": {
       "restored": "Öğe başarıyla geri yüklendi",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIM hazırlama devre dışı bırakıldı",
       "tokenRegenerated": "Sağlama token başarıyla yeniden üretildi",
       "scimDeleted": "SCIM yapılandırması başarıyla silindi",
-      "defaultRoleUpdated": "Varsayılan rol başarıyla güncellendi"
+      "defaultRoleUpdated": "Varsayılan rol başarıyla güncellendi",
+      "recordLinked": "Kayıt bağlandı",
+      "recordUnlinked": "Kayıt bağlantısı kaldırıldı",
+      "pageSharingEnabled": "Sayfa paylaşımı açıldı",
+      "pageSharingDisabled": "Sayfa paylaşımı kapatıldı",
+      "dataExported": "Veriler başarıyla dışa aktarıldı!",
+      "recordTemplateUpdated": "Şablon güncellendi",
+      "recordTemplateCreated": "Şablon oluşturuldu",
+      "recordTemplateDeleted": "Şablon silindi",
+      "accountConnected": "{provider} hesabınız bağlandı.",
+      "appUninstalled": "Uygulama kaldırıldı",
+      "storeListingSaved": "Mağaza ilanı kaydedildi",
+      "publisherProfileSaved": "Yayıncı profili kaydedildi",
+      "planChanged": "Plan güncellendi",
+      "planChangeScheduled": "Plan değişikliği zamanlandı",
+      "planChangeReverted": "Zamanlanmış plan değişikliği geri alındı. Mevcut planınız değişmeden devam ediyor.",
+      "appDelisted": "App Store'dan kaldırıldı",
+      "appRelisted": "Yeniden App Store'da"
     },
     "subText": {
       "startFromScratch": "Sıfırdan başlayın.",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "Bu depo yüklenemedi",
     "skillsCommunityTitle": "Herhangi bir herkese açık depodan kur",
     "skillsCommunityBlocked": "Çalışma alanınız topluluk becerilerinin kurulmasına izin vermiyor.",
-    "skillsCommunityBlockedOrg": "Kuruluşunuz topluluk becerilerinin kurulmasına izin vermiyor."
+    "skillsCommunityBlockedOrg": "Kuruluşunuz topluluk becerilerinin kurulmasına izin vermiyor.",
+    "thisSharedPageIsProtected": "Bu paylaşılan sayfa korumalı",
+    "sso": {
+      "signInFailed": "Oturumunuzu açamadık",
+      "shareCode": "Yardım mı lazım? Bu kodu yöneticinizle paylaşın",
+      "failure": {
+        "SSO_STATE_INVALID": "Oturum açma oturumunuzun süresi doldu veya kesintiye uğradı. Lütfen yeniden deneyin.",
+        "SSO_TOKEN_INVALID": "Oturum açma sağlayıcınızdan gelen yanıtı doğrulayamadık. Lütfen yeniden deneyin ve sürerse yöneticinize bildirin.",
+        "SSO_PROVIDER_ERROR": "Oturum açma sağlayıcınızda bir sorun oluştu. Lütfen birazdan yeniden deneyin.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Bu hesabın oturum açmasına izin verilmiyor. Yöneticinizden erişim isteyin veya başka bir hesap deneyin.",
+        "SSO_FAILED": "Oturumunuz açılırken bir şeyler ters gitti. Lütfen yeniden deneyin."
+      }
+    },
+    "unsupportedFileType": "Desteklenmeyen dosya türü",
+    "skillUpdatedFromSource": "{title} kaynaktan güncellendi",
+    "workspaceSkillsSubtitle": "Buradaki her projede ve bunları etkinleştiren ajanlarda kullanılabilir.",
+    "skillShadowed": "{scope} düzeyinde bu başlığa sahip bir beceri öncelikli olduğu için bu sunulmuyor.",
+    "skillsNoMatchBody": "Bu aramayla eşleşen bir şey yok. Farklı bir terim deneyin ya da filtreleri temizleyin."
   },
   "trash": {
     "restore": "Geri Yükle",

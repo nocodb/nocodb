@@ -805,7 +805,8 @@
       "org-level-viewer": "Hanya melihat catatan",
       "cloud-org-level-owner": "Kendali penuh atas organisasi dan ruang kerjanya",
       "cloud-org-level-creator": "Membuat ruang kerja dan bergabung ke ruang kerja yang mengundang",
-      "cloud-org-level-viewer": "Melihat organisasi dan ruang kerjanya"
+      "cloud-org-level-viewer": "Melihat organisasi dan ruang kerjanya",
+      "app-user": "Hanya menggunakan aplikasi yang diterbitkan"
     },
     "sqlView": "Tampilan SQL",
     "rowHeight": "Tinggi Catatan",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Temukan integrasi tambahan serbaguna untuk meningkatkan pengalaman NocoDB Anda.",
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
-      "spreadSheetSubtitle": "Hubungkan dan kelola spreadsheet Anda dengan NocoDB."
+      "spreadSheetSubtitle": "Hubungkan dan kelola spreadsheet Anda dengan NocoDB.",
+      "authProvider": "Penyedia autentikasi",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Berhasil",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Bisnis",
       "Self-hosted Scale": "Skala",
-      "Self-hosted Enterprise": "Perusahaan"
+      "Self-hosted Enterprise": "Perusahaan",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Eksekusi otomatisasi",
+      "externalSources": "Sumber eksternal"
     },
     "coloring": {
       "usingSingleSelectField": "Menggunakan field pilihan tunggal",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Warna pada catatan berdasarkan kondisi",
       "colourRecordsByField": "Warna catatan berdasarkan field",
       "rowColorDescription": "Menerapkan warna pada rekaman",
-      "cellColorDescription": "Menerapkan warna ke bidang tertentu"
+      "cellColorDescription": "Menerapkan warna ke bidang tertentu",
+      "title": "Pewarnaan",
+      "usingConditionsDescriptionOss": "Warnai catatan berdasarkan kondisi"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Pembuatan record dibatasi",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filter | {count} filter",
         "subjectsRequired": "Pilih setidaknya satu peran, pengguna, atau tim.",
         "confirmDeleteTitle": "Apakah Anda yakin ingin menghapus kebijakan ini?",
-        "confirmDeleteContent": "Tindakan ini tidak dapat dibatalkan."
+        "confirmDeleteContent": "Tindakan ini tidak dapat dibatalkan.",
+        "groupAgents": "Agen",
+        "ownerSubjectNote": "Pemilik dapat mengubah aturan RLS.",
+        "selectDynamicValue": "Pilih nilai dinamis...",
+        "placeholders": {
+          "currentUserId": "ID pengguna saat ini",
+          "currentUserIdDescription": "ID pengguna yang sedang masuk.",
+          "currentUserEmail": "Email pengguna saat ini",
+          "currentUserEmailDescription": "Alamat email pengguna yang sedang masuk.",
+          "currentUserName": "Nama pengguna saat ini",
+          "currentUserNameDescription": "Nama tampilan pengguna yang sedang masuk.",
+          "currentUserRoles": "Peran pengguna saat ini",
+          "currentUserRolesDescription": "Peran pengguna yang sedang masuk di proyek.",
+          "currentUserTeams": "Tim saya",
+          "currentUserTeamsDescription": "ID tim yang diikuti pengguna secara langsung.",
+          "currentUserTeamsWithDescendants": "Tim dan subtim saya",
+          "currentUserTeamsWithDescendantsDescription": "ID tim pengguna beserta semua tim di bawahnya.",
+          "currentUserTeamNames": "Nama tim saya",
+          "currentUserTeamNamesDescription": "Nama tim yang diikuti pengguna secara langsung.",
+          "currentUserTeamNamesWithDescendants": "Nama tim dan subtim saya",
+          "currentUserTeamNamesWithDescendantsDescription": "Nama tim pengguna beserta semua tim di bawahnya.",
+          "currentUserTeamWithDescendantMembers": "Anggota tim saya",
+          "currentUserTeamWithDescendantMembersDescription": "Semua orang di tim dan subtim pengguna — gunakan dengan «berisi salah satu dari» untuk melihat catatan bawahan Anda."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Tidak ada {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Melihat konfigurasi yang berhasil disalin",
       "errorOccuredWhileCopyingViewConfiguration": "Terjadi kesalahan saat menyalin konfigurasi tampilan",
       "copyFromAnotherView": "Menyalin dari tampilan lain",
-      "copyFromAView": "Menyalin dari sebuah tampilan"
+      "copyFromAView": "Menyalin dari sebuah tampilan",
+      "copySettingsFromView": "Salin pengaturan dari sebuah tampilan",
+      "chooseSettings": "Pilih pengaturan",
+      "settingsSelected": "{count} dipilih",
+      "warning": {
+        "dynamic_filters_dropped": "{count} kondisi antar-bidang tidak dapat disalin — halaman ini akan menampilkan lebih banyak catatan daripada tampilannya.",
+        "negated_filters_dropped": "{count} kondisi negatif tidak dapat disalin — halaman ini akan menampilkan lebih banyak catatan daripada tampilannya.",
+        "row_color_background_lost": "Warna catatan disalin, tetapi isian latar belakangnya tidak.",
+        "grouping_dropped": "Tata letak ini tidak mendukung pengelompokan, jadi pengelompokan tidak disalin."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Apakah Anda yakin ingin meninggalkan tim ini?",
@@ -1035,7 +1075,30 @@
       "noMoreTeamsToAdd": "Tidak ada lagi tim yang bisa ditambahkan",
       "alreadyAdded": "Sudah ditambahkan",
       "teamCantBeAssignedOwnerRole": "Tim tidak dapat ditugaskan sebagai peran Pemilik"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} anggota | {count} anggota",
+    "bookmark": "Markah",
+    "interfacePage": "Halaman antarmuka",
+    "formulas": "Rumus",
+    "audio": "Audio",
+    "app": "Aplikasi",
+    "apps": "Aplikasi",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Penjualan",
+      "marketing": "Marketing",
+      "finance": "Keuangan",
+      "hr": "SDM",
+      "operations": "Operasional",
+      "support": "Dukungan",
+      "it": "IT",
+      "product": "Produk",
+      "other": "Lainnya"
+    },
+    "agent": "Agen",
+    "agents": "Agen"
   },
   "datatype": {
     "ID": "Indo",
@@ -4913,7 +4976,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Bidang yang sedang Anda edit telah diperbarui oleh pengguna lain. Perubahan yang belum disimpan akan dipertahankan - menyimpan akan menimpa perubahan tersebut.",
       "reachedUploadLimit": "Mencapai batas unggah",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Anda hanya dapat mengunggah {limit} berkas {type} dalam satu waktu",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Anda hanya dapat mengunggah {limit} berkas {type} dalam satu waktu"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Anda hanya dapat mengunggah {limit} berkas {type} dalam satu waktu",
+      "tableDataImportedLinksUnmatched": "Berhasil diimpor. {links} tautan catatan dibuat; {unmatched} nilai tidak cocok dengan catatan mana pun dan dilewati.",
+      "tableDataImportedLinksFailed": "{failed} tautan catatan cocok dengan sebuah catatan tetapi tidak dapat dibuat. Lihat log impor untuk detailnya.",
+      "importLinkReassignField": "«{field}» adalah tautan satu-ke-banyak atau satu-ke-satu — mengimpor nilai di sini dapat melepaskan catatan dari catatan lain yang saat ini tertaut dengannya.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Tidak ada bidang «Diperbarui pada» yang disetel",
+        "description": "Setiap kali sinkronisasi berjalan, semua catatan tabel ini akan diambil ulang. Tandai sebuah bidang tanggal sebagai «Diperbarui pada» untuk mengaktifkan sinkronisasi bertahap."
+      },
+      "syncDetachTable": "Sinkronisasi akan berhenti memperbarui tabel ini. Datanya tetap disimpan dan semua bidang menjadi dapat disunting. Menambahkan kembali tabel sumber ke sinkronisasi nanti akan membuat tabel baru.",
+      "tableSyncConvertMainTable": "Ini adalah tabel tersinkron dari sinkronisasi ini — mengonversinya akan menghapus sinkronisasinya sendiri. Semua tabel yang dibuat oleh sinkronisasi tetap ada sebagai tabel biasa yang dapat disunting dan berhenti tersinkron.",
+      "requiredFieldNotEditable": "Bidang wajib ini tidak dapat disunting, yang bisa menyebabkan kesalahan saat formulir dikirim.",
+      "communityAppInstall": "{title} adalah aplikasi komunitas. Aplikasi ini belum ditinjau atau diverifikasi oleh NocoDB. Pastikan Anda memercayai penerbitnya sebelum memasangnya di ruang kerja Anda.",
+      "removeCustomDomain": "{domain} akan berhenti melayani aplikasi ini. Alamat bawaan tetap berfungsi."
     },
     "info": {
       "sourceViewRebindResync": "Mengubah tampilan sumber akan memicu sinkronisasi ulang secara penuh terhadap tampilan yang baru.",
@@ -5600,7 +5675,8 @@
       "nCellCopied": "{n} sel disalin",
       "nCellsCopied": "{n} sel disalin",
       "nRecordCreated": "{n} catatan dibuat",
-      "nRecordsCreated": "{n} catatan yang dibuat"
+      "nRecordsCreated": "{n} catatan yang dibuat",
+      "interfaceFilterCopied": "{count} kondisi disalin | {count} kondisi disalin"
     },
     "success": {
       "restored": "Item berhasil dipulihkan",
@@ -5667,7 +5743,24 @@
       "scimDisabled": "Penyediaan SCIM dinonaktifkan",
       "tokenRegenerated": "Token penyediaan berhasil dibuat ulang",
       "scimDeleted": "Konfigurasi SCIM berhasil dihapus",
-      "defaultRoleUpdated": "Peran default berhasil diperbarui"
+      "defaultRoleUpdated": "Peran default berhasil diperbarui",
+      "recordLinked": "Catatan ditautkan",
+      "recordUnlinked": "Tautan catatan dilepas",
+      "pageSharingEnabled": "Berbagi halaman diaktifkan",
+      "pageSharingDisabled": "Berbagi halaman dinonaktifkan",
+      "dataExported": "Data berhasil diekspor!",
+      "recordTemplateUpdated": "Templat diperbarui",
+      "recordTemplateCreated": "Templat dibuat",
+      "recordTemplateDeleted": "Templat dihapus",
+      "accountConnected": "Akun {provider} Anda sudah terhubung.",
+      "appUninstalled": "Aplikasi dicopot",
+      "storeListingSaved": "Daftar toko disimpan",
+      "publisherProfileSaved": "Profil penerbit disimpan",
+      "planChanged": "Paket diperbarui",
+      "planChangeScheduled": "Perubahan paket dijadwalkan",
+      "planChangeReverted": "Perubahan paket terjadwal dibatalkan. Paket Anda saat ini berlanjut tanpa perubahan.",
+      "appDelisted": "Dihapus dari App Store",
+      "appRelisted": "Kembali di App Store"
     },
     "subText": {
       "startFromScratch": "Mulai dari awal.",
@@ -5836,7 +5929,24 @@
     "skillsCatalogErrorTitle": "Tidak dapat memuat repositori ini",
     "skillsCommunityTitle": "Pasang dari repositori publik mana pun",
     "skillsCommunityBlocked": "Ruang kerja Anda tidak mengizinkan pemasangan keterampilan komunitas.",
-    "skillsCommunityBlockedOrg": "Organisasi Anda tidak mengizinkan pemasangan keterampilan komunitas."
+    "skillsCommunityBlockedOrg": "Organisasi Anda tidak mengizinkan pemasangan keterampilan komunitas.",
+    "thisSharedPageIsProtected": "Halaman yang dibagikan ini dilindungi",
+    "sso": {
+      "signInFailed": "Kami tidak dapat memasukkan Anda",
+      "shareCode": "Butuh bantuan? Bagikan kode ini kepada administrator Anda",
+      "failure": {
+        "SSO_STATE_INVALID": "Sesi masuk Anda kedaluwarsa atau terputus. Silakan coba lagi.",
+        "SSO_TOKEN_INVALID": "Kami tidak dapat memverifikasi balasan dari penyedia masuk Anda. Silakan coba lagi, dan beri tahu administrator Anda jika terus terjadi.",
+        "SSO_PROVIDER_ERROR": "Penyedia masuk Anda mengalami masalah. Silakan coba lagi sebentar lagi.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Akun ini tidak diizinkan masuk. Mintalah akses kepada administrator Anda, atau coba akun lain.",
+        "SSO_FAILED": "Terjadi kesalahan saat memasukkan Anda. Silakan coba lagi."
+      }
+    },
+    "unsupportedFileType": "Jenis berkas tidak didukung",
+    "skillUpdatedFromSource": "{title} diperbarui dari sumber",
+    "workspaceSkillsSubtitle": "Tersedia di setiap proyek di sini, dan untuk agen yang mengaktifkannya.",
+    "skillShadowed": "Keterampilan dengan judul ini di tingkat {scope} lebih diutamakan, jadi yang ini tidak ditawarkan.",
+    "skillsNoMatchBody": "Tidak ada yang cocok dengan pencarian itu. Coba kata lain atau bersihkan filternya."
   },
   "trash": {
     "restore": "Mengembalikan",

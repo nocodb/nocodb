@@ -805,7 +805,8 @@
       "org-level-viewer": "Pouze zobrazit záznamy",
       "cloud-org-level-owner": "Plná kontrola nad organizací a jejími pracovními prostory",
       "cloud-org-level-creator": "Vytvářet pracovní prostory a připojovat se k těm, kam je pozván",
-      "cloud-org-level-viewer": "Zobrazit organizaci a její pracovní prostory"
+      "cloud-org-level-viewer": "Zobrazit organizaci a její pracovní prostory",
+      "app-user": "Používat pouze publikované aplikace"
     },
     "sqlView": "SQL pohled",
     "rowHeight": "Výška řádku",
@@ -882,7 +883,9 @@
       "othersSubtitle": "Objevte další všestranné integrace pro vylepšení vaší zkušenosti s NocoDB.",
       "ai": "AI",
       "spreadSheet": "Tabulka",
-      "spreadSheetSubtitle": "Propojte a spravujte své tabulky s NocoDB."
+      "spreadSheetSubtitle": "Propojte a spravujte své tabulky s NocoDB.",
+      "authProvider": "Poskytovatel ověření",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "Úspěch",
@@ -898,7 +901,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Podniky",
       "Self-hosted Scale": "Měřítko",
-      "Self-hosted Enterprise": "Podniky"
+      "Self-hosted Enterprise": "Podniky",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "Běhy automatizací",
+      "externalSources": "Externí zdroje"
     },
     "coloring": {
       "usingSingleSelectField": "Používá se pole typu jednorázový výběr",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "Záznamy/buňky barev na základě podmínek",
       "colourRecordsByField": "Barevně označte záznamy podle pole",
       "rowColorDescription": "Použít barvu pro záznam",
-      "cellColorDescription": "Použít barvu pro určité pole"
+      "cellColorDescription": "Použít barvu pro určité pole",
+      "title": "Obarvení",
+      "usingConditionsDescriptionOss": "Obarvit záznamy podle podmínek"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Vytváření záznamů omezeno",
@@ -974,7 +982,30 @@
         "filterCount": "{count} filtr | {count} filtry",
         "subjectsRequired": "Vyberte prosím alespoň jednu roli, uživatele nebo tým.",
         "confirmDeleteTitle": "Jste si jisti, že chcete odstranit tento přístup?",
-        "confirmDeleteContent": "Tuto akci nelze vrátit zpět."
+        "confirmDeleteContent": "Tuto akci nelze vrátit zpět.",
+        "groupAgents": "Agenti",
+        "ownerSubjectNote": "Vlastníci mohou měnit pravidla RLS.",
+        "selectDynamicValue": "Vyberte dynamickou hodnotu...",
+        "placeholders": {
+          "currentUserId": "ID aktuálního uživatele",
+          "currentUserIdDescription": "ID přihlášeného uživatele.",
+          "currentUserEmail": "E-mail aktuálního uživatele",
+          "currentUserEmailDescription": "E-mailová adresa přihlášeného uživatele.",
+          "currentUserName": "Jméno aktuálního uživatele",
+          "currentUserNameDescription": "Zobrazované jméno přihlášeného uživatele.",
+          "currentUserRoles": "Role aktuálního uživatele",
+          "currentUserRolesDescription": "Role přihlášeného uživatele v databázi.",
+          "currentUserTeams": "Moje týmy",
+          "currentUserTeamsDescription": "ID týmů, do kterých uživatel přímo patří.",
+          "currentUserTeamsWithDescendants": "Moje týmy a podtýmy",
+          "currentUserTeamsWithDescendantsDescription": "ID týmů uživatele i všech týmů pod nimi.",
+          "currentUserTeamNames": "Názvy mých týmů",
+          "currentUserTeamNamesDescription": "Názvy týmů, do kterých uživatel přímo patří.",
+          "currentUserTeamNamesWithDescendants": "Názvy mých týmů a podtýmů",
+          "currentUserTeamNamesWithDescendantsDescription": "Názvy týmů uživatele i všech týmů pod nimi.",
+          "currentUserTeamWithDescendantMembers": "Členové mých týmů",
+          "currentUserTeamWithDescendantMembersDescription": "Všichni v týmech a podtýmech uživatele — použijte s podmínkou „obsahuje některý z“, abyste viděli záznamy svých podřízených."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nikdo {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "Úspěšně zkopírovaná konfigurace zobrazení",
       "errorOccuredWhileCopyingViewConfiguration": "Při kopírování konfigurace zobrazení došlo k chybě",
       "copyFromAnotherView": "Kopírování z jiného zobrazení",
-      "copyFromAView": "Kopírování ze zobrazení"
+      "copyFromAView": "Kopírování ze zobrazení",
+      "copySettingsFromView": "Zkopírovat nastavení z pohledu",
+      "chooseSettings": "Vyberte nastavení",
+      "settingsSelected": "Vybráno: {count}",
+      "warning": {
+        "dynamic_filters_dropped": "{count} podmínek mezi poli nelze zkopírovat — tato stránka zobrazí více záznamů než pohled.",
+        "negated_filters_dropped": "{count} negovaných podmínek nelze zkopírovat — tato stránka zobrazí více záznamů než pohled.",
+        "row_color_background_lost": "Barvy záznamů se kopírují, ale jejich výplň pozadí ne.",
+        "grouping_dropped": "Toto rozvržení nepodporuje seskupování, proto se nekopíruje."
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "Jste si jistý, že chcete opustit tento tým?",
@@ -1035,7 +1075,31 @@
       "noMoreTeamsToAdd": "Žádné další týmy k přidání",
       "alreadyAdded": "Již přidáno",
       "teamCantBeAssignedOwnerRole": "Týmu nelze přiřadit roli vlastníka"
-    }
+    },
+    "chat": "Chat",
+    "addons": "Add-ons",
+    "membersCount": "{count} člen | {count} členů",
+    "bookmark": "Záložka",
+    "interfacePage": "Stránka rozhraní",
+    "folder": "Složka",
+    "formulas": "Vzorce",
+    "audio": "Audio",
+    "app": "Aplikace",
+    "apps": "Aplikace",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "Prodej",
+      "marketing": "Marketing",
+      "hr": "Lidské zdroje",
+      "operations": "Provoz",
+      "support": "Podpora",
+      "it": "IT",
+      "product": "Produkt",
+      "data": "Údaje",
+      "other": "Ostatní"
+    },
+    "agent": "Agent",
+    "agents": "Agenti"
   },
   "datatype": {
     "ID": "ID",
@@ -4914,7 +4978,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "Pole které jste upravovali, bylo aktualizováno jiným uživatelem. Vaše neuložené změny jsou zachovány — uložením budou přepsány jejich změny.",
       "reachedUploadLimit": "Byl dosažen limit nahrávání",
       "youCanOnlyUploadMaxLimitFilesAtATime": "Můžete nahrát pouze {limit} soubor typu {type} najednou",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Můžete nahrát pouze {limit} soubory typu {type} najednou"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "Můžete nahrát pouze {limit} soubory typu {type} najednou",
+      "tableDataImportedLinksUnmatched": "Import proběhl úspěšně. Vytvořeno {links} propojení záznamů, {unmatched} hodnot neodpovídalo žádnému záznamu a byly přeskočeny.",
+      "tableDataImportedLinksFailed": "{failed} propojení záznamů odpovídalo nějakému záznamu, ale nepodařilo se je vytvořit. Podrobnosti najdete v protokolu importu.",
+      "importLinkReassignField": "„{field}“ je propojení 1:N nebo 1:1 — import hodnot sem může odpojit záznamy od těch, se kterými jsou právě propojené.",
+      "syncNoUpdatedAtColumn": {
+        "title": "Není nastaveno pole „Aktualizováno“",
+        "description": "Každý běh synchronizace znovu načte všechny záznamy této tabulky. Označte některé pole s datem jako „Aktualizováno“, abyste umožnili přírůstkovou synchronizaci."
+      },
+      "syncDetachTable": "Synchronizace přestane tuto tabulku aktualizovat. Její data zůstanou zachována a všechna pole budou upravitelná. Pokud zdrojovou tabulku později znovu přidáte do synchronizace, vznikne nová tabulka.",
+      "tableSyncConvertMainTable": "Toto je synchronizovaná tabulka této synchronizace — jejím převodem se odstraní i samotná synchronizace. Všechny tabulky, které vytvořila, zůstanou jako běžné, upravitelné tabulky a přestanou se synchronizovat.",
+      "requiredFieldNotEditable": "Toto povinné pole nelze upravovat, což může při odesílání formuláře způsobit chyby.",
+      "communityAppInstall": "{title} je komunitní aplikace. NocoDB ji neprověřilo ani neověřilo. Než ji nainstalujete do svého pracovního prostoru, ujistěte se, že vydavateli důvěřujete.",
+      "removeCustomDomain": "{domain} přestane tuto aplikaci poskytovat. Výchozí adresa funguje dál."
     },
     "info": {
       "sourceViewRebindResync": "Změna zdrojového zobrazení spustí úplnou opětovnou synchronizaci s novým zobrazením.",
@@ -5601,7 +5677,8 @@
       "nCellCopied": "{n} buňka zkopírována",
       "nCellsCopied": "{n} buněk zkopírováno",
       "nRecordCreated": "{n} záznam vytvořen",
-      "nRecordsCreated": "{n} záznamy vytvořeny"
+      "nRecordsCreated": "{n} záznamy vytvořeny",
+      "interfaceFilterCopied": "Zkopírována {count} podmínka | Zkopírováno {count} podmínek"
     },
     "success": {
       "restored": "Položka byla úspěšně obnovena",
@@ -5668,7 +5745,24 @@
       "scimDisabled": "Udělování SCIM zakázáno",
       "tokenRegenerated": "Doprovodný token úspěšně obnoven",
       "scimDeleted": "Nastavení SCIM bylo úspěšně odstraněno",
-      "defaultRoleUpdated": "Výchozí role byla úspěšně aktualizována"
+      "defaultRoleUpdated": "Výchozí role byla úspěšně aktualizována",
+      "recordLinked": "Záznam propojen",
+      "recordUnlinked": "Propojení záznamu zrušeno",
+      "pageSharingEnabled": "Sdílení stránky zapnuto",
+      "pageSharingDisabled": "Sdílení stránky vypnuto",
+      "dataExported": "Data byla úspěšně vyexportována!",
+      "recordTemplateUpdated": "Šablona aktualizována",
+      "recordTemplateCreated": "Šablona vytvořena",
+      "recordTemplateDeleted": "Šablona smazána",
+      "accountConnected": "Váš účet {provider} je připojen.",
+      "appUninstalled": "Aplikace odinstalována",
+      "storeListingSaved": "Záznam v obchodě uložen",
+      "publisherProfileSaved": "Profil vydavatele uložen",
+      "planChanged": "Tarif aktualizován",
+      "planChangeScheduled": "Změna tarifu naplánována",
+      "planChangeReverted": "Naplánovaná změna tarifu byla zrušena. Váš současný tarif pokračuje beze změny.",
+      "appDelisted": "Odebráno z App Store",
+      "appRelisted": "Zpět v App Store"
     },
     "subText": {
       "startFromScratch": "Začněte od začátku.",
@@ -5837,7 +5931,24 @@
     "skillsCatalogErrorTitle": "Tento repozitář se nepodařilo načíst",
     "skillsCommunityTitle": "Instalovat z libovolného veřejného repozitáře",
     "skillsCommunityBlocked": "Váš pracovní prostor neumožňuje instalaci komunitních dovedností.",
-    "skillsCommunityBlockedOrg": "Vaše organizace neumožňuje instalaci komunitních dovedností."
+    "skillsCommunityBlockedOrg": "Vaše organizace neumožňuje instalaci komunitních dovedností.",
+    "thisSharedPageIsProtected": "Tato sdílená stránka je chráněná",
+    "sso": {
+      "signInFailed": "Přihlášení se nezdařilo",
+      "shareCode": "Potřebujete pomoc? Sdělte tento kód svému správci",
+      "failure": {
+        "SSO_STATE_INVALID": "Vaše přihlašovací relace vypršela nebo byla přerušena. Zkuste to prosím znovu.",
+        "SSO_TOKEN_INVALID": "Odpověď vašeho poskytovatele přihlášení se nepodařilo ověřit. Zkuste to prosím znovu a pokud se to bude opakovat, dejte vědět správci.",
+        "SSO_PROVIDER_ERROR": "Váš poskytovatel přihlášení narazil na problém. Zkuste to prosím za chvíli znovu.",
+        "SSO_ACCOUNT_NOT_ALLOWED": "Tento účet se nesmí přihlásit. Požádejte správce o přístup nebo zkuste jiný účet.",
+        "SSO_FAILED": "Při přihlašování se něco pokazilo. Zkuste to prosím znovu."
+      }
+    },
+    "unsupportedFileType": "Nepodporovaný typ souboru",
+    "skillUpdatedFromSource": "{title} aktualizováno ze zdroje",
+    "workspaceSkillsSubtitle": "K dispozici v každé zdejší databázi a pro agenty, kteří si je zapnou.",
+    "skillShadowed": "Přednost má dovednost se stejným názvem na úrovni {scope}, proto se tato nenabízí.",
+    "skillsNoMatchBody": "Tomuto hledání nic neodpovídá. Zkuste jiný výraz nebo zrušte filtry."
   },
   "trash": {
     "restore": "Obnovit",

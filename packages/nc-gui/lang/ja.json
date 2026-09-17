@@ -805,7 +805,8 @@
       "org-level-viewer": "レコードの閲覧のみ",
       "cloud-org-level-owner": "組織とそのワークスペースの完全な管理",
       "cloud-org-level-creator": "ワークスペースの作成と、招待されたワークスペースへの参加",
-      "cloud-org-level-viewer": "組織とそのワークスペースの閲覧"
+      "cloud-org-level-viewer": "組織とそのワークスペースの閲覧",
+      "app-user": "公開済みのアプリのみ利用できます"
     },
     "sqlView": "SQL ビュー",
     "rowHeight": "レコード高さ",
@@ -882,7 +883,9 @@
       "othersSubtitle": "NocoDB体験を向上させるための多用途な統合をさらに発見してください。",
       "ai": "AI",
       "spreadSheet": "スプレッドシート",
-      "spreadSheetSubtitle": "NocoDBでスプレッドシートを接続し、管理する。"
+      "spreadSheetSubtitle": "NocoDBでスプレッドシートを接続し、管理する。",
+      "authProvider": "認証プロバイダー",
+      "authProviderSubtitle": "Auth"
     },
     "ncMessage": {
       "success": "成功",
@@ -898,7 +901,8 @@
       "Enterprise": "エンタープライズ",
       "Self-hosted Business": "ビジネス",
       "Self-hosted Scale": "拡大縮小",
-      "Self-hosted Enterprise": "エンタープライズ"
+      "Self-hosted Enterprise": "エンタープライズ",
+      "Scale": "Scale"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -906,7 +910,9 @@
       "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "apiCallsMonthly": "API calls (monthly)",
+      "automationRunsMonthly": "オートメーションの実行回数",
+      "externalSources": "外部ソース"
     },
     "coloring": {
       "usingSingleSelectField": "単一選択フィールドを使用中",
@@ -916,7 +922,9 @@
       "usingConditionsDescription": "条件に基づいて色を記録/セル",
       "colourRecordsByField": "フィールドでレコードに色を付ける",
       "rowColorDescription": "レコードに色を適用",
-      "cellColorDescription": "特定のフィールドに色を適用"
+      "cellColorDescription": "特定のフィールドに色を適用",
+      "title": "色分け",
+      "usingConditionsDescriptionOss": "条件に基づいてレコードに色を付ける"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "レコードの作成制限",
@@ -974,7 +982,30 @@
         "filterCount": "{count} フィルター | {count} フィルター",
         "subjectsRequired": "少なくとも1つのロール、ユーザー、またはチームを選択してください。",
         "confirmDeleteTitle": "このポリシーを削除してもよろしいですか？",
-        "confirmDeleteContent": "この操作は元に戻せません。"
+        "confirmDeleteContent": "この操作は元に戻せません。",
+        "groupAgents": "エージェント",
+        "ownerSubjectNote": "オーナーは RLS ルールを変更できます。",
+        "selectDynamicValue": "動的な値を選択...",
+        "placeholders": {
+          "currentUserId": "現在のユーザーの ID",
+          "currentUserIdDescription": "サインイン中のユーザーの ID。",
+          "currentUserEmail": "現在のユーザーのメールアドレス",
+          "currentUserEmailDescription": "サインイン中のユーザーのメールアドレス。",
+          "currentUserName": "現在のユーザーの名前",
+          "currentUserNameDescription": "サインイン中のユーザーの表示名。",
+          "currentUserRoles": "現在のユーザーのロール",
+          "currentUserRolesDescription": "サインイン中のユーザーのプロジェクトロール。",
+          "currentUserTeams": "自分のチーム",
+          "currentUserTeamsDescription": "ユーザーが直接所属しているチームの ID。",
+          "currentUserTeamsWithDescendants": "自分のチームとサブチーム",
+          "currentUserTeamsWithDescendantsDescription": "ユーザーのチームと、その配下にあるすべてのチームの ID。",
+          "currentUserTeamNames": "自分のチーム名",
+          "currentUserTeamNamesDescription": "ユーザーが直接所属しているチームの名前。",
+          "currentUserTeamNamesWithDescendants": "自分のチームとサブチームの名前",
+          "currentUserTeamNamesWithDescendantsDescription": "ユーザーのチームと、その配下にあるすべてのチームの名前。",
+          "currentUserTeamWithDescendantMembers": "自分のチームのメンバー",
+          "currentUserTeamWithDescendantMembersDescription": "ユーザーのチームとサブチームの全員。「いずれかを含む」と組み合わせると、部下のレコードを確認できます。"
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "誰も {description}",
@@ -1003,7 +1034,16 @@
       "viewConfigurationCopied": "ビューの設定が正常にコピーされた",
       "errorOccuredWhileCopyingViewConfiguration": "ビュー設定のコピー中にエラーが発生しました。",
       "copyFromAnotherView": "別のビューからコピー",
-      "copyFromAView": "ビューからコピー"
+      "copyFromAView": "ビューからコピー",
+      "copySettingsFromView": "ビューから設定をコピー",
+      "chooseSettings": "設定を選択",
+      "settingsSelected": "{count} 件を選択中",
+      "warning": {
+        "dynamic_filters_dropped": "フィールド間を比較する条件 {count} 件はコピーできません。このページはビューより多くのレコードを表示します。",
+        "negated_filters_dropped": "否定条件 {count} 件はコピーできません。このページはビューより多くのレコードを表示します。",
+        "row_color_background_lost": "レコードの色はコピーされますが、その背景の塗りつぶしはコピーされません。",
+        "grouping_dropped": "このレイアウトはグループ化に対応していないため、グループ化はコピーされません。"
+      }
     },
     "teams": {
       "confirmLeaveTeamTitle": "本当にこのチームを去りたいのか？",
@@ -1035,7 +1075,32 @@
       "noMoreTeamsToAdd": "追加するチームはもうない",
       "alreadyAdded": "すでに追加済み",
       "teamCantBeAssignedOwnerRole": "チームにオーナー・ロールを割り当てられない"
-    }
+    },
+    "chat": "チャット",
+    "addons": "Add-ons",
+    "membersCount": "メンバー {count} 人 | メンバー {count} 人",
+    "bookmark": "ブックマーク",
+    "interfacePage": "インターフェイスページ",
+    "folder": "フォルダー",
+    "formulas": "数式",
+    "audio": "オーディオ",
+    "app": "アプリ",
+    "apps": "アプリ",
+    "appCategories": {
+      "crm": "CRM",
+      "sales": "セールス",
+      "marketing": "マーケティング",
+      "finance": "財務",
+      "hr": "人事",
+      "operations": "オペレーション",
+      "support": "サポート",
+      "it": "IT",
+      "product": "プロダクト",
+      "data": "データ",
+      "other": "その他"
+    },
+    "agent": "エージェント",
+    "agents": "エージェント"
   },
   "datatype": {
     "ID": "ID",
@@ -4917,7 +4982,19 @@
       "activeFieldUpdatedRemotelyKeepAlive": "編集したフィールドは別のユーザーによって更新されました。保存されていない変更は保持されます。保存は変更を上書きします。",
       "reachedUploadLimit": "アップロード上限に達しました",
       "youCanOnlyUploadMaxLimitFilesAtATime": "一度にアップロードできる{type}ファイルは{limit}件のみです",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "一度にアップロードできる{type}ファイルは最大{limit}件です"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "一度にアップロードできる{type}ファイルは最大{limit}件です",
+      "tableDataImportedLinksUnmatched": "インポートが完了しました。{links} 件のレコードリンクを作成し、{unmatched} 件の値はどのレコードとも一致しなかったためスキップしました。",
+      "tableDataImportedLinksFailed": "{failed} 件のレコードリンクはレコードと一致しましたが、作成できませんでした。詳細はインポートログをご覧ください。",
+      "importLinkReassignField": "「{field}」は一対多または一対一のリンクです。ここに値をインポートすると、現在リンクされている相手からレコードが切り離される可能性があります。",
+      "syncNoUpdatedAtColumn": {
+        "title": "「更新日時」フィールドが未設定です",
+        "description": "同期のたびに、このテーブルの全レコードを取得し直します。差分同期を有効にするには、日付フィールドを「更新日時」として指定してください。"
+      },
+      "syncDetachTable": "同期はこのテーブルの更新を停止します。データは保持され、すべてのフィールドが編集可能になります。後でソーステーブルを同期に再追加すると、新しいテーブルが作成されます。",
+      "tableSyncConvertMainTable": "これはこの同期の同期先テーブルです。変換すると同期そのものが削除されます。同期が作成したテーブルはすべて、通常の編集可能なテーブルとして残り、同期されなくなります。",
+      "requiredFieldNotEditable": "この必須フィールドは編集できないため、フォーム送信時にエラーが起きる可能性があります。",
+      "communityAppInstall": "{title} はコミュニティ製アプリです。NocoDB による審査も検証も受けていません。ワークスペースにインストールする前に、発行者を信頼できるか確認してください。",
+      "removeCustomDomain": "{domain} はこのアプリの配信を停止します。既定のアドレスは引き続き利用できます。"
     },
     "info": {
       "sourceViewRebindResync": "ソースビューを変更すると、新しいビューに対して完全に再同期されます。",
@@ -5604,7 +5681,8 @@
       "nCellCopied": "{n} 個のセルをコピーしました",
       "nCellsCopied": "{n} 個のセルをコピーしました",
       "nRecordCreated": "{n} レコードが作成されました",
-      "nRecordsCreated": "{n} レコードが作成されました"
+      "nRecordsCreated": "{n} レコードが作成されました",
+      "interfaceFilterCopied": "{count} 件の条件をコピーしました | {count} 件の条件をコピーしました"
     },
     "success": {
       "restored": "アイテムが正常に復元されました",
@@ -5671,7 +5749,24 @@
       "scimDisabled": "SCIMプロビジョニングは無効です",
       "tokenRegenerated": "トークンの再生成に成功しました",
       "scimDeleted": "SCIM構成が正常に削除されました",
-      "defaultRoleUpdated": "デフォルトの役割が正常に更新されました"
+      "defaultRoleUpdated": "デフォルトの役割が正常に更新されました",
+      "recordLinked": "レコードをリンクしました",
+      "recordUnlinked": "レコードのリンクを解除しました",
+      "pageSharingEnabled": "ページ共有を有効にしました",
+      "pageSharingDisabled": "ページ共有を無効にしました",
+      "dataExported": "データをエクスポートしました。",
+      "recordTemplateUpdated": "テンプレートを更新しました",
+      "recordTemplateCreated": "テンプレートを作成しました",
+      "recordTemplateDeleted": "テンプレートを削除しました",
+      "accountConnected": "{provider} アカウントを接続しました。",
+      "appUninstalled": "アプリをアンインストールしました",
+      "storeListingSaved": "ストア掲載情報を保存しました",
+      "publisherProfileSaved": "発行者プロフィールを保存しました",
+      "planChanged": "プランを更新しました",
+      "planChangeScheduled": "プラン変更を予約しました",
+      "planChangeReverted": "予定していたプラン変更を取り消しました。現在のプランはそのまま継続します。",
+      "appDelisted": "App Store から削除しました",
+      "appRelisted": "App Store に再掲載しました"
     },
     "subText": {
       "startFromScratch": "ゼロから作成。",
@@ -5840,7 +5935,24 @@
     "skillsCatalogErrorTitle": "このリポジトリを読み込めませんでした",
     "skillsCommunityTitle": "任意の公開リポジトリからインストール",
     "skillsCommunityBlocked": "お使いのワークスペースではコミュニティスキルのインストールが許可されていません。",
-    "skillsCommunityBlockedOrg": "お使いの組織ではコミュニティスキルのインストールが許可されていません。"
+    "skillsCommunityBlockedOrg": "お使いの組織ではコミュニティスキルのインストールが許可されていません。",
+    "thisSharedPageIsProtected": "この共有ページは保護されています",
+    "sso": {
+      "signInFailed": "サインインできませんでした",
+      "shareCode": "お困りですか？このコードを管理者にお伝えください",
+      "failure": {
+        "SSO_STATE_INVALID": "サインインのセッションが期限切れになったか中断されました。もう一度お試しください。",
+        "SSO_TOKEN_INVALID": "サインインプロバイダーからの応答を検証できませんでした。もう一度お試しのうえ、繰り返し発生する場合は管理者にお知らせください。",
+        "SSO_PROVIDER_ERROR": "サインインプロバイダーで問題が発生しました。しばらくしてからもう一度お試しください。",
+        "SSO_ACCOUNT_NOT_ALLOWED": "このアカウントはサインインを許可されていません。管理者にアクセス権を依頼するか、別のアカウントをお試しください。",
+        "SSO_FAILED": "サインイン中に問題が発生しました。もう一度お試しください。"
+      }
+    },
+    "unsupportedFileType": "サポートされていないファイル形式",
+    "skillUpdatedFromSource": "{title} をソースから更新しました",
+    "workspaceSkillsSubtitle": "ここのすべてのプロジェクトと、利用を選んだエージェントで使えます。",
+    "skillShadowed": "同じ名前のスキルが {scope} レベルで優先されるため、こちらは表示されません。",
+    "skillsNoMatchBody": "その検索に一致するものはありません。別の語で試すか、フィルターをクリアしてください。"
   },
   "trash": {
     "restore": "復元",

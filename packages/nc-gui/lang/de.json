@@ -737,7 +737,9 @@
     "variable": "Variable",
     "words": "Wörter",
     "function": "Funktion",
-    "functions": "Funktionen"
+    "functions": "Funktionen",
+    "otherTables": "Andere Tabellen",
+    "viaNewLinkField": "über ein neues Verknüpfungsfeld"
   },
   "objects": {
     "script": "Skript",
@@ -1306,7 +1308,7 @@
     "creator": "Ersteller",
     "qrCode": "QR-Code",
     "termsOfService": "Nutzungsbedingungen",
-    "updateSelectedRows": "Ausgewählte Datensätze aktualisieren",
+    "updateSelectedRows": "Ausgewählte Einträge aktualisieren",
     "noFiltersAdded": "Keine Filter verwendet",
     "noFieldsSelected": "Keine Felder ausgewählt",
     "editCards": "Karten bearbeiten",
@@ -2154,7 +2156,21 @@
       "grantedCount": "{count} von {total} freigegeben",
       "clearAll": "Alle zurücksetzen",
       "readAll": "Alles lesen",
-      "readWriteAll": "Alles lesen und schreiben"
+      "readWriteAll": "Alles lesen und schreiben",
+      "workflows": "Workflows",
+      "workflowsDesc": "Workflows verwalten sowie Ausführungen starten oder prüfen",
+      "agents": "Agents",
+      "agentsDesc": "Agents, Sitzungen, Kanäle und Nachrichten verwalten",
+      "scripts": "Skripte",
+      "scriptsDesc": "Skripte auflisten, erstellen, aktualisieren, duplizieren und löschen",
+      "integrations": "Integrationen",
+      "integrationsDesc": "Integrationen und die damit verknüpften Projekte verwalten",
+      "environments": "Umgebungen",
+      "environmentsDesc": "Umgebungen verwalten und Änderungen übernehmen oder synchronisieren",
+      "apps": "Apps",
+      "appsDesc": "Apps und Marktplatz-Einträge veröffentlichen, installieren und verwalten",
+      "workspaces": "Arbeitsbereiche",
+      "workspacesDesc": "Arbeitsbereiche lesen sowie erstellen, aktualisieren oder löschen"
     },
     "expiresOn": "Gültig bis",
     "noExpiration": "Kein Ablauf",
@@ -4303,7 +4319,26 @@
     "fieldGroups": "{field}-Gruppen",
     "removeSummary": "Zusammenfassung entfernen",
     "summarize": "Zusammenfassen",
-    "showIn": "Anzeigen in"
+    "showIn": "Anzeigen in",
+    "fullAccess": "Vollzugriff",
+    "newMcpConnection": "Neue Verbindung",
+    "createMcpConnection": "Verbindung erstellen",
+    "mcpTools": {
+      "title": "Werkzeuge",
+      "read": "Nur-Lesen-Werkzeuge",
+      "readDesc": "Alles ansehen, was diese Verbindung erreicht — Projekte, Tabellen, Einträge, Ausführungen.",
+      "write": "Schreib-/Löschwerkzeuge",
+      "writeDesc": "Dinge erstellen, ändern und entfernen: Einträge, Tabellen, Ansichten, Workflows, Apps.",
+      "deletes": "Löschvorgänge",
+      "readWriteDelete": "Lesen, Schreiben & Löschen",
+      "allAllowed": "Alle erlaubt",
+      "noneAllowed": "Keine erlaubt",
+      "allowedCount": "{count} erlaubt",
+      "allowAll": "Alle erlauben",
+      "allowShown": "Angezeigte erlauben",
+      "clearShown": "Angezeigte zurücksetzen",
+      "shownOf": "{shown} von {total} angezeigt"
+    }
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",
@@ -5643,7 +5678,18 @@
       "setupVariablesExplainer": "Legen Sie die Werte fest, die diese App zum Laufen braucht.",
       "setupTeamsExplainer": "Fügen Sie Personen zu den Teams hinzu, die diese App für Sie erstellt hat.",
       "tooNarrowToAdjustFrozenFields": "Sie haben {saved} fixierte Felder, aber derzeit erscheinen nur {effective} fixiert, weil Ihr Fenster zu schmal ist. Sie können die Anzahl fixierter Felder auf 1 zurücksetzen. Sie können sie auch ändern, indem Sie das Fenster vergrößern oder einzelne Felder schmaler machen.",
-      "groupViewToSummarizePerGroup": "Gruppieren Sie die Ansicht, um pro Gruppe zusammenzufassen"
+      "groupViewToSummarizePerGroup": "Gruppieren Sie die Ansicht, um pro Gruppe zusammenzufassen",
+      "bulkUpdateConfirm": "Der Wert des Feldes {fields} wird auf jeden ausgewählten Eintrag angewendet. | Die Werte der Felder {fields} werden auf jeden ausgewählten Eintrag angewendet.",
+      "noFieldForSummaryFunction": "Kein Feld in dieser Tabelle lässt sich mit dieser Funktion zusammenfassen",
+      "noVisibleFieldForSummaryFunction": "Kein in dieser Visualisierung angezeigtes Feld lässt sich mit dieser Funktion zusammenfassen — fügen Sie zuerst unter „Felder“ eines hinzu",
+      "mcpConnectionCreate": "Eine Zugangsberechtigung für genau einen MCP-Client. Ihre Befugnis ergibt sich aus Ihrer Auswahl hier, begrenzt durch Ihre eigenen Rollen — sie kann nie mehr als Sie selbst.",
+      "mcpScopeDescription": "Was diese Verbindung überall dort tun darf, wohin sie reicht.",
+      "mcpToolCatalogUnavailable": "Die Werkzeugliste konnte nicht geladen werden, daher kann noch nichts erlaubt werden.",
+      "mcpConnectionNeedsName": "Benennen Sie die Verbindung, um fortzufahren.",
+      "mcpConnectionNeedsTools": "Erlauben Sie mindestens ein Werkzeug.",
+      "mcpConnectionNeedsAccess": "Fügen Sie mindestens ein Projekt hinzu oder wählen Sie alle Ressourcen.",
+      "mcpLegacyConnection": "Vor Einführung der Geltungsbereiche erstellt und trägt daher Ihren eigenen Zugriff auf dieses eine Projekt. Löschen Sie sie und erstellen Sie eine neue, um sie einzugrenzen.",
+      "interfaceRecordFormNoFields": "Dieses Formular hat noch keine Felder und kann daher keine Einträge erstellen"
     },
     "error": {
       "failedToCreateSync": "Fehler beim Erstellen der Synchronisation",

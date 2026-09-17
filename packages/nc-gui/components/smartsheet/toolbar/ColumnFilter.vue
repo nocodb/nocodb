@@ -849,7 +849,14 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
       // no grid to refetch, and the dashboard widget has no
       // ReloadViewDataHookInj provider at all.
       if (!webHook.value && !link.value && !widget.value && !workflow.value && !rlsPolicyId.value && !buttonColId?.value) {
-        reloadDataHook?.trigger({ shouldShowLoading: showLoading.value, offset: 0 })
+        // `isFormFieldFilters` is a branch selector, not a hint: Form.vue picks
+        // `checkFieldVisibility()` over a full reload on it, and both
+        // ColumnFilterMenu copies return early. Must match the sibling reload.
+        reloadDataHook?.trigger({
+          shouldShowLoading: showLoading.value,
+          offset: 0,
+          isFormFieldFilters: isForm.value && !webHook.value,
+        })
         reloadAggregate?.trigger({ path: [] })
       }
     }

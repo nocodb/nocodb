@@ -6,6 +6,16 @@ import { isPrimitiveValue } from 'nocodb-sdk'
 import NcAlert, { type NcAlertProps } from '../components/nc/Alert.vue'
 import { getI18n } from '~/plugins/a.i18n'
 
+// Sign-out transiently flips this on. While signing out, in-flight/watcher
+// requests (e.g. loading workspace bases) 401 as the token is cleared; the
+// axios interceptor already handles that by redirecting to sign-in, so the raw
+// "authentication required" toast is just noise. Scoped to the brief sign-out
+// window so it never hides genuine errors (e.g. wrong password on /signin).
+let ncErrorToastsSuppressed = false
+export const setNcErrorToastsSuppressed = (suppressed: boolean) => {
+  ncErrorToastsSuppressed = suppressed
+}
+
 interface NcAlertMessageProps
   extends Pick<
     NcAlertProps,
@@ -240,6 +250,9 @@ const showMessage = (
 
   // Skip toast for errors already handled via dedicated modals
   if (type === 'error' && ncIsString(content) && MODAL_HANDLED_MESSAGES.some((msg) => content.includes(msg))) return
+
+  // Skip error toasts while signing out — see ncErrorToastsSuppressed above.
+  if (type === 'error' && ncErrorToastsSuppressed) return
 
   const key = generateMessageKey(type, title, content, params)
 

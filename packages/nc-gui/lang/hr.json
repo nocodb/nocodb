@@ -257,8 +257,47 @@
       "workspaceMembers": "Članovi radnog prostora",
       "audit": "Revizija radnog prostora",
       "ltarCustomDisplayValue": "Prilagođeno polje vrijednosti prikaza",
-      "publicDocShare": "Javno dijeljenje dokumenata"
-    }
+      "publicDocShare": "Javno dijeljenje dokumenata",
+      "agents": "Agenti"
+    },
+    "upgradeToSortAndLimitLookupValues": "Za sortiranje i ograničavanje vrijednosti prikazanih u Lookup polju prijeđite na plan {plan}.",
+    "upgradeToAddMoreAgents": "Prijeđite na viši plan za više agenata",
+    "upgradeToAddMoreAgentsSubtitle": "Trenutačno ste na planu {activePlan}, koji dopušta {limit} agenata po radnom prostoru. Prijeđite na {plan} za više.",
+    "upgradeToAddMoreInterfaces": "Prijeđite na viši plan za više Interfacea",
+    "upgradeToAddMoreInterfacesSubtitle": "Trenutačno ste na planu {activePlan}, koji dopušta {limit} Interfacea po radnom prostoru. Prijeđite na {plan} za više.",
+    "upgradeToAddMoreInterfacePages": "Prijeđite na viši plan za više stranica",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Trenutačno ste na planu {activePlan}, koji dopušta {limit} stranica po Interfaceu. Prijeđite na {plan} za neograničen broj stranica.",
+    "upgradeToUseTrashSettings": "Prijeđite na viši plan za postavke otpada",
+    "upgradeToUseTrashSettingsSubtitle": "Prijeđite na plan {plan} kako biste postavke otpada podesili za svaku tablicu zasebno.",
+    "upgradeToAttachFilesToComments": "Prijeđite na viši plan za prilaganje datoteka komentarima",
+    "upgradeToAttachFilesToCommentsSubtitle": "Prijeđite na plan {plan} kako biste komentarima zapisa prilagali slike i datoteke.",
+    "upgradeToUseToggleSort": "Prijeđite na viši plan za uključivanje i isključivanje pojedinačnih sortiranja",
+    "upgradeToUseToggleSortSubtitle": "Prijeđite na plan {plan} kako biste pojedinačna sortiranja uključivali ili isključivali bez uklanjanja i tako bolje upravljali svojim pogledima.",
+    "upgradeToUseViewFolders": "Prijeđite na viši plan za korištenje mapa pogleda",
+    "upgradeToUseViewFoldersSubtitle": "Prijeđite na plan {plan} kako biste poglede organizirali u mape.",
+    "upgradeToAccessViewFoldersSubtitle": "Prijeđite na plan {plan} kako biste poglede organizirali u mape.",
+    "upgradeToUseFolders": "Prijeđite na viši plan za korištenje mapa",
+    "upgradeToUseFoldersSubtitle": "Prijeđite na plan {plan} kako biste tablice, dokumente i Dashboards organizirali u mape.",
+    "upgradeToAccessFoldersSubtitle": "Prijeđite na plan {plan} kako biste tablice, dokumente i Dashboards organizirali u mape.",
+    "upgradeToUseCustomSync": "Prijeđite na viši plan za prilagođeni Sync",
+    "upgradeToUseCustomSyncSubtitle": "Prijeđite na plan {plan} kako biste sinkronizirali podatke iz drugih izvora podataka.",
+    "upgradeToUseAutomaticSyncSubtitle": "Prijeđite na plan {plan} kako bi zrcaljene tablice ostale automatski sinkronizirane u stvarnom vremenu.",
+    "upgradeToUseEnvironments": "Prijeđite na viši plan za korištenje okruženja",
+    "upgradeToUseEnvironmentsSubtitle": "Okruženja su dostupna na planu {plan} i višima.",
+    "upgradeToPlanForFeature": "Prijeđite na plan {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "kako biste pokretali automatizacije s Interface gumba.",
+    "addonFeatureTitle": "Dostupno kao Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} je dostupan kao plaćeni Add-on na planu {plan} ili višem. Javite nam se da ga uključimo.",
+    "toAccessCopyViewConfigFromAnotherView": "kako biste pristupili kopiranju postavki iz drugog pogleda.",
+    "toAccessReassignPersonalView": "kako biste pristupili ponovnoj dodjeli osobnih pogleda.",
+    "toAccessAssignAsPersonalView": "kako biste pristupili dodjeli kao osobnom pogledu.",
+    "toAccessCardFieldHeaderVisibility": "kako biste pristupili vidljivosti zaglavlja polja na karticama.",
+    "upgradeToUseStagingEnvironment": "Prijeđite na viši plan za korištenje Staging okruženja",
+    "upgradeToUseStagingEnvironmentSubtitle": "Vaš plan {activePlan} uključuje samo Production okruženje. Prijeđite na {plan} za korištenje Staginga.",
+    "upgradeToUsePerUserCredentials": "Prijeđite na viši plan za vjerodajnice po korisniku",
+    "upgradeToUsePerUserCredentialsSubtitle": "Vaš plan {activePlan} koristi samo zajedničke vjerodajnice. Prijeđite na {plan} kako bi svaki član povezao vlastiti račun.",
+    "upgradeToUseCustomEnvironments": "Prijeđite na viši plan za izradu prilagođenih okruženja",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Prilagođena okruženja nisu dostupna na vašem planu {activePlan}. Prijeđite na {plan} kako biste izradili okruženja osim Productiona i Staginga."
   },
   "general": {
     "scrollToBottom": "Pomaknite se na dno",
@@ -6345,7 +6384,80 @@
         "description": "Radnje su ono što tijek rada zapravo čini kada se okidač pokrene."
       },
       "chooseTable": {
-        "description": "Svaka radnja mora znati na čemu radi. Odaberite tablicu iz koje će se izlistati zapisi."
+        "description": "Svaka radnja mora znati na čemu radi. Odaberite tablicu iz koje će se izlistati zapisi.",
+        "title": "Odaberite tablicu"
+      },
+      "title": "Izgradite svoj prvi radni tok",
+      "overview": {
+        "title": "Izgradite radni tok od početka do kraja",
+        "description": "Izradite ga, odaberite okidač, dodajte radnju, objavite, uključite i onda gledajte kako radi."
+      },
+      "create": {
+        "title": "Izradite radni tok",
+        "description": "Krenite od nule — ovo otvara kratak obrazac."
+      },
+      "createSubmit": {
+        "title": "Izradi",
+        "description": "Ovo vas vodi ravno na platno."
+      },
+      "pickManualTrigger": {
+        "title": "Odaberite „Kad se pokrene ručno”",
+        "description": "Ovaj pokrećete sami, pa možete pripremiti ostatak prije nego što ga povežete sa stvarnim događajima."
+      },
+      "testTrigger": {
+        "title": "Testirajte okidač",
+        "description": "Pokrenite ga jednom i pogledajte podatke koje proizvodi. Svaki se sljedeći korak gradi na tom izlazu."
+      },
+      "pickListRecords": {
+        "title": "Odaberite „Popis zapisa”",
+        "description": "Samo čita, pa je možete pokretati koliko god želite bez mijenjanja podataka."
+      },
+      "testAction": {
+        "title": "Testirajte i radnju",
+        "description": "Svaki se čvor testira zasebno. Prije objave provjerite vraća li ovaj ono što očekujete."
+      },
+      "publish": {
+        "title": "Objavite svoje izmjene",
+        "description": "Izmjene se spremaju kao <b>skica</b>. Tek objava čini ovu verziju onom koja se izvodi."
+      },
+      "enable": {
+        "title": "Uključite ga",
+        "description": "Objavljeno nije isto što i pokrenuto. Radni tok ostaje <b>Pauziran</b> dok ga ne uključite — upravo se ovaj korak najčešće previdi."
+      },
+      "run": {
+        "title": "Pokrenite ga jednom",
+        "description": "Ručni okidač pokreće se na zahtjev — probajte i pogledajte kako se izvodi."
+      },
+      "logs": {
+        "title": "Provjerite zapisnike",
+        "description": "Svako pokretanje bilježi se ovdje — što je pokrenuto, što je svaki korak vratio i što nije uspjelo."
+      },
+      "wrapUp": {
+        "title": "To je cijeli krug",
+        "description": "Okidač, radnje, objava, uključivanje, pokretanje, zapisnici. Svaki radni tok koji odsad izgradite ima isti oblik."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Snađite se u svom radnom prostoru",
+      "welcome": {
+        "title": "Dobro došli u NocoDB",
+        "description": "Brzi krug po vašem radnom prostoru. Možete izaći bilo kada — pritisnite Preskoči."
+      },
+      "createBase": {
+        "title": "Počnite s Bazom",
+        "description": "Baza sadrži vaše tablice, poglede i automatizacije. Ovdje počinje većina posla."
+      },
+      "switchWorkspaces": {
+        "title": "Promijenite radni prostor",
+        "description": "Svaki radni prostor kojem pripadate nalazi se iza ovog izbornika. Otvorite ga da vidite ostale."
+      },
+      "moreWorkspaces": {
+        "title": "Više od jednog radnog prostora",
+        "description": "Radni prostori drže različite timove i projekte odvojenima, svaki sa svojim članovima."
+      },
+      "account": {
+        "title": "Račun i postavke",
+        "description": "Profil, tema, tipkovni prečaci i postavke računa nalaze se iza vašeg avatara."
       }
     }
   }

@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "Aģenti"
+    },
+    "upgradeToSortAndLimitLookupValues": "Lai kārtotu un ierobežotu Lookup laukā rādītās vērtības, pārejiet uz plānu {plan}.",
+    "upgradeToAddMoreAgents": "Pārejiet uz augstāku plānu, lai pievienotu vairāk aģentu",
+    "upgradeToAddMoreAgentsSubtitle": "Pašlaik jums ir plāns {activePlan}, kas pieļauj {limit} aģentus katrā darbtelpā. Pārejiet uz {plan}, lai iegūtu vairāk.",
+    "upgradeToAddMoreInterfaces": "Pārejiet uz augstāku plānu, lai pievienotu vairāk Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Pašlaik jums ir plāns {activePlan}, kas pieļauj {limit} Interfaces katrā darbtelpā. Pārejiet uz {plan}, lai iegūtu vairāk.",
+    "upgradeToAddMoreInterfacePages": "Pārejiet uz augstāku plānu, lai pievienotu vairāk lapu",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Pašlaik jums ir plāns {activePlan}, kas pieļauj {limit} lapas katrā Interface. Pārejiet uz {plan}, lai iegūtu neierobežotu lapu skaitu.",
+    "upgradeToUseTrashSettings": "Pārejiet uz augstāku plānu, lai konfigurētu miskastes iestatījumus",
+    "upgradeToUseTrashSettingsSubtitle": "Pārejiet uz plānu {plan}, lai konfigurētu miskastes iestatījumus katrai tabulai atsevišķi.",
+    "upgradeToAttachFilesToComments": "Pārejiet uz augstāku plānu, lai komentāriem pievienotu failus",
+    "upgradeToAttachFilesToCommentsSubtitle": "Pārejiet uz plānu {plan}, lai ierakstu komentāriem pievienotu attēlus un failus.",
+    "upgradeToUseToggleSort": "Pārejiet uz augstāku plānu, lai ieslēgtu un izslēgtu atsevišķas kārtošanas",
+    "upgradeToUseToggleSortSubtitle": "Pārejiet uz plānu {plan}, lai atsevišķas kārtošanas ieslēgtu vai izslēgtu, tās nedzēšot, un labāk pārvaldītu savus skatījumus.",
+    "upgradeToUseViewFolders": "Pārejiet uz augstāku plānu, lai izmantotu skatījumu mapes",
+    "upgradeToUseViewFoldersSubtitle": "Pārejiet uz plānu {plan}, lai kārtotu skatījumus mapēs.",
+    "upgradeToAccessViewFoldersSubtitle": "Pārejiet uz plānu {plan}, lai kārtotu skatījumus mapēs.",
+    "upgradeToUseFolders": "Pārejiet uz augstāku plānu, lai izmantotu mapes",
+    "upgradeToUseFoldersSubtitle": "Pārejiet uz plānu {plan}, lai kārtotu tabulas, dokumentus un Dashboards mapēs.",
+    "upgradeToAccessFoldersSubtitle": "Pārejiet uz plānu {plan}, lai kārtotu tabulas, dokumentus un Dashboards mapēs.",
+    "upgradeToUseCustomSync": "Pārejiet uz augstāku plānu, lai izmantotu pielāgotu Sync",
+    "upgradeToUseCustomSyncSubtitle": "Pārejiet uz plānu {plan}, lai sinhronizētu datus no citiem datu avotiem.",
+    "upgradeToUseAutomaticSyncSubtitle": "Pārejiet uz plānu {plan}, lai spoguļotās tabulas automātiski sinhronizētos reāllaikā.",
+    "upgradeToUseEnvironments": "Pārejiet uz augstāku plānu, lai izmantotu vides",
+    "upgradeToUseEnvironmentsSubtitle": "Vides ir pieejamas plānā {plan} un augstākos.",
+    "upgradeToPlanForFeature": "Pārejiet uz plānu {plan}, {detail}",
+    "runAutomationFromInterfaceButtonDetail": "lai palaistu automatizācijas no Interface pogām.",
+    "addonFeatureTitle": "Pieejams kā {addon} Add-on",
+    "addonFeatureSubtitle": "{addon} ir pieejams kā maksas Add-on plānā {plan} un augstākos. Sazinieties ar mums, lai to ieslēgtu.",
+    "toAccessCopyViewConfigFromAnotherView": "lai piekļūtu skatījuma konfigurācijas kopēšanai no cita skatījuma.",
+    "toAccessReassignPersonalView": "lai piekļūtu personīgo skatījumu atkārtotai piešķiršanai.",
+    "toAccessAssignAsPersonalView": "lai piekļūtu piešķiršanai kā personīgam skatījumam.",
+    "toAccessCardFieldHeaderVisibility": "lai piekļūtu lauku galveņu redzamībai kartītēs.",
+    "upgradeToUseStagingEnvironment": "Pārejiet uz augstāku plānu, lai izmantotu Staging vidi",
+    "upgradeToUseStagingEnvironmentSubtitle": "Jūsu plānā {activePlan} ir iekļauta tikai Production vide. Pārejiet uz {plan}, lai izmantotu Staging.",
+    "upgradeToUsePerUserCredentials": "Pārejiet uz augstāku plānu, lai izmantotu atsevišķus lietotāju akreditācijas datus",
+    "upgradeToUsePerUserCredentialsSubtitle": "Jūsu plāns {activePlan} izmanto tikai koplietotus akreditācijas datus. Pārejiet uz {plan}, lai katrs dalībnieks varētu pievienot savu kontu.",
+    "upgradeToUseCustomEnvironments": "Pārejiet uz augstāku plānu, lai veidotu pielāgotas vides",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Pielāgotas vides jūsu plānā {activePlan} nav pieejamas. Pārejiet uz {plan}, lai veidotu vides papildus Production un Staging."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6342,7 +6381,80 @@
         "description": "Darbības ir tas, ko darbplūsma patiesībā dara, tiklīdz nostrādā trigeris."
       },
       "chooseTable": {
-        "description": "Katrai darbībai jāzina, ar ko tā strādā. Izvēlieties tabulu, no kuras uzskaitīt ierakstus."
+        "description": "Katrai darbībai jāzina, ar ko tā strādā. Izvēlieties tabulu, no kuras uzskaitīt ierakstus.",
+        "title": "Izvēlieties tabulu"
+      },
+      "title": "Izveidojiet savu pirmo Workflow",
+      "overview": {
+        "title": "Izveidojiet Workflow no sākuma līdz beigām",
+        "description": "Izveidojiet to, izvēlieties trigeri, pievienojiet darbību, publicējiet, ieslēdziet un tad vērojiet, kā tas darbojas."
+      },
+      "create": {
+        "title": "Izveidojiet Workflow",
+        "description": "Sāciet no nulles — tiks atvērta īsa veidlapa."
+      },
+      "createSubmit": {
+        "title": "Izveidot",
+        "description": "Tas jūs aizvedīs tieši uz darbvirsmu."
+      },
+      "pickManualTrigger": {
+        "title": "Izvēlieties “Kad palaiž manuāli”",
+        "description": "Šo jūs palaižat pats, tāpēc varat sakārtot pārējo, pirms to savienojat ar reāliem notikumiem."
+      },
+      "testTrigger": {
+        "title": "Pārbaudiet trigeri",
+        "description": "Palaidiet to vienu reizi un apskatiet iegūtos datus. Katrs nākamais solis balstās uz šo izvadi."
+      },
+      "pickListRecords": {
+        "title": "Izvēlieties “Uzskaitīt ierakstus”",
+        "description": "Tā tikai nolasa datus, tāpēc varat to palaist tik bieži, cik vēlaties, neko nemainot."
+      },
+      "testAction": {
+        "title": "Pārbaudiet arī darbību",
+        "description": "Katrs mezgls tiek pārbaudīts atsevišķi. Pirms publicēšanas pārliecinieties, ka šis atgriež to, ko gaidāt."
+      },
+      "publish": {
+        "title": "Publicējiet savas izmaiņas",
+        "description": "Labojumi tiek saglabāti kā <b>melnraksts</b>. Tikai publicēšana padara šo versiju par to, kura darbojas."
+      },
+      "enable": {
+        "title": "Ieslēdziet to",
+        "description": "Publicēts nav tas pats, kas darbojas. Workflow paliek <b>Apturēts</b>, līdz to iespējojat — tieši šo soli mēdz palaist garām."
+      },
+      "run": {
+        "title": "Palaidiet to vienu reizi",
+        "description": "Manuālais trigeris nostrādā pēc pieprasījuma — pamēģiniet un vērojiet izpildi."
+      },
+      "logs": {
+        "title": "Pārbaudiet žurnālus",
+        "description": "Katra izpilde tiek pierakstīta šeit — kas nostrādāja, ko atgrieza katrs solis un kas neizdevās."
+      },
+      "wrapUp": {
+        "title": "Tas ir viss cikls",
+        "description": "Trigeris, darbības, publicēšana, ieslēgšana, izpilde, žurnāli. Katrs Workflow, ko turpmāk veidosiet, seko tai pašai formai."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Iepazīstiet savu darbtelpu",
+      "welcome": {
+        "title": "Laipni lūdzam NocoDB",
+        "description": "Ātrs aplis pa jūsu darbtelpu. Varat iziet jebkurā brīdī — nospiediet Izlaist."
+      },
+      "createBase": {
+        "title": "Sāciet ar Bāzi",
+        "description": "Bāze satur jūsu tabulas, skatījumus un automatizācijas. Šeit sākas lielākā daļa darba."
+      },
+      "switchWorkspaces": {
+        "title": "Pārslēdziet darbtelpas",
+        "description": "Katra darbtelpa, kurai piederat, atrodas aiz šī atlasītāja. Atveriet to, lai redzētu pārējās."
+      },
+      "moreWorkspaces": {
+        "title": "Vairāk nekā viena darbtelpa",
+        "description": "Darbtelpas nodala atsevišķas komandas un projektus, katrai no tām ir savi dalībnieki."
+      },
+      "account": {
+        "title": "Konts un iestatījumi",
+        "description": "Profils, motīvs, tastatūras saīsnes un konta iestatījumi — tas viss ir aiz jūsu avatara."
       }
     }
   }

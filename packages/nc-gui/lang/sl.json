@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "Agenti"
+    },
+    "upgradeToSortAndLimitLookupValues": "Za razvrščanje in omejevanje vrednosti, prikazanih v polju Lookup, nadgradite na paket {plan}.",
+    "upgradeToAddMoreAgents": "Nadgradite za več agentov",
+    "upgradeToAddMoreAgentsSubtitle": "Trenutno ste na paketu {activePlan}, ki dopušča {limit} agentov na delovni prostor. Nadgradite na {plan} za več.",
+    "upgradeToAddMoreInterfaces": "Nadgradite za več Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Trenutno ste na paketu {activePlan}, ki dopušča {limit} Interfaces na delovni prostor. Nadgradite na {plan} za več.",
+    "upgradeToAddMoreInterfacePages": "Nadgradite za več strani",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Trenutno ste na paketu {activePlan}, ki dopušča {limit} strani na Interface. Nadgradite na {plan} za neomejeno število strani.",
+    "upgradeToUseTrashSettings": "Nadgradite za nastavitve koša",
+    "upgradeToUseTrashSettingsSubtitle": "Nadgradite na paket {plan} in nastavite koš za vsako tabelo posebej.",
+    "upgradeToAttachFilesToComments": "Nadgradite za pripenjanje datotek h komentarjem",
+    "upgradeToAttachFilesToCommentsSubtitle": "Nadgradite na paket {plan} in pripenjajte slike ter datoteke h komentarjem zapisov.",
+    "upgradeToUseToggleSort": "Nadgradite za vklop in izklop posameznih razvrstitev",
+    "upgradeToUseToggleSortSubtitle": "Nadgradite na paket {plan} in posamezne razvrstitve vklapljajte ali izklapljajte, ne da bi jih odstranili — tako boste bolje obvladovali svoje poglede.",
+    "upgradeToUseViewFolders": "Nadgradite za uporabo map pogledov",
+    "upgradeToUseViewFoldersSubtitle": "Nadgradite na paket {plan} in razvrstite poglede v mape.",
+    "upgradeToAccessViewFoldersSubtitle": "Nadgradite na paket {plan} in razvrstite poglede v mape.",
+    "upgradeToUseFolders": "Nadgradite za uporabo map",
+    "upgradeToUseFoldersSubtitle": "Nadgradite na paket {plan} in razvrstite tabele, dokumente ter Dashboards v mape.",
+    "upgradeToAccessFoldersSubtitle": "Nadgradite na paket {plan} in razvrstite tabele, dokumente ter Dashboards v mape.",
+    "upgradeToUseCustomSync": "Nadgradite za uporabo lastnega Synca",
+    "upgradeToUseCustomSyncSubtitle": "Nadgradite na paket {plan} in sinhronizirajte podatke iz drugih podatkovnih virov.",
+    "upgradeToUseAutomaticSyncSubtitle": "Nadgradite na paket {plan}, da bodo zrcaljene tabele samodejno sinhronizirane v realnem času.",
+    "upgradeToUseEnvironments": "Nadgradite za uporabo okolij",
+    "upgradeToUseEnvironmentsSubtitle": "Okolja so na voljo na paketu {plan} in višjih.",
+    "upgradeToPlanForFeature": "Nadgradite na paket {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "in poganjajte avtomatizacije z gumbov Interface.",
+    "addonFeatureTitle": "Na voljo kot Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} je na voljo kot plačljiv Add-on na paketu {plan} ali višjem. Pišite nam, da ga vklopimo.",
+    "toAccessCopyViewConfigFromAnotherView": "in pridobite kopiranje nastavitev iz drugega pogleda.",
+    "toAccessReassignPersonalView": "in pridobite ponovno dodeljevanje osebnih pogledov.",
+    "toAccessAssignAsPersonalView": "in pridobite dodeljevanje kot osebni pogled.",
+    "toAccessCardFieldHeaderVisibility": "in pridobite vidnost glav polj na karticah.",
+    "upgradeToUseStagingEnvironment": "Nadgradite za uporabo okolja Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Vaš paket {activePlan} vključuje samo okolje Production. Nadgradite na {plan} za uporabo Staginga.",
+    "upgradeToUsePerUserCredentials": "Nadgradite za poverilnice po uporabniku",
+    "upgradeToUsePerUserCredentialsSubtitle": "Vaš paket {activePlan} uporablja samo skupne poverilnice. Nadgradite na {plan}, da lahko vsak član poveže svoj račun.",
+    "upgradeToUseCustomEnvironments": "Nadgradite za ustvarjanje lastnih okolij",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Lastna okolja na vašem paketu {activePlan} niso na voljo. Nadgradite na {plan} in ustvarite okolja poleg Productiona in Staginga."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6344,7 +6383,80 @@
         "description": "Dejanja so tisto, kar delovni tok dejansko naredi, ko se sprožilec sproži."
       },
       "chooseTable": {
-        "description": "Vsako dejanje mora vedeti, na čem dela. Izberite tabelo, iz katere bo izpisovalo zapise."
+        "description": "Vsako dejanje mora vedeti, na čem dela. Izberite tabelo, iz katere bo izpisovalo zapise.",
+        "title": "Izberite tabelo"
+      },
+      "title": "Zgradite svoj prvi Workflow",
+      "overview": {
+        "title": "Zgradite Workflow od začetka do konca",
+        "description": "Ustvarite ga, izberite prožilec, dodajte dejanje, objavite, vklopite in nato opazujte, kako teče."
+      },
+      "create": {
+        "title": "Ustvarite Workflow",
+        "description": "Začnite iz nič — odpre se kratek obrazec."
+      },
+      "createSubmit": {
+        "title": "Ustvari",
+        "description": "To vas popelje naravnost na platno."
+      },
+      "pickManualTrigger": {
+        "title": "Izberite »Ob ročnem zagonu«",
+        "description": "Tega sprožite sami, zato lahko ostalo spravite v tek, preden ga povežete z resničnimi dogodki."
+      },
+      "testTrigger": {
+        "title": "Preizkusite prožilec",
+        "description": "Zaženite ga enkrat in si oglejte podatke, ki jih ustvari. Vsak nadaljnji korak gradi na tem izhodu."
+      },
+      "pickListRecords": {
+        "title": "Izberite »Seznam zapisov«",
+        "description": "Samo bere, zato ga lahko poganjate tako pogosto, kot želite, ne da bi spremenili kakršne koli podatke."
+      },
+      "testAction": {
+        "title": "Preizkusite tudi dejanje",
+        "description": "Vsako vozlišče se testira zase. Pred objavo potrdite, da to vrača tisto, kar pričakujete."
+      },
+      "publish": {
+        "title": "Objavite svoje spremembe",
+        "description": "Urejanja se shranijo kot <b>osnutek</b>. Šele objava naredi to različico tisto, ki se izvaja."
+      },
+      "enable": {
+        "title": "Vklopite ga",
+        "description": "Objavljeno ni isto kot zagnano. Workflow ostane <b>Zaustavljen</b>, dokler ga ne omogočite — prav ta korak ljudje najpogosteje spregledajo."
+      },
+      "run": {
+        "title": "Zaženite ga enkrat",
+        "description": "Ročni prožilec se sproži na zahtevo — poskusite in opazujte izvajanje."
+      },
+      "logs": {
+        "title": "Preverite dnevnike",
+        "description": "Vsak zagon se zabeleži tukaj — kaj se je sprožilo, kaj je vrnil vsak korak in kaj je spodletelo."
+      },
+      "wrapUp": {
+        "title": "To je celoten krog",
+        "description": "Prožilec, dejanja, objava, omogočanje, zagon, dnevniki. Vsak Workflow, ki ga odslej zgradite, ima enako obliko."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Znajdite se v svojem delovnem prostoru",
+      "welcome": {
+        "title": "Dobrodošli v NocoDB",
+        "description": "Hiter krog po vašem delovnem prostoru. Kadar koli lahko odidete — pritisnite Preskoči."
+      },
+      "createBase": {
+        "title": "Začnite z Bazo",
+        "description": "Baza vsebuje vaše tabele, poglede in avtomatizacije. Tu se začne večina dela."
+      },
+      "switchWorkspaces": {
+        "title": "Preklopite delovni prostor",
+        "description": "Vsak delovni prostor, ki mu pripadate, je za tem izbirnikom. Odprite ga, da vidite ostale."
+      },
+      "moreWorkspaces": {
+        "title": "Več kot en delovni prostor",
+        "description": "Delovni prostori ločujejo posamezne ekipe in projekte, vsak s svojimi člani."
+      },
+      "account": {
+        "title": "Račun in nastavitve",
+        "description": "Profil, tema, tipkovne bližnjice in nastavitve računa so vse skrite za vašim avatarjem."
       }
     }
   }

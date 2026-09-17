@@ -27,6 +27,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
+import { extractUserKeys } from '../../../../cell/User/utils'
 import { clearTextCache, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
@@ -286,13 +287,76 @@ export function useCanvasTable({
     return isRowColouringEnabled.value ? ROW_COLOR_BORDER_WIDTH : 0
   })
 
-  const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
+  const isPublicView = inject(IsPublicInj, ref(false))
+
+  const { resolvedUsers, resolveUsers } = useResolveUsers()
+
+  const baseCollaborators = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : [],
+  )
+
+  const collaboratorIds = computed(() => new Set((baseCollaborators.value || []).map((u) => u.id)))
+
+  // Collaborators + any resolved external submitters (e.g. captured via a
+  // "require sign-in" shared form) so CreatedBy / User cells can display users
+  // who are not base members. Externals are display-only and never collaborators.
+  const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() => {
+    const collaborators = baseCollaborators.value
+
+    if (!resolvedUsers.value.size) return collaborators
+
+    const externals: (Partial<UserType> | Partial<User>)[] = []
+    for (const user of resolvedUsers.value.values()) {
+      if (user?.id && !collaboratorIds.value.has(user.id)) {
+        externals.push({ ...user, deleted: false } as Partial<UserType>)
+      }
+    }
+
+    return externals.length ? [...collaborators, ...externals] : collaborators
+  })
+
+  // Column titles that may reference users (incl. CreatedBy / LastModifiedBy).
+  const userColumnTitles = computed(() =>
+    fields.value
+      .filter((f) => f.title && [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(f.uidt as UITypes))
+      .map((f) => f.title as string),
+  )
+
+  // Scan loaded rows for user ids that are not base collaborators and resolve
+  // them for display. Debounced — re-runs as chunks load / the user scrolls.
+  const resolveExternalUsersFromRows = useDebounceFn(() => {
+    // Public/shared views have no session to resolve with.
+    if (isPublicView.value) return
+
+    const baseId = meta.value?.base_id
+    const tableId = meta.value?.id
+    if (!baseId || !tableId || !userColumnTitles.value.length || !cachedRows.value?.size) return
+
+    const keys: string[] = []
+    for (const row of cachedRows.value.values()) {
+      for (const title of userColumnTitles.value) {
+        const value = row?.row?.[title]
+        if (value) keys.push(...extractUserKeys(value))
+      }
+    }
+
+    const unknown = keys.filter((key) => !collaboratorIds.value.has(key))
+    if (unknown.length) resolveUsers(baseId, tableId, unknown)
+  }, 300)
+
+  watch([() => totalRows.value, () => chunkStates.value, userColumnTitles], () => resolveExternalUsersFromRows(), { deep: true })
+
+  // Resolution lands after the rows have already been painted, and updating
+  // `baseUsers` alone does not invalidate the canvas — the cell would stay blank
+  // until some unrelated redraw (scroll, resize) happened to repaint it. Same
+  // pattern the image/sprite loaders use for their async completions.
+  watch(
+    () => resolvedUsers.value,
+    () => triggerRefreshCanvas(),
   )
 
   const { hideTooltip } = tooltipStore
 
-  const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
   const interfaceInlineEditHint = inject(InterfaceInlineEditHintInj, ref(null))
   const readonlyEditNotice = inject(ReadonlyEditNoticeInj, ref(null))

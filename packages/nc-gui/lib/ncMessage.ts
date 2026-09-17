@@ -6,6 +6,20 @@ import { isPrimitiveValue } from 'nocodb-sdk'
 import NcAlert, { type NcAlertProps } from '../components/nc/Alert.vue'
 import { getI18n } from '~/plugins/a.i18n'
 
+// Sign-out transiently flips this on. While signing out, in-flight/watcher
+// requests (e.g. loading workspace bases) 401 as the token is cleared; the
+// axios interceptor already handles that by redirecting to sign-in, so the raw
+// "authentication required" toast is just noise. Scoped to the brief sign-out
+// window so it never hides genuine errors (e.g. wrong password on /signin).
+//
+// `message.error` is patched to `ncMessage.error` (plugins/ant.ts), so this
+// suppresses every error toast in the app — deliberate messages raised during
+// sign-out must opt out with `{ forceShow: true }`.
+let ncErrorToastsSuppressed = false
+export const setNcErrorToastsSuppressed = (suppressed: boolean) => {
+  ncErrorToastsSuppressed = suppressed
+}
+
 interface NcAlertMessageProps
   extends Pick<
     NcAlertProps,
@@ -35,6 +49,11 @@ export interface NcMessageObjectProps extends NcAlertMessageProps, Omit<MessageA
   showDefaultMessage?: boolean
   showCopyBtn?: boolean
   /**
+   * Show even while error toasts are suppressed during sign-out — for deliberate,
+   * user-facing messages. See `ncErrorToastsSuppressed`.
+   */
+  forceShow?: boolean
+  /**
    * For internal use only
    */
   renderAsNcAlert?: boolean
@@ -49,7 +68,7 @@ export type NcMessageProps = NcMessageObjectProps | VueNode
  * Use `copyText` & `copyBtnTooltip` to set the copy text & tooltip for the copy button if params is primitive value
  */
 export interface NcMessageExtraProps
-  extends Pick<NcMessageObjectProps, 'showDefaultMessage' | 'showCopyBtn' | 'copyText' | 'copyBtnTooltip'> {}
+  extends Pick<NcMessageObjectProps, 'showDefaultMessage' | 'showCopyBtn' | 'copyText' | 'copyBtnTooltip' | 'forceShow'> {}
 
 const defaultNcMessageExtraProps = {
   showDefaultMessage: false,
@@ -232,6 +251,7 @@ const showMessage = (
     renderAsNcAlert,
     showCopyBtn: _showCopyBtn,
     showDefaultMessage: _showDefaultMessage,
+    forceShow,
     ...ncAlertProps
   } = props
 
@@ -240,6 +260,10 @@ const showMessage = (
 
   // Skip toast for errors already handled via dedicated modals
   if (type === 'error' && ncIsString(content) && MODAL_HANDLED_MESSAGES.some((msg) => content.includes(msg))) return
+
+  // Skip error toasts while signing out — see ncErrorToastsSuppressed above.
+  // `forceShow` only reaches `props` for object params, so also honour it from the extra props.
+  if (type === 'error' && ncErrorToastsSuppressed && !forceShow && !ncMessageExtraProps?.forceShow) return
 
   const key = generateMessageKey(type, title, content, params)
 

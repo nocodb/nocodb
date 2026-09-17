@@ -111,6 +111,14 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   user: Ref<User | null>
   token: WritableComputedRef<StoredState['token']>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
+  /**
+   * Route-independent view of the persisted login token/payload. Unlike `token`
+   * (masked to '' on shared base/erd/view routes so those stay guest), these
+   * reflect the real login session even on a shared route — needed by the
+   * "require sign-in" shared form to recognise a genuinely logged-in user.
+   */
+  realToken: ComputedRef<string>
+  jwtPayloadReal: ComputedRef<(JwtPayload & User) | null>
   timestamp: Ref<number>
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
@@ -120,6 +128,14 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
 
 export interface Getters {
   signedIn: ComputedRef<boolean>
+  /**
+   * Like `signedIn` but derived from the unmasked `realToken`, so it stays true
+   * on shared-view routes when the user has a real login session. Use this
+   * (not `signedIn`) for the "require sign-in" shared form gate/banner.
+   */
+  signedInReal: ComputedRef<boolean>
+  /** The real logged-in user derived from `realToken`, or null. */
+  signedInUserReal: ComputedRef<User | null>
   isSsoUser: ComputedRef<boolean>
   isLoading: WritableComputedRef<boolean>
   getResponsiveValue: <T>(mobile: T, desktop: T) => T

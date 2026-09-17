@@ -67,6 +67,12 @@ const isReadOnly = computed(() => {
   return isLocked.value || restrictedSharing.value
 })
 
+const isFormRequireSigninEnabled = computed(() => {
+  if (activeView.value?.type !== ViewTypes.FORM) return false
+  const formMeta = parseProp((activeView.value as any)?.view?.meta)
+  return !!formMeta?.require_signin
+})
+
 const url = computed(() => {
   return sharedViewUrl() ?? ''
 })
@@ -552,6 +558,14 @@ const copyCustomUrl = async (custUrl = '') => {
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
     <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-nc-border-gray-medium border-1 rounded-md gap-y-2">
+      <!-- Sits above every other option so it reads as a property of the shared form, not of survey mode -->
+      <NcAlert
+        v-if="isFormRequireSigninEnabled"
+        type="info"
+        show-icon
+        :message="$t('msg.info.formRequiresSignin')"
+        data-testid="nc-share-form-require-signin-banner"
+      />
       <div class="flex flex-row w-full justify-between py-0.5">
         <div class="text-nc-content-gray-emphasis font-medium">
           {{ $t('activity.enabledPublicViewing') }}

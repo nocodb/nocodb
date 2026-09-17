@@ -149,10 +149,36 @@ const { state } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures, blockFormGridLayout } =
-  useEeConfig()
+const {
+  blockAddNewRecord,
+  blockFormRequireSignin,
+  showUpgradeToUseFormRequireSignin,
+  navigateToPricing,
+  getPlanTitle,
+  activePlan,
+  isWsOwner,
+  showEEFeatures,
+  blockFormGridLayout,
+} = useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
+
+// Only a user-added "Created by" field counts. Every table also carries the
+// system `nc_created_by` column, which matches on uidt alone and would make
+// this always true — leaving the option enabled on tables with nowhere to show
+// the submitter, and its "add a Created by field" hint permanently unreachable.
+const hasCreatedByField = computed(() => meta.value?.columns?.some((c) => c.uidt === UITypes.CreatedBy && !c.system) ?? false)
+
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
 
 const isSidebarVisible = ref(ncIsPlaywright())
 
@@ -1784,6 +1810,20 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </div>
                       </div>
 
+                      <!-- Signed-in user indicator in form preview -->
+                      <div
+                        v-if="isEeUI && parseProp(formViewData?.meta)?.require_signin && user?.email"
+                        class="px-4 lg:px-6"
+                        data-testid="nc-form-preview-signin-banner"
+                      >
+                        <SharedViewSignedInUserBanner
+                          preview
+                          :email="user.email"
+                          :display-name="user.display_name"
+                          :user-meta="user.meta"
+                        />
+                      </div>
+
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
                       <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
                         <template v-for="formRow in rowsWithKey" :key="formRow._key">
@@ -2504,8 +2544,15 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <div class="p-4 flex flex-col space-y-4">
                         <!-- Post Form Submission Settings -->
-                        <div class="text-sm font-bold text-nc-content-gray">
-                          {{ $t('msg.info.postFormSubmissionSettings') }}
+                        <div class="flex items-center justify-between">
+                          <div class="text-sm font-bold text-nc-content-gray">
+                            {{ $t('msg.info.postFormSubmissionSettings') }}
+                          </div>
+                          <div
+                            class="w-[15px] h-[15px] cursor-pointer"
+                            data-testid="nc-form-require-signin-easter-egg"
+                            @dblclick="onEasterEgg"
+                          ></div>
                         </div>
 
                         <div class="flex flex-col gap-3">
@@ -2645,6 +2692,49 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @update:model-value="(val) => (formViewData!.email = val)"
                               @change="updateView"
                             />
+                          </div>
+
+                          <!-- See who submitted a response -->
+                          <div
+                            v-if="isEeUI && (easterEgg || !!parseProp(formViewData.meta)?.require_signin)"
+                            class="flex items-start justify-between gap-3"
+                          >
+                            <div class="flex flex-col">
+                              <span>{{ $t('msg.info.seeWhoSubmitted') }}</span>
+                              <span class="text-xs text-nc-content-gray-subtle2">
+                                {{
+                                  hasCreatedByField
+                                    ? $t('msg.info.seeWhoSubmittedSubtitle')
+                                    : $t('msg.info.seeWhoSubmittedDisabledHint')
+                                }}
+                              </span>
+                            </div>
+                            <div class="flex items-center gap-2 h-6">
+                              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN" />
+                              <a-switch
+                                v-e="[`a:form-view:require-signin`]"
+                                :checked="!!parseProp(formViewData.meta)?.require_signin"
+                                size="small"
+                                class="nc-form-checkbox-require-signin"
+                                data-testid="nc-form-checkbox-require-signin"
+                                :disabled="
+                                  isLocked ||
+                                  !isEditable ||
+                                  (!parseProp(formViewData.meta)?.require_signin &&
+                                    (blockFormRequireSignin || !hasCreatedByField))
+                                "
+                                @change="(value: boolean) => {
+                                  // Turning OFF is always allowed, so a flag stored on a plan
+                                  // that no longer has the feature can still be cleared.
+                                  if (value && blockFormRequireSignin) {
+                                    showUpgradeToUseFormRequireSignin()
+                                    return
+                                  }
+                                  (formViewData!.meta as Record<string,any>).require_signin = value
+                                  updateView()
+                                }"
+                              />
+                            </div>
                           </div>
                         </div>
 

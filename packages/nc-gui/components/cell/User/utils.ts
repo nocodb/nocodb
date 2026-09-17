@@ -20,6 +20,14 @@ const RECORD_STAMPING_SERVICE_USERS = [
   ServiceUserType.WORKFLOW_USER,
 ] as const
 
+/** Service users stamp records (public forms, automations, syncs, workflows) but are never base members. */
+export const isRecordStampingServiceUser = (idOrEmail?: string | null) =>
+  !!idOrEmail &&
+  RECORD_STAMPING_SERVICE_USERS.some((key) => {
+    const user = NOCO_SERVICE_USERS[key]
+    return user.id === idOrEmail || user.email === idOrEmail
+  })
+
 // Absent from the base-users list (they don't live in nc_users), so expose
 // them as selectable options in the filter dropdown so records created by
 // e.g. "NocoDB Workflow" can be filtered.
@@ -96,6 +104,38 @@ export const getOptions = (
   return collaborators
 }
 
+/**
+ * Extract the raw user id/email keys referenced by a User/CreatedBy cell value,
+ * without requiring them to exist in any options map. Used to discover ids that
+ * need resolving (e.g. external form submitters who are not base collaborators).
+ */
+export const extractUserKeys = (modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null): string[] => {
+  if (!modelValue) return []
+
+  let value = modelValue
+
+  if (Array.isArray(value) && !value.filter((k) => typeof k !== 'string').length) {
+    value = arrFlatMap(value.filter((k) => k).map((u: string) => u?.split?.(','))).join(',')
+  }
+
+  if (typeof value === 'string' && /^\s*[{[]/.test(value)) {
+    try {
+      value = JSON.parse(value)
+    } catch (e) {
+      // not json — fall through to string handling
+    }
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((idOrMail) => idOrMail.trim())
+      .filter(Boolean)
+  }
+
+  return (Array.isArray(value) ? value : [value]).map((item) => item?.id || item?.email).filter((k): k is string => !!k)
+}
+
 export interface SelectedUserType {
   label: string
   value: string
@@ -153,16 +193,21 @@ export const getSelectedUsers = (
   } else {
     selected = localModelValue
       ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
-          const label = item?.display_name || item?.email
+          const user = optionsMap[item?.id] ?? (item?.email ? optionsMap[item.email.trim()] : undefined)
+
+          // External submitters (non-collaborators captured by a require-sign-in
+          // shared form) arrive identity-stripped as `{ id, email: null,
+          // display_name: null }` — fall back to the resolved option so they
+          // render instead of being dropped for having no label.
+          const label = item?.display_name || item?.email || user?.display_name || user?.email
           if (label) {
-            const user = optionsMap[item.id]
             acc.push({
               label,
               value: item.id,
               deleted: user?.deleted,
-              meta: item?.meta,
-              display_name: item?.display_name,
-              email: item?.email,
+              meta: item?.meta ?? user?.meta,
+              display_name: item?.display_name ?? user?.display_name,
+              email: item?.email ?? user?.email,
             })
           }
           return acc

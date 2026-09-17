@@ -82,9 +82,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const formStartsAt = computed(() => (sharedFormView.value as any)?.starts_at || null)
 
+  const requireSignin = computed(() => {
+    const formMeta = parseProp(sharedFormView.value?.meta)
+    return !!formMeta?.require_signin
+  })
+
   const formResetHook = createEventHook<void>()
 
-  const { isMobileMode, appInfo } = useGlobal()
+  // Use the UNMASKED real login identity: `useGlobal().token` (and hence the
+  // masked `signedIn`/`user`) is forced to '' on shared-view routes, so on a
+  // shared form they are always false — which loops the require-sign-in
+  // redirect and hides the signed-in banner. `signedInReal`/`signedInUserReal`
+  // reflect the genuine login session regardless of route.
+  const { isMobileMode, appInfo, signedInReal, signedInUserReal, realToken } = useGlobal()
 
   const { api, isLoading } = useApi()
 
@@ -181,6 +191,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
   }))
 
+  // Scope drafts to the signed-in identity on require-sign-in forms, so "switch
+  // account" doesn't hand the next user the previous one's answers. Ordinary
+  // anonymous forms stay keyed on the view uuid alone.
+  const draftScopeId = computed(() =>
+    requireSignin.value && signedInReal.value ? signedInUserReal.value?.id ?? undefined : undefined,
+  )
+
   const {
     wasRestored: draftWasRestored,
     restoredAt: draftRestoredAt,
@@ -195,6 +212,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isEnabled: isDraftSaveEnabled,
     baselineState: draftBaselineState,
     validUserIds,
+    scopeId: draftScopeId,
   })
 
   const localColumns = computed<(ColumnType & Record<string, any>)[]>(() => {
@@ -549,6 +567,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
         headers: {
           'xc-password': password.value,
+          // On a shared-view route `useApi`'s token is masked to '', so the
+          // submit would go out unauthenticated. For a require-sign-in form we
+          // must send the real login token so the backend authenticates the
+          // submitter and records CreatedBy / enforces the sign-in requirement.
+          //
+          // Only for require-sign-in forms: on an ordinary public form the
+          // submitter is told nothing about being identified (no signed-in
+          // banner is rendered), so attaching their token would silently
+          // disclose their identity to the form owner. Those stay anonymous.
+          ...(requireSignin.value && signedInReal.value && realToken.value ? { 'xc-auth': realToken.value } : {}),
         },
       })
 
@@ -579,6 +607,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
     } catch (e: any) {
       console.error(e)
+
+      // If session expired on a require-signin form, redirect to sign-in
+      if (requireSignin.value && e?.response?.status === 401) {
+        progress.value = false
+        // forceShow: the 401 interceptor signs out first, which suppresses error toasts.
+        message.error(t('msg.info.formRequiresSignin'), undefined, { forceShow: true })
+        navigateTo(`/signin?continueAfterSignIn=${encodeURIComponent(route.fullPath)}`, { replace: true })
+        return
+      }
+
       await message.error(await extractSdkResponseErrorMsg(e))
     }
     progress.value = false
@@ -1014,6 +1052,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isFormExpired,
     isFormNotStarted,
     formStartsAt,
+    requireSignin,
+    // Expose the UNMASKED identity under the names the gate/banner consume, so
+    // the require-sign-in flow sees the real login session on the shared route.
+    signedIn: signedInReal,
+    user: signedInUserReal,
     backgroundAndTextColor,
     draftWasRestored,
     draftRestoredAt,

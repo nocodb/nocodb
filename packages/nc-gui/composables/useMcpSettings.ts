@@ -178,7 +178,7 @@ export const useMcpSettings = createSharedComposable(() => {
       // Only remove from the list if successful
       if (response) {
         tokenList.value = tokenList.value.filter((t) => t.id !== token.id)
-        message.success(t('msg.success.mcpTokenDeleted'))
+        message.toast(t('msg.success.mcpTokenDeleted'))
       } else {
         if (tokenToDelete) {
           tokenToDelete.loading = false
@@ -338,7 +338,7 @@ export const useMcpSettings = createSharedComposable(() => {
 
       if (res) {
         accountMcpTokens.value = accountMcpTokens.value.filter((t) => t.id !== token.id)
-        message.success(t('msg.success.mcpTokenDeleted'))
+        message.toast(t('msg.success.mcpTokenDeleted'))
       } else {
         message.error(t('msg.error.failedToDeleteMcpToken'))
       }

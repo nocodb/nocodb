@@ -257,8 +257,47 @@
       "workspaceMembers": "أعضاء فضاء العمل",
       "audit": "مراجعة مساحة العمل",
       "ltarCustomDisplayValue": "حقل قيمة العرض المخصص",
-      "publicDocShare": "مشاركة المستندات العامة"
-    }
+      "publicDocShare": "مشاركة المستندات العامة",
+      "agents": "الوكلاء"
+    },
+    "upgradeToSortAndLimitLookupValues": "لفرز القيم المعروضة في حقل Lookup وتحديد عددها، يُرجى الارتقاء إلى خطة {plan}.",
+    "upgradeToAddMoreAgents": "ارتقِ لإضافة المزيد من الوكلاء",
+    "upgradeToAddMoreAgentsSubtitle": "أنت حاليًا على خطة {activePlan}، التي تسمح بـ {limit} وكيل لكل مساحة عمل. ارتقِ إلى {plan} للحصول على المزيد.",
+    "upgradeToAddMoreInterfaces": "ارتقِ لإضافة المزيد من Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "أنت حاليًا على خطة {activePlan}، التي تسمح بـ {limit} Interfaces لكل مساحة عمل. ارتقِ إلى {plan} للحصول على المزيد.",
+    "upgradeToAddMoreInterfacePages": "ارتقِ لإضافة المزيد من الصفحات",
+    "upgradeToAddMoreInterfacePagesSubtitle": "أنت حاليًا على خطة {activePlan}، التي تسمح بـ {limit} صفحة لكل Interface. ارتقِ إلى {plan} للحصول على صفحات بلا حدود.",
+    "upgradeToUseTrashSettings": "ارتقِ لضبط إعدادات سلة المحذوفات",
+    "upgradeToUseTrashSettingsSubtitle": "ارتقِ إلى خطة {plan} لضبط إعدادات سلة المحذوفات لكل جدول على حدة.",
+    "upgradeToAttachFilesToComments": "ارتقِ لإرفاق الملفات بالتعليقات",
+    "upgradeToAttachFilesToCommentsSubtitle": "ارتقِ إلى خطة {plan} لإرفاق الصور والملفات بتعليقات السجلات.",
+    "upgradeToUseToggleSort": "ارتقِ لتشغيل عمليات الفرز الفردية وإيقافها",
+    "upgradeToUseToggleSortSubtitle": "ارتقِ إلى خطة {plan} لتفعيل عمليات الفرز الفردية أو تعطيلها دون إزالتها، لتتحكم في عروضك بدرجة أكبر.",
+    "upgradeToUseViewFolders": "ارتقِ لاستخدام مجلدات العروض",
+    "upgradeToUseViewFoldersSubtitle": "ارتقِ إلى خطة {plan} لتنظيم العروض في مجلدات.",
+    "upgradeToAccessViewFoldersSubtitle": "ارتقِ إلى خطة {plan} لتنظيم العروض في مجلدات.",
+    "upgradeToUseFolders": "ارتقِ لاستخدام المجلدات",
+    "upgradeToUseFoldersSubtitle": "ارتقِ إلى خطة {plan} لتنظيم الجداول والمستندات و Dashboards في مجلدات.",
+    "upgradeToAccessFoldersSubtitle": "ارتقِ إلى خطة {plan} لتنظيم الجداول والمستندات و Dashboards في مجلدات.",
+    "upgradeToUseCustomSync": "ارتقِ لاستخدام Sync المخصص",
+    "upgradeToUseCustomSyncSubtitle": "ارتقِ إلى خطة {plan} لمزامنة البيانات من مصادر بيانات أخرى.",
+    "upgradeToUseAutomaticSyncSubtitle": "ارتقِ إلى خطة {plan} لإبقاء الجداول المنسوخة متزامنة تلقائيًا وفي الوقت الفعلي.",
+    "upgradeToUseEnvironments": "ارتقِ لاستخدام البيئات",
+    "upgradeToUseEnvironmentsSubtitle": "تتوفر البيئات في خطة {plan} وما فوقها.",
+    "upgradeToPlanForFeature": "ارتقِ إلى خطة {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "لتشغيل الأتمتة من أزرار Interface.",
+    "addonFeatureTitle": "متاح كـ Add-on {addon}",
+    "addonFeatureSubtitle": "يتوفر {addon} كـ Add-on مدفوع في خطة {plan} أو أعلى. تواصل معنا لتفعيله.",
+    "toAccessCopyViewConfigFromAnotherView": "للوصول إلى ميزة نسخ إعدادات العرض من عرض آخر.",
+    "toAccessReassignPersonalView": "للوصول إلى ميزة إعادة تعيين العروض الشخصية.",
+    "toAccessAssignAsPersonalView": "للوصول إلى ميزة التعيين كعرض شخصي.",
+    "toAccessCardFieldHeaderVisibility": "للوصول إلى ميزة إظهار عناوين الحقول على البطاقات.",
+    "upgradeToUseStagingEnvironment": "ارتقِ لاستخدام بيئة Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "تتضمن خطتك {activePlan} بيئة Production فقط. ارتقِ إلى {plan} لاستخدام Staging.",
+    "upgradeToUsePerUserCredentials": "ارتقِ لاستخدام بيانات اعتماد لكل مستخدم",
+    "upgradeToUsePerUserCredentialsSubtitle": "تستخدم خطتك {activePlan} بيانات اعتماد مشتركة فقط. ارتقِ إلى {plan} ليربط كل عضو حسابه الخاص.",
+    "upgradeToUseCustomEnvironments": "ارتقِ لإنشاء بيئات مخصصة",
+    "upgradeToUseCustomEnvironmentsSubtitle": "البيئات المخصصة غير متاحة في خطتك {activePlan}. ارتقِ إلى {plan} لإنشاء بيئات إلى جانب Production و Staging."
   },
   "general": {
     "scrollToBottom": "التمرير إلى الأسفل",
@@ -6346,7 +6385,80 @@
         "description": "الإجراءات هي ما يفعله سير العمل فعليًا بعد انطلاق المشغّل."
       },
       "chooseTable": {
-        "description": "كل إجراء يحتاج إلى معرفة ما يعمل عليه. اختر الجدول الذي ستُسرد سجلاته."
+        "description": "كل إجراء يحتاج إلى معرفة ما يعمل عليه. اختر الجدول الذي ستُسرد سجلاته.",
+        "title": "اختر جدولًا"
+      },
+      "title": "ابنِ أول سير عمل لك",
+      "overview": {
+        "title": "ابنِ سير عمل من البداية إلى النهاية",
+        "description": "أنشئه، واختر مُشغّلًا، وأضف إجراءً، وانشره، وشغّله، ثم راقبه وهو يعمل."
+      },
+      "create": {
+        "title": "أنشئ سير عمل",
+        "description": "ابدأ من الصفر — سيفتح هذا نموذجًا قصيرًا."
+      },
+      "createSubmit": {
+        "title": "أنشئه",
+        "description": "ينقلك هذا مباشرةً إلى مساحة التصميم."
+      },
+      "pickManualTrigger": {
+        "title": "اختر «عند التشغيل يدويًا»",
+        "description": "هذا المُشغّل تطلقه بنفسك، فيمكنك تشغيل بقية الخطوات قبل ربطه بأحداث حقيقية."
+      },
+      "testTrigger": {
+        "title": "اختبر المُشغّل",
+        "description": "شغّله مرة واحدة وانظر إلى البيانات التي ينتجها. فكل خطوة لاحقة تُبنى على هذا المُخرَج."
+      },
+      "pickListRecords": {
+        "title": "اختر «سرد السجلات»",
+        "description": "إنه يقرأ فقط، لذا يمكنك تشغيله كما تشاء دون تغيير أي بيانات."
+      },
+      "testAction": {
+        "title": "اختبر الإجراء أيضًا",
+        "description": "تُختبَر كل عقدة على حدة. تأكد قبل النشر من أن هذه العقدة تعيد ما تتوقعه."
+      },
+      "publish": {
+        "title": "انشر تغييراتك",
+        "description": "تُحفظ التعديلات في صورة <b>مسودة</b>. والنشر هو ما يجعل هذه النسخة هي التي تعمل فعليًا."
+      },
+      "enable": {
+        "title": "شغّله",
+        "description": "النشر لا يعني التشغيل. يبقى سير العمل <b>موقوفًا مؤقتًا</b> حتى تفعّله — وهذه هي الخطوة التي يغفل عنها الكثيرون."
+      },
+      "run": {
+        "title": "شغّله مرة واحدة",
+        "description": "يعمل المُشغّل اليدوي عند الطلب — جرّبه وراقب تنفيذه."
+      },
+      "logs": {
+        "title": "راجع السجلات",
+        "description": "يُسجَّل كل تشغيل هنا — ما الذي أطلقه، وما الذي أعادته كل خطوة، وما الذي أخفق."
+      },
+      "wrapUp": {
+        "title": "هذه هي الدورة كاملة",
+        "description": "مُشغّل، وإجراءات، ونشر، وتفعيل، وتشغيل، وسجلات. كل سير عمل تبنيه من الآن فصاعدًا يتبع الشكل نفسه."
+      }
+    },
+    "workspaceBasics": {
+      "title": "تعرّف على مساحة عملك",
+      "welcome": {
+        "title": "مرحبًا بك في NocoDB",
+        "description": "جولة سريعة في مساحة عملك. يمكنك الخروج في أي وقت — اضغط على «تخطٍّ»."
+      },
+      "createBase": {
+        "title": "ابدأ بقاعدة",
+        "description": "تضم القاعدة جداولك وعروضك وأتمتاتك. ومن هنا يبدأ معظم العمل."
+      },
+      "switchWorkspaces": {
+        "title": "بدّل بين مساحات العمل",
+        "description": "كل مساحة عمل تنتمي إليها موجودة خلف هذا المُحدِّد. افتحه لرؤية البقية."
+      },
+      "moreWorkspaces": {
+        "title": "أكثر من مساحة عمل",
+        "description": "تفصل مساحات العمل بين الفرق والمشاريع المختلفة، ولكل منها أعضاؤها."
+      },
+      "account": {
+        "title": "الحساب والإعدادات",
+        "description": "الملف الشخصي والمظهر واختصارات لوحة المفاتيح وإعدادات الحساب، كلها خلف صورتك الرمزية."
       }
     }
   }

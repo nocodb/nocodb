@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "عامل‌ها"
+    },
+    "upgradeToSortAndLimitLookupValues": "برای مرتب‌سازی و محدود کردن مقدارهای نمایش‌داده‌شده در فیلد Lookup، لطفاً به پلن {plan} ارتقا دهید.",
+    "upgradeToAddMoreAgents": "برای افزودن عامل‌های بیشتر ارتقا دهید",
+    "upgradeToAddMoreAgentsSubtitle": "شما اکنون روی پلن {activePlan} هستید که {limit} عامل برای هر فضای کاری اجازه می‌دهد. برای تعداد بیشتر به {plan} ارتقا دهید.",
+    "upgradeToAddMoreInterfaces": "برای افزودن Interfaces بیشتر ارتقا دهید",
+    "upgradeToAddMoreInterfacesSubtitle": "شما اکنون روی پلن {activePlan} هستید که {limit} Interfaces برای هر فضای کاری اجازه می‌دهد. برای تعداد بیشتر به {plan} ارتقا دهید.",
+    "upgradeToAddMoreInterfacePages": "برای افزودن صفحه‌های بیشتر ارتقا دهید",
+    "upgradeToAddMoreInterfacePagesSubtitle": "شما اکنون روی پلن {activePlan} هستید که {limit} صفحه برای هر Interface اجازه می‌دهد. برای صفحه‌های نامحدود به {plan} ارتقا دهید.",
+    "upgradeToUseTrashSettings": "برای پیکربندی تنظیمات زباله‌دان ارتقا دهید",
+    "upgradeToUseTrashSettingsSubtitle": "به پلن {plan} ارتقا دهید تا تنظیمات زباله‌دان را برای هر جدول جداگانه پیکربندی کنید.",
+    "upgradeToAttachFilesToComments": "برای پیوست فایل به دیدگاه‌ها ارتقا دهید",
+    "upgradeToAttachFilesToCommentsSubtitle": "به پلن {plan} ارتقا دهید تا تصویر و فایل را به دیدگاه‌های رکوردها پیوست کنید.",
+    "upgradeToUseToggleSort": "برای روشن و خاموش کردن مرتب‌سازی‌های تکی ارتقا دهید",
+    "upgradeToUseToggleSortSubtitle": "به پلن {plan} ارتقا دهید تا مرتب‌سازی‌های تکی را بدون حذف کردن، فعال یا غیرفعال کنید و نماهایتان را بهتر در دست بگیرید.",
+    "upgradeToUseViewFolders": "برای استفاده از پوشه‌های نما ارتقا دهید",
+    "upgradeToUseViewFoldersSubtitle": "به پلن {plan} ارتقا دهید تا نماها را در پوشه‌ها سامان دهید.",
+    "upgradeToAccessViewFoldersSubtitle": "به پلن {plan} ارتقا دهید تا نماها را در پوشه‌ها سامان دهید.",
+    "upgradeToUseFolders": "برای استفاده از پوشه‌ها ارتقا دهید",
+    "upgradeToUseFoldersSubtitle": "به پلن {plan} ارتقا دهید تا جدول‌ها، سندها و Dashboards را در پوشه‌ها سامان دهید.",
+    "upgradeToAccessFoldersSubtitle": "به پلن {plan} ارتقا دهید تا جدول‌ها، سندها و Dashboards را در پوشه‌ها سامان دهید.",
+    "upgradeToUseCustomSync": "برای استفاده از Sync سفارشی ارتقا دهید",
+    "upgradeToUseCustomSyncSubtitle": "به پلن {plan} ارتقا دهید تا داده‌ها را از منابع داده دیگر همگام کنید.",
+    "upgradeToUseAutomaticSyncSubtitle": "به پلن {plan} ارتقا دهید تا جدول‌های آینه‌ای به‌صورت خودکار و بی‌درنگ همگام بمانند.",
+    "upgradeToUseEnvironments": "برای استفاده از محیط‌ها ارتقا دهید",
+    "upgradeToUseEnvironmentsSubtitle": "محیط‌ها در پلن {plan} و بالاتر در دسترس هستند.",
+    "upgradeToPlanForFeature": "به پلن {plan} ارتقا دهید {detail}",
+    "runAutomationFromInterfaceButtonDetail": "تا خودکارسازی‌ها را از دکمه‌های Interface اجرا کنید.",
+    "addonFeatureTitle": "در دسترس به‌صورت Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} به‌صورت Add-on پولی در پلن {plan} و بالاتر در دسترس است. برای فعال‌سازی با ما تماس بگیرید.",
+    "toAccessCopyViewConfigFromAnotherView": "تا به قابلیت رونوشت تنظیمات از نمایی دیگر دسترسی پیدا کنید.",
+    "toAccessReassignPersonalView": "تا به قابلیت تخصیص دوبارهٔ نماهای شخصی دسترسی پیدا کنید.",
+    "toAccessAssignAsPersonalView": "تا به قابلیت تخصیص به‌عنوان نمای شخصی دسترسی پیدا کنید.",
+    "toAccessCardFieldHeaderVisibility": "تا به قابلیت نمایش سرایند فیلدها روی کارت‌ها دسترسی پیدا کنید.",
+    "upgradeToUseStagingEnvironment": "برای استفاده از محیط Staging ارتقا دهید",
+    "upgradeToUseStagingEnvironmentSubtitle": "پلن {activePlan} شما تنها شامل محیط Production است. برای استفاده از Staging به {plan} ارتقا دهید.",
+    "upgradeToUsePerUserCredentials": "برای استفاده از گواهی‌های جداگانه هر کاربر ارتقا دهید",
+    "upgradeToUsePerUserCredentialsSubtitle": "پلن {activePlan} شما تنها از گواهی‌های مشترک استفاده می‌کند. به {plan} ارتقا دهید تا هر عضو حساب خودش را وصل کند.",
+    "upgradeToUseCustomEnvironments": "برای ساخت محیط‌های سفارشی ارتقا دهید",
+    "upgradeToUseCustomEnvironmentsSubtitle": "محیط‌های سفارشی در پلن {activePlan} شما در دسترس نیست. به {plan} ارتقا دهید تا افزون بر Production و Staging محیط بسازید."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6346,7 +6385,80 @@
         "description": "کنش‌ها همان کاری‌اند که گردش‌کار پس از فعال‌شدن راه‌انداز واقعاً انجام می‌دهد."
       },
       "chooseTable": {
-        "description": "هر کنش باید بداند روی چه چیزی کار می‌کند. جدولی را برگزینید که رکوردهایش فهرست شود."
+        "description": "هر کنش باید بداند روی چه چیزی کار می‌کند. جدولی را برگزینید که رکوردهایش فهرست شود.",
+        "title": "یک جدول انتخاب کنید"
+      },
+      "title": "نخستین Workflow خود را بسازید",
+      "overview": {
+        "title": "ساخت یک Workflow از ابتدا تا انتها",
+        "description": "بسازیدش، یک راه‌انداز انتخاب کنید، یک کنش اضافه کنید، منتشر کنید، روشنش کنید و بعد اجرایش را تماشا کنید."
+      },
+      "create": {
+        "title": "یک Workflow بسازید",
+        "description": "از صفر شروع کنید — این کار یک فرم کوتاه باز می‌کند."
+      },
+      "createSubmit": {
+        "title": "بسازید",
+        "description": "این شما را مستقیم به بوم کاری می‌برد."
+      },
+      "pickManualTrigger": {
+        "title": "«هنگام اجرای دستی» را انتخاب کنید",
+        "description": "این یکی را خودتان اجرا می‌کنید، پس می‌توانید بقیه را راه بیندازید و بعد آن را به رویدادهای واقعی وصل کنید."
+      },
+      "testTrigger": {
+        "title": "راه‌انداز را آزمایش کنید",
+        "description": "یک بار اجرایش کنید و به داده‌ای که تولید می‌کند نگاه کنید. همهٔ مرحله‌های بعدی بر پایهٔ همین خروجی ساخته می‌شوند."
+      },
+      "pickListRecords": {
+        "title": "«فهرست رکوردها» را انتخاب کنید",
+        "description": "فقط می‌خواند، بنابراین می‌توانید هر چند بار که خواستید اجرایش کنید بدون آنکه داده‌ای تغییر کند."
+      },
+      "testAction": {
+        "title": "کنش را هم آزمایش کنید",
+        "description": "هر گره جداگانه آزمایش می‌شود. پیش از انتشار مطمئن شوید این گره همان چیزی را برمی‌گرداند که انتظار دارید."
+      },
+      "publish": {
+        "title": "تغییرهایتان را منتشر کنید",
+        "description": "ویرایش‌ها به‌صورت <b>پیش‌نویس</b> ذخیره می‌شوند. انتشار است که این نسخه را به نسخه‌ای تبدیل می‌کند که اجرا می‌شود."
+      },
+      "enable": {
+        "title": "روشنش کنید",
+        "description": "منتشرشده با در حال اجرا یکی نیست. یک Workflow تا وقتی فعالش نکنید <b>متوقف‌شده</b> می‌ماند — همین مرحله است که معمولاً از قلم می‌افتد."
+      },
+      "run": {
+        "title": "یک بار اجرایش کنید",
+        "description": "راه‌انداز دستی هر وقت بخواهید اجرا می‌شود — امتحانش کنید و اجرایش را ببینید."
+      },
+      "logs": {
+        "title": "گزارش‌ها را بررسی کنید",
+        "description": "هر اجرا اینجا ثبت می‌شود — چه چیزی فعال شد، هر مرحله چه چیزی برگرداند و چه چیزی شکست خورد."
+      },
+      "wrapUp": {
+        "title": "کل چرخه همین است",
+        "description": "راه‌انداز، کنش‌ها، انتشار، فعال‌سازی، اجرا، گزارش‌ها. هر Workflow که از این پس بسازید همین شکل را دارد."
+      }
+    },
+    "workspaceBasics": {
+      "title": "در فضای کاری خود راه بیفتید",
+      "welcome": {
+        "title": "به NocoDB خوش آمدید",
+        "description": "یک دور سریع در فضای کاری شما. هر وقت خواستید می‌توانید بیرون بیایید — روی «رد کردن» بزنید."
+      },
+      "createBase": {
+        "title": "با یک پایگاه شروع کنید",
+        "description": "یک پایگاه، جدول‌ها، نماها و خودکارسازی‌های شما را در خود دارد. بیشتر کارها از همین‌جا شروع می‌شود."
+      },
+      "switchWorkspaces": {
+        "title": "فضای کاری را عوض کنید",
+        "description": "هر فضای کاری که عضو آن هستید پشت همین انتخابگر است. بازش کنید تا بقیه را ببینید."
+      },
+      "moreWorkspaces": {
+        "title": "بیش از یک فضای کاری",
+        "description": "فضاهای کاری تیم‌ها و پروژه‌های مختلف را از هم جدا نگه می‌دارند و هر کدام اعضای خودشان را دارند."
+      },
+      "account": {
+        "title": "حساب و تنظیمات",
+        "description": "نمایه، پوسته، میان‌برهای صفحه‌کلید و تنظیمات حساب، همه پشت تصویر نمایه شما هستند."
       }
     }
   }

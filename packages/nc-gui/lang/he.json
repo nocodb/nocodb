@@ -257,8 +257,47 @@
       "workspaceMembers": "חברי סביבת העבודה",
       "audit": "ביקורת סביבת העבודה",
       "ltarCustomDisplayValue": "שדה ערך תצוגה מותאם אישית",
-      "publicDocShare": "שיתוף מסמכים ציבוריים"
-    }
+      "publicDocShare": "שיתוף מסמכים ציבוריים",
+      "agents": "סוכנים"
+    },
+    "upgradeToSortAndLimitLookupValues": "כדי למיין ולהגביל את הערכים המוצגים בשדה Lookup, שדרגו לתוכנית {plan}.",
+    "upgradeToAddMoreAgents": "שדרגו כדי להוסיף עוד סוכנים",
+    "upgradeToAddMoreAgentsSubtitle": "אתם כרגע בתוכנית {activePlan}, שמאפשרת {limit} סוכנים לכל מרחב עבודה. שדרגו ל-{plan} כדי לקבל יותר.",
+    "upgradeToAddMoreInterfaces": "שדרגו כדי להוסיף עוד Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "אתם כרגע בתוכנית {activePlan}, שמאפשרת {limit} Interfaces לכל מרחב עבודה. שדרגו ל-{plan} כדי לקבל יותר.",
+    "upgradeToAddMoreInterfacePages": "שדרגו כדי להוסיף עוד דפים",
+    "upgradeToAddMoreInterfacePagesSubtitle": "אתם כרגע בתוכנית {activePlan}, שמאפשרת {limit} דפים לכל Interface. שדרגו ל-{plan} לדפים ללא הגבלה.",
+    "upgradeToUseTrashSettings": "שדרגו כדי להגדיר את הגדרות האשפה",
+    "upgradeToUseTrashSettingsSubtitle": "שדרגו לתוכנית {plan} כדי להגדיר הגדרות אשפה לכל טבלה בנפרד.",
+    "upgradeToAttachFilesToComments": "שדרגו כדי לצרף קבצים לתגובות",
+    "upgradeToAttachFilesToCommentsSubtitle": "שדרגו לתוכנית {plan} כדי לצרף תמונות וקבצים לתגובות על רשומות.",
+    "upgradeToUseToggleSort": "שדרגו כדי להפעיל ולכבות מיונים בודדים",
+    "upgradeToUseToggleSortSubtitle": "שדרגו לתוכנית {plan} כדי להפעיל או לכבות מיונים בודדים בלי להסיר אותם, לשליטה טובה יותר בתצוגות שלכם.",
+    "upgradeToUseViewFolders": "שדרגו כדי להשתמש בתיקיות תצוגות",
+    "upgradeToUseViewFoldersSubtitle": "שדרגו לתוכנית {plan} כדי לארגן תצוגות בתיקיות.",
+    "upgradeToAccessViewFoldersSubtitle": "שדרגו לתוכנית {plan} כדי לארגן תצוגות בתיקיות.",
+    "upgradeToUseFolders": "שדרגו כדי להשתמש בתיקיות",
+    "upgradeToUseFoldersSubtitle": "שדרגו לתוכנית {plan} כדי לארגן טבלאות, מסמכים ו-Dashboards בתיקיות.",
+    "upgradeToAccessFoldersSubtitle": "שדרגו לתוכנית {plan} כדי לארגן טבלאות, מסמכים ו-Dashboards בתיקיות.",
+    "upgradeToUseCustomSync": "שדרגו כדי להשתמש ב-Sync מותאם",
+    "upgradeToUseCustomSyncSubtitle": "שדרגו לתוכנית {plan} כדי לסנכרן נתונים ממקורות נתונים אחרים.",
+    "upgradeToUseAutomaticSyncSubtitle": "שדרגו לתוכנית {plan} כדי לשמור על סנכרון אוטומטי ובזמן אמת של טבלאות משוקפות.",
+    "upgradeToUseEnvironments": "שדרגו כדי להשתמש בסביבות",
+    "upgradeToUseEnvironmentsSubtitle": "סביבות זמינות בתוכנית {plan} ומעלה.",
+    "upgradeToPlanForFeature": "שדרגו לתוכנית {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "כדי להריץ אוטומציות מכפתורי Interface.",
+    "addonFeatureTitle": "זמין כ-Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} זמין כ-Add-on בתשלום בתוכנית {plan} ומעלה. פנו אלינו כדי להפעיל אותו.",
+    "toAccessCopyViewConfigFromAnotherView": "כדי לגשת לתכונת העתקת הגדרות מתצוגה אחרת.",
+    "toAccessReassignPersonalView": "כדי לגשת לתכונת ההקצאה מחדש של תצוגות אישיות.",
+    "toAccessAssignAsPersonalView": "כדי לגשת לתכונת ההקצאה כתצוגה אישית.",
+    "toAccessCardFieldHeaderVisibility": "כדי לגשת לתכונת הצגת כותרות השדות בכרטיסים.",
+    "upgradeToUseStagingEnvironment": "שדרגו כדי להשתמש בסביבת Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "תוכנית {activePlan} שלכם כוללת רק את סביבת Production. שדרגו ל-{plan} כדי להשתמש ב-Staging.",
+    "upgradeToUsePerUserCredentials": "שדרגו כדי להשתמש בפרטי גישה לכל משתמש",
+    "upgradeToUsePerUserCredentialsSubtitle": "תוכנית {activePlan} שלכם משתמשת בפרטי גישה משותפים בלבד. שדרגו ל-{plan} כדי שכל חבר יוכל לחבר את החשבון שלו.",
+    "upgradeToUseCustomEnvironments": "שדרגו כדי ליצור סביבות מותאמות",
+    "upgradeToUseCustomEnvironmentsSubtitle": "סביבות מותאמות אינן זמינות בתוכנית {activePlan} שלכם. שדרגו ל-{plan} כדי ליצור סביבות מעבר ל-Production ו-Staging."
   },
   "general": {
     "scrollToBottom": "גלול למטה",
@@ -6346,7 +6385,80 @@
         "description": "פעולות הן מה שתהליך העבודה באמת עושה אחרי שהטריגר מופעל."
       },
       "chooseTable": {
-        "description": "כל פעולה צריכה לדעת על מה היא פועלת. בחרו את הטבלה שממנה יוצגו הרשומות."
+        "description": "כל פעולה צריכה לדעת על מה היא פועלת. בחרו את הטבלה שממנה יוצגו הרשומות.",
+        "title": "בחרו טבלה"
+      },
+      "title": "בנו את זרימת העבודה הראשונה שלכם",
+      "overview": {
+        "title": "בניית זרימת עבודה מתחילתה ועד סופה",
+        "description": "צרו אותה, בחרו טריגר, הוסיפו פעולה, פרסמו, הפעילו, ואז צפו בה רצה."
+      },
+      "create": {
+        "title": "צרו זרימת עבודה",
+        "description": "התחילו מאפס — הפעולה פותחת טופס קצר."
+      },
+      "createSubmit": {
+        "title": "צרו אותה",
+        "description": "זה מעביר אתכם היישר אל לוח העבודה."
+      },
+      "pickManualTrigger": {
+        "title": "בחרו ב״בהפעלה ידנית״",
+        "description": "את זה אתם מפעילים בעצמכם, כך שתוכלו להריץ את כל השאר לפני שתחברו אותו לאירועים אמיתיים."
+      },
+      "testTrigger": {
+        "title": "בדקו את הטריגר",
+        "description": "הריצו פעם אחת והסתכלו על הנתונים שנוצרים. כל שלב הבא נשען על הפלט הזה."
+      },
+      "pickListRecords": {
+        "title": "בחרו ב״הצגת רשומות״",
+        "description": "היא רק קוראת, כך שאפשר להריץ אותה כמה שתרצו בלי לשנות נתונים."
+      },
+      "testAction": {
+        "title": "בדקו גם את הפעולה",
+        "description": "כל צומת נבדק בנפרד. לפני הפרסום ודאו שהצומת הזה מחזיר את מה שציפיתם."
+      },
+      "publish": {
+        "title": "פרסמו את השינויים שלכם",
+        "description": "עריכות נשמרות כ<b>טיוטה</b>. הפרסום הוא מה שהופך את הגרסה הזו לגרסה שרצה."
+      },
+      "enable": {
+        "title": "הפעילו אותה",
+        "description": "פורסם זה לא אותו דבר כמו פועל. זרימת עבודה נשארת <b>מושהית</b> עד שתפעילו אותה — זה השלב שהכי הרבה אנשים מפספסים."
+      },
+      "run": {
+        "title": "הריצו אותה פעם אחת",
+        "description": "טריגר ידני פועל לפי דרישה — נסו אותו וצפו בביצוע."
+      },
+      "logs": {
+        "title": "בדקו את היומנים",
+        "description": "כל הרצה נרשמת כאן — מה הופעל, מה כל שלב החזיר, ומה נכשל."
+      },
+      "wrapUp": {
+        "title": "זה כל המעגל",
+        "description": "טריגר, פעולות, פרסום, הפעלה, הרצה, יומנים. כל זרימת עבודה שתבנו מכאן והלאה בנויה באותו אופן."
+      }
+    },
+    "workspaceBasics": {
+      "title": "התמצאו במרחב העבודה שלכם",
+      "welcome": {
+        "title": "ברוכים הבאים ל-NocoDB",
+        "description": "סיבוב מהיר במרחב העבודה שלכם. אפשר לצאת בכל רגע — לחצו על דילוג."
+      },
+      "createBase": {
+        "title": "התחילו עם בסיס",
+        "description": "בסיס מכיל את הטבלאות, התצוגות והאוטומציות שלכם. כאן מתחילה רוב העבודה."
+      },
+      "switchWorkspaces": {
+        "title": "החליפו מרחב עבודה",
+        "description": "כל מרחב עבודה שאתם שייכים אליו נמצא מאחורי הבורר הזה. פתחו אותו כדי לראות את השאר."
+      },
+      "moreWorkspaces": {
+        "title": "יותר ממרחב עבודה אחד",
+        "description": "מרחבי עבודה מפרידים בין צוותים ופרויקטים שונים, ולכל אחד יש חברים משלו."
+      },
+      "account": {
+        "title": "חשבון והגדרות",
+        "description": "פרופיל, ערכת נושא, קיצורי מקלדת והגדרות חשבון — הכול נמצא מאחורי תמונת הפרופיל שלכם."
       }
     }
   }

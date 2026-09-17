@@ -257,8 +257,47 @@
       "workspaceMembers": "工作区成员",
       "audit": "工作区审计",
       "ltarCustomDisplayValue": "自定义显示值字段",
-      "publicDocShare": "公开文档共享"
-    }
+      "publicDocShare": "公开文档共享",
+      "agents": "智能体"
+    },
+    "upgradeToSortAndLimitLookupValues": "若要对 Lookup 字段中显示的值进行排序和数量限制，请升级到 {plan} 方案。",
+    "upgradeToAddMoreAgents": "升级以添加更多智能体",
+    "upgradeToAddMoreAgentsSubtitle": "你当前使用 {activePlan} 方案，每个工作区可创建 {limit} 个智能体。升级到 {plan} 可获得更多。",
+    "upgradeToAddMoreInterfaces": "升级以添加更多 Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "你当前使用 {activePlan} 方案，每个工作区可创建 {limit} 个 Interfaces。升级到 {plan} 可获得更多。",
+    "upgradeToAddMoreInterfacePages": "升级以添加更多页面",
+    "upgradeToAddMoreInterfacePagesSubtitle": "你当前使用 {activePlan} 方案，每个 Interface 可创建 {limit} 个页面。升级到 {plan} 即可拥有无限页面。",
+    "upgradeToUseTrashSettings": "升级以配置回收站设置",
+    "upgradeToUseTrashSettingsSubtitle": "升级到 {plan} 方案，即可为每个表格分别配置回收站设置。",
+    "upgradeToAttachFilesToComments": "升级以在评论中附加文件",
+    "upgradeToAttachFilesToCommentsSubtitle": "升级到 {plan} 方案，即可在记录评论中附加图片和文件。",
+    "upgradeToUseToggleSort": "升级以逐个开关排序",
+    "upgradeToUseToggleSortSubtitle": "升级到 {plan} 方案，即可在不删除排序的情况下逐个启用或停用，让你更好地控制视图。",
+    "upgradeToUseViewFolders": "升级以使用视图文件夹",
+    "upgradeToUseViewFoldersSubtitle": "升级到 {plan} 方案，即可把视图整理到文件夹中。",
+    "upgradeToAccessViewFoldersSubtitle": "升级到 {plan} 方案，即可把视图整理到文件夹中。",
+    "upgradeToUseFolders": "升级以使用文件夹",
+    "upgradeToUseFoldersSubtitle": "升级到 {plan} 方案，即可把表格、文档和 Dashboards 整理到文件夹中。",
+    "upgradeToAccessFoldersSubtitle": "升级到 {plan} 方案，即可把表格、文档和 Dashboards 整理到文件夹中。",
+    "upgradeToUseCustomSync": "升级以使用自定义 Sync",
+    "upgradeToUseCustomSyncSubtitle": "升级到 {plan} 方案，即可从其他数据源同步数据。",
+    "upgradeToUseAutomaticSyncSubtitle": "升级到 {plan} 方案，即可让镜像表格实时自动保持同步。",
+    "upgradeToUseEnvironments": "升级以使用环境",
+    "upgradeToUseEnvironmentsSubtitle": "环境功能在 {plan} 及以上方案中提供。",
+    "upgradeToPlanForFeature": "升级到 {plan} 方案{detail}",
+    "runAutomationFromInterfaceButtonDetail": "，即可通过 Interface 按钮运行自动化。",
+    "addonFeatureTitle": "以 {addon} Add-on 形式提供",
+    "addonFeatureSubtitle": "{addon} 在 {plan} 及以上方案中作为付费 Add-on 提供。如需启用请联系我们。",
+    "toAccessCopyViewConfigFromAnotherView": "，即可从其他视图复制视图配置。",
+    "toAccessReassignPersonalView": "，即可重新指定个人视图。",
+    "toAccessAssignAsPersonalView": "，即可使用“指定为个人视图”功能。",
+    "toAccessCardFieldHeaderVisibility": "，即可使用卡片字段标题显示功能。",
+    "upgradeToUseStagingEnvironment": "升级以使用 Staging 环境",
+    "upgradeToUseStagingEnvironmentSubtitle": "你的 {activePlan} 方案仅包含 Production 环境。升级到 {plan} 即可使用 Staging。",
+    "upgradeToUsePerUserCredentials": "升级以使用按用户凭据",
+    "upgradeToUsePerUserCredentialsSubtitle": "你的 {activePlan} 方案仅支持共享凭据。升级到 {plan}，即可让每位成员连接自己的账户。",
+    "upgradeToUseCustomEnvironments": "升级以创建自定义环境",
+    "upgradeToUseCustomEnvironmentsSubtitle": "你的 {activePlan} 方案不支持自定义环境。升级到 {plan}，即可创建 Production 和 Staging 之外的环境。"
   },
   "general": {
     "scrollToBottom": "滚动到底部",
@@ -1456,7 +1495,19 @@
     "creatingAgent": "正在创建智能体",
     "agentToolsAndAccess": "工具与访问权限",
     "agentSkills": "技能",
-    "agentSettings": "设置"
+    "agentSettings": "设置",
+    "updateRecordsCount": "更新 {n} 条记录 | 更新 {n} 条记录",
+    "turnOffEditing": "要关闭编辑吗？",
+    "turnOnInlineEditing": "要开启行内编辑吗？",
+    "turnOnEditingByForm": "要开启通过表单编辑吗？",
+    "productTours": "产品导览",
+    "testDataGeneration": "测试数据生成",
+    "noSearchResultsFound": "未找到搜索结果",
+    "theListIsEmpty": "列表为空",
+    "newEnvironment": "新建环境",
+    "removeCustomDomain": "要移除自定义域名吗？",
+    "tooNarrowToAdjustFrozenFields": "窗口太窄，无法调整冻结字段",
+    "themeSettings": "主题设置"
   },
   "labels": {
     "syncing": "正在同步",
@@ -4702,7 +4753,90 @@
     "filteringNotSupportedForFieldsWithErrors": "有错误的字段不支持过滤",
     "sortingNotSupportedForFieldsWithErrors": "存在错误的字段不支持排序",
     "sortingNotSupportedForField": "{type} 字段不支持排序",
-    "groupingNotSupportedForFieldsWithErrors": "有错误的字段不支持分组"
+    "groupingNotSupportedForFieldsWithErrors": "有错误的字段不支持分组",
+    "workflowButtonTriggerSourceReadOnly": "连接到此按钮的来源表格只能通过 Interfaces 更改",
+    "workflowButtonTriggerInterfaceReadOnly": "包含此按钮的 Interface 页面只能通过 Interfaces 更改",
+    "chartIncludeOthers": "将超出上限的类别合并为单个“其他”类别，而不是直接舍弃。",
+    "sideLabelsNeedSingleFieldRows": "当一行包含多个字段时不可用。",
+    "showFieldInView": "在当前视图中显示此字段。",
+    "hideFieldInView": "在当前视图中隐藏此字段。",
+    "viewAllEventsInDayView": "在日视图中查看全部 {count} 个事件 | 在日视图中查看全部 {count} 个事件",
+    "linkValueDelimiter": "在单个单元格内分隔多个链接值的字符（默认为 ,）",
+    "interfaceMixedRoles": "不同 Interfaces 或页面的角色各不相同——展开可查看",
+    "chatQueueAttachmentUnavailable": "如果将消息加入队列，此附件将不会发送——请先移除它",
+    "lockedViewDisabledOnProduction": "锁定视图只能在环境副本中创建",
+    "personalViewDisabledOnEnvironment": "个人视图只能在生产 Base 上创建",
+    "seeNComments": "查看 {n} 条评论 | 查看 {n} 条评论",
+    "collapsibleGroups": "允许折叠带标题的分组",
+    "nestedRecordsRequireSelfLink": "需要在此表格中有一个指回同一表格的链接字段。",
+    "dataChangeDisabled": "此数据源已禁用数据编辑。",
+    "cannotRemoveInheritedInterfaceMember": "访问权限继承自 Base。请在以下位置管理：",
+    "saveDraftToBrowser": "让填写者可以回到未填完的表单而不丢失已输入的内容。仅保存在其浏览器中，提交后即清除。",
+    "clickToSeeDetails": "点击查看详情。",
+    "navigateToBaseToCreateAgent": "请先进入某个 Base 再创建智能体",
+    "navigateToBaseToCreateFolder": "请先进入某个 Base 再创建文件夹",
+    "navigateToBaseToCreateInterface": "请先进入某个 Base 再创建 Interface",
+    "switchToAgentsTab": "请切换到“智能体”标签页来创建{type}",
+    "switchToInterfacesTab": "请切换到 Interfaces 标签页来创建 Interface",
+    "youDontHaveAccessToCreateNewAgent": "你没有创建新智能体的权限",
+    "youDontHaveAccessToCreateNewInterface": "你没有创建新 Interface 的权限",
+    "displayValueFieldCannotBeReordered": "显示值字段无法重新排序",
+    "interfaceLastVizRequired": "页面至少需要一个可视化",
+    "onlyCreatorsCanManageViewFolders": "只有 Base 的创建者或所有者才能管理视图文件夹",
+    "onlyCreatorsCanManageFolders": "只有 Base 的创建者或所有者才能管理文件夹",
+    "organizeViewsIntoFolders": "将视图整理到可折叠的文件夹中",
+    "productionLockedByEnvironment": "此 Base 已在某个环境中打开——请在那里进行结构更改。",
+    "managedByPublisher": "此 App 的结构由其发布者管理。你的文档和文件夹可以自行添加。",
+    "featureOnProductionOnly": "此操作在生产 Base 上管理，而不是在环境副本中。",
+    "clickToEdit": "点击编辑",
+    "resolvedBy": "由 {name} 解决",
+    "fieldAutoLinkedToParent": "此字段将自动链接到父记录",
+    "newRecordCreatedEachTemplateUse": "每次使用此模板都会创建并链接一条新的 {tableName} 记录",
+    "warningMessageForInvalidInputs": "当输入无效时，将向填写表单的用户显示此警告消息。",
+    "cannotAddConditionsToFirstField": "无法为表单中的第一个字段添加条件。",
+    "validationsEnforcedByFieldSchema": "校验规则由字段结构设置强制执行",
+    "requiredEnforcedOnFormSubmit": "当此页面以创建记录的表单方式打开时生效",
+    "readOnlyFieldCannotBeEditedInline": "只读字段无法行内编辑",
+    "editInlineDisabledForElement": "此页面元素已禁用编辑。请在该元素上启用编辑，才能编辑此列。",
+    "cantUploadDataInSyncedTable": "无法在同步表格中上传数据",
+    "hideMyPresence": "隐藏我的在线状态",
+    "showMyPresence": "显示我的在线状态",
+    "setupScriptSettingsToRun": "请先配置脚本设置再运行",
+    "autoSuggestViewsFor": "为 {tableName} 自动推荐视图",
+    "discardDraftChanges": "放弃草稿更改并恢复已发布版本",
+    "testAllNodesBeforePublish": "请在发布前测试所有节点",
+    "tourCompleteStepToContinue": "完成此步骤才能继续",
+    "tourTakeTheTour": "{tour} —— 开始导览",
+    "fieldPropertiesCannotBeEdited": "无法编辑字段属性。",
+    "fieldAssociatedWithLinkColumn": "该字段已关联到链接列",
+    "fieldCannotBeUpgraded": "无法升级该字段。",
+    "fieldCannotBeDuplicated": "无法复制该字段。",
+    "selectNewFieldAsDisplayValue": "选择新的字段作为显示值",
+    "addFieldDescription": "添加字段说明",
+    "fieldCannotBeDeleted": "无法删除该字段。",
+    "recordHiddenByFilter": "此记录将被隐藏，因为它不符合当前视图所应用的筛选条件。",
+    "recordWillMove": "当你点击其外部时，此记录将移动到新位置。",
+    "recordHiddenByPermission": "此记录将被隐藏，因为它不符合你的访问权限。",
+    "rowLevelSecurityEnabled": "已启用行级安全。部分行可能会根据你的访问权限被隐藏。",
+    "suggestMore": "推荐更多",
+    "reSuggest": "重新推荐",
+    "portWebhookV2ToV3": "将此 Webhook 从 v2 迁移到 v3",
+    "formDisplayMessageTemplating": "模板字段请使用列名或标题，而不是字段标签。例如：“你好 {'{'}Title{'}'}！”",
+    "incompatibleWithColumn": "与列“{title}”不兼容",
+    "crossBaseLinkCreatorAccess": "只能链接到你拥有创建者及以上权限的 Base 中的表格。",
+    "clickIntoRecordDetailsCrossBase": "跨 Base 链接暂不支持",
+    "autoSuggestFieldsFor": "为 {table} 自动推荐字段",
+    "clearAllAndResuggest": "全部清除并重新推荐",
+    "cannotSetDefaultValueWithUnique": "已设置 Unique 约束，无法设置默认值。请先禁用 Unique 约束再配置默认值",
+    "useAiToGenerateContent": "使用 AI 根据记录数据生成内容。",
+    "previewGeneratedFromFirstRecord": "预览使用此表格中的第一条记录生成",
+    "includeFieldInPromptToGenerate": "请在 Prompt 中至少包含 1 个字段才能生成",
+    "editorsReportedByInstance": "编辑者数量由你的实例在每次心跳时上报。请在实例上管理编辑者。",
+    "dragToAdjustFrozenFields": "拖动以调整冻结字段的数量",
+    "freezeColumnsCount": "冻结 {count} 列 | 冻结 {count} 列",
+    "marketplaceComingSoon": "此 App 仍在打包中，因此暂时无法安装。",
+    "marketplaceAuthored": "由发布者撰写，并非根据 App 内容生成。",
+    "marketplaceVerifiedPublisher": "由 NocoDB 发布并审核"
   },
   "placeholder": {
     "enterVerificationCode": "输入 6 位数字代码",
@@ -6238,6 +6372,94 @@
       "seatsOnOrg": "本组织的席位",
       "workspaceSubscription": "工作区订阅",
       "orgSubscription": "组织订阅"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "熟悉你的工作区",
+      "welcome": {
+        "title": "欢迎使用 NocoDB",
+        "description": "快速逛一圈你的工作区。你随时可以退出——点击“跳过”。"
+      },
+      "createBase": {
+        "title": "从一个 Base 开始",
+        "description": "Base 里存放着你的表格、视图和自动化。大部分工作都从这里开始。"
+      },
+      "switchWorkspaces": {
+        "title": "切换工作区",
+        "description": "你所属的每个工作区都在这个选择器里。打开它就能看到其余的工作区。"
+      },
+      "moreWorkspaces": {
+        "title": "不止一个工作区",
+        "description": "工作区把不同的团队和项目分开，各自拥有自己的成员。"
+      },
+      "account": {
+        "title": "账户与设置",
+        "description": "个人资料、主题、键盘快捷键和账户设置都在你的头像里。"
+      }
+    },
+    "workflows": {
+      "title": "搭建你的第一个工作流程",
+      "overview": {
+        "title": "从头到尾搭建一个工作流程",
+        "description": "先创建，选一个触发器，加一个动作，发布，启用，然后看着它运行。"
+      },
+      "create": {
+        "title": "创建工作流程",
+        "description": "从零开始——这会打开一个简短的表单。"
+      },
+      "createSubmit": {
+        "title": "创建",
+        "description": "这会直接把你带到画布上。"
+      },
+      "addTrigger": {
+        "title": "添加触发器",
+        "description": "每个工作流程都从这里开始——点击看看有哪些方式可以启动它。"
+      },
+      "pickManualTrigger": {
+        "title": "选择“手动触发时”",
+        "description": "这个由你自己触发，所以可以先把其余部分调通，再接上真实事件。"
+      },
+      "testTrigger": {
+        "title": "测试触发器",
+        "description": "运行一次，看看它产生的数据。后面每一步都建立在这个输出之上。"
+      },
+      "addAction": {
+        "title": "添加动作",
+        "description": "动作就是触发器触发后工作流程真正执行的内容。"
+      },
+      "pickListRecords": {
+        "title": "选择“列出记录”",
+        "description": "它只做读取，因此你可以随意多次运行而不会更改任何数据。"
+      },
+      "chooseTable": {
+        "title": "选择表格",
+        "description": "每个动作都需要知道操作对象。请选择要列出记录的表格。"
+      },
+      "testAction": {
+        "title": "动作也测试一下",
+        "description": "每个节点都可以单独测试。发布前请确认这个节点返回的内容符合预期。"
+      },
+      "publish": {
+        "title": "发布你的更改",
+        "description": "编辑会保存为<b>草稿</b>。发布之后，这个版本才会真正运行。"
+      },
+      "enable": {
+        "title": "把它打开",
+        "description": "已发布不等于正在运行。工作流程在你启用之前会一直保持<b>已暂停</b>——这一步最容易被忽略。"
+      },
+      "run": {
+        "title": "运行一次",
+        "description": "手动触发器随时可以触发——试一下，看看它如何执行。"
+      },
+      "logs": {
+        "title": "查看日志",
+        "description": "每次运行都会记录在这里——什么被触发、每一步返回了什么，以及哪里失败了。"
+      },
+      "wrapUp": {
+        "title": "这就是完整的流程",
+        "description": "触发器、动作、发布、启用、运行、日志。你之后搭建的每个工作流程都是同样的结构。"
+      }
     }
   }
 }

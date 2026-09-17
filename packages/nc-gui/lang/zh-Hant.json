@@ -257,8 +257,47 @@
       "workspaceMembers": "工作區成員",
       "audit": "工作空間稽核",
       "ltarCustomDisplayValue": "自訂顯示值欄",
-      "publicDocShare": "公共文件共享"
-    }
+      "publicDocShare": "公共文件共享",
+      "agents": "代理程式"
+    },
+    "upgradeToSortAndLimitLookupValues": "若要排序並限制 Lookup 欄位中顯示的值，請升級到 {plan} 方案。",
+    "upgradeToAddMoreAgents": "升級以新增更多代理程式",
+    "upgradeToAddMoreAgentsSubtitle": "你目前使用 {activePlan} 方案，每個工作區可建立 {limit} 個代理程式。升級到 {plan} 可獲得更多。",
+    "upgradeToAddMoreInterfaces": "升級以新增更多 Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "你目前使用 {activePlan} 方案，每個工作區可建立 {limit} 個 Interfaces。升級到 {plan} 可獲得更多。",
+    "upgradeToAddMoreInterfacePages": "升級以新增更多頁面",
+    "upgradeToAddMoreInterfacePagesSubtitle": "你目前使用 {activePlan} 方案，每個 Interface 可建立 {limit} 個頁面。升級到 {plan} 即可擁有無限頁面。",
+    "upgradeToUseTrashSettings": "升級以設定資源回收筒",
+    "upgradeToUseTrashSettingsSubtitle": "升級到 {plan} 方案，即可為每個表格分別設定資源回收筒。",
+    "upgradeToAttachFilesToComments": "升級以在留言中附加檔案",
+    "upgradeToAttachFilesToCommentsSubtitle": "升級到 {plan} 方案，即可在記錄留言中附加圖片和檔案。",
+    "upgradeToUseToggleSort": "升級以逐一開關排序",
+    "upgradeToUseToggleSortSubtitle": "升級到 {plan} 方案，即可在不刪除排序的情況下逐一啟用或停用，讓你更好地掌控檢視。",
+    "upgradeToUseViewFolders": "升級以使用檢視資料夾",
+    "upgradeToUseViewFoldersSubtitle": "升級到 {plan} 方案，即可把檢視整理到資料夾中。",
+    "upgradeToAccessViewFoldersSubtitle": "升級到 {plan} 方案，即可把檢視整理到資料夾中。",
+    "upgradeToUseFolders": "升級以使用資料夾",
+    "upgradeToUseFoldersSubtitle": "升級到 {plan} 方案，即可把表格、文件和 Dashboards 整理到資料夾中。",
+    "upgradeToAccessFoldersSubtitle": "升級到 {plan} 方案，即可把表格、文件和 Dashboards 整理到資料夾中。",
+    "upgradeToUseCustomSync": "升級以使用自訂 Sync",
+    "upgradeToUseCustomSyncSubtitle": "升級到 {plan} 方案，即可從其他資料來源同步資料。",
+    "upgradeToUseAutomaticSyncSubtitle": "升級到 {plan} 方案，即可讓鏡像表格即時自動保持同步。",
+    "upgradeToUseEnvironments": "升級以使用環境",
+    "upgradeToUseEnvironmentsSubtitle": "環境功能在 {plan} 及以上方案中提供。",
+    "upgradeToPlanForFeature": "升級到 {plan} 方案{detail}",
+    "runAutomationFromInterfaceButtonDetail": "，即可透過 Interface 按鈕執行自動化。",
+    "addonFeatureTitle": "以 {addon} Add-on 形式提供",
+    "addonFeatureSubtitle": "{addon} 在 {plan} 及以上方案中以付費 Add-on 形式提供。如需啟用請與我們聯絡。",
+    "toAccessCopyViewConfigFromAnotherView": "，即可從其他檢視複製檢視設定。",
+    "toAccessReassignPersonalView": "，即可重新指定個人檢視。",
+    "toAccessAssignAsPersonalView": "，即可使用「指定為個人檢視」功能。",
+    "toAccessCardFieldHeaderVisibility": "，即可使用卡片欄位標題顯示功能。",
+    "upgradeToUseStagingEnvironment": "升級以使用 Staging 環境",
+    "upgradeToUseStagingEnvironmentSubtitle": "你的 {activePlan} 方案僅包含 Production 環境。升級到 {plan} 即可使用 Staging。",
+    "upgradeToUsePerUserCredentials": "升級以使用個別使用者憑證",
+    "upgradeToUsePerUserCredentialsSubtitle": "你的 {activePlan} 方案僅支援共用憑證。升級到 {plan}，即可讓每位成員連接自己的帳戶。",
+    "upgradeToUseCustomEnvironments": "升級以建立自訂環境",
+    "upgradeToUseCustomEnvironmentsSubtitle": "你的 {activePlan} 方案不支援自訂環境。升級到 {plan}，即可建立 Production 和 Staging 以外的環境。"
   },
   "general": {
     "scrollToBottom": "滾動到底部",
@@ -1456,7 +1495,19 @@
     "creatingAgent": "正在建立代理程式",
     "agentToolsAndAccess": "工具與存取權",
     "agentSkills": "技能",
-    "agentSettings": "設定"
+    "agentSettings": "設定",
+    "updateRecordsCount": "更新 {n} 筆記錄 | 更新 {n} 筆記錄",
+    "turnOffEditing": "要關閉編輯嗎？",
+    "turnOnInlineEditing": "要開啟行內編輯嗎？",
+    "turnOnEditingByForm": "要開啟透過表單編輯嗎？",
+    "productTours": "產品導覽",
+    "testDataGeneration": "測試資料產生",
+    "noSearchResultsFound": "找不到搜尋結果",
+    "theListIsEmpty": "清單是空的",
+    "newEnvironment": "新增環境",
+    "removeCustomDomain": "要移除自訂網域嗎？",
+    "tooNarrowToAdjustFrozenFields": "視窗太窄，無法調整凍結欄位",
+    "themeSettings": "主題設定"
   },
   "labels": {
     "syncing": "同步",
@@ -4702,7 +4753,90 @@
     "filteringNotSupportedForFieldsWithErrors": "不支援對有錯誤的欄位進行篩選",
     "sortingNotSupportedForFieldsWithErrors": "有錯誤的欄位不支援排序",
     "sortingNotSupportedForField": "{type} 欄位不支援排序",
-    "groupingNotSupportedForFieldsWithErrors": "有錯誤的欄位不支援群組"
+    "groupingNotSupportedForFieldsWithErrors": "有錯誤的欄位不支援群組",
+    "workflowButtonTriggerSourceReadOnly": "連接到這個按鈕的來源表格只能透過 Interfaces 變更",
+    "workflowButtonTriggerInterfaceReadOnly": "包含這個按鈕的 Interface 頁面只能透過 Interfaces 變更",
+    "chartIncludeOthers": "將超出上限的類別合併為單一「其他」類別，而不是直接捨棄。",
+    "sideLabelsNeedSingleFieldRows": "當一列包含多個欄位時無法使用。",
+    "showFieldInView": "在目前檢視中顯示這個欄位。",
+    "hideFieldInView": "在目前檢視中隱藏這個欄位。",
+    "viewAllEventsInDayView": "在日檢視中查看全部 {count} 個活動 | 在日檢視中查看全部 {count} 個活動",
+    "linkValueDelimiter": "在單一儲存格內分隔多個連結值的字元（預設為 ,）",
+    "interfaceMixedRoles": "不同 Interfaces 或頁面的角色各不相同——展開即可查看",
+    "chatQueueAttachmentUnavailable": "若將訊息加入佇列，這個附件將不會送出——請先移除它",
+    "lockedViewDisabledOnProduction": "鎖定檢視只能在環境副本中建立",
+    "personalViewDisabledOnEnvironment": "個人檢視只能在正式 Base 上建立",
+    "seeNComments": "查看 {n} 則留言 | 查看 {n} 則留言",
+    "collapsibleGroups": "允許收合帶有標題的群組",
+    "nestedRecordsRequireSelfLink": "需要在這個表格中有一個指回同一表格的連結欄位。",
+    "dataChangeDisabled": "此資料來源已停用資料編輯。",
+    "cannotRemoveInheritedInterfaceMember": "存取權限繼承自 Base。請在以下位置管理：",
+    "saveDraftToBrowser": "讓填寫者可以回到未填完的表單，而不會遺失已輸入的內容。僅儲存在其瀏覽器中，送出後即清除。",
+    "clickToSeeDetails": "點擊以查看詳細資料。",
+    "navigateToBaseToCreateAgent": "請先前往某個 Base 再建立代理程式",
+    "navigateToBaseToCreateFolder": "請先前往某個 Base 再建立資料夾",
+    "navigateToBaseToCreateInterface": "請先前往某個 Base 再建立 Interface",
+    "switchToAgentsTab": "請切換到「代理程式」分頁來建立{type}",
+    "switchToInterfacesTab": "請切換到 Interfaces 分頁來建立 Interface",
+    "youDontHaveAccessToCreateNewAgent": "你沒有建立新代理程式的權限",
+    "youDontHaveAccessToCreateNewInterface": "你沒有建立新 Interface 的權限",
+    "displayValueFieldCannotBeReordered": "顯示值欄位無法重新排序",
+    "interfaceLastVizRequired": "頁面至少需要一個視覺化",
+    "onlyCreatorsCanManageViewFolders": "只有 Base 的建立者或擁有者才能管理檢視資料夾",
+    "onlyCreatorsCanManageFolders": "只有 Base 的建立者或擁有者才能管理資料夾",
+    "organizeViewsIntoFolders": "將檢視整理到可收合的資料夾中",
+    "productionLockedByEnvironment": "這個 Base 已在某個環境中開啟——請在那裡進行結構變更。",
+    "managedByPublisher": "這個 App 的結構由其發布者管理。你的文件和資料夾可以自行新增。",
+    "featureOnProductionOnly": "此操作在正式 Base 上管理，而不是在環境副本中。",
+    "clickToEdit": "點擊以編輯",
+    "resolvedBy": "由 {name} 解決",
+    "fieldAutoLinkedToParent": "這個欄位會自動連結到父記錄",
+    "newRecordCreatedEachTemplateUse": "每次使用這個範本都會建立並連結一筆新的 {tableName} 記錄",
+    "warningMessageForInvalidInputs": "當輸入無效時，會向填寫表單的使用者顯示這則警告訊息。",
+    "cannotAddConditionsToFirstField": "無法為表單中的第一個欄位新增條件。",
+    "validationsEnforcedByFieldSchema": "驗證規則由欄位結構設定強制執行",
+    "requiredEnforcedOnFormSubmit": "當這個頁面以建立記錄的表單方式開啟時生效",
+    "readOnlyFieldCannotBeEditedInline": "唯讀欄位無法行內編輯",
+    "editInlineDisabledForElement": "此頁面元素已停用編輯。請在該元素上啟用編輯，才能編輯這個資料行。",
+    "cantUploadDataInSyncedTable": "無法在已同步的表格中上傳資料",
+    "hideMyPresence": "隱藏我的上線狀態",
+    "showMyPresence": "顯示我的上線狀態",
+    "setupScriptSettingsToRun": "請先設定指令碼設定再執行",
+    "autoSuggestViewsFor": "為 {tableName} 自動建議檢視",
+    "discardDraftChanges": "捨棄草稿變更並還原已發布版本",
+    "testAllNodesBeforePublish": "請在發布前測試所有節點",
+    "tourCompleteStepToContinue": "完成這個步驟才能繼續",
+    "tourTakeTheTour": "{tour} —— 開始導覽",
+    "fieldPropertiesCannotBeEdited": "無法編輯欄位屬性。",
+    "fieldAssociatedWithLinkColumn": "此欄位已關聯到連結資料行",
+    "fieldCannotBeUpgraded": "無法升級這個欄位。",
+    "fieldCannotBeDuplicated": "無法複製這個欄位。",
+    "selectNewFieldAsDisplayValue": "選擇新的欄位作為顯示值",
+    "addFieldDescription": "新增欄位說明",
+    "fieldCannotBeDeleted": "無法刪除這個欄位。",
+    "recordHiddenByFilter": "這筆記錄將被隱藏，因為它不符合此檢視所套用的篩選條件。",
+    "recordWillMove": "當你點擊其外部時，這筆記錄會移動到新的位置。",
+    "recordHiddenByPermission": "這筆記錄將被隱藏，因為它不符合你的存取權限。",
+    "rowLevelSecurityEnabled": "已啟用資料列層級安全性。部分資料列可能會依你的存取權限而隱藏。",
+    "suggestMore": "建議更多",
+    "reSuggest": "重新建議",
+    "portWebhookV2ToV3": "將這個 Webhook 從 v2 移轉到 v3",
+    "formDisplayMessageTemplating": "範本欄位請使用資料行名稱或標題，而不是欄位標籤。例如：「你好 {'{'}Title{'}'}！」",
+    "incompatibleWithColumn": "與資料行「{title}」不相容",
+    "crossBaseLinkCreatorAccess": "只能連結到你擁有建立者以上權限的 Base 中的表格。",
+    "clickIntoRecordDetailsCrossBase": "跨 Base 連結尚未支援",
+    "autoSuggestFieldsFor": "為 {table} 自動建議欄位",
+    "clearAllAndResuggest": "全部清除並重新建議",
+    "cannotSetDefaultValueWithUnique": "已設定 Unique 約束，無法設定預設值。請先停用 Unique 約束再設定預設值",
+    "useAiToGenerateContent": "使用 AI 根據記錄資料產生內容。",
+    "previewGeneratedFromFirstRecord": "預覽是使用這個表格中的第一筆記錄產生的",
+    "includeFieldInPromptToGenerate": "請在 Prompt 中至少包含 1 個欄位才能產生",
+    "editorsReportedByInstance": "編輯者數量由你的執行個體在每次心跳時回報。請在執行個體上管理編輯者。",
+    "dragToAdjustFrozenFields": "拖曳以調整凍結欄位的數量",
+    "freezeColumnsCount": "凍結 {count} 個資料行 | 凍結 {count} 個資料行",
+    "marketplaceComingSoon": "這個 App 仍在封裝中，因此尚無法安裝。",
+    "marketplaceAuthored": "由發布者撰寫，並非根據 App 內容產生。",
+    "marketplaceVerifiedPublisher": "由 NocoDB 發布並審核"
   },
   "placeholder": {
     "enterVerificationCode": "輸入 6 位數碼",
@@ -6238,6 +6372,94 @@
       "seatsOnOrg": "本組織的席次",
       "workspaceSubscription": "工作區訂閱",
       "orgSubscription": "組織訂閱"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "熟悉你的工作區",
+      "welcome": {
+        "title": "歡迎使用 NocoDB",
+        "description": "快速逛一圈你的工作區。你隨時可以離開——點擊「略過」。"
+      },
+      "createBase": {
+        "title": "從一個 Base 開始",
+        "description": "Base 裡存放著你的表格、檢視和自動化。大部分工作都從這裡開始。"
+      },
+      "switchWorkspaces": {
+        "title": "切換工作區",
+        "description": "你所屬的每個工作區都在這個選擇器裡。開啟它就能看到其餘的工作區。"
+      },
+      "moreWorkspaces": {
+        "title": "不只一個工作區",
+        "description": "工作區把不同的團隊和專案分開，各自擁有自己的成員。"
+      },
+      "account": {
+        "title": "帳戶與設定",
+        "description": "個人資料、主題、鍵盤快速鍵和帳戶設定都在你的頭像裡。"
+      }
+    },
+    "workflows": {
+      "title": "打造你的第一個工作流程",
+      "overview": {
+        "title": "從頭到尾打造一個工作流程",
+        "description": "先建立，選一個觸發程序，加一個動作，發布，啟用，然後看著它執行。"
+      },
+      "create": {
+        "title": "建立工作流程",
+        "description": "從零開始——這會開啟一份簡短的表單。"
+      },
+      "createSubmit": {
+        "title": "建立",
+        "description": "這會直接把你帶到畫布上。"
+      },
+      "addTrigger": {
+        "title": "新增觸發程序",
+        "description": "每個工作流程都從這裡開始——點擊看看有哪些方式可以啟動它。"
+      },
+      "pickManualTrigger": {
+        "title": "選擇「手動觸發時」",
+        "description": "這個由你自己觸發，所以可以先把其餘部分調通，再接上真實事件。"
+      },
+      "testTrigger": {
+        "title": "測試觸發程序",
+        "description": "執行一次，看看它產生的資料。後面每一步都建立在這個輸出之上。"
+      },
+      "addAction": {
+        "title": "新增動作",
+        "description": "動作就是觸發程序觸發後，工作流程實際執行的內容。"
+      },
+      "pickListRecords": {
+        "title": "選擇「列出記錄」",
+        "description": "它只做讀取，因此你可以隨意多次執行而不會變更任何資料。"
+      },
+      "chooseTable": {
+        "title": "選擇表格",
+        "description": "每個動作都需要知道操作對象。請選擇要列出記錄的表格。"
+      },
+      "testAction": {
+        "title": "動作也測試一下",
+        "description": "每個節點都可以單獨測試。發布前請確認這個節點回傳的內容符合預期。"
+      },
+      "publish": {
+        "title": "發布你的變更",
+        "description": "編輯會儲存為<b>草稿</b>。發布之後，這個版本才會真正執行。"
+      },
+      "enable": {
+        "title": "把它開啟",
+        "description": "已發布不等於正在執行。工作流程在你啟用之前會一直保持<b>已暫停</b>——這一步最容易被忽略。"
+      },
+      "run": {
+        "title": "執行一次",
+        "description": "手動觸發程序隨時可以觸發——試一下，看看它如何執行。"
+      },
+      "logs": {
+        "title": "查看記錄檔",
+        "description": "每次執行都會記錄在這裡——什麼被觸發、每一步回傳了什麼，以及哪裡失敗了。"
+      },
+      "wrapUp": {
+        "title": "這就是完整的流程",
+        "description": "觸發程序、動作、發布、啟用、執行、記錄檔。你之後打造的每個工作流程都是同樣的結構。"
+      }
     }
   }
 }

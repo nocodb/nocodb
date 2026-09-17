@@ -257,8 +257,47 @@
       "workspaceMembers": "ワークスペースのメンバー",
       "audit": "ワークスペースの監査",
       "ltarCustomDisplayValue": "カスタム表示値フィールド",
-      "publicDocShare": "公開ドキュメントの共有"
-    }
+      "publicDocShare": "公開ドキュメントの共有",
+      "agents": "エージェント"
+    },
+    "upgradeToSortAndLimitLookupValues": "Lookup フィールドに表示される値を並べ替えたり件数を制限したりするには、{plan} プランにアップグレードしてください。",
+    "upgradeToAddMoreAgents": "アップグレードしてエージェントを追加",
+    "upgradeToAddMoreAgentsSubtitle": "現在は {activePlan} プランで、ワークスペースあたり {limit} 件のエージェントを利用できます。さらに増やすには {plan} にアップグレードしてください。",
+    "upgradeToAddMoreInterfaces": "アップグレードして Interfaces を追加",
+    "upgradeToAddMoreInterfacesSubtitle": "現在は {activePlan} プランで、ワークスペースあたり {limit} 件の Interfaces を利用できます。さらに増やすには {plan} にアップグレードしてください。",
+    "upgradeToAddMoreInterfacePages": "アップグレードしてページを追加",
+    "upgradeToAddMoreInterfacePagesSubtitle": "現在は {activePlan} プランで、Interface あたり {limit} ページを利用できます。ページ数を無制限にするには {plan} にアップグレードしてください。",
+    "upgradeToUseTrashSettings": "アップグレードしてゴミ箱の設定を構成",
+    "upgradeToUseTrashSettingsSubtitle": "{plan} プランにアップグレードすると、テーブルごとにゴミ箱の設定を構成できます。",
+    "upgradeToAttachFilesToComments": "アップグレードしてコメントにファイルを添付",
+    "upgradeToAttachFilesToCommentsSubtitle": "{plan} プランにアップグレードすると、レコードのコメントに画像やファイルを添付できます。",
+    "upgradeToUseToggleSort": "アップグレードして個々の並べ替えを切り替え",
+    "upgradeToUseToggleSortSubtitle": "{plan} プランにアップグレードすると、個々の並べ替えを削除せずに有効・無効を切り替えられ、ビューをより細かく制御できます。",
+    "upgradeToUseViewFolders": "アップグレードしてビューフォルダーを使用",
+    "upgradeToUseViewFoldersSubtitle": "{plan} プランにアップグレードすると、ビューをフォルダーに整理できます。",
+    "upgradeToAccessViewFoldersSubtitle": "{plan} プランにアップグレードすると、ビューをフォルダーに整理できます。",
+    "upgradeToUseFolders": "アップグレードしてフォルダーを使用",
+    "upgradeToUseFoldersSubtitle": "{plan} プランにアップグレードすると、テーブル、ドキュメント、Dashboards をフォルダーに整理できます。",
+    "upgradeToAccessFoldersSubtitle": "{plan} プランにアップグレードすると、テーブル、ドキュメント、Dashboards をフォルダーに整理できます。",
+    "upgradeToUseCustomSync": "アップグレードしてカスタム Sync を使用",
+    "upgradeToUseCustomSyncSubtitle": "{plan} プランにアップグレードすると、他のデータソースからデータを同期できます。",
+    "upgradeToUseAutomaticSyncSubtitle": "{plan} プランにアップグレードすると、ミラーリングされたテーブルをリアルタイムで自動的に同期できます。",
+    "upgradeToUseEnvironments": "アップグレードして環境を使用",
+    "upgradeToUseEnvironmentsSubtitle": "環境は {plan} プラン以上でご利用いただけます。",
+    "upgradeToPlanForFeature": "{plan} プランにアップグレード{detail}",
+    "runAutomationFromInterfaceButtonDetail": "すると、Interface のボタンから自動化を実行できます。",
+    "addonFeatureTitle": "{addon} Add-on として利用可能",
+    "addonFeatureSubtitle": "{addon} は {plan} プラン以上で有料の Add-on として利用できます。有効化についてはお問い合わせください。",
+    "toAccessCopyViewConfigFromAnotherView": "すると、他のビューからビュー構成をコピーする機能を利用できます。",
+    "toAccessReassignPersonalView": "すると、個人用ビューを再割り当てする機能を利用できます。",
+    "toAccessAssignAsPersonalView": "すると、個人用ビューとして割り当てる機能を利用できます。",
+    "toAccessCardFieldHeaderVisibility": "すると、カードのフィールドヘッダーの表示設定を利用できます。",
+    "upgradeToUseStagingEnvironment": "アップグレードして Staging 環境を使用",
+    "upgradeToUseStagingEnvironmentSubtitle": "{activePlan} プランには Production 環境のみ含まれます。Staging を使うには {plan} にアップグレードしてください。",
+    "upgradeToUsePerUserCredentials": "アップグレードしてユーザーごとの認証情報を使用",
+    "upgradeToUsePerUserCredentialsSubtitle": "{activePlan} プランでは共有の認証情報のみ使用できます。メンバーごとに自分のアカウントを接続できるようにするには {plan} にアップグレードしてください。",
+    "upgradeToUseCustomEnvironments": "アップグレードしてカスタム環境を作成",
+    "upgradeToUseCustomEnvironmentsSubtitle": "カスタム環境は {activePlan} プランではご利用いただけません。Production と Staging 以外の環境を作成するには {plan} にアップグレードしてください。"
   },
   "general": {
     "scrollToBottom": "一番下までスクロール",
@@ -1456,7 +1495,19 @@
     "creatingAgent": "エージェントを作成中",
     "agentToolsAndAccess": "ツールとアクセス",
     "agentSkills": "スキル",
-    "agentSettings": "設定"
+    "agentSettings": "設定",
+    "updateRecordsCount": "{n} 件のレコードを更新 | {n} 件のレコードを更新",
+    "turnOffEditing": "編集を無効にしますか？",
+    "turnOnInlineEditing": "インライン編集を有効にしますか？",
+    "turnOnEditingByForm": "フォームからの編集を有効にしますか？",
+    "productTours": "プロダクトツアー",
+    "testDataGeneration": "テストデータの生成",
+    "noSearchResultsFound": "検索結果が見つかりません",
+    "theListIsEmpty": "リストは空です",
+    "newEnvironment": "新しい環境",
+    "removeCustomDomain": "カスタムドメインを削除しますか？",
+    "tooNarrowToAdjustFrozenFields": "ウィンドウが狭すぎて固定フィールドを調整できません",
+    "themeSettings": "テーマ設定"
   },
   "labels": {
     "syncing": "同期中",
@@ -4702,7 +4753,90 @@
     "filteringNotSupportedForFieldsWithErrors": "エラーのあるフィールドではフィルタリングはサポートされていません",
     "sortingNotSupportedForFieldsWithErrors": "エラーのあるフィールドではソートはサポートされていません",
     "sortingNotSupportedForField": "{type} フィールドではソートはサポートされていません",
-    "groupingNotSupportedForFieldsWithErrors": "グループ化はエラーのあるフィールドではサポートされていません"
+    "groupingNotSupportedForFieldsWithErrors": "グループ化はエラーのあるフィールドではサポートされていません",
+    "workflowButtonTriggerSourceReadOnly": "このボタンに接続されたソーステーブルは Interfaces からのみ変更できます",
+    "workflowButtonTriggerInterfaceReadOnly": "このボタンを含む Interface ページは Interfaces からのみ変更できます",
+    "chartIncludeOthers": "上限を超えたカテゴリを破棄せず、「その他」という単一のカテゴリにまとめます。",
+    "sideLabelsNeedSingleFieldRows": "1 行に複数のフィールドがある間は利用できません。",
+    "showFieldInView": "現在のビューでこのフィールドを表示します。",
+    "hideFieldInView": "現在のビューでこのフィールドを非表示にします。",
+    "viewAllEventsInDayView": "日ビューで {count} 件のイベントをすべて表示 | 日ビューで {count} 件のイベントをすべて表示",
+    "linkValueDelimiter": "1 つのセル内で複数のリンク値を区切る文字 (既定は ,)",
+    "interfaceMixedRoles": "Interfaces やページによってロールが異なります。展開して確認してください",
+    "chatQueueAttachmentUnavailable": "メッセージをキューに入れるとこの添付ファイルは送信されません。先に削除してください",
+    "lockedViewDisabledOnProduction": "ロックされたビューは環境のコピーでのみ作成できます",
+    "personalViewDisabledOnEnvironment": "個人用ビューは本番ベースでのみ作成できます",
+    "seeNComments": "{n} 件のコメントを見る | {n} 件のコメントを見る",
+    "collapsibleGroups": "タイトルのあるグループを折りたためるようにします",
+    "nestedRecordsRequireSelfLink": "同じテーブルに戻るリンクフィールドがこのテーブルに必要です。",
+    "dataChangeDisabled": "このデータソースではデータの編集が無効になっています。",
+    "cannotRemoveInheritedInterfaceMember": "アクセス権はベースから継承されます。次の場所から管理してください:",
+    "saveDraftToBrowser": "入力途中のフォームに、書いた内容を失わずに戻れるようにします。保存先はブラウザーのみで、送信時に消去されます。",
+    "clickToSeeDetails": "クリックすると詳細が表示されます。",
+    "navigateToBaseToCreateAgent": "エージェントを作成するにはベースに移動してください",
+    "navigateToBaseToCreateFolder": "フォルダーを作成するにはベースに移動してください",
+    "navigateToBaseToCreateInterface": "Interface を作成するにはベースに移動してください",
+    "switchToAgentsTab": "{type} を作成するにはエージェントタブに切り替えてください",
+    "switchToInterfacesTab": "Interface を作成するには Interfaces タブに切り替えてください",
+    "youDontHaveAccessToCreateNewAgent": "新しいエージェントを作成する権限がありません",
+    "youDontHaveAccessToCreateNewInterface": "新しい Interface を作成する権限がありません",
+    "displayValueFieldCannotBeReordered": "表示値フィールドは並べ替えできません",
+    "interfaceLastVizRequired": "ページには少なくとも 1 つの可視化が必要です",
+    "onlyCreatorsCanManageViewFolders": "ビューフォルダーを管理できるのはベースの作成者または所有者のみです",
+    "onlyCreatorsCanManageFolders": "フォルダーを管理できるのはベースの作成者または所有者のみです",
+    "organizeViewsIntoFolders": "ビューを折りたたみ可能なフォルダーに整理します",
+    "productionLockedByEnvironment": "このベースは環境で開かれています。スキーマの変更はそちらで行ってください。",
+    "managedByPublisher": "この App の構成は発行元が管理します。ドキュメントやフォルダーはご自身で追加できます。",
+    "featureOnProductionOnly": "この操作は環境のコピーではなく、本番ベースで管理します。",
+    "clickToEdit": "クリックして編集",
+    "resolvedBy": "{name} が解決しました",
+    "fieldAutoLinkedToParent": "このフィールドは親レコードに自動でリンクされます",
+    "newRecordCreatedEachTemplateUse": "このテンプレートを使うたびに新しい {tableName} レコードが作成されリンクされます",
+    "warningMessageForInvalidInputs": "この警告メッセージは、入力が無効な場合にフォームの利用者へ表示されます。",
+    "cannotAddConditionsToFirstField": "フォームの最初のフィールドには条件を追加できません。",
+    "validationsEnforcedByFieldSchema": "検証はフィールドスキーマの設定によって適用されます",
+    "requiredEnforcedOnFormSubmit": "このページがレコード作成用のフォームとして開かれたときに適用されます",
+    "readOnlyFieldCannotBeEditedInline": "読み取り専用フィールドはインラインで編集できません",
+    "editInlineDisabledForElement": "このページ要素では編集が無効になっています。この列を編集できるようにするには、要素側で有効にしてください。",
+    "cantUploadDataInSyncedTable": "同期されたテーブルにはデータをアップロードできません",
+    "hideMyPresence": "自分のプレゼンスを非表示にする",
+    "showMyPresence": "自分のプレゼンスを表示する",
+    "setupScriptSettingsToRun": "実行するにはスクリプトの設定を行ってください",
+    "autoSuggestViewsFor": "{tableName} のビューを自動提案",
+    "discardDraftChanges": "下書きの変更を破棄して公開済みバージョンに戻す",
+    "testAllNodesBeforePublish": "公開する前にすべてのノードをテストしてください",
+    "tourCompleteStepToContinue": "続けるにはこのステップを完了してください",
+    "tourTakeTheTour": "{tour} — ツアーを開始",
+    "fieldPropertiesCannotBeEdited": "フィールドのプロパティは編集できません。",
+    "fieldAssociatedWithLinkColumn": "フィールドはリンク列に関連付けられています",
+    "fieldCannotBeUpgraded": "フィールドはアップグレードできません。",
+    "fieldCannotBeDuplicated": "フィールドは複製できません。",
+    "selectNewFieldAsDisplayValue": "新しいフィールドを表示値として選択",
+    "addFieldDescription": "フィールドの説明を追加",
+    "fieldCannotBeDeleted": "フィールドは削除できません。",
+    "recordHiddenByFilter": "このレコードは、このビューに適用されたフィルターに一致しないため非表示になります。",
+    "recordWillMove": "このレコードは、外側をクリックすると新しい位置に移動します。",
+    "recordHiddenByPermission": "このレコードは、あなたのアクセス権限に一致しないため非表示になります。",
+    "rowLevelSecurityEnabled": "行レベルのセキュリティが有効です。アクセス権限によっては一部の行が非表示になる場合があります。",
+    "suggestMore": "さらに提案",
+    "reSuggest": "再提案",
+    "portWebhookV2ToV3": "この Webhook を v2 から v3 に移行します",
+    "formDisplayMessageTemplating": "テンプレートフィールドにはフィールドラベルではなく列名またはタイトルを使用します。例: 「こんにちは {'{'}Title{'}'} さん!」",
+    "incompatibleWithColumn": "列「{title}」と互換性がありません",
+    "crossBaseLinkCreatorAccess": "リンクできるのは、作成者以上のアクセス権を持つベース内のテーブルのみです。",
+    "clickIntoRecordDetailsCrossBase": "ベースをまたぐリンクではまだ利用できません",
+    "autoSuggestFieldsFor": "{table} のフィールドを自動提案",
+    "clearAllAndResuggest": "すべてクリアして再提案",
+    "cannotSetDefaultValueWithUnique": "Unique 制約が設定されているため、デフォルト値を設定できません。デフォルト値を設定するには Unique 制約を無効にしてください",
+    "useAiToGenerateContent": "AI を使ってレコードのデータからコンテンツを生成します。",
+    "previewGeneratedFromFirstRecord": "プレビューはこのテーブルの最初のレコードを使って生成されます",
+    "includeFieldInPromptToGenerate": "生成するには Prompt に少なくとも 1 つのフィールドを含めてください",
+    "editorsReportedByInstance": "編集者数はハートビートごとにインスタンスから報告されます。編集者はインスタンス側で管理してください。",
+    "dragToAdjustFrozenFields": "ドラッグして固定フィールドの数を調整します",
+    "freezeColumnsCount": "{count} 列を固定 | {count} 列を固定",
+    "marketplaceComingSoon": "この App はまだパッケージ化の作業中のため、インストールできません。",
+    "marketplaceAuthored": "App の内容から生成したものではなく、発行元が記述したものです。",
+    "marketplaceVerifiedPublisher": "NocoDB が公開・確認済み"
   },
   "placeholder": {
     "enterVerificationCode": "6桁のコードを入力してください",
@@ -6238,6 +6372,94 @@
       "seatsOnOrg": "この組織のシート",
       "workspaceSubscription": "ワークスペースのサブスクリプション",
       "orgSubscription": "組織のサブスクリプション"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "ワークスペースを使いこなす",
+      "welcome": {
+        "title": "NocoDB へようこそ",
+        "description": "ワークスペースをひと巡りします。いつでも終了できます。スキップを押してください。"
+      },
+      "createBase": {
+        "title": "ベースから始めましょう",
+        "description": "ベースにはテーブル、ビュー、自動化がまとまっています。ほとんどの作業はここから始まります。"
+      },
+      "switchWorkspaces": {
+        "title": "ワークスペースを切り替える",
+        "description": "所属するワークスペースはすべてこのセレクターの中にあります。開いて他のワークスペースを確認しましょう。"
+      },
+      "moreWorkspaces": {
+        "title": "ワークスペースは複数持てます",
+        "description": "ワークスペースはチームやプロジェクトを分けて管理し、それぞれに独自のメンバーがいます。"
+      },
+      "account": {
+        "title": "アカウントと設定",
+        "description": "プロフィール、テーマ、キーボードショートカット、アカウント設定はすべてアバターの中にあります。"
+      }
+    },
+    "workflows": {
+      "title": "最初のワークフローを作ってみましょう",
+      "overview": {
+        "title": "ワークフローを最初から最後まで作る",
+        "description": "作成し、トリガーを選び、アクションを追加し、公開して、オンにしたら、動く様子を見守ります。"
+      },
+      "create": {
+        "title": "ワークフローを作成",
+        "description": "ゼロから始めましょう。短いフォームが開きます。"
+      },
+      "createSubmit": {
+        "title": "作成する",
+        "description": "そのままキャンバスに移動します。"
+      },
+      "addTrigger": {
+        "title": "トリガーを追加",
+        "description": "ワークフローはすべてここから始まります。クリックして、何が起点になれるかを確認しましょう。"
+      },
+      "pickManualTrigger": {
+        "title": "「手動で実行したとき」を選択",
+        "description": "これは自分で発火させるので、実際のイベントにつなぐ前に残りを動かしておけます。"
+      },
+      "testTrigger": {
+        "title": "トリガーをテスト",
+        "description": "一度実行して、生成されたデータを確認しましょう。以降のステップはすべてこの出力の上に組み立てられます。"
+      },
+      "addAction": {
+        "title": "アクションを追加",
+        "description": "アクションは、トリガーが発火した後にワークフローが実際に行う処理です。"
+      },
+      "pickListRecords": {
+        "title": "「レコードを一覧表示」を選択",
+        "description": "読み取るだけなので、データを変更することなく何度でも実行できます。"
+      },
+      "chooseTable": {
+        "title": "テーブルを選択",
+        "description": "どのアクションも対象を知る必要があります。レコードを一覧表示するテーブルを選んでください。"
+      },
+      "testAction": {
+        "title": "アクションもテストする",
+        "description": "各ノードは単独でテストできます。公開する前に、期待どおりの結果が返るか確認してください。"
+      },
+      "publish": {
+        "title": "変更を公開",
+        "description": "編集内容は <b>下書き</b> として保存されます。公開して初めて、このバージョンが実行されるようになります。"
+      },
+      "enable": {
+        "title": "オンにする",
+        "description": "公開済みと実行中は別物です。ワークフローは有効にするまで <b>一時停止</b> のままです。ここが見落とされがちなステップです。"
+      },
+      "run": {
+        "title": "一度実行してみる",
+        "description": "手動トリガーは必要なときに発火します。試して、実行の様子を見てみましょう。"
+      },
+      "logs": {
+        "title": "ログを確認",
+        "description": "すべての実行がここに記録されます。何が発火し、各ステップが何を返し、何が失敗したかがわかります。"
+      },
+      "wrapUp": {
+        "title": "これで一通りの流れです",
+        "description": "トリガー、アクション、公開、有効化、実行、ログ。これから作るワークフローもすべて同じ形です。"
+      }
     }
   }
 }

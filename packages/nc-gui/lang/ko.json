@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "에이전트"
+    },
+    "upgradeToSortAndLimitLookupValues": "Lookup 필드에 표시되는 값을 정렬하고 개수를 제한하려면 {plan} 요금제로 업그레이드하세요.",
+    "upgradeToAddMoreAgents": "업그레이드하고 에이전트 더 추가하기",
+    "upgradeToAddMoreAgentsSubtitle": "현재 {activePlan} 요금제를 사용 중이며 작업공간당 에이전트 {limit}개를 만들 수 있습니다. 더 늘리려면 {plan}(으)로 업그레이드하세요.",
+    "upgradeToAddMoreInterfaces": "업그레이드하고 Interfaces 더 추가하기",
+    "upgradeToAddMoreInterfacesSubtitle": "현재 {activePlan} 요금제를 사용 중이며 작업공간당 Interfaces {limit}개를 만들 수 있습니다. 더 늘리려면 {plan}(으)로 업그레이드하세요.",
+    "upgradeToAddMoreInterfacePages": "업그레이드하고 페이지 더 추가하기",
+    "upgradeToAddMoreInterfacePagesSubtitle": "현재 {activePlan} 요금제를 사용 중이며 Interface당 페이지 {limit}개를 만들 수 있습니다. 페이지를 무제한으로 쓰려면 {plan}(으)로 업그레이드하세요.",
+    "upgradeToUseTrashSettings": "업그레이드하고 휴지통 설정 구성하기",
+    "upgradeToUseTrashSettingsSubtitle": "{plan} 요금제로 업그레이드하면 테이블별 휴지통 설정을 구성할 수 있습니다.",
+    "upgradeToAttachFilesToComments": "업그레이드하고 댓글에 파일 첨부하기",
+    "upgradeToAttachFilesToCommentsSubtitle": "{plan} 요금제로 업그레이드하면 항목 댓글에 이미지와 파일을 첨부할 수 있습니다.",
+    "upgradeToUseToggleSort": "업그레이드하고 개별 정렬 켜고 끄기",
+    "upgradeToUseToggleSortSubtitle": "{plan} 요금제로 업그레이드하면 개별 정렬을 삭제하지 않고 켜거나 끌 수 있어 뷰를 더 세밀하게 제어할 수 있습니다.",
+    "upgradeToUseViewFolders": "업그레이드하고 뷰 폴더 사용하기",
+    "upgradeToUseViewFoldersSubtitle": "{plan} 요금제로 업그레이드하면 뷰를 폴더로 정리할 수 있습니다.",
+    "upgradeToAccessViewFoldersSubtitle": "{plan} 요금제로 업그레이드하면 뷰를 폴더로 정리할 수 있습니다.",
+    "upgradeToUseFolders": "업그레이드하고 폴더 사용하기",
+    "upgradeToUseFoldersSubtitle": "{plan} 요금제로 업그레이드하면 테이블, 문서, Dashboards를 폴더로 정리할 수 있습니다.",
+    "upgradeToAccessFoldersSubtitle": "{plan} 요금제로 업그레이드하면 테이블, 문서, Dashboards를 폴더로 정리할 수 있습니다.",
+    "upgradeToUseCustomSync": "업그레이드하고 사용자 지정 Sync 사용하기",
+    "upgradeToUseCustomSyncSubtitle": "{plan} 요금제로 업그레이드하면 다른 데이터 소스에서 데이터를 동기화할 수 있습니다.",
+    "upgradeToUseAutomaticSyncSubtitle": "{plan} 요금제로 업그레이드하면 미러링된 테이블을 실시간으로 자동 동기화할 수 있습니다.",
+    "upgradeToUseEnvironments": "업그레이드하고 환경 사용하기",
+    "upgradeToUseEnvironmentsSubtitle": "환경은 {plan} 요금제 이상에서 사용할 수 있습니다.",
+    "upgradeToPlanForFeature": "{plan} 요금제로 업그레이드{detail}",
+    "runAutomationFromInterfaceButtonDetail": "하면 Interface 버튼에서 자동화를 실행할 수 있습니다.",
+    "addonFeatureTitle": "{addon} Add-on으로 제공",
+    "addonFeatureSubtitle": "{addon}은(는) {plan} 요금제 이상에서 유료 Add-on으로 제공됩니다. 사용을 원하시면 문의해 주세요.",
+    "toAccessCopyViewConfigFromAnotherView": "하면 다른 뷰의 뷰 구성을 복사하는 기능을 사용할 수 있습니다.",
+    "toAccessReassignPersonalView": "하면 개인 뷰를 다시 지정하는 기능을 사용할 수 있습니다.",
+    "toAccessAssignAsPersonalView": "하면 개인 뷰로 지정하는 기능을 사용할 수 있습니다.",
+    "toAccessCardFieldHeaderVisibility": "하면 카드의 필드 헤더 표시 기능을 사용할 수 있습니다.",
+    "upgradeToUseStagingEnvironment": "업그레이드하고 Staging 환경 사용하기",
+    "upgradeToUseStagingEnvironmentSubtitle": "{activePlan} 요금제에는 Production 환경만 포함됩니다. Staging을 사용하려면 {plan}(으)로 업그레이드하세요.",
+    "upgradeToUsePerUserCredentials": "업그레이드하고 사용자별 자격 증명 사용하기",
+    "upgradeToUsePerUserCredentialsSubtitle": "{activePlan} 요금제는 공유 자격 증명만 사용합니다. 멤버마다 자신의 계정을 연결하게 하려면 {plan}(으)로 업그레이드하세요.",
+    "upgradeToUseCustomEnvironments": "업그레이드하고 사용자 지정 환경 만들기",
+    "upgradeToUseCustomEnvironmentsSubtitle": "사용자 지정 환경은 {activePlan} 요금제에서는 사용할 수 없습니다. Production과 Staging 외의 환경을 만들려면 {plan}(으)로 업그레이드하세요."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1456,7 +1495,19 @@
     "creatingAgent": "에이전트 만드는 중",
     "agentToolsAndAccess": "도구 및 접근 권한",
     "agentSkills": "스킬",
-    "agentSettings": "설정"
+    "agentSettings": "설정",
+    "updateRecordsCount": "항목 {n}개 업데이트 | 항목 {n}개 업데이트",
+    "turnOffEditing": "편집을 끌까요?",
+    "turnOnInlineEditing": "인라인 편집을 켤까요?",
+    "turnOnEditingByForm": "폼으로 편집을 켤까요?",
+    "productTours": "제품 둘러보기",
+    "testDataGeneration": "테스트 데이터 생성",
+    "noSearchResultsFound": "검색 결과가 없습니다",
+    "theListIsEmpty": "목록이 비어 있습니다",
+    "newEnvironment": "새 환경",
+    "removeCustomDomain": "사용자 지정 도메인을 제거할까요?",
+    "tooNarrowToAdjustFrozenFields": "창이 너무 좁아 고정 필드를 조정할 수 없습니다",
+    "themeSettings": "테마 설정"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4702,7 +4753,90 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "이 베이스를 앱으로 설치하는 사람이 이 변수로 무엇을 할 수 있는지 정합니다. 고정은 값을 유지하고 숨기며, 편집 가능은 값을 시작점으로 제공하고, 필수는 각자 값을 입력하도록 요구합니다."
+    "variableInheritance": "이 베이스를 앱으로 설치하는 사람이 이 변수로 무엇을 할 수 있는지 정합니다. 고정은 값을 유지하고 숨기며, 편집 가능은 값을 시작점으로 제공하고, 필수는 각자 값을 입력하도록 요구합니다.",
+    "workflowButtonTriggerSourceReadOnly": "이 버튼에 연결된 원본 테이블은 Interfaces에서만 변경할 수 있습니다",
+    "workflowButtonTriggerInterfaceReadOnly": "이 버튼이 있는 Interface 페이지는 Interfaces에서만 변경할 수 있습니다",
+    "chartIncludeOthers": "한도를 넘는 범주를 버리지 않고 '기타' 범주 하나로 묶습니다.",
+    "sideLabelsNeedSingleFieldRows": "한 행에 필드가 둘 이상 있는 동안에는 사용할 수 없습니다.",
+    "showFieldInView": "현재 뷰에서 이 필드를 표시합니다.",
+    "hideFieldInView": "현재 뷰에서 이 필드를 숨깁니다.",
+    "viewAllEventsInDayView": "일 뷰에서 일정 {count}개 모두 보기 | 일 뷰에서 일정 {count}개 모두 보기",
+    "linkValueDelimiter": "한 셀 안에서 여러 링크 값을 구분하는 문자 (기본값 ,)",
+    "interfaceMixedRoles": "Interfaces나 페이지마다 역할이 다릅니다. 펼쳐서 확인하세요",
+    "chatQueueAttachmentUnavailable": "메시지를 대기열에 넣으면 이 첨부 파일은 전송되지 않습니다. 먼저 제거하세요",
+    "lockedViewDisabledOnProduction": "잠긴 뷰는 환경 사본에서만 만들 수 있습니다",
+    "personalViewDisabledOnEnvironment": "개인 뷰는 프로덕션 베이스에서만 만들 수 있습니다",
+    "seeNComments": "댓글 {n}개 보기 | 댓글 {n}개 보기",
+    "collapsibleGroups": "제목이 있는 그룹을 접을 수 있게 합니다",
+    "nestedRecordsRequireSelfLink": "같은 테이블을 다시 가리키는 링크 필드가 이 테이블에 있어야 합니다.",
+    "dataChangeDisabled": "이 데이터 소스에서는 데이터 편집이 비활성화되어 있습니다.",
+    "cannotRemoveInheritedInterfaceMember": "접근 권한은 베이스에서 상속됩니다. 다음에서 관리하세요:",
+    "saveDraftToBrowser": "작성하던 폼으로 돌아와도 입력한 내용이 사라지지 않습니다. 브라우저에만 저장되며 제출하면 지워집니다.",
+    "clickToSeeDetails": "클릭하면 자세한 내용을 볼 수 있습니다.",
+    "navigateToBaseToCreateAgent": "에이전트를 만들려면 베이스로 이동하세요",
+    "navigateToBaseToCreateFolder": "폴더를 만들려면 베이스로 이동하세요",
+    "navigateToBaseToCreateInterface": "Interface를 만들려면 베이스로 이동하세요",
+    "switchToAgentsTab": "{type}을(를) 만들려면 에이전트 탭으로 전환하세요",
+    "switchToInterfacesTab": "Interface를 만들려면 Interfaces 탭으로 전환하세요",
+    "youDontHaveAccessToCreateNewAgent": "새 에이전트를 만들 권한이 없습니다",
+    "youDontHaveAccessToCreateNewInterface": "새 Interface를 만들 권한이 없습니다",
+    "displayValueFieldCannotBeReordered": "표시 값 필드는 순서를 바꿀 수 없습니다",
+    "interfaceLastVizRequired": "페이지에는 시각화가 하나 이상 필요합니다",
+    "onlyCreatorsCanManageViewFolders": "뷰 폴더는 베이스 제작자나 소유자만 관리할 수 있습니다",
+    "onlyCreatorsCanManageFolders": "폴더는 베이스 제작자나 소유자만 관리할 수 있습니다",
+    "organizeViewsIntoFolders": "뷰를 접을 수 있는 폴더로 정리합니다",
+    "productionLockedByEnvironment": "이 베이스는 환경에서 열려 있습니다. 스키마 변경은 그곳에서 하세요.",
+    "managedByPublisher": "이 App의 구조는 게시자가 관리합니다. 문서와 폴더는 직접 추가하실 수 있습니다.",
+    "featureOnProductionOnly": "이 작업은 환경 사본이 아니라 프로덕션 베이스에서 관리합니다.",
+    "clickToEdit": "클릭하여 편집",
+    "resolvedBy": "{name}님이 해결함",
+    "fieldAutoLinkedToParent": "이 필드는 상위 항목에 자동으로 연결됩니다",
+    "newRecordCreatedEachTemplateUse": "이 템플릿을 사용할 때마다 새 {tableName} 항목이 만들어지고 연결됩니다",
+    "warningMessageForInvalidInputs": "이 경고 메시지는 입력이 올바르지 않을 때 폼 사용자에게 표시됩니다.",
+    "cannotAddConditionsToFirstField": "폼의 첫 번째 필드에는 조건을 추가할 수 없습니다.",
+    "validationsEnforcedByFieldSchema": "검증은 필드 스키마 설정에 따라 적용됩니다",
+    "requiredEnforcedOnFormSubmit": "이 페이지가 항목 생성 폼으로 열릴 때 적용됩니다",
+    "readOnlyFieldCannotBeEditedInline": "읽기 전용 필드는 인라인으로 편집할 수 없습니다",
+    "editInlineDisabledForElement": "이 페이지 요소에서는 편집이 비활성화되어 있습니다. 이 열을 편집하려면 해당 요소에서 편집을 켜세요.",
+    "cantUploadDataInSyncedTable": "동기화된 테이블에는 데이터를 업로드할 수 없습니다",
+    "hideMyPresence": "내 접속 상태 숨기기",
+    "showMyPresence": "내 접속 상태 표시",
+    "setupScriptSettingsToRun": "실행하려면 스크립트 설정을 구성하세요",
+    "autoSuggestViewsFor": "{tableName}에 맞는 뷰 자동 제안",
+    "discardDraftChanges": "초안 변경 사항을 버리고 게시된 버전으로 되돌리기",
+    "testAllNodesBeforePublish": "게시하기 전에 모든 노드를 테스트하세요",
+    "tourCompleteStepToContinue": "계속하려면 이 단계를 완료하세요",
+    "tourTakeTheTour": "{tour} — 둘러보기 시작",
+    "fieldPropertiesCannotBeEdited": "필드 속성을 편집할 수 없습니다.",
+    "fieldAssociatedWithLinkColumn": "필드가 링크 열과 연결되어 있습니다",
+    "fieldCannotBeUpgraded": "필드를 업그레이드할 수 없습니다.",
+    "fieldCannotBeDuplicated": "필드를 복제할 수 없습니다.",
+    "selectNewFieldAsDisplayValue": "표시 값으로 사용할 새 필드 선택",
+    "addFieldDescription": "필드 설명 추가",
+    "fieldCannotBeDeleted": "필드를 삭제할 수 없습니다.",
+    "recordHiddenByFilter": "이 항목은 이 뷰에 적용된 필터와 맞지 않아 숨겨집니다.",
+    "recordWillMove": "바깥을 클릭하면 이 항목이 새 위치로 이동합니다.",
+    "recordHiddenByPermission": "이 항목은 회원님의 접근 권한과 맞지 않아 숨겨집니다.",
+    "rowLevelSecurityEnabled": "행 수준 보안이 켜져 있습니다. 접근 권한에 따라 일부 행이 숨겨질 수 있습니다.",
+    "suggestMore": "더 제안",
+    "reSuggest": "다시 제안",
+    "portWebhookV2ToV3": "이 Webhook을 v2에서 v3로 이전합니다",
+    "formDisplayMessageTemplating": "템플릿 필드에는 필드 레이블 대신 열 이름이나 제목을 사용하세요. 예: \"안녕하세요 {'{'}Title{'}'}님!\"",
+    "incompatibleWithColumn": "'{title}' 열과 호환되지 않습니다",
+    "crossBaseLinkCreatorAccess": "제작자 이상의 권한이 있는 베이스의 테이블에만 링크할 수 있습니다.",
+    "clickIntoRecordDetailsCrossBase": "베이스 간 링크에서는 아직 사용할 수 없습니다",
+    "autoSuggestFieldsFor": "{table}에 맞는 필드 자동 제안",
+    "clearAllAndResuggest": "모두 지우고 다시 제안",
+    "cannotSetDefaultValueWithUnique": "Unique 제약이 설정되어 있어 기본값을 지정할 수 없습니다. 기본값을 설정하려면 Unique 제약을 해제하세요",
+    "useAiToGenerateContent": "AI를 사용해 항목 데이터를 바탕으로 콘텐츠를 생성합니다.",
+    "previewGeneratedFromFirstRecord": "미리보기는 이 테이블의 첫 번째 항목을 사용해 생성됩니다",
+    "includeFieldInPromptToGenerate": "생성하려면 Prompt에 필드를 1개 이상 포함하세요",
+    "editorsReportedByInstance": "편집자 수는 하트비트마다 인스턴스가 보고합니다. 편집자는 인스턴스에서 직접 관리하세요.",
+    "dragToAdjustFrozenFields": "드래그하여 고정 필드 수를 조정하세요",
+    "freezeColumnsCount": "열 {count}개 고정 | 열 {count}개 고정",
+    "marketplaceComingSoon": "이 App은 아직 패키징 중이어서 설치할 수 없습니다.",
+    "marketplaceAuthored": "App의 내용에서 뽑아낸 것이 아니라 게시자가 직접 작성했습니다.",
+    "marketplaceVerifiedPublisher": "NocoDB 공식 게시 및 검토"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -6238,6 +6372,94 @@
       "seatsOnOrg": "이 조직의 좌석",
       "workspaceSubscription": "작업공간 구독",
       "orgSubscription": "조직 구독"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "작업공간 둘러보기",
+      "welcome": {
+        "title": "NocoDB 사용을 환영합니다",
+        "description": "작업공간을 빠르게 한 바퀴 돌아봅니다. 언제든지 그만둘 수 있습니다. 건너뛰기를 누르세요."
+      },
+      "createBase": {
+        "title": "베이스에서 시작하기",
+        "description": "베이스에는 테이블, 뷰, 자동화가 담깁니다. 대부분의 작업이 여기서 시작됩니다."
+      },
+      "switchWorkspaces": {
+        "title": "작업공간 전환하기",
+        "description": "속해 있는 모든 작업공간은 이 선택기 안에 있습니다. 열어서 나머지를 확인하세요."
+      },
+      "moreWorkspaces": {
+        "title": "작업공간은 여러 개 만들 수 있습니다",
+        "description": "작업공간은 팀과 프로젝트를 서로 분리해 주며, 각각 고유한 멤버를 둡니다."
+      },
+      "account": {
+        "title": "계정과 설정",
+        "description": "프로필, 테마, 키보드 단축키, 계정 설정은 모두 아바타 안에 있습니다."
+      }
+    },
+    "workflows": {
+      "title": "첫 워크플로 만들기",
+      "overview": {
+        "title": "워크플로를 처음부터 끝까지 만들기",
+        "description": "만들고, 트리거를 고르고, 작업을 추가하고, 게시하고, 켠 다음, 실행되는 모습을 지켜보세요."
+      },
+      "create": {
+        "title": "워크플로 만들기",
+        "description": "처음부터 시작해 보세요. 짧은 폼이 열립니다."
+      },
+      "createSubmit": {
+        "title": "만들기",
+        "description": "바로 캔버스로 이동합니다."
+      },
+      "addTrigger": {
+        "title": "트리거 추가하기",
+        "description": "모든 워크플로는 여기서 시작합니다. 무엇이 워크플로를 시작할 수 있는지 클릭해서 확인하세요."
+      },
+      "pickManualTrigger": {
+        "title": "\"수동으로 실행할 때\" 고르기",
+        "description": "이건 직접 실행하므로, 실제 이벤트에 연결하기 전에 나머지를 먼저 동작시켜 볼 수 있습니다."
+      },
+      "testTrigger": {
+        "title": "트리거 테스트하기",
+        "description": "한 번 실행하고 생성된 데이터를 살펴보세요. 이후의 모든 단계는 이 출력을 바탕으로 만들어집니다."
+      },
+      "addAction": {
+        "title": "작업 추가하기",
+        "description": "작업은 트리거가 실행된 뒤 워크플로가 실제로 하는 일입니다."
+      },
+      "pickListRecords": {
+        "title": "\"항목 목록\" 고르기",
+        "description": "읽기만 하므로 데이터를 바꾸지 않고 원하는 만큼 자주 실행할 수 있습니다."
+      },
+      "chooseTable": {
+        "title": "테이블 고르기",
+        "description": "모든 작업은 대상을 알아야 합니다. 항목을 가져올 테이블을 고르세요."
+      },
+      "testAction": {
+        "title": "작업도 테스트하기",
+        "description": "각 노드는 따로 테스트합니다. 게시하기 전에 이 노드가 기대한 값을 반환하는지 확인하세요."
+      },
+      "publish": {
+        "title": "변경 사항 게시하기",
+        "description": "편집한 내용은 <b>초안</b>으로 저장됩니다. 게시해야 이 버전이 실제로 실행됩니다."
+      },
+      "enable": {
+        "title": "켜기",
+        "description": "게시했다고 실행 중인 것은 아닙니다. 워크플로는 켜기 전까지 <b>일시중지</b> 상태로 남습니다. 많은 분들이 놓치는 단계입니다."
+      },
+      "run": {
+        "title": "한 번 실행해 보기",
+        "description": "수동 트리거는 원할 때 실행됩니다. 한번 눌러 실행되는 모습을 확인해 보세요."
+      },
+      "logs": {
+        "title": "로그 확인하기",
+        "description": "모든 실행이 여기 기록됩니다. 무엇이 실행되었는지, 각 단계가 무엇을 반환했는지, 무엇이 실패했는지 확인할 수 있습니다."
+      },
+      "wrapUp": {
+        "title": "이것이 전체 흐름입니다",
+        "description": "트리거, 작업, 게시, 사용 설정, 실행, 로그. 앞으로 만드는 모든 워크플로도 같은 흐름을 따릅니다."
+      }
     }
   }
 }

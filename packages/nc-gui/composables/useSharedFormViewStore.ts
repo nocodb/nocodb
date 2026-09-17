@@ -563,7 +563,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           // submit would go out unauthenticated. For a require-sign-in form we
           // must send the real login token so the backend authenticates the
           // submitter and records CreatedBy / enforces the sign-in requirement.
-          ...(signedInReal.value && realToken.value ? { 'xc-auth': realToken.value } : {}),
+          //
+          // Only for require-sign-in forms: on an ordinary public form the
+          // submitter is told nothing about being identified (no signed-in
+          // banner is rendered), so attaching their token would silently
+          // disclose their identity to the form owner. Those stay anonymous.
+          ...(requireSignin.value && signedInReal.value && realToken.value ? { 'xc-auth': realToken.value } : {}),
         },
       })
 

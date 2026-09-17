@@ -185,16 +185,21 @@ export const getSelectedUsers = (
   } else {
     selected = localModelValue
       ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
-          const label = item?.display_name || item?.email
+          const user = optionsMap[item?.id] ?? (item?.email ? optionsMap[item.email.trim()] : undefined)
+
+          // External submitters (non-collaborators captured by a require-sign-in
+          // shared form) arrive identity-stripped as `{ id, email: null,
+          // display_name: null }` — fall back to the resolved option so they
+          // render instead of being dropped for having no label.
+          const label = item?.display_name || item?.email || user?.display_name || user?.email
           if (label) {
-            const user = optionsMap[item.id]
             acc.push({
               label,
               value: item.id,
               deleted: user?.deleted,
-              meta: item?.meta,
-              display_name: item?.display_name,
-              email: item?.email,
+              meta: item?.meta ?? user?.meta,
+              display_name: item?.display_name ?? user?.display_name,
+              email: item?.email ?? user?.email,
             })
           }
           return acc

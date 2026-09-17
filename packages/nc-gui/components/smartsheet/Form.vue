@@ -2692,7 +2692,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 size="small"
                                 class="nc-form-checkbox-require-signin"
                                 data-testid="nc-form-checkbox-require-signin"
-                                :disabled="isLocked || !isEditable || !hasCreatedByField || blockFormRequireSignin"
+                                :disabled="
+                                  isLocked ||
+                                  !isEditable ||
+                                  blockFormRequireSignin ||
+                                  (!hasCreatedByField && !parseProp(formViewData.meta)?.require_signin)
+                                "
                                 @change="(value: boolean) => {
                                   if (blockFormRequireSignin) {
                                     showUpgradeToUseFormRequireSignin()

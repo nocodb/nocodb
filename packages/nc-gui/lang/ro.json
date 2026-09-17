@@ -257,8 +257,47 @@
       "workspaceMembers": "Membri în Spațiul de lucru",
       "audit": "Audit spațiu de lucru",
       "ltarCustomDisplayValue": "Afișare personalizată valoare câmp",
-      "publicDocShare": "Distribuire documente publice"
-    }
+      "publicDocShare": "Distribuire documente publice",
+      "agents": "Agenți"
+    },
+    "upgradeToSortAndLimitLookupValues": "Pentru a sorta și limita valorile afișate într-un câmp Lookup, treci la planul {plan}.",
+    "upgradeToAddMoreAgents": "Treci la un plan superior pentru a adăuga mai mulți agenți",
+    "upgradeToAddMoreAgentsSubtitle": "Ești în prezent pe planul {activePlan}, care permite {limit} agenți per spațiu de lucru. Treci la {plan} pentru mai mulți.",
+    "upgradeToAddMoreInterfaces": "Treci la un plan superior pentru a adăuga mai multe Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Ești în prezent pe planul {activePlan}, care permite {limit} Interfaces per spațiu de lucru. Treci la {plan} pentru mai multe.",
+    "upgradeToAddMoreInterfacePages": "Treci la un plan superior pentru a adăuga mai multe pagini",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Ești în prezent pe planul {activePlan}, care permite {limit} pagini per Interface. Treci la {plan} pentru pagini nelimitate.",
+    "upgradeToUseTrashSettings": "Treci la un plan superior pentru a configura coșul de gunoi",
+    "upgradeToUseTrashSettingsSubtitle": "Treci la planul {plan} pentru a configura setările coșului de gunoi pentru fiecare tabel.",
+    "upgradeToAttachFilesToComments": "Treci la un plan superior pentru a atașa fișiere la comentarii",
+    "upgradeToAttachFilesToCommentsSubtitle": "Treci la planul {plan} pentru a atașa imagini și fișiere la comentariile înregistrărilor.",
+    "upgradeToUseToggleSort": "Treci la un plan superior pentru a activa și dezactiva sortări individuale",
+    "upgradeToUseToggleSortSubtitle": "Treci la planul {plan} pentru a activa sau dezactiva sortări individuale fără a le elimina, ca să ai mai mult control asupra vizualizărilor tale.",
+    "upgradeToUseViewFolders": "Treci la un plan superior pentru a folosi dosare de vizualizări",
+    "upgradeToUseViewFoldersSubtitle": "Treci la planul {plan} pentru a organiza vizualizările în dosare.",
+    "upgradeToAccessViewFoldersSubtitle": "Treci la planul {plan} pentru a organiza vizualizările în dosare.",
+    "upgradeToUseFolders": "Treci la un plan superior pentru a folosi dosare",
+    "upgradeToUseFoldersSubtitle": "Treci la planul {plan} pentru a organiza tabelele, documentele și Dashboards în dosare.",
+    "upgradeToAccessFoldersSubtitle": "Treci la planul {plan} pentru a organiza tabelele, documentele și Dashboards în dosare.",
+    "upgradeToUseCustomSync": "Treci la un plan superior pentru a folosi Sync personalizat",
+    "upgradeToUseCustomSyncSubtitle": "Treci la planul {plan} pentru a sincroniza date din alte surse de date.",
+    "upgradeToUseAutomaticSyncSubtitle": "Treci la planul {plan} pentru a menține tabelele oglindite sincronizate automat, în timp real.",
+    "upgradeToUseEnvironments": "Treci la un plan superior pentru a folosi medii",
+    "upgradeToUseEnvironmentsSubtitle": "Mediile sunt disponibile începând cu planul {plan}.",
+    "upgradeToPlanForFeature": "Treci la planul {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "pentru a rula automatizări din butoanele Interface.",
+    "addonFeatureTitle": "Disponibil ca Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} este disponibil ca Add-on cu plată începând cu planul {plan}. Contactează-ne pentru a-l activa.",
+    "toAccessCopyViewConfigFromAnotherView": "pentru a accesa copierea configurației dintr-o altă vizualizare.",
+    "toAccessReassignPersonalView": "pentru a accesa reatribuirea vizualizărilor personale.",
+    "toAccessAssignAsPersonalView": "pentru a accesa funcția de atribuire ca vizualizare personală.",
+    "toAccessCardFieldHeaderVisibility": "pentru a accesa vizibilitatea antetelor de câmp pe carduri.",
+    "upgradeToUseStagingEnvironment": "Treci la un plan superior pentru a folosi mediul Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Planul tău {activePlan} include doar mediul Production. Treci la {plan} pentru a folosi Staging.",
+    "upgradeToUsePerUserCredentials": "Treci la un plan superior pentru a folosi credențiale per utilizator",
+    "upgradeToUsePerUserCredentialsSubtitle": "Planul tău {activePlan} folosește doar credențiale partajate. Treci la {plan} pentru ca fiecare membru să își conecteze propriul cont.",
+    "upgradeToUseCustomEnvironments": "Treci la un plan superior pentru a crea medii personalizate",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Mediile personalizate nu sunt disponibile în planul tău {activePlan}. Treci la {plan} pentru a crea medii dincolo de Production și Staging."
   },
   "general": {
     "scrollToBottom": "Derulează până jos",
@@ -6330,7 +6369,80 @@
         "description": "Acțiunile sunt ceea ce face de fapt fluxul de lucru odată ce declanșatorul pornește."
       },
       "chooseTable": {
-        "description": "Fiecare acțiune trebuie să știe pe ce lucrează. Alege tabelul din care să listeze înregistrări."
+        "description": "Fiecare acțiune trebuie să știe pe ce lucrează. Alege tabelul din care să listeze înregistrări.",
+        "title": "Alege un tabel"
+      },
+      "title": "Construiește-ți primul Workflow",
+      "overview": {
+        "title": "Construiește un Workflow de la cap la coadă",
+        "description": "Creează-l, alege un declanșator, adaugă o acțiune, publică, pornește-l și apoi urmărește-l cum rulează."
+      },
+      "create": {
+        "title": "Creează un Workflow",
+        "description": "Începe de la zero — se va deschide un formular scurt."
+      },
+      "createSubmit": {
+        "title": "Creează-l",
+        "description": "Asta te duce direct în zona de lucru."
+      },
+      "pickManualTrigger": {
+        "title": "Alege „La declanșare manuală”",
+        "description": "Pe acesta îl declanșezi tu, așa că poți face restul să funcționeze înainte să îl legi de evenimente reale."
+      },
+      "testTrigger": {
+        "title": "Testează declanșatorul",
+        "description": "Rulează-l o dată și uită-te la datele pe care le produce. Fiecare pas următor se bazează pe această ieșire."
+      },
+      "pickListRecords": {
+        "title": "Alege „Listează înregistrări”",
+        "description": "Doar citește, așa că o poți rula oricât de des vrei fără să modifici vreo dată."
+      },
+      "testAction": {
+        "title": "Testează și acțiunea",
+        "description": "Fiecare nod se testează separat. Înainte de publicare, confirmă că acesta returnează ce te aștepți."
+      },
+      "publish": {
+        "title": "Publică-ți modificările",
+        "description": "Modificările se salvează ca <b>ciornă</b>. Publicarea este cea care face din această versiune pe cea care rulează."
+      },
+      "enable": {
+        "title": "Pornește-l",
+        "description": "Publicat nu înseamnă același lucru cu în execuție. Un Workflow rămâne <b>În pauză</b> până îl activezi — acesta e pasul pe care lumea îl ratează."
+      },
+      "run": {
+        "title": "Rulează-l o dată",
+        "description": "Un declanșator manual pornește la cerere — încearcă-l și urmărește-l cum se execută."
+      },
+      "logs": {
+        "title": "Verifică jurnalele",
+        "description": "Fiecare execuție este consemnată aici — ce s-a declanșat, ce a returnat fiecare pas și ce a eșuat."
+      },
+      "wrapUp": {
+        "title": "Asta e tot ciclul",
+        "description": "Declanșator, acțiuni, publicare, activare, execuție, jurnale. Fiecare Workflow pe care îl construiești de acum urmează aceeași formă."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Orientează-te în spațiul tău de lucru",
+      "welcome": {
+        "title": "Bine ai venit în NocoDB",
+        "description": "O tură rapidă prin spațiul tău de lucru. Poți ieși oricând — apasă pe Omite."
+      },
+      "createBase": {
+        "title": "Începe cu o Bază",
+        "description": "O Bază îți ține tabelele, vizualizările și automatizările. De aici începe cea mai mare parte a muncii."
+      },
+      "switchWorkspaces": {
+        "title": "Schimbă spațiul de lucru",
+        "description": "Fiecare spațiu de lucru din care faci parte se află în spatele acestui selector. Deschide-l ca să le vezi pe celelalte."
+      },
+      "moreWorkspaces": {
+        "title": "Mai mult de un spațiu de lucru",
+        "description": "Spațiile de lucru țin separate echipele și proiectele, fiecare cu propriii membri."
+      },
+      "account": {
+        "title": "Cont și setări",
+        "description": "Profilul, tema, scurtăturile de tastatură și setările contului se află toate în spatele avatarului tău."
       }
     }
   }

@@ -257,8 +257,47 @@
       "workspaceMembers": "Munkatér tagok",
       "audit": "Munkaterület-ellenőrzés",
       "ltarCustomDisplayValue": "Egyéni megjelenítési érték mező",
-      "publicDocShare": "Nyilvános dokumentummegosztás"
-    }
+      "publicDocShare": "Nyilvános dokumentummegosztás",
+      "agents": "Ügynökök"
+    },
+    "upgradeToSortAndLimitLookupValues": "A Lookup mezőben megjelenített értékek rendezéséhez és korlátozásához válts a(z) {plan} csomagra.",
+    "upgradeToAddMoreAgents": "Válts magasabb csomagra több ügynökért",
+    "upgradeToAddMoreAgentsSubtitle": "Jelenleg a(z) {activePlan} csomagot használod, amely munkaterületenként {limit} ügynököt enged. Válts a(z) {plan} csomagra a többért.",
+    "upgradeToAddMoreInterfaces": "Válts magasabb csomagra több Interface-ért",
+    "upgradeToAddMoreInterfacesSubtitle": "Jelenleg a(z) {activePlan} csomagot használod, amely munkaterületenként {limit} Interface-t enged. Válts a(z) {plan} csomagra a többért.",
+    "upgradeToAddMoreInterfacePages": "Válts magasabb csomagra több oldalért",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Jelenleg a(z) {activePlan} csomagot használod, amely Interface-enként {limit} oldalt enged. Válts a(z) {plan} csomagra a korlátlan oldalszámért.",
+    "upgradeToUseTrashSettings": "Válts magasabb csomagra a kuka beállításához",
+    "upgradeToUseTrashSettingsSubtitle": "Válts a(z) {plan} csomagra, hogy táblánként állíthasd be a kukát.",
+    "upgradeToAttachFilesToComments": "Válts magasabb csomagra, hogy fájlokat csatolhass a megjegyzésekhez",
+    "upgradeToAttachFilesToCommentsSubtitle": "Válts a(z) {plan} csomagra, hogy képeket és fájlokat csatolhass a rekordok megjegyzéseihez.",
+    "upgradeToUseToggleSort": "Válts magasabb csomagra az egyes rendezések ki-be kapcsolásához",
+    "upgradeToUseToggleSortSubtitle": "Válts a(z) {plan} csomagra, hogy az egyes rendezéseket eltávolításuk nélkül kapcsolhasd be vagy ki, így jobban kézben tarthatod a nézeteidet.",
+    "upgradeToUseViewFolders": "Válts magasabb csomagra a nézetmappák használatához",
+    "upgradeToUseViewFoldersSubtitle": "Válts a(z) {plan} csomagra, hogy mappákba rendezd a nézeteket.",
+    "upgradeToAccessViewFoldersSubtitle": "Válts a(z) {plan} csomagra, hogy mappákba rendezd a nézeteket.",
+    "upgradeToUseFolders": "Válts magasabb csomagra a mappák használatához",
+    "upgradeToUseFoldersSubtitle": "Válts a(z) {plan} csomagra, hogy mappákba rendezd a táblákat, dokumentumokat és Dashboardsokat.",
+    "upgradeToAccessFoldersSubtitle": "Válts a(z) {plan} csomagra, hogy mappákba rendezd a táblákat, dokumentumokat és Dashboardsokat.",
+    "upgradeToUseCustomSync": "Válts magasabb csomagra az egyéni Sync használatához",
+    "upgradeToUseCustomSyncSubtitle": "Válts a(z) {plan} csomagra, hogy más adatforrásokból szinkronizálj adatokat.",
+    "upgradeToUseAutomaticSyncSubtitle": "Válts a(z) {plan} csomagra, hogy a tükrözött táblák valós időben, automatikusan szinkronban maradjanak.",
+    "upgradeToUseEnvironments": "Válts magasabb csomagra a környezetek használatához",
+    "upgradeToUseEnvironmentsSubtitle": "A környezetek a(z) {plan} csomagtól felfelé érhetők el.",
+    "upgradeToPlanForFeature": "Válts a(z) {plan} csomagra, {detail}",
+    "runAutomationFromInterfaceButtonDetail": "hogy automatizálásokat futtass az Interface gombjairól.",
+    "addonFeatureTitle": "Elérhető {addon} Add-onként",
+    "addonFeatureSubtitle": "A(z) {addon} fizetős Add-onként érhető el a(z) {plan} csomagtól felfelé. Vedd fel velünk a kapcsolatot az aktiváláshoz.",
+    "toAccessCopyViewConfigFromAnotherView": "hogy elérd a nézetbeállítások másolását egy másik nézetből.",
+    "toAccessReassignPersonalView": "hogy elérd a személyes nézetek újbóli hozzárendelését.",
+    "toAccessAssignAsPersonalView": "hogy elérd a személyes nézetként való hozzárendelés funkciót.",
+    "toAccessCardFieldHeaderVisibility": "hogy elérd a kártyák mezőfejléceinek láthatóságát.",
+    "upgradeToUseStagingEnvironment": "Válts magasabb csomagra a Staging környezet használatához",
+    "upgradeToUseStagingEnvironmentSubtitle": "A(z) {activePlan} csomagod csak a Production környezetet tartalmazza. Válts a(z) {plan} csomagra a Staging használatához.",
+    "upgradeToUsePerUserCredentials": "Válts magasabb csomagra a felhasználónkénti hitelesítő adatokhoz",
+    "upgradeToUsePerUserCredentialsSubtitle": "A(z) {activePlan} csomagod csak megosztott hitelesítő adatokat használ. Válts a(z) {plan} csomagra, hogy minden tag a saját fiókját köthesse össze.",
+    "upgradeToUseCustomEnvironments": "Válts magasabb csomagra egyéni környezetek létrehozásához",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Az egyéni környezetek nem érhetők el a(z) {activePlan} csomagodban. Válts a(z) {plan} csomagra, hogy a Production és a Staging mellett továbbiakat is létrehozhass."
   },
   "general": {
     "scrollToBottom": "Görgessen az aljára",
@@ -6346,7 +6385,80 @@
         "description": "A műveletek azt jelentik, amit a munkafolyamat ténylegesen csinál, miután az eseményindító elsül."
       },
       "chooseTable": {
-        "description": "Minden műveletnek tudnia kell, min dolgozik. Válassza ki a táblát, amelyből a rekordokat listázza."
+        "description": "Minden műveletnek tudnia kell, min dolgozik. Válassza ki a táblát, amelyből a rekordokat listázza.",
+        "title": "Válassz táblát"
+      },
+      "title": "Építsd fel az első munkafolyamatodat",
+      "overview": {
+        "title": "Építs fel egy munkafolyamatot elejétől a végéig",
+        "description": "Hozd létre, válassz indítót, adj hozzá műveletet, tedd közzé, kapcsold be, majd nézd, ahogy fut."
+      },
+      "create": {
+        "title": "Hozz létre egy munkafolyamatot",
+        "description": "Kezdd a nulláról — ez egy rövid űrlapot nyit meg."
+      },
+      "createSubmit": {
+        "title": "Létrehozom",
+        "description": "Ez egyenesen a vászonra visz."
+      },
+      "pickManualTrigger": {
+        "title": "Válaszd a „Kézi indításkor” lehetőséget",
+        "description": "Ezt te magad indítod el, így a többit működésre bírhatod, mielőtt valódi eseményekhez kötnéd."
+      },
+      "testTrigger": {
+        "title": "Teszteld az indítót",
+        "description": "Futtasd le egyszer, és nézd meg az előállított adatokat. Minden későbbi lépés erre a kimenetre épül."
+      },
+      "pickListRecords": {
+        "title": "Válaszd a „Rekordok listázása” lehetőséget",
+        "description": "Csak olvas, így annyiszor futtathatod, ahányszor csak szeretnéd, anélkül hogy bármilyen adat módosulna."
+      },
+      "testAction": {
+        "title": "Teszteld a műveletet is",
+        "description": "Minden csomópont külön tesztelhető. Közzététel előtt ellenőrizd, hogy ez azt adja vissza, amit vársz."
+      },
+      "publish": {
+        "title": "Tedd közzé a módosításaidat",
+        "description": "A módosítások <b>vázlatként</b> mentődnek. A közzététel teszi ezt a verziót azzá, amelyik fut."
+      },
+      "enable": {
+        "title": "Kapcsold be",
+        "description": "A közzétett nem ugyanaz, mint a futó. A munkafolyamat <b>Szüneteltetve</b> marad, amíg nem engedélyezed — ezt a lépést szokták kihagyni."
+      },
+      "run": {
+        "title": "Futtasd le egyszer",
+        "description": "A kézi indító igény szerint fut le — próbáld ki, és nézd meg, hogyan hajtódik végre."
+      },
+      "logs": {
+        "title": "Nézd meg a naplókat",
+        "description": "Minden futás ide kerül — mi indította el, mit adott vissza az egyes lépések, és mi hiúsult meg."
+      },
+      "wrapUp": {
+        "title": "Ennyi az egész kör",
+        "description": "Indító, műveletek, közzététel, engedélyezés, futtatás, naplók. Minden ezután épített munkafolyamat ugyanezt a formát követi."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Igazodj el a munkaterületeden",
+      "welcome": {
+        "title": "Üdvözlünk a NocoDB-ben",
+        "description": "Egy gyors kör a munkaterületeden. Bármikor kiléphetsz — nyomd meg a Kihagyás gombot."
+      },
+      "createBase": {
+        "title": "Kezdd egy Bázissal",
+        "description": "A Bázis tartalmazza a tábláidat, nézeteidet és automatizálásaidat. A munka java része innen indul."
+      },
+      "switchWorkspaces": {
+        "title": "Válts munkaterületet",
+        "description": "Minden munkaterület, amelyhez tartozol, ebben a választóban található. Nyisd meg, hogy lásd a többit."
+      },
+      "moreWorkspaces": {
+        "title": "Több munkaterület is lehet",
+        "description": "A munkaterületek elkülönítve tartják az egyes csapatokat és projekteket, mindegyiknek saját tagjai vannak."
+      },
+      "account": {
+        "title": "Fiók és beállítások",
+        "description": "A profil, a téma, a billentyűparancsok és a fiókbeállítások mind az avatarod mögött találhatók."
       }
     }
   }

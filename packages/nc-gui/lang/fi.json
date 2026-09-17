@@ -257,8 +257,47 @@
       "workspaceMembers": "Työtilan Jäsenet",
       "audit": "Työtilan Tarkastus",
       "ltarCustomDisplayValue": "Mukautetun Näyttöarvon Kenttä",
-      "publicDocShare": "Asiakirjojen Julkinen Jakaminen"
-    }
+      "publicDocShare": "Asiakirjojen Julkinen Jakaminen",
+      "agents": "Agentit"
+    },
+    "upgradeToSortAndLimitLookupValues": "Päivitä {plan}-pakettiin, jos haluat lajitella ja rajata Lookup-kentässä näytettäviä arvoja.",
+    "upgradeToAddMoreAgents": "Päivitä lisätäksesi enemmän agentteja",
+    "upgradeToAddMoreAgentsSubtitle": "Sinulla on nyt {activePlan}-paketti, joka sallii {limit} agenttia työtilaa kohden. Päivitä {plan}-pakettiin saadaksesi enemmän.",
+    "upgradeToAddMoreInterfaces": "Päivitä lisätäksesi enemmän Interfaceja",
+    "upgradeToAddMoreInterfacesSubtitle": "Sinulla on nyt {activePlan}-paketti, joka sallii {limit} Interfacea työtilaa kohden. Päivitä {plan}-pakettiin saadaksesi enemmän.",
+    "upgradeToAddMoreInterfacePages": "Päivitä lisätäksesi enemmän sivuja",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Sinulla on nyt {activePlan}-paketti, joka sallii {limit} sivua Interfacea kohden. Päivitä {plan}-pakettiin saadaksesi rajattomasti sivuja.",
+    "upgradeToUseTrashSettings": "Päivitä määrittääksesi roskakorin asetukset",
+    "upgradeToUseTrashSettingsSubtitle": "Päivitä {plan}-pakettiin, niin voit määrittää roskakorin asetukset taulukkokohtaisesti.",
+    "upgradeToAttachFilesToComments": "Päivitä liittääksesi tiedostoja kommentteihin",
+    "upgradeToAttachFilesToCommentsSubtitle": "Päivitä {plan}-pakettiin, niin voit liittää kuvia ja tiedostoja tietueiden kommentteihin.",
+    "upgradeToUseToggleSort": "Päivitä kytkeäksesi yksittäisiä lajitteluja päälle ja pois",
+    "upgradeToUseToggleSortSubtitle": "Päivitä {plan}-pakettiin, niin voit ottaa yksittäisiä lajitteluja käyttöön tai pois käytöstä poistamatta niitä — näin hallitset näkymiäsi tarkemmin.",
+    "upgradeToUseViewFolders": "Päivitä käyttääksesi näkymäkansioita",
+    "upgradeToUseViewFoldersSubtitle": "Päivitä {plan}-pakettiin, niin voit järjestää näkymät kansioihin.",
+    "upgradeToAccessViewFoldersSubtitle": "Päivitä {plan}-pakettiin, niin voit järjestää näkymät kansioihin.",
+    "upgradeToUseFolders": "Päivitä käyttääksesi kansioita",
+    "upgradeToUseFoldersSubtitle": "Päivitä {plan}-pakettiin, niin voit järjestää taulukot, dokumentit ja Dashboardsit kansioihin.",
+    "upgradeToAccessFoldersSubtitle": "Päivitä {plan}-pakettiin, niin voit järjestää taulukot, dokumentit ja Dashboardsit kansioihin.",
+    "upgradeToUseCustomSync": "Päivitä käyttääksesi omaa Synciä",
+    "upgradeToUseCustomSyncSubtitle": "Päivitä {plan}-pakettiin, niin voit synkronoida tietoja muista tietolähteistä.",
+    "upgradeToUseAutomaticSyncSubtitle": "Päivitä {plan}-pakettiin, niin peilatut taulukot pysyvät automaattisesti synkronoituina reaaliajassa.",
+    "upgradeToUseEnvironments": "Päivitä käyttääksesi ympäristöjä",
+    "upgradeToUseEnvironmentsSubtitle": "Ympäristöt ovat käytettävissä {plan}-paketissa ja sitä ylemmissä.",
+    "upgradeToPlanForFeature": "Päivitä {plan}-pakettiin, {detail}",
+    "runAutomationFromInterfaceButtonDetail": "niin voit suorittaa automaatioita Interface-painikkeista.",
+    "addonFeatureTitle": "Saatavilla {addon}-Add-onina",
+    "addonFeatureSubtitle": "{addon} on saatavilla maksullisena Add-onina {plan}-paketissa tai ylemmässä. Ota yhteyttä, niin otamme sen käyttöön.",
+    "toAccessCopyViewConfigFromAnotherView": "niin saat käyttöön näkymäasetusten kopioinnin toisesta näkymästä.",
+    "toAccessReassignPersonalView": "niin saat käyttöön henkilökohtaisten näkymien uudelleenmäärityksen.",
+    "toAccessAssignAsPersonalView": "niin saat käyttöön henkilökohtaiseksi näkymäksi määrittämisen.",
+    "toAccessCardFieldHeaderVisibility": "niin saat käyttöön korttien kenttäotsikoiden näkyvyyden.",
+    "upgradeToUseStagingEnvironment": "Päivitä käyttääksesi Staging-ympäristöä",
+    "upgradeToUseStagingEnvironmentSubtitle": "{activePlan}-pakettisi sisältää vain Production-ympäristön. Päivitä {plan}-pakettiin käyttääksesi Stagingia.",
+    "upgradeToUsePerUserCredentials": "Päivitä käyttääksesi käyttäjäkohtaisia tunnuksia",
+    "upgradeToUsePerUserCredentialsSubtitle": "{activePlan}-pakettisi käyttää vain jaettuja tunnuksia. Päivitä {plan}-pakettiin, jotta jokainen jäsen voi yhdistää oman tilinsä.",
+    "upgradeToUseCustomEnvironments": "Päivitä luodaksesi omia ympäristöjä",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Omat ympäristöt eivät ole käytettävissä {activePlan}-paketissasi. Päivitä {plan}-pakettiin luodaksesi ympäristöjä Productionin ja Stagingin lisäksi."
   },
   "general": {
     "scrollToBottom": "Siirry alareunaan",
@@ -6346,7 +6385,80 @@
         "description": "Toiminnot ovat sitä, mitä työnkulku oikeasti tekee, kun laukaisin aktivoituu."
       },
       "chooseTable": {
-        "description": "Jokaisen toiminnon täytyy tietää, mihin se kohdistuu. Valitse taulu, josta tietueet listataan."
+        "description": "Jokaisen toiminnon täytyy tietää, mihin se kohdistuu. Valitse taulu, josta tietueet listataan.",
+        "title": "Valitse taulukko"
+      },
+      "title": "Rakenna ensimmäinen työnkulkusi",
+      "overview": {
+        "title": "Rakenna työnkulku alusta loppuun",
+        "description": "Luo se, valitse liipaisin, lisää toiminto, julkaise, kytke päälle ja katso sitten sen toimivan."
+      },
+      "create": {
+        "title": "Luo työnkulku",
+        "description": "Aloita tyhjästä — tämä avaa lyhyen lomakkeen."
+      },
+      "createSubmit": {
+        "title": "Luo se",
+        "description": "Tämä vie sinut suoraan työpohjalle."
+      },
+      "pickManualTrigger": {
+        "title": "Valitse \"Kun käynnistetään käsin\"",
+        "description": "Tämän laukaiset itse, joten saat muun osan toimimaan ennen kuin kytket sen todellisiin tapahtumiin."
+      },
+      "testTrigger": {
+        "title": "Testaa liipaisin",
+        "description": "Suorita se kerran ja katso, millaista dataa se tuottaa. Kaikki myöhemmät vaiheet rakentuvat tämän tulosteen varaan."
+      },
+      "pickListRecords": {
+        "title": "Valitse \"Listaa tietueet\"",
+        "description": "Se vain lukee, joten voit suorittaa sen niin usein kuin haluat muuttamatta mitään tietoja."
+      },
+      "testAction": {
+        "title": "Testaa myös toiminto",
+        "description": "Jokainen solmu testataan erikseen. Varmista ennen julkaisua, että tämä palauttaa odottamasi tuloksen."
+      },
+      "publish": {
+        "title": "Julkaise muutoksesi",
+        "description": "Muokkaukset tallennetaan <b>luonnoksena</b>. Vasta julkaiseminen tekee tästä versiosta sen, joka suoritetaan."
+      },
+      "enable": {
+        "title": "Kytke se päälle",
+        "description": "Julkaistu ei ole sama asia kuin käynnissä. Työnkulku pysyy <b>Keskeytettynä</b>, kunnes otat sen käyttöön — tämä vaihe jää useimmilta huomaamatta."
+      },
+      "run": {
+        "title": "Suorita se kerran",
+        "description": "Manuaalinen liipaisin laukeaa pyydettäessä — kokeile ja katso, miten se suoritetaan."
+      },
+      "logs": {
+        "title": "Tarkista lokit",
+        "description": "Jokainen suoritus kirjataan tänne — mikä laukesi, mitä kukin vaihe palautti ja mikä epäonnistui."
+      },
+      "wrapUp": {
+        "title": "Siinä koko kierros",
+        "description": "Liipaisin, toiminnot, julkaisu, käyttöönotto, suoritus, lokit. Jokainen tästä eteenpäin rakentamasi työnkulku noudattaa samaa kaavaa."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Löydä perille työtilassasi",
+      "welcome": {
+        "title": "Tervetuloa NocoDB:hen",
+        "description": "Nopea kierros työtilassasi. Voit poistua milloin tahansa — paina Ohita."
+      },
+      "createBase": {
+        "title": "Aloita Basesta",
+        "description": "Base sisältää taulukkosi, näkymäsi ja automaatiosi. Täältä suurin osa työstä alkaa."
+      },
+      "switchWorkspaces": {
+        "title": "Vaihda työtilaa",
+        "description": "Kaikki työtilat, joihin kuulut, löytyvät tämän valitsimen takaa. Avaa se nähdäksesi loput."
+      },
+      "moreWorkspaces": {
+        "title": "Useampi kuin yksi työtila",
+        "description": "Työtilat pitävät eri tiimit ja projektit erillään, ja kullakin on omat jäsenensä."
+      },
+      "account": {
+        "title": "Tili ja asetukset",
+        "description": "Profiili, teema, pikanäppäimet ja tilin asetukset löytyvät kaikki avatarisi takaa."
       }
     }
   }

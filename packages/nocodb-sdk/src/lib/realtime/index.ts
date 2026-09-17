@@ -430,7 +430,7 @@ export interface ChatEventPayload extends BaseSocketPayload {
   seq?: number;
   /** Turn the event belongs to; seq numbering restarts per turn. */
   turnId?: string;
-  // action: 'token'
+  // action: 'token' | 'reasoning'
   content?: string;
   // action: 'tool-start' | 'tool-call'
   toolCallId?: string;

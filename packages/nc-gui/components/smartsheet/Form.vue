@@ -1806,7 +1806,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                         >
                           <GeneralIcon icon="account" class="w-3.5 h-3.5 flex-none" />
                           <span class="truncate max-w-48">{{ user.email }}</span>
-                          <span class="text-nc-content-brand ml-0.5">
+                          <span class="text-nc-content-gray-subtle2">·</span>
+                          <span class="text-nc-content-brand">
                             {{ $t('msg.info.switchAccount') }}
                           </span>
                         </div>

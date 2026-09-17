@@ -9,6 +9,8 @@ export enum ChatMessageRole {
 
 export enum ChatEventAction {
   TOKEN = 'token',
+  /** Thinking, streamed like TOKEN. Persisted as a reasoning part, not rendered. */
+  REASONING = 'reasoning',
   TOOL_START = 'tool-start',
   TOOL_CALL = 'tool-call',
   /** Live step update from a long-running tool (e.g. "Creating page 3/7"). */

@@ -163,7 +163,11 @@ const {
 
 const columns = computed(() => meta?.value?.columns || [])
 
-const hasCreatedByField = computed(() => meta.value?.columns?.some((c) => c.uidt === UITypes.CreatedBy) ?? false)
+// Only a user-added "Created by" field counts. Every table also carries the
+// system `nc_created_by` column, which matches on uidt alone and would make
+// this always true — leaving the option enabled on tables with nowhere to show
+// the submitter, and its "add a Created by field" hint permanently unreachable.
+const hasCreatedByField = computed(() => meta.value?.columns?.some((c) => c.uidt === UITypes.CreatedBy && !c.system) ?? false)
 
 const isSidebarVisible = ref(ncIsPlaywright())
 

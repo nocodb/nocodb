@@ -52,6 +52,8 @@ interface UseSharedFormDraftOptions {
   /** Default + prefilled values per column title. Anything in formState matching this baseline is treated as "untouched" and never persisted. */
   baselineState: ComputedRef<Record<string, any>>
   validUserIds?: ComputedRef<Set<string>>
+  /** Extra identity scope appended to the storage key, so drafts aren't shared across accounts on require-sign-in forms. */
+  scopeId?: ComputedRef<string | undefined>
 }
 
 function isSameValue(a: any, b: any): boolean {
@@ -73,10 +75,16 @@ function isSameValue(a: any, b: any): boolean {
 }
 
 export function useSharedFormDraft(opts: UseSharedFormDraftOptions) {
-  const { sharedViewUuid, columns, formState, submitted, isEnabled, baselineState, validUserIds } = opts
+  const { sharedViewUuid, columns, formState, submitted, isEnabled, baselineState, validUserIds, scopeId } = opts
 
   const wasRestored = ref(false)
   const restoredAt = ref<number | null>(null)
+
+  const draftKey = computed(() => {
+    const uuid = sharedViewUuid.value
+    if (!uuid) return undefined
+    return scopeId?.value ? `${uuid}::${scopeId.value}` : uuid
+  })
 
   function isFieldDraftable(col: FormDraftColumn | undefined): boolean {
     if (!col || !col.id || !col.title) return false
@@ -167,10 +175,10 @@ export function useSharedFormDraft(opts: UseSharedFormDraftOptions) {
 
   function restore(): void {
     if (!isEnabled.value) return
-    const uuid = sharedViewUuid.value
-    if (!uuid) return
+    const key = draftKey.value
+    if (!key) return
 
-    const draft = formDraftStorageManager.get(uuid)
+    const draft = formDraftStorageManager.get(key)
     if (!draft || !draft.fields) return
 
     const colsById = buildColumnIndex()
@@ -219,20 +227,20 @@ export function useSharedFormDraft(opts: UseSharedFormDraftOptions) {
   const debouncedSave = useDebounceFn(() => {
     if (!isEnabled.value) return
     if (submitted.value) return
-    const uuid = sharedViewUuid.value
-    if (!uuid) return
+    const key = draftKey.value
+    if (!key) return
 
     const draft = serializeCurrentDraft()
     if (!draft) {
-      formDraftStorageManager.clear(uuid)
+      formDraftStorageManager.clear(key)
       return
     }
-    formDraftStorageManager.set(uuid, draft)
+    formDraftStorageManager.set(key, draft)
   }, SAVE_DEBOUNCE_MS)
 
   function clearDraft(): void {
-    const uuid = sharedViewUuid.value
-    if (uuid) formDraftStorageManager.clear(uuid)
+    const key = draftKey.value
+    if (key) formDraftStorageManager.clear(key)
     wasRestored.value = false
     restoredAt.value = null
   }

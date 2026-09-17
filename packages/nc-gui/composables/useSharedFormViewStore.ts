@@ -191,6 +191,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
   }))
 
+  // Scope drafts to the signed-in identity on require-sign-in forms, so "switch
+  // account" doesn't hand the next user the previous one's answers. Ordinary
+  // anonymous forms stay keyed on the view uuid alone.
+  const draftScopeId = computed(() =>
+    requireSignin.value && signedInReal.value ? signedInUserReal.value?.id ?? undefined : undefined,
+  )
+
   const {
     wasRestored: draftWasRestored,
     restoredAt: draftRestoredAt,
@@ -205,6 +212,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isEnabled: isDraftSaveEnabled,
     baselineState: draftBaselineState,
     validUserIds,
+    scopeId: draftScopeId,
   })
 
   const localColumns = computed<(ColumnType & Record<string, any>)[]>(() => {
@@ -602,8 +610,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       // If session expired on a require-signin form, redirect to sign-in
       if (requireSignin.value && e?.response?.status === 401) {
-        message.error(t('msg.info.formRequiresSignin'))
-        navigateTo(`/signin?continueAfterSignIn=${encodeURIComponent(route.fullPath)}`)
+        progress.value = false
+        // forceShow: the 401 interceptor signs out first, which suppresses error toasts.
+        message.error(t('msg.info.formRequiresSignin'), undefined, { forceShow: true })
+        navigateTo(`/signin?continueAfterSignIn=${encodeURIComponent(route.fullPath)}`, { replace: true })
         return
       }
 

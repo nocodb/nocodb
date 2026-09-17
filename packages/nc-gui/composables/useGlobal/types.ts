@@ -153,7 +153,10 @@ export interface Actions {
   signIn: (token: string, keepProps?: boolean) => void
   refreshToken: (params: {
     axiosInstance?: AxiosInstance
-    skipLogout?: boolean
+    // Named to match both implementations. The interface previously said
+    // `skipLogout`, which neither reads, so callers passing it were silently
+    // ignored and refreshToken signed out on its own.
+    skipSignOut?: boolean
     cognitoOnly?: boolean
   }) => Promise<string | null | void>
   loadAppInfo: () => void

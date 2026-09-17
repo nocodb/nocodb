@@ -840,6 +840,25 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
         { operation: 'filterBulkLogicalOpUpdate' },
         { filters: filtersBody },
       )
+
+      // Refetch rows: this cascade path returns early and never reaches
+      // `saveOrUpdate`, so without this the AND -> OR switch persists but the
+      // grid keeps showing the pre-switch result set.
+      //
+      // Guarded like every other reload in useViewFilters — these contexts have
+      // no grid to refetch, and the dashboard widget has no
+      // ReloadViewDataHookInj provider at all.
+      if (!webHook.value && !link.value && !widget.value && !workflow.value && !rlsPolicyId.value && !buttonColId?.value) {
+        // `isFormFieldFilters` is a branch selector, not a hint: Form.vue picks
+        // `checkFieldVisibility()` over a full reload on it, and both
+        // ColumnFilterMenu copies return early. Must match the sibling reload.
+        reloadDataHook?.trigger({
+          shouldShowLoading: showLoading.value,
+          offset: 0,
+          isFormFieldFilters: isForm.value && !webHook.value,
+        })
+        reloadAggregate?.trigger({ path: [] })
+      }
     }
     return
   }

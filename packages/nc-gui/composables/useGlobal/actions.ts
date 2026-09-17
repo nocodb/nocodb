@@ -1,4 +1,5 @@
 import { getActivePinia } from 'pinia'
+import { isAxiosError } from 'axios'
 import type { Actions, AppInfo, Getters, State } from './types'
 import type { NcBreakpoint } from '~/lib/constants'
 
@@ -91,12 +92,24 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
       }
       return null
     } catch (e) {
-      if (state.token.value && state.user.value && !skipSignOut) {
+      // Only sign out when the server actually REJECTED the refresh. A request
+      // that never got a response (connection reset, a moment of
+      // unavailability) says nothing about session validity, and signing out on
+      // it discards a good session. A genuine expiry still arrives as a 401.
+      const serverRejected = isAxiosError(e) && !!e.response
+
+      if (serverRejected && state.token.value && state.user.value && !skipSignOut) {
         await signOut({
           skipApiCall: true,
         })
         message.error(t('msg.error.youHaveBeenSignedOut'))
       }
+
+      // Let callers tell a dead session from a blip. Returning null for a
+      // transient failure would defeat the guard above: the API interceptor
+      // signs out on a falsy return. Kept identical to the EE copy.
+      if (!serverRejected) throw e
+
       return null
     }
   }

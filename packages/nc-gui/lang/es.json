@@ -257,8 +257,47 @@
       "workspaceMembers": "Miembros del área de trabajo",
       "audit": "Auditoría del espacio de trabajo",
       "ltarCustomDisplayValue": "Campo de valor personalizado",
-      "publicDocShare": "Compartir documentos públicos"
-    }
+      "publicDocShare": "Compartir documentos públicos",
+      "agents": "Agentes"
+    },
+    "upgradeToSortAndLimitLookupValues": "Para ordenar y limitar los valores que se muestran en un campo Lookup, cambia al plan {plan}.",
+    "upgradeToAddMoreAgents": "Mejora tu plan para añadir más Agentes",
+    "upgradeToAddMoreAgentsSubtitle": "Actualmente tienes el plan {activePlan}, que permite {limit} Agentes por espacio de trabajo. Cambia a {plan} para tener más.",
+    "upgradeToAddMoreInterfaces": "Mejora tu plan para añadir más Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Actualmente tienes el plan {activePlan}, que permite {limit} Interfaces por espacio de trabajo. Cambia a {plan} para tener más.",
+    "upgradeToAddMoreInterfacePages": "Mejora tu plan para añadir más páginas",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Actualmente tienes el plan {activePlan}, que permite {limit} páginas por Interface. Cambia a {plan} para tener páginas ilimitadas.",
+    "upgradeToUseTrashSettings": "Mejora tu plan para configurar la papelera",
+    "upgradeToUseTrashSettingsSubtitle": "Cambia al plan {plan} para configurar los ajustes de la papelera por tabla.",
+    "upgradeToAttachFilesToComments": "Mejora tu plan para adjuntar archivos a los comentarios",
+    "upgradeToAttachFilesToCommentsSubtitle": "Cambia al plan {plan} para adjuntar imágenes y archivos a los comentarios de los registros.",
+    "upgradeToUseToggleSort": "Mejora tu plan para activar y desactivar ordenaciones individuales",
+    "upgradeToUseToggleSortSubtitle": "Cambia al plan {plan} para activar o desactivar ordenaciones individuales sin eliminarlas, y tener así más control sobre tus vistas.",
+    "upgradeToUseViewFolders": "Mejora tu plan para usar carpetas de vistas",
+    "upgradeToUseViewFoldersSubtitle": "Cambia al plan {plan} para organizar las vistas en carpetas.",
+    "upgradeToAccessViewFoldersSubtitle": "Cambia al plan {plan} para organizar las vistas en carpetas.",
+    "upgradeToUseFolders": "Mejora tu plan para usar carpetas",
+    "upgradeToUseFoldersSubtitle": "Cambia al plan {plan} para organizar tablas, documentos y Dashboards en carpetas.",
+    "upgradeToAccessFoldersSubtitle": "Cambia al plan {plan} para organizar tablas, documentos y Dashboards en carpetas.",
+    "upgradeToUseCustomSync": "Mejora tu plan para usar el Sync personalizado",
+    "upgradeToUseCustomSyncSubtitle": "Cambia al plan {plan} para sincronizar datos desde otras fuentes de datos.",
+    "upgradeToUseAutomaticSyncSubtitle": "Cambia al plan {plan} para mantener las tablas replicadas sincronizadas automáticamente y en tiempo real.",
+    "upgradeToUseEnvironments": "Mejora tu plan para usar entornos",
+    "upgradeToUseEnvironmentsSubtitle": "Los entornos están disponibles a partir del plan {plan}.",
+    "upgradeToPlanForFeature": "Cambia al plan {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "para ejecutar automatizaciones desde los botones de Interface.",
+    "addonFeatureTitle": "Disponible como Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} está disponible como Add-on de pago en el plan {plan} o superior. Contáctanos para activarlo.",
+    "toAccessCopyViewConfigFromAnotherView": "para acceder a la función de copiar la configuración de otra vista.",
+    "toAccessReassignPersonalView": "para acceder a la función de reasignar vistas personales.",
+    "toAccessAssignAsPersonalView": "para acceder a la función de asignar como vista personal.",
+    "toAccessCardFieldHeaderVisibility": "para acceder a la visibilidad de las cabeceras de campo en las tarjetas.",
+    "upgradeToUseStagingEnvironment": "Mejora tu plan para usar el entorno Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Tu plan {activePlan} incluye únicamente el entorno de producción. Cambia a {plan} para usar Staging.",
+    "upgradeToUsePerUserCredentials": "Mejora tu plan para usar credenciales por usuario",
+    "upgradeToUsePerUserCredentialsSubtitle": "Tu plan {activePlan} solo usa credenciales compartidas. Cambia a {plan} para que cada miembro conecte su propia cuenta.",
+    "upgradeToUseCustomEnvironments": "Mejora tu plan para crear entornos personalizados",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Los entornos personalizados no están disponibles en tu plan {activePlan}. Cambia a {plan} para crear entornos más allá de Producción y Staging."
   },
   "general": {
     "scrollToBottom": "Desplazar hacia abajo",
@@ -1456,7 +1495,19 @@
     "creatingAgent": "Creando el agente",
     "agentToolsAndAccess": "Herramientas y acceso",
     "agentSkills": "Habilidades",
-    "agentSettings": "Ajustes"
+    "agentSettings": "Ajustes",
+    "updateRecordsCount": "Actualizar {n} registro | Actualizar {n} registros",
+    "turnOffEditing": "¿Desactivar la edición?",
+    "turnOnInlineEditing": "¿Activar la edición en línea?",
+    "turnOnEditingByForm": "¿Activar la edición mediante formulario?",
+    "productTours": "Visitas guiadas del producto",
+    "testDataGeneration": "Generación de datos de prueba",
+    "noSearchResultsFound": "No se encontraron resultados de búsqueda",
+    "theListIsEmpty": "La lista está vacía",
+    "newEnvironment": "Nuevo entorno",
+    "removeCustomDomain": "¿Eliminar el dominio personalizado?",
+    "tooNarrowToAdjustFrozenFields": "La ventana es demasiado estrecha para ajustar los campos fijados",
+    "themeSettings": "Ajustes del tema"
   },
   "labels": {
     "syncing": "Sincronizando",
@@ -4692,7 +4743,90 @@
     "sortingNotSupportedForFieldsWithErrors": "La ordenación no es compatible con campos con errores",
     "sortingNotSupportedForField": "La ordenación no es compatible con el campo {type}",
     "groupingNotSupportedForFieldsWithErrors": "El agrupamiento no es compatible con campos con errores",
-    "variableInheritance": "Determina qué pueden hacer con esta variable quienes instalen esta base como aplicación: Fija conserva tu valor y lo oculta, Editable ofrece tu valor como punto de partida, Obligatoria les pide que indiquen el suyo."
+    "variableInheritance": "Determina qué pueden hacer con esta variable quienes instalen esta base como aplicación: Fija conserva tu valor y lo oculta, Editable ofrece tu valor como punto de partida, Obligatoria les pide que indiquen el suyo.",
+    "workflowButtonTriggerSourceReadOnly": "La tabla de origen conectada a este botón solo se puede cambiar desde Interfaces",
+    "workflowButtonTriggerInterfaceReadOnly": "La página de Interface que contiene este botón solo se puede cambiar desde Interfaces",
+    "chartIncludeOthers": "Agrupar las categorías que superan el límite en una única categoría «Otros» en lugar de descartarlas.",
+    "sideLabelsNeedSingleFieldRows": "No disponible mientras una fila contenga más de un campo.",
+    "showFieldInView": "Mostrar este campo en la vista actual.",
+    "hideFieldInView": "Ocultar este campo en la vista actual.",
+    "viewAllEventsInDayView": "Ver {count} evento en la vista de día | Ver los {count} eventos en la vista de día",
+    "linkValueDelimiter": "Carácter que separa varios valores enlazados dentro de una misma celda (por defecto ,)",
+    "interfaceMixedRoles": "Los roles difieren entre Interfaces o páginas: despliega para verlos",
+    "chatQueueAttachmentUnavailable": "Este archivo adjunto no se enviará si pones tu mensaje en cola: elimínalo primero",
+    "lockedViewDisabledOnProduction": "Las vistas bloqueadas solo se pueden crear en la copia de entorno",
+    "personalViewDisabledOnEnvironment": "Las vistas personales solo se pueden crear en la Base de producción",
+    "seeNComments": "Ver {n} comentario | Ver {n} comentarios",
+    "collapsibleGroups": "Permitir contraer los grupos que tienen título",
+    "nestedRecordsRequireSelfLink": "Requiere un campo de enlace en esta tabla que apunte de vuelta a la misma tabla.",
+    "dataChangeDisabled": "La edición de datos está desactivada para esta fuente de datos.",
+    "cannotRemoveInheritedInterfaceMember": "El acceso se hereda de la Base. Gestiónalo desde",
+    "saveDraftToBrowser": "Permite volver a un formulario a medio rellenar sin perder lo escrito. Se guarda solo en el navegador y se borra al enviarlo.",
+    "clickToSeeDetails": "Haz clic para ver los detalles.",
+    "navigateToBaseToCreateAgent": "Ve a una Base para crear un Agente",
+    "navigateToBaseToCreateFolder": "Ve a una Base para crear una carpeta",
+    "navigateToBaseToCreateInterface": "Ve a una Base para crear una Interface",
+    "switchToAgentsTab": "Cambia a la pestaña Agentes para crear {type}",
+    "switchToInterfacesTab": "Cambia a la pestaña Interfaces para crear una Interface",
+    "youDontHaveAccessToCreateNewAgent": "No tienes permiso para crear un nuevo Agente",
+    "youDontHaveAccessToCreateNewInterface": "No tienes permiso para crear una nueva Interface",
+    "displayValueFieldCannotBeReordered": "El campo de valor de visualización no se puede reordenar",
+    "interfaceLastVizRequired": "Una página necesita al menos una visualización",
+    "onlyCreatorsCanManageViewFolders": "Solo los creadores o propietarios de la Base pueden gestionar carpetas de vistas",
+    "onlyCreatorsCanManageFolders": "Solo los creadores o propietarios de la Base pueden gestionar carpetas",
+    "organizeViewsIntoFolders": "Organizar las vistas en carpetas contraíbles",
+    "productionLockedByEnvironment": "Esta Base está abierta en un entorno: haz allí los cambios de esquema.",
+    "managedByPublisher": "La estructura de esta App la gestiona su editor. Tus documentos y carpetas los añades tú.",
+    "featureOnProductionOnly": "Esta acción se gestiona en la Base de producción, no en una copia de entorno.",
+    "clickToEdit": "Haz clic para editar",
+    "resolvedBy": "Resuelto por {name}",
+    "fieldAutoLinkedToParent": "Este campo se enlazará automáticamente con el registro principal",
+    "newRecordCreatedEachTemplateUse": "Se creará y enlazará un nuevo registro de {tableName} cada vez que se use esta plantilla",
+    "warningMessageForInvalidInputs": "Este mensaje de advertencia se mostrará a quienes rellenen el formulario cuando los datos no sean válidos.",
+    "cannotAddConditionsToFirstField": "No se pueden añadir condiciones al primer campo de un formulario.",
+    "validationsEnforcedByFieldSchema": "Las validaciones las aplican los ajustes del esquema del campo",
+    "requiredEnforcedOnFormSubmit": "Se aplica cuando esta página se abre como formulario para crear un registro",
+    "readOnlyFieldCannotBeEditedInline": "Los campos de solo lectura no se pueden editar en línea",
+    "editInlineDisabledForElement": "La edición está desactivada para este elemento de página. Actívala en el elemento para permitir la edición de esta columna.",
+    "cantUploadDataInSyncedTable": "No puedes subir datos en una tabla sincronizada",
+    "hideMyPresence": "Ocultar mi presencia",
+    "showMyPresence": "Mostrar mi presencia",
+    "setupScriptSettingsToRun": "Configura los ajustes del script para ejecutarlo",
+    "autoSuggestViewsFor": "Sugerir vistas automáticamente para {tableName}",
+    "discardDraftChanges": "Descartar los cambios del borrador y restaurar la versión publicada",
+    "testAllNodesBeforePublish": "Prueba todos los nodos antes de publicar",
+    "tourCompleteStepToContinue": "Completa este paso para continuar",
+    "tourTakeTheTour": "{tour}: hacer la visita guiada",
+    "fieldPropertiesCannotBeEdited": "Las propiedades del campo no se pueden editar.",
+    "fieldAssociatedWithLinkColumn": "El campo está asociado a una columna de enlace",
+    "fieldCannotBeUpgraded": "El campo no se puede actualizar.",
+    "fieldCannotBeDuplicated": "El campo no se puede duplicar.",
+    "selectNewFieldAsDisplayValue": "Seleccionar un nuevo campo como valor de visualización",
+    "addFieldDescription": "Añadir descripción del campo",
+    "fieldCannotBeDeleted": "El campo no se puede eliminar.",
+    "recordHiddenByFilter": "Este registro quedará oculto porque no coincide con los filtros aplicados a esta vista.",
+    "recordWillMove": "Este registro se moverá a una nueva posición cuando hagas clic fuera de él.",
+    "recordHiddenByPermission": "Este registro quedará oculto porque no coincide con tus permisos de acceso.",
+    "rowLevelSecurityEnabled": "La seguridad a nivel de fila está activada. Algunas filas pueden estar ocultas según tus permisos de acceso.",
+    "suggestMore": "Sugerir más",
+    "reSuggest": "Volver a sugerir",
+    "portWebhookV2ToV3": "Migrar este Webhook de la v2 a la v3",
+    "formDisplayMessageTemplating": "Usa el nombre o título de la columna para un campo de plantilla en lugar de su etiqueta. Por ejemplo: «¡Hola {'{'}Title{'}'}!»",
+    "incompatibleWithColumn": "Incompatible con la columna «{title}»",
+    "crossBaseLinkCreatorAccess": "Solo puedes enlazar con tablas de Bases en las que tengas acceso de creador o superior.",
+    "clickIntoRecordDetailsCrossBase": "Todavía no está disponible para enlaces entre Bases",
+    "autoSuggestFieldsFor": "Sugerir campos automáticamente para {table}",
+    "clearAllAndResuggest": "Borrar todo y volver a sugerir",
+    "cannotSetDefaultValueWithUnique": "No se puede establecer un valor predeterminado porque la restricción Unique está activa. Desactiva la restricción Unique para configurar un valor predeterminado",
+    "useAiToGenerateContent": "Usar IA para generar contenido a partir de los datos del registro.",
+    "previewGeneratedFromFirstRecord": "La vista previa se genera con el primer registro de esta tabla",
+    "includeFieldInPromptToGenerate": "Incluye al menos 1 campo en el Prompt para generar",
+    "editorsReportedByInstance": "Tu instancia informa del número de editores en cada latido. Gestiona los editores en la propia instancia.",
+    "dragToAdjustFrozenFields": "Arrastra para ajustar el número de campos fijados",
+    "freezeColumnsCount": "Fijar {count} columna | Fijar {count} columnas",
+    "marketplaceComingSoon": "Esta App todavía se está empaquetando, así que aún no se puede instalar.",
+    "marketplaceAuthored": "Redactado por el editor, no derivado del contenido de la App.",
+    "marketplaceVerifiedPublisher": "Publicado y revisado por NocoDB"
   },
   "placeholder": {
     "enterVerificationCode": "Introduzca código de 6 dígitos",
@@ -6228,6 +6362,94 @@
       "seatsOnOrg": "Puestos en esta organización",
       "workspaceSubscription": "Suscripción del espacio de trabajo",
       "orgSubscription": "Suscripción de la organización"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "Muévete por tu espacio de trabajo",
+      "welcome": {
+        "title": "Te damos la bienvenida a NocoDB",
+        "description": "Una vuelta rápida por tu espacio de trabajo. Puedes salir cuando quieras: pulsa Omitir."
+      },
+      "createBase": {
+        "title": "Empieza con una Base",
+        "description": "Una Base contiene tus tablas, vistas y automatizaciones. Aquí es donde empieza la mayor parte del trabajo."
+      },
+      "switchWorkspaces": {
+        "title": "Cambiar de espacio de trabajo",
+        "description": "Todos los espacios de trabajo a los que perteneces están detrás de este selector. Ábrelo para ver el resto."
+      },
+      "moreWorkspaces": {
+        "title": "Más de un espacio de trabajo",
+        "description": "Los espacios de trabajo mantienen separados los distintos equipos y proyectos, cada uno con sus propios miembros."
+      },
+      "account": {
+        "title": "Cuenta y ajustes",
+        "description": "El perfil, el tema, los atajos de teclado y los ajustes de la cuenta están todos detrás de tu avatar."
+      }
+    },
+    "workflows": {
+      "title": "Crea tu primer flujo de trabajo",
+      "overview": {
+        "title": "Crear un flujo de trabajo de principio a fin",
+        "description": "Créalo, elige un activador, añade una acción, publica, actívalo y luego míralo funcionar."
+      },
+      "create": {
+        "title": "Crear un flujo de trabajo",
+        "description": "Empieza desde cero: se abrirá un formulario breve."
+      },
+      "createSubmit": {
+        "title": "Créalo",
+        "description": "Esto te lleva directamente al lienzo."
+      },
+      "addTrigger": {
+        "title": "Añadir un activador",
+        "description": "Todo flujo de trabajo empieza aquí: haz clic para ver qué puede ponerlo en marcha."
+      },
+      "pickManualTrigger": {
+        "title": "Elige «Cuando se active manualmente»",
+        "description": "Este lo disparas tú, así que puedes dejar el resto funcionando antes de conectarlo a eventos reales."
+      },
+      "testTrigger": {
+        "title": "Prueba el activador",
+        "description": "Ejecútalo una vez y observa los datos que produce. Todos los pasos posteriores se apoyan en esa salida."
+      },
+      "addAction": {
+        "title": "Añadir una acción",
+        "description": "Las acciones son lo que el flujo de trabajo hace realmente una vez que se dispara el activador."
+      },
+      "pickListRecords": {
+        "title": "Elige «Listar registros»",
+        "description": "Solo lee, así que puedes ejecutarlo tantas veces como quieras sin modificar ningún dato."
+      },
+      "chooseTable": {
+        "title": "Elegir una tabla",
+        "description": "Cada acción necesita saber sobre qué trabaja. Elige la tabla de la que listar registros."
+      },
+      "testAction": {
+        "title": "Prueba también la acción",
+        "description": "Cada nodo se prueba por separado. Confirma que este devuelve lo que esperas antes de publicar."
+      },
+      "publish": {
+        "title": "Publica tus cambios",
+        "description": "Los cambios se guardan como <b>borrador</b>. Publicar es lo que convierte esta versión en la que se ejecuta."
+      },
+      "enable": {
+        "title": "Actívalo",
+        "description": "Publicado no es lo mismo que en marcha. Un flujo de trabajo permanece <b>En pausa</b> hasta que lo activas: este es el paso que la gente pasa por alto."
+      },
+      "run": {
+        "title": "Ejecútalo una vez",
+        "description": "Un activador manual se dispara cuando tú quieres: pruébalo y míralo ejecutarse."
+      },
+      "logs": {
+        "title": "Revisar los registros",
+        "description": "Cada ejecución queda registrada aquí: qué se disparó, qué devolvió cada paso y qué falló."
+      },
+      "wrapUp": {
+        "title": "Ese es todo el ciclo",
+        "description": "Activador, acciones, publicar, habilitar, ejecutar, registros. Todos los flujos de trabajo que crees a partir de ahora siguen la misma forma."
+      }
     }
   }
 }

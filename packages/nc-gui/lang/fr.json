@@ -257,8 +257,47 @@
       "workspaceMembers": "Membres de l'espace de travail",
       "audit": "Audit de l'espace de travail",
       "ltarCustomDisplayValue": "Champ de valeur d'affichage personnalisé",
-      "publicDocShare": "Partage de documents publics"
-    }
+      "publicDocShare": "Partage de documents publics",
+      "agents": "Agents"
+    },
+    "upgradeToSortAndLimitLookupValues": "Pour trier et limiter les valeurs affichées dans un champ Lookup, veuillez passer au plan {plan}.",
+    "upgradeToAddMoreAgents": "Passez à un plan supérieur pour ajouter plus d'Agents",
+    "upgradeToAddMoreAgentsSubtitle": "Vous êtes actuellement sur le plan {activePlan}, qui autorise {limit} Agents par espace de travail. Passez à {plan} pour en avoir davantage.",
+    "upgradeToAddMoreInterfaces": "Passez à un plan supérieur pour ajouter plus d'Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Vous êtes actuellement sur le plan {activePlan}, qui autorise {limit} Interfaces par espace de travail. Passez à {plan} pour en avoir davantage.",
+    "upgradeToAddMoreInterfacePages": "Passez à un plan supérieur pour ajouter plus de pages",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Vous êtes actuellement sur le plan {activePlan}, qui autorise {limit} pages par Interface. Passez à {plan} pour un nombre illimité de pages.",
+    "upgradeToUseTrashSettings": "Passez à un plan supérieur pour configurer la corbeille",
+    "upgradeToUseTrashSettingsSubtitle": "Passez au plan {plan} pour configurer les paramètres de corbeille par table.",
+    "upgradeToAttachFilesToComments": "Passez à un plan supérieur pour joindre des fichiers aux commentaires",
+    "upgradeToAttachFilesToCommentsSubtitle": "Passez au plan {plan} pour joindre des images et des fichiers aux commentaires d'enregistrement.",
+    "upgradeToUseToggleSort": "Passez à un plan supérieur pour activer ou désactiver les tris individuellement",
+    "upgradeToUseToggleSortSubtitle": "Passez au plan {plan} pour activer ou désactiver des tris individuels sans les supprimer, et garder ainsi plus de contrôle sur vos vues.",
+    "upgradeToUseViewFolders": "Passez à un plan supérieur pour utiliser les dossiers de vues",
+    "upgradeToUseViewFoldersSubtitle": "Passez au plan {plan} pour organiser les vues dans des dossiers.",
+    "upgradeToAccessViewFoldersSubtitle": "Passez au plan {plan} pour organiser les vues dans des dossiers.",
+    "upgradeToUseFolders": "Passez à un plan supérieur pour utiliser les dossiers",
+    "upgradeToUseFoldersSubtitle": "Passez au plan {plan} pour organiser les tables, documents et Dashboards dans des dossiers.",
+    "upgradeToAccessFoldersSubtitle": "Passez au plan {plan} pour organiser les tables, documents et Dashboards dans des dossiers.",
+    "upgradeToUseCustomSync": "Passez à un plan supérieur pour utiliser le Sync personnalisé",
+    "upgradeToUseCustomSyncSubtitle": "Passez au plan {plan} pour synchroniser des données depuis d'autres sources de données.",
+    "upgradeToUseAutomaticSyncSubtitle": "Passez au plan {plan} pour garder les tables mises en miroir synchronisées automatiquement et en temps réel.",
+    "upgradeToUseEnvironments": "Passez à un plan supérieur pour utiliser les environnements",
+    "upgradeToUseEnvironmentsSubtitle": "Les environnements sont disponibles à partir du plan {plan}.",
+    "upgradeToPlanForFeature": "Passez au plan {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "pour exécuter des automatisations depuis les boutons d'Interface.",
+    "addonFeatureTitle": "Disponible en tant qu'Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} est disponible en tant qu'Add-on payant à partir du plan {plan}. Contactez-nous pour l'activer.",
+    "toAccessCopyViewConfigFromAnotherView": "pour accéder à la copie de la configuration d'une autre vue.",
+    "toAccessReassignPersonalView": "pour accéder à la réattribution des vues personnelles.",
+    "toAccessAssignAsPersonalView": "pour accéder à l'attribution en tant que vue personnelle.",
+    "toAccessCardFieldHeaderVisibility": "pour accéder à la visibilité des en-têtes de champs sur les cartes.",
+    "upgradeToUseStagingEnvironment": "Passez à un plan supérieur pour utiliser l'environnement Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Votre plan {activePlan} ne comprend que l'environnement de production. Passez à {plan} pour utiliser Staging.",
+    "upgradeToUsePerUserCredentials": "Passez à un plan supérieur pour utiliser des identifiants par utilisateur",
+    "upgradeToUsePerUserCredentialsSubtitle": "Votre plan {activePlan} n'utilise que des identifiants partagés. Passez à {plan} pour que chaque membre connecte son propre compte.",
+    "upgradeToUseCustomEnvironments": "Passez à un plan supérieur pour créer des environnements personnalisés",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Les environnements personnalisés ne sont pas disponibles dans votre plan {activePlan}. Passez à {plan} pour créer des environnements au-delà de Production et Staging."
   },
   "general": {
     "scrollToBottom": "Défiler vers le bas",
@@ -1452,7 +1491,19 @@
     "creatingAgent": "Création de l'agent",
     "agentToolsAndAccess": "Outils et accès",
     "agentSkills": "Compétences",
-    "agentSettings": "Paramètres"
+    "agentSettings": "Paramètres",
+    "updateRecordsCount": "Mettre à jour {n} enregistrement | Mettre à jour {n} enregistrements",
+    "turnOffEditing": "Désactiver la modification ?",
+    "turnOnInlineEditing": "Activer la modification en ligne ?",
+    "turnOnEditingByForm": "Activer la modification par formulaire ?",
+    "productTours": "Visites guidées du produit",
+    "testDataGeneration": "Génération de données de test",
+    "noSearchResultsFound": "Aucun résultat de recherche",
+    "theListIsEmpty": "La liste est vide",
+    "newEnvironment": "Nouvel environnement",
+    "removeCustomDomain": "Supprimer le domaine personnalisé ?",
+    "tooNarrowToAdjustFrozenFields": "La fenêtre est trop étroite pour ajuster les champs figés",
+    "themeSettings": "Paramètres du thème"
   },
   "labels": {
     "syncing": "Synchronisation en cours",
@@ -4663,7 +4714,90 @@
     "filteringNotSupportedForFieldsWithErrors": "Le filtrage n'est pas supporté pour les champs avec des erreurs",
     "sortingNotSupportedForFieldsWithErrors": "Le tri n'est pas supporté pour les champs avec des erreurs",
     "sortingNotSupportedForField": "Le tri n'est pas pris en charge pour le champ {type}",
-    "groupingNotSupportedForFieldsWithErrors": "Le groupement n'est pas supporté pour les champs avec des erreurs"
+    "groupingNotSupportedForFieldsWithErrors": "Le groupement n'est pas supporté pour les champs avec des erreurs",
+    "workflowButtonTriggerSourceReadOnly": "La table source connectée à ce bouton ne peut être modifiée que via Interfaces",
+    "workflowButtonTriggerInterfaceReadOnly": "La page d'Interface contenant ce bouton ne peut être modifiée que via Interfaces",
+    "chartIncludeOthers": "Regrouper les catégories au-delà de la limite dans une seule catégorie « Autres » au lieu de les ignorer.",
+    "sideLabelsNeedSingleFieldRows": "Non disponible lorsqu'une ligne contient plus d'un champ.",
+    "showFieldInView": "Afficher ce champ dans la vue actuelle.",
+    "hideFieldInView": "Masquer ce champ dans la vue actuelle.",
+    "viewAllEventsInDayView": "Voir les {count} événement dans la vue journalière | Voir les {count} événements dans la vue journalière",
+    "linkValueDelimiter": "Caractère séparant plusieurs valeurs liées au sein d'une même cellule (par défaut ,)",
+    "interfaceMixedRoles": "Les rôles diffèrent selon les Interfaces ou les pages — développez pour les afficher",
+    "chatQueueAttachmentUnavailable": "Cette pièce jointe ne sera pas envoyée si vous mettez votre message en file d'attente — supprimez-la d'abord",
+    "lockedViewDisabledOnProduction": "Les vues verrouillées ne peuvent être créées que dans la copie d'environnement",
+    "personalViewDisabledOnEnvironment": "Les vues personnelles ne peuvent être créées que sur la Base de production",
+    "seeNComments": "Voir {n} commentaire | Voir {n} commentaires",
+    "collapsibleGroups": "Permettre de replier les groupes ayant un titre",
+    "nestedRecordsRequireSelfLink": "Nécessite dans cette table un champ de lien qui renvoie vers la même table.",
+    "dataChangeDisabled": "La modification des données est désactivée pour cette source de données.",
+    "cannotRemoveInheritedInterfaceMember": "L'accès est hérité de la Base. Gérez-le depuis",
+    "saveDraftToBrowser": "Permet de revenir à un formulaire à moitié rempli sans perdre ce qui a été saisi. Enregistré uniquement dans le navigateur ; effacé à l'envoi.",
+    "clickToSeeDetails": "Cliquez pour voir les détails.",
+    "navigateToBaseToCreateAgent": "Accédez à une Base pour créer un Agent",
+    "navigateToBaseToCreateFolder": "Accédez à une Base pour créer un dossier",
+    "navigateToBaseToCreateInterface": "Accédez à une Base pour créer une Interface",
+    "switchToAgentsTab": "Passez à l'onglet Agents pour créer {type}",
+    "switchToInterfacesTab": "Passez à l'onglet Interfaces pour créer une Interface",
+    "youDontHaveAccessToCreateNewAgent": "Vous n'avez pas les droits pour créer un nouvel Agent",
+    "youDontHaveAccessToCreateNewInterface": "Vous n'avez pas les droits pour créer une nouvelle Interface",
+    "displayValueFieldCannotBeReordered": "Le champ de valeur d'affichage ne peut pas être réordonné",
+    "interfaceLastVizRequired": "Une page doit comporter au moins une visualisation",
+    "onlyCreatorsCanManageViewFolders": "Seuls les créateurs ou les propriétaires de la Base peuvent gérer les dossiers de vues",
+    "onlyCreatorsCanManageFolders": "Seuls les créateurs ou les propriétaires de la Base peuvent gérer les dossiers",
+    "organizeViewsIntoFolders": "Organiser les vues dans des dossiers repliables",
+    "productionLockedByEnvironment": "Cette Base est ouverte dans un environnement — effectuez-y vos modifications de schéma.",
+    "managedByPublisher": "La structure de cette App est gérée par son éditeur. Vos documents et dossiers restent les vôtres à ajouter.",
+    "featureOnProductionOnly": "Cette action se gère sur la Base de production, pas dans une copie d'environnement.",
+    "clickToEdit": "Cliquer pour modifier",
+    "resolvedBy": "Résolu par {name}",
+    "fieldAutoLinkedToParent": "Ce champ sera automatiquement lié à l'enregistrement parent",
+    "newRecordCreatedEachTemplateUse": "Un nouvel enregistrement {tableName} sera créé et lié à chaque utilisation de ce modèle",
+    "warningMessageForInvalidInputs": "Ce message d'avertissement sera affiché aux utilisateurs du formulaire en cas de saisie invalide.",
+    "cannotAddConditionsToFirstField": "Impossible d'ajouter des conditions au premier champ d'un formulaire.",
+    "validationsEnforcedByFieldSchema": "Les validations sont appliquées par les paramètres du schéma de champ",
+    "requiredEnforcedOnFormSubmit": "Appliqué lorsque cette page s'ouvre en tant que formulaire de création d'enregistrement",
+    "readOnlyFieldCannotBeEditedInline": "Les champs en lecture seule ne peuvent pas être modifiés en ligne",
+    "editInlineDisabledForElement": "La modification est désactivée pour cet élément de page. Activez-la pour l'élément afin de permettre la modification de cette colonne.",
+    "cantUploadDataInSyncedTable": "Vous ne pouvez pas téléverser de données dans une table synchronisée",
+    "hideMyPresence": "Masquer ma présence",
+    "showMyPresence": "Afficher ma présence",
+    "setupScriptSettingsToRun": "Configurez les paramètres du script pour l'exécuter",
+    "autoSuggestViewsFor": "Suggérer automatiquement des vues pour {tableName}",
+    "discardDraftChanges": "Abandonner les modifications du brouillon et restaurer la version publiée",
+    "testAllNodesBeforePublish": "Veuillez tester tous les nœuds avant de publier",
+    "tourCompleteStepToContinue": "Terminez cette étape pour continuer",
+    "tourTakeTheTour": "{tour} — suivre la visite",
+    "fieldPropertiesCannotBeEdited": "Les propriétés du champ ne peuvent pas être modifiées.",
+    "fieldAssociatedWithLinkColumn": "Le champ est associé à une colonne de lien",
+    "fieldCannotBeUpgraded": "Le champ ne peut pas être mis à niveau.",
+    "fieldCannotBeDuplicated": "Le champ ne peut pas être dupliqué.",
+    "selectNewFieldAsDisplayValue": "Sélectionner un nouveau champ comme valeur d'affichage",
+    "addFieldDescription": "Ajouter une description de champ",
+    "fieldCannotBeDeleted": "Le champ ne peut pas être supprimé.",
+    "recordHiddenByFilter": "Cet enregistrement sera masqué car il ne correspond pas aux filtres appliqués à cette vue.",
+    "recordWillMove": "Cet enregistrement changera de position lorsque vous cliquerez en dehors.",
+    "recordHiddenByPermission": "Cet enregistrement sera masqué car il ne correspond pas à vos autorisations d'accès.",
+    "rowLevelSecurityEnabled": "La sécurité au niveau des lignes est activée. Certaines lignes peuvent être masquées selon vos autorisations d'accès.",
+    "suggestMore": "Suggérer davantage",
+    "reSuggest": "Suggérer à nouveau",
+    "portWebhookV2ToV3": "Porter ce Webhook de la v2 vers la v3",
+    "formDisplayMessageTemplating": "Utilisez le nom ou le titre de la colonne pour un champ de modèle plutôt que son libellé. Par exemple : « Bonjour {'{'}Title{'}'} ! »",
+    "incompatibleWithColumn": "Incompatible avec la colonne « {title} »",
+    "crossBaseLinkCreatorAccess": "Vous ne pouvez créer de liens que vers des tables situées dans des Bases où vous disposez au moins d'un accès créateur.",
+    "clickIntoRecordDetailsCrossBase": "Pas encore disponible pour les liens inter-Bases",
+    "autoSuggestFieldsFor": "Suggérer automatiquement des champs pour {table}",
+    "clearAllAndResuggest": "Tout effacer et suggérer à nouveau",
+    "cannotSetDefaultValueWithUnique": "Impossible de définir une valeur par défaut car la contrainte Unique est active. Désactivez la contrainte Unique pour configurer une valeur par défaut",
+    "useAiToGenerateContent": "Utiliser l'IA pour générer du contenu à partir des données de l'enregistrement.",
+    "previewGeneratedFromFirstRecord": "L'aperçu est généré à partir du premier enregistrement de cette table",
+    "includeFieldInPromptToGenerate": "Incluez au moins 1 champ dans le Prompt pour générer",
+    "editorsReportedByInstance": "Le nombre d'éditeurs est communiqué par votre instance à chaque signal de présence. Gérez les éditeurs directement sur l'instance.",
+    "dragToAdjustFrozenFields": "Faites glisser pour ajuster le nombre de champs figés",
+    "freezeColumnsCount": "Figer {count} colonne | Figer {count} colonnes",
+    "marketplaceComingSoon": "Cette App est encore en cours de préparation et ne peut donc pas encore être installée.",
+    "marketplaceAuthored": "Rédigé par l'éditeur, et non déduit du contenu de l'App.",
+    "marketplaceVerifiedPublisher": "Publié et vérifié par NocoDB"
   },
   "placeholder": {
     "enterVerificationCode": "Entrez le code à 6 chiffres",
@@ -6199,6 +6333,94 @@
       "seatsOnOrg": "Sièges dans cette organisation",
       "workspaceSubscription": "Abonnement de l'espace de travail",
       "orgSubscription": "Abonnement de l'organisation"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "Prenez vos repères dans votre espace de travail",
+      "welcome": {
+        "title": "Bienvenue dans NocoDB",
+        "description": "Un tour rapide de votre espace de travail. Vous pouvez quitter à tout moment — cliquez sur Passer."
+      },
+      "createBase": {
+        "title": "Commencer par une Base",
+        "description": "Une Base contient vos tables, vos vues et vos automatisations. C'est là que commence l'essentiel du travail."
+      },
+      "switchWorkspaces": {
+        "title": "Changer d'espace de travail",
+        "description": "Tous les espaces de travail auxquels vous appartenez se trouvent derrière ce sélecteur. Ouvrez-le pour voir les autres."
+      },
+      "moreWorkspaces": {
+        "title": "Plusieurs espaces de travail",
+        "description": "Les espaces de travail séparent les équipes et les projets, chacun avec ses propres membres."
+      },
+      "account": {
+        "title": "Compte et paramètres",
+        "description": "Profil, thème, raccourcis clavier et paramètres du compte se trouvent tous derrière votre avatar."
+      }
+    },
+    "workflows": {
+      "title": "Créez votre premier Workflow",
+      "overview": {
+        "title": "Construire un Workflow de bout en bout",
+        "description": "Créez-le, choisissez un déclencheur, ajoutez une action, publiez, activez-le, puis regardez-le tourner."
+      },
+      "create": {
+        "title": "Créer un Workflow",
+        "description": "Partez de zéro — cela ouvre un court formulaire."
+      },
+      "createSubmit": {
+        "title": "Créez-le",
+        "description": "Cela vous emmène directement sur le canevas."
+      },
+      "addTrigger": {
+        "title": "Ajouter un déclencheur",
+        "description": "Chaque Workflow commence ici — cliquez pour voir ce qui peut le déclencher."
+      },
+      "pickManualTrigger": {
+        "title": "Choisir « Lors d'un déclenchement manuel »",
+        "description": "Celui-ci, c'est vous qui le déclenchez : vous pouvez donc faire fonctionner le reste avant de le relier à de vrais événements."
+      },
+      "testTrigger": {
+        "title": "Tester le déclencheur",
+        "description": "Exécutez-le une fois et regardez les données produites. Toutes les étapes suivantes s'appuient sur cette sortie."
+      },
+      "addAction": {
+        "title": "Ajouter une action",
+        "description": "Les actions sont ce que le Workflow fait réellement une fois le déclencheur activé."
+      },
+      "pickListRecords": {
+        "title": "Choisir « Lister les enregistrements »",
+        "description": "Il se contente de lire, vous pouvez donc l'exécuter aussi souvent que vous le souhaitez sans modifier de données."
+      },
+      "chooseTable": {
+        "title": "Choisir une table",
+        "description": "Chaque action doit savoir sur quoi elle travaille. Choisissez la table dont lister les enregistrements."
+      },
+      "testAction": {
+        "title": "Tester aussi l'action",
+        "description": "Chaque nœud se teste séparément. Vérifiez que celui-ci renvoie ce que vous attendez avant de publier."
+      },
+      "publish": {
+        "title": "Publier vos modifications",
+        "description": "Les modifications sont enregistrées en tant que <b>brouillon</b>. C'est la publication qui fait de cette version celle qui s'exécute."
+      },
+      "enable": {
+        "title": "Activez-le",
+        "description": "Publié ne veut pas dire actif. Un Workflow reste <b>En pause</b> tant que vous ne l'activez pas — c'est l'étape que l'on oublie."
+      },
+      "run": {
+        "title": "Exécutez-le une fois",
+        "description": "Un déclencheur manuel se lance à la demande — essayez et regardez-le s'exécuter."
+      },
+      "logs": {
+        "title": "Consulter les journaux",
+        "description": "Chaque exécution est consignée ici — ce qui s'est déclenché, ce que chaque étape a renvoyé et ce qui a échoué."
+      },
+      "wrapUp": {
+        "title": "Voilà la boucle complète",
+        "description": "Déclencheur, actions, publication, activation, exécution, journaux. Tous les Workflows que vous créerez suivront ce même schéma."
+      }
     }
   }
 }

@@ -1506,7 +1506,8 @@
     "creatingAgent": "Agent wird erstellt",
     "agentToolsAndAccess": "Tools & Zugriff",
     "agentSkills": "Skills",
-    "agentSettings": "Einstellungen"
+    "agentSettings": "Einstellungen",
+    "updateRecordsCount": "{n} Eintrag aktualisieren | {n} Einträge aktualisieren"
   },
   "labels": {
     "syncing": "Synchronisieren",
@@ -4836,7 +4837,8 @@
     "freezeColumnsCount": "{count} Spalte fixieren | {count} Spalten fixieren",
     "marketplaceComingSoon": "Diese App wird noch paketiert und kann daher noch nicht installiert werden.",
     "marketplaceAuthored": "Von der Herausgeberin bzw. dem Herausgeber verfasst, nicht aus dem Inhalt der App abgeleitet.",
-    "marketplaceVerifiedPublisher": "Von NocoDB veröffentlicht und geprüft"
+    "marketplaceVerifiedPublisher": "Von NocoDB veröffentlicht und geprüft",
+    "requiredEnforcedOnFormSubmit": "Wird erzwungen, wenn diese Seite als Formular zum Erstellen eines Eintrags geöffnet wird"
   },
   "placeholder": {
     "enterVerificationCode": "6-stelligen Code eingeben",

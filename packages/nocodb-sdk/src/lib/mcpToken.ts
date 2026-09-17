@@ -73,6 +73,8 @@ export interface McpToolCatalogEntry {
   title: string;
   group: McpToolGroupKey;
   section: McpToolSection;
+  /** What the tool does, as its registration tells the MCP client. */
+  description?: string;
 }
 
 /** The header an MCP client sends its credential in. */

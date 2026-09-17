@@ -51,7 +51,7 @@ const hasSecondary = computed(() => !!displayName.value?.trim() && !!email.value
       v-if="!preview"
       type="secondary"
       size="xsmall"
-      class="nc-signed-in-banner__switch !rounded-lg"
+      class="nc-signed-in-banner__switch !rounded-lg !px-2.5"
       data-testid="nc-shared-form-switch-account"
       @click="emit('switch')"
     >

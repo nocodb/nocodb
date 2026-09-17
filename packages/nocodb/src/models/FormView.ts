@@ -1,12 +1,10 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { extractRolesObj, ncIsObject } from 'nocodb-sdk';
 import type {
   AttachmentResType,
   BoolType,
   FormType,
   MetaType,
-  NcRequest,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { PresignedUrl } from '~/models';
@@ -344,38 +342,5 @@ export default class FormView implements FormViewType {
         );
       }
     }
-  }
-
-  /**
-   * Throws when the form requires sign-in and the requester is not signed in.
-   *
-   * @returns whether the form requires sign-in — the caller uses this to decide
-   * whether the submitter's identity may be recorded at all.
-   */
-  static async validateRequireSignin(
-    context: NcContext,
-    viewId: string,
-    req: NcRequest,
-    ncMeta = Noco.ncMeta,
-  ): Promise<boolean> {
-    if (!isEE) return false;
-
-    const formView = await this.get(context, viewId, ncMeta);
-    if (!formView) return false;
-
-    const meta = ncIsObject(formView.meta)
-      ? (formView.meta as Record<string, any>)
-      : {};
-
-    if (!meta.require_signin) return false;
-
-    // `guest` is set by GlobalGuard's fallback user and is not part of the
-    // Roles enum, hence the wider record type.
-    const roles = extractRolesObj(req.user?.roles) as Record<string, boolean>;
-    if (!req.user?.id || roles?.guest) {
-      NcError.get(context).unauthorized('Sign-in required to submit this form');
-    }
-
-    return true;
   }
 }

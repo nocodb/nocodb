@@ -52,28 +52,6 @@ export class BaseUsersController {
   }
 
   @Post([
-    '/api/v1/db/meta/projects/:baseId/users/resolve',
-    '/api/v2/meta/bases/:baseId/users/resolve',
-  ])
-  @HttpCode(200)
-  @Acl('baseUserResolve', {
-    blockPublicBaseAccess: true,
-  })
-  async userResolve(
-    @TenantContext() context: NcContext,
-    @Param('baseId') baseId: string,
-    @Body() body: { user_ids?: string[]; table_id?: string },
-  ): Promise<{ users: any[] }> {
-    return {
-      users: await this.baseUsersService.userResolve(context, {
-        baseId,
-        tableId: body?.table_id,
-        userIds: body?.user_ids ?? [],
-      }),
-    };
-  }
-
-  @Post([
     '/api/v1/db/meta/projects/:baseId/users',
     '/api/v2/meta/bases/:baseId/users',
   ])

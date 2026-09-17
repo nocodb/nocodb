@@ -703,36 +703,11 @@ export class PublicDatasService {
     // Check if form has started / expired
     await FormView.validateFormScheduling(context, view.id);
 
-    // Check if form requires sign-in. Must run BEFORE the anonymous-user
-    // attribution below — that block populates req.user with the anonymous
-    // service user, which would otherwise make the require-signin guard think
-    // the requester is authenticated and let anonymous submissions through.
-    //
-    // Enforcement is gated on the same feature check that gates advertisement
-    // in publicMetasService: after a downgrade the form stops sending the
-    // token, so it must stop demanding one.
-    const requiresSignin =
-      (await this.publicMetasService.isFormRequireSigninEnabled(view)) &&
-      (await FormView.validateRequireSignin(context, view.id, param.req));
-
-    // An ordinary public form stays anonymous, even when the visitor happens to
-    // be logged in. This route runs GlobalGuard so require-sign-in forms can
-    // identify their submitter, but that guard also authenticates from the
-    // `nc_token` cookie, which the browser attaches on its own. Without this,
-    // simply being signed in to NocoDB would silently record your identity
-    // against any public form you filled in — and nothing in the form UI tells
-    // the submitter that, because the signed-in banner only renders for
-    // require-sign-in forms.
-    if (!requiresSignin) {
-      param.req.user = undefined;
-      // GlobalGuard sets both; `req.context` is what reaches getBaseModelSQL.
-      if (param.req.context) param.req.context.user = undefined;
-    }
-
-    // Public form submissions are unauthenticated by design, so req.user is
-    // empty and the resulting DATA_INSERT / nested DATA_LINK audits would have
-    // a NULL actor. Attribute them to the anonymous service user and stamp the
-    // shared view/form id so the submission stays traceable.
+    // Public form submissions are unauthenticated by design (the public
+    // controller runs no GlobalGuard), so req.user is empty and the resulting
+    // DATA_INSERT / nested DATA_LINK audits would have a NULL actor. Attribute
+    // them to the anonymous service user and stamp the shared view/form id so
+    // the submission stays traceable.
     if (!param.req.user?.id) {
       param.req.user = {
         ...NOCO_SERVICE_USERS[ServiceUserType.ANONYMOUS_USER],

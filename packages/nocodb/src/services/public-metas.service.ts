@@ -3,7 +3,6 @@ import {
   isCreatedOrLastModifiedByCol,
   isLinksOrLTAR,
   ncIsObject,
-  parseProp,
   RelationTypes,
   UITypes,
   ViewLockType,
@@ -227,21 +226,7 @@ export class PublicMetasService {
     // unauthenticated public form. Strip it from the copy (a fresh nested
     // object, so the loaded/cached FormView instance is left untouched).
     if (publicView.type === ViewTypes.FORM && publicView.view) {
-      const formMeta = parseProp(publicView.view.meta);
-
-      publicView.view = {
-        ...publicView.view,
-        email: undefined,
-        // `require_signin` makes the form capture the submitter's identity, and
-        // the consent banner/gate only exist in the EE frontend — so it must not
-        // be advertised unless the edition/plan actually has the feature.
-        meta: {
-          ...formMeta,
-          require_signin: (await this.isFormRequireSigninEnabled(publicView))
-            ? !!formMeta.require_signin
-            : false,
-        },
-      };
+      publicView.view = { ...publicView.view, email: undefined };
     }
 
     return publicView;
@@ -414,14 +399,5 @@ export class PublicMetasService {
 
   public checkViewBaseType(_view: View, _base: Base) {
     // placeholder for future checks
-  }
-
-  /**
-   * Whether require-sign-in forms are available at all. Single source of truth
-   * for both advertising the flag and enforcing it on submit — CE has no such
-   * feature, the EE override applies the plan/license gate.
-   */
-  public async isFormRequireSigninEnabled(_view: View): Promise<boolean> {
-    return false;
   }
 }

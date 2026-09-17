@@ -9042,6 +9042,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
+  // Whether a system CreatedBy/LastModifiedBy actor id may bypass
+  // base-membership validation for a captured actor. Default false; edition
+  // overrides may relax it.
+  protected skipSystemActorMembershipValidation(_column: {
+    system?: boolean;
+    uidt?: string;
+  }): boolean {
+    return false;
+  }
+
   async prepareNocoData(
     data,
     isInsertData = false,
@@ -9453,15 +9463,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
-        if (
-          column.system &&
-          [UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt)
-        ) {
-          // System-captured actor id (created_by / last_modified_by). It was set
-          // above to the authenticated user's id — it is not user input — so we
-          // accept it as-is and skip base-membership validation. The actor may be
-          // an external submitter who is not a base member, which is exactly the
-          // identity a "require sign-in" shared form is meant to capture.
+        if (this.skipSystemActorMembershipValidation(column)) {
+          // System-set actor id (created_by / last_modified_by) — not user
+          // input, so accept it as-is and skip base-membership validation.
         } else if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 

@@ -6,7 +6,6 @@ import {
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
-  UITypes,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
@@ -24,8 +23,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, Model, PresignedUrl, Source, User } from '~/models';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
@@ -57,138 +55,6 @@ export class BaseUsersService {
     return new PagedResponseImpl(baseUsers, {
       count: baseUsers.length,
     });
-  }
-
-  /**
-   * Resolve a list of user ids to their minimal public profile
-   * (id, email, display_name, meta). Used to display submitters who are not
-   * base collaborators (e.g. captured via "require sign-in" shared forms) in
-   * CreatedBy / User cells.
-   *
-   * The `baseUserResolve` ACL only gates which base the caller may call this
-   * on — it says nothing about which users they may resolve. `User.getByIds`
-   * is a global lookup, so ids must additionally be scoped to the base or this
-   * becomes a cross-workspace email oracle for any id the caller knows.
-   */
-  async userResolve(
-    context: NcContext,
-    param: { baseId: string; tableId?: string; userIds: string[] },
-  ) {
-    const MAX_RESOLVE = 50;
-
-    if (!Array.isArray(param.userIds)) {
-      NcError.get(context).badRequest('user_ids must be an array of user ids');
-    }
-
-    const requestedIds = [
-      ...new Set(
-        (param.userIds || []).filter(
-          (id) => typeof id === 'string' && id.trim(),
-        ),
-      ),
-    ].slice(0, MAX_RESOLVE);
-
-    if (!requestedIds.length) return [];
-
-    const resolvableIds = await this.getResolvableUserIds(context, {
-      baseId: param.baseId,
-      tableId: param.tableId,
-      userIds: requestedIds,
-    });
-
-    const userIds = requestedIds.filter((id) => resolvableIds.has(id));
-
-    if (!userIds.length) return [];
-
-    const userMap = await User.getByIds(userIds);
-
-    const users = userIds
-      .map((id) => userMap.get(id))
-      .filter((user): user is User => !!user)
-      .map((user) => ({
-        id: user.id,
-        email: user.email,
-        display_name: user.display_name,
-        meta: user.meta,
-      }));
-
-    await PresignedUrl.signMetaIconImage(users);
-
-    return users;
-  }
-
-  /**
-   * Ids the caller is allowed to resolve: base collaborators (already visible
-   * to them), plus ids genuinely present in a user-type column of `tableId`.
-   *
-   * Multi-value User cells store comma-separated ids and so are not matched by
-   * the exact-value lookup below — external submitters land in CreatedBy,
-   * which is single-valued.
-   */
-  private async getResolvableUserIds(
-    context: NcContext,
-    param: { baseId: string; tableId?: string; userIds: string[] },
-  ): Promise<Set<string>> {
-    const allowed = new Set<string>();
-
-    const members = await BaseUser.getUsersList(context, {
-      base_id: param.baseId,
-      mode: 'viewer',
-      user_ids: param.userIds,
-    });
-
-    for (const member of members) {
-      if (member?.id) allowed.add(member.id);
-    }
-
-    const pending = param.userIds.filter((id) => !allowed.has(id));
-
-    if (!pending.length || !param.tableId) return allowed;
-
-    const model = await Model.get(context, param.tableId);
-
-    if (!model || model.base_id !== param.baseId) return allowed;
-
-    await model.getColumns();
-
-    const userColumns = (model.columns || []).filter(
-      (column) =>
-        column.column_name &&
-        [UITypes.CreatedBy, UITypes.LastModifiedBy, UITypes.User].includes(
-          column.uidt as UITypes,
-        ),
-    );
-
-    if (!userColumns.length) return allowed;
-
-    const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
-    const tnPath = baseModel.getTnPath(model);
-
-    for (const column of userColumns) {
-      const remaining = pending.filter((id) => !allowed.has(id));
-
-      if (!remaining.length) break;
-
-      const rows = await baseModel
-        .dbDriver(tnPath)
-        .select(column.column_name)
-        .whereIn(column.column_name, remaining)
-        .groupBy(column.column_name);
-
-      for (const row of rows || []) {
-        const value = row?.[column.column_name];
-        if (typeof value === 'string' && value) allowed.add(value);
-      }
-    }
-
-    return allowed;
   }
 
   async userInvite(

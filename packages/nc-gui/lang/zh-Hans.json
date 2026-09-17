@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "先运行脚本打印输出",
     "print": "打印",
     "generatingPDF": "生成 PDF...",
-    "activeMcpServersLabel": "查看和管理所有基地的活动模型上下文协议服务器",
-    "activeMcpServers": "活动的 MCP 服务器",
     "hideEditor": "隐藏编辑器",
     "showEditor": "显示编辑器",
     "addNewClient": "创建新的 OAuth 客户端",

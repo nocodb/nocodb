@@ -1701,8 +1701,6 @@
     "executeScriptToPrint": "Serveurs MCP actifs",
     "print": "Imprimer",
     "generatingPDF": "Génération du PDF en cours...",
-    "activeMcpServersLabel": "Voir et gérer vos serveurs de protocole de contexte de modèle actifs sur toutes les bases",
-    "activeMcpServers": "Serveurs MCP actifs",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Créer un nouveau client OAuth",

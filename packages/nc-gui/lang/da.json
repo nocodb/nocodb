@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "Kør scriptet først for at udskrive output",
     "print": "Print",
     "generatingPDF": "Generering af PDF...",
-    "activeMcpServersLabel": "Se og administrer dine aktive Model Context Protocol-servere på tværs af alle baser",
-    "activeMcpServers": "Aktive MCP-servere",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Opret en ny OAuth-klient",

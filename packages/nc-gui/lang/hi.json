@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "पहले आउटपुट प्रिंट करने के लिए स्क्रिप्ट चलाएँ।",
     "print": "मुद्रण",
     "generatingPDF": "पीडीएफ उत्पन्न हो रहा है...",
-    "activeMcpServersLabel": "सभी बेसों पर अपने सक्रिय मॉडल कॉन्टेक्स्ट प्रोटोकॉल सर्वर देखें और प्रबंधित करें।",
-    "activeMcpServers": "सक्रिय MCP सर्वर",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "नया OAuth क्लाइंट बनाएँ",

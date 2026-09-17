@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "Jalankan skrip terlebih dahulu untuk mencetak output",
     "print": "Mencetak",
     "generatingPDF": "Menghasilkan PDF...",
-    "activeMcpServersLabel": "Melihat dan mengelola server Protokol Konteks Model yang aktif di semua basis",
-    "activeMcpServers": "Server MCP aktif",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Membuat Klien OAuth baru",

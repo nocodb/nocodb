@@ -1704,8 +1704,6 @@
     "executeScriptToPrint": "تشغيل البرنامج النصي أولاً لطباعة الإخراج",
     "print": "طباعة",
     "generatingPDF": "إنشاء PDF...",
-    "activeMcpServersLabel": "عرض وإدارة سيرفرات بروتوكول السياق النموذجي النشط عبر جميع القواعد",
-    "activeMcpServers": "خوادم MCP النشطة",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "إنشاء عميل OAuth جديد",

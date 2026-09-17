@@ -185,6 +185,91 @@ export class NcErrorBase {
     );
   }
 
+  appNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  appVersionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_VERSION_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  appTokenNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_TOKEN_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  appTeamNotFound(idOrHandle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_TEAM_NOT_FOUND, {
+      params: idOrHandle,
+      ...args,
+    });
+  }
+
+  appIntegrationGrantNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_APP_INTEGRATION_GRANT_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
+  routineNotFound(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ROUTINE_NOT_FOUND, {
+      ...args,
+    });
+  }
+
+  managedAppNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_MANAGED_APP_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  managedAppVersionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_MANAGED_APP_VERSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
+  /** No published release exists for the managed app — keyed by app, not version. */
+  publishedManagedAppVersionNotFound(
+    managedAppId: string,
+    args?: NcErrorArgs,
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_PUBLISHED_MANAGED_APP_VERSION_NOT_FOUND,
+      {
+        params: managedAppId,
+        ...args,
+      },
+    );
+  }
+
+  marketplacePublisherNotFound(handle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_MARKETPLACE_PUBLISHER_NOT_FOUND,
+      {
+        params: handle,
+        ...args,
+      },
+    );
+  }
+
   workflowNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
       params: id,

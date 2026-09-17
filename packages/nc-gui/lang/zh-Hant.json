@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "自動建議動作",
     "backToPage": "返回 {page}",
     "availableLayouts": "可用的 Layout",
-    "backToAssistant": "返回助理",
     "barOrientation": "長條方向",
     "baseNav": {
       "groupInvite": "邀請",
@@ -3285,7 +3284,6 @@
     "installingApp": "正在建立你的 Base",
     "installedSkills": "已安裝的 Skills",
     "filesCount": "{count} 個檔案",
-    "goToAgents": "前往 Agents",
     "horizontal": "水平",
     "fieldsCount": "{count} 個欄位 | {count} 個欄位",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "匯出資料失敗！",
       "fieldHeaderVisibilityUpdateFailed": "更新欄位標題顯示狀態時發生錯誤",
       "appBuildFailed": "無法開始建置應用程式",
-      "chatAttachmentLimit": "每則訊息最多 {n} 個檔案",
       "marketplaceLoadFailed": "無法載入商店",
       "marketplaceHandleTaken": "此代號已被使用",
       "marketplaceHandleReserved": "此代號已被保留",

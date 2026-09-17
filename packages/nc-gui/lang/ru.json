@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Автоматически предлагать действия",
     "backToPage": "Назад к {page}",
     "availableLayouts": "Доступные макеты",
-    "backToAssistant": "Назад к ассистенту",
     "barOrientation": "Ориентация столбцов",
     "baseNav": {
       "groupInvite": "Пригласить",
@@ -3285,7 +3284,6 @@
     "installingApp": "Создаём вашу базу",
     "installedSkills": "Установленные Skills",
     "filesCount": "{count} файлов",
-    "goToAgents": "Перейти к Agents",
     "horizontal": "Горизонтально",
     "fieldsCount": "{count} поле | {count} полей",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "Не удалось экспортировать данные!",
       "fieldHeaderVisibilityUpdateFailed": "При обновлении видимости заголовка поля произошла ошибка",
       "appBuildFailed": "Не удалось запустить сборку приложения",
-      "chatAttachmentLimit": "Не более {n} файлов в сообщении",
       "marketplaceLoadFailed": "Не удалось загрузить магазин",
       "marketplaceHandleTaken": "Этот идентификатор уже занят",
       "marketplaceHandleReserved": "Этот идентификатор зарезервирован",

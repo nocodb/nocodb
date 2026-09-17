@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Foreslå handlinger automatisk",
     "backToPage": "Tilbage til {page}",
     "availableLayouts": "Tilgængelige layouts",
-    "backToAssistant": "Tilbage til assistenten",
     "barOrientation": "Søjlernes retning",
     "baseNav": {
       "groupInvite": "Inviter",
@@ -3282,7 +3281,6 @@
     "installingApp": "Opretter din base",
     "installedSkills": "Installerede Skills",
     "filesCount": "{count} filer",
-    "goToAgents": "Gå til Agents",
     "horizontal": "Vandret",
     "fieldsCount": "{count} felt | {count} felter",
     "environmentStaging": "Staging",
@@ -5398,7 +5396,6 @@
       "dataExportFailed": "Eksport af data mislykkedes!",
       "fieldHeaderVisibilityUpdateFailed": "Der opstod en fejl under opdatering af felthovedets synlighed",
       "appBuildFailed": "Kunne ikke starte app-builden",
-      "chatAttachmentLimit": "Højst {n} filer pr. besked",
       "marketplaceLoadFailed": "Kunne ikke indlæse butikken",
       "marketplaceHandleTaken": "Dette handle er allerede taget",
       "marketplaceHandleReserved": "Dette handle er reserveret",

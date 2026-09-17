@@ -227,6 +227,48 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Web artifact '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_APP_NOT_FOUND]: {
+    message: (id: string) => `App '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_VERSION_NOT_FOUND]: {
+    message: (id: string) => `AppVersion '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_TOKEN_NOT_FOUND]: {
+    message: (id: string) => `AppToken '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_TEAM_NOT_FOUND]: {
+    message: (id: string) => `App team '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_INTEGRATION_GRANT_NOT_FOUND]: {
+    message: (id: string) => `Grant '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_ROUTINE_NOT_FOUND]: {
+    message: 'Routine not found',
+    code: 404,
+  },
+  [NcErrorType.ERR_MANAGED_APP_NOT_FOUND]: {
+    message: (id: string) => `ManagedApp '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_MANAGED_APP_VERSION_NOT_FOUND]: {
+    message: (id: string) => `Managed app version '${id}' not found`,
+    code: 404,
+  },
+  /** No published release exists for the managed app — keyed by app, not version. */
+  [NcErrorType.ERR_PUBLISHED_MANAGED_APP_VERSION_NOT_FOUND]: {
+    message: (managedAppId: string) =>
+      `Published managed app version '${managedAppId}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_MARKETPLACE_PUBLISHER_NOT_FOUND]: {
+    message: (handle: string) => `Publisher '${handle}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_WORKFLOW_NOT_FOUND]: {
     message: (id: string) => `Workflow '${id}' not found`,
     code: 404,

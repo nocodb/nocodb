@@ -106,6 +106,7 @@ export interface AppCustomDomainVerifyResult {
 
 export * from './agent';
 export * from './build';
+export * from './connection';
 export * from './routine';
 export * from './theme';
 export * from './publish';

@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "ಕ್ರಿಯೆಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸೂಚಿಸಿ",
     "backToPage": "{page} ಗೆ ಹಿಂತಿರುಗಿ",
     "availableLayouts": "ಲಭ್ಯವಿರುವ Layout",
-    "backToAssistant": "ಸಹಾಯಕಕ್ಕೆ ಹಿಂತಿರುಗಿ",
     "barOrientation": "ಪಟ್ಟಿಗಳ ದಿಕ್ಕು",
     "baseNav": {
       "groupInvite": "ಆಹ್ವಾನಿಸಿ",
@@ -3285,7 +3284,6 @@
     "installingApp": "ನಿಮ್ಮ ಬೇಸ್ ರಚಿಸಲಾಗುತ್ತಿದೆ",
     "installedSkills": "ಸ್ಥಾಪಿಸಿದ Skills",
     "filesCount": "{count} ಕಡತಗಳು",
-    "goToAgents": "Agents ಗೆ ಹೋಗಿ",
     "horizontal": "ಅಡ್ಡಲಾಗಿ",
     "fieldsCount": "{count} ಕ್ಷೇತ್ರ | {count} ಕ್ಷೇತ್ರಗಳು",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "ಡೇಟಾ ರಫ್ತು ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ!",
       "fieldHeaderVisibilityUpdateFailed": "ಕ್ಷೇತ್ರದ ಶೀರ್ಷಿಕೆಯ ಗೋಚರತೆ ನವೀಕರಿಸುವಾಗ ದೋಷ ಉಂಟಾಯಿತು",
       "appBuildFailed": "ಅಪ್ಲಿಕೇಶನ್ ಬಿಲ್ಡ್ ಆರಂಭಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ",
-      "chatAttachmentLimit": "ಪ್ರತಿ ಸಂದೇಶಕ್ಕೆ ಗರಿಷ್ಠ {n} ಫೈಲ್‌ಗಳು",
       "marketplaceLoadFailed": "ಸ್ಟೋರ್ ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ",
       "marketplaceHandleTaken": "ಈ ಹ್ಯಾಂಡಲ್ ಈಗಾಗಲೇ ಬಳಕೆಯಲ್ಲಿದೆ",
       "marketplaceHandleReserved": "ಈ ಹ್ಯಾಂಡಲ್ ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ",

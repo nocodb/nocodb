@@ -3009,7 +3009,6 @@
       "actionsTitle": "Was Besucher tun können",
       "actionsHint": "Der einzige Weg, auf dem nicht angemeldete Personen Ihre Daten erreichen. Änderungen werden beim nächsten Veröffentlichen wirksam."
     },
-    "backToAssistant": "Zurück zum Assistenten",
     "barOrientation": "Balkenausrichtung",
     "buildInEnvironmentTitle": "Diese App ist in {environment} geöffnet",
     "baseSkills": "Base-Skills",
@@ -3474,7 +3473,6 @@
     "installingApp": "Ihre Base wird erstellt",
     "installedSkills": "Installierte Skills",
     "filesCount": "{count} Dateien",
-    "goToAgents": "Zu den Agenten",
     "horizontal": "Horizontal",
     "fieldsCount": "{count} Feld | {count} Felder",
     "environmentStaging": "Staging",
@@ -5833,7 +5831,6 @@
       "appBuildFailed": "Der App-Build konnte nicht gestartet werden",
       "variableNotSaved": "Diese Variable wird vom App-Autor verwaltet und kann hier nicht geändert werden.",
       "setupProviderPartial": "{failed} von {total} Aktionen konnten nicht verbunden werden",
-      "chatAttachmentLimit": "Höchstens {n} Dateien pro Nachricht",
       "uploadFailed": "Upload fehlgeschlagen",
       "marketplaceLoadFailed": "Der Store konnte nicht geladen werden",
       "publisherNameRequired": "Der Name des Herausgebers darf nicht leer sein",

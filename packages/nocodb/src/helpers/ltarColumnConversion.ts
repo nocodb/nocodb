@@ -925,7 +925,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
 
     const textColumn = await Column.get(context, { colId: textColumnId });
     if (!textColumn) {
-      NcError.get(context).genericNotFound('Column', textColumnId);
+      NcError.get(context).fieldNotFound(textColumnId);
     }
 
     const table = await Model.get(context, textColumn.fk_model_id);

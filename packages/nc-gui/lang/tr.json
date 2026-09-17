@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Eylemleri otomatik öner",
     "backToPage": "{page} sayfasına dön",
     "availableLayouts": "Kullanılabilir layoutlar",
-    "backToAssistant": "Asistana dön",
     "barOrientation": "Çubuk yönü",
     "baseNav": {
       "groupInvite": "Davet et",
@@ -3285,7 +3284,6 @@
     "installingApp": "Bazınız oluşturuluyor",
     "installedSkills": "Kurulu Skills",
     "filesCount": "{count} dosya",
-    "goToAgents": "Agents bölümüne git",
     "horizontal": "Yatay",
     "fieldsCount": "{count} alan | {count} alan",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "Veriler dışa aktarılamadı!",
       "fieldHeaderVisibilityUpdateFailed": "Alan başlığı görünürlüğü güncellenirken hata oluştu",
       "appBuildFailed": "Uygulama derlemesi başlatılamadı",
-      "chatAttachmentLimit": "İleti başına en fazla {n} dosya",
       "marketplaceLoadFailed": "Mağaza yüklenemedi",
       "marketplaceHandleTaken": "Bu tanıtıcı zaten alınmış",
       "marketplaceHandleReserved": "Bu tanıtıcı ayrılmış",

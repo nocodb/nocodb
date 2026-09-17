@@ -10,6 +10,7 @@ export * from '~/lib/globals';
 export * from '~/lib/userHelper';
 export * from '~/lib/timezoneUtils';
 export * from '~/lib/helperFunctions';
+export { numberize } from '~/lib/numberUtils';
 export * from '~/lib/enums';
 export * from '~/lib/apiToken';
 export * from '~/lib/formulaHelpers';

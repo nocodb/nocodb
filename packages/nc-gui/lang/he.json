@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "הצעת פעולות אוטומטית",
     "backToPage": "חזרה אל {page}",
     "availableLayouts": "פריסות זמינות",
-    "backToAssistant": "חזרה לעוזר",
     "barOrientation": "כיוון העמודות",
     "baseNav": {
       "groupInvite": "הזמנה",
@@ -3285,7 +3284,6 @@
     "installingApp": "יוצרים את הבסיס שלכם",
     "installedSkills": "Skills מותקנות",
     "filesCount": "{count} קבצים",
-    "goToAgents": "מעבר ל-Agents",
     "horizontal": "אופקי",
     "fieldsCount": "שדה {count} | {count} שדות",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "ייצוא הנתונים נכשל!",
       "fieldHeaderVisibilityUpdateFailed": "אירעה שגיאה בעדכון הנראות של כותרת השדה",
       "appBuildFailed": "לא ניתן היה להתחיל את בניית האפליקציה",
-      "chatAttachmentLimit": "לכל היותר {n} קבצים בהודעה",
       "marketplaceLoadFailed": "לא ניתן היה לטעון את החנות",
       "marketplaceHandleTaken": "המזהה הזה כבר תפוס",
       "marketplaceHandleReserved": "המזהה הזה שמור",

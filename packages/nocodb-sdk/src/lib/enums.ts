@@ -340,7 +340,6 @@ export enum AppEvents {
   ACTION_CREATE = 'action.create',
   ACTION_UPDATE = 'action.update',
   ACTION_DELETE = 'action.delete',
-  ACTION_ROLLOUT = 'action.rollout',
   ACTION_INVOKE = 'action.invoke',
   // App -> workspace-integration access. Named for routines historically; it is
   // the integration grant channel and has nothing to do with the retired

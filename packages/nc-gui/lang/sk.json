@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Automaticky navrhovať akcie",
     "backToPage": "Späť na {page}",
     "availableLayouts": "Dostupné layouty",
-    "backToAssistant": "Späť na asistenta",
     "barOrientation": "Orientácia stĺpcov",
     "baseNav": {
       "groupInvite": "Pozvať",
@@ -3284,7 +3283,6 @@
     "installingApp": "Vytvárame vašu bázu",
     "installedSkills": "Nainštalované Skills",
     "filesCount": "{count} súborov",
-    "goToAgents": "Prejsť na Agents",
     "horizontal": "Vodorovne",
     "fieldsCount": "{count} pole | {count} polí",
     "environmentStaging": "Staging",
@@ -5404,7 +5402,6 @@
       "dataExportFailed": "Export údajov zlyhal!",
       "fieldHeaderVisibilityUpdateFailed": "Pri aktualizácii viditeľnosti hlavičky poľa došlo k chybe",
       "appBuildFailed": "Zostavenie aplikácie sa nepodarilo spustiť",
-      "chatAttachmentLimit": "Najviac {n} súborov na správu",
       "marketplaceLoadFailed": "Obchod sa nepodarilo načítať",
       "marketplaceHandleTaken": "Tento identifikátor je už obsadený",
       "marketplaceHandleReserved": "Tento identifikátor je rezervovaný",

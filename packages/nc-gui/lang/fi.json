@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Ehdota toimintoja automaattisesti",
     "backToPage": "Takaisin sivulle {page}",
     "availableLayouts": "Käytettävissä olevat layoutit",
-    "backToAssistant": "Takaisin avustajaan",
     "barOrientation": "Palkkien suunta",
     "baseNav": {
       "groupInvite": "Kutsu",
@@ -3285,7 +3284,6 @@
     "installingApp": "Luodaan baseasi",
     "installedSkills": "Asennetut Skills",
     "filesCount": "{count} tiedostoa",
-    "goToAgents": "Siirry Agents-näkymään",
     "horizontal": "Vaakasuora",
     "fieldsCount": "{count} kenttä | {count} kenttää",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "Tietojen vienti epäonnistui!",
       "fieldHeaderVisibilityUpdateFailed": "Kentän otsikon näkyvyyden päivittämisessä tapahtui virhe",
       "appBuildFailed": "Sovelluksen koostamista ei voitu käynnistää",
-      "chatAttachmentLimit": "Enintään {n} tiedostoa viestiä kohti",
       "marketplaceLoadFailed": "Kauppaa ei voitu ladata",
       "marketplaceHandleTaken": "Tämä tunnus on jo käytössä",
       "marketplaceHandleReserved": "Tämä tunnus on varattu",

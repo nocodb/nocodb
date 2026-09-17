@@ -84,9 +84,7 @@ export enum JobTypes {
   HookErrorNotification = 'hook-error-notification',
   WorkflowDraftReminder = 'workflow-draft-reminder',
   ChatMessage = 'chat-message',
-  AgentRun = 'agent-run',
   AgentCronSchedule = 'agent-cron-schedule',
-  AgentApproval = 'agent-approval',
   ChatApproval = 'chat-approval',
   BaseTrashCleanUp = 'base-trash-clean-up',
   DataImport = 'data-import',
@@ -128,9 +126,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.HookErrorNotification,
   JobTypes.WorkflowDraftReminder,
   JobTypes.ChatMessage,
-  JobTypes.AgentRun,
   JobTypes.AgentCronSchedule,
-  JobTypes.AgentApproval,
   JobTypes.ChatApproval,
   JobTypes.MailDispatch,
   JobTypes.MailOutboxRecovery,
@@ -158,6 +154,8 @@ export const JobVersions: {
   [key in JobTypes]?: number;
 } = {
   [JobTypes.InitMigrationJobs]: 2,
+  [JobTypes.ChatMessage]: 2,
+  [JobTypes.ChatApproval]: 2,
 };
 
 export const JOB_REQUEUED = 'job.requeued';
@@ -194,8 +192,6 @@ export enum InstanceCommands {
   STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
   ABORT_CHAT_STREAM = 'abortChatStream',
   ABORT_CHAT_STREAM_ACK = 'abortChatStreamAck',
-  ABORT_AGENT_RUN = 'abortAgentRun',
-  ABORT_AGENT_RUN_ACK = 'abortAgentRunAck',
 }
 
 export interface JobData {
@@ -476,6 +472,10 @@ export interface PollWorkflowJobData extends JobData {
 
 export interface ChatMessageJobData extends JobData {
   sessionId: string;
+  /** Set when the session belongs to an agent — the turn runs as that agent. */
+  agentId?: string;
+  /** A trigger started this turn: nobody to stream to, so frames go to the base room. */
+  triggered?: boolean;
   firstUserMessage?: string;
   approvals?: Record<string, 'approved' | 'denied'>;
   /** User's current UI navigation context (active table/view/dashboard/document). */
@@ -488,6 +488,8 @@ export interface ChatMessageJobData extends JobData {
 
 export interface ChatApprovalJobData extends JobData {
   sessionId: string;
+  agentId?: string;
+  triggered?: boolean;
   messageId: string;
   /**
    * How the user resolved each paused tool call. A bare 'approved'/'denied' for
@@ -518,30 +520,4 @@ export interface DataImportJobData extends JobData {
   parserConfig: FileImportParserConfig;
   options: FileImportOptions;
   req: NcRequest;
-}
-
-/** One agent turn: an interactive message, or a whole triggered run. */
-
-export interface AgentRunJobData extends JobData {
-  agentId: string;
-  sessionId: string;
-  /** Present on the first turn of a session — used to auto-title it. */
-  firstUserMessage?: string;
-  /** True when a trigger started this, so there is no UI to stream to. */
-  triggered?: boolean;
-}
-
-/** Resume a paused agent turn — same decisions contract as ChatApproval. */
-export interface AgentApprovalJobData extends JobData {
-  agentId: string;
-  sessionId: string;
-  messageId: string;
-  decisions: Record<
-    string,
-    | 'approved'
-    | 'denied'
-    | { decision: 'approved' | 'denied'; input?: Record<string, any> }
-  >;
-  /** True when the paused session came from a trigger (no UI to stream to). */
-  triggered?: boolean;
 }

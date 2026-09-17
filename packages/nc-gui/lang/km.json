@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "ស្នើសកម្មភាពដោយស្វ័យប្រវត្តិ",
     "backToPage": "ត្រឡប់ទៅ {page}",
     "availableLayouts": "Layout ដែលអាចប្រើបាន",
-    "backToAssistant": "ត្រឡប់ទៅជំនួយការ",
     "barOrientation": "ទិសដៅរបស់របារ",
     "baseNav": {
       "groupInvite": "អញ្ជើញ",
@@ -3265,7 +3264,6 @@
     "installingApp": "កំពុងបង្កើតមូលដ្ឋានរបស់អ្នក",
     "installedSkills": "Skills ដែលបានដំឡើង",
     "filesCount": "{count} ឯកសារ",
-    "goToAgents": "ទៅកាន់ Agents",
     "horizontal": "ផ្តេក",
     "fieldsCount": "{count} វាល | {count} វាល",
     "environmentStaging": "Staging",
@@ -5384,7 +5382,6 @@
       "dataExportFailed": "នាំចេញទិន្នន័យមិនបានសម្រេច!",
       "fieldHeaderVisibilityUpdateFailed": "មានកំហុសពេលធ្វើបច្ចុប្បន្នភាពការបង្ហាញក្បាលវាល",
       "appBuildFailed": "មិនអាចចាប់ផ្ដើមសាងសង់កម្មវិធីបានទេ",
-      "chatAttachmentLimit": "ច្រើនបំផុត {n} ឯកសារក្នុងមួយសារ",
       "marketplaceLoadFailed": "មិនអាចផ្ទុកហាងបានទេ",
       "marketplaceHandleTaken": "ឈ្មោះកំណត់នេះមានអ្នកយករួចហើយ",
       "marketplaceHandleReserved": "ឈ្មោះកំណត់នេះត្រូវបានបម្រុងទុក",

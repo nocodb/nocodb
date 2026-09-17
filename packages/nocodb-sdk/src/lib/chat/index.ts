@@ -51,7 +51,29 @@ export enum ChatToolCallStatus {
   DENIED = 'denied',
 }
 
+/**
+ * Where a session stands. A person's conversation (`trigger_type = 'chat'`)
+ * stays open across turns and this reflects its latest one; a triggered firing
+ * is one session that opens, runs and closes.
+ */
+export enum ChatSessionStatus {
+  ACTIVE = 'active',
+  IN_PROGRESS = 'in_progress',
+  /** Parked on a tool approval, for as long as the person takes. */
+  WAITING = 'waiting',
+  SUCCESS = 'success',
+  ERROR = 'error',
+  CANCELLED = 'cancelled',
+}
+
+/** `trigger_type` of a session a person started, as opposed to a trigger node. */
+export const CHAT_TRIGGER_TYPE = 'chat';
+
 export interface ChatSessionMetaType {
+  trigger?: {
+    payload?: Record<string, any>;
+    depth?: number;
+  };
   turnSummaries?: Array<{
     agent: string;
     summary: string;
@@ -60,6 +82,20 @@ export interface ChatSessionMetaType {
   }>;
   /** The session's paused compute instance, resumed by the next turn. */
   computeId?: string;
+  /**
+   * The app-build sandbox running RIGHT NOW, so a Stop on any instance can kill
+   * it by id. Separate from `computeId`, which is the chat analyst's PAUSED
+   * compute — a build session can run a chat turn concurrently.
+   */
+  buildComputeId?: string;
+  /** Set by a user Stop, so the build turn reports "stopped", not "failed". */
+  buildAborted?: boolean;
+  /**
+   * Hash of the `nocodb_agent` prompt currently running. A tunnel blip can make
+   * the sandbox re-send an identical request; without this the same schema
+   * mutation would be applied twice.
+   */
+  buildSchemaPromptHash?: string;
   /** @deprecated `computeId` since the AI layer stopped calling it a sandbox.
    *  Read-only, so sessions paused before the rename still resolve. */
   sandboxId?: string;
@@ -88,7 +124,13 @@ export interface ChatSessionType {
   title?: string;
   fk_workspace_id: string;
   base_id: string;
+  /** Absent on a triggered session — nobody started it. */
   fk_user_id?: string;
+  /** The agent this session belongs to; absent means the assistant. */
+  fk_agent_id?: string | null;
+  /** `'chat'` for a person; a trigger node id for a firing. */
+  trigger_type?: string;
+  status?: ChatSessionStatus;
   summary?: string;
   total_input_tokens?: number;
   total_output_tokens?: number;
@@ -120,10 +162,30 @@ export interface ChatToolMetadata {
   columnModelMap?: Record<string, string>;
   /** Web search/scrape results for ThinkingSection rendering */
   webResults?: WebSearchResultMeta[];
+  /**
+   * A write's before-state: the touched fields as they were, or the deleted
+   * rows.
+   */
+  previous?: Array<{
+    id: string | number;
+    id_fields?: Record<string, unknown>;
+    fields: Record<string, unknown>;
+  }>;
 }
 
 export type ChatContentBlock =
-  | { type: 'text'; text: string }
+  | {
+      type: 'text';
+      text: string;
+      visibility?: ChatToolVisibility;
+      agent?: string;
+    }
+  | {
+      /** The model's reasoning for a step, kept with the turn; never shown or replayed. */
+      type: 'reasoning';
+      text: string;
+      agent?: string;
+    }
   | {
       type: 'tool_use';
       id: string;
@@ -248,11 +310,25 @@ export interface ChatUIContext {
   buildScope?: BuildScope;
 }
 
+/**
+ * How the user resolved a paused tool call. A bare `'approved'`/`'denied'` for
+ * an approval gate (dangerous tools); the object form also carries `input` to
+ * merge into the tool's arguments on resume (input tools like `import_file`,
+ * whose card returns a config). One shape for both, so every approval and
+ * input feature rides the same resume path.
+ */
+export type ChatApprovalDecision =
+  | 'approved'
+  | 'denied'
+  | { decision: 'approved' | 'denied'; input?: Record<string, unknown> };
+
 export interface ChatSendMessageType {
   content: string;
   files?: ChatAttachmentType[];
   approvals?: Record<string, 'approved' | 'denied'>;
   title?: string;
+  /** New sessions only: the agent to chat with. An existing session keeps its agent. */
+  agentId?: string;
   /** The user's current UI navigation context (active table/view/dashboard/document). */
   uiContext?: ChatUIContext;
   /** Entities the user @-mentioned in this message. Resolved server-side by id. */

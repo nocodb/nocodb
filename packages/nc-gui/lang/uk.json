@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Автоматично пропонувати дії",
     "backToPage": "Назад до {page}",
     "availableLayouts": "Доступні макети",
-    "backToAssistant": "Назад до асистента",
     "barOrientation": "Орієнтація стовпчиків",
     "baseNav": {
       "groupInvite": "Запросити",
@@ -3285,7 +3284,6 @@
     "installingApp": "Створюємо вашу базу",
     "installedSkills": "Встановлені Skills",
     "filesCount": "{count} файлів",
-    "goToAgents": "Перейти до Agents",
     "horizontal": "Горизонтально",
     "fieldsCount": "{count} поле | {count} полів",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "Не вдалося експортувати дані!",
       "fieldHeaderVisibilityUpdateFailed": "Під час оновлення видимості заголовка поля сталася помилка",
       "appBuildFailed": "Не вдалося запустити збирання застосунку",
-      "chatAttachmentLimit": "Не більше {n} файлів у повідомленні",
       "marketplaceLoadFailed": "Не вдалося завантажити магазин",
       "marketplaceHandleTaken": "Цей ідентифікатор уже зайнято",
       "marketplaceHandleReserved": "Цей ідентифікатор зарезервовано",

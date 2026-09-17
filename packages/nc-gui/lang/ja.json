@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "アクションを自動で提案",
     "backToPage": "{page} に戻る",
     "availableLayouts": "利用できる Layout",
-    "backToAssistant": "アシスタントに戻る",
     "barOrientation": "棒の向き",
     "baseNav": {
       "groupInvite": "招待",
@@ -3285,7 +3284,6 @@
     "installingApp": "ベースを作成しています",
     "installedSkills": "インストール済みの Skills",
     "filesCount": "{count} 件のファイル",
-    "goToAgents": "Agents へ移動",
     "horizontal": "横",
     "fieldsCount": "{count} 件のフィールド | {count} 件のフィールド",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "データをエクスポートできませんでした。",
       "fieldHeaderVisibilityUpdateFailed": "フィールドヘッダーの表示設定の更新中にエラーが発生しました",
       "appBuildFailed": "アプリのビルドを開始できませんでした",
-      "chatAttachmentLimit": "1メッセージにつき最大 {n} ファイルです",
       "marketplaceLoadFailed": "ストアを読み込めませんでした",
       "marketplaceHandleTaken": "このハンドルはすでに使われています",
       "marketplaceHandleReserved": "このハンドルは予約されています",

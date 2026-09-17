@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "پیشنهاد خودکار کنش‌ها",
     "backToPage": "بازگشت به {page}",
     "availableLayouts": "چیدمان‌های در دسترس",
-    "backToAssistant": "بازگشت به دستیار",
     "barOrientation": "جهت میله‌ها",
     "baseNav": {
       "groupInvite": "دعوت",
@@ -3285,7 +3284,6 @@
     "installingApp": "در حال ساخت پایگاه شما",
     "installedSkills": "Skills نصب‌شده",
     "filesCount": "{count} فایل",
-    "goToAgents": "رفتن به Agents",
     "horizontal": "افقی",
     "fieldsCount": "{count} فیلد | {count} فیلد",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "خروجی گرفتن از داده‌ها ناموفق بود!",
       "fieldHeaderVisibilityUpdateFailed": "هنگام به‌روزرسانی نمایان بودن سرستون فیلد خطایی رخ داد",
       "appBuildFailed": "ساخت برنامه شروع نشد",
-      "chatAttachmentLimit": "حداکثر {n} فایل در هر پیام",
       "marketplaceLoadFailed": "فروشگاه بارگذاری نشد",
       "marketplaceHandleTaken": "این شناسه پیش‌تر گرفته شده است",
       "marketplaceHandleReserved": "این شناسه رزرو شده است",

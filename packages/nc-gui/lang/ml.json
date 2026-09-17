@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "പ്രവർത്തനങ്ങൾ സ്വയം നിർദേശിക്കുക",
     "backToPage": "{page} എന്നതിലേക്ക് മടങ്ങുക",
     "availableLayouts": "ലഭ്യമായ Layout",
-    "backToAssistant": "സഹായിയിലേക്ക് മടങ്ങുക",
     "barOrientation": "ബാറുകളുടെ ദിശ",
     "baseNav": {
       "groupInvite": "ക്ഷണിക്കുക",
@@ -3285,7 +3284,6 @@
     "installingApp": "നിങ്ങളുടെ ബേസ് സൃഷ്ടിക്കുന്നു",
     "installedSkills": "ഇൻസ്റ്റാൾ ചെയ്ത Skills",
     "filesCount": "{count} ഫയലുകൾ",
-    "goToAgents": "Agents ലേക്ക് പോകുക",
     "horizontal": "തിരശ്ചീനം",
     "fieldsCount": "{count} ഫീൽഡ് | {count} ഫീൽഡുകൾ",
     "environmentStaging": "Staging",
@@ -5405,7 +5403,6 @@
       "dataExportFailed": "ഡാറ്റ കയറ്റുമതി ചെയ്യാനായില്ല!",
       "fieldHeaderVisibilityUpdateFailed": "ഫീൽഡ് തലക്കെട്ടിന്റെ ദൃശ്യത പുതുക്കുമ്പോൾ പിശക് സംഭവിച്ചു",
       "appBuildFailed": "ആപ്പ് ബിൽഡ് തുടങ്ങാനായില്ല",
-      "chatAttachmentLimit": "ഒരു സന്ദേശത്തിന് പരമാവധി {n} ഫയലുകൾ",
       "marketplaceLoadFailed": "സ്റ്റോർ ലോഡ് ചെയ്യാനായില്ല",
       "marketplaceHandleTaken": "ഈ ഹാൻഡിൽ ഇതിനകം എടുത്തിട്ടുണ്ട്",
       "marketplaceHandleReserved": "ഈ ഹാൻഡിൽ നീക്കിവെച്ചിരിക്കുന്നു",

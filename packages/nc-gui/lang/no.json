@@ -2835,7 +2835,6 @@
     "autoSuggestActions": "Foreslå handlinger automatisk",
     "backToPage": "Tilbake til {page}",
     "availableLayouts": "Tilgjengelige layouter",
-    "backToAssistant": "Tilbake til assistenten",
     "barOrientation": "Retning på stolpene",
     "baseNav": {
       "groupInvite": "Inviter",
@@ -3284,7 +3283,6 @@
     "installingApp": "Oppretter basen din",
     "installedSkills": "Installerte Skills",
     "filesCount": "{count} filer",
-    "goToAgents": "Gå til Agents",
     "horizontal": "Vannrett",
     "fieldsCount": "{count} felt | {count} felter",
     "environmentStaging": "Staging",
@@ -5401,7 +5399,6 @@
       "dataExportFailed": "Eksport av data mislyktes!",
       "fieldHeaderVisibilityUpdateFailed": "Det oppstod en feil under oppdatering av synligheten til feltoverskriften",
       "appBuildFailed": "Kunne ikke starte byggingen av appen",
-      "chatAttachmentLimit": "Høyst {n} filer per melding",
       "marketplaceLoadFailed": "Kunne ikke laste butikken",
       "marketplaceHandleTaken": "Dette handle-navnet er allerede tatt",
       "marketplaceHandleReserved": "Dette handle-navnet er reservert",

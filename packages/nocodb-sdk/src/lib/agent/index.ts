@@ -2,9 +2,6 @@ import { ProjectRoles } from '~/lib/enums';
 import type { AgentChannelType } from './channel';
 import type { SkillType } from '../skill';
 
-export * from './message';
-export * from './session';
-
 /**
  * An agent's whole behaviour, in one place. There is no second copy and no
  * publish step: what you edit is what runs on the next turn or trigger.

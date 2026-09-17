@@ -1,9 +1,9 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   // Create sandboxes table for development environment feature
-  await knex.schema.createTable('nc_sandboxes_v2', (table) => {
+  await knex.schema.createTable(MetaTableOldV2.SANDBOXES_V2, (table) => {
     table.string('id', 20).primary();
     table.string('fk_workspace_id', 20).notNullable();
 
@@ -59,7 +59,7 @@ const down = async (knex: Knex) => {
   });
 
   // Drop sandboxes table
-  await knex.schema.dropTable('nc_sandboxes_v2');
+  await knex.schema.dropTable(MetaTableOldV2.SANDBOXES_V2);
 };
 
 export { up, down };

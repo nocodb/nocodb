@@ -1150,7 +1150,11 @@
       "other": "Sonstiges"
     },
     "agent": "Agent",
-    "agents": "Agenten"
+    "agents": "Agenten",
+    "scope": "Geltungsbereich",
+    "scopes": "Geltungsbereiche",
+    "tool": "Werkzeug",
+    "tools": "Werkzeuge"
   },
   "datatype": {
     "ID": "ID",

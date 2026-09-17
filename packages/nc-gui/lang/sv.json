@@ -257,8 +257,47 @@
       "workspaceMembers": "Medlemmar i arbetsytan",
       "audit": "Arbetsytans granskning",
       "ltarCustomDisplayValue": "Anpassat visningsvärde fält",
-      "publicDocShare": "Offentlig dokumentdelning"
-    }
+      "publicDocShare": "Offentlig dokumentdelning",
+      "agents": "Agenter"
+    },
+    "upgradeToSortAndLimitLookupValues": "Uppgradera till {plan}-planen för att sortera och begränsa värdena som visas i ett Lookup-fält.",
+    "upgradeToAddMoreAgents": "Uppgradera för att lägga till fler agenter",
+    "upgradeToAddMoreAgentsSubtitle": "Du har just nu {activePlan}-planen, som tillåter {limit} agenter per arbetsyta. Uppgradera till {plan} för fler.",
+    "upgradeToAddMoreInterfaces": "Uppgradera för att lägga till fler Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Du har just nu {activePlan}-planen, som tillåter {limit} Interfaces per arbetsyta. Uppgradera till {plan} för fler.",
+    "upgradeToAddMoreInterfacePages": "Uppgradera för att lägga till fler sidor",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Du har just nu {activePlan}-planen, som tillåter {limit} sidor per Interface. Uppgradera till {plan} för obegränsat antal sidor.",
+    "upgradeToUseTrashSettings": "Uppgradera för att konfigurera papperskorgsinställningar",
+    "upgradeToUseTrashSettingsSubtitle": "Uppgradera till {plan}-planen för att konfigurera papperskorgsinställningar per tabell.",
+    "upgradeToAttachFilesToComments": "Uppgradera för att bifoga filer i kommentarer",
+    "upgradeToAttachFilesToCommentsSubtitle": "Uppgradera till {plan}-planen för att bifoga bilder och filer i kommentarer på poster.",
+    "upgradeToUseToggleSort": "Uppgradera för att slå på och av enskilda sorteringar",
+    "upgradeToUseToggleSortSubtitle": "Uppgradera till {plan}-planen för att aktivera eller inaktivera enskilda sorteringar utan att ta bort dem, så att du får mer kontroll över dina vyer.",
+    "upgradeToUseViewFolders": "Uppgradera för att använda vymappar",
+    "upgradeToUseViewFoldersSubtitle": "Uppgradera till {plan}-planen för att organisera vyer i mappar.",
+    "upgradeToAccessViewFoldersSubtitle": "Uppgradera till {plan}-planen för att organisera vyer i mappar.",
+    "upgradeToUseFolders": "Uppgradera för att använda mappar",
+    "upgradeToUseFoldersSubtitle": "Uppgradera till {plan}-planen för att organisera tabeller, dokument och Dashboards i mappar.",
+    "upgradeToAccessFoldersSubtitle": "Uppgradera till {plan}-planen för att organisera tabeller, dokument och Dashboards i mappar.",
+    "upgradeToUseCustomSync": "Uppgradera för att använda egen Sync",
+    "upgradeToUseCustomSyncSubtitle": "Uppgradera till {plan}-planen för att synkronisera data från andra datakällor.",
+    "upgradeToUseAutomaticSyncSubtitle": "Uppgradera till {plan}-planen för att hålla speglade tabeller automatiskt synkroniserade i realtid.",
+    "upgradeToUseEnvironments": "Uppgradera för att använda miljöer",
+    "upgradeToUseEnvironmentsSubtitle": "Miljöer finns i {plan}-planen och uppåt.",
+    "upgradeToPlanForFeature": "Uppgradera till {plan}-planen {detail}",
+    "runAutomationFromInterfaceButtonDetail": "för att köra automatiseringar från Interface-knappar.",
+    "addonFeatureTitle": "Finns som {addon}-Add-on",
+    "addonFeatureSubtitle": "{addon} finns som ett betalt Add-on i {plan}-planen eller högre. Kontakta oss för att aktivera det.",
+    "toAccessCopyViewConfigFromAnotherView": "för att få tillgång till att kopiera vyinställningar från en annan vy.",
+    "toAccessReassignPersonalView": "för att få tillgång till att tilldela om personliga vyer.",
+    "toAccessAssignAsPersonalView": "för att få tillgång till att tilldela som personlig vy.",
+    "toAccessCardFieldHeaderVisibility": "för att få tillgång till synlighet för fältrubriker på kort.",
+    "upgradeToUseStagingEnvironment": "Uppgradera för att använda Staging-miljön",
+    "upgradeToUseStagingEnvironmentSubtitle": "Din {activePlan}-plan innehåller bara Production-miljön. Uppgradera till {plan} för att använda Staging.",
+    "upgradeToUsePerUserCredentials": "Uppgradera för att använda inloggningsuppgifter per användare",
+    "upgradeToUsePerUserCredentialsSubtitle": "Din {activePlan}-plan använder bara delade inloggningsuppgifter. Uppgradera till {plan} så att varje medlem kan koppla sitt eget konto.",
+    "upgradeToUseCustomEnvironments": "Uppgradera för att skapa egna miljöer",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Egna miljöer finns inte i din {activePlan}-plan. Uppgradera till {plan} för att skapa miljöer utöver Production och Staging."
   },
   "general": {
     "scrollToBottom": "Rulla till botten",
@@ -6340,7 +6379,80 @@
         "description": "Åtgärder är det arbetsflödet faktiskt gör när utlösaren slår till."
       },
       "chooseTable": {
-        "description": "Varje åtgärd behöver veta vad den arbetar med. Välj tabellen som poster ska hämtas från."
+        "description": "Varje åtgärd behöver veta vad den arbetar med. Välj tabellen som poster ska hämtas från.",
+        "title": "Välj en tabell"
+      },
+      "title": "Bygg ditt första Workflow",
+      "overview": {
+        "title": "Bygg ett Workflow från början till slut",
+        "description": "Skapa det, välj en utlösare, lägg till en åtgärd, publicera, slå på det och se det sedan köra."
+      },
+      "create": {
+        "title": "Skapa ett Workflow",
+        "description": "Börja från början — det här öppnar ett kort formulär."
+      },
+      "createSubmit": {
+        "title": "Skapa det",
+        "description": "Det här tar dig direkt in på arbetsytan."
+      },
+      "pickManualTrigger": {
+        "title": "Välj \"När den utlöses manuellt\"",
+        "description": "Den här utlöser du själv, så du kan få resten att fungera innan du kopplar den till riktiga händelser."
+      },
+      "testTrigger": {
+        "title": "Testa utlösaren",
+        "description": "Kör den en gång och titta på data den producerar. Alla senare steg bygger på det här resultatet."
+      },
+      "pickListRecords": {
+        "title": "Välj \"Lista poster\"",
+        "description": "Den bara läser, så du kan köra den hur ofta du vill utan att ändra några data."
+      },
+      "testAction": {
+        "title": "Testa åtgärden också",
+        "description": "Varje nod testas för sig. Bekräfta att den här returnerar det du förväntar dig innan du publicerar."
+      },
+      "publish": {
+        "title": "Publicera dina ändringar",
+        "description": "Ändringar sparas som ett <b>utkast</b>. Det är publiceringen som gör den här versionen till den som körs."
+      },
+      "enable": {
+        "title": "Slå på det",
+        "description": "Publicerat är inte samma sak som igång. Ett Workflow förblir <b>Pausat</b> tills du slår på det — det är det här steget folk missar."
+      },
+      "run": {
+        "title": "Kör den en gång",
+        "description": "En manuell utlösare körs på begäran — testa den och se hur den körs."
+      },
+      "logs": {
+        "title": "Kolla loggarna",
+        "description": "Varje körning loggas här — vad som utlöstes, vad varje steg returnerade och vad som misslyckades."
+      },
+      "wrapUp": {
+        "title": "Det är hela varvet",
+        "description": "Utlösare, åtgärder, publicera, aktivera, köra, loggar. Varje Workflow du bygger härifrån följer samma form."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Hitta rätt i din arbetsyta",
+      "welcome": {
+        "title": "Välkommen till NocoDB",
+        "description": "Ett snabbt varv runt din arbetsyta. Du kan avsluta när som helst — tryck på Hoppa över."
+      },
+      "createBase": {
+        "title": "Börja med en Base",
+        "description": "En Base rymmer dina tabeller, vyer och automatiseringar. Det är här det mesta arbetet börjar."
+      },
+      "switchWorkspaces": {
+        "title": "Byt arbetsyta",
+        "description": "Varje arbetsyta du tillhör finns bakom den här väljaren. Öppna den för att se resten."
+      },
+      "moreWorkspaces": {
+        "title": "Fler än en arbetsyta",
+        "description": "Arbetsytor håller olika team och projekt åtskilda, var och en med sina egna medlemmar."
+      },
+      "account": {
+        "title": "Konto och inställningar",
+        "description": "Profil, tema, kortkommandon och kontoinställningar ligger alla bakom din avatar."
       }
     }
   }

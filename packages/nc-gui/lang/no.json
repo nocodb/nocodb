@@ -257,8 +257,47 @@
       "workspaceMembers": "Medlemmer i arbeidsområdet",
       "audit": "Revisjon av arbeidsområde",
       "ltarCustomDisplayValue": "Egendefinert visningsfelt",
-      "publicDocShare": "Offentlig dokumentdeling"
-    }
+      "publicDocShare": "Offentlig dokumentdeling",
+      "agents": "Agenter"
+    },
+    "upgradeToSortAndLimitLookupValues": "Oppgrader til {plan}-abonnementet for å sortere og begrense verdiene som vises i et Lookup-felt.",
+    "upgradeToAddMoreAgents": "Oppgrader for å legge til flere agenter",
+    "upgradeToAddMoreAgentsSubtitle": "Du har nå {activePlan}-abonnementet, som tillater {limit} agenter per arbeidsområde. Oppgrader til {plan} for å få flere.",
+    "upgradeToAddMoreInterfaces": "Oppgrader for å legge til flere Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Du har nå {activePlan}-abonnementet, som tillater {limit} Interfaces per arbeidsområde. Oppgrader til {plan} for å få flere.",
+    "upgradeToAddMoreInterfacePages": "Oppgrader for å legge til flere sider",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Du har nå {activePlan}-abonnementet, som tillater {limit} sider per Interface. Oppgrader til {plan} for ubegrenset antall sider.",
+    "upgradeToUseTrashSettings": "Oppgrader for å konfigurere papirkurvinnstillinger",
+    "upgradeToUseTrashSettingsSubtitle": "Oppgrader til {plan}-abonnementet for å konfigurere papirkurvinnstillinger per tabell.",
+    "upgradeToAttachFilesToComments": "Oppgrader for å legge ved filer i kommentarer",
+    "upgradeToAttachFilesToCommentsSubtitle": "Oppgrader til {plan}-abonnementet for å legge ved bilder og filer i kommentarer på poster.",
+    "upgradeToUseToggleSort": "Oppgrader for å slå enkeltsorteringer av og på",
+    "upgradeToUseToggleSortSubtitle": "Oppgrader til {plan}-abonnementet for å slå enkeltsorteringer av eller på uten å fjerne dem, slik at du får bedre kontroll over visningene dine.",
+    "upgradeToUseViewFolders": "Oppgrader for å bruke visningsmapper",
+    "upgradeToUseViewFoldersSubtitle": "Oppgrader til {plan}-abonnementet for å organisere visninger i mapper.",
+    "upgradeToAccessViewFoldersSubtitle": "Oppgrader til {plan}-abonnementet for å organisere visninger i mapper.",
+    "upgradeToUseFolders": "Oppgrader for å bruke mapper",
+    "upgradeToUseFoldersSubtitle": "Oppgrader til {plan}-abonnementet for å organisere tabeller, dokumenter og Dashboards i mapper.",
+    "upgradeToAccessFoldersSubtitle": "Oppgrader til {plan}-abonnementet for å organisere tabeller, dokumenter og Dashboards i mapper.",
+    "upgradeToUseCustomSync": "Oppgrader for å bruke egendefinert Sync",
+    "upgradeToUseCustomSyncSubtitle": "Oppgrader til {plan}-abonnementet for å synkronisere data fra andre datakilder.",
+    "upgradeToUseAutomaticSyncSubtitle": "Oppgrader til {plan}-abonnementet for å holde speilede tabeller automatisk synkronisert i sanntid.",
+    "upgradeToUseEnvironments": "Oppgrader for å bruke miljøer",
+    "upgradeToUseEnvironmentsSubtitle": "Miljøer er tilgjengelige fra {plan}-abonnementet og oppover.",
+    "upgradeToPlanForFeature": "Oppgrader til {plan}-abonnementet {detail}",
+    "runAutomationFromInterfaceButtonDetail": "for å kjøre automatiseringer fra Interface-knapper.",
+    "addonFeatureTitle": "Tilgjengelig som {addon}-Add-on",
+    "addonFeatureSubtitle": "{addon} er tilgjengelig som et betalt Add-on på {plan}-abonnementet eller høyere. Kontakt oss for å slå det på.",
+    "toAccessCopyViewConfigFromAnotherView": "for å få tilgang til å kopiere visningsoppsett fra en annen visning.",
+    "toAccessReassignPersonalView": "for å få tilgang til å tildele personlige visninger på nytt.",
+    "toAccessAssignAsPersonalView": "for å få tilgang til å tildele som personlig visning.",
+    "toAccessCardFieldHeaderVisibility": "for å få tilgang til synlighet for feltoverskrifter på kort.",
+    "upgradeToUseStagingEnvironment": "Oppgrader for å bruke Staging-miljøet",
+    "upgradeToUseStagingEnvironmentSubtitle": "{activePlan}-abonnementet ditt inneholder bare Production-miljøet. Oppgrader til {plan} for å bruke Staging.",
+    "upgradeToUsePerUserCredentials": "Oppgrader for å bruke påloggingsinformasjon per bruker",
+    "upgradeToUsePerUserCredentialsSubtitle": "{activePlan}-abonnementet ditt bruker bare delt påloggingsinformasjon. Oppgrader til {plan} slik at hvert medlem kan koble til sin egen konto.",
+    "upgradeToUseCustomEnvironments": "Oppgrader for å opprette egendefinerte miljøer",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Egendefinerte miljøer er ikke tilgjengelige på {activePlan}-abonnementet ditt. Oppgrader til {plan} for å opprette miljøer utover Production og Staging."
   },
   "general": {
     "scrollToBottom": "Rull til bunnen",
@@ -6341,7 +6380,80 @@
         "description": "Handlinger er det arbeidsflyten faktisk gjør når utløseren slår til."
       },
       "chooseTable": {
-        "description": "Hver handling må vite hva den jobber på. Velg tabellen det skal hentes poster fra."
+        "description": "Hver handling må vite hva den jobber på. Velg tabellen det skal hentes poster fra.",
+        "title": "Velg en tabell"
+      },
+      "title": "Bygg din første Workflow",
+      "overview": {
+        "title": "Bygg en Workflow fra start til slutt",
+        "description": "Opprett den, velg en utløser, legg til en handling, publiser, slå den på, og se den kjøre."
+      },
+      "create": {
+        "title": "Opprett en Workflow",
+        "description": "Start fra bunnen av — dette åpner et kort skjema."
+      },
+      "createSubmit": {
+        "title": "Opprett den",
+        "description": "Dette tar deg rett inn på lerretet."
+      },
+      "pickManualTrigger": {
+        "title": "Velg \"Når den utløses manuelt\"",
+        "description": "Denne utløser du selv, så du kan få resten til å virke før du kobler den til virkelige hendelser."
+      },
+      "testTrigger": {
+        "title": "Test utløseren",
+        "description": "Kjør den én gang og se på dataene den produserer. Alle senere steg bygger på dette resultatet."
+      },
+      "pickListRecords": {
+        "title": "Velg \"List opp poster\"",
+        "description": "Den bare leser, så du kan kjøre den så ofte du vil uten å endre data."
+      },
+      "testAction": {
+        "title": "Test handlingen også",
+        "description": "Hver node testes for seg. Bekreft at denne returnerer det du forventer før du publiserer."
+      },
+      "publish": {
+        "title": "Publiser endringene dine",
+        "description": "Endringer lagres som et <b>utkast</b>. Det er publiseringen som gjør denne versjonen til den som kjører."
+      },
+      "enable": {
+        "title": "Slå den på",
+        "description": "Publisert er ikke det samme som å kjøre. En Workflow forblir <b>Satt på pause</b> til du slår den på — det er dette steget folk overser."
+      },
+      "run": {
+        "title": "Kjør den én gang",
+        "description": "En manuell utløser kjører på forespørsel — prøv den, og se den bli utført."
+      },
+      "logs": {
+        "title": "Sjekk loggene",
+        "description": "Hver kjøring loggføres her — hva som utløste den, hva hvert steg returnerte, og hva som gikk galt."
+      },
+      "wrapUp": {
+        "title": "Det er hele runden",
+        "description": "Utløser, handlinger, publisere, slå på, kjøre, logger. Hver Workflow du bygger heretter følger samme form."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Finn fram i arbeidsområdet ditt",
+      "welcome": {
+        "title": "Velkommen til NocoDB",
+        "description": "En rask runde i arbeidsområdet ditt. Du kan avslutte når som helst — trykk Hopp over."
+      },
+      "createBase": {
+        "title": "Start med en Base",
+        "description": "En Base rommer tabellene, visningene og automatiseringene dine. Det er her det meste av arbeidet starter."
+      },
+      "switchWorkspaces": {
+        "title": "Bytt arbeidsområde",
+        "description": "Hvert arbeidsområde du tilhører ligger bak denne velgeren. Åpne den for å se resten."
+      },
+      "moreWorkspaces": {
+        "title": "Mer enn ett arbeidsområde",
+        "description": "Arbeidsområder holder ulike team og prosjekter atskilt, hvert med sine egne medlemmer."
+      },
+      "account": {
+        "title": "Konto og innstillinger",
+        "description": "Profil, tema, hurtigtaster og kontoinnstillinger ligger alle bak avataren din."
       }
     }
   }

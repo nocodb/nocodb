@@ -257,8 +257,47 @@
       "workspaceMembers": "Workspace Members",
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
-      "publicDocShare": "Public Document Sharing"
-    }
+      "publicDocShare": "Public Document Sharing",
+      "agents": "Agenti"
+    },
+    "upgradeToSortAndLimitLookupValues": "Ak chcete zoraďovať a obmedziť hodnoty zobrazené v poli Lookup, prejdite na plán {plan}.",
+    "upgradeToAddMoreAgents": "Prejdite na vyšší plán a pridajte ďalších agentov",
+    "upgradeToAddMoreAgentsSubtitle": "Máte plán {activePlan}, ktorý umožňuje {limit} agentov na pracovný priestor. Pre viac prejdite na {plan}.",
+    "upgradeToAddMoreInterfaces": "Prejdite na vyšší plán a pridajte ďalšie Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Máte plán {activePlan}, ktorý umožňuje {limit} Interfaces na pracovný priestor. Pre viac prejdite na {plan}.",
+    "upgradeToAddMoreInterfacePages": "Prejdite na vyšší plán a pridajte ďalšie stránky",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Máte plán {activePlan}, ktorý umožňuje {limit} stránok na Interface. Pre neobmedzený počet stránok prejdite na {plan}.",
+    "upgradeToUseTrashSettings": "Prejdite na vyšší plán a nastavte kôš",
+    "upgradeToUseTrashSettingsSubtitle": "Prejdite na plán {plan} a nastavte kôš zvlášť pre každú tabuľku.",
+    "upgradeToAttachFilesToComments": "Prejdite na vyšší plán a prikladajte súbory ku komentárom",
+    "upgradeToAttachFilesToCommentsSubtitle": "Prejdite na plán {plan} a prikladajte obrázky a súbory ku komentárom záznamov.",
+    "upgradeToUseToggleSort": "Prejdite na vyšší plán a prepínajte jednotlivé zoradenia",
+    "upgradeToUseToggleSortSubtitle": "Prejdite na plán {plan} a zapínajte či vypínajte jednotlivé zoradenia bez ich odstránenia — získate tak väčšiu kontrolu nad zobrazeniami.",
+    "upgradeToUseViewFolders": "Prejdite na vyšší plán a používajte priečinky zobrazení",
+    "upgradeToUseViewFoldersSubtitle": "Prejdite na plán {plan} a usporiadajte zobrazenia do priečinkov.",
+    "upgradeToAccessViewFoldersSubtitle": "Prejdite na plán {plan} a usporiadajte zobrazenia do priečinkov.",
+    "upgradeToUseFolders": "Prejdite na vyšší plán a používajte priečinky",
+    "upgradeToUseFoldersSubtitle": "Prejdite na plán {plan} a usporiadajte tabuľky, dokumenty a Dashboards do priečinkov.",
+    "upgradeToAccessFoldersSubtitle": "Prejdite na plán {plan} a usporiadajte tabuľky, dokumenty a Dashboards do priečinkov.",
+    "upgradeToUseCustomSync": "Prejdite na vyšší plán a používajte vlastný Sync",
+    "upgradeToUseCustomSyncSubtitle": "Prejdite na plán {plan} a synchronizujte údaje z ďalších zdrojov údajov.",
+    "upgradeToUseAutomaticSyncSubtitle": "Prejdite na plán {plan} a udržujte zrkadlené tabuľky automaticky synchronizované v reálnom čase.",
+    "upgradeToUseEnvironments": "Prejdite na vyšší plán a používajte prostredia",
+    "upgradeToUseEnvironmentsSubtitle": "Prostredia sú k dispozícii v pláne {plan} a vyššom.",
+    "upgradeToPlanForFeature": "Prejdite na plán {plan} {detail}",
+    "runAutomationFromInterfaceButtonDetail": "a spúšťajte automatizácie z tlačidiel Interface.",
+    "addonFeatureTitle": "K dispozícii ako Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} je k dispozícii ako platený Add-on v pláne {plan} a vyššom. Pre aktiváciu nás kontaktujte.",
+    "toAccessCopyViewConfigFromAnotherView": "a získajte kopírovanie konfigurácie z iného zobrazenia.",
+    "toAccessReassignPersonalView": "a získajte možnosť znova priradiť osobné zobrazenie.",
+    "toAccessAssignAsPersonalView": "a získajte funkciu priradenia ako osobné zobrazenie.",
+    "toAccessCardFieldHeaderVisibility": "a získajte nastavenie viditeľnosti hlavičiek polí na kartách.",
+    "upgradeToUseStagingEnvironment": "Prejdite na vyšší plán a používajte prostredie Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Váš plán {activePlan} zahŕňa len produkčné prostredie. Ak chcete používať Staging, prejdite na {plan}.",
+    "upgradeToUsePerUserCredentials": "Prejdite na vyšší plán a používajte prihlasovacie údaje pre každého používateľa",
+    "upgradeToUsePerUserCredentialsSubtitle": "Váš plán {activePlan} používa len zdieľané prihlasovacie údaje. Prejdite na {plan}, aby si každý člen mohol pripojiť vlastný účet.",
+    "upgradeToUseCustomEnvironments": "Prejdite na vyšší plán a vytvárajte vlastné prostredia",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Vlastné prostredia nie sú vo vašom pláne {activePlan} k dispozícii. Prejdite na {plan} a vytvárajte prostredia nad rámec Production a Staging."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -6345,7 +6384,80 @@
         "description": "Akcie sú to, čo pracovný postup naozaj urobí, keď sa spustí spúšťač."
       },
       "chooseTable": {
-        "description": "Každá akcia musí vedieť, s čím pracuje. Vyberte tabuľku, z ktorej sa budú vypisovať záznamy."
+        "description": "Každá akcia musí vedieť, s čím pracuje. Vyberte tabuľku, z ktorej sa budú vypisovať záznamy.",
+        "title": "Vyberte tabuľku"
+      },
+      "title": "Zostavte svoj prvý pracovný postup",
+      "overview": {
+        "title": "Zostaviť pracovný postup od začiatku do konca",
+        "description": "Vytvorte ho, vyberte spúšťač, pridajte akciu, publikujte, zapnite a potom sledujte, ako beží."
+      },
+      "create": {
+        "title": "Vytvorte pracovný postup",
+        "description": "Začnite od nuly — otvorí sa krátky formulár."
+      },
+      "createSubmit": {
+        "title": "Vytvoriť",
+        "description": "Tým sa dostanete rovno na plátno."
+      },
+      "pickManualTrigger": {
+        "title": "Vyberte „Pri ručnom spustení“",
+        "description": "Tento spúšťate sami, takže zvyšok môžete rozbehať skôr, než ho napojíte na skutočné udalosti."
+      },
+      "testTrigger": {
+        "title": "Otestujte spúšťač",
+        "description": "Spustite ho raz a pozrite sa na údaje, ktoré vytvorí. Každý ďalší krok stavia na tomto výstupe."
+      },
+      "pickListRecords": {
+        "title": "Vyberte „Vypísať záznamy“",
+        "description": "Len číta, takže ju môžete spúšťať, ako často chcete, bez toho, aby ste menili údaje."
+      },
+      "testAction": {
+        "title": "Otestujte aj akciu",
+        "description": "Každý uzol sa testuje samostatne. Pred publikovaním overte, že tento vracia to, čo očakávate."
+      },
+      "publish": {
+        "title": "Publikujte svoje zmeny",
+        "description": "Úpravy sa ukladajú ako <b>koncept</b>. Až publikovaním sa táto verzia stane tou, ktorá beží."
+      },
+      "enable": {
+        "title": "Zapnite ho",
+        "description": "Publikovaný neznamená bežiaci. Pracovný postup zostáva <b>Pozastavený</b>, kým ho nezapnete — práve tento krok sa často prehliadne."
+      },
+      "run": {
+        "title": "Spustite ho raz",
+        "description": "Ručný spúšťač sa spustí, kedykoľvek chcete — skúste to a sledujte priebeh."
+      },
+      "logs": {
+        "title": "Skontrolujte protokoly",
+        "description": "Každý beh sa zaznamenáva sem — čo sa spustilo, čo vrátil každý krok a čo zlyhalo."
+      },
+      "wrapUp": {
+        "title": "To je celý kolobeh",
+        "description": "Spúšťač, akcie, publikovanie, zapnutie, spustenie, protokoly. Každý ďalší pracovný postup, ktorý zostavíte, má rovnaký tvar."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Zorientujte sa vo svojom pracovnom priestore",
+      "welcome": {
+        "title": "Vitajte v NocoDB",
+        "description": "Rýchle kolečko po vašom pracovnom priestore. Kedykoľvek môžete skončiť — kliknite na Preskočiť."
+      },
+      "createBase": {
+        "title": "Začnite Bázou",
+        "description": "Báza obsahuje vaše tabuľky, zobrazenia a automatizácie. Tu sa začína väčšina práce."
+      },
+      "switchWorkspaces": {
+        "title": "Prepínajte pracovné priestory",
+        "description": "Každý pracovný priestor, do ktorého patríte, nájdete pod týmto prepínačom. Otvorte ho a uvidíte ostatné."
+      },
+      "moreWorkspaces": {
+        "title": "Viac než jeden pracovný priestor",
+        "description": "Pracovné priestory oddeľujú jednotlivé tímy a projekty, každý s vlastnými členmi."
+      },
+      "account": {
+        "title": "Účet a nastavenia",
+        "description": "Profil, vzhľad, klávesové skratky aj nastavenia účtu nájdete pod svojím avatarom."
       }
     }
   }

@@ -257,8 +257,47 @@
       "workspaceMembers": "Çalışma Alanı Üyeleri",
       "audit": "Çalışma Alanı Denetimi",
       "ltarCustomDisplayValue": "Özel Görüntüleme Değeri Alanı",
-      "publicDocShare": "Herkese Açık Belge Paylaşımı"
-    }
+      "publicDocShare": "Herkese Açık Belge Paylaşımı",
+      "agents": "Ajanlar"
+    },
+    "upgradeToSortAndLimitLookupValues": "Bir Lookup alanında gösterilen değerleri sıralamak ve sınırlamak için lütfen {plan} planına geçin.",
+    "upgradeToAddMoreAgents": "Daha fazla ajan eklemek için yükseltin",
+    "upgradeToAddMoreAgentsSubtitle": "Şu anda {activePlan} planındasınız; bu plan çalışma alanı başına {limit} ajana izin verir. Daha fazlası için {plan} planına geçin.",
+    "upgradeToAddMoreInterfaces": "Daha fazla Interface eklemek için yükseltin",
+    "upgradeToAddMoreInterfacesSubtitle": "Şu anda {activePlan} planındasınız; bu plan çalışma alanı başına {limit} Interface'e izin verir. Daha fazlası için {plan} planına geçin.",
+    "upgradeToAddMoreInterfacePages": "Daha fazla sayfa eklemek için yükseltin",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Şu anda {activePlan} planındasınız; bu plan Interface başına {limit} sayfaya izin verir. Sınırsız sayfa için {plan} planına geçin.",
+    "upgradeToUseTrashSettings": "Çöp kutusu ayarlarını yapılandırmak için yükseltin",
+    "upgradeToUseTrashSettingsSubtitle": "Tablo bazında çöp kutusu ayarlarını yapılandırmak için {plan} planına geçin.",
+    "upgradeToAttachFilesToComments": "Yorumlara dosya eklemek için yükseltin",
+    "upgradeToAttachFilesToCommentsSubtitle": "Kayıt yorumlarına görsel ve dosya eklemek için {plan} planına geçin.",
+    "upgradeToUseToggleSort": "Sıralamaları tek tek açıp kapatmak için yükseltin",
+    "upgradeToUseToggleSortSubtitle": "Sıralamaları kaldırmadan tek tek etkinleştirip devre dışı bırakmak ve görünümleriniz üzerinde daha fazla denetim sahibi olmak için {plan} planına geçin.",
+    "upgradeToUseViewFolders": "Görünüm klasörlerini kullanmak için yükseltin",
+    "upgradeToUseViewFoldersSubtitle": "Görünümleri klasörlerde düzenlemek için {plan} planına geçin.",
+    "upgradeToAccessViewFoldersSubtitle": "Görünümleri klasörlerde düzenlemek için {plan} planına geçin.",
+    "upgradeToUseFolders": "Klasörleri kullanmak için yükseltin",
+    "upgradeToUseFoldersSubtitle": "Tabloları, belgeleri ve Dashboards'u klasörlerde düzenlemek için {plan} planına geçin.",
+    "upgradeToAccessFoldersSubtitle": "Tabloları, belgeleri ve Dashboards'u klasörlerde düzenlemek için {plan} planına geçin.",
+    "upgradeToUseCustomSync": "Özel Sync kullanmak için yükseltin",
+    "upgradeToUseCustomSyncSubtitle": "Diğer veri kaynaklarından veri eşitlemek için {plan} planına geçin.",
+    "upgradeToUseAutomaticSyncSubtitle": "Yansıtılan tabloları gerçek zamanlı ve otomatik olarak eşitlemek için {plan} planına geçin.",
+    "upgradeToUseEnvironments": "Ortamları kullanmak için yükseltin",
+    "upgradeToUseEnvironmentsSubtitle": "Ortamlar {plan} planında ve üzerinde kullanılabilir.",
+    "upgradeToPlanForFeature": "{plan} planına geçin, {detail}",
+    "runAutomationFromInterfaceButtonDetail": "böylece Interface düğmelerinden otomasyon çalıştırabilirsiniz.",
+    "addonFeatureTitle": "{addon} Add-on olarak sunuluyor",
+    "addonFeatureSubtitle": "{addon}, {plan} planında ve üzerinde ücretli bir Add-on olarak sunulur. Etkinleştirmek için bizimle iletişime geçin.",
+    "toAccessCopyViewConfigFromAnotherView": "böylece başka bir görünümden görünüm yapılandırmasını kopyalayabilirsiniz.",
+    "toAccessReassignPersonalView": "böylece kişisel görünümleri yeniden atayabilirsiniz.",
+    "toAccessAssignAsPersonalView": "böylece kişisel görünüm olarak atama özelliğini kullanabilirsiniz.",
+    "toAccessCardFieldHeaderVisibility": "böylece kartlarda alan başlığı görünürlüğünü kullanabilirsiniz.",
+    "upgradeToUseStagingEnvironment": "Staging ortamını kullanmak için yükseltin",
+    "upgradeToUseStagingEnvironmentSubtitle": "{activePlan} planınız yalnızca Production ortamını içerir. Staging'i kullanmak için {plan} planına geçin.",
+    "upgradeToUsePerUserCredentials": "Kullanıcı başına kimlik bilgileri kullanmak için yükseltin",
+    "upgradeToUsePerUserCredentialsSubtitle": "{activePlan} planınız yalnızca paylaşılan kimlik bilgilerini kullanır. Her üyenin kendi hesabını bağlayabilmesi için {plan} planına geçin.",
+    "upgradeToUseCustomEnvironments": "Özel ortamlar oluşturmak için yükseltin",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Özel ortamlar {activePlan} planınızda bulunmuyor. Production ve Staging dışında ortamlar oluşturmak için {plan} planına geçin."
   },
   "general": {
     "scrollToBottom": "En alta kaydır",
@@ -6346,7 +6385,80 @@
         "description": "Eylemler, tetikleyici çalıştıktan sonra iş akışının asıl yaptığı şeydir."
       },
       "chooseTable": {
-        "description": "Her eylemin neyin üzerinde çalıştığını bilmesi gerekir. Kayıtların listeleneceği tabloyu seçin."
+        "description": "Her eylemin neyin üzerinde çalıştığını bilmesi gerekir. Kayıtların listeleneceği tabloyu seçin.",
+        "title": "Bir tablo seçin"
+      },
+      "title": "İlk iş akışınızı kurun",
+      "overview": {
+        "title": "Baştan sona bir iş akışı kurun",
+        "description": "Oluşturun, bir tetikleyici seçin, bir eylem ekleyin, yayımlayın, açın ve sonra çalışmasını izleyin."
+      },
+      "create": {
+        "title": "Bir iş akışı oluşturun",
+        "description": "Sıfırdan başlayın — bu, kısa bir form açar."
+      },
+      "createSubmit": {
+        "title": "Oluşturun",
+        "description": "Bu sizi doğrudan tuvale götürür."
+      },
+      "pickManualTrigger": {
+        "title": "\"Elle tetiklendiğinde\"yi seçin",
+        "description": "Bunu siz kendiniz tetiklersiniz; böylece gerçek olaylara bağlamadan önce geri kalanını çalışır hale getirebilirsiniz."
+      },
+      "testTrigger": {
+        "title": "Tetikleyiciyi test edin",
+        "description": "Bir kez çalıştırın ve ürettiği veriye bakın. Sonraki her adım bu çıktının üzerine kurulur."
+      },
+      "pickListRecords": {
+        "title": "\"Kayıtları listele\"yi seçin",
+        "description": "Yalnızca okuma yapar, bu yüzden hiçbir veriyi değiştirmeden istediğiniz kadar çalıştırabilirsiniz."
+      },
+      "testAction": {
+        "title": "Eylemi de test edin",
+        "description": "Her düğüm kendi başına test edilir. Yayımlamadan önce bunun beklediğiniz sonucu döndürdüğünü doğrulayın."
+      },
+      "publish": {
+        "title": "Değişikliklerinizi yayımlayın",
+        "description": "Düzenlemeler <b>taslak</b> olarak kaydedilir. Bu sürümün çalışan sürüm olmasını sağlayan şey yayımlamaktır."
+      },
+      "enable": {
+        "title": "Çalıştırmaya açın",
+        "description": "Yayımlanmış olmak, çalışıyor olmakla aynı şey değildir. Bir iş akışı siz etkinleştirene kadar <b>Duraklatıldı</b> kalır — bu, çoğu kişinin atladığı adımdır."
+      },
+      "run": {
+        "title": "Bir kez çalıştırın",
+        "description": "Elle tetikleyici istendiğinde çalışır — bir deneyin ve yürütülmesini izleyin."
+      },
+      "logs": {
+        "title": "Günlükleri kontrol edin",
+        "description": "Her çalıştırma burada kaydedilir — neyin tetiklendiği, her adımın ne döndürdüğü ve nelerin başarısız olduğu."
+      },
+      "wrapUp": {
+        "title": "Döngünün tamamı bu",
+        "description": "Tetikleyici, eylemler, yayımlama, etkinleştirme, çalıştırma, günlükler. Bundan sonra kuracağınız her iş akışı aynı biçimi izler."
+      }
+    },
+    "workspaceBasics": {
+      "title": "Çalışma alanınızda yolunuzu bulun",
+      "welcome": {
+        "title": "NocoDB'ye hoş geldiniz",
+        "description": "Çalışma alanınızda hızlı bir tur. İstediğiniz an çıkabilirsiniz — Atla'ya basın."
+      },
+      "createBase": {
+        "title": "Bir Base ile başlayın",
+        "description": "Bir Base; tablolarınızı, görünümlerinizi ve otomasyonlarınızı barındırır. İşlerin çoğu burada başlar."
+      },
+      "switchWorkspaces": {
+        "title": "Çalışma alanları arasında geçiş yapın",
+        "description": "Üyesi olduğunuz her çalışma alanı bu seçicinin arkasında. Diğerlerini görmek için açın."
+      },
+      "moreWorkspaces": {
+        "title": "Birden fazla çalışma alanı",
+        "description": "Çalışma alanları, farklı ekipleri ve projeleri birbirinden ayrı tutar; her birinin kendi üyeleri olur."
+      },
+      "account": {
+        "title": "Hesap ve ayarlar",
+        "description": "Profil, tema, klavye kısayolları ve hesap ayarlarının tümü avatarınızın arkasında."
       }
     }
   }

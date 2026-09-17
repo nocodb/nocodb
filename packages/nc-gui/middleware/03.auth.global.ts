@@ -195,8 +195,19 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     const cleanURL = new URL(window.location.href)
     cleanURL.searchParams.delete('short-token')
     cleanURL.searchParams.delete('continueAfterSignIn')
-    if (extraProps?.continueAfterSignIn) {
-      cleanURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+    // Legacy Google/GitHub sign-in (genTokenByCode) returns no `extra`, so the
+    // return target lives only in localStorage (persisted when the user first
+    // hit /signin). Restore it to the URL before the reload below — otherwise
+    // the reload wipes `isTokenUpdatedTab` and the redirect plugin, seeing
+    // neither the flag nor the query param, never navigates back to the gated
+    // page (e.g. a require-sign-in shared form). OIDC via this path keeps its
+    // `extra` precedence. Reject absolute/protocol-relative URLs to avoid an
+    // open redirect.
+    const continueAfterSignIn =
+      extraProps?.continueAfterSignIn ??
+      (typeof window !== 'undefined' ? window.localStorage.getItem('continueAfterSignIn') : null)
+    if (continueAfterSignIn && !/^(https?:)?\/\//.test(continueAfterSignIn)) {
+      cleanURL.searchParams.set('continueAfterSignIn', continueAfterSignIn)
     }
     window.history.pushState('object', document.title, cleanURL.toString())
     window.location.reload()

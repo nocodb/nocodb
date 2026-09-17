@@ -201,6 +201,9 @@ export enum PlanFeatureTypes {
   FEATURE_SKILLS_GOVERNANCE = 'feature_skills_governance',
   /** Org-scope skills, org policy over every workspace, inventory and load reporting. */
   FEATURE_SKILLS_ORG = 'feature_skills_org',
+
+  /** Shared form views can require the submitter to sign in. */
+  FEATURE_FORM_REQUIRE_SIGNIN = 'feature_form_require_signin',
 }
 
 export enum PlanAddonTypes {
@@ -606,6 +609,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to create custom environments.',
   [PlanFeatureTypes.FEATURE_PER_USER_CREDENTIALS]:
     'to let each user connect their own account.',
+  [PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN]:
+    'to require sign-in on shared forms.',
   [PlanFeatureTypes.FEATURE_INTERFACES]: 'to build interfaces.',
   [PlanFeatureTypes.FEATURE_INTERFACE_TABLE_MULTI_VIZ]:
     'to add multiple visualizations to an interface page.',

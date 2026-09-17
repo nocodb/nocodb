@@ -1,10 +1,12 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { ncIsObject } from 'nocodb-sdk';
 import type {
   AttachmentResType,
   BoolType,
   FormType,
   MetaType,
+  NcRequest,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { PresignedUrl } from '~/models';
@@ -340,6 +342,26 @@ export default class FormView implements FormViewType {
         NcError.get(context).badRequest(
           'This form is no longer accepting responses',
         );
+      }
+    }
+  }
+
+  static async validateRequireSignin(
+    context: NcContext,
+    viewId: string,
+    req: NcRequest,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const formView = await this.get(context, viewId, ncMeta);
+    if (!formView) return;
+
+    const meta = ncIsObject(formView.meta)
+      ? (formView.meta as Record<string, any>)
+      : {};
+
+    if (meta.require_signin) {
+      if (!req.user?.id || (req.user as any).roles?.guest) {
+        NcError.unauthorized('Sign-in required to submit this form');
       }
     }
   }

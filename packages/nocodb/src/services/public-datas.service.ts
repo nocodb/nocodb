@@ -703,6 +703,12 @@ export class PublicDatasService {
     // Check if form has started / expired
     await FormView.validateFormScheduling(context, view.id);
 
+    // Check if form requires sign-in. Must run BEFORE the anonymous-user
+    // attribution below — that block populates req.user with the anonymous
+    // service user, which would otherwise make the require-signin guard think
+    // the requester is authenticated and let anonymous submissions through.
+    await FormView.validateRequireSignin(context, view.id, param.req);
+
     // Public form submissions are unauthenticated by design (the public
     // controller runs no GlobalGuard), so req.user is empty and the resulting
     // DATA_INSERT / nested DATA_LINK audits would have a NULL actor. Attribute

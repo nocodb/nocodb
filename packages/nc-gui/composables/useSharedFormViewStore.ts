@@ -82,9 +82,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const formStartsAt = computed(() => (sharedFormView.value as any)?.starts_at || null)
 
+  const requireSignin = computed(() => {
+    const formMeta = parseProp(sharedFormView.value?.meta)
+    return !!formMeta?.require_signin
+  })
+
   const formResetHook = createEventHook<void>()
 
-  const { isMobileMode, appInfo } = useGlobal()
+  const { isMobileMode, appInfo, signedIn, user } = useGlobal()
 
   const { api, isLoading } = useApi()
 
@@ -1014,6 +1019,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isFormExpired,
     isFormNotStarted,
     formStartsAt,
+    requireSignin,
+    signedIn,
+    user,
     backgroundAndTextColor,
     draftWasRestored,
     draftRestoredAt,

@@ -149,10 +149,21 @@ const { state } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures, blockFormGridLayout } =
-  useEeConfig()
+const {
+  blockAddNewRecord,
+  blockFormRequireSignin,
+  showUpgradeToUseFormRequireSignin,
+  navigateToPricing,
+  getPlanTitle,
+  activePlan,
+  isWsOwner,
+  showEEFeatures,
+  blockFormGridLayout,
+} = useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
+
+const hasCreatedByField = computed(() => meta.value?.columns?.some((c) => c.uidt === UITypes.CreatedBy) ?? false)
 
 const isSidebarVisible = ref(ncIsPlaywright())
 
@@ -1784,6 +1795,20 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </div>
                       </div>
 
+                      <!-- Signed-in user indicator in form preview -->
+                      <div
+                        v-if="isEeUI && parseProp(formViewData?.meta)?.require_signin && user?.email"
+                        class="flex justify-end px-4 lg:px-6"
+                        data-testid="nc-form-preview-signin-banner"
+                      >
+                        <div
+                          class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border-1 border-nc-border-gray-medium text-nc-content-gray-subtle2 text-xs"
+                        >
+                          <GeneralIcon icon="account" class="w-3.5 h-3.5 flex-none" />
+                          <span class="truncate max-w-48">{{ user.email }}</span>
+                        </div>
+                      </div>
+
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
                       <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
                         <template v-for="formRow in rowsWithKey" :key="formRow._key">
@@ -2645,6 +2670,43 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @update:model-value="(val) => (formViewData!.email = val)"
                               @change="updateView"
                             />
+                          </div>
+
+                          <!-- See who submitted a response -->
+                          <div v-if="isEeUI" class="flex items-center justify-between gap-3">
+                            <div class="flex flex-col">
+                              <span>{{ $t('msg.info.seeWhoSubmitted') }}</span>
+                              <span
+                                class="text-xs text-nc-content-gray-subtle2"
+                              >
+                                {{
+                                  hasCreatedByField
+                                    ? $t('msg.info.seeWhoSubmittedSubtitle')
+                                    : $t('msg.info.seeWhoSubmittedDisabledHint')
+                                }}
+                              </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <PaymentUpgradeBadge
+                                :feature="PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN"
+                              />
+                              <a-switch
+                                v-e="[`a:form-view:require-signin`]"
+                                :checked="!!parseProp(formViewData.meta)?.require_signin"
+                                size="small"
+                                class="nc-form-checkbox-require-signin"
+                                data-testid="nc-form-checkbox-require-signin"
+                                :disabled="isLocked || !isEditable || !hasCreatedByField || blockFormRequireSignin"
+                                @change="(value: boolean) => {
+                                  if (blockFormRequireSignin) {
+                                    showUpgradeToUseFormRequireSignin()
+                                    return
+                                  }
+                                  (formViewData!.meta as Record<string,any>).require_signin = value
+                                  updateView()
+                                }"
+                              />
+                            </div>
                           </div>
                         </div>
 

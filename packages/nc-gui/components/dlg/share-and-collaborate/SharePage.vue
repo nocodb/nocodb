@@ -67,6 +67,12 @@ const isReadOnly = computed(() => {
   return isLocked.value || restrictedSharing.value
 })
 
+const isFormRequireSigninEnabled = computed(() => {
+  if (activeView.value?.type !== ViewTypes.FORM) return false
+  const formMeta = parseProp((activeView.value as any)?.view?.meta)
+  return !!formMeta?.require_signin
+})
+
 const url = computed(() => {
   return sharedViewUrl() ?? ''
 })
@@ -799,6 +805,16 @@ const copyCustomUrl = async (custUrl = '') => {
             </a-switch>
           </div>
         </div>
+
+        <!-- Info banner when require sign-in is enabled -->
+        <NcAlert
+          v-if="isFormRequireSigninEnabled"
+          type="info"
+          show-icon
+          class="mt-1"
+          :message="$t('msg.info.formRequiresSignin')"
+          data-testid="nc-share-form-require-signin-banner"
+        />
 
         <div
           v-if="activeView?.type === ViewTypes.FORM"

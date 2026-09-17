@@ -37,9 +37,6 @@ const {
   draftRestoredAt,
   discardDraft,
   dismissDraftBanner,
-  requireSignin,
-  signedIn,
-  user,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -297,20 +294,6 @@ const { message: templatedMessage } = useTemplatedMessage(
             <h1 class="text-2xl font-bold text-nc-content-gray-emphasis mb-4" data-testid="nc-survey-form__heading">
               {{ sharedFormView.heading }}
             </h1>
-
-            <!-- Signed-in user banner -->
-            <div
-              v-if="requireSignin && signedIn && user?.email"
-              class="flex justify-end mb-4"
-              data-testid="nc-shared-form-signin-banner"
-            >
-              <div
-                class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border-1 border-nc-border-gray-medium text-nc-content-gray-subtle2 text-xs"
-              >
-                <GeneralIcon icon="account" class="w-3.5 h-3.5 flex-none" />
-                <span class="truncate max-w-48">{{ user.email }}</span>
-              </div>
-            </div>
 
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
               <a-alert

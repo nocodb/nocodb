@@ -22,9 +22,6 @@ const {
   draftRestoredAt,
   discardDraft,
   dismissDraftBanner,
-  requireSignin,
-  signedIn,
-  user,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -143,20 +140,6 @@ const { message: templatedMessage } = useTemplatedMessage(
               read-only
               sync-value-change
             />
-          </div>
-        </div>
-
-        <!-- Signed-in user banner -->
-        <div
-          v-if="requireSignin && signedIn && user?.email"
-          class="flex justify-end"
-          data-testid="nc-shared-form-signin-banner"
-        >
-          <div
-            class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border-1 border-nc-border-gray-medium text-nc-content-gray-subtle2 text-xs"
-          >
-            <GeneralIcon icon="account" class="w-3.5 h-3.5 flex-none" />
-            <span class="truncate max-w-48">{{ user.email }}</span>
           </div>
         </div>
 

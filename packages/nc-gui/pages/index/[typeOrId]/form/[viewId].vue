@@ -14,7 +14,7 @@ const route = useRoute()
 
 const { isDark } = useTheme()
 
-const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError, requireSignin, signedIn } =
+const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError } =
   useProvideSharedFormStore(route.params.viewId as string)
 
 await loadSharedView()
@@ -36,31 +36,6 @@ if (!notFound.value) {
   }
 }
 
-const pendingSignin = ref(false)
-
-function openSigninPopup() {
-  pendingSignin.value = true
-
-  const w = 600
-  const h = 700
-  const left = (screen.width - w) / 2
-  const top = (screen.height - h) / 2
-
-  window.open(`/signin`, 'nc-signin-popup', `width=${w},height=${h},left=${left},top=${top}`)
-}
-
-// Open sign-in popup if form requires it and user is not signed in
-if (requireSignin.value && !signedIn.value) {
-  openSigninPopup()
-}
-
-// When signedIn changes to true (token set via popup), dismiss the pending state
-watch(signedIn, (val) => {
-  if (val && pendingSignin.value) {
-    pendingSignin.value = false
-  }
-})
-
 const form = reactive({
   password: '',
 })
@@ -80,23 +55,9 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
 <template>
   <div>
     <NuxtLayout>
-      <NuxtPage v-if="!passwordDlg && !pendingSignin && !notFound" />
+      <NuxtPage v-if="!passwordDlg && !notFound" />
 
       <GeneralPageDoesNotExist v-if="notFound" />
-
-      <!-- Sign-in required overlay -->
-      <div
-        v-if="pendingSignin"
-        class="nc-h-screen flex flex-col items-center justify-center gap-4 text-nc-content-gray"
-      >
-        <GeneralIcon icon="signin" class="w-8 h-8 text-nc-content-gray-subtle2" />
-        <div class="text-base font-semibold">
-          {{ $t('msg.info.formRequiresSignin') }}
-        </div>
-        <NcButton type="primary" size="small" data-testid="nc-shared-form-signin-btn" @click="openSigninPopup">
-          {{ $t('general.signIn') }}
-        </NcButton>
-      </div>
 
       <a-modal
         v-model:visible="passwordDlg"

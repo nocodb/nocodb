@@ -5337,6 +5337,7 @@
       "seeWhoSubmittedSubtitle": "Sign in to NocoDB required.",
       "seeWhoSubmittedDisabledHint": "Add a 'Created by' field to your table to enable this option.",
       "formRequiresSignin": "Accessing this form requires signing in to NocoDB.",
+      "switchAccount": "Switch account",
       "formDisplayMessage": "Display Message",
       "collabView": "All collaborators can edit the view configuration.",
       "lockedView": "No one can edit the view configuration until it is unlocked.",

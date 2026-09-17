@@ -257,8 +257,47 @@
       "workspaceMembers": "Члени робочої області",
       "audit": "Контроль робочої області",
       "ltarCustomDisplayValue": "Довільне значення поля дисплею",
-      "publicDocShare": "Спільний доступ до особистих документів"
-    }
+      "publicDocShare": "Спільний доступ до особистих документів",
+      "agents": "Агенти"
+    },
+    "upgradeToSortAndLimitLookupValues": "Щоб сортувати та обмежувати значення в полі Lookup, перейдіть на тариф {plan}.",
+    "upgradeToAddMoreAgents": "Перейдіть на вищий тариф, щоб додати більше Агентів",
+    "upgradeToAddMoreAgentsSubtitle": "Зараз у вас тариф {activePlan}, він дозволяє {limit} Агентів на робочу область. Перейдіть на {plan}, щоб їх було більше.",
+    "upgradeToAddMoreInterfaces": "Перейдіть на вищий тариф, щоб додати більше Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Зараз у вас тариф {activePlan}, він дозволяє {limit} Interfaces на робочу область. Перейдіть на {plan}, щоб їх було більше.",
+    "upgradeToAddMoreInterfacePages": "Перейдіть на вищий тариф, щоб додати більше сторінок",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Зараз у вас тариф {activePlan}, він дозволяє {limit} сторінок на Interface. Перейдіть на {plan}, щоб сторінок було необмежено.",
+    "upgradeToUseTrashSettings": "Перейдіть на вищий тариф, щоб налаштувати кошик",
+    "upgradeToUseTrashSettingsSubtitle": "Перейдіть на тариф {plan}, щоб налаштовувати параметри кошика для кожної таблиці.",
+    "upgradeToAttachFilesToComments": "Перейдіть на вищий тариф, щоб прикріплювати файли до коментарів",
+    "upgradeToAttachFilesToCommentsSubtitle": "Перейдіть на тариф {plan}, щоб прикріплювати зображення та файли до коментарів записів.",
+    "upgradeToUseToggleSort": "Перейдіть на вищий тариф, щоб вмикати й вимикати окремі сортування",
+    "upgradeToUseToggleSortSubtitle": "Перейдіть на тариф {plan}, щоб вмикати або вимикати окремі сортування, не видаляючи їх, і точніше керувати виглядами.",
+    "upgradeToUseViewFolders": "Перейдіть на вищий тариф, щоб використовувати теки виглядів",
+    "upgradeToUseViewFoldersSubtitle": "Перейдіть на тариф {plan}, щоб упорядковувати вигляди в теках.",
+    "upgradeToAccessViewFoldersSubtitle": "Перейдіть на тариф {plan}, щоб упорядковувати вигляди в теках.",
+    "upgradeToUseFolders": "Перейдіть на вищий тариф, щоб використовувати теки",
+    "upgradeToUseFoldersSubtitle": "Перейдіть на тариф {plan}, щоб упорядковувати таблиці, документи та Dashboards у теках.",
+    "upgradeToAccessFoldersSubtitle": "Перейдіть на тариф {plan}, щоб упорядковувати таблиці, документи та Dashboards у теках.",
+    "upgradeToUseCustomSync": "Перейдіть на вищий тариф, щоб використовувати власний Sync",
+    "upgradeToUseCustomSyncSubtitle": "Перейдіть на тариф {plan}, щоб синхронізувати дані з інших джерел.",
+    "upgradeToUseAutomaticSyncSubtitle": "Перейдіть на тариф {plan}, щоб дзеркальні таблиці синхронізувалися автоматично в реальному часі.",
+    "upgradeToUseEnvironments": "Перейдіть на вищий тариф, щоб використовувати середовища",
+    "upgradeToUseEnvironmentsSubtitle": "Середовища доступні на тарифі {plan} і вище.",
+    "upgradeToPlanForFeature": "Перейдіть на тариф {plan}, {detail}",
+    "runAutomationFromInterfaceButtonDetail": "щоб запускати автоматизації з кнопок Interface.",
+    "addonFeatureTitle": "Доступно як Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} доступний як платний Add-on на тарифі {plan} і вище. Зв'яжіться з нами, щоб його підключити.",
+    "toAccessCopyViewConfigFromAnotherView": "щоб копіювати налаштування з іншого вигляду.",
+    "toAccessReassignPersonalView": "щоб перепризначати особисті вигляди.",
+    "toAccessAssignAsPersonalView": "щоб призначати вигляд особистим.",
+    "toAccessCardFieldHeaderVisibility": "щоб керувати видимістю заголовків полів на картках.",
+    "upgradeToUseStagingEnvironment": "Перейдіть на вищий тариф, щоб використовувати середовище Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Ваш тариф {activePlan} містить лише робоче середовище. Перейдіть на {plan}, щоб використовувати Staging.",
+    "upgradeToUsePerUserCredentials": "Перейдіть на вищий тариф, щоб використовувати облікові дані для кожного користувача",
+    "upgradeToUsePerUserCredentialsSubtitle": "Ваш тариф {activePlan} використовує лише спільні облікові дані. Перейдіть на {plan}, щоб кожен учасник під'єднував власний обліковий запис.",
+    "upgradeToUseCustomEnvironments": "Перейдіть на вищий тариф, щоб створювати власні середовища",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Власні середовища недоступні на вашому тарифі {activePlan}. Перейдіть на {plan}, щоб створювати середовища понад Production і Staging."
   },
   "general": {
     "scrollToBottom": "Прокрутити до кінця",
@@ -1456,7 +1495,19 @@
     "creatingAgent": "Створення агента",
     "agentToolsAndAccess": "Інструменти та доступ",
     "agentSkills": "Навички",
-    "agentSettings": "Налаштування"
+    "agentSettings": "Налаштування",
+    "updateRecordsCount": "Оновити {n} запис | Оновити {n} записів",
+    "turnOffEditing": "Вимкнути редагування?",
+    "turnOnInlineEditing": "Увімкнути редагування на місці?",
+    "turnOnEditingByForm": "Увімкнути редагування через форму?",
+    "productTours": "Огляди продукту",
+    "testDataGeneration": "Генерування тестових даних",
+    "noSearchResultsFound": "Нічого не знайдено",
+    "theListIsEmpty": "Список порожній",
+    "newEnvironment": "Нове середовище",
+    "removeCustomDomain": "Вилучити власний домен?",
+    "tooNarrowToAdjustFrozenFields": "Вікно завузьке, щоб налаштувати закріплені поля",
+    "themeSettings": "Налаштування теми"
   },
   "labels": {
     "syncing": "Синхронізація",
@@ -4702,7 +4753,90 @@
     "filteringNotSupportedForFieldsWithErrors": "Фільтрування не підтримується для полів з помилками",
     "sortingNotSupportedForFieldsWithErrors": "Сортування не підтримується для полів з помилками",
     "sortingNotSupportedForField": "Сортування не підтримується за полем {type}",
-    "groupingNotSupportedForFieldsWithErrors": "Групування не підтримується для полів з помилками"
+    "groupingNotSupportedForFieldsWithErrors": "Групування не підтримується для полів з помилками",
+    "workflowButtonTriggerSourceReadOnly": "Вихідну таблицю, приєднану до цієї кнопки, можна змінити лише через Interfaces",
+    "workflowButtonTriggerInterfaceReadOnly": "Сторінку Interface із цією кнопкою можна змінити лише через Interfaces",
+    "chartIncludeOthers": "Об'єднувати категорії понад ліміт в одну категорію «Інші», а не відкидати їх.",
+    "sideLabelsNeedSingleFieldRows": "Недоступно, доки рядок містить більше одного поля.",
+    "showFieldInView": "Показати це поле в поточному вигляді.",
+    "hideFieldInView": "Сховати це поле в поточному вигляді.",
+    "viewAllEventsInDayView": "Переглянути всі {count} подію в режимі дня | Переглянути всі {count} подій у режимі дня",
+    "linkValueDelimiter": "Символ, що розділяє кілька пов'язаних значень в одній комірці (за замовчуванням ,)",
+    "interfaceMixedRoles": "Ролі різняться між Interfaces або сторінками — розгорніть, щоб їх побачити",
+    "chatQueueAttachmentUnavailable": "Це вкладення не буде надіслано, якщо поставити повідомлення в чергу — спершу вилучіть його",
+    "lockedViewDisabledOnProduction": "Заблоковані вигляди можна створювати лише в копії середовища",
+    "personalViewDisabledOnEnvironment": "Особисті вигляди можна створювати лише в робочій Базі",
+    "seeNComments": "Переглянути {n} коментар | Переглянути {n} коментарів",
+    "collapsibleGroups": "Дозволити згортати групи із заголовками",
+    "nestedRecordsRequireSelfLink": "Потрібне поле зв'язку в цій таблиці, яке посилається на цю саму таблицю.",
+    "dataChangeDisabled": "Редагування даних вимкнено для цього джерела даних.",
+    "cannotRemoveInheritedInterfaceMember": "Доступ успадковується від Бази. Керуйте ним із",
+    "saveDraftToBrowser": "Дає змогу повернутися до недозаповненої форми, не втративши введеного. Зберігається лише у браузері й стирається після надсилання.",
+    "clickToSeeDetails": "Натисніть, щоб побачити подробиці.",
+    "navigateToBaseToCreateAgent": "Перейдіть до Бази, щоб створити Агента",
+    "navigateToBaseToCreateFolder": "Перейдіть до Бази, щоб створити теку",
+    "navigateToBaseToCreateInterface": "Перейдіть до Бази, щоб створити Interface",
+    "switchToAgentsTab": "Перейдіть на вкладку «Агенти», щоб створити {type}",
+    "switchToInterfacesTab": "Перейдіть на вкладку Interfaces, щоб створити Interface",
+    "youDontHaveAccessToCreateNewAgent": "У вас немає прав створювати нового Агента",
+    "youDontHaveAccessToCreateNewInterface": "У вас немає прав створювати новий Interface",
+    "displayValueFieldCannotBeReordered": "Поле відображуваного значення не можна перемістити",
+    "interfaceLastVizRequired": "Сторінці потрібна щонайменше одна візуалізація",
+    "onlyCreatorsCanManageViewFolders": "Керувати теками виглядів можуть лише творці або власники Бази",
+    "onlyCreatorsCanManageFolders": "Керувати теками можуть лише творці або власники Бази",
+    "organizeViewsIntoFolders": "Упорядкувати вигляди у згортані теки",
+    "productionLockedByEnvironment": "Ця База відкрита в середовищі — вносьте зміни схеми там.",
+    "managedByPublisher": "Структурою цього App керує його видавець. Свої документи й теки ви додаєте самі.",
+    "featureOnProductionOnly": "Цією дією керують у робочій Базі, а не в копії середовища.",
+    "clickToEdit": "Натисніть, щоб редагувати",
+    "resolvedBy": "Вирішено: {name}",
+    "fieldAutoLinkedToParent": "Це поле буде автоматично пов'язане з батьківським записом",
+    "newRecordCreatedEachTemplateUse": "Щоразу, коли використовується цей шаблон, буде створено й пов'язано новий запис {tableName}",
+    "warningMessageForInvalidInputs": "Це попередження буде показано тим, хто заповнює форму, у разі некоректного введення.",
+    "cannotAddConditionsToFirstField": "До першого поля форми не можна додати умови.",
+    "validationsEnforcedByFieldSchema": "Перевірки задаються налаштуваннями схеми поля",
+    "requiredEnforcedOnFormSubmit": "Застосовується, коли ця сторінка відкривається як форма створення запису",
+    "readOnlyFieldCannotBeEditedInline": "Поля лише для читання не можна редагувати на місці",
+    "editInlineDisabledForElement": "Редагування вимкнено для цього елемента сторінки. Увімкніть його для елемента, щоб дозволити редагування цього стовпця.",
+    "cantUploadDataInSyncedTable": "Завантажувати дані до синхронізованої таблиці не можна",
+    "hideMyPresence": "Сховати мою присутність",
+    "showMyPresence": "Показувати мою присутність",
+    "setupScriptSettingsToRun": "Налаштуйте параметри скрипта, щоб запустити його",
+    "autoSuggestViewsFor": "Автоматично запропонувати вигляди для {tableName}",
+    "discardDraftChanges": "Скасувати зміни чернетки й відновити опубліковану версію",
+    "testAllNodesBeforePublish": "Перевірте всі вузли перед публікацією",
+    "tourCompleteStepToContinue": "Завершіть цей крок, щоб продовжити",
+    "tourTakeTheTour": "{tour} — пройти огляд",
+    "fieldPropertiesCannotBeEdited": "Властивості поля не можна змінити.",
+    "fieldAssociatedWithLinkColumn": "Поле пов'язане зі стовпцем посилань",
+    "fieldCannotBeUpgraded": "Поле не можна оновити.",
+    "fieldCannotBeDuplicated": "Поле не можна продублювати.",
+    "selectNewFieldAsDisplayValue": "Вибрати нове поле як відображуване значення",
+    "addFieldDescription": "Додати опис поля",
+    "fieldCannotBeDeleted": "Поле не можна видалити.",
+    "recordHiddenByFilter": "Цей запис буде приховано, бо він не відповідає фільтрам цього вигляду.",
+    "recordWillMove": "Цей запис перемістится на нову позицію, коли ви клацнете за його межами.",
+    "recordHiddenByPermission": "Цей запис буде приховано, бо він не відповідає вашим правам доступу.",
+    "rowLevelSecurityEnabled": "Увімкнено захист на рівні рядків. Частину рядків може бути приховано відповідно до ваших прав доступу.",
+    "suggestMore": "Запропонувати ще",
+    "reSuggest": "Запропонувати знову",
+    "portWebhookV2ToV3": "Перенести цей Webhook з v2 на v3",
+    "formDisplayMessageTemplating": "Для поля шаблону використовуйте назву або заголовок стовпця замість підпису поля. Наприклад: «Привіт, {'{'}Title{'}'}!»",
+    "incompatibleWithColumn": "Несумісно зі стовпцем «{title}»",
+    "crossBaseLinkCreatorAccess": "Зв'язувати можна лише з таблицями в Базах, де ви маєте доступ творця або вищий.",
+    "clickIntoRecordDetailsCrossBase": "Поки недоступно для зв'язків між Базами",
+    "autoSuggestFieldsFor": "Автоматично запропонувати поля для {table}",
+    "clearAllAndResuggest": "Очистити все й запропонувати знову",
+    "cannotSetDefaultValueWithUnique": "Не можна задати значення за замовчуванням, бо увімкнено обмеження Unique. Вимкніть обмеження Unique, щоб налаштувати значення за замовчуванням",
+    "useAiToGenerateContent": "Використати ШІ для створення вмісту на основі даних запису.",
+    "previewGeneratedFromFirstRecord": "Попередній перегляд формується за першим записом цієї таблиці",
+    "includeFieldInPromptToGenerate": "Додайте до Prompt щонайменше 1 поле, щоб згенерувати",
+    "editorsReportedByInstance": "Кількість редакторів повідомляє ваш примірник під час кожного сигналу активності. Керуйте редакторами на самому примірнику.",
+    "dragToAdjustFrozenFields": "Потягніть, щоб змінити кількість закріплених полів",
+    "freezeColumnsCount": "Закріпити {count} стовпець | Закріпити {count} стовпців",
+    "marketplaceComingSoon": "Цей App ще готують до випуску, тож встановити його поки не можна.",
+    "marketplaceAuthored": "Написано видавцем, а не виведено зі вмісту App.",
+    "marketplaceVerifiedPublisher": "Опубліковано та перевірено NocoDB"
   },
   "placeholder": {
     "enterVerificationCode": "Введіть 6-значний код",
@@ -6238,6 +6372,94 @@
       "seatsOnOrg": "Місця в цій організації",
       "workspaceSubscription": "Передплата робочого простору",
       "orgSubscription": "Передплата організації"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "Зорієнтуйтеся у своїй робочій області",
+      "welcome": {
+        "title": "Вітаємо в NocoDB",
+        "description": "Швидке коло вашою робочою областю. Вийти можна будь-коли — натисніть «Пропустити»."
+      },
+      "createBase": {
+        "title": "Почніть із Бази",
+        "description": "У Базі зберігаються ваші таблиці, вигляди й автоматизації. Саме звідси починається більшість роботи."
+      },
+      "switchWorkspaces": {
+        "title": "Перемикайте робочі області",
+        "description": "Усі робочі області, до яких ви належите, розташовані за цим перемикачем. Відкрийте його, щоб побачити решту."
+      },
+      "moreWorkspaces": {
+        "title": "Не одна робоча область",
+        "description": "Робочі області розділяють команди та проєкти, у кожної з них власні учасники."
+      },
+      "account": {
+        "title": "Обліковий запис і налаштування",
+        "description": "Профіль, тема, сполучення клавіш і налаштування облікового запису — усе це за вашим аватаром."
+      }
+    },
+    "workflows": {
+      "title": "Побудуйте свій перший робочий процес",
+      "overview": {
+        "title": "Побудувати робочий процес від початку до кінця",
+        "description": "Створіть, виберіть тригер, додайте дію, опублікуйте, увімкніть, а потім дивіться, як він працює."
+      },
+      "create": {
+        "title": "Створіть робочий процес",
+        "description": "Почніть з нуля — відкриється коротка форма."
+      },
+      "createSubmit": {
+        "title": "Створити",
+        "description": "Це одразу приведе вас на полотно."
+      },
+      "addTrigger": {
+        "title": "Додайте тригер",
+        "description": "Кожен робочий процес починається тут — натисніть, щоб побачити, що може його запустити."
+      },
+      "pickManualTrigger": {
+        "title": "Виберіть «За ручним запуском»",
+        "description": "Цей ви запускаєте самі, тож можна налагодити все інше, перш ніж під'єднувати справжні події."
+      },
+      "testTrigger": {
+        "title": "Перевірте тригер",
+        "description": "Запустіть один раз і подивіться на отримані дані. Усі подальші кроки спираються на цей результат."
+      },
+      "addAction": {
+        "title": "Додайте дію",
+        "description": "Дії — це те, що робочий процес насправді робить після спрацювання тригера."
+      },
+      "pickListRecords": {
+        "title": "Виберіть «Список записів»",
+        "description": "Вона лише читає, тож запускати її можна скільки завгодно разів, не змінюючи даних."
+      },
+      "chooseTable": {
+        "title": "Виберіть таблицю",
+        "description": "Кожній дії треба знати, з чим вона працює. Виберіть таблицю, з якої брати записи."
+      },
+      "testAction": {
+        "title": "Перевірте й дію",
+        "description": "Кожен вузол тестується окремо. Перед публікацією переконайтеся, що цей повертає те, на що ви очікуєте."
+      },
+      "publish": {
+        "title": "Опублікуйте свої зміни",
+        "description": "Зміни зберігаються як <b>чернетка</b>. Саме публікація робить цю версію робочою."
+      },
+      "enable": {
+        "title": "Увімкніть його",
+        "description": "Опублікований — не те саме, що запущений. Робочий процес лишається <b>На паузі</b>, доки ви його не увімкнете, — саме цей крок зазвичай пропускають."
+      },
+      "run": {
+        "title": "Запустіть один раз",
+        "description": "Ручний тригер спрацьовує на вимогу — спробуйте й подивіться, як усе виконується."
+      },
+      "logs": {
+        "title": "Перевірте журнали",
+        "description": "Кожен запуск фіксується тут — що спрацювало, що повернув кожен крок і що не вдалося."
+      },
+      "wrapUp": {
+        "title": "Ось і весь цикл",
+        "description": "Тригер, дії, публікація, увімкнення, запуск, журнали. Кожен робочий процес, який ви створите далі, влаштовано так само."
+      }
     }
   }
 }

@@ -257,8 +257,47 @@
       "workspaceMembers": "Участники проекта",
       "audit": "Аудит рабочего пространства",
       "ltarCustomDisplayValue": "Пользовательское значение поля",
-      "publicDocShare": "Публичный обмен документами"
-    }
+      "publicDocShare": "Публичный обмен документами",
+      "agents": "Агенты"
+    },
+    "upgradeToSortAndLimitLookupValues": "Чтобы сортировать и ограничивать значения в поле Lookup, перейдите на тариф {plan}.",
+    "upgradeToAddMoreAgents": "Перейдите на более высокий тариф, чтобы добавить больше Агентов",
+    "upgradeToAddMoreAgentsSubtitle": "Сейчас у вас тариф {activePlan}, он допускает {limit} Агентов на рабочее пространство. Перейдите на {plan}, чтобы их было больше.",
+    "upgradeToAddMoreInterfaces": "Перейдите на более высокий тариф, чтобы добавить больше Interfaces",
+    "upgradeToAddMoreInterfacesSubtitle": "Сейчас у вас тариф {activePlan}, он допускает {limit} Interfaces на рабочее пространство. Перейдите на {plan}, чтобы их было больше.",
+    "upgradeToAddMoreInterfacePages": "Перейдите на более высокий тариф, чтобы добавить больше страниц",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Сейчас у вас тариф {activePlan}, он допускает {limit} страниц на Interface. Перейдите на {plan}, чтобы страниц было неограниченно.",
+    "upgradeToUseTrashSettings": "Перейдите на более высокий тариф, чтобы настроить корзину",
+    "upgradeToUseTrashSettingsSubtitle": "Перейдите на тариф {plan}, чтобы настраивать параметры корзины для каждой таблицы.",
+    "upgradeToAttachFilesToComments": "Перейдите на более высокий тариф, чтобы прикреплять файлы к комментариям",
+    "upgradeToAttachFilesToCommentsSubtitle": "Перейдите на тариф {plan}, чтобы прикреплять изображения и файлы к комментариям записей.",
+    "upgradeToUseToggleSort": "Перейдите на более высокий тариф, чтобы включать и отключать отдельные сортировки",
+    "upgradeToUseToggleSortSubtitle": "Перейдите на тариф {plan}, чтобы включать и отключать отдельные сортировки, не удаляя их, и точнее управлять представлениями.",
+    "upgradeToUseViewFolders": "Перейдите на более высокий тариф, чтобы использовать папки представлений",
+    "upgradeToUseViewFoldersSubtitle": "Перейдите на тариф {plan}, чтобы раскладывать представления по папкам.",
+    "upgradeToAccessViewFoldersSubtitle": "Перейдите на тариф {plan}, чтобы раскладывать представления по папкам.",
+    "upgradeToUseFolders": "Перейдите на более высокий тариф, чтобы использовать папки",
+    "upgradeToUseFoldersSubtitle": "Перейдите на тариф {plan}, чтобы раскладывать таблицы, документы и Dashboards по папкам.",
+    "upgradeToAccessFoldersSubtitle": "Перейдите на тариф {plan}, чтобы раскладывать таблицы, документы и Dashboards по папкам.",
+    "upgradeToUseCustomSync": "Перейдите на более высокий тариф, чтобы использовать свой Sync",
+    "upgradeToUseCustomSyncSubtitle": "Перейдите на тариф {plan}, чтобы синхронизировать данные из других источников.",
+    "upgradeToUseAutomaticSyncSubtitle": "Перейдите на тариф {plan}, чтобы зеркальные таблицы синхронизировались автоматически в реальном времени.",
+    "upgradeToUseEnvironments": "Перейдите на более высокий тариф, чтобы использовать среды",
+    "upgradeToUseEnvironmentsSubtitle": "Среды доступны на тарифе {plan} и выше.",
+    "upgradeToPlanForFeature": "Перейдите на тариф {plan}, {detail}",
+    "runAutomationFromInterfaceButtonDetail": "чтобы запускать автоматизации с кнопок Interface.",
+    "addonFeatureTitle": "Доступно как Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} доступен как платный Add-on на тарифе {plan} и выше. Свяжитесь с нами, чтобы его подключить.",
+    "toAccessCopyViewConfigFromAnotherView": "чтобы копировать настройки из другого представления.",
+    "toAccessReassignPersonalView": "чтобы переназначать личные представления.",
+    "toAccessAssignAsPersonalView": "чтобы назначать представление личным.",
+    "toAccessCardFieldHeaderVisibility": "чтобы управлять видимостью заголовков полей на карточках.",
+    "upgradeToUseStagingEnvironment": "Перейдите на более высокий тариф, чтобы использовать среду Staging",
+    "upgradeToUseStagingEnvironmentSubtitle": "Ваш тариф {activePlan} включает только рабочую среду. Перейдите на {plan}, чтобы использовать Staging.",
+    "upgradeToUsePerUserCredentials": "Перейдите на более высокий тариф, чтобы использовать учётные данные для каждого пользователя",
+    "upgradeToUsePerUserCredentialsSubtitle": "Ваш тариф {activePlan} использует только общие учётные данные. Перейдите на {plan}, чтобы каждый участник подключал собственный аккаунт.",
+    "upgradeToUseCustomEnvironments": "Перейдите на более высокий тариф, чтобы создавать свои среды",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Собственные среды недоступны на вашем тарифе {activePlan}. Перейдите на {plan}, чтобы создавать среды помимо Production и Staging."
   },
   "general": {
     "scrollToBottom": "Прокрутка вниз",
@@ -1456,7 +1495,19 @@
     "creatingAgent": "Создание агента",
     "agentToolsAndAccess": "Инструменты и доступ",
     "agentSkills": "Навыки",
-    "agentSettings": "Настройки"
+    "agentSettings": "Настройки",
+    "updateRecordsCount": "Обновить {n} запись | Обновить {n} записей",
+    "turnOffEditing": "Отключить редактирование?",
+    "turnOnInlineEditing": "Включить редактирование на месте?",
+    "turnOnEditingByForm": "Включить редактирование через форму?",
+    "productTours": "Обзоры продукта",
+    "testDataGeneration": "Генерация тестовых данных",
+    "noSearchResultsFound": "Ничего не найдено",
+    "theListIsEmpty": "Список пуст",
+    "newEnvironment": "Новая среда",
+    "removeCustomDomain": "Удалить пользовательский домен?",
+    "tooNarrowToAdjustFrozenFields": "Окно слишком узкое, чтобы настроить закреплённые поля",
+    "themeSettings": "Настройки темы"
   },
   "labels": {
     "syncing": "Синхронизация",
@@ -4702,7 +4753,90 @@
     "filteringNotSupportedForFieldsWithErrors": "Фильтрация не поддерживается для полей с ошибками",
     "sortingNotSupportedForFieldsWithErrors": "Сортировка не поддерживается для полей с ошибками",
     "sortingNotSupportedForField": "Сортировка не поддерживается для поля {type}",
-    "groupingNotSupportedForFieldsWithErrors": "Группировка не поддерживается для полей с ошибками"
+    "groupingNotSupportedForFieldsWithErrors": "Группировка не поддерживается для полей с ошибками",
+    "workflowButtonTriggerSourceReadOnly": "Исходную таблицу, подключённую к этой кнопке, можно изменить только через Interfaces",
+    "workflowButtonTriggerInterfaceReadOnly": "Страницу Interface с этой кнопкой можно изменить только через Interfaces",
+    "chartIncludeOthers": "Объединять категории сверх лимита в одну категорию «Другие», а не отбрасывать их.",
+    "sideLabelsNeedSingleFieldRows": "Недоступно, пока в строке больше одного поля.",
+    "showFieldInView": "Показать это поле в текущем представлении.",
+    "hideFieldInView": "Скрыть это поле в текущем представлении.",
+    "viewAllEventsInDayView": "Показать все {count} событие в режиме дня | Показать все {count} событий в режиме дня",
+    "linkValueDelimiter": "Символ, разделяющий несколько связанных значений в одной ячейке (по умолчанию ,)",
+    "interfaceMixedRoles": "Роли различаются в разных Interfaces или на разных страницах — разверните, чтобы их увидеть",
+    "chatQueueAttachmentUnavailable": "Это вложение не будет отправлено, если поставить сообщение в очередь — сначала удалите его",
+    "lockedViewDisabledOnProduction": "Заблокированные представления можно создавать только в копии среды",
+    "personalViewDisabledOnEnvironment": "Личные представления можно создавать только в рабочей Базе",
+    "seeNComments": "Показать {n} комментарий | Показать {n} комментариев",
+    "collapsibleGroups": "Разрешить сворачивать группы с заголовками",
+    "nestedRecordsRequireSelfLink": "Требуется поле связи в этой таблице, ссылающееся на эту же таблицу.",
+    "dataChangeDisabled": "Редактирование данных отключено для этого источника данных.",
+    "cannotRemoveInheritedInterfaceMember": "Доступ наследуется от Базы. Управляйте им из",
+    "saveDraftToBrowser": "Позволяет вернуться к незаполненной до конца форме, не потеряв введённое. Сохраняется только в браузере и стирается при отправке.",
+    "clickToSeeDetails": "Нажмите, чтобы увидеть подробности.",
+    "navigateToBaseToCreateAgent": "Перейдите в Базу, чтобы создать Агента",
+    "navigateToBaseToCreateFolder": "Перейдите в Базу, чтобы создать папку",
+    "navigateToBaseToCreateInterface": "Перейдите в Базу, чтобы создать Interface",
+    "switchToAgentsTab": "Перейдите на вкладку «Агенты», чтобы создать {type}",
+    "switchToInterfacesTab": "Перейдите на вкладку Interfaces, чтобы создать Interface",
+    "youDontHaveAccessToCreateNewAgent": "У вас нет прав на создание нового Агента",
+    "youDontHaveAccessToCreateNewInterface": "У вас нет прав на создание нового Interface",
+    "displayValueFieldCannotBeReordered": "Поле отображаемого значения нельзя переместить",
+    "interfaceLastVizRequired": "На странице нужна хотя бы одна визуализация",
+    "onlyCreatorsCanManageViewFolders": "Управлять папками представлений могут только создатели или владельцы Базы",
+    "onlyCreatorsCanManageFolders": "Управлять папками могут только создатели или владельцы Базы",
+    "organizeViewsIntoFolders": "Организовать представления в сворачиваемые папки",
+    "productionLockedByEnvironment": "Эта База открыта в среде — вносите изменения схемы там.",
+    "managedByPublisher": "Структурой этого App управляет его издатель. Свои документы и папки вы добавляете сами.",
+    "featureOnProductionOnly": "Это действие выполняется в рабочей Базе, а не в копии среды.",
+    "clickToEdit": "Нажмите, чтобы изменить",
+    "resolvedBy": "Решено: {name}",
+    "fieldAutoLinkedToParent": "Это поле будет автоматически связано с родительской записью",
+    "newRecordCreatedEachTemplateUse": "При каждом использовании этого шаблона будет создаваться и связываться новая запись {tableName}",
+    "warningMessageForInvalidInputs": "Это предупреждение будет показано заполняющим форму при некорректном вводе.",
+    "cannotAddConditionsToFirstField": "К первому полю формы нельзя добавить условия.",
+    "validationsEnforcedByFieldSchema": "Проверки задаются настройками схемы поля",
+    "requiredEnforcedOnFormSubmit": "Применяется, когда эта страница открывается как форма создания записи",
+    "readOnlyFieldCannotBeEditedInline": "Поля только для чтения нельзя редактировать на месте",
+    "editInlineDisabledForElement": "Редактирование отключено для этого элемента страницы. Включите его для элемента, чтобы разрешить редактирование этого столбца.",
+    "cantUploadDataInSyncedTable": "Загружать данные в синхронизируемую таблицу нельзя",
+    "hideMyPresence": "Скрыть моё присутствие",
+    "showMyPresence": "Показывать моё присутствие",
+    "setupScriptSettingsToRun": "Настройте параметры скрипта, чтобы запустить его",
+    "autoSuggestViewsFor": "Автоматически предложить представления для {tableName}",
+    "discardDraftChanges": "Отменить изменения черновика и восстановить опубликованную версию",
+    "testAllNodesBeforePublish": "Проверьте все узлы перед публикацией",
+    "tourCompleteStepToContinue": "Завершите этот шаг, чтобы продолжить",
+    "tourTakeTheTour": "{tour} — пройти обзор",
+    "fieldPropertiesCannotBeEdited": "Свойства поля нельзя изменить.",
+    "fieldAssociatedWithLinkColumn": "Поле связано со столбцом ссылок",
+    "fieldCannotBeUpgraded": "Поле нельзя обновить.",
+    "fieldCannotBeDuplicated": "Поле нельзя продублировать.",
+    "selectNewFieldAsDisplayValue": "Выбрать новое поле в качестве отображаемого значения",
+    "addFieldDescription": "Добавить описание поля",
+    "fieldCannotBeDeleted": "Поле нельзя удалить.",
+    "recordHiddenByFilter": "Эта запись будет скрыта, так как не соответствует фильтрам этого представления.",
+    "recordWillMove": "Эта запись переместится на новое место, когда вы щёлкнете за её пределами.",
+    "recordHiddenByPermission": "Эта запись будет скрыта, так как не соответствует вашим правам доступа.",
+    "rowLevelSecurityEnabled": "Включена защита на уровне строк. Часть строк может быть скрыта в соответствии с вашими правами доступа.",
+    "suggestMore": "Предложить ещё",
+    "reSuggest": "Предложить заново",
+    "portWebhookV2ToV3": "Перенести этот Webhook с v2 на v3",
+    "formDisplayMessageTemplating": "Используйте для поля шаблона имя или заголовок столбца вместо подписи поля. Например: «Привет, {'{'}Title{'}'}!»",
+    "incompatibleWithColumn": "Несовместимо со столбцом «{title}»",
+    "crossBaseLinkCreatorAccess": "Связывать можно только с таблицами в Базах, где у вас есть доступ создателя или выше.",
+    "clickIntoRecordDetailsCrossBase": "Пока недоступно для связей между Базами",
+    "autoSuggestFieldsFor": "Автоматически предложить поля для {table}",
+    "clearAllAndResuggest": "Очистить всё и предложить заново",
+    "cannotSetDefaultValueWithUnique": "Нельзя задать значение по умолчанию, так как включено ограничение Unique. Отключите ограничение Unique, чтобы настроить значение по умолчанию",
+    "useAiToGenerateContent": "Использовать ИИ для создания содержимого на основе данных записи.",
+    "previewGeneratedFromFirstRecord": "Предпросмотр строится по первой записи этой таблицы",
+    "includeFieldInPromptToGenerate": "Добавьте в Prompt хотя бы 1 поле, чтобы сгенерировать",
+    "editorsReportedByInstance": "Количество редакторов сообщает ваш экземпляр при каждом сигнале активности. Управляйте редакторами на самом экземпляре.",
+    "dragToAdjustFrozenFields": "Потяните, чтобы изменить число закреплённых полей",
+    "freezeColumnsCount": "Закрепить {count} столбец | Закрепить {count} столбцов",
+    "marketplaceComingSoon": "Этот App ещё готовится к публикации, поэтому установить его пока нельзя.",
+    "marketplaceAuthored": "Написано издателем, а не выведено из содержимого App.",
+    "marketplaceVerifiedPublisher": "Опубликовано и проверено NocoDB"
   },
   "placeholder": {
     "enterVerificationCode": "Введите 6-значный код",
@@ -6238,6 +6372,94 @@
       "seatsOnOrg": "Места в этой организации",
       "workspaceSubscription": "Подписка рабочего пространства",
       "orgSubscription": "Подписка организации"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "Освойтесь в рабочем пространстве",
+      "welcome": {
+        "title": "Добро пожаловать в NocoDB",
+        "description": "Быстрый круг по вашему рабочему пространству. Выйти можно в любой момент — нажмите «Пропустить»."
+      },
+      "createBase": {
+        "title": "Начните с Базы",
+        "description": "В Базе хранятся ваши таблицы, представления и автоматизации. Именно отсюда начинается большая часть работы."
+      },
+      "switchWorkspaces": {
+        "title": "Переключайте рабочие пространства",
+        "description": "Все рабочие пространства, в которых вы состоите, находятся за этим переключателем. Откройте его, чтобы увидеть остальные."
+      },
+      "moreWorkspaces": {
+        "title": "Не одно рабочее пространство",
+        "description": "Рабочие пространства разделяют команды и проекты, у каждого из которых свои участники."
+      },
+      "account": {
+        "title": "Аккаунт и настройки",
+        "description": "Профиль, тема, сочетания клавиш и настройки аккаунта — всё это за вашим аватаром."
+      }
+    },
+    "workflows": {
+      "title": "Соберите свой первый рабочий процесс",
+      "overview": {
+        "title": "Собрать рабочий процесс от начала до конца",
+        "description": "Создайте, выберите триггер, добавьте действие, опубликуйте, включите, а затем смотрите, как он работает."
+      },
+      "create": {
+        "title": "Создайте рабочий процесс",
+        "description": "Начните с нуля — откроется короткая форма."
+      },
+      "createSubmit": {
+        "title": "Создать",
+        "description": "Это сразу приведёт вас на холст."
+      },
+      "addTrigger": {
+        "title": "Добавьте триггер",
+        "description": "Любой рабочий процесс начинается отсюда — нажмите, чтобы увидеть, что может его запустить."
+      },
+      "pickManualTrigger": {
+        "title": "Выберите «При ручном запуске»",
+        "description": "Его вы запускаете сами, поэтому можно наладить всё остальное, прежде чем подключать реальные события."
+      },
+      "testTrigger": {
+        "title": "Проверьте триггер",
+        "description": "Запустите один раз и посмотрите на полученные данные. Все дальнейшие шаги опираются на этот результат."
+      },
+      "addAction": {
+        "title": "Добавьте действие",
+        "description": "Действия — это то, что рабочий процесс на самом деле делает после срабатывания триггера."
+      },
+      "pickListRecords": {
+        "title": "Выберите «Список записей»",
+        "description": "Оно только читает, поэтому запускать его можно сколько угодно раз, не меняя данные."
+      },
+      "chooseTable": {
+        "title": "Выберите таблицу",
+        "description": "Каждому действию нужно знать, с чем оно работает. Выберите таблицу, из которой брать записи."
+      },
+      "testAction": {
+        "title": "Проверьте и действие",
+        "description": "Каждый узел тестируется отдельно. Перед публикацией убедитесь, что этот возвращает то, что вы ожидаете."
+      },
+      "publish": {
+        "title": "Опубликуйте изменения",
+        "description": "Изменения сохраняются как <b>черновик</b>. Именно публикация делает эту версию рабочей."
+      },
+      "enable": {
+        "title": "Включите его",
+        "description": "Опубликован — не значит запущен. Рабочий процесс остаётся <b>На паузе</b>, пока вы его не включите, — именно этот шаг чаще всего пропускают."
+      },
+      "run": {
+        "title": "Запустите один раз",
+        "description": "Ручной триггер срабатывает по требованию — попробуйте и посмотрите, как всё выполняется."
+      },
+      "logs": {
+        "title": "Загляните в журналы",
+        "description": "Каждый запуск фиксируется здесь — что сработало, что вернул каждый шаг и что не удалось."
+      },
+      "wrapUp": {
+        "title": "Вот и весь цикл",
+        "description": "Триггер, действия, публикация, включение, запуск, журналы. Любой рабочий процесс, который вы создадите дальше, устроен так же."
+      }
     }
   }
 }

@@ -1057,6 +1057,11 @@ const permissionDescriptions: Record<string, string> = {
 
   migrateBase: 'migrate a base to another instance',
 
+  mcpRootList: 'view your MCP connections across every workspace',
+  mcpToolCatalog: 'see which tools an MCP connection can be granted',
+  mcpRootCreate: 'create an MCP connection with explicit scopes',
+  mcpRootUpdate: 'edit or regenerate one of your MCP connections',
+  mcpRootDelete: 'delete one of your MCP connections',
   mcpList: 'view list of MCP tokens',
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',

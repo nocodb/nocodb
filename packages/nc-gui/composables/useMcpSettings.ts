@@ -231,6 +231,125 @@ export const useMcpSettings = createSharedComposable(() => {
     }
   }
 
+  const toolCatalog = ref<McpToolCatalogEntry[]>([])
+
+  /** What a connection can be granted, read off the tool surface itself. */
+  const loadToolCatalog = async () => {
+    if (toolCatalog.value.length) return toolCatalog.value
+
+    try {
+      const response = await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
+        operation: 'mcpToolCatalog',
+      })
+
+      toolCatalog.value = (response as { list?: McpToolCatalogEntry[] })?.list ?? []
+    } catch (error: any) {
+      // The picker still works without it — the tiers are known, only the tool
+      // names and counts come from here.
+      console.error(error)
+    }
+
+    return toolCatalog.value
+  }
+
+  const createAccountMcpToken = async (payload: { title: string; scopes: ApiTokenScopeEntry[]; tools: string[] }) => {
+    try {
+      isCreatingMcpToken.value = true
+
+      const response = await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, { operation: 'mcpRootCreate' }, payload)
+
+      if (response) {
+        accountMcpTokens.value = [{ ...response, isNew: false }, ...accountMcpTokens.value]
+        message.success(t('msg.success.mcpTokenCreated'))
+      }
+
+      return response
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+      console.error(error)
+    } finally {
+      isCreatingMcpToken.value = false
+    }
+  }
+
+  /** A connection whose authority is its scopes carries no base to address it by. */
+  const isScopedMcpToken = (token: MCPTokenExtendedType) => !token.base_id || token.base_id === NO_SCOPE
+
+  const regenerateAccountMcpToken = async (token: MCPTokenExtendedType) => {
+    // A row with a real base is still reachable base-scoped, which is the only
+    // shape CE ever produces — so the branch is on the row, not the edition.
+    if (!isScopedMcpToken(token)) return updateMcpToken(token, true)
+
+    try {
+      token.loading = true
+      const res = await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, { operation: 'mcpRootUpdate' }, { tokenId: token.id })
+
+      if (res) {
+        const index = accountMcpTokens.value.findIndex((t) => t.id === token.id)
+        if (index !== -1) accountMcpTokens.value[index] = { ...accountMcpTokens.value[index], ...res }
+        message.success(t('msg.success.mcpTokenUpdated'))
+      }
+
+      return res
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+      console.error(error)
+    } finally {
+      token.loading = false
+    }
+  }
+
+  /** Change a scoped connection's name, reach or tools; its secret stays. */
+  const updateAccountMcpToken = async (
+    token: MCPTokenExtendedType,
+    payload: { title: string; scopes: ApiTokenScopeEntry[]; tools: string[] },
+  ) => {
+    try {
+      isCreatingMcpToken.value = true
+
+      const res = await $api.internal.postOperation(
+        NO_SCOPE,
+        NO_SCOPE,
+        { operation: 'mcpRootUpdate' },
+        { tokenId: token.id, ...payload },
+      )
+
+      if (res) {
+        const index = accountMcpTokens.value.findIndex((t) => t.id === token.id)
+        if (index !== -1) accountMcpTokens.value[index] = { ...accountMcpTokens.value[index], ...res }
+        message.success(t('msg.success.mcpTokenUpdated'))
+      }
+
+      return res
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+      console.error(error)
+    } finally {
+      isCreatingMcpToken.value = false
+    }
+  }
+
+  const deleteAccountMcpToken = async (token: MCPTokenExtendedType) => {
+    if (!isScopedMcpToken(token)) return deleteMcpToken(token, true)
+
+    try {
+      token.loading = true
+      const res = await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, { operation: 'mcpRootDelete' }, { tokenId: token.id })
+
+      if (res) {
+        accountMcpTokens.value = accountMcpTokens.value.filter((t) => t.id !== token.id)
+        message.success(t('msg.success.mcpTokenDeleted'))
+      } else {
+        message.error(t('msg.error.failedToDeleteMcpToken'))
+      }
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+      console.error(error)
+    } finally {
+      token.loading = false
+    }
+  }
+
   return {
     mcpTokens,
     createMcpToken,
@@ -245,5 +364,12 @@ export const useMcpSettings = createSharedComposable(() => {
     // Account-level
     accountMcpTokens,
     listAccountMcpTokens,
+    createAccountMcpToken,
+    toolCatalog,
+    loadToolCatalog,
+    regenerateAccountMcpToken,
+    updateAccountMcpToken,
+    deleteAccountMcpToken,
+    isScopedMcpToken,
   }
 })

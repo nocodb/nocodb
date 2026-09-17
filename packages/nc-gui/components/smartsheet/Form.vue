@@ -2677,7 +2677,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           </div>
 
                           <!-- See who submitted a response -->
-                          <div v-if="isEeUI" class="flex items-center justify-between gap-3">
+                          <div v-if="isEeUI" class="flex items-start justify-between gap-3">
                             <div class="flex flex-col">
                               <span>{{ $t('msg.info.seeWhoSubmitted') }}</span>
                               <span class="text-xs text-nc-content-gray-subtle2">
@@ -2688,7 +2688,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 }}
                               </span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 h-6">
                               <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN" />
                               <a-switch
                                 v-e="[`a:form-view:require-signin`]"

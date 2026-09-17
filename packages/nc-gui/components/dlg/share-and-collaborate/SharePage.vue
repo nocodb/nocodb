@@ -558,6 +558,14 @@ const copyCustomUrl = async (custUrl = '') => {
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
     <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-nc-border-gray-medium border-1 rounded-md gap-y-2">
+      <!-- Sits above every other option so it reads as a property of the shared form, not of survey mode -->
+      <NcAlert
+        v-if="isFormRequireSigninEnabled"
+        type="info"
+        show-icon
+        :message="$t('msg.info.formRequiresSignin')"
+        data-testid="nc-share-form-require-signin-banner"
+      />
       <div class="flex flex-row w-full justify-between py-0.5">
         <div class="text-nc-content-gray-emphasis font-medium">
           {{ $t('activity.enabledPublicViewing') }}
@@ -805,16 +813,6 @@ const copyCustomUrl = async (custUrl = '') => {
             </a-switch>
           </div>
         </div>
-
-        <!-- Info banner when require sign-in is enabled -->
-        <NcAlert
-          v-if="isFormRequireSigninEnabled"
-          type="info"
-          show-icon
-          class="mt-1"
-          :message="$t('msg.info.formRequiresSignin')"
-          data-testid="nc-share-form-require-signin-banner"
-        />
 
         <div
           v-if="activeView?.type === ViewTypes.FORM"

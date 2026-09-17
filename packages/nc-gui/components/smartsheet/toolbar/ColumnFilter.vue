@@ -840,6 +840,20 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
         { operation: 'filterBulkLogicalOpUpdate' },
         { filters: filtersBody },
       )
+
+      // Refetch rows. This cascade path returns early and so never reaches
+      // `saveOrUpdate`, which is what normally triggers the reload
+      // (useViewFilters.ts:859). Without this, switching AND -> OR persists
+      // server-side but leaves the grid showing the PRE-switch result set until
+      // something else happens to refresh it.
+      //
+      // Found from a CI trace: filterBulkLogicalOpUpdate returned 200 and was
+      // the last meaningful request of the test, with no data GET after it, so
+      // the grid sat on the AND result (0 rows where 2 were expected) for the
+      // full 20s poll. That is `filters:1225`, failing on pg, mssql and oracle
+      // across most sampled runs — a real user-facing bug, not a test one.
+      reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 })
+      reloadAggregate?.trigger({ path: [] })
     }
     return
   }

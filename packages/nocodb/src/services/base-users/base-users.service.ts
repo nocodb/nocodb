@@ -72,8 +72,16 @@ export class BaseUsersService {
   ) {
     const MAX_RESOLVE = 50;
 
+    if (!Array.isArray(param.userIds)) {
+      NcError.get(context).badRequest('user_ids must be an array of user ids');
+    }
+
     const userIds = [
-      ...new Set((param.userIds || []).filter((id) => typeof id === 'string' && id.trim())),
+      ...new Set(
+        (param.userIds || []).filter(
+          (id) => typeof id === 'string' && id.trim(),
+        ),
+      ),
     ].slice(0, MAX_RESOLVE);
 
     if (!userIds.length) return [];

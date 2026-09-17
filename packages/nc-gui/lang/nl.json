@@ -257,8 +257,47 @@
       "workspaceMembers": "Werkruimte leden",
       "audit": "Werkruimte audit",
       "ltarCustomDisplayValue": "Aangepaste weergavewaarde veld",
-      "publicDocShare": "Openbare document delen"
-    }
+      "publicDocShare": "Openbare document delen",
+      "agents": "Agents"
+    },
+    "upgradeToSortAndLimitLookupValues": "Stap over naar het {plan}-abonnement om de waarden in een Lookup-veld te sorteren en te beperken.",
+    "upgradeToAddMoreAgents": "Upgrade om meer Agents toe te voegen",
+    "upgradeToAddMoreAgentsSubtitle": "Je gebruikt nu het {activePlan}-abonnement, dat {limit} Agents per werkruimte toestaat. Stap over naar {plan} voor meer.",
+    "upgradeToAddMoreInterfaces": "Upgrade om meer Interfaces toe te voegen",
+    "upgradeToAddMoreInterfacesSubtitle": "Je gebruikt nu het {activePlan}-abonnement, dat {limit} Interfaces per werkruimte toestaat. Stap over naar {plan} voor meer.",
+    "upgradeToAddMoreInterfacePages": "Upgrade om meer pagina's toe te voegen",
+    "upgradeToAddMoreInterfacePagesSubtitle": "Je gebruikt nu het {activePlan}-abonnement, dat {limit} pagina's per Interface toestaat. Stap over naar {plan} voor onbeperkte pagina's.",
+    "upgradeToUseTrashSettings": "Upgrade om prullenbakinstellingen te configureren",
+    "upgradeToUseTrashSettingsSubtitle": "Stap over naar het {plan}-abonnement om prullenbakinstellingen per tabel te configureren.",
+    "upgradeToAttachFilesToComments": "Upgrade om bestanden aan reacties toe te voegen",
+    "upgradeToAttachFilesToCommentsSubtitle": "Stap over naar het {plan}-abonnement om afbeeldingen en bestanden aan recordreacties toe te voegen.",
+    "upgradeToUseToggleSort": "Upgrade om afzonderlijke sorteringen aan en uit te zetten",
+    "upgradeToUseToggleSortSubtitle": "Stap over naar het {plan}-abonnement om afzonderlijke sorteringen in of uit te schakelen zonder ze te verwijderen, voor meer controle over je weergaven.",
+    "upgradeToUseViewFolders": "Upgrade om weergavemappen te gebruiken",
+    "upgradeToUseViewFoldersSubtitle": "Stap over naar het {plan}-abonnement om weergaven in mappen te ordenen.",
+    "upgradeToAccessViewFoldersSubtitle": "Stap over naar het {plan}-abonnement om weergaven in mappen te ordenen.",
+    "upgradeToUseFolders": "Upgrade om mappen te gebruiken",
+    "upgradeToUseFoldersSubtitle": "Stap over naar het {plan}-abonnement om tabellen, documenten en Dashboards in mappen te ordenen.",
+    "upgradeToAccessFoldersSubtitle": "Stap over naar het {plan}-abonnement om tabellen, documenten en Dashboards in mappen te ordenen.",
+    "upgradeToUseCustomSync": "Upgrade om eigen Sync te gebruiken",
+    "upgradeToUseCustomSyncSubtitle": "Stap over naar het {plan}-abonnement om gegevens uit andere gegevensbronnen te synchroniseren.",
+    "upgradeToUseAutomaticSyncSubtitle": "Stap over naar het {plan}-abonnement om gespiegelde tabellen automatisch en in realtime gesynchroniseerd te houden.",
+    "upgradeToUseEnvironments": "Upgrade om omgevingen te gebruiken",
+    "upgradeToUseEnvironmentsSubtitle": "Omgevingen zijn beschikbaar vanaf het {plan}-abonnement.",
+    "upgradeToPlanForFeature": "Stap over naar het {plan}-abonnement {detail}",
+    "runAutomationFromInterfaceButtonDetail": "om automatiseringen te starten vanaf Interface-knoppen.",
+    "addonFeatureTitle": "Beschikbaar als Add-on {addon}",
+    "addonFeatureSubtitle": "{addon} is beschikbaar als betaalde Add-on vanaf het {plan}-abonnement. Neem contact met ons op om het in te schakelen.",
+    "toAccessCopyViewConfigFromAnotherView": "om de weergaveconfiguratie van een andere weergave te kopiëren.",
+    "toAccessReassignPersonalView": "om persoonlijke weergaven opnieuw toe te wijzen.",
+    "toAccessAssignAsPersonalView": "om weergaven als persoonlijke weergave toe te wijzen.",
+    "toAccessCardFieldHeaderVisibility": "om de zichtbaarheid van veldkoppen op kaarten te gebruiken.",
+    "upgradeToUseStagingEnvironment": "Upgrade om de Staging-omgeving te gebruiken",
+    "upgradeToUseStagingEnvironmentSubtitle": "Je {activePlan}-abonnement bevat alleen de productieomgeving. Stap over naar {plan} om Staging te gebruiken.",
+    "upgradeToUsePerUserCredentials": "Upgrade om inloggegevens per gebruiker te gebruiken",
+    "upgradeToUsePerUserCredentialsSubtitle": "Je {activePlan}-abonnement gebruikt alleen gedeelde inloggegevens. Stap over naar {plan} zodat elk lid zijn eigen account kan koppelen.",
+    "upgradeToUseCustomEnvironments": "Upgrade om eigen omgevingen te maken",
+    "upgradeToUseCustomEnvironmentsSubtitle": "Eigen omgevingen zijn niet beschikbaar in je {activePlan}-abonnement. Stap over naar {plan} om omgevingen naast Productie en Staging te maken."
   },
   "general": {
     "scrollToBottom": "Scroll naar beneden",
@@ -1451,7 +1490,19 @@
     "creatingAgent": "Agent wordt gemaakt",
     "agentToolsAndAccess": "Hulpmiddelen en toegang",
     "agentSkills": "Skills",
-    "agentSettings": "Instellingen"
+    "agentSettings": "Instellingen",
+    "updateRecordsCount": "{n} record bijwerken | {n} records bijwerken",
+    "turnOffEditing": "Bewerken uitschakelen?",
+    "turnOnInlineEditing": "Inline bewerken inschakelen?",
+    "turnOnEditingByForm": "Bewerken via formulier inschakelen?",
+    "productTours": "Productrondleidingen",
+    "testDataGeneration": "Testdata genereren",
+    "noSearchResultsFound": "Geen zoekresultaten gevonden",
+    "theListIsEmpty": "De lijst is leeg",
+    "newEnvironment": "Nieuwe omgeving",
+    "removeCustomDomain": "Aangepast domein verwijderen?",
+    "tooNarrowToAdjustFrozenFields": "Het venster is te smal om bevroren velden aan te passen",
+    "themeSettings": "Thema-instellingen"
   },
   "labels": {
     "syncing": "Synchroniseren",
@@ -4684,7 +4735,90 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorteren wordt niet ondersteund voor velden met fouten",
     "sortingNotSupportedForField": "Sorteren wordt niet ondersteund voor {type} veld",
     "groupingNotSupportedForFieldsWithErrors": "Groepering wordt niet ondersteund voor velden met fouten",
-    "variableInheritance": "Bepaalt wat mensen die deze base als app installeren met deze variabele kunnen doen: Vast behoudt jouw waarde en verbergt die, Bewerkbaar biedt jouw waarde als startpunt, Vereist vraagt hen een eigen waarde op te geven."
+    "variableInheritance": "Bepaalt wat mensen die deze base als app installeren met deze variabele kunnen doen: Vast behoudt jouw waarde en verbergt die, Bewerkbaar biedt jouw waarde als startpunt, Vereist vraagt hen een eigen waarde op te geven.",
+    "workflowButtonTriggerSourceReadOnly": "De brontabel die aan deze knop is gekoppeld, kan alleen via Interfaces worden gewijzigd",
+    "workflowButtonTriggerInterfaceReadOnly": "De Interface-pagina met deze knop kan alleen via Interfaces worden gewijzigd",
+    "chartIncludeOthers": "Categorieën boven de limiet samenvoegen tot één categorie 'Overige' in plaats van ze weg te laten.",
+    "sideLabelsNeedSingleFieldRows": "Niet beschikbaar zolang een rij meer dan één veld bevat.",
+    "showFieldInView": "Dit veld tonen in de huidige weergave.",
+    "hideFieldInView": "Dit veld verbergen in de huidige weergave.",
+    "viewAllEventsInDayView": "Alle {count} gebeurtenis in dagweergave bekijken | Alle {count} gebeurtenissen in dagweergave bekijken",
+    "linkValueDelimiter": "Teken dat meerdere gekoppelde waarden binnen één cel scheidt (standaard ,)",
+    "interfaceMixedRoles": "De rollen verschillen per Interface of pagina — klap uit om ze te bekijken",
+    "chatQueueAttachmentUnavailable": "Deze bijlage wordt niet verstuurd als je je bericht in de wachtrij zet — verwijder hem eerst",
+    "lockedViewDisabledOnProduction": "Vergrendelde weergaven kunnen alleen in de omgevingskopie worden gemaakt",
+    "personalViewDisabledOnEnvironment": "Persoonlijke weergaven kunnen alleen op de productie-Base worden gemaakt",
+    "seeNComments": "{n} reactie bekijken | {n} reacties bekijken",
+    "collapsibleGroups": "Groepen met een titel kunnen worden ingeklapt",
+    "nestedRecordsRequireSelfLink": "Vereist een koppelingsveld in deze tabel dat terugverwijst naar dezelfde tabel.",
+    "dataChangeDisabled": "Gegevens bewerken is uitgeschakeld voor deze gegevensbron.",
+    "cannotRemoveInheritedInterfaceMember": "De toegang wordt overgenomen van de Base. Beheer dit vanuit",
+    "saveDraftToBrowser": "Laat mensen terugkeren naar een half ingevuld formulier zonder te verliezen wat ze hebben getypt. Wordt alleen in hun browser bewaard en bij verzenden gewist.",
+    "clickToSeeDetails": "Klik om de details te zien.",
+    "navigateToBaseToCreateAgent": "Ga naar een Base om een Agent te maken",
+    "navigateToBaseToCreateFolder": "Ga naar een Base om een map te maken",
+    "navigateToBaseToCreateInterface": "Ga naar een Base om een Interface te maken",
+    "switchToAgentsTab": "Ga naar het tabblad Agents om {type} te maken",
+    "switchToInterfacesTab": "Ga naar het tabblad Interfaces om een Interface te maken",
+    "youDontHaveAccessToCreateNewAgent": "Je hebt geen rechten om een nieuwe Agent te maken",
+    "youDontHaveAccessToCreateNewInterface": "Je hebt geen rechten om een nieuwe Interface te maken",
+    "displayValueFieldCannotBeReordered": "Het veld met de weergavewaarde kan niet worden herschikt",
+    "interfaceLastVizRequired": "Een pagina heeft minstens één visualisatie nodig",
+    "onlyCreatorsCanManageViewFolders": "Alleen makers of eigenaren van de Base kunnen weergavemappen beheren",
+    "onlyCreatorsCanManageFolders": "Alleen makers of eigenaren van de Base kunnen mappen beheren",
+    "organizeViewsIntoFolders": "Weergaven ordenen in inklapbare mappen",
+    "productionLockedByEnvironment": "Deze Base is geopend in een omgeving — voer schemawijzigingen daar door.",
+    "managedByPublisher": "De structuur van deze App wordt beheerd door de uitgever. Je documenten en mappen voeg je zelf toe.",
+    "featureOnProductionOnly": "Deze actie wordt beheerd op de productie-Base, niet in een omgevingskopie.",
+    "clickToEdit": "Klik om te bewerken",
+    "resolvedBy": "Opgelost door {name}",
+    "fieldAutoLinkedToParent": "Dit veld wordt automatisch gekoppeld aan het bovenliggende record",
+    "newRecordCreatedEachTemplateUse": "Elke keer dat dit sjabloon wordt gebruikt, wordt een nieuw {tableName}-record gemaakt en gekoppeld",
+    "warningMessageForInvalidInputs": "Deze waarschuwing wordt getoond aan formuliergebruikers bij ongeldige invoer.",
+    "cannotAddConditionsToFirstField": "Aan het eerste veld van een formulier kunnen geen voorwaarden worden toegevoegd.",
+    "validationsEnforcedByFieldSchema": "Validaties worden afgedwongen door de schema-instellingen van het veld",
+    "requiredEnforcedOnFormSubmit": "Wordt afgedwongen wanneer deze pagina wordt geopend als formulier om een record aan te maken",
+    "readOnlyFieldCannotBeEditedInline": "Alleen-lezen velden kunnen niet inline worden bewerkt",
+    "editInlineDisabledForElement": "Bewerken is uitgeschakeld voor dit pagina-element. Schakel het in voor het element om deze kolom te kunnen bewerken.",
+    "cantUploadDataInSyncedTable": "Je kunt geen gegevens uploaden in een gesynchroniseerde tabel",
+    "hideMyPresence": "Mijn aanwezigheid verbergen",
+    "showMyPresence": "Mijn aanwezigheid tonen",
+    "setupScriptSettingsToRun": "Stel de scriptinstellingen in om het uit te voeren",
+    "autoSuggestViewsFor": "Automatisch weergaven voorstellen voor {tableName}",
+    "discardDraftChanges": "Conceptwijzigingen verwerpen en de gepubliceerde versie herstellen",
+    "testAllNodesBeforePublish": "Test alle knooppunten voordat je publiceert",
+    "tourCompleteStepToContinue": "Voltooi deze stap om verder te gaan",
+    "tourTakeTheTour": "{tour} — volg de rondleiding",
+    "fieldPropertiesCannotBeEdited": "De veldeigenschappen kunnen niet worden bewerkt.",
+    "fieldAssociatedWithLinkColumn": "Het veld is gekoppeld aan een koppelingskolom",
+    "fieldCannotBeUpgraded": "Het veld kan niet worden bijgewerkt.",
+    "fieldCannotBeDuplicated": "Het veld kan niet worden gedupliceerd.",
+    "selectNewFieldAsDisplayValue": "Een nieuw veld als weergavewaarde kiezen",
+    "addFieldDescription": "Veldbeschrijving toevoegen",
+    "fieldCannotBeDeleted": "Het veld kan niet worden verwijderd.",
+    "recordHiddenByFilter": "Dit record wordt verborgen omdat het niet voldoet aan de filters van deze weergave.",
+    "recordWillMove": "Dit record verplaatst naar een nieuwe positie zodra je er buiten klikt.",
+    "recordHiddenByPermission": "Dit record wordt verborgen omdat het niet past bij je toegangsrechten.",
+    "rowLevelSecurityEnabled": "Beveiliging op rijniveau staat aan. Sommige rijen kunnen verborgen zijn op basis van je toegangsrechten.",
+    "suggestMore": "Meer voorstellen",
+    "reSuggest": "Opnieuw voorstellen",
+    "portWebhookV2ToV3": "Deze Webhook overzetten van v2 naar v3",
+    "formDisplayMessageTemplating": "Gebruik voor een sjabloonveld de kolomnaam of -titel in plaats van het veldlabel. Bijvoorbeeld: 'Hallo {'{'}Title{'}'}!'",
+    "incompatibleWithColumn": "Niet compatibel met kolom '{title}'",
+    "crossBaseLinkCreatorAccess": "Je kunt alleen koppelen naar tabellen in Bases waar je minstens maker-toegang hebt.",
+    "clickIntoRecordDetailsCrossBase": "Nog niet beschikbaar voor koppelingen tussen Bases",
+    "autoSuggestFieldsFor": "Automatisch velden voorstellen voor {table}",
+    "clearAllAndResuggest": "Alles wissen en opnieuw voorstellen",
+    "cannotSetDefaultValueWithUnique": "Er kan geen standaardwaarde worden ingesteld omdat de Unique-beperking actief is. Schakel de Unique-beperking uit om een standaardwaarde in te stellen",
+    "useAiToGenerateContent": "AI gebruiken om inhoud te genereren op basis van recordgegevens.",
+    "previewGeneratedFromFirstRecord": "Het voorbeeld wordt gemaakt op basis van het eerste record in deze tabel",
+    "includeFieldInPromptToGenerate": "Neem minstens 1 veld op in de Prompt om te genereren",
+    "editorsReportedByInstance": "Het aantal bewerkers wordt bij elke heartbeat door je instantie doorgegeven. Beheer bewerkers op de instantie zelf.",
+    "dragToAdjustFrozenFields": "Sleep om het aantal bevroren velden aan te passen",
+    "freezeColumnsCount": "{count} kolom bevriezen | {count} kolommen bevriezen",
+    "marketplaceComingSoon": "Deze App wordt nog samengesteld en kan daarom nog niet worden geïnstalleerd.",
+    "marketplaceAuthored": "Geschreven door de uitgever, niet afgeleid van de inhoud van de App.",
+    "marketplaceVerifiedPublisher": "Gepubliceerd en gecontroleerd door NocoDB"
   },
   "placeholder": {
     "enterVerificationCode": "6-cijferige code invoeren",
@@ -6220,6 +6354,94 @@
       "seatsOnOrg": "Zitplaatsen in deze organisatie",
       "workspaceSubscription": "Abonnement van de werkruimte",
       "orgSubscription": "Abonnement van de organisatie"
+    }
+  },
+  "tour": {
+    "workspaceBasics": {
+      "title": "Vind je weg in je werkruimte",
+      "welcome": {
+        "title": "Welkom bij NocoDB",
+        "description": "Een snel rondje door je werkruimte. Je kunt op elk moment stoppen — klik op Overslaan."
+      },
+      "createBase": {
+        "title": "Begin met een Base",
+        "description": "Een Base bevat je tabellen, weergaven en automatiseringen. Hier begint het meeste werk."
+      },
+      "switchWorkspaces": {
+        "title": "Van werkruimte wisselen",
+        "description": "Elke werkruimte waar je bij hoort zit achter deze keuzelijst. Open hem om de rest te zien."
+      },
+      "moreWorkspaces": {
+        "title": "Meer dan één werkruimte",
+        "description": "Werkruimtes houden verschillende teams en projecten gescheiden, elk met hun eigen leden."
+      },
+      "account": {
+        "title": "Account en instellingen",
+        "description": "Profiel, thema, sneltoetsen en accountinstellingen zitten allemaal achter je avatar."
+      }
+    },
+    "workflows": {
+      "title": "Bouw je eerste Workflow",
+      "overview": {
+        "title": "Een Workflow bouwen van begin tot eind",
+        "description": "Maak hem aan, kies een trigger, voeg een actie toe, publiceer, zet hem aan en kijk hem dan draaien."
+      },
+      "create": {
+        "title": "Een Workflow maken",
+        "description": "Begin vanaf nul — dit opent een kort formulier."
+      },
+      "createSubmit": {
+        "title": "Maak hem aan",
+        "description": "Hiermee kom je meteen op het canvas terecht."
+      },
+      "addTrigger": {
+        "title": "Een trigger toevoegen",
+        "description": "Elke Workflow begint hier — klik om te zien wat hem kan starten."
+      },
+      "pickManualTrigger": {
+        "title": "Kies 'Bij handmatige start'",
+        "description": "Deze start je zelf, zodat je de rest werkend kunt krijgen voordat je hem aan echte gebeurtenissen koppelt."
+      },
+      "testTrigger": {
+        "title": "Test de trigger",
+        "description": "Voer hem één keer uit en bekijk de gegevens die hij oplevert. Elke volgende stap bouwt op deze uitvoer voort."
+      },
+      "addAction": {
+        "title": "Een actie toevoegen",
+        "description": "Acties zijn wat de Workflow daadwerkelijk doet zodra de trigger afgaat."
+      },
+      "pickListRecords": {
+        "title": "Kies 'Records ophalen'",
+        "description": "Hij leest alleen, dus je kunt hem zo vaak uitvoeren als je wilt zonder gegevens te wijzigen."
+      },
+      "chooseTable": {
+        "title": "Een tabel kiezen",
+        "description": "Elke actie moet weten waarop ze werkt. Kies de tabel waaruit records worden opgehaald."
+      },
+      "testAction": {
+        "title": "Test ook de actie",
+        "description": "Elk knooppunt test je apart. Controleer of dit knooppunt teruggeeft wat je verwacht voordat je publiceert."
+      },
+      "publish": {
+        "title": "Publiceer je wijzigingen",
+        "description": "Bewerkingen worden opgeslagen als <b>concept</b>. Pas door te publiceren wordt deze versie degene die draait."
+      },
+      "enable": {
+        "title": "Zet hem aan",
+        "description": "Gepubliceerd is niet hetzelfde als draaiend. Een Workflow blijft <b>Gepauzeerd</b> tot je hem inschakelt — dit is de stap die mensen missen."
+      },
+      "run": {
+        "title": "Voer hem één keer uit",
+        "description": "Een handmatige trigger gaat af wanneer jij dat wilt — probeer het en kijk hem draaien."
+      },
+      "logs": {
+        "title": "De logboeken bekijken",
+        "description": "Elke uitvoering wordt hier vastgelegd — wat er afging, wat elke stap teruggaf en wat er misging."
+      },
+      "wrapUp": {
+        "title": "Dat is de hele cyclus",
+        "description": "Trigger, acties, publiceren, inschakelen, uitvoeren, logboeken. Elke Workflow die je hierna bouwt volgt dezelfde vorm."
+      }
     }
   }
 }

@@ -65,9 +65,9 @@ export interface AppThemeConfig {
   preset?: string;
 }
 
-/** The starter template's built-in palette — the exact `:root` / `.dark` values
- *  from `e2b/app-builder/starter-template/src/index.css`. Shown as the "Default"
- *  swatch in the picker; NEVER injected (Default = no override). */
+/** The starter template's palette, hand-copied from `starter-template/src/index.css`
+ *  in `nocodb/nc-e2b-template` — nothing keeps the two in sync. The picker's
+ *  "Default" swatch; NEVER injected (Default = no override). */
 export const STARTER_DEFAULT_TOKENS: AppThemeTokens = {
   light: {
     '--radius': '0.625rem',

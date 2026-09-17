@@ -49,6 +49,10 @@ const down = async (knex: Knex) => {
     .whereIn('id', knex(MetaTable.AGENT_MESSAGES).select('id'))
     .del();
 
+  await knex(MetaTable.CHAT_MESSAGES)
+    .whereRaw('length(model) > 100')
+    .update({ model: knex.raw('substr(model, 1, 100)') });
+
   await knex.schema.alterTable(MetaTable.CHAT_MESSAGES, (table) => {
     table.string('model', 100).alter();
   });

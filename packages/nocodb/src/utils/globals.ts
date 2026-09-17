@@ -291,6 +291,15 @@ export enum MetaTableOldV2 {
   OUTLINE_VIEW = 'nc_outline_view_v2',
   OUTLINE_VIEW_COLUMNS = 'nc_outline_view_columns_v2',
   OUTLINE_VIEW_LEVELS = 'nc_outline_view_levels_v2',
+
+  KNEX_MIGRATIONS = 'xc_knex_migrations',
+  SANDBOXES_V2 = 'nc_sandboxes_v2',
+  SANDBOX_CHANGELOG = 'nc_sandbox_changelog',
+  FILTER_EXP_V2 = 'nc_filter_exp_v2',
+  DOCS_V2 = 'nc_docs_v2',
+  ADDONS = 'nc_addons',
+  SUBSCRIPTION_ADDONS = 'nc_subscription_addons',
+  API_TOKEN_SCOPES = 'nc_api_token_scopes',
 }
 
 export const orderedMetaTables = [
@@ -674,7 +683,6 @@ export enum CacheScope {
   BASE_SECTION = 'baseSection',
   AUTOMATION_SECTION = 'automationSection',
   AGENT_SECTION = 'agentSection',
-  CHAT_SESSION = 'chatSession',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',

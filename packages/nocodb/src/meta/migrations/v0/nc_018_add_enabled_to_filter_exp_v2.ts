@@ -1,18 +1,25 @@
 import type { Knex } from 'knex';
+import { MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  const hasColumn = await knex.schema.hasColumn('nc_filter_exp_v2', 'enabled');
+  const hasColumn = await knex.schema.hasColumn(
+    MetaTableOldV2.FILTER_EXP_V2,
+    'enabled',
+  );
   if (!hasColumn) {
-    await knex.schema.alterTable('nc_filter_exp_v2', (table) => {
+    await knex.schema.alterTable(MetaTableOldV2.FILTER_EXP_V2, (table) => {
       table.boolean('enabled').defaultTo(true);
     });
   }
 };
 
 const down = async (knex: Knex) => {
-  const hasColumn = await knex.schema.hasColumn('nc_filter_exp_v2', 'enabled');
+  const hasColumn = await knex.schema.hasColumn(
+    MetaTableOldV2.FILTER_EXP_V2,
+    'enabled',
+  );
   if (hasColumn) {
-    await knex.schema.alterTable('nc_filter_exp_v2', (table) => {
+    await knex.schema.alterTable(MetaTableOldV2.FILTER_EXP_V2, (table) => {
       table.dropColumn('enabled');
     });
   }

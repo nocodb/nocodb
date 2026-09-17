@@ -10,11 +10,9 @@ import type {
 } from '~/lib/chat';
 import type { AppBuildLockPayload } from '~/lib/app/build';
 import type { AppStatus, AppType } from '~/lib/app';
-import type {
-  AgentMessageType,
-  AgentSessionType,
-  AgentType,
-} from '~/lib/agent';
+import type { AppTeamType } from '~/lib/app/team';
+import type { AppConnectionSlotView } from '~/lib/app/connection';
+import type { AgentType } from '~/lib/agent';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -494,21 +492,64 @@ export interface AppLifecyclePayload extends BaseSocketPayload {
   payload: AppType;
 }
 
-/** The app-scoped collections a client caches by appId and cannot otherwise
- *  know are stale. */
-export type AppMetadataScope = 'teams' | 'actions' | 'connections';
-
-/** An app's authored metadata changed. The App Builder declares teams, actions
- *  and connections from inside a build turn — that runs on the MCP callback,
- *  which has no originating client socket, so nothing tells a viewer its cached
- *  copy is stale. Carries the scope, not the new rows: the client refetches. */
-export interface AppMetadataPayload extends BaseSocketPayload {
+/**
+ * One team changed — carries the row, so a client patches rather than refetches.
+ *
+ * `payload` is the shape `appTeamList` returns, `members_count` included, because
+ * that is what a client caches. A membership change is a `team_update`: the
+ * roster is loaded per card, but the count lives on the team.
+ */
+export interface AppTeamPayload extends BaseSocketPayload {
+  /** The app, so a listener can route without resolving the team. */
   id: string;
-  action: 'metadata';
-  scope: AppMetadataScope;
+  action: 'team_create' | 'team_update' | 'team_delete';
+  teamId: string;
+  /** Absent on delete. */
+  payload?: AppTeamType;
+  /** Set when the members of this team changed, not just its definition — an
+   *  open roster has to refetch, since member rows are resolved per card. */
+  membersChanged?: boolean;
 }
 
-export type AppPayload = AppLifecyclePayload | AppMetadataPayload;
+/**
+ * One declared action changed — carries the row, so a client patches rather
+ * than refetches. `payload` is the shape `appActionList` returns: the head row,
+ * not the enriched agent-facing view.
+ */
+export interface AppActionPayload extends BaseSocketPayload {
+  /** The app, so a listener can route without resolving the action. */
+  id: string;
+  action: 'action_create' | 'action_update' | 'action_delete';
+  actionId: string;
+  /** Absent on delete. */
+  payload?: {
+    id: string;
+    action_id: string;
+    title?: string;
+    description?: string;
+    fk_current_version_id?: string;
+  };
+}
+
+/**
+ * The app's declared connection slots changed.
+ *
+ * Only the SLOTS travel. `connected` and `catalog` are per-viewer — `Integration.list`
+ * hides another user's private integrations — and declare/bind/undeclare never
+ * touch them, so a client merges these into the view it already holds.
+ */
+export interface AppConnectionPayload extends BaseSocketPayload {
+  /** The app whose slots changed. */
+  id: string;
+  action: 'connections_update';
+  slots: Omit<AppConnectionSlotView, 'boundTitle'>[];
+}
+
+export type AppPayload =
+  | AppLifecyclePayload
+  | AppTeamPayload
+  | AppActionPayload
+  | AppConnectionPayload;
 
 /**
  * Server-derived state of a chat session's in-flight turn, served by
@@ -587,13 +628,13 @@ export interface AgentSessionEventPayload extends AgentEventBase {
     | AgentEventAction.SESSION_DELETE;
   sessionId: string;
   /** Absent on delete. */
-  session?: AgentSessionType;
+  session?: ChatSessionType;
 }
 
 export interface AgentMessageEventPayload extends AgentEventBase {
   action: AgentEventAction.USER_MESSAGE;
   sessionId: string;
-  message: AgentMessageType;
+  message: ChatMessageType;
 }
 
 /** Narrows on `action`. Turn streaming is not here — it rides `CHAT_EVENT`. */

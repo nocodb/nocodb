@@ -1335,3 +1335,17 @@ export interface FocusPresenceParams {
   columns: Ref<Array<{ id?: string; columnObj?: ColumnType; readonly?: boolean }>>
   getRowPk: (rowIndex: number, path?: Array<number>) => string | null
 }
+
+/** The shared open-delay state of the NcTooltips inside one NcTooltipProvider. */
+export interface NcTooltipGroup {
+  /** Milliseconds before a cold open; a tooltip's own `mouseEnterDelay` when undefined. */
+  delay?: number
+  /** Milliseconds before closing. */
+  closeDelay?: number
+  /** Milliseconds after a close during which the next tooltip opens instantly. */
+  timeout: number
+  /** The open delay a tooltip should use right now, given its own default in ms. */
+  enterDelay: (own: number) => number
+  onOpen: () => void
+  onClose: () => void
+}

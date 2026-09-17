@@ -11,7 +11,7 @@ import type {
 import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { InterfacePageDataApi, InterfacePublicPageState, InterfaceRecordSidebarApi } from '../lib/interfaceData'
-import type { LinkRecordDropdownVariant, Row } from '../lib/types'
+import type { LinkRecordDropdownVariant, NcTooltipGroup, Row } from '../lib/types'
 import type { PageSidebarNode } from '#imports'
 
 export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : never
@@ -24,6 +24,8 @@ export const IntegrationPerUserStateInj: InjectionKey<{
   /** Non-null when the caller fixed the mode and the creator has no choice. */
   requiredMode: ComputedRef<IntegrationCredentialMode | null>
 } | null> = Symbol('integration-per-user-state')
+
+export const TooltipProviderInj: InjectionKey<NcTooltipGroup> = Symbol('tooltip-provider')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const IsInFilterInj: InjectionKey<Ref<boolean>> = Symbol('is-in-filter')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')

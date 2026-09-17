@@ -1,7 +1,10 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: 'tsconfig.json',
+    // The tests tree needs its own entry — tsconfig.eslint.json includes only
+    // `src/`, so without this every test file is a parsing error and stale
+    // imports there go unreported.
+    project: ['tsconfig.eslint.json', 'tests/unit/tsconfig.typecheck.json'],
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },

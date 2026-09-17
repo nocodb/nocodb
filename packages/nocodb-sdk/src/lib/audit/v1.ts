@@ -296,7 +296,6 @@ enum AuditV1OperationTypes {
   ACTION_CREATE = 'ACTION_CREATE',
   ACTION_UPDATE = 'ACTION_UPDATE',
   ACTION_DELETE = 'ACTION_DELETE',
-  ACTION_ROLLOUT = 'ACTION_ROLLOUT',
 
   AGENT_CREATE = 'AGENT_CREATE',
   AGENT_UPDATE = 'AGENT_UPDATE',
@@ -1815,13 +1814,6 @@ export interface ActionLifecycleAuditDetails {
   action_version_id?: string;
 }
 
-/** Pinning an action version into app versions — what installers will actually run. */
-export interface ActionRolloutAuditDetails {
-  action_id: string;
-  action_version_id: string;
-  app_version_ids: string[];
-}
-
 export interface AgentLifecycleAuditDetails {
   agent_id?: string;
   agent_title?: string;
@@ -2632,8 +2624,6 @@ const descriptionTemplates = {
     `Action '${audit.details.action_title ?? audit.details.action_id}' updated`,
   [AuditV1OperationTypes.ACTION_DELETE]: (audit: AuditV1<ActionLifecycleAuditDetails>) =>
     `Action '${audit.details.action_title ?? audit.details.action_id}' deleted`,
-  [AuditV1OperationTypes.ACTION_ROLLOUT]: (audit: AuditV1<ActionRolloutAuditDetails>) =>
-    `Action '${audit.details.action_id}' rolled out to ${audit.details.app_version_ids.length} app version(s)`,
   [AuditV1OperationTypes.AGENT_CREATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
     `Agent '${audit.details.agent_title ?? audit.details.agent_id}' created`,
   [AuditV1OperationTypes.AGENT_UPDATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>

@@ -130,6 +130,14 @@ export class NcError {
     return NcError._.hookNotFound(id, args);
   }
 
+  static appVersionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.appVersionNotFound(id, args);
+  }
+
+  static managedAppNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.managedAppNotFound(id, args);
+  }
+
   static genericNotFound(
     resource: string,
     id: string,

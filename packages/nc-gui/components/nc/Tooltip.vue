@@ -32,6 +32,11 @@ import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
  *    {{ text }}
  *  </NcTooltip>
  * ```
+ *
+ * ## Grouped delay
+ * Inside an `NcTooltipProvider`, the provider's `delay` replaces `mouseEnterDelay` and drops
+ * to zero while a neighbouring tooltip is open or has just closed, so a toolbar's names show
+ * instantly once the first one is up.
  */
 interface NcTooltipProps {
   /**
@@ -101,6 +106,8 @@ const {
 
 const { isMobileMode } = useGlobal()
 
+const group = inject(TooltipProviderInj, null)
+
 const el = ref()
 
 const element = ref()
@@ -111,12 +118,35 @@ const showTooltip = controlledRef(false, {
   },
 })
 
-/**
- * mouseEnterDelay is in seconds and useElementHover is in milliseconds
- * So we have to multiply by 1000 to convert it to milliseconds
- */
-const isHovering = useElementHover(() => el.value, {
-  delayEnter: mouseEnterDelay.value ? mouseEnterDelay.value * 1000 : undefined,
+const isElementHovering = useElementHover(() => el.value)
+
+// Hover with the open delay applied: the tooltip's own `mouseEnterDelay` (seconds), or
+// the provider's, which is zero while a neighbour is open or has just closed.
+const isHovering = ref(false)
+
+let hoverTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(isElementHovering, (hovering) => {
+  clearTimeout(hoverTimer)
+  const own = mouseEnterDelay.value ? mouseEnterDelay.value * 1000 : 0
+  const delay = hovering ? group?.enterDelay(own) ?? own : group?.closeDelay ?? 0
+  if (!delay) {
+    isHovering.value = hovering
+    return
+  }
+  hoverTimer = setTimeout(() => {
+    isHovering.value = hovering
+  }, delay)
+})
+
+onBeforeUnmount(() => clearTimeout(hoverTimer))
+
+// The group counts open tooltips and remembers the last close, which is what turns
+// the delay off for the next one.
+watch(showTooltip, (open, wasOpen) => {
+  if (!group || open === wasOpen) return
+  if (open) group.onOpen()
+  else group.onClose()
 })
 
 const isOverlayHovering = useElementHover(() => element.value)

@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   // Add new columns to nc_api_tokens (dormant columns base_id, fk_workspace_id,
@@ -21,7 +21,7 @@ const up = async (knex: Knex) => {
   });
 
   // Create the scopes join table for multi-resource token scoping
-  await knex.schema.createTable('nc_api_token_scopes', (table) => {
+  await knex.schema.createTable(MetaTableOldV2.API_TOKEN_SCOPES, (table) => {
     table.string('id', 20).primary();
 
     // FK to nc_api_tokens
@@ -51,7 +51,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTableIfExists('nc_api_token_scopes');
+  await knex.schema.dropTableIfExists(MetaTableOldV2.API_TOKEN_SCOPES);
 
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {
     table.dropUnique(['token_hash'], 'idx_api_tokens_hash');

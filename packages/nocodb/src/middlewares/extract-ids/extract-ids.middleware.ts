@@ -400,7 +400,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         const widget = await Widget.get(context, widgetId);
 
         if (!widget) {
-          NcError.genericNotFound('Widget', widgetId);
+          NcError.widgetNotFound(widgetId);
         }
       } else if (sectionId) {
         const section = await ViewSection.get(context, sectionId);
@@ -802,7 +802,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const widget = await Widget.get(context, params.widgetId);
 
       if (!widget) {
-        NcError.genericNotFound('Widget', params.widgetId);
+        NcError.widgetNotFound(params.widgetId);
       }
 
       req.ncBaseId = widget.base_id;

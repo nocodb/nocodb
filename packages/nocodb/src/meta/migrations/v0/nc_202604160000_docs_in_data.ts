@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   // Add document-related columns to nc_models_v2
@@ -22,8 +22,8 @@ const up = async (knex: Knex) => {
   });
 
   // Migrate existing documents from nc_docs_v2 into nc_models_v2
-  if (await knex.schema.hasTable('nc_docs_v2')) {
-    const docs = await knex('nc_docs_v2').select('*');
+  if (await knex.schema.hasTable(MetaTableOldV2.DOCS_V2)) {
+    const docs = await knex(MetaTableOldV2.DOCS_V2).select('*');
 
     // Offset root-level docs so they appear AFTER existing tables/dashboards
     // within each base. Before this migration, nc_models_v2 rows had no

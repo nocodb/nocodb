@@ -169,6 +169,17 @@ const columns = computed(() => meta?.value?.columns || [])
 // the submitter, and its "add a Created by field" hint permanently unreachable.
 const hasCreatedByField = computed(() => meta.value?.columns?.some((c) => c.uidt === UITypes.CreatedBy && !c.system) ?? false)
 
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
 const isSidebarVisible = ref(ncIsPlaywright())
 
 const draggableRef = ref()
@@ -2533,8 +2544,15 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <div class="p-4 flex flex-col space-y-4">
                         <!-- Post Form Submission Settings -->
-                        <div class="text-sm font-bold text-nc-content-gray">
-                          {{ $t('msg.info.postFormSubmissionSettings') }}
+                        <div class="flex items-center justify-between">
+                          <div class="text-sm font-bold text-nc-content-gray">
+                            {{ $t('msg.info.postFormSubmissionSettings') }}
+                          </div>
+                          <div
+                            class="w-[15px] h-[15px] cursor-pointer"
+                            data-testid="nc-form-require-signin-easter-egg"
+                            @dblclick="onEasterEgg"
+                          ></div>
                         </div>
 
                         <div class="flex flex-col gap-3">
@@ -2677,7 +2695,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                           </div>
 
                           <!-- See who submitted a response -->
-                          <div v-if="isEeUI" class="flex items-start justify-between gap-3">
+                          <div
+                            v-if="isEeUI && (easterEgg || !!parseProp(formViewData.meta)?.require_signin)"
+                            class="flex items-start justify-between gap-3"
+                          >
                             <div class="flex flex-col">
                               <span>{{ $t('msg.info.seeWhoSubmitted') }}</span>
                               <span class="text-xs text-nc-content-gray-subtle2">

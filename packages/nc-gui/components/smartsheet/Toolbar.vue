@@ -62,17 +62,6 @@ const isToolbarIconMode = computed(() => {
   return false
 })
 
-// The Tools menu is table-scoped, the rest of the toolbar items are view-scoped.
-// Show a subtle divider between them when there are view items before Tools
-// (grid/gallery/kanban/map/list) and Tools itself is visible (mirrors TableTools' gate).
-const showToolsDivider = computed(
-  () =>
-    (isGrid.value || isGallery.value || isKanban.value || isMap.value || isList.value) &&
-    !isPublic.value &&
-    !isSharedBase.value &&
-    !isMobileMode.value,
-)
-
 provide(IsToolbarIconMode, isToolbarIconMode)
 
 const isSearchExpanded = ref(false)
@@ -178,13 +167,6 @@ function triggerToolbarControl(selector: string) {
           (isGrid || isGallery || isKanban || isMap)
         "
       />
-
-      <!-- Subtle divider + the table-scoped Tools menu, placed after all the
-           view-scoped controls (fields/filter/group/sort/colour, row height,
-           3-dot menu, pinned filters) to keep table-scoped tools separate. -->
-      <div v-if="showToolsDivider" class="h-5 w-px bg-nc-border-gray-medium shrink-0" />
-
-      <SmartsheetToolbarTableTools />
 
       <div v-if="!isMobileSearchActive" class="flex-1" />
 
@@ -307,6 +289,9 @@ function triggerToolbarControl(selector: string) {
         v-if="isEeUI && isGrid && isUIAllowed('viewOperations') && !isPublic && !isSharedBase && !isMobileMode"
         class="hidden sr-only"
       />
+
+      <!-- Table-scoped Tools menu sits with the right-side utilities, after search. -->
+      <SmartsheetToolbarTableTools />
 
       <NcFullScreenToggleButton v-if="showFullScreenToggle && !isMobileMode" />
     </template>

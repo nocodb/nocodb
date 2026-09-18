@@ -5,7 +5,7 @@ const { t } = useI18n()
 
 const { isMobileMode, user } = useGlobal()
 
-const { activeView, openedViewsTab } = storeToRefs(useViewsStore())
+const { activeView } = storeToRefs(useViewsStore())
 
 const { basesUser } = storeToRefs(useBases())
 const { base, isSharedBase } = storeToRefs(useBase())
@@ -252,6 +252,6 @@ const viewModeInfo = computed(() => {
       </template>
     </SmartsheetTopbarViewListDropdown>
 
-    <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view' && !isMobileMode" />
+    <LazySmartsheetToolbarReload v-if="!isMobileMode" />
   </div>
 </template>

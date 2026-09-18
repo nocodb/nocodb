@@ -1,39 +1,48 @@
 <script lang="ts" setup>
-// Title band — identical on every tool screen (the page contract):
-//   [icon] Title            [Docs ↗] [secondary] [primary]
-// The page title appears here exactly once; tools must not echo it in the body.
-// (Back-to-grid lives at the top of the tools rail, not here.)
+// Title block — identical on every tool screen (the shell contract):
+//   Title                              [secondary] [primary] | [×]
+//   Description · Docs ↗
+// The tool title appears here exactly once; tools must not echo it in the body.
 interface Props {
-  icon: string
   title: string
+  description?: string
   docsHref?: string
 }
 
 defineProps<Props>()
+
+const emits = defineEmits<{
+  close: []
+}>()
 </script>
 
 <template>
-  <div
-    class="flex-none flex items-center gap-2 pl-4 pr-4 h-[var(--toolbar-height)] min-h-[var(--toolbar-height)] border-b-1 border-nc-border-gray-medium"
-    data-testid="nc-tool-header"
-  >
-    <span class="flex-none w-6 h-6 rounded-md bg-nc-bg-brand flex items-center justify-center text-nc-content-brand">
-      <GeneralIcon :icon="icon" class="!h-3.5 !w-3.5" />
-    </span>
-    <div class="text-base font-semibold text-nc-content-gray-extreme truncate">{{ title }}</div>
+  <div class="flex-none flex items-start gap-4 px-6 pt-5 pb-3" data-testid="nc-tool-header">
+    <div class="flex-1 min-w-0">
+      <div class="text-xl font-semibold leading-7 text-nc-content-gray-extreme truncate">{{ title }}</div>
+      <div v-if="description || docsHref" class="mt-0.5 text-sm leading-5 text-nc-content-gray-muted">
+        <span v-if="description">{{ description }}</span>
+        <a
+          v-if="docsHref"
+          :href="docsHref"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 ml-1.5 font-medium text-nc-content-brand !no-underline hover:underline"
+        >
+          {{ $t('title.docs') }}
+          <GeneralIcon icon="ncExternalLink" class="!h-3.5 !w-3.5" />
+        </a>
+      </div>
+    </div>
 
-    <div class="ml-auto flex items-center gap-2.5 flex-none">
-      <a
-        v-if="docsHref"
-        :href="docsHref"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center gap-1.5 text-bodyDefaultSm font-semibold text-nc-content-gray-subtle hover:text-nc-content-brand !no-underline"
-      >
-        {{ $t('title.docs') }}
-        <GeneralIcon icon="ncExternalLink" class="!h-3.5 !w-3.5" />
-      </a>
+    <div class="flex items-center gap-2.5 flex-none">
       <slot name="actions" />
+
+      <div class="h-5 w-px bg-nc-border-gray-medium" />
+
+      <NcButton size="small" type="text" data-testid="nc-tools-shell-close" @click="emits('close')">
+        <GeneralIcon icon="close" class="!h-4 !w-4" />
+      </NcButton>
     </div>
   </div>
 </template>

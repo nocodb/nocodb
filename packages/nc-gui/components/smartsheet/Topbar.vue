@@ -3,7 +3,7 @@ const route = useRoute()
 
 const { isUIAllowed } = useRoles()
 
-const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
+const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { activeScriptId } = storeToRefs(useScriptStore())
 
@@ -97,7 +97,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeDashboardId &&
             !activeWorkflowId &&
             !activeAgentId &&
-            openedViewsTab === 'view' &&
             !isMobileMode
           "
           placement="bottom"
@@ -127,7 +126,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeDashboardId &&
             !activeWorkflowId &&
             !activeAgentId &&
-            openedViewsTab === 'view' &&
             !isMobileMode &&
             isViewActionsEnabled &&
             !isEEFeatureBlocked

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { PlanFeatureTypes } from 'nocodb-sdk'
+import type { PlanFeatureTypes, TableType } from 'nocodb-sdk'
 import type { ViewPageType } from '~/lib/types'
 
 export interface ToolRailItem {
@@ -18,13 +18,15 @@ export interface ToolRailGroup {
 interface Props {
   groups: ToolRailGroup[]
   active: ViewPageType
+  // The table being configured — shown at the top of the rail so the modal
+  // always states which table's tools these are.
+  table?: TableType
 }
 
 defineProps<Props>()
 
 const emits = defineEmits<{
   select: [slug: ViewPageType]
-  back: []
 }>()
 
 const { isEEFeatureBlocked } = useEeConfig()
@@ -39,15 +41,10 @@ const onSelect = (slug: ViewPageType) => {
     class="nc-tools-rail flex-none w-61 flex flex-col bg-nc-bg-gray-extralight border-r-1 border-nc-border-gray-medium"
     data-testid="nc-tools-rail"
   >
-    <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-2.5 pt-3 pb-4">
-      <div
-        v-e="['c:table:tools:back-to-grid']"
-        class="nc-tools-rail-back"
-        data-testid="nc-tools-back-to-grid"
-        @click="emits('back')"
-      >
-        <GeneralIcon icon="ncArrowLeft" class="!h-4 !w-4 flex-none" />
-        <span>{{ $t('general.back') }}</span>
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-3 pt-5 pb-4">
+      <div v-if="table" class="nc-tools-rail-table" data-testid="nc-tools-rail-table">
+        <GeneralTableIcon :meta="table" class="!h-4 !w-4 flex-none text-nc-content-gray-subtle2" />
+        <NcTooltip show-on-truncate-only class="truncate">{{ table.title }}</NcTooltip>
       </div>
 
       <template v-for="group in groups" :key="group.label">
@@ -85,12 +82,8 @@ const onSelect = (slug: ViewPageType) => {
 </template>
 
 <style lang="scss" scoped>
-.nc-tools-rail-back {
-  @apply flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-bodyDefaultSm font-semibold text-nc-content-brand cursor-pointer;
-
-  &:hover {
-    @apply bg-nc-bg-gray-light;
-  }
+.nc-tools-rail-table {
+  @apply flex items-center gap-2 px-2.5 h-7 mb-3 text-base font-semibold text-nc-content-gray-extreme;
 }
 
 .nc-tools-rail-item {

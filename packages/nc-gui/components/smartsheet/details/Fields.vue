@@ -1678,7 +1678,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
 </script>
 
 <template>
-  <div class="nc-fields-wrapper w-full p-4">
+  <div class="nc-fields-wrapper w-full px-6 py-4">
     <div class="max-w-250 h-full w-full mx-auto flex flex-col gap-6">
       <div v-if="isViewColumnsLoading" class="flex flex-row justify-between mt-2">
         <a-skeleton-input class="!h-8 !w-68 !rounded !overflow-hidden" active size="small" />

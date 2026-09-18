@@ -2927,7 +2927,7 @@
     "toolsSectionStructure": "Structure",
     "toolsSectionAccess": "Access & security",
     "toolsSectionRecords": "Records",
-    "toolsSectionIntegrations": "Integrations",
+    "toolsSectionDeveloper": "Developer",
     "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",

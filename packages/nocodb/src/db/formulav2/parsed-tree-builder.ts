@@ -142,6 +142,20 @@ export const callExpressionBuilder = async ({
           model,
         });
         if (res) return res;
+      } else if (knex.clientType() === 'mssql' && pt.arguments.length === 1) {
+        // The generic assembler below emits a literal n-ary `CONCAT(a, b, …)`,
+        // but T-SQL's CONCAT takes 2 to 254 arguments and rejects a single one
+        // ("The concat function requires 2 to 254 arguments"). The formula
+        // spec allows one (`CONCAT(str1, [str2, ...])`, validation min: 1) and
+        // pg/mysql accept it, so `CONCAT({Field})` is a valid formula that
+        // only breaks on an MSSQL source. Pad with an empty string: CONCAT
+        // coerces its operands to string and treats NULL as '', so the result
+        // is unchanged — which `+` would not be, since NULL + '' is NULL.
+        pt.arguments.push({
+          type: 'Literal',
+          value: '',
+          raw: "''",
+        } as (typeof pt.arguments)[number]);
       }
       break;
     case 'URL':

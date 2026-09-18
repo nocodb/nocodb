@@ -69,7 +69,7 @@ const openTool = (slug: ViewPageType) => {
     </NcTooltip>
 
     <template #overlay>
-      <NcMenu class="!min-w-70 nc-table-tools-menu" data-id="table-tools">
+      <NcMenu class="!min-w-70" data-id="table-tools" variant="small">
         <!-- Structure -->
         <NcMenuItem v-if="showFieldsAction" v-e="['c:table:fields']" @click="openTool('field')">
           <GeneralIcon icon="ncList" class="opacity-80" />
@@ -185,10 +185,3 @@ const openTool = (slug: ViewPageType) => {
     </template>
   </NcDropdown>
 </template>
-
-<style lang="scss">
-// One step smaller than the default 14px menu row.
-.nc-table-tools-menu .nc-menu-item-inner {
-  @apply !text-[13px];
-}
-</style>

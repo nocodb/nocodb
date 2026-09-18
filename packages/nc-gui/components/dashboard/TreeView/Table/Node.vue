@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { type BaseType, PlanFeatureTypes, PlanTitles, PresencePageType, type TableType } from 'nocodb-sdk'
-
-import type { SidebarTableNode } from '~/lib/types'
+import type { SidebarTableNode, ViewPageType } from '~/lib/types'
 
 const props = withDefaults(
   defineProps<{
@@ -57,7 +56,7 @@ const {
   tableRenameId,
 } = inject(TreeViewInj)!
 
-const { loadViews: _loadViews } = useViewsStore()
+const { loadViews: _loadViews, onViewsTabChange } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -81,8 +80,6 @@ const isDefaultSourceTable = computed(() => table.value?.source_id === base.valu
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
-const isTableRlsDialogVisible = ref(false)
-const isTableDateDependencyDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
@@ -315,14 +312,23 @@ async function onPermissions(_table: SidebarTableNode) {
   isTablePermissionsDialogVisible.value = true
 }
 
-function onRowLevelSecurity() {
+// RLS / Date Dependencies open in the table Tools shell. The shell is
+// route-driven, so land on this table's default view first when it isn't the
+// active one, then switch the slug.
+async function openTableTool(slug: ViewPageType) {
   isOptionsOpen.value = false
-  isTableRlsDialogVisible.value = true
+
+  if (activeView.value?.fk_model_id !== table.value.id) await _openTable(table.value, true)
+
+  await onViewsTabChange(slug)
+}
+
+function onRowLevelSecurity() {
+  openTableTool('rls')
 }
 
 function onDateDependency() {
-  isOptionsOpen.value = false
-  isTableDateDependencyDialogVisible.value = true
+  openTableTool('dates')
 }
 
 /** Cancel renaming view */
@@ -925,18 +931,6 @@ const isMmTable = computed(() => !!table.value?.mm)
     <DlgTablePermissions
       v-if="table.id && isEeUI"
       v-model:visible="isTablePermissionsDialogVisible"
-      :table-id="table.id"
-      :title="table.title"
-    />
-    <DlgTableRowLevelSecurity
-      v-if="table.id && isEeUI"
-      v-model:visible="isTableRlsDialogVisible"
-      :table-id="table.id"
-      :title="table.title"
-    />
-    <DlgTableDateDependency
-      v-if="table.id && isEeUI"
-      v-model:visible="isTableDateDependencyDialogVisible"
       :table-id="table.id"
       :title="table.title"
     />

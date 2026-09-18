@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "Agenti"
+      "agents": "Agenti",
+      "permissions": "Oprávnenia k tabuľkám a poliam"
     },
     "upgradeToSortAndLimitLookupValues": "Ak chcete zoraďovať a obmedziť hodnoty zobrazené v poli Lookup, prejdite na plán {plan}.",
     "upgradeToAddMoreAgents": "Prejdite na vyšší plán a pridajte ďalších agentov",
@@ -741,7 +742,12 @@
     "function": "Funkcia",
     "functions": "Funkcie",
     "otherTables": "Ostatné tabuľky",
-    "viaNewLinkField": "cez nové pole odkazu"
+    "viaNewLinkField": "cez nové pole odkazu",
+    "test": "Otestovať",
+    "success": "Úspech",
+    "manageFields": "Spravovať polia",
+    "tools": "Nástroje",
+    "allChangesSaved": "Všetky zmeny uložené"
   },
   "objects": {
     "script": "Skript",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Názvy tímov používateľa aj všetkých tímov pod nimi.",
           "currentUserTeamWithDescendantMembers": "Členovia mojich tímov",
           "currentUserTeamWithDescendantMembersDescription": "Všetci v tímoch a podtímoch používateľa — použite s podmienkou „obsahuje niektorý z“, aby ste videli záznamy svojich podriadených."
-        }
+        },
+        "appliesTo": "Platí pre"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "Týždne",
     "viewFolder": "Priečinok zobrazení",
     "subRecord": "Podzáznam",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Šablóny záznamov"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "Nové prostredie",
     "removeCustomDomain": "Odstrániť vlastnú doménu?",
     "tooNarrowToAdjustFrozenFields": "Okno je príliš úzke na úpravu ukotvených polí",
-    "themeSettings": "Nastavenia vzhľadu"
+    "themeSettings": "Nastavenia vzhľadu",
+    "nFields": "{count} pole | {count} polí"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4331,11 +4340,49 @@
       "readWriteDelete": "Čítanie, zápis a mazanie",
       "allowShown": "Povoliť zobrazené",
       "clearShown": "Zrušiť zobrazené",
-      "shownOf": "Zobrazené {shown} z {total}"
+      "shownOf": "Zobrazené {shown} z {total}",
+      "levelAll": "{level} pre všetko",
+      "toolsAllowed": "Povolených {count} z {total} nástrojov",
+      "customTip": "Ručne vybrané nástroje. Vyberte úroveň na obnovenie riadka.",
+      "writes": "Zápisy",
+      "sections": {
+        "account": "Účet a pracovné priestory",
+        "accountDesc": "Kto ste, vaše pracovné priestory, bázy v nich a odkazy do aplikácie",
+        "records": "Záznamy a údaje",
+        "recordsDesc": "Záznamy, komentáre, import a export",
+        "schema": "Schéma",
+        "schemaDesc": "Tabuľky, polia, duplikovanie a spôsob usporiadania bázy",
+        "views": "Zobrazenia",
+        "viewsDesc": "Zobrazenia, filtre, zoradenia, zdieľanie, polia formulárov, farby riadkov",
+        "automation": "Automatizácia",
+        "automationDesc": "Pracovné postupy, webhooky, skripty a agenti",
+        "interfaces": "Rozhrania, prehľady a dokumenty",
+        "interfacesDesc": "Stránky rozhraní, prehľady, widgety a dokumenty",
+        "access": "Prístup a zabezpečenie",
+        "accessDesc": "Oprávnenia k poliam a tabuľkám, zabezpečenie na úrovni riadkov",
+        "platform": "Platforma",
+        "platformDesc": "Integrácie, prostredia a aplikácie"
+      }
     },
     "noBaseAccess": "Žiadny prístup k databáze",
     "signedInAs": "Prihlásený ako",
-    "moreAgents": "Ešte {count} agent | Ešte {count} agentov"
+    "moreAgents": "Ešte {count} agent | Ešte {count} agentov",
+    "mcpConnectionsLabel": "Vytvorte pripojenia MCP na použitie s AI klientmi, ako sú Claude, Codex alebo Cursor.",
+    "mcpConnections": "Pripojenia MCP",
+    "editMcpConnection": "Upraviť pripojenie",
+    "mcpClientSetup": "Nastavenie klienta",
+    "manageFieldsSubtext": "Upraviť polia a skontrolovať závislosti",
+    "relationsSubtext": "Vizualizujte a spravujte vzťahy medzi tabuľkami",
+    "apiSnippetSubtext": "Vygenerovať kód na dopytovanie tejto tabuľky cez API",
+    "webhooksSubtext": "Automatizujte externé volania pri zmene záznamov",
+    "permissionsSubtext": "Určte, kto môže zobrazovať a upravovať údaje",
+    "rlsSubtext": "Obmedzte prístup k záznamom pomocou pravidiel",
+    "dateDependencySubtext": "Posunúť dátumy v závislých záznamoch",
+    "recordTemplatesSubtext": "Vytvárajte záznamy z uloženej šablóny",
+    "toolsSectionStructure": "Štruktúra",
+    "toolsSectionAccess": "Prístup a zabezpečenie",
+    "toolsSectionRecords": "Záznamy",
+    "toolsSectionDeveloper": "Vývojár"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4830,7 +4877,9 @@
     "freezeColumnsCount": "Ukotviť {count} stĺpec | Ukotviť {count} stĺpcov",
     "marketplaceComingSoon": "Táto aplikácia sa ešte balí, takže sa zatiaľ nedá nainštalovať.",
     "marketplaceAuthored": "Napísal vydavateľ, nie je odvodené z obsahu aplikácie.",
-    "marketplaceVerifiedPublisher": "Publikované a skontrolované spoločnosťou NocoDB"
+    "marketplaceVerifiedPublisher": "Publikované a skontrolované spoločnosťou NocoDB",
+    "showCustomPermissionFieldsOnly": "Zobraziť iba polia s vlastnými oprávneniami",
+    "showAllFields": "Zobraziť všetky polia"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4990,7 +5039,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Hľadať zručnosti...",
     "messageAgent": "Správa pre {agent}",
-    "somethingElse": "Niečo iné"
+    "somethingElse": "Niečo iné",
+    "noMcpConnections": "Nevytvorili sa žiadne pripojenia MCP",
+    "noMcpConnectionsLabel": "Zdá sa, že ste ešte nevytvorili žiadne pripojenia MCP."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5698,7 +5749,10 @@
       "seeWhoSubmittedSubtitle": "Vyžaduje sa prihlásenie do NocoDB.",
       "seeWhoSubmittedDisabledHint": "Ak chcete túto možnosť povoliť, pridajte do tabuľky pole „Vytvoril“.",
       "formRequiresSignin": "Prístup k tomuto formuláru vyžaduje prihlásenie do NocoDB.",
-      "switchAccount": "Prepnúť účet"
+      "switchAccount": "Prepnúť účet",
+      "mcpConnectionEdit": "Zmeny sa v klientovi prejavia pri ďalšom volaní. Tajný kľúč zostáva rovnaký.",
+      "mcpConnectionsReachingBase": "Vytvorte pripojenia MCP naviazané na túto bázu pre AI klientov, ako sú Claude, Codex alebo Cursor.",
+      "mcpClientSetupKeyHidden": "Kľúč sa zobrazí iba pri vytvorení alebo opätovnom vygenerovaní pripojenia, preto táto konfigurácia obsahuje zástupný symbol."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5922,7 +5976,8 @@
       "nCellsCopied": "Skopírovaných {n} buniek",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "Skopírovaná {count} podmienka | Skopírovaných {count} podmienok"
+      "interfaceFilterCopied": "Skopírovaná {count} podmienka | Skopírovaných {count} podmienok",
+      "changesSaved": "Zmeny uložené"
     },
     "success": {
       "restored": "Item restored successfully",

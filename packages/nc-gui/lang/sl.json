@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "Agenti"
+      "agents": "Agenti",
+      "permissions": "Dovoljenja za tabele in polja"
     },
     "upgradeToSortAndLimitLookupValues": "Za razvrščanje in omejevanje vrednosti, prikazanih v polju Lookup, nadgradite na paket {plan}.",
     "upgradeToAddMoreAgents": "Nadgradite za več agentov",
@@ -741,7 +742,12 @@
     "function": "Funkcija",
     "functions": "Funkcije",
     "otherTables": "Druge tabele",
-    "viaNewLinkField": "prek novega polja povezave"
+    "viaNewLinkField": "prek novega polja povezave",
+    "test": "Preizkusi",
+    "success": "Uspelo",
+    "manageFields": "Upravljanje polj",
+    "tools": "Orodja",
+    "allChangesSaved": "Vse spremembe so shranjene"
   },
   "objects": {
     "script": "Skripta",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Imena uporabnikovih ekip in vseh ekip pod njimi.",
           "currentUserTeamWithDescendantMembers": "Člani mojih ekip",
           "currentUserTeamWithDescendantMembersDescription": "Vsi v uporabnikovih ekipah in podekipah — uporabite s pogojem »vsebuje kar koli od«, da vidite zapise svojih podrejenih."
-        }
+        },
+        "appliesTo": "Velja za"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1155,7 +1162,8 @@
     "weeks": "Tedni",
     "viewFolder": "Mapa pogledov",
     "subRecord": "Podzapis",
-    "video": "Videoposnetek"
+    "video": "Videoposnetek",
+    "recordTemplates": "Predloge zapisov"
   },
   "datatype": {
     "ID": "Id",
@@ -1508,7 +1516,8 @@
     "newEnvironment": "Novo okolje",
     "removeCustomDomain": "Odstranim domeno po meri?",
     "tooNarrowToAdjustFrozenFields": "Okno je preozko za prilagajanje zamrznjenih polj",
-    "themeSettings": "Nastavitve teme"
+    "themeSettings": "Nastavitve teme",
+    "nFields": "{count} polje | {count} polj"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4330,11 +4339,49 @@
       "readWriteDelete": "Branje, pisanje in brisanje",
       "allowShown": "Dovoli prikazana",
       "clearShown": "Počisti prikazana",
-      "shownOf": "Prikazanih {shown} od {total}"
+      "shownOf": "Prikazanih {shown} od {total}",
+      "levelAll": "{level} za vse",
+      "toolsAllowed": "Dovoljenih {count} od {total} orodij",
+      "customTip": "Ročno izbrana orodja. Izberite raven za ponastavitev vrstice.",
+      "writes": "Zapisovanja",
+      "sections": {
+        "account": "Račun in delovni prostori",
+        "accountDesc": "Kdo ste, vaši delovni prostori, baze v njih in povezave v aplikacijo",
+        "records": "Zapisi in podatki",
+        "recordsDesc": "Zapisi, komentarji, uvoz in izvoz",
+        "schema": "Shema",
+        "schemaDesc": "Tabele, polja, podvajanje in kako je baza urejena",
+        "views": "Pogledi",
+        "viewsDesc": "Pogledi, filtri, razvrščanja, deljenje, polja obrazcev, barve vrstic",
+        "automation": "Avtomatizacija",
+        "automationDesc": "Delovni tokovi, webhooki, skripte in agenti",
+        "interfaces": "Vmesniki, nadzorne plošče in dokumenti",
+        "interfacesDesc": "Strani vmesnikov, nadzorne plošče, gradniki in dokumenti",
+        "access": "Dostop in varnost",
+        "accessDesc": "Dovoljenja za polja in tabele, varnost na ravni vrstic",
+        "platform": "Platforma",
+        "platformDesc": "Integracije, okolja in aplikacije"
+      }
     },
     "noBaseAccess": "Ni dostopa do baze",
     "signedInAs": "Prijavljen kot",
-    "moreAgents": "Še {count} agent | Še {count} agentov"
+    "moreAgents": "Še {count} agent | Še {count} agentov",
+    "mcpConnectionsLabel": "Ustvarite povezave MCP za uporabo z odjemalci UI, kot so Claude, Codex ali Cursor.",
+    "mcpConnections": "Povezave MCP",
+    "editMcpConnection": "Uredi povezavo",
+    "mcpClientSetup": "Nastavitev odjemalca",
+    "manageFieldsSubtext": "Uredi polja in preglej odvisnosti",
+    "relationsSubtext": "Vizualizirajte in upravljajte razmerja med tabelami",
+    "apiSnippetSubtext": "Ustvari kodo za poizvedovanje po tej tabeli prek API",
+    "webhooksSubtext": "Avtomatizirajte zunanje klice, ko se zapisi spremenijo",
+    "permissionsSubtext": "Določite, kdo lahko ogleduje in ureja podatke",
+    "rlsSubtext": "Omejite dostop do zapisov s pravilniki",
+    "dateDependencySubtext": "Zamakni datume v odvisnih zapisih",
+    "recordTemplatesSubtext": "Ustvarite zapise iz shranjene predloge",
+    "toolsSectionStructure": "Struktura",
+    "toolsSectionAccess": "Dostop in varnost",
+    "toolsSectionRecords": "Zapisi",
+    "toolsSectionDeveloper": "Razvijalec"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4829,7 +4876,9 @@
     "freezeColumnsCount": "Zamrzni {count} stolpec | Zamrzni {count} stolpcev",
     "marketplaceComingSoon": "Ta aplikacija se še pakira, zato je še ni mogoče namestiti.",
     "marketplaceAuthored": "Napisal založnik, ni povzeto iz vsebine aplikacije.",
-    "marketplaceVerifiedPublisher": "Objavil in pregledal NocoDB"
+    "marketplaceVerifiedPublisher": "Objavil in pregledal NocoDB",
+    "showCustomPermissionFieldsOnly": "Prikaži samo polja s prilagojenimi dovoljenji",
+    "showAllFields": "Prikaži vsa polja"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4989,7 +5038,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Iskanje veščin...",
     "messageAgent": "Sporočilo za {agent}",
-    "somethingElse": "Nekaj drugega"
+    "somethingElse": "Nekaj drugega",
+    "noMcpConnections": "Ustvarjena ni bila nobena povezava MCP",
+    "noMcpConnectionsLabel": "Videti je, da še niste ustvarili nobene povezave MCP."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5697,7 +5748,10 @@
       "seeWhoSubmittedSubtitle": "Potrebna je prijava v NocoDB.",
       "seeWhoSubmittedDisabledHint": "Če želite omogočiti to možnost, tabeli dodajte polje »Ustvaril je«.",
       "formRequiresSignin": "Za dostop do tega obrazca se je treba prijaviti v NocoDB.",
-      "switchAccount": "Zamenjaj račun"
+      "switchAccount": "Zamenjaj račun",
+      "mcpConnectionEdit": "Spremembe začnejo veljati za odjemalca ob naslednjem klicu. Skrivnost ostane enaka.",
+      "mcpConnectionsReachingBase": "Ustvarite povezave MCP, vezane na to bazo, za odjemalce UI, kot so Claude, Codex ali Cursor.",
+      "mcpClientSetupKeyHidden": "Ključ je prikazan samo ob ustvarjanju ali ponovnem ustvarjanju povezave, zato ta konfiguracija vsebuje ogrado."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5921,7 +5975,8 @@
       "nCellsCopied": "{n} celic kopiranih",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "Kopiran {count} pogoj | Kopiranih {count} pogojev"
+      "interfaceFilterCopied": "Kopiran {count} pogoj | Kopiranih {count} pogojev",
+      "changesSaved": "Spremembe shranjene"
     },
     "success": {
       "restored": "Item restored successfully",

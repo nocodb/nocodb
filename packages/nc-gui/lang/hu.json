@@ -258,7 +258,8 @@
       "audit": "Munkaterület-ellenőrzés",
       "ltarCustomDisplayValue": "Egyéni megjelenítési érték mező",
       "publicDocShare": "Nyilvános dokumentummegosztás",
-      "agents": "Ügynökök"
+      "agents": "Ügynökök",
+      "permissions": "Tábla- és mezőjogosultságok"
     },
     "upgradeToSortAndLimitLookupValues": "A Lookup mezőben megjelenített értékek rendezéséhez és korlátozásához válts a(z) {plan} csomagra.",
     "upgradeToAddMoreAgents": "Válts magasabb csomagra több ügynökért",
@@ -741,7 +742,12 @@
     "function": "Függvény",
     "functions": "Függvények",
     "otherTables": "Egyéb táblák",
-    "viaNewLinkField": "új hivatkozásmezőn keresztül"
+    "viaNewLinkField": "új hivatkozásmezőn keresztül",
+    "test": "Tesztelés",
+    "success": "Sikerült",
+    "manageFields": "Mezők kezelése",
+    "tools": "Eszközök",
+    "allChangesSaved": "Minden módosítás mentve"
   },
   "objects": {
     "script": "Szkript",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "A felhasználó csapatainak, valamint minden alattuk lévő csapatnak a nevei.",
           "currentUserTeamWithDescendantMembers": "A csapataim tagjai",
           "currentUserTeamWithDescendantMembersDescription": "Mindenki a felhasználó csapataiban és alcsapataiban — a „tartalmazza bármelyiket” feltétellel használja, hogy lássa a beosztottjai rekordjait."
-        }
+        },
+        "appliesTo": "Erre vonatkozik"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Senki {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "Hetek",
     "viewFolder": "Nézetmappa",
     "subRecord": "Alrekord",
-    "video": "Videó"
+    "video": "Videó",
+    "recordTemplates": "Rekordsablonok"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "Új környezet",
     "removeCustomDomain": "Eltávolítja az egyéni domaint?",
     "tooNarrowToAdjustFrozenFields": "Az ablak túl keskeny a rögzített mezők beállításához",
-    "themeSettings": "Témabeállítások"
+    "themeSettings": "Témabeállítások",
+    "nFields": "{count} mező | {count} mező"
   },
   "labels": {
     "syncing": "Szinkronizálás",
@@ -4332,11 +4341,48 @@
       "readWriteDelete": "Olvasás, írás és törlés",
       "allowShown": "Megjelenítettek engedélyezése",
       "clearShown": "Megjelenítettek törlése",
-      "shownOf": "{total} közül {shown} megjelenítve"
+      "shownOf": "{total} közül {shown} megjelenítve",
+      "levelAll": "{level} mindenre",
+      "toolsAllowed": "{total} eszközből {count} engedélyezve",
+      "customTip": "Kézzel válogatott eszközök. Válasszon egy szintet a sor visszaállításához.",
+      "writes": "Írások",
+      "sections": {
+        "account": "Fiók és munkaterületek",
+        "accountDesc": "Ki Ön, a munkaterületei, a bennük lévő bázisok és az alkalmazásra mutató hivatkozások",
+        "records": "Rekordok és adatok",
+        "recordsDesc": "Rekordok, hozzászólások, importálás és exportálás",
+        "schema": "Séma",
+        "schemaDesc": "Táblák, mezők, duplikálás és a bázis felépítése",
+        "views": "Nézetek",
+        "viewsDesc": "Nézetek, szűrők, rendezések, megosztás, űrlapmezők, sorszínek",
+        "automation": "Automatizálás",
+        "automationDesc": "Munkafolyamatok, webhookok, szkriptek és ügynökök",
+        "interfaces": "Interfészek, irányítópultok és dokumentumok",
+        "interfacesDesc": "Interfészoldalak, irányítópultok, widgetek és dokumentumok",
+        "access": "Hozzáférés és biztonság",
+        "accessDesc": "Mező- és táblajogosultságok, sorszintű biztonság",
+        "platformDesc": "Integrációk, környezetek és alkalmazások"
+      }
     },
     "noBaseAccess": "Nincs hozzáférés a bázishoz",
     "signedInAs": "Bejelentkezve mint",
-    "moreAgents": "Még {count} ügynök | Még {count} ügynök"
+    "moreAgents": "Még {count} ügynök | Még {count} ügynök",
+    "mcpConnectionsLabel": "Hozzon létre MCP-kapcsolatokat olyan MI-kliensekhez, mint a Claude, a Codex vagy a Cursor.",
+    "mcpConnections": "MCP-kapcsolatok",
+    "editMcpConnection": "Kapcsolat szerkesztése",
+    "mcpClientSetup": "Kliens beállítása",
+    "manageFieldsSubtext": "Mezők szerkesztése és függőségek vizsgálata",
+    "relationsSubtext": "Táblakapcsolatok megjelenítése és kezelése",
+    "apiSnippetSubtext": "Kód generálása a tábla API-n keresztüli lekérdezéséhez",
+    "webhooksSubtext": "Külső hívások automatizálása a rekordok változásakor",
+    "permissionsSubtext": "Szabályozza, ki tekintheti meg és szerkesztheti az adatokat",
+    "rlsSubtext": "Rekordokhoz való hozzáférés korlátozása szabályokkal",
+    "dateDependencySubtext": "Dátumok eltolása a függő rekordokban",
+    "recordTemplatesSubtext": "Rekordok létrehozása mentett sablonból",
+    "toolsSectionStructure": "Szerkezet",
+    "toolsSectionAccess": "Hozzáférés és biztonság",
+    "toolsSectionRecords": "Rekordok",
+    "toolsSectionDeveloper": "Fejlesztő"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -4831,7 +4877,9 @@
     "freezeColumnsCount": "{count} oszlop rögzítése | {count} oszlop rögzítése",
     "marketplaceComingSoon": "Ez az alkalmazás még csomagolás alatt áll, ezért egyelőre nem telepíthető.",
     "marketplaceAuthored": "A közzétevő írta, nem az alkalmazás tartalmából származik.",
-    "marketplaceVerifiedPublisher": "Közzétette és ellenőrizte a NocoDB"
+    "marketplaceVerifiedPublisher": "Közzétette és ellenőrizte a NocoDB",
+    "showCustomPermissionFieldsOnly": "Csak az egyéni jogosultságokkal rendelkező mezők megjelenítése",
+    "showAllFields": "Összes mező megjelenítése"
   },
   "placeholder": {
     "enterVerificationCode": "Adja meg a 6 számjegyű kódot",
@@ -4991,7 +5039,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Képességek keresése...",
     "messageAgent": "Üzenet neki: {agent}",
-    "somethingElse": "Valami más"
+    "somethingElse": "Valami más",
+    "noMcpConnections": "Nincs létrehozott MCP-kapcsolat",
+    "noMcpConnectionsLabel": "Úgy tűnik, még nem hozott létre MCP-kapcsolatot."
   },
   "msg": {
     "sourceViewNotShared": "A szinkronizálás le van tiltva ezen a nézeten",
@@ -5699,7 +5749,10 @@
       "seeWhoSubmittedSubtitle": "Bejelentkezés szükséges a NocoDB-be.",
       "seeWhoSubmittedDisabledHint": "A beállítás engedélyezéséhez adjon hozzá egy „Létrehozta” mezőt a táblához.",
       "formRequiresSignin": "Az űrlap eléréséhez be kell jelentkezni a NocoDB-be.",
-      "switchAccount": "Fiókváltás"
+      "switchAccount": "Fiókváltás",
+      "mcpConnectionEdit": "A módosítások a kliens következő hívásakor lépnek életbe. A titok változatlan marad.",
+      "mcpConnectionsReachingBase": "Hozzon létre ehhez a bázishoz rögzített MCP-kapcsolatokat olyan MI-kliensekhez, mint a Claude, a Codex vagy a Cursor.",
+      "mcpClientSetupKeyHidden": "A kulcs csak a kapcsolat létrehozásakor vagy újragenerálásakor jelenik meg, ezért ez a konfiguráció helyőrzőt tartalmaz."
     },
     "error": {
       "failedToCreateSync": "Sikertelen szinkronizálás létrehozása",
@@ -5923,7 +5976,8 @@
       "nCellsCopied": "{n} cella másolva",
       "nRecordCreated": "{n} létrehozott rekord",
       "nRecordsCreated": "{n} létrehozott rekordok",
-      "interfaceFilterCopied": "{count} feltétel másolva | {count} feltétel másolva"
+      "interfaceFilterCopied": "{count} feltétel másolva | {count} feltétel másolva",
+      "changesSaved": "Módosítások mentve"
     },
     "success": {
       "restored": "Az elem sikeresen helyreállítva",

@@ -3,6 +3,11 @@ import { type HookType, PlanLimitTypes } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 
+// When rendered inside a modal (from the view 3-dot menu) we fill the modal body
+// instead of the full viewport. `inShell` = the Tools shell, where the title band
+// carries the New Webhook + Docs actions, so they're hidden in the body toolbar.
+defineProps<{ inModal?: boolean; inShell?: boolean }>()
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook')
@@ -134,6 +139,9 @@ const createWebhook = async () => {
 
   isWebhookModalOpen.value = true
 }
+
+// Exposed so the Tools shell title band can drive the New Webhook action.
+defineExpose({ createWebhook })
 
 const initialHookTab = ref<string | undefined>()
 
@@ -320,9 +328,9 @@ const getHookTypeText = (hook: HookType) => {
 </script>
 
 <template>
-  <div class="nc-webhook-wrapper w-full p-4">
-    <div class="max-w-250 h-full w-full mx-auto">
-      <div v-if="activeView && !isHooksLoading">
+  <div class="nc-webhook-wrapper w-full p-4" :class="{ 'h-full flex flex-col': inModal, '!px-6 !py-5': inShell }">
+    <div class="h-full w-full" :class="{ 'flex-1 flex flex-col min-h-0': inModal, 'max-w-250 mx-auto': !inShell }">
+      <div v-if="activeView && !isHooksLoading" :class="{ 'flex-1 flex flex-col min-h-0': inModal }">
         <NcAlert
           v-if="hasV2Webhooks"
           type="warning"
@@ -343,7 +351,7 @@ const getHookTypeText = (hook: HookType) => {
           </template>
         </NcAlert>
 
-        <div class="w-full mb-4 mt-6 flex justify-between gap-3">
+        <div class="w-full mb-4 flex justify-between gap-3" :class="{ 'mt-6': !inShell || hasV2Webhooks }">
           <div class="flex-1 flex gap-2">
             <a-input
               v-model:value="webHookSearch"
@@ -357,6 +365,7 @@ const getHookTypeText = (hook: HookType) => {
               </template>
             </a-input>
             <NcButton
+              v-if="!inShell"
               class="px-2"
               type="text"
               size="small"
@@ -373,6 +382,7 @@ const getHookTypeText = (hook: HookType) => {
           </div>
 
           <NcButton
+            v-if="!inShell"
             v-e="['c:actions:webhook']"
             type="secondary"
             size="small"
@@ -388,17 +398,25 @@ const getHookTypeText = (hook: HookType) => {
         </div>
 
         <div
-          :style="{
-            height: `calc(100vh - var(--topbar-height) - var(--toolbar-height) - 104px - ${hasV2Webhooks ? '82px' : '0px'})`,
-          }"
+          :class="{ 'flex-1 min-h-0': inModal }"
+          :style="
+            inModal
+              ? undefined
+              : {
+                  height: `calc(100vh - var(--topbar-height) - var(--toolbar-height) - 104px - ${
+                    hasV2Webhooks ? '82px' : '0px'
+                  })`,
+                }
+          "
         >
           <div
             v-if="!hooks.length"
-            class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-nc-border-gray-medium"
+            class="flex-col flex items-center gap-3 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-nc-border-gray-medium"
           >
-            <div class="text-nc-content-gray-subtle font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
-            <div class="text-nc-content-gray-subtle text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
-            <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook">
+            <GeneralIcon icon="ncWebhook" class="w-12 h-12 text-nc-content-gray-muted" />
+            <div class="text-base font-bold text-nc-content-gray-emphasis text-center">{{ $t('msg.createWebhookMsg1') }}</div>
+            <div class="text-sm text-nc-content-gray-muted text-center max-w-xs">{{ $t('msg.createWebhookMsg2') }}</div>
+            <NcButton v-e="['c:actions:webhook']" class="flex max-w-40 mt-1" type="primary" size="small" @click="createWebhook">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="plus" class="flex-none" />
                 <span>{{ $t('activity.newWebhook') }}</span>
@@ -412,6 +430,10 @@ const getHookTypeText = (hook: HookType) => {
             :columns="columns"
             :data="sortedHooks"
             :custom-row="customRow"
+            row-height="44px"
+            header-row-height="40px"
+            header-cell-class-name="!text-[13px]"
+            body-cell-class-name="!text-[13px]"
             class="h-full"
             body-row-class-name="nc-view-sidebar-webhook-item group"
           >
@@ -422,7 +444,7 @@ const getHookTypeText = (hook: HookType) => {
                 </template>
                 <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop>
                   <NcSwitch
-                    size="small"
+                    size="xsmall"
                     :disabled="hook.event === 'manual'"
                     :checked="!!hook.active"
                     @change="toggleHook(hook)"
@@ -431,7 +453,7 @@ const getHookTypeText = (hook: HookType) => {
               </NcTooltip>
 
               <template v-if="column.key === 'name'">
-                <NcTooltip class="truncate max-w-full flex-1 text-nc-content-gray font-semibold text-sm" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full flex-1 text-nc-content-gray font-medium" show-on-truncate-only>
                   {{ hook.title }}
 
                   <template #title>
@@ -543,7 +565,7 @@ const getHookTypeText = (hook: HookType) => {
       <div
         v-else
         class="h-full w-full flex flex-col justify-center items-center"
-        style="height: calc(100vh - (var(--topbar-height) * 2))"
+        :style="inModal ? undefined : 'height: calc(100vh - (var(--topbar-height) * 2))'"
       >
         <a-spin size="large" :indicator="indicator" />
       </div>

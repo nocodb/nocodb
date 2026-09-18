@@ -3,7 +3,7 @@ const route = useRoute()
 
 const { isUIAllowed } = useRoles()
 
-const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
+const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { activeScriptId } = storeToRefs(useScriptStore())
 
@@ -70,10 +70,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <LazySmartsheetTopbarAgentInfo v-if="!isPublic && activeAgentId" />
       </div>
 
-      <div v-if="!isSharedBase && !isMobileMode && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId">
-        <SmartsheetTopbarSelectMode />
-      </div>
-      <div v-else-if="activeDashboardId || activeWorkflowId || activeAgentId" class="min-w-0 shrink">
+      <div v-if="activeDashboardId || activeWorkflowId || activeAgentId" class="min-w-0 shrink">
         <SmartsheetTopbarEditingState />
       </div>
 
@@ -100,7 +97,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeDashboardId &&
             !activeWorkflowId &&
             !activeAgentId &&
-            openedViewsTab === 'view' &&
             !isMobileMode
           "
           placement="bottom"
@@ -130,7 +126,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeDashboardId &&
             !activeWorkflowId &&
             !activeAgentId &&
-            openedViewsTab === 'view' &&
             !isMobileMode &&
             isViewActionsEnabled &&
             !isEEFeatureBlocked

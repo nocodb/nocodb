@@ -932,25 +932,6 @@ async function testWebhook() {
   }
 }
 
-const supportedDocs: SupportedDocsType[] = [
-  {
-    title: 'Getting started',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
-  },
-  {
-    title: t('activity.createWebhook'),
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook',
-  },
-  {
-    title: 'Custom payload',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-custom-payload-',
-  },
-  {
-    title: 'Trigger on condition',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-conditions',
-  },
-]
-
 watch(
   () => hookRef?.event,
   async () => {
@@ -1155,7 +1136,13 @@ const webhookV2AndV3Diff = computed(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-webhook-create-edit">
+  <NcModal
+    v-model:visible="modalVisible"
+    :show-separator="true"
+    size="large"
+    :width="activeTab === HookTab.Log ? 'min(90vw, 1280px)' : 'min(90vw, 960px)'"
+    wrap-class-name="nc-modal-webhook-create-edit"
+  >
     <template #header>
       <div class="flex w-full items-center pl-4 pr-3 py-3 justify-between">
         <div class="flex items-center gap-3 flex-1">
@@ -1209,6 +1196,16 @@ const webhookV2AndV3Diff = computed(() => {
 
         <div class="flex justify-end items-center gap-3 flex-1">
           <template v-if="activeTab === HookTab.Configuration">
+            <a
+              href="https://nocodb.com/docs/product-docs/automation/webhook"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 text-bodyDefaultSm font-medium text-nc-content-gray-subtle hover:text-nc-content-brand !no-underline"
+              data-testid="nc-webhook-docs-link"
+            >
+              {{ $t('title.docs') }}
+              <GeneralIcon icon="ncExternalLink" class="!h-3.5 !w-3.5" />
+            </a>
             <NcTooltip v-if="!showUpgradeModal" :disabled="!testConnectionError && hookRef.notification.type !== 'Script'">
               <template v-if="hookRef.notification.type === 'Script'" #title> Test webhook is disabled for scripts </template>
               <template v-else #title>
@@ -1231,7 +1228,7 @@ const webhookV2AndV3Diff = computed(() => {
                   />
                 </template>
                 <span>
-                  {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
+                  {{ testSuccess ? $t('general.success') : $t('general.test') }}
                 </span>
               </NcButton>
             </NcTooltip>
@@ -1247,13 +1244,7 @@ const webhookV2AndV3Diff = computed(() => {
               data-testid="nc-save-webhook"
               @click.stop="saveHooks"
             >
-              {{
-                showUpgradeModal
-                  ? $t('general.upgrade')
-                  : hook
-                  ? $t('labels.multiField.saveChanges')
-                  : $t('activity.createWebhook')
-              }}
+              {{ showUpgradeModal ? $t('general.upgrade') : hook ? $t('general.save') : $t('general.create') }}
             </NcButton>
           </template>
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
@@ -1331,7 +1322,7 @@ const webhookV2AndV3Diff = computed(() => {
       <template v-else>
         <div
           ref="containerElem"
-          class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 py-6 mx-auto"
+          class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-8 py-6 mx-auto"
         >
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
             <NcAlert
@@ -1866,10 +1857,6 @@ const webhookV2AndV3Diff = computed(() => {
             </a-form>
           </div>
         </div>
-
-        <NcModalSupportedDocsSidebar>
-          <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
-        </NcModalSupportedDocsSidebar>
       </template>
     </div>
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_57px)]">

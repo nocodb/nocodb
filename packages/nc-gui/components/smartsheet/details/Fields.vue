@@ -282,6 +282,15 @@ const temporaryAddCount = ref(0)
 
 const changingField = ref(false)
 
+// useViewColumns re-fetches (and flips isViewColumnsLoading) whenever meta.columns
+// is replaced — i.e. after every save. Only show the skeleton for the first load;
+// later reloads update the list in place instead of swapping the whole body out.
+const hasLoadedViewColumns = ref(false)
+
+// Bumped after a save so the (non-keep-alive) editor re-reads the refreshed
+// column without unmounting the whole right pane.
+const editorVersion = ref(0)
+
 // Field types whose editors are kept alive (v-show) across field switches so filter
 // state inside SmartsheetToolbarColumnFilter is never destroyed.
 const KEEP_ALIVE_TYPES = [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.Rollup, UITypes.Lookup, UITypes.Button]
@@ -934,20 +943,11 @@ const metaToLocal = () => {
   if (activeField.value?.id) {
     const field = fields.value.find((c) => c.id === activeField.value?.id)
     if (field) {
-      // For keep-alive types, changeField already updates activeField without the
-      // changingField unmount cycle, so don't re-apply it here (it would briefly
-      // destroy all keep-alive editors via the outer v-if="!changingField" container).
-      if (isKeepAliveType(field)) {
-        activeField.value = field
-      } else {
-        changeField(field)
-        changingField.value = true
+      // Keep-alive editors pick up the refreshed column reactively; the plain
+      // editor re-keys so it re-reads it, without unmounting the right pane.
+      activeField.value = field
 
-        nextTick(() => {
-          activeField.value = field
-          changingField.value = false
-        })
-      }
+      if (!isKeepAliveType(field)) editorVersion.value++
     }
   }
 }
@@ -1311,6 +1311,14 @@ whenever(keys.ctrl_s, () => {
   if (!meta.value?.id) return
   if (openedViewsTab.value === 'field') saveChanges()
 })
+
+watch(
+  isViewColumnsLoading,
+  (loading) => {
+    if (!loading) hasLoadedViewColumns.value = true
+  },
+  { immediate: true },
+)
 
 watch(
   meta,
@@ -1678,9 +1686,9 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
 </script>
 
 <template>
-  <div class="nc-fields-wrapper w-full p-4">
-    <div class="max-w-250 h-full w-full mx-auto flex flex-col gap-6">
-      <div v-if="isViewColumnsLoading" class="flex flex-row justify-between mt-2">
+  <div class="nc-fields-wrapper w-full h-full px-6 py-4">
+    <div class="h-full w-full flex flex-col gap-6">
+      <div v-if="isViewColumnsLoading && !hasLoadedViewColumns" class="flex flex-row justify-between mt-2">
         <a-skeleton-input class="!h-8 !w-68 !rounded !overflow-hidden" active size="small" />
         <div class="flex flex-row gap-x-4">
           <a-skeleton-input class="!h-8 !w-22 !rounded !overflow-hidden" active size="small" />
@@ -1849,12 +1857,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
           </div>
         </div>
         <!-- Ai field wizard  -->
-        <div
-          class="flex flex-row rounded-lg border-1 overflow-clip border-nc-border-gray-medium"
-          :style="{
-            height: `calc(100vh - (var(--topbar-height) * 3.6) - 24px)`,
-          }"
-        >
+        <div class="flex-1 min-h-0 flex flex-row rounded-lg border-1 overflow-clip border-nc-border-gray-medium">
           <div
             class="flex-1 h-full flex flex-col"
             :style="{
@@ -2142,7 +2145,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                 <template #item="{ element: field }">
                   <div
                     v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                    class="flex px-2 border-b-1 border-nc-border-gray-medium pl-5 rtl:(pr-5 pl-2) group"
+                    class="nc-field-row flex min-h-11 px-2 border-b-1 border-nc-border-gray-medium pl-5 rtl:(pr-5 pl-2) group"
                     :class="{
                       'selected': compareCols(field, activeField),
                       'cursor-not-allowed': !isColumnUpdateAllowed(field),
@@ -2151,10 +2154,10 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                     :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
                     @click="changeField(field, $event)"
                   >
-                    <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
+                    <div class="flex items-center flex-1 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
-                        class="cursor-move !h-3.75 text-nc-content-gray-subtle2 mr-1 rtl:(ml-1 mr-0)"
+                        class="cursor-move !h-3.5 text-nc-content-gray-subtle2 mr-1 rtl:(ml-1 mr-0)"
                         :class="{
                           'opacity-0 !cursor-default': isLocked,
                         }"
@@ -2165,7 +2168,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                         </template>
                         <GeneralIcon
                           :icon="isFieldVisible(field) ? 'ncEye' : 'ncEyeOff'"
-                          class="nc-field-visibility-toggle flex-none !w-4 !h-4"
+                          class="nc-field-visibility-toggle flex-none !w-3.5 !h-3.5"
                           :class="[
                             isFieldVisible(field) ? 'text-nc-content-brand' : 'text-nc-content-gray-disabled',
                             isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
@@ -2174,7 +2177,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                           @click.stop="toggleFieldVisibility(field)"
                         />
                       </NcTooltip>
-                      <div v-else class="flex-none !w-4 !h-4" />
+                      <div v-else class="flex-none !w-3.5 !h-3.5" />
 
                       <SmartsheetHeaderIcon
                         :column="fieldState(field) || field"
@@ -2189,7 +2192,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                         show-on-truncate-only
                       >
                         <template #title> {{ fieldState(field)?.title || field.title }} </template>
-                        <span data-testid="nc-field-title">
+                        <span data-testid="nc-field-title" class="text-[13px] leading-5">
                           {{ fieldState(field)?.title || field.title }}
                         </span>
                       </NcTooltip>
@@ -2379,7 +2382,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                   #header
                 >
                   <div
-                    class="flex px-2 bg-nc-bg-default hover:bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium last:border-b-1 pl-5 rtl:(pr-5 pl-2) group"
+                    class="nc-field-row flex min-h-11 px-2 bg-nc-bg-default hover:bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium last:border-b-1 pl-5 rtl:(pr-5 pl-2) group"
                     :class="{
                       'selected': compareCols(displayColumn, activeField),
                       'first:rounded-tl-lg rtl:(first:rounded-tl-none first:rounded-tr-lg)': !aiMode,
@@ -2387,17 +2390,17 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                     :data-testid="`nc-field-item-${fieldState(displayColumn)?.title || displayColumn.title}`"
                     @click="changeField(displayColumn, $event)"
                   >
-                    <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
+                    <div class="flex items-center flex-1 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
-                        class="cursor-move !h-3.75 text-nc-gray-200 mr-1 rtl:(ml-1 mr-0)"
+                        class="cursor-move !h-3.5 text-nc-gray-200 mr-1 rtl:(ml-1 mr-0)"
                         :class="{
                           'opacity-0 !cursor-default': isLocked,
                         }"
                       />
                       <GeneralIcon
                         icon="ncEye"
-                        class="nc-field-visibility-toggle flex-none !w-4 !h-4 text-nc-content-brand opacity-50 cursor-not-allowed"
+                        class="nc-field-visibility-toggle flex-none !w-3.5 !h-3.5 text-nc-content-brand opacity-50 cursor-not-allowed"
                         data-testid="nc-field-visibility-checkbox"
                       />
 
@@ -2416,7 +2419,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                         show-on-truncate-only
                       >
                         <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
-                        <span data-testid="nc-field-title">
+                        <span data-testid="nc-field-title" class="text-[13px] leading-5">
                           {{ fieldState(displayColumn)?.title || displayColumn.title }}
                         </span>
                       </NcTooltip>
@@ -2511,7 +2514,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
             <div
               v-if="!changingField"
               ref="rightPanelRef"
-              class="flex-none border-nc-border-gray-medium border-l-1 rtl:(border-l-0 border-r-1) nc-scrollbar-md h-full !overflow-y-auto"
+              class="nc-fields-editor flex-none border-nc-border-gray-medium border-l-1 rtl:(border-l-0 border-r-1) nc-scrollbar-md h-full !overflow-y-auto"
               @keydown.up.stop
               @keydown.down.stop
             >
@@ -2535,6 +2538,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
               <!-- Regular editor for non-keep-alive field types -->
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField && !isKeepAliveType(activeField)"
+                :key="`${activeField.id || activeField.temp_id}-${editorVersion}`"
                 class="p-4 w-[25rem] flex-none"
                 :column="activeField"
                 :preload="fieldState(activeField)"
@@ -2587,6 +2591,44 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
   @apply bg-nc-bg-brand-inverted;
 }
 
+.nc-field-row :deep(.nc-cell-icon),
+.nc-field-row :deep(.nc-virtual-cell-icon) {
+  @apply !w-3.5 !h-3.5;
+}
+
+// Right-hand field editor: one step down (13px / 32px controls) to match the
+// field rows. Scoped here so the same editor keeps its default scale in the
+// grid-header dropdown.
+.nc-fields-editor {
+  :deep(form.ant-form) {
+    @apply !gap-3;
+  }
+
+  :deep(.text-sm),
+  :deep(.nc-fields-input),
+  :deep(.ant-btn),
+  :deep(.ant-select-selection-item),
+  :deep(.ant-select-selection-placeholder),
+  :deep(.ant-input),
+  :deep(.ant-input-number-input) {
+    font-size: 13px !important;
+  }
+
+  :deep(.ant-select.nc-column-type-input .ant-select-selector) {
+    @apply !h-8;
+
+    .ant-select-selection-item,
+    .ant-select-selection-placeholder {
+      @apply !leading-[30px];
+    }
+  }
+
+  :deep(.nc-cell-icon),
+  :deep(.nc-virtual-cell-icon) {
+    @apply !w-3.5 !h-3.5;
+  }
+}
+
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;
 }
@@ -2610,10 +2652,6 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
 
 .slide-fade-leave-to {
   opacity: 0;
-}
-
-.nc-fields-height {
-  height: calc(100vh - (var(--topbar-height) * 3.6));
 }
 
 .nc-fields-add-new-field-btn-wrapper {

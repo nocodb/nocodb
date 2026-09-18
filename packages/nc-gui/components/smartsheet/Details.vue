@@ -291,7 +291,7 @@ watch(
       </SmartsheetDetailsToolHeader>
 
       <div class="flex-1 min-h-0">
-        <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" in-shell />
+        <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" />
 
         <PermissionsModalContent
           v-else-if="openedViewsTab === 'permissions' && meta?.id"

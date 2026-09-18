@@ -19,10 +19,6 @@ import type { RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 
-// Rendered inside the Tools shell — route Reset/Save to the shell's unified
-// bottom save bar and hide Fields' own top-toolbar Reset/Save controls.
-const props = defineProps<{ inShell?: boolean }>()
-
 interface TableExplorerColumn extends ColumnType {
   id?: string
   temp_id?: string
@@ -1167,25 +1163,6 @@ const saveChanges = async () => {
   }
 }
 
-// Hand save/reset to the Tools shell's unified bottom save bar when embedded.
-const toolsShell = useToolsShell()
-
-const fieldsShellReg = {
-  isDirty: hasUnsavedChanges,
-  isSaving: loading,
-  canSave: isColumnsValid,
-  save: async () => !!(await saveChanges()),
-  reset: clearChanges,
-}
-
-onMounted(() => {
-  if (props.inShell) toolsShell?.registerSaveHandler(fieldsShellReg)
-})
-
-onBeforeUnmount(() => {
-  if (props.inShell) toolsShell?.unregister(fieldsShellReg)
-})
-
 const { confirmHide } = useHideRequiredFieldConfirm()
 
 const stageVisibilityOp = (checked: boolean, field: Field) => {
@@ -1846,31 +1823,29 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                 </NcTooltip>
               </div>
             </template>
-            <template v-if="!inShell">
-              <NcButton
-                data-testid="nc-field-reset"
-                type="secondary"
-                size="small"
-                :disabled="!loading && !hasUnsavedChanges"
-                @click="clearChanges()"
-              >
-                {{ $t('general.reset') }}
-              </NcButton>
-              <NcTooltip>
-                <template #title> {{ `${renderCmdOrCtrlKey()} + S` }}</template>
+            <NcButton
+              data-testid="nc-field-reset"
+              type="secondary"
+              size="small"
+              :disabled="!loading && !hasUnsavedChanges"
+              @click="clearChanges()"
+            >
+              {{ $t('general.reset') }}
+            </NcButton>
+            <NcTooltip>
+              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }}</template>
 
-                <NcButton
-                  data-testid="nc-field-save-changes"
-                  type="primary"
-                  size="small"
-                  :loading="loading"
-                  :disabled="isColumnsValid ? !loading && !hasUnsavedChanges : true"
-                  @click="saveChanges()"
-                >
-                  {{ $t('labels.multiField.saveChanges') }}
-                </NcButton>
-              </NcTooltip>
-            </template>
+              <NcButton
+                data-testid="nc-field-save-changes"
+                type="primary"
+                size="small"
+                :loading="loading"
+                :disabled="isColumnsValid ? !loading && !hasUnsavedChanges : true"
+                @click="saveChanges()"
+              >
+                {{ $t('labels.multiField.saveChanges') }}
+              </NcButton>
+            </NcTooltip>
           </div>
         </div>
         <!-- Ai field wizard  -->
@@ -2572,12 +2547,12 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                 @add="onFieldAdd"
               />
 
-              <div v-if="!activeField" class="w-[25rem] flex flex-col justify-center items-center gap-3 p-8 text-center">
-                <GeneralIcon icon="ncMousePointer" class="w-12 h-12 text-nc-content-gray-muted" />
-                <div class="text-base font-bold text-nc-content-gray-emphasis">
+              <div v-if="!activeField" class="w-[25rem] flex flex-col justify-center p-4 items-center">
+                <img src="~assets/img/placeholder/multi-field-editor.png" class="!w-[18rem]" />
+                <div class="text-2xl text-nc-content-gray-subtle2 font-bold text-center pt-6">
                   {{ $t('labels.multiField.selectField') }}
                 </div>
-                <div class="text-sm text-nc-content-gray-muted max-w-xs">
+                <div class="text-center text-sm px-2 text-nc-content-inverted-secondary-disabled pt-6">
                   {{ $t('labels.multiField.selectFieldLabel') }}
                 </div>
               </div>

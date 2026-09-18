@@ -302,6 +302,21 @@ ingress:
           pathType: Prefix
   ## @param ingress.tls Ingress TLS entries
   tls: []
+## @param httproute.enabled Create a Gateway API HTTPRoute (alternative to Ingress; needs the Gateway API CRDs and a Gateway)
+## @param httproute.annotations HTTPRoute annotations
+## @param httproute.parentRefs Gateways this route attaches to (each entry: name, and optional namespace/sectionName/port)
+## @param httproute.hostnames Hostnames matched by this route
+## @param httproute.rules Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered)
+httproute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  #  - name: my-gateway
+  #    namespace: gateway-system
+  #    sectionName: https
+  hostnames: []
+  #  - nocodb.example.com
+  rules: []
 networkPolicy:
   ## @param networkPolicy.enabled Create a NetworkPolicy
   enabled: false

@@ -66,10 +66,10 @@ const columns = [
   {
     key: 'created_at',
     title: t('labels.createdOn'),
-    width: 150,
-    // Matches `width`: a larger min only makes the inner cell overflow the
-    // fixed outer one.
-    minWidth: 150,
+    // Fixed and min agree: a larger min overflows the fixed outer cell, a
+    // smaller one wraps the header onto two lines.
+    width: 180,
+    minWidth: 180,
     showOrderBy: true,
     dataIndex: 'created_at',
   },

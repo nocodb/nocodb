@@ -414,6 +414,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseSSO = (..._args: any[]) => {}
 
+  const blockWorkspaceSso = computed(() => true)
+
+  const showUpgradeToUseWorkspaceSso = (..._args: any[]) => {}
+
   const blockScim = computed(() => true)
 
   const showUpgradeToUseScim = (..._args: any[]) => {}
@@ -690,6 +694,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeForEEFeature,
     blockSSO,
     showUpgradeToUseSSO,
+    blockWorkspaceSso,
+    showUpgradeToUseWorkspaceSso,
     blockScim,
     showUpgradeToUseScim,
     blockMssql,

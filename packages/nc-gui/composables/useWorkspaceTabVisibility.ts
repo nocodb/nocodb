@@ -1,5 +1,4 @@
 import type { MaybeRefOrGetter } from 'vue'
-import { PlanFeatureTypes } from 'nocodb-sdk'
 
 /**
  * Single source of truth for workspace tab visibility.
@@ -17,12 +16,14 @@ export function useWorkspaceTabVisibility(
   const { appInfo, isMobileMode } = useGlobal()
   const { isUIAllowed, isBaseRolesLoaded } = useRoles()
   const { isTeamsEnabled } = storeToRefs(useWorkspace())
-  const { isPaymentEnabled, getFeature, showEEFeatures } = useEeConfig()
+  const { isPaymentEnabled, showEEFeatures } = useEeConfig()
   const { creditsEnabled } = storeToRefs(useCredits())
 
-  // Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO)
+  // Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO).
+  // Availability is deployment-level only — the plan gate (Business+) drives the upgrade
+  // badge, not visibility, so Free/Plus admins can still see what they'd be upgrading to.
   const isWorkspaceSsoAvail = computed(() => {
-    return isEeUI && appInfo.value?.isCloud && !!getFeature(PlanFeatureTypes.FEATURE_SSO)
+    return isEeUI && !!appInfo.value?.isCloud
   })
 
   const hasTeamsEditPermission = computed(() => {
@@ -63,6 +64,7 @@ export function useWorkspaceTabVisibility(
       sso:
         !isMobileMode.value &&
         isWorkspaceSsoAvail.value &&
+        showEEFeatures.value &&
         !ws.value?.fk_org_id &&
         isBaseRolesLoaded.value &&
         isUIAllowed('workspaceSSO'),

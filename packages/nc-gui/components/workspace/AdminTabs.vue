@@ -10,7 +10,7 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const { isWsAuditEnabled, handleUpgradePlan } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockWorkspaceSso, showUpgradeToUseWorkspaceSso } = useEeConfig()
 
 const { wsTabVisibility, hasAdminTabBar } = useWorkspaceTabVisibility(activeWorkspace)
 
@@ -49,6 +49,7 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'sso',
       icon: 'sso',
       label: t('title.sso'),
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_SSO, blocked: blockWorkspaceSso.value },
       hidden: !wsTabVisibility.value.sso,
     },
   ].filter((item) => !item.hidden)
@@ -66,6 +67,10 @@ const activeTab = computed({
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
         triggerSource: 'ws-admin-tabs-audit',
       })
+      return
+    }
+
+    if (tabKey === 'sso' && showUpgradeToUseWorkspaceSso({ triggerSource: 'ws-admin-tabs-sso' })) {
       return
     }
 

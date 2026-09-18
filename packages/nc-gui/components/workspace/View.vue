@@ -28,7 +28,8 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, blockWorkspaceSso, showUpgradeToUseWorkspaceSso } =
+  useEeConfig()
 
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
@@ -104,6 +105,10 @@ const tab = computed({
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
         triggerSource: 'ws-home-audit',
       })
+    }
+
+    if (tab === 'sso' && showUpgradeToUseWorkspaceSso({ triggerSource: 'ws-home-sso' })) {
+      return
     }
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
@@ -420,13 +425,22 @@ if (!props.isNewWsPage) {
         <template v-if="wsTabVisibility.sso">
           <a-tab-pane key="sso" class="w-full">
             <template #tab>
-              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-sso">
                 <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
                 {{ $t('title.sso') }}
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_SSO"
+                  :feature-enabled-callback="() => !blockWorkspaceSso"
+                  remove-click
+                />
               </div>
             </template>
 
-            <WorkspaceSso :class="isNewWsPage ? '!h-[calc(100vh-var(--topbar-height)-44px)]' : '!h-[calc(100vh-92px)]'" />
+            <WorkspaceSso
+              v-if="!blockWorkspaceSso"
+              :class="isNewWsPage ? '!h-[calc(100vh-var(--topbar-height)-44px)]' : '!h-[calc(100vh-92px)]'"
+            />
+            <div v-else>&nbsp;</div>
           </a-tab-pane>
         </template>
       </template>

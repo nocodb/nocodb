@@ -21,18 +21,22 @@ const {
   isPaymentEnabled,
   isEEFeatureBlocked,
   showEEFeatures,
-  getFeature,
+  blockWorkspaceSso,
   showUpgradeToUseTeams,
+  showUpgradeToUseWorkspaceSso,
   handleUpgradePlan,
 } = useEeConfig()
 
-// Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO)
+// Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO).
+// The plan gate (Business+) drives the upgrade badge, not visibility.
 const isWorkspaceSsoAvail = computed(() => {
-  return isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)
+  return isEeUI && !!appInfo.value?.isCloud
 })
 
 const navigateToWsSettings = (page: string) => {
   if (page === 'ws-teams' && showUpgradeToUseTeams({ triggerSource: 'ws-settings-teams' })) return
+
+  if (page === 'ws-sso' && showUpgradeToUseWorkspaceSso({ triggerSource: 'ws-settings-sso' })) return
 
   if (page === 'ws-audits' && !isWsAuditEnabled.value) {
     handleUpgradePlan({
@@ -139,6 +143,13 @@ const activeWsSettingsTab = computed(() => {
       @click="navigateToWsSettings('ws-sso')"
     >
       {{ $t('title.sso') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_SSO"
+          :feature-enabled-callback="() => !blockWorkspaceSso"
+          remove-click
+        />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="!isEEFeatureBlocked && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"

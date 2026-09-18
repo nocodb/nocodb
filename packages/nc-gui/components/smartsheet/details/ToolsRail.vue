@@ -23,7 +23,7 @@ interface Props {
   table?: TableType
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emits = defineEmits<{
   select: [slug: ViewPageType]
@@ -31,8 +31,28 @@ const emits = defineEmits<{
 
 const { isEEFeatureBlocked } = useEeConfig()
 
+const search = ref('')
+
+// Tools whose title matches the query; empty groups fall away with their headers.
+const filteredGroups = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  if (!query) return props.groups
+
+  return props.groups
+    .map((group) => ({ ...group, items: group.items.filter((item) => item.title.toLowerCase().includes(query)) }))
+    .filter((group) => group.items.length)
+})
+
+const hasMatches = computed(() => filteredGroups.value.some((group) => group.items.length))
+
 const onSelect = (slug: ViewPageType) => {
   emits('select', slug)
+}
+
+// Enter jumps to the first match, so a search can be driven from the keyboard alone.
+const onSearchEnter = () => {
+  const first = filteredGroups.value[0]?.items[0]
+  if (first) onSelect(first.slug)
 }
 </script>
 
@@ -47,7 +67,24 @@ const onSelect = (slug: ViewPageType) => {
         <NcTooltip show-on-truncate-only class="truncate">{{ table.title }}</NcTooltip>
       </div>
 
-      <template v-for="group in groups" :key="group.label">
+      <a-input
+        v-model:value="search"
+        class="nc-tools-rail-search !h-8 !rounded-lg mb-3"
+        :placeholder="$t('placeholder.searchTools')"
+        allow-clear
+        data-testid="nc-tools-rail-search"
+        @keydown.enter.prevent="onSearchEnter"
+      >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-nc-content-gray-muted" />
+        </template>
+      </a-input>
+
+      <div v-if="!hasMatches" class="px-2.5 py-2 text-bodyDefaultSm text-nc-content-gray-muted">
+        {{ $t('labels.noResults') }}
+      </div>
+
+      <template v-for="group in filteredGroups" :key="group.label">
         <div
           v-if="group.items.length"
           class="px-2 pt-2.5 pb-1.5 text-[10px] font-bold tracking-wide text-nc-content-gray-muted uppercase"

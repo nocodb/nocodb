@@ -87,7 +87,7 @@ const onSelect = (slug: ViewPageType) => {
 }
 
 .nc-tools-rail-item {
-  @apply flex items-center gap-2.5 px-2.5 py-2 mb-0.5 rounded-lg text-bodyDefaultSm font-medium text-nc-content-gray-emphasis cursor-pointer;
+  @apply flex items-center gap-2.5 px-2.5 py-2 mb-0.5 rounded-lg text-bodyDefaultSm font-normal text-nc-content-gray-emphasis cursor-pointer;
 
   &:hover {
     @apply bg-nc-bg-gray-light;
@@ -95,7 +95,7 @@ const onSelect = (slug: ViewPageType) => {
 }
 
 .nc-tools-rail-item-active {
-  @apply bg-nc-bg-brand text-nc-content-brand font-bold;
+  @apply bg-nc-bg-brand text-nc-content-brand font-medium;
 
   &:hover {
     @apply bg-nc-bg-brand;

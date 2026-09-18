@@ -43,12 +43,18 @@ const isLoading = ref(false)
 
 const sortedMcpTokens = computed(() => handleGetSortedData(accountMcpTokens.value, sorts.value))
 
+// `name` and `access` flex; `created_at` and `action` are fixed. The four
+// minimums have to fit the narrowest shell this page gets -- `max-w-202` is
+// 808px, but the column is fluid below that and measures ~655px at a 1024px
+// viewport. Overflow has no escape hatch here: the table clips at
+// `overflow-x: hidden` and shows no scrollbar, so a row wider than its
+// container puts the action menu (edit, regenerate, delete) out of reach.
 const columns = [
   {
     key: 'name',
     title: t('general.name'),
     name: 'Token',
-    minWidth: 300,
+    minWidth: 180,
     padding: '12px 24px',
     showOrderBy: true,
     dataIndex: 'title',
@@ -56,13 +62,15 @@ const columns = [
   {
     key: 'access',
     title: t('general.access'),
-    minWidth: 260,
+    minWidth: 130,
     showOrderBy: false,
   },
   {
     key: 'created_at',
     title: t('labels.createdOn'),
-    width: 150,
+    // Fixed and min agree: a larger min overflows the fixed outer cell, a
+    // smaller one wraps the header onto two lines.
+    width: 180,
     minWidth: 180,
     showOrderBy: true,
     dataIndex: 'created_at',
@@ -70,8 +78,9 @@ const columns = [
   {
     key: 'action',
     title: t('general.action'),
-    width: 162,
-    minWidth: 162,
+    // Holds one 33px icon button, right-aligned.
+    width: 120,
+    minWidth: 120,
     justify: 'justify-end',
     align: 'center',
   },

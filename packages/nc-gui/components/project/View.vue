@@ -662,7 +662,7 @@ watch(
           </template>
           <!-- Same as the API-token pane: height-bounded, padding inside the surface. -->
           <div class="h-full max-h-full">
-            <DashboardSettingsBaseMCP />
+            <DashboardSettingsBaseMCP :base-id="base.id!" />
           </div>
         </a-tab-pane>
         <a-tab-pane v-if="!isEEFeatureBlocked && isUIAllowed('manageBaseApiTokens') && base.id && !isMobileMode" key="api-tokens">

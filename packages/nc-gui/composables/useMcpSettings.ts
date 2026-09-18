@@ -213,12 +213,14 @@ export const useMcpSettings = createSharedComposable(() => {
 
   const listAccountMcpTokens = async (baseId?: string) => {
     try {
-      // `baseId` rides the query through to the handler, which narrows the
-      // list to connections that reach that base (base settings view).
+      // `scopeBaseId` rides the query through to the handler, which narrows the
+      // list to connections that reach that base (base settings view). Not
+      // `baseId` — the route already has a path param by that name, which this
+      // account-addressed call sends as `NO_SCOPE`.
       const response = await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
         operation: 'mcpRootList',
-        ...(baseId ? { baseId } : {}),
-      } as any)
+        ...(baseId ? { scopeBaseId: baseId } : {}),
+      })
 
       if (response && Array.isArray(response)) {
         accountMcpTokens.value = response.map((token: any) => ({

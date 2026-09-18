@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "عامل‌ها"
+      "agents": "عامل‌ها",
+      "permissions": "مجوزهای جدول و فیلد"
     },
     "upgradeToSortAndLimitLookupValues": "برای مرتب‌سازی و محدود کردن مقدارهای نمایش‌داده‌شده در فیلد Lookup، لطفاً به پلن {plan} ارتقا دهید.",
     "upgradeToAddMoreAgents": "برای افزودن عامل‌های بیشتر ارتقا دهید",
@@ -741,7 +742,12 @@
     "function": "تابع",
     "functions": "توابع",
     "otherTables": "جدول‌های دیگر",
-    "viaNewLinkField": "از طریق فیلد پیوند جدید"
+    "viaNewLinkField": "از طریق فیلد پیوند جدید",
+    "test": "آزمایش",
+    "success": "موفقیت",
+    "manageFields": "مدیریت فیلدها",
+    "tools": "ابزارها",
+    "allChangesSaved": "همه تغییرات ذخیره شد"
   },
   "objects": {
     "script": "اسکریپت",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "نام تیم‌های کاربر به‌همراه همهٔ تیم‌های زیرمجموعهٔ آن‌ها.",
           "currentUserTeamWithDescendantMembers": "اعضای تیم‌های من",
           "currentUserTeamWithDescendantMembersDescription": "همهٔ افراد تیم‌ها و زیرتیم‌های کاربر — آن را با «شامل هر یک از» به کار ببرید تا رکوردهای زیردستانتان را ببینید."
-        }
+        },
+        "appliesTo": "اعمال می‌شود بر"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "هفته‌ها",
     "viewFolder": "پوشهٔ نماها",
     "subRecord": "زیررکورد",
-    "video": "ویدیو"
+    "video": "ویدیو",
+    "recordTemplates": "الگوهای رکورد"
   },
   "datatype": {
     "ID": "شناسه (ID)",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "محیط تازه",
     "removeCustomDomain": "دامنهٔ سفارشی برداشته شود؟",
     "tooNarrowToAdjustFrozenFields": "پنجره برای تنظیم فیلدهای ثابت‌شده بسیار باریک است",
-    "themeSettings": "تنظیمات پوسته"
+    "themeSettings": "تنظیمات پوسته",
+    "nFields": "{count} فیلد | {count} فیلد"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "خواندن، نوشتن و حذف",
       "allowShown": "اجازه به موارد نمایش‌داده‌شده",
       "clearShown": "پاک‌کردن موارد نمایش‌داده‌شده",
-      "shownOf": "{shown} از {total} نمایش داده شد"
+      "shownOf": "{shown} از {total} نمایش داده شد",
+      "levelAll": "{level} برای همه",
+      "toolsAllowed": "{count} از {total} ابزار مجاز است",
+      "customTip": "ابزارهای دست‌چین‌شده. برای بازنشانی ردیف، یک سطح انتخاب کنید.",
+      "writes": "نوشتن‌ها",
+      "sections": {
+        "account": "حساب کاربری و فضاهای کاری",
+        "accountDesc": "اینکه چه کسی هستید، فضاهای کاری شما، پایگاه‌های درون آنها و پیوندها به برنامه",
+        "records": "رکوردها و داده‌ها",
+        "recordsDesc": "رکوردها، نظرات، ورود و خروج داده",
+        "schema": "شِما",
+        "schemaDesc": "جدول‌ها، فیلدها، تکثیر و چگونگی سازمان‌دهی یک پایگاه",
+        "views": "نمایش‌ها",
+        "viewsDesc": "نمایش‌ها، فیلترها، مرتب‌سازی‌ها، اشتراک‌گذاری، فیلدهای فرم، رنگ ردیف‌ها",
+        "automation": "خودکارسازی",
+        "automationDesc": "گردش‌های کاری، وب‌هوک‌ها، اسکریپت‌ها و عامل‌ها",
+        "interfaces": "رابط‌ها، داشبوردها و مستندات",
+        "interfacesDesc": "صفحات رابط، داشبوردها، ابزارک‌ها و اسناد",
+        "access": "دسترسی و امنیت",
+        "accessDesc": "مجوزهای فیلد و جدول، امنیت در سطح ردیف",
+        "platform": "پلتفرم",
+        "platformDesc": "یکپارچه‌سازی‌ها، محیط‌ها و برنامه‌ها"
+      }
     },
     "noBaseAccess": "دسترسی به پایگاه وجود ندارد",
     "signedInAs": "وارد شده با حساب",
-    "moreAgents": "{count} عامل دیگر | {count} عامل دیگر"
+    "moreAgents": "{count} عامل دیگر | {count} عامل دیگر",
+    "mcpConnectionsLabel": "اتصال‌های MCP را برای استفاده با کلاینت‌های هوش مصنوعی مانند Claude، Codex یا Cursor ایجاد کنید.",
+    "mcpConnections": "اتصال‌های MCP",
+    "editMcpConnection": "ویرایش اتصال",
+    "mcpClientSetup": "راه‌اندازی کلاینت",
+    "manageFieldsSubtext": "ویرایش فیلدها و بررسی وابستگی‌ها",
+    "relationsSubtext": "تجسم و مدیریت روابط جدول‌ها",
+    "apiSnippetSubtext": "تولید کد برای پرس‌وجو از این جدول از طریق API",
+    "webhooksSubtext": "خودکارسازی فراخوانی‌های بیرونی هنگام تغییر رکوردها",
+    "permissionsSubtext": "تعیین کنید چه کسی می‌تواند داده‌ها را ببیند و ویرایش کند",
+    "rlsSubtext": "محدود کردن دسترسی به رکوردها با سیاست‌ها",
+    "dateDependencySubtext": "جابه‌جایی تاریخ‌ها در رکوردهای وابسته",
+    "recordTemplatesSubtext": "ایجاد رکوردها از یک الگوی ذخیره‌شده",
+    "toolsSectionStructure": "ساختار",
+    "toolsSectionAccess": "دسترسی و امنیت",
+    "toolsSectionRecords": "رکوردها",
+    "toolsSectionDeveloper": "توسعه‌دهنده"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "ثابت‌کردن {count} ستون | ثابت‌کردن {count} ستون",
     "marketplaceComingSoon": "این برنامه هنوز در حال بسته‌بندی است، پس فعلاً نصب نمی‌شود.",
     "marketplaceAuthored": "نوشتهٔ ناشر است، نه برگرفته از محتوای برنامه.",
-    "marketplaceVerifiedPublisher": "منتشر و بررسی‌شده توسط NocoDB"
+    "marketplaceVerifiedPublisher": "منتشر و بررسی‌شده توسط NocoDB",
+    "showCustomPermissionFieldsOnly": "فقط فیلدهای دارای مجوزهای سفارشی نمایش داده شوند",
+    "showAllFields": "نمایش همه فیلدها"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "جست‌وجوی مهارت‌ها...",
     "messageAgent": "پیام به {agent}",
-    "somethingElse": "چیز دیگری"
+    "somethingElse": "چیز دیگری",
+    "noMcpConnections": "هیچ اتصال MCP ایجاد نشده است",
+    "noMcpConnectionsLabel": "به نظر می‌رسد هنوز هیچ اتصال MCP ایجاد نکرده‌اید."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "ورود به NocoDB لازم است.",
       "seeWhoSubmittedDisabledHint": "برای فعال‌سازی این گزینه، یک فیلد «ایجاد شده توسط» به جدول خود اضافه کنید.",
       "formRequiresSignin": "دسترسی به این فرم نیازمند ورود به NocoDB است.",
-      "switchAccount": "تغییر حساب"
+      "switchAccount": "تغییر حساب",
+      "mcpConnectionEdit": "تغییرات در فراخوانی بعدی کلاینت اعمال می‌شود. رمز ثابت می‌ماند.",
+      "mcpConnectionsReachingBase": "اتصال‌های MCP متصل به این پایگاه را برای کلاینت‌های هوش مصنوعی مانند Claude، Codex یا Cursor ایجاد کنید.",
+      "mcpClientSetupKeyHidden": "کلید فقط هنگام ایجاد یا تولید دوباره یک اتصال نمایش داده می‌شود، بنابراین این پیکربندی یک جای‌نگهدار دارد."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "{n} سلول کپی شدند",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "{count} شرط رونوشت شد | {count} شرط رونوشت شد"
+      "interfaceFilterCopied": "{count} شرط رونوشت شد | {count} شرط رونوشت شد",
+      "changesSaved": "تغییرات ذخیره شد"
     },
     "success": {
       "restored": "Item restored successfully",

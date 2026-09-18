@@ -258,7 +258,8 @@
       "audit": "Çalışma Alanı Denetimi",
       "ltarCustomDisplayValue": "Özel Görüntüleme Değeri Alanı",
       "publicDocShare": "Herkese Açık Belge Paylaşımı",
-      "agents": "Ajanlar"
+      "agents": "Ajanlar",
+      "permissions": "Tablo ve alan izinleri"
     },
     "upgradeToSortAndLimitLookupValues": "Bir Lookup alanında gösterilen değerleri sıralamak ve sınırlamak için lütfen {plan} planına geçin.",
     "upgradeToAddMoreAgents": "Daha fazla ajan eklemek için yükseltin",
@@ -741,7 +742,12 @@
     "function": "İşlev",
     "functions": "İşlevler",
     "otherTables": "Diğer tablolar",
-    "viaNewLinkField": "yeni bağlantı alanı aracılığıyla"
+    "viaNewLinkField": "yeni bağlantı alanı aracılığıyla",
+    "test": "Test et",
+    "success": "Başarılı",
+    "manageFields": "Alanları yönet",
+    "tools": "Araçlar",
+    "allChangesSaved": "Tüm değişiklikler kaydedildi"
   },
   "objects": {
     "script": "Script",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Kullanıcının takımlarının ve altlarındaki tüm takımların adları.",
           "currentUserTeamWithDescendantMembers": "Takımlarımın üyeleri",
           "currentUserTeamWithDescendantMembersDescription": "Kullanıcının takımlarındaki ve alt takımlarındaki herkes — size bağlı çalışanların kayıtlarını görmek için «şunlardan herhangi birini içerir» ile birlikte kullanın."
-        }
+        },
+        "appliesTo": "Şunlara uygulanır"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Kimse {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "Haftalar",
     "viewFolder": "Görünüm klasörü",
     "subRecord": "Alt kayıt",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Kayıt şablonları"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "Yeni ortam",
     "removeCustomDomain": "Özel alan adı kaldırılsın mı?",
     "tooNarrowToAdjustFrozenFields": "Pencere, sabitlenmiş alanları ayarlamak için fazla dar",
-    "themeSettings": "Tema ayarları"
+    "themeSettings": "Tema ayarları",
+    "nFields": "{count} alan | {count} alan"
   },
   "labels": {
     "syncing": "Senkronize ediliyor",
@@ -4332,11 +4341,48 @@
       "readWriteDelete": "Okuma, yazma ve silme",
       "allowShown": "Gösterilenlere izin ver",
       "clearShown": "Gösterilenleri temizle",
-      "shownOf": "{total} içinden {shown} gösteriliyor"
+      "shownOf": "{total} içinden {shown} gösteriliyor",
+      "levelAll": "Tümü için {level}",
+      "toolsAllowed": "{total} araçtan {count} tanesine izin verildi",
+      "customTip": "Elle seçilmiş araçlar. Satırı sıfırlamak için bir düzey seçin.",
+      "writes": "Yazmalar",
+      "sections": {
+        "account": "Hesap ve çalışma alanları",
+        "accountDesc": "Kim olduğunuz, çalışma alanlarınız, içindeki bazlar ve uygulamaya giden bağlantılar",
+        "records": "Kayıtlar ve veriler",
+        "recordsDesc": "Kayıtlar, yorumlar, içe ve dışa aktarma",
+        "schema": "Şema",
+        "schemaDesc": "Tablolar, alanlar, çoğaltma ve bir bazın nasıl düzenlendiği",
+        "views": "Görünümler",
+        "viewsDesc": "Görünümler, filtreler, sıralamalar, paylaşım, form alanları, satır renkleri",
+        "automation": "Otomasyon",
+        "automationDesc": "İş akışları, webhook'lar, betikler ve ajanlar",
+        "interfaces": "Arayüzler, panolar ve dokümanlar",
+        "interfacesDesc": "Arayüz sayfaları, panolar, widget'lar ve belgeler",
+        "access": "Erişim ve güvenlik",
+        "accessDesc": "Alan ve tablo izinleri, satır düzeyinde güvenlik",
+        "platformDesc": "Entegrasyonlar, ortamlar ve uygulamalar"
+      }
     },
     "noBaseAccess": "Tabana erişim yok",
     "signedInAs": "Şu hesapla oturum açıldı",
-    "moreAgents": "{count} ajan daha | {count} ajan daha"
+    "moreAgents": "{count} ajan daha | {count} ajan daha",
+    "mcpConnectionsLabel": "Claude, Codex veya Cursor gibi yapay zekâ istemcileriyle kullanmak için MCP bağlantıları oluşturun.",
+    "mcpConnections": "MCP bağlantıları",
+    "editMcpConnection": "Bağlantıyı düzenle",
+    "mcpClientSetup": "İstemci kurulumu",
+    "manageFieldsSubtext": "Alanları düzenle ve bağımlılıkları incele",
+    "relationsSubtext": "Tablo ilişkilerini görselleştirin ve yönetin",
+    "apiSnippetSubtext": "Bu tabloyu API üzerinden sorgulamak için kod oluştur",
+    "webhooksSubtext": "Kayıtlar değiştiğinde dış çağrıları otomatikleştirin",
+    "permissionsSubtext": "Verileri kimin görüntüleyebileceğini ve düzenleyebileceğini denetleyin",
+    "rlsSubtext": "Kayıtlara erişimi ilkelerle kısıtlayın",
+    "dateDependencySubtext": "Bağımlı kayıtlardaki tarihleri kaydır",
+    "recordTemplatesSubtext": "Kayıtlı bir şablondan kayıt oluşturun",
+    "toolsSectionStructure": "Yapı",
+    "toolsSectionAccess": "Erişim ve güvenlik",
+    "toolsSectionRecords": "Kayıtlar",
+    "toolsSectionDeveloper": "Geliştirici"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -4831,7 +4877,9 @@
     "freezeColumnsCount": "{count} sütunu sabitle | {count} sütunu sabitle",
     "marketplaceComingSoon": "Bu uygulama hâlâ paketleniyor, bu yüzden henüz kurulamıyor.",
     "marketplaceAuthored": "Yayıncı tarafından yazılmıştır, uygulamanın içeriğinden türetilmemiştir.",
-    "marketplaceVerifiedPublisher": "NocoDB tarafından yayımlandı ve incelendi"
+    "marketplaceVerifiedPublisher": "NocoDB tarafından yayımlandı ve incelendi",
+    "showCustomPermissionFieldsOnly": "Yalnızca özel izinleri olan alanları göster",
+    "showAllFields": "Tüm alanları göster"
   },
   "placeholder": {
     "enterVerificationCode": "6 haneli kodu girin",
@@ -4991,7 +5039,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Becerilerde ara...",
     "messageAgent": "{agent} ajanına mesaj",
-    "somethingElse": "Başka bir şey"
+    "somethingElse": "Başka bir şey",
+    "noMcpConnections": "Hiç MCP bağlantısı oluşturulmadı",
+    "noMcpConnectionsLabel": "Görünüşe göre henüz hiç MCP bağlantısı oluşturmadınız."
   },
   "msg": {
     "sourceViewNotShared": "Bu görünümde senkronizasyon devre dışı",
@@ -5699,7 +5749,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB'de oturum açmanız gerekir.",
       "seeWhoSubmittedDisabledHint": "Bu seçeneği etkinleştirmek için tablonuza bir “Oluşturan” alanı ekleyin.",
       "formRequiresSignin": "Bu forma erişmek için NocoDB'de oturum açmanız gerekir.",
-      "switchAccount": "Hesap değiştir"
+      "switchAccount": "Hesap değiştir",
+      "mcpConnectionEdit": "Değişiklikler istemciye bir sonraki çağrısında uygulanır. Gizli anahtar aynı kalır.",
+      "mcpConnectionsReachingBase": "Claude, Codex veya Cursor gibi yapay zekâ istemcileri için bu baza sabitlenmiş MCP bağlantıları oluşturun.",
+      "mcpClientSetupKeyHidden": "Anahtar yalnızca bir bağlantı oluşturulduğunda veya yeniden üretildiğinde gösterilir, bu nedenle bu yapılandırmada bir yer tutucu bulunur."
     },
     "error": {
       "failedToCreateSync": "Senkronizasyon oluşturulamadı",
@@ -5923,7 +5976,8 @@
       "nCellsCopied": "{n} hücre kopyalandı",
       "nRecordCreated": "{n} kayıt oluşturuldu",
       "nRecordsCreated": "{n} kayıt oluşturuldu",
-      "interfaceFilterCopied": "{count} koşul kopyalandı | {count} koşul kopyalandı"
+      "interfaceFilterCopied": "{count} koşul kopyalandı | {count} koşul kopyalandı",
+      "changesSaved": "Değişiklikler kaydedildi"
     },
     "success": {
       "restored": "Öğe başarıyla geri yüklendi",

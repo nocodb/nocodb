@@ -258,7 +258,8 @@
       "audit": "Контроль робочої області",
       "ltarCustomDisplayValue": "Довільне значення поля дисплею",
       "publicDocShare": "Спільний доступ до особистих документів",
-      "agents": "Агенти"
+      "agents": "Агенти",
+      "permissions": "Дозволи для таблиць і полів"
     },
     "upgradeToSortAndLimitLookupValues": "Щоб сортувати та обмежувати значення в полі Lookup, перейдіть на тариф {plan}.",
     "upgradeToAddMoreAgents": "Перейдіть на вищий тариф, щоб додати більше Агентів",
@@ -741,7 +742,12 @@
     "function": "Функція",
     "functions": "Функції",
     "otherTables": "Інші таблиці",
-    "viaNewLinkField": "через нове поле зв'язку"
+    "viaNewLinkField": "через нове поле зв'язку",
+    "test": "Перевірити",
+    "success": "Успішно",
+    "manageFields": "Керування полями",
+    "tools": "Інструменти",
+    "allChangesSaved": "Усі зміни збережено"
   },
   "objects": {
     "script": "Скрипт",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Назви команд користувача та всіх команд під ними.",
           "currentUserTeamWithDescendantMembers": "Учасники моїх команд",
           "currentUserTeamWithDescendantMembersDescription": "Усі в командах і підкомандах користувача — використовуйте з умовою «містить будь-що з», щоб бачити записи своїх підлеглих."
-        }
+        },
+        "appliesTo": "Застосовується до"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Ніхто не {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "Тижні",
     "viewFolder": "Тека подань",
     "subRecord": "Підзапис",
-    "video": "Відео"
+    "video": "Відео",
+    "recordTemplates": "Шаблони записів"
   },
   "datatype": {
     "ID": "Ідентифікатор",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "Нове середовище",
     "removeCustomDomain": "Вилучити власний домен?",
     "tooNarrowToAdjustFrozenFields": "Вікно завузьке, щоб налаштувати закріплені поля",
-    "themeSettings": "Налаштування теми"
+    "themeSettings": "Налаштування теми",
+    "nFields": "{count} поле | {count} полів"
   },
   "labels": {
     "syncing": "Синхронізація",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "Читання, запис і видалення",
       "allowShown": "Дозволити показані",
       "clearShown": "Очистити показані",
-      "shownOf": "Показано {shown} із {total}"
+      "shownOf": "Показано {shown} із {total}",
+      "levelAll": "{level} для всього",
+      "toolsAllowed": "Дозволено інструментів: {count} із {total}",
+      "customTip": "Вручну дібрані інструменти. Виберіть рівень, щоб скинути рядок.",
+      "writes": "Операції запису",
+      "sections": {
+        "account": "Обліковий запис і робочі області",
+        "accountDesc": "Хто ви, ваші робочі області, бази в них і посилання в застосунок",
+        "records": "Записи та дані",
+        "recordsDesc": "Записи, коментарі, імпорт та експорт",
+        "schema": "Схема",
+        "schemaDesc": "Таблиці, поля, дублювання та організація бази",
+        "views": "Вигляди",
+        "viewsDesc": "Вигляди, фільтри, сортування, спільний доступ, поля форм, кольори рядків",
+        "automation": "Автоматизація",
+        "automationDesc": "Робочі процеси, вебхуки, скрипти та агенти",
+        "interfaces": "Інтерфейси, панелі та документи",
+        "interfacesDesc": "Сторінки інтерфейсів, панелі, віджети та документи",
+        "access": "Доступ і безпека",
+        "accessDesc": "Дозволи для полів і таблиць, безпека на рівні рядків",
+        "platform": "Платформа",
+        "platformDesc": "Інтеграції, середовища та застосунки"
+      }
     },
     "noBaseAccess": "Немає доступу до бази",
     "signedInAs": "Ви увійшли як",
-    "moreAgents": "Ще {count} агент | Ще {count} агентів"
+    "moreAgents": "Ще {count} агент | Ще {count} агентів",
+    "mcpConnectionsLabel": "Створіть підключення MCP для використання з ШІ-клієнтами, такими як Claude, Codex або Cursor.",
+    "mcpConnections": "Підключення MCP",
+    "editMcpConnection": "Редагувати підключення",
+    "mcpClientSetup": "Налаштування клієнта",
+    "manageFieldsSubtext": "Редагувати поля та переглянути залежності",
+    "relationsSubtext": "Візуалізуйте зв'язки між таблицями та керуйте ними",
+    "apiSnippetSubtext": "Згенерувати код для запиту до цієї таблиці через API",
+    "webhooksSubtext": "Автоматизуйте зовнішні виклики, коли записи змінюються",
+    "permissionsSubtext": "Визначте, хто може переглядати та редагувати дані",
+    "rlsSubtext": "Обмежте доступ до записів за допомогою політик",
+    "dateDependencySubtext": "Зсунути дати в залежних записах",
+    "recordTemplatesSubtext": "Створюйте записи зі збереженого шаблону",
+    "toolsSectionStructure": "Структура",
+    "toolsSectionAccess": "Доступ і безпека",
+    "toolsSectionRecords": "Записи",
+    "toolsSectionDeveloper": "Розробник"
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "Закріпити {count} стовпець | Закріпити {count} стовпців",
     "marketplaceComingSoon": "Цей App ще готують до випуску, тож встановити його поки не можна.",
     "marketplaceAuthored": "Написано видавцем, а не виведено зі вмісту App.",
-    "marketplaceVerifiedPublisher": "Опубліковано та перевірено NocoDB"
+    "marketplaceVerifiedPublisher": "Опубліковано та перевірено NocoDB",
+    "showCustomPermissionFieldsOnly": "Показати лише поля з власними дозволами",
+    "showAllFields": "Показати всі поля"
   },
   "placeholder": {
     "enterVerificationCode": "Введіть 6-значний код",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Пошук навичок...",
     "messageAgent": "Повідомлення для {agent}",
-    "somethingElse": "Щось інше"
+    "somethingElse": "Щось інше",
+    "noMcpConnections": "Підключення MCP не створено",
+    "noMcpConnectionsLabel": "Схоже, ви ще не створили жодного підключення MCP."
   },
   "msg": {
     "sourceViewNotShared": "Синхронізацію вимкнено на цьому виді",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "Потрібно увійти в NocoDB.",
       "seeWhoSubmittedDisabledHint": "Додайте до таблиці поле «Автор», щоб увімкнути цей параметр.",
       "formRequiresSignin": "Для доступу до цієї форми потрібно увійти в NocoDB.",
-      "switchAccount": "Змінити обліковий запис"
+      "switchAccount": "Змінити обліковий запис",
+      "mcpConnectionEdit": "Зміни набудуть чинності для клієнта під час наступного виклику. Секрет залишається незмінним.",
+      "mcpConnectionsReachingBase": "Створіть підключення MCP, прив'язані до цієї бази, для ШІ-клієнтів, таких як Claude, Codex або Cursor.",
+      "mcpClientSetupKeyHidden": "Ключ показується лише під час створення або повторного генерування підключення, тому в цій конфігурації вказано заповнювач."
     },
     "error": {
       "failedToCreateSync": "Не вдалося створити синхронізацію",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "Скопійовано {n} комірок",
       "nRecordCreated": "Створено {n} запис",
       "nRecordsCreated": "Створено записи {n}",
-      "interfaceFilterCopied": "Скопійовано {count} умову | Скопійовано {count} умов"
+      "interfaceFilterCopied": "Скопійовано {count} умову | Скопійовано {count} умов",
+      "changesSaved": "Зміни збережено"
     },
     "success": {
       "restored": "Елемент успішно відновлено",

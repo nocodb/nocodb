@@ -318,7 +318,12 @@ async function onPermissions(_table: SidebarTableNode) {
 async function openTableTool(slug: ViewPageType) {
   isOptionsOpen.value = false
 
-  if (activeView.value?.fk_model_id !== table.value.id) await _openTable(table.value, true)
+  if (activeView.value?.fk_model_id !== table.value.id) {
+    // openTable(table, cmdOrCtrl, navigate) — the second arg is the new-tab flag, keep it false.
+    await _openTable(table.value)
+    // The slug is pushed off activeView; wait until it is this table's view, not the previous one.
+    await until(() => activeView.value?.fk_model_id === table.value.id).toBeTruthy({ timeout: 10000 })
+  }
 
   await onViewsTabChange(slug)
 }

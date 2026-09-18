@@ -4,6 +4,8 @@ import ProducerData from './Producer.json';
 import DvNoEligibleData from './DvNoEligible.json';
 import DvFormulaPrimaryData from './DvFormulaPrimary.json';
 import DvTitleTakenData from './DvTitleTaken.json';
+import MlProjectsData from './Projects.json';
+import MlAssetsData from './MlAssets.json';
 
 export const mockResponseData = {
   Actor: ActorData,
@@ -14,4 +16,8 @@ export const mockResponseData = {
   DvNoEligible: DvNoEligibleData,
   DvFormulaPrimary: DvFormulaPrimaryData,
   DvTitleTaken: DvTitleTakenData,
+
+  // multi-link fixture (share id `shrMultiLinkMock`)
+  Projects: MlProjectsData,
+  MlAssets: MlAssetsData,
 };

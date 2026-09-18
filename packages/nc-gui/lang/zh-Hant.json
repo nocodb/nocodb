@@ -258,7 +258,8 @@
       "audit": "工作空間稽核",
       "ltarCustomDisplayValue": "自訂顯示值欄",
       "publicDocShare": "公共文件共享",
-      "agents": "代理程式"
+      "agents": "代理程式",
+      "permissions": "表格與欄位權限"
     },
     "upgradeToSortAndLimitLookupValues": "若要排序並限制 Lookup 欄位中顯示的值，請升級到 {plan} 方案。",
     "upgradeToAddMoreAgents": "升級以新增更多代理程式",
@@ -741,7 +742,12 @@
     "function": "函式",
     "functions": "函式",
     "otherTables": "其他表格",
-    "viaNewLinkField": "透過新的連結欄位"
+    "viaNewLinkField": "透過新的連結欄位",
+    "test": "測試",
+    "success": "成功",
+    "manageFields": "管理欄位",
+    "tools": "工具",
+    "allChangesSaved": "所有變更已儲存"
   },
   "objects": {
     "script": "指令碼",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "使用者所屬團隊以及其下所有團隊的名稱。",
           "currentUserTeamWithDescendantMembers": "我團隊的成員",
           "currentUserTeamWithDescendantMembersDescription": "使用者所在團隊與子團隊中的所有人——搭配「包含其中任一」使用，即可檢視部屬的記錄。"
-        }
+        },
+        "appliesTo": "適用於"
       },
       "inlineUserSelector": {
         "noUsersSelected": "無人 {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "週",
     "viewFolder": "檢視資料夾",
     "subRecord": "子紀錄",
-    "video": "影片"
+    "video": "影片",
+    "recordTemplates": "記錄範本"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "新增環境",
     "removeCustomDomain": "要移除自訂網域嗎？",
     "tooNarrowToAdjustFrozenFields": "視窗太窄，無法調整凍結欄位",
-    "themeSettings": "主題設定"
+    "themeSettings": "主題設定",
+    "nFields": "{count} 個欄位 | {count} 個欄位"
   },
   "labels": {
     "syncing": "同步",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "讀取、寫入與刪除",
       "allowShown": "允許已顯示項目",
       "clearShown": "清除已顯示項目",
-      "shownOf": "已顯示 {total} 項中的 {shown} 項"
+      "shownOf": "已顯示 {total} 項中的 {shown} 項",
+      "levelAll": "全部{level}",
+      "toolsAllowed": "已允許 {total} 個工具中的 {count} 個",
+      "customTip": "精選工具。選擇一個層級即可重設該列。",
+      "writes": "寫入作業",
+      "sections": {
+        "account": "帳戶與工作區",
+        "accountDesc": "你是誰、你的工作區、其中的資料庫以及應用程式內的連結",
+        "records": "記錄與資料",
+        "recordsDesc": "記錄、留言、匯入和匯出",
+        "schema": "結構描述",
+        "schemaDesc": "表格、欄位、複製以及資料庫的組織方式",
+        "views": "檢視",
+        "viewsDesc": "檢視、篩選、排序、共用、表單欄位、資料列顏色",
+        "automation": "自動化",
+        "automationDesc": "工作流程、Webhook、指令碼和代理程式",
+        "interfaces": "介面、儀表板和文件",
+        "interfacesDesc": "介面頁面、儀表板、小工具和文件",
+        "access": "存取與安全性",
+        "accessDesc": "欄位和表格權限、資料列層級安全性",
+        "platform": "平台",
+        "platformDesc": "整合、環境和應用程式"
+      }
     },
     "noBaseAccess": "無權存取此 Base",
     "signedInAs": "已登入為",
-    "moreAgents": "另有 {count} 個代理 | 另有 {count} 個代理"
+    "moreAgents": "另有 {count} 個代理 | 另有 {count} 個代理",
+    "mcpConnectionsLabel": "建立 MCP 連線，以便搭配 Claude、Codex 或 Cursor 等 AI 用戶端使用。",
+    "mcpConnections": "MCP 連線",
+    "editMcpConnection": "編輯連線",
+    "mcpClientSetup": "用戶端設定",
+    "manageFieldsSubtext": "編輯欄位並檢視相依性",
+    "relationsSubtext": "視覺化並管理表格關聯",
+    "apiSnippetSubtext": "產生透過 API 查詢此表格的程式碼",
+    "webhooksSubtext": "記錄變更時自動執行外部呼叫",
+    "permissionsSubtext": "控制誰可以檢視和編輯資料",
+    "rlsSubtext": "使用原則限制記錄存取",
+    "dateDependencySubtext": "在相依記錄之間調整日期",
+    "recordTemplatesSubtext": "從已儲存的範本建立記錄",
+    "toolsSectionStructure": "結構",
+    "toolsSectionAccess": "存取與安全性",
+    "toolsSectionRecords": "記錄",
+    "toolsSectionDeveloper": "開發人員"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "凍結 {count} 個資料行 | 凍結 {count} 個資料行",
     "marketplaceComingSoon": "這個 App 仍在封裝中，因此尚無法安裝。",
     "marketplaceAuthored": "由發布者撰寫，並非根據 App 內容產生。",
-    "marketplaceVerifiedPublisher": "由 NocoDB 發布並審核"
+    "marketplaceVerifiedPublisher": "由 NocoDB 發布並審核",
+    "showCustomPermissionFieldsOnly": "僅顯示具有自訂權限的欄位",
+    "showAllFields": "顯示所有欄位"
   },
   "placeholder": {
     "enterVerificationCode": "輸入 6 位數碼",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "搜尋技能...",
     "messageAgent": "傳訊息給 {agent}",
-    "somethingElse": "其他"
+    "somethingElse": "其他",
+    "noMcpConnections": "尚未建立 MCP 連線",
+    "noMcpConnectionsLabel": "看起來你還沒有建立任何 MCP 連線。"
   },
   "msg": {
     "sourceViewNotShared": "此檢視已停用同步功能",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "需要登入 NocoDB。",
       "seeWhoSubmittedDisabledHint": "在表格中新增「創建人」欄位以啟用此選項。",
       "formRequiresSignin": "存取此表單需要登入 NocoDB。",
-      "switchAccount": "切換帳號"
+      "switchAccount": "切換帳號",
+      "mcpConnectionEdit": "變更將在用戶端下次呼叫時生效。密鑰維持不變。",
+      "mcpConnectionsReachingBase": "為 Claude、Codex 或 Cursor 等 AI 用戶端建立繫結至此資料庫的 MCP 連線。",
+      "mcpClientSetupKeyHidden": "金鑰僅在建立或重新產生連線時顯示，因此此設定使用了預留位置。"
     },
     "error": {
       "failedToCreateSync": "建立同步失敗",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "{n} 個儲存格已複製",
       "nRecordCreated": "{n} 已建立記錄",
       "nRecordsCreated": "{n} 建立的記錄",
-      "interfaceFilterCopied": "已複製 {count} 個條件 | 已複製 {count} 個條件"
+      "interfaceFilterCopied": "已複製 {count} 個條件 | 已複製 {count} 個條件",
+      "changesSaved": "變更已儲存"
     },
     "success": {
       "restored": "項目已成功還原",

@@ -258,7 +258,8 @@
       "audit": "ワークスペースの監査",
       "ltarCustomDisplayValue": "カスタム表示値フィールド",
       "publicDocShare": "公開ドキュメントの共有",
-      "agents": "エージェント"
+      "agents": "エージェント",
+      "permissions": "テーブルとフィールドの権限"
     },
     "upgradeToSortAndLimitLookupValues": "Lookup フィールドに表示される値を並べ替えたり件数を制限したりするには、{plan} プランにアップグレードしてください。",
     "upgradeToAddMoreAgents": "アップグレードしてエージェントを追加",
@@ -741,7 +742,12 @@
     "function": "関数",
     "functions": "関数",
     "otherTables": "その他のテーブル",
-    "viaNewLinkField": "新しいリンクフィールド経由"
+    "viaNewLinkField": "新しいリンクフィールド経由",
+    "test": "テスト",
+    "success": "成功",
+    "manageFields": "フィールドを管理",
+    "tools": "ツール",
+    "allChangesSaved": "すべての変更を保存しました"
   },
   "objects": {
     "script": "スクリプト",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "ユーザーのチームと、その配下にあるすべてのチームの名前。",
           "currentUserTeamWithDescendantMembers": "自分のチームのメンバー",
           "currentUserTeamWithDescendantMembersDescription": "ユーザーのチームとサブチームの全員。「いずれかを含む」と組み合わせると、部下のレコードを確認できます。"
-        }
+        },
+        "appliesTo": "適用対象"
       },
       "inlineUserSelector": {
         "noUsersSelected": "誰も {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "週",
     "viewFolder": "ビューフォルダ",
     "subRecord": "サブレコード",
-    "video": "動画"
+    "video": "動画",
+    "recordTemplates": "レコードテンプレート"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "新しい環境",
     "removeCustomDomain": "カスタムドメインを削除しますか？",
     "tooNarrowToAdjustFrozenFields": "ウィンドウが狭すぎて固定フィールドを調整できません",
-    "themeSettings": "テーマ設定"
+    "themeSettings": "テーマ設定",
+    "nFields": "{count} フィールド | {count} フィールド"
   },
   "labels": {
     "syncing": "同期中",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "読み取り・書き込み・削除",
       "allowShown": "表示中を許可",
       "clearShown": "表示中をクリア",
-      "shownOf": "{total} 件中 {shown} 件を表示"
+      "shownOf": "{total} 件中 {shown} 件を表示",
+      "levelAll": "すべてを{level}",
+      "toolsAllowed": "{total} 個中 {count} 個のツールが許可されています",
+      "customTip": "手動で選択したツールです。レベルを選ぶと行がリセットされます。",
+      "writes": "書き込み",
+      "sections": {
+        "account": "アカウントとワークスペース",
+        "accountDesc": "あなたが誰か、あなたのワークスペース、その中のベース、アプリへのリンク",
+        "records": "レコードとデータ",
+        "recordsDesc": "レコード、コメント、インポートとエクスポート",
+        "schema": "スキーマ",
+        "schemaDesc": "テーブル、フィールド、複製、ベースの構成",
+        "views": "ビュー",
+        "viewsDesc": "ビュー、フィルター、並べ替え、共有、フォームフィールド、行の色",
+        "automation": "自動化",
+        "automationDesc": "ワークフロー、Webhook、スクリプト、エージェント",
+        "interfaces": "インターフェース、ダッシュボード、ドキュメント",
+        "interfacesDesc": "インターフェースのページ、ダッシュボード、ウィジェット、ドキュメント",
+        "access": "アクセスとセキュリティ",
+        "accessDesc": "フィールドとテーブルの権限、行レベルのセキュリティ",
+        "platform": "プラットフォーム",
+        "platformDesc": "インテグレーション、環境、アプリ"
+      }
     },
     "noBaseAccess": "ベースへのアクセス権がありません",
     "signedInAs": "ログイン中のアカウント",
-    "moreAgents": "他 {count} 件のエージェント | 他 {count} 件のエージェント"
+    "moreAgents": "他 {count} 件のエージェント | 他 {count} 件のエージェント",
+    "mcpConnectionsLabel": "Claude、Codex、Cursor などの AI クライアントで使用する MCP 接続を作成します。",
+    "mcpConnections": "MCP 接続",
+    "editMcpConnection": "接続を編集",
+    "mcpClientSetup": "クライアント設定",
+    "manageFieldsSubtext": "フィールドを編集して依存関係を確認します",
+    "relationsSubtext": "テーブルのリレーションを可視化して管理します",
+    "apiSnippetSubtext": "API 経由でこのテーブルをクエリするコードを生成します",
+    "webhooksSubtext": "レコードの変更時に外部呼び出しを自動化します",
+    "permissionsSubtext": "データを閲覧・編集できるユーザーを設定します",
+    "rlsSubtext": "ポリシーでレコードへのアクセスを制限します",
+    "dateDependencySubtext": "依存するレコード全体で日付をずらします",
+    "recordTemplatesSubtext": "保存済みテンプレートからレコードを作成します",
+    "toolsSectionStructure": "構造",
+    "toolsSectionAccess": "アクセスとセキュリティ",
+    "toolsSectionRecords": "レコード",
+    "toolsSectionDeveloper": "開発者"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "{count} 列を固定 | {count} 列を固定",
     "marketplaceComingSoon": "この App はまだパッケージ化の作業中のため、インストールできません。",
     "marketplaceAuthored": "App の内容から生成したものではなく、発行元が記述したものです。",
-    "marketplaceVerifiedPublisher": "NocoDB が公開・確認済み"
+    "marketplaceVerifiedPublisher": "NocoDB が公開・確認済み",
+    "showCustomPermissionFieldsOnly": "カスタム権限が設定されたフィールドのみ表示",
+    "showAllFields": "すべてのフィールドを表示"
   },
   "placeholder": {
     "enterVerificationCode": "6桁のコードを入力してください",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "スキルを検索...",
     "messageAgent": "{agent} にメッセージを送信",
-    "somethingElse": "その他"
+    "somethingElse": "その他",
+    "noMcpConnections": "MCP 接続が作成されていません",
+    "noMcpConnectionsLabel": "MCP 接続がまだ作成されていないようです。"
   },
   "msg": {
     "sourceViewNotShared": "このビューでは同期は無効です",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB へのログインが必要です。",
       "seeWhoSubmittedDisabledHint": "このオプションを有効にするには、テーブルに「作成者」フィールドを追加してください。",
       "formRequiresSignin": "このフォームにアクセスするには NocoDB へのログインが必要です。",
-      "switchAccount": "アカウントを切り替える"
+      "switchAccount": "アカウントを切り替える",
+      "mcpConnectionEdit": "変更は次回の呼び出しからクライアントに適用されます。シークレットは変更されません。",
+      "mcpConnectionsReachingBase": "Claude、Codex、Cursor などの AI クライアント向けに、このベースに固定された MCP 接続を作成します。",
+      "mcpClientSetupKeyHidden": "キーは接続の作成時または再生成時にのみ表示されるため、この設定にはプレースホルダーが含まれています。"
     },
     "error": {
       "failedToCreateSync": "同期を作成できませんでした",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "{n} 個のセルをコピーしました",
       "nRecordCreated": "{n} レコードが作成されました",
       "nRecordsCreated": "{n} レコードが作成されました",
-      "interfaceFilterCopied": "{count} 件の条件をコピーしました | {count} 件の条件をコピーしました"
+      "interfaceFilterCopied": "{count} 件の条件をコピーしました | {count} 件の条件をコピーしました",
+      "changesSaved": "変更を保存しました"
     },
     "success": {
       "restored": "アイテムが正常に復元されました",

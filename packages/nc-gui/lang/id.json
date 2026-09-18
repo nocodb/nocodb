@@ -258,7 +258,8 @@
       "audit": "Audit Ruang Kerja",
       "ltarCustomDisplayValue": "Bidang Nilai Tampilan Kustom",
       "publicDocShare": "Berbagi Dokumen Publik",
-      "agents": "Agen"
+      "agents": "Agen",
+      "permissions": "Izin tabel & bidang"
     },
     "upgradeToSortAndLimitLookupValues": "Untuk mengurutkan dan membatasi nilai yang ditampilkan pada bidang Lookup, tingkatkan ke paket {plan}.",
     "upgradeToAddMoreAgents": "Tingkatkan untuk menambah lebih banyak agen",
@@ -741,7 +742,12 @@
     "function": "Fungsi",
     "functions": "Fungsi",
     "otherTables": "Tabel lainnya",
-    "viaNewLinkField": "melalui bidang tautan baru"
+    "viaNewLinkField": "melalui bidang tautan baru",
+    "test": "Uji",
+    "success": "Berhasil",
+    "manageFields": "Kelola bidang",
+    "tools": "Alat",
+    "allChangesSaved": "Semua perubahan tersimpan"
   },
   "objects": {
     "script": "Skrip",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Nama tim pengguna beserta semua tim di bawahnya.",
           "currentUserTeamWithDescendantMembers": "Anggota tim saya",
           "currentUserTeamWithDescendantMembersDescription": "Semua orang di tim dan subtim pengguna — gunakan dengan «berisi salah satu dari» untuk melihat catatan bawahan Anda."
-        }
+        },
+        "appliesTo": "Berlaku untuk"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Tidak ada {description}",
@@ -1154,7 +1161,8 @@
     "weeks": "Minggu",
     "viewFolder": "Folder tampilan",
     "subRecord": "Subrekaman",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Templat catatan"
   },
   "datatype": {
     "ID": "Indo",
@@ -1507,7 +1515,8 @@
     "newEnvironment": "Lingkungan baru",
     "removeCustomDomain": "Hapus domain khusus?",
     "tooNarrowToAdjustFrozenFields": "Jendela terlalu sempit untuk menyetel bidang yang dibekukan",
-    "themeSettings": "Pengaturan tema"
+    "themeSettings": "Pengaturan tema",
+    "nFields": "{count} bidang | {count} bidang"
   },
   "labels": {
     "syncing": "Sinkronisasi",
@@ -4326,11 +4335,48 @@
       "readWriteDelete": "Baca, tulis, dan hapus",
       "allowShown": "Izinkan yang ditampilkan",
       "clearShown": "Bersihkan yang ditampilkan",
-      "shownOf": "{shown} dari {total} ditampilkan"
+      "shownOf": "{shown} dari {total} ditampilkan",
+      "levelAll": "{level} semua",
+      "toolsAllowed": "{count} dari {total} alat diizinkan",
+      "customTip": "Alat yang dipilih secara manual. Pilih sebuah tingkat untuk mengatur ulang baris.",
+      "writes": "Penulisan",
+      "sections": {
+        "account": "Akun & ruang kerja",
+        "accountDesc": "Siapa Anda, ruang kerja Anda, base di dalamnya, dan tautan ke aplikasi",
+        "records": "Catatan & data",
+        "recordsDesc": "Catatan, komentar, impor dan ekspor",
+        "schema": "Skema",
+        "schemaDesc": "Tabel, bidang, penggandaan, dan cara sebuah base ditata",
+        "views": "Tampilan",
+        "viewsDesc": "Tampilan, filter, pengurutan, berbagi, bidang formulir, warna baris",
+        "automation": "Otomatisasi",
+        "automationDesc": "Alur kerja, webhook, skrip, dan agen",
+        "interfaces": "Antarmuka, dasbor & dokumen",
+        "interfacesDesc": "Halaman antarmuka, dasbor, widget, dan dokumen",
+        "access": "Akses & keamanan",
+        "accessDesc": "Izin bidang dan tabel, keamanan tingkat baris",
+        "platformDesc": "Integrasi, lingkungan, dan aplikasi"
+      }
     },
     "noBaseAccess": "Tidak ada akses ke basis",
     "signedInAs": "Masuk sebagai",
-    "moreAgents": "{count} agen lagi | {count} agen lagi"
+    "moreAgents": "{count} agen lagi | {count} agen lagi",
+    "mcpConnectionsLabel": "Buat koneksi MCP untuk digunakan dengan klien AI seperti Claude, Codex, atau Cursor.",
+    "mcpConnections": "Koneksi MCP",
+    "editMcpConnection": "Edit koneksi",
+    "mcpClientSetup": "Penyiapan klien",
+    "manageFieldsSubtext": "Edit bidang dan periksa dependensi",
+    "relationsSubtext": "Visualisasikan dan kelola relasi antar tabel",
+    "apiSnippetSubtext": "Buat kode untuk mengkueri tabel ini melalui API",
+    "webhooksSubtext": "Otomatiskan panggilan eksternal saat catatan berubah",
+    "permissionsSubtext": "Kendalikan siapa yang dapat melihat dan mengedit data",
+    "rlsSubtext": "Batasi akses catatan dengan kebijakan",
+    "dateDependencySubtext": "Geser tanggal pada catatan yang saling bergantung",
+    "recordTemplatesSubtext": "Buat catatan dari templat tersimpan",
+    "toolsSectionStructure": "Struktur",
+    "toolsSectionAccess": "Akses & keamanan",
+    "toolsSectionRecords": "Catatan",
+    "toolsSectionDeveloper": "Pengembang"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -4825,7 +4871,9 @@
     "freezeColumnsCount": "Bekukan {count} kolom | Bekukan {count} kolom",
     "marketplaceComingSoon": "Aplikasi ini masih dikemas, jadi belum bisa dipasang.",
     "marketplaceAuthored": "Ditulis oleh penerbit, bukan diambil dari isi aplikasi.",
-    "marketplaceVerifiedPublisher": "Diterbitkan dan ditinjau oleh NocoDB"
+    "marketplaceVerifiedPublisher": "Diterbitkan dan ditinjau oleh NocoDB",
+    "showCustomPermissionFieldsOnly": "Tampilkan hanya bidang dengan izin khusus",
+    "showAllFields": "Tampilkan semua bidang"
   },
   "placeholder": {
     "enterVerificationCode": "Masukkan kode 6 digit",
@@ -4985,7 +5033,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Cari keterampilan...",
     "messageAgent": "Pesan untuk {agent}",
-    "somethingElse": "Sesuatu yang lain"
+    "somethingElse": "Sesuatu yang lain",
+    "noMcpConnections": "Belum ada koneksi MCP yang dibuat",
+    "noMcpConnectionsLabel": "Sepertinya Anda belum membuat koneksi MCP apa pun."
   },
   "msg": {
     "sourceViewNotShared": "Sinkronisasi dinonaktifkan pada tampilan ini",
@@ -5693,7 +5743,10 @@
       "seeWhoSubmittedSubtitle": "Perlu masuk ke NocoDB.",
       "seeWhoSubmittedDisabledHint": "Tambahkan bidang ‘Dibuat oleh’ ke tabel Anda untuk mengaktifkan opsi ini.",
       "formRequiresSignin": "Mengakses formulir ini memerlukan masuk ke NocoDB.",
-      "switchAccount": "Ganti akun"
+      "switchAccount": "Ganti akun",
+      "mcpConnectionEdit": "Perubahan berlaku pada klien saat panggilan berikutnya. Rahasianya tetap sama.",
+      "mcpConnectionsReachingBase": "Buat koneksi MCP yang tersemat pada base ini untuk klien AI seperti Claude, Codex, atau Cursor.",
+      "mcpClientSetupKeyHidden": "Kunci hanya ditampilkan saat koneksi dibuat atau dibuat ulang, sehingga konfigurasi ini memuat teks pengganti."
     },
     "error": {
       "failedToCreateSync": "Gagal membuat sinkronisasi",
@@ -5917,7 +5970,8 @@
       "nCellsCopied": "{n} sel disalin",
       "nRecordCreated": "{n} catatan dibuat",
       "nRecordsCreated": "{n} catatan yang dibuat",
-      "interfaceFilterCopied": "{count} kondisi disalin | {count} kondisi disalin"
+      "interfaceFilterCopied": "{count} kondisi disalin | {count} kondisi disalin",
+      "changesSaved": "Perubahan tersimpan"
     },
     "success": {
       "restored": "Item berhasil dipulihkan",

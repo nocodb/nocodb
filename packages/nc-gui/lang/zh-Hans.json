@@ -258,7 +258,8 @@
       "audit": "工作区审计",
       "ltarCustomDisplayValue": "自定义显示值字段",
       "publicDocShare": "公开文档共享",
-      "agents": "智能体"
+      "agents": "智能体",
+      "permissions": "表格与字段权限"
     },
     "upgradeToSortAndLimitLookupValues": "若要对 Lookup 字段中显示的值进行排序和数量限制，请升级到 {plan} 方案。",
     "upgradeToAddMoreAgents": "升级以添加更多智能体",
@@ -741,7 +742,12 @@
     "function": "函数",
     "functions": "函数",
     "otherTables": "其他表格",
-    "viaNewLinkField": "通过新建链接字段"
+    "viaNewLinkField": "通过新建链接字段",
+    "test": "测试",
+    "success": "成功",
+    "manageFields": "管理字段",
+    "tools": "工具",
+    "allChangesSaved": "所有更改已保存"
   },
   "objects": {
     "script": "脚本",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "用户所属团队以及其下所有团队的名称。",
           "currentUserTeamWithDescendantMembers": "我团队的成员",
           "currentUserTeamWithDescendantMembersDescription": "用户所在团队及子团队中的所有人——搭配“包含其中任一”使用，即可查看下属的记录。"
-        }
+        },
+        "appliesTo": "适用于"
       },
       "inlineUserSelector": {
         "noUsersSelected": "无人 {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "周",
     "viewFolder": "视图文件夹",
     "subRecord": "子记录",
-    "video": "视频"
+    "video": "视频",
+    "recordTemplates": "记录模板"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "新建环境",
     "removeCustomDomain": "要移除自定义域名吗？",
     "tooNarrowToAdjustFrozenFields": "窗口太窄，无法调整冻结字段",
-    "themeSettings": "主题设置"
+    "themeSettings": "主题设置",
+    "nFields": "{count} 个字段 | {count} 个字段"
   },
   "labels": {
     "syncing": "正在同步",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "读取、写入和删除",
       "allowShown": "允许已显示项",
       "clearShown": "清除已显示项",
-      "shownOf": "已显示 {total} 个中的 {shown} 个"
+      "shownOf": "已显示 {total} 个中的 {shown} 个",
+      "levelAll": "全部{level}",
+      "toolsAllowed": "已允许 {total} 个工具中的 {count} 个",
+      "customTip": "精选工具。选择一个级别可重置该行。",
+      "writes": "写入操作",
+      "sections": {
+        "account": "账户与工作区",
+        "accountDesc": "你是谁、你的工作区、其中的数据库以及应用内的链接",
+        "records": "记录与数据",
+        "recordsDesc": "记录、评论、导入和导出",
+        "schema": "架构",
+        "schemaDesc": "表格、字段、复制以及数据库的组织方式",
+        "views": "视图",
+        "viewsDesc": "视图、筛选、排序、共享、表单字段、行颜色",
+        "automation": "自动化",
+        "automationDesc": "工作流、Webhook、脚本和代理",
+        "interfaces": "界面、仪表板和文档",
+        "interfacesDesc": "界面页面、仪表板、小组件和文档",
+        "access": "访问与安全",
+        "accessDesc": "字段和表格权限、行级安全",
+        "platform": "平台",
+        "platformDesc": "集成、环境和应用"
+      }
     },
     "noBaseAccess": "无权访问该 Base",
     "signedInAs": "已登录为",
-    "moreAgents": "另有 {count} 个智能体 | 另有 {count} 个智能体"
+    "moreAgents": "另有 {count} 个智能体 | 另有 {count} 个智能体",
+    "mcpConnectionsLabel": "创建 MCP 连接，以便与 Claude、Codex 或 Cursor 等 AI 客户端配合使用。",
+    "mcpConnections": "MCP 连接",
+    "editMcpConnection": "编辑连接",
+    "mcpClientSetup": "客户端设置",
+    "manageFieldsSubtext": "编辑字段并查看依赖关系",
+    "relationsSubtext": "可视化并管理表格关系",
+    "apiSnippetSubtext": "生成通过 API 查询此表格的代码",
+    "webhooksSubtext": "记录变更时自动执行外部调用",
+    "permissionsSubtext": "控制谁可以查看和编辑数据",
+    "rlsSubtext": "使用策略限制记录访问",
+    "dateDependencySubtext": "在相关记录之间平移日期",
+    "recordTemplatesSubtext": "从已保存的模板创建记录",
+    "toolsSectionStructure": "结构",
+    "toolsSectionAccess": "访问与安全",
+    "toolsSectionRecords": "记录",
+    "toolsSectionDeveloper": "开发者"
   },
   "activity": {
     "useTemplate": "使用模板",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "冻结 {count} 列 | 冻结 {count} 列",
     "marketplaceComingSoon": "此 App 仍在打包中，因此暂时无法安装。",
     "marketplaceAuthored": "由发布者撰写，并非根据 App 内容生成。",
-    "marketplaceVerifiedPublisher": "由 NocoDB 发布并审核"
+    "marketplaceVerifiedPublisher": "由 NocoDB 发布并审核",
+    "showCustomPermissionFieldsOnly": "仅显示具有自定义权限的字段",
+    "showAllFields": "显示所有字段"
   },
   "placeholder": {
     "enterVerificationCode": "输入 6 位数字代码",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "搜索技能...",
     "messageAgent": "给 {agent} 发消息",
-    "somethingElse": "其他"
+    "somethingElse": "其他",
+    "noMcpConnections": "尚未创建 MCP 连接",
+    "noMcpConnectionsLabel": "看起来你还没有创建任何 MCP 连接。"
   },
   "msg": {
     "sourceViewNotShared": "此视图上禁用同步",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "需要登录 NocoDB。",
       "seeWhoSubmittedDisabledHint": "在表格中添加“创建自”字段以启用此选项。",
       "formRequiresSignin": "访问此表单需要登录 NocoDB。",
-      "switchAccount": "切换账户"
+      "switchAccount": "切换账户",
+      "mcpConnectionEdit": "更改将在客户端下次调用时生效。密钥保持不变。",
+      "mcpConnectionsReachingBase": "为 Claude、Codex 或 Cursor 等 AI 客户端创建绑定到此数据库的 MCP 连接。",
+      "mcpClientSetupKeyHidden": "密钥仅在创建或重新生成连接时显示，因此此配置中使用了占位符。"
     },
     "error": {
       "failedToCreateSync": "创建同步失败",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "已复制 {n} 个单元格",
       "nRecordCreated": "{n} 创建的记录",
       "nRecordsCreated": "{n} 创建的记录",
-      "interfaceFilterCopied": "已复制 {count} 个条件 | 已复制 {count} 个条件"
+      "interfaceFilterCopied": "已复制 {count} 个条件 | 已复制 {count} 个条件",
+      "changesSaved": "更改已保存"
     },
     "success": {
       "restored": "项目已成功恢复",

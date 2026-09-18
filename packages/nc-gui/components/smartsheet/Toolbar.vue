@@ -130,6 +130,10 @@ function triggerToolbarControl(selector: string) {
             v-if="!isMobileMode && !isPublic && !isSharedBase && showEEFeatures && (isGrid || isGallery || isKanban || isList)"
           />
 
+          <!-- Table-scoped tools (fields/relations/permissions/…) — labeled entry
+               immediately right of Colour. Self-gated via its own visibility. -->
+          <SmartsheetToolbarTableTools />
+
           <SmartsheetToolbarBulkAction
             v-if="
               !isMobileMode &&
@@ -289,10 +293,6 @@ function triggerToolbarControl(selector: string) {
         v-if="isEeUI && isGrid && isUIAllowed('viewOperations') && !isPublic && !isSharedBase && !isMobileMode"
         class="hidden sr-only"
       />
-
-      <!-- Table-scoped tools (fields/relations/api/webhooks/permissions) — moved
-           out of the old Data | Details toggle into a dedicated toolbar entry. -->
-      <SmartsheetToolbarTableTools />
 
       <NcFullScreenToggleButton v-if="showFullScreenToggle && !isMobileMode" />
     </template>

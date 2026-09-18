@@ -39,11 +39,19 @@ const view = inject(ActiveViewInj, ref())
 // Date Dependencies) register their dirty/save/reset; the bar shows only then.
 const { hasSaveBar } = useProvideToolsShell()
 
-// Record Templates body — its "Create Template" action is surfaced in the
-// header band, so the shell drives the body's exposed openTemplateForm().
+// Tool bodies expose their primary/secondary actions so the title band can
+// surface them (the page contract: one action zone, top-right of the band).
 const recordTemplatesRef = ref<{ openTemplateForm: () => void }>()
 
+const rlsRef = ref<{ addPolicy: () => void; addDefaultPolicy: () => void; hasDefaultPolicy: boolean }>()
+
+const webhooksRef = ref<{ createWebhook: () => void }>()
+
+const permissionsRef = ref<{ resetPermissions: () => void }>()
+
 const onCreateTemplate = () => recordTemplatesRef.value?.openTemplateForm()
+
+const WEBHOOK_DOCS_URL = 'https://nocodb.com/docs/product-docs/automation/webhook'
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -150,7 +158,7 @@ const toolHeader = computed(() => {
     case 'api':
       return { icon: 'ncCode', title: t('labels.apiSnippet') }
     case 'webhook':
-      return { icon: 'ncWebhook', title: t('objects.webhooks') }
+      return { icon: 'ncWebhook', title: t('objects.webhooks'), docsHref: WEBHOOK_DOCS_URL }
     case 'field':
     default:
       return { icon: 'ncList', title: t('general.manageFields') }
@@ -211,11 +219,17 @@ watch(
       'nc-details-tab-left-sidebar-close': !isLeftSidebarOpen,
     }"
   >
-    <SmartsheetDetailsToolsRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool" @back="onBackToGrid" />
+    <SmartsheetDetailsToolsRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool" />
 
     <div class="flex-1 flex flex-col min-w-0 min-h-0">
-      <SmartsheetDetailsToolHeader :icon="toolHeader.icon" :title="toolHeader.title">
+      <SmartsheetDetailsToolHeader
+        :icon="toolHeader.icon"
+        :title="toolHeader.title"
+        :docs-href="toolHeader.docsHref"
+        @back="onBackToGrid"
+      >
         <template #actions>
+          <!-- Record Templates -->
           <NcButton
             v-if="openedViewsTab === 'templates' && isEeUI"
             v-e="['c:table:tools:create-template']"
@@ -228,23 +242,75 @@ watch(
               {{ $t('activity.createTemplate') }}
             </div>
           </NcButton>
+
+          <!-- Record-Level Security -->
+          <template v-else-if="openedViewsTab === 'rls' && isEeUI">
+            <NcButton
+              v-if="!rlsRef?.hasDefaultPolicy"
+              size="small"
+              type="text"
+              class="!text-nc-content-brand"
+              @click="rlsRef?.addDefaultPolicy()"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+                {{ $t('objects.permissions.rlsPolicy.addDefaultPolicy') }}
+              </div>
+            </NcButton>
+            <NcButton size="small" type="primary" @click="rlsRef?.addPolicy()">
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+                {{ $t('objects.permissions.rlsPolicy.addPolicy') }}
+              </div>
+            </NcButton>
+          </template>
+
+          <!-- Permissions: secondary Reset -->
+          <NcButton
+            v-else-if="openedViewsTab === 'permissions' && isEeUI"
+            v-e="['c:table:tools:reset-permissions']"
+            size="small"
+            type="secondary"
+            @click="permissionsRef?.resetPermissions()"
+          >
+            <div class="flex items-center gap-1.5">
+              <GeneralIcon icon="ncRotateCcw" class="h-4 w-4" />
+              {{ $t('activity.resetPermissions') }}
+            </div>
+          </NcButton>
+
+          <!-- Webhooks -->
+          <NcButton
+            v-else-if="openedViewsTab === 'webhook'"
+            v-e="['c:actions:webhook']"
+            size="small"
+            type="primary"
+            @click="webhooksRef?.createWebhook()"
+          >
+            <div class="flex items-center gap-1.5">
+              <GeneralIcon icon="plus" class="h-4 w-4" />
+              {{ $t('activity.newWebhook') }}
+            </div>
+          </NcButton>
         </template>
       </SmartsheetDetailsToolHeader>
 
       <div class="flex-1 min-h-0">
-        <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" />
+        <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" in-shell />
 
         <PermissionsModalContent
           v-else-if="openedViewsTab === 'permissions' && meta?.id"
+          ref="permissionsRef"
           :table-id="meta.id"
           class="h-full"
-          permissions-table-wrapper-class="!min-w-0 max-w-215 mx-auto"
-          permissions-field-wrapper-class="!min-w-0 max-w-215 mx-auto !top-4"
+          hide-section-title
+          permissions-table-wrapper-class="!min-w-0 max-w-200"
+          permissions-field-wrapper-class="!min-w-0 max-w-200 !top-4"
           permissions-table-toolbar-class-name="pt-4"
         />
 
         <div v-else-if="openedViewsTab === 'rls' && isEeUI && meta?.id" class="h-full overflow-hidden">
-          <RlsPolicyList :table-id="meta.id" :base="base" :table-name="meta.title" />
+          <RlsPolicyList ref="rlsRef" :table-id="meta.id" :base="base" :table-name="meta.title" in-shell />
         </div>
 
         <div v-else-if="openedViewsTab === 'dates' && isEeUI && meta?.id" class="h-full px-6 py-5">
@@ -264,7 +330,7 @@ watch(
           </div>
         </template>
 
-        <LazySmartsheetDetailsWebhooks v-else-if="openedViewsTab === 'webhook'" />
+        <LazySmartsheetDetailsWebhooks v-else-if="openedViewsTab === 'webhook'" ref="webhooksRef" in-shell />
       </div>
 
       <SmartsheetDetailsToolSaveBar v-if="hasSaveBar" />

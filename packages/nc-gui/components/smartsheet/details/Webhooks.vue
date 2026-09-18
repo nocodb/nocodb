@@ -4,8 +4,9 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 
 // When rendered inside a modal (from the view 3-dot menu) we fill the modal body
-// instead of the full viewport.
-defineProps<{ inModal?: boolean }>()
+// instead of the full viewport. `inShell` = the Tools shell, where the title band
+// carries the New Webhook + Docs actions, so they're hidden in the body toolbar.
+defineProps<{ inModal?: boolean; inShell?: boolean }>()
 
 const { activeTable } = storeToRefs(useTablesStore())
 
@@ -138,6 +139,9 @@ const createWebhook = async () => {
 
   isWebhookModalOpen.value = true
 }
+
+// Exposed so the Tools shell title band can drive the New Webhook action.
+defineExpose({ createWebhook })
 
 const initialHookTab = ref<string | undefined>()
 
@@ -361,6 +365,7 @@ const getHookTypeText = (hook: HookType) => {
               </template>
             </a-input>
             <NcButton
+              v-if="!inShell"
               class="px-2"
               type="text"
               size="small"
@@ -377,6 +382,7 @@ const getHookTypeText = (hook: HookType) => {
           </div>
 
           <NcButton
+            v-if="!inShell"
             v-e="['c:actions:webhook']"
             type="secondary"
             size="small"
@@ -405,11 +411,12 @@ const getHookTypeText = (hook: HookType) => {
         >
           <div
             v-if="!hooks.length"
-            class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-nc-border-gray-medium"
+            class="flex-col flex items-center gap-3 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-nc-border-gray-medium"
           >
-            <div class="text-nc-content-gray-subtle font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
-            <div class="text-nc-content-gray-subtle text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
-            <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook">
+            <GeneralIcon icon="ncWebhook" class="w-12 h-12 text-nc-content-gray-muted" />
+            <div class="text-base font-bold text-nc-content-gray-emphasis text-center">{{ $t('msg.createWebhookMsg1') }}</div>
+            <div class="text-sm text-nc-content-gray-muted text-center max-w-xs">{{ $t('msg.createWebhookMsg2') }}</div>
+            <NcButton v-e="['c:actions:webhook']" class="flex max-w-40 mt-1" type="primary" size="small" @click="createWebhook">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="plus" class="flex-none" />
                 <span>{{ $t('activity.newWebhook') }}</span>

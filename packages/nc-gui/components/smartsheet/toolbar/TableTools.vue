@@ -29,6 +29,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
+const isToolbarIconMode = inject(IsToolbarIconMode, ref(false))
+
 const isOpen = ref(false)
 
 const isRelationsModalOpen = ref(false)
@@ -111,16 +113,19 @@ const onOpenRecordTemplates = () => {
 
 <template>
   <NcDropdown v-if="isVisible" v-model:visible="isOpen" overlay-class-name="nc-dropdown-table-tools">
-    <NcTooltip :title="$t('general.tools')" placement="bottom">
+    <NcTooltip :title="$t('general.tools')" placement="bottom" :disabled="!isToolbarIconMode">
       <NcButton
         v-e="['c:table:tools']"
-        class="nc-table-tools-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
+        class="nc-table-tools-btn nc-toolbar-btn !border-0 !h-7 !px-2"
         size="small"
-        type="secondary"
+        type="text"
         data-testid="nc-table-tools-btn"
         :class="{ '!bg-nc-bg-gray-medium': isOpen }"
       >
-        <GeneralIcon icon="ncTool" class="!h-4 !w-4" />
+        <div class="flex items-center gap-2 text-nc-content-gray-subtle">
+          <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
+          <span v-if="!isToolbarIconMode" class="text-bodyDefaultSm font-medium">{{ $t('general.tools') }}</span>
+        </div>
       </NcButton>
     </NcTooltip>
 

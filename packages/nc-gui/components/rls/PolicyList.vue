@@ -1,14 +1,16 @@
 <script lang="ts" setup>
-// CE stub — Record-Level Security is an EE-only feature. The full implementation
-// lives in ee/components/rls/PolicyList.vue. This stub keeps the component
-// resolvable (and props validated) in CE builds, where it never renders.
+// CE stub — Record-Level Security is EE-only. Mirrors the EE component's props
+// + exposed surface so parent refs/bindings don't break in CE builds.
 interface Props {
   tableId: string
   base?: any
   tableName?: string
+  inShell?: boolean
 }
 
 defineProps<Props>()
+
+defineExpose({ addPolicy: () => {}, addDefaultPolicy: () => {}, hasDefaultPolicy: false })
 </script>
 
 <template>

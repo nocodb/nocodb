@@ -4653,6 +4653,8 @@
     "createAgent": "Create agent"
   },
   "tooltip": {
+    "showCustomPermissionFieldsOnly": "Show only fields with custom permissions",
+    "showAllFields": "Show all fields",
     "workflowButtonTriggerSourceReadOnly": "The source table connected to this button can only be changed via Interfaces",
     "workflowButtonTriggerInterfaceReadOnly": "The interface page containing this button can only be changed via Interfaces",
     "chartIncludeOthers": "Combine categories beyond the limit into a single Others category instead of dropping them.",

@@ -350,7 +350,7 @@ type ProjectPageType =
   | 'record-trash'
   | 'snapshots'
 
-type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
+type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions' | 'rls' | 'templates' | 'dates'
 
 type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'xs'
 

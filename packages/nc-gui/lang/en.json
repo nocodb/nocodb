@@ -686,6 +686,7 @@
     "manageAllFields": "Manage all fields",
     "manageFields": "Manage fields",
     "tools": "Tools",
+    "allChangesSaved": "All changes saved",
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
@@ -5946,6 +5947,7 @@
       "screenshotUploadFailed": "Could not upload that screenshot. Try again."
     },
     "toast": {
+      "changesSaved": "Changes saved",
       "interfaceFilterCopied": "{count} condition copied | {count} conditions copied",
       "inviteUrlCopy": "Copied Invite URL to clipboard",
       "createField": "Field created successfully",

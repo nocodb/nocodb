@@ -4328,16 +4328,8 @@
     "createMcpConnection": "接続を作成",
     "mcpTools": {
       "title": "ツール",
-      "read": "読み取り専用ツール",
-      "readDesc": "この接続が届く範囲をすべて閲覧します — プロジェクト、テーブル、レコード、実行履歴。",
-      "write": "書き込み・削除ツール",
-      "writeDesc": "レコード、テーブル、ビュー、ワークフロー、アプリの作成・変更・削除を行います。",
       "deletes": "削除",
       "readWriteDelete": "読み取り・書き込み・削除",
-      "allAllowed": "すべて許可",
-      "noneAllowed": "許可なし",
-      "allowedCount": "{count} 件を許可",
-      "allowAll": "すべて許可する",
       "allowShown": "表示中を許可",
       "clearShown": "表示中をクリア",
       "shownOf": "{total} 件中 {shown} 件を表示"

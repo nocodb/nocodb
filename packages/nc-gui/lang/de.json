@@ -4330,16 +4330,8 @@
     "createMcpConnection": "Verbindung erstellen",
     "mcpTools": {
       "title": "Werkzeuge",
-      "read": "Nur-Lesen-Werkzeuge",
-      "readDesc": "Alles ansehen, was diese Verbindung erreicht — Projekte, Tabellen, Einträge, Ausführungen.",
-      "write": "Schreib-/Löschwerkzeuge",
-      "writeDesc": "Dinge erstellen, ändern und entfernen: Einträge, Tabellen, Ansichten, Workflows, Apps.",
       "deletes": "Löschvorgänge",
       "readWriteDelete": "Lesen, Schreiben & Löschen",
-      "allAllowed": "Alle erlaubt",
-      "noneAllowed": "Keine erlaubt",
-      "allowedCount": "{count} erlaubt",
-      "allowAll": "Alle erlauben",
       "allowShown": "Angezeigte erlauben",
       "clearShown": "Angezeigte zurücksetzen",
       "shownOf": "{shown} von {total} angezeigt"

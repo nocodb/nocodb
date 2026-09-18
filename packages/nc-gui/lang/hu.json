@@ -4328,16 +4328,8 @@
     "createMcpConnection": "Kapcsolat létrehozása",
     "mcpTools": {
       "title": "Eszközök",
-      "read": "Csak olvasható eszközök",
-      "readDesc": "Megtekinthet mindent, amit ez a kapcsolat elér — bázisokat, táblákat, rekordokat, futásokat.",
-      "write": "Író/törlő eszközök",
-      "writeDesc": "Dolgok létrehozása, módosítása és eltávolítása: rekordok, táblák, nézetek, munkafolyamatok, alkalmazások.",
       "deletes": "Törlések",
       "readWriteDelete": "Olvasás, írás és törlés",
-      "allAllowed": "Mind engedélyezve",
-      "noneAllowed": "Egyik sincs engedélyezve",
-      "allowedCount": "{count} engedélyezve",
-      "allowAll": "Összes engedélyezése",
       "allowShown": "Megjelenítettek engedélyezése",
       "clearShown": "Megjelenítettek törlése",
       "shownOf": "{total} közül {shown} megjelenítve"

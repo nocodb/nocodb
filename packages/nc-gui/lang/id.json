@@ -4322,16 +4322,8 @@
     "createMcpConnection": "Buat koneksi",
     "mcpTools": {
       "title": "Alat",
-      "read": "Alat hanya-baca",
-      "readDesc": "Melihat semua yang dijangkau koneksi ini — proyek, tabel, catatan, eksekusi.",
-      "write": "Alat tulis/hapus",
-      "writeDesc": "Membuat, mengubah, dan menghapus sesuatu: catatan, tabel, tampilan, alur kerja, aplikasi.",
       "deletes": "Penghapusan",
       "readWriteDelete": "Baca, tulis, dan hapus",
-      "allAllowed": "Semua diizinkan",
-      "noneAllowed": "Tidak ada yang diizinkan",
-      "allowedCount": "{count} diizinkan",
-      "allowAll": "Izinkan semua",
       "allowShown": "Izinkan yang ditampilkan",
       "clearShown": "Bersihkan yang ditampilkan",
       "shownOf": "{shown} dari {total} ditampilkan"

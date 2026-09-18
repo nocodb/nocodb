@@ -4327,16 +4327,8 @@
     "createMcpConnection": "Stvori vezu",
     "mcpTools": {
       "title": "Alati",
-      "read": "Alati samo za čitanje",
-      "readDesc": "Pregledavanje svega do čega ova veza doseže — projekata, tablica, zapisa, izvođenja.",
-      "write": "Alati za pisanje i brisanje",
-      "writeDesc": "Stvaranje, mijenjanje i uklanjanje stvari: zapisa, tablica, pogleda, tokova rada, aplikacija.",
       "deletes": "Brisanja",
       "readWriteDelete": "Čitanje, pisanje i brisanje",
-      "allAllowed": "Svi dopušteni",
-      "noneAllowed": "Nijedan nije dopušten",
-      "allowedCount": "Dopušteno: {count}",
-      "allowAll": "Dopusti sve",
       "allowShown": "Dopusti prikazane",
       "clearShown": "Očisti prikazane",
       "shownOf": "Prikazano {shown} od {total}"

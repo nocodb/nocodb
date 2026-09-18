@@ -4326,16 +4326,8 @@
     "createMcpConnection": "Utwórz połączenie",
     "mcpTools": {
       "title": "Narzędzia",
-      "read": "Narzędzia tylko do odczytu",
-      "readDesc": "Podglądanie wszystkiego, do czego sięga to połączenie — projektów, tabel, rekordów, przebiegów.",
-      "write": "Narzędzia zapisu i usuwania",
-      "writeDesc": "Tworzenie, zmienianie i usuwanie rzeczy: rekordów, tabel, widoków, workflow, aplikacji.",
       "deletes": "Usunięcia",
       "readWriteDelete": "Odczyt, zapis i usuwanie",
-      "allAllowed": "Wszystkie dozwolone",
-      "noneAllowed": "Żadne niedozwolone",
-      "allowedCount": "Dozwolone: {count}",
-      "allowAll": "Zezwól na wszystkie",
       "allowShown": "Zezwól na wyświetlone",
       "clearShown": "Wyczyść wyświetlone",
       "shownOf": "Wyświetlono {shown} z {total}"

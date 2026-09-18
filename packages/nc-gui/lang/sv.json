@@ -4322,16 +4322,8 @@
     "createMcpConnection": "Skapa anslutning",
     "mcpTools": {
       "title": "Verktyg",
-      "read": "Skrivskyddade verktyg",
-      "readDesc": "Se allt som den här anslutningen når — projekt, tabeller, poster, körningar.",
-      "write": "Skriv-/borttagningsverktyg",
-      "writeDesc": "Skapa, ändra och ta bort saker: poster, tabeller, vyer, workflows, appar.",
       "deletes": "Borttagningar",
       "readWriteDelete": "Läsa, skriva och ta bort",
-      "allAllowed": "Alla tillåtna",
-      "noneAllowed": "Inga tillåtna",
-      "allowedCount": "{count} tillåtna",
-      "allowAll": "Tillåt alla",
       "allowShown": "Tillåt de visade",
       "clearShown": "Rensa de visade",
       "shownOf": "{shown} av {total} visade"

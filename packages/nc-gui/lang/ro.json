@@ -4315,16 +4315,8 @@
     "createMcpConnection": "Creează conexiune",
     "mcpTools": {
       "title": "Instrumente",
-      "read": "Instrumente doar pentru citire",
-      "readDesc": "Vezi tot ce atinge această conexiune — baze, tabele, înregistrări, execuții.",
-      "write": "Instrumente de scriere/ștergere",
-      "writeDesc": "Creează, modifică și elimină lucruri: înregistrări, tabele, vizualizări, fluxuri de lucru, aplicații.",
       "deletes": "Ștergeri",
       "readWriteDelete": "Citire, scriere și ștergere",
-      "allAllowed": "Toate permise",
-      "noneAllowed": "Niciuna permisă",
-      "allowedCount": "{count} permise",
-      "allowAll": "Permite toate",
       "allowShown": "Permite cele afișate",
       "clearShown": "Golește cele afișate",
       "shownOf": "{shown} din {total} afișate"

@@ -4328,16 +4328,8 @@
     "createMcpConnection": "연결 만들기",
     "mcpTools": {
       "title": "도구",
-      "read": "읽기 전용 도구",
-      "readDesc": "이 연결이 닿는 모든 것을 조회합니다 — 베이스, 테이블, 항목, 실행 기록.",
-      "write": "쓰기/삭제 도구",
-      "writeDesc": "항목, 테이블, 뷰, 워크플로, 앱을 만들고 변경하고 삭제합니다.",
       "deletes": "삭제 작업",
       "readWriteDelete": "읽기, 쓰기 및 삭제",
-      "allAllowed": "모두 허용됨",
-      "noneAllowed": "허용된 항목 없음",
-      "allowedCount": "{count}개 허용됨",
-      "allowAll": "모두 허용",
       "allowShown": "표시된 항목 허용",
       "clearShown": "표시된 항목 해제",
       "shownOf": "{total}개 중 {shown}개 표시"

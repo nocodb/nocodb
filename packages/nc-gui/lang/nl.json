@@ -4313,16 +4313,8 @@
     "createMcpConnection": "Verbinding maken",
     "mcpTools": {
       "title": "Gereedschappen",
-      "read": "Alleen-lezen gereedschappen",
-      "readDesc": "Alles bekijken wat deze verbinding bereikt — projecten, tabellen, records, uitvoeringen.",
-      "write": "Schrijf-/verwijdergereedschappen",
-      "writeDesc": "Dingen aanmaken, wijzigen en verwijderen: records, tabellen, weergaven, workflows, apps.",
       "deletes": "Verwijderingen",
       "readWriteDelete": "Lezen, schrijven en verwijderen",
-      "allAllowed": "Alles toegestaan",
-      "noneAllowed": "Geen toegestaan",
-      "allowedCount": "{count} toegestaan",
-      "allowAll": "Alles toestaan",
       "allowShown": "Getoonde toestaan",
       "clearShown": "Getoonde wissen",
       "shownOf": "{shown} van {total} getoond"

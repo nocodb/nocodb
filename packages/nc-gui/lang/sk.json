@@ -4327,16 +4327,8 @@
     "createMcpConnection": "Vytvoriť pripojenie",
     "mcpTools": {
       "title": "Nástroje",
-      "read": "Nástroje len na čítanie",
-      "readDesc": "Prezerať všetko, kam toto pripojenie dosiahne — projekty, tabuľky, záznamy, behy.",
-      "write": "Nástroje na zápis a mazanie",
-      "writeDesc": "Vytvárať, meniť a odstraňovať veci: záznamy, tabuľky, zobrazenia, workflow, aplikácie.",
       "deletes": "Mazania",
       "readWriteDelete": "Čítanie, zápis a mazanie",
-      "allAllowed": "Všetko povolené",
-      "noneAllowed": "Nič nie je povolené",
-      "allowedCount": "{count} povolené",
-      "allowAll": "Povoliť všetko",
       "allowShown": "Povoliť zobrazené",
       "clearShown": "Zrušiť zobrazené",
       "shownOf": "Zobrazené {shown} z {total}"

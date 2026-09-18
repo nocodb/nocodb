@@ -4327,16 +4327,8 @@
     "createMcpConnection": "Sortu konexioa",
     "mcpTools": {
       "title": "Tresnak",
-      "read": "Irakurtzeko soilik diren tresnak",
-      "readDesc": "Ikusi konexio honek iristen duen guztia — proiektuak, taulak, erregistroak, exekuzioak.",
-      "write": "Idazteko eta ezabatzeko tresnak",
-      "writeDesc": "Sortu, aldatu eta kendu gauzak: erregistroak, taulak, bistaratzeak, lan-fluxuak, aplikazioak.",
       "deletes": "Ezabatzeak",
       "readWriteDelete": "Irakurri, idatzi eta ezabatu",
-      "allAllowed": "Denak baimenduta",
-      "noneAllowed": "Bat ere ez baimenduta",
-      "allowedCount": "{count} baimenduta",
-      "allowAll": "Baimendu denak",
       "allowShown": "Baimendu erakutsitakoak",
       "clearShown": "Garbitu erakutsitakoak",
       "shownOf": "{total}(e)tik {shown} erakutsita"

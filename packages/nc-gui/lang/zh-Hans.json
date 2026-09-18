@@ -4328,16 +4328,8 @@
     "createMcpConnection": "创建连接",
     "mcpTools": {
       "title": "工具",
-      "read": "只读工具",
-      "readDesc": "查看此连接可触及的一切内容——项目、表格、记录和运行记录。",
-      "write": "写入/删除工具",
-      "writeDesc": "创建、修改和移除各种内容：记录、表格、视图、工作流和应用。",
       "deletes": "删除操作",
       "readWriteDelete": "读取、写入和删除",
-      "allAllowed": "已全部允许",
-      "noneAllowed": "未允许任何项",
-      "allowedCount": "已允许 {count} 个",
-      "allowAll": "全部允许",
       "allowShown": "允许已显示项",
       "clearShown": "清除已显示项",
       "shownOf": "已显示 {total} 个中的 {shown} 个"

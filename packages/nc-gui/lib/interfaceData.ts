@@ -276,6 +276,19 @@ export interface InterfacePageDataApi {
    */
   fetchRecord?(rowId: string): Promise<Record<string, any> | null>
   /**
+   * Signed download URL for one attachment of a record in the page scope —
+   * the page-scoped twin of the base `attachmentDownload` op. Callers with no
+   * base role (interface-only collaborators, `app-user` base members) cannot
+   * reach that base op at all, so attachment cells must route through this
+   * whenever an adapter is present. Returns `null` where the surface has no
+   * download op (public share), so the caller can fall back.
+   */
+  downloadAttachment?(params: {
+    rowId: string
+    columnId: string
+    urlOrPath: string
+  }): Promise<{ path?: string; url?: string } | null>
+  /**
    * Bulk comment counts for the grid's row badges — the interface-scoped
    * `interfaceCommentCount` against the viz's bound record-detail page (the
    * page the badge's click leads to). Returns `null` when badges don't apply

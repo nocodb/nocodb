@@ -56,6 +56,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     // for download so the file is signed via the parent row's lookup column.
     const lookupAttachmentDownloadCtx = inject(LookupAttachmentDownloadInj, ref(null))
 
+    // Inside an interface page the base-scoped `attachmentDownload` op is out
+    // of reach for consumers who hold no base role (interface-only
+    // collaborators, `app-user` base members) — sign through the page-scoped
+    // adapter instead, which authorizes on the interface grant.
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
     const editEnabled = inject(EditModeInj, ref(false))
 
     const isEditAllowed = computed(() => (!isPublic.value && !isReadonly.value && isUIAllowed('dataEdit')) || isSharedForm.value)
@@ -415,19 +421,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         let res
 
         try {
-          if (isPublic.value) {
-            res = await fetchSharedViewAttachment(columnId!, rowId!, src)
-          } else {
-            const workspaceId = dlCtx?.workspaceId ?? meta.value!.fk_workspace_id!
-            const baseId = dlCtx?.baseId ?? meta.value!.base_id!
-            res = await $api.internal.getOperation(workspaceId, baseId, {
-              operation: 'attachmentDownload',
-              modelId: modelId!,
-              columnId: columnId!,
-              rowId: rowId!,
-              urlOrPath: src,
-            })
-          }
+          res = await signAttachmentForDownload({
+            workspaceId: dlCtx?.workspaceId ?? meta.value?.fk_workspace_id,
+            baseId: dlCtx?.baseId ?? meta.value?.base_id,
+            modelId: modelId!,
+            columnId: columnId!,
+            rowId: rowId!,
+            src,
+          })
         } catch {}
 
         if (!res) {
@@ -500,6 +501,42 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    /**
+     * Sign one attachment for download. Surface order matters: an interface
+     * page authorizes on its grant (the caller may hold no base role at all),
+     * a public share on its share token, everything else on the base ACL.
+     */
+    async function signAttachmentForDownload(params: {
+      workspaceId?: string
+      baseId?: string
+      modelId: string
+      columnId: string
+      rowId: string
+      src: string
+    }) {
+      if (interfaceDataApi?.downloadAttachment) {
+        const res = await interfaceDataApi.downloadAttachment({
+          rowId: params.rowId,
+          columnId: params.columnId,
+          urlOrPath: params.src,
+        })
+        // null = surface has no page-scoped op (public share); fall through.
+        if (res) return res
+      }
+
+      if (isPublic.value) {
+        return await fetchSharedViewAttachment(params.columnId, params.rowId, params.src)
+      }
+
+      return await $api.internal.getOperation(params.workspaceId!, params.baseId!, {
+        operation: 'attachmentDownload',
+        modelId: params.modelId,
+        columnId: params.columnId,
+        rowId: params.rowId,
+        urlOrPath: params.src,
+      })
+    }
+
     /** download a file */
     async function downloadAttachment(item: AttachmentType) {
       const dlCtx = lookupAttachmentDownloadCtx.value
@@ -512,18 +549,20 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (modelId && columnId && rowId && src) {
         let res
 
-        if (isPublic.value) {
-          res = await fetchSharedViewAttachment(columnId, rowId, src)
-        } else {
-          const workspaceId = dlCtx?.workspaceId ?? meta.value!.fk_workspace_id!
-          const baseId = dlCtx?.baseId ?? meta.value!.base_id!
-          res = await $api.internal.getOperation(workspaceId, baseId, {
-            operation: 'attachmentDownload',
+        try {
+          res = await signAttachmentForDownload({
+            workspaceId: dlCtx?.workspaceId ?? meta.value?.fk_workspace_id,
+            baseId: dlCtx?.baseId ?? meta.value?.base_id,
             modelId,
             columnId,
             rowId,
-            urlOrPath: src,
+            src,
           })
+        } catch (e) {
+          // Without this the rejection escapes the click handler and Vue's
+          // error boundary shows a bogus "Page Loading Error" toast.
+          message.error(await extractSdkResponseErrorMsg(e))
+          return
         }
 
         if (res?.path) {

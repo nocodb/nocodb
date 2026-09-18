@@ -258,7 +258,8 @@
       "audit": "Werkruimte audit",
       "ltarCustomDisplayValue": "Aangepaste weergavewaarde veld",
       "publicDocShare": "Openbare document delen",
-      "agents": "Agents"
+      "agents": "Agents",
+      "permissions": "Tabel- & veldrechten"
     },
     "upgradeToSortAndLimitLookupValues": "Stap over naar het {plan}-abonnement om de waarden in een Lookup-veld te sorteren en te beperken.",
     "upgradeToAddMoreAgents": "Upgrade om meer Agents toe te voegen",
@@ -739,7 +740,12 @@
     "function": "Functie",
     "functions": "Functies",
     "otherTables": "Andere tabellen",
-    "viaNewLinkField": "via een nieuw koppelveld"
+    "viaNewLinkField": "via een nieuw koppelveld",
+    "test": "Testen",
+    "success": "Gelukt",
+    "manageFields": "Velden beheren",
+    "tools": "Hulpmiddelen",
+    "allChangesSaved": "Alle wijzigingen opgeslagen"
   },
   "objects": {
     "script": "Script",
@@ -1048,7 +1054,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Namen van de teams van de gebruiker plus alle teams daaronder.",
           "currentUserTeamWithDescendantMembers": "Leden van mijn teams",
           "currentUserTeamWithDescendantMembersDescription": "Iedereen in de teams en subteams van de gebruiker — gebruik dit met „bevat een van” om de records van uw medewerkers te zien."
-        }
+        },
+        "appliesTo": "Geldt voor"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Niemand {description}",
@@ -1153,7 +1160,8 @@
     "weeks": "Weken",
     "viewFolder": "Weergavemap",
     "subRecord": "Subrecord",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Recordsjablonen"
   },
   "datatype": {
     "ID": "ID",
@@ -1504,7 +1512,8 @@
     "newEnvironment": "Nieuwe omgeving",
     "removeCustomDomain": "Aangepast domein verwijderen?",
     "tooNarrowToAdjustFrozenFields": "Het venster is te smal om bevroren velden aan te passen",
-    "themeSettings": "Thema-instellingen"
+    "themeSettings": "Thema-instellingen",
+    "nFields": "{count} veld | {count} velden"
   },
   "labels": {
     "syncing": "Synchroniseren",
@@ -4317,11 +4326,46 @@
       "readWriteDelete": "Lezen, schrijven en verwijderen",
       "allowShown": "Getoonde toestaan",
       "clearShown": "Getoonde wissen",
-      "shownOf": "{shown} van {total} getoond"
+      "shownOf": "{shown} van {total} getoond",
+      "levelAll": "{level} voor alles",
+      "toolsAllowed": "{count} van {total} hulpmiddelen toegestaan",
+      "customTip": "Handmatig gekozen hulpmiddelen. Kies een niveau om de rij opnieuw in te stellen.",
+      "writes": "Schrijfbewerkingen",
+      "sections": {
+        "account": "Account & werkruimtes",
+        "accountDesc": "Wie je bent, je werkruimtes, de bases daarin en koppelingen naar de app",
+        "records": "Records & gegevens",
+        "recordsDesc": "Records, reacties, import en export",
+        "schema": "Schema",
+        "schemaDesc": "Tabellen, velden, dupliceren en hoe een base is ingedeeld",
+        "views": "Weergaven",
+        "viewsDesc": "Weergaven, filters, sorteringen, delen, formuliervelden, rijkleuren",
+        "automation": "Automatisering",
+        "automationDesc": "Workflows, webhooks, scripts en agents",
+        "interfacesDesc": "Interfacepagina's, dashboards, widgets en documenten",
+        "access": "Toegang & beveiliging",
+        "accessDesc": "Veld- en tabelrechten, beveiliging op rijniveau",
+        "platformDesc": "Integraties, omgevingen en apps"
+      }
     },
     "noBaseAccess": "Geen toegang tot base",
     "signedInAs": "Aangemeld als",
-    "moreAgents": "{count} agent meer | {count} agenten meer"
+    "moreAgents": "{count} agent meer | {count} agenten meer",
+    "mcpConnectionsLabel": "Maak MCP-verbindingen om te gebruiken met AI-clients zoals Claude, Codex of Cursor.",
+    "mcpConnections": "MCP-verbindingen",
+    "editMcpConnection": "Verbinding bewerken",
+    "mcpClientSetup": "Clientconfiguratie",
+    "manageFieldsSubtext": "Velden bewerken en afhankelijkheden bekijken",
+    "relationsSubtext": "Tabelrelaties visualiseren en beheren",
+    "apiSnippetSubtext": "Code genereren om deze tabel via de API te bevragen",
+    "webhooksSubtext": "Externe aanroepen automatiseren wanneer records wijzigen",
+    "permissionsSubtext": "Bepalen wie gegevens mag bekijken en bewerken",
+    "rlsSubtext": "Toegang tot records beperken met beleidsregels",
+    "dateDependencySubtext": "Datums verschuiven over afhankelijke records",
+    "recordTemplatesSubtext": "Records maken op basis van een opgeslagen sjabloon",
+    "toolsSectionStructure": "Structuur",
+    "toolsSectionAccess": "Toegang & beveiliging",
+    "toolsSectionDeveloper": "Ontwikkelaar"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -4813,7 +4857,9 @@
     "freezeColumnsCount": "{count} kolom bevriezen | {count} kolommen bevriezen",
     "marketplaceComingSoon": "Deze App wordt nog samengesteld en kan daarom nog niet worden geïnstalleerd.",
     "marketplaceAuthored": "Geschreven door de uitgever, niet afgeleid van de inhoud van de App.",
-    "marketplaceVerifiedPublisher": "Gepubliceerd en gecontroleerd door NocoDB"
+    "marketplaceVerifiedPublisher": "Gepubliceerd en gecontroleerd door NocoDB",
+    "showCustomPermissionFieldsOnly": "Alleen velden met aangepaste rechten tonen",
+    "showAllFields": "Alle velden tonen"
   },
   "placeholder": {
     "enterVerificationCode": "6-cijferige code invoeren",
@@ -4973,7 +5019,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Skills zoeken...",
     "messageAgent": "Bericht aan {agent}",
-    "somethingElse": "Iets anders"
+    "somethingElse": "Iets anders",
+    "noMcpConnections": "Geen MCP-verbindingen aangemaakt",
+    "noMcpConnectionsLabel": "Het lijkt erop dat je nog geen MCP-verbindingen hebt aangemaakt."
   },
   "msg": {
     "sourceViewNotShared": "Synchronisatie is uitgeschakeld in deze weergave",
@@ -5681,7 +5729,10 @@
       "seeWhoSubmittedSubtitle": "Aanmelden bij NocoDB vereist.",
       "seeWhoSubmittedDisabledHint": "Voeg een veld ‘Gemaakt door’ toe aan je tabel om deze optie in te schakelen.",
       "formRequiresSignin": "Voor toegang tot dit formulier moet je je aanmelden bij NocoDB.",
-      "switchAccount": "Account wisselen"
+      "switchAccount": "Account wisselen",
+      "mcpConnectionEdit": "Wijzigingen gelden voor de client bij zijn volgende aanroep. Het geheim blijft hetzelfde.",
+      "mcpConnectionsReachingBase": "Maak MCP-verbindingen die aan deze base zijn gekoppeld voor AI-clients zoals Claude, Codex of Cursor.",
+      "mcpClientSetupKeyHidden": "De sleutel wordt alleen getoond wanneer een verbinding wordt aangemaakt of opnieuw gegenereerd, daarom bevat deze configuratie een tijdelijke aanduiding."
     },
     "error": {
       "failedToCreateSync": "Maken van synchronisatie mislukt",
@@ -5905,7 +5956,8 @@
       "nCellsCopied": "{n} cellen gekopieerd",
       "nRecordCreated": "{n} record aangemaakt",
       "nRecordsCreated": "{n} records aangemaakt",
-      "interfaceFilterCopied": "{count} voorwaarde gekopieerd | {count} voorwaarden gekopieerd"
+      "interfaceFilterCopied": "{count} voorwaarde gekopieerd | {count} voorwaarden gekopieerd",
+      "changesSaved": "Wijzigingen opgeslagen"
     },
     "success": {
       "restored": "Item hersteld",

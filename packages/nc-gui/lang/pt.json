@@ -258,7 +258,8 @@
       "audit": "Auditoria do Workspace",
       "ltarCustomDisplayValue": "Valor do campo personalizado",
       "publicDocShare": "Compartilhamento de documentos públicos",
-      "agents": "Agentes"
+      "agents": "Agentes",
+      "permissions": "Permissões de tabela e de campo"
     },
     "upgradeToSortAndLimitLookupValues": "Para ordenar e limitar os valores mostrados num campo Lookup, mude para o plano {plan}.",
     "upgradeToAddMoreAgents": "Faça upgrade para adicionar mais Agentes",
@@ -741,7 +742,12 @@
     "function": "Função",
     "functions": "Funções",
     "otherTables": "Outras tabelas",
-    "viaNewLinkField": "através de um novo campo de ligação"
+    "viaNewLinkField": "através de um novo campo de ligação",
+    "test": "Testar",
+    "success": "Sucesso",
+    "manageFields": "Gerir campos",
+    "tools": "Ferramentas",
+    "allChangesSaved": "Todas as alterações foram guardadas"
   },
   "objects": {
     "script": "Script",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Nomes das equipas do utilizador e de todas as que estão abaixo delas.",
           "currentUserTeamWithDescendantMembers": "Membros das minhas equipas",
           "currentUserTeamWithDescendantMembersDescription": "Todas as pessoas das equipas e subequipas do utilizador — use com «contém algum de» para ver os registos das pessoas que lhe reportam."
-        }
+        },
+        "appliesTo": "Aplica-se a"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "Semanas",
     "viewFolder": "Pasta de vistas",
     "subRecord": "Subregisto",
-    "video": "Vídeo"
+    "video": "Vídeo",
+    "recordTemplates": "Modelos de registo"
   },
   "datatype": {
     "ID": "identificação",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "Novo ambiente",
     "removeCustomDomain": "Remover o domínio personalizado?",
     "tooNarrowToAdjustFrozenFields": "A janela é demasiado estreita para ajustar os campos fixados",
-    "themeSettings": "Definições do tema"
+    "themeSettings": "Definições do tema",
+    "nFields": "{count} campo | {count} campos"
   },
   "labels": {
     "syncing": "Sincronizando",
@@ -4328,11 +4337,49 @@
       "readWriteDelete": "Ler, escrever e eliminar",
       "allowShown": "Permitir as apresentadas",
       "clearShown": "Limpar as apresentadas",
-      "shownOf": "{shown} de {total} apresentadas"
+      "shownOf": "{shown} de {total} apresentadas",
+      "levelAll": "{level} para tudo",
+      "toolsAllowed": "{count} de {total} ferramentas permitidas",
+      "customTip": "Ferramentas escolhidas manualmente. Selecione um nível para repor a linha.",
+      "writes": "Escritas",
+      "sections": {
+        "account": "Conta e espaços de trabalho",
+        "accountDesc": "Quem é, os seus espaços de trabalho, as bases que contêm e as ligações para a aplicação",
+        "records": "Registos e dados",
+        "recordsDesc": "Registos, comentários, importação e exportação",
+        "schema": "Esquema",
+        "schemaDesc": "Tabelas, campos, duplicação e organização de uma base",
+        "views": "Vistas",
+        "viewsDesc": "Vistas, filtros, ordenações, partilha, campos de formulário, cores de linha",
+        "automation": "Automatização",
+        "automationDesc": "Workflows, webhooks, scripts e agentes",
+        "interfaces": "Interfaces, painéis e docs",
+        "interfacesDesc": "Páginas de interface, painéis, widgets e documentos",
+        "access": "Acesso e segurança",
+        "accessDesc": "Permissões de campo e de tabela, segurança ao nível da linha",
+        "platform": "Plataforma",
+        "platformDesc": "Integrações, ambientes e aplicações"
+      }
     },
     "noBaseAccess": "Sem acesso à base",
     "signedInAs": "Sessão iniciada como",
-    "moreAgents": "Mais {count} agente | Mais {count} agentes"
+    "moreAgents": "Mais {count} agente | Mais {count} agentes",
+    "mcpConnectionsLabel": "Crie ligações MCP para utilizar com clientes de IA como o Claude, o Codex ou o Cursor.",
+    "mcpConnections": "Ligações MCP",
+    "editMcpConnection": "Editar ligação",
+    "mcpClientSetup": "Configuração do cliente",
+    "manageFieldsSubtext": "Editar campos e inspecionar dependências",
+    "relationsSubtext": "Visualizar e gerir as relações entre tabelas",
+    "apiSnippetSubtext": "Gerar código para consultar esta tabela através da API",
+    "webhooksSubtext": "Automatizar chamadas externas quando os registos mudam",
+    "permissionsSubtext": "Controlar quem pode ver e editar os dados",
+    "rlsSubtext": "Restringir o acesso a registos através de políticas",
+    "dateDependencySubtext": "Deslocar datas nos registos dependentes",
+    "recordTemplatesSubtext": "Criar registos a partir de um modelo guardado",
+    "toolsSectionStructure": "Estrutura",
+    "toolsSectionAccess": "Acesso e segurança",
+    "toolsSectionRecords": "Registos",
+    "toolsSectionDeveloper": "Programador"
   },
   "activity": {
     "useTemplate": "Usar modelo",
@@ -4827,7 +4874,9 @@
     "freezeColumnsCount": "Fixar {count} coluna | Fixar {count} colunas",
     "marketplaceComingSoon": "Esta App ainda está a ser preparada, pelo que ainda não pode ser instalada.",
     "marketplaceAuthored": "Escrito pela editora, não derivado do conteúdo da App.",
-    "marketplaceVerifiedPublisher": "Publicado e revisto pela NocoDB"
+    "marketplaceVerifiedPublisher": "Publicado e revisto pela NocoDB",
+    "showCustomPermissionFieldsOnly": "Mostrar apenas os campos com permissões personalizadas",
+    "showAllFields": "Mostrar todos os campos"
   },
   "placeholder": {
     "enterVerificationCode": "Insira o código de 6 dígitos",
@@ -4987,7 +5036,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Procurar competências...",
     "messageAgent": "Mensagem para {agent}",
-    "somethingElse": "Outra coisa"
+    "somethingElse": "Outra coisa",
+    "noMcpConnections": "Nenhuma ligação MCP criada",
+    "noMcpConnectionsLabel": "Parece que ainda não criou nenhuma ligação MCP."
   },
   "msg": {
     "sourceViewNotShared": "A sincronização está desativada nesta visualização",
@@ -5695,7 +5746,10 @@
       "seeWhoSubmittedSubtitle": "É necessário iniciar sessão no NocoDB.",
       "seeWhoSubmittedDisabledHint": "Adicione um campo «Criado por» à sua tabela para ativar esta opção.",
       "formRequiresSignin": "O acesso a este formulário exige iniciar sessão no NocoDB.",
-      "switchAccount": "Mudar de conta"
+      "switchAccount": "Mudar de conta",
+      "mcpConnectionEdit": "As alterações aplicam-se ao cliente na chamada seguinte. O segredo mantém-se igual.",
+      "mcpConnectionsReachingBase": "Crie ligações MCP associadas a esta base para clientes de IA como o Claude, o Codex ou o Cursor.",
+      "mcpClientSetupKeyHidden": "A chave só é apresentada quando uma ligação é criada ou regenerada, pelo que esta configuração contém um marcador de posição."
     },
     "error": {
       "failedToCreateSync": "Falha ao criar sincronização",
@@ -5919,7 +5973,8 @@
       "nCellsCopied": "{n} células copiadas",
       "nRecordCreated": "Registro {n} criado",
       "nRecordsCreated": "Registros {n} criados",
-      "interfaceFilterCopied": "{count} condição copiada | {count} condições copiadas"
+      "interfaceFilterCopied": "{count} condição copiada | {count} condições copiadas",
+      "changesSaved": "Alterações guardadas"
     },
     "success": {
       "restored": "Item restaurado com sucesso",

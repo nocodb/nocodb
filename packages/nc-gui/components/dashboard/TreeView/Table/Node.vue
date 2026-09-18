@@ -323,17 +323,30 @@ async function openTableTool(slug: ViewPageType) {
     await _openTable(table.value)
     // The slug is pushed off activeView; wait until it is this table's view, not the previous one.
     await until(() => activeView.value?.fk_model_id === table.value.id).toBeTruthy({ timeout: 10000 })
+
+    // `toBeTruthy` resolves rather than throws on timeout, so re-check instead
+    // of opening the shell for whichever table is still active.
+    if (activeView.value?.fk_model_id !== table.value.id) return
   }
 
   await onViewsTabChange(slug)
 }
 
-function onRowLevelSecurity() {
-  openTableTool('rls')
+// Fire-and-forget from the menu; surface failures instead of an unhandled rejection.
+async function onRowLevelSecurity() {
+  try {
+    await openTableTool('rls')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
-function onDateDependency() {
-  openTableTool('dates')
+async function onDateDependency() {
+  try {
+    await openTableTool('dates')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 /** Cancel renaming view */

@@ -1006,7 +1006,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     // re-check instead of pushing a route with unresolved params anyway.
     if (!activeViewTitleOrId.value || !activeView.value) return
 
-    router.push({
+    const location = {
       name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
       params: {
         typeOrId: route.value.params.typeOrId,
@@ -1015,7 +1015,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
         viewTitle: activeViewTitleOrId.value,
         slugs: [activeViewReadableUrlSlug.value, ...(page !== 'view' ? [page] : [])],
       },
-    })
+    }
+
+    // Opening and closing the Tools shell are real history steps; switching
+    // tools inside it is not, or leaving costs one Back per tool visited.
+    if (page !== 'view' && openedViewsTab.value !== 'view') {
+      router.replace(location)
+      return
+    }
+
+    router.push(location)
   }
 
   const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {

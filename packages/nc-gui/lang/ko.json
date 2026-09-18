@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "에이전트"
+      "agents": "에이전트",
+      "permissions": "테이블 및 필드 권한"
     },
     "upgradeToSortAndLimitLookupValues": "Lookup 필드에 표시되는 값을 정렬하고 개수를 제한하려면 {plan} 요금제로 업그레이드하세요.",
     "upgradeToAddMoreAgents": "업그레이드하고 에이전트 더 추가하기",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "업그레이드하고 사용자 지정 환경 만들기",
     "upgradeToUseCustomEnvironmentsSubtitle": "사용자 지정 환경은 {activePlan} 요금제에서는 사용할 수 없습니다. Production과 Staging 외의 환경을 만들려면 {plan}(으)로 업그레이드하세요.",
     "upgradeToUseFormRequireSignin": "업그레이드하여 입력폼에 로그인을 요구하세요",
-    "upgradeToUseFormRequireSigninSubtitle": "{plan} 요금제로 업그레이드하면 응답자가 입력폼을 제출하기 전에 로그인하도록 요구할 수 있습니다."
+    "upgradeToUseFormRequireSigninSubtitle": "{plan} 요금제로 업그레이드하면 응답자가 입력폼을 제출하기 전에 로그인하도록 요구할 수 있습니다.",
+    "upgradeToUseSso": "SSO 사용을 위해 업그레이드하세요",
+    "upgradeToUseSsoSubtitle": "{plan} 플랜으로 업그레이드하여 싱글 사인온 (SSO)을 설정하고, 팀원이 ID 공급자로 로그인할 수 있게 하세요."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -741,7 +744,12 @@
     "function": "함수",
     "functions": "함수",
     "otherTables": "다른 테이블",
-    "viaNewLinkField": "새 링크 필드를 통해"
+    "viaNewLinkField": "새 링크 필드를 통해",
+    "test": "테스트",
+    "success": "성공",
+    "manageFields": "필드 관리",
+    "tools": "도구",
+    "allChangesSaved": "모든 변경 사항이 저장되었습니다"
   },
   "objects": {
     "script": "스크립트",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "사용자의 팀과 그 아래 모든 팀의 이름입니다.",
           "currentUserTeamWithDescendantMembers": "내 팀의 멤버",
           "currentUserTeamWithDescendantMembersDescription": "사용자의 팀과 하위 팀에 속한 모든 사람 — '다음 중 하나라도 포함'과 함께 사용하면 부하 직원의 항목을 볼 수 있습니다."
-        }
+        },
+        "appliesTo": "적용 대상"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "주",
     "viewFolder": "뷰 폴더",
     "subRecord": "하위 레코드",
-    "video": "동영상"
+    "video": "동영상",
+    "recordTemplates": "레코드 템플릿"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "새 환경",
     "removeCustomDomain": "사용자 지정 도메인을 제거할까요?",
     "tooNarrowToAdjustFrozenFields": "창이 너무 좁아 고정 필드를 조정할 수 없습니다",
-    "themeSettings": "테마 설정"
+    "themeSettings": "테마 설정",
+    "nFields": "{count}개 필드 | {count}개 필드"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "읽기, 쓰기 및 삭제",
       "allowShown": "표시된 항목 허용",
       "clearShown": "표시된 항목 해제",
-      "shownOf": "{total}개 중 {shown}개 표시"
+      "shownOf": "{total}개 중 {shown}개 표시",
+      "levelAll": "모두 {level}",
+      "toolsAllowed": "{total}개 도구 중 {count}개 허용됨",
+      "customTip": "직접 선별한 도구입니다. 수준을 선택하면 행이 초기화됩니다.",
+      "writes": "쓰기 작업",
+      "sections": {
+        "account": "계정 및 워크스페이스",
+        "accountDesc": "사용자 정보, 워크스페이스, 그 안의 베이스, 앱으로 연결되는 링크",
+        "records": "레코드 및 데이터",
+        "recordsDesc": "레코드, 댓글, 가져오기 및 내보내기",
+        "schema": "스키마",
+        "schemaDesc": "테이블, 필드, 복제, 베이스 구성 방식",
+        "views": "뷰",
+        "viewsDesc": "뷰, 필터, 정렬, 공유, 폼 필드, 행 색상",
+        "automation": "자동화",
+        "automationDesc": "워크플로, 웹훅, 스크립트, 에이전트",
+        "interfaces": "인터페이스, 대시보드 및 문서",
+        "interfacesDesc": "인터페이스 페이지, 대시보드, 위젯, 문서",
+        "access": "액세스 및 보안",
+        "accessDesc": "필드 및 테이블 권한, 행 수준 보안",
+        "platform": "플랫폼",
+        "platformDesc": "통합, 환경, 앱"
+      }
     },
     "noBaseAccess": "베이스 접근 권한 없음",
     "signedInAs": "로그인 계정",
-    "moreAgents": "에이전트 {count}개 더 | 에이전트 {count}개 더"
+    "moreAgents": "에이전트 {count}개 더 | 에이전트 {count}개 더",
+    "mcpConnectionsLabel": "Claude, Codex, Cursor와 같은 AI 클라이언트에서 사용할 MCP 연결을 만듭니다.",
+    "mcpConnections": "MCP 연결",
+    "editMcpConnection": "연결 편집",
+    "mcpClientSetup": "클라이언트 설정",
+    "manageFieldsSubtext": "필드를 편집하고 종속성을 확인합니다",
+    "relationsSubtext": "테이블 관계를 시각화하고 관리합니다",
+    "apiSnippetSubtext": "API 호출로 이 테이블을 조회하는 코드를 생성합니다",
+    "webhooksSubtext": "레코드가 변경될 때 외부 호출을 자동화합니다",
+    "permissionsSubtext": "데이터를 보고 편집할 수 있는 사용자를 제어합니다",
+    "rlsSubtext": "정책으로 레코드 액세스를 제한합니다",
+    "dateDependencySubtext": "종속된 레코드 전반에서 날짜를 이동합니다",
+    "recordTemplatesSubtext": "저장된 템플릿으로 레코드를 만듭니다",
+    "toolsSectionStructure": "구조",
+    "toolsSectionAccess": "액세스 및 보안",
+    "toolsSectionRecords": "레코드",
+    "toolsSectionDeveloper": "개발자"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "열 {count}개 고정 | 열 {count}개 고정",
     "marketplaceComingSoon": "이 App은 아직 패키징 중이어서 설치할 수 없습니다.",
     "marketplaceAuthored": "App의 내용에서 뽑아낸 것이 아니라 게시자가 직접 작성했습니다.",
-    "marketplaceVerifiedPublisher": "NocoDB 공식 게시 및 검토"
+    "marketplaceVerifiedPublisher": "NocoDB 공식 게시 및 검토",
+    "showCustomPermissionFieldsOnly": "사용자 지정 권한이 있는 필드만 표시",
+    "showAllFields": "모든 필드 표시"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "스킬 검색...",
     "messageAgent": "{agent}에게 메시지 보내기",
-    "somethingElse": "다른 것"
+    "somethingElse": "다른 것",
+    "noMcpConnections": "생성된 MCP 연결이 없습니다",
+    "noMcpConnectionsLabel": "아직 MCP 연결을 만들지 않은 것 같습니다."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB 로그인이 필요합니다.",
       "seeWhoSubmittedDisabledHint": "이 옵션을 사용하려면 테이블에 ‘생성자’ 필드를 추가하세요.",
       "formRequiresSignin": "이 입력폼에 접근하려면 NocoDB 계정으로 로그인해야 합니다.",
-      "switchAccount": "계정 전환"
+      "switchAccount": "계정 전환",
+      "mcpConnectionEdit": "변경 사항은 클라이언트의 다음 호출부터 적용됩니다. 시크릿은 그대로 유지됩니다.",
+      "mcpConnectionsReachingBase": "Claude, Codex, Cursor와 같은 AI 클라이언트를 위해 이 베이스에 고정된 MCP 연결을 만듭니다.",
+      "mcpClientSetupKeyHidden": "키는 연결을 만들거나 다시 생성할 때만 표시되므로 이 구성에는 자리 표시자가 포함되어 있습니다."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "{n} 칸 복사됨",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "조건 {count}개를 복사했습니다 | 조건 {count}개를 복사했습니다"
+      "interfaceFilterCopied": "조건 {count}개를 복사했습니다 | 조건 {count}개를 복사했습니다",
+      "changesSaved": "변경 사항이 저장되었습니다"
     },
     "success": {
       "restored": "Item restored successfully",

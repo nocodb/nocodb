@@ -258,7 +258,8 @@
       "audit": "Työtilan Tarkastus",
       "ltarCustomDisplayValue": "Mukautetun Näyttöarvon Kenttä",
       "publicDocShare": "Asiakirjojen Julkinen Jakaminen",
-      "agents": "Agentit"
+      "agents": "Agentit",
+      "permissions": "Taulu- ja kenttäoikeudet"
     },
     "upgradeToSortAndLimitLookupValues": "Päivitä {plan}-pakettiin, jos haluat lajitella ja rajata Lookup-kentässä näytettäviä arvoja.",
     "upgradeToAddMoreAgents": "Päivitä lisätäksesi enemmän agentteja",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Päivitä luodaksesi omia ympäristöjä",
     "upgradeToUseCustomEnvironmentsSubtitle": "Omat ympäristöt eivät ole käytettävissä {activePlan}-paketissasi. Päivitä {plan}-pakettiin luodaksesi ympäristöjä Productionin ja Stagingin lisäksi.",
     "upgradeToUseFormRequireSignin": "Päivitä vaatiaksesi kirjautumista lomakkeisiin",
-    "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä."
+    "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä.",
+    "upgradeToUseSso": "Päivitä käyttääksesi SSO:ta",
+    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi."
   },
   "general": {
     "scrollToBottom": "Siirry alareunaan",
@@ -741,7 +744,12 @@
     "function": "Funktio",
     "functions": "Funktiot",
     "otherTables": "Muut taulukot",
-    "viaNewLinkField": "uuden linkkikentän kautta"
+    "viaNewLinkField": "uuden linkkikentän kautta",
+    "test": "Testaa",
+    "success": "Onnistui",
+    "manageFields": "Hallitse kenttiä",
+    "tools": "Työkalut",
+    "allChangesSaved": "Kaikki muutokset tallennettu"
   },
   "objects": {
     "script": "Skripti",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Käyttäjän tiimien sekä kaikkien niiden alaisten tiimien nimet.",
           "currentUserTeamWithDescendantMembers": "Tiimieni jäsenet",
           "currentUserTeamWithDescendantMembersDescription": "Kaikki käyttäjän tiimeissä ja alatiimeissä — käytä tätä yhdessä ”sisältää jonkin seuraavista” -ehdon kanssa nähdäksesi alaistesi tietueet."
-        }
+        },
+        "appliesTo": "Koskee kohdetta"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Kukaan {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "Viikot",
     "viewFolder": "Näkymäkansio",
     "subRecord": "Alitietue",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Tietuemallit"
   },
   "datatype": {
     "ID": "Id",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "Uusi ympäristö",
     "removeCustomDomain": "Poistetaanko mukautettu verkkotunnus?",
     "tooNarrowToAdjustFrozenFields": "Ikkuna on liian kapea jäädytettyjen kenttien säätämiseen",
-    "themeSettings": "Teeman asetukset"
+    "themeSettings": "Teeman asetukset",
+    "nFields": "{count} kenttä | {count} kenttää"
   },
   "labels": {
     "syncing": "Synkronoidaan",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "Luku, kirjoitus ja poisto",
       "allowShown": "Salli näytetyt",
       "clearShown": "Tyhjennä näytetyt",
-      "shownOf": "{shown} / {total} näytetty"
+      "shownOf": "{shown} / {total} näytetty",
+      "levelAll": "{level} kaikille",
+      "toolsAllowed": "{count}/{total} työkalua sallittu",
+      "customTip": "Käsin valitut työkalut. Valitse taso nollataksesi rivin.",
+      "writes": "Kirjoitukset",
+      "sections": {
+        "account": "Tili ja työtilat",
+        "accountDesc": "Kuka olet, työtilasi, niiden sisältämät baset ja linkit sovellukseen",
+        "records": "Tietueet ja data",
+        "recordsDesc": "Tietueet, kommentit, tuonti ja vienti",
+        "schema": "Skeema",
+        "schemaDesc": "Taulut, kentät, monistaminen ja basen rakenne",
+        "views": "Näkymät",
+        "viewsDesc": "Näkymät, suodattimet, lajittelut, jakaminen, lomakekentät, rivien värit",
+        "automation": "Automaatio",
+        "automationDesc": "Työnkulut, webhookit, skriptit ja agentit",
+        "interfaces": "Käyttöliittymät, koontinäytöt ja docs",
+        "interfacesDesc": "Käyttöliittymäsivut, koontinäytöt, widgetit ja dokumentit",
+        "access": "Käyttöoikeudet ja tietoturva",
+        "accessDesc": "Kenttä- ja tauluoikeudet, rivitason tietoturva",
+        "platform": "Alusta",
+        "platformDesc": "Integraatiot, ympäristöt ja sovellukset"
+      }
     },
     "noBaseAccess": "Ei pääsyä pohjaan",
     "signedInAs": "Kirjautunut käyttäjänä",
-    "moreAgents": "{count} agentti lisää | {count} agenttia lisää"
+    "moreAgents": "{count} agentti lisää | {count} agenttia lisää",
+    "mcpConnectionsLabel": "Luo MCP-yhteyksiä käytettäväksi tekoälyasiakkaiden, kuten Clauden, Codexin tai Cursorin, kanssa.",
+    "mcpConnections": "MCP-yhteydet",
+    "editMcpConnection": "Muokkaa yhteyttä",
+    "mcpClientSetup": "Asiakasohjelman asetukset",
+    "manageFieldsSubtext": "Muokkaa kenttiä ja tarkastele riippuvuuksia",
+    "relationsSubtext": "Visualisoi ja hallitse taulujen välisiä suhteita",
+    "apiSnippetSubtext": "Luo koodi tämän taulun kyselyyn API:n kautta",
+    "webhooksSubtext": "Automatisoi ulkoiset kutsut, kun tietueet muuttuvat",
+    "permissionsSubtext": "Määritä, kuka voi tarkastella ja muokata tietoja",
+    "rlsSubtext": "Rajoita tietueiden käyttöä käytännöillä",
+    "dateDependencySubtext": "Siirrä päivämääriä riippuvaisissa tietueissa",
+    "recordTemplatesSubtext": "Luo tietueita tallennetusta mallista",
+    "toolsSectionStructure": "Rakenne",
+    "toolsSectionAccess": "Käyttöoikeudet ja tietoturva",
+    "toolsSectionRecords": "Tietueet",
+    "toolsSectionDeveloper": "Kehittäjä"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "Jäädytä {count} sarake | Jäädytä {count} saraketta",
     "marketplaceComingSoon": "Tätä sovellusta paketoidaan vielä, joten sitä ei voi vielä asentaa.",
     "marketplaceAuthored": "Julkaisijan kirjoittama, ei johdettu sovelluksen sisällöstä.",
-    "marketplaceVerifiedPublisher": "NocoDB on julkaissut ja tarkistanut tämän"
+    "marketplaceVerifiedPublisher": "NocoDB on julkaissut ja tarkistanut tämän",
+    "showCustomPermissionFieldsOnly": "Näytä vain kentät, joilla on mukautetut käyttöoikeudet",
+    "showAllFields": "Näytä kaikki kentät"
   },
   "placeholder": {
     "enterVerificationCode": "Syötä 6-numeroinen koodi",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Hae taitoja...",
     "messageAgent": "Viesti agentille {agent}",
-    "somethingElse": "Jotain muuta"
+    "somethingElse": "Jotain muuta",
+    "noMcpConnections": "MCP-yhteyksiä ei ole luotu",
+    "noMcpConnectionsLabel": "Näyttää siltä, ettet ole vielä luonut yhtään MCP-yhteyttä."
   },
   "msg": {
     "sourceViewNotShared": "Synkronointi on poistettu käytöstä tässä näkymässä",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "Vaatii kirjautumisen NocoDB:hen.",
       "seeWhoSubmittedDisabledHint": "Lisää taulukkoosi Luonut-kenttä ottaaksesi tämän asetuksen käyttöön.",
       "formRequiresSignin": "Tämän lomakkeen käyttö edellyttää kirjautumista NocoDB:hen.",
-      "switchAccount": "Vaihda tiliä"
+      "switchAccount": "Vaihda tiliä",
+      "mcpConnectionEdit": "Muutokset tulevat voimaan asiakasohjelmassa seuraavalla kutsulla. Salaisuus pysyy samana.",
+      "mcpConnectionsReachingBase": "Luo tähän baseen kiinnitettyjä MCP-yhteyksiä tekoälyasiakkaille, kuten Claudelle, Codexille tai Cursorille.",
+      "mcpClientSetupKeyHidden": "Avain näytetään vain, kun yhteys luodaan tai luodaan uudelleen, joten tässä määrityksessä on paikkamerkki."
     },
     "error": {
       "failedToCreateSync": "Synkronoinnin luominen epäonnistui",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "{n} solua kopioitu",
       "nRecordCreated": "{n} tietue luotu",
       "nRecordsCreated": "{n} tietuetta luotu",
-      "interfaceFilterCopied": "{count} ehto kopioitu | {count} ehtoa kopioitu"
+      "interfaceFilterCopied": "{count} ehto kopioitu | {count} ehtoa kopioitu",
+      "changesSaved": "Muutokset tallennettu"
     },
     "success": {
       "restored": "Kohde palautettu onnistuneesti",

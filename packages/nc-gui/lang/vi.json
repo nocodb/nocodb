@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "Tác nhân"
+      "agents": "Tác nhân",
+      "permissions": "Quyền trên bảng và trường"
     },
     "upgradeToSortAndLimitLookupValues": "Để sắp xếp và giới hạn các giá trị hiển thị trong trường Lookup, vui lòng nâng cấp lên gói {plan}.",
     "upgradeToAddMoreAgents": "Nâng cấp để thêm nhiều tác nhân hơn",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Nâng cấp để tạo môi trường tùy chỉnh",
     "upgradeToUseCustomEnvironmentsSubtitle": "Môi trường tùy chỉnh không có trong gói {activePlan} của bạn. Hãy nâng cấp lên {plan} để tạo môi trường ngoài Production và Staging.",
     "upgradeToUseFormRequireSignin": "Nâng cấp để yêu cầu đăng nhập trên biểu mẫu",
-    "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu."
+    "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu.",
+    "upgradeToUseSso": "Nâng cấp để sử dụng SSO",
+    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -741,7 +744,12 @@
     "function": "Hàm",
     "functions": "Các hàm",
     "otherTables": "Bảng khác",
-    "viaNewLinkField": "qua trường liên kết mới"
+    "viaNewLinkField": "qua trường liên kết mới",
+    "test": "Kiểm tra",
+    "success": "Thành công",
+    "manageFields": "Quản lý trường",
+    "tools": "Công cụ",
+    "allChangesSaved": "Đã lưu tất cả thay đổi"
   },
   "objects": {
     "script": "Script",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Tên các nhóm của người dùng cùng mọi nhóm bên dưới chúng.",
           "currentUserTeamWithDescendantMembers": "Thành viên các nhóm của tôi",
           "currentUserTeamWithDescendantMembersDescription": "Tất cả mọi người trong các nhóm và nhóm con của người dùng — dùng với «chứa bất kỳ giá trị nào trong» để xem bản ghi của cấp dưới."
-        }
+        },
+        "appliesTo": "Áp dụng cho"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "Tuần",
     "viewFolder": "Thư mục dạng xem",
     "subRecord": "Bản ghi con",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Mẫu bản ghi"
   },
   "datatype": {
     "ID": "TÔI",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "Môi trường mới",
     "removeCustomDomain": "Gỡ tên miền tùy chỉnh?",
     "tooNarrowToAdjustFrozenFields": "Cửa sổ quá hẹp để điều chỉnh các trường đã cố định",
-    "themeSettings": "Cài đặt giao diện"
+    "themeSettings": "Cài đặt giao diện",
+    "nFields": "{count} trường | {count} trường"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "Đọc, ghi và xóa",
       "allowShown": "Cho phép mục đang hiển thị",
       "clearShown": "Bỏ chọn mục đang hiển thị",
-      "shownOf": "Hiển thị {shown} trên {total}"
+      "shownOf": "Hiển thị {shown} trên {total}",
+      "levelAll": "{level} cho tất cả",
+      "toolsAllowed": "Cho phép {count} trên {total} công cụ",
+      "customTip": "Công cụ được chọn thủ công. Chọn một mức để đặt lại hàng.",
+      "writes": "Thao tác ghi",
+      "sections": {
+        "account": "Tài khoản và không gian làm việc",
+        "accountDesc": "Bạn là ai, các không gian làm việc của bạn, các base trong đó và liên kết vào ứng dụng",
+        "records": "Bản ghi và dữ liệu",
+        "recordsDesc": "Bản ghi, bình luận, nhập và xuất",
+        "schema": "Lược đồ",
+        "schemaDesc": "Bảng, trường, nhân bản và cách một base được tổ chức",
+        "views": "Chế độ xem",
+        "viewsDesc": "Chế độ xem, bộ lọc, sắp xếp, chia sẻ, trường biểu mẫu, màu hàng",
+        "automation": "Tự động hóa",
+        "automationDesc": "Quy trình, webhook, tập lệnh và tác nhân",
+        "interfaces": "Giao diện, bảng điều khiển và tài liệu",
+        "interfacesDesc": "Trang giao diện, bảng điều khiển, tiện ích và tài liệu",
+        "access": "Truy cập và bảo mật",
+        "accessDesc": "Quyền trên trường và bảng, bảo mật ở cấp hàng",
+        "platform": "Nền tảng",
+        "platformDesc": "Tích hợp, môi trường và ứng dụng"
+      }
     },
     "noBaseAccess": "Không có quyền truy cập cơ sở",
     "signedInAs": "Đã đăng nhập với tài khoản",
-    "moreAgents": "Thêm {count} tác nhân | Thêm {count} tác nhân"
+    "moreAgents": "Thêm {count} tác nhân | Thêm {count} tác nhân",
+    "mcpConnectionsLabel": "Tạo kết nối MCP để dùng với các máy khách AI như Claude, Codex hoặc Cursor.",
+    "mcpConnections": "Kết nối MCP",
+    "editMcpConnection": "Chỉnh sửa kết nối",
+    "mcpClientSetup": "Thiết lập máy khách",
+    "manageFieldsSubtext": "Chỉnh sửa trường và xem các phụ thuộc",
+    "relationsSubtext": "Trực quan hóa và quản lý quan hệ giữa các bảng",
+    "apiSnippetSubtext": "Tạo mã để truy vấn bảng này qua API",
+    "webhooksSubtext": "Tự động hóa các lệnh gọi bên ngoài khi bản ghi thay đổi",
+    "permissionsSubtext": "Kiểm soát ai có thể xem và chỉnh sửa dữ liệu",
+    "rlsSubtext": "Hạn chế quyền truy cập bản ghi bằng chính sách",
+    "dateDependencySubtext": "Dịch chuyển ngày trên các bản ghi phụ thuộc",
+    "recordTemplatesSubtext": "Tạo bản ghi từ một mẫu đã lưu",
+    "toolsSectionStructure": "Cấu trúc",
+    "toolsSectionAccess": "Truy cập và bảo mật",
+    "toolsSectionRecords": "Bản ghi",
+    "toolsSectionDeveloper": "Nhà phát triển"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "Cố định {count} cột | Cố định {count} cột",
     "marketplaceComingSoon": "Ứng dụng này vẫn đang được đóng gói nên chưa cài được.",
     "marketplaceAuthored": "Do nhà phát hành viết, không lấy từ nội dung của ứng dụng.",
-    "marketplaceVerifiedPublisher": "Được NocoDB xuất bản và kiểm duyệt"
+    "marketplaceVerifiedPublisher": "Được NocoDB xuất bản và kiểm duyệt",
+    "showCustomPermissionFieldsOnly": "Chỉ hiển thị các trường có quyền tùy chỉnh",
+    "showAllFields": "Hiển thị tất cả các trường"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Tìm kỹ năng...",
     "messageAgent": "Nhắn tin cho {agent}",
-    "somethingElse": "Điều gì khác"
+    "somethingElse": "Điều gì khác",
+    "noMcpConnections": "Chưa tạo kết nối MCP nào",
+    "noMcpConnectionsLabel": "Có vẻ bạn chưa tạo kết nối MCP nào."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "Cần đăng nhập vào NocoDB.",
       "seeWhoSubmittedDisabledHint": "Thêm trường “Đã tạo bởi” vào bảng của bạn để bật tùy chọn này.",
       "formRequiresSignin": "Để truy cập biểu mẫu này, bạn cần đăng nhập vào NocoDB.",
-      "switchAccount": "Chuyển tài khoản"
+      "switchAccount": "Chuyển tài khoản",
+      "mcpConnectionEdit": "Các thay đổi sẽ áp dụng cho máy khách ở lệnh gọi tiếp theo. Bí mật vẫn giữ nguyên.",
+      "mcpConnectionsReachingBase": "Tạo kết nối MCP gắn với base này cho các máy khách AI như Claude, Codex hoặc Cursor.",
+      "mcpClientSetupKeyHidden": "Khóa chỉ hiển thị khi kết nối được tạo hoặc tạo lại, vì vậy cấu hình này chứa một chỗ dành sẵn."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "Đã sao chép {n} ô",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "Đã sao chép {count} điều kiện | Đã sao chép {count} điều kiện"
+      "interfaceFilterCopied": "Đã sao chép {count} điều kiện | Đã sao chép {count} điều kiện",
+      "changesSaved": "Đã lưu thay đổi"
     },
     "success": {
       "restored": "Item restored successfully",

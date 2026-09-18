@@ -258,7 +258,8 @@
       "audit": "Arbeitsbereich-Audit",
       "ltarCustomDisplayValue": "Benutzerdefiniertes Anzeigefeld",
       "publicDocShare": "Freigabe öffentlicher Dokumente",
-      "agents": "Agenten"
+      "agents": "Agenten",
+      "permissions": "Tabellen- & Feldberechtigungen"
     },
     "upgradeToSortAndLimitLookupValues": "Um die in einem Lookup-Feld angezeigten Werte zu sortieren und zu begrenzen, wechseln Sie bitte zum Tarif {plan}.",
     "upgradeToAddMoreAgents": "Upgraden, um mehr Agenten hinzuzufügen",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Upgraden, um eigene Umgebungen zu erstellen",
     "upgradeToUseCustomEnvironmentsSubtitle": "Eigene Umgebungen sind in Ihrem Tarif {activePlan} nicht verfügbar. Wechseln Sie zu {plan}, um Umgebungen über Produktion und Staging hinaus zu erstellen.",
     "upgradeToUseFormRequireSignin": "Upgraden, um bei Formularen eine Anmeldung zu verlangen",
-    "upgradeToUseFormRequireSigninSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um von Teilnehmenden eine Anmeldung vor dem Absenden eines Formulars zu verlangen."
+    "upgradeToUseFormRequireSigninSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um von Teilnehmenden eine Anmeldung vor dem Absenden eines Formulars zu verlangen.",
+    "upgradeToUseSso": "Upgrade um SSO zu verwenden",
+    "upgradeToUseSsoSubtitle": "Aktualisieren Sie auf den {plan} Plan um Single Sign-On (SSO) einzurichten und Ihrem Team die Anmeldung mit Ihrem Identitätsanbieter zu ermöglichen."
   },
   "general": {
     "scrollToBottom": "Nach unten scrollen",
@@ -741,7 +744,12 @@
     "function": "Funktion",
     "functions": "Funktionen",
     "otherTables": "Andere Tabellen",
-    "viaNewLinkField": "über ein neues Verknüpfungsfeld"
+    "viaNewLinkField": "über ein neues Verknüpfungsfeld",
+    "test": "Testen",
+    "success": "Erfolg",
+    "manageFields": "Felder verwalten",
+    "tools": "Werkzeuge",
+    "allChangesSaved": "Alle Änderungen gespeichert"
   },
   "objects": {
     "script": "Skript",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Namen der Teams des Benutzers samt aller darunterliegenden Teams.",
           "currentUserTeamWithDescendantMembers": "Mitglieder meiner Teams",
           "currentUserTeamWithDescendantMembersDescription": "Alle in den Teams und Unterteams des Benutzers — nutzen Sie dies mit „enthält eines von“, um die Einträge Ihrer unterstellten Personen zu sehen."
-        }
+        },
+        "appliesTo": "Gilt für"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Niemand {description}",
@@ -1156,7 +1165,8 @@
     "scope": "Geltungsbereich",
     "scopes": "Geltungsbereiche",
     "tool": "Werkzeug",
-    "tools": "Werkzeuge"
+    "tools": "Werkzeuge",
+    "recordTemplates": "Eintragsvorlagen"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1519,8 @@
     "agentToolsAndAccess": "Tools & Zugriff",
     "agentSkills": "Skills",
     "agentSettings": "Einstellungen",
-    "updateRecordsCount": "{n} Eintrag aktualisieren | {n} Einträge aktualisieren"
+    "updateRecordsCount": "{n} Eintrag aktualisieren | {n} Einträge aktualisieren",
+    "nFields": "{count} Feld | {count} Felder"
   },
   "labels": {
     "syncing": "Synchronisieren",
@@ -4334,11 +4345,49 @@
       "readWriteDelete": "Lesen, Schreiben & Löschen",
       "allowShown": "Angezeigte erlauben",
       "clearShown": "Angezeigte zurücksetzen",
-      "shownOf": "{shown} von {total} angezeigt"
+      "shownOf": "{shown} von {total} angezeigt",
+      "levelAll": "{level} für alle",
+      "toolsAllowed": "{count} von {total} Werkzeugen zugelassen",
+      "customTip": "Handverlesene Werkzeuge. Wählen Sie eine Stufe, um die Zeile zurückzusetzen.",
+      "writes": "Schreibvorgänge",
+      "sections": {
+        "account": "Konto & Arbeitsbereiche",
+        "accountDesc": "Wer Sie sind, Ihre Arbeitsbereiche, die darin enthaltenen Bases und Links in die App",
+        "records": "Einträge & Daten",
+        "recordsDesc": "Einträge, Kommentare, Import und Export",
+        "schema": "Schema",
+        "schemaDesc": "Tabellen, Felder, Duplizieren und wie eine Base aufgebaut ist",
+        "views": "Ansichten",
+        "viewsDesc": "Ansichten, Filter, Sortierungen, Freigabe, Formularfelder, Zeilenfarben",
+        "automation": "Automatisierung",
+        "automationDesc": "Workflows, Webhooks, Skripte und Agents",
+        "interfaces": "Interfaces, Dashboards & Docs",
+        "interfacesDesc": "Interface-Seiten, Dashboards, Widgets und Dokumente",
+        "access": "Zugriff & Sicherheit",
+        "accessDesc": "Feld- und Tabellenberechtigungen, Sicherheit auf Zeilenebene",
+        "platform": "Plattform",
+        "platformDesc": "Integrationen, Umgebungen und Apps"
+      }
     },
     "noBaseAccess": "Kein Zugriff auf die Basis",
     "signedInAs": "Angemeldet als",
-    "moreAgents": "{count} weiterer Agent | {count} weitere Agenten"
+    "moreAgents": "{count} weiterer Agent | {count} weitere Agenten",
+    "mcpConnectionsLabel": "MCP-Verbindungen erstellen, um sie mit KI-Clients wie Claude, Codex oder Cursor zu nutzen.",
+    "mcpConnections": "MCP-Verbindungen",
+    "editMcpConnection": "Verbindung bearbeiten",
+    "mcpClientSetup": "Client-Einrichtung",
+    "manageFieldsSubtext": "Felder bearbeiten und Abhängigkeiten prüfen",
+    "relationsSubtext": "Tabellenbeziehungen visualisieren und verwalten",
+    "apiSnippetSubtext": "Code generieren, um diese Tabelle über die API abzufragen",
+    "webhooksSubtext": "Externe Aufrufe automatisieren, wenn sich Einträge ändern",
+    "permissionsSubtext": "Steuern, wer Daten ansehen und bearbeiten darf",
+    "rlsSubtext": "Zugriff auf Einträge mit Richtlinien einschränken",
+    "dateDependencySubtext": "Datumsangaben über abhängige Einträge hinweg verschieben",
+    "recordTemplatesSubtext": "Einträge aus einer gespeicherten Vorlage erstellen",
+    "toolsSectionStructure": "Struktur",
+    "toolsSectionAccess": "Zugriff & Sicherheit",
+    "toolsSectionRecords": "Einträge",
+    "toolsSectionDeveloper": "Entwickler"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",
@@ -4833,7 +4882,9 @@
     "marketplaceComingSoon": "Diese App wird noch paketiert und kann daher noch nicht installiert werden.",
     "marketplaceAuthored": "Von der Herausgeberin bzw. dem Herausgeber verfasst, nicht aus dem Inhalt der App abgeleitet.",
     "marketplaceVerifiedPublisher": "Von NocoDB veröffentlicht und geprüft",
-    "requiredEnforcedOnFormSubmit": "Wird erzwungen, wenn diese Seite als Formular zum Erstellen eines Eintrags geöffnet wird"
+    "requiredEnforcedOnFormSubmit": "Wird erzwungen, wenn diese Seite als Formular zum Erstellen eines Eintrags geöffnet wird",
+    "showCustomPermissionFieldsOnly": "Nur Felder mit benutzerdefinierten Berechtigungen anzeigen",
+    "showAllFields": "Alle Felder anzeigen"
   },
   "placeholder": {
     "enterVerificationCode": "6-stelligen Code eingeben",
@@ -4993,7 +5044,9 @@
     "skillNamePlaceholder": "Name des Skills",
     "skillDescriptionPlaceholder": "Was macht dieser Skill, und wann sollte er eingesetzt werden?",
     "messageAgent": "Nachricht an {agent}",
-    "somethingElse": "Etwas anderes"
+    "somethingElse": "Etwas anderes",
+    "noMcpConnections": "Keine MCP-Verbindungen erstellt",
+    "noMcpConnectionsLabel": "Sie haben anscheinend noch keine MCP-Verbindungen erstellt."
   },
   "msg": {
     "sourceViewNotShared": "Sync ist in dieser Ansicht deaktiviert",
@@ -5701,7 +5754,10 @@
       "seeWhoSubmittedSubtitle": "Anmeldung bei NocoDB erforderlich.",
       "seeWhoSubmittedDisabledHint": "Fügen Sie Ihrer Tabelle ein Feld „Erstellt von“ hinzu, um diese Option zu aktivieren.",
       "formRequiresSignin": "Für den Zugriff auf dieses Formular ist eine Anmeldung bei NocoDB erforderlich.",
-      "switchAccount": "Konto wechseln"
+      "switchAccount": "Konto wechseln",
+      "mcpConnectionEdit": "Änderungen gelten für den Client ab seinem nächsten Aufruf. Das Geheimnis bleibt unverändert.",
+      "mcpConnectionsReachingBase": "MCP-Verbindungen erstellen, die an diese Base gebunden sind, für KI-Clients wie Claude, Codex oder Cursor.",
+      "mcpClientSetupKeyHidden": "Der Schlüssel wird nur beim Erstellen oder Neugenerieren einer Verbindung angezeigt, daher enthält diese Konfiguration einen Platzhalter."
     },
     "error": {
       "failedToCreateSync": "Fehler beim Erstellen der Synchronisation",
@@ -5925,7 +5981,8 @@
       "nCellsCopied": "{n} Zellen kopiert",
       "nRecordCreated": "{n} Datensatz erstellt",
       "nRecordsCreated": "{n} Datensätze erstellt",
-      "interfaceFilterCopied": "{count} Bedingung kopiert | {count} Bedingungen kopiert"
+      "interfaceFilterCopied": "{count} Bedingung kopiert | {count} Bedingungen kopiert",
+      "changesSaved": "Änderungen gespeichert"
     },
     "success": {
       "restored": "Element erfolgreich wiederhergestellt",

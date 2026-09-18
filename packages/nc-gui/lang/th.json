@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "เอเจนต์"
+      "agents": "เอเจนต์",
+      "permissions": "สิทธิ์ของตารางและฟิลด์"
     },
     "upgradeToSortAndLimitLookupValues": "หากต้องการเรียงลำดับและจำกัดค่าที่แสดงในฟิลด์ Lookup โปรดอัปเกรดเป็นแผน {plan}",
     "upgradeToAddMoreAgents": "อัปเกรดเพื่อเพิ่มเอเจนต์ได้มากขึ้น",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "อัปเกรดเพื่อสร้างสภาพแวดล้อมที่กำหนดเอง",
     "upgradeToUseCustomEnvironmentsSubtitle": "สภาพแวดล้อมที่กำหนดเองไม่มีในแผน {activePlan} ของคุณ อัปเกรดเป็น {plan} เพื่อสร้างสภาพแวดล้อมนอกเหนือจาก Production และ Staging",
     "upgradeToUseFormRequireSignin": "อัปเกรดเพื่อกำหนดให้ต้องลงชื่อเข้าใช้ในแบบฟอร์ม",
-    "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม"
+    "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม",
+    "upgradeToUseSso": "อัปเกรดเพื่อใช้ SSO",
+    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -741,7 +744,12 @@
     "function": "ฟังก์ชัน",
     "functions": "ฟังก์ชัน",
     "otherTables": "ตารางอื่น",
-    "viaNewLinkField": "ผ่านฟิลด์ลิงก์ใหม่"
+    "viaNewLinkField": "ผ่านฟิลด์ลิงก์ใหม่",
+    "test": "ทดสอบ",
+    "success": "สำเร็จ",
+    "manageFields": "จัดการฟิลด์",
+    "tools": "เครื่องมือ",
+    "allChangesSaved": "บันทึกการเปลี่ยนแปลงทั้งหมดแล้ว"
   },
   "objects": {
     "script": "สคริปต์",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "ชื่อทีมของผู้ใช้ รวมถึงทุกทีมที่อยู่ใต้ทีมเหล่านั้น",
           "currentUserTeamWithDescendantMembers": "สมาชิกในทีมของฉัน",
           "currentUserTeamWithDescendantMembersDescription": "ทุกคนในทีมและทีมย่อยของผู้ใช้ — ใช้ร่วมกับ «มีค่าใดค่าหนึ่งใน» เพื่อดูระเบียนของผู้ใต้บังคับบัญชา"
-        }
+        },
+        "appliesTo": "ใช้กับ"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "สัปดาห์",
     "viewFolder": "โฟลเดอร์มุมมอง",
     "subRecord": "ระเบียนย่อย",
-    "video": "วิดีโอ"
+    "video": "วิดีโอ",
+    "recordTemplates": "เทมเพลตระเบียน"
   },
   "datatype": {
     "ID": "id",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "สภาพแวดล้อมใหม่",
     "removeCustomDomain": "นำโดเมนที่กำหนดเองออกหรือไม่",
     "tooNarrowToAdjustFrozenFields": "หน้าต่างแคบเกินไปสำหรับการปรับฟิลด์ที่ตรึงไว้",
-    "themeSettings": "การตั้งค่าธีม"
+    "themeSettings": "การตั้งค่าธีม",
+    "nFields": "{count} ฟิลด์ | {count} ฟิลด์"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "อ่าน เขียน และลบ",
       "allowShown": "อนุญาตรายการที่แสดง",
       "clearShown": "ล้างรายการที่แสดง",
-      "shownOf": "แสดง {shown} จาก {total}"
+      "shownOf": "แสดง {shown} จาก {total}",
+      "levelAll": "{level} ทั้งหมด",
+      "toolsAllowed": "อนุญาต {count} จาก {total} เครื่องมือ",
+      "customTip": "เครื่องมือที่คัดเลือกด้วยตนเอง เลือกระดับเพื่อรีเซ็ตแถว",
+      "writes": "การเขียน",
+      "sections": {
+        "account": "บัญชีและพื้นที่ทำงาน",
+        "accountDesc": "คุณคือใคร พื้นที่ทำงานของคุณ เบสในนั้น และลิงก์เข้าสู่แอป",
+        "records": "ระเบียนและข้อมูล",
+        "recordsDesc": "ระเบียน ความคิดเห็น การนำเข้าและการส่งออก",
+        "schema": "สคีมา",
+        "schemaDesc": "ตาราง ฟิลด์ การทำสำเนา และวิธีจัดระเบียบเบส",
+        "views": "มุมมอง",
+        "viewsDesc": "มุมมอง ตัวกรอง การเรียงลำดับ การแชร์ ฟิลด์ฟอร์ม สีของแถว",
+        "automation": "ระบบอัตโนมัติ",
+        "automationDesc": "เวิร์กโฟลว์ เว็บฮุก สคริปต์ และเอเจนต์",
+        "interfaces": "อินเทอร์เฟซ แดชบอร์ด และเอกสาร",
+        "interfacesDesc": "หน้าอินเทอร์เฟซ แดชบอร์ด วิดเจ็ต และเอกสาร",
+        "access": "การเข้าถึงและความปลอดภัย",
+        "accessDesc": "สิทธิ์ของฟิลด์และตาราง ความปลอดภัยระดับแถว",
+        "platform": "แพลตฟอร์ม",
+        "platformDesc": "การผสานรวม สภาพแวดล้อม และแอป"
+      }
     },
     "noBaseAccess": "ไม่มีสิทธิ์เข้าถึงฐาน",
     "signedInAs": "ลงชื่อเข้าใช้ในชื่อ",
-    "moreAgents": "อีก {count} เอเจนต์ | อีก {count} เอเจนต์"
+    "moreAgents": "อีก {count} เอเจนต์ | อีก {count} เอเจนต์",
+    "mcpConnectionsLabel": "สร้างการเชื่อมต่อ MCP เพื่อใช้กับไคลเอ็นต์ AI เช่น Claude, Codex หรือ Cursor",
+    "mcpConnections": "การเชื่อมต่อ MCP",
+    "editMcpConnection": "แก้ไขการเชื่อมต่อ",
+    "mcpClientSetup": "การตั้งค่าไคลเอ็นต์",
+    "manageFieldsSubtext": "แก้ไขฟิลด์และตรวจสอบการอ้างอิง",
+    "relationsSubtext": "แสดงภาพและจัดการความสัมพันธ์ของตาราง",
+    "apiSnippetSubtext": "สร้างโค้ดเพื่อสอบถามตารางนี้ผ่าน API",
+    "webhooksSubtext": "ทำให้การเรียกภายนอกเป็นอัตโนมัติเมื่อระเบียนเปลี่ยนแปลง",
+    "permissionsSubtext": "ควบคุมว่าใครสามารถดูและแก้ไขข้อมูลได้",
+    "rlsSubtext": "จำกัดการเข้าถึงระเบียนด้วยนโยบาย",
+    "dateDependencySubtext": "เลื่อนวันที่ในระเบียนที่เกี่ยวข้อง",
+    "recordTemplatesSubtext": "สร้างระเบียนจากเทมเพลตที่บันทึกไว้",
+    "toolsSectionStructure": "โครงสร้าง",
+    "toolsSectionAccess": "การเข้าถึงและความปลอดภัย",
+    "toolsSectionRecords": "ระเบียน",
+    "toolsSectionDeveloper": "นักพัฒนา"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "ตรึง {count} คอลัมน์ | ตรึง {count} คอลัมน์",
     "marketplaceComingSoon": "แอปนี้ยังอยู่ระหว่างจัดแพ็กเกจ จึงยังติดตั้งไม่ได้",
     "marketplaceAuthored": "เขียนโดยผู้เผยแพร่ ไม่ได้ดึงมาจากเนื้อหาของแอป",
-    "marketplaceVerifiedPublisher": "เผยแพร่และตรวจสอบโดย NocoDB"
+    "marketplaceVerifiedPublisher": "เผยแพร่และตรวจสอบโดย NocoDB",
+    "showCustomPermissionFieldsOnly": "แสดงเฉพาะฟิลด์ที่มีสิทธิ์แบบกำหนดเอง",
+    "showAllFields": "แสดงฟิลด์ทั้งหมด"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "ค้นหาทักษะ...",
     "messageAgent": "ส่งข้อความถึง {agent}",
-    "somethingElse": "อย่างอื่น"
+    "somethingElse": "อย่างอื่น",
+    "noMcpConnections": "ยังไม่ได้สร้างการเชื่อมต่อ MCP",
+    "noMcpConnectionsLabel": "ดูเหมือนว่าคุณยังไม่ได้สร้างการเชื่อมต่อ MCP"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "ต้องลงชื่อเข้าใช้ NocoDB",
       "seeWhoSubmittedDisabledHint": "เพิ่มฟิลด์ ‘สร้างโดย’ ลงในตารางของคุณเพื่อเปิดใช้ตัวเลือกนี้",
       "formRequiresSignin": "การเข้าถึงแบบฟอร์มนี้ต้องลงชื่อเข้าใช้ NocoDB",
-      "switchAccount": "สลับบัญชี"
+      "switchAccount": "สลับบัญชี",
+      "mcpConnectionEdit": "การเปลี่ยนแปลงจะมีผลกับไคลเอ็นต์ในการเรียกครั้งถัดไป ข้อมูลลับยังคงเดิม",
+      "mcpConnectionsReachingBase": "สร้างการเชื่อมต่อ MCP ที่ผูกกับเบสนี้สำหรับไคลเอ็นต์ AI เช่น Claude, Codex หรือ Cursor",
+      "mcpClientSetupKeyHidden": "คีย์จะแสดงเฉพาะเมื่อสร้างหรือสร้างการเชื่อมต่อใหม่เท่านั้น การกำหนดค่านี้จึงมีตัวยึดตำแหน่ง"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "คัดลอก {n} เซลล์แล้ว",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "คัดลอก {count} เงื่อนไขแล้ว | คัดลอก {count} เงื่อนไขแล้ว"
+      "interfaceFilterCopied": "คัดลอก {count} เงื่อนไขแล้ว | คัดลอก {count} เงื่อนไขแล้ว",
+      "changesSaved": "บันทึกการเปลี่ยนแปลงแล้ว"
     },
     "success": {
       "restored": "Item restored successfully",

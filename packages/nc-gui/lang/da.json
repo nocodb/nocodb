@@ -258,7 +258,8 @@
       "audit": "Revision Af Arbejdsrum",
       "ltarCustomDisplayValue": "Brugerdefineret Visningsværdifelt",
       "publicDocShare": "Offentlig Dokumentdeling",
-      "agents": "Agenter"
+      "agents": "Agenter",
+      "permissions": "Tabel- & felttilladelser"
     },
     "upgradeToSortAndLimitLookupValues": "Opgrader til {plan}-planen for at sortere og begrænse de værdier, der vises i et Lookup-felt.",
     "upgradeToAddMoreAgents": "Opgrader for at tilføje flere agenter",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Opgrader for at oprette brugerdefinerede miljøer",
     "upgradeToUseCustomEnvironmentsSubtitle": "Brugerdefinerede miljøer er ikke tilgængelige på din {activePlan}-plan. Opgrader til {plan} for at oprette miljøer ud over Production og Staging.",
     "upgradeToUseFormRequireSignin": "Opgrader for at kræve login på formularer",
-    "upgradeToUseFormRequireSigninSubtitle": "Opgrader til {plan}-planen for at kræve, at respondenter logger ind, før de indsender en formular."
+    "upgradeToUseFormRequireSigninSubtitle": "Opgrader til {plan}-planen for at kræve, at respondenter logger ind, før de indsender en formular.",
+    "upgradeToUseSso": "Opgrader for at bruge SSO",
+    "upgradeToUseSsoSubtitle": "Opgrader til {plan} abonnementet for at opsætte Single Sign-On (SSO) og lade dit team logge ind med din identitetsudbyder."
   },
   "general": {
     "scrollToBottom": "Rul til bunden",
@@ -741,7 +744,11 @@
     "function": "Funktion",
     "functions": "Funktioner",
     "otherTables": "Andre tabeller",
-    "viaNewLinkField": "via et nyt linkfelt"
+    "viaNewLinkField": "via et nyt linkfelt",
+    "success": "Fuldført",
+    "manageFields": "Administrer felter",
+    "tools": "Værktøjer",
+    "allChangesSaved": "Alle ændringer er gemt"
   },
   "objects": {
     "script": "Script",
@@ -1050,7 +1057,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Navne på brugerens teams samt alle teams under dem.",
           "currentUserTeamWithDescendantMembers": "Medlemmer af mine teams",
           "currentUserTeamWithDescendantMembersDescription": "Alle i brugerens teams og underteams — brug det med »indeholder et af« for at se dine medarbejderes poster."
-        }
+        },
+        "appliesTo": "Gælder for"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Ingen {description}",
@@ -1155,7 +1163,8 @@
     "weeks": "Uger",
     "viewFolder": "Visningsmappe",
     "subRecord": "Underpost",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Postskabeloner"
   },
   "datatype": {
     "ID": "ID.",
@@ -1508,7 +1517,8 @@
     "newEnvironment": "Nyt miljø",
     "removeCustomDomain": "Fjern brugerdefineret domæne?",
     "tooNarrowToAdjustFrozenFields": "Vinduet er for smalt til at justere de fastfrosne felter",
-    "themeSettings": "Temaindstillinger"
+    "themeSettings": "Temaindstillinger",
+    "nFields": "{count} felt | {count} felter"
   },
   "labels": {
     "syncing": "Synkroniserer",
@@ -4323,11 +4333,48 @@
       "readWriteDelete": "Læs, skriv og slet",
       "allowShown": "Tillad de viste",
       "clearShown": "Ryd de viste",
-      "shownOf": "{shown} af {total} vist"
+      "shownOf": "{shown} af {total} vist",
+      "levelAll": "{level} for alt",
+      "toolsAllowed": "{count} af {total} værktøjer tilladt",
+      "customTip": "Håndplukkede værktøjer. Vælg et niveau for at nulstille rækken.",
+      "writes": "Skrivninger",
+      "sections": {
+        "account": "Konto & arbejdsområder",
+        "accountDesc": "Hvem du er, dine arbejdsområder, de bases de indeholder, og links ind i appen",
+        "records": "Poster & data",
+        "recordsDesc": "Poster, kommentarer, import og eksport",
+        "schema": "Skema",
+        "schemaDesc": "Tabeller, felter, duplikering og hvordan en base er organiseret",
+        "views": "Visninger",
+        "viewsDesc": "Visninger, filtre, sorteringer, deling, formularfelter, rækkefarver",
+        "automation": "Automatisering",
+        "automationDesc": "Workflows, webhooks, scripts og agents",
+        "interfaces": "Grænseflader, dashboards & docs",
+        "interfacesDesc": "Grænsefladesider, dashboards, widgets og dokumenter",
+        "access": "Adgang & sikkerhed",
+        "accessDesc": "Felt- og tabeltilladelser, sikkerhed på rækkeniveau",
+        "platformDesc": "Integrationer, miljøer og apps"
+      }
     },
     "noBaseAccess": "Ingen adgang til base",
     "signedInAs": "Logget ind som",
-    "moreAgents": "{count} agent mere | {count} agenter mere"
+    "moreAgents": "{count} agent mere | {count} agenter mere",
+    "mcpConnectionsLabel": "Opret MCP-forbindelser til brug med AI-klienter som Claude, Codex eller Cursor.",
+    "mcpConnections": "MCP-forbindelser",
+    "editMcpConnection": "Rediger forbindelse",
+    "mcpClientSetup": "Klientopsætning",
+    "manageFieldsSubtext": "Rediger felter og undersøg afhængigheder",
+    "relationsSubtext": "Visualiser og administrer tabelrelationer",
+    "apiSnippetSubtext": "Generer kode til at forespørge denne tabel via API",
+    "webhooksSubtext": "Automatiser eksterne kald, når poster ændres",
+    "permissionsSubtext": "Styr hvem der kan se og redigere data",
+    "rlsSubtext": "Begræns adgang til poster med politikker",
+    "dateDependencySubtext": "Forskyd datoer på tværs af afhængige poster",
+    "recordTemplatesSubtext": "Opret poster ud fra en gemt skabelon",
+    "toolsSectionStructure": "Struktur",
+    "toolsSectionAccess": "Adgang & sikkerhed",
+    "toolsSectionRecords": "Poster",
+    "toolsSectionDeveloper": "Udvikler"
   },
   "activity": {
     "useTemplate": "Brug skabelon",
@@ -4822,7 +4869,9 @@
     "freezeColumnsCount": "Frys {count} kolonne | Frys {count} kolonner",
     "marketplaceComingSoon": "Denne app er stadig ved at blive pakket, så den kan ikke installeres endnu.",
     "marketplaceAuthored": "Skrevet af udgiveren, ikke udledt af appens indhold.",
-    "marketplaceVerifiedPublisher": "Udgivet og gennemgået af NocoDB"
+    "marketplaceVerifiedPublisher": "Udgivet og gennemgået af NocoDB",
+    "showCustomPermissionFieldsOnly": "Vis kun felter med tilpassede tilladelser",
+    "showAllFields": "Vis alle felter"
   },
   "placeholder": {
     "enterVerificationCode": "Indtast 6-cifret kode",
@@ -4982,7 +5031,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Søg efter skills...",
     "messageAgent": "Besked til {agent}",
-    "somethingElse": "Noget andet"
+    "somethingElse": "Noget andet",
+    "noMcpConnections": "Ingen MCP-forbindelser oprettet",
+    "noMcpConnectionsLabel": "Det ser ud til, at du endnu ikke har oprettet nogen MCP-forbindelser."
   },
   "msg": {
     "sourceViewNotShared": "Synkronisering er deaktiveret i denne visning",
@@ -5690,7 +5741,10 @@
       "seeWhoSubmittedSubtitle": "Kræver login på NocoDB.",
       "seeWhoSubmittedDisabledHint": "Tilføj et »Oprettet af«-felt til din tabel for at aktivere denne indstilling.",
       "formRequiresSignin": "Adgang til denne formular kræver, at du logger ind på NocoDB.",
-      "switchAccount": "Skift konto"
+      "switchAccount": "Skift konto",
+      "mcpConnectionEdit": "Ændringer træder i kraft for klienten ved næste kald. Hemmeligheden forbliver den samme.",
+      "mcpConnectionsReachingBase": "Opret MCP-forbindelser knyttet til denne base til AI-klienter som Claude, Codex eller Cursor.",
+      "mcpClientSetupKeyHidden": "Nøglen vises kun, når en forbindelse oprettes eller gendannes, så denne konfiguration indeholder en pladsholder."
     },
     "error": {
       "failedToCreateSync": "Kunne ikke oprette synkronisering",
@@ -5914,7 +5968,8 @@
       "nCellsCopied": "{n} celler kopieret",
       "nRecordCreated": "{n} arkiv oprettet",
       "nRecordsCreated": "{n} arkiver oprettet",
-      "interfaceFilterCopied": "{count} betingelse kopieret | {count} betingelser kopieret"
+      "interfaceFilterCopied": "{count} betingelse kopieret | {count} betingelser kopieret",
+      "changesSaved": "Ændringer gemt"
     },
     "success": {
       "restored": "Element gendannet succesfuldt",

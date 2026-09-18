@@ -258,7 +258,8 @@
       "audit": "Controllo Workspace",
       "ltarCustomDisplayValue": "Campo Valore Visualizzazione Personalizzato",
       "publicDocShare": "Condivisione Documenti Pubblici",
-      "agents": "Agenti"
+      "agents": "Agenti",
+      "permissions": "Permessi su tabelle e campi"
     },
     "upgradeToSortAndLimitLookupValues": "Per ordinare e limitare i valori mostrati in un campo Lookup, passa al piano {plan}.",
     "upgradeToAddMoreAgents": "Passa a un piano superiore per aggiungere altri Agenti",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Passa a un piano superiore per creare ambienti personalizzati",
     "upgradeToUseCustomEnvironmentsSubtitle": "Gli ambienti personalizzati non sono disponibili nel tuo piano {activePlan}. Passa a {plan} per creare ambienti oltre a Produzione e Staging.",
     "upgradeToUseFormRequireSignin": "Esegui l’upgrade per richiedere l’accesso nei moduli",
-    "upgradeToUseFormRequireSigninSubtitle": "Passa al piano {plan} per richiedere ai partecipanti di accedere prima di inviare un modulo."
+    "upgradeToUseFormRequireSigninSubtitle": "Passa al piano {plan} per richiedere ai partecipanti di accedere prima di inviare un modulo.",
+    "upgradeToUseSso": "Aggiorna per utilizzare SSO",
+    "upgradeToUseSsoSubtitle": "Aggiorna al piano {plan} per configurare il Single Sign-On (SSO) e permettere al tuo team di accedere con il tuo provider di identità."
   },
   "general": {
     "scrollToBottom": "Scorri verso il basso",
@@ -740,7 +743,12 @@
     "function": "Funzione",
     "functions": "Funzioni",
     "otherTables": "Altre tabelle",
-    "viaNewLinkField": "tramite un nuovo campo di collegamento"
+    "viaNewLinkField": "tramite un nuovo campo di collegamento",
+    "test": "Prova",
+    "success": "Operazione riuscita",
+    "manageFields": "Gestisci campi",
+    "tools": "Strumenti",
+    "allChangesSaved": "Tutte le modifiche sono state salvate"
   },
   "objects": {
     "script": "Script",
@@ -1049,7 +1057,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Nomi dei team dell'utente più tutti quelli sottostanti.",
           "currentUserTeamWithDescendantMembers": "Membri dei miei team",
           "currentUserTeamWithDescendantMembersDescription": "Tutti nei team e sotto-team dell'utente: usalo con «contiene uno qualsiasi di» per vedere i record dei tuoi collaboratori."
-        }
+        },
+        "appliesTo": "Si applica a"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nessuno {description}",
@@ -1155,7 +1164,8 @@
     "weeks": "Settimane",
     "viewFolder": "Cartella delle viste",
     "subRecord": "Sottorecord",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Modelli di record"
   },
   "datatype": {
     "ID": "Numero",
@@ -1508,7 +1518,8 @@
     "newEnvironment": "Nuovo ambiente",
     "removeCustomDomain": "Rimuovere il dominio personalizzato?",
     "tooNarrowToAdjustFrozenFields": "La finestra è troppo stretta per regolare i campi bloccati",
-    "themeSettings": "Impostazioni del tema"
+    "themeSettings": "Impostazioni del tema",
+    "nFields": "{count} campo | {count} campi"
   },
   "labels": {
     "syncing": "Sincronizzazione",
@@ -4328,11 +4339,49 @@
       "readWriteDelete": "Lettura, scrittura ed eliminazione",
       "allowShown": "Consenti quelli mostrati",
       "clearShown": "Azzera quelli mostrati",
-      "shownOf": "{shown} di {total} mostrati"
+      "shownOf": "{shown} di {total} mostrati",
+      "levelAll": "{level} per tutto",
+      "toolsAllowed": "{count} di {total} strumenti consentiti",
+      "customTip": "Strumenti selezionati a mano. Scegli un livello per reimpostare la riga.",
+      "writes": "Scritture",
+      "sections": {
+        "account": "Account e spazi di lavoro",
+        "accountDesc": "Chi sei, i tuoi spazi di lavoro, le basi che contengono e i collegamenti all'app",
+        "records": "Record e dati",
+        "recordsDesc": "Record, commenti, importazione ed esportazione",
+        "schema": "Schema",
+        "schemaDesc": "Tabelle, campi, duplicazione e organizzazione di una base",
+        "views": "Viste",
+        "viewsDesc": "Viste, filtri, ordinamenti, condivisione, campi modulo, colori delle righe",
+        "automation": "Automazione",
+        "automationDesc": "Workflow, webhook, script e agent",
+        "interfaces": "Interfacce, dashboard e docs",
+        "interfacesDesc": "Pagine di interfaccia, dashboard, widget e documenti",
+        "access": "Accesso e sicurezza",
+        "accessDesc": "Permessi su campi e tabelle, sicurezza a livello di riga",
+        "platform": "Piattaforma",
+        "platformDesc": "Integrazioni, ambienti e app"
+      }
     },
     "noBaseAccess": "Nessun accesso alla base",
     "signedInAs": "Connesso come",
-    "moreAgents": "{count} altro agente | {count} altri agenti"
+    "moreAgents": "{count} altro agente | {count} altri agenti",
+    "mcpConnectionsLabel": "Crea connessioni MCP da usare con client IA come Claude, Codex o Cursor.",
+    "mcpConnections": "Connessioni MCP",
+    "editMcpConnection": "Modifica connessione",
+    "mcpClientSetup": "Configurazione del client",
+    "manageFieldsSubtext": "Modifica i campi e ispeziona le dipendenze",
+    "relationsSubtext": "Visualizza e gestisci le relazioni tra tabelle",
+    "apiSnippetSubtext": "Genera il codice per interrogare questa tabella tramite API",
+    "webhooksSubtext": "Automatizza le chiamate esterne quando i record cambiano",
+    "permissionsSubtext": "Controlla chi può visualizzare e modificare i dati",
+    "rlsSubtext": "Limita l'accesso ai record tramite criteri",
+    "dateDependencySubtext": "Sposta le date sui record dipendenti",
+    "recordTemplatesSubtext": "Crea record da un modello salvato",
+    "toolsSectionStructure": "Struttura",
+    "toolsSectionAccess": "Accesso e sicurezza",
+    "toolsSectionRecords": "Record",
+    "toolsSectionDeveloper": "Sviluppatore"
   },
   "activity": {
     "useTemplate": "Usa modello",
@@ -4827,7 +4876,9 @@
     "freezeColumnsCount": "Blocca {count} colonna | Blocca {count} colonne",
     "marketplaceComingSoon": "Questa App è ancora in fase di preparazione, quindi non può ancora essere installata.",
     "marketplaceAuthored": "Scritto dall'editore, non ricavato dal contenuto dell'App.",
-    "marketplaceVerifiedPublisher": "Pubblicato e verificato da NocoDB"
+    "marketplaceVerifiedPublisher": "Pubblicato e verificato da NocoDB",
+    "showCustomPermissionFieldsOnly": "Mostra solo i campi con permessi personalizzati",
+    "showAllFields": "Mostra tutti i campi"
   },
   "placeholder": {
     "enterVerificationCode": "Inserisci il codice a 6 cifre",
@@ -4987,7 +5038,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Cerca competenze...",
     "messageAgent": "Messaggio per {agent}",
-    "somethingElse": "Qualcos’altro"
+    "somethingElse": "Qualcos’altro",
+    "noMcpConnections": "Nessuna connessione MCP creata",
+    "noMcpConnectionsLabel": "Sembra che tu non abbia ancora creato connessioni MCP."
   },
   "msg": {
     "sourceViewNotShared": "La sincronizzazione è disabilitata su questa vista",
@@ -5695,7 +5748,10 @@
       "seeWhoSubmittedSubtitle": "È necessario accedere a NocoDB.",
       "seeWhoSubmittedDisabledHint": "Aggiungi un campo «Creato da» alla tua tabella per abilitare questa opzione.",
       "formRequiresSignin": "Per aprire questo modulo è necessario accedere a NocoDB.",
-      "switchAccount": "Cambia account"
+      "switchAccount": "Cambia account",
+      "mcpConnectionEdit": "Le modifiche si applicano al client alla chiamata successiva. Il segreto resta invariato.",
+      "mcpConnectionsReachingBase": "Crea connessioni MCP collegate a questa base per client IA come Claude, Codex o Cursor.",
+      "mcpClientSetupKeyHidden": "La chiave viene mostrata solo alla creazione o alla rigenerazione di una connessione, perciò questa configurazione contiene un segnaposto."
     },
     "error": {
       "failedToCreateSync": "Impossibile creare la sincronizzazione",
@@ -5919,7 +5975,8 @@
       "nCellsCopied": "{n} celle copiate",
       "nRecordCreated": "{n} record creato",
       "nRecordsCreated": "{n} record creati",
-      "interfaceFilterCopied": "{count} condizione copiata | {count} condizioni copiate"
+      "interfaceFilterCopied": "{count} condizione copiata | {count} condizioni copiate",
+      "changesSaved": "Modifiche salvate"
     },
     "success": {
       "restored": "Oggetto ripristinato con successo",

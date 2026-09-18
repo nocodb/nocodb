@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "സഹായികൾ"
+      "agents": "സഹായികൾ",
+      "permissions": "പട്ടികയുടെയും ഫീൽഡിന്റെയും അനുമതികൾ"
     },
     "upgradeToSortAndLimitLookupValues": "തിരയൽ കള്ളിയിൽ കാണിക്കുന്ന മൂല്യങ്ങൾ അടുക്കാനും പരിമിതപ്പെടുത്താനും ദയവായി {plan} പദ്ധതിയിലേക്ക് ഉയർത്തുക.",
     "upgradeToAddMoreAgents": "കൂടുതൽ സഹായികളെ ചേർക്കാൻ ഉയർത്തുക",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "സ്വന്തം ചുറ്റുപാടുകൾ ഉണ്ടാക്കാൻ ഉയർത്തുക",
     "upgradeToUseCustomEnvironmentsSubtitle": "നിങ്ങളുടെ {activePlan} പദ്ധതിയിൽ സ്വന്തം ചുറ്റുപാടുകൾ ലഭ്യമല്ല. Production, Staging എന്നിവയ്ക്കപ്പുറം ചുറ്റുപാടുകൾ ഉണ്ടാക്കാൻ {plan} ലേക്ക് ഉയർത്തുക.",
     "upgradeToUseFormRequireSignin": "ഫോമുകളിൽ സൈൻ ഇൻ നിർബന്ധമാക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
-    "upgradeToUseFormRequireSigninSubtitle": "ഫോം സമർപ്പിക്കുന്നതിന് മുമ്പ് പ്രതികരിക്കുന്നവർ സൈൻ ഇൻ ചെയ്യണമെന്ന് നിർബന്ധമാക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
+    "upgradeToUseFormRequireSigninSubtitle": "ഫോം സമർപ്പിക്കുന്നതിന് മുമ്പ് പ്രതികരിക്കുന്നവർ സൈൻ ഇൻ ചെയ്യണമെന്ന് നിർബന്ധമാക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToUseSso": "SSO ഉപയോഗിക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
+    "upgradeToUseSsoSubtitle": "സിംഗിൾ സൈൻ-ഓൺ (SSO) സജ്ജീകരിക്കാനും നിങ്ങളുടെ ടീമിന് നിങ്ങളുടെ ഐഡന്റിറ്റി ദാതാവ് ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യാനും {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -741,7 +744,12 @@
     "function": "ഫങ്ഷൻ",
     "functions": "ഫങ്ഷനുകൾ",
     "otherTables": "മറ്റ് പട്ടികകൾ",
-    "viaNewLinkField": "പുതിയ ലിങ്ക് വിഭാഗം വഴി"
+    "viaNewLinkField": "പുതിയ ലിങ്ക് വിഭാഗം വഴി",
+    "test": "പരിശോധിക്കുക",
+    "success": "വിജയം",
+    "manageFields": "ഫീൽഡുകൾ കൈകാര്യം ചെയ്യുക",
+    "tools": "ഉപകരണങ്ങൾ",
+    "allChangesSaved": "എല്ലാ മാറ്റങ്ങളും സംരക്ഷിച്ചു"
   },
   "objects": {
     "script": "സ്‌ക്രിപ്റ്റ്",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "ഉപയോക്താവിന്റെ ടീമുകളുടെയും അവയ്ക്ക് കീഴിലുള്ള എല്ലാ ടീമുകളുടെയും പേരുകൾ.",
           "currentUserTeamWithDescendantMembers": "എന്റെ ടീമുകളിലെ അംഗങ്ങൾ",
           "currentUserTeamWithDescendantMembersDescription": "ഉപയോക്താവിന്റെ ടീമുകളിലെയും ഉപടീമുകളിലെയും എല്ലാവരും — നിങ്ങളുടെ കീഴുദ്യോഗസ്ഥരുടെ റെക്കോർഡുകൾ കാണാൻ 'ഇവയിൽ ഏതെങ്കിലും അടങ്ങുന്നു' എന്നതിനൊപ്പം ഉപയോഗിക്കുക."
-        }
+        },
+        "appliesTo": "ഇവയ്ക്ക് ബാധകം"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "ആഴ്ചകൾ",
     "viewFolder": "കാഴ്ച ഫോൾഡർ",
     "subRecord": "ഉപ-റെക്കോർഡ്",
-    "video": "വീഡിയോ"
+    "video": "വീഡിയോ",
+    "recordTemplates": "റെക്കോർഡ് ടെംപ്ലേറ്റുകൾ"
   },
   "datatype": {
     "ID": "ഐഡി",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "പുതിയ പരിസരം",
     "removeCustomDomain": "ഇഷ്ട ഡൊമെയ്ൻ നീക്കണോ?",
     "tooNarrowToAdjustFrozenFields": "ഉറപ്പിച്ച വിഭാഗങ്ങൾ ക്രമീകരിക്കാൻ ജാലകം വളരെ ഇടുങ്ങിയതാണ്",
-    "themeSettings": "തീം ക്രമീകരണങ്ങൾ"
+    "themeSettings": "തീം ക്രമീകരണങ്ങൾ",
+    "nFields": "{count} ഫീൽഡ് | {count} ഫീൽഡുകൾ"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "വായന, എഴുത്ത്, ഇല്ലാതാക്കൽ",
       "allowShown": "കാണിച്ചവ അനുവദിക്കുക",
       "clearShown": "കാണിച്ചവ മായ്ക്കുക",
-      "shownOf": "{total}-ൽ {shown} എണ്ണം കാണിക്കുന്നു"
+      "shownOf": "{total}-ൽ {shown} എണ്ണം കാണിക്കുന്നു",
+      "levelAll": "എല്ലാത്തിനും {level}",
+      "toolsAllowed": "{total} ഉപകരണങ്ങളിൽ {count} എണ്ണം അനുവദിച്ചിരിക്കുന്നു",
+      "customTip": "കൈകൊണ്ട് തിരഞ്ഞെടുത്ത ഉപകരണങ്ങൾ. വരി പുനഃസജ്ജമാക്കാൻ ഒരു നില തിരഞ്ഞെടുക്കുക.",
+      "writes": "എഴുത്തുകൾ",
+      "sections": {
+        "account": "അക്കൗണ്ടും പ്രവർത്തനസ്ഥലങ്ങളും",
+        "accountDesc": "നിങ്ങൾ ആരാണ്, നിങ്ങളുടെ പ്രവർത്തനസ്ഥലങ്ങൾ, അവയിലെ ബേസുകൾ, ആപ്പിലേക്കുള്ള ലിങ്കുകൾ",
+        "records": "റെക്കോർഡുകളും ഡാറ്റയും",
+        "recordsDesc": "റെക്കോർഡുകൾ, അഭിപ്രായങ്ങൾ, ഇറക്കുമതിയും കയറ്റുമതിയും",
+        "schema": "സ്കീമ",
+        "schemaDesc": "പട്ടികകൾ, ഫീൽഡുകൾ, പകർത്തൽ, ഒരു ബേസ് എങ്ങനെ ക്രമീകരിച്ചിരിക്കുന്നു",
+        "views": "കാഴ്ചകൾ",
+        "viewsDesc": "കാഴ്ചകൾ, ഫിൽട്ടറുകൾ, ക്രമീകരണങ്ങൾ, പങ്കിടൽ, ഫോം ഫീൽഡുകൾ, വരിയുടെ നിറങ്ങൾ",
+        "automation": "ഓട്ടോമേഷൻ",
+        "automationDesc": "വർക്ക്ഫ്ലോകൾ, വെബ്ഹുക്കുകൾ, സ്ക്രിപ്റ്റുകൾ, ഏജന്റുകൾ",
+        "interfaces": "ഇന്റർഫേസുകൾ, ഡാഷ്ബോർഡുകൾ, രേഖകൾ",
+        "interfacesDesc": "ഇന്റർഫേസ് പേജുകൾ, ഡാഷ്ബോർഡുകൾ, വിജറ്റുകൾ, രേഖകൾ",
+        "access": "ആക്‌സസും സുരക്ഷയും",
+        "accessDesc": "ഫീൽഡ്, പട്ടിക അനുമതികൾ, വരി-തല സുരക്ഷ",
+        "platform": "പ്ലാറ്റ്ഫോം",
+        "platformDesc": "സംയോജനങ്ങൾ, പരിസരങ്ങൾ, ആപ്പുകൾ"
+      }
     },
     "noBaseAccess": "ബേസിലേക്ക് പ്രവേശനമില്ല",
     "signedInAs": "ഇങ്ങനെ സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു",
-    "moreAgents": "{count} ഏജന്റ് കൂടി | {count} ഏജന്റുകൾ കൂടി"
+    "moreAgents": "{count} ഏജന്റ് കൂടി | {count} ഏജന്റുകൾ കൂടി",
+    "mcpConnectionsLabel": "Claude, Codex അല്ലെങ്കിൽ Cursor പോലുള്ള AI ക്ലയന്റുകളിൽ ഉപയോഗിക്കാൻ MCP കണക്ഷനുകൾ സൃഷ്ടിക്കുക.",
+    "mcpConnections": "MCP കണക്ഷനുകൾ",
+    "editMcpConnection": "കണക്ഷൻ എഡിറ്റ് ചെയ്യുക",
+    "mcpClientSetup": "ക്ലയന്റ് സജ്ജീകരണം",
+    "manageFieldsSubtext": "ഫീൽഡുകൾ എഡിറ്റ് ചെയ്ത് ആശ്രിതത്വങ്ങൾ പരിശോധിക്കുക",
+    "relationsSubtext": "പട്ടികകൾ തമ്മിലുള്ള ബന്ധങ്ങൾ ദൃശ്യവൽക്കരിച്ച് കൈകാര്യം ചെയ്യുക",
+    "apiSnippetSubtext": "API വഴി ഈ പട്ടിക അന്വേഷിക്കാനുള്ള കോഡ് സൃഷ്ടിക്കുക",
+    "webhooksSubtext": "റെക്കോർഡുകൾ മാറുമ്പോൾ ബാഹ്യ കോളുകൾ ഓട്ടോമേറ്റ് ചെയ്യുക",
+    "permissionsSubtext": "ഡാറ്റ ആർക്കൊക്കെ കാണാനും തിരുത്താനും കഴിയുമെന്ന് നിയന്ത്രിക്കുക",
+    "rlsSubtext": "നയങ്ങൾ ഉപയോഗിച്ച് റെക്കോർഡ് ആക്‌സസ് പരിമിതപ്പെടുത്തുക",
+    "dateDependencySubtext": "ആശ്രിത റെക്കോർഡുകളിലെ തീയതികൾ നീക്കുക",
+    "recordTemplatesSubtext": "സംരക്ഷിച്ച ടെംപ്ലേറ്റിൽ നിന്ന് റെക്കോർഡുകൾ സൃഷ്ടിക്കുക",
+    "toolsSectionStructure": "ഘടന",
+    "toolsSectionAccess": "ആക്‌സസും സുരക്ഷയും",
+    "toolsSectionRecords": "റെക്കോർഡുകൾ",
+    "toolsSectionDeveloper": "ഡെവലപ്പർ"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "{count} കോളം ഉറപ്പിക്കുക | {count} കോളങ്ങൾ ഉറപ്പിക്കുക",
     "marketplaceComingSoon": "ഈ ആപ്പ് ഇപ്പോഴും പാക്കേജ് ചെയ്യുകയാണ്, അതിനാൽ ഇപ്പോൾ ഇൻസ്റ്റാൾ ചെയ്യാനാവില്ല.",
     "marketplaceAuthored": "പ്രസാധകൻ എഴുതിയത്, ആപ്പിന്റെ ഉള്ളടക്കത്തിൽ നിന്ന് എടുത്തതല്ല.",
-    "marketplaceVerifiedPublisher": "NocoDB പ്രസിദ്ധീകരിച്ച് പരിശോധിച്ചത്"
+    "marketplaceVerifiedPublisher": "NocoDB പ്രസിദ്ധീകരിച്ച് പരിശോധിച്ചത്",
+    "showCustomPermissionFieldsOnly": "ഇഷ്ടാനുസൃത അനുമതികളുള്ള ഫീൽഡുകൾ മാത്രം കാണിക്കുക",
+    "showAllFields": "എല്ലാ ഫീൽഡുകളും കാണിക്കുക"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "സ്കില്ലുകൾ തിരയുക...",
     "messageAgent": "{agent}-ന് സന്ദേശം അയയ്ക്കുക",
-    "somethingElse": "മറ്റെന്തെങ്കിലും"
+    "somethingElse": "മറ്റെന്തെങ്കിലും",
+    "noMcpConnections": "MCP കണക്ഷനുകളൊന്നും സൃഷ്ടിച്ചിട്ടില്ല",
+    "noMcpConnectionsLabel": "നിങ്ങൾ ഇതുവരെ MCP കണക്ഷനുകളൊന്നും സൃഷ്ടിച്ചിട്ടില്ലെന്ന് തോന്നുന്നു."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB-യിൽ സൈൻ ഇൻ ചെയ്യേണ്ടതുണ്ട്.",
       "seeWhoSubmittedDisabledHint": "ഈ ഓപ്ഷൻ പ്രവർത്തനക്ഷമമാക്കാൻ നിങ്ങളുടെ പട്ടികയിൽ ‘സൃഷ്ടിച്ചത്’ എന്ന ഫീൽഡ് ചേർക്കുക.",
       "formRequiresSignin": "ഈ ഫോം ഉപയോഗിക്കാൻ NocoDB-യിൽ സൈൻ ഇൻ ചെയ്യേണ്ടതുണ്ട്.",
-      "switchAccount": "അക്കൗണ്ട് മാറ്റുക"
+      "switchAccount": "അക്കൗണ്ട് മാറ്റുക",
+      "mcpConnectionEdit": "മാറ്റങ്ങൾ ക്ലയന്റിന്റെ അടുത്ത കോളിൽ ബാധകമാകും. രഹസ്യം അതേപടി തുടരും.",
+      "mcpConnectionsReachingBase": "Claude, Codex അല്ലെങ്കിൽ Cursor പോലുള്ള AI ക്ലയന്റുകൾക്കായി ഈ ബേസിൽ ഘടിപ്പിച്ച MCP കണക്ഷനുകൾ സൃഷ്ടിക്കുക.",
+      "mcpClientSetupKeyHidden": "കണക്ഷൻ സൃഷ്ടിക്കുമ്പോഴോ വീണ്ടും സൃഷ്ടിക്കുമ്പോഴോ മാത്രമാണ് കീ കാണിക്കുന്നത്, അതിനാൽ ഈ കോൺഫിഗറേഷനിൽ ഒരു പ്ലേസ്‌ഹോൾഡർ ഉണ്ട്."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "{n} സെലുകൾ പകർത്തി",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "{count} സ്ഥിതി പകർത്തി | {count} സ്ഥിതികൾ പകർത്തി"
+      "interfaceFilterCopied": "{count} സ്ഥിതി പകർത്തി | {count} സ്ഥിതികൾ പകർത്തി",
+      "changesSaved": "മാറ്റങ്ങൾ സംരക്ഷിച്ചു"
     },
     "success": {
       "restored": "Item restored successfully",

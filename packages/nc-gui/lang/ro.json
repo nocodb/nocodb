@@ -258,7 +258,8 @@
       "audit": "Audit spațiu de lucru",
       "ltarCustomDisplayValue": "Afișare personalizată valoare câmp",
       "publicDocShare": "Distribuire documente publice",
-      "agents": "Agenți"
+      "agents": "Agenți",
+      "permissions": "Permisiuni pentru tabele și câmpuri"
     },
     "upgradeToSortAndLimitLookupValues": "Pentru a sorta și limita valorile afișate într-un câmp Lookup, treci la planul {plan}.",
     "upgradeToAddMoreAgents": "Treci la un plan superior pentru a adăuga mai mulți agenți",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Treci la un plan superior pentru a crea medii personalizate",
     "upgradeToUseCustomEnvironmentsSubtitle": "Mediile personalizate nu sunt disponibile în planul tău {activePlan}. Treci la {plan} pentru a crea medii dincolo de Production și Staging.",
     "upgradeToUseFormRequireSignin": "Fă upgrade pentru a solicita autentificarea la formulare",
-    "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular."
+    "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular.",
+    "upgradeToUseSso": "Actualizați pentru a utiliza SSO",
+    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate."
   },
   "general": {
     "scrollToBottom": "Derulează până jos",
@@ -739,7 +742,12 @@
     "function": "Funcție",
     "functions": "Funcții",
     "otherTables": "Alte tabele",
-    "viaNewLinkField": "printr-un câmp de legătură nou"
+    "viaNewLinkField": "printr-un câmp de legătură nou",
+    "test": "Testează",
+    "success": "Succes",
+    "manageFields": "Gestionează câmpurile",
+    "tools": "Instrumente",
+    "allChangesSaved": "Toate modificările au fost salvate"
   },
   "objects": {
     "script": "Script",
@@ -1048,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Numele echipelor utilizatorului plus ale tuturor echipelor de sub ele.",
           "currentUserTeamWithDescendantMembers": "Membrii echipelor mele",
           "currentUserTeamWithDescendantMembersDescription": "Toți cei din echipele și subechipele utilizatorului — folosește-l cu „conține oricare dintre” ca să vezi înregistrările subordonaților tăi."
-        }
+        },
+        "appliesTo": "Se aplică la"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nimeni {description}",
@@ -1154,7 +1163,8 @@
     "weeks": "Săptămâni",
     "viewFolder": "Dosar de vizualizări",
     "subRecord": "Subînregistrare",
-    "video": "Videoclip"
+    "video": "Videoclip",
+    "recordTemplates": "Șabloane de înregistrare"
   },
   "datatype": {
     "ID": "ID",
@@ -1507,7 +1517,8 @@
     "newEnvironment": "Mediu nou",
     "removeCustomDomain": "Elimini domeniul personalizat?",
     "tooNarrowToAdjustFrozenFields": "Fereastra este prea îngustă pentru a ajusta câmpurile fixate",
-    "themeSettings": "Setările temei"
+    "themeSettings": "Setările temei",
+    "nFields": "{count} câmp | {count} câmpuri"
   },
   "labels": {
     "syncing": "Sincronizare",
@@ -4319,11 +4330,49 @@
       "readWriteDelete": "Citire, scriere și ștergere",
       "allowShown": "Permite cele afișate",
       "clearShown": "Golește cele afișate",
-      "shownOf": "{shown} din {total} afișate"
+      "shownOf": "{shown} din {total} afișate",
+      "levelAll": "{level} pentru tot",
+      "toolsAllowed": "{count} din {total} instrumente permise",
+      "customTip": "Instrumente selectate manual. Alege un nivel pentru a reseta rândul.",
+      "writes": "Scrieri",
+      "sections": {
+        "account": "Cont și spații de lucru",
+        "accountDesc": "Cine ești, spațiile tale de lucru, bazele din ele și legăturile către aplicație",
+        "records": "Înregistrări și date",
+        "recordsDesc": "Înregistrări, comentarii, import și export",
+        "schema": "Schemă",
+        "schemaDesc": "Tabele, câmpuri, duplicare și modul în care este organizată o bază",
+        "views": "Vizualizări",
+        "viewsDesc": "Vizualizări, filtre, sortări, partajare, câmpuri de formular, culori de rând",
+        "automation": "Automatizare",
+        "automationDesc": "Fluxuri de lucru, webhook-uri, scripturi și agenți",
+        "interfaces": "Interfețe, tablouri de bord și documente",
+        "interfacesDesc": "Pagini de interfață, tablouri de bord, widget-uri și documente",
+        "access": "Acces și securitate",
+        "accessDesc": "Permisiuni pentru câmpuri și tabele, securitate la nivel de rând",
+        "platform": "Platformă",
+        "platformDesc": "Integrări, medii și aplicații"
+      }
     },
     "noBaseAccess": "Fără acces la bază",
     "signedInAs": "Autentificat ca",
-    "moreAgents": "Încă {count} agent | Încă {count} agenți"
+    "moreAgents": "Încă {count} agent | Încă {count} agenți",
+    "mcpConnectionsLabel": "Creează conexiuni MCP pentru a le folosi cu clienți AI precum Claude, Codex sau Cursor.",
+    "mcpConnections": "Conexiuni MCP",
+    "editMcpConnection": "Editează conexiunea",
+    "mcpClientSetup": "Configurarea clientului",
+    "manageFieldsSubtext": "Editează câmpurile și inspectează dependențele",
+    "relationsSubtext": "Vizualizează și gestionează relațiile dintre tabele",
+    "apiSnippetSubtext": "Generează cod pentru a interoga acest tabel prin API",
+    "webhooksSubtext": "Automatizează apelurile externe când se modifică înregistrările",
+    "permissionsSubtext": "Controlează cine poate vedea și edita datele",
+    "rlsSubtext": "Restricționează accesul la înregistrări prin politici",
+    "dateDependencySubtext": "Decalează datele în înregistrările dependente",
+    "recordTemplatesSubtext": "Creează înregistrări dintr-un șablon salvat",
+    "toolsSectionStructure": "Structură",
+    "toolsSectionAccess": "Acces și securitate",
+    "toolsSectionRecords": "Înregistrări",
+    "toolsSectionDeveloper": "Dezvoltator"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -4815,7 +4864,9 @@
     "freezeColumnsCount": "Fixează {count} coloană | Fixează {count} coloane",
     "marketplaceComingSoon": "Această aplicație este încă în pregătire, deci nu poate fi instalată încă.",
     "marketplaceAuthored": "Scris de editor, nu extras din conținutul aplicației.",
-    "marketplaceVerifiedPublisher": "Publicat și verificat de NocoDB"
+    "marketplaceVerifiedPublisher": "Publicat și verificat de NocoDB",
+    "showCustomPermissionFieldsOnly": "Afișează doar câmpurile cu permisiuni personalizate",
+    "showAllFields": "Afișează toate câmpurile"
   },
   "placeholder": {
     "enterVerificationCode": "Introdu codul din 6 cifre",
@@ -4975,7 +5026,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Caută competențe...",
     "messageAgent": "Mesaj către {agent}",
-    "somethingElse": "Altceva"
+    "somethingElse": "Altceva",
+    "noMcpConnections": "Nicio conexiune MCP creată",
+    "noMcpConnectionsLabel": "Se pare că nu ai creat încă nicio conexiune MCP."
   },
   "msg": {
     "sourceViewNotShared": "Sincronizarea este dezactivată în această vizualizare",
@@ -5683,7 +5736,10 @@
       "seeWhoSubmittedSubtitle": "Este necesară autentificarea în NocoDB.",
       "seeWhoSubmittedDisabledHint": "Adaugă un câmp „Creat de” în tabel pentru a activa această opțiune.",
       "formRequiresSignin": "Accesarea acestui formular necesită autentificarea în NocoDB.",
-      "switchAccount": "Schimbă contul"
+      "switchAccount": "Schimbă contul",
+      "mcpConnectionEdit": "Modificările se aplică clientului la următorul apel. Secretul rămâne același.",
+      "mcpConnectionsReachingBase": "Creează conexiuni MCP asociate acestei baze pentru clienți AI precum Claude, Codex sau Cursor.",
+      "mcpClientSetupKeyHidden": "Cheia este afișată doar la crearea sau regenerarea unei conexiuni, de aceea această configurație conține un substituent."
     },
     "error": {
       "failedToCreateSync": "Crearea sincronizării a eșuat",
@@ -5907,7 +5963,8 @@
       "nCellsCopied": "S-au copiat {n} celule",
       "nRecordCreated": "{n} înregistrare creată",
       "nRecordsCreated": "{n} înregistrări create",
-      "interfaceFilterCopied": "{count} condiție copiată | {count} condiții copiate"
+      "interfaceFilterCopied": "{count} condiție copiată | {count} condiții copiate",
+      "changesSaved": "Modificări salvate"
     },
     "success": {
       "restored": "Element restaurat cu succes",

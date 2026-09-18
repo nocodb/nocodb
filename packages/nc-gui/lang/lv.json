@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "Aģenti"
+      "agents": "Aģenti",
+      "permissions": "Tabulu un lauku atļaujas"
     },
     "upgradeToSortAndLimitLookupValues": "Lai kārtotu un ierobežotu Lookup laukā rādītās vērtības, pārejiet uz plānu {plan}.",
     "upgradeToAddMoreAgents": "Pārejiet uz augstāku plānu, lai pievienotu vairāk aģentu",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Pārejiet uz augstāku plānu, lai veidotu pielāgotas vides",
     "upgradeToUseCustomEnvironmentsSubtitle": "Pielāgotas vides jūsu plānā {activePlan} nav pieejamas. Pārejiet uz {plan}, lai veidotu vides papildus Production un Staging.",
     "upgradeToUseFormRequireSignin": "Jauniniet, lai formās pieprasītu pieteikšanos",
-    "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas."
+    "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas.",
+    "upgradeToUseSso": "Jauniniet, lai izmantotu SSO",
+    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -740,7 +743,12 @@
     "function": "Funkcija",
     "functions": "Funkcijas",
     "otherTables": "Citas tabulas",
-    "viaNewLinkField": "izmantojot jaunu saites lauku"
+    "viaNewLinkField": "izmantojot jaunu saites lauku",
+    "test": "Pārbaudīt",
+    "success": "Izdevās",
+    "manageFields": "Pārvaldīt laukus",
+    "tools": "Rīki",
+    "allChangesSaved": "Visas izmaiņas saglabātas"
   },
   "objects": {
     "script": "Skripts",
@@ -1049,7 +1057,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Lietotāja komandu un visu tām pakārtoto komandu nosaukumi.",
           "currentUserTeamWithDescendantMembers": "Manu komandu dalībnieki",
           "currentUserTeamWithDescendantMembersDescription": "Visi lietotāja komandās un apakškomandās — lietojiet to kopā ar “satur kādu no”, lai redzētu savu padoto ierakstus."
-        }
+        },
+        "appliesTo": "Attiecas uz"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1154,7 +1163,8 @@
     "weeks": "Nedēļas",
     "viewFolder": "Skatu mape",
     "subRecord": "Apakšieraksts",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Ierakstu veidnes"
   },
   "datatype": {
     "ID": "ID",
@@ -1507,7 +1517,8 @@
     "newEnvironment": "Jauna vide",
     "removeCustomDomain": "Noņemt pielāgoto domēnu?",
     "tooNarrowToAdjustFrozenFields": "Logs ir pārāk šaurs, lai pielāgotu iesaldētos laukus",
-    "themeSettings": "Motīva iestatījumi"
+    "themeSettings": "Motīva iestatījumi",
+    "nFields": "{count} lauks | {count} lauki"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4328,11 +4339,49 @@
       "readWriteDelete": "Lasīšana, rakstīšana un dzēšana",
       "allowShown": "Atļaut parādītos",
       "clearShown": "Notīrīt parādītos",
-      "shownOf": "Parādīti {shown} no {total}"
+      "shownOf": "Parādīti {shown} no {total}",
+      "levelAll": "{level} visiem",
+      "toolsAllowed": "Atļauti {count} no {total} rīkiem",
+      "customTip": "Rūpīgi atlasīti rīki. Izvēlieties līmeni, lai atiestatītu rindu.",
+      "writes": "Rakstīšana",
+      "sections": {
+        "account": "Konts un darbtelpas",
+        "accountDesc": "Kas jūs esat, jūsu darbtelpas, tajās esošās bāzes un saites uz lietotni",
+        "records": "Ieraksti un dati",
+        "recordsDesc": "Ieraksti, komentāri, imports un eksports",
+        "schema": "Shēma",
+        "schemaDesc": "Tabulas, lauki, dublēšana un tas, kā ir organizēta bāze",
+        "views": "Skatījumi",
+        "viewsDesc": "Skatījumi, filtri, kārtošana, koplietošana, veidlapu lauki, rindu krāsas",
+        "automation": "Automatizācija",
+        "automationDesc": "Darbplūsmas, webhooks, skripti un aģenti",
+        "interfaces": "Saskarnes, informācijas paneļi un docs",
+        "interfacesDesc": "Saskarņu lapas, informācijas paneļi, logrīki un dokumenti",
+        "access": "Piekļuve un drošība",
+        "accessDesc": "Lauku un tabulu atļaujas, rindu līmeņa drošība",
+        "platform": "Platforma",
+        "platformDesc": "Integrācijas, vides un lietotnes"
+      }
     },
     "noBaseAccess": "Nav piekļuves bāzei",
     "signedInAs": "Pieteicies kā",
-    "moreAgents": "Vēl {count} aģents | Vēl {count} aģenti"
+    "moreAgents": "Vēl {count} aģents | Vēl {count} aģenti",
+    "mcpConnectionsLabel": "Izveidojiet MCP savienojumus lietošanai ar MI klientiem, piemēram, Claude, Codex vai Cursor.",
+    "mcpConnections": "MCP savienojumi",
+    "editMcpConnection": "Rediģēt savienojumu",
+    "mcpClientSetup": "Klienta iestatīšana",
+    "manageFieldsSubtext": "Rediģēt laukus un pārbaudīt atkarības",
+    "relationsSubtext": "Vizualizēt un pārvaldīt tabulu savstarpējās saites",
+    "apiSnippetSubtext": "Ģenerēt kodu šīs tabulas vaicāšanai, izmantojot API",
+    "webhooksSubtext": "Automatizēt ārējos izsaukumus, kad mainās ieraksti",
+    "permissionsSubtext": "Nosakiet, kas var skatīt un rediģēt datus",
+    "rlsSubtext": "Ierobežot piekļuvi ierakstiem, izmantojot politikas",
+    "dateDependencySubtext": "Pārbīdīt datumus atkarīgajos ierakstos",
+    "recordTemplatesSubtext": "Izveidot ierakstus no saglabātas veidnes",
+    "toolsSectionStructure": "Struktūra",
+    "toolsSectionAccess": "Piekļuve un drošība",
+    "toolsSectionRecords": "Ieraksti",
+    "toolsSectionDeveloper": "Izstrādātājs"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4827,7 +4876,9 @@
     "freezeColumnsCount": "Iesaldēt {count} kolonnu | Iesaldēt {count} kolonnas",
     "marketplaceComingSoon": "Šī lietotne vēl tiek sagatavota, tāpēc to pagaidām nevar instalēt.",
     "marketplaceAuthored": "Sarakstījis izdevējs, nav iegūts no lietotnes satura.",
-    "marketplaceVerifiedPublisher": "Publicējis un pārbaudījis NocoDB"
+    "marketplaceVerifiedPublisher": "Publicējis un pārbaudījis NocoDB",
+    "showCustomPermissionFieldsOnly": "Rādīt tikai laukus ar pielāgotām atļaujām",
+    "showAllFields": "Rādīt visus laukus"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4987,7 +5038,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Meklēt prasmes...",
     "messageAgent": "Ziņojums {agent}",
-    "somethingElse": "Kaut kas cits"
+    "somethingElse": "Kaut kas cits",
+    "noMcpConnections": "Nav izveidots neviens MCP savienojums",
+    "noMcpConnectionsLabel": "Šķiet, ka vēl neesat izveidojis nevienu MCP savienojumu."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5695,7 +5748,10 @@
       "seeWhoSubmittedSubtitle": "Nepieciešama pieteikšanās NocoDB.",
       "seeWhoSubmittedDisabledHint": "Lai iespējotu šo opciju, pievienojiet tabulai lauku “Izveidoja”.",
       "formRequiresSignin": "Lai piekļūtu šai formai, ir jāpiesakās NocoDB.",
-      "switchAccount": "Mainīt kontu"
+      "switchAccount": "Mainīt kontu",
+      "mcpConnectionEdit": "Izmaiņas klientam stājas spēkā nākamajā izsaukumā. Noslēpums paliek nemainīgs.",
+      "mcpConnectionsReachingBase": "Izveidojiet MCP savienojumus, kas piesaistīti šai bāzei, MI klientiem, piemēram, Claude, Codex vai Cursor.",
+      "mcpClientSetupKeyHidden": "Atslēga tiek parādīta tikai tad, kad savienojums tiek izveidots vai ģenerēts atkārtoti, tāpēc šajā konfigurācijā ir vietturis."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5919,7 +5975,8 @@
       "nCellsCopied": "{n} šūnas nokopētas",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "Nokopēts {count} nosacījums | Nokopēti {count} nosacījumi"
+      "interfaceFilterCopied": "Nokopēts {count} nosacījums | Nokopēti {count} nosacījumi",
+      "changesSaved": "Izmaiņas saglabātas"
     },
     "success": {
       "restored": "Item restored successfully",

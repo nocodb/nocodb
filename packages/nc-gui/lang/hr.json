@@ -258,7 +258,8 @@
       "audit": "Revizija radnog prostora",
       "ltarCustomDisplayValue": "Prilagođeno polje vrijednosti prikaza",
       "publicDocShare": "Javno dijeljenje dokumenata",
-      "agents": "Agenti"
+      "agents": "Agenti",
+      "permissions": "Dozvole za tablice i polja"
     },
     "upgradeToSortAndLimitLookupValues": "Za sortiranje i ograničavanje vrijednosti prikazanih u Lookup polju prijeđite na plan {plan}.",
     "upgradeToAddMoreAgents": "Prijeđite na viši plan za više agenata",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Prijeđite na viši plan za izradu prilagođenih okruženja",
     "upgradeToUseCustomEnvironmentsSubtitle": "Prilagođena okruženja nisu dostupna na vašem planu {activePlan}. Prijeđite na {plan} kako biste izradili okruženja osim Productiona i Staginga.",
     "upgradeToUseFormRequireSignin": "Nadogradite kako biste na obrascima mogli zahtijevati prijavu",
-    "upgradeToUseFormRequireSigninSubtitle": "Nadogradite na plan {plan} kako biste od ispitanika zahtijevali prijavu prije slanja obrasca."
+    "upgradeToUseFormRequireSigninSubtitle": "Nadogradite na plan {plan} kako biste od ispitanika zahtijevali prijavu prije slanja obrasca.",
+    "upgradeToUseSso": "Nadogradite na korištenje SSO-a",
+    "upgradeToUseSsoSubtitle": "Nadogradite se na plan {plan} kako biste postavili jedinstvenu prijavu (SSO) i omogućili svom timu prijavu putem vašeg davatelja identiteta."
   },
   "general": {
     "scrollToBottom": "Pomaknite se na dno",
@@ -741,7 +744,12 @@
     "function": "Funkcija",
     "functions": "Funkcije",
     "otherTables": "Ostale tablice",
-    "viaNewLinkField": "putem novog polja poveznice"
+    "viaNewLinkField": "putem novog polja poveznice",
+    "test": "Testiraj",
+    "success": "Uspjeh",
+    "manageFields": "Upravljanje poljima",
+    "tools": "Alati",
+    "allChangesSaved": "Sve promjene su spremljene"
   },
   "objects": {
     "script": "Skripta",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Nazivi korisnikovih timova te svih timova ispod njih.",
           "currentUserTeamWithDescendantMembers": "Članovi mojih timova",
           "currentUserTeamWithDescendantMembersDescription": "Svi u korisnikovim timovima i podtimovima — upotrijebite s uvjetom „sadrži bilo što od” da biste vidjeli zapise svojih podređenih."
-        }
+        },
+        "appliesTo": "Odnosi se na"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nitko {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "Tjedni",
     "viewFolder": "Mapa prikaza",
     "subRecord": "Podzapis",
-    "video": "Videozapis"
+    "video": "Videozapis",
+    "recordTemplates": "Predlošci zapisa"
   },
   "datatype": {
     "ID": "iskaznica",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "Novo okruženje",
     "removeCustomDomain": "Ukloniti prilagođenu domenu?",
     "tooNarrowToAdjustFrozenFields": "Prozor je preuzak za prilagodbu zamrznutih polja",
-    "themeSettings": "Postavke teme"
+    "themeSettings": "Postavke teme",
+    "nFields": "{count} polje | {count} polja"
   },
   "labels": {
     "syncing": "Sinkronizacija",
@@ -4331,11 +4342,49 @@
       "readWriteDelete": "Čitanje, pisanje i brisanje",
       "allowShown": "Dopusti prikazane",
       "clearShown": "Očisti prikazane",
-      "shownOf": "Prikazano {shown} od {total}"
+      "shownOf": "Prikazano {shown} od {total}",
+      "levelAll": "{level} za sve",
+      "toolsAllowed": "Dopušteno {count} od {total} alata",
+      "customTip": "Ručno odabrani alati. Odaberite razinu za poništavanje retka.",
+      "writes": "Zapisivanja",
+      "sections": {
+        "account": "Račun i radni prostori",
+        "accountDesc": "Tko ste, vaši radni prostori, baze u njima i poveznice u aplikaciju",
+        "records": "Zapisi i podaci",
+        "recordsDesc": "Zapisi, komentari, uvoz i izvoz",
+        "schema": "Shema",
+        "schemaDesc": "Tablice, polja, dupliciranje i način na koji je baza organizirana",
+        "views": "Pogledi",
+        "viewsDesc": "Pogledi, filtri, sortiranja, dijeljenje, polja obrasca, boje redaka",
+        "automation": "Automatizacija",
+        "automationDesc": "Tijekovi rada, webhookovi, skripte i agenti",
+        "interfaces": "Sučelja, nadzorne ploče i dokumenti",
+        "interfacesDesc": "Stranice sučelja, nadzorne ploče, widgeti i dokumenti",
+        "access": "Pristup i sigurnost",
+        "accessDesc": "Dozvole za polja i tablice, sigurnost na razini retka",
+        "platform": "Platforma",
+        "platformDesc": "Integracije, okruženja i aplikacije"
+      }
     },
     "noBaseAccess": "Nema pristupa bazi",
     "signedInAs": "Prijavljeni kao",
-    "moreAgents": "Još {count} agent | Još {count} agenata"
+    "moreAgents": "Još {count} agent | Još {count} agenata",
+    "mcpConnectionsLabel": "Stvorite MCP veze za upotrebu s AI klijentima kao što su Claude, Codex ili Cursor.",
+    "mcpConnections": "MCP veze",
+    "editMcpConnection": "Uredi vezu",
+    "mcpClientSetup": "Postavljanje klijenta",
+    "manageFieldsSubtext": "Uredi polja i pregledaj ovisnosti",
+    "relationsSubtext": "Vizualizirajte i upravljajte odnosima među tablicama",
+    "apiSnippetSubtext": "Generiraj kod za postavljanje upita nad ovom tablicom putem API-ja",
+    "webhooksSubtext": "Automatizirajte vanjske pozive kada se zapisi promijene",
+    "permissionsSubtext": "Odredite tko može pregledavati i uređivati podatke",
+    "rlsSubtext": "Ograničite pristup zapisima pomoću pravila",
+    "dateDependencySubtext": "Pomakni datume u ovisnim zapisima",
+    "recordTemplatesSubtext": "Stvorite zapise iz spremljenog predloška",
+    "toolsSectionStructure": "Struktura",
+    "toolsSectionAccess": "Pristup i sigurnost",
+    "toolsSectionRecords": "Zapisi",
+    "toolsSectionDeveloper": "Razvojni programer"
   },
   "activity": {
     "useTemplate": "Koristite predložak",
@@ -4830,7 +4879,9 @@
     "freezeColumnsCount": "Zamrzni {count} stupac | Zamrzni {count} stupaca",
     "marketplaceComingSoon": "Ova se aplikacija još pakira pa se zasad ne može instalirati.",
     "marketplaceAuthored": "Napisao izdavač, nije izvedeno iz sadržaja aplikacije.",
-    "marketplaceVerifiedPublisher": "Objavio i provjerio NocoDB"
+    "marketplaceVerifiedPublisher": "Objavio i provjerio NocoDB",
+    "showCustomPermissionFieldsOnly": "Prikaži samo polja s prilagođenim dozvolama",
+    "showAllFields": "Prikaži sva polja"
   },
   "placeholder": {
     "enterVerificationCode": "Unesite šesteroznamenkasti kod",
@@ -4990,7 +5041,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Traži vještine...",
     "messageAgent": "Poruka za {agent}",
-    "somethingElse": "Nešto drugo"
+    "somethingElse": "Nešto drugo",
+    "noMcpConnections": "Nije stvorena nijedna MCP veza",
+    "noMcpConnectionsLabel": "Čini se da još niste stvorili nijednu MCP vezu."
   },
   "msg": {
     "sourceViewNotShared": "Sinkronizacija je onemogućena za ovaj prikaz.",
@@ -5698,7 +5751,10 @@
       "seeWhoSubmittedSubtitle": "Potrebna je prijava u NocoDB.",
       "seeWhoSubmittedDisabledHint": "Dodajte polje „Kreirao/Kreirala“ u svoju tablicu kako biste omogućili ovu opciju.",
       "formRequiresSignin": "Za pristup ovom obrascu potrebna je prijava u NocoDB.",
-      "switchAccount": "Promijeni račun"
+      "switchAccount": "Promijeni račun",
+      "mcpConnectionEdit": "Promjene se primjenjuju na klijenta pri sljedećem pozivu. Tajna ostaje ista.",
+      "mcpConnectionsReachingBase": "Stvorite MCP veze vezane uz ovu bazu za AI klijente kao što su Claude, Codex ili Cursor.",
+      "mcpClientSetupKeyHidden": "Ključ se prikazuje samo pri stvaranju ili ponovnom generiranju veze, pa ova konfiguracija sadrži rezervirano mjesto."
     },
     "error": {
       "failedToCreateSync": "Sinhronizacija nije uspjela",
@@ -5922,7 +5978,8 @@
       "nCellsCopied": "Kopirano {n} ćelija",
       "nRecordCreated": "{n} zabilješka stvorena",
       "nRecordsCreated": "{n} stvorene zapise",
-      "interfaceFilterCopied": "Kopiran {count} uvjet | Kopirano {count} uvjeta"
+      "interfaceFilterCopied": "Kopiran {count} uvjet | Kopirano {count} uvjeta",
+      "changesSaved": "Promjene spremljene"
     },
     "success": {
       "restored": "Stavka je uspješno vraćena",

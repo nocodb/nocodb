@@ -258,7 +258,8 @@
       "audit": "Audit pracovního prostoru",
       "ltarCustomDisplayValue": "Vlastní pole hodnoty zobrazení",
       "publicDocShare": "Sdílení veřejných dokumentů",
-      "agents": "Agenti"
+      "agents": "Agenti",
+      "permissions": "Oprávnění k tabulkám a polím"
     },
     "upgradeToSortAndLimitLookupValues": "Pro řazení a omezení hodnot zobrazených v poli Lookup přejděte na tarif {plan}.",
     "upgradeToAddMoreAgents": "Přejděte na vyšší tarif a přidejte další agenty",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Přejděte na vyšší tarif a vytvářejte vlastní prostředí",
     "upgradeToUseCustomEnvironmentsSubtitle": "Vlastní prostředí nejsou ve vašem tarifu {activePlan} k dispozici. Přejděte na {plan} a vytvářejte prostředí nad rámec Production a Staging.",
     "upgradeToUseFormRequireSignin": "Upgradujte, abyste mohli u formulářů vyžadovat přihlášení",
-    "upgradeToUseFormRequireSigninSubtitle": "Upgradujte na tarif {plan}, abyste mohli od respondentů vyžadovat přihlášení před odesláním formuláře."
+    "upgradeToUseFormRequireSigninSubtitle": "Upgradujte na tarif {plan}, abyste mohli od respondentů vyžadovat přihlášení před odesláním formuláře.",
+    "upgradeToUseSso": "Upgradujte pro použití SSO",
+    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan} pro nastavení jednotného přihlášení (SSO) a umožněte svému týmu přihlašovat se pomocí vašeho poskytovatele identity."
   },
   "general": {
     "scrollToBottom": "Přejít na konec",
@@ -741,7 +744,12 @@
     "function": "Funkce",
     "functions": "Funkce",
     "otherTables": "Ostatní tabulky",
-    "viaNewLinkField": "přes nové pole odkazu"
+    "viaNewLinkField": "přes nové pole odkazu",
+    "test": "Otestovat",
+    "success": "Úspěch",
+    "manageFields": "Spravovat pole",
+    "tools": "Nástroje",
+    "allChangesSaved": "Všechny změny uloženy"
   },
   "objects": {
     "script": "Skript",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Názvy týmů uživatele i všech týmů pod nimi.",
           "currentUserTeamWithDescendantMembers": "Členové mých týmů",
           "currentUserTeamWithDescendantMembersDescription": "Všichni v týmech a podtýmech uživatele — použijte s podmínkou „obsahuje některý z“, abyste viděli záznamy svých podřízených."
-        }
+        },
+        "appliesTo": "Platí pro"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nikdo {description}",
@@ -1155,7 +1164,8 @@
     "weeks": "Týdny",
     "viewFolder": "Složka pohledů",
     "subRecord": "Podzáznam",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Šablony záznamů"
   },
   "datatype": {
     "ID": "ID",
@@ -1508,7 +1518,8 @@
     "newEnvironment": "Nové prostředí",
     "removeCustomDomain": "Odebrat vlastní doménu?",
     "tooNarrowToAdjustFrozenFields": "Okno je příliš úzké na úpravu ukotvených polí",
-    "themeSettings": "Nastavení vzhledu"
+    "themeSettings": "Nastavení vzhledu",
+    "nFields": "{count} pole | {count} polí"
   },
   "labels": {
     "syncing": "Synchronizace",
@@ -4328,11 +4339,49 @@
       "readWriteDelete": "Čtení, zápis a mazání",
       "allowShown": "Povolit zobrazené",
       "clearShown": "Zrušit zobrazené",
-      "shownOf": "Zobrazeno {shown} z {total}"
+      "shownOf": "Zobrazeno {shown} z {total}",
+      "levelAll": "{level} pro vše",
+      "toolsAllowed": "Povoleno {count} z {total} nástrojů",
+      "customTip": "Ručně vybrané nástroje. Vyberte úroveň pro obnovení řádku.",
+      "writes": "Zápisy",
+      "sections": {
+        "account": "Účet a pracovní prostory",
+        "accountDesc": "Kdo jste, vaše pracovní prostory, databáze v nich a odkazy do aplikace",
+        "records": "Záznamy a data",
+        "recordsDesc": "Záznamy, komentáře, import a export",
+        "schema": "Schéma",
+        "schemaDesc": "Tabulky, pole, duplikování a způsob uspořádání databáze",
+        "views": "Pohledy",
+        "viewsDesc": "Pohledy, filtry, řazení, sdílení, pole formulářů, barvy řádků",
+        "automation": "Automatizace",
+        "automationDesc": "Pracovní postupy, webhooky, skripty a agenti",
+        "interfaces": "Rozhraní, přehledy a dokumenty",
+        "interfacesDesc": "Stránky rozhraní, přehledy, widgety a dokumenty",
+        "access": "Přístup a zabezpečení",
+        "accessDesc": "Oprávnění k polím a tabulkám, zabezpečení na úrovni řádků",
+        "platform": "Platforma",
+        "platformDesc": "Integrace, prostředí a aplikace"
+      }
     },
     "noBaseAccess": "Žádný přístup k databázi",
     "signedInAs": "Přihlášen jako",
-    "moreAgents": "{count} další agent | {count} dalších agentů"
+    "moreAgents": "{count} další agent | {count} dalších agentů",
+    "mcpConnectionsLabel": "Vytvořte připojení MCP pro použití s AI klienty, jako jsou Claude, Codex nebo Cursor.",
+    "mcpConnections": "Připojení MCP",
+    "editMcpConnection": "Upravit připojení",
+    "mcpClientSetup": "Nastavení klienta",
+    "manageFieldsSubtext": "Upravit pole a zkontrolovat závislosti",
+    "relationsSubtext": "Vizualizujte a spravujte vztahy mezi tabulkami",
+    "apiSnippetSubtext": "Vygenerovat kód pro dotazování této tabulky přes API",
+    "webhooksSubtext": "Automatizujte externí volání při změně záznamů",
+    "permissionsSubtext": "Určete, kdo může zobrazovat a upravovat data",
+    "rlsSubtext": "Omezte přístup k záznamům pomocí zásad",
+    "dateDependencySubtext": "Posunout data u závislých záznamů",
+    "recordTemplatesSubtext": "Vytvářejte záznamy z uložené šablony",
+    "toolsSectionStructure": "Struktura",
+    "toolsSectionAccess": "Přístup a zabezpečení",
+    "toolsSectionRecords": "Záznamy",
+    "toolsSectionDeveloper": "Vývojář"
   },
   "activity": {
     "useTemplate": "Použít šablonu",
@@ -4827,7 +4876,9 @@
     "freezeColumnsCount": "Ukotvit {count} sloupec | Ukotvit {count} sloupců",
     "marketplaceComingSoon": "Tato aplikace se ještě balí, takže ji zatím nelze nainstalovat.",
     "marketplaceAuthored": "Napsal vydavatel, není odvozeno z obsahu aplikace.",
-    "marketplaceVerifiedPublisher": "Publikováno a zkontrolováno společností NocoDB"
+    "marketplaceVerifiedPublisher": "Publikováno a zkontrolováno společností NocoDB",
+    "showCustomPermissionFieldsOnly": "Zobrazit pouze pole s vlastními oprávněními",
+    "showAllFields": "Zobrazit všechna pole"
   },
   "placeholder": {
     "enterVerificationCode": "Zadejte 6místný kód",
@@ -4987,7 +5038,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Hledat dovednosti...",
     "messageAgent": "Zpráva pro {agent}",
-    "somethingElse": "Něco jiného"
+    "somethingElse": "Něco jiného",
+    "noMcpConnections": "Nebyla vytvořena žádná připojení MCP",
+    "noMcpConnectionsLabel": "Zdá se, že jste zatím nevytvořili žádné připojení MCP."
   },
   "msg": {
     "sourceViewNotShared": "Synchronizace je v tomto zobrazení zakázána",
@@ -5695,7 +5748,10 @@
       "seeWhoSubmittedSubtitle": "Vyžaduje přihlášení do NocoDB.",
       "seeWhoSubmittedDisabledHint": "Chcete-li tuto možnost povolit, přidejte do tabulky pole „Vytvořil/a“.",
       "formRequiresSignin": "Přístup k tomuto formuláři vyžaduje přihlášení do NocoDB.",
-      "switchAccount": "Přepnout účet"
+      "switchAccount": "Přepnout účet",
+      "mcpConnectionEdit": "Změny se v klientovi projeví při dalším volání. Tajný klíč zůstává stejný.",
+      "mcpConnectionsReachingBase": "Vytvořte připojení MCP navázaná na tuto databázi pro AI klienty, jako jsou Claude, Codex nebo Cursor.",
+      "mcpClientSetupKeyHidden": "Klíč se zobrazí pouze při vytvoření nebo opětovném vygenerování připojení, proto tato konfigurace obsahuje zástupný symbol."
     },
     "error": {
       "failedToCreateSync": "Nepodařilo se vytvořit synchronizaci",
@@ -5919,7 +5975,8 @@
       "nCellsCopied": "{n} buněk zkopírováno",
       "nRecordCreated": "{n} záznam vytvořen",
       "nRecordsCreated": "{n} záznamy vytvořeny",
-      "interfaceFilterCopied": "Zkopírována {count} podmínka | Zkopírováno {count} podmínek"
+      "interfaceFilterCopied": "Zkopírována {count} podmínka | Zkopírováno {count} podmínek",
+      "changesSaved": "Změny uloženy"
     },
     "success": {
       "restored": "Položka byla úspěšně obnovena",

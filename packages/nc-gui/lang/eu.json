@@ -258,7 +258,8 @@
       "audit": "Lan-espazioaren auditoria",
       "ltarCustomDisplayValue": "Erakustaldiaren balio pertsonalizatuko eremua",
       "publicDocShare": "Dokumentu Publikoen Partekatzea",
-      "agents": "Agenteak"
+      "agents": "Agenteak",
+      "permissions": "Taula- eta eremu-baimenak"
     },
     "upgradeToSortAndLimitLookupValues": "Bilaketa-eremu batean erakusten diren balioak ordenatzeko eta mugatzeko, hobetu {plan} planera.",
     "upgradeToAddMoreAgents": "Hobetu plana agente gehiago gehitzeko",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Hobetu plana zeure inguruneak sortzeko",
     "upgradeToUseCustomEnvironmentsSubtitle": "Ingurune pertsonalizatuak ez daude eskuragarri zure {activePlan} planean. Hobetu {plan} planera Production eta Staging ez beste ingurune batzuk sortzeko.",
     "upgradeToUseFormRequireSignin": "Bertsio-berritu inprimakietan saioa hastea eskatzeko",
-    "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko."
+    "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko.",
+    "upgradeToUseSso": "SSO erabiltzeko eguneratu",
+    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko."
   },
   "general": {
     "scrollToBottom": "Behera irristatu",
@@ -741,7 +744,12 @@
     "function": "Funtzioa",
     "functions": "Funtzioak",
     "otherTables": "Beste taula batzuk",
-    "viaNewLinkField": "esteka-eremu berri baten bidez"
+    "viaNewLinkField": "esteka-eremu berri baten bidez",
+    "test": "Probatu",
+    "success": "Ondo egin da",
+    "manageFields": "Kudeatu eremuak",
+    "tools": "Tresnak",
+    "allChangesSaved": "Aldaketa guztiak gordeta"
   },
   "objects": {
     "script": "Script",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Erabiltzailearen taldeen eta haien azpiko talde guztien izenak.",
           "currentUserTeamWithDescendantMembers": "Nire taldeetako kideak",
           "currentUserTeamWithDescendantMembersDescription": "Erabiltzailearen taldeetako eta azpitaldeetako denak — erabili «hauetakoren bat du» baldintzarekin zure menpekoen erregistroak ikusteko."
-        }
+        },
+        "appliesTo": "Hauei aplikatzen zaie"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Inor ez {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "Asteak",
     "viewFolder": "Ikuspegien karpeta",
     "subRecord": "Azpierregistroa",
-    "video": "Bideoa"
+    "video": "Bideoa",
+    "recordTemplates": "Erregistro-txantiloiak"
   },
   "datatype": {
     "ID": "IDa",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "Ingurune berria",
     "removeCustomDomain": "Domeinu pertsonalizatua kendu?",
     "tooNarrowToAdjustFrozenFields": "Leihoa estuegia da izoztutako eremuak doitzeko",
-    "themeSettings": "Gaiaren ezarpenak"
+    "themeSettings": "Gaiaren ezarpenak",
+    "nFields": "{count} eremu | {count} eremu"
   },
   "labels": {
     "syncing": "Sinkronizatzea",
@@ -4331,11 +4342,49 @@
       "readWriteDelete": "Irakurri, idatzi eta ezabatu",
       "allowShown": "Baimendu erakutsitakoak",
       "clearShown": "Garbitu erakutsitakoak",
-      "shownOf": "{total}(e)tik {shown} erakutsita"
+      "shownOf": "{total}(e)tik {shown} erakutsita",
+      "levelAll": "{level} guztientzat",
+      "toolsAllowed": "{total} tresnatik {count} onartuta",
+      "customTip": "Eskuz hautatutako tresnak. Hautatu maila bat errenkada berrezartzeko.",
+      "writes": "Idazketak",
+      "sections": {
+        "account": "Kontua eta lan-espazioak",
+        "accountDesc": "Nor zaren, zure lan-espazioak, haietako baseak eta aplikaziorako estekak",
+        "records": "Erregistroak eta datuak",
+        "recordsDesc": "Erregistroak, iruzkinak, inportazioa eta esportazioa",
+        "schema": "Eskema",
+        "schemaDesc": "Taulak, eremuak, bikoiztea eta base bat nola antolatuta dagoen",
+        "views": "Bistak",
+        "viewsDesc": "Bistak, iragazkiak, ordenak, partekatzea, inprimaki-eremuak, errenkaden koloreak",
+        "automation": "Automatizazioa",
+        "automationDesc": "Lan-fluxuak, webhook-ak, script-ak eta agenteak",
+        "interfaces": "Interfazeak, arbelak eta docs",
+        "interfacesDesc": "Interfaze-orriak, arbelak, widget-ak eta dokumentuak",
+        "access": "Sarbidea eta segurtasuna",
+        "accessDesc": "Eremu- eta taula-baimenak, errenkada mailako segurtasuna",
+        "platform": "Plataforma",
+        "platformDesc": "Integrazioak, inguruneak eta aplikazioak"
+      }
     },
     "noBaseAccess": "Ez dago baserako sarbiderik",
     "signedInAs": "Saioa honela hasita",
-    "moreAgents": "Beste agente {count} | Beste {count} agente"
+    "moreAgents": "Beste agente {count} | Beste {count} agente",
+    "mcpConnectionsLabel": "Sortu MCP konexioak Claude, Codex edo Cursor bezalako AA bezeroekin erabiltzeko.",
+    "mcpConnections": "MCP konexioak",
+    "editMcpConnection": "Editatu konexioa",
+    "mcpClientSetup": "Bezeroaren konfigurazioa",
+    "manageFieldsSubtext": "Editatu eremuak eta aztertu mendekotasunak",
+    "relationsSubtext": "Bistaratu eta kudeatu taulen arteko erlazioak",
+    "apiSnippetSubtext": "Sortu kodea taula hau API bidez kontsultatzeko",
+    "webhooksSubtext": "Automatizatu kanpoko deiak erregistroak aldatzen direnean",
+    "permissionsSubtext": "Kontrolatu nork ikus eta edita ditzakeen datuak",
+    "rlsSubtext": "Mugatu erregistroetarako sarbidea politiken bidez",
+    "dateDependencySubtext": "Aldatu datak mendeko erregistroetan",
+    "recordTemplatesSubtext": "Sortu erregistroak gordetako txantiloi batetik",
+    "toolsSectionStructure": "Egitura",
+    "toolsSectionAccess": "Sarbidea eta segurtasuna",
+    "toolsSectionRecords": "Erregistroak",
+    "toolsSectionDeveloper": "Garatzailea"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -4830,7 +4879,9 @@
     "freezeColumnsCount": "Izoztu zutabe {count} | Izoztu {count} zutabe",
     "marketplaceComingSoon": "Aplikazio hau oraindik prestatzen ari da, beraz oraindik ezin da instalatu.",
     "marketplaceAuthored": "Argitaratzaileak idatzia, ez da aplikazioaren edukitik atera.",
-    "marketplaceVerifiedPublisher": "NocoDB enpresak argitaratua eta berrikusia"
+    "marketplaceVerifiedPublisher": "NocoDB enpresak argitaratua eta berrikusia",
+    "showCustomPermissionFieldsOnly": "Erakutsi baimen pertsonalizatuak dituzten eremuak soilik",
+    "showAllFields": "Erakutsi eremu guztiak"
   },
   "placeholder": {
     "enterVerificationCode": "Sartu sei digitu kodea",
@@ -4990,7 +5041,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Bilatu trebetasunak...",
     "messageAgent": "Idatzi mezua {agent} agenteari",
-    "somethingElse": "Beste zerbait"
+    "somethingElse": "Beste zerbait",
+    "noMcpConnections": "Ez da MCP konexiorik sortu",
+    "noMcpConnectionsLabel": "Badirudi oraindik ez duzula MCP konexiorik sortu."
   },
   "msg": {
     "sourceViewNotShared": "Ikuspegi honetan sinkronizazioa desgaituta dago.",
@@ -5698,7 +5751,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB-n saioa hastea beharrezkoa da.",
       "seeWhoSubmittedDisabledHint": "Gehitu «Sortzailea» eremua zure taulari aukera hau gaitzeko.",
       "formRequiresSignin": "Inprimaki hau atzitzeko NocoDB-n saioa hasi behar duzu.",
-      "switchAccount": "Aldatu kontua"
+      "switchAccount": "Aldatu kontua",
+      "mcpConnectionEdit": "Aldaketak hurrengo deian aplikatuko zaizkio bezeroari. Sekretua berdin mantentzen da.",
+      "mcpConnectionsReachingBase": "Sortu base honi lotutako MCP konexioak Claude, Codex edo Cursor bezalako AA bezeroentzat.",
+      "mcpClientSetupKeyHidden": "Gakoa konexio bat sortzean edo birsortzean bakarrik erakusten da; beraz, konfigurazio honek leku-marka bat darama."
     },
     "error": {
       "failedToCreateSync": "Sinkronizazioa sortzeko huts egin da",
@@ -5922,7 +5978,8 @@
       "nCellsCopied": "{n} gelaxka kopiatuta",
       "nRecordCreated": "{n} Erregistroa sortu da",
       "nRecordsCreated": "{n} Sortutako erregistroak",
-      "interfaceFilterCopied": "Baldintza {count} kopiatu da | {count} baldintza kopiatu dira"
+      "interfaceFilterCopied": "Baldintza {count} kopiatu da | {count} baldintza kopiatu dira",
+      "changesSaved": "Aldaketak gordeta"
     },
     "success": {
       "restored": "Elementua arrakastaz berreskuratu da",

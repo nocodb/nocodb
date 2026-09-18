@@ -258,7 +258,8 @@
       "audit": "Audit de l'espace de travail",
       "ltarCustomDisplayValue": "Champ de valeur d'affichage personnalisé",
       "publicDocShare": "Partage de documents publics",
-      "agents": "Agents"
+      "agents": "Agents",
+      "permissions": "Permissions sur les tables et les champs"
     },
     "upgradeToSortAndLimitLookupValues": "Pour trier et limiter les valeurs affichées dans un champ Lookup, veuillez passer au plan {plan}.",
     "upgradeToAddMoreAgents": "Passez à un plan supérieur pour ajouter plus d'Agents",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Passez à un plan supérieur pour créer des environnements personnalisés",
     "upgradeToUseCustomEnvironmentsSubtitle": "Les environnements personnalisés ne sont pas disponibles dans votre plan {activePlan}. Passez à {plan} pour créer des environnements au-delà de Production et Staging.",
     "upgradeToUseFormRequireSignin": "Passez à une offre supérieure pour exiger une connexion sur les formulaires",
-    "upgradeToUseFormRequireSigninSubtitle": "Passez au plan {plan} pour exiger que les répondants se connectent avant d’envoyer un formulaire."
+    "upgradeToUseFormRequireSigninSubtitle": "Passez au plan {plan} pour exiger que les répondants se connectent avant d’envoyer un formulaire.",
+    "upgradeToUseSso": "Mettre à niveau pour utiliser le SSO",
+    "upgradeToUseSsoSubtitle": "Passez au plan {plan} pour configurer l'authentification unique (SSO) et permettre à votre équipe de se connecter avec votre fournisseur d'identité."
   },
   "general": {
     "scrollToBottom": "Défiler vers le bas",
@@ -738,7 +741,12 @@
     "function": "Fonction",
     "functions": "Fonctions",
     "otherTables": "Autres tableaux",
-    "viaNewLinkField": "via un nouveau champ de lien"
+    "viaNewLinkField": "via un nouveau champ de lien",
+    "test": "Tester",
+    "success": "Succès",
+    "manageFields": "Gérer les champs",
+    "tools": "Outils",
+    "allChangesSaved": "Toutes les modifications sont enregistrées"
   },
   "objects": {
     "script": "Script",
@@ -1047,7 +1055,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Noms des équipes de l'utilisateur ainsi que de toutes celles qui en dépendent.",
           "currentUserTeamWithDescendantMembers": "Membres de mes équipes",
           "currentUserTeamWithDescendantMembersDescription": "Toutes les personnes des équipes et sous-équipes de l'utilisateur — à utiliser avec « contient l'un de » pour voir les enregistrements de vos collaborateurs."
-        }
+        },
+        "appliesTo": "S'applique à"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Personne {description}",
@@ -1152,7 +1161,8 @@
     "weeks": "Semaines",
     "viewFolder": "Dossier de vues",
     "subRecord": "Sous-enregistrement",
-    "video": "Vidéo"
+    "video": "Vidéo",
+    "recordTemplates": "Modèles d'enregistrement"
   },
   "datatype": {
     "ID": "Identifiant",
@@ -1505,7 +1515,8 @@
     "newEnvironment": "Nouvel environnement",
     "removeCustomDomain": "Supprimer le domaine personnalisé ?",
     "tooNarrowToAdjustFrozenFields": "La fenêtre est trop étroite pour ajuster les champs figés",
-    "themeSettings": "Paramètres du thème"
+    "themeSettings": "Paramètres du thème",
+    "nFields": "{count} champ | {count} champs"
   },
   "labels": {
     "syncing": "Synchronisation en cours",
@@ -4296,11 +4307,48 @@
       "readWriteDelete": "Lecture, écriture et suppression",
       "allowShown": "Autoriser les éléments affichés",
       "clearShown": "Effacer les éléments affichés",
-      "shownOf": "{shown} sur {total} affichés"
+      "shownOf": "{shown} sur {total} affichés",
+      "levelAll": "{level} pour tout",
+      "toolsAllowed": "{count} outils autorisés sur {total}",
+      "customTip": "Outils sélectionnés manuellement. Choisissez un niveau pour réinitialiser la ligne.",
+      "writes": "Écritures",
+      "sections": {
+        "account": "Compte et espaces de travail",
+        "accountDesc": "Qui vous êtes, vos espaces de travail, les bases qu'ils contiennent et les liens vers l'application",
+        "records": "Enregistrements et données",
+        "recordsDesc": "Enregistrements, commentaires, import et export",
+        "schema": "Schéma",
+        "schemaDesc": "Tables, champs, duplication et organisation d'une base",
+        "views": "Vues",
+        "viewsDesc": "Vues, filtres, tris, partage, champs de formulaire, couleurs de ligne",
+        "automation": "Automatisation",
+        "automationDesc": "Workflows, webhooks, scripts et agents",
+        "interfaces": "Interfaces, tableaux de bord et docs",
+        "interfacesDesc": "Pages d'interface, tableaux de bord, widgets et documents",
+        "access": "Accès et sécurité",
+        "accessDesc": "Permissions sur les champs et les tables, sécurité au niveau des lignes",
+        "platform": "Plateforme",
+        "platformDesc": "Intégrations, environnements et applications"
+      }
     },
     "noBaseAccess": "Aucun accès à la base",
     "signedInAs": "Connecté en tant que",
-    "moreAgents": "{count} agent de plus | {count} agents de plus"
+    "moreAgents": "{count} agent de plus | {count} agents de plus",
+    "mcpConnectionsLabel": "Créez des connexions MCP à utiliser avec des clients IA tels que Claude, Codex ou Cursor.",
+    "mcpConnections": "Connexions MCP",
+    "editMcpConnection": "Modifier la connexion",
+    "mcpClientSetup": "Configuration du client",
+    "manageFieldsSubtext": "Modifier les champs et inspecter les dépendances",
+    "relationsSubtext": "Visualiser et gérer les relations entre les tables",
+    "apiSnippetSubtext": "Générer du code pour interroger cette table via l'API",
+    "webhooksSubtext": "Automatiser les appels externes lorsque les enregistrements changent",
+    "permissionsSubtext": "Contrôler qui peut consulter et modifier les données",
+    "rlsSubtext": "Restreindre l'accès aux enregistrements par des politiques",
+    "dateDependencySubtext": "Décaler les dates sur les enregistrements dépendants",
+    "recordTemplatesSubtext": "Créer des enregistrements à partir d'un modèle enregistré",
+    "toolsSectionAccess": "Accès et sécurité",
+    "toolsSectionRecords": "Enregistrements",
+    "toolsSectionDeveloper": "Développeur"
   },
   "activity": {
     "useTemplate": "Utiliser le modèle",
@@ -4792,7 +4840,9 @@
     "freezeColumnsCount": "Figer {count} colonne | Figer {count} colonnes",
     "marketplaceComingSoon": "Cette App est encore en cours de préparation et ne peut donc pas encore être installée.",
     "marketplaceAuthored": "Rédigé par l'éditeur, et non déduit du contenu de l'App.",
-    "marketplaceVerifiedPublisher": "Publié et vérifié par NocoDB"
+    "marketplaceVerifiedPublisher": "Publié et vérifié par NocoDB",
+    "showCustomPermissionFieldsOnly": "Afficher uniquement les champs avec des permissions personnalisées",
+    "showAllFields": "Afficher tous les champs"
   },
   "placeholder": {
     "enterVerificationCode": "Entrez le code à 6 chiffres",
@@ -4952,7 +5002,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Rechercher des compétences...",
     "messageAgent": "Message à {agent}",
-    "somethingElse": "Autre chose"
+    "somethingElse": "Autre chose",
+    "noMcpConnections": "Aucune connexion MCP créée",
+    "noMcpConnectionsLabel": "Il semble que vous n'ayez pas encore créé de connexion MCP."
   },
   "msg": {
     "sourceViewNotShared": "La synchronisation est désactivée sur cette vue",
@@ -5660,7 +5712,10 @@
       "seeWhoSubmittedSubtitle": "Connexion à NocoDB requise.",
       "seeWhoSubmittedDisabledHint": "Ajoutez un champ « Créé par » à votre tableau pour activer cette option.",
       "formRequiresSignin": "L’accès à ce formulaire nécessite une connexion à NocoDB.",
-      "switchAccount": "Changer de compte"
+      "switchAccount": "Changer de compte",
+      "mcpConnectionEdit": "Les modifications s'appliquent au client lors de son prochain appel. Le secret reste inchangé.",
+      "mcpConnectionsReachingBase": "Créez des connexions MCP rattachées à cette base pour des clients IA tels que Claude, Codex ou Cursor.",
+      "mcpClientSetupKeyHidden": "La clé n'est affichée qu'à la création ou à la régénération d'une connexion ; cette configuration contient donc un espace réservé."
     },
     "error": {
       "failedToCreateSync": "Échec de la création de la synchronisation",
@@ -5884,7 +5939,8 @@
       "nCellsCopied": "{n} cellules copiées",
       "nRecordCreated": "Enregistrement {n} créé",
       "nRecordsCreated": "Enregistrements {n} créés",
-      "interfaceFilterCopied": "{count} condition copiée | {count} conditions copiées"
+      "interfaceFilterCopied": "{count} condition copiée | {count} conditions copiées",
+      "changesSaved": "Modifications enregistrées"
     },
     "success": {
       "restored": "Élément restauré avec succès",

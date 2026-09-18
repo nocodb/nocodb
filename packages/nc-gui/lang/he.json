@@ -258,7 +258,8 @@
       "audit": "ביקורת סביבת העבודה",
       "ltarCustomDisplayValue": "שדה ערך תצוגה מותאם אישית",
       "publicDocShare": "שיתוף מסמכים ציבוריים",
-      "agents": "סוכנים"
+      "agents": "סוכנים",
+      "permissions": "הרשאות לטבלאות ולשדות"
     },
     "upgradeToSortAndLimitLookupValues": "כדי למיין ולהגביל את הערכים המוצגים בשדה Lookup, שדרגו לתוכנית {plan}.",
     "upgradeToAddMoreAgents": "שדרגו כדי להוסיף עוד סוכנים",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "שדרגו כדי ליצור סביבות מותאמות",
     "upgradeToUseCustomEnvironmentsSubtitle": "סביבות מותאמות אינן זמינות בתוכנית {activePlan} שלכם. שדרגו ל-{plan} כדי ליצור סביבות מעבר ל-Production ו-Staging.",
     "upgradeToUseFormRequireSignin": "שדרג כדי לדרוש התחברות בטפסים",
-    "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס."
+    "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס.",
+    "upgradeToUseSso": "שדרג כדי להשתמש ב-SSO",
+    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך."
   },
   "general": {
     "scrollToBottom": "גלול למטה",
@@ -741,7 +744,12 @@
     "function": "פונקציה",
     "functions": "פונקציות",
     "otherTables": "טבלאות אחרות",
-    "viaNewLinkField": "באמצעות שדה קישור חדש"
+    "viaNewLinkField": "באמצעות שדה קישור חדש",
+    "test": "בדיקה",
+    "success": "הצלחה",
+    "manageFields": "ניהול שדות",
+    "tools": "כלים",
+    "allChangesSaved": "כל השינויים נשמרו"
   },
   "objects": {
     "script": "סקריפט",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "שמות הצוותים של המשתמש וכן כל צוות שמתחתיהם.",
           "currentUserTeamWithDescendantMembers": "חברי הצוותים שלי",
           "currentUserTeamWithDescendantMembersDescription": "כל מי שנמצא בצוותים ובתתי־הצוותים של המשתמש — השתמשו בזה עם «מכיל אחד מ» כדי לראות את הרשומות של הכפופים לכם."
-        }
+        },
+        "appliesTo": "חל על"
       },
       "inlineUserSelector": {
         "noUsersSelected": "אף אחד {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "שבועות",
     "viewFolder": "תיקיית תצוגות",
     "subRecord": "רשומת משנה",
-    "video": "וידאו"
+    "video": "וידאו",
+    "recordTemplates": "תבניות רשומה"
   },
   "datatype": {
     "ID": "תְעוּדַת זֶהוּת",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "סביבה חדשה",
     "removeCustomDomain": "להסיר את הדומיין המותאם?",
     "tooNarrowToAdjustFrozenFields": "החלון צר מדי כדי לכוונן את השדות המוקפאים",
-    "themeSettings": "הגדרות ערכת נושא"
+    "themeSettings": "הגדרות ערכת נושא",
+    "nFields": "{count} שדה | {count} שדות"
   },
   "labels": {
     "syncing": "סנכרון",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "קריאה, כתיבה ומחיקה",
       "allowShown": "אפשר את המוצגים",
       "clearShown": "נקה את המוצגים",
-      "shownOf": "{shown} מתוך {total} מוצגים"
+      "shownOf": "{shown} מתוך {total} מוצגים",
+      "levelAll": "{level} להכול",
+      "toolsAllowed": "{count} מתוך {total} כלים מורשים",
+      "customTip": "כלים שנבחרו ידנית. בחר רמה כדי לאפס את השורה.",
+      "writes": "כתיבות",
+      "sections": {
+        "account": "חשבון ומרחבי עבודה",
+        "accountDesc": "מי אתה, מרחבי העבודה שלך, הבסיסים שבהם וקישורים לאפליקציה",
+        "records": "רשומות ונתונים",
+        "recordsDesc": "רשומות, תגובות, ייבוא וייצוא",
+        "schema": "סכמה",
+        "schemaDesc": "טבלאות, שדות, שכפול וכיצד בסיס מאורגן",
+        "views": "תצוגות",
+        "viewsDesc": "תצוגות, מסננים, מיונים, שיתוף, שדות טופס, צבעי שורות",
+        "automation": "אוטומציה",
+        "automationDesc": "תהליכי עבודה, Webhooks, סקריפטים וסוכנים",
+        "interfaces": "ממשקים, לוחות בקרה ומסמכים",
+        "interfacesDesc": "דפי ממשק, לוחות בקרה, יישומונים ומסמכים",
+        "access": "גישה ואבטחה",
+        "accessDesc": "הרשאות לשדות ולטבלאות, אבטחה ברמת השורה",
+        "platform": "פלטפורמה",
+        "platformDesc": "אינטגרציות, סביבות ואפליקציות"
+      }
     },
     "noBaseAccess": "אין גישה לבסיס",
     "signedInAs": "מחובר בתור",
-    "moreAgents": "עוד סוכן {count} | עוד {count} סוכנים"
+    "moreAgents": "עוד סוכן {count} | עוד {count} סוכנים",
+    "mcpConnectionsLabel": "צור חיבורי MCP לשימוש עם לקוחות בינה מלאכותית כגון Claude, Codex או Cursor.",
+    "mcpConnections": "חיבורי MCP",
+    "editMcpConnection": "עריכת חיבור",
+    "mcpClientSetup": "הגדרת לקוח",
+    "manageFieldsSubtext": "עריכת שדות ובדיקת תלויות",
+    "relationsSubtext": "הצג ונהל את הקשרים בין הטבלאות",
+    "apiSnippetSubtext": "יצירת קוד לשאילתה על טבלה זו דרך ה-API",
+    "webhooksSubtext": "הפוך קריאות חיצוניות לאוטומטיות כאשר רשומות משתנות",
+    "permissionsSubtext": "קבע מי יכול לצפות בנתונים ולערוך אותם",
+    "rlsSubtext": "הגבל גישה לרשומות באמצעות מדיניות",
+    "dateDependencySubtext": "הסטת תאריכים ברשומות תלויות",
+    "recordTemplatesSubtext": "צור רשומות מתבנית שמורה",
+    "toolsSectionStructure": "מבנה",
+    "toolsSectionAccess": "גישה ואבטחה",
+    "toolsSectionRecords": "רשומות",
+    "toolsSectionDeveloper": "מפתח"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "הקפאת עמודה {count} | הקפאת {count} עמודות",
     "marketplaceComingSoon": "האפליקציה הזו עדיין נארזת, ולכן עוד אי אפשר להתקין אותה.",
     "marketplaceAuthored": "נכתב על ידי המפרסם, ולא הופק מתוכן האפליקציה.",
-    "marketplaceVerifiedPublisher": "פורסם ונבדק על ידי NocoDB"
+    "marketplaceVerifiedPublisher": "פורסם ונבדק על ידי NocoDB",
+    "showCustomPermissionFieldsOnly": "הצג רק שדות עם הרשאות מותאמות אישית",
+    "showAllFields": "הצג את כל השדות"
   },
   "placeholder": {
     "enterVerificationCode": "הזן קוד בן 6 ספרות",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "חיפוש מיומנויות...",
     "messageAgent": "הודעה אל {agent}",
-    "somethingElse": "משהו אחר"
+    "somethingElse": "משהו אחר",
+    "noMcpConnections": "לא נוצרו חיבורי MCP",
+    "noMcpConnectionsLabel": "נראה שעדיין לא יצרת חיבורי MCP."
   },
   "msg": {
     "sourceViewNotShared": "הסנכרון מושבת בתצוגה זו",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "נדרשת התחברות ל-NocoDB.",
       "seeWhoSubmittedDisabledHint": "הוסף שדה ‘נוצר על ידי’ לטבלה שלך כדי להפעיל אפשרות זו.",
       "formRequiresSignin": "גישה לטופס זה מחייבת התחברות ל-NocoDB.",
-      "switchAccount": "החלף חשבון"
+      "switchAccount": "החלף חשבון",
+      "mcpConnectionEdit": "השינויים יחולו על הלקוח בקריאה הבאה שלו. הסוד נשאר זהה.",
+      "mcpConnectionsReachingBase": "צור חיבורי MCP המקושרים לבסיס זה עבור לקוחות בינה מלאכותית כגון Claude, Codex או Cursor.",
+      "mcpClientSetupKeyHidden": "המפתח מוצג רק בעת יצירת חיבור או יצירתו מחדש, ולכן תצורה זו כוללת מציין מיקום."
     },
     "error": {
       "failedToCreateSync": "לא הצליח ליצור סנכרון",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "‎{n}‎ תאים הועתקו",
       "nRecordCreated": "{n} הרשומה נוצרה",
       "nRecordsCreated": "{n} רשומות שנוצרו",
-      "interfaceFilterCopied": "הועתק {count} תנאי | הועתקו {count} תנאים"
+      "interfaceFilterCopied": "הועתק {count} תנאי | הועתקו {count} תנאים",
+      "changesSaved": "השינויים נשמרו"
     },
     "success": {
       "restored": "הפריט שוחזר בהצלחה",

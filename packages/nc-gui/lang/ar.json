@@ -258,7 +258,8 @@
       "audit": "مراجعة مساحة العمل",
       "ltarCustomDisplayValue": "حقل قيمة العرض المخصص",
       "publicDocShare": "مشاركة المستندات العامة",
-      "agents": "الوكلاء"
+      "agents": "الوكلاء",
+      "permissions": "أذونات الجداول والحقول"
     },
     "upgradeToSortAndLimitLookupValues": "لفرز القيم المعروضة في حقل Lookup وتحديد عددها، يُرجى الارتقاء إلى خطة {plan}.",
     "upgradeToAddMoreAgents": "ارتقِ لإضافة المزيد من الوكلاء",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "ارتقِ لإنشاء بيئات مخصصة",
     "upgradeToUseCustomEnvironmentsSubtitle": "البيئات المخصصة غير متاحة في خطتك {activePlan}. ارتقِ إلى {plan} لإنشاء بيئات إلى جانب Production و Staging.",
     "upgradeToUseFormRequireSignin": "قم بالترقية لطلب تسجيل الدخول في النماذج",
-    "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج."
+    "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج.",
+    "upgradeToUseSso": "الترقية لاستخدام SSO",
+    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك."
   },
   "general": {
     "scrollToBottom": "التمرير إلى الأسفل",
@@ -741,7 +744,12 @@
     "function": "دالة",
     "functions": "الدوال",
     "otherTables": "جداول أخرى",
-    "viaNewLinkField": "عبر حقل ربط جديد"
+    "viaNewLinkField": "عبر حقل ربط جديد",
+    "test": "اختبار",
+    "success": "نجاح",
+    "manageFields": "إدارة الحقول",
+    "tools": "الأدوات",
+    "allChangesSaved": "تم حفظ جميع التغييرات"
   },
   "objects": {
     "script": "سكربت",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "أسماء فرق المستخدم إضافة إلى كل فريق يقع تحتها.",
           "currentUserTeamWithDescendantMembers": "أعضاء فرقي",
           "currentUserTeamWithDescendantMembersDescription": "كل من في فرق المستخدم وفرقه الفرعية — استخدمه مع «يحتوي على أي من» لترى سجلات مرؤوسيك."
-        }
+        },
+        "appliesTo": "ينطبق على"
       },
       "inlineUserSelector": {
         "noUsersSelected": "لا أحد {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "أسابيع",
     "viewFolder": "مجلد العروض",
     "subRecord": "سجل فرعي",
-    "video": "فيديو"
+    "video": "فيديو",
+    "recordTemplates": "قوالب السجلات"
   },
   "datatype": {
     "ID": "هوية",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "بيئة جديدة",
     "removeCustomDomain": "إزالة النطاق المخصص؟",
     "tooNarrowToAdjustFrozenFields": "النافذة ضيقة جدًا لتعديل الحقول المثبَّتة",
-    "themeSettings": "إعدادات السمة"
+    "themeSettings": "إعدادات السمة",
+    "nFields": "{count} حقل | {count} حقول"
   },
   "labels": {
     "syncing": "مزامنة",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "القراءة والكتابة والحذف",
       "allowShown": "السماح بالمعروضة",
       "clearShown": "مسح المعروضة",
-      "shownOf": "معروض {shown} من {total}"
+      "shownOf": "معروض {shown} من {total}",
+      "levelAll": "{level} للكل",
+      "toolsAllowed": "مسموح بـ {count} من {total} أداة",
+      "customTip": "أدوات مختارة يدويًا. اختر مستوى لإعادة تعيين الصف.",
+      "writes": "عمليات الكتابة",
+      "sections": {
+        "account": "الحساب ومساحات العمل",
+        "accountDesc": "من أنت، ومساحات العمل الخاصة بك، والقواعد الموجودة فيها، والروابط إلى التطبيق",
+        "records": "السجلات والبيانات",
+        "recordsDesc": "السجلات والتعليقات والاستيراد والتصدير",
+        "schema": "المخطط",
+        "schemaDesc": "الجداول والحقول والنسخ وكيفية تنظيم القاعدة",
+        "views": "طرق العرض",
+        "viewsDesc": "طرق العرض، والمرشحات، والفرز، والمشاركة، وحقول النماذج، وألوان الصفوف",
+        "automation": "الأتمتة",
+        "automationDesc": "سير العمل، وWebhooks، والبرامج النصية، والوكلاء",
+        "interfaces": "الواجهات ولوحات التحكم والمستندات",
+        "interfacesDesc": "صفحات الواجهة، ولوحات التحكم، والأدوات المصغرة، والمستندات",
+        "access": "الوصول والأمان",
+        "accessDesc": "أذونات الحقول والجداول، والأمان على مستوى الصف",
+        "platform": "المنصة",
+        "platformDesc": "التكاملات والبيئات والتطبيقات"
+      }
     },
     "noBaseAccess": "لا يوجد وصول إلى القاعدة",
     "signedInAs": "تم تسجيل الدخول باسم",
-    "moreAgents": "{count} وكيل آخر | {count} وكلاء آخرون"
+    "moreAgents": "{count} وكيل آخر | {count} وكلاء آخرون",
+    "mcpConnectionsLabel": "أنشئ اتصالات MCP لاستخدامها مع عملاء الذكاء الاصطناعي مثل Claude أو Codex أو Cursor.",
+    "mcpConnections": "اتصالات MCP",
+    "editMcpConnection": "تعديل الاتصال",
+    "mcpClientSetup": "إعداد العميل",
+    "manageFieldsSubtext": "تعديل الحقول وفحص التبعيات",
+    "relationsSubtext": "تصور علاقات الجداول وأدرها",
+    "apiSnippetSubtext": "إنشاء رمز برمجي للاستعلام عن هذا الجدول عبر API",
+    "webhooksSubtext": "أتمتة الاستدعاءات الخارجية عند تغير السجلات",
+    "permissionsSubtext": "تحكم في من يمكنه عرض البيانات وتحريرها",
+    "rlsSubtext": "قيّد الوصول إلى السجلات باستخدام السياسات",
+    "dateDependencySubtext": "إزاحة التواريخ عبر السجلات التابعة",
+    "recordTemplatesSubtext": "أنشئ سجلات من قالب محفوظ",
+    "toolsSectionStructure": "البنية",
+    "toolsSectionAccess": "الوصول والأمان",
+    "toolsSectionRecords": "السجلات",
+    "toolsSectionDeveloper": "المطور"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "تثبيت عمود {count} | تثبيت {count} أعمدة",
     "marketplaceComingSoon": "ما زال هذا التطبيق قيد التحزيم، لذا لا يمكن تثبيته بعد.",
     "marketplaceAuthored": "كتبه الناشر، وليس مستخلصًا من محتوى التطبيق.",
-    "marketplaceVerifiedPublisher": "نشرته وراجعته NocoDB"
+    "marketplaceVerifiedPublisher": "نشرته وراجعته NocoDB",
+    "showCustomPermissionFieldsOnly": "إظهار الحقول ذات الأذونات المخصصة فقط",
+    "showAllFields": "إظهار جميع الحقول"
   },
   "placeholder": {
     "enterVerificationCode": "أدخل الرمز المكون من 6 أرقام",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "البحث عن المهارات...",
     "messageAgent": "راسل {agent}",
-    "somethingElse": "شيء آخر"
+    "somethingElse": "شيء آخر",
+    "noMcpConnections": "لم يتم إنشاء أي اتصالات MCP",
+    "noMcpConnectionsLabel": "يبدو أنك لم تنشئ أي اتصالات MCP بعد."
   },
   "msg": {
     "sourceViewNotShared": "تم تعطيل المزامنة في هذا العرض",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "يلزم تسجيل الدخول إلى NocoDB.",
       "seeWhoSubmittedDisabledHint": "أضف حقل «انشأ من قبل» إلى جدولك لتفعيل هذا الخيار.",
       "formRequiresSignin": "يتطلب الوصول إلى هذا النموذج تسجيل الدخول إلى NocoDB.",
-      "switchAccount": "تبديل الحساب"
+      "switchAccount": "تبديل الحساب",
+      "mcpConnectionEdit": "تُطبق التغييرات على العميل عند استدعائه التالي. يظل السر كما هو.",
+      "mcpConnectionsReachingBase": "أنشئ اتصالات MCP مرتبطة بهذه القاعدة لعملاء الذكاء الاصطناعي مثل Claude أو Codex أو Cursor.",
+      "mcpClientSetupKeyHidden": "يُعرض المفتاح فقط عند إنشاء اتصال أو إعادة توليده، لذا يتضمن هذا الإعداد عنصرًا نائبًا."
     },
     "error": {
       "failedToCreateSync": "فشل في إنشاء المزامنة",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "تم نسخ {n} خلايا",
       "nRecordCreated": "{n} السجل الذي تم إنشاؤه",
       "nRecordsCreated": "{n} السجلات التي تم إنشاؤها",
-      "interfaceFilterCopied": "نُسخ {count} شرط | نُسخت {count} شروط"
+      "interfaceFilterCopied": "نُسخ {count} شرط | نُسخت {count} شروط",
+      "changesSaved": "تم حفظ التغييرات"
     },
     "success": {
       "restored": "تم إستعادة العنصر بنجاح",

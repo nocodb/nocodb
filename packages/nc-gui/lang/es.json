@@ -258,7 +258,8 @@
       "audit": "Auditoría del espacio de trabajo",
       "ltarCustomDisplayValue": "Campo de valor personalizado",
       "publicDocShare": "Compartir documentos públicos",
-      "agents": "Agentes"
+      "agents": "Agentes",
+      "permissions": "Permisos de tabla y de campo"
     },
     "upgradeToSortAndLimitLookupValues": "Para ordenar y limitar los valores que se muestran en un campo Lookup, cambia al plan {plan}.",
     "upgradeToAddMoreAgents": "Mejora tu plan para añadir más Agentes",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Mejora tu plan para crear entornos personalizados",
     "upgradeToUseCustomEnvironmentsSubtitle": "Los entornos personalizados no están disponibles en tu plan {activePlan}. Cambia a {plan} para crear entornos más allá de Producción y Staging.",
     "upgradeToUseFormRequireSignin": "Mejora tu plan para exigir inicio de sesión en los formularios",
-    "upgradeToUseFormRequireSigninSubtitle": "Mejora al plan {plan} para exigir que los encuestados inicien sesión antes de enviar un formulario."
+    "upgradeToUseFormRequireSigninSubtitle": "Mejora al plan {plan} para exigir que los encuestados inicien sesión antes de enviar un formulario.",
+    "upgradeToUseSso": "Actualizar para usar SSO",
+    "upgradeToUseSsoSubtitle": "Actualice al plan {plan} para configurar el inicio de sesión único (SSO) y permitir que su equipo inicie sesión con su proveedor de identidad."
   },
   "general": {
     "scrollToBottom": "Desplazar hacia abajo",
@@ -741,7 +744,12 @@
     "function": "Función",
     "functions": "Funciones",
     "otherTables": "Otras tablas",
-    "viaNewLinkField": "mediante un nuevo campo de enlace"
+    "viaNewLinkField": "mediante un nuevo campo de enlace",
+    "test": "Probar",
+    "success": "Éxito",
+    "manageFields": "Gestionar campos",
+    "tools": "Herramientas",
+    "allChangesSaved": "Todos los cambios guardados"
   },
   "objects": {
     "script": "Script",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Nombres de los equipos del usuario y de todos los que dependen de ellos.",
           "currentUserTeamWithDescendantMembers": "Miembros de mis equipos",
           "currentUserTeamWithDescendantMembersDescription": "Todas las personas de los equipos y subequipos del usuario: úsalo con «contiene alguno de» para ver los registros de las personas a tu cargo."
-        }
+        },
+        "appliesTo": "Se aplica a"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nadie {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "Semanas",
     "viewFolder": "Carpeta de vistas",
     "subRecord": "Subregistro",
-    "video": "Vídeo"
+    "video": "Vídeo",
+    "recordTemplates": "Plantillas de registro"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "Nuevo entorno",
     "removeCustomDomain": "¿Eliminar el dominio personalizado?",
     "tooNarrowToAdjustFrozenFields": "La ventana es demasiado estrecha para ajustar los campos fijados",
-    "themeSettings": "Ajustes del tema"
+    "themeSettings": "Ajustes del tema",
+    "nFields": "{count} campo | {count} campos"
   },
   "labels": {
     "syncing": "Sincronizando",
@@ -4322,11 +4333,49 @@
       "readWriteDelete": "Leer, escribir y eliminar",
       "allowShown": "Permitir las mostradas",
       "clearShown": "Borrar las mostradas",
-      "shownOf": "{shown} de {total} mostradas"
+      "shownOf": "{shown} de {total} mostradas",
+      "levelAll": "{level} para todo",
+      "toolsAllowed": "{count} de {total} herramientas permitidas",
+      "customTip": "Herramientas seleccionadas a mano. Elige un nivel para restablecer la fila.",
+      "writes": "Escrituras",
+      "sections": {
+        "account": "Cuenta y espacios de trabajo",
+        "accountDesc": "Quién eres, tus espacios de trabajo, las bases que contienen y los enlaces a la aplicación",
+        "records": "Registros y datos",
+        "recordsDesc": "Registros, comentarios, importación y exportación",
+        "schema": "Esquema",
+        "schemaDesc": "Tablas, campos, duplicación y cómo se organiza una base",
+        "views": "Vistas",
+        "viewsDesc": "Vistas, filtros, ordenaciones, uso compartido, campos de formulario, colores de fila",
+        "automation": "Automatización",
+        "automationDesc": "Workflows, webhooks, scripts y agentes",
+        "interfaces": "Interfaces, paneles y docs",
+        "interfacesDesc": "Páginas de interfaz, paneles, widgets y documentos",
+        "access": "Acceso y seguridad",
+        "accessDesc": "Permisos de campo y de tabla, seguridad a nivel de fila",
+        "platform": "Plataforma",
+        "platformDesc": "Integraciones, entornos y aplicaciones"
+      }
     },
     "noBaseAccess": "Sin acceso a la base",
     "signedInAs": "Sesión iniciada como",
-    "moreAgents": "{count} agente más | {count} agentes más"
+    "moreAgents": "{count} agente más | {count} agentes más",
+    "mcpConnectionsLabel": "Crea conexiones MCP para usarlas con clientes de IA como Claude, Codex o Cursor.",
+    "mcpConnections": "Conexiones MCP",
+    "editMcpConnection": "Editar conexión",
+    "mcpClientSetup": "Configuración del cliente",
+    "manageFieldsSubtext": "Editar campos e inspeccionar dependencias",
+    "relationsSubtext": "Visualizar y gestionar las relaciones entre tablas",
+    "apiSnippetSubtext": "Generar código para consultar esta tabla mediante la API",
+    "webhooksSubtext": "Automatizar llamadas externas cuando cambien los registros",
+    "permissionsSubtext": "Controlar quién puede ver y editar los datos",
+    "rlsSubtext": "Restringir el acceso a los registros mediante políticas",
+    "dateDependencySubtext": "Desplazar fechas en los registros dependientes",
+    "recordTemplatesSubtext": "Crear registros a partir de una plantilla guardada",
+    "toolsSectionStructure": "Estructura",
+    "toolsSectionAccess": "Acceso y seguridad",
+    "toolsSectionRecords": "Registros",
+    "toolsSectionDeveloper": "Desarrollador"
   },
   "activity": {
     "useTemplate": "Usar plantilla",
@@ -4821,7 +4870,9 @@
     "freezeColumnsCount": "Fijar {count} columna | Fijar {count} columnas",
     "marketplaceComingSoon": "Esta App todavía se está empaquetando, así que aún no se puede instalar.",
     "marketplaceAuthored": "Redactado por el editor, no derivado del contenido de la App.",
-    "marketplaceVerifiedPublisher": "Publicado y revisado por NocoDB"
+    "marketplaceVerifiedPublisher": "Publicado y revisado por NocoDB",
+    "showCustomPermissionFieldsOnly": "Mostrar solo los campos con permisos personalizados",
+    "showAllFields": "Mostrar todos los campos"
   },
   "placeholder": {
     "enterVerificationCode": "Introduzca código de 6 dígitos",
@@ -4981,7 +5032,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Buscar habilidades...",
     "messageAgent": "Mensaje para {agent}",
-    "somethingElse": "Otra cosa"
+    "somethingElse": "Otra cosa",
+    "noMcpConnections": "No se ha creado ninguna conexión MCP",
+    "noMcpConnectionsLabel": "Parece que aún no has creado ninguna conexión MCP."
   },
   "msg": {
     "sourceViewNotShared": "La sincronización está desactivada en esta vista",
@@ -5689,7 +5742,10 @@
       "seeWhoSubmittedSubtitle": "Se requiere iniciar sesión en NocoDB.",
       "seeWhoSubmittedDisabledHint": "Añade un campo «Creado por» a tu tabla para habilitar esta opción.",
       "formRequiresSignin": "Para acceder a este formulario es necesario iniciar sesión en NocoDB.",
-      "switchAccount": "Cambiar de cuenta"
+      "switchAccount": "Cambiar de cuenta",
+      "mcpConnectionEdit": "Los cambios se aplican al cliente en su próxima llamada. El secreto no cambia.",
+      "mcpConnectionsReachingBase": "Crea conexiones MCP vinculadas a esta base para clientes de IA como Claude, Codex o Cursor.",
+      "mcpClientSetupKeyHidden": "La clave solo se muestra al crear o regenerar una conexión, por lo que esta configuración incluye un marcador de posición."
     },
     "error": {
       "failedToCreateSync": "Error al crear la sincronización",
@@ -5913,7 +5969,8 @@
       "nCellsCopied": "Se copiaron {n} celdas",
       "nRecordCreated": "Registro {n} creado",
       "nRecordsCreated": "{n} registros creados",
-      "interfaceFilterCopied": "{count} condición copiada | {count} condiciones copiadas"
+      "interfaceFilterCopied": "{count} condición copiada | {count} condiciones copiadas",
+      "changesSaved": "Cambios guardados"
     },
     "success": {
       "restored": "Artículo restaurado con éxito",

@@ -258,7 +258,8 @@
       "audit": "Аудит рабочего пространства",
       "ltarCustomDisplayValue": "Пользовательское значение поля",
       "publicDocShare": "Публичный обмен документами",
-      "agents": "Агенты"
+      "agents": "Агенты",
+      "permissions": "Разрешения для таблиц и полей"
     },
     "upgradeToSortAndLimitLookupValues": "Чтобы сортировать и ограничивать значения в поле Lookup, перейдите на тариф {plan}.",
     "upgradeToAddMoreAgents": "Перейдите на более высокий тариф, чтобы добавить больше Агентов",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Перейдите на более высокий тариф, чтобы создавать свои среды",
     "upgradeToUseCustomEnvironmentsSubtitle": "Собственные среды недоступны на вашем тарифе {activePlan}. Перейдите на {plan}, чтобы создавать среды помимо Production и Staging.",
     "upgradeToUseFormRequireSignin": "Обновите тариф, чтобы требовать вход в формах",
-    "upgradeToUseFormRequireSigninSubtitle": "Перейдите на тариф {plan}, чтобы респонденты входили в систему перед отправкой формы."
+    "upgradeToUseFormRequireSigninSubtitle": "Перейдите на тариф {plan}, чтобы респонденты входили в систему перед отправкой формы.",
+    "upgradeToUseSso": "Обновитесь до использования SSO",
+    "upgradeToUseSsoSubtitle": "Обновитесь до плана {plan}, чтобы настроить единый вход (SSO) и разрешить вашей команде входить через вашего поставщика удостоверений."
   },
   "general": {
     "scrollToBottom": "Прокрутка вниз",
@@ -741,7 +744,12 @@
     "function": "Функция",
     "functions": "Функции",
     "otherTables": "Другие таблицы",
-    "viaNewLinkField": "через новое поле связи"
+    "viaNewLinkField": "через новое поле связи",
+    "test": "Проверить",
+    "success": "Успешно",
+    "manageFields": "Управление полями",
+    "tools": "Инструменты",
+    "allChangesSaved": "Все изменения сохранены"
   },
   "objects": {
     "script": "Скрипт",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Названия команд пользователя и всех команд ниже них.",
           "currentUserTeamWithDescendantMembers": "Участники моих команд",
           "currentUserTeamWithDescendantMembersDescription": "Все в командах и подкомандах пользователя — используйте с условием «содержит любое из», чтобы видеть записи своих подчинённых."
-        }
+        },
+        "appliesTo": "Применяется к"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Никто не {description}",
@@ -1156,7 +1165,8 @@
     "weeks": "Недели",
     "viewFolder": "Папка представлений",
     "subRecord": "Подзапись",
-    "video": "Видео"
+    "video": "Видео",
+    "recordTemplates": "Шаблоны записей"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1519,8 @@
     "newEnvironment": "Новая среда",
     "removeCustomDomain": "Удалить пользовательский домен?",
     "tooNarrowToAdjustFrozenFields": "Окно слишком узкое, чтобы настроить закреплённые поля",
-    "themeSettings": "Настройки темы"
+    "themeSettings": "Настройки темы",
+    "nFields": "{count} поле | {count} полей"
   },
   "labels": {
     "syncing": "Синхронизация",
@@ -4332,11 +4343,49 @@
       "readWriteDelete": "Чтение, запись и удаление",
       "allowShown": "Разрешить показанные",
       "clearShown": "Очистить показанные",
-      "shownOf": "Показано {shown} из {total}"
+      "shownOf": "Показано {shown} из {total}",
+      "levelAll": "{level} для всего",
+      "toolsAllowed": "Разрешено инструментов: {count} из {total}",
+      "customTip": "Вручную отобранные инструменты. Выберите уровень, чтобы сбросить строку.",
+      "writes": "Операции записи",
+      "sections": {
+        "account": "Аккаунт и рабочие пространства",
+        "accountDesc": "Кто вы, ваши рабочие пространства, базы в них и ссылки в приложение",
+        "records": "Записи и данные",
+        "recordsDesc": "Записи, комментарии, импорт и экспорт",
+        "schema": "Схема",
+        "schemaDesc": "Таблицы, поля, дублирование и организация базы",
+        "views": "Представления",
+        "viewsDesc": "Представления, фильтры, сортировки, общий доступ, поля форм, цвета строк",
+        "automation": "Автоматизация",
+        "automationDesc": "Рабочие процессы, вебхуки, скрипты и агенты",
+        "interfaces": "Интерфейсы, панели и документы",
+        "interfacesDesc": "Страницы интерфейсов, панели, виджеты и документы",
+        "access": "Доступ и безопасность",
+        "accessDesc": "Разрешения для полей и таблиц, безопасность на уровне строк",
+        "platform": "Платформа",
+        "platformDesc": "Интеграции, окружения и приложения"
+      }
     },
     "noBaseAccess": "Нет доступа к базе",
     "signedInAs": "Вы вошли как",
-    "moreAgents": "Ещё {count} агент | Ещё {count} агентов"
+    "moreAgents": "Ещё {count} агент | Ещё {count} агентов",
+    "mcpConnectionsLabel": "Создайте подключения MCP для использования с ИИ-клиентами, такими как Claude, Codex или Cursor.",
+    "mcpConnections": "Подключения MCP",
+    "editMcpConnection": "Изменить подключение",
+    "mcpClientSetup": "Настройка клиента",
+    "manageFieldsSubtext": "Изменить поля и просмотреть зависимости",
+    "relationsSubtext": "Визуализируйте связи между таблицами и управляйте ими",
+    "apiSnippetSubtext": "Сгенерировать код для запроса к этой таблице через API",
+    "webhooksSubtext": "Автоматизируйте внешние вызовы при изменении записей",
+    "permissionsSubtext": "Определите, кто может просматривать и изменять данные",
+    "rlsSubtext": "Ограничьте доступ к записям с помощью политик",
+    "dateDependencySubtext": "Сдвинуть даты в зависимых записях",
+    "recordTemplatesSubtext": "Создавайте записи из сохранённого шаблона",
+    "toolsSectionStructure": "Структура",
+    "toolsSectionAccess": "Доступ и безопасность",
+    "toolsSectionRecords": "Записи",
+    "toolsSectionDeveloper": "Разработчик"
   },
   "activity": {
     "useTemplate": "Использовать шаблон",
@@ -4831,7 +4880,9 @@
     "freezeColumnsCount": "Закрепить {count} столбец | Закрепить {count} столбцов",
     "marketplaceComingSoon": "Этот App ещё готовится к публикации, поэтому установить его пока нельзя.",
     "marketplaceAuthored": "Написано издателем, а не выведено из содержимого App.",
-    "marketplaceVerifiedPublisher": "Опубликовано и проверено NocoDB"
+    "marketplaceVerifiedPublisher": "Опубликовано и проверено NocoDB",
+    "showCustomPermissionFieldsOnly": "Показать только поля с настраиваемыми разрешениями",
+    "showAllFields": "Показать все поля"
   },
   "placeholder": {
     "enterVerificationCode": "Введите 6-значный код",
@@ -4991,7 +5042,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Поиск навыков...",
     "messageAgent": "Сообщение для {agent}",
-    "somethingElse": "Что-то другое"
+    "somethingElse": "Что-то другое",
+    "noMcpConnections": "Подключения MCP не созданы",
+    "noMcpConnectionsLabel": "Похоже, вы ещё не создали ни одного подключения MCP."
   },
   "msg": {
     "sourceViewNotShared": "Синхронизация отключена на этом экране",
@@ -5699,7 +5752,10 @@
       "seeWhoSubmittedSubtitle": "Требуется вход в NocoDB.",
       "seeWhoSubmittedDisabledHint": "Добавьте в таблицу поле «Автор», чтобы включить эту опцию.",
       "formRequiresSignin": "Для доступа к этой форме требуется вход в NocoDB.",
-      "switchAccount": "Сменить учётную запись"
+      "switchAccount": "Сменить учётную запись",
+      "mcpConnectionEdit": "Изменения вступят в силу для клиента при следующем вызове. Секрет остаётся прежним.",
+      "mcpConnectionsReachingBase": "Создайте подключения MCP, привязанные к этой базе, для ИИ-клиентов, таких как Claude, Codex или Cursor.",
+      "mcpClientSetupKeyHidden": "Ключ показывается только при создании или повторной генерации подключения, поэтому в этой конфигурации указан заполнитель."
     },
     "error": {
       "failedToCreateSync": "Не удалось создать синхронизацию",
@@ -5923,7 +5979,8 @@
       "nCellsCopied": "{n} Ячейки скопирована",
       "nRecordCreated": "Создана запись {n}",
       "nRecordsCreated": "Созданы записи {n}",
-      "interfaceFilterCopied": "Скопировано {count} условие | Скопировано {count} условий"
+      "interfaceFilterCopied": "Скопировано {count} условие | Скопировано {count} условий",
+      "changesSaved": "Изменения сохранены"
     },
     "success": {
       "restored": "Элемент успешно восстановлен",

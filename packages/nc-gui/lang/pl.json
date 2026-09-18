@@ -258,7 +258,8 @@
       "audit": "Audyt projektu",
       "ltarCustomDisplayValue": "Własne pole wartości wyświetlania",
       "publicDocShare": "Udostępnianie dokumentu publicznego",
-      "agents": "Agenci"
+      "agents": "Agenci",
+      "permissions": "Uprawnienia do tabel i pól"
     },
     "upgradeToSortAndLimitLookupValues": "Aby sortować i ograniczać wartości wyświetlane w polu Lookup, przejdź na plan {plan}.",
     "upgradeToAddMoreAgents": "Przejdź na wyższy plan, aby dodać więcej Agentów",
@@ -299,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Przejdź na wyższy plan, aby tworzyć własne środowiska",
     "upgradeToUseCustomEnvironmentsSubtitle": "Własne środowiska nie są dostępne w Twoim planie {activePlan}. Przejdź na {plan}, aby tworzyć środowiska poza Production i Staging.",
     "upgradeToUseFormRequireSignin": "Uaktualnij, aby wymagać logowania w formularzach",
-    "upgradeToUseFormRequireSigninSubtitle": "Uaktualnij do planu {plan}, aby wymagać od respondentów zalogowania się przed wysłaniem formularza."
+    "upgradeToUseFormRequireSigninSubtitle": "Uaktualnij do planu {plan}, aby wymagać od respondentów zalogowania się przed wysłaniem formularza.",
+    "upgradeToUseSso": "Uaktualnij aby używać SSO",
+    "upgradeToUseSsoSubtitle": "Uaktualnij do planu {plan}, aby skonfigurować logowanie jednokrotne (SSO) i umożliwić zespołowi logowanie się za pomocą dostawcy tożsamości."
   },
   "general": {
     "scrollToBottom": "Przewiń na dół",
@@ -741,7 +744,12 @@
     "function": "Funkcja",
     "functions": "Funkcje",
     "otherTables": "Inne tabele",
-    "viaNewLinkField": "przez nowe pole łącza"
+    "viaNewLinkField": "przez nowe pole łącza",
+    "test": "Testuj",
+    "success": "Sukces",
+    "manageFields": "Zarządzaj polami",
+    "tools": "Narzędzia",
+    "allChangesSaved": "Wszystkie zmiany zapisane"
   },
   "objects": {
     "script": "Skrypt",
@@ -1050,7 +1058,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Nazwy zespołów użytkownika oraz wszystkich zespołów im podległych.",
           "currentUserTeamWithDescendantMembers": "Członkowie moich zespołów",
           "currentUserTeamWithDescendantMembersDescription": "Wszyscy w zespołach i podzespołach użytkownika — użyj z warunkiem „zawiera którykolwiek z”, aby zobaczyć rekordy swoich podwładnych."
-        }
+        },
+        "appliesTo": "Dotyczy"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nikt {description}",
@@ -1155,7 +1164,8 @@
     "weeks": "Tygodnie",
     "viewFolder": "Folder widoków",
     "subRecord": "Podrekord",
-    "video": "Wideo"
+    "video": "Wideo",
+    "recordTemplates": "Szablony rekordów"
   },
   "datatype": {
     "ID": "Identyfikator",
@@ -1508,7 +1518,8 @@
     "newEnvironment": "Nowe środowisko",
     "removeCustomDomain": "Usunąć domenę niestandardową?",
     "tooNarrowToAdjustFrozenFields": "Okno jest zbyt wąskie, aby dostosować przypięte pola",
-    "themeSettings": "Ustawienia motywu"
+    "themeSettings": "Ustawienia motywu",
+    "nFields": "{count} pole | {count} pól"
   },
   "labels": {
     "syncing": "Synchronizowanie",
@@ -4330,11 +4341,49 @@
       "readWriteDelete": "Odczyt, zapis i usuwanie",
       "allowShown": "Zezwól na wyświetlone",
       "clearShown": "Wyczyść wyświetlone",
-      "shownOf": "Wyświetlono {shown} z {total}"
+      "shownOf": "Wyświetlono {shown} z {total}",
+      "levelAll": "{level} dla wszystkich",
+      "toolsAllowed": "Dozwolone narzędzia: {count} z {total}",
+      "customTip": "Ręcznie wybrane narzędzia. Wybierz poziom, aby zresetować wiersz.",
+      "writes": "Zapisy",
+      "sections": {
+        "account": "Konto i obszary robocze",
+        "accountDesc": "Kim jesteś, twoje obszary robocze, znajdujące się w nich bazy oraz odnośniki do aplikacji",
+        "records": "Rekordy i dane",
+        "recordsDesc": "Rekordy, komentarze, import i eksport",
+        "schema": "Schemat",
+        "schemaDesc": "Tabele, pola, duplikowanie oraz sposób organizacji bazy",
+        "views": "Widoki",
+        "viewsDesc": "Widoki, filtry, sortowania, udostępnianie, pola formularzy, kolory wierszy",
+        "automation": "Automatyzacja",
+        "automationDesc": "Przepływy pracy, webhooki, skrypty i agenci",
+        "interfaces": "Interfejsy, pulpity i dokumenty",
+        "interfacesDesc": "Strony interfejsów, pulpity, widżety i dokumenty",
+        "access": "Dostęp i bezpieczeństwo",
+        "accessDesc": "Uprawnienia do pól i tabel, zabezpieczenia na poziomie wierszy",
+        "platform": "Platforma",
+        "platformDesc": "Integracje, środowiska i aplikacje"
+      }
     },
     "noBaseAccess": "Brak dostępu do bazy",
     "signedInAs": "Zalogowano jako",
-    "moreAgents": "Jeszcze {count} agent | Jeszcze {count} agentów"
+    "moreAgents": "Jeszcze {count} agent | Jeszcze {count} agentów",
+    "mcpConnectionsLabel": "Utwórz połączenia MCP do użytku z klientami AI, takimi jak Claude, Codex czy Cursor.",
+    "mcpConnections": "Połączenia MCP",
+    "editMcpConnection": "Edytuj połączenie",
+    "mcpClientSetup": "Konfiguracja klienta",
+    "manageFieldsSubtext": "Edytuj pola i sprawdź zależności",
+    "relationsSubtext": "Wizualizuj relacje między tabelami i zarządzaj nimi",
+    "apiSnippetSubtext": "Wygeneruj kod do odpytywania tej tabeli przez API",
+    "webhooksSubtext": "Automatyzuj wywołania zewnętrzne, gdy rekordy się zmieniają",
+    "permissionsSubtext": "Określ, kto może przeglądać i edytować dane",
+    "rlsSubtext": "Ogranicz dostęp do rekordów za pomocą zasad",
+    "dateDependencySubtext": "Przesuń daty w zależnych rekordach",
+    "recordTemplatesSubtext": "Twórz rekordy z zapisanego szablonu",
+    "toolsSectionStructure": "Struktura",
+    "toolsSectionAccess": "Dostęp i bezpieczeństwo",
+    "toolsSectionRecords": "Rekordy",
+    "toolsSectionDeveloper": "Deweloper"
   },
   "activity": {
     "useTemplate": "Użyj szablonu",
@@ -4829,7 +4878,9 @@
     "freezeColumnsCount": "Przypnij {count} kolumnę | Przypnij {count} kolumn",
     "marketplaceComingSoon": "Ta App jest jeszcze przygotowywana, więc nie można jej na razie zainstalować.",
     "marketplaceAuthored": "Napisane przez wydawcę, a nie wywnioskowane z zawartości App.",
-    "marketplaceVerifiedPublisher": "Opublikowane i sprawdzone przez NocoDB"
+    "marketplaceVerifiedPublisher": "Opublikowane i sprawdzone przez NocoDB",
+    "showCustomPermissionFieldsOnly": "Pokaż tylko pola z niestandardowymi uprawnieniami",
+    "showAllFields": "Pokaż wszystkie pola"
   },
   "placeholder": {
     "enterVerificationCode": "Wprowadź 6-cyfrowy kod",
@@ -4989,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Szukaj umiejętności...",
     "messageAgent": "Wiadomość do {agent}",
-    "somethingElse": "Coś innego"
+    "somethingElse": "Coś innego",
+    "noMcpConnections": "Nie utworzono żadnych połączeń MCP",
+    "noMcpConnectionsLabel": "Wygląda na to, że nie utworzono jeszcze żadnych połączeń MCP."
   },
   "msg": {
     "sourceViewNotShared": "Synchronizacja jest wyłączona w tym widoku",
@@ -5697,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "Wymagane zalogowanie do NocoDB.",
       "seeWhoSubmittedDisabledHint": "Dodaj pole „Stworzony przez” do tabeli, aby włączyć tę opcję.",
       "formRequiresSignin": "Dostęp do tego formularza wymaga zalogowania się do NocoDB.",
-      "switchAccount": "Przełącz konto"
+      "switchAccount": "Przełącz konto",
+      "mcpConnectionEdit": "Zmiany zaczną obowiązywać w kliencie przy następnym wywołaniu. Sekret pozostaje bez zmian.",
+      "mcpConnectionsReachingBase": "Utwórz połączenia MCP przypisane do tej bazy dla klientów AI, takich jak Claude, Codex czy Cursor.",
+      "mcpClientSetupKeyHidden": "Klucz jest wyświetlany tylko podczas tworzenia lub ponownego generowania połączenia, dlatego ta konfiguracja zawiera symbol zastępczy."
     },
     "error": {
       "failedToCreateSync": "Nie udało się utworzyć synchronizacji",
@@ -5921,7 +5977,8 @@
       "nCellsCopied": "Skopiowano {n} komórki",
       "nRecordCreated": "Utworzono rekord {n}",
       "nRecordsCreated": "Utworzono rekordy {n}",
-      "interfaceFilterCopied": "Skopiowano {count} warunek | Skopiowano {count} warunków"
+      "interfaceFilterCopied": "Skopiowano {count} warunek | Skopiowano {count} warunków",
+      "changesSaved": "Zmiany zapisane"
     },
     "success": {
       "restored": "Przedmiot przywrócony pomyślnie",

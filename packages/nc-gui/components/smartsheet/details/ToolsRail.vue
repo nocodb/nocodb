@@ -24,6 +24,7 @@ defineProps<Props>()
 
 const emits = defineEmits<{
   select: [slug: ViewPageType]
+  back: []
 }>()
 
 const { isEEFeatureBlocked } = useEeConfig()
@@ -39,6 +40,16 @@ const onSelect = (slug: ViewPageType) => {
     data-testid="nc-tools-rail"
   >
     <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-2.5 pt-3 pb-4">
+      <div
+        v-e="['c:table:tools:back-to-grid']"
+        class="nc-tools-rail-back"
+        data-testid="nc-tools-back-to-grid"
+        @click="emits('back')"
+      >
+        <GeneralIcon icon="ncArrowLeft" class="!h-4 !w-4 flex-none" />
+        <span>{{ $t('general.back') }}</span>
+      </div>
+
       <template v-for="group in groups" :key="group.label">
         <div
           v-if="group.items.length"
@@ -74,6 +85,14 @@ const onSelect = (slug: ViewPageType) => {
 </template>
 
 <style lang="scss" scoped>
+.nc-tools-rail-back {
+  @apply flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-bodyDefaultSm font-semibold text-nc-content-brand cursor-pointer;
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
+}
+
 .nc-tools-rail-item {
   @apply flex items-center gap-2.5 px-2.5 py-2 mb-0.5 rounded-lg text-bodyDefaultSm font-medium text-nc-content-gray-emphasis cursor-pointer;
 

@@ -219,15 +219,10 @@ watch(
       'nc-details-tab-left-sidebar-close': !isLeftSidebarOpen,
     }"
   >
-    <SmartsheetDetailsToolsRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool" />
+    <SmartsheetDetailsToolsRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool" @back="onBackToGrid" />
 
     <div class="flex-1 flex flex-col min-w-0 min-h-0">
-      <SmartsheetDetailsToolHeader
-        :icon="toolHeader.icon"
-        :title="toolHeader.title"
-        :docs-href="toolHeader.docsHref"
-        @back="onBackToGrid"
-      >
+      <SmartsheetDetailsToolHeader :icon="toolHeader.icon" :title="toolHeader.title" :docs-href="toolHeader.docsHref">
         <template #actions>
           <!-- Record Templates -->
           <NcButton

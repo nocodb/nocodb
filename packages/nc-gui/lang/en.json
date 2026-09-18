@@ -1450,6 +1450,7 @@
     "tableVisibility": "Table Visibility",
     "recordOperations": "Record Operations",
     "fieldPermissions": "Field permissions",
+    "nFields": "{count} field | {count} fields",
     "pagePermissions": "Permissions",
     "resetAllDocPermissions": "Reset all document permissions?",
     "resetDocPermissions": "Reset permissions for \"{title}\"?",

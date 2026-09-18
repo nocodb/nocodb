@@ -2,6 +2,10 @@
 import { HTTPSnippet } from '@readme/httpsnippet'
 import { defineAsyncComponent } from 'vue'
 
+// When rendered inside a modal (from the view 3-dot menu) we fill the modal body
+// instead of the full viewport.
+defineProps<{ inModal?: boolean }>()
+
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
@@ -204,10 +208,14 @@ const supportedDocs = [
 <template>
   <div
     class="p-6"
-    :style="{
-      height: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
-      maxHeight: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
-    }"
+    :style="
+      inModal
+        ? { height: '100%', maxHeight: '100%' }
+        : {
+            height: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
+            maxHeight: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
+          }
+    "
   >
     <div class="flex gap-4 max-w-[1000px] mx-auto h-full">
       <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3 rtl:(!pl-3 !pr-0)">

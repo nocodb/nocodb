@@ -11,6 +11,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked, showEEFeatures } =
@@ -34,6 +36,24 @@ const shouldShowTab = computed(() => {
     field: isUIAllowed('fieldAdd') && !isSqlView.value,
     permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && showEEFeatures.value,
     webhook: isUIAllowed('hookList') && !isSqlView.value,
+  }
+})
+
+// Label for the back-to-data header. The Data | Details toggle was removed, so
+// this surface is reached via the 3-dot menu (Fields) or a deep link.
+const sectionTitle = computed(() => {
+  switch (openedViewsTab.value) {
+    case 'permissions':
+      return t('general.permissions')
+    case 'relation':
+      return t('title.relations')
+    case 'api':
+      return t('labels.apiSnippet')
+    case 'webhook':
+      return t('objects.webhooks')
+    case 'field':
+    default:
+      return t('objects.fields')
   }
 })
 
@@ -87,7 +107,25 @@ watch(
       'nc-details-tab-left-sidebar-close': !isLeftSidebarOpen,
     }"
   >
-    <NcTabs v-model:active-key="openedSubTab" centered class="nc-details-tab">
+    <div
+      class="flex items-center gap-2 px-3 border-b-1 border-nc-border-gray-medium h-[var(--toolbar-height)] min-h-[var(--toolbar-height)]"
+    >
+      <NcButton
+        v-e="['c:project:mode:data']"
+        size="small"
+        type="secondary"
+        data-testid="nc-details-back-to-data"
+        @click="onViewsTabChange('view')"
+      >
+        <div class="flex items-center gap-1.5">
+          <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
+          {{ $t('general.data') }}
+        </div>
+      </NcButton>
+      <span class="text-nc-content-gray-muted">/</span>
+      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray">{{ sectionTitle }}</div>
+    </div>
+    <NcTabs v-model:active-key="openedSubTab" centered class="nc-details-tab flex-1 min-h-0">
       <a-tab-pane v-if="shouldShowTab.field" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
@@ -162,12 +200,10 @@ watch(
   @apply flex flex-row items-center gap-x-1.5 pr-0.5;
 }
 
+// The centered tab strip is hidden — section navigation now happens from the
+// view 3-dot menu, and the back-to-data header replaces the old toggle.
 :deep(.nc-details-tab > .ant-tabs-nav:first-of-type) {
-  min-height: calc(var(--toolbar-height) - 1px);
-
-  .ant-tabs-tab {
-    @apply pt-3 pb-3 text-small leading-[18px];
-  }
+  @apply hidden;
 }
 </style>
 

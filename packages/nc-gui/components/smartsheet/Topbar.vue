@@ -70,10 +70,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <LazySmartsheetTopbarAgentInfo v-if="!isPublic && activeAgentId" />
       </div>
 
-      <div v-if="!isSharedBase && !isMobileMode && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId">
-        <SmartsheetTopbarSelectMode />
-      </div>
-      <div v-else-if="activeDashboardId || activeWorkflowId || activeAgentId" class="min-w-0 shrink">
+      <div v-if="activeDashboardId || activeWorkflowId || activeAgentId" class="min-w-0 shrink">
         <SmartsheetTopbarEditingState />
       </div>
 

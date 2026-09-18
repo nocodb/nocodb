@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
+// When rendered inside a modal (from the view 3-dot menu) we fill the modal body
+// instead of the full viewport.
+defineProps<{ inModal?: boolean }>()
+
 const { activeTable, baseTables } = storeToRefs(useTablesStore())
 
 const { openedProject } = storeToRefs(useBases())
@@ -18,7 +22,11 @@ const indicator = h(LoadingOutlined, {
 </script>
 
 <template>
-  <div class="flex flex-col p-4" style="height: calc(100vh - (var(--topbar-height) * 2))">
+  <div
+    class="flex flex-col p-4"
+    :class="{ 'h-full': inModal }"
+    :style="inModal ? undefined : 'height: calc(100vh - (var(--topbar-height) * 2))'"
+  >
     <div v-if="!isDataLoaded" class="h-full w-full flex flex-col justify-center items-center">
       <a-spin size="large" :indicator="indicator" />
     </div>

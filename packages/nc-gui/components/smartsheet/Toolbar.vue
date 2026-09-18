@@ -289,6 +289,11 @@ function triggerToolbarControl(selector: string) {
         v-if="isEeUI && isGrid && isUIAllowed('viewOperations') && !isPublic && !isSharedBase && !isMobileMode"
         class="hidden sr-only"
       />
+
+      <!-- Table-scoped tools (fields/relations/api/webhooks/permissions) — moved
+           out of the old Data | Details toggle into a dedicated toolbar entry. -->
+      <SmartsheetToolbarTableTools />
+
       <NcFullScreenToggleButton v-if="showFullScreenToggle && !isMobileMode" />
     </template>
   </div>

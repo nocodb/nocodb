@@ -3,6 +3,10 @@ import { type HookType, PlanLimitTypes } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 
+// When rendered inside a modal (from the view 3-dot menu) we fill the modal body
+// instead of the full viewport.
+defineProps<{ inModal?: boolean }>()
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook')
@@ -320,9 +324,9 @@ const getHookTypeText = (hook: HookType) => {
 </script>
 
 <template>
-  <div class="nc-webhook-wrapper w-full p-4">
-    <div class="max-w-250 h-full w-full mx-auto">
-      <div v-if="activeView && !isHooksLoading">
+  <div class="nc-webhook-wrapper w-full p-4" :class="{ 'h-full flex flex-col': inModal }">
+    <div class="max-w-250 h-full w-full mx-auto" :class="{ 'flex-1 flex flex-col min-h-0': inModal }">
+      <div v-if="activeView && !isHooksLoading" :class="{ 'flex-1 flex flex-col min-h-0': inModal }">
         <NcAlert
           v-if="hasV2Webhooks"
           type="warning"
@@ -388,9 +392,16 @@ const getHookTypeText = (hook: HookType) => {
         </div>
 
         <div
-          :style="{
-            height: `calc(100vh - var(--topbar-height) - var(--toolbar-height) - 104px - ${hasV2Webhooks ? '82px' : '0px'})`,
-          }"
+          :class="{ 'flex-1 min-h-0': inModal }"
+          :style="
+            inModal
+              ? undefined
+              : {
+                  height: `calc(100vh - var(--topbar-height) - var(--toolbar-height) - 104px - ${
+                    hasV2Webhooks ? '82px' : '0px'
+                  })`,
+                }
+          "
         >
           <div
             v-if="!hooks.length"
@@ -543,7 +554,7 @@ const getHookTypeText = (hook: HookType) => {
       <div
         v-else
         class="h-full w-full flex flex-col justify-center items-center"
-        style="height: calc(100vh - (var(--topbar-height) * 2))"
+        :style="inModal ? undefined : 'height: calc(100vh - (var(--topbar-height) * 2))'"
       >
         <a-spin size="large" :indicator="indicator" />
       </div>

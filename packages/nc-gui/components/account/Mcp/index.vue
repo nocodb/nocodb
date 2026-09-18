@@ -43,12 +43,16 @@ const isLoading = ref(false)
 
 const sortedMcpTokens = computed(() => handleGetSortedData(accountMcpTokens.value, sorts.value))
 
+// `name` and `access` flex; `created_at` and `action` are fixed (150 + 162).
+// The mins have to leave those two room inside the `max-w-202` (808px) shell,
+// or the row overflows and the action menu lands outside the clipped container
+// with no scrollbar to reach it.
 const columns = [
   {
     key: 'name',
     title: t('general.name'),
     name: 'Token',
-    minWidth: 300,
+    minWidth: 240,
     padding: '12px 24px',
     showOrderBy: true,
     dataIndex: 'title',
@@ -56,14 +60,16 @@ const columns = [
   {
     key: 'access',
     title: t('general.access'),
-    minWidth: 260,
+    minWidth: 180,
     showOrderBy: false,
   },
   {
     key: 'created_at',
     title: t('labels.createdOn'),
     width: 150,
-    minWidth: 180,
+    // Matches `width`: a larger min only makes the inner cell overflow the
+    // fixed outer one.
+    minWidth: 150,
     showOrderBy: true,
     dataIndex: 'created_at',
   },

@@ -423,6 +423,8 @@
     "submit": "Submit",
     "send": "Send",
     "create": "Create",
+    "test": "Test",
+    "success": "Success",
     "createEntity": "Create {entity}",
     "creating": "Creating",
     "creatingEntity": "Creating {entity}",

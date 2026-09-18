@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<NcModalProps>(), {
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
+const { destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
 
 const { maskClosable, keyboard, ncModalClassName, stopEventPropogation } = toRefs(props)
 
@@ -57,8 +57,8 @@ const width = computed(() => {
     return '95vw'
   }
 
-  if (propWidth) {
-    return propWidth
+  if (props.width) {
+    return props.width
   }
 
   if (props.size === 'small') {
@@ -85,8 +85,8 @@ const height = computed(() => {
     return '95vh'
   }
 
-  if (propHeight) {
-    return propHeight
+  if (props.height) {
+    return props.height
   }
 
   if (props.size === 'small') {

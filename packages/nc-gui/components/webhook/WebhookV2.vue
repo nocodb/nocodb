@@ -453,25 +453,6 @@ const toggleSamplePayload = () => {
   })
 }
 
-const supportedDocs: SupportedDocsType[] = [
-  {
-    title: 'Getting started',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
-  },
-  {
-    title: t('activity.createWebhook'),
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook',
-  },
-  {
-    title: 'Custom payload',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-custom-payload-',
-  },
-  {
-    title: 'Trigger on condition',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-conditions',
-  },
-]
-
 watch(
   () => hookRef?.operation,
   async () => {
@@ -579,6 +560,7 @@ const toggleIncludeUser = async () => {
     v-model:visible="modalVisible"
     :show-separator="true"
     size="large"
+    width="min(90vw, 960px)"
     wrap-class-name="nc-modal-webhook-create-edit"
   >
     <template #header>
@@ -628,7 +610,7 @@ const toggleIncludeUser = async () => {
     <div v-if="activeTab === HookTab.Configuration" class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
-        class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
+        class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-8 py-6 mx-auto"
       >
         <div style="max-width: 700px; min-width: 640px" class="mx-auto gap-8 flex flex-col">
           <a-form-item v-bind="validateInfos.title">
@@ -1025,10 +1007,6 @@ const toggleIncludeUser = async () => {
           </a-form>
         </div>
       </div>
-
-      <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
-      </NcModalSupportedDocsSidebar>
     </div>
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_66px)]">
       <WebhookCallLog :hook="hook" />

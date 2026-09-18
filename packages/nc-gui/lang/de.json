@@ -297,7 +297,9 @@
     "upgradeToUsePerUserCredentials": "Upgraden, um Zugangsdaten je Benutzer zu nutzen",
     "upgradeToUsePerUserCredentialsSubtitle": "Ihr Tarif {activePlan} nutzt ausschließlich gemeinsame Zugangsdaten. Wechseln Sie zu {plan}, damit jedes Mitglied sein eigenes Konto verbinden kann.",
     "upgradeToUseCustomEnvironments": "Upgraden, um eigene Umgebungen zu erstellen",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Eigene Umgebungen sind in Ihrem Tarif {activePlan} nicht verfügbar. Wechseln Sie zu {plan}, um Umgebungen über Produktion und Staging hinaus zu erstellen."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Eigene Umgebungen sind in Ihrem Tarif {activePlan} nicht verfügbar. Wechseln Sie zu {plan}, um Umgebungen über Produktion und Staging hinaus zu erstellen.",
+    "upgradeToUseFormRequireSignin": "Upgraden, um bei Formularen eine Anmeldung zu verlangen",
+    "upgradeToUseFormRequireSigninSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um von Teilnehmenden eine Anmeldung vor dem Absenden eines Formulars zu verlangen."
   },
   "general": {
     "scrollToBottom": "Nach unten scrollen",
@@ -737,7 +739,9 @@
     "variable": "Variable",
     "words": "Wörter",
     "function": "Funktion",
-    "functions": "Funktionen"
+    "functions": "Funktionen",
+    "otherTables": "Andere Tabellen",
+    "viaNewLinkField": "über ein neues Verknüpfungsfeld"
   },
   "objects": {
     "script": "Skript",
@@ -1148,7 +1152,11 @@
       "other": "Sonstiges"
     },
     "agent": "Agent",
-    "agents": "Agenten"
+    "agents": "Agenten",
+    "scope": "Geltungsbereich",
+    "scopes": "Geltungsbereiche",
+    "tool": "Werkzeug",
+    "tools": "Werkzeuge"
   },
   "datatype": {
     "ID": "ID",
@@ -1306,7 +1314,7 @@
     "creator": "Ersteller",
     "qrCode": "QR-Code",
     "termsOfService": "Nutzungsbedingungen",
-    "updateSelectedRows": "Ausgewählte Datensätze aktualisieren",
+    "updateSelectedRows": "Ausgewählte Einträge aktualisieren",
     "noFiltersAdded": "Keine Filter verwendet",
     "noFieldsSelected": "Keine Felder ausgewählt",
     "editCards": "Karten bearbeiten",
@@ -1500,7 +1508,8 @@
     "creatingAgent": "Agent wird erstellt",
     "agentToolsAndAccess": "Tools & Zugriff",
     "agentSkills": "Skills",
-    "agentSettings": "Einstellungen"
+    "agentSettings": "Einstellungen",
+    "updateRecordsCount": "{n} Eintrag aktualisieren | {n} Einträge aktualisieren"
   },
   "labels": {
     "syncing": "Synchronisieren",
@@ -2152,7 +2161,21 @@
       "grantedCount": "{count} von {total} freigegeben",
       "clearAll": "Alle zurücksetzen",
       "readAll": "Alles lesen",
-      "readWriteAll": "Alles lesen und schreiben"
+      "readWriteAll": "Alles lesen und schreiben",
+      "workflows": "Workflows",
+      "workflowsDesc": "Workflows verwalten sowie Ausführungen starten oder prüfen",
+      "agents": "Agents",
+      "agentsDesc": "Agents, Sitzungen, Kanäle und Nachrichten verwalten",
+      "scripts": "Skripte",
+      "scriptsDesc": "Skripte auflisten, erstellen, aktualisieren, duplizieren und löschen",
+      "integrations": "Integrationen",
+      "integrationsDesc": "Integrationen und die damit verknüpften Projekte verwalten",
+      "environments": "Umgebungen",
+      "environmentsDesc": "Umgebungen verwalten und Änderungen übernehmen oder synchronisieren",
+      "apps": "Apps",
+      "appsDesc": "Apps und Marktplatz-Einträge veröffentlichen, installieren und verwalten",
+      "workspaces": "Arbeitsbereiche",
+      "workspacesDesc": "Arbeitsbereiche lesen sowie erstellen, aktualisieren oder löschen"
     },
     "expiresOn": "Gültig bis",
     "noExpiration": "Kein Ablauf",
@@ -4301,7 +4324,29 @@
     "fieldGroups": "{field}-Gruppen",
     "removeSummary": "Zusammenfassung entfernen",
     "summarize": "Zusammenfassen",
-    "showIn": "Anzeigen in"
+    "showIn": "Anzeigen in",
+    "fullAccess": "Vollzugriff",
+    "newMcpConnection": "Neue Verbindung",
+    "createMcpConnection": "Verbindung erstellen",
+    "mcpTools": {
+      "title": "Werkzeuge",
+      "read": "Nur-Lesen-Werkzeuge",
+      "readDesc": "Alles ansehen, was diese Verbindung erreicht — Projekte, Tabellen, Einträge, Ausführungen.",
+      "write": "Schreib-/Löschwerkzeuge",
+      "writeDesc": "Dinge erstellen, ändern und entfernen: Einträge, Tabellen, Ansichten, Workflows, Apps.",
+      "deletes": "Löschvorgänge",
+      "readWriteDelete": "Lesen, Schreiben & Löschen",
+      "allAllowed": "Alle erlaubt",
+      "noneAllowed": "Keine erlaubt",
+      "allowedCount": "{count} erlaubt",
+      "allowAll": "Alle erlauben",
+      "allowShown": "Angezeigte erlauben",
+      "clearShown": "Angezeigte zurücksetzen",
+      "shownOf": "{shown} von {total} angezeigt"
+    },
+    "noBaseAccess": "Kein Zugriff auf die Basis",
+    "signedInAs": "Angemeldet als",
+    "moreAgents": "{count} weiterer Agent | {count} weitere Agenten"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",
@@ -4795,7 +4840,8 @@
     "freezeColumnsCount": "{count} Spalte fixieren | {count} Spalten fixieren",
     "marketplaceComingSoon": "Diese App wird noch paketiert und kann daher noch nicht installiert werden.",
     "marketplaceAuthored": "Von der Herausgeberin bzw. dem Herausgeber verfasst, nicht aus dem Inhalt der App abgeleitet.",
-    "marketplaceVerifiedPublisher": "Von NocoDB veröffentlicht und geprüft"
+    "marketplaceVerifiedPublisher": "Von NocoDB veröffentlicht und geprüft",
+    "requiredEnforcedOnFormSubmit": "Wird erzwungen, wenn diese Seite als Formular zum Erstellen eines Eintrags geöffnet wird"
   },
   "placeholder": {
     "enterVerificationCode": "6-stelligen Code eingeben",
@@ -4950,7 +4996,12 @@
     "marketplaceSearch": "Apps, Herausgeber oder gesuchte Aufgaben durchsuchen",
     "noAgents": "Keine Agenten",
     "skillPolicyRepo": "owner/repo",
-    "searchSkills": "Skills durchsuchen..."
+    "searchSkills": "Skills durchsuchen...",
+    "searchTools": "Werkzeuge suchen",
+    "skillNamePlaceholder": "Name des Skills",
+    "skillDescriptionPlaceholder": "Was macht dieser Skill, und wann sollte er eingesetzt werden?",
+    "messageAgent": "Nachricht an {agent}",
+    "somethingElse": "Etwas anderes"
   },
   "msg": {
     "sourceViewNotShared": "Sync ist in dieser Ansicht deaktiviert",
@@ -5641,7 +5692,24 @@
       "setupVariablesExplainer": "Legen Sie die Werte fest, die diese App zum Laufen braucht.",
       "setupTeamsExplainer": "Fügen Sie Personen zu den Teams hinzu, die diese App für Sie erstellt hat.",
       "tooNarrowToAdjustFrozenFields": "Sie haben {saved} fixierte Felder, aber derzeit erscheinen nur {effective} fixiert, weil Ihr Fenster zu schmal ist. Sie können die Anzahl fixierter Felder auf 1 zurücksetzen. Sie können sie auch ändern, indem Sie das Fenster vergrößern oder einzelne Felder schmaler machen.",
-      "groupViewToSummarizePerGroup": "Gruppieren Sie die Ansicht, um pro Gruppe zusammenzufassen"
+      "groupViewToSummarizePerGroup": "Gruppieren Sie die Ansicht, um pro Gruppe zusammenzufassen",
+      "bulkUpdateConfirm": "Der Wert des Feldes {fields} wird auf jeden ausgewählten Eintrag angewendet. | Die Werte der Felder {fields} werden auf jeden ausgewählten Eintrag angewendet.",
+      "noFieldForSummaryFunction": "Kein Feld in dieser Tabelle lässt sich mit dieser Funktion zusammenfassen",
+      "noVisibleFieldForSummaryFunction": "Kein in dieser Visualisierung angezeigtes Feld lässt sich mit dieser Funktion zusammenfassen — fügen Sie zuerst unter „Felder“ eines hinzu",
+      "mcpConnectionCreate": "Eine Zugangsberechtigung für genau einen MCP-Client. Ihre Befugnis ergibt sich aus Ihrer Auswahl hier, begrenzt durch Ihre eigenen Rollen — sie kann nie mehr als Sie selbst.",
+      "mcpScopeDescription": "Was diese Verbindung überall dort tun darf, wohin sie reicht.",
+      "mcpToolCatalogUnavailable": "Die Werkzeugliste konnte nicht geladen werden, daher kann noch nichts erlaubt werden.",
+      "mcpConnectionNeedsName": "Benennen Sie die Verbindung, um fortzufahren.",
+      "mcpConnectionNeedsTools": "Erlauben Sie mindestens ein Werkzeug.",
+      "mcpConnectionNeedsAccess": "Fügen Sie mindestens ein Projekt hinzu oder wählen Sie alle Ressourcen.",
+      "mcpLegacyConnection": "Vor Einführung der Geltungsbereiche erstellt und trägt daher Ihren eigenen Zugriff auf dieses eine Projekt. Löschen Sie sie und erstellen Sie eine neue, um sie einzugrenzen.",
+      "interfaceRecordFormNoFields": "Dieses Formular hat noch keine Felder und kann daher keine Einträge erstellen",
+      "summaryNeedsOnePlace": "Eine Zusammenfassung muss an mindestens einer Stelle angezeigt werden",
+      "seeWhoSubmitted": "Sehen, wer eine Antwort gesendet hat",
+      "seeWhoSubmittedSubtitle": "Anmeldung bei NocoDB erforderlich.",
+      "seeWhoSubmittedDisabledHint": "Fügen Sie Ihrer Tabelle ein Feld „Erstellt von“ hinzu, um diese Option zu aktivieren.",
+      "formRequiresSignin": "Für den Zugriff auf dieses Formular ist eine Anmeldung bei NocoDB erforderlich.",
+      "switchAccount": "Konto wechseln"
     },
     "error": {
       "failedToCreateSync": "Fehler beim Erstellen der Synchronisation",
@@ -6135,7 +6203,10 @@
     "skillsCatalogErrorTitle": "Dieses Repository konnte nicht geladen werden",
     "skillsCommunityTitle": "Aus jedem öffentlichen Repository installieren",
     "skillsCommunityBlocked": "Ihr Arbeitsbereich erlaubt das Installieren von Community-Skills nicht.",
-    "skillsCommunityBlockedOrg": "Ihre Organisation erlaubt das Installieren von Community-Skills nicht."
+    "skillsCommunityBlockedOrg": "Ihre Organisation erlaubt das Installieren von Community-Skills nicht.",
+    "chatTooManyFiles": "Höchstens {count} Dateien pro Nachricht",
+    "chatTriggeredReadOnly": "Diese Unterhaltung wurde durch einen Auslöser gestartet und kann nicht fortgesetzt werden.",
+    "agentPaused": "Dieser Agent ist pausiert, daher werden Auslöser nicht ausgeführt."
   },
   "trash": {
     "restore": "Wiederherstellen",

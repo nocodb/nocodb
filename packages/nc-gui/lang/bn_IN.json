@@ -258,7 +258,8 @@
       "audit": "ওয়ার্কস্পেস অডিট",
       "ltarCustomDisplayValue": "কাস্টম ডিসপ্লে ভ্যালু ফিল্ড",
       "publicDocShare": "সার্বজনীন ডকুমেন্ট শেয়ারিং",
-      "agents": "এজেন্ট"
+      "agents": "এজেন্ট",
+      "permissions": "টেবিল ও ফিল্ডের অনুমতি"
     },
     "upgradeToSortAndLimitLookupValues": "Lookup ফিল্ডে দেখানো মানগুলি সাজাতে ও সীমিত করতে অনুগ্রহ করে {plan} প্ল্যানে যান।",
     "upgradeToAddMoreAgents": "আরও এজেন্ট যোগ করতে আপগ্রেড করুন",
@@ -741,7 +742,12 @@
     "function": "ফাংশন",
     "functions": "ফাংশন",
     "otherTables": "অন্যান্য টেবিল",
-    "viaNewLinkField": "নতুন লিঙ্ক ক্ষেত্রের মাধ্যমে"
+    "viaNewLinkField": "নতুন লিঙ্ক ক্ষেত্রের মাধ্যমে",
+    "test": "পরীক্ষা",
+    "success": "সফল",
+    "manageFields": "ফিল্ড পরিচালনা করুন",
+    "tools": "টুল",
+    "allChangesSaved": "সব পরিবর্তন সংরক্ষিত হয়েছে"
   },
   "objects": {
     "script": "স্ক্রিপ্ট",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "ব্যবহারকারীর দলগুলির এবং তাদের অধীনস্থ সব দলের নাম।",
           "currentUserTeamWithDescendantMembers": "আমার দলের সদস্যরা",
           "currentUserTeamWithDescendantMembersDescription": "ব্যবহারকারীর দল ও উপদলের সবাই — অধীনস্থদের রেকর্ড দেখতে «এগুলির যেকোনোটি আছে» শর্তের সঙ্গে ব্যবহার করুন।"
-        }
+        },
+        "appliesTo": "প্রযোজ্য"
       },
       "inlineUserSelector": {
         "noUsersSelected": "কেউ না {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "সপ্তাহ",
     "viewFolder": "ভিউ ফোল্ডার",
     "subRecord": "উপ-রেকর্ড",
-    "video": "ভিডিও"
+    "video": "ভিডিও",
+    "recordTemplates": "রেকর্ড টেমপ্লেট"
   },
   "datatype": {
     "ID": "আইডি",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "নতুন পরিবেশ",
     "removeCustomDomain": "কাস্টম ডোমেন সরাবেন?",
     "tooNarrowToAdjustFrozenFields": "স্থির করা ফিল্ড সমন্বয় করতে উইন্ডোটি খুব সরু",
-    "themeSettings": "থিম সেটিংস"
+    "themeSettings": "থিম সেটিংস",
+    "nFields": "{count}টি ফিল্ড | {count}টি ফিল্ড"
   },
   "labels": {
     "syncing": "সিঙ্ক হচ্ছে",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "পড়া, লেখা ও মুছে ফেলা",
       "allowShown": "প্রদর্শিতগুলি অনুমোদন করুন",
       "clearShown": "প্রদর্শিতগুলি মুছুন",
-      "shownOf": "{total}টির মধ্যে {shown}টি প্রদর্শিত"
+      "shownOf": "{total}টির মধ্যে {shown}টি প্রদর্শিত",
+      "levelAll": "সবের জন্য {level}",
+      "toolsAllowed": "{total}টির মধ্যে {count}টি টুল অনুমোদিত",
+      "customTip": "হাতে বেছে নেওয়া টুল। সারি পুনরায় সেট করতে একটি স্তর বেছে নিন।",
+      "writes": "লেখা",
+      "sections": {
+        "account": "অ্যাকাউন্ট ও ওয়ার্কস্পেস",
+        "accountDesc": "আপনি কে, আপনার ওয়ার্কস্পেস, তাতে থাকা বেস, এবং অ্যাপের লিঙ্ক",
+        "records": "রেকর্ড ও ডেটা",
+        "recordsDesc": "রেকর্ড, মন্তব্য, আমদানি ও রপ্তানি",
+        "schema": "স্কিমা",
+        "schemaDesc": "টেবিল, ফিল্ড, অনুলিপি, এবং একটি বেস কীভাবে সাজানো",
+        "views": "ভিউ",
+        "viewsDesc": "ভিউ, ফিল্টার, সাজানো, ভাগ করা, ফর্ম ফিল্ড, সারির রং",
+        "automation": "স্বয়ংক্রিয়করণ",
+        "automationDesc": "ওয়ার্কফ্লো, ওয়েবহুক, স্ক্রিপ্ট ও এজেন্ট",
+        "interfaces": "ইন্টারফেস, ড্যাশবোর্ড ও নথি",
+        "interfacesDesc": "ইন্টারফেস পৃষ্ঠা, ড্যাশবোর্ড, উইজেট ও নথি",
+        "access": "অ্যাক্সেস ও নিরাপত্তা",
+        "accessDesc": "ফিল্ড ও টেবিলের অনুমতি, সারি-স্তরের নিরাপত্তা",
+        "platform": "প্ল্যাটফর্ম",
+        "platformDesc": "ইন্টিগ্রেশন, পরিবেশ ও অ্যাপ"
+      }
     },
     "noBaseAccess": "বেসে কোনো অ্যাক্সেস নেই",
     "signedInAs": "সাইন ইন করা হয়েছে",
-    "moreAgents": "আরও {count}টি এজেন্ট | আরও {count}টি এজেন্ট"
+    "moreAgents": "আরও {count}টি এজেন্ট | আরও {count}টি এজেন্ট",
+    "mcpConnectionsLabel": "Claude, Codex বা Cursor-এর মতো AI ক্লায়েন্টের সঙ্গে ব্যবহারের জন্য MCP সংযোগ তৈরি করুন।",
+    "mcpConnections": "MCP সংযোগ",
+    "editMcpConnection": "সংযোগ সম্পাদনা করুন",
+    "mcpClientSetup": "ক্লায়েন্ট সেটআপ",
+    "manageFieldsSubtext": "ফিল্ড সম্পাদনা করুন এবং নির্ভরতা পরীক্ষা করুন",
+    "relationsSubtext": "টেবিলের সম্পর্ক দেখুন ও পরিচালনা করুন",
+    "apiSnippetSubtext": "API ব্যবহার করে এই টেবিলে কোয়েরি করার কোড তৈরি করুন",
+    "webhooksSubtext": "রেকর্ড পরিবর্তিত হলে বাহ্যিক কল স্বয়ংক্রিয় করুন",
+    "permissionsSubtext": "কে ডেটা দেখতে ও সম্পাদনা করতে পারবে তা নিয়ন্ত্রণ করুন",
+    "rlsSubtext": "নীতির মাধ্যমে রেকর্ডে অ্যাক্সেস সীমিত করুন",
+    "dateDependencySubtext": "নির্ভরশীল রেকর্ডগুলিতে তারিখ সরান",
+    "recordTemplatesSubtext": "সংরক্ষিত টেমপ্লেট থেকে রেকর্ড তৈরি করুন",
+    "toolsSectionStructure": "কাঠামো",
+    "toolsSectionAccess": "অ্যাক্সেস ও নিরাপত্তা",
+    "toolsSectionRecords": "রেকর্ড",
+    "toolsSectionDeveloper": "ডেভেলপার"
   },
   "activity": {
     "useTemplate": "টেমপ্লেট ব্যবহার করুন",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "{count}টি কলাম স্থির করুন | {count}টি কলাম স্থির করুন",
     "marketplaceComingSoon": "এই অ্যাপটি এখনও প্যাকেজ করা হচ্ছে, তাই এখনই ইনস্টল করা যাবে না।",
     "marketplaceAuthored": "প্রকাশকের লেখা, অ্যাপের বিষয়বস্তু থেকে নেওয়া নয়।",
-    "marketplaceVerifiedPublisher": "NocoDB প্রকাশ ও পর্যালোচনা করেছে"
+    "marketplaceVerifiedPublisher": "NocoDB প্রকাশ ও পর্যালোচনা করেছে",
+    "showCustomPermissionFieldsOnly": "শুধু কাস্টম অনুমতিযুক্ত ফিল্ড দেখান",
+    "showAllFields": "সব ফিল্ড দেখান"
   },
   "placeholder": {
     "enterVerificationCode": "৬-সংখ্যার কোড লিখুন",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "দক্ষতা খুঁজুন...",
     "messageAgent": "{agent}-কে বার্তা পাঠান",
-    "somethingElse": "অন্য কিছু"
+    "somethingElse": "অন্য কিছু",
+    "noMcpConnections": "কোনো MCP সংযোগ তৈরি করা হয়নি",
+    "noMcpConnectionsLabel": "মনে হচ্ছে আপনি এখনও কোনো MCP সংযোগ তৈরি করেননি।"
   },
   "msg": {
     "sourceViewNotShared": "এই ভিউতে সিঙ্ক সক্রিয় নয়",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB-তে সাইন ইন করা প্রয়োজন।",
       "seeWhoSubmittedDisabledHint": "এই বিকল্পটি সক্ষম করতে আপনার টেবিলে একটি ‘নির্মিত হয়েছে’ ক্ষেত্র যোগ করুন।",
       "formRequiresSignin": "এই ফর্মটি ব্যবহার করতে NocoDB-তে সাইন ইন করা প্রয়োজন।",
-      "switchAccount": "অ্যাকাউন্ট পরিবর্তন করুন"
+      "switchAccount": "অ্যাকাউন্ট পরিবর্তন করুন",
+      "mcpConnectionEdit": "পরিবর্তনগুলি ক্লায়েন্টের পরবর্তী কলে প্রযোজ্য হবে। সিক্রেট অপরিবর্তিত থাকে।",
+      "mcpConnectionsReachingBase": "Claude, Codex বা Cursor-এর মতো AI ক্লায়েন্টের জন্য এই বেসের সঙ্গে যুক্ত MCP সংযোগ তৈরি করুন।",
+      "mcpClientSetupKeyHidden": "কী শুধুমাত্র সংযোগ তৈরি বা পুনরায় তৈরি করার সময় দেখানো হয়, তাই এই কনফিগারেশনে একটি স্থানধারক রয়েছে।"
     },
     "error": {
       "failedToCreateSync": "সিঙ্ক তৈরি করতে ব্যর্থ হয়েছে",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "{n}টি সেল কপি করা হয়েছে",
       "nRecordCreated": "{n}টি রেকর্ড তৈরি হয়েছে",
       "nRecordsCreated": "{n}টি রেকর্ড তৈরি হয়েছে",
-      "interfaceFilterCopied": "{count}টি শর্ত অনুলিপি হয়েছে | {count}টি শর্ত অনুলিপি হয়েছে"
+      "interfaceFilterCopied": "{count}টি শর্ত অনুলিপি হয়েছে | {count}টি শর্ত অনুলিপি হয়েছে",
+      "changesSaved": "পরিবর্তন সংরক্ষিত হয়েছে"
     },
     "success": {
       "restored": "আইটেম সফলভাবে পুনরুদ্ধার হয়েছে",

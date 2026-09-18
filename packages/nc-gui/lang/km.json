@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "ភ្នាក់ងារ"
+      "agents": "ភ្នាក់ងារ",
+      "permissions": "សិទ្ធិលើតារាង និងវាល"
     },
     "upgradeToSortAndLimitLookupValues": "ដើម្បីតម្រៀប និងកំណត់តម្លៃដែលបង្ហាញក្នុងវាលរកមើល សូមដំឡើងទៅគម្រោង {plan}។",
     "upgradeToAddMoreAgents": "ដំឡើងដើម្បីបន្ថែមភ្នាក់ងារ",
@@ -741,7 +742,12 @@
     "function": "អនុគមន៍",
     "functions": "អនុគមន៍",
     "otherTables": "តារាងផ្សេងទៀត",
-    "viaNewLinkField": "តាមរយៈវាលតំណថ្មី"
+    "viaNewLinkField": "តាមរយៈវាលតំណថ្មី",
+    "test": "សាកល្បង",
+    "success": "ជោគជ័យ",
+    "manageFields": "គ្រប់គ្រងវាល",
+    "tools": "ឧបករណ៍",
+    "allChangesSaved": "បានរក្សាទុកការផ្លាស់ប្ដូរទាំងអស់"
   },
   "objects": {
     "script": "ស្គ្រីប",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "ឈ្មោះក្រុមរបស់អ្នកប្រើ បូករួមទាំងគ្រប់ក្រុមដែលនៅក្រោមពួកវា។",
           "currentUserTeamWithDescendantMembers": "សមាជិកក្រុមរបស់ខ្ញុំ",
           "currentUserTeamWithDescendantMembersDescription": "គ្រប់គ្នានៅក្នុងក្រុម និងក្រុមរងរបស់អ្នកប្រើ — ប្រើជាមួយ 'មានណាមួយក្នុងចំណោម' ដើម្បីមើលកំណត់ត្រារបស់អ្នកក្រោមបង្គាប់។"
-        }
+        },
+        "appliesTo": "អនុវត្តចំពោះ"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "សប្ដាហ៍",
     "viewFolder": "ថតទិដ្ឋភាព",
     "subRecord": "កំណត់ត្រារង",
-    "video": "វីដេអូ"
+    "video": "វីដេអូ",
+    "recordTemplates": "គំរូកំណត់ត្រា"
   },
   "datatype": {
     "ID": "ID",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "បរិស្ថានថ្មី",
     "removeCustomDomain": "ដកដែនកំណត់ផ្ទាល់ខ្លួនចេញ?",
     "tooNarrowToAdjustFrozenFields": "បង្អួចតូចចង្អៀតពេកមិនអាចលៃតម្រូវវាលដែលបានបង្កក",
-    "themeSettings": "ការកំណត់រូបរាង"
+    "themeSettings": "ការកំណត់រូបរាង",
+    "nFields": "{count} វាល | {count} វាល"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4312,11 +4321,49 @@
       "readWriteDelete": "អាន សរសេរ និងលុប",
       "allowShown": "អនុញ្ញាតអ្វីដែលបង្ហាញ",
       "clearShown": "សម្អាតអ្វីដែលបង្ហាញ",
-      "shownOf": "បង្ហាញ {shown} ក្នុងចំណោម {total}"
+      "shownOf": "បង្ហាញ {shown} ក្នុងចំណោម {total}",
+      "levelAll": "{level} ទាំងអស់",
+      "toolsAllowed": "អនុញ្ញាតឧបករណ៍ {count} ក្នុងចំណោម {total}",
+      "customTip": "ឧបករណ៍ដែលបានជ្រើសដោយដៃ។ ជ្រើសកម្រិតមួយដើម្បីកំណត់ជួរដេកឡើងវិញ។",
+      "writes": "ការសរសេរ",
+      "sections": {
+        "account": "គណនី និងកន្លែងធ្វើការ",
+        "accountDesc": "អ្នកជានរណា កន្លែងធ្វើការរបស់អ្នក មូលដ្ឋានទិន្នន័យនៅក្នុងនោះ និងតំណភ្ជាប់ទៅកាន់កម្មវិធី",
+        "records": "កំណត់ត្រា និងទិន្នន័យ",
+        "recordsDesc": "កំណត់ត្រា មតិយោបល់ ការនាំចូល និងការនាំចេញ",
+        "schema": "គ្រោងការណ៍",
+        "schemaDesc": "តារាង វាល ការចម្លង និងរបៀបរៀបចំមូលដ្ឋានទិន្នន័យ",
+        "views": "ទិដ្ឋភាព",
+        "viewsDesc": "ទិដ្ឋភាព តម្រង ការតម្រៀប ការចែករំលែក វាលទម្រង់ ពណ៌ជួរដេក",
+        "automation": "ស្វ័យប្រវត្តិកម្ម",
+        "automationDesc": "លំហូរការងារ វេបហុក ស្គ្រីប និងភ្នាក់ងារ",
+        "interfaces": "ចំណុចប្រទាក់ ផ្ទាំងគ្រប់គ្រង និងឯកសារ",
+        "interfacesDesc": "ទំព័រចំណុចប្រទាក់ ផ្ទាំងគ្រប់គ្រង វីដជេត និងឯកសារ",
+        "access": "ការចូលប្រើ និងសុវត្ថិភាព",
+        "accessDesc": "សិទ្ធិលើវាល និងតារាង សុវត្ថិភាពកម្រិតជួរដេក",
+        "platform": "វេទិកា",
+        "platformDesc": "ការរួមបញ្ចូល បរិស្ថាន និងកម្មវិធី"
+      }
     },
     "noBaseAccess": "គ្មានសិទ្ធិចូលប្រើ Base ទេ",
     "signedInAs": "បានចូលគណនីជា",
-    "moreAgents": "ភ្នាក់ងារ {count} នាក់ទៀត | ភ្នាក់ងារ {count} នាក់ទៀត"
+    "moreAgents": "ភ្នាក់ងារ {count} នាក់ទៀត | ភ្នាក់ងារ {count} នាក់ទៀត",
+    "mcpConnectionsLabel": "បង្កើតការតភ្ជាប់ MCP ដើម្បីប្រើជាមួយកម្មវិធីភ្ញៀវ AI ដូចជា Claude, Codex ឬ Cursor។",
+    "mcpConnections": "ការតភ្ជាប់ MCP",
+    "editMcpConnection": "កែសម្រួលការតភ្ជាប់",
+    "mcpClientSetup": "ការរៀបចំកម្មវិធីភ្ញៀវ",
+    "manageFieldsSubtext": "កែសម្រួលវាល និងពិនិត្យភាពពឹងផ្អែក",
+    "relationsSubtext": "មើលឃើញ និងគ្រប់គ្រងទំនាក់ទំនងតារាង",
+    "apiSnippetSubtext": "បង្កើតកូដដើម្បីសួររកទិន្នន័យក្នុងតារាងនេះតាម API",
+    "webhooksSubtext": "ស្វ័យប្រវត្តិកម្មការហៅខាងក្រៅនៅពេលកំណត់ត្រាផ្លាស់ប្ដូរ",
+    "permissionsSubtext": "គ្រប់គ្រងថាអ្នកណាអាចមើល និងកែសម្រួលទិន្នន័យ",
+    "rlsSubtext": "កំណត់ការចូលប្រើកំណត់ត្រាដោយប្រើគោលការណ៍",
+    "dateDependencySubtext": "ផ្លាស់ប្ដូរកាលបរិច្ឆេទនៅក្នុងកំណត់ត្រាដែលពឹងផ្អែក",
+    "recordTemplatesSubtext": "បង្កើតកំណត់ត្រាពីគំរូដែលបានរក្សាទុក",
+    "toolsSectionStructure": "រចនាសម្ព័ន្ធ",
+    "toolsSectionAccess": "ការចូលប្រើ និងសុវត្ថិភាព",
+    "toolsSectionRecords": "កំណត់ត្រា",
+    "toolsSectionDeveloper": "អ្នកអភិវឌ្ឍន៍"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4810,7 +4857,9 @@
     "freezeColumnsCount": "បង្កកជួរឈរ {count} | បង្កកជួរឈរ {count}",
     "marketplaceComingSoon": "កម្មវិធីនេះកំពុងវេចខ្ចប់នៅឡើយ ដូច្នេះមិនទាន់អាចដំឡើងបានទេ។",
     "marketplaceAuthored": "សរសេរដោយអ្នកបោះពុម្ពផ្សាយ មិនមែនដកស្រង់ពីខ្លឹមសារកម្មវិធីទេ។",
-    "marketplaceVerifiedPublisher": "បោះពុម្ពផ្សាយ និងពិនិត្យដោយ NocoDB"
+    "marketplaceVerifiedPublisher": "បោះពុម្ពផ្សាយ និងពិនិត្យដោយ NocoDB",
+    "showCustomPermissionFieldsOnly": "បង្ហាញតែវាលដែលមានសិទ្ធិផ្ទាល់ខ្លួនប៉ុណ្ណោះ",
+    "showAllFields": "បង្ហាញវាលទាំងអស់"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4970,7 +5019,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "ស្វែងរកជំនាញ...",
     "messageAgent": "ផ្ញើសារទៅ {agent}",
-    "somethingElse": "អ្វីផ្សេងទៀត"
+    "somethingElse": "អ្វីផ្សេងទៀត",
+    "noMcpConnections": "មិនបានបង្កើតការតភ្ជាប់ MCP ទេ",
+    "noMcpConnectionsLabel": "ហាក់ដូចជាអ្នកមិនទាន់បានបង្កើតការតភ្ជាប់ MCP ណាមួយឡើយ។"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5678,7 +5729,10 @@
       "seeWhoSubmittedSubtitle": "តម្រូវឱ្យចូលគណនី NocoDB។",
       "seeWhoSubmittedDisabledHint": "បន្ថែមវាល «បង្កើតដោយ» ទៅតារាងរបស់អ្នក ដើម្បីបើកជម្រើសនេះ។",
       "formRequiresSignin": "ការចូលប្រើបែបបទនេះតម្រូវឱ្យចូលគណនី NocoDB។",
-      "switchAccount": "ប្តូរគណនី"
+      "switchAccount": "ប្តូរគណនី",
+      "mcpConnectionEdit": "ការផ្លាស់ប្ដូរនឹងអនុវត្តចំពោះកម្មវិធីភ្ញៀវនៅការហៅបន្ទាប់។ សោសម្ងាត់នៅដដែល។",
+      "mcpConnectionsReachingBase": "បង្កើតការតភ្ជាប់ MCP ដែលភ្ជាប់ទៅមូលដ្ឋានទិន្នន័យនេះ សម្រាប់កម្មវិធីភ្ញៀវ AI ដូចជា Claude, Codex ឬ Cursor។",
+      "mcpClientSetupKeyHidden": "សោត្រូវបានបង្ហាញតែនៅពេលបង្កើត ឬបង្កើតការតភ្ជាប់ឡើងវិញប៉ុណ្ណោះ ដូច្នេះការកំណត់រចនាសម្ព័ន្ធនេះមានកន្លែងដាក់ជំនួស។"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5902,7 +5956,8 @@
       "nCellsCopied": "បានចម្លង {n} សែល",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "បានចម្លងលក្ខខណ្ឌ {count} | បានចម្លងលក្ខខណ្ឌ {count}"
+      "interfaceFilterCopied": "បានចម្លងលក្ខខណ្ឌ {count} | បានចម្លងលក្ខខណ្ឌ {count}",
+      "changesSaved": "បានរក្សាទុកការផ្លាស់ប្ដូរ"
     },
     "success": {
       "restored": "Item restored successfully",

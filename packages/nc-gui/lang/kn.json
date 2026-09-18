@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "ಪ್ರತಿನಿಧಿಗಳು"
+      "agents": "ಪ್ರತಿನಿಧಿಗಳು",
+      "permissions": "ಕೋಷ್ಟಕ ಮತ್ತು ಕ್ಷೇತ್ರ ಅನುಮತಿಗಳು"
     },
     "upgradeToSortAndLimitLookupValues": "ಹುಡುಕು ಕ್ಷೇತ್ರದಲ್ಲಿ ತೋರುವ ಮೌಲ್ಯಗಳನ್ನು ವಿಂಗಡಿಸಲು ಮತ್ತು ಮಿತಿಗೊಳಿಸಲು ದಯವಿಟ್ಟು {plan} ಯೋಜನೆಗೆ ಉನ್ನತೀಕರಿಸಿ.",
     "upgradeToAddMoreAgents": "ಇನ್ನಷ್ಟು ಪ್ರತಿನಿಧಿಗಳನ್ನು ಸೇರಿಸಲು ಉನ್ನತೀಕರಿಸಿ",
@@ -741,7 +742,12 @@
     "function": "ಕಾರ್ಯ",
     "functions": "ಕಾರ್ಯಗಳು",
     "otherTables": "ಇತರ ಕೋಷ್ಟಕಗಳು",
-    "viaNewLinkField": "ಹೊಸ ಕೊಂಡಿ ಕ್ಷೇತ್ರದ ಮೂಲಕ"
+    "viaNewLinkField": "ಹೊಸ ಕೊಂಡಿ ಕ್ಷೇತ್ರದ ಮೂಲಕ",
+    "test": "ಪರೀಕ್ಷಿಸಿ",
+    "success": "ಯಶಸ್ವಿ",
+    "manageFields": "ಕ್ಷೇತ್ರಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+    "tools": "ಪರಿಕರಗಳು",
+    "allChangesSaved": "ಎಲ್ಲಾ ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "ಬಳಕೆದಾರರ ತಂಡಗಳ ಹಾಗೂ ಅವುಗಳ ಕೆಳಗಿನ ಎಲ್ಲ ತಂಡಗಳ ಹೆಸರುಗಳು.",
           "currentUserTeamWithDescendantMembers": "ನನ್ನ ತಂಡಗಳ ಸದಸ್ಯರು",
           "currentUserTeamWithDescendantMembersDescription": "ಬಳಕೆದಾರರ ತಂಡಗಳು ಮತ್ತು ಉಪತಂಡಗಳಲ್ಲಿನ ಎಲ್ಲರೂ — ನಿಮ್ಮ ಅಧೀನದವರ ದಾಖಲೆಗಳನ್ನು ನೋಡಲು «ಇವುಗಳಲ್ಲಿ ಯಾವುದಾದರೂ ಇದೆ» ಜೊತೆ ಬಳಸಿ."
-        }
+        },
+        "appliesTo": "ಇವುಗಳಿಗೆ ಅನ್ವಯಿಸುತ್ತದೆ"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "ವಾರಗಳು",
     "viewFolder": "ವೀಕ್ಷಣೆ ಫೋಲ್ಡರ್",
     "subRecord": "ಉಪ-ದಾಖಲೆ",
-    "video": "ವಿಡಿಯೊ"
+    "video": "ವಿಡಿಯೊ",
+    "recordTemplates": "ದಾಖಲೆ ಟೆಂಪ್ಲೇಟ್‌ಗಳು"
   },
   "datatype": {
     "ID": "ಐಡಿ",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "ಹೊಸ ಪರಿಸರ",
     "removeCustomDomain": "ಕಸ್ಟಮ್ ಡೊಮೇನ್ ತೆಗೆದುಹಾಕಬೇಕೇ?",
     "tooNarrowToAdjustFrozenFields": "ಸ್ಥಗಿತಗೊಳಿಸಿದ ಕ್ಷೇತ್ರಗಳನ್ನು ಹೊಂದಿಸಲು ವಿಂಡೋ ತುಂಬಾ ಕಿರಿದಾಗಿದೆ",
-    "themeSettings": "ಥೀಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
+    "themeSettings": "ಥೀಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "nFields": "{count} ಕ್ಷೇತ್ರ | {count} ಕ್ಷೇತ್ರಗಳು"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "ಓದುವುದು, ಬರೆಯುವುದು ಮತ್ತು ಅಳಿಸುವುದು",
       "allowShown": "ತೋರಿಸಿರುವವನ್ನು ಅನುಮತಿಸಿ",
       "clearShown": "ತೋರಿಸಿರುವವನ್ನು ತೆರವುಗೊಳಿಸಿ",
-      "shownOf": "{total} ರಲ್ಲಿ {shown} ತೋರಿಸಲಾಗಿದೆ"
+      "shownOf": "{total} ರಲ್ಲಿ {shown} ತೋರಿಸಲಾಗಿದೆ",
+      "levelAll": "ಎಲ್ಲದಕ್ಕೂ {level}",
+      "toolsAllowed": "{total} ಪರಿಕರಗಳಲ್ಲಿ {count} ಅನುಮತಿಸಲಾಗಿದೆ",
+      "customTip": "ಕೈಯಿಂದ ಆಯ್ದ ಪರಿಕರಗಳು. ಸಾಲನ್ನು ಮರುಹೊಂದಿಸಲು ಒಂದು ಹಂತವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+      "writes": "ಬರೆಯುವಿಕೆಗಳು",
+      "sections": {
+        "account": "ಖಾತೆ ಮತ್ತು ಕಾರ್ಯಕ್ಷೇತ್ರಗಳು",
+        "accountDesc": "ನೀವು ಯಾರು, ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರಗಳು, ಅವುಗಳಲ್ಲಿನ ಬೇಸ್‌ಗಳು ಮತ್ತು ಅಪ್ಲಿಕೇಶನ್‌ಗೆ ಲಿಂಕ್‌ಗಳು",
+        "records": "ದಾಖಲೆಗಳು ಮತ್ತು ಡೇಟಾ",
+        "recordsDesc": "ದಾಖಲೆಗಳು, ಕಾಮೆಂಟ್‌ಗಳು, ಆಮದು ಮತ್ತು ರಫ್ತು",
+        "schema": "ಸ್ಕೀಮಾ",
+        "schemaDesc": "ಕೋಷ್ಟಕಗಳು, ಕ್ಷೇತ್ರಗಳು, ನಕಲು ಮಾಡುವಿಕೆ ಮತ್ತು ಬೇಸ್ ಹೇಗೆ ಸಂಘಟಿತವಾಗಿದೆ",
+        "views": "ವೀಕ್ಷಣೆಗಳು",
+        "viewsDesc": "ವೀಕ್ಷಣೆಗಳು, ಫಿಲ್ಟರ್‌ಗಳು, ವಿಂಗಡಣೆಗಳು, ಹಂಚಿಕೆ, ಫಾರ್ಮ್ ಕ್ಷೇತ್ರಗಳು, ಸಾಲಿನ ಬಣ್ಣಗಳು",
+        "automation": "ಸ್ವಯಂಚಾಲನೆ",
+        "automationDesc": "ಕಾರ್ಯಹರಿವುಗಳು, ವೆಬ್‌ಹುಕ್‌ಗಳು, ಸ್ಕ್ರಿಪ್ಟ್‌ಗಳು ಮತ್ತು ಏಜೆಂಟ್‌ಗಳು",
+        "interfaces": "ಇಂಟರ್‌ಫೇಸ್‌ಗಳು, ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗಳು ಮತ್ತು ದಾಖಲೆಪತ್ರಗಳು",
+        "interfacesDesc": "ಇಂಟರ್‌ಫೇಸ್ ಪುಟಗಳು, ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗಳು, ವಿಜೆಟ್‌ಗಳು ಮತ್ತು ದಸ್ತಾವೇಜುಗಳು",
+        "access": "ಪ್ರವೇಶ ಮತ್ತು ಭದ್ರತೆ",
+        "accessDesc": "ಕ್ಷೇತ್ರ ಮತ್ತು ಕೋಷ್ಟಕ ಅನುಮತಿಗಳು, ಸಾಲು-ಮಟ್ಟದ ಭದ್ರತೆ",
+        "platform": "ವೇದಿಕೆ",
+        "platformDesc": "ಸಂಯೋಜನೆಗಳು, ಪರಿಸರಗಳು ಮತ್ತು ಅಪ್ಲಿಕೇಶನ್‌ಗಳು"
+      }
     },
     "noBaseAccess": "ಬೇಸ್‌ಗೆ ಪ್ರವೇಶವಿಲ್ಲ",
     "signedInAs": "ಈ ಖಾತೆಯಲ್ಲಿ ಸೈನ್ ಇನ್ ಆಗಿದೆ",
-    "moreAgents": "ಇನ್ನೂ {count} ಏಜೆಂಟ್ | ಇನ್ನೂ {count} ಏಜೆಂಟ್‌ಗಳು"
+    "moreAgents": "ಇನ್ನೂ {count} ಏಜೆಂಟ್ | ಇನ್ನೂ {count} ಏಜೆಂಟ್‌ಗಳು",
+    "mcpConnectionsLabel": "Claude, Codex ಅಥವಾ Cursor ನಂತಹ AI ಕ್ಲೈಂಟ್‌ಗಳೊಂದಿಗೆ ಬಳಸಲು MCP ಸಂಪರ್ಕಗಳನ್ನು ರಚಿಸಿ.",
+    "mcpConnections": "MCP ಸಂಪರ್ಕಗಳು",
+    "editMcpConnection": "ಸಂಪರ್ಕವನ್ನು ಸಂಪಾದಿಸಿ",
+    "mcpClientSetup": "ಕ್ಲೈಂಟ್ ಸೆಟಪ್",
+    "manageFieldsSubtext": "ಕ್ಷೇತ್ರಗಳನ್ನು ಸಂಪಾದಿಸಿ ಮತ್ತು ಅವಲಂಬನೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
+    "relationsSubtext": "ಕೋಷ್ಟಕ ಸಂಬಂಧಗಳನ್ನು ದೃಶ್ಯೀಕರಿಸಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ",
+    "apiSnippetSubtext": "API ಮೂಲಕ ಈ ಕೋಷ್ಟಕವನ್ನು ಪ್ರಶ್ನಿಸಲು ಕೋಡ್ ರಚಿಸಿ",
+    "webhooksSubtext": "ದಾಖಲೆಗಳು ಬದಲಾದಾಗ ಬಾಹ್ಯ ಕರೆಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತಗೊಳಿಸಿ",
+    "permissionsSubtext": "ಡೇಟಾವನ್ನು ಯಾರು ವೀಕ್ಷಿಸಬಹುದು ಮತ್ತು ಸಂಪಾದಿಸಬಹುದು ಎಂಬುದನ್ನು ನಿಯಂತ್ರಿಸಿ",
+    "rlsSubtext": "ನೀತಿಗಳೊಂದಿಗೆ ದಾಖಲೆ ಪ್ರವೇಶವನ್ನು ನಿರ್ಬಂಧಿಸಿ",
+    "dateDependencySubtext": "ಅವಲಂಬಿತ ದಾಖಲೆಗಳಲ್ಲಿ ದಿನಾಂಕಗಳನ್ನು ಸರಿಸಿ",
+    "recordTemplatesSubtext": "ಉಳಿಸಿದ ಟೆಂಪ್ಲೇಟ್‌ನಿಂದ ದಾಖಲೆಗಳನ್ನು ರಚಿಸಿ",
+    "toolsSectionStructure": "ರಚನೆ",
+    "toolsSectionAccess": "ಪ್ರವೇಶ ಮತ್ತು ಭದ್ರತೆ",
+    "toolsSectionRecords": "ದಾಖಲೆಗಳು",
+    "toolsSectionDeveloper": "ಡೆವಲಪರ್"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "{count} ಕಾಲಮ್ ಸ್ಥಗಿತಗೊಳಿಸಿ | {count} ಕಾಲಮ್‌ಗಳನ್ನು ಸ್ಥಗಿತಗೊಳಿಸಿ",
     "marketplaceComingSoon": "ಈ ಆ್ಯಪ್ ಇನ್ನೂ ಪ್ಯಾಕೇಜ್ ಆಗುತ್ತಿದೆ, ಹಾಗಾಗಿ ಈಗಲೇ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಲಾಗದು.",
     "marketplaceAuthored": "ಪ್ರಕಾಶಕರು ಬರೆದಿದ್ದು, ಆ್ಯಪ್‌ನ ವಿಷಯದಿಂದ ತೆಗೆದಿದ್ದಲ್ಲ.",
-    "marketplaceVerifiedPublisher": "NocoDB ಪ್ರಕಟಿಸಿ ಪರಿಶೀಲಿಸಿದೆ"
+    "marketplaceVerifiedPublisher": "NocoDB ಪ್ರಕಟಿಸಿ ಪರಿಶೀಲಿಸಿದೆ",
+    "showCustomPermissionFieldsOnly": "ಕಸ್ಟಮ್ ಅನುಮತಿಗಳಿರುವ ಕ್ಷೇತ್ರಗಳನ್ನು ಮಾತ್ರ ತೋರಿಸಿ",
+    "showAllFields": "ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ತೋರಿಸಿ"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "ಕೌಶಲಗಳನ್ನು ಹುಡುಕಿ...",
     "messageAgent": "{agent} ಗೆ ಸಂದೇಶ",
-    "somethingElse": "ಬೇರೇನಾದರೂ"
+    "somethingElse": "ಬೇರೇನಾದರೂ",
+    "noMcpConnections": "ಯಾವುದೇ MCP ಸಂಪರ್ಕಗಳನ್ನು ರಚಿಸಲಾಗಿಲ್ಲ",
+    "noMcpConnectionsLabel": "ನೀವು ಇನ್ನೂ ಯಾವುದೇ MCP ಸಂಪರ್ಕಗಳನ್ನು ರಚಿಸಿಲ್ಲ ಎಂದು ತೋರುತ್ತದೆ."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB ಗೆ ಸೈನ್ ಇನ್ ಮಾಡುವುದು ಅಗತ್ಯ.",
       "seeWhoSubmittedDisabledHint": "ಈ ಆಯ್ಕೆಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು ನಿಮ್ಮ ಕೋಷ್ಟಕಕ್ಕೆ ‘ಇವರಿಂದ ಸೃಷ್ಟಿಸಲಾಗಿದೆ’ ಕ್ಷೇತ್ರವನ್ನು ಸೇರಿಸಿ.",
       "formRequiresSignin": "ಈ ಫಾರ್ಮ್ ಅನ್ನು ಪ್ರವೇಶಿಸಲು NocoDB ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಬೇಕು.",
-      "switchAccount": "ಖಾತೆ ಬದಲಾಯಿಸಿ"
+      "switchAccount": "ಖಾತೆ ಬದಲಾಯಿಸಿ",
+      "mcpConnectionEdit": "ಬದಲಾವಣೆಗಳು ಕ್ಲೈಂಟ್‌ನ ಮುಂದಿನ ಕರೆಯಲ್ಲಿ ಅನ್ವಯಿಸುತ್ತವೆ. ರಹಸ್ಯವು ಹಾಗೆಯೇ ಉಳಿಯುತ್ತದೆ.",
+      "mcpConnectionsReachingBase": "Claude, Codex ಅಥವಾ Cursor ನಂತಹ AI ಕ್ಲೈಂಟ್‌ಗಳಿಗಾಗಿ ಈ ಬೇಸ್‌ಗೆ ಜೋಡಿಸಲಾದ MCP ಸಂಪರ್ಕಗಳನ್ನು ರಚಿಸಿ.",
+      "mcpClientSetupKeyHidden": "ಸಂಪರ್ಕವನ್ನು ರಚಿಸಿದಾಗ ಅಥವಾ ಮರುರಚಿಸಿದಾಗ ಮಾತ್ರ ಕೀಲಿಯನ್ನು ತೋರಿಸಲಾಗುತ್ತದೆ, ಆದ್ದರಿಂದ ಈ ಸಂರಚನೆಯಲ್ಲಿ ಸ್ಥಳಧಾರಕವಿದೆ."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "{n} ಸೆಲ್‌ಗಳನ್ನು ನಕಲಿಸಲಾಗಿದೆ",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "{count} ಷರತ್ತು ನಕಲಿಸಲಾಗಿದೆ | {count} ಷರತ್ತುಗಳನ್ನು ನಕಲಿಸಲಾಗಿದೆ"
+      "interfaceFilterCopied": "{count} ಷರತ್ತು ನಕಲಿಸಲಾಗಿದೆ | {count} ಷರತ್ತುಗಳನ್ನು ನಕಲಿಸಲಾಗಿದೆ",
+      "changesSaved": "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ"
     },
     "success": {
       "restored": "Item restored successfully",

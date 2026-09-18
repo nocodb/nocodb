@@ -258,7 +258,8 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "एजेन्टहरू"
+      "agents": "एजेन्टहरू",
+      "permissions": "तालिका र फिल्ड अनुमतिहरू"
     },
     "upgradeToSortAndLimitLookupValues": "Lookup फिल्डमा देखिने मानहरू क्रमबद्ध गर्न र सीमित गर्न कृपया {plan} योजनामा जानुहोस्।",
     "upgradeToAddMoreAgents": "थप एजेन्ट थप्न अपग्रेड गर्नुहोस्",
@@ -741,7 +742,12 @@
     "function": "फङ्सन",
     "functions": "फङ्सनहरू",
     "otherTables": "अन्य तालिकाहरू",
-    "viaNewLinkField": "नयाँ लिंक क्षेत्रमार्फत"
+    "viaNewLinkField": "नयाँ लिंक क्षेत्रमार्फत",
+    "test": "परीक्षण",
+    "success": "सफल",
+    "manageFields": "फिल्डहरू व्यवस्थापन गर्नुहोस्",
+    "tools": "उपकरणहरू",
+    "allChangesSaved": "सबै परिवर्तनहरू सुरक्षित गरियो"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "प्रयोगकर्ताका टोली तथा तिनीहरूमुनिका सबै टोलीका नाम।",
           "currentUserTeamWithDescendantMembers": "मेरा टोलीका सदस्यहरू",
           "currentUserTeamWithDescendantMembersDescription": "प्रयोगकर्ताका टोली र उपटोलीका सबै जना — आफ्ना मातहतका रेकर्ड हेर्न «यीमध्ये कुनै छ» सर्तसँग प्रयोग गर्नुहोस्।"
-        }
+        },
+        "appliesTo": "यसमा लागू हुन्छ"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
@@ -1156,7 +1163,8 @@
     "weeks": "हप्ता",
     "viewFolder": "दृश्य फोल्डर",
     "subRecord": "उप-रेकर्ड",
-    "video": "भिडियो"
+    "video": "भिडियो",
+    "recordTemplates": "रेकर्ड टेम्प्लेटहरू"
   },
   "datatype": {
     "ID": "आईडी",
@@ -1509,7 +1517,8 @@
     "newEnvironment": "नयाँ वातावरण",
     "removeCustomDomain": "अनुकूल डोमेन हटाउने?",
     "tooNarrowToAdjustFrozenFields": "स्थिर गरिएका फिल्ड मिलाउन विन्डो अत्यन्तै साँघुरो छ",
-    "themeSettings": "थिम सेटिङ"
+    "themeSettings": "थिम सेटिङ",
+    "nFields": "{count} फिल्ड | {count} फिल्डहरू"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4332,11 +4341,49 @@
       "readWriteDelete": "पढ्ने, लेख्ने र मेटाउने",
       "allowShown": "देखाइएकालाई अनुमति दिनुहोस्",
       "clearShown": "देखाइएका हटाउनुहोस्",
-      "shownOf": "{total} मध्ये {shown} देखाइएको"
+      "shownOf": "{total} मध्ये {shown} देखाइएको",
+      "levelAll": "सबैका लागि {level}",
+      "toolsAllowed": "{total} मध्ये {count} उपकरणलाई अनुमति छ",
+      "customTip": "हातले छानिएका उपकरणहरू। पङ्क्ति पुनःसेट गर्न एउटा तह छान्नुहोस्।",
+      "writes": "लेखनहरू",
+      "sections": {
+        "account": "खाता र कार्य क्षेत्रहरू",
+        "accountDesc": "तपाईं को हुनुहुन्छ, तपाईंका कार्य क्षेत्रहरू, तिनमा रहेका बेसहरू, र एपका लिङ्कहरू",
+        "records": "रेकर्डहरू र डेटा",
+        "recordsDesc": "रेकर्डहरू, टिप्पणीहरू, आयात र निर्यात",
+        "schema": "स्किमा",
+        "schemaDesc": "तालिकाहरू, फिल्डहरू, नक्कल, र बेस कसरी व्यवस्थित छ",
+        "views": "दृश्यहरू",
+        "viewsDesc": "दृश्यहरू, फिल्टरहरू, क्रमबद्धता, साझेदारी, फारम फिल्डहरू, पङ्क्तिका रङहरू",
+        "automation": "स्वचालन",
+        "automationDesc": "कार्यप्रवाहहरू, वेबहुकहरू, स्क्रिप्टहरू र एजेन्टहरू",
+        "interfaces": "इन्टरफेसहरू, ड्यासबोर्डहरू र कागजातहरू",
+        "interfacesDesc": "इन्टरफेस पृष्ठहरू, ड्यासबोर्डहरू, विजेटहरू र कागजातहरू",
+        "access": "पहुँच र सुरक्षा",
+        "accessDesc": "फिल्ड र तालिका अनुमतिहरू, पङ्क्ति-स्तरको सुरक्षा",
+        "platform": "प्लेटफर्म",
+        "platformDesc": "एकीकरणहरू, वातावरणहरू र एपहरू"
+      }
     },
     "noBaseAccess": "बेसमा पहुँच छैन",
     "signedInAs": "यसरी साइन इन गरिएको छ",
-    "moreAgents": "थप {count} एजेन्ट | थप {count} एजेन्टहरू"
+    "moreAgents": "थप {count} एजेन्ट | थप {count} एजेन्टहरू",
+    "mcpConnectionsLabel": "Claude, Codex वा Cursor जस्ता AI क्लाइन्टहरूसँग प्रयोग गर्न MCP जडानहरू सिर्जना गर्नुहोस्।",
+    "mcpConnections": "MCP जडानहरू",
+    "editMcpConnection": "जडान सम्पादन गर्नुहोस्",
+    "mcpClientSetup": "क्लाइन्ट सेटअप",
+    "manageFieldsSubtext": "फिल्डहरू सम्पादन गर्नुहोस् र निर्भरताहरू हेर्नुहोस्",
+    "relationsSubtext": "तालिका सम्बन्धहरू देखाउनुहोस् र व्यवस्थापन गर्नुहोस्",
+    "apiSnippetSubtext": "API मार्फत यो तालिका सोध्न कोड सिर्जना गर्नुहोस्",
+    "webhooksSubtext": "रेकर्डहरू परिवर्तन हुँदा बाह्य कलहरू स्वचालित गर्नुहोस्",
+    "permissionsSubtext": "डेटा कसले हेर्न र सम्पादन गर्न सक्छ भन्ने नियन्त्रण गर्नुहोस्",
+    "rlsSubtext": "नीतिहरूमार्फत रेकर्ड पहुँच सीमित गर्नुहोस्",
+    "dateDependencySubtext": "आश्रित रेकर्डहरूमा मितिहरू सार्नुहोस्",
+    "recordTemplatesSubtext": "सुरक्षित गरिएको टेम्प्लेटबाट रेकर्डहरू सिर्जना गर्नुहोस्",
+    "toolsSectionStructure": "संरचना",
+    "toolsSectionAccess": "पहुँच र सुरक्षा",
+    "toolsSectionRecords": "रेकर्डहरू",
+    "toolsSectionDeveloper": "विकासकर्ता"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4831,7 +4878,9 @@
     "freezeColumnsCount": "{count} स्तम्भ स्थिर गर्नुहोस् | {count} स्तम्भ स्थिर गर्नुहोस्",
     "marketplaceComingSoon": "यो एप अझै प्याकेज हुँदैछ, त्यसैले अहिले इन्स्टल गर्न मिल्दैन।",
     "marketplaceAuthored": "प्रकाशकले लेखेको हो, एपको सामग्रीबाट लिइएको होइन।",
-    "marketplaceVerifiedPublisher": "NocoDB द्वारा प्रकाशित र समीक्षित"
+    "marketplaceVerifiedPublisher": "NocoDB द्वारा प्रकाशित र समीक्षित",
+    "showCustomPermissionFieldsOnly": "अनुकूलित अनुमति भएका फिल्डहरू मात्र देखाउनुहोस्",
+    "showAllFields": "सबै फिल्डहरू देखाउनुहोस्"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -4991,7 +5040,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "सीपहरू खोज्नुहोस्...",
     "messageAgent": "{agent} लाई सन्देश पठाउनुहोस्",
-    "somethingElse": "अरू केही"
+    "somethingElse": "अरू केही",
+    "noMcpConnections": "कुनै MCP जडान सिर्जना गरिएको छैन",
+    "noMcpConnectionsLabel": "तपाईंले अहिलेसम्म कुनै MCP जडान सिर्जना गर्नुभएको छैन जस्तो छ।"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5699,7 +5750,10 @@
       "seeWhoSubmittedSubtitle": "NocoDB मा साइन इन गर्नु आवश्यक छ।",
       "seeWhoSubmittedDisabledHint": "यो विकल्प सक्षम गर्न आफ्नो तालिकामा ‘द्वारा सिर्जना गरिएको’ फिल्ड थप्नुहोस्।",
       "formRequiresSignin": "यो फारम प्रयोग गर्न NocoDB मा साइन इन गर्नुपर्छ।",
-      "switchAccount": "खाता फेर्नुहोस्"
+      "switchAccount": "खाता फेर्नुहोस्",
+      "mcpConnectionEdit": "परिवर्तनहरू क्लाइन्टको अर्को कलमा लागू हुन्छन्। गोप्य कुरा उस्तै रहन्छ।",
+      "mcpConnectionsReachingBase": "Claude, Codex वा Cursor जस्ता AI क्लाइन्टहरूका लागि यो बेससँग जोडिएका MCP जडानहरू सिर्जना गर्नुहोस्।",
+      "mcpClientSetupKeyHidden": "जडान सिर्जना वा पुनःसिर्जना गर्दा मात्र कुञ्जी देखाइन्छ, त्यसैले यो कन्फिगरेसनमा एउटा स्थानधारक छ।"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -5923,7 +5977,8 @@
       "nCellsCopied": "{n} कोषहरू प्रतिलिपि गरियो",
       "nRecordCreated": "{n} record created",
       "nRecordsCreated": "{n} records created",
-      "interfaceFilterCopied": "{count} सर्त प्रतिलिपि भयो | {count} सर्त प्रतिलिपि भए"
+      "interfaceFilterCopied": "{count} सर्त प्रतिलिपि भयो | {count} सर्त प्रतिलिपि भए",
+      "changesSaved": "परिवर्तनहरू सुरक्षित गरियो"
     },
     "success": {
       "restored": "Item restored successfully",

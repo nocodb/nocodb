@@ -5,7 +5,6 @@ interface Props {
   tableId: string
   permissionsFieldWrapperClass?: string
   permissionsTableWrapperClass?: string
-  permissionsTableToolbarClassName?: string
   hideSectionTitle?: boolean
 }
 

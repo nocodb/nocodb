@@ -207,7 +207,7 @@ const supportedDocs = [
 
 <template>
   <div
-    class="p-6"
+    class="px-6 py-5"
     :style="
       inModal
         ? { height: '100%', maxHeight: '100%' }
@@ -217,14 +217,9 @@ const supportedDocs = [
           }
     "
   >
-    <div class="flex gap-4 max-w-[1000px] mx-auto h-full">
+    <div class="flex gap-4 max-w-250 mx-auto h-full">
       <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3 rtl:(!pl-3 !pr-0)">
-        <div
-          class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold"
-          :style="{
-            letterSpacing: '0.3px',
-          }"
-        >
+        <div class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold tracking-wide">
           {{ $t('general.languages') }}
         </div>
 
@@ -246,12 +241,7 @@ const supportedDocs = [
         <NcDivider class="!my-3" />
 
         <div class="flex flex-col gap-1">
-          <div
-            class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold"
-            :style="{
-              letterSpacing: '0.3px',
-            }"
-          >
+          <div class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold tracking-wide">
             {{ $t('labels.documentation') }}
           </div>
 

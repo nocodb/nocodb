@@ -71,11 +71,16 @@ const openTool = (slug: ViewPageType) => {
     <template #overlay>
       <NcMenu class="!min-w-70" data-id="table-tools" variant="small">
         <!-- Structure -->
-        <NcMenuItem v-if="showFieldsAction" v-e="['c:table:fields']" @click="openTool('field')">
+        <NcMenuItem
+          v-if="showFieldsAction"
+          v-e="['c:table:fields']"
+          data-testid="nc-table-tools-item-field"
+          @click="openTool('field')"
+        >
           <GeneralIcon icon="ncList" class="opacity-80" />
           {{ $t('general.manageFields') }}
         </NcMenuItem>
-        <NcMenuItem v-e="['c:table:relations']" @click="openTool('relation')">
+        <NcMenuItem v-e="['c:table:relations']" data-testid="nc-table-tools-item-relation" @click="openTool('relation')">
           <GeneralIcon icon="ncErd" class="opacity-80" />
           {{ $t('title.relations') }}
         </NcMenuItem>
@@ -90,6 +95,7 @@ const openTool = (slug: ViewPageType) => {
             <template #default="{ click }">
               <NcMenuItem
                 inner-class="w-full"
+                data-testid="nc-table-tools-item-permissions"
                 @click="click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => openTool('permissions'))"
               >
                 <div v-e="['c:table:permissions']" class="flex items-center gap-2 w-full">
@@ -109,7 +115,11 @@ const openTool = (slug: ViewPageType) => {
           </PaymentUpgradeBadgeProvider>
           <PaymentUpgradeBadgeProvider v-if="showRlsAction" :feature="PlanFeatureTypes.FEATURE_RLS">
             <template #default="{ click }">
-              <NcMenuItem inner-class="w-full" @click="click(PlanFeatureTypes.FEATURE_RLS, () => openTool('rls'))">
+              <NcMenuItem
+                inner-class="w-full"
+                data-testid="nc-table-tools-item-rls"
+                @click="click(PlanFeatureTypes.FEATURE_RLS, () => openTool('rls'))"
+              >
                 <div v-e="['c:table:rls']" class="flex items-center gap-2 w-full">
                   <GeneralIcon icon="ncShield" class="opacity-80" />
                   <span class="flex-1 truncate">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</span>
@@ -134,6 +144,7 @@ const openTool = (slug: ViewPageType) => {
             <template #default="{ click }">
               <NcMenuItem
                 inner-class="w-full"
+                data-testid="nc-table-tools-item-templates"
                 @click="click(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES, () => openTool('templates'))"
               >
                 <div v-e="['c:table:record-templates']" class="flex items-center gap-2 w-full">
@@ -153,7 +164,11 @@ const openTool = (slug: ViewPageType) => {
           </PaymentUpgradeBadgeProvider>
           <PaymentUpgradeBadgeProvider v-if="showDateDependencyAction" :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY">
             <template #default="{ click }">
-              <NcMenuItem inner-class="w-full" @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, () => openTool('dates'))">
+              <NcMenuItem
+                inner-class="w-full"
+                data-testid="nc-table-tools-item-dates"
+                @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, () => openTool('dates'))"
+              >
                 <div v-e="['c:table:date-dependency']" class="flex items-center gap-2 w-full">
                   <GeneralIcon icon="ncCalendar" class="opacity-80" />
                   <span class="flex-1 truncate">{{ $t('labels.dateDependency.title') }}</span>
@@ -173,11 +188,16 @@ const openTool = (slug: ViewPageType) => {
 
         <!-- Integrations -->
         <NcDivider />
-        <NcMenuItem v-if="showWebhooksAction" v-e="['c:table:webhooks']" @click="openTool('webhook')">
+        <NcMenuItem
+          v-if="showWebhooksAction"
+          v-e="['c:table:webhooks']"
+          data-testid="nc-table-tools-item-webhook"
+          @click="openTool('webhook')"
+        >
           <GeneralIcon icon="ncWebhook" class="opacity-80" />
           {{ $t('objects.webhooks') }}
         </NcMenuItem>
-        <NcMenuItem v-e="['c:table:api']" @click="openTool('api')">
+        <NcMenuItem v-e="['c:table:api']" data-testid="nc-table-tools-item-api" @click="openTool('api')">
           <GeneralIcon icon="ncCode" class="opacity-80" />
           {{ $t('labels.apiSnippet') }}
         </NcMenuItem>

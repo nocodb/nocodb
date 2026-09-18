@@ -20576,6 +20576,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "scopeBaseId",
+          "in": "query",
+          "description": "Base Id to narrow an account-scoped listing to",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "viewId",
           "in": "query",
           "description": "View Id",

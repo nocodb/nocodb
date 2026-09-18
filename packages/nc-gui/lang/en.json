@@ -184,6 +184,8 @@
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseDocumentPermissions": "Upgrade to use document permissions",
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
+    "upgradeToUseSso": "Upgrade to use SSO",
+    "upgradeToUseSsoSubtitle": "Upgrade to the {plan} plan to set up Single Sign-On (SSO) and let your team sign in with your identity provider.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",

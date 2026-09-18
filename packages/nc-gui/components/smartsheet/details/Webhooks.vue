@@ -329,7 +329,7 @@ const getHookTypeText = (hook: HookType) => {
 
 <template>
   <div class="nc-webhook-wrapper w-full p-4" :class="{ 'h-full flex flex-col': inModal, '!px-6 !py-5': inShell }">
-    <div class="max-w-250 h-full w-full mx-auto" :class="{ 'flex-1 flex flex-col min-h-0': inModal }">
+    <div class="h-full w-full" :class="{ 'flex-1 flex flex-col min-h-0': inModal, 'max-w-250 mx-auto': !inShell }">
       <div v-if="activeView && !isHooksLoading" :class="{ 'flex-1 flex flex-col min-h-0': inModal }">
         <NcAlert
           v-if="hasV2Webhooks"
@@ -430,6 +430,10 @@ const getHookTypeText = (hook: HookType) => {
             :columns="columns"
             :data="sortedHooks"
             :custom-row="customRow"
+            row-height="44px"
+            header-row-height="40px"
+            header-cell-class-name="!text-[13px]"
+            body-cell-class-name="!text-[13px]"
             class="h-full"
             body-row-class-name="nc-view-sidebar-webhook-item group"
           >
@@ -440,7 +444,7 @@ const getHookTypeText = (hook: HookType) => {
                 </template>
                 <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop>
                   <NcSwitch
-                    size="small"
+                    size="xsmall"
                     :disabled="hook.event === 'manual'"
                     :checked="!!hook.active"
                     @change="toggleHook(hook)"
@@ -449,7 +453,7 @@ const getHookTypeText = (hook: HookType) => {
               </NcTooltip>
 
               <template v-if="column.key === 'name'">
-                <NcTooltip class="truncate max-w-full flex-1 text-nc-content-gray font-semibold text-sm" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full flex-1 text-nc-content-gray font-medium" show-on-truncate-only>
                   {{ hook.title }}
 
                   <template #title>

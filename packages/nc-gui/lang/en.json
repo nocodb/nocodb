@@ -279,6 +279,7 @@
     "refreshLicense": "Refresh License",
     "features": {
       "sso": "Single Sign-On (SSO)",
+      "permissions": "Table & Field Permissions",
       "snapshots": "Snapshots",
       "customUrls": "Custom URLs",
       "scripts": "Scripts",
@@ -805,6 +806,7 @@
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "recordTemplate": "Record Template",
+    "recordTemplates": "Record Templates",
     "view": "View",
     "views": "Views",
     "folder": "Folder",
@@ -1034,6 +1036,7 @@
         "noPoliciesConfigured": "No RLS policies configured",
         "noPoliciesDescription": "Record-Level Security controls which records users can see and modify.",
         "scopedPolicies": "Scoped Policies",
+        "appliesTo": "Applies to",
         "noScopedPolicies": "No scoped policies. Add a policy to restrict row access for specific roles, teams, or users.",
         "appliedWhenNoMatch": "Applied when no scoped policy matches the user.",
         "filterConditions": "Filter Conditions",

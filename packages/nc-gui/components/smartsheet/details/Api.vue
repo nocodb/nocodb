@@ -217,7 +217,7 @@ const supportedDocs = [
           }
     "
   >
-    <div class="flex gap-4 max-w-250 mx-auto h-full">
+    <div class="flex gap-4 h-full">
       <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3 rtl:(!pl-3 !pr-0)">
         <div class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold tracking-wide">
           {{ $t('general.languages') }}

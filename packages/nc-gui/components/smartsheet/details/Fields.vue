@@ -1687,7 +1687,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
 
 <template>
   <div class="nc-fields-wrapper w-full h-full px-6 py-4">
-    <div class="max-w-250 h-full w-full mx-auto flex flex-col gap-6">
+    <div class="h-full w-full flex flex-col gap-6">
       <div v-if="isViewColumnsLoading && !hasLoadedViewColumns" class="flex flex-row justify-between mt-2">
         <a-skeleton-input class="!h-8 !w-68 !rounded !overflow-hidden" active size="small" />
         <div class="flex flex-row gap-x-4">
@@ -2145,7 +2145,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                 <template #item="{ element: field }">
                   <div
                     v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                    class="nc-field-row flex px-2 border-b-1 border-nc-border-gray-medium pl-5 rtl:(pr-5 pl-2) group"
+                    class="nc-field-row flex min-h-11 px-2 border-b-1 border-nc-border-gray-medium pl-5 rtl:(pr-5 pl-2) group"
                     :class="{
                       'selected': compareCols(field, activeField),
                       'cursor-not-allowed': !isColumnUpdateAllowed(field),
@@ -2154,7 +2154,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                     :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
                     @click="changeField(field, $event)"
                   >
-                    <div class="flex items-center flex-1 py-2 gap-1 w-2/6">
+                    <div class="flex items-center flex-1 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
                         class="cursor-move !h-3.5 text-nc-content-gray-subtle2 mr-1 rtl:(ml-1 mr-0)"
@@ -2382,7 +2382,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                   #header
                 >
                   <div
-                    class="nc-field-row flex px-2 bg-nc-bg-default hover:bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium last:border-b-1 pl-5 rtl:(pr-5 pl-2) group"
+                    class="nc-field-row flex min-h-11 px-2 bg-nc-bg-default hover:bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium last:border-b-1 pl-5 rtl:(pr-5 pl-2) group"
                     :class="{
                       'selected': compareCols(displayColumn, activeField),
                       'first:rounded-tl-lg rtl:(first:rounded-tl-none first:rounded-tr-lg)': !aiMode,
@@ -2390,7 +2390,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                     :data-testid="`nc-field-item-${fieldState(displayColumn)?.title || displayColumn.title}`"
                     @click="changeField(displayColumn, $event)"
                   >
-                    <div class="flex items-center flex-1 py-2 gap-1 w-2/6">
+                    <div class="flex items-center flex-1 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
                         class="cursor-move !h-3.5 text-nc-gray-200 mr-1 rtl:(ml-1 mr-0)"

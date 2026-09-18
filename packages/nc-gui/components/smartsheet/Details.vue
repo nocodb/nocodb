@@ -307,10 +307,10 @@ watch(
             v-else-if="openedViewsTab === 'permissions' && meta?.id"
             ref="permissionsRef"
             :table-id="meta.id"
-            class="h-full pt-5"
+            class="nc-tools-permissions h-full pt-5"
             hide-section-title
-            permissions-table-wrapper-class="!min-w-0 max-w-200 !mx-0"
-            permissions-field-wrapper-class="!min-w-0 max-w-200 !mx-0"
+            permissions-table-wrapper-class="!min-w-0 !mx-0"
+            permissions-field-wrapper-class="!min-w-0 !mx-0"
           />
 
           <div v-else-if="openedViewsTab === 'rls' && isEeUI && meta?.id" class="h-full px-6 py-5 overflow-hidden">
@@ -343,3 +343,10 @@ watch(
     </div>
   </NcModal>
 </template>
+
+<style lang="scss" scoped>
+// Field names one step down (13px), matching the Manage fields rows.
+.nc-tools-permissions :deep(.nc-field-permissions-name) {
+  @apply !text-[13px];
+}
+</style>

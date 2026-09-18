@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Passez à un plan supérieur pour créer des environnements personnalisés",
     "upgradeToUseCustomEnvironmentsSubtitle": "Les environnements personnalisés ne sont pas disponibles dans votre plan {activePlan}. Passez à {plan} pour créer des environnements au-delà de Production et Staging.",
     "upgradeToUseFormRequireSignin": "Passez à une offre supérieure pour exiger une connexion sur les formulaires",
-    "upgradeToUseFormRequireSigninSubtitle": "Passez au plan {plan} pour exiger que les répondants se connectent avant d’envoyer un formulaire."
+    "upgradeToUseFormRequireSigninSubtitle": "Passez au plan {plan} pour exiger que les répondants se connectent avant d’envoyer un formulaire.",
+    "upgradeToUseSso": "Mettre à niveau pour utiliser le SSO",
+    "upgradeToUseSsoSubtitle": "Passez au plan {plan} pour configurer l'authentification unique (SSO) et permettre à votre équipe de se connecter avec votre fournisseur d'identité."
   },
   "general": {
     "scrollToBottom": "Défiler vers le bas",

@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "업그레이드하고 사용자 지정 환경 만들기",
     "upgradeToUseCustomEnvironmentsSubtitle": "사용자 지정 환경은 {activePlan} 요금제에서는 사용할 수 없습니다. Production과 Staging 외의 환경을 만들려면 {plan}(으)로 업그레이드하세요.",
     "upgradeToUseFormRequireSignin": "업그레이드하여 입력폼에 로그인을 요구하세요",
-    "upgradeToUseFormRequireSigninSubtitle": "{plan} 요금제로 업그레이드하면 응답자가 입력폼을 제출하기 전에 로그인하도록 요구할 수 있습니다."
+    "upgradeToUseFormRequireSigninSubtitle": "{plan} 요금제로 업그레이드하면 응답자가 입력폼을 제출하기 전에 로그인하도록 요구할 수 있습니다.",
+    "upgradeToUseSso": "SSO 사용을 위해 업그레이드하세요",
+    "upgradeToUseSsoSubtitle": "{plan} 플랜으로 업그레이드하여 싱글 사인온 (SSO)을 설정하고, 팀원이 ID 공급자로 로그인할 수 있게 하세요."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

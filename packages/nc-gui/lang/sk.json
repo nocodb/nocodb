@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Prejdite na vyšší plán a vytvárajte vlastné prostredia",
     "upgradeToUseCustomEnvironmentsSubtitle": "Vlastné prostredia nie sú vo vašom pláne {activePlan} k dispozícii. Prejdite na {plan} a vytvárajte prostredia nad rámec Production a Staging.",
     "upgradeToUseFormRequireSignin": "Inovujte, aby ste mohli vo formulároch vyžadovať prihlásenie",
-    "upgradeToUseFormRequireSigninSubtitle": "Inovujte na plán {plan}, aby ste od respondentov vyžadovali prihlásenie pred odoslaním formulára."
+    "upgradeToUseFormRequireSigninSubtitle": "Inovujte na plán {plan}, aby ste od respondentov vyžadovali prihlásenie pred odoslaním formulára.",
+    "upgradeToUseSso": "Upgradujte na používanie SSO",
+    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan}, aby ste nastavili jednotné prihlásenie (SSO) a umožnili svojmu tímu prihlasovať sa cez vášho poskytovateľa identity."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

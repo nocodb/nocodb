@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Válts magasabb csomagra egyéni környezetek létrehozásához",
     "upgradeToUseCustomEnvironmentsSubtitle": "Az egyéni környezetek nem érhetők el a(z) {activePlan} csomagodban. Válts a(z) {plan} csomagra, hogy a Production és a Staging mellett továbbiakat is létrehozhass.",
     "upgradeToUseFormRequireSignin": "Frissítsen, hogy bejelentkezést írhasson elő az űrlapokon",
-    "upgradeToUseFormRequireSigninSubtitle": "Frissítsen a(z) {plan} csomagra, hogy a kitöltőknek be kelljen jelentkezniük az űrlap elküldése előtt."
+    "upgradeToUseFormRequireSigninSubtitle": "Frissítsen a(z) {plan} csomagra, hogy a kitöltőknek be kelljen jelentkezniük az űrlap elküldése előtt.",
+    "upgradeToUseSso": "Frissítés az SSO használatához",
+    "upgradeToUseSsoSubtitle": "A {plan} csomagra való frissítéssel beállíthatja az egyszeri bejelentkezést (SSO), és a csapata bejelentkezhet az identitásszolgáltatójával."
   },
   "general": {
     "scrollToBottom": "Görgessen az aljára",

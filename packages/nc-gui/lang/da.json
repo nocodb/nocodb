@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Opgrader for at oprette brugerdefinerede miljøer",
     "upgradeToUseCustomEnvironmentsSubtitle": "Brugerdefinerede miljøer er ikke tilgængelige på din {activePlan}-plan. Opgrader til {plan} for at oprette miljøer ud over Production og Staging.",
     "upgradeToUseFormRequireSignin": "Opgrader for at kræve login på formularer",
-    "upgradeToUseFormRequireSigninSubtitle": "Opgrader til {plan}-planen for at kræve, at respondenter logger ind, før de indsender en formular."
+    "upgradeToUseFormRequireSigninSubtitle": "Opgrader til {plan}-planen for at kræve, at respondenter logger ind, før de indsender en formular.",
+    "upgradeToUseSso": "Opgrader for at bruge SSO",
+    "upgradeToUseSsoSubtitle": "Opgrader til {plan} abonnementet for at opsætte Single Sign-On (SSO) og lade dit team logge ind med din identitetsudbyder."
   },
   "general": {
     "scrollToBottom": "Rul til bunden",

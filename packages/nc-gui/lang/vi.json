@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Nâng cấp để tạo môi trường tùy chỉnh",
     "upgradeToUseCustomEnvironmentsSubtitle": "Môi trường tùy chỉnh không có trong gói {activePlan} của bạn. Hãy nâng cấp lên {plan} để tạo môi trường ngoài Production và Staging.",
     "upgradeToUseFormRequireSignin": "Nâng cấp để yêu cầu đăng nhập trên biểu mẫu",
-    "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu."
+    "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu.",
+    "upgradeToUseSso": "Nâng cấp để sử dụng SSO",
+    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

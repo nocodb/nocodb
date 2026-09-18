@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "ارتقِ لإنشاء بيئات مخصصة",
     "upgradeToUseCustomEnvironmentsSubtitle": "البيئات المخصصة غير متاحة في خطتك {activePlan}. ارتقِ إلى {plan} لإنشاء بيئات إلى جانب Production و Staging.",
     "upgradeToUseFormRequireSignin": "قم بالترقية لطلب تسجيل الدخول في النماذج",
-    "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج."
+    "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج.",
+    "upgradeToUseSso": "الترقية لاستخدام SSO",
+    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك."
   },
   "general": {
     "scrollToBottom": "التمرير إلى الأسفل",

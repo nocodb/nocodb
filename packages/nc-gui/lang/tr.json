@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Özel ortamlar oluşturmak için yükseltin",
     "upgradeToUseCustomEnvironmentsSubtitle": "Özel ortamlar {activePlan} planınızda bulunmuyor. Production ve Staging dışında ortamlar oluşturmak için {plan} planına geçin.",
     "upgradeToUseFormRequireSignin": "Formlarda oturum açmayı zorunlu kılmak için yükseltin",
-    "upgradeToUseFormRequireSigninSubtitle": "Yanıtlayanların bir formu göndermeden önce oturum açmasını zorunlu kılmak için {plan} planına yükseltin."
+    "upgradeToUseFormRequireSigninSubtitle": "Yanıtlayanların bir formu göndermeden önce oturum açmasını zorunlu kılmak için {plan} planına yükseltin.",
+    "upgradeToUseSso": "SSO kullanmak için yükseltin",
+    "upgradeToUseSsoSubtitle": "Çoklu Oturum Açma (SSO) kurmak ve ekibinizin kimlik sağlayıcınızla oturum açmasını sağlamak için {plan} planına yükseltin."
   },
   "general": {
     "scrollToBottom": "En alta kaydır",

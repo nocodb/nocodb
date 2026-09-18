@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Päivitä luodaksesi omia ympäristöjä",
     "upgradeToUseCustomEnvironmentsSubtitle": "Omat ympäristöt eivät ole käytettävissä {activePlan}-paketissasi. Päivitä {plan}-pakettiin luodaksesi ympäristöjä Productionin ja Stagingin lisäksi.",
     "upgradeToUseFormRequireSignin": "Päivitä vaatiaksesi kirjautumista lomakkeisiin",
-    "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä."
+    "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä.",
+    "upgradeToUseSso": "Päivitä käyttääksesi SSO:ta",
+    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi."
   },
   "general": {
     "scrollToBottom": "Siirry alareunaan",

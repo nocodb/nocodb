@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Prijeđite na viši plan za izradu prilagođenih okruženja",
     "upgradeToUseCustomEnvironmentsSubtitle": "Prilagođena okruženja nisu dostupna na vašem planu {activePlan}. Prijeđite na {plan} kako biste izradili okruženja osim Productiona i Staginga.",
     "upgradeToUseFormRequireSignin": "Nadogradite kako biste na obrascima mogli zahtijevati prijavu",
-    "upgradeToUseFormRequireSigninSubtitle": "Nadogradite na plan {plan} kako biste od ispitanika zahtijevali prijavu prije slanja obrasca."
+    "upgradeToUseFormRequireSigninSubtitle": "Nadogradite na plan {plan} kako biste od ispitanika zahtijevali prijavu prije slanja obrasca.",
+    "upgradeToUseSso": "Nadogradite na korištenje SSO-a",
+    "upgradeToUseSsoSubtitle": "Nadogradite se na plan {plan} kako biste postavili jedinstvenu prijavu (SSO) i omogućili svom timu prijavu putem vašeg davatelja identiteta."
   },
   "general": {
     "scrollToBottom": "Pomaknite se na dno",

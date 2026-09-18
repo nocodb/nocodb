@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Upgrade om eigen omgevingen te maken",
     "upgradeToUseCustomEnvironmentsSubtitle": "Eigen omgevingen zijn niet beschikbaar in je {activePlan}-abonnement. Stap over naar {plan} om omgevingen naast Productie en Staging te maken.",
     "upgradeToUseFormRequireSignin": "Upgrade om aanmelden verplicht te stellen voor formulieren",
-    "upgradeToUseFormRequireSigninSubtitle": "Upgrade naar het {plan}-abonnement om respondenten te verplichten zich aan te melden voordat ze een formulier verzenden."
+    "upgradeToUseFormRequireSigninSubtitle": "Upgrade naar het {plan}-abonnement om respondenten te verplichten zich aan te melden voordat ze een formulier verzenden.",
+    "upgradeToUseSso": "Upgrade om SSO te gebruiken",
+    "upgradeToUseSsoSubtitle": "Upgrade naar het {plan} plan om Single Sign-On (SSO) in te stellen en je team te laten inloggen met je identiteitsprovider."
   },
   "general": {
     "scrollToBottom": "Scroll naar beneden",

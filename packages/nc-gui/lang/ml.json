@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "സ്വന്തം ചുറ്റുപാടുകൾ ഉണ്ടാക്കാൻ ഉയർത്തുക",
     "upgradeToUseCustomEnvironmentsSubtitle": "നിങ്ങളുടെ {activePlan} പദ്ധതിയിൽ സ്വന്തം ചുറ്റുപാടുകൾ ലഭ്യമല്ല. Production, Staging എന്നിവയ്ക്കപ്പുറം ചുറ്റുപാടുകൾ ഉണ്ടാക്കാൻ {plan} ലേക്ക് ഉയർത്തുക.",
     "upgradeToUseFormRequireSignin": "ഫോമുകളിൽ സൈൻ ഇൻ നിർബന്ധമാക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
-    "upgradeToUseFormRequireSigninSubtitle": "ഫോം സമർപ്പിക്കുന്നതിന് മുമ്പ് പ്രതികരിക്കുന്നവർ സൈൻ ഇൻ ചെയ്യണമെന്ന് നിർബന്ധമാക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
+    "upgradeToUseFormRequireSigninSubtitle": "ഫോം സമർപ്പിക്കുന്നതിന് മുമ്പ് പ്രതികരിക്കുന്നവർ സൈൻ ഇൻ ചെയ്യണമെന്ന് നിർബന്ധമാക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToUseSso": "SSO ഉപയോഗിക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
+    "upgradeToUseSsoSubtitle": "സിംഗിൾ സൈൻ-ഓൺ (SSO) സജ്ജീകരിക്കാനും നിങ്ങളുടെ ടീമിന് നിങ്ങളുടെ ഐഡന്റിറ്റി ദാതാവ് ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യാനും {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

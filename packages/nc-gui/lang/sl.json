@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Nadgradite za ustvarjanje lastnih okolij",
     "upgradeToUseCustomEnvironmentsSubtitle": "Lastna okolja na vašem paketu {activePlan} niso na voljo. Nadgradite na {plan} in ustvarite okolja poleg Productiona in Staginga.",
     "upgradeToUseFormRequireSignin": "Nadgradite, da boste lahko pri obrazcih zahtevali prijavo",
-    "upgradeToUseFormRequireSigninSubtitle": "Nadgradite na paket {plan}, da boste od anketirancev zahtevali prijavo pred oddajo obrazca."
+    "upgradeToUseFormRequireSigninSubtitle": "Nadgradite na paket {plan}, da boste od anketirancev zahtevali prijavo pred oddajo obrazca.",
+    "upgradeToUseSso": "Nadgradite za uporabo SSO",
+    "upgradeToUseSsoSubtitle": "Nadgradite na paket {plan} za nastavitev enotne prijave (SSO) in omogočite ekipi prijavo prek vašega ponudnika identitete."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

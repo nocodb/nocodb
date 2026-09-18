@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "อัปเกรดเพื่อสร้างสภาพแวดล้อมที่กำหนดเอง",
     "upgradeToUseCustomEnvironmentsSubtitle": "สภาพแวดล้อมที่กำหนดเองไม่มีในแผน {activePlan} ของคุณ อัปเกรดเป็น {plan} เพื่อสร้างสภาพแวดล้อมนอกเหนือจาก Production และ Staging",
     "upgradeToUseFormRequireSignin": "อัปเกรดเพื่อกำหนดให้ต้องลงชื่อเข้าใช้ในแบบฟอร์ม",
-    "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม"
+    "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม",
+    "upgradeToUseSso": "อัปเกรดเพื่อใช้ SSO",
+    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Hobetu plana zeure inguruneak sortzeko",
     "upgradeToUseCustomEnvironmentsSubtitle": "Ingurune pertsonalizatuak ez daude eskuragarri zure {activePlan} planean. Hobetu {plan} planera Production eta Staging ez beste ingurune batzuk sortzeko.",
     "upgradeToUseFormRequireSignin": "Bertsio-berritu inprimakietan saioa hastea eskatzeko",
-    "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko."
+    "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko.",
+    "upgradeToUseSso": "SSO erabiltzeko eguneratu",
+    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko."
   },
   "general": {
     "scrollToBottom": "Behera irristatu",

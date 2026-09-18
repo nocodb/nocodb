@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Pārejiet uz augstāku plānu, lai veidotu pielāgotas vides",
     "upgradeToUseCustomEnvironmentsSubtitle": "Pielāgotas vides jūsu plānā {activePlan} nav pieejamas. Pārejiet uz {plan}, lai veidotu vides papildus Production un Staging.",
     "upgradeToUseFormRequireSignin": "Jauniniet, lai formās pieprasītu pieteikšanos",
-    "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas."
+    "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas.",
+    "upgradeToUseSso": "Jauniniet, lai izmantotu SSO",
+    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

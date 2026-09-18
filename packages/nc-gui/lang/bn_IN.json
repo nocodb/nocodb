@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "নিজস্ব পরিবেশ তৈরি করতে আপগ্রেড করুন",
     "upgradeToUseCustomEnvironmentsSubtitle": "আপনার {activePlan} প্ল্যানে নিজস্ব পরিবেশ পাওয়া যায় না। Production ও Staging ছাড়াও পরিবেশ তৈরি করতে {plan} প্ল্যানে যান।",
     "upgradeToUseFormRequireSignin": "ফর্মে সাইন ইন বাধ্যতামূলক করতে আপগ্রেড করুন",
-    "upgradeToUseFormRequireSigninSubtitle": "ফর্ম জমা দেওয়ার আগে উত্তরদাতাদের সাইন ইন করা বাধ্যতামূলক করতে {plan} প্ল্যানে আপগ্রেড করুন।"
+    "upgradeToUseFormRequireSigninSubtitle": "ফর্ম জমা দেওয়ার আগে উত্তরদাতাদের সাইন ইন করা বাধ্যতামূলক করতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseSso": "SSO ব্যবহারের জন্য আপগ্রেড করুন",
+    "upgradeToUseSsoSubtitle": "সিঙ্গল সাইন-অন (SSO) সেট আপ করতে এবং আপনার দলকে আপনার আইডেন্টিটি প্রোভাইডার দিয়ে সাইন ইন করতে দিতে {plan} প্ল্যানে আপগ্রেড করুন।"
   },
   "general": {
     "scrollToBottom": "নিচে স্ক্রল করুন",

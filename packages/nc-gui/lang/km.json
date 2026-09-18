@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "ដំឡើងដើម្បីបង្កើតបរិស្ថានតាមបំណង",
     "upgradeToUseCustomEnvironmentsSubtitle": "បរិស្ថានតាមបំណងមិនមាននៅលើគម្រោង {activePlan} របស់អ្នកទេ។ ដំឡើងទៅ {plan} ដើម្បីបង្កើតបរិស្ថានក្រៅពី Production និង Staging។",
     "upgradeToUseFormRequireSignin": "អាប់ក្រេដដើម្បីតម្រូវឱ្យចូលគណនីលើបែបបទ",
-    "upgradeToUseFormRequireSigninSubtitle": "អាប់ក្រេដទៅផែនការ {plan} ដើម្បីតម្រូវឱ្យអ្នកឆ្លើយតបចូលគណនីមុនពេលដាក់ស្នើបែបបទ។"
+    "upgradeToUseFormRequireSigninSubtitle": "អាប់ក្រេដទៅផែនការ {plan} ដើម្បីតម្រូវឱ្យអ្នកឆ្លើយតបចូលគណនីមុនពេលដាក់ស្នើបែបបទ។",
+    "upgradeToUseSso": "ដំឡើងកំណែដើម្បីប្រើ SSO",
+    "upgradeToUseSsoSubtitle": "ដំឡើងកំណែទៅគម្រោង {plan} ដើម្បីរៀបចំការចូលតែម្ដង (SSO) និងអនុញ្ញាតឱ្យក្រុមរបស់អ្នកចូលដោយប្រើអ្នកផ្ដល់អត្តសញ្ញាណរបស់អ្នក។"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

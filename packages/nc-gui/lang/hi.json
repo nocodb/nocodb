@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "कस्टम परिवेश बनाने के लिए अपग्रेड करें",
     "upgradeToUseCustomEnvironmentsSubtitle": "आपकी {activePlan} योजना में कस्टम परिवेश उपलब्ध नहीं हैं। Production और Staging के अलावा परिवेश बनाने के लिए {plan} पर जाएँ।",
     "upgradeToUseFormRequireSignin": "फ़ॉर्म पर साइन-इन अनिवार्य करने के लिए अपग्रेड करें",
-    "upgradeToUseFormRequireSigninSubtitle": "फ़ॉर्म सबमिट करने से पहले उत्तरदाताओं के लिए साइन इन अनिवार्य करने हेतु {plan} योजना में अपग्रेड करें।"
+    "upgradeToUseFormRequireSigninSubtitle": "फ़ॉर्म सबमिट करने से पहले उत्तरदाताओं के लिए साइन इन अनिवार्य करने हेतु {plan} योजना में अपग्रेड करें।",
+    "upgradeToUseSso": "SSO का उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUseSsoSubtitle": "सिंगल साइन-ऑन (SSO) सेट अप करने और अपनी टीम को आपके पहचान प्रदाता से साइन इन करने देने के लिए {plan} योजना में अपग्रेड करें।"
   },
   "general": {
     "scrollToBottom": "नीचे स्क्रॉल करें",

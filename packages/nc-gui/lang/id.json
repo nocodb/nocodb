@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Tingkatkan untuk membuat lingkungan kustom",
     "upgradeToUseCustomEnvironmentsSubtitle": "Lingkungan kustom tidak tersedia pada paket {activePlan} Anda. Tingkatkan ke {plan} untuk membuat lingkungan selain Production dan Staging.",
     "upgradeToUseFormRequireSignin": "Tingkatkan untuk mewajibkan masuk pada formulir",
-    "upgradeToUseFormRequireSigninSubtitle": "Tingkatkan ke paket {plan} untuk mewajibkan responden masuk sebelum mengirim formulir."
+    "upgradeToUseFormRequireSigninSubtitle": "Tingkatkan ke paket {plan} untuk mewajibkan responden masuk sebelum mengirim formulir.",
+    "upgradeToUseSso": "Tingkatkan untuk menggunakan SSO",
+    "upgradeToUseSsoSubtitle": "Tingkatkan ke paket {plan} untuk menyiapkan Single Sign-On (SSO) dan memungkinkan tim Anda masuk dengan penyedia identitas Anda."
   },
   "general": {
     "scrollToBottom": "Gulir ke bawah",

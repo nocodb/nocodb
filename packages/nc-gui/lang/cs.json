@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Přejděte na vyšší tarif a vytvářejte vlastní prostředí",
     "upgradeToUseCustomEnvironmentsSubtitle": "Vlastní prostředí nejsou ve vašem tarifu {activePlan} k dispozici. Přejděte na {plan} a vytvářejte prostředí nad rámec Production a Staging.",
     "upgradeToUseFormRequireSignin": "Upgradujte, abyste mohli u formulářů vyžadovat přihlášení",
-    "upgradeToUseFormRequireSigninSubtitle": "Upgradujte na tarif {plan}, abyste mohli od respondentů vyžadovat přihlášení před odesláním formuláře."
+    "upgradeToUseFormRequireSigninSubtitle": "Upgradujte na tarif {plan}, abyste mohli od respondentů vyžadovat přihlášení před odesláním formuláře.",
+    "upgradeToUseSso": "Upgradujte pro použití SSO",
+    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan} pro nastavení jednotného přihlášení (SSO) a umožněte svému týmu přihlašovat se pomocí vašeho poskytovatele identity."
   },
   "general": {
     "scrollToBottom": "Přejít na konec",

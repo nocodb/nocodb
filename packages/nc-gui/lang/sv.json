@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Uppgradera för att skapa egna miljöer",
     "upgradeToUseCustomEnvironmentsSubtitle": "Egna miljöer finns inte i din {activePlan}-plan. Uppgradera till {plan} för att skapa miljöer utöver Production och Staging.",
     "upgradeToUseFormRequireSignin": "Uppgradera för att kräva inloggning i formulär",
-    "upgradeToUseFormRequireSigninSubtitle": "Uppgradera till {plan}-planen för att kräva att svarande loggar in innan de skickar in ett formulär."
+    "upgradeToUseFormRequireSigninSubtitle": "Uppgradera till {plan}-planen för att kräva att svarande loggar in innan de skickar in ett formulär.",
+    "upgradeToUseSso": "Uppgradera för att använda SSO",
+    "upgradeToUseSsoSubtitle": "Uppgradera till {plan} planen för att konfigurera Single Sign-On (SSO) och låta ditt team logga in med din identitetsleverantör."
   },
   "general": {
     "scrollToBottom": "Rulla till botten",

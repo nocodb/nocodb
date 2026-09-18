@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Treci la un plan superior pentru a crea medii personalizate",
     "upgradeToUseCustomEnvironmentsSubtitle": "Mediile personalizate nu sunt disponibile în planul tău {activePlan}. Treci la {plan} pentru a crea medii dincolo de Production și Staging.",
     "upgradeToUseFormRequireSignin": "Fă upgrade pentru a solicita autentificarea la formulare",
-    "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular."
+    "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular.",
+    "upgradeToUseSso": "Actualizați pentru a utiliza SSO",
+    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate."
   },
   "general": {
     "scrollToBottom": "Derulează până jos",

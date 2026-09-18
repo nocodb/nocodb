@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Перейдіть на вищий тариф, щоб створювати власні середовища",
     "upgradeToUseCustomEnvironmentsSubtitle": "Власні середовища недоступні на вашому тарифі {activePlan}. Перейдіть на {plan}, щоб створювати середовища понад Production і Staging.",
     "upgradeToUseFormRequireSignin": "Оновіть тариф, щоб вимагати вхід у формах",
-    "upgradeToUseFormRequireSigninSubtitle": "Перейдіть на тариф {plan}, щоб респонденти входили в обліковий запис перед надсиланням форми."
+    "upgradeToUseFormRequireSigninSubtitle": "Перейдіть на тариф {plan}, щоб респонденти входили в обліковий запис перед надсиланням форми.",
+    "upgradeToUseSso": "Оновіть, аби використовувати SSO",
+    "upgradeToUseSsoSubtitle": "Оновіть до плану {plan}, щоб налаштувати єдиний вхід (SSO) і дозволити вашій команді входити через вашого постачальника ідентифікації."
   },
   "general": {
     "scrollToBottom": "Прокрутити до кінця",

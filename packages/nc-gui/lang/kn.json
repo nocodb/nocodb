@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "ನಿಮ್ಮದೇ ಪರಿಸರಗಳನ್ನು ರಚಿಸಲು ಉನ್ನತೀಕರಿಸಿ",
     "upgradeToUseCustomEnvironmentsSubtitle": "ನಿಮ್ಮ {activePlan} ಯೋಜನೆಯಲ್ಲಿ ಇಚ್ಛೆಯ ಪರಿಸರಗಳು ಲಭ್ಯವಿಲ್ಲ. Production ಮತ್ತು Staging ಹೊರತಾದ ಪರಿಸರಗಳನ್ನು ರಚಿಸಲು {plan} ಗೆ ಉನ್ನತೀಕರಿಸಿ.",
     "upgradeToUseFormRequireSignin": "ಫಾರ್ಮ್‌ಗಳಲ್ಲಿ ಸೈನ್ ಇನ್ ಕಡ್ಡಾಯಗೊಳಿಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
-    "upgradeToUseFormRequireSigninSubtitle": "ಫಾರ್ಮ್ ಸಲ್ಲಿಸುವ ಮೊದಲು ಪ್ರತಿಕ್ರಿಯೆದಾರರು ಸೈನ್ ಇನ್ ಮಾಡುವುದನ್ನು ಕಡ್ಡಾಯಗೊಳಿಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
+    "upgradeToUseFormRequireSigninSubtitle": "ಫಾರ್ಮ್ ಸಲ್ಲಿಸುವ ಮೊದಲು ಪ್ರತಿಕ್ರಿಯೆದಾರರು ಸೈನ್ ಇನ್ ಮಾಡುವುದನ್ನು ಕಡ್ಡಾಯಗೊಳಿಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
+    "upgradeToUseSso": "SSO ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+    "upgradeToUseSsoSubtitle": "ಏಕೀಕೃತ ಸೈನ್-ಆನ್ (SSO) ಹೊಂದಿಸಲು ಮತ್ತು ನಿಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಗುರುತಿನ ಪೂರೈಕೆದಾರರ ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

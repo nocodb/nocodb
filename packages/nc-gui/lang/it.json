@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Passa a un piano superiore per creare ambienti personalizzati",
     "upgradeToUseCustomEnvironmentsSubtitle": "Gli ambienti personalizzati non sono disponibili nel tuo piano {activePlan}. Passa a {plan} per creare ambienti oltre a Produzione e Staging.",
     "upgradeToUseFormRequireSignin": "Esegui l’upgrade per richiedere l’accesso nei moduli",
-    "upgradeToUseFormRequireSigninSubtitle": "Passa al piano {plan} per richiedere ai partecipanti di accedere prima di inviare un modulo."
+    "upgradeToUseFormRequireSigninSubtitle": "Passa al piano {plan} per richiedere ai partecipanti di accedere prima di inviare un modulo.",
+    "upgradeToUseSso": "Aggiorna per utilizzare SSO",
+    "upgradeToUseSsoSubtitle": "Aggiorna al piano {plan} per configurare il Single Sign-On (SSO) e permettere al tuo team di accedere con il tuo provider di identità."
   },
   "general": {
     "scrollToBottom": "Scorri verso il basso",

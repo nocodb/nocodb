@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "アップグレードしてカスタム環境を作成",
     "upgradeToUseCustomEnvironmentsSubtitle": "カスタム環境は {activePlan} プランではご利用いただけません。Production と Staging 以外の環境を作成するには {plan} にアップグレードしてください。",
     "upgradeToUseFormRequireSignin": "アップグレードしてフォームでログインを必須にする",
-    "upgradeToUseFormRequireSigninSubtitle": "{plan} プランにアップグレードすると、フォーム送信前に回答者のログインを必須にできます。"
+    "upgradeToUseFormRequireSigninSubtitle": "{plan} プランにアップグレードすると、フォーム送信前に回答者のログインを必須にできます。",
+    "upgradeToUseSso": "SSO を使用するにはアップグレードしてください",
+    "upgradeToUseSsoSubtitle": "{plan} プランにアップグレードすると、シングルサインオン (SSO) を設定し、チームが ID プロバイダーでサインインできるようになります。"
   },
   "general": {
     "scrollToBottom": "一番下までスクロール",

@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "שדרגו כדי ליצור סביבות מותאמות",
     "upgradeToUseCustomEnvironmentsSubtitle": "סביבות מותאמות אינן זמינות בתוכנית {activePlan} שלכם. שדרגו ל-{plan} כדי ליצור סביבות מעבר ל-Production ו-Staging.",
     "upgradeToUseFormRequireSignin": "שדרג כדי לדרוש התחברות בטפסים",
-    "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס."
+    "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס.",
+    "upgradeToUseSso": "שדרג כדי להשתמש ב-SSO",
+    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך."
   },
   "general": {
     "scrollToBottom": "גלול למטה",

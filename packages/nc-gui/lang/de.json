@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Upgraden, um eigene Umgebungen zu erstellen",
     "upgradeToUseCustomEnvironmentsSubtitle": "Eigene Umgebungen sind in Ihrem Tarif {activePlan} nicht verfügbar. Wechseln Sie zu {plan}, um Umgebungen über Produktion und Staging hinaus zu erstellen.",
     "upgradeToUseFormRequireSignin": "Upgraden, um bei Formularen eine Anmeldung zu verlangen",
-    "upgradeToUseFormRequireSigninSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um von Teilnehmenden eine Anmeldung vor dem Absenden eines Formulars zu verlangen."
+    "upgradeToUseFormRequireSigninSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um von Teilnehmenden eine Anmeldung vor dem Absenden eines Formulars zu verlangen.",
+    "upgradeToUseSso": "Upgrade um SSO zu verwenden",
+    "upgradeToUseSsoSubtitle": "Aktualisieren Sie auf den {plan} Plan um Single Sign-On (SSO) einzurichten und Ihrem Team die Anmeldung mit Ihrem Identitätsanbieter zu ermöglichen."
   },
   "general": {
     "scrollToBottom": "Nach unten scrollen",

@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Mejora tu plan para crear entornos personalizados",
     "upgradeToUseCustomEnvironmentsSubtitle": "Los entornos personalizados no están disponibles en tu plan {activePlan}. Cambia a {plan} para crear entornos más allá de Producción y Staging.",
     "upgradeToUseFormRequireSignin": "Mejora tu plan para exigir inicio de sesión en los formularios",
-    "upgradeToUseFormRequireSigninSubtitle": "Mejora al plan {plan} para exigir que los encuestados inicien sesión antes de enviar un formulario."
+    "upgradeToUseFormRequireSigninSubtitle": "Mejora al plan {plan} para exigir que los encuestados inicien sesión antes de enviar un formulario.",
+    "upgradeToUseSso": "Actualizar para usar SSO",
+    "upgradeToUseSsoSubtitle": "Actualice al plan {plan} para configurar el inicio de sesión único (SSO) y permitir que su equipo inicie sesión con su proveedor de identidad."
   },
   "general": {
     "scrollToBottom": "Desplazar hacia abajo",

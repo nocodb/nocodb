@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "برای ساخت محیط‌های سفارشی ارتقا دهید",
     "upgradeToUseCustomEnvironmentsSubtitle": "محیط‌های سفارشی در پلن {activePlan} شما در دسترس نیست. به {plan} ارتقا دهید تا افزون بر Production و Staging محیط بسازید.",
     "upgradeToUseFormRequireSignin": "برای الزامی کردن ورود در فرم‌ها ارتقا دهید",
-    "upgradeToUseFormRequireSigninSubtitle": "برای الزامی کردن ورود پاسخ‌دهندگان پیش از ارسال فرم، به پلن {plan} ارتقا دهید."
+    "upgradeToUseFormRequireSigninSubtitle": "برای الزامی کردن ورود پاسخ‌دهندگان پیش از ارسال فرم، به پلن {plan} ارتقا دهید.",
+    "upgradeToUseSso": "برای استفاده از SSO ارتقا دهید",
+    "upgradeToUseSsoSubtitle": "برای راه‌اندازی ورود یکپارچه (SSO) و اجازه ورود تیم شما با ارائه‌دهنده هویت خود، به طرح {plan} ارتقا دهید."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

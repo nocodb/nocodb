@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "Przejdź na wyższy plan, aby tworzyć własne środowiska",
     "upgradeToUseCustomEnvironmentsSubtitle": "Własne środowiska nie są dostępne w Twoim planie {activePlan}. Przejdź na {plan}, aby tworzyć środowiska poza Production i Staging.",
     "upgradeToUseFormRequireSignin": "Uaktualnij, aby wymagać logowania w formularzach",
-    "upgradeToUseFormRequireSigninSubtitle": "Uaktualnij do planu {plan}, aby wymagać od respondentów zalogowania się przed wysłaniem formularza."
+    "upgradeToUseFormRequireSigninSubtitle": "Uaktualnij do planu {plan}, aby wymagać od respondentów zalogowania się przed wysłaniem formularza.",
+    "upgradeToUseSso": "Uaktualnij aby używać SSO",
+    "upgradeToUseSsoSubtitle": "Uaktualnij do planu {plan}, aby skonfigurować logowanie jednokrotne (SSO) i umożliwić zespołowi logowanie się za pomocą dostawcy tożsamości."
   },
   "general": {
     "scrollToBottom": "Przewiń na dół",

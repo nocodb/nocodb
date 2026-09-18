@@ -300,7 +300,9 @@
     "upgradeToUseCustomEnvironments": "升级以创建自定义环境",
     "upgradeToUseCustomEnvironmentsSubtitle": "你的 {activePlan} 方案不支持自定义环境。升级到 {plan}，即可创建 Production 和 Staging 之外的环境。",
     "upgradeToUseFormRequireSignin": "升级以要求在表单中登录",
-    "upgradeToUseFormRequireSigninSubtitle": "升级到 {plan} 方案，即可要求填写者在提交表单前登录。"
+    "upgradeToUseFormRequireSigninSubtitle": "升级到 {plan} 方案，即可要求填写者在提交表单前登录。",
+    "upgradeToUseSso": "升级以使用 SSO",
+    "upgradeToUseSsoSubtitle": "升级到 {plan} 计划，设置单点登录 (SSO)，让团队使用你的身份提供商登录。"
   },
   "general": {
     "scrollToBottom": "滚动到底部",

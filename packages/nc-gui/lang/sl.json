@@ -4326,16 +4326,8 @@
     "createMcpConnection": "Ustvari povezavo",
     "mcpTools": {
       "title": "Orodja",
-      "read": "Orodja samo za branje",
-      "readDesc": "Ogled vsega, kamor ta povezava seže — projektov, tabel, zapisov, izvajanj.",
-      "write": "Orodja za pisanje in brisanje",
-      "writeDesc": "Ustvarjanje, spreminjanje in odstranjevanje stvari: zapisov, tabel, pogledov, delovnih tokov, aplikacij.",
       "deletes": "Brisanja",
       "readWriteDelete": "Branje, pisanje in brisanje",
-      "allAllowed": "Vsa dovoljena",
-      "noneAllowed": "Nobeno ni dovoljeno",
-      "allowedCount": "Dovoljenih: {count}",
-      "allowAll": "Dovoli vsa",
       "allowShown": "Dovoli prikazana",
       "clearShown": "Počisti prikazana",
       "shownOf": "Prikazanih {shown} od {total}"

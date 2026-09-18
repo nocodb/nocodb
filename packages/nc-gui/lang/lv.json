@@ -4324,16 +4324,8 @@
     "createMcpConnection": "Izveidot savienojumu",
     "mcpTools": {
       "title": "Rīki",
-      "read": "Tikai lasīšanas rīki",
-      "readDesc": "Skatīt visu, ko šis savienojums sasniedz — projektus, tabulas, ierakstus, izpildes.",
-      "write": "Rakstīšanas un dzēšanas rīki",
-      "writeDesc": "Izveidot, mainīt un noņemt lietas: ierakstus, tabulas, skatījumus, darbplūsmas, lietotnes.",
       "deletes": "Dzēšana",
       "readWriteDelete": "Lasīšana, rakstīšana un dzēšana",
-      "allAllowed": "Visi atļauti",
-      "noneAllowed": "Neviens nav atļauts",
-      "allowedCount": "Atļauti: {count}",
-      "allowAll": "Atļaut visus",
       "allowShown": "Atļaut parādītos",
       "clearShown": "Notīrīt parādītos",
       "shownOf": "Parādīti {shown} no {total}"

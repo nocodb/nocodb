@@ -4328,16 +4328,8 @@
     "createMcpConnection": "Luo yhteys",
     "mcpTools": {
       "title": "Työkalut",
-      "read": "Vain luku -työkalut",
-      "readDesc": "Katso kaikkea, mihin tämä yhteys ylettyy — projektit, taulukot, tietueet, ajot.",
-      "write": "Kirjoitus- ja poistotyökalut",
-      "writeDesc": "Luo, muuta ja poista asioita: tietueita, taulukoita, näkymiä, workflow'ita, sovelluksia.",
       "deletes": "Poistot",
       "readWriteDelete": "Luku, kirjoitus ja poisto",
-      "allAllowed": "Kaikki sallittu",
-      "noneAllowed": "Ei yhtään sallittu",
-      "allowedCount": "{count} sallittu",
-      "allowAll": "Salli kaikki",
       "allowShown": "Salli näytetyt",
       "clearShown": "Tyhjennä näytetyt",
       "shownOf": "{shown} / {total} näytetty"

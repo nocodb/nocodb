@@ -4318,16 +4318,8 @@
     "createMcpConnection": "Crear conexión",
     "mcpTools": {
       "title": "Herramientas",
-      "read": "Herramientas de solo lectura",
-      "readDesc": "Consultar todo lo que alcanza esta conexión: proyectos, tablas, registros y ejecuciones.",
-      "write": "Herramientas de escritura/eliminación",
-      "writeDesc": "Crear, modificar y eliminar cosas: registros, tablas, vistas, flujos de trabajo y apps.",
       "deletes": "Eliminaciones",
       "readWriteDelete": "Leer, escribir y eliminar",
-      "allAllowed": "Todas permitidas",
-      "noneAllowed": "Ninguna permitida",
-      "allowedCount": "{count} permitidas",
-      "allowAll": "Permitir todas",
       "allowShown": "Permitir las mostradas",
       "clearShown": "Borrar las mostradas",
       "shownOf": "{shown} de {total} mostradas"

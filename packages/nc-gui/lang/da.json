@@ -4319,16 +4319,8 @@
     "createMcpConnection": "Opret forbindelse",
     "mcpTools": {
       "title": "Værktøjer",
-      "read": "Skrivebeskyttede værktøjer",
-      "readDesc": "Se alt, hvad denne forbindelse når — projekter, tabeller, poster, kørsler.",
-      "write": "Skrive-/sletteværktøjer",
-      "writeDesc": "Opret, ændr og fjern ting: poster, tabeller, visninger, workflows, apps.",
       "deletes": "Sletninger",
       "readWriteDelete": "Læs, skriv og slet",
-      "allAllowed": "Alle tilladt",
-      "noneAllowed": "Ingen tilladt",
-      "allowedCount": "{count} tilladt",
-      "allowAll": "Tillad alle",
       "allowShown": "Tillad de viste",
       "clearShown": "Ryd de viste",
       "shownOf": "{shown} af {total} vist"

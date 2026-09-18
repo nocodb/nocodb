@@ -4323,16 +4323,8 @@
     "createMcpConnection": "Opprett tilkobling",
     "mcpTools": {
       "title": "Verktøy",
-      "read": "Skrivebeskyttede verktøy",
-      "readDesc": "Se alt denne tilkoblingen når — prosjekter, tabeller, poster, kjøringer.",
-      "write": "Skrive-/sletteverktøy",
-      "writeDesc": "Opprette, endre og fjerne ting: poster, tabeller, visninger, workflows, apper.",
       "deletes": "Slettinger",
       "readWriteDelete": "Les, skriv og slett",
-      "allAllowed": "Alle tillatt",
-      "noneAllowed": "Ingen tillatt",
-      "allowedCount": "{count} tillatt",
-      "allowAll": "Tillat alle",
       "allowShown": "Tillat de viste",
       "clearShown": "Tøm de viste",
       "shownOf": "{shown} av {total} vist"

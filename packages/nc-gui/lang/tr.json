@@ -4328,16 +4328,8 @@
     "createMcpConnection": "Bağlantı oluştur",
     "mcpTools": {
       "title": "Araçlar",
-      "read": "Salt okunur araçlar",
-      "readDesc": "Bu bağlantının eriştiği her şeyi görüntüleyin — projeler, tablolar, kayıtlar, çalıştırmalar.",
-      "write": "Yazma/silme araçları",
-      "writeDesc": "Bir şeyler oluşturun, değiştirin ve kaldırın: kayıtlar, tablolar, görünümler, iş akışları, uygulamalar.",
       "deletes": "Silmeler",
       "readWriteDelete": "Okuma, yazma ve silme",
-      "allAllowed": "Tümüne izin verildi",
-      "noneAllowed": "Hiçbirine izin verilmedi",
-      "allowedCount": "{count} izinli",
-      "allowAll": "Tümüne izin ver",
       "allowShown": "Gösterilenlere izin ver",
       "clearShown": "Gösterilenleri temizle",
       "shownOf": "{total} içinden {shown} gösteriliyor"

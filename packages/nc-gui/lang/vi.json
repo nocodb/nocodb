@@ -4328,16 +4328,8 @@
     "createMcpConnection": "Tạo kết nối",
     "mcpTools": {
       "title": "Công cụ",
-      "read": "Công cụ chỉ đọc",
-      "readDesc": "Xem mọi thứ mà kết nối này chạm tới — dự án, bảng, bản ghi, lượt chạy.",
-      "write": "Công cụ ghi/xóa",
-      "writeDesc": "Tạo, thay đổi và gỡ bỏ mọi thứ: bản ghi, bảng, chế độ xem, quy trình, ứng dụng.",
       "deletes": "Thao tác xóa",
       "readWriteDelete": "Đọc, ghi và xóa",
-      "allAllowed": "Đã cho phép tất cả",
-      "noneAllowed": "Chưa cho phép mục nào",
-      "allowedCount": "Đã cho phép {count}",
-      "allowAll": "Cho phép tất cả",
       "allowShown": "Cho phép mục đang hiển thị",
       "clearShown": "Bỏ chọn mục đang hiển thị",
       "shownOf": "Hiển thị {shown} trên {total}"

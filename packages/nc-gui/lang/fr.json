@@ -4292,16 +4292,8 @@
     "createMcpConnection": "Créer une connexion",
     "mcpTools": {
       "title": "Outils",
-      "read": "Outils en lecture seule",
-      "readDesc": "Consulter tout ce que cette connexion atteint — projets, tableaux, enregistrements, exécutions.",
-      "write": "Outils d'écriture/suppression",
-      "writeDesc": "Créer, modifier et supprimer des éléments : enregistrements, tableaux, vues, workflows, apps.",
       "deletes": "Suppressions",
       "readWriteDelete": "Lecture, écriture et suppression",
-      "allAllowed": "Tous autorisés",
-      "noneAllowed": "Aucun autorisé",
-      "allowedCount": "{count} autorisés",
-      "allowAll": "Tout autoriser",
       "allowShown": "Autoriser les éléments affichés",
       "clearShown": "Effacer les éléments affichés",
       "shownOf": "{shown} sur {total} affichés"

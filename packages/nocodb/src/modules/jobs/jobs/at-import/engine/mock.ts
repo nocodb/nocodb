@@ -3,6 +3,7 @@ import {
   displayValueReadResponse,
   initializeHeader,
   initializeHtml,
+  multiLinkReadResponse,
   readResponse,
   viewsResponse,
 } from './mockResponses';
@@ -14,6 +15,8 @@ import type { AxiosResponse } from 'axios';
 // Share id that selects the display-value schema fixture instead of the default
 // one. See mockResponses/readDisplayValue.ts.
 export const MOCK_SHARE_ID_DISPLAY_VALUE = 'shrDisplayValueMock';
+// Share id that selects the multi-link schema fixture. See mockResponses/readMultiLink.ts.
+export const MOCK_SHARE_ID_MULTI_LINK = 'shrMultiLinkMock';
 
 // `read()` is not told which share was requested — FetchAT derives its `info`
 // from the initialize HTML, which is a fixture with its own baked-in ids — so
@@ -37,6 +40,8 @@ export class ATMockImportEngine {
     const schema =
       requestedShareId === MOCK_SHARE_ID_DISPLAY_VALUE
         ? displayValueReadResponse
+        : requestedShareId === MOCK_SHARE_ID_MULTI_LINK
+        ? multiLinkReadResponse
         : readResponse;
     const stream = Readable.from([JSON.stringify(schema)]);
     return {

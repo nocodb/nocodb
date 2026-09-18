@@ -4,6 +4,7 @@ export {
 } from './initialize';
 export { responseData as readResponse } from './read';
 export { responseData as displayValueReadResponse } from './readDisplayValue';
+export { responseData as multiLinkReadResponse } from './readMultiLink';
 import readView_viw5f7BhLA3OkthNv from './readView_viw5f7BhLA3OkthNv.json';
 import readView_viw9HVTL3HmZ3NCDd from './readView_viw9HVTL3HmZ3NCDd.json';
 import readView_viwsF12Zep2IrUQ4L from './readView_viwsF12Zep2IrUQ4L.json';
@@ -22,6 +23,8 @@ import readView_viwZnwvKkOBnDqpul from './readView_viwZnwvKkOBnDqpul.json';
 import readView_viwDvNoEligible from './readView_viwDvNoEligible.json';
 import readView_viwDvFormulaPrim from './readView_viwDvFormulaPrim.json';
 import readView_viwDvTitleTaken from './readView_viwDvTitleTaken.json';
+import readView_viwMlProjects from './readView_viwMlProjects.json';
+import readView_viwMlAssets from './readView_viwMlAssets.json';
 
 export const viewsResponse = {
   viw5f7BhLA3OkthNv: { data: readView_viw5f7BhLA3OkthNv },
@@ -44,4 +47,8 @@ export const viewsResponse = {
   viwDvNoEligible: { data: readView_viwDvNoEligible },
   viwDvFormulaPrim: { data: readView_viwDvFormulaPrim },
   viwDvTitleTaken: { data: readView_viwDvTitleTaken },
+
+  // multi-link fixture (share id `shrMultiLinkMock`)
+  viwMlProjects: { data: readView_viwMlProjects },
+  viwMlAssets: { data: readView_viwMlAssets },
 };

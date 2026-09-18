@@ -37,6 +37,7 @@ import {
 } from '~/utils';
 import { type Base, Model, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
+import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -1040,6 +1041,42 @@ export class AtImportProcessor {
                 aTblLinkColumns[i].name,
                 childTblSchema.table_name,
               );
+
+              // With several links between the same two tables, every
+              // auto-created symmetric column is named after the parent table
+              // (`Projects`, `Projects1`, …), so a sibling still waiting for
+              // its own rename may hold the title we need. Park it on a
+              // placeholder; its own turn renames it properly.
+              const occupant = childTblSchema.columns.find(
+                (col) =>
+                  col.id !== childLinkColumn.id && col.title === ncName.title,
+              );
+              if (occupant && isLinksOrLTAR(occupant)) {
+                const placeholder = getUniqueColumnAliasName(
+                  childTblSchema.columns,
+                  occupant.title,
+                );
+                logDetailed(
+                  `NC API: dbTableColumn.update park symmetric column ${occupant.title} as ${placeholder}`,
+                );
+                _perfStart = recordPerfStart();
+                const parkedTbl: any = await this.columnsService.columnUpdate(
+                  context,
+                  {
+                    columnId: occupant.id,
+                    column: { ...occupant, title: placeholder },
+                    user: syncDB.user,
+                    req,
+                  },
+                );
+                recordPerfStats(_perfStart, 'dbTableColumn.update');
+                updateNcTblSchema(parkedTbl);
+              } else if (occupant) {
+                ncName.title = getUniqueColumnAliasName(
+                  childTblSchema.columns,
+                  ncName.title,
+                );
+              }
 
               logDetailed(
                 `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`,

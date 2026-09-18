@@ -258,7 +258,8 @@
       "audit": "Arbetsytans granskning",
       "ltarCustomDisplayValue": "Anpassat visningsvärde fält",
       "publicDocShare": "Offentlig dokumentdelning",
-      "agents": "Agenter"
+      "agents": "Agenter",
+      "permissions": "Tabell- och fältbehörigheter"
     },
     "upgradeToSortAndLimitLookupValues": "Uppgradera till {plan}-planen för att sortera och begränsa värdena som visas i ett Lookup-fält.",
     "upgradeToAddMoreAgents": "Uppgradera för att lägga till fler agenter",
@@ -741,7 +742,12 @@
     "function": "Funktion",
     "functions": "Funktioner",
     "otherTables": "Andra tabeller",
-    "viaNewLinkField": "via ett nytt länkfält"
+    "viaNewLinkField": "via ett nytt länkfält",
+    "test": "Testa",
+    "success": "Klart",
+    "manageFields": "Hantera fält",
+    "tools": "Verktyg",
+    "allChangesSaved": "Alla ändringar har sparats"
   },
   "objects": {
     "script": "Skript",
@@ -1050,7 +1056,8 @@
           "currentUserTeamNamesWithDescendantsDescription": "Namnen på användarens team samt alla team under dem.",
           "currentUserTeamWithDescendantMembers": "Medlemmar i mina team",
           "currentUserTeamWithDescendantMembersDescription": "Alla i användarens team och underteam — använd det med ”innehåller något av” för att se posterna som tillhör dem som rapporterar till dig."
-        }
+        },
+        "appliesTo": "Gäller för"
       },
       "inlineUserSelector": {
         "noUsersSelected": "Ingen {description}",
@@ -1155,7 +1162,8 @@
     "weeks": "Veckor",
     "viewFolder": "Vymapp",
     "subRecord": "Underpost",
-    "video": "Video"
+    "video": "Video",
+    "recordTemplates": "Postmallar"
   },
   "datatype": {
     "ID": "Id",
@@ -1508,7 +1516,8 @@
     "newEnvironment": "Ny miljö",
     "removeCustomDomain": "Ta bort anpassad domän?",
     "tooNarrowToAdjustFrozenFields": "Fönstret är för smalt för att justera de frysta fälten",
-    "themeSettings": "Temainställningar"
+    "themeSettings": "Temainställningar",
+    "nFields": "{count} fält | {count} fält"
   },
   "labels": {
     "syncing": "Synkroniserar",
@@ -4326,11 +4335,49 @@
       "readWriteDelete": "Läsa, skriva och ta bort",
       "allowShown": "Tillåt de visade",
       "clearShown": "Rensa de visade",
-      "shownOf": "{shown} av {total} visade"
+      "shownOf": "{shown} av {total} visade",
+      "levelAll": "{level} för allt",
+      "toolsAllowed": "{count} av {total} verktyg tillåtna",
+      "customTip": "Handplockade verktyg. Välj en nivå för att återställa raden.",
+      "writes": "Skrivningar",
+      "sections": {
+        "account": "Konto och arbetsytor",
+        "accountDesc": "Vem du är, dina arbetsytor, baserna i dem och länkar in i appen",
+        "records": "Poster och data",
+        "recordsDesc": "Poster, kommentarer, import och export",
+        "schema": "Schema",
+        "schemaDesc": "Tabeller, fält, duplicering och hur en bas är organiserad",
+        "views": "Vyer",
+        "viewsDesc": "Vyer, filter, sorteringar, delning, formulärfält, radfärger",
+        "automation": "Automatisering",
+        "automationDesc": "Workflows, webhooks, skript och agenter",
+        "interfaces": "Gränssnitt, dashboards och docs",
+        "interfacesDesc": "Gränssnittssidor, dashboards, widgetar och dokument",
+        "access": "Åtkomst och säkerhet",
+        "accessDesc": "Fält- och tabellbehörigheter, säkerhet på radnivå",
+        "platform": "Plattform",
+        "platformDesc": "Integrationer, miljöer och appar"
+      }
     },
     "noBaseAccess": "Ingen åtkomst till bas",
     "signedInAs": "Inloggad som",
-    "moreAgents": "{count} agent till | {count} agenter till"
+    "moreAgents": "{count} agent till | {count} agenter till",
+    "mcpConnectionsLabel": "Skapa MCP-anslutningar att använda med AI-klienter som Claude, Codex eller Cursor.",
+    "mcpConnections": "MCP-anslutningar",
+    "editMcpConnection": "Redigera anslutning",
+    "mcpClientSetup": "Klientinställningar",
+    "manageFieldsSubtext": "Redigera fält och granska beroenden",
+    "relationsSubtext": "Visualisera och hantera tabellrelationer",
+    "apiSnippetSubtext": "Generera kod för att fråga den här tabellen via API",
+    "webhooksSubtext": "Automatisera externa anrop när poster ändras",
+    "permissionsSubtext": "Styr vem som kan visa och redigera data",
+    "rlsSubtext": "Begränsa åtkomst till poster med policyer",
+    "dateDependencySubtext": "Förskjut datum över beroende poster",
+    "recordTemplatesSubtext": "Skapa poster från en sparad mall",
+    "toolsSectionStructure": "Struktur",
+    "toolsSectionAccess": "Åtkomst och säkerhet",
+    "toolsSectionRecords": "Poster",
+    "toolsSectionDeveloper": "Utvecklare"
   },
   "activity": {
     "useTemplate": "Använd mall",
@@ -4825,7 +4872,9 @@
     "freezeColumnsCount": "Frys {count} kolumn | Frys {count} kolumner",
     "marketplaceComingSoon": "Den här appen paketeras fortfarande, så den går inte att installera ännu.",
     "marketplaceAuthored": "Skrivet av utgivaren, inte hämtat ur appens innehåll.",
-    "marketplaceVerifiedPublisher": "Publicerad och granskad av NocoDB"
+    "marketplaceVerifiedPublisher": "Publicerad och granskad av NocoDB",
+    "showCustomPermissionFieldsOnly": "Visa endast fält med anpassade behörigheter",
+    "showAllFields": "Visa alla fält"
   },
   "placeholder": {
     "enterVerificationCode": "Ange 6-siffrig kod",
@@ -4985,7 +5034,9 @@
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Sök efter skills...",
     "messageAgent": "Meddelande till {agent}",
-    "somethingElse": "Något annat"
+    "somethingElse": "Något annat",
+    "noMcpConnections": "Inga MCP-anslutningar har skapats",
+    "noMcpConnectionsLabel": "Det verkar som att du inte har skapat några MCP-anslutningar än."
   },
   "msg": {
     "sourceViewNotShared": "Synkronisering är inaktiverad på denna vy",
@@ -5693,7 +5744,10 @@
       "seeWhoSubmittedSubtitle": "Inloggning på NocoDB krävs.",
       "seeWhoSubmittedDisabledHint": "Lägg till fältet ”Skapad av” i tabellen för att aktivera det här alternativet.",
       "formRequiresSignin": "För att komma åt det här formuläret krävs inloggning på NocoDB.",
-      "switchAccount": "Byt konto"
+      "switchAccount": "Byt konto",
+      "mcpConnectionEdit": "Ändringar gäller för klienten vid nästa anrop. Hemligheten förblir densamma.",
+      "mcpConnectionsReachingBase": "Skapa MCP-anslutningar kopplade till den här basen för AI-klienter som Claude, Codex eller Cursor.",
+      "mcpClientSetupKeyHidden": "Nyckeln visas endast när en anslutning skapas eller återskapas, därför innehåller den här konfigurationen en platshållare."
     },
     "error": {
       "failedToCreateSync": "Det gick inte att skapa synkronisering",
@@ -5917,7 +5971,8 @@
       "nCellsCopied": "{n} celler kopierade",
       "nRecordCreated": "{n} post skapad",
       "nRecordsCreated": "{n} poster skapade",
-      "interfaceFilterCopied": "{count} villkor kopierat | {count} villkor kopierade"
+      "interfaceFilterCopied": "{count} villkor kopierat | {count} villkor kopierade",
+      "changesSaved": "Ändringar sparade"
     },
     "success": {
       "restored": "Objektet återställdes framgångsrikt",

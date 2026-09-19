@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { base } = storeToRefs(useBase())
+const { base, isPrivateBase } = storeToRefs(useBase())
 </script>
 
 <template>
@@ -48,6 +48,20 @@ const { base } = storeToRefs(useBase())
         <div class="text-bodySm text-nc-content-gray-muted">{{ $t('msg.info.sharePublicLinkSubtitle') }}</div>
       </div>
     </template>
+
+    <!-- Above the toggle, and outside #header: the header wrapper sets
+         `text-base md:text-lg`, which the body does not. `mx-3` matches the
+         `px-3` on the body component's root so both edges line up with the card. -->
+    <div
+      v-if="isPrivateBase"
+      class="inline-flex items-center gap-x-2 mx-3 px-2 py-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
+      data-testid="nc-share-base-private-restricted"
+    >
+      <div class="flex items-center justify-center h-4 w-4">
+        <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+      </div>
+      <div class="flex-1">{{ $t('msg.privateBaseShareRestrictedMsg') }}</div>
+    </div>
 
     <LazyDlgShareAndCollaborateShareBase />
   </NcModal>

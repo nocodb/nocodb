@@ -220,6 +220,29 @@ function onInviteSent(emails: string[]) {
   loadMemberCount()
 }
 
+/**
+ * Ant dismisses the modal from a keydown on its own wrapper, which only fires
+ * while focus is inside it. Toggling share-to-web or saving a view password
+ * unmounts the control that had focus, focus falls back to `<body>`, and Escape
+ * silently stops working — and with `closable: false` and no Cancel, the mask is
+ * then the only way out. Listening on the window keeps Escape the dismissal it
+ * is documented to be, wherever focus ended up.
+ */
+onKeyStroke('Escape', (e) => {
+  if (!showShareModal.value || e.defaultPrevented) return
+
+  // A dropdown or picker layered over the modal owns Escape first.
+  if (
+    document.querySelector(
+      '.ant-select-dropdown:not(.ant-select-dropdown-hidden), .ant-dropdown:not(.ant-dropdown-hidden), .ant-picker-dropdown:not(.ant-picker-dropdown-hidden)',
+    )
+  ) {
+    return
+  }
+
+  showShareModal.value = false
+})
+
 watch(showShareModal, (val) => {
   if (val) {
     screen.value = 'main'

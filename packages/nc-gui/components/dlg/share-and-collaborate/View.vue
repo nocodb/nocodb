@@ -336,7 +336,14 @@ watch(showShareModal, (val) => {
           </NcTooltip>
         </div>
 
-        <NcTabs :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">
+        <!-- Both tabs can be absent at once: a creator on a private base may not
+             invite, and off a view there is nothing to publish. Saying so beats
+             an empty dialog with only a title in it. -->
+        <div v-if="!canInvite && !canShareObject" class="px-7 pb-7 pt-2 text-bodyDefault text-nc-content-gray-subtle2">
+          {{ isPrivateBase ? $t('msg.info.shareNothingPrivateBase') : $t('msg.info.shareNothingToShow') }}
+        </div>
+
+        <NcTabs v-else :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">
           <a-tab-pane v-if="canInvite" key="invite">
             <template #tab>
               <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteTeam') }}</span>

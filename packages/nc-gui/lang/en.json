@@ -5438,6 +5438,8 @@
       "keepTypingFullEmail": "Keep typing a full email to invite.",
       "shareHubTooltip": "Invite people to work in this base, or publish a read-only link to this {object}.",
       "shareHubTooltipInviteOnly": "Invite people to work in this base. To publish the base itself, use Share base in the base menu.",
+      "shareNothingPrivateBase": "Only the base owner can invite people to a private base. To publish a view, open one first.",
+      "shareNothingToShow": "Nothing to share from here. Open a view to publish a read-only link.",
       "allowDownloadDescription": "Viewers can export the records they can see as CSV.",
       "anyoneCanAccessAs": "Anyone can access as {article} {role}",
       "peopleHaveAccess": "{count} person has access. | {count} people have access.",

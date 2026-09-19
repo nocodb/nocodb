@@ -853,6 +853,24 @@
       "orgLevelViewer": "Organization Level Viewer",
       "appUser": "App User"
     },
+    "roleTypePlural": {
+      "owner": "Owners",
+      "creator": "Creators",
+      "editor": "Editors",
+      "commenter": "Commenters",
+      "viewer": "Viewers",
+      "inherit": "Inherit",
+      "noaccess": "No Access",
+      "admin": "Admins",
+      "superAdmin": "Super Admins",
+      "orgAdmin": "Org-Admins",
+      "orgCreator": "Org-Creators",
+      "orgViewer": "Org-Viewers",
+      "orgLevelOwner": "Organization Level Owners",
+      "orgLevelCreator": "Organization Level Creators",
+      "orgLevelViewer": "Organization Level Viewers",
+      "appUser": "App Users"
+    },
     "roleDescription": {
       "workspace-level-owner": "Full control, including settings and billing",
       "workspace-level-creator": "Create and configure all bases",

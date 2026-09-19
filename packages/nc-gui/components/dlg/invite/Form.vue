@@ -288,10 +288,16 @@ const isInviteButtonDisabled = computed(() => {
   return !validRecipients.value.length
 })
 
-const roleCopy = computed(() => ({
-  label: t(`objects.roleType.${RoleLabels[inviteData.roles] ?? inviteData.roles}`, inviteData.roles),
-  can: t(`objects.roleDescription.${inviteData.roles}`).toLowerCase(),
-}))
+/** Reads back as a sentence, so the role name agrees with the number of people. */
+const roleCopy = (count: number) => {
+  const key = RoleLabels[inviteData.roles] ?? inviteData.roles
+  const group = count > 1 ? 'roleTypePlural' : 'roleType'
+
+  return {
+    label: t(`objects.${group}.${key}`, inviteData.roles),
+    can: t(`objects.roleDescription.${inviteData.roles}`).toLowerCase(),
+  }
+}
 
 /**
  * Says what pressing the button will do, and why it cannot yet when something is
@@ -306,7 +312,9 @@ const fieldHint = computed(() => {
   // vue-i18n's `t(key, plural, opts)` overload treats the third argument as
   // options, not named values, so only `count` would survive. Named-then-plural
   // is the overload that carries `role` and `can` through.
-  return t('msg.info.willJoinAsRole', { count, role: roleCopy.value.label, can: roleCopy.value.can }, count)
+  const role = roleCopy(count)
+
+  return t('msg.info.willJoinAsRole', { count, role: role.label, can: role.can }, count)
 })
 
 const showUserWillChargedWarning = computed(() => {

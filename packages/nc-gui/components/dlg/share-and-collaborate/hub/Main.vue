@@ -13,6 +13,11 @@ const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess'])
 
 const { defaultEmailDomain } = useInviteLinks()
 
+const { isUIAllowed } = useRoles()
+
+/** Minting a standing grant is creator+; an editor still invites by email. */
+const canCreateInviteLink = computed(() => isUIAllowed('baseInviteLinkCreate'))
+
 /** Their own domain makes the example read as their team, not a stock address. */
 const emailPlaceholder = computed(() =>
   defaultEmailDomain.value
@@ -23,8 +28,10 @@ const emailPlaceholder = computed(() =>
 
 <template>
   <div class="flex flex-col gap-5 px-7 pt-5 pb-7">
-    <DlgShareAndCollaborateHubLinkBlock @manage="emit('links')" />
-    <div class="h-px bg-nc-border-gray-light" />
+    <template v-if="canCreateInviteLink">
+      <DlgShareAndCollaborateHubLinkBlock @manage="emit('links')" />
+      <div class="h-px bg-nc-border-gray-light" />
+    </template>
 
     <div class="flex flex-col gap-2">
       <div class="text-bodyDefault font-semibold text-nc-content-gray">{{ $t('labels.inviteSpecificPeople') }}</div>

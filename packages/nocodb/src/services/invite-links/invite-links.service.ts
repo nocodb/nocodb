@@ -5,12 +5,12 @@ import {
   isInviteLinkRole,
   OrderedProjectRoles,
   PluginCategory,
+  ProjectRoles,
 } from 'nocodb-sdk';
 import type {
   InviteLinkPreviewType,
   InviteLinkReqType,
   InviteLinkRole,
-  ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import InviteLink from '~/models/InviteLink';
@@ -54,6 +54,23 @@ export class InviteLinksService {
     }
 
     this.assertRolePower(scope, role, req);
+  }
+
+  /**
+   * Creator+ manages every link in the scope. Below that a caller only ever
+   * sees or touches links they made themselves: `list` returns tokens, so a
+   * viewer who could read an owner's creator-level link would simply redeem it
+   * and escape the power cap below.
+   */
+  protected canManageAllLinks(scope: InviteLinkScope, req: NcRequest) {
+    if (scope !== InviteLinkScope.BASE) return false;
+
+    const reverseOrdered = [...OrderedProjectRoles].reverse();
+
+    return (
+      getProjectRolePower(req.user) >=
+      reverseOrdered.indexOf(ProjectRoles.CREATOR)
+    );
   }
 
   protected assertRolePower(
@@ -182,7 +199,12 @@ export class InviteLinksService {
 
   async list(
     _context: NcContext,
-    param: { scope: InviteLinkScope; baseId?: string; workspaceId?: string },
+    param: {
+      scope: InviteLinkScope;
+      baseId?: string;
+      workspaceId?: string;
+      req: NcRequest;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const links = await InviteLink.list(
@@ -194,9 +216,13 @@ export class InviteLinksService {
       ncMeta,
     );
 
-    // The token is returned here on purpose: only a caller who passed the
-    // manage ACL gets this far, and the UI has to render a copyable URL.
-    return links.map((l) => InviteLink.toResponse(l, { withToken: true }));
+    const visible = this.canManageAllLinks(param.scope, param.req)
+      ? links
+      : links.filter((l) => l.created_by === param.req.user?.id);
+
+    // The token is returned here on purpose: the caller can already mint one at
+    // this role, and the UI has to render a copyable URL.
+    return visible.map((l) => InviteLink.toResponse(l, { withToken: true }));
   }
 
   /**
@@ -209,6 +235,7 @@ export class InviteLinksService {
       scope: InviteLinkScope;
       baseId?: string;
       workspaceId?: string;
+      req?: NcRequest;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -223,6 +250,16 @@ export class InviteLinksService {
           link.fk_workspace_id === param.workspaceId;
 
     if (!owned) NcError.notFound('Invite link not found');
+
+    // Below creator you may only touch what you made. Not-found rather than
+    // forbidden: whether someone else's link exists is not their business.
+    if (
+      param.req &&
+      !this.canManageAllLinks(param.scope, param.req) &&
+      link.created_by !== param.req.user?.id
+    ) {
+      NcError.notFound('Invite link not found');
+    }
 
     return link;
   }

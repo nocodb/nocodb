@@ -73,6 +73,7 @@ const rolePermissions = {
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
+      workspaceInviteLinkCreate: true,
       workspaceCollaborators: true,
     },
   },
@@ -204,6 +205,8 @@ const rolePermissions = {
   },
   [ProjectRoles.VIEWER]: {
     include: {
+      // Capped to the caller's own role server-side; see assertRolePower.
+      baseInviteLinkCreate: true,
       baseSettings: true,
       // Base integrations inventory (mirrors the backend viewer+ floor).
       baseIntegrationList: true,

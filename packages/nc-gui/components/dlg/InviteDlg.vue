@@ -36,8 +36,15 @@ const emailPlaceholder = computed(() =>
  * a team link would hand out membership of a group rather than of a thing,
  * which is a different grant.
  */
+const { isUIAllowed } = useRoles()
+
 const linkTarget = computed(() => {
   if (props.isTeam) return null
+
+  // Minting a standing grant is creator+; an editor still invites by email.
+  if (props.type === 'base' && !isUIAllowed('baseInviteLinkCreate')) return null
+
+  if (props.type === 'workspace' && !isUIAllowed('workspaceInviteLinkCreate')) return null
 
   if (props.type === 'base' && props.baseId) {
     return { scope: InviteLinkScope.BASE, baseId: props.baseId }

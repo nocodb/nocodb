@@ -415,6 +415,10 @@ const rolePermissions:
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
+      workspaceInviteLinkList: true,
+      workspaceInviteLinkCreate: true,
+      workspaceInviteLinkUpdate: true,
+      workspaceInviteLinkDelete: true,
       workspaceUserList: true,
       workspaceInvite: true,
     },
@@ -455,6 +459,13 @@ const rolePermissions:
   },
   [ProjectRoles.VIEWER]: {
     include: {
+      // Anyone who can be in the base can invite, but assertRolePower caps the
+      // link at their own role, and list/update/revoke below creator only ever
+      // reach links they made themselves.
+      baseInviteLinkList: true,
+      baseInviteLinkCreate: true,
+      baseInviteLinkUpdate: true,
+      baseInviteLinkDelete: true,
       // batch envelope — per-sub-op ACL is enforced inside the handler,
       // so the envelope itself is granted to everyone with base access.
       batch: true,

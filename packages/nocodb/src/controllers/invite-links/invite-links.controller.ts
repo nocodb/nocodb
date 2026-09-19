@@ -40,10 +40,12 @@ export class InviteLinksController {
   async listForBase(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
+    @Req() req: NcRequest,
   ) {
     const links = await this.inviteLinksService.list(context, {
       scope: InviteLinkScope.BASE,
       baseId,
+      req,
     });
 
     return { list: links };

@@ -18,6 +18,7 @@ import {
   ncIsKnexRawOrRef,
   ncIsStringHasValue,
   ncLikePatternForRef,
+  ncSplitFilterValue,
   unsupportedFilter,
 } from '~/db/field-handler/utils/handlerUtils';
 import { getAs, getColumnName } from '~/helpers/dbHelpers';
@@ -884,7 +885,7 @@ export class GenericFieldHandler
 
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
-      const items = Array.isArray(val) ? val : val?.split(',');
+      const items = ncSplitFilterValue(val, filter.comparison_op);
       for (let i = 0; i < items?.length; i++) {
         const bindings = [
           sourceField,

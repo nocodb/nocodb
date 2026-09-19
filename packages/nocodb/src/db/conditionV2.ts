@@ -28,6 +28,7 @@ import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 import {
   ncIsKnexRawOrRef,
   ncLikePatternForRef,
+  ncSplitFilterValue,
 } from '~/db/field-handler/utils/handlerUtils';
 
 export default async function conditionV2(
@@ -662,7 +663,7 @@ const parseConditionV2 = async (
             case 'nallof':
             case 'nanyof': {
               const condition = (builder: Knex.QueryBuilder) => {
-                let items = (Array.isArray(val) ? val : val?.split(',')) ?? [];
+                let items = ncSplitFilterValue(val, filter.comparison_op);
                 if (
                   ['mysql2', 'mysql'].includes(knex.clientType()) &&
                   ['enum', 'set'].includes(column.dt?.toLowerCase())

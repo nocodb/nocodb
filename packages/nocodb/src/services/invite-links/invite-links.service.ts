@@ -474,6 +474,24 @@ export class InviteLinksService {
   }
 
   /**
+   * `inherit` is an indirection, not a rank: it defers to the redeemer's
+   * workspace or team role, which for a base-only member is no-access.
+   * OrderedProjectRoles puts it above editor, so the rank comparison below reads
+   * writing it over an explicit role as an upgrade -- and it lands as a lockout.
+   * Nothing a link grants may take access away, so this case is a no-op redeem.
+   */
+  protected replacesExplicitRoleWithInherit(
+    linkRole?: string | null,
+    existingRole?: string | null,
+  ) {
+    return (
+      linkRole === ProjectRoles.INHERIT &&
+      !!existingRole &&
+      existingRole !== ProjectRoles.INHERIT
+    );
+  }
+
+  /**
    * Where the caller lands if they already hold what the link offers. Same
    * rule as grant's no-demotion branch; CE knows only base links.
    */
@@ -493,6 +511,10 @@ export class InviteLinksService {
     );
 
     if (!existing?.roles) return null;
+
+    if (this.replacesExplicitRoleWithInherit(link.role, existing.roles)) {
+      return { base_id: link.base_id };
+    }
 
     const ordered = [...OrderedProjectRoles].reverse();
 
@@ -641,8 +663,9 @@ export class InviteLinksService {
     if (existing?.roles) {
       // Never demote someone who already holds more than the link offers.
       if (
+        this.replacesExplicitRoleWithInherit(link.role, existing.roles) ||
         ordered.indexOf(existing.roles as ProjectRoles) >=
-        ordered.indexOf(link.role as ProjectRoles)
+          ordered.indexOf(link.role as ProjectRoles)
       ) {
         return { base_id: link.base_id, already_member: true };
       }

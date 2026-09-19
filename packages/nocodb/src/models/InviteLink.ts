@@ -241,10 +241,35 @@ export default class InviteLink implements InviteLinkType {
     );
   }
 
-  public static async recordUse(id: string, ncMeta = Noco.ncMeta) {
+  /**
+   * Claims one use, atomically. Returns false when the cap is already spent.
+   *
+   * The caller cannot read the counter and then increment it: between those two
+   * statements every concurrent redeem sees the same value, so a `max_uses: 1`
+   * link pasted into a channel admits everyone who clicks in the same moment.
+   * The predicate has to live in the UPDATE.
+   */
+  public static async reserveUse(
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const affected = await ncMeta
+      .knexConnection(MetaTable.INVITE_LINKS)
+      .where('id', id)
+      .where((qb) =>
+        qb.whereNull('max_uses').orWhereRaw('used_count < max_uses'),
+      )
+      .increment('used_count', 1);
+
+    return affected > 0;
+  }
+
+  /** Hands back a use the redeem did not end up spending. */
+  public static async releaseUse(id: string, ncMeta = Noco.ncMeta) {
     await ncMeta
       .knexConnection(MetaTable.INVITE_LINKS)
       .where('id', id)
-      .increment('used_count', 1);
+      .where('used_count', '>', 0)
+      .decrement('used_count', 1);
   }
 }

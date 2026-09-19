@@ -514,15 +514,29 @@ export class InviteLinksService {
       }
     }
 
-    const result = await this.grant(
-      context,
-      { link, user, req: param.req },
-      ncMeta,
-    );
+    // Claim the use *before* granting. `invalidReason` above only read the
+    // counter, and a read-then-write cannot hold a cap under concurrency.
+    if (!(await InviteLink.reserveUse(link.id, ncMeta))) {
+      NcError.badRequest(this.invalidMessage('exhausted'));
+    }
+
+    let result: Awaited<ReturnType<typeof this.grant>>;
+
+    try {
+      result = await this.grant(
+        context,
+        { link, user, req: param.req },
+        ncMeta,
+      );
+    } catch (e) {
+      // The grant is what the use pays for; if it did not happen, give it back.
+      await InviteLink.releaseUse(link.id, ncMeta);
+      throw e;
+    }
 
     // A no-op redeem must not spend a use, or anyone holding the link can
     // exhaust a capped one by posting accept repeatedly.
-    if (!result.already_member) await InviteLink.recordUse(link.id, ncMeta);
+    if (result.already_member) await InviteLink.releaseUse(link.id, ncMeta);
 
     this.logger.log(`invite link redeemed id=${link.id} by=${user.id}`);
 
@@ -588,7 +602,14 @@ export class InviteLinksService {
 
     await BaseUser.insert(
       baseContext,
-      { base_id: link.base_id, fk_user_id: user.id, roles: link.role },
+      {
+        base_id: link.base_id,
+        fk_user_id: user.id,
+        roles: link.role,
+        // Whoever minted the link is who let them in. Without this the row has
+        // no provenance at all, and a leaked link leaves nothing to trace.
+        invited_by: link.created_by,
+      },
       ncMeta,
     );
 

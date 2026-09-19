@@ -95,7 +95,7 @@ export const useInviteLinks = createGlobalState(() => {
   })
 
   /**
-   * Editor is the sensible default, but link creation is open to viewer+, and a
+   * Editor is the sensible default and also the floor, but a workspace-scope
    * viewer who defaults to Editor gets a 403 from `assertRolePower` on the one
    * button the hub shows them. Fall back to the strongest role they may mint.
    */

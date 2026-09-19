@@ -90,11 +90,9 @@ const isViewSharingRestricted = computed(() => {
 
 const isInterfaceContext = computed(() => !!route.params.interfaceId)
 
-// Same floor as sharing the base: if you may hand out a public link to it, you
-// may hand out a seat in it.
-// Anyone who can actually invite sees the tab: editor+ can invite by email,
-// viewer+ can mint a link. Gating on baseShare hid it from everyone below
-// creator even though both paths were open to them.
+// Anyone who can actually invite sees the tab. Since 2026-09-19 that is every
+// member from Viewer up, who may invite by email; minting a link is Editor and
+// above, and the link block gates itself on that.
 /**
  * On a private base, handing out access is the owner's alone -- the same rule
  * user management follows there, and what the backend enforces. Everyone else
@@ -158,6 +156,13 @@ const objectNoun = computed(() => {
 const shareHubTooltip = computed(() =>
   objectTab.value ? t('msg.info.shareHubTooltip', { object: objectNoun.value }) : t('msg.info.shareHubTooltipInviteOnly'),
 )
+
+/**
+ * Publishing a view is Editor and above; the other object kinds gate themselves
+ * inside their own components. Without this a viewer saw a Share to web tab
+ * over a view they may not publish.
+ */
+const canShareObject = computed(() => (objectTab.value === 'view' ? isUIAllowed('viewShare') : !!objectTab.value))
 
 const defaultTab = computed<'invite' | 'object'>(() => {
   // The interface editor's Share button is its own surface; leave it opening
@@ -285,7 +290,12 @@ watch(showShareModal, (val) => {
     // Forced: the cached list is whatever this tab last saw, so a link created
     // or revoked anywhere else -- another tab, another person -- would still be
     // on screen, and its Copy button would hand out a dead token.
-    if (base.value?.id) loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id }, true)
+    // Only ask for what this caller may see. Links are Editor and above, and a
+    // viewer opening the hub would otherwise be met by a 403 toast about a
+    // section they cannot even see.
+    if (base.value?.id && isUIAllowed('baseInviteLinkList')) {
+      loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id }, true)
+    }
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })
   } else {
     setTimeout(() => {
@@ -337,7 +347,7 @@ watch(showShareModal, (val) => {
             />
           </a-tab-pane>
 
-          <a-tab-pane v-if="objectTab" key="object">
+          <a-tab-pane v-if="canShareObject" key="object">
             <template #tab>
               <span data-testid="nc-share-tab-object">{{ $t('activity.shareToWeb') }}</span>
             </template>

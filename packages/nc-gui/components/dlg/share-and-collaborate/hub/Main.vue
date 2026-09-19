@@ -14,10 +14,10 @@ const { defaultEmailDomain } = useInviteLinks()
 
 const { isUIAllowed } = useRoles()
 
-/** Minting a link is viewer+ (capped server-side at the caller's own role); inviting by email is editor+. */
+/** Minting a link is editor+ (capped server-side at the caller's own role). */
 const canCreateInviteLink = computed(() => isUIAllowed('baseInviteLinkCreate'))
 
-/** Email invites are editor+; the link is open to viewer+. */
+/** Email invites are viewer+; minting a link is editor+. Both moved 2026-09-19. */
 const canInviteByEmail = computed(() => isUIAllowed('userInvite'))
 
 /** Their own domain makes the example read as their team, not a stock address. */

@@ -38,14 +38,14 @@ const emailPlaceholder = computed(() =>
  */
 const { isUIAllowed } = useRoles()
 
-/** Email invites are editor+ on a base; the link is open to viewer+. */
+/** Email invites are viewer+ on a base; minting a link is editor+. */
 const canInviteByEmail = computed(() => (props.type === 'base' ? isUIAllowed('userInvite') : true))
 
 const linkTarget = computed(() => {
   if (props.isTeam) return null
 
-  // Minting a link is viewer+ (capped server-side at the caller's own role);
-  // inviting by email is editor+.
+  // Minting a link is editor+ (capped server-side at the caller's own role);
+  // inviting by email is viewer+. Both moved on 2026-09-19.
   if (props.type === 'base' && !isUIAllowed('baseInviteLinkCreate')) return null
 
   if (props.type === 'workspace' && !isUIAllowed('workspaceInviteLinkCreate')) return null
@@ -111,6 +111,8 @@ watch(dialogShow, (open) => {
 
   // Forced, for the same reason as the share hub: reopening is the moment the
   // user expects to be looking at what is actually there.
+  // `linkTarget` is already null when the caller may not manage links, so this
+  // never asks for a list it would be refused.
   if (linkTarget.value) loadInviteLinks(linkTarget.value, true)
 })
 </script>

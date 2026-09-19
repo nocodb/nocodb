@@ -71,6 +71,9 @@ const invalidCopy = computed(() => {
       return t('msg.error.inviteLinkRevoked')
     case 'exhausted':
       return t('msg.error.inviteLinkExhausted')
+    // Intact, but its base was deleted or made private after it was minted.
+    case 'unavailable':
+      return t('msg.error.inviteLinkUnavailable')
     default:
       return t('msg.error.inviteLinkInvalid')
   }

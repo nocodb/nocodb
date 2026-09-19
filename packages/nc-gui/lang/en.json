@@ -5941,6 +5941,7 @@
       "inviteLinkExpired": "This invite link has expired",
       "inviteLinkRevoked": "This invite link has been revoked",
       "inviteLinkExhausted": "This invite link has been fully used",
+      "inviteLinkUnavailable": "This invite link no longer works",
       "invalidEmailDomain": "Enter a domain like acme.io",
       "interfaceButtonFieldMissing": "This button refers to a field that no longer exists",
       "duplicateAutomationName": "An automation with this name already exists",

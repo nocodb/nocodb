@@ -134,7 +134,9 @@ export type InviteLinkInvalidReason =
   | 'expired'
   | 'revoked'
   | 'exhausted'
-  | 'domain_mismatch';
+  | 'domain_mismatch'
+  /** Intact, but its base will not honour it -- deleted, or made private. */
+  | 'unavailable';
 
 /** What a holder of the token is allowed to learn before redeeming it. */
 export interface InviteLinkPreviewType {

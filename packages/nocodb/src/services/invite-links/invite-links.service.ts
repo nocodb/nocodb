@@ -543,6 +543,14 @@ export class InviteLinksService {
 
     if (reason) return { invalid_reason: reason };
 
+    // A link can be perfectly intact and still not work: its base may have been
+    // deleted, or made private since it was minted. The preview used to skip
+    // this, so the join page showed a real-looking invitation with a live Join
+    // button that only failed on the press.
+    if (!(await this.isTargetRedeemable(context, link, ncMeta))) {
+      return { invalid_reason: 'unavailable' };
+    }
+
     // The link is usable, but a member at its role or better has nothing to
     // redeem, so send them to the thing they can already open.
     const userId = param.req?.user?.id;
@@ -613,6 +621,44 @@ export class InviteLinksService {
     }
 
     return { base_id: link.base_id };
+  }
+
+  /**
+   * Whether the thing on the other end would still accept this link. Mirrors
+   * what `grant` enforces, but without a user: the private-base rule turns on
+   * who minted the link, not on who is looking at it.
+   */
+  protected async isTargetRedeemable(
+    context: NcContext,
+    link: InviteLink,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (link.scope !== InviteLinkScope.BASE) return true;
+
+    const base = await Base.get(
+      { ...context, base_id: link.base_id, workspace_id: link.fk_workspace_id },
+      link.base_id,
+      ncMeta,
+    );
+
+    if (!base) return false;
+
+    if (!this.isPrivateBase(base)) return true;
+
+    const minter = link.created_by
+      ? await BaseUser.get(
+          {
+            ...context,
+            base_id: link.base_id,
+            workspace_id: link.fk_workspace_id,
+          },
+          link.base_id,
+          link.created_by,
+          ncMeta,
+        )
+      : null;
+
+    return minter?.roles === ProjectRoles.OWNER;
   }
 
   /** CE has no workspace concept, so only a base resolves to a name here. */

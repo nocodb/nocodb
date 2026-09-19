@@ -165,9 +165,10 @@ watch(link, resetDraft, { immediate: true })
         </div>
       </div>
 
-      <!-- The restriction only holds for a verified address, so say so here rather than at the refusal. -->
-      <div v-if="!draft.anyEmail" class="text-captionSm text-nc-content-gray-muted pt-1">
-        {{ $t('msg.info.domainNeedsVerifiedEmail') }}
+      <!-- The restriction only holds for a verified address, so say so here rather than at the refusal.
+           The sentence names the domain, so it waits until there is one to name. -->
+      <div v-if="!draft.anyEmail && draft.domain.trim()" class="text-captionSm text-nc-content-gray-muted pt-1">
+        {{ $t('msg.info.domainNeedsVerifiedEmail', { domain: draft.domain.trim() }) }}
       </div>
     </div>
 

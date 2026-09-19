@@ -59,10 +59,11 @@ const memberCount = ref(0)
 const membersLoaded = ref(false)
 
 /**
- * Only the count is on screen, so ask for one row and read the total off the
- * pagination metadata. Going through getBaseUsers would pull every member on
- * every open -- fine for a handful, a real wait on a workspace with hundreds --
- * and it writes the shared cache, so a truncated page cannot be requested there.
+ * Only the count is on screen, so read the total off the pagination metadata
+ * rather than counting rows. `limit` is passed but this endpoint ignores it
+ * today, so the payload is not yet smaller -- the win is that getBaseUsers is
+ * no longer called with force: true, which refetched on every open and
+ * rewrote the shared cache other screens read.
  *
  * Deliberately not awaited by the opener: the modal paints immediately and the
  * footer swaps its skeleton for the number whenever this lands.

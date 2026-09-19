@@ -125,14 +125,20 @@ export const useInviteLinks = createGlobalState(() => {
     return `${window.location.origin}/invite/${link.token}`
   }
 
-  async function request<T>(fn: () => Promise<T>): Promise<T | null> {
+  /**
+   * `error` always holds the last failure. The toast is for callers with
+   * nowhere to put it -- a screen that can show the message beside the field
+   * that caused it passes `toast: false` and renders `error` itself.
+   */
+  async function request<T>(fn: () => Promise<T>, { toast = true } = {}): Promise<T | null> {
     error.value = ''
 
     try {
       return await fn()
     } catch (e: any) {
       error.value = await extractSdkResponseErrorMsg(e)
-      message.error(error.value)
+
+      if (toast) message.error(error.value)
 
       return null
     }
@@ -159,15 +165,17 @@ export const useInviteLinks = createGlobalState(() => {
     isLoading.value = false
   }
 
-  async function createLink(body?: Partial<InviteLinkReqType>) {
+  async function createLink(body?: Partial<InviteLinkReqType>, opts?: { toast?: boolean }) {
     if (!target.value) return null
 
-    const res = await request(() =>
-      $api.instance.post(basePath(target.value!), {
-        role: defaultRole.value,
-        email_domain: defaultEmailDomain.value,
-        ...body,
-      } as InviteLinkReqType),
+    const res = await request(
+      () =>
+        $api.instance.post(basePath(target.value!), {
+          role: defaultRole.value,
+          email_domain: defaultEmailDomain.value,
+          ...body,
+        } as InviteLinkReqType),
+      opts,
     )
 
     if (!res?.data) return null
@@ -177,10 +185,10 @@ export const useInviteLinks = createGlobalState(() => {
     return res.data as InviteLinkType
   }
 
-  async function saveLink(id: string, patch: Partial<InviteLinkReqType>) {
+  async function saveLink(id: string, patch: Partial<InviteLinkReqType>, opts?: { toast?: boolean }) {
     if (!target.value || !id) return null
 
-    const res = await request(() => $api.instance.patch(`${basePath(target.value!)}/${id}`, patch))
+    const res = await request(() => $api.instance.patch(`${basePath(target.value!)}/${id}`, patch), opts)
 
     if (!res?.data) return null
 

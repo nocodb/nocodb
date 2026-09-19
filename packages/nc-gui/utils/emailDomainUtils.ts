@@ -72,3 +72,14 @@ export function inviteLinkDefaultDomain(email?: string | null): string | null {
 
   return isPersonalEmailDomain(domain) ? null : domain
 }
+
+/**
+ * Same rule as the server's `normaliseDomain`, so the edit screen can refuse a
+ * bad domain at the field instead of waiting for a 400 to come back as a toast.
+ * Accepts a leading `@`, surrounding space and any casing.
+ */
+export function isValidEmailDomain(domain?: string | null): boolean {
+  const trimmed = (domain || '').trim().toLowerCase().replace(/^@/, '')
+
+  return trimmed.length > 0 && trimmed.length <= 255 && /^[a-z0-9.-]+\.[a-z]{2,}$/.test(trimmed)
+}

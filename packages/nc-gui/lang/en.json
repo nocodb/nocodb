@@ -5938,6 +5938,7 @@
       "inviteLinkExpired": "This invite link has expired",
       "inviteLinkRevoked": "This invite link has been revoked",
       "inviteLinkExhausted": "This invite link has been fully used",
+      "invalidEmailDomain": "Enter a domain like acme.io",
       "interfaceButtonFieldMissing": "This button refers to a field that no longer exists",
       "duplicateAutomationName": "An automation with this name already exists",
       "nestingLinkNeedsPrimaryKey": "Both tables need a primary key to create a linked record field",

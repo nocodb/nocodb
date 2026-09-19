@@ -6,6 +6,7 @@ const emit = defineEmits(['done'])
 
 const {
   links,
+  error,
   allowedRoles,
   disabledRoles,
   disabledRolesTooltip,
@@ -45,10 +46,26 @@ const isSaving = ref(false)
 
 const isDeleting = ref(false)
 
+/**
+ * Checked here rather than left to the server, so a typo is answered at the
+ * field instead of arriving as a toast in the far corner once the round trip
+ * is done. Shown only once something has been typed -- an empty box is
+ * incomplete, not wrong.
+ */
+const domainError = computed(() => {
+  if (draft.anyEmail || !draft.domain.trim()) return ''
+
+  return isValidEmailDomain(draft.domain) ? '' : t('msg.error.invalidEmailDomain')
+})
+
 /** A domain restriction with an empty domain would silently restrict nothing. */
-const canSave = computed(() => draft.anyEmail || !!draft.domain.trim())
+const canSave = computed(() => draft.anyEmail || (!!draft.domain.trim() && !domainError.value))
 
 function resetDraft() {
+  // `error` is shared with every other screen, so a refusal from one of them
+  // would otherwise greet whoever opens this one next.
+  error.value = ''
+
   // A new link starts on what createLink would have defaulted to, so the draft
   // shows the same thing whether it is saved now or later.
   const domain = props.isNew ? defaultEmailDomain.value : link.value?.email_domain
@@ -84,7 +101,7 @@ async function onSave() {
 
   // Save is the commit point for a new link: nothing was sent when the screen
   // opened, so cancelling leaves nothing behind.
-  const saved = props.isNew ? await createLink(body) : await saveLink(props.linkId, body)
+  const saved = props.isNew ? await createLink(body, { toast: false }) : await saveLink(props.linkId, body, { toast: false })
 
   isSaving.value = false
 
@@ -182,12 +199,17 @@ watch(link, resetDraft, { immediate: true })
         </div>
       </div>
 
-      <!-- The restriction only holds for a verified address, so say so here rather than at the refusal.
-           The sentence names the domain, so it waits until there is one to name. -->
-      <div v-if="!draft.anyEmail && draft.domain.trim()" class="text-captionSm text-nc-content-gray-muted pt-1">
+      <!-- One line, two jobs: what the restriction means, or why it will not
+           save. The sentence names the domain, so it waits until there is one. -->
+      <div v-if="domainError" class="text-captionSm text-nc-content-red-dark pt-1">
+        {{ domainError }}
+      </div>
+      <div v-else-if="!draft.anyEmail && draft.domain.trim()" class="text-captionSm text-nc-content-gray-muted pt-1">
         {{ $t('msg.info.domainNeedsVerifiedEmail', { domain: draft.domain.trim() }) }}
       </div>
     </div>
+
+    <div v-if="error" class="text-bodyDefaultSm text-nc-content-red-dark">{{ error }}</div>
 
     <div class="h-px bg-nc-border-gray-light" />
 

@@ -109,7 +109,6 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
            there is nothing to count and nothing to manage, so it is absent. -->
       <button
         v-if="links.length"
-        v-e="['c:share:link:manage']"
         class="nc-hub-manage-links flex-none text-bodySm text-nc-content-gray-muted hover:text-nc-content-gray"
         data-testid="nc-hub-all-links"
         @click="emit('manage')"

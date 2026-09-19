@@ -2434,7 +2434,7 @@
     "appSettings": "App Settings",
     "addUserToBase": "Invite Members to Base",
     "bringTeamIntoBase": "Bring your team into {base}",
-    "emailAddresses": "Email addresses",
+    "emailAddresses": "Add email addresses",
     "shareNamed": "Share {name}",
     "privateInviteLink": "Private invite link",
     "addUserToInterface": "Invite Members to Interface",
@@ -5390,8 +5390,8 @@
       "removeCustomDomain": "{domain} will stop serving this app. The default address keeps working."
     },
     "info": {
-      "inviteTeamSubtitle": "They get an email and can start right away.",
       "inviteEmailBulkHint": "Comma or space separated. Paste your whole team at once.",
+      "keepTypingFullEmail": "Keep typing a full email to invite.",
       "sharePublicLinkSubtitle": "Anyone with the link can open it. No account needed.",
       "shareLinksReadOnly": "Links are read-only. Want them to edit or comment?",
       "privateInviteLinkSoon": "One link for the whole team, instead of typing every address.",

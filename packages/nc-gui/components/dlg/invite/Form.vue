@@ -255,17 +255,31 @@ const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): bool
   return true
 }
 
+/** What is typed but not yet turned into a chip. */
+const pendingEmail = computed(() => inviteData.email.trim())
+
+/**
+ * Chips, plus the typed-but-unchipped address once it is a complete one.
+ * A half-typed address does not hold the finished ones hostage.
+ */
+const validRecipients = computed(() => {
+  const list = [...emailBadges.value]
+  const pending = pendingEmail.value
+
+  if (pending && validateEmail(pending) && !list.includes(pending)) list.push(pending)
+
+  return list
+})
+
+/** Text still in the box that is not a sendable address yet. */
+const unsentEmail = computed(() => (pendingEmail.value && !validateEmail(pendingEmail.value) ? pendingEmail.value : ''))
+
 const isInviteButtonDisabled = computed(() => {
   if (props.isTeam) {
     return !inviteData.selectedTeamIds?.length
   }
 
-  if (!emailBadges.value.length && !singleEmailValue.value.length) {
-    return true
-  }
-  if (emailBadges.value.length && inviteData.email) {
-    return true
-  }
+  return !validRecipients.value.length
 })
 
 const showUserWillChargedWarning = computed(() => {
@@ -392,16 +406,20 @@ const inviteCollaborator = async () => {
     isLoading.value = true
 
     if (!props.isTeam) {
-      const payloadData = singleEmailValue.value || emailBadges.value.join(',')
-      if (!payloadData.includes(',')) {
-        const validationStatus = validateEmail(payloadData)
-        if (!validationStatus) {
-          emailValidation.isError = true
-          emailValidation.message = 'invalid email'
-        }
+      // Send the addresses that are ready; whatever is still half-typed stays
+      // in the box afterwards so it can be finished rather than retyped.
+      const recipients = validRecipients.value
+      const leftover = unsentEmail.value
+
+      if (!recipients.length) {
+        emailValidation.isError = true
+        emailValidation.message = 'Invalid Email'
+        return
       }
 
-      for (const email of payloadData?.split(',')) {
+      const payloadData = recipients.join(',')
+
+      for (const email of recipients) {
         if (props.users?.some((u) => u.email === email.trim())) {
           let scopeLabel = 'objects.project'
 
@@ -431,14 +449,18 @@ const inviteCollaborator = async () => {
       }
 
       message.success(t('msg.info.inviteSent'))
-      invited.push(
-        ...payloadData
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean),
-      )
-      inviteData.email = ''
+      invited.push(...recipients)
       emailBadges.value = []
+      inviteData.email = leftover
+      singleEmailValue.value = ''
+      emailValidation.isError = false
+      emailValidation.message = ''
+
+      // Something is still waiting to be corrected, so the form stays open.
+      if (leftover) {
+        emit('success', invited)
+        return
+      }
     } else {
       if (props.type === 'base' && props.baseId) {
         await baseTeamAdd(
@@ -620,16 +642,10 @@ const onTeamChange = async (_teamIds: RawValueType) => {
 }
 
 /** How many people the submit would actually invite, for a host that labels its own button. */
-const recipientCount = computed(() => {
-  if (props.isTeam) return (inviteData.selectedTeamIds || []).length
-
-  return emailBadges.value.length || (singleEmailValue.value ? 1 : 0)
-})
+const recipientCount = computed(() => (props.isTeam ? (inviteData.selectedTeamIds || []).length : validRecipients.value.length))
 
 /** For hosts that draw their own footer (`show-footer="false"`). */
-const canSubmit = computed(
-  () => !isInviteButtonDisabled.value && !emailValidation.isError && !isLoading.value && !warningMsg.value,
-)
+const canSubmit = computed(() => !isInviteButtonDisabled.value && !isLoading.value && !warningMsg.value)
 
 defineExpose({
   submit: inviteCollaborator,
@@ -700,7 +716,9 @@ defineExpose({
               />
             </div>
 
-            <span class="nc-invite-field-hint">{{ $t('msg.info.inviteEmailBulkHint') }}</span>
+            <span class="nc-invite-field-hint">
+              {{ unsentEmail ? $t('msg.info.keepTypingFullEmail') : $t('msg.info.inviteEmailBulkHint') }}
+            </span>
 
             <div
               v-if="isOrgUserPickerVisible"

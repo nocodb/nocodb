@@ -113,18 +113,14 @@ const objectTitle = computed(() => {
   }
 })
 
-// The header describes the tab you're on. A static "they get an email" would be
-// a plain lie on the two tabs that mint a public read-only link.
-const modalTitle = computed(() => {
-  if (activeTab.value === 'invite') return t('labels.bringTeamIntoBase', { base: base.value?.title })
+// Each tab owns its own heading. Hanging one heading above the tab strip made
+// the top of the modal change every time you switched tabs, which reads as the
+// tabs being subordinate to it rather than the other way round.
+const objectHeading = computed(() => {
   if (objectTab.value === 'interface') return t('labels.shareInterface')
 
   return t('labels.shareNamed', { name: objectTitle.value || base.value?.title })
 })
-
-const modalSubtitle = computed(() =>
-  activeTab.value === 'invite' ? t('msg.info.inviteTeamSubtitle') : t('msg.info.sharePublicLinkSubtitle'),
-)
 
 // Counts only once there is something to count; an empty form must not read
 // "Send 0 invites".
@@ -153,9 +149,10 @@ function goToInviteTab() {
   $e('c:share:invite-instead')
 }
 
+// Closing is the form's call, not ours: it keeps itself open when something is
+// still sitting in the box waiting to be corrected.
 function onInviteSent(emails: string[]) {
   $e('a:share:invite-sent', { count: emails.length })
-  showShareModal.value = false
 }
 
 watch(showShareModal, (val) => {
@@ -184,18 +181,17 @@ watch(showShareModal, (val) => {
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div class="nc-share-modal flex flex-col">
-      <div class="flex flex-col gap-1 px-5 pt-4 pb-3">
-        <div class="text-base font-semibold text-nc-content-gray-emphasis">{{ modalTitle }}</div>
-        <div class="text-bodySm text-nc-content-gray-muted">{{ modalSubtitle }}</div>
-      </div>
-
       <NcTabs :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">
         <a-tab-pane v-if="canInvite" key="invite">
           <template #tab>
             <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteTeam') }}</span>
           </template>
 
-          <div class="nc-invite-pane px-5 pt-1 pb-4">
+          <div class="nc-invite-pane px-5 pt-4 pb-4">
+            <div class="text-base font-semibold text-nc-content-gray-emphasis mb-4">
+              {{ $t('labels.bringTeamIntoBase', { base: base.title }) }}
+            </div>
+
             <DlgInviteForm
               ref="inviteFormRef"
               :active="showShareModal && activeTab === 'invite'"
@@ -215,7 +211,12 @@ watch(showShareModal, (val) => {
             <span data-testid="nc-share-tab-object">{{ objectTabLabel }}</span>
           </template>
 
-          <div class="nc-share-pane px-2 pt-1 pb-2">
+          <div class="nc-share-pane px-5 pt-4 pb-2">
+            <div class="flex flex-col gap-1 mb-3">
+              <div class="text-base font-semibold text-nc-content-gray-emphasis">{{ objectHeading }}</div>
+              <div class="text-bodySm text-nc-content-gray-muted">{{ $t('msg.info.sharePublicLinkSubtitle') }}</div>
+            </div>
+
             <div v-if="objectTab === 'view'" class="share-view">
               <div
                 v-if="isLocked || isViewSharingRestricted"
@@ -261,38 +262,43 @@ watch(showShareModal, (val) => {
         </a-tab-pane>
       </NcTabs>
 
-      <div class="nc-share-footer flex items-center gap-x-2 px-5 py-3 border-t-1 border-nc-border-gray-medium">
-        <div class="flex-1 text-bodySm text-nc-content-gray-muted pr-2">
-          <template v-if="activeTab !== 'invite' && canInvite">
-            {{ $t('msg.info.shareLinksReadOnly') }}
-            <!-- The whole point of the branch: the person who pressed Share meaning
-                 "add my colleague" gets the right door, in the same breath as the
-                 sentence that tells them a link is not it. -->
-            <button
-              class="nc-share-invite-instead font-medium text-nc-content-brand hover:underline"
-              data-testid="nc-share-invite-instead"
-              @click="goToInviteTab"
-            >
-              {{ $t('activity.inviteThemInstead') }}
-            </button>
-          </template>
-        </div>
-
-        <template v-if="activeTab === 'invite'">
-          <NcButton
-            type="primary"
-            size="small"
-            data-testid="nc-share-send-invites"
-            :disabled="!inviteFormRef?.canSubmit"
-            :loading="!!inviteFormRef?.isLoading"
-            @click="inviteFormRef?.submit()"
-          >
+      <div class="nc-share-footer px-5 py-3 border-t-1 border-nc-border-gray-medium">
+        <NcButton
+          v-if="activeTab === 'invite'"
+          type="primary"
+          size="medium"
+          full-width
+          class="nc-share-send-invites !w-full"
+          data-testid="nc-share-send-invites"
+          :disabled="!inviteFormRef?.canSubmit"
+          :loading="!!inviteFormRef?.isLoading"
+          @click="inviteFormRef?.submit()"
+        >
+          <span class="flex w-full items-center justify-center gap-x-2">
+            <GeneralIcon icon="ncSend" class="flex-none h-4 w-4 rotate-45" />
             {{ sendLabel }}
-          </NcButton>
-        </template>
-        <template v-else>
+          </span>
+        </NcButton>
+
+        <div v-else class="flex items-center gap-x-2">
+          <div class="flex-1 text-bodySm text-nc-content-gray-muted pr-2">
+            <template v-if="canInvite">
+              {{ $t('msg.info.shareLinksReadOnly') }}
+              <!-- The whole point of the branch: the person who pressed Share meaning
+                   "add my colleague" gets the right door, in the same breath as the
+                   sentence that tells them a link is not it. -->
+              <button
+                class="nc-share-invite-instead font-medium text-nc-content-brand hover:underline"
+                data-testid="nc-share-invite-instead"
+                @click="goToInviteTab"
+              >
+                {{ $t('activity.inviteThemInstead') }}
+              </button>
+            </template>
+          </div>
+
           <DlgShareAndCollaborateShareInterfaceActions v-if="isEeUI" />
-        </template>
+        </div>
       </div>
     </div>
   </a-modal>
@@ -324,6 +330,14 @@ watch(showShareModal, (val) => {
     top: 10vh !important;
   }
 
+  // Disabled still has to look like a button: the default treatment fades it
+  // into the footer, so people cannot see what they are working towards.
+  .nc-share-send-invites[disabled],
+  .nc-share-send-invites.nc-disabled,
+  .nc-share-send-invites:disabled {
+    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !border-transparent opacity-100;
+  }
+
   // a-tabs clips its content by default, which would cut off the invite form's
   // absolutely-positioned org-user picker. Panes do their own scrolling.
   .nc-share-tabs {
@@ -333,7 +347,7 @@ watch(showShareModal, (val) => {
   // The tab strip sits under the title block and above the pane, so it owns the
   // rule that used to be drawn per-section.
   .nc-share-tabs > .ant-tabs-nav {
-    @apply px-3 mb-0 border-b-1 border-nc-border-gray-medium;
+    @apply px-3 pr-12 mt-1 mb-0 border-b-1 border-nc-border-gray-medium;
 
     &::before {
       @apply border-0;

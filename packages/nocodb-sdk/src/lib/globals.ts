@@ -361,6 +361,20 @@ export enum NcErrorType {
   ERR_CREDIT_PACK_NOT_FOUND = 'ERR_CREDIT_PACK_NOT_FOUND',
 }
 
+/**
+ * Why EE is inactive when an operation is refused with ERR_LICENSE_REQUIRED.
+ * Never a plan tier — it says the license is not active, not that the feature
+ * belongs to a higher plan.
+ */
+export enum LicenseInactiveReason {
+  /** No license key configured */
+  NONE = 'none',
+  EXPIRED = 'expired',
+  SUSPENDED = 'suspended',
+  /** Heartbeat grace period lapsed — license server unreachable */
+  UNREACHABLE = 'unreachable',
+}
+
 export enum ROW_COLORING_MODE {
   FILTER = 'filter',
   SELECT = 'select',

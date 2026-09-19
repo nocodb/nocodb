@@ -12,6 +12,7 @@ import {
 } from '../error/nc-base.error';
 import {
   CreditsExhaustedDetailsType,
+  LicenseInactiveReason,
   NcErrorType,
   PlanLimitExceededDetailsType,
 } from '../globals';
@@ -1443,9 +1444,14 @@ export class NcErrorBase {
     });
   }
 
-  licenseRequired(feature?: string, args?: NcErrorArgs): never {
+  licenseRequired(
+    operation?: string,
+    reason?: LicenseInactiveReason,
+    args?: NcErrorArgs,
+  ): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_REQUIRED, {
-      params: feature || '',
+      params: [operation || '', reason || ''],
+      details: reason ? { licenseInactiveReason: reason } : undefined,
       ...args,
     });
   }

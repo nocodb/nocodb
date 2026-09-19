@@ -228,6 +228,12 @@ onMounted(() => {
               >
                 <span class="flex w-full items-center justify-center">{{ $t('activity.signInWithDifferentAccount') }}</span>
               </NcButton>
+
+              <!-- Signing out is a heavy price for opening the wrong link. The
+                   account they are in is still theirs; let them go back to it. -->
+              <NcButton type="text" size="medium" class="!w-full" data-testid="nc-invite-home" @click="navigateTo('/')">
+                <span class="flex w-full items-center justify-center">{{ $t('general.home') }}</span>
+              </NcButton>
             </div>
 
             <div v-else-if="signedIn" class="flex flex-col gap-3 w-full">
@@ -257,6 +263,10 @@ onMounted(() => {
                   @click="switchAccount"
                 >
                   <span class="flex w-full items-center justify-center">{{ $t('activity.signInWithDifferentAccount') }}</span>
+                </NcButton>
+
+                <NcButton type="text" size="medium" class="!w-full" data-testid="nc-invite-home" @click="navigateTo('/')">
+                  <span class="flex w-full items-center justify-center">{{ $t('general.home') }}</span>
                 </NcButton>
               </template>
             </div>

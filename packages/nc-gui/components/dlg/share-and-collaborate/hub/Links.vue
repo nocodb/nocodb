@@ -1,44 +1,58 @@
 <script lang="ts" setup>
 import { RoleLabels } from 'nocodb-sdk'
 
-/** MOCK — see `useInviteLinks`. Nothing here reaches the server. */
 const emit = defineEmits(['editLink'])
 
 const { t } = useI18n()
 
-const { links, linkUrl, createLink } = useInviteLinks()
+const { links, linkUrl, isLoading, isLoaded, createLink } = useInviteLinks()
 
 const { copy } = useCopy()
 
-const copiedIndex = ref(-1)
+const copiedId = ref('')
+
+const isCreating = ref(false)
 
 const rows = computed(() =>
-  links.value.map((l, i) => {
+  links.value.map((l) => {
     const label = t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`).toLowerCase()
 
     return {
-      index: i,
       id: l.id,
       role: label,
       article: /^[aeiou]/.test(label) ? 'an' : 'a',
-      domainNote: !l.anyEmail && l.domain ? l.domain : '',
+      domainNote: l.email_domain || '',
+      uses: l.max_uses ? `${l.used_count ?? 0}/${l.max_uses}` : '',
     }
   }),
 )
 
-async function copyAt(index: number) {
-  await copy(linkUrl(links.value[index]))
-  copiedIndex.value = index
-  setTimeout(() => (copiedIndex.value = -1), 1600)
+async function copyRow(id: string) {
+  const link = links.value.find((l) => l.id === id)
+  if (!link) return
+
+  await copy(linkUrl(link))
+  copiedId.value = id
+  setTimeout(() => (copiedId.value = ''), 1600)
 }
 
-function onCreate() {
-  emit('editLink', createLink())
+async function onCreate() {
+  isCreating.value = true
+
+  const link = await createLink()
+
+  isCreating.value = false
+
+  if (link) emit('editLink', link.id)
 }
 </script>
 
 <template>
   <div class="flex flex-col px-7 pt-4 pb-7">
+    <div v-if="!isLoaded && isLoading" class="flex flex-col gap-2 py-3">
+      <span v-for="i in 2" :key="i" class="h-8 rounded-lg bg-nc-bg-gray-extralight" />
+    </div>
+
     <div
       v-for="row in rows"
       :key="row.id"
@@ -49,22 +63,24 @@ function onCreate() {
         {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
         <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
         <template v-if="row.domainNote"> · {{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
+        <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
       </div>
 
-      <NcButton type="secondary" size="small" @click="copyAt(row.index)">
-        {{ copiedIndex === row.index ? $t('general.copied') : $t('activity.copyLink') }}
+      <NcButton type="secondary" size="small" @click="copyRow(row.id)">
+        {{ copiedId === row.id ? $t('general.copied') : $t('activity.copyLink') }}
       </NcButton>
 
       <NcTooltip :title="$t('activity.linkSettings')">
-        <NcButton type="secondary" size="small" class="!px-0 !w-8" @click="emit('editLink', row.index)">
+        <NcButton type="secondary" size="small" class="!px-0 !w-8" @click="emit('editLink', row.id)">
           <GeneralIcon icon="ncSettings" class="w-4 h-4" />
         </NcButton>
       </NcTooltip>
     </div>
 
     <button
-      class="flex items-center gap-2 h-11 -mx-2 mt-1 px-2 rounded-lg text-bodyDefault font-semibold text-nc-content-brand hover:bg-nc-bg-gray-extralight"
+      class="flex items-center gap-2 h-11 -mx-2 mt-1 px-2 rounded-lg text-bodyDefault font-semibold text-nc-content-brand hover:bg-nc-bg-gray-extralight disabled:opacity-50"
       data-testid="nc-hub-create-link"
+      :disabled="isCreating"
       @click="onCreate"
     >
       <GeneralIcon icon="plus" class="flex-none w-4.5 h-4.5" />

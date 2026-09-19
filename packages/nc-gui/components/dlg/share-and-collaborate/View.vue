@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import { InviteLinkScope, ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -38,7 +38,7 @@ const { resetData } = useShare()
 
 const { getBaseUsers } = useBases()
 
-const { links: inviteLinks } = useInviteLinks()
+const { links: inviteLinks, load: loadInviteLinks } = useInviteLinks()
 
 const { navigateToProjectPage } = baseStore
 
@@ -51,7 +51,7 @@ const activeTab = ref<'invite' | 'object'>('invite')
  */
 const screen = ref<'main' | 'compose' | 'links' | 'edit'>('main')
 
-const editIndex = ref(0)
+const editLinkId = ref('')
 
 const members = ref<Array<{ id?: string; email?: string; display_name?: string }>>([])
 
@@ -171,8 +171,8 @@ function afterEditLink() {
   screen.value = inviteLinks.value.length > 1 ? 'links' : 'main'
 }
 
-function openEditLink(index: number) {
-  editIndex.value = index
+function openEditLink(linkId: string) {
+  editLinkId.value = linkId
   screen.value = 'edit'
 }
 
@@ -210,6 +210,7 @@ watch(showShareModal, (val) => {
     membersLoaded.value = false
     nextTick(anchorToTrigger)
     loadMembers()
+    if (base.value?.id) loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id })
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })
   } else {
     setTimeout(() => {
@@ -353,7 +354,7 @@ watch(showShareModal, (val) => {
 
         <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" @edit-link="openEditLink" />
 
-        <DlgShareAndCollaborateHubEditLink v-else :index="editIndex" @done="afterEditLink" />
+        <DlgShareAndCollaborateHubEditLink v-else :link-id="editLinkId" @done="afterEditLink" />
       </template>
     </div>
   </a-modal>

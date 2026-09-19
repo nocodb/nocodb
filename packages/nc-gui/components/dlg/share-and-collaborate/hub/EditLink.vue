@@ -1,50 +1,65 @@
 <script lang="ts" setup>
-import { ProjectRoles } from 'nocodb-sdk'
-
-/** MOCK — see `useInviteLinks`. Nothing here reaches the server. */
-const props = defineProps<{ index: number }>()
+const props = defineProps<{ linkId: string }>()
 
 const emit = defineEmits(['done'])
 
-const { links, saveLink, deleteLink } = useInviteLinks()
+const { links, allowedRoles, defaultRole, saveLink, deleteLink } = useInviteLinks()
 
-// Owner is never handed out by a link; it is granted to a named person.
-const allowedRoles = computed(() =>
-  Object.values(ProjectRoles).filter((r) => r !== ProjectRoles.OWNER && r !== ProjectRoles.NO_ACCESS),
-)
+const link = computed(() => links.value.find((l) => l.id === props.linkId))
 
 const draft = reactive({
-  role: links.value[props.index]?.role ?? ProjectRoles.EDITOR,
-  anyEmail: links.value[props.index]?.anyEmail ?? true,
-  domain: links.value[props.index]?.domain ?? '',
+  role: defaultRole.value as string,
+  anyEmail: true,
+  domain: '',
 })
 
-const canDelete = computed(() => links.value.length > 1)
+const isSaving = ref(false)
 
-function onRoleChange(role: ProjectRoles) {
+const isDeleting = ref(false)
+
+/** A domain restriction with an empty domain would silently restrict nothing. */
+const canSave = computed(() => draft.anyEmail || !!draft.domain.trim())
+
+function resetDraft() {
+  Object.assign(draft, {
+    role: link.value?.role ?? defaultRole.value,
+    anyEmail: !link.value?.email_domain,
+    domain: link.value?.email_domain ?? '',
+  })
+}
+
+function onRoleChange(role: string) {
   draft.role = role
 }
 
-function onSave() {
-  saveLink(props.index, { ...draft })
-  emit('done')
+async function onSave() {
+  if (!canSave.value) return
+
+  isSaving.value = true
+
+  const saved = await saveLink(props.linkId, {
+    role: draft.role,
+    email_domain: draft.anyEmail ? null : draft.domain.trim(),
+  })
+
+  isSaving.value = false
+
+  if (saved) emit('done')
 }
 
-function onDelete() {
-  deleteLink(props.index)
-  emit('done')
+async function onDelete() {
+  isDeleting.value = true
+
+  const done = await deleteLink(props.linkId)
+
+  isDeleting.value = false
+
+  if (done) emit('done')
 }
 
-watch(
-  () => props.index,
-  (i) => {
-    Object.assign(draft, {
-      role: links.value[i]?.role ?? ProjectRoles.EDITOR,
-      anyEmail: links.value[i]?.anyEmail ?? true,
-      domain: links.value[i]?.domain ?? '',
-    })
-  },
-)
+watch(() => props.linkId, resetDraft)
+
+watch(link, resetDraft, { immediate: true })
 </script>
 
 <template>
@@ -100,22 +115,37 @@ watch(
             v-model="draft.domain"
             class="flex-1 min-w-0 border-0 outline-none bg-transparent text-bodyDefault text-nc-content-gray"
             placeholder="example.com"
+            data-testid="nc-hub-domain-input"
             @focus="draft.anyEmail = false"
           />
         </div>
+      </div>
+
+      <!-- The restriction only holds for a verified address, so say so here rather than at the refusal. -->
+      <div v-if="!draft.anyEmail" class="text-captionSm text-nc-content-gray-muted pt-1">
+        {{ $t('msg.info.domainNeedsVerifiedEmail') }}
       </div>
     </div>
 
     <div class="h-px bg-nc-border-gray-light" />
 
     <div class="flex items-center justify-between gap-3">
-      <NcButton type="danger" size="medium" :disabled="!canDelete" data-testid="nc-hub-delete-link" @click="onDelete">
+      <NcButton type="danger" size="medium" :loading="isDeleting" data-testid="nc-hub-delete-link" @click="onDelete">
         {{ $t('activity.deleteLink') }}
       </NcButton>
 
       <div class="flex gap-2">
         <NcButton type="secondary" size="medium" @click="emit('done')">{{ $t('labels.cancel') }}</NcButton>
-        <NcButton type="primary" size="medium" data-testid="nc-hub-save-link" @click="onSave">{{ $t('general.save') }}</NcButton>
+        <NcButton
+          type="primary"
+          size="medium"
+          :disabled="!canSave"
+          :loading="isSaving"
+          data-testid="nc-hub-save-link"
+          @click="onSave"
+        >
+          {{ $t('general.save') }}
+        </NcButton>
       </div>
     </div>
   </div>

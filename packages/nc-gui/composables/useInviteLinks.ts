@@ -1,53 +1,140 @@
-import { ProjectRoles } from 'nocodb-sdk'
+import type { InviteLinkReqType, InviteLinkType } from 'nocodb-sdk'
+import { InviteLinkScope, ProjectRoles, WorkspaceUserRoles, inviteLinkRolesFor } from 'nocodb-sdk'
 
-export interface MockInviteLink {
-  id: string
-  role: ProjectRoles
-  anyEmail: boolean
-  domain: string
+export interface InviteLinkTarget {
+  scope: InviteLinkScope
+  baseId?: string
+  workspaceId?: string
 }
 
-/**
- * MOCK. There is no shareable join link in the backend.
- *
- * `invite_token` is minted per invited email, expires in 24h and is consumed at
- * signup — it is a magic link for one named person, not a join link. Nothing
- * here talks to the server: the list lives in memory and dies on reload, and the
- * URL it renders resolves to nothing.
- *
- * Before this reaches users the invite-link screens must either be backed by a
- * real token endpoint (table, create/revoke, public join route, expiry, scope)
- * or be removed. Tracked in `.claude/branches/invite-ux/plan.md`.
- */
+const basePath = (t: InviteLinkTarget) =>
+  t.scope === InviteLinkScope.WORKSPACE
+    ? `/api/v1/workspaces/${t.workspaceId}/invite-links`
+    : `/api/v2/meta/bases/${t.baseId}/invite-links`
+
+const sameTarget = (a: InviteLinkTarget | null, b: InviteLinkTarget) =>
+  !!a && a.scope === b.scope && a.baseId === b.baseId && a.workspaceId === b.workspaceId
+
 // createGlobalState, not createSharedComposable: the hub unmounts this screen
 // every time it pushes into compose/links/edit, and a shared composable disposes
 // with its last consumer — which reset the list mid-flow.
 export const useInviteLinks = createGlobalState(() => {
-  const newId = () => Math.random().toString(36).slice(2, 8)
+  const { $api } = useNuxtApp()
 
-  const links = ref<MockInviteLink[]>([{ id: newId(), role: ProjectRoles.EDITOR, anyEmail: true, domain: '' }])
+  const links = ref<InviteLinkType[]>([])
 
-  const linkUrl = (link: MockInviteLink) => `${window.location.origin}/invite/${link.id}`
+  const target = ref<InviteLinkTarget | null>(null)
 
-  function createLink() {
-    const link: MockInviteLink = { id: newId(), role: ProjectRoles.EDITOR, anyEmail: true, domain: '' }
-    links.value.push(link)
+  const isLoading = ref(false)
 
-    return links.value.length - 1
+  const isLoaded = ref(false)
+
+  const error = ref('')
+
+  /** Owner is never handed out by a link; it is granted to a named person. */
+  const allowedRoles = computed(() => [...inviteLinkRolesFor(target.value?.scope ?? InviteLinkScope.BASE)])
+
+  const defaultRole = computed(() =>
+    target.value?.scope === InviteLinkScope.WORKSPACE ? WorkspaceUserRoles.EDITOR : ProjectRoles.EDITOR,
+  )
+
+  /**
+   * The join URL carries the raw token, so it only ever comes from a response
+   * to someone allowed to manage links. A link fetched without one cannot be
+   * copied, which is the correct failure.
+   */
+  function linkUrl(link: InviteLinkType) {
+    if (!link?.token) return ''
+
+    return `${window.location.origin}/invite/${link.token}`
   }
 
-  function saveLink(index: number, patch: Partial<MockInviteLink>) {
-    if (!links.value[index]) return
+  async function request<T>(fn: () => Promise<T>): Promise<T | null> {
+    error.value = ''
 
-    links.value[index] = { ...links.value[index], ...patch }
+    try {
+      return await fn()
+    } catch (e: any) {
+      error.value = await extractSdkResponseErrorMsg(e)
+      message.error(error.value)
+
+      return null
+    }
   }
 
-  function deleteLink(index: number) {
-    // The hub always shows one link, so the last one cannot be removed.
-    if (links.value.length <= 1) return
+  async function load(next: InviteLinkTarget, force = false) {
+    if (!force && isLoaded.value && sameTarget(target.value, next)) return
 
-    links.value.splice(index, 1)
+    if (next.scope === InviteLinkScope.WORKSPACE ? !next.workspaceId : !next.baseId) return
+
+    // Switching target must not leave the previous target's links on screen.
+    if (!sameTarget(target.value, next)) {
+      links.value = []
+      isLoaded.value = false
+    }
+
+    target.value = next
+    isLoading.value = true
+
+    const res = await request(() => $api.instance.get(basePath(next)))
+
+    links.value = res?.data?.list ?? []
+    isLoaded.value = true
+    isLoading.value = false
   }
 
-  return { links, linkUrl, createLink, saveLink, deleteLink }
+  async function createLink(body?: Partial<InviteLinkReqType>) {
+    if (!target.value) return null
+
+    const res = await request(() =>
+      $api.instance.post(basePath(target.value!), { role: defaultRole.value, ...body } as InviteLinkReqType),
+    )
+
+    if (!res?.data) return null
+
+    links.value = [...links.value, res.data]
+
+    return res.data as InviteLinkType
+  }
+
+  async function saveLink(id: string, patch: Partial<InviteLinkReqType>) {
+    if (!target.value || !id) return null
+
+    const res = await request(() => $api.instance.patch(`${basePath(target.value!)}/${id}`, patch))
+
+    if (!res?.data) return null
+
+    // The response omits the token, so keep the one already held or the row
+    // loses its copyable URL.
+    links.value = links.value.map((l) => (l.id === id ? { ...l, ...res.data, token: res.data.token ?? l.token } : l))
+
+    return res.data as InviteLinkType
+  }
+
+  async function deleteLink(id: string) {
+    if (!target.value || !id) return false
+
+    const res = await request(() => $api.instance.delete(`${basePath(target.value!)}/${id}`))
+
+    if (!res) return false
+
+    links.value = links.value.filter((l) => l.id !== id)
+
+    return true
+  }
+
+  return {
+    links,
+    target,
+    isLoading,
+    isLoaded,
+    error,
+    allowedRoles,
+    defaultRole,
+    linkUrl,
+    load,
+    createLink,
+    saveLink,
+    deleteLink,
+  }
 })

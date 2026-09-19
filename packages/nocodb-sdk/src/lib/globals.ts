@@ -375,6 +375,19 @@ export enum LicenseInactiveReason {
   UNREACHABLE = 'unreachable',
 }
 
+/**
+ * Liveness of the license-server heartbeat. `degraded` is the window worth
+ * warning in: beats are failing but EE is still active, so connectivity can
+ * still be restored before features switch off at `gracePeriodExpiresAt`.
+ * Once that passes, EE is off and `LicenseInactiveReason.UNREACHABLE` applies.
+ */
+export interface LicenseHeartbeatHealth {
+  degraded: boolean;
+  consecutiveFailures: number;
+  lastSuccessAt?: string;
+  gracePeriodExpiresAt?: string;
+}
+
 export enum ROW_COLORING_MODE {
   FILTER = 'filter',
   SELECT = 'select',

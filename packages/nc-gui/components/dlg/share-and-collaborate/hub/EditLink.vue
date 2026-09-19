@@ -3,7 +3,7 @@ const props = defineProps<{ linkId: string }>()
 
 const emit = defineEmits(['done'])
 
-const { links, allowedRoles, defaultRole, saveLink, deleteLink } = useInviteLinks()
+const { links, allowedRoles, defaultRole, defaultEmailDomain, saveLink, deleteLink } = useInviteLinks()
 
 const link = computed(() => links.value.find((l) => l.id === props.linkId))
 
@@ -30,6 +30,14 @@ function resetDraft() {
 
 function onRoleChange(role: string) {
   draft.role = role
+}
+
+/** Picking the restricted option with nothing in the box restricts nothing, so
+ *  seed it with the domain the link would have defaulted to. */
+function useDomainRestriction() {
+  draft.anyEmail = false
+
+  if (!draft.domain.trim() && defaultEmailDomain.value) draft.domain = defaultEmailDomain.value
 }
 
 async function onSave() {
@@ -93,7 +101,7 @@ watch(link, resetDraft, { immediate: true })
         <button
           class="flex items-center gap-3 flex-none text-left"
           data-testid="nc-hub-domain-only"
-          @click="draft.anyEmail = false"
+          @click="useDomainRestriction"
         >
           <span
             class="w-4 h-4 rounded-full flex-none box-border"
@@ -116,7 +124,7 @@ watch(link, resetDraft, { immediate: true })
             class="flex-1 min-w-0 border-0 outline-none bg-transparent text-bodyDefault text-nc-content-gray"
             placeholder="example.com"
             data-testid="nc-hub-domain-input"
-            @focus="draft.anyEmail = false"
+            @focus="useDomainRestriction"
           />
         </div>
       </div>

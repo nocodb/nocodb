@@ -21,6 +21,8 @@ const sameTarget = (a: InviteLinkTarget | null, b: InviteLinkTarget) =>
 export const useInviteLinks = createGlobalState(() => {
   const { $api } = useNuxtApp()
 
+  const { user } = useGlobal()
+
   const links = ref<InviteLinkType[]>([])
 
   const target = ref<InviteLinkTarget | null>(null)
@@ -37,6 +39,13 @@ export const useInviteLinks = createGlobalState(() => {
   const defaultRole = computed(() =>
     target.value?.scope === InviteLinkScope.WORKSPACE ? WorkspaceUserRoles.EDITOR : ProjectRoles.EDITOR,
   )
+
+  /**
+   * A new link starts restricted to the creator's own domain, which is almost
+   * always who they mean. A consumer address tells us nothing about who they
+   * work with, so those start open instead.
+   */
+  const defaultEmailDomain = computed(() => inviteLinkDefaultDomain(user.value?.email))
 
   /**
    * The join URL carries the raw token, so it only ever comes from a response
@@ -87,7 +96,11 @@ export const useInviteLinks = createGlobalState(() => {
     if (!target.value) return null
 
     const res = await request(() =>
-      $api.instance.post(basePath(target.value!), { role: defaultRole.value, ...body } as InviteLinkReqType),
+      $api.instance.post(basePath(target.value!), {
+        role: defaultRole.value,
+        email_domain: defaultEmailDomain.value,
+        ...body,
+      } as InviteLinkReqType),
     )
 
     if (!res?.data) return null
@@ -131,6 +144,7 @@ export const useInviteLinks = createGlobalState(() => {
     error,
     allowedRoles,
     defaultRole,
+    defaultEmailDomain,
     linkUrl,
     load,
     createLink,

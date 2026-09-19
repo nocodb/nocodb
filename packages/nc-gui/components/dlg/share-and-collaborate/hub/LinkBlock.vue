@@ -121,7 +121,9 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       <span v-if="!isLoaded && isLoading" class="inline-block w-full h-4 rounded bg-nc-bg-gray-light align-middle" />
 
       <!-- One sentence rather than fragments, so the role control sits in the
-           copy that explains it and translators can move it. -->
+           copy that explains it and translators can move it. Short enough to
+           keep the role chip on the same line as the words it belongs to --
+           the caution below carries what the sentence used to say. -->
       <i18n-t v-else :keypath="domain ? 'msg.info.inviteLinkDomainSentence' : 'msg.info.inviteLinkOpenSentence'" tag="span">
         <template #domain>
           <span class="nc-hub-domain-chip">{{ `@${domain}` }}</span>
@@ -139,6 +141,12 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
           />
         </template>
       </i18n-t>
+    </div>
+
+    <!-- Only an unrestricted link needs the warning: a domain-restricted one
+         already says who it will let in. -->
+    <div v-if="isLoaded && !domain" class="text-bodySm text-nc-content-gray-muted">
+      {{ $t('msg.info.inviteLinkOpenCaution') }}
     </div>
 
     <NcButton

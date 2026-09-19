@@ -5930,7 +5930,8 @@
       "enterAgentName": "Enter agent name",
       "enterAgentDescription": "Enter agent description",
       "inviteLinkDomainSentence": "Works only with {domain} email & teammates join as {role}",
-      "inviteLinkOpenSentence": "Share this link only with people you trust. Anyone with it can join as {role}"
+      "inviteLinkOpenSentence": "Anyone with the link can join as {role}",
+      "inviteLinkOpenCaution": "Share it only with people you trust."
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",

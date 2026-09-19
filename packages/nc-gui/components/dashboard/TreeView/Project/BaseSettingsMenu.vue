@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+// Not auto-imported, unlike most of @vueuse/core's surface.
+import { useStorage } from '@vueuse/core'
+
 const router = useRouter()
 const route = router.currentRoute
 
@@ -15,6 +18,8 @@ const baseRole = inject(ProjectRoleInj)!
 const { isMobileMode } = useGlobal()
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 const { isUIAllowed, environmentRestrictionReason, baseRoles, loadRoles } = useRoles()
 
@@ -189,6 +194,7 @@ const navGroups = computed(() => {
     key: string
     label: string
     divider?: boolean
+    collapsible?: boolean
     items: {
       tab: string
       ev: string
@@ -304,8 +310,11 @@ const navGroups = computed(() => {
       ].filter((i) => i.visible),
     },
     {
+      // The long tail of the nav, and the part a base owner visits least. Folded
+      // by default so the eight rows above it are not buried under it.
       key: 'admin',
       label: t('labels.baseNav.groupAdmin'),
+      collapsible: true,
       items: [
         {
           tab: 'workflows',
@@ -410,6 +419,33 @@ const filteredGroups = computed(() => {
 
 const hasResults = computed(() => filteredGroups.value.length > 0)
 
+/** Remembered across bases and sessions: whether to fold is a habit, not a per-base fact. */
+const openGroups = useStorage<Record<string, boolean>>('nc-base-settings-open-groups', {})
+
+/**
+ * A collapsible group still opens itself when it has to: while a search is
+ * running, hiding a matching row would make the search look broken, and a
+ * folded group holding the page you are on would leave the nav with nothing
+ * marked active.
+ */
+function isGroupOpen(group: { key: string; collapsible?: boolean; items: { tab: string }[] }) {
+  if (!group.collapsible) return true
+
+  if (searchQuery.value.trim()) return true
+
+  if (group.items.some((i) => i.tab === activeBaseSettingsTab.value)) return true
+
+  return !!openGroups.value[group.key]
+}
+
+function toggleGroup(group: { key: string; collapsible?: boolean; items: { tab: string }[] }) {
+  if (!group.collapsible) return
+
+  $e('c:settings:base:group-toggle', { group: group.key, open: !isGroupOpen(group) })
+
+  openGroups.value = { ...openGroups.value, [group.key]: !isGroupOpen(group) }
+}
+
 // Load base roles in background if not already loaded
 onMounted(() => {
   const baseId = resolvedProject.value?.id
@@ -437,17 +473,29 @@ onMounted(() => {
     </div>
 
     <template v-for="group in filteredGroups" :key="group.key">
-      <div
+      <component
+        :is="group.collapsible ? 'button' : 'div'"
         class="nc-settings-section-header"
         :class="{
           'nc-settings-section-header-group': group.key !== filteredGroups[0].key && !group.divider,
           'nc-settings-section-header-app': group.divider,
+          'nc-settings-section-header-toggle': group.collapsible,
         }"
+        :type="group.collapsible ? 'button' : undefined"
+        :aria-expanded="group.collapsible ? isGroupOpen(group) : undefined"
+        :data-testid="group.collapsible ? `nc-settings-group-${group.key}` : undefined"
+        @click="toggleGroup(group)"
       >
-        {{ group.label }}
-      </div>
+        <span>{{ group.label }}</span>
+        <GeneralIcon
+          v-if="group.collapsible"
+          icon="chevronDown"
+          class="nc-settings-section-chevron"
+          :class="{ '-rotate-90': !isGroupOpen(group) }"
+        />
+      </component>
       <NcSidebarMenuItem
-        v-for="item in group.items"
+        v-for="item in (isGroupOpen(group) ? group.items : [])"
         :key="item.tab"
         v-e="[`c:settings:base:${item.ev}`]"
         :icon="item.icon"
@@ -581,6 +629,25 @@ onMounted(() => {
 .nc-settings-section-header {
   @apply px-3 pt-3 pb-1 font-semibold text-nc-content-gray-muted uppercase tracking-wide;
   font-size: 13px;
+}
+
+// A foldable heading is a control, so it takes the whole row as its hit target
+// and picks up the same hover the rows below it use.
+.nc-settings-section-header-toggle {
+  @apply w-full flex items-center justify-between gap-1 text-left cursor-pointer bg-transparent border-0;
+  // Only the font family, which a <button> swaps for the UA's own. Every other
+  // type property is left to the base class: `inherit` takes the parent's value
+  // rather than this class's, which is how the heading first lost its uppercase
+  // and then its 13px.
+  font-family: inherit;
+
+  &:hover {
+    @apply text-nc-content-gray-subtle2;
+  }
+}
+
+.nc-settings-section-chevron {
+  @apply flex-none h-3.5 w-3.5 transition-transform duration-200;
 }
 
 // Groups after the first need air between them and the previous group's last item.

@@ -81,7 +81,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
       </div>
 
-      <NcButton type="secondary" size="small" @click="copyRow(row.id)">
+      <NcButton type="secondary" size="small" class="!text-small" @click="copyRow(row.id)">
         {{ copiedId === row.id ? $t('general.copied') : $t('activity.copyLink') }}
       </NcButton>
 

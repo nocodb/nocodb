@@ -32,6 +32,16 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
       state.token.value = null
       state.user.value = null
 
+      // `useInviteLinks` caches invite links *with their raw tokens*, and it is a
+      // VueUse singleton rather than a Pinia store, so the dispose loop below
+      // never reaches it. Left behind, the next user to sign in on this tab is
+      // served the previous user's links straight from the cache.
+      try {
+        useInviteLinks().reset()
+      } catch {
+        // composable may not have been instantiated yet — safe to ignore
+      }
+
       if (redirectToSignin) {
         await navigateTo(signinUrl)
       }

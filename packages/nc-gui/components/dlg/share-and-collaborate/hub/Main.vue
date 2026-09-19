@@ -14,7 +14,7 @@ const { defaultEmailDomain } = useInviteLinks()
 
 const { isUIAllowed } = useRoles()
 
-/** Minting a standing grant is creator+; an editor still invites by email. */
+/** Minting a link is viewer+ (capped server-side at the caller's own role); inviting by email is editor+. */
 const canCreateInviteLink = computed(() => isUIAllowed('baseInviteLinkCreate'))
 
 /** Email invites are editor+; the link is open to viewer+. */
@@ -63,11 +63,7 @@ const emailPlaceholder = computed(() =>
            text node here away entirely, and a margin would leave the copied and
            screen-reader text reading "access.Manage members". -->
       {{ ' ' }}
-      <button
-        class="nc-hub-manage-members"
-        data-testid="nc-hub-people-with-access"
-        @click="emit('manageAccess')"
-      >
+      <button class="nc-hub-manage-members" data-testid="nc-hub-people-with-access" @click="emit('manageAccess')">
         {{ $t('labels.manageMembers') }}
       </button>
     </div>

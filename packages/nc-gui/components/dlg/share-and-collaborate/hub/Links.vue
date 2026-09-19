@@ -13,6 +13,8 @@ const { $e } = useNuxtApp()
 
 const copiedId = ref('')
 
+let copiedTimer: ReturnType<typeof setTimeout>
+
 const rows = computed(() =>
   links.value.map((l) => {
     const label = t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`).toLowerCase()
@@ -31,10 +33,21 @@ async function copyRow(id: string) {
   const link = links.value.find((l) => l.id === id)
   if (!link) return
 
-  await copy(linkUrl(link))
-  $e('c:share:link:copy', { from: 'list', restricted: !!link.email_domain })
-  copiedId.value = id
-  setTimeout(() => (copiedId.value = ''), 1600)
+  try {
+    // useCopy throws when the clipboard refuses; without this the press would
+    // do nothing at all and look like a dead button. Same as LinkBlock.
+    await copy(linkUrl(link))
+
+    $e('c:share:link:copy', { from: 'list', restricted: !!link.email_domain })
+
+    copiedId.value = id
+    // One shared timer: copying a second row must not let the first row's
+    // timeout blank the new "Copied" label early.
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => (copiedId.value = ''), 1600)
+  } catch (e: any) {
+    message.error(e?.message || t('msg.error.copyToClipboardError'))
+  }
 }
 
 /**
@@ -45,6 +58,8 @@ async function copyRow(id: string) {
 function onCreate() {
   emit('editLink', '', true)
 }
+
+onBeforeUnmount(() => clearTimeout(copiedTimer))
 </script>
 
 <template>

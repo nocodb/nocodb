@@ -160,78 +160,86 @@ const focusOnDiv = () => {
   isDivFocused.value = true
 }
 
-watch(dialogShow, async (newVal) => {
-  if (newVal) {
-    try {
-      let rolesArr = Object.values(orderedRoles.value)
+watch(
+  dialogShow,
+  async (newVal) => {
+    if (newVal) {
+      try {
+        let rolesArr = Object.values(orderedRoles.value)
 
-      // App User is a per-person external status; not assignable to a team, and
-      // only surfaced in EE (CE has no app feature, so hide it there too).
-      if (props.isTeam || !isEeUI) rolesArr = rolesArr.filter((role) => role !== ProjectRoles.APP_USER)
+        // App User is a per-person external status; not assignable to a team, and
+        // only surfaced in EE (CE has no app feature, so hide it there too).
+        if (props.isTeam || !isEeUI) rolesArr = rolesArr.filter((role) => role !== ProjectRoles.APP_USER)
 
-      let currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+        let currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
 
-      if (currentRoleIndex !== -1) {
-        // We don't allow user to assign owner role to a team
-        if (props.isTeam && currentRoleIndex === 0) {
-          currentRoleIndex = 1
-        }
+        if (currentRoleIndex !== -1) {
+          // We don't allow user to assign owner role to a team
+          if (props.isTeam && currentRoleIndex === 0) {
+            currentRoleIndex = 1
+          }
 
-        let filteredRoles = rolesArr
+          let filteredRoles = rolesArr
 
-        // If teams are not enabled, filter out INHERIT role as well
-        // todo: remove this check once teams are enabled by default
-        if (props.isTeam || !isTeamsEnabled.value) {
-          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+          // If teams are not enabled, filter out INHERIT role as well
+          // todo: remove this check once teams are enabled by default
+          if (props.isTeam || !isTeamsEnabled.value) {
+            filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
 
-          // Recompute index against filteredRoles since removing INHERIT shifts positions
-          currentRoleIndex = filteredRoles.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
-        }
+            // Recompute index against filteredRoles since removing INHERIT shifts positions
+            currentRoleIndex = filteredRoles.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+          }
 
-        allowedRoles.value = filteredRoles.slice(currentRoleIndex)
-        disabledRoles.value = filteredRoles.slice(0, currentRoleIndex)
-      } else {
-        // Filter out INHERIT role for teams (workspace or base teams)
-        let filteredRoles = rolesArr
-        if (props.isTeam) {
-          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
-          allowedRoles.value = filteredRoles.slice(1)
-          disabledRoles.value = filteredRoles.slice(0, 1)
+          allowedRoles.value = filteredRoles.slice(currentRoleIndex)
+          disabledRoles.value = filteredRoles.slice(0, currentRoleIndex)
         } else {
-          allowedRoles.value = rolesArr
-          disabledRoles.value = []
+          // Filter out INHERIT role for teams (workspace or base teams)
+          let filteredRoles = rolesArr
+          if (props.isTeam) {
+            filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+            allowedRoles.value = filteredRoles.slice(1)
+            disabledRoles.value = filteredRoles.slice(0, 1)
+          } else {
+            allowedRoles.value = rolesArr
+            disabledRoles.value = []
+          }
         }
+        // move INHERIT role to the end of the list, if present in allowed roles
+        let inheritIndex = allowedRoles.value.indexOf(WorkspaceUserRoles.INHERIT)
+        inheritIndex = inheritIndex === -1 ? allowedRoles.value.indexOf(ProjectRoles.INHERIT) : inheritIndex
+        if (inheritIndex !== -1) {
+          allowedRoles.value.push(...allowedRoles.value.splice(inheritIndex, 1))
+        }
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
       }
-      // move INHERIT role to the end of the list, if present in allowed roles
-      let inheritIndex = allowedRoles.value.indexOf(WorkspaceUserRoles.INHERIT)
-      inheritIndex = inheritIndex === -1 ? allowedRoles.value.indexOf(ProjectRoles.INHERIT) : inheritIndex
-      if (inheritIndex !== -1) {
-        allowedRoles.value.push(...allowedRoles.value.splice(inheritIndex, 1))
+
+      if (props.emails) {
+        emailBadges.value = props.emails
       }
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
 
-    if (props.emails) {
-      emailBadges.value = props.emails
-    }
+      if (props.isTeam) {
+        emailValidation.isError = false
+      }
 
-    if (props.isTeam) {
-      emailValidation.isError = false
+      setTimeout(() => {
+        focusOnDiv()
+      }, 100)
+    } else {
+      emailBadges.value = []
+      inviteData.email = ''
+      inviteData.roles = orderedRoles.value.EDITOR
+      singleEmailValue.value = ''
+      inviteData.selectedTeamIds = []
+      warningMsg.value = ''
     }
-
-    setTimeout(() => {
-      focusOnDiv()
-    }, 100)
-  } else {
-    emailBadges.value = []
-    inviteData.email = ''
-    inviteData.roles = orderedRoles.value.EDITOR
-    singleEmailValue.value = ''
-    inviteData.selectedTeamIds = []
-    warningMsg.value = ''
-  }
-})
+  },
+  // This form is the modal *body*, and NcModal defaults to destroyOnClose, so it
+  // mounts with `active` already true and a change-only watch never runs -- which
+  // left the role list empty and Add Team permanently disabled. Same reason the
+  // org-user watch below is immediate.
+  { immediate: true },
+)
 
 const insertOrUpdateString = (str: string) => {
   // Check if the string already exists in the array

@@ -63,9 +63,18 @@ export const useInviteLinks = createGlobalState(() => {
     return offered.filter((r) => ordered.indexOf(r as never) <= power)
   })
 
-  const defaultRole = computed(() =>
-    target.value?.scope === InviteLinkScope.WORKSPACE ? WorkspaceUserRoles.EDITOR : ProjectRoles.EDITOR,
-  )
+  /**
+   * Editor is the sensible default, but link creation is open to viewer+, and a
+   * viewer who defaults to Editor gets a 403 from `assertRolePower` on the one
+   * button the hub shows them. Fall back to the strongest role they may mint.
+   */
+  const defaultRole = computed(() => {
+    const preferred = target.value?.scope === InviteLinkScope.WORKSPACE ? WorkspaceUserRoles.EDITOR : ProjectRoles.EDITOR
+
+    const allowed = allowedRoles.value
+
+    return allowed.includes(preferred as never) ? preferred : allowed[0] ?? preferred
+  })
 
   /**
    * A new link starts restricted to the creator's own domain, which is almost
@@ -163,12 +172,27 @@ export const useInviteLinks = createGlobalState(() => {
     return true
   }
 
+  /**
+   * Sign-out has to call this. `createGlobalState` is a VueUse singleton, not a
+   * Pinia store, so the `pn._s` dispose loop in `signOut` never reaches it --
+   * and `links` holds raw redeemable tokens, which would otherwise be handed to
+   * whoever signs in next in the same tab.
+   */
+  function reset() {
+    links.value = []
+    target.value = null
+    isLoading.value = false
+    isLoaded.value = false
+    error.value = ''
+  }
+
   return {
     links,
     target,
     isLoading,
     isLoaded,
     error,
+    reset,
     allowedRoles,
     defaultRole,
     defaultEmailDomain,

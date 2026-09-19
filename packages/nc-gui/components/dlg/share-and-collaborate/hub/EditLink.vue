@@ -57,31 +57,36 @@ async function onSave() {
     email_domain: draft.anyEmail ? null : draft.domain.trim(),
   }
 
-  $e(props.isNew ? 'a:share:link:create' : 'a:share:link:update', {
-    role: draft.role,
-    restricted: !draft.anyEmail,
-    ...(props.isNew ? { from: 'list' } : {}),
-  })
-
   // Save is the commit point for a new link: nothing was sent when the screen
   // opened, so cancelling leaves nothing behind.
   const saved = props.isNew ? await createLink(body) : await saveLink(props.linkId, body)
 
   isSaving.value = false
 
-  if (saved) emit('done')
+  // After the await, not before: a refused save must not be counted as one.
+  if (saved) {
+    $e(props.isNew ? 'a:share:link:create' : 'a:share:link:update', {
+      role: draft.role,
+      restricted: !draft.anyEmail,
+      ...(props.isNew ? { from: 'list' } : {}),
+    })
+
+    emit('done')
+  }
 }
 
 async function onDelete() {
   isDeleting.value = true
 
-  $e('a:share:link:revoke')
-
   const done = await deleteLink(props.linkId)
 
   isDeleting.value = false
 
-  if (done) emit('done')
+  if (done) {
+    $e('a:share:link:revoke')
+
+    emit('done')
+  }
 }
 
 watch(() => props.linkId, resetDraft)

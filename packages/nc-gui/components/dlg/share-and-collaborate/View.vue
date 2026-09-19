@@ -95,9 +95,7 @@ const isInterfaceContext = computed(() => !!route.params.interfaceId)
 // Anyone who can actually invite sees the tab: editor+ can invite by email,
 // viewer+ can mint a link. Gating on baseShare hid it from everyone below
 // creator even though both paths were open to them.
-const canInvite = computed(
-  () => (isUIAllowed('userInvite') || isUIAllowed('baseInviteLinkCreate')) && !!base.value?.id,
-)
+const canInvite = computed(() => (isUIAllowed('userInvite') || isUIAllowed('baseInviteLinkCreate')) && !!base.value?.id)
 
 const shareViewSection = computed(() => isViewToolbar && !!activeView.value)
 
@@ -367,7 +365,6 @@ watch(showShareModal, (val) => {
           v-if="screen === 'compose'"
           :active="showShareModal && screen === 'compose'"
           :base-id="base.id"
-          :users="members"
           @back="goMain"
           @sent="onInviteSent"
         />

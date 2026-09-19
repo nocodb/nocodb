@@ -154,10 +154,10 @@ onMounted(loadPreview)
 
         <div v-else class="flex flex-col gap-2 w-full">
           <NcButton type="primary" size="medium" class="!w-full" data-testid="nc-invite-signup" @click="goSignIn('/signup')">
-            <span class="flex w-full items-center justify-center">{{ $t('general.signUp') }}</span>
+            <span class="flex w-full items-center justify-center">{{ $t('activity.createAccountToJoin') }}</span>
           </NcButton>
           <NcButton type="secondary" size="medium" class="!w-full" data-testid="nc-invite-signin" @click="goSignIn('/signin')">
-            <span class="flex w-full items-center justify-center">{{ $t('general.signIn') }}</span>
+            <span class="flex w-full items-center justify-center">{{ $t('activity.signInToJoin') }}</span>
           </NcButton>
         </div>
       </template>

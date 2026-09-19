@@ -1,42 +1,15 @@
 <script lang="ts" setup>
 /**
- * The hub's first screen: the one email field that starts an invite, who is
- * already in, and the link block.
+ * The hub's first screen: the link, the one email field that starts an invite,
+ * and a line pointing at the members page.
  */
-/** Collaborators already on the base, for the avatar stack and the count. */
-const props = defineProps<{
+/** Collaborators already on the base, for the count in the footer. */
+defineProps<{
   members: Array<{ id?: string; email?: string; display_name?: string }>
   membersLoaded?: boolean
 }>()
 
 const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess'])
-
-/**
- * Raw vars rather than uno classes: the coloured-* tokens are not registered in
- * `themeVariables`, so `bg-nc-bg-coloured-purple-dark` emits no rule and the
- * avatar would come out transparent.
- */
-const avatarTints = [
-  { background: 'var(--nc-bg-coloured-purple-dark)', color: 'var(--nc-content-purple-dark)' },
-  { background: 'var(--nc-bg-coloured-green-dark)', color: 'var(--nc-content-green-dark)' },
-  { background: 'var(--nc-bg-coloured-orange-dark)', color: 'var(--nc-content-orange-dark)' },
-  { background: 'var(--nc-bg-coloured-blue-dark)', color: 'var(--nc-content-blue-dark)' },
-]
-
-const avatars = computed(() =>
-  (props.members || []).slice(0, 3).map((m, i) => {
-    const name = (m.display_name || m.email || '').replace(/\(.*\)/, '').trim()
-    const initials =
-      name
-        .split(/[\s._-]+/)
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase() || '?'
-
-    return { key: m.id || m.email || String(i), initials, tint: avatarTints[i % avatarTints.length] }
-  }),
-)
 </script>
 
 <template>
@@ -56,34 +29,24 @@ const avatars = computed(() =>
     />
     <div class="h-px bg-nc-border-gray-light" />
 
-    <div class="flex flex-col gap-2">
-      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.manageBaseMembers') }}</div>
+    <!-- Same shape as the read-only footer on the web tab: a quiet sentence and
+         one link, rather than a section of its own. -->
+    <div class="text-bodySm text-nc-content-gray-muted">
+      <template v-if="membersLoaded">
+        {{ $t('msg.info.peopleHaveAccess', { count: members.length }, members.length) }}
+      </template>
+      <span v-else class="inline-block w-28 h-3 rounded bg-nc-bg-gray-light align-middle" />
 
+      <!-- An interpolated space, not a margin: Vue condenses the whitespace-only
+           text node here away entirely, and a margin would leave the copied and
+           screen-reader text reading "access.Manage members". -->
+      {{ ' ' }}
       <button
-        class="group flex items-center gap-3 min-h-10 -mx-2 px-2 rounded-lg text-nc-content-gray hover:bg-nc-bg-gray-extralight"
+        class="nc-hub-manage-members text-nc-content-brand hover:underline"
         data-testid="nc-hub-people-with-access"
         @click="emit('manageAccess')"
       >
-        <!-- The tints are inline styles, so a filter is the only thing that can
-             desaturate them without fighting specificity. -->
-        <div class="flex grayscale group-hover:grayscale-0 transition-[filter] duration-150">
-          <div
-            v-for="(a, i) in avatars"
-            :key="a.key"
-            class="w-8 h-8 rounded-full flex items-center justify-center text-captionSm font-bold border-2 border-nc-bg-default box-border"
-            :class="{ '-ml-2': i > 0 }"
-            :style="a.tint"
-          >
-            {{ a.initials }}
-          </div>
-        </div>
-        <div class="flex-1 text-left text-bodyDefault">
-          <template v-if="membersLoaded">
-            {{ $t('msg.info.peopleHaveAccess', { count: members.length }, members.length) }}
-          </template>
-          <span v-else class="inline-block w-32 h-4 rounded bg-nc-bg-gray-light" />
-        </div>
-        <GeneralIcon icon="ncChevronRight" class="flex-none w-5 h-5 text-nc-content-gray-subtle" />
+        {{ $t('labels.manageMembers') }}
       </button>
     </div>
   </div>

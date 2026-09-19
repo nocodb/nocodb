@@ -12,13 +12,25 @@ const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { base, isSharedBase } = storeToRefs(useBase())
+const { base, isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
+
+/**
+ * A private base has nothing to offer below Editor: every row of the modal is
+ * hidden for a commenter or a viewer there, so the button would open an empty
+ * dialog. Elsewhere every member has at least the email invite and the members
+ * doorway, so it is shown from Viewer up.
+ */
+const canShare = computed(() =>
+  isPrivateBase.value
+    ? isUIAllowed('viewShare')
+    : isUIAllowed('userInvite') || isUIAllowed('baseShare') || isUIAllowed('viewShare'),
+)
 
 const route = useRoute()
 
@@ -46,12 +58,7 @@ const copySharedBase = async () => {
 
 <template>
   <div
-    v-if="
-      !isSharedBase &&
-      (isUIAllowed('userInvite') || isUIAllowed('baseShare') || isUIAllowed('viewShare')) &&
-      visibility !== 'hidden' &&
-      (activeTable || base)
-    "
+    v-if="!isSharedBase && canShare && visibility !== 'hidden' && (activeTable || base)"
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"
     :data-sharetype="visibility"

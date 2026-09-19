@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { InviteLinkScope, ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import { InviteLinkScope, ProjectRoles, ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -12,7 +12,7 @@ const route = useRoute()
 
 const baseStore = useBase()
 const { base, isPrivateBase } = storeToRefs(baseStore)
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, baseRoles } = useRoles()
 const { activeView } = storeToRefs(useViewsStore())
 const dashboardStore = useDashboardStore()
 const { activeDashboard } = storeToRefs(dashboardStore)
@@ -95,7 +95,18 @@ const isInterfaceContext = computed(() => !!route.params.interfaceId)
 // Anyone who can actually invite sees the tab: editor+ can invite by email,
 // viewer+ can mint a link. Gating on baseShare hid it from everyone below
 // creator even though both paths were open to them.
-const canInvite = computed(() => (isUIAllowed('userInvite') || isUIAllowed('baseInviteLinkCreate')) && !!base.value?.id)
+/**
+ * On a private base, handing out access is the owner's alone -- the same rule
+ * user management follows there, and what the backend enforces. Everyone else
+ * sees only the Share to web tab, with view sharing disabled.
+ */
+const canInvite = computed(() => {
+  if (!base.value?.id) return false
+
+  if (isPrivateBase.value) return !!baseRoles.value?.[ProjectRoles.OWNER]
+
+  return isUIAllowed('userInvite') || isUIAllowed('baseInviteLinkCreate')
+})
 
 const shareViewSection = computed(() => isViewToolbar && !!activeView.value)
 

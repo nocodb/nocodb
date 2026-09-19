@@ -215,14 +215,55 @@ export class InviteLinksService {
 
     if (!base) NcError.baseNotFound(baseId);
 
-    // A private base is invite-only by definition; a link is the opposite.
-    // `default_role: no-access` is what marks one -- there is no `is_private`
-    // column on a base. See isUserManagementRestricted, which reads the same flag.
-    if (base.default_role === ProjectRoles.NO_ACCESS) {
+    return base;
+  }
+
+  /**
+   * `default_role: no-access` is what marks a base private -- there is no
+   * `is_private` column. See isUserManagementRestricted, which reads the same
+   * flag to keep member management owner-only on such a base.
+   */
+  protected isPrivateBase(base: Base) {
+    return base.default_role === ProjectRoles.NO_ACCESS;
+  }
+
+  /**
+   * On a private base only the owner may hand out a seat, matching the rule
+   * user management already follows there (product decision 2026-09-19). It is
+   * their base and their call; for everyone else a private base stays
+   * invite-only.
+   */
+  protected assertMayMintOnPrivateBase(base: Base, req: NcRequest) {
+    if (!this.isPrivateBase(base)) return;
+
+    if (!req.user?.base_roles?.[ProjectRoles.OWNER]) {
+      NcError.forbidden(
+        'Only the base owner can create an invite link for a private base',
+      );
+    }
+  }
+
+  /**
+   * The redeem counterpart. Blocking every redeem would make the owner's own
+   * link useless, so what is checked is who minted it: a link made by someone
+   * who is not (or is no longer) an owner stops working the moment the base
+   * goes private, which is what locking a base down is for.
+   */
+  protected async assertMayRedeemOnPrivateBase(
+    context: NcContext,
+    base: Base,
+    link: InviteLink,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!this.isPrivateBase(base)) return;
+
+    const minter = link.created_by
+      ? await BaseUser.get(context, base.id, link.created_by, ncMeta)
+      : null;
+
+    if (minter?.roles !== ProjectRoles.OWNER) {
       NcError.forbidden('Invite links are not available for a private base');
     }
-
-    return base;
   }
 
   async create(
@@ -239,7 +280,13 @@ export class InviteLinksService {
     this.assertRoleWithinCallerPower(param.scope, param.body.role, param.req);
 
     if (param.scope === InviteLinkScope.BASE) {
-      await this.assertBaseShareable(context, param.baseId, ncMeta);
+      const base = await this.assertBaseShareable(
+        context,
+        param.baseId,
+        ncMeta,
+      );
+
+      this.assertMayMintOnPrivateBase(base, param.req);
     }
 
     const link = await InviteLink.insert(
@@ -687,6 +734,8 @@ export class InviteLinksService {
       link.base_id,
       ncMeta,
     );
+
+    await this.assertMayRedeemOnPrivateBase(baseContext, base, link, ncMeta);
 
     const existing = await BaseUser.get(
       baseContext,

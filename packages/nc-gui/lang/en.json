@@ -5437,6 +5437,7 @@
       "inviteEmailBulkHint": "Comma or space separated. Paste your whole team at once.",
       "keepTypingFullEmail": "Keep typing a full email to invite.",
       "shareHubTooltip": "Invite people to work in this base, or publish a read-only link to the web.",
+      "shareHubTooltipInviteOnly": "Invite people to work in this base. To publish the base itself, use Share base in the base menu.",
       "allowDownloadDescription": "Viewers can export the records they can see as CSV.",
       "anyoneCanAccessAs": "Anyone can access as {article} {role}",
       "peopleHaveAccess": "{count} person has access. | {count} people have access.",

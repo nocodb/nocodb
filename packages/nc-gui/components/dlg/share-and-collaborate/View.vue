@@ -138,6 +138,12 @@ const objectHeading = computed(() => ({
   subtitle: t('msg.info.sharePublicLinkSubtitle'),
 }))
 
+/** Share-to-web for a whole base lives in the base menu now, so off a view the
+ *  modal is invite-only and must not promise a web link. */
+const shareHubTooltip = computed(() =>
+  objectTab.value ? t('msg.info.shareHubTooltip') : t('msg.info.shareHubTooltipInviteOnly'),
+)
+
 const defaultTab = computed<'invite' | 'object'>(() => {
   // The interface editor's Share button is its own surface; leave it opening
   // on the thing the user pressed it for. Everywhere else, invite comes first.
@@ -292,7 +298,7 @@ watch(showShareModal, (val) => {
           <div class="text-heading3 !text-[18px] font-bold tracking-tight text-nc-content-gray-emphasis">
             {{ $t('labels.shareNamed', { name: base.title }) }}
           </div>
-          <NcTooltip :title="$t('msg.info.shareHubTooltip')" placement="top">
+          <NcTooltip :title="shareHubTooltip" placement="top">
             <GeneralIcon icon="info" class="w-4.5 h-4.5 text-nc-content-gray-muted cursor-help" />
           </NcTooltip>
         </div>

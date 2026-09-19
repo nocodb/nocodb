@@ -541,6 +541,13 @@ export const auditV1OperationsCategory: Record<
       key.startsWith('DOCUMENT_')
     ),
   },
+  FACTORY: {
+    label: 'general.appFactory',
+    value: 'FACTORY',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('FACTORY_')
+    ),
+  },
 };
 
 export type BulkAuditV1OperationTypes =

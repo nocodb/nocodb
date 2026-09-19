@@ -39,7 +39,7 @@ export function useWorkspaceTabVisibility(
     return {
       // Behind the beta flag, then plan-gated: the flag decides whether the tab
       // exists at all, `blockAppFactory` whether it carries an upgrade badge.
-      factory: !isMobileMode.value && isEeUI && isFeatureEnabled(FEATURE_FLAG.APP_FACTORY),
+      factory: !isMobileMode.value && isEeUI && isFeatureEnabled(FEATURE_FLAG.APP_FACTORY) && isUIAllowed('appFactory'),
       collaborators: isAdmin.value || isUIAllowed('workspaceCollaborators'),
       teams: hasTeamsEditPermission.value && showEEFeatures.value,
       integrations: !isMobileMode.value && isUIAllowed('workspaceIntegrations'),

@@ -269,7 +269,6 @@ export const BaseRelatedMetaTables = [
   MetaTable.CHAT_SESSIONS,
   MetaTable.CHAT_MESSAGES,
   MetaTable.CHAT_ARTIFACTS,
-  MetaTable.FACTORY_REPOS,
   MetaTable.AGENTS,
   MetaTable.AGENT_SECTIONS,
   MetaTable.AGENT_SESSIONS,

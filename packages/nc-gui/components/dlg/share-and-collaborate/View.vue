@@ -231,7 +231,8 @@ watch(showShareModal, (val) => {
     class="!top-[1%]"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
-    closable
+    :closable="false"
+    :keyboard="formStatus !== 'base-collaborateSaving'"
     :mask-closable="formStatus !== 'base-collaborateSaving'"
     :ok-button-props="{ hidden: true } as any"
     :cancel-button-props="{ hidden: true } as any"
@@ -253,7 +254,7 @@ watch(showShareModal, (val) => {
         <NcTabs :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">
           <a-tab-pane v-if="canInvite" key="invite">
             <template #tab>
-              <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteCollaborators') }}</span>
+              <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteTeam') }}</span>
             </template>
 
             <DlgShareAndCollaborateHubMain

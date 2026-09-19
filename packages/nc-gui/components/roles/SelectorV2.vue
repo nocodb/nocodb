@@ -234,13 +234,13 @@ const activeRole = computed(() => {
 // the sentence, so they should read as one kind of thing.
 .nc-role-trigger-compact {
   @apply inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md align-middle cursor-pointer select-none;
-  background: var(--nc-bg-coloured-purple);
-  color: var(--nc-content-purple-dark);
-  transition: filter 0.15s ease;
+  background: var(--nc-bg-gray-light);
+  color: var(--nc-content-gray-subtle);
+  transition: background 0.15s ease;
 
   &:hover,
   &.is-open {
-    filter: brightness(0.96);
+    background: var(--nc-bg-gray-medium);
   }
 }
 
@@ -250,7 +250,7 @@ const activeRole = computed(() => {
 
 .nc-role-trigger-compact-caret {
   @apply flex-none h-3.5 w-3.5;
-  color: var(--nc-content-purple-dark);
+  color: var(--nc-content-gray-muted);
   transition: transform 0.2s ease;
 }
 </style>

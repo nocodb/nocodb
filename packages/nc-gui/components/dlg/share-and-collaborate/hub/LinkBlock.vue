@@ -140,7 +140,9 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       <span class="flex w-full items-center justify-center gap-2">
         <Transition name="nc-copy-swap" mode="out-in">
           <span v-if="isCopied" key="copied" class="flex items-center gap-2">
-            <GeneralIcon icon="circleCheckSolid" class="flex-none w-4.5 h-4.5" />
+            <!-- An outline check: the build injects stroke="currentColor" on every
+                 SVG, which turns a solid glyph into a filled blob. -->
+            <GeneralIcon icon="ncCheck" class="flex-none w-4.5 h-4.5" />
             {{ $t('msg.info.inviteLinkCopied') }}
           </span>
           <span v-else key="copy" class="flex items-center gap-2">
@@ -154,12 +156,14 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 </template>
 
 <style lang="scss" scoped>
+// Semantic grey tokens, so the chip follows every palette in both modes rather
+// than carrying its own colour.
 .nc-hub-domain-chip {
   @apply inline-block px-1.5 py-0.5 rounded-md align-middle;
   font-family: 'DM Mono', monospace;
   font-size: 0.8125rem;
-  background: var(--nc-bg-coloured-purple);
-  color: var(--nc-content-purple-dark);
+  background: var(--nc-bg-gray-light);
+  color: var(--nc-content-gray-subtle);
 }
 
 // Swap rather than fade: the label changes meaning, so it should read as one

@@ -21,11 +21,22 @@ export enum InviteLinkScope {
  * link hands access to whoever holds the URL, and that is never the right way
  * to transfer ownership. `inherit` and `no-access` are meaningless for a link.
  */
+/**
+ * Owner and No Access stay out: one is never handed out by a link, the other
+ * grants nothing.
+ *
+ * Inherit is safe here because it defers to the role the redeemer already holds
+ * at workspace level rather than granting a new one, and links are refused on
+ * private bases, so there is no base they could reach this way that their
+ * workspace role did not already reach.
+ */
 export const BASE_INVITE_LINK_ROLES = [
   ProjectRoles.CREATOR,
+  ProjectRoles.INHERIT,
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
+  ProjectRoles.APP_USER,
 ] as const;
 
 export const WORKSPACE_INVITE_LINK_ROLES = [

@@ -25,11 +25,25 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const { load: loadInviteLinks } = useInviteLinks()
 
 /**
- * Only the workspace invite gets a link. Base settings and the team pickers are
- * deliberately untouched: a team link would hand out membership of a group, not
- * of a thing, which is a different grant.
+ * Both the base and the workspace invite offer a link. The team pickers do not:
+ * a team link would hand out membership of a group rather than of a thing,
+ * which is a different grant.
  */
-const showLinks = computed(() => props.type === 'workspace' && !props.isTeam && !!props.workspaceId)
+const linkTarget = computed(() => {
+  if (props.isTeam) return null
+
+  if (props.type === 'base' && props.baseId) {
+    return { scope: InviteLinkScope.BASE, baseId: props.baseId }
+  }
+
+  if (props.type === 'workspace' && props.workspaceId) {
+    return { scope: InviteLinkScope.WORKSPACE, workspaceId: props.workspaceId }
+  }
+
+  return null
+})
+
+const showLinks = computed(() => !!linkTarget.value)
 
 const screen = ref<'main' | 'links' | 'edit'>('main')
 
@@ -71,9 +85,7 @@ watch(dialogShow, (open) => {
     return
   }
 
-  if (showLinks.value) {
-    loadInviteLinks({ scope: InviteLinkScope.WORKSPACE, workspaceId: props.workspaceId })
-  }
+  if (linkTarget.value) loadInviteLinks(linkTarget.value)
 })
 </script>
 
@@ -96,6 +108,18 @@ watch(dialogShow, (open) => {
     </template>
 
     <template v-if="screen === 'main'">
+      <!-- Link first, same order as the share hub: the link is the fast path and
+           the named invite is the deliberate one. -->
+      <template v-if="showLinks">
+        <DlgShareAndCollaborateHubLinkBlock @manage="openLinks" />
+
+        <div class="h-px bg-nc-border-gray-light my-5" />
+
+        <div class="text-bodyDefault font-semibold text-nc-content-gray mb-2">
+          {{ $t('labels.inviteSpecificPeople') }}
+        </div>
+      </template>
+
       <DlgInviteForm
         :active="dialogShow"
         :type="type"
@@ -108,12 +132,6 @@ watch(dialogShow, (open) => {
         :existing-team-ids="existingTeamIds"
         @close="dialogShow = false"
       />
-
-      <!-- Its own card: the form above ends in its own footer, so without one
-           the link block reads as stranded under those buttons. -->
-      <div v-if="showLinks" class="mt-5 p-4 rounded-xl bg-nc-bg-gray-extralight">
-        <DlgShareAndCollaborateHubLinkBlock @manage="openLinks" />
-      </div>
     </template>
 
     <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" class="!px-0" @edit-link="openEditLink" />

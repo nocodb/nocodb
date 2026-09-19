@@ -1180,7 +1180,10 @@ export class DataV3Service {
     // whose whole purpose here is not to leak RLS-restricted rows.
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
-      apiVersion: context.api_version,
+      // V3 like the insert read-back: it is what drops system columns (the
+      // `_nc_m2m_*` junction link). `context.api_version` is unset on callers
+      // that reach this service directly, e.g. MCP.
+      apiVersion: NcApiVersion.V3,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },

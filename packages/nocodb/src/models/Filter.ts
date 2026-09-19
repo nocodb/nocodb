@@ -503,11 +503,11 @@ export default class Filter implements FilterType {
     );
 
     ncMeta.knex.attachToTransaction(async () => {
-      await NocoCache.update(
-        context,
-        `${CacheScope.FILTER_EXP}:${id}`,
-        updateObj,
-      );
+      // Invalidate rather than cache `updateObj`: `value` is a TEXT column, so
+      // the row the DB now holds is not the one the caller sent (100 vs "100").
+      // `get` repopulates from the row, which also keeps the list keys valid.
+      await NocoCache.del(context, `${CacheScope.FILTER_EXP}:${id}`);
+      await this.get(context, id);
     });
 
     // on update delete any optimised single query cache

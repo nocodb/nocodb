@@ -147,6 +147,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       class="nc-hub-copy-cta !w-full mt-1"
       data-testid="nc-hub-copy-link"
       :loading="isBusy"
+      :disabled="!isLoaded && isLoading"
       @click="onCopy"
     >
       <span class="flex w-full items-center justify-center gap-2">

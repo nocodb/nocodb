@@ -190,7 +190,6 @@ watch(dialogShow, (open) => {
       :existing-team-ids="existingTeamIds"
       layout="compose"
       @close="goMain"
-      @success="goMain"
     />
 
     <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" class="!px-0" @edit-link="openEditLink" />

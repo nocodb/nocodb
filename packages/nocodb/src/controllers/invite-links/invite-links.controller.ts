@@ -26,7 +26,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
  * action. Redeeming lives on its own pair of routes:
  *
  *   GET  /api/v2/invite-links/:token   unauthenticated preview, grants nothing
- *   POST /api/v2/invite-links/:token   authenticated redeem
+ *   POST /api/v2/invite-links/:token/accept   authenticated redeem
  *
  * The split is deliberate: a GET that granted access would fire on every link
  * preview, crawler, scanner and mail-client prefetch that ever saw the URL.

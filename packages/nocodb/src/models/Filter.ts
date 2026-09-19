@@ -505,7 +505,11 @@ export default class Filter implements FilterType {
       id,
     );
 
-    ncMeta.knex.attachToTransaction(async () => {
+    // Awaited on purpose: off a transaction `attachToTransaction` runs the
+    // callback inline, and the `this.get` below would otherwise read the
+    // pre-update row out of cache while this query is still in flight. On a
+    // transaction it queues and returns undefined, so awaiting is a no-op.
+    await ncMeta.knex.attachToTransaction(async () => {
       // Merge the committed row rather than `updateObj`: `value` is a TEXT
       // column, so the row the DB now holds is not the one the caller sent
       // (100 vs "100"). Never del+set here - `set` rebuilds parentKeys from
@@ -520,7 +524,10 @@ export default class Filter implements FilterType {
         );
         if (!cached) return;
 
-        const row = await ncMeta.metaGet2(
+        // Not `ncMeta`: queued callbacks drain after the commit, so a
+        // transactional `ncMeta` is already complete and would throw here.
+        // The row is committed by then, so the base connection sees it.
+        const row = await Noco.ncMeta.metaGet2(
           context.workspace_id,
           context.base_id,
           MetaTable.FILTER_EXP,
@@ -528,8 +535,7 @@ export default class Filter implements FilterType {
         );
         if (row) await NocoCache.update(context, cacheKey, row);
       } catch (e) {
-        // Non-transactional `attachToTransaction` neither awaits nor guards
-        // the callback, and this one now touches the DB.
+        // A stale cache entry must not fail the update that succeeded.
         logger.error(`Failed to refresh filter cache for ${id}`, e);
       }
     });

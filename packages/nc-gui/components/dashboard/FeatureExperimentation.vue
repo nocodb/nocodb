@@ -248,7 +248,7 @@ onUnmounted(() => {
         <img
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
-          alt="No search results found"
+          :alt="$t('title.noSearchResultsFound')"
         />
 
         {{ features?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}

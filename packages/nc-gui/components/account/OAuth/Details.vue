@@ -271,7 +271,7 @@ function copyToClipboard(text: string, label: string) {
                 </span>
               </template>
               <a-radio-group v-model:value="clientRef.client_type" disabled class="nc-input-shadow">
-                <a-radio value="public">Public</a-radio>
+                <a-radio value="public">{{ $t('general.public') }}</a-radio>
                 <a-radio value="confidential">Confidential</a-radio>
               </a-radio-group>
             </a-form-item>

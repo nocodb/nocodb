@@ -293,7 +293,12 @@ watch(showShareModal, (val) => {
     // Only ask for what this caller may see. Links are Editor and above, and a
     // viewer opening the hub would otherwise be met by a 403 toast about a
     // section they cannot even see.
-    if (base.value?.id && isUIAllowed('baseInviteLinkList')) {
+    //
+    // `baseInviteLinkCreate`, not `...List`: the frontend ACL only defines the
+    // former, so guarding on the latter was false for everyone and left the
+    // composable without a target -- which made Create an invite link do
+    // nothing at all, silently.
+    if (base.value?.id && isUIAllowed('baseInviteLinkCreate')) {
       loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id }, true)
     }
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })

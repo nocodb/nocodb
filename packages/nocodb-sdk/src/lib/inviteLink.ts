@@ -112,6 +112,13 @@ export interface InviteLinkType {
    */
   created_by_email?: string;
   created_by_display_name?: string;
+  /**
+   * Absent means the link works. `false` means it is intact but its base will
+   * not honour it -- today that is a base gone private under a link its minter
+   * is not the owner of. Dormant rather than dead: the base can be made public
+   * again and the link starts working, which is why these stay listed.
+   */
+  usable?: boolean;
   created_at?: string;
   updated_at?: string;
   /**

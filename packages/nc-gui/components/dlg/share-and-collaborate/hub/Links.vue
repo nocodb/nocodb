@@ -33,6 +33,9 @@ const rows = computed(() =>
       domainNote: l.email_domain || '',
       uses: l.max_uses ? `${l.used_count ?? 0}/${l.max_uses}` : '',
       createdBy: isMine ? t('msg.info.linkCreatedByYou') : creator ? t('msg.info.linkCreatedBy', { name: creator }) : '',
+      // Dormant, not gone: make the base public again and this works, so it
+      // stays listed and stays revocable rather than being hidden.
+      usable: l.usable !== false,
     }
   }),
 )
@@ -97,7 +100,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         class="flex items-center gap-2 min-h-14 border-b-1 border-nc-border-gray-light"
         data-testid="nc-hub-link-row"
       >
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0" :class="{ 'opacity-60': !row.usable }">
           <div class="text-bodyDefault text-nc-content-gray-subtle2">
             {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
             <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
@@ -108,9 +111,18 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
           <div v-if="row.createdBy" class="text-captionSm text-nc-content-gray-muted truncate">
             {{ row.createdBy }}
           </div>
+
+          <!-- Its own line: appended to the creator's it was the half that got
+               truncated away, which is the half that matters. -->
+          <div v-if="!row.usable" class="text-captionSm text-nc-content-red-dark">
+            {{ $t('msg.info.linkNotWorkingPrivateBase') }}
+          </div>
         </div>
 
-        <NcButton type="secondary" size="small" class="!text-small" @click="copyRow(row.id)">
+        <!-- Copy is the one action that would do harm: it hands out a token the
+             redeem refuses. Settings and delete stay live so the owner can
+             actually revoke it. -->
+        <NcButton type="secondary" size="small" class="!text-small" :disabled="!row.usable" @click="copyRow(row.id)">
           {{ copiedId === row.id ? $t('general.copied') : $t('activity.copyLink') }}
         </NcButton>
 

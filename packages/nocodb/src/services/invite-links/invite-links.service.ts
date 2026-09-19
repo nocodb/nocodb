@@ -321,7 +321,7 @@ export class InviteLinksService {
   }
 
   async list(
-    _context: NcContext,
+    context: NcContext,
     param: {
       scope: InviteLinkScope;
       baseId?: string;
@@ -345,9 +345,54 @@ export class InviteLinksService {
 
     // The token is returned here on purpose: the caller can already mint one at
     // this role, and the UI has to render a copyable URL.
-    return this.withCreators(
-      visible.map((l) => InviteLink.toResponse(l, { withToken: true })),
+    return this.withUsability(
+      context,
+      await this.withCreators(
+        visible.map((l) => InviteLink.toResponse(l, { withToken: true })),
+        ncMeta,
+      ),
+      param,
       ncMeta,
+    );
+  }
+
+  /**
+   * Marks links their base will not honour, so the list can grey them out
+   * rather than offering a Copy button for a token that would be refused.
+   *
+   * The base is read once, not once per link: what varies per link is only who
+   * minted it. Links stay listed because a private base can be made public
+   * again, and a grant nobody can see is a grant nobody can revoke.
+   */
+  protected async withUsability(
+    context: NcContext,
+    links: InviteLinkType[],
+    param: { scope: InviteLinkScope; baseId?: string },
+    ncMeta = Noco.ncMeta,
+  ): Promise<InviteLinkType[]> {
+    if (param.scope !== InviteLinkScope.BASE || !links.length) return links;
+
+    const baseContext = { ...context, base_id: param.baseId };
+    const base = await Base.get(baseContext, param.baseId, ncMeta);
+
+    if (base && !this.isPrivateBase(base)) return links;
+
+    // The base is gone, or private: only its owner's links still work.
+    const ids = [...new Set(links.map((l) => l.created_by).filter(Boolean))];
+    const owners = new Set<string>();
+
+    if (base) {
+      await Promise.all(
+        ids.map(async (id) => {
+          const member = await BaseUser.get(baseContext, base.id, id, ncMeta);
+
+          if (member?.roles === ProjectRoles.OWNER) owners.add(id);
+        }),
+      );
+    }
+
+    return links.map((l) =>
+      l.created_by && owners.has(l.created_by) ? l : { ...l, usable: false },
     );
   }
 

@@ -728,6 +728,15 @@ export default class Base implements BaseType {
 
     await Extension.deleteByBaseId(context, baseId, ncMeta);
 
+    // Invite links minted for this base. A link is a standing grant holding a
+    // redeemable secret, so it must not outlive the base it grants access to.
+    await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.INVITE_LINKS,
+      { base_id: baseId },
+    );
+
     return await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,

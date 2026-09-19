@@ -259,7 +259,9 @@ export const permissionScopes = {
     'sourceCreate',
     'columnAdd',
 
-    // Invite links -- a standing grant, so creator+ only, same floor as baseShare
+    // Invite links -- viewer+, the same floor as base membership itself. The
+    // service caps every link at the caller's own role (assertRolePower), and
+    // below creator a caller only ever sees or edits links they made.
     'baseInviteLinkList',
     'baseInviteLinkCreate',
     'baseInviteLinkUpdate',

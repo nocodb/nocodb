@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   INVITE_LINK_DEFAULT_EXPIRY_DAYS,
+  INVITE_LINK_MAX_EXPIRY_DAYS,
   InviteLinkScope,
   isInviteLinkRole,
   OrderedProjectRoles,
@@ -41,8 +42,8 @@ export class InviteLinksService {
   protected readonly logger = new Logger(InviteLinksService.name);
 
   /**
-   * Final on purpose: the role allow-list must run for every scope, so the
-   * scope-specific part is what subclasses override, not this.
+   * Not overridden on purpose: the role allow-list must run for every scope, so
+   * `assertRolePower` is the scope-specific part subclasses override, not this.
    */
   protected assertRoleWithinCallerPower(
     scope: InviteLinkScope,
@@ -92,13 +93,43 @@ export class InviteLinksService {
     }
   }
 
-  /** `0` is an explicit "never expires"; undefined takes the default. */
+  /** Days from now. `0` is an explicit "never expires"; undefined takes the default. */
   protected expiryFromDays(days?: number | null): Date | null {
+    if (days === null || days === undefined) {
+      return this.expiryFromDays(INVITE_LINK_DEFAULT_EXPIRY_DAYS);
+    }
+
+    // Straight from the request body, so anything that would reach the dateTime
+    // column as an Invalid Date has to be refused here rather than 500 on insert.
+    if (
+      typeof days !== 'number' ||
+      !Number.isInteger(days) ||
+      days < 0 ||
+      days > INVITE_LINK_MAX_EXPIRY_DAYS
+    ) {
+      NcError.badRequest(
+        `expires_in_days must be a whole number between 0 and ${INVITE_LINK_MAX_EXPIRY_DAYS}`,
+      );
+    }
+
     if (days === 0) return null;
 
-    const span = days ?? INVITE_LINK_DEFAULT_EXPIRY_DAYS;
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  }
 
-    return new Date(Date.now() + span * 24 * 60 * 60 * 1000);
+  /** `null` is an explicit "no cap"; anything else has to be a usable count. */
+  protected normaliseMaxUses(maxUses?: number | null): number | null {
+    if (maxUses === null || maxUses === undefined) return null;
+
+    if (
+      typeof maxUses !== 'number' ||
+      !Number.isInteger(maxUses) ||
+      maxUses < 1
+    ) {
+      NcError.badRequest('max_uses must be a whole number of at least 1');
+    }
+
+    return maxUses;
   }
 
   /**
@@ -149,7 +180,9 @@ export class InviteLinksService {
     if (!base) NcError.baseNotFound(baseId);
 
     // A private base is invite-only by definition; a link is the opposite.
-    if ((base as any).is_private) {
+    // `default_role: no-access` is what marks one -- there is no `is_private`
+    // column on a base. See isUserManagementRestricted, which reads the same flag.
+    if (base.default_role === ProjectRoles.NO_ACCESS) {
       NcError.forbidden('Invite links are not available for a private base');
     }
 
@@ -184,7 +217,7 @@ export class InviteLinksService {
         role: param.body.role,
         email_domain: this.normaliseDomain(param.body.email_domain),
         expires_at: this.expiryFromDays(param.body.expires_in_days),
-        max_uses: param.body.max_uses ?? null,
+        max_uses: this.normaliseMaxUses(param.body.max_uses),
         created_by: param.req.user?.id,
       },
       ncMeta,
@@ -293,7 +326,7 @@ export class InviteLinksService {
           ? { expires_at: this.expiryFromDays(param.body.expires_in_days) }
           : {}),
         ...(param.body.max_uses !== undefined
-          ? { max_uses: param.body.max_uses }
+          ? { max_uses: this.normaliseMaxUses(param.body.max_uses) }
           : {}),
       },
       ncMeta,

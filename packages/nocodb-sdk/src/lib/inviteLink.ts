@@ -67,6 +67,13 @@ export const INVITE_LINK_MAX_PER_SCOPE = 10;
 /** Default life of a new link, in days. `0` means it never expires. */
 export const INVITE_LINK_DEFAULT_EXPIRY_DAYS = 7;
 
+/**
+ * Upper bound on a requested expiry. Exists so an out-of-range number cannot
+ * reach the dateTime column as an Invalid Date; `0` (never expires) is still
+ * the way to ask for an unbounded link.
+ */
+export const INVITE_LINK_MAX_EXPIRY_DAYS = 3650;
+
 export interface InviteLinkType {
   id?: string;
   scope?: InviteLinkScope;

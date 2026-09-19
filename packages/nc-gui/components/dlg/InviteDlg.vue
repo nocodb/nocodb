@@ -46,7 +46,8 @@ const canInviteByEmail = computed(() =>
 const linkTarget = computed(() => {
   if (props.isTeam) return null
 
-  // Minting a standing grant is creator+; an editor still invites by email.
+  // Minting a link is viewer+ (capped server-side at the caller's own role);
+  // inviting by email is editor+.
   if (props.type === 'base' && !isUIAllowed('baseInviteLinkCreate')) return null
 
   if (props.type === 'workspace' && !isUIAllowed('workspaceInviteLinkCreate')) return null

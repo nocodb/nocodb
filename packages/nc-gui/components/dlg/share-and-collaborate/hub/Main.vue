@@ -41,6 +41,9 @@ const avatars = computed(() =>
 
 <template>
   <div class="flex flex-col gap-5 px-7 pt-5 pb-7">
+    <DlgShareAndCollaborateHubLinkBlock @edit-link="emit('editLink', $event)" @all-links="emit('links')" />
+    <div class="h-px bg-nc-border-gray-light" />
+
     <!-- Focus rather than type: the real composing happens on its own screen, so
          the hub stays one glance rather than a form. -->
     <input
@@ -51,7 +54,6 @@ const avatars = computed(() =>
       @focus="emit('compose')"
       @click="emit('compose')"
     />
-
     <div class="h-px bg-nc-border-gray-light" />
 
     <div class="flex flex-col gap-2">
@@ -82,9 +84,5 @@ const avatars = computed(() =>
         <GeneralIcon icon="ncChevronRight" class="flex-none w-5 h-5 text-nc-content-gray-subtle" />
       </button>
     </div>
-
-    <div class="h-px bg-nc-border-gray-light" />
-
-    <DlgShareAndCollaborateHubLinkBlock @edit-link="emit('editLink', $event)" @all-links="emit('links')" />
   </div>
 </template>

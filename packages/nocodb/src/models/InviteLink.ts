@@ -168,7 +168,9 @@ export default class InviteLink implements InviteLinkType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.INVITE_LINKS,
-      { condition, orderBy: { created_at: 'asc' } },
+      // id breaks the tie: links minted in the same second would otherwise come
+      // back in an arbitrary order, which the UI renders as a reshuffling list.
+      { condition, orderBy: { created_at: 'asc', id: 'asc' } },
     );
 
     // Revoked links stay in the table for the audit trail but are not listed.

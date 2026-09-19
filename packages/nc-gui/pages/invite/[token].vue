@@ -31,6 +31,9 @@ const preview = ref<InviteLinkPreviewType | null>(null)
 
 const isLoading = ref(true)
 
+/** Held true while the browser navigates away, so the card never flashes. */
+const isRedirecting = ref(false)
+
 const isJoining = ref(false)
 
 const loadError = ref('')
@@ -86,8 +89,11 @@ async function loadPreview() {
     const res = await $api.instance.get(`/api/v2/invite-links/${encodeURIComponent(token.value)}`)
 
     // Already a member at this role or better: nothing to join, so open the
-    // target and keep the skeleton up until the browser leaves.
+    // target. `finally` still runs on this return, so the skeleton has to be
+    // held open explicitly -- otherwise the invite card renders with a blank
+    // name, a blank role and a live Join button for the whole navigation.
     if (res.data?.already_member) {
+      isRedirecting.value = true
       window.location.replace(landingPath(res.data))
       return
     }
@@ -143,7 +149,7 @@ onMounted(loadPreview)
             <GeneralNocoIcon :size="40" />
           </div>
 
-          <div v-if="isLoading" class="flex flex-col items-center gap-3 w-full">
+          <div v-if="isLoading || isRedirecting" class="flex flex-col items-center gap-3 w-full">
             <span class="h-5 w-48 rounded bg-nc-bg-gray-light" />
             <span class="h-10 w-full rounded-lg bg-nc-bg-gray-light" />
           </div>

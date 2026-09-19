@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   Param,
   Patch,
@@ -132,7 +133,11 @@ export class PublicInviteLinksController {
   // GlobalGuard here is optional auth: no token, or a stale one, falls back to
   // the anonymous guest. A signed-in caller who is already a member is told so,
   // and the page opens the target instead of offering a Join.
+  // The body varies by caller (already_member), so it must not be cached by a
+  // proxy keyed on the URL alone -- that would serve a member's ids to a bare
+  // token holder, or a stale anonymous body to a member.
   @Get('/api/v2/invite-links/:token')
+  @Header('Cache-Control', 'no-store')
   @UseGuards(GlobalGuard)
   async preview(
     @TenantContext() context: NcContext,

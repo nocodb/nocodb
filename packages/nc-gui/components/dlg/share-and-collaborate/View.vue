@@ -469,7 +469,8 @@ watch(showShareModal, (val) => {
   .nc-share-tabs > .ant-tabs-nav {
     // NcTabs pads each tab by 8px, so the nav pads 20px to land the first tab's
     // text on the same 28px gutter as the heading above it.
-    @apply pl-5 pr-12 mt-2 mb-0 border-b-1 border-nc-border-gray-medium;
+    // No top margin: ant already pads the tab 12px, which is the whole gap.
+    @apply pl-5 pr-12 mb-0 border-b-1 border-nc-border-gray-medium;
 
     &::before {
       @apply border-0;

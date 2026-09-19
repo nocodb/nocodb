@@ -12,6 +12,9 @@ import { MetaTable } from '~/utils/globals';
  * same trade the codebase already makes for `base.uuid` and `view.uuid`. Keeping
  * lookup on the hash means moving this column to encrypted-at-rest later is a
  * change to two lines in the model, not a redesign.
+ *
+ * Storing the clear token is a product decision (2026-09-18), not an oversight:
+ * see the `token` field in models/InviteLink.ts.
  */
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.INVITE_LINKS, (table) => {

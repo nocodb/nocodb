@@ -37,6 +37,13 @@ export default class InviteLink implements InviteLinkType {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  /**
+   * Kept in clear beside its hash BY DESIGN (product decision, 2026-09-18): a
+   * link must be copyable again later, as shared-view links are and unlike API
+   * tokens, which are shown once. Hash-only storage was weighed and rejected for
+   * that reason. The hash still keeps the redeem lookup a single indexed
+   * equality; it is not a defence against a database read, and is not meant as one.
+   */
   token?: string;
   token_hash?: string;
 

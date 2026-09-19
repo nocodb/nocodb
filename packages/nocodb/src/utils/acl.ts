@@ -262,6 +262,9 @@ export const permissionScopes = {
     // Invite links -- viewer+, the same floor as base membership itself. The
     // service caps every link at the caller's own role (assertRolePower), and
     // below creator a caller only ever sees or edits links they made.
+    // Viewer-level minting is BY DESIGN (product decision, 2026-09-18): a
+    // viewer can only ever hand out viewer, so there is no escalation path.
+    // Do not raise this floor as a "fix".
     'baseInviteLinkList',
     'baseInviteLinkCreate',
     'baseInviteLinkUpdate',

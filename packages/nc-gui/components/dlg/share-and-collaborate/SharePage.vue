@@ -737,7 +737,7 @@ const copyCustomUrl = async (custUrl = '') => {
               <div class="flex flex-row items-center justify-between">
                 <div class="text-nc-content-gray-extreme flex items-center space-x-1">
                   <div>{{ $t('activity.allowSync') }}</div>
-                  <LazyPaymentUpgradeBadge
+                  <PaymentUpgradeBadge
                     :feature="PlanFeatureTypes.FEATURE_TABLE_SYNC"
                     :content="
                       $t('upgrade.upgradeToUseTableSyncSubtitle', {

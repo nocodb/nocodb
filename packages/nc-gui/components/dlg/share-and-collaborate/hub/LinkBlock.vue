@@ -46,7 +46,9 @@ async function onCreateLink() {
 
   isCreating.value = false
 
-  if (link) emit('editLink', link.id)
+  // Second arg marks a link the user has not seen yet: it opens as a new link,
+  // not as an edit of something they already had.
+  if (link) emit('editLink', link.id, true)
 }
 </script>
 

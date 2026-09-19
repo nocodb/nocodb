@@ -33,9 +33,11 @@ const screen = ref<'main' | 'links' | 'edit'>('main')
 
 const editLinkId = ref('')
 
+const editLinkIsNew = ref(false)
+
 const heading = computed(() => {
   if (screen.value === 'links') return t('activity.inviteLinks')
-  if (screen.value === 'edit') return t('activity.editInviteLink')
+  if (screen.value === 'edit') return t(editLinkIsNew.value ? 'activity.newInviteLink' : 'activity.editInviteLink')
 
   if (props.type === 'organization') return 'Invite Members to Workspaces'
 
@@ -44,8 +46,9 @@ const heading = computed(() => {
   return props.isTeam ? t('activity.addTeamsToWorkspace') : t('activity.inviteToWorkspace')
 })
 
-function openEditLink(linkId: string) {
+function openEditLink(linkId: string, isNew = false) {
   editLinkId.value = linkId
+  editLinkIsNew.value = isNew
   screen.value = 'edit'
 }
 
@@ -106,7 +109,7 @@ watch(dialogShow, (open) => {
 
     <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" class="!px-0" @edit-link="openEditLink" />
 
-    <DlgShareAndCollaborateHubEditLink v-else class="!px-0" :link-id="editLinkId" @done="goMain" />
+    <DlgShareAndCollaborateHubEditLink v-else class="!px-0" :link-id="editLinkId" :is-new="editLinkIsNew" @done="goMain" />
   </NcModal>
 </template>
 

@@ -43,7 +43,7 @@ async function onCreate() {
 
   isCreating.value = false
 
-  if (link) emit('editLink', link.id)
+  if (link) emit('editLink', link.id, true)
 }
 </script>
 

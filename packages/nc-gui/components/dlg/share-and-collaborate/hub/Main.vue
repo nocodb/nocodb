@@ -14,7 +14,10 @@ const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess'])
 
 <template>
   <div class="flex flex-col gap-5 px-7 pt-5 pb-7">
-    <DlgShareAndCollaborateHubLinkBlock @edit-link="emit('editLink', $event)" @all-links="emit('links')" />
+    <DlgShareAndCollaborateHubLinkBlock
+      @edit-link="(id, isNew) => emit('editLink', id, isNew)"
+      @all-links="emit('links')"
+    />
     <div class="h-px bg-nc-border-gray-light" />
 
     <!-- Focus rather than type: the real composing happens on its own screen, so

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps<{ linkId: string }>()
+const props = withDefaults(defineProps<{ linkId: string; isNew?: boolean }>(), { isNew: false })
 
 const emit = defineEmits(['done'])
 
@@ -138,9 +138,19 @@ watch(link, resetDraft, { immediate: true })
     <div class="h-px bg-nc-border-gray-light" />
 
     <div class="flex items-center justify-between gap-3">
-      <NcButton type="danger" size="medium" :loading="isDeleting" data-testid="nc-hub-delete-link" @click="onDelete">
+      <!-- Nothing to delete on a link the user has only just made; offering it
+           reads as undoing the thing they just asked for. -->
+      <NcButton
+        v-if="!props.isNew"
+        type="danger"
+        size="medium"
+        :loading="isDeleting"
+        data-testid="nc-hub-delete-link"
+        @click="onDelete"
+      >
         {{ $t('activity.deleteLink') }}
       </NcButton>
+      <span v-else />
 
       <div class="flex gap-2">
         <NcButton type="secondary" size="medium" @click="emit('done')">{{ $t('labels.cancel') }}</NcButton>

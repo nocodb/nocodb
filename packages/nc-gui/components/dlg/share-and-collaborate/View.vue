@@ -53,6 +53,8 @@ const screen = ref<'main' | 'compose' | 'links' | 'edit'>('main')
 
 const editLinkId = ref('')
 
+const editLinkIsNew = ref(false)
+
 const members = ref<Array<{ id?: string; email?: string; display_name?: string }>>([])
 
 /** "0 people have access" is a lie while the request is still out. */
@@ -123,7 +125,7 @@ const defaultTab = computed<'invite' | 'object'>(() => {
 
 const screenTitle = computed(() => {
   if (screen.value === 'links') return t('activity.inviteLinks')
-  if (screen.value === 'edit') return t('activity.editInviteLink')
+  if (screen.value === 'edit') return t(editLinkIsNew.value ? 'activity.newInviteLink' : 'activity.editInviteLink')
 
   return t('labels.shareNamed', { name: base.value?.title })
 })
@@ -171,8 +173,9 @@ function afterEditLink() {
   screen.value = inviteLinks.value.length > 1 ? 'links' : 'main'
 }
 
-function openEditLink(linkId: string) {
+function openEditLink(linkId: string, isNew = false) {
   editLinkId.value = linkId
+  editLinkIsNew.value = isNew
   screen.value = 'edit'
 }
 
@@ -354,7 +357,7 @@ watch(showShareModal, (val) => {
 
         <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" @edit-link="openEditLink" />
 
-        <DlgShareAndCollaborateHubEditLink v-else :link-id="editLinkId" @done="afterEditLink" />
+        <DlgShareAndCollaborateHubEditLink v-else :link-id="editLinkId" :is-new="editLinkIsNew" @done="afterEditLink" />
       </template>
     </div>
   </a-modal>

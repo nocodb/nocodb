@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-const props = withDefaults(defineProps<{ linkId: string; isNew?: boolean }>(), { isNew: false })
+/** `linkId` is empty while `isNew` — a new link is a draft until it is saved. */
+const props = withDefaults(defineProps<{ linkId?: string; isNew?: boolean }>(), { linkId: '', isNew: false })
 
 const emit = defineEmits(['done'])
 
-const { links, allowedRoles, defaultRole, defaultEmailDomain, saveLink, deleteLink } = useInviteLinks()
+const { links, allowedRoles, defaultRole, defaultEmailDomain, createLink, saveLink, deleteLink } = useInviteLinks()
 
 const { $e } = useNuxtApp()
 
@@ -23,10 +24,14 @@ const isDeleting = ref(false)
 const canSave = computed(() => draft.anyEmail || !!draft.domain.trim())
 
 function resetDraft() {
+  // A new link starts on what createLink would have defaulted to, so the draft
+  // shows the same thing whether it is saved now or later.
+  const domain = props.isNew ? defaultEmailDomain.value : link.value?.email_domain
+
   Object.assign(draft, {
-    role: link.value?.role ?? defaultRole.value,
-    anyEmail: !link.value?.email_domain,
-    domain: link.value?.email_domain ?? '',
+    role: (props.isNew ? defaultRole.value : link.value?.role) ?? defaultRole.value,
+    anyEmail: !domain,
+    domain: domain ?? '',
   })
 }
 
@@ -47,12 +52,20 @@ async function onSave() {
 
   isSaving.value = true
 
-  $e('a:share:link:update', { role: draft.role, restricted: !draft.anyEmail })
-
-  const saved = await saveLink(props.linkId, {
+  const body = {
     role: draft.role,
     email_domain: draft.anyEmail ? null : draft.domain.trim(),
+  }
+
+  $e(props.isNew ? 'a:share:link:create' : 'a:share:link:update', {
+    role: draft.role,
+    restricted: !draft.anyEmail,
+    ...(props.isNew ? { from: 'list' } : {}),
   })
+
+  // Save is the commit point for a new link: nothing was sent when the screen
+  // opened, so cancelling leaves nothing behind.
+  const saved = props.isNew ? await createLink(body) : await saveLink(props.linkId, body)
 
   isSaving.value = false
 

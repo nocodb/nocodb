@@ -5,15 +5,13 @@ const emit = defineEmits(['editLink'])
 
 const { t } = useI18n()
 
-const { links, linkUrl, isLoading, isLoaded, createLink } = useInviteLinks()
+const { links, linkUrl, isLoading, isLoaded } = useInviteLinks()
 
 const { copy } = useCopy()
 
 const { $e } = useNuxtApp()
 
 const copiedId = ref('')
-
-const isCreating = ref(false)
 
 const rows = computed(() =>
   links.value.map((l) => {
@@ -39,17 +37,13 @@ async function copyRow(id: string) {
   setTimeout(() => (copiedId.value = ''), 1600)
 }
 
-async function onCreate() {
-  isCreating.value = true
-
-  const link = await createLink()
-
-  isCreating.value = false
-
-  if (link) {
-    $e('a:share:link:create', { role: link.role, restricted: !!link.email_domain, from: 'list' })
-    emit('editLink', link.id, true)
-  }
+/**
+ * Opens an unsaved draft. Creating here instead would mean a link the user
+ * never confirmed -- Cancel had nothing to undo, and the screen offers no
+ * Delete while the link is new.
+ */
+function onCreate() {
+  emit('editLink', '', true)
 }
 </script>
 
@@ -92,7 +86,6 @@ async function onCreate() {
     <button
       class="flex items-center gap-2 h-11 -mx-2 mt-1 px-2 rounded-lg text-bodyDefault font-semibold text-nc-content-brand hover:bg-nc-bg-gray-extralight disabled:opacity-50"
       data-testid="nc-hub-create-link"
-      :disabled="isCreating"
       @click="onCreate"
     >
       <GeneralIcon icon="plus" class="flex-none w-4.5 h-4.5" />

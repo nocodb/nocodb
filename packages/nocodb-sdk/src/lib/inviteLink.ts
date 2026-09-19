@@ -47,10 +47,13 @@ export const WORKSPACE_INVITE_LINK_ROLES = [
 ] as const;
 
 export type BaseInviteLinkRole = (typeof BASE_INVITE_LINK_ROLES)[number];
-export type WorkspaceInviteLinkRole = (typeof WORKSPACE_INVITE_LINK_ROLES)[number];
+export type WorkspaceInviteLinkRole =
+  (typeof WORKSPACE_INVITE_LINK_ROLES)[number];
 export type InviteLinkRole = BaseInviteLinkRole | WorkspaceInviteLinkRole;
 
-export const inviteLinkRolesFor = (scope: InviteLinkScope): readonly InviteLinkRole[] =>
+export const inviteLinkRolesFor = (
+  scope: InviteLinkScope
+): readonly InviteLinkRole[] =>
   scope === InviteLinkScope.WORKSPACE
     ? WORKSPACE_INVITE_LINK_ROLES
     : BASE_INVITE_LINK_ROLES;
@@ -61,11 +64,13 @@ export const isInviteLinkRole = (
 ): role is InviteLinkRole =>
   (inviteLinkRolesFor(scope) as readonly unknown[]).includes(role);
 
-/** How many live links one base or workspace may hold at once. */
-export const INVITE_LINK_MAX_PER_SCOPE = 10;
-
-/** Default life of a new link, in days. `0` means it never expires. */
-export const INVITE_LINK_DEFAULT_EXPIRY_DAYS = 7;
+/**
+ * Default life of a new link, in days. `0` means it never expires, which is the
+ * default: a link lives until it is revoked. Revocation is the control, not a
+ * timer the creator never set and cannot see. Pass `expires_in_days` to ask for
+ * a deadline.
+ */
+export const INVITE_LINK_DEFAULT_EXPIRY_DAYS = 0;
 
 /**
  * Upper bound on a requested expiry. Exists so an out-of-range number cannot

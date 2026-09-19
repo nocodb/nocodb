@@ -1,9 +1,5 @@
 import { createHash, randomBytes } from 'crypto';
-import {
-  INVITE_LINK_MAX_PER_SCOPE,
-  InviteLinkScope,
-  isInviteLinkRole,
-} from 'nocodb-sdk';
+import { InviteLinkScope, isInviteLinkRole } from 'nocodb-sdk';
 import type { InviteLinkRole, InviteLinkType } from 'nocodb-sdk';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -86,21 +82,6 @@ export default class InviteLink implements InviteLinkType {
   ): Promise<InviteLink> {
     if (!isInviteLinkRole(param.scope, param.role)) {
       NcError.badRequest('Invalid role for an invite link');
-    }
-
-    const live = await this.list(
-      {
-        scope: param.scope,
-        base_id: param.base_id,
-        fk_workspace_id: param.fk_workspace_id,
-      },
-      ncMeta,
-    );
-
-    if (live.length >= INVITE_LINK_MAX_PER_SCOPE) {
-      NcError.badRequest(
-        `An invite link limit of ${INVITE_LINK_MAX_PER_SCOPE} has been reached. Revoke one before creating another.`,
-      );
     }
 
     const token = newToken();

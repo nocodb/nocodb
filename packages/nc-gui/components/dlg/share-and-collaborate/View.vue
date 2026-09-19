@@ -138,10 +138,25 @@ const objectHeading = computed(() => ({
   subtitle: t('msg.info.sharePublicLinkSubtitle'),
 }))
 
+/** What the second tab actually publishes: the thing you are looking at. */
+const objectNoun = computed(() => {
+  switch (objectTab.value) {
+    case 'doc':
+      return t('objects.document').toLowerCase()
+    case 'dashboard':
+      return t('objects.dashboard').toLowerCase()
+    case 'interface':
+      return t('general.interface').toLowerCase()
+    default:
+      return t('objects.view').toLowerCase()
+  }
+})
+
 /** Share-to-web for a whole base lives in the base menu now, so off a view the
- *  modal is invite-only and must not promise a web link. */
+ *  modal is invite-only and must not promise a web link. Where there is a web
+ *  tab it publishes that one object, not the base, so the tooltip names it. */
 const shareHubTooltip = computed(() =>
-  objectTab.value ? t('msg.info.shareHubTooltip') : t('msg.info.shareHubTooltipInviteOnly'),
+  objectTab.value ? t('msg.info.shareHubTooltip', { object: objectNoun.value }) : t('msg.info.shareHubTooltipInviteOnly'),
 )
 
 const defaultTab = computed<'invite' | 'object'>(() => {

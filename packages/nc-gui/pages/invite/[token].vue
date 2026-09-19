@@ -12,7 +12,7 @@ import { InviteLinkScope, RoleLabels } from 'nocodb-sdk'
 definePageMeta({
   requiresAuth: false,
   public: true,
-  title: 'title.headLogin',
+  title: 'title.headJoin',
 })
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
@@ -21,7 +21,7 @@ const route = useRoute()
 
 const { t } = useI18n()
 
-const { signedIn } = useGlobal()
+const { signedIn, user, signOut } = useGlobal()
 
 const { $api } = useNuxtApp()
 
@@ -35,7 +35,23 @@ const isJoining = ref(false)
 
 const loadError = ref('')
 
+/** Shown inline under the button: a refusal the page could not predict. */
+const joinError = ref('')
+
 const invalidReason = computed(() => preview.value?.invalid_reason)
+
+/**
+ * Same rule as the server's emailMatchesDomain, so the page can turn the
+ * refusal into a "switch account" prompt instead of a failed click.
+ */
+const wrongDomain = computed(() => {
+  const domain = preview.value?.email_domain
+  const email = user.value?.email
+
+  if (!signedIn.value || !domain || !email) return false
+
+  return !email.toLowerCase().endsWith(`@${domain.toLowerCase()}`)
+})
 
 const roleLabel = computed(() => {
   const role = preview.value?.role
@@ -76,8 +92,17 @@ function goSignIn(path: '/signin' | '/signup') {
   return navigateTo({ path, query: { continueAfterSignIn: `/invite/${token.value}` } })
 }
 
+/** Sign out, then come back here as someone else. */
+function switchAccount() {
+  return signOut({
+    redirectToSignin: true,
+    signinUrl: `/signin?continueAfterSignIn=${encodeURIComponent(`/invite/${token.value}`)}`,
+  })
+}
+
 async function onJoin() {
   isJoining.value = true
+  joinError.value = ''
 
   try {
     const res = await $api.instance.post(`/api/v2/invite-links/${encodeURIComponent(token.value)}/accept`)
@@ -88,7 +113,7 @@ async function onJoin() {
     // EE routes a base under its workspace; CE has no workspace and uses the `nc` placeholder.
     window.location.href = baseId ? `/${workspaceId ?? 'nc'}/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    joinError.value = await extractSdkResponseErrorMsg(e)
     isJoining.value = false
     // The refusal may be about the link itself, so re-read its state.
     await loadPreview()
@@ -137,21 +162,55 @@ onMounted(loadPreview)
                 {{ $t('msg.info.youWillJoinAs', { role: roleLabel }) }}
               </div>
               <div v-if="preview?.email_domain" class="text-bodyDefaultSm text-nc-content-gray-muted">
-                {{ $t('msg.info.domainNeedsVerifiedEmail') }}
+                {{ $t('msg.info.domainNeedsVerifiedEmail', { domain: preview.email_domain }) }}
               </div>
             </div>
 
-            <NcButton
-              v-if="signedIn"
-              type="primary"
-              size="medium"
-              class="!w-full"
-              :loading="isJoining"
-              data-testid="nc-invite-join"
-              @click="onJoin"
-            >
-              <span class="flex w-full items-center justify-center">{{ $t('activity.joinNow') }}</span>
-            </NcButton>
+            <div v-if="signedIn && wrongDomain" class="flex flex-col gap-3 w-full">
+              <div class="text-bodyDefault text-nc-content-red-dark text-center" data-testid="nc-invite-wrong-domain">
+                {{ $t('msg.info.signedInWrongDomain', { email: user?.email, domain: preview?.email_domain }) }}
+              </div>
+              <NcButton
+                type="secondary"
+                size="medium"
+                class="!w-full"
+                data-testid="nc-invite-switch-account"
+                @click="switchAccount"
+              >
+                <span class="flex w-full items-center justify-center">{{ $t('activity.signInWithDifferentAccount') }}</span>
+              </NcButton>
+            </div>
+
+            <div v-else-if="signedIn" class="flex flex-col gap-3 w-full">
+              <NcButton
+                type="primary"
+                size="medium"
+                class="!w-full"
+                :loading="isJoining"
+                data-testid="nc-invite-join"
+                @click="onJoin"
+              >
+                <span class="flex w-full items-center justify-center">{{ $t('activity.joinNow') }}</span>
+              </NcButton>
+
+              <template v-if="joinError">
+                <div class="text-bodyDefault text-nc-content-red-dark text-center" data-testid="nc-invite-join-error">
+                  {{ joinError }}
+                </div>
+                <div class="text-bodyDefaultSm text-nc-content-gray-muted text-center">
+                  {{ $t('msg.info.signedInAs', { email: user?.email }) }}
+                </div>
+                <NcButton
+                  type="secondary"
+                  size="medium"
+                  class="!w-full"
+                  data-testid="nc-invite-switch-account"
+                  @click="switchAccount"
+                >
+                  <span class="flex w-full items-center justify-center">{{ $t('activity.signInWithDifferentAccount') }}</span>
+                </NcButton>
+              </template>
+            </div>
 
             <div v-else class="flex flex-col gap-2 w-full">
               <NcButton type="primary" size="medium" class="!w-full" data-testid="nc-invite-signup" @click="goSignIn('/signup')">

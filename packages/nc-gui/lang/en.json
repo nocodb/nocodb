@@ -5577,6 +5577,8 @@
       "interfaceRecordDetailNoPreview": "No records in this table yet — the layout previews with empty values.",
       "interfaceRecordLeftPageScope": "This record no longer matches what this page shows.",
       "interfaceRecordSavedLeftPageScope": "Record saved. It no longer matches what this page shows, so it was closed.",
+      "interfaceRecordUnreadableOnPage": "This record can no longer be opened from this page. It was either deleted, or changed so it no longer matches what this page shows.",
+      "interfaceRecordUnreadableEditingOff": "Editing is turned off until it can be read again.",
       "interfaceEditFieldsOff": "All groups and fields will no longer be editable.",
       "interfaceEditFieldsInline": "All groups and fields will be editable inline.",
       "interfaceEditFieldsForm": "An edit button will be added to the record and all edits will need to be submitted via a customizable form.",

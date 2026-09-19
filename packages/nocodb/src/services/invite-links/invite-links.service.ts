@@ -158,7 +158,7 @@ export class InviteLinksService {
       `invite link created id=${link.id} scope=${param.scope} role=${param.body.role} by=${param.req.user?.id}`,
     );
 
-    return link;
+    return InviteLink.toResponse(link, { withToken: true });
   }
 
   async list(
@@ -166,7 +166,7 @@ export class InviteLinksService {
     param: { scope: InviteLinkScope; baseId?: string; workspaceId?: string },
     ncMeta = Noco.ncMeta,
   ) {
-    return InviteLink.list(
+    const links = await InviteLink.list(
       {
         scope: param.scope,
         base_id: param.baseId,
@@ -174,6 +174,10 @@ export class InviteLinksService {
       },
       ncMeta,
     );
+
+    // The token is returned here on purpose: only a caller who passed the
+    // manage ACL gets this far, and the UI has to render a copyable URL.
+    return links.map((l) => InviteLink.toResponse(l, { withToken: true }));
   }
 
   /**
@@ -222,7 +226,7 @@ export class InviteLinksService {
       this.assertRoleWithinCallerPower(param.scope, param.body.role, param.req);
     }
 
-    return InviteLink.update(
+    const updated = await InviteLink.update(
       param.linkId,
       {
         ...(param.body.role !== undefined ? { role: param.body.role } : {}),
@@ -238,6 +242,8 @@ export class InviteLinksService {
       },
       ncMeta,
     );
+
+    return InviteLink.toResponse(updated, { withToken: true });
   }
 
   async revoke(

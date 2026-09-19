@@ -38,9 +38,23 @@ export default class InviteLink implements InviteLinkType {
   created_at?: string;
   updated_at?: string;
   token?: string;
+  token_hash?: string;
 
   constructor(data: Partial<InviteLink | InviteLinkType>) {
     Object.assign(this, data);
+  }
+
+  /**
+   * Every response goes through here. `token_hash` is an internal lookup index
+   * and is never anyone's business outside this class.
+   */
+  static toResponse(
+    link: InviteLink,
+    { withToken = false }: { withToken?: boolean } = {},
+  ): InviteLinkType {
+    const { token_hash: _hash, token, ...rest } = link as any;
+
+    return (withToken ? { ...rest, token } : rest) as InviteLinkType;
   }
 
   /**
@@ -48,9 +62,7 @@ export default class InviteLink implements InviteLinkType {
    * unauthenticated preview in particular.
    */
   static withoutToken(link: InviteLink): InviteLinkType {
-    const { token: _token, ...rest } = link;
-
-    return rest as InviteLinkType;
+    return this.toResponse(link);
   }
 
   private static hydrate(row: any): InviteLink | null {

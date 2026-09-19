@@ -150,7 +150,7 @@ watch(dialogShow, (open) => {
           <!-- A doorway, not the form: the role belongs on the compose screen, so
              it is not stated twice under a link that already names one. -->
           <input
-            class="nc-hub-email-field w-full h-11 px-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default outline-none text-bodyDefault text-nc-content-gray hover:border-nc-border-gray-dark"
+            class="nc-hub-email-field w-full h-10 px-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default outline-none text-bodyDefault text-nc-content-gray hover:border-nc-border-gray-dark"
             :placeholder="emailPlaceholder"
             data-testid="nc-hub-invite-by-email"
             readonly

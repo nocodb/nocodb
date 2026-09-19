@@ -41,7 +41,7 @@ const emailPlaceholder = computed(() =>
       <!-- Focus rather than type: the real composing happens on its own screen, so
            the hub stays one glance rather than a form. -->
       <input
-        class="nc-hub-email-field w-full h-11 px-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default outline-none text-bodyDefault text-nc-content-gray hover:border-nc-border-gray-dark"
+        class="nc-hub-email-field w-full h-10 px-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default outline-none text-bodyDefault text-nc-content-gray hover:border-nc-border-gray-dark"
         :placeholder="emailPlaceholder"
         data-testid="nc-hub-invite-by-email"
         readonly

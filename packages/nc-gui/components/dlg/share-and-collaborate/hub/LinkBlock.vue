@@ -1,128 +1,188 @@
 <script lang="ts" setup>
-import { RoleLabels } from 'nocodb-sdk'
-
 /**
- * The "Invite via link" block. Lives here rather than inside Main so the
- * workspace invite dialog can show the same thing without a second copy.
+ * The private-link block. There is no separate "create" step: the link is a
+ * detail of copying one, so it is minted on the first copy and never just
+ * because a modal opened.
  */
-const emit = defineEmits(['editLink', 'allLinks'])
+const emit = defineEmits(['manage'])
 
 const { t } = useI18n()
 
-const { links, linkUrl, isLoading, isLoaded, createLink } = useInviteLinks()
+const { links, linkUrl, isLoading, isLoaded, allowedRoles, defaultRole, defaultEmailDomain, createLink, saveLink } =
+  useInviteLinks()
 
 const { copy } = useCopy()
 
-const copied = ref(false)
-
-const isCreating = ref(false)
+const { $e } = useNuxtApp()
 
 const primary = computed(() => links.value[0])
 
-const primaryRole = computed(() => {
-  if (!primary.value) return { label: '', article: 'a' }
+const isBusy = ref(false)
 
-  const label = t(`objects.roleType.${RoleLabels[primary.value.role] ?? primary.value.role}`).toLowerCase()
+const isCopied = ref(false)
 
-  return { label, article: /^[aeiou]/.test(label) ? 'an' : 'a' }
-})
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
 
-async function copyPrimary() {
-  if (!primary.value) return
+/** Until a link exists these mirror what one would be created with. */
+const pendingRole = ref<string | null>(null)
 
-  await copy(linkUrl(primary.value))
-  copied.value = true
-  setTimeout(() => (copied.value = false), 1600)
+const role = computed(() => primary.value?.role ?? pendingRole.value ?? defaultRole.value)
+
+const domain = computed(() => (primary.value ? primary.value.email_domain : defaultEmailDomain.value))
+
+/** Nothing to manage until a link exists. */
+const hasLink = computed(() => !!primary.value)
+
+const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : t('activity.createInviteLink')))
+
+async function onRoleChange(next: string) {
+  $e('c:share:link:role', { role: next, existing: !!primary.value })
+
+  if (!primary.value) {
+    pendingRole.value = next
+    return
+  }
+
+  await saveLink(primary.value.id, { role: next })
 }
 
 /**
- * No link is minted just because a modal opened: a link is a standing grant,
- * so it only exists once somebody asks for one.
+ * Create-then-copy in one press. The clipboard write has to stay in the same
+ * task as the click for Safari, so the text is put on the clipboard before the
+ * await where a link already exists.
  */
-async function onCreateLink() {
-  isCreating.value = true
+async function onCopy() {
+  if (isBusy.value) return
 
-  const link = await createLink()
+  isBusy.value = true
 
-  isCreating.value = false
+  try {
+    let link = primary.value
+    const isFirst = !link
 
-  // Second arg marks a link the user has not seen yet: it opens as a new link,
-  // not as an edit of something they already had.
-  if (link) emit('editLink', link.id, true)
+    if (!link) {
+      link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
+
+      if (link) $e('a:share:link:create', { role: link.role, restricted: !!link.email_domain })
+    }
+
+    if (!link) return
+
+    // useCopy throws when the clipboard refuses; without this the press would
+    // do nothing at all and look like a dead button.
+    await copy(linkUrl(link))
+
+    $e('c:share:link:copy', { created: isFirst, restricted: !!link.email_domain })
+
+    isCopied.value = true
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => (isCopied.value = false), 2000)
+  } catch (e: any) {
+    message.error(e?.message || t('msg.error.copyToClipboardError'))
+  } finally {
+    isBusy.value = false
+  }
 }
+
+onBeforeUnmount(() => clearTimeout(copiedTimer))
 </script>
 
 <template>
   <div class="flex flex-col gap-2">
-    <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.inviteViaLink') }}</div>
+    <div class="flex items-start gap-3">
+      <div class="flex-1 min-w-0 text-bodyDefault font-semibold text-nc-content-gray">
+        {{ $t('labels.inviteViaPrivateLink') }}
+      </div>
 
-    <div v-if="!isLoaded && isLoading" class="flex items-center gap-2">
-      <span class="flex-1 h-10 rounded-lg bg-nc-bg-gray-extralight" />
+      <!-- The count is the useful part and doubles as the way in; with no links
+           there is nothing to count and nothing to manage, so it is absent. -->
+      <button
+        v-if="links.length"
+        class="nc-hub-manage-links flex-none text-bodySm text-nc-content-gray-muted hover:text-nc-content-gray"
+        v-e="['c:share:link:manage']"
+        data-testid="nc-hub-all-links"
+        @click="emit('manage')"
+      >
+        {{ $t('msg.info.inviteLinkCount', { count: links.length }, links.length) }}
+      </button>
     </div>
 
-    <template v-else-if="primary">
-      <div class="flex items-center gap-2">
-        <div
-          class="flex-1 min-w-0 h-10 flex items-center px-3 rounded-lg bg-nc-bg-gray-extralight text-nc-content-gray-subtle truncate nc-hub-link-url"
-        >
-          {{ linkUrl(primary) }}
-        </div>
-        <NcButton type="primary" size="medium" data-testid="nc-hub-copy-link" @click="copyPrimary">
-          {{ copied ? $t('general.copied') : $t('activity.copyLink') }}
-        </NcButton>
-        <NcTooltip :title="$t('activity.linkSettings')">
-          <NcButton
-            type="secondary"
-            size="medium"
-            class="!px-0 !w-10"
-            data-testid="nc-hub-link-settings"
-            @click="emit('editLink', primary.id)"
-          >
-            <GeneralIcon icon="ncSettings" class="w-4 h-4" />
-          </NcButton>
-        </NcTooltip>
-      </div>
+    <div class="text-bodyDefault text-nc-content-gray-subtle2 leading-relaxed">
+      <span v-if="!isLoaded && isLoading" class="inline-block w-full h-4 rounded bg-nc-bg-gray-light align-middle" />
 
-      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">
-        {{ $t('msg.info.anyoneCanAccessAs', { article: primaryRole.article, role: '' }) }}
-        <b class="font-semibold text-nc-content-gray">{{ primaryRole.label }}</b>
-        <template v-if="primary.email_domain"> · {{ $t('msg.info.domainOnlyNote', { domain: primary.email_domain }) }}</template>
-      </div>
+      <!-- One sentence rather than fragments, so the role control sits in the
+           copy that explains it and translators can move it. -->
+      <i18n-t v-else :keypath="domain ? 'msg.info.inviteLinkDomainSentence' : 'msg.info.inviteLinkOpenSentence'" tag="span">
+        <template #domain>
+          <span class="nc-hub-domain-chip">{{ `@${domain}` }}</span>
+        </template>
+        <template #role>
+          <RolesSelectorV2
+            :on-role-change="onRoleChange"
+            :role="role"
+            :roles="allowedRoles"
+            trigger-variant="compact"
+            size="sm"
+            placement="bottomLeft"
+          />
+        </template>
+      </i18n-t>
+    </div>
 
-      <button
-        class="flex items-center gap-2 min-h-9 -mx-2 px-2 rounded-lg text-bodyDefault font-semibold text-nc-content-gray hover:bg-nc-bg-gray-extralight"
-        data-testid="nc-hub-all-links"
-        @click="emit('allLinks')"
-      >
-        <GeneralIcon icon="link2" class="flex-none w-4.5 h-4.5" />
-        <span class="flex-1 text-left">{{ $t('msg.info.inviteLinkCount', { count: links.length }, links.length) }}</span>
-        <GeneralIcon icon="ncChevronRight" class="flex-none w-5 h-5 text-nc-content-gray-subtle" />
-      </button>
-    </template>
-
-    <template v-else>
-      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">{{ $t('msg.info.noInviteLinkYet') }}</div>
-
-      <NcButton
-        type="primary"
-        size="medium"
-        class="!w-full"
-        data-testid="nc-hub-create-first-link"
-        :loading="isCreating"
-        @click="onCreateLink"
-      >
-        <span class="flex w-full items-center justify-center gap-2">
-          <GeneralIcon icon="link2" class="flex-none w-4.5 h-4.5" />
-          {{ $t('activity.createInviteLink') }}
-        </span>
-      </NcButton>
-    </template>
+    <NcButton
+      type="primary"
+      size="medium"
+      class="nc-hub-copy-cta !w-full mt-1"
+      data-testid="nc-hub-copy-link"
+      :loading="isBusy"
+      @click="onCopy"
+    >
+      <span class="flex w-full items-center justify-center gap-2">
+        <Transition name="nc-copy-swap" mode="out-in">
+          <span v-if="isCopied" key="copied" class="flex items-center gap-2">
+            <GeneralIcon icon="circleCheckSolid" class="flex-none w-4.5 h-4.5" />
+            {{ $t('msg.info.inviteLinkCopied') }}
+          </span>
+          <span v-else key="copy" class="flex items-center gap-2">
+            <GeneralIcon icon="link2" class="flex-none w-4.5 h-4.5" />
+            {{ ctaLabel }}
+          </span>
+        </Transition>
+      </span>
+    </NcButton>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-hub-link-url {
-  @apply text-captionSm;
+.nc-hub-domain-chip {
+  @apply inline-block px-1.5 py-0.5 rounded-md align-middle;
   font-family: 'DM Mono', monospace;
+  font-size: 0.8125rem;
+  background: var(--nc-bg-coloured-purple);
+  color: var(--nc-content-purple-dark);
+}
+
+// Swap rather than fade: the label changes meaning, so it should read as one
+// thing replacing another rather than the same thing dimming.
+.nc-copy-swap-enter-active,
+.nc-copy-swap-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.nc-copy-swap-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.nc-copy-swap-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nc-copy-swap-enter-active,
+  .nc-copy-swap-leave-active {
+    transition: none;
+  }
 }
 </style>

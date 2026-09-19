@@ -9,6 +9,8 @@ const { links, linkUrl, isLoading, isLoaded, createLink } = useInviteLinks()
 
 const { copy } = useCopy()
 
+const { $e } = useNuxtApp()
+
 const copiedId = ref('')
 
 const isCreating = ref(false)
@@ -32,6 +34,7 @@ async function copyRow(id: string) {
   if (!link) return
 
   await copy(linkUrl(link))
+  $e('c:share:link:copy', { from: 'list', restricted: !!link.email_domain })
   copiedId.value = id
   setTimeout(() => (copiedId.value = ''), 1600)
 }
@@ -43,7 +46,10 @@ async function onCreate() {
 
   isCreating.value = false
 
-  if (link) emit('editLink', link.id, true)
+  if (link) {
+    $e('a:share:link:create', { role: link.role, restricted: !!link.email_domain, from: 'list' })
+    emit('editLink', link.id, true)
+  }
 }
 </script>
 
@@ -71,7 +77,13 @@ async function onCreate() {
       </NcButton>
 
       <NcTooltip :title="$t('activity.linkSettings')">
-        <NcButton type="secondary" size="small" class="!px-0 !w-8" @click="emit('editLink', row.id)">
+        <NcButton
+          v-e="['c:share:link:settings']"
+          type="secondary"
+          size="small"
+          class="!px-0 !w-8"
+          @click="emit('editLink', row.id)"
+        >
           <GeneralIcon icon="ncSettings" class="w-4 h-4" />
         </NcButton>
       </NcTooltip>

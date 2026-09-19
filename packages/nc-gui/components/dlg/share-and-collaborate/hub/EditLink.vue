@@ -5,6 +5,8 @@ const emit = defineEmits(['done'])
 
 const { links, allowedRoles, defaultRole, defaultEmailDomain, saveLink, deleteLink } = useInviteLinks()
 
+const { $e } = useNuxtApp()
+
 const link = computed(() => links.value.find((l) => l.id === props.linkId))
 
 const draft = reactive({
@@ -45,6 +47,8 @@ async function onSave() {
 
   isSaving.value = true
 
+  $e('a:share:link:update', { role: draft.role, restricted: !draft.anyEmail })
+
   const saved = await saveLink(props.linkId, {
     role: draft.role,
     email_domain: draft.anyEmail ? null : draft.domain.trim(),
@@ -57,6 +61,8 @@ async function onSave() {
 
 async function onDelete() {
   isDeleting.value = true
+
+  $e('a:share:link:revoke')
 
   const done = await deleteLink(props.linkId)
 

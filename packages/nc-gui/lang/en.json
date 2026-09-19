@@ -755,7 +755,8 @@
     "variable": "Variable",
     "words": "words",
     "continue": "Continue",
-    "appFactory": "App Factory"
+    "appFactory": "App Factory",
+    "manage": "Manage"
   },
   "objects": {
     "chat": "Chat",
@@ -2455,6 +2456,8 @@
     "shareNamed": "Share {name}",
     "inviteByEmail": "Invite by email",
     "manageMembers": "Manage members",
+    "inviteViaPrivateLink": "Invite via private link",
+    "inviteSpecificPeople": "Invite specific people",
     "inviteViaLink": "Invite via link",
     "whoCanAccess": "Who can access",
     "allowAnyEmail": "Allow any email address",
@@ -4488,7 +4491,8 @@
     "factoryArchive": "Archive",
     "factoryArchived": "Archived — the sandbox was released; resume to rebuild it",
     "factoryResume": "Resume",
-    "factoryDeleteSessionTitle": "Delete this session?"
+    "factoryDeleteSessionTitle": "Delete this session?",
+    "manageInviteLinks": "Manage invite links"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4581,6 +4585,7 @@
     "newInviteLink": "New invite link",
     "createNewLink": "Create new link",
     "createInviteLink": "Create an invite link",
+    "copyInviteLink": "Copy invite link",
     "joinNow": "Join now",
     "createAccountToJoin": "Create an account to join",
     "signInToJoin": "Sign in to join",
@@ -5434,6 +5439,7 @@
       "inviteLinkCount": "{count} invite link | {count} invite links",
       "domainOnlyNote": "{'@'}{domain} only",
       "noInviteLinkYet": "No invite link yet. Create one to let people join without an individual invite.",
+      "inviteLinkCopied": "Invite link copied",
       "invitedToBase": "You've been invited to {name}",
       "invitedToWorkspace": "You've been invited to {name}",
       "youWillJoinAs": "You'll join as {role}.",
@@ -5915,7 +5921,9 @@
       "managedAppOwnerOnly": "Only the app owner or a base owner can publish versions and edit the store listing.",
       "publisherProfileReadOnly": "Only an owner or admin of this publisher can change how it is credited.",
       "enterAgentName": "Enter agent name",
-      "enterAgentDescription": "Enter agent description"
+      "enterAgentDescription": "Enter agent description",
+      "inviteLinkDomainSentence": "Anyone with a {domain} email can use this link to join as {role}",
+      "inviteLinkOpenSentence": "Share this link only with people you trust. Anyone with it can join as {role}"
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",

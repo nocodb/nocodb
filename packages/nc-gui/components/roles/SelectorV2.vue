@@ -19,7 +19,7 @@ const props = withDefaults(
     inheritedRoleIcon?: string
     inheritSource?: 'workspace' | 'team'
     effectiveRole?: string
-    triggerVariant?: 'badge' | 'detail' | 'field'
+    triggerVariant?: 'badge' | 'compact' | 'detail' | 'field'
   }>(),
   {
     border: true,
@@ -81,11 +81,16 @@ const activeRole = computed(() => {
 </script>
 
 <template>
-  <div class="nc-roles-selector relative flex items-center">
+  <!-- The compact variant sits inside a sentence, so its wrapper has to stay
+       inline or the pill breaks the line around it. -->
+  <div
+    class="nc-roles-selector relative"
+    :class="triggerVariant === 'compact' ? 'inline-flex items-baseline align-middle' : 'flex items-center'"
+  >
     <NcListDropdown
       v-model:visible="isDropdownOpen"
       :default-slot-wrapper="false"
-      default-slot-wrapper-class="flex-1 flex items-center gap-3"
+      :default-slot-wrapper-class="triggerVariant === 'compact' ? 'inline-flex items-center' : 'flex-1 flex items-center gap-3'"
       :placement="placement"
     >
       <!-- The detail trigger carries the description at rest, so picking a role
@@ -115,6 +120,23 @@ const activeRole = computed(() => {
           <span class="text-bodySm text-nc-content-gray-muted truncate">{{ activeRole.description }}</span>
         </div>
       </div>
+
+      <!-- Inline in a sentence, so it is shaped like the other inline token
+           rather than a form control: a bordered box mid-prose reads as a field
+           that escaped a form. The chevron and hover carry the affordance. -->
+      <span
+        v-else-if="triggerVariant === 'compact'"
+        class="nc-role-trigger-compact"
+        :class="{ 'is-open': isDropdownOpen }"
+        data-testid="roles"
+      >
+        <span class="nc-role-trigger-compact-label">{{ activeRole.label }}</span>
+        <GeneralIcon
+          icon="ncChevronDown"
+          class="nc-role-trigger-compact-caret"
+          :class="{ '-rotate-180': isDropdownOpen }"
+        />
+      </span>
 
       <!-- The field trigger reads as a form control: the role and what it grants
            on one line, so picking one does not mean opening the menu to find out. -->
@@ -206,6 +228,32 @@ const activeRole = computed(() => {
     </NcListDropdown>
   </div>
 </template>
+
+<style lang="scss" scoped>
+// Same token treatment as the domain chip beside it: both are the variables in
+// the sentence, so they should read as one kind of thing.
+.nc-role-trigger-compact {
+  @apply inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md align-middle cursor-pointer select-none;
+  background: var(--nc-bg-coloured-purple);
+  color: var(--nc-content-purple-dark);
+  transition: filter 0.15s ease;
+
+  &:hover,
+  &.is-open {
+    filter: brightness(0.96);
+  }
+}
+
+.nc-role-trigger-compact-label {
+  @apply font-normal;
+}
+
+.nc-role-trigger-compact-caret {
+  @apply flex-none h-3.5 w-3.5;
+  color: var(--nc-content-purple-dark);
+  transition: transform 0.2s ease;
+}
+</style>
 
 <style lang="scss" scoped>
 // Bigger and heavier than the default 16px outline tick — at 4px stroke it wins

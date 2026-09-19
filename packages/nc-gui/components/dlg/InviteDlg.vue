@@ -18,6 +18,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { load: loadInviteLinks } = useInviteLinks()
@@ -47,6 +49,8 @@ const heading = computed(() => {
 })
 
 function openEditLink(linkId: string, isNew = false) {
+  $e('c:share:ws:link:edit', { isNew })
+
   editLinkId.value = linkId
   editLinkIsNew.value = isNew
   screen.value = 'edit'
@@ -54,6 +58,11 @@ function openEditLink(linkId: string, isNew = false) {
 
 function goMain() {
   screen.value = 'main'
+}
+
+function openLinks() {
+  $e('c:share:ws:links')
+  screen.value = 'links'
 }
 
 watch(dialogShow, (open) => {
@@ -103,7 +112,7 @@ watch(dialogShow, (open) => {
       <!-- Its own card: the form above ends in its own footer, so without one
            the link block reads as stranded under those buttons. -->
       <div v-if="showLinks" class="mt-5 p-4 rounded-xl bg-nc-bg-gray-extralight">
-        <DlgShareAndCollaborateHubLinkBlock @edit-link="openEditLink" @all-links="screen = 'links'" />
+        <DlgShareAndCollaborateHubLinkBlock @manage="openLinks" />
       </div>
     </template>
 

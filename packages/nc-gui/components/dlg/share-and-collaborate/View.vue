@@ -181,6 +181,8 @@ function openEditLink(linkId: string, isNew = false) {
 
 /** The hub's people row is a doorway to the real members page. */
 async function openManageAccess() {
+  $e('c:share:manage-members')
+
   try {
     await navigateToProjectPage({ page: 'collaborator' })
     showShareModal.value = false

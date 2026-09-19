@@ -68,34 +68,50 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       <span v-for="i in 2" :key="i" class="h-8 rounded-lg bg-nc-bg-gray-extralight" />
     </div>
 
-    <div
-      v-for="row in rows"
-      :key="row.id"
-      class="flex items-center gap-2 min-h-14 border-b-1 border-nc-border-gray-light"
-      data-testid="nc-hub-link-row"
-    >
-      <div class="flex-1 text-bodyDefault text-nc-content-gray-subtle2">
-        {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
-        <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
-        <template v-if="row.domainNote"> · {{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
-        <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
-      </div>
+    <!-- The list is the only part that grows, so it is the only part that
+         scrolls: the header stays put and "Create new link" stays reachable
+         without scrolling to the bottom. A clipping ancestor cannot go any
+         higher up than this -- the invite form's org-user picker is absolutely
+         positioned and the members dialog keeps its overflow visible for it.
 
-      <NcButton type="secondary" size="small" class="!text-small" @click="copyRow(row.id)">
-        {{ copiedId === row.id ? $t('general.copied') : $t('activity.copyLink') }}
-      </NcButton>
+         `nc-scrollbar-visible`, not `-thin`: the thin variant leaves the bar to
+         the OS, which on macOS means it only appears mid-scroll, so a cut-off
+         list looks like the whole list. This one reserves the lane and paints
+         its own bar, which is the only standing hint that there is more.
 
-      <NcTooltip :title="$t('activity.linkSettings')">
-        <NcButton
-          v-e="['c:share:link:settings']"
-          type="secondary"
-          size="small"
-          class="!px-0 !w-8"
-          @click="emit('editLink', row.id)"
-        >
-          <GeneralIcon icon="ncSettings" class="w-4 h-4" />
+         The negative margin puts that bar in the modal's own right padding and
+         hands the width back to the rows: 16 of the 28px, which leaves the bar
+         clear of the buttons on one side and off the modal's edge on the other. -->
+    <div class="nc-hub-link-list max-h-[45vh] overflow-y-auto nc-scrollbar-visible -mr-4 pr-4">
+      <div
+        v-for="row in rows"
+        :key="row.id"
+        class="flex items-center gap-2 min-h-14 border-b-1 border-nc-border-gray-light"
+        data-testid="nc-hub-link-row"
+      >
+        <div class="flex-1 text-bodyDefault text-nc-content-gray-subtle2">
+          {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
+          <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
+          <template v-if="row.domainNote"> · {{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
+          <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
+        </div>
+
+        <NcButton type="secondary" size="small" class="!text-small" @click="copyRow(row.id)">
+          {{ copiedId === row.id ? $t('general.copied') : $t('activity.copyLink') }}
         </NcButton>
-      </NcTooltip>
+
+        <NcTooltip :title="$t('activity.linkSettings')">
+          <NcButton
+            v-e="['c:share:link:settings']"
+            type="secondary"
+            size="small"
+            class="!px-0 !w-8"
+            @click="emit('editLink', row.id)"
+          >
+            <GeneralIcon icon="ncSettings" class="w-4 h-4" />
+          </NcButton>
+        </NcTooltip>
+      </div>
     </div>
 
     <button

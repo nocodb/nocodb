@@ -1,4 +1,4 @@
-import type { InviteLinkReqType, InviteLinkType } from 'nocodb-sdk'
+import type { InviteLinkReqType, InviteLinkType, RoleLabels } from 'nocodb-sdk'
 import {
   InviteLinkScope,
   OrderedProjectRoles,
@@ -7,6 +7,7 @@ import {
   WorkspaceUserRoles,
   inviteLinkRolesFor,
 } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
 
 export interface InviteLinkTarget {
   scope: InviteLinkScope
@@ -42,25 +43,55 @@ export const useInviteLinks = createGlobalState(() => {
 
   const error = ref('')
 
+  const scope = computed(() => target.value?.scope ?? InviteLinkScope.BASE)
+
+  const isWorkspaceScope = computed(() => scope.value === InviteLinkScope.WORKSPACE)
+
+  /** Weakest first, so a higher index is more power. */
+  const orderedRoles = computed(() => [...(isWorkspaceScope.value ? OrderedWorkspaceRoles : OrderedProjectRoles)].reverse())
+
+  /** The highest-ranked role the user actually holds in this scope; -1 when none is known. */
+  const power = computed(() => {
+    const held = isWorkspaceScope.value ? workspaceRoles.value : baseRoles.value
+
+    return Math.max(-1, ...Object.keys(held || {}).map((r) => (held?.[r] ? orderedRoles.value.indexOf(r as never) : -1)))
+  })
+
   /**
    * Owner is never handed out by a link. Beyond that, nobody is offered a role
    * above their own: the server refuses it anyway (assertRolePower), so listing
    * it would only be a button that fails.
    */
   const allowedRoles = computed(() => {
-    const scope = target.value?.scope ?? InviteLinkScope.BASE
-    const offered = [...inviteLinkRolesFor(scope)]
+    const offered = [...inviteLinkRolesFor(scope.value)]
 
-    const isWorkspace = scope === InviteLinkScope.WORKSPACE
-    const ordered = [...(isWorkspace ? OrderedWorkspaceRoles : OrderedProjectRoles)].reverse()
-    const held = isWorkspace ? workspaceRoles.value : baseRoles.value
+    if (power.value < 0) return offered
 
-    // Power is the highest-ranked role the user actually holds in this scope.
-    const power = Math.max(-1, ...Object.keys(held || {}).map((r) => (held?.[r] ? ordered.indexOf(r as never) : -1)))
+    return offered.filter((r) => orderedRoles.value.indexOf(r as never) <= power.value)
+  })
 
-    if (power < 0) return offered
+  /**
+   * Shown greyed out rather than hidden, the way the members dialog does it, so
+   * the picker reads the same everywhere and the tooltip can say why. Owner
+   * first, then the link roles above the caller's own, strongest first.
+   */
+  const disabledRoles = computed(() => {
+    const owner = isWorkspaceScope.value ? WorkspaceUserRoles.OWNER : ProjectRoles.OWNER
+    const above = inviteLinkRolesFor(scope.value).filter((r) => !allowedRoles.value.includes(r))
 
-    return offered.filter((r) => ordered.indexOf(r as never) <= power)
+    return [owner, ...above] as (keyof typeof RoleLabels)[]
+  })
+
+  const disabledRolesTooltip = computed(() => {
+    const { t } = getI18n().global
+    const owner = isWorkspaceScope.value ? WorkspaceUserRoles.OWNER : ProjectRoles.OWNER
+
+    return Object.fromEntries(
+      disabledRoles.value.map((r) => [
+        r,
+        r === owner ? t('tooltip.inviteLinkCannotGrantOwner') : t('tooltip.inviteLinkRoleAboveYours'),
+      ]),
+    ) as Record<keyof typeof RoleLabels, string>
   })
 
   /**
@@ -194,6 +225,8 @@ export const useInviteLinks = createGlobalState(() => {
     error,
     reset,
     allowedRoles,
+    disabledRoles,
+    disabledRolesTooltip,
     defaultRole,
     defaultEmailDomain,
     linkUrl,

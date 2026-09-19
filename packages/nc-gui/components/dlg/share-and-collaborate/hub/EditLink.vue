@@ -4,7 +4,17 @@ const props = withDefaults(defineProps<{ linkId?: string; isNew?: boolean }>(), 
 
 const emit = defineEmits(['done'])
 
-const { links, allowedRoles, defaultRole, defaultEmailDomain, createLink, saveLink, deleteLink } = useInviteLinks()
+const {
+  links,
+  allowedRoles,
+  disabledRoles,
+  disabledRolesTooltip,
+  defaultRole,
+  defaultEmailDomain,
+  createLink,
+  saveLink,
+  deleteLink,
+} = useInviteLinks()
 
 const { $e } = useNuxtApp()
 
@@ -102,6 +112,8 @@ watch(link, resetDraft, { immediate: true })
         :on-role-change="onRoleChange"
         :role="draft.role"
         :roles="allowedRoles"
+        :disabled-roles="disabledRoles"
+        :disabled-roles-tooltip="disabledRolesTooltip"
         trigger-variant="field"
         size="lg"
         placement="bottomLeft"

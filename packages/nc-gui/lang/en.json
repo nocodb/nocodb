@@ -4867,6 +4867,8 @@
     "surveyFormInfo": "Form mode with one field per page",
     "roleInheritedFromWorkspace": "Role inherited from workspace",
     "roleInheritedFromTeam": "Role inherited from team",
+    "inviteLinkCannotGrantOwner": "An invite link can't grant Owner",
+    "inviteLinkRoleAboveYours": "You can only offer roles up to your own",
     "cannotRemoveInheritedInterfaceMember": "Access is inherited from the base. Manage it from",
     "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB.",
     "fieldNameIsRequriedToAutoSuggestOptions": "Field name is required to auto suggest options",

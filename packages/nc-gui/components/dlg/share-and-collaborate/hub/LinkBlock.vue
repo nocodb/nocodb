@@ -8,8 +8,19 @@ const emit = defineEmits(['manage'])
 
 const { t } = useI18n()
 
-const { links, linkUrl, isLoading, isLoaded, allowedRoles, defaultRole, defaultEmailDomain, createLink, saveLink } =
-  useInviteLinks()
+const {
+  links,
+  linkUrl,
+  isLoading,
+  isLoaded,
+  allowedRoles,
+  disabledRoles,
+  disabledRolesTooltip,
+  defaultRole,
+  defaultEmailDomain,
+  createLink,
+  saveLink,
+} = useInviteLinks()
 
 const { copy } = useCopy()
 
@@ -98,8 +109,8 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
            there is nothing to count and nothing to manage, so it is absent. -->
       <button
         v-if="links.length"
-        class="nc-hub-manage-links flex-none text-bodySm text-nc-content-gray-muted hover:text-nc-content-gray"
         v-e="['c:share:link:manage']"
+        class="nc-hub-manage-links flex-none text-bodySm text-nc-content-gray-muted hover:text-nc-content-gray"
         data-testid="nc-hub-all-links"
         @click="emit('manage')"
       >
@@ -121,6 +132,8 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
             :on-role-change="onRoleChange"
             :role="role"
             :roles="allowedRoles"
+            :disabled-roles="disabledRoles"
+            :disabled-roles-tooltip="disabledRolesTooltip"
             trigger-variant="compact"
             size="sm"
             placement="bottomLeft"

@@ -33,6 +33,31 @@ export function ncIsStringHasValue(val: string | undefined | null) {
 }
 
 /**
+ * Split an `allof`/`anyof`/`nallof`/`nanyof` value into its items.
+ *
+ * The value is normally a comma-separated string, but it is not always one:
+ * interface page configs store filter trees as plain JSON with an untyped
+ * `value` (`filterLeafSchema`), so an array or a number reaches the clause
+ * builders intact. A bare `val.split(',')` then throws at query-COMPILE time,
+ * inside the knex where-callback — surfacing as a 500 whose stack holds no
+ * NocoDB frames at all (`compileCallback → whereWrapped → toSQL`).
+ */
+export function ncSplitFilterValue(
+  val: unknown,
+  comparisonOp?: string,
+): string[] {
+  if (ncIsNull(val) || ncIsUndefined(val)) return [];
+  if (Array.isArray(val)) return val.map((item) => `${item}`);
+  // A knex ref/raw (dynamic field-to-field filter) has no CSV meaning, and its
+  // stringified form would compile into a literal match that silently returns
+  // the wrong rows. Fail loudly instead — as it already did, but cleanly.
+  if (typeof val === 'object') {
+    NcError._.unsupportedFilterOperation(comparisonOp);
+  }
+  return `${val}`.split(',');
+}
+
+/**
  * Detect a knex raw / ref value. Dynamic (field-to-field) filters set
  * `filter.value` to a `knex.ref()` / `knex.raw()` column reference instead of
  * a scalar literal. Such objects carry `isRawInstance === true`.

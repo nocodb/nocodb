@@ -73,12 +73,25 @@ const invalidCopy = computed(() => {
   }
 })
 
+/** EE routes a base under its workspace; CE has no workspace and uses the `nc` placeholder. */
+function landingPath({ base_id: baseId, workspace_id: workspaceId }: { base_id?: string | null; workspace_id?: string | null }) {
+  return baseId ? `/${workspaceId ?? 'nc'}/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
+}
+
 async function loadPreview() {
   isLoading.value = true
   loadError.value = ''
 
   try {
     const res = await $api.instance.get(`/api/v2/invite-links/${encodeURIComponent(token.value)}`)
+
+    // Already a member at this role or better: nothing to join, so open the
+    // target and keep the skeleton up until the browser leaves.
+    if (res.data?.already_member) {
+      window.location.replace(landingPath(res.data))
+      return
+    }
+
     preview.value = res.data
   } catch (e: any) {
     loadError.value = await extractSdkResponseErrorMsg(e)
@@ -106,12 +119,10 @@ async function onJoin() {
 
   try {
     const res = await $api.instance.post(`/api/v2/invite-links/${encodeURIComponent(token.value)}/accept`)
-    const { base_id: baseId, workspace_id: workspaceId } = res.data || {}
 
     // A hard navigation rather than a router push: membership just changed, and
     // every store holding the old permissions needs to be rebuilt.
-    // EE routes a base under its workspace; CE has no workspace and uses the `nc` placeholder.
-    window.location.href = baseId ? `/${workspaceId ?? 'nc'}/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
+    window.location.href = landingPath(res.data || {})
   } catch (e: any) {
     joinError.value = await extractSdkResponseErrorMsg(e)
     isJoining.value = false

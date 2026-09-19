@@ -129,11 +129,16 @@ export class InviteLinksController {
 export class PublicInviteLinksController {
   constructor(protected readonly inviteLinksService: InviteLinksService) {}
 
+  // GlobalGuard here is optional auth: no token, or a stale one, falls back to
+  // the anonymous guest. A signed-in caller who is already a member is told so,
+  // and the page opens the target instead of offering a Join.
   @Get('/api/v2/invite-links/:token')
+  @UseGuards(GlobalGuard)
   async preview(
     @TenantContext() context: NcContext,
     @Param('token') token: string,
+    @Req() req: NcRequest,
   ) {
-    return this.inviteLinksService.preview(context, { token });
+    return this.inviteLinksService.preview(context, { token, req });
   }
 }

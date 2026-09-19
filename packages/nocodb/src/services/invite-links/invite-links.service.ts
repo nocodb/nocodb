@@ -400,10 +400,21 @@ export class InviteLinksService {
    */
   async preview(
     context: NcContext,
-    param: { token: string },
+    param: { token: string; req?: NcRequest },
     ncMeta = Noco.ncMeta,
   ): Promise<InviteLinkPreviewType> {
     const link = await InviteLink.getByToken(param.token, ncMeta);
+
+    // A member at the link's role or better has nothing to redeem, whatever
+    // state the link is in -- send them to the thing they can already open.
+    const userId = param.req?.user?.id;
+    const access =
+      link && userId
+        ? await this.existingAccess(context, link, userId, ncMeta)
+        : null;
+
+    if (access) return { scope: link.scope, already_member: true, ...access };
+
     const reason = this.invalidReason(link);
 
     if (reason) return { invalid_reason: reason };
@@ -414,6 +425,39 @@ export class InviteLinksService {
       role: link.role,
       email_domain: link.email_domain,
     };
+  }
+
+  /**
+   * Where the caller lands if they already hold what the link offers. Same
+   * rule as grant's no-demotion branch; CE knows only base links.
+   */
+  protected async existingAccess(
+    context: NcContext,
+    link: InviteLink,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ base_id?: string; workspace_id?: string } | null> {
+    if (link.scope !== InviteLinkScope.BASE) return null;
+
+    const existing = await BaseUser.get(
+      { ...context, base_id: link.base_id, workspace_id: link.fk_workspace_id },
+      link.base_id,
+      userId,
+      ncMeta,
+    );
+
+    if (!existing?.roles) return null;
+
+    const ordered = [...OrderedProjectRoles].reverse();
+
+    if (
+      ordered.indexOf(existing.roles as ProjectRoles) <
+      ordered.indexOf(link.role as ProjectRoles)
+    ) {
+      return null;
+    }
+
+    return { base_id: link.base_id };
   }
 
   /** CE has no workspace concept, so only a base resolves to a name here. */
@@ -451,7 +495,10 @@ export class InviteLinksService {
       // An unverified address is a claim, not a fact; a domain restriction that
       // trusts it restricts nothing. Only enforceable where the instance can
       // actually verify -- see canVerifyEmail.
-      if (!(user as any).email_verified && (await this.canVerifyEmail(ncMeta))) {
+      if (
+        !(user as any).email_verified &&
+        (await this.canVerifyEmail(ncMeta))
+      ) {
         NcError.forbidden(
           `Verify your email address before using a link restricted to @${link.email_domain}`,
         );

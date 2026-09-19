@@ -133,4 +133,12 @@ export interface InviteLinkPreviewType {
   email_domain?: string | null;
   /** Set when the link cannot be redeemed, so the page can say why. */
   invalid_reason?: InviteLinkInvalidReason;
+  /**
+   * Only for a signed-in caller who already holds the link's role or better:
+   * there is nothing to redeem, so the page opens the target instead of asking
+   * them to join. The ids are what that caller sees on landing anyway.
+   */
+  already_member?: boolean;
+  base_id?: string | null;
+  workspace_id?: string | null;
 }

@@ -74,6 +74,16 @@ export const INVITE_LINK_DEFAULT_EXPIRY_DAYS = 7;
  */
 export const INVITE_LINK_MAX_EXPIRY_DAYS = 3650;
 
+/**
+ * Upper bound on a use cap. Same reason as the expiry bound: without it an
+ * out-of-range number reaches an `integer` column and comes back as a driver
+ * error rather than a validation message.
+ */
+export const INVITE_LINK_MAX_USES = 100000;
+
+/** Longest `email_domain` the column accepts. */
+export const INVITE_LINK_MAX_DOMAIN_LENGTH = 255;
+
 export interface InviteLinkType {
   id?: string;
   scope?: InviteLinkScope;

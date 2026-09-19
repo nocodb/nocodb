@@ -586,7 +586,6 @@ export enum CacheScope {
   BASE_USER = 'baseUser',
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
-  INVITE_LINK = 'inviteLink',
   BOOKMARK_GROUP = 'bookmarkGroup',
   BOOKMARK = 'bookmark',
   INSTANCE_META = 'instanceMeta',

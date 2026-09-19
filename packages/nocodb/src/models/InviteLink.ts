@@ -57,14 +57,6 @@ export default class InviteLink implements InviteLinkType {
     return (withToken ? { ...rest, token } : rest) as InviteLinkType;
   }
 
-  /**
-   * Never let the secret reach a response that is not entitled to it -- the
-   * unauthenticated preview in particular.
-   */
-  static withoutToken(link: InviteLink): InviteLinkType {
-    return this.toResponse(link);
-  }
-
   private static hydrate(row: any): InviteLink | null {
     if (!row) return null;
 

@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   INVITE_LINK_DEFAULT_EXPIRY_DAYS,
+  INVITE_LINK_MAX_DOMAIN_LENGTH,
   INVITE_LINK_MAX_EXPIRY_DAYS,
+  INVITE_LINK_MAX_USES,
   InviteLinkScope,
   isInviteLinkRole,
   OrderedProjectRoles,
@@ -124,9 +126,12 @@ export class InviteLinksService {
     if (
       typeof maxUses !== 'number' ||
       !Number.isInteger(maxUses) ||
-      maxUses < 1
+      maxUses < 1 ||
+      maxUses > INVITE_LINK_MAX_USES
     ) {
-      NcError.badRequest('max_uses must be a whole number of at least 1');
+      NcError.badRequest(
+        `max_uses must be a whole number between 1 and ${INVITE_LINK_MAX_USES}`,
+      );
     }
 
     return maxUses;
@@ -163,7 +168,12 @@ export class InviteLinksService {
 
     if (!trimmed) return null;
 
-    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(trimmed)) {
+    // Length before shape: the regex is happy with a 300-character domain, which
+    // the column is not, and the driver error is not a useful message.
+    if (
+      trimmed.length > INVITE_LINK_MAX_DOMAIN_LENGTH ||
+      !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(trimmed)
+    ) {
       NcError.badRequest('Invalid email domain');
     }
 
@@ -274,7 +284,8 @@ export class InviteLinksService {
   ) {
     const link = await InviteLink.get(param.linkId, ncMeta);
 
-    if (!link || link.revoked_at) NcError.notFound('Invite link not found');
+    if (!link || link.revoked_at)
+      NcError.genericNotFound('Invite link', param.linkId);
 
     const owned =
       param.scope === InviteLinkScope.BASE
@@ -282,7 +293,7 @@ export class InviteLinksService {
         : link.scope === InviteLinkScope.WORKSPACE &&
           link.fk_workspace_id === param.workspaceId;
 
-    if (!owned) NcError.notFound('Invite link not found');
+    if (!owned) NcError.genericNotFound('Invite link', param.linkId);
 
     // Below creator you may only touch what you made. Not-found rather than
     // forbidden: whether someone else's link exists is not their business.
@@ -291,7 +302,7 @@ export class InviteLinksService {
       !this.canManageAllLinks(param.scope, param.req) &&
       link.created_by !== param.req.user?.id
     ) {
-      NcError.notFound('Invite link not found');
+      NcError.genericNotFound('Invite link', param.linkId);
     }
 
     return link;

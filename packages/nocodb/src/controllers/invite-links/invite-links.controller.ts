@@ -115,9 +115,14 @@ export class InviteLinksController {
 }
 
 /**
- * The preview is the only unauthenticated surface. It is rate-limited with the
- * public limiter and answers with the thing's name and the role on offer — it
- * never returns the token, the creator, or who else is a member.
+ * The preview is the only unauthenticated surface. It answers with the thing's
+ * name and the role on offer -- never the token, the creator, or who else is a
+ * member.
+ *
+ * `PublicApiLimiterGuard` only throttles on EE with a throttler Redis
+ * configured; in CE it is a documented pass-through and rate limiting is the
+ * network layer's job. Brute force is not the concern either way -- the token
+ * is 256 bits and the lookup is one indexed equality on its hash.
  */
 @Controller()
 @UseGuards(PublicApiLimiterGuard)

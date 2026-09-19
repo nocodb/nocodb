@@ -22,7 +22,14 @@ const { $e } = useNuxtApp()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { load: loadInviteLinks } = useInviteLinks()
+const { load: loadInviteLinks, defaultEmailDomain } = useInviteLinks()
+
+/** Their own domain makes the example read as their team, not a stock address. */
+const emailPlaceholder = computed(() =>
+  defaultEmailDomain.value
+    ? `name1@${defaultEmailDomain.value}, name2@${defaultEmailDomain.value}`
+    : 'name@example.com, another@example.com',
+)
 
 /**
  * Both the base and the workspace invite offer a link. The team pickers do not:
@@ -45,13 +52,14 @@ const linkTarget = computed(() => {
 
 const showLinks = computed(() => !!linkTarget.value)
 
-const screen = ref<'main' | 'links' | 'edit'>('main')
+const screen = ref<'main' | 'compose' | 'links' | 'edit'>('main')
 
 const editLinkId = ref('')
 
 const editLinkIsNew = ref(false)
 
 const heading = computed(() => {
+  if (screen.value === 'compose') return t('labels.inviteSpecificPeople')
   if (screen.value === 'links') return t('activity.inviteLinks')
   if (screen.value === 'edit') return t(editLinkIsNew.value ? 'activity.newInviteLink' : 'activity.editInviteLink')
 
@@ -77,6 +85,11 @@ function goMain() {
 function openLinks() {
   $e('c:share:ws:links')
   screen.value = 'links'
+}
+
+function openCompose() {
+  $e('c:share:ws:compose')
+  screen.value = 'compose'
 }
 
 watch(dialogShow, (open) => {
@@ -110,17 +123,32 @@ watch(dialogShow, (open) => {
     <template v-if="screen === 'main'">
       <!-- Link first, same order as the share hub: the link is the fast path and
            the named invite is the deliberate one. -->
+      <!-- Named invites lead here: this dialog is opened from a members page,
+           where the intent is already "add this person". The share hub keeps
+           the link first, where the intent is to share. -->
       <template v-if="showLinks">
-        <DlgShareAndCollaborateHubLinkBlock @manage="openLinks" />
-
-        <div class="h-px bg-nc-border-gray-light my-5" />
-
         <div class="text-bodyDefault font-semibold text-nc-content-gray mb-2">
           {{ $t('labels.inviteSpecificPeople') }}
         </div>
+
+        <!-- A doorway, not the form: the role belongs on the compose screen, so
+             it is not stated twice under a link that already names one. -->
+        <input
+          class="nc-hub-email-field w-full h-11 px-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default outline-none text-bodyDefault text-nc-content-gray hover:border-nc-border-gray-dark"
+          :placeholder="emailPlaceholder"
+          data-testid="nc-hub-invite-by-email"
+          readonly
+          @focus="openCompose"
+          @click="openCompose"
+        />
+
+        <div class="h-px bg-nc-border-gray-light my-5" />
+
+        <DlgShareAndCollaborateHubLinkBlock @manage="openLinks" />
       </template>
 
       <DlgInviteForm
+        v-else
         :active="dialogShow"
         :type="type"
         :is-team="isTeam"
@@ -133,6 +161,22 @@ watch(dialogShow, (open) => {
         @close="dialogShow = false"
       />
     </template>
+
+    <DlgInviteForm
+      v-else-if="screen === 'compose'"
+      :active="dialogShow"
+      :type="type"
+      :is-team="isTeam"
+      :base-id="baseId"
+      :emails="emails"
+      :workspace-id="workspaceId"
+      :users="users"
+      :teams="teams"
+      :existing-team-ids="existingTeamIds"
+      layout="compose"
+      @close="goMain"
+      @success="goMain"
+    />
 
     <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" class="!px-0" @edit-link="openEditLink" />
 

@@ -18,7 +18,22 @@ const {
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
+const { user } = useGlobal()
+
 const link = computed(() => links.value.find((l) => l.id === props.linkId))
+
+/** Who minted it, so a manager editing someone else's link knows whose it is. */
+const createdBy = computed(() => {
+  const l = link.value
+  if (!l?.created_by) return ''
+  if (l.created_by === user.value?.id) return t('msg.info.linkCreatedByYou')
+
+  const name = l.created_by_display_name || l.created_by_email
+
+  return name ? t('msg.info.linkCreatedBy', { name }) : ''
+})
 
 const draft = reactive({
   role: defaultRole.value as string,
@@ -106,6 +121,8 @@ watch(link, resetDraft, { immediate: true })
 
 <template>
   <div class="flex flex-col gap-5 px-7 pt-5 pb-7">
+    <div v-if="createdBy" class="text-bodyDefaultSm text-nc-content-gray-muted -mt-1">{{ createdBy }}</div>
+
     <div class="flex flex-col gap-1.5">
       <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.permission') }}</div>
       <RolesSelectorV2

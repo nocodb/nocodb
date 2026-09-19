@@ -15,6 +15,7 @@ import type {
   InviteLinkPreviewType,
   InviteLinkReqType,
   InviteLinkRole,
+  InviteLinkType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import InviteLink from '~/models/InviteLink';
@@ -296,13 +297,47 @@ export class InviteLinksService {
 
     // The token is returned here on purpose: the caller can already mint one at
     // this role, and the UI has to render a copyable URL.
-    return visible.map((l) => InviteLink.toResponse(l, { withToken: true }));
+    return this.withCreators(
+      visible.map((l) => InviteLink.toResponse(l, { withToken: true })),
+      ncMeta,
+    );
   }
 
   /**
    * The id alone must not be enough: the link has to belong to the scope the
    * caller was authorised against, or a base creator could edit another base's.
    */
+  /**
+   * Resolves `created_by` for display. One lookup per distinct creator, not per
+   * link -- a base's ten links are usually two or three people.
+   */
+  protected async withCreators(
+    links: InviteLinkType[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<InviteLinkType[]> {
+    const ids = [...new Set(links.map((l) => l.created_by).filter(Boolean))];
+
+    if (!ids.length) return links;
+
+    const byId = new Map(
+      (await Promise.all(ids.map((id) => User.get(id, ncMeta))))
+        .filter(Boolean)
+        .map((u) => [u.id, u]),
+    );
+
+    return links.map((l) => {
+      const user = l.created_by ? byId.get(l.created_by) : undefined;
+
+      return user
+        ? {
+            ...l,
+            created_by_email: user.email,
+            created_by_display_name: user.display_name || undefined,
+          }
+        : l;
+    });
+  }
+
   protected async getOwnedLink(
     param: {
       linkId: string;

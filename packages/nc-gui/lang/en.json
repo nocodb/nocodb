@@ -5449,6 +5449,8 @@
       "youWillJoinAs": "You'll join as {role}.",
       "askForANewLink": "Ask whoever shared it for a new one.",
       "linkUsesCount": "{uses} used",
+      "linkCreatedBy": "Created by {name}",
+      "linkCreatedByYou": "Created by you",
       "domainNeedsVerifiedEmail": "Only people with a verified {'@'}{domain} address can join.",
       "signedInWrongDomain": "You're signed in as {email}. This link only accepts {'@'}{domain} addresses.",
       "signedInAs": "You're signed in as {email}.",

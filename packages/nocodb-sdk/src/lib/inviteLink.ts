@@ -105,6 +105,13 @@ export interface InviteLinkType {
   used_count?: number;
   revoked_at?: string | null;
   created_by?: string;
+  /**
+   * Who minted the link, resolved for display. Attached by `list` only: below
+   * creator a caller sees only their own links, but a manager scanning ten of
+   * them needs to know whose each one is.
+   */
+  created_by_email?: string;
+  created_by_display_name?: string;
   created_at?: string;
   updated_at?: string;
   /**

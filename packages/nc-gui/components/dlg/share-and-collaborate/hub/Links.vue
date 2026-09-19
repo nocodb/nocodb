@@ -7,6 +7,8 @@ const { t } = useI18n()
 
 const { links, linkUrl, isLoading, isLoaded } = useInviteLinks()
 
+const { user } = useGlobal()
+
 const { copy } = useCopy()
 
 const { $e } = useNuxtApp()
@@ -19,12 +21,18 @@ const rows = computed(() =>
   links.value.map((l) => {
     const label = t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`).toLowerCase()
 
+    // Anyone from viewer up can mint a link, so a manager scanning the list
+    // needs to know whose each one is before revoking it.
+    const isMine = !!l.created_by && l.created_by === user.value?.id
+    const creator = l.created_by_display_name || l.created_by_email
+
     return {
       id: l.id,
       role: label,
       article: /^[aeiou]/.test(label) ? 'an' : 'a',
       domainNote: l.email_domain || '',
       uses: l.max_uses ? `${l.used_count ?? 0}/${l.max_uses}` : '',
+      createdBy: isMine ? t('msg.info.linkCreatedByYou') : creator ? t('msg.info.linkCreatedBy', { name: creator }) : '',
     }
   }),
 )
@@ -89,11 +97,17 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         class="flex items-center gap-2 min-h-14 border-b-1 border-nc-border-gray-light"
         data-testid="nc-hub-link-row"
       >
-        <div class="flex-1 text-bodyDefault text-nc-content-gray-subtle2">
-          {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
-          <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
-          <template v-if="row.domainNote"> · {{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
-          <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
+        <div class="flex-1 min-w-0">
+          <div class="text-bodyDefault text-nc-content-gray-subtle2">
+            {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
+            <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
+            <template v-if="row.domainNote"> · {{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
+            <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
+          </div>
+
+          <div v-if="row.createdBy" class="text-captionSm text-nc-content-gray-muted truncate">
+            {{ row.createdBy }}
+          </div>
         </div>
 
         <NcButton type="secondary" size="small" class="!text-small" @click="copyRow(row.id)">

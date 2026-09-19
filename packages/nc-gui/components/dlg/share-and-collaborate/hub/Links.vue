@@ -141,7 +141,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
     </div>
 
     <button
-      class="flex items-center gap-2 h-11 -mx-2 mt-1 px-2 rounded-lg text-bodyDefault font-semibold text-nc-content-brand hover:bg-nc-bg-gray-extralight disabled:opacity-50"
+      class="flex items-center gap-2 h-10 mt-1 mr-1.5 px-2 rounded-lg text-bodyDefault font-semibold text-nc-content-brand hover:bg-nc-bg-gray-extralight disabled:opacity-50"
       data-testid="nc-hub-create-link"
       @click="onCreate"
     >

@@ -70,13 +70,12 @@ const sendLabel = computed(() => {
       type="primary"
       size="medium"
       class="nc-hub-invite-btn !w-full"
-      full-width
       data-testid="nc-hub-send-invites"
       :disabled="!formRef?.canSubmit"
       :loading="!!formRef?.isLoading"
       @click="formRef?.submit()"
     >
-      <span class="flex w-full items-center justify-center">{{ sendLabel }}</span>
+      {{ sendLabel }}
     </NcButton>
   </div>
 </template>

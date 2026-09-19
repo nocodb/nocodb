@@ -158,7 +158,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       :disabled="!isLoaded && isLoading"
       @click="onCopy"
     >
-      <span class="flex w-full items-center justify-center gap-2">
+      <span class="flex items-center justify-center gap-2">
         <Transition name="nc-copy-swap" mode="out-in">
           <span v-if="isCopied" key="copied" class="flex items-center gap-2">
             <!-- An outline check: the build injects stroke="currentColor" on every

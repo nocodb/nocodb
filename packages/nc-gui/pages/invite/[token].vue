@@ -229,13 +229,13 @@ onMounted(() => {
                 data-testid="nc-invite-switch-account"
                 @click="switchAccount"
               >
-                <span class="flex w-full items-center justify-center">{{ $t('activity.signInWithDifferentAccount') }}</span>
+                {{ $t('activity.signInWithDifferentAccount') }}
               </NcButton>
 
               <!-- Signing out is a heavy price for opening the wrong link. The
                    account they are in is still theirs; let them go back to it. -->
               <NcButton type="text" size="medium" class="!w-full" data-testid="nc-invite-home" @click="navigateTo('/')">
-                <span class="flex w-full items-center justify-center">{{ $t('general.home') }}</span>
+                {{ $t('general.home') }}
               </NcButton>
             </div>
 
@@ -248,7 +248,7 @@ onMounted(() => {
                 data-testid="nc-invite-join"
                 @click="onJoin"
               >
-                <span class="flex w-full items-center justify-center">{{ $t('activity.joinNow') }}</span>
+                {{ $t('activity.joinNow') }}
               </NcButton>
 
               <template v-if="joinError">
@@ -265,18 +265,18 @@ onMounted(() => {
                   data-testid="nc-invite-switch-account"
                   @click="switchAccount"
                 >
-                  <span class="flex w-full items-center justify-center">{{ $t('activity.signInWithDifferentAccount') }}</span>
+                  {{ $t('activity.signInWithDifferentAccount') }}
                 </NcButton>
 
                 <NcButton type="text" size="medium" class="!w-full" data-testid="nc-invite-home" @click="navigateTo('/')">
-                  <span class="flex w-full items-center justify-center">{{ $t('general.home') }}</span>
+                  {{ $t('general.home') }}
                 </NcButton>
               </template>
             </div>
 
             <div v-else class="flex flex-col gap-2 w-full">
               <NcButton type="primary" size="medium" class="!w-full" data-testid="nc-invite-signup" @click="goSignIn('/signup')">
-                <span class="flex w-full items-center justify-center">{{ $t('activity.createAccountToJoin') }}</span>
+                {{ $t('activity.createAccountToJoin') }}
               </NcButton>
               <NcButton
                 type="secondary"
@@ -285,7 +285,7 @@ onMounted(() => {
                 data-testid="nc-invite-signin"
                 @click="goSignIn('/signin')"
               >
-                <span class="flex w-full items-center justify-center">{{ $t('activity.signInToJoin') }}</span>
+                {{ $t('activity.signInToJoin') }}
               </NcButton>
             </div>
           </template>

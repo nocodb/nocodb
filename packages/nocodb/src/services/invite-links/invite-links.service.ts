@@ -719,15 +719,20 @@ export class InviteLinksService {
     if (!user) NcError.unauthorized('Sign in to use an invite link');
 
     if (link.email_domain) {
-      // Matched on the address alone. An unverified address is only a claim, so
-      // this restriction is best-effort -- someone who receives the URL can sign
-      // up at the domain and get in. The `email_verified` precondition that used
-      // to sit here was dropped on 2026-09-19: nothing in the product ever sets
-      // that column (both signup paths have the verification mail commented out,
-      // and neither SSO nor Cognito writes it back), so on any instance with an
-      // email plugin it refused every redeemer of every domain-restricted link
-      // -- which is the default link. Restore it only alongside verification
-      // that actually runs.
+      // Matched on the address alone. How much that proves depends on the
+      // edition: on cloud Cognito verifies the address before the account
+      // exists, so nobody holds an @acme.io login without @acme.io, and this is
+      // a real check. On CE and on-prem self-signup nothing verifies anything,
+      // so there it is best-effort -- whoever receives the URL can sign up at
+      // the domain and get in.
+      //
+      // The `email_verified` precondition that used to sit here was dropped on
+      // 2026-09-19: nothing in the product ever sets that column (both signup
+      // paths have the verification mail commented out, neither SSO nor Cognito
+      // writes it back, and there is no verify screen in the UI at all), so on
+      // any instance with an email plugin it refused every redeemer of every
+      // domain-restricted link -- which is the default link -- with no way for
+      // anyone to satisfy it. Restore it only alongside verification that runs.
       if (!this.emailMatchesDomain(user.email, link.email_domain)) {
         NcError.forbidden(
           `This invite link only accepts @${link.email_domain} addresses`,

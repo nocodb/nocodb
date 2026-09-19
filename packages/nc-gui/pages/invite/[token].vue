@@ -85,7 +85,8 @@ async function onJoin() {
 
     // A hard navigation rather than a router push: membership just changed, and
     // every store holding the old permissions needs to be rebuilt.
-    window.location.href = baseId ? `/nc/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
+    // EE routes a base under its workspace; CE has no workspace and uses the `nc` placeholder.
+    window.location.href = baseId ? `/${workspaceId ?? 'nc'}/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     isJoining.value = false

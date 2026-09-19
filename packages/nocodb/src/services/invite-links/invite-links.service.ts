@@ -8,7 +8,6 @@ import {
   InviteLinkScope,
   isInviteLinkRole,
   OrderedProjectRoles,
-  PluginCategory,
   ProjectRoles,
 } from 'nocodb-sdk';
 import type {
@@ -24,7 +23,6 @@ import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { getProjectRolePower } from '~/utils/roleHelper';
-import { MetaTable, RootScopes } from '~/utils/globals';
 
 /**
  * Shareable invite links.
@@ -161,23 +159,6 @@ export class InviteLinksService {
     }
 
     return maxUses;
-  }
-
-  /**
-   * Verification is only a meaningful gate where the instance can actually send
-   * the mail. With no active email plugin nobody can ever become verified, so
-   * requiring it would refuse every redeemer rather than only the unproven
-   * ones -- and a domain-restricted link is now the default.
-   */
-  protected async canVerifyEmail(ncMeta = Noco.ncMeta) {
-    const plugin = await ncMeta.metaGet2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.PLUGIN,
-      { category: PluginCategory.EMAIL, active: true },
-    );
-
-    return !!plugin;
   }
 
   /** `acme.io` must not be satisfied by `evil-acme.io`. */
@@ -738,18 +719,15 @@ export class InviteLinksService {
     if (!user) NcError.unauthorized('Sign in to use an invite link');
 
     if (link.email_domain) {
-      // An unverified address is a claim, not a fact; a domain restriction that
-      // trusts it restricts nothing. Only enforceable where the instance can
-      // actually verify -- see canVerifyEmail.
-      if (
-        !(user as any).email_verified &&
-        (await this.canVerifyEmail(ncMeta))
-      ) {
-        NcError.forbidden(
-          `Verify your email address before using a link restricted to @${link.email_domain}`,
-        );
-      }
-
+      // Matched on the address alone. An unverified address is only a claim, so
+      // this restriction is best-effort -- someone who receives the URL can sign
+      // up at the domain and get in. The `email_verified` precondition that used
+      // to sit here was dropped on 2026-09-19: nothing in the product ever sets
+      // that column (both signup paths have the verification mail commented out,
+      // and neither SSO nor Cognito writes it back), so on any instance with an
+      // email plugin it refused every redeemer of every domain-restricted link
+      // -- which is the default link. Restore it only alongside verification
+      // that actually runs.
       if (!this.emailMatchesDomain(user.email, link.email_domain)) {
         NcError.forbidden(
           `This invite link only accepts @${link.email_domain} addresses`,

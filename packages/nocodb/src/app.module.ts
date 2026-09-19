@@ -85,6 +85,12 @@ export class AppModule {
       method: RequestMethod.POST,
     });
 
+    // The App Factory's provider webhooks are signed over the bytes as sent.
+    consumer.apply(SignedBodyMiddleware).forRoutes({
+      path: '/api/v2/app-factory/webhook/*',
+      method: RequestMethod.POST,
+    });
+
     consumer.apply(JsonBodyMiddleware).forRoutes('*');
 
     consumer.apply(UrlEncodeMiddleware).forRoutes('*');

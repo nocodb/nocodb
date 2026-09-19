@@ -166,6 +166,7 @@ export enum MetaTable {
   CHAT_SESSIONS = 'nc_chat_sessions',
   CHAT_MESSAGES = 'nc_chat_messages',
   CHAT_ARTIFACTS = 'nc_chat_artifacts',
+  FACTORY_REPOS = 'nc_factory_repos',
   /** @deprecated Documents now live in nc_models_v2 (type='document'). Kept for legacy data cleanup. */
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
@@ -268,6 +269,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.CHAT_SESSIONS,
   MetaTable.CHAT_MESSAGES,
   MetaTable.CHAT_ARTIFACTS,
+  MetaTable.FACTORY_REPOS,
   MetaTable.AGENTS,
   MetaTable.AGENT_SECTIONS,
   MetaTable.AGENT_SESSIONS,
@@ -683,6 +685,7 @@ export enum CacheScope {
   BASE_SECTION = 'baseSection',
   AUTOMATION_SECTION = 'automationSection',
   AGENT_SECTION = 'agentSection',
+  FACTORY_REPO = 'factoryRepo',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',
@@ -704,6 +707,7 @@ export enum CacheScope {
   AGENT_MESSAGE = 'agentMessage',
   SKILL = 'skill',
   SKILL_CATALOG = 'skillCatalog',
+  SKILL_REGISTRY = 'skillRegistry',
   SKILL_POLICY = 'skillPolicy',
 }
 

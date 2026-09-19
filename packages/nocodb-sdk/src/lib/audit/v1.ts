@@ -341,6 +341,14 @@ enum AuditV1OperationTypes {
   SKILL_DELETE = 'SKILL_DELETE',
   SKILL_IMPORT = 'SKILL_IMPORT',
   SKILL_POLICY_UPDATE = 'SKILL_POLICY_UPDATE',
+
+  FACTORY_SESSION_CREATE = 'FACTORY_SESSION_CREATE',
+  FACTORY_SESSION_STOP = 'FACTORY_SESSION_STOP',
+  FACTORY_SESSION_ARCHIVE = 'FACTORY_SESSION_ARCHIVE',
+  FACTORY_SESSION_RESUME = 'FACTORY_SESSION_RESUME',
+  FACTORY_SESSION_DELETE = 'FACTORY_SESSION_DELETE',
+  FACTORY_REPO_ENABLE = 'FACTORY_REPO_ENABLE',
+  FACTORY_REPO_DISABLE = 'FACTORY_REPO_DISABLE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1495,22 +1503,19 @@ export interface InterfacePageDuplicatePayload extends InterfacePageContext {
   source_page_id: string;
 }
 
-export interface SharedInterfacePageCreatePayload
-  extends InterfacePageContext {
+export interface SharedInterfacePageCreatePayload extends InterfacePageContext {
   uuid: string;
   password_protected: boolean;
 }
 
-export interface SharedInterfacePageUpdatePayload
-  extends InterfacePageContext {
+export interface SharedInterfacePageUpdatePayload extends InterfacePageContext {
   uuid: string;
   password_protected: boolean;
   /** The hash itself is never recorded — only that it was rotated/cleared. */
   password_changed: boolean;
 }
 
-export interface SharedInterfacePageDeletePayload
-  extends InterfacePageContext {
+export interface SharedInterfacePageDeletePayload extends InterfacePageContext {
   uuid: string;
 }
 
@@ -1630,6 +1635,24 @@ export interface DateDependencyDeletePayload {
 
 export interface DocAiCompletionPayload {
   operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
+}
+
+/** One App Factory session, as the audit trail names it. */
+export interface FactorySessionPayload {
+  session_id: string;
+  session_title?: string;
+  /** `owner/repo` of the repository the session works on. */
+  repo?: string;
+  /** `prompt` | `branch` | `pr` | `issue`, and the ref it named. */
+  source_kind?: string;
+  source_ref?: string;
+}
+
+/** A repository added to or removed from a workspace's factory. */
+export interface FactoryRepoPayload {
+  repo_id: string;
+  repo: string;
+  integration_id?: string;
 }
 
 export interface SkillPayload {
@@ -2454,17 +2477,17 @@ const descriptionTemplates = {
   ) =>
     `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
       audit.details.principal_title
-    }' has been granted '${audit.details.role}' on ${
-      interfaceGrantScope(audit.details)
-    }interface '${audit.details.interface_title}'`,
+    }' has been granted '${audit.details.role}' on ${interfaceGrantScope(
+      audit.details
+    )}interface '${audit.details.interface_title}'`,
   [AuditV1OperationTypes.INTERFACE_USER_UPDATE]: (
     audit: AuditV1<InterfaceUserUpdatePayload>
   ) =>
     `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
       audit.details.principal_title
-    }' role on ${
-      interfaceGrantScope(audit.details)
-    }interface '${audit.details.interface_title}' has been changed${
+    }' role on ${interfaceGrantScope(audit.details)}interface '${
+      audit.details.interface_title
+    }' has been changed${
       audit.details.old_role ? ` from '${audit.details.old_role}'` : ''
     } to '${audit.details.role}'`,
   [AuditV1OperationTypes.INTERFACE_USER_DELETE]: (
@@ -2472,9 +2495,9 @@ const descriptionTemplates = {
   ) =>
     `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
       audit.details.principal_title
-    }' access to ${
-      interfaceGrantScope(audit.details)
-    }interface '${audit.details.interface_title}' has been revoked`,
+    }' access to ${interfaceGrantScope(audit.details)}interface '${
+      audit.details.interface_title
+    }' has been revoked`,
   [AuditV1OperationTypes.PERMISSION_CREATE]: (
     audit: AuditV1<PermissionCreatePayload>
   ) =>
@@ -2594,72 +2617,147 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.APP_PUBLISH]: (
     audit: AuditV1<AppPublishAuditDetails>
   ) =>
-    `App '${audit.details.app_title ?? audit.details.app_id}' published as version ${audit.details.version_number}`,
+    `App '${
+      audit.details.app_title ?? audit.details.app_id
+    }' published as version ${audit.details.version_number}`,
   [AuditV1OperationTypes.APP_ROLLBACK]: (
     audit: AuditV1<AppRollbackAuditDetails>
   ) =>
-    `App '${audit.details.app_title ?? audit.details.app_id}' rolled back to version ${audit.details.to_version_number}`,
+    `App '${
+      audit.details.app_title ?? audit.details.app_id
+    }' rolled back to version ${audit.details.to_version_number}`,
   [AuditV1OperationTypes.APP_TOKEN_CREATE]: (
     audit: AuditV1<AppTokenAuditDetails>
   ) =>
-    `App token '${audit.details.title ?? audit.details.token_id}' created for app '${audit.details.app_id}'`,
+    `App token '${
+      audit.details.title ?? audit.details.token_id
+    }' created for app '${audit.details.app_id}'`,
   [AuditV1OperationTypes.APP_TOKEN_UPDATE]: (
     audit: AuditV1<AppTokenAuditDetails>
   ) =>
-    `App token '${audit.details.title ?? audit.details.token_id}' updated on app '${audit.details.app_id}'`,
+    `App token '${
+      audit.details.title ?? audit.details.token_id
+    }' updated on app '${audit.details.app_id}'`,
   [AuditV1OperationTypes.APP_TOKEN_DELETE]: (
     audit: AuditV1<AppTokenAuditDetails>
   ) =>
-    `App token '${audit.details.title ?? audit.details.token_id}' deleted on app '${audit.details.app_id}'`,
+    `App token '${
+      audit.details.title ?? audit.details.token_id
+    }' deleted on app '${audit.details.app_id}'`,
 
-  [AuditV1OperationTypes.APP_CREATE]: (audit: AuditV1<AppLifecycleAuditDetails>) =>
-    `App '${audit.details.app_title ?? audit.details.app_id}' created`,
-  [AuditV1OperationTypes.APP_UPDATE]: (audit: AuditV1<AppLifecycleAuditDetails>) =>
-    `App '${audit.details.app_title ?? audit.details.app_id}' updated`,
-  [AuditV1OperationTypes.APP_DELETE]: (audit: AuditV1<AppLifecycleAuditDetails>) =>
-    `App '${audit.details.app_title ?? audit.details.app_id}' deleted`,
-  [AuditV1OperationTypes.ACTION_CREATE]: (audit: AuditV1<ActionLifecycleAuditDetails>) =>
+  [AuditV1OperationTypes.APP_CREATE]: (
+    audit: AuditV1<AppLifecycleAuditDetails>
+  ) => `App '${audit.details.app_title ?? audit.details.app_id}' created`,
+  [AuditV1OperationTypes.APP_UPDATE]: (
+    audit: AuditV1<AppLifecycleAuditDetails>
+  ) => `App '${audit.details.app_title ?? audit.details.app_id}' updated`,
+  [AuditV1OperationTypes.APP_DELETE]: (
+    audit: AuditV1<AppLifecycleAuditDetails>
+  ) => `App '${audit.details.app_title ?? audit.details.app_id}' deleted`,
+  [AuditV1OperationTypes.ACTION_CREATE]: (
+    audit: AuditV1<ActionLifecycleAuditDetails>
+  ) =>
     `Action '${audit.details.action_title ?? audit.details.action_id}' created`,
-  [AuditV1OperationTypes.ACTION_UPDATE]: (audit: AuditV1<ActionLifecycleAuditDetails>) =>
+  [AuditV1OperationTypes.ACTION_UPDATE]: (
+    audit: AuditV1<ActionLifecycleAuditDetails>
+  ) =>
     `Action '${audit.details.action_title ?? audit.details.action_id}' updated`,
-  [AuditV1OperationTypes.ACTION_DELETE]: (audit: AuditV1<ActionLifecycleAuditDetails>) =>
+  [AuditV1OperationTypes.ACTION_DELETE]: (
+    audit: AuditV1<ActionLifecycleAuditDetails>
+  ) =>
     `Action '${audit.details.action_title ?? audit.details.action_id}' deleted`,
-  [AuditV1OperationTypes.AGENT_CREATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
-    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' created`,
-  [AuditV1OperationTypes.AGENT_UPDATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
-    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' updated`,
-  [AuditV1OperationTypes.AGENT_DELETE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
-    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' deleted`,
-  [AuditV1OperationTypes.AGENT_ROLE_UPDATE]: (audit: AuditV1<AgentLifecycleAuditDetails>) =>
-    `Agent '${audit.details.agent_title ?? audit.details.agent_id}' role set to '${audit.details.role}'`,
-  [AuditV1OperationTypes.AGENT_SECTION_CREATE]: (audit: AuditV1<AgentSectionAuditDetails>) =>
-    `Agent section '${audit.details.agent_section_title ?? audit.details.agent_section_id}' created`,
-  [AuditV1OperationTypes.AGENT_SECTION_UPDATE]: (audit: AuditV1<AgentSectionAuditDetails>) =>
-    `Agent section '${audit.details.agent_section_title ?? audit.details.agent_section_id}' updated`,
-  [AuditV1OperationTypes.AGENT_SECTION_DELETE]: (audit: AuditV1<AgentSectionAuditDetails>) =>
-    `Agent section '${audit.details.agent_section_title ?? audit.details.agent_section_id}' deleted`,
-  [AuditV1OperationTypes.CHAT_SESSION_CREATE]: (audit: AuditV1<ChatSessionAuditDetails>) =>
-    `Chat session '${audit.details.session_id}' created`,
-  [AuditV1OperationTypes.CHAT_SESSION_UPDATE]: (audit: AuditV1<ChatSessionAuditDetails>) =>
-    `Chat session '${audit.details.session_id}' updated`,
-  [AuditV1OperationTypes.CHAT_SESSION_DELETE]: (audit: AuditV1<ChatSessionAuditDetails>) =>
-    `Chat session '${audit.details.session_id}' deleted`,
-  [AuditV1OperationTypes.MANAGED_APP_CREATE]: (audit: AuditV1<ManagedAppLifecycleAuditDetails>) =>
-    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' created`,
-  [AuditV1OperationTypes.MANAGED_APP_UPDATE]: (audit: AuditV1<ManagedAppLifecycleAuditDetails>) =>
-    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' updated`,
-  [AuditV1OperationTypes.MANAGED_APP_DELETE]: (audit: AuditV1<ManagedAppLifecycleAuditDetails>) =>
-    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' deleted`,
-  [AuditV1OperationTypes.MANAGED_APP_PUBLISH]: (audit: AuditV1<ManagedAppPublishAuditDetails>) =>
-    `Store listing '${audit.details.managed_app_title ?? audit.details.managed_app_id}' published version ${audit.details.version ?? audit.details.version_id}`,
-  [AuditV1OperationTypes.MANAGED_APP_INSTALL]: (audit: AuditV1<ManagedAppDeploymentAuditDetails>) =>
-    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' installed into base '${audit.details.installed_base_id}'`,
-  [AuditV1OperationTypes.MANAGED_APP_UNINSTALL]: (audit: AuditV1<ManagedAppUninstallAuditDetails>) =>
-    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' uninstalled from base '${audit.details.installed_base_id}'`,
-  [AuditV1OperationTypes.MANAGED_APP_UPDATE_COMPLETE]: (audit: AuditV1<ManagedAppDeploymentAuditDetails>) =>
-    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' updated to version ${audit.details.version ?? audit.details.version_id} on base '${audit.details.installed_base_id}'`,
-  [AuditV1OperationTypes.MANAGED_APP_UPDATE_FAIL]: (audit: AuditV1<ManagedAppDeploymentAuditDetails>) =>
-    `App '${audit.details.managed_app_title ?? audit.details.managed_app_id}' failed to update on base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.AGENT_CREATE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) => `Agent '${audit.details.agent_title ?? audit.details.agent_id}' created`,
+  [AuditV1OperationTypes.AGENT_UPDATE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) => `Agent '${audit.details.agent_title ?? audit.details.agent_id}' updated`,
+  [AuditV1OperationTypes.AGENT_DELETE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) => `Agent '${audit.details.agent_title ?? audit.details.agent_id}' deleted`,
+  [AuditV1OperationTypes.AGENT_ROLE_UPDATE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) =>
+    `Agent '${
+      audit.details.agent_title ?? audit.details.agent_id
+    }' role set to '${audit.details.role}'`,
+  [AuditV1OperationTypes.AGENT_SECTION_CREATE]: (
+    audit: AuditV1<AgentSectionAuditDetails>
+  ) =>
+    `Agent section '${
+      audit.details.agent_section_title ?? audit.details.agent_section_id
+    }' created`,
+  [AuditV1OperationTypes.AGENT_SECTION_UPDATE]: (
+    audit: AuditV1<AgentSectionAuditDetails>
+  ) =>
+    `Agent section '${
+      audit.details.agent_section_title ?? audit.details.agent_section_id
+    }' updated`,
+  [AuditV1OperationTypes.AGENT_SECTION_DELETE]: (
+    audit: AuditV1<AgentSectionAuditDetails>
+  ) =>
+    `Agent section '${
+      audit.details.agent_section_title ?? audit.details.agent_section_id
+    }' deleted`,
+  [AuditV1OperationTypes.CHAT_SESSION_CREATE]: (
+    audit: AuditV1<ChatSessionAuditDetails>
+  ) => `Chat session '${audit.details.session_id}' created`,
+  [AuditV1OperationTypes.CHAT_SESSION_UPDATE]: (
+    audit: AuditV1<ChatSessionAuditDetails>
+  ) => `Chat session '${audit.details.session_id}' updated`,
+  [AuditV1OperationTypes.CHAT_SESSION_DELETE]: (
+    audit: AuditV1<ChatSessionAuditDetails>
+  ) => `Chat session '${audit.details.session_id}' deleted`,
+  [AuditV1OperationTypes.MANAGED_APP_CREATE]: (
+    audit: AuditV1<ManagedAppLifecycleAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' created`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE]: (
+    audit: AuditV1<ManagedAppLifecycleAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' updated`,
+  [AuditV1OperationTypes.MANAGED_APP_DELETE]: (
+    audit: AuditV1<ManagedAppLifecycleAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' deleted`,
+  [AuditV1OperationTypes.MANAGED_APP_PUBLISH]: (
+    audit: AuditV1<ManagedAppPublishAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' published version ${audit.details.version ?? audit.details.version_id}`,
+  [AuditV1OperationTypes.MANAGED_APP_INSTALL]: (
+    audit: AuditV1<ManagedAppDeploymentAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' installed into base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UNINSTALL]: (
+    audit: AuditV1<ManagedAppUninstallAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' uninstalled from base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE_COMPLETE]: (
+    audit: AuditV1<ManagedAppDeploymentAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' updated to version ${
+      audit.details.version ?? audit.details.version_id
+    } on base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE_FAIL]: (
+    audit: AuditV1<ManagedAppDeploymentAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' failed to update on base '${audit.details.installed_base_id}'`,
   [AuditV1OperationTypes.MANAGED_APP_ROLLOUT_HALT]: (
     audit: AuditV1<ManagedAppRolloutHaltAuditDetails>
   ) =>
@@ -2678,45 +2776,86 @@ const descriptionTemplates = {
     `Rollout resumed for '${
       audit.details.managed_app_title ?? audit.details.managed_app_id
     }' version ${audit.details.version ?? audit.details.version_id}`,
-  [AuditV1OperationTypes.MARKETPLACE_LISTING_DELIST]: (audit: AuditV1<MarketplaceListingModerationAuditDetails>) =>
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_DELIST]: (
+    audit: AuditV1<MarketplaceListingModerationAuditDetails>
+  ) =>
     `Listing '${audit.details.listing_title}' ${
       audit.details.delisted ? 'delisted' : 'relisted'
     }`,
-  [AuditV1OperationTypes.MARKETPLACE_LISTING_SUSPEND]: (audit: AuditV1<MarketplaceListingModerationAuditDetails>) =>
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_SUSPEND]: (
+    audit: AuditV1<MarketplaceListingModerationAuditDetails>
+  ) =>
     `Listing '${audit.details.listing_title}'${
       audit.details.version_id ? ` version ${audit.details.version_id}` : ''
     } ${audit.details.suspended ? 'suspended' : 'reinstated'}`,
-  [AuditV1OperationTypes.MARKETPLACE_LISTING_REPORT]: (audit: AuditV1<MarketplaceListingReportAuditDetails>) =>
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_REPORT]: (
+    audit: AuditV1<MarketplaceListingReportAuditDetails>
+  ) =>
     `Listing '${audit.details.listing_title}' reported for '${audit.details.reason}'`,
-  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_VERIFY]: (audit: AuditV1<MarketplacePublisherModerationAuditDetails>) =>
+  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_VERIFY]: (
+    audit: AuditV1<MarketplacePublisherModerationAuditDetails>
+  ) =>
     `Publisher '@${audit.details.publisher_handle}' ${
       audit.details.verified ? 'verified' : 'unverified'
     }`,
-  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_DELIST]: (audit: AuditV1<MarketplacePublisherModerationAuditDetails>) =>
+  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_DELIST]: (
+    audit: AuditV1<MarketplacePublisherModerationAuditDetails>
+  ) =>
     `Publisher '@${audit.details.publisher_handle}' ${
       audit.details.delisted ? 'delisted' : 'relisted'
     }`,
-  [AuditV1OperationTypes.MARKETPLACE_CURATION_UPDATE]: (audit: AuditV1<MarketplaceCurationAuditDetails>) =>
+  [AuditV1OperationTypes.MARKETPLACE_CURATION_UPDATE]: (
+    audit: AuditV1<MarketplaceCurationAuditDetails>
+  ) =>
     `Curation slot '${audit.details.slot}' set to ${audit.details.listing_ids.length} listing(s)`,
-  [AuditV1OperationTypes.ENVIRONMENT_CREATE]: (audit: AuditV1<EnvironmentConfigAuditDetails>) =>
-    `Environment '${audit.details.environment_title ?? audit.details.environment_key ?? audit.details.environment_id}' created`,
-  [AuditV1OperationTypes.ENVIRONMENT_UPDATE]: (audit: AuditV1<EnvironmentConfigAuditDetails>) =>
-    `Environment '${audit.details.environment_title ?? audit.details.environment_key ?? audit.details.environment_id}' updated`,
-  [AuditV1OperationTypes.ENVIRONMENT_DELETE]: (audit: AuditV1<EnvironmentConfigAuditDetails>) =>
-    `Environment '${audit.details.environment_title ?? audit.details.environment_key ?? audit.details.environment_id}' deleted`,
-  [AuditV1OperationTypes.ENVIRONMENT_OPEN]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+  [AuditV1OperationTypes.ENVIRONMENT_CREATE]: (
+    audit: AuditV1<EnvironmentConfigAuditDetails>
+  ) =>
+    `Environment '${
+      audit.details.environment_title ??
+      audit.details.environment_key ??
+      audit.details.environment_id
+    }' created`,
+  [AuditV1OperationTypes.ENVIRONMENT_UPDATE]: (
+    audit: AuditV1<EnvironmentConfigAuditDetails>
+  ) =>
+    `Environment '${
+      audit.details.environment_title ??
+      audit.details.environment_key ??
+      audit.details.environment_id
+    }' updated`,
+  [AuditV1OperationTypes.ENVIRONMENT_DELETE]: (
+    audit: AuditV1<EnvironmentConfigAuditDetails>
+  ) =>
+    `Environment '${
+      audit.details.environment_title ??
+      audit.details.environment_key ??
+      audit.details.environment_id
+    }' deleted`,
+  [AuditV1OperationTypes.ENVIRONMENT_OPEN]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
     `Base '${audit.details.base_id}' opened in an environment as '${audit.details.lane_base_id}'`,
-  [AuditV1OperationTypes.ENVIRONMENT_CLOSE]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
-    `Environment copy '${audit.details.lane_base_id}' closed`,
-  [AuditV1OperationTypes.ENVIRONMENT_DISCARD]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+  [AuditV1OperationTypes.ENVIRONMENT_CLOSE]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) => `Environment copy '${audit.details.lane_base_id}' closed`,
+  [AuditV1OperationTypes.ENVIRONMENT_DISCARD]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
     `Environment copy '${audit.details.lane_base_id}' discarded without promoting`,
-  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
     `Environment copy '${audit.details.lane_base_id}' promoted to base '${audit.details.base_id}'`,
-  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE_FAILED]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE_FAILED]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
     `Promote failed for environment copy '${audit.details.lane_base_id}'${
       audit.details.counts ? ` (${audit.details.counts.failed} failed)` : ''
     }`,
-  [AuditV1OperationTypes.ENVIRONMENT_REFRESH]: (audit: AuditV1<EnvironmentLaneAuditDetails>) =>
+  [AuditV1OperationTypes.ENVIRONMENT_REFRESH]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
     `Environment copy '${audit.details.lane_base_id}' refreshed from base '${audit.details.base_id}'`,
   [AuditV1OperationTypes.SKILL_CREATE]: (audit: AuditV1<SkillPayload>) =>
     `Skill '${audit.details.skill_title}' has been created in ${audit.details.scope} scope`,
@@ -2728,6 +2867,30 @@ const descriptionTemplates = {
     `Skill '${audit.details.skill_title}' has been installed from ${
       audit.details.source_ref ?? 'a repository'
     }`,
+  [AuditV1OperationTypes.FACTORY_SESSION_CREATE]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session started on ${audit.details.repo ?? 'a repository'}`,
+  [AuditV1OperationTypes.FACTORY_SESSION_STOP]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session '${audit.details.session_title ?? ''}' was stopped`,
+  [AuditV1OperationTypes.FACTORY_SESSION_ARCHIVE]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) =>
+    `App Factory session '${
+      audit.details.session_title ?? ''
+    }' was archived and its sandbox released`,
+  [AuditV1OperationTypes.FACTORY_SESSION_RESUME]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session '${audit.details.session_title ?? ''}' was resumed`,
+  [AuditV1OperationTypes.FACTORY_SESSION_DELETE]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session '${audit.details.session_title ?? ''}' was deleted`,
+  [AuditV1OperationTypes.FACTORY_REPO_ENABLE]: (
+    audit: AuditV1<FactoryRepoPayload>
+  ) => `Repository '${audit.details.repo}' was added to App Factory`,
+  [AuditV1OperationTypes.FACTORY_REPO_DISABLE]: (
+    audit: AuditV1<FactoryRepoPayload>
+  ) => `Repository '${audit.details.repo}' was removed from App Factory`,
   [AuditV1OperationTypes.SKILL_POLICY_UPDATE]: (
     audit: AuditV1<SkillPolicyUpdatePayload>
   ) =>

@@ -9,6 +9,7 @@ interface Emits {
   (e: 'update:open', open: boolean): void
   (e: 'change', option: NcListItemType): void
   (e: 'escape', event: KeyboardEvent): void
+  (e: 'searchChange', query: string): void
 }
 
 const props = withDefaults(defineProps<NcListProps>(), {
@@ -24,6 +25,8 @@ const props = withDefaults(defineProps<NcListProps>(), {
   isMultiSelect: false,
   minItemsForSearch: 4,
   isLoading: false,
+  serverSearch: false,
+  searchDebounce: 300,
   listWrapperClassName: '',
   containerClassName: '',
   wrapperClassName: '',
@@ -127,6 +130,10 @@ const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[]
 }
 
 const applyFilterOnList = (listToFilter: NcListItemType[], query: string) => {
+  // The server already answered this query — filtering again would drop rows it
+  // matched on something other than the label.
+  if (props.serverSearch) return listToFilter
+
   return listToFilter.filter((item, i, array) => {
     // Step 1: apply default filter
     if (defaultFilter(item, i, array, query)) return true
@@ -460,6 +467,18 @@ watch(searchQuery, () => {
   nextTick(() => {
     handleAutoScrollOption()
   })
+})
+
+const emitSearchChange = useDebounceFn((query: string) => {
+  emits('searchChange', query)
+}, props.searchDebounce)
+
+// Only lists that fetch need this; a local list is already filtered by the
+// computed above and would just be emitting into the void.
+watch(searchQuery, (query) => {
+  if (!props.serverSearch) return
+
+  emitSearchChange(query.trim())
 })
 
 defineExpose({

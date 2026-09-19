@@ -1,4 +1,5 @@
 import type { ModelMeta } from '~/lib/v3/record-transform';
+import type { ChatEventPayload } from '~/lib/realtime';
 
 export enum ChatMessageRole {
   USER = 'user',
@@ -26,6 +27,7 @@ export enum ChatEventAction {
   AGENT_SWITCH = 'agent-switch',
   FOLLOW_UPS = 'follow-ups',
   HEARTBEAT = 'heartbeat',
+  TURN_PROGRESS = 'turn-progress',
   STATUS = 'status',
   PREVIEW_READY = 'preview-ready',
 }
@@ -119,13 +121,278 @@ export interface ChatSessionMetaType {
     messageId: string;
     items: string[];
   };
+  /**
+   * Why the sandbox never came up, when it didn't.
+   *
+   * The boot runs after the session row exists, so a failure has somewhere to
+   * be recorded — without this a failed boot is indistinguishable from one
+   * still in progress.
+   */
+  bootError?: string;
+  /**
+   * Set while an App Factory session is archived: its sandbox is gone and this
+   * is where the work that was in it went. Cleared when the session resumes.
+   */
+  factoryArchive?: {
+    /** Bundle key holding the patch and every untracked file. */
+    hash: string;
+    fileCount: number;
+    archivedAt: string;
+  };
+  /** The pull request on this session's branch, resolved from the host each turn. */
+  factoryPullRequest?: FactoryPullRequest;
+}
+
+/**
+ * One item on the agent's plan for the current task.
+ *
+ * Written by the `todo_write` tool and carried on that tool call's block, so
+ * the frontend renders the plan from the transcript it already has rather than
+ * needing a second channel for it.
+ */
+export interface FactoryTodo {
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+}
+
+/** What an App Factory session was started from. */
+export enum FactorySourceKind {
+  PROMPT = 'prompt',
+  BRANCH = 'branch',
+  PR = 'pr',
+  ISSUE = 'issue',
+}
+
+/** A repository App Factory can dispatch an agent against. */
+export interface FactoryRepoType {
+  id?: string;
+  fk_workspace_id?: string;
+  fk_integration_id?: string;
+  provider_repo_id?: string;
+  full_name?: string;
+  remote_url?: string;
+  default_branch?: string;
+  is_private?: boolean;
+  enabled?: boolean;
+  meta?: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** A repository the connection can reach, whether or not it is set up here. */
+export interface FactoryAvailableRepo {
+  providerRepoId: string;
+  fullName: string;
+  remoteUrl: string;
+  defaultBranch: string;
+  isPrivate: boolean;
+  description?: string;
+  /** Whether it already has a factory row and can be dispatched against. */
+  configured: boolean;
+}
+
+/** A branch, pull request or issue a session can start from. */
+export interface FactorySourceOption {
+  kind: FactorySourceKind;
+  /** Branch name, or the PR / issue number as text. */
+  ref: string;
+  label: string;
+  sub?: string;
+}
+
+/**
+ * All three source kinds for a repo, in one response.
+ *
+ * The picker always shows the three together, so fetching them separately cost
+ * three round trips — and three provider calls — per keystroke burst.
+ */
+export interface FactorySourceBundle {
+  branch: FactorySourceOption[];
+  pr: FactorySourceOption[];
+  issue: FactorySourceOption[];
+}
+
+/**
+ * `archived` is a pause, not an end: the sandbox is released and the session's
+ * uncommitted work is stored, so resuming rebuilds a checkout and carries on.
+ */
+export type FactorySessionStatus =
+  | 'starting'
+  | 'running'
+  | 'idle'
+  | 'archived'
+  | 'dead';
+
+/**
+ * A session as the sidebar lists it.
+ *
+ * `status` is derived from the stored row, not from the sandbox: asking the
+ * compute provider once per row would make opening a list an N-call operation.
+ */
+export interface FactorySessionSummary {
+  id: string;
+  title?: string;
+  status: FactorySessionStatus;
+  repo?: { id: string; full_name: string };
+  updated_at?: string;
+  /**
+   * Set on a spawned agent: the session that started it. The sidebar nests
+   * these under their parent instead of listing them alongside real sessions.
+   *
+   * Only agents still running are listed — a finished one is part of the
+   * transcript, not something to navigate to.
+   */
+  parent_session_id?: string | null;
+  /** The agent's role, e.g. `explorer`. Absent on a user's own session. */
+  agent_role?: string | null;
+}
+
+/**
+ * Whether a session's turn is actually running, asked for on open and on
+ * reconnect. A socket that dropped mid-turn leaves the client believing a turn
+ * is live forever; this is how it finds out otherwise.
+ */
+export interface FactoryStreamState {
+  status: 'idle' | 'streaming' | 'failed';
+  /** Why it failed, when the turn died without reporting one itself. */
+  error?: string;
+  /**
+   * Highest seq in the journal — the client resumes live dedup from here.
+   *
+   * Without these two a reader that arrives mid-turn sees only what streams
+   * after it connected: the transcript is written when the turn ends, so
+   * everything before the moment it opened is simply missing.
+   */
+  lastSeq?: number;
+  /** Journaled events after `sinceSeq`, in emit order, for replay. */
+  events?: ChatEventPayload[];
+}
+
+/** How a file in the checkout differs from HEAD, as `git status` reports it. */
+export type FactoryFileStatus = 'modified' | 'added' | 'deleted' | 'untracked';
+
+/** One file in the session's checkout. */
+export interface FactoryFileEntry {
+  /** Repo-relative, always — the sandbox path is not the user's business. */
+  path: string;
+  /** Absent when the file is unchanged against HEAD. */
+  status?: FactoryFileStatus;
+}
+
+/** One command run in the session's checkout, as the terminal shows it. */
+export interface FactoryExecResult {
+  /** Combined stdout and stderr, in the order the shell produced them. */
+  output: string;
+  exitCode: number;
+  /** Cut off at the output cap — what is shown is the head of it. */
+  truncated: boolean;
+  /** Where it ran, repo-relative. Empty string is the checkout root. */
+  cwd: string;
+}
+
+/** A file's contents, as the editor gets them. */
+export interface FactoryFile {
+  path: string;
+  content: string;
+  size: number;
+  /** Not text: there is nothing to show and nothing to edit. */
+  binary: boolean;
+  /** Only the head of the file came back, so saving it would truncate it. */
+  truncated: boolean;
+  /**
+   * Hash of what was read. Sent back on save so an edit that raced the agent
+   * is refused rather than silently overwriting its work.
+   */
+  hash: string;
+}
+
+/**
+ * A changed file's two sides, for the diff viewer.
+ *
+ * Both sides are sent rather than a unified patch: the viewer is the same
+ * Monaco the file reader uses, and it wants two documents to align, not a
+ * patch it would have to apply first.
+ */
+export interface FactoryFileDiff {
+  path: string;
+  status: FactoryFileStatus;
+  /** The file as the session found it. Empty when the session added it. */
+  original: string;
+  /** The file as it stands now. Empty when the session deleted it. */
+  modified: string;
+  /** Not text on one side or both — there is nothing to line up. */
+  binary: boolean;
+  /** A side came back capped, so what is shown is the head of the file. */
+  truncated: boolean;
+  /**
+   * Lines added and removed, as git counts them.
+   *
+   * Counted over the whole file even when a side was capped, which a count
+   * taken from the two strings could not do.
+   */
+  additions?: number;
+  deletions?: number;
+}
+
+/** A port something inside a session's sandbox is listening on. */
+export interface FactoryPort {
+  port: number;
+  /** The process holding it, when `ss` could name one. */
+  process?: string;
+}
+
+/**
+ * Where a browser can reach a port in the sandbox.
+ *
+ * A public origin, not anything resolvable inside the sandbox: the app is
+ * served from there but runs in the user's own browser.
+ */
+export interface FactoryPreview {
+  port: number;
+  url: string;
+}
+
+/** A pull request open on a session's branch. */
+export interface FactoryPullRequest {
+  number: number;
+  url: string;
+  title?: string;
+  /** `open`, `closed`, or `merged` once the host reports it merged. */
+  state?: 'open' | 'closed' | 'merged';
+  /** The head branch it was opened from — this session's working branch. */
+  branch?: string;
+  /** When this was last resolved from the host. */
+  checkedAt?: string;
+}
+
+/** The session row as stored, plus the repository it is pinned to. */
+export interface FactorySessionView extends ChatSessionType {
+  repo?: { id: string; full_name: string };
+}
+
+/** Archive outranks the row's status: the row keeps whatever its last turn ended on. */
+export function factorySessionStatus(
+  session?: Pick<ChatSessionType, 'status' | 'meta'>
+): FactorySessionStatus {
+  if (session?.meta?.factoryArchive) return 'archived';
+
+  switch (session?.status) {
+    case ChatSessionStatus.IN_PROGRESS:
+      return 'running';
+    case ChatSessionStatus.ERROR:
+    case ChatSessionStatus.CANCELLED:
+      return 'dead';
+    default:
+      return 'idle';
+  }
 }
 
 export interface ChatSessionType {
   id?: string;
   title?: string;
   fk_workspace_id: string;
-  base_id: string;
+  /** Absent on an App Factory session — those are pinned to a repo, not a base. */
+  base_id?: string | null;
   /** Absent on a triggered session — nobody started it. */
   fk_user_id?: string;
   /** The agent this session belongs to; absent means the assistant. */
@@ -133,6 +400,15 @@ export interface ChatSessionType {
   /** `'chat'` for a person; a trigger node id for a firing. */
   trigger_type?: string;
   status?: ChatSessionStatus;
+  /** The App Factory repo this session runs against; absent on a normal chat. */
+  fk_factory_repo_id?: string | null;
+  source_kind?: FactorySourceKind;
+  /** Branch name, or the PR / issue number as text. */
+  source_ref?: string;
+  /** Set on a spawned agent's session: the conversation that started it. */
+  fk_parent_session_id?: string | null;
+  /** The spawned agent's role, e.g. `explorer`. Absent on a user's session. */
+  agent_role?: string | null;
   summary?: string;
   total_input_tokens?: number;
   total_output_tokens?: number;

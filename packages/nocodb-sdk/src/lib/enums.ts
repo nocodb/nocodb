@@ -500,6 +500,14 @@ export enum AppEvents {
   SKILL_UPDATE = 'skill.update',
   SKILL_DELETE = 'skill.delete',
   SKILL_IMPORT = 'skill.import',
+
+  FACTORY_SESSION_CREATE = 'factory.session.create',
+  FACTORY_SESSION_STOP = 'factory.session.stop',
+  FACTORY_SESSION_ARCHIVE = 'factory.session.archive',
+  FACTORY_SESSION_RESUME = 'factory.session.resume',
+  FACTORY_SESSION_DELETE = 'factory.session.delete',
+  FACTORY_REPO_ENABLE = 'factory.repo.enable',
+  FACTORY_REPO_DISABLE = 'factory.repo.disable',
   SKILL_POLICY_UPDATE = 'skill.policy.update',
 }
 

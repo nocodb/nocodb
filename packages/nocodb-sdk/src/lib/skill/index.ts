@@ -177,6 +177,30 @@ export interface SkillCatalogReqType {
   repo?: string;
 }
 
+/**
+ * One hit from the skills.sh registry, before it is installed.
+ *
+ * Discovery only — the install still reads the files from GitHub.
+ */
+export interface SkillRegistryEntryType {
+  /** `owner/repo/skillName` — already the handle {@link SkillImportReqType} takes. */
+  source_ref: string;
+  /** The skill's name as the registry lists it. */
+  name: string;
+  /** `owner/repo` — the handle the community policy vets. */
+  repo: string;
+  /** Registry-wide install count, for ordering. */
+  installs?: number;
+}
+
+export interface SkillRegistrySearchReqType {
+  /** Two characters minimum — the registry rejects anything shorter. */
+  q: string;
+  /** Narrow to a single GitHub owner. */
+  owner?: string;
+  limit?: number;
+}
+
 export interface SkillImportReqType {
   /**
    * `owner/repo/skillName` — or `owner/repo` for a root-level skill. Exactly as

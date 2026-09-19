@@ -474,6 +474,11 @@ export interface ChatMessageJobData extends JobData {
   sessionId: string;
   /** Set when the session belongs to an agent — the turn runs as that agent. */
   agentId?: string;
+  /**
+   * Set when the session is an App Factory session — the turn runs against a
+   * repository checkout rather than a base. Mutually exclusive with `agentId`.
+   */
+  factory?: boolean;
   /** A trigger started this turn: nobody to stream to, so frames go to the base room. */
   triggered?: boolean;
   firstUserMessage?: string;

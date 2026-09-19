@@ -462,6 +462,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseAgents = (..._args: any[]) => {}
 
+  const blockAppFactory = computed(() => true)
+
+  const showUpgradeToUseAppFactory = (..._args: any[]) => {}
+
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
   const blockApps = computed(() => true)
@@ -725,6 +729,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAgents,
     isWorkflowLimitReached,
     showWorkflowPlanLimitExceededModal,
+    blockAppFactory,
+    showUpgradeToUseAppFactory,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

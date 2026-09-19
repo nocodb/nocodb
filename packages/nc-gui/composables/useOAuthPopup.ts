@@ -51,6 +51,20 @@ export function useOAuthPopup() {
     })
   }
 
+  /**
+   * Most authUris carry a query string already (`?client_id=…`), but some — a
+   * GitHub App install URL, say — have none, and a leading `&` there produces a
+   * URL the provider 404s on. Every append goes through this, so the two
+   * call sites cannot disagree about the separator again.
+   */
+  function appendParams(url: string, params: Record<string, string>) {
+    const query = new URLSearchParams(params).toString()
+
+    if (!query) return url
+
+    return `${url}${url.includes('?') ? '&' : '?'}${query}`
+  }
+
   const openPopup = (
     oauthMeta: FormBuilderOAuthMeta,
     url: string,
@@ -62,7 +76,7 @@ export function useOAuthPopup() {
     const left = window.screenX + (window.outerWidth - width) / 2
     const top = window.screenY + (window.outerHeight - height) / 2.5
 
-    url += `&state=${state}`
+    url = appendParams(url, { state })
 
     const popup = window.open(url, `${oauthMeta.provider} OAuth`, `width=${width},height=${height},left=${left},top=${top}`)
     if (!popup) throw new Error('Popup blocked')
@@ -142,7 +156,10 @@ export function useOAuthPopup() {
     const codeVerifier = generateCodeVerifier()
     const codeChallenge = await generateCodeChallenge(codeVerifier)
 
-    url += `&code_challenge=${codeChallenge}&code_challenge_method=S256`
+    url = appendParams(url, {
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+    })
 
     try {
       const result = await openPopup(oauthMeta, url, generateState(), codeVerifier, 500, 600)

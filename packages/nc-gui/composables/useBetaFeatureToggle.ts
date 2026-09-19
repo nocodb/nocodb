@@ -204,6 +204,17 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'app_factory',
+    get title() {
+      return getI18n().global.t('general.appFactory')
+    },
+    description: 'Dispatch coding agents against the source-control repositories connected to this workspace.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'presence_visibility_toggle',
     title: 'Presence Visibility Toggle',
     description: 'Allow users to hide their own presence from other collaborators.',

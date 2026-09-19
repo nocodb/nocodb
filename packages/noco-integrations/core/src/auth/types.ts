@@ -25,6 +25,7 @@ export enum AuthType {
   Basic = 'basic',
   Bearer = 'bearer',
   Custom = 'custom',
+  AppInstall = 'app_install',
 }
 
 export interface OAuthConfig {

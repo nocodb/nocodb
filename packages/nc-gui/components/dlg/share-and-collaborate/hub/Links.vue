@@ -38,7 +38,7 @@ function onCreate() {
 </script>
 
 <template>
-  <div class="flex flex-col px-6 pt-3 pb-5">
+  <div class="flex flex-col px-7 pt-4 pb-7">
     <div
       v-for="row in rows"
       :key="row.id"

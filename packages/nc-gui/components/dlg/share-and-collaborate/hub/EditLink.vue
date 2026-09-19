@@ -14,7 +14,7 @@ const allowedRoles = computed(() =>
 )
 
 const draft = reactive({
-  role: links.value[props.index]?.role ?? ProjectRoles.VIEWER,
+  role: links.value[props.index]?.role ?? ProjectRoles.EDITOR,
   anyEmail: links.value[props.index]?.anyEmail ?? true,
   domain: links.value[props.index]?.domain ?? '',
 })
@@ -39,7 +39,7 @@ watch(
   () => props.index,
   (i) => {
     Object.assign(draft, {
-      role: links.value[i]?.role ?? ProjectRoles.VIEWER,
+      role: links.value[i]?.role ?? ProjectRoles.EDITOR,
       anyEmail: links.value[i]?.anyEmail ?? true,
       domain: links.value[i]?.domain ?? '',
     })
@@ -48,7 +48,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 px-6 pt-4 pb-5">
+  <div class="flex flex-col gap-5 px-7 pt-5 pb-7">
     <div class="flex flex-col gap-1.5">
       <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.permission') }}</div>
       <RolesSelectorV2

@@ -25,12 +25,12 @@ export interface MockInviteLink {
 export const useInviteLinks = createGlobalState(() => {
   const newId = () => Math.random().toString(36).slice(2, 8)
 
-  const links = ref<MockInviteLink[]>([{ id: newId(), role: ProjectRoles.VIEWER, anyEmail: true, domain: '' }])
+  const links = ref<MockInviteLink[]>([{ id: newId(), role: ProjectRoles.EDITOR, anyEmail: true, domain: '' }])
 
   const linkUrl = (link: MockInviteLink) => `${window.location.origin}/invite/${link.id}`
 
   function createLink() {
-    const link: MockInviteLink = { id: newId(), role: ProjectRoles.VIEWER, anyEmail: true, domain: '' }
+    const link: MockInviteLink = { id: newId(), role: ProjectRoles.EDITOR, anyEmail: true, domain: '' }
     links.value.push(link)
 
     return links.value.length - 1

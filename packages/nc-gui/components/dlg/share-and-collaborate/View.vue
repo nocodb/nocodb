@@ -55,15 +55,20 @@ const editIndex = ref(0)
 
 const members = ref<Array<{ id?: string; email?: string; display_name?: string }>>([])
 
+/** "0 people have access" is a lie while the request is still out. */
+const membersLoaded = ref(false)
+
 async function loadMembers() {
   if (!base.value?.id) return
 
   try {
     const { users } = await getBaseUsers({ baseId: base.value.id, force: true })
     members.value = (users || []).filter((u: any) => !u?.deleted)
-  } catch {
-    // The avatar row is decoration over a count; a failure here must not take
-    // the modal down with it.
+    membersLoaded.value = true
+  } catch (e) {
+    // The row is a doorway to the members page; a failure here must not take the
+    // modal down with it, but it should not be silent either.
+    console.error(e)
     members.value = []
   }
 }
@@ -102,6 +107,12 @@ const objectTitle = computed(() => {
   }
 })
 
+/** The card header the design puts above the toggle. */
+const objectHeading = computed(() => ({
+  title: t('msg.info.publicLinkToNamed', { name: objectTitle.value || base.value?.title }),
+  subtitle: t('msg.info.sharePublicLinkSubtitle'),
+}))
+
 const defaultTab = computed<'invite' | 'object'>(() => {
   // The interface editor's Share button is its own surface; leave it opening
   // on the thing the user pressed it for. Everywhere else, invite comes first.
@@ -116,6 +127,30 @@ const screenTitle = computed(() => {
 
   return t('labels.shareNamed', { name: base.value?.title })
 })
+
+const MODAL_WIDTH = 560
+
+/**
+ * Open under the Share button rather than in the middle of the screen: the
+ * pointer is already at the button, so the first click inside the modal is a
+ * few pixels away instead of a trip to the centre. Falls back to centred when
+ * the trigger cannot be found (interface editor, keyboard shortcut).
+ */
+function anchorToTrigger() {
+  const trigger = document.querySelector('[data-testid="share-base-button"]') as HTMLElement | null
+  const root = document.documentElement
+  const gutter = 12
+
+  // No trigger to hang off: place it where ant would have, in pixels, so the CSS
+  // needs no second placement rule.
+  const rect = trigger?.getBoundingClientRect()
+  const top = rect ? rect.bottom + 8 : window.innerHeight * 0.1
+  const right = rect ? rect.right : (window.innerWidth + MODAL_WIDTH) / 2
+  const left = Math.max(gutter, Math.min(right - MODAL_WIDTH, window.innerWidth - MODAL_WIDTH - gutter))
+
+  root.style.setProperty('--nc-share-anchor-top', `${Math.round(top)}px`)
+  root.style.setProperty('--nc-share-anchor-left', `${Math.round(left)}px`)
+}
 
 function goMain() {
   screen.value = 'main'
@@ -172,6 +207,8 @@ watch(showShareModal, (val) => {
   if (val) {
     screen.value = 'main'
     activeTab.value = defaultTab.value
+    membersLoaded.value = false
+    nextTick(anchorToTrigger)
     loadMembers()
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })
   } else {
@@ -198,7 +235,7 @@ watch(showShareModal, (val) => {
     <div class="nc-share-modal flex flex-col">
       <!-- Hub. Two tabs, and the screens push off it. -->
       <template v-if="screen === 'main'">
-        <div class="flex items-center gap-2 px-6 pt-5">
+        <div class="flex items-center gap-2 px-7 pt-6">
           <div class="text-heading3 !text-[18px] font-bold tracking-tight text-nc-content-gray-emphasis">
             {{ $t('labels.shareNamed', { name: base.title }) }}
           </div>
@@ -215,6 +252,7 @@ watch(showShareModal, (val) => {
 
             <DlgShareAndCollaborateHubMain
               :members="members"
+              :members-loaded="membersLoaded"
               @compose="openCompose"
               @links="openLinks"
               @edit-link="openEditLink"
@@ -227,62 +265,56 @@ watch(showShareModal, (val) => {
               <span data-testid="nc-share-tab-object">{{ $t('activity.shareToWeb') }}</span>
             </template>
 
-            <div class="nc-share-pane px-6 pt-4 pb-5 flex flex-col gap-3">
-              <div class="rounded-xl border-1 border-nc-border-gray-medium px-3.5 py-3 flex flex-col gap-2">
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-7 h-7 flex-none rounded-md bg-nc-bg-gray-light flex items-center justify-center text-nc-content-gray-subtle"
-                  >
-                    <component :is="viewIcons[view?.type]?.icon" v-if="objectTab === 'view'" class="w-4 h-4" />
-                    <GeneralIcon v-else icon="ncFileText" class="w-4 h-4" />
+            <div class="nc-share-pane px-7 pt-5 pb-7 flex flex-col gap-4">
+              <div v-if="objectTab === 'view'" class="share-view flex flex-col gap-3">
+                <div
+                  v-if="isLocked || isViewSharingRestricted"
+                  class="inline-flex items-center gap-x-2 px-2 py-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
+                >
+                  <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
+                    <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
                   </div>
-                  <div class="flex-1 min-w-0 text-bodyDefaultSm font-semibold truncate">
-                    {{ $t('msg.info.publicLinkToNamed', { name: objectTitle || base.title }) }}
+                  <component
+                    :is="viewLockIcons[view.lock_type].icon"
+                    v-if="!isViewSharingRestricted"
+                    class="flex-none"
+                    :class="{
+                      'w-4 h-4': view?.lock_type === ViewLockType.Locked,
+                      'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
+                    }"
+                  />
+
+                  <div class="flex-1">
+                    {{
+                      isViewSharingRestricted
+                        ? $t('msg.privateBaseViewShareRestrictedMsg')
+                        : $t('title.viewSettingsCantBeChangedWhenViewIs', {
+                            type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
+                          })
+                    }}
                   </div>
                 </div>
 
-                <div v-if="objectTab === 'view'" class="share-view">
-                  <div
-                    v-if="isLocked || isViewSharingRestricted"
-                    class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
-                  >
-                    <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
-                      <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+                <DlgShareAndCollaborateSharePage :heading="objectHeading">
+                  <template #icon>
+                    <div
+                      class="w-7 h-7 flex-none rounded-md bg-nc-bg-gray-light flex items-center justify-center text-nc-content-gray-subtle"
+                    >
+                      <component :is="viewIcons[view?.type]?.icon" class="w-4 h-4" />
                     </div>
-                    <component
-                      :is="viewLockIcons[view.lock_type].icon"
-                      v-if="!isViewSharingRestricted"
-                      class="flex-none"
-                      :class="{
-                        'w-4 h-4': view?.lock_type === ViewLockType.Locked,
-                        'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
-                      }"
-                    />
-
-                    <div class="flex-1">
-                      {{
-                        isViewSharingRestricted
-                          ? $t('msg.privateBaseViewShareRestrictedMsg')
-                          : $t('title.viewSettingsCantBeChangedWhenViewIs', {
-                              type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
-                            })
-                      }}
-                    </div>
-                  </div>
-
-                  <DlgShareAndCollaborateSharePage />
-                </div>
-
-                <div v-else-if="objectTab === 'doc'" class="share-doc">
-                  <DlgShareAndCollaborateSharePageDoc />
-                </div>
-
-                <div v-else-if="objectTab === 'dashboard'" class="share-dashboard">
-                  <DlgShareAndCollaborateShareDashboard />
-                </div>
-
-                <DlgShareAndCollaborateShareInterface v-else />
+                  </template>
+                </DlgShareAndCollaborateSharePage>
               </div>
+
+              <div v-else-if="objectTab === 'doc'" class="share-doc">
+                <DlgShareAndCollaborateSharePageDoc />
+              </div>
+
+              <div v-else-if="objectTab === 'dashboard'" class="share-dashboard">
+                <DlgShareAndCollaborateShareDashboard />
+              </div>
+
+              <DlgShareAndCollaborateShareInterface v-else />
 
               <div v-if="canInvite" class="text-bodySm text-nc-content-gray-muted">
                 {{ $t('msg.info.readOnlyInviteInstead') }}
@@ -301,7 +333,7 @@ watch(showShareModal, (val) => {
 
       <!-- Sub-screens. Same modal, one job each, back arrow to the hub. -->
       <template v-else>
-        <div class="flex items-center gap-2 px-5 pt-5">
+        <div class="flex items-center gap-2 px-6 pt-6">
           <NcButton type="text" size="xsmall" class="!px-1" data-testid="nc-hub-back" @click="goMain">
             <GeneralIcon icon="ncArrowLeft" class="w-5 h-5" />
           </NcButton>
@@ -349,8 +381,15 @@ watch(showShareModal, (val) => {
 
 <style lang="scss">
 .nc-modal-share-collaborate {
+  // Anchored under the Share button when we know where it is; the fallbacks
+  // reproduce ant's centred placement.
   .ant-modal {
-    top: 10vh !important;
+    position: absolute;
+    top: var(--nc-share-anchor-top, 10vh) !important;
+    left: var(--nc-share-anchor-left, 0);
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+    transform-origin: top right !important;
   }
 
   // Disabled still has to look like a button: the default treatment fades it
@@ -370,7 +409,9 @@ watch(showShareModal, (val) => {
   // The tab strip sits under the title block and above the pane, so it owns the
   // rule that used to be drawn per-section.
   .nc-share-tabs > .ant-tabs-nav {
-    @apply px-3 pr-12 mt-1 mb-0 border-b-1 border-nc-border-gray-medium;
+    // NcTabs pads each tab by 8px, so the nav pads 20px to land the first tab's
+    // text on the same 28px gutter as the heading above it.
+    @apply pl-5 pr-12 mt-2 mb-0 border-b-1 border-nc-border-gray-medium;
 
     &::before {
       @apply border-0;

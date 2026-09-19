@@ -8,6 +8,7 @@ import { RoleLabels } from 'nocodb-sdk'
 /** Collaborators already on the base, for the avatar stack and the count. */
 const props = defineProps<{
   members: Array<{ id?: string; email?: string; display_name?: string }>
+  membersLoaded?: boolean
 }>()
 
 const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess'])
@@ -66,7 +67,7 @@ async function copyPrimary() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 px-6 py-5">
+  <div class="flex flex-col gap-5 px-7 pt-5 pb-7">
     <!-- Focus rather than type: the real composing happens on its own screen, so
          the hub stays one glance rather than a form. -->
     <input
@@ -100,7 +101,10 @@ async function copyPrimary() {
           </div>
         </div>
         <div class="flex-1 text-left text-bodyDefault">
-          {{ $t('msg.info.peopleHaveAccess', { count: members.length }, members.length) }}
+          <template v-if="membersLoaded">
+            {{ $t('msg.info.peopleHaveAccess', { count: members.length }, members.length) }}
+          </template>
+          <span v-else class="inline-block w-32 h-4 rounded bg-nc-bg-gray-light" />
         </div>
         <GeneralIcon icon="ncChevronRight" class="flex-none w-5 h-5 text-nc-content-gray-subtle" />
       </button>

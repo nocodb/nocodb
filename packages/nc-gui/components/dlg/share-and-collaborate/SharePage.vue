@@ -1,7 +1,16 @@
 <script lang="ts" setup>
+/**
+ * When the host names the thing being shared, the first row becomes the design's
+ * header (icon slot + title + subtitle + toggle). Without it the row falls back
+ * to the long-standing "Enable Public Viewing" label.
+ */
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, PlanFeatureTypes, PlanTitles, ViewTypes } from 'nocodb-sdk'
 import { PreFilledMode } from '#imports'
+
+defineProps<{
+  heading?: { title: string; subtitle?: string }
+}>()
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -556,37 +565,41 @@ const copyCustomUrl = async (custUrl = '') => {
 </script>
 
 <template>
-  <div class="flex flex-col py-2 px-3 mb-1">
-    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-nc-border-gray-medium border-1 rounded-md gap-y-2">
-      <!-- Sits above every other option so it reads as a property of the shared form, not of survey mode -->
-      <NcAlert
-        v-if="isFormRequireSigninEnabled"
-        type="info"
-        show-icon
-        :message="$t('msg.info.formRequiresSignin')"
-        data-testid="nc-share-form-require-signin-banner"
-      />
-      <div class="flex flex-row w-full justify-between py-0.5">
-        <div class="text-nc-content-gray-emphasis font-medium">
-          {{ $t('activity.enabledPublicViewing') }}
+  <div class="nc-share-page flex flex-col gap-3">
+    <!-- Sits above every other option so it reads as a property of the shared form, not of survey mode -->
+    <NcAlert
+      v-if="isFormRequireSigninEnabled"
+      type="info"
+      show-icon
+      :message="$t('msg.info.formRequiresSignin')"
+      data-testid="nc-share-form-require-signin-banner"
+    />
+    <div class="flex items-start gap-3">
+      <slot name="icon" />
+      <div class="flex-1 min-w-0 flex flex-col">
+        <div class="text-bodyDefault font-semibold text-nc-content-gray-emphasis">
+          {{ heading?.title || $t('activity.enabledPublicViewing') }}
         </div>
-        <a-switch
-          v-if="!restrictedSharing"
-          v-e="['c:share:view:enable:toggle']"
-          :checked="isPublicShared"
-          :disabled="isLocked"
-          :loading="isUpdating.public"
-          class="share-view-toggle !mt-0.25"
-          data-testid="share-view-toggle"
-          @click="toggleShare"
-        />
-        <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
+        <div v-if="heading?.subtitle" class="text-bodySm text-nc-content-gray-subtle2">{{ heading.subtitle }}</div>
       </div>
-      <template v-if="isPublicShared">
-        <div class="mt-0.5 border-t-1 border-nc-border-gray-light pt-3">
-          <GeneralCopyUrl v-model:url="url" />
-        </div>
+      <a-switch
+        v-if="!restrictedSharing"
+        v-e="['c:share:view:enable:toggle']"
+        :checked="isPublicShared"
+        :disabled="isLocked"
+        :loading="isUpdating.public"
+        class="share-view-toggle !mt-0.25"
+        data-testid="share-view-toggle"
+        @click="toggleShare"
+      />
+      <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
+    </div>
+    <template v-if="isPublicShared">
+      <div class="rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight px-3 py-2.5">
+        <GeneralCopyUrl v-model:url="url" />
+      </div>
 
+      <div class="nc-share-options">
         <DlgShareAndCollaborateCustomUrl
           v-if="activeView && showEEFeatures"
           :id="activeView.fk_custom_url_id"
@@ -596,7 +609,7 @@ const copyCustomUrl = async (custUrl = '') => {
           :disabled="isReadOnly"
           @update-custom-url="(custUrl) => updateSharedView({ custUrl })"
         />
-        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
+        <div class="nc-share-option">
           <div class="flex flex-row items-center justify-between">
             <div class="flex text-nc-content-gray-extreme">
               {{ $t('activity.restrictAccessWithPassword') }}
@@ -691,21 +704,21 @@ const copyCustomUrl = async (custUrl = '') => {
           </Transition>
         </div>
 
-        <DlgShareAndCollaborateChangeViewPassword
-          v-if="isChangePasswordModalOpen && activeView"
-          v-model:visible="isChangePasswordModalOpen"
-          :loading="isUpdating.password"
-          @save="onPasswordChanged"
-        />
         <div
           v-if="
             activeView &&
             [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
           "
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
+          class="nc-share-option gap-y-3"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-nc-content-gray-extreme">{{ $t('activity.allowDownload') }}</div>
+            <div class="text-nc-content-gray-extreme flex items-center space-x-1">
+              <div>{{ $t('activity.allowDownload') }}</div>
+              <NcTooltip class="flex items-center">
+                <template #title>{{ $t('msg.info.allowDownloadDescription') }}</template>
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer" />
+              </NcTooltip>
+            </div>
             <a-switch
               v-model:checked="allowCSVDownload"
               v-e="['c:share:view:allow-csv-download:toggle']"
@@ -718,10 +731,7 @@ const copyCustomUrl = async (custUrl = '') => {
           </div>
         </div>
 
-        <div
-          v-if="showEEFeatures && activeView?.type === ViewTypes.GRID"
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
-        >
+        <div v-if="showEEFeatures && activeView?.type === ViewTypes.GRID" class="nc-share-option gap-y-3">
           <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_SYNC">
             <template #default="{ click }">
               <div class="flex flex-row items-center justify-between">
@@ -761,10 +771,10 @@ const copyCustomUrl = async (custUrl = '') => {
           </PaymentUpgradeBadgeProvider>
         </div>
 
-        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
+        <div class="nc-share-option">
           <div class="flex flex-row items-center justify-between">
             <div class="flex text-nc-content-gray-extreme">
-              {{ $t('labels.language') }}
+              {{ $t('activity.setALanguage') }}
             </div>
             <a-switch
               v-e="['c:share:view:language:toggle']"
@@ -790,10 +800,7 @@ const copyCustomUrl = async (custUrl = '') => {
           </Transition>
         </div>
 
-        <div
-          v-if="activeView?.type === ViewTypes.FORM"
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
-        >
+        <div v-if="activeView?.type === ViewTypes.FORM" class="nc-share-option gap-y-3">
           <div class="flex flex-row items-center justify-between">
             <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>
@@ -814,10 +821,7 @@ const copyCustomUrl = async (custUrl = '') => {
           </div>
         </div>
 
-        <div
-          v-if="activeView?.type === ViewTypes.FORM"
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
-        >
+        <div v-if="activeView?.type === ViewTypes.FORM" class="nc-share-option gap-y-3">
           <div class="flex flex-row items-center justify-between">
             <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>Default Theme</div>
@@ -852,10 +856,7 @@ const copyCustomUrl = async (custUrl = '') => {
           </Transition>
         </div>
 
-        <div
-          v-if="activeView?.type === ViewTypes.FORM"
-          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
-        >
+        <div v-if="activeView?.type === ViewTypes.FORM" class="nc-pre-filled-mode-wrapper nc-share-option gap-y-3">
           <div class="flex flex-row items-center justify-between">
             <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>
@@ -893,12 +894,32 @@ const copyCustomUrl = async (custUrl = '') => {
             </a-radio>
           </a-radio-group>
         </div>
-      </template>
-    </div>
+      </div>
+
+      <DlgShareAndCollaborateChangeViewPassword
+        v-if="isChangePasswordModalOpen && activeView"
+        v-model:visible="isChangePasswordModalOpen"
+        :loading="isUpdating.password"
+        @save="onPasswordChanged"
+      />
+    </template>
   </div>
 </template>
 
 <style lang="scss">
+// One card, hairline rules between rows, rather than a stack of tinted pills.
+.nc-share-options {
+  @apply rounded-xl border-1 border-nc-border-gray-medium overflow-hidden;
+
+  > * + * {
+    @apply border-t-1 border-nc-border-gray-light;
+  }
+}
+
+.nc-share-option {
+  @apply flex flex-col justify-between px-3.5 py-3;
+}
+
 .docs-share-public-toggle {
   height: 1.25rem !important;
   min-width: 2.4rem !important;

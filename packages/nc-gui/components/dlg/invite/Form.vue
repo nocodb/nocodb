@@ -686,6 +686,7 @@ const recipientCount = computed(() => (props.isTeam ? (inviteData.selectedTeamId
 const canSubmit = computed(() => !isInviteButtonDisabled.value && !isLoading.value && !warningMsg.value)
 
 defineExpose({
+  focus: focusOnDiv,
   submit: inviteCollaborator,
   canSubmit,
   isLoading,

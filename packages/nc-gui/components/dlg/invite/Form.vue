@@ -200,8 +200,13 @@ watch(
             allowedRoles.value = filteredRoles.slice(1)
             disabledRoles.value = filteredRoles.slice(0, 1)
           } else {
-            allowedRoles.value = rolesArr
-            disabledRoles.value = []
+            // Roles unknown at this point -- `workspaceRoles` is null until
+            // `user.workspace_roles` lands, and this watch is immediate, so it
+            // can run before then. Never offer Owner on a guess: the server
+            // refuses it for every caller anyway, and the team branch above
+            // already withholds it for the same reason.
+            allowedRoles.value = filteredRoles.slice(1)
+            disabledRoles.value = filteredRoles.slice(0, 1)
           }
         }
         // move INHERIT role to the end of the list, if present in allowed roles

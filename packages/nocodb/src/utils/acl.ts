@@ -63,6 +63,8 @@ export const permissionScopes = {
 
     // Misc
     'commandPalette',
+    // Redeeming a link you already hold; the service does the real gating
+    'inviteLinkAccept',
     'baseListAll',
     'instanceAdminStats',
     'instanceAdminWorkspaces',
@@ -132,6 +134,10 @@ export const permissionScopes = {
     'workspaceInvite',
     'workspaceUserUpdate',
     'workspaceUserDelete',
+    'workspaceInviteLinkList',
+    'workspaceInviteLinkCreate',
+    'workspaceInviteLinkUpdate',
+    'workspaceInviteLinkDelete',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -253,6 +259,12 @@ export const permissionScopes = {
     'sourceCreate',
     'columnAdd',
 
+    // Invite links -- a standing grant, so creator+ only, same floor as baseShare
+    'baseInviteLinkList',
+    'baseInviteLinkCreate',
+    'baseInviteLinkUpdate',
+    'baseInviteLinkDelete',
+
     // Base API Tokens
     'baseApiTokenList',
     'baseApiTokenCreate',
@@ -355,6 +367,7 @@ const rolePermissions:
       mfaStatus: true,
       mfaRegenerateBackupCodes: true,
       commandPalette: true,
+      inviteLinkAccept: true,
       baseListAll: true,
       testConnection: true,
       notification: true,
@@ -1041,6 +1054,15 @@ const permissionDescriptions: Record<string, string> = {
   nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
   baseUserList: 'view list of users in the base',
 
+  baseInviteLinkList: 'view invite links for a base',
+  baseInviteLinkCreate: 'create an invite link for a base',
+  baseInviteLinkUpdate: 'update an invite link',
+  baseInviteLinkDelete: 'revoke an invite link',
+  workspaceInviteLinkList: 'view invite links for a workspace',
+  workspaceInviteLinkCreate: 'create an invite link for a workspace',
+  workspaceInviteLinkUpdate: 'update a workspace invite link',
+  workspaceInviteLinkDelete: 'revoke a workspace invite link',
+  inviteLinkAccept: 'redeem an invite link',
   baseApiTokenList: 'view list of base API tokens',
   baseApiTokenCreate: 'create a new base API token',
   baseApiTokenDelete: 'delete a base API token',

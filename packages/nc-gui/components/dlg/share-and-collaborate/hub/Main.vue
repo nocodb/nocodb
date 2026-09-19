@@ -18,6 +18,9 @@ const { isUIAllowed } = useRoles()
 /** Minting a standing grant is creator+; an editor still invites by email. */
 const canCreateInviteLink = computed(() => isUIAllowed('baseInviteLinkCreate'))
 
+/** Email invites are editor+; the link is open to viewer+. */
+const canInviteByEmail = computed(() => isUIAllowed('userInvite'))
+
 /** Their own domain makes the example read as their team, not a stock address. */
 const emailPlaceholder = computed(() =>
   defaultEmailDomain.value
@@ -33,7 +36,7 @@ const emailPlaceholder = computed(() =>
       <div class="h-px bg-nc-border-gray-light" />
     </template>
 
-    <div class="flex flex-col gap-2">
+    <div v-if="canInviteByEmail" class="flex flex-col gap-2">
       <div class="text-bodyDefault font-semibold text-nc-content-gray">{{ $t('labels.inviteSpecificPeople') }}</div>
 
       <!-- Focus rather than type: the real composing happens on its own screen, so

@@ -83,7 +83,12 @@ const isInterfaceContext = computed(() => !!route.params.interfaceId)
 
 // Same floor as sharing the base: if you may hand out a public link to it, you
 // may hand out a seat in it.
-const canInvite = computed(() => isUIAllowed('baseShare') && !!base.value?.id)
+// Anyone who can actually invite sees the tab: editor+ can invite by email,
+// viewer+ can mint a link. Gating on baseShare hid it from everyone below
+// creator even though both paths were open to them.
+const canInvite = computed(
+  () => (isUIAllowed('userInvite') || isUIAllowed('baseInviteLinkCreate')) && !!base.value?.id,
+)
 
 const shareViewSection = computed(() => isViewToolbar && !!activeView.value)
 

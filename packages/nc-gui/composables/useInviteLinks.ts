@@ -1,5 +1,12 @@
 import type { InviteLinkReqType, InviteLinkType } from 'nocodb-sdk'
-import { InviteLinkScope, ProjectRoles, WorkspaceUserRoles, inviteLinkRolesFor } from 'nocodb-sdk'
+import {
+  InviteLinkScope,
+  OrderedProjectRoles,
+  OrderedWorkspaceRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+  inviteLinkRolesFor,
+} from 'nocodb-sdk'
 
 export interface InviteLinkTarget {
   scope: InviteLinkScope
@@ -23,6 +30,8 @@ export const useInviteLinks = createGlobalState(() => {
 
   const { user } = useGlobal()
 
+  const { baseRoles, workspaceRoles } = useRoles()
+
   const links = ref<InviteLinkType[]>([])
 
   const target = ref<InviteLinkTarget | null>(null)
@@ -33,8 +42,26 @@ export const useInviteLinks = createGlobalState(() => {
 
   const error = ref('')
 
-  /** Owner is never handed out by a link; it is granted to a named person. */
-  const allowedRoles = computed(() => [...inviteLinkRolesFor(target.value?.scope ?? InviteLinkScope.BASE)])
+  /**
+   * Owner is never handed out by a link. Beyond that, nobody is offered a role
+   * above their own: the server refuses it anyway (assertRolePower), so listing
+   * it would only be a button that fails.
+   */
+  const allowedRoles = computed(() => {
+    const scope = target.value?.scope ?? InviteLinkScope.BASE
+    const offered = [...inviteLinkRolesFor(scope)]
+
+    const isWorkspace = scope === InviteLinkScope.WORKSPACE
+    const ordered = [...(isWorkspace ? OrderedWorkspaceRoles : OrderedProjectRoles)].reverse()
+    const held = isWorkspace ? workspaceRoles.value : baseRoles.value
+
+    // Power is the highest-ranked role the user actually holds in this scope.
+    const power = Math.max(-1, ...Object.keys(held || {}).map((r) => (held?.[r] ? ordered.indexOf(r as never) : -1)))
+
+    if (power < 0) return offered
+
+    return offered.filter((r) => ordered.indexOf(r as never) <= power)
+  })
 
   const defaultRole = computed(() =>
     target.value?.scope === InviteLinkScope.WORKSPACE ? WorkspaceUserRoles.EDITOR : ProjectRoles.EDITOR,

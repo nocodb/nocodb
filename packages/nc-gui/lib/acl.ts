@@ -139,6 +139,8 @@ const rolePermissions = {
   },
   [ProjectRoles.EDITOR]: {
     include: {
+      // Mirrors the backend: userInvite is granted to editor and above.
+      userInvite: true,
       dataInsert: true,
       dataEdit: true,
       viewFieldDataEdit:

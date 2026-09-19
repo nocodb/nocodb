@@ -38,6 +38,11 @@ const emailPlaceholder = computed(() =>
  */
 const { isUIAllowed } = useRoles()
 
+/** Email invites are editor+ on a base; the link is open to viewer+. */
+const canInviteByEmail = computed(() =>
+  props.type === 'base' ? isUIAllowed('userInvite') : true,
+)
+
 const linkTarget = computed(() => {
   if (props.isTeam) return null
 
@@ -134,9 +139,10 @@ watch(dialogShow, (open) => {
            where the intent is already "add this person". The share hub keeps
            the link first, where the intent is to share. -->
       <template v-if="showLinks">
-        <div class="text-bodyDefault font-semibold text-nc-content-gray mb-2">
-          {{ $t('labels.inviteSpecificPeople') }}
-        </div>
+        <template v-if="canInviteByEmail">
+          <div class="text-bodyDefault font-semibold text-nc-content-gray mb-2">
+            {{ $t('labels.inviteSpecificPeople') }}
+          </div>
 
         <!-- A doorway, not the form: the role belongs on the compose screen, so
              it is not stated twice under a link that already names one. -->
@@ -149,7 +155,8 @@ watch(dialogShow, (open) => {
           @click="openCompose"
         />
 
-        <div class="h-px bg-nc-border-gray-light my-5" />
+          <div class="h-px bg-nc-border-gray-light my-5" />
+        </template>
 
         <DlgShareAndCollaborateHubLinkBlock @manage="openLinks" />
       </template>

@@ -197,6 +197,9 @@ export enum PlanFeatureTypes {
   /** Configured, autonomous agents in a base — the Agents vertical. */
   FEATURE_AGENTS = 'feature_agents',
 
+  /** App Factory — coding agents dispatched against a workspace's source-control repos. */
+  FEATURE_APP_FACTORY = 'feature_app_factory',
+
   /** Editing a workspace's skills policy: which repos, and whether personal catalogs load. */
   FEATURE_SKILLS_GOVERNANCE = 'feature_skills_governance',
   /** Org-scope skills, org policy over every workspace, inventory and load reporting. */
@@ -640,6 +643,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT]:
     'to migrate a base to another NocoDB instance.',
   [PlanFeatureTypes.FEATURE_AGENTS]: 'to use agents.',
+  [PlanFeatureTypes.FEATURE_APP_FACTORY]: 'to use the App Factory.',
   [PlanFeatureTypes.FEATURE_SKILLS_GOVERNANCE]:
     'to control which skills your workspace can install.',
   [PlanFeatureTypes.FEATURE_SKILLS_ORG]:

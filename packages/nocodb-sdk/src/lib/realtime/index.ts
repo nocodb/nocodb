@@ -9,6 +9,7 @@ import type {
   ChatToolProgress,
 } from '~/lib/chat';
 import type { AppBuildLockPayload } from '~/lib/app/build';
+import type { DistributiveOmit } from '~/lib/types/type-utils';
 import type { AppStatus, AppType } from '~/lib/app';
 import type { AppTeamType } from '~/lib/app/team';
 import type { AppConnectionSlotView } from '~/lib/app/connection';
@@ -415,7 +416,7 @@ export type FocusPayload =
  * every agent frame carries the tag and chat frames stay unmarked — each store
  * keeps only what is its own.
  */
-export type StreamScope = 'chat' | 'agent';
+export type StreamScope = 'chat' | 'agent' | 'factory';
 
 export interface ChatEventPayload extends BaseSocketPayload {
   action: ChatEventAction;
@@ -482,6 +483,12 @@ export interface ChatEventPayload extends BaseSocketPayload {
   /** Token-authed relative URL of the freshly built app preview. */
   previewUrl?: string;
 }
+
+/** A payload as a broadcaster builds it, before the wire fields are stamped on. */
+export type ChatEventInput = DistributiveOmit<
+  ChatEventPayload,
+  'event' | 'timestamp' | 'socketId'
+>;
 
 /** App lifecycle (create / rename / settings-update / delete) — keeps the base's
  *  Apps list live across tabs and users, and surfaces apps the App Builder

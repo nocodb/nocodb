@@ -1,4 +1,11 @@
 import type {
+  FactoryPort,
+  FactoryPreview,
+  FactoryRepoType,
+  FactorySessionView,
+  FactoryStreamState,
+} from 'nocodb-sdk';
+import type {
   BaseVariableType,
   DependencyTableType,
   NcContext,
@@ -78,6 +85,13 @@ export type InternalGETResponseType = Promise<
       editorCount: number;
     }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
+  | { list: McpToolCatalogEntry[] }
+  // App Factory — session views and the agent output drain.
+  | FactorySessionView
+  | FactoryStreamState
+  | FactoryRepoType[]
+  | FactoryPort[]
+  | FactoryPreview
 >;
 
 export type InternalPOSTResponseType = Promise<

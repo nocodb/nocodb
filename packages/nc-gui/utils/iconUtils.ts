@@ -897,6 +897,7 @@ import NcBuilding from '~icons/nc-icons-v2/building'
 import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-empty-state'
 import NcClipboardType from '~icons/nc-icons-v2/clipboard-type'
 import NcKeyboardIcon from '~icons/nc-icons-v2/keyboard'
+import NcRobotArm from '~icons/nc-icons-v2/robot-arm'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -2011,6 +2012,7 @@ export const iconMap = {
   'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
   'ncClipboardType': NcClipboardType,
   'ncKeyboard': NcKeyboardIcon,
+  'ncRobotArm': NcRobotArm,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -242,6 +242,7 @@ export class MetaService {
       [MetaTable.CHAT_SESSIONS]: 'cs',
       [MetaTable.CHAT_MESSAGES]: 'cm',
       [MetaTable.CHAT_ARTIFACTS]: 'cha',
+      [MetaTable.FACTORY_REPOS]: 'fr',
       [MetaTable.AGENTS]: 'agt',
       [MetaTable.AGENT_SESSIONS]: 'agss',
       [MetaTable.AGENT_CHANNELS]: 'agch',

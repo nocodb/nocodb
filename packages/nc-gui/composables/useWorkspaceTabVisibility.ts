@@ -18,6 +18,7 @@ export function useWorkspaceTabVisibility(
   const { isTeamsEnabled } = storeToRefs(useWorkspace())
   const { isPaymentEnabled, showEEFeatures } = useEeConfig()
   const { creditsEnabled } = storeToRefs(useCredits())
+  const { isFeatureEnabled } = useBetaFeatureToggle()
 
   // Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO).
   // Availability is deployment-level only — the plan gate (Business+) drives the upgrade
@@ -36,6 +37,14 @@ export function useWorkspaceTabVisibility(
     isBaseRolesLoaded.value
 
     return {
+      // Behind the beta flag, then plan-gated: the flag decides whether the tab
+      // exists at all, `blockAppFactory` whether it carries an upgrade badge.
+      factory:
+        !isMobileMode.value &&
+        isEeUI &&
+        !appInfo.value?.isOnPrem &&
+        isFeatureEnabled(FEATURE_FLAG.APP_FACTORY) &&
+        isUIAllowed('appFactory'),
       collaborators: isAdmin.value || isUIAllowed('workspaceCollaborators'),
       teams: hasTeamsEditPermission.value && showEEFeatures.value,
       integrations: !isMobileMode.value && isUIAllowed('workspaceIntegrations'),

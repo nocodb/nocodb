@@ -998,6 +998,24 @@ interface NcListProps {
   isLoading?: boolean
 
   /**
+   * The search box queries a server rather than the list already in memory.
+   *
+   * Local filtering is skipped, because `list` is then already the answer to
+   * the query — re-filtering it would drop rows whose label does not literally
+   * contain the query (a pull request matched on its body, say). Pair with
+   * `@search-change` to run the fetch and `isLoading` while it is in flight.
+   * @default false
+   */
+  serverSearch?: boolean
+
+  /**
+   * How long to wait after the last keystroke before `search-change` fires, in
+   * milliseconds. Only relevant with `serverSearch`.
+   * @default 300
+   */
+  searchDebounce?: number
+
+  /**
    * Whether input should have border
    */
   inputBordered?: boolean
@@ -1348,4 +1366,13 @@ export interface NcTooltipGroup {
   enterDelay: (own: number) => number
   onOpen: () => void
   onClose: () => void
+  /**
+   * Set when the provider owns a single popup that moves between its items,
+   * the way Base UI's does. `NcTooltip` ignores this — only `NcTooltipItem`
+   * hands itself over, so grouped `NcTooltip`s keep their own popup each.
+   */
+  glide?: {
+    show: (anchor: HTMLElement, title: string) => void
+    hide: (anchor: HTMLElement) => void
+  }
 }

@@ -39,9 +39,7 @@ const emailPlaceholder = computed(() =>
 const { isUIAllowed } = useRoles()
 
 /** Email invites are editor+ on a base; the link is open to viewer+. */
-const canInviteByEmail = computed(() =>
-  props.type === 'base' ? isUIAllowed('userInvite') : true,
-)
+const canInviteByEmail = computed(() => (props.type === 'base' ? isUIAllowed('userInvite') : true))
 
 const linkTarget = computed(() => {
   if (props.isTeam) return null
@@ -111,7 +109,9 @@ watch(dialogShow, (open) => {
     return
   }
 
-  if (linkTarget.value) loadInviteLinks(linkTarget.value)
+  // Forced, for the same reason as the share hub: reopening is the moment the
+  // user expects to be looking at what is actually there.
+  if (linkTarget.value) loadInviteLinks(linkTarget.value, true)
 })
 </script>
 
@@ -145,16 +145,16 @@ watch(dialogShow, (open) => {
             {{ $t('labels.inviteSpecificPeople') }}
           </div>
 
-        <!-- A doorway, not the form: the role belongs on the compose screen, so
+          <!-- A doorway, not the form: the role belongs on the compose screen, so
              it is not stated twice under a link that already names one. -->
-        <input
-          class="nc-hub-email-field w-full h-11 px-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default outline-none text-bodyDefault text-nc-content-gray hover:border-nc-border-gray-dark"
-          :placeholder="emailPlaceholder"
-          data-testid="nc-hub-invite-by-email"
-          readonly
-          @focus="openCompose"
-          @click="openCompose"
-        />
+          <input
+            class="nc-hub-email-field w-full h-11 px-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default outline-none text-bodyDefault text-nc-content-gray hover:border-nc-border-gray-dark"
+            :placeholder="emailPlaceholder"
+            data-testid="nc-hub-invite-by-email"
+            readonly
+            @focus="openCompose"
+            @click="openCompose"
+          />
 
           <div class="h-px bg-nc-border-gray-light my-5" />
         </template>

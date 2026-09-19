@@ -282,7 +282,10 @@ watch(showShareModal, (val) => {
     membersLoaded.value = false
     nextTick(anchorToTrigger)
     loadMemberCount()
-    if (base.value?.id) loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id })
+    // Forced: the cached list is whatever this tab last saw, so a link created
+    // or revoked anywhere else -- another tab, another person -- would still be
+    // on screen, and its Copy button would hand out a dead token.
+    if (base.value?.id) loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id }, true)
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })
   } else {
     setTimeout(() => {

@@ -2433,6 +2433,8 @@
     "manageTeams": "Manage Teams",
     "appSettings": "App Settings",
     "addUserToBase": "Invite Members to Base",
+    "bringTeamIntoBase": "Bring your team into {base}",
+    "privateInviteLink": "Private invite link",
     "addUserToInterface": "Invite Members to Interface",
     "allRoles": "All roles",
     "allInterfaces": "All interfaces",
@@ -4545,6 +4547,8 @@
     "teamsAdded": "Teams added successfully",
     "enterEmail": "Enter emails, comma separated",
     "inviteToBase": "Invite to Base",
+    "sendInvites": "Send invites",
+    "inviteThemInstead": "Invite them instead",
     "inviteToWorkspace": "Invite to Workspace",
     "addMember": "Add Member to Base",
     "addTeamsToBase": "Add Teams to Base",
@@ -5381,6 +5385,9 @@
       "removeCustomDomain": "{domain} will stop serving this app. The default address keeps working."
     },
     "info": {
+      "inviteTeamSubtitle": "They get an email and can start right away.",
+      "shareLinksReadOnly": "Links are read-only. Want them to edit or comment?",
+      "anyoneWithLinkJoinsAs": "Anyone with the link joins as {role}",
       "bulkUpdateConfirm": "The value of {fields} field will be applied to every selected record. | The values of {fields} fields will be applied to every selected record.",
       "noFieldForSummaryFunction": "No field in this table can be summarized with this function",
       "noVisibleFieldForSummaryFunction": "No field shown on this visualization can be summarized with this function — add one in Fields first",

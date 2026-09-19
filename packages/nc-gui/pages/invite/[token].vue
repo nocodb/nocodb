@@ -102,65 +102,71 @@ onMounted(loadPreview)
     <NuxtLayout>
       <div class="nc-invite-page flex items-center justify-center min-h-full py-16 bg-nc-bg-default px-6">
         <div class="w-full max-w-100 flex flex-col items-center gap-6">
-        <div class="relative h-12 w-12 flex-none">
+          <div class="relative h-12 w-12 flex-none">
             <GeneralNocoIcon :size="40" />
           </div>
 
-      <div v-if="isLoading" class="flex flex-col items-center gap-3 w-full">
-        <span class="h-5 w-48 rounded bg-nc-bg-gray-light" />
-        <span class="h-10 w-full rounded-lg bg-nc-bg-gray-light" />
-      </div>
-
-      <template v-else-if="loadError">
-        <div class="text-heading3 text-nc-content-gray text-center">{{ $t('msg.error.inviteLinkInvalid') }}</div>
-        <div class="text-bodyDefault text-nc-content-gray-subtle2 text-center">{{ loadError }}</div>
-        <NcButton type="secondary" size="medium" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
-      </template>
-
-      <template v-else-if="invalidReason">
-        <div class="text-heading3 text-nc-content-gray text-center" data-testid="nc-invite-invalid">{{ invalidCopy }}</div>
-        <div class="text-bodyDefault text-nc-content-gray-subtle2 text-center">{{ $t('msg.info.askForANewLink') }}</div>
-        <NcButton type="secondary" size="medium" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
-      </template>
-
-      <template v-else>
-        <div class="flex flex-col items-center gap-2 text-center">
-          <div class="text-heading3 text-nc-content-gray" data-testid="nc-invite-heading">
-            {{
-              preview?.scope === InviteLinkScope.WORKSPACE
-                ? $t('msg.info.invitedToWorkspace', { name: preview?.target_title })
-                : $t('msg.info.invitedToBase', { name: preview?.target_title })
-            }}
+          <div v-if="isLoading" class="flex flex-col items-center gap-3 w-full">
+            <span class="h-5 w-48 rounded bg-nc-bg-gray-light" />
+            <span class="h-10 w-full rounded-lg bg-nc-bg-gray-light" />
           </div>
-          <div class="text-bodyDefault text-nc-content-gray-subtle2">
-            {{ $t('msg.info.youWillJoinAs', { role: roleLabel }) }}
-          </div>
-          <div v-if="preview?.email_domain" class="text-bodyDefaultSm text-nc-content-gray-muted">
-            {{ $t('msg.info.domainNeedsVerifiedEmail') }}
-          </div>
-        </div>
 
-        <NcButton
-          v-if="signedIn"
-          type="primary"
-          size="medium"
-          class="!w-full"
-          :loading="isJoining"
-          data-testid="nc-invite-join"
-          @click="onJoin"
-        >
-          <span class="flex w-full items-center justify-center">{{ $t('activity.joinNow') }}</span>
-        </NcButton>
+          <template v-else-if="loadError">
+            <div class="text-heading3 text-nc-content-gray text-center">{{ $t('msg.error.inviteLinkInvalid') }}</div>
+            <div class="text-bodyDefault text-nc-content-gray-subtle2 text-center">{{ loadError }}</div>
+            <NcButton type="secondary" size="medium" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
+          </template>
 
-        <div v-else class="flex flex-col gap-2 w-full">
-          <NcButton type="primary" size="medium" class="!w-full" data-testid="nc-invite-signup" @click="goSignIn('/signup')">
-            <span class="flex w-full items-center justify-center">{{ $t('activity.createAccountToJoin') }}</span>
-          </NcButton>
-          <NcButton type="secondary" size="medium" class="!w-full" data-testid="nc-invite-signin" @click="goSignIn('/signin')">
-            <span class="flex w-full items-center justify-center">{{ $t('activity.signInToJoin') }}</span>
-          </NcButton>
-        </div>
-      </template>
+          <template v-else-if="invalidReason">
+            <div class="text-heading3 text-nc-content-gray text-center" data-testid="nc-invite-invalid">{{ invalidCopy }}</div>
+            <div class="text-bodyDefault text-nc-content-gray-subtle2 text-center">{{ $t('msg.info.askForANewLink') }}</div>
+            <NcButton type="secondary" size="medium" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
+          </template>
+
+          <template v-else>
+            <div class="flex flex-col items-center gap-2 text-center">
+              <div class="text-heading3 text-nc-content-gray" data-testid="nc-invite-heading">
+                {{
+                  preview?.scope === InviteLinkScope.WORKSPACE
+                    ? $t('msg.info.invitedToWorkspace', { name: preview?.target_title })
+                    : $t('msg.info.invitedToBase', { name: preview?.target_title })
+                }}
+              </div>
+              <div class="text-bodyDefault text-nc-content-gray-subtle2">
+                {{ $t('msg.info.youWillJoinAs', { role: roleLabel }) }}
+              </div>
+              <div v-if="preview?.email_domain" class="text-bodyDefaultSm text-nc-content-gray-muted">
+                {{ $t('msg.info.domainNeedsVerifiedEmail') }}
+              </div>
+            </div>
+
+            <NcButton
+              v-if="signedIn"
+              type="primary"
+              size="medium"
+              class="!w-full"
+              :loading="isJoining"
+              data-testid="nc-invite-join"
+              @click="onJoin"
+            >
+              <span class="flex w-full items-center justify-center">{{ $t('activity.joinNow') }}</span>
+            </NcButton>
+
+            <div v-else class="flex flex-col gap-2 w-full">
+              <NcButton type="primary" size="medium" class="!w-full" data-testid="nc-invite-signup" @click="goSignIn('/signup')">
+                <span class="flex w-full items-center justify-center">{{ $t('activity.createAccountToJoin') }}</span>
+              </NcButton>
+              <NcButton
+                type="secondary"
+                size="medium"
+                class="!w-full"
+                data-testid="nc-invite-signin"
+                @click="goSignIn('/signin')"
+              >
+                <span class="flex w-full items-center justify-center">{{ $t('activity.signInToJoin') }}</span>
+              </NcButton>
+            </div>
+          </template>
         </div>
       </div>
     </NuxtLayout>

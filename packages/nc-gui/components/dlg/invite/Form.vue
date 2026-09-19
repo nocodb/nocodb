@@ -31,21 +31,24 @@ const props = withDefaults(
     teams?: Array<TeamV3V3Type>
     existingTeamIds?: string[]
     /**
-     * When set, the form draws its own heading with the role selector beside it,
-     * and the role drops out of the body. Hosts that already have a modal title
-     * (base settings, workspace home) leave this unset and keep the stacked layout.
+     * `stacked` is the long-standing look: labelled field, role as a detail block.
+     * `compose` is the share hub's screen: no field label, role as a form control.
+     * Base settings and workspace home stay on `stacked`.
      */
-    heading?: string
+    layout?: 'stacked' | 'compose'
     /** Hosts that draw their own footer pass false and drive it through `submit`. */
     showFooter?: boolean
     submitLabel?: string
   }>(),
   {
+    layout: 'stacked',
     showFooter: true,
   },
 )
 
 const emit = defineEmits(['close', 'success'])
+
+const isCompose = computed(() => props.layout === 'compose')
 
 const basesStore = useBases()
 
@@ -693,28 +696,11 @@ defineExpose({
 
 <template>
   <div class="nc-invite-form">
-    <div v-if="heading" class="flex items-center justify-between gap-3 mb-3">
-      <span class="text-base font-semibold text-nc-content-gray-emphasis">{{ heading }}</span>
-      <RolesSelectorV2
-        v-if="!isTeam"
-        :on-role-change="onRoleChange"
-        :role="inviteData.roles"
-        :disabled-roles="disabledRoles"
-        :disabled-roles-tooltip="disabledRolesTooltip"
-        :roles="allowedRoles"
-        trigger-variant="compact"
-        :trigger-prefix="$t('labels.inviteAs')"
-        class="nc-invite-role-selector flex-none"
-        size="lg"
-        placement="bottomRight"
-      />
-    </div>
-
-    <div class="flex items-center justify-between gap-3" :class="heading ? '' : 'mt-2'">
+    <div class="flex items-center justify-between gap-3" :class="isCompose ? '' : 'mt-2'">
       <div class="flex w-full gap-4 flex-col">
         <div class="flex flex-col gap-4 w-full">
           <div v-if="!isTeam" class="relative w-full flex flex-col gap-1.5">
-            <span v-if="!heading" class="nc-invite-field-label">{{ $t('labels.emailAddresses') }}</span>
+            <span v-if="!isCompose" class="nc-invite-field-label">{{ $t('labels.emailAddresses') }}</span>
             <div
               ref="divRef"
               :class="{
@@ -803,16 +789,17 @@ defineExpose({
 
           <!-- Its own block, label above: side by side, the control stayed pinned to
                the top while the email field grew taller beside it. -->
-          <div v-if="!heading" class="flex flex-col gap-1.5 w-full">
-            <span class="nc-invite-field-label">{{ $t('labels.inviteAs') }}</span>
+          <div class="flex flex-col gap-1.5 w-full">
+            <span :class="isCompose ? 'nc-invite-field-strong' : 'nc-invite-field-label'">{{ $t('labels.inviteAs') }}</span>
             <RolesSelectorV2
               :on-role-change="onRoleChange"
               :role="inviteData.roles"
               :disabled-roles="disabledRoles"
               :disabled-roles-tooltip="disabledRolesTooltip"
               :roles="allowedRoles"
-              trigger-variant="detail"
-              class="nc-invite-role-selector -ml-1.5"
+              :trigger-variant="isCompose ? 'field' : 'detail'"
+              class="nc-invite-role-selector"
+              :class="{ '-ml-1.5': !isCompose }"
               size="lg"
               placement="bottomLeft"
             />
@@ -965,6 +952,10 @@ defineExpose({
 
 .nc-invite-field-label {
   @apply text-bodyDefaultSm text-nc-content-gray-muted;
+}
+
+.nc-invite-field-strong {
+  @apply text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2;
 }
 
 .nc-invite-field-hint {

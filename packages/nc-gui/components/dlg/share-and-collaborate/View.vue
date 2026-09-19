@@ -36,15 +36,37 @@ if (isViewToolbar) {
 const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
 
-const inviteFormRef = ref<{
-  submit: () => Promise<void>
-  canSubmit: boolean
-  isLoading: boolean
-  recipientCount: number
-} | null>(null)
+const { getBaseUsers } = useBases()
+
+const { links: inviteLinks } = useInviteLinks()
+
+const { navigateToProjectPage } = baseStore
 
 /** Which tab is open. `object` is whichever of view/doc/dashboard/interface this modal was opened over. */
 const activeTab = ref<'invite' | 'object'>('invite')
+
+/**
+ * The hub pushes into focused screens rather than growing. `main` is the tab
+ * pair; the rest are single-purpose and return with a back arrow.
+ */
+const screen = ref<'main' | 'compose' | 'links' | 'edit'>('main')
+
+const editIndex = ref(0)
+
+const members = ref<Array<{ id?: string; email?: string; display_name?: string }>>([])
+
+async function loadMembers() {
+  if (!base.value?.id) return
+
+  try {
+    const { users } = await getBaseUsers({ baseId: base.value.id, force: true })
+    members.value = (users || []).filter((u: any) => !u?.deleted)
+  } catch {
+    // The avatar row is decoration over a count; a failure here must not take
+    // the modal down with it.
+    members.value = []
+  }
+}
 
 const isViewSharingRestricted = computed(() => {
   return isPrivateBase.value && view.value?.type !== ViewTypes.FORM
@@ -67,39 +89,6 @@ const objectTab = computed<'view' | 'doc' | 'dashboard' | 'interface' | null>(()
   return null
 })
 
-// A grid and a form are shared for different reasons, so the tab names the one
-// in front of you rather than the generic "view".
-const viewTypeI18nKey: Partial<Record<ViewTypes, string>> = {
-  [ViewTypes.GRID]: 'grid',
-  [ViewTypes.GALLERY]: 'gallery',
-  [ViewTypes.FORM]: 'form',
-  [ViewTypes.KANBAN]: 'kanban',
-  [ViewTypes.MAP]: 'map',
-  [ViewTypes.CALENDAR]: 'calendar',
-  [ViewTypes.LIST]: 'list',
-  [ViewTypes.TIMELINE]: 'timeline',
-  [ViewTypes.GANTT]: 'gantt',
-}
-
-const viewTypeLabel = computed(() => {
-  const key = viewTypeI18nKey[view.value?.type as ViewTypes]
-
-  return key ? t(`objects.viewType.${key}`).toLowerCase() : ''
-})
-
-const objectTabLabel = computed(() => {
-  switch (objectTab.value) {
-    case 'doc':
-      return t('activity.shareDoc')
-    case 'dashboard':
-      return t('activity.shareDashboard')
-    case 'interface':
-      return t('labels.shareInterface')
-    default:
-      return viewTypeLabel.value ? t('activity.shareTypePublicly', { type: viewTypeLabel.value }) : t('activity.shareView')
-  }
-})
-
 const objectTitle = computed(() => {
   switch (objectTab.value) {
     case 'doc':
@@ -113,24 +102,6 @@ const objectTitle = computed(() => {
   }
 })
 
-// Each tab owns its own heading. Hanging one heading above the tab strip made
-// the top of the modal change every time you switched tabs, which reads as the
-// tabs being subordinate to it rather than the other way round.
-const objectHeading = computed(() => {
-  if (objectTab.value === 'interface') return t('labels.shareInterface')
-
-  return t('labels.shareNamed', { name: objectTitle.value || base.value?.title })
-})
-
-// Counts only once there is something to count; an empty form must not read
-// "Send 0 invites".
-const sendLabel = computed(() => {
-  const count = inviteFormRef.value?.recipientCount || 0
-  if (!count) return t('activity.invitePeople')
-
-  return t('activity.invitePeopleCount', { count }, count)
-})
-
 const defaultTab = computed<'invite' | 'object'>(() => {
   // The interface editor's Share button is its own surface; leave it opening
   // on the thing the user pressed it for. Everywhere else, invite comes first.
@@ -138,6 +109,47 @@ const defaultTab = computed<'invite' | 'object'>(() => {
 
   return canInvite.value ? 'invite' : 'object'
 })
+
+const screenTitle = computed(() => {
+  if (screen.value === 'links') return t('activity.inviteLinks')
+  if (screen.value === 'edit') return t('activity.editInviteLink')
+
+  return t('labels.shareNamed', { name: base.value?.title })
+})
+
+function goMain() {
+  screen.value = 'main'
+}
+
+function openCompose() {
+  screen.value = 'compose'
+  $e('c:share:compose')
+}
+
+function openLinks() {
+  screen.value = 'links'
+  $e('c:share:links')
+}
+
+/** Back to the list when there is a list to go back to, otherwise the hub. */
+function afterEditLink() {
+  screen.value = inviteLinks.value.length > 1 ? 'links' : 'main'
+}
+
+function openEditLink(index: number) {
+  editIndex.value = index
+  screen.value = 'edit'
+}
+
+/** The hub's people row is a doorway to the real members page. */
+async function openManageAccess() {
+  try {
+    await navigateToProjectPage({ page: 'collaborator' })
+    showShareModal.value = false
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 function onTabChange(key: string) {
   activeTab.value = key as typeof activeTab.value
@@ -153,11 +165,14 @@ function goToInviteTab() {
 // still sitting in the box waiting to be corrected.
 function onInviteSent(emails: string[]) {
   $e('a:share:invite-sent', { count: emails.length })
+  loadMembers()
 }
 
 watch(showShareModal, (val) => {
   if (val) {
+    screen.value = 'main'
     activeTab.value = defaultTab.value
+    loadMembers()
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })
   } else {
     setTimeout(() => {
@@ -178,122 +193,136 @@ watch(showShareModal, (val) => {
     :ok-button-props="{ hidden: true } as any"
     :cancel-button-props="{ hidden: true } as any"
     :footer="null"
-    :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
+    width="35rem"
   >
     <div class="nc-share-modal flex flex-col">
-      <NcTabs :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">
-        <a-tab-pane v-if="canInvite" key="invite">
-          <template #tab>
-            <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteTeam') }}</span>
-          </template>
-
-          <div class="nc-invite-pane px-5 pt-4 pb-4">
-            <DlgInviteForm
-              ref="inviteFormRef"
-              :active="showShareModal && activeTab === 'invite'"
-              type="base"
-              :base-id="base.id"
-              :heading="$t('labels.invitePeopleToBase', { base: base.title })"
-              :show-footer="false"
-              @success="onInviteSent"
-              @close="showShareModal = false"
-            />
+      <!-- Hub. Two tabs, and the screens push off it. -->
+      <template v-if="screen === 'main'">
+        <div class="flex items-center gap-2 px-6 pt-5">
+          <div class="text-heading3 !text-[18px] font-bold tracking-tight text-nc-content-gray-emphasis">
+            {{ $t('labels.shareNamed', { name: base.title }) }}
           </div>
-        </a-tab-pane>
+          <NcTooltip :title="$t('msg.info.shareHubTooltip')" placement="top">
+            <GeneralIcon icon="info" class="w-4.5 h-4.5 text-nc-content-gray-muted cursor-help" />
+          </NcTooltip>
+        </div>
 
-        <a-tab-pane v-if="objectTab" key="object">
-          <template #tab>
-            <span data-testid="nc-share-tab-object">{{ objectTabLabel }}</span>
-          </template>
+        <NcTabs :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">
+          <a-tab-pane v-if="canInvite" key="invite">
+            <template #tab>
+              <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteCollaborators') }}</span>
+            </template>
 
-          <div class="nc-share-pane px-5 pt-4 pb-2">
-            <div class="flex flex-col gap-1 mb-3">
-              <div class="text-base font-semibold text-nc-content-gray-emphasis">{{ objectHeading }}</div>
-              <div class="text-bodySm text-nc-content-gray-muted">{{ $t('msg.info.sharePublicLinkSubtitle') }}</div>
-            </div>
+            <DlgShareAndCollaborateHubMain
+              :members="members"
+              @compose="openCompose"
+              @links="openLinks"
+              @edit-link="openEditLink"
+              @manage-access="openManageAccess"
+            />
+          </a-tab-pane>
 
-            <div v-if="objectTab === 'view'" class="share-view">
-              <div
-                v-if="isLocked || isViewSharingRestricted"
-                class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
-              >
-                <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
-                  <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+          <a-tab-pane v-if="objectTab" key="object">
+            <template #tab>
+              <span data-testid="nc-share-tab-object">{{ $t('activity.shareToWeb') }}</span>
+            </template>
+
+            <div class="nc-share-pane px-6 pt-4 pb-5 flex flex-col gap-3">
+              <div class="rounded-xl border-1 border-nc-border-gray-medium px-3.5 py-3 flex flex-col gap-2">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-7 h-7 flex-none rounded-md bg-nc-bg-gray-light flex items-center justify-center text-nc-content-gray-subtle"
+                  >
+                    <component :is="viewIcons[view?.type]?.icon" v-if="objectTab === 'view'" class="w-4 h-4" />
+                    <GeneralIcon v-else icon="ncFileText" class="w-4 h-4" />
+                  </div>
+                  <div class="flex-1 min-w-0 text-bodyDefaultSm font-semibold truncate">
+                    {{ $t('msg.info.publicLinkToNamed', { name: objectTitle || base.title }) }}
+                  </div>
                 </div>
-                <component
-                  :is="viewLockIcons[view.lock_type].icon"
-                  v-if="!isViewSharingRestricted"
-                  class="flex-none"
-                  :class="{
-                    'w-4 h-4': view?.lock_type === ViewLockType.Locked,
-                    'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
-                  }"
-                />
 
-                <div class="flex-1">
-                  {{
-                    isViewSharingRestricted
-                      ? $t('msg.privateBaseViewShareRestrictedMsg')
-                      : $t('title.viewSettingsCantBeChangedWhenViewIs', {
-                          type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
-                        })
-                  }}
+                <div v-if="objectTab === 'view'" class="share-view">
+                  <div
+                    v-if="isLocked || isViewSharingRestricted"
+                    class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
+                  >
+                    <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
+                      <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+                    </div>
+                    <component
+                      :is="viewLockIcons[view.lock_type].icon"
+                      v-if="!isViewSharingRestricted"
+                      class="flex-none"
+                      :class="{
+                        'w-4 h-4': view?.lock_type === ViewLockType.Locked,
+                        'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
+                      }"
+                    />
+
+                    <div class="flex-1">
+                      {{
+                        isViewSharingRestricted
+                          ? $t('msg.privateBaseViewShareRestrictedMsg')
+                          : $t('title.viewSettingsCantBeChangedWhenViewIs', {
+                              type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
+                            })
+                      }}
+                    </div>
+                  </div>
+
+                  <DlgShareAndCollaborateSharePage />
                 </div>
+
+                <div v-else-if="objectTab === 'doc'" class="share-doc">
+                  <DlgShareAndCollaborateSharePageDoc />
+                </div>
+
+                <div v-else-if="objectTab === 'dashboard'" class="share-dashboard">
+                  <DlgShareAndCollaborateShareDashboard />
+                </div>
+
+                <DlgShareAndCollaborateShareInterface v-else />
               </div>
 
-              <DlgShareAndCollaborateSharePage />
+              <div v-if="canInvite" class="text-bodySm text-nc-content-gray-muted">
+                {{ $t('msg.info.readOnlyInviteInstead') }}
+                <button
+                  class="nc-share-invite-instead font-semibold text-nc-content-brand hover:underline"
+                  data-testid="nc-share-invite-instead"
+                  @click="goToInviteTab"
+                >
+                  {{ $t('activity.inviteThemInstead') }}
+                </button>
+              </div>
             </div>
+          </a-tab-pane>
+        </NcTabs>
+      </template>
 
-            <div v-else-if="objectTab === 'doc'" class="share-doc">
-              <DlgShareAndCollaborateSharePageDoc />
-            </div>
-
-            <div v-else-if="objectTab === 'dashboard'" class="share-dashboard">
-              <DlgShareAndCollaborateShareDashboard />
-            </div>
-
-            <DlgShareAndCollaborateShareInterface v-else />
-          </div>
-        </a-tab-pane>
-      </NcTabs>
-
-      <div class="nc-share-footer px-5 py-3 border-t-1 border-nc-border-gray-medium">
-        <div v-if="activeTab === 'invite'" class="flex items-center gap-x-3">
-          <DlgShareAndCollaborateInviteLink class="flex-1 min-w-0" />
-
-          <NcButton
-            type="primary"
-            size="medium"
-            class="nc-share-send-invites flex-none"
-            data-testid="nc-share-send-invites"
-            :disabled="!inviteFormRef?.canSubmit"
-            :loading="!!inviteFormRef?.isLoading"
-            @click="inviteFormRef?.submit()"
-          >
-            {{ sendLabel }}
+      <!-- Sub-screens. Same modal, one job each, back arrow to the hub. -->
+      <template v-else>
+        <div class="flex items-center gap-2 px-5 pt-5">
+          <NcButton type="text" size="xsmall" class="!px-1" data-testid="nc-hub-back" @click="goMain">
+            <GeneralIcon icon="ncArrowLeft" class="w-5 h-5" />
           </NcButton>
-        </div>
-
-        <div v-else class="flex items-center gap-x-2">
-          <div class="flex-1 text-bodySm text-nc-content-gray-muted pr-2">
-            <template v-if="canInvite">
-              {{ $t('msg.info.shareLinksReadOnly') }}
-              <!-- The whole point of the branch: the person who pressed Share meaning
-                   "add my colleague" gets the right door, in the same breath as the
-                   sentence that tells them a link is not it. -->
-              <button
-                class="nc-share-invite-instead font-medium text-nc-content-brand hover:underline"
-                data-testid="nc-share-invite-instead"
-                @click="goToInviteTab"
-              >
-                {{ $t('activity.inviteThemInstead') }}
-              </button>
-            </template>
+          <div class="flex-1 text-heading3 !text-[18px] font-bold tracking-tight text-nc-content-gray-emphasis">
+            {{ screenTitle }}
           </div>
-
-          <DlgShareAndCollaborateShareInterfaceActions v-if="isEeUI" />
         </div>
-      </div>
+
+        <DlgShareAndCollaborateHubCompose
+          v-if="screen === 'compose'"
+          :active="showShareModal && screen === 'compose'"
+          :base-id="base.id"
+          :users="members"
+          @back="goMain"
+          @sent="onInviteSent"
+        />
+
+        <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" @edit-link="openEditLink" />
+
+        <DlgShareAndCollaborateHubEditLink v-else :index="editIndex" @done="afterEditLink" />
+      </template>
     </div>
   </a-modal>
 </template>

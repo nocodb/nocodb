@@ -19,9 +19,7 @@ const props = withDefaults(
     inheritedRoleIcon?: string
     inheritSource?: 'workspace' | 'team'
     effectiveRole?: string
-    triggerVariant?: 'badge' | 'detail' | 'compact'
-    /** `compact` only: the words that lead into the role name, e.g. "They join as". */
-    triggerPrefix?: string
+    triggerVariant?: 'badge' | 'detail' | 'field'
   }>(),
   {
     border: true,
@@ -33,7 +31,6 @@ const props = withDefaults(
     inheritSource: undefined,
     effectiveRole: undefined,
     triggerVariant: 'badge',
-    triggerPrefix: undefined,
   },
 )
 
@@ -119,18 +116,20 @@ const activeRole = computed(() => {
         </div>
       </div>
 
-      <!-- The compact trigger sits beside a heading rather than under it, so the
-           role reads as a setting on the invite rather than a section of its own. -->
+      <!-- The field trigger reads as a form control: the role and what it grants
+           on one line, so picking one does not mean opening the menu to find out. -->
       <div
-        v-else-if="triggerVariant === 'compact'"
-        class="nc-role-trigger-compact flex items-center gap-1 h-8 px-2.5 rounded-lg cursor-pointer select-none bg-nc-bg-gray-light hover:bg-nc-bg-gray-medium"
+        v-else-if="triggerVariant === 'field'"
+        class="nc-role-trigger-field flex items-center justify-between gap-2 w-full h-10 pl-3 pr-2.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight"
         data-testid="roles"
       >
-        <span v-if="triggerPrefix" class="text-bodyDefaultSm text-nc-content-gray-muted">{{ triggerPrefix }}</span>
-        <span class="text-bodyDefaultSm font-semibold text-nc-content-gray">{{ activeRole.label }}</span>
+        <span class="flex-1 min-w-0 truncate text-bodyDefault">
+          <span class="font-medium text-nc-content-gray">{{ activeRole.label }}</span>
+          <span class="text-nc-content-gray-muted"> · {{ activeRole.description }}</span>
+        </span>
         <GeneralIcon
           icon="ncChevronDown"
-          class="flex-none h-4 w-4 text-nc-content-gray-muted transition-transform duration-200"
+          class="flex-none h-4 w-4 text-nc-content-gray-subtle transition-transform duration-200"
           :class="{ '-rotate-180': isDropdownOpen }"
         />
       </div>

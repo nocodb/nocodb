@@ -5575,6 +5575,7 @@
       "interfaceSourceFixed": "The data source is set when the page is created and can't be changed.",
       "interfaceRecordDetailPagesScope": "These settings will impact all visualizations used on this page.",
       "interfaceRecordDetailNoPreview": "No records in this table yet — the layout previews with empty values.",
+      "interfaceRecordLeftPageScope": "This record no longer matches what this page shows.",
       "interfaceEditFieldsOff": "All groups and fields will no longer be editable.",
       "interfaceEditFieldsInline": "All groups and fields will be editable inline.",
       "interfaceEditFieldsForm": "An edit button will be added to the record and all edits will need to be submitted via a customizable form.",

@@ -19,7 +19,9 @@ const props = withDefaults(
     inheritedRoleIcon?: string
     inheritSource?: 'workspace' | 'team'
     effectiveRole?: string
-    triggerVariant?: 'badge' | 'detail'
+    triggerVariant?: 'badge' | 'detail' | 'compact'
+    /** `compact` only: the words that lead into the role name, e.g. "They join as". */
+    triggerPrefix?: string
   }>(),
   {
     border: true,
@@ -31,6 +33,7 @@ const props = withDefaults(
     inheritSource: undefined,
     effectiveRole: undefined,
     triggerVariant: 'badge',
+    triggerPrefix: undefined,
   },
 )
 
@@ -114,6 +117,22 @@ const activeRole = computed(() => {
           </div>
           <span class="text-bodySm text-nc-content-gray-muted truncate">{{ activeRole.description }}</span>
         </div>
+      </div>
+
+      <!-- The compact trigger sits beside a heading rather than under it, so the
+           role reads as a setting on the invite rather than a section of its own. -->
+      <div
+        v-else-if="triggerVariant === 'compact'"
+        class="nc-role-trigger-compact flex items-center gap-1 h-8 px-2.5 rounded-lg cursor-pointer select-none bg-nc-bg-gray-light hover:bg-nc-bg-gray-medium"
+        data-testid="roles"
+      >
+        <span v-if="triggerPrefix" class="text-bodyDefaultSm text-nc-content-gray-muted">{{ triggerPrefix }}</span>
+        <span class="text-bodyDefaultSm font-semibold text-nc-content-gray">{{ activeRole.label }}</span>
+        <GeneralIcon
+          icon="ncChevronDown"
+          class="flex-none h-4 w-4 text-nc-content-gray-muted transition-transform duration-200"
+          :class="{ '-rotate-180': isDropdownOpen }"
+        />
       </div>
 
       <div v-else class="flex flex-col gap-1 cursor-pointer">

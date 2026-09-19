@@ -126,9 +126,9 @@ const objectHeading = computed(() => {
 // "Send 0 invites".
 const sendLabel = computed(() => {
   const count = inviteFormRef.value?.recipientCount || 0
-  if (!count) return t('activity.sendInvites')
+  if (!count) return t('activity.invitePeople')
 
-  return t('activity.sendInvitesCount', count, { count })
+  return t('activity.invitePeopleCount', { count }, count)
 })
 
 const defaultTab = computed<'invite' | 'object'>(() => {
@@ -188,21 +188,16 @@ watch(showShareModal, (val) => {
           </template>
 
           <div class="nc-invite-pane px-5 pt-4 pb-4">
-            <div class="text-base font-semibold text-nc-content-gray-emphasis mb-4">
-              {{ $t('labels.bringTeamIntoBase', { base: base.title }) }}
-            </div>
-
             <DlgInviteForm
               ref="inviteFormRef"
               :active="showShareModal && activeTab === 'invite'"
               type="base"
               :base-id="base.id"
+              :heading="$t('labels.invitePeopleToBase', { base: base.title })"
               :show-footer="false"
               @success="onInviteSent"
               @close="showShareModal = false"
             />
-
-            <DlgShareAndCollaborateInviteLink class="mt-5" />
           </div>
         </a-tab-pane>
 
@@ -263,22 +258,21 @@ watch(showShareModal, (val) => {
       </NcTabs>
 
       <div class="nc-share-footer px-5 py-3 border-t-1 border-nc-border-gray-medium">
-        <NcButton
-          v-if="activeTab === 'invite'"
-          type="primary"
-          size="medium"
-          full-width
-          class="nc-share-send-invites !w-full"
-          data-testid="nc-share-send-invites"
-          :disabled="!inviteFormRef?.canSubmit"
-          :loading="!!inviteFormRef?.isLoading"
-          @click="inviteFormRef?.submit()"
-        >
-          <span class="flex w-full items-center justify-center gap-x-2">
-            <GeneralIcon icon="ncSend" class="flex-none h-4 w-4 rotate-45" />
+        <div v-if="activeTab === 'invite'" class="flex items-center gap-x-3">
+          <DlgShareAndCollaborateInviteLink class="flex-1 min-w-0" />
+
+          <NcButton
+            type="primary"
+            size="medium"
+            class="nc-share-send-invites flex-none"
+            data-testid="nc-share-send-invites"
+            :disabled="!inviteFormRef?.canSubmit"
+            :loading="!!inviteFormRef?.isLoading"
+            @click="inviteFormRef?.submit()"
+          >
             {{ sendLabel }}
-          </span>
-        </NcButton>
+          </NcButton>
+        </div>
 
         <div v-else class="flex items-center gap-x-2">
           <div class="flex-1 text-bodySm text-nc-content-gray-muted pr-2">

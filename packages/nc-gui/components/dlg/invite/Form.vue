@@ -5,7 +5,7 @@ import {
   type OrgUserListItemType,
   type PlanLimitExceededDetailsType,
   ProjectRoles,
-  type RoleLabels,
+  RoleLabels,
   type TeamV3V3Type,
   type UserType,
   type WorkspaceType,
@@ -30,6 +30,12 @@ const props = withDefaults(
     users?: Array<Pick<UserType, 'email'>>
     teams?: Array<TeamV3V3Type>
     existingTeamIds?: string[]
+    /**
+     * When set, the form draws its own heading with the role selector beside it,
+     * and the role drops out of the body. Hosts that already have a modal title
+     * (base settings, workspace home) leave this unset and keep the stacked layout.
+     */
+    heading?: string
     /** Hosts that draw their own footer pass false and drive it through `submit`. */
     showFooter?: boolean
     submitLabel?: string
@@ -280,6 +286,27 @@ const isInviteButtonDisabled = computed(() => {
   }
 
   return !validRecipients.value.length
+})
+
+const roleCopy = computed(() => ({
+  label: t(`objects.roleType.${RoleLabels[inviteData.roles] ?? inviteData.roles}`, inviteData.roles),
+  can: t(`objects.roleDescription.${inviteData.roles}`).toLowerCase(),
+}))
+
+/**
+ * Says what pressing the button will do, and why it cannot yet when something is
+ * still half-typed. Falls back to the bulk-paste hint on an empty field.
+ */
+const fieldHint = computed(() => {
+  if (unsentEmail.value) return t('msg.info.keepTypingFullEmail')
+
+  const count = validRecipients.value.length
+  if (!count) return t('msg.info.inviteEmailBulkHint')
+
+  // vue-i18n's `t(key, plural, opts)` overload treats the third argument as
+  // options, not named values, so only `count` would survive. Named-then-plural
+  // is the overload that carries `role` and `can` through.
+  return t('msg.info.willJoinAsRole', { count, role: roleCopy.value.label, can: roleCopy.value.can }, count)
 })
 
 const showUserWillChargedWarning = computed(() => {
@@ -658,11 +685,28 @@ defineExpose({
 
 <template>
   <div class="nc-invite-form">
-    <div class="flex items-center justify-between gap-3 mt-2">
+    <div v-if="heading" class="flex items-center justify-between gap-3 mb-3">
+      <span class="text-base font-semibold text-nc-content-gray-emphasis">{{ heading }}</span>
+      <RolesSelectorV2
+        v-if="!isTeam"
+        :on-role-change="onRoleChange"
+        :role="inviteData.roles"
+        :disabled-roles="disabledRoles"
+        :disabled-roles-tooltip="disabledRolesTooltip"
+        :roles="allowedRoles"
+        trigger-variant="compact"
+        :trigger-prefix="$t('labels.inviteAs')"
+        class="nc-invite-role-selector flex-none"
+        size="lg"
+        placement="bottomRight"
+      />
+    </div>
+
+    <div class="flex items-center justify-between gap-3" :class="heading ? '' : 'mt-2'">
       <div class="flex w-full gap-4 flex-col">
         <div class="flex flex-col gap-4 w-full">
           <div v-if="!isTeam" class="relative w-full flex flex-col gap-1.5">
-            <span class="nc-invite-field-label">{{ $t('labels.emailAddresses') }}</span>
+            <span v-if="!heading" class="nc-invite-field-label">{{ $t('labels.emailAddresses') }}</span>
             <div
               ref="divRef"
               :class="{
@@ -716,9 +760,7 @@ defineExpose({
               />
             </div>
 
-            <span class="nc-invite-field-hint">
-              {{ unsentEmail ? $t('msg.info.keepTypingFullEmail') : $t('msg.info.inviteEmailBulkHint') }}
-            </span>
+            <span class="nc-invite-field-hint">{{ fieldHint }}</span>
 
             <div
               v-if="isOrgUserPickerVisible"
@@ -753,7 +795,7 @@ defineExpose({
 
           <!-- Its own block, label above: side by side, the control stayed pinned to
                the top while the email field grew taller beside it. -->
-          <div class="flex flex-col gap-1.5 w-full">
+          <div v-if="!heading" class="flex flex-col gap-1.5 w-full">
             <span class="nc-invite-field-label">{{ $t('labels.inviteAs') }}</span>
             <RolesSelectorV2
               :on-role-change="onRoleChange"

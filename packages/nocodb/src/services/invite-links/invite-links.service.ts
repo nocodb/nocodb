@@ -4,6 +4,7 @@ import {
   InviteLinkScope,
   isInviteLinkRole,
   OrderedProjectRoles,
+  PluginCategory,
 } from 'nocodb-sdk';
 import type {
   InviteLinkPreviewType,
@@ -17,6 +18,7 @@ import { Base, BaseUser, User } from '~/models';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { getProjectRolePower } from '~/utils/roleHelper';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 /**
  * Shareable invite links.
@@ -80,6 +82,23 @@ export class InviteLinksService {
     const span = days ?? INVITE_LINK_DEFAULT_EXPIRY_DAYS;
 
     return new Date(Date.now() + span * 24 * 60 * 60 * 1000);
+  }
+
+  /**
+   * Verification is only a meaningful gate where the instance can actually send
+   * the mail. With no active email plugin nobody can ever become verified, so
+   * requiring it would refuse every redeemer rather than only the unproven
+   * ones -- and a domain-restricted link is now the default.
+   */
+  protected async canVerifyEmail(ncMeta = Noco.ncMeta) {
+    const plugin = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.PLUGIN,
+      { category: PluginCategory.EMAIL, active: true },
+    );
+
+    return !!plugin;
   }
 
   /** `acme.io` must not be satisfied by `evil-acme.io`. */
@@ -349,8 +368,9 @@ export class InviteLinksService {
 
     if (link.email_domain) {
       // An unverified address is a claim, not a fact; a domain restriction that
-      // trusts it restricts nothing.
-      if (!(user as any).email_verified) {
+      // trusts it restricts nothing. Only enforceable where the instance can
+      // actually verify -- see canVerifyEmail.
+      if (!(user as any).email_verified && (await this.canVerifyEmail(ncMeta))) {
         NcError.forbidden(
           `Verify your email address before using a link restricted to @${link.email_domain}`,
         );

@@ -157,7 +157,9 @@ export class McpService {
           idempotentHint: true,
           openWorldHint: false,
         },
-        description: 'List tables accessible by user',
+        description:
+          'List tables accessible by user. Returns {list: [tables...]}',
+        inputSchema: { ...inBase },
       },
       async ({ baseId }) =>
         runBaseTool(

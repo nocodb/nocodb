@@ -16,6 +16,7 @@ interface Emits {
   (e: 'rename'): void
   (e: 'openErdView', value: SourceType): void
   (e: 'duplicateProject', base: NcProject): void
+  (e: 'shareBase'): void
   (e: 'openBaseSettings', id: string): void
   (e: 'openMcpServer', id: string): void
   (e: 'copyProjectInfo'): void
@@ -40,6 +41,9 @@ const baseDuplicateReason = computed(() =>
 const isOptionVisible = computed(() => {
   return {
     rename: isUIAllowed('baseRename'),
+    // Public read-only link to the whole base: a base-level admin act, so it lives
+    // beside Duplicate rather than in the invite-first Share modal.
+    baseShare: isUIAllowed('baseShare', { roles: baseRole.value }),
     baseDuplicate:
       isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }) ||
       !!baseDuplicateReason.value,
@@ -98,6 +102,13 @@ const isOptionVisible = computed(() => {
         </div>
       </NcMenuItem>
     </NcTooltip>
+
+    <NcMenuItem v-if="isOptionVisible.baseShare" data-testid="nc-sidebar-base-share" @click="emits('shareBase')">
+      <div v-e="['c:base:share-base']" class="flex gap-2 items-center">
+        <GeneralIcon icon="ncGlobe" />
+        {{ $t('activity.shareBase.label') }}
+      </div>
+    </NcMenuItem>
 
     <NcDivider v-if="['baseDuplicate', 'baseRename'].some((permission) => isUIAllowed(permission)) || !!baseDuplicateReason" />
 

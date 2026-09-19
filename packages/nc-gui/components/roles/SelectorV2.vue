@@ -97,11 +97,10 @@ const activeRole = computed(() => {
         data-testid="roles"
       >
         <div class="nc-role-trigger-tile flex-none h-11 w-11 rounded-xl flex items-center justify-center bg-nc-bg-gray-light">
-          <GeneralIcon
-            :icon="activeRole.icon"
-            class="h-5 w-5"
-            :class="roleColorsMapping[activeRole.color]?.content ?? 'text-nc-content-brand-hover'"
-          />
+          <!-- Neutral on purpose: the trigger shows the role you already picked,
+               so the colour adds nothing and pulls the eye off the fields. Role
+               colour still distinguishes the options inside the dropdown. -->
+          <GeneralIcon :icon="activeRole.icon" class="h-5 w-5 text-nc-content-gray-subtle" />
         </div>
 
         <div class="flex flex-col min-w-0 gap-0.5">

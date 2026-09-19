@@ -17,7 +17,7 @@ import { extractEmail } from '../../../helpers/parsers/parserHelpers'
 const props = withDefaults(
   defineProps<{
     /**
-     * Whether this form is on screen — the dialog being open, or its tab being
+     * Whether this form is on screen; the dialog being open, or its tab being
      * the selected one. Drives the same reset/prefetch the dialog used to hang
      * off its own visibility flag.
      */
@@ -156,7 +156,7 @@ watch(dialogShow, async (newVal) => {
     try {
       let rolesArr = Object.values(orderedRoles.value)
 
-      // App User is a per-person external status — not assignable to a team, and
+      // App User is a per-person external status; not assignable to a team, and
       // only surfaced in EE (CE has no app feature, so hide it there too).
       if (props.isTeam || !isEeUI) rolesArr = rolesArr.filter((role) => role !== ProjectRoles.APP_USER)
 
@@ -619,6 +619,13 @@ const onTeamChange = async (_teamIds: RawValueType) => {
   inviteData.selectedTeamIds = (_teamIds as string[]) ?? []
 }
 
+/** How many people the submit would actually invite, for a host that labels its own button. */
+const recipientCount = computed(() => {
+  if (props.isTeam) return (inviteData.selectedTeamIds || []).length
+
+  return emailBadges.value.length || (singleEmailValue.value ? 1 : 0)
+})
+
 /** For hosts that draw their own footer (`show-footer="false"`). */
 const canSubmit = computed(
   () => !isInviteButtonDisabled.value && !emailValidation.isError && !isLoading.value && !warningMsg.value,
@@ -629,6 +636,7 @@ defineExpose({
   canSubmit,
   isLoading,
   defaultSubmitLabel,
+  recipientCount,
 })
 </script>
 
@@ -638,7 +646,7 @@ defineExpose({
       <div class="flex w-full gap-4 flex-col">
         <div class="flex flex-col gap-4 w-full">
           <div v-if="!isTeam" class="relative w-full flex flex-col gap-1.5">
-            <span class="nc-invite-field-label">{{ $t('labels.email') }}</span>
+            <span class="nc-invite-field-label">{{ $t('labels.emailAddresses') }}</span>
             <div
               ref="divRef"
               :class="{
@@ -673,7 +681,7 @@ defineExpose({
                 v-model="inviteData.email"
                 inputmode="email"
                 :disabled="isLoading"
-                :placeholder="$t('activity.enterEmail')"
+                :placeholder="$t('activity.inviteEmailExample')"
                 class="flex-1 md:min-w-36 outline-none px-2"
                 :class="{ 'basis-full': emailBadges?.length > 0 }"
                 data-testid="email-input"
@@ -691,6 +699,8 @@ defineExpose({
                 "
               />
             </div>
+
+            <span class="nc-invite-field-hint">{{ $t('msg.info.inviteEmailBulkHint') }}</span>
 
             <div
               v-if="isOrgUserPickerVisible"
@@ -889,7 +899,11 @@ defineExpose({
   @apply text-bodyDefaultSm text-nc-content-gray-muted;
 }
 
-// :focus-within rather than a tracked flag — the flag was cleared by the blur
+.nc-invite-field-hint {
+  @apply text-captionSm text-nc-content-gray-muted;
+}
+
+// :focus-within rather than a tracked flag; the flag was cleared by the blur
 // that fires when adding a chip re-renders the row, killing the ring mid-typing.
 .nc-invite-email-box:focus-within {
   @apply border-primary/100 shadow-selected;

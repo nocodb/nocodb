@@ -12,7 +12,6 @@ const route = useRoute()
 
 const baseStore = useBase()
 const { base, isPrivateBase } = storeToRefs(baseStore)
-const { navigateToProjectPage } = baseStore
 const { isUIAllowed } = useRoles()
 const { activeView } = storeToRefs(useViewsStore())
 const dashboardStore = useDashboardStore()
@@ -37,20 +36,21 @@ if (isViewToolbar) {
 const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
 
-const isOpeningManageAccess = ref(false)
-
-const inviteFormRef = ref<{ submit: () => Promise<void>; canSubmit: boolean; isLoading: boolean } | null>(null)
+const inviteFormRef = ref<{
+  submit: () => Promise<void>
+  canSubmit: boolean
+  isLoading: boolean
+  recipientCount: number
+} | null>(null)
 
 /** Which tab is open. `object` is whichever of view/doc/dashboard/interface this modal was opened over. */
-const activeTab = ref<'invite' | 'object' | 'base'>('invite')
+const activeTab = ref<'invite' | 'object'>('invite')
 
 const isViewSharingRestricted = computed(() => {
   return isPrivateBase.value && view.value?.type !== ViewTypes.FORM
 })
 
 const isInterfaceContext = computed(() => !!route.params.interfaceId)
-
-const canShareBase = computed(() => isUIAllowed('baseShare') && !isInterfaceContext.value)
 
 // Same floor as sharing the base: if you may hand out a public link to it, you
 // may hand out a seat in it.
@@ -67,6 +67,26 @@ const objectTab = computed<'view' | 'doc' | 'dashboard' | 'interface' | null>(()
   return null
 })
 
+// A grid and a form are shared for different reasons, so the tab names the one
+// in front of you rather than the generic "view".
+const viewTypeI18nKey: Partial<Record<ViewTypes, string>> = {
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
+  [ViewTypes.LIST]: 'list',
+  [ViewTypes.TIMELINE]: 'timeline',
+  [ViewTypes.GANTT]: 'gantt',
+}
+
+const viewTypeLabel = computed(() => {
+  const key = viewTypeI18nKey[view.value?.type as ViewTypes]
+
+  return key ? t(`objects.viewType.${key}`).toLowerCase() : ''
+})
+
 const objectTabLabel = computed(() => {
   switch (objectTab.value) {
     case 'doc':
@@ -76,7 +96,7 @@ const objectTabLabel = computed(() => {
     case 'interface':
       return t('labels.shareInterface')
     default:
-      return t('activity.shareView')
+      return viewTypeLabel.value ? t('activity.shareTypePublicly', { type: viewTypeLabel.value }) : t('activity.shareView')
   }
 })
 
@@ -93,27 +113,35 @@ const objectTitle = computed(() => {
   }
 })
 
-const defaultTab = computed<'invite' | 'object' | 'base'>(() => {
-  // The interface editor's Share button is its own surface — leave it opening
-  // on the thing the user pressed it for. Everywhere else, invite comes first.
-  if (objectTab.value === 'interface') return 'object'
-  if (canInvite.value) return 'invite'
-  if (objectTab.value) return 'object'
-  return 'base'
+// The header describes the tab you're on. A static "they get an email" would be
+// a plain lie on the two tabs that mint a public read-only link.
+const modalTitle = computed(() => {
+  if (activeTab.value === 'invite') return t('labels.bringTeamIntoBase', { base: base.value?.title })
+  if (objectTab.value === 'interface') return t('labels.shareInterface')
+
+  return t('labels.shareNamed', { name: objectTitle.value || base.value?.title })
 })
 
-const openManageAccess = async () => {
-  isOpeningManageAccess.value = true
-  try {
-    await navigateToProjectPage({ page: 'collaborator' })
-    showShareModal.value = false
-  } catch (e) {
-    console.error(e)
-    message.error('Failed to open manage access')
-  } finally {
-    isOpeningManageAccess.value = false
-  }
-}
+const modalSubtitle = computed(() =>
+  activeTab.value === 'invite' ? t('msg.info.inviteTeamSubtitle') : t('msg.info.sharePublicLinkSubtitle'),
+)
+
+// Counts only once there is something to count; an empty form must not read
+// "Send 0 invites".
+const sendLabel = computed(() => {
+  const count = inviteFormRef.value?.recipientCount || 0
+  if (!count) return t('activity.sendInvites')
+
+  return t('activity.sendInvitesCount', count, { count })
+})
+
+const defaultTab = computed<'invite' | 'object'>(() => {
+  // The interface editor's Share button is its own surface; leave it opening
+  // on the thing the user pressed it for. Everywhere else, invite comes first.
+  if (objectTab.value === 'interface') return 'object'
+
+  return canInvite.value ? 'invite' : 'object'
+})
 
 function onTabChange(key: string) {
   activeTab.value = key as typeof activeTab.value
@@ -148,7 +176,7 @@ watch(showShareModal, (val) => {
     class="!top-[1%]"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
-    :closable="false"
+    closable
     :mask-closable="formStatus !== 'base-collaborateSaving'"
     :ok-button-props="{ hidden: true } as any"
     :cancel-button-props="{ hidden: true } as any"
@@ -157,12 +185,8 @@ watch(showShareModal, (val) => {
   >
     <div class="nc-share-modal flex flex-col">
       <div class="flex flex-col gap-1 px-5 pt-4 pb-3">
-        <div class="text-base font-semibold text-nc-content-gray-emphasis">
-          {{ canInvite ? $t('labels.bringTeamIntoBase', { base: base.title }) : $t('activity.share') }}
-        </div>
-        <div v-if="canInvite" class="text-bodySm text-nc-content-gray-muted">
-          {{ $t('msg.info.inviteTeamSubtitle') }}
-        </div>
+        <div class="text-base font-semibold text-nc-content-gray-emphasis">{{ modalTitle }}</div>
+        <div class="text-bodySm text-nc-content-gray-muted">{{ modalSubtitle }}</div>
       </div>
 
       <NcTabs :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">
@@ -193,19 +217,6 @@ watch(showShareModal, (val) => {
 
           <div class="nc-share-pane px-2 pt-1 pb-2">
             <div v-if="objectTab === 'view'" class="share-view">
-              <div class="flex flex-row items-center gap-x-2 px-3 pt-2 pb-1 select-none">
-                <component
-                  :is="viewIcons[view?.type]?.icon"
-                  class="nc-view-icon group-hover"
-                  :style="{ color: viewIcons[view?.type]?.color }"
-                />
-                <div
-                  class="max-w-79/100 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-                >
-                  <span>{{ objectTitle }}</span>
-                </div>
-              </div>
               <div
                 v-if="isLocked || isViewSharingRestricted"
                 class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
@@ -238,75 +249,14 @@ watch(showShareModal, (val) => {
             </div>
 
             <div v-else-if="objectTab === 'doc'" class="share-doc">
-              <div class="flex flex-row items-center gap-x-2 px-3 pt-2 pb-1 select-none">
-                <GeneralIcon icon="ncFileText" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
-                <div
-                  class="max-w-79/100 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-                >
-                  <span>{{ objectTitle }}</span>
-                </div>
-              </div>
               <DlgShareAndCollaborateSharePageDoc />
             </div>
 
             <div v-else-if="objectTab === 'dashboard'" class="share-dashboard">
-              <div class="flex flex-row items-center gap-x-2 px-3 pt-2 pb-1 select-none">
-                <LazyGeneralEmojiPicker class="nc-dashboard-icon" size="small" :emoji="activeDashboard?.meta?.icon" readonly>
-                  <template #default>
-                    <GeneralIcon icon="dashboards" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
-                  </template>
-                </LazyGeneralEmojiPicker>
-                <div
-                  class="max-w-79/100 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-                >
-                  <span>{{ objectTitle }}</span>
-                </div>
-              </div>
               <DlgShareAndCollaborateShareDashboard />
             </div>
 
             <DlgShareAndCollaborateShareInterface v-else />
-          </div>
-        </a-tab-pane>
-
-        <a-tab-pane v-if="canShareBase" key="base">
-          <template #tab>
-            <span data-testid="nc-share-tab-base">{{ $t('activity.shareBase.label') }}</span>
-          </template>
-
-          <div class="nc-share-pane px-2 pt-1 pb-2">
-            <div class="share-base">
-              <div class="flex flex-row items-center gap-x-2 px-3 pt-2 pb-1 select-none">
-                <GeneralProjectIcon
-                  :color="parseProp(base.meta).iconColor"
-                  :icon="parseProp(base.meta).icon"
-                  :type="base.type"
-                  :managed-app="{
-                    managed_app_master: base.managed_app_master,
-                    managed_app_id: base.managed_app_id,
-                  }"
-                  class="nc-view-icon group-hover"
-                />
-                <div
-                  class="max-w-79/100 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-                >
-                  {{ base.title }}
-                </div>
-              </div>
-              <div
-                v-if="isPrivateBase"
-                class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-subtle2 bg-nc-bg-gray-light rounded-md"
-              >
-                <div class="flex items-center justify-center h-4 w-5">
-                  <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
-                </div>
-                <div class="flex-1">{{ $t('msg.privateBaseShareRestrictedMsg') }}</div>
-              </div>
-              <LazyDlgShareAndCollaborateShareBase />
-            </div>
           </div>
         </a-tab-pane>
       </NcTabs>
@@ -315,6 +265,9 @@ watch(showShareModal, (val) => {
         <div class="flex-1 text-bodySm text-nc-content-gray-muted pr-2">
           <template v-if="activeTab !== 'invite' && canInvite">
             {{ $t('msg.info.shareLinksReadOnly') }}
+            <!-- The whole point of the branch: the person who pressed Share meaning
+                 "add my colleague" gets the right door, in the same breath as the
+                 sentence that tells them a link is not it. -->
             <button
               class="nc-share-invite-instead font-medium text-nc-content-brand hover:underline"
               data-testid="nc-share-invite-instead"
@@ -326,9 +279,6 @@ watch(showShareModal, (val) => {
         </div>
 
         <template v-if="activeTab === 'invite'">
-          <NcButton type="secondary" size="small" @click="showShareModal = false">
-            {{ $t('labels.cancel') }}
-          </NcButton>
           <NcButton
             type="primary"
             size="small"
@@ -337,23 +287,11 @@ watch(showShareModal, (val) => {
             :loading="!!inviteFormRef?.isLoading"
             @click="inviteFormRef?.submit()"
           >
-            {{ $t('activity.sendInvites') }}
+            {{ sendLabel }}
           </NcButton>
         </template>
         <template v-else>
-          <NcButton type="secondary" size="small" data-testid="docs-cancel-btn" @click="showShareModal = false">
-            {{ $t('general.close') }}
-          </NcButton>
           <DlgShareAndCollaborateShareInterfaceActions v-if="isEeUI" />
-          <NcButton
-            v-if="canShareBase"
-            data-testid="docs-share-manage-access"
-            size="small"
-            type="secondary"
-            :loading="isOpeningManageAccess"
-            @click="openManageAccess"
-            >{{ $t('activity.manageProjectAccess') }}
-          </NcButton>
         </template>
       </div>
     </div>

@@ -141,6 +141,11 @@ async function onJoin() {
 
     $e('a:invite:join', { scope: preview.value?.scope, restricted: !!preview.value?.email_domain })
 
+    // Same hold as the already-member path: the card must not sit on screen
+    // through the navigation, or the browser has a live Join button to restore
+    // if the user comes back to this URL.
+    isRedirecting.value = true
+
     // A hard navigation rather than a router push: membership just changed, and
     // every store holding the old permissions needs to be rebuilt.
     window.location.href = landingPath(res.data || {})
@@ -153,7 +158,16 @@ async function onJoin() {
   }
 }
 
-onMounted(loadPreview)
+onMounted(() => {
+  loadPreview()
+
+  // Restored from the back/forward cache, the page keeps the DOM it had when
+  // the user left -- which, right after a join, is the card with a live Join
+  // button. Nothing re-runs on that path, so ask again.
+  useEventListener(window, 'pageshow', (e: PageTransitionEvent) => {
+    if (e.persisted) loadPreview()
+  })
+})
 </script>
 
 <template>
@@ -182,7 +196,9 @@ onMounted(loadPreview)
             <NcButton type="secondary" size="medium" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
           </template>
 
-          <template v-else>
+          <!-- `preview`, not a bare `v-else`: with nothing to show this rendered a
+               card with a blank name and a live Join button. -->
+          <template v-else-if="preview">
             <div class="flex flex-col items-center gap-2 text-center">
               <div class="text-heading3 text-nc-content-gray" data-testid="nc-invite-heading">
                 {{

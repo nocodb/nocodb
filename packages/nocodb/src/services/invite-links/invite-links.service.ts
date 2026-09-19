@@ -534,19 +534,23 @@ export class InviteLinksService {
   ): Promise<InviteLinkPreviewType> {
     const link = await InviteLink.getByToken(param.token, ncMeta);
 
-    // A member at the link's role or better has nothing to redeem, whatever
-    // state the link is in -- send them to the thing they can already open.
-    const userId = param.req?.user?.id;
-    const access =
-      link && userId
-        ? await this.existingAccess(context, link, userId, ncMeta)
-        : null;
-
-    if (access) return { scope: link.scope, already_member: true, ...access };
-
+    // State of the link first. A revoked or expired link is revoked or expired
+    // for everyone: reporting otherwise to a member, and quietly sending them
+    // somewhere instead, told them the opposite of what a signed-out visitor
+    // was told about the same URL -- and the opposite of what redeeming it
+    // would say.
     const reason = this.invalidReason(link);
 
     if (reason) return { invalid_reason: reason };
+
+    // The link is usable, but a member at its role or better has nothing to
+    // redeem, so send them to the thing they can already open.
+    const userId = param.req?.user?.id;
+    const access = userId
+      ? await this.existingAccess(context, link, userId, ncMeta)
+      : null;
+
+    if (access) return { scope: link.scope, already_member: true, ...access };
 
     return {
       scope: link.scope,

@@ -1686,7 +1686,7 @@ watch(activeBaseId, () => {
                           ? activeTabPredictHistory.length + activeTabSelectedViews.length < 10
                           : activeTabPredictHistory.length < 10
                       "
-                      title="Suggest more"
+                      :title="$t('tooltip.suggestMore')"
                       placement="top"
                     >
                       <NcButton
@@ -1706,7 +1706,7 @@ watch(activeBaseId, () => {
                         </template>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip title="Clear all and Re-suggest" placement="top">
+                    <NcTooltip :title="$t('tooltip.clearAllAndResuggest')" placement="top">
                       <NcButton
                         v-e="['a:view:ai:predict-refresh']"
                         size="xs"
@@ -1944,7 +1944,7 @@ watch(activeBaseId, () => {
           <NcTooltip v-else :disabled="!isMobileMode">
             <template #title> AI integration is not available in mobile mode. </template>
             <NcButton type="primary" size="small" :disabled="!!isMobileMode" @click="handleNavigateToIntegrations">
-              Add AI integration
+              {{ $t('labels.addAiIntegration') }}
             </NcButton>
           </NcTooltip>
         </div>

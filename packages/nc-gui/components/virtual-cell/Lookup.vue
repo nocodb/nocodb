@@ -657,7 +657,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             <img
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"
-              alt="No search results found"
+              :alt="$t('title.noSearchResultsFound')"
             />
 
             {{ $t('title.noResultsMatchedYourSearch') }}

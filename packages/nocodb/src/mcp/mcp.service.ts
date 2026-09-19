@@ -159,28 +159,23 @@ export class McpService {
         },
         description: 'List tables accessible by user',
       },
-      async () => {
-        try {
-          const tables = await this.tablesV3Service.getAccessibleTables(
-            context,
-            {
-              baseId: context.base_id,
-              roles: extractRolesObj(user?.base_roles),
-              user,
-              allSources: true,
-            },
-          );
-
-          return {
-            content: [{ type: 'text', text: JSON.stringify(tables, null, 2) }],
-          };
-        } catch (error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${error.message}` }],
-            isError: true,
-          };
-        }
-      },
+      async ({ baseId }) =>
+        runBaseTool(
+          ctx,
+          { op: 'tableList', scope: 'base' },
+          { baseId },
+          async (target) => ({
+            list: await this.tablesV3Service.getAccessibleTables(
+              target.context,
+              {
+                baseId: target.context.base_id,
+                roles: extractRolesObj(target.user?.base_roles),
+                user: target.user,
+                allSources: true,
+              },
+            ),
+          }),
+        ),
     );
 
     // Get Table Schema
@@ -416,7 +411,8 @@ export class McpService {
       'readAttachment',
       {
         title: 'Read Attachments',
-        description: 'Read attachments in a record',
+        description:
+          'Read the content of attachment objects returned by getRecord or queryRecords from an Attachment field',
         inputSchema: {
           files: z
             .array(

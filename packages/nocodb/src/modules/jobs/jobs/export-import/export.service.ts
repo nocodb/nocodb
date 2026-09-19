@@ -932,6 +932,8 @@ export class ExportService {
       sortArrJson?: any;
       locale?: string;
       customConditions?: Filter[];
+      // MCP's exportCsv asks for stored numerics; every other caller rounds.
+      rawNumeric?: boolean;
     },
   ) {
     context = { ...context, cache: true };
@@ -1171,6 +1173,7 @@ export class ExportService {
               column: col,
               siteUrl: param.ncSiteUrl,
               locale: param.locale,
+              rawNumeric: param.rawNumeric,
             });
             includedColumns.push({
               col,

@@ -71,11 +71,15 @@ export async function serializeCellValue(
     column,
     siteUrl,
     locale,
+    rawNumeric,
   }: {
     column?: Column;
     value: any;
     siteUrl: string;
     locale?: string;
+    // Emit Decimal/Currency as stored instead of at the field's display
+    // precision. Off by default: every existing export rounds.
+    rawNumeric?: boolean;
   },
 ) {
   if (!column) {
@@ -190,6 +194,8 @@ export async function serializeCellValue(
     case UITypes.Currency: {
       if (isNaN(Number(value))) return null;
 
+      if (rawNumeric) return value;
+
       const currencyMeta = parseProp(column.meta);
 
       try {
@@ -211,6 +217,8 @@ export async function serializeCellValue(
     case UITypes.Decimal:
       {
         if (isNaN(Number(value))) return null;
+
+        if (rawNumeric) return value;
 
         return parseDecimalValue(value, column, {
           skipThousandSeparator: true,

@@ -47,7 +47,10 @@ const copySharedBase = async () => {
 <template>
   <div
     v-if="
-      !isSharedBase && (isUIAllowed('baseShare') || isUIAllowed('viewShare')) && visibility !== 'hidden' && (activeTable || base)
+      !isSharedBase &&
+      (isUIAllowed('userInvite') || isUIAllowed('baseShare') || isUIAllowed('viewShare')) &&
+      visibility !== 'hidden' &&
+      (activeTable || base)
     "
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"

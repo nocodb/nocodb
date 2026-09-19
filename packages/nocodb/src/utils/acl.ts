@@ -259,12 +259,10 @@ export const permissionScopes = {
     'sourceCreate',
     'columnAdd',
 
-    // Invite links -- viewer+, the same floor as base membership itself. The
-    // service caps every link at the caller's own role (assertRolePower), and
-    // below creator a caller only ever sees or edits links they made.
-    // Viewer-level minting is BY DESIGN (product decision, 2026-09-18): a
-    // viewer can only ever hand out viewer, so there is no escalation path.
-    // Do not raise this floor as a "fix".
+    // Invite links -- editor+, the same floor as inviting by email (product
+    // decision 2026-09-19; it was viewer while the two were weighed separately).
+    // The service caps every link at the caller's own role (assertRolePower),
+    // and below creator a caller only ever sees or edits links they made.
     'baseInviteLinkList',
     'baseInviteLinkCreate',
     'baseInviteLinkUpdate',
@@ -420,10 +418,6 @@ const rolePermissions:
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
-      workspaceInviteLinkList: true,
-      workspaceInviteLinkCreate: true,
-      workspaceInviteLinkUpdate: true,
-      workspaceInviteLinkDelete: true,
       workspaceUserList: true,
       workspaceInvite: true,
     },
@@ -432,7 +426,13 @@ const rolePermissions:
     include: {},
   },
   [WorkspaceUserRoles.EDITOR]: {
-    include: {},
+    include: {
+      // Same floor as the base-scope links above, for the same reason.
+      workspaceInviteLinkList: true,
+      workspaceInviteLinkCreate: true,
+      workspaceInviteLinkUpdate: true,
+      workspaceInviteLinkDelete: true,
+    },
   },
   [WorkspaceUserRoles.CREATOR]: {
     include: {
@@ -464,13 +464,10 @@ const rolePermissions:
   },
   [ProjectRoles.VIEWER]: {
     include: {
-      // Anyone who can be in the base can invite, but assertRolePower caps the
-      // link at their own role, and list/update/revoke below creator only ever
-      // reach links they made themselves.
-      baseInviteLinkList: true,
-      baseInviteLinkCreate: true,
-      baseInviteLinkUpdate: true,
-      baseInviteLinkDelete: true,
+      // Inviting by email is open to every member from Viewer up (product
+      // decision 2026-09-19). The invite form caps the offered role at the
+      // inviter's own, so a viewer can only ever bring in another viewer.
+      userInvite: true,
       // batch envelope — per-sub-op ACL is enforced inside the handler,
       // so the envelope itself is granted to everyone with base access.
       batch: true,
@@ -559,11 +556,15 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
-      // Expanding base membership is not a read-only action; Viewer and
-      // Commenter must not reach it. `include` inherits forward, so Creator
-      // and Owner still get it from here.
-      userInvite: true,
-
+      // A link is a standing grant, so the floor is the same as expanding
+      // membership by email: Editor and above (product decision 2026-09-19;
+      // it was Viewer while the two were treated separately). assertRolePower
+      // still caps each link at the creator's own role, and below Creator a
+      // caller only ever sees or edits links they made.
+      baseInviteLinkList: true,
+      baseInviteLinkCreate: true,
+      baseInviteLinkUpdate: true,
+      baseInviteLinkDelete: true,
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,

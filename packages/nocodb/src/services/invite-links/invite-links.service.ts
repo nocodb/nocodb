@@ -69,8 +69,9 @@ export class InviteLinksService {
    * Not overridden on purpose: the role allow-list must run for every scope, so
    * `assertRolePower` is the scope-specific part subclasses override, not this.
    *
-   * This cap is what makes the viewer-level ACL floor acceptable (product
-   * decision, 2026-09-18): whoever mints a link can grant at most their own role.
+   * Whoever mints a link can grant at most their own role. The ACL floor for
+   * minting at all is Editor (product decision 2026-09-19); this cap is what
+   * keeps an editor from handing out creator.
    */
   protected assertRoleWithinCallerPower(
     scope: InviteLinkScope,

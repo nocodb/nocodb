@@ -55,7 +55,12 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
       }
 
       if (error.response?.status === 402) {
-        message.warning(error.response?.data?.msg || 'This feature requires an active Enterprise license.')
+        // NcBaseErrorv2 serialises as { error, message, details } — `msg` is
+        // the older shape. Reading only `msg` meant every 402 fell through to
+        // the fallback, so a license that is merely inactive was reported as
+        // an Enterprise entitlement problem. 402 also covers exhausted
+        // credits, which is not a tier issue either.
+        message.warning(error.response?.data?.message || error.response?.data?.msg || 'This action is currently unavailable.')
         return Promise.reject(error)
       }
 

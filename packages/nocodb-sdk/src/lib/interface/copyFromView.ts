@@ -263,8 +263,10 @@ export enum InterfaceCopyFromViewWarnings {
    */
   ROW_COLOR_BACKGROUND_LOST = 'row_color_background_lost',
   /**
-   * Row colouring was requested but could not be converted — the source column
-   * was excluded from the destination, or all filter conditions were dropped.
+   * Row colouring was requested but could not be converted: in select-field
+   * mode the colouring column is a system column or is not a column of the
+   * destination model (`allowedColumnIds` is every non-system column of it);
+   * in filter mode every condition lost its predicate.
    */
   ROW_COLOR_LOST = 'row_color_lost',
   /**

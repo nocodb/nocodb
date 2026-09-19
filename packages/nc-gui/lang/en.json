@@ -1103,6 +1103,7 @@
         "dynamic_filters_dropped": "{count} field-to-field condition(s) can't be copied — this page will show more records than the view.",
         "negated_filters_dropped": "{count} negated condition(s) can't be copied — this page will show more records than the view.",
         "row_color_background_lost": "Record colours are copied, but their background fill isn't.",
+        "row_color_lost": "Record colours can't be copied — the field or conditions they rely on aren't available here.",
         "grouping_dropped": "This layout doesn't support grouping, so it isn't copied."
       },
       "notSupportedByViewType": "Not supported by {view} view type",

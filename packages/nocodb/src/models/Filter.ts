@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type {
   BoolType,
   COMPARISON_OPS,
@@ -28,6 +29,8 @@ import {
   setModelContext,
   throwMissingContext,
 } from '~/helpers/modelContext';
+
+const logger = new Logger('Filter');
 
 /**
  * Link flat filter rows into root filters with their `children` populated.
@@ -503,11 +506,32 @@ export default class Filter implements FilterType {
     );
 
     ncMeta.knex.attachToTransaction(async () => {
-      // Invalidate rather than cache `updateObj`: `value` is a TEXT column, so
-      // the row the DB now holds is not the one the caller sent (100 vs "100").
-      // `get` repopulates from the row, which also keeps the list keys valid.
-      await NocoCache.del(context, `${CacheScope.FILTER_EXP}:${id}`);
-      await this.get(context, id);
+      // Merge the committed row rather than `updateObj`: `value` is a TEXT
+      // column, so the row the DB now holds is not the one the caller sent
+      // (100 vs "100"). Never del+set here - `set` rebuilds parentKeys from
+      // the existing wrapper, so dropping the key first would leave this
+      // filter with no child->parent pointers for `deepDel` to prune.
+      const cacheKey = `${CacheScope.FILTER_EXP}:${id}`;
+      try {
+        const cached = await NocoCache.get(
+          context,
+          cacheKey,
+          CacheGetType.TYPE_OBJECT,
+        );
+        if (!cached) return;
+
+        const row = await ncMeta.metaGet2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          { id },
+        );
+        if (row) await NocoCache.update(context, cacheKey, row);
+      } catch (e) {
+        // Non-transactional `attachToTransaction` neither awaits nor guards
+        // the callback, and this one now touches the DB.
+        logger.error(`Failed to refresh filter cache for ${id}`, e);
+      }
     });
 
     // on update delete any optimised single query cache

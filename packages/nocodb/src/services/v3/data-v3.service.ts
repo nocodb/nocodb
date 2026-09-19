@@ -1180,10 +1180,14 @@ export class DataV3Service {
     // whose whole purpose here is not to leak RLS-restricted rows.
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
-      // V3 like the insert read-back: it is what drops system columns (the
-      // `_nc_m2m_*` junction link). `context.api_version` is unset on callers
-      // that reach this service directly, e.g. MCP.
-      apiVersion: NcApiVersion.V3,
+      // Default to V3 like the insert read-back: it is what drops system
+      // columns (the `_nc_m2m_*` junction link). Only fills in for callers that
+      // reach this service directly with no version on the context (MCP); the
+      // AI `update_records` tool inherits a V2 chat context and keeps it, so
+      // its read-back shape is unchanged. Effective on the EE optimised query
+      // clients — `chunkList`'s sqlite/unsupported-MariaDB fallback builds its
+      // ast without an apiVersion.
+      apiVersion: context.api_version ?? NcApiVersion.V3,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },

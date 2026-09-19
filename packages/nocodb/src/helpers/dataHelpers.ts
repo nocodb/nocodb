@@ -24,6 +24,29 @@ import {
   V1_V2_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
 
+// `|v| >= 1e21` / `< 1e-6` stringify to exponent notation, which the import
+// side strips into a different number (`1e+21` -> `121`). Expanded by string
+// surgery, never through `Number()`: a pg `numeric` arrives as a string and can
+// hold more precision than a double, so anything without an exponent is passed
+// through untouched.
+function toPlainDecimal(value: unknown) {
+  const match = /^([+-]?)(\d*)(?:\.(\d*))?[eE]([+-]?\d+)$/.exec(String(value));
+  if (!match) return value;
+
+  const [, sign, int, frac = '', exp] = match;
+  const digits = `${int}${frac}`;
+  const point = int.length + Number(exp);
+
+  const expanded =
+    point <= 0
+      ? `0.${'0'.repeat(-point)}${digits}`
+      : point >= digits.length
+      ? `${digits}${'0'.repeat(point - digits.length)}`
+      : `${digits.slice(0, point)}.${digits.slice(point)}`;
+
+  return `${sign}${expanded.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')}`;
+}
+
 export interface PathParams {
   baseName: string;
   tableName: string;
@@ -162,6 +185,7 @@ export async function serializeCellValue(
                 column: effectiveColumn,
                 siteUrl,
                 locale,
+                rawNumeric,
               }),
             ),
           )
@@ -194,7 +218,7 @@ export async function serializeCellValue(
     case UITypes.Currency: {
       if (isNaN(Number(value))) return null;
 
-      if (rawNumeric) return value;
+      if (rawNumeric) return toPlainDecimal(value);
 
       const currencyMeta = parseProp(column.meta);
 
@@ -218,7 +242,7 @@ export async function serializeCellValue(
       {
         if (isNaN(Number(value))) return null;
 
-        if (rawNumeric) return value;
+        if (rawNumeric) return toPlainDecimal(value);
 
         return parseDecimalValue(value, column, {
           skipThousandSeparator: true,

@@ -2,7 +2,7 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
-import type { LicenseHeartbeatHealth, LicenseInactiveReason, MapProvider, WhiteLabelConfig } from 'nocodb-sdk'
+import type { MapProvider, WhiteLabelConfig } from 'nocodb-sdk'
 import type { NcBreakpoint } from '~/lib/constants'
 
 export interface AppInfo {
@@ -63,8 +63,6 @@ export interface AppInfo {
   seatLimit: number | null
   isTrial: boolean
   isTrialExpired: boolean
-  licenseInactiveReason?: LicenseInactiveReason | null
-  licenseHeartbeat?: LicenseHeartbeatHealth
   licenseExpiryTime: number
   defaultWorkspaceId: string | null
   stripePublishableKey?: string

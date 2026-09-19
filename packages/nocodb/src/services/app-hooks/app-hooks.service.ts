@@ -25,6 +25,9 @@ import type {
   GridViewUpdateEvent,
   IntegrationEvent,
   IntegrationUpdateEvent,
+  InviteLinkAcceptEvent,
+  InviteLinkEvent,
+  InviteLinkUpdateEvent,
   KanbanViewUpdateEvent,
   ListViewUpdateEvent,
   MapViewUpdateEvent,
@@ -349,6 +352,12 @@ export class AppHooksService {
     event: AppEvents.SHARED_BASE_DELETE_LINK,
     data: SharedBaseDeleteEvent,
   ): void;
+  emit(
+    event: AppEvents.INVITE_LINK_CREATE | AppEvents.INVITE_LINK_REVOKE,
+    data: InviteLinkEvent,
+  ): void;
+  emit(event: AppEvents.INVITE_LINK_UPDATE, data: InviteLinkUpdateEvent): void;
+  emit(event: AppEvents.INVITE_LINK_ACCEPT, data: InviteLinkAcceptEvent): void;
   emit(
     event: AppEvents.SOURCE_DELETE | AppEvents.SOURCE_CREATE,
     data: SourceEvent,

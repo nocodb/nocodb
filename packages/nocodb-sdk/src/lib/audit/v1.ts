@@ -15,6 +15,9 @@ enum AuditV1OperationTypes {
   WORKSPACE_USER_UPDATE = 'WORKSPACE_USER_UPDATE',
   WORKSPACE_USER_DELETE = 'WORKSPACE_USER_DELETE',
   WORKSPACE_TEAM_INVITE = 'WORKSPACE_TEAM_INVITE',
+  WORKSPACE_INVITE_LINK_CREATE = 'WORKSPACE_INVITE_LINK_CREATE',
+  WORKSPACE_INVITE_LINK_UPDATE = 'WORKSPACE_INVITE_LINK_UPDATE',
+  WORKSPACE_INVITE_LINK_REVOKE = 'WORKSPACE_INVITE_LINK_REVOKE',
   WORKSPACE_TEAM_UPDATE = 'WORKSPACE_TEAM_UPDATE',
   WORKSPACE_TEAM_DELETE = 'WORKSPACE_TEAM_DELETE',
 
@@ -57,6 +60,9 @@ enum AuditV1OperationTypes {
   BASE_USER_UPDATE = 'BASE_USER_UPDATE',
   BASE_USER_INVITE_RESEND = 'BASE_USER_INVITE_RESEND',
   BASE_TEAM_INVITE = 'BASE_TEAM_INVITE',
+  BASE_INVITE_LINK_CREATE = 'BASE_INVITE_LINK_CREATE',
+  BASE_INVITE_LINK_UPDATE = 'BASE_INVITE_LINK_UPDATE',
+  BASE_INVITE_LINK_REVOKE = 'BASE_INVITE_LINK_REVOKE',
   BASE_TEAM_UPDATE = 'BASE_TEAM_UPDATE',
   BASE_TEAM_DELETE = 'BASE_TEAM_DELETE',
 
@@ -603,7 +609,25 @@ export interface BaseUserInvitePayload {
   base_role: string;
   user_name?: string;
   base_title: string;
+  /** How the membership came about; absent for a direct invite. */
+  via?: 'invite_link';
 }
+
+/* Invite links (base and workspace scope share one shape) */
+export interface InviteLinkPayload {
+  link_id: string;
+  scope: string;
+  role: string;
+  email_domain?: string | null;
+  expires_at?: string | null;
+  max_uses?: number | null;
+  base_title?: string;
+  workspace_title?: string;
+}
+
+export interface InviteLinkUpdatePayload
+  extends InviteLinkPayload,
+    UpdatePayload {}
 
 export interface BaseUserDeletePayload {
   user_email: string;
@@ -867,6 +891,8 @@ export interface WorkspaceInvitePayload {
   user_name?: string;
   user_id: string;
   user_role: string;
+  /** How the membership came about; absent for a direct invite. */
+  via?: 'invite_link';
 }
 
 export interface WorkspaceUserUpdatePayload extends UpdatePayload {
@@ -2184,7 +2210,30 @@ const descriptionTemplates = {
   ) => `User '${audit.user}' used a backup code to sign in`,
   [AuditV1OperationTypes.BASE_USER_INVITE]: (
     audit: AuditV1<BaseUserInvitePayload>
-  ) => `User '${audit.user}' invited '${audit.details.user_email}' to base`,
+  ) =>
+    audit.details?.via === 'invite_link'
+      ? `User '${audit.details.user_email}' joined base via invite link`
+      : `User '${audit.user}' invited '${audit.details.user_email}' to base`,
+  [AuditV1OperationTypes.BASE_INVITE_LINK_CREATE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) =>
+    `User '${audit.user}' created a ${audit.details.role} invite link for base`,
+  [AuditV1OperationTypes.BASE_INVITE_LINK_UPDATE]: (
+    audit: AuditV1<InviteLinkUpdatePayload>
+  ) => `User '${audit.user}' updated an invite link for base`,
+  [AuditV1OperationTypes.BASE_INVITE_LINK_REVOKE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) => `User '${audit.user}' revoked an invite link for base`,
+  [AuditV1OperationTypes.WORKSPACE_INVITE_LINK_CREATE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) =>
+    `User '${audit.user}' created a ${audit.details.role} invite link for workspace`,
+  [AuditV1OperationTypes.WORKSPACE_INVITE_LINK_UPDATE]: (
+    audit: AuditV1<InviteLinkUpdatePayload>
+  ) => `User '${audit.user}' updated an invite link for workspace`,
+  [AuditV1OperationTypes.WORKSPACE_INVITE_LINK_REVOKE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) => `User '${audit.user}' revoked an invite link for workspace`,
   [AuditV1OperationTypes.BASE_USER_INVITE_RESEND]: (
     audit: AuditV1<BaseUserInviteResendPayload>
   ) => `User '${audit.user}' resent invite to '${audit.details.user_email}'`,

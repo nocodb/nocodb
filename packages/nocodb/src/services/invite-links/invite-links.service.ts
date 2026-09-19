@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  AppEvents,
   INVITE_LINK_DEFAULT_EXPIRY_DAYS,
   INVITE_LINK_MAX_DOMAIN_LENGTH,
   INVITE_LINK_MAX_EXPIRY_DAYS,
@@ -20,6 +21,7 @@ import InviteLink from '~/models/InviteLink';
 import { Base, BaseUser, User } from '~/models';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { getProjectRolePower } from '~/utils/roleHelper';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
@@ -42,6 +44,25 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 @Injectable()
 export class InviteLinksService {
   protected readonly logger = new Logger(InviteLinksService.name);
+
+  constructor(protected readonly appHooksService: AppHooksService) {}
+
+  /** What the audit trail names a link by. CE knows bases only. */
+  protected async linkTarget(
+    context: NcContext,
+    link: InviteLink,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ base?: Base; workspace?: { id: string; title: string } }> {
+    if (link.scope !== InviteLinkScope.BASE) return {};
+
+    const base = await Base.get(
+      { ...context, base_id: link.base_id, workspace_id: link.fk_workspace_id },
+      link.base_id,
+      ncMeta,
+    );
+
+    return base ? { base } : {};
+  }
 
   /**
    * Not overridden on purpose: the role allow-list must run for every scope, so
@@ -240,6 +261,13 @@ export class InviteLinksService {
       `invite link created id=${link.id} scope=${param.scope} role=${param.body.role} by=${param.req.user?.id}`,
     );
 
+    this.appHooksService.emit(AppEvents.INVITE_LINK_CREATE, {
+      link: InviteLink.toResponse(link),
+      ...(await this.linkTarget(context, link, ncMeta)),
+      context,
+      req: param.req,
+    });
+
     return InviteLink.toResponse(link, { withToken: true });
   }
 
@@ -312,7 +340,7 @@ export class InviteLinksService {
   }
 
   async update(
-    _context: NcContext,
+    context: NcContext,
     param: {
       linkId: string;
       scope: InviteLinkScope;
@@ -323,7 +351,7 @@ export class InviteLinksService {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    await this.getOwnedLink(param, ncMeta);
+    const existing = await this.getOwnedLink(param, ncMeta);
 
     if (param.body.role !== undefined) {
       this.assertRoleWithinCallerPower(param.scope, param.body.role, param.req);
@@ -346,11 +374,19 @@ export class InviteLinksService {
       ncMeta,
     );
 
+    this.appHooksService.emit(AppEvents.INVITE_LINK_UPDATE, {
+      link: InviteLink.toResponse(updated),
+      oldLink: InviteLink.toResponse(existing),
+      ...(await this.linkTarget(context, updated, ncMeta)),
+      context,
+      req: param.req,
+    });
+
     return InviteLink.toResponse(updated, { withToken: true });
   }
 
   async revoke(
-    _context: NcContext,
+    context: NcContext,
     param: {
       linkId: string;
       scope: InviteLinkScope;
@@ -367,6 +403,13 @@ export class InviteLinksService {
     this.logger.log(
       `invite link revoked id=${link.id} by=${param.req.user?.id}`,
     );
+
+    this.appHooksService.emit(AppEvents.INVITE_LINK_REVOKE, {
+      link: InviteLink.toResponse(link),
+      ...(await this.linkTarget(context, link, ncMeta)),
+      context,
+      req: param.req,
+    });
 
     return { msg: 'Invite link revoked' };
   }
@@ -540,6 +583,17 @@ export class InviteLinksService {
 
     this.logger.log(`invite link redeemed id=${link.id} by=${user.id}`);
 
+    // The membership change itself is audited by grant() through the same
+    // member events an emailed invite raises; this one is the funnel signal.
+    this.appHooksService.emit(AppEvents.INVITE_LINK_ACCEPT, {
+      link: InviteLink.toResponse(link),
+      user,
+      already_member: !!result.already_member,
+      ...(await this.linkTarget(context, link, ncMeta)),
+      context,
+      req: param.req,
+    });
+
     return result;
   }
 
@@ -570,7 +624,11 @@ export class InviteLinksService {
       workspace_id: link.fk_workspace_id,
     };
 
-    await this.assertBaseShareable(baseContext, link.base_id, ncMeta);
+    const base = await this.assertBaseShareable(
+      baseContext,
+      link.base_id,
+      ncMeta,
+    );
 
     const existing = await BaseUser.get(
       baseContext,
@@ -597,6 +655,16 @@ export class InviteLinksService {
         ncMeta,
       );
 
+      this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
+        base,
+        user,
+        baseUser: { roles: link.role as ProjectRoles },
+        oldBaseUser: { roles: existing.roles as ProjectRoles },
+        via: 'invite_link',
+        context: baseContext,
+        req: param.req,
+      });
+
       return { base_id: link.base_id };
     }
 
@@ -612,6 +680,16 @@ export class InviteLinksService {
       },
       ncMeta,
     );
+
+    this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
+      base,
+      user,
+      role: link.role,
+      invitedBy: param.req.user,
+      via: 'invite_link',
+      context: baseContext,
+      req: param.req,
+    });
 
     return { base_id: link.base_id };
   }

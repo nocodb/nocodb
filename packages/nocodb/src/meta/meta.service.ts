@@ -185,6 +185,7 @@ export class MetaService {
       [MetaTable.HOOKS]: 'hk',
       [MetaTable.HOOK_LOGS]: 'hkl',
       [MetaTable.API_TOKENS]: 'tkn',
+      [MetaTable.INVITE_LINKS]: 'invl',
       [MetaTable.EXTENSIONS]: 'ext',
       [MetaTable.BASE_VARIABLES]: 'bv',
       [MetaTable.BASE_VARIABLE_ENV_VALUES]: 'bvv',

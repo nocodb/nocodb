@@ -63,6 +63,8 @@ export const permissionScopes = {
 
     // Misc
     'commandPalette',
+    // Redeeming a link you already hold; the service does the real gating
+    'inviteLinkAccept',
     'baseListAll',
     'instanceAdminStats',
     'instanceAdminWorkspaces',
@@ -132,6 +134,10 @@ export const permissionScopes = {
     'workspaceInvite',
     'workspaceUserUpdate',
     'workspaceUserDelete',
+    'workspaceInviteLinkList',
+    'workspaceInviteLinkCreate',
+    'workspaceInviteLinkUpdate',
+    'workspaceInviteLinkDelete',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -253,6 +259,15 @@ export const permissionScopes = {
     'sourceCreate',
     'columnAdd',
 
+    // Invite links -- editor+, the same floor as inviting by email (product
+    // decision 2026-09-19; it was viewer while the two were weighed separately).
+    // The service caps every link at the caller's own role (assertRolePower),
+    // and below creator a caller only ever sees or edits links they made.
+    'baseInviteLinkList',
+    'baseInviteLinkCreate',
+    'baseInviteLinkUpdate',
+    'baseInviteLinkDelete',
+
     // Base API Tokens
     'baseApiTokenList',
     'baseApiTokenCreate',
@@ -355,6 +370,7 @@ const rolePermissions:
       mfaStatus: true,
       mfaRegenerateBackupCodes: true,
       commandPalette: true,
+      inviteLinkAccept: true,
       baseListAll: true,
       testConnection: true,
       notification: true,
@@ -410,7 +426,13 @@ const rolePermissions:
     include: {},
   },
   [WorkspaceUserRoles.EDITOR]: {
-    include: {},
+    include: {
+      // Same floor as the base-scope links above, for the same reason.
+      workspaceInviteLinkList: true,
+      workspaceInviteLinkCreate: true,
+      workspaceInviteLinkUpdate: true,
+      workspaceInviteLinkDelete: true,
+    },
   },
   [WorkspaceUserRoles.CREATOR]: {
     include: {
@@ -442,6 +464,10 @@ const rolePermissions:
   },
   [ProjectRoles.VIEWER]: {
     include: {
+      // Inviting by email is open to every member from Viewer up (product
+      // decision 2026-09-19). The invite form caps the offered role at the
+      // inviter's own, so a viewer can only ever bring in another viewer.
+      userInvite: true,
       // batch envelope — per-sub-op ACL is enforced inside the handler,
       // so the envelope itself is granted to everyone with base access.
       batch: true,
@@ -530,11 +556,15 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
-      // Expanding base membership is not a read-only action; Viewer and
-      // Commenter must not reach it. `include` inherits forward, so Creator
-      // and Owner still get it from here.
-      userInvite: true,
-
+      // A link is a standing grant, so the floor is the same as expanding
+      // membership by email: Editor and above (product decision 2026-09-19;
+      // it was Viewer while the two were treated separately). assertRolePower
+      // still caps each link at the creator's own role, and below Creator a
+      // caller only ever sees or edits links they made.
+      baseInviteLinkList: true,
+      baseInviteLinkCreate: true,
+      baseInviteLinkUpdate: true,
+      baseInviteLinkDelete: true,
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -1041,6 +1071,15 @@ const permissionDescriptions: Record<string, string> = {
   nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
   baseUserList: 'view list of users in the base',
 
+  baseInviteLinkList: 'view invite links for a base',
+  baseInviteLinkCreate: 'create an invite link for a base',
+  baseInviteLinkUpdate: 'update an invite link',
+  baseInviteLinkDelete: 'revoke an invite link',
+  workspaceInviteLinkList: 'view invite links for a workspace',
+  workspaceInviteLinkCreate: 'create an invite link for a workspace',
+  workspaceInviteLinkUpdate: 'update a workspace invite link',
+  workspaceInviteLinkDelete: 'revoke a workspace invite link',
+  inviteLinkAccept: 'redeem an invite link',
   baseApiTokenList: 'view list of base API tokens',
   baseApiTokenCreate: 'create a new base API token',
   baseApiTokenDelete: 'delete a base API token',

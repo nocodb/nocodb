@@ -73,6 +73,7 @@ const rolePermissions = {
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
+      workspaceInviteLinkCreate: true,
       workspaceCollaborators: true,
     },
   },
@@ -138,6 +139,10 @@ const rolePermissions = {
   },
   [ProjectRoles.EDITOR]: {
     include: {
+      // Mirrors the backend: a link is a standing grant, so Editor and above,
+      // the same floor as inviting by email. Capped to the caller's own role
+      // server-side; see assertRolePower.
+      baseInviteLinkCreate: true,
       dataInsert: true,
       dataEdit: true,
       viewFieldDataEdit:
@@ -204,6 +209,8 @@ const rolePermissions = {
   },
   [ProjectRoles.VIEWER]: {
     include: {
+      // Mirrors the backend: inviting by email is open from Viewer up.
+      userInvite: true,
       baseSettings: true,
       // Base integrations inventory (mirrors the backend viewer+ floor).
       baseIntegrationList: true,

@@ -12,13 +12,25 @@ const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { base, isSharedBase } = storeToRefs(useBase())
+const { base, isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
+
+/**
+ * A private base has nothing to offer below Editor: every row of the modal is
+ * hidden for a commenter or a viewer there, so the button would open an empty
+ * dialog. Elsewhere every member has at least the email invite and the members
+ * doorway, so it is shown from Viewer up.
+ */
+const canShare = computed(() =>
+  isPrivateBase.value
+    ? isUIAllowed('viewShare')
+    : isUIAllowed('userInvite') || isUIAllowed('baseShare') || isUIAllowed('viewShare'),
+)
 
 const route = useRoute()
 
@@ -46,9 +58,7 @@ const copySharedBase = async () => {
 
 <template>
   <div
-    v-if="
-      !isSharedBase && (isUIAllowed('baseShare') || isUIAllowed('viewShare')) && visibility !== 'hidden' && (activeTable || base)
-    "
+    v-if="!isSharedBase && canShare && visibility !== 'hidden' && (activeTable || base)"
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"
     :data-sharetype="visibility"
@@ -65,9 +75,13 @@ const copySharedBase = async () => {
       :disabled="disabled"
       @click="showShareModal = true"
     >
-      <div v-if="!isMobileMode" class="flex flex-row items-center w-full gap-x-1">
-        <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
-        <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
+      <div v-if="!isMobileMode" class="flex flex-row items-center w-full gap-x-1.5">
+        <!-- The button opens an invite-first modal, so a padlock said the opposite
+             of what pressing it does. A globe still earns its place: "this base is
+             already on the web" is real state worth seeing before you click. -->
+        <GeneralIcon v-if="visibility === 'public'" icon="ncGlobe" class="flex-none h-3.5 w-3.5" />
+        <!-- The glyph is drawn pointing up-right; 45° clockwise lands it on the horizontal. -->
+        <GeneralIcon v-else icon="ncSend" class="flex-none h-3.5 w-3.5 rotate-45" />
         <div class="flex">{{ $t('activity.share') }}</div>
       </div>
       <GeneralIcon v-else icon="mobileShare" />

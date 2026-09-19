@@ -356,6 +356,8 @@ onKeyStroke('Escape', () => {
 })
 
 const isDuplicateDlgOpen = ref(false)
+
+const isShareBaseDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
 const duplicateProject = (base: BaseType) => {
@@ -646,6 +648,7 @@ defineExpose({
                   <template #overlay>
                     <DashboardTreeViewProjectActionMenu
                       :show-base-option="(source) => showBaseOption(source)"
+                      @share-base="isShareBaseDlgOpen = true"
                       @click-menu="onClickMenu"
                       @rename="enableEditMode()"
                       @duplicate-project="duplicateProject($event)"
@@ -689,6 +692,7 @@ defineExpose({
       <DashboardTreeViewProjectActionMenu
         v-if="isProjectHeader"
         :show-base-option="(source) => showBaseOption(source)"
+        @share-base="isShareBaseDlgOpen = true"
         @click-menu="onClickMenu"
         @rename="enableEditMode(true)"
         @duplicate-project="duplicateProject($event)"
@@ -796,6 +800,7 @@ defineExpose({
   />
   <DlgBaseDelete v-model:visible="isBaseDeleteDialogVisible" :base-id="base?.id" />
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
+  <DlgShareBase v-model="isShareBaseDlgOpen" />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
       <LazyDashboardSettingsErd :base-id="base?.id" :source-id="activeBaseId" />

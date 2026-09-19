@@ -236,6 +236,11 @@ export enum AppEvents {
   SHARED_BASE_GENERATE_LINK = 'shared.base.generate.link',
   SHARED_BASE_DELETE_LINK = 'shared.base.delete.link',
 
+  INVITE_LINK_CREATE = 'invite.link.create',
+  INVITE_LINK_UPDATE = 'invite.link.update',
+  INVITE_LINK_REVOKE = 'invite.link.revoke',
+  INVITE_LINK_ACCEPT = 'invite.link.accept',
+
   ATTACHMENT_UPLOAD = 'attachment.upload',
 
   APIS_CREATED = 'apis.created',

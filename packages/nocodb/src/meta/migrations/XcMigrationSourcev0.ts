@@ -103,6 +103,7 @@ import * as nc_202609021202_marketplace from './v0/nc_202609021202_marketplace';
 import * as nc_202609031200_agents from './v0/nc_202609031200_agents';
 import * as nc_202609091200_mcp_token_permissions from './v0/nc_202609091200_mcp_token_permissions';
 import * as nc_202609161200_chat_sessions_agents from './v0/nc_202609161200_chat_sessions_agents';
+import * as nc_202609171500_invite_links from './v0/nc_202609171500_invite_links';
 import * as nc_202609181111_oauth_grant_permissions from './v0/nc_202609181111_oauth_grant_permissions';
 import * as nc_202609191200_app_factory from './v0/nc_202609191200_app_factory';
 
@@ -219,6 +220,7 @@ export default class XcMigrationSourcev0 {
       'nc_202609031200_agents',
       'nc_202609091200_mcp_token_permissions',
       'nc_202609161200_chat_sessions_agents',
+      'nc_202609171500_invite_links',
       'nc_202609181111_oauth_grant_permissions',
       'nc_202609191200_app_factory',
     ]);
@@ -436,6 +438,8 @@ export default class XcMigrationSourcev0 {
         return nc_202609021202_marketplace;
       case 'nc_202609031200_agents':
         return nc_202609031200_agents;
+      case 'nc_202609171500_invite_links':
+        return nc_202609171500_invite_links;
       case 'nc_202609091200_mcp_token_permissions':
         return nc_202609091200_mcp_token_permissions;
       case 'nc_202609161200_chat_sessions_agents':

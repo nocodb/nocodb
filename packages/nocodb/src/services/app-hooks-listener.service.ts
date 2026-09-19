@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
+  InviteLinkAcceptEvent,
+  InviteLinkEvent,
   MetaDiffEvent,
   UserInviteEvent,
   UserSignupEvent,
@@ -253,6 +255,33 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.SHARED_BASE_GENERATE_LINK:
         break;
       case AppEvents.SHARED_BASE_DELETE_LINK:
+        break;
+      case AppEvents.INVITE_LINK_CREATE:
+        {
+          const param = data as InviteLinkEvent;
+
+          this.telemetryService.sendEvent({
+            evt_type: 'invite-link:created',
+            scope: param.link.scope,
+            role: param.link.role,
+            restricted: !!param.link.email_domain,
+          });
+        }
+        break;
+      case AppEvents.INVITE_LINK_UPDATE:
+      case AppEvents.INVITE_LINK_REVOKE:
+        break;
+      case AppEvents.INVITE_LINK_ACCEPT:
+        {
+          const param = data as InviteLinkAcceptEvent;
+
+          this.telemetryService.sendEvent({
+            evt_type: 'invite-link:accepted',
+            scope: param.link.scope,
+            role: param.link.role,
+            already_member: param.already_member,
+          });
+        }
         break;
       case AppEvents.ATTACHMENT_UPLOAD:
         {

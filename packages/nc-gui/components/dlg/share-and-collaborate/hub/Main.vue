@@ -57,14 +57,16 @@ const avatars = computed(() =>
     <div class="h-px bg-nc-border-gray-light" />
 
     <div class="flex flex-col gap-2">
-      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.peopleWithAccess') }}</div>
+      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.manageBaseMembers') }}</div>
 
       <button
-        class="flex items-center gap-3 min-h-10 -mx-2 px-2 rounded-lg text-nc-content-gray hover:bg-nc-bg-gray-extralight"
+        class="group flex items-center gap-3 min-h-10 -mx-2 px-2 rounded-lg text-nc-content-gray hover:bg-nc-bg-gray-extralight"
         data-testid="nc-hub-people-with-access"
         @click="emit('manageAccess')"
       >
-        <div class="flex">
+        <!-- The tints are inline styles, so a filter is the only thing that can
+             desaturate them without fighting specificity. -->
+        <div class="flex grayscale group-hover:grayscale-0 transition-[filter] duration-150">
           <div
             v-for="(a, i) in avatars"
             :key="a.key"

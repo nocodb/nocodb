@@ -102,7 +102,7 @@ async function onCreateLink() {
       <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">{{ $t('msg.info.noInviteLinkYet') }}</div>
 
       <NcButton
-        type="secondary"
+        type="primary"
         size="medium"
         class="!w-full"
         data-testid="nc-hub-create-first-link"

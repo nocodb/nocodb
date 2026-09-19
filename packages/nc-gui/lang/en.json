@@ -4382,6 +4382,11 @@
     "factoryStarterBuild": "Build a new feature, app, or tool",
     "factoryStarterReview": "Review code and suggest changes",
     "factoryStarterFix": "Fix issues and failures",
+    "factoryStarterExplorePrompt": "Explore the codebase and explain how ",
+    "factoryStarterBuildPrompt": "Build a new feature: ",
+    "factoryStarterReviewPrompt": "Review the code and suggest changes for ",
+    "factoryStarterFixPrompt": "Fix the failing ",
+    "factoryDefaultBranch": "default",
     "factoryDispatch": "Start building",
     "factoryNewBranchFrom": "New branch from {branch}",
     "factorySource_branch": "Branches",
@@ -6338,6 +6343,7 @@
     "factoryFileTooLargeToEdit": "Only the beginning of this file was read, so saving it here would truncate it. Ask the agent to edit it instead.",
     "factorySelectLinesToAnnotate": "Select the lines the comment is about first.",
     "factorySessionArchived": "Session archived. Its work is stored; resume to pick it up.",
+    "factoryTurnFailed": "The turn failed",
     "factoryDeleteSession": "'{title}' and its whole transcript will be deleted. This cannot be undone."
   },
   "trash": {

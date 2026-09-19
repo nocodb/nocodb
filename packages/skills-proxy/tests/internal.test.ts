@@ -230,4 +230,27 @@ describe('internal routes', () => {
 
     assert.ok(codes.has(429), `expected a 429, saw ${[...codes].join(', ')}`);
   });
+
+  it('cannot be stepped around by rotating X-Forwarded-For', async () => {
+    // Production config: behind a proxy, so `request.ip` is a client header.
+    const app = Fastify({ trustProxy: true });
+    registerRoutes(app);
+    await app.ready();
+
+    const codes = new Set<number>();
+
+    for (let i = 0; i < 40; i += 1) {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/internal/status',
+        headers: {
+          authorization: basic('ops', `guess-${i}`),
+          'x-forwarded-for': `10.0.0.${i}`,
+        },
+      });
+      codes.add(res.statusCode);
+    }
+
+    assert.ok(codes.has(429), `expected a 429, saw ${[...codes].join(', ')}`);
+  });
 });

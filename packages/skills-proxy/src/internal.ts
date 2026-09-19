@@ -90,6 +90,7 @@ export function registerInternalRoutes(app: FastifyInstance) {
       await internal.register(rateLimit, {
         max: INTERNAL_RATE_LIMIT_MAX,
         timeWindow: INTERNAL_RATE_LIMIT_WINDOW,
+        keyGenerator: () => 'internal',
       });
 
       internal.addHook('preHandler', requireBasicAuth);

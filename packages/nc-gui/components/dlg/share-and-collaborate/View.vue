@@ -19,7 +19,7 @@ const { activeDashboard } = storeToRefs(dashboardStore)
 const documentsStore = useDocumentsStore()
 const { activeDocument } = storeToRefs(documentsStore)
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -35,8 +35,6 @@ if (isViewToolbar) {
 
 const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
-
-const { getBaseUsers } = useBases()
 
 const { links: inviteLinks, load: loadInviteLinks } = useInviteLinks()
 
@@ -55,23 +53,33 @@ const editLinkId = ref('')
 
 const editLinkIsNew = ref(false)
 
-const members = ref<Array<{ id?: string; email?: string; display_name?: string }>>([])
+const memberCount = ref(0)
 
 /** "0 people have access" is a lie while the request is still out. */
 const membersLoaded = ref(false)
 
-async function loadMembers() {
+/**
+ * Only the count is on screen, so ask for one row and read the total off the
+ * pagination metadata. Going through getBaseUsers would pull every member on
+ * every open -- fine for a handful, a real wait on a workspace with hundreds --
+ * and it writes the shared cache, so a truncated page cannot be requested there.
+ *
+ * Deliberately not awaited by the opener: the modal paints immediately and the
+ * footer swaps its skeleton for the number whenever this lands.
+ */
+async function loadMemberCount() {
   if (!base.value?.id) return
 
   try {
-    const { users } = await getBaseUsers({ baseId: base.value.id, force: true })
-    members.value = (users || []).filter((u: any) => !u?.deleted)
+    const res: any = await $api.auth.baseUserList(base.value.id, { query: { limit: 1 } } as any)
+
+    memberCount.value = res?.users?.pageInfo?.totalRows ?? 0
     membersLoaded.value = true
   } catch (e) {
-    // The row is a doorway to the members page; a failure here must not take the
-    // modal down with it, but it should not be silent either.
+    // The line is a doorway to the members page; a failure here must not take
+    // the modal down with it, but it should not be silent either.
     console.error(e)
-    members.value = []
+    memberCount.value = 0
   }
 }
 
@@ -210,7 +218,7 @@ function goToInviteTab() {
 // still sitting in the box waiting to be corrected.
 function onInviteSent(emails: string[]) {
   $e('a:share:invite-sent', { count: emails.length })
-  loadMembers()
+  loadMemberCount()
 }
 
 watch(showShareModal, (val) => {
@@ -219,7 +227,7 @@ watch(showShareModal, (val) => {
     activeTab.value = defaultTab.value
     membersLoaded.value = false
     nextTick(anchorToTrigger)
-    loadMembers()
+    loadMemberCount()
     if (base.value?.id) loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id })
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })
   } else {
@@ -263,7 +271,7 @@ watch(showShareModal, (val) => {
             </template>
 
             <DlgShareAndCollaborateHubMain
-              :members="members"
+              :member-count="memberCount"
               :members-loaded="membersLoaded"
               @compose="openCompose"
               @links="openLinks"

@@ -3,11 +3,10 @@
  * The hub's first screen: the link, the one email field that starts an invite,
  * and a line pointing at the members page.
  */
-/** Collaborators already on the base, for the count in the footer. */
-defineProps<{
-  members: Array<{ id?: string; email?: string; display_name?: string }>
-  membersLoaded?: boolean
-}>()
+/** Just the size of the base, for the footer line. */
+const props = withDefaults(defineProps<{ memberCount?: number; membersLoaded?: boolean }>(), {
+  memberCount: 0,
+})
 
 const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess'])
 
@@ -56,7 +55,7 @@ const emailPlaceholder = computed(() =>
          one link, rather than a section of its own. -->
     <div class="text-bodySm text-nc-content-gray-muted">
       <template v-if="membersLoaded">
-        {{ $t('msg.info.peopleHaveAccess', { count: members.length }, members.length) }}
+        {{ $t('msg.info.peopleHaveAccess', { count: props.memberCount }, props.memberCount) }}
       </template>
       <span v-else class="inline-block w-28 h-3 rounded bg-nc-bg-gray-light align-middle" />
 

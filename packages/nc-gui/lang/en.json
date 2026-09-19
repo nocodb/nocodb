@@ -5922,7 +5922,7 @@
       "publisherProfileReadOnly": "Only an owner or admin of this publisher can change how it is credited.",
       "enterAgentName": "Enter agent name",
       "enterAgentDescription": "Enter agent description",
-      "inviteLinkDomainSentence": "Anyone with a {domain} email can use this link to join as {role}",
+      "inviteLinkDomainSentence": "Works only with {domain} email & teammates join as {role}",
       "inviteLinkOpenSentence": "Share this link only with people you trust. Anyone with it can join as {role}"
     },
     "error": {

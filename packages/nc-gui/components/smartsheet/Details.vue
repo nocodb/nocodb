@@ -77,7 +77,8 @@ const showDateDependencyAction = computed(
 // Record templates are base-level data; unlike the toolbar dropdown (which
 // gates to grid because its manager modal is grid-hosted), the shell embeds the
 // manager itself, so it's reachable from any view's Tools surface.
-const showRecordTemplatesAction = computed(() => isEeUI && showEEFeatures.value)
+// recordTemplate* is an EDITOR-and-up ACL block, so keep the role gate.
+const showRecordTemplatesAction = computed(() => isEeUI && isUIAllowed('viewOperations') && showEEFeatures.value)
 
 // Slug → "is this tool reachable" map. Relations / API are always available;
 // a deep link to a tool that isn't reachable (or isn't yet wired) bounces to
@@ -165,25 +166,29 @@ const toolHeader = computed(() => {
   }
 })
 
+// True when the tool is locked on the current plan, having shown the upgrade
+// modal. Shared by the rail click and the deep-link guard below so a URL can't
+// walk past a gate the rail respects.
+const showUpgradeForTool = (slug: ViewPageType) => {
+  switch (slug) {
+    case 'permissions':
+      return !!showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'table-tools-shell-permissions' })
+    case 'rls':
+      return !!showUpgradeToUseRls({ triggerSource: 'table-tools-shell-rls' })
+    case 'dates':
+      return !!showUpgradeToUseDateDependency({ triggerSource: 'table-tools-shell-date-dependency' })
+    case 'templates':
+      return !!showUpgradeToUseRecordTemplates({ triggerSource: 'table-tools-shell-record-templates' })
+    default:
+      return false
+  }
+}
+
 const onSelectTool = (slug: ViewPageType) => {
   if (slug === openedViewsTab.value) return
 
   // Intercept locked EE features → show the upgrade modal instead of navigating.
-  if (slug === 'permissions' && showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'table-tools-shell-permissions' })) {
-    return
-  }
-
-  if (slug === 'rls' && showUpgradeToUseRls({ triggerSource: 'table-tools-shell-rls' })) {
-    return
-  }
-
-  if (slug === 'dates' && showUpgradeToUseDateDependency({ triggerSource: 'table-tools-shell-date-dependency' })) {
-    return
-  }
-
-  if (slug === 'templates' && showUpgradeToUseRecordTemplates({ triggerSource: 'table-tools-shell-record-templates' })) {
-    return
-  }
+  if (showUpgradeForTool(slug)) return
 
   onViewsTabChange(slug)
 }
@@ -202,7 +207,13 @@ watch(
     if (!isBaseRolesLoaded.value || !isOpen.value) return
 
     // Bounce un-entitled / not-yet-wired tabs (incl. CE deep links) to Relations.
-    if (tabAvailability.value[openedViewsTab.value] === false || tabAvailability.value[openedViewsTab.value] === undefined) {
+    if (!tabAvailability.value[openedViewsTab.value]) {
+      onViewsTabChange('relation')
+      return
+    }
+
+    // A deep link (or Back into one) must clear the same plan gate a click does.
+    if (showUpgradeForTool(openedViewsTab.value)) {
       onViewsTabChange('relation')
       return
     }

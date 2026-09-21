@@ -416,6 +416,15 @@ export interface InterfacePageDataApi {
    * before applying pushed rows.
    */
   viewerScopeFilters(): FilterType[]
+  /**
+   * The subset of `viewerScopeFilters()` the server ALSO enforces on a
+   * single-row read — the user-filter selection alone, without the ad-hoc
+   * filters. `interfaceTableDataRead` / `interfaceNestedDataList` send
+   * `baseParams()` only, so no `filterArrJson` reaches their
+   * `resolveVizScope` and `assertRowInScope` never counts ad-hoc conditions.
+   * Mirroring them would make the client STRICTER than the server.
+   */
+  userFilterSelectionFilters(): FilterType[]
   /** viz-config editability gates the UI */
   canEditInline: Ref<boolean>
   canAddDeleteInline: Ref<boolean>

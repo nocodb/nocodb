@@ -5,6 +5,7 @@ import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
   CreditsExhaustedDetailsType,
+  LicenseInactiveReason,
   NcErrorArgs,
   PlanLimitExceededDetailsType,
   SourceType,
@@ -424,8 +425,12 @@ export class NcError {
   static pluginTestError(message: string, args?: NcErrorArgs): never {
     return NcError._.pluginTestError(message, args);
   }
-  static licenseRequired(feature?: string, args?: NcErrorArgs): never {
-    return NcError._.licenseRequired(feature, args);
+  static licenseRequired(
+    operation?: string,
+    reason?: LicenseInactiveReason,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.licenseRequired(operation, reason, args);
   }
 
   static licenseSuspended(args?: NcErrorArgs): never {

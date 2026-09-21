@@ -1,5 +1,15 @@
-import { NcErrorType } from '~/lib/globals';
+import { LicenseInactiveReason, NcErrorType } from '~/lib/globals';
 import { ncIsNumber } from '~/lib/is';
+
+/** Why the instance has no active license, in words a customer can act on. */
+const licenseInactiveCause: Record<LicenseInactiveReason, string> = {
+  [LicenseInactiveReason.NONE]:
+    'No license key is configured on this instance.',
+  [LicenseInactiveReason.EXPIRED]: 'The license has expired.',
+  [LicenseInactiveReason.SUSPENDED]: 'The license has been suspended.',
+  [LicenseInactiveReason.UNREACHABLE]:
+    'The license server could not be reached, so the instance fell back to CE mode.',
+};
 
 export const presetErrorCodexMap: Partial<
   Record<
@@ -613,10 +623,17 @@ export const presetErrorCodexMap: Partial<
     code: 405,
   },
   [NcErrorType.ERR_LICENSE_REQUIRED]: {
-    message: (feature: string) =>
-      feature
-        ? `The "${feature}" feature requires an Enterprise license.`
-        : 'This feature requires an Enterprise license.',
+    // Not a plan-tier refusal — the instance has no active license at all.
+    // Tier checks throw ERR_PLAN_LIMIT_EXCEEDED / featureNotSupported instead.
+    message: (operation: string, reason: string) => {
+      const subject = operation
+        ? `"${operation}" is unavailable`
+        : 'this operation is unavailable';
+      const cause = licenseInactiveCause[reason as LicenseInactiveReason];
+      return `This instance does not have an active NocoDB license, so ${subject}.${
+        cause ? ` ${cause}` : ''
+      }`;
+    },
     code: 402,
   },
   [NcErrorType.ERR_LICENSE_SUSPENDED]: {

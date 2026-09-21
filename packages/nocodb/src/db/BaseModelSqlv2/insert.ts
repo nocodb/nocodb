@@ -296,6 +296,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         number,
         ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
+      // Ops that must not run until the insert is visible to other connections
+      // — see AttachmentUrlUploadPreparator. Keyed by row index like
+      // postInsertOpsMap, but drained after `trx.commit()`.
+      const postCommitOpsMap: Record<
+        number,
+        ((rowId: any) => Promise<void>)[]
+      > = {};
       const preInsertOps: ((
         trx?: Knex | Knex.Transaction,
       ) => Promise<string>)[] = [];
@@ -362,9 +369,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                   req: cookie,
                 },
               );
-            postInsertOpsMap[index] = [
-              ...(postInsertOpsMap[index] ?? []),
-              ...(attachmentOperations.postInsertOps ?? []),
+            postCommitOpsMap[index] = [
+              ...(postCommitOpsMap[index] ?? []),
+              ...(attachmentOperations.postCommitOps ?? []),
             ];
             preInsertOps.push(...(attachmentOperations.preInsertOps ?? []));
           }
@@ -582,6 +589,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         }
       }
 
+      const postCommitOps: (() => Promise<void>)[] = [];
+
       // insert nested link data for single record insertion or v3
       if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
         for (let i = 0; i < responses.length; i++) {
@@ -597,6 +606,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
             trx,
           );
+
+          // Bind the pk now (it is only resolvable here) but defer the call
+          // until after commit.
+          for (const op of postCommitOpsMap[i] ?? []) {
+            postCommitOps.push(() => op(rowId));
+          }
         }
       }
 
@@ -604,6 +619,19 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // Transaction is finalized; clear the reference so a post-commit
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
+
+      // Safe to run now that the rows are visible to other connections. These
+      // only enqueue background jobs, so a failure must not fail the insert.
+      for (const op of postCommitOps) {
+        try {
+          await op();
+        } catch (e) {
+          new Logger('BaseModelSqlv2').error(
+            'Failed to dispatch post-commit op',
+            e,
+          );
+        }
+      }
 
       if (!skip_hooks) {
         try {

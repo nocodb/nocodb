@@ -135,16 +135,32 @@ export class DataAttachmentV3Service {
           }
         }
       } catch (error) {
-        console.error(`Failed to process attachment:`, error);
+        // The attachment is dropped from the cell rather than left half-written.
+        // Log enough to trace it back — a silent drop here is indistinguishable
+        // from the user never sending the file.
+        this.logger.error(
+          `Failed to fetch attachment from url for ${modelId}.${column.id} record ${recordId}: ${error?.message}`,
+          error?.stack,
+        );
       }
     }
     // direct update to prevent prepare noco data again
-    await baseModel
+    const updatedRows = await baseModel
       .dbDriver(baseModel.getTnPath(baseModel.model))
       .update({
         [column.column_name]: JSON.stringify(processedAttachments),
       })
       .where(await _wherePk(baseModel.model.primaryKeys, recordId, true));
+
+    // No matching row means the write-back was lost and the cell is stranded on
+    // `status: 'uploading'` — the record was deleted, or the job outran the
+    // insert's commit. Nothing downstream would surface that, so say so here.
+    if (!updatedRows) {
+      this.logger.error(
+        `Attachment url upload write-back matched no row for ${modelId} record ${recordId}; cell left in 'uploading' state`,
+      );
+      return;
+    }
 
     if (generateThumbnailAttachments.length > 0) {
       await this.jobsService.add(JobTypes.ThumbnailGenerator, {

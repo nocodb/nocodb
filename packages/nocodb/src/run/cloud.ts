@@ -12,6 +12,7 @@ import cors from 'cors';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
 import { mayBeAppHost } from '~/helpers/appOrigin';
+import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
 
 handleUncaughtErrors(process);
 
@@ -48,10 +49,11 @@ async function createServer(isMaster: boolean): Promise<http.Server> {
   // is an app origin too and looks like any other host, so the test is "not the
   // console" rather than "under the apps domain" — anything else falls through
   // to Nest, which decides.
-  const ncGuiStatic = express.static(ncGuiPath);
+  const ncGuiStatic = express.static(ncGuiPath, ncStaticOptions);
+  const ncGuiCompression = ncStaticCompression();
   server.use(process.env.NC_DASHBOARD_URL ?? '/', (req, res, next) => {
     if (mayBeAppHost(req.headers.host)) return next();
-    return ncGuiStatic(req, res, next);
+    return ncGuiCompression(req, res, () => ncGuiStatic(req, res, next));
   });
 
   // if NC_DASHBOARD_URL is not set to /dashboard, then redirect '/dashboard'

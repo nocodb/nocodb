@@ -1065,6 +1065,19 @@ onBeforeUnmount(() => {
   $eventBus.realtimeViewMetaEventBus.off(realtimeListener)
 })
 
+// antd's dialog wrapper swallows Esc (stopPropagation) before NcDropdown's window listener sees it.
+useEventListener(
+  document,
+  'keydown',
+  (e: KeyboardEvent) => {
+    if (e.key !== 'Escape' || !isDropdownOpen.value) return
+
+    e.stopPropagation()
+    isDropdownOpen.value = false
+  },
+  { capture: true },
+)
+
 // Refetch the hook fields from the server, replacing local edits with the
 // authoritative state. Used by the "modified by another user" banner so the
 // user can pull the remote change without losing the editor.

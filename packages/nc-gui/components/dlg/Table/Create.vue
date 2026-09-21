@@ -567,7 +567,7 @@ watch(_baseId, () => {
                             ? activeTabPredictHistory.length + activeTabSelectedTables.length < 10
                             : activeTabPredictHistory.length < 10
                         "
-                        title="Suggest more"
+                        :title="$t('tooltip.suggestMore')"
                         placement="top"
                       >
                         <NcButton
@@ -586,7 +586,7 @@ watch(_baseId, () => {
                           </template>
                         </NcButton>
                       </NcTooltip>
-                      <NcTooltip title="Clear all and Re-suggest" placement="top">
+                      <NcTooltip :title="$t('tooltip.clearAllAndResuggest')" placement="top">
                         <NcButton
                           v-e="['a:table:ai:predict-refresh']"
                           size="xs"
@@ -827,7 +827,7 @@ watch(_baseId, () => {
               <template #loading> {{ $t('title.creatingTable') }} </template>
             </NcButton>
 
-            <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
+            <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> {{ $t('labels.addAiIntegration') }} </NcButton>
           </div>
         </div>
       </a-form>

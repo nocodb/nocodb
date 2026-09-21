@@ -29,8 +29,6 @@ const emits = defineEmits<{
   select: [slug: ViewPageType]
 }>()
 
-const { isEEFeatureBlocked } = useEeConfig()
-
 const search = ref('')
 
 // Tools whose title matches the query; empty groups fall away with their headers.
@@ -106,12 +104,7 @@ const onSearchEnter = () => {
             :class="active === item.slug ? 'text-nc-content-brand' : 'text-nc-content-gray-subtle2'"
           />
           <span class="truncate flex-1">{{ item.title }}</span>
-          <LazyPaymentUpgradeBadge
-            v-if="item.feature"
-            :feature="item.feature"
-            :feature-enabled-callback="() => !isEEFeatureBlocked"
-            remove-click
-          />
+          <LazyPaymentUpgradeBadge v-if="item.feature" :feature="item.feature" remove-click />
         </div>
       </template>
     </div>

@@ -40,10 +40,22 @@ export const ncStaticOptions: ServeStaticOptions = {
   },
 };
 
+// Files the dist actually serves. `compression()` wraps `res` and then calls
+// next(), so on a miss the wrapped response carries on into Nest — mounting it
+// alone would compress API traffic too. The filter keeps it inert there.
+const STATIC_REQUEST =
+  /^\/(?:$|index\.html$|_nuxt\/|js\/|css\/|plugins\/|[^/]+\.(?:js|css|json|svg|png|jpe?g|webp|ico|woff2?|ttf|map|webmanifest)$)/;
+
 /**
- * Scoped to the static mounts on purpose — EE streams SSE (agent channels, the AI
- * proxy bridge) and `compression` buffers until an explicit flush.
+ * Static assets only. Two reasons, both load-bearing:
+ * - EE streams SSE (agent channels, the AI proxy bridge) and `compression`
+ *   buffers until an explicit flush, so compressing those stalls the stream.
+ * - Compressing API responses invites BREACH: they carry secrets (JWTs, tokens)
+ *   alongside attacker-influenced record content. Dist files carry neither.
  */
 export function ncStaticCompression(): RequestHandler {
-  return compression();
+  return compression({
+    filter: (req, res) =>
+      STATIC_REQUEST.test(req.path) && compression.filter(req, res),
+  });
 }

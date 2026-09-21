@@ -3022,10 +3022,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // Dispatched after the row lands (this path is autocommit — no trx), so
       // the worker can see it. See AttachmentUrlUploadPreparator.
       const postCommitOps = attachmentOperations.postCommitOps ?? [];
-      preInsertOps = [
-        ...(preInsertOps ?? []),
-        ...(attachmentOperations.preInsertOps ?? []),
-      ];
 
       await this.validate(insertObj, columns);
 
@@ -4555,7 +4551,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       if (apiVersion === NcApiVersion.V3) {
         profiler.log('postUpdateOps start');
-        await Promise.all(postUpdateOps.map((ops) => ops()));
+        await Promise.all(
+          postUpdateOps.map((ops) =>
+            ops().catch((e) =>
+              this.logger.error('Failed to dispatch post-commit op', e),
+            ),
+          ),
+        );
         profiler.log('postUpdateOps end');
       }
 

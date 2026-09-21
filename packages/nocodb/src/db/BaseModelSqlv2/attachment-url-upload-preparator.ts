@@ -1,5 +1,4 @@
 import { NcApiVersion, type NcRequest } from 'nocodb-sdk';
-import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { type AttachmentUrlUploadJobData, JobTypes } from '~/interface/Jobs';
 import { EMIT_EVENT } from '~/constants';
@@ -33,12 +32,9 @@ export class AttachmentUrlUploadPreparator {
     // its write-back matches zero rows and the cell stays `status: 'uploading'`
     // forever.
     const postCommitOps: ((rowId: any) => Promise<void>)[] = [];
-    const preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[] =
-      [];
-    const postInsertAuditOps: ((rowId: any) => Promise<void>)[] = [];
     // return early if not v3
     if (baseModel.context.api_version !== NcApiVersion.V3) {
-      return { postCommitOps, preInsertOps, postInsertAuditOps };
+      return { postCommitOps };
     }
     for (const col of attachmentCols) {
       let attachmentData: { id?: string; url: string }[];
@@ -136,6 +132,6 @@ export class AttachmentUrlUploadPreparator {
         );
       }
     }
-    return { postCommitOps, preInsertOps, postInsertAuditOps };
+    return { postCommitOps };
   }
 }

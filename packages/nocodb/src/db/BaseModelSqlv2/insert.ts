@@ -27,6 +27,8 @@ import { nocoExecute } from '~/utils';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 
+const logger = new Logger('BaseModelSqlv2');
+
 export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   const single = async (
     data,
@@ -373,7 +375,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               ...(postCommitOpsMap[index] ?? []),
               ...(attachmentOperations.postCommitOps ?? []),
             ];
-            preInsertOps.push(...(attachmentOperations.preInsertOps ?? []));
           }
 
           insertDatas.push(insertObj);
@@ -626,10 +627,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         try {
           await op();
         } catch (e) {
-          new Logger('BaseModelSqlv2').error(
-            'Failed to dispatch post-commit op',
-            e,
-          );
+          logger.error('Failed to dispatch post-commit op', e);
         }
       }
 
@@ -665,7 +663,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             // empty `{}` where-clause, which `orWhere` no-ops — chunkList would
             // silently return the table's first N pre-existing rows instead of
             // the ones just inserted, dispatching hooks against the wrong rows.
-            new Logger('BaseModelSqlv2').warn(
+            logger.warn(
               `skipping after-insert hook dispatch for model ${baseModel.model?.id}: table has no primary key columns to re-read inserted rows by`,
             );
           } else {
@@ -698,7 +696,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           // throw). Log and continue so pk capture / statsUpdate still run.
           // The non-raw HTTP bulk path keeps throwing, preserving its 5xx.
           if (!raw) throw hookErr;
-          new Logger('BaseModelSqlv2').error(
+          logger.error(
             `after-insert hooks failed on raw insert for model ${baseModel.model?.id}: ${hookErr?.message}`,
             hookErr?.stack,
           );

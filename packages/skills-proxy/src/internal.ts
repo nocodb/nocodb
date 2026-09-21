@@ -34,6 +34,25 @@ function matches(supplied: string, expected: string): boolean {
   return timingSafeEqual(a, b);
 }
 
+/**
+ * The username an `Authorization: Basic` header claims, without validating it.
+ *
+ * Used to bucket the rate limit. `request.ip` is not an option — `trustProxy`
+ * makes that a client-supplied header — and one shared bucket would let any
+ * anonymous caller hold these routes at 429 and take the operator down with it.
+ */
+function claimedUser(header: string | undefined): string {
+  const [scheme, encoded] = (header ?? '').split(' ');
+
+  if (scheme?.toLowerCase() !== 'basic' || !encoded) return 'anonymous';
+
+  const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+  const separator = decoded.indexOf(':');
+
+  // Bounded: the key is held in the limiter's own store.
+  return separator < 0 ? 'anonymous' : decoded.slice(0, separator).slice(0, 64);
+}
+
 function unauthorized(reply: FastifyReply): never {
   reply.header('www-authenticate', 'Basic realm="skills-proxy internal"');
   reply.code(401);
@@ -90,7 +109,7 @@ export function registerInternalRoutes(app: FastifyInstance) {
       await internal.register(rateLimit, {
         max: INTERNAL_RATE_LIMIT_MAX,
         timeWindow: INTERNAL_RATE_LIMIT_WINDOW,
-        keyGenerator: () => 'internal',
+        keyGenerator: (request) => claimedUser(request.headers.authorization),
       });
 
       internal.addHook('preHandler', requireBasicAuth);

@@ -253,4 +253,24 @@ describe('internal routes', () => {
 
     assert.ok(codes.has(429), `expected a 429, saw ${[...codes].join(', ')}`);
   });
+
+  it('does not let an anonymous flood lock the operator out', async () => {
+    // The limiter buckets by the username a request claims. One bucket for
+    // everyone would mean any unauthenticated caller could hold these routes at
+    // 429 — the rate-limit hook runs on `onRequest`, before auth — and take the
+    // operator's own access down with it.
+    const app = build();
+
+    for (let i = 0; i < 60; i += 1) {
+      await app.inject({ method: 'GET', url: '/internal/status' });
+    }
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/internal/status',
+      headers: { authorization: GOOD },
+    });
+
+    assert.equal(res.statusCode, 200);
+  });
 });

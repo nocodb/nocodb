@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} Feld-zu-Feld-Bedingung(en) können nicht kopiert werden — diese Seite zeigt mehr Einträge als die Ansicht.",
         "negated_filters_dropped": "{count} negierte Bedingung(en) können nicht kopiert werden — diese Seite zeigt mehr Einträge als die Ansicht.",
         "row_color_background_lost": "Eintragsfarben werden kopiert, ihre Hintergrundfüllung jedoch nicht.",
-        "grouping_dropped": "Dieses Layout unterstützt keine Gruppierung, daher wird sie nicht kopiert."
+        "grouping_dropped": "Dieses Layout unterstützt keine Gruppierung, daher wird sie nicht kopiert.",
+        "row_color_lost": "Eintragsfarben können nicht kopiert werden — das Feld oder die Bedingungen, auf denen sie beruhen, sind hier nicht verfügbar."
       }
     },
     "teams": {

@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "Eremutik eremurako {count} baldintza ezin dira kopiatu — orri honek bistaratzeak baino erregistro gehiago erakutsiko ditu.",
         "negated_filters_dropped": "Ezeztatutako {count} baldintza ezin dira kopiatu — orri honek bistaratzeak baino erregistro gehiago erakutsiko ditu.",
         "row_color_background_lost": "Erregistroen koloreak kopiatzen dira, baina haien atzeko planoko betegarria ez.",
-        "grouping_dropped": "Diseinu honek ez du taldekatzea onartzen, beraz ez da kopiatzen."
+        "grouping_dropped": "Diseinu honek ez du taldekatzea onartzen, beraz ez da kopiatzen.",
+        "row_color_lost": "Erregistroen koloreak ezin dira kopiatu — haiek erabiltzen duten eremua edo baldintzak ez daude erabilgarri hemen."
       }
     },
     "teams": {

@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} mezőről mezőre hivatkozó feltételt nem lehet átmásolni — ez az oldal több rekordot fog mutatni, mint a nézet.",
         "negated_filters_dropped": "{count} tagadott feltételt nem lehet átmásolni — ez az oldal több rekordot fog mutatni, mint a nézet.",
         "row_color_background_lost": "A rekordszínek átmásolódnak, a háttérkitöltésük azonban nem.",
-        "grouping_dropped": "Ez az elrendezés nem támogatja a csoportosítást, ezért az nem másolódik át."
+        "grouping_dropped": "Ez az elrendezés nem támogatja a csoportosítást, ezért az nem másolódik át.",
+        "row_color_lost": "A rekordszíneket nem lehet átmásolni — az a mező vagy azok a feltételek, amelyeken alapulnak, itt nem érhetők el."
       }
     },
     "teams": {

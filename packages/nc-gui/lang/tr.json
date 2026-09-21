@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} alandan alana koşul kopyalanamıyor — bu sayfa görünümden daha fazla kayıt gösterecek.",
         "negated_filters_dropped": "{count} olumsuzlanmış koşul kopyalanamıyor — bu sayfa görünümden daha fazla kayıt gösterecek.",
         "row_color_background_lost": "Kayıt renkleri kopyalanır, ancak arka plan dolgusu kopyalanmaz.",
-        "grouping_dropped": "Bu düzen gruplamayı desteklemiyor, bu yüzden kopyalanmıyor."
+        "grouping_dropped": "Bu düzen gruplamayı desteklemiyor, bu yüzden kopyalanmıyor.",
+        "row_color_lost": "Kayıt renkleri kopyalanamıyor — bunların dayandığı alan veya koşullar burada kullanılamıyor."
       }
     },
     "teams": {

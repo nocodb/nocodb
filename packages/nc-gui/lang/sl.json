@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} pogojev med polji ni mogoče kopirati — ta stran bo pokazala več zapisov kot pogled.",
         "negated_filters_dropped": "{count} zanikanih pogojev ni mogoče kopirati — ta stran bo pokazala več zapisov kot pogled.",
         "row_color_background_lost": "Barve zapisov se kopirajo, njihova polnila ozadja pa ne.",
-        "grouping_dropped": "Ta postavitev ne podpira združevanja, zato se to ne kopira."
+        "grouping_dropped": "Ta postavitev ne podpira združevanja, zato se to ne kopira.",
+        "row_color_lost": "Barv zapisov ni mogoče kopirati — polje ali pogoji, na katerih temeljijo, tukaj niso na voljo."
       }
     },
     "teams": {

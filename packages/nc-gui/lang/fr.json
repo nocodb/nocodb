@@ -1093,7 +1093,8 @@
         "dynamic_filters_dropped": "{count} condition(s) de champ à champ ne peuvent pas être copiées — cette page affichera plus d'enregistrements que la vue.",
         "negated_filters_dropped": "{count} condition(s) négative(s) ne peuvent pas être copiées — cette page affichera plus d'enregistrements que la vue.",
         "row_color_background_lost": "Les couleurs des enregistrements sont copiées, mais pas leur remplissage d'arrière-plan.",
-        "grouping_dropped": "Cette mise en page ne prend pas en charge le regroupement, il n'est donc pas copié."
+        "grouping_dropped": "Cette mise en page ne prend pas en charge le regroupement, il n'est donc pas copié.",
+        "row_color_lost": "Les couleurs des enregistrements ne peuvent pas être copiées — le champ ou les conditions dont elles dépendent ne sont pas disponibles ici."
       }
     },
     "teams": {

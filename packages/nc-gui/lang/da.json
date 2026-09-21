@@ -1095,7 +1095,8 @@
         "dynamic_filters_dropped": "{count} felt-til-felt-betingelse(r) kan ikke kopieres — denne side viser flere poster end visningen.",
         "negated_filters_dropped": "{count} negeret/negerede betingelse(r) kan ikke kopieres — denne side viser flere poster end visningen.",
         "row_color_background_lost": "Postfarver kopieres, men ikke deres baggrundsfyld.",
-        "grouping_dropped": "Dette layout understøtter ikke gruppering, så den kopieres ikke."
+        "grouping_dropped": "Dette layout understøtter ikke gruppering, så den kopieres ikke.",
+        "row_color_lost": "Postfarver kan ikke kopieres — det felt eller de betingelser, de afhænger af, er ikke tilgængelige her."
       }
     },
     "teams": {

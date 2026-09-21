@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "Không thể sao chép {count} điều kiện trường-với-trường — trang này sẽ hiển thị nhiều bản ghi hơn chế độ xem.",
         "negated_filters_dropped": "Không thể sao chép {count} điều kiện phủ định — trang này sẽ hiển thị nhiều bản ghi hơn chế độ xem.",
         "row_color_background_lost": "Màu bản ghi được sao chép, nhưng phần tô nền của chúng thì không.",
-        "grouping_dropped": "Bố cục này không hỗ trợ nhóm, nên phần nhóm không được sao chép."
+        "grouping_dropped": "Bố cục này không hỗ trợ nhóm, nên phần nhóm không được sao chép.",
+        "row_color_lost": "Không thể sao chép màu bản ghi — trường hoặc điều kiện mà chúng dựa vào không khả dụng ở đây."
       }
     },
     "teams": {

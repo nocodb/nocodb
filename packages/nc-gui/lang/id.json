@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} kondisi antar-bidang tidak dapat disalin — halaman ini akan menampilkan lebih banyak catatan daripada tampilannya.",
         "negated_filters_dropped": "{count} kondisi negatif tidak dapat disalin — halaman ini akan menampilkan lebih banyak catatan daripada tampilannya.",
         "row_color_background_lost": "Warna catatan disalin, tetapi isian latar belakangnya tidak.",
-        "grouping_dropped": "Tata letak ini tidak mendukung pengelompokan, jadi pengelompokan tidak disalin."
+        "grouping_dropped": "Tata letak ini tidak mendukung pengelompokan, jadi pengelompokan tidak disalin.",
+        "row_color_lost": "Warna catatan tidak dapat disalin — bidang atau kondisi yang menjadi dasarnya tidak tersedia di sini."
       }
     },
     "teams": {

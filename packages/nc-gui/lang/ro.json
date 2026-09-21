@@ -1094,7 +1094,8 @@
         "dynamic_filters_dropped": "{count} condiție/condiții de la câmp la câmp nu pot fi copiate — această pagină va afișa mai multe înregistrări decât vizualizarea.",
         "negated_filters_dropped": "{count} condiție/condiții negate nu pot fi copiate — această pagină va afișa mai multe înregistrări decât vizualizarea.",
         "row_color_background_lost": "Culorile înregistrărilor sunt copiate, dar umplerea lor de fundal nu.",
-        "grouping_dropped": "Acest aspect nu acceptă gruparea, așa că aceasta nu este copiată."
+        "grouping_dropped": "Acest aspect nu acceptă gruparea, așa că aceasta nu este copiată.",
+        "row_color_lost": "Culorile înregistrărilor nu pot fi copiate — câmpul sau condițiile pe care se bazează nu sunt disponibile aici."
       }
     },
     "teams": {

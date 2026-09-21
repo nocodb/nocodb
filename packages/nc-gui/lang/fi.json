@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} kentästä kenttään -ehtoa ei voi kopioida — tämä sivu näyttää enemmän tietueita kuin näkymä.",
         "negated_filters_dropped": "{count} kiellettyä ehtoa ei voi kopioida — tämä sivu näyttää enemmän tietueita kuin näkymä.",
         "row_color_background_lost": "Tietueiden värit kopioidaan, mutta niiden taustatäyttö ei.",
-        "grouping_dropped": "Tämä asettelu ei tue ryhmittelyä, joten sitä ei kopioida."
+        "grouping_dropped": "Tämä asettelu ei tue ryhmittelyä, joten sitä ei kopioida.",
+        "row_color_lost": "Tietueiden värejä ei voi kopioida — kenttä tai ehdot, joihin ne perustuvat, eivät ole täällä käytettävissä."
       }
     },
     "teams": {

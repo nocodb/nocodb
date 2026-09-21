@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "필드 대 필드 조건 {count}개는 복사할 수 없습니다 — 이 페이지는 뷰보다 더 많은 항목을 표시합니다.",
         "negated_filters_dropped": "부정 조건 {count}개는 복사할 수 없습니다 — 이 페이지는 뷰보다 더 많은 항목을 표시합니다.",
         "row_color_background_lost": "항목 색상은 복사되지만 배경 채우기는 복사되지 않습니다.",
-        "grouping_dropped": "이 레이아웃은 그룹화를 지원하지 않으므로 복사되지 않습니다."
+        "grouping_dropped": "이 레이아웃은 그룹화를 지원하지 않으므로 복사되지 않습니다.",
+        "row_color_lost": "항목 색상은 복사할 수 없습니다 — 색상이 참조하는 필드 또는 조건을 여기서 사용할 수 없습니다."
       }
     },
     "teams": {

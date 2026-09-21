@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} podmínek mezi poli nelze zkopírovat — tato stránka zobrazí více záznamů než pohled.",
         "negated_filters_dropped": "{count} negovaných podmínek nelze zkopírovat — tato stránka zobrazí více záznamů než pohled.",
         "row_color_background_lost": "Barvy záznamů se kopírují, ale jejich výplň pozadí ne.",
-        "grouping_dropped": "Toto rozvržení nepodporuje seskupování, proto se nekopíruje."
+        "grouping_dropped": "Toto rozvržení nepodporuje seskupování, proto se nekopíruje.",
+        "row_color_lost": "Barvy záznamů nelze zkopírovat — pole nebo podmínky, na kterých závisí, zde nejsou k dispozici."
       }
     },
     "teams": {

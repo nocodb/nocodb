@@ -1095,7 +1095,8 @@
         "dynamic_filters_dropped": "{count} condizione/i da campo a campo non possono essere copiate: questa pagina mostrerà più record della vista.",
         "negated_filters_dropped": "{count} condizione/i negate non possono essere copiate: questa pagina mostrerà più record della vista.",
         "row_color_background_lost": "I colori dei record vengono copiati, ma non il loro riempimento di sfondo.",
-        "grouping_dropped": "Questo layout non supporta il raggruppamento, quindi non viene copiato."
+        "grouping_dropped": "Questo layout non supporta il raggruppamento, quindi non viene copiato.",
+        "row_color_lost": "I colori dei record non possono essere copiati: il campo o le condizioni da cui dipendono non sono disponibili qui."
       }
     },
     "teams": {

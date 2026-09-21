@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} podmienok medzi poľami nemožno skopírovať — táto stránka zobrazí viac záznamov než zobrazenie.",
         "negated_filters_dropped": "{count} negovaných podmienok nemožno skopírovať — táto stránka zobrazí viac záznamov než zobrazenie.",
         "row_color_background_lost": "Farby záznamov sa kopírujú, ale ich výplň pozadia nie.",
-        "grouping_dropped": "Toto rozloženie nepodporuje zoskupovanie, preto sa nekopíruje."
+        "grouping_dropped": "Toto rozloženie nepodporuje zoskupovanie, preto sa nekopíruje.",
+        "row_color_lost": "Farby záznamov nemožno skopírovať — pole alebo podmienky, na ktorých sú založené, tu nie sú k dispozícii."
       }
     },
     "teams": {

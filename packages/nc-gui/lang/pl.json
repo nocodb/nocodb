@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} warunków pole-do-pola nie da się skopiować — ta strona pokaże więcej rekordów niż widok.",
         "negated_filters_dropped": "{count} zanegowanych warunków nie da się skopiować — ta strona pokaże więcej rekordów niż widok.",
         "row_color_background_lost": "Kolory rekordów są kopiowane, ale ich wypełnienie tła już nie.",
-        "grouping_dropped": "Ten układ nie obsługuje grupowania, więc nie jest ono kopiowane."
+        "grouping_dropped": "Ten układ nie obsługuje grupowania, więc nie jest ono kopiowane.",
+        "row_color_lost": "Kolorów rekordów nie da się skopiować — pole lub warunki, na których się opierają, nie są tu dostępne."
       }
     },
     "teams": {

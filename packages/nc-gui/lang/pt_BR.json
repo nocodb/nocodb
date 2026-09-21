@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} condição(ões) de coluna para coluna não podem ser copiadas — esta página mostrará mais registros do que a visualização.",
         "negated_filters_dropped": "{count} condição(ões) negadas não podem ser copiadas — esta página mostrará mais registros do que a visualização.",
         "row_color_background_lost": "As cores dos registros são copiadas, mas o preenchimento de fundo delas não.",
-        "grouping_dropped": "Este layout não suporta agrupamento, então ele não é copiado."
+        "grouping_dropped": "Este layout não suporta agrupamento, então ele não é copiado.",
+        "row_color_lost": "As cores dos registros não podem ser copiadas — o campo ou as condições das quais dependem não estão disponíveis aqui."
       }
     },
     "teams": {

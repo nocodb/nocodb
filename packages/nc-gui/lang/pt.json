@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} condição(ões) de campo para campo não podem ser copiadas — esta página mostrará mais registos do que a vista.",
         "negated_filters_dropped": "{count} condição(ões) negadas não podem ser copiadas — esta página mostrará mais registos do que a vista.",
         "row_color_background_lost": "As cores dos registos são copiadas, mas o respetivo preenchimento de fundo não.",
-        "grouping_dropped": "Este esquema não suporta agrupamento, por isso não é copiado."
+        "grouping_dropped": "Este esquema não suporta agrupamento, por isso não é copiado.",
+        "row_color_lost": "As cores dos registos não podem ser copiadas — o campo ou as condições de que dependem não estão disponíveis aqui."
       }
     },
     "teams": {

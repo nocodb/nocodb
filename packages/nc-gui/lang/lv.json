@@ -1095,7 +1095,8 @@
         "dynamic_filters_dropped": "{count} nosacījumu(s) no lauka uz lauku nevar nokopēt — šī lapa rādīs vairāk ierakstu nekā skatījums.",
         "negated_filters_dropped": "{count} noliegto nosacījumu(s) nevar nokopēt — šī lapa rādīs vairāk ierakstu nekā skatījums.",
         "row_color_background_lost": "Ierakstu krāsas tiek kopētas, bet to fona aizpildījums ne.",
-        "grouping_dropped": "Šis izkārtojums neatbalsta grupēšanu, tāpēc tā netiek kopēta."
+        "grouping_dropped": "Šis izkārtojums neatbalsta grupēšanu, tāpēc tā netiek kopēta.",
+        "row_color_lost": "Ierakstu krāsas nevar nokopēt — lauks vai nosacījumi, uz kuriem tās balstās, šeit nav pieejami."
       }
     },
     "teams": {

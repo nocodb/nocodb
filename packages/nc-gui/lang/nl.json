@@ -1094,7 +1094,8 @@
         "dynamic_filters_dropped": "{count} veld-naar-veldvoorwaarde(n) kunnen niet worden gekopieerd — deze pagina toont meer records dan de weergave.",
         "negated_filters_dropped": "{count} ontkennende voorwaarde(n) kunnen niet worden gekopieerd — deze pagina toont meer records dan de weergave.",
         "row_color_background_lost": "Recordkleuren worden gekopieerd, maar hun achtergrondvulling niet.",
-        "grouping_dropped": "Deze lay-out ondersteunt geen groepering, dus die wordt niet gekopieerd."
+        "grouping_dropped": "Deze lay-out ondersteunt geen groepering, dus die wordt niet gekopieerd.",
+        "row_color_lost": "Recordkleuren kunnen niet worden gekopieerd — het veld of de voorwaarden waarop ze zijn gebaseerd, zijn hier niet beschikbaar."
       }
     },
     "teams": {

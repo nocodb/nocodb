@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} uvjeta polje-na-polje nije moguće kopirati — ova će stranica prikazati više zapisa nego pogled.",
         "negated_filters_dropped": "{count} negiranih uvjeta nije moguće kopirati — ova će stranica prikazati više zapisa nego pogled.",
         "row_color_background_lost": "Boje zapisa se kopiraju, ali njihova ispuna pozadine ne.",
-        "grouping_dropped": "Ovaj raspored ne podržava grupiranje, pa se ono ne kopira."
+        "grouping_dropped": "Ovaj raspored ne podržava grupiranje, pa se ono ne kopira.",
+        "row_color_lost": "Boje zapisa nije moguće kopirati — polje ili uvjeti o kojima ovise nisu dostupni ovdje."
       }
     },
     "teams": {

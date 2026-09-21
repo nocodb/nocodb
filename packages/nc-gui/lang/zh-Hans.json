@@ -1096,7 +1096,8 @@
         "dynamic_filters_dropped": "{count} 个字段对字段的条件无法复制——此页面显示的记录会比视图更多。",
         "negated_filters_dropped": "{count} 个取反条件无法复制——此页面显示的记录会比视图更多。",
         "row_color_background_lost": "记录颜色会被复制，但其背景填充不会。",
-        "grouping_dropped": "此布局不支持分组，因此分组不会被复制。"
+        "grouping_dropped": "此布局不支持分组，因此分组不会被复制。",
+        "row_color_lost": "记录颜色无法复制——它们所依赖的字段或条件在此处不可用。"
       }
     },
     "teams": {

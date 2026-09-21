@@ -46,6 +46,12 @@ export const ncStaticOptions: ServeStaticOptions = {
 const STATIC_REQUEST =
   /^\/(?:$|index\.html$|_nuxt\/|js\/|css\/|plugins\/|[^/]+\.(?:js|css|json|svg|png|jpe?g|webp|ico|woff2?|ttf|map|webmanifest)$)/;
 
+// Exported for the boundary test — a nested path never matches, because the
+// extension arm cannot cross a `/`.
+export function isStaticAssetRequest(reqPath: string): boolean {
+  return STATIC_REQUEST.test(reqPath);
+}
+
 /**
  * Static assets only. Two reasons, both load-bearing:
  * - EE streams SSE (agent channels, the AI proxy bridge) and `compression`
@@ -56,6 +62,6 @@ const STATIC_REQUEST =
 export function ncStaticCompression(): RequestHandler {
   return compression({
     filter: (req, res) =>
-      STATIC_REQUEST.test(req.path) && compression.filter(req, res),
+      isStaticAssetRequest(req.path) && compression.filter(req, res),
   });
 }

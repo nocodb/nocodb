@@ -1,15 +1,18 @@
 <script lang="ts" setup>
-// Title block — identical on every tool screen (the shell contract):
+// Title block — identical on every pane of every shell (the shell contract):
 //   Title                              [secondary] [primary] | [×]
 //   Description · Docs ↗
-// The tool title appears here exactly once; tools must not echo it in the body.
+// The pane title appears here exactly once; panes must not echo it in the body.
 interface Props {
   title: string
   description?: string
   docsHref?: string
+  closeTestid?: string
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  closeTestid: 'nc-tools-shell-close',
+})
 
 const emits = defineEmits<{
   close: []
@@ -38,9 +41,12 @@ const emits = defineEmits<{
     <div class="flex items-center gap-2.5 flex-none">
       <slot name="actions" />
 
+      <!-- Where panes land their own action rows, via `ShellActions`. -->
+      <div id="nc-shell-actions" class="flex items-center gap-2.5 empty:hidden" />
+
       <div class="h-5 w-px bg-nc-border-gray-medium" />
 
-      <NcButton size="small" type="text" data-testid="nc-tools-shell-close" @click="emits('close')">
+      <NcButton size="small" type="text" :data-testid="closeTestid" @click="emits('close')">
         <GeneralIcon icon="close" class="!h-4 !w-4" />
       </NcButton>
     </div>

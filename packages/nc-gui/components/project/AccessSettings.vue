@@ -79,6 +79,22 @@ const isInviteModalVisible = ref(false)
 
 const isInviteTeamDlg = ref<boolean>(false)
 
+const canAddTeams = computed(() => isTeamsEnabled.value && !isAdminPanel.value && showEEFeatures.value)
+
+function addMembers() {
+  isInviteModalVisible.value = true
+}
+
+function addTeams() {
+  showUpgradeToUseTeams({
+    successCallback: () => {
+      isInviteTeamDlg.value = true
+      isInviteModalVisible.value = true
+    },
+    triggerSource: 'project-teams',
+  })
+}
+
 interface Collaborators {
   id: string
   email: string
@@ -688,44 +704,32 @@ onBeforeUnmount(() => {
             </template>
           </a-input>
 
-          <div class="flex items-center gap-2">
-            <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
-              v-e="['c:base:team-add']"
-              size="small"
-              type="secondary"
-              :disabled="isLoading"
-              data-testid="nc-add-teams-btn"
-              text-color="primary"
-              @click="
-                showUpgradeToUseTeams({
-                  successCallback: () => {
-                    isInviteTeamDlg = true
-                    isInviteModalVisible = true
-                  },
-                  triggerSource: 'project-teams',
-                })
-              "
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncBuilding" />
-                <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
-              </div>
-            </NcButton>
+          <ShellActions>
+            <div class="flex items-center gap-2">
+              <NcButton
+                v-if="canAddTeams"
+                v-e="['c:base:team-add']"
+                size="small"
+                type="secondary"
+                :disabled="isLoading"
+                data-testid="nc-add-teams-btn"
+                text-color="primary"
+                @click="addTeams()"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncBuilding" />
+                  <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
+                </div>
+              </NcButton>
 
-            <NcButton
-              size="small"
-              type="primary"
-              :disabled="isLoading"
-              data-testid="nc-add-member-btn"
-              @click="isInviteModalVisible = true"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
-              </div>
-            </NcButton>
-          </div>
+              <NcButton size="small" type="primary" :disabled="isLoading" data-testid="nc-add-member-btn" @click="addMembers()">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                  <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
+                </div>
+              </NcButton>
+            </div>
+          </ShellActions>
         </div>
 
         <div class="flex-1 w-full min-h-0 flex flex-col gap-6 overflow-y-auto nc-scrollbar-thin">

@@ -4406,7 +4406,22 @@
       "dataPermissionsNav": "Data Permissions",
       "apiTokens": "API Tokens",
       "upgradeTitleSnapshots": "Snapshots",
-      "upgradeDescSnapshots": "Save a restorable copy of this base at a point in time."
+      "upgradeDescSnapshots": "Save a restorable copy of this base at a point in time.",
+      "desc": {
+        "members": "Invite people and teams to this base, and set what each of them can do.",
+        "permissions": "Restrict who can view or edit each table, field and doc.",
+        "apiTokens": "Create tokens that let external apps read and write this base through the API.",
+        "mcp": "Connect AI clients to this base over MCP, and manage the tokens they use.",
+        "integrations": "Accounts this base can reach — connect one once and reuse it across syncs, automations and fields.",
+        "interfaceMembers": "Invite people to this base's interfaces without giving them access to the data underneath.",
+        "automations": "Workflows that run on a trigger — a record change, a schedule or a button.",
+        "auditLog": "Every change made in this base, and who made it.",
+        "trashRetention": "How long deleted records are kept before they are removed for good.",
+        "snapshots": "Restorable copies of this base at a point in time.",
+        "aiSkills": "Instructions the AI assistant follows when it works in this base.",
+        "variables": "Reusable values scoped to this base, referenced by automations and fields.",
+        "general": "Base type, visibility, and how empty values are treated."
+      }
     },
     "factoryDiscardEditTitle": "Discard changes?",
     "factoryHeading": "What should we build in",

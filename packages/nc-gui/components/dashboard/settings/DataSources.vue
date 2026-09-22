@@ -339,30 +339,32 @@ const handleClickRow = (source: SourceType, tab?: string) => {
         </template>
       </a-input>
 
-      <NcTooltip
-        v-if="(!isDataSourceLimitReached && isUIAllowed('sourceCreate')) || !!sourceCreateReason"
-        :title="sourceCreateReason ? $t(sourceCreateReason) : ''"
-        :disabled="!sourceCreateReason"
-      >
-        <NcButton
-          size="large"
-          class="z-10 !px-2"
-          type="primary"
-          :disabled="!!sourceCreateReason"
-          @click="
-            () => {
-              if (sourceCreateReason) return
-              if (showExternalSourcePlanLimitExceededModal()) return
-              vState = DataSourcesSubTab.New
-            }
-          "
+      <ShellActions>
+        <NcTooltip
+          v-if="(!isDataSourceLimitReached && isUIAllowed('sourceCreate')) || !!sourceCreateReason"
+          :title="sourceCreateReason ? $t(sourceCreateReason) : ''"
+          :disabled="!sourceCreateReason"
         >
-          <div class="flex flex-row items-center w-full gap-x-1">
-            <component :is="iconMap.plus" />
-            <div class="flex">{{ $t('activity.newSource') }}</div>
-          </div>
-        </NcButton>
-      </NcTooltip>
+          <NcButton
+            size="large"
+            class="z-10 !px-2"
+            type="primary"
+            :disabled="!!sourceCreateReason"
+            @click="
+              () => {
+                if (sourceCreateReason) return
+                if (showExternalSourcePlanLimitExceededModal()) return
+                vState = DataSourcesSubTab.New
+              }
+            "
+          >
+            <div class="flex flex-row items-center w-full gap-x-1">
+              <component :is="iconMap.plus" />
+              <div class="flex">{{ $t('activity.newSource') }}</div>
+            </div>
+          </NcButton>
+        </NcTooltip>
+      </ShellActions>
     </div>
     <div
       data-testid="nc-settings-datasources"

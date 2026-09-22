@@ -320,12 +320,15 @@ export const useBase = defineStore('baseStore', () => {
     page: 'overview' | 'collaborator' | 'data-source'
     action?: string
   }) => {
-    const wsId = route.value.params.typeOrId
-    const bId = route.value.params.baseId
-    const slug = baseSettingsTabToSlug[page] || page
-    const query = action ? { action } : undefined
+    // The settings shell is an overlay on the current route, so entry points
+    // open it in place rather than navigating to a page of its own.
+    const query: Record<string, string> = { ...(route.value.query as Record<string, string>) }
 
-    navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })
+    query.settings = baseSettingsTabToSlug[page] || page
+
+    if (action) query.action = action
+
+    navigateTo({ query })
   }
 
   return {

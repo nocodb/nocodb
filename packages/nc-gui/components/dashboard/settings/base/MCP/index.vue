@@ -177,20 +177,22 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
   <AccountMcp v-if="isEeUI" :locked-base-id="props.baseId" />
 
   <div v-else class="flex flex-col w-full p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
-    <div class="flex items-center justify-end gap-3">
-      <NcButton
-        :disabled="isUnsavedMCPTokenPending"
-        type="primary"
-        data-testid="add-new-mcp-token"
-        size="small"
-        @click="addNewMcpToken"
-      >
-        <div class="flex items-center gap-2">
-          <GeneralIcon icon="plus" />
-          {{ $t('labels.newMCPEndpoint') }}
-        </div>
-      </NcButton>
-    </div>
+    <ShellActions>
+      <div class="flex items-center justify-end gap-3">
+        <NcButton
+          :disabled="isUnsavedMCPTokenPending"
+          type="primary"
+          data-testid="add-new-mcp-token"
+          size="small"
+          @click="addNewMcpToken"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" />
+            {{ $t('labels.newMCPEndpoint') }}
+          </div>
+        </NcButton>
+      </div>
+    </ShellActions>
 
     <NcTable
       v-model:order-by="orderBy"

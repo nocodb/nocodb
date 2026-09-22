@@ -104,6 +104,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+/** `?settings={slug}` is what opens the base settings shell over this route. */
+const settingsTab = computed(() => {
+  const slug = route.query.settings
+
+  if (!ncIsString(slug)) return null
+
+  return baseSettingsSlugToTab[slug] || 'collaborator'
+})
 </script>
 
 <template>
@@ -111,6 +120,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <div class="h-full">
       <NuxtPage />
     </div>
+
+    <!-- Base settings opens over whatever base route is active, so the table or
+         view underneath stays mounted and closing lands you back on it. -->
+    <LazyProjectSettingsShell v-if="settingsTab" :tab="settingsTab" />
   </div>
 </template>
 

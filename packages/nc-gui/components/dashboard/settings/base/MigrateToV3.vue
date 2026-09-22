@@ -35,7 +35,7 @@ const migrateToV3 = async () => {
 
     isModalVisible.value = false
 
-    await navigateTo(`/${route.params.typeOrId}/${baseId.value}/settings/settings?tab=baseType`)
+    await navigateTo({ query: { ...route.query, settings: 'settings', tab: 'baseType' } })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

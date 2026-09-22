@@ -49,7 +49,7 @@ function openSnapshots() {
   const wsId = route.params.typeOrId
   if (!baseId || !wsId) return
   visible.value = false
-  navigateTo(`/${wsId}/${baseId}/settings/snapshots`)
+  navigateTo({ query: { ...route.query, settings: 'snapshots' } })
 }
 
 function onTrashClick() {

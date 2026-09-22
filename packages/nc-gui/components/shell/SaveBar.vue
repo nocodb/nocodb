@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-// Unified save bar for the Tools shell. Purely driven by the shell injection
-// state — each editing tool registers its own dirty/save/reset; this bar just
-// reflects and forwards. Shown only while a tool has registered (hasSaveBar).
-const shell = useToolsShell()
+// Unified save bar for a modal shell. Purely driven by the shell injection
+// state — each editing pane registers its own dirty/save/reset; this bar just
+// reflects and forwards. Shown only while a pane has registered (hasSaveBar).
+const shell = useShell()
 
 const isDirty = computed(() => !!shell?.isDirty.value)
 

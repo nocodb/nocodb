@@ -108,8 +108,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const hideSidebar = ref(false)
 
-  const isBaseSettingsFullPage = ref(false)
-
   const showTopbar = ref(false)
 
   type SidebarTab = 'data' | 'workflows' | 'interfaces' | 'agents' | 'settings' | 'app' | 'store'
@@ -125,7 +123,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {
-      if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
+      // Base settings is a modal over the base page, so the sidebar keeps
+      // showing whichever vertical the reader came from rather than swapping
+      // itself out — only workspace settings still owns the sidebar.
 
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||
@@ -209,7 +209,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     formRightSidebarWidthPercent,
     hideMiniSidebar,
     hideSidebar,
-    isBaseSettingsFullPage,
     showTopbar,
     miniSidebarWidth,
     isFullScreen,

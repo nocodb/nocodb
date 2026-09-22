@@ -245,12 +245,12 @@ onKeyStroke('Escape', () => {
           </div>
 
           <div
-            v-if="base?.sources && base.sources.length > 1 && base.sources.some((el) => el.enabled && !isDefaultBase(el))"
+            v-if="base?.sources && base.sources.length > 1 && base.sources.some((el) => el.enabled && !isBaseOwnSource(el))"
             class="transition-height duration-200"
           >
             <div class="border-none sortable-list">
               <div v-for="(source, sourceIndex) of base.sources" :key="`source-${source.id}`">
-                <template v-if="isDefaultBase(source)"></template>
+                <template v-if="isBaseOwnSource(source)"></template>
                 <a-collapse
                   v-else-if="source && source.enabled"
                   v-model:active-key="activeKey"
@@ -271,7 +271,7 @@ onKeyStroke('Escape', () => {
                         }"
                       >
                         <div
-                          v-if="isDefaultBase(source)"
+                          v-if="isBaseOwnSource(source)"
                           class="source-context flex items-center gap-2 text-nc-content-gray nc-sidebar-node-title"
                           @contextmenu="setMenuContext('source', source)"
                         >

@@ -5,6 +5,14 @@ import { getI18n } from '~/plugins/a.i18n'
 const isDefaultBase = (source: SourceType) => source.is_meta
 
 /**
+ * The base's own source. Flagged internal where the flags are set — but bases
+ * exist whose default source carries neither (nothing guarantees them), so fall
+ * back to the absence of an alias: that source has no name of its own, which is
+ * why the UI labels it "Default". A real external source always has one.
+ */
+const isBaseOwnSource = (source?: SourceType) => !!source && (isDefaultBase(source) || !source.alias)
+
+/**
  * Sources with the base's own default first. The API orders by `order`, which a
  * legacy or repaired base does not always have set correctly, and a lot of UI
  * reads `sources[0]` as "the base's root DB". Normalising once here keeps those
@@ -12,7 +20,7 @@ const isDefaultBase = (source: SourceType) => source.is_meta
  */
 const withDefaultSourceFirst = (sources?: SourceType[]) => {
   if (!sources?.length) return []
-  const i = sources.findIndex((source) => isDefaultBase(source))
+  const i = sources.findIndex((source) => isBaseOwnSource(source))
   return i <= 0 ? [...sources] : [sources[i]!, ...sources.slice(0, i), ...sources.slice(i + 1)]
 }
 
@@ -103,7 +111,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
   Object.entries(aiBaseSchemaPromptsMap).map(([tag, description]) => [description, tag]),
 )
 
-export { isDefaultBase, withDefaultSourceFirst }
+export { isDefaultBase, isBaseOwnSource, withDefaultSourceFirst }
 
 export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>

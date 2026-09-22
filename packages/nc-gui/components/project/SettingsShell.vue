@@ -117,7 +117,7 @@ const generalRows = ['base-type', 'data-display', 'migrate-to-v3', 'migrate']
 
 watch(
   [() => props.tab, isBaseRolesLoaded],
-  () => {
+  async () => {
     if (!isBaseRolesLoaded.value) return
 
     if (props.tab === 'base-settings') {
@@ -126,6 +126,12 @@ watch(
 
       const query = { ...route.value.query }
       delete query.tab
+
+      // After the tick: this shell mounts as part of the navigation that brought
+      // `?settings=settings` in, and replacing the route while that one is still
+      // landing loses the rewrite — the address bar snaps back to the legacy path
+      // and the overlay unmounts with it.
+      await nextTick()
 
       navigateTo({ query: { ...query, settings: target ?? settingsTabToSlug[firstAvailableTab.value] } }, { replace: true })
       return

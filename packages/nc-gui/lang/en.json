@@ -2410,6 +2410,7 @@
     "onClick": "On click",
     "supportDocs": "Support Docs",
     "addedOn": "Added on",
+    "addedOnDate": "Added {date}",
     "changeDisplayValueField": "Change display value field",
     "selectYourNewTitleFor": "Select your new title field for ",
     "searchDisplayValue": "Select display value field",

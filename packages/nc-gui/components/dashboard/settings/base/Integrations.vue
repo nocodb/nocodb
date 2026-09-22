@@ -208,23 +208,19 @@ const getUserName = (userId: string) => {
   return extractUserDisplayNameOrEmail(user) || userId
 }
 
+// The line under the name, standing in for the Date added column.
+const integrationSubtext = (integration: IntegrationType) =>
+  t('labels.addedOnDate', { date: dayjs(integration.created_at).local().format('DD MMM YYYY') })
+
 const linkedColumns = computed<NcTableColumnProps[]>(
   () =>
     [
+      // Carries the type icon, and the date added beneath the name.
       {
         key: 'title',
         title: t('general.name'),
         minWidth: 250,
         dataIndex: 'title',
-        showOrderBy: true,
-        padding: '0px 24px',
-      },
-      {
-        key: 'sub_type',
-        title: t('general.type'),
-        minWidth: 98,
-        width: 120,
-        dataIndex: 'sub_type',
         showOrderBy: true,
         padding: '0px 24px',
       },
@@ -234,25 +230,16 @@ const linkedColumns = computed<NcTableColumnProps[]>(
             {
               key: 'environments',
               title: t('title.environments'),
-              minWidth: 120,
-              width: 140,
+              minWidth: 100,
+              width: 110,
               padding: '0px 24px',
             },
           ]
         : []),
       {
-        key: 'created_at',
-        title: t('labels.dateAdded'),
-        basis: '20%',
-        minWidth: 200,
-        dataIndex: 'created_at',
-        showOrderBy: true,
-        padding: '0px 24px',
-      },
-      {
         key: 'created_by',
         title: t('labels.addedBy'),
-        minWidth: 200,
+        minWidth: 180,
         basis: '20%',
         dataIndex: 'created_by',
         showOrderBy: true,
@@ -261,7 +248,8 @@ const linkedColumns = computed<NcTableColumnProps[]>(
       {
         key: 'source_count',
         title: t('general.usage'),
-        width: 120,
+        minWidth: 100,
+        width: 110,
         dataIndex: 'source_count',
         showOrderBy: true,
         padding: '0px 24px',
@@ -272,15 +260,15 @@ const linkedColumns = computed<NcTableColumnProps[]>(
             {
               key: 'base_access',
               title: t('labels.baseAccess'),
-              minWidth: 140,
-              width: 160,
+              minWidth: 110,
+              width: 120,
               padding: '0px 24px',
             },
             {
               key: 'action',
               title: '',
-              minWidth: 100,
-              width: 100,
+              minWidth: 72,
+              width: 72,
               justify: 'justify-end',
               padding: '0px 24px',
             },
@@ -542,20 +530,38 @@ watch(baseId, reload)
           >
             <template #bodyCell="{ column, record: integration }">
               <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
-                <NcTooltip placement="bottom" class="truncate text-captionMedium text-nc-content-gray" show-on-truncate-only>
-                  <template #title>{{ integration.title }}</template>
-                  {{ integration.title }}
+                <!-- The type rides on the name rather than holding a column of its own. -->
+                <NcTooltip
+                  placement="bottom"
+                  class="h-8 w-8 flex-none flex items-center justify-center rounded-md bg-nc-bg-gray-light children:flex-none"
+                >
+                  <template #title>{{ integration?.sub_type }}</template>
+                  <GeneralIntegrationIcon :type="integration.sub_type" />
                 </NcTooltip>
-                <NcBadge v-if="integration.is_private" size="xs" color="brand" :border="false">
-                  {{ $t('general.private') }}
-                </NcBadge>
-                <span v-if="isPerUserIntegration(integration)">
-                  <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
-                    <NcBadge size="xs" color="purple" :border="false">
-                      {{ $t('general.perUser') }}
+
+                <div class="flex-1 min-w-0 flex flex-col">
+                  <div class="flex items-center gap-2">
+                    <NcTooltip placement="bottom" class="truncate text-captionMedium text-nc-content-gray" show-on-truncate-only>
+                      <template #title>{{ integration.title }}</template>
+                      {{ integration.title }}
+                    </NcTooltip>
+                    <NcBadge v-if="integration.is_private" size="xs" color="brand" :border="false">
+                      {{ $t('general.private') }}
                     </NcBadge>
+                    <span v-if="isPerUserIntegration(integration)">
+                      <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
+                        <NcBadge size="xs" color="purple" :border="false">
+                          {{ $t('general.perUser') }}
+                        </NcBadge>
+                      </NcTooltip>
+                    </span>
+                  </div>
+
+                  <NcTooltip class="truncate text-bodySm text-nc-content-gray-muted" show-on-truncate-only placement="bottom">
+                    <template #title>{{ integrationSubtext(integration) }}</template>
+                    {{ integrationSubtext(integration) }}
                   </NcTooltip>
-                </span>
+                </div>
               </div>
 
               <div v-if="column.key === 'environments'" class="flex items-center gap-1.5">
@@ -586,25 +592,6 @@ watch(baseId, reload)
                   />
                 </NcTooltip>
               </div>
-
-              <NcTooltip
-                v-if="column.key === 'sub_type'"
-                placement="bottom"
-                class="h-8 w-8 flex-none flex items-center justify-center children:flex-none"
-              >
-                <template #title>{{ integration?.sub_type }}</template>
-                <GeneralIntegrationIcon :type="integration.sub_type" size="lg" />
-              </NcTooltip>
-
-              <NcTooltip
-                v-if="column.key === 'created_at'"
-                placement="bottom"
-                class="text-bodyDefaultSm text-nc-content-gray-subtle2"
-                show-on-truncate-only
-              >
-                <template #title>{{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
-                {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
-              </NcTooltip>
 
               <template v-if="column.key === 'created_by'">
                 <div

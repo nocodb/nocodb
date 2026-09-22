@@ -322,3 +322,20 @@ watch(
     </div>
   </NcModal>
 </template>
+
+<style lang="scss">
+// Ant caps every dialog at `calc(100vw - 32px)` and floats it with a radius, so
+// asking for a fullscreen size still left a phone with an inset card and a strip
+// of mask down each side. On a phone this surface is the whole screen.
+@media (max-width: 640px) {
+  .nc-modal-base-settings {
+    .ant-modal {
+      @apply !max-w-full !top-0 !m-0 !p-0;
+    }
+
+    .nc-modal {
+      @apply !rounded-none;
+    }
+  }
+}
+</style>

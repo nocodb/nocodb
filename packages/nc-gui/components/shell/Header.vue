@@ -27,7 +27,7 @@ const shell = useShell()
 -->
 <template>
   <div
-    class="flex-none flex flex-wrap items-start gap-x-4 gap-y-3 nc-shell-gutter pt-8 pb-3 pr-14 xl:pr-20"
+    class="flex-none flex flex-wrap items-start gap-x-4 gap-y-3 nc-shell-gutter pt-4 sm:pt-8 pb-3 pr-14 xl:pr-20"
     data-testid="nc-tool-header"
   >
     <NcButton
@@ -46,7 +46,7 @@ const shell = useShell()
          description into a column too narrow to read, the actions drop to a line
          of their own once they no longer both fit. -->
     <div class="flex-1 min-w-60">
-      <div class="text-xl font-semibold leading-7 text-nc-content-gray-extreme truncate">{{ title }}</div>
+      <div class="text-lg sm:text-xl font-semibold leading-7 text-nc-content-gray-extreme truncate">{{ title }}</div>
       <div v-if="description || docsHref" class="mt-0.5 text-sm leading-5 text-nc-content-gray-muted">
         <span v-if="description">{{ description }}</span>
         <a

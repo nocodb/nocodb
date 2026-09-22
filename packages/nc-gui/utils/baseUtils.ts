@@ -33,6 +33,17 @@ const baseOwnSourceIndex = (sources?: SourceType[]) => {
   return flagged !== -1 ? flagged : sources.findIndex((source) => isBaseOwnSource(source))
 }
 
+/**
+ * Id of the base's own source, or undefined when it has none. Resolved once per
+ * base so callers compare identities instead of testing each source in
+ * isolation — a per-source predicate mistakes an unnamed EXTERNAL source for the
+ * base's own whenever a real flagged default also exists.
+ */
+const baseOwnSourceId = (sources?: SourceType[]) => {
+  const i = baseOwnSourceIndex(sources)
+  return i === -1 ? undefined : sources?.[i]?.id
+}
+
 const withDefaultSourceFirst = (sources?: SourceType[]) => {
   if (!sources?.length) return []
   const i = baseOwnSourceIndex(sources)
@@ -126,7 +137,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
   Object.entries(aiBaseSchemaPromptsMap).map(([tag, description]) => [description, tag]),
 )
 
-export { isDefaultBase, isBaseOwnSource, baseOwnSourceIndex, withDefaultSourceFirst }
+export { isDefaultBase, isBaseOwnSource, baseOwnSourceIndex, baseOwnSourceId, withDefaultSourceFirst }
 
 export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>

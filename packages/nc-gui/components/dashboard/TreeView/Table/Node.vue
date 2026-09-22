@@ -7,14 +7,16 @@ const props = withDefaults(
     base: BaseType
     table: SidebarTableNode
     sourceIndex: number
+    /** Rendered under a source node rather than at the base root. */
+    nested?: boolean
     /** Extra indent when this row sits inside a base-level section, so the
      *  table's view rows step in with it (EE; 0 everywhere else). */
     sectionIndentPx?: number
   }>(),
-  { sourceIndex: 0, sectionIndentPx: 0 },
+  { sourceIndex: 0, nested: false, sectionIndentPx: 0 },
 )
 
-const { base, table, sourceIndex } = toRefs(props)
+const { base, table, sourceIndex, nested } = toRefs(props)
 
 const { openTable: _openTable } = useTableNew({
   baseId: base.value.id!,
@@ -533,8 +535,8 @@ const isMmTable = computed(() => !!table.value?.mm)
           class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
           :class="{
             'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
-            'pl-8 rtl:(pr-8 pl-0.75)': sourceIndex !== 0,
-            'pl-2 xs:(pl-2) rtl:(pr-2 pl-0.75) rtl:xs:(pr-2 pl-0.75)': sourceIndex === 0,
+            'pl-8 rtl:(pr-8 pl-0.75)': nested,
+            'pl-2 xs:(pl-2) rtl:(pr-2 pl-0.75) rtl:xs:(pr-2 pl-0.75)': !nested,
           }"
           :data-testid="`nc-tbl-side-node-${table.title}`"
           @contextmenu="setMenuContext('table', table)"

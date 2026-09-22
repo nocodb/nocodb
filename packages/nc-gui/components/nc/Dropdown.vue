@@ -67,12 +67,6 @@ const overlayClassNameComputed = computed(() => {
   return className
 })
 
-onKeyStroke('Escape', () => {
-  if (visible.value && autoClose.value) {
-    visible.value = false
-  }
-})
-
 const overlayWrapperDomRef = ref<HTMLElement | null>(null)
 
 onClickOutside(overlayWrapperDomRef, () => {
@@ -90,6 +84,24 @@ const onVisibleUpdate = (event: boolean) => {
     emits('update:visible', event)
   }
 }
+
+// What the dropdown is actually bound to, and what Escape reads.
+//
+// A controlled call site owns its state, so the prop wins — reading the local
+// mirror there would strand `:visible="x"` bindings that have no `v-model` to
+// write back to: ant emits `update:visible(false)`, nobody listens, and the
+// mirror falls out of step with a prop that is still true.
+//
+// Uncontrolled, the prop is undefined and ant would keep the state to itself,
+// leaving nothing here able to close it — hence the mirror.
+const isOpen = computed(() => (ncIsUndefined(props.visible) ? !!localIsVisible.value : !!visible.value))
+
+// Escape is arbitrated centrally: the innermost open overlay closes, and the key
+// never reaches the host modal.
+useOverlayEscape(
+  computed(() => isOpen.value && autoClose.value),
+  () => onVisibleUpdate(false),
+)
 
 /**
  * If we have not passed a visible prop, then `@update:visible` will not be called.
@@ -148,7 +160,7 @@ watch(
   <a-dropdown
     v-bind="$attrs"
     :disabled="disabled"
-    :visible="visible"
+    :visible="isOpen"
     :placement="placement as any"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"

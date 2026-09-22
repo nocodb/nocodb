@@ -98,7 +98,7 @@ export const useMcpSettings = createSharedComposable(() => {
         }
       }
 
-      message.success(t('msg.success.mcpTokenCreated'))
+      message.toast(t('msg.success.mcpTokenCreated'))
       isCreatingMcpToken.value = false
       return response
     } catch (error: any) {
@@ -131,7 +131,7 @@ export const useMcpSettings = createSharedComposable(() => {
       )
 
       token.loading = false
-      message.success(t('msg.success.mcpTokenUpdated'))
+      message.toast(t('msg.success.mcpTokenUpdated'))
 
       // Update the token in the appropriate list
       if (isAccountLevel) {

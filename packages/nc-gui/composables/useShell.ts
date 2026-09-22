@@ -66,7 +66,7 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
 
     const ok = await registration.value.save()
 
-    if (ok) message.success(t('msg.toast.changesSaved'))
+    if (ok) message.toast(t('msg.toast.changesSaved'))
   }
 
   const reset = () => {

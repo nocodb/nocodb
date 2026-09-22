@@ -25,6 +25,8 @@ const { $e } = useNuxtApp()
 
 const { isBaseRolesLoaded } = useRoles()
 
+const { isMobileMode } = useGlobal()
+
 const { base } = storeToRefs(useBase())
 
 // Panes were built as tabs of the settings page and still watch this to know
@@ -70,11 +72,24 @@ const baseId = computed(() => base.value?.id)
  */
 const isPaneAllowed = computed(() => isBaseRolesLoaded.value && availableTabs.value.has(railActive.value))
 
+/**
+ * A phone has no room for rail and pane at once, so it shows one at a time: the
+ * rail is the list, picking a row pushes its pane over it, and back returns.
+ * On a wide screen both are always up and this stays false.
+ */
+const isRailOnlyOnMobile = ref(true)
+
 function goToTab(tab: string) {
+  isRailOnlyOnMobile.value = false
+
   if (tab === props.tab) return
 
   navigateTo({ query: { ...route.value.query, settings: settingsTabToSlug[tab] || tab } })
 }
+
+const showRail = computed(() => !isMobileMode.value || isRailOnlyOnMobile.value)
+
+const showPane = computed(() => !isMobileMode.value || !isRailOnlyOnMobile.value)
 
 function onClose() {
   const query = { ...route.value.query }
@@ -89,6 +104,12 @@ function onVisibleChange(visible: boolean) {
   if (visible) return
 
   if (goBack()) return
+
+  // On a phone, stepping out of a pane lands on the rail rather than leaving.
+  if (isMobileMode.value && !isRailOnlyOnMobile.value) {
+    isRailOnlyOnMobile.value = true
+    return
+  }
 
   onClose()
 }
@@ -161,7 +182,7 @@ watch(
 <template>
   <NcModal
     :visible="true"
-    size="xl"
+    :size="isMobileMode ? 'fullscreen' : 'xl'"
     nc-modal-class-name="!p-0"
     wrap-class-name="nc-modal-base-settings"
     @update:visible="onVisibleChange"
@@ -170,6 +191,8 @@ watch(
       <ShellClose testid="nc-base-settings-close" @close="onClose" />
 
       <ShellRail
+        v-if="showRail"
+        :full-width="isMobileMode"
         :groups="navGroups"
         :active="railActive"
         :search-placeholder="$t('labels.baseNav.searchPlaceholder')"
@@ -191,8 +214,14 @@ watch(
         </template>
       </ShellRail>
 
-      <div class="flex-1 flex flex-col min-w-0 min-h-0">
-        <ShellHeader :title="meta?.title ?? ''" :description="meta?.description" :docs-href="meta?.docsHref" />
+      <div v-if="showPane" class="flex-1 flex flex-col min-w-0 min-h-0">
+        <ShellHeader
+          :title="meta?.title ?? ''"
+          :description="meta?.description"
+          :docs-href="meta?.docsHref"
+          :show-back="isMobileMode"
+          @back="isRailOnlyOnMobile = true"
+        />
 
         <div v-if="!isPaneAllowed" class="flex-1 min-h-0 flex items-center justify-center">
           <GeneralLoader size="xlarge" />

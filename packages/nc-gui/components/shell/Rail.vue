@@ -44,6 +44,8 @@ interface Props {
   eventPrefix?: string
   /** localStorage key backing the collapsible groups. Omit to fold per mount. */
   collapseStorageKey?: string
+  /** Fills its host instead of sitting beside the pane — the phone's list view. */
+  fullWidth?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -132,7 +134,8 @@ const onSearchEnter = () => {
 
 <template>
   <div
-    class="nc-shell-rail flex-none w-61 flex flex-col bg-nc-bg-gray-extralight border-r-1 border-nc-border-gray-medium"
+    class="nc-shell-rail flex flex-col bg-nc-bg-gray-extralight"
+    :class="fullWidth ? 'w-full flex-1' : 'flex-none w-61 border-r-1 border-nc-border-gray-medium'"
     :data-testid="testidPrefix"
   >
     <!-- Subject and search stay put; only the rows scroll. -->

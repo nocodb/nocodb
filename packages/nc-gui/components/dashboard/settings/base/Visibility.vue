@@ -59,55 +59,80 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 <template>
   <!-- Title and description live in the shell header. -->
   <div data-testid="nc-settings-subtab-visibility" class="flex flex-col h-full px-20 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
-    <div class="flex flex-col w-full max-w-3xl border-1 rounded-lg border-nc-border-gray-medium">
-      <div class="flex w-full px-3 py-2 gap-2 flex-col">
-        <div class="flex w-full gap-1 items-center">
-          <NcSwitch
-            v-model:checked="includeM2M"
-            v-e="['c:themes:show-m2m-tables']"
-            size="xsmall"
-            class="nc-settings-meta-misc-m2m"
-          >
-            <span class="text-nc-content-gray font-semibold flex-1">
-              {{ $t('msg.info.showM2mTables') }}
-            </span>
-          </NcSwitch>
+    <!-- Two cards, because these are two kinds of setting: the first pair is a
+         per-user preference that follows you everywhere, the rest is base meta
+         that changes the base for everyone. -->
+    <div class="flex flex-col w-full max-w-3xl gap-6">
+      <div class="flex flex-col gap-2">
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <span class="text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis">
+            {{ $t('labels.dataDisplayPersonal') }}
+          </span>
+          <span class="text-bodySm text-nc-content-gray-muted">{{ $t('labels.dataDisplayPersonalHint') }}</span>
         </div>
-        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showM2mTablesDesc') }}</span>
+
+        <div class="flex flex-col border-1 rounded-lg border-nc-border-gray-medium">
+          <div class="flex w-full px-3 py-2 gap-2 flex-col">
+            <div class="flex w-full gap-1 items-center">
+              <NcSwitch
+                v-model:checked="includeM2M"
+                v-e="['c:themes:show-m2m-tables']"
+                size="xsmall"
+                class="nc-settings-meta-misc-m2m"
+              >
+                <span class="text-nc-content-gray font-semibold flex-1">
+                  {{ $t('msg.info.showM2mTables') }}
+                </span>
+              </NcSwitch>
+            </div>
+            <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showM2mTablesDesc') }}</span>
+          </div>
+
+          <div class="flex w-full px-3 border-t-1 border-nc-border-gray-medium py-2 gap-2 flex-col">
+            <div class="flex w-full gap-1 items-center">
+              <NcSwitch v-model:checked="showNull" v-e="['c:settings:show-null']" size="xsmall" class="nc-settings-show-null">
+                <span class="text-nc-content-gray font-semibold flex-1">
+                  {{ $t('msg.info.showNullInCells') }}
+                </span>
+              </NcSwitch>
+            </div>
+            <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullInCellsDesc') }}</span>
+          </div>
+        </div>
       </div>
 
-      <div class="flex w-full px-3 border-t-1 border-nc-border-gray-medium py-2 gap-2 flex-col">
-        <div class="flex w-full gap-1 items-center">
-          <NcSwitch v-model:checked="showNull" v-e="['c:settings:show-null']" size="xsmall" class="nc-settings-show-null">
-            <span class="text-nc-content-gray font-semibold flex-1">
-              {{ $t('msg.info.showNullInCells') }}
-            </span>
-          </NcSwitch>
+      <div class="flex flex-col gap-2">
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <span class="text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis">
+            {{ $t('labels.dataDisplayShared') }}
+          </span>
+          <span class="text-bodySm text-nc-content-gray-muted">{{ $t('labels.dataDisplaySharedHint') }}</span>
         </div>
-        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullInCellsDesc') }}</span>
-      </div>
 
-      <div class="flex w-full px-3 py-2 border-t-1 border-nc-border-gray-medium gap-2 flex-col">
-        <div class="flex w-full gap-1 items-center">
-          <NcTooltip :title="isLaneInstance ? $t('tooltip.featureOnProductionOnly') : ''" :disabled="!isLaneInstance">
-            <NcSwitch
-              v-model:checked="showNullAndEmptyInFilter"
-              v-e="['c:settings:show-null-and-empty-in-filter']"
-              size="xsmall"
-              class="nc-settings-show-null-and-empty-in-filter"
-              :disabled="isLaneInstance"
-              @change="showNullAndEmptyInFilterOnChange"
-            >
-              <span class="text-nc-content-gray font-semibold flex-1">
-                {{ $t('msg.info.showNullAndEmptyInFilter') }}
-              </span>
-            </NcSwitch>
-          </NcTooltip>
+        <div class="flex flex-col border-1 rounded-lg border-nc-border-gray-medium">
+          <div class="flex w-full px-3 py-2 gap-2 flex-col">
+            <div class="flex w-full gap-1 items-center">
+              <NcTooltip :title="isLaneInstance ? $t('tooltip.featureOnProductionOnly') : ''" :disabled="!isLaneInstance">
+                <NcSwitch
+                  v-model:checked="showNullAndEmptyInFilter"
+                  v-e="['c:settings:show-null-and-empty-in-filter']"
+                  size="xsmall"
+                  class="nc-settings-show-null-and-empty-in-filter"
+                  :disabled="isLaneInstance"
+                  @change="showNullAndEmptyInFilterOnChange"
+                >
+                  <span class="text-nc-content-gray font-semibold flex-1">
+                    {{ $t('msg.info.showNullAndEmptyInFilter') }}
+                  </span>
+                </NcSwitch>
+              </NcTooltip>
+            </div>
+            <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
+          </div>
+
+          <DashboardSettingsBaseAppOrder v-if="isEeUI" />
         </div>
-        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
       </div>
-
-      <DashboardSettingsBaseAppOrder v-if="isEeUI" />
     </div>
   </div>
 </template>

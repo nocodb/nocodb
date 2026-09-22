@@ -149,7 +149,6 @@ watch(
         empty-text="labels.baseNav.searchEmpty"
         testid-prefix="nc-settings-rail"
         event-prefix="c:settings:base:"
-        collapse-storage-key="nc-base-settings-open-groups"
         @select="goToTab"
         @group-toggle="onGroupToggle"
       >

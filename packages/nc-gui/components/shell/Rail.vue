@@ -83,8 +83,14 @@ const filteredGroups = computed(() => {
 
 const hasMatches = computed(() => filteredGroups.value.some((group) => group.items.length))
 
-/** Remembered across subjects and sessions: whether to fold is a habit, not a per-subject fact. */
-const openGroups = useStorage<Record<string, boolean>>(props.collapseStorageKey ?? 'nc-shell-rail-open-groups', {})
+/**
+ * Remembered across subjects and sessions only when a host asks for it by key.
+ * Without one the fold state lives for the mount, so a long group opens on
+ * demand and is folded again next time the shell is opened.
+ */
+const openGroups = props.collapseStorageKey
+  ? useStorage<Record<string, boolean>>(props.collapseStorageKey, {})
+  : ref<Record<string, boolean>>({})
 
 /**
  * A collapsible group still opens itself when it has to: while a search is

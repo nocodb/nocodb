@@ -377,12 +377,12 @@ watch(baseId, reload)
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
       <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 nc-workspace-settings-integrations-list">
-        <div class="mb-6 flex items-center justify-between gap-3">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
           <a-input
             ref="mainSearchInputRef"
             v-model:value="searchQuery"
             type="text"
-            class="nc-search-integration-input nc-input-border-on-value !max-w-90 nc-input-sm"
+            class="nc-search-integration-input nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
             :placeholder="$t('labels.searchIntegrations')"
             allow-clear
           >
@@ -491,8 +491,8 @@ watch(baseId, reload)
     <!-- All connections page -->
     <template v-else-if="viewMode === 'all-connections'">
       <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3">
-        <div class="mb-6 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-3">
             <!-- Drill-in: the shell header still says "Integrations", so a bare
                  back affordance is enough. Non-managers land here directly and
                  have no catalogue to go back to. -->
@@ -507,7 +507,7 @@ watch(baseId, reload)
               ref="connectionsSearchInputRef"
               v-model:value="connectionsSearchQuery"
               type="text"
-              class="nc-search-integration-input nc-input-border-on-value !max-w-90 nc-input-sm"
+              class="nc-search-integration-input nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
               :placeholder="$t('placeholder.searchConnections')"
               allow-clear
             >

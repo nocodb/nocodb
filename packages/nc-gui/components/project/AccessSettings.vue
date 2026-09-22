@@ -728,13 +728,14 @@ onBeforeUnmount(() => {
             </NcButton>
           </template>
         </NcAlert>
-        <div v-if="!isAdminPanel" class="mb-6 flex items-center justify-between gap-3">
+        <!-- Wraps rather than squeezes — a search box below its placeholder width is just an icon. -->
+        <div v-if="!isAdminPanel" class="mb-6 flex flex-wrap items-center justify-between gap-3">
           <a-input
             v-model:value="userSearchText"
             :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
-            class="nc-input-border-on-value !max-w-90 nc-input-sm"
+            class="nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
           >
             <template #prefix>
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
@@ -742,7 +743,7 @@ onBeforeUnmount(() => {
           </a-input>
 
           <!-- Narrowing controls: which role, and where the role came from. -->
-          <div class="flex-none flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <NcSelect
               v-model:value="roleFilter"
               class="nc-base-members-filter flex-none !w-36"

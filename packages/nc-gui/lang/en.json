@@ -4254,6 +4254,7 @@
     "installSkills": "Install skills",
     "skillTabNocodb": "NocoDB",
     "skillTabCommunity": "Community",
+    "browseRepository": "Browse a repository",
     "skillScopeBase": "Base",
     "skillScopeWorkspace": "Workspace",
     "skillScopeOrg": "Organization",

@@ -244,10 +244,7 @@ onKeyStroke('Escape', () => {
             </div>
           </div>
 
-          <div
-            v-if="base?.sources && base.sources.length > 1 && base.sources.some((el) => el.enabled && !isBaseOwnSource(el))"
-            class="transition-height duration-200"
-          >
+          <div v-if="base?.sources?.some((el) => el.enabled && !isBaseOwnSource(el))" class="transition-height duration-200">
             <div class="border-none sortable-list">
               <div v-for="(source, sourceIndex) of base.sources" :key="`source-${source.id}`">
                 <template v-if="isBaseOwnSource(source)"></template>

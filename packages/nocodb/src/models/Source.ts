@@ -517,11 +517,8 @@ export default class Source implements SourceType {
   }
 
   /**
-   * A base must keep its own source, and must never be left with none.
-   *
-   * The default source is identified by its flags, never by position: `order`
-   * is not guaranteed to put it first, so the old `sources[0]` check left it
-   * unprotected on any base whose ordering had drifted.
+   * A base must keep its own source, and must never be left with none. The
+   * rationale for each arm is inline below.
    */
   protected assertDeletable(sources: Source[], force?: boolean) {
     if (force) return;

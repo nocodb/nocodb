@@ -68,7 +68,7 @@ const columns = [
     title: t('general.name'),
     name: 'Token',
     minWidth: 397,
-    padding: '12px 24px',
+    padding: '0px 24px',
     showOrderBy: true,
     dataIndex: 'title',
   },
@@ -77,14 +77,16 @@ const columns = [
     title: t('labels.createdOn'),
     width: 150,
     minWidth: 180,
+    padding: '0px 24px',
     showOrderBy: true,
     dataIndex: 'created_at',
   },
   {
     key: 'action',
-    title: t('general.action'),
+    title: '',
     width: 162,
     minWidth: 162,
+    padding: '0px 24px',
     justify: 'justify-end',
     align: 'center',
   },
@@ -176,8 +178,8 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
        scopes, so it keeps its own inline list below. -->
   <AccountMcp v-if="isEeUI" :locked-base-id="props.baseId" />
 
-  <div v-else class="flex flex-col w-full p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
-    <div class="flex items-center justify-end gap-3">
+  <div v-else class="flex flex-col h-full min-h-0 nc-shell-gutter pb-6 pt-3">
+    <ShellActions>
       <NcButton
         :disabled="isUnsavedMCPTokenPending"
         type="primary"
@@ -190,77 +192,78 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
           {{ $t('labels.newMCPEndpoint') }}
         </div>
       </NcButton>
-    </div>
+    </ShellActions>
 
-    <NcTable
-      v-model:order-by="orderBy"
-      :columns="columns"
-      header-row-height="44px"
-      row-height="44px"
-      :data="sortedMcpTokens"
-      class="h-full mt-4"
-      body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
-      @row-click="handleOpenTokenModal"
-    >
-      <template #bodyCell="{ column, record: token }">
-        <template v-if="column.key === 'name'">
-          <NcTooltip v-if="!token.isNew" class="truncate text-nc-content-gray font-semibold text-sm">
-            {{ token.title }}
+    <div class="flex-1 min-h-0 flex flex-col">
+      <NcTable
+        v-model:order-by="orderBy"
+        hide-on-empty
+        :columns="columns"
+        header-row-height="54px"
+        row-height="54px"
+        :data="sortedMcpTokens"
+        class="max-h-full min-h-0 w-full"
+        body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
+        @row-click="handleOpenTokenModal"
+      >
+        <template #bodyCell="{ column, record: token }">
+          <template v-if="column.key === 'name'">
+            <NcTooltip v-if="!token.isNew" class="truncate w-full text-captionMedium text-nc-content-gray">
+              {{ token.title }}
 
-            <template #title>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-nc-content-brand-hover">
-                {{ $t('labels.createdOn') }}
-              </div>
-              <div class="mt-1 text-[13px]">
-                {{ dayjs(token.created_at).format('D MMMM YYYY, hh:mm A') }}
-              </div>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-nc-content-brand-hover">
-                {{ $t('labels.createdBy') }}
-              </div>
-              <div class="mt-1 pb-1 text-[13px]">
-                {{ token.created_display_name }}
-              </div>
-            </template>
-          </NcTooltip>
-          <a-input
-            v-else
-            ref="newTokenInputRef"
-            v-model:value="newMcpTokenTitle"
-            class="new-token-title"
-            :placeholder="$t('title.tokenName')"
-            @keydown.enter="createTokenWithExpiry(token)"
-            @keydown.esc="cancelNewMcpToken"
-          />
-        </template>
+              <template #title>
+                <div class="text-captionSm uppercase pt-1 text-nc-content-brand-hover">
+                  {{ $t('labels.createdOn') }}
+                </div>
+                <div class="mt-1 text-bodyDefaultSm">
+                  {{ dayjs(token.created_at).format('D MMMM YYYY, hh:mm A') }}
+                </div>
+                <div class="text-captionSm uppercase mt-2 text-nc-content-brand-hover">
+                  {{ $t('labels.createdBy') }}
+                </div>
+                <div class="mt-1 pb-1 text-bodyDefaultSm">
+                  {{ token.created_display_name }}
+                </div>
+              </template>
+            </NcTooltip>
+            <a-input
+              v-else
+              ref="newTokenInputRef"
+              v-model:value="newMcpTokenTitle"
+              class="new-token-title"
+              :placeholder="$t('title.tokenName')"
+              @keydown.enter="createTokenWithExpiry(token)"
+              @keydown.esc="cancelNewMcpToken"
+            />
+          </template>
 
-        <template v-if="column.key === 'created_at'">
-          <div v-if="!token.isNew && token.created_at" class="text-nc-content-gray-subtle">
-            {{ getFormattedDate(token.created_at, 'D MMM YYYY') }}
-          </div>
-        </template>
+          <template v-if="column.key === 'created_at'">
+            <div v-if="!token.isNew && token.created_at" class="text-bodyDefaultSm text-nc-content-gray-subtle2">
+              {{ getFormattedDate(token.created_at, 'D MMM YYYY') }}
+            </div>
+          </template>
 
-        <template v-if="column.key === 'action'">
-          <NcDropdown v-if="!token.isNew">
-            <NcButton type="secondary" class="!hidden !group-hover:block" size="small" @click.stop>
-              <GeneralIcon icon="threeDotVertical" />
-            </NcButton>
+          <template v-if="column.key === 'action'">
+            <NcDropdown v-if="!token.isNew" placement="bottomRight">
+              <NcButton type="secondary" size="small" class="nc-row-action" @click.stop>
+                <GeneralIcon icon="threeDotVertical" />
+              </NcButton>
 
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem @click="regenerateToken(token)">
-                  <GeneralIcon icon="refresh" />
-                  {{ $t('labels.regenerateToken') }}
-                </NcMenuItem>
-                <NcDivider />
-                <NcMenuItem danger @click="confirmDeleteToken(token)">
-                  <GeneralIcon icon="delete" />
-                  {{ $t('labels.deleteToken') }}
-                </NcMenuItem>
-              </NcMenu>
-            </template>
-          </NcDropdown>
-          <div v-else>
-            <div class="flex gap-2">
+              <template #overlay>
+                <NcMenu variant="small">
+                  <NcMenuItem @click="regenerateToken(token)">
+                    <GeneralIcon icon="refresh" />
+                    {{ $t('labels.regenerateToken') }}
+                  </NcMenuItem>
+                  <NcDivider />
+                  <NcMenuItem danger @click="confirmDeleteToken(token)">
+                    <GeneralIcon icon="delete" />
+                    {{ $t('labels.deleteToken') }}
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+            <div v-else class="flex gap-2">
               <NcButton data-testid="cancel-token-btn" type="secondary" size="small" @click.stop="cancelNewMcpToken()">
                 {{ $t('general.cancel') }}
               </NcButton>
@@ -269,10 +272,29 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
                 {{ $t('general.save') }}
               </NcButton>
             </div>
-          </div>
+          </template>
         </template>
-      </template>
-    </NcTable>
+
+        <template #emptyText>
+          <ShellEmpty :title="$t('labels.noMcpConnectionsYet')">
+            <template #action>
+              <NcButton
+                :disabled="isUnsavedMCPTokenPending"
+                type="primary"
+                data-testid="add-new-mcp-token-empty"
+                size="small"
+                @click="addNewMcpToken"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  {{ $t('labels.newMCPEndpoint') }}
+                </div>
+              </NcButton>
+            </template>
+          </ShellEmpty>
+        </template>
+      </NcTable>
+    </div>
 
     <DashboardSettingsBaseMCPModal
       v-if="isTokenModalVisible"
@@ -285,6 +307,6 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 
 <style scoped lang="scss">
 .ant-input {
-  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-nc-border-brand border-nc-border-gray-medium;
+  @apply rounded-lg py-1 px-3 h-8 border-1 focus:border-nc-border-brand border-nc-border-gray-medium;
 }
 </style>

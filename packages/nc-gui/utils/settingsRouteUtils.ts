@@ -14,11 +14,16 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'docs-permissions': 'docs-permissions',
   'syncs': 'syncs',
   'integrations': 'integrations',
+  // The old General pane, kept so `?settings=settings` links still resolve; the
+  // shell forwards it to the first of the rows that replaced it.
   'base-settings': 'settings',
+  'base-type': 'base-type',
+  'data-display': 'data-display',
+  'migrate-to-v3': 'migrate-to-v3',
+  'migrate': 'migrate',
   'audit': 'audits',
   'audits': 'audits',
   'workflows': 'workflows',
-  'overview': 'overview',
   'mcp': 'mcp',
   'api-tokens': 'api-tokens',
   'record-trash': 'record-trash',
@@ -137,7 +142,15 @@ export const wsSettingsSlugToTab: Record<string, string> = Object.fromEntries(
   Object.entries(wsSettingsTabToSlug).map(([k, v]) => [v, k]),
 )
 
-export const settingsSlugToTab: Record<string, string> = {
-  ...baseSettingsSlugToTab,
-  ...wsSettingsSlugToTab,
+/**
+ * The internal tab a `?settings=` value names, or null when it names none.
+ *
+ * `?settings` is not the base settings shell's alone — the agent page drives its
+ * own panel off `?settings=true` — so every reader has to reject a value it does
+ * not recognise rather than fall back to a default pane.
+ */
+export function resolveBaseSettingsTab(slug: unknown): string | null {
+  if (typeof slug !== 'string') return null
+
+  return baseSettingsSlugToTab[slug] ?? null
 }

@@ -16,7 +16,7 @@ const baseStore = useBase()
 
 const { loadProject } = baseStore
 
-const { base } = storeToRefs(baseStore)
+const { base, isSharedBase } = storeToRefs(baseStore)
 
 provide(ProjectInj, base)
 
@@ -104,6 +104,21 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+/**
+ * `?settings={slug}` is what opens the base settings shell over this route.
+ *
+ * Only a slug the nav actually knows counts — `?settings` is not ours alone
+ * (the agent page drives its own panel off `?settings=true`), so an unknown
+ * value has to mean "not for us" rather than falling back to a pane.
+ */
+const settingsTab = computed(() => {
+  // A shared-base visitor has no settings to reach: every row is gated off and
+  // the shell would open on an empty rail.
+  if (isSharedBase.value) return null
+
+  return resolveBaseSettingsTab(route.query.settings)
+})
 </script>
 
 <template>
@@ -111,6 +126,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <div class="h-full">
       <NuxtPage />
     </div>
+
+    <!-- Base settings opens over whatever base route is active, so the table or
+         view underneath stays mounted and closing lands you back on it. -->
+    <LazyProjectSettingsShell v-if="settingsTab" :tab="settingsTab" />
   </div>
 </template>
 

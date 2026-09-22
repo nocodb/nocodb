@@ -120,6 +120,43 @@ const visible = useVModel(props, 'visible', emits)
 
 const slots = useSlots()
 
+/**
+ * Escape is ours, not ant's.
+ *
+ * Ant's dialog closes on Escape from a handler on `.ant-modal-wrap` and calls
+ * `stopPropagation()` there, so a popup opened from inside the modal — a select
+ * list, a dropdown menu, a date picker — never sees the key: the modal closes
+ * out from under it. With ant's `keyboard` off we answer here instead, and only
+ * ever *decline*: the key is never consumed, so whatever else is listening still
+ * gets it.
+ *
+ * Listening on `document` rather than the wrapper because `@keydown.esc` on
+ * `<a-modal>` never fires — it lands on a node the key does not reach, which is
+ * why ant's own handler was doing all the work.
+ */
+function isTopmostModal() {
+  const wrap = ncModalRef.value?.closest('.ant-modal-wrap')
+  if (!wrap) return false
+
+  const open = Array.from(document.querySelectorAll('.ant-modal-wrap')).filter(
+    (el) => window.getComputedStyle(el).display !== 'none',
+  )
+
+  return open[open.length - 1] === wrap
+}
+
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || !visible.value || !keyboard.value) return
+
+  // The popup closes itself on this press; the modal takes the next one.
+  if (isPortalledOverlayActive()) return
+
+  // Stacked modals: only the one on top answers.
+  if (!isTopmostModal()) return
+
+  visible.value = false
+})
+
 const stopPropagation = (event: MouseEvent) => {
   event.stopPropagation()
 }
@@ -153,9 +190,8 @@ if (stopEventPropogation.value) {
     :footer="null"
     :mask-closable="maskClosable"
     :mask-style="maskStyle"
-    :keyboard="keyboard"
+    :keyboard="false"
     :destroy-on-close="destroyOnClose"
-    @keydown.esc="visible = false"
   >
     <div
       ref="ncModalRef"

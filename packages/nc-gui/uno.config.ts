@@ -170,6 +170,13 @@ export default defineConfig({
   ],
 
   shortcuts: {
+    // The side gutter every modal-shell surface shares — header band, pane body and
+    // save bar — so they stay on one vertical line. It has to give way as the modal
+    // narrows: the shell spends 244px on its rail before the content starts, and a
+    // fixed 80px each side leaves a ~450px column on a 950px viewport.
+    'nc-shell-gutter': 'px-4 sm:px-6 lg:px-10 xl:px-20',
+    // Same line, for a row whose children carry their own px-2 (ant's tabs).
+    'nc-shell-gutter-inset': 'px-2 sm:px-4 lg:px-8 xl:px-18',
     'color-transition': 'transition-colors duration-100 ease-in',
     'scrollbar-thin-primary':
       'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-base-white',

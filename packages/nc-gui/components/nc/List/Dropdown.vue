@@ -95,8 +95,8 @@ watch(vModelIsOpen, (newVal) => {
           'nc-list-dropdown-wrapper-default-state': !vModelIsOpen && !disabled && !borderOnHover,
           'hover:(border-nc-border-brand shadow-selected)': vModelIsOpen && !disabled && borderOnHover,
           'hover:(shadow-default hover:shadow-hover)': !vModelIsOpen && !disabled && borderOnHover,
-          'border-transparent hover:(border-nc-gray-medium)': (borderOnHover || vModelIsOpen) && !disabled,
-          'border-nc-gray-medium': !borderOnHover && !hasError,
+          'border-transparent hover:border-nc-border-gray-medium': (borderOnHover || vModelIsOpen) && !disabled,
+          'border-nc-border-gray-medium': !borderOnHover && !hasError,
           'border-error': !borderOnHover && hasError,
         },
       ]"

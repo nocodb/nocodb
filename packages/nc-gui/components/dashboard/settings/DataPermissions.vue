@@ -47,7 +47,12 @@ watch(
           :detail="$t('labels.baseNav.upgradeDescPermissionsTablesFields')"
           icon="ncLock"
         />
-        <DashboardSettingsPermissions v-else v-model:state="baseSettingsState" :base-id="baseId" />
+        <DashboardSettingsPermissions
+          v-else
+          v-model:state="baseSettingsState"
+          :base-id="baseId"
+          :active="activeTab === 'tables'"
+        />
       </a-tab-pane>
 
       <a-tab-pane key="docs" class="!h-full">
@@ -64,7 +69,12 @@ watch(
           :detail="$t('labels.baseNav.upgradeDescPermissionsDocs')"
           icon="ncFileText"
         />
-        <DashboardSettingsDocsPermissions v-else v-model:state="baseSettingsState" :base-id="baseId" />
+        <DashboardSettingsDocsPermissions
+          v-else
+          v-model:state="baseSettingsState"
+          :base-id="baseId"
+          :active="activeTab === 'docs'"
+        />
       </a-tab-pane>
     </NcTabs>
   </div>
@@ -74,12 +84,22 @@ watch(
 .nc-data-permissions-tabs {
   @apply h-full;
 
+  // Tabs carry px-2 of their own, so the inset gutter lands the tab text on the
+  // pane's edge.
+  // mb-3 pairs with each pane's own pt-3: the search then sits 24px below the tab
+  // rule, matching the 24px it leaves above the table.
   :deep(.ant-tabs-nav) {
-    @apply px-6 pt-1 mb-0;
+    @apply nc-shell-gutter-inset mb-3;
   }
 
+  // ant's content block does not stretch on its own; without this the panes
+  // have no definite height, so nothing inside them can cap or scroll.
   :deep(.ant-tabs-content-holder) {
-    @apply h-full overflow-hidden;
+    @apply flex-1 min-h-0 overflow-hidden;
+  }
+
+  :deep(.ant-tabs-content) {
+    @apply h-full;
   }
 }
 </style>

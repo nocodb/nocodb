@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PlanFeatureTypes } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import type { ToolRailGroup } from './details/ToolsRail.vue'
+import type { ShellRailGroup } from '../shell/Rail.vue'
 import type { ViewPageType } from '~/lib/types'
 
 // Unified "Tools" shell: a modal with a left tool-nav rail and a content area
@@ -35,7 +35,7 @@ const view = inject(ActiveViewInj, ref())
 
 // Provide the shell's unified save-bar contract. Editing tool bodies (Fields,
 // Date Dependencies) register their dirty/save/reset; the bar shows only then.
-const { hasSaveBar } = useProvideToolsShell()
+const { hasSaveBar } = useProvideShell()
 
 const isOpen = computed(() => openedViewsTab.value !== 'view')
 
@@ -94,11 +94,11 @@ const tabAvailability = computed<Partial<Record<ViewPageType, boolean>>>(() => (
   webhook: showWebhooksAction.value,
 }))
 
-const railGroups = computed<ToolRailGroup[]>(() => {
+const railGroups = computed<ShellRailGroup[]>(() => {
   const structure = [
     showFieldsAction.value && { slug: 'field' as const, icon: 'ncList', title: t('general.manageFields') },
     { slug: 'relation' as const, icon: 'ncErd', title: t('title.relations') },
-  ].filter(Boolean) as ToolRailGroup['items']
+  ].filter(Boolean) as ShellRailGroup['items']
 
   const access = [
     showPermissionsAction.value && {
@@ -113,7 +113,7 @@ const railGroups = computed<ToolRailGroup[]>(() => {
       title: t('objects.permissions.rlsPolicy.rowLevelSecurity'),
       feature: PlanFeatureTypes.FEATURE_RLS,
     },
-  ].filter(Boolean) as ToolRailGroup['items']
+  ].filter(Boolean) as ShellRailGroup['items']
 
   const records = [
     showRecordTemplatesAction.value && {
@@ -128,12 +128,12 @@ const railGroups = computed<ToolRailGroup[]>(() => {
       title: t('labels.dateDependency.title'),
       feature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
     },
-  ].filter(Boolean) as ToolRailGroup['items']
+  ].filter(Boolean) as ShellRailGroup['items']
 
   const developer = [
     showWebhooksAction.value && { slug: 'webhook' as const, icon: 'ncWebhook', title: t('objects.webhooks') },
     { slug: 'api' as const, icon: 'ncCode', title: t('labels.apiSnippet') },
-  ].filter(Boolean) as ToolRailGroup['items']
+  ].filter(Boolean) as ShellRailGroup['items']
 
   return [
     { label: t('labels.toolsSectionStructure'), items: structure },
@@ -184,7 +184,9 @@ const showUpgradeForTool = (slug: ViewPageType) => {
   }
 }
 
-const onSelectTool = (slug: ViewPageType) => {
+const onSelectTool = (rawSlug: string) => {
+  const slug = rawSlug as ViewPageType
+
   if (slug === openedViewsTab.value) return
 
   // Intercept locked EE features → show the upgrade modal instead of navigating.
@@ -234,16 +236,18 @@ watch(
     wrap-class-name="nc-modal-table-tools"
     @update:visible="onVisibleChange"
   >
-    <div class="flex h-full w-full" data-testid="nc-details-wrapper">
-      <SmartsheetDetailsToolsRail :groups="railGroups" :active="openedViewsTab" :table="meta" @select="onSelectTool" />
+    <div class="relative flex h-full w-full" data-testid="nc-details-wrapper">
+      <ShellClose @close="onClose" />
+
+      <ShellRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool">
+        <template v-if="meta" #subject>
+          <GeneralTableIcon :meta="meta" class="!h-4 !w-4 flex-none text-nc-content-gray-subtle2" />
+          <NcTooltip show-on-truncate-only class="truncate">{{ meta.title }}</NcTooltip>
+        </template>
+      </ShellRail>
 
       <div class="flex-1 flex flex-col min-w-0 min-h-0">
-        <SmartsheetDetailsToolHeader
-          :title="toolHeader.title"
-          :description="toolHeader.description"
-          :docs-href="toolHeader.docsHref"
-          @close="onClose"
-        >
+        <ShellHeader :title="toolHeader.title" :description="toolHeader.description" :docs-href="toolHeader.docsHref">
           <template #actions>
             <!-- Record Templates -->
             <NcButton
@@ -309,7 +313,7 @@ watch(
               </div>
             </NcButton>
           </template>
-        </SmartsheetDetailsToolHeader>
+        </ShellHeader>
 
         <div class="flex-1 min-h-0">
           <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" />
@@ -349,7 +353,7 @@ watch(
           <LazySmartsheetDetailsWebhooks v-else-if="openedViewsTab === 'webhook'" ref="webhooksRef" in-modal in-shell />
         </div>
 
-        <SmartsheetDetailsToolSaveBar v-if="hasSaveBar" />
+        <ShellSaveBar v-if="hasSaveBar" />
       </div>
     </div>
   </NcModal>

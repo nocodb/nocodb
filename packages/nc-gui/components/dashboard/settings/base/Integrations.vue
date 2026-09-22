@@ -72,6 +72,21 @@ const hasAnyAction = (integration: IntegrationType) => {
 // View mode: 'main' (single-page with cards + categories) or 'all-connections' (full table)
 const viewMode = ref<'main' | 'all-connections'>('main')
 
+const shell = useShell()
+
+// Escape leaves the connections list before it closes the shell.
+const onShellBack = () => {
+  if (viewMode.value === 'main') return false
+
+  viewMode.value = 'main'
+
+  return true
+}
+
+onMounted(() => shell?.registerBackHandler(onShellBack))
+
+onBeforeUnmount(() => shell?.unregisterBackHandler(onShellBack))
+
 // Non-managers can't create integrations — the catalog is pointless for them,
 // so they land on (and stay in) the connections list, where per-user
 // integrations offer their connect action.
@@ -193,23 +208,21 @@ const getUserName = (userId: string) => {
   return extractUserDisplayNameOrEmail(user) || userId
 }
 
+// The line under the name, standing in for the Date added column.
+const integrationSubtext = (integration: IntegrationType) =>
+  t('labels.addedOnDate', { date: dayjs(integration.created_at).local().format('DD MMM YYYY') })
+
 const linkedColumns = computed<NcTableColumnProps[]>(
   () =>
     [
+      // Carries the type icon, and the date added beneath the name.
       {
         key: 'title',
         title: t('general.name'),
         minWidth: 250,
         dataIndex: 'title',
         showOrderBy: true,
-      },
-      {
-        key: 'sub_type',
-        title: t('general.type'),
-        minWidth: 98,
-        width: 120,
-        dataIndex: 'sub_type',
-        showOrderBy: true,
+        padding: '0px 24px',
       },
       // Environments column — same semantics as the workspace connections list.
       ...(isEeUI
@@ -217,33 +230,29 @@ const linkedColumns = computed<NcTableColumnProps[]>(
             {
               key: 'environments',
               title: t('title.environments'),
-              minWidth: 120,
-              width: 140,
+              minWidth: 100,
+              width: 110,
+              padding: '0px 24px',
             },
           ]
         : []),
       {
-        key: 'created_at',
-        title: t('labels.dateAdded'),
-        basis: '20%',
-        minWidth: 200,
-        dataIndex: 'created_at',
-        showOrderBy: true,
-      },
-      {
         key: 'created_by',
         title: t('labels.addedBy'),
-        minWidth: 200,
+        minWidth: 180,
         basis: '20%',
         dataIndex: 'created_by',
         showOrderBy: true,
+        padding: '0px 24px',
       },
       {
         key: 'source_count',
         title: t('general.usage'),
-        width: 120,
+        minWidth: 100,
+        width: 110,
         dataIndex: 'source_count',
         showOrderBy: true,
+        padding: '0px 24px',
       },
       // Base access + row actions are manager-only surfaces.
       ...(canManage.value
@@ -251,15 +260,17 @@ const linkedColumns = computed<NcTableColumnProps[]>(
             {
               key: 'base_access',
               title: t('labels.baseAccess'),
-              minWidth: 140,
-              width: 160,
+              minWidth: 110,
+              width: 120,
+              padding: '0px 24px',
             },
             {
               key: 'action',
-              title: t('labels.actions'),
-              minWidth: 100,
-              width: 100,
+              title: '',
+              minWidth: 72,
+              width: 72,
               justify: 'justify-end',
+              padding: '0px 24px',
             },
           ]
         : []),
@@ -353,29 +364,23 @@ watch(baseId, reload)
   <div class="flex w-full flex-col h-full nc-base-integrations">
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
-      <div class="h-full w-full overflow-y-auto nc-scrollbar-thin">
-        <!-- px-6 pt-3 matches the other base settings pages, which puts the search
-             box on the same line as the settings sidebar's own search. The page
-             blurb used to sit above it and pushed the search 52px down; it now
-             follows the search rather than displacing it. -->
-        <div class="px-6 pt-3 pb-8 flex flex-col nc-workspace-settings-integrations-list">
+      <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 nc-workspace-settings-integrations-list">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
           <a-input
             ref="mainSearchInputRef"
             v-model:value="searchQuery"
             type="text"
-            class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 mb-4"
-            :placeholder="$t('placeholder.searchConnectionsOrIntegrations')"
+            class="nc-search-integration-input nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
+            :placeholder="$t('labels.searchIntegrations')"
             allow-clear
           >
             <template #prefix>
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
+        </div>
 
-          <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4 -mt-1">
-            {{ $t('msg.manageBaseIntegrations') }}
-          </div>
-
+        <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
           <div class="flex flex-col space-y-6 w-full">
             <!-- Full-page skeleton during initial load -->
             <WorkspaceIntegrationsSkeleton v-if="!isLoaded" :connection-count="3" />
@@ -386,24 +391,15 @@ watch(baseId, reload)
               <div v-if="filteredLinkedIntegrations.length" style="container-type: inline-size">
                 <div class="flex items-center justify-between mb-4">
                   <div class="flex items-center gap-2">
-                    <h3 class="text-sm font-weight-700 text-nc-content-gray mb-0">
+                    <h3 class="text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis mb-0">
                       {{ $t('general.activeConnections') }}
                     </h3>
-                    <NcBadge
-                      :border="false"
-                      class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center"
-                    >
+                    <NcBadge size="xs" color="gray" :border="false">
                       {{ filteredLinkedIntegrations.length }}
                     </NcBadge>
                   </div>
 
-                  <NcButton
-                    type="link"
-                    size="small"
-                    class="!text-nc-content-brand !px-0 !h-auto !min-h-0"
-                    inner-class="hover:underline"
-                    @click="viewMode = 'all-connections'"
-                  >
+                  <NcButton type="text" size="small" @click="viewMode = 'all-connections'">
                     {{ $t('general.viewAllConnections') }}
                     <GeneralIcon icon="arrowRight" class="ml-1" />
                   </NcButton>
@@ -424,8 +420,10 @@ watch(baseId, reload)
                   />
 
                   <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="viewMode = 'all-connections'">
-                    <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ $t('general.more') }}</div>
-                    <div class="text-xs text-nc-content-gray-subtle2">
+                    <div class="text-bodyDefaultSm font-semibold text-nc-content-gray">
+                      +{{ overflowCount }} {{ $t('general.more') }}
+                    </div>
+                    <div class="text-bodySm text-nc-content-gray-subtle2">
                       {{ $t('general.viewAllConnections') }}
                     </div>
                   </div>
@@ -437,7 +435,7 @@ watch(baseId, reload)
               <!-- Integration categories -->
               <template v-for="(category, key) in integrationsMap" :key="key">
                 <div v-if="category.list.length" class="integration-type-wrapper" style="container-type: inline-size">
-                  <div class="category-type-title">{{ $t(category.title) }}</div>
+                  <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis">{{ $t(category.title) }}</div>
                   <div class="integration-type-list grid grid-cols-1 gap-3">
                     <template v-for="integration of category.list" :key="integration.sub_type">
                       <div class="source-card is-available" tabindex="0" @click="handleAddIntegration(integration)">
@@ -445,12 +443,15 @@ watch(baseId, reload)
                           <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                         </div>
                         <div class="flex-1 min-w-0">
-                          <NcTooltip class="name text-sm font-semibold text-nc-content-gray truncate" show-on-truncate-only>
+                          <NcTooltip
+                            class="name text-bodyDefaultSm font-semibold text-nc-content-gray truncate"
+                            show-on-truncate-only
+                          >
                             {{ integrationLabel(integration.title) }}
                           </NcTooltip>
                           <NcTooltip
                             v-if="integration.subtitle"
-                            class="subtitle text-xs text-nc-content-gray-subtle2 truncate"
+                            class="subtitle text-bodySm text-nc-content-gray-subtle2 truncate"
                             show-on-truncate-only
                             placement="bottom"
                           >
@@ -468,10 +469,7 @@ watch(baseId, reload)
                 </div>
               </template>
 
-              <!-- Empty search state -->
-              <div v-if="isSearchEmpty" class="flex-1 flex items-center justify-center py-12">
-                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
-              </div>
+              <ShellEmpty v-if="isSearchEmpty" :title="$t('title.noResultsMatchedYourSearch')" />
             </template>
           </div>
         </div>
@@ -480,179 +478,182 @@ watch(baseId, reload)
 
     <!-- All connections page -->
     <template v-else-if="viewMode === 'all-connections'">
-      <div class="h-full flex flex-col px-8 py-6">
-        <NcButton
-          v-if="canManage"
-          type="link"
-          size="small"
-          class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
-          inner-class="hover:underline"
-          @click="viewMode = 'main'"
-        >
-          <GeneralIcon icon="arrowLeft" class="mr-1" />
-          {{ $t('general.backToIntegrations') }}
-        </NcButton>
+      <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Hidden for non-managers: they land here directly, with no catalogue to go back to. -->
+            <ShellDrillBack
+              v-if="canManage"
+              :label="$t('general.integrations')"
+              testid="nc-integrations-connections-back"
+              @back="viewMode = 'main'"
+            />
 
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
-            {{ $t('general.allConnections') }}
-          </h2>
-          <WorkspaceIntegrationsAddConnectionDropdown v-if="canManage" mode="base" />
-        </div>
-        <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
-          {{ $t('msg.manageAllConnections') }}
-        </div>
-
-        <a-input
-          ref="connectionsSearchInputRef"
-          v-model:value="connectionsSearchQuery"
-          type="text"
-          class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 mb-4"
-          :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}...`"
-          allow-clear
-        >
-          <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
-          </template>
-        </a-input>
-
-        <div class="flex-1 min-h-0">
-          <div class="h-full flex flex-col gap-6 nc-content-max-w mx-auto">
-            <NcTable
-              v-model:order-by="orderBy"
-              :columns="linkedColumns"
-              :data="filteredAllConnections"
-              :is-data-loading="isLoading"
-              :custom-row="customRow"
-              sticky-first-column
-              class="h-full"
+            <a-input
+              ref="connectionsSearchInputRef"
+              v-model:value="connectionsSearchQuery"
+              type="text"
+              class="nc-search-integration-input nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
+              :placeholder="$t('placeholder.searchConnections')"
+              allow-clear
             >
-              <template #bodyCell="{ column, record: integration }">
-                <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
-                  <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
-                    <template #title>{{ integration.title }}</template>
-                    {{ integration.title }}
-                  </NcTooltip>
-                  <NcBadge v-if="integration.is_private" :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">
-                    {{ $t('general.private') }}
-                  </NcBadge>
-                  <span v-if="isPerUserIntegration(integration)">
-                    <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
-                      <NcBadge :border="false" class="!h-4.5 text-xs bg-nc-bg-purple-light text-nc-content-purple-dark">
-                        {{ $t('general.perUser') }}
-                      </NcBadge>
-                    </NcTooltip>
-                  </span>
-                </div>
+              <template #prefix>
+                <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+              </template>
+            </a-input>
+          </div>
 
-                <div v-if="column.key === 'environments'" class="flex items-center gap-1.5">
-                  <!-- Only Auth & AI integrations support per-environment overrides -->
-                  <span v-if="!integrationSupportsEnvironments(integration.type)" class="text-nc-content-gray-muted">–</span>
-                  <NcTooltip v-for="env in environments" v-else :key="env.key" placement="bottom">
-                    <template #title>
-                      {{ env.title }}:
-                      <template v-if="isEnvironmentBlocked(env)">{{ $t('msg.info.environmentLocked') }}</template>
-                      <template v-else-if="isPerUserIntegration(integration)">
-                        {{ isEnvConfigured(integration, env) ? $t('general.connected') : $t('general.notConnected') }}
-                      </template>
-                      <template v-else>
-                        {{ isEnvConfigured(integration, env) ? $t('general.configured') : $t('msg.info.fallsBackToProduction') }}
-                      </template>
-                    </template>
-                    <span v-if="isEnvironmentBlocked(env)">
-                      <PaymentUpgradeBadge :feature="environmentUpgradeFeature(env)" remove-click />
-                    </span>
-                    <span
-                      v-else
-                      class="w-2.5 h-2.5 rounded-full border-2 flex-none inline-block"
-                      :style="
-                        isEnvConfigured(integration, env)
-                          ? { backgroundColor: env.color, borderColor: env.color }
-                          : { backgroundColor: 'transparent', borderColor: 'var(--nc-border-gray-medium)' }
-                      "
-                    />
-                  </NcTooltip>
+          <ShellActions>
+            <WorkspaceIntegrationsAddConnectionDropdown v-if="canManage" mode="base">
+              <NcButton v-e="['c:integration:add-connection']" type="primary" size="small" data-testid="nc-add-connection-btn">
+                <div class="flex items-center gap-1">
+                  <GeneralIcon icon="plus" />
+                  <span>{{ $t('labels.addConnection') }}</span>
                 </div>
+              </NcButton>
+            </WorkspaceIntegrationsAddConnectionDropdown>
+          </ShellActions>
+        </div>
 
+        <div class="flex-1 min-h-0 flex flex-col">
+          <NcTable
+            v-model:order-by="orderBy"
+            hide-on-empty
+            :columns="linkedColumns"
+            :data="filteredAllConnections"
+            :is-data-loading="isLoading"
+            :custom-row="customRow"
+            sticky-first-column
+            row-height="54px"
+            header-row-height="54px"
+            class="max-h-full min-h-0 w-full"
+          >
+            <template #bodyCell="{ column, record: integration }">
+              <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
+                <!-- The type rides on the name rather than holding a column of its own. -->
                 <NcTooltip
-                  v-if="column.key === 'sub_type'"
                   placement="bottom"
-                  class="h-8 w-8 flex-none flex items-center justify-center children:flex-none"
+                  class="h-8 w-8 flex-none flex items-center justify-center rounded-md bg-nc-bg-gray-light children:flex-none"
                 >
                   <template #title>{{ integration?.sub_type }}</template>
-                  <GeneralIntegrationIcon :type="integration.sub_type" size="lg" />
+                  <GeneralIntegrationIcon :type="integration.sub_type" />
                 </NcTooltip>
 
-                <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only>
-                  <template #title>{{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
-                  {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
-                </NcTooltip>
-
-                <template v-if="column.key === 'created_by'">
-                  <div
-                    v-if="integration.created_by && collaboratorsMap.get(integration.created_by)"
-                    class="w-full flex gap-3 items-center"
-                  >
-                    <GeneralUserIcon :user="collaboratorsMap.get(integration.created_by)" size="base" class="flex-none" />
-                    <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
-                      <NcTooltip
-                        class="text-sm !leading-5 capitalize font-semibold truncate text-nc-content-gray"
-                        show-on-truncate-only
-                        placement="bottom"
-                      >
-                        <template #title>{{ getUserName(integration.created_by) }}</template>
-                        {{ getUserName(integration.created_by) }}
+                <div class="flex-1 min-w-0 flex flex-col">
+                  <div class="flex items-center gap-2">
+                    <NcTooltip placement="bottom" class="truncate text-captionMedium text-nc-content-gray" show-on-truncate-only>
+                      <template #title>{{ integration.title }}</template>
+                      {{ integration.title }}
+                    </NcTooltip>
+                    <NcBadge v-if="integration.is_private" size="xs" color="brand" :border="false">
+                      {{ $t('general.private') }}
+                    </NcBadge>
+                    <span v-if="isPerUserIntegration(integration)">
+                      <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
+                        <NcBadge size="xs" color="purple" :border="false">
+                          {{ $t('general.perUser') }}
+                        </NcBadge>
                       </NcTooltip>
-                      <NcTooltip
-                        class="text-xs !leading-4 text-nc-content-gray-muted truncate"
-                        show-on-truncate-only
-                        placement="bottom"
-                      >
-                        <template #title>{{ collaboratorsMap.get(integration.created_by)?.email }}</template>
-                        {{ collaboratorsMap.get(integration.created_by)?.email }}
-                      </NcTooltip>
-                    </div>
+                    </span>
                   </div>
-                  <div v-else class="w-full truncate text-nc-content-gray-muted">{{ integration.created_by }}</div>
-                </template>
 
-                <template v-if="column.key === 'source_count'">
-                  {{ integration.source_count ?? 0 }}
-                </template>
-
-                <div v-if="column.key === 'base_access'" class="flex items-center gap-2">
-                  <NcBadge v-if="integration.is_global" size="xs" color="blue" :border="false">
-                    {{ $t('general.global') }}
-                  </NcBadge>
-                  <NcBadge v-else-if="integration.is_restricted" size="xs" color="gray" :border="false">
-                    {{ $t('labels.restricted') }}
-                  </NcBadge>
-                  <NcBadge v-else size="xs" color="green" :border="false">
-                    {{ $t('activity.allBases') }}
-                  </NcBadge>
+                  <NcTooltip class="truncate text-bodySm text-nc-content-gray-muted" show-on-truncate-only placement="bottom">
+                    <template #title>{{ integrationSubtext(integration) }}</template>
+                    {{ integrationSubtext(integration) }}
+                  </NcTooltip>
                 </div>
+              </div>
 
-                <div v-if="column.key === 'action'" @click.stop>
-                  <WorkspaceIntegrationsConnectionActionMenu
-                    v-if="hasAnyAction(integration)"
-                    :integration="integration"
-                    mode="base"
-                    :can-edit="canEditIntegration(integration)"
-                    :can-unlink="canUnlinkIntegration(integration)"
-                    :base-id="baseId"
-                    @unlink="handleUnlink"
+              <div v-if="column.key === 'environments'" class="flex items-center gap-1.5">
+                <!-- Only Auth & AI integrations support per-environment overrides -->
+                <span v-if="!integrationSupportsEnvironments(integration.type)" class="text-nc-content-gray-muted">–</span>
+                <NcTooltip v-for="env in environments" v-else :key="env.key" placement="bottom">
+                  <template #title>
+                    {{ env.title }}:
+                    <template v-if="isEnvironmentBlocked(env)">{{ $t('msg.info.environmentLocked') }}</template>
+                    <template v-else-if="isPerUserIntegration(integration)">
+                      {{ isEnvConfigured(integration, env) ? $t('general.connected') : $t('general.notConnected') }}
+                    </template>
+                    <template v-else>
+                      {{ isEnvConfigured(integration, env) ? $t('general.configured') : $t('msg.info.fallsBackToProduction') }}
+                    </template>
+                  </template>
+                  <span v-if="isEnvironmentBlocked(env)">
+                    <PaymentUpgradeBadge :feature="environmentUpgradeFeature(env)" remove-click />
+                  </span>
+                  <span
+                    v-else
+                    class="w-2.5 h-2.5 rounded-full border-2 flex-none inline-block"
+                    :style="
+                      isEnvConfigured(integration, env)
+                        ? { backgroundColor: env.color, borderColor: env.color }
+                        : { backgroundColor: 'transparent', borderColor: 'var(--nc-border-gray-medium)' }
+                    "
                   />
+                </NcTooltip>
+              </div>
+
+              <template v-if="column.key === 'created_by'">
+                <div
+                  v-if="integration.created_by && collaboratorsMap.get(integration.created_by)"
+                  class="w-full flex gap-3 items-center"
+                >
+                  <GeneralUserIcon :user="collaboratorsMap.get(integration.created_by)" size="base" class="flex-none" />
+                  <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                    <NcTooltip
+                      class="text-bodyDefaultSm capitalize font-semibold truncate text-nc-content-gray"
+                      show-on-truncate-only
+                      placement="bottom"
+                    >
+                      <template #title>{{ getUserName(integration.created_by) }}</template>
+                      {{ getUserName(integration.created_by) }}
+                    </NcTooltip>
+                    <NcTooltip class="text-bodySm text-nc-content-gray-muted truncate" show-on-truncate-only placement="bottom">
+                      <template #title>{{ collaboratorsMap.get(integration.created_by)?.email }}</template>
+                      {{ collaboratorsMap.get(integration.created_by)?.email }}
+                    </NcTooltip>
+                  </div>
                 </div>
+                <div v-else class="w-full truncate text-nc-content-gray-muted">{{ integration.created_by }}</div>
               </template>
 
-              <template #emptyText>
-                <div class="flex flex-col items-center gap-3 py-12 text-nc-content-gray-subtle2">
-                  <GeneralIcon icon="ncIntegrationDuo" class="h-10 w-10 opacity-50" />
-                  <span class="text-sm">{{ $t('msg.noIntegrationsLinked') }}</span>
-                </div>
-              </template>
-            </NcTable>
-          </div>
+              <span v-if="column.key === 'source_count'" class="text-bodyDefaultSm text-nc-content-gray-subtle2">
+                {{ integration.source_count ?? 0 }}
+              </span>
+
+              <div v-if="column.key === 'base_access'" class="flex items-center gap-2">
+                <NcBadge v-if="integration.is_global" size="xs" color="blue" :border="false">
+                  {{ $t('general.global') }}
+                </NcBadge>
+                <NcBadge v-else-if="integration.is_restricted" size="xs" color="gray" :border="false">
+                  {{ $t('labels.restricted') }}
+                </NcBadge>
+                <NcBadge v-else size="xs" color="green" :border="false">
+                  {{ $t('activity.allBases') }}
+                </NcBadge>
+              </div>
+
+              <div v-if="column.key === 'action'" class="nc-row-action" @click.stop>
+                <WorkspaceIntegrationsConnectionActionMenu
+                  v-if="hasAnyAction(integration)"
+                  :integration="integration"
+                  mode="base"
+                  :can-edit="canEditIntegration(integration)"
+                  :can-unlink="canUnlinkIntegration(integration)"
+                  :base-id="baseId"
+                  @unlink="handleUnlink"
+                />
+              </div>
+            </template>
+
+            <template #emptyText>
+              <ShellEmpty
+                :title="
+                  nonSyncLinkedIntegrations.length === 0 ? $t('msg.noIntegrationsLinked') : $t('title.noResultsMatchedYourSearch')
+                "
+              />
+            </template>
+          </NcTable>
         </div>
       </div>
     </template>
@@ -692,7 +693,7 @@ watch(baseId, reload)
 }
 
 .nc-connection-overflow-card {
-  @apply flex flex-col items-center justify-center gap-1 border-1 border-dashed border-nc-border-gray-medium rounded-xl p-3 cursor-pointer transition-all duration-200;
+  @apply flex flex-col items-center justify-center gap-1 border-1 border-dashed border-nc-border-gray-medium rounded-lg p-3 cursor-pointer transition-all duration-200;
 
   &:hover {
     @apply bg-nc-bg-gray-extralight border-nc-border-gray-dark;
@@ -710,11 +711,11 @@ watch(baseId, reload)
           @apply grid-cols-2;
         }
 
-        @media (min-width: 1024px) {
+        @media (min-width: 820px) {
           @apply grid-cols-3;
         }
 
-        @media (min-width: 1440px) {
+        @media (min-width: 1140px) {
           @apply grid-cols-4;
         }
       }
@@ -732,7 +733,7 @@ watch(baseId, reload)
       }
 
       .source-card {
-        @apply flex items-center gap-4 border-1 border-nc-border-gray-medium rounded-xl p-3 cursor-pointer transition-all duration-300;
+        @apply flex items-center gap-4 border-1 border-nc-border-gray-medium rounded-lg p-3 cursor-pointer transition-all duration-300;
 
         .integration-icon-wrapper {
           @apply flex-none h-[44px] w-[44px] rounded-lg flex items-center justify-center;
@@ -757,10 +758,6 @@ watch(baseId, reload)
           }
         }
       }
-    }
-
-    .category-type-title {
-      @apply text-sm text-nc-content-gray-subtle font-weight-700;
     }
   }
 }

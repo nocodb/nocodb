@@ -14,11 +14,14 @@ const props = withDefaults(
     ncBadgeClass?: string
     showTooltip?: boolean
     inheritedRoleIcon?: string
+    /** Drops the chip — role reads as coloured text, the way a permission does. */
+    plain?: boolean
   }>(),
   {
     clickable: false,
     inherit: false,
     border: true,
+    plain: false,
     size: 'sm',
     iconOnly: false,
     showIcon: true,
@@ -60,6 +63,19 @@ const roleLabel = computed(() => {
   const key = roleProperties.value.label ?? roleRef.value
   return key ? t(`objects.roleType.${key}`, key) : ''
 })
+
+// A plain badge you can act on reads as a ghost button, the way an inline
+// permission does: text at rest, a border on hover. The negative margin keeps
+// the label flush with the cell while the box grows outward.
+const plainClass = computed(() => {
+  if (!props.plain) return '!px-2'
+
+  // `!w-auto` matters: with the inherited `w-full` the negative margins shift the
+  // box left instead of widening it, dropping the chevron outside it.
+  return clickableRef.value
+    ? '!w-auto !h-7 !px-2 !-mx-2 !border-1 !border-transparent hover:!border-nc-border-gray-medium transition-all'
+    : '!px-0'
+})
 </script>
 
 <template>
@@ -78,10 +94,11 @@ const roleLabel = computed(() => {
     </template>
 
     <NcBadge
-      class="!px-2 w-full"
-      :class="[ncBadgeClass, roleColorsMapping[roleProperties.color]?.badgeClass ?? '']"
-      :color="roleProperties.color === 'disabled' ? 'gray' : roleProperties.color"
-      :border="borderRef"
+      class="w-full"
+      :class="[plainClass, ncBadgeClass, plain ? '' : roleColorsMapping[roleProperties.color]?.badgeClass ?? '']"
+      :color="plain ? undefined : roleProperties.color === 'disabled' ? 'gray' : roleProperties.color"
+      :border="!plain && borderRef"
+      :rounded="plain ? 'lg' : 'md'"
       :size="sizeSelect"
     >
       <div

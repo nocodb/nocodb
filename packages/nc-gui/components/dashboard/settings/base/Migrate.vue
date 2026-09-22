@@ -49,31 +49,35 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div data-testid="nc-settings-subtab-visibility" class="item-card flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">Migrate Data To NocoDB</div>
+  <!-- Title and description live in the shell header. -->
+  <div
+    data-testid="nc-settings-subtab-migrate"
+    class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 overflow-auto nc-scrollbar-thin"
+  >
+    <div class="flex flex-col w-full max-w-3xl gap-6">
+      <!-- No card: it would be a box around a single field. -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-bodyDefaultSm font-medium text-nc-content-gray">{{ $t('labels.migrationUrl') }}</label>
+        <a-input
+          v-model:value="migrateConfiguration.migrationUrl"
+          class="nc-input-sm !rounded-lg nc-input-api-key"
+          :placeholder="$t('placeholder.migrationUrl')"
+          @press-enter="migrateConfiguration.migrationUrl && migrateData()"
+        />
+        <div class="text-bodySm text-nc-content-gray-muted">{{ $t('labels.migrationUrlHint') }}</div>
+      </div>
 
-    <div class="text-nc-content-gray-subtle2 mt-2 leading-5">Easily migrate your data to NocoDB Cloud</div>
-
-    <div class="flex flex-col border-1 rounded-lg mt-6 border-nc-border-gray-medium">
-      <div class="flex w-full px-3 py-2 gap-2 flex-col">
-        <div class="flex flex-col w-full gap-1">
-          <a-form ref="form" name="quick-migrate-form" layout="horizontal" class="m-0">
-            <a-form-item class="!m-0">
-              <div class="flex items-end">
-                <label> Migration URL </label>
-              </div>
-              <a-input
-                v-model:value="migrateConfiguration.migrationUrl"
-                placeholder="Enter migration URL for destination"
-                class="!rounded-lg !my-2 nc-input-api-key"
-              />
-            </a-form-item>
-          </a-form>
-
-          <NcButton type="primary" :loading="migrating" :disabled="!migrateConfiguration.migrationUrl" @click="migrateData">
-            Migrate
-          </NcButton>
-        </div>
+      <div>
+        <NcButton
+          type="primary"
+          size="small"
+          :loading="migrating"
+          :disabled="!migrateConfiguration.migrationUrl"
+          data-testid="nc-migrate-btn"
+          @click="migrateData"
+        >
+          {{ $t('general.migrate') }}
+        </NcButton>
       </div>
     </div>
   </div>

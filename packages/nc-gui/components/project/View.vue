@@ -1,49 +1,33 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { PlanFeatureTypes, PlanLimitTypes, ProjectRoles } from 'nocodb-sdk'
+
+// The base's own page: topbar plus the overview for whichever sidebar vertical
+// is active. Base settings used to live here too, as a headless tab set behind
+// a `tab` prop; it is now the settings shell (`ProjectSettingsShell`), a modal
+// the settings route mounts over this page.
 
 const props = defineProps<{
   baseId?: string
-  tab?: ProjectPageType
-  showOverviewTab?: boolean
   showEmptySkeleton?: boolean
 }>()
 
-const { hideSidebar, isBaseSettingsFullPage, activeSidebarTab } = storeToRefs(useSidebarStore())
+const { hideSidebar } = storeToRefs(useSidebarStore())
 
 const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
-const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeToRefs(basesStore)
-const { activeTable } = storeToRefs(useTablesStore())
-const workspaceStore = useWorkspace()
-const { activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { openedProject, bases } = storeToRefs(basesStore)
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { activeTable } = storeToRefs(useTablesStore())
+
+const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { productName } = useBranding()
 
-const { $e, $api } = useNuxtApp()
-
-const {
-  blockTrashSettings,
-  blockBaseVariables,
-  blockSync,
-  isWsAuditEnabled,
-  isEEFeatureBlocked,
-  showEEFeatures,
-  hideInterfaces,
-  blockWorkflows,
-  getLimit,
-} = useEeConfig()
-
-// Snapshots is limit-gated rather than feature-gated: a plan that grants none
-// gets the upgrade card in place of the page. A plan that grants some but has
-// them all used is a different case — the page stays, and creating one prompts.
-const blockSnapshotsPage = computed(() => getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0)
+const { $api } = useNuxtApp()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -59,294 +43,7 @@ const currentBase = computedAsync(async () => {
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const router = useRouter()
-const route = router.currentRoute
-
-const { isUIAllowed, baseRoles, isBaseRolesLoaded, environmentRestrictionReason } = useRoles()
-
-const { base, listingManagedAppId } = storeToRefs(useBase())
-
-const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
-
 const { isMobileMode } = useGlobal()
-
-const baseSettingsState = ref('')
-
-const userCount = computed(() => {
-  // if private base and don't have owner permission then return
-  if (base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]) {
-    return
-  }
-
-  if (activeProjectId.value) {
-    const teamsCount = !isAdminPanel.value && isTeamsEnabled.value ? basesTeams.value.get(activeProjectId.value)?.length ?? 0 : 0
-    const usersCount = activeProjectId.value
-      ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length ?? 0
-      : 0
-
-    return teamsCount + usersCount
-  }
-
-  return 0
-})
-
-const { apps, isAppsEnabled } = storeToRefs(useAppStore())
-
-// The base's app, if it has one. Empty in CE (stub store), so the whole App
-// Settings section drops out without a second gate.
-const baseApp = computed(() => (base.value?.id ? apps.value.get(base.value.id) : undefined))
-
-// An install locks `appCreateOrEdit` — the app definition is the publisher's —
-// but its owner still has to address, staff and connect their own instance.
-const isAppInstall = computed(() => !!base.value?.managed_app_id && !base.value?.managed_app_master)
-
-// Resolved through Production when standing in a lane: a listing locks
-// Production, so the lane is where the publisher works and the lane's own row
-// carries no `managed_app_id`.
-const isAppListing = computed(() => !!listingManagedAppId.value)
-
-// An open environment restricts `appCreateOrEdit` on Production, and a listed
-// app is always open in its store lane — so without the restriction check the
-// whole section, listing settings included, disappears exactly for the apps that
-// have a store page to edit. Same compensation every other App surface makes.
-//
-// A listing on its own is enough: a base can be published with nothing to serve,
-// and its store page is still the publisher's to edit.
-const isAppSettingsVisible = computed(
-  () =>
-    isAppsEnabled.value &&
-    (!!baseApp.value || isAppListing.value) &&
-    !isMobileMode.value &&
-    (isUIAllowed('appCreateOrEdit') ||
-      !!environmentRestrictionReason('appCreateOrEdit') ||
-      (isAppInstall.value && isUIAllowed('baseMiscSettings'))),
-)
-
-const appSettingsItems = computed(() =>
-  isAppSettingsVisible.value
-    ? appSettingsNavFor(
-        isAppInstall.value && !isUIAllowed('appCreateOrEdit'),
-        isAppListing.value,
-        !!baseApp.value,
-        isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
-      )
-    : [],
-)
-
-const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
-
-const isAuditsTabVisible = computed(
-  () => !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
-)
-
-const isIntegrationsTabVisible = computed(() => {
-  if (isMobileMode.value) return false
-  // Managers (sourceCreate) get the full surface; viewers get the linked
-  // connections list, where per-user integrations offer their connect action.
-  if (base.value?.is_lane_instance)
-    return isUIAllowed('sourceCreate', { skipBaseCheck: true }) || isUIAllowed('baseIntegrationList', { skipBaseCheck: true })
-  return isUIAllowed('sourceCreate') || isUIAllowed('baseIntegrationList')
-})
-
-const isWorkflowsTabVisible = computed(
-  () =>
-    !blockWorkflows.value &&
-    isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
-    isUIAllowed('workflowCreateOrEdit') &&
-    !isMobileMode.value &&
-    showEEFeatures.value,
-)
-
-// Get actual workflow count
-const workflowStore = useWorkflowStore()
-const { activeBaseWorkflows } = storeToRefs(workflowStore)
-
-const workflowCount = computed(() => {
-  return activeBaseWorkflows.value?.length ?? 0
-})
-
-const projectPageTab = computed({
-  get() {
-    if (props.showOverviewTab) return 'overview'
-
-    return _projectPageTab.value
-  },
-  set(value) {
-    if (value === 'audits' && !isAuditsTabVisible.value) {
-      return
-    }
-
-    if (value === 'workflows' && !isWorkflowsTabVisible.value) {
-      return
-    }
-
-    _projectPageTab.value = value
-  },
-})
-
-watch(
-  () => route.value.query?.page,
-  async (newVal, oldVal) => {
-    // When tab is controlled by route path (admin pages), skip query-based logic
-    if (props.tab || props.showOverviewTab) return
-
-    if (!('baseId' in route.value.params)) return
-    // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
-
-    // Wait for base roles to be loaded before checking if the overview tab is visible
-    await until(() => isBaseRolesLoaded.value).toBeTruthy()
-
-    /**
-     * We are waiting for base role load and their might be the case that,
-     * on navigating to different page this watch get called which will overwrite projectPageTab value and navigateToProjectPage fn get called
-     */
-    if (['viewId', 'workflowId', 'scriptId', 'dashboardId'].some((key) => route.value.params[key])) {
-      return
-    }
-
-    // In mobile mode we only show collaborator tab
-    if (isMobileMode.value && newVal !== 'collaborator') {
-      projectPageTab.value = 'collaborator'
-      return
-    }
-
-    if (newVal && newVal !== oldVal) {
-      if (isEeUI && newVal === 'syncs') {
-        projectPageTab.value = 'syncs'
-      } else if (newVal === 'data-source') {
-        projectPageTab.value = 'data-source'
-      } else if (newVal === 'integrations' && isIntegrationsTabVisible.value) {
-        projectPageTab.value = 'integrations'
-      } else if (newVal === 'overview' && isOverviewTabVisible.value) {
-        projectPageTab.value = 'overview'
-      } else if (newVal === 'permissions' && isEeUI) {
-        projectPageTab.value = 'permissions'
-      } else if (newVal === 'base-settings') {
-        projectPageTab.value = 'base-settings'
-      } else if (newVal === 'audits' && isAuditsTabVisible.value) {
-        projectPageTab.value = 'audits'
-      } else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
-        projectPageTab.value = 'workflows'
-      } else if (newVal === 'mcp') {
-        projectPageTab.value = 'mcp'
-      } else if (newVal === 'api-tokens') {
-        projectPageTab.value = 'api-tokens'
-      } else if (newVal === 'variables' && showEEFeatures.value) {
-        projectPageTab.value = 'variables'
-      } else if (newVal === 'interface-members' && showEEFeatures.value && !hideInterfaces.value) {
-        projectPageTab.value = 'interface-members'
-      } else if (newVal === 'snapshots' && showEEFeatures.value) {
-        projectPageTab.value = 'snapshots'
-      } else if (newVal === 'record-trash' && showEEFeatures.value) {
-        projectPageTab.value = 'record-trash'
-      } else if (newVal?.startsWith('app-') && appSettingsItems.value.some((item) => item.tab === newVal)) {
-        projectPageTab.value = newVal
-      } else if (newVal === 'skills' && showEEFeatures.value) {
-        projectPageTab.value = 'skills'
-      } else {
-        projectPageTab.value = 'collaborator'
-      }
-      return
-    }
-
-    if (isAdminPanel.value || !isOverviewTabVisible.value) {
-      projectPageTab.value = 'collaborator'
-    } else {
-      projectPageTab.value = 'overview'
-    }
-  },
-  { immediate: true },
-)
-
-const { navigateToProjectPage } = useBase()
-
-const { t } = useI18n()
-
-// The overview tab is the landing page for whichever sidebar vertical is active
-const overviewTabMeta = computed(() => {
-  switch (activeSidebarTab.value) {
-    case 'workflows':
-      return { icon: 'ncAutomation', title: t('objects.workflows') }
-    case 'agents':
-      return { icon: 'ncAgent', title: t('objects.agents') }
-    default:
-      return { icon: 'ncMultiCircle', title: t('general.data') }
-  }
-})
-
-const settingsPageTitle = computed(() => {
-  const tabTitles: Record<string, string> = {
-    'collaborator': t('labels.baseNav.membersPage'),
-    'interface-members': t('labels.baseNav.interfaceMembersPage'),
-    'permissions': t('labels.baseNav.dataPermissionsNav'),
-    'docs-permissions': t('labels.baseNav.dataPermissionsNav'),
-    'mcp': t('labels.baseNav.mcpServer'),
-    'api-tokens': t('labels.baseNav.apiTokens'),
-    'variables': t('labels.baseNav.variables'),
-    'syncs': t('labels.baseNav.sync'),
-    'snapshots': t('labels.baseNav.snapshots'),
-    'record-trash': t('labels.baseNav.trashRetention'),
-    'skills': t('labels.baseNav.aiSkills'),
-    'data-source': t('labels.baseNav.databases'),
-    'integrations': t('labels.baseNav.integrations'),
-    'base-settings': t('labels.baseNav.general'),
-    'audits': t('labels.baseNav.auditLog'),
-    'workflows': t('labels.baseNav.automations'),
-    'overview': overviewTabMeta.value.title,
-  }
-
-  // App tabs share one breadcrumb — "App Settings · Theme" — so the header says
-  // which app is being configured, not just which pane.
-  const appTab = appSettingsNav.find((item) => item.tab === projectPageTab.value)
-  if (appTab) return `${t('labels.appSettings')} · ${t(appTab.label)}`
-
-  return tabTitles[projectPageTab.value] || ''
-})
-
-// A stale link to an App Settings tab while Apps is behind its flag has no pane
-// to activate — the tab bar would show nothing selected and an empty body.
-function resolveSettingsTab(tab: ProjectPageType) {
-  return !isAppsEnabled.value && String(tab).startsWith('app-') ? 'collaborator' : tab
-}
-
-watch(projectPageTab, () => {
-  if (props.showOverviewTab) return
-
-  $e(`a:project:view:tab-change:${projectPageTab.value}`)
-
-  // When tab is controlled by route path (settings pages), navigate to clean URL
-  if (props.tab) {
-    const slug = settingsTabToSlug[projectPageTab.value] || projectPageTab.value
-    const wsId = route.value.params.typeOrId
-
-    const baseId = route.value.params.baseId
-    navigateTo({
-      path: `/${wsId}/${baseId}/settings/${slug}`,
-      query: route.value.query,
-    })
-    return
-  }
-
-  // Overview tab is rendered inline on the base root page — no navigation needed
-  if (projectPageTab.value === 'overview') return
-
-  navigateToProjectPage({
-    page: projectPageTab.value as any,
-  })
-})
-
-// Sync tab prop changes (e.g., navigating between admin sub-pages)
-watch(
-  () => props.tab,
-  (newTab) => {
-    if (newTab) {
-      projectPageTab.value = resolveSettingsTab(newTab)
-    }
-  },
-  {
-    immediate: true,
-  },
-)
 
 watch(
   () => [currentBase.value?.id, currentBase.value?.title],
@@ -373,105 +70,50 @@ watch(
   { immediate: true },
 )
 
-const isSettingsSidebar = computed(() => !!props.tab)
-
-provide(IsSettingsSidebarInj, isSettingsSidebar)
-
-onMounted(async () => {
-  await until(() => !!currentBase.value?.id).toBeTruthy()
-  if (props.tab) {
-    projectPageTab.value = resolveSettingsTab(props.tab)
-  }
-})
-
 onMounted(() => {
-  if (!isBaseSettingsFullPage.value) {
-    hideSidebar.value = false
-  }
+  hideSidebar.value = false
 })
-
-onBeforeUnmount(() => {
-  if (isBaseSettingsFullPage.value) {
-    isBaseSettingsFullPage.value = false
-    hideSidebar.value = false
-  }
-})
-
-// Exit full-page mode when navigating away from a settings page
-watch(
-  () => route.value.query?.page,
-  (newPage) => {
-    if (!newPage && isBaseSettingsFullPage.value) {
-      isBaseSettingsFullPage.value = false
-      hideSidebar.value = false
-    }
-  },
-)
 </script>
 
 <template>
   <div class="h-full nc-base-view">
-    <!-- Full-page breadcrumb header (when entering base settings from admin menu) -->
-    <template v-if="isBaseSettingsFullPage && !isAdminPanel">
-      <div class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2">
-        <GeneralOpenLeftSidebarBtn v-if="isMobileMode" />
-        <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1">
-          <div class="nc-breadcrumb-item capitalize truncate">
-            {{ currentBase?.title }}
-          </div>
-          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
-          <h1 class="nc-breadcrumb-item active truncate">
-            {{ $t('labels.settings') }}
-          </h1>
-        </div>
-      </div>
-    </template>
-
-    <!-- Normal topbar -->
     <div
-      v-else-if="!isAdminPanel"
+      v-if="!isAdminPanel"
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex-1 max-w-full md:max-w-[calc(100%_-_100px)] flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2 min-w-0">
-          <template v-if="props.tab">
-            <span class="font-semibold text-sm text-nc-content-gray truncate">
-              {{ settingsPageTitle }}
+          <GeneralProjectIcon
+            :color="parseProp(currentBase?.meta).iconColor"
+            :icon="parseProp(currentBase?.meta).icon"
+            :type="currentBase?.type"
+            :managed-app="{
+              managed_app_master: currentBase?.managed_app_master,
+              managed_app_id: currentBase?.managed_app_id,
+            }"
+            class="h-6 w-6 md:(h-4 w-4) flex-none"
+          />
+          <NcTooltip
+            class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
+            show-on-truncate-only
+          >
+            <template #title> {{ currentBase?.title }}</template>
+            <span class="truncate">
+              {{ currentBase?.title }}
             </span>
-          </template>
-          <template v-else>
-            <GeneralProjectIcon
-              :color="parseProp(currentBase?.meta).iconColor"
-              :icon="parseProp(currentBase?.meta).icon"
-              :type="currentBase?.type"
-              :managed-app="{
-                managed_app_master: currentBase?.managed_app_master,
-                managed_app_id: currentBase?.managed_app_id,
-              }"
-              class="h-6 w-6 md:(h-4 w-4) flex-none"
-            />
-            <NcTooltip
-              class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
-              show-on-truncate-only
-            >
-              <template #title> {{ currentBase?.title }}</template>
-              <span class="truncate">
-                {{ currentBase?.title }}
-              </span>
-            </NcTooltip>
-            <NcBadge
-              v-if="isPrivateBase"
-              size="xs"
-              class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
-              color="gray"
-              :border="false"
-            >
-              <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
-              {{ $t('general.private') }}
-            </NcBadge>
-          </template>
+          </NcTooltip>
+          <NcBadge
+            v-if="isPrivateBase"
+            size="xs"
+            class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
+            color="gray"
+            :border="false"
+          >
+            <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
+            {{ $t('general.private') }}
+          </NcBadge>
         </div>
       </div>
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
@@ -481,335 +123,17 @@ watch(
              without it the avatars vanish the moment a user steps off a table. -->
         <LazySmartsheetTopbarCollaboratorPresence v-if="!isSharedBase && isEeUI" />
         <LazySmartsheetTopbarHistory />
-        <LazyGeneralShareProject v-if="!props.tab" />
+        <LazyGeneralShareProject />
       </div>
     </div>
     <div
       v-if="!showEmptySkeleton"
-      class="flex nc-base-view-tab overflow-hidden"
+      class="nc-base-view-tab overflow-hidden"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <NcTabs
-        v-model:active-key="projectPageTab"
-        class="w-full h-full"
-        :class="{ 'hide-tabs': props.tab || showOverviewTab }"
-        :tab-bar-style="props.tab || showOverviewTab ? { display: 'none' } : undefined"
-      >
-        <template #leftExtra>
-          <div class="w-3"></div>
-        </template>
-        <a-tab-pane
-          v-if="showOverviewTab || (!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode)"
-          key="overview"
-          class="nc-project-overview-tab-content"
-        >
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__overview">
-              <GeneralIcon :icon="overviewTabMeta.icon" />
-              <div>{{ overviewTabMeta.title }}</div>
-            </div>
-          </template>
-          <ProjectOverview />
-        </a-tab-pane>
-        <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Base ERD" force-render class="pt-4 pb-12">
-          <ErdView :source-id="defaultBase!.id" class="!h-full" />
-        </a-tab-pane> -->
-        <a-tab-pane v-if="isUIAllowed('newUser', { roles: baseRoles }) && !isSharedBase" key="collaborator">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__access-settings">
-              <GeneralIcon icon="users" />
-              <div>{{ $t('labels.members') }}</div>
-              <div
-                v-if="userCount"
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'collaborator',
-                  'bg-nc-bg-gray-extralight': projectPageTab !== 'collaborator',
-                }"
-              >
-                {{ userCount }}
-              </div>
-            </div>
-          </template>
-          <ProjectAccessSettings :base-id="currentBase?.id" />
-        </a-tab-pane>
-        <a-tab-pane
-          v-if="showEEFeatures && !hideInterfaces && isUIAllowed('interfaceUsersMatrix', { roles: baseRoles }) && base.id"
-          key="interface-members"
-        >
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__interface-members">
-              <GeneralIcon icon="ncUsers" />
-              <div>{{ $t('labels.addUserToInterface') }}</div>
-            </div>
-          </template>
-          <ProjectInterfaceMembers />
-        </a-tab-pane>
-        <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__workflows">
-              <GeneralIcon icon="ncAutomation" />
-              <div>{{ $t('objects.workflows') }}</div>
-              <div
-                v-if="workflowCount"
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'workflows',
-                  'bg-nc-bg-gray-extralight': projectPageTab !== 'workflows',
-                }"
-              >
-                {{ workflowCount }}
-              </div>
-            </div>
-          </template>
-          <ProjectWorkflowsList :base-id="base.id" />
-        </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__permissions">
-              <GeneralIcon icon="ncLock" />
-              <div>{{ $t('general.permissions') }}</div>
-              <LazyPaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
-                :feature-enabled-callback="() => !isEEFeatureBlocked"
-                remove-click
-              />
-            </div>
-          </template>
-          <DashboardSettingsDataPermissions v-model:state="baseSettingsState" :base-id="base.id" initial-tab="tables" />
-        </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__docs-permissions">
-              <GeneralIcon icon="ncFileText" />
-              <div>{{ $t('labels.docsPermissions') }}</div>
-              <LazyPaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
-                :feature-enabled-callback="() => !isEEFeatureBlocked"
-                remove-click
-              />
-            </div>
-          </template>
-          <DashboardSettingsDataPermissions v-model:state="baseSettingsState" :base-id="base.id" initial-tab="docs" />
-        </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__data-sources">
-              <GeneralIcon icon="ncDatabase" />
-              <div>{{ $t('labels.dataSources') }}</div>
-              <div
-                v-if="base.sources?.length"
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'data-source',
-                  'bg-nc-bg-gray-extralight': projectPageTab !== 'data-source',
-                }"
-              >
-                {{ base.sources.length }}
-              </div>
-            </div>
-          </template>
-          <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
-        </a-tab-pane>
-        <a-tab-pane v-if="isIntegrationsTabVisible && base.id" key="integrations">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__integrations">
-              <GeneralIcon icon="integration" />
-              <div>{{ $t('labels.baseIntegrations') }}</div>
-            </div>
-          </template>
-          <DashboardSettingsBaseIntegrations :base-id="base.id" />
-        </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__syncs">
-              <GeneralIcon icon="ncZap" />
-              <div>{{ $t('labels.manageSyncs') }}</div>
-              <LazyPaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_SYNC"
-                :feature-enabled-callback="() => !isEEFeatureBlocked"
-                remove-click
-              />
-            </div>
-          </template>
-          <PaymentUpgradeFeatureCard
-            v-if="blockSync"
-            :feature="PlanFeatureTypes.FEATURE_SYNC"
-            :title="$t('labels.baseNav.upgradeTitleSync')"
-            :detail="$t('labels.baseNav.upgradeDescSync')"
-            icon="ncZap"
-          />
-          <ProjectSync v-else :base-id="base.id" class="max-h-full" />
-        </a-tab-pane>
-        <a-tab-pane v-if="isAuditsTabVisible" key="audits" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
-              <GeneralIcon icon="audit" class="h-4 w-4" />
-              {{ $t('title.audits') }}
-            </div>
-          </template>
-          <WorkspaceAudits v-if="currentBase?.id && projectPageTab === 'audits'" :base-id="currentBase?.id" />
-          <div v-else>&nbsp;</div>
-        </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('manageMCP') && base.id && !isMobileMode" key="mcp">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__mcp">
-              <GeneralIcon icon="mcp" />
-              <div>{{ $t('title.mcpServer') }}</div>
-            </div>
-          </template>
-          <!-- Same as the API-token pane: height-bounded, padding inside the surface. -->
-          <div class="h-full max-h-full">
-            <DashboardSettingsBaseMCP :base-id="base.id!" />
-          </div>
-        </a-tab-pane>
-        <a-tab-pane v-if="!isEEFeatureBlocked && isUIAllowed('manageBaseApiTokens') && base.id && !isMobileMode" key="api-tokens">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__api-tokens">
-              <GeneralIcon icon="ncKey" />
-              <div>{{ $t('labels.baseNav.apiTokens') }}</div>
-            </div>
-          </template>
-          <!-- Height-bounded so the surface's own overflow-auto has something to
-               resolve h-full against; padding stays inside AccountToken. -->
-          <div class="h-full max-h-full">
-            <DashboardSettingsBaseApiTokens :base-id="base.id!" />
-          </div>
-        </a-tab-pane>
-        <a-tab-pane v-if="showEEFeatures && base.id && !isMobileMode" key="variables">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__variables">
-              <GeneralIcon icon="ncSettings" />
-              <div>{{ $t('title.baseVariables') }}</div>
-            </div>
-          </template>
-          <PaymentUpgradeFeatureCard
-            v-if="blockBaseVariables"
-            :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
-            :title="$t('labels.baseNav.upgradeTitleVariables')"
-            :detail="$t('labels.baseNav.upgradeDescVariables')"
-            icon="ncCode"
-          />
-          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
-            <DashboardSettingsBaseVariables />
-          </div>
-        </a-tab-pane>
-        <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseSkillList') && base.id && !isMobileMode" key="skills">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__skills">
-              <GeneralIcon icon="ncScript" />
-              <div>{{ $t('labels.aiSkills') }}</div>
-            </div>
-          </template>
-          <div class="py-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
-            <DashboardSettingsBaseSkills />
-          </div>
-        </a-tab-pane>
-        <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode" key="record-trash">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__record-trash">
-              <GeneralIcon icon="ncTrash2" />
-              <div>{{ $t('trash.settings') }}</div>
-            </div>
-          </template>
-          <PaymentUpgradeFeatureCard
-            v-if="blockTrashSettings"
-            :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
-            :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
-            :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
-            icon="ncHistory"
-          />
-          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
-            <DashboardSettingsBaseTrash />
-          </div>
-        </a-tab-pane>
-        <a-tab-pane
-          v-if="isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode && showEEFeatures"
-          key="snapshots"
-        >
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__snapshots">
-              <GeneralIcon icon="ncLayers" />
-              <div>{{ $t('general.snapshots') }}</div>
-            </div>
-          </template>
-          <PaymentUpgradeFeatureCard
-            v-if="blockSnapshotsPage"
-            :feature="PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE"
-            :title="$t('labels.baseNav.upgradeTitleSnapshots')"
-            :detail="$t('labels.baseNav.upgradeDescSnapshots')"
-            icon="ncLayers"
-          />
-          <div v-else class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
-            <DashboardSettingsBaseSnapshots />
-          </div>
-        </a-tab-pane>
-        <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__base-settings">
-              <GeneralIcon icon="ncSettings" />
-              <div>{{ $t('general.general') }}</div>
-            </div>
-          </template>
-          <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
-        </a-tab-pane>
-        <a-tab-pane v-for="item in appSettingsItems" :key="item.tab">
-          <template #tab>
-            <div class="tab-title" :data-testid="`proj-view-tab__${item.testId}`">
-              <GeneralIcon :icon="item.icon" />
-              <div>{{ $t(item.label) }}</div>
-            </div>
-          </template>
-          <ProjectAppSettings :tab="item.tab" class="h-full max-h-full" />
-        </a-tab-pane>
-      </NcTabs>
+      <ProjectOverview />
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-:deep(.ant-tabs-content) {
-  @apply !h-full;
-}
-:deep(.ant-tabs-nav) {
-  @apply !mb-0 !pl-0;
-}
-:deep(.nc-project-overview-tab-content.ant-tabs-tabpane) {
-  @apply !h-full;
-}
-
-.tab-title {
-  @apply flex flex-row items-center gap-x-1.5 px-1 py-[1px] text-[13px];
-
-  :deep(svg) {
-    @apply h-3.5 w-3.5 !text-current;
-  }
-}
-:deep(.ant-tabs-tab) {
-  @apply pt-1.5 pb-2;
-
-  & + .ant-tabs-tab {
-    @apply !ml-0;
-  }
-}
-
-.tab-info {
-  @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
-}
-
-.hide-tabs {
-  // Direct child only: :deep() otherwise reaches every nested tab bar too, which
-  // silently hid Data Permissions' own tabs inside the pane.
-  :deep(> .ant-tabs-nav) {
-    @apply !hidden;
-  }
-
-  :deep(.ant-tabs-content) {
-    > .ant-tabs-tabpane > div {
-      @apply nc-content-max-w mx-auto;
-    }
-  }
-}
-</style>

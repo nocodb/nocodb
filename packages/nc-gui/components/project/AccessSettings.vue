@@ -5,7 +5,9 @@ import {
   OrderedProjectRoles,
   OrgUserRoles,
   ProjectRoles,
+  RoleColors,
   RoleIcons,
+  RoleLabels,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles as WorkspaceUserRolesEnum,
   extractBaseRoleFromWorkspaceRole,
@@ -16,7 +18,7 @@ const props = defineProps<{
   baseId?: string
 }>()
 
-const router = useRouter()
+const openBaseSettings = useBaseSettingsLink()
 
 const { user, ncNavigateTo } = useGlobal()
 
@@ -78,6 +80,22 @@ const currentBase = computedAsync(async () => {
 const isInviteModalVisible = ref(false)
 
 const isInviteTeamDlg = ref<boolean>(false)
+
+const canAddTeams = computed(() => isTeamsEnabled.value && !isAdminPanel.value && showEEFeatures.value)
+
+function addMembers() {
+  isInviteModalVisible.value = true
+}
+
+function addTeams() {
+  showUpgradeToUseTeams({
+    successCallback: () => {
+      isInviteTeamDlg.value = true
+      isInviteModalVisible.value = true
+    },
+    triggerSource: 'project-teams',
+  })
+}
 
 interface Collaborators {
   id: string
@@ -162,12 +180,70 @@ const baseAgentsToCollaborators = computed(() => {
   }))
 })
 
+const roleFilter = ref<string>('all')
+
+const memberFilter = ref<string>('all')
+
+// Only the roles a base can actually hand out — INHERIT is a source, not a role,
+// and App User belongs to the interface surface.
+const roleFilterOptions = computed(() => [
+  { value: 'all', label: t('labels.allRoles') },
+  ...OrderedProjectRoles.filter((role) => role !== ProjectRoles.INHERIT && role !== ProjectRoles.APP_USER).map((role) => ({
+    value: role,
+    label: t(`objects.roleType.${RoleLabels[role]}`),
+    icon: RoleIcons[role],
+    color: RoleColors[role],
+  })),
+])
+
+// Principal-type slices first, a divider, then where the role came from.
+const memberFilterOptions = computed(() => {
+  const options: Record<string, any>[] = [
+    { value: 'all', label: t('labels.allSources'), description: t('labels.baseMembersAll') },
+  ]
+
+  if (baseTeamsToCollaborators.value.length) {
+    options.push({ value: 'teams', label: t('labels.sourceTeams'), description: t('labels.baseMembersTeams') })
+  }
+
+  if (baseAgentsToCollaborators.value.length) {
+    options.push({ value: 'agents', label: t('labels.agents'), description: t('labels.baseMembersAgents') })
+  }
+
+  options.push(
+    { value: '__divider', divider: true, label: '' },
+    { value: 'direct', label: t('labels.sourceDirectGrants'), description: t('labels.baseMembersDirect') },
+    { value: 'inherited', label: t('labels.sourceFromBase'), description: t('labels.baseMembersInherited') },
+  )
+
+  return options
+})
+
+function matchesMemberFilter(collab: any) {
+  switch (memberFilter.value) {
+    case 'teams':
+      return !!collab.isTeam
+    case 'agents':
+      return !!collab.isAgent
+    case 'direct':
+      return !getInheritanceInfo(collab)
+    case 'inherited':
+      return !!getInheritanceInfo(collab)
+    default:
+      return true
+  }
+}
+
 const filteredCollaborators = computed(() => {
   const all = collaborators.value.concat(baseTeamsToCollaborators.value).concat(baseAgentsToCollaborators.value)
 
-  if (!userSearchText.value) return all
+  return all.filter((collab) => {
+    if (userSearchText.value && !searchCompare([collab.display_name, collab.email], userSearchText.value)) return false
 
-  return all.filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+    if (roleFilter.value !== 'all' && collab.roles !== roleFilter.value) return false
+
+    return matchesMemberFilter(collab)
+  })
 })
 
 const sortedCollaborators = computed(() => {
@@ -395,7 +471,7 @@ function moveInheritRole() {
 }
 
 // Helper function to determine inheritance source and effective role
-const getInheritanceInfo = (record: any) => {
+function getInheritanceInfo(record: any) {
   const baseRole = record.base_roles as ProjectRoles | null
   if (baseRole && baseRole !== ProjectRoles.INHERIT) {
     return null
@@ -457,28 +533,6 @@ const getInheritanceInfo = (record: any) => {
     effectiveRoleIcon: RoleIcons[effectiveRole as keyof typeof RoleIcons],
   }
 }
-
-const selected = reactive<{
-  [key: string]: boolean
-}>({})
-
-const toggleSelectAll = (value: boolean) => {
-  filteredCollaborators.value.forEach((_) => {
-    selected[_.id] = value
-  })
-}
-
-// const isSomeSelected = computed(() => Object.values(selected).some((v) => v))
-
-const selectAll = computed({
-  get: () =>
-    Object.values(selected).every((v) => v) &&
-    Object.keys(selected).length > 0 &&
-    Object.values(selected).length === filteredCollaborators.value.length,
-  set: (value) => {
-    toggleSelectAll(value)
-  },
-})
 
 watch(isInviteModalVisible, () => {
   if (!isInviteModalVisible.value) {
@@ -543,15 +597,15 @@ const columns = [
   },
   {
     key: 'action',
-    title: t('labels.actions'),
+    title: '',
     width: 110,
     minWidth: 110,
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
 
-const customRow = (record: Record<string, any>) => ({
-  class: `${selected[record.id] ? 'selected' : ''} user-row`,
+const customRow = () => ({
+  class: 'user-row',
 })
 
 const isOnlyOneOwner = computed(() => {
@@ -562,14 +616,10 @@ const isDeleteOrUpdateAllowed = (user) => {
   return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
 }
 
+// Straight to the Base Type row. The old `?page=base-settings&tab=baseType` form
+// only landed there by accident: the redirect middleware drops `tab`.
 const goToBaseSettings = () => {
-  router.push({
-    query: {
-      ...router.currentRoute.value.query,
-      page: 'base-settings',
-      tab: 'baseType',
-    },
-  })
+  openBaseSettings('base-type')
 }
 
 watch(projectPageTab, () => {
@@ -603,6 +653,7 @@ onBeforeUnmount(() => {
     :class="{
       'nc-admin-panel': isAdminPanel,
       'nc-is-settings-sidebar': isSettingsSidebar,
+      'h-full min-h-0': !isAdminPanel,
     }"
   >
     <ProjectPrivateOverlay v-if="showOverlay" />
@@ -646,9 +697,14 @@ onBeforeUnmount(() => {
         </NcPageHeader>
       </div>
 
-      <!-- pt-3, not pt-6: lines the search box up with the settings sidebar's own search. -->
-      <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-4 md:px-6 pt-3">
-        <NcAlert v-if="isEeUI && isPrivateBase" type="info" :message="$t('title.privateBase')" class="bg-nc-bg-gray-extralight">
+      <!-- pt-3, not pt-6: lines the search box up with the settings shell's rail search. -->
+      <div class="flex-1 min-h-0 flex flex-col nc-shell-gutter pb-6 pt-3" :class="{ 'nc-content-max-w': isAdminPanel }">
+        <NcAlert
+          v-if="isEeUI && isPrivateBase"
+          type="info"
+          :message="$t('title.privateBase')"
+          class="mb-6 bg-nc-bg-gray-extralight"
+        >
           <template #icon>
             <GeneralIcon icon="ncUser" class="w-6 h-6 text-nc-content-gray-subtle" />
           </template>
@@ -672,103 +728,114 @@ onBeforeUnmount(() => {
             </NcButton>
           </template>
         </NcAlert>
-        <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
+        <!-- Wraps rather than squeezes — a search box below its placeholder width is just an icon. -->
+        <div v-if="!isAdminPanel" class="mb-6 flex flex-wrap items-center justify-between gap-3">
           <a-input
             v-model:value="userSearchText"
             :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
-            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+            class="nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
           >
             <template #prefix>
-              <GeneralIcon
-                icon="search"
-                class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
-              />
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
 
-          <div class="flex items-center gap-2">
-            <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
-              v-e="['c:base:team-add']"
-              size="small"
-              type="secondary"
+          <!-- Narrowing controls: which role, and where the role came from. -->
+          <div class="flex flex-wrap items-center gap-2">
+            <NcSelect
+              v-model:value="roleFilter"
+              class="nc-base-members-filter flex-none !w-36"
               :disabled="isLoading"
-              data-testid="nc-add-teams-btn"
-              text-color="primary"
-              @click="
-                showUpgradeToUseTeams({
-                  successCallback: () => {
-                    isInviteTeamDlg = true
-                    isInviteModalVisible = true
-                  },
-                  triggerSource: 'project-teams',
-                })
-              "
+              data-testid="nc-base-members-role-filter"
+              dropdown-class-name="nc-base-members-role-filter-dropdown"
             >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncBuilding" />
-                <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
-              </div>
-            </NcButton>
+              <a-select-option v-for="option in roleFilterOptions" :key="option.value" :value="option.value">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon
+                    v-if="'icon' in option"
+                    :icon="option.icon"
+                    class="flex-none h-4 w-4"
+                    :class="roleColorsMapping[option.color]?.content"
+                  />
+                  <span :class="'color' in option ? roleColorsMapping[option.color]?.content : ''">{{ option.label }}</span>
+                </div>
+              </a-select-option>
+            </NcSelect>
 
-            <NcButton
-              size="small"
-              type="primary"
+            <NcSelect
+              v-model:value="memberFilter"
+              class="nc-base-members-filter flex-none !w-36"
+              option-label-prop="label"
+              :dropdown-match-select-width="false"
               :disabled="isLoading"
-              data-testid="nc-add-member-btn"
-              @click="isInviteModalVisible = true"
+              data-testid="nc-base-members-source-filter"
+              dropdown-class-name="nc-base-members-source-filter-dropdown"
             >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
-              </div>
-            </NcButton>
+              <template v-for="option in memberFilterOptions" :key="option.value">
+                <a-select-option v-if="option.divider" :value="option.value" disabled class="nc-source-filter-divider">
+                  <div class="border-t-1 border-nc-border-gray-medium"></div>
+                </a-select-option>
+                <a-select-option v-else :value="option.value" :label="option.label">
+                  <div class="flex flex-col gap-0.5 py-0.5">
+                    <span>{{ option.label }}</span>
+                    <span class="text-bodySm text-nc-content-gray-subtle2">{{ option.description }}</span>
+                  </div>
+                </a-select-option>
+              </template>
+            </NcSelect>
           </div>
+
+          <ShellActions>
+            <div class="flex items-center gap-2.5">
+              <NcButton
+                v-if="canAddTeams"
+                v-e="['c:base:team-add']"
+                size="small"
+                type="secondary"
+                :disabled="isLoading"
+                data-testid="nc-add-teams-btn"
+                text-color="primary"
+                @click="addTeams()"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncBuilding" />
+                  <span>{{ $t('labels.addTeams') }}</span>
+                </div>
+              </NcButton>
+
+              <NcButton size="small" type="primary" :disabled="isLoading" data-testid="nc-add-member-btn" @click="addMembers()">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                  <span>{{ $t('activity.addMembers') }}</span>
+                </div>
+              </NcButton>
+            </div>
+          </ShellActions>
         </div>
 
-        <div class="flex-1 w-full min-h-0 flex flex-col gap-6 overflow-y-auto nc-scrollbar-thin">
+        <div class="flex-1 min-h-0 flex flex-col gap-6">
           <NcTable
             v-model:order-by="orderBy"
+            hide-on-empty
             :is-data-loading="isLoading"
             :columns="columns"
             :data="sortedCollaborators"
-            :bordered="false"
             :custom-row="customRow"
-            disable-table-scroll
-            force-sticky-header
-            class="nc-collaborators-list max-w-full"
+            class="nc-collaborators-list max-h-full min-h-0 max-w-full"
             body-row-class-name="!cursor-default"
             :pagination="true"
             :pagination-offset="25"
           >
             <template #emptyText>
-              <a-empty :description="$t('title.noMembersFound')" />
-            </template>
-
-            <template #headerCell="{ column }">
-              <template v-if="column.key === 'select'">
-                <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
-              </template>
-              <template v-else>
-                {{ column.title }}
-              </template>
+              <ShellEmpty :title="userSearchText ? $t('title.noResultsMatchedYourSearch') : $t('title.noMembersFound')" />
             </template>
 
             <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'select'">
-                <NcCheckbox v-model:checked="selected[record.id]" />
-              </template>
-
               <template v-if="column.key === 'email' && record.isTeam">
                 <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
-                <NcBadge
-                  v-if="teamsMap[record.id]?.scope === 'org'"
-                  :border="false"
-                  color="blue"
-                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-                >
+                <NcBadge v-if="teamsMap[record.id]?.scope === 'org'" :border="false" color="blue" size="xs" class="flex-none">
                   {{ $t('general.orgBadge') }}
                 </NcBadge>
               </template>
@@ -783,19 +850,19 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                   <div class="flex gap-2 items-center">
-                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                    <NcTooltip class="truncate max-w-full text-captionMedium text-nc-content-gray" show-on-truncate-only>
                       <template #title>
                         {{ record.title }}
                       </template>
                       {{ record.title }}
                     </NcTooltip>
-                    <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
+                    <NcBadge :border="false" color="purple" size="xs" class="flex-none">
                       {{ $t('general.agent') }}
                     </NcBadge>
                   </div>
                   <NcTooltip
                     v-if="record.email"
-                    class="truncate max-w-full text-xs text-nc-content-gray-subtle2"
+                    class="truncate max-w-full text-bodySm text-nc-content-gray-subtle2"
                     show-on-truncate-only
                   >
                     <template #title>
@@ -810,14 +877,14 @@ onBeforeUnmount(() => {
                 <GeneralUserIcon size="base" :user="record" class="flex-none" />
                 <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                   <div class="flex gap-3">
-                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                    <NcTooltip class="truncate max-w-full text-captionMedium text-nc-content-gray" show-on-truncate-only>
                       <template #title>
                         {{ extractUserDisplayNameOrEmail(record) }}
                       </template>
                       {{ extractUserDisplayNameOrEmail(record) }}
                     </NcTooltip>
                   </div>
-                  <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
+                  <NcTooltip class="truncate max-w-full text-bodySm text-nc-content-gray-subtle2" show-on-truncate-only>
                     <template #title>
                       {{ record.email }}
                     </template>
@@ -835,6 +902,7 @@ onBeforeUnmount(() => {
                   "
                 >
                   <RolesSelectorV2
+                    plain
                     :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                     :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                     :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
@@ -846,6 +914,7 @@ onBeforeUnmount(() => {
                 </template>
                 <template v-else>
                   <RolesBadge
+                    plain
                     :border="false"
                     :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
                   />
@@ -871,8 +940,8 @@ onBeforeUnmount(() => {
               </div>
               <div v-if="column.key === 'action'">
                 <NcDropdown placement="bottomRight">
-                  <NcButton size="small" type="secondary">
-                    <component :is="iconMap.ncMoreVertical" />
+                  <NcButton size="small" type="secondary" class="nc-row-action">
+                    <GeneralIcon icon="threeDotVertical" />
                   </NcButton>
                   <template #overlay>
                     <NcMenu variant="small">
@@ -919,6 +988,11 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
+/* The role chip is a table cell, so it reads at the table's own size. */
+:deep(.nc-role-badge .badge-text) {
+  @apply text-bodyDefaultSm;
+}
+
 .color-band {
   @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-base-white font-weight-bold text-xs items-center;
 }
@@ -927,27 +1001,35 @@ onBeforeUnmount(() => {
   @apply !rounded;
 }
 
+/* NcSelect renders its value semibold by default; a filter is not an emphasis. */
+.nc-base-members-filter {
+  :deep(.ant-select-selection-item) {
+    @apply !font-normal;
+  }
+}
+
 .nc-page-header-icon {
   :deep(svg) {
     @apply h-4.5 w-4.5;
   }
 }
+</style>
 
-.nc-collaborator-table-container {
-  &:not(.nc-admin-panel) {
-    @apply h-[calc(100vh-var(--topbar-height)-44px)];
-
-    @supports (height: 100dvh) {
-      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
-    }
+<style lang="scss">
+/* Dropdowns render in a portal — scoped styles can't reach them. */
+.nc-base-members-role-filter-dropdown,
+.nc-base-members-source-filter-dropdown {
+  .ant-select-item-option-content {
+    @apply text-bodyDefaultSm;
   }
+}
 
-  // Admin sidebar mode: tab bar is hidden, so no 44px subtraction
-  &.nc-is-settings-sidebar {
-    @apply h-[calc(100vh-var(--topbar-height))];
+.nc-base-members-source-filter-dropdown {
+  .nc-source-filter-divider {
+    @apply !min-h-0 !py-1 !px-3 !cursor-default;
 
-    @supports (height: 100dvh) {
-      @apply h-[calc(100dvh-var(--topbar-height))];
+    &.ant-select-item-option-disabled {
+      @apply !bg-transparent;
     }
   }
 }

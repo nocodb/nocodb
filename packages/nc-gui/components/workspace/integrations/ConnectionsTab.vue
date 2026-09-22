@@ -300,6 +300,10 @@ const isUserDeleted = (userId?: string) => {
   }
 }
 
+// The line under the name, standing in for the Date added column.
+const integrationSubtext = (integration: IntegrationType) =>
+  t('labels.addedOnDate', { date: dayjs(integration.created_at).local().format('DD MMM YYYY') })
+
 const getUserNameByCreatedBy = (createdBy: string) => {
   return (
     collaboratorsMap.value.get(createdBy)?.display_name ||
@@ -309,7 +313,7 @@ const getUserNameByCreatedBy = (createdBy: string) => {
 
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
-  const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
+  const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-title + th')
 
   if (!stickyHeaderCell?.getBoundingClientRect().right || !nonStickyHeaderFirstCell?.getBoundingClientRect().left) {
     return
@@ -355,14 +359,6 @@ const columns = computed(
         dataIndex: 'title',
         showOrderBy: true,
       },
-      {
-        key: 'sub_type',
-        title: t('general.type'),
-        minWidth: 98,
-        width: 120,
-        dataIndex: 'sub_type',
-        showOrderBy: true,
-      },
       // Environments column — opt-in via the `showEnvironments` prop (parent gates by isEeUI).
       ...(props.showEnvironments
         ? [
@@ -374,15 +370,6 @@ const columns = computed(
             },
           ]
         : []),
-      {
-        key: 'created_at',
-        title: t('labels.dateAdded'),
-        basis: '20%',
-        minWidth: 200,
-
-        dataIndex: 'created_at',
-        showOrderBy: true,
-      },
       {
         key: 'created_by',
         title: t('labels.addedBy'),
@@ -517,34 +504,43 @@ const customRow = (record: Record<string, any>) => ({
     >
       <template #bodyCell="{ column, record: integration }">
         <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
-          <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
-            <template #title> {{ integration.title }}</template>
-            {{ integration.title }}
+          <!-- The type rides on the name rather than holding a column of its own. -->
+          <NcTooltip
+            placement="bottom"
+            class="h-8 w-8 flex-none flex items-center justify-center rounded-md bg-nc-bg-gray-light children:flex-none"
+          >
+            <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
+
+            <GeneralIntegrationIcon
+              :type="integration.sub_type"
+              :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
+            />
           </NcTooltip>
-          <span v-if="integration.is_private">
-            <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{ $t('general.private') }}</NcBadge>
-          </span>
-          <span v-if="isPerUserIntegration(integration)">
-            <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
-              <NcBadge :border="false" class="!h-4.5 text-xs bg-nc-bg-purple-light text-nc-content-purple-dark">
-                {{ $t('general.perUser') }}
-              </NcBadge>
+
+          <div class="flex-1 min-w-0 flex flex-col">
+            <div class="flex items-center gap-2">
+              <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
+                <template #title> {{ integration.title }}</template>
+                {{ integration.title }}
+              </NcTooltip>
+              <span v-if="integration.is_private">
+                <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{ $t('general.private') }}</NcBadge>
+              </span>
+              <span v-if="isPerUserIntegration(integration)">
+                <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
+                  <NcBadge :border="false" class="!h-4.5 text-xs bg-nc-bg-purple-light text-nc-content-purple-dark">
+                    {{ $t('general.perUser') }}
+                  </NcBadge>
+                </NcTooltip>
+              </span>
+            </div>
+
+            <NcTooltip class="truncate text-bodySm text-nc-content-gray-muted" show-on-truncate-only placement="bottom">
+              <template #title>{{ integrationSubtext(integration) }}</template>
+              {{ integrationSubtext(integration) }}
             </NcTooltip>
-          </span>
+          </div>
         </div>
-
-        <NcTooltip
-          v-if="column.key === 'sub_type'"
-          placement="bottom"
-          class="h-8 w-8 flex-none flex items-center justify-center children:flex-none"
-        >
-          <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
-
-          <GeneralIntegrationIcon
-            :type="integration.sub_type"
-            :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
-          />
-        </NcTooltip>
 
         <div v-if="column.key === 'environments'" class="flex items-center gap-1.5">
           <!-- Only Auth & AI integrations support per-environment overrides -->
@@ -578,11 +574,6 @@ const customRow = (record: Record<string, any>) => ({
           </NcTooltip>
         </div>
 
-        <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only>
-          <template #title> {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
-
-          {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
-        </NcTooltip>
         <template v-if="column.key === 'created_by'">
           <div v-if="integration.sub_type === SyncDataType.NOCODB" class="flex items-center gap-3">
             <div class="h-8 w-8 grid place-items-center">

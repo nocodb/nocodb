@@ -106,13 +106,28 @@ export const isGeneralOverlayActive = () =>
     const style = window.getComputedStyle(el)
     return style.display !== 'none' && style.visibility !== 'hidden'
   })
-export const isSelectActive = () => {
-  const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
-  return Array.from(els).some((el) => {
+/**
+ * Ant keeps a popup mounted once opened and hides it with style, so presence in
+ * the DOM says nothing about whether it is on screen — only the computed style
+ * does.
+ */
+const isAnyOverlayVisible = (selector: string) =>
+  Array.from(document.querySelectorAll<HTMLElement>(selector)).some((el) => {
     const style = window.getComputedStyle(el)
     return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
   })
-}
+
+export const isSelectActive = () => isAnyOverlayVisible('.ant-select-dropdown')
+
+/**
+ * True while any portalled popup is on screen — a select list, date picker,
+ * popover or dropdown menu.
+ *
+ * These render at body level but belong to whatever opened them, so a surface
+ * handling Escape has to stand aside while one is up: the popup closes itself
+ * first, and the surface takes the next press.
+ */
+export const isPortalledOverlayActive = () => isAnyOverlayVisible(PORTALLED_OVERLAY_SELECTOR)
 
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
 export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')

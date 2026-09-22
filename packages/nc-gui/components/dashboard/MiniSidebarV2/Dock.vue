@@ -127,10 +127,13 @@ const onTabClick = async (tabKey: string) => {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
-    activeSidebarTab.value = 'settings'
+    // Base settings opens as a modal over wherever you are — same route, plus
+    // `?settings=` — so the table underneath stays put. Workspace settings is
+    // still a page, and still owns the sidebar.
     if (isBaseOpen.value) {
-      navigateTo(`${getBasePath()}/settings`)
+      navigateTo({ query: { ...route.value.query, settings: 'members' } })
     } else {
+      activeSidebarTab.value = 'settings'
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
       navigateTo(`/${wsId}/members`)
     }
@@ -371,6 +374,13 @@ const handleOpenBookmarkPanel = () => {
     isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
   }
 }
+
+// Base settings is an overlay on the current route rather than a route of its
+// own, so the tile reads the query alongside the workspace-settings page. Only a
+// slug the nav knows counts — `?settings=true` belongs to the agent panel.
+const isSettingsActive = computed(
+  () => activeSidebarTab.value === 'settings' || !!resolveBaseSettingsTab(route.value.query.settings),
+)
 </script>
 
 <template>
@@ -435,7 +445,7 @@ const handleOpenBookmarkPanel = () => {
       icon="ncSettings"
       :label="$t('labels.settings')"
       panel-key="settings"
-      :active="activeSidebarTab === 'settings' && !isChatFullScreen"
+      :active="isSettingsActive && !isChatFullScreen"
       :scale="getScale('settings')"
       @click="onTabClick('settings')"
     />

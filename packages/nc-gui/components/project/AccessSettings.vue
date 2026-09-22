@@ -698,7 +698,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- pt-3, not pt-6: lines the search box up with the settings shell's rail search. -->
-      <div class="flex-1 min-h-0 flex flex-col px-20 pb-6 pt-3" :class="{ 'nc-content-max-w': isAdminPanel }">
+      <div class="flex-1 min-h-0 flex flex-col nc-shell-gutter pb-6 pt-3" :class="{ 'nc-content-max-w': isAdminPanel }">
         <NcAlert
           v-if="isEeUI && isPrivateBase"
           type="info"

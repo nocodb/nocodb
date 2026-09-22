@@ -58,7 +58,10 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 
 <template>
   <!-- Title and description live in the shell header. -->
-  <div data-testid="nc-settings-subtab-visibility" class="flex flex-col h-full px-20 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
+  <div
+    data-testid="nc-settings-subtab-visibility"
+    class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 overflow-auto nc-scrollbar-thin"
+  >
     <!-- Two cards, because these are two kinds of setting: the first pair is a
          per-user preference that follows you everywhere, the rest is base meta
          that changes the base for everyone. -->

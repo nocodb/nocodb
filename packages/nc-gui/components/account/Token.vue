@@ -197,7 +197,7 @@ const onCreateCancel = () => {
       class="flex flex-col min-h-0"
       :class="
         lockedBaseId
-          ? 'h-full px-20 pb-6 pt-3'
+          ? 'h-full nc-shell-gutter pb-6 pt-3'
           : 'nc-content-max-w p-6 gap-6 overflow-auto nc-scrollbar-thin h-[calc(100vh_-_100px)]'
       "
     >

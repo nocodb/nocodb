@@ -50,7 +50,10 @@ onMounted(async () => {
 
 <template>
   <!-- Title and description live in the shell header. -->
-  <div data-testid="nc-settings-subtab-migrate" class="flex flex-col h-full px-20 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
+  <div
+    data-testid="nc-settings-subtab-migrate"
+    class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 overflow-auto nc-scrollbar-thin"
+  >
     <div class="flex flex-col w-full max-w-3xl gap-6">
       <!-- No card: it would be a box around a single field. -->
       <div class="flex flex-col gap-1.5">

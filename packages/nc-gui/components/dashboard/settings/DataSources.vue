@@ -328,7 +328,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 
 <template>
   <!-- pt-3 rather than p-6: lines the search box up with the sidebar's own search. -->
-  <div class="flex flex-col h-full px-20 pb-6 pt-3" data-testid="nc-settings-datasources-tab">
+  <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3" data-testid="nc-settings-datasources-tab">
     <div class="mb-6 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"

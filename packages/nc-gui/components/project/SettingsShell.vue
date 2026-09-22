@@ -166,7 +166,9 @@ watch(
     wrap-class-name="nc-modal-base-settings"
     @update:visible="onVisibleChange"
   >
-    <div class="nc-base-settings flex h-full w-full" data-testid="nc-base-settings-wrapper">
+    <div class="nc-base-settings relative flex h-full w-full" data-testid="nc-base-settings-wrapper">
+      <ShellClose testid="nc-base-settings-close" @close="onClose" />
+
       <ShellRail
         :groups="navGroups"
         :active="railActive"
@@ -190,13 +192,7 @@ watch(
       </ShellRail>
 
       <div class="flex-1 flex flex-col min-w-0 min-h-0">
-        <ShellHeader
-          :title="meta?.title ?? ''"
-          :description="meta?.description"
-          :docs-href="meta?.docsHref"
-          close-testid="nc-base-settings-close"
-          @close="onClose"
-        />
+        <ShellHeader :title="meta?.title ?? ''" :description="meta?.description" :docs-href="meta?.docsHref" />
 
         <div v-if="!isPaneAllowed" class="flex-1 min-h-0 flex items-center justify-center">
           <GeneralLoader size="xlarge" />

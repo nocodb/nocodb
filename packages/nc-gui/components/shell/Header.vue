@@ -1,29 +1,33 @@
 <script lang="ts" setup>
 // Title block — identical on every pane of every shell (the shell contract):
-//   Title                              [secondary] [primary] | [×]
+//   Title                                    [secondary] [primary]
 //   Description · Docs ↗
 // The pane title appears here exactly once; panes must not echo it in the body.
 interface Props {
   title: string
   description?: string
   docsHref?: string
-  closeTestid?: string
 }
 
-withDefaults(defineProps<Props>(), {
-  closeTestid: 'nc-tools-shell-close',
-})
-
-const emits = defineEmits<{
-  close: []
-}>()
+defineProps<Props>()
 
 const shell = useShell()
 </script>
 
+<!--
+  `pr-14` keeps the action row clear of the corner close button; from xl the
+  gutter is already wider than the button needs, so it goes back to matching the
+  pane content below.
+-->
 <template>
-  <div class="flex-none flex items-start gap-4 px-20 pt-8 pb-3" data-testid="nc-tool-header">
-    <div class="flex-1 min-w-0">
+  <div
+    class="flex-none flex flex-wrap items-start gap-x-4 gap-y-3 nc-shell-gutter pt-8 pb-3 pr-14 xl:pr-20"
+    data-testid="nc-tool-header"
+  >
+    <!-- `min-w-60` is what makes the row wrap: rather than squeeze the title and
+         description into a column too narrow to read, the actions drop to a line
+         of their own once they no longer both fit. -->
+    <div class="flex-1 min-w-60">
       <div class="text-xl font-semibold leading-7 text-nc-content-gray-extreme truncate">{{ title }}</div>
       <div v-if="description || docsHref" class="mt-0.5 text-sm leading-5 text-nc-content-gray-muted">
         <span v-if="description">{{ description }}</span>
@@ -40,26 +44,11 @@ const shell = useShell()
       </div>
     </div>
 
-    <div class="flex items-center gap-2.5 flex-none">
-      <!-- One zone for both the host's own actions and whatever a pane teleports
-           in (via `ShellActions`), so it can collapse when it holds neither. -->
-      <div :id="shell?.actionsTargetId" class="nc-shell-header-actions flex items-center gap-2.5 empty:hidden">
-        <slot name="actions" />
-      </div>
-
-      <NcButton size="small" type="text" :data-testid="closeTestid" @click="emits('close')">
-        <GeneralIcon icon="close" class="!h-4 !w-4" />
-      </NcButton>
+    <!-- One zone for both the host's own actions and whatever a pane teleports in
+         (via `ShellActions`), so it collapses when it holds neither. Close is not
+         here — it lives in the modal's corner (`ShellClose`). -->
+    <div :id="shell?.actionsTargetId" class="nc-shell-header-actions ml-auto flex items-center gap-2.5 flex-none empty:hidden">
+      <slot name="actions" />
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-// The rule separating pane actions from close belongs to the zone, not beside it —
-// a pane with no actions would otherwise leave it dividing nothing from the ×.
-// A pseudo-element doesn't count as a child, so the zone still reads as `:empty`.
-.nc-shell-header-actions::after {
-  content: '';
-  @apply h-5 w-px bg-nc-border-gray-medium;
-}
-</style>

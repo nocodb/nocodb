@@ -236,7 +236,9 @@ watch(
     wrap-class-name="nc-modal-table-tools"
     @update:visible="onVisibleChange"
   >
-    <div class="flex h-full w-full" data-testid="nc-details-wrapper">
+    <div class="relative flex h-full w-full" data-testid="nc-details-wrapper">
+      <ShellClose @close="onClose" />
+
       <ShellRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool">
         <template v-if="meta" #subject>
           <GeneralTableIcon :meta="meta" class="!h-4 !w-4 flex-none text-nc-content-gray-subtle2" />
@@ -245,12 +247,7 @@ watch(
       </ShellRail>
 
       <div class="flex-1 flex flex-col min-w-0 min-h-0">
-        <ShellHeader
-          :title="toolHeader.title"
-          :description="toolHeader.description"
-          :docs-href="toolHeader.docsHref"
-          @close="onClose"
-        >
+        <ShellHeader :title="toolHeader.title" :description="toolHeader.description" :docs-href="toolHeader.docsHref">
           <template #actions>
             <!-- Record Templates -->
             <NcButton

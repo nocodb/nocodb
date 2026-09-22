@@ -84,11 +84,12 @@ watch(
 .nc-data-permissions-tabs {
   @apply h-full;
 
-  // Tabs carry px-2 of their own, so px-18 lands the tab text on the pane's edge.
+  // Tabs carry px-2 of their own, so the inset gutter lands the tab text on the
+  // pane's edge.
   // mb-3 pairs with each pane's own pt-3: the search then sits 24px below the tab
   // rule, matching the 24px it leaves above the table.
   :deep(.ant-tabs-nav) {
-    @apply px-18 mb-3;
+    @apply nc-shell-gutter-inset mb-3;
   }
 
   // ant's content block does not stretch on its own; without this the panes

@@ -530,20 +530,22 @@ export default class Source implements SourceType {
     // by baseId alone, so a live list can still carry it. Nothing to protect.
     if (this.deleted) return;
 
+    // Checked first: on a single-source base the positional arm below would also
+    // match, and "only source" is the accurate reason. Only live siblings count —
+    // a soft-deleted row left in a cached list must not make this look like it is
+    // not the last source.
+    if (!sources.some((source) => source.id !== this.id && !source.deleted)) {
+      NcError.get(this.context).badRequest(
+        'Cannot delete the only source of a base',
+      );
+    }
+
     // Flags AND position: neither is reliable alone. A base's own source can
     // carry neither flag, and `order` does not always put it first — so keep both
     // arms rather than trade one failure mode for the other.
     if (this.isMeta() || sources[0]?.id === this.id) {
       NcError.get(this.context).badRequest(
         "Cannot delete a base's default source",
-      );
-    }
-
-    // Only live siblings count: a soft-deleted row left in a cached list must
-    // not make this look like it is not the last source.
-    if (!sources.some((source) => source.id !== this.id && !source.deleted)) {
-      NcError.get(this.context).badRequest(
-        'Cannot delete the only source of a base',
       );
     }
   }

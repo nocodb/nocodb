@@ -58,6 +58,16 @@ const visible = useVModel(props, 'visible', emits)
 
 const localIsVisible = ref<boolean | undefined>(props.visible)
 
+/**
+ * What the dropdown is bound to, and what every close path reads.
+ *
+ * Controlled call sites own their state, so the prop wins — reading the mirror
+ * there would strand `:visible="x"` bindings with no `v-model` to write back to.
+ * Uncontrolled, the prop is undefined and ant would keep the state to itself,
+ * leaving nothing here able to close it — hence the mirror.
+ */
+const isOpen = computed(() => (ncIsUndefined(props.visible) ? !!localIsVisible.value : !!visible.value))
+
 const overlayClassNameComputed = computed(() => {
   let className = `${props.nonNcDropdown ? '' : 'nc-dropdown '} rounded-lg border-1 border-nc-border-gray-medium shadow-lg`
   if (overlayClassName.value) {
@@ -68,8 +78,8 @@ const overlayClassNameComputed = computed(() => {
 })
 
 onKeyStroke('Escape', () => {
-  if (visible.value && autoClose.value) {
-    visible.value = false
+  if (isOpen.value && autoClose.value) {
+    onVisibleUpdate(false)
   }
 })
 
@@ -78,10 +88,15 @@ const overlayWrapperDomRef = ref<HTMLElement | null>(null)
 onClickOutside(overlayWrapperDomRef, () => {
   if (!autoClose.value) return
 
-  visible.value = false
+  onVisibleUpdate(false)
 })
 
-const onVisibleUpdate = (event: boolean) => {
+/**
+ * The only writer of open state. `visible` is the prop (undefined unless the call
+ * site binds one) and `localIsVisible` is the mirror; a close path that touches
+ * just one of them leaves the two disagreeing.
+ */
+function onVisibleUpdate(event: boolean) {
   localIsVisible.value = event
 
   if (visible.value !== undefined) {
@@ -105,7 +120,7 @@ const onVisibilityChange = (isVisible: boolean) => {
 }
 
 const onBackdropMouseDown = () => {
-  visible.value = false
+  onVisibleUpdate(false)
 }
 
 // Track this dropdown's z-index level for backdrop stacking
@@ -148,7 +163,7 @@ watch(
   <a-dropdown
     v-bind="$attrs"
     :disabled="disabled"
-    :visible="visible"
+    :visible="isOpen"
     :placement="placement as any"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"

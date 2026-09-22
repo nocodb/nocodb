@@ -115,11 +115,10 @@ function markItem(id: string) {
 
 const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
 
-const isDefaultSource = computed(() => {
-  if (base.value?.sources?.length === 1) return true
-  if (!source.value) return false
-  return isDefaultBase(source.value)
-})
+// Shallow indent iff the table renders at the sidebar root, i.e. it belongs to
+// the base's own source. A single external source is NOT that: its tables sit
+// under the source node, so its views step in with them.
+const isDefaultSource = computed(() => !!source.value && source.value.id === baseOwnSourceId(base.value?.sources))
 
 /** validate view title */
 function validate(view: ViewType) {

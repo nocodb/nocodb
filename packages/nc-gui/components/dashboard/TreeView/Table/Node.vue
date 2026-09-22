@@ -77,9 +77,9 @@ const source = computed(() => {
   return base.value?.sources?.find((s) => s.id === table.value?.source_id) ?? base.value?.sources?.[sourceIndex.value]
 })
 
-/** Default-source sections are stored with a null source — normalise so the
- *  menu asks for the right group. */
-const isDefaultSourceTable = computed(() => table.value?.source_id === base.value?.sources?.[0]?.id)
+/** Root-DB sections are stored with a null source — normalise so the menu asks
+ *  for the right group. Keyed on the root source, not index 0 (`baseRootSourceId`). */
+const isDefaultSourceTable = computed(() => table.value?.source_id === baseRootSourceId(base.value?.sources))
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)

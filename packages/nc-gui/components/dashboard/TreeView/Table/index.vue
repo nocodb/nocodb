@@ -271,42 +271,6 @@ onKeyStroke('Escape', () => {
                         }"
                       >
                         <div
-                          v-if="source.id === ownSourceId"
-                          class="source-context flex items-center gap-2 text-nc-content-gray nc-sidebar-node-title"
-                          @contextmenu="setMenuContext('source', source)"
-                        >
-                          <div
-                            class="hidden !xs:(flex items-center justify-center -mr-2) w-6 h-6 flex-none cursor-pointer"
-                            @click.stop="toggleSourceExpand(source.id!)"
-                          >
-                            <GeneralIcon
-                              icon="chevronRight"
-                              class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
-                              :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
-                            />
-                          </div>
-                          <div class="flex items-center nc-source-icon-wrapper min-w-6 h-6 relative" @click.stop>
-                            <NcButton
-                              v-e="['c:source:toggle-expand']"
-                              type="text"
-                              size="xxsmall"
-                              class="nc-source-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
-                              @click.stop="toggleSourceExpand(source.id!)"
-                            >
-                              <GeneralIcon
-                                icon="chevronRight"
-                                class="cursor-pointer transform transition-transform duration-200 !text-current text-[16px]"
-                                :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
-                              />
-                            </NcButton>
-                            <div class="flex items-center">
-                              <GeneralBaseLogo class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
-                            </div>
-                          </div>
-                          {{ $t('general.default') }}
-                        </div>
-                        <div
-                          v-else
                           class="source-context flex flex-grow items-center gap-1 text-nc-content-gray min-w-1/20 max-w-full"
                           @contextmenu="setMenuContext('source', source)"
                         >

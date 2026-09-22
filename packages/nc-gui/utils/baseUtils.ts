@@ -46,6 +46,16 @@ const baseOwnSourceId = (sources?: SourceType[]) => {
   return i === -1 ? undefined : sources?.[i]?.id
 }
 
+/**
+ * The source the backend treats as the base's root DB: the own source when there
+ * is one, else the first source. Sections (folders) of this source are stored
+ * with a null `source_id` (server: `find(isMeta) || sources[0]`), so it is the
+ * key for "which group do the base-level folders belong to". On a base with no
+ * own source it is an external source, and its folders render under that
+ * source's node rather than at the sidebar root.
+ */
+const baseRootSourceId = (sources?: SourceType[]) => baseOwnSourceId(sources) ?? sources?.[0]?.id
+
 const withDefaultSourceFirst = (sources?: SourceType[]) => {
   if (!sources?.length) return []
   const i = baseOwnSourceIndex(sources)
@@ -139,7 +149,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
   Object.entries(aiBaseSchemaPromptsMap).map(([tag, description]) => [description, tag]),
 )
 
-export { isDefaultBase, baseOwnSourceIndex, baseOwnSourceId, withDefaultSourceFirst }
+export { isDefaultBase, baseOwnSourceIndex, baseOwnSourceId, baseRootSourceId, withDefaultSourceFirst }
 
 export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>

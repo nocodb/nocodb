@@ -1423,10 +1423,16 @@ export interface BaseTeamUpdateV3Type {
    */
   team_id: string;
   /**
-   * New base role for the team (creator or lower only)
+   * New base role for the team (creator or lower only). app-user is the base standing of an app-attached team.
    * @example viewer
    */
-  base_role: 'creator' | 'editor' | 'viewer' | 'commenter' | 'no-access';
+  base_role:
+    | 'creator'
+    | 'editor'
+    | 'viewer'
+    | 'commenter'
+    | 'app-user'
+    | 'no-access';
 }
 
 /**
@@ -1450,10 +1456,16 @@ export interface BaseTeamCreateV3Type {
    */
   team_id: string;
   /**
-   * Base role to assign to the team (creator or lower only)
+   * Base role to assign to the team (creator or lower only). app-user is the base standing of an app-attached team.
    * @example editor
    */
-  base_role: 'creator' | 'editor' | 'viewer' | 'commenter' | 'no-access';
+  base_role:
+    | 'creator'
+    | 'editor'
+    | 'viewer'
+    | 'commenter'
+    | 'app-user'
+    | 'no-access';
 }
 
 /**
@@ -1705,6 +1717,118 @@ export interface TeamDetailV3V3Type {
   members: TeamMemberV3ResponseV3Type[];
   /** Members inherited from ancestor teams */
   inherited_members?: InheritedTeamMemberV3V3Type[];
+}
+
+/**
+ * Environment update request for v3 API. Only `title`, `description`, `color` and `order` are editable — the `key` slug is frozen at create time and renaming the title never re-derives it. The built-in environments (`production` / `staging`) cannot be updated.
+ */
+export interface EnvironmentUpdateV3ReqV3Type {
+  /**
+   * New environment name. The `key` slug is NOT re-derived on rename.
+   * @example QA Renamed
+   */
+  title?: string;
+  /**
+   * Optional description shown on the environment card / editor
+   * @example Pre-release verification
+   */
+  description?: string;
+  /**
+   * Solid color (hex) used for the environment’s dot / badge
+   * @example #c2410c
+   */
+  color?: string;
+  /**
+   * Display position among environments
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Environment creation request for v3 API. Creates a CUSTOM environment — the built-in `production` and `staging` environments always exist and cannot be created. The stable `key` slug is auto-derived from the title server-side; clients never send a key.
+ */
+export interface EnvironmentCreateV3ReqV3Type {
+  /**
+   * Environment name. Must contain at least one letter or number, must not collide with a built-in environment name (Production / Staging), and must derive to a key not already in use in the scope.
+   * @example QA
+   */
+  title: string;
+  /**
+   * Optional description shown on the environment card / editor
+   * @example Pre-release verification
+   */
+  description?: string;
+  /**
+   * Solid color (hex) used for the environment’s dot / badge
+   * @example #6A7184
+   */
+  color?: string;
+  /**
+   * Display position among environments; defaults to the end of the list
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Environment for v3 API — a named stage (production / staging / custom) that resolves per-environment integration configuration. The built-in `production` and `staging` environments are virtual: they exist for every workspace and organization without a stored row, are locked, and use their reserved key as `id`.
+ */
+export interface EnvironmentV3V3Type {
+  /**
+   * Environment ID. Custom environments use a generated ID; the built-in environments use their reserved key (`production` / `staging`).
+   * @example envabc12345
+   */
+  id: string;
+  /**
+   * Stable slug auto-derived from the title at create time and frozen thereafter — renaming the title never changes it. Used to reference the environment.
+   * @example qa
+   */
+  key: string;
+  /**
+   * Human-readable environment name
+   * @example QA
+   */
+  title: string;
+  /**
+   * Optional description shown on the environment card / editor
+   * @example Pre-release verification
+   */
+  description?: string | null;
+  /**
+   * Solid color (hex) used for the environment’s dot / badge
+   * @example #6A7184
+   */
+  color?: string | null;
+  /** True only for the built-in `production` environment — the fallback whose configuration is the integration’s own config. */
+  is_default: boolean;
+  /** True for the built-in environments (`production` / `staging`) — they cannot be renamed or deleted. */
+  is_locked: boolean;
+  /**
+   * Present on workspace-scoped custom environments. At most one of `workspace_id` / `org_id` is set; both are absent on the virtual built-in environments.
+   * @example w6dw3fo0
+   */
+  workspace_id?: string;
+  /**
+   * Present on organization-scoped environments, which are shared by all of the organization’s workspaces.
+   * @example org123
+   */
+  org_id?: string;
+  /**
+   * Creation timestamp (absent on the virtual built-in environments)
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Last update timestamp (absent on the virtual built-in environments)
+   * @format date-time
+   */
+  updated_at?: string;
+  /**
+   * ID of the user who created the environment (absent on the virtual built-in environments)
+   * @example usr1234567
+   */
+  created_by?: string;
 }
 
 /**
@@ -4668,6 +4792,10 @@ export interface IntegrationType {
   base_id?: string;
   /** Model for Bool */
   is_private?: BoolType;
+  /** Credential sharing mode for AUTH integrations */
+  credential_mode?: 'shared' | 'per_user';
+  /** EE only. On per-user integrations: environment ids the REQUESTING user has connected (attached to list/read responses; empty when unconnected). */
+  connected_environment_ids?: string[];
   /** Model for Bool */
   is_default?: BoolType;
   /** Integration Type */
@@ -4682,6 +4810,13 @@ export interface IntegrationType {
    * @example mysql2
    */
   created_by?: string;
+  /** EE only. Per-environment config overrides for this integration. Each entry's `config` is decrypted only when the caller may also see the integration's own config (same gate); otherwise it is omitted. Absent/empty in CE. */
+  environments?: {
+    /** The environment this override belongs to */
+    fk_environment_id?: string;
+    /** The per-environment config (decrypted for authorized callers, omitted otherwise) */
+    config?: any;
+  }[];
 }
 
 /**
@@ -4757,6 +4892,7 @@ export enum IntegrationsType {
   Storage = 'storage',
   Others = 'others',
   WorkflowNode = 'workflow-node',
+  Actions = 'actions',
 }
 
 /**
@@ -4780,6 +4916,17 @@ export interface IntegrationReqType {
   copy_from_id?: StringOrNullType;
   /** Whether the integration is restricted to specific bases */
   is_restricted?: BoolType;
+  /** Whether the integration is visible only to its creator. Not combinable with credential_mode 'per_user'. */
+  is_private?: BoolType;
+  /** EE only. Credential sharing mode for AUTH integrations: 'shared' (default — one credential everyone uses) or 'per_user' (each user connects their own account). Ignored in CE. */
+  credential_mode?: 'shared' | 'per_user';
+  /** EE only. Per-environment config overrides to apply when creating the integration. Each entry's `config` is persisted as that environment's override (production is skipped — it uses the integration's own config). Ignored in CE. */
+  environments?: {
+    /** The environment this override belongs to */
+    fk_environment_id?: string;
+    /** The per-environment config override */
+    config?: any;
+  }[];
 }
 
 /**
@@ -6906,15 +7053,15 @@ export interface BaseType {
     /** List of subjects (users or groups) for the permission */
     subjects?: {
       /** Type of the subject */
-      type: 'user' | 'team';
+      type: 'user' | 'team' | 'appTeam' | 'agent';
       /** ID of the subject */
       id: string;
     }[];
   }[];
-  /** Indicates if the base is a sandbox */
-  is_sandbox?: BoolType;
-  /** Indicates if the base is a sandbox production base (has at least one sandbox derived from it) */
-  is_sandbox_production?: BoolType;
+  /** Indicates if the base is an environment instance */
+  is_lane_instance?: BoolType;
+  /** Indicates if the base is a production base (has at least one environment instance derived from it) */
+  has_lane_instances?: BoolType;
 }
 
 /**
@@ -8328,7 +8475,8 @@ export interface BaseTrashType {
     | 'workflow'
     | 'extension'
     | 'record'
-    | 'hook';
+    | 'hook'
+    | 'app';
   /** ID of the trashed resource */
   resource_id?: IdType;
   /** Type of the parent entity */
@@ -18590,6 +18738,8 @@ export class Api<
         tableId?: string;
         /** MCP Token Id */
         mcpTokenId?: string;
+        /** Base Id to narrow an account-scoped listing to */
+        scopeBaseId?: string;
         /** View Id */
         viewId?: string;
         /** Form View Id */
@@ -18656,6 +18806,18 @@ export class Api<
         docId?: string;
         /** Document Revision ID */
         revisionId?: string;
+        /** App ID */
+        appId?: string;
+        /** App Team ID */
+        appTeamId?: string;
+        /** App Page ID */
+        pageId?: string;
+        /** App Routine ID */
+        routineId?: string;
+        /** App Chat Thread ID */
+        threadId?: string;
+        /** App Team handle to preview the app as */
+        persona?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -18697,6 +18859,8 @@ export class Api<
         tableId?: string;
         /** MCP Token Id */
         mcpTokenId?: string;
+        /** Base Id to narrow an account-scoped listing to */
+        scopeBaseId?: string;
         /** View Id */
         viewId?: string;
         /** Form View Id */
@@ -18763,6 +18927,18 @@ export class Api<
         docId?: string;
         /** Document Revision ID */
         revisionId?: string;
+        /** App ID */
+        appId?: string;
+        /** App Team ID */
+        appTeamId?: string;
+        /** App Page ID */
+        pageId?: string;
+        /** App Routine ID */
+        routineId?: string;
+        /** App Chat Thread ID */
+        threadId?: string;
+        /** App Team handle to preview the app as */
+        persona?: string;
       },
       params: RequestParams = {}
     ) =>

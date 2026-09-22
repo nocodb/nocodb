@@ -227,9 +227,7 @@ watch(
             <DashboardSettingsBaseVariables v-else />
           </template>
 
-          <div v-else-if="tab === 'skills'" class="h-full max-h-full overflow-auto nc-scrollbar-thin pb-6">
-            <DashboardSettingsBaseSkills />
-          </div>
+          <DashboardSettingsBaseSkills v-else-if="tab === 'skills'" />
 
           <template v-else-if="tab === 'record-trash'">
             <div v-if="blockTrashSettings" class="h-full overflow-auto nc-scrollbar-thin">

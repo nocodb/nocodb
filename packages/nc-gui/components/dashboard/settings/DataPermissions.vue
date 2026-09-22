@@ -64,7 +64,12 @@ watch(
           :detail="$t('labels.baseNav.upgradeDescPermissionsDocs')"
           icon="ncFileText"
         />
-        <DashboardSettingsDocsPermissions v-else v-model:state="baseSettingsState" :base-id="baseId" />
+        <DashboardSettingsDocsPermissions
+          v-else
+          v-model:state="baseSettingsState"
+          :base-id="baseId"
+          :active="activeTab === 'docs'"
+        />
       </a-tab-pane>
     </NcTabs>
   </div>
@@ -74,8 +79,9 @@ watch(
 .nc-data-permissions-tabs {
   @apply h-full;
 
+  // Tabs carry px-2 of their own; px-4 lands the tab text on the header's px-6 edge.
   :deep(.ant-tabs-nav) {
-    @apply px-6 pt-1 mb-0;
+    @apply px-4 mb-0;
   }
 
   :deep(.ant-tabs-content-holder) {

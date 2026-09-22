@@ -88,10 +88,31 @@ watch(
   { immediate: true },
 )
 
+// The General pane's inner tabs are rail rows now; old links carried them as `?tab=`.
+const legacyGeneralTabs: Record<string, string> = {
+  baseType: 'base-type',
+  visibility: 'data-display',
+  migrateToV3: 'migrate-to-v3',
+  migrate: 'migrate',
+}
+
+const generalRows = ['base-type', 'data-display', 'migrate-to-v3', 'migrate']
+
 watch(
   [() => props.tab, isBaseRolesLoaded],
   () => {
     if (!isBaseRolesLoaded.value) return
+
+    if (props.tab === 'base-settings') {
+      const wanted = legacyGeneralTabs[route.value.query.tab as string]
+      const target = [wanted, ...generalRows].find((slug) => slug && availableTabs.value.has(slug))
+
+      const query = { ...route.value.query }
+      delete query.tab
+
+      navigateTo({ query: { ...query, settings: target ?? settingsTabToSlug[firstAvailableTab.value] } }, { replace: true })
+      return
+    }
 
     // Bounce a deep link this role, edition or plan cannot reach — including the
     // docs-permissions slug, which rides on the Data Permissions row.
@@ -114,7 +135,7 @@ watch(
     wrap-class-name="nc-modal-base-settings"
     @update:visible="onVisibleChange"
   >
-    <div class="flex h-full w-full" data-testid="nc-base-settings-wrapper">
+    <div class="nc-base-settings flex h-full w-full" data-testid="nc-base-settings-wrapper">
       <ShellRail
         :groups="navGroups"
         :active="railActive"
@@ -165,13 +186,14 @@ watch(
           <DashboardSettingsBaseIntegrations v-else-if="tab === 'integrations' && baseId" :base-id="baseId" />
 
           <template v-else-if="tab === 'syncs' && baseId">
-            <PaymentUpgradeFeatureCard
-              v-if="blockSync"
-              :feature="PlanFeatureTypes.FEATURE_SYNC"
-              :title="$t('labels.baseNav.upgradeTitleSync')"
-              :detail="$t('labels.baseNav.upgradeDescSync')"
-              icon="ncZap"
-            />
+            <div v-if="blockSync" class="h-full overflow-auto nc-scrollbar-thin">
+              <PaymentUpgradeFeatureCard
+                :feature="PlanFeatureTypes.FEATURE_SYNC"
+                :title="$t('labels.baseNav.upgradeTitleSync')"
+                :detail="$t('labels.baseNav.upgradeDescSync')"
+                icon="ncZap"
+              />
+            </div>
             <ProjectSync v-else :base-id="baseId" class="max-h-full" />
           </template>
 
@@ -188,16 +210,15 @@ watch(
           </div>
 
           <template v-else-if="tab === 'variables'">
-            <PaymentUpgradeFeatureCard
-              v-if="blockBaseVariables"
-              :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
-              :title="$t('labels.baseNav.upgradeTitleVariables')"
-              :detail="$t('labels.baseNav.upgradeDescVariables')"
-              icon="ncCode"
-            />
-            <div v-else class="h-full max-h-full overflow-auto nc-scrollbar-thin px-6 pb-6">
-              <DashboardSettingsBaseVariables />
+            <div v-if="blockBaseVariables" class="h-full overflow-auto nc-scrollbar-thin">
+              <PaymentUpgradeFeatureCard
+                :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+                :title="$t('labels.baseNav.upgradeTitleVariables')"
+                :detail="$t('labels.baseNav.upgradeDescVariables')"
+                icon="ncCode"
+              />
             </div>
+            <DashboardSettingsBaseVariables v-else />
           </template>
 
           <div v-else-if="tab === 'skills'" class="h-full max-h-full overflow-auto nc-scrollbar-thin pb-6">
@@ -205,32 +226,36 @@ watch(
           </div>
 
           <template v-else-if="tab === 'record-trash'">
-            <PaymentUpgradeFeatureCard
-              v-if="blockTrashSettings"
-              :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
-              :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
-              :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
-              icon="ncHistory"
-            />
-            <div v-else class="h-full max-h-full overflow-auto nc-scrollbar-thin px-6 pb-6">
-              <DashboardSettingsBaseTrash />
+            <div v-if="blockTrashSettings" class="h-full overflow-auto nc-scrollbar-thin">
+              <PaymentUpgradeFeatureCard
+                :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
+                :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
+                :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
+                icon="ncHistory"
+              />
             </div>
+            <DashboardSettingsBaseTrash v-else />
           </template>
 
           <template v-else-if="tab === 'snapshots'">
-            <PaymentUpgradeFeatureCard
-              v-if="blockSnapshotsPane"
-              :feature="PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE"
-              :title="$t('labels.baseNav.upgradeTitleSnapshots')"
-              :detail="$t('labels.baseNav.upgradeDescSnapshots')"
-              icon="ncLayers"
-            />
-            <div v-else class="h-full max-h-full overflow-auto nc-scrollbar-thin px-6 pb-6">
-              <DashboardSettingsBaseSnapshots />
+            <div v-if="blockSnapshotsPane" class="h-full overflow-auto nc-scrollbar-thin">
+              <PaymentUpgradeFeatureCard
+                :feature="PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE"
+                :title="$t('labels.baseNav.upgradeTitleSnapshots')"
+                :detail="$t('labels.baseNav.upgradeDescSnapshots')"
+                icon="ncLayers"
+              />
             </div>
+            <DashboardSettingsBaseSnapshots v-else />
           </template>
 
-          <DashboardSettingsBase v-else-if="tab === 'base-settings' && baseId" :base-id="baseId" class="max-h-full" />
+          <DashboardSettingsBaseAccess v-else-if="tab === 'base-type'" />
+
+          <DashboardSettingsBaseVisibility v-else-if="tab === 'data-display'" />
+
+          <DashboardSettingsBaseMigrateToV3 v-else-if="tab === 'migrate-to-v3'" />
+
+          <DashboardSettingsBaseMigrate v-else-if="tab === 'migrate'" />
 
           <ProjectAppSettings v-else-if="tab.startsWith('app-')" :tab="tab" class="h-full max-h-full" />
         </div>

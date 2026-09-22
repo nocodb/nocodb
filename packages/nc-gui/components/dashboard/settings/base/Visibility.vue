@@ -57,16 +57,9 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 </script>
 
 <template>
-  <div data-testid="nc-settings-subtab-visibility" class="item-card flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-      {{ $t('labels.dataDisplay') }}
-    </div>
-
-    <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-      {{ $t('labels.visibilityConfigLabel') }}
-    </div>
-
-    <div class="flex flex-col border-1 rounded-lg mt-6 border-nc-border-gray-medium">
+  <!-- Title and description live in the shell header. -->
+  <div data-testid="nc-settings-subtab-visibility" class="flex flex-col h-full px-6 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
+    <div class="flex flex-col w-full max-w-3xl border-1 rounded-lg border-nc-border-gray-medium">
       <div class="flex w-full px-3 py-2 gap-2 flex-col">
         <div class="flex w-full gap-1 items-center">
           <NcSwitch v-model:checked="includeM2M" v-e="['c:themes:show-m2m-tables']" class="nc-settings-meta-misc-m2m">

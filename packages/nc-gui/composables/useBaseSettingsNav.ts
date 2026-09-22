@@ -1,4 +1,4 @@
-import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
+import { BaseVersion, PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
 import type { ShellRailGroup } from '~/components/shell/Rail.vue'
 
 export interface BaseSettingsPaneMeta {
@@ -41,6 +41,7 @@ export function useBaseSettingsNav() {
     blockBaseVariables,
     blockTrashSettings,
     getLimit,
+    getFeature,
   } = useEeConfig()
 
   // Snapshots is limit-gated rather than feature-gated: a plan that grants none
@@ -137,7 +138,30 @@ export function useBaseSettingsNav() {
 
   const canSeeVariables = computed(() => isEeUI && showEEFeatures.value && isUIAllowed('baseVariableList') && !isMobileMode.value)
 
-  const canSeeGeneral = computed(() => !isSharedBase.value && isUIAllowed('baseMiscSettings') && !isMobileMode.value)
+  // The rows that replaced the General pane. Each was a tab of its inner nav and
+  // keeps that tab's gate.
+  const canSeeGeneral = computed(() => !isSharedBase.value && !isMobileMode.value)
+
+  const canSeeBaseType = computed(() => canSeeGeneral.value && isEeUI && showEEFeatures.value && isUIAllowed('manageBaseType'))
+
+  const canSeeDataDisplay = computed(() => canSeeGeneral.value && isUIAllowed('baseMiscSettings'))
+
+  const canSeeMigrateToV3 = computed(
+    () =>
+      canSeeGeneral.value &&
+      isFeatureEnabled(FEATURE_FLAG.BASES_V3) &&
+      base.value?.version === BaseVersion.V2 &&
+      isUIAllowed('baseMiscSettings'),
+  )
+
+  // Granted per deal rather than sold by plan, so it hides instead of badging.
+  const canSeeMigrate = computed(
+    () =>
+      canSeeGeneral.value &&
+      isUIAllowed('baseMiscSettings') &&
+      isUIAllowed('migrateBase') &&
+      !!getFeature(PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT),
+  )
 
   // ── The nav ──────────────────────────────────────────────────────────────
 
@@ -296,13 +320,37 @@ export function useBaseSettingsNav() {
             keywords: 'variable environment secret value master inherited',
             feature: PlanFeatureTypes.FEATURE_BASE_VARIABLES,
           },
-          canSeeGeneral.value && {
-            slug: 'base-settings',
-            ev: 'more',
-            icon: 'ncMoreHorizontal',
-            testId: 'base-settings',
-            title: t('labels.baseNav.general'),
-            keywords: 'general base type private public data display null m2m junction empty filter',
+          canSeeBaseType.value && {
+            slug: 'base-type',
+            ev: 'base-type',
+            icon: 'ncBaseOutline',
+            testId: 'base-access-tab',
+            title: t('general.baseType'),
+            keywords: 'general base type private public default access',
+          },
+          canSeeDataDisplay.value && {
+            slug: 'data-display',
+            ev: 'data-display',
+            icon: 'ncEye',
+            testId: 'visibility-tab',
+            title: t('labels.dataDisplay'),
+            keywords: 'general visibility data display null m2m junction empty filter app first',
+          },
+          canSeeMigrateToV3.value && {
+            slug: 'migrate-to-v3',
+            ev: 'migrate-to-v3',
+            icon: 'ncArrowUpCircle',
+            testId: 'migrate-to-v3-tab',
+            title: t('labels.migrateToV3'),
+            keywords: 'general migrate upgrade v3 version api',
+          },
+          canSeeMigrate.value && {
+            slug: 'migrate',
+            ev: 'migrate',
+            icon: 'ncUpload',
+            testId: 'migrate-tab',
+            title: t('labels.baseNav.migrateToCloud'),
+            keywords: 'general migrate move export cloud',
           },
         ].filter(Boolean) as ShellRailGroup['items'],
       },
@@ -343,22 +391,27 @@ export function useBaseSettingsNav() {
       'collaborator': {
         title: t('labels.baseNav.membersPage'),
         description: t('labels.baseNav.desc.members'),
+        docsHref: 'https://nocodb.com/docs/product-docs/roles-and-permissions',
       },
       'permissions': {
         title: t('labels.baseNav.dataPermissionsNav'),
         description: t('labels.baseNav.desc.permissions'),
+        docsHref: 'https://nocodb.com/docs/product-docs/roles-and-permissions/table-permissions',
       },
       'data-source': {
         title: t('labels.baseNav.databases'),
         description: t('labels.baseNav.databasesInfo'),
+        docsHref: 'https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source',
       },
       'syncs': {
         title: t('labels.baseNav.sync'),
         description: t('labels.baseNav.syncInfo'),
+        docsHref: 'https://nocodb.com/docs/product-docs/noco-sync',
       },
       'api-tokens': {
         title: t('labels.baseNav.apiTokens'),
         description: t('labels.baseNav.desc.apiTokens'),
+        docsHref: 'https://nocodb.com/docs/product-docs/account-settings/api-tokens#create-api-token',
       },
       'mcp': {
         title: t('labels.baseNav.mcpServer'),
@@ -367,6 +420,7 @@ export function useBaseSettingsNav() {
       'integrations': {
         title: t('labels.baseNav.integrations'),
         description: t('labels.baseNav.desc.integrations'),
+        docsHref: 'https://nocodb.com/docs/product-docs/integrations',
       },
       'interface-members': {
         title: t('labels.baseNav.interfaceMembersPage'),
@@ -383,6 +437,7 @@ export function useBaseSettingsNav() {
       'record-trash': {
         title: t('labels.baseNav.trashRetention'),
         description: t('labels.baseNav.desc.trashRetention'),
+        docsHref: 'https://nocodb.com/docs/product-docs/bases/trash-settings',
       },
       'snapshots': {
         title: t('labels.baseNav.snapshots'),
@@ -396,9 +451,22 @@ export function useBaseSettingsNav() {
         title: t('labels.baseNav.variables'),
         description: t('labels.baseNav.desc.variables'),
       },
-      'base-settings': {
-        title: t('labels.baseNav.general'),
-        description: t('labels.baseNav.desc.general'),
+      'base-type': {
+        title: t('general.baseType'),
+        description: t('title.baseTypeTabSubtext'),
+        docsHref: 'https://nocodb.com/docs/product-docs/bases/private-base',
+      },
+      'data-display': {
+        title: t('labels.dataDisplay'),
+        description: t('labels.visibilityConfigLabel'),
+      },
+      'migrate-to-v3': {
+        title: t('labels.migrateToV3'),
+        description: t('labels.baseNav.desc.migrateToV3'),
+      },
+      'migrate': {
+        title: t('labels.baseNav.migrateToCloud'),
+        description: t('labels.baseNav.desc.migrateToCloud'),
       },
     }
 

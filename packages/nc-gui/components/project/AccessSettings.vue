@@ -474,28 +474,6 @@ const getInheritanceInfo = (record: any) => {
   }
 }
 
-const selected = reactive<{
-  [key: string]: boolean
-}>({})
-
-const toggleSelectAll = (value: boolean) => {
-  filteredCollaborators.value.forEach((_) => {
-    selected[_.id] = value
-  })
-}
-
-// const isSomeSelected = computed(() => Object.values(selected).some((v) => v))
-
-const selectAll = computed({
-  get: () =>
-    Object.values(selected).every((v) => v) &&
-    Object.keys(selected).length > 0 &&
-    Object.values(selected).length === filteredCollaborators.value.length,
-  set: (value) => {
-    toggleSelectAll(value)
-  },
-})
-
 watch(isInviteModalVisible, () => {
   if (!isInviteModalVisible.value) {
     isInviteTeamDlg.value = false
@@ -559,15 +537,15 @@ const columns = [
   },
   {
     key: 'action',
-    title: t('labels.actions'),
+    title: '',
     width: 110,
     minWidth: 110,
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
 
-const customRow = (record: Record<string, any>) => ({
-  class: `${selected[record.id] ? 'selected' : ''} user-row`,
+const customRow = () => ({
+  class: 'user-row',
 })
 
 const isOnlyOneOwner = computed(() => {
@@ -619,6 +597,7 @@ onBeforeUnmount(() => {
     :class="{
       'nc-admin-panel': isAdminPanel,
       'nc-is-settings-sidebar': isSettingsSidebar,
+      'h-full min-h-0': !isAdminPanel,
     }"
   >
     <ProjectPrivateOverlay v-if="showOverlay" />
@@ -662,9 +641,14 @@ onBeforeUnmount(() => {
         </NcPageHeader>
       </div>
 
-      <!-- pt-3, not pt-6: lines the search box up with the settings sidebar's own search. -->
-      <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-4 md:px-6 pt-3">
-        <NcAlert v-if="isEeUI && isPrivateBase" type="info" :message="$t('title.privateBase')" class="bg-nc-bg-gray-extralight">
+      <!-- pt-3, not pt-6: lines the search box up with the settings shell's rail search. -->
+      <div class="flex-1 min-h-0 flex flex-col px-6 pb-6 pt-3" :class="{ 'nc-content-max-w': isAdminPanel }">
+        <NcAlert
+          v-if="isEeUI && isPrivateBase"
+          type="info"
+          :message="$t('title.privateBase')"
+          class="mb-6 bg-nc-bg-gray-extralight"
+        >
           <template #icon>
             <GeneralIcon icon="ncUser" class="w-6 h-6 text-nc-content-gray-subtle" />
           </template>
@@ -688,24 +672,21 @@ onBeforeUnmount(() => {
             </NcButton>
           </template>
         </NcAlert>
-        <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
+        <div v-if="!isAdminPanel" class="mb-6 flex items-center justify-between gap-3">
           <a-input
             v-model:value="userSearchText"
             :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
-            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+            class="nc-input-border-on-value !max-w-90 nc-input-sm"
           >
             <template #prefix>
-              <GeneralIcon
-                icon="search"
-                class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
-              />
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
 
           <ShellActions>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2.5">
               <NcButton
                 v-if="canAddTeams"
                 v-e="['c:base:team-add']"
@@ -718,27 +699,26 @@ onBeforeUnmount(() => {
               >
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="ncBuilding" />
-                  <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
+                  <span>{{ $t('labels.addTeams') }}</span>
                 </div>
               </NcButton>
 
               <NcButton size="small" type="primary" :disabled="isLoading" data-testid="nc-add-member-btn" @click="addMembers()">
                 <div class="flex items-center gap-2">
                   <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                  <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
+                  <span>{{ $t('activity.addMembers') }}</span>
                 </div>
               </NcButton>
             </div>
           </ShellActions>
         </div>
 
-        <div class="flex-1 w-full min-h-0 flex flex-col gap-6 overflow-y-auto nc-scrollbar-thin">
+        <div class="flex-1 min-h-0 flex flex-col gap-6 overflow-y-auto nc-scrollbar-thin">
           <NcTable
             v-model:order-by="orderBy"
             :is-data-loading="isLoading"
             :columns="columns"
             :data="sortedCollaborators"
-            :bordered="false"
             :custom-row="customRow"
             disable-table-scroll
             force-sticky-header
@@ -748,31 +728,13 @@ onBeforeUnmount(() => {
             :pagination-offset="25"
           >
             <template #emptyText>
-              <a-empty :description="$t('title.noMembersFound')" />
-            </template>
-
-            <template #headerCell="{ column }">
-              <template v-if="column.key === 'select'">
-                <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
-              </template>
-              <template v-else>
-                {{ column.title }}
-              </template>
+              <ShellEmpty :title="userSearchText ? $t('title.noResultsMatchedYourSearch') : $t('title.noMembersFound')" />
             </template>
 
             <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'select'">
-                <NcCheckbox v-model:checked="selected[record.id]" />
-              </template>
-
               <template v-if="column.key === 'email' && record.isTeam">
                 <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
-                <NcBadge
-                  v-if="teamsMap[record.id]?.scope === 'org'"
-                  :border="false"
-                  color="blue"
-                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-                >
+                <NcBadge v-if="teamsMap[record.id]?.scope === 'org'" :border="false" color="blue" size="xs" class="flex-none">
                   {{ $t('general.orgBadge') }}
                 </NcBadge>
               </template>
@@ -787,19 +749,19 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                   <div class="flex gap-2 items-center">
-                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                    <NcTooltip class="truncate max-w-full text-captionBold text-nc-content-gray" show-on-truncate-only>
                       <template #title>
                         {{ record.title }}
                       </template>
                       {{ record.title }}
                     </NcTooltip>
-                    <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
+                    <NcBadge :border="false" color="purple" size="xs" class="flex-none">
                       {{ $t('general.agent') }}
                     </NcBadge>
                   </div>
                   <NcTooltip
                     v-if="record.email"
-                    class="truncate max-w-full text-xs text-nc-content-gray-subtle2"
+                    class="truncate max-w-full text-bodySm text-nc-content-gray-subtle2"
                     show-on-truncate-only
                   >
                     <template #title>
@@ -814,14 +776,14 @@ onBeforeUnmount(() => {
                 <GeneralUserIcon size="base" :user="record" class="flex-none" />
                 <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                   <div class="flex gap-3">
-                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                    <NcTooltip class="truncate max-w-full text-captionBold text-nc-content-gray" show-on-truncate-only>
                       <template #title>
                         {{ extractUserDisplayNameOrEmail(record) }}
                       </template>
                       {{ extractUserDisplayNameOrEmail(record) }}
                     </NcTooltip>
                   </div>
-                  <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
+                  <NcTooltip class="truncate max-w-full text-bodySm text-nc-content-gray-subtle2" show-on-truncate-only>
                     <template #title>
                       {{ record.email }}
                     </template>
@@ -876,7 +838,7 @@ onBeforeUnmount(() => {
               <div v-if="column.key === 'action'">
                 <NcDropdown placement="bottomRight">
                   <NcButton size="small" type="secondary">
-                    <component :is="iconMap.ncMoreVertical" />
+                    <GeneralIcon icon="threeDotVertical" />
                   </NcButton>
                   <template #overlay>
                     <NcMenu variant="small">
@@ -934,25 +896,6 @@ onBeforeUnmount(() => {
 .nc-page-header-icon {
   :deep(svg) {
     @apply h-4.5 w-4.5;
-  }
-}
-
-.nc-collaborator-table-container {
-  &:not(.nc-admin-panel) {
-    @apply h-[calc(100vh-var(--topbar-height)-44px)];
-
-    @supports (height: 100dvh) {
-      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
-    }
-  }
-
-  // Admin sidebar mode: tab bar is hidden, so no 44px subtraction
-  &.nc-is-settings-sidebar {
-    @apply h-[calc(100vh-var(--topbar-height))];
-
-    @supports (height: 100dvh) {
-      @apply h-[calc(100dvh-var(--topbar-height))];
-    }
   }
 }
 </style>

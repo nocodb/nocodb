@@ -14,7 +14,13 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'docs-permissions': 'docs-permissions',
   'syncs': 'syncs',
   'integrations': 'integrations',
+  // The old General pane, kept so `?settings=settings` links still resolve; the
+  // shell forwards it to the first of the rows that replaced it.
   'base-settings': 'settings',
+  'base-type': 'base-type',
+  'data-display': 'data-display',
+  'migrate-to-v3': 'migrate-to-v3',
+  'migrate': 'migrate',
   'audit': 'audits',
   'audits': 'audits',
   'workflows': 'workflows',

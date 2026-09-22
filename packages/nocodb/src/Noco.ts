@@ -26,6 +26,7 @@ import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration, Store } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
+import { ncStaticOptions } from '~/helpers/staticAssets';
 import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
 import { DEFAULT_APP_SETTINGS } from '~/interface/AppSettings';
 import { NC_APP_SETTINGS } from '~/constants';
@@ -249,7 +250,7 @@ export default class Noco {
     NcDebug.log('Shutdown hooks enabled');
 
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';
-    server.use(express.static(path.join(__dirname, 'public')));
+    server.use(express.static(path.join(__dirname, 'public'), ncStaticOptions));
 
     if (dashboardPath.startsWith('http')) {
       // Test/split mode: frontend runs separately, redirect browser to it.

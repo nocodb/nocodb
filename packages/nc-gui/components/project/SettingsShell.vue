@@ -188,6 +188,8 @@ watch(
     @update:visible="onVisibleChange"
   >
     <div class="nc-base-settings relative flex h-full w-full" data-testid="nc-base-settings-wrapper">
+      <ShellBack v-if="isMobileMode && !isRailOnlyOnMobile" testid="nc-base-settings-back" @back="isRailOnlyOnMobile = true" />
+
       <ShellClose testid="nc-base-settings-close" @close="onClose" />
 
       <ShellRail
@@ -219,8 +221,7 @@ watch(
           :title="meta?.title ?? ''"
           :description="meta?.description"
           :docs-href="meta?.docsHref"
-          :show-back="isMobileMode"
-          @back="isRailOnlyOnMobile = true"
+          :leading-inset="isMobileMode"
         />
 
         <div v-if="!isPaneAllowed" class="flex-1 min-h-0 flex items-center justify-center">

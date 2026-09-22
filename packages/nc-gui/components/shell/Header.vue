@@ -7,15 +7,11 @@ interface Props {
   title: string
   description?: string
   docsHref?: string
-  /** Shows the step-back control — the phone's way out of a pane to the rail. */
-  showBack?: boolean
+  /** Clears the corner back button (`ShellBack`), the way `pr-14` clears the close one. */
+  leadingInset?: boolean
 }
 
 defineProps<Props>()
-
-const emits = defineEmits<{
-  back: []
-}>()
 
 const shell = useShell()
 </script>
@@ -28,20 +24,9 @@ const shell = useShell()
 <template>
   <div
     class="flex-none flex flex-wrap items-start gap-x-4 gap-y-3 nc-shell-gutter pt-4 sm:pt-8 pb-3 pr-14 xl:pr-20"
+    :class="{ '!pl-14': leadingInset }"
     data-testid="nc-tool-header"
   >
-    <NcButton
-      v-if="showBack"
-      size="small"
-      type="text"
-      class="flex-none -ml-2 mt-0.5"
-      data-testid="nc-shell-header-back"
-      :aria-label="$t('general.back')"
-      @click="emits('back')"
-    >
-      <GeneralIcon icon="ncArrowLeft" class="!h-4 !w-4" />
-    </NcButton>
-
     <!-- `min-w-60` is what makes the row wrap: rather than squeeze the title and
          description into a column too narrow to read, the actions drop to a line
          of their own once they no longer both fit. -->

@@ -123,6 +123,16 @@ const onBackdropMouseDown = () => {
   onVisibleUpdate(false)
 }
 
+/**
+ * Ant closes on a click inside the overlay only while it owns the state —
+ * `onClick` in `vc-dropdown/Dropdown.js` guards on `visible === undefined` and
+ * otherwise just emits. Binding `isOpen` made every dropdown controlled, so that
+ * close has to happen here or a menu stays open after its item is picked.
+ */
+function onOverlayClick() {
+  if (ncIsUndefined(props.visible)) onVisibleUpdate(false)
+}
+
 // Track this dropdown's z-index level for backdrop stacking
 const backdropLevel = ref(0)
 
@@ -171,6 +181,7 @@ watch(
     :align="align"
     @update:visible="onVisibleUpdate"
     @visible-change="onVisibilityChange"
+    @overlay-click="onOverlayClick"
   >
     <slot :visible="localIsVisible" :on-change="onVisibleUpdate" />
 

@@ -523,9 +523,10 @@ export default class Source implements SourceType {
   protected assertDeletable(sources: Source[], force?: boolean) {
     if (force) return;
 
-    // Already soft-deleted: the row is on its way out, and `Source.list` caches
-    // by baseId alone, so a live list can still carry it. Nothing to protect.
-    if (this.deleted) return;
+    // Deliberately NOT skipped for an already soft-deleted source: `deleted` is
+    // settable, so an early return here would let a caller soft-delete a base's
+    // own source and then hard-delete it past this guard. A cascade that has to
+    // remove it passes `force`.
 
     // Checked first: on a single-source base the positional arm below would also
     // match, and "only source" is the accurate reason. Only live siblings count —

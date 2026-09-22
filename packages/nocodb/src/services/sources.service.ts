@@ -57,6 +57,11 @@ export class SourcesService {
     delete (baseBody as any).is_meta;
     delete (baseBody as any).is_local;
 
+    // Soft delete belongs to the delete endpoints, which guard a base's own
+    // source; `deleted` is in the model's update allow-list for them, and
+    // accepting it here would route around that guard.
+    delete (baseBody as any).deleted;
+
     validateAndNormalizeSqliteConfig(
       baseBody?.config,
       baseBody?.type ?? oldSource?.type,

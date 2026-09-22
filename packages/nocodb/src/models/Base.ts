@@ -671,7 +671,8 @@ export default class Base implements BaseType {
       ncMeta,
     );
     for (const source of sources) {
-      await source.delete(ncMeta);
+      // The base is going away, so its own source goes with it.
+      await source.delete(ncMeta, { force: true });
     }
 
     await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);

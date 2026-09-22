@@ -5,7 +5,9 @@ import {
   OrderedProjectRoles,
   OrgUserRoles,
   ProjectRoles,
+  RoleColors,
   RoleIcons,
+  RoleLabels,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles as WorkspaceUserRolesEnum,
   extractBaseRoleFromWorkspaceRole,
@@ -178,12 +180,70 @@ const baseAgentsToCollaborators = computed(() => {
   }))
 })
 
+const roleFilter = ref<string>('all')
+
+const memberFilter = ref<string>('all')
+
+// Only the roles a base can actually hand out — INHERIT is a source, not a role,
+// and App User belongs to the interface surface.
+const roleFilterOptions = computed(() => [
+  { value: 'all', label: t('labels.allRoles') },
+  ...OrderedProjectRoles.filter((role) => role !== ProjectRoles.INHERIT && role !== ProjectRoles.APP_USER).map((role) => ({
+    value: role,
+    label: t(`objects.roleType.${RoleLabels[role]}`),
+    icon: RoleIcons[role],
+    color: RoleColors[role],
+  })),
+])
+
+// Principal-type slices first, a divider, then where the role came from.
+const memberFilterOptions = computed(() => {
+  const options: Record<string, any>[] = [
+    { value: 'all', label: t('labels.allSources'), description: t('labels.baseMembersAll') },
+  ]
+
+  if (baseTeamsToCollaborators.value.length) {
+    options.push({ value: 'teams', label: t('labels.sourceTeams'), description: t('labels.baseMembersTeams') })
+  }
+
+  if (baseAgentsToCollaborators.value.length) {
+    options.push({ value: 'agents', label: t('labels.agents'), description: t('labels.baseMembersAgents') })
+  }
+
+  options.push(
+    { value: '__divider', divider: true, label: '' },
+    { value: 'direct', label: t('labels.sourceDirectGrants'), description: t('labels.baseMembersDirect') },
+    { value: 'inherited', label: t('labels.sourceFromBase'), description: t('labels.baseMembersInherited') },
+  )
+
+  return options
+})
+
+function matchesMemberFilter(collab: any) {
+  switch (memberFilter.value) {
+    case 'teams':
+      return !!collab.isTeam
+    case 'agents':
+      return !!collab.isAgent
+    case 'direct':
+      return !getInheritanceInfo(collab)
+    case 'inherited':
+      return !!getInheritanceInfo(collab)
+    default:
+      return true
+  }
+}
+
 const filteredCollaborators = computed(() => {
   const all = collaborators.value.concat(baseTeamsToCollaborators.value).concat(baseAgentsToCollaborators.value)
 
-  if (!userSearchText.value) return all
+  return all.filter((collab) => {
+    if (userSearchText.value && !searchCompare([collab.display_name, collab.email], userSearchText.value)) return false
 
-  return all.filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+    if (roleFilter.value !== 'all' && collab.roles !== roleFilter.value) return false
+
+    return matchesMemberFilter(collab)
+  })
 })
 
 const sortedCollaborators = computed(() => {
@@ -411,7 +471,7 @@ function moveInheritRole() {
 }
 
 // Helper function to determine inheritance source and effective role
-const getInheritanceInfo = (record: any) => {
+function getInheritanceInfo(record: any) {
   const baseRole = record.base_roles as ProjectRoles | null
   if (baseRole && baseRole !== ProjectRoles.INHERIT) {
     return null
@@ -678,12 +738,57 @@ onBeforeUnmount(() => {
             :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
-            class="nc-input-border-on-value !max-w-90 nc-input-sm"
+            class="nc-input-border-on-value nc-input-sm flex-1 !min-w-40 !max-w-60"
           >
             <template #prefix>
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
+
+          <!-- Narrowing controls: which role, and where the role came from. -->
+          <div class="flex-none flex items-center gap-2">
+            <NcSelect
+              v-model:value="roleFilter"
+              class="nc-base-members-filter flex-none !w-36"
+              :disabled="isLoading"
+              data-testid="nc-base-members-role-filter"
+              dropdown-class-name="nc-base-members-role-filter-dropdown"
+            >
+              <a-select-option v-for="option in roleFilterOptions" :key="option.value" :value="option.value">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon
+                    v-if="'icon' in option"
+                    :icon="option.icon"
+                    class="flex-none h-4 w-4"
+                    :class="roleColorsMapping[option.color]?.content"
+                  />
+                  <span :class="'color' in option ? roleColorsMapping[option.color]?.content : ''">{{ option.label }}</span>
+                </div>
+              </a-select-option>
+            </NcSelect>
+
+            <NcSelect
+              v-model:value="memberFilter"
+              class="nc-base-members-filter flex-none !w-36"
+              option-label-prop="label"
+              :dropdown-match-select-width="false"
+              :disabled="isLoading"
+              data-testid="nc-base-members-source-filter"
+              dropdown-class-name="nc-base-members-source-filter-dropdown"
+            >
+              <template v-for="option in memberFilterOptions" :key="option.value">
+                <a-select-option v-if="option.divider" :value="option.value" disabled class="nc-source-filter-divider">
+                  <div class="border-t-1 border-nc-border-gray-medium"></div>
+                </a-select-option>
+                <a-select-option v-else :value="option.value" :label="option.label">
+                  <div class="flex flex-col gap-0.5 py-0.5">
+                    <span>{{ option.label }}</span>
+                    <span class="text-bodySm text-nc-content-gray-subtle2">{{ option.description }}</span>
+                  </div>
+                </a-select-option>
+              </template>
+            </NcSelect>
+          </div>
 
           <ShellActions>
             <div class="flex items-center gap-2.5">
@@ -892,9 +997,29 @@ onBeforeUnmount(() => {
   @apply !rounded;
 }
 
+/* NcSelect renders its value semibold by default; a filter is not an emphasis. */
+.nc-base-members-filter {
+  :deep(.ant-select-selection-item) {
+    @apply !font-normal;
+  }
+}
+
 .nc-page-header-icon {
   :deep(svg) {
     @apply h-4.5 w-4.5;
+  }
+}
+</style>
+
+<style lang="scss">
+/* Dropdown renders in a portal — scoped styles can't reach it. */
+.nc-base-members-source-filter-dropdown {
+  .nc-source-filter-divider {
+    @apply !min-h-0 !py-1 !px-3 !cursor-default;
+
+    &.ant-select-item-option-disabled {
+      @apply !bg-transparent;
+    }
   }
 }
 </style>

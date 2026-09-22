@@ -76,7 +76,7 @@ const source = computed(() => {
 
 /** Default-source sections are stored with a null source — normalise so the
  *  menu asks for the right group. */
-const isDefaultSourceTable = computed(() => table.value?.source_id === base.value?.sources?.[0]?.id)
+const isDefaultSourceTable = computed(() => table.value?.source_id === getDefaultSource(base.value?.sources)?.id)
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)

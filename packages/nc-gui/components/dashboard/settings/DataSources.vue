@@ -48,12 +48,10 @@ const searchQuery = ref<string>('')
 
 const normalizedSearchQuery = computed(() => (searchQuery.value ?? '').toLowerCase())
 
-const isDefaultSource = (source?: SourceType | null) => !!(source?.is_meta || source?.is_local)
-
 // The base's own source, wherever it sits in the list — it is drawn as the pinned
 // "Default" row. -1 when the base has none, i.e. it was connected straight to an
 // external database and every source it has is a real one.
-const defaultSourceIndex = computed(() => sources.value.findIndex((source) => isDefaultSource(source)))
+const defaultSourceIndex = computed(() => sources.value.findIndex((source) => isDefaultBase(source)))
 
 const defaultSource = computed(() => (defaultSourceIndex.value === -1 ? null : sources.value[defaultSourceIndex.value]))
 
@@ -295,7 +293,7 @@ const openedTab = ref('erd')
 
 const isSearchResultAvailable = () => {
   return (
-    sources.value.some((source) => !isDefaultSource(source) && matchesSearchQuery(source)) ||
+    sources.value.some((source) => !isDefaultBase(source) && matchesSearchQuery(source)) ||
     (!!defaultSource.value && 'default'.includes(normalizedSearchQuery.value))
   )
 }

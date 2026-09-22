@@ -5,6 +5,26 @@ import { getI18n } from '~/plugins/a.i18n'
 const isDefaultBase = (source: SourceType) => source.is_meta
 
 /**
+ * Sources with the base's own default first. The API orders by `order`, which a
+ * legacy or repaired base does not always have set correctly, and a lot of UI
+ * reads `sources[0]` as "the base's root DB". Normalising once here keeps those
+ * readers honest; a base with no default source is returned untouched.
+ */
+const withDefaultSourceFirst = (sources?: SourceType[]) => {
+  if (!sources?.length) return []
+  const i = sources.findIndex((source) => isDefaultBase(source))
+  return i <= 0 ? [...sources] : [sources[i]!, ...sources.slice(0, i), ...sources.slice(i + 1)]
+}
+
+/**
+ * The base's own source, wherever it sits in the list. Sources are ordered by
+ * `order`, which is not guaranteed to put the default first, so callers must
+ * never assume `sources[0]`. Returns undefined when the base has none — a base
+ * created straight from an external database has only real sources.
+ */
+const getDefaultSource = (sources?: SourceType[]) => sources?.find((source) => isDefaultBase(source))
+
+/**
  * Represents the schema prompts for creating various AI base schemas.
  * Each object has a `tag` that identifies the schema type and a `description`
  * that explains its purpose.
@@ -91,7 +111,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
   Object.entries(aiBaseSchemaPromptsMap).map(([tag, description]) => [description, tag]),
 )
 
-export { isDefaultBase }
+export { isDefaultBase, getDefaultSource, withDefaultSourceFirst }
 
 export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>

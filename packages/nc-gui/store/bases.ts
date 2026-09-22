@@ -143,7 +143,7 @@ export const useBases = defineStore('basesStore', () => {
         bases.value.set(base.id!, {
           ...(bases.value.get(base.id!) || {}),
           ...base,
-          sources: [...(base.sources ?? bases.value.get(base.id!)?.sources ?? [])],
+          sources: withDefaultSourceFirst(base.sources ?? bases.value.get(base.id!)?.sources),
           isExpanded: true,
           isLoading: false,
         })

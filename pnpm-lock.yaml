@@ -176,7 +176,7 @@ overrides:
 
 patchedDependencies:
   ant-design-vue@3.2.20:
-    hash: 8eb832e948f90840410a7681d4e03d7fc48e8a789f1cdcc2c363166781b591c7
+    hash: 60728dae2fea3ada36e7f0c581e02664f6782d54d2066d9ffbfca0a24f57ffeb
     path: packages/nc-gui/.patches/ant-design-vue@3.2.20.patch
   image-size@2.0.2:
     hash: 0be8d37281eb8b7001b78cfc2772896c962ddf401b5890c9303fef84de85eaeb
@@ -374,7 +374,7 @@ importers:
         version: 6.183.0
       ant-design-vue:
         specifier: ^3.2.20
-        version: 3.2.20(patch_hash=8eb832e948f90840410a7681d4e03d7fc48e8a789f1cdcc2c363166781b591c7)(vue@3.5.14(typescript@5.8.3))
+        version: 3.2.20(patch_hash=60728dae2fea3ada36e7f0c581e02664f6782d54d2066d9ffbfca0a24f57ffeb)(vue@3.5.14(typescript@5.8.3))
       aws-amplify:
         specifier: ^5.3.27
         version: 5.3.29(encoding@0.1.13)(react-native@0.83.1(@babel/core@7.29.7)(react@19.1.0))
@@ -30072,7 +30072,7 @@ snapshots:
 
   ansis@4.3.0: {}
 
-  ant-design-vue@3.2.20(patch_hash=8eb832e948f90840410a7681d4e03d7fc48e8a789f1cdcc2c363166781b591c7)(vue@3.5.14(typescript@5.8.3)):
+  ant-design-vue@3.2.20(patch_hash=60728dae2fea3ada36e7f0c581e02664f6782d54d2066d9ffbfca0a24f57ffeb)(vue@3.5.14(typescript@5.8.3)):
     dependencies:
       '@ant-design/colors': 6.0.0
       '@ant-design/icons-vue': 6.1.0(vue@3.5.14(typescript@5.8.3))

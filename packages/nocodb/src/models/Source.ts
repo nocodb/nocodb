@@ -184,6 +184,15 @@ export default class Source implements SourceType {
       'is_encrypted',
     ]);
 
+    // Whether a source is the base's own is settled when the base is created —
+    // `Base.insert` is the only legitimate producer. Letting an update move a
+    // source onto (or off) NocoDB's internal connection both re-points it at the
+    // metadata DB and strips the delete guard below, which is how a base ends up
+    // with no source of its own. GHSA-982h closed the request path; this closes
+    // the model for every other caller.
+    delete (updateObj as any).is_meta;
+    delete (updateObj as any).is_local;
+
     if (updateObj.config) {
       this.encryptConfigIfRequired(updateObj);
     }
@@ -509,6 +518,25 @@ export default class Source implements SourceType {
     await NcConnectionMgrv2.bumpSourceVersion(this);
   }
 
+  /**
+   * A base must keep its own source, and must never be left with none.
+   *
+   * The default source is identified by its flags, never by position: `order`
+   * is not guaranteed to put it first, so the old `sources[0]` check left it
+   * unprotected on any base whose ordering had drifted.
+   */
+  protected assertDeletable(sources: Source[], force?: boolean) {
+    if (force) return;
+
+    if (this.isMeta()) {
+      NcError.badRequest("Cannot delete a base's default source");
+    }
+
+    if (!sources.some((source) => source.id !== this.id)) {
+      NcError.badRequest('Cannot delete the only source of a base');
+    }
+  }
+
   async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
     const context = this.context;
 
@@ -518,9 +546,7 @@ export default class Source implements SourceType {
       ncMeta,
     );
 
-    if ((sources[0].id === this.id || this.isMeta()) && !force) {
-      NcError.badRequest('Cannot delete first source');
-    }
+    this.assertDeletable(sources, force);
 
     const models = await Model.list(
       context,
@@ -626,9 +652,7 @@ export default class Source implements SourceType {
       ncMeta,
     );
 
-    if ((sources[0].id === this.id || this.isMeta()) && !force) {
-      NcError.badRequest('Cannot delete first base');
-    }
+    this.assertDeletable(sources, force);
 
     await Source.update(context, this.id, { deleted: true }, ncMeta);
 

@@ -738,7 +738,7 @@ onBeforeUnmount(() => {
             :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
-            class="nc-input-border-on-value nc-input-sm flex-1 !min-w-40 !max-w-60"
+            class="nc-input-border-on-value !max-w-90 nc-input-sm"
           >
             <template #prefix>
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
@@ -989,6 +989,11 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
+/* The role chip is a table cell, so it reads at the table's own size. */
+:deep(.nc-role-badge .badge-text) {
+  @apply text-bodyDefaultSm;
+}
+
 .color-band {
   @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-base-white font-weight-bold text-xs items-center;
 }
@@ -1012,7 +1017,14 @@ onBeforeUnmount(() => {
 </style>
 
 <style lang="scss">
-/* Dropdown renders in a portal — scoped styles can't reach it. */
+/* Dropdowns render in a portal — scoped styles can't reach them. */
+.nc-base-members-role-filter-dropdown,
+.nc-base-members-source-filter-dropdown {
+  .ant-select-item-option-content {
+    @apply text-bodyDefaultSm;
+  }
+}
+
 .nc-base-members-source-filter-dropdown {
   .nc-source-filter-divider {
     @apply !min-h-0 !py-1 !px-3 !cursor-default;

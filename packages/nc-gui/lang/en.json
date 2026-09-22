@@ -4943,6 +4943,7 @@
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
     "onlyCreatorsCanManageViewFolders": "Only base creators or owners can manage view folders",
     "onlyCreatorsCanManageFolders": "Only base creators or owners can manage folders",
+    "noDefaultSourceForFolders": "This base has no default source — create folders from a source's own menu instead",
     "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
     "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",

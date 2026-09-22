@@ -174,6 +174,11 @@ export function useBaseSettingsNav() {
   )
 
   // ── The nav ──────────────────────────────────────────────────────────────
+  //
+  // No `feature` on any row: the rail does not advertise what the plan withholds.
+  // A reader scanning their own settings should not meet a row of lock badges —
+  // the pane says what is locked, once, when they ask for it. (The table Tools
+  // rail does badge its rows; that is its own shipped call, not a default.)
 
   const navGroups = computed<ShellRailGroup[]>(() => {
     const groups: ShellRailGroup[] = [
@@ -202,7 +207,6 @@ export function useBaseSettingsNav() {
             testId: 'base-permissions',
             title: t('labels.baseNav.dataPermissionsNav'),
             keywords: 'permission table field column document docs visibility restrict lock access',
-            feature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
           },
           canSeeDataSources.value && {
             slug: 'data-source',
@@ -223,7 +227,6 @@ export function useBaseSettingsNav() {
             keywords: 'sync import pull schedule one-way external app hubspot jira zendesk',
             info: t('labels.baseNav.syncInfo'),
             logos: ['ncLogoHubspotColored', 'ncLogoJiraColored', 'ncLogoZendeskColored'],
-            feature: PlanFeatureTypes.FEATURE_SYNC,
           },
         ].filter(Boolean) as ShellRailGroup['items'],
       },
@@ -303,7 +306,6 @@ export function useBaseSettingsNav() {
             testId: 'base-record-trash',
             title: t('labels.baseNav.trashRetention'),
             keywords: 'trash deleted records retention days recover restore',
-            feature: PlanFeatureTypes.FEATURE_TRASH_SETTINGS,
           },
           canSeeSnapshots.value && {
             slug: 'snapshots',
@@ -328,7 +330,6 @@ export function useBaseSettingsNav() {
             testId: 'base-variables',
             title: t('labels.baseNav.variables'),
             keywords: 'variable environment secret value master inherited',
-            feature: PlanFeatureTypes.FEATURE_BASE_VARIABLES,
           },
           canSeeBaseType.value && {
             slug: 'base-type',

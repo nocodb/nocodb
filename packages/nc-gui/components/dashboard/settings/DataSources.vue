@@ -37,8 +37,6 @@ const { updateStatLimit, showExternalSourcePlanLimitExceededModal } = useEeConfi
 
 const sources = ref<SourceType[]>([])
 
-const activeBaseId = ref('')
-
 const clientType = ref<ClientType>(ClientType.MYSQL)
 
 const isReloading = ref(false)
@@ -47,6 +45,23 @@ const isDeleteBaseModalOpen = ref(false)
 const toBeDeletedBase = ref<SourceType | undefined>()
 
 const searchQuery = ref<string>('')
+
+const normalizedSearchQuery = computed(() => (searchQuery.value ?? '').toLowerCase())
+
+const isDefaultSource = (source?: SourceType | null) => !!(source?.is_meta || source?.is_local)
+
+// The base's own source, wherever it sits in the list — it is drawn as the pinned
+// "Default" row. -1 when the base has none, i.e. it was connected straight to an
+// external database and every source it has is a real one.
+const defaultSourceIndex = computed(() => sources.value.findIndex((source) => isDefaultSource(source)))
+
+const defaultSource = computed(() => (defaultSourceIndex.value === -1 ? null : sources.value[defaultSourceIndex.value]))
+
+// `alias` is null on the default source and on legacy rows, and `null?.includes()`
+// answers undefined — which reads as "no match" and hides the row for every query,
+// the empty one included.
+const matchesSearchQuery = (source?: SourceType | null) =>
+  (source?.alias ?? '').toLowerCase().includes(normalizedSearchQuery.value)
 
 async function updateIfSourceOrderIsNullOrDuplicate() {
   const sourceOrderSet = new Set()
@@ -123,12 +138,6 @@ async function loadBases(changed?: boolean) {
     vReload.value = false
     isReloading.value = false
   }
-}
-
-const baseAction = (sourceId?: string, action?: string) => {
-  if (!sourceId) return
-  activeBaseId.value = sourceId
-  vState.value = action || ''
 }
 
 const openDeleteBase = (source: SourceType) => {
@@ -286,8 +295,8 @@ const openedTab = ref('erd')
 
 const isSearchResultAvailable = () => {
   return (
-    sources.value.filter((s) => s?.alias?.toLowerCase()?.includes(searchQuery.value?.toLowerCase())).length ||
-    'default'.includes(searchQuery.value?.toLowerCase())
+    sources.value.some((source) => !isDefaultSource(source) && matchesSearchQuery(source)) ||
+    (!!defaultSource.value && 'default'.includes(normalizedSearchQuery.value))
   )
 }
 
@@ -467,32 +476,32 @@ const handleClickRow = (source: SourceType, tab?: string) => {
               handle=".ds-table-handle"
               @end="moveBase"
             >
-              <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
+              <template v-if="defaultSource && 'default'.includes(normalizedSearchQuery)" #header>
                 <div
-                  v-if="sources[0]"
+                  v-if="defaultSource"
                   class="ds-table-row border-nc-border-gray-medium cursor-pointer"
-                  @click="handleClickRow(sources[0], 'erd')"
+                  @click="handleClickRow(defaultSource, 'erd')"
                 >
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <div v-if="sources.length > 2" class="ds-table-handle" />
                       <NcTooltip>
                         <template #title>
-                          <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
+                          <template v-if="defaultSource.enabled">{{ $t('activity.hideInUI') }}</template>
                           <template v-else>{{ $t('activity.showInUI') }}</template>
                         </template>
                         <a-switch
-                          :checked="sources[0].enabled ? true : false"
+                          :checked="defaultSource.enabled ? true : false"
                           class="cursor-pointer"
                           size="small"
-                          @change="toggleBase(sources[0], $event)"
+                          @change="toggleBase(defaultSource, $event)"
                         />
                       </NcTooltip>
                     </div>
                   </div>
                   <div class="ds-table-col ds-table-name font-medium">
                     <div class="flex items-center gap-1">
-                      <!-- <GeneralBaseLogo :base-type="sources[0].type" /> -->
+                      <!-- <GeneralBaseLogo :base-type="defaultSource.type" /> -->
                       {{ $t('general.default') }}
                     </div>
                   </div>
@@ -513,23 +522,14 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                         <template #overlay>
                           <NcMenu variant="small">
                             <NcMenuItemCopyId
-                              :id="sources[0].id"
+                              :id="defaultSource.id"
                               :tooltip="$t('labels.clickToCopySourceID')"
                               :label="
                                 $t('labels.sourceIdColon', {
-                                  sourceId: sources[0].id,
+                                  sourceId: defaultSource.id,
                                 })
                               "
                             />
-
-                            <template v-if="!sources[0].is_meta && !sources[0].is_local">
-                              <NcDivider />
-
-                              <NcMenuItem @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)">
-                                <GeneralIcon icon="edit" />
-                                <span>{{ $t('general.edit') }}</span>
-                              </NcMenuItem>
-                            </template>
                           </NcMenu>
                         </template>
                       </NcDropdown>
@@ -539,10 +539,10 @@ const handleClickRow = (source: SourceType, tab?: string) => {
               </template>
               <template #item="{ element: source, index }">
                 <div
-                  v-if="index !== 0"
+                  v-if="index !== defaultSourceIndex"
                   class="ds-table-row border-nc-border-gray-medium cursor-pointer"
                   :class="{
-                    '!hidden': !source?.alias?.toLowerCase()?.includes(searchQuery.toLowerCase()),
+                    '!hidden': !matchesSearchQuery(source),
                   }"
                   @click="handleClickRow(source, 'edit')"
                 >

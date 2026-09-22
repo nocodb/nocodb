@@ -21,9 +21,18 @@ const isBaseOwnSource = (source?: SourceType) =>
  * reads `sources[0]` as "the base's root DB". Normalising once here keeps those
  * readers honest; a base with no default source is returned untouched.
  */
+const baseOwnSourceIndex = (sources?: SourceType[]) => {
+  if (!sources?.length) return -1
+  // Flagged first: `findIndex` takes the earliest match, so a legacy external
+  // source that only satisfies the heuristic must not short-circuit ahead of a
+  // source that genuinely carries the flags.
+  const flagged = sources.findIndex((source) => isDefaultBase(source))
+  return flagged !== -1 ? flagged : sources.findIndex((source) => isBaseOwnSource(source))
+}
+
 const withDefaultSourceFirst = (sources?: SourceType[]) => {
   if (!sources?.length) return []
-  const i = sources.findIndex((source) => isBaseOwnSource(source))
+  const i = baseOwnSourceIndex(sources)
   return i <= 0 ? [...sources] : [sources[i]!, ...sources.slice(0, i), ...sources.slice(i + 1)]
 }
 
@@ -114,7 +123,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
   Object.entries(aiBaseSchemaPromptsMap).map(([tag, description]) => [description, tag]),
 )
 
-export { isDefaultBase, isBaseOwnSource, withDefaultSourceFirst }
+export { isDefaultBase, isBaseOwnSource, baseOwnSourceIndex, withDefaultSourceFirst }
 
 export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>

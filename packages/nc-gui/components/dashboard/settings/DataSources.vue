@@ -51,7 +51,7 @@ const normalizedSearchQuery = computed(() => (searchQuery.value ?? '').toLowerCa
 // The base's own source, wherever it sits in the list — it is drawn as the pinned
 // "Default" row. -1 when the base has none, i.e. it was connected straight to an
 // external database and every source it has is a real one.
-const defaultSourceIndex = computed(() => sources.value.findIndex((source) => isBaseOwnSource(source)))
+const defaultSourceIndex = computed(() => baseOwnSourceIndex(sources.value))
 
 const defaultSource = computed(() => (defaultSourceIndex.value === -1 ? null : sources.value[defaultSourceIndex.value]))
 
@@ -78,14 +78,14 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
 
   // make sure default source is always first
   sources.value = sources.value.sort((a, b) => {
-    if (a.is_local || a.is_meta) return -1
-    if (b.is_local || b.is_meta) return 1
+    if (isBaseOwnSource(a)) return -1
+    if (isBaseOwnSource(b)) return 1
     return (a.order ?? 0) - (b.order ?? 0)
   })
 
   let initialOrder = 1
 
-  if (!(sources.value[0]!.is_local || sources.value[0]!.is_meta)) {
+  if (!isBaseOwnSource(sources.value[0])) {
     // If default source not found, and only one source, return
     if (sources.value.length === 1) return
 

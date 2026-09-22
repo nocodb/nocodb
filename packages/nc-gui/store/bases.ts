@@ -242,6 +242,10 @@ export const useBases = defineStore('basesStore', () => {
         // isLoading is managed by Sidebar
         isLoading: existingProject.isLoading,
         meta: { ...parseProp(existingProject.meta), ...parseProp(_project.meta) },
+        // `_project.sources` arrives in raw `order` and would otherwise overwrite
+        // the normalised list — every `loadProject(id, true)` after a source
+        // mutation would undo it.
+        sources: withDefaultSourceFirst(_project.sources ?? existingProject.sources),
       }
 
       bases.value.set(baseId, base)

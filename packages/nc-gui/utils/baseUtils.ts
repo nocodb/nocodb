@@ -8,9 +8,12 @@ const isDefaultBase = (source: SourceType) => source.is_meta
  * The base's own source. Flagged internal where the flags are set — but bases
  * exist whose default source carries neither (nothing guarantees them), so fall
  * back to the absence of an alias: that source has no name of its own, which is
- * why the UI labels it "Default". A real external source always has one.
+ * why the UI labels it "Default". Narrowed by `fk_integration_id` because
+ * `alias` is nullable and not required by BaseReq, so an external source
+ * created through the API without a name must not claim that row.
  */
-const isBaseOwnSource = (source?: SourceType) => !!source && (isDefaultBase(source) || !source.alias)
+const isBaseOwnSource = (source?: SourceType) =>
+  !!source && (isDefaultBase(source) || (!source.alias && !source.fk_integration_id))
 
 /**
  * Sources with the base's own default first. The API orders by `order`, which a

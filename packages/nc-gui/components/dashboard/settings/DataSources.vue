@@ -127,7 +127,10 @@ async function loadBases(changed?: boolean) {
     vReload.value = true
     const baseList = await $api.source.list(base.value.id as string)
     if (baseList.list && baseList.list.length) {
-      sources.value = baseList.list
+      // Normalised here too: this is the one place that reads the API rather
+      // than the store, and `moveBase` maps Draggable's DOM-child index onto
+      // this array — an alignment that only holds with the default source first.
+      sources.value = withDefaultSourceFirst(baseList.list)
     }
     await updateIfSourceOrderIsNullOrDuplicate()
   } catch (e) {

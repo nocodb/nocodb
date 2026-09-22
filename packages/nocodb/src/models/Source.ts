@@ -36,6 +36,30 @@ import {
   throwMissingContext,
 } from '~/helpers/modelContext';
 
+/**
+ * Columns an update may set. `is_meta` / `is_local` are deliberately absent:
+ * they decide whether a source resolves its connection from NocoDB's internal
+ * config, and therefore whether the delete guard applies. Both are settled by
+ * `Base.insert` at base creation and must never change afterwards — GHSA-982h
+ * closed the request path, this closes the model for every other caller.
+ */
+export const SOURCE_UPDATE_PROPS = [
+  'alias',
+  'config',
+  'type',
+  'inflection_column',
+  'inflection_table',
+  'order',
+  'enabled',
+  'meta',
+  'deleted',
+  'fk_sql_executor_id',
+  'is_schema_readonly',
+  'is_data_readonly',
+  'fk_integration_id',
+  'is_encrypted',
+];
+
 export default class Source implements SourceType {
   id?: string;
   fk_workspace_id?: string;
@@ -165,33 +189,7 @@ export default class Source implements SourceType {
 
     if (!oldSource) NcError.sourceNotFound(sourceId);
 
-    const updateObj = extractProps(source, [
-      'alias',
-      'config',
-      'type',
-      'is_meta',
-      'is_local',
-      'inflection_column',
-      'inflection_table',
-      'order',
-      'enabled',
-      'meta',
-      'deleted',
-      'fk_sql_executor_id',
-      'is_schema_readonly',
-      'is_data_readonly',
-      'fk_integration_id',
-      'is_encrypted',
-    ]);
-
-    // Whether a source is the base's own is settled when the base is created —
-    // `Base.insert` is the only legitimate producer. Letting an update move a
-    // source onto (or off) NocoDB's internal connection both re-points it at the
-    // metadata DB and strips the delete guard below, which is how a base ends up
-    // with no source of its own. GHSA-982h closed the request path; this closes
-    // the model for every other caller.
-    delete (updateObj as any).is_meta;
-    delete (updateObj as any).is_local;
+    const updateObj = extractProps(source, SOURCE_UPDATE_PROPS);
 
     if (updateObj.config) {
       this.encryptConfigIfRequired(updateObj);
@@ -528,7 +526,10 @@ export default class Source implements SourceType {
   protected assertDeletable(sources: Source[], force?: boolean) {
     if (force) return;
 
-    if (this.isMeta()) {
+    // Flags AND position: neither is reliable alone. A base's own source can
+    // carry neither flag, and `order` does not always put it first — so keep both
+    // arms rather than trade one failure mode for the other.
+    if (this.isMeta() || sources[0]?.id === this.id) {
       NcError.badRequest("Cannot delete a base's default source");
     }
 

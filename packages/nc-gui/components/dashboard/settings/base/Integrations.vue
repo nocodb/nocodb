@@ -493,15 +493,13 @@ watch(baseId, reload)
       <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Drill-in: the shell header still says "Integrations", so a bare
-                 back affordance is enough. Non-managers land here directly and
-                 have no catalogue to go back to. -->
-            <NcButton v-if="canManage" type="text" size="small" class="flex-none" @click="viewMode = 'main'">
-              <div class="flex items-center gap-1">
-                <GeneralIcon icon="ncArrowLeft" class="!h-4 !w-4" />
-                <span>{{ $t('general.integrations') }}</span>
-              </div>
-            </NcButton>
+            <!-- Hidden for non-managers: they land here directly, with no catalogue to go back to. -->
+            <ShellDrillBack
+              v-if="canManage"
+              :label="$t('general.integrations')"
+              testid="nc-integrations-connections-back"
+              @back="viewMode = 'main'"
+            />
 
             <a-input
               ref="connectionsSearchInputRef"

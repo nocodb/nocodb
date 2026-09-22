@@ -27,6 +27,8 @@ import { nocoExecute } from '~/utils';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 
+const logger = new Logger('BaseModelSqlv2');
+
 export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   const single = async (
     data,
@@ -296,6 +298,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         number,
         ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
+      // Ops that must not run until the insert is visible to other connections
+      // — see AttachmentUrlUploadPreparator. Keyed by row index like
+      // postInsertOpsMap, but drained after `trx.commit()`.
+      const postCommitOpsMap: Record<
+        number,
+        ((rowId: any) => Promise<void>)[]
+      > = {};
       const preInsertOps: ((
         trx?: Knex | Knex.Transaction,
       ) => Promise<string>)[] = [];
@@ -362,11 +371,10 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                   req: cookie,
                 },
               );
-            postInsertOpsMap[index] = [
-              ...(postInsertOpsMap[index] ?? []),
-              ...(attachmentOperations.postInsertOps ?? []),
+            postCommitOpsMap[index] = [
+              ...(postCommitOpsMap[index] ?? []),
+              ...(attachmentOperations.postCommitOps ?? []),
             ];
-            preInsertOps.push(...(attachmentOperations.preInsertOps ?? []));
           }
 
           insertDatas.push(insertObj);
@@ -582,6 +590,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         }
       }
 
+      const postCommitOps: (() => Promise<void>)[] = [];
+
       // insert nested link data for single record insertion or v3
       if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
         for (let i = 0; i < responses.length; i++) {
@@ -597,6 +607,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
             trx,
           );
+
+          // Bind the pk now (it is only resolvable here) but defer the call
+          // until after commit.
+          for (const op of postCommitOpsMap[i] ?? []) {
+            postCommitOps.push(() => op(rowId));
+          }
         }
       }
 
@@ -604,6 +620,16 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // Transaction is finalized; clear the reference so a post-commit
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
+
+      // Safe to run now that the rows are visible to other connections. These
+      // only enqueue background jobs, so a failure must not fail the insert.
+      for (const op of postCommitOps) {
+        try {
+          await op();
+        } catch (e) {
+          logger.error('Failed to dispatch post-commit op', e);
+        }
+      }
 
       if (!skip_hooks) {
         try {
@@ -637,7 +663,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             // empty `{}` where-clause, which `orWhere` no-ops — chunkList would
             // silently return the table's first N pre-existing rows instead of
             // the ones just inserted, dispatching hooks against the wrong rows.
-            new Logger('BaseModelSqlv2').warn(
+            logger.warn(
               `skipping after-insert hook dispatch for model ${baseModel.model?.id}: table has no primary key columns to re-read inserted rows by`,
             );
           } else {
@@ -670,7 +696,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           // throw). Log and continue so pk capture / statsUpdate still run.
           // The non-raw HTTP bulk path keeps throwing, preserving its 5xx.
           if (!raw) throw hookErr;
-          new Logger('BaseModelSqlv2').error(
+          logger.error(
             `after-insert hooks failed on raw insert for model ${baseModel.model?.id}: ${hookErr?.message}`,
             hookErr?.stack,
           );

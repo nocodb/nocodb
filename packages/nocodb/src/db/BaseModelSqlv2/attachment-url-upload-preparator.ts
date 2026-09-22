@@ -1,5 +1,4 @@
 import { NcApiVersion, type NcRequest } from 'nocodb-sdk';
-import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { type AttachmentUrlUploadJobData, JobTypes } from '~/interface/Jobs';
 import { EMIT_EVENT } from '~/constants';
@@ -26,16 +25,16 @@ export class AttachmentUrlUploadPreparator {
       req?: NcRequest;
     },
   ) {
-    const postInsertOps: ((
-      rowId: any,
-      trx?: Knex | Knex.Transaction,
-    ) => Promise<string>)[] = [];
-    const preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[] =
-      [];
-    const postInsertAuditOps: ((rowId: any) => Promise<void>)[] = [];
+    // Deliberately takes no `trx`: the job these ops enqueue is picked up by a
+    // worker on its own connection, so it can only see the row once the writing
+    // transaction has committed. Callers must run these AFTER commit — enqueuing
+    // from inside the transaction races the commit and, when the worker wins,
+    // its write-back matches zero rows and the cell stays `status: 'uploading'`
+    // forever.
+    const postCommitOps: ((rowId: any) => Promise<void>)[] = [];
     // return early if not v3
     if (baseModel.context.api_version !== NcApiVersion.V3) {
-      return { postInsertOps, preInsertOps, postInsertAuditOps };
+      return { postCommitOps };
     }
     for (const col of attachmentCols) {
       let attachmentData: { id?: string; url: string }[];
@@ -106,7 +105,7 @@ export class AttachmentUrlUploadPreparator {
             }
           }),
         );
-        postInsertOps.push(async (recordId) => {
+        postCommitOps.push(async (recordId) => {
           Noco.eventEmitter.emit(EMIT_EVENT.HANDLE_ATTACHMENT_URL_UPLOAD, {
             jobName: JobTypes.AttachmentUrlUpload,
             context: baseModel.context,
@@ -120,7 +119,6 @@ export class AttachmentUrlUploadPreparator {
               user: req.user,
             },
           } as AttachmentUrlUploadJobData);
-          return '';
         });
         const columnKeyName = dataWrapper(data).getColumnKeyName(col);
         // remove temp_ ids so it doesn't get recorded in audit
@@ -134,6 +132,6 @@ export class AttachmentUrlUploadPreparator {
         );
       }
     }
-    return { postInsertOps, preInsertOps, postInsertAuditOps };
+    return { postCommitOps };
   }
 }

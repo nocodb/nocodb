@@ -3019,14 +3019,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             req: request,
           },
         );
-      postInsertOps = [
-        ...(postInsertOps ?? []),
-        ...(attachmentOperations.postInsertOps ?? []),
-      ];
-      preInsertOps = [
-        ...(preInsertOps ?? []),
-        ...(attachmentOperations.preInsertOps ?? []),
-      ];
+      // Dispatched after the row lands (this path is autocommit — no trx), so
+      // the worker can see it. See AttachmentUrlUploadPreparator.
+      const postCommitOps = attachmentOperations.postCommitOps ?? [];
 
       await this.validate(insertObj, columns);
 
@@ -3227,6 +3222,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
+
+      for (const op of postCommitOps) {
+        try {
+          await op(rowId);
+        } catch (e) {
+          this.logger.error('Failed to dispatch post-commit op', e);
+        }
+      }
 
       // batch-fetch display values and write link audits
       try {
@@ -4425,7 +4428,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       const attachmentCols = columns.filter((col) => isAttachment(col));
-      let postUpdateOps: (() => Promise<string>)[] = [];
+      let postUpdateOps: (() => Promise<void>)[] = [];
 
       for (let i = 0; i < pkAndData.length; i += readChunkSize) {
         const chunk = pkAndData.slice(i, i + readChunkSize);
@@ -4472,7 +4475,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 },
               );
             postUpdateOps = postUpdateOps.concat(
-              attachmentOperation.postInsertOps.map((ops) => {
+              attachmentOperation.postCommitOps.map((ops) => {
                 return () => ops(pk);
               }),
             );
@@ -4548,7 +4551,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       if (apiVersion === NcApiVersion.V3) {
         profiler.log('postUpdateOps start');
-        await Promise.all(postUpdateOps.map((ops) => ops()));
+        await Promise.all(
+          postUpdateOps.map((ops) =>
+            ops().catch((e) =>
+              this.logger.error('Failed to dispatch post-commit op', e),
+            ),
+          ),
+        );
         profiler.log('postUpdateOps end');
       }
 

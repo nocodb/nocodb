@@ -258,7 +258,7 @@ watch(
     >
       <table
         ref="tableHeader"
-        class="w-full max-w-full"
+        class="nc-table-header-table w-full max-w-full"
         :class="{
           '!sticky top-0 z-5': stickyHeader && !disableTableScroll,
           '!sticky z-5': forceStickyHeader,
@@ -441,7 +441,11 @@ watch(
 <style lang="scss" scoped>
 .nc-table-container {
   &.bordered {
-    @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden w-full;
+    @apply border-1 border-nc-border-gray-medium rounded-lg w-full;
+    // `clip` rather than `hidden`: it still trims rows to the rounded corners but
+    // does not become a scroll container, so a sticky header can pin against the
+    // page that actually scrolls.
+    overflow: clip;
   }
 
   &:not(.bordered):not(.nc-disable-table-scroll) {

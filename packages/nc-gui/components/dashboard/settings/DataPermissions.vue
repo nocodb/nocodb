@@ -47,7 +47,12 @@ watch(
           :detail="$t('labels.baseNav.upgradeDescPermissionsTablesFields')"
           icon="ncLock"
         />
-        <DashboardSettingsPermissions v-else v-model:state="baseSettingsState" :base-id="baseId" />
+        <DashboardSettingsPermissions
+          v-else
+          v-model:state="baseSettingsState"
+          :base-id="baseId"
+          :active="activeTab === 'tables'"
+        />
       </a-tab-pane>
 
       <a-tab-pane key="docs" class="!h-full">
@@ -84,8 +89,14 @@ watch(
     @apply px-4 mb-0;
   }
 
+  // ant's content block does not stretch on its own; without this the panes
+  // have no definite height, so nothing inside them can cap or scroll.
   :deep(.ant-tabs-content-holder) {
-    @apply h-full overflow-hidden;
+    @apply flex-1 min-h-0 overflow-hidden;
+  }
+
+  :deep(.ant-tabs-content) {
+    @apply h-full;
   }
 }
 </style>

@@ -52,6 +52,9 @@ const [searchActive] = useToggle()
 
 const base = inject(ProjectInj)!
 
+// The base's own source, resolved once so every check below compares the same identity.
+const ownSourceId = computed(() => baseOwnSourceId(base.value?.sources))
+
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const enableEditModeForSource = (sourceId: string) => {
@@ -238,19 +241,16 @@ onKeyStroke('Escape', () => {
 
       <template v-else-if="base && base?.sources">
         <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-          <div v-if="base?.sources?.[0]?.enabled && base.sources[0].id === baseOwnSourceId(base.sources)" class="flex-1">
+          <div v-if="base?.sources?.[0]?.enabled && base.sources[0].id === ownSourceId" class="flex-1">
             <div class="transition-height duration-200">
               <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="0" />
             </div>
           </div>
 
-          <div
-            v-if="base?.sources?.some((el) => el.enabled && el.id !== baseOwnSourceId(base?.sources))"
-            class="transition-height duration-200"
-          >
+          <div v-if="base?.sources?.some((el) => el.enabled && el.id !== ownSourceId)" class="transition-height duration-200">
             <div class="border-none sortable-list">
               <div v-for="(source, sourceIndex) of base.sources" :key="`source-${source.id}`">
-                <template v-if="source.id === baseOwnSourceId(base.sources)"></template>
+                <template v-if="source.id === ownSourceId"></template>
                 <a-collapse
                   v-else-if="source && source.enabled"
                   v-model:active-key="activeKey"
@@ -271,7 +271,7 @@ onKeyStroke('Escape', () => {
                         }"
                       >
                         <div
-                          v-if="isBaseOwnSource(source)"
+                          v-if="source.id === ownSourceId"
                           class="source-context flex items-center gap-2 text-nc-content-gray nc-sidebar-node-title"
                           @contextmenu="setMenuContext('source', source)"
                         >

@@ -14,7 +14,9 @@ const isDefaultBase = (source: SourceType) => source.is_meta
  * deliberate: a base created with `external: true` has no internal source at
  * all, and its unnamed source is the only thing the row can describe. What must
  * not happen is such a source displacing a REAL default — `baseOwnSourceIndex`
- * prevents that by preferring a flagged source whenever one exists.
+ * prevents that by preferring a flagged source whenever one exists — which is why
+ * this stays module-private: picking THE default out of a list is `baseOwnSourceId`'s
+ * job, and every call site that tested sources one by one got it wrong.
  */
 const isBaseOwnSource = (source?: SourceType) => !!source && (isDefaultBase(source) || !source.alias)
 
@@ -137,7 +139,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
   Object.entries(aiBaseSchemaPromptsMap).map(([tag, description]) => [description, tag]),
 )
 
-export { isDefaultBase, isBaseOwnSource, baseOwnSourceIndex, baseOwnSourceId, withDefaultSourceFirst }
+export { isDefaultBase, baseOwnSourceIndex, baseOwnSourceId, withDefaultSourceFirst }
 
 export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>

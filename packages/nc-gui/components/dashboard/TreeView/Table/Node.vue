@@ -71,7 +71,8 @@ const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 const openedTableId = computed(() => route.params.viewId)
 
 // Resolve from the table itself: inside a section the node renders outside its
-// source group, where `sourceIndex` only carries the indent level.
+// source group, so `sourceIndex` is not the table's source — fall back to it only
+// when the table carries no `source_id`.
 const source = computed(() => {
   return base.value?.sources?.find((s) => s.id === table.value?.source_id) ?? base.value?.sources?.[sourceIndex.value]
 })

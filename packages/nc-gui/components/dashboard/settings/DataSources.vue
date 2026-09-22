@@ -76,16 +76,20 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
 
   if (!hasNullOrDuplicates) return
 
-  // make sure default source is always first
-  sources.value = sources.value.sort((a, b) => {
-    if (isBaseOwnSource(a)) return -1
-    if (isBaseOwnSource(b)) return 1
+  // make sure default source is always first. Compare against the one source we picked
+  // as the base's own — testing each side with the predicate makes the comparator
+  // inconsistent once two sources match it, and the order written back is persisted.
+  const ownSourceId = baseOwnSourceId(sources.value)
+
+  sources.value = [...sources.value].sort((a, b) => {
+    if (a.id === ownSourceId) return -1
+    if (b.id === ownSourceId) return 1
     return (a.order ?? 0) - (b.order ?? 0)
   })
 
   let initialOrder = 1
 
-  if (!isBaseOwnSource(sources.value[0])) {
+  if (sources.value[0]?.id !== ownSourceId) {
     // If default source not found, and only one source, return
     if (sources.value.length === 1) return
 
@@ -296,7 +300,7 @@ const openedTab = ref('erd')
 
 const isSearchResultAvailable = () => {
   return (
-    sources.value.some((source) => !isBaseOwnSource(source) && matchesSearchQuery(source)) ||
+    sources.value.some((source) => source.id !== defaultSource.value?.id && matchesSearchQuery(source)) ||
     (!!defaultSource.value && 'default'.includes(normalizedSearchQuery.value))
   )
 }

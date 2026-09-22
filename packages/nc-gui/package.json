@@ -22,6 +22,7 @@
   "scripts": {
     "dev": "nuxt dev",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
+    "lint:i18n": "eloqnt lint",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "nuxt prepare"
   },
@@ -168,6 +169,8 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.26.3",
+    "@eloqnt/cli": "^0.6.29",
+    "@eloqnt/format-vue-i18n-json": "^0.0.6",
     "@iconify-json/ant-design": "^1.2.5",
     "@iconify-json/bi": "^1.2.2",
     "@iconify-json/carbon": "^1.2.6",

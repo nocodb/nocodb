@@ -467,6 +467,7 @@ export function useBaseSettingsNav() {
       'migrate': {
         title: t('labels.baseNav.migrateToCloud'),
         description: t('labels.baseNav.desc.migrateToCloud'),
+        docsHref: 'https://nocodb.com/docs/product/account-settings/cloud-enterprise-edition/oss-to-enterprise-migration',
       },
     }
 

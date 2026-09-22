@@ -51,14 +51,17 @@ onMounted(async () => {
 <template>
   <!-- Title and description live in the shell header. -->
   <div data-testid="nc-settings-subtab-migrate" class="flex flex-col h-full px-20 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
-    <div class="flex flex-col w-full max-w-3xl border-1 rounded-lg border-nc-border-gray-medium px-3 py-3 gap-3">
+    <div class="flex flex-col w-full max-w-3xl gap-6">
+      <!-- No card: it would be a box around a single field. -->
       <div class="flex flex-col gap-1.5">
         <label class="text-bodyDefaultSm font-medium text-nc-content-gray">{{ $t('labels.migrationUrl') }}</label>
         <a-input
           v-model:value="migrateConfiguration.migrationUrl"
           class="nc-input-sm !rounded-lg nc-input-api-key"
           :placeholder="$t('placeholder.migrationUrl')"
+          @press-enter="migrateConfiguration.migrationUrl && migrateData()"
         />
+        <div class="text-bodySm text-nc-content-gray-muted">{{ $t('labels.migrationUrlHint') }}</div>
       </div>
 
       <div>
@@ -67,6 +70,7 @@ onMounted(async () => {
           size="small"
           :loading="migrating"
           :disabled="!migrateConfiguration.migrationUrl"
+          data-testid="nc-migrate-btn"
           @click="migrateData"
         >
           {{ $t('general.migrate') }}

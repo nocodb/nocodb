@@ -1946,6 +1946,7 @@
     "newApiToken": "New Token",
     "noMcpConnectionsYet": "No MCP connections yet",
     "migrationUrl": "Migration URL",
+    "migrationUrlHint": "On the destination instance, open Import and choose Generate & Copy URL, then paste it here.",
     "newSubDocument": "New sub-document",
     "subDocuments": "Sub documents",
     "moveToRoot": "Move to root",

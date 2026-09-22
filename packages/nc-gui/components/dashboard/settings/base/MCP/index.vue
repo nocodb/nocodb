@@ -194,14 +194,15 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
       </NcButton>
     </ShellActions>
 
-    <div class="flex-1 min-h-0 overflow-auto">
+    <div class="flex-1 min-h-0 flex flex-col">
       <NcTable
         v-model:order-by="orderBy"
+        hide-on-empty
         :columns="columns"
         header-row-height="54px"
         row-height="54px"
         :data="sortedMcpTokens"
-        class="h-full w-full"
+        class="max-h-full min-h-0 w-full"
         body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
         @row-click="handleOpenTokenModal"
       >

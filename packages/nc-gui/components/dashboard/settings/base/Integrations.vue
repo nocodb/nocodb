@@ -514,9 +514,10 @@ watch(baseId, reload)
           </ShellActions>
         </div>
 
-        <div class="flex-1 overflow-auto">
+        <div class="flex-1 min-h-0 flex flex-col">
           <NcTable
             v-model:order-by="orderBy"
+            hide-on-empty
             :columns="linkedColumns"
             :data="filteredAllConnections"
             :is-data-loading="isLoading"
@@ -524,7 +525,7 @@ watch(baseId, reload)
             sticky-first-column
             row-height="54px"
             header-row-height="54px"
-            class="h-full w-full"
+            class="max-h-full min-h-0 w-full"
           >
             <template #bodyCell="{ column, record: integration }">
               <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">

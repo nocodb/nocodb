@@ -245,15 +245,16 @@ const onCreateCancel = () => {
           </NcButton>
         </ShellActions>
 
-        <div class="flex-1 min-h-0 overflow-auto" :class="{ 'mt-6': !lockedBaseId }">
+        <div class="flex-1 min-h-0 flex flex-col" :class="{ 'mt-6': !lockedBaseId }">
           <NcTable
+            hide-on-empty
             :columns="columns"
             :data="tokens"
             :is-data-loading="isLoadingAllTokens"
             :custom-row="customRow"
             row-height="54px"
             header-row-height="54px"
-            class="h-full w-full"
+            class="max-h-full min-h-0 w-full"
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'name'">

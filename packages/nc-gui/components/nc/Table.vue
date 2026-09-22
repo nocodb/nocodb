@@ -25,6 +25,8 @@ interface Props {
   pagination?: boolean
   paginationOffset?: number
   tableToolbarClassName?: string
+  /** With no rows and nothing loading, render only the empty state — no header, no border. */
+  hideOnEmpty?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,9 +50,12 @@ const props = withDefaults(defineProps<Props>(), {
   pagination: false,
   paginationOffset: 10,
   tableToolbarClassName: '',
+  hideOnEmpty: false,
 })
 
 const emit = defineEmits(['update:orderBy', 'rowClick'])
+
+const isEmptyOnly = computed(() => props.hideOnEmpty && !props.isDataLoading && !props.data?.length)
 
 const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
 
@@ -215,7 +220,9 @@ watch(
   <div
     class="nc-table-container relative"
     :class="{
-      bordered,
+      'bordered': bordered && !isEmptyOnly,
+      // A content-height table still centres its empty state in the host.
+      'h-full': isEmptyOnly,
       'nc-disable-table-scroll': disableTableScroll,
       'min-h-120': isDataLoading,
     }"
@@ -236,6 +243,7 @@ watch(
     </template>
 
     <div
+      v-if="!isEmptyOnly"
       ref="tableWrapper"
       class="nc-table-wrapper relative"
       :class="{
@@ -395,9 +403,9 @@ watch(
     <div
       v-if="!isDataLoading && !data?.length"
       class="flex-none nc-table-empty flex items-center justify-center py-8 px-6 h-full"
-      :style="{
-        maxHeight: `calc(100% - ${headerRowHeight} - ${tableToolbarHeight + tableFooterHeight}px)`,
-      }"
+      :style="
+        isEmptyOnly ? undefined : { maxHeight: `calc(100% - ${headerRowHeight} - ${tableToolbarHeight + tableFooterHeight}px)` }
+      "
     >
       <div class="flex-none text-center flex flex-col items-center gap-3">
         <slot name="emptyText">

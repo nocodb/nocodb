@@ -129,7 +129,8 @@ const onSearchEnter = () => {
     class="nc-shell-rail flex-none w-61 flex flex-col bg-nc-bg-gray-extralight border-r-1 border-nc-border-gray-medium"
     :data-testid="testidPrefix"
   >
-    <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-3 pt-5 pb-4">
+    <!-- Subject and search stay put; only the rows scroll. -->
+    <div class="flex-none px-3 pt-5 pb-3">
       <!-- Names the subject being configured, so the modal always states what these panes belong to. -->
       <div v-if="$slots.subject" class="nc-shell-rail-subject">
         <slot name="subject" />
@@ -137,7 +138,7 @@ const onSearchEnter = () => {
 
       <a-input
         v-model:value="search"
-        class="nc-shell-rail-search !h-8 !rounded-lg mb-3"
+        class="nc-shell-rail-search !h-8 !rounded-lg"
         :placeholder="searchPlaceholder ?? $t('placeholder.searchTools')"
         allow-clear
         :data-testid="`${testidPrefix}-search`"
@@ -147,7 +148,9 @@ const onSearchEnter = () => {
           <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-nc-content-gray-muted" />
         </template>
       </a-input>
+    </div>
 
+    <div class="flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin px-3 pb-4">
       <div
         v-if="!hasMatches"
         class="px-2.5 py-2 text-bodyDefaultSm text-nc-content-gray-muted"

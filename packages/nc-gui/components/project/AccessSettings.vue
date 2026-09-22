@@ -713,16 +713,15 @@ onBeforeUnmount(() => {
           </ShellActions>
         </div>
 
-        <div class="flex-1 min-h-0 flex flex-col gap-6 overflow-y-auto nc-scrollbar-thin">
+        <div class="flex-1 min-h-0 flex flex-col gap-6">
           <NcTable
             v-model:order-by="orderBy"
+            hide-on-empty
             :is-data-loading="isLoading"
             :columns="columns"
             :data="sortedCollaborators"
             :custom-row="customRow"
-            disable-table-scroll
-            force-sticky-header
-            class="nc-collaborators-list max-w-full"
+            class="nc-collaborators-list max-h-full min-h-0 max-w-full"
             body-row-class-name="!cursor-default"
             :pagination="true"
             :pagination-offset="25"

@@ -290,7 +290,7 @@ onMounted(async () => {
       <div
         v-else
         class="w-full"
-        :class="lockedBaseId ? 'flex-1 min-h-0 overflow-auto nc-scrollbar-thin' : 'max-w-202 mx-auto h-full'"
+        :class="lockedBaseId ? 'flex-1 min-h-0 flex flex-col' : 'max-w-202 mx-auto h-full'"
         data-testid="nc-mcp-list"
       >
         <!-- Shell: the title lives in the header band, the primary action in its action zone. -->
@@ -359,12 +359,13 @@ onMounted(async () => {
         <NcTable
           v-else
           v-model:order-by="orderBy"
+          :hide-on-empty="!!lockedBaseId"
           :columns="columns"
           :header-row-height="lockedBaseId ? '54px' : '44px'"
           :row-height="lockedBaseId ? '54px' : '44px'"
           :data="sortedMcpTokens"
           :is-data-loading="!!lockedBaseId && isLoading"
-          class="h-full w-full"
+          class="max-h-full min-h-0 w-full"
           :class="{ 'mt-6': !lockedBaseId }"
           body-row-class-name="nc-account-mcp-token-item group no-border-last cursor-pointer"
           @row-click="openRow"

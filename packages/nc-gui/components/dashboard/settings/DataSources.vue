@@ -658,7 +658,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 <style scoped lang="scss">
 /* Mirrors NcTable (bordered card, 54px rows); kept as a div grid so rows stay draggable. */
 .ds-table {
-  @apply h-full border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
+  @apply max-h-full min-h-0 border-1 border-nc-border-gray-medium rounded-lg;
 }
 
 .ds-table-head {

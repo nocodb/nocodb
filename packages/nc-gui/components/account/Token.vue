@@ -262,7 +262,7 @@ const onCreateCancel = () => {
                   <NcTooltip
                     :title="record.description"
                     show-on-truncate-only
-                    class="text-captionBold text-nc-content-gray truncate"
+                    class="text-captionMedium text-nc-content-gray truncate"
                   >
                     {{ record.description }}
                   </NcTooltip>

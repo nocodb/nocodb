@@ -374,7 +374,7 @@ onMounted(async () => {
             <template v-if="column.key === 'name'">
               <NcTooltip
                 class="truncate w-full text-nc-content-gray"
-                :class="lockedBaseId ? 'text-captionBold' : 'font-semibold text-sm'"
+                :class="lockedBaseId ? 'text-captionMedium' : 'font-semibold text-sm'"
               >
                 {{ token.title }}
 

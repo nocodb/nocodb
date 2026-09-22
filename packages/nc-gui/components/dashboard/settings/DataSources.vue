@@ -4,7 +4,8 @@ import { PlanLimitTypes, type SourceType } from 'nocodb-sdk'
 import { ClientType, DataSourcesSubTab } from '#imports'
 
 interface Props {
-  state: string
+  /** Which sub-view is open. Optional: the shell hosts this pane without binding it. */
+  state?: string
   baseId: string
   reload?: boolean
 }
@@ -13,7 +14,9 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:state', 'update:reload'])
 
-const vState = useVModel(props, 'state', emits)
+// `passive` keeps a local copy in step with the prop, so "New Data Source" still
+// opens when no host is listening for the update.
+const vState = useVModel(props, 'state', emits, { passive: true, defaultValue: '' })
 
 const vReload = useVModel(props, 'reload', emits)
 
@@ -482,10 +485,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                           <template v-if="defaultSource.enabled">{{ $t('activity.hideInUI') }}</template>
                           <template v-else>{{ $t('activity.showInUI') }}</template>
                         </template>
-                        <a-switch
+                        <NcSwitch
                           :checked="defaultSource.enabled ? true : false"
-                          class="cursor-pointer"
-                          size="small"
+                          size="xsmall"
                           @change="toggleBase(defaultSource, $event)"
                         />
                       </NcTooltip>
@@ -537,12 +539,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                           <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
                           <template v-else>{{ $t('activity.showInUI') }}</template>
                         </template>
-                        <a-switch
-                          :checked="source.enabled ? true : false"
-                          class="cursor-pointer"
-                          size="small"
-                          @change="toggleBase(source, $event)"
-                        />
+                        <NcSwitch :checked="source.enabled ? true : false" size="xsmall" @change="toggleBase(source, $event)" />
                       </NcTooltip>
                     </div>
                   </div>
@@ -673,7 +670,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
   }
 
   .ds-table-name {
-    @apply text-captionBold text-nc-content-gray;
+    @apply text-captionMedium text-nc-content-gray;
   }
 
   .ds-table-row:hover {

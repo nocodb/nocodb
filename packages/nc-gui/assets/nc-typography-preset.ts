@@ -15,6 +15,7 @@ const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?
   bodySm: ['12px', { lineHeight: '18px', fontWeight: 500 }],
   bodySmBold: ['12px', { lineHeight: '18px', fontWeight: 700 }],
   caption: ['14px', { lineHeight: '20px', fontWeight: 500 }],
+  captionMedium: ['14px', { lineHeight: '20px', fontWeight: 600 }],
   captionBold: ['14px', { lineHeight: '20px', fontWeight: 700 }],
   captionSm: ['12px', { lineHeight: '14px', fontWeight: 500 }],
   captionSmBold: ['12px', { lineHeight: '14px', fontWeight: 700 }],

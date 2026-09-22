@@ -20,7 +20,7 @@ const emits = defineEmits<{
 </script>
 
 <template>
-  <div class="flex-none flex items-start gap-4 px-20 pt-5 pb-3" data-testid="nc-tool-header">
+  <div class="flex-none flex items-start gap-4 px-20 pt-8 pb-3" data-testid="nc-tool-header">
     <div class="flex-1 min-w-0">
       <div class="text-xl font-semibold leading-7 text-nc-content-gray-extreme truncate">{{ title }}</div>
       <div v-if="description || docsHref" class="mt-0.5 text-sm leading-5 text-nc-content-gray-muted">

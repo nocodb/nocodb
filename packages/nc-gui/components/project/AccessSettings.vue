@@ -748,7 +748,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                   <div class="flex gap-2 items-center">
-                    <NcTooltip class="truncate max-w-full text-captionBold text-nc-content-gray" show-on-truncate-only>
+                    <NcTooltip class="truncate max-w-full text-captionMedium text-nc-content-gray" show-on-truncate-only>
                       <template #title>
                         {{ record.title }}
                       </template>
@@ -775,7 +775,7 @@ onBeforeUnmount(() => {
                 <GeneralUserIcon size="base" :user="record" class="flex-none" />
                 <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                   <div class="flex gap-3">
-                    <NcTooltip class="truncate max-w-full text-captionBold text-nc-content-gray" show-on-truncate-only>
+                    <NcTooltip class="truncate max-w-full text-captionMedium text-nc-content-gray" show-on-truncate-only>
                       <template #title>
                         {{ extractUserDisplayNameOrEmail(record) }}
                       </template>

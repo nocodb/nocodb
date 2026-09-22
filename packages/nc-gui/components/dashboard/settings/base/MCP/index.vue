@@ -208,7 +208,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
       >
         <template #bodyCell="{ column, record: token }">
           <template v-if="column.key === 'name'">
-            <NcTooltip v-if="!token.isNew" class="truncate w-full text-captionBold text-nc-content-gray">
+            <NcTooltip v-if="!token.isNew" class="truncate w-full text-captionMedium text-nc-content-gray">
               {{ token.title }}
 
               <template #title>

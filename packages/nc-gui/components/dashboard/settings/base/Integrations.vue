@@ -544,7 +544,7 @@ watch(baseId, reload)
           >
             <template #bodyCell="{ column, record: integration }">
               <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
-                <NcTooltip placement="bottom" class="truncate text-captionBold text-nc-content-gray" show-on-truncate-only>
+                <NcTooltip placement="bottom" class="truncate text-captionMedium text-nc-content-gray" show-on-truncate-only>
                   <template #title>{{ integration.title }}</template>
                   {{ integration.title }}
                 </NcTooltip>

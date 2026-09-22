@@ -6548,6 +6548,11 @@
     "disableTrashConfirm": "All existing trashed records for \"{table}\" will be permanently deleted and cannot be recovered. New deletes will skip Trash.",
     "settingsUpdated": "Trash settings updated",
     "notAvailableExternal": "Trash is not available for tables in external sources.",
+    "unavailableExternal": "External source",
+    "unavailablePending": "Setting up",
+    "usingDefault": "{value} (default)",
+    "keptForever": "Forever",
+    "notKept": "Not kept",
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",

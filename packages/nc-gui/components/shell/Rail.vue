@@ -263,14 +263,16 @@ const onSearchEnter = () => {
   @apply mt-3 pt-4 border-t border-nc-border-gray-medium;
 }
 
-// The client marks sit at the row's right edge as an invitation to connect.
-// Grey at rest so a row full of brand colour doesn't shout over its own label,
-// then they bloom into colour when the row is hovered or active.
+// The client marks are an invitation to connect, not part of the row's resting
+// state: the rail reads as plain icon + label like every other shell rail, and
+// the marks bloom in when the row is hovered or active. They keep their place in
+// the flow while hidden, so revealing them never reflows the label.
 .nc-shell-rail-logos {
   @apply flex items-center flex-none;
-  filter: grayscale(1);
-  opacity: 0.7;
-  transition: filter 200ms ease, opacity 200ms ease;
+  opacity: 0;
+  // 200ms matches NcSidebarMenuItem's own transition-all, so the marks arrive in
+  // step with the row surface rather than ahead of it.
+  transition: opacity 200ms ease;
 }
 
 // Each mark gets its own chip so the overlap reads as a stack — these logos are
@@ -317,7 +319,6 @@ const onSearchEnter = () => {
 
 .nc-shell-rail-item:hover .nc-shell-rail-logos,
 .nc-shell-rail-item.active .nc-shell-rail-logos {
-  filter: grayscale(0);
   opacity: 1;
 }
 

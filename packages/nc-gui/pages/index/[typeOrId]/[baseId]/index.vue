@@ -16,7 +16,7 @@ const baseStore = useBase()
 
 const { loadProject } = baseStore
 
-const { base } = storeToRefs(baseStore)
+const { base, isSharedBase } = storeToRefs(baseStore)
 
 provide(ProjectInj, base)
 
@@ -112,7 +112,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
  * (the agent page drives its own panel off `?settings=true`), so an unknown
  * value has to mean "not for us" rather than falling back to a pane.
  */
-const settingsTab = computed(() => resolveBaseSettingsTab(route.query.settings))
+const settingsTab = computed(() => {
+  // A shared-base visitor has no settings to reach: every row is gated off and
+  // the shell would open on an empty rail.
+  if (isSharedBase.value) return null
+
+  return resolveBaseSettingsTab(route.query.settings)
+})
 </script>
 
 <template>

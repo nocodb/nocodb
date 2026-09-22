@@ -82,6 +82,8 @@ const { activeProjectId } = storeToRefs(useBases())
 
 const { baseUrl } = useBase()
 
+const openBaseSettingsLink = useBaseSettingsLink()
+
 const { $e } = useNuxtApp()
 
 const isOptionsOpen = ref(false)
@@ -397,11 +399,11 @@ watch(
 )
 
 const openBaseSettings = async (baseId: string) => {
-  await navigateTo(`/nc/${baseId}/settings/settings`)
+  await openBaseSettingsLink('base-settings', { baseId })
 }
 
 const openMcpSettings = async (baseId: string) => {
-  await navigateTo(`/nc/${baseId}/settings/mcp`)
+  await openBaseSettingsLink('mcp', { baseId })
 }
 
 const showNodeTooltip = ref(true)

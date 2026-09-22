@@ -24,7 +24,6 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'audit': 'audits',
   'audits': 'audits',
   'workflows': 'workflows',
-  'overview': 'overview',
   'mcp': 'mcp',
   'api-tokens': 'api-tokens',
   'record-trash': 'record-trash',
@@ -143,7 +142,15 @@ export const wsSettingsSlugToTab: Record<string, string> = Object.fromEntries(
   Object.entries(wsSettingsTabToSlug).map(([k, v]) => [v, k]),
 )
 
-export const settingsSlugToTab: Record<string, string> = {
-  ...baseSettingsSlugToTab,
-  ...wsSettingsSlugToTab,
+/**
+ * The internal tab a `?settings=` value names, or null when it names none.
+ *
+ * `?settings` is not the base settings shell's alone — the agent page drives its
+ * own panel off `?settings=true` — so every reader has to reject a value it does
+ * not recognise rather than fall back to a default pane.
+ */
+export function resolveBaseSettingsTab(slug: unknown): string | null {
+  if (typeof slug !== 'string') return null
+
+  return baseSettingsSlugToTab[slug] ?? null
 }

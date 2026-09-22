@@ -661,6 +661,7 @@
     "unread": "Unread",
     "shared": "Shared",
     "organization": "Organization",
+    "orgBadge": "Org",
     "all": "All",
     "billing": "Billing",
     "plan": "Plan",
@@ -4472,7 +4473,6 @@
         "snapshots": "Restorable copies of this base.",
         "aiSkills": "Instructions the AI assistant follows in this base.",
         "variables": "Reusable values for automations and fields.",
-        "general": "Base type, visibility, and how empty values are treated.",
         "migrateToV3": "Upgrade this base to the v3 platform and APIs.",
         "migrateToCloud": "Move this base's data to NocoDB Cloud."
       }

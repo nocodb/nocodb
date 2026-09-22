@@ -310,8 +310,11 @@ const handleOpenBookmarkPanel = () => {
 }
 
 // Base settings is an overlay on the current route rather than a route of its
-// own, so the tile reads the query alongside the workspace-settings page.
-const isSettingsActive = computed(() => activeSidebarTab.value === 'settings' || !!route.value.query.settings)
+// own, so the tile reads the query alongside the workspace-settings page. Only a
+// slug the nav knows counts — `?settings=true` belongs to the agent panel.
+const isSettingsActive = computed(
+  () => activeSidebarTab.value === 'settings' || !!resolveBaseSettingsTab(route.value.query.settings),
+)
 </script>
 
 <template>

@@ -12,22 +12,20 @@ export interface BaseSettingsPaneMeta {
  * The base settings nav, as data.
  *
  * One source for the rail's rows, the header band's copy and the guard that
- * bounces a deep link to a pane this role or plan cannot reach — the three used
- * to be spread across `BaseSettingsMenu.vue` (rows) and `project/View.vue`
- * (panes) and had drifted apart.
+ * bounces a deep link to a pane this role or plan cannot reach. Those three used
+ * to live in separate files — the sidebar menu owned the rows, the settings page
+ * owned the panes — and had drifted apart on which gate each applied.
  */
 export function useBaseSettingsNav() {
   const { t } = useI18n()
 
-  const { isUIAllowed, environmentRestrictionReason } = useRoles()
+  const { isUIAllowed, environmentRestrictionReason, baseRoles } = useRoles()
 
   const { isMobileMode } = useGlobal()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { isSharedBase } = storeToRefs(useBase())
-
-  const { base } = storeToRefs(useBase())
+  const { isSharedBase, base, listingManagedAppId } = storeToRefs(useBase())
 
   const { apps, isAppsEnabled } = storeToRefs(useAppStore())
 
@@ -57,7 +55,10 @@ export function useBaseSettingsNav() {
   // but its owner still has to address, staff and connect their own instance.
   const isAppInstall = computed(() => !!base.value?.managed_app_id && !base.value?.managed_app_master)
 
-  const isAppListing = computed(() => !!base.value?.managed_app_id && !!base.value?.managed_app_master)
+  // Resolved through Production when standing in a lane: a listing locks
+  // Production, so the lane is where the publisher works and the lane's own row
+  // carries neither `managed_app_id` nor `managed_app_master`.
+  const isAppListing = computed(() => !!listingManagedAppId.value)
 
   // Publishing opens a lane, and an open lane restricts `appCreateOrEdit` on
   // Production — so without the restriction check this section disappears from
@@ -85,10 +86,19 @@ export function useBaseSettingsNav() {
 
   // ── Per-pane gates ───────────────────────────────────────────────────────
 
-  const canSeeMembers = computed(() => isUIAllowed('newUser') && !isSharedBase.value)
+  // Scoped to the base's own roles, not `allRoles`: a workspace role must not
+  // satisfy a base-level gate here. `ee/lib/acl.ts` grants the viewer catalog on
+  // the base roles precisely because these two surfaces ask this way, so a bare
+  // check would let a workspace owner with no standing on a private base in.
+  const canSeeMembers = computed(() => isUIAllowed('newUser', { roles: baseRoles.value }) && !isSharedBase.value)
 
   const canSeeInterfaceMembers = computed(
-    () => isEeUI && showEEFeatures.value && !hideInterfaces.value && isUIAllowed('interfaceUsersMatrix') && !!base.value?.id,
+    () =>
+      isEeUI &&
+      showEEFeatures.value &&
+      !hideInterfaces.value &&
+      isUIAllowed('interfaceUsersMatrix', { roles: baseRoles.value }) &&
+      !!base.value?.id,
   )
 
   const canSeePermissions = computed(() => isEeUI && showEEFeatures.value && isUIAllowed('sourceCreate') && !!base.value?.id)

@@ -59,6 +59,17 @@ const meta = computed(() => paneMeta.value[props.tab] ?? paneMeta.value[railActi
 
 const baseId = computed(() => base.value?.id)
 
+/**
+ * The rail's reachable set is the pane's gate too.
+ *
+ * Panes load on mount, so a pane the reader cannot reach must never mount —
+ * bouncing it afterwards is a round of 403s too late. That also covers the case
+ * the bounce below cannot: with nothing reachable at all, `firstAvailableTab`
+ * falls back to `collaborator`, and the bounce to a tab we are already on is a
+ * no-op.
+ */
+const isPaneAllowed = computed(() => isBaseRolesLoaded.value && availableTabs.value.has(railActive.value))
+
 function goToTab(tab: string) {
   if (tab === props.tab) return
 
@@ -120,6 +131,14 @@ watch(
       return
     }
 
+    // A reader with no reachable pane has no settings to be in — a shared-base
+    // visitor, or a base viewer on mobile, where every row but Members carries a
+    // `!isMobileMode` gate. Closing beats sitting on an empty rail.
+    if (!availableTabs.value.size) {
+      onClose()
+      return
+    }
+
     // Bounce a deep link this role, edition or plan cannot reach — including the
     // docs-permissions slug, which rides on the Data Permissions row.
     if (!availableTabs.value.has(railActive.value)) {
@@ -173,7 +192,11 @@ watch(
           @close="onClose"
         />
 
-        <div class="flex-1 min-h-0">
+        <div v-if="!isPaneAllowed" class="flex-1 min-h-0 flex items-center justify-center">
+          <GeneralLoader size="xlarge" />
+        </div>
+
+        <div v-else class="flex-1 min-h-0">
           <ProjectAccessSettings v-if="tab === 'collaborator'" :base-id="baseId" />
 
           <ProjectInterfaceMembers v-else-if="tab === 'interface-members'" />

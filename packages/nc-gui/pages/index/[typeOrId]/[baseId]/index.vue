@@ -105,14 +105,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-/** `?settings={slug}` is what opens the base settings shell over this route. */
-const settingsTab = computed(() => {
-  const slug = route.query.settings
-
-  if (!ncIsString(slug)) return null
-
-  return baseSettingsSlugToTab[slug] || 'collaborator'
-})
+/**
+ * `?settings={slug}` is what opens the base settings shell over this route.
+ *
+ * Only a slug the nav actually knows counts — `?settings` is not ours alone
+ * (the agent page drives its own panel off `?settings=true`), so an unknown
+ * value has to mean "not for us" rather than falling back to a pane.
+ */
+const settingsTab = computed(() => resolveBaseSettingsTab(route.query.settings))
 </script>
 
 <template>

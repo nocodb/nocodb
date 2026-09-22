@@ -1,7 +1,9 @@
 import { message } from 'ant-design-vue'
 
-/** Where `ShellActions` teleports a pane's action row: the header band's action zone. */
-export const SHELL_ACTIONS_TARGET = '#nc-shell-actions'
+// Two shells can be mounted at once — base settings opens over a table's Tools
+// modal — so the teleport target is per shell. A shared DOM id would land one
+// shell's pane actions in whichever header the document happened to hold first.
+let shellSeq = 0
 
 /**
  * A registration that an editing pane hands to its shell so the single, unified
@@ -21,6 +23,9 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
   const { t } = useI18n()
 
   const registration = shallowRef<ShellSaveRegistration | null>(null)
+
+  /** The id of this shell's header action zone, for `ShellActions` to teleport into. */
+  const actionsTargetId = `nc-shell-actions-${++shellSeq}`
 
   /**
    * A pane that drills in registers how to step back out. Escape then unwinds
@@ -74,6 +79,7 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
   }
 
   return {
+    actionsTargetId,
     hasSaveBar,
     isDirty,
     isSaving,

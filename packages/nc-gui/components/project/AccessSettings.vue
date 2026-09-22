@@ -18,7 +18,7 @@ const props = defineProps<{
   baseId?: string
 }>()
 
-const router = useRouter()
+const openBaseSettings = useBaseSettingsLink()
 
 const { user, ncNavigateTo } = useGlobal()
 
@@ -616,14 +616,10 @@ const isDeleteOrUpdateAllowed = (user) => {
   return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
 }
 
+// Straight to the Base Type row. The old `?page=base-settings&tab=baseType` form
+// only landed there by accident: the redirect middleware drops `tab`.
 const goToBaseSettings = () => {
-  router.push({
-    query: {
-      ...router.currentRoute.value.query,
-      page: 'base-settings',
-      tab: 'baseType',
-    },
-  })
+  openBaseSettings('base-type')
 }
 
 watch(projectPageTab, () => {

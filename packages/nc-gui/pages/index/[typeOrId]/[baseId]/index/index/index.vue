@@ -144,8 +144,17 @@ watch(
     () => activeTables.value.length,
     () => isUIAllowed('projectOverviewTab'),
     () => route.value.query.openTable === 'true',
+    () => !!resolveBaseSettingsTab(route.value.query.settings),
   ],
-  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newOpenTable]) => {
+  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newOpenTable, isSettingsOpen]) => {
+    // Base settings is an overlay carried by `?settings=`, and opening a table
+    // navigates by path with no query — auto-opening one here would strip the
+    // param and close the modal before it ever painted. Hold until it closes.
+    if (isSettingsOpen) {
+      hideEmptySkeleton()
+      return
+    }
+
     // If no tables are active or if new sidebar is not enabled then return
     if (!newActiveTablesLength || !activeTables.value[0]?.base_id) {
       hideEmptySkeleton()

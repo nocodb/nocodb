@@ -17,6 +17,8 @@ withDefaults(defineProps<Props>(), {
 const emits = defineEmits<{
   close: []
 }>()
+
+const shell = useShell()
 </script>
 
 <template>
@@ -42,7 +44,7 @@ const emits = defineEmits<{
       <slot name="actions" />
 
       <!-- Where panes land their own action rows, via `ShellActions`. -->
-      <div id="nc-shell-actions" class="flex items-center gap-2.5 empty:hidden" />
+      <div v-if="shell" :id="shell.actionsTargetId" class="flex items-center gap-2.5 empty:hidden" />
 
       <div class="h-5 w-px bg-nc-border-gray-medium" />
 

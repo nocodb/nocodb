@@ -7,6 +7,10 @@
 // disabled-reason tooltips travel with it; the shell only decides where it lands.
 const shell = useShell()
 
+// Injected, so this resolves to the shell the pane is actually inside — not
+// whichever one mounted last.
+const target = computed(() => (shell ? `#${shell.actionsTargetId}` : null))
+
 const canTeleport = ref(false)
 
 onMounted(async () => {
@@ -14,12 +18,12 @@ onMounted(async () => {
   // anyway so a pane that mounts during the modal's first paint still finds it.
   await nextTick()
 
-  canTeleport.value = !!shell && !!document.querySelector(SHELL_ACTIONS_TARGET)
+  canTeleport.value = !!target.value && !!document.querySelector(target.value)
 })
 </script>
 
 <template>
-  <Teleport v-if="canTeleport" :to="SHELL_ACTIONS_TARGET">
+  <Teleport v-if="canTeleport && target" :to="target">
     <slot />
   </Teleport>
   <slot v-else />

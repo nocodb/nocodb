@@ -313,13 +313,7 @@ export const useBase = defineStore('baseStore', () => {
     },
   )
 
-  const navigateToProjectPage = async ({
-    page,
-    action,
-  }: {
-    page: 'overview' | 'collaborator' | 'data-source'
-    action?: string
-  }) => {
+  const navigateToProjectPage = async ({ page, action }: { page: 'collaborator' | 'data-source'; action?: string }) => {
     // The settings shell is an overlay on the current route, so entry points
     // open it in place rather than navigating to a page of its own.
     const query: Record<string, string> = { ...(route.value.query as Record<string, string>) }

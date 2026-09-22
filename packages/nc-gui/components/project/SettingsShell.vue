@@ -45,7 +45,7 @@ const {
 
 // The shell's unified save-bar contract. Editing panes register their
 // dirty/save/reset; the bar shows only then.
-const { hasSaveBar } = useProvideShell()
+const { hasSaveBar, goBack } = useProvideShell()
 
 // Panes were built for the settings sidebar page and read this to shed their
 // own page chrome. The shell is that host now.
@@ -72,8 +72,14 @@ function onClose() {
   navigateTo({ query })
 }
 
+// Escape and a mask click unwind a pane's drill-in first; the header's × always
+// closes outright.
 function onVisibleChange(visible: boolean) {
-  if (!visible) onClose()
+  if (visible) return
+
+  if (goBack()) return
+
+  onClose()
 }
 
 function onGroupToggle(key: string, open: boolean) {

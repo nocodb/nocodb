@@ -58,7 +58,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 
 <template>
   <!-- Title and description live in the shell header. -->
-  <div data-testid="nc-settings-subtab-visibility" class="flex flex-col h-full px-6 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
+  <div data-testid="nc-settings-subtab-visibility" class="flex flex-col h-full px-20 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
     <div class="flex flex-col w-full max-w-3xl border-1 rounded-lg border-nc-border-gray-medium">
       <div class="flex w-full px-3 py-2 gap-2 flex-col">
         <div class="flex w-full gap-1 items-center">

@@ -178,7 +178,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
        scopes, so it keeps its own inline list below. -->
   <AccountMcp v-if="isEeUI" :locked-base-id="props.baseId" />
 
-  <div v-else class="flex flex-col h-full min-h-0 px-6 pb-6 pt-3">
+  <div v-else class="flex flex-col h-full min-h-0 px-20 pb-6 pt-3">
     <ShellActions>
       <NcButton
         :disabled="isUnsavedMCPTokenPending"
@@ -245,7 +245,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 
           <template v-if="column.key === 'action'">
             <NcDropdown v-if="!token.isNew" placement="bottomRight">
-              <NcButton type="secondary" size="small" @click.stop>
+              <NcButton type="secondary" size="small" class="nc-row-action" @click.stop>
                 <GeneralIcon icon="threeDotVertical" />
               </NcButton>
 

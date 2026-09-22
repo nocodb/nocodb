@@ -197,7 +197,7 @@ const onCreateCancel = () => {
       class="flex flex-col min-h-0"
       :class="
         lockedBaseId
-          ? 'h-full px-6 pb-6 pt-3'
+          ? 'h-full px-20 pb-6 pt-3'
           : 'nc-content-max-w p-6 gap-6 overflow-auto nc-scrollbar-thin h-[calc(100vh_-_100px)]'
       "
     >
@@ -297,7 +297,7 @@ const onCreateCancel = () => {
               <template v-else-if="column.key === 'actions'">
                 <div class="flex justify-end" @click.stop>
                   <NcDropdown placement="bottomRight">
-                    <NcButton type="secondary" size="small" data-testid="nc-token-row-action-icon">
+                    <NcButton type="secondary" size="small" data-testid="nc-token-row-action-icon" class="nc-row-action">
                       <GeneralIcon icon="threeDotVertical" />
                     </NcButton>
                     <template #overlay>

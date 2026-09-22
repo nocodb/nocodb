@@ -86,7 +86,7 @@ watch(
 
   // Tabs carry px-2 of their own; px-4 lands the tab text on the header's px-6 edge.
   :deep(.ant-tabs-nav) {
-    @apply px-4 mb-0;
+    @apply px-18 mb-0;
   }
 
   // ant's content block does not stretch on its own; without this the panes

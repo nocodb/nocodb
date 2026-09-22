@@ -13,7 +13,7 @@ const canSave = computed(() => !!shell?.canSave.value)
 
 <template>
   <div
-    class="flex-none h-15 flex items-center gap-3.5 px-6 border-t-1 border-nc-border-gray-medium bg-nc-bg-default"
+    class="flex-none h-15 flex items-center gap-3.5 px-20 border-t-1 border-nc-border-gray-medium bg-nc-bg-default"
     data-testid="nc-tool-save-bar"
   >
     <span

@@ -50,7 +50,7 @@ onMounted(async () => {
 
 <template>
   <!-- Title and description live in the shell header. -->
-  <div data-testid="nc-settings-subtab-migrate" class="flex flex-col h-full px-6 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
+  <div data-testid="nc-settings-subtab-migrate" class="flex flex-col h-full px-20 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
     <div class="flex flex-col w-full max-w-3xl border-1 rounded-lg border-nc-border-gray-medium px-3 py-3 gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-bodyDefaultSm font-medium text-nc-content-gray">{{ $t('labels.migrationUrl') }}</label>

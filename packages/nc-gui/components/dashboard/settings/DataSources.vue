@@ -325,7 +325,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 
 <template>
   <!-- pt-3 rather than p-6: lines the search box up with the sidebar's own search. -->
-  <div class="flex flex-col h-full px-6 pb-6 pt-3" data-testid="nc-settings-datasources-tab">
+  <div class="flex flex-col h-full px-20 pb-6 pt-3" data-testid="nc-settings-datasources-tab">
     <div class="mb-6 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"
@@ -499,7 +499,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   <div class="ds-table-col ds-table-actions" @click.stop>
                     <div class="flex justify-end">
                       <NcDropdown placement="bottomRight">
-                        <NcButton size="small" type="secondary">
+                        <NcButton size="small" type="secondary" class="nc-row-action">
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
@@ -575,7 +575,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   <div class="ds-table-col ds-table-actions" @click.stop>
                     <div class="flex justify-end">
                       <NcDropdown placement="bottomRight">
-                        <NcButton size="small" type="secondary">
+                        <NcButton size="small" type="secondary" class="nc-row-action">
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
@@ -678,6 +678,17 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 
   .ds-table-row:hover {
     @apply bg-nc-bg-gray-extralight;
+  }
+
+  // Mirrors NcTable: the kebab rests hidden and blooms on hover.
+  .nc-row-action {
+    @apply opacity-0 transition-opacity duration-150;
+  }
+
+  .ds-table-row:hover .nc-row-action,
+  .nc-row-action:focus,
+  .nc-row-action:focus-within {
+    @apply opacity-100;
   }
 
   .ds-table-row:last-child {

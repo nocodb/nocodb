@@ -266,7 +266,7 @@ onMounted(async () => {
       class="flex flex-col nc-scrollbar-thin"
       :class="
         lockedBaseId
-          ? 'h-full min-h-0 px-6 pb-6 pt-3 overflow-hidden'
+          ? 'h-full min-h-0 px-20 pb-6 pt-3 overflow-hidden'
           : [
               'nc-content-max-w p-6 gap-6 h-[calc(100vh_-_100px)]',
               isEeUI && viewMode === 'create' ? 'min-h-0 overflow-hidden' : 'overflow-auto',
@@ -408,7 +408,7 @@ onMounted(async () => {
 
             <template v-if="column.key === 'action'">
               <NcDropdown placement="bottomRight">
-                <NcButton type="secondary" size="small" :class="{ '!hidden !group-hover:block': !lockedBaseId }" @click.stop>
+                <NcButton type="secondary" size="small" class="nc-row-action" @click.stop>
                   <GeneralIcon icon="threeDotVertical" />
                 </NcButton>
 

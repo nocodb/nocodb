@@ -22,6 +22,23 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
 
   const registration = shallowRef<ShellSaveRegistration | null>(null)
 
+  /**
+   * A pane that drills in registers how to step back out. Escape then unwinds
+   * the drill-in before it closes the shell, so one press never loses two levels.
+   * Returns true when it handled the press.
+   */
+  const backHandler = shallowRef<(() => boolean) | null>(null)
+
+  const registerBackHandler = (fn: () => boolean) => {
+    backHandler.value = fn
+  }
+
+  const unregisterBackHandler = (fn?: () => boolean) => {
+    if (!fn || backHandler.value === fn) backHandler.value = null
+  }
+
+  const goBack = () => !!backHandler.value?.()
+
   // The save bar shows only while a pane has registered (i.e. an editing pane
   // that opts into the batch-save model). Auto-save panes never register.
   const hasSaveBar = computed(() => registration.value !== null)
@@ -56,7 +73,19 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
     registration.value?.reset()
   }
 
-  return { hasSaveBar, isDirty, isSaving, canSave, registerSaveHandler, unregister, save, reset }
+  return {
+    hasSaveBar,
+    isDirty,
+    isSaving,
+    canSave,
+    registerSaveHandler,
+    unregister,
+    save,
+    reset,
+    registerBackHandler,
+    unregisterBackHandler,
+    goBack,
+  }
 })
 
 export { useProvideShell }

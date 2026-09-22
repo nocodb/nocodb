@@ -54,7 +54,10 @@ const migrateToV3 = async () => {
 
 <template>
   <!-- Title and description live in the shell header. -->
-  <div data-testid="nc-settings-subtab-migrate-to-v3" class="flex flex-col h-full px-6 pb-6 pt-3 overflow-auto nc-scrollbar-thin">
+  <div
+    data-testid="nc-settings-subtab-migrate-to-v3"
+    class="flex flex-col h-full px-20 pb-6 pt-3 overflow-auto nc-scrollbar-thin"
+  >
     <div class="flex flex-col w-full max-w-3xl gap-6">
       <div class="flex flex-col border-1 rounded-lg border-nc-border-gray-medium">
         <div class="flex flex-col gap-2 px-3 py-3">

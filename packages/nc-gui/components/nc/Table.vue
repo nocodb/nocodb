@@ -504,6 +504,19 @@ watch(
         td {
           @apply text-sm text-nc-content-gray-subtle2;
         }
+
+        // Row actions rest hidden and bloom on hover. They keep their place, so
+        // revealing one never reflows the row, and focus keeps them up for anyone
+        // arriving by keyboard.
+        :deep(.nc-row-action) {
+          @apply opacity-0 transition-opacity duration-150;
+        }
+
+        &:hover :deep(.nc-row-action),
+        :deep(.nc-row-action:focus),
+        :deep(.nc-row-action:focus-within) {
+          @apply opacity-100;
+        }
       }
     }
     tr {

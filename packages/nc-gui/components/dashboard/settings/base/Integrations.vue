@@ -72,6 +72,21 @@ const hasAnyAction = (integration: IntegrationType) => {
 // View mode: 'main' (single-page with cards + categories) or 'all-connections' (full table)
 const viewMode = ref<'main' | 'all-connections'>('main')
 
+const shell = useShell()
+
+// Escape leaves the connections list before it closes the shell.
+const onShellBack = () => {
+  if (viewMode.value === 'main') return false
+
+  viewMode.value = 'main'
+
+  return true
+}
+
+onMounted(() => shell?.registerBackHandler(onShellBack))
+
+onBeforeUnmount(() => shell?.unregisterBackHandler(onShellBack))
+
 // Non-managers can't create integrations — the catalog is pointless for them,
 // so they land on (and stay in) the connections list, where per-user
 // integrations offer their connect action.
@@ -361,7 +376,7 @@ watch(baseId, reload)
   <div class="flex w-full flex-col h-full nc-base-integrations">
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
-      <div class="flex flex-col h-full px-6 pb-6 pt-3 nc-workspace-settings-integrations-list">
+      <div class="flex flex-col h-full px-20 pb-6 pt-3 nc-workspace-settings-integrations-list">
         <div class="mb-6 flex items-center justify-between gap-3">
           <a-input
             ref="mainSearchInputRef"
@@ -475,7 +490,7 @@ watch(baseId, reload)
 
     <!-- All connections page -->
     <template v-else-if="viewMode === 'all-connections'">
-      <div class="flex flex-col h-full px-6 pb-6 pt-3">
+      <div class="flex flex-col h-full px-20 pb-6 pt-3">
         <div class="mb-6 flex items-center justify-between gap-3">
           <div class="flex items-center gap-3">
             <!-- Drill-in: the shell header still says "Integrations", so a bare
@@ -633,7 +648,7 @@ watch(baseId, reload)
                 </NcBadge>
               </div>
 
-              <div v-if="column.key === 'action'" @click.stop>
+              <div v-if="column.key === 'action'" class="nc-row-action" @click.stop>
                 <WorkspaceIntegrationsConnectionActionMenu
                   v-if="hasAnyAction(integration)"
                   :integration="integration"

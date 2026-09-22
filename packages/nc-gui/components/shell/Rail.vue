@@ -195,14 +195,16 @@ const onSearchEnter = () => {
           <span class="truncate flex-1">{{ item.title }}</span>
 
           <div v-if="item.logos" class="nc-shell-rail-logos">
-            <span
-              v-for="(logo, logoIdx) in item.logos"
-              :key="logo"
-              class="nc-shell-rail-logo"
-              :style="{ zIndex: item.logos.length - logoIdx }"
-            >
-              <GeneralIcon :icon="logo" />
-            </span>
+            <div class="nc-shell-rail-logos-stack">
+              <span
+                v-for="(logo, logoIdx) in item.logos"
+                :key="logo"
+                class="nc-shell-rail-logo"
+                :style="{ zIndex: item.logos.length - logoIdx }"
+              >
+                <GeneralIcon :icon="logo" />
+              </span>
+            </div>
           </div>
 
           <NcTooltip v-if="item.info" :title="item.info" placement="right" :arrow="false" class="nc-shell-rail-info">
@@ -223,6 +225,9 @@ const onSearchEnter = () => {
 
 .nc-shell-rail-item {
   @apply flex items-center gap-2.5 px-2.5 py-2 mb-0.5 rounded-lg text-bodyDefaultSm font-normal text-nc-content-gray-emphasis cursor-pointer;
+  // Pinned to the text line's row height: the client-mark chips (22px) and the
+  // upgrade badge (20px) overshoot it and would otherwise grow their rows.
+  height: 34px;
 
   &:hover {
     @apply bg-nc-bg-gray-light;
@@ -265,14 +270,21 @@ const onSearchEnter = () => {
 
 // The client marks are an invitation to connect, not part of the row's resting
 // state: the rail reads as plain icon + label like every other shell rail, and
-// the marks bloom in when the row is hovered or active. They keep their place in
-// the flow while hidden, so revealing them never reflows the label.
+// the marks bloom in when the row is hovered or active. While hidden they take
+// no width at all — a 0fr track, plus a negative margin swallowing the row gap —
+// so a long label keeps the whole row until the marks are wanted.
 .nc-shell-rail-logos {
-  @apply flex items-center flex-none;
+  @apply grid flex-none;
+  grid-template-columns: 0fr;
+  margin-left: -0.625rem;
   opacity: 0;
   // 200ms matches NcSidebarMenuItem's own transition-all, so the marks arrive in
   // step with the row surface rather than ahead of it.
-  transition: opacity 200ms ease;
+  transition: opacity 200ms ease, grid-template-columns 200ms ease, margin-left 200ms ease;
+}
+
+.nc-shell-rail-logos-stack {
+  @apply flex items-center min-w-0 overflow-hidden;
 }
 
 // Each mark gets its own chip so the overlap reads as a stack — these logos are
@@ -319,6 +331,8 @@ const onSearchEnter = () => {
 
 .nc-shell-rail-item:hover .nc-shell-rail-logos,
 .nc-shell-rail-item.active .nc-shell-rail-logos {
+  grid-template-columns: 1fr;
+  margin-left: 0;
   opacity: 1;
 }
 

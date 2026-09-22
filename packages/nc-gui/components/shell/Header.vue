@@ -41,12 +41,11 @@ const shell = useShell()
     </div>
 
     <div class="flex items-center gap-2.5 flex-none">
-      <slot name="actions" />
-
-      <!-- Where panes land their own action rows, via `ShellActions`. -->
-      <div v-if="shell" :id="shell.actionsTargetId" class="flex items-center gap-2.5 empty:hidden" />
-
-      <div class="h-5 w-px bg-nc-border-gray-medium" />
+      <!-- One zone for both the host's own actions and whatever a pane teleports
+           in (via `ShellActions`), so it can collapse when it holds neither. -->
+      <div :id="shell?.actionsTargetId" class="nc-shell-header-actions flex items-center gap-2.5 empty:hidden">
+        <slot name="actions" />
+      </div>
 
       <NcButton size="small" type="text" :data-testid="closeTestid" @click="emits('close')">
         <GeneralIcon icon="close" class="!h-4 !w-4" />
@@ -54,3 +53,13 @@ const shell = useShell()
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+// The rule separating pane actions from close belongs to the zone, not beside it —
+// a pane with no actions would otherwise leave it dividing nothing from the ×.
+// A pseudo-element doesn't count as a child, so the zone still reads as `:empty`.
+.nc-shell-header-actions::after {
+  content: '';
+  @apply h-5 w-px bg-nc-border-gray-medium;
+}
+</style>

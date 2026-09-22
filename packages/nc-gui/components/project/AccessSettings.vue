@@ -902,6 +902,7 @@ onBeforeUnmount(() => {
                   "
                 >
                   <RolesSelectorV2
+                    plain
                     :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                     :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                     :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
@@ -913,6 +914,7 @@ onBeforeUnmount(() => {
                 </template>
                 <template v-else>
                   <RolesBadge
+                    plain
                     :border="false"
                     :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
                   />

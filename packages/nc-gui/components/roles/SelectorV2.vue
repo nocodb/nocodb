@@ -20,9 +20,12 @@ const props = withDefaults(
     inheritSource?: 'workspace' | 'team'
     effectiveRole?: string
     triggerVariant?: 'badge' | 'compact' | 'detail' | 'field'
+    /** Passed to the badge trigger — see RolesBadge. */
+    plain?: boolean
   }>(),
   {
     border: true,
+    plain: false,
     description: true,
     size: 'sm',
     showInherit: false,
@@ -131,11 +134,7 @@ const activeRole = computed(() => {
         data-testid="roles"
       >
         <span class="nc-role-trigger-compact-label">{{ activeRole.label }}</span>
-        <GeneralIcon
-          icon="ncChevronDown"
-          class="nc-role-trigger-compact-caret"
-          :class="{ '-rotate-180': isDropdownOpen }"
-        />
+        <GeneralIcon icon="ncChevronDown" class="nc-role-trigger-compact-caret" :class="{ '-rotate-180': isDropdownOpen }" />
       </span>
 
       <!-- The field trigger reads as a form control: the role and what it grants
@@ -157,7 +156,15 @@ const activeRole = computed(() => {
       </div>
 
       <div v-else class="flex flex-col gap-1 cursor-pointer">
-        <RolesBadge data-testid="roles" :border="false" :role="effectiveRole || role" :size="size" clickable class="flex-none" />
+        <RolesBadge
+          data-testid="roles"
+          :border="false"
+          :plain="plain"
+          :role="effectiveRole || role"
+          :size="size"
+          clickable
+          class="flex-none"
+        />
         <div
           v-if="showInherit && role === ProjectRoles.INHERIT && !!inherit"
           class="flex items-center gap-1 text-xs text-nc-content-gray-muted"

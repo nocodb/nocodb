@@ -41,7 +41,14 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 
 const isLoading = ref(false)
 
-const sortedMcpTokens = computed(() => handleGetSortedData(accountMcpTokens.value, sorts.value))
+const mcpSearch = ref('')
+
+// Found by the name it was given or by the base it reaches.
+const filteredMcpTokens = computed(() =>
+  accountMcpTokens.value.filter((token: any) => searchCompare([token.title, token.base?.title], mcpSearch.value)),
+)
+
+const sortedMcpTokens = computed(() => handleGetSortedData(filteredMcpTokens.value, sorts.value))
 
 // `name` and `access` flex; `created_at` and `action` are fixed. The four
 // minimums have to fit the narrowest shell this page gets -- `max-w-202` is
@@ -293,6 +300,21 @@ onMounted(async () => {
         :class="lockedBaseId ? 'flex-1 min-h-0 flex flex-col' : 'max-w-202 mx-auto h-full'"
         data-testid="nc-mcp-list"
       >
+        <div v-if="lockedBaseId" class="mb-6 flex items-center justify-between gap-3">
+          <a-input
+            v-model:value="mcpSearch"
+            type="text"
+            class="nc-input-border-on-value !max-w-90 nc-input-sm"
+            :placeholder="$t('placeholder.searchConnections')"
+            allow-clear
+            data-testid="nc-mcp-search"
+          >
+            <template #prefix>
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+            </template>
+          </a-input>
+        </div>
+
         <!-- Shell: the title lives in the header band, the primary action in its action zone. -->
         <ShellActions v-if="lockedBaseId">
           <NcButton
@@ -448,7 +470,7 @@ onMounted(async () => {
           </template>
 
           <template v-if="lockedBaseId" #emptyText>
-            <ShellEmpty :title="$t('labels.noMcpConnectionsYet')">
+            <ShellEmpty :title="mcpSearch ? $t('title.noResultsMatchedYourSearch') : $t('labels.noMcpConnectionsYet')">
               <template #action>
                 <NcButton
                   v-if="isEeUI"

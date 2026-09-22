@@ -36,6 +36,30 @@ import {
   throwMissingContext,
 } from '~/helpers/modelContext';
 
+/**
+ * Columns an update may set. `is_meta` / `is_local` are deliberately absent:
+ * they decide whether a source resolves its connection from NocoDB's internal
+ * config, and therefore whether the delete guard applies. Both are settled by
+ * `Base.insert` at base creation and must never change afterwards — GHSA-982h
+ * closed the request path, this closes the model for every other caller.
+ */
+export const SOURCE_UPDATE_PROPS = [
+  'alias',
+  'config',
+  'type',
+  'inflection_column',
+  'inflection_table',
+  'order',
+  'enabled',
+  'meta',
+  'deleted',
+  'fk_sql_executor_id',
+  'is_schema_readonly',
+  'is_data_readonly',
+  'fk_integration_id',
+  'is_encrypted',
+];
+
 export default class Source implements SourceType {
   id?: string;
   fk_workspace_id?: string;
@@ -165,24 +189,7 @@ export default class Source implements SourceType {
 
     if (!oldSource) NcError.sourceNotFound(sourceId);
 
-    const updateObj = extractProps(source, [
-      'alias',
-      'config',
-      'type',
-      'is_meta',
-      'is_local',
-      'inflection_column',
-      'inflection_table',
-      'order',
-      'enabled',
-      'meta',
-      'deleted',
-      'fk_sql_executor_id',
-      'is_schema_readonly',
-      'is_data_readonly',
-      'fk_integration_id',
-      'is_encrypted',
-    ]);
+    const updateObj = extractProps(source, SOURCE_UPDATE_PROPS);
 
     if (updateObj.config) {
       this.encryptConfigIfRequired(updateObj);
@@ -509,6 +516,38 @@ export default class Source implements SourceType {
     await NcConnectionMgrv2.bumpSourceVersion(this);
   }
 
+  /**
+   * A base must keep its own source, and must never be left with none. The
+   * rationale for each arm is inline below.
+   */
+  protected assertDeletable(sources: Source[], force?: boolean) {
+    if (force) return;
+
+    // Deliberately NOT skipped for an already soft-deleted source: `deleted` is
+    // settable, so an early return here would let a caller soft-delete a base's
+    // own source and then hard-delete it past this guard. A cascade that has to
+    // remove it passes `force`.
+
+    // Checked first: on a single-source base the positional arm below would also
+    // match, and "only source" is the accurate reason. Only live siblings count —
+    // a soft-deleted row left in a cached list must not make this look like it is
+    // not the last source.
+    if (!sources.some((source) => source.id !== this.id && !source.deleted)) {
+      NcError.get(this.context).badRequest(
+        'Cannot delete the only source of a base',
+      );
+    }
+
+    // Flags AND position: neither is reliable alone. A base's own source can
+    // carry neither flag, and `order` does not always put it first — so keep both
+    // arms rather than trade one failure mode for the other.
+    if (this.isMeta() || sources[0]?.id === this.id) {
+      NcError.get(this.context).badRequest(
+        "Cannot delete a base's default source",
+      );
+    }
+  }
+
   async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
     const context = this.context;
 
@@ -518,9 +557,7 @@ export default class Source implements SourceType {
       ncMeta,
     );
 
-    if ((sources[0].id === this.id || this.isMeta()) && !force) {
-      NcError.badRequest('Cannot delete first source');
-    }
+    this.assertDeletable(sources, force);
 
     const models = await Model.list(
       context,
@@ -626,9 +663,7 @@ export default class Source implements SourceType {
       ncMeta,
     );
 
-    if ((sources[0].id === this.id || this.isMeta()) && !force) {
-      NcError.badRequest('Cannot delete first base');
-    }
+    this.assertDeletable(sources, force);
 
     await Source.update(context, this.id, { deleted: true }, ncMeta);
 

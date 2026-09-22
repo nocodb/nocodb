@@ -8,10 +8,15 @@ const props = withDefaults(
     base: BaseType
     baseId: string
     sourceIndex?: number
+    /** Rendered inside a source's own collapse panel, so its rows indent under
+     *  it. Separate from `sourceIndex`, which also SELECTS the source and is 0
+     *  for an external-only base — indent cannot be derived from it. */
+    nested?: boolean
     showCreateTableBtn?: boolean
   }>(),
   {
     sourceIndex: 0,
+    nested: false,
     showCreateTableBtn: false,
   },
 )
@@ -257,8 +262,8 @@ const filteredAvailableTables = computed(() => {
         v-if="!availableTables.length || !filteredAvailableTables.length"
         class="py-0.5 text-nc-content-gray-muted font-normal"
         :class="{
-          'nc-project-home-section-item': sourceIndex === 0,
-          'ml-9 xs:(ml-9.75)': sourceIndex !== 0,
+          'nc-project-home-section-item': !nested,
+          'ml-9 xs:(ml-9.75)': nested,
         }"
       >
         {{
@@ -283,6 +288,7 @@ const filteredAvailableTables = computed(() => {
           :table="table"
           :base="base"
           :source-index="sourceIndex"
+          :nested="nested"
           :data-title="table.title"
           :data-source-id="source?.id"
           :data-type="table.type"

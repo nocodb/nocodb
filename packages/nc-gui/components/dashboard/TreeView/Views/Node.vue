@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { LockType, isDefaultBase } from '#imports'
+import { LockType } from '#imports'
 
 interface Props {
   view: ViewType
@@ -58,13 +58,11 @@ provide(MetaInj, injectedTable)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+// Shallow indent iff the owning table renders at the sidebar root, i.e. it
+// belongs to the base's own source — a single external source does not.
 const isDefaultBaseLocal = computed(() => {
-  if (base.value?.sources?.length === 1) return true
-
-  const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
-  if (!source) return false
-
-  return isDefaultBase(source)
+  const ownSourceId = baseOwnSourceId(base.value?.sources)
+  return !!ownSourceId && vModel.value.source_id === ownSourceId
 })
 
 const { isRtl } = useRtl()

@@ -5,6 +5,64 @@ import { getI18n } from '~/plugins/a.i18n'
 const isDefaultBase = (source: SourceType) => source.is_meta
 
 /**
+ * The base's own source. Flagged internal where the flags are set — but bases
+ * exist whose default source carries neither (nothing guarantees them), so fall
+ * back to the absence of an alias: that source has no name of its own, which is
+ * why the UI labels it "Default".
+ *
+ * `alias` is nullable, so an unnamed external source also matches. That is
+ * deliberate: a base created with `external: true` has no internal source at
+ * all, and its unnamed source is the only thing the row can describe. What must
+ * not happen is such a source displacing a REAL default — `baseOwnSourceIndex`
+ * prevents that by preferring a flagged source whenever one exists — which is why
+ * this stays module-private: picking THE default out of a list is `baseOwnSourceId`'s
+ * job, and every call site that tested sources one by one got it wrong.
+ */
+const isBaseOwnSource = (source?: SourceType) => !!source && (isDefaultBase(source) || !source.alias)
+
+/**
+ * Sources with the base's own default first. The API orders by `order`, which a
+ * legacy or repaired base does not always have set correctly, and a lot of UI
+ * reads `sources[0]` as "the base's root DB". Normalising once here keeps those
+ * readers honest; a base with no default source is returned untouched.
+ */
+const baseOwnSourceIndex = (sources?: SourceType[]) => {
+  if (!sources?.length) return -1
+  // Flagged first: `findIndex` takes the earliest match, so a legacy external
+  // source that only satisfies the heuristic must not short-circuit ahead of a
+  // source that genuinely carries the flags.
+  const flagged = sources.findIndex((source) => isDefaultBase(source))
+  return flagged !== -1 ? flagged : sources.findIndex((source) => isBaseOwnSource(source))
+}
+
+/**
+ * Id of the base's own source, or undefined when it has none. Resolved once per
+ * base so callers compare identities instead of testing each source in
+ * isolation — a per-source predicate mistakes an unnamed EXTERNAL source for the
+ * base's own whenever a real flagged default also exists.
+ */
+const baseOwnSourceId = (sources?: SourceType[]) => {
+  const i = baseOwnSourceIndex(sources)
+  return i === -1 ? undefined : sources?.[i]?.id
+}
+
+/**
+ * The source the backend treats as the base's root DB: the own source when there
+ * is one, else the first source. Sections (folders) of this source are stored
+ * with a null `source_id` (server: `find(isMeta) || sources[0]`), so it is the
+ * key for "which group do the base-level folders belong to". On a base with no
+ * own source it is an external source, and its folders render under that
+ * source's node rather than at the sidebar root.
+ */
+const baseRootSourceId = (sources?: SourceType[]) => baseOwnSourceId(sources) ?? sources?.[0]?.id
+
+const withDefaultSourceFirst = (sources?: SourceType[]) => {
+  if (!sources?.length) return []
+  const i = baseOwnSourceIndex(sources)
+  return i <= 0 ? [...sources] : [sources[i]!, ...sources.slice(0, i), ...sources.slice(i + 1)]
+}
+
+/**
  * Represents the schema prompts for creating various AI base schemas.
  * Each object has a `tag` that identifies the schema type and a `description`
  * that explains its purpose.
@@ -91,7 +149,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
   Object.entries(aiBaseSchemaPromptsMap).map(([tag, description]) => [description, tag]),
 )
 
-export { isDefaultBase }
+export { isDefaultBase, baseOwnSourceIndex, baseOwnSourceId, baseRootSourceId, withDefaultSourceFirst }
 
 export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>

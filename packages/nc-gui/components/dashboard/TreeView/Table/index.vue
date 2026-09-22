@@ -52,6 +52,9 @@ const [searchActive] = useToggle()
 
 const base = inject(ProjectInj)!
 
+// The base's own source, resolved once so every check below compares the same identity.
+const ownSourceId = computed(() => baseOwnSourceId(base.value?.sources))
+
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const enableEditModeForSource = (sourceId: string) => {
@@ -238,16 +241,16 @@ onKeyStroke('Escape', () => {
 
       <template v-else-if="base && base?.sources">
         <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-          <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
+          <div v-if="base?.sources?.[0]?.enabled && base.sources[0].id === ownSourceId" class="flex-1">
             <div class="transition-height duration-200">
               <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="0" />
             </div>
           </div>
 
-          <div v-if="base?.sources?.slice(1).some((el) => el.enabled)" class="transition-height duration-200">
+          <div v-if="base?.sources?.some((el) => el.enabled && el.id !== ownSourceId)" class="transition-height duration-200">
             <div class="border-none sortable-list">
               <div v-for="(source, sourceIndex) of base.sources" :key="`source-${source.id}`">
-                <template v-if="sourceIndex === 0"></template>
+                <template v-if="source.id === ownSourceId"></template>
                 <a-collapse
                   v-else-if="source && source.enabled"
                   v-model:active-key="activeKey"
@@ -268,42 +271,6 @@ onKeyStroke('Escape', () => {
                         }"
                       >
                         <div
-                          v-if="sourceIndex === 0"
-                          class="source-context flex items-center gap-2 text-nc-content-gray nc-sidebar-node-title"
-                          @contextmenu="setMenuContext('source', source)"
-                        >
-                          <div
-                            class="hidden !xs:(flex items-center justify-center -mr-2) w-6 h-6 flex-none cursor-pointer"
-                            @click.stop="toggleSourceExpand(source.id!)"
-                          >
-                            <GeneralIcon
-                              icon="chevronRight"
-                              class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
-                              :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
-                            />
-                          </div>
-                          <div class="flex items-center nc-source-icon-wrapper min-w-6 h-6 relative" @click.stop>
-                            <NcButton
-                              v-e="['c:source:toggle-expand']"
-                              type="text"
-                              size="xxsmall"
-                              class="nc-source-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
-                              @click.stop="toggleSourceExpand(source.id!)"
-                            >
-                              <GeneralIcon
-                                icon="chevronRight"
-                                class="cursor-pointer transform transition-transform duration-200 !text-current text-[16px]"
-                                :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
-                              />
-                            </NcButton>
-                            <div class="flex items-center">
-                              <GeneralBaseLogo class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
-                            </div>
-                          </div>
-                          {{ $t('general.default') }}
-                        </div>
-                        <div
-                          v-else
                           class="source-context flex flex-grow items-center gap-1 text-nc-content-gray min-w-1/20 max-w-full"
                           @contextmenu="setMenuContext('source', source)"
                         >
@@ -470,7 +437,7 @@ onKeyStroke('Escape', () => {
                       :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                       :nc-source="source.id"
                     >
-                      <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="sourceIndex" />
+                      <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="sourceIndex" nested />
                     </div>
                   </a-collapse-panel>
                 </a-collapse>

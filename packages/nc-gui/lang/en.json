@@ -1187,7 +1187,11 @@
       "other": "Other"
     },
     "agent": "Agent",
-    "agents": "Agents"
+    "agents": "Agents",
+    "scope": "Scope",
+    "scopes": "Scopes",
+    "tool": "Tool",
+    "tools": "Tools"
   },
   "datatype": {
     "ID": "ID",
@@ -5173,6 +5177,7 @@
     "noAgents": "No agents",
     "skillPolicyRepo": "owner/repo",
     "searchSkills": "Search skills...",
+    "searchTools": "Search tools",
     "factoryPrompt": "Describe what you want built",
     "factorySearchRepos": "Search repositories",
     "factorySearchTargets": "Search repositories",

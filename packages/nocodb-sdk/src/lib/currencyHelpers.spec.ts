@@ -2,6 +2,7 @@ import {
   getCurrencyFormatExample,
   getCurrencySymbol,
   getNumericValue,
+  normalizeLocaleNumericString,
 } from './currencyHelpers';
 
 describe('currencyHelpers', () => {
@@ -29,6 +30,46 @@ describe('currencyHelpers', () => {
     });
     it('honours precision 0', () => {
       expect(getCurrencyFormatExample('USD', 'en-US', 0)).toBe('$1,235');
+    });
+  });
+
+  describe('normalizeLocaleNumericString', () => {
+    // A group character that is not grouping is a decimal point. Deleting it
+    // multiplied de-DE/pt-BR/it-IT values by 100 (nocodb/nocodb#14563).
+    it.each(['de-DE', 'pt-BR', 'it-IT'])(
+      'reads a lone period as the decimal point in %s, whose group char is a period',
+      (locale) => {
+        expect(normalizeLocaleNumericString('1234.56', locale)).toBe('1234.56');
+      }
+    );
+
+    it('still strips periods that really are grouping in de-DE', () => {
+      expect(normalizeLocaleNumericString('1.234.567,89', 'de-DE')).toBe(
+        '1234567.89'
+      );
+      expect(normalizeLocaleNumericString('1.234', 'de-DE')).toBe('1234');
+    });
+
+    // The locale's own decimal char settles the reading when present, so an
+    // en-US "1.234" must stay 1.234 rather than being read as grouping.
+    it('leaves an en-US decimal alone', () => {
+      expect(normalizeLocaleNumericString('1.234', 'en-US')).toBe('1.234');
+      expect(normalizeLocaleNumericString('1,234.56', 'en-US')).toBe('1234.56');
+    });
+
+    it('drops the symbol and every group separator flavour', () => {
+      // fr-SN groups with U+202F, ru-RU with U+00A0, de-CH with an apostrophe.
+      expect(normalizeLocaleNumericString('3\u202f116,50\u00a0€', 'fr-SN')).toBe(
+        '3116.50'
+      );
+      expect(normalizeLocaleNumericString('1234567,89\u00a0₽', 'ru-RU')).toBe(
+        '1234567.89'
+      );
+      expect(normalizeLocaleNumericString("1'234.56", 'de-CH')).toBe('1234.56');
+    });
+
+    it('keeps the minus for the caller to resolve', () => {
+      expect(normalizeLocaleNumericString('-1234.56', 'de-DE')).toBe('-1234.56');
     });
   });
 

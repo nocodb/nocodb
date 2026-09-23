@@ -1,4 +1,9 @@
-import { UITypes } from 'nocodb-sdk';
+import {
+  getGroupDecimalSymbolFromLocale,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  UITypes,
+} from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
 import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
 
@@ -9,9 +14,16 @@ import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
  * Negatives are preserved. If statement starts with '-', number will be negated.
  *
  * @param {String} source - source column name
+ * @param {String} decimalSeparator - '.' (default) or ','; the character to read
+ *   as the decimal point. Everything else non-numeric is noise, so a group
+ *   separator is dropped whichever character the locale uses for it.
  * @returns {String} - query to extract number from a string
  */
-function extractNumberQuery(source: string) {
+function extractNumberQuery(source: string, decimalSeparator = '.') {
+  // Whitelisted, not escaped: this lands inside a SQL literal and the separator
+  // is derived from user-supplied column meta.
+  const dec = decimalSeparator === ',' ? ',' : '.';
+
   return `
     CAST(
       NULLIF(
@@ -21,15 +33,15 @@ function extractNumberQuery(source: string) {
               REGEXP_REPLACE(
                 REPLACE(
                   REGEXP_REPLACE(
-                    REGEXP_REPLACE(${source}, '[^0-9.-]', '', 'g'),
+                    REGEXP_REPLACE(${source}, '[^0-9${dec}-]', '', 'g'),
                     '^-', '~'
                   ),
                   '-', ''
                 ),
-                '(\\d)\\.(\\d)', '\\1-\\2'
-              ), 
-              '.', ''
-            ), 
+                '(\\d)[${dec}](\\d)', '\\1-\\2'
+              ),
+              '${dec}', ''
+            ),
             '-', '.'
           ),
           '~', '-'
@@ -165,6 +177,25 @@ function getDateFormat(format: string) {
   else return 'dmy';
 }
 
+/**
+ * The decimal separator the column's own configuration implies, so casting text
+ * back into it reads the value the way the field renders it. Only Currency and
+ * Decimal carry one; everything else keeps '.'.
+ */
+function resolveDecimalSeparator(uidt: UITypes, meta?: Record<string, any>) {
+  if (!meta) return '.';
+
+  if (uidt === UITypes.Currency) {
+    return getGroupDecimalSymbolFromLocale(meta.currency_locale).decimal;
+  }
+
+  if (uidt === UITypes.Decimal) {
+    return getSeparatorChars(resolveColumnSeparator(meta)).decimalSeparator;
+  }
+
+  return '.';
+}
+
 export interface GenerateCastQueryArgs {
   uidt: UITypes;
   dt: string;
@@ -172,6 +203,7 @@ export interface GenerateCastQueryArgs {
   limit: number;
   format: string;
   durationType?: number;
+  meta?: Record<string, any>;
 }
 
 /*
@@ -183,6 +215,7 @@ export interface GenerateCastQueryArgs {
  * @param args.limit - Limit for the data type
  * @param args.format - Date format
  * @param args.durationType - Duration format id (defaults to 0)
+ * @param args.meta - Column meta, for the configured decimal separator
  * @returns {String} - query to cast column to a specific data type
  */
 export function generateCastQuery({
@@ -192,7 +225,12 @@ export function generateCastQuery({
   limit,
   format,
   durationType = 0,
+  meta,
 }: GenerateCastQueryArgs) {
+  // A comma decimal separator used to be stripped as noise rather than read as a
+  // decimal point, inflating every value by 100 (nocodb/nocodb#14563).
+  const decimalSeparator = resolveDecimalSeparator(uidt, meta);
+
   switch (uidt) {
     case UITypes.SingleLineText:
     case UITypes.MultiSelect:
@@ -213,7 +251,7 @@ export function generateCastQuery({
       );
     case UITypes.Decimal:
     case UITypes.Currency:
-      return `${extractNumberQuery(source)};`;
+      return `${extractNumberQuery(source, decimalSeparator)};`;
     case UITypes.Percent:
       return `LEAST(100, GREATEST(0, ${extractNumberQuery(source)}));`;
     case UITypes.Rating:

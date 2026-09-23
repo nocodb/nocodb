@@ -15,7 +15,7 @@ import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
-import { getGroupDecimalSymbolFromLocale } from '~/lib/currencyHelpers';
+import { normalizeLocaleNumericString } from '~/lib/currencyHelpers';
 import { getSeparatorChars, resolveColumnSeparator } from './separator';
 import {
   applyNumberAbbreviation,
@@ -296,29 +296,12 @@ export const serializeCurrencyValue = (
     value,
     (value) => {
       const columnMeta = parseProp(params.col.meta);
-      // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
-      const formatter = new Intl.NumberFormat(
+
+      // Keeps '-' for the sign pass in serializeDecimalValue.
+      return normalizeLocaleNumericString(
+        value,
         columnMeta?.currency_locale || 'en-US'
       );
-
-      // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
-      if (
-        !columnMeta?.currency_locale ||
-        columnMeta.currency_locale === 'en-US' ||
-        typeof (formatter as any).formatToParts !== 'function'
-      ) {
-        // keep '-' for the sign pass in serializeDecimalValue to resolve
-        return value?.replace(/[^0-9.-]/g, '');
-      }
-
-      const { group, decimal } = getGroupDecimalSymbolFromLocale(
-        columnMeta?.currency_locale
-      );
-
-      return value
-        .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
-        .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
-        .replace(/[^\d.-]/g, ''); // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces) — the minus is resolved into a sign by serializeDecimalValue
     },
     params
   );

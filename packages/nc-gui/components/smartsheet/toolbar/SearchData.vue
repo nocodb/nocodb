@@ -100,15 +100,16 @@ const isSearchResultVisible = computed(() => {
 })
 
 const columns = computed(() => {
+  const allColumnsOption = { id: 'all', title: 'All Columns' } as unknown as ColumnType
   if (isList.value && listViewStore?.selectedLevel.value?.fk_model_id) {
     const levelTableId = listViewStore.selectedLevel.value.fk_model_id
     const baseId = (meta.value as TableType)?.base_id
     const levelMeta = getMetaByKey(baseId, levelTableId)
     if (levelMeta?.columns) {
-      return (levelMeta.columns as ColumnType[]).filter((column) => isSearchableColumn(column))
+      return [allColumnsOption, ...(levelMeta.columns as ColumnType[]).filter((column) => isSearchableColumn(column))]
     }
   }
-  return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
+  return [allColumnsOption, ...((meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? [])]
 })
 
 watch(

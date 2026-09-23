@@ -3317,6 +3317,7 @@ class PGClient extends KnexClient {
             format: n.meta?.date_format || 'YYYY-MM-DD',
             durationType: n.meta?.duration ?? 0,
             meta: n.meta,
+            sourceUidt: o.uidt,
           });
 
           query += this.genQuery(castQuery, [], shouldSanitize);

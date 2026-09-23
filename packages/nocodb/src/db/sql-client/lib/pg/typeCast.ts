@@ -199,8 +199,20 @@ function resolveSeparators(uidt: UITypes, meta?: Record<string, any>) {
   };
 }
 
+// Types `formatColumn` casts from a number, so their text is `12.345`-style.
+const NUMERIC_SOURCE_UIDTS = new Set<UITypes>([
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Rating,
+  UITypes.Duration,
+  UITypes.Year,
+]);
+
 export interface GenerateCastQueryArgs {
   uidt: UITypes;
+  sourceUidt?: UITypes;
   dt: string;
   source: string;
   limit: number;
@@ -219,6 +231,7 @@ export interface GenerateCastQueryArgs {
  * @param args.format - Date format
  * @param args.durationType - Duration format id (defaults to 0)
  * @param args.meta - Column meta, for the configured decimal separator
+ * @param args.sourceUidt - UI data type the column is converted from
  * @returns {String} - query to cast column to a specific data type
  */
 export function generateCastQuery({
@@ -229,6 +242,7 @@ export function generateCastQuery({
   format,
   durationType = 0,
   meta,
+  sourceUidt,
 }: GenerateCastQueryArgs) {
   switch (uidt) {
     case UITypes.SingleLineText:
@@ -250,7 +264,12 @@ export function generateCastQuery({
       );
     case UITypes.Decimal:
     case UITypes.Currency: {
-      // the column's locale (nocodb/nocodb#14563). // Shape-based, so "1234.56" and "1.234,56" both read as 1234.56 whatever
+      // A numeric source renders as Postgres's own locale-free text.
+      if (sourceUidt && NUMERIC_SOURCE_UIDTS.has(sourceUidt)) {
+        return `${extractNumberQuery(source)};`;
+      }
+
+      // Text is read by its shape (nocodb/nocodb#14563).
       const { decimal, group } = resolveSeparators(uidt, meta);
       return `nc_parse_locale_number(${source}, '${decimal}', '${group}');`;
     }

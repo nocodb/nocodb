@@ -1,11 +1,16 @@
 import {
   getCurrencySymbol,
+  getEffectiveLookupColumn,
   getSeparatorChars,
+  isArrayShapeLtar,
   parseProp,
   resolveColumnSeparator,
   UITypes,
 } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
+import type Column from '~/models/Column';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import type LookupColumn from '~/models/LookupColumn';
 
 // Excel format codes always spell grouping and decimals as `,` and `.`; Excel
 // renders them with the viewer's own regional separators.
@@ -25,7 +30,9 @@ function fraction(precision: number) {
   return precision > 0 ? `.${'0'.repeat(precision)}` : '';
 }
 
-// Unquoted, Excel reads a symbol like `$` or `E` as a format token.
+// Unquoted, Excel reads a symbol like `$` or `E` as a format token. Only `"`
+// needs stripping because `getCurrencySymbol` returns a rendered symbol, never
+// arbitrary user text.
 function quoted(text: string) {
   return `"${text.replace(/"/g, '')}"`;
 }
@@ -107,6 +114,43 @@ export function excelNumberFormat(
     default:
       return undefined;
   }
+}
+
+// The column a single-record Lookup renders, display override applied the way
+// serializeCellValue does. A multi-record lookup is joined into one text cell,
+// so it carries no format.
+async function singleRecordLookupTarget(column: Column) {
+  const colOptions = await column.getColOptions<LookupColumn>();
+  if (!colOptions || colOptions.error) return undefined;
+
+  const relationCol = await colOptions.getRelationColumn();
+  if (!relationCol) return undefined;
+
+  await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+  if (isArrayShapeLtar(relationCol)) return undefined;
+
+  const lookupColumn = await colOptions.getLookupColumn();
+  if (!lookupColumn) return undefined;
+
+  // With an override this is a plain object whose uidt is never Lookup, so
+  // `getColOptions` is only ever reached on the real Column instance.
+  return getEffectiveLookupColumn(
+    parseProp(column.meta),
+    lookupColumn,
+  ) as Column;
+}
+
+/**
+ * `excelNumberFormat` for a model column, following a Lookup down to the column
+ * it renders so a looked-up currency lands as a numeric cell too.
+ */
+export async function excelColumnFormat(
+  column?: Column,
+): Promise<ExcelNumberFormat | undefined> {
+  if (column?.uidt !== UITypes.Lookup) return excelNumberFormat(column);
+
+  const target = await singleRecordLookupTarget(column);
+  return target && excelColumnFormat(target);
 }
 
 // Numeric cell when the serialized value reads as one finite number; anything

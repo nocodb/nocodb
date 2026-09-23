@@ -70,7 +70,7 @@ import { parseMetaProp } from '~/utils/modelUtils';
 import { getWidgetHandler } from '~/db/widgets';
 import { getQueriedColumns } from '~/helpers/dbHelpers';
 import {
-  excelNumberFormat,
+  excelColumnFormat,
   excelNumberValue,
 } from '~/modules/jobs/jobs/export-import/excel-number-format';
 
@@ -1878,19 +1878,20 @@ export class ExportService {
 
           // Must happen before the first row exists: a column style only reaches
           // cells built after it is set, and committed rows are already gone.
-          headers.forEach((title, index) => {
-            const format = excelNumberFormat(
+          for (let index = 0; index < headers.length; index++) {
+            const title = headers[index];
+            const format = await excelColumnFormat(
               model.columns.find((c) => c.title === title),
             );
 
-            if (!format) return;
+            if (!format) continue;
 
             numericColumns.add(title);
 
             const column = worksheet.getColumn(index + 1);
             column.numFmt = format.numFmt;
             column.width = format.width;
-          });
+          }
 
           worksheet.addRow(headers).commit();
         }

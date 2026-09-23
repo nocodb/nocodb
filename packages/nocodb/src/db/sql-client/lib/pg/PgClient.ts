@@ -3288,6 +3288,10 @@ class PGClient extends KnexClient {
           query += pgQueries.dateConversionFunction.default.sql;
         }
 
+        if ([UITypes.Decimal, UITypes.Currency].includes(n.uidt)) {
+          query += pgQueries.localeNumberFunction.default.sql;
+        }
+
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
             n.dt,
@@ -3312,6 +3316,8 @@ class PGClient extends KnexClient {
             limit,
             format: n.meta?.date_format || 'YYYY-MM-DD',
             durationType: n.meta?.duration ?? 0,
+            meta: n.meta,
+            sourceUidt: o.uidt,
           });
 
           query += this.genQuery(castQuery, [], shouldSanitize);

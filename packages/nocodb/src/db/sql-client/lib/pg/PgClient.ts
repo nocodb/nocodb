@@ -3288,6 +3288,10 @@ class PGClient extends KnexClient {
           query += pgQueries.dateConversionFunction.default.sql;
         }
 
+        if ([UITypes.Decimal, UITypes.Currency].includes(n.uidt)) {
+          query += pgQueries.localeNumberFunction.default.sql;
+        }
+
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
             n.dt,

@@ -246,6 +246,53 @@ AND t.table_name=?;`,
       paramsHints: [],
     },
   },
+  // Mirrors the SDK's normalizeLocaleNumericString: a number is read by its own
+  // shape, and the locale only settles a lone separator with three digits
+  // behind it (`1.234`).
+  localeNumberFunction: {
+    default: {
+      sql: `CREATE OR REPLACE FUNCTION nc_parse_locale_number(value text, locale_decimal text) RETURNS DECIMAL AS $$
+  DECLARE
+    compact text;
+    negative boolean;
+    dec text;
+    dec_at int;
+    digits text;
+  BEGIN
+    compact := regexp_replace(value, '[^0-9.,-]', '', 'g');
+    negative := left(compact, 1) = '-';
+    compact := replace(compact, '-', '');
+    IF compact = '' THEN RETURN NULL; END IF;
+
+    IF position('.' IN compact) > 0 AND position(',' IN compact) > 0 THEN
+      -- both present: the later one separates the fraction
+      dec := CASE WHEN position('.' IN reverse(compact)) < position(',' IN reverse(compact)) THEN '.' ELSE ',' END;
+    ELSIF position('.' IN compact) > 0 OR position(',' IN compact) > 0 THEN
+      dec := CASE WHEN position('.' IN compact) > 0 THEN '.' ELSE ',' END;
+      IF length(compact) - length(replace(compact, dec, '')) > 1 THEN
+        dec := NULL; -- repeated: grouping
+      ELSIF compact ~ ('\\' || dec || '[0-9]{3}$') AND dec <> locale_decimal THEN
+        dec := NULL; -- one, three digits behind: the locale reads it as grouping
+      END IF;
+    END IF;
+
+    IF dec IS NULL THEN
+      digits := regexp_replace(compact, '[.,]', '', 'g');
+    ELSE
+      dec_at := length(compact) - position(dec IN reverse(compact)) + 1;
+      digits := regexp_replace(left(compact, dec_at - 1), '[.,]', '', 'g')
+        || '.' || regexp_replace(substr(compact, dec_at + 1), '[.,]', '', 'g');
+    END IF;
+
+    IF negative THEN digits := '-' || digits; END IF;
+    RETURN digits::decimal;
+  EXCEPTION WHEN others THEN
+    RETURN NULL;
+  END;
+  $$ LANGUAGE plpgsql IMMUTABLE;`,
+      paramsHints: [],
+    },
+  },
 };
 
 export default pgQueries;

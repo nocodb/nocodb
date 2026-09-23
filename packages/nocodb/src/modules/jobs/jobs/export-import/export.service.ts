@@ -26,6 +26,7 @@ import type { NcContext } from '~/interface/config';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type RowColorCondition from '~/models/RowColorCondition';
 import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
+import type { ExcelNumberFormat } from '~/modules/jobs/jobs/export-import/excel-number-format';
 import { NcError } from '~/helpers/catchError';
 import {
   escapeFormulaeInRows,
@@ -1754,6 +1755,17 @@ export class ExportService {
       .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
       .filter(Boolean);
 
+    // Resolved once, before any row is serialized. Only these columns get the
+    // stored value (rawNumeric) and a numeric cell; everything else, a
+    // multi-record lookup included, keeps its formatted text.
+    const numericFormats = new Map<string, ExcelNumberFormat>();
+    for (const col of model.columns) {
+      if (!fields.includes(col.title)) continue;
+
+      const format = await excelColumnFormat(col);
+      if (format) numericFormats.set(col.title, format);
+    }
+
     const formatAndSerialize = async (data: any) => {
       const includedColumns: {
         col: Column;
@@ -1768,7 +1780,7 @@ export class ExportService {
               column: col,
               siteUrl: param.ncSiteUrl,
               locale: param.locale,
-              rawNumeric: true,
+              rawNumeric: numericFormats.has(col.title),
             });
             includedColumns.push({
               col,
@@ -1847,8 +1859,6 @@ export class ExportService {
 
     try {
       let headers: string[] | null = null;
-      // Columns whose cells the sink types as numbers, format riding on the column.
-      const numericColumns = new Set<string>();
       let offset = 0;
 
       for (;;) {
@@ -1878,20 +1888,15 @@ export class ExportService {
 
           // Must happen before the first row exists: a column style only reaches
           // cells built after it is set, and committed rows are already gone.
-          for (let index = 0; index < headers.length; index++) {
-            const title = headers[index];
-            const format = await excelColumnFormat(
-              model.columns.find((c) => c.title === title),
-            );
+          headers.forEach((title, index) => {
+            const format = numericFormats.get(title);
 
-            if (!format) continue;
-
-            numericColumns.add(title);
+            if (!format) return;
 
             const column = worksheet.getColumn(index + 1);
             column.numFmt = format.numFmt;
             column.width = format.width;
-          }
+          });
 
           worksheet.addRow(headers).commit();
         }
@@ -1900,7 +1905,7 @@ export class ExportService {
           worksheet
             .addRow(
               headers.map((h) =>
-                numericColumns.has(h) ? excelNumberValue(row[h]) : row[h],
+                numericFormats.has(h) ? excelNumberValue(row[h]) : row[h],
               ),
             )
             .commit();

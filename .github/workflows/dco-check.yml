@@ -17,10 +17,10 @@ jobs:
     steps:
       - name: Get PR Commits
         id: "get-pr-commits"
-        uses: tim-actions/get-pr-commits@master
+        uses: tim-actions/get-pr-commits@198af03565609bb4ed924d1260247b4881f09e7d # master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: DCO Check
-        uses: tim-actions/dco@master
+        uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21 # master
         with:
           commits: ${{ steps.get-pr-commits.outputs.commits }}

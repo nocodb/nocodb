@@ -152,6 +152,12 @@ const updateProjectTitle = async () => {
   }
 }
 
+/** Ignore the Enter that confirms an IME candidate; only commit once composition is done */
+const onTitleKeyEnter = (event: KeyboardEvent) => {
+  if (isComposingKeyEvent(event)) return
+  updateProjectTitle()
+}
+
 const { copy } = useCopy(true)
 
 const copyProjectInfo = async () => {
@@ -595,7 +601,7 @@ defineExpose({
                 fontWeight: 'inherit',
               }"
               @click.stop
-              @keyup.enter="updateProjectTitle"
+              @keydown.enter.stop.prevent="onTitleKeyEnter"
               @keyup.esc="updateProjectTitle"
               @blur="updateProjectTitle"
               @keydown.stop

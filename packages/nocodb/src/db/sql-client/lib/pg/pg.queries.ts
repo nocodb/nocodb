@@ -247,11 +247,11 @@ AND t.table_name=?;`,
     },
   },
   // Mirrors the SDK's normalizeLocaleNumericString: a number is read by its own
-  // shape, and the locale only settles a lone separator with three digits
-  // behind it (`1.234`).
+  // shape, and the locale's group character only settles a lone separator that
+  // could be one group (`1.234`).
   localeNumberFunction: {
     default: {
-      sql: `CREATE OR REPLACE FUNCTION nc_parse_locale_number(value text, locale_decimal text) RETURNS DECIMAL AS $$
+      sql: `CREATE OR REPLACE FUNCTION nc_parse_locale_number(value text, locale_decimal text, locale_group text) RETURNS DECIMAL AS $$
   DECLARE
     compact text;
     negative boolean;
@@ -271,8 +271,10 @@ AND t.table_name=?;`,
       dec := CASE WHEN position('.' IN compact) > 0 THEN '.' ELSE ',' END;
       IF length(compact) - length(replace(compact, dec, '')) > 1 THEN
         dec := NULL; -- repeated: grouping
-      ELSIF compact ~ ('\\' || dec || '[0-9]{3}$') AND dec <> locale_decimal THEN
-        dec := NULL; -- one, three digits behind: the locale reads it as grouping
+      ELSIF compact ~ ('\\' || dec || '[0-9]{3}$')
+        AND split_part(compact, dec, 1) ~ '^[1-9][0-9]{0,2}$'
+        AND dec = locale_group THEN
+        dec := NULL; -- could be one group, and is the locale's group character
       END IF;
     END IF;
 

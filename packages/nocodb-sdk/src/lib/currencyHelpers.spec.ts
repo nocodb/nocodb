@@ -1,6 +1,7 @@
 import {
   getCurrencyDecimalSymbol,
   getCurrencyFormatExample,
+  getCurrencyGroupSymbol,
   getCurrencySymbol,
   getNumericValue,
   normalizeLocaleNumericString,
@@ -52,7 +53,8 @@ describe('currencyHelpers', () => {
     const forLocale = (value: string, locale: string) =>
       normalizeLocaleNumericString(
         value,
-        getCurrencyDecimalSymbol('EUR', locale)
+        getCurrencyDecimalSymbol('EUR', locale),
+        getCurrencyGroupSymbol('EUR', locale)
       );
 
     // A separator that is not grouping is a decimal point. Deleting it
@@ -82,6 +84,25 @@ describe('currencyHelpers', () => {
       expect(forLocale('1.234', 'en-US')).toBe('1.234');
       expect(forLocale('1.234', 'de-DE')).toBe('1234');
       expect(forLocale('1,234', 'en-US')).toBe('1234');
+    });
+
+    // Grouping needs one to three leading digits and the locale's own group
+    // character; anything else behind three digits is a fraction.
+    it('never reads an impossible group as grouping', () => {
+      expect(forLocale('3116.500', 'en-ZA')).toBe('3116.500');
+      expect(forLocale('0.500', 'fr-FR')).toBe('0.500');
+      expect(forLocale('-3116.500', 'de-DE')).toBe('-3116.500');
+      expect(forLocale('1234567.890', 'pt-BR')).toBe('1234567.890');
+    });
+
+    it('reads a separator the locale never groups with as a decimal', () => {
+      // en-ZA and fr-FR group currency with a space
+      expect(forLocale('12.345', 'en-ZA')).toBe('12.345');
+      expect(forLocale('1.234', 'fr-FR')).toBe('1.234');
+      // fr-CH currency groups with a space and never uses ','
+      expect(forLocale('1,234', 'fr-CH')).toBe('1.234');
+      // de-AT currency groups with '.', unlike its plain number format
+      expect(forLocale('1.234', 'de-AT')).toBe('1234');
     });
 
     it('treats a repeated separator as grouping', () => {

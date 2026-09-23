@@ -93,6 +93,27 @@ export const getGroupDecimalSymbolFromLocale = (locale?: string) => {
   };
 };
 
+const currencySeparators = (currencyCode = 'USD', currencyLocale = 'en-US') => {
+  try {
+    const formatter = new Intl.NumberFormat(currencyLocale || 'en-US', {
+      style: 'currency',
+      currency: currencyCode || 'USD',
+      minimumFractionDigits: 2,
+    });
+    if (!(formatter as any).formatToParts) return { group: ',', decimal: '.' };
+    const parts = (formatter as any).formatToParts(12345.5) as Array<{
+      type: string;
+      value: string;
+    }>;
+    return {
+      group: parts.find((p) => p.type === 'group')?.value ?? '',
+      decimal: parts.find((p) => p.type === 'decimal')?.value || '.',
+    };
+  } catch {
+    return { group: ',', decimal: '.' };
+  }
+};
+
 /**
  * The decimal separator a currency column actually renders with. Distinct from
  * `getGroupDecimalSymbolFromLocale`, which reads the plain number format — the
@@ -101,23 +122,17 @@ export const getGroupDecimalSymbolFromLocale = (locale?: string) => {
 export const getCurrencyDecimalSymbol = (
   currencyCode = 'USD',
   currencyLocale = 'en-US'
-): string => {
-  try {
-    const formatter = new Intl.NumberFormat(currencyLocale || 'en-US', {
-      style: 'currency',
-      currency: currencyCode || 'USD',
-      minimumFractionDigits: 2,
-    });
-    if (!(formatter as any).formatToParts) return '.';
-    const parts = (formatter as any).formatToParts(1.5) as Array<{
-      type: string;
-      value: string;
-    }>;
-    return parts.find((p) => p.type === 'decimal')?.value || '.';
-  } catch {
-    return '.';
-  }
-};
+): string => currencySeparators(currencyCode, currencyLocale).decimal;
+
+/**
+ * The group separator a currency column renders with, `''` when it has none.
+ * Like the decimal, it can differ from the plain number format (de-AT groups
+ * currency with '.' and plain numbers with a space).
+ */
+export const getCurrencyGroupSymbol = (
+  currencyCode = 'USD',
+  currencyLocale = 'en-US'
+): string => currencySeparators(currencyCode, currencyLocale).group;
 
 /**
  * Normalize a locale-formatted number into a dot-decimal string.
@@ -130,8 +145,10 @@ export const getCurrencyDecimalSymbol = (
  *   groups, whatever the locale says. `1.234.567,89` and `1,234,567.89` both
  *   read as 1234567.89.
  * - One of them, repeated: grouping (`1.234.567`).
- * - One of them, once, with three digits behind it: ambiguous, so the locale
- *   decides — `1.234` is 1.234 in en-US and 1234 in de-DE.
+ * - One of them, once, with three digits behind it and one to three digits
+ *   (no leading zero) in front: ambiguous, so the locale decides. It is grouping
+ *   only when it is the locale's group character — `1.234` is 1.234 in en-US
+ *   and 1234 in de-DE, while `3116.500` or `0.500` can never be grouping.
  * - One of them, once, otherwise: a decimal point. `1234.56` in de-DE is
  *   1234.56, not the 123456 that deleting the character produced.
  *
@@ -147,7 +164,8 @@ export const getCurrencyDecimalSymbol = (
  */
 export const normalizeLocaleNumericString = (
   value: string,
-  decimalSeparator = '.'
+  decimalSeparator = '.',
+  groupSeparator?: string
 ): string => {
   const decimal = decimalSeparator;
 
@@ -168,8 +186,14 @@ export const normalizeLocaleNumericString = (
     const digitsBehind = (compact.slice(at + 1).match(/\d/g) || []).length;
 
     if (!repeated) {
-      decimalChar =
-        digitsBehind === 3 ? (only === decimal ? only : null) : only;
+      const lead = compact.slice(0, at).replace(/-/g, '');
+      const couldGroup = digitsBehind === 3 && /^[1-9]\d{0,2}$/.test(lead);
+      const isGroup =
+        groupSeparator !== undefined
+          ? only === groupSeparator
+          : only !== decimal;
+
+      decimalChar = couldGroup && isGroup ? null : only;
     }
   }
 

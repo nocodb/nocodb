@@ -1,5 +1,6 @@
 import {
   getCurrencyDecimalSymbol,
+  getCurrencyGroupSymbol,
   getSeparatorChars,
   resolveColumnSeparator,
   UITypes,
@@ -171,24 +172,31 @@ function getDateFormat(format: string) {
 }
 
 /**
- * The decimal separator the column renders with. `nc_parse_locale_number` reads
- * text by its shape and only needs this to settle a lone separator with three
- * digits behind it. Whitelisted to '.' or ',' because it lands in a SQL literal
- * and meta is user-supplied.
+ * The separators the column renders with. `nc_parse_locale_number` reads text by
+ * its shape and only needs them to settle a lone separator that could be one
+ * group. Whitelisted to '.' or ',' (group may also be '') because they land in a
+ * SQL literal and meta is user-supplied.
  */
-function resolveDecimalSeparator(uidt: UITypes, meta?: Record<string, any>) {
+function resolveSeparators(uidt: UITypes, meta?: Record<string, any>) {
   let decimal = '.';
+  let group: string | null = ',';
 
   if (meta && uidt === UITypes.Currency) {
     decimal = getCurrencyDecimalSymbol(
       meta.currency_code,
       meta.currency_locale,
     );
+    group = getCurrencyGroupSymbol(meta.currency_code, meta.currency_locale);
   } else if (meta && uidt === UITypes.Decimal) {
-    decimal = getSeparatorChars(resolveColumnSeparator(meta)).decimalSeparator;
+    const chars = getSeparatorChars(resolveColumnSeparator(meta));
+    decimal = chars.decimalSeparator;
+    group = chars.thousandSeparator;
   }
 
-  return decimal === ',' ? ',' : '.';
+  return {
+    decimal: decimal === ',' ? ',' : '.',
+    group: group === '.' || group === ',' ? group : '',
+  };
 }
 
 export interface GenerateCastQueryArgs {
@@ -241,13 +249,11 @@ export function generateCastQuery({
         9999,
       );
     case UITypes.Decimal:
-    case UITypes.Currency:
-      // Shape-based, so "1234.56" and "1.234,56" both read as 1234.56 whatever
-      // the column's locale (nocodb/nocodb#14563).
-      return `nc_parse_locale_number(${source}, '${resolveDecimalSeparator(
-        uidt,
-        meta,
-      )}');`;
+    case UITypes.Currency: {
+      // the column's locale (nocodb/nocodb#14563). // Shape-based, so "1234.56" and "1.234,56" both read as 1234.56 whatever
+      const { decimal, group } = resolveSeparators(uidt, meta);
+      return `nc_parse_locale_number(${source}, '${decimal}', '${group}');`;
+    }
     case UITypes.Percent:
       return `LEAST(100, GREATEST(0, ${extractNumberQuery(source)}));`;
     case UITypes.Rating:

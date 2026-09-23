@@ -4516,7 +4516,7 @@
     "factoryQueueHint": "Sends when the current reply finishes",
     "factoryDesktop": "Live screen",
     "factoryNoDesktop": "This session has no screen to show",
-    "factoryDesktopStarting": "Starting the screen\u2026",
+    "factoryDesktopStarting": "Starting the screen…",
     "planStepsDone": "{done} of {total} done",
     "openAgentConversation": "Open this agent's conversation",
     "agentConversationReadOnly": "This agent has finished. Its conversation is here to read.",
@@ -4564,7 +4564,24 @@
     "factoryArchived": "Archived — the sandbox was released; resume to rebuild it",
     "factoryResume": "Resume",
     "factoryDeleteSessionTitle": "Delete this session?",
-    "manageInviteLinks": "Manage invite links"
+    "manageInviteLinks": "Manage invite links",
+    "editOauthClient": "Edit OAuth Client",
+    "oauthClientNameHint": "Shown to users during authorization",
+    "applicationDescription": "Application Description",
+    "oauthClientDescriptionHint": "Brief description shown when users grant access",
+    "homepageUrl": "Homepage URL",
+    "oauthClientLogoHint": "Image shown during authorization (square recommended)",
+    "clientType": "Client Type",
+    "oauthClientTypeHint": "Public: mobile/web apps (PKCE required). Confidential: secure servers (can store secrets)",
+    "confidential": "Confidential",
+    "authorizationCallbackUrls": "Authorization Callback URLs",
+    "oauthCallbackUrlsHint": "HTTPS URLs for redirecting after authorization (localhost/127.0.0.1 allowed). One per line",
+    "clientId": "Client ID",
+    "clientSecret": "Client Secret",
+    "regenerateSecret": "Regenerate Secret",
+    "createOauthClients": "Create OAuth Clients",
+    "managingOauthClients": "Managing OAuth Clients",
+    "clientInformation": "Client Information"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5266,7 +5283,9 @@
     "factoryReply": "Reply",
     "searchFiles": "Search files",
     "factoryAnnotation": "What should the agent change here?",
-    "factoryTerminal": "npm test"
+    "factoryTerminal": "npm test",
+    "oauthClientName": "My Application",
+    "oauthClientDescription": "This application helps you manage your data..."
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -5516,7 +5535,8 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time",
       "requiredFieldNotEditable": "This required field isn’t editable, which may cause submission errors during form submission.",
       "communityAppInstall": "{title} is a community app. It hasn't been reviewed or verified by NocoDB. Make sure you trust the publisher before installing it into your workspace.",
-      "removeCustomDomain": "{domain} will stop serving this app. The default address keeps working."
+      "removeCustomDomain": "{domain} will stop serving this app. The default address keeps working.",
+      "copyClientSecretNow": "⚠️ Make sure to copy your client secret now. You won't be able to see it again!"
     },
     "migrateToV3": {
       "whatChanges": "What changes after migration",
@@ -6039,7 +6059,26 @@
       "enterAgentDescription": "Enter agent description",
       "inviteLinkDomainSentence": "Works only with {domain} email & teammates join as {role}",
       "inviteLinkOpenSentence": "Anyone with the link can join as {role}",
-      "inviteLinkOpenCaution": "Share it only with people you trust."
+      "inviteLinkOpenCaution": "Share it only with people you trust.",
+      "clientSecretHidden": "The secret is hidden for security and is not visible again. You can regenerate it if needed.",
+      "mcpSetupIntroClaude": "Get started with the NocoDB MCP with Claude Desktop in 3 simple steps",
+      "mcpSetupClaudeStep1": "Navigate to Claude Desktop settings from the navigation bar.",
+      "mcpSetupClaudeStep2": "Go to the Develop Tab, and click on “Edit Config”.",
+      "mcpSetupClaudeStep3": "Add the JSON configuration that’s provided after creating a token in claude_desktop_config.json",
+      "mcpSetupIntroCodex": "Get started with the NocoDB MCP with Codex CLI in 3 simple steps",
+      "mcpSetupCodexStep2": "Add the TOML configuration that’s provided after creating a token.",
+      "mcpSetupIntroAntigravity": "Get started with the NocoDB MCP with AntiGravity in 4 simple steps",
+      "mcpSetupAntigravityStep1": "Click on the three dots in the top right of the agent window, and click on \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Click on Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Now click on View raw config.",
+      "mcpSetupPasteJsonConfig": "Paste the JSON configuration that’s provided after creating a token in the opened file",
+      "mcpSetupIntroCursor": "Get started with the NocoDB MCP with Cursor in 3 simple steps",
+      "mcpSetupCursorStep1": "Open Cursor Settings (press Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Select the \"MCP\" tab and click \"Add Custom MCP\" .",
+      "mcpSetupCursorStep3": "Add the JSON configuration that’s provided after creating a token.",
+      "mcpSetupIntroWindsurf": "Get started with the NocoDB MCP with Windsurf in 4 simple steps",
+      "mcpSetupWindsurfStep1": "Access Windsurf settings and Select Cascade Tab in the left sidebar",
+      "mcpSetupWindsurfStep2": "Click on Manage MCP."
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",
@@ -6354,7 +6393,8 @@
       "planChangeScheduled": "Plan change scheduled",
       "planChangeReverted": "Scheduled plan change reverted. Your current plan continues unchanged.",
       "appDelisted": "Removed from the App Store",
-      "appRelisted": "Back in the App Store"
+      "appRelisted": "Back in the App Store",
+      "oauthClientUpdated": "OAuth client updated successfully!"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

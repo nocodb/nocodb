@@ -104,54 +104,54 @@ const clients = [
 
       <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
         <template v-if="client.key === 'claude'">
-          Get started with the NocoDB MCP with Claude Desktop in 3 simple steps
+          {{ $t('msg.info.mcpSetupIntroClaude') }}
 
           <ol class="list-decimal pl-5">
-            <li>Navigate to Claude Desktop settings from the navigation bar.</li>
-            <li>Go to the Develop Tab, and click on “Edit Config”.</li>
-            <li>Add the JSON configuration that’s provided after creating a token in claude_desktop_config.json</li>
+            <li>{{ $t('msg.info.mcpSetupClaudeStep1') }}</li>
+            <li>{{ $t('msg.info.mcpSetupClaudeStep2') }}</li>
+            <li>{{ $t('msg.info.mcpSetupClaudeStep3') }}</li>
           </ol>
         </template>
 
         <template v-else-if="client.key === 'codex'">
-          Get started with the NocoDB MCP with Codex CLI in 3 simple steps
+          {{ $t('msg.info.mcpSetupIntroCodex') }}
 
           <ol class="list-decimal pl-5">
             <li>Open <code>~/.codex/config.toml</code>, creating it if it doesn’t exist.</li>
-            <li>Add the TOML configuration that’s provided after creating a token.</li>
+            <li>{{ $t('msg.info.mcpSetupCodexStep2') }}</li>
             <li>Run <code>codex mcp list</code> to confirm the server is connected.</li>
           </ol>
         </template>
 
         <template v-else-if="client.key === 'antigravity'">
-          Get started with the NocoDB MCP with AntiGravity in 4 simple steps
+          {{ $t('msg.info.mcpSetupIntroAntigravity') }}
 
           <ol class="list-decimal pl-5">
-            <li>Click on the three dots in the top right of the agent window, and click on "MCP Servers"</li>
-            <li>Click on Manage MCP Servers.</li>
-            <li>Now click on View raw config.</li>
-            <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
+            <li>{{ $t('msg.info.mcpSetupAntigravityStep1') }}</li>
+            <li>{{ $t('msg.info.mcpSetupAntigravityStep2') }}</li>
+            <li>{{ $t('msg.info.mcpSetupViewRawConfig') }}</li>
+            <li>{{ $t('msg.info.mcpSetupPasteJsonConfig') }}</li>
           </ol>
         </template>
 
         <template v-else-if="client.key === 'cursor'">
-          Get started with the NocoDB MCP with Cursor in 3 simple steps
+          {{ $t('msg.info.mcpSetupIntroCursor') }}
 
           <ol class="list-decimal pl-5">
-            <li>Open Cursor Settings (press Shift+Cmd+J)</li>
-            <li>Select the "MCP" tab and click "Add Custom MCP" .</li>
-            <li>Add the JSON configuration that’s provided after creating a token.</li>
+            <li>{{ $t('msg.info.mcpSetupCursorStep1') }}</li>
+            <li>{{ $t('msg.info.mcpSetupCursorStep2') }}</li>
+            <li>{{ $t('msg.info.mcpSetupCursorStep3') }}</li>
           </ol>
         </template>
 
         <template v-else>
-          Get started with the NocoDB MCP with Windsurf in 4 simple steps
+          {{ $t('msg.info.mcpSetupIntroWindsurf') }}
 
           <ol class="list-decimal pl-5">
-            <li>Access Windsurf settings and Select Cascade Tab in the left sidebar</li>
-            <li>Click on Manage MCP.</li>
-            <li>Now click on View raw config.</li>
-            <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
+            <li>{{ $t('msg.info.mcpSetupWindsurfStep1') }}</li>
+            <li>{{ $t('msg.info.mcpSetupWindsurfStep2') }}</li>
+            <li>{{ $t('msg.info.mcpSetupViewRawConfig') }}</li>
+            <li>{{ $t('msg.info.mcpSetupPasteJsonConfig') }}</li>
           </ol>
         </template>
 

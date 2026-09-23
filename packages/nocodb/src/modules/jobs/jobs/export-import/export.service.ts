@@ -69,6 +69,10 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getWidgetHandler } from '~/db/widgets';
 import { getQueriedColumns } from '~/helpers/dbHelpers';
+import {
+  excelNumberFormat,
+  excelNumberValue,
+} from '~/modules/jobs/jobs/export-import/excel-number-format';
 
 @Injectable()
 export class ExportService {
@@ -1764,6 +1768,7 @@ export class ExportService {
               column: col,
               siteUrl: param.ncSiteUrl,
               locale: param.locale,
+              rawNumeric: true,
             });
             includedColumns.push({
               col,
@@ -1807,7 +1812,7 @@ export class ExportService {
     // streaming Excel *import*) writes rows out as they are committed.
     //
     // Formula-injection note: the CSV path escapes leading =/+/-/@, this one
-    // deliberately does not — verified that ExcelJS types these values as
+    // deliberately does not — verified that ExcelJS types these text values as
     // strings, exactly like the `json_to_sheet` behaviour that made
     // GHSA-4hcr-28g4-m9pm N/A here. Escaping would only corrupt values like
     // "-", "+1-555-…" and "@handle".
@@ -1833,12 +1838,17 @@ export class ExportService {
       // A shared-string table retains every distinct cell value for the whole
       // write — the same unbounded growth this change removes.
       useSharedStrings: false,
-      useStyles: false,
+      // Needed to carry per-column number formats. Bounded, unlike the string
+      // table: the styles index dedupes by format code, so it grows with the
+      // number of distinct formats (i.e. columns), not with row count.
+      useStyles: true,
     });
     const worksheet = workbook.addWorksheet('Data');
 
     try {
       let headers: string[] | null = null;
+      // Columns whose cells the sink types as numbers, format riding on the column.
+      const numericColumns = new Set<string>();
       let offset = 0;
 
       for (;;) {
@@ -1865,11 +1875,34 @@ export class ExportService {
           // First batch fixes the column order, as `json_to_sheet({ header })`
           // did; an empty export still gets the view's fields as a header row.
           headers = data.length ? Object.keys(data[0]) : fields;
+
+          // Must happen before the first row exists: a column style only reaches
+          // cells built after it is set, and committed rows are already gone.
+          headers.forEach((title, index) => {
+            const format = excelNumberFormat(
+              model.columns.find((c) => c.title === title),
+            );
+
+            if (!format) return;
+
+            numericColumns.add(title);
+
+            const column = worksheet.getColumn(index + 1);
+            column.numFmt = format.numFmt;
+            column.width = format.width;
+          });
+
           worksheet.addRow(headers).commit();
         }
 
         for (const row of data) {
-          worksheet.addRow(headers.map((h) => row[h])).commit();
+          worksheet
+            .addRow(
+              headers.map((h) =>
+                numericColumns.has(h) ? excelNumberValue(row[h]) : row[h],
+              ),
+            )
+            .commit();
         }
 
         if (result.pageInfo.isLastPage) break;

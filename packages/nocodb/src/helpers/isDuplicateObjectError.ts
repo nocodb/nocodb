@@ -1,4 +1,5 @@
-// Driver error classification for "this object/column is already there".
+// Driver error classification for "this object/column is already there" and
+// "this table/column is missing".
 //
 // Knex surfaces the native error differently per driver and wraps it at
 // different depths, so check every shape rather than one dialect's — the same
@@ -74,4 +75,27 @@ export function isDuplicateColumnError(e: any): boolean {
   if (hasCode(e, DUPLICATE_COLUMN_CODES)) return true;
   if (hasCode(e, DUPLICATE_OBJECT_CODES)) return false;
   return DUPLICATE_COLUMN_MESSAGE.test(String(e.message ?? ''));
+}
+
+const MISSING_OBJECT_CODES = new Set<string | number>([
+  '42P01', // postgres — undefined_table
+  '42703', // postgres — undefined_column
+  'ER_NO_SUCH_TABLE', // mysql
+  1146, // mysql
+  'ER_BAD_FIELD_ERROR', // mysql
+  1054, // mysql
+  208, // mssql — "Invalid object name"
+  207, // mssql — "Invalid column name"
+  942, // oracle — ORA-00942 "table or view does not exist"
+  904, // oracle — ORA-00904 "invalid identifier"
+]);
+
+const MISSING_OBJECT_MESSAGE =
+  /no such (table|column)|(relation|column) ".+" does not exist/i;
+
+/** True if a driver error says a table or column the query names is missing. */
+export function isMissingSchemaObjectError(e: any): boolean {
+  if (!e) return false;
+  if (hasCode(e, MISSING_OBJECT_CODES)) return true;
+  return MISSING_OBJECT_MESSAGE.test(String(e.message ?? ''));
 }

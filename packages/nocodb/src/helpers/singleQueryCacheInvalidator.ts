@@ -34,11 +34,11 @@ const logger = new Logger('singleQueryCacheInvalidator');
  * The public functions short-circuit on `!Noco.isEE()` so the discovery
  * metaList2 queries don't run in CE either.
  *
- * Scope: only relation / Lookup / Rollup columns embed another model's physical
- * names in the compiled SQL, so those are the column types walked. Formula
- * columns that reference a transitive lookup are NOT traversed; extend the graph
- * if that surfaces. FK-rename transitive propagation is also out of scope (only
- * the direct far-side model is cleared).
+ * Scope: the graph walks relation, Lookup, Rollup and Formula columns, plus the
+ * display-value hop — a Link surfaces its target's display value, so when that
+ * display value embeds the renamed entity every Link pointing at its model does
+ * too. FK-rename transitive propagation is out of scope (only the direct
+ * far-side model is cleared).
  */
 
 /**
@@ -54,7 +54,9 @@ const logger = new Logger('singleQueryCacheInvalidator');
  * whose SQL references `modelId`:
  *   seed   = relation columns whose target IS `modelId` (they JOIN it), then
  *   expand = any Lookup/Rollup whose relation hops onto `modelId`, OR whose
- *            looked-up / rolled-up target column is already an embedding column.
+ *            looked-up / rolled-up target column is already an embedding column;
+ *            any Formula referencing an embedding column; and, when an embedding
+ *            column is a display value, the Links targeting its model.
  * Repeat until the set stops growing, then map the columns to their models.
  */
 export async function clearSingleQueryCacheForReferencingModels(
@@ -76,17 +78,10 @@ export async function clearSingleQueryCacheForReferencingModels(
   // renamed table, directly or transitively
   const embeddingColumnIds = new Set<string>(relationColsTargetingModel);
 
-  const { lookups, rollups } = await loadBaseLookupsAndRollups(context, ncMeta);
-  expandEmbeddingColumns(
-    embeddingColumnIds,
-    lookups,
-    rollups,
-    relationColsTargetingModel,
-  );
-
-  const referencingModelIds = await resolveModelIdsFromColumnIds(
+  const referencingModelIds = await resolveEmbeddingClosure(
     context,
-    [...embeddingColumnIds],
+    embeddingColumnIds,
+    relationColsTargetingModel,
     ncMeta,
   );
 
@@ -153,12 +148,10 @@ export async function clearSingleQueryCacheForRenamedColumnReferences(
     }
   }
 
-  const { lookups, rollups } = await loadBaseLookupsAndRollups(context, ncMeta);
-  expandEmbeddingColumns(embeddingColumnIds, lookups, rollups);
-
-  const fromColumns = await resolveModelIdsFromColumnIds(
+  const fromColumns = await resolveEmbeddingClosure(
     context,
-    [...embeddingColumnIds],
+    embeddingColumnIds,
+    new Set<string>(),
     ncMeta,
   );
   for (const modelId of fromColumns) referencingModelIds.add(modelId);
@@ -347,14 +340,15 @@ async function loadDependentRelationColIds(
 }
 
 /**
- * Load every Lookup and Rollup column's metadata in the base — the edge list
- * the transitive-closure walks iterate over. Sequential (not Promise.all) since
+ * Load the edge lists the transitive-closure walk iterates over: every Lookup,
+ * Rollup and Formula column in the base, plus its relations (to find the Links
+ * that surface a model's display value). Sequential (not Promise.all) since
  * `ncMeta` may be a single Knex transaction.
  */
-async function loadBaseLookupsAndRollups(
+async function loadBaseDependencyGraph(
   context: NcContext,
   ncMeta = Noco.ncMeta,
-): Promise<{ lookups: any[]; rollups: any[] }> {
+): Promise<DependencyGraph> {
   const lookups = await ncMeta.metaList2(
     context.workspace_id,
     context.base_id,
@@ -365,7 +359,107 @@ async function loadBaseLookupsAndRollups(
     context.base_id,
     MetaTable.COL_ROLLUP,
   );
-  return { lookups, rollups };
+  const formulaRows = await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.COL_FORMULA,
+  );
+  const relations = await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.COL_RELATIONS,
+  );
+
+  const formulas = formulaRows
+    .filter((f) => f.fk_column_id && f.formula)
+    .map((f) => ({
+      fk_column_id: f.fk_column_id as string,
+      refs: extractFormulaColumnRefs(f.formula),
+    }));
+
+  const linkColIdsByTargetModel = new Map<string, string[]>();
+  for (const rel of relations) {
+    if (!rel.fk_column_id || !rel.fk_related_model_id) continue;
+    const list = linkColIdsByTargetModel.get(rel.fk_related_model_id) ?? [];
+    list.push(rel.fk_column_id);
+    linkColIdsByTargetModel.set(rel.fk_related_model_id, list);
+  }
+
+  return { lookups, rollups, formulas, linkColIdsByTargetModel };
+}
+
+/** Column ids a stored formula references — stored as `{colId}` / `{{colId}}`. */
+function extractFormulaColumnRefs(formula: string): Set<string> {
+  const refs = new Set<string>();
+  for (const match of `${formula}`.matchAll(/\{\{?([^{}]+?)\}?\}/g)) {
+    refs.add(match[1].trim());
+  }
+  return refs;
+}
+
+type DependencyGraph = {
+  lookups: any[];
+  rollups: any[];
+  formulas: Array<{ fk_column_id: string; refs: Set<string> }>;
+  linkColIdsByTargetModel: Map<string, string[]>;
+};
+
+/**
+ * Grow `embeddingColumnIds` (mutated in place) to a fixpoint and return the ids
+ * of the models that own them. Each pass adds Lookups/Rollups/Formulas that read
+ * an embedding column (see `expandEmbeddingColumns`), then — for any embedding
+ * column that is its model's display value — the Links targeting that model,
+ * since their compiled SQL renders that display value.
+ */
+async function resolveEmbeddingClosure(
+  context: NcContext,
+  embeddingColumnIds: Set<string>,
+  relationColsTargetingModel: Set<string>,
+  ncMeta = Noco.ncMeta,
+): Promise<Set<string>> {
+  const graph = await loadBaseDependencyGraph(context, ncMeta);
+
+  const modelIds = new Set<string>();
+  const resolved = new Set<string>();
+
+  let grew = true;
+  while (grew) {
+    grew = false;
+    expandEmbeddingColumns(
+      embeddingColumnIds,
+      graph,
+      relationColsTargetingModel,
+    );
+
+    const pending = [...embeddingColumnIds].filter((id) => !resolved.has(id));
+    if (!pending.length) break;
+    pending.forEach((id) => resolved.add(id));
+
+    const columns = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      {
+        xcCondition: {
+          _and: [{ id: { in: pending } }],
+        },
+      },
+    );
+
+    for (const col of columns) {
+      modelIds.add(col.fk_model_id);
+      if (!col.pv) continue;
+      for (const linkColId of graph.linkColIdsByTargetModel.get(
+        col.fk_model_id,
+      ) ?? []) {
+        if (embeddingColumnIds.has(linkColId)) continue;
+        embeddingColumnIds.add(linkColId);
+        grew = true;
+      }
+    }
+  }
+
+  return modelIds;
 }
 
 /**
@@ -430,15 +524,10 @@ async function clearCrossBaseReferringModels(
         ...seedColumnIds,
         ...linkColIds,
       ]);
-      const { lookups, rollups } = await loadBaseLookupsAndRollups(
+      const referringModelIds = await resolveEmbeddingClosure(
         refCtx,
-        ncMeta,
-      );
-      expandEmbeddingColumns(embeddingColumnIds, lookups, rollups, linkColIds);
-
-      const referringModelIds = await resolveModelIdsFromColumnIds(
-        refCtx,
-        [...embeddingColumnIds],
+        embeddingColumnIds,
+        linkColIds,
         ncMeta,
       );
       if (referringModelIds.size) {
@@ -463,12 +552,12 @@ async function clearCrossBaseReferringModels(
  * Grow `embeddingColumnIds` (mutated in place) to a fixpoint: repeatedly add any
  * Lookup/Rollup column that surfaces an already-embedding column via its
  * looked-up / rolled-up target, OR — table-rename case — whose relation column
- * hops onto the renamed model (`relationColsTargetingModel`).
+ * hops onto the renamed model (`relationColsTargetingModel`); and any Formula
+ * that references an embedding column.
  */
 function expandEmbeddingColumns(
   embeddingColumnIds: Set<string>,
-  lookups: any[],
-  rollups: any[],
+  { lookups, rollups, formulas }: DependencyGraph,
   relationColsTargetingModel: Set<string> = new Set<string>(),
 ): void {
   let grew = true;
@@ -494,6 +583,17 @@ function expandEmbeddingColumns(
       ) {
         embeddingColumnIds.add(rl.fk_column_id);
         grew = true;
+      }
+    }
+
+    for (const f of formulas) {
+      if (embeddingColumnIds.has(f.fk_column_id)) continue;
+      for (const ref of f.refs) {
+        if (embeddingColumnIds.has(ref)) {
+          embeddingColumnIds.add(f.fk_column_id);
+          grew = true;
+          break;
+        }
       }
     }
   }

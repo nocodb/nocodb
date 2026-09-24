@@ -1,0 +1,18 @@
+{
+  "labels": {
+    "compactView": "Compact",
+    "normalView": "Comfortable",
+    "noTitle": "Untitled",
+    "noRecords": "No records",
+    "groupBy": "Group by"
+  },
+  "tooltip": {
+    "kanban": {
+      "switchToCompact": "Switch to compact card view",
+      "switchToNormal": "Switch to comfortable card view",
+      "compactView": "Compact view",
+      "normalView": "Comfortable view"
+    },
+    "expand": "Expand record"
+  }
+}

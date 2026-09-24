@@ -1129,6 +1129,9 @@ export function useMultiSelect(
 
         let clipboardMatrix = parsedClipboard.data as string[][]
 
+        // #14442 — a single Long Text cell copied inside NocoDB is one value, not a matrix.
+        clipboardMatrix = singleCellClipboardMatrix(storedCopiedData) ?? clipboardMatrix
+
         // Special handling for "null" values - convert literal "null" strings to empty strings
         // This ensures that empty cells from numeric fields don't appear as "null" text
         clipboardMatrix = clipboardMatrix.map((row) => row.map((cell) => (cell === 'null' ? '' : cell)))

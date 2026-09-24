@@ -18,7 +18,7 @@ import {
 import { generateUniqueColumnName } from '../../../../../helpers/parsers/parserHelpers'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
 import type { Cell } from '../../../../../composables/useMultiSelect/cellRange'
-import { serializeRange, valueToCopy } from '../../../../../utils/pasteUtils'
+import { serializeRange, singleCellClipboardMatrix, valueToCopy } from '../../../../../utils/pasteUtils'
 import { ComputedTypePasteError } from '../../../../../error/computed-type-paste.error'
 import { SelectTypeConversionError } from '../../../../../error/select-type-conversion.error'
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
@@ -330,6 +330,9 @@ export function useCopyPaste({
         } else {
           clipboardMatrix = [[clipboardData]]
         }
+
+        // #14442 — a single Long Text cell copied inside NocoDB is one value, not a matrix.
+        clipboardMatrix = singleCellClipboardMatrix(storedCopiedData) ?? clipboardMatrix
 
         // Special handling for "null" values - convert literal "null" strings to empty strings
         // This ensures that empty cells from numeric fields don't appear as "null" text

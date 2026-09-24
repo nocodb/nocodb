@@ -33,7 +33,7 @@ const backfill = async (knex: Knex) => {
       is_meta: false,
       deleted: false,
       order: ++order,
-      version: 2,
+      version: 3,
       meta: '{"iconColor":"#36BFFF"}',
       created_at: at,
       updated_at: at,

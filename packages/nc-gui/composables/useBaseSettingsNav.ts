@@ -5,7 +5,15 @@ import type { ShellRailGroup } from '~/components/shell/Rail.vue'
 const CODE_PROJECT_HIDDEN_GROUPS = ['data', 'create', 'interfaces', 'app']
 
 /** Admin rows with nothing to act on in a code project. */
-const CODE_PROJECT_HIDDEN_SLUGS = ['record-trash', 'snapshots', 'variables', 'data-display', 'migrate-to-v3', 'migrate']
+const CODE_PROJECT_HIDDEN_SLUGS = [
+  'workflows',
+  'record-trash',
+  'snapshots',
+  'variables',
+  'data-display',
+  'migrate-to-v3',
+  'migrate',
+]
 
 export interface BaseSettingsPaneMeta {
   /** The header band's title. Often longer than the rail label ("Members" → "Base Members"). */

@@ -108,7 +108,7 @@ const sqlNullIfBlank = ({
 
 // NULL and false both render and filter (`notchecked`) as unchecked, so they must share a
 // group — otherwise two "Unchecked" groups each fetch the same rows. Returns null when the
-// column type can't take the literal (pg non-boolean), leaving the default grouping.
+// column type can't take either literal (e.g. pg `bit`), leaving the default grouping.
 const checkboxGroupKey = ({
   baseModel,
   column,
@@ -119,11 +119,15 @@ const checkboxGroupKey = ({
   columnName: string;
 }) => {
   if (column.uidt !== UITypes.Checkbox) return null;
-  if (baseModel.isPg) {
-    return ['bool', 'boolean'].includes((column.dt ?? '').toLowerCase())
-      ? baseModel.dbDriver.raw('COALESCE(??, false)', [columnName])
-      : null;
+  const dt = (column.dt ?? '').toLowerCase();
+  // pg, Snowflake and Databricks booleans reject a numeric literal in COALESCE
+  if (
+    (baseModel.isPg || baseModel.isSnowflake || baseModel.isDatabricks) &&
+    ['bool', 'boolean'].includes(dt)
+  ) {
+    return baseModel.dbDriver.raw('COALESCE(??, false)', [columnName]);
   }
+  if (baseModel.isPg && !/^(int|smallint|bigint)/.test(dt)) return null;
   return baseModel.dbDriver.raw('COALESCE(??, 0)', [columnName]);
 };
 

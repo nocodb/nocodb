@@ -32,8 +32,6 @@ const activeTabLabel = computed(() => {
   switch (activeTabKey.value) {
     case 'home':
       return t('general.home')
-    case 'factory':
-      return t('general.appFactory')
     case 'collaborators':
       return t('labels.members')
     case 'teams':

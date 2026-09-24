@@ -1,6 +1,12 @@
 import { BaseVersion, PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
 import type { ShellRailGroup } from '~/components/shell/Rail.vue'
 
+/** Manage, Create, Interfaces and the app's own settings. */
+const CODE_PROJECT_HIDDEN_GROUPS = ['data', 'create', 'interfaces', 'app']
+
+/** Admin rows with nothing to act on in a code project. */
+const CODE_PROJECT_HIDDEN_SLUGS = ['record-trash', 'snapshots', 'variables', 'data-display', 'migrate-to-v3', 'migrate']
+
 export interface BaseSettingsPaneMeta {
   /** The header band's title. Often longer than the rail label ("Members" → "Base Members"). */
   title: string
@@ -28,6 +34,8 @@ export function useBaseSettingsNav() {
   const { isSharedBase, base, listingManagedAppId } = storeToRefs(useBase())
 
   const { apps, isAppsEnabled } = storeToRefs(useAppStore())
+
+  const { isCodeProject } = useCodeProjects()
 
   const {
     isWsAuditEnabled,
@@ -383,7 +391,18 @@ export function useBaseSettingsNav() {
       })
     }
 
-    return groups.filter((g) => g.items.length)
+    // A code project holds a repository, not data: there is nothing in it to
+    // manage, build on, restore, display or migrate.
+    const shown = isCodeProject(base.value)
+      ? groups
+          .filter((group) => !CODE_PROJECT_HIDDEN_GROUPS.includes(group.key))
+          .map((group) => ({
+            ...group,
+            items: group.items.filter((item) => !CODE_PROJECT_HIDDEN_SLUGS.includes(item.slug)),
+          }))
+      : groups
+
+    return shown.filter((g) => g.items.length)
   })
 
   /** Every reachable slug, flattened — the deep-link guard's allow-list. */

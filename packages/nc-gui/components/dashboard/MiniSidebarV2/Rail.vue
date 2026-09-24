@@ -6,6 +6,7 @@ interface NavItem {
   icon: string
   label: string
   disabled?: boolean
+  active?: boolean
   onClick?: () => void
 }
 
@@ -21,7 +22,7 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace, isTemplatesPageOpened } = storeToRefs(workspaceStore)
 
 const { isWhiteLabelled, productName, faviconUrl } = useBranding()
 
@@ -125,11 +126,18 @@ const navigateToProjectPage = () => {
 
 const hasAvailableBases = computed(() => !!basesList.value?.length)
 
-const showAppTile = computed(() => isAppsEnabled.value && hasAvailableBases.value)
+const { isActiveBaseAppOnlyInstall } = useManagedAppInstalls()
+
+const { isActiveBaseCodeProject, isCodeProjectRoute } = useCodeProjects()
+
+// Templates are browsed before a project exists: the project's own navigation
+// there points at whichever project was open last, which is not what is on screen.
+// A code project has no apps of its own to open either.
+const showAppTile = computed(
+  () => isAppsEnabled.value && hasAvailableBases.value && !isTemplatesPageOpened.value && !isActiveBaseCodeProject.value,
+)
 
 const isAppFirst = computed(() => isAppFirstBase(resolvedProject.value))
-
-const { isActiveBaseAppOnlyInstall } = useManagedAppInstalls()
 
 const getBasePath = () => {
   const wsId = route.value.params.typeOrId || activeWorkspaceId.value
@@ -237,8 +245,24 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 const mainItems = computed<NavItem[]>(() =>
   // An app-only install has no base to navigate: every one of these routes
   // resolves straight back to the app, so offering them is offering dead ends.
-  isActiveBaseAppOnlyInstall.value
+  isActiveBaseAppOnlyInstall.value || isTemplatesPageOpened.value
     ? []
+    : isActiveBaseCodeProject.value
+    ? // A code project has no data behind those either — just its sessions,
+      // and a way back to them from Settings.
+      [
+        {
+          key: 'home',
+          icon: 'ncHome',
+          label: t('general.home'),
+          active: isCodeProjectRoute(route.value),
+          onClick: () => {
+            // Off `settings`, or that item stays lit beside this one.
+            activeSidebarTab.value = 'data'
+            navigateTo(`${getBasePath()}/factory`)
+          },
+        },
+      ]
     : [
         {
           key: 'data',
@@ -356,7 +380,7 @@ const isSettingsActive = computed(() => activeSidebarTab.value === 'settings' ||
       :icon="item.icon"
       :label="item.label"
       :panel-key="item.key"
-      :active="activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen"
+      :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
       :disabled="item.disabled"
       @click="item.onClick?.()"
     />
@@ -365,11 +389,11 @@ const isSettingsActive = computed(() => activeSidebarTab.value === 'settings' ||
 
     <!-- Settings -->
     <DashboardMiniSidebarV2RailItem
-      v-if="!isActiveBaseAppOnlyInstall"
+      v-if="!isActiveBaseAppOnlyInstall && !isTemplatesPageOpened"
       icon="ncSettings"
       :label="$t('labels.settings')"
       panel-key="settings"
-      :active="isSettingsActive && !isChatFullScreen"
+      :active="isSettingsActive && !isChatFullScreen && !isCodeProjectRoute(route)"
       @click="onTabClick('settings')"
     />
 

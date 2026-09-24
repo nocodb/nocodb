@@ -95,7 +95,6 @@ export const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-home': 'home',
   'index-typeOrId-index': 'bases',
   'index-typeOrId': 'bases',
-  'index-typeOrId-factory': 'factory',
   'index-typeOrId-members': 'collaborators',
   'index-typeOrId-teams': 'teams',
   'index-typeOrId-integrations': 'integrations',

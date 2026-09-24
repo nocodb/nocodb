@@ -244,6 +244,7 @@ export class MetaService {
       [MetaTable.CHAT_MESSAGES]: 'cm',
       [MetaTable.CHAT_ARTIFACTS]: 'cha',
       [MetaTable.FACTORY_REPOS]: 'fr',
+      [MetaTable.COMPUTE_INSTANCES]: 'cpi',
       [MetaTable.AGENTS]: 'agt',
       [MetaTable.AGENT_SESSIONS]: 'agss',
       [MetaTable.AGENT_CHANNELS]: 'agch',

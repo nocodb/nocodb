@@ -352,6 +352,7 @@ enum AuditV1OperationTypes {
   FACTORY_SESSION_STOP = 'FACTORY_SESSION_STOP',
   FACTORY_SESSION_ARCHIVE = 'FACTORY_SESSION_ARCHIVE',
   FACTORY_SESSION_RESUME = 'FACTORY_SESSION_RESUME',
+  FACTORY_SESSION_RENAME = 'FACTORY_SESSION_RENAME',
   FACTORY_SESSION_DELETE = 'FACTORY_SESSION_DELETE',
   FACTORY_REPO_ENABLE = 'FACTORY_REPO_ENABLE',
   FACTORY_REPO_DISABLE = 'FACTORY_REPO_DISABLE',
@@ -1674,6 +1675,8 @@ export interface DocAiCompletionPayload {
 export interface FactorySessionPayload {
   session_id: string;
   session_title?: string;
+  /** Set on a rename only: what the session was called before. */
+  old_session_title?: string;
   /** `owner/repo` of the repository the session works on. */
   repo?: string;
   /** `prompt` | `branch` | `pr` | `issue`, and the ref it named. */
@@ -2938,6 +2941,12 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.FACTORY_SESSION_RESUME]: (
     audit: AuditV1<FactorySessionPayload>
   ) => `App Factory session '${audit.details.session_title ?? ''}' was resumed`,
+  [AuditV1OperationTypes.FACTORY_SESSION_RENAME]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) =>
+    `App Factory session '${
+      audit.details.old_session_title ?? ''
+    }' was renamed to '${audit.details.session_title ?? ''}'`,
   [AuditV1OperationTypes.FACTORY_SESSION_DELETE]: (
     audit: AuditV1<FactorySessionPayload>
   ) => `App Factory session '${audit.details.session_title ?? ''}' was deleted`,

@@ -81,6 +81,7 @@ export enum ProjectTypes {
   DOCUMENTATION = 'documentation',
   COWRITER = 'cowriter',
   DASHBOARD = 'dashboard',
+  CODE = 'code',
 }
 
 export enum RelationTypes {

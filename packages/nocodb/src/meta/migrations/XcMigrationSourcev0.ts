@@ -106,6 +106,7 @@ import * as nc_202609161200_chat_sessions_agents from './v0/nc_202609161200_chat
 import * as nc_202609171500_invite_links from './v0/nc_202609171500_invite_links';
 import * as nc_202609181111_oauth_grant_permissions from './v0/nc_202609181111_oauth_grant_permissions';
 import * as nc_202609191200_app_factory from './v0/nc_202609191200_app_factory';
+import * as nc_202609211109_code_projects from './v0/nc_202609211109_code_projects';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -223,6 +224,7 @@ export default class XcMigrationSourcev0 {
       'nc_202609171500_invite_links',
       'nc_202609181111_oauth_grant_permissions',
       'nc_202609191200_app_factory',
+      'nc_202609211109_code_projects',
     ]);
   }
 
@@ -448,6 +450,8 @@ export default class XcMigrationSourcev0 {
         return nc_202609181111_oauth_grant_permissions;
       case 'nc_202609191200_app_factory':
         return nc_202609191200_app_factory;
+      case 'nc_202609211109_code_projects':
+        return nc_202609211109_code_projects;
     }
   }
 }

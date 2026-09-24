@@ -170,7 +170,8 @@ const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.FACTORY_REPOS, (table) => {
     table.dropIndex(['fk_integration_id'], 'nc_factory_repos_integration_idx');
     table.dropUnique(['base_id'], 'nc_factory_repos_base_uidx');
-    table.unique(
+    // Not unique again: once two projects share a repo, that would fail.
+    table.index(
       ['fk_workspace_id', 'fk_integration_id', 'provider_repo_id'],
       'nc_factory_repos_provider_uidx',
     );

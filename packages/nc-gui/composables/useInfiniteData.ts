@@ -2157,16 +2157,9 @@ export function useInfiniteData(args: {
             return
           }
 
-          const isValidationFailed = !recordPassesViewFilter(data)
-
-          if (isValidationFailed) {
-            // Row exists server-side but is filtered out locally — still
-            // bump the group count so the header reflects truth.
-            matchedCache.totalRows.value++
-            matchedCache.actualTotalRows.value = Math.max(matchedCache.actualTotalRows.value || 0, matchedCache.totalRows.value)
-            callbacks?.syncVisibleData?.()
-            return
-          }
+          // Group counts are fetched under the same filters, so a filtered-out row
+          // isn't in them — bumping the count would render a row-less placeholder.
+          if (!recordPassesViewFilter(data)) return
 
           const insertIdx = matchedCache.totalRows.value
           const newRow: Row = {

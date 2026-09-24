@@ -404,8 +404,11 @@ export function useInfiniteData(args: {
         return
       }
 
-      upsertCachedRows(dataCache.cachedRows.value, newItems, (row) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
+      const removed = upsertCachedRows(dataCache.cachedRows.value, newItems, (row) =>
+        extractPkFromRow(row, meta.value?.columns as ColumnType[]),
+      )
       dataCache.chunkStates.value[chunkId] = 'loaded'
+      invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, [chunkId])
     } catch (error) {
       console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
@@ -593,10 +596,11 @@ export function useInfiniteData(args: {
               getEvaluatedRowMetaRowColorInfo,
               evaluateButtonVisibility,
             )
-            upsertCachedRows(dataCache.cachedRows.value, rows, (row) =>
+            const removed = upsertCachedRows(dataCache.cachedRows.value, rows, (row) =>
               extractPkFromRow(row, meta.value?.columns as ColumnType[]),
             )
             dataCache.chunkStates.value[request.chunkId] = 'loaded'
+            invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, [request.chunkId])
 
             allFormattedRows.push({ rows, path: request.path })
             processedChunks.push({ request, rows, dataCache })
@@ -619,9 +623,12 @@ export function useInfiniteData(args: {
 
       for (const { request, rows, dataCache } of processedChunks) {
         try {
-          upsertCachedRows(dataCache.cachedRows.value, rows, (row) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
+          const removed = upsertCachedRows(dataCache.cachedRows.value, rows, (row) =>
+            extractPkFromRow(row, meta.value?.columns as ColumnType[]),
+          )
 
           dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, [request.chunkId])
           request.resolve(undefined)
         } catch (error) {
           console.error(`Error caching chunk ${request.chunkId}:`, error)
@@ -2118,6 +2125,9 @@ export function useInfiniteData(args: {
     return rowMatchesSearchAndUrl(data.payload)
   }
 
+  // Coalesces the per-row reloads a bulk event would fire into one.
+  const requestGroupReload = useDebounceFn(() => eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD), 300)
+
   const handleDataEvent = (data: DataPayload) => {
     const { id, action, payload, before } = data
 
@@ -2153,7 +2163,7 @@ export function useInfiniteData(args: {
           }
 
           if (!matchedCache) {
-            eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+            requestGroupReload()
             return
           }
 
@@ -2178,7 +2188,7 @@ export function useInfiniteData(args: {
           callbacks?.syncVisibleData?.()
         } catch (e) {
           console.error('Failed to add cached row on socket event (grouped)', e)
-          eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+          requestGroupReload()
         }
         return
       }
@@ -2281,6 +2291,9 @@ export function useInfiniteData(args: {
         const found = findCachedRowByPk(dataCaches, id)
 
         if (!found) {
+          // The event carries no before-image, so an unloaded row's old group is unknown —
+          // it may have left one group's count (placeholder) and joined another's (missing row).
+          if (isGroupBy.value && groupBy.value.length) requestGroupReload()
           return
         }
 
@@ -2295,7 +2308,7 @@ export function useInfiniteData(args: {
             return title && title in (payload ?? {}) && !isGroupByValueEqual(payload[title], cachedRow.row[title])
           })
           if (groupColumnChanged) {
-            eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+            requestGroupReload()
             return
           }
         }
@@ -2341,6 +2354,9 @@ export function useInfiniteData(args: {
 
           dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
           dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+        } else if (isGroupBy.value && groupBy.value.length) {
+          // Unloaded row — its group's count would otherwise keep a trailing placeholder.
+          requestGroupReload()
         }
 
         callbacks?.syncVisibleData?.()

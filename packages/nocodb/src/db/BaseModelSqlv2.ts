@@ -15,7 +15,6 @@ import {
   ClientType,
   convertDurationToSeconds,
   CURRENT_USER_TOKEN,
-  enumColors,
   EventType,
   extractFilterFromXwhere,
   isAIPromptCol,
@@ -72,12 +71,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
-import type {
-  FormulaColumn,
-  LinkToAnotherRecordColumn,
-  SelectOption,
-  User,
-} from '~/models';
+import type { FormulaColumn, LinkToAnotherRecordColumn, User } from '~/models';
 import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
@@ -148,6 +142,7 @@ import {
   Filter,
   Model,
   PresignedUrl,
+  SelectOption,
   Sort,
   Source,
   View,
@@ -6113,21 +6108,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.validateOptions(column, data);
       } catch (ex) {
         if (ex instanceof OptionsNotExistsError && typecast) {
-          const UpdatedColumn = await Column.update(this.context, column.id, {
-            ...column,
-            colOptions: {
-              options: [
-                ...column.colOptions.options,
-                ...ex.options.map((k, index) => ({
-                  fk_column_id: column.id,
-                  title: k,
-                  color: enumColors.get(
-                    'light',
-                    (column.colOptions.options ?? []).length + index,
-                  ),
-                })),
-              ],
-            },
+          const options = await SelectOption.appendMissing(
+            this.context,
+            column,
+            ex.options,
+          );
+          column.colOptions = { options };
+          const UpdatedColumn = await Column.get(this.context, {
+            colId: column.id,
           });
 
           const table = await Model.getWithInfo(this.context, {

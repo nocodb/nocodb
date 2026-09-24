@@ -106,6 +106,27 @@ const sqlNullIfBlank = ({
   return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
 };
 
+// NULL and false both render and filter (`notchecked`) as unchecked, so they must share a
+// group — otherwise two "Unchecked" groups each fetch the same rows. Returns null when the
+// column type can't take the literal (pg non-boolean), leaving the default grouping.
+const checkboxGroupKey = ({
+  baseModel,
+  column,
+  columnName,
+}: {
+  baseModel: IBaseModelSqlV2;
+  column: Column;
+  columnName: string;
+}) => {
+  if (column.uidt !== UITypes.Checkbox) return null;
+  if (baseModel.isPg) {
+    return ['bool', 'boolean'].includes((column.dt ?? '').toLowerCase())
+      ? baseModel.dbDriver.raw('COALESCE(??, false)', [columnName])
+      : null;
+  }
+  return baseModel.dbDriver.raw('COALESCE(??, 0)', [columnName]);
+};
+
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   // pg ranks NaN above every number, so ordering group keys by the raw value
   // puts the NaN group last while the rows inside it sort NaN first (see
@@ -440,10 +461,16 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           const defaultColumnName: any = isFieldTrackingLmbCol(column)
             ? (await lmbFieldQueryBuilder({ baseModel, column })).builder
             : await getColumnName(baseModel.context, column, columns);
-          const defaultColumnNameQb = sqlNullIfBlank({
-            columnName: defaultColumnName,
-            baseModel,
-          });
+          const defaultColumnNameQb =
+            checkboxGroupKey({
+              baseModel,
+              column,
+              columnName: defaultColumnName,
+            }) ??
+            sqlNullIfBlank({
+              columnName: defaultColumnName,
+              baseModel,
+            });
           columnQuery = baseModel.dbDriver.raw('??', [defaultColumnNameQb]);
           if (!isSubGroup) {
             selectors.push(
@@ -1091,7 +1118,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 : await getColumnName(baseModel.context, column, columns);
               selectors.push(
                 baseModel.dbDriver.raw('?? as ??', [
-                  sqlNullIfBlank({ columnName, baseModel }),
+                  checkboxGroupKey({ baseModel, column, columnName }) ??
+                    sqlNullIfBlank({ columnName, baseModel }),
                   getAs(column),
                 ]),
               );

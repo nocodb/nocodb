@@ -93,8 +93,8 @@ const isTooltipDisabled = computed(() => {
   // hugs the icon instead of boxing in the label beneath it.
   .nc-rail-item-chip {
     @apply flex items-center justify-center rounded-lg transition-all duration-150;
-    width: 36px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
   }
 
   // Idle state. Kept on a token rather than an rgba literal so every dark
@@ -183,7 +183,7 @@ const isTooltipDisabled = computed(() => {
     @apply opacity-40 cursor-not-allowed;
   }
 
-  // Touch primary input: the 40x26 target clears WCAG 2.5.8 (AA, 24px) but not
+  // Touch primary input: the 40x32 target clears WCAG 2.5.8 (AA, 24px) but not
   // 2.5.5 (AAA, 44px) or the Apple/Material minimums, which only matters for
   // fingers. Grow the target, not the icon. The rail stays one width — 46px
   // leaves a 45px content box, so 44 fits without a second rail size.

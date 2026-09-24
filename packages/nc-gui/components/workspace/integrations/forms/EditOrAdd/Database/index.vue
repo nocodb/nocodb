@@ -700,7 +700,7 @@ watch(
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
-                      <a-form-item label="Connection name" v-bind="validateInfos.title">
+                      <a-form-item :label="$t('labels.connectionName')" v-bind="validateInfos.title">
                         <a-input v-model:value="formState.title" />
                       </a-form-item>
                     </a-col>
@@ -710,7 +710,7 @@ watch(
 
               <div class="nc-form-section">
                 <div class="flex items-center justify-between">
-                  <div class="nc-form-section-title">Connection details</div>
+                  <div class="nc-form-section-title">{{ $t('labels.connectionDetailsSection') }}</div>
 
                   <!-- Use Connection URL -->
                   <NcDropdown
@@ -732,7 +732,7 @@ watch(
                     <template #overlay>
                       <div class="p-4 w-[448px] flex flex-col gap-3">
                         <div class="text-sm text-nc-content-gray-subtle">
-                          Auto populate connection configuration using database connection URL
+                          {{ $t('msg.info.autoPopulateConnectionFromUrl') }}
                         </div>
 
                         <a-textarea
@@ -791,7 +791,7 @@ watch(
                         >
                           <a-input
                             v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename"
-                            placeholder="Enter absolute file path"
+                            :placeholder="$t('placeholder.enterAbsoluteFilePath')"
                           />
                         </a-form-item>
                       </a-col>
@@ -840,7 +840,7 @@ watch(
                     <a-row :gutter="24">
                       <a-col :span="12">
                         <!-- Warehouse -->
-                        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+                        <a-form-item :label="$t('labels.warehouse')" v-bind="validateInfos['dataSource.connection.warehouse']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as SnowflakeConnection).warehouse"
                             class="nc-extdb-host-database"
@@ -882,7 +882,7 @@ watch(
                         </a-form-item>
                       </a-col>
                       <a-col :span="12">
-                        <a-form-item label="Host" v-bind="validateInfos['dataSource.connection.host']">
+                        <a-form-item :label="$t('labels.host')" v-bind="validateInfos['dataSource.connection.host']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).host"
                             class="nc-extdb-host-address"
@@ -892,7 +892,7 @@ watch(
                     </a-row>
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Path" v-bind="validateInfos['dataSource.connection.path']">
+                        <a-form-item :label="$t('labels.path')" v-bind="validateInfos['dataSource.connection.path']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).path"
                             class="nc-extdb-host-path"
@@ -1006,7 +1006,7 @@ watch(
                         <!-- Extra connection parameters -->
                         <a-form-item
                           class="nc-form-extra-connectin-parameters mb-2"
-                          label="Connection parameters"
+                          :label="$t('labels.connectionParameters')"
                           v-bind="validateInfos.extraParameters"
                         >
                           <div class="flex flex-col gap-3">
@@ -1031,7 +1031,7 @@ watch(
                               <NcButton size="small" type="secondary" class="" @click="addNewParam">
                                 <div class="flex items-center">
                                   <GeneralIcon icon="plus" />
-                                  Add
+                                  {{ $t('general.add') }}
                                 </div>
                               </NcButton>
                             </div>
@@ -1059,7 +1059,7 @@ watch(
                           class="nc-form-section-title cursor-pointer"
                           @click="handleUpdateUseSslExpannsionPanel(!useSslExpansionPanel.length)"
                         >
-                          Use SSL
+                          {{ $t('labels.useSsl') }}
                         </div>
                       </div>
                     </template>
@@ -1067,7 +1067,7 @@ watch(
                     <div class="border-1 border-nc-border-gray-medium rounded-lg p-3">
                       <a-row :gutter="24">
                         <a-col :span="12">
-                          <a-form-item label="SSL mode">
+                          <a-form-item :label="$t('labels.sslMode')">
                             <NcSelect
                               v-model:value="formState.sslUse"
                               class="nc-select-shadow"
@@ -1097,7 +1097,7 @@ watch(
                         <a-col :span="24">
                           <a-form-item
                             v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
-                            label="SSL keys"
+                            :label="$t('labels.sslKeys')"
                             class="!mt-3"
                           >
                             <div class="flex gap-2 w-full">
@@ -1225,7 +1225,7 @@ watch(
                       class="!-ml-1.5"
                       @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                     >
-                      <div class="nc-form-section-title">Advanced options</div>
+                      <div class="nc-form-section-title">{{ $t('labels.advancedOptions') }}</div>
 
                       <GeneralIcon
                         icon="chevronDown"

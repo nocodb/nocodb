@@ -2141,6 +2141,10 @@ export function useInfiniteData(args: {
     if (action === 'add') {
       if (isGroupBy.value && groupBy.value.length) {
         try {
+          // Group counts are fetched under the same filters, so a filtered-out row
+          // isn't in any of them — counting it would render a row-less placeholder.
+          if (!recordPassesViewFilter(data)) return
+
           let matchedCache: ReturnType<typeof getDataCache> | null = null
           let matchedPath: Array<number> = []
 
@@ -2167,10 +2171,6 @@ export function useInfiniteData(args: {
             return
           }
 
-          // Group counts are fetched under the same filters, so a filtered-out row
-          // isn't in them — bumping the count would render a row-less placeholder.
-          if (!recordPassesViewFilter(data)) return
-
           const insertIdx = matchedCache.totalRows.value
           const newRow: Row = {
             row: payload,
@@ -2196,7 +2196,9 @@ export function useInfiniteData(args: {
       try {
         const dataCache = getDataCache()
 
-        const isValidationFailed = !recordPassesViewFilter(data)
+        // A filtered-out row isn't in the view, so it must not open a slot either —
+        // shifting without filling it leaves a permanent placeholder.
+        if (!recordPassesViewFilter(data)) return
 
         // find index to insert the new row
         if (before) {
@@ -2216,70 +2218,66 @@ export function useInfiniteData(args: {
                 dataCache.cachedRows.value.set(index + 1, rowData)
               }
 
-              if (!isValidationFailed) {
-                dataCache.cachedRows.value.set(newRowIndex, {
-                  row: payload,
-                  oldRow: {},
-                  rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
-                })
+              dataCache.cachedRows.value.set(newRowIndex, {
+                row: payload,
+                oldRow: {},
+                rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+              })
 
-                dataCache.totalRows.value++
-                dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+              dataCache.totalRows.value++
+              dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
 
-                callbacks?.syncVisibleData?.()
-              }
+              callbacks?.syncVisibleData?.()
               return
             }
           }
         }
 
-        if (!isValidationFailed) {
-          // No `before` hint — find correct sorted position locally
-          const orderCol = meta.value?.columns?.find((c) => isOrderCol(c))
-          const orderField = orderCol?.title || orderCol?.column_name
-          let insertAtIndex = dataCache.totalRows.value
+        // No `before` hint — find correct sorted position locally
+        const orderCol = meta.value?.columns?.find((c) => isOrderCol(c))
+        const orderField = orderCol?.title || orderCol?.column_name
+        let insertAtIndex = dataCache.totalRows.value
 
-          if (!sorts.value.length && orderField && payload[orderField] != null) {
-            // Default sort by nc_order — find the right position
-            const payloadOrder = Number(payload[orderField])
-            const entries = Array.from(dataCache.cachedRows.value.entries()).sort((a, b) => a[0] - b[0])
-            for (const [idx, cachedRow] of entries) {
-              const cachedOrder = Number(cachedRow.row[orderField])
-              if (!isNaN(cachedOrder) && payloadOrder < cachedOrder) {
-                insertAtIndex = idx
-                break
-              }
+        if (!sorts.value.length && orderField && payload[orderField] != null) {
+          // Default sort by nc_order — find the right position
+          const payloadOrder = Number(payload[orderField])
+          const entries = Array.from(dataCache.cachedRows.value.entries()).sort((a, b) => a[0] - b[0])
+          for (const [idx, cachedRow] of entries) {
+            const cachedOrder = Number(cachedRow.row[orderField])
+            if (!isNaN(cachedOrder) && payloadOrder < cachedOrder) {
+              insertAtIndex = idx
+              break
             }
           }
-
-          // Shift rows down to make room at insertAtIndex
-          if (insertAtIndex < dataCache.totalRows.value) {
-            const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
-              .filter(([index]) => index >= insertAtIndex)
-              .sort((a, b) => b[0] - a[0])
-            for (const [index, rowData] of rowsToShift) {
-              rowData.rowMeta.rowIndex = index + 1
-              dataCache.cachedRows.value.delete(index)
-              dataCache.cachedRows.value.set(index + 1, rowData)
-            }
-          }
-
-          const newRow: Row = {
-            row: payload,
-            oldRow: {},
-            rowMeta: { new: false, rowIndex: insertAtIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
-          }
-          dataCache.cachedRows.value.set(insertAtIndex, newRow)
-          dataCache.totalRows.value++
-          dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
-
-          // If explicit sorts exist, apply them (nc_order handled above)
-          if (sorts.value.length) {
-            applySorting(newRow)
-          }
-
-          callbacks?.syncVisibleData?.()
         }
+
+        // Shift rows down to make room at insertAtIndex
+        if (insertAtIndex < dataCache.totalRows.value) {
+          const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
+            .filter(([index]) => index >= insertAtIndex)
+            .sort((a, b) => b[0] - a[0])
+          for (const [index, rowData] of rowsToShift) {
+            rowData.rowMeta.rowIndex = index + 1
+            dataCache.cachedRows.value.delete(index)
+            dataCache.cachedRows.value.set(index + 1, rowData)
+          }
+        }
+
+        const newRow: Row = {
+          row: payload,
+          oldRow: {},
+          rowMeta: { new: false, rowIndex: insertAtIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+        }
+        dataCache.cachedRows.value.set(insertAtIndex, newRow)
+        dataCache.totalRows.value++
+        dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+        // If explicit sorts exist, apply them (nc_order handled above)
+        if (sorts.value.length) {
+          applySorting(newRow)
+        }
+
+        callbacks?.syncVisibleData?.()
       } catch (e) {
         console.error('Failed to add cached row on socket event', e)
       }

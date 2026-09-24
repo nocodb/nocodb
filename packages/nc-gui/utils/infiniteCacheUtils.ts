@@ -20,16 +20,22 @@
  * primary key is removed first — guaranteeing the cache never holds a record twice.
  * Rows without a primary key (unsaved new rows) are left untouched.
  *
+ * Removing a duplicate leaves a hole in its chunk, so the removed indices are returned —
+ * callers must mark those chunks unloaded or the hole renders as a permanent placeholder.
+ *
  * @param cachedRows  the index -> Row cache to mutate in place
  * @param newItems    rows just fetched/formatted from the server
  * @param getPk       extracts a stable primary key from a row's data (null when absent)
+ * @returns           indices whose stale duplicate was removed
  */
 export const upsertCachedRows = (
   cachedRows: Map<number, Row>,
   newItems: Row[],
   getPk: (row: Record<string, any>) => string | null,
-) => {
-  if (!newItems?.length) return
+): number[] => {
+  const removedIndices: number[] = []
+
+  if (!newItems?.length) return removedIndices
 
   const incomingPks = new Set<string>()
   const incomingIndices = new Set<number>()
@@ -47,11 +53,30 @@ export const upsertCachedRows = (
       const pk = getPk(row.row)
       if (pk !== null && pk !== '' && incomingPks.has(pk)) {
         cachedRows.delete(index)
+        removedIndices.push(index)
       }
     }
   }
 
   for (const item of newItems) {
     cachedRows.set(item.rowMeta.rowIndex!, item)
+  }
+
+  return removedIndices
+}
+
+/**
+ * Mark the chunks that lost a row to `upsertCachedRows` as unloaded so they refetch. The chunks
+ * just written are skipped — they're fresh, and re-marking them would refetch them for nothing.
+ */
+export const invalidateChunksAt = <T>(
+  chunkStates: Array<T | undefined>,
+  removedIndices: number[],
+  chunkSize: number,
+  writtenChunks: number[] = [],
+) => {
+  for (const index of removedIndices) {
+    const chunk = Math.floor(index / chunkSize)
+    if (!writtenChunks.includes(chunk)) chunkStates[chunk] = undefined
   }
 }

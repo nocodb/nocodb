@@ -11,6 +11,15 @@ import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
+// pg won't compare or assign a boolean against an integer column, which a
+// Checkbox can be mapped onto (e.g. an external table's `int` flag).
+const isPgIntegerColumn = (
+  clientType: string | undefined,
+  column: Column,
+): boolean =>
+  clientType === 'pg' &&
+  /^(int|smallint|bigint)/.test((column.dt ?? '').toLowerCase());
+
 export class CheckboxGeneralHandler extends GenericFieldHandler {
   protected get checkedDbValue(): any {
     return true;
@@ -20,18 +29,28 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
     return false;
   }
 
+  protected dbValueFor(
+    checked: boolean,
+    knex: CustomKnex,
+    column: Column,
+  ): any {
+    if (isPgIntegerColumn(knex.clientType(), column)) return checked ? 1 : 0;
+    return checked ? this.checkedDbValue : this.notcheckedDbValue;
+  }
+
   override async filterChecked(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
     },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
+    const checkedValue = this.dbValueFor(true, rootArgs.knex, rootArgs.column);
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
-        qb.where(args.sourceField as any, this.checkedDbValue);
+        qb.where(args.sourceField as any, checkedValue);
       },
     };
   }
@@ -43,19 +62,68 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
     },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
+    const notcheckedValue = this.dbValueFor(
+      false,
+      rootArgs.knex,
+      rootArgs.column,
+    );
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((grpdQb) => {
           grpdQb
             .whereNull(args.sourceField as any)
-            .orWhere(args.sourceField as any, this.notcheckedDbValue);
+            .orWhere(args.sourceField as any, notcheckedValue);
         });
       },
     };
+  }
+
+  override async filterEq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    return super.filterEq(
+      { ...args, val: this.integerFilterValue(args.val, rootArgs) },
+      rootArgs,
+      options,
+    );
+  }
+
+  override async filterNeq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    return super.filterNeq(
+      { ...args, val: this.integerFilterValue(args.val, rootArgs) },
+      rootArgs,
+      options,
+    );
+  }
+
+  // `eq`/`neq` values arrive as 'true'/'false', which pg can't cast to integer.
+  private integerFilterValue(
+    val: any,
+    rootArgs: { knex: CustomKnex; column: Column },
+  ) {
+    if (!isPgIntegerColumn(rootArgs.knex.clientType(), rootArgs.column)) {
+      return val;
+    }
+    const parsed = parseCheckboxValue(val);
+    return parsed === true || parsed === false
+      ? this.dbValueFor(parsed, rootArgs.knex, rootArgs.column)
+      : val;
   }
 
   override async verifyFilter(filter: Filter, column: Column) {
@@ -112,7 +180,13 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
     const parsedCheckboxValue = parseCheckboxValue(params.value);
 
     if (parsedCheckboxValue === true || parsedCheckboxValue === false) {
-      return { value: parsedCheckboxValue };
+      const knex = params.options?.baseModel?.dbDriver;
+      return {
+        value:
+          knex && isPgIntegerColumn(knex.clientType(), params.column)
+            ? +parsedCheckboxValue
+            : parsedCheckboxValue,
+      };
     } else {
       NcError.invalidValueForField({
         value: params.value,

@@ -93,6 +93,11 @@ export const useInfiniteGroups = (
   const getChunkKey = (chunkId: number, parentGroup?: CanvasGroup) =>
     `${parentGroup ? generateGroupPath(parentGroup) : 'root'}:${chunkId}`
 
+  // Settles when a chunk's in-flight fetch finishes; a forced fetch that finds the chunk
+  // loading waits on it and re-runs (see queueForcedRefetch).
+  const inFlightGroupChunks = new Map<string, Promise<void>>()
+  const queuedForcedRefetches = new Map<string, Promise<void>>()
+
   // Viewport-lazy aggregation loading — groups queue here when they become
   // visible and flush as one debounced bulkAggregate request.
   const AGGREGATION_FETCH_DEBOUNCE_MS = 200
@@ -133,18 +138,14 @@ export const useInfiniteGroups = (
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
     const chunkKey = getChunkKey(chunkId, parentGroup)
 
-    if (
-      targetChunkStates[chunkId] === 'loading' ||
-      (targetChunkStates[chunkId] === 'loaded' && !force) ||
-      (targetChunkStates[chunkId] === 'failed' && !force)
-    )
-      return
+    if (targetChunkStates[chunkId] === 'loading') {
+      if (!force) return
+      // The in-flight response predates whatever made the caller force a refresh.
+      if (inFlightGroupChunks.has(chunkKey)) return queueForcedRefetch(chunkId, parentGroup)
+    }
 
-    // User-initiated re-fetch (force=true) — clear the failure counter so
-    // we get a fresh CANVAS_MAX_CHUNK_FETCH_ATTEMPTS budget.
-    if (force) chunkFailureCounts.delete(chunkKey)
+    if ((targetChunkStates[chunkId] === 'loaded' || targetChunkStates[chunkId] === 'failed') && !force) return
 
-    targetChunkStates[chunkId] = 'loading'
     const offset = chunkId * GROUP_CHUNK_SIZE
     const level = parentGroup ? findGroupLevel(parentGroup) : 0
     const groupCol = groupByColumns.value[level]
@@ -152,7 +153,15 @@ export const useInfiniteGroups = (
     // Interface pages fetch through the adapter (page/viz-scoped, incl. public
     // share) — it carries its own context, so `base.value.id` (unset on the
     // anonymous public route) must not gate the group-chunk load there.
+    // Checked before marking 'loading', which would otherwise stick and never retry.
     if (!groupCol || !view.value?.id || (!interfaceDataApi && !base.value?.id)) return
+
+    // User-initiated re-fetch (force=true) — clear the failure counter so
+    // we get a fresh CANVAS_MAX_CHUNK_FETCH_ATTEMPTS budget.
+    if (force) chunkFailureCounts.delete(chunkKey)
+
+    targetChunkStates[chunkId] = 'loading'
+    const settleInFlight = markChunkInFlight(chunkKey)
 
     try {
       const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
@@ -362,10 +371,13 @@ export const useInfiniteGroups = (
       // visible in the viewport (see fetchMissingGroupAggregations), so scrolling
       // through group headers doesn't fan out expensive per-group aggregate queries.
 
+      // The response total is authoritative: 0 is a real answer (every group gone), and a
+      // parent's `__sub_group_count__` counts the blank sub-group that hide-empty drops.
       if (!parentGroup) {
-        totalGroups.value = response.pageInfo.totalRows || totalGroups.value
+        totalGroups.value = response.pageInfo?.totalRows ?? totalGroups.value
         chunkStates.value[chunkId] = 'loaded'
       } else {
+        parentGroup.groupCount = response.pageInfo?.totalRows ?? parentGroup.groupCount
         targetChunkStates[chunkId] = 'loaded'
       }
     } catch (error) {
@@ -373,7 +385,33 @@ export const useInfiniteGroups = (
       const nextCount = (chunkFailureCounts.get(chunkKey) ?? 0) + 1
       chunkFailureCounts.set(chunkKey, nextCount)
       targetChunkStates[chunkId] = nextCount >= CANVAS_MAX_CHUNK_FETCH_ATTEMPTS ? 'failed' : undefined
+    } finally {
+      settleInFlight()
     }
+  }
+
+  function markChunkInFlight(chunkKey: string) {
+    let settle!: () => void
+    const inFlight = new Promise<void>((resolve) => (settle = resolve))
+    inFlightGroupChunks.set(chunkKey, inFlight)
+    return () => {
+      if (inFlightGroupChunks.get(chunkKey) === inFlight) inFlightGroupChunks.delete(chunkKey)
+      settle()
+    }
+  }
+
+  // Concurrent forced refreshes of one chunk collapse into a single re-run.
+  function queueForcedRefetch(chunkId: number, parentGroup?: CanvasGroup): Promise<void> {
+    const chunkKey = getChunkKey(chunkId, parentGroup)
+    const queued = queuedForcedRefetches.get(chunkKey)
+    if (queued) return queued
+
+    const rerun = (inFlightGroupChunks.get(chunkKey) ?? Promise.resolve()).then(() => {
+      queuedForcedRefetches.delete(chunkKey)
+      return fetchGroupChunk(chunkId, parentGroup, true)
+    })
+    queuedForcedRefetches.set(chunkKey, rerun)
+    return rerun
   }
 
   function buildNestedWhere(group: CanvasGroup, existing = ''): string {

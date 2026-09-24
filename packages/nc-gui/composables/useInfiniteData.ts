@@ -404,8 +404,11 @@ export function useInfiniteData(args: {
         return
       }
 
-      upsertCachedRows(dataCache.cachedRows.value, newItems, (row) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
+      const removed = upsertCachedRows(dataCache.cachedRows.value, newItems, (row) =>
+        extractPkFromRow(row, meta.value?.columns as ColumnType[]),
+      )
       dataCache.chunkStates.value[chunkId] = 'loaded'
+      invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, [chunkId])
     } catch (error) {
       console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
@@ -593,10 +596,11 @@ export function useInfiniteData(args: {
               getEvaluatedRowMetaRowColorInfo,
               evaluateButtonVisibility,
             )
-            upsertCachedRows(dataCache.cachedRows.value, rows, (row) =>
+            const removed = upsertCachedRows(dataCache.cachedRows.value, rows, (row) =>
               extractPkFromRow(row, meta.value?.columns as ColumnType[]),
             )
             dataCache.chunkStates.value[request.chunkId] = 'loaded'
+            invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, [request.chunkId])
 
             allFormattedRows.push({ rows, path: request.path })
             processedChunks.push({ request, rows, dataCache })
@@ -619,9 +623,12 @@ export function useInfiniteData(args: {
 
       for (const { request, rows, dataCache } of processedChunks) {
         try {
-          upsertCachedRows(dataCache.cachedRows.value, rows, (row) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
+          const removed = upsertCachedRows(dataCache.cachedRows.value, rows, (row) =>
+            extractPkFromRow(row, meta.value?.columns as ColumnType[]),
+          )
 
           dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, [request.chunkId])
           request.resolve(undefined)
         } catch (error) {
           console.error(`Error caching chunk ${request.chunkId}:`, error)
@@ -2118,6 +2125,9 @@ export function useInfiniteData(args: {
     return rowMatchesSearchAndUrl(data.payload)
   }
 
+  // Coalesces the per-row reloads a bulk event would fire into one.
+  const requestGroupReload = useDebounceFn(() => eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD), 300)
+
   const handleDataEvent = (data: DataPayload) => {
     const { id, action, payload, before } = data
 
@@ -2131,6 +2141,10 @@ export function useInfiniteData(args: {
     if (action === 'add') {
       if (isGroupBy.value && groupBy.value.length) {
         try {
+          // Group counts are fetched under the same filters, so a filtered-out row
+          // isn't in any of them — counting it would render a row-less placeholder.
+          if (!recordPassesViewFilter(data)) return
+
           let matchedCache: ReturnType<typeof getDataCache> | null = null
           let matchedPath: Array<number> = []
 
@@ -2153,18 +2167,7 @@ export function useInfiniteData(args: {
           }
 
           if (!matchedCache) {
-            eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
-            return
-          }
-
-          const isValidationFailed = !recordPassesViewFilter(data)
-
-          if (isValidationFailed) {
-            // Row exists server-side but is filtered out locally — still
-            // bump the group count so the header reflects truth.
-            matchedCache.totalRows.value++
-            matchedCache.actualTotalRows.value = Math.max(matchedCache.actualTotalRows.value || 0, matchedCache.totalRows.value)
-            callbacks?.syncVisibleData?.()
+            requestGroupReload()
             return
           }
 
@@ -2185,7 +2188,7 @@ export function useInfiniteData(args: {
           callbacks?.syncVisibleData?.()
         } catch (e) {
           console.error('Failed to add cached row on socket event (grouped)', e)
-          eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+          requestGroupReload()
         }
         return
       }
@@ -2193,7 +2196,9 @@ export function useInfiniteData(args: {
       try {
         const dataCache = getDataCache()
 
-        const isValidationFailed = !recordPassesViewFilter(data)
+        // A filtered-out row isn't in the view, so it must not open a slot either —
+        // shifting without filling it leaves a permanent placeholder.
+        if (!recordPassesViewFilter(data)) return
 
         // find index to insert the new row
         if (before) {
@@ -2213,70 +2218,66 @@ export function useInfiniteData(args: {
                 dataCache.cachedRows.value.set(index + 1, rowData)
               }
 
-              if (!isValidationFailed) {
-                dataCache.cachedRows.value.set(newRowIndex, {
-                  row: payload,
-                  oldRow: {},
-                  rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
-                })
+              dataCache.cachedRows.value.set(newRowIndex, {
+                row: payload,
+                oldRow: {},
+                rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+              })
 
-                dataCache.totalRows.value++
-                dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+              dataCache.totalRows.value++
+              dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
 
-                callbacks?.syncVisibleData?.()
-              }
+              callbacks?.syncVisibleData?.()
               return
             }
           }
         }
 
-        if (!isValidationFailed) {
-          // No `before` hint — find correct sorted position locally
-          const orderCol = meta.value?.columns?.find((c) => isOrderCol(c))
-          const orderField = orderCol?.title || orderCol?.column_name
-          let insertAtIndex = dataCache.totalRows.value
+        // No `before` hint — find correct sorted position locally
+        const orderCol = meta.value?.columns?.find((c) => isOrderCol(c))
+        const orderField = orderCol?.title || orderCol?.column_name
+        let insertAtIndex = dataCache.totalRows.value
 
-          if (!sorts.value.length && orderField && payload[orderField] != null) {
-            // Default sort by nc_order — find the right position
-            const payloadOrder = Number(payload[orderField])
-            const entries = Array.from(dataCache.cachedRows.value.entries()).sort((a, b) => a[0] - b[0])
-            for (const [idx, cachedRow] of entries) {
-              const cachedOrder = Number(cachedRow.row[orderField])
-              if (!isNaN(cachedOrder) && payloadOrder < cachedOrder) {
-                insertAtIndex = idx
-                break
-              }
+        if (!sorts.value.length && orderField && payload[orderField] != null) {
+          // Default sort by nc_order — find the right position
+          const payloadOrder = Number(payload[orderField])
+          const entries = Array.from(dataCache.cachedRows.value.entries()).sort((a, b) => a[0] - b[0])
+          for (const [idx, cachedRow] of entries) {
+            const cachedOrder = Number(cachedRow.row[orderField])
+            if (!isNaN(cachedOrder) && payloadOrder < cachedOrder) {
+              insertAtIndex = idx
+              break
             }
           }
-
-          // Shift rows down to make room at insertAtIndex
-          if (insertAtIndex < dataCache.totalRows.value) {
-            const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
-              .filter(([index]) => index >= insertAtIndex)
-              .sort((a, b) => b[0] - a[0])
-            for (const [index, rowData] of rowsToShift) {
-              rowData.rowMeta.rowIndex = index + 1
-              dataCache.cachedRows.value.delete(index)
-              dataCache.cachedRows.value.set(index + 1, rowData)
-            }
-          }
-
-          const newRow: Row = {
-            row: payload,
-            oldRow: {},
-            rowMeta: { new: false, rowIndex: insertAtIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
-          }
-          dataCache.cachedRows.value.set(insertAtIndex, newRow)
-          dataCache.totalRows.value++
-          dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
-
-          // If explicit sorts exist, apply them (nc_order handled above)
-          if (sorts.value.length) {
-            applySorting(newRow)
-          }
-
-          callbacks?.syncVisibleData?.()
         }
+
+        // Shift rows down to make room at insertAtIndex
+        if (insertAtIndex < dataCache.totalRows.value) {
+          const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
+            .filter(([index]) => index >= insertAtIndex)
+            .sort((a, b) => b[0] - a[0])
+          for (const [index, rowData] of rowsToShift) {
+            rowData.rowMeta.rowIndex = index + 1
+            dataCache.cachedRows.value.delete(index)
+            dataCache.cachedRows.value.set(index + 1, rowData)
+          }
+        }
+
+        const newRow: Row = {
+          row: payload,
+          oldRow: {},
+          rowMeta: { new: false, rowIndex: insertAtIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+        }
+        dataCache.cachedRows.value.set(insertAtIndex, newRow)
+        dataCache.totalRows.value++
+        dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+        // If explicit sorts exist, apply them (nc_order handled above)
+        if (sorts.value.length) {
+          applySorting(newRow)
+        }
+
+        callbacks?.syncVisibleData?.()
       } catch (e) {
         console.error('Failed to add cached row on socket event', e)
       }
@@ -2288,6 +2289,9 @@ export function useInfiniteData(args: {
         const found = findCachedRowByPk(dataCaches, id)
 
         if (!found) {
+          // The event carries no before-image, so an unloaded row's old group is unknown —
+          // it may have left one group's count (placeholder) and joined another's (missing row).
+          if (isGroupBy.value && groupBy.value.length) requestGroupReload()
           return
         }
 
@@ -2302,7 +2306,7 @@ export function useInfiniteData(args: {
             return title && title in (payload ?? {}) && !isGroupByValueEqual(payload[title], cachedRow.row[title])
           })
           if (groupColumnChanged) {
-            eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+            requestGroupReload()
             return
           }
         }
@@ -2348,6 +2352,9 @@ export function useInfiniteData(args: {
 
           dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
           dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+        } else if (isGroupBy.value && groupBy.value.length) {
+          // Unloaded row — its group's count would otherwise keep a trailing placeholder.
+          requestGroupReload()
         }
 
         callbacks?.syncVisibleData?.()

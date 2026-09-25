@@ -207,7 +207,7 @@ const supportedDocs = [
 
 <template>
   <div
-    class="px-6 py-5"
+    class="py-5"
     :style="
       inModal
         ? { height: '100%', maxHeight: '100%' }

@@ -469,6 +469,26 @@ export const allIntegrations: IntegrationItemType[] = [
   // },
 ]
 
+// The AUTH category lists every provider that can authenticate; these datastores and raw protocols are not apps.
+const NON_APP_SUB_TYPES = new Set([
+  'postgres',
+  'pg',
+  'mysql',
+  'mysql2',
+  'mssql',
+  'oracledb',
+  'sqlite3',
+  'clickhouse',
+  'snowflake',
+  'databricks',
+  'redis',
+  'http-api',
+  'smtp',
+  'caldav',
+])
+
+export const isAppIntegration = (integration: IntegrationItemType) => !NON_APP_SUB_TYPES.has(String(integration.sub_type))
+
 export const allIntegrationsMapBySubType = allIntegrations.reduce((acc, integration) => {
   acc[integration.sub_type] = integration
 

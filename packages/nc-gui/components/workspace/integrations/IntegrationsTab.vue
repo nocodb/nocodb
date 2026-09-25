@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
 import { IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 
@@ -52,7 +51,6 @@ const {
   IntegrationsPageMode,
   requestIntegration,
   addIntegration,
-  saveIntegrationRequest,
   integrationsRefreshKey,
   integrations,
   isLoadedIntegrations,
@@ -61,8 +59,6 @@ const {
   activeViewTab,
   loadDynamicIntegrations,
 } = useIntegrationStore()
-
-const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
 const showComingSoonIntegrations = ref(false)
 
@@ -254,18 +250,6 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
   await addIntegration(integration)
 }
 
-const isVisibleAllCategory = computed(() => {
-  return integrationCategoriesRef.value.length === categoriesQuery.value.length
-})
-
-const toggleShowOrHideAllCategory = () => {
-  if (isVisibleAllCategory.value) {
-    categoriesQuery.value = []
-  } else {
-    categoriesQuery.value = integrationCategoriesRef.value.map((c) => c.value)
-  }
-}
-
 const isIntegrationVisible = (integration: IntegrationItemType, _category: any) => {
   if (!showComingSoonIntegrations.value && !integration.isAvailable) return false
 
@@ -273,6 +257,45 @@ const isIntegrationVisible = (integration: IntegrationItemType, _category: any) 
 
   return !!integration.isAvailable
 }
+
+// Browse gallery, mirroring the base settings pane: categories are filter pills over one grid.
+const activeBrowseCategory = ref<string>('all')
+
+const appsCategory = IntegrationCategoryType.AUTH
+
+/** A category is offered only when it still has something to show. */
+const browseCategories = computed(() =>
+  Object.values(integrationsMapByCategory.value).filter((c: any) => {
+    if (!(easterEggToggle.value || c.value === IntegrationCategoryType.DATABASE || c.value === appsCategory)) return false
+
+    const list = (c.list || []).filter((i: IntegrationItemType) => isIntegrationVisible(i, c))
+
+    return c.value === appsCategory ? list.some(isAppIntegration) : list.length > 0
+  }),
+)
+
+const browsePills = computed(() => [
+  { value: 'all', title: 'general.all' },
+  ...browseCategories.value.map((c: any) => ({ value: c.value, title: c.title })),
+])
+
+const browseItems = computed(() =>
+  browseCategories.value
+    .filter((c: any) => activeBrowseCategory.value === 'all' || c.value === activeBrowseCategory.value)
+    .flatMap((c: any) => {
+      const list = (c.list || []).filter((i: IntegrationItemType) => isIntegrationVisible(i, c))
+
+      return (c.value === appsCategory ? list.filter(isAppIntegration) : list).map((i: IntegrationItemType) => ({
+        integration: i,
+        categoryKey: c.value,
+      }))
+    }),
+)
+
+// A pill the search narrowed away would strand the grid with no way back.
+watch(browseItems, (items) => {
+  if (!items.length && activeBrowseCategory.value !== 'all') activeBrowseCategory.value = 'all'
+})
 
 onMounted(() => {
   loadDynamicIntegrations()
@@ -337,44 +360,30 @@ watch(activeViewTab, (value) => {
           }"
         >
           <div v-if="integrationListContainerWidth" class="px-6 pt-4">
-            <div
-              class="flex justify-end flex-wrap gap-3 m-auto nc-content-max-w"
-              :class="{
-                'items-start': showTitle,
-                'items-center': !showTitle,
-              }"
-            >
-              <div class="flex-1">
-                <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-2">
+            <!-- Title and search share a line: search filters the whole pane. -->
+            <div class="flex flex-wrap items-center justify-between gap-3 m-auto nc-content-max-w">
+              <div class="flex-1 min-w-60">
+                <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-1">
                   {{ $t('general.integrations') }}
                 </h2>
 
                 <div class="text-sm font-normal text-nc-content-gray-subtle2">
-                  <div>
-                    {{ showActiveConnections ? $t('msg.manageConnectionsAndIntegrations') : $t('msg.connectIntegrations') }}
-                    <a href="https://nocodb.com/docs/product-docs/integrations" target="_blank" rel="noopener noreferrer">{{
-                      $t('msg.learnMore')
-                    }}</a>
-                  </div>
+                  {{ showActiveConnections ? $t('msg.manageConnectionsAndIntegrations') : $t('msg.connectIntegrations') }}
+                  <a
+                    class="nc-inline-doc-link"
+                    href="https://nocodb.com/docs/product-docs/integrations"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >{{ $t('msg.learnMore') }}</a
+                  >
                 </div>
               </div>
-              <NcButton
-                v-if="easterEggToggle"
-                type="ghost"
-                size="small"
-                class="!text-nc-content-brand"
-                @click="requestIntegration.isOpen = true"
-              >
-                Request Integration
-              </NcButton>
-            </div>
-            <!-- Search + filter — full width, outside the header row -->
-            <div class="flex items-center gap-2 nc-content-max-w m-auto !mt-4">
+
               <a-input
                 ref="searchInputRef"
                 v-model:value="searchQuery"
                 type="text"
-                class="flex-1 nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9"
+                class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 !w-full sm:!w-80 flex-none"
                 :placeholder="
                   showActiveConnections
                     ? $t('placeholder.searchConnectionsOrIntegrations')
@@ -386,48 +395,6 @@ watch(activeViewTab, (value) => {
                   <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
                 </template>
               </a-input>
-              <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
-                <NcButton size="medium" type="secondary" class="!px-1 !min-h-9 !min-w-9 !h-9 !w-9">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="filter" />
-                    <div
-                      v-if="integrationCategoriesRef.length - categoriesQuery.length"
-                      class="bg-nc-bg-brand text-nc-content-brand p-1 text-xs rounded-md min-w-6"
-                    >
-                      {{ integrationCategoriesRef.length - categoriesQuery.length }}
-                    </div>
-                  </div>
-                </NcButton>
-
-                <template #overlay>
-                  <NcList
-                    v-model:value="categoriesQuery"
-                    v-model:open="isOpenFilter"
-                    :list="integrationCategoriesRef"
-                    search-input-placeholder="Search category"
-                    :close-on-select="false"
-                    is-multi-select
-                    variant="medium"
-                  >
-                    <template #listFooter>
-                      <NcDivider class="!mt-0 !mb-2" />
-                      <div class="px-2 mb-2">
-                        <div
-                          class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
-                          @click="toggleShowOrHideAllCategory"
-                        >
-                          <div class="flex items-center gap-2">
-                            <GeneralIcon :icon="isVisibleAllCategory ? 'eyeSlash' : 'eye'" />
-                            <div>
-                              {{ isVisibleAllCategory ? $t('general.hideAll') : $t('general.showAll') }}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </template></NcList
-                  >
-                </template>
-              </NcDropdown>
             </div>
           </div>
 
@@ -458,120 +425,93 @@ watch(activeViewTab, (value) => {
                     @view-all="emits('view-all-connections')"
                   />
 
-                  <template v-for="(category, key) in integrationsMapByCategory">
-                    <div
-                      v-if="
-                        (easterEggToggle ||
-                          category.value === IntegrationCategoryType.DATABASE ||
-                          category.value === IntegrationCategoryType.AUTH) &&
-                        category.list.length
-                      "
-                      :key="key"
-                      class="integration-type-wrapper"
-                      style="container-type: inline-size"
-                    >
-                      <div class="category-type-title flex gap-2">
-                        {{ $t(category.title) }}
-                        <LazyPaymentUpgradeBadge
-                          v-if="category.value === IntegrationCategoryType.AI && blockAiIntegrations"
-                          :feature="PlanFeatureTypes.FEATURE_AI_INTEGRATIONS"
-                          :feature-enabled-callback="() => !blockAiIntegrations"
-                          remove-click
-                        />
-                        <NcBadge
-                          v-else-if="!category.isAvailable"
-                          :border="false"
-                          class="text-nc-content-brand !h-5 bg-nc-bg-brand text-xs font-normal px-2"
-                          >{{ $t('msg.toast.futureRelease') }}</NcBadge
-                        >
-                      </div>
-                      <div v-if="category.list.length" class="integration-type-list grid grid-cols-1 gap-3">
-                        <template v-for="integration of category.list" :key="integration.sub_type">
-                          <NcTooltip
-                            v-if="isIntegrationVisible(integration, category)"
-                            :disabled="integration?.isAvailable"
-                            placement="bottom"
-                          >
-                            <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
-
-                            <div
-                              :tabindex="0"
-                              class="source-card focus-visible:outline-none outline-none h-full"
-                              :class="{
-                                'is-available': integration?.isAvailable,
-                              }"
-                              @click="handleAddIntegration(key, integration)"
-                            >
-                              <div class="integration-icon-wrapper">
-                                <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
-                              </div>
-                              <div class="flex-1 min-w-0">
-                                <NcTooltip
-                                  class="name text-sm font-semibold text-nc-content-gray truncate"
-                                  show-on-truncate-only
-                                  :disabled="!integration?.isAvailable"
-                                >
-                                  {{ integrationLabel(integration.title) }}
-                                </NcTooltip>
-                                <NcTooltip
-                                  v-if="integration.subtitle"
-                                  class="subtitle text-xs text-nc-content-gray-subtle2 truncate"
-                                  show-on-truncate-only
-                                  placement="bottom"
-                                  :disabled="!integration?.isAvailable"
-                                >
-                                  {{ integrationLabel(integration.subtitle) }}
-                                </NcTooltip>
-                              </div>
-                              <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
-                              <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
-                                <NcButton
-                                  v-if="dataReflectionEnabled"
-                                  type="secondary"
-                                  size="xs"
-                                  class="integration-upvote-btn !rounded-lg !px-1 !py-0 selected"
-                                >
-                                  <div class="flex items-center gap-2">
-                                    <GeneralIcon icon="ncCheck" class="text-primary flex-none" />
-                                  </div>
-                                </NcButton>
-                                <NcButton v-else type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
-                                  <div class="flex items-center gap-2">
-                                    <GeneralIcon icon="ncPlus" class="flex-none" />
-                                  </div>
-                                </NcButton>
-                              </div>
-
-                              <NcButton
-                                v-else-if="integration?.isAvailable"
-                                type="secondary"
-                                size="xs"
-                                class="action-btn !rounded-lg !px-1 !py-0"
-                              >
-                                <div class="flex items-center gap-2">
-                                  <GeneralIcon icon="ncPlus" class="flex-none" />
-                                </div>
-                              </NcButton>
-                              <div v-else class="">
-                                <NcButton
-                                  type="secondary"
-                                  size="xs"
-                                  class="integration-upvote-btn !rounded-lg !px-1 !py-0"
-                                  :class="{
-                                    selected: upvotesData.has(integration.sub_type),
-                                  }"
-                                >
-                                  <div class="flex items-center gap-2">
-                                    <GeneralIcon icon="ncArrowUp" />
-                                  </div>
-                                </NcButton>
-                              </div>
-                            </div>
-                          </NcTooltip>
-                        </template>
-                      </div>
+                  <!-- Browse gallery: one grid, categories as filter pills -->
+                  <div class="nc-browse-integrations" style="container-type: inline-size">
+                    <div v-if="browsePills.length > 2" class="flex flex-wrap items-center gap-2">
+                      <button
+                        v-for="pill of browsePills"
+                        :key="pill.value"
+                        type="button"
+                        class="nc-browse-pill"
+                        :class="{ active: activeBrowseCategory === pill.value }"
+                        :data-testid="`nc-browse-pill-${pill.value}`"
+                        @click="activeBrowseCategory = pill.value"
+                      >
+                        {{ $t(pill.title) }}
+                      </button>
                     </div>
-                  </template>
+
+                    <div class="nc-browse-grid">
+                      <NcTooltip
+                        v-for="item of browseItems"
+                        :key="`${item.categoryKey}-${item.integration.sub_type}`"
+                        :disabled="item.integration?.isAvailable"
+                        placement="bottom"
+                      >
+                        <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
+
+                        <div
+                          :tabindex="0"
+                          class="nc-browse-card"
+                          :data-testid="`nc-browse-card-${item.integration.sub_type}`"
+                          @click="handleAddIntegration(item.categoryKey, item.integration)"
+                        >
+                          <span class="nc-browse-logo">
+                            <GeneralIntegrationIcon :type="item.integration.sub_type" size="md" />
+                          </span>
+
+                          <span class="flex-1 min-w-0 text-left text-bodyDefaultSm font-semibold text-nc-content-gray truncate">
+                            {{ integrationLabel(item.integration.title) }}
+                          </span>
+
+                          <!-- Plan gate sits on the card, not the category pill. -->
+                          <span
+                            v-if="item.categoryKey === IntegrationCategoryType.AI && blockAiIntegrations"
+                            class="nc-browse-plan-badge flex-none"
+                          >
+                            <LazyPaymentUpgradeBadge
+                              :feature="PlanFeatureTypes.FEATURE_AI_INTEGRATIONS"
+                              :feature-enabled-callback="() => !blockAiIntegrations"
+                              icon-only
+                              remove-click
+                            />
+                          </span>
+
+                          <!-- Data reflection is a toggle, so once on it reads as done. -->
+                          <GeneralIcon
+                            v-if="item.integration?.sub_type === SyncDataType.NOCODB && dataReflectionEnabled"
+                            icon="ncCheck"
+                            class="flex-none w-4 h-4 text-nc-content-brand"
+                          />
+
+                          <!-- Unavailable ones are a vote, not an install. -->
+                          <GeneralIcon
+                            v-else-if="!item.integration?.isAvailable"
+                            icon="ncArrowUp"
+                            class="flex-none w-4 h-4"
+                            :class="
+                              upvotesData.has(item.integration.sub_type) ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'
+                            "
+                          />
+                        </div>
+                      </NcTooltip>
+
+                      <!-- Always last, dotted: an ask, not a connection. -->
+                      <button
+                        type="button"
+                        class="nc-browse-card nc-browse-card-request"
+                        data-testid="nc-browse-card-request"
+                        @click="requestIntegration.isOpen = true"
+                      >
+                        <span class="nc-browse-logo nc-browse-logo-request">
+                          <GeneralIcon icon="ncPlus" class="w-4.5 h-4.5" />
+                        </span>
+                        <span class="flex-1 min-w-0 text-left text-bodyDefaultSm font-semibold text-nc-content-gray truncate">
+                          {{ $t('labels.requestIntegration') }}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
 
                   <div v-if="isEmptyList" class="h-full text-center flex items-center justify-center gap-3">
                     <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
@@ -582,44 +522,7 @@ watch(activeViewTab, (value) => {
             <div v-else class="h-full flex items-center justify-center"><GeneralLoader size="xlarge" /></div>
           </div>
         </div>
-        <NcModal
-          v-model:visible="requestIntegration.isOpen"
-          centered
-          size="medium"
-          @keydown.esc="requestIntegration.isOpen = false"
-        >
-          <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-4">
-              <div class="text-base font-bold text-nc-content-gray">Request Integration</div>
-              <NcButton size="small" type="text" @click="requestIntegration.isOpen = false">
-                <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
-              </NcButton>
-            </div>
-            <div class="flex flex-col gap-2">
-              <a-textarea
-                :ref="focusTextArea"
-                v-model:value="requestIntegration.msg"
-                class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
-                size="large"
-                hide-details
-                placeholder="Provide integration name and your use-case."
-              />
-            </div>
-            <div class="flex items-center justify-end gap-3">
-              <NcButton size="small" type="secondary" @click="requestIntegration.isOpen = false">
-                {{ $t('general.cancel') }}
-              </NcButton>
-              <NcButton
-                :disabled="!requestIntegration.msg?.trim()"
-                :loading="requestIntegration.isLoading"
-                size="small"
-                @click="saveIntegrationRequest(requestIntegration.msg)"
-              >
-                {{ $t('general.submit') }}
-              </NcButton>
-            </div>
-          </div>
-        </NcModal>
+        <WorkspaceIntegrationsRequestDialog />
       </a-layout-content>
     </a-layout>
   </component>
@@ -788,6 +691,108 @@ watch(activeViewTab, (value) => {
   }
   .ant-modal-content {
     overflow: hidden;
+  }
+}
+
+/* ---------- Browse integrations gallery (mirrors base settings) ---------- */
+
+.nc-browse-integrations {
+  @apply flex flex-col gap-4;
+}
+
+.nc-browse-pill {
+  @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-colors duration-150
+    text-bodySm border-1 border-nc-border-gray-medium bg-transparent text-nc-content-gray-subtle2;
+
+  &:hover:not(.active) {
+    @apply bg-nc-bg-gray-extralight text-nc-content-gray;
+  }
+
+  &.active {
+    @apply border-transparent bg-nc-fill-primary text-white;
+  }
+}
+
+/* Container queries, not viewport: the pane's width is what varies here. */
+.nc-browse-grid {
+  @apply grid gap-3;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@container (min-width: 520px) {
+  .nc-browse-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 780px) {
+  .nc-browse-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 1100px) {
+  .nc-browse-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.nc-browse-card {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-left
+    border-1 border-nc-border-gray-medium bg-nc-bg-default transition-all duration-150;
+
+  &:hover {
+    @apply border-nc-border-gray-dark;
+    box-shadow: 0 2px 8px 0 rgba(var(--rgb-base), 0.06);
+  }
+
+  &:focus-visible {
+    @apply outline-none border-nc-border-brand;
+  }
+}
+
+/* Forces one box size for bare glyphs and full-bleed logo tiles alike. */
+.nc-browse-logo {
+  @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
+}
+
+/* Grey at rest so plan badges don't outshout the names. */
+.nc-browse-plan-badge {
+  filter: grayscale(1);
+  opacity: 0.5;
+  transition: filter 150ms ease, opacity 150ms ease;
+}
+
+.nc-browse-card:hover .nc-browse-plan-badge {
+  filter: none;
+  opacity: 1;
+}
+
+.nc-browse-card-request {
+  @apply bg-transparent;
+  border-style: dashed;
+
+  &:hover {
+    @apply bg-nc-bg-gray-extralight;
+  }
+}
+
+.nc-browse-logo-request {
+  @apply bg-transparent text-nc-content-gray-muted;
+  border: 1px dashed var(--nc-border-gray-medium);
+}
+
+/* Reads as part of the sentence; shows as a link only on hover. */
+.nc-inline-doc-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--nc-border-gray-dark);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--nc-content-brand);
+    text-decoration-color: currentColor;
   }
 }
 </style>

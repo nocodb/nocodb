@@ -47,7 +47,7 @@ const {
 
 // The shell's unified save-bar contract. Editing panes register their
 // dirty/save/reset; the bar shows only then.
-const { hasSaveBar, goBack } = useProvideShell()
+const { hasSaveBar, goBack, setCrumb } = useProvideShell()
 
 // Panes were built for the settings sidebar page and read this to shed their
 // own page chrome. The shell is that host now.
@@ -122,6 +122,9 @@ watch(
   () => props.tab,
   (tab) => {
     projectPageTab.value = tab as ProjectPageType
+
+    // Cleared here, not on pane unmount: the incoming pane mounts before the outgoing one unmounts.
+    setCrumb(null)
   },
   { immediate: true },
 )
@@ -210,7 +213,7 @@ watch(
             :icon="parseProp(base.meta).icon"
             :type="base.type"
             :managed-app="{ managed_app_master: base.managed_app_master, managed_app_id: base.managed_app_id }"
-            class="!h-4 !w-4 flex-none"
+            class="!h-5 !w-5 flex-none"
           />
           <NcTooltip show-on-truncate-only class="truncate">{{ base.title }}</NcTooltip>
         </template>

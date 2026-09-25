@@ -327,16 +327,7 @@ const onCreateCancel = () => {
             </template>
 
             <template #emptyText>
-              <ShellEmpty :title="$t('placeholder.noTokenCreated')">
-                <template #action>
-                  <NcButton type="primary" size="small" data-testid="nc-token-create" @click="openCreateForm">
-                    <div class="flex items-center gap-x-1">
-                      <GeneralIcon icon="plus" />
-                      <span>{{ $t('labels.newApiToken') }}</span>
-                    </div>
-                  </NcButton>
-                </template>
-              </ShellEmpty>
+              <ShellEmpty :title="$t('placeholder.noTokenCreated')" />
             </template>
           </NcTable>
         </div>

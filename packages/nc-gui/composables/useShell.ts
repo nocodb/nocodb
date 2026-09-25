@@ -44,6 +44,18 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
 
   const goBack = () => !!backHandler.value?.()
 
+  // Label of the drilled-in view, shown after the pane title in the header.
+  const crumb = shallowRef<string | null>(null)
+
+  const setCrumb = (label: string | null) => {
+    crumb.value = label
+  }
+
+  const clearCrumb = (label?: string) => {
+    // Only the setter may clear it, so a fast pane swap keeps the incoming crumb.
+    if (!label || crumb.value === label) crumb.value = null
+  }
+
   // The save bar shows only while a pane has registered (i.e. an editing pane
   // that opts into the batch-save model). Auto-save panes never register.
   const hasSaveBar = computed(() => registration.value !== null)
@@ -91,6 +103,9 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
     registerBackHandler,
     unregisterBackHandler,
     goBack,
+    crumb,
+    setCrumb,
+    clearCrumb,
   }
 })
 

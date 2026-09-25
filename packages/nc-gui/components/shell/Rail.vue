@@ -138,8 +138,8 @@ const onSearchEnter = () => {
     :class="fullWidth ? 'w-full flex-1' : 'flex-none w-61 border-r-1 border-nc-border-gray-medium'"
     :data-testid="testidPrefix"
   >
-    <!-- Subject and search stay put; only the rows scroll. -->
-    <div class="flex-none px-3 pt-5 pb-3">
+    <!-- Top padding matches ShellHeader so the subject lines up with the pane title. -->
+    <div class="flex-none px-3 pt-4 sm:pt-8 pb-3">
       <!-- Names the subject being configured, so the modal always states what these panes belong to. -->
       <div v-if="$slots.subject" class="nc-shell-rail-subject">
         <slot name="subject" />
@@ -147,14 +147,14 @@ const onSearchEnter = () => {
 
       <a-input
         v-model:value="search"
-        class="nc-shell-rail-search !h-8 !rounded-lg"
+        class="nc-shell-rail-search !h-8 !rounded-lg !pl-2.5"
         :placeholder="searchPlaceholder ?? $t('placeholder.searchTools')"
         allow-clear
         :data-testid="`${testidPrefix}-search`"
         @keydown.enter.prevent="onSearchEnter"
       >
         <template #prefix>
-          <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-nc-content-gray-muted" />
+          <GeneralIcon icon="search" class="mr-1.5 h-3.5 w-3.5 text-nc-content-gray-muted" />
         </template>
       </a-input>
     </div>
@@ -232,7 +232,7 @@ const onSearchEnter = () => {
 
 <style lang="scss" scoped>
 .nc-shell-rail-subject {
-  @apply flex items-center gap-2 px-2.5 h-7 mb-3 text-base font-semibold text-nc-content-gray-extreme;
+  @apply flex items-center gap-2 px-2 h-7 mb-3 text-base font-semibold text-nc-content-gray-extreme;
 }
 
 .nc-shell-rail-item {

@@ -23,7 +23,7 @@ const indicator = h(LoadingOutlined, {
 
 <template>
   <div
-    class="flex flex-col p-4"
+    class="flex flex-col py-4"
     :class="{ 'h-full': inModal }"
     :style="inModal ? undefined : 'height: calc(100vh - (var(--topbar-height) * 2))'"
   >

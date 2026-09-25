@@ -46,6 +46,20 @@ defineProps<{
 </template>
 
 <style lang="scss" scoped>
+// non-scaling-stroke makes one stroke width match across icons with different viewBoxes.
+:deep(.nc-icon) {
+  *[stroke],
+  path,
+  rect,
+  line,
+  circle,
+  polyline,
+  polygon {
+    stroke-width: 1.1px;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
 .nc-base-view-all-table-btn {
   @apply flex-none flex flex-col gap-y-3 p-4 bg-nc-bg-card rounded-xl border-1 border-nc-border-gray-light min-w-[230px] max-w-[245px] text-nc-content-gray transition-all duration-300;
 

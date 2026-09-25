@@ -456,7 +456,8 @@ export function useBaseSettingsNav() {
         description: t('labels.baseNav.desc.mcp'),
       },
       'integrations': {
-        title: t('labels.baseNav.integrations'),
+        // The pane is the gallery; the rail row stays plain "Integrations".
+        title: t('labels.browseIntegrations'),
         description: t('labels.baseNav.desc.integrations'),
         docsHref: 'https://nocodb.com/docs/product-docs/integrations',
       },

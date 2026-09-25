@@ -419,80 +419,85 @@ const customRow = (record: Record<string, any>) => ({
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
-    <div class="flex flex-col justify-between gap-2">
+    <!-- Search, environment and manage share one row: they all scope the same table. -->
+    <div class="flex flex-col gap-2">
       <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-0">
         {{ $t('general.activeConnections') }}
       </h2>
 
       <div class="text-sm font-normal text-nc-content-gray-subtle2">
-        <div>
-          {{ $t('msg.manageConnections') }}
-          <a
-            target="_blank"
-            href="https://nocodb.com/docs/product-docs/integrations/actions-on-connection"
-            rel="noopener noreferrer"
-          >
-            {{ $t('msg.learnMore') }}
-          </a>
-        </div>
-      </div>
-      <div v-if="showEnvUI" class="flex items-center justify-between gap-3 mt-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <span class="text-bodySm text-nc-content-gray-subtle2 flex-none">{{ $t('title.environment') }}</span>
-          <NcSelect
-            :value="activeEnvironmentKey"
-            class="nc-environment-select !w-44 flex-none"
-            data-testid="nc-environment-select"
-            :dropdown-match-select-width="false"
-            @change="onEnvironmentChange"
-          >
-            <a-select-option v-for="env in environments" :key="env.key" :value="env.key">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full flex-none" :style="{ backgroundColor: env.color || '#6a7184' }" />
-                <span class="truncate">{{ env.title }}</span>
-                <!-- remove-click: let the click select the option so onEnvironmentChange shows the full upgrade prompt -->
-                <PaymentUpgradeBadge
-                  v-if="isEnvironmentBlocked(env)"
-                  :feature="environmentUpgradeFeature(env)"
-                  remove-click
-                  class="ml-auto"
-                />
-              </div>
-            </a-select-option>
-          </NcSelect>
-          <span class="text-bodySm text-nc-content-gray-muted truncate">
-            {{ $t('msg.info.showingEnvConfig', { env: activeEnvironment?.title }) }}
-          </span>
-        </div>
-        <NcButton
-          v-if="isUIAllowed('environmentCreate')"
-          type="secondary"
-          size="small"
-          data-testid="nc-manage-environments-btn"
-          @click="emit('manageEnvironments')"
+        {{ $t('msg.manageConnections') }}
+        <a
+          class="nc-inline-doc-link"
+          target="_blank"
+          href="https://nocodb.com/docs/product-docs/integrations/actions-on-connection"
+          rel="noopener noreferrer"
         >
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncSlidersHorizontal" class="h-4 w-4" />
-            {{ $t('title.manageEnvironments') }}
-          </div>
-        </NcButton>
-      </div>
-      <div class="flex items-center gap-3 mt-2">
-        <a-input
-          ref="connectionsSearchInputRef"
-          v-model:value="searchQuery"
-          type="text"
-          class="nc-search-integration-input !rounded-lg !py-2 !h-9 flex-1"
-          :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
-          allow-clear
-          @input="handleSearchConnection"
-        >
-          <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
-          </template>
-        </a-input>
+          {{ $t('msg.learnMore') }}
+        </a>
       </div>
     </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <a-input
+        ref="connectionsSearchInputRef"
+        v-model:value="searchQuery"
+        type="text"
+        class="nc-search-integration-input !rounded-lg !py-2 !h-9 !w-full sm:!w-80 flex-none"
+        :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
+        allow-clear
+        @input="handleSearchConnection"
+      >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+        </template>
+      </a-input>
+
+      <!-- Manage environments lives at the foot of this dropdown, not as a second button. -->
+      <NcTooltip v-if="showEnvUI" class="flex-none" :title="$t('msg.info.showingEnvConfig', { env: activeEnvironment?.title })">
+        <NcSelect
+          :value="activeEnvironmentKey"
+          class="nc-environment-select !w-52 flex-none"
+          data-testid="nc-environment-select"
+          :dropdown-match-select-width="false"
+          @change="onEnvironmentChange"
+        >
+          <a-select-option v-for="env in environments" :key="env.key" :value="env.key">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full flex-none" :style="{ backgroundColor: env.color || '#6a7184' }" />
+              <span class="truncate">{{ env.title }}</span>
+              <!-- remove-click: let the click select the option so onEnvironmentChange shows the full upgrade prompt -->
+              <PaymentUpgradeBadge
+                v-if="isEnvironmentBlocked(env)"
+                :feature="environmentUpgradeFeature(env)"
+                remove-click
+                class="ml-auto"
+              />
+            </div>
+          </a-select-option>
+
+          <template v-if="isUIAllowed('environmentCreate')" #dropdownRender="{ menuNode: menu }">
+            <component :is="menu" />
+            <a-divider style="margin: 4px 0" />
+            <!-- mousedown.prevent so the select does not close-and-blur before the click lands -->
+            <div
+              class="px-1.5 flex items-center text-sm cursor-pointer"
+              data-testid="nc-manage-environments-btn"
+              @mousedown.prevent
+              @click="emit('manageEnvironments')"
+            >
+              <div
+                class="w-full flex items-center gap-2 px-2 py-2 rounded-md text-nc-content-gray-subtle2 hover:bg-nc-bg-gray-light"
+              >
+                <GeneralIcon icon="ncSlidersHorizontal" class="flex-none h-4 w-4" />
+                {{ $t('title.manageEnvironments') }}
+              </div>
+            </div>
+          </template>
+        </NcSelect>
+      </NcTooltip>
+    </div>
+
     <NcTable
       v-model:order-by="orderBy"
       :columns="columns"
@@ -500,21 +505,18 @@ const customRow = (record: Record<string, any>) => ({
       :is-data-loading="isLoadingIntegrations"
       sticky-first-column
       :custom-row="customRow"
-      class="h-full"
+      class="max-h-full min-h-0 w-full"
     >
       <template #bodyCell="{ column, record: integration }">
         <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
           <!-- The type rides on the name rather than holding a column of its own. -->
           <NcTooltip
             placement="bottom"
-            class="h-8 w-8 flex-none flex items-center justify-center rounded-md bg-nc-bg-gray-light children:flex-none"
+            class="h-8 w-8 flex-none flex items-center justify-center rounded-lg overflow-hidden bg-nc-bg-gray-extralight"
           >
             <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
-            <GeneralIntegrationIcon
-              :type="integration.sub_type"
-              :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
-            />
+            <GeneralIntegrationIcon :type="integration.sub_type" class="!w-4.5 !h-4.5" />
           </NcTooltip>
 
           <div class="flex-1 min-w-0 flex flex-col">
@@ -856,5 +858,19 @@ const customRow = (record: Record<string, any>) => ({
 
 .nc-new-integration-type-wrapper {
   @apply flex flex-col gap-3;
+}
+
+/* Reads as part of the sentence; shows as a link only on hover. */
+.nc-inline-doc-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--nc-border-gray-dark);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--nc-content-brand);
+    text-decoration-color: currentColor;
+  }
 }
 </style>

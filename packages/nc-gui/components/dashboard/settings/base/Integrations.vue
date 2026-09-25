@@ -715,10 +715,10 @@ watch(baseId, reload)
                 <!-- The type rides on the name rather than holding a column of its own. -->
                 <NcTooltip
                   placement="bottom"
-                  class="h-8 w-8 flex-none flex items-center justify-center rounded-md bg-nc-bg-gray-light children:flex-none"
+                  class="h-8 w-8 flex-none flex items-center justify-center rounded-lg overflow-hidden bg-nc-bg-gray-extralight"
                 >
                   <template #title>{{ integration?.sub_type }}</template>
-                  <GeneralIntegrationIcon :type="integration.sub_type" />
+                  <GeneralIntegrationIcon :type="integration.sub_type" class="!w-4.5 !h-4.5" />
                 </NcTooltip>
 
                 <div class="flex-1 min-w-0 flex flex-col">

@@ -188,27 +188,6 @@ const activeCategory = ref<string>('all')
 // AUTH lists every provider that can authenticate; these non-apps are named since sub_types differ from Database's driver ids.
 const appsCategory = IntegrationCategoryType.AUTH
 
-const NON_APP_SUB_TYPES = new Set([
-  // datastores
-  'postgres',
-  'pg',
-  'mysql',
-  'mysql2',
-  'mssql',
-  'oracledb',
-  'sqlite3',
-  'clickhouse',
-  'snowflake',
-  'databricks',
-  'redis',
-  // raw protocols, not products
-  'http-api',
-  'smtp',
-  'caldav',
-])
-
-const isAppIntegration = (i: IntegrationItemType) => !NON_APP_SUB_TYPES.has(String(i.sub_type))
-
 const categoryPills = computed(() => [
   { value: 'all', title: 'general.all' },
   ...Object.values(integrationsMap.value)

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
 import { IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 
@@ -52,7 +51,6 @@ const {
   IntegrationsPageMode,
   requestIntegration,
   addIntegration,
-  saveIntegrationRequest,
   integrationsRefreshKey,
   integrations,
   isLoadedIntegrations,
@@ -61,8 +59,6 @@ const {
   activeViewTab,
   loadDynamicIntegrations,
 } = useIntegrationStore()
-
-const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
 const showComingSoonIntegrations = ref(false)
 
@@ -266,26 +262,6 @@ const isIntegrationVisible = (integration: IntegrationItemType, _category: any) 
 const activeBrowseCategory = ref<string>('all')
 
 const appsCategory = IntegrationCategoryType.AUTH
-
-// AUTH lists every provider that can authenticate; these non-apps are named since sub_types differ from Database's driver ids.
-const NON_APP_SUB_TYPES = new Set([
-  'postgres',
-  'pg',
-  'mysql',
-  'mysql2',
-  'mssql',
-  'oracledb',
-  'sqlite3',
-  'clickhouse',
-  'snowflake',
-  'databricks',
-  'redis',
-  'http-api',
-  'smtp',
-  'caldav',
-])
-
-const isAppIntegration = (i: IntegrationItemType) => !NON_APP_SUB_TYPES.has(String(i.sub_type))
 
 /** A category is offered only when it still has something to show. */
 const browseCategories = computed(() =>
@@ -546,44 +522,7 @@ watch(activeViewTab, (value) => {
             <div v-else class="h-full flex items-center justify-center"><GeneralLoader size="xlarge" /></div>
           </div>
         </div>
-        <NcModal
-          v-model:visible="requestIntegration.isOpen"
-          centered
-          size="medium"
-          @keydown.esc="requestIntegration.isOpen = false"
-        >
-          <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-4">
-              <div class="text-base font-bold text-nc-content-gray">Request Integration</div>
-              <NcButton size="small" type="text" @click="requestIntegration.isOpen = false">
-                <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
-              </NcButton>
-            </div>
-            <div class="flex flex-col gap-2">
-              <a-textarea
-                :ref="focusTextArea"
-                v-model:value="requestIntegration.msg"
-                class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
-                size="large"
-                hide-details
-                placeholder="Provide integration name and your use-case."
-              />
-            </div>
-            <div class="flex items-center justify-end gap-3">
-              <NcButton size="small" type="secondary" @click="requestIntegration.isOpen = false">
-                {{ $t('general.cancel') }}
-              </NcButton>
-              <NcButton
-                :disabled="!requestIntegration.msg?.trim()"
-                :loading="requestIntegration.isLoading"
-                size="small"
-                @click="saveIntegrationRequest(requestIntegration.msg)"
-              >
-                {{ $t('general.submit') }}
-              </NcButton>
-            </div>
-          </div>
-        </NcModal>
+        <WorkspaceIntegrationsRequestDialog />
       </a-layout-content>
     </a-layout>
   </component>
@@ -622,20 +561,6 @@ watch(activeViewTab, (value) => {
       }
     }
   }
-}
-
-.nc-request-card {
-  @apply bg-transparent;
-  border-style: dashed;
-
-  &:hover {
-    @apply bg-nc-bg-gray-extralight;
-  }
-}
-
-.nc-request-icon {
-  @apply bg-transparent text-nc-content-gray-muted;
-  border: 1px dashed var(--nc-border-gray-medium);
 }
 
 .source-card-request-integration {

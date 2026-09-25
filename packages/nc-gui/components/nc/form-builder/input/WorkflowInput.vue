@@ -630,6 +630,10 @@ const linkUrl = ref('')
 
 const linkText = ref('')
 
+// Variable picker for the link URL box. The URL is a plain <input>, not the editor, so a token
+// has to be spliced in at the caret rather than dispatched through a TipTap suggestion.
+const showLinkUrlVarPicker = ref(false)
+
 /** href of the link the view bubble is describing. */
 const linkViewHref = ref('')
 
@@ -943,9 +947,30 @@ function openLinkMenu(event?: MouseEvent) {
 function normalizeHref(raw: string): string {
   const value = raw.trim()
   if (!value) return ''
+  // A workflow variable resolves at send time — its scheme is unknown now, and a script that
+  // "already built the URL" usually includes one. Prefixing https:// would double it, so leave
+  // the token untouched and let the resolved value carry the scheme.
+  if (value.includes('{{')) return value
   if (/^(?:https?|mailto):/i.test(value)) return value
   if (/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(value)) return `mailto:${value}`
   return `https://${value.replace(/^\/+/, '')}`
+}
+
+// Splice `{{ … }}` into the URL box at the caret (falls back to appending). The input keeps its
+// selection while blurred, so the position is still accurate after the picker took focus.
+function insertLinkUrlVariable({ expression }: { id: string; label: string; expression: string }) {
+  const input = linkUrlRef.value
+  const start = input?.selectionStart ?? linkUrl.value.length
+  const end = input?.selectionEnd ?? linkUrl.value.length
+
+  linkUrl.value = linkUrl.value.slice(0, start) + expression + linkUrl.value.slice(end)
+  showLinkUrlVarPicker.value = false
+
+  nextTick(() => {
+    input?.focus()
+    const caret = start + expression.length
+    input?.setSelectionRange(caret, caret)
+  })
 }
 
 function applyLink() {
@@ -987,9 +1012,15 @@ function closeLinkPopovers() {
   linkText.value = ''
 }
 
-onClickOutside(linkMenuRef, () => {
-  if (showLinkMenu.value) closeLinkPopovers()
-})
+onClickOutside(
+  linkMenuRef,
+  () => {
+    if (showLinkMenu.value) closeLinkPopovers()
+  },
+  // The variable picker is teleported to <body>, so a click inside it reads as "outside" the
+  // menu — ignore it, otherwise picking a variable would slam the whole form shut.
+  { ignore: ['.nc-workflow-variable-picker'] },
+)
 
 // Safe against the click that opens it: onClickOutside listens in the capture phase, so it
 // runs before ProseMirror's handleClick, while the bubble is still unrendered and it no-ops.
@@ -1148,14 +1179,32 @@ watch(readOnly, (newValue) => {
             :placeholder="$t('general.text')"
             data-testid="nc-workflow-richtext-link-text"
           />
-          <input
-            ref="linkUrlRef"
-            v-model="linkUrl"
-            class="nc-workflow-link-input"
-            :placeholder="$t('placeholder.enterUrl')"
-            data-testid="nc-workflow-richtext-link-url"
-            @keydown.enter.stop.prevent="applyLink"
-          />
+          <div class="nc-workflow-link-url-row">
+            <input
+              ref="linkUrlRef"
+              v-model="linkUrl"
+              class="nc-workflow-link-input"
+              :placeholder="$t('placeholder.enterUrl')"
+              data-testid="nc-workflow-richtext-link-url"
+              @keydown.enter.stop.prevent="applyLink"
+            />
+            <NcDropdown
+              v-if="variables.length"
+              v-model:visible="showLinkUrlVarPicker"
+              :trigger="['click']"
+              placement="bottomRight"
+              :overlay-style="{ zIndex: 10002 }"
+            >
+              <NcTooltip :title="$t('general.insert')">
+                <button class="nc-workflow-link-var-btn" data-testid="nc-workflow-richtext-link-url-variable-btn">
+                  <GeneralIcon icon="lucideBraces" class="w-4 h-4 flex-none" />
+                </button>
+              </NcTooltip>
+              <template #overlay>
+                <WorkflowVariablePicker :items="variables" :grouped-items="groupedVariables" :command="insertLinkUrlVariable" />
+              </template>
+            </NcDropdown>
+          </div>
           <div class="flex justify-end gap-2 mt-1">
             <NcButton size="xs" type="secondary" @click.stop="closeLinkPopovers">{{ $t('general.cancel') }}</NcButton>
             <NcButton size="xs" type="primary" data-testid="nc-workflow-richtext-link-apply" @click.stop="applyLink">
@@ -1541,6 +1590,28 @@ watch(readOnly, (newValue) => {
   .nc-workflow-link-input {
     @apply w-full px-2 py-1 text-small rounded-md border-1 border-nc-border-gray-medium outline-none;
     @apply focus:border-nc-border-brand;
+  }
+
+  .nc-workflow-link-url-row {
+    @apply flex items-center gap-1;
+
+    .nc-workflow-link-input {
+      @apply flex-1 min-w-0;
+    }
+  }
+
+  .nc-workflow-link-var-btn {
+    @apply flex-none inline-flex items-center justify-center h-7 w-7 rounded-md cursor-pointer;
+    @apply border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-brand;
+    transition: background 0.15s, border-color 0.15s;
+
+    svg {
+      stroke-width: 1.5;
+    }
+
+    &:hover {
+      @apply bg-nc-bg-brand border-nc-border-brand;
+    }
   }
 }
 

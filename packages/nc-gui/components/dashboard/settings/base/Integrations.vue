@@ -16,6 +16,8 @@ const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { user } = useGlobal()
 
 const basesStore = useBases()
@@ -66,6 +68,18 @@ function isEnvConfigured(integration: IntegrationType, env: EnvironmentType) {
 
 const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
+}
+
+/**
+ * Mirrors the guard the old connection card carried. Base mode hides Edit from
+ * non-creators, but the row body opened the same form anyway -- and the save
+ * then failed on the backend's creator-only check. NocoDB's own connection is
+ * only editable while data reflection is on.
+ */
+const canOpenEdit = (integration: IntegrationType) => {
+  if (!canEditIntegration(integration)) return false
+
+  return isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) || integration.sub_type !== SyncDataType.NOCODB
 }
 
 const canUnlinkIntegration = (integration: IntegrationType) => {
@@ -538,7 +552,7 @@ watch(baseId, reload)
                     :key="connection.id"
                     class="nc-connection-row"
                     :data-testid="`nc-connection-row-${connection.id}`"
-                    @click="canEditIntegration(connection) && handleEdit(connection)"
+                    @click="canOpenEdit(connection) && handleEdit(connection)"
                   >
                     <span class="nc-connection-row-icon">
                       <GeneralIntegrationIcon :type="connection.sub_type" />

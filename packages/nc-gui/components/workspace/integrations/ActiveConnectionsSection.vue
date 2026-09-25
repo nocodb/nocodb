@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
-import { IntegrationsType } from 'nocodb-sdk'
+import { IntegrationsType, SyncDataType } from 'nocodb-sdk'
 
 interface Props {
   connections: IntegrationType[]
@@ -22,6 +22,8 @@ const emits = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { editIntegration, deleteIntegration, getIntegration, loadIntegrations, deleteConfirmText, successConfirmModal } =
   useIntegrationStore()
@@ -76,6 +78,14 @@ const toBeDeletedIntegration = ref<
     })
   | null
 >(null)
+
+/**
+ * Mirrors the guard the old connection card carried: NocoDB's own connection is
+ * only editable while data reflection is on, otherwise the form opens on
+ * something that cannot be saved.
+ */
+const canOpenEdit = (integration: IntegrationType) =>
+  isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) || integration.sub_type !== SyncDataType.NOCODB
 
 /** "Added <date> by <name>", skipping whichever half is unknown. */
 function connectionMeta(connection: IntegrationType) {
@@ -186,7 +196,7 @@ const handleEdit = (integration: IntegrationType) => {
         :key="connection.id"
         class="nc-connection-row"
         :data-testid="`nc-connection-row-${connection.id}`"
-        @click="handleEdit(connection)"
+        @click="canOpenEdit(connection) && handleEdit(connection)"
       >
         <span class="nc-connection-row-icon">
           <GeneralIntegrationIcon :type="connection.sub_type" />

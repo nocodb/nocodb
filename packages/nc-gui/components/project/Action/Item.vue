@@ -46,6 +46,28 @@ defineProps<{
 </template>
 
 <style lang="scss" scoped>
+/**
+ * Hairline glyphs for every action card, set once here because each card only
+ * supplies the icon through this slot.
+ *
+ * `non-scaling-stroke` is what lets one value cover them: the icons ship with
+ * different viewBoxes (16, 24, 40) and different nominal widths, so a plain
+ * `stroke-width` renders a different real thickness on each. With the vector
+ * effect the value is read in screen pixels, so all the cards match.
+ */
+:deep(.nc-icon) {
+  *[stroke],
+  path,
+  rect,
+  line,
+  circle,
+  polyline,
+  polygon {
+    stroke-width: 1.1px;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
 .nc-base-view-all-table-btn {
   @apply flex-none flex flex-col gap-y-3 p-4 bg-nc-bg-card rounded-xl border-1 border-nc-border-gray-light min-w-[230px] max-w-[245px] text-nc-content-gray transition-all duration-300;
 

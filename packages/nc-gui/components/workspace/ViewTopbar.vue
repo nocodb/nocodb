@@ -113,12 +113,7 @@ onMounted(() => {
           </div>
         </template>
         <template #suffix>
-          <div
-            class="px-1 text-bodySmBold text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded cursor-pointer"
-            @click="openCommandPalette"
-          >
-            {{ renderCmdOrCtrlKey(true) }} K
-          </div>
+          <div class="nc-kbd-chip" @click="openCommandPalette">{{ renderCmdOrCtrlKey(true) }} K</div>
         </template>
       </a-input>
     </div>
@@ -127,4 +122,17 @@ onMounted(() => {
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+/* Reads as a key cap rather than a grey pill: a defined edge and a 1px bottom
+   shadow give it depth, and the darker ink makes the shortcut legible instead
+   of receding into the field it sits in. */
+.nc-kbd-chip {
+  @apply px-1.5 py-0.5 rounded-md text-bodySmBold cursor-pointer transition-colors duration-150
+    text-nc-content-gray-subtle2 bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  box-shadow: 0 1px 0 0 var(--nc-border-gray-medium);
+
+  &:hover {
+    @apply text-nc-content-gray bg-nc-bg-gray-extralight;
+  }
+}
+</style>

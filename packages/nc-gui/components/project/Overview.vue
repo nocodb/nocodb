@@ -109,7 +109,9 @@ const onCreateBaseClick = () => {
               @click="tableCreateReason ? undefined : openTableCreateDialog()"
             >
               <template #icon>
-                <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
+                <!-- Stroked, not Material Symbols: `addOutlineBox` is drawn as filled paths,
+                     so it ignores stroke-width and read far heavier than its neighbours. -->
+                <GeneralIcon icon="ncPlusSquare" class="!h-8 !w-8 !text-nc-content-brand" />
               </template>
             </ProjectActionItem>
           </NcTooltip>

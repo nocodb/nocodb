@@ -254,18 +254,6 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
   await addIntegration(integration)
 }
 
-const isVisibleAllCategory = computed(() => {
-  return integrationCategoriesRef.value.length === categoriesQuery.value.length
-})
-
-const toggleShowOrHideAllCategory = () => {
-  if (isVisibleAllCategory.value) {
-    categoriesQuery.value = []
-  } else {
-    categoriesQuery.value = integrationCategoriesRef.value.map((c) => c.value)
-  }
-}
-
 const isIntegrationVisible = (integration: IntegrationItemType, _category: any) => {
   if (!showComingSoonIntegrations.value && !integration.isAvailable) return false
 
@@ -404,35 +392,32 @@ watch(activeViewTab, (value) => {
           }"
         >
           <div v-if="integrationListContainerWidth" class="px-6 pt-4">
-            <div
-              class="flex justify-end flex-wrap gap-3 m-auto nc-content-max-w"
-              :class="{
-                'items-start': showTitle,
-                'items-center': !showTitle,
-              }"
-            >
-              <div class="flex-1">
-                <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-2">
+            <!-- Title and search share a line: the search filters this whole
+                 pane, so it belongs with the pane's name rather than as a
+                 full-width band beneath it. -->
+            <div class="flex flex-wrap items-center justify-between gap-3 m-auto nc-content-max-w">
+              <div class="flex-1 min-w-60">
+                <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-1">
                   {{ $t('general.integrations') }}
                 </h2>
 
                 <div class="text-sm font-normal text-nc-content-gray-subtle2">
-                  <div>
-                    {{ showActiveConnections ? $t('msg.manageConnectionsAndIntegrations') : $t('msg.connectIntegrations') }}
-                    <a href="https://nocodb.com/docs/product-docs/integrations" target="_blank" rel="noopener noreferrer">{{
-                      $t('msg.learnMore')
-                    }}</a>
-                  </div>
+                  {{ showActiveConnections ? $t('msg.manageConnectionsAndIntegrations') : $t('msg.connectIntegrations') }}
+                  <a
+                    class="nc-inline-doc-link"
+                    href="https://nocodb.com/docs/product-docs/integrations"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >{{ $t('msg.learnMore') }}</a
+                  >
                 </div>
               </div>
-            </div>
-            <!-- Search + filter — full width, outside the header row -->
-            <div class="flex items-center gap-2 nc-content-max-w m-auto !mt-4">
+
               <a-input
                 ref="searchInputRef"
                 v-model:value="searchQuery"
                 type="text"
-                class="flex-1 nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9"
+                class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 !w-full sm:!w-80 flex-none"
                 :placeholder="
                   showActiveConnections
                     ? $t('placeholder.searchConnectionsOrIntegrations')
@@ -444,48 +429,6 @@ watch(activeViewTab, (value) => {
                   <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
                 </template>
               </a-input>
-              <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
-                <NcButton size="medium" type="secondary" class="!px-1 !min-h-9 !min-w-9 !h-9 !w-9">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="filter" />
-                    <div
-                      v-if="integrationCategoriesRef.length - categoriesQuery.length"
-                      class="bg-nc-bg-brand text-nc-content-brand p-1 text-xs rounded-md min-w-6"
-                    >
-                      {{ integrationCategoriesRef.length - categoriesQuery.length }}
-                    </div>
-                  </div>
-                </NcButton>
-
-                <template #overlay>
-                  <NcList
-                    v-model:value="categoriesQuery"
-                    v-model:open="isOpenFilter"
-                    :list="integrationCategoriesRef"
-                    search-input-placeholder="Search category"
-                    :close-on-select="false"
-                    is-multi-select
-                    variant="medium"
-                  >
-                    <template #listFooter>
-                      <NcDivider class="!mt-0 !mb-2" />
-                      <div class="px-2 mb-2">
-                        <div
-                          class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
-                          @click="toggleShowOrHideAllCategory"
-                        >
-                          <div class="flex items-center gap-2">
-                            <GeneralIcon :icon="isVisibleAllCategory ? 'eyeSlash' : 'eye'" />
-                            <div>
-                              {{ isVisibleAllCategory ? $t('general.hideAll') : $t('general.showAll') }}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </template></NcList
-                  >
-                </template>
-              </NcDropdown>
             </div>
           </div>
 
@@ -936,5 +879,20 @@ watch(activeViewTab, (value) => {
 .nc-browse-logo-request {
   @apply bg-transparent text-nc-content-gray-muted;
   border: 1px dashed var(--nc-border-gray-medium);
+}
+
+/* Reads as part of the sentence it sits in, and only declares itself as a link
+   on hover -- a permanently blue word pulls the eye off the heading above it. */
+.nc-inline-doc-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--nc-border-gray-dark);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--nc-content-brand);
+    text-decoration-color: currentColor;
+  }
 }
 </style>

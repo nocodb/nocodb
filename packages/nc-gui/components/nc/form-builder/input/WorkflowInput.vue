@@ -844,7 +844,10 @@ function popoverPos(anchor: { left: number; top: number; bottom: number }, size:
   const gap = 6
   const left = Math.max(8, Math.min(anchor.left, window.innerWidth - size.width - 8))
   const fitsBelow = anchor.bottom + gap + size.height <= window.innerHeight
-  const top = fitsBelow ? anchor.bottom + gap : Math.max(8, anchor.top - gap - size.height)
+  const top = Math.min(
+    fitsBelow ? anchor.bottom + gap : Math.max(8, anchor.top - gap - size.height),
+    window.innerHeight - size.height - 8,
+  )
 
   return { top, left }
 }
@@ -944,12 +947,17 @@ function openLinkTarget() {
   window.open(linkViewHref.value, '_blank', 'noopener,noreferrer')
 }
 
-// Below the text being linked: left at its start, top under the line it ends on.
+// Below the text being linked: left at its start, top under the line it ends on. Clamped to the
+// editor's visible area, since the body scrolls internally and the text may be scrolled out of view.
 function textRangeAnchor(from: number, to: number) {
-  const start = editor.value!.view.coordsAtPos(from)
-  const end = editor.value!.view.coordsAtPos(to)
+  const view = editor.value!.view
+  const start = view.coordsAtPos(from)
+  const end = view.coordsAtPos(to)
+  const visible = (view.dom.closest('.nc-email-editor') ?? view.dom).getBoundingClientRect()
 
-  return { left: start.left, top: start.top, bottom: Math.max(start.bottom, end.bottom) }
+  const clamp = (y: number) => Math.min(Math.max(y, visible.top), visible.bottom)
+
+  return { left: start.left, top: clamp(start.top), bottom: clamp(Math.max(start.bottom, end.bottom)) }
 }
 
 function openLinkMenu() {
@@ -982,10 +990,9 @@ function openLinkMenu() {
 function normalizeHref(raw: string): string {
   const value = raw.trim()
   if (!value) return ''
-  // A workflow variable resolves at send time — its scheme is unknown now, and a script that
-  // "already built the URL" usually includes one. Prefixing https:// would double it, so leave
-  // the token untouched and let the resolved value carry the scheme.
-  if (value.includes('{{')) return value
+  // A leading variable resolves at send time and carries its own scheme — prefixing would double
+  // it. A variable later in the URL (`example.com/{{ id }}`) still needs the scheme added below.
+  if (value.startsWith('{{')) return value
   if (/^(?:https?|mailto):/i.test(value)) return value
   if (/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(value)) return `mailto:${value}`
   return `https://${value.replace(/^\/+/, '')}`
@@ -1221,7 +1228,7 @@ watch(readOnly, (newValue) => {
               data-testid="nc-workflow-richtext-link-url"
               @enter="applyLink"
             />
-            <NcTooltip :title="$t('general.insert')" class="flex flex-none">
+            <NcTooltip v-if="variables.length" :title="$t('general.insert')" class="flex flex-none">
               <NcButton
                 size="xs"
                 type="text"

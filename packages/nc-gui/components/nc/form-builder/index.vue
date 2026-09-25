@@ -838,7 +838,8 @@ watch(
 }
 
 .nc-group-toggle {
-  @apply mt-2 mb-2;
+  // Room for the button's focus ring, which the scroll container would clip at the edge.
+  @apply mt-2 mb-2 pl-1;
 
   button {
     @apply hover:!text-nc-content-brand;

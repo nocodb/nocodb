@@ -121,6 +121,17 @@ describe('sanitizeEmailHtml', () => {
     expect(sanitizeEmailHtml('<a href="javascript:alert(1)">x</a>')).toBe('<a>x</a>');
   });
 
+  it('adds a scheme to hrefs that resolved without one', () => {
+    expect(sanitizeEmailHtml('<a href="nocodb.com/x">x</a>')).toBe('<a href="https://nocodb.com/x">x</a>');
+    expect(sanitizeEmailHtml('<a href=" localhost:8080 ">x</a>')).toBe('<a href="https://localhost:8080">x</a>');
+    expect(sanitizeEmailHtml('<a href="//cdn.example">x</a>')).toBe('<a href="https://cdn.example">x</a>');
+    expect(sanitizeEmailHtml('<a href="a@b.com">x</a>')).toBe('<a href="mailto:a@b.com">x</a>');
+    expect(sanitizeEmailHtml('<a href="https://ok.example">x</a>')).toBe('<a href="https://ok.example">x</a>');
+    expect(sanitizeEmailHtml('<a href="example.com:8080/a">x</a>')).toBe('<a href="https://example.com:8080/a">x</a>');
+    expect(sanitizeEmailHtml('<a href="tel:123">x</a>')).toBe('<a>x</a>');
+    expect(sanitizeEmailHtml('<a href="javascript:alert(1)">x</a>')).toBe('<a>x</a>');
+  });
+
   it('keeps whitelisted inline styles only', () => {
     expect(sanitizeEmailHtml('<span style="color: #dc2626">red</span>')).toBe(
       '<span style="color: #dc2626">red</span>',

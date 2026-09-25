@@ -45,7 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
   readOnly: false,
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'enter'])
 
 const { t } = useI18n()
 
@@ -90,6 +90,9 @@ const suggestionPlacement = () =>
     ? { placement: 'bottom-start' as const, offset: [0, 8] as [number, number] }
     : { placement: 'left-end' as const, offset: [40, 100] as [number, number] }
 
+// Plain mode forwards Enter to the host (e.g. the link form's Apply), but not while picking a variable.
+let isSuggestionOpen = false
+
 const createSuggestionRender = () => ({
   render: () => {
     let component: VueRenderer | undefined
@@ -101,6 +104,7 @@ const createSuggestionRender = () => ({
     const canShow = (suggestionProps: Record<string, any>) => !!suggestionProps.clientRect && !!suggestionProps.editor?.isFocused
 
     const show = (suggestionProps: Record<string, any>) => {
+      isSuggestionOpen = true
       component = new VueRenderer(WorkflowVariablePicker, {
         props: {
           ...suggestionProps,
@@ -116,6 +120,8 @@ const createSuggestionRender = () => ({
         showOnCreate: true,
         interactive: true,
         trigger: 'manual',
+        // Above the link popovers (10001), which host a variable-capable URL editor.
+        zIndex: 10002,
         ...suggestionPlacement(),
       })
     }
@@ -145,12 +151,16 @@ const createSuggestionRender = () => ({
       },
 
       onKeyDown(suggestionProps: Record<string, any>) {
+        // Dismissed but still active: keys belong to the editor and its host, not an unseen picker.
+        if (!isSuggestionOpen) return false
+
         if (suggestionProps.event.key === 'Escape') {
           // Returning true only tells the plugin we handled it; the DOM event would still travel
           // on to the compose modal and close the whole thing.
           suggestionProps.event.preventDefault()
           suggestionProps.event.stopPropagation()
           popup?.[0]?.hide()
+          isSuggestionOpen = false
           return true
         }
         return component?.ref?.onKeyDown(suggestionProps)
@@ -161,6 +171,7 @@ const createSuggestionRender = () => ({
         // so neither handle is guaranteed here.
         popup?.[0]?.destroy()
         component?.destroy()
+        isSuggestionOpen = false
       },
     }
   },
@@ -362,6 +373,9 @@ const editor = useEditor({
     markdown = markdown.replaceAll('\\*', '*')
     markdown = markdown.replaceAll('\\[', '[')
     markdown = markdown.replaceAll('\\]', ']')
+    markdown = markdown.replaceAll('\\~', '~')
+    markdown = markdown.replaceAll('\\`', '`')
+    markdown = markdown.replaceAll('\\\\', '\\')
 
     lastEmitted = markdown.trim()
     vModel.value = lastEmitted
@@ -388,7 +402,10 @@ const editor = useEditor({
     },
     handleKeyDown(_view, event) {
       if (event.key === 'Enter' && !isMultiline.value) {
+        // Direct props run before plugins, so the picker only sees Enter if we pass it on.
+        if (isSuggestionOpen) return false
         event.preventDefault()
+        emit('enter')
         return true
       }
 
@@ -599,6 +616,8 @@ const insertExpression = async () => {
   }
 }
 
+defineExpose({ focus: () => editor.value?.commands.focus('end'), insertVariable: insertExpression })
+
 // ── Email body shell: expand modal, word count, quick variables ──
 
 const wordCount = ref(0)
@@ -614,7 +633,9 @@ const linkMenuRef = ref<HTMLElement>()
 
 const linkViewRef = ref<HTMLElement>()
 
-const linkUrlRef = ref<HTMLInputElement>()
+const linkUrlRef = ref<{ focus: () => void; insertVariable: () => void }>()
+
+const linkTextRef = ref<HTMLInputElement>()
 
 // Fixed-position so the menu can open beside whichever trigger was clicked — toolbar,
 // bubble, or sidebar strip — instead of a slot under the toolbar.
@@ -622,7 +643,10 @@ const linkMenuPos = ref({ top: 0, left: 0 })
 
 const linkViewPos = ref({ top: 0, left: 0 })
 
-const LINK_MENU_SIZE = { width: 260, height: 118 }
+// Link text is only asked for when nothing is selected — otherwise the selection is the label.
+const showLinkTextField = ref(false)
+
+const linkMenuSize = () => ({ width: 320, height: showLinkTextField.value ? 88 : 48 })
 
 const LINK_VIEW_SIZE = { width: 420, height: 36 }
 
@@ -831,7 +855,10 @@ function popoverPos(anchor: { left: number; top: number; bottom: number }, size:
   const gap = 6
   const left = Math.max(8, Math.min(anchor.left, window.innerWidth - size.width - 8))
   const fitsBelow = anchor.bottom + gap + size.height <= window.innerHeight
-  const top = fitsBelow ? anchor.bottom + gap : Math.max(8, anchor.top - gap - size.height)
+  const top = Math.min(
+    fitsBelow ? anchor.bottom + gap : Math.max(8, anchor.top - gap - size.height),
+    window.innerHeight - size.height - 8,
+  )
 
   return { top, left }
 }
@@ -879,9 +906,9 @@ function openLinkEditor(range: { from: number; to: number }, href: string, ancho
   editingLinkRange.value = range
   linkText.value = editor.value.state.doc.textBetween(range.from, range.to, ' ')
   linkUrl.value = href
+  showLinkTextField.value = false
 
-  const caret = editor.value.view.coordsAtPos(range.from)
-  linkMenuPos.value = popoverPos(anchor ?? { left: caret.left, top: caret.top, bottom: caret.bottom }, LINK_MENU_SIZE)
+  linkMenuPos.value = popoverPos(anchor ?? textRangeAnchor(range.from, range.to), linkMenuSize())
 
   showLinkView.value = false
   showLinkMenu.value = true
@@ -904,23 +931,55 @@ function removeLink() {
   closeLinkPopovers()
 }
 
+// The href split into text and {{ }} tokens, so the view bubble can show variables as pills.
+const linkViewSegments = computed(() => {
+  const segments: { text?: string; label?: string }[] = []
+  const regex = /\{\{([^}]+)}}/g
+  let lastIndex = 0
+  let match
+
+  // eslint-disable-next-line no-cond-assign
+  while ((match = regex.exec(linkViewHref.value)) !== null) {
+    if (match.index > lastIndex) segments.push({ text: linkViewHref.value.slice(lastIndex, match.index) })
+    segments.push({ label: deriveExpressionMeta(match[1].trim()).label })
+    lastIndex = match.index + match[0].length
+  }
+  if (lastIndex < linkViewHref.value.length) segments.push({ text: linkViewHref.value.slice(lastIndex) })
+
+  return segments
+})
+
+// A variable only resolves at send time, so there is nothing to open yet.
+const linkViewHasVariable = computed(() => linkViewSegments.value.some((segment) => segment.label))
+
 function openLinkTarget() {
-  if (!linkViewHref.value) return
+  if (!linkViewHref.value || linkViewHasVariable.value) return
 
   window.open(linkViewHref.value, '_blank', 'noopener,noreferrer')
 }
 
-function openLinkMenu(event?: MouseEvent) {
-  if (!editor.value) return
+// Below the text being linked: left at its start, top under the line it ends on. Clamped to the
+// editor's visible area, since the body scrolls internally and the text may be scrolled out of view.
+function textRangeAnchor(from: number, to: number) {
+  const view = editor.value!.view
+  const start = view.coordsAtPos(from)
+  const end = view.coordsAtPos(to)
+  const visible = (view.dom.closest('.nc-email-editor') ?? view.dom).getBoundingClientRect()
 
-  const trigger = (event?.currentTarget as HTMLElement | null)?.getBoundingClientRect()
+  const clamp = (y: number) => Math.min(Math.max(y, visible.top), visible.bottom)
+
+  return { left: start.left, top: clamp(start.top), bottom: clamp(Math.max(start.bottom, end.bottom)) }
+}
+
+function openLinkMenu() {
+  if (!editor.value) return
 
   // Caret sits in a link: edit it. This used to unset the mark outright, which left no way
   // to inspect or correct a link — the only fix was to delete it and type it again.
   if (editor.value.isActive('link')) {
     const range = linkRangeAt(editor.value.state.selection.from)
     if (range) {
-      openLinkEditor({ from: range.from, to: range.to }, range.href, trigger)
+      openLinkEditor({ from: range.from, to: range.to }, range.href)
       return
     }
   }
@@ -929,20 +988,22 @@ function openLinkMenu(event?: MouseEvent) {
   editingLinkRange.value = null
   linkText.value = editor.value.state.doc.textBetween(from, to, ' ')
   linkUrl.value = ''
+  showLinkTextField.value = from === to
 
-  // Anchor under the clicked button; fall back to the caret for keyboard-driven opens.
-  const caret = editor.value.view.coordsAtPos(from)
-
-  linkMenuPos.value = popoverPos(trigger ?? { left: caret.left, top: caret.top, bottom: caret.bottom }, LINK_MENU_SIZE)
+  linkMenuPos.value = popoverPos(textRangeAnchor(from, to), linkMenuSize())
   showLinkView.value = false
   showLinkMenu.value = true
-  nextTick(() => linkUrlRef.value?.focus())
+  // Nothing selected: start at the text so the link gets a label before its URL.
+  nextTick(() => (showLinkTextField.value ? linkTextRef.value?.focus() : linkUrlRef.value?.focus()))
 }
 
 // Scheme-less URLs are the norm when typing; the sanitizer only lets http(s)/mailto through.
 function normalizeHref(raw: string): string {
   const value = raw.trim()
   if (!value) return ''
+  // A leading variable resolves at send time and carries its own scheme — prefixing would double
+  // it. A variable later in the URL (`example.com/{{ id }}`) still needs the scheme added below.
+  if (value.startsWith('{{')) return value
   if (/^(?:https?|mailto):/i.test(value)) return value
   if (/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(value)) return `mailto:${value}`
   return `https://${value.replace(/^\/+/, '')}`
@@ -987,9 +1048,15 @@ function closeLinkPopovers() {
   linkText.value = ''
 }
 
-onClickOutside(linkMenuRef, () => {
-  if (showLinkMenu.value) closeLinkPopovers()
-})
+onClickOutside(
+  linkMenuRef,
+  () => {
+    if (showLinkMenu.value) closeLinkPopovers()
+  },
+  // The variable picker is teleported to <body>, so a click inside it reads as "outside" the
+  // menu — ignore it, otherwise picking a variable would slam the whole form shut.
+  { ignore: ['.nc-workflow-variable-picker'] },
+)
 
 // Safe against the click that opens it: onClickOutside listens in the capture phase, so it
 // runs before ProseMirror's handleClick, while the bubble is still unrendered and it no-ops.
@@ -1102,7 +1169,14 @@ watch(readOnly, (newValue) => {
 
           <NcTooltip class="flex-1 min-w-0 truncate" show-on-truncate-only>
             <template #title>{{ linkViewHref }}</template>
+            <span v-if="linkViewHasVariable" class="block truncate" data-testid="nc-workflow-richtext-link-view-open">
+              <template v-for="(segment, index) in linkViewSegments" :key="index">
+                <span v-if="segment.label" class="nc-workflow-expression">{{ segment.label }}</span>
+                <template v-else>{{ segment.text }}</template>
+              </template>
+            </span>
             <button
+              v-else
               class="nc-workflow-link-view-href truncate w-full text-left"
               data-testid="nc-workflow-richtext-link-view-open"
               @click.stop="openLinkTarget"
@@ -1142,26 +1216,53 @@ watch(readOnly, (newValue) => {
           @click.stop
           @keydown.esc.stop.prevent="closeLinkPopovers"
         >
-          <input
-            v-model="linkText"
-            class="nc-workflow-link-input"
-            :placeholder="$t('general.text')"
-            data-testid="nc-workflow-richtext-link-text"
-          />
-          <input
-            ref="linkUrlRef"
-            v-model="linkUrl"
-            class="nc-workflow-link-input"
-            :placeholder="$t('placeholder.enterUrl')"
-            data-testid="nc-workflow-richtext-link-url"
-            @keydown.enter.stop.prevent="applyLink"
-          />
-          <div class="flex justify-end gap-2 mt-1">
-            <NcButton size="xs" type="secondary" @click.stop="closeLinkPopovers">{{ $t('general.cancel') }}</NcButton>
-            <NcButton size="xs" type="primary" data-testid="nc-workflow-richtext-link-apply" @click.stop="applyLink">
-              {{ $t('general.apply') }}
-            </NcButton>
+          <div v-if="showLinkTextField" class="nc-workflow-link-field">
+            <GeneralIcon icon="ncType" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
+            <input
+              ref="linkTextRef"
+              v-model="linkText"
+              class="nc-workflow-link-input"
+              :placeholder="$t('general.text')"
+              data-testid="nc-workflow-richtext-link-text"
+              @keydown.enter.stop.prevent="linkUrlRef?.focus()"
+            />
           </div>
+          <div class="nc-workflow-link-field nc-workflow-link-url-row">
+            <GeneralIcon icon="lucideLink" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
+            <!-- Plain single-line editor so an inserted variable renders as a pill, as in the body. -->
+            <NcFormBuilderInputWorkflowInput
+              ref="linkUrlRef"
+              v-model="linkUrl"
+              :placeholder="$t('placeholder.enterUrl')"
+              :variables="variables"
+              :grouped-variables="groupedVariables"
+              data-testid="nc-workflow-richtext-link-url"
+              @enter="applyLink"
+            />
+            <NcTooltip v-if="variables.length" :title="$t('general.insert')" class="flex flex-none">
+              <NcButton
+                size="xs"
+                type="text"
+                class="nc-workflow-link-var-btn"
+                data-testid="nc-workflow-richtext-link-url-variable-btn"
+                @mousedown.prevent
+                @click.stop="linkUrlRef?.insertVariable()"
+              >
+                <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand flex-none w-4 h-4" />
+              </NcButton>
+            </NcTooltip>
+          </div>
+          <NcButton
+            size="xs"
+            type="text"
+            class="flex-none"
+            :class="{ '!text-nc-content-brand': linkUrl.trim() }"
+            :disabled="!linkUrl.trim()"
+            data-testid="nc-workflow-richtext-link-apply"
+            @click.stop="applyLink"
+          >
+            {{ $t('general.apply') }}
+          </NcButton>
         </div>
 
         <EditorContent :editor="editor" class="nc-workflow-input-editor nc-email-editor multiline" />
@@ -1394,7 +1495,8 @@ watch(readOnly, (newValue) => {
 }
 
 .nc-email-shell {
-  .ProseMirror {
+  // Scoped to the body's editor: the link form nests a plain editor inside the shell.
+  .nc-email-editor .ProseMirror {
     // The shell owns the border and focus ring; the legacy .nc-workflow-input rules
     // put both on the editor itself, so they are overridden rather than out-specified.
     @apply h-auto min-h-35 w-full px-3.5 py-3 outline-none !border-0 !rounded-none !shadow-none;
@@ -1533,14 +1635,50 @@ watch(readOnly, (newValue) => {
 }
 
 .nc-workflow-link-menu {
-  @apply fixed flex flex-col gap-1 p-2 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
-  width: 260px;
+  @apply fixed p-2 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  width: 320px;
+  // Fields share column 1 so the text input ends where the URL box does; Apply sits in column 2.
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  align-items: center;
   z-index: 10001; // above the modal mask and the tippy bubble
   box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
 
+  // Both fields share one box: icon + borderless control, in column 1 so they end together.
+  .nc-workflow-link-field {
+    grid-column: 1;
+    @apply flex min-w-0 items-center gap-2 h-8 px-2 text-small rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-default;
+    @apply focus-within:border-nc-border-brand;
+  }
+
   .nc-workflow-link-input {
-    @apply w-full px-2 py-1 text-small rounded-md border-1 border-nc-border-gray-medium outline-none;
-    @apply focus:border-nc-border-brand;
+    @apply flex-1 min-w-0 h-5 p-0 text-small leading-5 bg-transparent border-0 outline-none;
+  }
+
+  // The nested editor sits borderless in its field box, pinned to the text input's 20px line.
+  .nc-workflow-link-url-row {
+    .nc-workflow-input,
+    .nc-workflow-input-editor {
+      @apply flex-1 min-w-0 h-5;
+    }
+
+    .nc-workflow-input-editor {
+      @apply overflow-hidden;
+    }
+
+    .nc-workflow-input-editor .ProseMirror {
+      @apply !h-5 !min-h-0 !p-0 !text-small !leading-5 !border-0 !rounded-none !shadow-none;
+    }
+
+    // The row renders its own in-flow insert button instead of the nested editor's floating one.
+    .nc-workflow-insert-btn-tooltip {
+      @apply !hidden;
+    }
+
+    .nc-workflow-link-var-btn {
+      @apply !h-6 !min-w-6 !px-1 -mr-1;
+    }
   }
 }
 

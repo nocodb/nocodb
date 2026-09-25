@@ -619,8 +619,7 @@ watch(baseId, reload)
                     @click="handleAddIntegration(item.integration)"
                   >
                     <span class="nc-browse-logo">
-                      <!-- The tile sizes logos; some `iconStyle`s hard-code 32px inline. -->
-                      <component :is="item.integration.icon" />
+                      <GeneralIntegrationIcon :type="item.integration.sub_type" size="md" />
                     </span>
 
                     <NcTooltip
@@ -1042,15 +1041,6 @@ watch(baseId, reload)
 /* Forces one box size for bare glyphs and full-bleed logo tiles alike. */
 .nc-browse-logo {
   @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
-
-  :deep(svg),
-  :deep(img) {
-    width: 18px !important;
-    height: 18px !important;
-    max-width: 18px !important;
-    max-height: 18px !important;
-    object-fit: contain;
-  }
 }
 
 .nc-browse-card-request {

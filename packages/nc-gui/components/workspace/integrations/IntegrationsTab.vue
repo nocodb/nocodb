@@ -481,7 +481,7 @@ watch(activeViewTab, (value) => {
                           @click="handleAddIntegration(item.categoryKey, item.integration)"
                         >
                           <span class="nc-browse-logo">
-                            <component :is="item.integration.icon" />
+                            <GeneralIntegrationIcon :type="item.integration.sub_type" size="md" />
                           </span>
 
                           <span class="flex-1 min-w-0 text-left text-bodyDefaultSm font-semibold text-nc-content-gray truncate">
@@ -829,15 +829,6 @@ watch(activeViewTab, (value) => {
 /* Forces one box size for bare glyphs and full-bleed logo tiles alike. */
 .nc-browse-logo {
   @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
-
-  :deep(svg),
-  :deep(img) {
-    width: 18px !important;
-    height: 18px !important;
-    max-width: 18px !important;
-    max-height: 18px !important;
-    object-fit: contain;
-  }
 }
 
 /* Grey at rest so plan badges don't outshout the names. */

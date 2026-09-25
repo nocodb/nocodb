@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "アップグレードしてフォームでログインを必須にする",
     "upgradeToUseFormRequireSigninSubtitle": "{plan} プランにアップグレードすると、フォーム送信前に回答者のログインを必須にできます。",
     "upgradeToUseSso": "SSO を使用するにはアップグレードしてください",
-    "upgradeToUseSsoSubtitle": "{plan} プランにアップグレードすると、シングルサインオン (SSO) を設定し、チームが ID プロバイダーでサインインできるようになります。"
+    "upgradeToUseSsoSubtitle": "{plan} プランにアップグレードすると、シングルサインオン (SSO) を設定し、チームが ID プロバイダーでサインインできるようになります。",
+    "upgradeToUseAppFactory": "App Factory を使うにはアップグレードしてください",
+    "upgradeToUseAppFactorySubtitle": "{plan} プランにアップグレードすると、接続したリポジトリにコーディングエージェントを割り当てられます。"
   },
   "general": {
     "scrollToBottom": "一番下までスクロール",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "誰も {description}",
         "moreUsers": "+ {count} 以上",
         "selectUsersOrTeams": "ユーザーまたはチームを選択"
-      }
+      },
+      "createRecords": "レコードの作成"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "ビューフォルダ",
     "subRecord": "サブレコード",
     "video": "動画",
-    "recordTemplates": "レコードテンプレート"
+    "recordTemplates": "レコードテンプレート",
+    "roleTypePlural": {
+      "owner": "所有者",
+      "creator": "作成者",
+      "editor": "編集者",
+      "commenter": "コメント者",
+      "viewer": "閲覧者",
+      "inherit": "継承",
+      "noaccess": "アクセス権なし",
+      "admin": "管理者",
+      "superAdmin": "スーパー管理者",
+      "orgAdmin": "組織管理者",
+      "orgCreator": "組織作成者",
+      "orgViewer": "組織閲覧者",
+      "orgLevelOwner": "組織レベルの所有者",
+      "orgLevelCreator": "組織レベルの作成者",
+      "orgLevelViewer": "組織レベルの閲覧者",
+      "appUser": "アプリユーザー"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "カスタムドメインを削除しますか？",
     "tooNarrowToAdjustFrozenFields": "ウィンドウが狭すぎて固定フィールドを調整できません",
     "themeSettings": "テーマ設定",
-    "nFields": "{count} フィールド | {count} フィールド"
+    "nFields": "{count} フィールド | {count} フィールド",
+    "noInterfaceMembersYet": "インターフェースのメンバーはまだいません",
+    "headJoin": "参加 | NocoDB"
   },
   "labels": {
     "syncing": "同期中",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "このエージェントの会話を開く",
     "sendToAgent": "エージェントに送信",
     "noPort": "ポートなし",
-    "manageInviteLinks": "招待リンクを管理"
+    "manageInviteLinks": "招待リンクを管理",
+    "editOauthClient": "OAuth クライアントを編集",
+    "oauthClientNameHint": "認可中にユーザーに表示されます",
+    "applicationDescription": "アプリケーションの説明",
+    "oauthClientDescriptionHint": "ユーザーがアクセスを許可するときに表示される短い説明",
+    "homepageUrl": "ホームページの URL",
+    "oauthClientLogoHint": "認可中に表示される画像（正方形を推奨）",
+    "clientType": "クライアントの種類",
+    "oauthClientTypeHint": "パブリック: モバイル/ウェブアプリ（PKCE 必須）。機密: 安全なサーバー（シークレットを保存可能）",
+    "confidential": "機密",
+    "authorizationCallbackUrls": "認可コールバック URL",
+    "oauthCallbackUrlsHint": "認可後のリダイレクト先となる HTTPS URL（localhost/127.0.0.1 も可）。1 行に 1 つ",
+    "clientId": "クライアント ID",
+    "clientSecret": "クライアントシークレット",
+    "regenerateSecret": "シークレットを再生成",
+    "createOauthClients": "OAuth クライアントを作成",
+    "managingOauthClients": "OAuth クライアントの管理",
+    "clientInformation": "クライアント情報"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "App の内容から生成したものではなく、発行元が記述したものです。",
     "marketplaceVerifiedPublisher": "NocoDB が公開・確認済み",
     "showCustomPermissionFieldsOnly": "カスタム権限が設定されたフィールドのみ表示",
-    "showAllFields": "すべてのフィールドを表示"
+    "showAllFields": "すべてのフィールドを表示",
+    "inviteLinkCannotGrantOwner": "招待リンクでは所有者権限を付与できません",
+    "inviteLinkRoleAboveYours": "付与できるのは自分と同じかそれ以下のロールのみです",
+    "noDefaultSourceForFolders": "この Base には既定のソースがありません。フォルダーは各ソースのメニューから作成してください",
+    "noDefaultSourceForSync": "この Base には既定のソースがありません。同期にはテーブルを保存するソースが必要です"
   },
   "placeholder": {
     "enterVerificationCode": "6桁のコードを入力してください",
@@ -5233,7 +5277,28 @@
     "messageAgent": "{agent} にメッセージを送信",
     "somethingElse": "その他",
     "noMcpConnections": "MCP 接続が作成されていません",
-    "noMcpConnectionsLabel": "MCP 接続がまだ作成されていないようです。"
+    "noMcpConnectionsLabel": "MCP 接続がまだ作成されていないようです。",
+    "searchDataSource": "データソースを検索",
+    "searchConnections": "接続を検索",
+    "migrationUrl": "移行先の移行 URL を入力してください",
+    "searchSync": "同期を検索",
+    "searchWorkspace": "ワークスペースを検索",
+    "searchBase": "Base を検索",
+    "searchEvent": "イベントを検索",
+    "skillRegistrySearch": "スキルを検索…",
+    "searchSnapshots": "スナップショットを検索",
+    "searchTokens": "トークンを検索",
+    "factoryPrompt": "作りたいものを説明してください",
+    "factorySearchRepos": "リポジトリを検索",
+    "factorySearchTargets": "リポジトリを検索",
+    "factorySearchSources": "ブランチ、プルリクエスト、課題を検索",
+    "factoryOnPr": "このプルリクエストで何をしますか？",
+    "factoryOnIssue": "課題そのもの以外に付け加えることがあれば（任意）",
+    "factoryReply": "返信",
+    "searchFiles": "ファイルを検索",
+    "factoryAnnotation": "ここでエージェントに何を変更させますか？",
+    "oauthClientName": "マイアプリケーション",
+    "oauthClientDescription": "このアプリケーションはデータの管理を支援します..."
   },
   "msg": {
     "sourceViewNotShared": "このビューでは同期は無効です",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "これはこの同期の同期先テーブルです。変換すると同期そのものが削除されます。同期が作成したテーブルはすべて、通常の編集可能なテーブルとして残り、同期されなくなります。",
       "requiredFieldNotEditable": "この必須フィールドは編集できないため、フォーム送信時にエラーが起きる可能性があります。",
       "communityAppInstall": "{title} はコミュニティ製アプリです。NocoDB による審査も検証も受けていません。ワークスペースにインストールする前に、発行者を信頼できるか確認してください。",
-      "removeCustomDomain": "{domain} はこのアプリの配信を停止します。既定のアドレスは引き続き利用できます。"
+      "removeCustomDomain": "{domain} はこのアプリの配信を停止します。既定のアドレスは引き続き利用できます。",
+      "copyClientSecretNow": "⚠️ クライアントシークレットを今すぐコピーしてください。再度表示することはできません。"
     },
     "info": {
       "sourceViewRebindResync": "ソースビューを変更すると、新しいビューに対して完全に再同期されます。",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "再び読み込めるようになるまで編集は無効です。",
       "inviteLinkDomainSentence": "{domain} のメールでのみ利用でき、チームメイトは {role} として参加します",
       "inviteLinkOpenSentence": "リンクを知っている人は誰でも {role} として参加できます",
-      "inviteLinkOpenCaution": "信頼できる人にのみ共有してください。"
+      "inviteLinkOpenCaution": "信頼できる人にのみ共有してください。",
+      "shareHubTooltip": "この Base で作業するユーザーを招待するか、{object} への読み取り専用リンクを公開します。",
+      "shareHubTooltipInviteOnly": "この Base で作業するユーザーを招待します。Base 自体を公開するには、Base メニューの「Base を共有」を使用してください。",
+      "shareNothingPrivateBase": "プライベート Base にユーザーを招待できるのは Base の所有者だけです。ビューを公開するには、まずビューを開いてください。",
+      "shareNothingToShow": "ここから共有できるものはありません。読み取り専用リンクを公開するにはビューを開いてください。",
+      "peopleHaveAccess": "{count} 人がアクセスできます。 | {count} 人がアクセスできます。",
+      "noInviteLinkYet": "招待リンクはまだありません。個別の招待なしで参加できるように作成してください。",
+      "youWillJoinAs": "{role} として参加します。",
+      "signedInWrongDomain": "{email} としてサインインしています。このリンクは {'@'}{domain} のアドレスのみ受け付けます。",
+      "signedInAs": "{email} としてサインインしています。",
+      "publicLinkToNamed": "{name} への公開リンク",
+      "readOnlyInviteInstead": "読み取り専用です。編集やコメントもできるようにしますか？",
+      "willJoinAsRole": "{count} 人が {role} として参加し、{can}ことができます。 | {count} 人が {role} として参加し、{can}ことができます。",
+      "sharePublicLinkSubtitle": "リンクを知っている人なら誰でも開けます。アカウントは不要です。",
+      "shareLinksReadOnly": "リンクは読み取り専用です。編集やコメントもできるようにしますか？",
+      "clientSecretHidden": "シークレットはセキュリティのため非表示になっており、再度表示することはできません。必要であれば再生成できます。",
+      "mcpSetupIntroClaude": "NocoDB MCP と Claude Desktop を 3 つの簡単なステップで使い始めましょう",
+      "mcpSetupClaudeStep1": "ナビゲーションバーから Claude Desktop の設定を開きます。",
+      "mcpSetupClaudeStep2": "Develop タブを開き、「Edit Config」をクリックします。",
+      "mcpSetupClaudeStep3": "トークン作成後に表示される JSON 設定を claude_desktop_config.json に追加します",
+      "mcpSetupIntroCodex": "NocoDB MCP と Codex CLI を 3 つの簡単なステップで使い始めましょう",
+      "mcpSetupCodexStep2": "トークン作成後に表示される TOML 設定を追加します。",
+      "mcpSetupIntroAntigravity": "NocoDB MCP と AntiGravity を 4 つの簡単なステップで使い始めましょう",
+      "mcpSetupAntigravityStep1": "エージェントウィンドウの右上にある 3 点メニューをクリックし、\"MCP Servers\" をクリックします",
+      "mcpSetupAntigravityStep2": "Manage MCP Servers をクリックします。",
+      "mcpSetupViewRawConfig": "続いて View raw config をクリックします。",
+      "mcpSetupPasteJsonConfig": "トークン作成後に表示される JSON 設定を、開いたファイルに貼り付けます",
+      "mcpSetupIntroCursor": "NocoDB MCP と Cursor を 3 つの簡単なステップで使い始めましょう",
+      "mcpSetupCursorStep1": "Cursor の設定を開きます（Shift+Cmd+J を押します）",
+      "mcpSetupCursorStep2": "\"MCP\" タブを選択し、\"Add Custom MCP\" をクリックします。",
+      "mcpSetupCursorStep3": "トークン作成後に表示される JSON 設定を追加します。",
+      "mcpSetupIntroWindsurf": "NocoDB MCP と Windsurf を 4 つの簡単なステップで使い始めましょう",
+      "mcpSetupWindsurfStep1": "Windsurf の設定を開き、左サイドバーで Cascade タブを選択します",
+      "mcpSetupWindsurfStep2": "Manage MCP をクリックします。"
     },
     "error": {
       "failedToCreateSync": "同期を作成できませんでした",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "プラン変更を予約しました",
       "planChangeReverted": "予定していたプラン変更を取り消しました。現在のプランはそのまま継続します。",
       "appDelisted": "App Store から削除しました",
-      "appRelisted": "App Store に再掲載しました"
+      "appRelisted": "App Store に再掲載しました",
+      "oauthClientUpdated": "OAuth クライアントを更新しました。"
     },
     "subText": {
       "startFromScratch": "ゼロから作成。",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "先にコメント対象の行を選択してください。",
     "factorySessionArchived": "セッションをアーカイブしました。作業内容は保存されています。再開すると続きから作業できます。",
     "factoryTurnFailed": "ターンが失敗しました",
-    "factoryDeleteSession": "「{title}」とその全文の記録が削除されます。この操作は取り消せません。"
+    "factoryDeleteSession": "「{title}」とその全文の記録が削除されます。この操作は取り消せません。",
+    "migrateToV3": {
+      "whatChanges": "移行後に変わること",
+      "changeDuplicate": "エンティティ ID を保持したまま Base を複製できます",
+      "changeApi": "アクセスは V3 API 経由でのみ可能になります",
+      "changeScale": "拡張性の向上と長期的な互換性のために設計されています",
+      "considerations": "重要な注意点",
+      "considerApis": "移行後、この Base では V1 および V2 API が使用できなくなります",
+      "considerPermanent": "移行は恒久的で、元に戻すことはできません",
+      "recommendation": "すべての統合が v3 API に対応していることを確認してから移行してください。",
+      "confirmTitle": "この Base を v3 に移行しますか？",
+      "confirmDesc": "この操作により、Base が最新のアーキテクチャと API バージョンにアップグレードされます。",
+      "confirmCta": "移行を確定",
+      "migrating": "移行中..."
+    },
+    "skillsRegistryErrorTitle": "スキルレジストリを検索できませんでした"
   },
   "trash": {
     "restore": "復元",
@@ -6540,7 +6655,12 @@
         "partial": "競合なしに {count} を復元",
         "force": "すべての競合を復元してクリア"
       }
-    }
+    },
+    "unavailableExternal": "外部ソース",
+    "unavailablePending": "セットアップ中",
+    "usingDefault": "{value}（既定）",
+    "keptForever": "無期限",
+    "notKept": "保持しない"
   },
   "baseTrash": {
     "title": "ごみ箱に入れる",

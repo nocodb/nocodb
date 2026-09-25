@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Fă upgrade pentru a solicita autentificarea la formulare",
     "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular.",
     "upgradeToUseSso": "Actualizați pentru a utiliza SSO",
-    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate."
+    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate.",
+    "upgradeToUseAppFactory": "Treci la un plan superior pentru a folosi App Factory",
+    "upgradeToUseAppFactorySubtitle": "Treci la planul {plan} pentru a porni agenți de programare pe depozitele tale conectate."
   },
   "general": {
     "scrollToBottom": "Derulează până jos",
@@ -1068,7 +1070,8 @@
         "noUsersSelected": "Nimeni {description}",
         "moreUsers": "+ {count} mai mult",
         "selectUsersOrTeams": "Selectează utilizatori sau echipe"
-      }
+      },
+      "createRecords": "Creare înregistrări"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1170,7 +1173,25 @@
     "viewFolder": "Dosar de vizualizări",
     "subRecord": "Subînregistrare",
     "video": "Videoclip",
-    "recordTemplates": "Șabloane de înregistrare"
+    "recordTemplates": "Șabloane de înregistrare",
+    "roleTypePlural": {
+      "owner": "Proprietari",
+      "creator": "Creatori",
+      "editor": "Editori",
+      "commenter": "Comentatori",
+      "viewer": "Vizualizatori",
+      "inherit": "Moștenește",
+      "noaccess": "Fără acces",
+      "admin": "Administratori",
+      "superAdmin": "Superadministratori",
+      "orgAdmin": "Administratori ai organizației",
+      "orgCreator": "Creatori ai organizației",
+      "orgViewer": "Vizualizatori ai organizației",
+      "orgLevelOwner": "Proprietari la nivel de organizație",
+      "orgLevelCreator": "Creatori la nivel de organizație",
+      "orgLevelViewer": "Vizualizatori la nivel de organizație",
+      "appUser": "Utilizatori ai aplicației"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1524,7 +1545,9 @@
     "removeCustomDomain": "Elimini domeniul personalizat?",
     "tooNarrowToAdjustFrozenFields": "Fereastra este prea îngustă pentru a ajusta câmpurile fixate",
     "themeSettings": "Setările temei",
-    "nFields": "{count} câmp | {count} câmpuri"
+    "nFields": "{count} câmp | {count} câmpuri",
+    "noInterfaceMembersYet": "Încă nu există membri ai interfeței",
+    "headJoin": "Alătură-te | NocoDB"
   },
   "labels": {
     "syncing": "Sincronizare",
@@ -4540,7 +4563,24 @@
     "openAgentConversation": "Deschide conversația acestui agent",
     "sendToAgent": "Trimite agentului",
     "noPort": "Fără port",
-    "manageInviteLinks": "Gestionează linkurile de invitație"
+    "manageInviteLinks": "Gestionează linkurile de invitație",
+    "editOauthClient": "Editează clientul OAuth",
+    "oauthClientNameHint": "Afișat utilizatorilor în timpul autorizării",
+    "applicationDescription": "Descrierea aplicației",
+    "oauthClientDescriptionHint": "Descriere scurtă afișată atunci când utilizatorii acordă acces",
+    "homepageUrl": "URL-ul paginii principale",
+    "oauthClientLogoHint": "Imagine afișată în timpul autorizării (se recomandă format pătrat)",
+    "clientType": "Tip de client",
+    "oauthClientTypeHint": "Public: aplicații mobile/web (necesită PKCE). Confidențial: servere securizate (pot stoca secrete)",
+    "confidential": "Confidențial",
+    "authorizationCallbackUrls": "Adrese de retur pentru autorizare",
+    "oauthCallbackUrlsHint": "Adrese HTTPS pentru redirecționare după autorizare (localhost/127.0.0.1 permise). Una pe linie",
+    "clientId": "ID client",
+    "clientSecret": "Secretul clientului",
+    "regenerateSecret": "Regenerează secretul",
+    "createOauthClients": "Creează clienți OAuth",
+    "managingOauthClients": "Gestionarea clienților OAuth",
+    "clientInformation": "Informații despre client"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -5053,7 +5093,11 @@
     "marketplaceAuthored": "Scris de editor, nu extras din conținutul aplicației.",
     "marketplaceVerifiedPublisher": "Publicat și verificat de NocoDB",
     "showCustomPermissionFieldsOnly": "Afișează doar câmpurile cu permisiuni personalizate",
-    "showAllFields": "Afișează toate câmpurile"
+    "showAllFields": "Afișează toate câmpurile",
+    "inviteLinkCannotGrantOwner": "Un link de invitație nu poate acorda rolul de Proprietar",
+    "inviteLinkRoleAboveYours": "Poți oferi doar roluri până la nivelul tău",
+    "noDefaultSourceForFolders": "Această bază nu are o sursă implicită — creează folderele din meniul propriu al unei surse",
+    "noDefaultSourceForSync": "Această bază nu are o sursă implicită — o sincronizare are nevoie de una pentru a-și stoca tabelele"
   },
   "placeholder": {
     "enterVerificationCode": "Introdu codul din 6 cifre",
@@ -5215,7 +5259,28 @@
     "messageAgent": "Mesaj către {agent}",
     "somethingElse": "Altceva",
     "noMcpConnections": "Nicio conexiune MCP creată",
-    "noMcpConnectionsLabel": "Se pare că nu ai creat încă nicio conexiune MCP."
+    "noMcpConnectionsLabel": "Se pare că nu ai creat încă nicio conexiune MCP.",
+    "searchDataSource": "Caută sursă de date",
+    "searchConnections": "Caută conexiuni",
+    "migrationUrl": "Introdu URL-ul de migrare pentru destinație",
+    "searchSync": "Caută sincronizare",
+    "searchWorkspace": "Caută spațiu de lucru",
+    "searchBase": "Caută bază",
+    "searchEvent": "Caută eveniment",
+    "skillRegistrySearch": "Caută competențe…",
+    "searchSnapshots": "Caută instantanee",
+    "searchTokens": "Caută tokenuri",
+    "factoryPrompt": "Descrie ce vrei să construiești",
+    "factorySearchRepos": "Caută depozite",
+    "factorySearchTargets": "Caută depozite",
+    "factorySearchSources": "Caută ramuri, pull request-uri și probleme",
+    "factoryOnPr": "Ce ar trebui să se întâmple cu acest pull request?",
+    "factoryOnIssue": "Ceva de adăugat dincolo de problema în sine (opțional)",
+    "factoryReply": "Răspunde",
+    "searchFiles": "Caută fișiere",
+    "factoryAnnotation": "Ce ar trebui să schimbe agentul aici?",
+    "oauthClientName": "Aplicația mea",
+    "oauthClientDescription": "Această aplicație te ajută să îți gestionezi datele..."
   },
   "msg": {
     "sourceViewNotShared": "Sincronizarea este dezactivată în această vizualizare",
@@ -5454,7 +5519,8 @@
       "tableSyncConvertMainTable": "Acesta este tabelul sincronizat al acestei sincronizări — convertirea lui elimină sincronizarea însăși. Toate tabelele create de ea rămân ca tabele obișnuite, editabile, și nu se mai sincronizează.",
       "requiredFieldNotEditable": "Acest câmp obligatoriu nu poate fi editat, ceea ce poate provoca erori la trimiterea formularului.",
       "communityAppInstall": "{title} este o aplicație a comunității. Nu a fost analizată sau verificată de NocoDB. Asigură-te că ai încredere în editor înainte de a o instala în spațiul tău de lucru.",
-      "removeCustomDomain": "{domain} nu va mai servi această aplicație. Adresa implicită continuă să funcționeze."
+      "removeCustomDomain": "{domain} nu va mai servi această aplicație. Adresa implicită continuă să funcționeze.",
+      "copyClientSecretNow": "⚠️ Asigură-te că îți copiezi acum secretul clientului. Nu îl vei mai putea vedea!"
     },
     "info": {
       "sourceViewRebindResync": "Modificarea vizualizării sursă declanşează o re-sincronizare completă împotriva noii vizualizări.",
@@ -5949,7 +6015,40 @@
       "interfaceRecordUnreadableEditingOff": "Editarea este dezactivată până când poate fi citită din nou.",
       "inviteLinkDomainSentence": "Funcționează doar cu e-mailuri {domain}, iar colegii se alătură ca {role}",
       "inviteLinkOpenSentence": "Oricine are linkul se poate alătura ca {role}",
-      "inviteLinkOpenCaution": "Partajează-l doar cu persoane în care ai încredere."
+      "inviteLinkOpenCaution": "Partajează-l doar cu persoane în care ai încredere.",
+      "shareHubTooltip": "Invită persoane să lucreze în această bază sau publică un link doar pentru citire către {object}.",
+      "shareHubTooltipInviteOnly": "Invită persoane să lucreze în această bază. Pentru a publica baza în sine, folosește «Partajează baza» din meniul bazei.",
+      "shareNothingPrivateBase": "Doar proprietarul bazei poate invita persoane într-o bază privată. Pentru a publica o vizualizare, deschide mai întâi una.",
+      "shareNothingToShow": "Nu ai ce partaja de aici. Deschide o vizualizare pentru a publica un link doar pentru citire.",
+      "peopleHaveAccess": "{count} persoană are acces. | {count} persoane au acces.",
+      "noInviteLinkYet": "Încă nu există un link de invitație. Creează unul pentru ca alte persoane să se poată alătura fără o invitație individuală.",
+      "youWillJoinAs": "Te vei alătura ca {role}.",
+      "signedInWrongDomain": "Ești autentificat ca {email}. Acest link acceptă doar adrese {'@'}{domain}.",
+      "signedInAs": "Ești autentificat ca {email}.",
+      "publicLinkToNamed": "Link public către {name}",
+      "readOnlyInviteInstead": "Doar citire. Ai nevoie ca ei să poată edita sau comenta?",
+      "willJoinAsRole": "{count} persoană se va alătura ca {role} și va putea {can}. | {count} persoane se vor alătura ca {role} și vor putea {can}.",
+      "sharePublicLinkSubtitle": "Oricine are linkul îl poate deschide. Nu este nevoie de cont.",
+      "shareLinksReadOnly": "Linkurile sunt doar pentru citire. Vrei ca ei să poată edita sau comenta?",
+      "clientSecretHidden": "Secretul este ascuns din motive de securitate și nu va mai fi vizibil. Îl poți regenera dacă este nevoie.",
+      "mcpSetupIntroClaude": "Începe cu NocoDB MCP și Claude Desktop în 3 pași simpli",
+      "mcpSetupClaudeStep1": "Deschide setările Claude Desktop din bara de navigare.",
+      "mcpSetupClaudeStep2": "Mergi la fila Develop și dă clic pe «Edit Config».",
+      "mcpSetupClaudeStep3": "Adaugă în claude_desktop_config.json configurația JSON furnizată după crearea unui token",
+      "mcpSetupIntroCodex": "Începe cu NocoDB MCP și Codex CLI în 3 pași simpli",
+      "mcpSetupCodexStep2": "Adaugă configurația TOML furnizată după crearea unui token.",
+      "mcpSetupIntroAntigravity": "Începe cu NocoDB MCP și AntiGravity în 4 pași simpli",
+      "mcpSetupAntigravityStep1": "Dă clic pe cele trei puncte din colțul din dreapta sus al ferestrei agentului, apoi pe \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Dă clic pe Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Acum dă clic pe View raw config.",
+      "mcpSetupPasteJsonConfig": "Lipește în fișierul deschis configurația JSON furnizată după crearea unui token",
+      "mcpSetupIntroCursor": "Începe cu NocoDB MCP și Cursor în 3 pași simpli",
+      "mcpSetupCursorStep1": "Deschide setările Cursor (apasă Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Selectează fila \"MCP\" și dă clic pe \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Adaugă configurația JSON furnizată după crearea unui token.",
+      "mcpSetupIntroWindsurf": "Începe cu NocoDB MCP și Windsurf în 4 pași simpli",
+      "mcpSetupWindsurfStep1": "Accesează setările Windsurf și selectează fila Cascade din bara laterală din stânga",
+      "mcpSetupWindsurfStep2": "Dă clic pe Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Crearea sincronizării a eșuat",
@@ -6264,7 +6363,8 @@
       "planChangeScheduled": "Schimbare de plan programată",
       "planChangeReverted": "Schimbarea de plan programată a fost anulată. Planul tău actual continuă neschimbat.",
       "appDelisted": "Eliminat din App Store",
-      "appRelisted": "Din nou în App Store"
+      "appRelisted": "Din nou în App Store",
+      "oauthClientUpdated": "Clientul OAuth a fost actualizat cu succes!"
     },
     "subText": {
       "startFromScratch": "Începe de la zero.",
@@ -6459,7 +6559,22 @@
     "factorySelectLinesToAnnotate": "Selectează mai întâi liniile la care se referă comentariul.",
     "factorySessionArchived": "Sesiune arhivată. Lucrul ei este păstrat; reia-o pentru a continua.",
     "factoryTurnFailed": "Tura a eșuat",
-    "factoryDeleteSession": "„{title}” și întreaga transcriere vor fi șterse. Această acțiune nu poate fi anulată."
+    "factoryDeleteSession": "„{title}” și întreaga transcriere vor fi șterse. Această acțiune nu poate fi anulată.",
+    "migrateToV3": {
+      "whatChanges": "Ce se schimbă după migrare",
+      "changeDuplicate": "Bazele pot fi duplicate păstrând ID-urile entităților",
+      "changeApi": "Accesul este posibil doar prin API V3",
+      "changeScale": "Proiectat pentru scalabilitate îmbunătățită și compatibilitate pe termen lung",
+      "considerations": "Aspecte importante",
+      "considerApis": "După migrare, API V1 și V2 nu vor mai funcționa pentru această bază",
+      "considerPermanent": "Migrarea este permanentă și nu poate fi anulată",
+      "recommendation": "Migrează doar după ce confirmi că toate integrările sunt compatibile cu API v3.",
+      "confirmTitle": "Migrezi această bază la v3?",
+      "confirmDesc": "Aceasta actualizează baza la cea mai recentă arhitectură și versiune de API.",
+      "confirmCta": "Confirmă migrarea",
+      "migrating": "Se migrează..."
+    },
+    "skillsRegistryErrorTitle": "Nu s-a putut căuta în registrul de competențe"
   },
   "trash": {
     "restore": "Restaurează",
@@ -6522,7 +6637,12 @@
         "partial": "Restaurează {count} fără conflicte",
         "force": "Restabiliți toate și ștergeți conflictele"
       }
-    }
+    },
+    "unavailableExternal": "Sursă externă",
+    "unavailablePending": "Se configurează",
+    "usingDefault": "{value} (implicit)",
+    "keptForever": "Pentru totdeauna",
+    "notKept": "Nu se păstrează"
   },
   "baseTrash": {
     "title": "Gunoi",

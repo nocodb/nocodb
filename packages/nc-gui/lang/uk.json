@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Оновіть тариф, щоб вимагати вхід у формах",
     "upgradeToUseFormRequireSigninSubtitle": "Перейдіть на тариф {plan}, щоб респонденти входили в обліковий запис перед надсиланням форми.",
     "upgradeToUseSso": "Оновіть, аби використовувати SSO",
-    "upgradeToUseSsoSubtitle": "Оновіть до плану {plan}, щоб налаштувати єдиний вхід (SSO) і дозволити вашій команді входити через вашого постачальника ідентифікації."
+    "upgradeToUseSsoSubtitle": "Оновіть до плану {plan}, щоб налаштувати єдиний вхід (SSO) і дозволити вашій команді входити через вашого постачальника ідентифікації.",
+    "upgradeToUseAppFactory": "Перейдіть на платний тариф, щоб користуватися App Factory",
+    "upgradeToUseAppFactorySubtitle": "Перейдіть на тариф {plan}, щоб запускати агентів-розробників у підключених репозиторіях."
   },
   "general": {
     "scrollToBottom": "Прокрутити до кінця",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Ніхто не {description}",
         "moreUsers": "+ {count} більше",
         "selectUsersOrTeams": "Вибрати користувачів або команд"
-      }
+      },
+      "createRecords": "Створювати записи"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "Тека подань",
     "subRecord": "Підзапис",
     "video": "Відео",
-    "recordTemplates": "Шаблони записів"
+    "recordTemplates": "Шаблони записів",
+    "roleTypePlural": {
+      "owner": "Власники",
+      "creator": "Творці",
+      "editor": "Редактори",
+      "commenter": "Коментатори",
+      "viewer": "Глядачі",
+      "inherit": "Успадкувати",
+      "noaccess": "Немає доступу",
+      "admin": "Адміністратори",
+      "superAdmin": "Суперадміністратори",
+      "orgAdmin": "Адміністратори організації",
+      "orgCreator": "Творці організації",
+      "orgViewer": "Глядачі організації",
+      "orgLevelOwner": "Власники на рівні організації",
+      "orgLevelCreator": "Творці на рівні організації",
+      "orgLevelViewer": "Глядачі на рівні організації",
+      "appUser": "Користувачі застосунку"
+    }
   },
   "datatype": {
     "ID": "Ідентифікатор",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "Вилучити власний домен?",
     "tooNarrowToAdjustFrozenFields": "Вікно завузьке, щоб налаштувати закріплені поля",
     "themeSettings": "Налаштування теми",
-    "nFields": "{count} поле | {count} полів"
+    "nFields": "{count} поле | {count} полів",
+    "noInterfaceMembersYet": "Учасників інтерфейсу ще немає",
+    "headJoin": "Приєднатися | NocoDB"
   },
   "labels": {
     "syncing": "Синхронізація",
@@ -4557,7 +4580,24 @@
     "openAgentConversation": "Відкрити розмову цього агента",
     "sendToAgent": "Надіслати агенту",
     "noPort": "Немає порту",
-    "manageInviteLinks": "Керування посиланнями-запрошеннями"
+    "manageInviteLinks": "Керування посиланнями-запрошеннями",
+    "editOauthClient": "Редагувати клієнт OAuth",
+    "oauthClientNameHint": "Показується користувачам під час авторизації",
+    "applicationDescription": "Опис застосунку",
+    "oauthClientDescriptionHint": "Короткий опис, який бачать користувачі під час надання доступу",
+    "homepageUrl": "URL домашньої сторінки",
+    "oauthClientLogoHint": "Зображення, що показується під час авторизації (рекомендовано квадратне)",
+    "clientType": "Тип клієнта",
+    "oauthClientTypeHint": "Публічний: мобільні та вебзастосунки (потрібен PKCE). Конфіденційний: захищені сервери (можуть зберігати секрети)",
+    "confidential": "Конфіденційний",
+    "authorizationCallbackUrls": "URL-адреси зворотного виклику авторизації",
+    "oauthCallbackUrlsHint": "HTTPS-адреси для переспрямування після авторизації (дозволено localhost/127.0.0.1). По одній на рядок",
+    "clientId": "Ідентифікатор клієнта",
+    "clientSecret": "Секрет клієнта",
+    "regenerateSecret": "Створити секрет заново",
+    "createOauthClients": "Створення клієнтів OAuth",
+    "managingOauthClients": "Керування клієнтами OAuth",
+    "clientInformation": "Відомості про клієнта"
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",
@@ -5072,7 +5112,11 @@
     "marketplaceAuthored": "Написано видавцем, а не виведено зі вмісту App.",
     "marketplaceVerifiedPublisher": "Опубліковано та перевірено NocoDB",
     "showCustomPermissionFieldsOnly": "Показати лише поля з власними дозволами",
-    "showAllFields": "Показати всі поля"
+    "showAllFields": "Показати всі поля",
+    "inviteLinkCannotGrantOwner": "Посилання-запрошення не може надати роль власника",
+    "inviteLinkRoleAboveYours": "Ви можете пропонувати ролі не вище за власну",
+    "noDefaultSourceForFolders": "Ця база не має джерела за замовчуванням — створюйте теки з меню самого джерела",
+    "noDefaultSourceForSync": "Ця база не має джерела за замовчуванням — синхронізації воно потрібне для зберігання таблиць"
   },
   "placeholder": {
     "enterVerificationCode": "Введіть 6-значний код",
@@ -5234,7 +5278,28 @@
     "messageAgent": "Повідомлення для {agent}",
     "somethingElse": "Щось інше",
     "noMcpConnections": "Підключення MCP не створено",
-    "noMcpConnectionsLabel": "Схоже, ви ще не створили жодного підключення MCP."
+    "noMcpConnectionsLabel": "Схоже, ви ще не створили жодного підключення MCP.",
+    "searchDataSource": "Пошук джерела даних",
+    "searchConnections": "Пошук підключень",
+    "migrationUrl": "Введіть URL міграції для призначення",
+    "searchSync": "Пошук синхронізації",
+    "searchWorkspace": "Пошук робочої області",
+    "searchBase": "Пошук бази",
+    "searchEvent": "Пошук події",
+    "skillRegistrySearch": "Пошук навичок…",
+    "searchSnapshots": "Пошук знімків",
+    "searchTokens": "Пошук токенів",
+    "factoryPrompt": "Опишіть, що потрібно побудувати",
+    "factorySearchRepos": "Пошук репозиторіїв",
+    "factorySearchTargets": "Пошук репозиторіїв",
+    "factorySearchSources": "Пошук гілок, пул-реквестів і задач",
+    "factoryOnPr": "Що має відбутися з цим пул-реквестом?",
+    "factoryOnIssue": "Щось окрім самої задачі (необов'язково)",
+    "factoryReply": "Відповісти",
+    "searchFiles": "Пошук файлів",
+    "factoryAnnotation": "Що агент має тут змінити?",
+    "oauthClientName": "Мій застосунок",
+    "oauthClientDescription": "Цей застосунок допомагає керувати вашими даними..."
   },
   "msg": {
     "sourceViewNotShared": "Синхронізацію вимкнено на цьому виді",
@@ -5473,7 +5538,8 @@
       "tableSyncConvertMainTable": "Це синхронізована таблиця цієї синхронізації — її перетворення видаляє саму синхронізацію. Усі створені нею таблиці залишаються як звичайні редаговані таблиці й перестають синхронізуватися.",
       "requiredFieldNotEditable": "Це обов'язкове поле недоступне для редагування, через що під час надсилання форми можуть виникати помилки.",
       "communityAppInstall": "{title} — застосунок спільноти. NocoDB його не перевіряла й не підтверджувала. Перш ніж встановлювати його у свою робочу область, переконайтеся, що довіряєте видавцю.",
-      "removeCustomDomain": "{domain} перестане обслуговувати цей застосунок. Типова адреса й далі працюватиме."
+      "removeCustomDomain": "{domain} перестане обслуговувати цей застосунок. Типова адреса й далі працюватиме.",
+      "copyClientSecretNow": "⚠️ Обов'язково скопіюйте секрет клієнта зараз. Побачити його знову не вдасться!"
     },
     "info": {
       "sourceViewRebindResync": "Зміна вихідного перегляду викликає повну синхронізацію повторно проти нового подання.",
@@ -5968,7 +6034,40 @@
       "interfaceRecordUnreadableEditingOff": "Редагування вимкнено, доки запис знову не можна буде прочитати.",
       "inviteLinkDomainSentence": "Працює лише з поштою {domain}, а колеги приєднуються як {role}",
       "inviteLinkOpenSentence": "Будь-хто з цим посиланням може приєднатися як {role}",
-      "inviteLinkOpenCaution": "Діліться ним лише з людьми, яким довіряєте."
+      "inviteLinkOpenCaution": "Діліться ним лише з людьми, яким довіряєте.",
+      "shareHubTooltip": "Запросіть людей працювати в цій базі або опублікуйте посилання лише для перегляду на {object}.",
+      "shareHubTooltipInviteOnly": "Запросіть людей працювати в цій базі. Щоб опублікувати саму базу, скористайтеся «Поділитися базою» в меню бази.",
+      "shareNothingPrivateBase": "Запрошувати людей до приватної бази може лише її власник. Щоб опублікувати подання, спершу відкрийте його.",
+      "shareNothingToShow": "Звідси нічим поділитися. Відкрийте подання, щоб опублікувати посилання лише для перегляду.",
+      "peopleHaveAccess": "Доступ має {count} особа. | Доступ мають {count} осіб.",
+      "noInviteLinkYet": "Посилання-запрошення ще немає. Створіть його, щоб люди могли приєднатися без окремого запрошення.",
+      "youWillJoinAs": "Ви приєднаєтеся як {role}.",
+      "signedInWrongDomain": "Ви увійшли як {email}. Це посилання приймає лише адреси {'@'}{domain}.",
+      "signedInAs": "Ви увійшли як {email}.",
+      "publicLinkToNamed": "Публічне посилання на {name}",
+      "readOnlyInviteInstead": "Лише перегляд. Потрібно, щоб вони могли редагувати чи коментувати?",
+      "willJoinAsRole": "{count} особа приєднається як {role} і зможе {can}. | {count} осіб приєднаються як {role} і зможуть {can}.",
+      "sharePublicLinkSubtitle": "Відкрити його зможе будь-хто, хто має посилання. Обліковий запис не потрібен.",
+      "shareLinksReadOnly": "Посилання доступні лише для перегляду. Хочете, щоб вони могли редагувати чи коментувати?",
+      "clientSecretHidden": "Секрет приховано з міркувань безпеки, і його більше не буде показано. За потреби ви можете створити його заново.",
+      "mcpSetupIntroClaude": "Почніть роботу з NocoDB MCP та Claude Desktop за 3 прості кроки",
+      "mcpSetupClaudeStep1": "Відкрийте налаштування Claude Desktop через панель навігації.",
+      "mcpSetupClaudeStep2": "Перейдіть на вкладку Develop і натисніть «Edit Config».",
+      "mcpSetupClaudeStep3": "Додайте до claude_desktop_config.json конфігурацію JSON, яку надано після створення токена",
+      "mcpSetupIntroCodex": "Почніть роботу з NocoDB MCP та Codex CLI за 3 прості кроки",
+      "mcpSetupCodexStep2": "Додайте конфігурацію TOML, яку надано після створення токена.",
+      "mcpSetupIntroAntigravity": "Почніть роботу з NocoDB MCP та AntiGravity за 4 прості кроки",
+      "mcpSetupAntigravityStep1": "Натисніть три крапки у верхньому правому куті вікна агента, а потім \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Натисніть Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Тепер натисніть View raw config.",
+      "mcpSetupPasteJsonConfig": "Вставте у відкритий файл конфігурацію JSON, яку надано після створення токена",
+      "mcpSetupIntroCursor": "Почніть роботу з NocoDB MCP та Cursor за 3 прості кроки",
+      "mcpSetupCursorStep1": "Відкрийте налаштування Cursor (натисніть Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Виберіть вкладку \"MCP\" і натисніть \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Додайте конфігурацію JSON, яку надано після створення токена.",
+      "mcpSetupIntroWindsurf": "Почніть роботу з NocoDB MCP та Windsurf за 4 прості кроки",
+      "mcpSetupWindsurfStep1": "Відкрийте налаштування Windsurf і виберіть вкладку Cascade на лівій бічній панелі",
+      "mcpSetupWindsurfStep2": "Натисніть Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Не вдалося створити синхронізацію",
@@ -6283,7 +6382,8 @@
       "planChangeScheduled": "Зміну тарифу заплановано",
       "planChangeReverted": "Заплановану зміну тарифу скасовано. Ваш поточний тариф діє далі без змін.",
       "appDelisted": "Вилучено з App Store",
-      "appRelisted": "Знову в App Store"
+      "appRelisted": "Знову в App Store",
+      "oauthClientUpdated": "Клієнт OAuth успішно оновлено!"
     },
     "subText": {
       "startFromScratch": "Почати з нуля.",
@@ -6478,7 +6578,22 @@
     "factorySelectLinesToAnnotate": "Спершу виберіть рядки, яких стосується коментар.",
     "factorySessionArchived": "Сесію заархівовано. Її роботу збережено; відновіть сесію, щоб продовжити.",
     "factoryTurnFailed": "Хід не вдався",
-    "factoryDeleteSession": "«{title}» та всю її розшифровку буде видалено. Цю дію не можна скасувати."
+    "factoryDeleteSession": "«{title}» та всю її розшифровку буде видалено. Цю дію не можна скасувати.",
+    "migrateToV3": {
+      "whatChanges": "Що зміниться після міграції",
+      "changeDuplicate": "Бази можна дублювати зі збереженням ідентифікаторів сутностей",
+      "changeApi": "Доступ можливий лише через API V3",
+      "changeScale": "Розраховано на кращу масштабованість і довгострокову сумісність",
+      "considerations": "Важливі моменти",
+      "considerApis": "Після міграції API V1 і V2 більше не працюватимуть для цієї бази",
+      "considerPermanent": "Міграція є остаточною, скасувати її неможливо",
+      "recommendation": "Виконуйте міграцію лише після того, як переконаєтеся, що всі інтеграції сумісні з API v3.",
+      "confirmTitle": "Перенести цю базу на v3?",
+      "confirmDesc": "Базу буде оновлено до найновішої архітектури та версії API.",
+      "confirmCta": "Підтвердити міграцію",
+      "migrating": "Міграція..."
+    },
+    "skillsRegistryErrorTitle": "Не вдалося виконати пошук у реєстрі навичок"
   },
   "trash": {
     "restore": "Відновити",
@@ -6541,7 +6656,12 @@
         "partial": "Відновити {count} без конфліктів",
         "force": "Відновити всі та очистити конфлікти"
       }
-    }
+    },
+    "unavailableExternal": "Зовнішнє джерело",
+    "unavailablePending": "Налаштування",
+    "usingDefault": "{value} (за замовчуванням)",
+    "keptForever": "Назавжди",
+    "notKept": "Не зберігається"
   },
   "baseTrash": {
     "title": "Кошик",

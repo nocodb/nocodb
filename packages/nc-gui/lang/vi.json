@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Nâng cấp để yêu cầu đăng nhập trên biểu mẫu",
     "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu.",
     "upgradeToUseSso": "Nâng cấp để sử dụng SSO",
-    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn."
+    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn.",
+    "upgradeToUseAppFactory": "Nâng cấp để dùng App Factory",
+    "upgradeToUseAppFactorySubtitle": "Nâng cấp lên gói {plan} để điều phối các tác nhân lập trình trên những kho lưu trữ đã kết nối."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "Tạo bản ghi"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "Thư mục dạng xem",
     "subRecord": "Bản ghi con",
     "video": "Video",
-    "recordTemplates": "Mẫu bản ghi"
+    "recordTemplates": "Mẫu bản ghi",
+    "roleTypePlural": {
+      "owner": "Chủ sở hữu",
+      "creator": "Người tạo",
+      "editor": "Người chỉnh sửa",
+      "commenter": "Người bình luận",
+      "viewer": "Người xem",
+      "inherit": "Kế thừa",
+      "noaccess": "Không có quyền truy cập",
+      "admin": "Quản trị viên",
+      "superAdmin": "Quản trị viên cấp cao",
+      "orgAdmin": "Quản trị viên tổ chức",
+      "orgCreator": "Người tạo của tổ chức",
+      "orgViewer": "Người xem của tổ chức",
+      "orgLevelOwner": "Chủ sở hữu cấp tổ chức",
+      "orgLevelCreator": "Người tạo cấp tổ chức",
+      "orgLevelViewer": "Người xem cấp tổ chức",
+      "appUser": "Người dùng ứng dụng"
+    }
   },
   "datatype": {
     "ID": "TÔI",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "Gỡ tên miền tùy chỉnh?",
     "tooNarrowToAdjustFrozenFields": "Cửa sổ quá hẹp để điều chỉnh các trường đã cố định",
     "themeSettings": "Cài đặt giao diện",
-    "nFields": "{count} trường | {count} trường"
+    "nFields": "{count} trường | {count} trường",
+    "noInterfaceMembersYet": "Chưa có thành viên giao diện nào",
+    "headJoin": "Tham gia | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4553,7 +4576,24 @@
     "openAgentConversation": "Mở cuộc trò chuyện của tác nhân này",
     "sendToAgent": "Gửi đến tác nhân",
     "noPort": "Không có cổng",
-    "manageInviteLinks": "Quản lý liên kết mời"
+    "manageInviteLinks": "Quản lý liên kết mời",
+    "editOauthClient": "Chỉnh sửa ứng dụng khách OAuth",
+    "oauthClientNameHint": "Hiển thị cho người dùng trong quá trình ủy quyền",
+    "applicationDescription": "Mô tả ứng dụng",
+    "oauthClientDescriptionHint": "Mô tả ngắn hiển thị khi người dùng cấp quyền truy cập",
+    "homepageUrl": "URL trang chủ",
+    "oauthClientLogoHint": "Hình ảnh hiển thị trong quá trình ủy quyền (nên dùng ảnh vuông)",
+    "clientType": "Loại ứng dụng khách",
+    "oauthClientTypeHint": "Công khai: ứng dụng di động/web (bắt buộc PKCE). Bảo mật: máy chủ an toàn (có thể lưu khóa bí mật)",
+    "confidential": "Bảo mật",
+    "authorizationCallbackUrls": "URL gọi lại sau khi ủy quyền",
+    "oauthCallbackUrlsHint": "Địa chỉ HTTPS để chuyển hướng sau khi ủy quyền (cho phép localhost/127.0.0.1). Mỗi dòng một địa chỉ",
+    "clientId": "ID ứng dụng khách",
+    "clientSecret": "Khóa bí mật của ứng dụng khách",
+    "regenerateSecret": "Tạo lại khóa bí mật",
+    "createOauthClients": "Tạo ứng dụng khách OAuth",
+    "managingOauthClients": "Quản lý ứng dụng khách OAuth",
+    "clientInformation": "Thông tin ứng dụng khách"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5069,7 +5109,11 @@
     "marketplaceAuthored": "Do nhà phát hành viết, không lấy từ nội dung của ứng dụng.",
     "marketplaceVerifiedPublisher": "Được NocoDB xuất bản và kiểm duyệt",
     "showCustomPermissionFieldsOnly": "Chỉ hiển thị các trường có quyền tùy chỉnh",
-    "showAllFields": "Hiển thị tất cả các trường"
+    "showAllFields": "Hiển thị tất cả các trường",
+    "inviteLinkCannotGrantOwner": "Liên kết mời không thể cấp vai trò Chủ sở hữu",
+    "inviteLinkRoleAboveYours": "Bạn chỉ có thể cấp các vai trò không cao hơn vai trò của mình",
+    "noDefaultSourceForFolders": "Base này không có nguồn mặc định — hãy tạo thư mục từ menu riêng của từng nguồn",
+    "noDefaultSourceForSync": "Base này không có nguồn mặc định — việc đồng bộ cần một nguồn để lưu các bảng của nó"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5231,7 +5275,28 @@
     "messageAgent": "Nhắn tin cho {agent}",
     "somethingElse": "Điều gì khác",
     "noMcpConnections": "Chưa tạo kết nối MCP nào",
-    "noMcpConnectionsLabel": "Có vẻ bạn chưa tạo kết nối MCP nào."
+    "noMcpConnectionsLabel": "Có vẻ bạn chưa tạo kết nối MCP nào.",
+    "searchDataSource": "Tìm nguồn dữ liệu",
+    "searchConnections": "Tìm kết nối",
+    "migrationUrl": "Nhập URL chuyển đổi cho đích đến",
+    "searchSync": "Tìm đồng bộ",
+    "searchWorkspace": "Tìm không gian làm việc",
+    "searchBase": "Tìm base",
+    "searchEvent": "Tìm sự kiện",
+    "skillRegistrySearch": "Tìm kỹ năng…",
+    "searchSnapshots": "Tìm ảnh chụp nhanh",
+    "searchTokens": "Tìm token",
+    "factoryPrompt": "Mô tả thứ bạn muốn xây dựng",
+    "factorySearchRepos": "Tìm kho lưu trữ",
+    "factorySearchTargets": "Tìm kho lưu trữ",
+    "factorySearchSources": "Tìm nhánh, pull request và issue",
+    "factoryOnPr": "Cần làm gì với pull request này?",
+    "factoryOnIssue": "Điều gì muốn bổ sung ngoài bản thân issue (tùy chọn)",
+    "factoryReply": "Trả lời",
+    "searchFiles": "Tìm tệp",
+    "factoryAnnotation": "Tác nhân nên thay đổi gì ở đây?",
+    "oauthClientName": "Ứng dụng của tôi",
+    "oauthClientDescription": "Ứng dụng này giúp bạn quản lý dữ liệu của mình..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5470,7 +5535,8 @@
       "tableSyncConvertMainTable": "Đây là bảng được đồng bộ của lần đồng bộ này — chuyển đổi nó sẽ gỡ bỏ chính việc đồng bộ. Mọi bảng do đồng bộ tạo ra vẫn được giữ như bảng thường, chỉnh sửa được và ngừng đồng bộ.",
       "requiredFieldNotEditable": "Trường bắt buộc này không chỉnh sửa được, điều đó có thể gây lỗi khi gửi biểu mẫu.",
       "communityAppInstall": "{title} là ứng dụng của cộng đồng. NocoDB chưa xem xét hay xác minh nó. Hãy chắc chắn rằng bạn tin tưởng nhà phát hành trước khi cài đặt nó vào không gian làm việc của mình.",
-      "removeCustomDomain": "{domain} sẽ ngừng phục vụ ứng dụng này. Địa chỉ mặc định vẫn hoạt động."
+      "removeCustomDomain": "{domain} sẽ ngừng phục vụ ứng dụng này. Địa chỉ mặc định vẫn hoạt động.",
+      "copyClientSecretNow": "⚠️ Hãy sao chép khóa bí mật của ứng dụng khách ngay bây giờ. Bạn sẽ không xem lại được nữa!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5965,7 +6031,40 @@
       "interfaceRecordUnreadableEditingOff": "Việc chỉnh sửa bị tắt cho đến khi có thể đọc lại bản ghi.",
       "inviteLinkDomainSentence": "Chỉ hoạt động với email {domain} và đồng đội tham gia với vai trò {role}",
       "inviteLinkOpenSentence": "Bất kỳ ai có liên kết đều có thể tham gia với vai trò {role}",
-      "inviteLinkOpenCaution": "Chỉ chia sẻ với những người bạn tin tưởng."
+      "inviteLinkOpenCaution": "Chỉ chia sẻ với những người bạn tin tưởng.",
+      "shareHubTooltip": "Mời mọi người cùng làm việc trong base này, hoặc công bố liên kết chỉ đọc đến {object}.",
+      "shareHubTooltipInviteOnly": "Mời mọi người cùng làm việc trong base này. Để công bố chính base này, hãy dùng «Chia sẻ base» trong menu của base.",
+      "shareNothingPrivateBase": "Chỉ chủ sở hữu base mới có thể mời người khác vào base riêng tư. Để công bố một chế độ xem, hãy mở nó trước.",
+      "shareNothingToShow": "Không có gì để chia sẻ từ đây. Hãy mở một chế độ xem để công bố liên kết chỉ đọc.",
+      "peopleHaveAccess": "{count} người có quyền truy cập. | {count} người có quyền truy cập.",
+      "noInviteLinkYet": "Chưa có liên kết mời. Hãy tạo một liên kết để mọi người tham gia mà không cần lời mời riêng.",
+      "youWillJoinAs": "Bạn sẽ tham gia với vai trò {role}.",
+      "signedInWrongDomain": "Bạn đang đăng nhập với tư cách {email}. Liên kết này chỉ chấp nhận địa chỉ {'@'}{domain}.",
+      "signedInAs": "Bạn đang đăng nhập với tư cách {email}.",
+      "publicLinkToNamed": "Liên kết công khai đến {name}",
+      "readOnlyInviteInstead": "Chỉ đọc. Bạn có cần họ chỉnh sửa hoặc bình luận không?",
+      "willJoinAsRole": "{count} người sẽ tham gia với vai trò {role} và có thể {can}. | {count} người sẽ tham gia với vai trò {role} và có thể {can}.",
+      "sharePublicLinkSubtitle": "Bất kỳ ai có liên kết đều có thể mở. Không cần tài khoản.",
+      "shareLinksReadOnly": "Các liên kết ở chế độ chỉ đọc. Bạn muốn họ chỉnh sửa hoặc bình luận chứ?",
+      "clientSecretHidden": "Khóa bí mật được ẩn vì lý do bảo mật và sẽ không hiển thị lại. Bạn có thể tạo lại nếu cần.",
+      "mcpSetupIntroClaude": "Bắt đầu dùng NocoDB MCP với Claude Desktop qua 3 bước đơn giản",
+      "mcpSetupClaudeStep1": "Mở phần cài đặt Claude Desktop từ thanh điều hướng.",
+      "mcpSetupClaudeStep2": "Chuyển đến tab Develop rồi nhấp vào «Edit Config».",
+      "mcpSetupClaudeStep3": "Thêm cấu hình JSON được cung cấp sau khi tạo token vào tệp claude_desktop_config.json",
+      "mcpSetupIntroCodex": "Bắt đầu dùng NocoDB MCP với Codex CLI qua 3 bước đơn giản",
+      "mcpSetupCodexStep2": "Thêm cấu hình TOML được cung cấp sau khi tạo token.",
+      "mcpSetupIntroAntigravity": "Bắt đầu dùng NocoDB MCP với AntiGravity qua 4 bước đơn giản",
+      "mcpSetupAntigravityStep1": "Nhấp vào ba dấu chấm ở góc trên bên phải cửa sổ tác nhân, rồi nhấp vào \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Nhấp vào Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Bây giờ nhấp vào View raw config.",
+      "mcpSetupPasteJsonConfig": "Dán cấu hình JSON được cung cấp sau khi tạo token vào tệp vừa mở",
+      "mcpSetupIntroCursor": "Bắt đầu dùng NocoDB MCP với Cursor qua 3 bước đơn giản",
+      "mcpSetupCursorStep1": "Mở phần cài đặt Cursor (nhấn Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Chọn tab \"MCP\" rồi nhấp vào \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Thêm cấu hình JSON được cung cấp sau khi tạo token.",
+      "mcpSetupIntroWindsurf": "Bắt đầu dùng NocoDB MCP với Windsurf qua 4 bước đơn giản",
+      "mcpSetupWindsurfStep1": "Vào phần cài đặt Windsurf và chọn tab Cascade ở thanh bên trái",
+      "mcpSetupWindsurfStep2": "Nhấp vào Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6280,7 +6379,8 @@
       "planChangeScheduled": "Đã lên lịch đổi gói",
       "planChangeReverted": "Đã hoàn tác việc đổi gói đã lên lịch. Gói hiện tại của bạn tiếp tục không thay đổi.",
       "appDelisted": "Đã gỡ khỏi App Store",
-      "appRelisted": "Đã trở lại App Store"
+      "appRelisted": "Đã trở lại App Store",
+      "oauthClientUpdated": "Đã cập nhật ứng dụng khách OAuth thành công!"
     },
     "subText": {
       "startFromScratch": "Bắt đầu từ đầu.",
@@ -6475,7 +6575,22 @@
     "factorySelectLinesToAnnotate": "Trước tiên hãy chọn những dòng mà bình luận nói đến.",
     "factorySessionArchived": "Đã lưu trữ phiên. Công việc của phiên vẫn được giữ; hãy tiếp tục phiên để làm tiếp.",
     "factoryTurnFailed": "Lượt xử lý thất bại",
-    "factoryDeleteSession": "“{title}” và toàn bộ bản ghi hội thoại sẽ bị xóa. Không thể hoàn tác."
+    "factoryDeleteSession": "“{title}” và toàn bộ bản ghi hội thoại sẽ bị xóa. Không thể hoàn tác.",
+    "migrateToV3": {
+      "whatChanges": "Những gì thay đổi sau khi chuyển đổi",
+      "changeDuplicate": "Có thể nhân bản base mà vẫn giữ nguyên ID của các thực thể",
+      "changeApi": "Chỉ có thể truy cập qua API V3",
+      "changeScale": "Được thiết kế để mở rộng tốt hơn và tương thích lâu dài",
+      "considerations": "Những điểm quan trọng cần lưu ý",
+      "considerApis": "Sau khi chuyển đổi, API V1 và V2 sẽ không còn hoạt động với base này",
+      "considerPermanent": "Việc chuyển đổi là vĩnh viễn và không thể hoàn tác",
+      "recommendation": "Chỉ chuyển đổi sau khi xác nhận mọi tích hợp đều tương thích với API v3.",
+      "confirmTitle": "Chuyển base này sang v3?",
+      "confirmDesc": "Thao tác này nâng cấp base lên kiến trúc và phiên bản API mới nhất.",
+      "confirmCta": "Xác nhận chuyển đổi",
+      "migrating": "Đang chuyển đổi..."
+    },
+    "skillsRegistryErrorTitle": "Không thể tìm kiếm trong kho kỹ năng"
   },
   "trash": {
     "restore": "Restore",
@@ -6538,7 +6653,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "Nguồn bên ngoài",
+    "unavailablePending": "Đang thiết lập",
+    "usingDefault": "{value} (mặc định)",
+    "keptForever": "Vĩnh viễn",
+    "notKept": "Không lưu giữ"
   },
   "baseTrash": {
     "title": "Trash",

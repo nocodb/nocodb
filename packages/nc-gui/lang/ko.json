@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "업그레이드하여 입력폼에 로그인을 요구하세요",
     "upgradeToUseFormRequireSigninSubtitle": "{plan} 요금제로 업그레이드하면 응답자가 입력폼을 제출하기 전에 로그인하도록 요구할 수 있습니다.",
     "upgradeToUseSso": "SSO 사용을 위해 업그레이드하세요",
-    "upgradeToUseSsoSubtitle": "{plan} 플랜으로 업그레이드하여 싱글 사인온 (SSO)을 설정하고, 팀원이 ID 공급자로 로그인할 수 있게 하세요."
+    "upgradeToUseSsoSubtitle": "{plan} 플랜으로 업그레이드하여 싱글 사인온 (SSO)을 설정하고, 팀원이 ID 공급자로 로그인할 수 있게 하세요.",
+    "upgradeToUseAppFactory": "App Factory를 사용하려면 업그레이드하세요",
+    "upgradeToUseAppFactorySubtitle": "{plan} 플랜으로 업그레이드하면 연결된 저장소에 코딩 에이전트를 투입할 수 있습니다."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "레코드 만들기"
     },
     "deleteAllRecordDlg": {
       "subtitle": "이 뷰에 있는 선택된 {rowCount}개의 항목을 모두 삭제하시겠습니까?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "뷰 폴더",
     "subRecord": "하위 레코드",
     "video": "동영상",
-    "recordTemplates": "레코드 템플릿"
+    "recordTemplates": "레코드 템플릿",
+    "roleTypePlural": {
+      "owner": "소유자",
+      "creator": "작성자",
+      "editor": "편집자",
+      "commenter": "댓글 작성자",
+      "viewer": "뷰어",
+      "inherit": "상속",
+      "noaccess": "접근 권한 없음",
+      "admin": "관리자",
+      "superAdmin": "슈퍼 관리자",
+      "orgAdmin": "조직 관리자",
+      "orgCreator": "조직 작성자",
+      "orgViewer": "조직 뷰어",
+      "orgLevelOwner": "조직 수준 소유자",
+      "orgLevelCreator": "조직 수준 작성자",
+      "orgLevelViewer": "조직 수준 뷰어",
+      "appUser": "앱 사용자"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "사용자 지정 도메인을 제거할까요?",
     "tooNarrowToAdjustFrozenFields": "창이 너무 좁아 고정 필드를 조정할 수 없습니다",
     "themeSettings": "테마 설정",
-    "nFields": "{count}개 필드 | {count}개 필드"
+    "nFields": "{count}개 필드 | {count}개 필드",
+    "noInterfaceMembersYet": "아직 인터페이스 멤버가 없습니다",
+    "headJoin": "참여 | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "이 에이전트의 대화 열기",
     "sendToAgent": "에이전트에게 보내기",
     "noPort": "포트 없음",
-    "manageInviteLinks": "초대 링크 관리"
+    "manageInviteLinks": "초대 링크 관리",
+    "editOauthClient": "OAuth 클라이언트 편집",
+    "oauthClientNameHint": "인증 과정에서 사용자에게 표시됩니다",
+    "applicationDescription": "애플리케이션 설명",
+    "oauthClientDescriptionHint": "사용자가 접근 권한을 부여할 때 표시되는 간단한 설명",
+    "homepageUrl": "홈페이지 URL",
+    "oauthClientLogoHint": "인증 과정에서 표시되는 이미지(정사각형 권장)",
+    "clientType": "클라이언트 유형",
+    "oauthClientTypeHint": "공개: 모바일/웹 앱(PKCE 필요). 기밀: 보안 서버(시크릿 저장 가능)",
+    "confidential": "기밀",
+    "authorizationCallbackUrls": "인증 콜백 URL",
+    "oauthCallbackUrlsHint": "인증 후 리디렉션할 HTTPS URL(localhost/127.0.0.1 허용). 한 줄에 하나씩",
+    "clientId": "클라이언트 ID",
+    "clientSecret": "클라이언트 시크릿",
+    "regenerateSecret": "시크릿 재생성",
+    "createOauthClients": "OAuth 클라이언트 만들기",
+    "managingOauthClients": "OAuth 클라이언트 관리",
+    "clientInformation": "클라이언트 정보"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "App의 내용에서 뽑아낸 것이 아니라 게시자가 직접 작성했습니다.",
     "marketplaceVerifiedPublisher": "NocoDB 공식 게시 및 검토",
     "showCustomPermissionFieldsOnly": "사용자 지정 권한이 있는 필드만 표시",
-    "showAllFields": "모든 필드 표시"
+    "showAllFields": "모든 필드 표시",
+    "inviteLinkCannotGrantOwner": "초대 링크로는 소유자 역할을 부여할 수 없습니다",
+    "inviteLinkRoleAboveYours": "자신의 역할까지만 부여할 수 있습니다",
+    "noDefaultSourceForFolders": "이 베이스에는 기본 소스가 없습니다 — 폴더는 각 소스의 메뉴에서 만드세요",
+    "noDefaultSourceForSync": "이 베이스에는 기본 소스가 없습니다 — 동기화는 테이블을 저장할 소스가 필요합니다"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5233,7 +5277,28 @@
     "messageAgent": "{agent}에게 메시지 보내기",
     "somethingElse": "다른 것",
     "noMcpConnections": "생성된 MCP 연결이 없습니다",
-    "noMcpConnectionsLabel": "아직 MCP 연결을 만들지 않은 것 같습니다."
+    "noMcpConnectionsLabel": "아직 MCP 연결을 만들지 않은 것 같습니다.",
+    "searchDataSource": "데이터 소스 검색",
+    "searchConnections": "연결 검색",
+    "migrationUrl": "대상의 마이그레이션 URL 주소를 입력하세요",
+    "searchSync": "동기화 검색",
+    "searchWorkspace": "작업공간 검색",
+    "searchBase": "베이스 검색",
+    "searchEvent": "이벤트 검색",
+    "skillRegistrySearch": "스킬 검색…",
+    "searchSnapshots": "스냅샷 검색",
+    "searchTokens": "토큰 검색",
+    "factoryPrompt": "무엇을 만들고 싶은지 설명하세요",
+    "factorySearchRepos": "저장소 검색",
+    "factorySearchTargets": "저장소 검색",
+    "factorySearchSources": "브랜치, 풀 리퀘스트, 이슈 검색",
+    "factoryOnPr": "이 풀 리퀘스트에서 무엇을 해야 하나요?",
+    "factoryOnIssue": "이슈 자체 외에 덧붙일 내용(선택 사항)",
+    "factoryReply": "답장",
+    "searchFiles": "파일 검색",
+    "factoryAnnotation": "여기에서 에이전트가 무엇을 바꿔야 하나요?",
+    "oauthClientName": "내 애플리케이션",
+    "oauthClientDescription": "이 애플리케이션은 데이터를 관리하는 데 도움이 됩니다..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "이것은 이 동기화의 동기화 대상 테이블입니다 — 변환하면 동기화 자체가 제거됩니다. 동기화가 만든 모든 테이블은 일반적인 편집 가능한 테이블로 남고 동기화가 중단됩니다.",
       "requiredFieldNotEditable": "이 필수 필드는 편집할 수 없어 양식을 제출할 때 오류가 발생할 수 있습니다.",
       "communityAppInstall": "{title}은(는) 커뮤니티 앱입니다. NocoDB 팀이 검토하거나 검증하지 않았습니다. 작업공간에 설치하기 전에 게시자를 신뢰할 수 있는지 확인하세요.",
-      "removeCustomDomain": "{domain}은(는) 더 이상 이 앱을 제공하지 않습니다. 기본 주소는 계속 작동합니다."
+      "removeCustomDomain": "{domain}은(는) 더 이상 이 앱을 제공하지 않습니다. 기본 주소는 계속 작동합니다.",
+      "copyClientSecretNow": "⚠️ 지금 클라이언트 시크릿을 복사해 두세요. 다시 볼 수 없습니다."
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "다시 읽을 수 있을 때까지 편집이 꺼져 있습니다.",
       "inviteLinkDomainSentence": "{domain} 이메일로만 작동하며 팀원은 {role}(으)로 참여합니다",
       "inviteLinkOpenSentence": "링크가 있는 사람은 누구나 {role}(으)로 참여할 수 있습니다",
-      "inviteLinkOpenCaution": "신뢰하는 사람에게만 공유하세요."
+      "inviteLinkOpenCaution": "신뢰하는 사람에게만 공유하세요.",
+      "shareHubTooltip": "이 베이스에서 함께 작업할 사람을 초대하거나 {object}의 읽기 전용 링크를 게시하세요.",
+      "shareHubTooltipInviteOnly": "이 베이스에서 함께 작업할 사람을 초대하세요. 베이스 자체를 게시하려면 베이스 메뉴의 「베이스 공유」를 사용하세요.",
+      "shareNothingPrivateBase": "비공개 베이스에는 베이스 소유자만 사람을 초대할 수 있습니다. 뷰를 게시하려면 먼저 뷰를 여세요.",
+      "shareNothingToShow": "여기에서 공유할 것이 없습니다. 읽기 전용 링크를 게시하려면 뷰를 여세요.",
+      "peopleHaveAccess": "{count}명이 접근할 수 있습니다. | {count}명이 접근할 수 있습니다.",
+      "noInviteLinkYet": "아직 초대 링크가 없습니다. 개별 초대 없이도 참여할 수 있도록 링크를 만들어 보세요.",
+      "youWillJoinAs": "{role}(으)로 참여하게 됩니다.",
+      "signedInWrongDomain": "{email}(으)로 로그인되어 있습니다. 이 링크는 {'@'}{domain} 주소만 허용합니다.",
+      "signedInAs": "{email}(으)로 로그인되어 있습니다.",
+      "publicLinkToNamed": "{name}의 공개 링크",
+      "readOnlyInviteInstead": "읽기 전용입니다. 편집하거나 댓글을 달 수 있게 할까요?",
+      "willJoinAsRole": "{count}명이 {role}(으)로 참여하며 {can} 수 있습니다. | {count}명이 {role}(으)로 참여하며 {can} 수 있습니다.",
+      "sharePublicLinkSubtitle": "링크가 있는 사람은 누구나 열 수 있습니다. 계정은 필요하지 않습니다.",
+      "shareLinksReadOnly": "링크는 읽기 전용입니다. 편집하거나 댓글을 달 수 있게 할까요?",
+      "clientSecretHidden": "시크릿은 보안을 위해 가려져 있으며 다시 표시되지 않습니다. 필요하면 재생성할 수 있습니다.",
+      "mcpSetupIntroClaude": "3단계만으로 NocoDB MCP와 Claude Desktop을 시작해 보세요",
+      "mcpSetupClaudeStep1": "탐색 모음에서 Claude Desktop 설정을 여세요.",
+      "mcpSetupClaudeStep2": "Develop 탭으로 이동한 다음 「Edit Config」를 클릭하세요.",
+      "mcpSetupClaudeStep3": "토큰을 만든 뒤 제공되는 JSON 구성을 claude_desktop_config.json에 추가하세요",
+      "mcpSetupIntroCodex": "3단계만으로 NocoDB MCP와 Codex CLI를 시작해 보세요",
+      "mcpSetupCodexStep2": "토큰을 만든 뒤 제공되는 TOML 구성을 추가하세요.",
+      "mcpSetupIntroAntigravity": "4단계만으로 NocoDB MCP와 AntiGravity를 시작해 보세요",
+      "mcpSetupAntigravityStep1": "에이전트 창 오른쪽 위의 점 세 개를 클릭한 다음 \"MCP Servers\"를 클릭하세요",
+      "mcpSetupAntigravityStep2": "Manage MCP Servers를 클릭하세요.",
+      "mcpSetupViewRawConfig": "이제 View raw config를 클릭하세요.",
+      "mcpSetupPasteJsonConfig": "토큰을 만든 뒤 제공되는 JSON 구성을 열린 파일에 붙여 넣으세요",
+      "mcpSetupIntroCursor": "3단계만으로 NocoDB MCP와 Cursor를 시작해 보세요",
+      "mcpSetupCursorStep1": "Cursor 설정을 여세요(Shift+Cmd+J 누르기)",
+      "mcpSetupCursorStep2": "\"MCP\" 탭을 선택하고 \"Add Custom MCP\"를 클릭하세요.",
+      "mcpSetupCursorStep3": "토큰을 만든 뒤 제공되는 JSON 구성을 추가하세요.",
+      "mcpSetupIntroWindsurf": "4단계만으로 NocoDB MCP와 Windsurf를 시작해 보세요",
+      "mcpSetupWindsurfStep1": "Windsurf 설정에 들어가 왼쪽 사이드바에서 Cascade 탭을 선택하세요",
+      "mcpSetupWindsurfStep2": "Manage MCP를 클릭하세요."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "요금제 변경을 예약했습니다",
       "planChangeReverted": "예약된 요금제 변경을 취소했습니다. 현재 요금제가 그대로 유지됩니다.",
       "appDelisted": "App Store에서 내렸습니다",
-      "appRelisted": "App Store에 다시 올렸습니다"
+      "appRelisted": "App Store에 다시 올렸습니다",
+      "oauthClientUpdated": "OAuth 클라이언트를 업데이트했습니다."
     },
     "subText": {
       "startFromScratch": "처음부터 시작하세요.",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "먼저 댓글이 가리키는 줄을 선택하세요.",
     "factorySessionArchived": "세션이 보관되었습니다. 작업은 저장되어 있으며, 다시 시작하면 이어서 진행할 수 있습니다.",
     "factoryTurnFailed": "턴이 실패했습니다",
-    "factoryDeleteSession": "'{title}'과(와) 전체 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
+    "factoryDeleteSession": "'{title}'과(와) 전체 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "migrateToV3": {
+      "whatChanges": "마이그레이션 후 달라지는 점",
+      "changeDuplicate": "엔터티 ID를 유지한 채 베이스를 복제할 수 있습니다",
+      "changeApi": "접근은 V3 API 경유로만 가능합니다",
+      "changeScale": "향상된 확장성과 장기 호환성을 위해 설계되었습니다",
+      "considerations": "중요한 고려 사항",
+      "considerApis": "마이그레이션 후에는 이 베이스에서 V1 및 V2 API가 더 이상 동작하지 않습니다",
+      "considerPermanent": "마이그레이션은 영구적이며 되돌릴 수 없습니다",
+      "recommendation": "모든 연동이 v3 API 규격과 호환되는지 확인한 뒤에만 마이그레이션하세요.",
+      "confirmTitle": "이 베이스를 v3으로 마이그레이션할까요?",
+      "confirmDesc": "이 작업은 베이스를 최신 아키텍처와 API 버전으로 업그레이드합니다.",
+      "confirmCta": "마이그레이션 확인",
+      "migrating": "마이그레이션 중..."
+    },
+    "skillsRegistryErrorTitle": "스킬 레지스트리를 검색할 수 없습니다"
   },
   "trash": {
     "restore": "Restore",
@@ -6540,7 +6655,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "외부 소스",
+    "unavailablePending": "설정 중",
+    "usingDefault": "{value}(기본값)",
+    "keptForever": "영구",
+    "notKept": "보관하지 않음"
   },
   "baseTrash": {
     "title": "Trash",

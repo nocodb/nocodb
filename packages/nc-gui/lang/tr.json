@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Formlarda oturum açmayı zorunlu kılmak için yükseltin",
     "upgradeToUseFormRequireSigninSubtitle": "Yanıtlayanların bir formu göndermeden önce oturum açmasını zorunlu kılmak için {plan} planına yükseltin.",
     "upgradeToUseSso": "SSO kullanmak için yükseltin",
-    "upgradeToUseSsoSubtitle": "Çoklu Oturum Açma (SSO) kurmak ve ekibinizin kimlik sağlayıcınızla oturum açmasını sağlamak için {plan} planına yükseltin."
+    "upgradeToUseSsoSubtitle": "Çoklu Oturum Açma (SSO) kurmak ve ekibinizin kimlik sağlayıcınızla oturum açmasını sağlamak için {plan} planına yükseltin.",
+    "upgradeToUseAppFactory": "App Factory'yi kullanmak için yükseltin",
+    "upgradeToUseAppFactorySubtitle": "Bağlı depolarınızda kodlama aracıları çalıştırmak için {plan} planına yükseltin."
   },
   "general": {
     "scrollToBottom": "En alta kaydır",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Kimse {description}",
         "moreUsers": "+ {count} daha",
         "selectUsersOrTeams": "Kullanıcı veya takımları seçin"
-      }
+      },
+      "createRecords": "Kayıt oluşturma"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "Görünüm klasörü",
     "subRecord": "Alt kayıt",
     "video": "Video",
-    "recordTemplates": "Kayıt şablonları"
+    "recordTemplates": "Kayıt şablonları",
+    "roleTypePlural": {
+      "owner": "Sahipler",
+      "creator": "Oluşturucular",
+      "editor": "Düzenleyiciler",
+      "commenter": "Yorumcular",
+      "viewer": "Görüntüleyiciler",
+      "inherit": "Devral",
+      "noaccess": "Erişim yok",
+      "admin": "Yöneticiler",
+      "superAdmin": "Süper yöneticiler",
+      "orgAdmin": "Kuruluş yöneticileri",
+      "orgCreator": "Kuruluş oluşturucuları",
+      "orgViewer": "Kuruluş görüntüleyicileri",
+      "orgLevelOwner": "Kuruluş düzeyinde sahipler",
+      "orgLevelCreator": "Kuruluş düzeyinde oluşturucular",
+      "orgLevelViewer": "Kuruluş düzeyinde görüntüleyiciler",
+      "appUser": "Uygulama kullanıcıları"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "Özel alan adı kaldırılsın mı?",
     "tooNarrowToAdjustFrozenFields": "Pencere, sabitlenmiş alanları ayarlamak için fazla dar",
     "themeSettings": "Tema ayarları",
-    "nFields": "{count} alan | {count} alan"
+    "nFields": "{count} alan | {count} alan",
+    "noInterfaceMembersYet": "Henüz arayüz üyesi yok",
+    "headJoin": "Katıl | NocoDB"
   },
   "labels": {
     "syncing": "Senkronize ediliyor",
@@ -4552,7 +4575,24 @@
     "openAgentConversation": "Bu ajanın sohbetini aç",
     "sendToAgent": "Ajana gönder",
     "noPort": "Port yok",
-    "manageInviteLinks": "Davet bağlantılarını yönet"
+    "manageInviteLinks": "Davet bağlantılarını yönet",
+    "editOauthClient": "OAuth istemcisini düzenle",
+    "oauthClientNameHint": "Yetkilendirme sırasında kullanıcılara gösterilir",
+    "applicationDescription": "Uygulama açıklaması",
+    "oauthClientDescriptionHint": "Kullanıcılar erişim verirken gösterilen kısa açıklama",
+    "homepageUrl": "Ana sayfa URL adresi",
+    "oauthClientLogoHint": "Yetkilendirme sırasında gösterilen görsel (kare önerilir)",
+    "clientType": "İstemci türü",
+    "oauthClientTypeHint": "Genel: mobil/web uygulamaları (PKCE gerekir). Gizli: güvenli sunucular (gizli anahtar saklayabilir)",
+    "confidential": "Gizli",
+    "authorizationCallbackUrls": "Yetkilendirme geri çağırma adresleri",
+    "oauthCallbackUrlsHint": "Yetkilendirmeden sonra yönlendirme için HTTPS adresleri (localhost/127.0.0.1 izinli). Her satıra bir tane",
+    "clientId": "İstemci kimliği",
+    "clientSecret": "İstemci gizli anahtarı",
+    "regenerateSecret": "Gizli anahtarı yeniden oluştur",
+    "createOauthClients": "OAuth istemcileri oluştur",
+    "managingOauthClients": "OAuth istemcilerini yönetme",
+    "clientInformation": "İstemci bilgileri"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -5068,7 +5108,11 @@
     "marketplaceAuthored": "Yayıncı tarafından yazılmıştır, uygulamanın içeriğinden türetilmemiştir.",
     "marketplaceVerifiedPublisher": "NocoDB tarafından yayımlandı ve incelendi",
     "showCustomPermissionFieldsOnly": "Yalnızca özel izinleri olan alanları göster",
-    "showAllFields": "Tüm alanları göster"
+    "showAllFields": "Tüm alanları göster",
+    "inviteLinkCannotGrantOwner": "Davet bağlantısı Sahip rolünü veremez",
+    "inviteLinkRoleAboveYours": "Yalnızca kendi rolünüze kadar olan rolleri sunabilirsiniz",
+    "noDefaultSourceForFolders": "Bu base'in varsayılan kaynağı yok — klasörleri bunun yerine kaynağın kendi menüsünden oluşturun",
+    "noDefaultSourceForSync": "Bu base'in varsayılan kaynağı yok — bir eşitlemenin tablolarını saklamak için buna ihtiyacı var"
   },
   "placeholder": {
     "enterVerificationCode": "6 haneli kodu girin",
@@ -5230,7 +5274,28 @@
     "messageAgent": "{agent} ajanına mesaj",
     "somethingElse": "Başka bir şey",
     "noMcpConnections": "Hiç MCP bağlantısı oluşturulmadı",
-    "noMcpConnectionsLabel": "Görünüşe göre henüz hiç MCP bağlantısı oluşturmadınız."
+    "noMcpConnectionsLabel": "Görünüşe göre henüz hiç MCP bağlantısı oluşturmadınız.",
+    "searchDataSource": "Veri kaynağı ara",
+    "searchConnections": "Bağlantılarda ara",
+    "migrationUrl": "Hedef için taşıma URL adresini girin",
+    "searchSync": "Eşitlemede ara",
+    "searchWorkspace": "Çalışma alanı ara",
+    "searchBase": "Base ara",
+    "searchEvent": "Olay ara",
+    "skillRegistrySearch": "Becerilerde ara…",
+    "searchSnapshots": "Anlık görüntülerde ara",
+    "searchTokens": "Belirteçlerde ara",
+    "factoryPrompt": "Ne oluşturulmasını istediğinizi açıklayın",
+    "factorySearchRepos": "Depolarda ara",
+    "factorySearchTargets": "Depolarda ara",
+    "factorySearchSources": "Dallarda, pull request'lerde ve sorunlarda ara",
+    "factoryOnPr": "Bu pull request üzerinde ne olmalı?",
+    "factoryOnIssue": "Sorunun kendisine ek olarak eklenecek bir şey (isteğe bağlı)",
+    "factoryReply": "Yanıtla",
+    "searchFiles": "Dosyalarda ara",
+    "factoryAnnotation": "Aracı burada neyi değiştirmeli?",
+    "oauthClientName": "Uygulamam",
+    "oauthClientDescription": "Bu uygulama verilerinizi yönetmenize yardımcı olur..."
   },
   "msg": {
     "sourceViewNotShared": "Bu görünümde senkronizasyon devre dışı",
@@ -5469,7 +5534,8 @@
       "tableSyncConvertMainTable": "Bu, bu eşitlemenin eşitlenen tablosudur — dönüştürmek eşitlemenin kendisini kaldırır. Eşitlemenin oluşturduğu tüm tablolar normal, düzenlenebilir tablolar olarak kalır ve eşitlenmeyi bırakır.",
       "requiredFieldNotEditable": "Bu zorunlu alan düzenlenemez; bu da form gönderilirken hatalara yol açabilir.",
       "communityAppInstall": "{title} bir topluluk uygulamasıdır. NocoDB tarafından incelenmemiş veya doğrulanmamıştır. Çalışma alanınıza kurmadan önce yayıncıya güvendiğinizden emin olun.",
-      "removeCustomDomain": "{domain} bu uygulamayı artık sunmayacak. Varsayılan adres çalışmayı sürdürür."
+      "removeCustomDomain": "{domain} bu uygulamayı artık sunmayacak. Varsayılan adres çalışmayı sürdürür.",
+      "copyClientSecretNow": "⚠️ İstemci gizli anahtarınızı şimdi kopyaladığınızdan emin olun. Bir daha göremeyeceksiniz!"
     },
     "info": {
       "sourceViewRebindResync": "Kaynak görünümünü değiştirmek, yeni görünüme karşı tam bir yeniden senkronizasyon başlatır.",
@@ -5964,7 +6030,40 @@
       "interfaceRecordUnreadableEditingOff": "Kayıt yeniden okunabilene kadar düzenleme kapalıdır.",
       "inviteLinkDomainSentence": "Yalnızca {domain} e-postasıyla çalışır ve ekip arkadaşları {role} olarak katılır",
       "inviteLinkOpenSentence": "Bağlantıya sahip olan herkes {role} olarak katılabilir",
-      "inviteLinkOpenCaution": "Yalnızca güvendiğiniz kişilerle paylaşın."
+      "inviteLinkOpenCaution": "Yalnızca güvendiğiniz kişilerle paylaşın.",
+      "shareHubTooltip": "Kişileri bu base içinde çalışmaya davet edin veya {object} için salt okunur bir bağlantı yayımlayın.",
+      "shareHubTooltipInviteOnly": "Kişileri bu base içinde çalışmaya davet edin. Base'in kendisini yayımlamak için base menüsündeki «Base'i paylaş» seçeneğini kullanın.",
+      "shareNothingPrivateBase": "Özel bir base'e yalnızca base sahibi kişi davet edebilir. Bir görünümü yayımlamak için önce onu açın.",
+      "shareNothingToShow": "Buradan paylaşılacak bir şey yok. Salt okunur bir bağlantı yayımlamak için bir görünüm açın.",
+      "peopleHaveAccess": "{count} kişinin erişimi var. | {count} kişinin erişimi var.",
+      "noInviteLinkYet": "Henüz davet bağlantısı yok. Kişilerin ayrı bir davet olmadan katılabilmesi için bir tane oluşturun.",
+      "youWillJoinAs": "{role} olarak katılacaksınız.",
+      "signedInWrongDomain": "{email} olarak oturum açtınız. Bu bağlantı yalnızca {'@'}{domain} adreslerini kabul eder.",
+      "signedInAs": "{email} olarak oturum açtınız.",
+      "publicLinkToNamed": "{name} için herkese açık bağlantı",
+      "readOnlyInviteInstead": "Salt okunur. Düzenleyebilmeleri veya yorum yapabilmeleri mi gerekiyor?",
+      "willJoinAsRole": "{count} kişi {role} olarak katılacak ve {can}. | {count} kişi {role} olarak katılacak ve {can}.",
+      "sharePublicLinkSubtitle": "Bağlantıya sahip olan herkes açabilir. Hesap gerekmez.",
+      "shareLinksReadOnly": "Bağlantılar salt okunurdur. Düzenleyebilmelerini veya yorum yapabilmelerini ister misiniz?",
+      "clientSecretHidden": "Gizli anahtar güvenlik nedeniyle gizlenmiştir ve tekrar görüntülenmez. Gerekirse yeniden oluşturabilirsiniz.",
+      "mcpSetupIntroClaude": "NocoDB MCP ile Claude Desktop kullanmaya 3 basit adımda başlayın",
+      "mcpSetupClaudeStep1": "Gezinme çubuğundan Claude Desktop ayarlarını açın.",
+      "mcpSetupClaudeStep2": "Develop sekmesine gidin ve «Edit Config» seçeneğine tıklayın.",
+      "mcpSetupClaudeStep3": "Bir belirteç oluşturduktan sonra verilen JSON yapılandırmasını claude_desktop_config.json dosyasına ekleyin",
+      "mcpSetupIntroCodex": "NocoDB MCP ile Codex CLI kullanmaya 3 basit adımda başlayın",
+      "mcpSetupCodexStep2": "Bir belirteç oluşturduktan sonra verilen TOML yapılandırmasını ekleyin.",
+      "mcpSetupIntroAntigravity": "NocoDB MCP ile AntiGravity kullanmaya 4 basit adımda başlayın",
+      "mcpSetupAntigravityStep1": "Aracı penceresinin sağ üst köşesindeki üç noktaya, ardından \"MCP Servers\" seçeneğine tıklayın",
+      "mcpSetupAntigravityStep2": "Manage MCP Servers seçeneğine tıklayın.",
+      "mcpSetupViewRawConfig": "Şimdi View raw config seçeneğine tıklayın.",
+      "mcpSetupPasteJsonConfig": "Bir belirteç oluşturduktan sonra verilen JSON yapılandırmasını açılan dosyaya yapıştırın",
+      "mcpSetupIntroCursor": "NocoDB MCP ile Cursor kullanmaya 3 basit adımda başlayın",
+      "mcpSetupCursorStep1": "Cursor ayarlarını açın (Shift+Cmd+J tuşlarına basın)",
+      "mcpSetupCursorStep2": "\"MCP\" sekmesini seçin ve \"Add Custom MCP\" seçeneğine tıklayın.",
+      "mcpSetupCursorStep3": "Bir belirteç oluşturduktan sonra verilen JSON yapılandırmasını ekleyin.",
+      "mcpSetupIntroWindsurf": "NocoDB MCP ile Windsurf kullanmaya 4 basit adımda başlayın",
+      "mcpSetupWindsurfStep1": "Windsurf ayarlarına gidin ve sol kenar çubuğundan Cascade sekmesini seçin",
+      "mcpSetupWindsurfStep2": "Manage MCP seçeneğine tıklayın."
     },
     "error": {
       "failedToCreateSync": "Senkronizasyon oluşturulamadı",
@@ -6279,7 +6378,8 @@
       "planChangeScheduled": "Plan değişikliği zamanlandı",
       "planChangeReverted": "Zamanlanmış plan değişikliği geri alındı. Mevcut planınız değişmeden devam ediyor.",
       "appDelisted": "App Store'dan kaldırıldı",
-      "appRelisted": "Yeniden App Store'da"
+      "appRelisted": "Yeniden App Store'da",
+      "oauthClientUpdated": "OAuth istemcisi başarıyla güncellendi!"
     },
     "subText": {
       "startFromScratch": "Sıfırdan başlayın.",
@@ -6474,7 +6574,22 @@
     "factorySelectLinesToAnnotate": "Önce yorumun ilgili olduğu satırları seçin.",
     "factorySessionArchived": "Oturum arşivlendi. Çalışması saklanıyor; kaldığı yerden devam etmek için oturumu sürdürün.",
     "factoryTurnFailed": "Tur başarısız oldu",
-    "factoryDeleteSession": "“{title}” ve tüm dökümü silinecek. Bu işlem geri alınamaz."
+    "factoryDeleteSession": "“{title}” ve tüm dökümü silinecek. Bu işlem geri alınamaz.",
+    "migrateToV3": {
+      "whatChanges": "Taşımadan sonra neler değişir",
+      "changeDuplicate": "Base'ler varlık kimlikleri korunarak çoğaltılabilir",
+      "changeApi": "Erişim yalnızca V3 API üzerinden mümkündür",
+      "changeScale": "Daha iyi ölçeklenebilirlik ve uzun vadeli uyumluluk için tasarlandı",
+      "considerations": "Önemli hususlar",
+      "considerApis": "Taşımadan sonra bu base için V1 ve V2 API'leri artık çalışmayacak",
+      "considerPermanent": "Taşıma kalıcıdır ve geri alınamaz",
+      "recommendation": "Yalnızca tüm entegrasyonların v3 API ile uyumlu olduğunu doğruladıktan sonra taşıyın.",
+      "confirmTitle": "Bu base v3'e taşınsın mı?",
+      "confirmDesc": "Bu işlem base'i en son mimariye ve API sürümüne yükseltir.",
+      "confirmCta": "Taşımayı onayla",
+      "migrating": "Taşınıyor..."
+    },
+    "skillsRegistryErrorTitle": "Beceri kayıt defterinde arama yapılamadı"
   },
   "trash": {
     "restore": "Geri Yükle",
@@ -6537,7 +6652,12 @@
         "partial": "{count} çakışmasız geri yükle",
         "force": "Tümünü geri yükle ve çakışmaları temizle"
       }
-    }
+    },
+    "unavailableExternal": "Harici kaynak",
+    "unavailablePending": "Kuruluyor",
+    "usingDefault": "{value} (varsayılan)",
+    "keptForever": "Süresiz",
+    "notKept": "Saklanmıyor"
   },
   "baseTrash": {
     "title": "Çöp Kutusu",

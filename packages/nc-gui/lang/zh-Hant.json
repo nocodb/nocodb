@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "升級以要求在表單中登入",
     "upgradeToUseFormRequireSigninSubtitle": "升級至 {plan} 方案，即可要求填答者在提交表單前登入。",
     "upgradeToUseSso": "升級使用 SSO",
-    "upgradeToUseSsoSubtitle": "升級至 {plan} 計劃，以設定單一登入 (SSO)，讓您的團隊使用您的身分提供者登入。"
+    "upgradeToUseSsoSubtitle": "升級至 {plan} 計劃，以設定單一登入 (SSO)，讓您的團隊使用您的身分提供者登入。",
+    "upgradeToUseAppFactory": "升級後即可使用 App Factory",
+    "upgradeToUseAppFactorySubtitle": "升級至 {plan} 方案，即可在已連結的儲存庫上調度編碼代理程式。"
   },
   "general": {
     "scrollToBottom": "滾動到底部",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "無人 {description}",
         "moreUsers": "+ {count} 更多",
         "selectUsersOrTeams": "選擇使用者或小組"
-      }
+      },
+      "createRecords": "建立記錄"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "檢視資料夾",
     "subRecord": "子紀錄",
     "video": "影片",
-    "recordTemplates": "記錄範本"
+    "recordTemplates": "記錄範本",
+    "roleTypePlural": {
+      "owner": "擁有者",
+      "creator": "建立者",
+      "editor": "編輯者",
+      "commenter": "留言者",
+      "viewer": "檢視者",
+      "inherit": "繼承",
+      "noaccess": "無存取權",
+      "admin": "管理員",
+      "superAdmin": "超級管理員",
+      "orgAdmin": "組織管理員",
+      "orgCreator": "組織建立者",
+      "orgViewer": "組織檢視者",
+      "orgLevelOwner": "組織層級擁有者",
+      "orgLevelCreator": "組織層級建立者",
+      "orgLevelViewer": "組織層級檢視者",
+      "appUser": "應用程式使用者"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "要移除自訂網域嗎？",
     "tooNarrowToAdjustFrozenFields": "視窗太窄，無法調整凍結欄位",
     "themeSettings": "主題設定",
-    "nFields": "{count} 個欄位 | {count} 個欄位"
+    "nFields": "{count} 個欄位 | {count} 個欄位",
+    "noInterfaceMembersYet": "尚無介面成員",
+    "headJoin": "加入 | NocoDB"
   },
   "labels": {
     "syncing": "同步",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "開啟此代理的對話",
     "sendToAgent": "傳送給代理",
     "noPort": "無連接埠",
-    "manageInviteLinks": "管理邀請連結"
+    "manageInviteLinks": "管理邀請連結",
+    "editOauthClient": "編輯 OAuth 用戶端",
+    "oauthClientNameHint": "授權過程中向使用者顯示",
+    "applicationDescription": "應用程式描述",
+    "oauthClientDescriptionHint": "使用者授予存取權時顯示的簡短說明",
+    "homepageUrl": "首頁 URL",
+    "oauthClientLogoHint": "授權過程中顯示的圖片（建議使用正方形）",
+    "clientType": "用戶端類型",
+    "oauthClientTypeHint": "公開：行動／網頁應用程式（需要 PKCE）。機密：安全伺服器（可儲存密鑰）",
+    "confidential": "機密",
+    "authorizationCallbackUrls": "授權回呼 URL",
+    "oauthCallbackUrlsHint": "授權後用於重新導向的 HTTPS 位址（允許 localhost/127.0.0.1）。每行一個",
+    "clientId": "用戶端 ID",
+    "clientSecret": "用戶端密鑰",
+    "regenerateSecret": "重新產生密鑰",
+    "createOauthClients": "建立 OAuth 用戶端",
+    "managingOauthClients": "管理 OAuth 用戶端",
+    "clientInformation": "用戶端資訊"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "由發布者撰寫，並非根據 App 內容產生。",
     "marketplaceVerifiedPublisher": "由 NocoDB 發布並審核",
     "showCustomPermissionFieldsOnly": "僅顯示具有自訂權限的欄位",
-    "showAllFields": "顯示所有欄位"
+    "showAllFields": "顯示所有欄位",
+    "inviteLinkCannotGrantOwner": "邀請連結無法授予擁有者角色",
+    "inviteLinkRoleAboveYours": "你只能授予不高於自己的角色",
+    "noDefaultSourceForFolders": "此 Base 沒有預設資料來源 — 請改從各資料來源自己的選單建立資料夾",
+    "noDefaultSourceForSync": "此 Base 沒有預設資料來源 — 同步需要一個來源來存放其資料表"
   },
   "placeholder": {
     "enterVerificationCode": "輸入 6 位數碼",
@@ -5233,7 +5277,28 @@
     "messageAgent": "傳訊息給 {agent}",
     "somethingElse": "其他",
     "noMcpConnections": "尚未建立 MCP 連線",
-    "noMcpConnectionsLabel": "看起來你還沒有建立任何 MCP 連線。"
+    "noMcpConnectionsLabel": "看起來你還沒有建立任何 MCP 連線。",
+    "searchDataSource": "搜尋資料來源",
+    "searchConnections": "搜尋連線",
+    "migrationUrl": "輸入目的地的轉移 URL",
+    "searchSync": "搜尋同步",
+    "searchWorkspace": "搜尋工作區",
+    "searchBase": "搜尋 Base",
+    "searchEvent": "搜尋事件",
+    "skillRegistrySearch": "搜尋技能……",
+    "searchSnapshots": "搜尋快照",
+    "searchTokens": "搜尋權杖",
+    "factoryPrompt": "描述你想要建置的內容",
+    "factorySearchRepos": "搜尋儲存庫",
+    "factorySearchTargets": "搜尋儲存庫",
+    "factorySearchSources": "搜尋分支、提取請求與議題",
+    "factoryOnPr": "希望在這個提取請求上做什麼？",
+    "factoryOnIssue": "除了議題本身之外要補充的內容（選填）",
+    "factoryReply": "回覆",
+    "searchFiles": "搜尋檔案",
+    "factoryAnnotation": "希望代理程式在這裡改動什麼？",
+    "oauthClientName": "我的應用程式",
+    "oauthClientDescription": "此應用程式可協助你管理資料……"
   },
   "msg": {
     "sourceViewNotShared": "此檢視已停用同步功能",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "這是本次同步的同步表格——轉換它會連同步本身一併移除。同步建立的所有表格都會保留為一般的可編輯表格，並停止同步。",
       "requiredFieldNotEditable": "此必填欄位無法編輯，送出表單時可能因此發生錯誤。",
       "communityAppInstall": "{title} 是一款社群應用程式，未經 NocoDB 審查或驗證。在將它安裝到您的工作區之前，請確認您信任該發佈者。",
-      "removeCustomDomain": "{domain} 將不再提供此應用程式。預設網址仍可繼續使用。"
+      "removeCustomDomain": "{domain} 將不再提供此應用程式。預設網址仍可繼續使用。",
+      "copyClientSecretNow": "⚠️ 請立即複製您的用戶端密鑰。之後將無法再次檢視！"
     },
     "info": {
       "sourceViewRebindResync": "變更原始檢視會觸發對新檢視的完全重新同步。",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "在能夠再次讀取之前，編輯功能已關閉。",
       "inviteLinkDomainSentence": "僅適用於 {domain} 電子郵件，隊友會以 {role} 身分加入",
       "inviteLinkOpenSentence": "任何擁有此連結的人都能以 {role} 身分加入",
-      "inviteLinkOpenCaution": "只分享給你信任的人。"
+      "inviteLinkOpenCaution": "只分享給你信任的人。",
+      "shareHubTooltip": "邀請他人在此 Base 中協作，或發布指向 {object} 的唯讀連結。",
+      "shareHubTooltipInviteOnly": "邀請他人在此 Base 中協作。若要發布 Base 本身，請使用 Base 選單中的「分享 Base」。",
+      "shareNothingPrivateBase": "只有 Base 擁有者才能邀請他人加入私人 Base。若要發布檢視，請先開啟一個檢視。",
+      "shareNothingToShow": "這裡沒有可分享的內容。開啟一個檢視以發布唯讀連結。",
+      "peopleHaveAccess": "{count} 人擁有存取權。 | {count} 人擁有存取權。",
+      "noInviteLinkYet": "尚無邀請連結。建立一個連結，讓他人不需個別邀請即可加入。",
+      "youWillJoinAs": "您將以 {role} 身分加入。",
+      "signedInWrongDomain": "您目前以 {email} 登入。此連結僅接受 {'@'}{domain} 的電子郵件地址。",
+      "signedInAs": "您目前以 {email} 登入。",
+      "publicLinkToNamed": "指向 {name} 的公開連結",
+      "readOnlyInviteInstead": "僅供檢視。需要讓他們能夠編輯或留言嗎？",
+      "willJoinAsRole": "{count} 人將以 {role} 身分加入，並可以{can}。 | {count} 人將以 {role} 身分加入，並可以{can}。",
+      "sharePublicLinkSubtitle": "任何取得連結的人都可以開啟。不需要帳號。",
+      "shareLinksReadOnly": "連結為唯讀。希望他們能夠編輯或留言嗎？",
+      "clientSecretHidden": "基於安全考量，密鑰已隱藏且不會再次顯示。如有需要，可以重新產生。",
+      "mcpSetupIntroClaude": "透過 3 個簡單步驟開始在 Claude Desktop 中使用 NocoDB MCP",
+      "mcpSetupClaudeStep1": "從導覽列開啟 Claude Desktop 設定。",
+      "mcpSetupClaudeStep2": "前往 Develop 分頁，然後點擊「Edit Config」。",
+      "mcpSetupClaudeStep3": "將建立權杖後提供的 JSON 設定加入 claude_desktop_config.json",
+      "mcpSetupIntroCodex": "透過 3 個簡單步驟開始在 Codex CLI 中使用 NocoDB MCP",
+      "mcpSetupCodexStep2": "加入建立權杖後提供的 TOML 設定。",
+      "mcpSetupIntroAntigravity": "透過 4 個簡單步驟開始在 AntiGravity 中使用 NocoDB MCP",
+      "mcpSetupAntigravityStep1": "點擊代理程式視窗右上角的三個點，然後點擊 \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "點擊 Manage MCP Servers。",
+      "mcpSetupViewRawConfig": "現在點擊 View raw config。",
+      "mcpSetupPasteJsonConfig": "將建立權杖後提供的 JSON 設定貼到已開啟的檔案中",
+      "mcpSetupIntroCursor": "透過 3 個簡單步驟開始在 Cursor 中使用 NocoDB MCP",
+      "mcpSetupCursorStep1": "開啟 Cursor 設定（按 Shift+Cmd+J）",
+      "mcpSetupCursorStep2": "選取 \"MCP\" 分頁並點擊 \"Add Custom MCP\"。",
+      "mcpSetupCursorStep3": "加入建立權杖後提供的 JSON 設定。",
+      "mcpSetupIntroWindsurf": "透過 4 個簡單步驟開始在 Windsurf 中使用 NocoDB MCP",
+      "mcpSetupWindsurfStep1": "進入 Windsurf 設定，並在左側邊欄選取 Cascade 分頁",
+      "mcpSetupWindsurfStep2": "點擊 Manage MCP。"
     },
     "error": {
       "failedToCreateSync": "建立同步失敗",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "方案變更已排定",
       "planChangeReverted": "已撤銷排定的方案變更。您目前的方案維持不變，繼續生效。",
       "appDelisted": "已自 App Store 下架",
-      "appRelisted": "已重新上架 App Store"
+      "appRelisted": "已重新上架 App Store",
+      "oauthClientUpdated": "OAuth 用戶端更新成功！"
     },
     "subText": {
       "startFromScratch": "從頭開始。",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "請先選擇註解所指的行。",
     "factorySessionArchived": "工作階段已封存。其工作已保存；恢復後即可繼續。",
     "factoryTurnFailed": "本回合失敗",
-    "factoryDeleteSession": "「{title}」及其完整記錄將被刪除。此動作無法復原。"
+    "factoryDeleteSession": "「{title}」及其完整記錄將被刪除。此動作無法復原。",
+    "migrateToV3": {
+      "whatChanges": "轉移後會有哪些變化",
+      "changeDuplicate": "複製 Base 時可保留實體 ID",
+      "changeApi": "僅能透過 V3 API 存取",
+      "changeScale": "為更佳的擴充性與長期相容性而設計",
+      "considerations": "重要注意事項",
+      "considerApis": "轉移後，此 Base 將不再支援 V1 與 V2 API",
+      "considerPermanent": "轉移是永久性的，無法復原",
+      "recommendation": "請先確認所有整合皆相容於 v3 API，再進行轉移。",
+      "confirmTitle": "要將此 Base 轉移到 v3 嗎？",
+      "confirmDesc": "此操作會將該 Base 升級至最新架構與 API 版本。",
+      "confirmCta": "確認轉移",
+      "migrating": "正在轉移..."
+    },
+    "skillsRegistryErrorTitle": "無法搜尋技能登錄檔"
   },
   "trash": {
     "restore": "還原",
@@ -6540,7 +6655,12 @@
         "partial": "無衝突還原 {count}",
         "force": "還原所有並清除衝突"
       }
-    }
+    },
+    "unavailableExternal": "外部資料來源",
+    "unavailablePending": "設定中",
+    "usingDefault": "{value}（預設）",
+    "keptForever": "永久",
+    "notKept": "不保留"
   },
   "baseTrash": {
     "title": "垃圾",

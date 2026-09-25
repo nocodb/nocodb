@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "फ़ॉर्म पर साइन-इन अनिवार्य करने के लिए अपग्रेड करें",
     "upgradeToUseFormRequireSigninSubtitle": "फ़ॉर्म सबमिट करने से पहले उत्तरदाताओं के लिए साइन इन अनिवार्य करने हेतु {plan} योजना में अपग्रेड करें।",
     "upgradeToUseSso": "SSO का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseSsoSubtitle": "सिंगल साइन-ऑन (SSO) सेट अप करने और अपनी टीम को आपके पहचान प्रदाता से साइन इन करने देने के लिए {plan} योजना में अपग्रेड करें।"
+    "upgradeToUseSsoSubtitle": "सिंगल साइन-ऑन (SSO) सेट अप करने और अपनी टीम को आपके पहचान प्रदाता से साइन इन करने देने के लिए {plan} योजना में अपग्रेड करें।",
+    "upgradeToUseAppFactory": "App Factory का उपयोग करने के लिए अपग्रेड करें",
+    "upgradeToUseAppFactorySubtitle": "अपने जुड़े हुए रिपॉजिटरी पर कोडिंग एजेंट चलाने के लिए {plan} योजना में अपग्रेड करें।"
   },
   "general": {
     "scrollToBottom": "नीचे स्क्रॉल करें",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "कोई नहीं {description}",
         "moreUsers": "+ {count} और अधिक",
         "selectUsersOrTeams": "उपयोगकर्ताओं या टीमों का चयन करें"
-      }
+      },
+      "createRecords": "रिकॉर्ड बनाना"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "व्यू फ़ोल्डर",
     "subRecord": "उप-रिकॉर्ड",
     "video": "वीडियो",
-    "recordTemplates": "रिकॉर्ड टेम्प्लेट"
+    "recordTemplates": "रिकॉर्ड टेम्प्लेट",
+    "roleTypePlural": {
+      "owner": "स्वामी",
+      "creator": "निर्माता",
+      "editor": "संपादक",
+      "commenter": "टिप्पणीकार",
+      "viewer": "दर्शक",
+      "inherit": "विरासत में लें",
+      "noaccess": "कोई पहुँच नहीं",
+      "admin": "व्यवस्थापक",
+      "superAdmin": "सुपर व्यवस्थापक",
+      "orgAdmin": "संगठन व्यवस्थापक",
+      "orgCreator": "संगठन निर्माता",
+      "orgViewer": "संगठन दर्शक",
+      "orgLevelOwner": "संगठन स्तर के स्वामी",
+      "orgLevelCreator": "संगठन स्तर के निर्माता",
+      "orgLevelViewer": "संगठन स्तर के दर्शक",
+      "appUser": "ऐप उपयोगकर्ता"
+    }
   },
   "datatype": {
     "ID": "पहचान",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "कस्टम डोमेन हटाएँ?",
     "tooNarrowToAdjustFrozenFields": "जमे हुए फ़ील्ड समायोजित करने के लिए विंडो बहुत संकरी है",
     "themeSettings": "थीम सेटिंग्स",
-    "nFields": "{count} फ़ील्ड | {count} फ़ील्ड"
+    "nFields": "{count} फ़ील्ड | {count} फ़ील्ड",
+    "noInterfaceMembersYet": "अभी तक कोई इंटरफ़ेस सदस्य नहीं",
+    "headJoin": "शामिल हों | NocoDB"
   },
   "labels": {
     "syncing": "सिंक करना",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "इस एजेंट की बातचीत खोलें",
     "sendToAgent": "एजेंट को भेजें",
     "noPort": "कोई पोर्ट नहीं",
-    "manageInviteLinks": "आमंत्रण लिंक प्रबंधित करें"
+    "manageInviteLinks": "आमंत्रण लिंक प्रबंधित करें",
+    "editOauthClient": "OAuth क्लाइंट संपादित करें",
+    "oauthClientNameHint": "प्राधिकरण के दौरान उपयोगकर्ताओं को दिखाया जाता है",
+    "applicationDescription": "एप्लिकेशन विवरण",
+    "oauthClientDescriptionHint": "संक्षिप्त विवरण जो उपयोगकर्ताओं को पहुँच देते समय दिखाया जाता है",
+    "homepageUrl": "होमपेज URL",
+    "oauthClientLogoHint": "प्राधिकरण के दौरान दिखाई जाने वाली छवि (वर्गाकार अनुशंसित)",
+    "clientType": "क्लाइंट प्रकार",
+    "oauthClientTypeHint": "सार्वजनिक: मोबाइल/वेब ऐप (PKCE आवश्यक)। गोपनीय: सुरक्षित सर्वर (सीक्रेट संग्रहीत कर सकते हैं)",
+    "confidential": "गोपनीय",
+    "authorizationCallbackUrls": "प्राधिकरण कॉलबैक पते",
+    "oauthCallbackUrlsHint": "प्राधिकरण के बाद पुनर्निर्देशन के लिए HTTPS पते (localhost/127.0.0.1 मान्य हैं)। प्रति पंक्ति एक",
+    "clientId": "क्लाइंट आईडी",
+    "clientSecret": "क्लाइंट सीक्रेट",
+    "regenerateSecret": "सीक्रेट फिर से बनाएँ",
+    "createOauthClients": "OAuth क्लाइंट बनाएँ",
+    "managingOauthClients": "OAuth क्लाइंट का प्रबंधन",
+    "clientInformation": "क्लाइंट जानकारी"
   },
   "activity": {
     "useTemplate": "टेम्पलेट का उपयोग करें",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "प्रकाशक द्वारा लिखा गया, ऐप की सामग्री से नहीं निकाला गया।",
     "marketplaceVerifiedPublisher": "NocoDB द्वारा प्रकाशित और समीक्षित",
     "showCustomPermissionFieldsOnly": "केवल कस्टम अनुमतियों वाले फ़ील्ड दिखाएँ",
-    "showAllFields": "सभी फ़ील्ड दिखाएँ"
+    "showAllFields": "सभी फ़ील्ड दिखाएँ",
+    "inviteLinkCannotGrantOwner": "आमंत्रण लिंक स्वामी की भूमिका नहीं दे सकता",
+    "inviteLinkRoleAboveYours": "आप केवल अपनी भूमिका तक की भूमिकाएँ दे सकते हैं",
+    "noDefaultSourceForFolders": "इस बेस का कोई डिफ़ॉल्ट स्रोत नहीं है — फ़ोल्डर स्रोत के अपने मेन्यू से बनाएँ",
+    "noDefaultSourceForSync": "इस बेस का कोई डिफ़ॉल्ट स्रोत नहीं है — सिंक को अपनी तालिकाएँ रखने के लिए एक स्रोत चाहिए"
   },
   "placeholder": {
     "enterVerificationCode": "6-अंकीय कोड दर्ज करें",
@@ -5233,7 +5277,28 @@
     "messageAgent": "{agent} को संदेश भेजें",
     "somethingElse": "कुछ और",
     "noMcpConnections": "कोई MCP कनेक्शन नहीं बनाया गया",
-    "noMcpConnectionsLabel": "लगता है आपने अभी तक कोई MCP कनेक्शन नहीं बनाया है।"
+    "noMcpConnectionsLabel": "लगता है आपने अभी तक कोई MCP कनेक्शन नहीं बनाया है।",
+    "searchDataSource": "डेटा स्रोत खोजें",
+    "searchConnections": "कनेक्शन खोजें",
+    "migrationUrl": "गंतव्य के लिए माइग्रेशन URL दर्ज करें",
+    "searchSync": "सिंक खोजें",
+    "searchWorkspace": "कार्यस्थान खोजें",
+    "searchBase": "बेस खोजें",
+    "searchEvent": "इवेंट खोजें",
+    "skillRegistrySearch": "स्किल खोजें…",
+    "searchSnapshots": "स्नैपशॉट खोजें",
+    "searchTokens": "टोकन खोजें",
+    "factoryPrompt": "बताएँ कि आप क्या बनवाना चाहते हैं",
+    "factorySearchRepos": "रिपॉजिटरी खोजें",
+    "factorySearchTargets": "रिपॉजिटरी खोजें",
+    "factorySearchSources": "ब्रांच, पुल रिक्वेस्ट और मुद्दे खोजें",
+    "factoryOnPr": "इस पुल रिक्वेस्ट पर क्या होना चाहिए?",
+    "factoryOnIssue": "इस मुद्दे के अलावा कुछ और जोड़ना हो तो (वैकल्पिक)",
+    "factoryReply": "उत्तर दें",
+    "searchFiles": "फ़ाइलें खोजें",
+    "factoryAnnotation": "एजेंट को यहाँ क्या बदलना चाहिए?",
+    "oauthClientName": "मेरा एप्लिकेशन",
+    "oauthClientDescription": "यह एप्लिकेशन आपके डेटा को प्रबंधित करने में मदद करता है..."
   },
   "msg": {
     "sourceViewNotShared": "इस दृश्य पर सिंक अक्षम है।",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "यह इस सिंक की सिंक की गई तालिका है — इसे बदलने पर सिंक ही हट जाता है। सिंक द्वारा बनाई गई सभी तालिकाएँ सामान्य, संपादन योग्य तालिकाओं के रूप में बनी रहती हैं और सिंक होना बंद कर देती हैं।",
       "requiredFieldNotEditable": "यह आवश्यक फ़ील्ड संपादन योग्य नहीं है, जिससे फ़ॉर्म भेजते समय त्रुटियाँ हो सकती हैं।",
       "communityAppInstall": "{title} एक समुदाय ऐप है। NocoDB ने इसकी समीक्षा या पुष्टि नहीं की है। अपने कार्यस्थान में इसे इंस्टॉल करने से पहले सुनिश्चित करें कि आप प्रकाशक पर भरोसा करते हैं।",
-      "removeCustomDomain": "{domain} इस ऐप को परोसना बंद कर देगा। डिफ़ॉल्ट पता चलता रहेगा।"
+      "removeCustomDomain": "{domain} इस ऐप को परोसना बंद कर देगा। डिफ़ॉल्ट पता चलता रहेगा।",
+      "copyClientSecretNow": "⚠️ अपना क्लाइंट सीक्रेट अभी कॉपी कर लें। आप इसे दोबारा नहीं देख पाएँगे!"
     },
     "info": {
       "sourceViewRebindResync": "स्रोत दृश्य बदलने पर नए दृश्य के खिलाफ पूर्ण पुनः-सिंक ट्रिगर होता है।",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "जब तक इसे दोबारा पढ़ा न जा सके, संपादन बंद रहेगा।",
       "inviteLinkDomainSentence": "केवल {domain} ईमेल के साथ काम करता है और साथी {role} के रूप में जुड़ते हैं",
       "inviteLinkOpenSentence": "जिसके पास यह लिंक है वह {role} के रूप में जुड़ सकता है",
-      "inviteLinkOpenCaution": "इसे केवल उन लोगों से साझा करें जिन पर आप भरोसा करते हैं।"
+      "inviteLinkOpenCaution": "इसे केवल उन लोगों से साझा करें जिन पर आप भरोसा करते हैं।",
+      "shareHubTooltip": "लोगों को इस बेस में काम करने के लिए आमंत्रित करें, या {object} का केवल-पढ़ने योग्य लिंक प्रकाशित करें।",
+      "shareHubTooltipInviteOnly": "लोगों को इस बेस में काम करने के लिए आमंत्रित करें। बेस को स्वयं प्रकाशित करने के लिए बेस मेन्यू में «बेस साझा करें» का उपयोग करें।",
+      "shareNothingPrivateBase": "निजी बेस में केवल बेस का स्वामी ही लोगों को आमंत्रित कर सकता है। कोई व्यू प्रकाशित करने के लिए पहले उसे खोलें।",
+      "shareNothingToShow": "यहाँ से साझा करने के लिए कुछ नहीं है। केवल-पढ़ने योग्य लिंक प्रकाशित करने के लिए कोई व्यू खोलें।",
+      "peopleHaveAccess": "{count} व्यक्ति के पास पहुँच है। | {count} लोगों के पास पहुँच है।",
+      "noInviteLinkYet": "अभी तक कोई आमंत्रण लिंक नहीं है। एक बनाएँ ताकि लोग अलग-अलग आमंत्रण के बिना जुड़ सकें।",
+      "youWillJoinAs": "आप {role} के रूप में जुड़ेंगे।",
+      "signedInWrongDomain": "आप {email} के रूप में साइन इन हैं। यह लिंक केवल {'@'}{domain} पते स्वीकार करता है।",
+      "signedInAs": "आप {email} के रूप में साइन इन हैं।",
+      "publicLinkToNamed": "{name} का सार्वजनिक लिंक",
+      "readOnlyInviteInstead": "केवल पढ़ने के लिए। क्या आप चाहते हैं कि वे संपादन या टिप्पणी कर सकें?",
+      "willJoinAsRole": "{count} व्यक्ति {role} के रूप में जुड़ेगा और {can} सकेगा। | {count} लोग {role} के रूप में जुड़ेंगे और {can} सकेंगे।",
+      "sharePublicLinkSubtitle": "लिंक रखने वाला कोई भी व्यक्ति इसे खोल सकता है। खाते की आवश्यकता नहीं है।",
+      "shareLinksReadOnly": "लिंक केवल पढ़ने के लिए हैं। क्या आप चाहते हैं कि वे संपादन या टिप्पणी कर सकें?",
+      "clientSecretHidden": "सुरक्षा के लिए यह सीक्रेट छिपा दिया गया है और दोबारा नहीं दिखेगा। ज़रूरत पड़ने पर आप इसे फिर से बना सकते हैं।",
+      "mcpSetupIntroClaude": "3 आसान चरणों में Claude Desktop के साथ NocoDB MCP का उपयोग शुरू करें",
+      "mcpSetupClaudeStep1": "नेविगेशन बार से Claude Desktop की सेटिंग खोलें।",
+      "mcpSetupClaudeStep2": "Develop टैब पर जाएँ और «Edit Config» पर क्लिक करें।",
+      "mcpSetupClaudeStep3": "टोकन बनाने के बाद मिलने वाला JSON कॉन्फ़िगरेशन claude_desktop_config.json में जोड़ें",
+      "mcpSetupIntroCodex": "3 आसान चरणों में Codex CLI के साथ NocoDB MCP का उपयोग शुरू करें",
+      "mcpSetupCodexStep2": "टोकन बनाने के बाद मिलने वाला TOML कॉन्फ़िगरेशन जोड़ें।",
+      "mcpSetupIntroAntigravity": "4 आसान चरणों में AntiGravity के साथ NocoDB MCP का उपयोग शुरू करें",
+      "mcpSetupAntigravityStep1": "एजेंट विंडो के ऊपर दाईं ओर तीन बिंदुओं पर क्लिक करें, फिर \"MCP Servers\" पर क्लिक करें",
+      "mcpSetupAntigravityStep2": "Manage MCP Servers पर क्लिक करें।",
+      "mcpSetupViewRawConfig": "अब View raw config पर क्लिक करें।",
+      "mcpSetupPasteJsonConfig": "टोकन बनाने के बाद मिलने वाला JSON कॉन्फ़िगरेशन खुली हुई फ़ाइल में चिपकाएँ",
+      "mcpSetupIntroCursor": "3 आसान चरणों में Cursor के साथ NocoDB MCP का उपयोग शुरू करें",
+      "mcpSetupCursorStep1": "Cursor की सेटिंग खोलें (Shift+Cmd+J दबाएँ)",
+      "mcpSetupCursorStep2": "\"MCP\" टैब चुनें और \"Add Custom MCP\" पर क्लिक करें।",
+      "mcpSetupCursorStep3": "टोकन बनाने के बाद मिलने वाला JSON कॉन्फ़िगरेशन जोड़ें।",
+      "mcpSetupIntroWindsurf": "4 आसान चरणों में Windsurf के साथ NocoDB MCP का उपयोग शुरू करें",
+      "mcpSetupWindsurfStep1": "Windsurf की सेटिंग खोलें और बाएँ साइडबार में Cascade टैब चुनें",
+      "mcpSetupWindsurfStep2": "Manage MCP पर क्लिक करें।"
     },
     "error": {
       "failedToCreateSync": "सिंक बनाने में विफल",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "योजना परिवर्तन निर्धारित किया गया",
       "planChangeReverted": "निर्धारित योजना परिवर्तन वापस ले लिया गया। आपकी मौजूदा योजना बिना बदलाव के चलती रहेगी।",
       "appDelisted": "App Store से हटाया गया",
-      "appRelisted": "फिर से App Store में"
+      "appRelisted": "फिर से App Store में",
+      "oauthClientUpdated": "OAuth क्लाइंट सफलतापूर्वक अपडेट हो गया!"
     },
     "subText": {
       "startFromScratch": "शुरुआत से शुरू करें।",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "पहले वे पंक्तियाँ चुनें जिनके बारे में टिप्पणी है।",
     "factorySessionArchived": "सत्र संग्रहित कर दिया गया। इसका काम सुरक्षित है; आगे बढ़ाने के लिए इसे फिर से शुरू करें।",
     "factoryTurnFailed": "यह चरण विफल रहा",
-    "factoryDeleteSession": "“{title}” और उसका पूरा वार्तालाप रिकॉर्ड हटा दिया जाएगा। इसे पूर्ववत नहीं किया जा सकता।"
+    "factoryDeleteSession": "“{title}” और उसका पूरा वार्तालाप रिकॉर्ड हटा दिया जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
+    "migrateToV3": {
+      "whatChanges": "माइग्रेशन के बाद क्या बदलता है",
+      "changeDuplicate": "एंटिटी आईडी बनाए रखते हुए बेस की प्रतिलिपि बनाई जा सकती है",
+      "changeApi": "पहुँच केवल V3 API के माध्यम से उपलब्ध है",
+      "changeScale": "बेहतर स्केलेबिलिटी और दीर्घकालिक संगतता के लिए बनाया गया",
+      "considerations": "महत्वपूर्ण बातें",
+      "considerApis": "माइग्रेशन के बाद इस बेस के लिए V1 और V2 API काम नहीं करेंगे",
+      "considerPermanent": "माइग्रेशन स्थायी है और इसे पूर्ववत नहीं किया जा सकता",
+      "recommendation": "सभी एकीकरण v3 API के साथ संगत हैं, यह पुष्टि करने के बाद ही माइग्रेट करें।",
+      "confirmTitle": "इस बेस को v3 पर माइग्रेट करें?",
+      "confirmDesc": "इससे बेस नवीनतम आर्किटेक्चर और API संस्करण पर अपग्रेड हो जाएगा।",
+      "confirmCta": "माइग्रेशन की पुष्टि करें",
+      "migrating": "माइग्रेट किया जा रहा है..."
+    },
+    "skillsRegistryErrorTitle": "स्किल रजिस्ट्री में खोज नहीं की जा सकी"
   },
   "trash": {
     "restore": "पुनर्स्थापित करें",
@@ -6540,7 +6655,12 @@
         "partial": "{count} को बिना संघर्षों के पुनर्स्थापित करें",
         "force": "सभी को पुनर्स्थापित करें और संघर्षों को साफ़ करें"
       }
-    }
+    },
+    "unavailableExternal": "बाहरी स्रोत",
+    "unavailablePending": "सेट किया जा रहा है",
+    "usingDefault": "{value} (डिफ़ॉल्ट)",
+    "keptForever": "हमेशा के लिए",
+    "notKept": "नहीं रखा गया"
   },
   "baseTrash": {
     "title": "कचरा",

@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "برای الزامی کردن ورود در فرم‌ها ارتقا دهید",
     "upgradeToUseFormRequireSigninSubtitle": "برای الزامی کردن ورود پاسخ‌دهندگان پیش از ارسال فرم، به پلن {plan} ارتقا دهید.",
     "upgradeToUseSso": "برای استفاده از SSO ارتقا دهید",
-    "upgradeToUseSsoSubtitle": "برای راه‌اندازی ورود یکپارچه (SSO) و اجازه ورود تیم شما با ارائه‌دهنده هویت خود، به طرح {plan} ارتقا دهید."
+    "upgradeToUseSsoSubtitle": "برای راه‌اندازی ورود یکپارچه (SSO) و اجازه ورود تیم شما با ارائه‌دهنده هویت خود، به طرح {plan} ارتقا دهید.",
+    "upgradeToUseAppFactory": "برای استفاده از App Factory ارتقا دهید",
+    "upgradeToUseAppFactorySubtitle": "به طرح {plan} ارتقا دهید تا عامل‌های برنامه‌نویسی را روی مخازن متصل خود به کار بگیرید."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "ایجاد رکورد"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "پوشهٔ نماها",
     "subRecord": "زیررکورد",
     "video": "ویدیو",
-    "recordTemplates": "الگوهای رکورد"
+    "recordTemplates": "الگوهای رکورد",
+    "roleTypePlural": {
+      "owner": "مالکان",
+      "creator": "سازندگان",
+      "editor": "ویرایشگران",
+      "commenter": "نظردهندگان",
+      "viewer": "بینندگان",
+      "inherit": "ارث‌بری",
+      "noaccess": "بدون دسترسی",
+      "admin": "مدیران",
+      "superAdmin": "مدیران ارشد",
+      "orgAdmin": "مدیران سازمان",
+      "orgCreator": "سازندگان سازمان",
+      "orgViewer": "بینندگان سازمان",
+      "orgLevelOwner": "مالکان در سطح سازمان",
+      "orgLevelCreator": "سازندگان در سطح سازمان",
+      "orgLevelViewer": "بینندگان در سطح سازمان",
+      "appUser": "کاربران برنامه"
+    }
   },
   "datatype": {
     "ID": "شناسه (ID)",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "دامنهٔ سفارشی برداشته شود؟",
     "tooNarrowToAdjustFrozenFields": "پنجره برای تنظیم فیلدهای ثابت‌شده بسیار باریک است",
     "themeSettings": "تنظیمات پوسته",
-    "nFields": "{count} فیلد | {count} فیلد"
+    "nFields": "{count} فیلد | {count} فیلد",
+    "noInterfaceMembersYet": "هنوز عضوی در رابط کاربری نیست",
+    "headJoin": "پیوستن | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "باز کردن گفت‌وگوی این عامل",
     "sendToAgent": "ارسال به عامل",
     "noPort": "بدون پورت",
-    "manageInviteLinks": "مدیریت لینک‌های دعوت"
+    "manageInviteLinks": "مدیریت لینک‌های دعوت",
+    "editOauthClient": "ویرایش کلاینت OAuth",
+    "oauthClientNameHint": "هنگام اجازه‌دهی به کاربران نشان داده می‌شود",
+    "applicationDescription": "توضیح برنامه",
+    "oauthClientDescriptionHint": "توضیح کوتاهی که هنگام اعطای دسترسی به کاربران نشان داده می‌شود",
+    "homepageUrl": "نشانی URL صفحهٔ اصلی",
+    "oauthClientLogoHint": "تصویری که هنگام اجازه‌دهی نمایش داده می‌شود (مربعی توصیه می‌شود)",
+    "clientType": "نوع کلاینت",
+    "oauthClientTypeHint": "عمومی: برنامه‌های موبایل و وب (نیازمند PKCE). محرمانه: سرورهای امن (می‌توانند رمزها را ذخیره کنند)",
+    "confidential": "محرمانه",
+    "authorizationCallbackUrls": "نشانی‌های بازگشت پس از اجازه‌دهی",
+    "oauthCallbackUrlsHint": "نشانی‌های HTTPS برای هدایت پس از اجازه‌دهی (localhost/127.0.0.1 مجاز است). هر خط یک نشانی",
+    "clientId": "شناسهٔ کلاینت",
+    "clientSecret": "رمز کلاینت",
+    "regenerateSecret": "ساخت دوبارهٔ رمز",
+    "createOauthClients": "ایجاد کلاینت‌های OAuth",
+    "managingOauthClients": "مدیریت کلاینت‌های OAuth",
+    "clientInformation": "اطلاعات کلاینت"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "نوشتهٔ ناشر است، نه برگرفته از محتوای برنامه.",
     "marketplaceVerifiedPublisher": "منتشر و بررسی‌شده توسط NocoDB",
     "showCustomPermissionFieldsOnly": "فقط فیلدهای دارای مجوزهای سفارشی نمایش داده شوند",
-    "showAllFields": "نمایش همه فیلدها"
+    "showAllFields": "نمایش همه فیلدها",
+    "inviteLinkCannotGrantOwner": "پیوند دعوت نمی‌تواند نقش مالک را اعطا کند",
+    "inviteLinkRoleAboveYours": "فقط می‌توانید نقش‌هایی تا سطح نقش خودتان را پیشنهاد دهید",
+    "noDefaultSourceForFolders": "این پایگاه منبع پیش‌فرض ندارد — پوشه‌ها را از منوی خودِ منبع بسازید",
+    "noDefaultSourceForSync": "این پایگاه منبع پیش‌فرض ندارد — همگام‌سازی برای ذخیرهٔ جدول‌هایش به یک منبع نیاز دارد"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5233,7 +5277,28 @@
     "messageAgent": "پیام به {agent}",
     "somethingElse": "چیز دیگری",
     "noMcpConnections": "هیچ اتصال MCP ایجاد نشده است",
-    "noMcpConnectionsLabel": "به نظر می‌رسد هنوز هیچ اتصال MCP ایجاد نکرده‌اید."
+    "noMcpConnectionsLabel": "به نظر می‌رسد هنوز هیچ اتصال MCP ایجاد نکرده‌اید.",
+    "searchDataSource": "جست‌وجوی منبع داده",
+    "searchConnections": "جست‌وجوی اتصال‌ها",
+    "migrationUrl": "نشانی URL مهاجرت برای مقصد را وارد کنید",
+    "searchSync": "جست‌وجوی همگام‌سازی",
+    "searchWorkspace": "جست‌وجوی فضای کاری",
+    "searchBase": "جست‌وجوی پایگاه",
+    "searchEvent": "جست‌وجوی رویداد",
+    "skillRegistrySearch": "جست‌وجوی مهارت‌ها…",
+    "searchSnapshots": "جست‌وجوی تصویرهای لحظه‌ای",
+    "searchTokens": "جست‌وجوی توکن‌ها",
+    "factoryPrompt": "توضیح دهید چه چیزی می‌خواهید ساخته شود",
+    "factorySearchRepos": "جست‌وجوی مخازن",
+    "factorySearchTargets": "جست‌وجوی مخازن",
+    "factorySearchSources": "جست‌وجوی شاخه‌ها، درخواست‌های ادغام و مسائل",
+    "factoryOnPr": "روی این درخواست ادغام چه اتفاقی بیفتد؟",
+    "factoryOnIssue": "چیزی فراتر از خودِ مسئله برای افزودن (اختیاری)",
+    "factoryReply": "پاسخ",
+    "searchFiles": "جست‌وجوی فایل‌ها",
+    "factoryAnnotation": "عامل اینجا چه چیزی را تغییر دهد؟",
+    "oauthClientName": "برنامهٔ من",
+    "oauthClientDescription": "این برنامه به شما در مدیریت داده‌هایتان کمک می‌کند..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "این جدولِ همگام‌شدهٔ همین همگام‌سازی است — تبدیل آن خودِ همگام‌سازی را برمی‌دارد. همهٔ جدول‌هایی که این همگام‌سازی ساخته، به‌عنوان جدول‌های معمولی و قابل ویرایش می‌مانند و دیگر همگام نمی‌شوند.",
       "requiredFieldNotEditable": "این فیلد اجباری قابل ویرایش نیست و همین می‌تواند هنگام ارسال فرم خطا ایجاد کند.",
       "communityAppInstall": "{title} یک برنامهٔ جامعه است. NocoDB آن را بررسی و تأیید نکرده است. پیش از نصب آن در فضای کاری خود، مطمئن شوید که به ناشر اعتماد دارید.",
-      "removeCustomDomain": "{domain} دیگر این برنامه را ارائه نخواهد کرد. نشانی پیش‌فرض همچنان کار می‌کند."
+      "removeCustomDomain": "{domain} دیگر این برنامه را ارائه نخواهد کرد. نشانی پیش‌فرض همچنان کار می‌کند.",
+      "copyClientSecretNow": "⚠️ حتماً همین حالا رمز کلاینت خود را کپی کنید. دیگر نمی‌توانید آن را ببینید!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "ویرایش تا زمانی که دوباره بتوان آن را خواند خاموش است.",
       "inviteLinkDomainSentence": "فقط با ایمیل {domain} کار می‌کند و هم‌تیمی‌ها در نقش {role} می‌پیوندند",
       "inviteLinkOpenSentence": "هر کسی که این لینک را داشته باشد می‌تواند در نقش {role} بپیوندد",
-      "inviteLinkOpenCaution": "آن را فقط با کسانی که به آن‌ها اعتماد دارید به اشتراک بگذارید."
+      "inviteLinkOpenCaution": "آن را فقط با کسانی که به آن‌ها اعتماد دارید به اشتراک بگذارید.",
+      "shareHubTooltip": "افراد را برای کار در این پایگاه دعوت کنید، یا یک پیوند فقط‌خواندنی به {object} منتشر کنید.",
+      "shareHubTooltipInviteOnly": "افراد را برای کار در این پایگاه دعوت کنید. برای انتشار خود پایگاه، از «اشتراک‌گذاری پایگاه» در منوی پایگاه استفاده کنید.",
+      "shareNothingPrivateBase": "فقط مالک پایگاه می‌تواند افراد را به یک پایگاه خصوصی دعوت کند. برای انتشار یک نما، ابتدا آن را باز کنید.",
+      "shareNothingToShow": "از اینجا چیزی برای اشتراک‌گذاری نیست. برای انتشار پیوند فقط‌خواندنی یک نما را باز کنید.",
+      "peopleHaveAccess": "{count} نفر دسترسی دارد. | {count} نفر دسترسی دارند.",
+      "noInviteLinkYet": "هنوز پیوند دعوتی وجود ندارد. یکی بسازید تا افراد بدون دعوت‌نامهٔ جداگانه بتوانند بپیوندند.",
+      "youWillJoinAs": "شما با نقش {role} خواهید پیوست.",
+      "signedInWrongDomain": "شما با {email} وارد شده‌اید. این پیوند فقط نشانی‌های {'@'}{domain} را می‌پذیرد.",
+      "signedInAs": "شما با {email} وارد شده‌اید.",
+      "publicLinkToNamed": "پیوند عمومی به {name}",
+      "readOnlyInviteInstead": "فقط‌خواندنی. لازم است بتوانند ویرایش کنند یا نظر بدهند؟",
+      "willJoinAsRole": "{count} نفر با نقش {role} می‌پیوندد و می‌تواند {can}. | {count} نفر با نقش {role} می‌پیوندند و می‌توانند {can}.",
+      "sharePublicLinkSubtitle": "هر کسی که پیوند را داشته باشد می‌تواند آن را باز کند. به حساب کاربری نیازی نیست.",
+      "shareLinksReadOnly": "پیوندها فقط‌خواندنی هستند. می‌خواهید بتوانند ویرایش کنند یا نظر بدهند؟",
+      "clientSecretHidden": "رمز به دلایل امنیتی پنهان شده و دیگر نمایش داده نمی‌شود. در صورت نیاز می‌توانید آن را دوباره بسازید.",
+      "mcpSetupIntroClaude": "در ۳ گام ساده کار با NocoDB MCP در Claude Desktop را آغاز کنید",
+      "mcpSetupClaudeStep1": "تنظیمات Claude Desktop را از نوار پیمایش باز کنید.",
+      "mcpSetupClaudeStep2": "به زبانهٔ Develop بروید و روی «Edit Config» کلیک کنید.",
+      "mcpSetupClaudeStep3": "پیکربندی JSON را که پس از ساخت توکن ارائه می‌شود، در claude_desktop_config.json اضافه کنید",
+      "mcpSetupIntroCodex": "در ۳ گام ساده کار با NocoDB MCP در Codex CLI را آغاز کنید",
+      "mcpSetupCodexStep2": "پیکربندی TOML را که پس از ساخت توکن ارائه می‌شود اضافه کنید.",
+      "mcpSetupIntroAntigravity": "در ۴ گام ساده کار با NocoDB MCP در AntiGravity را آغاز کنید",
+      "mcpSetupAntigravityStep1": "روی سه نقطهٔ بالا سمت راست پنجرهٔ عامل و سپس روی \"MCP Servers\" کلیک کنید",
+      "mcpSetupAntigravityStep2": "روی Manage MCP Servers کلیک کنید.",
+      "mcpSetupViewRawConfig": "اکنون روی View raw config کلیک کنید.",
+      "mcpSetupPasteJsonConfig": "پیکربندی JSON را که پس از ساخت توکن ارائه می‌شود، در فایل بازشده بچسبانید",
+      "mcpSetupIntroCursor": "در ۳ گام ساده کار با NocoDB MCP در Cursor را آغاز کنید",
+      "mcpSetupCursorStep1": "تنظیمات Cursor را باز کنید (کلید Shift+Cmd+J را بزنید)",
+      "mcpSetupCursorStep2": "زبانهٔ \"MCP\" را انتخاب و روی \"Add Custom MCP\" کلیک کنید.",
+      "mcpSetupCursorStep3": "پیکربندی JSON را که پس از ساخت توکن ارائه می‌شود اضافه کنید.",
+      "mcpSetupIntroWindsurf": "در ۴ گام ساده کار با NocoDB MCP در Windsurf را آغاز کنید",
+      "mcpSetupWindsurfStep1": "به تنظیمات Windsurf بروید و در نوار کناری چپ زبانهٔ Cascade را انتخاب کنید",
+      "mcpSetupWindsurfStep2": "روی Manage MCP کلیک کنید."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "تغییر طرح زمان‌بندی شد",
       "planChangeReverted": "تغییر طرحِ زمان‌بندی‌شده لغو شد. طرح فعلی شما بدون تغییر ادامه می‌یابد.",
       "appDelisted": "از App Store برداشته شد",
-      "appRelisted": "دوباره در App Store"
+      "appRelisted": "دوباره در App Store",
+      "oauthClientUpdated": "کلاینت OAuth با موفقیت به‌روزرسانی شد!"
     },
     "subText": {
       "startFromScratch": "شروع از ابتدا.",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "نخست خط‌هایی را که نظر درباره آن‌هاست انتخاب کنید.",
     "factorySessionArchived": "نشست بایگانی شد. کار آن ذخیره شده است؛ برای ادامه، نشست را از سر بگیرید.",
     "factoryTurnFailed": "این نوبت ناموفق بود",
-    "factoryDeleteSession": "«{title}» و تمام رونوشت آن حذف خواهد شد. این کار قابل بازگشت نیست."
+    "factoryDeleteSession": "«{title}» و تمام رونوشت آن حذف خواهد شد. این کار قابل بازگشت نیست.",
+    "migrateToV3": {
+      "whatChanges": "پس از مهاجرت چه چیزی تغییر می‌کند",
+      "changeDuplicate": "پایگاه‌ها را می‌توان با حفظ شناسه‌های موجودیت‌ها تکثیر کرد",
+      "changeApi": "دسترسی فقط از طریق API V3 ممکن است",
+      "changeScale": "برای مقیاس‌پذیری بهتر و سازگاری بلندمدت طراحی شده است",
+      "considerations": "نکات مهم",
+      "considerApis": "پس از مهاجرت، API V1 و V2 دیگر برای این پایگاه کار نخواهند کرد",
+      "considerPermanent": "مهاجرت دائمی است و قابل بازگرداندن نیست",
+      "recommendation": "تنها پس از اطمینان از سازگاری همهٔ یکپارچه‌سازی‌ها با API v3 مهاجرت کنید.",
+      "confirmTitle": "این پایگاه به v3 مهاجرت داده شود؟",
+      "confirmDesc": "این کار پایگاه را به جدیدترین معماری و نسخهٔ API ارتقا می‌دهد.",
+      "confirmCta": "تأیید مهاجرت",
+      "migrating": "در حال مهاجرت..."
+    },
+    "skillsRegistryErrorTitle": "جست‌وجو در فهرست مهارت‌ها ممکن نشد"
   },
   "trash": {
     "restore": "Restore",
@@ -6540,7 +6655,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "منبع بیرونی",
+    "unavailablePending": "در حال راه‌اندازی",
+    "usingDefault": "{value} (پیش‌فرض)",
+    "keptForever": "برای همیشه",
+    "notKept": "نگهداری نمی‌شود"
   },
   "baseTrash": {
     "title": "Trash",

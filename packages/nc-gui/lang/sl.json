@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Nadgradite, da boste lahko pri obrazcih zahtevali prijavo",
     "upgradeToUseFormRequireSigninSubtitle": "Nadgradite na paket {plan}, da boste od anketirancev zahtevali prijavo pred oddajo obrazca.",
     "upgradeToUseSso": "Nadgradite za uporabo SSO",
-    "upgradeToUseSsoSubtitle": "Nadgradite na paket {plan} za nastavitev enotne prijave (SSO) in omogočite ekipi prijavo prek vašega ponudnika identitete."
+    "upgradeToUseSsoSubtitle": "Nadgradite na paket {plan} za nastavitev enotne prijave (SSO) in omogočite ekipi prijavo prek vašega ponudnika identitete.",
+    "upgradeToUseAppFactory": "Nadgradite za uporabo App Factory",
+    "upgradeToUseAppFactorySubtitle": "Nadgradite na paket {plan} in poganjajte programerske agente na svojih povezanih repozitorijih."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "Ustvarjanje zapisov"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1171,7 +1174,25 @@
     "viewFolder": "Mapa pogledov",
     "subRecord": "Podzapis",
     "video": "Videoposnetek",
-    "recordTemplates": "Predloge zapisov"
+    "recordTemplates": "Predloge zapisov",
+    "roleTypePlural": {
+      "owner": "Lastniki",
+      "creator": "Ustvarjalci",
+      "editor": "Uredniki",
+      "commenter": "Komentatorji",
+      "viewer": "Pregledovalci",
+      "inherit": "Podeduj",
+      "noaccess": "Ni dostopa",
+      "admin": "Skrbniki",
+      "superAdmin": "Glavni skrbniki",
+      "orgAdmin": "Skrbniki organizacije",
+      "orgCreator": "Ustvarjalci organizacije",
+      "orgViewer": "Pregledovalci organizacije",
+      "orgLevelOwner": "Lastniki na ravni organizacije",
+      "orgLevelCreator": "Ustvarjalci na ravni organizacije",
+      "orgLevelViewer": "Pregledovalci na ravni organizacije",
+      "appUser": "Uporabniki aplikacije"
+    }
   },
   "datatype": {
     "ID": "Id",
@@ -1525,7 +1546,9 @@
     "removeCustomDomain": "Odstranim domeno po meri?",
     "tooNarrowToAdjustFrozenFields": "Okno je preozko za prilagajanje zamrznjenih polj",
     "themeSettings": "Nastavitve teme",
-    "nFields": "{count} polje | {count} polj"
+    "nFields": "{count} polje | {count} polj",
+    "noInterfaceMembersYet": "Še ni članov vmesnika",
+    "headJoin": "Pridruži se | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4552,7 +4575,24 @@
     "openAgentConversation": "Odpri pogovor tega agenta",
     "sendToAgent": "Pošlji agentu",
     "noPort": "Ni vrat",
-    "manageInviteLinks": "Upravljanje povezav za povabilo"
+    "manageInviteLinks": "Upravljanje povezav za povabilo",
+    "editOauthClient": "Uredi odjemalca OAuth",
+    "oauthClientNameHint": "Prikaže se uporabnikom med avtorizacijo",
+    "applicationDescription": "Opis aplikacije",
+    "oauthClientDescriptionHint": "Kratek opis, ki se prikaže, ko uporabniki dodelijo dostop",
+    "homepageUrl": "URL domače strani",
+    "oauthClientLogoHint": "Slika, prikazana med avtorizacijo (priporočena je kvadratna)",
+    "clientType": "Vrsta odjemalca",
+    "oauthClientTypeHint": "Javni: mobilne in spletne aplikacije (zahteva PKCE). Zaupni: varni strežniki (lahko shranjujejo skrivnosti)",
+    "confidential": "Zaupno",
+    "authorizationCallbackUrls": "Povratni naslovi za avtorizacijo",
+    "oauthCallbackUrlsHint": "Naslovi HTTPS za preusmeritev po avtorizaciji (localhost/127.0.0.1 dovoljena). Eden na vrstico",
+    "clientId": "ID odjemalca",
+    "clientSecret": "Skrivnost odjemalca",
+    "regenerateSecret": "Znova ustvari skrivnost",
+    "createOauthClients": "Ustvari odjemalce OAuth",
+    "managingOauthClients": "Upravljanje odjemalcev OAuth",
+    "clientInformation": "Podatki o odjemalcu"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5068,7 +5108,11 @@
     "marketplaceAuthored": "Napisal založnik, ni povzeto iz vsebine aplikacije.",
     "marketplaceVerifiedPublisher": "Objavil in pregledal NocoDB",
     "showCustomPermissionFieldsOnly": "Prikaži samo polja s prilagojenimi dovoljenji",
-    "showAllFields": "Prikaži vsa polja"
+    "showAllFields": "Prikaži vsa polja",
+    "inviteLinkCannotGrantOwner": "Povezava za povabilo ne more dodeliti vloge lastnika",
+    "inviteLinkRoleAboveYours": "Ponudite lahko samo vloge do svoje lastne",
+    "noDefaultSourceForFolders": "Ta baza nima privzetega vira — mape ustvarite iz menija posameznega vira",
+    "noDefaultSourceForSync": "Ta baza nima privzetega vira — sinhronizacija ga potrebuje za shranjevanje svojih tabel"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5230,7 +5274,28 @@
     "messageAgent": "Sporočilo za {agent}",
     "somethingElse": "Nekaj drugega",
     "noMcpConnections": "Ustvarjena ni bila nobena povezava MCP",
-    "noMcpConnectionsLabel": "Videti je, da še niste ustvarili nobene povezave MCP."
+    "noMcpConnectionsLabel": "Videti je, da še niste ustvarili nobene povezave MCP.",
+    "searchDataSource": "Iskanje vira podatkov",
+    "searchConnections": "Iskanje povezav",
+    "migrationUrl": "Vnesite URL selitve za cilj",
+    "searchSync": "Iskanje sinhronizacije",
+    "searchWorkspace": "Iskanje delovnega prostora",
+    "searchBase": "Iskanje baze",
+    "searchEvent": "Iskanje dogodka",
+    "skillRegistrySearch": "Iskanje veščin…",
+    "searchSnapshots": "Iskanje posnetkov",
+    "searchTokens": "Iskanje žetonov",
+    "factoryPrompt": "Opišite, kaj želite zgraditi",
+    "factorySearchRepos": "Iskanje repozitorijev",
+    "factorySearchTargets": "Iskanje repozitorijev",
+    "factorySearchSources": "Iskanje vej, pull requestov in težav",
+    "factoryOnPr": "Kaj naj se zgodi s tem pull requestom?",
+    "factoryOnIssue": "Karkoli bi dodali poleg same težave (neobvezno)",
+    "factoryReply": "Odgovori",
+    "searchFiles": "Iskanje datotek",
+    "factoryAnnotation": "Kaj naj agent tukaj spremeni?",
+    "oauthClientName": "Moja aplikacija",
+    "oauthClientDescription": "Ta aplikacija vam pomaga upravljati vaše podatke..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5469,7 +5534,8 @@
       "tableSyncConvertMainTable": "To je sinhronizirana tabela te sinhronizacije — njena pretvorba odstrani sinhronizacijo samo. Vse tabele, ki jih je ustvarila, ostanejo kot običajne, urejljive tabele in se nehajo sinhronizirati.",
       "requiredFieldNotEditable": "Tega obveznega polja ni mogoče urejati, kar lahko povzroči napake pri oddaji obrazca.",
       "communityAppInstall": "{title} je aplikacija skupnosti. NocoDB je ni pregledal niti potrdil. Preden jo namestite v svoj delovni prostor, se prepričajte, da izdajatelju zaupate.",
-      "removeCustomDomain": "{domain} te aplikacije ne bo več stregel. Privzeti naslov še naprej deluje."
+      "removeCustomDomain": "{domain} te aplikacije ne bo več stregel. Privzeti naslov še naprej deluje.",
+      "copyClientSecretNow": "⚠️ Skrivnost odjemalca obvezno kopirajte zdaj. Pozneje si je ne boste mogli več ogledati!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5964,7 +6030,40 @@
       "interfaceRecordUnreadableEditingOff": "Urejanje je izklopljeno, dokler zapisa ne bo mogoče znova prebrati.",
       "inviteLinkDomainSentence": "Deluje samo z e-pošto {domain}, sodelavci pa se pridružijo kot {role}",
       "inviteLinkOpenSentence": "Kdor koli s povezavo se lahko pridruži kot {role}",
-      "inviteLinkOpenCaution": "Delite jo samo z ljudmi, ki jim zaupate."
+      "inviteLinkOpenCaution": "Delite jo samo z ljudmi, ki jim zaupate.",
+      "shareHubTooltip": "Povabite ljudi, da delajo v tej bazi, ali objavite povezavo samo za branje do {object}.",
+      "shareHubTooltipInviteOnly": "Povabite ljudi, da delajo v tej bazi. Za objavo same baze uporabite «Deli bazo» v meniju baze.",
+      "shareNothingPrivateBase": "V zasebno bazo lahko ljudi povabi samo lastnik baze. Za objavo pogleda najprej odprite enega.",
+      "shareNothingToShow": "Od tu ni ničesar za deliti. Odprite pogled in objavite povezavo samo za branje.",
+      "peopleHaveAccess": "{count} oseba ima dostop. | {count} oseb ima dostop.",
+      "noInviteLinkYet": "Povezave za povabilo še ni. Ustvarite jo, da se bodo ljudje lahko pridružili brez posamičnega povabila.",
+      "youWillJoinAs": "Pridružili se boste kot {role}.",
+      "signedInWrongDomain": "Prijavljeni ste kot {email}. Ta povezava sprejema samo naslove {'@'}{domain}.",
+      "signedInAs": "Prijavljeni ste kot {email}.",
+      "publicLinkToNamed": "Javna povezava do {name}",
+      "readOnlyInviteInstead": "Samo za branje. Želite, da lahko urejajo ali komentirajo?",
+      "willJoinAsRole": "{count} oseba se bo pridružila kot {role} in bo lahko {can}. | {count} oseb se bo pridružilo kot {role} in bodo lahko {can}.",
+      "sharePublicLinkSubtitle": "Odpre jo lahko vsak, ki ima povezavo. Račun ni potreben.",
+      "shareLinksReadOnly": "Povezave so samo za branje. Želite, da lahko urejajo ali komentirajo?",
+      "clientSecretHidden": "Skrivnost je iz varnostnih razlogov skrita in ne bo več vidna. Po potrebi jo lahko znova ustvarite.",
+      "mcpSetupIntroClaude": "Začnite uporabljati NocoDB MCP z aplikacijo Claude Desktop v 3 preprostih korakih",
+      "mcpSetupClaudeStep1": "V navigacijski vrstici odprite nastavitve aplikacije Claude Desktop.",
+      "mcpSetupClaudeStep2": "Pojdite na zavihek Develop in kliknite «Edit Config».",
+      "mcpSetupClaudeStep3": "V datoteko claude_desktop_config.json dodajte konfiguracijo JSON, ki jo dobite po ustvarjanju žetona",
+      "mcpSetupIntroCodex": "Začnite uporabljati NocoDB MCP z orodjem Codex CLI v 3 preprostih korakih",
+      "mcpSetupCodexStep2": "Dodajte konfiguracijo TOML, ki jo dobite po ustvarjanju žetona.",
+      "mcpSetupIntroAntigravity": "Začnite uporabljati NocoDB MCP z aplikacijo AntiGravity v 4 preprostih korakih",
+      "mcpSetupAntigravityStep1": "Kliknite tri pike v zgornjem desnem kotu okna agenta in nato \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Kliknite Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Zdaj kliknite View raw config.",
+      "mcpSetupPasteJsonConfig": "V odprto datoteko prilepite konfiguracijo JSON, ki jo dobite po ustvarjanju žetona",
+      "mcpSetupIntroCursor": "Začnite uporabljati NocoDB MCP z aplikacijo Cursor v 3 preprostih korakih",
+      "mcpSetupCursorStep1": "Odprite nastavitve aplikacije Cursor (pritisnite Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Izberite zavihek \"MCP\" in kliknite \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Dodajte konfiguracijo JSON, ki jo dobite po ustvarjanju žetona.",
+      "mcpSetupIntroWindsurf": "Začnite uporabljati NocoDB MCP z aplikacijo Windsurf v 4 preprostih korakih",
+      "mcpSetupWindsurfStep1": "Odprite nastavitve aplikacije Windsurf in v levi stranski vrstici izberite zavihek Cascade",
+      "mcpSetupWindsurfStep2": "Kliknite Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6279,7 +6378,8 @@
       "planChangeScheduled": "Sprememba paketa načrtovana",
       "planChangeReverted": "Načrtovana sprememba paketa je preklicana. Vaš trenutni paket teče naprej nespremenjen.",
       "appDelisted": "Odstranjeno iz trgovine App Store",
-      "appRelisted": "Znova v trgovini App Store"
+      "appRelisted": "Znova v trgovini App Store",
+      "oauthClientUpdated": "Odjemalec OAuth je bil uspešno posodobljen!"
     },
     "subText": {
       "startFromScratch": "Začni iz nič.",
@@ -6474,7 +6574,22 @@
     "factorySelectLinesToAnnotate": "Najprej izberite vrstice, na katere se komentar nanaša.",
     "factorySessionArchived": "Seja je arhivirana. Njeno delo je shranjeno; nadaljujte jo, da jo prevzamete.",
     "factoryTurnFailed": "Poteza ni uspela",
-    "factoryDeleteSession": "»{title}« in celoten prepis bosta izbrisana. Tega ni mogoče razveljaviti."
+    "factoryDeleteSession": "»{title}« in celoten prepis bosta izbrisana. Tega ni mogoče razveljaviti.",
+    "migrateToV3": {
+      "whatChanges": "Kaj se po selitvi spremeni",
+      "changeDuplicate": "Baze je mogoče podvojiti z ohranitvijo ID-jev entitet",
+      "changeApi": "Dostop je mogoč samo prek API V3",
+      "changeScale": "Zasnovano za boljšo razširljivost in dolgoročno združljivost",
+      "considerations": "Pomembni premisleki",
+      "considerApis": "Po selitvi API V1 in V2 za to bazo ne bosta več delovala",
+      "considerPermanent": "Selitev je trajna in je ni mogoče razveljaviti",
+      "recommendation": "Selitev izvedite šele, ko potrdite, da so vse integracije združljive z API v3.",
+      "confirmTitle": "Preseliti to bazo na v3?",
+      "confirmDesc": "S tem se baza nadgradi na najnovejšo arhitekturo in različico API-ja.",
+      "confirmCta": "Potrdi selitev",
+      "migrating": "Selitev poteka..."
+    },
+    "skillsRegistryErrorTitle": "Registra veščin ni bilo mogoče preiskati"
   },
   "trash": {
     "restore": "Restore",
@@ -6537,7 +6652,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "Zunanji vir",
+    "unavailablePending": "Nastavljanje",
+    "usingDefault": "{value} (privzeto)",
+    "keptForever": "Za vedno",
+    "notKept": "Se ne hrani"
   },
   "baseTrash": {
     "title": "Trash",

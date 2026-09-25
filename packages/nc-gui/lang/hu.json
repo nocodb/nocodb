@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Frissítsen, hogy bejelentkezést írhasson elő az űrlapokon",
     "upgradeToUseFormRequireSigninSubtitle": "Frissítsen a(z) {plan} csomagra, hogy a kitöltőknek be kelljen jelentkezniük az űrlap elküldése előtt.",
     "upgradeToUseSso": "Frissítés az SSO használatához",
-    "upgradeToUseSsoSubtitle": "A {plan} csomagra való frissítéssel beállíthatja az egyszeri bejelentkezést (SSO), és a csapata bejelentkezhet az identitásszolgáltatójával."
+    "upgradeToUseSsoSubtitle": "A {plan} csomagra való frissítéssel beállíthatja az egyszeri bejelentkezést (SSO), és a csapata bejelentkezhet az identitásszolgáltatójával.",
+    "upgradeToUseAppFactory": "Váltson magasabb csomagra az App Factory használatához",
+    "upgradeToUseAppFactorySubtitle": "Váltson a(z) {plan} csomagra, hogy kódoló ügynököket indíthasson a csatlakoztatott tárolóiban."
   },
   "general": {
     "scrollToBottom": "Görgessen az aljára",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Senki {description}",
         "moreUsers": "+ {count} tovább",
         "selectUsersOrTeams": "Felhasználók vagy csapatok kiválasztása"
-      }
+      },
+      "createRecords": "Rekordok létrehozása"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "Nézetmappa",
     "subRecord": "Alrekord",
     "video": "Videó",
-    "recordTemplates": "Rekordsablonok"
+    "recordTemplates": "Rekordsablonok",
+    "roleTypePlural": {
+      "owner": "Tulajdonosok",
+      "creator": "Létrehozók",
+      "editor": "Szerkesztők",
+      "commenter": "Hozzászólók",
+      "viewer": "Megtekintők",
+      "inherit": "Öröklés",
+      "noaccess": "Nincs hozzáférés",
+      "admin": "Rendszergazdák",
+      "superAdmin": "Fő rendszergazdák",
+      "orgAdmin": "Szervezeti rendszergazdák",
+      "orgCreator": "Szervezeti létrehozók",
+      "orgViewer": "Szervezeti megtekintők",
+      "orgLevelOwner": "Szervezeti szintű tulajdonosok",
+      "orgLevelCreator": "Szervezeti szintű létrehozók",
+      "orgLevelViewer": "Szervezeti szintű megtekintők",
+      "appUser": "Alkalmazásfelhasználók"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "Eltávolítja az egyéni domaint?",
     "tooNarrowToAdjustFrozenFields": "Az ablak túl keskeny a rögzített mezők beállításához",
     "themeSettings": "Témabeállítások",
-    "nFields": "{count} mező | {count} mező"
+    "nFields": "{count} mező | {count} mező",
+    "noInterfaceMembersYet": "Még nincsenek felületi tagok",
+    "headJoin": "Csatlakozás | NocoDB"
   },
   "labels": {
     "syncing": "Szinkronizálás",
@@ -4552,7 +4575,24 @@
     "openAgentConversation": "Az ügynök beszélgetésének megnyitása",
     "sendToAgent": "Küldés az ügynöknek",
     "noPort": "Nincs port",
-    "manageInviteLinks": "Meghívó linkek kezelése"
+    "manageInviteLinks": "Meghívó linkek kezelése",
+    "editOauthClient": "OAuth-ügyfél szerkesztése",
+    "oauthClientNameHint": "Az engedélyezés során megjelenik a felhasználóknak",
+    "applicationDescription": "Alkalmazás leírása",
+    "oauthClientDescriptionHint": "Rövid leírás, amely a hozzáférés megadásakor jelenik meg a felhasználóknak",
+    "homepageUrl": "A kezdőlap URL címe",
+    "oauthClientLogoHint": "Az engedélyezés során megjelenő kép (négyzetes ajánlott)",
+    "clientType": "Ügyfél típusa",
+    "oauthClientTypeHint": "Nyilvános: mobil- és webalkalmazások (PKCE szükséges). Bizalmas: biztonságos kiszolgálók (titkokat tárolhatnak)",
+    "confidential": "Bizalmas",
+    "authorizationCallbackUrls": "Engedélyezési visszahívási címek",
+    "oauthCallbackUrlsHint": "HTTPS címek az engedélyezés utáni átirányításhoz (localhost/127.0.0.1 engedélyezett). Soronként egy",
+    "clientId": "Ügyfél-azonosító",
+    "clientSecret": "Ügyféltitok",
+    "regenerateSecret": "Új titok létrehozása",
+    "createOauthClients": "OAuth-ügyfelek létrehozása",
+    "managingOauthClients": "OAuth-ügyfelek kezelése",
+    "clientInformation": "Ügyféladatok"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -5068,7 +5108,11 @@
     "marketplaceAuthored": "A közzétevő írta, nem az alkalmazás tartalmából származik.",
     "marketplaceVerifiedPublisher": "Közzétette és ellenőrizte a NocoDB",
     "showCustomPermissionFieldsOnly": "Csak az egyéni jogosultságokkal rendelkező mezők megjelenítése",
-    "showAllFields": "Összes mező megjelenítése"
+    "showAllFields": "Összes mező megjelenítése",
+    "inviteLinkCannotGrantOwner": "Meghívó hivatkozás nem adhat Tulajdonos szerepkört",
+    "inviteLinkRoleAboveYours": "Csak a sajátjáig terjedő szerepköröket ajánlhat fel",
+    "noDefaultSourceForFolders": "Ennek a bázisnak nincs alapértelmezett forrása — a mappákat inkább az adott forrás saját menüjéből hozza létre",
+    "noDefaultSourceForSync": "Ennek a bázisnak nincs alapértelmezett forrása — a szinkronizálásnak szüksége van egyre a táblái tárolásához"
   },
   "placeholder": {
     "enterVerificationCode": "Adja meg a 6 számjegyű kódot",
@@ -5230,7 +5274,28 @@
     "messageAgent": "Üzenet neki: {agent}",
     "somethingElse": "Valami más",
     "noMcpConnections": "Nincs létrehozott MCP-kapcsolat",
-    "noMcpConnectionsLabel": "Úgy tűnik, még nem hozott létre MCP-kapcsolatot."
+    "noMcpConnectionsLabel": "Úgy tűnik, még nem hozott létre MCP-kapcsolatot.",
+    "searchDataSource": "Adatforrás keresése",
+    "searchConnections": "Kapcsolatok keresése",
+    "migrationUrl": "Adja meg a cél áttelepítési URL címét",
+    "searchSync": "Szinkronizálás keresése",
+    "searchWorkspace": "Munkaterület keresése",
+    "searchBase": "Bázis keresése",
+    "searchEvent": "Esemény keresése",
+    "skillRegistrySearch": "Képességek keresése…",
+    "searchSnapshots": "Pillanatképek keresése",
+    "searchTokens": "Tokenek keresése",
+    "factoryPrompt": "Írja le, mit szeretne megépíttetni",
+    "factorySearchRepos": "Tárolók keresése",
+    "factorySearchTargets": "Tárolók keresése",
+    "factorySearchSources": "Ágak, pull requestek és hibajegyek keresése",
+    "factoryOnPr": "Mi történjen ezzel a pull requesttel?",
+    "factoryOnIssue": "Bármi, amit a hibajegyen túl hozzátenne (nem kötelező)",
+    "factoryReply": "Válasz",
+    "searchFiles": "Fájlok keresése",
+    "factoryAnnotation": "Mit változtasson itt az ügynök?",
+    "oauthClientName": "Az alkalmazásom",
+    "oauthClientDescription": "Ez az alkalmazás segít az adatai kezelésében..."
   },
   "msg": {
     "sourceViewNotShared": "A szinkronizálás le van tiltva ezen a nézeten",
@@ -5469,7 +5534,8 @@
       "tableSyncConvertMainTable": "Ez ennek a szinkronizálásnak a szinkronizált táblája — az átalakítása magát a szinkronizálást is megszünteti. A szinkronizálás által létrehozott összes tábla megmarad hagyományos, szerkeszthető táblaként, és többé nem szinkronizálódik.",
       "requiredFieldNotEditable": "Ez a kötelező mező nem szerkeszthető, ami hibákat okozhat az űrlap beküldésekor.",
       "communityAppInstall": "A(z) {title} közösségi alkalmazás. A NocoDB nem vizsgálta át és nem hitelesítette. Mielőtt telepíti a munkaterületére, győződjön meg róla, hogy megbízik a közzétevőben.",
-      "removeCustomDomain": "A(z) {domain} többé nem szolgálja ki ezt az alkalmazást. Az alapértelmezett cím továbbra is működik."
+      "removeCustomDomain": "A(z) {domain} többé nem szolgálja ki ezt az alkalmazást. Az alapértelmezett cím továbbra is működik.",
+      "copyClientSecretNow": "⚠️ Feltétlenül másolja ki most az ügyféltitkot. Később nem fogja tudni megtekinteni!"
     },
     "info": {
       "sourceViewRebindResync": "A forrásnézet megváltoztatása teljes újraszinkronizálást indít el az új nézettel szemben.",
@@ -5964,7 +6030,40 @@
       "interfaceRecordUnreadableEditingOff": "A szerkesztés ki van kapcsolva, amíg a rekord újra olvashatóvá nem válik.",
       "inviteLinkDomainSentence": "Csak {domain} e-mail-címmel működik, és a csapattagok {role} szerepkörrel csatlakoznak",
       "inviteLinkOpenSentence": "Bárki, akinek megvan a link, csatlakozhat mint {role}",
-      "inviteLinkOpenCaution": "Csak olyanokkal ossza meg, akikben megbízik."
+      "inviteLinkOpenCaution": "Csak olyanokkal ossza meg, akikben megbízik.",
+      "shareHubTooltip": "Hívjon meg másokat, hogy ebben a bázisban dolgozzanak, vagy tegyen közzé egy csak olvasható hivatkozást ide: {object}.",
+      "shareHubTooltipInviteOnly": "Hívjon meg másokat, hogy ebben a bázisban dolgozzanak. Magának a bázisnak a közzétételéhez használja a bázis menüjében a «Bázis megosztása» lehetőséget.",
+      "shareNothingPrivateBase": "Privát bázisba csak a bázis tulajdonosa hívhat meg másokat. Nézet közzétételéhez először nyisson meg egyet.",
+      "shareNothingToShow": "Innen nincs mit megosztani. Nyisson meg egy nézetet csak olvasható hivatkozás közzétételéhez.",
+      "peopleHaveAccess": "{count} személynek van hozzáférése. | {count} személynek van hozzáférése.",
+      "noInviteLinkYet": "Még nincs meghívó hivatkozás. Hozzon létre egyet, hogy mások egyéni meghívó nélkül is csatlakozhassanak.",
+      "youWillJoinAs": "Ön {role} szerepkörrel csatlakozik.",
+      "signedInWrongDomain": "Ön {email} néven van bejelentkezve. Ez a hivatkozás csak {'@'}{domain} végződésű címeket fogad el.",
+      "signedInAs": "Ön {email} néven van bejelentkezve.",
+      "publicLinkToNamed": "Nyilvános hivatkozás ide: {name}",
+      "readOnlyInviteInstead": "Csak olvasható. Szeretné, hogy szerkeszthessenek vagy hozzászólhassanak?",
+      "willJoinAsRole": "{count} személy csatlakozik {role} szerepkörrel, és a következőt teheti: {can}. | {count} személy csatlakozik {role} szerepkörrel, és a következőt teheti: {can}.",
+      "sharePublicLinkSubtitle": "Bárki megnyithatja, akinek megvan a hivatkozás. Fiók nem szükséges.",
+      "shareLinksReadOnly": "A hivatkozások csak olvashatók. Szeretné, hogy szerkeszthessenek vagy hozzászólhassanak?",
+      "clientSecretHidden": "A titok biztonsági okokból rejtve van, és többé nem jelenik meg. Szükség esetén újat hozhat létre.",
+      "mcpSetupIntroClaude": "Kezdje el használni a NocoDB MCP-t a Claude Desktop alkalmazással 3 egyszerű lépésben",
+      "mcpSetupClaudeStep1": "Nyissa meg a Claude Desktop beállításait a navigációs sávról.",
+      "mcpSetupClaudeStep2": "Lépjen a Develop fülre, és kattintson az «Edit Config» elemre.",
+      "mcpSetupClaudeStep3": "Adja hozzá a claude_desktop_config.json fájlhoz azt a JSON konfigurációt, amelyet a token létrehozása után kap",
+      "mcpSetupIntroCodex": "Kezdje el használni a NocoDB MCP-t a Codex CLI eszközzel 3 egyszerű lépésben",
+      "mcpSetupCodexStep2": "Adja hozzá azt a TOML konfigurációt, amelyet a token létrehozása után kap.",
+      "mcpSetupIntroAntigravity": "Kezdje el használni a NocoDB MCP-t az AntiGravity alkalmazással 4 egyszerű lépésben",
+      "mcpSetupAntigravityStep1": "Kattintson az ügynökablak jobb felső sarkában lévő három pontra, majd az \"MCP Servers\" elemre",
+      "mcpSetupAntigravityStep2": "Kattintson a Manage MCP Servers elemre.",
+      "mcpSetupViewRawConfig": "Most kattintson a View raw config elemre.",
+      "mcpSetupPasteJsonConfig": "Illessze be a megnyitott fájlba azt a JSON konfigurációt, amelyet a token létrehozása után kap",
+      "mcpSetupIntroCursor": "Kezdje el használni a NocoDB MCP-t a Cursor alkalmazással 3 egyszerű lépésben",
+      "mcpSetupCursorStep1": "Nyissa meg a Cursor beállításait (nyomja meg a Shift+Cmd+J billentyűket)",
+      "mcpSetupCursorStep2": "Válassza az \"MCP\" fület, és kattintson az \"Add Custom MCP\" elemre.",
+      "mcpSetupCursorStep3": "Adja hozzá azt a JSON konfigurációt, amelyet a token létrehozása után kap.",
+      "mcpSetupIntroWindsurf": "Kezdje el használni a NocoDB MCP-t a Windsurf alkalmazással 4 egyszerű lépésben",
+      "mcpSetupWindsurfStep1": "Nyissa meg a Windsurf beállításait, és válassza a bal oldali sávban a Cascade fület",
+      "mcpSetupWindsurfStep2": "Kattintson a Manage MCP elemre."
     },
     "error": {
       "failedToCreateSync": "Sikertelen szinkronizálás létrehozása",
@@ -6279,7 +6378,8 @@
       "planChangeScheduled": "Csomagváltás ütemezve",
       "planChangeReverted": "Az ütemezett csomagváltás visszavonva. A jelenlegi csomagja változatlanul folytatódik.",
       "appDelisted": "Eltávolítva az App Store-ból",
-      "appRelisted": "Újra az App Store-ban"
+      "appRelisted": "Újra az App Store-ban",
+      "oauthClientUpdated": "Az OAuth-ügyfél sikeresen frissült!"
     },
     "subText": {
       "startFromScratch": "Kezdje el a semmiből.",
@@ -6474,7 +6574,22 @@
     "factorySelectLinesToAnnotate": "Először jelölje ki azokat a sorokat, amelyekre a megjegyzés vonatkozik.",
     "factorySessionArchived": "Munkamenet archiválva. A munkája megmaradt; folytassa, ha vissza szeretne térni rá.",
     "factoryTurnFailed": "A kör sikertelen volt",
-    "factoryDeleteSession": "A(z) „{title}” és a teljes átirata törlődik. Ez nem vonható vissza."
+    "factoryDeleteSession": "A(z) „{title}” és a teljes átirata törlődik. Ez nem vonható vissza.",
+    "migrateToV3": {
+      "whatChanges": "Mi változik az áttelepítés után",
+      "changeDuplicate": "A bázisok az entitásazonosítók megőrzésével sokszorosíthatók",
+      "changeApi": "A hozzáférés csak a V3 API révén lehetséges",
+      "changeScale": "Jobb skálázhatóságra és hosszú távú kompatibilitásra tervezve",
+      "considerations": "Fontos tudnivalók",
+      "considerApis": "Az áttelepítés után a V1 és V2 API-k már nem fognak működni ehhez a bázishoz",
+      "considerPermanent": "Az áttelepítés végleges, és nem vonható vissza",
+      "recommendation": "Csak azután telepítsen át, hogy meggyőződött róla: minden integráció kompatibilis a v3 API felülettel.",
+      "confirmTitle": "Áttelepíti ezt a bázist a v3 verzióra?",
+      "confirmDesc": "Ezzel a bázis a legújabb architektúrára és API verzióra frissül.",
+      "confirmCta": "Áttelepítés megerősítése",
+      "migrating": "Áttelepítés..."
+    },
+    "skillsRegistryErrorTitle": "Nem sikerült keresni a képességjegyzékben"
   },
   "trash": {
     "restore": "Visszaállítás",
@@ -6537,7 +6652,12 @@
         "partial": "A {count} helyreállítása konfliktusok nélkül",
         "force": "Mindent visszaállítani és konfliktusokat törölni"
       }
-    }
+    },
+    "unavailableExternal": "Külső forrás",
+    "unavailablePending": "Beállítás folyamatban",
+    "usingDefault": "{value} (alapértelmezett)",
+    "keptForever": "Örökre",
+    "notKept": "Nem megőrzött"
   },
   "baseTrash": {
     "title": "Szemét",

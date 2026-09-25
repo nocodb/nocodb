@@ -63,7 +63,7 @@ const crumb = computed(() => {
           :href="docsHref"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1 ml-1.5 font-medium text-nc-content-brand !no-underline hover:underline"
+          class="nc-shell-docs inline-flex items-center gap-1 ml-1.5 !no-underline hover:underline"
         >
           {{ $t('title.docs') }}
           <GeneralIcon icon="ncExternalLink" class="!h-3.5 !w-3.5" />
@@ -84,3 +84,13 @@ const crumb = computed(() => {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+// Takes the colour of the description line it sits in rather than the global
+// anchor blue: it is a footnote on that sentence, not a call to action.
+.nc-shell-docs,
+.nc-shell-docs:hover,
+.nc-shell-docs:focus {
+  color: inherit;
+}
+</style>

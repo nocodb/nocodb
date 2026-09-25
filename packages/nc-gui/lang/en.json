@@ -954,7 +954,7 @@
       "nocodb": "NocoDB"
     },
     "integrationCategories": {
-      "authProvider": "Auth Provider",
+      "authProvider": "Apps",
       "authProviderSubtitle": "Auth",
       "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
       "communication": "Communication",
@@ -1551,6 +1551,15 @@
     "agentSettings": "Settings"
   },
   "labels": {
+    "addedOnDate": "Added {date}",
+    "byUser": "by {user}",
+    "addedOn": "Added {date}",
+    "showMoreConnections": "Show {count} more connections",
+    "addConnection": "Add connection",
+    "yourConnections": "Your connections",
+    "searchIntegrations": "Search integrations",
+    "requestIntegration": "Request integration",
+    "browseIntegrations": "Browse Integrations",
     "examplePrompt": "Example prompt",
     "connectYourAi": "Connect your AI",
     "theme": "Theme",
@@ -1756,6 +1765,7 @@
       "dragDropPrefix": "Drag & drop, or",
       "browse": "browse",
       "placeholder": {
+        "searchIntegrations": "Search integrations",
         "productName": "NocoDB",
         "brandColor": "#3366FF",
         "seoDescription": "The smart no-code platform your team runs on.",
@@ -2146,7 +2156,6 @@
     "review": "Review",
     "newSync": "New Sync",
     "sync": "Sync",
-    "searchIntegrations": "Search integrations",
     "newSource": "New Source",
     "deleteSource": "Delete source",
     "syncSchedule": "Sync schedule",
@@ -5162,6 +5171,7 @@
     "verifyEmailBeforeReset": "If your email wasn’t verified during sign-up, please verify it now before proceeding with the reset; otherwise, you won’t receive the reset code."
   },
   "placeholder": {
+    "requestIntegration": "Provide integration name and your use-case.",
     "interfaceNocoAiPrompt": "Ask a question, or generate content based on this record.",
     "searchTools": "Search tools",
     "searchDataSource": "Search data source",
@@ -5629,6 +5639,7 @@
       "migrating": "Migrating..."
     },
     "info": {
+      "requestIntegrationHint": "Tell us what you need next",
       "mcpExamplePrompt": "Use NocoDB MCP to work with my base \"{base}\". Explore the schema, then help me add tables, fields and workflows.",
       "connectYourAiDesc": "Let Claude, ChatGPT or Cursor build tables, workflows and interfaces in this base.",
       "auditLogsDisabled": "Audit logs are currently disabled by administrators.",

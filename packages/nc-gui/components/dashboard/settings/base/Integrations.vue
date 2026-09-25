@@ -27,8 +27,15 @@ const { linkedIntegrations, isLoading, isLoaded, loadLinkedIntegrations, linkInt
 const canManage = computed(() => isUIAllowed('baseIntegrationCreate'))
 
 // Integration store (provided by View.vue)
-const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations, integrationsRefreshKey } =
-  useIntegrationStore()
+const {
+  addIntegration,
+  editIntegration,
+  eventBus,
+  isFromIntegrationPage,
+  loadDynamicIntegrations,
+  integrationsRefreshKey,
+  requestIntegration,
+} = useIntegrationStore()
 
 const { isEEFeatureBlocked, isEnvironmentBlocked, environmentUpgradeFeature, showEEFeatures } = useEeConfig()
 
@@ -164,6 +171,72 @@ const integrationsMap = computed(() => {
     }
   }
   return map
+})
+
+/**
+ * Browse gallery state. Categories become filter pills over one flat grid rather
+ * than a stack of per-category sections: the whole catalogue is ~30 items, so a
+ * single scannable grid beats several short ones, and the pills make "show me
+ * only AI" one click instead of a scroll.
+ */
+const activeCategory = ref<string>('all')
+
+/**
+ * Apps is the SaaS side of the catalogue. The underlying AUTH category carries
+ * every provider that *can* authenticate, datastores and raw protocols included,
+ * so it needs pruning to mean anything.
+ *
+ * A deny-list rather than a dedupe against the other pills: Database identifies
+ * the same products by driver id (`pg`, `mysql2`) where AUTH uses product names
+ * (`postgres`, `mysql`), so matching on sub_type would never catch them -- and
+ * Redis, ClickHouse and http-api are not under any other pill yet still are not
+ * apps.
+ */
+const appsCategory = IntegrationCategoryType.AUTH
+
+const NON_APP_SUB_TYPES = new Set([
+  // datastores
+  'postgres',
+  'pg',
+  'mysql',
+  'mysql2',
+  'mssql',
+  'oracledb',
+  'sqlite3',
+  'clickhouse',
+  'snowflake',
+  'databricks',
+  'redis',
+  // raw protocols, not products
+  'http-api',
+  'smtp',
+  'caldav',
+])
+
+const isAppIntegration = (i: IntegrationItemType) => !NON_APP_SUB_TYPES.has(String(i.sub_type))
+
+const categoryPills = computed(() => [
+  { value: 'all', title: 'general.all' },
+  ...Object.values(integrationsMap.value)
+    .filter((c) => (c.value === appsCategory ? c.list.some(isAppIntegration) : c.list.length))
+    .map((c) => ({ value: c.value, title: c.title })),
+])
+
+/** Flat, so "All" is one grid. */
+const browseItems = computed(() =>
+  Object.values(integrationsMap.value)
+    .filter((c) => activeCategory.value === 'all' || c.value === activeCategory.value)
+    .flatMap((c) =>
+      (c.value === appsCategory ? c.list.filter(isAppIntegration) : c.list).map((i) => ({
+        integration: i,
+      })),
+    ),
+)
+
+// A pill that no longer matches anything (the search narrowed it away) would
+// leave an empty grid with no way back, so fall to All.
+watch(browseItems, (items) => {
+  if (!items.length && activeCategory.value !== 'all') activeCategory.value = 'all'
 })
 
 const handleAddIntegration = async (integration: IntegrationItemType) => {
@@ -302,16 +375,70 @@ const customRow = (record: Record<string, any>) => ({
   },
 })
 
-// Connection cards: show max 6
-const maxVisibleCards = 6
+/**
+ * "Added <date> by <name>", skipping whichever half is unknown. Deliberately not
+ * "Used in N projects": this pane has no project-usage count for a connection,
+ * and a fabricated number on a permissions-adjacent row is worse than no number.
+ */
+function connectionMeta(connection: IntegrationType) {
+  const parts: string[] = []
 
-const visibleLinkedConnections = computed(() => {
-  return filteredLinkedIntegrations.value.slice(0, maxVisibleCards)
-})
+  if (connection.created_at) {
+    parts.push(t('labels.addedOnDate', { date: dayjs(connection.created_at).local().format('DD MMM YYYY') }))
+  }
 
-const overflowCount = computed(() => {
-  return Math.max(0, filteredLinkedIntegrations.value.length - maxVisibleCards)
-})
+  const by = collaboratorsMap.value?.get(connection.created_by as string)
+  const name = (by as any)?.display_name || (by as any)?.email
+
+  if (name) parts.push(t('labels.byUser', { user: name }))
+
+  return parts.join(' · ')
+}
+
+/** The list collapses past this; the rest arrive via the expander. */
+const maxVisibleRows = 4
+
+const isConnectionsExpanded = ref(false)
+
+const visibleConnectionRows = computed(() =>
+  isConnectionsExpanded.value ? filteredLinkedIntegrations.value : filteredLinkedIntegrations.value.slice(0, maxVisibleRows),
+)
+
+const hiddenConnectionCount = computed(() => Math.max(0, filteredLinkedIntegrations.value.length - maxVisibleRows))
+
+const browseSectionRef = ref<HTMLElement | null>(null)
+
+const isBrowseHighlighted = ref(false)
+
+/**
+ * "Add connection" has nowhere of its own to go -- adding one means picking from
+ * the gallery below -- so it takes you there and leaves the cursor in search.
+ *
+ * Focus is deferred until the scroll has settled: focusing first makes the
+ * browser jump the caret into view and the smooth scroll never plays.
+ */
+function scrollToBrowse() {
+  const section = browseSectionRef.value
+
+  if (!section) return
+
+  // Deferred a frame: called synchronously inside the click, the scroll is
+  // dropped -- the highlight class lands in the same tick and the element is
+  // still being laid out when the request is made.
+  requestAnimationFrame(() => {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+
+  isBrowseHighlighted.value = true
+
+  setTimeout(() => (isBrowseHighlighted.value = false), 1400)
+
+  setTimeout(() => {
+    const input = (mainSearchInputRef.value as any)?.input ?? (mainSearchInputRef.value as any)
+
+    input?.focus?.()
+  }, 450)
+}
 
 const isSearchEmpty = computed(() => {
   if (!searchQuery.value.trim()) return false
@@ -365,21 +492,6 @@ watch(baseId, reload)
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
       <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 nc-workspace-settings-integrations-list">
-        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <a-input
-            ref="mainSearchInputRef"
-            v-model:value="searchQuery"
-            type="text"
-            class="nc-search-integration-input nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
-            :placeholder="$t('labels.searchIntegrations')"
-            allow-clear
-          >
-            <template #prefix>
-              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
-            </template>
-          </a-input>
-        </div>
-
         <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
           <div class="flex flex-col space-y-6 w-full">
             <!-- Full-page skeleton during initial load -->
@@ -387,87 +499,182 @@ watch(baseId, reload)
 
             <!-- Real content (shown after first load) -->
             <template v-else>
-              <!-- Active connections section (if any) -->
-              <div v-if="filteredLinkedIntegrations.length" style="container-type: inline-size">
-                <div class="flex items-center justify-between mb-4">
+              <!-- Your connections: a list, not cards. These are records to scan and
+                   act on, so one row each beats a grid of tiles. -->
+              <div v-if="filteredLinkedIntegrations.length" class="nc-connections-block">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex items-center gap-2">
-                    <h3 class="text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis mb-0">
-                      {{ $t('general.activeConnections') }}
+                    <h3 class="text-bodyDefault font-semibold text-nc-content-gray-emphasis mb-0">
+                      {{ $t('labels.yourConnections') }}
                     </h3>
                     <NcBadge size="xs" color="gray" :border="false">
                       {{ filteredLinkedIntegrations.length }}
                     </NcBadge>
                   </div>
 
-                  <NcButton type="text" size="small" @click="viewMode = 'all-connections'">
-                    {{ $t('general.viewAllConnections') }}
-                    <GeneralIcon icon="arrowRight" class="ml-1" />
-                  </NcButton>
+                  <div class="flex items-center gap-2">
+                    <NcButton
+                      type="text"
+                      size="small"
+                      class="nc-manage-link !text-nc-content-brand"
+                      @click="viewMode = 'all-connections'"
+                    >
+                      {{ $t('general.manage') }}
+                      <GeneralIcon icon="arrowRight" class="ml-1" />
+                    </NcButton>
+
+                    <NcButton type="primary" size="small" data-testid="nc-add-connection" @click="scrollToBrowse">
+                      <div class="flex items-center gap-1.5">
+                        <GeneralIcon icon="plus" class="w-4 h-4" />
+                        {{ $t('labels.addConnection') }}
+                      </div>
+                    </NcButton>
+                  </div>
                 </div>
 
-                <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
-                  <WorkspaceIntegrationsConnectionCard
-                    v-for="connection in visibleLinkedConnections"
+                <div class="nc-connection-list">
+                  <div
+                    v-for="connection in visibleConnectionRows"
                     :key="connection.id"
-                    :integration="connection"
-                    :collaborators-map="collaboratorsMap"
-                    mode="base"
-                    :can-edit="canEditIntegration(connection)"
-                    :can-unlink="canUnlinkIntegration(connection)"
-                    :base-id="baseId"
-                    @edit="handleEdit"
-                    @unlink="handleUnlink"
-                  />
+                    class="nc-connection-row"
+                    :data-testid="`nc-connection-row-${connection.id}`"
+                    @click="canEditIntegration(connection) && handleEdit(connection)"
+                  >
+                    <span class="nc-connection-row-icon">
+                      <GeneralIntegrationIcon :type="connection.sub_type" />
+                    </span>
 
-                  <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="viewMode = 'all-connections'">
-                    <div class="text-bodyDefaultSm font-semibold text-nc-content-gray">
-                      +{{ overflowCount }} {{ $t('general.more') }}
+                    <div class="flex-1 min-w-0 flex flex-col">
+                      <NcTooltip class="text-bodyDefaultSm font-semibold text-nc-content-gray truncate" show-on-truncate-only>
+                        {{ connection.title }}
+                      </NcTooltip>
+                      <span class="text-bodySm text-nc-content-gray-muted truncate">
+                        {{ connectionMeta(connection) }}
+                      </span>
                     </div>
-                    <div class="text-bodySm text-nc-content-gray-subtle2">
-                      {{ $t('general.viewAllConnections') }}
+
+                    <div v-if="canEditIntegration(connection) || canUnlinkIntegration(connection)" class="flex-none" @click.stop>
+                      <WorkspaceIntegrationsConnectionActionMenu
+                        :integration="connection"
+                        mode="base"
+                        :can-edit="canEditIntegration(connection)"
+                        :can-unlink="canUnlinkIntegration(connection)"
+                        :base-id="baseId"
+                        @unlink="handleUnlink"
+                      >
+                        <NcButton size="xs" type="text" class="!px-1" @click.stop>
+                          <GeneralIcon icon="threeDotVertical" />
+                        </NcButton>
+                      </WorkspaceIntegrationsConnectionActionMenu>
                     </div>
                   </div>
+
+                  <button
+                    v-if="hiddenConnectionCount > 0 || isConnectionsExpanded"
+                    type="button"
+                    class="nc-connection-expander"
+                    data-testid="nc-connections-expander"
+                    @click="isConnectionsExpanded = !isConnectionsExpanded"
+                  >
+                    <GeneralIcon
+                      icon="chevronDown"
+                      class="w-4 h-4 transition-transform duration-200"
+                      :class="{ 'rotate-180': isConnectionsExpanded }"
+                    />
+                    {{
+                      isConnectionsExpanded
+                        ? $t('general.showLess')
+                        : $t('labels.showMoreConnections', { count: hiddenConnectionCount })
+                    }}
+                  </button>
                 </div>
               </div>
 
               <NcDivider v-if="filteredLinkedIntegrations.length" />
 
-              <!-- Integration categories -->
-              <template v-for="(category, key) in integrationsMap" :key="key">
-                <div v-if="category.list.length" class="integration-type-wrapper" style="container-type: inline-size">
-                  <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis">{{ $t(category.title) }}</div>
-                  <div class="integration-type-list grid grid-cols-1 gap-3">
-                    <template v-for="integration of category.list" :key="integration.sub_type">
-                      <div class="source-card is-available" tabindex="0" @click="handleAddIntegration(integration)">
-                        <div class="integration-icon-wrapper">
-                          <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <NcTooltip
-                            class="name text-bodyDefaultSm font-semibold text-nc-content-gray truncate"
-                            show-on-truncate-only
-                          >
-                            {{ integrationLabel(integration.title) }}
-                          </NcTooltip>
-                          <NcTooltip
-                            v-if="integration.subtitle"
-                            class="subtitle text-bodySm text-nc-content-gray-subtle2 truncate"
-                            show-on-truncate-only
-                            placement="bottom"
-                          >
-                            {{ integrationLabel(integration.subtitle) }}
-                          </NcTooltip>
-                        </div>
-                        <NcButton type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
-                          <div class="flex items-center gap-2">
-                            <GeneralIcon icon="ncPlus" class="flex-none" />
-                          </div>
-                        </NcButton>
-                      </div>
-                    </template>
+              <!-- Browse gallery: one grid, categories as filter pills -->
+              <div
+                ref="browseSectionRef"
+                class="nc-browse-integrations"
+                :class="{ 'nc-browse-highlight': isBrowseHighlighted }"
+                style="container-type: inline-size"
+              >
+                <!-- Filter and search share a line: both narrow the same grid, so
+                     they belong together rather than a screen apart. -->
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div v-if="categoryPills.length > 2" class="flex flex-wrap items-center gap-2">
+                    <button
+                      v-for="pill of categoryPills"
+                      :key="pill.value"
+                      type="button"
+                      class="nc-browse-pill"
+                      :class="{ active: activeCategory === pill.value }"
+                      :data-testid="`nc-browse-pill-${pill.value}`"
+                      @click="activeCategory = pill.value"
+                    >
+                      {{ $t(pill.title) }}
+                    </button>
                   </div>
+                  <span v-else />
+
+                  <a-input
+                    ref="mainSearchInputRef"
+                    v-model:value="searchQuery"
+                    type="text"
+                    class="nc-input-border-on-value !w-64 nc-input-sm"
+                    :placeholder="$t('labels.searchIntegrations')"
+                    allow-clear
+                    data-testid="nc-browse-integrations-search"
+                  >
+                    <template #prefix>
+                      <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+                    </template>
+                  </a-input>
                 </div>
-              </template>
+
+                <div class="nc-browse-grid">
+                  <button
+                    v-for="item of browseItems"
+                    :key="`${item.integration.type}-${item.integration.sub_type}`"
+                    type="button"
+                    class="nc-browse-card"
+                    :data-testid="`nc-browse-card-${item.integration.sub_type}`"
+                    @click="handleAddIntegration(item.integration)"
+                  >
+                    <span class="nc-browse-logo">
+                      <!-- `iconStyle` hard-codes 32px on some logos, which inline-styles
+                           over any class and bursts the tile; the tile sizes them instead. -->
+                      <component :is="item.integration.icon" />
+                    </span>
+
+                    <NcTooltip
+                      class="flex-1 min-w-0 text-left text-bodyDefaultSm font-semibold text-nc-content-gray truncate"
+                      show-on-truncate-only
+                    >
+                      {{ integrationLabel(item.integration.title) }}
+                    </NcTooltip>
+                  </button>
+
+                  <!-- Always last, and dotted: it is an ask rather than a thing you
+                       can connect, so it reads as an outline of a card, not a card. -->
+                  <button
+                    type="button"
+                    class="nc-browse-card nc-browse-card-request"
+                    data-testid="nc-browse-card-request"
+                    @click="requestIntegration.isOpen = true"
+                  >
+                    <span class="nc-browse-logo nc-browse-logo-request">
+                      <GeneralIcon icon="ncPlus" class="w-4.5 h-4.5" />
+                    </span>
+
+                    <span class="flex-1 min-w-0 text-left text-bodyDefaultSm font-semibold text-nc-content-gray truncate">
+                      {{ $t('labels.requestIntegration') }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <WorkspaceIntegrationsRequestDialog />
 
               <ShellEmpty v-if="isSearchEmpty" :title="$t('title.noResultsMatchedYourSearch')" />
             </template>
@@ -480,7 +687,9 @@ watch(baseId, reload)
     <template v-else-if="viewMode === 'all-connections'">
       <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex flex-wrap items-center gap-3">
+          <!-- Back on the left, search on the right: the row reads as navigation
+               then filter, rather than two controls crowding the same corner. -->
+          <div class="flex flex-wrap items-center justify-between gap-3">
             <!-- Hidden for non-managers: they land here directly, with no catalogue to go back to. -->
             <ShellDrillBack
               v-if="canManage"
@@ -488,12 +697,13 @@ watch(baseId, reload)
               testid="nc-integrations-connections-back"
               @back="viewMode = 'main'"
             />
+            <span v-else />
 
             <a-input
               ref="connectionsSearchInputRef"
               v-model:value="connectionsSearchQuery"
               type="text"
-              class="nc-search-integration-input nc-input-border-on-value flex-1 !min-w-60 !max-w-90 nc-input-sm"
+              class="nc-search-integration-input nc-input-border-on-value !w-64 nc-input-sm"
               :placeholder="$t('placeholder.searchConnections')"
               allow-clear
             >
@@ -760,5 +970,160 @@ watch(baseId, reload)
       }
     }
   }
+}
+
+/* ---------- Your connections ---------- */
+
+// `font-normal` resolves to 500 in this theme, so a real 400 is written out.
+.nc-manage-link {
+  font-weight: 400 !important;
+}
+
+.nc-connections-block {
+  @apply flex flex-col gap-4;
+}
+
+.nc-connection-list {
+  @apply flex flex-col rounded-xl border-1 border-nc-border-gray-medium overflow-hidden;
+}
+
+.nc-connection-row {
+  @apply flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors duration-150
+    border-b-1 border-nc-border-gray-light;
+
+  &:last-child {
+    @apply border-b-0;
+  }
+
+  &:hover {
+    @apply bg-nc-bg-gray-extralight;
+  }
+}
+
+.nc-connection-row-icon {
+  @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
+
+  :deep(svg),
+  :deep(img) {
+    width: 18px !important;
+    height: 18px !important;
+    object-fit: contain;
+  }
+}
+
+.nc-connection-expander {
+  @apply flex items-center justify-center gap-1.5 w-full py-2.5 cursor-pointer bg-transparent
+    border-0 border-t-1 border-nc-border-gray-light text-bodySm text-nc-content-gray-subtle2;
+
+  &:hover {
+    @apply bg-nc-bg-gray-extralight text-nc-content-gray;
+  }
+}
+
+/* A flash, not a persistent state: it says "the thing you asked for is here". */
+.nc-browse-highlight {
+  animation: nc-browse-flash 1.4s ease-out;
+}
+
+@keyframes nc-browse-flash {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  20% {
+    background-color: var(--nc-bg-brand);
+  }
+}
+
+/* ---------- Browse integrations gallery ---------- */
+
+.nc-browse-integrations {
+  @apply flex flex-col gap-4;
+}
+
+.nc-browse-pill {
+  @apply px-3 py-1.5 rounded-full cursor-pointer transition-colors duration-150
+    text-bodySm border-1 border-nc-border-gray-medium bg-transparent text-nc-content-gray-subtle2;
+
+  &:hover:not(.active) {
+    @apply bg-nc-bg-gray-extralight text-nc-content-gray;
+  }
+
+  /* Filled rather than tinted: one pill is on at a time, so the selected state
+     has to read at a glance across a row of otherwise identical chips. */
+  &.active {
+    @apply border-transparent bg-nc-fill-primary text-white;
+  }
+}
+
+/* Container queries, not viewport: this pane sits in a modal whose width is set
+   by the shell, so the breakpoint that matters is the pane's, not the screen's. */
+.nc-browse-grid {
+  @apply grid gap-3;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@container (min-width: 520px) {
+  .nc-browse-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 780px) {
+  .nc-browse-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 1100px) {
+  .nc-browse-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* One line: logo, name. The category is already the pill above the grid, and a
+   description on every tile turned a scannable list into a wall of prose. */
+.nc-browse-card {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-left
+    border-1 border-nc-border-gray-medium bg-nc-bg-default transition-all duration-150;
+
+  &:hover {
+    @apply border-nc-border-gray-dark;
+    box-shadow: 0 2px 8px 0 rgba(var(--rgb-base), 0.06);
+  }
+
+  &:focus-visible {
+    @apply outline-none border-nc-border-brand;
+  }
+}
+
+/* Logos arrive in two shapes: bare glyphs, and full-bleed tiles carrying their
+   own background. Normalising both to one box is what makes the grid read as a
+   grid -- so the size is forced here rather than trusted from each icon. */
+.nc-browse-logo {
+  @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
+
+  :deep(svg),
+  :deep(img) {
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+    object-fit: contain;
+  }
+}
+
+.nc-browse-card-request {
+  @apply bg-transparent;
+  border-style: dashed;
+
+  &:hover {
+    @apply bg-nc-bg-gray-extralight;
+  }
+}
+
+.nc-browse-logo-request {
+  @apply bg-transparent text-nc-content-gray-muted;
+  border: 1px dashed var(--nc-border-gray-medium);
 }
 </style>

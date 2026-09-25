@@ -88,6 +88,7 @@ const onCreateBaseClick = () => {
       class="nc-overview-actions flex flex-row gap-6 flex-wrap max-w-[1000px]"
       :class="{
         'pointer-events-none': base?.isLoading,
+        'nc-overview-actions-strong-subtext': ['data', 'workflows'].includes(activeSidebarTab),
       }"
     >
       <template v-if="base?.isLoading">
@@ -200,5 +201,10 @@ const onCreateBaseClick = () => {
 
 .nc-overview-actions:empty ~ .nc-overview-empty-placeholder {
   display: block;
+}
+
+// Data and Workflows only: 400 reads faint under the bold label.
+.nc-overview-actions-strong-subtext :deep(.subtext) {
+  font-weight: 600;
 }
 </style>

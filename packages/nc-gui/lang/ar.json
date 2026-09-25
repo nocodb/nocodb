@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "قم بالترقية لطلب تسجيل الدخول في النماذج",
     "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج.",
     "upgradeToUseSso": "الترقية لاستخدام SSO",
-    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك."
+    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك.",
+    "upgradeToUseAppFactory": "قم بالترقية لاستخدام App Factory",
+    "upgradeToUseAppFactorySubtitle": "قم بالترقية إلى خطة {plan} لتشغيل وكلاء البرمجة على مستودعاتك المتصلة."
   },
   "general": {
     "scrollToBottom": "التمرير إلى الأسفل",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "لا أحد {description}",
         "moreUsers": "+ {count} المزيد",
         "selectUsersOrTeams": "حدد المستخدمين أو الفرق"
-      }
+      },
+      "createRecords": "إنشاء السجلات"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "مجلد العروض",
     "subRecord": "سجل فرعي",
     "video": "فيديو",
-    "recordTemplates": "قوالب السجلات"
+    "recordTemplates": "قوالب السجلات",
+    "roleTypePlural": {
+      "owner": "المالكون",
+      "creator": "المنشئون",
+      "editor": "المحررون",
+      "commenter": "المعلّقون",
+      "viewer": "المشاهدون",
+      "inherit": "توريث",
+      "noaccess": "بدون وصول",
+      "admin": "المسؤولون",
+      "superAdmin": "المسؤولون العامون",
+      "orgAdmin": "مسؤولو المؤسسة",
+      "orgCreator": "منشئو المؤسسة",
+      "orgViewer": "مشاهدو المؤسسة",
+      "orgLevelOwner": "المالكون على مستوى المؤسسة",
+      "orgLevelCreator": "المنشئون على مستوى المؤسسة",
+      "orgLevelViewer": "المشاهدون على مستوى المؤسسة",
+      "appUser": "مستخدمو التطبيق"
+    }
   },
   "datatype": {
     "ID": "هوية",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "إزالة النطاق المخصص؟",
     "tooNarrowToAdjustFrozenFields": "النافذة ضيقة جدًا لتعديل الحقول المثبَّتة",
     "themeSettings": "إعدادات السمة",
-    "nFields": "{count} حقل | {count} حقول"
+    "nFields": "{count} حقل | {count} حقول",
+    "noInterfaceMembersYet": "لا يوجد أعضاء في الواجهة بعد",
+    "headJoin": "انضمام | NocoDB"
   },
   "labels": {
     "syncing": "مزامنة",
@@ -4557,7 +4580,24 @@
     "openAgentConversation": "افتح محادثة هذا الوكيل",
     "sendToAgent": "إرسال إلى الوكيل",
     "noPort": "لا يوجد منفذ",
-    "manageInviteLinks": "إدارة روابط الدعوة"
+    "manageInviteLinks": "إدارة روابط الدعوة",
+    "editOauthClient": "تعديل عميل OAuth",
+    "oauthClientNameHint": "يظهر للمستخدمين أثناء التفويض",
+    "applicationDescription": "وصف التطبيق",
+    "oauthClientDescriptionHint": "وصف موجز يظهر للمستخدمين عند منح الوصول",
+    "homepageUrl": "عنوان URL للصفحة الرئيسية",
+    "oauthClientLogoHint": "صورة تظهر أثناء التفويض (يُفضَّل أن تكون مربعة)",
+    "clientType": "نوع العميل",
+    "oauthClientTypeHint": "عام: تطبيقات الهاتف والويب (يتطلب PKCE). سري: خوادم آمنة (يمكنها تخزين المفاتيح السرية)",
+    "confidential": "سري",
+    "authorizationCallbackUrls": "عناوين إعادة التوجيه بعد التفويض",
+    "oauthCallbackUrlsHint": "عناوين HTTPS لإعادة التوجيه بعد التفويض (يُسمح باستخدام localhost/127.0.0.1). عنوان واحد في كل سطر",
+    "clientId": "معرّف العميل",
+    "clientSecret": "المفتاح السري للعميل",
+    "regenerateSecret": "إعادة إنشاء المفتاح السري",
+    "createOauthClients": "إنشاء عملاء OAuth",
+    "managingOauthClients": "إدارة عملاء OAuth",
+    "clientInformation": "معلومات العميل"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -5072,7 +5112,11 @@
     "marketplaceAuthored": "كتبه الناشر، وليس مستخلصًا من محتوى التطبيق.",
     "marketplaceVerifiedPublisher": "نشرته وراجعته NocoDB",
     "showCustomPermissionFieldsOnly": "إظهار الحقول ذات الأذونات المخصصة فقط",
-    "showAllFields": "إظهار جميع الحقول"
+    "showAllFields": "إظهار جميع الحقول",
+    "inviteLinkCannotGrantOwner": "لا يمكن لرابط الدعوة منح دور المالك",
+    "inviteLinkRoleAboveYours": "يمكنك منح الأدوار حتى مستوى دورك فقط",
+    "noDefaultSourceForFolders": "لا يوجد مصدر افتراضي لهذه القاعدة — أنشئ المجلدات من قائمة المصدر نفسه بدلًا من ذلك",
+    "noDefaultSourceForSync": "لا يوجد مصدر افتراضي لهذه القاعدة — تحتاج المزامنة إلى مصدر لتخزين جداولها"
   },
   "placeholder": {
     "enterVerificationCode": "أدخل الرمز المكون من 6 أرقام",
@@ -5234,7 +5278,28 @@
     "messageAgent": "راسل {agent}",
     "somethingElse": "شيء آخر",
     "noMcpConnections": "لم يتم إنشاء أي اتصالات MCP",
-    "noMcpConnectionsLabel": "يبدو أنك لم تنشئ أي اتصالات MCP بعد."
+    "noMcpConnectionsLabel": "يبدو أنك لم تنشئ أي اتصالات MCP بعد.",
+    "searchDataSource": "البحث عن مصدر بيانات",
+    "searchConnections": "البحث في الاتصالات",
+    "migrationUrl": "أدخل عنوان URL الخاص بالترحيل للوجهة",
+    "searchSync": "البحث عن مزامنة",
+    "searchWorkspace": "البحث عن مساحة عمل",
+    "searchBase": "البحث في القاعدة",
+    "searchEvent": "البحث عن حدث",
+    "skillRegistrySearch": "البحث عن مهارات…",
+    "searchSnapshots": "البحث عن لقطات",
+    "searchTokens": "البحث عن رموز مميزة",
+    "factoryPrompt": "صِف ما تريد بناءه",
+    "factorySearchRepos": "البحث في المستودعات",
+    "factorySearchTargets": "البحث في المستودعات",
+    "factorySearchSources": "البحث في الفروع وطلبات السحب والمشكلات",
+    "factoryOnPr": "ما الذي ينبغي أن يحدث في طلب السحب هذا؟",
+    "factoryOnIssue": "أي شيء تريد إضافته إلى جانب المشكلة نفسها (اختياري)",
+    "factoryReply": "رد",
+    "searchFiles": "البحث عن ملفات",
+    "factoryAnnotation": "ما الذي ينبغي أن يغيّره الوكيل هنا؟",
+    "oauthClientName": "تطبيقي",
+    "oauthClientDescription": "يساعدك هذا التطبيق على إدارة بياناتك..."
   },
   "msg": {
     "sourceViewNotShared": "تم تعطيل المزامنة في هذا العرض",
@@ -5473,7 +5538,8 @@
       "tableSyncConvertMainTable": "هذا هو الجدول المتزامن لهذه المزامنة — وتحويله يزيل المزامنة نفسها. وتبقى جميع الجداول التي أنشأتها المزامنة جداول عادية قابلة للتحرير وتتوقف عن المزامنة.",
       "requiredFieldNotEditable": "هذا الحقل المطلوب غير قابل للتحرير، وقد يسبب ذلك أخطاء عند إرسال الاستمارة.",
       "communityAppInstall": "{title} تطبيق من المجتمع. لم تراجعه NocoDB ولم تتحقق منه. تأكّد من ثقتك بالناشر قبل تثبيته في مساحة عملك.",
-      "removeCustomDomain": "سيتوقف {domain} عن تقديم هذا التطبيق. أما العنوان الافتراضي فيظل يعمل."
+      "removeCustomDomain": "سيتوقف {domain} عن تقديم هذا التطبيق. أما العنوان الافتراضي فيظل يعمل.",
+      "copyClientSecretNow": "⚠️ احرص على نسخ المفتاح السري للعميل الآن. لن تتمكن من رؤيته مرة أخرى!"
     },
     "info": {
       "sourceViewRebindResync": "تغيير طريقة عرض المصدر يؤدي إلى إعادة مزامنة كاملة مقابل طريقة العرض الجديدة.",
@@ -5968,7 +6034,40 @@
       "interfaceRecordUnreadableEditingOff": "التحرير معطّل حتى يصبح بالإمكان قراءته من جديد.",
       "inviteLinkDomainSentence": "يعمل فقط مع بريد {domain} وينضم زملاء الفريق بصفة {role}",
       "inviteLinkOpenSentence": "يمكن لأي شخص لديه الرابط الانضمام بصفة {role}",
-      "inviteLinkOpenCaution": "شاركه فقط مع أشخاص تثق بهم."
+      "inviteLinkOpenCaution": "شاركه فقط مع أشخاص تثق بهم.",
+      "shareHubTooltip": "ادعُ أشخاصًا للعمل في هذه القاعدة، أو انشر رابطًا للقراءة فقط إلى {object}.",
+      "shareHubTooltipInviteOnly": "ادعُ أشخاصًا للعمل في هذه القاعدة. لنشر القاعدة نفسها، استخدم «مشاركة القاعدة» من قائمة القاعدة.",
+      "shareNothingPrivateBase": "يمكن لمالك القاعدة وحده دعوة أشخاص إلى قاعدة خاصة. لنشر عرض، افتح أحد العروض أولًا.",
+      "shareNothingToShow": "لا يوجد ما يمكن مشاركته من هنا. افتح عرضًا لنشر رابط للقراءة فقط.",
+      "peopleHaveAccess": "لدى {count} شخص إمكانية الوصول. | لدى {count} أشخاص إمكانية الوصول.",
+      "noInviteLinkYet": "لا يوجد رابط دعوة بعد. أنشئ رابطًا ليتمكن الآخرون من الانضمام دون دعوة فردية.",
+      "youWillJoinAs": "ستنضم بصفة {role}.",
+      "signedInWrongDomain": "لقد سجّلت الدخول باسم {email}. لا يقبل هذا الرابط سوى العناوين {'@'}{domain}.",
+      "signedInAs": "لقد سجّلت الدخول باسم {email}.",
+      "publicLinkToNamed": "رابط عام إلى {name}",
+      "readOnlyInviteInstead": "للقراءة فقط. هل تريد أن يتمكنوا من التعديل أو التعليق؟",
+      "willJoinAsRole": "سينضم {count} شخص بصفة {role} وسيتمكن من {can}. | سينضم {count} أشخاص بصفة {role} وسيتمكنون من {can}.",
+      "sharePublicLinkSubtitle": "يمكن لأي شخص لديه الرابط فتحه. لا حاجة إلى حساب.",
+      "shareLinksReadOnly": "الروابط للقراءة فقط. هل تريد أن يتمكنوا من التعديل أو التعليق؟",
+      "clientSecretHidden": "المفتاح السري مخفي لأسباب أمنية ولن يظهر مرة أخرى. يمكنك إعادة إنشائه عند الحاجة.",
+      "mcpSetupIntroClaude": "ابدأ استخدام NocoDB MCP مع Claude Desktop في 3 خطوات بسيطة",
+      "mcpSetupClaudeStep1": "افتح إعدادات Claude Desktop من شريط التنقل.",
+      "mcpSetupClaudeStep2": "انتقل إلى تبويب Develop، ثم انقر على «Edit Config».",
+      "mcpSetupClaudeStep3": "أضِف إلى ملف claude_desktop_config.json إعداد JSON الذي يُعطى بعد إنشاء رمز مميز",
+      "mcpSetupIntroCodex": "ابدأ استخدام NocoDB MCP مع Codex CLI في 3 خطوات بسيطة",
+      "mcpSetupCodexStep2": "أضِف إعداد TOML الذي يُعطى بعد إنشاء رمز مميز.",
+      "mcpSetupIntroAntigravity": "ابدأ استخدام NocoDB MCP مع AntiGravity في 4 خطوات بسيطة",
+      "mcpSetupAntigravityStep1": "انقر على النقاط الثلاث في أعلى يمين نافذة الوكيل، ثم انقر على \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "انقر على Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "انقر الآن على View raw config.",
+      "mcpSetupPasteJsonConfig": "الصق في الملف المفتوح إعداد JSON الذي يُعطى بعد إنشاء رمز مميز",
+      "mcpSetupIntroCursor": "ابدأ استخدام NocoDB MCP مع Cursor في 3 خطوات بسيطة",
+      "mcpSetupCursorStep1": "افتح إعدادات Cursor (اضغط Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "اختر تبويب \"MCP\" وانقر على \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "أضِف إعداد JSON الذي يُعطى بعد إنشاء رمز مميز.",
+      "mcpSetupIntroWindsurf": "ابدأ استخدام NocoDB MCP مع Windsurf في 4 خطوات بسيطة",
+      "mcpSetupWindsurfStep1": "ادخل إلى إعدادات Windsurf واختر تبويب Cascade في الشريط الجانبي الأيسر",
+      "mcpSetupWindsurfStep2": "انقر على Manage MCP."
     },
     "error": {
       "failedToCreateSync": "فشل في إنشاء المزامنة",
@@ -6283,7 +6382,8 @@
       "planChangeScheduled": "جُدوِل تغيير الخطة",
       "planChangeReverted": "تم التراجع عن تغيير الخطة المجدول. تستمر خطتك الحالية دون تغيير.",
       "appDelisted": "أُزيل من App Store",
-      "appRelisted": "عاد إلى App Store"
+      "appRelisted": "عاد إلى App Store",
+      "oauthClientUpdated": "تم تحديث عميل OAuth بنجاح!"
     },
     "subText": {
       "startFromScratch": "البدء من الصفر.",
@@ -6478,7 +6578,22 @@
     "factorySelectLinesToAnnotate": "حدّد أولًا الأسطر التي يتعلق بها التعليق.",
     "factorySessionArchived": "أُرشفت الجلسة. عملها محفوظ؛ استأنفها للمتابعة.",
     "factoryTurnFailed": "فشل الدور",
-    "factoryDeleteSession": "سيتم حذف «{title}» وكامل نصّها. لا يمكن التراجع عن ذلك."
+    "factoryDeleteSession": "سيتم حذف «{title}» وكامل نصّها. لا يمكن التراجع عن ذلك.",
+    "migrateToV3": {
+      "whatChanges": "ما الذي يتغير بعد الترحيل",
+      "changeDuplicate": "يمكن تكرار القواعد مع الحفاظ على معرّفات الكيانات",
+      "changeApi": "الوصول متاح عبر واجهة API V3 فقط",
+      "changeScale": "مصمم لقابلية توسّع أفضل وتوافق طويل الأمد",
+      "considerations": "اعتبارات مهمة",
+      "considerApis": "لن تعمل واجهات API V1 وV2 مع هذه القاعدة بعد الترحيل",
+      "considerPermanent": "الترحيل نهائي ولا يمكن التراجع عنه",
+      "recommendation": "لا تقم بالترحيل إلا بعد التأكد من توافق جميع التكاملات مع واجهة API v3.",
+      "confirmTitle": "هل تريد ترحيل هذه القاعدة إلى v3؟",
+      "confirmDesc": "يؤدي هذا إلى ترقية القاعدة إلى أحدث بنية وأحدث إصدار من واجهة API.",
+      "confirmCta": "تأكيد الترحيل",
+      "migrating": "جارٍ الترحيل..."
+    },
+    "skillsRegistryErrorTitle": "تعذّر البحث في سجل المهارات"
   },
   "trash": {
     "restore": "إستعادة",
@@ -6541,7 +6656,12 @@
         "partial": "استعادة {count} دون تضارب",
         "force": "استعادة كل الصراعات وواضحة"
       }
-    }
+    },
+    "unavailableExternal": "مصدر خارجي",
+    "unavailablePending": "قيد الإعداد",
+    "usingDefault": "{value} (افتراضي)",
+    "keptForever": "إلى الأبد",
+    "notKept": "غير محفوظ"
   },
   "baseTrash": {
     "title": "المهملات",

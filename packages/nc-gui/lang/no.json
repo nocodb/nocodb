@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Oppgrader for å kreve innlogging på skjemaer",
     "upgradeToUseFormRequireSigninSubtitle": "Oppgrader til {plan}-abonnementet for å kreve at respondenter logger inn før de sender inn et skjema.",
     "upgradeToUseSso": "Oppgrader for å bruke SSO",
-    "upgradeToUseSsoSubtitle": "Oppgrader til {plan} -planen for å sette opp Single Sign-On (SSO) og la teamet ditt logge inn med identitetsleverandøren din."
+    "upgradeToUseSsoSubtitle": "Oppgrader til {plan} -planen for å sette opp Single Sign-On (SSO) og la teamet ditt logge inn med identitetsleverandøren din.",
+    "upgradeToUseAppFactory": "Oppgrader for å bruke App Factory",
+    "upgradeToUseAppFactorySubtitle": "Oppgrader til {plan}-planen for å sette kodeagenter i arbeid på de tilkoblede repositoriene dine."
   },
   "general": {
     "scrollToBottom": "Rull til bunnen",
@@ -1069,7 +1071,8 @@
         "noUsersSelected": "Ingen {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Velg brukere eller team"
-      }
+      },
+      "createRecords": "Opprette poster"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1170,7 +1173,25 @@
     "viewFolder": "Visningsmappe",
     "subRecord": "Underpost",
     "video": "Video",
-    "recordTemplates": "Postmaler"
+    "recordTemplates": "Postmaler",
+    "roleTypePlural": {
+      "owner": "Eiere",
+      "creator": "Opprettere",
+      "editor": "Redaktører",
+      "commenter": "Kommentatorer",
+      "viewer": "Lesere",
+      "inherit": "Arv",
+      "noaccess": "Ingen tilgang",
+      "admin": "Administratorer",
+      "superAdmin": "Superadministratorer",
+      "orgAdmin": "Org-administratorer",
+      "orgCreator": "Org-opprettere",
+      "orgViewer": "Org-lesere",
+      "orgLevelOwner": "Eiere på organisasjonsnivå",
+      "orgLevelCreator": "Opprettere på organisasjonsnivå",
+      "orgLevelViewer": "Lesere på organisasjonsnivå",
+      "appUser": "App-brukere"
+    }
   },
   "datatype": {
     "ID": "Id.",
@@ -1524,7 +1545,9 @@
     "removeCustomDomain": "Fjerne tilpasset domene?",
     "tooNarrowToAdjustFrozenFields": "Vinduet er for smalt til å justere de låste feltene",
     "themeSettings": "Temainnstillinger",
-    "nFields": "{count} felt | {count} felter"
+    "nFields": "{count} felt | {count} felter",
+    "noInterfaceMembersYet": "Ingen grensesnittmedlemmer ennå",
+    "headJoin": "Bli med | NocoDB"
   },
   "labels": {
     "syncing": "Synkroniserer",
@@ -4545,7 +4568,24 @@
     "openAgentConversation": "Åpne samtalen til denne agenten",
     "sendToAgent": "Send til agent",
     "noPort": "Ingen port",
-    "manageInviteLinks": "Administrer invitasjonslenker"
+    "manageInviteLinks": "Administrer invitasjonslenker",
+    "editOauthClient": "Rediger OAuth-klient",
+    "oauthClientNameHint": "Vises for brukerne under autoriseringen",
+    "applicationDescription": "Beskrivelse av applikasjonen",
+    "oauthClientDescriptionHint": "Kort beskrivelse som vises når brukere gir tilgang",
+    "homepageUrl": "URL til hjemmesiden",
+    "oauthClientLogoHint": "Bilde som vises under autoriseringen (kvadratisk anbefales)",
+    "clientType": "Klienttype",
+    "oauthClientTypeHint": "Offentlig: mobil- og webapper (PKCE kreves). Konfidensiell: sikre servere (kan lagre hemmeligheter)",
+    "confidential": "Konfidensiell",
+    "authorizationCallbackUrls": "Callback-adresser for autorisering",
+    "oauthCallbackUrlsHint": "HTTPS-adresser for videresending etter autorisering (localhost/127.0.0.1 tillatt). Én per linje",
+    "clientId": "Klient-ID",
+    "clientSecret": "Klienthemmelighet",
+    "regenerateSecret": "Generer ny hemmelighet",
+    "createOauthClients": "Opprett OAuth-klienter",
+    "managingOauthClients": "Administrere OAuth-klienter",
+    "clientInformation": "Klientinformasjon"
   },
   "activity": {
     "useTemplate": "Bruk mal",
@@ -5061,7 +5101,11 @@
     "marketplaceAuthored": "Skrevet av utgiveren, ikke hentet fra innholdet i appen.",
     "marketplaceVerifiedPublisher": "Publisert og gjennomgått av NocoDB",
     "showCustomPermissionFieldsOnly": "Vis bare felter med egendefinerte tillatelser",
-    "showAllFields": "Vis alle felter"
+    "showAllFields": "Vis alle felter",
+    "inviteLinkCannotGrantOwner": "En invitasjonslenke kan ikke gi rollen Eier",
+    "inviteLinkRoleAboveYours": "Du kan bare tilby roller opp til din egen",
+    "noDefaultSourceForFolders": "Denne basen har ingen standardkilde — opprett heller mapper fra kildens egen meny",
+    "noDefaultSourceForSync": "Denne basen har ingen standardkilde — en synkronisering trenger en for å lagre tabellene sine"
   },
   "placeholder": {
     "enterVerificationCode": "Angi 6-sifret kode",
@@ -5223,7 +5267,28 @@
     "messageAgent": "Melding til {agent}",
     "somethingElse": "Noe annet",
     "noMcpConnections": "Ingen MCP-tilkoblinger opprettet",
-    "noMcpConnectionsLabel": "Det ser ut til at du ikke har opprettet noen MCP-tilkoblinger ennå."
+    "noMcpConnectionsLabel": "Det ser ut til at du ikke har opprettet noen MCP-tilkoblinger ennå.",
+    "searchDataSource": "Søk datakilde",
+    "searchConnections": "Søk tilkoblinger",
+    "migrationUrl": "Angi migrerings-URL for destinasjonen",
+    "searchSync": "Søk synkronisering",
+    "searchWorkspace": "Søk arbeidsområde",
+    "searchBase": "Søk base",
+    "searchEvent": "Søk hendelse",
+    "skillRegistrySearch": "Søk skills…",
+    "searchSnapshots": "Søk øyeblikksbilder",
+    "searchTokens": "Søk tokens",
+    "factoryPrompt": "Beskriv hva du vil bygge",
+    "factorySearchRepos": "Søk i repositorier",
+    "factorySearchTargets": "Søk i repositorier",
+    "factorySearchSources": "Søk i grener, PR-er og saker",
+    "factoryOnPr": "Hva skal skje med denne pull-forespørselen?",
+    "factoryOnIssue": "Noe å legge til utover selve saken (valgfritt)",
+    "factoryReply": "Svar",
+    "searchFiles": "Søk filer",
+    "factoryAnnotation": "Hva skal agenten endre her?",
+    "oauthClientName": "Min applikasjon",
+    "oauthClientDescription": "Denne applikasjonen hjelper deg med å administrere dataene dine..."
   },
   "msg": {
     "sourceViewNotShared": "Synkronisering er deaktivert på denne visningen",
@@ -5462,7 +5527,8 @@
       "tableSyncConvertMainTable": "Dette er den synkroniserte tabellen i denne synkroniseringen — å konvertere den fjerner selve synkroniseringen. Alle tabeller som synkroniseringen har opprettet, beholdes som vanlige, redigerbare tabeller og slutter å synkronisere.",
       "requiredFieldNotEditable": "Dette påkrevde feltet kan ikke redigeres, noe som kan gi feil når skjemaet sendes inn.",
       "communityAppInstall": "{title} er en fellesskapsapp. Den er verken gjennomgått eller verifisert av NocoDB. Forsikre deg om at du stoler på utgiveren før du installerer den i arbeidsområdet ditt.",
-      "removeCustomDomain": "{domain} vil ikke lenger levere denne appen. Standardadressen fortsetter å virke."
+      "removeCustomDomain": "{domain} vil ikke lenger levere denne appen. Standardadressen fortsetter å virke.",
+      "copyClientSecretNow": "⚠️ Husk å kopiere klienthemmeligheten nå. Du får ikke se den igjen!"
     },
     "info": {
       "sourceViewRebindResync": "Endre kildevisningen utløser en full re-synkronisering mot ny visning.",
@@ -5957,7 +6023,40 @@
       "interfaceRecordUnreadableEditingOff": "Redigering er slått av til den kan leses igjen.",
       "inviteLinkDomainSentence": "Virker bare med {domain}-e-post, og lagkamerater blir med som {role}",
       "inviteLinkOpenSentence": "Alle med lenken kan bli med som {role}",
-      "inviteLinkOpenCaution": "Del den bare med folk du stoler på."
+      "inviteLinkOpenCaution": "Del den bare med folk du stoler på.",
+      "shareHubTooltip": "Inviter andre til å jobbe i denne basen, eller publiser en skrivebeskyttet lenke til {object}.",
+      "shareHubTooltipInviteOnly": "Inviter andre til å jobbe i denne basen. Bruk «Del base» i basemenyen for å publisere selve basen.",
+      "shareNothingPrivateBase": "Bare eieren av basen kan invitere andre til en privat base. Åpne først en visning for å publisere den.",
+      "shareNothingToShow": "Det er ingenting å dele herfra. Åpne en visning for å publisere en skrivebeskyttet lenke.",
+      "peopleHaveAccess": "{count} person har tilgang. | {count} personer har tilgang.",
+      "noInviteLinkYet": "Ingen invitasjonslenke ennå. Opprett en slik at andre kan bli med uten en personlig invitasjon.",
+      "youWillJoinAs": "Du blir med som {role}.",
+      "signedInWrongDomain": "Du er logget inn som {email}. Denne lenken godtar bare adresser med {'@'}{domain}.",
+      "signedInAs": "Du er logget inn som {email}.",
+      "publicLinkToNamed": "Offentlig lenke til {name}",
+      "readOnlyInviteInstead": "Skrivebeskyttet. Trenger de å kunne redigere eller kommentere?",
+      "willJoinAsRole": "{count} person blir med som {role} og kan {can}. | {count} personer blir med som {role} og kan {can}.",
+      "sharePublicLinkSubtitle": "Alle med lenken kan åpne den. Det trengs ingen konto.",
+      "shareLinksReadOnly": "Lenkene er skrivebeskyttet. Vil du at de skal kunne redigere eller kommentere?",
+      "clientSecretHidden": "Hemmeligheten er skjult av sikkerhetshensyn og vises ikke igjen. Du kan generere en ny ved behov.",
+      "mcpSetupIntroClaude": "Kom i gang med NocoDB MCP og Claude Desktop på 3 enkle trinn",
+      "mcpSetupClaudeStep1": "Åpne innstillingene for Claude Desktop fra navigasjonslinjen.",
+      "mcpSetupClaudeStep2": "Gå til fanen Develop og klikk på «Edit Config».",
+      "mcpSetupClaudeStep3": "Legg til JSON-konfigurasjonen som oppgis etter at du har opprettet et token, i claude_desktop_config.json",
+      "mcpSetupIntroCodex": "Kom i gang med NocoDB MCP og Codex CLI på 3 enkle trinn",
+      "mcpSetupCodexStep2": "Legg til TOML-konfigurasjonen som oppgis etter at du har opprettet et token.",
+      "mcpSetupIntroAntigravity": "Kom i gang med NocoDB MCP og AntiGravity på 4 enkle trinn",
+      "mcpSetupAntigravityStep1": "Klikk på de tre prikkene øverst til høyre i agentvinduet, og klikk deretter på \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Klikk på Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Klikk nå på View raw config.",
+      "mcpSetupPasteJsonConfig": "Lim inn JSON-konfigurasjonen som oppgis etter at du har opprettet et token, i filen som er åpnet",
+      "mcpSetupIntroCursor": "Kom i gang med NocoDB MCP og Cursor på 3 enkle trinn",
+      "mcpSetupCursorStep1": "Åpne Cursor-innstillingene (trykk Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Velg fanen \"MCP\" og klikk på \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Legg til JSON-konfigurasjonen som oppgis etter at du har opprettet et token.",
+      "mcpSetupIntroWindsurf": "Kom i gang med NocoDB MCP og Windsurf på 4 enkle trinn",
+      "mcpSetupWindsurfStep1": "Åpne Windsurf-innstillingene og velg fanen Cascade i venstre sidefelt",
+      "mcpSetupWindsurfStep2": "Klikk på Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Kunne ikke opprette synkronisering",
@@ -6272,7 +6371,8 @@
       "planChangeScheduled": "Abonnementsendring planlagt",
       "planChangeReverted": "Planlagt abonnementsendring er angret. Det nåværende abonnementet fortsetter uendret.",
       "appDelisted": "Fjernet fra App Store",
-      "appRelisted": "Tilbake i App Store"
+      "appRelisted": "Tilbake i App Store",
+      "oauthClientUpdated": "OAuth-klienten ble oppdatert!"
     },
     "subText": {
       "startFromScratch": "Start fra bunnen av.",
@@ -6467,7 +6567,22 @@
     "factorySelectLinesToAnnotate": "Velg først linjene kommentaren gjelder.",
     "factorySessionArchived": "Økten er arkivert. Arbeidet er lagret; gjenoppta den for å fortsette.",
     "factoryTurnFailed": "Runden mislyktes",
-    "factoryDeleteSession": "«{title}» og hele transkripsjonen blir slettet. Dette kan ikke angres."
+    "factoryDeleteSession": "«{title}» og hele transkripsjonen blir slettet. Dette kan ikke angres.",
+    "migrateToV3": {
+      "whatChanges": "Hva som endres etter migreringen",
+      "changeDuplicate": "Baser kan dupliseres samtidig som entitets-ID-er bevares",
+      "changeApi": "Tilgang er bare mulig via V3-API-et",
+      "changeScale": "Utviklet for bedre skalerbarhet og langsiktig kompatibilitet",
+      "considerations": "Viktige forhold",
+      "considerApis": "V1- og V2-API-ene slutter å virke for denne basen etter migreringen",
+      "considerPermanent": "Migreringen er permanent og kan ikke angres",
+      "recommendation": "Migrer først når du har bekreftet at alle integrasjoner er kompatible med v3-API-et.",
+      "confirmTitle": "Migrere denne basen til v3?",
+      "confirmDesc": "Dette oppgraderer basen til nyeste arkitektur og API-versjon.",
+      "confirmCta": "Bekreft migreringen",
+      "migrating": "Migrerer..."
+    },
+    "skillsRegistryErrorTitle": "Kunne ikke søke i skills-registeret"
   },
   "trash": {
     "restore": "Gjenopprett",
@@ -6530,7 +6645,12 @@
         "partial": "Gjenopprett {count} uten konflikter",
         "force": "Gjenopprett alle og klare konflikter"
       }
-    }
+    },
+    "unavailableExternal": "Ekstern kilde",
+    "unavailablePending": "Settes opp",
+    "usingDefault": "{value} (standard)",
+    "keptForever": "For alltid",
+    "notKept": "Lagres ikke"
   },
   "baseTrash": {
     "title": "Papirkurv",

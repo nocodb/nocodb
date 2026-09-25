@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "អាប់ក្រេដដើម្បីតម្រូវឱ្យចូលគណនីលើបែបបទ",
     "upgradeToUseFormRequireSigninSubtitle": "អាប់ក្រេដទៅផែនការ {plan} ដើម្បីតម្រូវឱ្យអ្នកឆ្លើយតបចូលគណនីមុនពេលដាក់ស្នើបែបបទ។",
     "upgradeToUseSso": "ដំឡើងកំណែដើម្បីប្រើ SSO",
-    "upgradeToUseSsoSubtitle": "ដំឡើងកំណែទៅគម្រោង {plan} ដើម្បីរៀបចំការចូលតែម្ដង (SSO) និងអនុញ្ញាតឱ្យក្រុមរបស់អ្នកចូលដោយប្រើអ្នកផ្ដល់អត្តសញ្ញាណរបស់អ្នក។"
+    "upgradeToUseSsoSubtitle": "ដំឡើងកំណែទៅគម្រោង {plan} ដើម្បីរៀបចំការចូលតែម្ដង (SSO) និងអនុញ្ញាតឱ្យក្រុមរបស់អ្នកចូលដោយប្រើអ្នកផ្ដល់អត្តសញ្ញាណរបស់អ្នក។",
+    "upgradeToUseAppFactory": "ដំឡើងកញ្ចប់ដើម្បីប្រើ App Factory",
+    "upgradeToUseAppFactorySubtitle": "ដំឡើងទៅកញ្ចប់ {plan} ដើម្បីដំណើរការ agent សរសេរកូដលើ repository ដែលបានតភ្ជាប់របស់អ្នក។"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "បង្កើតកំណត់ត្រា"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "ថតទិដ្ឋភាព",
     "subRecord": "កំណត់ត្រារង",
     "video": "វីដេអូ",
-    "recordTemplates": "គំរូកំណត់ត្រា"
+    "recordTemplates": "គំរូកំណត់ត្រា",
+    "roleTypePlural": {
+      "owner": "ម្ចាស់",
+      "creator": "អ្នកបង្កើត",
+      "editor": "អ្នកកែសម្រួល",
+      "commenter": "អ្នកបញ្ចេញមតិ",
+      "viewer": "អ្នកមើល",
+      "inherit": "ទទួលតំណែងតាមមេ",
+      "noaccess": "គ្មានសិទ្ធិចូលប្រើ",
+      "admin": "អ្នកគ្រប់គ្រង",
+      "superAdmin": "អ្នកគ្រប់គ្រងជាន់ខ្ពស់",
+      "orgAdmin": "អ្នកគ្រប់គ្រងអង្គភាព",
+      "orgCreator": "អ្នកបង្កើតរបស់អង្គភាព",
+      "orgViewer": "អ្នកមើលរបស់អង្គភាព",
+      "orgLevelOwner": "ម្ចាស់កម្រិតអង្គភាព",
+      "orgLevelCreator": "អ្នកបង្កើតកម្រិតអង្គភាព",
+      "orgLevelViewer": "អ្នកមើលកម្រិតអង្គភាព",
+      "appUser": "អ្នកប្រើកម្មវិធី"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "ដកដែនកំណត់ផ្ទាល់ខ្លួនចេញ?",
     "tooNarrowToAdjustFrozenFields": "បង្អួចតូចចង្អៀតពេកមិនអាចលៃតម្រូវវាលដែលបានបង្កក",
     "themeSettings": "ការកំណត់រូបរាង",
-    "nFields": "{count} វាល | {count} វាល"
+    "nFields": "{count} វាល | {count} វាល",
+    "noInterfaceMembersYet": "មិនទាន់មានសមាជិកចំណុចប្រទាក់ទេ",
+    "headJoin": "ចូលរួម | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4534,7 +4557,24 @@
     "openAgentConversation": "បើកការសន្ទនារបស់ភ្នាក់ងារនេះ",
     "sendToAgent": "ផ្ញើទៅភ្នាក់ងារ",
     "noPort": "គ្មានច្រក",
-    "manageInviteLinks": "គ្រប់គ្រងតំណអញ្ជើញ"
+    "manageInviteLinks": "គ្រប់គ្រងតំណអញ្ជើញ",
+    "editOauthClient": "កែសម្រួល client OAuth",
+    "oauthClientNameHint": "បង្ហាញដល់អ្នកប្រើកំឡុងពេលអនុញ្ញាត",
+    "applicationDescription": "ការពិពណ៌នាអំពីកម្មវិធី",
+    "oauthClientDescriptionHint": "ការពិពណ៌នាខ្លីដែលបង្ហាញពេលអ្នកប្រើផ្តល់សិទ្ធិចូលប្រើ",
+    "homepageUrl": "URL ទំព័រដើម",
+    "oauthClientLogoHint": "រូបភាពដែលបង្ហាញកំឡុងពេលអនុញ្ញាត (ណែនាំរូបការេ)",
+    "clientType": "ប្រភេទ client",
+    "oauthClientTypeHint": "សាធារណៈ៖ កម្មវិធីទូរស័ព្ទ និងគេហទំព័រ (ត្រូវការ PKCE)។ សម្ងាត់៖ ម៉ាស៊ីនមេសុវត្ថិភាព (អាចរក្សាទុកសោសម្ងាត់)",
+    "confidential": "សម្ងាត់",
+    "authorizationCallbackUrls": "អាសយដ្ឋានត្រឡប់មកវិញសម្រាប់ការអនុញ្ញាត",
+    "oauthCallbackUrlsHint": "អាសយដ្ឋាន HTTPS សម្រាប់បញ្ជូនបន្តបន្ទាប់ពីការអនុញ្ញាត (អនុញ្ញាត localhost/127.0.0.1)។ មួយក្នុងមួយជួរ",
+    "clientId": "លេខសម្គាល់ client",
+    "clientSecret": "សោសម្ងាត់របស់ client",
+    "regenerateSecret": "បង្កើតសោសម្ងាត់ថ្មី",
+    "createOauthClients": "បង្កើត client OAuth",
+    "managingOauthClients": "ការគ្រប់គ្រង client OAuth",
+    "clientInformation": "ព័ត៌មាន client"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5048,7 +5088,11 @@
     "marketplaceAuthored": "សរសេរដោយអ្នកបោះពុម្ពផ្សាយ មិនមែនដកស្រង់ពីខ្លឹមសារកម្មវិធីទេ។",
     "marketplaceVerifiedPublisher": "បោះពុម្ពផ្សាយ និងពិនិត្យដោយ NocoDB",
     "showCustomPermissionFieldsOnly": "បង្ហាញតែវាលដែលមានសិទ្ធិផ្ទាល់ខ្លួនប៉ុណ្ណោះ",
-    "showAllFields": "បង្ហាញវាលទាំងអស់"
+    "showAllFields": "បង្ហាញវាលទាំងអស់",
+    "inviteLinkCannotGrantOwner": "តំណអញ្ជើញមិនអាចផ្តល់តួនាទីជាម្ចាស់បានទេ",
+    "inviteLinkRoleAboveYours": "អ្នកអាចផ្តល់បានតែតួនាទីរហូតដល់តួនាទីរបស់អ្នកប៉ុណ្ណោះ",
+    "noDefaultSourceForFolders": "base នេះគ្មានប្រភពលំនាំដើមទេ — សូមបង្កើតថតពីម៉ឺនុយរបស់ប្រភពនីមួយៗវិញ",
+    "noDefaultSourceForSync": "base នេះគ្មានប្រភពលំនាំដើមទេ — ការធ្វើសមកាលកម្មត្រូវការប្រភពមួយដើម្បីរក្សាទុកតារាងរបស់វា"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5210,7 +5254,28 @@
     "messageAgent": "ផ្ញើសារទៅ {agent}",
     "somethingElse": "អ្វីផ្សេងទៀត",
     "noMcpConnections": "មិនបានបង្កើតការតភ្ជាប់ MCP ទេ",
-    "noMcpConnectionsLabel": "ហាក់ដូចជាអ្នកមិនទាន់បានបង្កើតការតភ្ជាប់ MCP ណាមួយឡើយ។"
+    "noMcpConnectionsLabel": "ហាក់ដូចជាអ្នកមិនទាន់បានបង្កើតការតភ្ជាប់ MCP ណាមួយឡើយ។",
+    "searchDataSource": "ស្វែងរកប្រភពទិន្នន័យ",
+    "searchConnections": "ស្វែងរកការតភ្ជាប់",
+    "migrationUrl": "បញ្ចូល URL ការផ្ទេរសម្រាប់ទិសដៅ",
+    "searchSync": "ស្វែងរកការធ្វើសមកាលកម្ម",
+    "searchWorkspace": "ស្វែងរកកន្លែងធ្វើការ",
+    "searchBase": "ស្វែងរក base",
+    "searchEvent": "ស្វែងរកព្រឹត្តិការណ៍",
+    "skillRegistrySearch": "ស្វែងរកជំនាញ…",
+    "searchSnapshots": "ស្វែងរក snapshot",
+    "searchTokens": "ស្វែងរក token",
+    "factoryPrompt": "ពិពណ៌នាអំពីអ្វីដែលអ្នកចង់ឱ្យសាងសង់",
+    "factorySearchRepos": "ស្វែងរក repository",
+    "factorySearchTargets": "ស្វែងរក repository",
+    "factorySearchSources": "ស្វែងរក branch, pull request និងបញ្ហា",
+    "factoryOnPr": "តើគួរធ្វើអ្វីលើ pull request នេះ?",
+    "factoryOnIssue": "អ្វីផ្សេងទៀតក្រៅពីបញ្ហានេះ (ជាជម្រើស)",
+    "factoryReply": "ឆ្លើយតប",
+    "searchFiles": "ស្វែងរកឯកសារ",
+    "factoryAnnotation": "តើ agent គួរផ្លាស់ប្តូរអ្វីនៅទីនេះ?",
+    "oauthClientName": "កម្មវិធីរបស់ខ្ញុំ",
+    "oauthClientDescription": "កម្មវិធីនេះជួយអ្នកគ្រប់គ្រងទិន្នន័យរបស់អ្នក..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5449,7 +5514,8 @@
       "tableSyncConvertMainTable": "នេះជាតារាងដែលបានធ្វើសមកាលកម្មនៃការធ្វើសមកាលកម្មនេះ — ការបំប្លែងវានឹងដកការធ្វើសមកាលកម្មនេះចេញ។ តារាងទាំងអស់ដែលបង្កើតដោយការធ្វើសមកាលកម្មនេះនឹងនៅតែជាតារាងធម្មតាដែលអាចកែបាន ហើយឈប់ធ្វើសមកាលកម្ម។",
       "requiredFieldNotEditable": "វាលចាំបាច់នេះមិនអាចកែបានទេ ដែលអាចបណ្ដាលឱ្យមានកំហុសពេលដាក់ស្នើបែបបទ។",
       "communityAppInstall": "{title} គឺជាកម្មវិធីសហគមន៍។ វាមិនត្រូវបានពិនិត្យ ឬផ្ទៀងផ្ទាត់ដោយ NocoDB ទេ។ សូមប្រាកដថាអ្នកទុកចិត្តអ្នកបោះពុម្ពផ្សាយ មុនពេលដំឡើងវាទៅក្នុងកន្លែងធ្វើការរបស់អ្នក។",
-      "removeCustomDomain": "{domain} នឹងឈប់បម្រើកម្មវិធីនេះ។ អាសយដ្ឋានលំនាំដើមនៅតែដំណើរការ។"
+      "removeCustomDomain": "{domain} នឹងឈប់បម្រើកម្មវិធីនេះ។ អាសយដ្ឋានលំនាំដើមនៅតែដំណើរការ។",
+      "copyClientSecretNow": "⚠️ សូមចម្លងសោសម្ងាត់របស់ client ឥឡូវនេះ។ អ្នកនឹងមិនអាចមើលវាម្តងទៀតបានទេ!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5943,7 +6009,40 @@
       "interfaceRecordUnreadableEditingOff": "ការកែសម្រួលត្រូវបានបិទរហូតដល់អាចអានវាបានម្ដងទៀត។",
       "inviteLinkDomainSentence": "ដំណើរការតែជាមួយអ៊ីមែល {domain} ហើយសមាជិកក្រុមចូលរួមជា {role}",
       "inviteLinkOpenSentence": "អ្នកណាដែលមានតំណនេះអាចចូលរួមជា {role} បាន",
-      "inviteLinkOpenCaution": "ចែករំលែកវាតែជាមួយអ្នកដែលអ្នកទុកចិត្តប៉ុណ្ណោះ។"
+      "inviteLinkOpenCaution": "ចែករំលែកវាតែជាមួយអ្នកដែលអ្នកទុកចិត្តប៉ុណ្ណោះ។",
+      "shareHubTooltip": "អញ្ជើញអ្នកផ្សេងឱ្យធ្វើការនៅក្នុង base នេះ ឬចេញផ្សាយតំណអានបានតែប៉ុណ្ណោះទៅកាន់ {object}។",
+      "shareHubTooltipInviteOnly": "អញ្ជើញអ្នកផ្សេងឱ្យធ្វើការនៅក្នុង base នេះ។ ដើម្បីចេញផ្សាយ base ខ្លួនឯង សូមប្រើ «ចែករំលែក base» នៅក្នុងម៉ឺនុយរបស់ base។",
+      "shareNothingPrivateBase": "មានតែម្ចាស់ base ទេដែលអាចអញ្ជើញអ្នកផ្សេងចូល base ឯកជន។ ដើម្បីចេញផ្សាយទិដ្ឋភាព សូមបើកទិដ្ឋភាពមួយជាមុនសិន។",
+      "shareNothingToShow": "គ្មានអ្វីត្រូវចែករំលែកពីទីនេះទេ។ បើកទិដ្ឋភាពមួយដើម្បីចេញផ្សាយតំណអានបានតែប៉ុណ្ណោះ។",
+      "peopleHaveAccess": "មានអ្នកប្រើ {count} នាក់ដែលអាចចូលប្រើបាន។ | មានអ្នកប្រើ {count} នាក់ដែលអាចចូលប្រើបាន។",
+      "noInviteLinkYet": "មិនទាន់មានតំណអញ្ជើញទេ។ បង្កើតមួយ ដើម្បីឱ្យអ្នកផ្សេងចូលរួមបានដោយមិនចាំបាច់មានការអញ្ជើញដាច់ដោយឡែក។",
+      "youWillJoinAs": "អ្នកនឹងចូលរួមជា {role}។",
+      "signedInWrongDomain": "អ្នកបានចូលគណនីជា {email}។ តំណនេះទទួលយកតែអាសយដ្ឋាន {'@'}{domain} ប៉ុណ្ណោះ។",
+      "signedInAs": "អ្នកបានចូលគណនីជា {email}។",
+      "publicLinkToNamed": "តំណសាធារណៈទៅកាន់ {name}",
+      "readOnlyInviteInstead": "អានបានតែប៉ុណ្ណោះ។ តើអ្នកចង់ឱ្យពួកគេកែសម្រួល ឬបញ្ចេញមតិបានដែរឬទេ?",
+      "willJoinAsRole": "អ្នកប្រើ {count} នាក់នឹងចូលរួមជា {role} ហើយអាច {can}។ | អ្នកប្រើ {count} នាក់នឹងចូលរួមជា {role} ហើយអាច {can}។",
+      "sharePublicLinkSubtitle": "អ្នកណាដែលមានតំណនេះអាចបើកបាន។ មិនចាំបាច់មានគណនីទេ។",
+      "shareLinksReadOnly": "តំណទាំងនេះអានបានតែប៉ុណ្ណោះ។ តើអ្នកចង់ឱ្យពួកគេកែសម្រួល ឬបញ្ចេញមតិបានដែរឬទេ?",
+      "clientSecretHidden": "សោសម្ងាត់ត្រូវបានលាក់ដើម្បីសុវត្ថិភាព ហើយនឹងមិនបង្ហាញម្តងទៀតទេ។ អ្នកអាចបង្កើតថ្មីបានប្រសិនបើត្រូវការ។",
+      "mcpSetupIntroClaude": "ចាប់ផ្តើមប្រើ NocoDB MCP ជាមួយ Claude Desktop ក្នុង 3 ជំហានងាយៗ",
+      "mcpSetupClaudeStep1": "បើកការកំណត់ Claude Desktop ពីរបាររុករក។",
+      "mcpSetupClaudeStep2": "ចូលទៅផ្ទាំង Develop រួចចុចលើ «Edit Config»។",
+      "mcpSetupClaudeStep3": "បន្ថែមការកំណត់រចនាសម្ព័ន្ធ JSON ដែលទទួលបានក្រោយពីបង្កើត token ទៅក្នុង claude_desktop_config.json",
+      "mcpSetupIntroCodex": "ចាប់ផ្តើមប្រើ NocoDB MCP ជាមួយ Codex CLI ក្នុង 3 ជំហានងាយៗ",
+      "mcpSetupCodexStep2": "បន្ថែមការកំណត់រចនាសម្ព័ន្ធ TOML ដែលទទួលបានក្រោយពីបង្កើត token។",
+      "mcpSetupIntroAntigravity": "ចាប់ផ្តើមប្រើ NocoDB MCP ជាមួយ AntiGravity ក្នុង 4 ជំហានងាយៗ",
+      "mcpSetupAntigravityStep1": "ចុចលើចំណុចបីនៅជ្រុងខាងលើស្តាំនៃបង្អួច agent រួចចុច \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "ចុចលើ Manage MCP Servers។",
+      "mcpSetupViewRawConfig": "ឥឡូវចុចលើ View raw config។",
+      "mcpSetupPasteJsonConfig": "បិទភ្ជាប់ការកំណត់រចនាសម្ព័ន្ធ JSON ដែលទទួលបានក្រោយពីបង្កើត token ទៅក្នុងឯកសារដែលបើក",
+      "mcpSetupIntroCursor": "ចាប់ផ្តើមប្រើ NocoDB MCP ជាមួយ Cursor ក្នុង 3 ជំហានងាយៗ",
+      "mcpSetupCursorStep1": "បើកការកំណត់ Cursor (ចុច Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "ជ្រើសផ្ទាំង \"MCP\" រួចចុចលើ \"Add Custom MCP\"។",
+      "mcpSetupCursorStep3": "បន្ថែមការកំណត់រចនាសម្ព័ន្ធ JSON ដែលទទួលបានក្រោយពីបង្កើត token។",
+      "mcpSetupIntroWindsurf": "ចាប់ផ្តើមប្រើ NocoDB MCP ជាមួយ Windsurf ក្នុង 4 ជំហានងាយៗ",
+      "mcpSetupWindsurfStep1": "ចូលទៅការកំណត់ Windsurf រួចជ្រើសផ្ទាំង Cascade នៅរបារចំហៀងខាងឆ្វេង",
+      "mcpSetupWindsurfStep2": "ចុចលើ Manage MCP។"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6258,7 +6357,8 @@
       "planChangeScheduled": "បានកំណត់ពេលប្ដូរផែនការ",
       "planChangeReverted": "បានត្រឡប់ការប្ដូរផែនការដែលបានកំណត់ពេលវិញ។ ផែនការបច្ចុប្បន្នរបស់អ្នកបន្តដោយគ្មានការផ្លាស់ប្ដូរ។",
       "appDelisted": "បានដកចេញពី App Store",
-      "appRelisted": "ត្រឡប់មក App Store វិញ"
+      "appRelisted": "ត្រឡប់មក App Store វិញ",
+      "oauthClientUpdated": "បានធ្វើបច្ចុប្បន្នភាព client OAuth ដោយជោគជ័យ!"
     },
     "subText": {
       "startFromScratch": "ចាប់ផ្តើមតាំងដើម។",
@@ -6451,7 +6551,22 @@
     "factoryDiscardEdit": "ការផ្លាស់ប្ដូរដែលមិនទាន់រក្សាទុកក្នុងឯកសារនេះនឹងបាត់បង់។",
     "factorySelectLinesToAnnotate": "សូមជ្រើសបន្ទាត់ដែលមតិយោបល់និយាយអំពីជាមុនសិន។",
     "factoryTurnFailed": "វេននេះបានបរាជ័យ",
-    "factoryDeleteSession": "“{title}” និងកំណត់ត្រាសន្ទនាទាំងមូលរបស់វានឹងត្រូវលុប។ សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។"
+    "factoryDeleteSession": "“{title}” និងកំណត់ត្រាសន្ទនាទាំងមូលរបស់វានឹងត្រូវលុប។ សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។",
+    "migrateToV3": {
+      "whatChanges": "អ្វីដែលផ្លាស់ប្តូរបន្ទាប់ពីការផ្ទេរ",
+      "changeDuplicate": "អាចចម្លង base ដោយរក្សាលេខសម្គាល់របស់ធាតុនីមួយៗ",
+      "changeApi": "ការចូលប្រើអាចធ្វើបានតាមរយៈ API V3 តែប៉ុណ្ណោះ",
+      "changeScale": "រចនាឡើងសម្រាប់ការពង្រីកបានល្អជាងមុន និងភាពឆបគ្នារយៈពេលវែង",
+      "considerations": "ចំណុចសំខាន់ដែលត្រូវពិចារណា",
+      "considerApis": "បន្ទាប់ពីការផ្ទេរ API V1 និង V2 នឹងលែងដំណើរការសម្រាប់ base នេះទៀតហើយ",
+      "considerPermanent": "ការផ្ទេរគឺជាអចិន្ត្រៃយ៍ ហើយមិនអាចត្រឡប់វិញបានទេ",
+      "recommendation": "សូមផ្ទេរតែបន្ទាប់ពីបានបញ្ជាក់ថាការភ្ជាប់ទាំងអស់ឆបគ្នាជាមួយ API v3 ហើយ។",
+      "confirmTitle": "ផ្ទេរ base នេះទៅ v3 ឬ?",
+      "confirmDesc": "វានឹងធ្វើបច្ចុប្បន្នភាព base ទៅស្ថាបត្យកម្ម និងកំណែ API ថ្មីបំផុត។",
+      "confirmCta": "បញ្ជាក់ការផ្ទេរ",
+      "migrating": "កំពុងផ្ទេរ..."
+    },
+    "skillsRegistryErrorTitle": "មិនអាចស្វែងរកនៅក្នុងបញ្ជីជំនាញបានទេ"
   },
   "trash": {
     "restore": "Restore",
@@ -6514,7 +6629,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "ប្រភពខាងក្រៅ",
+    "unavailablePending": "កំពុងរៀបចំ",
+    "usingDefault": "{value} (លំនាំដើម)",
+    "keptForever": "ជារៀងរហូត",
+    "notKept": "មិនរក្សាទុក"
   },
   "baseTrash": {
     "title": "Trash",

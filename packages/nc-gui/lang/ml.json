@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "ഫോമുകളിൽ സൈൻ ഇൻ നിർബന്ധമാക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToUseFormRequireSigninSubtitle": "ഫോം സമർപ്പിക്കുന്നതിന് മുമ്പ് പ്രതികരിക്കുന്നവർ സൈൻ ഇൻ ചെയ്യണമെന്ന് നിർബന്ധമാക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseSso": "SSO ഉപയോഗിക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
-    "upgradeToUseSsoSubtitle": "സിംഗിൾ സൈൻ-ഓൺ (SSO) സജ്ജീകരിക്കാനും നിങ്ങളുടെ ടീമിന് നിങ്ങളുടെ ഐഡന്റിറ്റി ദാതാവ് ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യാനും {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
+    "upgradeToUseSsoSubtitle": "സിംഗിൾ സൈൻ-ഓൺ (SSO) സജ്ജീകരിക്കാനും നിങ്ങളുടെ ടീമിന് നിങ്ങളുടെ ഐഡന്റിറ്റി ദാതാവ് ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യാനും {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToUseAppFactory": "App Factory ഉപയോഗിക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
+    "upgradeToUseAppFactorySubtitle": "ബന്ധിപ്പിച്ച റിപ്പോസിറ്ററികളിൽ കോഡിംഗ് ഏജന്റുകളെ പ്രവർത്തിപ്പിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "റെക്കോർഡുകൾ സൃഷ്ടിക്കുക"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "കാഴ്ച ഫോൾഡർ",
     "subRecord": "ഉപ-റെക്കോർഡ്",
     "video": "വീഡിയോ",
-    "recordTemplates": "റെക്കോർഡ് ടെംപ്ലേറ്റുകൾ"
+    "recordTemplates": "റെക്കോർഡ് ടെംപ്ലേറ്റുകൾ",
+    "roleTypePlural": {
+      "owner": "ഉടമകൾ",
+      "creator": "സൃഷ്ടിക്കുന്നവർ",
+      "editor": "എഡിറ്റർമാർ",
+      "commenter": "അഭിപ്രായം രേഖപ്പെടുത്തുന്നവർ",
+      "viewer": "കാഴ്ചക്കാർ",
+      "inherit": "പാരമ്പര്യമായി സ്വീകരിക്കുക",
+      "noaccess": "ആക്‌സസ് ഇല്ല",
+      "admin": "അഡ്മിനുകൾ",
+      "superAdmin": "സൂപ്പർ അഡ്മിനുകൾ",
+      "orgAdmin": "സ്ഥാപനത്തിന്റെ അഡ്മിനുകൾ",
+      "orgCreator": "സ്ഥാപനത്തിന്റെ സ്രഷ്ടാക്കൾ",
+      "orgViewer": "സ്ഥാപനത്തിന്റെ കാഴ്ചക്കാർ",
+      "orgLevelOwner": "സ്ഥാപന തലത്തിലുള്ള ഉടമകൾ",
+      "orgLevelCreator": "സ്ഥാപന തലത്തിലുള്ള സ്രഷ്ടാക്കൾ",
+      "orgLevelViewer": "സ്ഥാപന തലത്തിലുള്ള കാഴ്ചക്കാർ",
+      "appUser": "ആപ്പ് ഉപയോക്താക്കൾ"
+    }
   },
   "datatype": {
     "ID": "ഐഡി",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "ഇഷ്ട ഡൊമെയ്ൻ നീക്കണോ?",
     "tooNarrowToAdjustFrozenFields": "ഉറപ്പിച്ച വിഭാഗങ്ങൾ ക്രമീകരിക്കാൻ ജാലകം വളരെ ഇടുങ്ങിയതാണ്",
     "themeSettings": "തീം ക്രമീകരണങ്ങൾ",
-    "nFields": "{count} ഫീൽഡ് | {count} ഫീൽഡുകൾ"
+    "nFields": "{count} ഫീൽഡ് | {count} ഫീൽഡുകൾ",
+    "noInterfaceMembersYet": "ഇതുവരെ ഇന്റർഫേസ് അംഗങ്ങളില്ല",
+    "headJoin": "ചേരുക | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "ഈ ഏജന്റിന്റെ സംഭാഷണം തുറക്കുക",
     "sendToAgent": "ഏജന്റിന് അയയ്ക്കുക",
     "noPort": "പോർട്ട് ഇല്ല",
-    "manageInviteLinks": "ക്ഷണ ലിങ്കുകൾ കൈകാര്യം ചെയ്യുക"
+    "manageInviteLinks": "ക്ഷണ ലിങ്കുകൾ കൈകാര്യം ചെയ്യുക",
+    "editOauthClient": "OAuth ക്ലയന്റ് തിരുത്തുക",
+    "oauthClientNameHint": "അംഗീകാരസമയത്ത് ഉപയോക്താക്കൾക്ക് കാണിക്കുന്നു",
+    "applicationDescription": "ആപ്ലിക്കേഷൻ വിവരണം",
+    "oauthClientDescriptionHint": "ഉപയോക്താക്കൾ ആക്‌സസ് നൽകുമ്പോൾ കാണിക്കുന്ന ചെറിയ വിവരണം",
+    "homepageUrl": "ഹോംപേജിന്റെ URL",
+    "oauthClientLogoHint": "അംഗീകാരസമയത്ത് കാണിക്കുന്ന ചിത്രം (ചതുരാകൃതി ശുപാർശ ചെയ്യുന്നു)",
+    "clientType": "ക്ലയന്റ് തരം",
+    "oauthClientTypeHint": "പൊതു: മൊബൈൽ, വെബ് ആപ്പുകൾ (PKCE ആവശ്യമാണ്). രഹസ്യാത്മകം: സുരക്ഷിത സെർവറുകൾ (സീക്രട്ടുകൾ സൂക്ഷിക്കാൻ കഴിയും)",
+    "confidential": "രഹസ്യാത്മകം",
+    "authorizationCallbackUrls": "അംഗീകാര കോൾബാക്ക് വിലാസങ്ങൾ",
+    "oauthCallbackUrlsHint": "അംഗീകാരത്തിനു ശേഷം റീഡയറക്ട് ചെയ്യാനുള്ള HTTPS വിലാസങ്ങൾ (localhost/127.0.0.1 അനുവദനീയം). ഒരു വരിയിൽ ഒന്ന്",
+    "clientId": "ക്ലയന്റ് ഐഡി",
+    "clientSecret": "ക്ലയന്റ് സീക്രട്ട്",
+    "regenerateSecret": "പുതിയ സീക്രട്ട് സൃഷ്ടിക്കുക",
+    "createOauthClients": "OAuth ക്ലയന്റുകൾ സൃഷ്ടിക്കുക",
+    "managingOauthClients": "OAuth ക്ലയന്റുകളുടെ നടത്തിപ്പ്",
+    "clientInformation": "ക്ലയന്റ് വിവരങ്ങൾ"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "പ്രസാധകൻ എഴുതിയത്, ആപ്പിന്റെ ഉള്ളടക്കത്തിൽ നിന്ന് എടുത്തതല്ല.",
     "marketplaceVerifiedPublisher": "NocoDB പ്രസിദ്ധീകരിച്ച് പരിശോധിച്ചത്",
     "showCustomPermissionFieldsOnly": "ഇഷ്ടാനുസൃത അനുമതികളുള്ള ഫീൽഡുകൾ മാത്രം കാണിക്കുക",
-    "showAllFields": "എല്ലാ ഫീൽഡുകളും കാണിക്കുക"
+    "showAllFields": "എല്ലാ ഫീൽഡുകളും കാണിക്കുക",
+    "inviteLinkCannotGrantOwner": "ക്ഷണ ലിങ്കിന് ഉടമ റോൾ നൽകാനാവില്ല",
+    "inviteLinkRoleAboveYours": "നിങ്ങളുടെ റോൾ വരെയുള്ള റോളുകൾ മാത്രമേ നൽകാനാകൂ",
+    "noDefaultSourceForFolders": "ഈ ബേസിന് ഡിഫോൾട്ട് ഉറവിടമില്ല — ഫോൾഡറുകൾ ഉറവിടത്തിന്റെ സ്വന്തം മെനുവിൽ നിന്ന് സൃഷ്ടിക്കുക",
+    "noDefaultSourceForSync": "ഈ ബേസിന് ഡിഫോൾട്ട് ഉറവിടമില്ല — സിങ്കിന് അതിന്റെ ടേബിളുകൾ സൂക്ഷിക്കാൻ ഒരു ഉറവിടം വേണം"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5233,7 +5277,28 @@
     "messageAgent": "{agent}-ന് സന്ദേശം അയയ്ക്കുക",
     "somethingElse": "മറ്റെന്തെങ്കിലും",
     "noMcpConnections": "MCP കണക്ഷനുകളൊന്നും സൃഷ്ടിച്ചിട്ടില്ല",
-    "noMcpConnectionsLabel": "നിങ്ങൾ ഇതുവരെ MCP കണക്ഷനുകളൊന്നും സൃഷ്ടിച്ചിട്ടില്ലെന്ന് തോന്നുന്നു."
+    "noMcpConnectionsLabel": "നിങ്ങൾ ഇതുവരെ MCP കണക്ഷനുകളൊന്നും സൃഷ്ടിച്ചിട്ടില്ലെന്ന് തോന്നുന്നു.",
+    "searchDataSource": "ഡാറ്റ ഉറവിടം തിരയുക",
+    "searchConnections": "കണക്ഷനുകൾ തിരയുക",
+    "migrationUrl": "ലക്ഷ്യസ്ഥാനത്തിനുള്ള മൈഗ്രേഷൻ URL നൽകുക",
+    "searchSync": "സിങ്ക് തിരയുക",
+    "searchWorkspace": "വർക്ക്സ്പേസ് തിരയുക",
+    "searchBase": "ബേസ് തിരയുക",
+    "searchEvent": "ഇവന്റ് തിരയുക",
+    "skillRegistrySearch": "സ്കില്ലുകൾ തിരയുക…",
+    "searchSnapshots": "സ്നാപ്പ്ഷോട്ടുകൾ തിരയുക",
+    "searchTokens": "ടോക്കണുകൾ തിരയുക",
+    "factoryPrompt": "നിങ്ങൾക്ക് എന്ത് നിർമ്മിക്കണമെന്ന് വിവരിക്കുക",
+    "factorySearchRepos": "റിപ്പോസിറ്ററികൾ തിരയുക",
+    "factorySearchTargets": "റിപ്പോസിറ്ററികൾ തിരയുക",
+    "factorySearchSources": "ബ്രാഞ്ചുകൾ, പുൾ റിക്വസ്റ്റുകൾ, ഇഷ്യൂകൾ തിരയുക",
+    "factoryOnPr": "ഈ പുൾ റിക്വസ്റ്റിൽ എന്താണ് സംഭവിക്കേണ്ടത്?",
+    "factoryOnIssue": "ഇഷ്യൂവിനു പുറമേ ചേർക്കാൻ എന്തെങ്കിലും (ഐച്ഛികം)",
+    "factoryReply": "മറുപടി",
+    "searchFiles": "ഫയലുകൾ തിരയുക",
+    "factoryAnnotation": "ഏജന്റ് ഇവിടെ എന്താണ് മാറ്റേണ്ടത്?",
+    "oauthClientName": "എന്റെ ആപ്ലിക്കേഷൻ",
+    "oauthClientDescription": "ഈ ആപ്ലിക്കേഷൻ നിങ്ങളുടെ ഡാറ്റ കൈകാര്യം ചെയ്യാൻ സഹായിക്കുന്നു..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "ഇത് ഈ സിങ്കിന്റെ സിങ്ക് ചെയ്ത പട്ടികയാണ് — ഇത് പരിവർത്തനം ചെയ്താൽ സിങ്ക് തന്നെ നീക്കം ചെയ്യപ്പെടും. സിങ്ക് സൃഷ്ടിച്ച എല്ലാ പട്ടികകളും സാധാരണ, എഡിറ്റ് ചെയ്യാവുന്ന പട്ടികകളായി നിലനിൽക്കും, സിങ്ക് ചെയ്യുന്നത് നിർത്തും.",
       "requiredFieldNotEditable": "ഈ നിർബന്ധിത വിഭാഗം എഡിറ്റ് ചെയ്യാനാവില്ല, ഇത് ഫോം സമർപ്പിക്കുമ്പോൾ പിഴവുകൾക്ക് കാരണമായേക്കാം.",
       "communityAppInstall": "{title} ഒരു കമ്മ്യൂണിറ്റി ആപ്പാണ്. ഇത് NocoDB അവലോകനം ചെയ്യുകയോ പരിശോധിച്ചുറപ്പിക്കുകയോ ചെയ്തിട്ടില്ല. നിങ്ങളുടെ പ്രവർത്തനസ്ഥലത്ത് ഇത് ഇൻസ്റ്റാൾ ചെയ്യുന്നതിന് മുമ്പ് പ്രസാധകനെ വിശ്വസിക്കുന്നുവെന്ന് ഉറപ്പാക്കുക.",
-      "removeCustomDomain": "{domain} ഇനി ഈ ആപ്പ് നൽകില്ല. സ്ഥിരസ്ഥിതി വിലാസം പ്രവർത്തിക്കുന്നത് തുടരും."
+      "removeCustomDomain": "{domain} ഇനി ഈ ആപ്പ് നൽകില്ല. സ്ഥിരസ്ഥിതി വിലാസം പ്രവർത്തിക്കുന്നത് തുടരും.",
+      "copyClientSecretNow": "⚠️ നിങ്ങളുടെ ക്ലയന്റ് സീക്രട്ട് ഇപ്പോൾ തന്നെ പകർത്തുക. ഇനി അത് കാണാനാവില്ല!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "വീണ്ടും വായിക്കാനാകുന്നതുവരെ തിരുത്തൽ ഓഫാണ്.",
       "inviteLinkDomainSentence": "{domain} ഇമെയിലിൽ മാത്രം പ്രവർത്തിക്കും, സഹപ്രവർത്തകർ {role} ആയി ചേരും",
       "inviteLinkOpenSentence": "ലിങ്ക് ഉള്ള ആർക്കും {role} ആയി ചേരാം",
-      "inviteLinkOpenCaution": "വിശ്വസിക്കുന്നവരുമായി മാത്രം ഇത് പങ്കിടുക."
+      "inviteLinkOpenCaution": "വിശ്വസിക്കുന്നവരുമായി മാത്രം ഇത് പങ്കിടുക.",
+      "shareHubTooltip": "ഈ ബേസിൽ പ്രവർത്തിക്കാൻ ആളുകളെ ക്ഷണിക്കുക, അല്ലെങ്കിൽ {object} എന്നതിലേക്ക് വായിക്കാൻ-മാത്രമുള്ള ലിങ്ക് പ്രസിദ്ധീകരിക്കുക.",
+      "shareHubTooltipInviteOnly": "ഈ ബേസിൽ പ്രവർത്തിക്കാൻ ആളുകളെ ക്ഷണിക്കുക. ബേസ് തന്നെ പ്രസിദ്ധീകരിക്കാൻ ബേസ് മെനുവിലെ «ബേസ് പങ്കിടുക» ഉപയോഗിക്കുക.",
+      "shareNothingPrivateBase": "സ്വകാര്യ ബേസിലേക്ക് ബേസിന്റെ ഉടമയ്ക്ക് മാത്രമേ ആളുകളെ ക്ഷണിക്കാനാകൂ. ഒരു കാഴ്ച പ്രസിദ്ധീകരിക്കാൻ ആദ്യം അത് തുറക്കുക.",
+      "shareNothingToShow": "ഇവിടെ നിന്ന് പങ്കിടാൻ ഒന്നുമില്ല. വായിക്കാൻ-മാത്രമുള്ള ലിങ്ക് പ്രസിദ്ധീകരിക്കാൻ ഒരു കാഴ്ച തുറക്കുക.",
+      "peopleHaveAccess": "{count} പേർക്ക് ആക്‌സസ് ഉണ്ട്. | {count} പേർക്ക് ആക്‌സസ് ഉണ്ട്.",
+      "noInviteLinkYet": "ഇതുവരെ ക്ഷണ ലിങ്ക് ഇല്ല. പ്രത്യേക ക്ഷണമില്ലാതെ ആളുകൾക്ക് ചേരാൻ ഒരെണ്ണം സൃഷ്ടിക്കുക.",
+      "youWillJoinAs": "നിങ്ങൾ {role} ആയി ചേരും.",
+      "signedInWrongDomain": "നിങ്ങൾ {email} ആയി സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു. ഈ ലിങ്ക് {'@'}{domain} വിലാസങ്ങൾ മാത്രമേ സ്വീകരിക്കൂ.",
+      "signedInAs": "നിങ്ങൾ {email} ആയി സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു.",
+      "publicLinkToNamed": "{name} എന്നതിലേക്കുള്ള പൊതു ലിങ്ക്",
+      "readOnlyInviteInstead": "വായിക്കാൻ മാത്രം. അവർക്ക് തിരുത്താനോ അഭിപ്രായമിടാനോ കഴിയണോ?",
+      "willJoinAsRole": "{count} പേർ {role} ആയി ചേരും, അവർക്ക് {can} കഴിയും. | {count} പേർ {role} ആയി ചേരും, അവർക്ക് {can} കഴിയും.",
+      "sharePublicLinkSubtitle": "ലിങ്ക് ഉള്ള ആർക്കും ഇത് തുറക്കാം. അക്കൗണ്ട് ആവശ്യമില്ല.",
+      "shareLinksReadOnly": "ലിങ്കുകൾ വായിക്കാൻ മാത്രമുള്ളതാണ്. അവർക്ക് തിരുത്താനോ അഭിപ്രായമിടാനോ കഴിയണമെന്നുണ്ടോ?",
+      "clientSecretHidden": "സുരക്ഷയ്ക്കായി സീക്രട്ട് മറച്ചിരിക്കുന്നു, ഇനി അത് കാണിക്കില്ല. ആവശ്യമെങ്കിൽ നിങ്ങൾക്ക് പുതിയത് സൃഷ്ടിക്കാം.",
+      "mcpSetupIntroClaude": "3 ലളിതമായ ഘട്ടങ്ങളിലൂടെ Claude Desktop-ൽ NocoDB MCP ഉപയോഗിച്ചു തുടങ്ങുക",
+      "mcpSetupClaudeStep1": "നാവിഗേഷൻ ബാറിൽ നിന്ന് Claude Desktop ക്രമീകരണങ്ങൾ തുറക്കുക.",
+      "mcpSetupClaudeStep2": "Develop ടാബിലേക്ക് പോയി «Edit Config» ക്ലിക്ക് ചെയ്യുക.",
+      "mcpSetupClaudeStep3": "ടോക്കൺ സൃഷ്ടിച്ച ശേഷം ലഭിക്കുന്ന JSON കോൺഫിഗറേഷൻ claude_desktop_config.json-ൽ ചേർക്കുക",
+      "mcpSetupIntroCodex": "3 ലളിതമായ ഘട്ടങ്ങളിലൂടെ Codex CLI-യിൽ NocoDB MCP ഉപയോഗിച്ചു തുടങ്ങുക",
+      "mcpSetupCodexStep2": "ടോക്കൺ സൃഷ്ടിച്ച ശേഷം ലഭിക്കുന്ന TOML കോൺഫിഗറേഷൻ ചേർക്കുക.",
+      "mcpSetupIntroAntigravity": "4 ലളിതമായ ഘട്ടങ്ങളിലൂടെ AntiGravity-യിൽ NocoDB MCP ഉപയോഗിച്ചു തുടങ്ങുക",
+      "mcpSetupAntigravityStep1": "ഏജന്റ് വിൻഡോയുടെ മുകളിൽ വലതുവശത്തുള്ള മൂന്ന് കുത്തുകളിൽ ക്ലിക്ക് ചെയ്ത ശേഷം \"MCP Servers\" ക്ലിക്ക് ചെയ്യുക",
+      "mcpSetupAntigravityStep2": "Manage MCP Servers ക്ലിക്ക് ചെയ്യുക.",
+      "mcpSetupViewRawConfig": "ഇനി View raw config ക്ലിക്ക് ചെയ്യുക.",
+      "mcpSetupPasteJsonConfig": "ടോക്കൺ സൃഷ്ടിച്ച ശേഷം ലഭിക്കുന്ന JSON കോൺഫിഗറേഷൻ തുറന്ന ഫയലിൽ ഒട്ടിക്കുക",
+      "mcpSetupIntroCursor": "3 ലളിതമായ ഘട്ടങ്ങളിലൂടെ Cursor-ൽ NocoDB MCP ഉപയോഗിച്ചു തുടങ്ങുക",
+      "mcpSetupCursorStep1": "Cursor ക്രമീകരണങ്ങൾ തുറക്കുക (Shift+Cmd+J അമർത്തുക)",
+      "mcpSetupCursorStep2": "\"MCP\" ടാബ് തിരഞ്ഞെടുത്ത് \"Add Custom MCP\" ക്ലിക്ക് ചെയ്യുക.",
+      "mcpSetupCursorStep3": "ടോക്കൺ സൃഷ്ടിച്ച ശേഷം ലഭിക്കുന്ന JSON കോൺഫിഗറേഷൻ ചേർക്കുക.",
+      "mcpSetupIntroWindsurf": "4 ലളിതമായ ഘട്ടങ്ങളിലൂടെ Windsurf-ൽ NocoDB MCP ഉപയോഗിച്ചു തുടങ്ങുക",
+      "mcpSetupWindsurfStep1": "Windsurf ക്രമീകരണങ്ങളിൽ പോയി ഇടതുവശത്തെ സൈഡ്‌ബാറിൽ Cascade ടാബ് തിരഞ്ഞെടുക്കുക",
+      "mcpSetupWindsurfStep2": "Manage MCP ക്ലിക്ക് ചെയ്യുക."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "പ്ലാൻ മാറ്റം ഷെഡ്യൂൾ ചെയ്തു",
       "planChangeReverted": "ഷെഡ്യൂൾ ചെയ്ത പ്ലാൻ മാറ്റം പിൻവലിച്ചു. നിങ്ങളുടെ നിലവിലെ പ്ലാൻ മാറ്റമില്ലാതെ തുടരും.",
       "appDelisted": "App Store-ൽ നിന്ന് നീക്കം ചെയ്തു",
-      "appRelisted": "വീണ്ടും App Store-ൽ"
+      "appRelisted": "വീണ്ടും App Store-ൽ",
+      "oauthClientUpdated": "OAuth ക്ലയന്റ് വിജയകരമായി അപ്‌ഡേറ്റ് ചെയ്തു!"
     },
     "subText": {
       "startFromScratch": "പുതിയത് തുടങ്ങുക.",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "അഭിപ്രായം ഏതു വരികളെക്കുറിച്ചാണോ അവ ആദ്യം തിരഞ്ഞെടുക്കുക.",
     "factorySessionArchived": "സെഷൻ ആർക്കൈവ് ചെയ്തു. അതിന്റെ ജോലി സൂക്ഷിച്ചിട്ടുണ്ട്; തുടരാൻ സെഷൻ വീണ്ടും ആരംഭിക്കുക.",
     "factoryTurnFailed": "ഈ ഊഴം പരാജയപ്പെട്ടു",
-    "factoryDeleteSession": "“{title}”-ഉം അതിന്റെ മുഴുവൻ രേഖയും ഇല്ലാതാക്കും. ഇത് പഴയപടിയാക്കാനാവില്ല."
+    "factoryDeleteSession": "“{title}”-ഉം അതിന്റെ മുഴുവൻ രേഖയും ഇല്ലാതാക്കും. ഇത് പഴയപടിയാക്കാനാവില്ല.",
+    "migrateToV3": {
+      "whatChanges": "മൈഗ്രേഷനു ശേഷം എന്തു മാറും",
+      "changeDuplicate": "എന്റിറ്റി ഐഡികൾ നിലനിർത്തിക്കൊണ്ട് ബേസുകൾ പകർത്താം",
+      "changeApi": "ആക്‌സസ് V3 API വഴി മാത്രമേ ലഭ്യമാകൂ",
+      "changeScale": "മെച്ചപ്പെട്ട സ്കേലബിലിറ്റിക്കും ദീർഘകാല അനുയോജ്യതയ്ക്കുമായി രൂപകൽപ്പന ചെയ്തത്",
+      "considerations": "പ്രധാന കാര്യങ്ങൾ",
+      "considerApis": "മൈഗ്രേഷനു ശേഷം ഈ ബേസിന് V1, V2 API പ്രവർത്തിക്കില്ല",
+      "considerPermanent": "മൈഗ്രേഷൻ ശാശ്വതമാണ്, അത് പഴയപടിയാക്കാനാവില്ല",
+      "recommendation": "എല്ലാ ഇന്റഗ്രേഷനുകളും v3 API-യുമായി അനുയോജ്യമാണെന്ന് ഉറപ്പാക്കിയ ശേഷം മാത്രം മൈഗ്രേറ്റ് ചെയ്യുക.",
+      "confirmTitle": "ഈ ബേസ് v3-ലേക്ക് മൈഗ്രേറ്റ് ചെയ്യണോ?",
+      "confirmDesc": "ഇത് ബേസിനെ ഏറ്റവും പുതിയ ആർക്കിടെക്ചറിലേക്കും API പതിപ്പിലേക്കും നവീകരിക്കുന്നു.",
+      "confirmCta": "മൈഗ്രേഷൻ സ്ഥിരീകരിക്കുക",
+      "migrating": "മൈഗ്രേറ്റ് ചെയ്യുന്നു..."
+    },
+    "skillsRegistryErrorTitle": "സ്കിൽ രജിസ്ട്രിയിൽ തിരയാനായില്ല"
   },
   "trash": {
     "restore": "Restore",
@@ -6540,7 +6655,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "ബാഹ്യ ഉറവിടം",
+    "unavailablePending": "സജ്ജമാക്കുന്നു",
+    "usingDefault": "{value} (ഡിഫോൾട്ട്)",
+    "keptForever": "എന്നെന്നും",
+    "notKept": "സൂക്ഷിക്കുന്നില്ല"
   },
   "baseTrash": {
     "title": "Trash",

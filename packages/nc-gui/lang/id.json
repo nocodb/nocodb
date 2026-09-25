@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Tingkatkan untuk mewajibkan masuk pada formulir",
     "upgradeToUseFormRequireSigninSubtitle": "Tingkatkan ke paket {plan} untuk mewajibkan responden masuk sebelum mengirim formulir.",
     "upgradeToUseSso": "Tingkatkan untuk menggunakan SSO",
-    "upgradeToUseSsoSubtitle": "Tingkatkan ke paket {plan} untuk menyiapkan Single Sign-On (SSO) dan memungkinkan tim Anda masuk dengan penyedia identitas Anda."
+    "upgradeToUseSsoSubtitle": "Tingkatkan ke paket {plan} untuk menyiapkan Single Sign-On (SSO) dan memungkinkan tim Anda masuk dengan penyedia identitas Anda.",
+    "upgradeToUseAppFactory": "Tingkatkan paket untuk menggunakan App Factory",
+    "upgradeToUseAppFactorySubtitle": "Tingkatkan ke paket {plan} untuk menjalankan agen pemrograman pada repositori yang terhubung."
   },
   "general": {
     "scrollToBottom": "Gulir ke bawah",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Tidak ada {description}",
         "moreUsers": "+ {count} lebih lanjut",
         "selectUsersOrTeams": "Memilih pengguna atau tim"
-      }
+      },
+      "createRecords": "Membuat rekaman"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1170,7 +1173,25 @@
     "viewFolder": "Folder tampilan",
     "subRecord": "Subrekaman",
     "video": "Video",
-    "recordTemplates": "Templat catatan"
+    "recordTemplates": "Templat catatan",
+    "roleTypePlural": {
+      "owner": "Pemilik",
+      "creator": "Pembuat",
+      "editor": "Penyunting",
+      "commenter": "Pemberi komentar",
+      "viewer": "Peninjau",
+      "inherit": "Warisi",
+      "noaccess": "Tanpa akses",
+      "admin": "Administrator",
+      "superAdmin": "Administrator super",
+      "orgAdmin": "Administrator organisasi",
+      "orgCreator": "Pembuat organisasi",
+      "orgViewer": "Peninjau organisasi",
+      "orgLevelOwner": "Pemilik tingkat organisasi",
+      "orgLevelCreator": "Pembuat tingkat organisasi",
+      "orgLevelViewer": "Peninjau tingkat organisasi",
+      "appUser": "Pengguna aplikasi"
+    }
   },
   "datatype": {
     "ID": "Indo",
@@ -1524,7 +1545,9 @@
     "removeCustomDomain": "Hapus domain khusus?",
     "tooNarrowToAdjustFrozenFields": "Jendela terlalu sempit untuk menyetel bidang yang dibekukan",
     "themeSettings": "Pengaturan tema",
-    "nFields": "{count} bidang | {count} bidang"
+    "nFields": "{count} bidang | {count} bidang",
+    "noInterfaceMembersYet": "Belum ada anggota antarmuka",
+    "headJoin": "Bergabung | NocoDB"
   },
   "labels": {
     "syncing": "Sinkronisasi",
@@ -4546,7 +4569,24 @@
     "openAgentConversation": "Buka percakapan agen ini",
     "sendToAgent": "Kirim ke agen",
     "noPort": "Tidak ada port",
-    "manageInviteLinks": "Kelola tautan undangan"
+    "manageInviteLinks": "Kelola tautan undangan",
+    "editOauthClient": "Edit klien OAuth",
+    "oauthClientNameHint": "Ditampilkan kepada pengguna selama otorisasi",
+    "applicationDescription": "Deskripsi aplikasi",
+    "oauthClientDescriptionHint": "Deskripsi singkat yang ditampilkan saat pengguna memberikan akses",
+    "homepageUrl": "URL beranda",
+    "oauthClientLogoHint": "Gambar yang ditampilkan selama otorisasi (disarankan persegi)",
+    "clientType": "Jenis klien",
+    "oauthClientTypeHint": "Publik: aplikasi seluler/web (memerlukan PKCE). Rahasia: server aman (dapat menyimpan rahasia)",
+    "confidential": "Rahasia",
+    "authorizationCallbackUrls": "URL callback otorisasi",
+    "oauthCallbackUrlsHint": "Alamat HTTPS untuk pengalihan setelah otorisasi (localhost/127.0.0.1 diizinkan). Satu per baris",
+    "clientId": "ID klien",
+    "clientSecret": "Rahasia klien",
+    "regenerateSecret": "Buat ulang rahasia",
+    "createOauthClients": "Buat klien OAuth",
+    "managingOauthClients": "Mengelola klien OAuth",
+    "clientInformation": "Informasi klien"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -5062,7 +5102,11 @@
     "marketplaceAuthored": "Ditulis oleh penerbit, bukan diambil dari isi aplikasi.",
     "marketplaceVerifiedPublisher": "Diterbitkan dan ditinjau oleh NocoDB",
     "showCustomPermissionFieldsOnly": "Tampilkan hanya bidang dengan izin khusus",
-    "showAllFields": "Tampilkan semua bidang"
+    "showAllFields": "Tampilkan semua bidang",
+    "inviteLinkCannotGrantOwner": "Tautan undangan tidak dapat memberikan peran Pemilik",
+    "inviteLinkRoleAboveYours": "Anda hanya dapat menawarkan peran hingga setara peran Anda sendiri",
+    "noDefaultSourceForFolders": "Base ini tidak memiliki sumber bawaan — buat folder dari menu sumber itu sendiri",
+    "noDefaultSourceForSync": "Base ini tidak memiliki sumber bawaan — sinkronisasi memerlukannya untuk menyimpan tabelnya"
   },
   "placeholder": {
     "enterVerificationCode": "Masukkan kode 6 digit",
@@ -5224,7 +5268,28 @@
     "messageAgent": "Pesan untuk {agent}",
     "somethingElse": "Sesuatu yang lain",
     "noMcpConnections": "Belum ada koneksi MCP yang dibuat",
-    "noMcpConnectionsLabel": "Sepertinya Anda belum membuat koneksi MCP apa pun."
+    "noMcpConnectionsLabel": "Sepertinya Anda belum membuat koneksi MCP apa pun.",
+    "searchDataSource": "Cari sumber data",
+    "searchConnections": "Cari koneksi",
+    "migrationUrl": "Masukkan URL migrasi untuk tujuan",
+    "searchSync": "Cari sinkronisasi",
+    "searchWorkspace": "Cari ruang kerja",
+    "searchBase": "Cari base",
+    "searchEvent": "Cari peristiwa",
+    "skillRegistrySearch": "Cari keterampilan…",
+    "searchSnapshots": "Cari snapshot",
+    "searchTokens": "Cari token",
+    "factoryPrompt": "Jelaskan apa yang ingin Anda bangun",
+    "factorySearchRepos": "Cari repositori",
+    "factorySearchTargets": "Cari repositori",
+    "factorySearchSources": "Cari cabang, pull request, dan isu",
+    "factoryOnPr": "Apa yang harus dilakukan pada pull request ini?",
+    "factoryOnIssue": "Hal lain di luar isu itu sendiri (opsional)",
+    "factoryReply": "Balas",
+    "searchFiles": "Cari berkas",
+    "factoryAnnotation": "Apa yang harus diubah agen di sini?",
+    "oauthClientName": "Aplikasi saya",
+    "oauthClientDescription": "Aplikasi ini membantu Anda mengelola data Anda..."
   },
   "msg": {
     "sourceViewNotShared": "Sinkronisasi dinonaktifkan pada tampilan ini",
@@ -5463,7 +5528,8 @@
       "tableSyncConvertMainTable": "Ini adalah tabel tersinkron dari sinkronisasi ini — mengonversinya akan menghapus sinkronisasinya sendiri. Semua tabel yang dibuat oleh sinkronisasi tetap ada sebagai tabel biasa yang dapat disunting dan berhenti tersinkron.",
       "requiredFieldNotEditable": "Bidang wajib ini tidak dapat disunting, yang bisa menyebabkan kesalahan saat formulir dikirim.",
       "communityAppInstall": "{title} adalah aplikasi komunitas. Aplikasi ini belum ditinjau atau diverifikasi oleh NocoDB. Pastikan Anda memercayai penerbitnya sebelum memasangnya di ruang kerja Anda.",
-      "removeCustomDomain": "{domain} akan berhenti melayani aplikasi ini. Alamat bawaan tetap berfungsi."
+      "removeCustomDomain": "{domain} akan berhenti melayani aplikasi ini. Alamat bawaan tetap berfungsi.",
+      "copyClientSecretNow": "⚠️ Pastikan Anda menyalin rahasia klien sekarang. Anda tidak akan bisa melihatnya lagi!"
     },
     "info": {
       "sourceViewRebindResync": "Mengubah tampilan sumber akan memicu sinkronisasi ulang secara penuh terhadap tampilan yang baru.",
@@ -5958,7 +6024,40 @@
       "interfaceRecordUnreadableEditingOff": "Penyuntingan dimatikan sampai catatan dapat dibaca kembali.",
       "inviteLinkDomainSentence": "Hanya berfungsi dengan email {domain} dan rekan tim bergabung sebagai {role}",
       "inviteLinkOpenSentence": "Siapa pun yang memiliki tautan ini dapat bergabung sebagai {role}",
-      "inviteLinkOpenCaution": "Bagikan hanya kepada orang yang Anda percaya."
+      "inviteLinkOpenCaution": "Bagikan hanya kepada orang yang Anda percaya.",
+      "shareHubTooltip": "Undang orang untuk bekerja di base ini, atau terbitkan tautan hanya baca ke {object}.",
+      "shareHubTooltipInviteOnly": "Undang orang untuk bekerja di base ini. Untuk menerbitkan base itu sendiri, gunakan «Bagikan base» di menu base.",
+      "shareNothingPrivateBase": "Hanya pemilik base yang dapat mengundang orang ke base privat. Untuk menerbitkan tampilan, buka salah satunya terlebih dahulu.",
+      "shareNothingToShow": "Tidak ada yang bisa dibagikan dari sini. Buka sebuah tampilan untuk menerbitkan tautan hanya baca.",
+      "peopleHaveAccess": "{count} orang memiliki akses. | {count} orang memiliki akses.",
+      "noInviteLinkYet": "Belum ada tautan undangan. Buat satu agar orang lain dapat bergabung tanpa undangan perorangan.",
+      "youWillJoinAs": "Anda akan bergabung sebagai {role}.",
+      "signedInWrongDomain": "Anda masuk sebagai {email}. Tautan ini hanya menerima alamat {'@'}{domain}.",
+      "signedInAs": "Anda masuk sebagai {email}.",
+      "publicLinkToNamed": "Tautan publik ke {name}",
+      "readOnlyInviteInstead": "Hanya baca. Perlukah mereka dapat mengedit atau berkomentar?",
+      "willJoinAsRole": "{count} orang akan bergabung sebagai {role} dan dapat {can}. | {count} orang akan bergabung sebagai {role} dan dapat {can}.",
+      "sharePublicLinkSubtitle": "Siapa pun yang memiliki tautan ini dapat membukanya. Tidak perlu akun.",
+      "shareLinksReadOnly": "Tautan bersifat hanya baca. Ingin agar mereka dapat mengedit atau berkomentar?",
+      "clientSecretHidden": "Rahasia ini disembunyikan demi keamanan dan tidak akan ditampilkan lagi. Anda dapat membuatnya ulang jika diperlukan.",
+      "mcpSetupIntroClaude": "Mulai gunakan NocoDB MCP dengan Claude Desktop dalam 3 langkah mudah",
+      "mcpSetupClaudeStep1": "Buka pengaturan Claude Desktop dari bilah navigasi.",
+      "mcpSetupClaudeStep2": "Buka tab Develop, lalu klik «Edit Config».",
+      "mcpSetupClaudeStep3": "Tambahkan konfigurasi JSON yang diberikan setelah membuat token ke dalam claude_desktop_config.json",
+      "mcpSetupIntroCodex": "Mulai gunakan NocoDB MCP dengan Codex CLI dalam 3 langkah mudah",
+      "mcpSetupCodexStep2": "Tambahkan konfigurasi TOML yang diberikan setelah membuat token.",
+      "mcpSetupIntroAntigravity": "Mulai gunakan NocoDB MCP dengan AntiGravity dalam 4 langkah mudah",
+      "mcpSetupAntigravityStep1": "Klik tiga titik di kanan atas jendela agen, lalu klik \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Klik Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Sekarang klik View raw config.",
+      "mcpSetupPasteJsonConfig": "Tempelkan konfigurasi JSON yang diberikan setelah membuat token ke dalam berkas yang terbuka",
+      "mcpSetupIntroCursor": "Mulai gunakan NocoDB MCP dengan Cursor dalam 3 langkah mudah",
+      "mcpSetupCursorStep1": "Buka Pengaturan Cursor (tekan Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Pilih tab \"MCP\" lalu klik \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Tambahkan konfigurasi JSON yang diberikan setelah membuat token.",
+      "mcpSetupIntroWindsurf": "Mulai gunakan NocoDB MCP dengan Windsurf dalam 4 langkah mudah",
+      "mcpSetupWindsurfStep1": "Buka pengaturan Windsurf dan pilih tab Cascade di bilah sisi kiri",
+      "mcpSetupWindsurfStep2": "Klik Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Gagal membuat sinkronisasi",
@@ -6273,7 +6372,8 @@
       "planChangeScheduled": "Perubahan paket dijadwalkan",
       "planChangeReverted": "Perubahan paket terjadwal dibatalkan. Paket Anda saat ini berlanjut tanpa perubahan.",
       "appDelisted": "Dihapus dari App Store",
-      "appRelisted": "Kembali di App Store"
+      "appRelisted": "Kembali di App Store",
+      "oauthClientUpdated": "Klien OAuth berhasil diperbarui!"
     },
     "subText": {
       "startFromScratch": "Mulai dari awal.",
@@ -6468,7 +6568,22 @@
     "factorySelectLinesToAnnotate": "Pilih dulu baris yang dimaksud oleh komentar.",
     "factorySessionArchived": "Sesi diarsipkan. Pekerjaannya tersimpan; lanjutkan sesi untuk melanjutkannya.",
     "factoryTurnFailed": "Giliran gagal",
-    "factoryDeleteSession": "“{title}” dan seluruh transkripnya akan dihapus. Tindakan ini tidak dapat dibatalkan."
+    "factoryDeleteSession": "“{title}” dan seluruh transkripnya akan dihapus. Tindakan ini tidak dapat dibatalkan.",
+    "migrateToV3": {
+      "whatChanges": "Apa yang berubah setelah migrasi",
+      "changeDuplicate": "Base dapat diduplikasi dengan tetap mempertahankan ID entitas",
+      "changeApi": "Akses hanya tersedia melalui API V3",
+      "changeScale": "Dirancang untuk skalabilitas yang lebih baik dan kompatibilitas jangka panjang",
+      "considerations": "Hal penting yang perlu diperhatikan",
+      "considerApis": "API V1 dan V2 tidak akan berfungsi lagi untuk base ini setelah migrasi",
+      "considerPermanent": "Migrasi bersifat permanen dan tidak dapat dibatalkan",
+      "recommendation": "Lakukan migrasi hanya setelah memastikan semua integrasi kompatibel dengan API v3.",
+      "confirmTitle": "Migrasikan base ini ke v3?",
+      "confirmDesc": "Ini akan meningkatkan base ke arsitektur dan versi API terbaru.",
+      "confirmCta": "Konfirmasi migrasi",
+      "migrating": "Memigrasikan..."
+    },
+    "skillsRegistryErrorTitle": "Tidak dapat menelusuri registri keterampilan"
   },
   "trash": {
     "restore": "Mengembalikan",
@@ -6531,7 +6646,12 @@
         "partial": "Pulihkan {count} tanpa konflik",
         "force": "Memulihkan semua dan menghapus konflik"
       }
-    }
+    },
+    "unavailableExternal": "Sumber eksternal",
+    "unavailablePending": "Sedang disiapkan",
+    "usingDefault": "{value} (bawaan)",
+    "keptForever": "Selamanya",
+    "notKept": "Tidak disimpan"
   },
   "baseTrash": {
     "title": "Sampah",

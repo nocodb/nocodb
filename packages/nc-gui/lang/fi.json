@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Päivitä vaatiaksesi kirjautumista lomakkeisiin",
     "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä.",
     "upgradeToUseSso": "Päivitä käyttääksesi SSO:ta",
-    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi."
+    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi.",
+    "upgradeToUseAppFactory": "Päivitä tilaus käyttääksesi App Factorya",
+    "upgradeToUseAppFactorySubtitle": "Päivitä {plan}-tilaukseen, jotta voit käynnistää koodausagentteja yhdistetyissä repositorioissasi."
   },
   "general": {
     "scrollToBottom": "Siirry alareunaan",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Kukaan {description}",
         "moreUsers": "+ {count} lisää",
         "selectUsersOrTeams": "Valitse käyttäjät tai tiimit"
-      }
+      },
+      "createRecords": "Luoda tietueita"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "Näkymäkansio",
     "subRecord": "Alitietue",
     "video": "Video",
-    "recordTemplates": "Tietuemallit"
+    "recordTemplates": "Tietuemallit",
+    "roleTypePlural": {
+      "owner": "Omistajat",
+      "creator": "Luojat",
+      "editor": "Muokkaajat",
+      "commenter": "Kommentoijat",
+      "viewer": "Katselijat",
+      "inherit": "Peri",
+      "noaccess": "Ei käyttöoikeutta",
+      "admin": "Ylläpitäjät",
+      "superAdmin": "Pääylläpitäjät",
+      "orgAdmin": "Organisaation ylläpitäjät",
+      "orgCreator": "Organisaation luojat",
+      "orgViewer": "Organisaation katselijat",
+      "orgLevelOwner": "Omistajat organisaatiotasolla",
+      "orgLevelCreator": "Luojat organisaatiotasolla",
+      "orgLevelViewer": "Katselijat organisaatiotasolla",
+      "appUser": "Sovelluksen käyttäjät"
+    }
   },
   "datatype": {
     "ID": "Id",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "Poistetaanko mukautettu verkkotunnus?",
     "tooNarrowToAdjustFrozenFields": "Ikkuna on liian kapea jäädytettyjen kenttien säätämiseen",
     "themeSettings": "Teeman asetukset",
-    "nFields": "{count} kenttä | {count} kenttää"
+    "nFields": "{count} kenttä | {count} kenttää",
+    "noInterfaceMembersYet": "Ei vielä käyttöliittymän jäseniä",
+    "headJoin": "Liity | NocoDB"
   },
   "labels": {
     "syncing": "Synkronoidaan",
@@ -4554,7 +4577,24 @@
     "openAgentConversation": "Avaa tämän agentin keskustelu",
     "sendToAgent": "Lähetä agentille",
     "noPort": "Ei porttia",
-    "manageInviteLinks": "Hallitse kutsulinkkejä"
+    "manageInviteLinks": "Hallitse kutsulinkkejä",
+    "editOauthClient": "Muokkaa OAuth-asiakasta",
+    "oauthClientNameHint": "Näytetään käyttäjille valtuutuksen aikana",
+    "applicationDescription": "Sovelluksen kuvaus",
+    "oauthClientDescriptionHint": "Lyhyt kuvaus, joka näytetään käyttäjien myöntäessä käyttöoikeuden",
+    "homepageUrl": "Kotisivun URL",
+    "oauthClientLogoHint": "Valtuutuksen aikana näytettävä kuva (neliö suositeltava)",
+    "clientType": "Asiakastyyppi",
+    "oauthClientTypeHint": "Julkinen: mobiili- ja verkkosovellukset (PKCE vaaditaan). Luottamuksellinen: suojatut palvelimet (voivat tallentaa salaisuuksia)",
+    "confidential": "Luottamuksellinen",
+    "authorizationCallbackUrls": "Valtuutuksen paluuosoitteet",
+    "oauthCallbackUrlsHint": "HTTPS-osoitteet uudelleenohjaukseen valtuutuksen jälkeen (localhost/127.0.0.1 sallittu). Yksi riviä kohden",
+    "clientId": "Asiakastunnus",
+    "clientSecret": "Asiakassalaisuus",
+    "regenerateSecret": "Luo uusi salaisuus",
+    "createOauthClients": "Luo OAuth-asiakkaita",
+    "managingOauthClients": "OAuth-asiakkaiden hallinta",
+    "clientInformation": "Asiakkaan tiedot"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -5070,7 +5110,11 @@
     "marketplaceAuthored": "Julkaisijan kirjoittama, ei johdettu sovelluksen sisällöstä.",
     "marketplaceVerifiedPublisher": "NocoDB on julkaissut ja tarkistanut tämän",
     "showCustomPermissionFieldsOnly": "Näytä vain kentät, joilla on mukautetut käyttöoikeudet",
-    "showAllFields": "Näytä kaikki kentät"
+    "showAllFields": "Näytä kaikki kentät",
+    "inviteLinkCannotGrantOwner": "Kutsulinkki ei voi myöntää omistajan roolia",
+    "inviteLinkRoleAboveYours": "Voit tarjota vain rooleja omaan rooliisi asti",
+    "noDefaultSourceForFolders": "Tällä basella ei ole oletuslähdettä — luo kansiot lähteen omasta valikosta",
+    "noDefaultSourceForSync": "Tällä basella ei ole oletuslähdettä — synkronointi tarvitsee sen taulujensa tallentamiseen"
   },
   "placeholder": {
     "enterVerificationCode": "Syötä 6-numeroinen koodi",
@@ -5232,7 +5276,28 @@
     "messageAgent": "Viesti agentille {agent}",
     "somethingElse": "Jotain muuta",
     "noMcpConnections": "MCP-yhteyksiä ei ole luotu",
-    "noMcpConnectionsLabel": "Näyttää siltä, ettet ole vielä luonut yhtään MCP-yhteyttä."
+    "noMcpConnectionsLabel": "Näyttää siltä, ettet ole vielä luonut yhtään MCP-yhteyttä.",
+    "searchDataSource": "Hae tietolähdettä",
+    "searchConnections": "Hae yhteyksiä",
+    "migrationUrl": "Anna kohteen siirto-URL",
+    "searchSync": "Hae synkronointia",
+    "searchWorkspace": "Hae työtilaa",
+    "searchBase": "Hae base",
+    "searchEvent": "Hae tapahtumaa",
+    "skillRegistrySearch": "Hae taitoja…",
+    "searchSnapshots": "Hae tilannevedoksia",
+    "searchTokens": "Hae tunnuksia",
+    "factoryPrompt": "Kuvaile, mitä haluat rakennettavan",
+    "factorySearchRepos": "Hae repositorioita",
+    "factorySearchTargets": "Hae repositorioita",
+    "factorySearchSources": "Hae haaroja, pull requesteja ja tikettejä",
+    "factoryOnPr": "Mitä tälle pull requestille pitäisi tehdä?",
+    "factoryOnIssue": "Jotain lisättävää itse tiketin lisäksi (valinnainen)",
+    "factoryReply": "Vastaa",
+    "searchFiles": "Hae tiedostoja",
+    "factoryAnnotation": "Mitä agentin pitäisi muuttaa tässä?",
+    "oauthClientName": "Oma sovellukseni",
+    "oauthClientDescription": "Tämä sovellus auttaa sinua hallitsemaan tietojasi..."
   },
   "msg": {
     "sourceViewNotShared": "Synkronointi on poistettu käytöstä tässä näkymässä",
@@ -5471,7 +5536,8 @@
       "tableSyncConvertMainTable": "Tämä on tämän synkronoinnin synkronoitu taulukko — sen muuntaminen poistaa itse synkronoinnin. Kaikki sen luomat taulukot säilyvät tavallisina, muokattavina taulukkoina eivätkä enää synkronoidu.",
       "requiredFieldNotEditable": "Tämä pakollinen kenttä ei ole muokattavissa, mikä voi aiheuttaa virheitä lomaketta lähetettäessä.",
       "communityAppInstall": "{title} on yhteisön sovellus. NocoDB ei ole tarkastanut tai varmentanut sitä. Varmista, että luotat julkaisijaan, ennen kuin asennat sen työtilaasi.",
-      "removeCustomDomain": "{domain} ei enää tarjoile tätä sovellusta. Oletusosoite toimii edelleen."
+      "removeCustomDomain": "{domain} ei enää tarjoile tätä sovellusta. Oletusosoite toimii edelleen.",
+      "copyClientSecretNow": "⚠️ Muista kopioida asiakassalaisuus nyt. Et voi enää nähdä sitä myöhemmin!"
     },
     "info": {
       "sourceViewRebindResync": "Lähdenäkymän muuttaminen laukaisee täyden uudelleensynkronoinnin uutta näkymää vastaan.",
@@ -5966,7 +6032,40 @@
       "interfaceRecordUnreadableEditingOff": "Muokkaus on poissa käytöstä, kunnes se voidaan lukea uudelleen.",
       "inviteLinkDomainSentence": "Toimii vain {domain}-sähköpostilla, ja tiimiläiset liittyvät roolilla {role}",
       "inviteLinkOpenSentence": "Kuka tahansa linkin saanut voi liittyä roolilla {role}",
-      "inviteLinkOpenCaution": "Jaa se vain ihmisille, joihin luotat."
+      "inviteLinkOpenCaution": "Jaa se vain ihmisille, joihin luotat.",
+      "shareHubTooltip": "Kutsu ihmisiä työskentelemään tässä basessa tai julkaise vain luku -linkki kohteeseen {object}.",
+      "shareHubTooltipInviteOnly": "Kutsu ihmisiä työskentelemään tässä basessa. Julkaise itse base valitsemalla basen valikosta «Jaa base».",
+      "shareNothingPrivateBase": "Vain basen omistaja voi kutsua ihmisiä yksityiseen baseen. Julkaise näkymä avaamalla se ensin.",
+      "shareNothingToShow": "Täältä ei ole mitään jaettavaa. Avaa näkymä julkaistaksesi vain luku -linkin.",
+      "peopleHaveAccess": "{count} henkilöllä on käyttöoikeus. | {count} henkilöllä on käyttöoikeus.",
+      "noInviteLinkYet": "Kutsulinkkiä ei ole vielä. Luo sellainen, jotta muut voivat liittyä ilman henkilökohtaista kutsua.",
+      "youWillJoinAs": "Liityt roolissa {role}.",
+      "signedInWrongDomain": "Olet kirjautunut käyttäjänä {email}. Tämä linkki hyväksyy vain osoitteet {'@'}{domain}.",
+      "signedInAs": "Olet kirjautunut käyttäjänä {email}.",
+      "publicLinkToNamed": "Julkinen linkki kohteeseen {name}",
+      "readOnlyInviteInstead": "Vain luku. Pitääkö heidän voida muokata tai kommentoida?",
+      "willJoinAsRole": "{count} henkilö liittyy roolissa {role} ja voi {can}. | {count} henkilöä liittyy roolissa {role} ja voi {can}.",
+      "sharePublicLinkSubtitle": "Kuka tahansa, jolla on linkki, voi avata sen. Tiliä ei tarvita.",
+      "shareLinksReadOnly": "Linkit ovat vain luku -tilassa. Haluatko, että he voivat muokata tai kommentoida?",
+      "clientSecretHidden": "Salaisuus on piilotettu turvallisuussyistä eikä sitä näytetä uudelleen. Voit tarvittaessa luoda uuden.",
+      "mcpSetupIntroClaude": "Aloita NocoDB MCP:n käyttö Claude Desktopin kanssa kolmessa helpossa vaiheessa",
+      "mcpSetupClaudeStep1": "Avaa Claude Desktopin asetukset navigointipalkista.",
+      "mcpSetupClaudeStep2": "Siirry Develop-välilehdelle ja napsauta «Edit Config».",
+      "mcpSetupClaudeStep3": "Lisää tiedostoon claude_desktop_config.json se JSON-määritys, joka annetaan tunnuksen luomisen jälkeen",
+      "mcpSetupIntroCodex": "Aloita NocoDB MCP:n käyttö Codex CLI:n kanssa kolmessa helpossa vaiheessa",
+      "mcpSetupCodexStep2": "Lisää TOML-määritys, joka annetaan tunnuksen luomisen jälkeen.",
+      "mcpSetupIntroAntigravity": "Aloita NocoDB MCP:n käyttö AntiGravityn kanssa neljässä helpossa vaiheessa",
+      "mcpSetupAntigravityStep1": "Napsauta agentti-ikkunan oikeassa yläkulmassa olevia kolmea pistettä ja sen jälkeen \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Napsauta Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Napsauta nyt View raw config.",
+      "mcpSetupPasteJsonConfig": "Liitä avattuun tiedostoon se JSON-määritys, joka annetaan tunnuksen luomisen jälkeen",
+      "mcpSetupIntroCursor": "Aloita NocoDB MCP:n käyttö Cursorin kanssa kolmessa helpossa vaiheessa",
+      "mcpSetupCursorStep1": "Avaa Cursorin asetukset (paina Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Valitse \"MCP\"-välilehti ja napsauta \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Lisää JSON-määritys, joka annetaan tunnuksen luomisen jälkeen.",
+      "mcpSetupIntroWindsurf": "Aloita NocoDB MCP:n käyttö Windsurfin kanssa neljässä helpossa vaiheessa",
+      "mcpSetupWindsurfStep1": "Avaa Windsurfin asetukset ja valitse vasemmasta sivupalkista Cascade-välilehti",
+      "mcpSetupWindsurfStep2": "Napsauta Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Synkronoinnin luominen epäonnistui",
@@ -6281,7 +6380,8 @@
       "planChangeScheduled": "Paketin vaihto ajastettu",
       "planChangeReverted": "Ajastettu paketin vaihto peruttu. Nykyinen pakettisi jatkuu ennallaan.",
       "appDelisted": "Poistettu App Storesta",
-      "appRelisted": "Takaisin App Storessa"
+      "appRelisted": "Takaisin App Storessa",
+      "oauthClientUpdated": "OAuth-asiakas päivitetty!"
     },
     "subText": {
       "startFromScratch": "Aloita alusta.",
@@ -6476,7 +6576,22 @@
     "factorySelectLinesToAnnotate": "Valitse ensin rivit, joita kommentti koskee.",
     "factorySessionArchived": "Istunto arkistoitu. Työ on tallessa; jatka istuntoa palataksesi siihen.",
     "factoryTurnFailed": "Vuoro epäonnistui",
-    "factoryDeleteSession": "”{title}” ja sen koko keskustelu poistetaan. Tätä ei voi perua."
+    "factoryDeleteSession": "”{title}” ja sen koko keskustelu poistetaan. Tätä ei voi perua.",
+    "migrateToV3": {
+      "whatChanges": "Mikä muuttuu siirron jälkeen",
+      "changeDuplicate": "Baset voidaan monistaa säilyttäen entiteettien tunnukset",
+      "changeApi": "Käyttö on mahdollista vain V3-API:n kautta",
+      "changeScale": "Suunniteltu parempaan skaalautuvuuteen ja pitkän aikavälin yhteensopivuuteen",
+      "considerations": "Tärkeitä huomioita",
+      "considerApis": "V1- ja V2-API:t eivät enää toimi tässä basessa siirron jälkeen",
+      "considerPermanent": "Siirto on pysyvä eikä sitä voi peruuttaa",
+      "recommendation": "Tee siirto vasta, kun olet varmistanut, että kaikki integraatiot ovat yhteensopivia v3-API:n kanssa.",
+      "confirmTitle": "Siirretäänkö tämä base versioon v3?",
+      "confirmDesc": "Tämä päivittää basen uusimpaan arkkitehtuuriin ja API-versioon.",
+      "confirmCta": "Vahvista siirto",
+      "migrating": "Siirretään..."
+    },
+    "skillsRegistryErrorTitle": "Taitorekisteristä ei voitu hakea"
   },
   "trash": {
     "restore": "Palauta",
@@ -6539,7 +6654,12 @@
         "partial": "Palauta {count} ilman ristiriitoja",
         "force": "Palauta kaikki ja selkeät ristiriidat"
       }
-    }
+    },
+    "unavailableExternal": "Ulkoinen lähde",
+    "unavailablePending": "Määritetään",
+    "usingDefault": "{value} (oletus)",
+    "keptForever": "Ikuisesti",
+    "notKept": "Ei säilytetä"
   },
   "baseTrash": {
     "title": "Roskaa",

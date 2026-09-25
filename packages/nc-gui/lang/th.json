@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "อัปเกรดเพื่อกำหนดให้ต้องลงชื่อเข้าใช้ในแบบฟอร์ม",
     "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม",
     "upgradeToUseSso": "อัปเกรดเพื่อใช้ SSO",
-    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ"
+    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ",
+    "upgradeToUseAppFactory": "อัปเกรดเพื่อใช้ App Factory",
+    "upgradeToUseAppFactorySubtitle": "อัปเกรดเป็นแพ็กเกจ {plan} เพื่อส่งเอเจนต์เขียนโค้ดไปทำงานกับที่เก็บโค้ดที่เชื่อมต่อไว้"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "สร้างระเบียน"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "โฟลเดอร์มุมมอง",
     "subRecord": "ระเบียนย่อย",
     "video": "วิดีโอ",
-    "recordTemplates": "เทมเพลตระเบียน"
+    "recordTemplates": "เทมเพลตระเบียน",
+    "roleTypePlural": {
+      "owner": "เจ้าของ",
+      "creator": "ผู้สร้าง",
+      "editor": "ผู้แก้ไข",
+      "commenter": "ผู้แสดงความคิดเห็น",
+      "viewer": "ผู้ชม",
+      "inherit": "สืบทอด",
+      "noaccess": "ไม่มีสิทธิ์เข้าถึง",
+      "admin": "ผู้ดูแลระบบ",
+      "superAdmin": "ผู้ดูแลระบบสูงสุด",
+      "orgAdmin": "ผู้ดูแลระบบขององค์กร",
+      "orgCreator": "ผู้สร้างขององค์กร",
+      "orgViewer": "ผู้ชมขององค์กร",
+      "orgLevelOwner": "เจ้าของระดับองค์กร",
+      "orgLevelCreator": "ผู้สร้างระดับองค์กร",
+      "orgLevelViewer": "ผู้ชมระดับองค์กร",
+      "appUser": "ผู้ใช้แอป"
+    }
   },
   "datatype": {
     "ID": "id",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "นำโดเมนที่กำหนดเองออกหรือไม่",
     "tooNarrowToAdjustFrozenFields": "หน้าต่างแคบเกินไปสำหรับการปรับฟิลด์ที่ตรึงไว้",
     "themeSettings": "การตั้งค่าธีม",
-    "nFields": "{count} ฟิลด์ | {count} ฟิลด์"
+    "nFields": "{count} ฟิลด์ | {count} ฟิลด์",
+    "noInterfaceMembersYet": "ยังไม่มีสมาชิกของอินเทอร์เฟซ",
+    "headJoin": "เข้าร่วม | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4557,7 +4580,24 @@
     "openAgentConversation": "เปิดการสนทนาของเอเจนต์นี้",
     "sendToAgent": "ส่งให้เอเจนต์",
     "noPort": "ไม่มีพอร์ต",
-    "manageInviteLinks": "จัดการลิงก์คำเชิญ"
+    "manageInviteLinks": "จัดการลิงก์คำเชิญ",
+    "editOauthClient": "แก้ไขไคลเอนต์ OAuth",
+    "oauthClientNameHint": "แสดงต่อผู้ใช้ระหว่างการอนุญาต",
+    "applicationDescription": "คำอธิบายแอปพลิเคชัน",
+    "oauthClientDescriptionHint": "คำอธิบายสั้น ๆ ที่แสดงเมื่อผู้ใช้ให้สิทธิ์การเข้าถึง",
+    "homepageUrl": "URL หน้าแรก",
+    "oauthClientLogoHint": "รูปภาพที่แสดงระหว่างการอนุญาต (แนะนำรูปสี่เหลี่ยมจัตุรัส)",
+    "clientType": "ประเภทไคลเอนต์",
+    "oauthClientTypeHint": "สาธารณะ: แอปมือถือ/เว็บ (ต้องใช้ PKCE) เป็นความลับ: เซิร์ฟเวอร์ที่ปลอดภัย (เก็บความลับได้)",
+    "confidential": "เป็นความลับ",
+    "authorizationCallbackUrls": "URL เรียกกลับสำหรับการอนุญาต",
+    "oauthCallbackUrlsHint": "ที่อยู่ HTTPS สำหรับเปลี่ยนเส้นทางหลังการอนุญาต (อนุญาต localhost/127.0.0.1) หนึ่งรายการต่อบรรทัด",
+    "clientId": "รหัสไคลเอนต์",
+    "clientSecret": "ความลับของไคลเอนต์",
+    "regenerateSecret": "สร้างความลับใหม่",
+    "createOauthClients": "สร้างไคลเอนต์ OAuth",
+    "managingOauthClients": "การจัดการไคลเอนต์ OAuth",
+    "clientInformation": "ข้อมูลไคลเอนต์"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5072,7 +5112,11 @@
     "marketplaceAuthored": "เขียนโดยผู้เผยแพร่ ไม่ได้ดึงมาจากเนื้อหาของแอป",
     "marketplaceVerifiedPublisher": "เผยแพร่และตรวจสอบโดย NocoDB",
     "showCustomPermissionFieldsOnly": "แสดงเฉพาะฟิลด์ที่มีสิทธิ์แบบกำหนดเอง",
-    "showAllFields": "แสดงฟิลด์ทั้งหมด"
+    "showAllFields": "แสดงฟิลด์ทั้งหมด",
+    "inviteLinkCannotGrantOwner": "ลิงก์เชิญไม่สามารถให้บทบาทเจ้าของได้",
+    "inviteLinkRoleAboveYours": "คุณให้ได้เฉพาะบทบาทที่ไม่สูงกว่าบทบาทของคุณเอง",
+    "noDefaultSourceForFolders": "base นี้ไม่มีแหล่งข้อมูลเริ่มต้น — ให้สร้างโฟลเดอร์จากเมนูของแหล่งข้อมูลนั้น ๆ แทน",
+    "noDefaultSourceForSync": "base นี้ไม่มีแหล่งข้อมูลเริ่มต้น — การซิงค์ต้องมีแหล่งข้อมูลไว้เก็บตาราง"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5234,7 +5278,28 @@
     "messageAgent": "ส่งข้อความถึง {agent}",
     "somethingElse": "อย่างอื่น",
     "noMcpConnections": "ยังไม่ได้สร้างการเชื่อมต่อ MCP",
-    "noMcpConnectionsLabel": "ดูเหมือนว่าคุณยังไม่ได้สร้างการเชื่อมต่อ MCP"
+    "noMcpConnectionsLabel": "ดูเหมือนว่าคุณยังไม่ได้สร้างการเชื่อมต่อ MCP",
+    "searchDataSource": "ค้นหาแหล่งข้อมูล",
+    "searchConnections": "ค้นหาการเชื่อมต่อ",
+    "migrationUrl": "ป้อน URL การย้ายข้อมูลสำหรับปลายทาง",
+    "searchSync": "ค้นหาการซิงค์",
+    "searchWorkspace": "ค้นหาพื้นที่ทำงาน",
+    "searchBase": "ค้นหา base",
+    "searchEvent": "ค้นหาเหตุการณ์",
+    "skillRegistrySearch": "ค้นหาทักษะ…",
+    "searchSnapshots": "ค้นหาสแนปช็อต",
+    "searchTokens": "ค้นหาโทเคน",
+    "factoryPrompt": "อธิบายสิ่งที่คุณต้องการให้สร้าง",
+    "factorySearchRepos": "ค้นหาที่เก็บโค้ด",
+    "factorySearchTargets": "ค้นหาที่เก็บโค้ด",
+    "factorySearchSources": "ค้นหาสาขา pull request และ issue",
+    "factoryOnPr": "ต้องการให้เกิดอะไรขึ้นกับ pull request นี้",
+    "factoryOnIssue": "สิ่งที่ต้องการเพิ่มเติมนอกเหนือจากตัว issue เอง (ไม่บังคับ)",
+    "factoryReply": "ตอบกลับ",
+    "searchFiles": "ค้นหาไฟล์",
+    "factoryAnnotation": "ต้องการให้เอเจนต์เปลี่ยนอะไรตรงนี้",
+    "oauthClientName": "แอปพลิเคชันของฉัน",
+    "oauthClientDescription": "แอปพลิเคชันนี้ช่วยคุณจัดการข้อมูลของคุณ..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5473,7 +5538,8 @@
       "tableSyncConvertMainTable": "นี่คือตารางที่ถูกซิงค์ของการซิงค์นี้ — การแปลงตารางนี้จะลบตัวการซิงค์เองออกไปด้วย ตารางทั้งหมดที่การซิงค์สร้างขึ้นจะยังอยู่ในฐานะตารางปกติที่แก้ไขได้ และจะหยุดซิงค์",
       "requiredFieldNotEditable": "ฟิลด์ที่จำเป็นนี้แก้ไขไม่ได้ ซึ่งอาจทำให้เกิดข้อผิดพลาดตอนส่งฟอร์ม",
       "communityAppInstall": "{title} เป็นแอปของชุมชน ยังไม่ได้ผ่านการตรวจสอบหรือรับรองจาก NocoDB กรุณาแน่ใจว่าคุณเชื่อถือผู้เผยแพร่ก่อนติดตั้งลงในพื้นที่ทำงานของคุณ",
-      "removeCustomDomain": "{domain} จะหยุดให้บริการแอปนี้ ที่อยู่เริ่มต้นยังใช้งานได้ต่อไป"
+      "removeCustomDomain": "{domain} จะหยุดให้บริการแอปนี้ ที่อยู่เริ่มต้นยังใช้งานได้ต่อไป",
+      "copyClientSecretNow": "⚠️ อย่าลืมคัดลอกความลับของไคลเอนต์ตอนนี้ คุณจะไม่สามารถดูได้อีก"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5968,7 +6034,40 @@
       "interfaceRecordUnreadableEditingOff": "การแก้ไขถูกปิดไว้จนกว่าจะอ่านเรกคอร์ดได้อีกครั้ง",
       "inviteLinkDomainSentence": "ใช้ได้กับอีเมล {domain} เท่านั้น และเพื่อนร่วมทีมจะเข้าร่วมในฐานะ {role}",
       "inviteLinkOpenSentence": "ใครก็ตามที่มีลิงก์นี้สามารถเข้าร่วมในฐานะ {role}",
-      "inviteLinkOpenCaution": "แชร์ให้เฉพาะคนที่คุณไว้ใจเท่านั้น"
+      "inviteLinkOpenCaution": "แชร์ให้เฉพาะคนที่คุณไว้ใจเท่านั้น",
+      "shareHubTooltip": "เชิญผู้อื่นมาทำงานใน base นี้ หรือเผยแพร่ลิงก์แบบอ่านอย่างเดียวไปยัง {object}",
+      "shareHubTooltipInviteOnly": "เชิญผู้อื่นมาทำงานใน base นี้ หากต้องการเผยแพร่ตัว base เอง ให้ใช้ «แชร์ base» ในเมนูของ base",
+      "shareNothingPrivateBase": "เฉพาะเจ้าของ base เท่านั้นที่เชิญผู้อื่นเข้า base ส่วนตัวได้ หากต้องการเผยแพร่มุมมอง ให้เปิดมุมมองก่อน",
+      "shareNothingToShow": "ไม่มีอะไรให้แชร์จากที่นี่ เปิดมุมมองเพื่อเผยแพร่ลิงก์แบบอ่านอย่างเดียว",
+      "peopleHaveAccess": "มี {count} คนที่เข้าถึงได้ | มี {count} คนที่เข้าถึงได้",
+      "noInviteLinkYet": "ยังไม่มีลิงก์เชิญ สร้างลิงก์เพื่อให้ผู้อื่นเข้าร่วมได้โดยไม่ต้องมีคำเชิญรายบุคคล",
+      "youWillJoinAs": "คุณจะเข้าร่วมในฐานะ {role}",
+      "signedInWrongDomain": "คุณลงชื่อเข้าใช้ในชื่อ {email} ลิงก์นี้รับเฉพาะที่อยู่ {'@'}{domain} เท่านั้น",
+      "signedInAs": "คุณลงชื่อเข้าใช้ในชื่อ {email}",
+      "publicLinkToNamed": "ลิงก์สาธารณะไปยัง {name}",
+      "readOnlyInviteInstead": "อ่านอย่างเดียว ต้องการให้พวกเขาแก้ไขหรือแสดงความคิดเห็นได้ไหม",
+      "willJoinAsRole": "{count} คนจะเข้าร่วมในฐานะ {role} และสามารถ {can} | {count} คนจะเข้าร่วมในฐานะ {role} และสามารถ {can}",
+      "sharePublicLinkSubtitle": "ใครก็ตามที่มีลิงก์สามารถเปิดได้ ไม่ต้องมีบัญชี",
+      "shareLinksReadOnly": "ลิงก์เป็นแบบอ่านอย่างเดียว ต้องการให้พวกเขาแก้ไขหรือแสดงความคิดเห็นได้ไหม",
+      "clientSecretHidden": "ความลับถูกซ่อนไว้เพื่อความปลอดภัยและจะไม่แสดงอีก คุณสามารถสร้างใหม่ได้หากจำเป็น",
+      "mcpSetupIntroClaude": "เริ่มใช้ NocoDB MCP ร่วมกับ Claude Desktop ใน 3 ขั้นตอนง่าย ๆ",
+      "mcpSetupClaudeStep1": "เปิดการตั้งค่า Claude Desktop จากแถบนำทาง",
+      "mcpSetupClaudeStep2": "ไปที่แท็บ Develop แล้วคลิก «Edit Config»",
+      "mcpSetupClaudeStep3": "เพิ่มการกำหนดค่า JSON ที่ได้รับหลังสร้างโทเคนลงในไฟล์ claude_desktop_config.json",
+      "mcpSetupIntroCodex": "เริ่มใช้ NocoDB MCP ร่วมกับ Codex CLI ใน 3 ขั้นตอนง่าย ๆ",
+      "mcpSetupCodexStep2": "เพิ่มการกำหนดค่า TOML ที่ได้รับหลังสร้างโทเคน",
+      "mcpSetupIntroAntigravity": "เริ่มใช้ NocoDB MCP ร่วมกับ AntiGravity ใน 4 ขั้นตอนง่าย ๆ",
+      "mcpSetupAntigravityStep1": "คลิกจุดสามจุดที่มุมขวาบนของหน้าต่างเอเจนต์ แล้วคลิก \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "คลิก Manage MCP Servers",
+      "mcpSetupViewRawConfig": "จากนั้นคลิก View raw config",
+      "mcpSetupPasteJsonConfig": "วางการกำหนดค่า JSON ที่ได้รับหลังสร้างโทเคนลงในไฟล์ที่เปิดอยู่",
+      "mcpSetupIntroCursor": "เริ่มใช้ NocoDB MCP ร่วมกับ Cursor ใน 3 ขั้นตอนง่าย ๆ",
+      "mcpSetupCursorStep1": "เปิดการตั้งค่า Cursor (กด Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "เลือกแท็บ \"MCP\" แล้วคลิก \"Add Custom MCP\"",
+      "mcpSetupCursorStep3": "เพิ่มการกำหนดค่า JSON ที่ได้รับหลังสร้างโทเคน",
+      "mcpSetupIntroWindsurf": "เริ่มใช้ NocoDB MCP ร่วมกับ Windsurf ใน 4 ขั้นตอนง่าย ๆ",
+      "mcpSetupWindsurfStep1": "เข้าไปที่การตั้งค่า Windsurf แล้วเลือกแท็บ Cascade ในแถบด้านซ้าย",
+      "mcpSetupWindsurfStep2": "คลิก Manage MCP"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6283,7 +6382,8 @@
       "planChangeScheduled": "ตั้งเวลาเปลี่ยนแผนแล้ว",
       "planChangeReverted": "ยกเลิกการเปลี่ยนแผนที่ตั้งเวลาไว้แล้ว แผนปัจจุบันของคุณดำเนินต่อไปโดยไม่เปลี่ยนแปลง",
       "appDelisted": "นำออกจาก App Store แล้ว",
-      "appRelisted": "กลับเข้า App Store แล้ว"
+      "appRelisted": "กลับเข้า App Store แล้ว",
+      "oauthClientUpdated": "อัปเดตไคลเอนต์ OAuth สำเร็จแล้ว"
     },
     "subText": {
       "startFromScratch": "เริ่มจากศูนย์",
@@ -6478,7 +6578,22 @@
     "factorySelectLinesToAnnotate": "เลือกบรรทัดที่ความคิดเห็นกล่าวถึงก่อน",
     "factorySessionArchived": "จัดเก็บเซสชันแล้ว งานของเซสชันถูกบันทึกไว้ กลับมาทำต่อได้โดยเปิดเซสชันอีกครั้ง",
     "factoryTurnFailed": "รอบนี้ล้มเหลว",
-    "factoryDeleteSession": "“{title}” และบันทึกการสนทนาทั้งหมดจะถูกลบ การกระทำนี้ย้อนกลับไม่ได้"
+    "factoryDeleteSession": "“{title}” และบันทึกการสนทนาทั้งหมดจะถูกลบ การกระทำนี้ย้อนกลับไม่ได้",
+    "migrateToV3": {
+      "whatChanges": "สิ่งที่เปลี่ยนไปหลังการย้ายข้อมูล",
+      "changeDuplicate": "ทำสำเนา base ได้โดยยังคงรหัสของเอนทิตีไว้",
+      "changeApi": "เข้าถึงได้ผ่าน API V3 เท่านั้น",
+      "changeScale": "ออกแบบมาเพื่อการขยายขนาดที่ดีขึ้นและความเข้ากันได้ในระยะยาว",
+      "considerations": "ข้อควรพิจารณาที่สำคัญ",
+      "considerApis": "หลังย้ายข้อมูลแล้ว API V1 และ V2 จะใช้กับ base นี้ไม่ได้อีกต่อไป",
+      "considerPermanent": "การย้ายข้อมูลเป็นการถาวรและไม่สามารถย้อนกลับได้",
+      "recommendation": "ย้ายข้อมูลหลังจากยืนยันแล้วว่าการเชื่อมต่อทั้งหมดเข้ากันได้กับ API v3 เท่านั้น",
+      "confirmTitle": "ย้าย base นี้ไปเป็น v3 หรือไม่",
+      "confirmDesc": "การดำเนินการนี้จะอัปเกรด base ไปยังสถาปัตยกรรมและเวอร์ชัน API ล่าสุด",
+      "confirmCta": "ยืนยันการย้ายข้อมูล",
+      "migrating": "กำลังย้ายข้อมูล..."
+    },
+    "skillsRegistryErrorTitle": "ไม่สามารถค้นหาในทะเบียนทักษะได้"
   },
   "trash": {
     "restore": "Restore",
@@ -6541,7 +6656,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "แหล่งข้อมูลภายนอก",
+    "unavailablePending": "กำลังตั้งค่า",
+    "usingDefault": "{value} (ค่าเริ่มต้น)",
+    "keptForever": "ตลอดไป",
+    "notKept": "ไม่เก็บไว้"
   },
   "baseTrash": {
     "title": "Trash",

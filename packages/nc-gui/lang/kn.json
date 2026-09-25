@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "ಫಾರ್ಮ್‌ಗಳಲ್ಲಿ ಸೈನ್ ಇನ್ ಕಡ್ಡಾಯಗೊಳಿಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToUseFormRequireSigninSubtitle": "ಫಾರ್ಮ್ ಸಲ್ಲಿಸುವ ಮೊದಲು ಪ್ರತಿಕ್ರಿಯೆದಾರರು ಸೈನ್ ಇನ್ ಮಾಡುವುದನ್ನು ಕಡ್ಡಾಯಗೊಳಿಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseSso": "SSO ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
-    "upgradeToUseSsoSubtitle": "ಏಕೀಕೃತ ಸೈನ್-ಆನ್ (SSO) ಹೊಂದಿಸಲು ಮತ್ತು ನಿಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಗುರುತಿನ ಪೂರೈಕೆದಾರರ ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
+    "upgradeToUseSsoSubtitle": "ಏಕೀಕೃತ ಸೈನ್-ಆನ್ (SSO) ಹೊಂದಿಸಲು ಮತ್ತು ನಿಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಗುರುತಿನ ಪೂರೈಕೆದಾರರ ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
+    "upgradeToUseAppFactory": "App Factory ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+    "upgradeToUseAppFactorySubtitle": "ಸಂಪರ್ಕಿತ ರೆಪೊಸಿಟರಿಗಳಲ್ಲಿ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್‌ಗಳನ್ನು ಬಳಸಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "ದಾಖಲೆಗಳನ್ನು ರಚಿಸುವುದು"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "ವೀಕ್ಷಣೆ ಫೋಲ್ಡರ್",
     "subRecord": "ಉಪ-ದಾಖಲೆ",
     "video": "ವಿಡಿಯೊ",
-    "recordTemplates": "ದಾಖಲೆ ಟೆಂಪ್ಲೇಟ್‌ಗಳು"
+    "recordTemplates": "ದಾಖಲೆ ಟೆಂಪ್ಲೇಟ್‌ಗಳು",
+    "roleTypePlural": {
+      "owner": "ಮಾಲೀಕರು",
+      "creator": "ರಚನೆಕಾರರು",
+      "editor": "ಸಂಪಾದಕರು",
+      "commenter": "ಕಾಮೆಂಟ್ ಮಾಡುವವರು",
+      "viewer": "ವೀಕ್ಷಕರು",
+      "inherit": "ಪಡೆದುಕೊಳ್ಳಿ",
+      "noaccess": "ಪ್ರವೇಶವಿಲ್ಲ",
+      "admin": "ನಿರ್ವಾಹಕರು",
+      "superAdmin": "ಸೂಪರ್ ನಿರ್ವಾಹಕರು",
+      "orgAdmin": "ಸಂಸ್ಥೆಯ ನಿರ್ವಾಹಕರು",
+      "orgCreator": "ಸಂಸ್ಥೆಯ ರಚನೆಕಾರರು",
+      "orgViewer": "ಸಂಸ್ಥೆಯ ವೀಕ್ಷಕರು",
+      "orgLevelOwner": "ಸಂಸ್ಥೆ ಮಟ್ಟದ ಮಾಲೀಕರು",
+      "orgLevelCreator": "ಸಂಸ್ಥೆ ಮಟ್ಟದ ರಚನೆಕಾರರು",
+      "orgLevelViewer": "ಸಂಸ್ಥೆ ಮಟ್ಟದ ವೀಕ್ಷಕರು",
+      "appUser": "ಅಪ್ಲಿಕೇಶನ್ ಬಳಕೆದಾರರು"
+    }
   },
   "datatype": {
     "ID": "ಐಡಿ",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "ಕಸ್ಟಮ್ ಡೊಮೇನ್ ತೆಗೆದುಹಾಕಬೇಕೇ?",
     "tooNarrowToAdjustFrozenFields": "ಸ್ಥಗಿತಗೊಳಿಸಿದ ಕ್ಷೇತ್ರಗಳನ್ನು ಹೊಂದಿಸಲು ವಿಂಡೋ ತುಂಬಾ ಕಿರಿದಾಗಿದೆ",
     "themeSettings": "ಥೀಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-    "nFields": "{count} ಕ್ಷೇತ್ರ | {count} ಕ್ಷೇತ್ರಗಳು"
+    "nFields": "{count} ಕ್ಷೇತ್ರ | {count} ಕ್ಷೇತ್ರಗಳು",
+    "noInterfaceMembersYet": "ಇನ್ನೂ ಇಂಟರ್ಫೇಸ್ ಸದಸ್ಯರಿಲ್ಲ",
+    "headJoin": "ಸೇರಿ | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "ಈ ಏಜೆಂಟ್‌ನ ಸಂಭಾಷಣೆ ತೆರೆಯಿರಿ",
     "sendToAgent": "ಏಜೆಂಟ್‌ಗೆ ಕಳುಹಿಸಿ",
     "noPort": "ಪೋರ್ಟ್ ಇಲ್ಲ",
-    "manageInviteLinks": "ಆಮಂತ್ರಣ ಲಿಂಕ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ"
+    "manageInviteLinks": "ಆಮಂತ್ರಣ ಲಿಂಕ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+    "editOauthClient": "OAuth ಕ್ಲೈಂಟ್ ಸಂಪಾದಿಸಿ",
+    "oauthClientNameHint": "ದೃಢೀಕರಣದ ಸಮಯದಲ್ಲಿ ಬಳಕೆದಾರರಿಗೆ ತೋರಿಸಲಾಗುತ್ತದೆ",
+    "applicationDescription": "ಅಪ್ಲಿಕೇಶನ್ ವಿವರಣೆ",
+    "oauthClientDescriptionHint": "ಬಳಕೆದಾರರು ಪ್ರವೇಶ ನೀಡುವಾಗ ತೋರಿಸಲಾಗುವ ಸಂಕ್ಷಿಪ್ತ ವಿವರಣೆ",
+    "homepageUrl": "ಮುಖಪುಟದ URL",
+    "oauthClientLogoHint": "ದೃಢೀಕರಣದ ಸಮಯದಲ್ಲಿ ತೋರಿಸಲಾಗುವ ಚಿತ್ರ (ಚೌಕಾಕಾರ ಶಿಫಾರಸು)",
+    "clientType": "ಕ್ಲೈಂಟ್ ಪ್ರಕಾರ",
+    "oauthClientTypeHint": "ಸಾರ್ವಜನಿಕ: ಮೊಬೈಲ್ ಮತ್ತು ವೆಬ್ ಅಪ್ಲಿಕೇಶನ್‌ಗಳು (PKCE ಅಗತ್ಯ). ಗೌಪ್ಯ: ಸುರಕ್ಷಿತ ಸರ್ವರ್‌ಗಳು (ಸೀಕ್ರೆಟ್ ಸಂಗ್ರಹಿಸಬಲ್ಲವು)",
+    "confidential": "ಗೌಪ್ಯ",
+    "authorizationCallbackUrls": "ದೃಢೀಕರಣ ಕಾಲ್‌ಬ್ಯಾಕ್ ವಿಳಾಸಗಳು",
+    "oauthCallbackUrlsHint": "ದೃಢೀಕರಣದ ನಂತರ ಮರುನಿರ್ದೇಶನಕ್ಕಾಗಿ HTTPS ವಿಳಾಸಗಳು (localhost/127.0.0.1 ಅನುಮತಿಸಲಾಗಿದೆ). ಸಾಲಿಗೆ ಒಂದು",
+    "clientId": "ಕ್ಲೈಂಟ್ ಐಡಿ",
+    "clientSecret": "ಕ್ಲೈಂಟ್ ಸೀಕ್ರೆಟ್",
+    "regenerateSecret": "ಹೊಸ ಸೀಕ್ರೆಟ್ ರಚಿಸಿ",
+    "createOauthClients": "OAuth ಕ್ಲೈಂಟ್‌ಗಳನ್ನು ರಚಿಸಿ",
+    "managingOauthClients": "OAuth ಕ್ಲೈಂಟ್‌ಗಳ ನಿರ್ವಹಣೆ",
+    "clientInformation": "ಕ್ಲೈಂಟ್ ಮಾಹಿತಿ"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "ಪ್ರಕಾಶಕರು ಬರೆದಿದ್ದು, ಆ್ಯಪ್‌ನ ವಿಷಯದಿಂದ ತೆಗೆದಿದ್ದಲ್ಲ.",
     "marketplaceVerifiedPublisher": "NocoDB ಪ್ರಕಟಿಸಿ ಪರಿಶೀಲಿಸಿದೆ",
     "showCustomPermissionFieldsOnly": "ಕಸ್ಟಮ್ ಅನುಮತಿಗಳಿರುವ ಕ್ಷೇತ್ರಗಳನ್ನು ಮಾತ್ರ ತೋರಿಸಿ",
-    "showAllFields": "ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ತೋರಿಸಿ"
+    "showAllFields": "ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ತೋರಿಸಿ",
+    "inviteLinkCannotGrantOwner": "ಆಹ್ವಾನ ಲಿಂಕ್ ಮಾಲೀಕರ ಪಾತ್ರವನ್ನು ನೀಡಲಾಗದು",
+    "inviteLinkRoleAboveYours": "ನಿಮ್ಮ ಪಾತ್ರದವರೆಗಿನ ಪಾತ್ರಗಳನ್ನು ಮಾತ್ರ ನೀವು ನೀಡಬಹುದು",
+    "noDefaultSourceForFolders": "ಈ ಬೇಸ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಮೂಲವಿಲ್ಲ — ಫೋಲ್ಡರ್‌ಗಳನ್ನು ಮೂಲದ ತನ್ನದೇ ಮೆನುವಿನಿಂದ ರಚಿಸಿ",
+    "noDefaultSourceForSync": "ಈ ಬೇಸ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಮೂಲವಿಲ್ಲ — ಸಿಂಕ್‌ಗೆ ತನ್ನ ಟೇಬಲ್‌ಗಳನ್ನು ಸಂಗ್ರಹಿಸಲು ಒಂದು ಮೂಲ ಬೇಕು"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5233,7 +5277,28 @@
     "messageAgent": "{agent} ಗೆ ಸಂದೇಶ",
     "somethingElse": "ಬೇರೇನಾದರೂ",
     "noMcpConnections": "ಯಾವುದೇ MCP ಸಂಪರ್ಕಗಳನ್ನು ರಚಿಸಲಾಗಿಲ್ಲ",
-    "noMcpConnectionsLabel": "ನೀವು ಇನ್ನೂ ಯಾವುದೇ MCP ಸಂಪರ್ಕಗಳನ್ನು ರಚಿಸಿಲ್ಲ ಎಂದು ತೋರುತ್ತದೆ."
+    "noMcpConnectionsLabel": "ನೀವು ಇನ್ನೂ ಯಾವುದೇ MCP ಸಂಪರ್ಕಗಳನ್ನು ರಚಿಸಿಲ್ಲ ಎಂದು ತೋರುತ್ತದೆ.",
+    "searchDataSource": "ಡೇಟಾ ಮೂಲ ಹುಡುಕಿ",
+    "searchConnections": "ಸಂಪರ್ಕಗಳನ್ನು ಹುಡುಕಿ",
+    "migrationUrl": "ಗಮ್ಯಸ್ಥಾನಕ್ಕಾಗಿ ವಲಸೆ URL ನಮೂದಿಸಿ",
+    "searchSync": "ಸಿಂಕ್ ಹುಡುಕಿ",
+    "searchWorkspace": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಹುಡುಕಿ",
+    "searchBase": "ಬೇಸ್ ಹುಡುಕಿ",
+    "searchEvent": "ಘಟನೆ ಹುಡುಕಿ",
+    "skillRegistrySearch": "ಕೌಶಲಗಳನ್ನು ಹುಡುಕಿ…",
+    "searchSnapshots": "ಸ್ನ್ಯಾಪ್‌ಶಾಟ್‌ಗಳನ್ನು ಹುಡುಕಿ",
+    "searchTokens": "ಟೋಕನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
+    "factoryPrompt": "ನೀವು ಏನನ್ನು ನಿರ್ಮಿಸಬೇಕೆಂದು ಬಯಸುತ್ತೀರಿ ಎಂದು ವಿವರಿಸಿ",
+    "factorySearchRepos": "ರೆಪೊಸಿಟರಿಗಳನ್ನು ಹುಡುಕಿ",
+    "factorySearchTargets": "ರೆಪೊಸಿಟರಿಗಳನ್ನು ಹುಡುಕಿ",
+    "factorySearchSources": "ಬ್ರಾಂಚ್, ಪುಲ್ ರಿಕ್ವೆಸ್ಟ್ ಮತ್ತು ಸಮಸ್ಯೆಗಳನ್ನು ಹುಡುಕಿ",
+    "factoryOnPr": "ಈ ಪುಲ್ ರಿಕ್ವೆಸ್ಟ್‌ನಲ್ಲಿ ಏನಾಗಬೇಕು?",
+    "factoryOnIssue": "ಸಮಸ್ಯೆಯ ಹೊರತಾಗಿ ಸೇರಿಸಲು ಏನಾದರೂ ಇದ್ದರೆ (ಐಚ್ಛಿಕ)",
+    "factoryReply": "ಉತ್ತರಿಸಿ",
+    "searchFiles": "ಫೈಲ್‌ಗಳನ್ನು ಹುಡುಕಿ",
+    "factoryAnnotation": "ಏಜೆಂಟ್ ಇಲ್ಲಿ ಏನನ್ನು ಬದಲಾಯಿಸಬೇಕು?",
+    "oauthClientName": "ನನ್ನ ಅಪ್ಲಿಕೇಶನ್",
+    "oauthClientDescription": "ಈ ಅಪ್ಲಿಕೇಶನ್ ನಿಮ್ಮ ಡೇಟಾವನ್ನು ನಿರ್ವಹಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "ಇದು ಈ ಸಿಂಕ್‌ನ ಸಿಂಕ್ ಆದ ಕೋಷ್ಟಕ — ಇದನ್ನು ಪರಿವರ್ತಿಸಿದರೆ ಸಿಂಕ್ ಸ್ವತಃ ತೆಗೆದುಹೋಗುತ್ತದೆ. ಸಿಂಕ್ ಸೃಷ್ಟಿಸಿದ ಎಲ್ಲ ಕೋಷ್ಟಕಗಳು ಸಾಮಾನ್ಯ, ಸಂಪಾದಿಸಬಹುದಾದ ಕೋಷ್ಟಕಗಳಾಗಿ ಉಳಿಯುತ್ತವೆ ಮತ್ತು ಸಿಂಕ್ ಆಗುವುದನ್ನು ನಿಲ್ಲಿಸುತ್ತವೆ.",
       "requiredFieldNotEditable": "ಈ ಕಡ್ಡಾಯ ಕ್ಷೇತ್ರ ಸಂಪಾದಿಸಲಾಗದು, ಇದರಿಂದ ನಮೂನೆ ಸಲ್ಲಿಸುವಾಗ ದೋಷಗಳಾಗಬಹುದು.",
       "communityAppInstall": "{title} ಸಮುದಾಯದ ಆ್ಯಪ್ ಆಗಿದೆ. NocoDB ಇದನ್ನು ಪರಿಶೀಲಿಸಿಲ್ಲ ಅಥವಾ ದೃಢೀಕರಿಸಿಲ್ಲ. ನಿಮ್ಮ ಕಾರ್ಯದ್ವಾರದಲ್ಲಿ ಸ್ಥಾಪಿಸುವ ಮೊದಲು ಪ್ರಕಾಶಕರನ್ನು ನಂಬುತ್ತೀರಿ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
-      "removeCustomDomain": "{domain} ಇನ್ನು ಈ ಆ್ಯಪ್ ಒದಗಿಸುವುದಿಲ್ಲ. ಪೂರ್ವನಿಯೋಜಿತ ವಿಳಾಸ ಕೆಲಸ ಮಾಡುತ್ತಲೇ ಇರುತ್ತದೆ."
+      "removeCustomDomain": "{domain} ಇನ್ನು ಈ ಆ್ಯಪ್ ಒದಗಿಸುವುದಿಲ್ಲ. ಪೂರ್ವನಿಯೋಜಿತ ವಿಳಾಸ ಕೆಲಸ ಮಾಡುತ್ತಲೇ ಇರುತ್ತದೆ.",
+      "copyClientSecretNow": "⚠️ ನಿಮ್ಮ ಕ್ಲೈಂಟ್ ಸೀಕ್ರೆಟ್ ಅನ್ನು ಈಗಲೇ ನಕಲಿಸಿಕೊಳ್ಳಿ. ಅದನ್ನು ಮತ್ತೆ ನೋಡಲಾಗುವುದಿಲ್ಲ!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "ಮತ್ತೆ ಓದಲು ಸಾಧ್ಯವಾಗುವವರೆಗೆ ಸಂಪಾದನೆ ಆಫ್ ಆಗಿರುತ್ತದೆ.",
       "inviteLinkDomainSentence": "{domain} ಇಮೇಲ್‌ನೊಂದಿಗೆ ಮಾತ್ರ ಕೆಲಸ ಮಾಡುತ್ತದೆ ಮತ್ತು ಸಹೋದ್ಯೋಗಿಗಳು {role} ಆಗಿ ಸೇರುತ್ತಾರೆ",
       "inviteLinkOpenSentence": "ಲಿಂಕ್ ಇರುವ ಯಾರಾದರೂ {role} ಆಗಿ ಸೇರಬಹುದು",
-      "inviteLinkOpenCaution": "ನೀವು ನಂಬುವವರೊಂದಿಗೆ ಮಾತ್ರ ಇದನ್ನು ಹಂಚಿಕೊಳ್ಳಿ."
+      "inviteLinkOpenCaution": "ನೀವು ನಂಬುವವರೊಂದಿಗೆ ಮಾತ್ರ ಇದನ್ನು ಹಂಚಿಕೊಳ್ಳಿ.",
+      "shareHubTooltip": "ಈ ಬೇಸ್‌ನಲ್ಲಿ ಕೆಲಸ ಮಾಡಲು ಜನರನ್ನು ಆಹ್ವಾನಿಸಿ, ಅಥವಾ {object} ಗೆ ಓದಲು-ಮಾತ್ರ ಲಿಂಕ್ ಪ್ರಕಟಿಸಿ.",
+      "shareHubTooltipInviteOnly": "ಈ ಬೇಸ್‌ನಲ್ಲಿ ಕೆಲಸ ಮಾಡಲು ಜನರನ್ನು ಆಹ್ವಾನಿಸಿ. ಬೇಸ್ ಅನ್ನೇ ಪ್ರಕಟಿಸಲು, ಬೇಸ್ ಮೆನುವಿನಲ್ಲಿ «ಬೇಸ್ ಹಂಚಿಕೊಳ್ಳಿ» ಬಳಸಿ.",
+      "shareNothingPrivateBase": "ಖಾಸಗಿ ಬೇಸ್‌ಗೆ ಬೇಸ್‌ನ ಮಾಲೀಕರು ಮಾತ್ರ ಜನರನ್ನು ಆಹ್ವಾನಿಸಬಹುದು. ವೀಕ್ಷಣೆಯನ್ನು ಪ್ರಕಟಿಸಲು, ಮೊದಲು ಒಂದನ್ನು ತೆರೆಯಿರಿ.",
+      "shareNothingToShow": "ಇಲ್ಲಿಂದ ಹಂಚಿಕೊಳ್ಳಲು ಏನೂ ಇಲ್ಲ. ಓದಲು-ಮಾತ್ರ ಲಿಂಕ್ ಪ್ರಕಟಿಸಲು ಒಂದು ವೀಕ್ಷಣೆ ತೆರೆಯಿರಿ.",
+      "peopleHaveAccess": "{count} ವ್ಯಕ್ತಿಗೆ ಪ್ರವೇಶವಿದೆ. | {count} ಜನರಿಗೆ ಪ್ರವೇಶವಿದೆ.",
+      "noInviteLinkYet": "ಇನ್ನೂ ಆಹ್ವಾನ ಲಿಂಕ್ ಇಲ್ಲ. ಪ್ರತ್ಯೇಕ ಆಹ್ವಾನವಿಲ್ಲದೆ ಜನರು ಸೇರಲು ಒಂದನ್ನು ರಚಿಸಿ.",
+      "youWillJoinAs": "ನೀವು {role} ಆಗಿ ಸೇರುತ್ತೀರಿ.",
+      "signedInWrongDomain": "ನೀವು {email} ಆಗಿ ಸೈನ್ ಇನ್ ಆಗಿದ್ದೀರಿ. ಈ ಲಿಂಕ್ {'@'}{domain} ವಿಳಾಸಗಳನ್ನು ಮಾತ್ರ ಸ್ವೀಕರಿಸುತ್ತದೆ.",
+      "signedInAs": "ನೀವು {email} ಆಗಿ ಸೈನ್ ಇನ್ ಆಗಿದ್ದೀರಿ.",
+      "publicLinkToNamed": "{name} ಗೆ ಸಾರ್ವಜನಿಕ ಲಿಂಕ್",
+      "readOnlyInviteInstead": "ಓದಲು ಮಾತ್ರ. ಅವರು ಸಂಪಾದಿಸಲು ಅಥವಾ ಕಾಮೆಂಟ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಬೇಕೆ?",
+      "willJoinAsRole": "{count} ವ್ಯಕ್ತಿ {role} ಆಗಿ ಸೇರುತ್ತಾರೆ ಮತ್ತು {can} ಮಾಡಬಹುದು. | {count} ಜನರು {role} ಆಗಿ ಸೇರುತ್ತಾರೆ ಮತ್ತು {can} ಮಾಡಬಹುದು.",
+      "sharePublicLinkSubtitle": "ಲಿಂಕ್ ಇರುವ ಯಾರಾದರೂ ಅದನ್ನು ತೆರೆಯಬಹುದು. ಖಾತೆ ಅಗತ್ಯವಿಲ್ಲ.",
+      "shareLinksReadOnly": "ಲಿಂಕ್‌ಗಳು ಓದಲು ಮಾತ್ರ. ಅವರು ಸಂಪಾದಿಸಲು ಅಥವಾ ಕಾಮೆಂಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?",
+      "clientSecretHidden": "ಭದ್ರತೆಗಾಗಿ ಸೀಕ್ರೆಟ್ ಮರೆಮಾಡಲಾಗಿದೆ ಮತ್ತು ಮತ್ತೆ ಕಾಣಿಸುವುದಿಲ್ಲ. ಅಗತ್ಯವಿದ್ದರೆ ನೀವು ಹೊಸದನ್ನು ರಚಿಸಬಹುದು.",
+      "mcpSetupIntroClaude": "3 ಸರಳ ಹಂತಗಳಲ್ಲಿ Claude Desktop ಜೊತೆ NocoDB MCP ಬಳಸಲು ಪ್ರಾರಂಭಿಸಿ",
+      "mcpSetupClaudeStep1": "ನ್ಯಾವಿಗೇಶನ್ ಬಾರ್‌ನಿಂದ Claude Desktop ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ತೆರೆಯಿರಿ.",
+      "mcpSetupClaudeStep2": "Develop ಟ್ಯಾಬ್‌ಗೆ ಹೋಗಿ «Edit Config» ಕ್ಲಿಕ್ ಮಾಡಿ.",
+      "mcpSetupClaudeStep3": "ಟೋಕನ್ ರಚಿಸಿದ ನಂತರ ಸಿಗುವ JSON ಸಂರಚನೆಯನ್ನು claude_desktop_config.json ನಲ್ಲಿ ಸೇರಿಸಿ",
+      "mcpSetupIntroCodex": "3 ಸರಳ ಹಂತಗಳಲ್ಲಿ Codex CLI ಜೊತೆ NocoDB MCP ಬಳಸಲು ಪ್ರಾರಂಭಿಸಿ",
+      "mcpSetupCodexStep2": "ಟೋಕನ್ ರಚಿಸಿದ ನಂತರ ಸಿಗುವ TOML ಸಂರಚನೆಯನ್ನು ಸೇರಿಸಿ.",
+      "mcpSetupIntroAntigravity": "4 ಸರಳ ಹಂತಗಳಲ್ಲಿ AntiGravity ಜೊತೆ NocoDB MCP ಬಳಸಲು ಪ್ರಾರಂಭಿಸಿ",
+      "mcpSetupAntigravityStep1": "ಏಜೆಂಟ್ ವಿಂಡೋದ ಮೇಲ್ಭಾಗದ ಬಲಬದಿಯಲ್ಲಿರುವ ಮೂರು ಚುಕ್ಕೆಗಳನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ, ನಂತರ \"MCP Servers\" ಕ್ಲಿಕ್ ಮಾಡಿ",
+      "mcpSetupAntigravityStep2": "Manage MCP Servers ಕ್ಲಿಕ್ ಮಾಡಿ.",
+      "mcpSetupViewRawConfig": "ಈಗ View raw config ಕ್ಲಿಕ್ ಮಾಡಿ.",
+      "mcpSetupPasteJsonConfig": "ಟೋಕನ್ ರಚಿಸಿದ ನಂತರ ಸಿಗುವ JSON ಸಂರಚನೆಯನ್ನು ತೆರೆದಿರುವ ಫೈಲ್‌ನಲ್ಲಿ ಅಂಟಿಸಿ",
+      "mcpSetupIntroCursor": "3 ಸರಳ ಹಂತಗಳಲ್ಲಿ Cursor ಜೊತೆ NocoDB MCP ಬಳಸಲು ಪ್ರಾರಂಭಿಸಿ",
+      "mcpSetupCursorStep1": "Cursor ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ತೆರೆಯಿರಿ (Shift+Cmd+J ಒತ್ತಿ)",
+      "mcpSetupCursorStep2": "\"MCP\" ಟ್ಯಾಬ್ ಆಯ್ಕೆಮಾಡಿ ಮತ್ತು \"Add Custom MCP\" ಕ್ಲಿಕ್ ಮಾಡಿ.",
+      "mcpSetupCursorStep3": "ಟೋಕನ್ ರಚಿಸಿದ ನಂತರ ಸಿಗುವ JSON ಸಂರಚನೆಯನ್ನು ಸೇರಿಸಿ.",
+      "mcpSetupIntroWindsurf": "4 ಸರಳ ಹಂತಗಳಲ್ಲಿ Windsurf ಜೊತೆ NocoDB MCP ಬಳಸಲು ಪ್ರಾರಂಭಿಸಿ",
+      "mcpSetupWindsurfStep1": "Windsurf ಸೆಟ್ಟಿಂಗ್‌ಗಳಿಗೆ ಹೋಗಿ ಮತ್ತು ಎಡ ಬದಿಪಟ್ಟಿಯಲ್ಲಿ Cascade ಟ್ಯಾಬ್ ಆಯ್ಕೆಮಾಡಿ",
+      "mcpSetupWindsurfStep2": "Manage MCP ಕ್ಲಿಕ್ ಮಾಡಿ."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "ಪ್ಲ್ಯಾನ್ ಬದಲಾವಣೆ ನಿಗದಿಯಾಗಿದೆ",
       "planChangeReverted": "ನಿಗದಿತ ಪ್ಲ್ಯಾನ್ ಬದಲಾವಣೆಯನ್ನು ಹಿಂಪಡೆಯಲಾಗಿದೆ. ನಿಮ್ಮ ಈಗಿನ ಪ್ಲ್ಯಾನ್ ಬದಲಾವಣೆಯಿಲ್ಲದೆ ಮುಂದುವರಿಯುತ್ತದೆ.",
       "appDelisted": "App Store ನಿಂದ ತೆಗೆದುಹಾಕಲಾಗಿದೆ",
-      "appRelisted": "ಮತ್ತೆ App Store ನಲ್ಲಿ"
+      "appRelisted": "ಮತ್ತೆ App Store ನಲ್ಲಿ",
+      "oauthClientUpdated": "OAuth ಕ್ಲೈಂಟ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!"
     },
     "subText": {
       "startFromScratch": "ಶೂನ್ಯದಿಂದ ಆರಂಭಿಸಿ.",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "ಕಾಮೆಂಟ್ ಯಾವ ಸಾಲುಗಳ ಕುರಿತಾಗಿದೆಯೋ ಅವನ್ನು ಮೊದಲು ಆಯ್ಕೆ ಮಾಡಿ.",
     "factorySessionArchived": "ಸೆಷನ್ ಆರ್ಕೈವ್ ಮಾಡಲಾಗಿದೆ. ಅದರ ಕೆಲಸ ಉಳಿಸಲಾಗಿದೆ; ಮುಂದುವರಿಸಲು ಸೆಷನ್ ಪುನರಾರಂಭಿಸಿ.",
     "factoryTurnFailed": "ಈ ಸರದಿ ವಿಫಲವಾಯಿತು",
-    "factoryDeleteSession": "“{title}” ಮತ್ತು ಅದರ ಸಂಪೂರ್ಣ ಪ್ರತಿಲಿಪಿ ಅಳಿಸಲಾಗುತ್ತದೆ. ಇದನ್ನು ಹಿಂತಿರುಗಿಸಲಾಗದು."
+    "factoryDeleteSession": "“{title}” ಮತ್ತು ಅದರ ಸಂಪೂರ್ಣ ಪ್ರತಿಲಿಪಿ ಅಳಿಸಲಾಗುತ್ತದೆ. ಇದನ್ನು ಹಿಂತಿರುಗಿಸಲಾಗದು.",
+    "migrateToV3": {
+      "whatChanges": "ವಲಸೆಯ ನಂತರ ಏನು ಬದಲಾಗುತ್ತದೆ",
+      "changeDuplicate": "ಎಂಟಿಟಿ ಐಡಿಗಳನ್ನು ಉಳಿಸಿಕೊಂಡು ಬೇಸ್‌ಗಳನ್ನು ನಕಲಿಸಬಹುದು",
+      "changeApi": "ಪ್ರವೇಶ V3 API ಮೂಲಕ ಮಾತ್ರ ಲಭ್ಯವಿದೆ",
+      "changeScale": "ಉತ್ತಮ ಸ್ಕೇಲೆಬಿಲಿಟಿ ಮತ್ತು ದೀರ್ಘಾವಧಿ ಹೊಂದಾಣಿಕೆಗಾಗಿ ವಿನ್ಯಾಸಗೊಳಿಸಲಾಗಿದೆ",
+      "considerations": "ಮುಖ್ಯ ಪರಿಗಣನೆಗಳು",
+      "considerApis": "ವಲಸೆಯ ನಂತರ ಈ ಬೇಸ್‌ಗೆ V1 ಮತ್ತು V2 API ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ",
+      "considerPermanent": "ವಲಸೆ ಶಾಶ್ವತವಾಗಿದ್ದು ಅದನ್ನು ಹಿಂತೆಗೆಯಲಾಗದು",
+      "recommendation": "ಎಲ್ಲಾ ಸಂಯೋಜನೆಗಳು v3 API ಜೊತೆ ಹೊಂದಿಕೆಯಾಗುತ್ತವೆ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಂಡ ನಂತರವೇ ವಲಸೆ ಮಾಡಿ.",
+      "confirmTitle": "ಈ ಬೇಸ್ ಅನ್ನು v3 ಗೆ ವಲಸೆ ಮಾಡಬೇಕೆ?",
+      "confirmDesc": "ಇದು ಬೇಸ್ ಅನ್ನು ಇತ್ತೀಚಿನ ಆರ್ಕಿಟೆಕ್ಚರ್ ಮತ್ತು API ಆವೃತ್ತಿಗೆ ನವೀಕರಿಸುತ್ತದೆ.",
+      "confirmCta": "ವಲಸೆಯನ್ನು ದೃಢೀಕರಿಸಿ",
+      "migrating": "ವಲಸೆ ನಡೆಯುತ್ತಿದೆ..."
+    },
+    "skillsRegistryErrorTitle": "ಕೌಶಲ ನೋಂದಣಿಯಲ್ಲಿ ಹುಡುಕಲಾಗಲಿಲ್ಲ"
   },
   "trash": {
     "restore": "Restore",
@@ -6540,7 +6655,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "ಬಾಹ್ಯ ಮೂಲ",
+    "unavailablePending": "ಹೊಂದಿಸಲಾಗುತ್ತಿದೆ",
+    "usingDefault": "{value} (ಡೀಫಾಲ್ಟ್)",
+    "keptForever": "ಶಾಶ್ವತವಾಗಿ",
+    "notKept": "ಉಳಿಸಿಕೊಳ್ಳುವುದಿಲ್ಲ"
   },
   "baseTrash": {
     "title": "Trash",

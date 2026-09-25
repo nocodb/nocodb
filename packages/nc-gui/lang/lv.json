@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Jauniniet, lai formās pieprasītu pieteikšanos",
     "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas.",
     "upgradeToUseSso": "Jauniniet, lai izmantotu SSO",
-    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju."
+    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju.",
+    "upgradeToUseAppFactory": "Jauniniet, lai izmantotu App Factory",
+    "upgradeToUseAppFactorySubtitle": "Jauniniet uz {plan} plānu, lai palaistu programmēšanas aģentus savos pievienotajos repozitorijos."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1069,7 +1071,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "Veidot ierakstus"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1170,7 +1173,25 @@
     "viewFolder": "Skatu mape",
     "subRecord": "Apakšieraksts",
     "video": "Video",
-    "recordTemplates": "Ierakstu veidnes"
+    "recordTemplates": "Ierakstu veidnes",
+    "roleTypePlural": {
+      "owner": "Īpašnieki",
+      "creator": "Veidotāji",
+      "editor": "Redaktori",
+      "commenter": "Komentētāji",
+      "viewer": "Skatītāji",
+      "inherit": "Mantot",
+      "noaccess": "Nav piekļuves",
+      "admin": "Administratori",
+      "superAdmin": "Galvenie administratori",
+      "orgAdmin": "Organizācijas administratori",
+      "orgCreator": "Organizācijas veidotāji",
+      "orgViewer": "Organizācijas skatītāji",
+      "orgLevelOwner": "Īpašnieki organizācijas līmenī",
+      "orgLevelCreator": "Veidotāji organizācijas līmenī",
+      "orgLevelViewer": "Skatītāji organizācijas līmenī",
+      "appUser": "Lietotnes lietotāji"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1524,7 +1545,9 @@
     "removeCustomDomain": "Noņemt pielāgoto domēnu?",
     "tooNarrowToAdjustFrozenFields": "Logs ir pārāk šaurs, lai pielāgotu iesaldētos laukus",
     "themeSettings": "Motīva iestatījumi",
-    "nFields": "{count} lauks | {count} lauki"
+    "nFields": "{count} lauks | {count} lauki",
+    "noInterfaceMembersYet": "Vēl nav saskarnes dalībnieku",
+    "headJoin": "Pievienoties | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4549,7 +4572,24 @@
     "openAgentConversation": "Atvērt šī aģenta sarunu",
     "sendToAgent": "Sūtīt aģentam",
     "noPort": "Nav porta",
-    "manageInviteLinks": "Pārvaldīt uzaicinājuma saites"
+    "manageInviteLinks": "Pārvaldīt uzaicinājuma saites",
+    "editOauthClient": "Rediģēt OAuth klientu",
+    "oauthClientNameHint": "Tiek rādīts lietotājiem autorizācijas laikā",
+    "applicationDescription": "Lietotnes apraksts",
+    "oauthClientDescriptionHint": "Īss apraksts, kas tiek rādīts, kad lietotāji piešķir piekļuvi",
+    "homepageUrl": "Sākumlapas URL adrese",
+    "oauthClientLogoHint": "Attēls, kas tiek rādīts autorizācijas laikā (ieteicams kvadrātveida)",
+    "clientType": "Klienta veids",
+    "oauthClientTypeHint": "Publisks: mobilās un tīmekļa lietotnes (nepieciešams PKCE). Konfidenciāls: droši serveri (var glabāt noslēpumus)",
+    "confidential": "Konfidenciāls",
+    "authorizationCallbackUrls": "Autorizācijas atzvana adreses",
+    "oauthCallbackUrlsHint": "HTTPS adreses novirzīšanai pēc autorizācijas (localhost/127.0.0.1 atļauts). Viena rindā",
+    "clientId": "Klienta ID",
+    "clientSecret": "Klienta noslēpums",
+    "regenerateSecret": "Ģenerēt jaunu noslēpumu",
+    "createOauthClients": "Izveidot OAuth klientus",
+    "managingOauthClients": "OAuth klientu pārvaldība",
+    "clientInformation": "Informācija par klientu"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5065,7 +5105,11 @@
     "marketplaceAuthored": "Sarakstījis izdevējs, nav iegūts no lietotnes satura.",
     "marketplaceVerifiedPublisher": "Publicējis un pārbaudījis NocoDB",
     "showCustomPermissionFieldsOnly": "Rādīt tikai laukus ar pielāgotām atļaujām",
-    "showAllFields": "Rādīt visus laukus"
+    "showAllFields": "Rādīt visus laukus",
+    "inviteLinkCannotGrantOwner": "Ielūguma saite nevar piešķirt īpašnieka lomu",
+    "inviteLinkRoleAboveYours": "Varat piedāvāt tikai lomas līdz savai",
+    "noDefaultSourceForFolders": "Šai bāzei nav noklusējuma avota — mapes veidojiet no paša avota izvēlnes",
+    "noDefaultSourceForSync": "Šai bāzei nav noklusējuma avota — sinhronizācijai tas ir nepieciešams tabulu glabāšanai"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5227,7 +5271,28 @@
     "messageAgent": "Ziņojums {agent}",
     "somethingElse": "Kaut kas cits",
     "noMcpConnections": "Nav izveidots neviens MCP savienojums",
-    "noMcpConnectionsLabel": "Šķiet, ka vēl neesat izveidojis nevienu MCP savienojumu."
+    "noMcpConnectionsLabel": "Šķiet, ka vēl neesat izveidojis nevienu MCP savienojumu.",
+    "searchDataSource": "Meklēt datu avotu",
+    "searchConnections": "Meklēt savienojumus",
+    "migrationUrl": "Ievadiet mērķa migrācijas URL adresi",
+    "searchSync": "Meklēt sinhronizāciju",
+    "searchWorkspace": "Meklēt darbvietu",
+    "searchBase": "Meklēt bāzi",
+    "searchEvent": "Meklēt notikumu",
+    "skillRegistrySearch": "Meklēt prasmes…",
+    "searchSnapshots": "Meklēt momentuzņēmumus",
+    "searchTokens": "Meklēt pilnvaras",
+    "factoryPrompt": "Aprakstiet, ko vēlaties izveidot",
+    "factorySearchRepos": "Meklēt repozitorijus",
+    "factorySearchTargets": "Meklēt repozitorijus",
+    "factorySearchSources": "Meklēt zarus, pull request un pieteikumus",
+    "factoryOnPr": "Kam vajadzētu notikt ar šo pull request?",
+    "factoryOnIssue": "Kaut kas papildus pašam pieteikumam (neobligāti)",
+    "factoryReply": "Atbildēt",
+    "searchFiles": "Meklēt failus",
+    "factoryAnnotation": "Kas aģentam šeit būtu jāmaina?",
+    "oauthClientName": "Mana lietotne",
+    "oauthClientDescription": "Šī lietotne palīdz pārvaldīt jūsu datus..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5466,7 +5531,8 @@
       "tableSyncConvertMainTable": "Šī ir šīs sinhronizācijas sinhronizētā tabula — tās pārveidošana noņem pašu sinhronizāciju. Visas tās izveidotās tabulas paliek kā parastas, rediģējamas tabulas un pārstāj sinhronizēties.",
       "requiredFieldNotEditable": "Šis obligātais lauks nav rediģējams, kas, iesniedzot veidlapu, var radīt kļūdas.",
       "communityAppInstall": "{title} ir kopienas lietotne. NocoDB to nav pārskatījis un nav apstiprinājis. Pirms to instalējat savā darbtelpā, pārliecinieties, ka uzticaties izdevējam.",
-      "removeCustomDomain": "{domain} vairs nepasniegs šo lietotni. Noklusējuma adrese turpinās darboties."
+      "removeCustomDomain": "{domain} vairs nepasniegs šo lietotni. Noklusējuma adrese turpinās darboties.",
+      "copyClientSecretNow": "⚠️ Noteikti nokopējiet klienta noslēpumu tagad. Vēlāk to vairs nevarēsiet redzēt!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5961,7 +6027,40 @@
       "interfaceRecordUnreadableEditingOff": "Rediģēšana ir izslēgta, līdz to atkal varēs nolasīt.",
       "inviteLinkDomainSentence": "Darbojas tikai ar {domain} e-pastu, un komandas biedri pievienojas kā {role}",
       "inviteLinkOpenSentence": "Ikviens, kam ir šī saite, var pievienoties kā {role}",
-      "inviteLinkOpenCaution": "Kopīgojiet to tikai ar cilvēkiem, kuriem uzticaties."
+      "inviteLinkOpenCaution": "Kopīgojiet to tikai ar cilvēkiem, kuriem uzticaties.",
+      "shareHubTooltip": "Uzaiciniet cilvēkus strādāt šajā bāzē vai publicējiet tikai lasāmu saiti uz {object}.",
+      "shareHubTooltipInviteOnly": "Uzaiciniet cilvēkus strādāt šajā bāzē. Lai publicētu pašu bāzi, bāzes izvēlnē izmantojiet «Kopīgot bāzi».",
+      "shareNothingPrivateBase": "Privātā bāzē cilvēkus var uzaicināt tikai bāzes īpašnieks. Lai publicētu skatu, vispirms atveriet kādu.",
+      "shareNothingToShow": "No šejienes nav ko kopīgot. Atveriet skatu, lai publicētu tikai lasāmu saiti.",
+      "peopleHaveAccess": "Piekļuve ir {count} personai. | Piekļuve ir {count} personām.",
+      "noInviteLinkYet": "Ielūguma saites vēl nav. Izveidojiet to, lai cilvēki varētu pievienoties bez atsevišķa ielūguma.",
+      "youWillJoinAs": "Jūs pievienosieties kā {role}.",
+      "signedInWrongDomain": "Jūs esat pieteicies kā {email}. Šī saite pieņem tikai {'@'}{domain} adreses.",
+      "signedInAs": "Jūs esat pieteicies kā {email}.",
+      "publicLinkToNamed": "Publiska saite uz {name}",
+      "readOnlyInviteInstead": "Tikai lasāms. Vai nepieciešams, lai viņi varētu rediģēt vai komentēt?",
+      "willJoinAsRole": "{count} persona pievienosies kā {role} un varēs {can}. | {count} personas pievienosies kā {role} un varēs {can}.",
+      "sharePublicLinkSubtitle": "To var atvērt ikviens, kam ir saite. Konts nav nepieciešams.",
+      "shareLinksReadOnly": "Saites ir tikai lasāmas. Vai vēlaties, lai viņi varētu rediģēt vai komentēt?",
+      "clientSecretHidden": "Noslēpums drošības apsvērumu dēļ ir paslēpts un vairs netiks rādīts. Ja nepieciešams, varat ģenerēt jaunu.",
+      "mcpSetupIntroClaude": "Sāciet lietot NocoDB MCP kopā ar Claude Desktop 3 vienkāršos soļos",
+      "mcpSetupClaudeStep1": "Navigācijas joslā atveriet Claude Desktop iestatījumus.",
+      "mcpSetupClaudeStep2": "Dodieties uz cilni Develop un noklikšķiniet uz «Edit Config».",
+      "mcpSetupClaudeStep3": "Failā claude_desktop_config.json pievienojiet JSON konfigurāciju, kas tiek sniegta pēc pilnvaras izveides",
+      "mcpSetupIntroCodex": "Sāciet lietot NocoDB MCP kopā ar Codex CLI 3 vienkāršos soļos",
+      "mcpSetupCodexStep2": "Pievienojiet TOML konfigurāciju, kas tiek sniegta pēc pilnvaras izveides.",
+      "mcpSetupIntroAntigravity": "Sāciet lietot NocoDB MCP kopā ar AntiGravity 4 vienkāršos soļos",
+      "mcpSetupAntigravityStep1": "Noklikšķiniet uz trim punktiem aģenta loga augšējā labajā stūrī un pēc tam uz \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Noklikšķiniet uz Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Tagad noklikšķiniet uz View raw config.",
+      "mcpSetupPasteJsonConfig": "Atvērtajā failā ielīmējiet JSON konfigurāciju, kas tiek sniegta pēc pilnvaras izveides",
+      "mcpSetupIntroCursor": "Sāciet lietot NocoDB MCP kopā ar Cursor 3 vienkāršos soļos",
+      "mcpSetupCursorStep1": "Atveriet Cursor iestatījumus (nospiediet Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Atlasiet cilni \"MCP\" un noklikšķiniet uz \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Pievienojiet JSON konfigurāciju, kas tiek sniegta pēc pilnvaras izveides.",
+      "mcpSetupIntroWindsurf": "Sāciet lietot NocoDB MCP kopā ar Windsurf 4 vienkāršos soļos",
+      "mcpSetupWindsurfStep1": "Atveriet Windsurf iestatījumus un kreisajā sānjoslā atlasiet cilni Cascade",
+      "mcpSetupWindsurfStep2": "Noklikšķiniet uz Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6276,7 +6375,8 @@
       "planChangeScheduled": "Plāna maiņa ieplānota",
       "planChangeReverted": "Ieplānotā plāna maiņa atcelta. Jūsu pašreizējais plāns turpinās bez izmaiņām.",
       "appDelisted": "Noņemts no App Store",
-      "appRelisted": "Atkal App Store"
+      "appRelisted": "Atkal App Store",
+      "oauthClientUpdated": "OAuth klients veiksmīgi atjaunināts!"
     },
     "subText": {
       "startFromScratch": "Sāciet no sākuma.",
@@ -6471,7 +6571,22 @@
     "factorySelectLinesToAnnotate": "Vispirms atlasiet rindas, uz kurām attiecas komentārs.",
     "factorySessionArchived": "Sesija arhivēta. Tās darbs ir saglabāts; atsāciet to, lai turpinātu.",
     "factoryTurnFailed": "Gājiens neizdevās",
-    "factoryDeleteSession": "“{title}” un viss tās pieraksts tiks dzēsts. To nevar atsaukt."
+    "factoryDeleteSession": "“{title}” un viss tās pieraksts tiks dzēsts. To nevar atsaukt.",
+    "migrateToV3": {
+      "whatChanges": "Kas mainās pēc migrācijas",
+      "changeDuplicate": "Bāzes var dublēt, saglabājot entītiju ID",
+      "changeApi": "Piekļuve ir iespējama tikai caur API V3",
+      "changeScale": "Veidots labākai mērogojamībai un ilgtermiņa saderībai",
+      "considerations": "Svarīgi apsvērumi",
+      "considerApis": "Pēc migrācijas V1 un V2 API šai bāzei vairs nedarbosies",
+      "considerPermanent": "Migrācija ir neatgriezeniska, un to nevar atsaukt",
+      "recommendation": "Migrējiet tikai pēc tam, kad esat pārliecinājies, ka visas integrācijas ir saderīgas ar v3 API saskarni.",
+      "confirmTitle": "Migrēt šo bāzi uz v3?",
+      "confirmDesc": "Tādējādi bāze tiek atjaunināta uz jaunāko arhitektūru un API versiju.",
+      "confirmCta": "Apstiprināt migrāciju",
+      "migrating": "Notiek migrācija..."
+    },
+    "skillsRegistryErrorTitle": "Neizdevās meklēt prasmju reģistrā"
   },
   "trash": {
     "restore": "Restore",
@@ -6534,7 +6649,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "Ārējs avots",
+    "unavailablePending": "Notiek iestatīšana",
+    "usingDefault": "{value} (noklusējums)",
+    "keptForever": "Mūžīgi",
+    "notKept": "Netiek glabāts"
   },
   "baseTrash": {
     "title": "Trash",

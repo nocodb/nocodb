@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "ফর্মে সাইন ইন বাধ্যতামূলক করতে আপগ্রেড করুন",
     "upgradeToUseFormRequireSigninSubtitle": "ফর্ম জমা দেওয়ার আগে উত্তরদাতাদের সাইন ইন করা বাধ্যতামূলক করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseSso": "SSO ব্যবহারের জন্য আপগ্রেড করুন",
-    "upgradeToUseSsoSubtitle": "সিঙ্গল সাইন-অন (SSO) সেট আপ করতে এবং আপনার দলকে আপনার আইডেন্টিটি প্রোভাইডার দিয়ে সাইন ইন করতে দিতে {plan} প্ল্যানে আপগ্রেড করুন।"
+    "upgradeToUseSsoSubtitle": "সিঙ্গল সাইন-অন (SSO) সেট আপ করতে এবং আপনার দলকে আপনার আইডেন্টিটি প্রোভাইডার দিয়ে সাইন ইন করতে দিতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseAppFactory": "App Factory ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUseAppFactorySubtitle": "সংযুক্ত রিপোজিটরিতে কোডিং এজেন্ট চালাতে {plan} প্ল্যানে আপগ্রেড করুন।"
   },
   "general": {
     "scrollToBottom": "নিচে স্ক্রল করুন",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "কেউ না {description}",
         "moreUsers": "+ আরও {count}",
         "selectUsersOrTeams": "ব্যবহারকারী অথবা দল নির্বাচন করুন"
-      }
+      },
+      "createRecords": "রেকর্ড তৈরি করা"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "ভিউ ফোল্ডার",
     "subRecord": "উপ-রেকর্ড",
     "video": "ভিডিও",
-    "recordTemplates": "রেকর্ড টেমপ্লেট"
+    "recordTemplates": "রেকর্ড টেমপ্লেট",
+    "roleTypePlural": {
+      "owner": "মালিক",
+      "creator": "নির্মাতা",
+      "editor": "সম্পাদক",
+      "commenter": "মন্তব্যকারী",
+      "viewer": "দর্শক",
+      "inherit": "উত্তরাধিকারসূত্রে নিন",
+      "noaccess": "কোনও অ্যাক্সেস নেই",
+      "admin": "প্রশাসকগণ",
+      "superAdmin": "সুপার প্রশাসক",
+      "orgAdmin": "সংস্থার প্রশাসক",
+      "orgCreator": "সংস্থার নির্মাতা",
+      "orgViewer": "সংস্থার দর্শক",
+      "orgLevelOwner": "সংস্থা স্তরের মালিক",
+      "orgLevelCreator": "সংস্থা স্তরের নির্মাতা",
+      "orgLevelViewer": "সংস্থা স্তরের দর্শক",
+      "appUser": "অ্যাপ ব্যবহারকারী"
+    }
   },
   "datatype": {
     "ID": "আইডি",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "কাস্টম ডোমেন সরাবেন?",
     "tooNarrowToAdjustFrozenFields": "স্থির করা ফিল্ড সমন্বয় করতে উইন্ডোটি খুব সরু",
     "themeSettings": "থিম সেটিংস",
-    "nFields": "{count}টি ফিল্ড | {count}টি ফিল্ড"
+    "nFields": "{count}টি ফিল্ড | {count}টি ফিল্ড",
+    "noInterfaceMembersYet": "এখনও কোনও ইন্টারফেস সদস্য নেই",
+    "headJoin": "যোগ দিন | NocoDB"
   },
   "labels": {
     "syncing": "সিঙ্ক হচ্ছে",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "এই এজেন্টের কথোপকথন খুলুন",
     "sendToAgent": "এজেন্টকে পাঠান",
     "noPort": "কোনও পোর্ট নেই",
-    "manageInviteLinks": "আমন্ত্রণ লিঙ্ক পরিচালনা করুন"
+    "manageInviteLinks": "আমন্ত্রণ লিঙ্ক পরিচালনা করুন",
+    "editOauthClient": "OAuth ক্লায়েন্ট সম্পাদনা করুন",
+    "oauthClientNameHint": "অনুমোদনের সময় ব্যবহারকারীদের দেখানো হয়",
+    "applicationDescription": "অ্যাপ্লিকেশনের বিবরণ",
+    "oauthClientDescriptionHint": "ব্যবহারকারীরা অ্যাক্সেস দেওয়ার সময় যে সংক্ষিপ্ত বিবরণ দেখানো হয়",
+    "homepageUrl": "হোমপেজের URL",
+    "oauthClientLogoHint": "অনুমোদনের সময় দেখানো ছবি (বর্গাকার হলে ভালো)",
+    "clientType": "ক্লায়েন্টের ধরন",
+    "oauthClientTypeHint": "পাবলিক: মোবাইল ও ওয়েব অ্যাপ (PKCE প্রয়োজন)। গোপনীয়: নিরাপদ সার্ভার (সিক্রেট সংরক্ষণ করতে পারে)",
+    "confidential": "গোপনীয়",
+    "authorizationCallbackUrls": "অনুমোদনের কলব্যাক ঠিকানা",
+    "oauthCallbackUrlsHint": "অনুমোদনের পরে পুনর্নির্দেশের জন্য HTTPS ঠিকানা (localhost/127.0.0.1 অনুমোদিত)। প্রতি লাইনে একটি",
+    "clientId": "ক্লায়েন্ট আইডি",
+    "clientSecret": "ক্লায়েন্ট সিক্রেট",
+    "regenerateSecret": "নতুন সিক্রেট তৈরি করুন",
+    "createOauthClients": "OAuth ক্লায়েন্ট তৈরি করুন",
+    "managingOauthClients": "OAuth ক্লায়েন্ট পরিচালনা",
+    "clientInformation": "ক্লায়েন্টের তথ্য"
   },
   "activity": {
     "useTemplate": "টেমপ্লেট ব্যবহার করুন",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "প্রকাশকের লেখা, অ্যাপের বিষয়বস্তু থেকে নেওয়া নয়।",
     "marketplaceVerifiedPublisher": "NocoDB প্রকাশ ও পর্যালোচনা করেছে",
     "showCustomPermissionFieldsOnly": "শুধু কাস্টম অনুমতিযুক্ত ফিল্ড দেখান",
-    "showAllFields": "সব ফিল্ড দেখান"
+    "showAllFields": "সব ফিল্ড দেখান",
+    "inviteLinkCannotGrantOwner": "আমন্ত্রণ লিঙ্ক মালিকের ভূমিকা দিতে পারে না",
+    "inviteLinkRoleAboveYours": "আপনি কেবল নিজের ভূমিকা পর্যন্ত ভূমিকা দিতে পারেন",
+    "noDefaultSourceForFolders": "এই বেসের কোনও ডিফল্ট উৎস নেই — ফোল্ডার উৎসের নিজস্ব মেনু থেকে তৈরি করুন",
+    "noDefaultSourceForSync": "এই বেসের কোনও ডিফল্ট উৎস নেই — সিঙ্কের টেবিল রাখার জন্য একটি উৎস দরকার"
   },
   "placeholder": {
     "enterVerificationCode": "৬-সংখ্যার কোড লিখুন",
@@ -5233,7 +5277,28 @@
     "messageAgent": "{agent}-কে বার্তা পাঠান",
     "somethingElse": "অন্য কিছু",
     "noMcpConnections": "কোনো MCP সংযোগ তৈরি করা হয়নি",
-    "noMcpConnectionsLabel": "মনে হচ্ছে আপনি এখনও কোনো MCP সংযোগ তৈরি করেননি।"
+    "noMcpConnectionsLabel": "মনে হচ্ছে আপনি এখনও কোনো MCP সংযোগ তৈরি করেননি।",
+    "searchDataSource": "ডেটা উৎস খুঁজুন",
+    "searchConnections": "সংযোগ খুঁজুন",
+    "migrationUrl": "গন্তব্যের জন্য মাইগ্রেশন URL দিন",
+    "searchSync": "সিঙ্ক খুঁজুন",
+    "searchWorkspace": "কর্মক্ষেত্র খুঁজুন",
+    "searchBase": "বেস খুঁজুন",
+    "searchEvent": "ইভেন্ট খুঁজুন",
+    "skillRegistrySearch": "স্কিল খুঁজুন…",
+    "searchSnapshots": "স্ন্যাপশট খুঁজুন",
+    "searchTokens": "টোকেন খুঁজুন",
+    "factoryPrompt": "আপনি কী তৈরি করাতে চান তা লিখুন",
+    "factorySearchRepos": "রিপোজিটরি খুঁজুন",
+    "factorySearchTargets": "রিপোজিটরি খুঁজুন",
+    "factorySearchSources": "ব্রাঞ্চ, পুল রিকোয়েস্ট ও ইস্যু খুঁজুন",
+    "factoryOnPr": "এই পুল রিকোয়েস্টে কী হওয়া উচিত?",
+    "factoryOnIssue": "ইস্যুটি ছাড়াও আর কিছু যোগ করার থাকলে (ঐচ্ছিক)",
+    "factoryReply": "উত্তর দিন",
+    "searchFiles": "ফাইল খুঁজুন",
+    "factoryAnnotation": "এজেন্ট এখানে কী বদলাবে?",
+    "oauthClientName": "আমার অ্যাপ্লিকেশন",
+    "oauthClientDescription": "এই অ্যাপ্লিকেশনটি আপনার ডেটা পরিচালনা করতে সাহায্য করে..."
   },
   "msg": {
     "sourceViewNotShared": "এই ভিউতে সিঙ্ক সক্রিয় নয়",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "এটি এই সিঙ্কের সিঙ্ক করা টেবিল — এটি রূপান্তর করলে সিঙ্কটিই সরে যায়। সিঙ্কের তৈরি সব টেবিল সাধারণ, সম্পাদনাযোগ্য টেবিল হিসেবে থেকে যায় এবং সিঙ্ক হওয়া বন্ধ করে।",
       "requiredFieldNotEditable": "এই আবশ্যক ক্ষেত্রটি সম্পাদনাযোগ্য নয়, ফলে ফর্ম জমা দেওয়ার সময় ত্রুটি হতে পারে।",
       "communityAppInstall": "{title} একটি সম্প্রদায়ের অ্যাপ। NocoDB এটি পর্যালোচনা বা যাচাই করেনি। আপনার ওয়ার্কস্পেসে এটি ইনস্টল করার আগে নিশ্চিত হোন যে আপনি প্রকাশককে বিশ্বাস করেন।",
-      "removeCustomDomain": "{domain} আর এই অ্যাপ পরিবেশন করবে না। পূর্বনির্ধারিত ঠিকানাটি কাজ করতে থাকবে।"
+      "removeCustomDomain": "{domain} আর এই অ্যাপ পরিবেশন করবে না। পূর্বনির্ধারিত ঠিকানাটি কাজ করতে থাকবে।",
+      "copyClientSecretNow": "⚠️ এখনই আপনার ক্লায়েন্ট সিক্রেট কপি করে নিন। পরে আর দেখতে পাবেন না!"
     },
     "info": {
       "sourceViewRebindResync": "সোর্স ভিউ পরিবর্তনে নতুন ভিউর সাথে সম্পূর্ণ পুনঃসিঙ্ক হবে।",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "আবার পড়া না যাওয়া পর্যন্ত সম্পাদনা বন্ধ থাকবে।",
       "inviteLinkDomainSentence": "শুধু {domain} ইমেলের সঙ্গে কাজ করে এবং সহকর্মীরা {role} হিসেবে যোগ দেন",
       "inviteLinkOpenSentence": "এই লিঙ্ক থাকলে যে কেউ {role} হিসেবে যোগ দিতে পারে",
-      "inviteLinkOpenCaution": "শুধু বিশ্বস্ত ব্যক্তিদের সঙ্গেই এটি শেয়ার করুন।"
+      "inviteLinkOpenCaution": "শুধু বিশ্বস্ত ব্যক্তিদের সঙ্গেই এটি শেয়ার করুন।",
+      "shareHubTooltip": "এই বেসে কাজ করার জন্য অন্যদের আমন্ত্রণ জানান, অথবা {object}-এর শুধু-পড়ার লিঙ্ক প্রকাশ করুন।",
+      "shareHubTooltipInviteOnly": "এই বেসে কাজ করার জন্য অন্যদের আমন্ত্রণ জানান। বেসটি নিজে প্রকাশ করতে বেস মেনুতে «বেস শেয়ার করুন» ব্যবহার করুন।",
+      "shareNothingPrivateBase": "ব্যক্তিগত বেসে কেবল বেসের মালিকই অন্যদের আমন্ত্রণ জানাতে পারেন। কোনও ভিউ প্রকাশ করতে আগে সেটি খুলুন।",
+      "shareNothingToShow": "এখান থেকে শেয়ার করার কিছু নেই। শুধু-পড়ার লিঙ্ক প্রকাশ করতে একটি ভিউ খুলুন।",
+      "peopleHaveAccess": "{count} জনের অ্যাক্সেস আছে। | {count} জনের অ্যাক্সেস আছে।",
+      "noInviteLinkYet": "এখনও কোনও আমন্ত্রণ লিঙ্ক নেই। একটি তৈরি করুন যাতে আলাদা আমন্ত্রণ ছাড়াই সবাই যোগ দিতে পারেন।",
+      "youWillJoinAs": "আপনি {role} হিসেবে যোগ দেবেন।",
+      "signedInWrongDomain": "আপনি {email} হিসেবে সাইন ইন করেছেন। এই লিঙ্কটি কেবল {'@'}{domain} ঠিকানা গ্রহণ করে।",
+      "signedInAs": "আপনি {email} হিসেবে সাইন ইন করেছেন।",
+      "publicLinkToNamed": "{name}-এর সর্বজনীন লিঙ্ক",
+      "readOnlyInviteInstead": "শুধু পড়ার জন্য। তাঁদের সম্পাদনা বা মন্তব্য করার সুযোগ দরকার?",
+      "willJoinAsRole": "{count} জন {role} হিসেবে যোগ দেবেন এবং {can} পারবেন। | {count} জন {role} হিসেবে যোগ দেবেন এবং {can} পারবেন।",
+      "sharePublicLinkSubtitle": "লিঙ্ক থাকলে যে কেউ এটি খুলতে পারবেন। কোনও অ্যাকাউন্ট লাগবে না।",
+      "shareLinksReadOnly": "লিঙ্কগুলি শুধু পড়ার জন্য। আপনি কি চান তাঁরা সম্পাদনা বা মন্তব্য করতে পারুন?",
+      "clientSecretHidden": "নিরাপত্তার জন্য সিক্রেটটি লুকানো আছে এবং আর দেখানো হবে না। প্রয়োজনে আপনি নতুন করে তৈরি করতে পারেন।",
+      "mcpSetupIntroClaude": "৩টি সহজ ধাপে Claude Desktop-এ NocoDB MCP ব্যবহার শুরু করুন",
+      "mcpSetupClaudeStep1": "নেভিগেশন বার থেকে Claude Desktop-এর সেটিংস খুলুন।",
+      "mcpSetupClaudeStep2": "Develop ট্যাবে যান এবং «Edit Config»-এ ক্লিক করুন।",
+      "mcpSetupClaudeStep3": "টোকেন তৈরির পরে পাওয়া JSON কনফিগারেশন claude_desktop_config.json ফাইলে যোগ করুন",
+      "mcpSetupIntroCodex": "৩টি সহজ ধাপে Codex CLI-তে NocoDB MCP ব্যবহার শুরু করুন",
+      "mcpSetupCodexStep2": "টোকেন তৈরির পরে পাওয়া TOML কনফিগারেশন যোগ করুন।",
+      "mcpSetupIntroAntigravity": "৪টি সহজ ধাপে AntiGravity-তে NocoDB MCP ব্যবহার শুরু করুন",
+      "mcpSetupAntigravityStep1": "এজেন্ট উইন্ডোর উপরের ডান দিকে তিনটি বিন্দুতে ক্লিক করুন, তারপর \"MCP Servers\"-এ ক্লিক করুন",
+      "mcpSetupAntigravityStep2": "Manage MCP Servers-এ ক্লিক করুন।",
+      "mcpSetupViewRawConfig": "এবার View raw config-এ ক্লিক করুন।",
+      "mcpSetupPasteJsonConfig": "টোকেন তৈরির পরে পাওয়া JSON কনফিগারেশন খোলা ফাইলে পেস্ট করুন",
+      "mcpSetupIntroCursor": "৩টি সহজ ধাপে Cursor-এ NocoDB MCP ব্যবহার শুরু করুন",
+      "mcpSetupCursorStep1": "Cursor-এর সেটিংস খুলুন (Shift+Cmd+J চাপুন)",
+      "mcpSetupCursorStep2": "\"MCP\" ট্যাব বেছে নিন এবং \"Add Custom MCP\"-এ ক্লিক করুন।",
+      "mcpSetupCursorStep3": "টোকেন তৈরির পরে পাওয়া JSON কনফিগারেশন যোগ করুন।",
+      "mcpSetupIntroWindsurf": "৪টি সহজ ধাপে Windsurf-এ NocoDB MCP ব্যবহার শুরু করুন",
+      "mcpSetupWindsurfStep1": "Windsurf-এর সেটিংসে যান এবং বাঁ দিকের সাইডবারে Cascade ট্যাব বেছে নিন",
+      "mcpSetupWindsurfStep2": "Manage MCP-তে ক্লিক করুন।"
     },
     "error": {
       "failedToCreateSync": "সিঙ্ক তৈরি করতে ব্যর্থ হয়েছে",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "প্ল্যান পরিবর্তন নির্ধারিত হয়েছে",
       "planChangeReverted": "নির্ধারিত প্ল্যান পরিবর্তন ফিরিয়ে নেওয়া হয়েছে। আপনার বর্তমান প্ল্যান অপরিবর্তিত থেকে চলতে থাকবে।",
       "appDelisted": "App Store থেকে সরানো হয়েছে",
-      "appRelisted": "আবার App Store-এ"
+      "appRelisted": "আবার App Store-এ",
+      "oauthClientUpdated": "OAuth ক্লায়েন্ট সফলভাবে আপডেট হয়েছে!"
     },
     "subText": {
       "startFromScratch": "শূন্য থেকে শুরু করুন।",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "মন্তব্যটি যে লাইনগুলি নিয়ে, আগে সেগুলি বেছে নিন।",
     "factorySessionArchived": "সেশন সংরক্ষণাগারে রাখা হয়েছে। এর কাজ জমা আছে; চালিয়ে যেতে সেশনটি আবার শুরু করুন।",
     "factoryTurnFailed": "এই দফাটি ব্যর্থ হয়েছে",
-    "factoryDeleteSession": "“{title}” এবং তার সম্পূর্ণ প্রতিলিপি মুছে ফেলা হবে। এটি আর ফেরানো যাবে না।"
+    "factoryDeleteSession": "“{title}” এবং তার সম্পূর্ণ প্রতিলিপি মুছে ফেলা হবে। এটি আর ফেরানো যাবে না।",
+    "migrateToV3": {
+      "whatChanges": "মাইগ্রেশনের পরে কী বদলায়",
+      "changeDuplicate": "এনটিটি আইডি অক্ষুণ্ণ রেখে বেস অনুলিপি করা যায়",
+      "changeApi": "অ্যাক্সেস কেবল V3 API-এর মাধ্যমেই পাওয়া যাবে",
+      "changeScale": "উন্নত স্কেলেবিলিটি ও দীর্ঘমেয়াদি সামঞ্জস্যের জন্য তৈরি",
+      "considerations": "গুরুত্বপূর্ণ বিবেচ্য বিষয়",
+      "considerApis": "মাইগ্রেশনের পরে এই বেসের জন্য V1 ও V2 API আর কাজ করবে না",
+      "considerPermanent": "মাইগ্রেশন স্থায়ী এবং তা ফিরিয়ে আনা যায় না",
+      "recommendation": "সমস্ত ইন্টিগ্রেশন v3 API-এর সঙ্গে সামঞ্জস্যপূর্ণ কি না নিশ্চিত করার পরেই মাইগ্রেট করুন।",
+      "confirmTitle": "এই বেসটি v3-তে মাইগ্রেট করবেন?",
+      "confirmDesc": "এতে বেসটি সর্বশেষ আর্কিটেকচার ও API সংস্করণে আপগ্রেড হবে।",
+      "confirmCta": "মাইগ্রেশন নিশ্চিত করুন",
+      "migrating": "মাইগ্রেট করা হচ্ছে..."
+    },
+    "skillsRegistryErrorTitle": "স্কিল রেজিস্ট্রিতে খোঁজা যায়নি"
   },
   "trash": {
     "restore": "পুনরুদ্ধার করুন",
@@ -6540,7 +6655,12 @@
         "partial": "{count}টি কনফ্লিক্টবিহীন পুনরুদ্ধার করুন",
         "force": "সব পুনরুদ্ধার করুন এবং কনফ্লিক্ট ক্লিয়ার করুন"
       }
-    }
+    },
+    "unavailableExternal": "বাইরের উৎস",
+    "unavailablePending": "সেট আপ চলছে",
+    "usingDefault": "{value} (ডিফল্ট)",
+    "keptForever": "চিরকাল",
+    "notKept": "রাখা হয় না"
   },
   "baseTrash": {
     "title": "ট্র্যাশ",

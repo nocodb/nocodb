@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Uaktualnij, aby wymagać logowania w formularzach",
     "upgradeToUseFormRequireSigninSubtitle": "Uaktualnij do planu {plan}, aby wymagać od respondentów zalogowania się przed wysłaniem formularza.",
     "upgradeToUseSso": "Uaktualnij aby używać SSO",
-    "upgradeToUseSsoSubtitle": "Uaktualnij do planu {plan}, aby skonfigurować logowanie jednokrotne (SSO) i umożliwić zespołowi logowanie się za pomocą dostawcy tożsamości."
+    "upgradeToUseSsoSubtitle": "Uaktualnij do planu {plan}, aby skonfigurować logowanie jednokrotne (SSO) i umożliwić zespołowi logowanie się za pomocą dostawcy tożsamości.",
+    "upgradeToUseAppFactory": "Przejdź na wyższy plan, aby korzystać z App Factory",
+    "upgradeToUseAppFactorySubtitle": "Przejdź na plan {plan}, aby uruchamiać agentów programistycznych w podłączonych repozytoriach."
   },
   "general": {
     "scrollToBottom": "Przewiń na dół",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nikt {description}",
         "moreUsers": "+ {count} więcej",
         "selectUsersOrTeams": "Wybierz użytkowników lub drużyny"
-      }
+      },
+      "createRecords": "Tworzenie rekordów"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1171,7 +1174,25 @@
     "viewFolder": "Folder widoków",
     "subRecord": "Podrekord",
     "video": "Wideo",
-    "recordTemplates": "Szablony rekordów"
+    "recordTemplates": "Szablony rekordów",
+    "roleTypePlural": {
+      "owner": "Właściciele",
+      "creator": "Twórcy",
+      "editor": "Edytorzy",
+      "commenter": "Komentujący",
+      "viewer": "Przeglądający",
+      "inherit": "Dziedzicz",
+      "noaccess": "Brak dostępu",
+      "admin": "Administratorzy",
+      "superAdmin": "Superadministratorzy",
+      "orgAdmin": "Administratorzy organizacji",
+      "orgCreator": "Twórcy organizacji",
+      "orgViewer": "Przeglądający organizacji",
+      "orgLevelOwner": "Właściciele na poziomie organizacji",
+      "orgLevelCreator": "Twórcy na poziomie organizacji",
+      "orgLevelViewer": "Przeglądający na poziomie organizacji",
+      "appUser": "Użytkownicy aplikacji"
+    }
   },
   "datatype": {
     "ID": "Identyfikator",
@@ -1525,7 +1546,9 @@
     "removeCustomDomain": "Usunąć domenę niestandardową?",
     "tooNarrowToAdjustFrozenFields": "Okno jest zbyt wąskie, aby dostosować przypięte pola",
     "themeSettings": "Ustawienia motywu",
-    "nFields": "{count} pole | {count} pól"
+    "nFields": "{count} pole | {count} pól",
+    "noInterfaceMembersYet": "Brak członków interfejsu",
+    "headJoin": "Dołącz | NocoDB"
   },
   "labels": {
     "syncing": "Synchronizowanie",
@@ -4554,7 +4577,24 @@
     "openAgentConversation": "Otwórz rozmowę tego agenta",
     "sendToAgent": "Wyślij do agenta",
     "noPort": "Brak portu",
-    "manageInviteLinks": "Zarządzaj linkami z zaproszeniem"
+    "manageInviteLinks": "Zarządzaj linkami z zaproszeniem",
+    "editOauthClient": "Edytuj klienta OAuth",
+    "oauthClientNameHint": "Wyświetlane użytkownikom podczas autoryzacji",
+    "applicationDescription": "Opis aplikacji",
+    "oauthClientDescriptionHint": "Krótki opis wyświetlany, gdy użytkownicy przyznają dostęp",
+    "homepageUrl": "URL strony głównej",
+    "oauthClientLogoHint": "Obraz wyświetlany podczas autoryzacji (zalecany kwadratowy)",
+    "clientType": "Typ klienta",
+    "oauthClientTypeHint": "Publiczny: aplikacje mobilne i webowe (wymagany PKCE). Poufny: bezpieczne serwery (mogą przechowywać sekrety)",
+    "confidential": "Poufny",
+    "authorizationCallbackUrls": "Adresy zwrotne autoryzacji",
+    "oauthCallbackUrlsHint": "Adresy HTTPS przekierowania po autoryzacji (dozwolone localhost/127.0.0.1). Jeden w wierszu",
+    "clientId": "Identyfikator klienta",
+    "clientSecret": "Sekret klienta",
+    "regenerateSecret": "Wygeneruj nowy sekret",
+    "createOauthClients": "Tworzenie klientów OAuth",
+    "managingOauthClients": "Zarządzanie klientami OAuth",
+    "clientInformation": "Informacje o kliencie"
   },
   "activity": {
     "useTemplate": "Użyj szablonu",
@@ -5070,7 +5110,11 @@
     "marketplaceAuthored": "Napisane przez wydawcę, a nie wywnioskowane z zawartości App.",
     "marketplaceVerifiedPublisher": "Opublikowane i sprawdzone przez NocoDB",
     "showCustomPermissionFieldsOnly": "Pokaż tylko pola z niestandardowymi uprawnieniami",
-    "showAllFields": "Pokaż wszystkie pola"
+    "showAllFields": "Pokaż wszystkie pola",
+    "inviteLinkCannotGrantOwner": "Link zapraszający nie może przyznać roli właściciela",
+    "inviteLinkRoleAboveYours": "Możesz oferować tylko role do poziomu swojej własnej",
+    "noDefaultSourceForFolders": "Ta baza nie ma domyślnego źródła — twórz foldery z menu samego źródła",
+    "noDefaultSourceForSync": "Ta baza nie ma domyślnego źródła — synchronizacja potrzebuje go do przechowywania tabel"
   },
   "placeholder": {
     "enterVerificationCode": "Wprowadź 6-cyfrowy kod",
@@ -5232,7 +5276,28 @@
     "messageAgent": "Wiadomość do {agent}",
     "somethingElse": "Coś innego",
     "noMcpConnections": "Nie utworzono żadnych połączeń MCP",
-    "noMcpConnectionsLabel": "Wygląda na to, że nie utworzono jeszcze żadnych połączeń MCP."
+    "noMcpConnectionsLabel": "Wygląda na to, że nie utworzono jeszcze żadnych połączeń MCP.",
+    "searchDataSource": "Szukaj źródła danych",
+    "searchConnections": "Szukaj połączeń",
+    "migrationUrl": "Podaj URL migracji dla miejsca docelowego",
+    "searchSync": "Szukaj synchronizacji",
+    "searchWorkspace": "Szukaj obszaru roboczego",
+    "searchBase": "Szukaj bazy",
+    "searchEvent": "Szukaj zdarzenia",
+    "skillRegistrySearch": "Szukaj umiejętności…",
+    "searchSnapshots": "Szukaj migawek",
+    "searchTokens": "Szukaj tokenów",
+    "factoryPrompt": "Opisz, co chcesz zbudować",
+    "factorySearchRepos": "Szukaj repozytoriów",
+    "factorySearchTargets": "Szukaj repozytoriów",
+    "factorySearchSources": "Szukaj gałęzi, pull requestów i zgłoszeń",
+    "factoryOnPr": "Co ma się stać z tym pull requestem?",
+    "factoryOnIssue": "Coś do dodania poza samym zgłoszeniem (opcjonalnie)",
+    "factoryReply": "Odpowiedz",
+    "searchFiles": "Szukaj plików",
+    "factoryAnnotation": "Co agent ma tutaj zmienić?",
+    "oauthClientName": "Moja aplikacja",
+    "oauthClientDescription": "Ta aplikacja pomaga zarządzać Twoimi danymi..."
   },
   "msg": {
     "sourceViewNotShared": "Synchronizacja jest wyłączona w tym widoku",
@@ -5471,7 +5536,8 @@
       "tableSyncConvertMainTable": "To jest zsynchronizowana tabela tej synchronizacji — jej przekształcenie usuwa samą synchronizację. Wszystkie tabele utworzone przez nią zostają jako zwykłe, edytowalne tabele i przestają się synchronizować.",
       "requiredFieldNotEditable": "Tego wymaganego pola nie można edytować, co może powodować błędy przy wysyłaniu formularza.",
       "communityAppInstall": "{title} to aplikacja społecznościowa. Nie została sprawdzona ani zweryfikowana przez NocoDB. Zanim zainstalujesz ją w swoim obszarze roboczym, upewnij się, że ufasz wydawcy.",
-      "removeCustomDomain": "{domain} przestanie obsługiwać tę aplikację. Domyślny adres nadal działa."
+      "removeCustomDomain": "{domain} przestanie obsługiwać tę aplikację. Domyślny adres nadal działa.",
+      "copyClientSecretNow": "⚠️ Skopiuj teraz sekret klienta. Nie będzie można go ponownie zobaczyć!"
     },
     "info": {
       "sourceViewRebindResync": "Zmiana widoku źródłowego wyzwala pełną ponowną synchronizację z nowym widokiem.",
@@ -5966,7 +6032,40 @@
       "interfaceRecordUnreadableEditingOff": "Edycja jest wyłączona, dopóki nie będzie można go ponownie odczytać.",
       "inviteLinkDomainSentence": "Działa tylko z e-mailami {domain}, a współpracownicy dołączają jako {role}",
       "inviteLinkOpenSentence": "Każdy, kto ma ten link, może dołączyć jako {role}",
-      "inviteLinkOpenCaution": "Udostępniaj go tylko osobom, którym ufasz."
+      "inviteLinkOpenCaution": "Udostępniaj go tylko osobom, którym ufasz.",
+      "shareHubTooltip": "Zaproś osoby do pracy w tej bazie albo opublikuj link tylko do odczytu do {object}.",
+      "shareHubTooltipInviteOnly": "Zaproś osoby do pracy w tej bazie. Aby opublikować samą bazę, użyj «Udostępnij bazę» w menu bazy.",
+      "shareNothingPrivateBase": "Tylko właściciel bazy może zapraszać osoby do bazy prywatnej. Aby opublikować widok, najpierw go otwórz.",
+      "shareNothingToShow": "Nie ma tu nic do udostępnienia. Otwórz widok, aby opublikować link tylko do odczytu.",
+      "peopleHaveAccess": "{count} osoba ma dostęp. | {count} osób ma dostęp.",
+      "noInviteLinkYet": "Nie ma jeszcze linku zapraszającego. Utwórz go, aby inni mogli dołączyć bez indywidualnego zaproszenia.",
+      "youWillJoinAs": "Dołączysz jako {role}.",
+      "signedInWrongDomain": "Jesteś zalogowany jako {email}. Ten link akceptuje tylko adresy {'@'}{domain}.",
+      "signedInAs": "Jesteś zalogowany jako {email}.",
+      "publicLinkToNamed": "Link publiczny do {name}",
+      "readOnlyInviteInstead": "Tylko do odczytu. Chcesz, aby mogli edytować lub komentować?",
+      "willJoinAsRole": "{count} osoba dołączy jako {role} i będzie mogła {can}. | {count} osób dołączy jako {role} i będzie mogło {can}.",
+      "sharePublicLinkSubtitle": "Każdy, kto ma link, może go otworzyć. Konto nie jest potrzebne.",
+      "shareLinksReadOnly": "Linki są tylko do odczytu. Chcesz, aby mogli edytować lub komentować?",
+      "clientSecretHidden": "Sekret jest ukryty ze względów bezpieczeństwa i nie zostanie ponownie pokazany. W razie potrzeby możesz wygenerować nowy.",
+      "mcpSetupIntroClaude": "Zacznij korzystać z NocoDB MCP z Claude Desktop w 3 prostych krokach",
+      "mcpSetupClaudeStep1": "Otwórz ustawienia Claude Desktop z paska nawigacji.",
+      "mcpSetupClaudeStep2": "Przejdź do karty Develop i kliknij «Edit Config».",
+      "mcpSetupClaudeStep3": "Dodaj w claude_desktop_config.json konfigurację JSON udostępnioną po utworzeniu tokena",
+      "mcpSetupIntroCodex": "Zacznij korzystać z NocoDB MCP z Codex CLI w 3 prostych krokach",
+      "mcpSetupCodexStep2": "Dodaj konfigurację TOML udostępnioną po utworzeniu tokena.",
+      "mcpSetupIntroAntigravity": "Zacznij korzystać z NocoDB MCP z AntiGravity w 4 prostych krokach",
+      "mcpSetupAntigravityStep1": "Kliknij trzy kropki w prawym górnym rogu okna agenta, a następnie \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Kliknij Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Teraz kliknij View raw config.",
+      "mcpSetupPasteJsonConfig": "Wklej w otwartym pliku konfigurację JSON udostępnioną po utworzeniu tokena",
+      "mcpSetupIntroCursor": "Zacznij korzystać z NocoDB MCP z Cursor w 3 prostych krokach",
+      "mcpSetupCursorStep1": "Otwórz ustawienia Cursor (naciśnij Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Wybierz kartę \"MCP\" i kliknij \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Dodaj konfigurację JSON udostępnioną po utworzeniu tokena.",
+      "mcpSetupIntroWindsurf": "Zacznij korzystać z NocoDB MCP z Windsurf w 4 prostych krokach",
+      "mcpSetupWindsurfStep1": "Wejdź w ustawienia Windsurf i wybierz kartę Cascade na lewym pasku bocznym",
+      "mcpSetupWindsurfStep2": "Kliknij Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Nie udało się utworzyć synchronizacji",
@@ -6281,7 +6380,8 @@
       "planChangeScheduled": "Zmiana planu zaplanowana",
       "planChangeReverted": "Zaplanowana zmiana planu została cofnięta. Twój obecny plan trwa bez zmian.",
       "appDelisted": "Usunięto z App Store",
-      "appRelisted": "Ponownie w App Store"
+      "appRelisted": "Ponownie w App Store",
+      "oauthClientUpdated": "Klient OAuth został zaktualizowany!"
     },
     "subText": {
       "startFromScratch": "Zacznij od zera.",
@@ -6476,7 +6576,22 @@
     "factorySelectLinesToAnnotate": "Najpierw zaznacz wiersze, których dotyczy komentarz.",
     "factorySessionArchived": "Sesja zarchiwizowana. Jej praca jest zapisana; wznów ją, aby kontynuować.",
     "factoryTurnFailed": "Tura nie powiodła się",
-    "factoryDeleteSession": "„{title}” i cały jej zapis zostaną usunięte. Tej operacji nie można cofnąć."
+    "factoryDeleteSession": "„{title}” i cały jej zapis zostaną usunięte. Tej operacji nie można cofnąć.",
+    "migrateToV3": {
+      "whatChanges": "Co zmienia się po migracji",
+      "changeDuplicate": "Bazy można duplikować z zachowaniem identyfikatorów encji",
+      "changeApi": "Dostęp jest możliwy wyłącznie przez API V3",
+      "changeScale": "Zaprojektowane z myślą o lepszej skalowalności i długoterminowej zgodności",
+      "considerations": "Ważne kwestie",
+      "considerApis": "Po migracji API V1 i V2 przestaną działać dla tej bazy",
+      "considerPermanent": "Migracja jest nieodwracalna i nie można jej cofnąć",
+      "recommendation": "Migruj dopiero po upewnieniu się, że wszystkie integracje są zgodne z API v3.",
+      "confirmTitle": "Zmigrować tę bazę do v3?",
+      "confirmDesc": "Spowoduje to aktualizację bazy do najnowszej architektury i wersji API.",
+      "confirmCta": "Potwierdź migrację",
+      "migrating": "Migrowanie..."
+    },
+    "skillsRegistryErrorTitle": "Nie udało się przeszukać rejestru umiejętności"
   },
   "trash": {
     "restore": "Przywróć",
@@ -6539,7 +6654,12 @@
         "partial": "Przywróć {count} bez konfliktów",
         "force": "Przywróć wszystkie i wyczyść konflikty"
       }
-    }
+    },
+    "unavailableExternal": "Źródło zewnętrzne",
+    "unavailablePending": "Konfigurowanie",
+    "usingDefault": "{value} (domyślnie)",
+    "keptForever": "Na zawsze",
+    "notKept": "Nieprzechowywane"
   },
   "baseTrash": {
     "title": "Kosz",

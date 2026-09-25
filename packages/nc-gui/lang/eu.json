@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Bertsio-berritu inprimakietan saioa hastea eskatzeko",
     "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko.",
     "upgradeToUseSso": "SSO erabiltzeko eguneratu",
-    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko."
+    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko.",
+    "upgradeToUseAppFactory": "Egin bertsio-berritzea App Factory erabiltzeko",
+    "upgradeToUseAppFactorySubtitle": "Pasatu {plan} planera kodetze-agenteak zure konektatutako biltegietan abiarazteko."
   },
   "general": {
     "scrollToBottom": "Behera irristatu",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Inor ez {description}",
         "moreUsers": "+ {count} gehiago",
         "selectUsersOrTeams": "Hautatu erabiltzaileak edo taldeak"
-      }
+      },
+      "createRecords": "Erregistroak sortzea"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "Ikuspegien karpeta",
     "subRecord": "Azpierregistroa",
     "video": "Bideoa",
-    "recordTemplates": "Erregistro-txantiloiak"
+    "recordTemplates": "Erregistro-txantiloiak",
+    "roleTypePlural": {
+      "owner": "Jabeak",
+      "creator": "Sortzaileak",
+      "editor": "Editoreak",
+      "commenter": "Iruzkingileak",
+      "viewer": "Ikusleak",
+      "inherit": "Heredatu",
+      "noaccess": "Sarbiderik ez",
+      "admin": "Administratzaileak",
+      "superAdmin": "Administratzaile nagusiak",
+      "orgAdmin": "Erakundeko administratzaileak",
+      "orgCreator": "Erakundeko sortzaileak",
+      "orgViewer": "Erakundeko ikusleak",
+      "orgLevelOwner": "Erakunde mailako jabeak",
+      "orgLevelCreator": "Erakunde mailako sortzaileak",
+      "orgLevelViewer": "Erakunde mailako ikusleak",
+      "appUser": "Aplikazioaren erabiltzaileak"
+    }
   },
   "datatype": {
     "ID": "IDa",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "Domeinu pertsonalizatua kendu?",
     "tooNarrowToAdjustFrozenFields": "Leihoa estuegia da izoztutako eremuak doitzeko",
     "themeSettings": "Gaiaren ezarpenak",
-    "nFields": "{count} eremu | {count} eremu"
+    "nFields": "{count} eremu | {count} eremu",
+    "noInterfaceMembersYet": "Oraindik ez dago interfazeko kiderik",
+    "headJoin": "Elkartu | NocoDB"
   },
   "labels": {
     "syncing": "Sinkronizatzea",
@@ -4552,7 +4575,24 @@
     "openAgentConversation": "Ireki agente honen elkarrizketa",
     "sendToAgent": "Bidali agenteari",
     "noPort": "Atakarik ez",
-    "manageInviteLinks": "Kudeatu gonbidapen-estekak"
+    "manageInviteLinks": "Kudeatu gonbidapen-estekak",
+    "editOauthClient": "Editatu OAuth bezeroa",
+    "oauthClientNameHint": "Baimentzean erabiltzaileei erakusten zaie",
+    "applicationDescription": "Aplikazioaren deskribapena",
+    "oauthClientDescriptionHint": "Erabiltzaileek sarbidea ematean agertzen den deskribapen laburra",
+    "homepageUrl": "Hasiera-orriaren URL helbidea",
+    "oauthClientLogoHint": "Baimentzean agertzen den irudia (karratua gomendatzen da)",
+    "clientType": "Bezero mota",
+    "oauthClientTypeHint": "Publikoa: mugikorreko eta webeko aplikazioak (PKCE beharrezkoa). Konfidentziala: zerbitzari seguruak (sekretuak gorde ditzakete)",
+    "confidential": "Konfidentziala",
+    "authorizationCallbackUrls": "Baimentzearen itzulerako URLak",
+    "oauthCallbackUrlsHint": "Baimendu ondoren birbideratzeko HTTPS helbideak (localhost/127.0.0.1 onartuta). Bat lerro bakoitzeko",
+    "clientId": "Bezeroaren IDa",
+    "clientSecret": "Bezeroaren sekretua",
+    "regenerateSecret": "Sortu sekretu berria",
+    "createOauthClients": "Sortu OAuth bezeroak",
+    "managingOauthClients": "OAuth bezeroen kudeaketa",
+    "clientInformation": "Bezeroaren informazioa"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -5068,7 +5108,11 @@
     "marketplaceAuthored": "Argitaratzaileak idatzia, ez da aplikazioaren edukitik atera.",
     "marketplaceVerifiedPublisher": "NocoDB enpresak argitaratua eta berrikusia",
     "showCustomPermissionFieldsOnly": "Erakutsi baimen pertsonalizatuak dituzten eremuak soilik",
-    "showAllFields": "Erakutsi eremu guztiak"
+    "showAllFields": "Erakutsi eremu guztiak",
+    "inviteLinkCannotGrantOwner": "Gonbidapen-esteka batek ezin du Jabe rola eman",
+    "inviteLinkRoleAboveYours": "Zeure rolera arteko rolak soilik eskain ditzakezu",
+    "noDefaultSourceForFolders": "Base honek ez du iturri lehenetsirik — sortu karpetak iturriaren menutik",
+    "noDefaultSourceForSync": "Base honek ez du iturri lehenetsirik — sinkronizazioak bat behar du bere taulak gordetzeko"
   },
   "placeholder": {
     "enterVerificationCode": "Sartu sei digitu kodea",
@@ -5230,7 +5274,28 @@
     "messageAgent": "Idatzi mezua {agent} agenteari",
     "somethingElse": "Beste zerbait",
     "noMcpConnections": "Ez da MCP konexiorik sortu",
-    "noMcpConnectionsLabel": "Badirudi oraindik ez duzula MCP konexiorik sortu."
+    "noMcpConnectionsLabel": "Badirudi oraindik ez duzula MCP konexiorik sortu.",
+    "searchDataSource": "Bilatu datu-iturria",
+    "searchConnections": "Bilatu konexioak",
+    "migrationUrl": "Sartu helburuaren migrazio URL helbidea",
+    "searchSync": "Bilatu sinkronizazioa",
+    "searchWorkspace": "Bilatu lan-eremua",
+    "searchBase": "Bilatu basea",
+    "searchEvent": "Bilatu gertaera",
+    "skillRegistrySearch": "Bilatu trebetasunak…",
+    "searchSnapshots": "Bilatu argazkiak",
+    "searchTokens": "Bilatu tokenak",
+    "factoryPrompt": "Deskribatu zer eraiki nahi duzun",
+    "factorySearchRepos": "Bilatu biltegiak",
+    "factorySearchTargets": "Bilatu biltegiak",
+    "factorySearchSources": "Bilatu adarrak, pull requestak eta arazoak",
+    "factoryOnPr": "Zer gertatu behar da pull request honetan?",
+    "factoryOnIssue": "Arazoaz gain gehitzeko zerbait (aukerakoa)",
+    "factoryReply": "Erantzun",
+    "searchFiles": "Bilatu fitxategiak",
+    "factoryAnnotation": "Zer aldatu behar du agenteak hemen?",
+    "oauthClientName": "Nire aplikazioa",
+    "oauthClientDescription": "Aplikazio honek zure datuak kudeatzen laguntzen dizu..."
   },
   "msg": {
     "sourceViewNotShared": "Ikuspegi honetan sinkronizazioa desgaituta dago.",
@@ -5469,7 +5534,8 @@
       "tableSyncConvertMainTable": "Hau da sinkronizazio honen taula sinkronizatua — bihurtzeak sinkronizazioa bera kentzen du. Sinkronizazioak sortutako taula guztiak taula arrunt eta editagarri gisa gordetzen dira eta sinkronizatzeari uzten diote.",
       "requiredFieldNotEditable": "Nahitaezko eremu hau ezin da editatu, eta horrek akatsak eragin ditzake inprimakia bidaltzean.",
       "communityAppInstall": "{title} komunitateko app bat da. NocoDB-k ez du berrikusi ez egiaztatu. Ziurtatu argitaratzailearengan fidatzen zarela zure lan-espazioan instalatu aurretik.",
-      "removeCustomDomain": "{domain} ez da gehiago app hau zerbitzatuko. Lehenetsitako helbideak funtzionatzen jarraitzen du."
+      "removeCustomDomain": "{domain} ez da gehiago app hau zerbitzatuko. Lehenetsitako helbideak funtzionatzen jarraitzen du.",
+      "copyClientSecretNow": "⚠️ Kopiatu zure bezeroaren sekretua orain. Ezin izango duzu berriro ikusi!"
     },
     "info": {
       "sourceViewRebindResync": "Iturri-ikuspegia aldatzeak ikuspegi berriaren aurkako sinkronizazio osoa eragiten du.",
@@ -5964,7 +6030,40 @@
       "interfaceRecordUnreadableEditingOff": "Edizioa desaktibatuta dago berriro irakurri ahal izan arte.",
       "inviteLinkDomainSentence": "{domain} helbideekin bakarrik dabil eta lankideak {role} gisa sartzen dira",
       "inviteLinkOpenSentence": "Esteka duen edonor sar daiteke {role} gisa",
-      "inviteLinkOpenCaution": "Partekatu fidagarriak zaizkizun pertsonekin bakarrik."
+      "inviteLinkOpenCaution": "Partekatu fidagarriak zaizkizun pertsonekin bakarrik.",
+      "shareHubTooltip": "Gonbidatu jendea base honetan lan egitera, edo argitaratu {object} elementurako irakurtzeko soilik den esteka bat.",
+      "shareHubTooltipInviteOnly": "Gonbidatu jendea base honetan lan egitera. Basea bera argitaratzeko, erabili «Partekatu basea» basearen menuan.",
+      "shareNothingPrivateBase": "Base pribatu batera basearen jabeak soilik gonbida dezake jendea. Ikuspegi bat argitaratzeko, ireki bat lehenik.",
+      "shareNothingToShow": "Hemendik ez dago ezer partekatzeko. Ireki ikuspegi bat irakurtzeko soilik den esteka argitaratzeko.",
+      "peopleHaveAccess": "{count} pertsonak du sarbidea. | {count} pertsonak dute sarbidea.",
+      "noInviteLinkYet": "Oraindik ez dago gonbidapen-estekarik. Sortu bat jendea gonbidapen indibidualik gabe sartu ahal izateko.",
+      "youWillJoinAs": "{role} gisa sartuko zara.",
+      "signedInWrongDomain": "{email} gisa hasi duzu saioa. Esteka honek {'@'}{domain} helbideak soilik onartzen ditu.",
+      "signedInAs": "{email} gisa hasi duzu saioa.",
+      "publicLinkToNamed": "{name} elementurako esteka publikoa",
+      "readOnlyInviteInstead": "Irakurtzeko soilik. Editatzeko edo iruzkintzeko aukera behar dute?",
+      "willJoinAsRole": "{count} pertsona {role} gisa sartuko da eta {can} ahal izango du. | {count} pertsona {role} gisa sartuko dira eta {can} ahal izango dute.",
+      "sharePublicLinkSubtitle": "Esteka duen edonork ireki dezake. Ez da konturik behar.",
+      "shareLinksReadOnly": "Estekak irakurtzeko soilik dira. Editatzeko edo iruzkintzeko aukera izatea nahi duzu?",
+      "clientSecretHidden": "Sekretua segurtasunagatik ezkutatuta dago eta ez da berriro agertuko. Behar izanez gero, berri bat sor dezakezu.",
+      "mcpSetupIntroClaude": "Hasi NocoDB MCP erabiltzen Claude Desktop aplikazioarekin 3 urrats errazetan",
+      "mcpSetupClaudeStep1": "Ireki Claude Desktop ezarpenak nabigazio-barratik.",
+      "mcpSetupClaudeStep2": "Joan Develop fitxara eta egin klik «Edit Config» aukeran.",
+      "mcpSetupClaudeStep3": "Gehitu claude_desktop_config.json fitxategian tokena sortu ondoren ematen den JSON konfigurazioa",
+      "mcpSetupIntroCodex": "Hasi NocoDB MCP erabiltzen Codex CLI tresnarekin 3 urrats errazetan",
+      "mcpSetupCodexStep2": "Gehitu tokena sortu ondoren ematen den TOML konfigurazioa.",
+      "mcpSetupIntroAntigravity": "Hasi NocoDB MCP erabiltzen AntiGravity aplikazioarekin 4 urrats errazetan",
+      "mcpSetupAntigravityStep1": "Egin klik agentearen leihoaren goiko eskuineko hiru puntuetan, eta gero \"MCP Servers\" aukeran",
+      "mcpSetupAntigravityStep2": "Egin klik Manage MCP Servers aukeran.",
+      "mcpSetupViewRawConfig": "Orain egin klik View raw config aukeran.",
+      "mcpSetupPasteJsonConfig": "Itsatsi irekitako fitxategian tokena sortu ondoren ematen den JSON konfigurazioa",
+      "mcpSetupIntroCursor": "Hasi NocoDB MCP erabiltzen Cursor aplikazioarekin 3 urrats errazetan",
+      "mcpSetupCursorStep1": "Ireki Cursor ezarpenak (sakatu Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Hautatu \"MCP\" fitxa eta egin klik \"Add Custom MCP\" aukeran.",
+      "mcpSetupCursorStep3": "Gehitu tokena sortu ondoren ematen den JSON konfigurazioa.",
+      "mcpSetupIntroWindsurf": "Hasi NocoDB MCP erabiltzen Windsurf aplikazioarekin 4 urrats errazetan",
+      "mcpSetupWindsurfStep1": "Sartu Windsurf ezarpenetan eta hautatu Cascade fitxa ezkerreko alboko barran",
+      "mcpSetupWindsurfStep2": "Egin klik Manage MCP aukeran."
     },
     "error": {
       "failedToCreateSync": "Sinkronizazioa sortzeko huts egin da",
@@ -6279,7 +6378,8 @@
       "planChangeScheduled": "Plan-aldaketa programatuta",
       "planChangeReverted": "Programatutako plan-aldaketa atzera botata. Zure oraingo planak aldaketarik gabe jarraitzen du.",
       "appDelisted": "App Store-tik kendua",
-      "appRelisted": "Berriro App Store-n"
+      "appRelisted": "Berriro App Store-n",
+      "oauthClientUpdated": "OAuth bezeroa ondo eguneratu da!"
     },
     "subText": {
       "startFromScratch": "Hasi hutsetik.",
@@ -6474,7 +6574,22 @@
     "factorySelectLinesToAnnotate": "Hautatu lehenik iruzkina zein lerrori buruzkoa den.",
     "factorySessionArchived": "Saioa artxibatu da. Haren lana gordeta dago; berrekin saioari jarraitzeko.",
     "factoryTurnFailed": "Txandak huts egin du",
-    "factoryDeleteSession": "«{title}» eta haren transkripzio osoa ezabatuko dira. Hau ezin da desegin."
+    "factoryDeleteSession": "«{title}» eta haren transkripzio osoa ezabatuko dira. Hau ezin da desegin.",
+    "migrateToV3": {
+      "whatChanges": "Zer aldatzen den migrazioaren ondoren",
+      "changeDuplicate": "Baseak bikoiztu daitezke entitateen IDak mantenduz",
+      "changeApi": "Sarbidea V3 API bidez soilik dago erabilgarri",
+      "changeScale": "Eskalagarritasun hobea eta epe luzerako bateragarritasuna lortzeko diseinatua",
+      "considerations": "Kontuan hartu beharrekoak",
+      "considerApis": "Migrazioaren ondoren V1 eta V2 APIek ez dute base honetarako funtzionatuko",
+      "considerPermanent": "Migrazioa behin betikoa da eta ezin da desegin",
+      "recommendation": "Migratu integrazio guztiak v3 API zerbitzuarekin bateragarriak direla egiaztatu ondoren soilik.",
+      "confirmTitle": "Base hau v3 bertsiora migratu?",
+      "confirmDesc": "Honek basea arkitektura eta API bertsio berrienera eguneratzen du.",
+      "confirmCta": "Berretsi migrazioa",
+      "migrating": "Migratzen..."
+    },
+    "skillsRegistryErrorTitle": "Ezin izan da trebetasunen erregistroan bilatu"
   },
   "trash": {
     "restore": "Berreskuratu",
@@ -6537,7 +6652,12 @@
         "partial": "{count} gatazkarik gabe berreskuratu",
         "force": "Denak berreskuratu eta gatazkak garbitu"
       }
-    }
+    },
+    "unavailableExternal": "Kanpoko iturria",
+    "unavailablePending": "Konfiguratzen",
+    "usingDefault": "{value} (lehenetsia)",
+    "keptForever": "Betiko",
+    "notKept": "Ez da gordetzen"
   },
   "baseTrash": {
     "title": "Zaborra",

@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "שדרג כדי לדרוש התחברות בטפסים",
     "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס.",
     "upgradeToUseSso": "שדרג כדי להשתמש ב-SSO",
-    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך."
+    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך.",
+    "upgradeToUseAppFactory": "שדרגו כדי להשתמש ב־App Factory",
+    "upgradeToUseAppFactorySubtitle": "שדרגו לתוכנית {plan} כדי להפעיל סוכני קוד על המאגרים המחוברים שלכם."
   },
   "general": {
     "scrollToBottom": "גלול למטה",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "אף אחד {description}",
         "moreUsers": "+ {count} עוד",
         "selectUsersOrTeams": "בחר משתמשים או צוותים"
-      }
+      },
+      "createRecords": "יצירת רשומות"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "תיקיית תצוגות",
     "subRecord": "רשומת משנה",
     "video": "וידאו",
-    "recordTemplates": "תבניות רשומה"
+    "recordTemplates": "תבניות רשומה",
+    "roleTypePlural": {
+      "owner": "בעלים",
+      "creator": "יוצרים",
+      "editor": "עורכים",
+      "commenter": "מגיבים",
+      "viewer": "צופים",
+      "inherit": "בירושה",
+      "noaccess": "אין גישה",
+      "admin": "מנהלים",
+      "superAdmin": "מנהלי־על",
+      "orgAdmin": "מנהלי הארגון",
+      "orgCreator": "יוצרי הארגון",
+      "orgViewer": "צופי הארגון",
+      "orgLevelOwner": "בעלים ברמת הארגון",
+      "orgLevelCreator": "יוצרים ברמת הארגון",
+      "orgLevelViewer": "צופים ברמת הארגון",
+      "appUser": "משתמשי היישום"
+    }
   },
   "datatype": {
     "ID": "תְעוּדַת זֶהוּת",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "להסיר את הדומיין המותאם?",
     "tooNarrowToAdjustFrozenFields": "החלון צר מדי כדי לכוונן את השדות המוקפאים",
     "themeSettings": "הגדרות ערכת נושא",
-    "nFields": "{count} שדה | {count} שדות"
+    "nFields": "{count} שדה | {count} שדות",
+    "noInterfaceMembersYet": "אין עדיין חברים בממשק",
+    "headJoin": "הצטרפות | NocoDB"
   },
   "labels": {
     "syncing": "סנכרון",
@@ -4557,7 +4580,24 @@
     "openAgentConversation": "פתיחת השיחה של הסוכן הזה",
     "sendToAgent": "שליחה לסוכן",
     "noPort": "אין פורט",
-    "manageInviteLinks": "ניהול קישורי הזמנה"
+    "manageInviteLinks": "ניהול קישורי הזמנה",
+    "editOauthClient": "עריכת לקוח OAuth",
+    "oauthClientNameHint": "מוצג למשתמשים במהלך ההרשאה",
+    "applicationDescription": "תיאור היישום",
+    "oauthClientDescriptionHint": "תיאור קצר שמוצג כשמשתמשים מעניקים גישה",
+    "homepageUrl": "כתובת URL של דף הבית",
+    "oauthClientLogoHint": "תמונה שמוצגת במהלך ההרשאה (מומלץ ריבועית)",
+    "clientType": "סוג הלקוח",
+    "oauthClientTypeHint": "ציבורי: יישומי מובייל ואינטרנט (נדרש PKCE). חסוי: שרתים מאובטחים (יכולים לאחסן סודות)",
+    "confidential": "חסוי",
+    "authorizationCallbackUrls": "כתובות החזרה להרשאה",
+    "oauthCallbackUrlsHint": "כתובות HTTPS להפניה לאחר ההרשאה (localhost/127.0.0.1 מותרות). אחת בכל שורה",
+    "clientId": "מזהה לקוח",
+    "clientSecret": "סוד הלקוח",
+    "regenerateSecret": "יצירת סוד חדש",
+    "createOauthClients": "יצירת לקוחות OAuth",
+    "managingOauthClients": "ניהול לקוחות OAuth",
+    "clientInformation": "פרטי הלקוח"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -5072,7 +5112,11 @@
     "marketplaceAuthored": "נכתב על ידי המפרסם, ולא הופק מתוכן האפליקציה.",
     "marketplaceVerifiedPublisher": "פורסם ונבדק על ידי NocoDB",
     "showCustomPermissionFieldsOnly": "הצג רק שדות עם הרשאות מותאמות אישית",
-    "showAllFields": "הצג את כל השדות"
+    "showAllFields": "הצג את כל השדות",
+    "inviteLinkCannotGrantOwner": "קישור הזמנה אינו יכול להעניק תפקיד בעלים",
+    "inviteLinkRoleAboveYours": "אפשר להציע רק תפקידים עד לרמת התפקיד שלכם",
+    "noDefaultSourceForFolders": "לבסיס הזה אין מקור ברירת מחדל — צרו תיקיות מהתפריט של המקור עצמו",
+    "noDefaultSourceForSync": "לבסיס הזה אין מקור ברירת מחדל — סנכרון זקוק לאחד כדי לאחסן את הטבלאות שלו"
   },
   "placeholder": {
     "enterVerificationCode": "הזן קוד בן 6 ספרות",
@@ -5234,7 +5278,28 @@
     "messageAgent": "הודעה אל {agent}",
     "somethingElse": "משהו אחר",
     "noMcpConnections": "לא נוצרו חיבורי MCP",
-    "noMcpConnectionsLabel": "נראה שעדיין לא יצרת חיבורי MCP."
+    "noMcpConnectionsLabel": "נראה שעדיין לא יצרת חיבורי MCP.",
+    "searchDataSource": "חיפוש מקור נתונים",
+    "searchConnections": "חיפוש חיבורים",
+    "migrationUrl": "הזינו כתובת URL של ההעברה עבור היעד",
+    "searchSync": "חיפוש סנכרון",
+    "searchWorkspace": "חיפוש מרחב עבודה",
+    "searchBase": "חיפוש בסיס",
+    "searchEvent": "חיפוש אירוע",
+    "skillRegistrySearch": "חיפוש מיומנויות…",
+    "searchSnapshots": "חיפוש תצלומי מצב",
+    "searchTokens": "חיפוש אסימונים",
+    "factoryPrompt": "תארו מה אתם רוצים לבנות",
+    "factorySearchRepos": "חיפוש מאגרים",
+    "factorySearchTargets": "חיפוש מאגרים",
+    "factorySearchSources": "חיפוש ענפים, בקשות משיכה ונושאים",
+    "factoryOnPr": "מה צריך לקרות בבקשת המשיכה הזו?",
+    "factoryOnIssue": "משהו להוסיף מעבר לנושא עצמו (רשות)",
+    "factoryReply": "תשובה",
+    "searchFiles": "חיפוש קבצים",
+    "factoryAnnotation": "מה הסוכן צריך לשנות כאן?",
+    "oauthClientName": "היישום שלי",
+    "oauthClientDescription": "היישום הזה עוזר לכם לנהל את הנתונים שלכם..."
   },
   "msg": {
     "sourceViewNotShared": "הסנכרון מושבת בתצוגה זו",
@@ -5473,7 +5538,8 @@
       "tableSyncConvertMainTable": "זו הטבלה המסונכרנת של הסנכרון הזה — המרתה מסירה את הסנכרון עצמו. כל הטבלאות שהסנכרון יצר נשמרות כטבלאות רגילות הניתנות לעריכה ומפסיקות להסתנכרן.",
       "requiredFieldNotEditable": "לא ניתן לערוך את שדה החובה הזה, מה שעלול לגרום לשגיאות בעת שליחת הטופס.",
       "communityAppInstall": "{title} היא אפליקציית קהילה. היא לא נבדקה ולא אומתה על ידי NocoDB. ודאו שאתם סומכים על המפרסם לפני שתתקינו אותה במרחב העבודה שלכם.",
-      "removeCustomDomain": "{domain} יפסיק להגיש את האפליקציה הזו. הכתובת המוגדרת כברירת מחדל ממשיכה לעבוד."
+      "removeCustomDomain": "{domain} יפסיק להגיש את האפליקציה הזו. הכתובת המוגדרת כברירת מחדל ממשיכה לעבוד.",
+      "copyClientSecretNow": "⚠️ הקפידו להעתיק עכשיו את סוד הלקוח. לא תוכלו לראות אותו שוב!"
     },
     "info": {
       "sourceViewRebindResync": "שינוי תצוגת המקור מפעיל סנכרון מחדש מלא בהתאם לתצוגה החדשה.",
@@ -5968,7 +6034,40 @@
       "interfaceRecordUnreadableEditingOff": "העריכה כבויה עד שאפשר יהיה לקרוא אותה שוב.",
       "inviteLinkDomainSentence": "עובד רק עם אימייל {domain} וחברי הצוות מצטרפים בתור {role}",
       "inviteLinkOpenSentence": "כל מי שיש לו את הקישור יכול להצטרף בתור {role}",
-      "inviteLinkOpenCaution": "שתפו אותו רק עם אנשים שאתם סומכים עליהם."
+      "inviteLinkOpenCaution": "שתפו אותו רק עם אנשים שאתם סומכים עליהם.",
+      "shareHubTooltip": "הזמינו אנשים לעבוד בבסיס הזה, או פרסמו קישור לקריאה בלבד אל {object}.",
+      "shareHubTooltipInviteOnly": "הזמינו אנשים לעבוד בבסיס הזה. כדי לפרסם את הבסיס עצמו, השתמשו ב«שיתוף הבסיס» בתפריט הבסיס.",
+      "shareNothingPrivateBase": "רק הבעלים של הבסיס יכול להזמין אנשים לבסיס פרטי. כדי לפרסם תצוגה, פתחו קודם אחת.",
+      "shareNothingToShow": "אין מה לשתף מכאן. פתחו תצוגה כדי לפרסם קישור לקריאה בלבד.",
+      "peopleHaveAccess": "ל־{count} אדם יש גישה. | ל־{count} אנשים יש גישה.",
+      "noInviteLinkYet": "אין עדיין קישור הזמנה. צרו קישור כדי לאפשר לאנשים להצטרף בלי הזמנה אישית.",
+      "youWillJoinAs": "תצטרפו בתור {role}.",
+      "signedInWrongDomain": "אתם מחוברים בתור {email}. הקישור הזה מקבל רק כתובות {'@'}{domain}.",
+      "signedInAs": "אתם מחוברים בתור {email}.",
+      "publicLinkToNamed": "קישור ציבורי אל {name}",
+      "readOnlyInviteInstead": "לקריאה בלבד. צריך שהם יוכלו לערוך או להגיב?",
+      "willJoinAsRole": "{count} אדם יצטרף בתור {role} ויוכל {can}. | {count} אנשים יצטרפו בתור {role} ויוכלו {can}.",
+      "sharePublicLinkSubtitle": "כל מי שיש לו את הקישור יכול לפתוח אותו. אין צורך בחשבון.",
+      "shareLinksReadOnly": "הקישורים הם לקריאה בלבד. רוצים שהם יוכלו לערוך או להגיב?",
+      "clientSecretHidden": "הסוד מוסתר מטעמי אבטחה ולא יוצג שוב. אפשר ליצור סוד חדש במידת הצורך.",
+      "mcpSetupIntroClaude": "התחילו לעבוד עם NocoDB MCP ב־Claude Desktop בשלושה שלבים פשוטים",
+      "mcpSetupClaudeStep1": "פתחו את הגדרות Claude Desktop משורת הניווט.",
+      "mcpSetupClaudeStep2": "עברו ללשונית Develop ולחצו על «Edit Config».",
+      "mcpSetupClaudeStep3": "הוסיפו לקובץ claude_desktop_config.json את תצורת ה־JSON שמתקבלת לאחר יצירת אסימון",
+      "mcpSetupIntroCodex": "התחילו לעבוד עם NocoDB MCP ב־Codex CLI בשלושה שלבים פשוטים",
+      "mcpSetupCodexStep2": "הוסיפו את תצורת ה־TOML שמתקבלת לאחר יצירת אסימון.",
+      "mcpSetupIntroAntigravity": "התחילו לעבוד עם NocoDB MCP ב־AntiGravity בארבעה שלבים פשוטים",
+      "mcpSetupAntigravityStep1": "לחצו על שלוש הנקודות בפינה הימנית העליונה של חלון הסוכן, ולאחר מכן על \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "לחצו על Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "כעת לחצו על View raw config.",
+      "mcpSetupPasteJsonConfig": "הדביקו בקובץ שנפתח את תצורת ה־JSON שמתקבלת לאחר יצירת אסימון",
+      "mcpSetupIntroCursor": "התחילו לעבוד עם NocoDB MCP ב־Cursor בשלושה שלבים פשוטים",
+      "mcpSetupCursorStep1": "פתחו את הגדרות Cursor (הקישו Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "בחרו בלשונית \"MCP\" ולחצו על \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "הוסיפו את תצורת ה־JSON שמתקבלת לאחר יצירת אסימון.",
+      "mcpSetupIntroWindsurf": "התחילו לעבוד עם NocoDB MCP ב־Windsurf בארבעה שלבים פשוטים",
+      "mcpSetupWindsurfStep1": "היכנסו להגדרות Windsurf ובחרו בלשונית Cascade בסרגל הצד השמאלי",
+      "mcpSetupWindsurfStep2": "לחצו על Manage MCP."
     },
     "error": {
       "failedToCreateSync": "לא הצליח ליצור סנכרון",
@@ -6283,7 +6382,8 @@
       "planChangeScheduled": "שינוי התוכנית תוזמן",
       "planChangeReverted": "שינוי התוכנית המתוזמן בוטל. התוכנית הנוכחית שלכם ממשיכה ללא שינוי.",
       "appDelisted": "הוסר מה־App Store",
-      "appRelisted": "חזר ל־App Store"
+      "appRelisted": "חזר ל־App Store",
+      "oauthClientUpdated": "לקוח OAuth עודכן בהצלחה!"
     },
     "subText": {
       "startFromScratch": "התחל מאפס.",
@@ -6478,7 +6578,22 @@
     "factorySelectLinesToAnnotate": "בחרו קודם את השורות שאליהן מתייחסת ההערה.",
     "factorySessionArchived": "הסשן הועבר לארכיון. העבודה שלו נשמרה; חדשו אותו כדי להמשיך.",
     "factoryTurnFailed": "התור נכשל",
-    "factoryDeleteSession": "„{title}” וכל התמליל שלה יימחקו. אי אפשר לבטל את הפעולה."
+    "factoryDeleteSession": "„{title}” וכל התמליל שלה יימחקו. אי אפשר לבטל את הפעולה.",
+    "migrateToV3": {
+      "whatChanges": "מה משתנה לאחר ההעברה",
+      "changeDuplicate": "אפשר לשכפל בסיסים תוך שמירה על מזהי הישויות",
+      "changeApi": "הגישה אפשרית רק דרך API V3",
+      "changeScale": "מתוכנן לסקיילביליות משופרת ולתאימות לטווח ארוך",
+      "considerations": "שיקולים חשובים",
+      "considerApis": "לאחר ההעברה ממשקי API V1 ו־V2 לא יפעלו עוד עבור הבסיס הזה",
+      "considerPermanent": "ההעברה היא סופית ולא ניתן לבטל אותה",
+      "recommendation": "בצעו העברה רק לאחר שווידאתם שכל האינטגרציות תואמות ל־API v3.",
+      "confirmTitle": "להעביר את הבסיס הזה ל־v3?",
+      "confirmDesc": "פעולה זו משדרגת את הבסיס לארכיטקטורה ולגרסת ה־API החדשות ביותר.",
+      "confirmCta": "אישור ההעברה",
+      "migrating": "מעביר..."
+    },
+    "skillsRegistryErrorTitle": "לא ניתן היה לחפש במרשם המיומנויות"
   },
   "trash": {
     "restore": "שחזור",
@@ -6541,7 +6656,12 @@
         "partial": "שחזור {count} ללא התנגשויות",
         "force": "שחזור הכל ופתרון התנגשויות"
       }
-    }
+    },
+    "unavailableExternal": "מקור חיצוני",
+    "unavailablePending": "בהגדרה",
+    "usingDefault": "{value} (ברירת מחדל)",
+    "keptForever": "לתמיד",
+    "notKept": "לא נשמר"
   },
   "baseTrash": {
     "title": "אשפה",

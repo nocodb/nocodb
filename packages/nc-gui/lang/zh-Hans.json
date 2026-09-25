@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "升级以要求在表单中登录",
     "upgradeToUseFormRequireSigninSubtitle": "升级到 {plan} 方案，即可要求填写者在提交表单前登录。",
     "upgradeToUseSso": "升级以使用 SSO",
-    "upgradeToUseSsoSubtitle": "升级到 {plan} 计划，设置单点登录 (SSO)，让团队使用你的身份提供商登录。"
+    "upgradeToUseSsoSubtitle": "升级到 {plan} 计划，设置单点登录 (SSO)，让团队使用你的身份提供商登录。",
+    "upgradeToUseAppFactory": "升级后即可使用 App Factory",
+    "upgradeToUseAppFactorySubtitle": "升级到 {plan} 套餐，即可在已连接的仓库上调度编码智能体。"
   },
   "general": {
     "scrollToBottom": "滚动到底部",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "无人 {description}",
         "moreUsers": "+ {count} 更多",
         "selectUsersOrTeams": "选择用户或团队"
-      }
+      },
+      "createRecords": "创建记录"
     },
     "deleteAllRecordDlg": {
       "subtitle": "你确定要删除此视图中选中的 {rowCount} 条记录？",
@@ -1172,7 +1175,25 @@
     "viewFolder": "视图文件夹",
     "subRecord": "子记录",
     "video": "视频",
-    "recordTemplates": "记录模板"
+    "recordTemplates": "记录模板",
+    "roleTypePlural": {
+      "owner": "所有者",
+      "creator": "创建者",
+      "editor": "编辑者",
+      "commenter": "评论者",
+      "viewer": "查看者",
+      "inherit": "继承",
+      "noaccess": "无访问权限",
+      "admin": "管理员",
+      "superAdmin": "超级管理员",
+      "orgAdmin": "组织管理员",
+      "orgCreator": "组织创建者",
+      "orgViewer": "组织查看者",
+      "orgLevelOwner": "组织级所有者",
+      "orgLevelCreator": "组织级创建者",
+      "orgLevelViewer": "组织级查看者",
+      "appUser": "应用用户"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "要移除自定义域名吗？",
     "tooNarrowToAdjustFrozenFields": "窗口太窄，无法调整冻结字段",
     "themeSettings": "主题设置",
-    "nFields": "{count} 个字段 | {count} 个字段"
+    "nFields": "{count} 个字段 | {count} 个字段",
+    "noInterfaceMembersYet": "尚无界面成员",
+    "headJoin": "加入 | NocoDB"
   },
   "labels": {
     "syncing": "正在同步",
@@ -4556,7 +4579,24 @@
     "openAgentConversation": "打开该智能体的会话",
     "sendToAgent": "发送给智能体",
     "noPort": "无端口",
-    "manageInviteLinks": "管理邀请链接"
+    "manageInviteLinks": "管理邀请链接",
+    "editOauthClient": "编辑 OAuth 客户端",
+    "oauthClientNameHint": "授权过程中向用户显示",
+    "applicationDescription": "应用描述",
+    "oauthClientDescriptionHint": "用户授予访问权限时显示的简短说明",
+    "homepageUrl": "主页 URL",
+    "oauthClientLogoHint": "授权过程中显示的图片（建议使用正方形）",
+    "clientType": "客户端类型",
+    "oauthClientTypeHint": "公开：移动/网页应用（需要 PKCE）。机密：安全服务器（可存储密钥）",
+    "confidential": "机密",
+    "authorizationCallbackUrls": "授权回调 URL",
+    "oauthCallbackUrlsHint": "授权后用于重定向的 HTTPS 地址（允许 localhost/127.0.0.1）。每行一个",
+    "clientId": "客户端 ID",
+    "clientSecret": "客户端密钥",
+    "regenerateSecret": "重新生成密钥",
+    "createOauthClients": "创建 OAuth 客户端",
+    "managingOauthClients": "管理 OAuth 客户端",
+    "clientInformation": "客户端信息"
   },
   "activity": {
     "useTemplate": "使用模板",
@@ -5071,7 +5111,11 @@
     "marketplaceAuthored": "由发布者撰写，并非根据 App 内容生成。",
     "marketplaceVerifiedPublisher": "由 NocoDB 发布并审核",
     "showCustomPermissionFieldsOnly": "仅显示具有自定义权限的字段",
-    "showAllFields": "显示所有字段"
+    "showAllFields": "显示所有字段",
+    "inviteLinkCannotGrantOwner": "邀请链接无法授予所有者角色",
+    "inviteLinkRoleAboveYours": "你只能授予不高于自己的角色",
+    "noDefaultSourceForFolders": "此 Base 没有默认数据源 — 请改从各数据源自己的菜单中创建文件夹",
+    "noDefaultSourceForSync": "此 Base 没有默认数据源 — 同步需要一个数据源来存放其数据表"
   },
   "placeholder": {
     "enterVerificationCode": "输入 6 位数字代码",
@@ -5233,7 +5277,28 @@
     "messageAgent": "给 {agent} 发消息",
     "somethingElse": "其他",
     "noMcpConnections": "尚未创建 MCP 连接",
-    "noMcpConnectionsLabel": "看起来你还没有创建任何 MCP 连接。"
+    "noMcpConnectionsLabel": "看起来你还没有创建任何 MCP 连接。",
+    "searchDataSource": "搜索数据源",
+    "searchConnections": "搜索连接",
+    "migrationUrl": "输入目标的迁移 URL",
+    "searchSync": "搜索同步",
+    "searchWorkspace": "搜索工作区",
+    "searchBase": "搜索 Base",
+    "searchEvent": "搜索事件",
+    "skillRegistrySearch": "搜索技能……",
+    "searchSnapshots": "搜索快照",
+    "searchTokens": "搜索令牌",
+    "factoryPrompt": "描述你想要构建的内容",
+    "factorySearchRepos": "搜索仓库",
+    "factorySearchTargets": "搜索仓库",
+    "factorySearchSources": "搜索分支、拉取请求和议题",
+    "factoryOnPr": "希望在这个拉取请求上做什么？",
+    "factoryOnIssue": "除议题本身之外需要补充的内容（可选）",
+    "factoryReply": "回复",
+    "searchFiles": "搜索文件",
+    "factoryAnnotation": "希望智能体在这里改动什么？",
+    "oauthClientName": "我的应用",
+    "oauthClientDescription": "此应用可帮助你管理数据……"
   },
   "msg": {
     "sourceViewNotShared": "此视图上禁用同步",
@@ -5472,7 +5537,8 @@
       "tableSyncConvertMainTable": "这是本次同步的同步表——转换它会连同步本身一起移除。同步创建的所有表格都会保留为普通的可编辑表格，并停止同步。",
       "requiredFieldNotEditable": "此必填字段不可编辑，提交表单时可能因此出错。",
       "communityAppInstall": "{title} 是一款社区应用，未经 NocoDB 审核或验证。在把它安装到你的工作区之前，请确认你信任该发布者。",
-      "removeCustomDomain": "{domain} 将不再提供此应用。默认地址仍可继续使用。"
+      "removeCustomDomain": "{domain} 将不再提供此应用。默认地址仍可继续使用。",
+      "copyClientSecretNow": "⚠️ 请立即复制客户端密钥。之后将无法再次查看！"
     },
     "info": {
       "sourceViewRebindResync": "更改源视图会触发与新视图完全重新同步。",
@@ -5967,7 +6033,40 @@
       "interfaceRecordUnreadableEditingOff": "在能够再次读取之前，编辑已关闭。",
       "inviteLinkDomainSentence": "仅适用于 {domain} 邮箱，队友将以 {role} 身份加入",
       "inviteLinkOpenSentence": "任何拥有该链接的人都能以 {role} 身份加入",
-      "inviteLinkOpenCaution": "只分享给你信任的人。"
+      "inviteLinkOpenCaution": "只分享给你信任的人。",
+      "shareHubTooltip": "邀请他人在此 Base 中协作，或发布指向 {object} 的只读链接。",
+      "shareHubTooltipInviteOnly": "邀请他人在此 Base 中协作。若要发布 Base 本身，请使用 Base 菜单中的「共享 Base」。",
+      "shareNothingPrivateBase": "只有 Base 所有者才能邀请他人加入私有 Base。若要发布视图，请先打开一个视图。",
+      "shareNothingToShow": "此处没有可共享的内容。打开一个视图以发布只读链接。",
+      "peopleHaveAccess": "{count} 人拥有访问权限。 | {count} 人拥有访问权限。",
+      "noInviteLinkYet": "尚无邀请链接。创建一个链接，让他人无需单独邀请即可加入。",
+      "youWillJoinAs": "您将以 {role} 身份加入。",
+      "signedInWrongDomain": "您当前以 {email} 登录。此链接仅接受 {'@'}{domain} 的邮箱地址。",
+      "signedInAs": "您当前以 {email} 登录。",
+      "publicLinkToNamed": "指向 {name} 的公开链接",
+      "readOnlyInviteInstead": "仅可查看。需要他们能够编辑或评论吗？",
+      "willJoinAsRole": "{count} 人将以 {role} 身份加入，并可以{can}。 | {count} 人将以 {role} 身份加入，并可以{can}。",
+      "sharePublicLinkSubtitle": "任何拥有该链接的人都可以打开。无需账号。",
+      "shareLinksReadOnly": "链接为只读。希望他们能够编辑或评论吗？",
+      "clientSecretHidden": "出于安全考虑，密钥已隐藏且不会再次显示。如有需要，可以重新生成。",
+      "mcpSetupIntroClaude": "通过 3 个简单步骤开始在 Claude Desktop 中使用 NocoDB MCP",
+      "mcpSetupClaudeStep1": "从导航栏进入 Claude Desktop 设置。",
+      "mcpSetupClaudeStep2": "前往 Develop 选项卡，然后点击「Edit Config」。",
+      "mcpSetupClaudeStep3": "将创建令牌后提供的 JSON 配置添加到 claude_desktop_config.json 中",
+      "mcpSetupIntroCodex": "通过 3 个简单步骤开始在 Codex CLI 中使用 NocoDB MCP",
+      "mcpSetupCodexStep2": "添加创建令牌后提供的 TOML 配置。",
+      "mcpSetupIntroAntigravity": "通过 4 个简单步骤开始在 AntiGravity 中使用 NocoDB MCP",
+      "mcpSetupAntigravityStep1": "点击智能体窗口右上角的三个点，然后点击 \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "点击 Manage MCP Servers。",
+      "mcpSetupViewRawConfig": "现在点击 View raw config。",
+      "mcpSetupPasteJsonConfig": "将创建令牌后提供的 JSON 配置粘贴到已打开的文件中",
+      "mcpSetupIntroCursor": "通过 3 个简单步骤开始在 Cursor 中使用 NocoDB MCP",
+      "mcpSetupCursorStep1": "打开 Cursor 设置（按 Shift+Cmd+J）",
+      "mcpSetupCursorStep2": "选择 \"MCP\" 选项卡并点击 \"Add Custom MCP\"。",
+      "mcpSetupCursorStep3": "添加创建令牌后提供的 JSON 配置。",
+      "mcpSetupIntroWindsurf": "通过 4 个简单步骤开始在 Windsurf 中使用 NocoDB MCP",
+      "mcpSetupWindsurfStep1": "进入 Windsurf 设置，并在左侧边栏选择 Cascade 选项卡",
+      "mcpSetupWindsurfStep2": "点击 Manage MCP。"
     },
     "error": {
       "failedToCreateSync": "创建同步失败",
@@ -6282,7 +6381,8 @@
       "planChangeScheduled": "方案变更已排期",
       "planChangeReverted": "已撤销预定的方案变更。你当前的方案保持不变，继续生效。",
       "appDelisted": "已从 App Store 下架",
-      "appRelisted": "已重新上架 App Store"
+      "appRelisted": "已重新上架 App Store",
+      "oauthClientUpdated": "OAuth 客户端更新成功！"
     },
     "subText": {
       "startFromScratch": "从头开始。",
@@ -6477,7 +6577,22 @@
     "factorySelectLinesToAnnotate": "请先选择评论所针对的行。",
     "factorySessionArchived": "会话已归档。其工作已保存；恢复会话即可继续。",
     "factoryTurnFailed": "本轮执行失败",
-    "factoryDeleteSession": "“{title}”及其全部记录将被删除。此操作无法撤销。"
+    "factoryDeleteSession": "“{title}”及其全部记录将被删除。此操作无法撤销。",
+    "migrateToV3": {
+      "whatChanges": "迁移后会有哪些变化",
+      "changeDuplicate": "复制 Base 时可保留实体 ID",
+      "changeApi": "仅可通过 V3 API 访问",
+      "changeScale": "为更好的可扩展性和长期兼容性而设计",
+      "considerations": "重要注意事项",
+      "considerApis": "迁移后，此 Base 将不再支持 V1 和 V2 API",
+      "considerPermanent": "迁移是永久性的，无法撤销",
+      "recommendation": "请在确认所有集成均兼容 v3 API 之后再进行迁移。",
+      "confirmTitle": "要将此 Base 迁移到 v3 吗？",
+      "confirmDesc": "此操作会将该 Base 升级到最新架构和 API 版本。",
+      "confirmCta": "确认迁移",
+      "migrating": "正在迁移..."
+    },
+    "skillsRegistryErrorTitle": "无法搜索技能注册表"
   },
   "trash": {
     "restore": "恢复",
@@ -6540,7 +6655,12 @@
         "partial": "无冲突恢复 {count}",
         "force": "恢复所有并清除冲突"
       }
-    }
+    },
+    "unavailableExternal": "外部数据源",
+    "unavailablePending": "正在设置",
+    "usingDefault": "{value}（默认）",
+    "keptForever": "永久",
+    "notKept": "不保留"
   },
   "baseTrash": {
     "title": "回收站",

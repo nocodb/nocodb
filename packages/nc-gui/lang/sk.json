@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Inovujte, aby ste mohli vo formulároch vyžadovať prihlásenie",
     "upgradeToUseFormRequireSigninSubtitle": "Inovujte na plán {plan}, aby ste od respondentov vyžadovali prihlásenie pred odoslaním formulára.",
     "upgradeToUseSso": "Upgradujte na používanie SSO",
-    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan}, aby ste nastavili jednotné prihlásenie (SSO) a umožnili svojmu tímu prihlasovať sa cez vášho poskytovateľa identity."
+    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan}, aby ste nastavili jednotné prihlásenie (SSO) a umožnili svojmu tímu prihlasovať sa cez vášho poskytovateľa identity.",
+    "upgradeToUseAppFactory": "Prejdite na vyšší plán a používajte App Factory",
+    "upgradeToUseAppFactorySubtitle": "Prejdite na plán {plan} a spúšťajte programovacích agentov nad prepojenými repozitármi."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1070,7 +1072,8 @@
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
         "selectUsersOrTeams": "Select users or teams"
-      }
+      },
+      "createRecords": "Vytvárať záznamy"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1172,7 +1175,25 @@
     "viewFolder": "Priečinok zobrazení",
     "subRecord": "Podzáznam",
     "video": "Video",
-    "recordTemplates": "Šablóny záznamov"
+    "recordTemplates": "Šablóny záznamov",
+    "roleTypePlural": {
+      "owner": "Vlastníci",
+      "creator": "Tvorcovia",
+      "editor": "Editori",
+      "commenter": "Komentujúci",
+      "viewer": "Prezerajúci",
+      "inherit": "Zdediť",
+      "noaccess": "Bez prístupu",
+      "admin": "Správcovia",
+      "superAdmin": "Supersprávcovia",
+      "orgAdmin": "Správcovia organizácie",
+      "orgCreator": "Tvorcovia organizácie",
+      "orgViewer": "Prezerajúci organizácie",
+      "orgLevelOwner": "Vlastníci na úrovni organizácie",
+      "orgLevelCreator": "Tvorcovia na úrovni organizácie",
+      "orgLevelViewer": "Prezerajúci na úrovni organizácie",
+      "appUser": "Používatelia aplikácie"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1526,7 +1547,9 @@
     "removeCustomDomain": "Odstrániť vlastnú doménu?",
     "tooNarrowToAdjustFrozenFields": "Okno je príliš úzke na úpravu ukotvených polí",
     "themeSettings": "Nastavenia vzhľadu",
-    "nFields": "{count} pole | {count} polí"
+    "nFields": "{count} pole | {count} polí",
+    "noInterfaceMembersYet": "Zatiaľ žiadni členovia rozhrania",
+    "headJoin": "Pripojiť sa | NocoDB"
   },
   "labels": {
     "syncing": "Syncing",
@@ -4554,7 +4577,24 @@
     "openAgentConversation": "Otvoriť konverzáciu tohto agenta",
     "sendToAgent": "Odoslať agentovi",
     "noPort": "Žiadny port",
-    "manageInviteLinks": "Spravovať pozývacie odkazy"
+    "manageInviteLinks": "Spravovať pozývacie odkazy",
+    "editOauthClient": "Upraviť klienta OAuth",
+    "oauthClientNameHint": "Zobrazuje sa používateľom počas autorizácie",
+    "applicationDescription": "Popis aplikácie",
+    "oauthClientDescriptionHint": "Krátky popis zobrazený, keď používatelia udeľujú prístup",
+    "homepageUrl": "URL domovskej stránky",
+    "oauthClientLogoHint": "Obrázok zobrazený počas autorizácie (odporúča sa štvorcový)",
+    "clientType": "Typ klienta",
+    "oauthClientTypeHint": "Verejný: mobilné a webové aplikácie (vyžaduje sa PKCE). Dôverný: zabezpečené servery (môžu ukladať tajné kľúče)",
+    "confidential": "Dôverný",
+    "authorizationCallbackUrls": "Adresy spätného volania autorizácie",
+    "oauthCallbackUrlsHint": "Adresy HTTPS na presmerovanie po autorizácii (localhost/127.0.0.1 povolené). Jedna na riadok",
+    "clientId": "ID klienta",
+    "clientSecret": "Tajný kľúč klienta",
+    "regenerateSecret": "Vygenerovať nový tajný kľúč",
+    "createOauthClients": "Vytvoriť klientov OAuth",
+    "managingOauthClients": "Správa klientov OAuth",
+    "clientInformation": "Informácie o klientovi"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5070,7 +5110,11 @@
     "marketplaceAuthored": "Napísal vydavateľ, nie je odvodené z obsahu aplikácie.",
     "marketplaceVerifiedPublisher": "Publikované a skontrolované spoločnosťou NocoDB",
     "showCustomPermissionFieldsOnly": "Zobraziť iba polia s vlastnými oprávneniami",
-    "showAllFields": "Zobraziť všetky polia"
+    "showAllFields": "Zobraziť všetky polia",
+    "inviteLinkCannotGrantOwner": "Odkaz s pozvánkou nemôže udeliť rolu vlastníka",
+    "inviteLinkRoleAboveYours": "Môžete ponúkať iba roly až po svoju vlastnú",
+    "noDefaultSourceForFolders": "Táto báza nemá predvolený zdroj — priečinky vytvárajte z ponuky samotného zdroja",
+    "noDefaultSourceForSync": "Táto báza nemá predvolený zdroj — synchronizácia ho potrebuje na uloženie svojich tabuliek"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -5232,7 +5276,28 @@
     "messageAgent": "Správa pre {agent}",
     "somethingElse": "Niečo iné",
     "noMcpConnections": "Nevytvorili sa žiadne pripojenia MCP",
-    "noMcpConnectionsLabel": "Zdá sa, že ste ešte nevytvorili žiadne pripojenia MCP."
+    "noMcpConnectionsLabel": "Zdá sa, že ste ešte nevytvorili žiadne pripojenia MCP.",
+    "searchDataSource": "Hľadať zdroj údajov",
+    "searchConnections": "Hľadať pripojenia",
+    "migrationUrl": "Zadajte URL migrácie pre cieľ",
+    "searchSync": "Hľadať synchronizáciu",
+    "searchWorkspace": "Hľadať pracovný priestor",
+    "searchBase": "Hľadať bázu",
+    "searchEvent": "Hľadať udalosť",
+    "skillRegistrySearch": "Hľadať zručnosti…",
+    "searchSnapshots": "Hľadať snímky",
+    "searchTokens": "Hľadať tokeny",
+    "factoryPrompt": "Opíšte, čo chcete vytvoriť",
+    "factorySearchRepos": "Hľadať repozitáre",
+    "factorySearchTargets": "Hľadať repozitáre",
+    "factorySearchSources": "Hľadať vetvy, pull requesty a problémy",
+    "factoryOnPr": "Čo sa má s týmto pull requestom stať?",
+    "factoryOnIssue": "Niečo navyše k samotnému problému (voliteľné)",
+    "factoryReply": "Odpovedať",
+    "searchFiles": "Hľadať súbory",
+    "factoryAnnotation": "Čo má agent tu zmeniť?",
+    "oauthClientName": "Moja aplikácia",
+    "oauthClientDescription": "Táto aplikácia vám pomáha spravovať vaše údaje..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -5471,7 +5536,8 @@
       "tableSyncConvertMainTable": "Toto je synchronizovaná tabuľka tejto synchronizácie — jej prevodom sa odstráni aj samotná synchronizácia. Všetky tabuľky, ktoré vytvorila, zostanú ako bežné, upraviteľné tabuľky a prestanú sa synchronizovať.",
       "requiredFieldNotEditable": "Toto povinné pole sa nedá upravovať, čo môže pri odosielaní formulára spôsobiť chyby.",
       "communityAppInstall": "{title} je komunitná aplikácia. NocoDB ju nepreskúmalo ani neoverilo. Skôr než ju nainštalujete do svojho pracovného priestoru, uistite sa, že vydavateľovi dôverujete.",
-      "removeCustomDomain": "{domain} prestane túto aplikáciu poskytovať. Predvolená adresa funguje ďalej."
+      "removeCustomDomain": "{domain} prestane túto aplikáciu poskytovať. Predvolená adresa funguje ďalej.",
+      "copyClientSecretNow": "⚠️ Nezabudnite si tajný kľúč klienta skopírovať hneď teraz. Znovu ho už neuvidíte!"
     },
     "info": {
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
@@ -5966,7 +6032,40 @@
       "interfaceRecordUnreadableEditingOff": "Úpravy sú vypnuté, kým nebude možné záznam znova načítať.",
       "inviteLinkDomainSentence": "Funguje iba s e-mailmi {domain} a kolegovia sa pripoja ako {role}",
       "inviteLinkOpenSentence": "Ktokoľvek s týmto odkazom sa môže pripojiť ako {role}",
-      "inviteLinkOpenCaution": "Zdieľajte ho len s ľuďmi, ktorým dôverujete."
+      "inviteLinkOpenCaution": "Zdieľajte ho len s ľuďmi, ktorým dôverujete.",
+      "shareHubTooltip": "Pozvite ľudí, aby pracovali v tejto báze, alebo zverejnite odkaz iba na čítanie na {object}.",
+      "shareHubTooltipInviteOnly": "Pozvite ľudí, aby pracovali v tejto báze. Ak chcete zverejniť samotnú bázu, použite «Zdieľať bázu» v ponuke bázy.",
+      "shareNothingPrivateBase": "Do súkromnej bázy môže pozývať ľudí iba jej vlastník. Ak chcete zverejniť pohľad, najskôr nejaký otvorte.",
+      "shareNothingToShow": "Odtiaľto nie je čo zdieľať. Otvorte pohľad a zverejnite odkaz iba na čítanie.",
+      "peopleHaveAccess": "Prístup má {count} osoba. | Prístup má {count} osôb.",
+      "noInviteLinkYet": "Zatiaľ žiadny odkaz s pozvánkou. Vytvorte ho, aby sa ľudia mohli pripojiť bez individuálnej pozvánky.",
+      "youWillJoinAs": "Pripojíte sa ako {role}.",
+      "signedInWrongDomain": "Ste prihlásení ako {email}. Tento odkaz prijíma iba adresy {'@'}{domain}.",
+      "signedInAs": "Ste prihlásení ako {email}.",
+      "publicLinkToNamed": "Verejný odkaz na {name}",
+      "readOnlyInviteInstead": "Iba na čítanie. Potrebujete, aby mohli upravovať alebo komentovať?",
+      "willJoinAsRole": "{count} osoba sa pripojí ako {role} a bude môcť {can}. | {count} osôb sa pripojí ako {role} a budú môcť {can}.",
+      "sharePublicLinkSubtitle": "Otvoriť ho môže ktokoľvek, kto má odkaz. Účet nie je potrebný.",
+      "shareLinksReadOnly": "Odkazy sú iba na čítanie. Chcete, aby mohli upravovať alebo komentovať?",
+      "clientSecretHidden": "Tajný kľúč je z bezpečnostných dôvodov skrytý a znovu sa nezobrazí. V prípade potreby môžete vygenerovať nový.",
+      "mcpSetupIntroClaude": "Začnite používať NocoDB MCP s Claude Desktop v 3 jednoduchých krokoch",
+      "mcpSetupClaudeStep1": "Otvorte nastavenia Claude Desktop z navigačného panela.",
+      "mcpSetupClaudeStep2": "Prejdite na kartu Develop a kliknite na «Edit Config».",
+      "mcpSetupClaudeStep3": "Pridajte do claude_desktop_config.json konfiguráciu JSON, ktorú dostanete po vytvorení tokenu",
+      "mcpSetupIntroCodex": "Začnite používať NocoDB MCP s Codex CLI v 3 jednoduchých krokoch",
+      "mcpSetupCodexStep2": "Pridajte konfiguráciu TOML, ktorú dostanete po vytvorení tokenu.",
+      "mcpSetupIntroAntigravity": "Začnite používať NocoDB MCP s AntiGravity v 4 jednoduchých krokoch",
+      "mcpSetupAntigravityStep1": "Kliknite na tri bodky vpravo hore v okne agenta a potom na \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Kliknite na Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Teraz kliknite na View raw config.",
+      "mcpSetupPasteJsonConfig": "Vložte do otvoreného súboru konfiguráciu JSON, ktorú dostanete po vytvorení tokenu",
+      "mcpSetupIntroCursor": "Začnite používať NocoDB MCP s Cursorom v 3 jednoduchých krokoch",
+      "mcpSetupCursorStep1": "Otvorte nastavenia Cursora (stlačte Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Vyberte kartu \"MCP\" a kliknite na \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Pridajte konfiguráciu JSON, ktorú dostanete po vytvorení tokenu.",
+      "mcpSetupIntroWindsurf": "Začnite používať NocoDB MCP s Windsurf v 4 jednoduchých krokoch",
+      "mcpSetupWindsurfStep1": "Otvorte nastavenia Windsurf a v ľavom bočnom paneli vyberte kartu Cascade",
+      "mcpSetupWindsurfStep2": "Kliknite na Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -6281,7 +6380,8 @@
       "planChangeScheduled": "Zmena plánu naplánovaná",
       "planChangeReverted": "Naplánovaná zmena plánu bola zrušená. Váš súčasný plán pokračuje bez zmeny.",
       "appDelisted": "Odstránené z App Store",
-      "appRelisted": "Späť v App Store"
+      "appRelisted": "Späť v App Store",
+      "oauthClientUpdated": "Klient OAuth bol úspešne aktualizovaný!"
     },
     "subText": {
       "startFromScratch": "Začnite od začiatku.",
@@ -6476,7 +6576,22 @@
     "factorySelectLinesToAnnotate": "Najprv vyberte riadky, ktorých sa komentár týka.",
     "factorySessionArchived": "Relácia archivovaná. Jej práca je uložená; pokračujte obnovením relácie.",
     "factoryTurnFailed": "Ťah zlyhal",
-    "factoryDeleteSession": "„{title}“ a celý jej prepis budú vymazané. Túto akciu nie je možné vrátiť späť."
+    "factoryDeleteSession": "„{title}“ a celý jej prepis budú vymazané. Túto akciu nie je možné vrátiť späť.",
+    "migrateToV3": {
+      "whatChanges": "Čo sa po migrácii zmení",
+      "changeDuplicate": "Bázy možno duplikovať so zachovaním ID entít",
+      "changeApi": "Prístup je možný iba cez API V3",
+      "changeScale": "Navrhnuté pre lepšiu škálovateľnosť a dlhodobú kompatibilitu",
+      "considerations": "Dôležité okolnosti",
+      "considerApis": "Po migrácii už API V1 a V2 nebudú pre túto bázu fungovať",
+      "considerPermanent": "Migrácia je trvalá a nedá sa vrátiť späť",
+      "recommendation": "Migrujte až potom, čo overíte, že všetky integrácie sú kompatibilné s API v3.",
+      "confirmTitle": "Migrovať túto bázu na v3?",
+      "confirmDesc": "Týmto sa báza aktualizuje na najnovšiu architektúru a verziu API.",
+      "confirmCta": "Potvrdiť migráciu",
+      "migrating": "Prebieha migrácia..."
+    },
+    "skillsRegistryErrorTitle": "Register zručností sa nepodarilo prehľadať"
   },
   "trash": {
     "restore": "Restore",
@@ -6539,7 +6654,12 @@
         "partial": "Restore {count} without conflicts",
         "force": "Restore all and clear conflicts"
       }
-    }
+    },
+    "unavailableExternal": "Externý zdroj",
+    "unavailablePending": "Prebieha nastavenie",
+    "usingDefault": "{value} (predvolené)",
+    "keptForever": "Navždy",
+    "notKept": "Neuchováva sa"
   },
   "baseTrash": {
     "title": "Trash",

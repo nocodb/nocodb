@@ -302,7 +302,9 @@
     "upgradeToUseFormRequireSignin": "Upgrade om aanmelden verplicht te stellen voor formulieren",
     "upgradeToUseFormRequireSigninSubtitle": "Upgrade naar het {plan}-abonnement om respondenten te verplichten zich aan te melden voordat ze een formulier verzenden.",
     "upgradeToUseSso": "Upgrade om SSO te gebruiken",
-    "upgradeToUseSsoSubtitle": "Upgrade naar het {plan} plan om Single Sign-On (SSO) in te stellen en je team te laten inloggen met je identiteitsprovider."
+    "upgradeToUseSsoSubtitle": "Upgrade naar het {plan} plan om Single Sign-On (SSO) in te stellen en je team te laten inloggen met je identiteitsprovider.",
+    "upgradeToUseAppFactory": "Upgrade om de App Factory te gebruiken",
+    "upgradeToUseAppFactorySubtitle": "Upgrade naar het {plan}-abonnement om codeeragenten in te zetten op je gekoppelde repository's."
   },
   "general": {
     "scrollToBottom": "Scroll naar beneden",
@@ -1068,7 +1070,8 @@
         "noUsersSelected": "Niemand {description}",
         "moreUsers": "+ {count} meer",
         "selectUsersOrTeams": "Selecteer gebruikers of teams"
-      }
+      },
+      "createRecords": "Records aanmaken"
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
@@ -1169,7 +1172,25 @@
     "viewFolder": "Weergavemap",
     "subRecord": "Subrecord",
     "video": "Video",
-    "recordTemplates": "Recordsjablonen"
+    "recordTemplates": "Recordsjablonen",
+    "roleTypePlural": {
+      "owner": "Eigenaren",
+      "creator": "Makers",
+      "editor": "Bewerkers",
+      "commenter": "Reageerders",
+      "viewer": "Lezers",
+      "inherit": "Overnemen",
+      "noaccess": "Geen toegang",
+      "admin": "Beheerders",
+      "superAdmin": "Superbeheerders",
+      "orgAdmin": "Org-beheerders",
+      "orgCreator": "Org-makers",
+      "orgViewer": "Org-lezers",
+      "orgLevelOwner": "Eigenaren op organisatieniveau",
+      "orgLevelCreator": "Makers op organisatieniveau",
+      "orgLevelViewer": "Lezers op organisatieniveau",
+      "appUser": "App-gebruikers"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -1521,7 +1542,9 @@
     "removeCustomDomain": "Aangepast domein verwijderen?",
     "tooNarrowToAdjustFrozenFields": "Het venster is te smal om bevroren velden aan te passen",
     "themeSettings": "Thema-instellingen",
-    "nFields": "{count} veld | {count} velden"
+    "nFields": "{count} veld | {count} velden",
+    "noInterfaceMembersYet": "Nog geen interfaceleden",
+    "headJoin": "Deelnemen | NocoDB"
   },
   "labels": {
     "syncing": "Synchroniseren",
@@ -4534,7 +4557,24 @@
     "openAgentConversation": "Gesprek van deze agent openen",
     "sendToAgent": "Naar agent sturen",
     "noPort": "Geen poort",
-    "manageInviteLinks": "Uitnodigingslinks beheren"
+    "manageInviteLinks": "Uitnodigingslinks beheren",
+    "editOauthClient": "OAuth-client bewerken",
+    "oauthClientNameHint": "Wordt tijdens de autorisatie aan gebruikers getoond",
+    "applicationDescription": "Beschrijving van de applicatie",
+    "oauthClientDescriptionHint": "Korte beschrijving die wordt getoond wanneer gebruikers toegang verlenen",
+    "homepageUrl": "Homepage-URL",
+    "oauthClientLogoHint": "Afbeelding die tijdens de autorisatie wordt getoond (vierkant aanbevolen)",
+    "clientType": "Clienttype",
+    "oauthClientTypeHint": "Openbaar: mobiele apps/web-apps (PKCE vereist). Vertrouwelijk: beveiligde servers (kunnen geheimen opslaan)",
+    "confidential": "Vertrouwelijk",
+    "authorizationCallbackUrls": "Callback-URL's voor autorisatie",
+    "oauthCallbackUrlsHint": "HTTPS-URL's voor doorverwijzing na autorisatie (localhost/127.0.0.1 toegestaan). Eén per regel",
+    "clientId": "Client-ID",
+    "clientSecret": "Clientgeheim",
+    "regenerateSecret": "Geheim opnieuw genereren",
+    "createOauthClients": "OAuth-clients aanmaken",
+    "managingOauthClients": "OAuth-clients beheren",
+    "clientInformation": "Clientgegevens"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -5047,7 +5087,11 @@
     "marketplaceAuthored": "Geschreven door de uitgever, niet afgeleid van de inhoud van de App.",
     "marketplaceVerifiedPublisher": "Gepubliceerd en gecontroleerd door NocoDB",
     "showCustomPermissionFieldsOnly": "Alleen velden met aangepaste rechten tonen",
-    "showAllFields": "Alle velden tonen"
+    "showAllFields": "Alle velden tonen",
+    "inviteLinkCannotGrantOwner": "Een uitnodigingslink kan de rol Eigenaar niet toekennen",
+    "inviteLinkRoleAboveYours": "Je kunt alleen rollen tot en met je eigen rol aanbieden",
+    "noDefaultSourceForFolders": "Deze base heeft geen standaardbron — maak mappen aan via het menu van een bron",
+    "noDefaultSourceForSync": "Deze base heeft geen standaardbron — een synchronisatie heeft er een nodig om zijn tabellen op te slaan"
   },
   "placeholder": {
     "enterVerificationCode": "6-cijferige code invoeren",
@@ -5209,7 +5253,28 @@
     "messageAgent": "Bericht aan {agent}",
     "somethingElse": "Iets anders",
     "noMcpConnections": "Geen MCP-verbindingen aangemaakt",
-    "noMcpConnectionsLabel": "Het lijkt erop dat je nog geen MCP-verbindingen hebt aangemaakt."
+    "noMcpConnectionsLabel": "Het lijkt erop dat je nog geen MCP-verbindingen hebt aangemaakt.",
+    "searchDataSource": "Gegevensbron zoeken",
+    "searchConnections": "Verbindingen zoeken",
+    "migrationUrl": "Voer de migratie-URL voor de bestemming in",
+    "searchSync": "Synchronisatie zoeken",
+    "searchWorkspace": "Werkruimte zoeken",
+    "searchBase": "Base zoeken",
+    "searchEvent": "Gebeurtenis zoeken",
+    "skillRegistrySearch": "Skills zoeken…",
+    "searchSnapshots": "Snapshots zoeken",
+    "searchTokens": "Tokens zoeken",
+    "factoryPrompt": "Beschrijf wat je wilt laten bouwen",
+    "factorySearchRepos": "Repository's zoeken",
+    "factorySearchTargets": "Repository's zoeken",
+    "factorySearchSources": "Branches, PR's en issues zoeken",
+    "factoryOnPr": "Wat moet er met deze pull request gebeuren?",
+    "factoryOnIssue": "Iets toe te voegen naast de issue zelf (optioneel)",
+    "factoryReply": "Antwoorden",
+    "searchFiles": "Bestanden zoeken",
+    "factoryAnnotation": "Wat moet de agent hier veranderen?",
+    "oauthClientName": "Mijn applicatie",
+    "oauthClientDescription": "Deze applicatie helpt je je gegevens te beheren..."
   },
   "msg": {
     "sourceViewNotShared": "Synchronisatie is uitgeschakeld in deze weergave",
@@ -5448,7 +5513,8 @@
       "tableSyncConvertMainTable": "Dit is de gesynchroniseerde tabel van deze synchronisatie — hem omzetten verwijdert de synchronisatie zelf. Alle tabellen die erdoor zijn aangemaakt blijven als gewone, bewerkbare tabellen bestaan en synchroniseren niet meer.",
       "requiredFieldNotEditable": "Dit verplichte veld is niet bewerkbaar, wat fouten kan veroorzaken bij het versturen van het formulier.",
       "communityAppInstall": "{title} is een community-app. Hij is niet beoordeeld of geverifieerd door NocoDB. Zorg dat u de uitgever vertrouwt voordat u hem in uw werkruimte installeert.",
-      "removeCustomDomain": "{domain} zal deze app niet langer serveren. Het standaardadres blijft werken."
+      "removeCustomDomain": "{domain} zal deze app niet langer serveren. Het standaardadres blijft werken.",
+      "copyClientSecretNow": "⚠️ Kopieer nu je clientgeheim. Je kunt het later niet meer bekijken!"
     },
     "info": {
       "sourceViewRebindResync": "Het wijzigen van de bronweergave activeert een volledige synchronisatie met de nieuwe weergave.",
@@ -5943,7 +6009,40 @@
       "interfaceRecordUnreadableEditingOff": "Bewerken staat uit totdat het weer gelezen kan worden.",
       "inviteLinkDomainSentence": "Werkt alleen met {domain}-e-mail en teamgenoten sluiten zich aan als {role}",
       "inviteLinkOpenSentence": "Iedereen met de link kan deelnemen als {role}",
-      "inviteLinkOpenCaution": "Deel hem alleen met mensen die je vertrouwt."
+      "inviteLinkOpenCaution": "Deel hem alleen met mensen die je vertrouwt.",
+      "shareHubTooltip": "Nodig mensen uit om in deze base te werken, of publiceer een alleen-lezen link naar {object}.",
+      "shareHubTooltipInviteOnly": "Nodig mensen uit om in deze base te werken. Gebruik «Base delen» in het basemenu om de base zelf te publiceren.",
+      "shareNothingPrivateBase": "Alleen de eigenaar van de base kan mensen uitnodigen voor een privébase. Open eerst een weergave om die te publiceren.",
+      "shareNothingToShow": "Hier valt niets te delen. Open een weergave om een alleen-lezen link te publiceren.",
+      "peopleHaveAccess": "{count} persoon heeft toegang. | {count} personen hebben toegang.",
+      "noInviteLinkYet": "Nog geen uitnodigingslink. Maak er een zodat mensen kunnen deelnemen zonder persoonlijke uitnodiging.",
+      "youWillJoinAs": "Je neemt deel als {role}.",
+      "signedInWrongDomain": "Je bent aangemeld als {email}. Deze link accepteert alleen {'@'}{domain}-adressen.",
+      "signedInAs": "Je bent aangemeld als {email}.",
+      "publicLinkToNamed": "Openbare link naar {name}",
+      "readOnlyInviteInstead": "Alleen-lezen. Wil je dat ze kunnen bewerken of reageren?",
+      "willJoinAsRole": "{count} persoon neemt deel als {role} en kan {can}. | {count} personen nemen deel als {role} en kunnen {can}.",
+      "sharePublicLinkSubtitle": "Iedereen met de link kan hem openen. Geen account nodig.",
+      "shareLinksReadOnly": "Links zijn alleen-lezen. Wil je dat ze kunnen bewerken of reageren?",
+      "clientSecretHidden": "Het geheim is om veiligheidsredenen verborgen en is niet opnieuw zichtbaar. Je kunt het zo nodig opnieuw genereren.",
+      "mcpSetupIntroClaude": "Ga in 3 eenvoudige stappen aan de slag met NocoDB MCP en Claude Desktop",
+      "mcpSetupClaudeStep1": "Open de instellingen van Claude Desktop via de navigatiebalk.",
+      "mcpSetupClaudeStep2": "Ga naar het tabblad Develop en klik op «Edit Config».",
+      "mcpSetupClaudeStep3": "Voeg de JSON-configuratie die na het aanmaken van een token wordt gegeven toe aan claude_desktop_config.json",
+      "mcpSetupIntroCodex": "Ga in 3 eenvoudige stappen aan de slag met NocoDB MCP en Codex CLI",
+      "mcpSetupCodexStep2": "Voeg de TOML-configuratie toe die na het aanmaken van een token wordt gegeven.",
+      "mcpSetupIntroAntigravity": "Ga in 4 eenvoudige stappen aan de slag met NocoDB MCP en AntiGravity",
+      "mcpSetupAntigravityStep1": "Klik op de drie puntjes rechtsboven in het agentvenster en klik daarna op \"MCP Servers\"",
+      "mcpSetupAntigravityStep2": "Klik op Manage MCP Servers.",
+      "mcpSetupViewRawConfig": "Klik nu op View raw config.",
+      "mcpSetupPasteJsonConfig": "Plak de JSON-configuratie die na het aanmaken van een token wordt gegeven in het geopende bestand",
+      "mcpSetupIntroCursor": "Ga in 3 eenvoudige stappen aan de slag met NocoDB MCP en Cursor",
+      "mcpSetupCursorStep1": "Open de Cursor-instellingen (druk op Shift+Cmd+J)",
+      "mcpSetupCursorStep2": "Selecteer het tabblad \"MCP\" en klik op \"Add Custom MCP\".",
+      "mcpSetupCursorStep3": "Voeg de JSON-configuratie toe die na het aanmaken van een token wordt gegeven.",
+      "mcpSetupIntroWindsurf": "Ga in 4 eenvoudige stappen aan de slag met NocoDB MCP en Windsurf",
+      "mcpSetupWindsurfStep1": "Open de Windsurf-instellingen en selecteer het tabblad Cascade in de linkerzijbalk",
+      "mcpSetupWindsurfStep2": "Klik op Manage MCP."
     },
     "error": {
       "failedToCreateSync": "Maken van synchronisatie mislukt",
@@ -6258,7 +6357,8 @@
       "planChangeScheduled": "Abonnementswijziging ingepland",
       "planChangeReverted": "Geplande abonnementswijziging teruggedraaid. Uw huidige abonnement loopt ongewijzigd door.",
       "appDelisted": "Verwijderd uit de App Store",
-      "appRelisted": "Terug in de App Store"
+      "appRelisted": "Terug in de App Store",
+      "oauthClientUpdated": "OAuth-client bijgewerkt!"
     },
     "subText": {
       "startFromScratch": "Begin helemaal opnieuw.",
@@ -6453,7 +6553,22 @@
     "factorySelectLinesToAnnotate": "Selecteer eerst de regels waarover de opmerking gaat.",
     "factorySessionArchived": "Sessie gearchiveerd. Het werk is bewaard; hervat de sessie om verder te gaan.",
     "factoryTurnFailed": "De beurt is mislukt",
-    "factoryDeleteSession": "‘{title}’ en het volledige transcript worden verwijderd. Dit kan niet ongedaan worden gemaakt."
+    "factoryDeleteSession": "‘{title}’ en het volledige transcript worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "migrateToV3": {
+      "whatChanges": "Wat er verandert na de migratie",
+      "changeDuplicate": "Bases kunnen worden gedupliceerd met behoud van entiteits-ID's",
+      "changeApi": "Toegang is alleen mogelijk via de V3-API",
+      "changeScale": "Ontworpen voor betere schaalbaarheid en compatibiliteit op lange termijn",
+      "considerations": "Belangrijke aandachtspunten",
+      "considerApis": "De V1- en V2-API's werken na de migratie niet meer voor deze base",
+      "considerPermanent": "De migratie is definitief en kan niet ongedaan worden gemaakt",
+      "recommendation": "Migreer pas nadat je hebt bevestigd dat alle integraties compatibel zijn met de v3-API.",
+      "confirmTitle": "Deze base migreren naar v3?",
+      "confirmDesc": "Hiermee wordt de base bijgewerkt naar de nieuwste architectuur- en API-versie.",
+      "confirmCta": "Migratie bevestigen",
+      "migrating": "Bezig met migreren..."
+    },
+    "skillsRegistryErrorTitle": "Kan het skills-register niet doorzoeken"
   },
   "trash": {
     "restore": "Herstellen",
@@ -6516,7 +6631,12 @@
         "partial": "Herstel {count} zonder conflicten",
         "force": "Herstel alle en duidelijke conflicten"
       }
-    }
+    },
+    "unavailableExternal": "Externe bron",
+    "unavailablePending": "Wordt ingesteld",
+    "usingDefault": "{value} (standaard)",
+    "keptForever": "Voor altijd",
+    "notKept": "Niet bewaard"
   },
   "baseTrash": {
     "title": "Prullenbak",

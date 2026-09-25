@@ -168,6 +168,7 @@ export enum MetaTable {
   CHAT_MESSAGES = 'nc_chat_messages',
   CHAT_ARTIFACTS = 'nc_chat_artifacts',
   FACTORY_REPOS = 'nc_factory_repos',
+  COMPUTE_INSTANCES = 'nc_compute_instances',
   /** @deprecated Documents now live in nc_models_v2 (type='document'). Kept for legacy data cleanup. */
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
@@ -687,6 +688,7 @@ export enum CacheScope {
   AUTOMATION_SECTION = 'automationSection',
   AGENT_SECTION = 'agentSection',
   FACTORY_REPO = 'factoryRepo',
+  COMPUTE_INSTANCE = 'computeInstance',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',
@@ -745,6 +747,7 @@ export enum RootScopes {
 
 export const RootScopeTables = {
   [RootScopes.ROOT]: [
+    MetaTable.COMPUTE_INSTANCES,
     MetaTable.USERS,
     MetaTable.USER_REFRESH_TOKENS,
     MetaTable.API_TOKENS,

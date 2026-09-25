@@ -30,6 +30,8 @@ const { isPrivateBase, base } = storeToRefs(useBase())
 
 const { isAppsEnabled } = storeToRefs(useAppStore())
 
+const { isCodeProject } = useCodeProjects()
+
 const basesStore = useBases()
 const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate, baseTeamRemove } =
   basesStore
@@ -969,7 +971,8 @@ onBeforeUnmount(() => {
             </template>
           </NcTable>
 
-          <ProjectAppTeamsSection v-if="isAppsEnabled && baseId" :base-id="baseId" />
+          <!-- A code project has no app whose teams could project here. -->
+          <ProjectAppTeamsSection v-if="isAppsEnabled && baseId && !isCodeProject(currentBase)" :base-id="baseId" />
         </div>
       </div>
 

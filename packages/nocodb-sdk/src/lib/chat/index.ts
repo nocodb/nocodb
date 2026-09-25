@@ -163,10 +163,12 @@ export enum FactorySourceKind {
   ISSUE = 'issue',
 }
 
-/** A repository App Factory can dispatch an agent against. */
+/** The repository behind a code project. */
 export interface FactoryRepoType {
   id?: string;
   fk_workspace_id?: string;
+  /** The code project — one repo per base. */
+  base_id?: string;
   fk_integration_id?: string;
   provider_repo_id?: string;
   full_name?: string;
@@ -187,7 +189,7 @@ export interface FactoryAvailableRepo {
   defaultBranch: string;
   isPrivate: boolean;
   description?: string;
-  /** Whether it already has a factory row and can be dispatched against. */
+  /** Whether a code project in this workspace already uses it. */
   configured: boolean;
 }
 

@@ -52,6 +52,7 @@ export default class Base implements BaseType {
   public deleted: BoolType | number;
   public order: number;
   public is_meta: boolean | number = false;
+  public type?: BaseType['type'];
   public sources?: Source[];
   public linked_db_projects?: Base[];
   public default_role?: 'no-access';

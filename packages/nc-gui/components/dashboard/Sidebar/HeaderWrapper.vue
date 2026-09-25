@@ -23,6 +23,12 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { openCommandPalette } = useCommandPalette()
 
+const route = useRoute()
+
+const { isActiveBaseCodeProject, isCodeProjectRoute, isSessionSearchOpen, toggleSessionSearch } = useCodeProjects()
+
+const isSessionSearch = computed(() => isActiveBaseCodeProject.value && isCodeProjectRoute(route))
+
 const showSidebarBtn = computed(() => {
   if (isMobileMode.value) {
     return allowHideLeftSidebarForCurrentRoute.value || !!(activeViewTitleOrId.value && activeTableId.value)
@@ -30,6 +36,11 @@ const showSidebarBtn = computed(() => {
 
   return true
 })
+
+function onSearch() {
+  if (isSessionSearch.value) toggleSessionSearch()
+  else openCommandPalette()
+}
 </script>
 
 <template>
@@ -41,20 +52,22 @@ const showSidebarBtn = computed(() => {
 
       <div class="flex items-center gap-0.5">
         <DashboardSidebarViewOptions
-          v-if="isEeUI && appInfo.ee && !isMobileMode && !isSharedBase && activeSidebarTab === 'data'"
+          v-if="isEeUI && appInfo.ee && !isMobileMode && !isSharedBase && activeSidebarTab === 'data' && !isSessionSearch"
         />
         <NcTooltip v-if="!isMobileMode && !isSharedBase" class="flex" placement="bottom" hide-on-click>
           <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+            <template v-if="isSessionSearch">{{ $t('placeholder.factorySearchSessions') }}</template>
+            <div v-else class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
           </template>
           <NcButton
             v-e="['c:quick-actions']"
             type="text"
             size="small"
             class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
+            :class="{ '!bg-nc-bg-gray-medium': isSessionSearch && isSessionSearchOpen }"
             data-testid="nc-sidebar-search-btn"
             data-tour="sidebar-search"
-            @click="openCommandPalette"
+            @click="onSearch"
           >
             <GeneralIcon icon="search" class="!text-current" />
           </NcButton>

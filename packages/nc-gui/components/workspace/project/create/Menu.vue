@@ -44,7 +44,9 @@ onMounted(() => {
     data-testid="nc-home-create-new-menu"
     @click="vVisible = false"
   >
-    <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2" @click.stop> CREATE BASE </NcMenuItemLabel>
+    <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2 uppercase" @click.stop>
+      {{ $t('title.createBase') }}
+    </NcMenuItemLabel>
     <WorkspaceProjectCreateMenuItem
       v-e="['c:base:create:scratch']"
       :variant="variant"

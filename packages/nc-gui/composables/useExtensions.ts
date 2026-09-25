@@ -70,6 +70,10 @@ export const useExtensions = createSharedComposable(() => {
 
   const { base } = storeToRefs(useBase())
 
+  const { bases } = storeToRefs(useBases())
+
+  const { isCodeProject } = useCodeProjects()
+
   const { updateStatLimit, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
 
   const { isSharedBase } = storeToRefs(useWorkspace())
@@ -340,7 +344,8 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const loadExtensionsForBase = async (baseId: string) => {
-    if (!baseId || !extensionAccess.value.list) {
+    // A code project has no extensions.
+    if (!baseId || !extensionAccess.value.list || isCodeProject(bases.value.get(baseId))) {
       return
     }
 

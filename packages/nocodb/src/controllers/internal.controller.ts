@@ -472,10 +472,6 @@ export class InternalController {
     // an own property so the ACL cannot silently trust the wrong source.
     subReq.ncSourceId = undefined;
 
-    // Per-sub-op authorization. `this.checkAcl` is overridable in EE so
-    // license checks etc. layer on automatically through prototype dispatch.
-    await this.checkAcl(operation, subReq, scope);
-
     const module =
       this.internalApiModuleMap['POST']?.[operation] ??
       this.internalApiModuleMap['GET']?.[operation];
@@ -483,6 +479,14 @@ export class InternalController {
     if (!module) {
       NcError.notFound(`Operation "${operation}" not registered`);
     }
+
+    // The envelope is a POST; the ACL must see the sub-op's own method, or
+    // every batched read is judged as a write.
+    subReq.method = module.httpMethod;
+
+    // Per-sub-op authorization. `this.checkAcl` is overridable in EE so
+    // license checks etc. layer on automatically through prototype dispatch.
+    await this.checkAcl(operation, subReq, scope);
 
     return module.handle(subContext, {
       workspaceId,

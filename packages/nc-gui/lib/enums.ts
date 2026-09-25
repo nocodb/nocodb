@@ -237,4 +237,5 @@ export enum NcBaseCreateMode {
   BUILD_WITH_AI = 'buildWithAi',
   FROM_APP_STORE = 'fromAppStore',
   MANAGED_APP = 'managedApp',
+  CODE_PROJECT = 'codeProject',
 }

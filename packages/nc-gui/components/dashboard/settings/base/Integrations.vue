@@ -296,9 +296,9 @@ const linkedColumns = computed<NcTableColumnProps[]>(
             {
               key: 'environments',
               title: t('title.environments'),
-              minWidth: 100,
-              width: 110,
-              padding: '0px 24px',
+              minWidth: 130,
+              width: 140,
+              padding: '0px 16px',
             },
           ]
         : []),
@@ -314,11 +314,11 @@ const linkedColumns = computed<NcTableColumnProps[]>(
       {
         key: 'source_count',
         title: t('general.usage'),
-        minWidth: 100,
-        width: 110,
+        minWidth: 90,
+        width: 96,
         dataIndex: 'source_count',
         showOrderBy: true,
-        padding: '0px 24px',
+        padding: '0px 12px',
       },
       // Base access + row actions are manager-only surfaces.
       ...(canManage.value
@@ -326,9 +326,9 @@ const linkedColumns = computed<NcTableColumnProps[]>(
             {
               key: 'base_access',
               title: t('labels.baseAccess'),
-              minWidth: 110,
-              width: 120,
-              padding: '0px 24px',
+              minWidth: 120,
+              width: 130,
+              padding: '0px 16px',
             },
             {
               key: 'action',

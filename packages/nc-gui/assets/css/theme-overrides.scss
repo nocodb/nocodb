@@ -54,6 +54,11 @@ body {
   @apply border-t-nc-border-gray-medium;
 }
 
+// Darker than ant's 0.45; nested modals darken further by stacking.
+.ant-modal-mask {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
 .ant-drawer,
 .ant-modal,
 .ant-card {

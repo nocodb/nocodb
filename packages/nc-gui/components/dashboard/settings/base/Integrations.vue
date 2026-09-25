@@ -472,7 +472,8 @@ watch(baseId, reload)
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
       <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 nc-workspace-settings-integrations-list">
-        <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
+        <!-- pr clears the scrollbar: without it the focused search ring collides with the track. -->
+        <div class="flex-1 overflow-y-auto nc-scrollbar-thin pr-2">
           <div class="flex flex-col space-y-6 w-full">
             <!-- Full-page skeleton during initial load -->
             <WorkspaceIntegrationsSkeleton v-if="!isLoaded" :connection-count="3" />

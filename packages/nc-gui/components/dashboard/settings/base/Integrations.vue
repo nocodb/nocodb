@@ -443,10 +443,11 @@ watch(viewMode, () => {
   connectionsSearchQuery.value = ''
 })
 
+// The search sits below "Your connections"; focusing it must not scroll past them.
 watch(mainSearchInputRef, (el) => {
   if (el) {
     forcedNextTick(() => {
-      mainSearchInputRef.value?.focus()
+      mainSearchInputRef.value?.focus({ preventScroll: true })
     })
   }
 })

@@ -241,7 +241,7 @@ watch(
 
       <ShellRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool">
         <template v-if="meta" #subject>
-          <GeneralTableIcon :meta="meta" class="!h-4 !w-4 flex-none text-nc-content-gray-subtle2" />
+          <GeneralTableIcon :meta="meta" class="!h-5 !w-5 !mx-0 flex-none text-nc-content-gray-subtle2" />
           <NcTooltip show-on-truncate-only class="truncate">{{ meta.title }}</NcTooltip>
         </template>
       </ShellRail>

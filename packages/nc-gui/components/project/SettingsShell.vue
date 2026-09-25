@@ -213,7 +213,7 @@ watch(
             :icon="parseProp(base.meta).icon"
             :type="base.type"
             :managed-app="{ managed_app_master: base.managed_app_master, managed_app_id: base.managed_app_id }"
-            class="!h-4 !w-4 flex-none"
+            class="!h-5 !w-5 flex-none"
           />
           <NcTooltip show-on-truncate-only class="truncate">{{ base.title }}</NcTooltip>
         </template>

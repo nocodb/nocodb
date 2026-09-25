@@ -443,14 +443,8 @@ watch(viewMode, () => {
   connectionsSearchQuery.value = ''
 })
 
-// The search sits below "Your connections"; focusing it must not scroll past them.
-watch(mainSearchInputRef, (el) => {
-  if (el) {
-    forcedNextTick(() => {
-      mainSearchInputRef.value?.focus({ preventScroll: true })
-    })
-  }
-})
+// Not focused on open: the field sits beside the scrollbar, so an unprompted focus ring
+// reads as the two overlapping. scrollToBrowse() still focuses it on "Add connection".
 
 watch(connectionsSearchInputRef, (el) => {
   if (el) {
@@ -471,9 +465,9 @@ watch(baseId, reload)
   <div class="flex w-full flex-col h-full nc-base-integrations">
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
-      <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3 nc-workspace-settings-integrations-list">
-        <!-- pr clears the scrollbar: without it the focused search ring collides with the track. -->
-        <div class="flex-1 overflow-y-auto nc-scrollbar-thin pr-2">
+      <div class="flex flex-col h-full pb-6 pt-3 nc-workspace-settings-integrations-list">
+        <!-- Gutter sits on the scroller, not its parent, so the scrollbar rides the pane edge. -->
+        <div class="flex-1 overflow-y-auto nc-scrollbar-thin nc-shell-gutter">
           <div class="flex flex-col space-y-6 w-full">
             <!-- Full-page skeleton during initial load -->
             <WorkspaceIntegrationsSkeleton v-if="!isLoaded" :connection-count="3" />

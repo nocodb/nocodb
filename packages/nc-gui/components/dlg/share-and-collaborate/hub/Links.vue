@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import { RoleLabels } from 'nocodb-sdk'
+import { InviteLinkScope, RoleLabels } from 'nocodb-sdk'
 
 const emit = defineEmits(['editLink'])
 
 const { t } = useI18n()
 
 const { links, target: inviteTarget, linkUrl, isLoading, isLoaded } = useInviteLinks()
+
+const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
 const { user } = useGlobal()
 
@@ -49,7 +51,10 @@ async function copyRow(id: string) {
     // do nothing at all and look like a dead button. Same as LinkBlock.
     await copy(linkUrl(link))
 
-    $e('c:invite:link:copy', { scope: inviteTarget.value?.scope, from: 'list', restricted: !!link.email_domain })
+    $e(isWorkspaceInvite.value ? 'c:invite:workspace:link:copy' : 'c:invite:base:link:copy', {
+      from: 'list',
+      restricted: !!link.email_domain,
+    })
 
     copiedId.value = id
     // One shared timer: copying a second row must not let the first row's
@@ -128,7 +133,10 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 
         <NcTooltip :title="$t('activity.linkSettings')">
           <NcButton
-            v-e="['c:invite:link:settings:open', { scope: inviteTarget?.scope, from: 'list' }]"
+            v-e="[
+              isWorkspaceInvite ? 'c:invite:workspace:link:settings:open' : 'c:invite:base:link:settings:open',
+              { from: 'list' },
+            ]"
             type="secondary"
             size="small"
             class="!px-0 !w-8"

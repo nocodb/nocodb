@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { InviteLinkScope } from 'nocodb-sdk'
+
 /** `linkId` is empty while `isNew` — a new link is a draft until it is saved. */
 const props = withDefaults(defineProps<{ linkId?: string; isNew?: boolean }>(), { linkId: '', isNew: false })
 
@@ -17,6 +19,8 @@ const {
   saveLink,
   deleteLink,
 } = useInviteLinks()
+
+const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
 const { $e } = useNuxtApp()
 
@@ -108,12 +112,20 @@ async function onSave() {
 
   // After the await, not before: a refused save must not be counted as one.
   if (saved) {
-    $e(props.isNew ? 'a:invite:link:create' : 'a:invite:link:update', {
-      scope: inviteTarget.value?.scope,
-      role: draft.role,
-      restricted: !draft.anyEmail,
-      ...(props.isNew ? { from: 'list' } : {}),
-    })
+    $e(
+      props.isNew
+        ? isWorkspaceInvite.value
+          ? 'a:invite:workspace:link:create'
+          : 'a:invite:base:link:create'
+        : isWorkspaceInvite.value
+        ? 'a:invite:workspace:link:update'
+        : 'a:invite:base:link:update',
+      {
+        role: draft.role,
+        restricted: !draft.anyEmail,
+        ...(props.isNew ? { from: 'list' } : {}),
+      },
+    )
 
     emit('done')
   }
@@ -127,7 +139,7 @@ async function onDelete() {
   isDeleting.value = false
 
   if (done) {
-    $e('a:invite:link:revoke', { scope: inviteTarget.value?.scope })
+    $e(isWorkspaceInvite.value ? 'a:invite:workspace:link:revoke' : 'a:invite:base:link:revoke')
 
     emit('done')
   }

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { InviteLinkScope } from 'nocodb-sdk'
+
 /**
  * The private-link block. There is no separate "create" step: the link is a
  * detail of copying one, so it is minted on the first copy and never just
@@ -22,6 +24,8 @@ const {
   createLink,
   saveLink,
 } = useInviteLinks()
+
+const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
 const { copy } = useCopy()
 
@@ -48,7 +52,10 @@ const hasLink = computed(() => !!primary.value)
 const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : t('activity.createInviteLink')))
 
 async function onRoleChange(next: string) {
-  $e('c:invite:link:role:change', { scope: inviteTarget.value?.scope, role: next, existing: !!primary.value })
+  $e(isWorkspaceInvite.value ? 'c:invite:workspace:link:role:change' : 'c:invite:base:link:role:change', {
+    role: next,
+    existing: !!primary.value,
+  })
 
   if (!primary.value) {
     pendingRole.value = next
@@ -75,7 +82,12 @@ async function onCopy() {
     if (!link) {
       link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
 
-      if (link) $e('a:invite:link:create', { scope: inviteTarget.value?.scope, role: link.role, restricted: !!link.email_domain })
+      if (link) {
+        $e(isWorkspaceInvite.value ? 'a:invite:workspace:link:create' : 'a:invite:base:link:create', {
+          role: link.role,
+          restricted: !!link.email_domain,
+        })
+      }
     }
 
     if (!link) return
@@ -84,7 +96,10 @@ async function onCopy() {
     // do nothing at all and look like a dead button.
     await copy(linkUrl(link))
 
-    $e('c:invite:link:copy', { scope: inviteTarget.value?.scope, created: isFirst, restricted: !!link.email_domain })
+    $e(isWorkspaceInvite.value ? 'c:invite:workspace:link:copy' : 'c:invite:base:link:copy', {
+      created: isFirst,
+      restricted: !!link.email_domain,
+    })
 
     isCopied.value = true
     clearTimeout(copiedTimer)

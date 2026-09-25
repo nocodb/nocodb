@@ -82,7 +82,7 @@ const heading = computed(() => {
 })
 
 function openEditLink(linkId: string, isNew = false) {
-  $e('c:invite:link:settings:open', { scope: props.type, isNew })
+  $e(props.type === 'workspace' ? 'c:invite:workspace:link:settings:open' : 'c:invite:base:link:settings:open', { isNew })
 
   editLinkId.value = linkId
   editLinkIsNew.value = isNew
@@ -94,12 +94,18 @@ function goMain() {
 }
 
 function openLinks() {
-  $e('c:invite:link:list:open', { scope: props.type })
+  $e(props.type === 'workspace' ? 'c:invite:workspace:link:list:open' : 'c:invite:base:link:list:open')
   screen.value = 'links'
 }
 
 function openCompose() {
-  $e('c:invite:email:compose', { scope: props.type })
+  $e(
+    props.type === 'workspace'
+      ? 'c:invite:workspace:email:compose'
+      : props.type === 'organization'
+      ? 'c:invite:organization:email:compose'
+      : 'c:invite:base:email:compose',
+  )
   screen.value = 'compose'
 }
 

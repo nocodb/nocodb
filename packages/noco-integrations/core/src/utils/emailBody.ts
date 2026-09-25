@@ -149,10 +149,29 @@ DOMPurify.addHook('uponSanitizeElement', (node, data) => {
 });
 
 DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
-  if (!emailSanitizeActive || data.attrName !== 'style') return;
+  if (!emailSanitizeActive) return;
+  if (data.attrName === 'href') {
+    data.attrValue = normalizeEmailHref(data.attrValue);
+    return;
+  }
+  if (data.attrName !== 'style') return;
   data.attrValue = sanitizeInlineStyle(data.attrValue);
   if (!data.attrValue) data.keepAttr = false;
 });
+
+/**
+ * A link URL that is a variable (`{{ record.Website }}`) only resolves here, and record values
+ * often lack a scheme — without one the URI allowlist would strip the href. Runs before that check.
+ */
+export function normalizeEmailHref(raw: string): string {
+  const value = (raw ?? '').trim();
+  if (!value) return value;
+  // Any scheme is left for the allowlist to judge; `example.com:8080` is a port, not a scheme.
+  const isHostPort = /^(?:localhost|[^\s/:]+\.[^\s/:]+):\d+(?:[/?#]|$)/i.test(value);
+  if (!isHostPort && /^[a-z][a-z0-9+.-]*:/i.test(value)) return value;
+  if (/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(value)) return `mailto:${value}`;
+  return `https://${value.replace(/^\/+/, '')}`;
+}
 
 /**
  * Heuristic to detect whether a stored email body is HTML (authored with the

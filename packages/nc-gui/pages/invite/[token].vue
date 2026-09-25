@@ -96,7 +96,7 @@ async function loadPreview() {
     // held open explicitly -- otherwise the invite card renders with a blank
     // name, a blank role and a live Join button for the whole navigation.
     if (res.data?.already_member) {
-      $e('c:invite:view', { scope: res.data.scope, state: 'already_member' })
+      $e('c:invite:link:view', { scope: res.data.scope, state: 'already_member' })
       isRedirecting.value = true
       window.location.replace(landingPath(res.data))
       return
@@ -104,7 +104,7 @@ async function loadPreview() {
 
     preview.value = res.data
 
-    $e('c:invite:view', {
+    $e('c:invite:link:view', {
       scope: res.data?.scope,
       state: res.data?.invalid_reason ?? 'ok',
       restricted: !!res.data?.email_domain,
@@ -112,7 +112,7 @@ async function loadPreview() {
     })
   } catch (e: any) {
     loadError.value = await extractSdkResponseErrorMsg(e)
-    $e('c:invite:view', { state: 'error' })
+    $e('c:invite:link:view', { state: 'error' })
   } finally {
     isLoading.value = false
   }
@@ -120,14 +120,14 @@ async function loadPreview() {
 
 /** Come back here after signing in, so the link is not lost at the door. */
 function goSignIn(path: '/signin' | '/signup') {
-  $e(path === '/signup' ? 'c:invite:signup' : 'c:invite:signin')
+  $e(path === '/signup' ? 'c:invite:link:sign-up' : 'c:invite:link:sign-in')
 
   return navigateTo({ path, query: { continueAfterSignIn: `/invite/${token.value}` } })
 }
 
 /** Sign out, then come back here as someone else. */
 function switchAccount() {
-  $e('c:invite:switch-account', { reason: wrongDomain.value ? 'wrong_domain' : 'refused' })
+  $e('c:invite:link:switch-account', { reason: wrongDomain.value ? 'wrong_domain' : 'refused' })
 
   return signOut({
     redirectToSignin: true,
@@ -142,7 +142,7 @@ async function onJoin() {
   try {
     const res = await $api.instance.post(`/api/v2/invite-links/${encodeURIComponent(token.value)}/accept`)
 
-    $e('a:invite:join', { scope: preview.value?.scope, restricted: !!preview.value?.email_domain })
+    $e('a:invite:link:accept', { scope: preview.value?.scope, restricted: !!preview.value?.email_domain })
 
     // Same hold as the already-member path: the card must not sit on screen
     // through the navigation, or the browser has a live Join button to restore
@@ -154,7 +154,7 @@ async function onJoin() {
     window.location.href = landingPath(res.data || {})
   } catch (e: any) {
     joinError.value = await extractSdkResponseErrorMsg(e)
-    $e('a:invite:join:refused', { scope: preview.value?.scope, status: e?.response?.status })
+    $e('a:invite:link:accept:refused', { scope: preview.value?.scope, status: e?.response?.status })
     isJoining.value = false
     // The refusal may be about the link itself, so re-read its state.
     await loadPreview()

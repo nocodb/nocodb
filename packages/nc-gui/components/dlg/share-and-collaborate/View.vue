@@ -209,12 +209,12 @@ function goMain() {
 
 function openCompose() {
   screen.value = 'compose'
-  $e('c:share:compose')
+  $e('c:invite:email:compose', { scope: 'base' })
 }
 
 function openLinks() {
   screen.value = 'links'
-  $e('c:share:links')
+  $e('c:invite:link:list:open', { scope: 'base' })
 }
 
 /** Back to the list when there is a list to go back to, otherwise the hub. */
@@ -223,6 +223,8 @@ function afterEditLink() {
 }
 
 function openEditLink(linkId: string, isNew = false) {
+  $e('c:invite:link:settings:open', { scope: 'base', isNew })
+
   editLinkId.value = linkId
   editLinkIsNew.value = isNew
   screen.value = 'edit'
@@ -230,7 +232,7 @@ function openEditLink(linkId: string, isNew = false) {
 
 /** The hub's people row is a doorway to the real members page. */
 async function openManageAccess() {
-  $e('c:share:manage-members')
+  $e('c:share:members:open')
 
   try {
     await navigateToProjectPage({ page: 'collaborator' })
@@ -242,18 +244,18 @@ async function openManageAccess() {
 
 function onTabChange(key: string) {
   activeTab.value = key as typeof activeTab.value
-  $e('c:share:tab', { tab: key, object: objectTab.value })
+  $e('c:share:tab:switch', { tab: key, object: objectTab.value })
 }
 
 function goToInviteTab() {
   activeTab.value = 'invite'
-  $e('c:share:invite-instead')
+  $e('c:share:tab:switch', { tab: 'invite', object: objectTab.value, via: 'cta' })
 }
 
 // Closing is the form's call, not ours: it keeps itself open when something is
 // still sitting in the box waiting to be corrected.
 function onInviteSent(emails: string[]) {
-  $e('a:share:invite-sent', { count: emails.length })
+  $e('a:invite:email:send', { scope: 'base', count: emails.length })
   loadMemberCount()
 }
 

@@ -6,6 +6,7 @@ const emit = defineEmits(['done'])
 
 const {
   links,
+  target: inviteTarget,
   error,
   allowedRoles,
   disabledRoles,
@@ -107,7 +108,8 @@ async function onSave() {
 
   // After the await, not before: a refused save must not be counted as one.
   if (saved) {
-    $e(props.isNew ? 'a:share:link:create' : 'a:share:link:update', {
+    $e(props.isNew ? 'a:invite:link:create' : 'a:invite:link:update', {
+      scope: inviteTarget.value?.scope,
       role: draft.role,
       restricted: !draft.anyEmail,
       ...(props.isNew ? { from: 'list' } : {}),
@@ -125,7 +127,7 @@ async function onDelete() {
   isDeleting.value = false
 
   if (done) {
-    $e('a:share:link:revoke')
+    $e('a:invite:link:revoke', { scope: inviteTarget.value?.scope })
 
     emit('done')
   }

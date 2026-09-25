@@ -10,6 +10,7 @@ const { t } = useI18n()
 
 const {
   links,
+  target: inviteTarget,
   linkUrl,
   isLoading,
   isLoaded,
@@ -47,7 +48,7 @@ const hasLink = computed(() => !!primary.value)
 const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : t('activity.createInviteLink')))
 
 async function onRoleChange(next: string) {
-  $e('c:share:link:role', { role: next, existing: !!primary.value })
+  $e('c:invite:link:role:change', { scope: inviteTarget.value?.scope, role: next, existing: !!primary.value })
 
   if (!primary.value) {
     pendingRole.value = next
@@ -74,7 +75,7 @@ async function onCopy() {
     if (!link) {
       link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
 
-      if (link) $e('a:share:link:create', { role: link.role, restricted: !!link.email_domain })
+      if (link) $e('a:invite:link:create', { scope: inviteTarget.value?.scope, role: link.role, restricted: !!link.email_domain })
     }
 
     if (!link) return
@@ -83,7 +84,7 @@ async function onCopy() {
     // do nothing at all and look like a dead button.
     await copy(linkUrl(link))
 
-    $e('c:share:link:copy', { created: isFirst, restricted: !!link.email_domain })
+    $e('c:invite:link:copy', { scope: inviteTarget.value?.scope, created: isFirst, restricted: !!link.email_domain })
 
     isCopied.value = true
     clearTimeout(copiedTimer)

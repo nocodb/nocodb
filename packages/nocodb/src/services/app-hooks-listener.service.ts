@@ -261,7 +261,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const param = data as InviteLinkEvent;
 
           this.telemetryService.sendEvent({
-            evt_type: 'invite-link:created',
+            evt_type: 'a:invite:link:create',
             scope: param.link.scope,
             role: param.link.role,
             restricted: !!param.link.email_domain,
@@ -276,7 +276,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const param = data as InviteLinkAcceptEvent;
 
           this.telemetryService.sendEvent({
-            evt_type: 'invite-link:accepted',
+            evt_type: 'a:invite:link:accept',
             scope: param.link.scope,
             role: param.link.role,
             already_member: param.already_member,

@@ -82,7 +82,7 @@ const heading = computed(() => {
 })
 
 function openEditLink(linkId: string, isNew = false) {
-  $e('c:share:ws:link:edit', { isNew })
+  $e('c:invite:link:settings:open', { scope: props.type, isNew })
 
   editLinkId.value = linkId
   editLinkIsNew.value = isNew
@@ -94,12 +94,12 @@ function goMain() {
 }
 
 function openLinks() {
-  $e('c:share:ws:links')
+  $e('c:invite:link:list:open', { scope: props.type })
   screen.value = 'links'
 }
 
 function openCompose() {
-  $e('c:share:ws:compose')
+  $e('c:invite:email:compose', { scope: props.type })
   screen.value = 'compose'
 }
 

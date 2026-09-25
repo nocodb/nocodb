@@ -47,7 +47,7 @@ const {
 
 // The shell's unified save-bar contract. Editing panes register their
 // dirty/save/reset; the bar shows only then.
-const { hasSaveBar, goBack } = useProvideShell()
+const { hasSaveBar, goBack, setCrumb } = useProvideShell()
 
 // Panes were built for the settings sidebar page and read this to shed their
 // own page chrome. The shell is that host now.
@@ -122,6 +122,12 @@ watch(
   () => props.tab,
   (tab) => {
     projectPageTab.value = tab as ProjectPageType
+
+    // A crumb belongs to the pane that drilled in, so leaving the pane drops it.
+    // Owned here rather than in the pane's unmount: the incoming pane mounts
+    // before the outgoing one tears down, so an unmount hook cannot be what
+    // keeps the header honest.
+    setCrumb(null)
   },
   { immediate: true },
 )

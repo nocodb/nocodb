@@ -300,7 +300,9 @@ onMounted(async () => {
         :class="lockedBaseId ? 'flex-1 min-h-0 flex flex-col' : 'max-w-202 mx-auto h-full'"
         data-testid="nc-mcp-list"
       >
-        <div v-if="lockedBaseId" class="mb-6 flex items-center justify-between gap-3">
+        <!-- Nothing to search through, so no search box: an empty field over an
+             empty pane is furniture, not a control. -->
+        <div v-if="lockedBaseId && (accountMcpTokens.length || mcpSearch)" class="mb-6 flex items-center justify-between gap-3">
           <a-input
             v-model:value="mcpSearch"
             type="text"
@@ -470,23 +472,7 @@ onMounted(async () => {
           </template>
 
           <template v-if="lockedBaseId" #emptyText>
-            <ShellEmpty :title="mcpSearch ? $t('title.noResultsMatchedYourSearch') : $t('labels.noMcpConnectionsYet')">
-              <template #action>
-                <NcButton
-                  v-if="isEeUI"
-                  v-e="['c:mcp-connection:create:open']"
-                  data-testid="nc-mcp-new-connection-empty"
-                  size="small"
-                  type="primary"
-                  @click="openCreate"
-                >
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="plus" />
-                    <span data-rec="true">{{ $t('labels.newMcpConnection') }}</span>
-                  </div>
-                </NcButton>
-              </template>
-            </ShellEmpty>
+            <ShellEmpty :title="mcpSearch ? $t('title.noResultsMatchedYourSearch') : $t('labels.noMcpConnectionsYet')" />
           </template>
         </NcTable>
       </div>

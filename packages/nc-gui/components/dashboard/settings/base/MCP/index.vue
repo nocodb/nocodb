@@ -276,22 +276,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
         </template>
 
         <template #emptyText>
-          <ShellEmpty :title="$t('labels.noMcpConnectionsYet')">
-            <template #action>
-              <NcButton
-                :disabled="isUnsavedMCPTokenPending"
-                type="primary"
-                data-testid="add-new-mcp-token-empty"
-                size="small"
-                @click="addNewMcpToken"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="plus" />
-                  {{ $t('labels.newMCPEndpoint') }}
-                </div>
-              </NcButton>
-            </template>
-          </ShellEmpty>
+          <ShellEmpty :title="$t('labels.noMcpConnectionsYet')" />
         </template>
       </NcTable>
     </div>

@@ -14,6 +14,13 @@ interface Props {
 defineProps<Props>()
 
 const shell = useShell()
+
+/** A blank crumb is no crumb: never render a muted title trailed by a lone chevron. */
+const crumb = computed(() => {
+  const label = shell?.crumb?.value?.trim()
+
+  return label || null
+})
 </script>
 
 <!--
@@ -31,8 +38,25 @@ const shell = useShell()
          description into a column too narrow to read, the actions drop to a line
          of their own once they no longer both fit. -->
     <div class="flex-1 min-w-60">
-      <div class="text-lg sm:text-xl font-semibold leading-7 text-nc-content-gray-extreme truncate">{{ title }}</div>
-      <div v-if="description || docsHref" class="mt-0.5 text-sm leading-5 text-nc-content-gray-muted">
+      <!-- Drilled in, the pane's title becomes the parent crumb and the place
+           you are now follows it. The row is unchanged otherwise, so the drill-in's
+           own actions land beside it instead of in a second bar underneath. -->
+      <div class="flex items-baseline gap-1.5 min-w-0 text-lg sm:text-xl font-semibold leading-7">
+        <template v-if="crumb">
+          <button
+            type="button"
+            class="nc-shell-crumb-parent flex-none bg-transparent border-0 p-0 font-inherit text-nc-content-gray-muted hover:text-nc-content-gray cursor-pointer truncate"
+            data-testid="nc-shell-crumb-parent"
+            @click="shell?.goBack()"
+          >
+            {{ title }}
+          </button>
+          <GeneralIcon icon="chevronRight" class="flex-none !h-4 !w-4 text-nc-content-gray-muted" />
+          <span class="text-nc-content-gray-extreme truncate">{{ crumb }}</span>
+        </template>
+        <span v-else class="text-nc-content-gray-extreme truncate">{{ title }}</span>
+      </div>
+      <div v-if="!crumb && (description || docsHref)" class="mt-0.5 text-sm leading-5 text-nc-content-gray-muted">
         <span v-if="description">{{ description }}</span>
         <a
           v-if="docsHref"
@@ -50,7 +74,12 @@ const shell = useShell()
     <!-- One zone for both the host's own actions and whatever a pane teleports in
          (via `ShellActions`), so it collapses when it holds neither. Close is not
          here — it lives in the modal's corner (`ShellClose`). -->
-    <div :id="shell?.actionsTargetId" class="nc-shell-header-actions ml-auto flex items-center gap-2.5 flex-none empty:hidden">
+    <!-- `-mt-0.5` optically centres 32px controls on the 28px title line: the row
+         is `items-start`, so without it the buttons sit 2px below the heading. -->
+    <div
+      :id="shell?.actionsTargetId"
+      class="nc-shell-header-actions -mt-0.5 ml-auto flex items-center gap-2.5 flex-none empty:hidden"
+    >
       <slot name="actions" />
     </div>
   </div>

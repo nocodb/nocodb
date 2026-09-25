@@ -419,10 +419,20 @@ export function useInfiniteData(args: {
     chunkId: number
     path: Array<number>
     forceFetch: boolean
+    // Cache the request was queued for — see isStaleChunkRequest
+    cachedRows: Ref<Map<number, Row>>
     resolve: (value: any) => void
     reject: (error: any) => void
   }> = []
   let batchTimer: NodeJS.Timeout | null = null
+
+  // A group reload replaces the caches, and index-based paths may then name another group — or none
+  // yet, which resolves to no group filter — so the request would cache the wrong rows.
+  // Plain lookup: getDataCache would create a placeholder cache for a group that isn't loaded.
+  // The root cache's refs never change, so a root request is never stale.
+  const isStaleChunkRequest = (req: { path: Array<number>; cachedRows: Ref<Map<number, Row>> }) =>
+    req.path.length > 0 && groupDataCache.value.get(req.path.join('-'))?.cachedRows !== req.cachedRows
+
   const BATCH_SIZE = 50
   const BATCH_TIMEOUT = 200
 
@@ -534,8 +544,15 @@ export function useInfiniteData(args: {
       batchTimer = null
     }
 
-    const batch = [...pendingChunkRequests]
+    const batch: typeof pendingChunkRequests = []
+    for (const req of pendingChunkRequests) {
+      // Its replacement cache starts unloaded, so the chunk is re-requested once its group exists.
+      if (isStaleChunkRequest(req)) req.resolve(undefined)
+      else batch.push(req)
+    }
     pendingChunkRequests = []
+
+    if (!batch.length) return
 
     try {
       const bulkRequests = []
@@ -582,6 +599,12 @@ export function useInfiniteData(args: {
       const processedChunks: Array<{ request: any; rows: Array<Row>; dataCache: any }> = []
 
       for (const request of batch) {
+        // A reload landed while the request was in flight — the rows belong to the old group layout.
+        if (isStaleChunkRequest(request)) {
+          request.resolve(undefined)
+          continue
+        }
+
         try {
           const alias = `chunk_${request.chunkId}_${request.path.join('_')}`
           const chunkData = bulkResponse[alias]
@@ -646,6 +669,11 @@ export function useInfiniteData(args: {
       }
 
       const promises = batch.map((request) => {
+        if (isStaleChunkRequest(request)) {
+          request.resolve(undefined)
+          return Promise.resolve()
+        }
+
         const dataCache = getDataCache(request.path)
 
         // Don't re-issue a request for a chunk already known to be past the data
@@ -680,7 +708,9 @@ export function useInfiniteData(args: {
       return
     }
 
-    const existingRequest = pendingChunkRequests.find((req) => req.chunkId === chunkId && req.path.join(',') === path.join(','))
+    const existingRequest = pendingChunkRequests.find(
+      (req) => req.chunkId === chunkId && req.path.join(',') === path.join(',') && req.cachedRows === dataCache.cachedRows,
+    )
 
     if (existingRequest && !forceFetch) {
       return new Promise<void>((resolve, reject) => {
@@ -704,6 +734,7 @@ export function useInfiniteData(args: {
         chunkId,
         path,
         forceFetch,
+        cachedRows: dataCache.cachedRows,
         resolve,
         reject,
       })

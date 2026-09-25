@@ -428,8 +428,10 @@ export function useInfiniteData(args: {
 
   // A group reload replaces the caches, and index-based paths may then name another group — or none
   // yet, which resolves to no group filter — so the request would cache the wrong rows.
+  // Plain lookup: getDataCache would create a placeholder cache for a group that isn't loaded.
+  // The root cache's refs never change, so a root request is never stale.
   const isStaleChunkRequest = (req: { path: Array<number>; cachedRows: Ref<Map<number, Row>> }) =>
-    getDataCache(req.path).cachedRows !== req.cachedRows
+    req.path.length > 0 && groupDataCache.value.get(req.path.join('-'))?.cachedRows !== req.cachedRows
 
   const BATCH_SIZE = 50
   const BATCH_TIMEOUT = 200

@@ -46,14 +46,14 @@ const onInputFocus = () => {
 
 <template>
   <div ref="panelsRef" class="panels">
-    <WorkspaceIntegrationsPanel title="Integration Details" icon="info">
+    <WorkspaceIntegrationsPanel :title="$t('labels.integrationDetails')" icon="info">
       <template v-if="appInfo.isCloud && !appInfo.isOnPrem" #header-info>
         <div
           class="text-nc-content-gray-muted !text-xs font-weight-normal flex items-center gap-2 cursor-pointer flex items-center"
           @click="copyIp"
         >
           <GeneralIcon icon="info" class="text-primary" />
-          Whitelist our ip: 52.15.226.51 to allow database access
+          {{ $t('msg.info.whitelistIpForDatabaseAccess') }}
           <GeneralIcon
             icon="duplicate"
             class="text-nc-content-gray w-5 h-5 p-1 border-1 rounded-md border-nc-border-gray-medium"
@@ -67,14 +67,14 @@ const onInputFocus = () => {
         </div>
       </div>
     </WorkspaceIntegrationsPanel>
-    <WorkspaceIntegrationsPanel title="Connection Details" icon="link">
+    <WorkspaceIntegrationsPanel :title="$t('labels.pgConnectionDetails')" icon="link">
       <div class="input-group">
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">Host</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.host') }}</label>
           <a-input v-model:value="activeIntegration.payload.host" class="input-text" @focus="onInputFocus" />
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">Port</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.pgPort') }}</label>
           <a-input v-model:value="activeIntegration.payload.port" class="input-text" @focus="onInputFocus" />
         </div>
         <div class="input-item">
@@ -104,24 +104,24 @@ const onInputFocus = () => {
     <WorkspaceIntegrationsPanel :title="$t('title.advancedParameters')" icon="lock" :collapsible="true">
       <div class="input-group">
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">SSL Mode</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.pgSslMode') }}</label>
           <a-select v-model:value="activeIntegration.payload.sslMode" class="input-text" @focus="onInputFocus">
             <a-select-option value="disable">{{ $t('general.disable') }}</a-select-option>
-            <a-select-option value="require">Require</a-select-option>
-            <a-select-option value="verify-ca">Verify CA</a-select-option>
-            <a-select-option value="verify-full">Verify Full</a-select-option>
+            <a-select-option value="require">{{ $t('labels.sslModeRequire') }}</a-select-option>
+            <a-select-option value="verify-ca">{{ $t('labels.sslModeVerifyCa') }}</a-select-option>
+            <a-select-option value="verify-full">{{ $t('labels.sslModeVerifyFull') }}</a-select-option>
           </a-select>
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">SSL Root Certificate</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.sslRootCertificate') }}</label>
           <a-input v-model:value="activeIntegration.payload.sslRootCert" class="input-text" @focus="onInputFocus" />
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">SSL Certificate</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.sslCertificate') }}</label>
           <a-input v-model:value="activeIntegration.payload.sslCert" class="input-text" @focus="onInputFocus" />
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">SSL Key</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.sslKey') }}</label>
           <a-input v-model:value="activeIntegration.payload.sslKey" class="input-text" @focus="onInputFocus" />
         </div>
       </div>
@@ -133,7 +133,7 @@ const onInputFocus = () => {
         </div>
       </div>
     </WorkspaceIntegrationsPanel>
-    <WorkspaceIntegrationsPanel title="Connection JSON" icon="code">DUMMY</WorkspaceIntegrationsPanel>
+    <WorkspaceIntegrationsPanel :title="$t('labels.connectionJson')" icon="code">DUMMY</WorkspaceIntegrationsPanel>
   </div>
 </template>
 

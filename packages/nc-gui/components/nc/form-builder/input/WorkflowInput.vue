@@ -120,6 +120,8 @@ const createSuggestionRender = () => ({
         showOnCreate: true,
         interactive: true,
         trigger: 'manual',
+        // Above the link popovers (10001), which host a variable-capable URL editor.
+        zIndex: 10002,
         ...suggestionPlacement(),
       })
     }
@@ -149,12 +151,16 @@ const createSuggestionRender = () => ({
       },
 
       onKeyDown(suggestionProps: Record<string, any>) {
+        // Dismissed but still active: keys belong to the editor and its host, not an unseen picker.
+        if (!isSuggestionOpen) return false
+
         if (suggestionProps.event.key === 'Escape') {
           // Returning true only tells the plugin we handled it; the DOM event would still travel
           // on to the compose modal and close the whole thing.
           suggestionProps.event.preventDefault()
           suggestionProps.event.stopPropagation()
           popup?.[0]?.hide()
+          isSuggestionOpen = false
           return true
         }
         return component?.ref?.onKeyDown(suggestionProps)
@@ -367,6 +373,9 @@ const editor = useEditor({
     markdown = markdown.replaceAll('\\*', '*')
     markdown = markdown.replaceAll('\\[', '[')
     markdown = markdown.replaceAll('\\]', ']')
+    markdown = markdown.replaceAll('\\~', '~')
+    markdown = markdown.replaceAll('\\`', '`')
+    markdown = markdown.replaceAll('\\\\', '\\')
 
     lastEmitted = markdown.trim()
     vModel.value = lastEmitted
@@ -393,8 +402,10 @@ const editor = useEditor({
     },
     handleKeyDown(_view, event) {
       if (event.key === 'Enter' && !isMultiline.value) {
+        // Direct props run before plugins, so the picker only sees Enter if we pass it on.
+        if (isSuggestionOpen) return false
         event.preventDefault()
-        if (!isSuggestionOpen) emit('enter')
+        emit('enter')
         return true
       }
 

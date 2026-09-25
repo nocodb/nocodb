@@ -649,7 +649,6 @@ useActiveKeydownListener(
 
       if (changedColumns.value.size > 0) {
         Modal.confirm({
-          zIndex: nextModalZIndex(),
           title: t('msg.saveChanges'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),
@@ -664,7 +663,6 @@ useActiveKeydownListener(
         })
       } else if (isNew.value) {
         Modal.confirm({
-          zIndex: nextModalZIndex(),
           title: t('msg.doYouWantToSaveTheRecord'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),

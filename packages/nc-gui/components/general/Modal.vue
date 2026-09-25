@@ -72,8 +72,6 @@ const height = computed(() => {
 
 const visible = useVModel(props, 'visible', emits)
 
-const { zIndex } = useModalStack(() => props.visible)
-
 const newWrapClassName = computed(() => {
   let className = 'nc-modal-wrapper'
 
@@ -95,7 +93,6 @@ const newWrapClassName = computed(() => {
     :keyboard="keyboard"
     :wrap-class-name="newWrapClassName"
     :mask-style="maskStyle"
-    :z-index="zIndex"
     :footer="null"
     :destroy-on-close="destroyOnClose"
     :mask-closable="maskClosable"

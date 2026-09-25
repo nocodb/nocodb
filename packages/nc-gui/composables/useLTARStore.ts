@@ -962,7 +962,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const deleteRelatedRow = async (row: Record<string, any>, onSuccess?: (row: Record<string, any>) => void) => {
       Modal.confirm({
-        zIndex: nextModalZIndex(),
         title: 'Do you want to delete the record?',
         type: 'warning',
         onOk: async () => {

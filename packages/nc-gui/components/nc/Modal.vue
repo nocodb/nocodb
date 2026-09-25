@@ -41,14 +41,6 @@ const { isMobileMode } = useGlobal()
 
 const ncModalRef = ref<HTMLDivElement | null>(null)
 
-const { zIndex, isStacked } = useModalStack(() => props.visible)
-
-// A stacked mask has to bury a lit modal, not just tint the page; set inline because ant renders the mask outside the wrap.
-const resolvedMaskStyle = computed<CSSProperties>(() => ({
-  ...(isStacked.value ? { backgroundColor: 'rgba(0, 0, 0, 0.93)' } : {}),
-  ...(props.maskStyle ?? {}),
-}))
-
 const resolvedModalSize = computed(() => {
   const size = modalSizes[props.size as keyof typeof modalSizes]
   if (!size) return null
@@ -118,8 +110,6 @@ const height = computed(() => {
 
 const newWrapClassName = computed(() => {
   let className = 'nc-modal-wrapper'
-  if (isStacked.value) className += ' nc-modal-stacked'
-
   if (_wrapClassName) {
     className += ` ${_wrapClassName}`
   }
@@ -199,8 +189,7 @@ if (stopEventPropogation.value) {
     :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"
-    :mask-style="resolvedMaskStyle"
-    :z-index="zIndex"
+    :mask-style="maskStyle"
     :keyboard="false"
     :destroy-on-close="destroyOnClose"
   >

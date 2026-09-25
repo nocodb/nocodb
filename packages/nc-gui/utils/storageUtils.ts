@@ -59,12 +59,13 @@ const LAST_VISITED_COOKIE_MAX_AGE = 90 * 24 * 60 * 60
 
 /**
  * Root domain for cookies shared with sibling sites: `baseHostName`, else `ncSiteUrl`'s host minus its
- * first label (`app.nocodb.com` → `nocodb.com`). The fallback is cloud-only so self-hosted installs
- * never write to their parent domain.
+ * first label (`app.nocodb.com` → `nocodb.com`). Cloud-only so self-hosted installs never write to
+ * their parent domain.
  */
 const getCookieRootDomain = (appInfo: { baseHostName?: string; ncSiteUrl?: string; isCloud?: boolean }) => {
+  if (!appInfo.isCloud) return
   if (appInfo.baseHostName) return appInfo.baseHostName
-  if (!appInfo.isCloud || !appInfo.ncSiteUrl) return
+  if (!appInfo.ncSiteUrl) return
 
   try {
     const labels = new URL(appInfo.ncSiteUrl).hostname.split('.')

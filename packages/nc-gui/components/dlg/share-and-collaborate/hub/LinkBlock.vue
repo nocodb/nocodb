@@ -52,7 +52,7 @@ const hasLink = computed(() => !!primary.value)
 const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : t('activity.createInviteLink')))
 
 async function onRoleChange(next: string) {
-  $e(isWorkspaceInvite.value ? 'c:invite:workspace:link:role:change' : 'c:invite:base:link:role:change', {
+  $e(isWorkspaceInvite.value ? 'c:ws:invite:link:role:change' : 'c:base:invite:link:role:change', {
     role: next,
     existing: !!primary.value,
   })
@@ -83,7 +83,7 @@ async function onCopy() {
       link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
 
       if (link) {
-        $e(isWorkspaceInvite.value ? 'a:invite:workspace:link:create' : 'a:invite:base:link:create', {
+        $e(isWorkspaceInvite.value ? 'a:ws:invite:link:create' : 'a:base:invite:link:create', {
           role: link.role,
           restricted: !!link.email_domain,
         })
@@ -96,7 +96,7 @@ async function onCopy() {
     // do nothing at all and look like a dead button.
     await copy(linkUrl(link))
 
-    $e(isWorkspaceInvite.value ? 'c:invite:workspace:link:copy' : 'c:invite:base:link:copy', {
+    $e(isWorkspaceInvite.value ? 'c:ws:invite:link:copy' : 'c:base:invite:link:copy', {
       created: isFirst,
       restricted: !!link.email_domain,
     })

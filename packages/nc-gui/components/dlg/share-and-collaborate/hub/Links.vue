@@ -51,7 +51,7 @@ async function copyRow(id: string) {
     // do nothing at all and look like a dead button. Same as LinkBlock.
     await copy(linkUrl(link))
 
-    $e(isWorkspaceInvite.value ? 'c:invite:workspace:link:copy' : 'c:invite:base:link:copy', {
+    $e(isWorkspaceInvite.value ? 'c:ws:invite:link:copy' : 'c:base:invite:link:copy', {
       from: 'list',
       restricted: !!link.email_domain,
     })
@@ -133,10 +133,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 
         <NcTooltip :title="$t('activity.linkSettings')">
           <NcButton
-            v-e="[
-              isWorkspaceInvite ? 'c:invite:workspace:link:settings:open' : 'c:invite:base:link:settings:open',
-              { from: 'list' },
-            ]"
+            v-e="[isWorkspaceInvite ? 'c:ws:invite:link:settings:open' : 'c:base:invite:link:settings:open', { from: 'list' }]"
             type="secondary"
             size="small"
             class="!px-0 !w-8"

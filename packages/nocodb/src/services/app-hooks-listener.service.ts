@@ -263,8 +263,8 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           this.telemetryService.sendEvent({
             evt_type:
               param.link.scope === InviteLinkScope.WORKSPACE
-                ? 'a:invite:workspace:link:create'
-                : 'a:invite:base:link:create',
+                ? 'a:ws:invite:link:create'
+                : 'a:base:invite:link:create',
             role: param.link.role,
             restricted: !!param.link.email_domain,
           });
@@ -280,8 +280,8 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           this.telemetryService.sendEvent({
             evt_type:
               param.link.scope === InviteLinkScope.WORKSPACE
-                ? 'a:invite:workspace:link:accept'
-                : 'a:invite:base:link:accept',
+                ? 'a:ws:invite:link:accept'
+                : 'a:base:invite:link:accept',
             role: param.link.role,
             already_member: param.already_member,
           });

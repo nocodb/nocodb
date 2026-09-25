@@ -99,7 +99,7 @@ async function loadPreview() {
     // held open explicitly -- otherwise the invite card renders with a blank
     // name, a blank role and a live Join button for the whole navigation.
     if (res.data?.already_member) {
-      $e(res.data.scope === InviteLinkScope.WORKSPACE ? 'c:invite:workspace:link:view' : 'c:invite:base:link:view', {
+      $e(res.data.scope === InviteLinkScope.WORKSPACE ? 'c:ws:invite:link:view' : 'c:base:invite:link:view', {
         state: 'already_member',
       })
       isRedirecting.value = true
@@ -109,7 +109,7 @@ async function loadPreview() {
 
     preview.value = res.data
 
-    $e(res.data?.scope === InviteLinkScope.WORKSPACE ? 'c:invite:workspace:link:view' : 'c:invite:base:link:view', {
+    $e(res.data?.scope === InviteLinkScope.WORKSPACE ? 'c:ws:invite:link:view' : 'c:base:invite:link:view', {
       state: res.data?.invalid_reason ?? 'ok',
       restricted: !!res.data?.email_domain,
       signedIn: signedIn.value,
@@ -128,11 +128,11 @@ function goSignIn(path: '/signin' | '/signup') {
   $e(
     path === '/signup'
       ? isWorkspaceInvite.value
-        ? 'c:invite:workspace:link:sign-up'
-        : 'c:invite:base:link:sign-up'
+        ? 'c:ws:invite:link:sign-up'
+        : 'c:base:invite:link:sign-up'
       : isWorkspaceInvite.value
-      ? 'c:invite:workspace:link:sign-in'
-      : 'c:invite:base:link:sign-in',
+      ? 'c:ws:invite:link:sign-in'
+      : 'c:base:invite:link:sign-in',
   )
 
   return navigateTo({ path, query: { continueAfterSignIn: `/invite/${token.value}` } })
@@ -140,7 +140,7 @@ function goSignIn(path: '/signin' | '/signup') {
 
 /** Sign out, then come back here as someone else. */
 function switchAccount() {
-  $e(isWorkspaceInvite.value ? 'c:invite:workspace:link:switch-account' : 'c:invite:base:link:switch-account', {
+  $e(isWorkspaceInvite.value ? 'c:ws:invite:link:switch-account' : 'c:base:invite:link:switch-account', {
     reason: wrongDomain.value ? 'wrong_domain' : 'refused',
   })
 
@@ -157,7 +157,7 @@ async function onJoin() {
   try {
     const res = await $api.instance.post(`/api/v2/invite-links/${encodeURIComponent(token.value)}/accept`)
 
-    $e(isWorkspaceInvite.value ? 'a:invite:workspace:link:accept' : 'a:invite:base:link:accept', {
+    $e(isWorkspaceInvite.value ? 'a:ws:invite:link:accept' : 'a:base:invite:link:accept', {
       restricted: !!preview.value?.email_domain,
     })
 
@@ -171,7 +171,7 @@ async function onJoin() {
     window.location.href = landingPath(res.data || {})
   } catch (e: any) {
     joinError.value = await extractSdkResponseErrorMsg(e)
-    $e(isWorkspaceInvite.value ? 'a:invite:workspace:link:accept:refused' : 'a:invite:base:link:accept:refused', {
+    $e(isWorkspaceInvite.value ? 'a:ws:invite:link:accept:refused' : 'a:base:invite:link:accept:refused', {
       status: e?.response?.status,
     })
     isJoining.value = false

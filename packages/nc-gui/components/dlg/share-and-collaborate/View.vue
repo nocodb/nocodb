@@ -209,12 +209,12 @@ function goMain() {
 
 function openCompose() {
   screen.value = 'compose'
-  $e('c:invite:base:email:compose')
+  $e('c:base:invite:email:compose')
 }
 
 function openLinks() {
   screen.value = 'links'
-  $e('c:invite:base:link:list:open')
+  $e('c:base:invite:link:list:open')
 }
 
 /** Back to the list when there is a list to go back to, otherwise the hub. */
@@ -223,7 +223,7 @@ function afterEditLink() {
 }
 
 function openEditLink(linkId: string, isNew = false) {
-  $e('c:invite:base:link:settings:open', { isNew })
+  $e('c:base:invite:link:settings:open', { isNew })
 
   editLinkId.value = linkId
   editLinkIsNew.value = isNew
@@ -255,7 +255,7 @@ function goToInviteTab() {
 // Closing is the form's call, not ours: it keeps itself open when something is
 // still sitting in the box waiting to be corrected.
 function onInviteSent(emails: string[]) {
-  $e('a:invite:base:email:send', { count: emails.length })
+  $e('a:base:invite:email:send', { count: emails.length })
   loadMemberCount()
 }
 

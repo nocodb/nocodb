@@ -115,11 +115,11 @@ async function onSave() {
     $e(
       props.isNew
         ? isWorkspaceInvite.value
-          ? 'a:invite:workspace:link:create'
-          : 'a:invite:base:link:create'
+          ? 'a:ws:invite:link:create'
+          : 'a:base:invite:link:create'
         : isWorkspaceInvite.value
-        ? 'a:invite:workspace:link:update'
-        : 'a:invite:base:link:update',
+        ? 'a:ws:invite:link:update'
+        : 'a:base:invite:link:update',
       {
         role: draft.role,
         restricted: !draft.anyEmail,
@@ -139,7 +139,7 @@ async function onDelete() {
   isDeleting.value = false
 
   if (done) {
-    $e(isWorkspaceInvite.value ? 'a:invite:workspace:link:revoke' : 'a:invite:base:link:revoke')
+    $e(isWorkspaceInvite.value ? 'a:ws:invite:link:revoke' : 'a:base:invite:link:revoke')
 
     emit('done')
   }

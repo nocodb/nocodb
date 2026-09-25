@@ -328,7 +328,7 @@ const getHookTypeText = (hook: HookType) => {
 </script>
 
 <template>
-  <div class="nc-webhook-wrapper w-full p-4" :class="{ 'h-full flex flex-col': inModal, '!px-6 !py-5': inShell }">
+  <div class="nc-webhook-wrapper w-full p-4" :class="{ 'h-full flex flex-col': inModal, '!px-0 !py-5': inShell }">
     <div class="h-full w-full" :class="{ 'flex-1 flex flex-col min-h-0': inModal, 'max-w-250 mx-auto': !inShell }">
       <div v-if="activeView && !isHooksLoading" :class="{ 'flex-1 flex flex-col min-h-0': inModal }">
         <NcAlert

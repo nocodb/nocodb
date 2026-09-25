@@ -315,28 +315,31 @@ watch(
           </template>
         </ShellHeader>
 
-        <div class="flex-1 min-h-0">
+        <!-- Same gutter as ShellHeader so every pane lines up with its title. -->
+        <div class="flex-1 min-h-0 nc-shell-gutter">
           <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" />
 
-          <PermissionsModalContent
-            v-else-if="openedViewsTab === 'permissions' && meta?.id"
-            ref="permissionsRef"
-            :table-id="meta.id"
-            class="nc-tools-permissions h-full pt-5"
-            hide-section-title
-            permissions-table-wrapper-class="!min-w-0 !mx-0"
-            permissions-field-wrapper-class="!min-w-0 !mx-0"
-          />
+          <!-- Top space sits outside the scroll container, so the field table's sticky header pins flush. -->
+          <div v-else-if="openedViewsTab === 'permissions' && meta?.id" class="h-full pt-5">
+            <PermissionsModalContent
+              ref="permissionsRef"
+              :table-id="meta.id"
+              class="nc-tools-permissions h-full !px-0"
+              hide-section-title
+              permissions-table-wrapper-class="!min-w-0 !mx-0"
+              permissions-field-wrapper-class="!min-w-0 !mx-0"
+            />
+          </div>
 
-          <div v-else-if="openedViewsTab === 'rls' && isEeUI && meta?.id" class="h-full px-6 py-5 overflow-hidden">
+          <div v-else-if="openedViewsTab === 'rls' && isEeUI && meta?.id" class="h-full py-5 overflow-hidden">
             <RlsPolicyList ref="rlsRef" :table-id="meta.id" :base="base" :table-name="meta.title" in-shell />
           </div>
 
-          <div v-else-if="openedViewsTab === 'dates' && isEeUI && meta?.id" class="h-full px-6 py-5">
+          <div v-else-if="openedViewsTab === 'dates' && isEeUI && meta?.id" class="h-full py-5">
             <SmartsheetDetailsDateDependency :table-id="meta.id" :title="meta.title" in-shell />
           </div>
 
-          <div v-else-if="openedViewsTab === 'templates' && isEeUI" class="h-full px-6 py-5">
+          <div v-else-if="openedViewsTab === 'templates' && isEeUI" class="h-full py-5">
             <SmartsheetDetailsRecordTemplates ref="recordTemplatesRef" in-shell />
           </div>
 

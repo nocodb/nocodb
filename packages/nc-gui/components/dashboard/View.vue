@@ -62,14 +62,24 @@ const mobileNormalizedContentSize = computed(() => {
   return 100 - leftSidebarWidthPercent.value
 })
 
+const isRailAllowed = computed(() => !!slots.sidebar && !isSharedBase.value && !isFullScreen.value)
+
+/**
+ * Workspace home: no rail while the sidebar is docked; collapsed, the sidebar
+ * becomes one. Not gated on `hideMiniSidebar` — the workspace page sets that
+ * to keep the base rail away, not this one.
+ */
+const isWsRailVisible = computed(
+  () => isEeUI && isRailAllowed.value && !isMobileMode.value && isWsHomeRoute(route.value) && !isLeftSidebarOpen.value,
+)
+
 const isMiniSidebarVisible = computed(() => {
   return (
-    !hideMiniSidebar.value &&
-    slots.sidebar &&
-    !isSharedBase.value &&
-    (!isMobileMode.value || isLeftSidebarOpen.value) &&
-    !isFullScreen.value &&
-    !isWsHomeRoute(route.value)
+    isWsRailVisible.value ||
+    (!hideMiniSidebar.value &&
+      isRailAllowed.value &&
+      (!isMobileMode.value || isLeftSidebarOpen.value) &&
+      !isWsHomeRoute(route.value))
   )
 })
 
@@ -132,6 +142,8 @@ function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
   if (isFullScreen.value) return
   if (sidebarState.value === 'openEnd') return
+  // The workspace rail is the collapsed sidebar; hovering it must not pop the full one over it.
+  if (isWsRailVisible.value) return
 
   const isNearSidebarEdge = isRtl.value
     ? e.clientX > window.innerWidth - 4 - normalizedMiniSidebarWidth.value
@@ -270,7 +282,8 @@ watch([isChatPanelExpanded, isEnvironmentDrawerOpen], () => {
 
 <template>
   <div class="h-full flex items-stretch">
-    <DashboardMiniSidebarV2 v-if="isMiniSidebarVisible" />
+    <DashboardHomeSidebarRail v-if="isWsRailVisible" />
+    <DashboardMiniSidebarV2 v-else-if="isMiniSidebarVisible" />
 
     <div
       class="flex-none overflow-hidden nc-view-content-area"

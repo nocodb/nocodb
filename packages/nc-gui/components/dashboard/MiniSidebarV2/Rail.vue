@@ -343,6 +343,7 @@ const isSettingsActive = computed(() => activeSidebarTab.value === 'settings' ||
 
 <template>
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
+    <DashboardMiniSidebarV2RailIndicator />
     <div class="flex-none h-[var(--topbar-height)] w-full relative flex items-center justify-center">
       <!-- Logo — hover shows back arrow, click navigates to workspace -->
       <NcTooltip placement="right" :arrow="false">
@@ -464,7 +465,7 @@ const isSettingsActive = computed(() => activeSidebarTab.value === 'settings' ||
 
 <style lang="scss" scoped>
 .nc-rail {
-  @apply flex flex-col gap-2 items-center h-full w-full;
+  @apply relative flex flex-col gap-2 items-center h-full w-full;
 }
 
 .nc-rail-logo {

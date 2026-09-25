@@ -66,6 +66,7 @@ export const wsHomeRouteNames = new Set([
   'index-index',
   'index-typeOrId',
   'index-typeOrId-home',
+  'index-typeOrId-inbox',
   'index-typeOrId-index',
   'index-typeOrId-members',
   'index-typeOrId-teams',
@@ -93,6 +94,7 @@ export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
  */
 export const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-home': 'home',
+  'index-typeOrId-inbox': 'agentInbox',
   'index-typeOrId-index': 'bases',
   'index-typeOrId': 'bases',
   'index-typeOrId-members': 'collaborators',

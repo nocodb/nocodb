@@ -32,6 +32,8 @@ const activeTabLabel = computed(() => {
   switch (activeTabKey.value) {
     case 'home':
       return t('general.home')
+    case 'agentInbox':
+      return t('labels.agentInbox')
     case 'collaborators':
       return t('labels.members')
     case 'teams':
@@ -78,23 +80,36 @@ onMounted(() => {
 <template>
   <div class="flex items-center gap-2 px-2 sm:px-4 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-light">
     <div class="flex-1 flex items-center gap-2 min-w-0">
-      <GeneralOpenLeftSidebarBtn />
+      <GeneralOpenLeftSidebarBtn v-if="!isEeUI || isMobileMode" />
       <div class="flex items-center gap-1.5 min-w-0 text-bodyDefaultSm" data-testid="nc-ws-home-topbar-breadcrumb">
+        <!-- The workspace's name is on the sidebar's selector; the trail starts from Home. -->
         <span
-          class="text-nc-content-gray-muted capitalize truncate"
-          :class="{ 'cursor-pointer hover:text-nc-content-gray': activeTabKey !== 'bases' }"
+          v-if="activeTabKey === 'home'"
+          class="text-bodyDefaultSmBold text-nc-content-gray truncate"
           data-testid="nc-ws-home-topbar-title"
-          @click="onWorkspaceCrumbClick"
+          :data-workspace-title="workspaceTitle"
         >
-          {{ workspaceTitle }}
+          {{ $t('general.home') }}
         </span>
-        <span class="text-nc-content-gray-muted">/</span>
-        <span class="text-bodyDefaultSmBold text-nc-content-gray truncate">{{ activeTabLabel }}</span>
+        <template v-else>
+          <span
+            class="text-nc-content-gray-muted truncate"
+            :class="{ 'cursor-pointer hover:text-nc-content-gray': activeTabKey !== 'bases' }"
+            data-testid="nc-ws-home-topbar-title"
+            :data-workspace-title="workspaceTitle"
+            @click="onWorkspaceCrumbClick"
+          >
+            {{ $t('general.home') }}
+          </span>
+          <span class="text-nc-content-gray-muted">/</span>
+          <span class="text-bodyDefaultSmBold text-nc-content-gray truncate">{{ activeTabLabel }}</span>
+        </template>
       </div>
     </div>
 
     <!-- Centered search -->
-    <div v-if="!isMobileMode" class="flex-none w-full max-w-[420px]">
+    <!-- Searches bases; the inbox has its own search over chats. -->
+    <div v-if="!isMobileMode && activeTabKey !== 'agentInbox'" class="flex-none w-full max-w-[420px]">
       <a-input
         v-model:value="searchQuery"
         type="text"

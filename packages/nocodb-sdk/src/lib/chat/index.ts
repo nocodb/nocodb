@@ -420,6 +420,24 @@ export interface ChatSessionType {
   updated_at?: string;
 }
 
+/** Which surface a session belongs to — each opens through its own thread source. */
+export type ChatInboxKind = 'assistant' | 'agent' | 'factory';
+
+/** The inbox's filter: assistant and agent chats are one conversation surface, App Factory the other. */
+export type ChatInboxFilter = 'chat' | 'factory';
+
+/** A session in the workspace-wide Agent Inbox, with what its row needs to draw it. */
+export interface ChatInboxSessionType extends ChatSessionType {
+  kind: ChatInboxKind;
+  base?: { id: string; title?: string; type?: string };
+  agent?: { id: string; title?: string; icon?: string };
+}
+
+export interface ChatInboxListType {
+  list: ChatInboxSessionType[];
+  hasMore: boolean;
+}
+
 export type ChatToolVisibility = 'hidden' | 'action' | 'data' | 'ui';
 
 /**

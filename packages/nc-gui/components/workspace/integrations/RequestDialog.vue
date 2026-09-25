@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { VNodeRef } from 'vue'
 
-// Extracted so the base settings pane can offer the same request flow as the
-// workspace tab. State lives in the integration store, so both hosts share one
-// dialog rather than each keeping a copy of the markup.
+// Shared by the base settings pane and the workspace tab; state lives in the integration store.
 const { requestIntegration, saveIntegrationRequest } = useIntegrationStore()
 
-const focusTextArea: VNodeRef = (el) => el && (el as any)?.focus?.()
+const focusTextArea: VNodeRef = (el) => {
+  if (el && 'focus' in el && typeof el.focus === 'function') el.focus()
+}
 </script>
 
 <template>

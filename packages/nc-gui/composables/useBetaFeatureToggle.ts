@@ -293,6 +293,15 @@ const FEATURES = [
     requires: 'apps',
   },
   {
+    id: 'connect_ai',
+    title: 'Connect your AI',
+    description: 'Show the Connect your AI card in the base sidebar, for connecting an AI client over MCP.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'product_tours_menu',
     title: 'Product tours menu',
     description: 'Show the Product Tours entry in the account menu, for replaying onboarding and feature tours.',

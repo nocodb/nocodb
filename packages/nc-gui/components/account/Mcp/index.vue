@@ -300,8 +300,7 @@ onMounted(async () => {
         :class="lockedBaseId ? 'flex-1 min-h-0 flex flex-col' : 'max-w-202 mx-auto h-full'"
         data-testid="nc-mcp-list"
       >
-        <!-- Nothing to search through, so no search box: an empty field over an
-             empty pane is furniture, not a control. -->
+        <!-- Nothing to search through, so no search box. -->
         <div v-if="lockedBaseId && (accountMcpTokens.length || mcpSearch)" class="mb-6 flex items-center justify-between gap-3">
           <a-input
             v-model:value="mcpSearch"

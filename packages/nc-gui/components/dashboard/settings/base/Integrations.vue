@@ -70,12 +70,7 @@ const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
 }
 
-/**
- * Mirrors the guard the old connection card carried. Base mode hides Edit from
- * non-creators, but the row body opened the same form anyway -- and the save
- * then failed on the backend's creator-only check. NocoDB's own connection is
- * only editable while data reflection is on.
- */
+// Base mode hides Edit from non-creators (backend is creator-only); NocoDB's own connection needs data reflection.
 const canOpenEdit = (integration: IntegrationType) => {
   if (!canEditIntegration(integration)) return false
 
@@ -187,25 +182,10 @@ const integrationsMap = computed(() => {
   return map
 })
 
-/**
- * Browse gallery state. Categories become filter pills over one flat grid rather
- * than a stack of per-category sections: the whole catalogue is ~30 items, so a
- * single scannable grid beats several short ones, and the pills make "show me
- * only AI" one click instead of a scroll.
- */
+// Browse gallery: categories are filter pills over one flat grid.
 const activeCategory = ref<string>('all')
 
-/**
- * Apps is the SaaS side of the catalogue. The underlying AUTH category carries
- * every provider that *can* authenticate, datastores and raw protocols included,
- * so it needs pruning to mean anything.
- *
- * A deny-list rather than a dedupe against the other pills: Database identifies
- * the same products by driver id (`pg`, `mysql2`) where AUTH uses product names
- * (`postgres`, `mysql`), so matching on sub_type would never catch them -- and
- * Redis, ClickHouse and http-api are not under any other pill yet still are not
- * apps.
- */
+// AUTH lists every provider that can authenticate; these non-apps are named since sub_types differ from Database's driver ids.
 const appsCategory = IntegrationCategoryType.AUTH
 
 const NON_APP_SUB_TYPES = new Set([
@@ -247,8 +227,7 @@ const browseItems = computed(() =>
     ),
 )
 
-// A pill that no longer matches anything (the search narrowed it away) would
-// leave an empty grid with no way back, so fall to All.
+// Fall back to All when search leaves the active pill empty.
 watch(browseItems, (items) => {
   if (!items.length && activeCategory.value !== 'all') activeCategory.value = 'all'
 })
@@ -389,11 +368,7 @@ const customRow = (record: Record<string, any>) => ({
   },
 })
 
-/**
- * "Added <date> by <name>", skipping whichever half is unknown. Deliberately not
- * "Used in N projects": this pane has no project-usage count for a connection,
- * and a fabricated number on a permissions-adjacent row is worse than no number.
- */
+/** "Added <date> by <name>", skipping whichever half is unknown. */
 function connectionMeta(connection: IntegrationType) {
   const parts: string[] = []
 
@@ -401,8 +376,8 @@ function connectionMeta(connection: IntegrationType) {
     parts.push(t('labels.addedOnDate', { date: dayjs(connection.created_at).local().format('DD MMM YYYY') }))
   }
 
-  const by = collaboratorsMap.value?.get(connection.created_by as string)
-  const name = (by as any)?.display_name || (by as any)?.email
+  const by: { display_name?: string; email?: string } | undefined = collaboratorsMap.value?.get(connection.created_by as string)
+  const name = by?.display_name || by?.email
 
   if (name) parts.push(t('labels.byUser', { user: name }))
 
@@ -424,21 +399,13 @@ const browseSectionRef = ref<HTMLElement | null>(null)
 
 const isBrowseHighlighted = ref(false)
 
-/**
- * "Add connection" has nowhere of its own to go -- adding one means picking from
- * the gallery below -- so it takes you there and leaves the cursor in search.
- *
- * Focus is deferred until the scroll has settled: focusing first makes the
- * browser jump the caret into view and the smooth scroll never plays.
- */
+// Scrolls to the gallery and focuses search; focus waits for the scroll so the smooth scroll still plays.
 function scrollToBrowse() {
   const section = browseSectionRef.value
 
   if (!section) return
 
-  // Deferred a frame: called synchronously inside the click, the scroll is
-  // dropped -- the highlight class lands in the same tick and the element is
-  // still being laid out when the request is made.
+  // Deferred a frame, or the scroll is dropped while the element is still laying out.
   requestAnimationFrame(() => {
     section.scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
@@ -448,9 +415,7 @@ function scrollToBrowse() {
   setTimeout(() => (isBrowseHighlighted.value = false), 1400)
 
   setTimeout(() => {
-    const input = (mainSearchInputRef.value as any)?.input ?? (mainSearchInputRef.value as any)
-
-    input?.focus?.()
+    mainSearchInputRef.value?.focus()
   }, 450)
 }
 
@@ -513,8 +478,7 @@ watch(baseId, reload)
 
             <!-- Real content (shown after first load) -->
             <template v-else>
-              <!-- Your connections: a list, not cards. These are records to scan and
-                   act on, so one row each beats a grid of tiles. -->
+              <!-- Your connections: one row each, not cards. -->
               <div v-if="filteredLinkedIntegrations.length" class="nc-connections-block">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex items-center gap-2">
@@ -613,8 +577,7 @@ watch(baseId, reload)
                 :class="{ 'nc-browse-highlight': isBrowseHighlighted }"
                 style="container-type: inline-size"
               >
-                <!-- Filter and search share a line: both narrow the same grid, so
-                     they belong together rather than a screen apart. -->
+                <!-- Filter and search share a line: both narrow the same grid. -->
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div v-if="categoryPills.length > 2" class="flex flex-wrap items-center gap-2">
                     <button
@@ -656,8 +619,7 @@ watch(baseId, reload)
                     @click="handleAddIntegration(item.integration)"
                   >
                     <span class="nc-browse-logo">
-                      <!-- `iconStyle` hard-codes 32px on some logos, which inline-styles
-                           over any class and bursts the tile; the tile sizes them instead. -->
+                      <!-- The tile sizes logos; some `iconStyle`s hard-code 32px inline. -->
                       <component :is="item.integration.icon" />
                     </span>
 
@@ -669,8 +631,7 @@ watch(baseId, reload)
                     </NcTooltip>
                   </button>
 
-                  <!-- Always last, and dotted: it is an ask rather than a thing you
-                       can connect, so it reads as an outline of a card, not a card. -->
+                  <!-- Always last, dotted: an ask, not a connection. -->
                   <button
                     type="button"
                     class="nc-browse-card nc-browse-card-request"
@@ -701,8 +662,6 @@ watch(baseId, reload)
     <template v-else-if="viewMode === 'all-connections'">
       <div class="flex flex-col h-full nc-shell-gutter pb-6 pt-3">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <!-- Back on the left, search on the right: the row reads as navigation
-               then filter, rather than two controls crowding the same corner. -->
           <div class="flex flex-wrap items-center justify-between gap-3">
             <!-- Hidden for non-managers: they land here directly, with no catalogue to go back to. -->
             <ShellDrillBack
@@ -888,34 +847,6 @@ watch(baseId, reload)
 </template>
 
 <style lang="scss" scoped>
-.nc-connection-cards-grid {
-  @supports not (container-type: inline-size) {
-    @media (min-width: 540px) {
-      @apply grid-cols-2;
-    }
-
-    @media (min-width: 820px) {
-      @apply grid-cols-3;
-    }
-
-    @media (min-width: 1140px) {
-      @apply grid-cols-4;
-    }
-  }
-
-  @container (min-width: 540px) {
-    @apply grid-cols-2;
-  }
-
-  @container (min-width: 820px) {
-    @apply grid-cols-3;
-  }
-
-  @container (min-width: 1140px) {
-    @apply grid-cols-4;
-  }
-}
-
 .nc-connection-overflow-card {
   @apply flex flex-col items-center justify-center gap-1 border-1 border-dashed border-nc-border-gray-medium rounded-lg p-3 cursor-pointer transition-all duration-200;
 
@@ -1063,15 +994,13 @@ watch(baseId, reload)
     @apply bg-nc-bg-gray-extralight text-nc-content-gray;
   }
 
-  /* Filled rather than tinted: one pill is on at a time, so the selected state
-     has to read at a glance across a row of otherwise identical chips. */
+  /* Filled rather than tinted so the single active pill reads at a glance. */
   &.active {
     @apply border-transparent bg-nc-fill-primary text-white;
   }
 }
 
-/* Container queries, not viewport: this pane sits in a modal whose width is set
-   by the shell, so the breakpoint that matters is the pane's, not the screen's. */
+/* Container queries: the pane width is set by the shell modal, not the viewport. */
 .nc-browse-grid {
   @apply grid gap-3;
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -1095,8 +1024,7 @@ watch(baseId, reload)
   }
 }
 
-/* One line: logo, name. The category is already the pill above the grid, and a
-   description on every tile turned a scannable list into a wall of prose. */
+/* One line: logo and name; the category is already the pill. */
 .nc-browse-card {
   @apply flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-left
     border-1 border-nc-border-gray-medium bg-nc-bg-default transition-all duration-150;
@@ -1111,9 +1039,7 @@ watch(baseId, reload)
   }
 }
 
-/* Logos arrive in two shapes: bare glyphs, and full-bleed tiles carrying their
-   own background. Normalising both to one box is what makes the grid read as a
-   grid -- so the size is forced here rather than trusted from each icon. */
+/* Forces one box size for bare glyphs and full-bleed logo tiles alike. */
 .nc-browse-logo {
   @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
 

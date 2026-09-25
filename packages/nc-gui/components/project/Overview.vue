@@ -109,8 +109,7 @@ const onCreateBaseClick = () => {
               @click="tableCreateReason ? undefined : openTableCreateDialog()"
             >
               <template #icon>
-                <!-- Stroked, not Material Symbols: `addOutlineBox` is drawn as filled paths,
-                     so it ignores stroke-width and read far heavier than its neighbours. -->
+                <!-- Stroked icon: `addOutlineBox` is filled paths and ignores stroke-width. -->
                 <GeneralIcon icon="ncPlusSquare" class="!h-8 !w-8 !text-nc-content-brand" />
               </template>
             </ProjectActionItem>

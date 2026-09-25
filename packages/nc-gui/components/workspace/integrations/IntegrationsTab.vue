@@ -262,20 +262,12 @@ const isIntegrationVisible = (integration: IntegrationItemType, _category: any) 
   return !!integration.isAvailable
 }
 
-/**
- * Browse gallery, mirroring the base settings pane: categories become filter
- * pills over one flat grid instead of a stack of short per-category sections.
- */
+// Browse gallery, mirroring the base settings pane: categories are filter pills over one grid.
 const activeBrowseCategory = ref<string>('all')
 
 const appsCategory = IntegrationCategoryType.AUTH
 
-/**
- * The AUTH category carries every provider that *can* authenticate, datastores
- * and raw protocols included. Matching on sub_type against Database cannot prune
- * them -- Database identifies the same products by driver id (`pg`, `mysql2`)
- * where AUTH uses product names -- so the non-apps are named outright.
- */
+// AUTH lists every provider that can authenticate; these non-apps are named since sub_types differ from Database's driver ids.
 const NON_APP_SUB_TYPES = new Set([
   'postgres',
   'pg',
@@ -392,9 +384,7 @@ watch(activeViewTab, (value) => {
           }"
         >
           <div v-if="integrationListContainerWidth" class="px-6 pt-4">
-            <!-- Title and search share a line: the search filters this whole
-                 pane, so it belongs with the pane's name rather than as a
-                 full-width band beneath it. -->
+            <!-- Title and search share a line: search filters the whole pane. -->
             <div class="flex flex-wrap items-center justify-between gap-3 m-auto nc-content-max-w">
               <div class="flex-1 min-w-60">
                 <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-1">
@@ -498,8 +488,7 @@ watch(activeViewTab, (value) => {
                             {{ integrationLabel(item.integration.title) }}
                           </span>
 
-                          <!-- Plan gate belongs on the thing that is gated, not on the
-                               category: the pill filters, the card is what you click. -->
+                          <!-- Plan gate sits on the card, not the category pill. -->
                           <span
                             v-if="item.categoryKey === IntegrationCategoryType.AI && blockAiIntegrations"
                             class="nc-browse-plan-badge flex-none"
@@ -512,8 +501,7 @@ watch(activeViewTab, (value) => {
                             />
                           </span>
 
-                          <!-- NocoDB data reflection is a toggle, not a connection:
-                               once on there is nothing to add, so it reads as done. -->
+                          <!-- Data reflection is a toggle, so once on it reads as done. -->
                           <GeneralIcon
                             v-if="item.integration?.sub_type === SyncDataType.NOCODB && dataReflectionEnabled"
                             icon="ncCheck"
@@ -532,8 +520,7 @@ watch(activeViewTab, (value) => {
                         </div>
                       </NcTooltip>
 
-                      <!-- Always last, and dotted: an ask rather than a thing you
-                           can connect, so it reads as an outline of a card. -->
+                      <!-- Always last, dotted: an ask, not a connection. -->
                       <button
                         type="button"
                         class="nc-browse-card nc-browse-card-request"
@@ -839,8 +826,7 @@ watch(activeViewTab, (value) => {
   }
 }
 
-/* Logos arrive either as bare glyphs or as full-bleed tiles with their own
-   background, and several carry an inline 32px size; the tile forces one box. */
+/* Forces one box size for bare glyphs and full-bleed logo tiles alike. */
 .nc-browse-logo {
   @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
 
@@ -854,8 +840,7 @@ watch(activeViewTab, (value) => {
   }
 }
 
-/* Grey at rest so a grid full of plan badges does not shout over the names it
-   sits beside; it blooms into colour with the row it belongs to. */
+/* Grey at rest so plan badges don't outshout the names. */
 .nc-browse-plan-badge {
   filter: grayscale(1);
   opacity: 0.5;
@@ -881,8 +866,7 @@ watch(activeViewTab, (value) => {
   border: 1px dashed var(--nc-border-gray-medium);
 }
 
-/* Reads as part of the sentence it sits in, and only declares itself as a link
-   on hover -- a permanently blue word pulls the eye off the heading above it. */
+/* Reads as part of the sentence; shows as a link only on hover. */
 .nc-inline-doc-link {
   color: inherit;
   text-decoration: underline;

@@ -138,9 +138,7 @@ const onSearchEnter = () => {
     :class="fullWidth ? 'w-full flex-1' : 'flex-none w-61 border-r-1 border-nc-border-gray-medium'"
     :data-testid="testidPrefix"
   >
-    <!-- Subject and search stay put; only the rows scroll. The top padding
-         mirrors `ShellHeader`'s (pt-4 / sm:pt-8) so the rail's subject sits on
-         the same line as the pane title across the divider. -->
+    <!-- Top padding matches ShellHeader so the subject lines up with the pane title. -->
     <div class="flex-none px-3 pt-4 sm:pt-8 pb-3">
       <!-- Names the subject being configured, so the modal always states what these panes belong to. -->
       <div v-if="$slots.subject" class="nc-shell-rail-subject">

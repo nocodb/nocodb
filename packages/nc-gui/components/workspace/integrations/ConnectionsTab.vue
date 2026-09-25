@@ -419,9 +419,7 @@ const customRow = (record: Record<string, any>) => ({
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
-    <!-- Title block, then one toolbar row. Search, environment and its manage
-         button all narrow or re-scope the same table, so they belong on one
-         line rather than stacked as three separate bands of chrome. -->
+    <!-- Search, environment and manage share one row: they all scope the same table. -->
     <div class="flex flex-col gap-2">
       <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-0">
         {{ $t('general.activeConnections') }}
@@ -441,8 +439,6 @@ const customRow = (record: Record<string, any>) => ({
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <!-- Bounded, not full-bleed: a search box the width of the page reads as a
-           banner and gives the eye nowhere to rest. -->
       <a-input
         ref="connectionsSearchInputRef"
         v-model:value="searchQuery"
@@ -457,9 +453,7 @@ const customRow = (record: Record<string, any>) => ({
         </template>
       </a-input>
 
-      <!-- One control, not two: managing environments is a thing you do *to* this
-           list of environments, so it lives at the foot of the same dropdown
-           rather than as a second button competing beside it. -->
+      <!-- Manage environments lives at the foot of this dropdown, not as a second button. -->
       <NcTooltip v-if="showEnvUI" class="flex-none" :title="$t('msg.info.showingEnvConfig', { env: activeEnvironment?.title })">
         <NcSelect
           :value="activeEnvironmentKey"
@@ -869,8 +863,7 @@ const customRow = (record: Record<string, any>) => ({
   @apply flex flex-col gap-3;
 }
 
-/* Reads as part of the sentence it sits in, and only declares itself as a link
-   on hover -- a permanently blue word pulls the eye off the heading above it. */
+/* Reads as part of the sentence; shows as a link only on hover. */
 .nc-inline-doc-link {
   color: inherit;
   text-decoration: underline;

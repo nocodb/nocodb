@@ -44,11 +44,7 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
 
   const goBack = () => !!backHandler.value?.()
 
-  /**
-   * A pane that drills in names where it went, and the header shows it as a
-   * crumb after the pane's own title. Keeps the drill-in on one line with the
-   * actions instead of growing a second action bar underneath the header.
-   */
+  // Label of the drilled-in view, shown after the pane title in the header.
   const crumb = shallowRef<string | null>(null)
 
   const setCrumb = (label: string | null) => {
@@ -56,8 +52,7 @@ const [useProvideShell, useShellState] = useInjectionState(() => {
   }
 
   const clearCrumb = (label?: string) => {
-    // Only the pane that set it may clear it, so a fast swap does not blank the
-    // incoming pane's crumb on the outgoing one's unmount.
+    // Only the setter may clear it, so a fast pane swap keeps the incoming crumb.
     if (!label || crumb.value === label) crumb.value = null
   }
 

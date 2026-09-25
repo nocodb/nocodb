@@ -79,11 +79,7 @@ const toBeDeletedIntegration = ref<
   | null
 >(null)
 
-/**
- * Mirrors the guard the old connection card carried: NocoDB's own connection is
- * only editable while data reflection is on, otherwise the form opens on
- * something that cannot be saved.
- */
+// NocoDB's own connection is only editable while data reflection is on.
 const canOpenEdit = (integration: IntegrationType) =>
   isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) || integration.sub_type !== SyncDataType.NOCODB
 
@@ -95,7 +91,7 @@ function connectionMeta(connection: IntegrationType) {
     parts.push(t('labels.addedOnDate', { date: dayjs(connection.created_at).local().format('DD MMM YYYY') }))
   }
 
-  const by = collaboratorsMap.value?.get(connection.created_by as string) as any
+  const by: { display_name?: string; email?: string } | undefined = collaboratorsMap.value?.get(connection.created_by as string)
   const name = by?.display_name || by?.email
 
   if (name) parts.push(t('labels.byUser', { user: name }))
@@ -335,34 +331,6 @@ const handleEdit = (integration: IntegrationType) => {
 
 <style lang="scss" scoped>
 .nc-active-connections-section {
-  .nc-connection-cards-grid {
-    @supports not (container-type: inline-size) {
-      @media (min-width: 540px) {
-        @apply grid-cols-2;
-      }
-
-      @media (min-width: 1024px) {
-        @apply grid-cols-3;
-      }
-
-      @media (min-width: 1440px) {
-        @apply grid-cols-4;
-      }
-    }
-
-    @container (min-width: 540px) {
-      @apply grid-cols-2;
-    }
-
-    @container (min-width: 820px) {
-      @apply grid-cols-3;
-    }
-
-    @container (min-width: 1140px) {
-      @apply grid-cols-4;
-    }
-  }
-
   .nc-connection-overflow-card {
     @apply flex flex-col items-center justify-center gap-1 border-1 border-dashed border-nc-border-gray-medium rounded-xl p-3 cursor-pointer transition-all duration-200;
 

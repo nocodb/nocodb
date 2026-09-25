@@ -1551,11 +1551,8 @@
     "agentSettings": "Settings"
   },
   "labels": {
-    "addedOnDate": "Added {date}",
     "byUser": "by {user}",
-    "addedOn": "Added {date}",
     "showMoreConnections": "Show {count} more connections",
-    "addConnection": "Add connection",
     "yourConnections": "Your connections",
     "searchIntegrations": "Search integrations",
     "requestIntegration": "Request integration",
@@ -1765,7 +1762,6 @@
       "dragDropPrefix": "Drag & drop, or",
       "browse": "browse",
       "placeholder": {
-        "searchIntegrations": "Search integrations",
         "productName": "NocoDB",
         "brandColor": "#3366FF",
         "seoDescription": "The smart no-code platform your team runs on.",
@@ -5639,7 +5635,6 @@
       "migrating": "Migrating..."
     },
     "info": {
-      "requestIntegrationHint": "Tell us what you need next",
       "mcpExamplePrompt": "Use NocoDB MCP to work with my base \"{base}\". Explore the schema, then help me add tables, fields and workflows.",
       "connectYourAiDesc": "Let Claude, ChatGPT or Cursor build tables, workflows and interfaces in this base.",
       "auditLogsDisabled": "Audit logs are currently disabled by administrators.",

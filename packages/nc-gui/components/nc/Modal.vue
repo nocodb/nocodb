@@ -41,34 +41,14 @@ const { isMobileMode } = useGlobal()
 
 const ncModalRef = ref<HTMLDivElement | null>(null)
 
-/** Stack-aware z-index, so a modal opened on top of another can outrank it. */
-const { zIndex, isStacked, push, pop } = useModalStack()
+const { zIndex, isStacked } = useModalStack(() => props.visible)
 
-watch(
-  () => props.visible,
-  (isOpen) => (isOpen ? push() : pop()),
-  { immediate: true },
-)
-
-// A modal destroyed while open (route change, v-if) must still release its slot.
-onBeforeUnmount(pop)
-
-/**
- * A first-level mask only tints the page. A stacked one has to bury a lit modal
- * underneath it, so it goes far darker -- otherwise the eye has two competing
- * surfaces to read.
- *
- * 0.93 rather than a gentler value because the surface underneath is usually
- * white: at 0.8 a white modal still resolves to ~rgb(51) and stays legible,
- * where 0.93 leaves ~rgb(18) and it reads as barely-there.
- *
- * Set here rather than in CSS: ant renders the mask as a *sibling* of the wrap,
- * so a class on the wrapper cannot reach it. A caller's own maskStyle still wins.
- */
+// A stacked mask has to bury a lit modal, not just tint the page; set inline because ant renders the mask outside the wrap.
 const resolvedMaskStyle = computed<CSSProperties>(() => ({
   ...(isStacked.value ? { backgroundColor: 'rgba(0, 0, 0, 0.93)' } : {}),
   ...(props.maskStyle ?? {}),
 }))
+
 const resolvedModalSize = computed(() => {
   const size = modalSizes[props.size as keyof typeof modalSizes]
   if (!size) return null
@@ -138,11 +118,7 @@ const height = computed(() => {
 
 const newWrapClassName = computed(() => {
   let className = 'nc-modal-wrapper'
-  if (isStacked.value) {
-    // Stacked on another modal: the mask has to bury a lit surface, not just tint
-    // the page, so it goes much darker than a first-level mask.
-    className += ' nc-modal-stacked'
-  }
+  if (isStacked.value) className += ' nc-modal-stacked'
 
   if (_wrapClassName) {
     className += ` ${_wrapClassName}`

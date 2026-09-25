@@ -12,13 +12,8 @@ defineProps<Props>()
 
 <template>
   <div class="nc-shell-empty px-2 py-6 flex flex-col items-center gap-6 text-center" data-testid="nc-shell-empty">
-    <!-- Desaturated on purpose: an empty pane is a resting state, and full-colour
-         art was the loudest thing on a screen with nothing in it. -->
-    <img
-      src="~assets/img/placeholder/no-search-result-found.png"
-      class="nc-shell-empty-art !w-[240px] flex-none"
-      :alt="title"
-    />
+    <!-- Desaturated on purpose: an empty pane is a resting state. -->
+    <img src="~assets/img/placeholder/no-search-result-found.png" class="nc-shell-empty-art !w-[240px] flex-none" :alt="title" />
     <div class="max-w-md text-bodyDefaultSm text-nc-content-gray-muted">{{ title }}</div>
   </div>
 </template>

@@ -123,9 +123,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-/* Reads as a key cap rather than a grey pill: a defined edge and a 1px bottom
-   shadow give it depth, and the darker ink makes the shortcut legible instead
-   of receding into the field it sits in. */
+/* Styled as a key cap rather than a grey pill. */
 .nc-kbd-chip {
   @apply px-1.5 py-0.5 rounded-md text-bodySmBold cursor-pointer transition-colors duration-150
     text-nc-content-gray-subtle2 bg-nc-bg-default border-1 border-nc-border-gray-medium;

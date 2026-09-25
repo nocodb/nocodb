@@ -38,9 +38,7 @@ const crumb = computed(() => {
          description into a column too narrow to read, the actions drop to a line
          of their own once they no longer both fit. -->
     <div class="flex-1 min-w-60">
-      <!-- Drilled in, the pane's title becomes the parent crumb and the place
-           you are now follows it. The row is unchanged otherwise, so the drill-in's
-           own actions land beside it instead of in a second bar underneath. -->
+      <!-- Drilled in, the pane title becomes the parent crumb. -->
       <div class="flex items-baseline gap-1.5 min-w-0 text-lg sm:text-xl font-semibold leading-7">
         <template v-if="crumb">
           <button
@@ -74,8 +72,7 @@ const crumb = computed(() => {
     <!-- One zone for both the host's own actions and whatever a pane teleports in
          (via `ShellActions`), so it collapses when it holds neither. Close is not
          here — it lives in the modal's corner (`ShellClose`). -->
-    <!-- `-mt-0.5` optically centres 32px controls on the 28px title line: the row
-         is `items-start`, so without it the buttons sit 2px below the heading. -->
+    <!-- `-mt-0.5` centres 32px controls on the 28px title line. -->
     <div
       :id="shell?.actionsTargetId"
       class="nc-shell-header-actions -mt-0.5 ml-auto flex items-center gap-2.5 flex-none empty:hidden"
@@ -86,8 +83,7 @@ const crumb = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-// Takes the colour of the description line it sits in rather than the global
-// anchor blue: it is a footnote on that sentence, not a call to action.
+// Inherits the description colour: a footnote, not a call to action.
 .nc-shell-docs,
 .nc-shell-docs:hover,
 .nc-shell-docs:focus {

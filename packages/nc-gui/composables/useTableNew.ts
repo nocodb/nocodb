@@ -218,6 +218,7 @@ export function useTableNew(param: {
     $e('c:table:delete')
     // 'Click Submit to Delete The table'
     Modal.confirm({
+      zIndex: nextModalZIndex(),
       title: `${t('msg.info.deleteTableConfirmation')} : ${table.title}?`,
       wrapClassName: 'nc-modal-table-delete',
       okText: t('general.yes'),

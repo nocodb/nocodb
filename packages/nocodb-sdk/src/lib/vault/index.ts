@@ -188,6 +188,29 @@ export const buildSecretRef = ({
 };
 
 /**
+ * The recorded outcome of the last `vaultTestConnection` run against a STORED
+ * vault. Absent means the vault has never been probed — which is a third state,
+ * not a failure: nothing may render a vault as reachable on the strength of the
+ * row existing.
+ *
+ * Carries no message. `meta` is returned by every list/read response, so a
+ * provider error recorded here would be readable by anyone who may list vaults;
+ * the message only ever travels in the `VaultTestResultType` handed back to the
+ * caller who ran the probe.
+ */
+export interface VaultLastTestType {
+  ok: boolean;
+  /** ISO-8601 instant the probe finished. */
+  at: string;
+}
+
+/** Response-safe vault metadata. */
+export interface VaultMetaType {
+  lastTest?: VaultLastTestType;
+  [key: string]: any;
+}
+
+/**
  * A connected vault. Mirrors `nc_vaults`, minus `config` — the provider auth
  * parameters NEVER leave the backend, not even to a workspace owner. Clients
  * only ever see which provider is connected and whether it is reachable.
@@ -213,7 +236,7 @@ export interface VaultType {
    */
   title?: string;
   provider?: VaultProviderType;
-  meta?: Record<string, any>;
+  meta?: VaultMetaType;
   created_by?: string;
   created_at?: string;
   updated_at?: string;

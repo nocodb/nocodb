@@ -10,6 +10,9 @@
  * being a password.
  */
 import {
+  RESERVED_VAULT_ALIASES,
+  SECRETS_NAMESPACE,
+  applySecretRefCompletion,
   buildSecretRef,
   formatSecretRef,
   isJsIdentifier,
@@ -17,8 +20,8 @@ import {
   isValidVaultAlias,
   mentionsSecretsNamespace,
   parseSecretRef,
-  RESERVED_VAULT_ALIASES,
-  SECRETS_NAMESPACE,
+  parseSecretRefDraft,
+  parseSecretRefText,
 } from './index';
 
 const ref = ($vault: unknown): { $vault: unknown } =>
@@ -357,5 +360,91 @@ describe('mentionsSecretsNamespace', () => {
     ]) {
       expect(mentionsSecretsNamespace(value)).toBe(false);
     }
+  });
+});
+
+describe('parseSecretRefText — the readable form back to a reference', () => {
+  it('round-trips everything formatSecretRef produces', () => {
+    const cases = [
+      { alias: 'awsProd', secret: 'dbCreds', path: ['password'] },
+      { alias: 'awsProd', secret: 'prod/db/creds', path: ['password'] },
+      { alias: 'awsProd', secret: 'prod/db/creds', path: [] },
+      { alias: 'awsProd', secret: 'a"b', path: ['x-y', 'z'] },
+    ];
+    for (const ref of cases) {
+      expect(parseSecretRefText(formatSecretRef(ref))).toEqual(ref);
+    }
+  });
+
+  it('accepts single quotes and surrounding whitespace', () => {
+    expect(parseSecretRefText("  secrets.awsProd['prod/db'].password ")).toEqual({
+      alias: 'awsProd',
+      secret: 'prod/db',
+      path: ['password'],
+    });
+  });
+
+  it.each([
+    ['', 'empty'],
+    ['awsProd.secret.key', 'no namespace'],
+    ['secrets', 'namespace only'],
+    ['secrets.awsProd', 'alias without a secret'],
+    ['secrets.secrets.x', 'reserved alias'],
+    ['secrets.1bad.x', 'alias not an identifier'],
+    ['secrets.awsProd[prod].x', 'unquoted bracket'],
+    ['secrets.awsProd["prod"', 'bracket missing its ]'],
+    ['secrets.awsProd["prod/d', 'bracket still open'],
+    ['secrets.awsProd.x..y', 'empty path segment'],
+    ['secrets.awsProd.x oops', 'trailing junk'],
+  ])('rejects %j (%s)', (text) => {
+    expect(parseSecretRefText(text)).toBeNull();
+  });
+});
+
+describe('parseSecretRefDraft — which segment the caret is in', () => {
+  it.each([
+    ['secrets.', [], '', false],
+    ['secrets.aw', [], 'aw', false],
+    ['secrets.awsProd.', ['awsProd'], '', false],
+    ['secrets.awsProd["prod/d', ['awsProd'], 'prod/d', true],
+    ['secrets.awsProd["prod/db"]', ['awsProd', 'prod/db'], '', false],
+    ['secrets.awsProd["prod/db"].pa', ['awsProd', 'prod/db'], 'pa', false],
+  ])('%j → segments %j, fragment %j', (text, segments, fragment, bracketed) => {
+    const draft = parseSecretRefDraft(text as string);
+    expect(draft.rooted).toBe(true);
+    expect(draft.segments).toEqual(segments);
+    expect(draft.fragment).toBe(fragment);
+    expect(draft.bracketed).toBe(bracketed);
+  });
+
+  it('is not rooted until the namespace is complete', () => {
+    expect(parseSecretRefDraft('secr').rooted).toBe(false);
+  });
+});
+
+describe('applySecretRefCompletion — splicing a chosen suggestion', () => {
+  const complete = (text: string, value: string) =>
+    applySecretRefCompletion(text, parseSecretRefDraft(text), value);
+
+  it('dot-completes an identifier', () => {
+    expect(complete('secrets.aw', 'awsProd')).toBe('secrets.awsProd');
+  });
+
+  it('switches to brackets for a name that needs them', () => {
+    expect(complete('secrets.awsProd.pro', 'prod/db/creds')).toBe(
+      'secrets.awsProd["prod/db/creds"]'
+    );
+  });
+
+  it('closes an already-open bracket', () => {
+    expect(complete('secrets.awsProd["pro', 'prod/db/creds')).toBe(
+      'secrets.awsProd["prod/db/creds"]'
+    );
+  });
+
+  it('completes the key after a bracketed secret', () => {
+    expect(complete('secrets.awsProd["prod/db"].pa', 'password')).toBe(
+      'secrets.awsProd["prod/db"].password'
+    );
   });
 });

@@ -30,6 +30,13 @@ interface SuggestOption {
   label?: string
   /** Secondary line, e.g. what a value means. */
   description?: string
+  /**
+   * Splice over `[from, to)` instead of replacing the whole field — for callers
+   * completing one segment of a larger value. Inserts `text` (default `value`);
+   * the caret lands at `caret`, or after the inserted text. `done` closes the
+   * menu instead of reopening it for a next segment.
+   */
+  replace?: { from: number; to: number; text?: string; caret?: number; done?: boolean }
 }
 
 interface SuggestGroup {
@@ -50,6 +57,10 @@ interface Props {
   allowFreeText?: boolean
   emptyText?: string
   inputClass?: string
+  /** Off when the caller already narrowed `options` to what is being typed. */
+  filter?: boolean
+  /** Off when an empty list is a normal state, e.g. a valid value typed by hand. */
+  showEmpty?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -63,12 +74,17 @@ const props = withDefaults(defineProps<Props>(), {
   allowFreeText: true,
   emptyText: undefined,
   inputClass: undefined,
+  filter: true,
+  showEmpty: true,
 })
 
 const emits = defineEmits<{
   (event: 'update:modelValue', value: string): void
-  /** Every keystroke, so an async source can refill `options`. */
-  (event: 'search', value: string): void
+  /**
+   * Every keystroke and caret move, so a caller can refill `options` for the
+   * segment under the caret.
+   */
+  (event: 'search', value: string, caret: number): void
   (event: 'select', option: SuggestOption): void
 }>()
 
@@ -97,6 +113,8 @@ const flatOptions = computed<(SuggestOption & { group?: string })[]>(() => {
 })
 
 const filtered = computed(() => {
+  if (!props.filter) return flatOptions.value
+
   const needle = query.value.trim().toLowerCase()
 
   if (!needle) return flatOptions.value
@@ -142,17 +160,51 @@ function commit(value: string) {
   emits('update:modelValue', value)
 }
 
+function inputEl(): HTMLInputElement | null {
+  return wrapper.value?.querySelector('input') ?? null
+}
+
+function caretOf(el: HTMLInputElement | null): number {
+  return el?.selectionStart ?? query.value.length
+}
+
+function notifySearch() {
+  emits('search', query.value, caretOf(inputEl()))
+}
+
 function choose(option: SuggestOption) {
-  commit(option.value)
   emits('select', option)
-  close()
+
+  if (!option.replace) {
+    commit(option.value)
+    close()
+    return
+  }
+
+  // Segment mode: splice, park the caret, and stay open so the next segment's
+  // suggestions follow without another keystroke.
+  const { from, to, caret } = option.replace
+  const inserted = option.replace.text ?? option.value
+  const next = query.value.slice(0, from) + inserted + query.value.slice(to)
+  const position = caret ?? from + inserted.length
+
+  commit(next)
+
+  if (option.replace.done) close()
+
+  nextTick(() => {
+    const el = inputEl()
+    el?.focus()
+    el?.setSelectionRange(position, position)
+    notifySearch()
+  })
 }
 
 function onInput(event: Event) {
-  const value = (event.target as HTMLInputElement).value
+  const el = event.target as HTMLInputElement
 
-  commit(value)
-  emits('search', value)
+  commit(el.value)
+  emits('search', el.value, caretOf(el))
 
   open()
 }
@@ -197,6 +249,18 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
+function onFocus() {
+  open()
+  notifySearch()
+}
+
+const CARET_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'Home', 'End'])
+
+function onCaretMove(event: Event) {
+  if (event instanceof KeyboardEvent && !CARET_KEYS.has(event.key)) return
+  notifySearch()
+}
+
 function onBlur() {
   // Without free text the field is a filterable select, so anything that is not
   // an option is discarded rather than silently kept.
@@ -206,6 +270,8 @@ function onBlur() {
 }
 
 onClickOutside(wrapper, close)
+
+defineExpose({ focus: () => inputEl()?.focus() })
 
 watch(
   () => props.modelValue,
@@ -230,9 +296,11 @@ watch(filtered, () => {
       :class="inputClass"
       v-bind="$attrs"
       @input="onInput"
-      @focus="open"
+      @focus="onFocus"
       @blur="onBlur"
       @keydown="onKeyDown"
+      @keyup="onCaretMove"
+      @click="onCaretMove"
     />
 
     <div
@@ -272,7 +340,7 @@ watch(filtered, () => {
          field is the normal state for a source that has nothing to offer, and
          saying so would read as an error. -->
     <div
-      v-else-if="isOpen && query && !hasSuggestions"
+      v-else-if="showEmpty && isOpen && query && !hasSuggestions"
       class="nc-suggest-input-menu absolute z-50 mt-1 w-full rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-3 py-2 text-bodySm text-nc-content-gray-muted shadow-lg"
       data-testid="nc-suggest-input-empty"
     >

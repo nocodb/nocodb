@@ -1569,7 +1569,6 @@
     "connectAVault": "Connect a vault",
     "useAVault": "Use a vault",
     "useAPlainValue": "Enter value directly",
-    "vaultSelectVault": "Vault",
     "vaultReference": "Reference",
     "vaultReferenceName": "Reference name",
     "vaultExampleReference": "Reference secrets from this vault as",
@@ -5195,8 +5194,6 @@
     "requestIntegration": "Provide integration name and your use-case.",
     "interfaceNocoAiPrompt": "Ask a question, or generate content based on this record.",
     "vaultName": "productionSecrets",
-    "vaultSecretId": "prod/db/primary",
-    "vaultProperty": "Select a field in the secret",
     "searchTools": "Search tools",
     "searchDataSource": "Search data source",
     "searchConnections": "Search connections",
@@ -5393,7 +5390,8 @@
     "userInfoUrl": "User Info URL*",
     "jwkSetUrl": "JWK Set URL*",
     "scopeNotSelected": "-scope not selected*-",
-    "usernameAttribute": "Username Attribute*"
+    "usernameAttribute": "Username Attribute*",
+    "vaultReference": "secrets.myVault[\"my-secret\"].password"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -6219,7 +6217,8 @@
       "autoPopulateConnectionFromUrl": "Auto populate connection configuration using database connection URL",
       "whitelistIpForDatabaseAccess": "Whitelist our ip: 52.15.226.51 to allow database access",
       "runTestToSeeOutput": "Run a test to see the output",
-      "redirectUrlHint": "This is the URL where authentication responses will be sent after successful login. Also referred to as 'Callback URL' or 'Reply URL'."
+      "redirectUrlHint": "This is the URL where authentication responses will be sent after successful login. Also referred to as 'Callback URL' or 'Reply URL'.",
+      "vaultNoKeyPath": "This provider stores one value per secret, so the key path is ignored."
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",
@@ -6438,7 +6437,8 @@
       "screenshotType": "Screenshots must be PNG, JPG, WEBP or AVIF.",
       "screenshotSize": "Screenshots must be under 5 MB.",
       "screenshotUploadFailed": "Could not upload that screenshot. Try again.",
-      "vaultSecretNeedsProperty": "This secret holds several fields. Pick the one to use, or the connection will fail when it runs."
+      "vaultSecretNeedsProperty": "This secret holds several fields. Pick the one to use, or the connection will fail when it runs.",
+      "vaultUnknownAlias": "No vault named '{name}' is available here."
     },
     "toast": {
       "changesSaved": "Changes saved",

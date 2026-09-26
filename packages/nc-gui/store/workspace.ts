@@ -32,13 +32,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
-  const isWorkspaceSettingsPageOpened = computed(() => wsSettingsRouteNames.has(route.value.name as string))
+  const openWorkspaceSettings = useWorkspaceSettingsLink()
 
-  const isIntegrationsPageOpened = computed(
-    () =>
-      route.value.name === 'index-typeOrId-integrations' ||
-      (route.value.name === 'index-typeOrId-settings-page' && route.value.params.page === 'ws-integrations'),
-  )
+  const openWorkspaceSettingsSlug = computed(() => wsSettingsSlugFromRoute(route.value))
+
+  const isWorkspaceSettingsPageOpened = computed(() => !!openWorkspaceSettingsSlug.value)
+
+  const isIntegrationsPageOpened = computed(() => openWorkspaceSettingsSlug.value === 'integrations')
 
   const isTemplatesPageOpened = computed(() => false)
 
@@ -289,29 +289,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const navigateToWorkspaceSettings = async (_?: string, cmdOrCtrl?: boolean) => {
-    const workspaceId = activeWorkspaceId.value
-    const path = `/${workspaceId}/more`
-    if (cmdOrCtrl) {
-      await navigateTo(path, {
-        open: navigateToBlankTargetOpenOption,
-      })
-    } else {
-      await navigateTo(path)
-    }
+    await openWorkspaceSettings('general', { workspaceId: activeWorkspaceId.value, newTab: cmdOrCtrl })
   }
 
-  // Todo: write logic to navigate to integrations
   const navigateToIntegrations = async (_?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
-    if (cmdOrCtrl) {
-      await navigateTo(
-        { path: '/nc/integrations', query },
-        {
-          open: navigateToBlankTargetOpenOption,
-        },
-      )
-    } else {
-      await navigateTo({ path: '/nc/integrations', query })
-    }
+    await openWorkspaceSettings('integrations', { workspaceId: activeWorkspaceId.value, query, newTab: cmdOrCtrl })
   }
 
   const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {

@@ -1,18 +1,27 @@
 <script setup lang="ts">
 definePageMeta({
-  hideHeader: true,
-  hasSidebar: true,
+  // One key for every pane, so switching panes keeps the page (and its rail) mounted.
+  key: (route) => `/${route.params.typeOrId}/settings`,
+  middleware: [
+    (to) => {
+      const slug = resolveWsSettingsSlug(to.params.page)
+
+      // Legacy and unknown slugs land on their canonical path.
+      if (slug !== to.params.page) {
+        return navigateTo(
+          { path: wsSettingsPath(to.params.typeOrId as string, slug ?? 'general'), query: to.query },
+          { replace: true },
+        )
+      }
+    },
+  ],
 })
 
 const route = useRoute()
 
-// Redirect old /settings/{page} URLs to new flat /{wsId}/{slug}
-const slug = route.params.page as string
-const wsTab = wsSettingsSlugToTab[slug]
-const newSlug = wsTab ? wsSettingsTabToSlug[wsTab] || slug : slug
-navigateTo(`/${route.params.typeOrId}/${newSlug}`, { replace: true })
+const tab = computed(() => resolveWsSettingsSlug(route.params.page))
 </script>
 
 <template>
-  <div />
+  <WorkspaceSettingsShell v-if="tab" :tab="tab" />
 </template>

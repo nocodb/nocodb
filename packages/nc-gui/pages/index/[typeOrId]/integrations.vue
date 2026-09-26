@@ -1,10 +1,13 @@
 <script setup lang="ts">
+// Legacy route — the pane lives on the workspace settings page now.
 definePageMeta({
-  hideHeader: true,
-  hasSidebar: true,
+  middleware: [
+    (to) =>
+      navigateTo({ path: wsSettingsPath(to.params.typeOrId as string, 'integrations'), query: to.query }, { replace: true }),
+  ],
 })
 </script>
 
 <template>
-  <WorkspaceView is-new-ws-page />
+  <div class="h-full" />
 </template>

@@ -28,9 +28,8 @@ const isHomeSidebarRoute = computed(() => {
   return isWsHomeRoute(route.value)
 })
 
-const isAdminRoute = computed(() => {
-  return isWsAdminRoute(route.value)
-})
+// Workspace settings is a full page with its own sidebar, like the account page.
+const isWsSettingsRoute = computed(() => !!wsSettingsSlugFromRoute(route.value))
 
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
 
@@ -156,6 +155,9 @@ onMounted(() => {
     <NuxtLayout v-else-if="isSharedView" name="shared-view">
       <NuxtPage />
     </NuxtLayout>
+    <NuxtLayout v-else-if="isWsSettingsRoute" name="empty">
+      <NuxtPage :transition="false" />
+    </NuxtLayout>
     <NuxtLayout v-else name="dashboard">
       <template #sidebar>
         <DashboardHomeSidebar v-if="isHomeSidebarRoute" />
@@ -165,7 +167,6 @@ onMounted(() => {
         <!-- Workspace home: stable header + tabs + dynamic page content -->
         <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full" :style="{ '--topbar-height': '3.5rem' }">
           <WorkspaceViewTopbar />
-          <WorkspaceAdminTabs v-if="isAdminRoute" />
           <div class="flex-1 overflow-auto">
             <NuxtPage :transition="false" />
           </div>

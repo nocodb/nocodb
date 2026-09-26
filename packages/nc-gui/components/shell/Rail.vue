@@ -138,8 +138,12 @@ const onSearchEnter = () => {
     :class="fullWidth ? 'w-full flex-1' : 'flex-none w-61 border-r-1 border-nc-border-gray-medium'"
     :data-testid="testidPrefix"
   >
-    <!-- Top padding matches ShellHeader so the subject lines up with the pane title. -->
-    <div class="flex-none px-3 pt-4 sm:pt-8 pb-3">
+    <!-- Page hosts put their way out here (a Back row); modals use the corner close. -->
+    <slot name="top" />
+
+    <!-- Top padding matches ShellHeader so the subject lines up with the pane title;
+         under a `top` row the search sits right below it instead. -->
+    <div class="flex-none px-3 pb-3" :class="$slots.top ? 'pt-3' : 'pt-4 sm:pt-8'">
       <!-- Names the subject being configured, so the modal always states what these panes belong to. -->
       <div v-if="$slots.subject" class="nc-shell-rail-subject">
         <slot name="subject" />
@@ -171,7 +175,7 @@ const onSearchEnter = () => {
       <template v-for="group in filteredGroups" :key="group.key ?? group.label">
         <component
           :is="group.collapsible ? 'button' : 'div'"
-          v-if="group.items.length"
+          v-if="group.items.length && group.label"
           class="nc-shell-rail-group"
           :class="{
             'nc-shell-rail-group-divider': group.divider,

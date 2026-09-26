@@ -2,9 +2,10 @@
 import { useTitle } from '@vueuse/core'
 import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
+// The org admin panel's view of one workspace. On the workspace itself these
+// panes live on the settings page (`WorkspaceSettingsShell`).
 const props = defineProps<{
   workspaceId?: string
-  isNewWsPage?: boolean
 }>()
 
 const router = useRouter()
@@ -14,7 +15,7 @@ const { t } = useI18n()
 
 const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed, isBaseRolesLoaded, loadRoles, workspaceRoles } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
@@ -30,46 +31,6 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, blockWorkspaceSso, showUpgradeToUseWorkspaceSso } =
   useEeConfig()
-
-const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
-
-// Local ref for integrations view mode (main page vs all-connections page).
-// Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
-// also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
-// Deep-linkable via `?integrationsView=environments` (used by the base Variables
-// page's "Manage environments" action).
-const integrationsViewMode = ref<'main' | 'all-connections' | 'environments'>(
-  route.value.query?.integrationsView === 'environments' ? 'environments' : 'main',
-)
-
-// After creating an integration, switch to all-connections view
-// (the store sets activeViewTab='connections' which breaks outer NcTabs, so we handle it here)
-const integrationEventBusHandler = (event: string) => {
-  if (event === IntegrationStoreEvents.INTEGRATION_ADD) {
-    integrationsViewMode.value = 'all-connections'
-  }
-}
-
-eventBus.on(integrationEventBusHandler)
-
-onBeforeUnmount(() => {
-  eventBus.off(integrationEventBusHandler)
-})
-
-watch(integrationsViewMode, () => {
-  storeSearchQuery.value = ''
-})
-
-// Non-managers (viewers/editors) can't create integrations — the catalog is
-// pointless for them, so they land on (and stay in) the connections list,
-// where per-user integrations offer their connect action. Only enforced once
-// workspace roles have resolved, so managers aren't bounced mid-load.
-watchEffect(() => {
-  if (!Object.keys(workspaceRoles.value ?? {}).length) return
-  if (!isUIAllowed('integrationManage') && integrationsViewMode.value === 'main') {
-    integrationsViewMode.value = 'all-connections'
-  }
-})
 
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
@@ -91,9 +52,7 @@ const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(cu
 
 const tab = computed({
   get() {
-    return props.isNewWsPage
-      ? routeNameToWsTab[route.value.name as string] || 'collaborators'
-      : route.value.query?.tab ?? 'collaborators'
+    return route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
     if (!isWsAuditEnabled.value && tab === 'audits') {
@@ -115,39 +74,16 @@ const tab = computed({
       loadCollaborators({} as any, props.workspaceId)
     }
 
-    if (props.isNewWsPage) {
-      router.push({ name: wsTabToRouteName[tab] || 'index-typeOrId' })
-    } else {
-      router.push({ query: { ...route.value.query, tab } })
-    }
+    router.push({ query: { ...route.value.query, tab } })
   },
 })
 
-const tabTitleMap: Record<string, string> = {
-  bases: t('objects.projects'),
-  collaborators: t('labels.members'),
-  teams: t('general.teams'),
-  integrations: t('general.integrations'),
-  billing: t('general.billing'),
-  usage: t('general.usage'),
-  audits: t('title.audits'),
-  sso: t('title.sso'),
-  settings: t('labels.settings'),
-}
-
 watch(
-  [() => currentWorkspace.value?.title, () => tab.value],
-  ([wsTitle, activeTab]) => {
+  () => currentWorkspace.value?.title,
+  (wsTitle) => {
     if (!wsTitle) return
 
-    const capitalizedTitle = wsTitle.charAt(0).toUpperCase() + wsTitle.slice(1)
-
-    if (props.isNewWsPage) {
-      const tabLabel = tabTitleMap[activeTab as string]
-      useTitle(tabLabel ? `${tabLabel} - ${capitalizedTitle}` : capitalizedTitle)
-    } else {
-      useTitle(capitalizedTitle)
-    }
+    useTitle(wsTitle.charAt(0).toUpperCase() + wsTitle.slice(1))
   },
   {
     immediate: true,
@@ -166,22 +102,7 @@ onMounted(() => {
 
 watch(
   () => tab.value,
-  async (newTab, oldTab) => {
-    if (newTab === 'integrations') {
-      isFromIntegrationPage.value = true
-
-      await until(() => currentWorkspace.value?.id)
-        .toMatch((v) => !!v)
-        .then(async () => {
-          await loadIntegrations()
-        })
-    }
-
-    if (oldTab === 'integrations') {
-      isFromIntegrationPage.value = false
-      integrationsViewMode.value = 'main'
-    }
-
+  async (newTab) => {
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
     if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && isEeUI) {
@@ -200,21 +121,19 @@ watch(
   },
 )
 
-if (!props.isNewWsPage) {
-  onMounted(() => {
-    hideSidebar.value = true
-  })
+onMounted(() => {
+  hideSidebar.value = true
+})
 
-  onBeforeUnmount(() => {
-    hideSidebar.value = false
-  })
-}
+onBeforeUnmount(() => {
+  hideSidebar.value = false
+})
 </script>
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden">
     <div
-      v-if="!props.workspaceId && !isNewWsPage"
+      v-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
@@ -224,26 +143,19 @@ if (!props.isNewWsPage) {
           'max-w-[calc(100%_-_52px)]': isMobileMode,
         }"
       >
-        <div
-          class="nc-breadcrumb-item capitalize truncate"
-          :class="{
-            '!text-bodyLgBold': isNewWsPage,
-          }"
-        >
+        <div class="nc-breadcrumb-item capitalize truncate">
           {{ currentWorkspace?.title }}
         </div>
-        <template v-if="!isNewWsPage">
-          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
 
-          <h1 class="nc-breadcrumb-item active truncate">
-            {{ $t('title.teamAndSettings') }}
-          </h1>
-        </template>
+        <h1 class="nc-breadcrumb-item active truncate">
+          {{ $t('title.teamAndSettings') }}
+        </h1>
       </div>
 
       <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
-    <template v-else-if="!isNewWsPage">
+    <template v-else>
       <div class="nc-breadcrumb px-2">
         <div class="nc-breadcrumb-item">
           {{ org.title }}
@@ -278,7 +190,7 @@ if (!props.isNewWsPage) {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :class="{ 'hide-tabs': isNewWsPage }">
+    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
@@ -315,69 +227,6 @@ if (!props.isNewWsPage) {
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">
-        <a-tab-pane v-if="isNewWsPage && wsTabVisibility.integrations" key="integrations" class="w-full h-full">
-          <template #tab>
-            <div class="tab-title">
-              <GeneralIcon icon="integration" class="h-4 w-4" />
-              {{ $t('general.integrations') }}
-            </div>
-          </template>
-          <div
-            class="nc-integrations-layout nc-content-max-w mx-auto"
-            :class="isNewWsPage ? 'h-[calc(100vh-var(--topbar-height))]' : 'h-[calc(100vh-var(--topbar-height)-44px)]'"
-          >
-            <!-- Main integrations page -->
-            <template v-if="integrationsViewMode === 'main'">
-              <div class="h-full">
-                <WorkspaceIntegrationsTab
-                  show-filter
-                  show-title
-                  show-active-connections
-                  @view-all-connections="integrationsViewMode = 'all-connections'"
-                />
-              </div>
-            </template>
-
-            <!-- All connections page -->
-            <template v-else-if="integrationsViewMode === 'all-connections'">
-              <div class="h-full flex flex-col px-8 py-6">
-                <NcButton
-                  v-if="isUIAllowed('integrationManage')"
-                  type="link"
-                  size="small"
-                  class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
-                  inner-class="hover:underline"
-                  @click="integrationsViewMode = 'main'"
-                >
-                  <GeneralIcon icon="arrowLeft" class="mr-1" />
-                  {{ $t('general.backToIntegrations') }}
-                </NcButton>
-
-                <div class="flex items-center justify-between mb-2">
-                  <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
-                    {{ $t('general.allConnections') }}
-                  </h2>
-                  <WorkspaceIntegrationsAddConnectionDropdown v-if="isUIAllowed('integrationManage')" />
-                </div>
-
-                <div class="flex-1 min-h-0">
-                  <WorkspaceIntegrationsConnectionsTab
-                    :show-environments="isEeUI"
-                    @manage-environments="integrationsViewMode = 'environments'"
-                  />
-                </div>
-              </div>
-            </template>
-            <template v-else-if="integrationsViewMode === 'environments'">
-              <div class="h-full flex flex-col px-8 py-6">
-                <WorkspaceIntegrationsEnvironmentsManageEnvironments @back="integrationsViewMode = 'all-connections'" />
-              </div>
-            </template>
-
-            <WorkspaceIntegrationsEditOrAdd />
-          </div>
-        </a-tab-pane>
-
         <template v-if="wsTabVisibility.billing">
           <a-tab-pane key="billing" class="w-full">
             <template #tab>
@@ -436,10 +285,7 @@ if (!props.isNewWsPage) {
               </div>
             </template>
 
-            <WorkspaceSso
-              v-if="!blockWorkspaceSso"
-              :class="isNewWsPage ? '!h-[calc(100vh-var(--topbar-height)-44px)]' : '!h-[calc(100vh-92px)]'"
-            />
+            <WorkspaceSso v-if="!blockWorkspaceSso" class="!h-[calc(100vh-92px)]" />
             <div v-else>&nbsp;</div>
           </a-tab-pane>
         </template>
@@ -486,12 +332,5 @@ if (!props.isNewWsPage) {
 
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
-}
-
-.hide-tabs {
-  // Hide only the top-level tab nav (this element IS the .ant-tabs)
-  > :deep(.ant-tabs-nav) {
-    @apply !hidden;
-  }
 }
 </style>

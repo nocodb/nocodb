@@ -16,9 +16,7 @@ const { createProject: _createProject } = basesStore
 
 const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading, resolvedProject } = storeToRefs(basesStore)
 
-const { activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
-
-const { activeSidebarTab } = storeToRefs(useSidebarStore())
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const baseCreateDlg = ref(false)
 
@@ -306,25 +304,6 @@ watch(
       </ProjectWrapper>
     </div>
 
-    <div
-      v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length && activeSidebarTab === 'settings'"
-      class="nc-treeview-active-base flex flex-col h-full"
-    >
-      <div>
-        <DashboardSidebarHeaderWrapper>
-          <NcTooltip class="truncate font-semibold text-sm text-nc-content-gray" show-on-truncate-only>
-            <template #title>{{ activeWorkspace?.title }}</template>
-            {{ activeWorkspace?.title }}
-          </NcTooltip>
-        </DashboardSidebarHeaderWrapper>
-      </div>
-
-      <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
-        <DashboardTreeViewProjectWsSettingsMenu v-if="showWsSettingsInBase" />
-      </div>
-
-      <slot name="footer" />
-    </div>
     <div v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length" class="nc-treeview-empty-state">
       <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
 

@@ -110,7 +110,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'workflows' | 'interfaces' | 'agents' | 'settings' | 'app' | 'store'
+  type SidebarTab = 'data' | 'workflows' | 'interfaces' | 'agents' | 'app' | 'store'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
@@ -118,14 +118,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const routeDerivedTab = computed<SidebarTab | null>(() => {
     const name = route.value.name?.toString() ?? ''
 
-    // Workspace-level settings (old and new flat routes)
-    if (wsSettingsRouteNames.has(name)) return 'settings'
-
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {
-      // Base settings is a modal over the base page, so the sidebar keeps
-      // showing whichever vertical the reader came from rather than swapping
-      // itself out — only workspace settings still owns the sidebar.
+      // Base settings is a modal over the page, so the sidebar keeps showing
+      // whichever vertical the reader came from.
 
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||

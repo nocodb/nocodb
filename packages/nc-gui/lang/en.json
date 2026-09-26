@@ -2122,6 +2122,8 @@
     "manageLicenseOnCloud": "Manage your license, billing, and plan upgrades from your NocoDB Cloud account.",
     "buyLicense": "Buy License",
     "manageLicense": "Manage License",
+    "licenseSeatsUsed": "Seats used: {used} of {limit}",
+    "licenseSeatsUsedUnlimited": "Seats used: {used} (unlimited)",
     "preferences": "Preferences",
     "communityEdition": {
       "showOnly": "Show only community edition features",

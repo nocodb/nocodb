@@ -55,12 +55,31 @@ const loadLicense = async () => {
   }
 }
 
+const fetchLicenseStatus = async () => {
+  return $fetch<{ seatCount?: number; seatLimit?: number | null; instanceId?: string }>('/api/v1/license/status', {
+    baseURL: $api.instance.defaults.baseURL,
+    method: 'GET',
+    headers: { 'xc-auth': token.value as string },
+  })
+}
+
+const seatUsage = ref<{ seatCount?: number; seatLimit?: number | null }>({})
+
+const loadSeatUsage = async () => {
+  try {
+    seatUsage.value = await fetchLicenseStatus()
+  } catch {
+    seatUsage.value = {}
+  }
+}
+
 const setLicense = async () => {
   try {
     await api.orgLicense.set({ key: key.value })
     savedKey.value = key.value
     message.toast(t('msg.success.licenseKeyUpdated'))
     await loadAppInfo()
+    await loadSeatUsage()
   } catch (e: any) {
     message.toast(await extractSdkResponseErrorMsg(e))
   }
@@ -83,6 +102,7 @@ const removeLicense = () => {
         savedKey.value = ''
         message.toast(t('title.licenseKeyRemoved'))
         await loadAppInfo()
+        await loadSeatUsage()
       } catch (e: any) {
         message.toast(await extractSdkResponseErrorMsg(e))
       }
@@ -109,6 +129,7 @@ const refreshLicense = async () => {
     if (result.success) {
       message.toast(t('upgrade.licenseRefreshed'))
       await loadAppInfo()
+      await loadSeatUsage()
     } else {
       message.toast(t('upgrade.licenseRefreshFailed'))
     }
@@ -144,12 +165,7 @@ const onBuyLicense = async () => {
   let seatCount: number | undefined
   let instanceId: string | undefined
   try {
-    const baseURL = $api.instance.defaults.baseURL
-    const status = await $fetch<{ seatCount?: number; instanceId?: string }>('/api/v1/license/status', {
-      baseURL,
-      method: 'GET',
-      headers: { 'xc-auth': token.value as string },
-    })
+    const status = await fetchLicenseStatus()
     if (typeof status?.seatCount === 'number' && status.seatCount > 0) {
       seatCount = status.seatCount
     }
@@ -175,6 +191,7 @@ const onBuyLicense = async () => {
 }
 
 loadLicense()
+loadSeatUsage()
 </script>
 
 <template>
@@ -254,6 +271,17 @@ loadLicense()
                   {{ $t('title.licenseNone') }}
                 </template>
               </span>
+            </div>
+
+            <div
+              v-if="licenseStatus === 'active' && typeof seatUsage.seatCount === 'number'"
+              class="text-sm text-nc-content-gray-subtle"
+            >
+              {{
+                seatUsage.seatLimit && seatUsage.seatLimit > 0
+                  ? $t('labels.licenseSeatsUsed', { used: seatUsage.seatCount, limit: seatUsage.seatLimit })
+                  : $t('labels.licenseSeatsUsedUnlimited', { used: seatUsage.seatCount })
+              }}
             </div>
 
             <template v-if="isLicenseKeySetByEnv">

@@ -2,7 +2,7 @@ import type { WorkspaceUserRoles } from 'nocodb-sdk'
 import { IconType, ProjectRoles, WorkspaceRolesToProjectRoles, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
-import { getSelectedUsers } from '../../../../cell/User/utils'
+import { getSelectedUsers, isRecordStampingServiceUser } from '../../../../cell/User/utils'
 
 const tagPadding = 8
 const tagSpacingY = 4
@@ -63,9 +63,37 @@ const backgroundColor = (username: string, email: string, userIcon: ReturnType<t
   return color || '#FFFFFF'
 }
 
+const isServiceUser = (user: { id?: string; email?: string }) =>
+  isRecordStampingServiceUser(user.id) || isRecordStampingServiceUser(user.email)
+
+// Carried-over values (e.g. from a duplicated base) can reference users outside this base.
+// Undecidable without a loaded member list (public views, still loading); service users never count.
+const isNotBaseMember = (
+  baseUsers: CellRendererOptions['baseUsers'],
+  user: { id?: string; email?: string },
+  isPublic?: boolean,
+) =>
+  !isPublic &&
+  !!baseUsers?.length &&
+  !isServiceUser(user) &&
+  !baseUsers.some((u) => (user.id && u.id === user.id) || (user.email && u.email === user.email))
+
 export const UserFieldCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x: _x, y: _y, width: _width, height, column, spriteLoader, padding, imageLoader, getColor } = props
+    const {
+      value,
+      x: _x,
+      y: _y,
+      width: _width,
+      height,
+      column,
+      spriteLoader,
+      padding,
+      imageLoader,
+      getColor,
+      baseUsers,
+      isPublic,
+    } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
@@ -86,6 +114,7 @@ export const UserFieldCellRenderer: CellRenderer = {
       const displayName = extractUserDisplayNameOrEmail(user)
 
       const isDeleted = user.deleted
+      const isNonMember = !isDeleted && isNotBaseMember(baseUsers, { id: user.value, email: user.email }, isPublic)
 
       const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
         text: displayName,
@@ -128,13 +157,17 @@ export const UserFieldCellRenderer: CellRenderer = {
       })
 
       const userIcon = getUserIcon(user.meta)
-      const isImage = userIcon.icon && userIcon.iconType === IconType.IMAGE && !!userIcon.icon[0]
+      const isImage = !isNonMember && userIcon.icon && userIcon.iconType === IconType.IMAGE && !!userIcon.icon[0]
       const initials = usernameInitials(displayName, userEmail)
       const circleSize = 19
       const circleRadius = circleSize / 2
       const enableBackground = isDeleted ? true : !isImage
-      const bgColor = isImage ? 'transparent' : backgroundColor(userDisplayName, userEmail, userIcon, getColor)
-      const textColor = isColorDark(bgColor) ? 'white' : 'black'
+      const bgColor = isImage
+        ? 'transparent'
+        : isNonMember
+        ? getColor('var(--nc-bg-gray-dark)')
+        : backgroundColor(userDisplayName, userEmail, userIcon, getColor)
+      const textColor = isNonMember ? getColor('var(--nc-content-gray-muted)') : isColorDark(bgColor) ? 'white' : 'black'
 
       const icon = userIcon.icon as string
 
@@ -151,7 +184,7 @@ export const UserFieldCellRenderer: CellRenderer = {
           imageLoader.renderImage(ctx, img, x, y + 6, circleSize, circleSize, circleRadius, { border: false })
           needsPlaceholder = false
         }
-      } else if (userIcon.icon && userIcon.iconType === IconType.EMOJI) {
+      } else if (!isNonMember && userIcon.icon && userIcon.iconType === IconType.EMOJI) {
         if (isUnicodeEmoji(icon)) {
           renderSingleLineText(ctx, { x: x + 3.5, y: y + 1, text: icon })
           needsPlaceholder = false
@@ -159,7 +192,7 @@ export const UserFieldCellRenderer: CellRenderer = {
           // TODO:
           needsPlaceholder = true
         }
-      } else if (userIcon.icon && userIcon.iconType === IconType.ICON) {
+      } else if (!isNonMember && userIcon.icon && userIcon.iconType === IconType.ICON) {
         spriteLoader.renderIcon(ctx, {
           color: getColor('var(--nc-content-gray)'),
           icon: icon as IconMapKey,
@@ -226,7 +259,7 @@ export const UserFieldCellRenderer: CellRenderer = {
     }
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers, isInterface }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers, isInterface, isPublic, t }) {
     const { hideTooltip, tryShowTooltip } = useTooltipStore()
     hideTooltip()
 
@@ -261,7 +294,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     if (!users.length) return
 
-    const boxes: (RenderRectangleProps & { display_name?: string; email: string; deleted?: boolean })[] = []
+    const boxes: (RenderRectangleProps & { id?: string; display_name?: string; email: string; deleted?: boolean })[] = []
     const ctx = defaultOffscreen2DContext
 
     let line = 1
@@ -290,6 +323,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         y: y + 6,
         width: minTagWidth,
         height: tagHeight,
+        id: user.value,
         display_name: extractUserDisplayNameOrEmail(user),
         email: user.email,
         deleted: user.deleted,
@@ -304,6 +338,10 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
+
+    const isDeletedMember = !!hoveredBox.deleted
+    const isNonBaseMember = !isDeletedMember && isNotBaseMember(baseUsers, hoveredBox, isPublic)
+
     tryShowTooltip({
       rect: hoveredBox,
       text: h('div', { class: 'flex flex-col gap-2' }, [
@@ -311,9 +349,13 @@ export const UserFieldCellRenderer: CellRenderer = {
           h('div', { class: !hoveredBox.display_name ? 'hidden' : 'text-small' }, hoveredBox.display_name),
           h('div', { class: ` ${!hoveredBox.display_name ? 'text-small' : 'text-tiny text-gray-200'}` }, hoveredBox.email),
         ]),
-        hoveredBox.deleted
-          ? h('div', { class: 'text-tiny text-gray-200' }, `Removed`)
-          : h('div', { class: 'text-tiny text-gray-200' }, `Has ${getUserRole(hoveredBox.email)} role in base`),
+        isServiceUser(hoveredBox)
+          ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.systemUser'))
+          : isDeletedMember
+          ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.noLongerWorkspaceMember'))
+          : isNonBaseMember
+          ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.notBaseMember'))
+          : h('div', { class: 'text-tiny text-gray-200' }, t('labels.hasRoleInBase', { role: getUserRole(hoveredBox.email) })),
       ]),
       mousePosition,
     })

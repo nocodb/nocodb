@@ -608,6 +608,7 @@ export function useGridCellHandler(params: {
         path: ctx.path ?? [],
         baseUsers: baseUsers.value,
         isInterface: !!interfacePageDataApi,
+        isPublic: isPublic.value,
         t,
       })
     }

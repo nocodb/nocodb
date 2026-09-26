@@ -57,6 +57,33 @@ export const multiLinkTableSchemas = [
         typeOptions: { isDateTime: false, dateFormat: 'LL' },
         initialCreatedByUserId: USER_ID,
       },
+      // Two Airtable choices share a name; nc keeps one option.
+      {
+        id: 'fldMlPrStage',
+        name: 'Stage',
+        type: 'select',
+        typeOptions: {
+          choices: {
+            selMlStageActA: {
+              id: 'selMlStageActA',
+              name: 'Active',
+              color: 'blue',
+            },
+            selMlStageActB: {
+              id: 'selMlStageActB',
+              name: 'Active',
+              color: 'green',
+            },
+            selMlStageDone: {
+              id: 'selMlStageDone',
+              name: 'Done',
+              color: 'gray',
+            },
+          },
+          choiceOrder: ['selMlStageActA', 'selMlStageActB', 'selMlStageDone'],
+        },
+        initialCreatedByUserId: USER_ID,
+      },
       link('fldMlPrReqDoc', 'Requirement Doc', 'tblMlAssets', 'fldMlAsProj2'),
       link('fldMlPrAssets', 'Assets', 'tblMlAssets', 'fldMlAsProj3'),
       link('fldMlPrAssets2', 'Assets 2', 'tblMlAssets', 'fldMlAsProj'),

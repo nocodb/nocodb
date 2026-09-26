@@ -1,1 +1,1 @@
-[{"records":[{"id":"recMlPr000000001","fields":{"Name":"Project A"}},{"id":"recMlPr000000002","fields":{"Name":"Project B"}}]}]
+[{"records": [{"id": "recMlPr0000000001", "fields": {"Name": "Project A", "Stage": "Active"}}, {"id": "recMlPr0000000002", "fields": {"Name": "Project B", "Stage": "Done"}}]}]

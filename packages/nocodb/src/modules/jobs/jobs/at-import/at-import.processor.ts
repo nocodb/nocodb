@@ -1,5 +1,7 @@
 import moment from 'moment';
 import {
+  AirtableImportIssueCategory,
+  AirtableImportIssueKind,
   AuditV1OperationTypes,
   generateUniqueCopyName,
   isCreatedOrLastModifiedTimeCol,
@@ -28,7 +30,11 @@ import type {
   NcRequest,
 } from 'nocodb-sdk';
 import type { Job } from 'bull';
-import type { UserType } from 'nocodb-sdk';
+import type {
+  AirtableImportIssue,
+  AirtableImportReport,
+  UserType,
+} from 'nocodb-sdk';
 import type { AtImportJobData } from '~/interface/Jobs';
 import {
   extractNonSystemProps,
@@ -290,26 +296,117 @@ export class AtImportProcessor {
         count: 0,
         time: 0,
       },
-      migrationSkipLog: {
-        count: 0,
-        log: [],
-      },
       data: {
         records: 0,
         nestedLinks: 0,
       },
     };
 
-    const updateMigrationSkipLog = (tbl, col, type, reason?) => {
-      rtc.migrationSkipLog.count++;
-      rtc.migrationSkipLog.log.push(
-        `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`,
-      );
+    // Everything that did not come across as-is; returned as the job result.
+    const issues: AirtableImportIssue[] = [];
+    const issueLabel: Record<AirtableImportIssueKind, string> = {
+      [AirtableImportIssueKind.SKIPPED]: 'Skipped',
+      [AirtableImportIssueKind.APPROXIMATED]: 'Approximated',
+      [AirtableImportIssueKind.FAILED]: 'Failed',
+    };
+
+    const recordIssue = (issue: AirtableImportIssue) => {
+      issues.push(issue);
+      const where = [issue.table, issue.view].filter(Boolean).join(' / ');
+      const field = issue.field
+        ? `${issue.field}${
+            issue.airtable_type ? ` (${issue.airtable_type})` : ''
+          }`
+        : '';
       logWarning(
-        `Skipped${tbl ? ` ${tbl} :: ` : ``}${col ? `${col}` : ``}${
-          type ? ` (${type})` : ``
-        } :: ${reason}`,
+        `${issueLabel[issue.kind]} ${[where, field, issue.reason]
+          .filter(Boolean)
+          .join(' :: ')}`,
       );
+    };
+
+    const updateMigrationSkipLog = (
+      tbl: string,
+      col: string,
+      type: string,
+      reason?: string,
+      extra?: Partial<AirtableImportIssue>,
+    ) => {
+      recordIssue({
+        kind: AirtableImportIssueKind.SKIPPED,
+        category: AirtableImportIssueCategory.COLUMN,
+        table: tbl,
+        field: col,
+        airtable_type: type,
+        reason,
+        ...extra,
+      });
+    };
+
+    const buildReport = (): AirtableImportReport => {
+      const counts = {
+        [AirtableImportIssueKind.SKIPPED]: 0,
+        [AirtableImportIssueKind.APPROXIMATED]: 0,
+        [AirtableImportIssueKind.FAILED]: 0,
+      };
+      const byCategory: AirtableImportReport['by_category'] = {};
+      for (const issue of issues) {
+        counts[issue.kind]++;
+        byCategory[issue.category] = (byCategory[issue.category] ?? 0) + 1;
+      }
+      return {
+        version: 1,
+        summary: {
+          tables: ncSchema.tables.length,
+          columns: ncSchema.tables.reduce(
+            (n, t) =>
+              n + (t.columns ?? []).filter((c) => !isSystemColumn(c)).length,
+            0,
+          ),
+          views: rtc.view.total,
+          filters: rtc.filter,
+          sorts: rtc.sort,
+          records: rtc.data.records,
+          nested_links: rtc.data.nestedLinks,
+          duration_ms: Date.now() - start,
+        },
+        counts,
+        by_category: byCategory,
+        ...fitIssues(),
+      };
+    };
+
+    // The report is stored in nc_jobs.result, a TEXT column (64KB on MySQL).
+    // Keep the issue list under that; counts above still cover every issue.
+    const MAX_REPORT_ISSUE_BYTES = 48 * 1024;
+    const fitIssues = () => {
+      const kept: AirtableImportIssue[] = [];
+      let size = 0;
+      for (const issue of issues) {
+        size += Buffer.byteLength(JSON.stringify(issue));
+        if (size > MAX_REPORT_ISSUE_BYTES) break;
+        kept.push(issue);
+      }
+      return kept.length < issues.length
+        ? { issues: kept, truncated: issues.length - kept.length }
+        : { issues: kept };
+    };
+
+    // One failing item must not take the whole import down with it.
+    const guard = async <T>(
+      issue: Omit<AirtableImportIssue, 'kind' | 'reason'>,
+      fn: () => Promise<T>,
+    ): Promise<T | undefined> => {
+      try {
+        return await fn();
+      } catch (e) {
+        recordIssue({
+          ...issue,
+          kind: AirtableImportIssueKind.FAILED,
+          reason: e?.message ?? `${e}`,
+        });
+        return undefined;
+      }
     };
 
     // mapping table
@@ -504,7 +601,10 @@ export class AtImportProcessor {
 
     // retrieve additional options associated with selected data types
     //
-    const getNocoTypeOptions = async (col: any): Promise<any> => {
+    const getNocoTypeOptions = async (
+      col: any,
+      tableName?: string,
+    ): Promise<any> => {
       switch (col.type) {
         case 'select':
         case 'multiSelect': {
@@ -526,13 +626,34 @@ export class AtImportProcessor {
             if ((value as any).name === '') {
               (value as any).name = 'nc_empty';
             }
-            // skip duplicates (we don't allow them)
-            if (options.find((el) => el.title === (value as any).name)) {
-              logWarning(
-                `Duplicate select option found: ${col.name} :: ${
-                  (value as any).name
-                }`,
+            // nc option titles are unique (case-insensitively on MySQL, where
+            // they back an ENUM/SET), Airtable's are not: fold a duplicate into
+            // the option already created, and still map its choice id so view
+            // filters naming it resolve.
+            const caseInsensitive = ['mysql', 'mysql2'].includes(
+              getRootDbType(),
+            );
+            const sameTitle = (a: string, b: string) =>
+              caseInsensitive ? a?.toLowerCase() === b?.toLowerCase() : a === b;
+            const existing = options.find((el) =>
+              sameTitle(el.title, (value as any).name),
+            );
+            if (existing) {
+              await sMap.addToMappingTbl(
+                (value as any).id,
+                undefined,
+                existing.title,
               );
+              recordIssue({
+                kind: AirtableImportIssueKind.APPROXIMATED,
+                category: AirtableImportIssueCategory.SELECT_OPTION,
+                table: tableName,
+                field: col.name,
+                airtable_type: col.type,
+                reason: `duplicate option '${
+                  (value as any).name
+                }' merged into '${existing.title}'`,
+              });
               continue;
             }
             options.push({
@@ -720,7 +841,7 @@ export class AtImportProcessor {
           }
 
           // additional column parameters when applicable
-          const colOptions = await getNocoTypeOptions(col);
+          const colOptions = await getNocoTypeOptions(col, tblSchema[i].name);
 
           switch (colOptions.type) {
             case 'select':
@@ -749,6 +870,60 @@ export class AtImportProcessor {
       return tables;
     };
 
+    // A table the server rejects in one step is recreated bare and filled in
+    // column by column, so one bad column costs that column, not the import.
+    // Only a table that cannot be created even bare is fatal.
+    const createTableResilient = async (tableDef: any) => {
+      const create = (table: any) =>
+        this.tablesService.tableCreate(context, {
+          sourceId: syncDB.sourceId,
+          baseId: ncCreatedProjectSchema.id,
+          table,
+          user: syncDB.user,
+          req,
+          operationSource: OperationSource.AT_IMPORT,
+        });
+      const copyColumns = (columns: any[]) => columns.map((c) => ({ ...c }));
+
+      try {
+        return await create({
+          ...tableDef,
+          columns: copyColumns(tableDef.columns),
+        });
+      } catch (e) {
+        logWarning(
+          `${tableDef.title} :: could not be created in one step (${e.message}); retrying column by column`,
+        );
+      }
+
+      const isSystem = (c) => c.system || c.pk || c.column_name === 'id';
+      const bare: any = await create({
+        ...tableDef,
+        columns: copyColumns(tableDef.columns.filter(isSystem)),
+      });
+      for (const column of tableDef.columns.filter((c) => !isSystem(c))) {
+        await guard(
+          {
+            category: AirtableImportIssueCategory.COLUMN,
+            table: tableDef.title,
+            field: column.title,
+          },
+          () =>
+            this.columnsService.columnAdd(context, {
+              tableId: bare.id,
+              column: { ...column },
+              req,
+              user: syncDB.user,
+              operationSource: OperationSource.AT_IMPORT,
+            }),
+        );
+      }
+      return this.tablesService.getTableWithAccessibleViews(context, {
+        tableId: bare.id,
+        user: { ...syncDB.user, base_roles: { owner: true } },
+      });
+    };
+
     const nocoCreateBaseSchema = async (aTblSchema) => {
       // base schema preparation: exclude
       const tables: any[] = await tablesPrepare(aTblSchema);
@@ -760,14 +935,7 @@ export class AtImportProcessor {
         logDetailed(`NC API: base.tableCreate ${tables[idx].title}`);
 
         let _perfStart = recordPerfStart();
-        const table = await this.tablesService.tableCreate(context, {
-          sourceId: syncDB.sourceId,
-          baseId: ncCreatedProjectSchema.id,
-          table: tables[idx],
-          user: syncDB.user,
-          req,
-          operationSource: OperationSource.AT_IMPORT,
-        });
+        const table: any = await createTableResilient(tables[idx]);
         recordPerfStats(_perfStart, 'dbTable.create');
 
         updateNcTblSchema(table);
@@ -839,6 +1007,90 @@ export class AtImportProcessor {
       return tables;
     };
 
+    // Auto-created reverse link columns are titled after their parent table
+    // (`Projects`, `Projects1`, ...), so one may already hold the title an
+    // Airtable field needs. Move such an occupant aside on a placeholder (its
+    // own turn renames it properly); any other occupant keeps its title and
+    // the newcomer is suffixed instead.
+    const claimColumnTitle = async (
+      tbl: any,
+      title: string,
+      exceptColumnId?: string,
+    ): Promise<string> => {
+      const occupant = tbl.columns.find(
+        (c) => c.id !== exceptColumnId && c.title === title,
+      );
+      if (!occupant) return title;
+      if (!isLinksOrLTAR(occupant)) {
+        return getUniqueColumnAliasName(tbl.columns, title);
+      }
+      const placeholder = getUniqueColumnAliasName(tbl.columns, occupant.title);
+      logDetailed(
+        `NC API: dbTableColumn.update park symmetric column ${occupant.title} as ${placeholder}`,
+      );
+      const _perfStart = recordPerfStart();
+      const parked: any = await this.columnsService.columnUpdate(context, {
+        columnId: occupant.id,
+        column: { ...occupant, title: placeholder },
+        user: syncDB.user,
+        req,
+      });
+      recordPerfStats(_perfStart, 'dbTableColumn.update');
+      updateNcTblSchema(parked);
+      return title;
+    };
+
+    // A one-way Airtable link has no counterpart field, but an nc link always
+    // has two ends. Name the auto-created end after the relationship
+    // ("All teams (Dev Manager)") rather than leaving "All teams1", "All teams2".
+    const nameOneWayReverseColumn = async (
+      forwardColumnId: string,
+      srcTableId: string,
+      childTableId: string,
+      srcTitle: string,
+      forwardName: string,
+    ) => {
+      const owner = { ...syncDB.user, base_roles: { owner: true } };
+      const childTbl: any =
+        await this.tablesService.getTableWithAccessibleViews(context, {
+          tableId: childTableId,
+          user: owner,
+        });
+      const srcTbl: any =
+        childTableId === srcTableId
+          ? childTbl
+          : await this.tablesService.getTableWithAccessibleViews(context, {
+              tableId: srcTableId,
+              user: owner,
+            });
+      const mmModelId = srcTbl.columns.find((c) => c.id === forwardColumnId)
+        ?.colOptions?.fk_mm_model_id;
+      if (!mmModelId) return;
+
+      const reverse = childTbl.columns.find(
+        (c) =>
+          c.id !== forwardColumnId &&
+          isLinksOrLTAR(c) &&
+          c.colOptions?.fk_mm_model_id === mmModelId,
+      );
+      if (!reverse) return;
+
+      const desired = `${srcTitle} (${forwardName})`.slice(0, 255);
+      const title = getUniqueColumnAliasName(
+        childTbl.columns.filter((c) => c.id !== reverse.id),
+        nc_getSanitizedColumnName(desired, childTbl.table_name).title,
+      );
+      if (reverse.title === title) return;
+
+      const updated: any = await this.columnsService.columnUpdate(context, {
+        columnId: reverse.id,
+        column: { ...reverse, title },
+        user: syncDB.user,
+        req,
+      });
+      updateNcTblSchema(updated);
+    };
+
     const nocoCreateLinkToAnotherRecord = async (aTblSchema) => {
       // Link to another RECORD
       for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -850,274 +1102,286 @@ export class AtImportProcessor {
         //
         if (aTblLinkColumns.length) {
           for (let i = 0; i < aTblLinkColumns.length; i++) {
-            logDetailed(
-              `[${idx + 1}/${aTblSchema.length}] Configuring Links :: [${
-                i + 1
-              }/${aTblLinkColumns.length}] ${aTblSchema[idx].name}`,
-            );
-
-            // for self links, there is no symmetric column
-            {
-              const src = aTbl_getColumnName(aTblLinkColumns[i].id);
-              const dst = aTbl_getColumnName(
-                aTblLinkColumns[i].typeOptions?.symmetricColumnId,
-              );
-              logDetailed(
-                `LTAR ${src.tn}:${src.cn} <${aTblLinkColumns[i].typeOptions.relationship}> ${dst?.tn}:${dst?.cn}`,
-              );
-            }
-
-            // check if link already established?
-            if (!nc_isLinkExists(aTblLinkColumns[i].id)) {
-              // parent table ID
-              const srcTableId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
-
-              // find child table name from symmetric column ID specified
-              // self link, symmetricColumnId field will be undefined
-              const childTable = aTbl_getColumnName(
-                aTblLinkColumns[i].typeOptions?.symmetricColumnId,
-              );
-
-              // retrieve child table ID (nc) from table name
-              let childTableId = srcTableId;
-              if (childTable) {
-                childTableId = (await nc_getTableSchema(childTable.tn)).id;
-              } else if (aTblLinkColumns[i].typeOptions?.foreignTableId) {
-                // One-way Airtable link: no symmetric column to read the target
-                // from, but the link still names its foreign table. Without
-                // this it would fall through to srcTableId and import as a
-                // self link.
-                childTableId =
-                  (await sMap.getNcIdFromAtId(
-                    aTblLinkColumns[i].typeOptions.foreignTableId,
-                  )) || srcTableId;
-              }
-
-              // check if already a column exists with this name?
-              let _perfStart = recordPerfStart();
-              const srcTbl: any =
-                await this.tablesService.getTableWithAccessibleViews(context, {
-                  tableId: srcTableId,
-                  user: { ...syncDB.user, base_roles: { owner: true } },
-                });
-              recordPerfStats(_perfStart, 'dbTable.read');
-
-              // create link
-              const ncName = nc_getSanitizedColumnName(
-                aTblLinkColumns[i].name,
-                srcTbl.table_name,
-              );
-
-              // LTAR alias ref to AT
-              atNcAliasRef[srcTbl.id] = atNcAliasRef[srcTbl.id] || {};
-              atNcAliasRef[srcTbl.id][ncName.title] = aTblLinkColumns[i].name;
-
-              logDetailed(
-                `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`,
-              );
-              _perfStart = recordPerfStart();
-              const ncTbl: any = await this.columnsService.columnAdd(context, {
-                tableId: srcTableId,
-                column: {
-                  uidt: UITypes.LinkToAnotherRecord,
-                  title: ncName.title,
-                  column_name: ncName.column_name,
-                  parentId: srcTableId,
-                  childId: childTableId,
-                  type: 'mm',
-                },
-                req,
-                user: syncDB.user,
-                operationSource: OperationSource.AT_IMPORT,
-              });
-              recordPerfStats(_perfStart, 'dbTableColumn.create');
-
-              updateNcTblSchema(ncTbl);
-
-              const ncId = ncTbl.columns.find(
-                (x) => x.title === ncName.title,
-              )?.id;
-              await sMap.addToMappingTbl(
-                aTblLinkColumns[i].id,
-                ncId,
-                ncName.title,
-                ncTbl.id,
-              );
-
-              // store link information in separate table
-              // this information will be helpful in identifying relation pair
-              const link = {
-                nc: {
-                  title: ncName.title,
-                  parentId: srcTableId,
-                  childId: childTableId,
-                  type: 'mm',
-                },
-                aTbl: {
-                  tblId: aTblSchema[idx].id,
-                  ...aTblLinkColumns[i],
-                },
-              };
-
-              ncLinkMappingTable.push(link);
-            } else {
-              // if link already exists, we need to change name of linked column
-              // to what is represented in airtable
-
-              // 1. extract associated link information from link table
-              // 2. retrieve parent table information (source)
-              // 3. using foreign parent & child column ID, find associated mapping in child table
-              // 4. update column name
-              const x = ncLinkMappingTable.findIndex(
-                (x) =>
-                  x.aTbl.tblId ===
-                    aTblLinkColumns[i].typeOptions.foreignTableId &&
-                  x.aTbl.id ===
-                    aTblLinkColumns[i].typeOptions.symmetricColumnId,
-              );
-
-              let _perfStart = recordPerfStart();
-              const childTblSchema: any =
-                await this.tablesService.getTableWithAccessibleViews(context, {
-                  tableId: ncLinkMappingTable[x].nc.childId,
-                  user: { ...syncDB.user, base_roles: { owner: true } },
-                });
-              recordPerfStats(_perfStart, 'dbTable.read');
-
-              _perfStart = recordPerfStart();
-              const parentTblSchema: any =
-                await this.tablesService.getTableWithAccessibleViews(context, {
-                  tableId: ncLinkMappingTable[x].nc.parentId,
-                  user: { ...syncDB.user, base_roles: { owner: true } },
-                });
-              recordPerfStats(_perfStart, 'dbTable.read');
-
-              let parentLinkColumn = parentTblSchema.columns.find(
-                (col) => col.title === ncLinkMappingTable[x].nc.title,
-              );
-
-              if (parentLinkColumn === undefined) {
-                updateMigrationSkipLog(
-                  parentTblSchema?.title,
-                  ncLinkMappingTable[x].nc.title,
-                  UITypes.LinkToAnotherRecord,
-                  'Link error',
-                );
-                continue;
-              }
-
-              // hack // fix me
-              if (!isLinksOrLTAR(parentLinkColumn)) {
-                parentLinkColumn = parentTblSchema.columns.find(
-                  (col) => col.title === ncLinkMappingTable[x].nc.title + '_2',
-                );
-              }
-
-              let childLinkColumn: any = {};
-
-              if (parentLinkColumn.colOptions.type == 'hm') {
-                // for hm:
-                // mapping between child & parent column id is direct
-                //
-                childLinkColumn = childTblSchema.columns.find(
-                  (col) =>
-                    isLinksOrLTAR(col) &&
-                    col.colOptions.fk_child_column_id ===
-                      parentLinkColumn.colOptions.fk_child_column_id &&
-                    col.colOptions.fk_parent_column_id ===
-                      parentLinkColumn.colOptions.fk_parent_column_id,
-                );
-              } else {
-                // for mm:
-                // mapping between child & parent column id is inverted
-                //
-                childLinkColumn = childTblSchema.columns.find(
-                  (col) =>
-                    isLinksOrLTAR(col) &&
-                    col.colOptions.fk_child_column_id ===
-                      parentLinkColumn.colOptions.fk_parent_column_id &&
-                    col.colOptions.fk_parent_column_id ===
-                      parentLinkColumn.colOptions.fk_child_column_id &&
-                    col.colOptions.fk_mm_model_id ===
-                      parentLinkColumn.colOptions.fk_mm_model_id,
-                );
-              }
-
-              // rename
-              // note that: current rename API requires us to send all parameters,
-              // not just title being renamed
-              const ncName = nc_getSanitizedColumnName(
-                aTblLinkColumns[i].name,
-                childTblSchema.table_name,
-              );
-
-              // With several links between the same two tables, every
-              // auto-created symmetric column is named after the parent table
-              // (`Projects`, `Projects1`, …), so a sibling still waiting for
-              // its own rename may hold the title we need. Park it on a
-              // placeholder; its own turn renames it properly.
-              const occupant = childTblSchema.columns.find(
-                (col) =>
-                  col.id !== childLinkColumn.id && col.title === ncName.title,
-              );
-              if (occupant && isLinksOrLTAR(occupant)) {
-                const placeholder = getUniqueColumnAliasName(
-                  childTblSchema.columns,
-                  occupant.title,
-                );
+            await guard(
+              {
+                category: AirtableImportIssueCategory.LINK,
+                table: aTblSchema[idx].name,
+                field: aTblLinkColumns[i].name,
+                airtable_type: aTblLinkColumns[i].type,
+              },
+              async () => {
                 logDetailed(
-                  `NC API: dbTableColumn.update park symmetric column ${occupant.title} as ${placeholder}`,
+                  `[${idx + 1}/${aTblSchema.length}] Configuring Links :: [${
+                    i + 1
+                  }/${aTblLinkColumns.length}] ${aTblSchema[idx].name}`,
                 );
-                _perfStart = recordPerfStart();
-                const parkedTbl: any = await this.columnsService.columnUpdate(
-                  context,
-                  {
-                    columnId: occupant.id,
-                    column: { ...occupant, title: placeholder },
-                    user: syncDB.user,
-                    req,
-                  },
-                );
-                recordPerfStats(_perfStart, 'dbTableColumn.update');
-                updateNcTblSchema(parkedTbl);
-              } else if (occupant) {
-                ncName.title = getUniqueColumnAliasName(
-                  childTblSchema.columns,
-                  ncName.title,
-                );
-              }
 
-              logDetailed(
-                `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`,
-              );
-              _perfStart = recordPerfStart();
-              const ncTbl: any = await this.columnsService.columnUpdate(
-                context,
+                // for self links, there is no symmetric column
                 {
-                  columnId: childLinkColumn.id,
-                  column: {
-                    ...childLinkColumn,
-                    title: ncName.title,
-                    column_name: ncName.column_name,
-                  },
-                  user: syncDB.user,
-                  req,
-                },
-              );
-              recordPerfStats(_perfStart, 'dbTableColumn.update');
+                  const src = aTbl_getColumnName(aTblLinkColumns[i].id);
+                  const dst = aTbl_getColumnName(
+                    aTblLinkColumns[i].typeOptions?.symmetricColumnId,
+                  );
+                  logDetailed(
+                    `LTAR ${src.tn}:${src.cn} <${aTblLinkColumns[i].typeOptions.relationship}> ${dst?.tn}:${dst?.cn}`,
+                  );
+                }
 
-              updateNcTblSchema(ncTbl);
+                // check if link already established?
+                if (!nc_isLinkExists(aTblLinkColumns[i].id)) {
+                  // parent table ID
+                  const srcTableId = await sMap.getNcIdFromAtId(
+                    aTblSchema[idx].id,
+                  );
 
-              const ncId = ncTbl.columns.find(
-                (x) => x.title === ncName.title,
-              )?.id;
-              await sMap.addToMappingTbl(
-                aTblLinkColumns[i].id,
-                ncId,
-                ncName.title,
-                ncTbl.id,
-              );
-            }
+                  // find child table name from symmetric column ID specified
+                  // self link, symmetricColumnId field will be undefined
+                  const childTable = aTbl_getColumnName(
+                    aTblLinkColumns[i].typeOptions?.symmetricColumnId,
+                  );
+
+                  // retrieve child table ID (nc) from table name
+                  let childTableId = srcTableId;
+                  if (childTable) {
+                    childTableId = (await nc_getTableSchema(childTable.tn)).id;
+                  } else if (aTblLinkColumns[i].typeOptions?.foreignTableId) {
+                    // One-way Airtable link: no symmetric column to read the target
+                    // from, but the link still names its foreign table. Without
+                    // this it would fall through to srcTableId and import as a
+                    // self link.
+                    childTableId =
+                      (await sMap.getNcIdFromAtId(
+                        aTblLinkColumns[i].typeOptions.foreignTableId,
+                      )) || srcTableId;
+                  }
+
+                  // check if already a column exists with this name?
+                  let _perfStart = recordPerfStart();
+                  const srcTbl: any =
+                    await this.tablesService.getTableWithAccessibleViews(
+                      context,
+                      {
+                        tableId: srcTableId,
+                        user: { ...syncDB.user, base_roles: { owner: true } },
+                      },
+                    );
+                  recordPerfStats(_perfStart, 'dbTable.read');
+
+                  // create link
+                  const ncName = nc_getSanitizedColumnName(
+                    aTblLinkColumns[i].name,
+                    srcTbl.table_name,
+                  );
+                  // reached for the second side of a link whose first side
+                  // failed, where an auto-named reverse column may sit on it
+                  ncName.title = await claimColumnTitle(srcTbl, ncName.title);
+
+                  // LTAR alias ref to AT
+                  atNcAliasRef[srcTbl.id] = atNcAliasRef[srcTbl.id] || {};
+                  atNcAliasRef[srcTbl.id][ncName.title] =
+                    aTblLinkColumns[i].name;
+
+                  logDetailed(
+                    `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`,
+                  );
+                  _perfStart = recordPerfStart();
+                  const ncTbl: any = await this.columnsService.columnAdd(
+                    context,
+                    {
+                      tableId: srcTableId,
+                      column: {
+                        uidt: UITypes.LinkToAnotherRecord,
+                        title: ncName.title,
+                        column_name: ncName.column_name,
+                        parentId: srcTableId,
+                        childId: childTableId,
+                        type: 'mm',
+                      },
+                      req,
+                      user: syncDB.user,
+                      operationSource: OperationSource.AT_IMPORT,
+                    },
+                  );
+                  recordPerfStats(_perfStart, 'dbTableColumn.create');
+
+                  updateNcTblSchema(ncTbl);
+
+                  const ncId = ncTbl.columns.find(
+                    (x) => x.title === ncName.title,
+                  )?.id;
+                  await sMap.addToMappingTbl(
+                    aTblLinkColumns[i].id,
+                    ncId,
+                    ncName.title,
+                    ncTbl.id,
+                  );
+
+                  if (!aTblLinkColumns[i].typeOptions?.symmetricColumnId) {
+                    await nameOneWayReverseColumn(
+                      ncId,
+                      srcTableId,
+                      childTableId,
+                      srcTbl.title,
+                      aTblLinkColumns[i].name,
+                    );
+                  }
+
+                  // store link information in separate table
+                  // this information will be helpful in identifying relation pair
+                  const link = {
+                    nc: {
+                      title: ncName.title,
+                      parentId: srcTableId,
+                      childId: childTableId,
+                      type: 'mm',
+                    },
+                    aTbl: {
+                      tblId: aTblSchema[idx].id,
+                      ...aTblLinkColumns[i],
+                    },
+                  };
+
+                  ncLinkMappingTable.push(link);
+                } else {
+                  // if link already exists, we need to change name of linked column
+                  // to what is represented in airtable
+
+                  // 1. extract associated link information from link table
+                  // 2. retrieve parent table information (source)
+                  // 3. using foreign parent & child column ID, find associated mapping in child table
+                  // 4. update column name
+                  const x = ncLinkMappingTable.findIndex(
+                    (x) =>
+                      x.aTbl.tblId ===
+                        aTblLinkColumns[i].typeOptions.foreignTableId &&
+                      x.aTbl.id ===
+                        aTblLinkColumns[i].typeOptions.symmetricColumnId,
+                  );
+
+                  let _perfStart = recordPerfStart();
+                  const childTblSchema: any =
+                    await this.tablesService.getTableWithAccessibleViews(
+                      context,
+                      {
+                        tableId: ncLinkMappingTable[x].nc.childId,
+                        user: { ...syncDB.user, base_roles: { owner: true } },
+                      },
+                    );
+                  recordPerfStats(_perfStart, 'dbTable.read');
+
+                  _perfStart = recordPerfStart();
+                  const parentTblSchema: any =
+                    await this.tablesService.getTableWithAccessibleViews(
+                      context,
+                      {
+                        tableId: ncLinkMappingTable[x].nc.parentId,
+                        user: { ...syncDB.user, base_roles: { owner: true } },
+                      },
+                    );
+                  recordPerfStats(_perfStart, 'dbTable.read');
+
+                  let parentLinkColumn = parentTblSchema.columns.find(
+                    (col) => col.title === ncLinkMappingTable[x].nc.title,
+                  );
+
+                  if (parentLinkColumn === undefined) {
+                    updateMigrationSkipLog(
+                      parentTblSchema?.title,
+                      ncLinkMappingTable[x].nc.title,
+                      UITypes.LinkToAnotherRecord,
+                      'Link error',
+                      {
+                        category: AirtableImportIssueCategory.LINK,
+                      },
+                    );
+                    return;
+                  }
+
+                  // hack // fix me
+                  if (!isLinksOrLTAR(parentLinkColumn)) {
+                    parentLinkColumn = parentTblSchema.columns.find(
+                      (col) =>
+                        col.title === ncLinkMappingTable[x].nc.title + '_2',
+                    );
+                  }
+
+                  let childLinkColumn: any = {};
+
+                  if (parentLinkColumn.colOptions.type == 'hm') {
+                    // for hm:
+                    // mapping between child & parent column id is direct
+                    //
+                    childLinkColumn = childTblSchema.columns.find(
+                      (col) =>
+                        isLinksOrLTAR(col) &&
+                        col.colOptions.fk_child_column_id ===
+                          parentLinkColumn.colOptions.fk_child_column_id &&
+                        col.colOptions.fk_parent_column_id ===
+                          parentLinkColumn.colOptions.fk_parent_column_id,
+                    );
+                  } else {
+                    // for mm:
+                    // mapping between child & parent column id is inverted
+                    //
+                    childLinkColumn = childTblSchema.columns.find(
+                      (col) =>
+                        isLinksOrLTAR(col) &&
+                        col.colOptions.fk_child_column_id ===
+                          parentLinkColumn.colOptions.fk_parent_column_id &&
+                        col.colOptions.fk_parent_column_id ===
+                          parentLinkColumn.colOptions.fk_child_column_id &&
+                        col.colOptions.fk_mm_model_id ===
+                          parentLinkColumn.colOptions.fk_mm_model_id,
+                    );
+                  }
+
+                  // rename
+                  // note that: current rename API requires us to send all parameters,
+                  // not just title being renamed
+                  const ncName = nc_getSanitizedColumnName(
+                    aTblLinkColumns[i].name,
+                    childTblSchema.table_name,
+                  );
+
+                  ncName.title = await claimColumnTitle(
+                    childTblSchema,
+                    ncName.title,
+                    childLinkColumn.id,
+                  );
+
+                  logDetailed(
+                    `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`,
+                  );
+                  _perfStart = recordPerfStart();
+                  const ncTbl: any = await this.columnsService.columnUpdate(
+                    context,
+                    {
+                      columnId: childLinkColumn.id,
+                      column: {
+                        ...childLinkColumn,
+                        title: ncName.title,
+                        column_name: ncName.column_name,
+                      },
+                      user: syncDB.user,
+                      req,
+                    },
+                  );
+                  recordPerfStats(_perfStart, 'dbTableColumn.update');
+
+                  updateNcTblSchema(ncTbl);
+
+                  const ncId = ncTbl.columns.find(
+                    (x) => x.title === ncName.title,
+                  )?.id;
+                  await sMap.addToMappingTbl(
+                    aTblLinkColumns[i].id,
+                    ncId,
+                    ncName.title,
+                    ncTbl.id,
+                  );
+                }
+              },
+            );
           }
         }
       }
@@ -1156,6 +1420,9 @@ export class AtImportProcessor {
                 aTblColumns[i].name,
                 aTblColumns[i].type,
                 'invalid column ID in dependency list',
+                {
+                  category: AirtableImportIssueCategory.LOOKUP,
+                },
               );
               continue;
             }
@@ -1180,19 +1447,31 @@ export class AtImportProcessor {
 
             logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
             const _perfStart = recordPerfStart();
-            const ncTbl: any = await this.columnsService.columnAdd(context, {
-              tableId: srcTableId,
-              column: {
-                uidt: UITypes.Lookup,
-                title: ncName.title,
-                column_name: ncName.column_name,
-                fk_relation_column_id: ncRelationColumnId,
-                fk_lookup_column_id: ncLookupColumnId,
+            const ncTbl: any = await guard(
+              {
+                category: AirtableImportIssueCategory.LOOKUP,
+                table: srcTableSchema?.title,
+                field: aTblColumns[i].name,
+                airtable_type: aTblColumns[i].type,
               },
-              req,
-              user: syncDB.user,
-              operationSource: OperationSource.AT_IMPORT,
-            });
+              () =>
+                this.columnsService.columnAdd(context, {
+                  tableId: srcTableId,
+                  column: {
+                    uidt: UITypes.Lookup,
+                    title: ncName.title,
+                    column_name: ncName.column_name,
+                    fk_relation_column_id: ncRelationColumnId,
+                    fk_lookup_column_id: ncLookupColumnId,
+                  },
+                  req,
+                  user: syncDB.user,
+                  operationSource: OperationSource.AT_IMPORT,
+                }),
+            );
+            if (!ncTbl) {
+              continue;
+            }
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
             updateNcTblSchema(ncTbl);
@@ -1224,6 +1503,9 @@ export class AtImportProcessor {
               nestedLookupTbl[i].name,
               nestedLookupTbl[i].type,
               `foreign table field not found [${name.tn}/${name.cn}]`,
+              {
+                category: AirtableImportIssueCategory.LOOKUP,
+              },
             );
           }
           if (enableErrorLogs)
@@ -1264,22 +1546,35 @@ export class AtImportProcessor {
 
           logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
           const _perfStart = recordPerfStart();
-          const ncTbl: any = await this.columnsService.columnAdd(context, {
-            tableId: srcTableId,
-            column: {
-              uidt: UITypes.Lookup,
-              title: ncName.title,
-              column_name: ncName.column_name,
-              fk_relation_column_id: ncRelationColumnId,
-              fk_lookup_column_id: ncLookupColumnId,
+          const ncTbl: any = await guard(
+            {
+              category: AirtableImportIssueCategory.LOOKUP,
+              table: srcTableSchema?.title,
+              field: nestedLookupTbl[0].name,
+              airtable_type: nestedLookupTbl[0].type,
             },
-            req: {
-              user: syncDB.user.email,
-              clientIp: '',
-            } as any,
-            user: syncDB.user,
-            operationSource: OperationSource.AT_IMPORT,
-          });
+            () =>
+              this.columnsService.columnAdd(context, {
+                tableId: srcTableId,
+                column: {
+                  uidt: UITypes.Lookup,
+                  title: ncName.title,
+                  column_name: ncName.column_name,
+                  fk_relation_column_id: ncRelationColumnId,
+                  fk_lookup_column_id: ncLookupColumnId,
+                },
+                req: {
+                  user: syncDB.user.email,
+                  clientIp: '',
+                } as any,
+                user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
+              }),
+          );
+          if (!ncTbl) {
+            nestedLookupTbl.splice(0, 1);
+            continue;
+          }
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
           updateNcTblSchema(ncTbl);
@@ -1357,6 +1652,9 @@ export class AtImportProcessor {
                 aTblColumns[i].name,
                 aTblColumns[i].type,
                 `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported yet`,
+                {
+                  category: AirtableImportIssueCategory.ROLLUP,
+                },
               );
               continue;
             }
@@ -1374,6 +1672,9 @@ export class AtImportProcessor {
                 aTblColumns[i].name,
                 aTblColumns[i].type,
                 'invalid column ID in dependency list',
+                {
+                  category: AirtableImportIssueCategory.ROLLUP,
+                },
               );
               continue;
             }
@@ -1419,6 +1720,9 @@ export class AtImportProcessor {
                 aTblColumns[i].name,
                 aTblColumns[i].type,
                 'rollup referring to a column type not supported yet',
+                {
+                  category: AirtableImportIssueCategory.ROLLUP,
+                },
               );
               continue;
             }
@@ -1459,9 +1763,14 @@ export class AtImportProcessor {
                 ncTbl.id,
               );
             } catch (e) {
-              logWarning(
-                `Skipped creating rollup column ${aTblColumns[i].name} :: ${e.message}`,
-              );
+              recordIssue({
+                kind: AirtableImportIssueKind.FAILED,
+                category: AirtableImportIssueCategory.ROLLUP,
+                table: srcTableSchema?.title,
+                field: aTblColumns[i].name,
+                airtable_type: aTblColumns[i].type,
+                reason: e.message,
+              });
             }
           }
         }
@@ -1500,19 +1809,32 @@ export class AtImportProcessor {
 
         logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
         const _perfStart = recordPerfStart();
-        const ncTbl: any = await this.columnsService.columnAdd(context, {
-          tableId: srcTableId,
-          column: {
-            uidt: UITypes.Lookup,
-            title: ncName.title,
-            column_name: ncName.column_name,
-            fk_relation_column_id: ncRelationColumnId,
-            fk_lookup_column_id: ncLookupColumnId,
+        const ncTbl: any = await guard(
+          {
+            category: AirtableImportIssueCategory.LOOKUP,
+            table: srcTableSchema?.title,
+            field: nestedLookupTbl[0].name,
+            airtable_type: nestedLookupTbl[0].type,
           },
-          req,
-          user: syncDB.user,
-          operationSource: OperationSource.AT_IMPORT,
-        });
+          () =>
+            this.columnsService.columnAdd(context, {
+              tableId: srcTableId,
+              column: {
+                uidt: UITypes.Lookup,
+                title: ncName.title,
+                column_name: ncName.column_name,
+                fk_relation_column_id: ncRelationColumnId,
+                fk_lookup_column_id: ncLookupColumnId,
+              },
+              req,
+              user: syncDB.user,
+              operationSource: OperationSource.AT_IMPORT,
+            }),
+        );
+        if (!ncTbl) {
+          nestedLookupTbl.splice(0, 1);
+          continue;
+        }
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 
         updateNcTblSchema(ncTbl);
@@ -1589,9 +1911,12 @@ export class AtImportProcessor {
             displayValue = table.columns.find(isEligibleDisplayValue);
 
             if (displayValue) {
-              logWarning(
-                `${aTbl.name} :: ${reason} :: using '${displayValue.title}' as display value`,
-              );
+              recordIssue({
+                kind: AirtableImportIssueKind.APPROXIMATED,
+                category: AirtableImportIssueCategory.DISPLAY_VALUE,
+                table: aTbl.name,
+                reason: `${reason} :: using '${displayValue.title}' as display value`,
+              });
             } else {
               // no field in the table qualifies - add one to label records
               // with. nc_getSanitizedColumnName is no use here: its name
@@ -1609,9 +1934,12 @@ export class AtImportProcessor {
                 title = `Title_${i}`;
               }
 
-              logWarning(
-                `${aTbl.name} :: ${reason} and no other field can be used :: adding '${title}' as display value`,
-              );
+              recordIssue({
+                kind: AirtableImportIssueKind.APPROXIMATED,
+                category: AirtableImportIssueCategory.DISPLAY_VALUE,
+                table: aTbl.name,
+                reason: `${reason} and no other field can be used :: adding '${title}' as display value`,
+              });
 
               const _perfStart = recordPerfStart();
               const ncTbl: any = await this.columnsService.columnAdd(context, {
@@ -1646,9 +1974,12 @@ export class AtImportProcessor {
           // update schema
           await updateNcTblSchemaById(ncTblId);
         } catch (e) {
-          logWarning(
-            `Failed to configure display value for ${aTbl.name} :: ${e.message}`,
-          );
+          recordIssue({
+            kind: AirtableImportIssueKind.FAILED,
+            category: AirtableImportIssueCategory.DISPLAY_VALUE,
+            table: aTbl.name,
+            reason: `Failed to configure display value: ${e.message}`,
+          });
         }
       }
     };
@@ -1925,43 +2256,52 @@ export class AtImportProcessor {
         rtc.view.gallery += galleryViews.length;
 
         for (let i = 0; i < galleryViews.length; i++) {
-          logDetailed(`   Axios fetch view-data`);
-
-          // create view
-          await getViewData(galleryViews[i].id);
-          const aView = aTblSchema[idx].views.find(
-            (x) => x.id === galleryViews[i].id,
-          );
-
-          const viewNames = getViewNames(tblId);
-          const viewName = generateUniqueCopyName(
-            aView?.name || 'Gallery',
-            viewNames,
-            { prefix: null, separator: '_', counterFormat: '{counter}' },
-          );
-          viewNames.push(viewName); // Add to tracking
-          const viewDescription = aView?.description;
-
-          logBasic(
-            `:: [${configuredViews + i + 1}/${rtc.view.total}] Gallery : ${
-              aTblSchema[idx].name
-            } / ${viewName}`,
-          );
-
-          logDetailed(`NC API dbView.galleryCreate :: ${viewName}`);
-          const _perfStart = recordPerfStart();
-          await this.galleriesService.galleryViewCreate(context, {
-            tableId: tblId,
-            gallery: {
-              title: viewName,
-              description: viewDescription,
+          await guard(
+            {
+              category: AirtableImportIssueCategory.VIEW,
+              table: aTblSchema[idx].name,
+              view: galleryViews[i]?.name,
             },
-            user: syncDB.user,
-            req,
-          });
-          recordPerfStats(_perfStart, 'dbView.galleryCreate');
+            async () => {
+              logDetailed(`   Axios fetch view-data`);
 
-          await updateNcTblSchemaById(tblId);
+              // create view
+              await getViewData(galleryViews[i].id);
+              const aView = aTblSchema[idx].views.find(
+                (x) => x.id === galleryViews[i].id,
+              );
+
+              const viewNames = getViewNames(tblId);
+              const viewName = generateUniqueCopyName(
+                aView?.name || 'Gallery',
+                viewNames,
+                { prefix: null, separator: '_', counterFormat: '{counter}' },
+              );
+              viewNames.push(viewName); // Add to tracking
+              const viewDescription = aView?.description;
+
+              logBasic(
+                `:: [${configuredViews + i + 1}/${rtc.view.total}] Gallery : ${
+                  aTblSchema[idx].name
+                } / ${viewName}`,
+              );
+
+              logDetailed(`NC API dbView.galleryCreate :: ${viewName}`);
+              const _perfStart = recordPerfStart();
+              await this.galleriesService.galleryViewCreate(context, {
+                tableId: tblId,
+                gallery: {
+                  title: viewName,
+                  description: viewDescription,
+                },
+                user: syncDB.user,
+                req,
+              });
+              recordPerfStats(_perfStart, 'dbView.galleryCreate');
+
+              await updateNcTblSchemaById(tblId);
+            },
+          );
         }
       }
     };
@@ -1978,76 +2318,90 @@ export class AtImportProcessor {
           rtc.view.grid + rtc.view.gallery + rtc.view.form;
         rtc.view.form += formViews.length;
         for (let i = 0; i < formViews.length; i++) {
-          logDetailed(`   Axios fetch view-data`);
+          await guard(
+            {
+              category: AirtableImportIssueCategory.VIEW,
+              table: aTblSchema[idx].name,
+              view: formViews[i]?.name,
+            },
+            async () => {
+              logDetailed(`   Axios fetch view-data`);
 
-          // create view
-          const vData = await getViewData(formViews[i].id);
-          const aView = aTblSchema[idx].views.find(
-            (x) => x.id === formViews[i].id,
+              // create view
+              const vData = await getViewData(formViews[i].id);
+              const aView = aTblSchema[idx].views.find(
+                (x) => x.id === formViews[i].id,
+              );
+
+              const viewNames = getViewNames(tblId);
+              const viewName = generateUniqueCopyName(
+                aView?.name || 'Form',
+                viewNames,
+                { prefix: null, separator: '_', counterFormat: '{counter}' },
+              );
+              viewNames.push(viewName); // Add to tracking
+              const viewDescription = aView?.description;
+
+              logBasic(
+                `:: [${configuredViews + i + 1}/${rtc.view.total}] Form : ${
+                  aTblSchema[idx].name
+                } / ${viewName}`,
+              );
+
+              // everything is default
+              let refreshMode = 'NO_REFRESH';
+              let msg = 'Thank you for submitting the form!';
+              let desc = '';
+
+              // response will not include form object if everything is default
+              //
+              if (vData.metadata?.form) {
+                if (vData.metadata.form?.refreshAfterSubmit)
+                  refreshMode = vData.metadata.form.refreshAfterSubmit;
+                if (vData.metadata.form?.afterSubmitMessage)
+                  msg = vData.metadata.form.afterSubmitMessage;
+                if (vData.metadata.form?.description)
+                  desc = vData.metadata.form.description;
+              }
+
+              const formData = {
+                title: viewName,
+                heading: viewName,
+                description: viewDescription,
+                subheading: desc,
+                success_msg: msg,
+                submit_another_form: refreshMode.includes('REFRESH_BUTTON'),
+                show_blank_form: refreshMode.includes('AUTO_REFRESH'),
+              };
+
+              logDetailed(`NC API dbView.formCreate :: ${viewName}`);
+              const _perfStart = recordPerfStart();
+              // const f = await api.dbView.formCreate(tblId, formData);
+              const f = await this.formsService.formViewCreate(context, {
+                tableId: tblId,
+                body: formData,
+                user: syncDB.user,
+                req,
+              });
+              recordPerfStats(_perfStart, 'dbView.formCreate');
+
+              logDetailed(
+                `[${idx + 1}/${aTblSchema.length}][Form View][${i + 1}/${
+                  formViews.length
+                }] Create ${viewName}`,
+              );
+
+              await updateNcTblSchemaById(tblId);
+
+              logDetailed(`   Configure show/hide columns`);
+              await nc_configureFields(
+                f.id,
+                vData,
+                aTblSchema[idx].name,
+                'form',
+              );
+            },
           );
-
-          const viewNames = getViewNames(tblId);
-          const viewName = generateUniqueCopyName(
-            aView?.name || 'Form',
-            viewNames,
-            { prefix: null, separator: '_', counterFormat: '{counter}' },
-          );
-          viewNames.push(viewName); // Add to tracking
-          const viewDescription = aView?.description;
-
-          logBasic(
-            `:: [${configuredViews + i + 1}/${rtc.view.total}] Form : ${
-              aTblSchema[idx].name
-            } / ${viewName}`,
-          );
-
-          // everything is default
-          let refreshMode = 'NO_REFRESH';
-          let msg = 'Thank you for submitting the form!';
-          let desc = '';
-
-          // response will not include form object if everything is default
-          //
-          if (vData.metadata?.form) {
-            if (vData.metadata.form?.refreshAfterSubmit)
-              refreshMode = vData.metadata.form.refreshAfterSubmit;
-            if (vData.metadata.form?.afterSubmitMessage)
-              msg = vData.metadata.form.afterSubmitMessage;
-            if (vData.metadata.form?.description)
-              desc = vData.metadata.form.description;
-          }
-
-          const formData = {
-            title: viewName,
-            heading: viewName,
-            description: viewDescription,
-            subheading: desc,
-            success_msg: msg,
-            submit_another_form: refreshMode.includes('REFRESH_BUTTON'),
-            show_blank_form: refreshMode.includes('AUTO_REFRESH'),
-          };
-
-          logDetailed(`NC API dbView.formCreate :: ${viewName}`);
-          const _perfStart = recordPerfStart();
-          // const f = await api.dbView.formCreate(tblId, formData);
-          const f = await this.formsService.formViewCreate(context, {
-            tableId: tblId,
-            body: formData,
-            user: syncDB.user,
-            req,
-          });
-          recordPerfStats(_perfStart, 'dbView.formCreate');
-
-          logDetailed(
-            `[${idx + 1}/${aTblSchema.length}][Form View][${i + 1}/${
-              formViews.length
-            }] Create ${viewName}`,
-          );
-
-          await updateNcTblSchemaById(tblId);
-
-          logDetailed(`   Configure show/hide columns`);
-          await nc_configureFields(f.id, vData, aTblSchema[idx].name, 'form');
         }
       }
     };
@@ -2069,99 +2423,127 @@ export class AtImportProcessor {
           i < (sDB.options.syncViews ? gridViews.length : 1);
           i++
         ) {
-          logDetailed(`   Axios fetch view-data`);
-          // fetch viewData JSON
-          const vData = await getViewData(gridViews[i].id);
-
-          // retrieve view name & associated NC-ID
-          const aView = aTblSchema[idx].views.find(
-            (x) => x.id === gridViews[i].id,
+          await guard(
+            {
+              category: AirtableImportIssueCategory.VIEW,
+              table: aTblSchema[idx].name,
+              view: gridViews[i]?.name,
+            },
+            () =>
+              nocoConfigureOneGridView(
+                aTblSchema,
+                idx,
+                i,
+                gridViews,
+                tblId,
+                viewCnt,
+              ),
           );
-
-          const viewNames = getViewNames(tblId);
-          const viewName = generateUniqueCopyName(
-            aView?.name || 'Grid',
-            viewNames,
-            { prefix: null, separator: '_', counterFormat: '{counter}' },
-          );
-          viewNames.push(viewName); // Add to tracking
-          const viewDescription = aView?.description;
-
-          const _perfStart = recordPerfStart();
-          // const viewList: any = await api.dbView.list(tblId);
-          const viewList = { list: [] };
-          viewList['list'] = await this.viewsService.viewList(context, {
-            tableId: tblId,
-            user: {
-              roles: userRole,
-              base_roles: {
-                owner: true,
-              },
-            } as any,
-          });
-          recordPerfStats(_perfStart, 'dbView.list');
-
-          let ncViewId = viewList?.list?.find((x) => x.tn === viewName)?.id;
-
-          logBasic(
-            `:: [${viewCnt + i + 1}/${rtc.view.total}] Grid : ${
-              aTblSchema[idx].name
-            } / ${viewName}`,
-          );
-
-          // create view (default already created)
-          if (i > 0) {
-            logDetailed(`NC API dbView.gridCreate :: ${viewName}`);
-            const _perfStart = recordPerfStart();
-            const viewCreated = await this.gridsService.gridViewCreate(
-              context,
-              {
-                tableId: tblId,
-                grid: {
-                  title: viewName,
-                  description: viewDescription,
-                },
-                req,
-              },
-            );
-            recordPerfStats(_perfStart, 'dbView.gridCreate');
-
-            await updateNcTblSchemaById(tblId);
-            await sMap.addToMappingTbl(
-              gridViews[i].id,
-              viewCreated.id,
-              viewName,
-              tblId,
-            );
-            ncViewId = viewCreated.id;
-          }
-
-          logDetailed(`   Configure show/hide columns`);
-          await nc_configureFields(
-            ncViewId,
-            vData,
-            aTblSchema[idx].name,
-            'grid',
-          );
-
-          // configure filters
-          if (vData?.filters) {
-            logDetailed(`   Configure filter set`);
-            await nc_configureFilters(ncViewId, vData.filters);
-          }
-
-          // configure sort
-          if (vData?.lastSortsApplied?.sortSet.length) {
-            logDetailed(`   Configure sort set`);
-            await nc_configureSort(ncViewId, vData.lastSortsApplied);
-          }
-
-          // configure group
-          if (vData?.groupLevels) {
-            logDetailed(`   Configure group set`);
-            await nc_configureGroup(ncViewId, vData.groupLevels);
-          }
         }
+      }
+    };
+
+    const nocoConfigureOneGridView = async (
+      aTblSchema: any[],
+      idx: number,
+      i: number,
+      gridViews: any[],
+      tblId: string,
+      viewCnt: number,
+    ) => {
+      logDetailed(`   Axios fetch view-data`);
+      // fetch viewData JSON
+      const vData = await getViewData(gridViews[i].id);
+
+      // retrieve view name & associated NC-ID
+      const aView = aTblSchema[idx].views.find((x) => x.id === gridViews[i].id);
+
+      const viewNames = getViewNames(tblId);
+      const viewName = generateUniqueCopyName(
+        aView?.name || 'Grid',
+        viewNames,
+        { prefix: null, separator: '_', counterFormat: '{counter}' },
+      );
+      viewNames.push(viewName); // Add to tracking
+      const viewDescription = aView?.description;
+
+      const _perfStart = recordPerfStart();
+      // const viewList: any = await api.dbView.list(tblId);
+      const viewList = { list: [] };
+      viewList['list'] = await this.viewsService.viewList(context, {
+        tableId: tblId,
+        user: {
+          roles: userRole,
+          base_roles: {
+            owner: true,
+          },
+        } as any,
+      });
+      recordPerfStats(_perfStart, 'dbView.list');
+
+      let ncViewId = viewList?.list?.find((x) => x.tn === viewName)?.id;
+
+      logBasic(
+        `:: [${viewCnt + i + 1}/${rtc.view.total}] Grid : ${
+          aTblSchema[idx].name
+        } / ${viewName}`,
+      );
+
+      // create view (default already created)
+      if (i > 0) {
+        logDetailed(`NC API dbView.gridCreate :: ${viewName}`);
+        const _perfStart = recordPerfStart();
+        const viewCreated = await this.gridsService.gridViewCreate(context, {
+          tableId: tblId,
+          grid: {
+            title: viewName,
+            description: viewDescription,
+          },
+          req,
+        });
+        recordPerfStats(_perfStart, 'dbView.gridCreate');
+
+        await updateNcTblSchemaById(tblId);
+        await sMap.addToMappingTbl(
+          gridViews[i].id,
+          viewCreated.id,
+          viewName,
+          tblId,
+        );
+        ncViewId = viewCreated.id;
+      }
+
+      const vctx: ViewCtx = { table: aTblSchema[idx].name, view: viewName };
+
+      // each step on its own, so one failing does not cost the others
+      logDetailed(`   Configure show/hide columns`);
+      await guard(
+        { category: AirtableImportIssueCategory.FIELD_VISIBILITY, ...vctx },
+        () => nc_configureFields(ncViewId, vData, aTblSchema[idx].name, 'grid'),
+      );
+
+      if (vData?.filters) {
+        logDetailed(`   Configure filter set`);
+        await guard(
+          { category: AirtableImportIssueCategory.FILTER, ...vctx },
+          () => nc_configureFilters(ncViewId, vData.filters, vctx),
+        );
+      }
+
+      if (vData?.lastSortsApplied?.sortSet.length) {
+        logDetailed(`   Configure sort set`);
+        await guard(
+          { category: AirtableImportIssueCategory.SORT, ...vctx },
+          () => nc_configureSort(ncViewId, vData.lastSortsApplied, vctx),
+        );
+      }
+
+      if (vData?.groupLevels) {
+        logDetailed(`   Configure group set`);
+        await guard(
+          { category: AirtableImportIssueCategory.GROUP, ...vctx },
+          () => nc_configureGroup(ncViewId, vData.groupLevels, vctx),
+        );
       }
     };
 
@@ -2399,9 +2781,10 @@ export class AtImportProcessor {
       '&': 'allof',
     };
 
-    // Airtable `isWithin` modes -> nc `comparison_sub_op`. Airtable also has
-    // calendar-relative modes (thisCalendarWeek, ...) with no nc equivalent;
-    // those are skipped rather than sent and rejected by payload validation.
+    type ViewCtx = { table: string; view: string };
+
+    // Airtable `isWithin` modes -> nc `comparison_sub_op`. Calendar-relative
+    // modes (thisCalendarWeek, ...) have no nc equivalent and are skipped.
     const isWithinMap = {
       pastWeek: 'pastWeek',
       pastMonth: 'pastMonth',
@@ -2413,67 +2796,147 @@ export class AtImportProcessor {
       nextNumberOfDays: 'nextNumberOfDays',
     };
 
-    const nc_configureFilters = async (viewId, f, parentId?: string) => {
+    // Airtable modes for the comparison operators (=, <, >, ...). Both
+    // spellings of the day-offset modes map to the nc one.
+    const dateModeMap: Record<string, string> = {
+      today: 'today',
+      tomorrow: 'tomorrow',
+      yesterday: 'yesterday',
+      oneWeekAgo: 'oneWeekAgo',
+      oneWeekFromNow: 'oneWeekFromNow',
+      oneMonthAgo: 'oneMonthAgo',
+      oneMonthFromNow: 'oneMonthFromNow',
+      daysAgo: 'daysAgo',
+      numberOfDaysAgo: 'daysAgo',
+      daysFromNow: 'daysFromNow',
+      numberOfDaysFromNow: 'daysFromNow',
+      exactDate: 'exactDate',
+    };
+
+    const dateTypes = [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ];
+
+    const isAtRecordId = (v: unknown) =>
+      typeof v === 'string' && /^rec[A-Za-z0-9]{14}$/.test(v);
+
+    // Airtable link operators over record ids -> nc link filters on the
+    // related record's display value.
+    const linkFilterOps: Record<
+      string,
+      { op: 'eq' | 'neq'; join: 'or' | 'and'; approx?: string }
+    > = {
+      '|': { op: 'eq', join: 'or' },
+      isAnyOf: { op: 'eq', join: 'or' },
+      '&': { op: 'eq', join: 'and' },
+      '=': {
+        op: 'eq',
+        join: 'and',
+        approx:
+          "'is exactly' imported as 'has all of': records linked to further records also match",
+      },
+      isNoneOf: { op: 'neq', join: 'and' },
+      '!=': { op: 'neq', join: 'and' },
+    };
+
+    // Record-id link filters, created once records exist to resolve them.
+    const deferredLinkFilters: {
+      viewId: string;
+      vctx: ViewCtx;
+      parentId?: string;
+      conjunction: string;
+      operator: string;
+      recordIds: string[];
+      column: any;
+    }[] = [];
+
+    const createFilter = async (
+      viewId: string,
+      vctx: ViewCtx,
+      field: string | undefined,
+      filter: Record<string, any>,
+    ) => {
+      const _perfStart = recordPerfStart();
+      const created = await guard(
+        { category: AirtableImportIssueCategory.FILTER, ...vctx, field },
+        () =>
+          this.filtersService.filterCreate(context, {
+            viewId,
+            filter,
+            user: syncDB.user,
+            req,
+          }),
+      );
+      recordPerfStats(_perfStart, 'dbTableFilter.create');
+      if (created) rtc.filter++;
+      return created as any;
+    };
+
+    const skipFilter = (
+      vctx: ViewCtx,
+      field: string | undefined,
+      type: string | undefined,
+      reason: string,
+    ) =>
+      updateMigrationSkipLog(vctx.table, field, type, reason, {
+        category: AirtableImportIssueCategory.FILTER,
+        view: vctx.view,
+      });
+
+    const nc_configureFilters = async (
+      viewId: string,
+      f,
+      vctx: ViewCtx,
+      parentId?: string,
+    ) => {
       for (let i = 0; i < f.filterSet.length; i++) {
         const filter = f.filterSet[i];
 
         // nested filter group — create the group row, then recurse under it
         if (Array.isArray(filter.filterSet)) {
-          let groupId: string;
-          try {
-            const group: any = await this.filtersService.filterCreate(context, {
-              viewId: viewId,
-              filter: {
-                is_group: true,
-                logical_op: f.conjunction,
-                ...(parentId ? { fk_parent_id: parentId } : {}),
-              },
-              user: syncDB.user,
-              req,
-            });
-            groupId = group?.id;
-            rtc.filter++;
-          } catch (e) {
-            logWarning(
-              `Skipped creating filter group for ${viewId} :: ${e.message}`,
-            );
-            continue;
+          const group = await createFilter(viewId, vctx, undefined, {
+            is_group: true,
+            logical_op: f.conjunction,
+            ...(parentId ? { fk_parent_id: parentId } : {}),
+          });
+          if (group?.id) {
+            await nc_configureFilters(viewId, filter, vctx, group.id);
           }
-          await nc_configureFilters(viewId, filter, groupId);
           continue;
         }
 
         const colSchema = await nc_getColumnSchema(filter.columnId);
 
-        // column not available;
-        // one of not migrated column;
+        // column not available; one of not migrated column
         if (!colSchema) {
-          updateMigrationSkipLog(
-            await sMap.getNcNameFromAtId(viewId),
+          skipFilter(
+            vctx,
             aTbl_getColumnName(filter.columnId)?.cn,
             undefined,
-            `filter config skipped; column not migrated`,
+            'filter config skipped; column not migrated',
           );
           continue;
         }
         const columnId = colSchema.id;
         const datatype = colSchema.uidt;
         const ncFilters = [];
+        const hasValue =
+          filter.value !== null &&
+          filter.value !== undefined &&
+          filter.value !== '';
 
-        // logger.log(filter)
-        if (datatype === UITypes.LinkToAnotherRecord) {
-          // Airtable stores linked-record filters as record ids, which have no
-          // nc equivalent at this point — records are imported after views, so
-          // there is nothing to map them onto. Blank checks and text matches
-          // carry over as-is; the rest are dropped.
-          if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
-            ncFilters.push({
-              fk_column_id: columnId,
-              logical_op: f.conjunction,
-              comparison_op: filterMap[filter.operator],
-              value: '',
-            });
-          } else if (
+        if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
+          ncFilters.push({
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            value: '',
+          });
+        } else if (datatype === UITypes.LinkToAnotherRecord) {
+          if (
             ['contains', 'doesNotContain'].includes(filter.operator) &&
             typeof filter.value === 'string'
           ) {
@@ -2484,12 +2947,40 @@ export class AtImportProcessor {
               value: filter.value,
             });
           } else {
-            updateMigrationSkipLog(
-              await sMap.getNcNameFromAtId(viewId),
-              colSchema.title,
-              colSchema.uidt,
-              `filter config skipped; link filter over record IDs not supported yet`,
-            );
+            // Airtable stores these as record ids; views are configured before
+            // records exist, so resolve them after the data import.
+            const values = (
+              Array.isArray(filter.value) ? filter.value : [filter.value]
+            ).filter((v) => v !== null && v !== undefined && v !== '');
+            if (!values.length) continue; // incomplete in Airtable too
+            const recordIds = values.filter(isAtRecordId);
+            if (!recordIds.length) {
+              skipFilter(
+                vctx,
+                colSchema.title,
+                colSchema.uidt,
+                'filter config skipped; its value is not a list of linked records',
+              );
+              continue;
+            }
+            if (!linkFilterOps[filter.operator]) {
+              skipFilter(
+                vctx,
+                colSchema.title,
+                colSchema.uidt,
+                `filter config skipped; link operator '${filter.operator}' not supported yet`,
+              );
+              continue;
+            }
+            deferredLinkFilters.push({
+              viewId,
+              vctx,
+              parentId,
+              conjunction: f.conjunction,
+              operator: filter.operator,
+              recordIds,
+              column: colSchema,
+            });
             continue;
           }
         }
@@ -2518,7 +3009,7 @@ export class AtImportProcessor {
             ncFilters.push(fx);
           }
           // not array - add as is
-          else if (filter.value) {
+          else if (hasValue) {
             const fx = {
               fk_column_id: columnId,
               logical_op: f.conjunction,
@@ -2527,71 +3018,232 @@ export class AtImportProcessor {
             };
             ncFilters.push(fx);
           }
-        } else if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
+        } else if (dateTypes.includes(datatype)) {
+          const mode = filter.value?.mode;
+          if (!mode) continue; // incomplete in Airtable too
           if (filter.operator === 'isWithin') {
-            const subOp = isWithinMap[filter.value?.mode];
+            const subOp = isWithinMap[mode];
             if (!subOp) {
-              updateMigrationSkipLog(
-                await sMap.getNcNameFromAtId(viewId),
+              skipFilter(
+                vctx,
                 colSchema.title,
                 colSchema.uidt,
-                `filter config skipped; '${filter.value?.mode}' date range not supported yet`,
+                `filter config skipped; '${mode}' date range not supported yet`,
               );
               continue;
             }
-            const fx = {
+            ncFilters.push({
               fk_column_id: columnId,
               logical_op: f.conjunction,
               comparison_op: filter.operator,
               comparison_sub_op: subOp,
               value: filter.value?.numberOfDays,
-            };
-            ncFilters.push(fx);
+            });
           } else {
-            const fx = {
+            const subOp = dateModeMap[mode];
+            if (!subOp) {
+              skipFilter(
+                vctx,
+                colSchema.title,
+                colSchema.uidt,
+                `filter config skipped; '${mode}' date mode not supported yet`,
+              );
+              continue;
+            }
+            ncFilters.push({
               fk_column_id: columnId,
               logical_op: f.conjunction,
               comparison_op: filterMap[filter.operator],
-              comparison_sub_op: filter.value?.mode,
-              // daysAgo/daysFromNow carry a count, the rest an absolute date
-              value: ['daysAgo', 'daysFromNow'].includes(filter.value?.mode)
+              comparison_sub_op: subOp,
+              // day offsets carry a count, exactDate an absolute date
+              value: ['daysAgo', 'daysFromNow'].includes(subOp)
                 ? filter.value?.numberOfDays
-                : filter.value?.exactDate,
-            };
-            ncFilters.push(fx);
+                : subOp === 'exactDate'
+                ? filter.value?.exactDate
+                : undefined,
+            });
           }
         }
 
         // other data types (number/ text/ long text/ ..)
-        else if (filter.value) {
-          const fx = {
+        else if (hasValue) {
+          if (Array.isArray(filter.value) && filter.value.some(isAtRecordId)) {
+            skipFilter(
+              vctx,
+              colSchema.title,
+              colSchema.uidt,
+              'filter config skipped; filter on a lookup of linked records not supported yet',
+            );
+            continue;
+          }
+          if (typeof filter.value === 'object' && filter.value?.mode) {
+            skipFilter(
+              vctx,
+              colSchema.title,
+              colSchema.uidt,
+              'filter config skipped; date filter on a column that was not imported as a date',
+            );
+            continue;
+          }
+          ncFilters.push({
             fk_column_id: columnId,
             logical_op: f.conjunction,
             comparison_op: filterMap[filter.operator],
             value: filter.value,
-          };
-          ncFilters.push(fx);
+          });
         }
 
-        // insert filters
-        for (let i = 0; i < ncFilters.length; i++) {
-          const _perfStart = recordPerfStart();
-          try {
-            await this.filtersService.filterCreate(context, {
-              viewId: viewId,
-              filter: {
-                ...ncFilters[i],
-                ...(parentId ? { fk_parent_id: parentId } : {}),
-              },
-              user: syncDB.user,
-              req,
-            });
-          } catch (e) {
-            logWarning(`Skipped creating filter for ${viewId} :: ${e.message}`);
+        for (const ncFilter of ncFilters) {
+          if (!ncFilter.comparison_op) {
+            skipFilter(
+              vctx,
+              colSchema.title,
+              colSchema.uidt,
+              `filter config skipped; operator '${filter.operator}' not supported yet`,
+            );
+            continue;
           }
-          recordPerfStats(_perfStart, 'dbTableFilter.create');
+          await createFilter(viewId, vctx, colSchema.title, {
+            ...ncFilter,
+            ...(parentId ? { fk_parent_id: parentId } : {}),
+          });
+        }
+      }
+    };
 
-          rtc.filter++;
+    // Resolve deferred link filters: Airtable record id -> nc row id (idMap)
+    // -> the related record's display value, which is what an nc link filter
+    // compares against.
+    const nocoResolveDeferredLinkFilters = async (
+      idMap: Map<string, number> | null,
+    ) => {
+      if (!deferredLinkFilters.length) return;
+      logBasic('Resolving linked-record filters');
+
+      const relatedOf = (col) => col.colOptions?.fk_related_model_id;
+
+      const idsByTable = new Map<string, Set<number>>();
+      for (const d of deferredLinkFilters) {
+        const rel = relatedOf(d.column);
+        if (!rel || !idMap) continue;
+        const ids = idsByTable.get(rel) ?? new Set<number>();
+        for (const rid of d.recordIds) {
+          const ncId = idMap.get(rid);
+          if (ncId !== undefined) ids.add(ncId);
+        }
+        idsByTable.set(rel, ids);
+      }
+
+      const displayByTable = new Map<string, Map<number, string>>();
+      const source = idsByTable.size
+        ? await Source.get(context, syncDB.sourceId)
+        : null;
+      for (const [tableId, ids] of idsByTable) {
+        if (!ids.size) continue;
+        const tbl = ncSchema.tablesById[tableId];
+        await guard(
+          { category: AirtableImportIssueCategory.FILTER, table: tbl?.title },
+          async () => {
+            const pv = tbl?.columns?.find((c) => c.pv);
+            const pk = tbl?.columns?.find((c) => c.pk);
+            if (!pv || !pk) return;
+            const baseModel = await Model.getBaseModelSQL(context, {
+              id: tableId,
+              viewId: null,
+              dbDriver: await NcConnectionMgrv2.get(source),
+            });
+            const rows = await baseModel.chunkList({
+              pks: [...ids].map(String),
+              extractOnlyPrimaries: true,
+              ignoreRls: true,
+            });
+            const byId = new Map<number, string>();
+            for (const row of rows) {
+              const v = row[pv.title];
+              if (v !== null && v !== undefined && `${v}` !== '') {
+                byId.set(Number(row[pk.title]), `${v}`);
+              }
+            }
+            displayByTable.set(tableId, byId);
+          },
+        );
+      }
+
+      for (const d of deferredLinkFilters) {
+        const shape = linkFilterOps[d.operator];
+        const field = d.column.title;
+        const values: string[] = [];
+        let unresolved = 0;
+        for (const rid of d.recordIds) {
+          const ncId = idMap?.get(rid);
+          const v =
+            ncId !== undefined
+              ? displayByTable.get(relatedOf(d.column))?.get(ncId)
+              : undefined;
+          if (v === undefined) unresolved++;
+          else values.push(v);
+        }
+        const unique = [...new Set(values)];
+
+        if (!unique.length) {
+          skipFilter(
+            d.vctx,
+            field,
+            d.column.uidt,
+            syncDB.options.syncData
+              ? `filter config skipped; none of the ${d.recordIds.length} linked record(s) it names were imported`
+              : 'filter config skipped; it names linked records and records were not imported',
+          );
+          continue;
+        }
+
+        const leaf = (value: string, logical_op: string, fk_parent_id?) => ({
+          fk_column_id: d.column.id,
+          logical_op,
+          comparison_op: shape.op,
+          value,
+          ...(fk_parent_id ? { fk_parent_id } : {}),
+        });
+
+        if (unique.length === 1) {
+          await createFilter(
+            d.viewId,
+            d.vctx,
+            field,
+            leaf(unique[0], d.conjunction, d.parentId),
+          );
+        } else {
+          const group = await createFilter(d.viewId, d.vctx, field, {
+            is_group: true,
+            logical_op: d.conjunction,
+            ...(d.parentId ? { fk_parent_id: d.parentId } : {}),
+          });
+          if (!group?.id) continue;
+          for (const value of unique) {
+            await createFilter(
+              d.viewId,
+              d.vctx,
+              field,
+              leaf(value, shape.join, group.id),
+            );
+          }
+        }
+
+        const notes = [
+          shape.approx,
+          unresolved
+            ? `${unresolved} of ${d.recordIds.length} linked record(s) were not imported and were dropped from the filter`
+            : null,
+        ].filter(Boolean);
+        if (notes.length) {
+          recordIssue({
+            kind: AirtableImportIssueKind.APPROXIMATED,
+            category: AirtableImportIssueCategory.FILTER,
+            ...d.vctx,
+            field,
+            airtable_type: d.column.uidt,
+            reason: notes.join('; '),
+          });
         }
       }
     };
@@ -2599,21 +3251,21 @@ export class AtImportProcessor {
     //////////////////////////////
     // group
 
-    const nc_configureGroup = async (viewId, g) => {
+    const nc_configureGroup = async (viewId, g, vctx: ViewCtx) => {
       const ncGroup = [];
 
       for (let i = 0; i < g.length; i++) {
         const group = g[i];
         const colSchema = await nc_getColumnSchema(group.columnId);
 
-        // column not available;
-        // one of not migrated column;
+        // column not available; one of not migrated column
         if (!colSchema) {
           updateMigrationSkipLog(
-            await sMap.getNcNameFromAtId(viewId),
+            vctx.table,
             aTbl_getColumnName(group.columnId)?.cn,
             undefined,
-            `group config skipped; column not migrated`,
+            'group config skipped; column not migrated',
+            { category: AirtableImportIssueCategory.GROUP, view: vctx.view },
           );
           continue;
         }
@@ -2635,15 +3287,17 @@ export class AtImportProcessor {
         ) {
           ncGroup.push({
             group_column_id: columnId,
+            group_title: colSchema.title,
             direction: group.order,
           });
         } else {
           // skip group by over other data types
           updateMigrationSkipLog(
-            await sMap.getNcNameFromAtId(viewId),
+            vctx.table,
             colSchema.title,
             colSchema.uidt,
-            `group config skipped; group over ${datatype}  not supported yet`,
+            `group config skipped; group over ${datatype} not supported yet`,
+            { category: AirtableImportIssueCategory.GROUP, view: vctx.view },
           );
           continue;
         }
@@ -2657,42 +3311,63 @@ export class AtImportProcessor {
         const ncViewColumnId = viewDetails.find(
           (x) => x.fk_column_id === ncGroup[i].group_column_id,
         )?.id;
-        try {
-          await this.gridColumnService.gridColumnUpdate(context, {
-            gridViewColumnId: ncViewColumnId,
-            grid: {
-              group_by: true,
-              group_by_order: i + 1,
-              group_by_sort:
-                ncGroup[i].direction === 'ascending' ? 'asc' : 'desc',
-            },
-            req,
-          });
-        } catch (e) {
-          // ignore
-        }
+        await guard(
+          {
+            category: AirtableImportIssueCategory.GROUP,
+            ...vctx,
+            field: ncGroup[i].group_title,
+          },
+          () =>
+            this.gridColumnService.gridColumnUpdate(context, {
+              gridViewColumnId: ncViewColumnId,
+              grid: {
+                group_by: true,
+                group_by_order: i + 1,
+                group_by_sort:
+                  ncGroup[i].direction === 'ascending' ? 'asc' : 'desc',
+              },
+              req,
+            }),
+        );
       }
     };
 
     //////////////////////////////
 
-    const nc_configureSort = async (viewId, s) => {
+    const nc_configureSort = async (viewId, s, vctx: ViewCtx) => {
       for (let i = 0; i < s.sortSet.length; i++) {
-        const columnId = (await nc_getColumnSchema(s.sortSet[i].columnId))?.id;
+        const colSchema = await nc_getColumnSchema(s.sortSet[i].columnId);
 
-        if (columnId) {
-          const _perfStart = recordPerfStart();
-          await this.sortsService.sortCreate(context, {
-            viewId: viewId,
-            sort: {
-              fk_column_id: columnId,
-              direction: s.sortSet[i].ascending ? 'asc' : 'desc',
-            },
-            req,
-          });
-          recordPerfStats(_perfStart, 'dbTableSort.create');
+        if (!colSchema) {
+          updateMigrationSkipLog(
+            vctx.table,
+            aTbl_getColumnName(s.sortSet[i].columnId)?.cn,
+            undefined,
+            'sort config skipped; column not migrated',
+            { category: AirtableImportIssueCategory.SORT, view: vctx.view },
+          );
+          continue;
         }
-        rtc.sort++;
+
+        const _perfStart = recordPerfStart();
+        const created = await guard(
+          {
+            category: AirtableImportIssueCategory.SORT,
+            ...vctx,
+            field: colSchema.title,
+          },
+          () =>
+            this.sortsService.sortCreate(context, {
+              viewId: viewId,
+              sort: {
+                fk_column_id: colSchema.id,
+                direction: s.sortSet[i].ascending ? 'asc' : 'desc',
+              },
+              req,
+            }),
+        );
+        recordPerfStats(_perfStart, 'dbTableSort.create');
+        if (created !== undefined) rtc.sort++;
       }
     };
 
@@ -2903,6 +3578,10 @@ export class AtImportProcessor {
       await nocoConfigureGalleryView(syncDB, aTblSchema);
       logDetailed('Syncing views completed');
 
+      // Airtable record id -> nc row id, filled by the data import.
+      const idMap = new Map<string, number>();
+      const idCounter: Record<string, number> = {};
+
       if (syncDB.options.syncData) {
         try {
           const _perfStart = recordPerfStart();
@@ -2922,9 +3601,6 @@ export class AtImportProcessor {
           recordPerfStats(_perfStart, 'base.tableList');
 
           logBasic('Reading Records...');
-
-          const idMap = new Map();
-          const idCounter: Record<string, number> = {};
 
           for (let i = 0; i < ncTblList.list.length; i++) {
             // not a migrated table, skip
@@ -2993,8 +3669,18 @@ export class AtImportProcessor {
             `There was an error while migrating data! Please make sure your API key is correct.`,
           );
           logBasic(`Data migration failed: ${error}`);
+          recordIssue({
+            kind: AirtableImportIssueKind.FAILED,
+            category: AirtableImportIssueCategory.DATA,
+            reason: `data import failed: ${error?.message ?? error}`,
+          });
         }
       }
+
+      await guard({ category: AirtableImportIssueCategory.FILTER }, () =>
+        nocoResolveDeferredLinkFilters(syncDB.options.syncData ? idMap : null),
+      );
+
       if (generate_migrationStats) {
         await generateMigrationStats(aTblSchema);
       }
@@ -3024,6 +3710,11 @@ export class AtImportProcessor {
           req,
         });
       }
+      try {
+        e.data = { ...(e.data ?? {}), report: buildReport() };
+      } catch {
+        // a non-extensible error just goes without the report
+      }
       if (e.message) {
         this.telemetryService.sendEvent({
           evt_type: 'a:airtable-import:error',
@@ -3037,6 +3728,7 @@ export class AtImportProcessor {
     }
 
     this.debugLog(`job completed for ${job.id}`);
+    return { report: buildReport() };
   }
 }
 

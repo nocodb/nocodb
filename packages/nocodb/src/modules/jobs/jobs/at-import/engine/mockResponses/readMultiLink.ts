@@ -50,9 +50,29 @@ export const multiLinkTableSchemas = [
         type: 'text',
         initialCreatedByUserId: USER_ID,
       },
+      {
+        id: 'fldMlPrDue',
+        name: 'Due',
+        type: 'date',
+        typeOptions: { isDateTime: false, dateFormat: 'LL' },
+        initialCreatedByUserId: USER_ID,
+      },
       link('fldMlPrReqDoc', 'Requirement Doc', 'tblMlAssets', 'fldMlAsProj2'),
       link('fldMlPrAssets', 'Assets', 'tblMlAssets', 'fldMlAsProj3'),
       link('fldMlPrAssets2', 'Assets 2', 'tblMlAssets', 'fldMlAsProj'),
+      // One-way link: Airtable creates no symmetric column, so the importer
+      // has only `foreignTableId` to find the target table with.
+      {
+        id: 'fldMlPrOwner',
+        name: 'Owner',
+        type: 'foreignKey',
+        typeOptions: {
+          foreignTableId: 'tblMlPeople',
+          relationship: 'many',
+          unreversed: true,
+        },
+        initialCreatedByUserId: USER_ID,
+      },
     ],
     views: [gridView('viwMlProjects')],
     viewOrder: ['viwMlProjects'],
@@ -77,6 +97,22 @@ export const multiLinkTableSchemas = [
     ],
     views: [gridView('viwMlAssets')],
     viewOrder: ['viwMlAssets'],
+  },
+  {
+    id: 'tblMlPeople',
+    name: 'MlPeople',
+    primaryColumnId: 'fldMlPeName',
+    description: null,
+    columns: [
+      {
+        id: 'fldMlPeName',
+        name: 'Name',
+        type: 'text',
+        initialCreatedByUserId: USER_ID,
+      },
+    ],
+    views: [gridView('viwMlPeople')],
+    viewOrder: ['viwMlPeople'],
   },
 ];
 

@@ -25,6 +25,7 @@ import readView_viwDvFormulaPrim from './readView_viwDvFormulaPrim.json';
 import readView_viwDvTitleTaken from './readView_viwDvTitleTaken.json';
 import readView_viwMlProjects from './readView_viwMlProjects.json';
 import readView_viwMlAssets from './readView_viwMlAssets.json';
+import readView_viwMlPeople from './readView_viwMlPeople.json';
 
 export const viewsResponse = {
   viw5f7BhLA3OkthNv: { data: readView_viw5f7BhLA3OkthNv },
@@ -51,4 +52,5 @@ export const viewsResponse = {
   // multi-link fixture (share id `shrMultiLinkMock`)
   viwMlProjects: { data: readView_viwMlProjects },
   viwMlAssets: { data: readView_viwMlAssets },
+  viwMlPeople: { data: readView_viwMlPeople },
 };

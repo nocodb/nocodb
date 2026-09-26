@@ -882,6 +882,15 @@ export class AtImportProcessor {
               let childTableId = srcTableId;
               if (childTable) {
                 childTableId = (await nc_getTableSchema(childTable.tn)).id;
+              } else if (aTblLinkColumns[i].typeOptions?.foreignTableId) {
+                // One-way Airtable link: no symmetric column to read the target
+                // from, but the link still names its foreign table. Without
+                // this it would fall through to srcTableId and import as a
+                // self link.
+                childTableId =
+                  (await sMap.getNcIdFromAtId(
+                    aTblLinkColumns[i].typeOptions.foreignTableId,
+                  )) || srcTableId;
               }
 
               // check if already a column exists with this name?
@@ -2138,11 +2147,7 @@ export class AtImportProcessor {
           // configure filters
           if (vData?.filters) {
             logDetailed(`   Configure filter set`);
-
-            // skip filters if nested
-            if (!vData.filters.filterSet.find((x) => x?.type === 'nested')) {
-              await nc_configureFilters(ncViewId, vData.filters);
-            }
+            await nc_configureFilters(ncViewId, vData.filters);
           }
 
           // configure sort
@@ -2394,9 +2399,50 @@ export class AtImportProcessor {
       '&': 'allof',
     };
 
-    const nc_configureFilters = async (viewId, f) => {
+    // Airtable `isWithin` modes -> nc `comparison_sub_op`. Airtable also has
+    // calendar-relative modes (thisCalendarWeek, ...) with no nc equivalent;
+    // those are skipped rather than sent and rejected by payload validation.
+    const isWithinMap = {
+      pastWeek: 'pastWeek',
+      pastMonth: 'pastMonth',
+      pastYear: 'pastYear',
+      nextWeek: 'nextWeek',
+      nextMonth: 'nextMonth',
+      nextYear: 'nextYear',
+      pastNumberOfDays: 'pastNumberOfDays',
+      nextNumberOfDays: 'nextNumberOfDays',
+    };
+
+    const nc_configureFilters = async (viewId, f, parentId?: string) => {
       for (let i = 0; i < f.filterSet.length; i++) {
         const filter = f.filterSet[i];
+
+        // nested filter group — create the group row, then recurse under it
+        if (Array.isArray(filter.filterSet)) {
+          let groupId: string;
+          try {
+            const group: any = await this.filtersService.filterCreate(context, {
+              viewId: viewId,
+              filter: {
+                is_group: true,
+                logical_op: f.conjunction,
+                ...(parentId ? { fk_parent_id: parentId } : {}),
+              },
+              user: syncDB.user,
+              req,
+            });
+            groupId = group?.id;
+            rtc.filter++;
+          } catch (e) {
+            logWarning(
+              `Skipped creating filter group for ${viewId} :: ${e.message}`,
+            );
+            continue;
+          }
+          await nc_configureFilters(viewId, filter, groupId);
+          continue;
+        }
+
         const colSchema = await nc_getColumnSchema(filter.columnId);
 
         // column not available;
@@ -2404,8 +2450,8 @@ export class AtImportProcessor {
         if (!colSchema) {
           updateMigrationSkipLog(
             await sMap.getNcNameFromAtId(viewId),
-            colSchema.title,
-            colSchema.uidt,
+            aTbl_getColumnName(filter.columnId)?.cn,
+            undefined,
             `filter config skipped; column not migrated`,
           );
           continue;
@@ -2416,15 +2462,36 @@ export class AtImportProcessor {
 
         // logger.log(filter)
         if (datatype === UITypes.LinkToAnotherRecord) {
-          // skip filters for links; Link filters in NocoDB are only rollup counts
-          // where-as in airtable, filter can be textual
-          updateMigrationSkipLog(
-            await sMap.getNcNameFromAtId(viewId),
-            colSchema.title,
-            colSchema.uidt,
-            `filter config skipped; filter over date datatype not supported yet`,
-          );
-          continue;
+          // Airtable stores linked-record filters as record ids, which have no
+          // nc equivalent at this point — records are imported after views, so
+          // there is nothing to map them onto. Blank checks and text matches
+          // carry over as-is; the rest are dropped.
+          if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
+            ncFilters.push({
+              fk_column_id: columnId,
+              logical_op: f.conjunction,
+              comparison_op: filterMap[filter.operator],
+              value: '',
+            });
+          } else if (
+            ['contains', 'doesNotContain'].includes(filter.operator) &&
+            typeof filter.value === 'string'
+          ) {
+            ncFilters.push({
+              fk_column_id: columnId,
+              logical_op: f.conjunction,
+              comparison_op: filterMap[filter.operator],
+              value: filter.value,
+            });
+          } else {
+            updateMigrationSkipLog(
+              await sMap.getNcNameFromAtId(viewId),
+              colSchema.title,
+              colSchema.uidt,
+              `filter config skipped; link filter over record IDs not supported yet`,
+            );
+            continue;
+          }
         }
 
         // single-select & multi-select
@@ -2462,11 +2529,21 @@ export class AtImportProcessor {
           }
         } else if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
           if (filter.operator === 'isWithin') {
+            const subOp = isWithinMap[filter.value?.mode];
+            if (!subOp) {
+              updateMigrationSkipLog(
+                await sMap.getNcNameFromAtId(viewId),
+                colSchema.title,
+                colSchema.uidt,
+                `filter config skipped; '${filter.value?.mode}' date range not supported yet`,
+              );
+              continue;
+            }
             const fx = {
               fk_column_id: columnId,
               logical_op: f.conjunction,
               comparison_op: filter.operator,
-              comparison_sub_op: filter.value?.mode,
+              comparison_sub_op: subOp,
               value: filter.value?.numberOfDays,
             };
             ncFilters.push(fx);
@@ -2476,7 +2553,10 @@ export class AtImportProcessor {
               logical_op: f.conjunction,
               comparison_op: filterMap[filter.operator],
               comparison_sub_op: filter.value?.mode,
-              value: filter.value?.exactDate,
+              // daysAgo/daysFromNow carry a count, the rest an absolute date
+              value: ['daysAgo', 'daysFromNow'].includes(filter.value?.mode)
+                ? filter.value?.numberOfDays
+                : filter.value?.exactDate,
             };
             ncFilters.push(fx);
           }
@@ -2499,7 +2579,10 @@ export class AtImportProcessor {
           try {
             await this.filtersService.filterCreate(context, {
               viewId: viewId,
-              filter: ncFilters[i],
+              filter: {
+                ...ncFilters[i],
+                ...(parentId ? { fk_parent_id: parentId } : {}),
+              },
               user: syncDB.user,
               req,
             });
@@ -2528,8 +2611,8 @@ export class AtImportProcessor {
         if (!colSchema) {
           updateMigrationSkipLog(
             await sMap.getNcNameFromAtId(viewId),
-            colSchema.title,
-            colSchema.uidt,
+            aTbl_getColumnName(group.columnId)?.cn,
+            undefined,
             `group config skipped; column not migrated`,
           );
           continue;

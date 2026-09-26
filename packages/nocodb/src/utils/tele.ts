@@ -8,7 +8,7 @@ import TeleBatchProcessor from '~/utils/TeleBatchProcessor';
 import { getRedisURL } from '~/helpers/redisHelpers';
 import { ncSiteUrl } from '~/utils/envs';
 
-const isDisabled = !!process.env.NC_DISABLE_TELE;
+const isDisabled = process.env.NC_DISABLE_TELE === 'true';
 const cache = !!getRedisURL();
 const executable = !!process.env.NC_BINARY_BUILD;
 const litestream = !!(

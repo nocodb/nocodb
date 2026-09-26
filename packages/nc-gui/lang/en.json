@@ -4781,7 +4781,8 @@
       "agentNamePlaceholder": "Custom agent name",
       "automaticGeneration": "Automatic generation",
       "automaticGenerationInfo": "Runs when a record is created, and again whenever a field used in the instructions changes. Values someone edited by hand are never overwritten. Each run uses AI credits.",
-      "stopAgent": "Stop agent (keep values)",
+      "convertToStandardField": "Convert to standard field",
+      "descriptionPlaceholder": "Describe this field (optional)",
       "optionsCount": "No options | {count} option | {count} options"
     }
   },

@@ -1308,27 +1308,32 @@ const unique = computed({
         :required="false"
         class="!mb-0"
       >
-        <NcTooltip :disabled="!isSyncedField" placement="right">
-          <template #title>
-            {{ $t('msg.info.updateTitleSyncedCol') }}
-          </template>
-          <a-input
-            ref="antInput"
-            v-model:value="formState.title"
-            class="nc-column-name-input nc-input-shadow !rounded-lg"
-            :class="{
-              'nc-ai-input': isAiMode,
-            }"
-            :placeholder="
-              isAgentMode
-                ? $t('labels.fieldAgent.agentNamePlaceholder')
-                : `${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`
-            "
-            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
-            @change="debouncedOnPredictFieldType"
-            @input="onAlter(8)"
-          />
-        </NcTooltip>
+        <div class="flex items-center gap-2">
+          <div class="flex-1 min-w-0">
+            <NcTooltip :disabled="!isSyncedField" placement="right">
+              <template #title>
+                {{ $t('msg.info.updateTitleSyncedCol') }}
+              </template>
+              <a-input
+                ref="antInput"
+                v-model:value="formState.title"
+                class="nc-column-name-input nc-input-shadow !rounded-lg"
+                :class="{
+                  'nc-ai-input': isAiMode,
+                }"
+                :placeholder="
+                  isAgentMode
+                    ? $t('labels.fieldAgent.agentNamePlaceholder')
+                    : `${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`
+                "
+                :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
+                @change="debouncedOnPredictFieldType"
+                @input="onAlter(8)"
+              />
+            </NcTooltip>
+          </div>
+          <LazySmartsheetColumnFieldAgentNameMenu v-if="isAgentMode" v-model:value="formState" />
+        </div>
       </a-form-item>
 
       <LazySmartsheetColumnFieldAgentConfig v-if="isAgentMode" v-model:value="formState" @change-type="onAgentTypeChange" />
@@ -1735,7 +1740,7 @@ const unique = computed({
         </template>
 
         <a-form-item
-          v-if="enableDescription && !aiAutoSuggestMode"
+          v-if="enableDescription && !aiAutoSuggestMode && !isAgentMode"
           :class="{
             '!pb-4': embedMode,
           }"
@@ -1791,7 +1796,12 @@ const unique = computed({
               'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
             }"
           >
-            <NcButton v-if="!enableDescription && !isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
+            <NcButton
+              v-if="!enableDescription && !isSystem && !isAgentMode"
+              size="small"
+              type="text"
+              @click.stop="triggerDescriptionEnable"
+            >
               <div class="flex !text-nc-content-gray-subtle items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 

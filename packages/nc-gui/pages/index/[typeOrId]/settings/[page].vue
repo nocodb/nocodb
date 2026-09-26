@@ -1,19 +1,27 @@
 <script setup lang="ts">
-// Legacy `/{ws}/settings/{page}` deep link — hands over to the settings overlay.
 definePageMeta({
+  // One key for every pane, so switching panes keeps the page (and its rail) mounted.
+  key: (route) => `/${route.params.typeOrId}/settings`,
   middleware: [
-    (to) =>
-      navigateTo(
-        {
-          path: `/${to.params.typeOrId}`,
-          query: { ...to.query, wsSettings: resolveWsSettingsSlug(to.params.page) ?? 'general' },
-        },
-        { replace: true },
-      ),
+    (to) => {
+      const slug = resolveWsSettingsSlug(to.params.page)
+
+      // Legacy and unknown slugs land on their canonical path.
+      if (slug !== to.params.page) {
+        return navigateTo(
+          { path: wsSettingsPath(to.params.typeOrId as string, slug ?? 'general'), query: to.query },
+          { replace: true },
+        )
+      }
+    },
   ],
 })
+
+const route = useRoute()
+
+const tab = computed(() => resolveWsSettingsSlug(route.params.page))
 </script>
 
 <template>
-  <div class="h-full" />
+  <WorkspaceSettingsShell v-if="tab" :tab="tab" />
 </template>

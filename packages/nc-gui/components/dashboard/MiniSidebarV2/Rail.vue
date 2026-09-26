@@ -153,9 +153,9 @@ const onTabClick = async (tabKey: string) => {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
-    // Both settings open as a modal over wherever you are — same route, plus a
-    // query param — so the page underneath stays put and the sidebar keeps
-    // showing the vertical you were in.
+    // Inside a base, base settings opens as a modal over the page — same route,
+    // plus a query param — so the sidebar keeps showing the vertical you were in.
+    // Elsewhere it goes to the workspace settings page.
     if (isBaseOpen.value) {
       navigateTo({ query: { ...route.value.query, settings: 'members' } })
       return
@@ -331,11 +331,11 @@ const handleOpenBookmarkPanel = () => {
   }
 }
 
-// Both settings are overlays on the current route, so the tile reads the query.
+// Base settings is an overlay on the current route, so the tile reads the query.
 // Only a slug the nav knows counts — `?settings=true` belongs to the agent panel.
 const isBaseSettingsOpen = computed(() => !!resolveBaseSettingsTab(route.value.query.settings))
 
-const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!resolveWsSettingsSlug(route.value.query.wsSettings))
+const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettingsSlugFromRoute(route.value))
 </script>
 
 <template>

@@ -64,7 +64,7 @@ const navItems = computed<NavItem[]>(() => {
   ].filter((item) => !item.hidden)
 })
 
-// Members and Integrations are panes of the settings overlay; their rows open it.
+// Members and Integrations are panes of the settings page; their rows open it.
 const wsSettingsSlugByNavKey: Record<string, WsSettingsSlug> = {
   collaborators: 'members',
   integrations: 'integrations',
@@ -73,7 +73,7 @@ const wsSettingsSlugByNavKey: Record<string, WsSettingsSlug> = {
 const openWorkspaceSettings = useWorkspaceSettingsLink()
 
 const activeNavKey = computed(() => {
-  const wsSettings = resolveWsSettingsSlug(route.value.query.wsSettings)
+  const wsSettings = wsSettingsSlugFromRoute(route.value)
 
   if (wsSettings) {
     return Object.keys(wsSettingsSlugByNavKey).find((key) => wsSettingsSlugByNavKey[key] === wsSettings) ?? 'bases'

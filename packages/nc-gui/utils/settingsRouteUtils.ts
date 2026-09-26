@@ -115,7 +115,7 @@ export function appSettingsNavFor(isInstall: boolean, isListing = false, hasApp 
   return appSettingsNav.filter((item) => (item.listing ? isListing && storeEnabled : hasApp))
 }
 
-/** Workspace settings panes, by their `?wsSettings=` slug. The slug is the pane key. */
+/** Workspace settings panes, by their `/{ws}/settings/{slug}` slug. The slug is the pane key. */
 export const wsSettingsSlugs = [
   'members',
   'teams',
@@ -132,7 +132,7 @@ export const wsSettingsSlugs = [
 
 export type WsSettingsSlug = (typeof wsSettingsSlugs)[number]
 
-/** The General page's sections — one rail row each in the shell, `?tab=` on the old page. */
+/** The old General page's sections — one rail row each now, `?tab=` on the old page. */
 export type WsSettingsSection = 'appearance' | 'skills' | 'security' | 'dangerZone'
 
 /**
@@ -155,13 +155,26 @@ export const wsSettingsLegacySlugs: Record<string, WsSettingsSlug> = {
   'ws-sso': 'sso',
 }
 
-/** The pane a `?wsSettings=` value (or a legacy name) names, or null when it names none. */
+/** The pane a slug (or a legacy name) names, or null when it names none. */
 export function resolveWsSettingsSlug(slug: unknown): WsSettingsSlug | null {
   if (typeof slug !== 'string') return null
 
   if ((wsSettingsSlugs as readonly string[]).includes(slug)) return slug as WsSettingsSlug
 
   return wsSettingsLegacySlugs[slug] ?? null
+}
+
+export const wsSettingsRouteName = 'index-typeOrId-settings-page'
+
+/** The pane the current route shows when it is the workspace settings page, else null. */
+export function wsSettingsSlugFromRoute(route?: { name?: unknown; params?: Record<string, unknown> }): WsSettingsSlug | null {
+  if (route?.name !== wsSettingsRouteName) return null
+
+  return resolveWsSettingsSlug(route.params?.page)
+}
+
+export function wsSettingsPath(workspaceId: string, slug: WsSettingsSlug) {
+  return `/${workspaceId}/settings/${slug}`
 }
 
 // Combined: all settings tabs → URL slugs

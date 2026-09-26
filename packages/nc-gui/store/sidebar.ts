@@ -120,8 +120,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {
-      // Settings (base and workspace) are modals over the page, so the sidebar
-      // keeps showing whichever vertical the reader came from.
+      // Base settings is a modal over the page, so the sidebar keeps showing
+      // whichever vertical the reader came from.
 
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||

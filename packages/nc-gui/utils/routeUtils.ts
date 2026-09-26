@@ -61,7 +61,14 @@ export const isSharedBaseOrErdOrViewRoute = (route: RouteLocationNormalizedLoade
   )
 }
 
-export const wsHomeRouteNames = new Set(['index', 'index-index', 'index-typeOrId', 'index-typeOrId-home', 'index-typeOrId-index'])
+export const wsHomeRouteNames = new Set([
+  'index',
+  'index-index',
+  'index-typeOrId',
+  'index-typeOrId-home',
+  'index-typeOrId-index',
+  'index-typeOrId-settings-page',
+])
 
 export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
   if (!route) return false
@@ -80,6 +87,7 @@ export const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-home': 'home',
   'index-typeOrId-index': 'bases',
   'index-typeOrId': 'bases',
+  'index-typeOrId-settings-page': 'settings',
 }
 
 /**

@@ -32,10 +32,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
-  // Workspace settings is a `?wsSettings=` overlay rather than a page of its own.
   const openWorkspaceSettings = useWorkspaceSettingsLink()
 
-  const openWorkspaceSettingsSlug = computed(() => resolveWsSettingsSlug(route.value.query.wsSettings))
+  const openWorkspaceSettingsSlug = computed(() => wsSettingsSlugFromRoute(route.value))
 
   const isWorkspaceSettingsPageOpened = computed(() => !!openWorkspaceSettingsSlug.value)
 

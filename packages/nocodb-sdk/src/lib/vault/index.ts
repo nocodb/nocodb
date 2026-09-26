@@ -107,10 +107,17 @@ export interface ParsedSecretRef {
  */
 export const mentionsSecretsNamespace = (value: unknown): boolean => {
   if (typeof value !== 'string') return false;
-  for (const [, inner] of value.matchAll(/\{\{([\s\S]*?)\}\}/g)) {
-    if (/\bsecrets\b/.test(inner)) return true;
-  }
-  return false;
+
+  // Deliberately NOT "a closed {{ … }} containing the word `secrets`". That is
+  // blind to the two failures most worth catching — `{{ secret.v.k }}`
+  // (singular, so no `secrets`) and `{{ secrets.v.k` (never closed) — which are
+  // exactly the typos this guard exists for.
+  //
+  // The signal is instead: a brace, plus member access on `secret`/`secrets`.
+  // A literal password would have to contain both to trip it, and being told to
+  // fix a strange-looking password beats silently storing a broken reference as
+  // the credential.
+  return value.includes('{') && /\bsecrets?\s*[.[]/.test(value);
 };
 
 // `.ident` or `['quoted']` / `["quoted"]`, whitespace tolerated around each part.

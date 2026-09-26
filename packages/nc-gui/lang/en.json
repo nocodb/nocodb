@@ -4673,7 +4673,9 @@
     "vaultAwsAccountId": "AWS account ID",
     "vaultTrustTitle": "Trust this workspace from AWS",
     "vaultTrustPolicy": "Trust policy",
-    "vaultPermissionsPolicy": "Permissions policy"
+    "vaultPermissionsPolicy": "Permissions policy",
+    "vaultShowPolicies": "Show IAM policies to paste",
+    "vaultHidePolicies": "Hide IAM policies"
   },
   "activity": {
     "useTemplate": "Use template",

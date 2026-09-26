@@ -11,6 +11,7 @@ export enum LicenseTelemetryEvent {
   SEAT_ADDED = 'seat_added',
   SEAT_REMOVED = 'seat_removed',
   ACTIVITY_SUMMARY = 'activity_summary',
+  APP_VERSION_CHANGED = 'app_version_changed',
 }
 
 // Events the browser may report; the rest are emitted server-side only.
@@ -94,6 +95,8 @@ type LicenseTelemetryPropKey =
   | 'backend_events'
   | 'active_users'
   | 'window_ms'
+  | 'from_version'
+  | 'to_version'
   | LicenseActivityCategoryPropKey;
 
 const ALLOWED_PROPS: Record<
@@ -127,12 +130,14 @@ const ALLOWED_PROPS: Record<
     'window_ms',
     ...ACTIVITY_CATEGORY_PROP_KEYS,
   ],
+  [LicenseTelemetryEvent.APP_VERSION_CHANGED]: ['from_version', 'to_version'],
 };
 
 const USER_HASH = /^[a-f0-9]{32}$/;
 
 // Letters-only word or lowercase kebab slug — excludes raw ids (digits, no hyphen) and UUIDs (checked below).
 const SOURCE_SLUG = /^([a-z]+|[a-z0-9]+(-[a-z0-9]+)+)$/;
+const APP_VERSION = /^[0-9A-Za-z.+-]{1,64}$/;
 const UUID_SHAPE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -176,6 +181,9 @@ const isSource = (v: unknown): v is string =>
   SOURCE_SLUG.test(v) &&
   !UUID_SHAPE.test(v);
 
+const isAppVersion = (v: unknown): v is string =>
+  typeof v === 'string' && APP_VERSION.test(v);
+
 const CATEGORY_VALIDATORS = {} as Record<
   LicenseActivityCategoryPropKey,
   (value: unknown) => boolean
@@ -202,6 +210,8 @@ const PROP_VALIDATORS: Record<
   backend_events: isCount,
   active_users: isCount,
   window_ms: isCount,
+  from_version: isAppVersion,
+  to_version: isAppVersion,
   ...CATEGORY_VALIDATORS,
 };
 

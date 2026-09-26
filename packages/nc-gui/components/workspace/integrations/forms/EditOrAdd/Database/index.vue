@@ -2,7 +2,7 @@
 import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
-import { IntegrationsType, isSecretRef, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { IntegrationsType, isSecretRef, isVaultReferenceablePath, validateAndExtractSSLProp } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
@@ -974,7 +974,7 @@ watch(
                             class="nc-extdb-host-user"
                           />
                           <WorkspaceIntegrationsVaultSecretField
-                            v-if="isEeUI"
+                            v-if="isEeUI && isVaultReferenceablePath(['connection', 'user'])"
                             :value="(formState.dataSource.connection as DefaultConnection).user"
                             field-key="user"
                             :label="$t('labels.username')"
@@ -996,7 +996,7 @@ watch(
                             @focus="onFocusPassword"
                           />
                           <WorkspaceIntegrationsVaultSecretField
-                            v-if="isEeUI"
+                            v-if="isEeUI && isVaultReferenceablePath(['connection', 'password'])"
                             :value="(formState.dataSource.connection as DefaultConnection).password"
                             field-key="password"
                             :label="$t('labels.password')"

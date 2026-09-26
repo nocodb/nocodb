@@ -1,27 +1,23 @@
-import { isSecretRef } from 'nocodb-sdk';
+import { DB_CREDENTIAL_FIELDS, isSecretRef } from 'nocodb-sdk';
 
-// Anything here reaches a base VIEWER on integration/source read, so it must
-// cover every credential the connection can carry — not just `password`.
-const MASKED_CONNECTION_KEYS = [
-  'password',
-  // a DSN embeds the password in the URI
-  'connectionString',
-  'connectionUri',
-  'uri',
-  'url',
-];
+// Declared once in the SDK so masking, the vault write guard and the form's
+// vault picker agree on which connection fields are credentials. Anything
+// masked here reaches a base VIEWER on integration/source read.
+const MASKED_CONNECTION_KEYS = DB_CREDENTIAL_FIELDS.filter(
+  (field) => field.mask && field.path.length === 2,
+).map((field) => field.path[1]);
 
-// `ssl.key` is the client-certificate PRIVATE key; ca/cert/pfx are the rest of
-// the keypair material.
-const MASKED_SSL_KEYS = ['key', 'cert', 'ca', 'pfx', 'passphrase'];
+const MASKED_SSL_KEYS = DB_CREDENTIAL_FIELDS.filter(
+  (field) => field.mask && field.path.length === 3 && field.path[1] === 'ssl',
+).map((field) => field.path[2]);
 
 export function maskKnexConfig(payload: Partial<{ config: any }>) {
   const connection = payload.config?.connection;
 
   if (!connection) return payload;
 
-  // A vault reference is a POINTER, not a credential — `{{ secrets.a.b.c }}`
-  // names where the value lives and carries none of it. Nulling it would break
+  // A vault reference is a POINTER, not a credential — it names where the
+  // value lives and carries none of it. Nulling it would break
   // the feature two ways: the client could not tell a vault-backed field from a
   // blank one, and the edit form's read-then-save round-trip would write the
   // null back over the reference. No-op in CE, where no reference exists.

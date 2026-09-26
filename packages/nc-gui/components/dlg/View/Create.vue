@@ -778,7 +778,7 @@ const predictFromPrompt = async () => {
     predictHistory.value.push(...predictions)
     oldPrompt.value = prompt.value
   } else if (!aiError.value) {
-    message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
+    message.info(t('msg.info.noViewSuggestionsFound'))
   }
 
   aiModeStep.value = AiStep.pick
@@ -1446,7 +1446,7 @@ watch(activeBaseId, () => {
               <div class="text-nc-content-gray-muted flex gap-4">
                 <GeneralIcon class="min-w-6 h-6 !text-nc-content-orange-medium" icon="info" />
                 <div class="flex flex-col gap-1">
-                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Calendar is readonly</h2>
+                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">{{ $t('labels.calendarIsReadonly') }}</h2>
                   <span class="text-nc-content-gray-muted font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
                 </div>
               </div>
@@ -1686,7 +1686,7 @@ watch(activeBaseId, () => {
                           ? activeTabPredictHistory.length + activeTabSelectedViews.length < 10
                           : activeTabPredictHistory.length < 10
                       "
-                      title="Suggest more"
+                      :title="$t('tooltip.suggestMore')"
                       placement="top"
                     >
                       <NcButton
@@ -1706,7 +1706,7 @@ watch(activeBaseId, () => {
                         </template>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip title="Clear all and Re-suggest" placement="top">
+                    <NcTooltip :title="$t('tooltip.clearAllAndResuggest')" placement="top">
                       <NcButton
                         v-e="['a:view:ai:predict-refresh']"
                         size="xs"
@@ -1742,7 +1742,7 @@ watch(activeBaseId, () => {
                     ref="aiPromptInputRef"
                     v-model:value="prompt"
                     :disabled="isAiSaving"
-                    placeholder="Enter your prompt to get view suggestions.."
+                    :placeholder="$t('placeholder.viewSuggestionPrompt')"
                     class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
                     @keydown.enter.stop
                   >
@@ -1793,7 +1793,7 @@ watch(activeBaseId, () => {
                 </div>
 
                 <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                  <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Views(s)</div>
+                  <div class="text-nc-content-purple-dark font-semibold text-xs">{{ $t('labels.generatedViews') }}</div>
                   <div class="flex gap-2 flex-wrap">
                     <template v-if="activeTabPredictedViews.length">
                       <template v-for="v of activeTabPredictedViews" :key="v.title">
@@ -1848,7 +1848,7 @@ watch(activeBaseId, () => {
           <div class="text-nc-content-gray-subtle flex gap-4">
             <GeneralIcon class="min-w-6 h-6 text-nc-content-orange-medium" icon="alertTriangle" />
             <div class="flex flex-col gap-1">
-              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Suitable fields not present</h2>
+              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">{{ $t('labels.suitableFieldsNotPresent') }}</h2>
               <span class="text-nc-content-gray-muted font-default text-sm"> {{ errorMessages[form.type] }}</span>
             </div>
           </div>
@@ -1942,9 +1942,9 @@ watch(activeBaseId, () => {
             <template #loading> {{ $t('labels.creatingView') }} </template>
           </NcButton>
           <NcTooltip v-else :disabled="!isMobileMode">
-            <template #title> AI integration is not available in mobile mode. </template>
+            <template #title> {{ $t('tooltip.aiIntegrationNotAvailableOnMobile') }} </template>
             <NcButton type="primary" size="small" :disabled="!!isMobileMode" @click="handleNavigateToIntegrations">
-              Add AI integration
+              {{ $t('labels.addAiIntegration') }}
             </NcButton>
           </NcTooltip>
         </div>

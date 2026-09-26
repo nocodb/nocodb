@@ -682,11 +682,11 @@ async function saveHooks() {
   try {
     await validate()
     if (hookRef.operation?.length === 0 && sendMeEverythingChecked.value === false) {
-      message.error('At least one operation need to be selected')
+      message.error(t('msg.error.atLeastOneOperationRequired'))
       throw new Error('At least one operation need to be selected')
     }
     if (hookRef.notification.trigger_form && !hookRef.notification.trigger_form_id) {
-      message.error('You must select a trigger form')
+      message.error(t('msg.error.triggerFormRequired'))
       throw new Error('You must select a trigger form')
     }
   } catch (error: any) {
@@ -858,7 +858,7 @@ async function saveHooks() {
     emits('close', hookRef)
 
     if (showUpgradeModal.value) {
-      message.success('Webhook upgraded to v3 successfully!')
+      message.success(t('msg.success.webhookUpgradedToV3'))
     }
   } catch (e: any) {
     console.error('[saveHooks] failed', {
@@ -1167,7 +1167,7 @@ const webhookV2AndV3Diff = computed(() => {
             <template v-else-if="activeTab === HookTab.Log">
               {{ $t('activity.webhookLogs') }}
             </template>
-            <template v-else-if="activeTab === HookTab.Settings"> Webhook Settings </template>
+            <template v-else-if="activeTab === HookTab.Settings"> {{ $t('labels.webhookSettings') }} </template>
           </span>
         </div>
 
@@ -1220,7 +1220,9 @@ const webhookV2AndV3Diff = computed(() => {
               <GeneralIcon icon="ncExternalLink" class="!h-3.5 !w-3.5" />
             </a>
             <NcTooltip v-if="!showUpgradeModal" :disabled="!testConnectionError && hookRef.notification.type !== 'Script'">
-              <template v-if="hookRef.notification.type === 'Script'" #title> Test webhook is disabled for scripts </template>
+              <template v-if="hookRef.notification.type === 'Script'" #title>
+                {{ $t('tooltip.testWebhookDisabledForScripts') }}
+              </template>
               <template v-else #title>
                 {{ testConnectionError }}
               </template>
@@ -1270,7 +1272,7 @@ const webhookV2AndV3Diff = computed(() => {
       <div v-if="showUpgradeModal" class="h-full w-full overflow-auto nc-scrollbar-thin">
         <div class="h-full w-full max-w-[1040] min-w-[640px] px-6 md:px-12 py-6 flex flex-col">
           <div class="flex flex-col gap-2 mb-8">
-            <div class="text-base font-bold text-nc-content-gray-emphasis">Change in webhook response</div>
+            <div class="text-base font-bold text-nc-content-gray-emphasis">{{ $t('labels.webhookResponseChange') }}</div>
             <div class="text-sm font-normal text-nc-content-gray-subtle2">
               For more information on webhooks v3 visit
               <a
@@ -1471,7 +1473,9 @@ const webhookV2AndV3Diff = computed(() => {
                   <div class="w-full flex items-center justify-between h-[28px]">
                     <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                       <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                        <span class="!text-nc-content-gray-subtle font-semibold"> Trigger only when conditions match </span>
+                        <span class="!text-nc-content-gray-subtle font-semibold">
+                          {{ $t('labels.triggerOnlyWhenConditionsMatch') }}
+                        </span>
                       </NcSwitch>
                     </label>
 
@@ -1653,7 +1657,7 @@ const webhookV2AndV3Diff = computed(() => {
                       <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
                     </a-tab-pane>
 
-                    <a-tab-pane key="body" tab="Body">
+                    <a-tab-pane key="body" :tab="$t('labels.body')">
                       <div
                         style="
                           box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
@@ -1807,7 +1811,7 @@ const webhookV2AndV3Diff = computed(() => {
                 <div class="flex items-center justify-between -ml-1.5 !mt-[32px]">
                   <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
                     <div class="flex items-center gap-3">
-                      Sample Payload
+                      {{ $t('labels.samplePayload') }}
 
                       <GeneralIcon
                         class="transition-transform"

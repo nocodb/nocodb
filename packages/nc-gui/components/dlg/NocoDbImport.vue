@@ -152,7 +152,7 @@ async function startListening() {
     message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
     console.error(e)
-    message.error('Failed to start listening')
+    message.error(t('msg.error.failedToStartListening'))
     listeningImport.value = false
   }
 
@@ -264,7 +264,7 @@ onUnmounted(() => {
 
     <div v-if="step === 1">
       <div class="text-nc-content-gray-subtle2 text-sm px-2">
-        <p class="mb-2">Easily migrate your base with the following steps:</p>
+        <p class="mb-2">{{ $t('msg.info.migrateBaseSteps') }}:</p>
         <ol class="list-decimal list-inside mt-2 pl-1">
           <li>{{ $t('general.open') }} <strong>settings</strong> in your NocoDB base</li>
           <li>Navigate to <strong>Migrate</strong> tab</li>
@@ -300,7 +300,7 @@ onUnmounted(() => {
             </div>
 
             <div class="mt-2">
-              <a-checkbox v-model:checked="syncOptions.workspaceMode"> Workspace Mode </a-checkbox>
+              <a-checkbox v-model:checked="syncOptions.workspaceMode"> {{ $t('labels.workspaceMode') }} </a-checkbox>
             </div>
 
             <!--
@@ -347,7 +347,9 @@ onUnmounted(() => {
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-4">
-        <NcButton v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport"> Retry import </NcButton>
+        <NcButton v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport">
+          {{ $t('labels.retryImport') }}
+        </NcButton>
         <NcButton v-else size="small" @click="goToBase">
           {{ syncOptions.workspaceMode || syncOptions.newBase ? 'Go To Dashboard' : 'Go To Base' }}
         </NcButton>
@@ -384,10 +386,10 @@ onUnmounted(() => {
           :loading="listeningImport"
           @click="startListening"
         >
-          Listening
+          {{ $t('labels.listening') }}
         </NcButton>
         <NcButton v-else type="primary" class="nc-btn-nocodb-import" size="small" @click="startListening">
-          Generate & Copy URL
+          {{ $t('labels.generateAndCopyUrl') }}
         </NcButton>
       </div>
     </template>

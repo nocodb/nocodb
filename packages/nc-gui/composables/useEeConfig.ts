@@ -29,6 +29,12 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isPaymentEnabled = computed(() => false)
 
+  const isOnPrem = computed(() => false)
+
+  const isSuperAdmin = computed(() => false)
+
+  const showOnPremLimitExceeded = (..._args: any[]) => {}
+
   const blockAddNewRecord = computed(() => false)
 
   const isRecordLimitReached = computed(() => false)
@@ -509,6 +515,9 @@ export const useEeConfig = createSharedComposable(() => {
     getPlanTitle,
     handleUpgradePlan,
     isPaymentEnabled,
+    isOnPrem,
+    isSuperAdmin,
+    showOnPremLimitExceeded,
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
     gracePeriodActive,

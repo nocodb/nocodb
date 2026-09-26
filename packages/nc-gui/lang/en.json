@@ -3013,6 +3013,7 @@
     "extraConnectionParameters": "Extra connection parameters",
     "documentation": "Documentation",
     "signUpWithProvider": "Sign up with {provider}",
+    "chooseSignInProvider": "Choose a provider to continue",
     "signInWithProvider": "Sign in with {provider}",
     "inviteOnlySignup": "Allow signup only using invite url",
     "restrictWorkspaceCreation": "Restrict workspace creation to super admin only",

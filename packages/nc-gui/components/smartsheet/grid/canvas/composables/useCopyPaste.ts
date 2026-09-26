@@ -49,6 +49,21 @@ export interface TextLtarOp {
   displayValues: string[]
 }
 
+interface NewRowTextLtarOp {
+  columnId: string
+  /** Index into the paste's `newRows`, i.e. the row inserted by the expand */
+  newRowIndex: number
+  displayValues: string[]
+}
+
+/** Structured (copied link cell) twin of `NewRowTextLtarOp` — the paste target gets its pk after insert */
+interface NewRowBulkLtarOp {
+  columnId: string
+  newRowIndex: number
+  copy: BulkLtarOp['data'][number]
+  fkRelatedModelId: string
+}
+
 /** OO and OM paste moves records between rows — not suitable for bulk paste */
 function isOoOrOm(col: ColumnType): boolean {
   return isOo(col) || (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
@@ -115,7 +130,7 @@ export function useCopyPaste({
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
-  ) => Promise<void>
+  ) => Promise<Record<string, any>[] | void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
@@ -257,6 +272,100 @@ export function useCopyPaste({
     }
 
     return true
+  }
+
+  async function linkByDisplayValues(batch: { columnId: string; rowId: string; displayValues: string[] }[]) {
+    // Interface pages route through the page-scoped op — the raw
+    // internal op 403s for interface collaborators.
+    if (interfaceDataApi?.nestedBulkLinkByDisplay) {
+      await interfaceDataApi.nestedBulkLinkByDisplay(batch)
+    } else {
+      await $api.internal.postOperation(
+        meta.value?.fk_workspace_id as string,
+        meta.value?.base_id as string,
+        {
+          operation: 'nestedDataBulkLinkByDisplayValue',
+          tableId: meta.value?.id as string,
+          viewId: view?.value?.id,
+        },
+        batch,
+      )
+    }
+  }
+
+  // `insertedRecords` come back in insert order, so `newRowIndex` maps onto them directly.
+  async function linkNewRowsByDisplayValues(ops: NewRowTextLtarOp[], insertedRecords: Record<string, any>[]) {
+    const entries = ops.flatMap(({ columnId, newRowIndex, displayValues }) => {
+      const rowId = extractPkFromRow(insertedRecords[newRowIndex], meta.value?.columns as ColumnType[])
+      return rowId ? [{ columnId, rowId, displayValues }] : []
+    })
+
+    if (!entries.length) return
+
+    let savedCount = 0
+
+    try {
+      for (let i = 0; i < entries.length; i += LINK_BY_DISPLAY_VALUE_BATCH_SIZE) {
+        await linkByDisplayValues(entries.slice(i, i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE))
+        savedCount = Math.min(i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE, entries.length)
+      }
+    } catch (e: any) {
+      const errMsg = await extractSdkResponseErrorMsg(e)
+
+      message.error(
+        savedCount > 0
+          ? t('msg.error.pasteLinkPartiallySaved', { saved: savedCount, total: entries.length, error: errMsg })
+          : errMsg,
+      )
+    } finally {
+      reloadViewDataHook?.trigger({ shouldShowLoading: false })
+    }
+  }
+
+  async function bulkCopyPasteLinks(payload: { columnId: string; data: BulkLtarOp['data'] }[]) {
+    // Interface pages route through the page-scoped op — the raw
+    // internal op 403s for interface collaborators.
+    if (interfaceDataApi?.nestedBulkCopyPaste) {
+      await interfaceDataApi.nestedBulkCopyPaste(payload as any)
+    } else {
+      await $api.internal.postOperation(
+        meta.value?.fk_workspace_id as string,
+        meta.value?.base_id as string,
+        {
+          operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+          tableId: meta.value?.id as string,
+          viewId: view?.value?.id,
+        },
+        payload,
+      )
+    }
+  }
+
+  // Same insert-order mapping as `linkNewRowsByDisplayValues`.
+  async function linkNewRowsByCopyPaste(ops: NewRowBulkLtarOp[], insertedRecords: Record<string, any>[]) {
+    const payload = ops.flatMap(({ columnId, newRowIndex, copy, fkRelatedModelId }) => {
+      const rowId = extractPkFromRow(insertedRecords[newRowIndex], meta.value?.columns as ColumnType[])
+      if (!rowId) return []
+      return [
+        {
+          columnId,
+          data: [copy, { operation: 'paste', rowId, columnId, fk_related_model_id: fkRelatedModelId }],
+        },
+      ]
+    })
+
+    if (!payload.length) return
+
+    try {
+      await bulkCopyPasteLinks(payload)
+    } catch (e: any) {
+      message.error({
+        title: t('msg.error.pasteFromClipboardError'),
+        content: await extractSdkResponseErrorMsg(e),
+      })
+    } finally {
+      reloadViewDataHook?.trigger({ shouldShowLoading: false })
+    }
   }
 
   const handlePaste = async (e: ClipboardEvent) => {
@@ -441,6 +550,9 @@ export function useCopyPaste({
         const propsToPaste: string[] = []
         const bulkLtarOps: BulkLtarOp[] = []
         const textLtarOps: TextLtarOp[] = []
+        // Rows inserted by the expand have no pk yet — linked after they are inserted
+        const newRowTextLtarOps: NewRowTextLtarOp[] = []
+        const newRowBulkLtarOps: NewRowBulkLtarOp[] = []
         let isInfoShown = false
         // We can use this if we want to avoid same info multiple times per column
         const isColInfoShown = {} as Record<string, boolean>
@@ -517,8 +629,27 @@ export function useCopyPaste({
 
                 if (pasteVal === undefined || !ncIsObject(pasteVal)) continue
 
+                const copyOp = {
+                  operation: 'copy',
+                  rowId: pasteVal.rowId,
+                  columnId: pasteVal.columnId,
+                  fk_related_model_id: pasteVal.fk_related_model_id,
+                }
+                const fkRelatedModelId =
+                  (column.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id
+
                 const pasteRowPk = extractPkFromRow(targetRow.row, meta.value?.columns as ColumnType[])
-                if (!pasteRowPk) continue
+                if (!pasteRowPk) {
+                  if (!targetRow.rowMeta.isExistingRow) {
+                    newRowBulkLtarOps.push({
+                      columnId: column.id as string,
+                      newRowIndex: newRows.length - 1,
+                      copy: copyOp,
+                      fkRelatedModelId,
+                    })
+                  }
+                  continue
+                }
 
                 const oldValue = targetRow.row[column.title!]
                 targetRow.row[column.title!] = pasteVal.value
@@ -529,18 +660,12 @@ export function useCopyPaste({
                   rowRef: targetRow,
                   oldValue,
                   data: [
-                    {
-                      operation: 'copy',
-                      rowId: pasteVal.rowId,
-                      columnId: pasteVal.columnId,
-                      fk_related_model_id: pasteVal.fk_related_model_id,
-                    },
+                    copyOp,
                     {
                       operation: 'paste',
                       rowId: pasteRowPk,
                       columnId: column.id as string,
-                      fk_related_model_id:
-                        (column.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
+                      fk_related_model_id: fkRelatedModelId,
                     },
                   ],
                 })
@@ -556,7 +681,16 @@ export function useCopyPaste({
                 if (!displayValues.length) continue
 
                 const pasteRowPk = extractPkFromRow(targetRow.row, meta.value?.columns as ColumnType[])
-                if (!pasteRowPk) continue
+                if (!pasteRowPk) {
+                  if (!targetRow.rowMeta.isExistingRow) {
+                    newRowTextLtarOps.push({
+                      columnId: column.id as string,
+                      newRowIndex: newRows.length - 1,
+                      displayValues,
+                    })
+                  }
+                  continue
+                }
 
                 textLtarOps.push({
                   columnId: column.id as string,
@@ -615,24 +749,7 @@ export function useCopyPaste({
         // Execute bulk LTAR paste operations in a single API call
         if (bulkLtarOps.length) {
           try {
-            const bulkPayload = bulkLtarOps.map(({ columnId, data }) => ({ columnId, data }))
-
-            // Interface pages route through the page-scoped op — the raw
-            // internal op 403s for interface collaborators.
-            if (interfaceDataApi?.nestedBulkCopyPaste) {
-              await interfaceDataApi.nestedBulkCopyPaste(bulkPayload as any)
-            } else {
-              await $api.internal.postOperation(
-                meta.value?.fk_workspace_id as string,
-                meta.value?.base_id as string,
-                {
-                  operation: 'nestedDataBulkCopyPasteOrDeleteAll',
-                  tableId: meta.value?.id as string,
-                  viewId: view?.value?.id,
-                },
-                bulkPayload,
-              )
-            }
+            await bulkCopyPasteLinks(bulkLtarOps.map(({ columnId, data }) => ({ columnId, data })))
           } catch (e: any) {
             for (const op of bulkLtarOps) {
               op.rowRef.row[op.columnTitle] = op.oldValue
@@ -654,24 +771,7 @@ export function useCopyPaste({
           try {
             // Chunk into batches to stay within the backend per-request entry cap
             for (let i = 0; i < entries.length; i += LINK_BY_DISPLAY_VALUE_BATCH_SIZE) {
-              const batch = entries.slice(i, i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE)
-
-              // Interface pages route through the page-scoped op — the raw
-              // internal op 403s for interface collaborators.
-              if (interfaceDataApi?.nestedBulkLinkByDisplay) {
-                await interfaceDataApi.nestedBulkLinkByDisplay(batch)
-              } else {
-                await $api.internal.postOperation(
-                  meta.value?.fk_workspace_id as string,
-                  meta.value?.base_id as string,
-                  {
-                    operation: 'nestedDataBulkLinkByDisplayValue',
-                    tableId: meta.value?.id as string,
-                    viewId: view?.value?.id,
-                  },
-                  batch,
-                )
-              }
+              await linkByDisplayValues(entries.slice(i, i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE))
 
               savedCount = Math.min(i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE, entries.length)
             }
@@ -698,14 +798,29 @@ export function useCopyPaste({
         }
 
         if (options.expand) {
-          await bulkUpsertRows?.(
-            newRows,
-            updatedRows,
-            propsToPaste,
-            undefined,
-            bulkOpsCols.map(({ column }) => column),
-            groupPath,
-          )
+          const newColumns = bulkOpsCols.map(({ column }) => column)
+
+          // Insert blank and link first: interface pages only accept link writes on rows still
+          // matching the page filter, which the pasted values can move a row out of.
+          if (newRowTextLtarOps.length || newRowBulkLtarOps.length) {
+            const blankRows = newRows.map(() => ({ row: {}, oldRow: {}, rowMeta: { isExistingRow: false } } as Row))
+            const insertedRecords = await bulkUpsertRows?.(blankRows, [], [], undefined, newColumns, groupPath)
+
+            // bulkUpsertRows already reported the failure
+            if (!insertedRecords?.length) return
+
+            const pkColumns = meta.value?.columns?.filter((c) => c.pk) ?? []
+            insertedRecords.forEach((record, i) => {
+              if (!newRows[i]) return
+              for (const col of pkColumns) newRows[i].row[col.title!] = record[col.title!]
+            })
+
+            if (newRowTextLtarOps.length) await linkNewRowsByDisplayValues(newRowTextLtarOps, insertedRecords)
+            if (newRowBulkLtarOps.length) await linkNewRowsByCopyPaste(newRowBulkLtarOps, insertedRecords)
+          }
+
+          await bulkUpsertRows?.(newRows, updatedRows, propsToPaste, undefined, newColumns, groupPath)
+
           scrollToCell?.(undefined, undefined, groupPath)
         } else if (propsToPaste.length) {
           // An LTAR-only paste leaves no regular props — the bulk-update call

@@ -222,7 +222,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const { getViewColumns } = useSmartsheetStoreOrThrow()
+    const { getViewColumns, eventBus } = useSmartsheetStoreOrThrow()
 
     const { getValidSearchQueryForColumn } = useFieldQuery()
 
@@ -1221,6 +1221,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             getRelatedRowId: getRelatedTableRowId,
           })
         }
+
+        if (interfaceDataApi) {
+          eventBus.emit(SmartsheetStoreEvents.INTERFACE_ROW_REFRESH, { rowId: rowId.value })
+        }
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
@@ -1345,6 +1349,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             relatedRow: row,
             getRelatedRowId: getRelatedTableRowId,
           })
+        }
+
+        if (interfaceDataApi) {
+          eventBus.emit(SmartsheetStoreEvents.INTERFACE_ROW_REFRESH, { rowId: rowId.value })
         }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)

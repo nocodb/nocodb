@@ -10,6 +10,7 @@ export enum LicenseTelemetryEvent {
   LICENSE_STATE_CHANGED = 'license_state_changed',
   SEAT_ADDED = 'seat_added',
   SEAT_REMOVED = 'seat_removed',
+  ACTIVITY_SUMMARY = 'activity_summary',
 }
 
 /** Events the browser may report; the rest are emitted server-side only. */
@@ -19,6 +20,63 @@ export const LICENSE_TELEMETRY_CLIENT_EVENTS: LicenseTelemetryEvent[] = [
 ];
 
 export const LICENSE_TELEMETRY_MAX_BATCH = 200;
+
+// Fixed list so a crafted event name can't carry free text out; everything else counts as `other`.
+export const LICENSE_ACTIVITY_CATEGORIES = [
+  'page',
+  'interface',
+  'doc',
+  'document',
+  'app',
+  'managed_app',
+  'table',
+  'base',
+  'workflow',
+  'chat',
+  'agent',
+  'row',
+  'field',
+  'column',
+  'view',
+  'dashboard',
+  'gantt',
+  'calendar',
+  'filter',
+  'share',
+  'script',
+  'marketplace',
+  'integration',
+  'workspace',
+  'source',
+  'sync',
+  'team',
+  'user',
+  'account',
+  'links',
+  'other',
+] as const;
+
+export type LicenseActivityCategory =
+  (typeof LICENSE_ACTIVITY_CATEGORIES)[number];
+
+/** `c:table:create` → `table`, `base:invite` → `base`, `$pageview` → `page`. */
+export function licenseActivityCategory(
+  eventName: string,
+): LicenseActivityCategory {
+  if (eventName === '$pageview') return 'page';
+  const parts = String(eventName ?? '').split(':');
+  const segment = (/^[a-z]$/i.test(parts[0]) ? parts[1] : parts[0]) ?? '';
+  const normalized = segment.toLowerCase().replace(/-/g, '_');
+  return (LICENSE_ACTIVITY_CATEGORIES as readonly string[]).includes(normalized)
+    ? (normalized as LicenseActivityCategory)
+    : 'other';
+}
+
+type LicenseActivityCategoryPropKey = `cat_${LicenseActivityCategory}`;
+
+const ACTIVITY_CATEGORY_PROP_KEYS = LICENSE_ACTIVITY_CATEGORIES.map(
+  (c) => `cat_${c}` as LicenseActivityCategoryPropKey,
+);
 
 type LicenseTelemetryPropKey =
   | 'feature'
@@ -30,7 +88,13 @@ type LicenseTelemetryPropKey =
   | 'limit_value'
   | 'current'
   | 'delta'
-  | 'source';
+  | 'source'
+  | 'total_events'
+  | 'frontend_events'
+  | 'backend_events'
+  | 'active_users'
+  | 'window_ms'
+  | LicenseActivityCategoryPropKey;
 
 const ALLOWED_PROPS: Record<
   LicenseTelemetryEvent,
@@ -44,6 +108,14 @@ const ALLOWED_PROPS: Record<
   [LicenseTelemetryEvent.LICENSE_STATE_CHANGED]: ['from', 'to'],
   [LicenseTelemetryEvent.SEAT_ADDED]: ['delta', 'current', 'limit_value'],
   [LicenseTelemetryEvent.SEAT_REMOVED]: ['delta', 'current', 'limit_value'],
+  [LicenseTelemetryEvent.ACTIVITY_SUMMARY]: [
+    'total_events',
+    'frontend_events',
+    'backend_events',
+    'active_users',
+    'window_ms',
+    ...ACTIVITY_CATEGORY_PROP_KEYS,
+  ],
 };
 
 const USER_HASH = /^[a-f0-9]{32}$/;
@@ -64,6 +136,9 @@ const VIEWER_ROLE_VALUES = ['super_admin', 'member'] as const;
 
 const isFiniteNumber = (v: unknown): v is number =>
   typeof v === 'number' && Number.isFinite(v);
+
+const isCount = (v: unknown): v is number =>
+  typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 
 const isEnumValue = (values: readonly string[]) => (v: unknown): v is string =>
   typeof v === 'string' && values.includes(v);
@@ -87,6 +162,12 @@ const isSource = (v: unknown): v is string =>
   SOURCE_SLUG.test(v) &&
   !UUID_SHAPE.test(v);
 
+const CATEGORY_VALIDATORS = {} as Record<
+  LicenseActivityCategoryPropKey,
+  (value: unknown) => boolean
+>;
+for (const key of ACTIVITY_CATEGORY_PROP_KEYS) CATEGORY_VALIDATORS[key] = isCount;
+
 const PROP_VALIDATORS: Record<
   LicenseTelemetryPropKey,
   (value: unknown) => boolean
@@ -101,6 +182,12 @@ const PROP_VALIDATORS: Record<
   current: isFiniteNumber,
   delta: isFiniteNumber,
   source: isSource,
+  total_events: isCount,
+  frontend_events: isCount,
+  backend_events: isCount,
+  active_users: isCount,
+  window_ms: isCount,
+  ...CATEGORY_VALIDATORS,
 };
 
 export type LicenseTelemetryProps = Record<string, string | number | boolean>;

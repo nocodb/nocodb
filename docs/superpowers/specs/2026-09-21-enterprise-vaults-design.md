@@ -67,6 +67,51 @@ shadow one.
 **Database integrations only.** Auth/AI integrations need refreshed OAuth tokens written *back*
 into the customer's vault, which is usually read-only to us. Separate problem.
 
+## Plan gating — what this feature changes in billing
+
+One new plan feature flag, and the plan definitions for both Cloud and On-Prem. Nothing else in the
+payment system changes: no new limit type, no seat impact, no Stripe product.
+
+`PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS = 'feature_enterprise_vaults'`, with the upgrade
+message *"to keep integration credentials in your own secrets manager."*
+
+Cloud and On-Prem plan definitions are separate objects and are **not** inherited from one another,
+so the flag is set in both — and the override direction is opposite in each:
+
+```
+CLOUD  (base default: every feature ENABLED — list `false` to disable)
+  Free / Plus / Business / Scale   feature_enterprise_vaults: false
+  Enterprise                       (unlisted -> enabled)
+
+ON-PREM  (Free base default: every feature DISABLED — list `true` to enable)
+  Free                             (unlisted -> disabled)
+  Self-hosted Business / Scale     feature_enterprise_vaults: false
+  Self-hosted Enterprise           (unlisted -> enabled)
+```
+
+That is the tier Retool and n8n both charge for it at — neither ships external secret stores below
+Enterprise.
+
+**Backend enforcement is `checkForFeature()` in the service, deliberately not `@License`.** That
+decorator is a NestJS *controller* decorator, and the vault endpoints are internal-API operations
+dispatched by an `operation` query parameter through one shared controller, which a controller-level
+decorator cannot see. The service-level check covers the direct HTTP path, the batch envelope and
+any future non-HTTP caller, and resolves on both deployments — Cloud from
+`workspace.payment.plan.meta`, On-Prem from `getOnPremPlan()`.
+
+**Frontend gating shows the feature locked, never hidden** — `blockEnterpriseVaults` in
+`useEeConfig` (CE stub always `true`). The banner renders for any EE build with a
+`PaymentUpgradeBadge` reading *Enterprise* when the plan does not grant it, and the CTA routes to
+pricing rather than opening the wizard. Only CE hides it, via `isEeUI`. Verified live: on a Free-plan
+dev workspace the badge renders and the CTA routes to pricing.
+
+**ACL is a separate axis.** The plan decides whether the workspace *has* the feature; ACL decides
+*who* may use it. The seven vault operations are creator/owner only — in `permissionScopes.workspace`
+and in no role `include` map, which is how creator and owner inherit them while viewer, commenter and
+editor do not. `integrationCreate` is granted by the same mechanism. Deliberately stricter than
+integrations, though: `integrationList` is viewer+, `vaultList` is creator+, because even the
+metadata names the workspace's secrets infrastructure.
+
 ## Design
 
 ### Reference syntax
@@ -206,6 +251,7 @@ registry so the real resolution path runs with no live cloud:
 - Every failure mode throws rather than degrading.
 - TTL cache hit avoids a second call; `invalidateVault` forces a refetch; no cross-tenant leak.
 - **The round-trip regression**: a reference written, read back and re-saved is still a reference.
+- **The typo guard**: a value mentioning the namespace but not parsing is rejected, not stored.
 - `Source.getConnectionConfig()` resolves while `getConfig()` still shows the reference.
 - Delete guard; unavailable provider rejected.
 

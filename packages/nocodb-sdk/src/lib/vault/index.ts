@@ -4,9 +4,14 @@
  *
  * A credential field holds a REFERENCE, never the secret:
  *
- *     {{ secrets.awsProd.dbCreds.password }}
- *     {{ secrets.awsProd['prod/db/creds'].password }}
- *     {{ secrets['awsProd']['prod/db/creds']['password'] }}
+ *     { "$vault": { "alias": "awsProd",
+ *                   "secret": "prod/db/creds",
+ *                   "path": ["password"] } }
+ *
+ * An object rather than a string so intent is structural: `$vault` present
+ * means a reference was intended, and a malformed one is a validation error
+ * rather than a password stored in the clear. `formatSecretRef` renders the
+ * readable `secrets.awsProd["prod/db/creds"].password` form for display only.
  *
  * The value is fetched from the provider at connection time, server-side, and
  * lives only in the transient connection config.
@@ -373,7 +378,8 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
     [VaultProviderType.CYBERARK_CONJUR]: {
       type: VaultProviderType.CYBERARK_CONJUR,
       title: 'CyberArk Conjur',
-      description: 'Conjur Cloud or Enterprise. Host identity with API key or JWT.',
+      description:
+        'Conjur Cloud or Enterprise. Host identity with API key or JWT.',
       authLabel: 'Host · JWT',
       icon: 'ncLogoCyberarkConjur',
       available: false,

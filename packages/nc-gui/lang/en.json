@@ -4675,7 +4675,8 @@
     "vaultTrustPolicy": "Trust policy",
     "vaultPermissionsPolicy": "Permissions policy",
     "vaultShowPolicies": "Show IAM policies to paste",
-    "vaultHidePolicies": "Hide IAM policies"
+    "vaultHidePolicies": "Hide IAM policies",
+    "vaultTrustTitleOrg": "Trust this organization from AWS"
   },
   "activity": {
     "useTemplate": "Use template",

@@ -286,6 +286,8 @@
     "adminNotified": "Admin notified",
     "adminNotifiedSubtitle": "Your request has been sent to your admin.",
     "seatLimitTitle": "Seat limit reached",
+    "licenseUpgradeRequested": "has requested a license upgrade",
+    "forAddon": "for the {addon} add-on",
     "seatLimitAdminSubtitle": "All {limit} licensed seats are in use. Upgrade your license to add more editors.",
     "seatLimitMemberSubtitle": "All {limit} licensed seats are in use. Ask your admin to add more seats.",
     "features": {
@@ -5741,7 +5743,8 @@
       "docShareSubtreeExcludesRestricted": "Sub-pages with custom visibility permissions are not included in the public share.",
       "variableKeyImmutable": "Key cannot be changed after creation",
       "setupRequired": "This app requires configuration before use",
-      "contactAdminForAccess": "You don't have access to any bases yet. Ask your admin to invite you.",
+      "contactAdminForAccess": "You haven't been added to any workspace yet. Contact your administrator to get access.",
+      "contactAdminForBaseAccess": "You don't have access to any bases yet. Ask your admin to invite you.",
       "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
       "licensesUpToDate": "All licenses are up to date",
       "convertLinkV2Description": "Your data will not be affected. After upgrading, this field will show only the count of linked records, and a new field will be added next to it to display the linked records themselves.",

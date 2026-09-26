@@ -252,7 +252,7 @@ watch(filtered, () => {
 
           <div
             v-for="option of section.options"
-            :key="option.value"
+            :key="option.index"
             class="nc-suggest-input-option cursor-pointer px-3 py-1.5 text-bodySm"
             :class="option.index === activeIndex ? 'bg-nc-bg-gray-light' : ''"
             :data-testid="`nc-suggest-input-option-${option.value}`"

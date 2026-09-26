@@ -13,7 +13,7 @@ export enum LicenseTelemetryEvent {
   ACTIVITY_SUMMARY = 'activity_summary',
 }
 
-/** Events the browser may report; the rest are emitted server-side only. */
+// Events the browser may report; the rest are emitted server-side only.
 export const LICENSE_TELEMETRY_CLIENT_EVENTS: LicenseTelemetryEvent[] = [
   LicenseTelemetryEvent.UPGRADE_PROMPT_SHOWN,
   LicenseTelemetryEvent.UPGRADE_CTA_CLICKED,
@@ -59,9 +59,9 @@ export const LICENSE_ACTIVITY_CATEGORIES = [
 export type LicenseActivityCategory =
   (typeof LICENSE_ACTIVITY_CATEGORIES)[number];
 
-/** `c:table:create` → `table`, `base:invite` → `base`, `$pageview` → `page`. */
+// `c:table:create` → `table`, `base:invite` → `base`, `$pageview` → `page`.
 export function licenseActivityCategory(
-  eventName: string,
+  eventName: string
 ): LicenseActivityCategory {
   if (eventName === '$pageview') return 'page';
   const parts = String(eventName ?? '').split(':');
@@ -75,7 +75,7 @@ export function licenseActivityCategory(
 type LicenseActivityCategoryPropKey = `cat_${LicenseActivityCategory}`;
 
 const ACTIVITY_CATEGORY_PROP_KEYS = LICENSE_ACTIVITY_CATEGORIES.map(
-  (c) => `cat_${c}` as LicenseActivityCategoryPropKey,
+  (c) => `cat_${c}` as LicenseActivityCategoryPropKey
 );
 
 type LicenseTelemetryPropKey =
@@ -100,8 +100,19 @@ const ALLOWED_PROPS: Record<
   LicenseTelemetryEvent,
   readonly LicenseTelemetryPropKey[]
 > = {
-  [LicenseTelemetryEvent.UPGRADE_PROMPT_SHOWN]: ['feature', 'limit', 'source', 'viewer_role'],
-  [LicenseTelemetryEvent.UPGRADE_CTA_CLICKED]: ['cta', 'feature', 'limit', 'source', 'viewer_role'],
+  [LicenseTelemetryEvent.UPGRADE_PROMPT_SHOWN]: [
+    'feature',
+    'limit',
+    'source',
+    'viewer_role',
+  ],
+  [LicenseTelemetryEvent.UPGRADE_CTA_CLICKED]: [
+    'cta',
+    'feature',
+    'limit',
+    'source',
+    'viewer_role',
+  ],
   [LicenseTelemetryEvent.ADMIN_NOTIFIED]: ['feature', 'limit'],
   [LicenseTelemetryEvent.LIMIT_HIT]: ['limit', 'limit_value', 'current'],
   [LicenseTelemetryEvent.FEATURE_BLOCKED]: ['feature'],
@@ -140,8 +151,10 @@ const isFiniteNumber = (v: unknown): v is number =>
 const isCount = (v: unknown): v is number =>
   typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 
-const isEnumValue = (values: readonly string[]) => (v: unknown): v is string =>
-  typeof v === 'string' && values.includes(v);
+const isEnumValue =
+  (values: readonly string[]) =>
+  (v: unknown): v is string =>
+    typeof v === 'string' && values.includes(v);
 
 const isFeatureOrAddon = (v: unknown): v is string =>
   typeof v === 'string' &&
@@ -149,7 +162,8 @@ const isFeatureOrAddon = (v: unknown): v is string =>
     (Object.values(PlanAddonTypes) as string[]).includes(v));
 
 const isLimitType = (v: unknown): v is string =>
-  typeof v === 'string' && (Object.values(PlanLimitTypes) as string[]).includes(v);
+  typeof v === 'string' &&
+  (Object.values(PlanLimitTypes) as string[]).includes(v);
 
 const isLicenseState = (v: unknown): v is string =>
   typeof v === 'string' &&
@@ -166,7 +180,8 @@ const CATEGORY_VALIDATORS = {} as Record<
   LicenseActivityCategoryPropKey,
   (value: unknown) => boolean
 >;
-for (const key of ACTIVITY_CATEGORY_PROP_KEYS) CATEGORY_VALIDATORS[key] = isCount;
+for (const key of ACTIVITY_CATEGORY_PROP_KEYS)
+  CATEGORY_VALIDATORS[key] = isCount;
 
 const PROP_VALIDATORS: Record<
   LicenseTelemetryPropKey,
@@ -205,7 +220,7 @@ const isEvent = (v: unknown): v is LicenseTelemetryEvent =>
 
 export function sanitizeLicenseTelemetryProps(
   event: LicenseTelemetryEvent,
-  props: unknown,
+  props: unknown
 ): LicenseTelemetryProps {
   const out: LicenseTelemetryProps = {};
   if (!props || typeof props !== 'object') return out;
@@ -219,7 +234,7 @@ export function sanitizeLicenseTelemetryProps(
 }
 
 export function sanitizeLicenseTelemetryEvent(
-  input: unknown,
+  input: unknown
 ): LicenseTelemetryEventPayload | null {
   if (!input || typeof input !== 'object') return null;
   const raw = input as Record<string, unknown>;

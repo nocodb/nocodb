@@ -204,6 +204,31 @@ export interface VaultLastTestType {
   at: string;
 }
 
+/**
+ * The federated identity this deployment presents to a customer's cloud when
+ * assuming their role — the exact three strings they must put in an AWS IAM
+ * trust policy, handed to the UI so the Connect wizard can render a copy-ready
+ * policy instead of asking an admin to derive them.
+ *
+ * Available BEFORE a vault row exists: the role has to trust us before it can
+ * be assumed, so the values cannot wait on the vault they are used to create.
+ * They depend only on the scope, never on the vault.
+ */
+export interface VaultFederationIdentityType {
+  /**
+   * False when the deployment has no issuer configured (`NC_VAULT_OIDC_ISSUER`
+   * / `NC_SITE_URL`). `issuer` is then absent and the UI must say the
+   * deployment is not set up rather than show a policy that cannot work.
+   */
+  configured: boolean;
+  /** `<site>/oidc/o/<orgId>`, shared by every workspace under the org. */
+  issuer?: string;
+  /** Pinned by the trust policy's `:aud` condition. */
+  audience: string;
+  /** `org:<id>` or `workspace:<id>` — pinned by the `:sub` condition. */
+  subject: string;
+}
+
 /** Response-safe vault metadata. */
 export interface VaultMetaType {
   lastTest?: VaultLastTestType;

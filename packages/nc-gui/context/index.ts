@@ -71,6 +71,13 @@ export const AttachmentViewerCommentAnchorInj: InjectionKey<Ref<{ path?: string;
 )
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 export const isWorkflowInj: InjectionKey<Ref<boolean>> = Symbol('is-workflow-injection')
+/** Grid → canvas: realtime custom-agent status (spinners in the cells being generated). */
+export const FieldAgentStatusHandlerInj: InjectionKey<
+  Ref<((columnId: string, status: 'generating' | 'idle', rowIds: string[]) => void) | undefined>
+> = Symbol('field-agent-status-handler-injection')
+/** The host renders the custom agent Run button beside the cell, so cell editors skip their own. */
+export const FieldAgentRunHostedInj: InjectionKey<Ref<boolean>> = Symbol('field-agent-run-hosted-injection')
+
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<
   EventHook<{

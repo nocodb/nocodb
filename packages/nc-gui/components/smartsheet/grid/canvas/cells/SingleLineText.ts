@@ -2,7 +2,7 @@ import { renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const SingleLineTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, formula } = props
+    const { value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, formula, column } = props
     const text = (Array.isArray(value) ? value.join(',') : value?.toString()) ?? ''
 
     if (!text) {
@@ -31,6 +31,9 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         y: yOffset,
       }
     }
+  },
+  async handleClick(props) {
+    return false
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

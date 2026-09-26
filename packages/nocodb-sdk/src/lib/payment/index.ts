@@ -210,6 +210,9 @@ export enum PlanFeatureTypes {
 
   /** Shared form views can require the submitter to sign in. */
   FEATURE_FORM_REQUIRE_SIGNIN = 'feature_form_require_signin',
+
+  /** AI field agents — generated cell values for select/text/number columns. */
+  FEATURE_FIELD_AGENT = 'feature_field_agent',
 }
 
 export enum PlanAddonTypes {
@@ -653,6 +656,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to manage skills across every workspace in your organization.',
   [PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS]:
     'to keep integration credentials in your own secrets manager.',
+  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use custom agents.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

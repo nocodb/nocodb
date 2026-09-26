@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  PermissionEntity,
+  PermissionKey,
+  type TableType,
+  type ViewType,
+  isAIPromptCol,
+  isFieldAgentCol,
+  isLinksOrLTAR,
+  orderFieldAgentsByDependency,
+} from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
 const props = defineProps<{
@@ -88,7 +98,8 @@ const isDeleteAllRecordsModalOpen = ref(false)
 
 // Composables
 const { isDataReadOnly, isUIAllowed } = useRoles()
-const { aiIntegrations } = useNocoAi()
+const { showUpgradeToUseFieldAgent } = useEeConfig()
+const { aiIntegrations, isFieldAgentFeatureEnabled, aiIntegrationAvailable } = useNocoAi()
 const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
@@ -333,6 +344,67 @@ const execBulkAction = async (path: Array<number>) => {
       path: contextMenuPath.value,
     },
   )
+}
+
+// Field agent columns inside the selected column range; non-agent columns are skipped.
+const selectedFieldAgentColumns = computed(() => {
+  if (!selection.value || contextMenuCol.value === null) return []
+
+  const from = Math.min(selection.value.start.col, selection.value.end.col)
+  const to = Math.max(selection.value.start.col, selection.value.end.col)
+
+  return columns.value
+    .slice(from, to + 1)
+    .map((c) => c?.columnObj)
+    .filter((c): c is ColumnType => !!c?.id && isFieldAgentCol(c))
+})
+
+const showRunFieldAgent = computed(() => {
+  return (
+    isFieldAgentFeatureEnabled.value &&
+    aiIntegrationAvailable.value &&
+    selectedFieldAgentColumns.value.length > 0 &&
+    contextMenuCol.value !== null &&
+    contextMenuRow.value !== null &&
+    contextMenuPath.value !== null &&
+    hasEditPermission.value &&
+    !isDataReadOnly.value
+  )
+})
+
+const execFieldAgent = async (path: Array<number>) => {
+  if (showUpgradeToUseFieldAgent()) return
+
+  // Dependent agents run after the agents they read, so they see fresh values
+  const agentCols = orderFieldAgentsByDependency(selectedFieldAgentColumns.value)
+  if (!agentCols.length) return
+
+  const rows = await getRows(
+    Math.min(selection.value.start.row, selection.value.end.row),
+    Math.max(selection.value.start.row, selection.value.end.row),
+    path,
+  )
+
+  if (!rows || rows.length === 0) return
+
+  const pks = rows
+    .map((row) => ({
+      pk: extractPkFromRow(row.row, meta.value?.columns),
+      row,
+    }))
+    .filter((r) => r.pk !== null)
+
+  if (!pks.length) return
+
+  // Sequential on purpose: a later agent may read what an earlier one wrote.
+  for (const col of agentCols) {
+    await actionManager.value.executeBulkAiGeneration(
+      col.id!,
+      pks.map((r) => r.pk!),
+      pks.map((r) => r.row),
+      path,
+    )
+  }
 }
 </script>
 
@@ -809,6 +881,20 @@ const execBulkAction = async (path: Array<number>) => {
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncScript" class="h-4 w-4" />
           {{ $t('labels.executeType', { type: selection.isSingleCell() ? $t('objects.cell') : $t('general.all') }) }}
+        </div>
+      </NcMenuItem>
+
+      <NcMenuItem
+        v-if="showRunFieldAgent"
+        key="run-field-agent"
+        class="nc-base-menu-item"
+        data-testid="context-menu-item-run-field-agent"
+        theme="ai"
+        @click="execFieldAgent(contextMenuPath || [])"
+      >
+        <div v-e="['c:custom-agent:cell:run', { source: 'context-menu' }]" class="flex gap-2 items-center">
+          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+          {{ selectedFieldAgentColumns.length > 1 ? $t('labels.fieldAgent.runAiAgents') : $t('labels.fieldAgent.runAgent') }}
         </div>
       </NcMenuItem>
 

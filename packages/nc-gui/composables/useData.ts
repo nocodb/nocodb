@@ -32,6 +32,21 @@ export function useData(args: {
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
+  // Field agent dirty tracking: keep this table's prompt dependency map current.
+  // The map is scoped by table id, so several tables can be mounted at once
+  // without clobbering each other.
+  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap } = useNocoAi()
+
+  watch(
+    () => [meta.value?.id, meta.value?.columns] as const,
+    ([modelId, columns]) => {
+      if (modelId && columns?.length) {
+        buildFieldAgentDependencyMap(columns as ColumnType[], modelId)
+      }
+    },
+    { immediate: true },
+  )
+
   const selectedAllRecords = computed({
     get() {
       return !!formattedData.value.length && formattedData.value.every((row: Row) => row.rowMeta.selected)
@@ -153,6 +168,11 @@ export function useData(args: {
       )
       await reloadAggregate?.trigger({ fields: [{ title: property }] })
 
+      // Track dirty rows for field agents that depend on this column
+      if (id) {
+        onFieldAgentCellUpdate(property, String(id), meta.value?.id)
+      }
+
       /** update row data(to sync formula and other related columns)
        * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
        * update attachment as well since id is required for further operations
@@ -259,6 +279,16 @@ export function useData(args: {
       typecast: 'true',
     })
     await reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
+
+    // Track dirty rows for field agents that depend on updated columns
+    for (const row of rows) {
+      const pk = extractPkFromRow(row.row, metaValue?.columns as ColumnType[])
+      if (pk) {
+        for (const prop of props) {
+          onFieldAgentCellUpdate(prop, String(pk), meta.value?.id)
+        }
+      }
+    }
 
     for (const row of rows) {
       if (row.rowMeta) row.rowMeta.saving = false

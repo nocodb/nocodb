@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { UITypes, UITypesName, UITypesSearchTerms, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { FIELD_AGENT_SUPPORTED_TYPES, UITypes, UITypesName, UITypesSearchTerms, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
   extraIcons?: Record<string, string>
 }>()
 
-const emits = defineEmits<{ selected: [UITypes] }>()
+const emits = defineEmits<{ selected: [UITypes | `${typeof AIFieldAgent}:${UITypes}`] }>()
 
 const { options } = toRefs(props)
 
@@ -52,6 +52,12 @@ const isDisabledUIType = (type: UITypes) => {
 
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
+
+  // Custom agent opens as Long text; the panel's Type row changes the output type
+  if (uidt === AIFieldAgent) {
+    emits('selected', `${AIFieldAgent}:${FIELD_AGENT_SUPPORTED_TYPES[0] as UITypes}`)
+    return
+  }
 
   if (uidt === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
     return
@@ -161,7 +167,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
               'hover:bg-nc-bg-gray-light cursor-pointer': !isDisabledUIType(option.name),
               'bg-nc-bg-gray-light nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
               '!text-nc-content-gray-disabled cursor-not-allowed': isDisabledUIType(option.name),
-              '!text-nc-content-purple-dark': [AIButton, AIPrompt].includes(option.name),
+              '!text-nc-content-purple-dark': [AIButton, AIPrompt, AIFieldAgent].includes(option.name),
             },
           ]"
           :data-testid="option.name"
@@ -202,3 +208,25 @@ const { isSystem } = useColumnCreateStoreOrThrow()
     </div>
   </div>
 </template>
+
+<style lang="scss">
+[data-testid='nc-column-uitypes-options-list-wrapper'] {
+  overflow: visible;
+}
+
+.nc-field-agent-submenu-popover {
+  z-index: 1050;
+
+  .ant-popover-inner {
+    @apply !rounded-lg !shadow-lg !border-1 !border-nc-border-gray-medium !bg-nc-bg-default;
+  }
+
+  .ant-popover-inner-content {
+    @apply !p-1 !bg-nc-bg-default !rounded-lg;
+  }
+
+  .ant-popover-arrow {
+    @apply !hidden;
+  }
+}
+</style>

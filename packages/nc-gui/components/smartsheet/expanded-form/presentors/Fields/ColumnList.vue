@@ -6,6 +6,7 @@ import {
   PermissionKey,
   type TableType,
   UITypes,
+  isFieldAgentCol,
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -39,6 +40,8 @@ const COMPACT_FORMAT_HINT_UIDTS = new Set<string>([UITypes.Date, UITypes.DateTim
 //   Button     → button label / icon
 const COMPACT_ALWAYS_SKIP_UIDTS = new Set<string>([UITypes.Attachment, UITypes.Rating, UITypes.Checkbox, UITypes.Button])
 
+const { t } = useI18n()
+
 const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
@@ -61,7 +64,9 @@ const { getMeta } = useMetas()
 
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
-const { t } = useI18n()
+const { generateRows, isFieldAgentFeatureEnabled, aiIntegrationAvailable } = useNocoAi()
+
+const { showUpgradeToUseFieldAgent } = useEeConfig()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
@@ -171,6 +176,56 @@ function onCellValueChange(colTitle: string | undefined) {
   changedColumns.value.add(colTitle)
   triggerRef(changedColumns)
 }
+
+// Field Agent: determine if a column should show the "Run Agent" button.
+const isFieldAgentVisible = (col: ColumnType) => {
+  if (!isFieldAgentFeatureEnabled.value || !aiIntegrationAvailable.value) return false
+  if (!isFieldAgentCol(col)) return false
+  if (isNew.value) return false
+  if (readOnly.value) return false
+  return true
+}
+
+// Select editors skip their own Run button here
+provide(FieldAgentRunHostedInj, ref(true))
+
+// Attached under the field box; compact mode has no box, so it keeps the inline button
+const hasFieldAgentFooter = (col: ColumnType, isAllowed?: boolean) =>
+  !props.compactMode && !!isAllowed && isFieldAgentVisible(col)
+
+// Multi-line boxes carry the strip attached; single-line inputs get it as a separate box below
+const isMultiLineAgent = (col: ColumnType) => col.uidt === UITypes.LongText || col.uidt === UITypes.JSON
+
+const rowPk = computed(() => {
+  if (!_row.value?.row || !meta.value?.columns) return null
+  return extractPkFromRow(_row.value.row, meta.value.columns as ColumnType[])
+})
+
+const fieldAgentGeneratingCols = ref<Set<string>>(new Set())
+
+const isFieldAgentGenerating = (colId: string) => {
+  return fieldAgentGeneratingCols.value.has(colId)
+}
+
+const runFieldAgent = async (col: ColumnType) => {
+  if (!meta.value?.id || !col.id || !rowPk.value) return
+  if (isFieldAgentGenerating(col.id)) return
+  if (showUpgradeToUseFieldAgent()) return
+
+  fieldAgentGeneratingCols.value.add(col.id)
+
+  try {
+    const res = await generateRows(meta.value.id, col.id, [rowPk.value])
+
+    if (res?.length && col.title) {
+      const value = res[0]?.[col.title]
+      _row.value.row[col.title] = value
+      onCellValueChange(col.title)
+    }
+  } finally {
+    fieldAgentGeneratingCols.value.delete(col.id!)
+  }
+}
 </script>
 
 <template>
@@ -257,51 +312,72 @@ function onCellValueChange(colTitle: string | undefined) {
           :disabled="showReadonlyColumnTooltip(col) || !showEditRestrictedColumnTooltip(col)"
         >
           <template #default="{ isAllowed }">
-            <SmartsheetDivDataCell
-              class="flex-1 flex relative"
-              :class="[
-                compactMode
-                  ? 'min-h-4 items-start !bg-transparent pl-1 pr-1 -mt-0.5'
-                  : 'min-h-8 items-center bg-nc-bg-elevated px-1',
-                {
-                  'w-full': props.forceVerticalMode,
-                  '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
-                    showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
-                  '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
-                  'nc-data-cell-compact': compactMode,
-                },
-              ]"
+            <div
+              class="flex w-full"
+              :class="
+                hasFieldAgentFooter(col, isAllowed) ? ['flex-col', isMultiLineAgent(col) ? '' : 'gap-1'] : 'items-center gap-1'
+              "
             >
-              <span
-                v-if="compactMode && col.title && isBlankFieldValue(_row.row[col.title]) && showCompactEmptyHint(col, isAllowed)"
-                class="nc-compact-empty-placeholder absolute left-1 inset-y-0 z-10 flex items-center text-nc-content-gray-muted text-[13px] pointer-events-none select-none"
+              <SmartsheetDivDataCell
+                class="flex-1 flex relative"
+                :class="[
+                  { '!rounded-b-none': hasFieldAgentFooter(col, isAllowed) && isMultiLineAgent(col) },
+                  compactMode
+                    ? 'min-h-4 items-start !bg-transparent pl-1 pr-1 -mt-0.5'
+                    : 'min-h-8 items-center bg-nc-bg-elevated px-1',
+                  {
+                    'w-full': props.forceVerticalMode,
+                    '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
+                      showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
+                    '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
+                    'nc-data-cell-compact': compactMode,
+                  },
+                ]"
               >
-                --
-              </span>
-              <LazySmartsheetVirtualCell
-                v-if="isVirtualCol(col)"
-                v-model="_row.row[col.title]"
-                :column="col"
-                :read-only="readOnly || !isAllowed || isSyncedColumn(col) || isParentLtarColumn(col)"
-                :row="_row"
-                :is-allowed="isAllowed"
-              />
+                <span
+                  v-if="
+                    compactMode && col.title && isBlankFieldValue(_row.row[col.title]) && showCompactEmptyHint(col, isAllowed)
+                  "
+                  class="nc-compact-empty-placeholder absolute left-1 inset-y-0 z-10 flex items-center text-nc-content-gray-muted text-[13px] pointer-events-none select-none"
+                >
+                  --
+                </span>
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(col)"
+                  v-model="_row.row[col.title]"
+                  :column="col"
+                  :read-only="readOnly || !isAllowed || isSyncedColumn(col) || isParentLtarColumn(col)"
+                  :row="_row"
+                  :is-allowed="isAllowed"
+                />
 
-              <LazySmartsheetCell
-                v-else
-                v-model="_row.row[col.title]"
-                :active="true"
-                :column="col"
-                :edit-enabled="true"
-                :read-only="
-                  ncIsPlaywright()
-                    ? readOnly || !isAllowed || isSyncedColumn(col)
-                    : readOnly || !isAllowed || showReadonlyColumnTooltip(col) || isSyncedColumn(col)
-                "
-                :is-allowed="isAllowed"
-                @update:model-value="() => onCellValueChange(col.title)"
+                <LazySmartsheetCell
+                  v-else
+                  v-model="_row.row[col.title]"
+                  :active="true"
+                  :column="col"
+                  :edit-enabled="true"
+                  :read-only="
+                    ncIsPlaywright()
+                      ? readOnly || !isAllowed || isSyncedColumn(col)
+                      : readOnly || !isAllowed || showReadonlyColumnTooltip(col) || isSyncedColumn(col)
+                  "
+                  :is-allowed="isAllowed"
+                  @update:model-value="() => onCellValueChange(col.title)"
+                />
+              </SmartsheetDivDataCell>
+
+              <!-- Custom agent: Run button for non-select agent fields (selects have it in their editor) -->
+              <CellFieldAgentRunButton
+                v-if="isFieldAgentVisible(col) && isAllowed"
+                source="expanded-record"
+                :variant="compactMode ? 'button' : 'footer'"
+                :attached="isMultiLineAgent(col)"
+                :has-value="!isBlankFieldValue(_row.row[col.title!])"
+                :loading="isFieldAgentGenerating(col.id!)"
+                @click="runFieldAgent(col)"
               />
-            </SmartsheetDivDataCell>
+            </div>
           </template>
         </PermissionsTooltip>
       </NcTooltip>

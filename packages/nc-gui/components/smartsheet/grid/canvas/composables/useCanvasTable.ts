@@ -262,11 +262,17 @@ export function useCanvasTable({
   const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
+  const {
+    isAiFeaturesEnabled,
+    isFieldAgentFeatureEnabled,
+    aiIntegrations,
+    isNocoAiAvailable,
+    generateRows: _generateRows,
+  } = useNocoAi()
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
-  const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, blockRowColoring, blockFieldAgent, showUpgradeToUseFieldAgent } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fields = inject(FieldsInj, ref([]))
@@ -375,6 +381,9 @@ export function useCanvasTable({
     currentUser,
   )
 
+  actionManager.setFieldAgentBlockedCheck(() => blockFieldAgent.value || !isFieldAgentFeatureEnabled.value)
+  actionManager.setFieldAgentUpgradePrompt(() => showUpgradeToUseFieldAgent())
+
   watch(
     () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
     ([baseId, workspaceId]) => {
@@ -384,6 +393,19 @@ export function useCanvasTable({
     },
     { immediate: true },
   )
+
+  // Wire up realtime agent status callback from useInfiniteData → ActionManager
+  const onAgentStatus = inject(FieldAgentStatusHandlerInj, ref())
+
+  onAgentStatus.value = (columnId: string, status: 'generating' | 'idle', rowIds: string[]) => {
+    for (const rowId of rowIds) {
+      if (status === 'generating') {
+        actionManager.setRemoteGenerating(rowId, columnId)
+      } else {
+        actionManager.clearRemoteGenerating(rowId, columnId)
+      }
+    }
+  }
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 

@@ -7,7 +7,7 @@ import {
   truncateText,
 } from '../utils/canvas'
 
-const getButtonDimensions = ({
+export const getButtonDimensions = ({
   ctx,
   width,
   label = 'Generate',
@@ -56,7 +56,7 @@ const getButtonDimensions = ({
   }
 }
 
-const renderAIButton = (
+export const renderAIButton = (
   ctx: CanvasRenderingContext2D,
   {
     x,

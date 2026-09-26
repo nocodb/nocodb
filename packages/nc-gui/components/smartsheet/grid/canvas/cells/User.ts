@@ -351,7 +351,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         isServiceUser(hoveredBox)
           ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.systemUser'))
           : isNotMember
-          ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.noBaseAccess'))
+          ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.noLongerWorkspaceMember'))
           : h('div', { class: 'text-tiny text-gray-200' }, t('labels.hasRoleInBase', { role: getUserRole(hoveredBox.email) })),
       ]),
       mousePosition,

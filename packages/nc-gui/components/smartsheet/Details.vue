@@ -21,13 +21,7 @@ const { t } = useI18n()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const {
-  showUpgradeToUseTableAndFieldPermissions,
-  showUpgradeToUseRls,
-  showUpgradeToUseDateDependency,
-  showUpgradeToUseRecordTemplates,
-  showEEFeatures,
-} = useEeConfig()
+const { blockTableAndFieldPermissions, blockRls, blockDateDependency, blockRecordTemplates, showEEFeatures } = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -105,13 +99,11 @@ const railGroups = computed<ShellRailGroup[]>(() => {
       slug: 'permissions' as const,
       icon: 'ncLock',
       title: t('general.permissions'),
-      feature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
     },
     showRlsAction.value && {
       slug: 'rls' as const,
       icon: 'ncShield',
       title: t('objects.permissions.rlsPolicy.rowLevelSecurity'),
-      feature: PlanFeatureTypes.FEATURE_RLS,
     },
   ].filter(Boolean) as ShellRailGroup['items']
 
@@ -120,13 +112,11 @@ const railGroups = computed<ShellRailGroup[]>(() => {
       slug: 'templates' as const,
       icon: 'ncClipboard',
       title: t('objects.recordTemplates'),
-      feature: PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
     },
     showDateDependencyAction.value && {
       slug: 'dates' as const,
       icon: 'ncCalendar',
       title: t('labels.dateDependency.title'),
-      feature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
     },
   ].filter(Boolean) as ShellRailGroup['items']
 
@@ -166,31 +156,54 @@ const toolHeader = computed(() => {
   }
 })
 
-// True when the tool is locked on the current plan, having shown the upgrade
-// modal. Shared by the rail click and the deep-link guard below so a URL can't
-// walk past a gate the rail respects.
-const showUpgradeForTool = (slug: ViewPageType) => {
-  switch (slug) {
+// Plan-locked tools open to an in-pane upgrade card instead of their body.
+const upgradeCard = computed(() => {
+  switch (openedViewsTab.value) {
     case 'permissions':
-      return !!showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'table-tools-shell-permissions' })
+      return blockTableAndFieldPermissions.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+            title: t('labels.baseNav.upgradeTitlePermissionsTablesFields'),
+            detail: t('labels.baseNav.upgradeDescPermissionsTablesFields'),
+            icon: 'ncLock',
+          }
+        : null
     case 'rls':
-      return !!showUpgradeToUseRls({ triggerSource: 'table-tools-shell-rls' })
-    case 'dates':
-      return !!showUpgradeToUseDateDependency({ triggerSource: 'table-tools-shell-date-dependency' })
+      return blockRls.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_RLS,
+            title: t('objects.permissions.rlsPolicy.rowLevelSecurity'),
+            detail: t('labels.baseNav.upgradeDescRls'),
+            icon: 'ncShield',
+          }
+        : null
     case 'templates':
-      return !!showUpgradeToUseRecordTemplates({ triggerSource: 'table-tools-shell-record-templates' })
+      return blockRecordTemplates.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
+            title: t('objects.recordTemplates'),
+            detail: t('labels.baseNav.upgradeDescRecordTemplates'),
+            icon: 'ncClipboard',
+          }
+        : null
+    case 'dates':
+      return blockDateDependency.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
+            title: t('labels.dateDependency.title'),
+            detail: t('labels.baseNav.upgradeDescDateDependency'),
+            icon: 'ncCalendar',
+          }
+        : null
     default:
-      return false
+      return null
   }
-}
+})
 
 const onSelectTool = (rawSlug: string) => {
   const slug = rawSlug as ViewPageType
 
   if (slug === openedViewsTab.value) return
-
-  // Intercept locked EE features → show the upgrade modal instead of navigating.
-  if (showUpgradeForTool(slug)) return
 
   onViewsTabChange(slug)
 }
@@ -210,12 +223,6 @@ watch(
 
     // Bounce un-entitled / not-yet-wired tabs (incl. CE deep links) to Relations.
     if (!tabAvailability.value[openedViewsTab.value]) {
-      onViewsTabChange('relation')
-      return
-    }
-
-    // A deep link (or Back into one) must clear the same plan gate a click does.
-    if (showUpgradeForTool(openedViewsTab.value)) {
       onViewsTabChange('relation')
       return
     }
@@ -248,7 +255,7 @@ watch(
 
       <div class="flex-1 flex flex-col min-w-0 min-h-0">
         <ShellHeader :title="toolHeader.title" :description="toolHeader.description" :docs-href="toolHeader.docsHref">
-          <template #actions>
+          <template v-if="!upgradeCard" #actions>
             <!-- Record Templates -->
             <NcButton
               v-if="openedViewsTab === 'templates' && isEeUI"
@@ -318,6 +325,15 @@ watch(
         <!-- Same gutter as ShellHeader so every pane lines up with its title. -->
         <div class="flex-1 min-h-0 nc-shell-gutter">
           <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" />
+
+          <div v-else-if="upgradeCard" class="h-full overflow-auto nc-scrollbar-thin">
+            <PaymentUpgradeFeatureCard
+              :feature="upgradeCard.feature"
+              :title="upgradeCard.title"
+              :detail="upgradeCard.detail"
+              :icon="upgradeCard.icon"
+            />
+          </div>
 
           <!-- Top space sits outside the scroll container, so the field table's sticky header pins flush. -->
           <div v-else-if="openedViewsTab === 'permissions' && meta?.id" class="h-full pt-5">

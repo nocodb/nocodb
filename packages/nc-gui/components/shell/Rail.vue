@@ -1,15 +1,12 @@
 <script lang="ts" setup>
 // Not auto-imported, unlike most of @vueuse/core's surface.
 import { useStorage } from '@vueuse/core'
-import type { PlanFeatureTypes } from 'nocodb-sdk'
 
 export interface ShellRailItem {
   /** Identifies the pane; the shell decides what it means (route slug, tab key…). */
   slug: string
   icon: string
   title: string
-  /** When set, the row shows a plan-upgrade lock badge while the feature is blocked. */
-  feature?: PlanFeatureTypes
   /** What the pane contains but does not say in its label — searched, never shown. */
   keywords?: string
   /** Tooltip at the row's right edge, explaining what the pane is for. */
@@ -222,8 +219,6 @@ const onSearchEnter = () => {
           <NcTooltip v-if="item.info" :title="item.info" placement="right" :arrow="false" class="nc-shell-rail-info">
             <GeneralIcon icon="ncInfo" class="nc-shell-rail-info-icon flex-none" />
           </NcTooltip>
-
-          <LazyPaymentUpgradeBadge v-if="item.feature" :feature="item.feature" remove-click />
         </div>
       </template>
     </div>

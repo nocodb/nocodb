@@ -1,5 +1,3 @@
-export * from './licenseTelemetry';
-
 export enum PlanLimitTypes {
   LIMIT_FREE_WORKSPACE = 'limit_free_workspace',
   LIMIT_EDITOR = 'limit_editor',
@@ -715,3 +713,6 @@ export const isChargeableStripeCustomer = (
   stripeCustomerId?: string | null
 ): boolean =>
   !!stripeCustomerId && stripeCustomerId !== INTERNAL_STRIPE_CUSTOMER_ID;
+
+// Last, so CJS builds define the enums above before licenseTelemetry (which imports them) runs.
+export * from './licenseTelemetry';

@@ -419,7 +419,13 @@ watch(activeViewTab, (value) => {
                 <template v-else>
                   <!-- Enterprise Vaults CTA; not in the modal reuse of this tab. -->
                   <WorkspaceIntegrationsVaultBanner
-                    v-if="isEeUI && showActiveConnections && !isModal && isUIAllowed('vaultList')"
+                    v-if="
+                      isEeUI &&
+                      showActiveConnections &&
+                      !isModal &&
+                      isUIAllowed('vaultList') &&
+                      isFeatureEnabled(FEATURE_FLAG.ENTERPRISE_VAULTS)
+                    "
                   />
 
                   <!-- Active connections section (shown as first section when not modal) -->

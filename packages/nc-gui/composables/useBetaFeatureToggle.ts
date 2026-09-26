@@ -54,6 +54,14 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'enterprise_vaults',
+    title: 'Enterprise Vaults',
+    description: "Source integration credentials from your organization's own secrets manager.",
+    enabled: ncIsPlaywright(),
+    version: 1,
+    isEE: true,
+  },
+  {
     id: 'integrations',
     get title() {
       return getI18n().global.t('general.integrations')

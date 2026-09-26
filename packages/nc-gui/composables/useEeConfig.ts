@@ -380,6 +380,11 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseBaseVariables = (..._args: any[]) => {}
 
   const showEnvironmentPlanLimitExceededModal = (..._args: any[]) => {}
+  const blockFieldAgent = computed(() => true)
+
+  const showUpgradeToUseFieldAgent = (..._args: any[]) => {}
+
+  const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
 
   const showUpgradeToUseMapView = (..._args: any[]) => {}
@@ -747,5 +752,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseMfa,
     blockForce2fa,
     showUpgradeToUseForce2fa,
+    blockFieldAgent,
+    showUpgradeToUseFieldAgent,
   }
 })

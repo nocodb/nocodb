@@ -99,6 +99,7 @@ export enum JobTypes {
   CreditReaper = 'credit-reaper',
   CreditMeteringAudit = 'credit-metering-audit',
   AppRuntimePoolRefill = 'app-runtime-pool-refill',
+  FieldAgentGenerate = 'field-agent-generate',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -132,6 +133,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.MailOutboxRecovery,
   JobTypes.MailScanner,
   JobTypes.TableSyncRun,
+  JobTypes.FieldAgentGenerate,
 ];
 
 export enum JobStatus {
@@ -524,5 +526,13 @@ export interface DataImportJobData extends JobData {
   sheets: FileImportSheet[];
   parserConfig: FileImportParserConfig;
   options: FileImportOptions;
+  req: NcRequest;
+}
+
+export interface FieldAgentGenerateJobData extends JobData {
+  modelId: string;
+  columnId: string;
+  mode: 'all' | 'unmodified' | 'modified';
+  viewId?: string;
   req: NcRequest;
 }

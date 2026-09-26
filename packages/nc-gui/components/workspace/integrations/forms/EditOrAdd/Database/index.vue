@@ -2,7 +2,8 @@
 import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
-import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { IntegrationsType, isVaultSecretRef, validateAndExtractSSLProp } from 'nocodb-sdk'
+import type { VaultSecretRef } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
@@ -114,6 +115,18 @@ const isDisabledSubmitBtn = computed(() => {
   }
   return !testSuccess.value
 })
+
+// A credential that already points into a vault replaces its plain input —
+// otherwise the ref would read back as an empty password box.
+const isVaultBackedUser = computed(() => isVaultSecretRef((formState.value.dataSource.connection as DefaultConnection).user))
+
+const isVaultBackedPassword = computed(() =>
+  isVaultSecretRef((formState.value.dataSource.connection as DefaultConnection).password),
+)
+
+function setCredential(field: 'user' | 'password', value: string | VaultSecretRef | null) {
+  ;(formState.value.dataSource.connection as DefaultConnection)[field] = value ?? ''
+}
 
 const onEasterEgg = () => {
   easterEggCount.value += 1
@@ -950,8 +963,16 @@ watch(
                         <!-- Username -->
                         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
                           <a-input
+                            v-if="!isVaultBackedUser"
                             v-model:value="(formState.dataSource.connection as DefaultConnection).user"
                             class="nc-extdb-host-user"
+                          />
+                          <WorkspaceIntegrationsVaultSecretField
+                            v-if="isEeUI"
+                            :value="(formState.dataSource.connection as DefaultConnection).user"
+                            field-key="user"
+                            :label="$t('labels.username')"
+                            @update:value="(value) => setCredential('user', value)"
                           />
                         </a-form-item>
                       </a-col>
@@ -962,9 +983,17 @@ watch(
                             <div class="text-xs text-warning mt-1">{{ maskedPasswordHelp }}</div>
                           </template>
                           <a-input-password
+                            v-if="!isVaultBackedPassword"
                             v-model:value="(formState.dataSource.connection as DefaultConnection).password"
                             class="nc-extdb-host-password"
                             @focus="onFocusPassword"
+                          />
+                          <WorkspaceIntegrationsVaultSecretField
+                            v-if="isEeUI"
+                            :value="(formState.dataSource.connection as DefaultConnection).password"
+                            field-key="password"
+                            :label="$t('labels.password')"
+                            @update:value="(value) => setCredential('password', value)"
                           />
                         </a-form-item>
                       </a-col>

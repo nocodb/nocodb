@@ -1,4 +1,4 @@
-import { type BoolType, SSLUsage } from 'nocodb-sdk'
+import { type BoolType, SSLUsage, type VaultSecretRef } from 'nocodb-sdk'
 import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
@@ -28,8 +28,10 @@ interface ProjectCreateForm {
 interface DefaultConnection {
   host: string
   database: string
-  user: string
-  password: string
+  // Credentials may be a literal or a `$secretRef` pointing into a connected
+  // Enterprise Vault — the backend resolves the reference at connect time.
+  user: string | VaultSecretRef
+  password: string | VaultSecretRef
   port: number | string
   ssl?: Record<CertTypes, string> | 'no-verify' | 'true'
   // MSSQL (tedious) driver options — encrypt / trustServerCertificate / instanceName.

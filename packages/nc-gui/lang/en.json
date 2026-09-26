@@ -5188,7 +5188,8 @@
     "marketplaceComingSoon": "This app is still being packaged, so it can't be installed yet.",
     "marketplaceAuthored": "Written by the publisher, not derived from the app's contents.",
     "marketplaceVerifiedPublisher": "Published and reviewed by NocoDB",
-    "verifyEmailBeforeReset": "If your email wasn’t verified during sign-up, please verify it now before proceeding with the reset; otherwise, you won’t receive the reset code."
+    "verifyEmailBeforeReset": "If your email wasn’t verified during sign-up, please verify it now before proceeding with the reset; otherwise, you won’t receive the reset code.",
+    "vaultPromoteToOrg": "Make available to the whole organization"
   },
   "placeholder": {
     "requestIntegration": "Provide integration name and your use-case.",
@@ -6545,7 +6546,8 @@
       "appRelisted": "Back in the App Store",
       "oauthClientUpdated": "OAuth client updated successfully!",
       "oauthClientCreated": "OAuth client created successfully!",
-      "oauthClientCreatedTitle": "OAuth Client Created Successfully!"
+      "oauthClientCreatedTitle": "OAuth Client Created Successfully!",
+      "vaultScopeOrg": "Vault is now available to every workspace in the organization"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

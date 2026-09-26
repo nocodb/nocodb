@@ -11,9 +11,14 @@ import { MetaTable } from '~/utils/globals';
 // path as nc_integrations_v2.config, so an instance without the key stores it
 // as plaintext JSON exactly as integrations already do.
 //
-// The secrets themselves are NEVER stored. An integration config carries a
-// reference leaf naming (vault id, secret id, key within the secret), and the
-// value is fetched from the provider at connection time.
+// The secrets themselves are NEVER stored. An integration config field holds a
+// reference string — `{{ secrets.<title>.<secretId>.<key> }}` — and the value is
+// fetched from the provider at connection time.
+//
+// `title` doubles as that reference alias, which is why it is unique per
+// workspace: two vaults sharing one alias would make every reference ambiguous.
+// It is also immutable once set — the service rejects a rename, because a stored
+// reference embeds the alias and nothing rewrites those rows.
 //
 // No `deleted` column: a vault is hard-deleted, and the service refuses the
 // delete while any integration still references it. A soft-deleted vault would
@@ -32,6 +37,12 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
     table.primary(['id']);
     table.index(['fk_workspace_id'], 'nc_vaults_ws_index');
+    // Named explicitly — Postgres truncates a generated identifier at 63 chars,
+    // and a silently shortened name is one nothing can drop by the name it
+    // expects.
+    table.unique(['fk_workspace_id', 'title'], {
+      indexName: 'nc_vaults_ws_title_unique',
+    });
   });
 };
 

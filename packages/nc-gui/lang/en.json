@@ -3436,7 +3436,7 @@
     "workingHours": "Working hours",
     "resource": "Resource",
     "rate": "Rate",
-    "rateTotal": "Total for the whole record",
+    "rateTotal": "Total",
     "ratePerDay": "Per day",
     "ratePerWeek": "Per week",
     "ratePerMonth": "Per month",

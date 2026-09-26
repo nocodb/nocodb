@@ -13,6 +13,7 @@ import type {
   InterfaceUserFilterConfig,
 } from './elements';
 import { InterfacePageLayoutTypes } from './enums';
+import type { DateAxisUtilizationConfig } from '../timelineUtilization';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Visualizations (table pages; also embeddable in dashboard groups)
@@ -141,7 +142,11 @@ export type InterfaceGalleryVizTheme = 'card' | 'poster' | 'minimal' | 'simple';
  * Cover crop on `card` (`none` = the fixed 208px band); tile geometry on
  * `minimal`/`simple` (16:10 when `none`). `poster` ignores it.
  */
-export type InterfaceGalleryCoverAspectRatio = 'none' | 'wide' | 'square' | 'tall';
+export type InterfaceGalleryCoverAspectRatio =
+  | 'none'
+  | 'wide'
+  | 'square'
+  | 'tall';
 
 export interface InterfaceGalleryVizConfig
   extends InterfaceVizCommon,
@@ -271,7 +276,7 @@ export interface DateAxisSummaryConfig {
   /** One of the aggregation enums (see `aggregationHelper` in nocodb-sdk). */
   aggregation: string;
   /** `function` → show the aggregation's name; `custom` → show `custom_label`. */
-  label?: 'function' | 'custom';
+  label?: 'none' | 'function' | 'custom';
   custom_label?: string;
   /**
    * Where the summary is rendered. An omitted key means `true`, so summaries
@@ -282,6 +287,8 @@ export interface DateAxisSummaryConfig {
     bottom_bar?: boolean;
     groups?: boolean;
   };
+  /** Present when `aggregation` is `utilization`; `fk_column_id` is the allocated-hours field. */
+  utilization?: DateAxisUtilizationConfig;
 }
 
 export interface InterfaceCalendarVizConfig

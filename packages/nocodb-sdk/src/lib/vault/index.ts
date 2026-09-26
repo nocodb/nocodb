@@ -99,11 +99,12 @@ export interface ParsedSecretRef {
  * Permissive detector: does this value MENTION the secrets namespace inside
  * `{{ }}`, whether or not it parses.
  *
- * Save paths use this to reject a malformed reference instead of storing it.
- * Without that check a typo (`{{ secret.v.k }}`, a missing brace) is persisted
- * verbatim as the credential — Databricks documents exactly this failure:
- * "Otherwise, the environment variable is considered a plain text environment
- * variable." A password-shaped typo would land in the meta DB in the clear.
+ * A reference is an object, so a typo can no longer BECOME one by accident.
+ * What this still catches is a human pasting the brace syntax into a plain
+ * field — from older docs, another instance, or a colleague — which would
+ * otherwise be stored verbatim as the credential. Databricks documents exactly
+ * that failure: "Otherwise, the environment variable is considered a plain text
+ * environment variable." Save paths reject it and point at the vault toggle.
  */
 export const mentionsSecretsNamespace = (value: unknown): boolean => {
   if (typeof value !== 'string') return false;
@@ -120,56 +121,56 @@ export const mentionsSecretsNamespace = (value: unknown): boolean => {
   return value.includes('{') && /\bsecrets?\s*[.[]/.test(value);
 };
 
-// `.ident` or `['quoted']` / `["quoted"]`, whitespace tolerated around each part.
-const ACCESSOR =
-  /^\s*(?:\.\s*([A-Za-z_$][A-Za-z0-9_$]*)|\[\s*(['"])((?:(?!\2)[\s\S])*)\2\s*\])/;
+/** The stored shape of a vault-backed field. */
+export interface VaultSecretRef {
+  $vault: {
+    alias: string;
+    secret: string;
+    /** Key path into a JSON secret. Empty means the whole secret, a string. */
+    path?: string[];
+  };
+}
 
 /**
- * Parse a field value into a reference, or null when it is not one.
+ * Parse a stored field value into a reference, or null when it is not one.
  *
- * Whole-field only: the trimmed value must be exactly one `{{ … }}` block whose
- * contents are `secrets` followed by at least two accessors (alias, secret).
- * Anything further is the JSON key path.
+ * A reference is an OBJECT, not a string. The string form this replaced could
+ * not distinguish "meant as a reference but mistyped" from "a password that
+ * happens to contain braces" — so a typo was stored as the credential, and a
+ * heuristic (`mentionsSecretsNamespace`) had to guess. An object carries intent
+ * structurally: `$vault` present means a reference was intended, and a
+ * malformed one is a validation error rather than a password.
+ *
+ * n8n avoids the same problem differently, by marking expressions with a
+ * leading `=` on the string. That works there because `$secrets` rides on a
+ * general expression evaluator; an integration config has no expression layer,
+ * and a sentinel prefix would misread a literal password beginning with `=`.
  */
 export const parseSecretRef = (value: unknown): ParsedSecretRef | null => {
-  if (typeof value !== 'string') return null;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
 
-  const trimmed = value.trim();
-  if (!trimmed.startsWith('{{') || !trimmed.endsWith('}}')) return null;
+  const ref = (value as VaultSecretRef).$vault;
+  if (!ref || typeof ref !== 'object' || Array.isArray(ref)) return null;
 
-  let rest = trimmed.slice(2, -2).trim();
+  const { alias, secret, path } = ref as Record<string, unknown>;
 
-  if (!rest.startsWith(SECRETS_NAMESPACE)) return null;
-  rest = rest.slice(SECRETS_NAMESPACE.length);
-  // Guard against `secretsFoo.x.y` — the namespace must end at a boundary.
-  if (/^[A-Za-z0-9_$]/.test(rest)) return null;
+  if (typeof alias !== 'string' || !isValidVaultAlias(alias)) return null;
+  if (typeof secret !== 'string' || !secret) return null;
 
-  const segments: string[] = [];
-  while (rest.trim().length) {
-    const match = ACCESSOR.exec(rest);
-    if (!match) return null;
-    segments.push(match[1] !== undefined ? match[1] : match[3]);
-    rest = rest.slice(match[0].length);
+  if (path !== undefined) {
+    if (!Array.isArray(path)) return null;
+    if (path.some((segment) => typeof segment !== 'string' || !segment))
+      return null;
   }
 
-  if (segments.length < 2) return null;
-
-  const [alias, secret, ...path] = segments;
-  if (!isValidVaultAlias(alias) || !secret) return null;
-
-  return { alias, secret, path };
+  return { alias, secret, path: (path as string[]) ?? [] };
 };
 
-/** Whether a field value is a well-formed reference. */
+/** Whether a stored field value is a well-formed reference. */
 export const isSecretRef = (value: unknown): boolean =>
   parseSecretRef(value) !== null;
 
-/**
- * Render a reference, using dot form only where the segment is a bare
- * identifier. Real AWS secret names contain `/` and `!`, so the bracket form is
- * the common case rather than the exception — Retool's own "Reference" column
- * emits brackets for the same reason.
- */
+/** Build the stored form. The only place a reference is constructed. */
 export const buildSecretRef = ({
   alias,
   secret,
@@ -178,14 +179,28 @@ export const buildSecretRef = ({
   alias: string;
   secret: string;
   path?: string[];
-}): string => {
-  const accessor = (segment: string) =>
-    isJsIdentifier(segment) ? `.${segment}` : `[${JSON.stringify(segment)}]`;
+}): VaultSecretRef => ({ $vault: { alias, secret, path } });
 
-  return `{{ ${SECRETS_NAMESPACE}${accessor(alias)}${accessor(secret)}${path
+/** `.ident` or `['quoted']`, for rendering a reference to a human. */
+const accessor = (segment: string): string =>
+  isJsIdentifier(segment) ? `.${segment}` : `[${JSON.stringify(segment)}]`;
+
+/**
+ * Human-readable rendering, for the picker's preview and for error messages.
+ * Display only — never stored, never parsed back.
+ */
+export const formatSecretRef = ({
+  alias,
+  secret,
+  path = [],
+}: {
+  alias: string;
+  secret: string;
+  path?: string[];
+}): string =>
+  `${SECRETS_NAMESPACE}${accessor(alias)}${accessor(secret)}${path
     .map(accessor)
-    .join('')} }}`;
-};
+    .join('')}`;
 
 /**
  * The recorded outcome of the last `vaultTestConnection` run against a STORED

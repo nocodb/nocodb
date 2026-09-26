@@ -3014,6 +3014,7 @@
     "documentation": "Documentation",
     "signUpWithProvider": "Sign up with {provider}",
     "chooseSignInProvider": "Choose a provider to continue",
+    "continueWithProvider": "Continue with {provider}",
     "signInWithProvider": "Sign in with {provider}",
     "inviteOnlySignup": "Allow signup only using invite url",
     "restrictWorkspaceCreation": "Restrict workspace creation to super admin only",
@@ -5851,6 +5852,7 @@
         "message_2": "We will send you an email with a link to reset your password.",
         "success": "Please check your email to reset the password"
       },
+      "ssoManagedByOrg": "Sign-in is managed by your organization.",
       "signUp": {
         "superAdmin": "You will be the 'Super Admin'",
         "alreadyHaveAccount": "Already have an account ?",

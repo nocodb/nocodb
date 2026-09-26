@@ -87,6 +87,45 @@ export const multiLinkTableSchemas = [
       link('fldMlPrReqDoc', 'Requirement Doc', 'tblMlAssets', 'fldMlAsProj2'),
       link('fldMlPrAssets', 'Assets', 'tblMlAssets', 'fldMlAsProj3'),
       link('fldMlPrAssets2', 'Assets 2', 'tblMlAssets', 'fldMlAsProj'),
+      {
+        id: 'fldMlPrAstCnt',
+        name: 'Asset Count',
+        type: 'count',
+        typeOptions: { relationColumnId: 'fldMlPrAssets' },
+        initialCreatedByUserId: USER_ID,
+      },
+      {
+        id: 'fldMlPrAstName',
+        name: 'Asset Name',
+        type: 'lookup',
+        typeOptions: {
+          relationColumnId: 'fldMlPrAssets',
+          foreignTableRollupColumnId: 'fldMlAsName',
+        },
+        initialCreatedByUserId: USER_ID,
+      },
+      // Two lookups over the same rollup: they only resolve once rollups
+      // exist, and the second pass used to skip every other one.
+      {
+        id: 'fldMlPrAstPCnt',
+        name: 'Asset Project Count',
+        type: 'lookup',
+        typeOptions: {
+          relationColumnId: 'fldMlPrAssets2',
+          foreignTableRollupColumnId: 'fldMlAsPrjCnt',
+        },
+        initialCreatedByUserId: USER_ID,
+      },
+      {
+        id: 'fldMlPrReqPCnt',
+        name: 'Req Doc Project Count',
+        type: 'lookup',
+        typeOptions: {
+          relationColumnId: 'fldMlPrReqDoc',
+          foreignTableRollupColumnId: 'fldMlAsPrjCnt',
+        },
+        initialCreatedByUserId: USER_ID,
+      },
       // One-way link: Airtable creates no symmetric column, so the importer
       // has only `foreignTableId` to find the target table with.
       {
@@ -119,6 +158,13 @@ export const multiLinkTableSchemas = [
       // Symmetric of the third Projects link, so it was auto-named `Projects2`
       // while the first link's symmetric column holds `Projects`.
       link('fldMlAsProj', 'Projects', 'tblMlProjects', 'fldMlPrAssets2'),
+      {
+        id: 'fldMlAsPrjCnt',
+        name: 'Project Count',
+        type: 'count',
+        typeOptions: { relationColumnId: 'fldMlAsProj' },
+        initialCreatedByUserId: USER_ID,
+      },
       link('fldMlAsProj2', 'Projects 2', 'tblMlProjects', 'fldMlPrReqDoc'),
       link('fldMlAsProj3', 'Projects 3', 'tblMlProjects', 'fldMlPrAssets'),
     ],

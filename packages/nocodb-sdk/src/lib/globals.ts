@@ -486,6 +486,7 @@ interface PlanLimitExceededDetailsType {
   limit?: number;
   current?: number;
   higherPlan?: PlanTitles | OnPremPlanTitles;
+  limitType?: string;
 }
 
 interface CreditsExhaustedDetailsType {

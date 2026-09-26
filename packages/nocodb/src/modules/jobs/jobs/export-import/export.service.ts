@@ -1116,7 +1116,8 @@ export class ExportService {
                   const userEmails = [];
                   const userRecord = Array.isArray(v) ? v : [v];
                   for (const user of userRecord) {
-                    userEmails.push(user.email);
+                    // non-members come back without an email; keep the id
+                    userEmails.push(user?.email ?? user?.id);
                   }
                   row[colId] = userEmails.join(',');
                 } else {

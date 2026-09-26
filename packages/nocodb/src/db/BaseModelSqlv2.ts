@@ -9474,12 +9474,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         } else if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 
-          // Trusted internal copy paths (base duplication / snapshot / import)
-          // carry existing User-field values across verbatim rather than
-          // assigning them interactively, so a value referencing someone who is
-          // not a member of the destination workspace is valid history — not a
-          // new assignment to reject. Skip the membership check and instead
-          // resolve the referenced user globally so the reference is preserved.
+          // Copy paths carry values across: keep any user that exists on this instance.
           const skipMembershipValidation = !!extra?.skipPermissionCheck;
 
           if (
@@ -9514,8 +9509,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   const u = baseUsers.find((u) => u.id === user.id);
                   if (!u) {
                     if (skipMembershipValidation) {
-                      // carry the id across verbatim
-                      userIds.push(user.id);
+                      // keep the id only if the user exists on this instance
+                      if ((await User.get(user.id))?.id) userIds.push(user.id);
                       continue;
                     }
                     NcError.get(this.context).unprocessableEntity(
@@ -9579,8 +9574,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   const u = baseUsers.find((u) => u.id === user);
                   if (!u) {
                     if (skipMembershipValidation) {
-                      // carry the id across verbatim
-                      userIds.push(user);
+                      // keep the id only if the user exists on this instance
+                      if ((await User.get(user))?.id) userIds.push(user);
                       continue;
                     }
                     NcError.get(this.context).unprocessableEntity(

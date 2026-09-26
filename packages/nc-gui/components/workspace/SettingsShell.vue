@@ -118,6 +118,7 @@ watch(
 
     <ShellRail
       v-if="showRail"
+      class="!bg-nc-bg-default"
       :full-width="isMobileMode"
       :groups="navGroups"
       :active="tab"
@@ -129,10 +130,23 @@ watch(
       @group-toggle="onGroupToggle"
     >
       <template #top>
-        <div class="nc-ws-settings-topbar !px-2">
+        <!-- Which workspace these settings belong to, level with the breadcrumb strip. -->
+        <div class="nc-ws-settings-topbar gap-2 !px-4" data-testid="nc-ws-settings-workspace">
+          <template v-if="activeWorkspace">
+            <GeneralWorkspaceIcon :workspace="activeWorkspace" size="small" class="flex-none" />
+            <!-- `capitalize`, like the main sidebar: display only, the stored title is untouched. -->
+            <NcTooltip show-on-truncate-only class="truncate capitalize text-bodyDefaultSmBold text-nc-content-gray-emphasis">
+              {{ activeWorkspace.title }}
+            </NcTooltip>
+          </template>
+        </div>
+
+        <div class="flex-none px-2 pt-2">
           <NcButton type="text" size="small" data-testid="nc-ws-settings-back-btn" @click="onBack">
             <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncArrowLeft" />
+              <div class="flex items-center justify-center h-6 w-6 rounded-md bg-nc-bg-brand text-nc-content-brand">
+                <GeneralIcon icon="ncArrowLeft" />
+              </div>
               <span class="text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</span>
             </div>
           </NcButton>

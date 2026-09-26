@@ -175,7 +175,7 @@ const onSearchEnter = () => {
       <template v-for="group in filteredGroups" :key="group.key ?? group.label">
         <component
           :is="group.collapsible ? 'button' : 'div'"
-          v-if="group.items.length"
+          v-if="group.items.length && group.label"
           class="nc-shell-rail-group"
           :class="{
             'nc-shell-rail-group-divider': group.divider,

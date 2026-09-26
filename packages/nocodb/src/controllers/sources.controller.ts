@@ -16,6 +16,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { hideSecretRefIds } from '~/helpers/secretRefVisibility';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -30,6 +31,7 @@ export class SourcesController {
   async baseGet(
     @TenantContext() context: NcContext,
     @Param('sourceId') sourceId: string,
+    @Req() req: NcRequest,
   ) {
     const source = await this.sourcesService.baseGetWithConfig(context, {
       sourceId,
@@ -41,6 +43,7 @@ export class SourcesController {
     source.integration_config = undefined;
 
     maskKnexConfig(source);
+    hideSecretRefIds(req, source.config);
 
     return source;
   }

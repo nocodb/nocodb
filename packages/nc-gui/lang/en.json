@@ -4666,17 +4666,7 @@
     "clickHere": "Click here",
     "emailVerification": "Email Verification",
     "method": "Method",
-    "queryParameters": "Query Parameters",
-    "vaultOidcIssuer": "Issuer",
-    "vaultOidcAudience": "Audience",
-    "vaultOidcSubject": "Subject",
-    "vaultAwsAccountId": "AWS account ID",
-    "vaultTrustTitle": "Trust this workspace from AWS",
-    "vaultTrustPolicy": "Trust policy",
-    "vaultPermissionsPolicy": "Permissions policy",
-    "vaultShowPolicies": "Show IAM policies to paste",
-    "vaultHidePolicies": "Hide IAM policies",
-    "vaultTrustTitleOrg": "Trust this organization from AWS"
+    "queryParameters": "Query Parameters"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6228,10 +6218,7 @@
       "autoPopulateConnectionFromUrl": "Auto populate connection configuration using database connection URL",
       "whitelistIpForDatabaseAccess": "Whitelist our ip: 52.15.226.51 to allow database access",
       "runTestToSeeOutput": "Run a test to see the output",
-      "redirectUrlHint": "This is the URL where authentication responses will be sent after successful login. Also referred to as 'Callback URL' or 'Reply URL'.",
-      "vaultTrustHint": "In the AWS IAM console, add an OIDC identity provider with the issuer and audience below, then create a role that uses these two policies. NocoDB assumes that role — no access keys are stored.",
-      "vaultAwsAccountIdHint": "The 12-digit account that owns the secrets. Used only to build the policy below.",
-      "vaultCmkHint": "If the secret is encrypted with a customer-managed KMS key, also allow kms:Decrypt on that key."
+      "redirectUrlHint": "This is the URL where authentication responses will be sent after successful login. Also referred to as 'Callback URL' or 'Reply URL'."
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",
@@ -6449,9 +6436,7 @@
       "agentNameExceedsCharacters": "Agent name exceeds {value} characters",
       "screenshotType": "Screenshots must be PNG, JPG, WEBP or AVIF.",
       "screenshotSize": "Screenshots must be under 5 MB.",
-      "screenshotUploadFailed": "Could not upload that screenshot. Try again.",
-      "vaultOidcNotConfigured": "This deployment cannot federate to AWS yet",
-      "vaultOidcNotConfiguredDesc": "No OIDC issuer is configured. Set NC_VAULT_OIDC_ISSUER (or NC_SITE_URL) and the signing key, then reopen this page."
+      "screenshotUploadFailed": "Could not upload that screenshot. Try again."
     },
     "toast": {
       "changesSaved": "Changes saved",

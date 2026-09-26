@@ -204,31 +204,6 @@ export interface VaultLastTestType {
   at: string;
 }
 
-/**
- * The federated identity this deployment presents to a customer's cloud when
- * assuming their role — the exact three strings they must put in an AWS IAM
- * trust policy, handed to the UI so the Connect wizard can render a copy-ready
- * policy instead of asking an admin to derive them.
- *
- * Available BEFORE a vault row exists: the role has to trust us before it can
- * be assumed, so the values cannot wait on the vault they are used to create.
- * They depend only on the scope, never on the vault.
- */
-export interface VaultFederationIdentityType {
-  /**
-   * False when the deployment has no issuer configured (`NC_VAULT_OIDC_ISSUER`
-   * / `NC_SITE_URL`). `issuer` is then absent and the UI must say the
-   * deployment is not set up rather than show a policy that cannot work.
-   */
-  configured: boolean;
-  /** `<site>/oidc/o/<orgId>`, shared by every workspace under the org. */
-  issuer?: string;
-  /** Pinned by the trust policy's `:aud` condition. */
-  audience: string;
-  /** `org:<id>` or `workspace:<id>` — pinned by the `:sub` condition. */
-  subject: string;
-}
-
 /** Response-safe vault metadata. */
 export interface VaultMetaType {
   lastTest?: VaultLastTestType;
@@ -303,7 +278,7 @@ export interface VaultProviderMeta {
   title: string;
   /** One-line description shown under the title in the picker. */
   description: string;
-  /** Auth-method chip on the right of the picker row, e.g. `IAM role · OIDC`. */
+  /** Auth-method chip on the right of the picker row, e.g. `Access keys`. */
   authLabel: string;
   /** Key in the frontend `iconMap`. */
   icon: string;
@@ -329,8 +304,8 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
     [VaultProviderType.AWS_SECRETS_MANAGER]: {
       type: VaultProviderType.AWS_SECRETS_MANAGER,
       title: 'AWS Secrets Manager',
-      description: 'Assume an IAM role in your account. No long-lived keys.',
-      authLabel: 'IAM role · OIDC',
+      description: 'Read secrets with an IAM user scoped to Secrets Manager.',
+      authLabel: 'Access keys',
       icon: 'NcAmazonAws',
       available: true,
       supportsProperty: true,
@@ -342,12 +317,18 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
           required: true,
         },
         {
-          key: 'roleArn',
-          label: 'Role ARN',
-          placeholder: 'arn:aws:iam::123456789012:role/NocoDBVaultAccess',
+          key: 'accessKeyId',
+          label: 'Access key ID',
+          placeholder: 'AKIAIOSFODNN7EXAMPLE',
           required: true,
+        },
+        {
+          key: 'secretAccessKey',
+          label: 'Secret access key',
+          required: true,
+          secret: true,
           helpText:
-            'An IAM role in your account that trusts this workspace as an OIDC provider.',
+            'An IAM user scoped to reading secrets. Stored encrypted and never returned — rotate it in AWS.',
         },
       ],
     },

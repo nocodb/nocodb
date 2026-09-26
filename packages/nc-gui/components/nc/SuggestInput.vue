@@ -1,3 +1,12 @@
+<script lang="ts">
+/**
+ * `$attrs` are forwarded to the inner `<input>` (below), so Vue must not ALSO
+ * apply them to the root — a `data-testid` handed to this component would
+ * otherwise land on both and make a bare `getByTestId` ambiguous.
+ */
+export default { inheritAttrs: false }
+</script>
+
 <script setup lang="ts">
 /**
  * A single-line input with a grouped, keyboard-navigable suggestion list that

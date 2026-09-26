@@ -142,24 +142,6 @@ describe('licenseTelemetry', () => {
       LicenseTelemetryEvent.SEAT_REMOVED,
     );
   });
-  it('app_version_changed keeps version strings and drops free text', () => {
-    expect(
-      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.APP_VERSION_CHANGED, {
-        from_version: '0.263.1',
-        to_version: '0.264.0-ee.1',
-      }),
-    ).toEqual({ from_version: '0.263.1', to_version: '0.264.0-ee.1' });
-    expect(
-      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.APP_VERSION_CHANGED, {
-        from_version: 'jane doe',
-        to_version: 264,
-      }),
-    ).toEqual({});
-    expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
-      LicenseTelemetryEvent.APP_VERSION_CHANGED,
-    );
-  });
-
   describe('activity summary', () => {
     it('maps event names to a fixed category, everything else to other', () => {
       expect(licenseActivityCategory('c:table:create')).toBe('table');

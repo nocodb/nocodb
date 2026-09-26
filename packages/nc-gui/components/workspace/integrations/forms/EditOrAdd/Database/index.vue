@@ -2,8 +2,7 @@
 import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
-import { IntegrationsType, isVaultSecretRef, validateAndExtractSSLProp } from 'nocodb-sdk'
-import type { VaultSecretRef } from 'nocodb-sdk'
+import { IntegrationsType, isSecretRef, validateAndExtractSSLProp } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
@@ -117,14 +116,21 @@ const isDisabledSubmitBtn = computed(() => {
 })
 
 // A credential that already points into a vault replaces its plain input —
-// otherwise the ref would read back as an empty password box.
-const isVaultBackedUser = computed(() => isVaultSecretRef((formState.value.dataSource.connection as DefaultConnection).user))
+// otherwise the ref would read back as an empty password box. The picker also
+// reports its own mode, because a half-made pick is not yet a valid reference.
+const isVaultModeUser = ref(false)
 
-const isVaultBackedPassword = computed(() =>
-  isVaultSecretRef((formState.value.dataSource.connection as DefaultConnection).password),
+const isVaultModePassword = ref(false)
+
+const isVaultBackedUser = computed(
+  () => isVaultModeUser.value || isSecretRef((formState.value.dataSource.connection as DefaultConnection).user),
 )
 
-function setCredential(field: 'user' | 'password', value: string | VaultSecretRef | null) {
+const isVaultBackedPassword = computed(
+  () => isVaultModePassword.value || isSecretRef((formState.value.dataSource.connection as DefaultConnection).password),
+)
+
+function setCredential(field: 'user' | 'password', value: string | null) {
   ;(formState.value.dataSource.connection as DefaultConnection)[field] = value ?? ''
 }
 
@@ -973,6 +979,7 @@ watch(
                             field-key="user"
                             :label="$t('labels.username')"
                             @update:value="(value) => setCredential('user', value)"
+                            @update:vault-mode="(mode) => (isVaultModeUser = mode)"
                           />
                         </a-form-item>
                       </a-col>
@@ -994,6 +1001,7 @@ watch(
                             field-key="password"
                             :label="$t('labels.password')"
                             @update:value="(value) => setCredential('password', value)"
+                            @update:vault-mode="(mode) => (isVaultModePassword = mode)"
                           />
                         </a-form-item>
                       </a-col>

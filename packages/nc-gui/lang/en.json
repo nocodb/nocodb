@@ -7043,10 +7043,22 @@
       },
       "paidPlanOnly": "Credits can be purchased on paid plans only. Upgrade your plan to buy credits."
     },
+    "summary": {
+      "trial": "Trial",
+      "trialEnds": "Trial ends {date}",
+      "dueOn": "Due {date}",
+      "noPaidSubscription": "No paid subscription",
+      "seatUtilization": "Seat utilization",
+      "seatsOf": "{used} of {total} seats in use",
+      "seatsInUse": "{count} seats in use",
+      "freeRolesNote": "Viewers and commenters don't use a seat",
+      "creditsOf": "{used} of {total} used"
+    },
     "planCard": {
       "hideLimits": "Hide limits",
       "showLimits": "Show limits",
       "usageThisCycle": "Usage this cycle",
+      "ofLimit": "of {limit}",
       "seatsOnWorkspace": "Seats on this workspace",
       "seatsOnOrg": "Seats in this organization",
       "workspaceSubscription": "Workspace subscription",

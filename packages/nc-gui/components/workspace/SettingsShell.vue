@@ -81,7 +81,7 @@ function onBack() {
 }
 
 function onGroupToggle(key: string, open: boolean) {
-  $e('c:settings:ws:group-toggle', { group: key, open })
+  $e('c:settings:ws:group:toggle', { group: key, open })
 }
 
 watch(
@@ -106,7 +106,7 @@ watch(
       loadCollaborators({}, workspaceId.value)
     }
 
-    $e(`a:workspace:settings:tab-change:${props.tab}`)
+    $e('a:workspace:settings:tab:switch', { tab: props.tab })
   },
   { immediate: true },
 )

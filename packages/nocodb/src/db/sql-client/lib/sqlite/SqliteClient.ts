@@ -1658,7 +1658,7 @@ class SqliteClient extends KnexClient {
       if (fkCheckEnabled)
         await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
 
-      await this.sqlClient.raw('PRAGMA legacy_alter_table = ON;');
+      await this.sqlClient.raw('PRAGMA legacy_alter_table = OFF;');
 
       /*
         This is a hack to avoid the following error:

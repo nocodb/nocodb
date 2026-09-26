@@ -108,7 +108,7 @@ import * as nc_202609181111_oauth_grant_permissions from './v0/nc_202609181111_o
 import * as nc_202609191200_app_factory from './v0/nc_202609191200_app_factory';
 import * as nc_202609211109_code_projects from './v0/nc_202609211109_code_projects';
 import * as nc_202609250735_oauth_scope_text from './v0/nc_202609250735_oauth_scope_text';
-import * as nc_202609211200_vaults from './v0/nc_202609211200_vaults';
+import * as nc_202609251200_vaults from './v0/nc_202609251200_vaults';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -228,7 +228,7 @@ export default class XcMigrationSourcev0 {
       'nc_202609191200_app_factory',
       'nc_202609211109_code_projects',
       'nc_202609250735_oauth_scope_text',
-      'nc_202609211200_vaults',
+      'nc_202609251200_vaults',
     ]);
   }
 
@@ -458,8 +458,8 @@ export default class XcMigrationSourcev0 {
         return nc_202609211109_code_projects;
       case 'nc_202609250735_oauth_scope_text':
         return nc_202609250735_oauth_scope_text;
-      case 'nc_202609211200_vaults':
-        return nc_202609211200_vaults;
+      case 'nc_202609251200_vaults':
+        return nc_202609251200_vaults;
     }
   }
 }

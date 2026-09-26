@@ -1,10 +1,13 @@
 <script setup lang="ts">
+// Legacy route. Workspace settings is a `?wsSettings=` overlay now, so this path
+// hands over to the workspace home with the shell open.
 definePageMeta({
-  hideHeader: true,
-  hasSidebar: true,
+  middleware: [
+    (to) => navigateTo({ path: `/${to.params.typeOrId}`, query: { ...to.query, wsSettings: 'members' } }, { replace: true }),
+  ],
 })
 </script>
 
 <template>
-  <WorkspaceView is-new-ws-page />
+  <div class="h-full" />
 </template>

@@ -61,22 +61,7 @@ export const isSharedBaseOrErdOrViewRoute = (route: RouteLocationNormalizedLoade
   )
 }
 
-export const wsHomeRouteNames = new Set([
-  'index',
-  'index-index',
-  'index-typeOrId',
-  'index-typeOrId-home',
-  'index-typeOrId-index',
-  'index-typeOrId-members',
-  'index-typeOrId-teams',
-  'index-typeOrId-billing',
-  'index-typeOrId-usage',
-  'index-typeOrId-audits',
-  'index-typeOrId-sso',
-  'index-typeOrId-scim',
-  'index-typeOrId-settings',
-  'index-typeOrId-integrations',
-])
+export const wsHomeRouteNames = new Set(['index', 'index-index', 'index-typeOrId', 'index-typeOrId-home', 'index-typeOrId-index'])
 
 export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
   if (!route) return false
@@ -95,15 +80,6 @@ export const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-home': 'home',
   'index-typeOrId-index': 'bases',
   'index-typeOrId': 'bases',
-  'index-typeOrId-members': 'collaborators',
-  'index-typeOrId-teams': 'teams',
-  'index-typeOrId-integrations': 'integrations',
-  'index-typeOrId-audits': 'audits',
-  'index-typeOrId-billing': 'billing',
-  'index-typeOrId-usage': 'usage',
-  'index-typeOrId-sso': 'sso',
-  'index-typeOrId-scim': 'scim',
-  'index-typeOrId-settings': 'settings',
 }
 
 /**
@@ -112,41 +88,3 @@ export const routeNameToWsTab: Record<string, string> = {
 export const wsTabToRouteName: Record<string, string> = Object.fromEntries(
   Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]),
 )
-
-/**
- * Route names grouped under the "Admin" sidebar item on the workspace home page.
- * Billing / Audits / SSO / SCIM render as sub-tabs of the Admin section while
- * keeping their flat routes (deep links stay valid).
- */
-export const wsAdminRouteNames = new Set([
-  'index-typeOrId-settings',
-  'index-typeOrId-billing',
-  'index-typeOrId-usage',
-  'index-typeOrId-audits',
-  'index-typeOrId-sso',
-  'index-typeOrId-scim',
-])
-
-export const isWsAdminRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
-  if (!route) return false
-
-  return wsAdminRouteNames.has(route.name as string)
-}
-
-/**
- * Route names that correspond to workspace settings pages.
- * Used to detect whether the current route is a workspace settings page.
- */
-export const wsSettingsRouteNames = new Set([
-  'index-typeOrId-settings-page',
-  'index-typeOrId-members',
-  'index-typeOrId-teams',
-  'index-typeOrId-billing',
-  'index-typeOrId-usage',
-  'index-typeOrId-audits',
-  'index-typeOrId-sso',
-  'index-typeOrId-scim',
-  'index-typeOrId-ws-settings',
-  'index-typeOrId-general',
-  'index-typeOrId-more',
-])

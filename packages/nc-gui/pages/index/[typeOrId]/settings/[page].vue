@@ -1,18 +1,19 @@
 <script setup lang="ts">
+// Legacy `/{ws}/settings/{page}` deep link — hands over to the settings overlay.
 definePageMeta({
-  hideHeader: true,
-  hasSidebar: true,
+  middleware: [
+    (to) =>
+      navigateTo(
+        {
+          path: `/${to.params.typeOrId}`,
+          query: { ...to.query, wsSettings: resolveWsSettingsSlug(to.params.page) ?? 'general' },
+        },
+        { replace: true },
+      ),
+  ],
 })
-
-const route = useRoute()
-
-// Redirect old /settings/{page} URLs to new flat /{wsId}/{slug}
-const slug = route.params.page as string
-const wsTab = wsSettingsSlugToTab[slug]
-const newSlug = wsTab ? wsSettingsTabToSlug[wsTab] || slug : slug
-navigateTo(`/${route.params.typeOrId}/${newSlug}`, { replace: true })
 </script>
 
 <template>
-  <div />
+  <div class="h-full" />
 </template>

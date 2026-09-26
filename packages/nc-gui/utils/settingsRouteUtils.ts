@@ -115,31 +115,63 @@ export function appSettingsNavFor(isInstall: boolean, isListing = false, hasApp 
   return appSettingsNav.filter((item) => (item.listing ? isListing && storeEnabled : hasApp))
 }
 
-// Workspace settings: internal tab name → URL slug
-// These map to flat routes: /{wsId}/{slug} (e.g. /{wsId}/members)
-export const wsSettingsTabToSlug: Record<string, string> = {
+/** Workspace settings panes, by their `?wsSettings=` slug. The slug is the pane key. */
+export const wsSettingsSlugs = [
+  'members',
+  'teams',
+  'integrations',
+  'general',
+  'skills',
+  'security',
+  'danger-zone',
+  'billing',
+  'usage',
+  'audits',
+  'sso',
+] as const
+
+export type WsSettingsSlug = (typeof wsSettingsSlugs)[number]
+
+/** The General page's sections — one rail row each in the shell, `?tab=` on the old page. */
+export type WsSettingsSection = 'appearance' | 'skills' | 'security' | 'dangerZone'
+
+/**
+ * Old names that still reach a pane: the flat `/{ws}/{page}` routes, the
+ * `/{ws}/settings/{page}` slugs before them, and the General page's `?tab=`
+ * sections, which are rail rows now.
+ */
+export const wsSettingsLegacySlugs: Record<string, WsSettingsSlug> = {
+  'settings': 'general',
+  'more': 'general',
+  'ws-settings': 'general',
+  'appearance': 'general',
+  'dangerZone': 'danger-zone',
+  'collaborators': 'members',
   'ws-collaborators': 'members',
   'ws-teams': 'teams',
   'ws-integrations': 'integrations',
   'ws-billing': 'billing',
   'ws-audits': 'audits',
   'ws-sso': 'sso',
-  'ws-settings': 'more',
+}
+
+/** The pane a `?wsSettings=` value (or a legacy name) names, or null when it names none. */
+export function resolveWsSettingsSlug(slug: unknown): WsSettingsSlug | null {
+  if (typeof slug !== 'string') return null
+
+  if ((wsSettingsSlugs as readonly string[]).includes(slug)) return slug as WsSettingsSlug
+
+  return wsSettingsLegacySlugs[slug] ?? null
 }
 
 // Combined: all settings tabs → URL slugs
 export const settingsTabToSlug: Record<string, string> = {
   ...baseSettingsTabToSlug,
-  ...wsSettingsTabToSlug,
 }
 
 // Inverse: URL slug → internal tab name
 export const baseSettingsSlugToTab: Record<string, string> = Object.fromEntries(
   Object.entries(baseSettingsTabToSlug).map(([k, v]) => [v, k]),
-)
-
-export const wsSettingsSlugToTab: Record<string, string> = Object.fromEntries(
-  Object.entries(wsSettingsTabToSlug).map(([k, v]) => [v, k]),
 )
 
 /**

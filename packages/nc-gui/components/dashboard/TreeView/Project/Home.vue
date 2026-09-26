@@ -56,7 +56,7 @@ const hasTableCreatePermission = computed(() => {
       </DashboardSidebarHeaderWrapper>
 
       <div
-        v-if="hasTableCreatePermission && !isSharedBase && activeSidebarTab !== 'settings'"
+        v-if="hasTableCreatePermission && !isSharedBase"
         class="nc-project-home-section !py-0 xs:mt-1 flex items-center min-h-[var(--toolbar-height)]"
       >
         <div class="flex items-center w-full">
@@ -93,13 +93,6 @@ const hasTableCreatePermission = computed(() => {
       <!-- Data tab -->
       <template v-if="activeSidebarTab === 'data'">
         <Table :base-id="base.id" hide-header @create-table="addNewProjectChildEntity()" />
-      </template>
-
-      <!-- Settings panel -->
-      <template v-else-if="activeSidebarTab === 'settings'">
-        <!-- Base settings is a modal now (ProjectSettingsShell); only the
-             workspace's own settings still live in this sidebar. -->
-        <DashboardTreeViewProjectWsSettingsMenu v-if="showWsSettingsInBase" />
       </template>
 
       <!-- Fallback to data -->

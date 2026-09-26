@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const props = defineProps<{
   workspaceId?: string
+  section?: WsSettingsSection
 }>()
 
 const workspaceStore = useWorkspace()
@@ -18,6 +19,8 @@ const { hasAdminTabBar } = useWorkspaceTabVisibility(activeWorkspace)
 // Workspace home Admin route: the sub-tab bar (44px) only sits above this page when
 // there are 2+ admin tabs to switch between.
 const containerHeightClass = computed(() => {
+  if (props.section) return 'h-full'
+
   if (isSettingsSidebar.value) return 'h-[calc(100vh-var(--topbar-height))]'
 
   return hasAdminTabBar.value ? 'h-[calc(100vh-var(--topbar-height)-44px)]' : 'h-[calc(100vh-var(--topbar-height))]'

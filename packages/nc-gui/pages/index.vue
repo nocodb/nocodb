@@ -12,7 +12,7 @@ const workspaceStore = useWorkspace()
 
 const { populateWorkspace } = workspaceStore
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
 
 const { signedIn } = useGlobal()
 
@@ -28,9 +28,11 @@ const isHomeSidebarRoute = computed(() => {
   return isWsHomeRoute(route.value)
 })
 
-const isAdminRoute = computed(() => {
-  return isWsAdminRoute(route.value)
-})
+/**
+ * `?wsSettings={slug}` opens workspace settings over whatever route is active —
+ * the workspace home, or a table inside a base.
+ */
+const wsSettingsTab = computed(() => resolveWsSettingsSlug(route.value.query.wsSettings))
 
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
 
@@ -165,7 +167,6 @@ onMounted(() => {
         <!-- Workspace home: stable header + tabs + dynamic page content -->
         <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full" :style="{ '--topbar-height': '3.5rem' }">
           <WorkspaceViewTopbar />
-          <WorkspaceAdminTabs v-if="isAdminRoute" />
           <div class="flex-1 overflow-auto">
             <NuxtPage :transition="false" />
           </div>
@@ -175,6 +176,10 @@ onMounted(() => {
       </template>
     </NuxtLayout>
     <DlgSharedBaseDuplicate v-if="isUIAllowed('baseDuplicate')" v-model="isDuplicateDlgOpen" />
+    <LazyWorkspaceSettingsShell
+      v-if="!showOnboardingFlow && !isSharedView && !isSharedFormView && activeWorkspace && wsSettingsTab"
+      :tab="wsSettingsTab"
+    />
   </div>
 </template>
 

@@ -237,6 +237,12 @@ export interface VaultType {
   title?: string;
   provider?: VaultProviderType;
   meta?: VaultMetaType;
+  /**
+   * Display-only name of the owning workspace, joined in by the org-management
+   * listing so its Scope column can name the workspace rather than print an id.
+   * Never persisted, and absent everywhere else — including on org-owned rows.
+   */
+  workspace_title?: string;
   created_by?: string;
   created_at?: string;
   updated_at?: string;

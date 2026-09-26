@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { InviteLinkScope } from 'nocodb-sdk'
+
 /**
  * The private-link block. There is no separate "create" step: the link is a
  * detail of copying one, so it is minted on the first copy and never just
@@ -10,6 +12,7 @@ const { t } = useI18n()
 
 const {
   links,
+  target: inviteTarget,
   linkUrl,
   isLoading,
   isLoaded,
@@ -21,6 +24,8 @@ const {
   createLink,
   saveLink,
 } = useInviteLinks()
+
+const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
 const { copy } = useCopy()
 
@@ -47,7 +52,10 @@ const hasLink = computed(() => !!primary.value)
 const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : t('activity.createInviteLink')))
 
 async function onRoleChange(next: string) {
-  $e('c:share:link:role', { role: next, existing: !!primary.value })
+  $e(isWorkspaceInvite.value ? 'c:ws:invite:link:role:change' : 'c:base:invite:link:role:change', {
+    role: next,
+    existing: !!primary.value,
+  })
 
   if (!primary.value) {
     pendingRole.value = next
@@ -74,7 +82,12 @@ async function onCopy() {
     if (!link) {
       link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
 
-      if (link) $e('a:share:link:create', { role: link.role, restricted: !!link.email_domain })
+      if (link) {
+        $e(isWorkspaceInvite.value ? 'a:ws:invite:link:create' : 'a:base:invite:link:create', {
+          role: link.role,
+          restricted: !!link.email_domain,
+        })
+      }
     }
 
     if (!link) return
@@ -83,7 +96,10 @@ async function onCopy() {
     // do nothing at all and look like a dead button.
     await copy(linkUrl(link))
 
-    $e('c:share:link:copy', { created: isFirst, restricted: !!link.email_domain })
+    $e(isWorkspaceInvite.value ? 'c:ws:invite:link:copy' : 'c:base:invite:link:copy', {
+      created: isFirst,
+      restricted: !!link.email_domain,
+    })
 
     isCopied.value = true
     clearTimeout(copiedTimer)

@@ -29,6 +29,9 @@ const token = computed(() => String(route.params.token || ''))
 
 const preview = ref<InviteLinkPreviewType | null>(null)
 
+/** Event names carry the scope segment; a base link is the default until the preview says otherwise. */
+const isWorkspaceInvite = computed(() => preview.value?.scope === InviteLinkScope.WORKSPACE)
+
 const isLoading = ref(true)
 
 /** Held true while the browser navigates away, so the card never flashes. */
@@ -96,7 +99,9 @@ async function loadPreview() {
     // held open explicitly -- otherwise the invite card renders with a blank
     // name, a blank role and a live Join button for the whole navigation.
     if (res.data?.already_member) {
-      $e('c:invite:view', { scope: res.data.scope, state: 'already_member' })
+      $e(res.data.scope === InviteLinkScope.WORKSPACE ? 'c:ws:invite:link:view' : 'c:base:invite:link:view', {
+        state: 'already_member',
+      })
       isRedirecting.value = true
       window.location.replace(landingPath(res.data))
       return
@@ -104,15 +109,15 @@ async function loadPreview() {
 
     preview.value = res.data
 
-    $e('c:invite:view', {
-      scope: res.data?.scope,
+    $e(res.data?.scope === InviteLinkScope.WORKSPACE ? 'c:ws:invite:link:view' : 'c:base:invite:link:view', {
       state: res.data?.invalid_reason ?? 'ok',
       restricted: !!res.data?.email_domain,
       signedIn: signedIn.value,
     })
   } catch (e: any) {
     loadError.value = await extractSdkResponseErrorMsg(e)
-    $e('c:invite:view', { state: 'error' })
+    // the link could not be read, so its scope is unknown
+    $e('c:invite:link:view:error')
   } finally {
     isLoading.value = false
   }
@@ -120,14 +125,24 @@ async function loadPreview() {
 
 /** Come back here after signing in, so the link is not lost at the door. */
 function goSignIn(path: '/signin' | '/signup') {
-  $e(path === '/signup' ? 'c:invite:signup' : 'c:invite:signin')
+  $e(
+    path === '/signup'
+      ? isWorkspaceInvite.value
+        ? 'c:ws:invite:link:sign-up'
+        : 'c:base:invite:link:sign-up'
+      : isWorkspaceInvite.value
+      ? 'c:ws:invite:link:sign-in'
+      : 'c:base:invite:link:sign-in',
+  )
 
   return navigateTo({ path, query: { continueAfterSignIn: `/invite/${token.value}` } })
 }
 
 /** Sign out, then come back here as someone else. */
 function switchAccount() {
-  $e('c:invite:switch-account', { reason: wrongDomain.value ? 'wrong_domain' : 'refused' })
+  $e(isWorkspaceInvite.value ? 'c:ws:invite:link:switch-account' : 'c:base:invite:link:switch-account', {
+    reason: wrongDomain.value ? 'wrong_domain' : 'refused',
+  })
 
   return signOut({
     redirectToSignin: true,
@@ -142,7 +157,9 @@ async function onJoin() {
   try {
     const res = await $api.instance.post(`/api/v2/invite-links/${encodeURIComponent(token.value)}/accept`)
 
-    $e('a:invite:join', { scope: preview.value?.scope, restricted: !!preview.value?.email_domain })
+    $e(isWorkspaceInvite.value ? 'a:ws:invite:link:accept' : 'a:base:invite:link:accept', {
+      restricted: !!preview.value?.email_domain,
+    })
 
     // Same hold as the already-member path: the card must not sit on screen
     // through the navigation, or the browser has a live Join button to restore
@@ -154,7 +171,9 @@ async function onJoin() {
     window.location.href = landingPath(res.data || {})
   } catch (e: any) {
     joinError.value = await extractSdkResponseErrorMsg(e)
-    $e('a:invite:join:refused', { scope: preview.value?.scope, status: e?.response?.status })
+    $e(isWorkspaceInvite.value ? 'a:ws:invite:link:accept:refused' : 'a:base:invite:link:accept:refused', {
+      status: e?.response?.status,
+    })
     isJoining.value = false
     // The refusal may be about the link itself, so re-read its state.
     await loadPreview()

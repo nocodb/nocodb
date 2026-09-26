@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, InviteLinkScope } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
   InviteLinkAcceptEvent,
@@ -261,8 +261,10 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const param = data as InviteLinkEvent;
 
           this.telemetryService.sendEvent({
-            evt_type: 'invite-link:created',
-            scope: param.link.scope,
+            evt_type:
+              param.link.scope === InviteLinkScope.WORKSPACE
+                ? 'a:ws:invite:link:create'
+                : 'a:base:invite:link:create',
             role: param.link.role,
             restricted: !!param.link.email_domain,
           });
@@ -276,8 +278,10 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const param = data as InviteLinkAcceptEvent;
 
           this.telemetryService.sendEvent({
-            evt_type: 'invite-link:accepted',
-            scope: param.link.scope,
+            evt_type:
+              param.link.scope === InviteLinkScope.WORKSPACE
+                ? 'a:ws:invite:link:accept'
+                : 'a:base:invite:link:accept',
             role: param.link.role,
             already_member: param.already_member,
           });

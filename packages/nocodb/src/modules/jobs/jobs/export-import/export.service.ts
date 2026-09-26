@@ -13,6 +13,7 @@ import {
   NcApiVersion,
   PermissionEntity,
   RelationTypes,
+  remapDateAxisSummaryIds,
   UITypes,
   ViewTypes,
   type WidgetType,
@@ -536,6 +537,19 @@ export class ExportService {
                     }
                     meta[colId] = v;
                     delete meta[k];
+                  }
+                  view.view.meta = meta;
+                } else if (view.type === ViewTypes.TIMELINE) {
+                  // Summarize / utilization point at fields (and, for time
+                  // off, another table) — carry them as external ids.
+                  const meta = parseMetaProp(view.view) as Record<string, any>;
+                  if (meta?.summary) {
+                    const summary = remapDateAxisSummaryIds(
+                      meta.summary,
+                      (id) => idMap.get(id),
+                    );
+                    if (summary) meta.summary = summary;
+                    else delete meta.summary;
                   }
                   view.view.meta = meta;
                 }

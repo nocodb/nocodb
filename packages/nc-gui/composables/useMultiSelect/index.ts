@@ -55,7 +55,7 @@ export function useMultiSelect(
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-  ) => Promise<void>,
+  ) => Promise<Record<string, any>[] | void>,
   fillHandle?: MaybeRef<HTMLElement | undefined>,
   view?: MaybeRef<ViewType | undefined>,
   paginationData?: MaybeRef<PaginatedType | undefined>,

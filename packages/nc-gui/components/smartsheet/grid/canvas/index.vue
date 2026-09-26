@@ -100,7 +100,7 @@ const props = defineProps<{
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
-  ) => Promise<void>
+  ) => Promise<Record<string, any>[] | void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path: Array<number>) => void
   removeRowIfNew: (row: Row, path?: Array<number>) => void
   rowSortRequiredRows: Row[]

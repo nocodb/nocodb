@@ -6414,6 +6414,7 @@
       "unlinkFailed": "Unlink failed",
       "failedToDeleteLinkedRecords": "Failed to delete linked records",
       "rowUpdateFailed": "Record update failed",
+      "recordOutsidePageFilter": "This record no longer matches this page's filters, so it can't be edited here",
       "deleteRowFailed": "Failed to delete record",
       "requiredFieldMissing": "Required field missing: {fields}",
       "requiredFieldsMissing": "Required fields missing: {fields}",

@@ -155,7 +155,7 @@ export function useCanvasTable({
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
-  ) => Promise<void>
+  ) => Promise<Record<string, any>[] | void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
@@ -1523,7 +1523,8 @@ export function useCanvasTable({
     syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path: Array<number> = []) => {
       const dataCache = getDataCache(path)
       const rowObj = dataCache.cachedRows.value.get(ctx.row)
-      const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
+      // `columns` drops some fields and moves the display value first, so it can't be read as `fields[column - 1]`
+      const columnObj = ctx.column !== undefined ? columns.value[ctx.column]?.columnObj ?? null : null
 
       if (!rowObj || !columnObj) {
         triggerRefreshCanvas()
